@@ -45,9 +45,9 @@ private extension NymVPNApp {
         LoggingSystem.bootstrap { label in
             FileLogHandler(label: label)
         }
+        try? ConfigurationManager.setEnvVariables(for: .mainnet)
         ThemeConfiguration.setup()
         SentryManager.shared.setup()
-        ConfigurationManager.configureMainnetEnvironmentVariables()
     }
 
     func configureScreenSize() {

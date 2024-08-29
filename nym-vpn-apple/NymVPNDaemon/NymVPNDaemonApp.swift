@@ -53,7 +53,7 @@ private extension NymVPNDaemonApp {
         LoggingSystem.bootstrap { label in
             FileLogHandler(label: label)
         }
-        ConfigurationManager.configureMainnetEnvironmentVariables()
+        try? ConfigurationManager.setEnvVariables(for: .mainnet)
         ThemeConfiguration.setup()
         SentryManager.shared.setup()
         HelperManager.shared.setup(helperName: Constants.helperName.rawValue)

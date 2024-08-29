@@ -24,7 +24,7 @@ public struct MixnetConfig: Codable, Equatable {
         credentialsDataPath: String,
         isTwoHopEnabled: Bool = false,
         name: String = "NymVPN Mixnet",
-        apiUrlString: String = Constants.apiUrl.rawValue
+        apiUrlString: String = Constants.apiURL()?.absoluteString ?? ""
     ) {
         self.entryGateway = entryGateway
         self.exitRouter = exitRouter
@@ -52,15 +52,13 @@ public struct MixnetConfig: Codable, Equatable {
 // MARK: - VpnConfig -
 extension MixnetConfig {
     public func asVpnConfig(mixnetTunnelProvider: MixnetTunnelProvider) throws -> VpnConfig {
-        guard
-            let apiURL = URL(string: Constants.apiUrl.rawValue),
-            let vpnApiURL = URL(string: Constants.nymVpnApiUrl.rawValue)
+        guard let apiURL = Constants.apiURL()
         else {
             throw GeneralNymError.invalidUrl
         }
         return VpnConfig(
             apiUrl: apiURL,
-            vpnApiUrl: vpnApiURL,
+            vpnApiUrl: nil,
             entryGateway: entryGateway?.entryPoint ?? .random,
             exitRouter: exitRouter.exitPoint,
             enableTwoHop: isTwoHopEnabled,

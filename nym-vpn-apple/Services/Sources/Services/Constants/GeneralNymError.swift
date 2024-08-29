@@ -8,6 +8,7 @@ public enum GeneralNymError: Error, Equatable {
     case cannotParseCountries
     case library(message: String)
     case invalidCredential
+    case noEnvFile
 }
 
 extension GeneralNymError: LocalizedError {
@@ -25,6 +26,8 @@ extension GeneralNymError: LocalizedError {
             return message
         case .invalidCredential:
             return "error.noValidCredential".localizedString
+        case .noEnvFile:
+            return "generalNymError.noEnvFile".localizedString
         }
     }
 }

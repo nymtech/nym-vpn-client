@@ -22,6 +22,12 @@
 		D944053F2BAC4CBD0076EEDB /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9CF05D82BA1CC7100489055 /* SystemConfiguration.framework */; };
 		D94866FF2BE035C300F5331B /* CredentialsManager in Frameworks */ = {isa = PBXBuildFile; productRef = D94866FE2BE035C300F5331B /* CredentialsManager */; };
 		D94867012BE035FB00F5331B /* Constants in Frameworks */ = {isa = PBXBuildFile; productRef = D94867002BE035FB00F5331B /* Constants */; };
+		D94CC12D2C8077B600B319B5 /* canary.env in Sources */ = {isa = PBXBuildFile; fileRef = D94CC12C2C8077B600B319B5 /* canary.env */; };
+		D94CC1302C807B8E00B319B5 /* mainnet.env in Resources */ = {isa = PBXBuildFile; fileRef = D94CC12E2C807B8E00B319B5 /* mainnet.env */; };
+		D94CC1312C807B8E00B319B5 /* sandbox.env in Resources */ = {isa = PBXBuildFile; fileRef = D94CC12F2C807B8E00B319B5 /* sandbox.env */; };
+		D94CC1322C807B9300B319B5 /* sandbox.env in Resources */ = {isa = PBXBuildFile; fileRef = D94CC12F2C807B8E00B319B5 /* sandbox.env */; };
+		D94CC1332C807B9300B319B5 /* canary.env in Resources */ = {isa = PBXBuildFile; fileRef = D94CC12C2C8077B600B319B5 /* canary.env */; };
+		D94CC1342C807B9300B319B5 /* mainnet.env in Resources */ = {isa = PBXBuildFile; fileRef = D94CC12E2C807B8E00B319B5 /* mainnet.env */; };
 		D9538E2E2B7E3F28002FA8B5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D9538E2D2B7E3F28002FA8B5 /* LaunchScreen.storyboard */; };
 		D954C0B92B51C1CA00C6BAAC /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D954C0A62B51C17200C6BAAC /* NetworkExtension.framework */; };
 		D954C0BC2B51C1CA00C6BAAC /* PacketTunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D954C0BB2B51C1CA00C6BAAC /* PacketTunnelProvider.swift */; };
@@ -135,6 +141,9 @@
 		D9264E252B3DA062004594A8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D9281C462B8884D400834B53 /* NymVPN.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NymVPN.entitlements; sourceTree = "<group>"; };
 		D94127BA2BFF2CB7009EDB7A /* Entitlements.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Entitlements.plist; sourceTree = "<group>"; };
+		D94CC12C2C8077B600B319B5 /* canary.env */ = {isa = PBXFileReference; lastKnownFileType = text; path = canary.env; sourceTree = "<group>"; };
+		D94CC12E2C807B8E00B319B5 /* mainnet.env */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = mainnet.env; sourceTree = "<group>"; };
+		D94CC12F2C807B8E00B319B5 /* sandbox.env */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = sandbox.env; sourceTree = "<group>"; };
 		D9538E2D2B7E3F28002FA8B5 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Resources/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D954C0A62B51C17200C6BAAC /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
 		D954C0B82B51C1CA00C6BAAC /* NymMixnetTunnel.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NymMixnetTunnel.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -261,6 +270,16 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		D94CC12B2C80765600B319B5 /* Envs */ = {
+			isa = PBXGroup;
+			children = (
+				D94CC12C2C8077B600B319B5 /* canary.env */,
+				D94CC12E2C807B8E00B319B5 /* mainnet.env */,
+				D94CC12F2C807B8E00B319B5 /* sandbox.env */,
+			);
+			path = Envs;
+			sourceTree = "<group>";
+		};
 		D954C0BA2B51C1CA00C6BAAC /* NymMixnetTunnel */ = {
 			isa = PBXGroup;
 			children = (
@@ -287,6 +306,7 @@
 			isa = PBXGroup;
 			children = (
 				D9E9F1A12C3D51650056EB8C /* README.md */,
+				D94CC12B2C80765600B319B5 /* Envs */,
 				D9FB33F02BEE31E2009C3419 /* Daemon */,
 				D99A14782B357E9900F2728B /* NymVPN */,
 				D9BEF2D12BEB63310036C566 /* NymVPNDaemon */,
@@ -568,7 +588,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9538E2E2B7E3F28002FA8B5 /* LaunchScreen.storyboard in Resources */,
+				D94CC1312C807B8E00B319B5 /* sandbox.env in Resources */,
 				D98B32EE2C58E24E005A15A3 /* Package.resolved in Resources */,
+				D94CC1302C807B8E00B319B5 /* mainnet.env in Resources */,
 				D96B94E02C2AB62D00E98B15 /* gatewaysExitCountries.json in Resources */,
 				D96B94DE2C2AB62D00E98B15 /* gatewaysEntryCountries.json in Resources */,
 				D9264E262B3DA062004594A8 /* Assets.xcassets in Resources */,
@@ -584,6 +606,9 @@
 				D98B32F22C58F682005A15A3 /* Package.resolved in Resources */,
 				D96B94E12C2AB62D00E98B15 /* gatewaysExitCountries.json in Resources */,
 				D96B94DF2C2AB62D00E98B15 /* gatewaysEntryCountries.json in Resources */,
+				D94CC1322C807B9300B319B5 /* sandbox.env in Resources */,
+				D94CC1332C807B9300B319B5 /* canary.env in Resources */,
+				D94CC1342C807B9300B319B5 /* mainnet.env in Resources */,
 				D9BEF2D72BEB63320036C566 /* Assets.xcassets in Resources */,
 				D9F236252C650A9200CCC433 /* LibLicences.json in Resources */,
 			);
@@ -667,6 +692,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D99A147A2B357E9900F2728B /* NymVPNApp.swift in Sources */,
+				D94CC12D2C8077B600B319B5 /* canary.env in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

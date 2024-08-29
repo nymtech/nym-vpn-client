@@ -595,6 +595,17 @@
         }
       }
     },
+    "generalNymError.noEnvFile" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Env file cannot be found"
+          }
+        }
+      }
+    },
     "generalNymError.noPrebundledCountries" : {
       "extractionState" : "manual",
       "localizations" : {
