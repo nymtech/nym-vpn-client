@@ -5,7 +5,7 @@ use log::LevelFilter;
 use oslog::OsLogger;
 
 pub fn init_logs() {
-    OsLogger::new("net.nymtech.vpn.agent")
+    let result = OsLogger::new("net.nymtech.vpn.agent")
         .level_filter(LevelFilter::Debug)
         .category_level_filter("hyper", LevelFilter::Warn)
         .category_level_filter("tokio_reactor", LevelFilter::Warn)
@@ -16,7 +16,14 @@ pub fn init_logs() {
         .category_level_filter("tokio_tungstenite", LevelFilter::Warn)
         .category_level_filter("handlebars", LevelFilter::Warn)
         .category_level_filter("sled", LevelFilter::Warn)
-        .init()
-        .expect("Could not init logs");
-    tracing::debug!("Logger initialized");
+        .init();
+
+    match result {
+        Ok(_) => {
+            tracing::debug!("Logger initialized");
+        }
+        Err(e) => {
+            tracing::error!("Failed to initialize os_log: {}", e);
+        }
+    };
 }
