@@ -172,12 +172,12 @@ pub(crate) fn replace_default_prefixes(network: IpNetwork) -> Vec<IpNetwork> {
 
 #[cfg(target_os = "ios")]
 pub(crate) async fn setup_mixnet_routing(
-    route_manager: &mut RouteManager,
+    _route_manager: &mut RouteManager,
     config: RoutingConfig,
     #[cfg(target_os = "ios")] ios_tun_provider: std::sync::Arc<
         dyn crate::mobile::ios::tun_provider::OSTunProvider,
     >,
-    dns_monitor: &mut DnsMonitor,
+    _dns_monitor: &mut DnsMonitor,
     dns: Option<IpAddr>,
 ) -> Result<tun2::AsyncDevice> {
     let fd =
