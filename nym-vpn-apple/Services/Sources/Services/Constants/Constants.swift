@@ -1,9 +1,8 @@
+import Foundation
+
 public enum Constants: String {
     case groupID = "group.net.nymtech.vpn"
     case helperName = "net.nymtech.vpn.helper"
-
-    case apiUrl = "https://validator.nymtech.net/api"
-    case nymVpnApiUrl = "https://nymvpn.com/api"
 
     case sandboxApiUrl = "https://canary-api.performance.nymte.ch/api"
     case sandboxExplorerURL = "https://canary-explorer.performance.nymte.ch/api"
@@ -17,4 +16,8 @@ public enum Constants: String {
     case ghIssuesLink = "https://www.nymtech.net/go/github/nym-vpn-client/issues"
 
     case logFileName = "Logs.log"
+
+    public static func apiURL() -> URL? {
+        getenv("NYM_API").flatMap { URL(string: String(cString: $0)) }
+    }
 }

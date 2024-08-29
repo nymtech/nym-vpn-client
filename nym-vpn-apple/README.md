@@ -17,6 +17,12 @@ brew, go, swiftlint, swift-protobuf, grpc-swift
 Notices:
 - If mac is connected to VPN, Xcode and device connection is not working.
 
+Env vars:
+Update the env vars from https://github.com/nymtech/nym/tree/develop/envs
+```
+sh Scripts/UpdateEnvVars.sh
+```
+
 iOS:
 
 Mixnet lib update:

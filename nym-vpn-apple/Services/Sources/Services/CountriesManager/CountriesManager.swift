@@ -205,8 +205,7 @@ private extension CountriesManager {
 #if os(iOS)
 private extension CountriesManager {
     func fetchEntryExitCountries() {
-        guard let apiURL = URL(string: Constants.apiUrl.rawValue),
-              let vpnApiURL = URL(string: Constants.nymVpnApiUrl.rawValue)
+        guard let apiURL = Constants.apiURL()
         else {
             updateError(with: GeneralNymError.cannotFetchCountries)
             return
@@ -215,7 +214,7 @@ private extension CountriesManager {
         do {
             let entryExitLocations = try getGatewayCountries(
                 apiUrl: apiURL,
-                nymVpnApiUrl: vpnApiURL,
+                nymVpnApiUrl: nil,
                 exitOnly: false,
                 userAgent: nil
             )
@@ -226,7 +225,7 @@ private extension CountriesManager {
 
             let exitLocations = try getGatewayCountries(
                 apiUrl: apiURL,
-                nymVpnApiUrl: vpnApiURL,
+                nymVpnApiUrl: nil,
                 exitOnly: true,
                 userAgent: nil
             )

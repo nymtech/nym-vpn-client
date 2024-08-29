@@ -54,9 +54,10 @@ Package.resolved
 
 Carthage/Build/
 
-
-
-nym-vpn-client/
 MixnetLibrary/Libs
+
+Envs/canary.env
+Envs/sandbox.env
+Envs/mainnet.env
 
 .sentryclirc
