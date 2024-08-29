@@ -186,7 +186,6 @@ impl WgTunnelRunner {
                 entry.identity(),
                 &self.generic_config.data_path,
                 self.task_manager.subscribe_named("mixnet_client_main"),
-                false,
                 self.generic_config.mixnet_client_config.clone(),
             ),
         )
