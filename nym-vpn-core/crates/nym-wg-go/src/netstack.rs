@@ -148,7 +148,7 @@ impl Tunnel {
             self.handle = -1;
         }
 
-        if self.boxed_logger_ptr.is_null() {
+        if !self.boxed_logger_ptr.is_null() {
             unsafe {
                 let _ = Box::from_raw(self.boxed_logger_ptr);
             }
