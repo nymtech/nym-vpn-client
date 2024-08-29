@@ -8,7 +8,7 @@ use nym_validator_client::{signing::signer::OfflineSigner as _, DirectSecp256k1H
 use reqwest::{IntoUrl, StatusCode, Url};
 use serde::{Deserialize, Serialize};
 
-use crate::jwt::Jwt;
+use crate::{headers::DEVICE_AUTHORIZATION_HEADER, jwt::Jwt};
 
 // const BASE_URL: &str = "https://nymvpn.com/api/public";
 const BASE_URL: &str =
@@ -87,7 +87,7 @@ struct RegisterDeviceRequest {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct NymVpnAccountResponse {
+pub struct NymVpnAccountResponse {
     created_on_utc: String,
     last_updated_utc: String,
     account_addr: String,
@@ -260,6 +260,113 @@ impl AccountClient {
     }
 }
 
+// #[allow(async_fn_in_trait)]
+// pub trait VpnApiClientExt2: nym_http_api_client::ApiClient {
+//     fn get_with_account<U: IntoUrl>(&self, url: U, account: &Account) -> reqwest::RequestBuilder {
+//         let builder = reqwest::Client::new().get(url);
+//         crate::headers::add_account_auth_header(builder, account.jwt().to_string())
+//     }
+//
+//     async fn get_account(
+//         &self,
+//         account: &Account,
+//     ) -> Result<NymVpnAccountResponse, nym_http_api_client::HttpClientError> {
+//         dbg!(&account.jwt());
+//         // let url = self.path(&[routes::V1, routes::ACCOUNT, &account.id()]);
+//         // let response = self.get_with_account(url, account).send().await?;
+//         // dbg!(&response);
+//
+//         let response = self
+//             .get_json(
+//                 &[routes::V1, routes::ACCOUNT, &account.id()],
+//                 nym_http_api_client::NO_PARAMS,
+//             )
+//             .await;
+//
+//         // let text = response.text().await.unwrap();
+//         // dbg!(&text);
+//
+//         response
+//
+//         // let json = match response.status() {
+//         //     StatusCode::OK => response.json().await.map_err(ApiError::from),
+//         //     StatusCode::FORBIDDEN => Err(ApiError::Forbidden(response.json().await.unwrap())),
+//         //     _ => Err(ApiError::Unknown),
+//         // };
+//         // dbg!(&json);
+//         // json
+//     }
+// }
+
+pub struct AccountClient2 {
+    client: nym_http_api_client::Client,
+}
+
+impl AccountClient2 {
+    fn new(base_url: Url) -> Self {
+        let client = nym_http_api_client::Client::builder::<_,nym_http_api_client::HttpClientError>(base_url)
+            .unwrap()
+            // .with_user_agent(format!("nym-wasm-znym-lib/{}", env!("CARGO_PKG_VERSION")))
+            .build::<nym_http_api_client::HttpClientError>()
+            .unwrap();
+        Self { client }
+    }
+
+    async fn get_account(
+        &self,
+        account: &Account,
+        device: &Device,
+    ) -> Result<NymVpnAccountResponse, nym_http_api_client::HttpClientError> {
+        dbg!(&account.jwt());
+        // let url = self.path(&[routes::V1, routes::ACCOUNT, &account.id()]);
+        // let response = self.get_with_account(url, account).send().await?;
+        // dbg!(&response);
+
+        let mut headers = reqwest::header::HeaderMap::new();
+        let auth_value = format!("Bearer {}", device.jwt());
+        let mut header_value = reqwest::header::HeaderValue::from_str(&auth_value).unwrap();
+        header_value.set_sensitive(true);
+        headers.insert(reqwest::header::AUTHORIZATION, header_value);
+
+        let request = self
+            .client
+            .create_get_request(
+                &[routes::V1, routes::ACCOUNT, &account.id()],
+                nym_http_api_client::NO_PARAMS,
+            )
+            // .headers(headers);
+            .bearer_auth(account.jwt().to_string())
+            .header(DEVICE_AUTHORIZATION_HEADER, device.jwt().to_string());
+        // let request = crate::headers::add_account_auth_header(request, account.jwt().to_string());
+        //
+        // builder.header(DEVICE_AUTHORIZATION_HEADER, format!("Bearer {jwt}"))
+
+        // Add header
+        // let device_auth_header = reqwest::header::HeaderMap::new();
+        // let mut headers = reqwest::header::HeaderMap::new();
+        // let auth_value = format!("Bearer {}", device.jwt());
+        // let mut header_value = reqwest::header::HeaderValue::from_str(&auth_value).unwrap();
+        // header_value.set_sensitive(true);
+        // headers.insert(reqwest::header::AUTHORIZATION, header_value);
+
+        let response = request.send().await?;
+        dbg!(&response);
+
+        nym_http_api_client::parse_response(response, false).await
+
+        // let text = response.text().await.unwrap();
+        // dbg!(&text);
+
+        // let json = match response.status() {
+        //     StatusCode::OK => response.json().await.map_err(ApiError::from),
+        //     StatusCode::FORBIDDEN => Err(ApiError::Forbidden(response.json().await.unwrap())),
+        //     _ => Err(ApiError::Unknown),
+        // };
+        // dbg!(&json);
+        // json
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -283,8 +390,13 @@ mod tests {
     #[tokio::test]
     async fn get_account() {
         let account = Account::from(get_mnemonic());
-        let client = AccountClient::new(BASE_URL.parse().unwrap());
-        client.get_account(&account).await;
+        let device = Device::from(get_ed25519_keypair());
+        // let client = AccountClient::new(BASE_URL.parse().unwrap());
+        let client = AccountClient2::new(BASE_URL.parse().unwrap());
+        // client.get_account(&account).await;
+        let r = client.get_account(&account, &device).await;
+
+        dbg!(&r);
     }
 
     // #[tokio::test]
