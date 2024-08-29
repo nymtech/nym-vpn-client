@@ -386,17 +386,6 @@
         }
       }
     },
-    "displayTheme" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Display theme"
-          }
-        }
-      }
-    },
     "entryLocationTitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1064,6 +1053,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Anonymous error reports"
+          }
+        }
+      }
+    },
+    "settings.appearance" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appearance"
           }
         }
       }
