@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::sync::Arc;
+use std::{fmt, sync::Arc};
 
 use nym_crypto::asymmetric::ed25519;
 use nym_validator_client::{signing::signer::OfflineSigner as _, DirectSecp256k1HdWallet};
@@ -302,6 +302,31 @@ pub struct AccountClient2 {
     client: nym_http_api_client::Client,
 }
 
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct NymErrorResponse {
+    pub message: Option<String>,
+    pub message_id: Option<String>,
+    pub code_reference_id: Option<String>,
+    pub status: String,
+}
+
+impl fmt::Display for NymErrorResponse {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "status: {}", self.status);
+        if let Some(message) = &self.message {
+            write!(f, ". message: {message}")?;
+        }
+        if let Some(message_id) = &self.message_id {
+            write!(f, ". message_id: {message_id}")?;
+        }
+        if let Some(code_reference_id) = &self.code_reference_id {
+            write!(f, ". code_reference_id: {code_reference_id}")?;
+        }
+        Ok(())
+    }
+}
+
 impl AccountClient2 {
     fn new(base_url: Url) -> Self {
         let client = nym_http_api_client::Client::builder::<_,nym_http_api_client::HttpClientError>(base_url)
@@ -316,40 +341,18 @@ impl AccountClient2 {
         &self,
         account: &Account,
         device: &Device,
-    ) -> Result<NymVpnAccountResponse, nym_http_api_client::HttpClientError> {
+    ) -> Result<NymVpnAccountResponse, nym_http_api_client::HttpClientError<NymErrorResponse>> {
         dbg!(&account.jwt());
-        // let url = self.path(&[routes::V1, routes::ACCOUNT, &account.id()]);
-        // let response = self.get_with_account(url, account).send().await?;
-        // dbg!(&response);
-
-        let mut headers = reqwest::header::HeaderMap::new();
-        let auth_value = format!("Bearer {}", device.jwt());
-        let mut header_value = reqwest::header::HeaderValue::from_str(&auth_value).unwrap();
-        header_value.set_sensitive(true);
-        headers.insert(reqwest::header::AUTHORIZATION, header_value);
-
-        let request = self
+        let response = self
             .client
             .create_get_request(
                 &[routes::V1, routes::ACCOUNT, &account.id()],
                 nym_http_api_client::NO_PARAMS,
             )
-            // .headers(headers);
             .bearer_auth(account.jwt().to_string())
-            .header(DEVICE_AUTHORIZATION_HEADER, device.jwt().to_string());
-        // let request = crate::headers::add_account_auth_header(request, account.jwt().to_string());
-        //
-        // builder.header(DEVICE_AUTHORIZATION_HEADER, format!("Bearer {jwt}"))
+            .header(DEVICE_AUTHORIZATION_HEADER, device.jwt().to_string())
+            .send().await?;
 
-        // Add header
-        // let device_auth_header = reqwest::header::HeaderMap::new();
-        // let mut headers = reqwest::header::HeaderMap::new();
-        // let auth_value = format!("Bearer {}", device.jwt());
-        // let mut header_value = reqwest::header::HeaderValue::from_str(&auth_value).unwrap();
-        // header_value.set_sensitive(true);
-        // headers.insert(reqwest::header::AUTHORIZATION, header_value);
-
-        let response = request.send().await?;
         dbg!(&response);
 
         nym_http_api_client::parse_response(response, false).await
@@ -397,6 +400,7 @@ mod tests {
         let r = client.get_account(&account, &device).await;
 
         dbg!(&r);
+        println!("{}", r.unwrap_err());
     }
 
     // #[tokio::test]
