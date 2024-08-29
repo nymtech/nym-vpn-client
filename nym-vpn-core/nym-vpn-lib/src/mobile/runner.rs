@@ -3,6 +3,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use ipnetwork::{IpNetwork, Ipv4Network};
+use tokio::task::JoinSet;
 use tokio_util::sync::CancellationToken;
 
 use nym_authenticator_client::AuthClient;
@@ -115,7 +116,7 @@ impl TunnelRunner {
         })
     }
 
-    pub async fn start(self) -> Result<()> {
+    pub async fn start(mut self) -> Result<()> {
         let SelectedGateways { entry, exit } = self.select_gateways().await?;
         let mixnet_client = self.start_mixnet_client(&entry).await?;
 
@@ -130,7 +131,52 @@ impl TunnelRunner {
                     return Err(err);
                 }
             };
-            self.start_wireguard(mixnet_client, auth_addresses).await
+
+            let bandwidth_controller =
+                BandwidthController::new(mixnet_client.clone(), self.task_manager.subscribe());
+            tokio::spawn(bandwidth_controller.run());
+
+            let mut shutdown_monitor_task_client = self.task_manager.subscribe();
+            let cloned_shutdown_handle = self.shutdown_token.clone();
+
+            let mut set = JoinSet::new();
+            set.spawn(async move {
+                let result = self.start_wireguard(mixnet_client, auth_addresses).await;
+
+                // Shutdown task manager if the tunnel had to exit sooner.
+                if let Err(e) = self.task_manager.signal_shutdown() {
+                    tracing::error!("Failed to signal task manager shutdown.");
+                }
+
+                // Wait until all tasks have been shut down
+                self.task_manager.wait_for_shutdown().await;
+
+                result
+            });
+            set.spawn(async move {
+                // Monitor for shutdown from task manager
+                shutdown_monitor_task_client.recv().await;
+
+                // Cancel the tunnel if the task client exited sooner.
+                cloned_shutdown_handle.cancel();
+
+                Ok(())
+            });
+
+            let mut result: Result<()> = Ok(());
+            while let Some(res) = set.join_next().await {
+                match res {
+                    Ok(Ok(_)) => {}
+                    Ok(Err(e)) => {
+                        result = Err(e);
+                    }
+                    Err(join_err) => {
+                        tracing::error!("Failed to join task: {}", join_err);
+                    }
+                }
+            }
+
+            result
         } else {
             todo!("implement mixnet?")
         }
@@ -265,14 +311,10 @@ impl TunnelRunner {
     }
 
     async fn start_wireguard(
-        self,
+        &self,
         mixnet_client: SharedMixnetClient,
         auth_addresses: AuthAddresses,
     ) -> Result<()> {
-        let bandwidth_controller =
-            BandwidthController::new(mixnet_client.clone(), self.task_manager.subscribe());
-        tokio::spawn(bandwidth_controller.run());
-
         let (Some(entry_auth_recipient), Some(exit_auth_recipient)) =
             (auth_addresses.entry().0, auth_addresses.exit().0)
         else {
@@ -292,8 +334,8 @@ impl TunnelRunner {
         TwoHopTunnel::start(
             wg_entry_config,
             wg_exit_config,
-            self.tun_provider,
-            self.shutdown_token,
+            self.tun_provider.clone(),
+            self.shutdown_token.clone(),
         )
         .await
         .map_err(Error::Tunnel)
@@ -338,7 +380,7 @@ impl TunnelRunner {
             recipient,
         );
 
-        let (gateway_data, gateway_host) =
+        let (gateway_data, _gateway_host) =
             self.register_wg_key(&mut wg_exit_gateway_client).await?;
         let key_pair = wg_exit_gateway_client.keypair();
         let node_config = WgNodeConfig::with_gateway_data(gateway_data, key_pair.private_key());
