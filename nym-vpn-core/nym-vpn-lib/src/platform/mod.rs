@@ -226,7 +226,7 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
 
     uniffi_set_listener_status(StatusEvent::Tun(TunStatus::InitializingClient));
 
-    #[cfg(any(target_os = "ios"))]
+    #[cfg(target_os = "ios")]
     if config.enable_two_hop {
         RUNTIME.block_on(async move {
             tracing::debug!("Starting VPN tunnel...");
