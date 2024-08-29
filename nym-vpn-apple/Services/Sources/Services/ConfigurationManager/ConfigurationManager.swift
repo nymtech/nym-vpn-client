@@ -2,8 +2,8 @@ import Foundation
 import Constants
 
 public class ConfigurationManager {
-    public static func setEnvVariables(for environment: Env) throws {
-        let envString = try ConfigurationManager.contentOfEnvFile(named: environment.rawValue)
+    public static func setEnvVariables() throws {
+        let envString = try ConfigurationManager.contentOfEnvFile(named: Constants.currentEnvironment.rawValue)
         try setEnvironmentVariables(envString: envString)
     }
 }
