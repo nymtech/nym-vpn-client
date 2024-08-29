@@ -6,7 +6,7 @@ include platform.mk
 export MACOSX_DEPLOYMENT_TARGET = 10.13
 export IPHONEOS_DEPLOYMENT_TARGET = 16.0
 
-IPHONEOS_ARCHS = aarch64-apple-ios #aarch64-apple-ios-sim x86_64-apple-ios
+IPHONEOS_ARCHS = aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
 
 WG_BUILD_DIR = $(CURDIR)/../build/lib
 WG_TARGET_DIR = $(WG_BUILD_DIR)/$(ARCH)
@@ -47,7 +47,7 @@ build-deb-vpnc:
 build-vpn-lib-swift:	
 	$(eval RUSTFLAGS += $(foreach arch,$(IPHONEOS_ARCHS),CARGO_TARGET_$(shell echo '$(arch)' | tr '[:lower:]' '[:upper:]' | tr '-' '_')_RUSTFLAGS="-L $(WG_BUILD_DIR)/$(arch)"))
 	cd nym-vpn-lib; \
-	$(RUSTFLAGS) cargo swift package --platforms ios --target aarch64-apple-ios --name NymVpnLib --release
+	$(RUSTFLAGS) cargo swift package --platforms ios --name NymVpnLib --release
 
 generate-uniffi-swift:
 	cd nym-vpn-lib; \
