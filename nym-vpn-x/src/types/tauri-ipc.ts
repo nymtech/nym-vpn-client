@@ -73,3 +73,5 @@ export type ConnectionStateResponse = {
   state: ConnectionState;
   error?: BackendError | null;
 };
+
+export type DaemonInfo = { version: string; network: string };
