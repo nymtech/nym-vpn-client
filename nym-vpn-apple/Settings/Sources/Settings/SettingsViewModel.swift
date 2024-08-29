@@ -14,7 +14,6 @@ public class SettingsViewModel: SettingsFlowState {
         [
             connectionSection(),
             themeSection(),
-            logsSection(),
             feedbackSection(),
             legalSection()
         ]
@@ -89,6 +88,14 @@ private extension SettingsViewModel {
                     title: "entryLocationTitle".localizedString,
                     imageName: "entryHop",
                     action: {}
+                ),
+                SettingsListItemViewModel(
+                    accessory: .arrow,
+                    title: "logs".localizedString,
+                    imageName: "logs",
+                    action: { [weak self] in
+                        self?.navigateToLogs()
+                    }
                 )
             ]
         )
@@ -99,25 +106,10 @@ private extension SettingsViewModel {
             viewModels: [
                 SettingsListItemViewModel(
                     accessory: .arrow,
-                    title: "displayTheme".localizedString,
-                    imageName: "displayTheme",
+                    title: "settings.appearance".localizedString,
+                    imageName: "appearance",
                     action: { [weak self] in
                         self?.navigateToTheme()
-                    }
-                )
-            ]
-        )
-    }
-
-    func logsSection() -> SettingsSection {
-        .logs(
-            viewModels: [
-                SettingsListItemViewModel(
-                    accessory: .arrow,
-                    title: "logs".localizedString,
-                    imageName: "logs",
-                    action: { [weak self] in
-                        self?.navigateToLogs()
                     }
                 )
             ]

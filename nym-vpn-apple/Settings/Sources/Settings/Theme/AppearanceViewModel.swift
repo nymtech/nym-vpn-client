@@ -5,7 +5,7 @@ import Theme
 public final class AppearanceViewModel: ObservableObject {
     @ObservedObject private var appSettings: AppSettings
 
-    let title = "displayTheme".localizedString
+    let title = "settings.appearance".localizedString
 
     @Published var currentAppearance: AppSetting.Appearance
     @Binding var path: NavigationPath
