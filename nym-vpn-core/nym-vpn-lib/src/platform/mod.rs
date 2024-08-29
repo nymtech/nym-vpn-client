@@ -188,9 +188,6 @@ pub struct VPNConfig {
 }
 
 fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
-    #[cfg(any(target_os = "ios", target_os = "macos"))]
-    crate::platform::swift::init_logs();
-
     #[cfg(target_os = "android")]
     let context = crate::platform::android::get_context().ok_or(FFIError::NoContext)?;
     debug!("got android context to create new vpn");
