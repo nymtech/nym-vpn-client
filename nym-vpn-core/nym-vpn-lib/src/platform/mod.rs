@@ -51,9 +51,10 @@ lazy_static! {
     static ref LISTENER: StdMutex<Option<Arc<dyn TunnelStatusListener>>> = StdMutex::new(None);
 }
 
-#[derive(Debug)]
 enum ShutdownHandle {
     Notify(Arc<Notify>),
+
+    #[allow(unused)]
     CancellationToken {
         join_handle: JoinHandle<()>,
         shutdown_token: CancellationToken,
@@ -225,7 +226,7 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
 
     uniffi_set_listener_status(StatusEvent::Tun(TunStatus::InitializingClient));
 
-    #[cfg(any(target_os = "ios", target_os = "android"))]
+    #[cfg(any(target_os = "ios"))]
     if config.enable_two_hop {
         RUNTIME.block_on(async move {
             tracing::debug!("Starting VPN tunnel...");

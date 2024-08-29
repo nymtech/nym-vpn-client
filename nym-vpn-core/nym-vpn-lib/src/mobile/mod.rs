@@ -5,7 +5,7 @@
 
 #[cfg(target_os = "ios")]
 pub mod ios;
-#[cfg(any(target_os = "ios", target_os = "android"))]
+#[cfg(target_os = "ios")]
 pub mod runner;
 pub mod tunnel_settings;
 pub mod two_hop_config;
