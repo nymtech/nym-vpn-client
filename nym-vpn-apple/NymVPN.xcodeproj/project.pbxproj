@@ -7,7 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		582C30882C80B8E7008CF551 /* canary.env in Resources */ = {isa = PBXBuildFile; fileRef = D94CC12C2C8077B600B319B5 /* canary.env */; };
+		582C30892C80B8E7008CF551 /* mainnet.env in Resources */ = {isa = PBXBuildFile; fileRef = D94CC12E2C807B8E00B319B5 /* mainnet.env */; };
+		582C308A2C80B8E7008CF551 /* sandbox.env in Resources */ = {isa = PBXBuildFile; fileRef = D94CC12F2C807B8E00B319B5 /* sandbox.env */; };
+		582C308B2C80B8EC008CF551 /* canary.env in Resources */ = {isa = PBXBuildFile; fileRef = D94CC12C2C8077B600B319B5 /* canary.env */; };
+		582C308C2C80B8EC008CF551 /* mainnet.env in Resources */ = {isa = PBXBuildFile; fileRef = D94CC12E2C807B8E00B319B5 /* mainnet.env */; };
+		582C308D2C80B8EC008CF551 /* sandbox.env in Resources */ = {isa = PBXBuildFile; fileRef = D94CC12F2C807B8E00B319B5 /* sandbox.env */; };
 		582C5F8E2C7654A800B678AE /* ConfigurationManager in Frameworks */ = {isa = PBXBuildFile; productRef = 582C5F8D2C7654A800B678AE /* ConfigurationManager */; };
+		5854E81E2C80BB5A005EE1F4 /* canary.env in Resources */ = {isa = PBXBuildFile; fileRef = D94CC12C2C8077B600B319B5 /* canary.env */; };
+		5854E81F2C80BB5A005EE1F4 /* mainnet.env in Resources */ = {isa = PBXBuildFile; fileRef = D94CC12E2C807B8E00B319B5 /* mainnet.env */; };
+		5854E8202C80BB5A005EE1F4 /* sandbox.env in Resources */ = {isa = PBXBuildFile; fileRef = D94CC12F2C807B8E00B319B5 /* sandbox.env */; };
 		5879C2062C80A37200BAB142 /* TunnelSettingsConversions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5879C2052C80A37200BAB142 /* TunnelSettingsConversions.swift */; };
 		D91E36A92BF3AA7F00BDE84A /* HelperManager in Frameworks */ = {isa = PBXBuildFile; productRef = D91E36A82BF3AA7F00BDE84A /* HelperManager */; };
 		D92219E62BA1CF99005EE6AC /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9CF05D82BA1CC7100489055 /* SystemConfiguration.framework */; };
@@ -23,12 +32,6 @@
 		D944053F2BAC4CBD0076EEDB /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9CF05D82BA1CC7100489055 /* SystemConfiguration.framework */; };
 		D94866FF2BE035C300F5331B /* CredentialsManager in Frameworks */ = {isa = PBXBuildFile; productRef = D94866FE2BE035C300F5331B /* CredentialsManager */; };
 		D94867012BE035FB00F5331B /* Constants in Frameworks */ = {isa = PBXBuildFile; productRef = D94867002BE035FB00F5331B /* Constants */; };
-		D94CC12D2C8077B600B319B5 /* canary.env in Sources */ = {isa = PBXBuildFile; fileRef = D94CC12C2C8077B600B319B5 /* canary.env */; };
-		D94CC1302C807B8E00B319B5 /* mainnet.env in Resources */ = {isa = PBXBuildFile; fileRef = D94CC12E2C807B8E00B319B5 /* mainnet.env */; };
-		D94CC1312C807B8E00B319B5 /* sandbox.env in Resources */ = {isa = PBXBuildFile; fileRef = D94CC12F2C807B8E00B319B5 /* sandbox.env */; };
-		D94CC1322C807B9300B319B5 /* sandbox.env in Resources */ = {isa = PBXBuildFile; fileRef = D94CC12F2C807B8E00B319B5 /* sandbox.env */; };
-		D94CC1332C807B9300B319B5 /* canary.env in Resources */ = {isa = PBXBuildFile; fileRef = D94CC12C2C8077B600B319B5 /* canary.env */; };
-		D94CC1342C807B9300B319B5 /* mainnet.env in Resources */ = {isa = PBXBuildFile; fileRef = D94CC12E2C807B8E00B319B5 /* mainnet.env */; };
 		D9538E2E2B7E3F28002FA8B5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D9538E2D2B7E3F28002FA8B5 /* LaunchScreen.storyboard */; };
 		D954C0B92B51C1CA00C6BAAC /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D954C0A62B51C17200C6BAAC /* NetworkExtension.framework */; };
 		D954C0BC2B51C1CA00C6BAAC /* PacketTunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D954C0BB2B51C1CA00C6BAAC /* PacketTunnelProvider.swift */; };
@@ -583,6 +586,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5854E81E2C80BB5A005EE1F4 /* canary.env in Resources */,
+				5854E81F2C80BB5A005EE1F4 /* mainnet.env in Resources */,
+				5854E8202C80BB5A005EE1F4 /* sandbox.env in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -590,10 +596,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				582C30882C80B8E7008CF551 /* canary.env in Resources */,
+				582C30892C80B8E7008CF551 /* mainnet.env in Resources */,
+				582C308A2C80B8E7008CF551 /* sandbox.env in Resources */,
 				D9538E2E2B7E3F28002FA8B5 /* LaunchScreen.storyboard in Resources */,
-				D94CC1312C807B8E00B319B5 /* sandbox.env in Resources */,
 				D98B32EE2C58E24E005A15A3 /* Package.resolved in Resources */,
-				D94CC1302C807B8E00B319B5 /* mainnet.env in Resources */,
 				D96B94E02C2AB62D00E98B15 /* gatewaysExitCountries.json in Resources */,
 				D96B94DE2C2AB62D00E98B15 /* gatewaysEntryCountries.json in Resources */,
 				D9264E262B3DA062004594A8 /* Assets.xcassets in Resources */,
@@ -605,13 +612,13 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				582C308B2C80B8EC008CF551 /* canary.env in Resources */,
+				582C308C2C80B8EC008CF551 /* mainnet.env in Resources */,
+				582C308D2C80B8EC008CF551 /* sandbox.env in Resources */,
 				D9BEF2DA2BEB63320036C566 /* Preview Assets.xcassets in Resources */,
 				D98B32F22C58F682005A15A3 /* Package.resolved in Resources */,
 				D96B94E12C2AB62D00E98B15 /* gatewaysExitCountries.json in Resources */,
 				D96B94DF2C2AB62D00E98B15 /* gatewaysEntryCountries.json in Resources */,
-				D94CC1322C807B9300B319B5 /* sandbox.env in Resources */,
-				D94CC1332C807B9300B319B5 /* canary.env in Resources */,
-				D94CC1342C807B9300B319B5 /* mainnet.env in Resources */,
 				D9BEF2D72BEB63320036C566 /* Assets.xcassets in Resources */,
 				D9F236252C650A9200CCC433 /* LibLicences.json in Resources */,
 			);
@@ -696,7 +703,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				D99A147A2B357E9900F2728B /* NymVPNApp.swift in Sources */,
-				D94CC12D2C8077B600B319B5 /* canary.env in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
