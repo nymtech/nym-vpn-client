@@ -28,19 +28,20 @@ B_YLW="$BLD$YLW"
 I_YLW="$ITL$YLW"
 B_GRY="$BLD$GRY"
 I_GRY="$ITL$GRY"
+BI_GRN="$ITL$B_GRN"
 BI_YLW="$ITL$B_YLW"
 BI_GRY="$ITL$B_GRY"
 BI="$ITL$BLD"
 ####
 
 # nymvpn-x AppImage
-vpnx_tag=nym-vpn-x-v0.1.8
-vpnx_version=0.1.8
+vpnx_tag=nym-vpn-x-nightly
+vpnx_version=0.1.9-dev
 appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$vpnx_tag/nymvpn-x_${vpnx_version}.AppImage"
 
 # nym-vpnd prebuilt binary
-vpnd_tag=nym-vpn-core-v0.1.11
-vpnd_version=0.1.11
+vpnd_tag=nym-vpn-core-v0.1.16
+vpnd_version=0.1.16
 vpnd_url="https://github.com/nymtech/nym-vpn-client/releases/download/$vpnd_tag/nym-vpn-core-v${vpnd_version}_linux_x86_64.tar.gz"
 
 # function called when an error occurs, will print the exit
@@ -107,10 +108,10 @@ user_prompt() {
 rmfile() {
   filename="$I_YLW${1/#$HOME/\~}$RS"
   if [ -f "$1" ]; then
-    sudo rm -f "$1"
+    rm -f "$1" &>/dev/null || sudo rm -f "$1"
     log "    removed $filename"
   elif [ -d "$1" ]; then
-    sudo rm -rf "$1"
+    rm -rf "$1" &>/dev/null || sudo rm -rf "$1"
     log "    removed $filename"
   fi
 }
@@ -382,9 +383,9 @@ start_service() {
   user_prompt choice "$prompt"
 
   if [ "$choice" = "y" ] || [ "$choice" = "Y" ]; then
-    sudo systemctl enable $vpnd_service
-    sudo systemctl start $vpnd_service
-    log "   ${B_GRN}Enabled$RS and started nym-vpnd service"
+    sudo systemctl enable $vpnd_service &>/dev/null
+    sudo systemctl start $vpnd_service &>/dev/null
+    log "    ${B_GRN}✓$RS service enabled and started"
   else
     log "   Run the following commands to enable and start the VPN service:
     ${I_YLW}sudo systemctl enable $vpnd_service$RS
@@ -503,11 +504,20 @@ install_daemon() {
 remove_file_set() {
   local -n _files=$1
   declare -a file_set
+  local sudo_needed=false
 
   # filter out files that don't exist
   for file in "${_files[@]}"; do
     if [ -a "$file" ]; then
       file_set+=("$file")
+    fi
+  done
+
+  # check for write permissions
+  for file in "${file_set[@]}"; do
+    if ! [ -w "$file" ]; then
+      sudo_needed=true
+      break
     fi
   done
 
@@ -527,28 +537,27 @@ remove_file_set() {
   user_prompt choice "$prompt"
 
   if [ "$choice" = "y" ] || [ "$choice" = "Y" ]; then
+    if [ "$sudo_needed" = true ]; then
+      log "  ${B_YLW}sudo$RS needed to remove some files"
+    fi
     for file in "${file_set[@]}"; do
       rmfile "$file"
     done
   fi
 }
 
-uninstall_vpnd_service() {
-  log "  ${B_GRN}Remove$RS nym-vpnd service?"
-
-  choice=""
-  prompt="    ${BI_YLW}Y${RS}es ${BI_YLW}N${RS}o "
-  user_prompt choice "$prompt"
-
-  if [ "$choice" = "y" ] || [ "$choice" = "Y" ]; then
-    log "  ${B_YLW}sudo$RS needed to stop and disable the service"
-    if sudo systemctl stop nym-vpnd.service &>/dev/null; then
-      log "   ${B_GRN}Stopped$RS nym-vpnd service"
-    fi
-    if sudo systemctl disable nym-vpnd.service &>/dev/null; then
-      log "   ${B_GRN}Disabled$RS nym-vpnd service"
-    fi
-    rmfile /usr/lib/systemd/system/nym-vpnd.service
+stop_vpnd_service() {
+  log "  ${B_GRN}Stopping$RS nym-vpnd service"
+  log "  ${B_YLW}sudo$RS needed to stop and disable the service"
+  if sudo systemctl stop nym-vpnd.service &>/dev/null; then
+    log "   ${B_GRN}✓$RS service stopped"
+  else
+    log "   ${B_GRY}✓$RS ${ITL}service is not active$RS"
+  fi
+  if sudo systemctl disable nym-vpnd.service &>/dev/null; then
+    log "   ${B_GRN}✓$RS service disabled$RS"
+  else
+    log "   ${B_GRY}✓$RS ${ITL}service is not enabled$RS"
   fi
 }
 
@@ -587,7 +596,7 @@ _install() {
   post_install
   cleanup
 
-  log "\n${B_GRN}✓$RS"
+  log "\n${BI_GRN}done$RS"
 }
 
 _uninstall() {
@@ -601,6 +610,7 @@ _uninstall() {
     files+=(
       "$xdg_bin_home/nym-vpnd"
       "/usr/bin/nym-vpnd"
+      "/usr/lib/systemd/system/nym-vpnd.service"
     )
   fi
   if [ "$_vpnx" == 0 ]; then
@@ -637,9 +647,9 @@ _uninstall() {
     fi
   fi
 
-  [[ "$_vpnd" == 0 ]] && uninstall_vpnd_service
+  [[ "$_vpnd" == 0 ]] && stop_vpnd_service
 
-  log "\n${B_GRN}✓$RS"
+  log "\n${BI_GRN}done$RS"
 }
 
 need_cmd uname
