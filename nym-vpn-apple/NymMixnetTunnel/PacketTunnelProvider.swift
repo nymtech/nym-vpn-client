@@ -57,9 +57,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             throw PacketTunnelProviderError.invalidSavedConfiguration
         }
 
-        var vpnConfig = try mixnetConfig.asVpnConfig(tunProvider: self, tunStatusListener: self)
-        // todo: figure out WHAT always defaults this setting to .randomLowLatency
-        vpnConfig.entryGateway = .random
+        let vpnConfig = try mixnetConfig.asVpnConfig(tunProvider: self, tunStatusListener: self)
 
         logger.info("Starting backend")
         do {
