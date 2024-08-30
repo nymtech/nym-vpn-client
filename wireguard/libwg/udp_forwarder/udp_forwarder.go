@@ -123,8 +123,6 @@ func (w *UDPForwarder) RoutineHandleInbound(inbound *net.UDPConn, outbound *gone
 			return
 		}
 
-		w.logger.Verbosef("udpforwarder(inbound): received %d bytes <- %s", bytesRead, senderAddr.String())
-
 		// Drop packet from unknown sender.
 		if !senderAddr.IP.IsLoopback() || senderAddr.Port != clientAddr.Port {
 			w.logger.Verbosef("udpforwarder(inbound): drop packet from unknown sender: %s, expected: %s.", senderAddr.String(), clientAddr.String())
@@ -141,13 +139,12 @@ func (w *UDPForwarder) RoutineHandleInbound(inbound *net.UDPConn, outbound *gone
 		}
 
 		// Forward the packet over the outbound connection via another WireGuard tunnel.
-		bytesWritten, err := outbound.Write(inboundBuffer[:bytesRead])
+		_, err = outbound.Write(inboundBuffer[:bytesRead])
 		if err != nil {
 			w.logger.Errorf("udpforwarder(inbound): %s", err.Error())
 			// todo: handle error
 			continue
 		}
-		w.logger.Verbosef("udpforwarder(inbound): sent %d bytes -> %s", bytesWritten, outbound.RemoteAddr().String())
 	}
 }
 
@@ -170,7 +167,6 @@ func (w *UDPForwarder) RoutineHandleOutbound(inbound *net.UDPConn, outbound *gon
 		}
 		// Cast net.Addr to net.UDPAddr
 		senderUDPAddr := senderAddr.(*net.UDPAddr)
-		w.logger.Verbosef("udpforwarder(outbound): received %d bytes <- %s", bytesRead, senderUDPAddr.String())
 
 		// Drop packet from unknown sender.
 		if !senderUDPAddr.IP.Equal(remoteAddr.IP) || senderUDPAddr.Port != remoteAddr.Port {
@@ -188,12 +184,11 @@ func (w *UDPForwarder) RoutineHandleOutbound(inbound *net.UDPConn, outbound *gon
 		}
 
 		// Forward packet from remote to local client.
-		bytesWritten, err := inbound.WriteToUDP(outboundBuffer[:bytesRead], clientAddr)
+		_, err = inbound.WriteToUDP(outboundBuffer[:bytesRead], clientAddr)
 		if err != nil {
 			w.logger.Errorf("udpforwarder(outbound): %s", err.Error())
 			// todo: handle error
 			continue
 		}
-		w.logger.Verbosef("udpforwarder(outbound): sent %d bytes -> %s", bytesWritten, clientAddr.String())
 	}
 }
