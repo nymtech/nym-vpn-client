@@ -56,7 +56,7 @@ class NymTunnelManager @Inject constructor(
 			if (credentialExpiry != null && credentialExpiry.isInvalid()) {
 				return Result.failure(InvalidCredentialException("Credential missing or expired"))
 			}
-			backend.get().start(tunnel)
+			backend.get().start(tunnel, false)
 		}
 	}
 

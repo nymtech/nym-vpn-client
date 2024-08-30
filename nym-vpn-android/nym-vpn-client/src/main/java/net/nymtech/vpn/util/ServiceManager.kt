@@ -5,7 +5,6 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import net.nymtech.vpn.NymVpnService
 import timber.log.Timber
 
 object ServiceManager {
@@ -43,41 +42,5 @@ object ServiceManager {
 		} else {
 			context.startService(intent)
 		}
-	}
-
-	fun startVpnService(context: Context, extras: Map<String, String>? = null) {
-		Timber.d("Called start vpn service")
-		actionOnService(
-			Action.START,
-			context,
-			NymVpnService::class.java,
-			extras = extras,
-		)
-	}
-
-	fun startVpnServiceForeground(context: Context, extras: Map<String, String>? = null) {
-		Timber.d("Called start vpn service foreground")
-		actionOnService(
-			Action.START_FOREGROUND,
-			context,
-			NymVpnService::class.java,
-			extras = extras,
-		)
-	}
-
-	fun stopVpnServiceForeground(context: Context) {
-		actionOnService(
-			Action.STOP_FOREGROUND,
-			context,
-			NymVpnService::class.java,
-		)
-	}
-
-	fun stopVpnService(context: Context) {
-		actionOnService(
-			Action.STOP,
-			context,
-			NymVpnService::class.java,
-		)
 	}
 }

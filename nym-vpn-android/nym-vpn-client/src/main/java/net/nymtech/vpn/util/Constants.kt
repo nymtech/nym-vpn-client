@@ -109,11 +109,6 @@ object Constants {
 			true,
 		)
 		Os.setenv(
-			"VESTING_CONTRACT_ADDRESS",
-			"n1unyuj8qnmygvzuex3dwmg9yzt9alhvyeat0uu0jedg2wj33efl5qackslz",
-			true,
-		)
-		Os.setenv(
 			"COCONUT_BANDWIDTH_CONTRACT_ADDRESS",
 			"n1mf6ptkssddfmxvhdx0ech0k03ktp6kf9yk59renau2gvht3nq2gqt5tdrk",
 			true,
