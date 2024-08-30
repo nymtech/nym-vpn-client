@@ -604,12 +604,12 @@ where
     async fn handle_get_account_summary(&self) {
         // Get account
         let mnemonic = self.storage.load_mnemonic().await.unwrap();
-        let account = nym_vpn_api_client::account::Account::from(mnemonic);
+        let account = nym_vpn_api_client::account::types::Account::from(mnemonic);
 
         // Get device
         let device_keypair = self.storage.load_keys().await.unwrap();
         let device_keypair = device_keypair.device_keypair();
-        let device = nym_vpn_api_client::account::Device::from(device_keypair);
+        let device = nym_vpn_api_client::account::types::Device::from(device_keypair);
 
         // Setup client
         let nym_vpn_api_url = nym_vpn_lib::nym_config::defaults::NymNetworkDetails::new_from_env()
@@ -617,20 +617,22 @@ where
             .unwrap()
             .parse()
             .unwrap();
-        let api_client = nym_vpn_api_client::account::AccountClient::new(nym_vpn_api_url);
+        let user_agent = nym_vpn_lib::UserAgent::from(nym_bin_common::bin_info_local_vergen!());
+        let api_client =
+            nym_vpn_api_client::account::AccountClient::new(nym_vpn_api_url, user_agent).unwrap();
 
-        api_client.get_account_summary(&account, &device).await;
+        api_client.get_account_summary(&account).await;
     }
 
     async fn handle_register_device(&self) {
         // Get account
         let mnemonic = self.storage.load_mnemonic().await.unwrap();
-        let account = nym_vpn_api_client::account::Account::from(mnemonic);
+        let account = nym_vpn_api_client::account::types::Account::from(mnemonic);
 
         // Get device
         let device_keypair = self.storage.load_keys().await.unwrap();
         let device_keypair = device_keypair.device_keypair();
-        let device = nym_vpn_api_client::account::Device::from(device_keypair);
+        let device = nym_vpn_api_client::account::types::Device::from(device_keypair);
 
         // Setup client
         let nym_vpn_api_url = nym_vpn_lib::nym_config::defaults::NymNetworkDetails::new_from_env()
@@ -638,7 +640,9 @@ where
             .unwrap()
             .parse()
             .unwrap();
-        let api_client = nym_vpn_api_client::account::AccountClient::new(nym_vpn_api_url);
+        let user_agent = nym_vpn_lib::UserAgent::from(nym_bin_common::bin_info_local_vergen!());
+        let api_client =
+            nym_vpn_api_client::account::AccountClient::new(nym_vpn_api_url, user_agent).unwrap();
 
         api_client.register_device(&account, &device).await;
     }
