@@ -7,13 +7,18 @@ use pnet_packet::Packet;
 use tokio::{net::UdpSocket, sync::Mutex};
 use x25519_dalek::{PublicKey, StaticSecret};
 
-use crate::{icmp::icmp_identifier, MAX_PACKET};
+use crate::{bind_udp_socket_in_range, icmp::icmp_identifier, MAX_PACKET};
 
 async fn connected_sock_pair() -> (Arc<UdpSocket>, Arc<UdpSocket>) {
-    let addr_a = format!("127.0.0.1:{}", 30002);
-    let addr_b = format!("127.0.0.1:{}", 30003);
-    let sock_a = UdpSocket::bind(&addr_a).await.unwrap();
-    let sock_b = UdpSocket::bind(&addr_b).await.unwrap();
+    let (sock_a, port_a) = bind_udp_socket_in_range("127.0.0.1", 50000, 65000)
+        .await
+        .unwrap();
+    let (sock_b, port_b) = bind_udp_socket_in_range("127.0.0.1", 50000, 65000)
+        .await
+        .unwrap();
+
+    let addr_a = format!("127.0.0.1:{}", port_a);
+    let addr_b = format!("127.0.0.1:{}", port_b);
     sock_a.connect(&addr_b).await.unwrap();
     sock_b.connect(&addr_a).await.unwrap();
     (Arc::new(sock_a), Arc::new(sock_b))
