@@ -4,12 +4,10 @@ use anyhow::{anyhow, Result};
 use itertools::Itertools;
 use nym_vpn_proto::{
     health_check_response::ServingStatus, health_client::HealthClient,
-    nym_vpnd_client::NymVpndClient, ConnectionStatus, DisconnectRequest, HealthCheckRequest,
-    ListEntryCountriesRequest, ListExitCountriesRequest, Location, StatusRequest,
-};
-use nym_vpn_proto::{
-    ConnectRequest, Dns, Empty, EntryNode, ExitNode, ImportUserCredentialRequest,
-    ImportUserCredentialResponse, StatusResponse,
+    nym_vpnd_client::NymVpndClient, ConnectRequest, ConnectionStatus, DisconnectRequest, Dns,
+    Empty, EntryNode, ExitNode, HealthCheckRequest, ImportUserCredentialRequest,
+    ImportUserCredentialResponse, InfoRequest, InfoResponse, ListEntryCountriesRequest,
+    ListExitCountriesRequest, Location, StatusRequest, StatusResponse,
 };
 use parity_tokio_ipc::Endpoint as IpcEndpoint;
 use serde::{Deserialize, Serialize};
@@ -138,6 +136,20 @@ impl GrpcClient {
         state.vpnd_status = status.into();
 
         Ok(status.into())
+    }
+
+    /// Get daemon info
+    #[instrument(skip_all)]
+    pub async fn vpnd_info(&self) -> Result<InfoResponse, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let request = Request::new(InfoRequest {});
+        let response = vpnd.info(request).await.map_err(|e| {
+            error!("grpc info: {}", e);
+            VpndError::GrpcError(e)
+        })?;
+
+        Ok(response.into_inner())
     }
 
     /// Get VPN status
