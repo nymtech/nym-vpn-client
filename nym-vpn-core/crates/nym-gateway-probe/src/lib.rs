@@ -195,12 +195,13 @@ async fn wg_probe(
             registered_data.private_ip, registered_data.wg_port,
         );
         let wg_endpoint = format!("{}:{}", gateway_host, registered_data.wg_port);
-        let socket = Arc::new(
-            UdpSocket::bind(format!("{}:50000", "0.0.0.0"))
-                .await
-                .unwrap(),
-        );
-        socket.connect(wg_endpoint).await.unwrap();
+
+        let (socket, _) = bind_udp_socket_in_range("0.0.0.0", 50000, 60000).await?;
+        let socket = Arc::new(socket);
+        socket
+            .connect(&wg_endpoint)
+            .await
+            .map_err(|err| anyhow::anyhow!("Failed connect to {}: {}", wg_endpoint, err))?;
 
         info!("Successfully registered with the gateway");
 
@@ -218,6 +219,34 @@ async fn wg_probe(
     }
 
     Ok(wg_outcome)
+}
+
+fn random_port_in_range(start: u16, end: u16) -> u16 {
+    let mut rng = rand::thread_rng();
+    <rand::rngs::ThreadRng as rand::Rng>::gen_range(&mut rng, start..=end)
+}
+
+pub(crate) async fn bind_udp_socket_in_range(
+    addr: &str,
+    start_port: u16,
+    end_port: u16,
+) -> anyhow::Result<(UdpSocket, u16)> {
+    for _ in 0..10 {
+        let target_port = random_port_in_range(start_port, end_port);
+
+        let socket_address = format!("{}:{}", addr, target_port);
+        match UdpSocket::bind(&socket_address).await {
+            Ok(socket) => {
+                info!("Successfully bound to port {}", target_port);
+                return Ok((socket, target_port));
+            }
+            Err(e) => {
+                warn!("Failed to bind to port {}: {}, retrying...", target_port, e);
+            }
+        }
+    }
+
+    Err(anyhow::anyhow!("Failed to bind to any port in range",))
 }
 
 async fn lookup_gateways() -> anyhow::Result<GatewayList> {
