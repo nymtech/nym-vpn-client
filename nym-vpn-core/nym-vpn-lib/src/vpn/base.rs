@@ -23,7 +23,8 @@ use crate::{
     error::Result,
     tunnel_setup::{AllTunnelsSetup, TunnelSetup},
 };
-
+#[cfg(target_os = "android")]
+use crate::platform::android::AndroidTunProvider;
 use super::{
     messages::NymVpnStatusMessage,
     mixnet::{MixnetClientConfig, MixnetVpn},
@@ -75,6 +76,9 @@ pub struct NymVpn<T: Vpn> {
     pub vpn_config: T,
 
     pub tun_provider: Arc<Mutex<TunProvider>>,
+
+    #[cfg(target_os = "android")]
+    pub android_tun_provider: Arc<dyn AndroidTunProvider>,
 
     #[cfg(target_os = "ios")]
     pub(super) ios_tun_provider: Arc<dyn OSTunProvider>,

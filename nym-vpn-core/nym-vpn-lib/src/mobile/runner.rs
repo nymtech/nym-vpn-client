@@ -19,7 +19,8 @@ use crate::mixnet::SharedMixnetClient;
 use crate::platform::VPNConfig;
 use crate::{bandwidth_controller::BandwidthController, GenericNymVpnConfig};
 use crate::{GatewayDirectoryError, MixnetClientConfig};
-
+use crate::platform::android::AndroidTunProvider;
+#[cfg(target_os = "ios")]
 use super::ios::tun_provider::OSTunProvider;
 use super::{
     two_hop_tunnel::TwoHopTunnel,
@@ -62,6 +63,8 @@ pub struct WgTunnelRunner {
     gateway_directory_client: GatewayClient,
     task_manager: TaskManager,
     generic_config: GenericNymVpnConfig,
+    #[cfg(target_os = "android")]
+    tun_provider: Arc<dyn AndroidTunProvider>,
     #[cfg(target_os = "ios")]
     tun_provider: Arc<dyn OSTunProvider>,
     shutdown_token: CancellationToken,
@@ -108,6 +111,8 @@ impl WgTunnelRunner {
             gateway_directory_client,
             task_manager,
             generic_config,
+            #[cfg(target_os = "android")]
+            tun_provider: config.tun_provider,
             #[cfg(target_os = "ios")]
             tun_provider: config.tun_provider,
             shutdown_token,

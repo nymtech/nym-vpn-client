@@ -22,10 +22,7 @@ use tap::TapFallible;
 use tracing::{debug, error, info, trace};
 use tun2::AbstractDevice;
 
-use crate::{
-    error::Result,
-    vpn::{MixnetVpn, NymVpn},
-};
+use crate::{error::Result, vpn::{MixnetVpn, NymVpn}, Error};
 
 const DEFAULT_TUN_MTU: u16 = 1500;
 
@@ -100,7 +97,7 @@ impl RoutingConfig {
         self.tun_ips
     }
 
-    #[cfg(any(target_os = "ios", target_os = "macos"))]
+    #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
     pub(crate) fn mtu(&self) -> u16 {
         self.mtu
     }
@@ -170,20 +167,27 @@ pub(crate) fn replace_default_prefixes(network: IpNetwork) -> Vec<IpNetwork> {
     vec![network]
 }
 
-#[cfg(target_os = "ios")]
+#[cfg(any(target_os = "ios", target_os = "android"))]
 pub(crate) async fn setup_mixnet_routing(
     _route_manager: &mut RouteManager,
     config: RoutingConfig,
+    #[cfg(target_os = "android")] android_tun_provider: std::sync::Arc<
+        dyn crate::platform::android::AndroidTunProvider,
+    >,
     #[cfg(target_os = "ios")] ios_tun_provider: std::sync::Arc<
         dyn crate::mobile::ios::tun_provider::OSTunProvider,
     >,
     _dns_monitor: &mut DnsMonitor,
     dns: Option<IpAddr>,
 ) -> Result<tun2::AsyncDevice> {
-    let fd =
-        crate::mobile::ios::tun::get_tun_fd().ok_or(crate::mobile::Error::CannotLocateTunFd)?;
     let mut tun_config = tun2::Configuration::default();
-    tun_config.raw_fd(fd);
+
+    #[cfg(target_os = "ios")]
+    {
+        let fd = crate::mobile::ios::tun::get_tun_fd().ok_or(crate::mobile::Error::CannotLocateTunFd)?;
+        tun_config.raw_fd(fd);
+    };
+
 
     let interface_addresses = config.tun_ips();
     let tunnel_settings = crate::mobile::tunnel_settings::TunnelSettings {
@@ -200,9 +204,23 @@ pub(crate) async fn setup_mixnet_routing(
         mtu: config.mtu(),
     };
 
+    #[cfg(target_os = "ios")]
     ios_tun_provider
         .set_tunnel_network_settings(tunnel_settings.into_tunnel_network_settings())
         .await?;
+
+    #[cfg(target_os = "android")]
+    {
+        let fd = android_tun_provider
+            .configure_tunnel(tunnel_settings.into_tunnel_network_settings()).map_err(|_| {
+            Error::StopError
+        })?;
+        // if tun interface config fails on android, we return -1
+        if fd.is_negative() {
+            return Err(Error::StopError);
+        }
+        tun_config.raw_fd(fd);
+    };
 
     let dev = tun2::create_as_async(&tun_config)
         .tap_err(|err| error!("Failed to attach to tun device: {}", err))?;
@@ -228,10 +246,13 @@ pub(crate) async fn setup_mixnet_routing(
     Ok(dev)
 }
 
-#[cfg(not(target_os = "ios"))]
+#[cfg(not(any(target_os = "ios", target_os = "android")))]
 pub async fn setup_mixnet_routing(
     route_manager: &mut RouteManager,
     config: RoutingConfig,
+    #[cfg(target_os = "android")] android_tun_provider: std::sync::Arc<
+        dyn crate::platform::android::AndroidTunProvider
+    >,
     #[cfg(target_os = "ios")] ios_tun_provider: std::sync::Arc<
         dyn crate::platform::swift::OSTunProvider,
     >,
@@ -240,34 +261,7 @@ pub async fn setup_mixnet_routing(
 ) -> Result<tun2::AsyncDevice> {
     debug!("Creating tun device");
     let mixnet_tun_config = config.mixnet_tun_config.clone();
-    #[cfg(target_os = "android")]
-    let mixnet_tun_config = {
-        let mut tun_config = talpid_tunnel::tun_provider::TunConfig::default();
-        let tun_ips = config.tun_ips();
-        tun_config.addresses = vec![tun_ips.ipv4.into(), tun_ips.ipv6.into()];
-        let fd = {
-            let mut tun_provider = config
-                .tun_provider
-                .lock()
-                .expect("access should not be passed to mullvad yet");
 
-            let fd = tun_provider.get_tun(tun_config)?.as_raw_fd();
-            if let Some(raw_fd) = config.gateway_ws_fd {
-                tun_provider.bypass(raw_fd)?;
-            }
-            fd
-        };
-        let mut mixnet_tun_config = mixnet_tun_config.clone();
-        mixnet_tun_config.raw_fd(fd);
-        mixnet_tun_config
-    };
-    #[cfg(target_os = "ios")]
-    let mixnet_tun_config = {
-        let fd = ios_tun_provider.configure_nym(config.clone().into())?;
-        let mut mixnet_tun_config = mixnet_tun_config.clone();
-        mixnet_tun_config.raw_fd(fd);
-        mixnet_tun_config
-    };
     let dev = tun2::create_as_async(&mixnet_tun_config)
         .tap_err(|err| error!("Failed to create tun device: {}", err))?;
     let device_name = dev.as_ref().tun_name().unwrap().to_string();

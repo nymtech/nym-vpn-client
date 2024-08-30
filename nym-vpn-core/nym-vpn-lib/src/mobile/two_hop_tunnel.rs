@@ -19,6 +19,7 @@ use super::{
 };
 
 use nym_wg_go::{netstack, wireguard_go};
+use crate::platform::android::AndroidTunProvider;
 
 /// Two-hop WireGuard tunnel.
 ///
@@ -47,8 +48,12 @@ pub struct TwoHopTunnel {
     shutdown_token: CancellationToken,
 
     /// Entry peer configuration.
-    #[cfg(target_os = "ios")]
     entry_peer: WgPeer,
+
+    /// Interface for interacting with the iOS tunnel provider.
+    #[cfg(target_os = "android")]
+    #[allow(unused)]
+    tun_provider: Arc<dyn AndroidTunProvider>,
 
     /// Interface for interacting with the iOS tunnel provider.
     #[cfg(target_os = "ios")]
@@ -65,11 +70,11 @@ impl TwoHopTunnel {
     pub async fn start(
         entry_node_config: WgNodeConfig,
         exit_node_config: WgNodeConfig,
+        #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
         shutdown_token: CancellationToken,
     ) -> Result<()> {
         // Save entry peer so that we can re-resolve it and update wg config on network changes.
-        #[cfg(target_os = "ios")]
         let orig_entry_peer = entry_node_config.peer.clone();
 
         let mut two_hop_config = TwoHopConfig::new(entry_node_config, exit_node_config);
@@ -84,11 +89,20 @@ impl TwoHopTunnel {
         two_hop_config.entry.peer.resolve_in_place()?;
 
         // Obtain tunnel file descriptor and interface name.
-        let tun_fd = tun::get_tun_fd().ok_or(Error::CannotLocateTunFd)?;
-        tracing::debug!("Found tunnel fd: {}", tun_fd);
+        #[cfg(target_os = "ios")]
+        let tun_fd = {
+            let tun_fd = tun::get_tun_fd().ok_or(Error::CannotLocateTunFd)?;
+            tracing::debug!("Found tunnel fd: {}", tun_fd);
+            tun_fd
+        };
 
-        let tun_name = tun::get_tun_ifname(tun_fd).ok_or(Error::ObtainTunName)?;
-        tracing::debug!("Tunnel interface name: {}", tun_name);
+
+        #[cfg(target_os = "ios")]
+        let tun_name = {
+            let tun_name = tun::get_tun_ifname(tun_fd).ok_or(Error::ObtainTunName)?;
+            tracing::debug!("Tunnel interface name: {}", tun_name);
+            tun_name
+        };
 
         let tunnel_settings = TunnelSettings {
             interface_addresses: two_hop_config.tun.addresses,
@@ -105,6 +119,12 @@ impl TwoHopTunnel {
                 .await
                 .map_err(Error::SetNetworkSettings)?;
         }
+        #[cfg(target_os = "android")]
+        let tun_fd = {
+            tun_provider
+                .configure_tunnel(tunnel_settings.into_tunnel_network_settings())
+                .map_err(Error::SetNetworkSettings)?
+        };
 
         // Transform wg config structs into what nym-wg-go expects.
         let entry_wg_config = two_hop_config.entry.into_netstack_config();
@@ -136,8 +156,9 @@ impl TwoHopTunnel {
             exit: exit_tunnel,
             exit_connection: Some(exit_connection),
             shutdown_token,
-            #[cfg(target_os = "ios")]
             entry_peer: orig_entry_peer,
+            #[cfg(target_os = "android")]
+            tun_provider,
             #[cfg(target_os = "ios")]
             tun_provider,
             #[cfg(target_os = "ios")]

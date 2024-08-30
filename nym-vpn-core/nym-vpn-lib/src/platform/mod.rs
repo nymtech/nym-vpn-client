@@ -42,7 +42,11 @@ use crate::vpn::{
 };
 
 #[cfg(target_os = "ios")]
-use crate::mobile::{ios::tun_provider::OSTunProvider, runner::WgTunnelRunner};
+use crate::mobile::ios::tun_provider::OSTunProvider;
+#[cfg(any(target_os = "ios", target_os = "android"))]
+use crate::mobile::runner::WgTunnelRunner;
+#[cfg(target_os = "android")]
+use crate::platform::android::AndroidTunProvider;
 
 lazy_static! {
     static ref VPN_SHUTDOWN_HANDLE: Mutex<Option<ShutdownHandle>> = Mutex::new(None);
@@ -182,6 +186,8 @@ pub struct VPNConfig {
     pub entry_gateway: EntryPoint,
     pub exit_router: ExitPoint,
     pub enable_two_hop: bool,
+    #[cfg(target_os = "android")]
+    pub tun_provider: Arc<dyn AndroidTunProvider>,
     #[cfg(target_os = "ios")]
     pub tun_provider: Arc<dyn OSTunProvider>,
     pub credential_data_path: Option<PathBuf>,
@@ -189,15 +195,12 @@ pub struct VPNConfig {
 }
 
 fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
-    #[cfg(target_os = "android")]
-    let context = crate::platform::android::get_context().ok_or(FFIError::NoContext)?;
-    debug!("got android context to create new vpn");
 
     let mut vpn = NymVpn::new_mixnet_vpn(
         config.entry_gateway.into(),
         config.exit_router.into(),
         #[cfg(target_os = "android")]
-        context,
+        config.tun_provider,
         #[cfg(target_os = "ios")]
         config.tun_provider,
     );
@@ -216,9 +219,6 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
         return Err(FFIError::VpnAlreadyRunning);
     }
 
-    #[cfg(any(target_os = "ios", target_os = "macos"))]
-    crate::platform::swift::init_logs();
-
     LISTENER
         .lock()
         .unwrap()
@@ -226,7 +226,6 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
 
     uniffi_set_listener_status(StatusEvent::Tun(TunStatus::InitializingClient));
 
-    #[cfg(target_os = "ios")]
     if config.enable_two_hop {
         RUNTIME.block_on(async move {
             tracing::debug!("Starting VPN tunnel...");
@@ -237,7 +236,7 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
             let join_handle = tokio::spawn(async move {
                 // todo: set this only when two hop tunnel is actually up.
                 uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Up));
-
+                #[cfg(any(target_os = "android", target_os = "ios"))]
                 match WgTunnelRunner::new(config, cloned_shutdown_token) {
                     Ok(tun_runner) => match tun_runner.start().await {
                         Ok(_) => {
@@ -282,6 +281,15 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
         RUNNING.store(false, Ordering::Relaxed);
     }
     ret
+}
+
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn initLogger(level: String) {
+    #[cfg(target_os = "ios")]
+    swift::init_logs(level);
+    #[cfg(target_os = "android")]
+    android::init_logs(level);
 }
 
 #[allow(non_snake_case)]
