@@ -21,6 +21,7 @@ import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
 import net.nymtech.nymvpn.util.extensions.go
 import net.nymtech.vpn.Tunnel
 import net.nymtech.vpn.model.BackendMessage
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -69,6 +70,7 @@ constructor(
 
 	fun onConnect() = viewModelScope.launch {
 		tunnelManager.start().onFailure {
+			Timber.e(it)
 			SnackbarController.showMessage(StringValue.StringResource(R.string.exception_cred_invalid))
 			navController.go(Destination.Credential.route)
 		}

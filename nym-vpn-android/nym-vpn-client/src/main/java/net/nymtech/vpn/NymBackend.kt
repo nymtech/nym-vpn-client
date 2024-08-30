@@ -41,7 +41,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	init {
 		System.loadLibrary(Constants.NYM_VPN_LIB)
-		initLogger("info")
+		initLogger("debug")
 	}
 
 	companion object : SingletonHolder<NymBackend, Context>(::NymBackend) {
