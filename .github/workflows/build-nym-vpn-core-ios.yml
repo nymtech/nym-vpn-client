@@ -42,7 +42,7 @@ jobs:
 
       - name: Setup cargo swift
         run: |
-          cargo install cargo-swift@0.8.1
+          cargo install cargo-swift
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
