@@ -34,6 +34,7 @@ import nym_vpn_lib.initLogger
 import nym_vpn_lib.startVpn
 import nym_vpn_lib.stopVpn
 import timber.log.Timber
+import java.io.File
 import java.net.InetAddress
 import java.time.Instant
 
@@ -68,6 +69,12 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	override suspend fun importCredential(credential: String): Instant? {
 		return try {
+			val file = File(Constants.NATIVE_STORAGE_PATH)
+			if(!file.exists()) {
+				Timber.d("Making storage folder")
+				val created = file.mkdir()
+				Timber.d("File was created: $created")
+			} else Timber.d("Storage file already exists, proceeding to import cred")
 			nym_vpn_lib.importCredential(credential, Constants.NATIVE_STORAGE_PATH)
 		} catch (e: FfiException) {
 			Timber.e(e)

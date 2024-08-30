@@ -18,9 +18,9 @@ export RUSTFLAGS="-L ${PWD}/../../build/lib/aarch64-linux-android -L ${PWD}/../.
 (cd $PWD/../../nym-vpn-core/nym-vpn-lib; cargo ndk -t arm64-v8a -o ../../nym-vpn-android/nym-vpn-client/src/main/jniLibs build --release)
 #mv wireguard
 
-echo "${PWD}/../../build/lib/universal-apple-darwin"
+echo "${PWD}/../../build/lib/aarch64-apple-darwin"
 case  "$(uname -s)" in
-    Darwin*) export RUSTFLAGS="-L ${PWD}/../../build/lib/universal-apple-darwin";;
+    Darwin*) export RUSTFLAGS="-L ${PWD}/../../build/lib/aarch64-apple-darwin";;
     Linux*) export RUSTFLAGS="-L ${PWD}/../../build/lib/x86_64-unknown-linux-gnu";;
     MINGW*|MSYS_NT*) export RUSTFLAGS="-L ${PWD}/../../build/lib/x86_64-pc-windows-msvc";;
 esac
