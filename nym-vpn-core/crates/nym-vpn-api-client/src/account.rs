@@ -4,7 +4,11 @@
 use nym_http_api_client::{UserAgent, NO_PARAMS};
 use request::{CreateSubscriptionRequestBody, RegisterDeviceRequestBody, RequestZkNymRequestBody};
 use reqwest::Url;
-use response::{NymErrorResponse, NymVpnAccountResponse, NymVpnZkNym};
+use response::{
+    NymErrorResponse, NymVpnAccountResponse, NymVpnAccountSummaryResponse, NymVpnDevice,
+    NymVpnDevicesResponse, NymVpnSubscription, NymVpnSubscriptionResponse, NymVpnZkNym,
+    NymVpnZkNymResponse,
+};
 use serde::{de::DeserializeOwned, Serialize};
 use types::{Account, Device};
 
@@ -120,6 +124,57 @@ mod response {
         created_on_utc: String,
         last_updated_utc: String,
         account_addr: String,
+        status: String,
+    }
+
+    #[derive(Debug, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct NymVpnAccountSummarySubscription {
+        is_active: bool,
+        active: Option<NymVpnSubscription>,
+    }
+
+    #[derive(Debug, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct NymVpnAccountSummaryDevices {
+        active: u64,
+        max: u64,
+        remaining: u64,
+    }
+
+    #[derive(Debug, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct NymVpnAccountSummaryFairUsage {
+        used_gb: f64,
+        limit_gb: f64,
+        resets_on_utc: String,
+    }
+
+    #[derive(Debug, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct NymVpnAccountSummaryResponse {
+        account: NymVpnAccountResponse,
+        subscription: NymVpnAccountSummarySubscription,
+        devices: NymVpnAccountSummaryDevices,
+        fair_usage: NymVpnAccountSummaryFairUsage,
+    }
+
+    #[derive(Debug, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct NymVpnDevice {
+        created_on_utc: String,
+        last_updated_utc: String,
+        device_identity_key: String,
+        status: String,
+    }
+
+    #[derive(Debug, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct NymVpnDevicesResponse {
+        total_items: u64,
+        page: u64,
+        page_size: u64,
+        devices: Vec<NymVpnDevice>,
     }
 
     #[derive(Debug, Serialize, Deserialize)]
@@ -135,26 +190,56 @@ mod response {
         status: String,
     }
 
+    #[derive(Debug, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct NymVpnZkNymResponse {
+        total_items: u64,
+        page: u64,
+        page_size: u64,
+        zk_nyms: Vec<NymVpnZkNym>,
+    }
+
+    #[derive(Debug, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct NymVpnSubscription {
+        created_on_utc: String,
+        last_updated_utc: String,
+        id: String,
+        valid_until_utc: String,
+        valid_from_utc: String,
+        status: String,
+        kind: String,
+    }
+
+    #[derive(Debug, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct NymVpnSubscriptionResponse {
+        total_items: u64,
+        page: u64,
+        page_size: u64,
+        subscriptions: Vec<NymVpnSubscription>,
+    }
+
     #[derive(Debug, Serialize, Deserialize, Default)]
     #[serde(rename_all = "camelCase")]
     pub struct NymErrorResponse {
-        pub message: Option<String>,
+        pub message: String,
         pub message_id: Option<String>,
         pub code_reference_id: Option<String>,
-        pub status: Option<String>,
+        pub status: String,
     }
 
     impl fmt::Display for NymErrorResponse {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             let fields = [
-                self.message.as_deref().map(|x| format!("message: {}", x)),
+                Some(format!("message: {}", self.message)),
                 self.message_id
                     .as_deref()
                     .map(|x| format!("message_id: {}", x)),
                 self.code_reference_id
                     .as_deref()
                     .map(|x| format!("code_reference_id: {}", x)),
-                self.status.as_deref().map(|x| format!("status: {}", x)),
+                Some(format!("status: {}", self.status)),
             ]
             .iter()
             .filter_map(|x| x.clone())
@@ -245,7 +330,8 @@ impl AccountClient {
     pub async fn get_account_summary(
         &self,
         account: &Account,
-    ) -> Result<(), nym_http_api_client::HttpClientError<NymErrorResponse>> {
+    ) -> Result<NymVpnAccountSummaryResponse, nym_http_api_client::HttpClientError<NymErrorResponse>>
+    {
         self.get(
             &[routes::V1, routes::ACCOUNT, &account.id(), routes::SUMMARY],
             account,
@@ -259,7 +345,7 @@ impl AccountClient {
     pub async fn get_devices(
         &self,
         account: &Account,
-    ) -> Result<(), nym_http_api_client::HttpClientError<NymErrorResponse>> {
+    ) -> Result<NymVpnDevicesResponse, nym_http_api_client::HttpClientError<NymErrorResponse>> {
         self.get(
             &[routes::V1, routes::ACCOUNT, &account.id(), routes::DEVICE],
             account,
@@ -272,7 +358,7 @@ impl AccountClient {
         &self,
         account: &Account,
         device: &Device,
-    ) -> Result<(), nym_http_api_client::HttpClientError<NymErrorResponse>> {
+    ) -> Result<NymVpnDevice, nym_http_api_client::HttpClientError<NymErrorResponse>> {
         let body = RegisterDeviceRequestBody {
             device_identity_key: device.identity_key().to_base58_string(),
             signature: device.jwt().to_string(),
@@ -290,7 +376,7 @@ impl AccountClient {
     pub async fn get_active_devices(
         &self,
         account: &Account,
-    ) -> Result<(), nym_http_api_client::HttpClientError<NymErrorResponse>> {
+    ) -> Result<NymVpnDevicesResponse, nym_http_api_client::HttpClientError<NymErrorResponse>> {
         self.get(
             &[
                 routes::V1,
@@ -309,7 +395,7 @@ impl AccountClient {
         &self,
         account: &Account,
         device: &Device,
-    ) -> Result<(), nym_http_api_client::HttpClientError<NymErrorResponse>> {
+    ) -> Result<NymVpnDevice, nym_http_api_client::HttpClientError<NymErrorResponse>> {
         self.get(
             &[
                 routes::V1,
@@ -330,7 +416,7 @@ impl AccountClient {
         &self,
         account: &Account,
         device: &Device,
-    ) -> Result<(), nym_http_api_client::HttpClientError<NymErrorResponse>> {
+    ) -> Result<NymVpnZkNymResponse, nym_http_api_client::HttpClientError<NymErrorResponse>> {
         self.get(
             &[
                 routes::V1,
@@ -419,7 +505,8 @@ impl AccountClient {
     pub async fn get_subscriptions(
         &self,
         account: &Account,
-    ) -> Result<(), nym_http_api_client::HttpClientError<NymErrorResponse>> {
+    ) -> Result<NymVpnSubscriptionResponse, nym_http_api_client::HttpClientError<NymErrorResponse>>
+    {
         self.get(
             &[
                 routes::V1,
@@ -436,7 +523,7 @@ impl AccountClient {
     pub async fn create_subscription(
         &self,
         account: &Account,
-    ) -> Result<(), nym_http_api_client::HttpClientError<NymErrorResponse>> {
+    ) -> Result<NymVpnSubscription, nym_http_api_client::HttpClientError<NymErrorResponse>> {
         let body = CreateSubscriptionRequestBody {
             valid_from_utc: "todo".to_string(),
             subscription_kind: "todo".to_string(),
@@ -459,7 +546,8 @@ impl AccountClient {
     pub async fn get_active_subscriptions(
         &self,
         account: &Account,
-    ) -> Result<(), nym_http_api_client::HttpClientError<NymErrorResponse>> {
+    ) -> Result<NymVpnSubscriptionResponse, nym_http_api_client::HttpClientError<NymErrorResponse>>
+    {
         self.get(
             &[
                 routes::V1,
