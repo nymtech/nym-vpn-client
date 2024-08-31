@@ -28,7 +28,7 @@ pub mod types {
     }
 
     impl Account {
-        #[cfg(test)]
+        #[allow(unused)]
         fn random() -> Self {
             let mnemonic = bip39::Mnemonic::generate(24).unwrap();
             let wallet = DirectSecp256k1HdWallet::from_mnemonic("n", mnemonic);
@@ -621,8 +621,9 @@ impl AccountClient {
         self.inner
             .get_json(
                 &[
-                    routes::PUBLIC,
-                    routes::V1,
+                    // Add public/v1 to the path once the api is updated
+                    //routes::PUBLIC,
+                    //routes::V1,
                     routes::DIRECTORY,
                     routes::GATEWAYS,
                 ],
@@ -637,8 +638,9 @@ impl AccountClient {
         self.inner
             .get_json(
                 &[
-                    routes::PUBLIC,
-                    routes::V1,
+                    // Add public/v1 to the path once the api is updated
+                    //routes::PUBLIC,
+                    //routes::V1,
                     routes::DIRECTORY,
                     routes::GATEWAYS,
                     routes::COUNTRIES,
@@ -654,8 +656,9 @@ impl AccountClient {
         self.inner
             .get_json(
                 &[
-                    routes::PUBLIC,
-                    routes::V1,
+                    // Add public/v1 to the path once the api is updated
+                    //routes::PUBLIC,
+                    //routes::V1,
                     routes::DIRECTORY,
                     routes::GATEWAYS,
                     routes::ENTRY,
@@ -671,8 +674,9 @@ impl AccountClient {
         self.inner
             .get_json(
                 &[
-                    routes::PUBLIC,
-                    routes::V1,
+                    // Add public/v1 to the path once the api is updated
+                    //routes::PUBLIC,
+                    //routes::V1,
                     routes::DIRECTORY,
                     routes::GATEWAYS,
                     routes::ENTRY,
@@ -689,8 +693,9 @@ impl AccountClient {
         self.inner
             .get_json(
                 &[
-                    routes::PUBLIC,
-                    routes::V1,
+                    // Add public/v1 to the path once the api is updated
+                    //routes::PUBLIC,
+                    //routes::V1,
                     routes::DIRECTORY,
                     routes::GATEWAYS,
                     routes::EXIT,
@@ -706,8 +711,9 @@ impl AccountClient {
         self.inner
             .get_json(
                 &[
-                    routes::PUBLIC,
-                    routes::V1,
+                    // Add public/v1 to the path once the api is updated
+                    //routes::PUBLIC,
+                    //routes::V1,
                     routes::DIRECTORY,
                     routes::GATEWAYS,
                     routes::EXIT,
