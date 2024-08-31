@@ -1,10 +1,10 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
 
+use crate::mobile::tunnel_settings::TunnelNetworkSettings;
+use log::LevelFilter;
 use std::fmt::Debug;
 use std::os::fd::RawFd;
-use log::LevelFilter;
-use crate::mobile::tunnel_settings::TunnelNetworkSettings;
 
 pub(crate) fn init_logs(level: String) {
     use android_logger::{Config, FilterBuilder};
@@ -22,5 +22,8 @@ pub(crate) fn init_logs(level: String) {
 #[uniffi::export(with_foreign)]
 pub trait AndroidTunProvider: Send + Sync + Debug {
     fn bypass(&self, socket: i32);
-    fn configure_tunnel(&self, config: TunnelNetworkSettings) -> Result<RawFd, crate::platform::error::FFIError>;
+    fn configure_tunnel(
+        &self,
+        config: TunnelNetworkSettings,
+    ) -> Result<RawFd, crate::platform::error::FFIError>;
 }

@@ -18,12 +18,12 @@ use talpid_core::dns::DnsMonitor;
 use talpid_routing::RouteManager;
 use talpid_tunnel::tun_provider::TunProvider;
 
+use super::base::{GenericNymVpnConfig, NymVpn, ShadowHandle, Vpn};
 #[cfg(target_os = "ios")]
 use crate::mobile::ios::tun_provider::OSTunProvider;
-use crate::{error::Result, mixnet::SharedMixnetClient, routing, Error, GatewayDirectoryError};
 #[cfg(target_os = "android")]
 use crate::platform::android::AndroidTunProvider;
-use super::base::{GenericNymVpnConfig, NymVpn, ShadowHandle, Vpn};
+use crate::{error::Result, mixnet::SharedMixnetClient, routing, Error, GatewayDirectoryError};
 
 #[derive(Clone, Debug)]
 pub struct MixnetClientConfig {

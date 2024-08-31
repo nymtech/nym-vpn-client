@@ -9,14 +9,14 @@ use std::{
 use nym_gateway_directory::{EntryPoint, ExitPoint, NodeIdentity};
 use talpid_tunnel::tun_provider::TunProvider;
 
-#[cfg(target_os = "ios")]
-use crate::mobile::ios::tun_provider::OSTunProvider;
-#[cfg(target_os = "android")]
-use crate::platform::android::AndroidTunProvider;
 use super::{
     base::{GenericNymVpnConfig, ShadowHandle, Vpn},
     MixnetClientConfig, NymVpn,
 };
+#[cfg(target_os = "ios")]
+use crate::mobile::ios::tun_provider::OSTunProvider;
+#[cfg(target_os = "android")]
+use crate::platform::android::AndroidTunProvider;
 
 #[derive(Clone, Debug)]
 pub struct WireguardConnectionInfo {

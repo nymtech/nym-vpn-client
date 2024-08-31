@@ -22,7 +22,11 @@ use tap::TapFallible;
 use tracing::{debug, error, info, trace};
 use tun2::AbstractDevice;
 
-use crate::{error::Result, vpn::{MixnetVpn, NymVpn}, Error};
+use crate::{
+    error::Result,
+    vpn::{MixnetVpn, NymVpn},
+    Error,
+};
 
 const DEFAULT_TUN_MTU: u16 = 1500;
 
@@ -184,10 +188,10 @@ pub(crate) async fn setup_mixnet_routing(
 
     #[cfg(target_os = "ios")]
     {
-        let fd = crate::mobile::ios::tun::get_tun_fd().ok_or(crate::mobile::Error::CannotLocateTunFd)?;
+        let fd =
+            crate::mobile::ios::tun::get_tun_fd().ok_or(crate::mobile::Error::CannotLocateTunFd)?;
         tun_config.raw_fd(fd);
     };
-
 
     let interface_addresses = config.tun_ips();
     let tunnel_settings = crate::mobile::tunnel_settings::TunnelSettings {
@@ -212,9 +216,8 @@ pub(crate) async fn setup_mixnet_routing(
     #[cfg(target_os = "android")]
     {
         let fd = android_tun_provider
-            .configure_tunnel(tunnel_settings.into_tunnel_network_settings()).map_err(|_| {
-            Error::StopError
-        })?;
+            .configure_tunnel(tunnel_settings.into_tunnel_network_settings())
+            .map_err(|_| Error::StopError)?;
         // if tun interface config fails on android, we return -1
         if fd.is_negative() {
             return Err(Error::StopError);
@@ -251,7 +254,7 @@ pub async fn setup_mixnet_routing(
     route_manager: &mut RouteManager,
     config: RoutingConfig,
     #[cfg(target_os = "android")] android_tun_provider: std::sync::Arc<
-        dyn crate::platform::android::AndroidTunProvider
+        dyn crate::platform::android::AndroidTunProvider,
     >,
     #[cfg(target_os = "ios")] ios_tun_provider: std::sync::Arc<
         dyn crate::platform::swift::OSTunProvider,

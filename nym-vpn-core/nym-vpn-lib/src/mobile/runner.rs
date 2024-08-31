@@ -15,18 +15,19 @@ use nym_task::TaskManager;
 use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
 use nym_wg_go::{PrivateKey, PublicKey};
 
-use crate::mixnet::SharedMixnetClient;
-use crate::platform::VPNConfig;
-use crate::{bandwidth_controller::BandwidthController, GenericNymVpnConfig};
-use crate::{GatewayDirectoryError, MixnetClientConfig};
-#[cfg(target_os = "android")]
-use crate::platform::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use super::ios::tun_provider::OSTunProvider;
 use super::{
     two_hop_tunnel::TwoHopTunnel,
     wg_config::{WgInterface, WgNodeConfig, WgPeer},
 };
+use crate::mixnet::SharedMixnetClient;
+#[cfg(target_os = "android")]
+use crate::platform::android::AndroidTunProvider;
+use crate::platform::{uniffi_set_listener_status, VPNConfig};
+use crate::uniffi_custom_impls::{StatusEvent, TunStatus};
+use crate::{bandwidth_controller::BandwidthController, GenericNymVpnConfig};
+use crate::{GatewayDirectoryError, MixnetClientConfig};
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -141,6 +142,8 @@ impl WgTunnelRunner {
 
         let mut shutdown_monitor_task_client = self.task_manager.subscribe();
         let cloned_shutdown_handle = self.shutdown_token.clone();
+
+        uniffi_set_listener_status(StatusEvent::Tun(TunStatus::EstablishingConnection));
 
         let mut set = JoinSet::new();
         set.spawn(async move {

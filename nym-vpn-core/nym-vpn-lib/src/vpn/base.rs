@@ -17,18 +17,18 @@ use tokio::task::JoinHandle;
 use tracing::{error, info};
 use tun2::AsyncDevice;
 
-#[cfg(target_os = "ios")]
-use crate::mobile::ios::tun_provider::OSTunProvider;
-use crate::{
-    error::Result,
-    tunnel_setup::{AllTunnelsSetup, TunnelSetup},
-};
-#[cfg(target_os = "android")]
-use crate::platform::android::AndroidTunProvider;
 use super::{
     messages::NymVpnStatusMessage,
     mixnet::{MixnetClientConfig, MixnetVpn},
     wireguard::WireguardVpn,
+};
+#[cfg(target_os = "ios")]
+use crate::mobile::ios::tun_provider::OSTunProvider;
+#[cfg(target_os = "android")]
+use crate::platform::android::AndroidTunProvider;
+use crate::{
+    error::Result,
+    tunnel_setup::{AllTunnelsSetup, TunnelSetup},
 };
 
 pub(crate) const MIXNET_CLIENT_STARTUP_TIMEOUT_SECS: u64 = 30;

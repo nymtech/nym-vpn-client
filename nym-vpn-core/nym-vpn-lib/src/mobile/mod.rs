@@ -3,6 +3,7 @@
 
 //! WireGuard tunnel creation and management on Android and iOS
 
+pub mod dns64;
 #[cfg(target_os = "ios")]
 pub mod ios;
 #[cfg(any(target_os = "ios", target_os = "android"))]
@@ -11,7 +12,6 @@ pub mod tunnel_settings;
 pub mod two_hop_config;
 pub mod two_hop_tunnel;
 pub mod wg_config;
-pub mod dns64;
 
 use crate::platform::error::FFIError;
 

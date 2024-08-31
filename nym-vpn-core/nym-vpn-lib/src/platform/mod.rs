@@ -194,7 +194,6 @@ pub struct VPNConfig {
 }
 
 fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
-
     let mut vpn = NymVpn::new_mixnet_vpn(
         config.entry_gateway.into(),
         config.exit_router.into(),
@@ -233,8 +232,6 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
             let cloned_shutdown_token = shutdown_token.clone();
 
             let join_handle = tokio::spawn(async move {
-                // todo: set this only when two hop tunnel is actually up.
-                uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Up));
                 #[cfg(any(target_os = "android", target_os = "ios"))]
                 match WgTunnelRunner::new(config, cloned_shutdown_token) {
                     Ok(tun_runner) => match tun_runner.start().await {
