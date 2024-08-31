@@ -7,12 +7,17 @@ pub(crate) mod headers;
 pub(crate) mod jwt;
 mod request;
 mod routes;
-mod types;
+pub mod types;
 
-pub use client::{AccountClient};
+pub use client::VpnApiClient;
 pub use error::VpnApiClientError;
 // pub use helpers::{
 //     get_countries, get_entry_countries, get_entry_gateways, get_exit_countries, get_exit_gateways,
 //     get_gateways,
 // };
 pub use types::{Country, Gateway, Location};
+
+pub type VpnApiHttpErrorResponse =
+    nym_http_api_client::HttpClientError<responses::NymErrorResponse>;
+pub type VpnApiHttpUnexpectedError =
+    nym_http_api_client::HttpClientError<responses::UnexpectedError>;

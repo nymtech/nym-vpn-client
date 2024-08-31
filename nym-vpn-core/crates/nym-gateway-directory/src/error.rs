@@ -19,10 +19,10 @@ pub enum Error {
     ValidatorClientError(#[from] nym_validator_client::ValidatorClientError),
 
     #[error(transparent)]
-    NymHttpApiError(#[from] nym_vpn_api_client::VpnApiError),
+    NymVpnApiClientError(#[from] nym_vpn_api_client::VpnApiHttpErrorResponse),
 
-    #[error(transparent)]
-    NymVpnApiClientError(#[from] nym_vpn_api_client::VpnApiClientError),
+    #[error("failed to create gateway client: {0}")]
+    FailedToCreateVpnApiClient(#[source] nym_vpn_api_client::VpnApiClientError),
 
     #[error("failed to resolve gateway hostname: {hostname}: {source}")]
     FailedToDnsResolveGateway {
@@ -32,6 +32,21 @@ pub enum Error {
 
     #[error("resolved hostname {0} but no IP address found")]
     ResolvedHostnameButNoIp(String),
+
+    #[error("failed to lookup gateways: {0}")]
+    FailedToLookupGateways(#[source] nym_vpn_api_client::VpnApiHttpUnexpectedError),
+
+    #[error("failed to lookup entry gateways: {0}")]
+    FailedToLookupEntryGateways(#[source] nym_vpn_api_client::VpnApiHttpUnexpectedError),
+
+    #[error("failed to lookup exit gateways: {0}")]
+    FailedToLookupExitGateways(#[source] nym_vpn_api_client::VpnApiHttpUnexpectedError),
+
+    #[error("failed to lookup entry countries: {0}")]
+    FailedToLookupEntryCountries(#[source] nym_vpn_api_client::VpnApiHttpUnexpectedError),
+
+    #[error("failed to lookup exit countries: {0}")]
+    FailedToLookupExitCountries(#[source] nym_vpn_api_client::VpnApiHttpUnexpectedError),
 
     #[error("failed to lookup described gateways: {0}")]
     FailedToLookupDescribedGateways(#[source] nym_validator_client::ValidatorClientError),
@@ -73,11 +88,6 @@ pub enum Error {
 
     #[error("gateway {0} doesn't have a description available")]
     NoGatewayDescriptionAvailable(String),
-
-    #[error("failed to lookup entry countries: {source}")]
-    FailedToLookupEntryCountries {
-        source: nym_vpn_api_client::VpnApiError,
-    },
 }
 
 // Result type based on our error type

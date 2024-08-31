@@ -5,23 +5,29 @@ use nym_http_api_client::{HttpClientError, PathSegments, UserAgent, NO_PARAMS};
 use reqwest::Url;
 use serde::{de::DeserializeOwned, Serialize};
 
-use crate::types::{Account, Device};
 use crate::headers::DEVICE_AUTHORIZATION_HEADER;
+use crate::request::{
+    CreateSubscriptionRequestBody, RegisterDeviceRequestBody, RequestZkNymRequestBody,
+};
 use crate::responses::{
     NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymErrorResponse,
     NymVpnAccountResponse, NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse,
     NymVpnSubscription, NymVpnSubscriptionResponse, NymVpnZkNym, NymVpnZkNymResponse,
     UnexpectedError,
 };
-use crate::request::{CreateSubscriptionRequestBody, RegisterDeviceRequestBody, RequestZkNymRequestBody};
 use crate::routes;
+use crate::types::{Account, Device};
 
-pub struct AccountClient {
+pub struct VpnApiClient {
     inner: nym_http_api_client::Client,
 }
 
-impl AccountClient {
-    pub fn new(base_url: Url, user_agent: UserAgent) -> Result<Self, HttpClientError> {
+impl VpnApiClient {
+    // pub fn new(base_url: Url, user_agent: UserAgent) -> Result<Self, HttpClientError> {
+    pub fn new(
+        base_url: Url,
+        user_agent: UserAgent,
+    ) -> Result<Self, crate::error::VpnApiClientError> {
         let inner = nym_http_api_client::Client::builder(base_url)?
             .with_user_agent(user_agent)
             .build()?;
@@ -500,7 +506,7 @@ mod tests {
     #[tokio::test]
     async fn get_account() {
         let account = Account::from(get_mnemonic());
-        let client = AccountClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
+        let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
         let r = client.get_account(&account).await;
         dbg!(&r);
         println!("{}", r.unwrap_err());
@@ -510,21 +516,21 @@ mod tests {
     async fn get_device_zk_nyms() {
         let account = Account::from(get_mnemonic());
         let device = Device::from(get_ed25519_keypair());
-        let client = AccountClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
+        let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
         let r = client.get_device_zk_nyms(&account, &device).await;
         dbg!(&r);
     }
 
     #[tokio::test]
     async fn get_gateways() {
-        let client = AccountClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
+        let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
         let r = client.get_gateways().await;
         dbg!(&r);
     }
 
     #[tokio::test]
     async fn get_gateway_countries() {
-        let client = AccountClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
+        let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
         let r = client.get_gateway_countries().await;
         dbg!(&r);
     }

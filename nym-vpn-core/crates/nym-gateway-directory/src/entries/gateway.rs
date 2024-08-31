@@ -104,8 +104,8 @@ impl From<nym_vpn_api_client::Location> for Location {
     }
 }
 
-impl From<nym_vpn_api_client::responses::Probe> for Probe {
-    fn from(probe: nym_vpn_api_client::responses::Probe) -> Self {
+impl From<nym_vpn_api_client::types::Probe> for Probe {
+    fn from(probe: nym_vpn_api_client::types::Probe) -> Self {
         Probe {
             last_updated_utc: probe.last_updated_utc,
             outcome: ProbeOutcome::from(probe.outcome),
@@ -113,8 +113,8 @@ impl From<nym_vpn_api_client::responses::Probe> for Probe {
     }
 }
 
-impl From<nym_vpn_api_client::responses::ProbeOutcome> for ProbeOutcome {
-    fn from(outcome: nym_vpn_api_client::responses::ProbeOutcome) -> Self {
+impl From<nym_vpn_api_client::types::ProbeOutcome> for ProbeOutcome {
+    fn from(outcome: nym_vpn_api_client::types::ProbeOutcome) -> Self {
         ProbeOutcome {
             as_entry: Entry::from(outcome.as_entry),
             as_exit: outcome.as_exit.map(Exit::from),
@@ -122,8 +122,8 @@ impl From<nym_vpn_api_client::responses::ProbeOutcome> for ProbeOutcome {
     }
 }
 
-impl From<nym_vpn_api_client::responses::Entry> for Entry {
-    fn from(entry: nym_vpn_api_client::responses::Entry) -> Self {
+impl From<nym_vpn_api_client::types::Entry> for Entry {
+    fn from(entry: nym_vpn_api_client::types::Entry) -> Self {
         Entry {
             can_connect: entry.can_connect,
             can_route: entry.can_route,
@@ -131,8 +131,8 @@ impl From<nym_vpn_api_client::responses::Entry> for Entry {
     }
 }
 
-impl From<nym_vpn_api_client::responses::Exit> for Exit {
-    fn from(exit: nym_vpn_api_client::responses::Exit) -> Self {
+impl From<nym_vpn_api_client::types::Exit> for Exit {
+    fn from(exit: nym_vpn_api_client::types::Exit) -> Self {
         Exit {
             can_connect: exit.can_connect,
             can_route_ip_v4: exit.can_route_ip_v4,
