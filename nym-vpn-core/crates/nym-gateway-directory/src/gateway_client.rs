@@ -13,7 +13,7 @@ use crate::{
 use nym_sdk::{mixnet::Recipient, UserAgent};
 use nym_topology::IntoGatewayNode;
 use nym_validator_client::{models::DescribedGateway, nym_nodes::SkimmedNode, NymApiClient};
-use nym_vpn_api_client::VpnApiClientExt;
+// use nym_vpn_api_client::VpnApiClientExt;
 use std::{fmt, net::IpAddr, time::Duration};
 use tracing::{debug, error, info};
 use url::Url;
