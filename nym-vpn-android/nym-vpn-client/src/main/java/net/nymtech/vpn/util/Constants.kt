@@ -8,7 +8,7 @@ object Constants {
 	// Add Rust environment vars for lib
 	const val DEFAULT_COUNTRY_ISO = "DE"
 
-	const val NATIVE_STORAGE_PATH = "/data/data/net.nymtech.nymvpn/files/"
+	const val NATIVE_STORAGE_PATH = "/data/data/net.nymtech.nymvpn.debug/files/"
 	const val STATISTICS_INTERVAL_MILLI = 1_000L
 
 	private fun setupCommon() {

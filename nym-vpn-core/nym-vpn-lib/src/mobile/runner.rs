@@ -19,6 +19,7 @@ use crate::mixnet::SharedMixnetClient;
 use crate::platform::VPNConfig;
 use crate::{bandwidth_controller::BandwidthController, GenericNymVpnConfig};
 use crate::{GatewayDirectoryError, MixnetClientConfig};
+#[cfg(target_os = "android")]
 use crate::platform::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use super::ios::tun_provider::OSTunProvider;

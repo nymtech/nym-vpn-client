@@ -11,6 +11,7 @@ pub mod tunnel_settings;
 pub mod two_hop_config;
 pub mod two_hop_tunnel;
 pub mod wg_config;
+pub mod dns64;
 
 use crate::platform::error::FFIError;
 
@@ -25,14 +26,12 @@ pub enum Error {
     #[error("tunnel failure")]
     Tunnel(#[from] nym_wg_go::Error),
 
-    #[cfg(target_os = "ios")]
     #[error("DNS resolution failure")]
-    DnsResolution(#[from] ios::dns64::Error),
+    DnsResolution(#[from] dns64::Error),
 
     #[error("failed to set network settings")]
     SetNetworkSettings(#[source] FFIError),
 
-    #[cfg(target_os = "ios")]
     #[error("failed to set default path observer")]
     SetDefaultPathObserver(#[source] FFIError),
 }

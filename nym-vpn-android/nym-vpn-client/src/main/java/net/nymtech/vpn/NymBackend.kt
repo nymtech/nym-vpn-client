@@ -24,6 +24,7 @@ import nym_vpn_lib.BandwidthStatus
 import nym_vpn_lib.ConnectionStatus
 import nym_vpn_lib.ExitStatus
 import nym_vpn_lib.FfiException
+import nym_vpn_lib.Ipv4Route
 import nym_vpn_lib.NymVpnStatus
 import nym_vpn_lib.TunStatus
 import nym_vpn_lib.TunnelNetworkSettings
@@ -42,7 +43,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	init {
 		System.loadLibrary(Constants.NYM_VPN_LIB)
-		initLogger("debug")
+		initLogger("info")
 	}
 
 	companion object : SingletonHolder<NymBackend, Context>(::NymBackend) {
@@ -69,12 +70,6 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	override suspend fun importCredential(credential: String): Instant? {
 		return try {
-			val file = File(Constants.NATIVE_STORAGE_PATH)
-			if(!file.exists()) {
-				Timber.d("Making storage folder")
-				val created = file.mkdir()
-				Timber.d("File was created: $created")
-			} else Timber.d("Storage file already exists, proceeding to import cred")
 			nym_vpn_lib.importCredential(credential, Constants.NATIVE_STORAGE_PATH)
 		} catch (e: FfiException) {
 			Timber.e(e)
@@ -260,32 +255,31 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			if (currentTunnelHandle != -1) return currentTunnelHandle
 			val vpnInterface = builder.apply {
 				config.ipv4Settings?.addresses?.forEach {
-					Timber.d("Address: $it")
+					Timber.d("Address v4: $it")
 					val address = it.split("/")
 					addAddress(address.first(), address.last().toInt())
 				}
 				config.ipv6Settings?.addresses?.forEach {
+					Timber.d("Address v6")
 					val address = it.split("/")
 					addAddress(address.first(), address.last().toInt())
 				}
 				config.dnsSettings?.servers?.forEach {
+					Timber.d("DNS: $it")
 					addDnsServer(it)
 				}
 				Timber.d("Setting routes")
 				addRoute("0.0.0.0", 0)
 				addRoute("::", 0)
-				excludeRoute(IpPrefix(InetAddress.getByName(config.tunnelRemoteAddress), 32))
-				Timber.d("Huh")
-//				try {
-//					val allowedIps = config.allowedIps.map { it.split("/") }
-//					allowedIps.forEach {
-//						addRoute(it.first(), it.last().toInt())
-//						addRoute(it.first(), it.last().toInt())
-//					}
-//				} catch (e: Exception) {
-//					Timber.e(e)
-//					return -1
-//				}
+				config.ipv4Settings?.excludedRoutes?.forEach {
+					when(it) {
+						is Ipv4Route.Specific -> {
+							Timber.d("Excluding ${it.gateway}")
+							excludeRoute(IpPrefix(InetAddress.getByName(it.gateway), 32))
+						}
+						Ipv4Route.Default -> Unit
+					}
+				}
 
 				setMtu(config.mtu.toInt())
 
@@ -311,7 +305,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 		override fun onDestroy() {
 			super.onDestroy()
-			Timber.d("Wrapper got destroyed, but who cares")
+			Timber.d("Background service destroyed")
 		}
 	}
 }

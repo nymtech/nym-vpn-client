@@ -2,7 +2,6 @@ use std::sync::Arc;
 
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
-
 #[cfg(target_os = "ios")]
 use super::ios::{
     default_path_observer::{DefaultPathObserver, DefaultPathReceiver, OSDefaultPath},
@@ -12,13 +11,11 @@ use super::ios::{
 };
 use super::tunnel_settings::TunnelSettings;
 
-use super::{
-    two_hop_config::TwoHopConfig,
-    wg_config::{WgNodeConfig, WgPeer},
-    Error, Result,
-};
+use super::{dns64, two_hop_config::TwoHopConfig, wg_config::{WgNodeConfig, WgPeer}, Error, Result};
 
 use nym_wg_go::{netstack, wireguard_go};
+use crate::mobile::dns64::Dns64Resolution;
+#[cfg(target_os = "android")]
 use crate::platform::android::AndroidTunProvider;
 
 /// Two-hop WireGuard tunnel.
@@ -84,6 +81,7 @@ impl TwoHopTunnel {
         tracing::info!("Two-hop tun: {:#?}", two_hop_config.tun);
         tracing::info!("Two-hop forwarder: {:#?}", two_hop_config.forwarder);
 
+
         // iOS does not perform dns64 resolution by default. Do that manually.
         #[cfg(target_os = "ios")]
         two_hop_config.entry.peer.resolve_in_place()?;
@@ -119,16 +117,17 @@ impl TwoHopTunnel {
                 .await
                 .map_err(Error::SetNetworkSettings)?;
         }
-        #[cfg(target_os = "android")]
-        let tun_fd = {
-            tun_provider
-                .configure_tunnel(tunnel_settings.into_tunnel_network_settings())
-                .map_err(Error::SetNetworkSettings)?
-        };
 
         // Transform wg config structs into what nym-wg-go expects.
-        let entry_wg_config = two_hop_config.entry.into_netstack_config();
+        let mut entry_wg_config = two_hop_config.entry.into_netstack_config();
         let exit_wg_config = two_hop_config.exit.into_wireguard_config();
+
+        // Re-resolve peers with DNS64.
+        for peer in entry_wg_config.peers.iter_mut() {
+            peer.endpoint = dns64::reresolve_endpoint(peer.endpoint).map_err(|e| {
+                Error::DnsResolution(e)
+            })?;
+        }
 
         // Create netstack wg connected to the entry node.
         let mut entry_tunnel = netstack::Tunnel::start(entry_wg_config, |s| {
@@ -141,6 +140,17 @@ impl TwoHopTunnel {
             two_hop_config.forwarder.client_port,
             two_hop_config.forwarder.exit_endpoint,
         )?;
+
+        #[cfg(target_os = "android")]
+        let tun_fd = {
+            tun_provider
+                .configure_tunnel(tunnel_settings.into_tunnel_network_settings())
+                .map_err(Error::SetNetworkSettings)?
+        };
+
+        #[cfg(target_os = "android")]
+        if tun_fd == -1 { return Err(Error::CannotLocateTunFd); }
+
 
         // Create exit tunnel capturing exit traffic on device and sending it to the local udp forwarder.
         let exit_tunnel = wireguard_go::Tunnel::start(exit_wg_config, tun_fd, |s| {

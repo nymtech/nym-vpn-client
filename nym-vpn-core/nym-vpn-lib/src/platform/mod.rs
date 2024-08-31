@@ -262,25 +262,24 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
                 tracing::error!("Failed to set shutdown handle: {}", e);
             }
         });
-
-        return Ok(());
+        Ok(())
+    } else {
+        debug!("Trying to run VPN");
+        let vpn = sync_run_vpn(config);
+        debug!("Got VPN");
+        if vpn.is_err() {
+            error!("Err creating VPN");
+            uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
+            RUNNING.store(false, Ordering::Relaxed);
+        }
+        let ret = RUNTIME.block_on(run_vpn(vpn?.into()));
+        if ret.is_err() {
+            error!("Error running VPN");
+            uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
+            RUNNING.store(false, Ordering::Relaxed);
+        }
+        ret
     }
-
-    debug!("Trying to run VPN");
-    let vpn = sync_run_vpn(config);
-    debug!("Got VPN");
-    if vpn.is_err() {
-        error!("Err creating VPN");
-        uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
-        RUNNING.store(false, Ordering::Relaxed);
-    }
-    let ret = RUNTIME.block_on(run_vpn(vpn?.into()));
-    if ret.is_err() {
-        error!("Error running VPN");
-        uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
-        RUNNING.store(false, Ordering::Relaxed);
-    }
-    ret
 }
 
 #[allow(non_snake_case)]
