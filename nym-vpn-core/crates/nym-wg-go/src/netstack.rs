@@ -1,15 +1,15 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
 
+use super::{
+    uapi::UapiConfigBuilder, Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, PrivateKey,
+    Result,
+};
+use log::info;
 use std::{
     ffi::{c_char, c_void, CString},
     fmt,
     net::{IpAddr, SocketAddr},
-};
-use log::info;
-use super::{
-    uapi::UapiConfigBuilder, Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, PrivateKey,
-    Result,
 };
 
 /// Netstack interface configuration.
