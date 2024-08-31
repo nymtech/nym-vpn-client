@@ -1,13 +1,14 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_http_api_client::{UserAgent, NO_PARAMS};
+use nym_http_api_client::{HttpClientError, PathSegments, UserAgent, NO_PARAMS};
 use request::{CreateSubscriptionRequestBody, RegisterDeviceRequestBody, RequestZkNymRequestBody};
 use reqwest::Url;
 use response::{
-    NymErrorResponse, NymVpnAccountResponse, NymVpnAccountSummaryResponse, NymVpnDevice,
-    NymVpnDevicesResponse, NymVpnSubscription, NymVpnSubscriptionResponse, NymVpnZkNym,
-    NymVpnZkNymResponse,
+    NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymErrorResponse,
+    NymVpnAccountResponse, NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse,
+    NymVpnSubscription, NymVpnSubscriptionResponse, NymVpnZkNym, NymVpnZkNymResponse,
+    UnexpectedError,
 };
 use serde::{de::DeserializeOwned, Serialize};
 use types::{Account, Device};
@@ -80,6 +81,7 @@ pub mod types {
 }
 
 mod routes {
+    pub const PUBLIC: &str = "public";
     pub const V1: &str = "v1";
     pub const ACCOUNT: &str = "account";
     pub const SUMMARY: &str = "summary";
@@ -87,6 +89,11 @@ mod routes {
     pub const ACTIVE: &str = "active";
     pub const ZKNYM: &str = "zknym";
     pub const SUBSCRIPTION: &str = "subscription";
+    pub const DIRECTORY: &str = "directory";
+    pub const GATEWAYS: &str = "gateways";
+    pub const COUNTRIES: &str = "countries";
+    pub const ENTRY: &str = "entry";
+    pub const EXIT: &str = "exit";
 }
 
 mod request {
@@ -117,6 +124,8 @@ mod response {
     use std::fmt;
 
     use serde::{Deserialize, Serialize};
+
+    use crate::{Country, Gateway};
 
     #[derive(Debug, Serialize, Deserialize)]
     #[serde(rename_all = "camelCase")]
@@ -220,6 +229,14 @@ mod response {
         subscriptions: Vec<NymVpnSubscription>,
     }
 
+    #[derive(Debug, Clone, Deserialize, Serialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct NymDirectoryGatewaysResponse(Vec<Gateway>);
+
+    #[derive(Debug, Clone, Deserialize, Serialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct NymDirectoryGatewayCountriesResponse(Vec<Country>);
+
     #[derive(Debug, Serialize, Deserialize, Default)]
     #[serde(rename_all = "camelCase")]
     pub struct NymErrorResponse {
@@ -247,6 +264,18 @@ mod response {
             write!(f, "{}", fields.join(", "))
         }
     }
+
+    #[derive(Debug, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct UnexpectedError {
+        pub message: String,
+    }
+
+    impl fmt::Display for UnexpectedError {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(f, "{}", self.message)
+        }
+    }
 }
 
 pub struct AccountClient {
@@ -254,10 +283,7 @@ pub struct AccountClient {
 }
 
 impl AccountClient {
-    pub fn new(
-        base_url: Url,
-        user_agent: UserAgent,
-    ) -> Result<Self, nym_http_api_client::HttpClientError> {
+    pub fn new(base_url: Url, user_agent: UserAgent) -> Result<Self, HttpClientError> {
         let inner = nym_http_api_client::Client::builder(base_url)?
             .with_user_agent(user_agent)
             .build()?;
@@ -266,17 +292,16 @@ impl AccountClient {
 
     async fn get<T>(
         &self,
-        path: nym_http_api_client::PathSegments<'_>,
+        path: PathSegments<'_>,
         account: &Account,
         device: Option<&Device>,
-    ) -> Result<T, nym_http_api_client::HttpClientError<NymErrorResponse>>
+    ) -> Result<T, HttpClientError<NymErrorResponse>>
     where
         T: DeserializeOwned,
     {
-        dbg!(&account.jwt());
         let request = self
             .inner
-            .create_get_request(path, nym_http_api_client::NO_PARAMS)
+            .create_get_request(path, NO_PARAMS)
             .bearer_auth(account.jwt().to_string());
 
         let request = match device {
@@ -285,18 +310,17 @@ impl AccountClient {
         };
 
         let response = request.send().await?;
-        dbg!(&response);
 
         nym_http_api_client::parse_response(response, false).await
     }
 
     async fn post<T, B>(
         &self,
-        path: nym_http_api_client::PathSegments<'_>,
+        path: PathSegments<'_>,
         json_body: &B,
         account: &Account,
         device: Option<&Device>,
-    ) -> Result<T, nym_http_api_client::HttpClientError<NymErrorResponse>>
+    ) -> Result<T, HttpClientError<NymErrorResponse>>
     where
         T: DeserializeOwned,
         B: Serialize,
@@ -312,7 +336,6 @@ impl AccountClient {
         };
 
         let response = request.send().await?;
-        dbg!(&response);
 
         nym_http_api_client::parse_response(response, false).await
     }
@@ -322,18 +345,27 @@ impl AccountClient {
     pub async fn get_account(
         &self,
         account: &Account,
-    ) -> Result<NymVpnAccountResponse, nym_http_api_client::HttpClientError<NymErrorResponse>> {
-        self.get(&[routes::V1, routes::ACCOUNT, &account.id()], account, None)
-            .await
+    ) -> Result<NymVpnAccountResponse, HttpClientError<NymErrorResponse>> {
+        self.get(
+            &[routes::PUBLIC, routes::V1, routes::ACCOUNT, &account.id()],
+            account,
+            None,
+        )
+        .await
     }
 
     pub async fn get_account_summary(
         &self,
         account: &Account,
-    ) -> Result<NymVpnAccountSummaryResponse, nym_http_api_client::HttpClientError<NymErrorResponse>>
-    {
+    ) -> Result<NymVpnAccountSummaryResponse, HttpClientError<NymErrorResponse>> {
         self.get(
-            &[routes::V1, routes::ACCOUNT, &account.id(), routes::SUMMARY],
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::ACCOUNT,
+                &account.id(),
+                routes::SUMMARY,
+            ],
             account,
             None,
         )
@@ -345,9 +377,15 @@ impl AccountClient {
     pub async fn get_devices(
         &self,
         account: &Account,
-    ) -> Result<NymVpnDevicesResponse, nym_http_api_client::HttpClientError<NymErrorResponse>> {
+    ) -> Result<NymVpnDevicesResponse, HttpClientError<NymErrorResponse>> {
         self.get(
-            &[routes::V1, routes::ACCOUNT, &account.id(), routes::DEVICE],
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::ACCOUNT,
+                &account.id(),
+                routes::DEVICE,
+            ],
             account,
             None,
         )
@@ -358,14 +396,20 @@ impl AccountClient {
         &self,
         account: &Account,
         device: &Device,
-    ) -> Result<NymVpnDevice, nym_http_api_client::HttpClientError<NymErrorResponse>> {
+    ) -> Result<NymVpnDevice, HttpClientError<NymErrorResponse>> {
         let body = RegisterDeviceRequestBody {
             device_identity_key: device.identity_key().to_base58_string(),
             signature: device.jwt().to_string(),
         };
 
         self.post(
-            &[routes::V1, routes::ACCOUNT, &account.id(), routes::DEVICE],
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::ACCOUNT,
+                &account.id(),
+                routes::DEVICE,
+            ],
             &body,
             account,
             Some(device),
@@ -376,9 +420,10 @@ impl AccountClient {
     pub async fn get_active_devices(
         &self,
         account: &Account,
-    ) -> Result<NymVpnDevicesResponse, nym_http_api_client::HttpClientError<NymErrorResponse>> {
+    ) -> Result<NymVpnDevicesResponse, HttpClientError<NymErrorResponse>> {
         self.get(
             &[
+                routes::PUBLIC,
                 routes::V1,
                 routes::ACCOUNT,
                 &account.id(),
@@ -395,9 +440,10 @@ impl AccountClient {
         &self,
         account: &Account,
         device: &Device,
-    ) -> Result<NymVpnDevice, nym_http_api_client::HttpClientError<NymErrorResponse>> {
+    ) -> Result<NymVpnDevice, HttpClientError<NymErrorResponse>> {
         self.get(
             &[
+                routes::PUBLIC,
                 routes::V1,
                 routes::ACCOUNT,
                 &account.id(),
@@ -416,9 +462,10 @@ impl AccountClient {
         &self,
         account: &Account,
         device: &Device,
-    ) -> Result<NymVpnZkNymResponse, nym_http_api_client::HttpClientError<NymErrorResponse>> {
+    ) -> Result<NymVpnZkNymResponse, HttpClientError<NymErrorResponse>> {
         self.get(
             &[
+                routes::PUBLIC,
                 routes::V1,
                 routes::ACCOUNT,
                 &account.id(),
@@ -436,13 +483,14 @@ impl AccountClient {
         &self,
         account: &Account,
         device: &Device,
-    ) -> Result<NymVpnZkNym, nym_http_api_client::HttpClientError<NymErrorResponse>> {
+    ) -> Result<NymVpnZkNym, HttpClientError<NymErrorResponse>> {
         let body = RequestZkNymRequestBody {
             blinded_signing_request_base58: "todo".to_string(),
         };
 
         self.post(
             &[
+                routes::PUBLIC,
                 routes::V1,
                 routes::ACCOUNT,
                 &account.id(),
@@ -461,9 +509,10 @@ impl AccountClient {
         &self,
         account: &Account,
         device: &Device,
-    ) -> Result<NymVpnZkNym, nym_http_api_client::HttpClientError<NymErrorResponse>> {
+    ) -> Result<NymVpnZkNym, HttpClientError<NymErrorResponse>> {
         self.get(
             &[
+                routes::PUBLIC,
                 routes::V1,
                 routes::ACCOUNT,
                 &account.id(),
@@ -483,9 +532,10 @@ impl AccountClient {
         account: &Account,
         device: &Device,
         id: &str,
-    ) -> Result<NymVpnZkNym, nym_http_api_client::HttpClientError<NymErrorResponse>> {
+    ) -> Result<NymVpnZkNym, HttpClientError<NymErrorResponse>> {
         self.get(
             &[
+                routes::PUBLIC,
                 routes::V1,
                 routes::ACCOUNT,
                 &account.id(),
@@ -505,10 +555,10 @@ impl AccountClient {
     pub async fn get_subscriptions(
         &self,
         account: &Account,
-    ) -> Result<NymVpnSubscriptionResponse, nym_http_api_client::HttpClientError<NymErrorResponse>>
-    {
+    ) -> Result<NymVpnSubscriptionResponse, HttpClientError<NymErrorResponse>> {
         self.get(
             &[
+                routes::PUBLIC,
                 routes::V1,
                 routes::ACCOUNT,
                 &account.id(),
@@ -523,7 +573,7 @@ impl AccountClient {
     pub async fn create_subscription(
         &self,
         account: &Account,
-    ) -> Result<NymVpnSubscription, nym_http_api_client::HttpClientError<NymErrorResponse>> {
+    ) -> Result<NymVpnSubscription, HttpClientError<NymErrorResponse>> {
         let body = CreateSubscriptionRequestBody {
             valid_from_utc: "todo".to_string(),
             subscription_kind: "todo".to_string(),
@@ -531,6 +581,7 @@ impl AccountClient {
 
         self.post(
             &[
+                routes::PUBLIC,
                 routes::V1,
                 routes::ACCOUNT,
                 &account.id(),
@@ -546,10 +597,10 @@ impl AccountClient {
     pub async fn get_active_subscriptions(
         &self,
         account: &Account,
-    ) -> Result<NymVpnSubscriptionResponse, nym_http_api_client::HttpClientError<NymErrorResponse>>
-    {
+    ) -> Result<NymVpnSubscriptionResponse, HttpClientError<NymErrorResponse>> {
         self.get(
             &[
+                routes::PUBLIC,
                 routes::V1,
                 routes::ACCOUNT,
                 &account.id(),
@@ -561,6 +612,111 @@ impl AccountClient {
         )
         .await
     }
+
+    // GATEWAYS
+
+    pub async fn get_gateways(
+        &self,
+    ) -> Result<NymDirectoryGatewaysResponse, HttpClientError<UnexpectedError>> {
+        self.inner
+            .get_json(
+                &[
+                    routes::PUBLIC,
+                    routes::V1,
+                    routes::DIRECTORY,
+                    routes::GATEWAYS,
+                ],
+                NO_PARAMS,
+            )
+            .await
+    }
+
+    pub async fn get_gateway_countries(
+        &self,
+    ) -> Result<NymDirectoryGatewayCountriesResponse, HttpClientError<UnexpectedError>> {
+        self.inner
+            .get_json(
+                &[
+                    routes::PUBLIC,
+                    routes::V1,
+                    routes::DIRECTORY,
+                    routes::GATEWAYS,
+                    routes::COUNTRIES,
+                ],
+                NO_PARAMS,
+            )
+            .await
+    }
+
+    pub async fn get_entry_gateways(
+        &self,
+    ) -> Result<NymDirectoryGatewaysResponse, HttpClientError<UnexpectedError>> {
+        self.inner
+            .get_json(
+                &[
+                    routes::PUBLIC,
+                    routes::V1,
+                    routes::DIRECTORY,
+                    routes::GATEWAYS,
+                    routes::ENTRY,
+                ],
+                NO_PARAMS,
+            )
+            .await
+    }
+
+    pub async fn get_entry_gateway_countries(
+        &self,
+    ) -> Result<NymDirectoryGatewayCountriesResponse, HttpClientError<UnexpectedError>> {
+        self.inner
+            .get_json(
+                &[
+                    routes::PUBLIC,
+                    routes::V1,
+                    routes::DIRECTORY,
+                    routes::GATEWAYS,
+                    routes::ENTRY,
+                    routes::COUNTRIES,
+                ],
+                NO_PARAMS,
+            )
+            .await
+    }
+
+    pub async fn get_exit_gateways(
+        &self,
+    ) -> Result<NymDirectoryGatewaysResponse, HttpClientError<UnexpectedError>> {
+        self.inner
+            .get_json(
+                &[
+                    routes::PUBLIC,
+                    routes::V1,
+                    routes::DIRECTORY,
+                    routes::GATEWAYS,
+                    routes::EXIT,
+                ],
+                NO_PARAMS,
+            )
+            .await
+    }
+
+    pub async fn get_exit_gateway_countries(
+        &self,
+    ) -> Result<NymDirectoryGatewayCountriesResponse, HttpClientError<UnexpectedError>> {
+        self.inner
+            .get_json(
+                &[
+                    routes::PUBLIC,
+                    routes::V1,
+                    routes::DIRECTORY,
+                    routes::GATEWAYS,
+                    routes::EXIT,
+                    routes::COUNTRIES,
+                ],
+                NO_PARAMS,
+            )
+            .await
+    }
 }
 
 #[cfg(test)]
@@ -568,9 +724,9 @@ mod tests {
     use super::*;
     use nym_crypto::asymmetric::ed25519;
 
-    // const BASE_URL: &str = "https://nymvpn.com/api/public";
+    // const BASE_URL: &str = "https://nymvpn.com/api";
     const BASE_URL: &str =
-        "https://nym-dot-com-git-deploy-canary-nyx-network-staging.vercel.app/api/public";
+        "https://nym-dot-com-git-deploy-canary-nyx-network-staging.vercel.app/api";
 
     fn get_mnemonic() -> bip39::Mnemonic {
         let mnemonic = "kiwi ketchup mix canvas curve ribbon congress method feel frozen act annual aunt comfort side joy mesh palace tennis cannon orange name tortoise piece";
@@ -600,13 +756,32 @@ mod tests {
     #[tokio::test]
     async fn get_account() {
         let account = Account::from(get_mnemonic());
-        // let device = Device::from(get_ed25519_keypair());
-        // let client = AccountClient::new(BASE_URL.parse().unwrap());
         let client = AccountClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-        // client.get_account(&account).await;
         let r = client.get_account(&account).await;
-
         dbg!(&r);
         println!("{}", r.unwrap_err());
+    }
+
+    #[tokio::test]
+    async fn get_device_zk_nyms() {
+        let account = Account::from(get_mnemonic());
+        let device = Device::from(get_ed25519_keypair());
+        let client = AccountClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
+        let r = client.get_device_zk_nyms(&account, &device).await;
+        dbg!(&r);
+    }
+
+    #[tokio::test]
+    async fn get_gateways() {
+        let client = AccountClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
+        let r = client.get_gateways().await;
+        dbg!(&r);
+    }
+
+    #[tokio::test]
+    async fn get_gateway_countries() {
+        let client = AccountClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
+        let r = client.get_gateway_countries().await;
+        dbg!(&r);
     }
 }
