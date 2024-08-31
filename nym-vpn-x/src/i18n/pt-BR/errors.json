@@ -34,7 +34,7 @@
       "entry": "Falha ao pesquisar o gateway de entrada",
       "entry-id": "Falha ao procurar a identidade do gateway de entrada",
       "exit": "Falha ao procurar o gateway de saída",
-      "exit-location": "Falha ao procurar o gateway de entrada para um determinado local"
+      "exit-location": "Falha ao procurar o gateway de saída para um determinado local"
     },
     "ipr-connect": "Falha na conexão com o IPR"
   },
