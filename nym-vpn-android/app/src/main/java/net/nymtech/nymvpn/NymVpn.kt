@@ -43,15 +43,15 @@ class NymVpn : Application() {
 		if (BuildConfig.DEBUG) {
 			Timber.plant(DebugTree())
 			val builder = VmPolicy.Builder()
-// 			StrictMode.setThreadPolicy(
-// 				ThreadPolicy.Builder()
-// 					.detectDiskReads()
-// 					.detectDiskWrites()
-// 					.detectNetwork()
-// 					.penaltyLog()
-// 					.build(),
-// 			)
-// 			StrictMode.setVmPolicy(builder.build())
+//			StrictMode.setThreadPolicy(
+//				ThreadPolicy.Builder()
+//					.detectDiskReads()
+//					.detectDiskWrites()
+//					.detectNetwork()
+//					.penaltyLog()
+//					.build(),
+//			)
+//			StrictMode.setVmPolicy(builder.build())
 		} else {
 			Timber.plant(ReleaseTree())
 		}

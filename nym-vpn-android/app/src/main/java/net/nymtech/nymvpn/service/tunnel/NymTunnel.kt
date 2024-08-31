@@ -9,13 +9,13 @@ import nym_vpn_lib.EntryPoint
 import nym_vpn_lib.ExitPoint
 
 class NymTunnel(
-	override var entryPoint: EntryPoint,
-	override var exitPoint: ExitPoint,
-	override var mode: Tunnel.Mode,
-	override var environment: Tunnel.Environment,
-	val stateChange: (newState: Tunnel.State) -> Unit,
-	val statChange: (stats: Statistics) -> Unit,
-	val backendMessage: (message: BackendMessage) -> Unit,
+    override var entryPoint: EntryPoint,
+    override var exitPoint: ExitPoint,
+    override var mode: Tunnel.Mode,
+    override var environment: Tunnel.Environment,
+    val stateChange: (newState: Tunnel.State) -> Unit,
+    val statChange: (stats: Statistics) -> Unit,
+    val backendMessage: (message: BackendMessage) -> Unit,
 ) : Tunnel {
 	override fun onStateChange(newState: Tunnel.State) {
 		stateChange(newState)
