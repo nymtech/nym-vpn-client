@@ -25,7 +25,6 @@ use tun2::AbstractDevice;
 use crate::{
     error::Result,
     vpn::{MixnetVpn, NymVpn},
-    Error,
 };
 
 const DEFAULT_TUN_MTU: u16 = 1500;

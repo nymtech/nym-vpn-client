@@ -5,7 +5,6 @@ use super::{
     uapi::UapiConfigBuilder, Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, PrivateKey,
     Result,
 };
-use log::info;
 use std::{
     ffi::{c_char, c_void, CString},
     fmt,

@@ -43,6 +43,7 @@ use crate::vpn::{
 
 #[cfg(target_os = "ios")]
 use crate::mobile::ios::tun_provider::OSTunProvider;
+#[cfg(any(target_os = "ios", target_os = "android"))]
 use crate::mobile::runner::WgTunnelRunner;
 #[cfg(target_os = "android")]
 use crate::platform::android::AndroidTunProvider;

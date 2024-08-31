@@ -5,7 +5,6 @@ use super::{
     uapi::UapiConfigBuilder, Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, PrivateKey,
     Result,
 };
-use log::info;
 #[cfg(unix)]
 use std::os::unix::io::RawFd;
 use std::{
@@ -101,7 +100,6 @@ impl Tunnel {
 
     /// Stop the tunnel.
     pub fn stop(mut self) {
-        info!("Stopping the wg tunnel");
         self.stop_inner();
     }
 
