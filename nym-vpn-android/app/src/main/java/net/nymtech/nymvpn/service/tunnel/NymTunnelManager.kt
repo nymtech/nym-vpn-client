@@ -19,9 +19,9 @@ import javax.inject.Inject
 import javax.inject.Provider
 
 class NymTunnelManager @Inject constructor(
-    private val settingsRepository: SettingsRepository,
-    private val backend: Provider<Backend>,
-    private val context: Context,
+	private val settingsRepository: SettingsRepository,
+	private val backend: Provider<Backend>,
+	private val context: Context,
 ) : TunnelManager {
 
 	private val _state = MutableStateFlow(TunnelState())

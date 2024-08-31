@@ -272,7 +272,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 				addRoute("0.0.0.0", 0)
 				addRoute("::", 0)
 				config.ipv4Settings?.excludedRoutes?.forEach {
-					when(it) {
+					when (it) {
 						is Ipv4Route.Specific -> {
 							Timber.d("Excluding ${it.gateway}")
 							excludeRoute(IpPrefix(InetAddress.getByName(it.gateway), 32))
@@ -309,4 +309,3 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		}
 	}
 }
-
