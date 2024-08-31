@@ -25,9 +25,9 @@ import net.nymtech.nymvpn.service.gateway.GatewayLibService
 import net.nymtech.nymvpn.service.gateway.GatewayService
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.FileUtils
-import net.nymtech.vpn.Backend
+import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.NymApi
-import net.nymtech.vpn.NymBackend
+import net.nymtech.vpn.backend.NymBackend
 import nym_vpn_lib.UserAgent
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit

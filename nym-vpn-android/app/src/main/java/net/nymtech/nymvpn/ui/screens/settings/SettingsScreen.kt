@@ -55,7 +55,7 @@ import net.nymtech.nymvpn.util.extensions.launchVpnSettings
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
-import net.nymtech.vpn.Tunnel
+import net.nymtech.vpn.backend.Tunnel
 
 @Composable
 fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel: SettingsViewModel = hiltViewModel()) {

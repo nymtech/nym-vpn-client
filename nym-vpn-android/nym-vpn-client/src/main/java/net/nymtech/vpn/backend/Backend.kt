@@ -1,4 +1,4 @@
-package net.nymtech.vpn
+package net.nymtech.vpn.backend
 
 import java.time.Instant
 

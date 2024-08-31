@@ -5512,6 +5512,7 @@ dependencies = [
  "base64 0.22.1",
  "hex",
  "ipnetwork",
+ "log",
  "thiserror",
  "x25519-dalek",
  "zeroize",

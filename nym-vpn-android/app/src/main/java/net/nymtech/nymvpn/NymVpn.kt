@@ -2,8 +2,6 @@ package net.nymtech.nymvpn
 
 import android.app.Application
 import android.content.Context
-import android.os.StrictMode
-import android.os.StrictMode.ThreadPolicy
 import android.os.StrictMode.VmPolicy
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineDispatcher
@@ -17,7 +15,7 @@ import net.nymtech.nymvpn.module.IoDispatcher
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.logging.DebugTree
 import net.nymtech.nymvpn.util.logging.ReleaseTree
-import net.nymtech.vpn.Tunnel
+import net.nymtech.vpn.backend.Tunnel
 import timber.log.Timber
 import javax.inject.Inject
 

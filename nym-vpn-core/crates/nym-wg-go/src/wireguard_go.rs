@@ -7,7 +7,7 @@ use std::{
     ffi::{c_char, c_void, CString},
     fmt,
 };
-
+use log::info;
 use super::{
     uapi::UapiConfigBuilder, Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, PrivateKey,
     Result,
@@ -101,6 +101,7 @@ impl Tunnel {
 
     /// Stop the tunnel.
     pub fn stop(mut self) {
+        info!("Stopping the wg tunnel");
         self.stop_inner();
     }
 
@@ -137,6 +138,8 @@ impl Tunnel {
 
         if !self.boxed_logger_ptr.is_null() {
             unsafe {
+                //this breaks android
+                #[cfg(target_os = "ios")]
                 let _ = Box::from_raw(self.boxed_logger_ptr);
             }
             self.boxed_logger_ptr = std::ptr::null_mut();

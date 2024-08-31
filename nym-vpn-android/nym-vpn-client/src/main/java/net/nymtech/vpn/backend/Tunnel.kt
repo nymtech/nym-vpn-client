@@ -1,4 +1,4 @@
-package net.nymtech.vpn
+package net.nymtech.vpn.backend
 
 import net.nymtech.vpn.model.BackendMessage
 import net.nymtech.vpn.model.Statistics

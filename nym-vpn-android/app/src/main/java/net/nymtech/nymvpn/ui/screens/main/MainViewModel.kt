@@ -19,7 +19,7 @@ import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
 import net.nymtech.nymvpn.util.extensions.go
-import net.nymtech.vpn.Tunnel
+import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.BackendMessage
 import timber.log.Timber
 import javax.inject.Inject

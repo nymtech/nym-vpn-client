@@ -1,4 +1,4 @@
-package net.nymtech.vpn
+package net.nymtech.vpn.backend
 
 import android.content.Context
 import android.content.Intent
@@ -14,6 +14,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import net.nymtech.vpn.util.NotificationManager
 import net.nymtech.vpn.model.BackendMessage
 import net.nymtech.vpn.model.Statistics
 import net.nymtech.vpn.util.Constants
@@ -35,7 +36,6 @@ import nym_vpn_lib.initLogger
 import nym_vpn_lib.startVpn
 import nym_vpn_lib.stopVpn
 import timber.log.Timber
-import java.io.File
 import java.net.InetAddress
 import java.time.Instant
 
@@ -43,7 +43,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	init {
 		System.loadLibrary(Constants.NYM_VPN_LIB)
-		initLogger("info")
+		initLogger("debug")
 	}
 
 	companion object : SingletonHolder<NymBackend, Context>(::NymBackend) {
