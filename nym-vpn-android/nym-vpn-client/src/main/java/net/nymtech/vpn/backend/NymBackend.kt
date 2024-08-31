@@ -38,6 +38,7 @@ import nym_vpn_lib.stopVpn
 import timber.log.Timber
 import java.net.InetAddress
 import java.time.Instant
+import java.util.concurrent.atomic.AtomicInteger
 
 class NymBackend private constructor(val context: Context) : Backend, TunnelStatusListener {
 
@@ -48,13 +49,17 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	companion object : SingletonHolder<NymBackend, Context>(::NymBackend) {
 		private var vpnService = CompletableDeferred<VpnService>()
-		private var currentTunnelHandle: Int = -1
+		private var currentTunnelHandle = AtomicInteger(-1)
 	}
 
 	private val ioDispatcher = Dispatchers.IO
 
 	private var statsJob: Job? = null
+
+	@get:Synchronized @set:Synchronized
 	private var tunnel: Tunnel? = null
+
+	@get:Synchronized @set:Synchronized
 	private var state: Tunnel.State = Tunnel.State.Down
 
 	override suspend fun validateCredential(credential: String): Instant? {
@@ -130,7 +135,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	override suspend fun stop(): Tunnel.State {
 		withContext(ioDispatcher) {
 			stopVpn()
-			currentTunnelHandle = -1
+			currentTunnelHandle.getAndSet(-1)
 			vpnService.getCompleted().stopSelf()
 		}
 		return Tunnel.State.Disconnecting
@@ -143,6 +148,9 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	private fun onConnect() = CoroutineScope(ioDispatcher).launch {
 		startConnectionTimer()
+	}
+
+	private fun setState() {
 	}
 
 	override fun getState(): Tunnel.State {
@@ -228,7 +236,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		}
 
 		override fun onDestroy() {
-			currentTunnelHandle = -1
+			currentTunnelHandle.getAndSet(-1)
 			vpnService = CompletableDeferred()
 			super.onDestroy()
 		}
@@ -252,7 +260,8 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		override fun configureTunnel(config: TunnelNetworkSettings): Int {
 			Timber.d("Configuring Wg tunnel")
 			if (prepare(this) != null) return -1
-			if (currentTunnelHandle != -1) return currentTunnelHandle
+			val currentHandle = currentTunnelHandle.get()
+			if (currentHandle != -1) return currentHandle
 			val vpnInterface = builder.apply {
 				config.ipv4Settings?.addresses?.forEach {
 					Timber.d("Address v4: $it")
@@ -289,6 +298,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 				}
 			}.establish()
 			val fd = vpnInterface?.detachFd() ?: return -1
+			currentTunnelHandle.getAndSet(fd)
 			return fd
 		}
 	}
