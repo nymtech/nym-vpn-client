@@ -131,7 +131,7 @@ impl GatewayClient {
         let nym_vpn_api_client = if let Some(url) = config.nym_vpn_api_url {
             Some(
                 nym_vpn_api_client::VpnApiClient::new(url, user_agent.clone())
-                    .map_err(|err| Error::FailedToCreateVpnApiClient(err))?
+                    .map_err(|err| Error::FailedToCreateVpnApiClient(err))?,
             )
         } else {
             None
@@ -226,8 +226,7 @@ impl GatewayClient {
             info!("Fetching all gateways from nym-vpn-api...");
             let mut gateways: Vec<_> = nym_vpn_api_client
                 .get_gateways()
-                .await
-                .map_err(Error::FailedToLookupEntryGateways)?
+                .await?
                 .into_iter()
                 .filter_map(|gw| {
                     Gateway::try_from(gw)
@@ -254,8 +253,7 @@ impl GatewayClient {
             info!("Fetching entry gateways from nym-vpn-api...");
             let mut entry_gateways: Vec<_> = nym_vpn_api_client
                 .get_entry_gateways()
-                .await
-                .map_err(Error::FailedToLookupEntryGateways)?
+                .await?
                 .into_iter()
                 .filter_map(|gw| {
                     Gateway::try_from(gw)
@@ -282,8 +280,7 @@ impl GatewayClient {
             info!("Fetching exit gateways from nym-vpn-api...");
             let mut exit_gateways: Vec<_> = nym_vpn_api_client
                 .get_exit_gateways()
-                .await
-                .map_err(Error::FailedToLookupExitGateways)?
+                .await?
                 .into_iter()
                 .filter_map(|gw| {
                     Gateway::try_from(gw)
@@ -321,8 +318,7 @@ impl GatewayClient {
             info!("Fetching entry countries from nym-vpn-api...");
             Ok(nym_vpn_api_client
                 .get_entry_gateway_countries()
-                .await
-                .map_err(Error::FailedToLookupEntryCountries)?
+                .await?
                 .into_iter()
                 .map(Country::from)
                 .collect())
@@ -349,8 +345,7 @@ impl GatewayClient {
             info!("Fetching exit countries from nym-vpn-api...");
             Ok(nym_vpn_api_client
                 .get_exit_gateway_countries()
-                .await
-                .map_err(Error::FailedToLookupExitCountries)?
+                .await?
                 .into_iter()
                 .map(Country::from)
                 .collect())
