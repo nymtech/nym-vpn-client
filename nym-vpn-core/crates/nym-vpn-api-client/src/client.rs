@@ -8,14 +8,13 @@ use reqwest::Url;
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
-    error::VpnApiClientError,
+    error::{Result, VpnApiClientError},
     headers::DEVICE_AUTHORIZATION_HEADER,
     request::{CreateSubscriptionRequestBody, RegisterDeviceRequestBody, RequestZkNymRequestBody},
     responses::{
-        NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymErrorResponse,
-        NymVpnAccountResponse, NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse,
-        NymVpnSubscription, NymVpnSubscriptionResponse, NymVpnZkNym, NymVpnZkNymResponse,
-        UnexpectedError,
+        NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymVpnAccountResponse,
+        NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnSubscription,
+        NymVpnSubscriptionResponse, NymVpnZkNym, NymVpnZkNymResponse,
     },
     routes,
     types::{Account, Device},
@@ -26,12 +25,12 @@ pub struct VpnApiClient {
 }
 
 impl VpnApiClient {
-    // pub fn new(base_url: Url, user_agent: UserAgent) -> Result<Self, HttpClientError> {
-    pub fn new(base_url: Url, user_agent: UserAgent) -> Result<Self, VpnApiClientError> {
-        let inner = nym_http_api_client::Client::builder(base_url)?
-            .with_user_agent(user_agent)
-            .build()?;
-        Ok(Self { inner })
+    pub fn new(base_url: Url, user_agent: UserAgent) -> Result<Self> {
+        nym_http_api_client::Client::builder(base_url)
+            .map(|builder| builder.with_user_agent(user_agent))
+            .and_then(|builder| builder.build())
+            .map(|c| Self { inner: c })
+            .map_err(VpnApiClientError::FailedToCreateVpnApiClient)
     }
 
     async fn get_authorized<T, E>(
@@ -39,7 +38,7 @@ impl VpnApiClient {
         path: PathSegments<'_>,
         account: &Account,
         device: Option<&Device>,
-    ) -> Result<T, HttpClientError<E>>
+    ) -> std::result::Result<T, HttpClientError<E>>
     where
         T: DeserializeOwned,
         E: fmt::Display + DeserializeOwned,
@@ -65,7 +64,7 @@ impl VpnApiClient {
         json_body: &B,
         account: &Account,
         device: Option<&Device>,
-    ) -> Result<T, HttpClientError<E>>
+    ) -> std::result::Result<T, HttpClientError<E>>
     where
         T: DeserializeOwned,
         B: Serialize,
@@ -88,22 +87,20 @@ impl VpnApiClient {
 
     // ACCOUNT
 
-    pub async fn get_account(
-        &self,
-        account: &Account,
-    ) -> Result<NymVpnAccountResponse, HttpClientError<NymErrorResponse>> {
+    pub async fn get_account(&self, account: &Account) -> Result<NymVpnAccountResponse> {
         self.get_authorized(
             &[routes::PUBLIC, routes::V1, routes::ACCOUNT, &account.id()],
             account,
             None,
         )
         .await
+        .map_err(crate::error::VpnApiClientError::FailedToGetAccount)
     }
 
     pub async fn get_account_summary(
         &self,
         account: &Account,
-    ) -> Result<NymVpnAccountSummaryResponse, HttpClientError<NymErrorResponse>> {
+    ) -> Result<NymVpnAccountSummaryResponse> {
         self.get_authorized(
             &[
                 routes::PUBLIC,
@@ -116,14 +113,12 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(VpnApiClientError::FailedToGetAccountSummary)
     }
 
     // DEVICES
 
-    pub async fn get_devices(
-        &self,
-        account: &Account,
-    ) -> Result<NymVpnDevicesResponse, HttpClientError<NymErrorResponse>> {
+    pub async fn get_devices(&self, account: &Account) -> Result<NymVpnDevicesResponse> {
         self.get_authorized(
             &[
                 routes::PUBLIC,
@@ -136,13 +131,14 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(VpnApiClientError::FailedToGetDevices)
     }
 
     pub async fn register_device(
         &self,
         account: &Account,
         device: &Device,
-    ) -> Result<NymVpnDevice, HttpClientError<NymErrorResponse>> {
+    ) -> Result<NymVpnDevice> {
         let body = RegisterDeviceRequestBody {
             device_identity_key: device.identity_key().to_base58_string(),
             signature: device.jwt().to_string(),
@@ -161,12 +157,10 @@ impl VpnApiClient {
             Some(device),
         )
         .await
+        .map_err(VpnApiClientError::FailedToRegisterDevice)
     }
 
-    pub async fn get_active_devices(
-        &self,
-        account: &Account,
-    ) -> Result<NymVpnDevicesResponse, HttpClientError<NymErrorResponse>> {
+    pub async fn get_active_devices(&self, account: &Account) -> Result<NymVpnDevicesResponse> {
         self.get_authorized(
             &[
                 routes::PUBLIC,
@@ -180,13 +174,14 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(VpnApiClientError::FailedToGetActiveDevices)
     }
 
     pub async fn get_device_by_id(
         &self,
         account: &Account,
         device: &Device,
-    ) -> Result<NymVpnDevice, HttpClientError<NymErrorResponse>> {
+    ) -> Result<NymVpnDevice> {
         self.get_authorized(
             &[
                 routes::PUBLIC,
@@ -200,6 +195,7 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(VpnApiClientError::FailedToGetDeviceById)
     }
 
     // ZK-NYM
@@ -208,7 +204,7 @@ impl VpnApiClient {
         &self,
         account: &Account,
         device: &Device,
-    ) -> Result<NymVpnZkNymResponse, HttpClientError<NymErrorResponse>> {
+    ) -> Result<NymVpnZkNymResponse> {
         self.get_authorized(
             &[
                 routes::PUBLIC,
@@ -223,13 +219,10 @@ impl VpnApiClient {
             Some(device),
         )
         .await
+        .map_err(VpnApiClientError::FailedToGetDeviceZkNyms)
     }
 
-    pub async fn request_zk_nym(
-        &self,
-        account: &Account,
-        device: &Device,
-    ) -> Result<NymVpnZkNym, HttpClientError<NymErrorResponse>> {
+    pub async fn request_zk_nym(&self, account: &Account, device: &Device) -> Result<NymVpnZkNym> {
         let body = RequestZkNymRequestBody {
             blinded_signing_request_base58: "todo".to_string(),
         };
@@ -249,13 +242,14 @@ impl VpnApiClient {
             Some(device),
         )
         .await
+        .map_err(VpnApiClientError::FailedToRequestZkNym)
     }
 
     pub async fn get_active_zk_nym(
         &self,
         account: &Account,
         device: &Device,
-    ) -> Result<NymVpnZkNym, HttpClientError<NymErrorResponse>> {
+    ) -> Result<NymVpnZkNym> {
         self.get_authorized(
             &[
                 routes::PUBLIC,
@@ -271,6 +265,7 @@ impl VpnApiClient {
             Some(device),
         )
         .await
+        .map_err(VpnApiClientError::FailedToGetActiveZkNym)
     }
 
     pub async fn get_zk_nym_by_id(
@@ -278,7 +273,7 @@ impl VpnApiClient {
         account: &Account,
         device: &Device,
         id: &str,
-    ) -> Result<NymVpnZkNym, HttpClientError<NymErrorResponse>> {
+    ) -> Result<NymVpnZkNym> {
         self.get_authorized(
             &[
                 routes::PUBLIC,
@@ -294,14 +289,12 @@ impl VpnApiClient {
             Some(device),
         )
         .await
+        .map_err(VpnApiClientError::FailedToGetZkNymById)
     }
 
     // SUBSCRIPTIONS
 
-    pub async fn get_subscriptions(
-        &self,
-        account: &Account,
-    ) -> Result<NymVpnSubscriptionResponse, HttpClientError<NymErrorResponse>> {
+    pub async fn get_subscriptions(&self, account: &Account) -> Result<NymVpnSubscriptionResponse> {
         self.get_authorized(
             &[
                 routes::PUBLIC,
@@ -314,12 +307,10 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(VpnApiClientError::FailedToGetSubscriptions)
     }
 
-    pub async fn create_subscription(
-        &self,
-        account: &Account,
-    ) -> Result<NymVpnSubscription, HttpClientError<NymErrorResponse>> {
+    pub async fn create_subscription(&self, account: &Account) -> Result<NymVpnSubscription> {
         let body = CreateSubscriptionRequestBody {
             valid_from_utc: "todo".to_string(),
             subscription_kind: "todo".to_string(),
@@ -338,12 +329,13 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(VpnApiClientError::FailedToCreateSubscription)
     }
 
     pub async fn get_active_subscriptions(
         &self,
         account: &Account,
-    ) -> Result<NymVpnSubscriptionResponse, HttpClientError<NymErrorResponse>> {
+    ) -> Result<NymVpnSubscriptionResponse> {
         self.get_authorized(
             &[
                 routes::PUBLIC,
@@ -357,13 +349,12 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(VpnApiClientError::FailedToGetActiveSubscriptions)
     }
 
     // GATEWAYS
 
-    pub async fn get_gateways(
-        &self,
-    ) -> Result<NymDirectoryGatewaysResponse, HttpClientError<UnexpectedError>> {
+    pub async fn get_gateways(&self) -> Result<NymDirectoryGatewaysResponse> {
         self.inner
             .get_json(
                 &[
@@ -376,11 +367,10 @@ impl VpnApiClient {
                 NO_PARAMS,
             )
             .await
+            .map_err(VpnApiClientError::FailedToGetGateways)
     }
 
-    pub async fn get_gateway_countries(
-        &self,
-    ) -> Result<NymDirectoryGatewayCountriesResponse, HttpClientError<UnexpectedError>> {
+    pub async fn get_gateway_countries(&self) -> Result<NymDirectoryGatewayCountriesResponse> {
         self.inner
             .get_json(
                 &[
@@ -394,11 +384,10 @@ impl VpnApiClient {
                 NO_PARAMS,
             )
             .await
+            .map_err(VpnApiClientError::FailedToGetGatewayCountries)
     }
 
-    pub async fn get_entry_gateways(
-        &self,
-    ) -> Result<NymDirectoryGatewaysResponse, HttpClientError<UnexpectedError>> {
+    pub async fn get_entry_gateways(&self) -> Result<NymDirectoryGatewaysResponse> {
         self.inner
             .get_json(
                 &[
@@ -412,11 +401,12 @@ impl VpnApiClient {
                 NO_PARAMS,
             )
             .await
+            .map_err(VpnApiClientError::FailedToGetEntryGateways)
     }
 
     pub async fn get_entry_gateway_countries(
         &self,
-    ) -> Result<NymDirectoryGatewayCountriesResponse, HttpClientError<UnexpectedError>> {
+    ) -> Result<NymDirectoryGatewayCountriesResponse> {
         self.inner
             .get_json(
                 &[
@@ -431,11 +421,10 @@ impl VpnApiClient {
                 NO_PARAMS,
             )
             .await
+            .map_err(VpnApiClientError::FailedToGetEntryGatewayCountries)
     }
 
-    pub async fn get_exit_gateways(
-        &self,
-    ) -> Result<NymDirectoryGatewaysResponse, HttpClientError<UnexpectedError>> {
+    pub async fn get_exit_gateways(&self) -> Result<NymDirectoryGatewaysResponse> {
         self.inner
             .get_json(
                 &[
@@ -449,11 +438,10 @@ impl VpnApiClient {
                 NO_PARAMS,
             )
             .await
+            .map_err(VpnApiClientError::FailedToGetExitGateways)
     }
 
-    pub async fn get_exit_gateway_countries(
-        &self,
-    ) -> Result<NymDirectoryGatewayCountriesResponse, HttpClientError<UnexpectedError>> {
+    pub async fn get_exit_gateway_countries(&self) -> Result<NymDirectoryGatewayCountriesResponse> {
         self.inner
             .get_json(
                 &[
@@ -468,6 +456,7 @@ impl VpnApiClient {
                 NO_PARAMS,
             )
             .await
+            .map_err(VpnApiClientError::FailedToGetExitGatewayCountries)
     }
 }
 
