@@ -1,6 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::fmt;
+
 use nym_http_api_client::{HttpClientError, PathSegments, UserAgent, NO_PARAMS};
 use reqwest::Url;
 use serde::{de::DeserializeOwned, Serialize};
@@ -32,14 +34,15 @@ impl VpnApiClient {
         Ok(Self { inner })
     }
 
-    async fn get<T>(
+    async fn get_authorized<T, E>(
         &self,
         path: PathSegments<'_>,
         account: &Account,
         device: Option<&Device>,
-    ) -> Result<T, HttpClientError<NymErrorResponse>>
+    ) -> Result<T, HttpClientError<E>>
     where
         T: DeserializeOwned,
+        E: fmt::Display + DeserializeOwned,
     {
         let request = self
             .inner
@@ -56,16 +59,17 @@ impl VpnApiClient {
         nym_http_api_client::parse_response(response, false).await
     }
 
-    async fn post<T, B>(
+    async fn post_authorized<T, B, E>(
         &self,
         path: PathSegments<'_>,
         json_body: &B,
         account: &Account,
         device: Option<&Device>,
-    ) -> Result<T, HttpClientError<NymErrorResponse>>
+    ) -> Result<T, HttpClientError<E>>
     where
         T: DeserializeOwned,
         B: Serialize,
+        E: fmt::Display + DeserializeOwned,
     {
         let request = self
             .inner
@@ -88,7 +92,7 @@ impl VpnApiClient {
         &self,
         account: &Account,
     ) -> Result<NymVpnAccountResponse, HttpClientError<NymErrorResponse>> {
-        self.get(
+        self.get_authorized(
             &[routes::PUBLIC, routes::V1, routes::ACCOUNT, &account.id()],
             account,
             None,
@@ -100,7 +104,7 @@ impl VpnApiClient {
         &self,
         account: &Account,
     ) -> Result<NymVpnAccountSummaryResponse, HttpClientError<NymErrorResponse>> {
-        self.get(
+        self.get_authorized(
             &[
                 routes::PUBLIC,
                 routes::V1,
@@ -120,7 +124,7 @@ impl VpnApiClient {
         &self,
         account: &Account,
     ) -> Result<NymVpnDevicesResponse, HttpClientError<NymErrorResponse>> {
-        self.get(
+        self.get_authorized(
             &[
                 routes::PUBLIC,
                 routes::V1,
@@ -144,7 +148,7 @@ impl VpnApiClient {
             signature: device.jwt().to_string(),
         };
 
-        self.post(
+        self.post_authorized(
             &[
                 routes::PUBLIC,
                 routes::V1,
@@ -163,7 +167,7 @@ impl VpnApiClient {
         &self,
         account: &Account,
     ) -> Result<NymVpnDevicesResponse, HttpClientError<NymErrorResponse>> {
-        self.get(
+        self.get_authorized(
             &[
                 routes::PUBLIC,
                 routes::V1,
@@ -183,7 +187,7 @@ impl VpnApiClient {
         account: &Account,
         device: &Device,
     ) -> Result<NymVpnDevice, HttpClientError<NymErrorResponse>> {
-        self.get(
+        self.get_authorized(
             &[
                 routes::PUBLIC,
                 routes::V1,
@@ -205,7 +209,7 @@ impl VpnApiClient {
         account: &Account,
         device: &Device,
     ) -> Result<NymVpnZkNymResponse, HttpClientError<NymErrorResponse>> {
-        self.get(
+        self.get_authorized(
             &[
                 routes::PUBLIC,
                 routes::V1,
@@ -230,7 +234,7 @@ impl VpnApiClient {
             blinded_signing_request_base58: "todo".to_string(),
         };
 
-        self.post(
+        self.post_authorized(
             &[
                 routes::PUBLIC,
                 routes::V1,
@@ -252,7 +256,7 @@ impl VpnApiClient {
         account: &Account,
         device: &Device,
     ) -> Result<NymVpnZkNym, HttpClientError<NymErrorResponse>> {
-        self.get(
+        self.get_authorized(
             &[
                 routes::PUBLIC,
                 routes::V1,
@@ -275,7 +279,7 @@ impl VpnApiClient {
         device: &Device,
         id: &str,
     ) -> Result<NymVpnZkNym, HttpClientError<NymErrorResponse>> {
-        self.get(
+        self.get_authorized(
             &[
                 routes::PUBLIC,
                 routes::V1,
@@ -298,7 +302,7 @@ impl VpnApiClient {
         &self,
         account: &Account,
     ) -> Result<NymVpnSubscriptionResponse, HttpClientError<NymErrorResponse>> {
-        self.get(
+        self.get_authorized(
             &[
                 routes::PUBLIC,
                 routes::V1,
@@ -321,7 +325,7 @@ impl VpnApiClient {
             subscription_kind: "todo".to_string(),
         };
 
-        self.post(
+        self.post_authorized(
             &[
                 routes::PUBLIC,
                 routes::V1,
@@ -340,7 +344,7 @@ impl VpnApiClient {
         &self,
         account: &Account,
     ) -> Result<NymVpnSubscriptionResponse, HttpClientError<NymErrorResponse>> {
-        self.get(
+        self.get_authorized(
             &[
                 routes::PUBLIC,
                 routes::V1,
