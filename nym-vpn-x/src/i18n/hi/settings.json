@@ -27,5 +27,8 @@
   "add-credential-button": "कनेक्ट करने के लिए क्रेडेंशियल जोड़ें",
   "logs": {
     "title": "लॉग्स"
+  },
+  "entry-selector": {
+    "title": "प्रवेश स्थान चयनकर्ता"
   }
 }
