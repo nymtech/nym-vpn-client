@@ -5,18 +5,19 @@ use nym_http_api_client::{HttpClientError, PathSegments, UserAgent, NO_PARAMS};
 use reqwest::Url;
 use serde::{de::DeserializeOwned, Serialize};
 
-use crate::headers::DEVICE_AUTHORIZATION_HEADER;
-use crate::request::{
-    CreateSubscriptionRequestBody, RegisterDeviceRequestBody, RequestZkNymRequestBody,
+use crate::{
+    error::VpnApiClientError,
+    headers::DEVICE_AUTHORIZATION_HEADER,
+    request::{CreateSubscriptionRequestBody, RegisterDeviceRequestBody, RequestZkNymRequestBody},
+    responses::{
+        NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymErrorResponse,
+        NymVpnAccountResponse, NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse,
+        NymVpnSubscription, NymVpnSubscriptionResponse, NymVpnZkNym, NymVpnZkNymResponse,
+        UnexpectedError,
+    },
+    routes,
+    types::{Account, Device},
 };
-use crate::responses::{
-    NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymErrorResponse,
-    NymVpnAccountResponse, NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse,
-    NymVpnSubscription, NymVpnSubscriptionResponse, NymVpnZkNym, NymVpnZkNymResponse,
-    UnexpectedError,
-};
-use crate::routes;
-use crate::types::{Account, Device};
 
 pub struct VpnApiClient {
     inner: nym_http_api_client::Client,
@@ -24,10 +25,7 @@ pub struct VpnApiClient {
 
 impl VpnApiClient {
     // pub fn new(base_url: Url, user_agent: UserAgent) -> Result<Self, HttpClientError> {
-    pub fn new(
-        base_url: Url,
-        user_agent: UserAgent,
-    ) -> Result<Self, crate::error::VpnApiClientError> {
+    pub fn new(base_url: Url, user_agent: UserAgent) -> Result<Self, VpnApiClientError> {
         let inner = nym_http_api_client::Client::builder(base_url)?
             .with_user_agent(user_agent)
             .build()?;
