@@ -143,10 +143,10 @@ impl From<nym_vpn_api_client::response::Exit> for Exit {
     }
 }
 
-impl TryFrom<nym_vpn_api_client::response::Gateway> for Gateway {
+impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
     type Error = Error;
 
-    fn try_from(gateway: nym_vpn_api_client::response::Gateway) -> Result<Self> {
+    fn try_from(gateway: nym_vpn_api_client::response::NymDirectoryGateway) -> Result<Self> {
         let identity =
             NodeIdentity::from_base58_string(&gateway.identity_key).map_err(|source| {
                 Error::NodeIdentityFormattingError {

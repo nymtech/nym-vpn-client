@@ -63,4 +63,3 @@ impl From<ed25519::KeyPair> for Device {
         }
     }
 }
-

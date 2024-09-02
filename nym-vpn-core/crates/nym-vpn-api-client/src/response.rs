@@ -191,17 +191,16 @@ pub struct NymVpnSubscriptionsResponse {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct NymDirectoryGatewaysResponse(Vec<Gateway>);
+pub struct NymDirectoryGatewaysResponse(Vec<NymDirectoryGateway>);
 
 impl NymDirectoryGatewaysResponse {
-    pub fn into_inner(self) -> Vec<Gateway> {
+    pub fn into_inner(self) -> Vec<NymDirectoryGateway> {
         self.0
     }
 }
 
 impl IntoIterator for NymDirectoryGatewaysResponse {
-    type Item = Gateway;
+    type Item = NymDirectoryGateway;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -210,13 +209,13 @@ impl IntoIterator for NymDirectoryGatewaysResponse {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct Gateway {
+pub struct NymDirectoryGateway {
     pub identity_key: String,
     pub location: Location,
     pub last_probe: Option<Probe>,
 }
 
-impl Gateway {
+impl NymDirectoryGateway {
     pub fn is_fully_operational_entry(&self) -> bool {
         self.last_probe
             .as_ref()
@@ -311,17 +310,16 @@ fn is_recently_updated(last_updated_utc: &str) -> bool {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct NymDirectoryGatewayCountriesResponse(Vec<Country>);
+pub struct NymDirectoryGatewayCountriesResponse(Vec<NymDirectoryCountry>);
 
 impl NymDirectoryGatewayCountriesResponse {
-    pub fn into_inner(self) -> Vec<Country> {
+    pub fn into_inner(self) -> Vec<NymDirectoryCountry> {
         self.0
     }
 }
 
 impl IntoIterator for NymDirectoryGatewayCountriesResponse {
-    type Item = Country;
+    type Item = NymDirectoryCountry;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -330,9 +328,9 @@ impl IntoIterator for NymDirectoryGatewayCountriesResponse {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Country(String);
+pub struct NymDirectoryCountry(String);
 
-impl Country {
+impl NymDirectoryCountry {
     pub fn iso_code(&self) -> &str {
         &self.0
     }
@@ -342,7 +340,7 @@ impl Country {
     }
 }
 
-impl From<String> for Country {
+impl From<String> for NymDirectoryCountry {
     fn from(s: String) -> Self {
         Self(s)
     }
