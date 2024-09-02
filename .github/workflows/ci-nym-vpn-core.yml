@@ -94,7 +94,7 @@ jobs:
             triplet=x86_64-apple-darwin
             echo "TRIPLET=$triplet" >> $GITHUB_ENV
             echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet} >> $GITHUB_ENV
-          elif ${{ contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1') }}; then
+          elif ${{ (contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')) && matrix.target != 'ios' }}; then
             triplet=universal-apple-darwin
             echo "TRIPLET=$triplet" >> $GITHUB_ENV
             echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet} >> $GITHUB_ENV
