@@ -11,7 +11,7 @@ use nix::{
     sys::socket::{SockaddrIn, SockaddrIn6, SockaddrLike},
 };
 
-use super::super::wg_config::WgPeer;
+use crate::mobile::wg_config::WgPeer;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -54,7 +54,7 @@ impl Dns64Resolution for WgPeer {
 }
 
 /// Re-resolve an endpoint with dns64
-fn reresolve_endpoint(endpoint: SocketAddr) -> Result<SocketAddr> {
+pub(crate) fn reresolve_endpoint(endpoint: SocketAddr) -> Result<SocketAddr> {
     reresolve_addr(endpoint).inspect(|resolved_endpoint| {
         if resolved_endpoint == &endpoint {
             tracing::info!("Resolved {} to self", endpoint);
@@ -85,7 +85,7 @@ fn reresolve_addr(socket_addr: SocketAddr) -> Result<SocketAddr> {
         return Err(Error::DnsLookup {
             code: err_code,
             addr: socket_addr,
-        });
+        })?;
     }
 
     if result.is_null() {

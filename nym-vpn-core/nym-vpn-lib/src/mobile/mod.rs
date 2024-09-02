@@ -3,7 +3,6 @@
 
 //! WireGuard tunnel creation and management on Android and iOS
 
-pub mod dns64;
 #[cfg(target_os = "ios")]
 pub mod ios;
 #[cfg(any(target_os = "ios", target_os = "android"))]

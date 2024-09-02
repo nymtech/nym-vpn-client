@@ -20,13 +20,13 @@ use super::{
     wg_config::{WgInterface, WgNodeConfig, WgPeer},
 };
 use crate::mixnet::SharedMixnetClient;
+use crate::mobile::ios::tun_provider::OSTunProvider;
 #[cfg(target_os = "android")]
 use crate::platform::android::AndroidTunProvider;
 use crate::platform::{uniffi_set_listener_status, VPNConfig};
 use crate::uniffi_custom_impls::{StatusEvent, TunStatus};
 use crate::{bandwidth_controller::BandwidthController, GenericNymVpnConfig};
 use crate::{GatewayDirectoryError, MixnetClientConfig};
-use crate::mobile::ios::tun_provider::OSTunProvider;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {

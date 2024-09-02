@@ -17,16 +17,20 @@ use talpid_core::dns::DnsMonitor;
 use ipnetwork::IpNetwork;
 use netdev::interface::get_default_interface;
 use nym_ip_packet_requests::IpPair;
-use talpid_routing::RouteManager;
 #[cfg(not(target_os = "ios"))]
-use talpid_routing::{Node};
+use talpid_routing::Node;
+use talpid_routing::RouteManager;
 #[cfg(target_os = "android")]
 use talpid_tunnel::tun_provider::TunProvider;
 use tap::TapFallible;
 use tracing::{debug, error, info, trace};
 use tun2::AbstractDevice;
 
-use crate::{error::Result, vpn::{MixnetVpn, NymVpn}, Error};
+use crate::{
+    error::Result,
+    vpn::{MixnetVpn, NymVpn},
+    Error,
+};
 
 const DEFAULT_TUN_MTU: u16 = 1500;
 
