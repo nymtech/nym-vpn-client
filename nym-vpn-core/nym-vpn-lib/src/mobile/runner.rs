@@ -15,11 +15,11 @@ use nym_task::TaskManager;
 use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
 use nym_wg_go::{PrivateKey, PublicKey};
 
-use crate::mixnet::SharedMixnetClient;
 use super::{
     two_hop_tunnel::TwoHopTunnel,
     wg_config::{WgInterface, WgNodeConfig, WgPeer},
 };
+use crate::mixnet::SharedMixnetClient;
 use crate::mixnet::SharedMixnetClient;
 #[cfg(target_os = "android")]
 use crate::platform::android::AndroidTunProvider;
