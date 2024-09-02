@@ -194,7 +194,7 @@ jobs:
           cargo fmt --check
 
       - name: Build
-        if: matrix.target != 'android'
+        if: matrix.target != 'android' && matrix.target != 'ios'
         working-directory: nym-vpn-core
         run: |
           cargo build --verbose
