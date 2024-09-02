@@ -250,6 +250,17 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			protect(socket)
 		}
 
+		private fun subnetMaskLength(mask: String): Int {
+			val octets = mask.split("\\.".toRegex())
+			val binOctets = octets.map { it.padStart(8, '0') }
+			val binMask = binOctets.joinToString("")
+			var length = 0
+			while (length < binMask.length && binMask[length] == '1') {
+				length++
+			}
+			return length
+		}
+
 		@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 		override fun configureTunnel(config: TunnelNetworkSettings): Int {
 			Timber.d("Configuring Wg tunnel")
@@ -271,10 +282,20 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 					Timber.d("DNS: $it")
 					addDnsServer(it)
 				}
+				config.ipv4Settings?.includedRoutes?.forEach {
+					Timber.d("Including routes: $it")
+					when(it) {
+						Ipv4Route.Default -> Unit
+						is Ipv4Route.Specific -> {
+							addRoute(it.destination, subnetMaskLength(it.subnetMask) )
+						}
+					}
+				}
 
-				Timber.d("Setting routes")
-				addRoute("0.0.0.0", 0)
-				addRoute("::", 0)
+				config.ipv6Settings?.includedRoutes?.forEach {
+					//TODO
+					addRoute("::", 0)
+				}
 				config.ipv4Settings?.excludedRoutes?.forEach {
 					when (it) {
 						is Ipv4Route.Specific -> {
