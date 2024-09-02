@@ -232,7 +232,7 @@ jobs:
         id: diff_android
 
       - name: Upload generated uniffi file (Android)
-        if: steps.diff_android.outcome == 'failure' && matrix.target  == 'android'
+        if: steps.diff_android.outcome == 'failure' && matrix.target == 'android'
         uses: actions/upload-artifact@v4
         with:
           name: updated-uniffi-android
