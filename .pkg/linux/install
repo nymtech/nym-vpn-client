@@ -40,8 +40,8 @@ vpnx_version=0.1.9-dev
 appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$vpnx_tag/nymvpn-x_${vpnx_version}.AppImage"
 
 # nym-vpnd prebuilt binary
-vpnd_tag=nym-vpn-core-v0.1.16
-vpnd_version=0.1.16
+vpnd_tag=nym-vpn-core-v0.1.17
+vpnd_version=0.1.17
 vpnd_url="https://github.com/nymtech/nym-vpn-client/releases/download/$vpnd_tag/nym-vpn-core-v${vpnd_version}_linux_x86_64.tar.gz"
 
 # function called when an error occurs, will print the exit
