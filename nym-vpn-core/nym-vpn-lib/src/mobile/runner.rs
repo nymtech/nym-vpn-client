@@ -20,6 +20,7 @@ use super::{
     wg_config::{WgInterface, WgNodeConfig, WgPeer},
 };
 use crate::mixnet::SharedMixnetClient;
+#[cfg(target_os = "ios")]
 use crate::mobile::ios::tun_provider::OSTunProvider;
 #[cfg(target_os = "android")]
 use crate::platform::android::AndroidTunProvider;
