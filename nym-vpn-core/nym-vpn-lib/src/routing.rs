@@ -19,7 +19,7 @@ use netdev::interface::get_default_interface;
 use nym_ip_packet_requests::IpPair;
 #[cfg(not(target_os = "ios"))]
 use talpid_routing::Node;
-use talpid_routing::RouteManager;
+use talpid_routing::{RequiredRoute, RouteManager};
 #[cfg(target_os = "android")]
 use talpid_tunnel::tun_provider::TunProvider;
 use tap::TapFallible;
