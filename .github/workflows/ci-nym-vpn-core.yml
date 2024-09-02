@@ -228,7 +228,7 @@ jobs:
 
       - name: Upload generated uniffi file (Android)
         if: steps.diff_android.outcome == 'failure' && contains(matrix.target, 'android')
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: updated-uniffi-android
           path: nym-vpn-core/build/nym_vpn_lib/nym_vpn_lib.kt
@@ -248,7 +248,7 @@ jobs:
 
       - name: Upload generated uniffi file (iOS)
         if: steps.diff_ios.outcome == 'failure' && (contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1'))
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: updated-uniffi-ios
           path: nym-vpn-core/build/nym_vpn_lib.swift
