@@ -8,7 +8,7 @@ import javax.inject.Inject
 
 class GatewayLibService @Inject constructor(
 	private val nymApi: NymApi,
-	private val settingsRepository: SettingsRepository
+	private val settingsRepository: SettingsRepository,
 ) : GatewayService {
 
 	override suspend fun getLowLatencyCountry(): Result<Country> {

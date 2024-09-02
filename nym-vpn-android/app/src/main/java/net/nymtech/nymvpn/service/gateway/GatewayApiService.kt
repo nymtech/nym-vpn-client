@@ -17,8 +17,11 @@ class GatewayApiService @Inject constructor(
 	override suspend fun getCountries(exitOnly: Boolean): Result<Set<Country>> {
 		Timber.d("Getting countries from nym api")
 		return safeApiCall {
-			val countries = if (exitOnly) gatewayApi.getAllExitGatewayTwoCharacterCountryCodes()
-			else gatewayApi.getAllEntryGatewayTwoCharacterCountryCodes()
+			val countries = if (exitOnly) {
+				gatewayApi.getAllExitGatewayTwoCharacterCountryCodes()
+			} else {
+				gatewayApi.getAllEntryGatewayTwoCharacterCountryCodes()
+			}
 			countries.map { Country(it) }.toSet()
 		}
 	}

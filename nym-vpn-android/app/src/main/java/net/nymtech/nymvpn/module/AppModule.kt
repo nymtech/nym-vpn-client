@@ -15,7 +15,6 @@ import kotlinx.coroutines.SupervisorJob
 import net.nymtech.logcatutil.LogCollect
 import net.nymtech.logcatutil.LogcatHelper
 import net.nymtech.nymvpn.BuildConfig
-import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.service.country.CountryCacheService

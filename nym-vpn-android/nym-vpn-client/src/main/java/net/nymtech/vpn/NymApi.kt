@@ -6,7 +6,6 @@ import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.Country
 import nym_vpn_lib.UserAgent
 import nym_vpn_lib.getGatewayCountries
-import timber.log.Timber
 
 class NymApi(
 	private val ioDispatcher: CoroutineDispatcher,

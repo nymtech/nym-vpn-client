@@ -2,8 +2,6 @@ package net.nymtech.nymvpn
 
 import android.app.Application
 import android.content.Context
-import android.os.StrictMode
-import android.os.StrictMode.VmPolicy
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -47,7 +45,7 @@ class NymVpn : Application() {
 		instance = this
 		if (BuildConfig.DEBUG) {
 			Timber.plant(DebugTree())
-//			val builder = VmPolicy.Builder()
+// 			val builder = VmPolicy.Builder()
 // 			StrictMode.setThreadPolicy(
 // 				StrictMode.ThreadPolicy.Builder()
 // 					.detectDiskReads()
@@ -61,7 +59,7 @@ class NymVpn : Application() {
 			Timber.plant(ReleaseTree())
 		}
 		applicationScope.launch {
-			//need to set env early for cache refresh
+			// need to set env early for cache refresh
 			val env = settingsRepository.getEnvironment()
 			Timber.d("Configuring for env ${env.name}")
 			env.setup()
