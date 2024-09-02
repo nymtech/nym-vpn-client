@@ -8,12 +8,28 @@ use serde::{Deserialize, Serialize};
 use crate::{Country, Gateway};
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct NymVpnAccountResponse {
     created_on_utc: String,
     last_updated_utc: String,
     account_addr: String,
-    status: String,
+    status: NymVpnAccountStatusResponse,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum NymVpnAccountStatusResponse {
+    Active,
+    Inactive,
+    DeleteMe,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NymVpnAccountSummaryResponse {
+    account: NymVpnAccountResponse,
+    subscription: NymVpnAccountSummarySubscription,
+    devices: NymVpnAccountSummaryDevices,
+    fair_usage: NymVpnAccountSummaryFairUsage,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -36,25 +52,23 @@ pub struct NymVpnAccountSummaryDevices {
 pub struct NymVpnAccountSummaryFairUsage {
     used_gb: f64,
     limit_gb: f64,
-    resets_on_utc: String,
+    resets_on_utc: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct NymVpnAccountSummaryResponse {
-    account: NymVpnAccountResponse,
-    subscription: NymVpnAccountSummarySubscription,
-    devices: NymVpnAccountSummaryDevices,
-    fair_usage: NymVpnAccountSummaryFairUsage,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct NymVpnDevice {
     created_on_utc: String,
     last_updated_utc: String,
     device_identity_key: String,
     status: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum NymVpnDeviceStatus {
+    Active,
+    Inactive,
+    DeleteMe,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -68,6 +82,40 @@ pub struct NymVpnDevicesResponse {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct NymVpnRefundsResponse {
+    total_items: u64,
+    page: u64,
+    page_size: u64,
+    items: Vec<NymVpnRefund>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct NymVpnRefund {
+    created_on_utc: String,
+    last_updated_utc: String,
+    subscription_invoice: String,
+    status: NymVpnRefundStatus,
+    user_reason: NymVpnRefundUserReason,
+    data: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum NymVpnRefundStatus {
+    Pending,
+    Complete,
+    Rejected,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum NymVpnRefundUserReason {
+    SubscriptionInError,
+    PoorPerformance,
+    Other,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct NymVpnZkNym {
     created_on_utc: String,
     last_updated_utc: String,
@@ -80,6 +128,16 @@ pub struct NymVpnZkNym {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum NymVpnZkNymStatus {
+    Pending,
+    Active,
+    Revoking,
+    Revoked,
+    Error,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NymVpnZkNymResponse {
     total_items: u64,
@@ -89,20 +147,43 @@ pub struct NymVpnZkNymResponse {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct NymVpnSubscription {
     created_on_utc: String,
     last_updated_utc: String,
     id: String,
     valid_until_utc: String,
     valid_from_utc: String,
-    status: String,
-    kind: String,
+    status: NymVpnSubscriptionStatus,
+    kind: NymVpnSubscriptionKind,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum NymVpnSubscriptionStatus {
+    Pending,
+    Complete,
+    Active,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum NymVpnSubscriptionKind {
+    OneMonth,
+    OneYear,
+    TwoYears,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NymVpnSubscriptionResponse {
+    is_subscription_active: bool,
+    subscription: Option<NymVpnSubscription>,
+    remaining_allowance_in_gb: f64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NymVpnSubscriptionsResponse {
     total_items: u64,
     page: u64,
     page_size: u64,

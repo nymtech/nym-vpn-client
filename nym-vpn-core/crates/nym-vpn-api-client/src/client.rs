@@ -9,11 +9,14 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
     error::{Result, VpnApiClientError},
-    request::{CreateSubscriptionRequestBody, RegisterDeviceRequestBody, RequestZkNymRequestBody},
+    request::{
+        CreateSubscriptionKind, CreateSubscriptionRequestBody, RegisterDeviceRequestBody,
+        RequestZkNymRequestBody,
+    },
     response::{
         NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymVpnAccountResponse,
         NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnSubscription,
-        NymVpnSubscriptionResponse, NymVpnZkNym, NymVpnZkNymResponse,
+        NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse, NymVpnZkNym, NymVpnZkNymResponse,
     },
     routes,
     types::{Account, Device},
@@ -295,7 +298,10 @@ impl VpnApiClient {
 
     // SUBSCRIPTIONS
 
-    pub async fn get_subscriptions(&self, account: &Account) -> Result<NymVpnSubscriptionResponse> {
+    pub async fn get_subscriptions(
+        &self,
+        account: &Account,
+    ) -> Result<NymVpnSubscriptionsResponse> {
         self.get_authorized(
             &[
                 routes::PUBLIC,
@@ -314,7 +320,7 @@ impl VpnApiClient {
     pub async fn create_subscription(&self, account: &Account) -> Result<NymVpnSubscription> {
         let body = CreateSubscriptionRequestBody {
             valid_from_utc: "todo".to_string(),
-            subscription_kind: "todo".to_string(),
+            subscription_kind: CreateSubscriptionKind::OneMonth,
         };
 
         self.post_authorized(
@@ -467,8 +473,8 @@ mod tests {
     use nym_crypto::asymmetric::ed25519;
 
     const BASE_URL: &str = "https://nymvpn.com/api";
-    // const BASE_URL: &str =
-    //     "https://nym-dot-com-git-deploy-canary-nyx-network-staging.vercel.app/api";
+    const BASE_URL_PREVIEW: &str =
+        "https://nym-dot-com-git-deploy-canary-nyx-network-staging.vercel.app/api";
 
     fn get_mnemonic() -> bip39::Mnemonic {
         let mnemonic = "kiwi ketchup mix canvas curve ribbon congress method feel frozen act annual aunt comfort side joy mesh palace tennis cannon orange name tortoise piece";
@@ -498,7 +504,7 @@ mod tests {
     #[tokio::test]
     async fn get_account() {
         let account = Account::from(get_mnemonic());
-        let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
+        let client = VpnApiClient::new(BASE_URL_PREVIEW.parse().unwrap(), user_agent()).unwrap();
         let r = client.get_account(&account).await;
         dbg!(&r);
         println!("{}", r.unwrap_err());
@@ -508,7 +514,7 @@ mod tests {
     async fn get_device_zk_nyms() {
         let account = Account::from(get_mnemonic());
         let device = Device::from(get_ed25519_keypair());
-        let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
+        let client = VpnApiClient::new(BASE_URL_PREVIEW.parse().unwrap(), user_agent()).unwrap();
         let r = client.get_device_zk_nyms(&account, &device).await;
         dbg!(&r);
     }
