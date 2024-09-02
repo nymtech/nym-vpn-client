@@ -1,5 +1,13 @@
-// Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
+// Copyright 2023-2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
+
+use std::{fmt, net::IpAddr};
+
+use nym_sdk::{mixnet::Recipient, UserAgent};
+use nym_topology::IntoGatewayNode;
+use nym_validator_client::{models::DescribedGateway, nym_nodes::SkimmedNode, NymApiClient};
+use tracing::{debug, error, info};
+use url::Url;
 
 use crate::{
     entries::{
@@ -10,15 +18,6 @@ use crate::{
     helpers::try_resolve_hostname,
     AuthAddress, Error, IpPacketRouterAddress,
 };
-use nym_sdk::{mixnet::Recipient, UserAgent};
-use nym_topology::IntoGatewayNode;
-use nym_validator_client::{models::DescribedGateway, nym_nodes::SkimmedNode, NymApiClient};
-// use nym_vpn_api_client::VpnApiClientExt;
-use std::{fmt, net::IpAddr, time::Duration};
-use tracing::{debug, error, info};
-use url::Url;
-
-const DIRECTORY_CLIENT_TIMEOUT: Duration = Duration::from_secs(20);
 
 #[derive(Clone, Debug)]
 pub struct Config {
@@ -128,14 +127,10 @@ pub struct GatewayClient {
 impl GatewayClient {
     pub fn new(config: Config, user_agent: UserAgent) -> Result<Self> {
         let api_client = NymApiClient::new_with_user_agent(config.api_url, user_agent.clone());
-        let nym_vpn_api_client = if let Some(url) = config.nym_vpn_api_url {
-            Some(
-                nym_vpn_api_client::VpnApiClient::new(url, user_agent.clone())
-                    .map_err(|err| Error::FailedToCreateVpnApiClient(err))?,
-            )
-        } else {
-            None
-        };
+        let nym_vpn_api_client = config
+            .nym_vpn_api_url
+            .map(|url| nym_vpn_api_client::VpnApiClient::new(url, user_agent.clone()))
+            .transpose()?;
 
         Ok(GatewayClient {
             api_client,

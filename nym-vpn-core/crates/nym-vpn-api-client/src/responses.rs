@@ -113,6 +113,12 @@ pub struct NymVpnSubscriptionResponse {
 #[serde(rename_all = "camelCase")]
 pub struct NymDirectoryGatewaysResponse(Vec<Gateway>);
 
+impl NymDirectoryGatewaysResponse {
+    pub fn into_inner(self) -> Vec<Gateway> {
+        self.0
+    }
+}
+
 impl IntoIterator for NymDirectoryGatewaysResponse {
     type Item = Gateway;
     type IntoIter = std::vec::IntoIter<Self::Item>;
@@ -125,6 +131,12 @@ impl IntoIterator for NymDirectoryGatewaysResponse {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NymDirectoryGatewayCountriesResponse(Vec<Country>);
+
+impl NymDirectoryGatewayCountriesResponse {
+    pub fn into_inner(self) -> Vec<Country> {
+        self.0
+    }
+}
 
 impl IntoIterator for NymDirectoryGatewayCountriesResponse {
     type Item = Country;

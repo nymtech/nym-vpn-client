@@ -465,9 +465,9 @@ mod tests {
     use super::*;
     use nym_crypto::asymmetric::ed25519;
 
-    // const BASE_URL: &str = "https://nymvpn.com/api";
-    const BASE_URL: &str =
-        "https://nym-dot-com-git-deploy-canary-nyx-network-staging.vercel.app/api";
+    const BASE_URL: &str = "https://nymvpn.com/api";
+    // const BASE_URL: &str =
+    //     "https://nym-dot-com-git-deploy-canary-nyx-network-staging.vercel.app/api";
 
     fn get_mnemonic() -> bip39::Mnemonic {
         let mnemonic = "kiwi ketchup mix canvas curve ribbon congress method feel frozen act annual aunt comfort side joy mesh palace tennis cannon orange name tortoise piece";
@@ -515,14 +515,44 @@ mod tests {
     #[tokio::test]
     async fn get_gateways() {
         let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-        let r = client.get_gateways().await;
-        dbg!(&r);
+        let response = client.get_gateways().await.unwrap();
+        dbg!(&response);
+        assert!(!response.into_inner().is_empty());
+    }
+
+    #[tokio::test]
+    async fn get_entry_gateways() {
+        let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
+        let response = client.get_entry_gateways().await.unwrap();
+        assert!(!response.into_inner().is_empty());
+    }
+
+    #[tokio::test]
+    async fn get_exit_gateways() {
+        let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
+        let response = client.get_entry_gateways().await.unwrap();
+        assert!(!response.into_inner().is_empty());
     }
 
     #[tokio::test]
     async fn get_gateway_countries() {
         let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-        let r = client.get_gateway_countries().await;
-        dbg!(&r);
+        let response = client.get_gateway_countries().await.unwrap();
+        dbg!(&response);
+        assert!(!response.into_inner().is_empty());
+    }
+
+    #[tokio::test]
+    async fn get_entry_gateway_countries() {
+        let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
+        let response = client.get_entry_gateway_countries().await.unwrap();
+        assert!(!response.into_inner().is_empty());
+    }
+
+    #[tokio::test]
+    async fn get_exit_gateway_countries() {
+        let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
+        let response = client.get_exit_gateway_countries().await.unwrap();
+        assert!(!response.into_inner().is_empty());
     }
 }

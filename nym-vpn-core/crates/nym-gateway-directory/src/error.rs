@@ -15,14 +15,11 @@ pub enum Error {
         source: nym_sdk::mixnet::RecipientFormattingError,
     },
 
-    #[error("{0}")]
+    #[error(transparent)]
     ValidatorClientError(#[from] nym_validator_client::ValidatorClientError),
 
     #[error(transparent)]
-    NymVpnApiClientError(#[from] nym_vpn_api_client::VpnApiHttpErrorResponse),
-
-    #[error("failed to create gateway client: {0}")]
-    FailedToCreateVpnApiClient(#[source] nym_vpn_api_client::VpnApiClientError),
+    VpnApiClientError(#[from] nym_vpn_api_client::VpnApiClientError),
 
     #[error("failed to resolve gateway hostname: {hostname}: {source}")]
     FailedToDnsResolveGateway {
@@ -32,9 +29,6 @@ pub enum Error {
 
     #[error("resolved hostname {0} but no IP address found")]
     ResolvedHostnameButNoIp(String),
-
-    #[error(transparent)]
-    VpnApiClientError(#[from] nym_vpn_api_client::VpnApiClientError),
 
     #[error("failed to lookup described gateways: {0}")]
     FailedToLookupDescribedGateways(#[source] nym_validator_client::ValidatorClientError),
