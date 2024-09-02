@@ -52,6 +52,7 @@ pub struct TwoHopTunnel {
     shutdown_token: CancellationToken,
 
     /// Entry peer configuration.
+    #[cfg(target_os = "ios")]
     entry_peer: WgPeer,
 
     /// Interface for interacting with the iOS tunnel provider.
@@ -168,6 +169,7 @@ impl TwoHopTunnel {
             exit: exit_tunnel,
             exit_connection: Some(exit_connection),
             shutdown_token,
+            #[cfg(target_os = "ios")]
             entry_peer: orig_entry_peer,
             #[cfg(target_os = "android")]
             tun_provider,

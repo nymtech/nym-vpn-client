@@ -5,6 +5,7 @@ use netdev::Interface;
 #[cfg(not(target_os = "ios"))]
 use std::collections::HashSet;
 use std::fmt::{Display, Formatter};
+use std::net::IpAddr;
 #[cfg(windows)]
 use std::net::Ipv4Addr;
 #[cfg(target_os = "android")]

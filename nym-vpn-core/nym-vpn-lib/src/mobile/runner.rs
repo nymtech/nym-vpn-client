@@ -20,7 +20,6 @@ use super::{
     wg_config::{WgInterface, WgNodeConfig, WgPeer},
 };
 use crate::mixnet::SharedMixnetClient;
-use crate::mixnet::SharedMixnetClient;
 #[cfg(target_os = "android")]
 use crate::platform::android::AndroidTunProvider;
 use crate::platform::{uniffi_set_listener_status, VPNConfig};
