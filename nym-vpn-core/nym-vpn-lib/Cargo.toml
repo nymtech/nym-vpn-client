@@ -55,12 +55,12 @@ url.workspace = true
 shadowsocks-service = { version = "=1.14.3" }
 shadowsocks = { version = "=1.14.2" }
 
-talpid-core = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "34ec8420d" }
-talpid-platform-metadata = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "34ec8420d" }
-talpid-routing = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "34ec8420d" }
-talpid-tunnel = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "34ec8420d" }
-talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "34ec8420d" }
-talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "34ec8420d" }
+talpid-core = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "95fb001fb" }
+talpid-platform-metadata = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "95fb001fb" }
+talpid-routing = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "95fb001fb" }
+talpid-tunnel = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "95fb001fb" }
+talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "95fb001fb" }
+talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "95fb001fb" }
 
 nym-authenticator-requests.workspace = true
 nym-bandwidth-controller-pre-ecash.workspace = true
