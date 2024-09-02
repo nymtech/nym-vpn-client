@@ -54,6 +54,8 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	private val ioDispatcher = Dispatchers.IO
 
+	private val storagePath = context.filesDir.absolutePath
+
 	private var statsJob: Job? = null
 
 	@get:Synchronized @set:Synchronized
@@ -75,7 +77,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	override suspend fun importCredential(credential: String): Instant? {
 		return try {
-			nym_vpn_lib.importCredential(credential, Constants.NATIVE_STORAGE_PATH)
+			nym_vpn_lib.importCredential(credential, storagePath)
 		} catch (e: FfiException) {
 			Timber.e(e)
 			throw InvalidCredentialException("Credential invalid or expired")
@@ -83,14 +85,11 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	}
 
 	override suspend fun start(tunnel: Tunnel, background: Boolean): Tunnel.State {
-		Timber.d("Starting tunnel now")
 		val state = getState()
 		if (tunnel == this.tunnel && state != Tunnel.State.Down) return state
 		this.tunnel = tunnel
-		Timber.d("Starting tunnel now1")
 		tunnel.environment.setup()
 		if (!vpnService.isCompleted) {
-			Timber.d("Trying to start the service")
 			kotlin.runCatching {
 				if (background) {
 					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -102,11 +101,9 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 				context.startService(Intent(context, VpnService::class.java))
 			}.onFailure { Timber.w("Ignoring not started in time exception") }
 		}
-		Timber.d("Starting tunnel now2")
 		// reset any error state
 		tunnel.onBackendMessage(BackendMessage.None)
 		withContext(ioDispatcher) {
-			Timber.d("Starting tunnel now3")
 			val service = vpnService.await()
 			service.setOwner(this@NymBackend)
 			runCatching {
@@ -118,7 +115,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 						tunnel.exitPoint,
 						isTwoHop(tunnel.mode),
 						service,
-						Constants.NATIVE_STORAGE_PATH,
+						storagePath,
 						this@NymBackend,
 					),
 				)
@@ -148,9 +145,6 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	private fun onConnect() = CoroutineScope(ioDispatcher).launch {
 		startConnectionTimer()
-	}
-
-	private fun setState() {
 	}
 
 	override fun getState(): Tunnel.State {
@@ -226,7 +220,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	class VpnService : android.net.VpnService(), AndroidTunProvider {
 		private var owner: NymBackend? = null
 
-		val builder: Builder
+		private val builder: Builder
 			get() = Builder()
 
 		override fun onCreate() {
@@ -269,7 +263,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 					addAddress(address.first(), address.last().toInt())
 				}
 				config.ipv6Settings?.addresses?.forEach {
-					Timber.d("Address v6")
+					Timber.d("Address v6: $it")
 					val address = it.split("/")
 					addAddress(address.first(), address.last().toInt())
 				}
