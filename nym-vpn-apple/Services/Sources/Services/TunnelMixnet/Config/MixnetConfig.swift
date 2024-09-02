@@ -51,9 +51,8 @@ public struct MixnetConfig: Codable, Equatable {
 #if os(iOS)
 // MARK: - VpnConfig -
 extension MixnetConfig {
-    public func asVpnConfig(mixnetTunnelProvider: MixnetTunnelProvider) throws -> VpnConfig {
-        guard let apiURL = Constants.apiURL()
-        else {
+    public func asVpnConfig(tunProvider: OsTunProvider, tunStatusListener: TunnelStatusListener?) throws -> VpnConfig {
+        guard let apiURL = Constants.apiURL() else {
             throw GeneralNymError.invalidUrl
         }
         return VpnConfig(
@@ -62,9 +61,9 @@ extension MixnetConfig {
             entryGateway: entryGateway?.entryPoint ?? .random,
             exitRouter: exitRouter.exitPoint,
             enableTwoHop: isTwoHopEnabled,
-            tunProvider: mixnetTunnelProvider,
+            tunProvider: tunProvider,
             credentialDataPath: credentialsDataPath,
-            tunStatusListener: nil
+            tunStatusListener: tunStatusListener
         )
     }
 }

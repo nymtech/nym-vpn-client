@@ -17,6 +17,7 @@ path = "uniffi-bindgen.rs"
 
 [dependencies]
 anyhow.workspace = true
+async-trait.workspace = true
 bincode.workspace = true
 bs58.workspace = true
 bytes.workspace = true
@@ -50,12 +51,16 @@ tun2 = { workspace = true, features = ["async"] }
 uniffi = { workspace = true, features = ["cli"] }
 url.workspace = true
 
-talpid-core = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "5f478c385" }
-talpid-platform-metadata = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "5f478c385" }
-talpid-routing = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "5f478c385" }
-talpid-tunnel = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "5f478c385" }
-talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "5f478c385" }
-talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "5f478c385" }
+# Pin down shadowsocks to prevent mullvad dependencies from using newer crates that aren't compatible.
+shadowsocks-service = { version = "=1.14.3" }
+shadowsocks = { version = "=1.14.2" }
+
+talpid-core = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "f9fd4be7f" }
+talpid-platform-metadata = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "f9fd4be7f" }
+talpid-routing = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "f9fd4be7f" }
+talpid-tunnel = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "f9fd4be7f" }
+talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "f9fd4be7f" }
+talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "f9fd4be7f" }
 
 nym-authenticator-requests.workspace = true
 nym-bandwidth-controller-pre-ecash.workspace = true
@@ -95,13 +100,16 @@ rand = "0.8.5"
 oslog = "0.2.0"
 
 [target.'cfg(unix)'.dependencies]
-nix = { version = "0.28.0", features = ["user"] }
+nix = { workspace = true, features = ["user"] }
+
+[target.'cfg(target_os = "ios")'.dependencies]
+nix = { workspace = true, features = ["socket", "net"] }
 
 [target.'cfg(windows)'.dependencies]
 is_elevated = "0.1.2"
 
 [build-dependencies]
-uniffi = { version = "0.27.3", features = ["build"] }
+uniffi = { workspace = true, features = ["build"] }
 vergen = { workspace = true, default-features = false, features = [
     "build",
     "git",

@@ -45,7 +45,7 @@ private extension NymVPNApp {
         LoggingSystem.bootstrap { label in
             FileLogHandler(label: label)
         }
-        try? ConfigurationManager.setEnvVariables(for: .mainnet)
+        try? ConfigurationManager.setEnvVariables()
         ThemeConfiguration.setup()
         SentryManager.shared.setup()
     }

@@ -826,12 +826,6 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "cfg_aliases"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fd16c4719339c4530435d38e511904438d07cce7950afa3718a84ac36c10e89e"
-
-[[package]]
-name = "cfg_aliases"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
@@ -2045,6 +2039,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c007b1ae3abe1cb6f85a16305acd418b7ca6343b953633fee2b76d8f108b830f"
 
 [[package]]
+name = "filetime"
+version = "0.2.25"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "35c0522e981e68cbfa8c3f978441a5f34b30b96e146b33cd3359176b50fe8586"
+dependencies = [
+ "cfg-if",
+ "libc",
+ "libredox",
+ "windows-sys 0.59.0",
+]
+
+[[package]]
 name = "finl_unicode"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2116,6 +2122,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "88a41f105fe1d5b6b34b2055e3dc59bb79b46b48b2040b9e6c7b4b5de097aa41"
 dependencies = [
  "autocfg",
+]
+
+[[package]]
+name = "fsevent-sys"
+version = "4.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "76ee7a02da4d231650c7cea31349b889be2f45ddb3ef3032d2ec8185f6313fd2"
+dependencies = [
+ "libc",
 ]
 
 [[package]]
@@ -2392,9 +2407,9 @@ dependencies = [
 
 [[package]]
 name = "h2"
-version = "0.4.5"
+version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fa82e28a107a8cc405f0839610bdc9b15f1e25ec7d696aa5cf173edbcb1486ab"
+checksum = "524e8ac6999421f49a846c2d4411f337e53497d8ec55d67753beffa43c5d9205"
 dependencies = [
  "atomic-waker",
  "bytes",
@@ -2712,7 +2727,7 @@ dependencies = [
  "bytes",
  "futures-channel",
  "futures-util",
- "h2 0.4.5",
+ "h2 0.4.6",
  "http 1.1.0",
  "http-body 1.0.0",
  "httparse",
@@ -2872,6 +2887,17 @@ checksum = "168fb715dda47215e360912c096649d23d58bf392ac62f73919e831745e40f26"
 dependencies = [
  "equivalent",
  "hashbrown 0.14.3",
+]
+
+[[package]]
+name = "inotify"
+version = "0.9.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f8069d3ec154eb856955c1c0fbffefbf5f3c40a104ec912d4797314c1801abff"
+dependencies = [
+ "bitflags 1.3.2",
+ "inotify-sys",
+ "libc",
 ]
 
 [[package]]
@@ -3108,6 +3134,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c33070833c9ee02266356de0c43f723152bd38bd96ddf52c82b3af10c9138b28"
 
 [[package]]
+name = "kqueue"
+version = "1.0.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7447f1ca1b7b563588a205fe93dea8df60fd981423a768bc1c0ded35ed147d0c"
+dependencies = [
+ "kqueue-sys",
+ "libc",
+]
+
+[[package]]
+name = "kqueue-sys"
+version = "1.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ed9625ffda8729b85e45cf04090035ac368927b8cebc34898e7c120f52e4838b"
+dependencies = [
+ "bitflags 1.3.2",
+ "libc",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3135,7 +3181,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c2a198fb6b0eada2a8df47933734e6d35d350665a33a3593d7164fa52c75c19"
 dependencies = [
  "cfg-if",
- "windows-targets 0.48.5",
+ "windows-targets 0.52.6",
 ]
 
 [[package]]
@@ -3152,6 +3198,7 @@ checksum = "c0ff37bd590ca25063e35af745c343cb7a0271906fb7b37e4813e8f79f00268d"
 dependencies = [
  "bitflags 2.5.0",
  "libc",
+ "redox_syscall 0.5.3",
 ]
 
 [[package]]
@@ -3266,9 +3313,9 @@ dependencies = [
 
 [[package]]
 name = "md5-asm"
-version = "0.5.1"
+version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61d33bc4cdfe5c60340e282bbbee0a6e2bc57f0b9279bb3489c5004d12492e5c"
+checksum = "d19b8ee7fc7d812058d3b708c7f719efd0713d53854648e4223c6fcae709e2df"
 dependencies = [
  "cc",
 ]
@@ -3290,6 +3337,15 @@ name = "memoffset"
 version = "0.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5aa361d4faea93603064a027415f07bd8e1d5c88c9fbf68bf56a285428fd79ce"
+dependencies = [
+ "autocfg",
+]
+
+[[package]]
+name = "memoffset"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "488016bfae457b036d996092f6cb448677611ce4449e970ceaf42695203f218a"
 dependencies = [
  "autocfg",
 ]
@@ -3323,6 +3379,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9d811f3e15f28568be3407c8e7fdb6514c1cda3cb30683f15b6a1a1dc4ea14a7"
 dependencies = [
  "adler",
+]
+
+[[package]]
+name = "mio"
+version = "0.8.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a4a650543ca06a924e8b371db273b2756685faae30f8487da1b56505a8f78b0c"
+dependencies = [
+ "libc",
+ "log",
+ "wasi 0.11.0+wasi-snapshot-preview1",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -3514,7 +3582,7 @@ dependencies = [
  "cc",
  "cfg-if",
  "libc",
- "memoffset",
+ "memoffset 0.6.5",
 ]
 
 [[package]]
@@ -3530,26 +3598,15 @@ dependencies = [
 
 [[package]]
 name = "nix"
-version = "0.28.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab2156c4fce2f8df6c499cc1c763e4394b7482525bf2a9701c9d79d215f519e4"
-dependencies = [
- "bitflags 2.5.0",
- "cfg-if",
- "cfg_aliases 0.1.1",
- "libc",
-]
-
-[[package]]
-name = "nix"
 version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "71e2746dc3a24dd78b3cfcb7be93368c6de9963d30f43a6a73998a9cf4b17b46"
 dependencies = [
  "bitflags 2.5.0",
  "cfg-if",
- "cfg_aliases 0.2.1",
+ "cfg_aliases",
  "libc",
+ "memoffset 0.9.1",
 ]
 
 [[package]]
@@ -3566,6 +3623,24 @@ checksum = "d273983c5a657a70a3e8f2a01329822f3b8c8172b73826411a55751e404a0a4a"
 dependencies = [
  "memchr",
  "minimal-lexical",
+]
+
+[[package]]
+name = "notify"
+version = "5.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "729f63e1ca555a43fe3efa4f3efdf4801c479da85b432242a7b726f353c88486"
+dependencies = [
+ "bitflags 1.3.2",
+ "crossbeam-channel",
+ "filetime",
+ "fsevent-sys",
+ "inotify 0.9.6",
+ "kqueue",
+ "libc",
+ "mio 0.8.11",
+ "walkdir",
+ "windows-sys 0.45.0",
 ]
 
 [[package]]
@@ -5247,6 +5322,7 @@ version = "0.1.17-dev"
 dependencies = [
  "android_logger",
  "anyhow",
+ "async-trait",
  "bincode",
  "bs58 0.5.1",
  "bytes",
@@ -5261,7 +5337,7 @@ dependencies = [
  "log",
  "netdev",
  "nix 0.23.2",
- "nix 0.28.0",
+ "nix 0.29.0",
  "nym-authenticator-client",
  "nym-authenticator-requests",
  "nym-bandwidth-controller 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
@@ -5292,6 +5368,8 @@ dependencies = [
  "rand 0.8.5",
  "serde",
  "serde_json",
+ "shadowsocks",
+ "shadowsocks-service",
  "signature 2.2.0",
  "sqlx",
  "talpid-core",
@@ -6259,6 +6337,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "redox_syscall"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2a908a6e00f1fdd0dfd9c0eb08ce85126f6d8bbda50017e74bc4a4b7d4a926a4"
+dependencies = [
+ "bitflags 2.5.0",
+]
+
+[[package]]
 name = "redox_users"
 version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6945,9 +7032,9 @@ dependencies = [
 
 [[package]]
 name = "sha1-asm"
-version = "0.5.2"
+version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2ba6947745e7f86be3b8af00b7355857085dbdf8901393c89514510eb61f4e21"
+checksum = "286acebaf8b67c1130aedffad26f594eff0c1292389158135327d2e23aed582b"
 dependencies = [
  "cc",
 ]
@@ -6992,6 +7079,7 @@ version = "1.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f16fc99441d1a1b91b5f7b5093773d631ad506761a973e0a632f1836d1b05939"
 dependencies = [
+ "arc-swap",
  "async-trait",
  "base64 0.13.1",
  "byte_string",
@@ -7001,6 +7089,7 @@ dependencies = [
  "libc",
  "log",
  "nix 0.23.2",
+ "notify",
  "once_cell",
  "pin-project",
  "sendfd",
@@ -7012,6 +7101,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tokio-tfo",
+ "trust-dns-resolver",
  "url",
  "winapi",
 ]
@@ -7499,7 +7589,7 @@ dependencies = [
 [[package]]
 name = "talpid-core"
 version = "0.0.0"
-source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=5f478c385#5f478c3856a1158fa9598b9c77d4093aeadcfd01"
+source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=f9fd4be7f#f9fd4be7f7d2687874b95e54cc89838c402946bc"
 dependencies = [
  "async-trait",
  "atty",
@@ -7511,14 +7601,14 @@ dependencies = [
  "err-derive",
  "futures",
  "hex",
- "inotify",
+ "inotify 0.10.2",
  "internet-checksum",
  "ipnetwork",
  "jnix",
  "lazy_static",
  "libc",
  "log",
- "memoffset",
+ "memoffset 0.6.5",
  "mnl",
  "netlink-packet-route 0.13.0",
  "netlink-sys",
@@ -7566,7 +7656,7 @@ dependencies = [
 [[package]]
 name = "talpid-dbus"
 version = "0.0.0"
-source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=5f478c385#5f478c3856a1158fa9598b9c77d4093aeadcfd01"
+source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=f9fd4be7f#f9fd4be7f7d2687874b95e54cc89838c402946bc"
 dependencies = [
  "dbus",
  "err-derive",
@@ -7579,7 +7669,7 @@ dependencies = [
 [[package]]
 name = "talpid-openvpn"
 version = "0.0.0"
-source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=5f478c385#5f478c3856a1158fa9598b9c77d4093aeadcfd01"
+source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=f9fd4be7f#f9fd4be7f7d2687874b95e54cc89838c402946bc"
 dependencies = [
  "async-trait",
  "atty",
@@ -7616,7 +7706,7 @@ dependencies = [
 [[package]]
 name = "talpid-platform-metadata"
 version = "0.0.0"
-source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=5f478c385#5f478c3856a1158fa9598b9c77d4093aeadcfd01"
+source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=f9fd4be7f#f9fd4be7f7d2687874b95e54cc89838c402946bc"
 dependencies = [
  "rs-release",
  "talpid-dbus",
@@ -7626,7 +7716,7 @@ dependencies = [
 [[package]]
 name = "talpid-routing"
 version = "0.0.0"
-source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=5f478c385#5f478c3856a1158fa9598b9c77d4093aeadcfd01"
+source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=f9fd4be7f#f9fd4be7f7d2687874b95e54cc89838c402946bc"
 dependencies = [
  "err-derive",
  "futures",
@@ -7649,7 +7739,7 @@ dependencies = [
 [[package]]
 name = "talpid-time"
 version = "0.0.0"
-source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=5f478c385#5f478c3856a1158fa9598b9c77d4093aeadcfd01"
+source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=f9fd4be7f#f9fd4be7f7d2687874b95e54cc89838c402946bc"
 dependencies = [
  "libc",
  "tokio",
@@ -7658,7 +7748,7 @@ dependencies = [
 [[package]]
 name = "talpid-tunnel"
 version = "0.0.0"
-source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=5f478c385#5f478c3856a1158fa9598b9c77d4093aeadcfd01"
+source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=f9fd4be7f#f9fd4be7f7d2687874b95e54cc89838c402946bc"
 dependencies = [
  "cfg-if",
  "duct",
@@ -7679,7 +7769,7 @@ dependencies = [
 [[package]]
 name = "talpid-tunnel-config-client"
 version = "0.0.0"
-source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=5f478c385#5f478c3856a1158fa9598b9c77d4093aeadcfd01"
+source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=f9fd4be7f#f9fd4be7f7d2687874b95e54cc89838c402946bc"
 dependencies = [
  "classic-mceliece-rust",
  "log",
@@ -7695,7 +7785,7 @@ dependencies = [
 [[package]]
 name = "talpid-types"
 version = "0.0.0"
-source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=5f478c385#5f478c3856a1158fa9598b9c77d4093aeadcfd01"
+source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=f9fd4be7f#f9fd4be7f7d2687874b95e54cc89838c402946bc"
 dependencies = [
  "base64 0.13.1",
  "err-derive",
@@ -7710,7 +7800,7 @@ dependencies = [
 [[package]]
 name = "talpid-windows-net"
 version = "0.0.0"
-source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=5f478c385#5f478c3856a1158fa9598b9c77d4093aeadcfd01"
+source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=f9fd4be7f#f9fd4be7f7d2687874b95e54cc89838c402946bc"
 dependencies = [
  "err-derive",
  "futures",
@@ -7723,7 +7813,7 @@ dependencies = [
 [[package]]
 name = "talpid-wireguard"
 version = "0.0.0"
-source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=5f478c385#5f478c3856a1158fa9598b9c77d4093aeadcfd01"
+source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=f9fd4be7f#f9fd4be7f7d2687874b95e54cc89838c402946bc"
 dependencies = [
  "bitflags 1.3.2",
  "byteorder",
@@ -8075,7 +8165,7 @@ dependencies = [
  "backtrace",
  "bytes",
  "libc",
- "mio",
+ "mio 1.0.1",
  "parking_lot 0.12.1",
  "pin-project-lite",
  "signal-hook-registry",
@@ -8724,7 +8814,7 @@ dependencies = [
 [[package]]
 name = "tunnel-obfuscation"
 version = "0.0.0"
-source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=5f478c385#5f478c3856a1158fa9598b9c77d4093aeadcfd01"
+source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=f9fd4be7f#f9fd4be7f7d2687874b95e54cc89838c402946bc"
 dependencies = [
  "async-trait",
  "err-derive",
@@ -9349,6 +9439,15 @@ dependencies = [
 
 [[package]]
 name = "windows-sys"
+version = "0.45.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "75283be5efb2831d37ea142365f009c02ec203cd29a3ebecbc093d52315b66d0"
+dependencies = [
+ "windows-targets 0.42.2",
+]
+
+[[package]]
+name = "windows-sys"
 version = "0.48.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "677d2418bec65e3338edb076e806bc1ec15693c5d0104683f2efe857f61056a9"
@@ -9372,6 +9471,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1e38bc4d79ed67fd075bcc251a1c39b32a1776bbe92e5bef1f0bf1f8c531853b"
 dependencies = [
  "windows-targets 0.52.6",
+]
+
+[[package]]
+name = "windows-targets"
+version = "0.42.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8e5180c00cd44c9b1c88adb3693291f1cd93605ded80c250a75d472756b4d071"
+dependencies = [
+ "windows_aarch64_gnullvm 0.42.2",
+ "windows_aarch64_msvc 0.42.2",
+ "windows_i686_gnu 0.42.2",
+ "windows_i686_msvc 0.42.2",
+ "windows_x86_64_gnu 0.42.2",
+ "windows_x86_64_gnullvm 0.42.2",
+ "windows_x86_64_msvc 0.42.2",
 ]
 
 [[package]]

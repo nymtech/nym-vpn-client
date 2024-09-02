@@ -120,6 +120,10 @@ pub enum Error {
 
     #[error("failed to parse entry gateway ipv4: {0}")]
     FailedToParseEntryGatewayIpv4(#[source] std::net::AddrParseError),
+
+    #[cfg(target_os = "ios")]
+    #[error("failed to run wireguard tunnel")]
+    RunTunnel(#[from] crate::mobile::Error),
 }
 
 #[derive(thiserror::Error, Debug)]

@@ -19,7 +19,7 @@ use talpid_routing::RouteManager;
 use talpid_tunnel::tun_provider::TunProvider;
 
 #[cfg(target_os = "ios")]
-use crate::platform::swift::OSTunProvider;
+use crate::mobile::ios::tun_provider::OSTunProvider;
 use crate::{error::Result, mixnet::SharedMixnetClient, routing, Error, GatewayDirectoryError};
 
 use super::base::{GenericNymVpnConfig, NymVpn, ShadowHandle, Vpn};

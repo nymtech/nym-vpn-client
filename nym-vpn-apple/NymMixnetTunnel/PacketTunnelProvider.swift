@@ -4,16 +4,23 @@ import NymLogger
 import MixnetLibrary
 import TunnelMixnet
 import Tunnels
+import ConfigurationManager
+
+enum TunnelEvent {
+    case statusUpdate(TunStatus)
+}
 
 class PacketTunnelProvider: NEPacketTunnelProvider {
-    private lazy var mixnetTunnelProvider = MixnetTunnelProvider()
-    private lazy var mixnetAdapter: MixnetAdapter = {
-        MixnetAdapter(
-            with: self,
-            mixnetTunnelProvider: mixnetTunnelProvider
-        )
-    }()
+    private static var defaultPathObserverContext = 0
+
     private lazy var logger = Logger(label: "MixnetTunnel")
+
+    private let eventStream: AsyncStream<TunnelEvent>
+    private let eventContinuation: AsyncStream<TunnelEvent>.Continuation
+
+    private let stateLock = NSLock()
+    private var defaultPathObserver: (any OsDefaultPathObserver)?
+    private var installedDefaultPathObserver = false
 
     override init() {
         LoggingSystem.bootstrap { label in
@@ -29,84 +36,154 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 return fileLogHandler
             #endif
         }
+
+        let (eventStream, eventContinuation) = AsyncStream<TunnelEvent>.makeStream()
+        self.eventStream = eventStream
+        self.eventContinuation = eventContinuation
+    }
+
+    deinit {
+        removeDefaultPathObserver()
     }
 
     override func startTunnel(options: [String: NSObject]? = nil) async throws {
-        logger.log(level: .info, "Start tunnel...")
-        guard
-            let tunnelProviderProtocol = self.protocolConfiguration as? NETunnelProviderProtocol,
-            let mixnetConfig = tunnelProviderProtocol.asMixnetConfig()
-        else {
-            logger.log(level: .info, "Start tunnel: invalid saved configuration")
+        logger.info("Start tunnel...")
+
+        setup()
+
+        guard let tunnelProviderProtocol = protocolConfiguration as? NETunnelProviderProtocol,
+              let mixnetConfig = tunnelProviderProtocol.asMixnetConfig() else {
+            logger.error("Failed to obtain tunnel configuration")
             throw PacketTunnelProviderError.invalidSavedConfiguration
         }
 
-        let callback: () -> Void = { [weak self] in
-            guard let config = self?.mixnetTunnelProvider.nymConfig
-            else {
-                return
-            }
+        let vpnConfig = try mixnetConfig.asVpnConfig(tunProvider: self, tunStatusListener: self)
 
-            self?.configure(with: config)
-            self?.mixnetTunnelProvider.fileDescriptor = self?.mixnetAdapter.tunnelFileDescriptor
-            self?.logger.log(
-                level: .info,
-                "Start tunnel: \(String(describing: self?.mixnetAdapter.tunnelFileDescriptor))"
-            )
-        }
-        mixnetTunnelProvider.nymOnConfigure = callback
-
+        logger.info("Starting backend")
         do {
-            self.logger.log(level: .info, "Start tunnel: start")
-            try mixnetAdapter.start(
-                with: mixnetConfig.asVpnConfig(mixnetTunnelProvider: mixnetAdapter.mixnetTunnelProvider)
-            )
-        } catch let error {
-            logger.log(level: .error, "Start tunnel: \(error)")
-            throw error
+            try startVpn(config: vpnConfig)
+        } catch {
+            throw PacketTunnelProviderError.backendStartFailure
         }
-        logger.log(level: .info, "Start tunnel: connected")
+        logger.info("Backend is up an running...")
+
+        for await event in eventStream {
+            switch event {
+            case .statusUpdate(.up):
+                self.logger.debug("Tunnel is up.")
+                // Stop blocking startTunnel() to avoid being terminated due to system 60s timeout
+                return
+
+            case .statusUpdate(.establishingConnection):
+                self.logger.debug("Tunnel is establishing connection.")
+
+            case .statusUpdate(.down):
+                throw PacketTunnelProviderError.backendStartFailure
+
+            case .statusUpdate(.initializingClient):
+                self.logger.debug("Initializing the client")
+
+            case .statusUpdate(.disconnecting):
+                self.logger.debug("Disconnecting?")
+            }
+        }
     }
 
     override func stopTunnel(with reason: NEProviderStopReason) async {
+        logger.info("Stop tunnel...")
+
         do {
-            try mixnetAdapter.stop()
-            logger.log(level: .error, "Stop tunnel reason: \(reason)")
+            try stopVpn()
         } catch let error {
-            logger.log(level: .error, "Stop tunnel reason: \(reason), error: \(error)")
+            logger.error("Failed to stop the tunnel: \(error)")
         }
     }
 }
 
-private extension PacketTunnelProvider {
-    func configure(with config: NymConfig) {
-        let networkSettings = MixnetTunnelSettingsGenerator(nymConfig: config).generateNetworkSettings()
+extension PacketTunnelProvider {
+
+    func setup() {
         do {
-            try setNetworkSettings(networkSettings)
+            try ConfigurationManager.setEnvVariables()
         } catch {
-            logger.log(level: .error, "Configure error: \(error)")
+            self.logger.error("Failed to set environment: \(error)")
+        }
+        addDefaultPathObserver()
+    }
+
+    func addDefaultPathObserver() {
+        guard !installedDefaultPathObserver else { return }
+        installedDefaultPathObserver = true
+        self.addObserver(self, forKeyPath: #keyPath(defaultPath), context: &Self.defaultPathObserverContext)
+    }
+
+    func removeDefaultPathObserver() {
+        guard installedDefaultPathObserver else { return }
+        installedDefaultPathObserver = false
+        self.removeObserver(self, forKeyPath: #keyPath(defaultPath), context: &Self.defaultPathObserverContext)
+    }
+
+    func notifyDefaultPathObserver() {
+        guard let defaultPath else { return }
+
+        let observer = stateLock.withLock { defaultPathObserver }
+        observer?.onDefaultPathChange(newPath: defaultPath.asOsDefaultPath())
+    }
+
+    // swiftlint:disable:next block_based_kvo
+    override func observeValue(
+        forKeyPath keyPath: String?,
+        of object: Any?,
+        change: [NSKeyValueChangeKey: Any]?,
+        context: UnsafeMutableRawPointer?
+    ) {
+        if keyPath == #keyPath(defaultPath) && context == &Self.defaultPathObserverContext {
+            notifyDefaultPathObserver()
+        } else {
+            super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
+        }
+    }
+}
+
+extension PacketTunnelProvider: TunnelStatusListener {
+    func onBandwidthStatusChange(status: BandwidthStatus) {
+        // todo: implement
+    }
+
+    func onConnectionStatusChange(status: ConnectionStatus) {
+        // todo: implement
+    }
+
+    func onNymVpnStatusChange(status: NymVpnStatus) {
+        // todo: implement
+    }
+
+    func onExitStatusChange(status: ExitStatus) {
+        // todo: implement
+    }
+
+    func onTunStatusChange(status: TunStatus) {
+        eventContinuation.yield(.statusUpdate(status))
+    }
+}
+
+extension PacketTunnelProvider: OsTunProvider {
+    func setDefaultPathObserver(observer: (any OsDefaultPathObserver)?) throws {
+        stateLock.withLock {
+            defaultPathObserver = observer
         }
     }
 
-    func setNetworkSettings(_ networkSettings: NEPacketTunnelNetworkSettings) throws {
-        var systemError: Error?
-        let condition = NSCondition()
+    func setTunnelNetworkSettings(tunnelSettings: TunnelNetworkSettings) async throws {
+        do {
+            let networkSettings = tunnelSettings.asPacketTunnelNetworkSettings()
 
-        condition.lock()
-        defer { condition.unlock() }
+            self.logger.debug("Set network settings: \(networkSettings)")
 
-        setTunnelNetworkSettings(networkSettings) { error in
-            systemError = error
-            condition.signal()
-        }
+            try await setTunnelNetworkSettings(networkSettings)
+        } catch {
+            self.logger.error("Failed to set tunnel network settings: \(error)")
 
-        let setTunnelNetworkSettingsTimeout: TimeInterval = 5 // seconds
-
-        if !condition.wait(until: Date().addingTimeInterval(setTunnelNetworkSettingsTimeout)) {
-            logger.log(level: .error, "setTunnelNetworkSettings timed out")
-        }
-
-        if let error = systemError {
             throw error
         }
     }
