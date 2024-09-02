@@ -9,7 +9,6 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
     error::{Result, VpnApiClientError},
-    headers::DEVICE_AUTHORIZATION_HEADER,
     request::{CreateSubscriptionRequestBody, RegisterDeviceRequestBody, RequestZkNymRequestBody},
     responses::{
         NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymVpnAccountResponse,
@@ -19,6 +18,8 @@ use crate::{
     routes,
     types::{Account, Device},
 };
+
+pub(crate) const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";
 
 pub struct VpnApiClient {
     inner: nym_http_api_client::Client,

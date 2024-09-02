@@ -2,7 +2,6 @@ pub mod responses;
 
 mod client;
 mod error;
-pub(crate) mod headers;
 pub(crate) mod jwt;
 mod request;
 mod routes;
