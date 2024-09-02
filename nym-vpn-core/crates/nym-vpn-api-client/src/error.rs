@@ -3,7 +3,7 @@
 
 use nym_http_api_client::HttpClientError;
 
-use crate::responses::{NymErrorResponse, UnexpectedError};
+use crate::response::{NymErrorResponse, UnexpectedError};
 
 #[derive(Debug, thiserror::Error)]
 pub enum VpnApiClientError {
