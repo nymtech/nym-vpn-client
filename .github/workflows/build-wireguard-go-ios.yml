@@ -25,5 +25,7 @@ jobs:
         with:
           name: wireguard-go_ios_universal
           path: |
-            build/lib/universal-apple-darwin
+            build/lib/aarch64-apple-ios
+            build/lib/aarch64-apple-ios-sim
+            build/lib/x86_64-apple-ios
           retention-days: 10

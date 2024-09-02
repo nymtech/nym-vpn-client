@@ -26,12 +26,14 @@ pub enum Error {
     #[error("tunnel failure")]
     Tunnel(#[from] nym_wg_go::Error),
 
+    #[cfg(target_os = "ios")]
     #[error("DNS resolution failure")]
-    DnsResolution(#[from] dns64::Error),
+    DnsResolution(#[from] ios::dns64::Error),
 
     #[error("failed to set network settings")]
     SetNetworkSettings(#[source] FFIError),
 
+    #[cfg(target_os = "ios")]
     #[error("failed to set default path observer")]
     SetDefaultPathObserver(#[source] FFIError),
 }

@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
@@ -10,8 +11,8 @@ import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
 import { useExit } from '../../state';
 import { StateDispatch } from '../../types';
 import { Button, MsIcon, PageAnim, SettingsMenuCard, Switch } from '../../ui';
+import InfoData from './InfoData';
 import SettingsGroup from './SettingsGroup';
-import { useEffect, useState } from 'react';
 import { capFirst } from '../../helpers';
 
 const ThrottleDelay = 10000; // ms
@@ -20,7 +21,6 @@ function Settings() {
   const {
     entrySelector,
     autoConnect,
-    version,
     monitoring,
     daemonStatus,
     credentialExpiry,
@@ -220,9 +220,7 @@ function Settings() {
         trailingIcon="arrow_right"
       />
       <SettingsMenuCard title={t('quit')} onClick={exit} />
-      <div className="flex grow flex-col justify-end text-comet text-sm tracking-tight leading-tight mb-4">
-        Version {version}
-      </div>
+      <InfoData />
     </PageAnim>
   );
 }

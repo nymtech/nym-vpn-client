@@ -15,7 +15,7 @@ const UTUN_CTL_NAME: &CStr = c"com.apple.net.utun_control";
 const CTLIOCGINFO: c_ulong = 0xc0644e03;
 
 #[repr(C)]
-#[allow(clippy::non_camel_case_types)]
+#[allow(non_camel_case_types)]
 struct ctl_info {
     ctl_id: u32,
     ctl_name: [c_char; 96],

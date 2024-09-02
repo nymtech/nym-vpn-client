@@ -216,6 +216,7 @@ async fn main() -> Result<()> {
             cmd_log::log_js,
             credential::add_credential,
             cmd_daemon::daemon_status,
+            cmd_daemon::daemon_info,
             cmd_fs::log_dir,
         ])
         // keep the app running in the background on window close request

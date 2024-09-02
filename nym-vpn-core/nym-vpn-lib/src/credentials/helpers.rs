@@ -1,4 +1,7 @@
-use std::path::{Path, PathBuf};
+use std::{
+    ffi::OsString,
+    path::{Path, PathBuf},
+};
 
 use nym_credential_storage_pre_ecash::persistent_storage::PersistentStorage;
 
@@ -52,13 +55,16 @@ pub enum CredentialStoreError {
 
     #[error("failed to copy old db file: {0}")]
     FailedToCopyOldDbFile(std::io::Error),
+
+    #[error("failed to create forked db path")]
+    CreateForkedDbPath,
 }
 
-fn forked_db_path(db_path: &Path) -> PathBuf {
-    db_path.with_file_name(format!(
-        "fork_{}",
-        db_path.file_name().unwrap().to_str().unwrap()
-    ))
+fn forked_db_path(db_path: &Path) -> Option<PathBuf> {
+    let mut new_file_name = OsString::from("fork_");
+    new_file_name.push(db_path.file_name()?);
+
+    Some(db_path.with_file_name(new_file_name))
 }
 
 async fn is_db_old(db_path: &Path) -> Result<bool, CredentialStoreError> {
@@ -85,7 +91,8 @@ async fn copy_old_db_file(db_path: &Path, new_db_path: &Path) -> Result<u64, Cre
 async fn migrate_to_forked_credential_db(
     credential_db_path: &Path,
 ) -> Result<PathBuf, CredentialStoreError> {
-    let fork_credential_db_path = forked_db_path(credential_db_path);
+    let fork_credential_db_path =
+        forked_db_path(credential_db_path).ok_or(CredentialStoreError::CreateForkedDbPath)?;
     if !fork_credential_db_path.exists()
         && credential_db_path.exists()
         && is_db_old(credential_db_path).await?

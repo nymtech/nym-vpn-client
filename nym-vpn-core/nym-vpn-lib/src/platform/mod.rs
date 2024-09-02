@@ -204,6 +204,7 @@ fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
     );
     debug!("Created new mixnet vpn");
     vpn.generic_config.gateway_config.api_url = config.api_url;
+    vpn.generic_config.gateway_config.nym_vpn_api_url = config.vpn_api_url;
     vpn.generic_config
         .data_path
         .clone_from(&config.credential_data_path);
@@ -216,6 +217,9 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
     if RUNNING.fetch_or(true, Ordering::Relaxed) {
         return Err(FFIError::VpnAlreadyRunning);
     }
+
+    #[cfg(any(target_os = "ios", target_os = "macos"))]
+    crate::platform::swift::init_logs();
 
     LISTENER
         .lock()

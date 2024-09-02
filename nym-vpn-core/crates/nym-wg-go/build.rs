@@ -8,13 +8,26 @@ fn main() {
     let target = env::var("TARGET").expect("target is not set");
     let target_os = env::var("CARGO_CFG_TARGET_OS").expect("target os is not set");
 
-    let build_dir = PathBuf::from(manifest_path)
+    let mut build_dir = PathBuf::from(manifest_path)
         .join("../../../build/lib")
-        .join(target);
-    let abs_build_dir = build_dir
         .canonicalize()
         .expect("failed to canonicalize build dir path");
-    println!("cargo::rustc-link-search={}", abs_build_dir.display());
+
+    build_dir.push(target);
+
+    // CI may only provide universal builds
+    if target_os == "macos" {
+        let target_dir_exists = build_dir
+            .try_exists()
+            .expect("failed to check existence of target dir");
+
+        if !target_dir_exists {
+            build_dir.pop();
+            build_dir.push("universal-apple-darwin");
+        }
+    }
+
+    println!("cargo::rustc-link-search={}", build_dir.display());
 
     let link_type = match target_os.as_str() {
         "android" => "",

@@ -1,7 +1,9 @@
-use super::super::tunnel_settings::TunnelNetworkSettings;
-use crate::mobile::ios::default_path_observer::OSDefaultPathObserver;
-use crate::platform::error::FFIError;
 use std::sync::Arc;
+
+use super::{
+    super::tunnel_settings::TunnelNetworkSettings, default_path_observer::OSDefaultPathObserver,
+};
+use crate::platform::error::FFIError;
 
 #[uniffi::export(with_foreign)]
 #[async_trait::async_trait]

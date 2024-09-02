@@ -79,6 +79,7 @@ impl TwoHopTunnel {
         shutdown_token: CancellationToken,
     ) -> Result<()> {
         // Save entry peer so that we can re-resolve it and update wg config on network changes.
+        #[cfg(target_os = "ios")]
         let orig_entry_peer = entry_node_config.peer.clone();
 
         let mut two_hop_config = TwoHopConfig::new(entry_node_config, exit_node_config);
@@ -126,12 +127,6 @@ impl TwoHopTunnel {
         // Transform wg config structs into what nym-wg-go expects.
         let mut entry_wg_config = two_hop_config.entry.into_netstack_config();
         let exit_wg_config = two_hop_config.exit.into_wireguard_config();
-
-        // Re-resolve peers with DNS64.
-        for peer in entry_wg_config.peers.iter_mut() {
-            peer.endpoint =
-                dns64::reresolve_endpoint(peer.endpoint).map_err(|e| Error::DnsResolution(e))?;
-        }
 
         // Create netstack wg connected to the entry node.
         let mut entry_tunnel = netstack::Tunnel::start(entry_wg_config, |s| {

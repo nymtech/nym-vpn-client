@@ -15,8 +15,7 @@ use nym_task::TaskManager;
 use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
 use nym_wg_go::{PrivateKey, PublicKey};
 
-#[cfg(target_os = "ios")]
-use super::ios::tun_provider::OSTunProvider;
+use crate::mixnet::SharedMixnetClient;
 use super::{
     two_hop_tunnel::TwoHopTunnel,
     wg_config::{WgInterface, WgNodeConfig, WgPeer},

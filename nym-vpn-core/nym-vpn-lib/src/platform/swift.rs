@@ -4,9 +4,9 @@
 use log::LevelFilter;
 use oslog::OsLogger;
 
-pub fn init_logs(level: String) {
+pub fn init_logs() {
     let result = OsLogger::new("net.nymtech.vpn.agent")
-        .level_filter(LevelFilter::Trace)
+        .level_filter(LevelFilter::Debug)
         .category_level_filter("hyper", LevelFilter::Warn)
         .category_level_filter("tokio_reactor", LevelFilter::Warn)
         .category_level_filter("reqwest", LevelFilter::Warn)

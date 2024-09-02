@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use netdev::Interface;
+#[cfg(not(target_os = "ios"))]
+use std::collections::HashSet;
 use std::fmt::{Display, Formatter};
 #[cfg(windows)]
 use std::net::Ipv4Addr;
@@ -9,13 +11,15 @@ use std::net::Ipv4Addr;
 use std::os::fd::{AsRawFd, RawFd};
 #[cfg(target_os = "android")]
 use std::sync::{Arc, Mutex};
-use std::{collections::HashSet, net::IpAddr};
 use talpid_core::dns::DnsMonitor;
 
 use ipnetwork::IpNetwork;
 use netdev::interface::get_default_interface;
 use nym_ip_packet_requests::IpPair;
-use talpid_routing::{Node, RequiredRoute, RouteManager};
+use talpid_routing::RouteManager;
+#[cfg(not(target_os = "ios"))]
+use talpid_routing::{Node, RequiredRoute};
+
 #[cfg(target_os = "android")]
 use talpid_tunnel::tun_provider::TunProvider;
 use tap::TapFallible;
@@ -96,7 +100,7 @@ impl RoutingConfig {
         }
     }
 
-    #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
+    #[cfg(any(target_os = "ios", target_os = "android"))]
     pub(crate) fn tun_ips(&self) -> IpPair {
         self.tun_ips
     }
@@ -130,6 +134,7 @@ impl std::fmt::Display for LanGatewayIp {
 }
 
 #[cfg_attr(not(target_os = "windows"), allow(unused_variables))]
+#[cfg(not(target_os = "ios"))]
 fn get_tunnel_nodes(iface_name: &str) -> (Node, Node) {
     #[cfg(windows)]
     {

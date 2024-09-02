@@ -7,10 +7,11 @@ on:
         value: ${{ jobs.build-ios.outputs.RUST_VERSION }}
 
 env:
+  IPHONEOS_DEPLOYMENT_TARGET: 16.0
   CARGO_TERM_COLOR: always
   CARGO_TARGET: release
-  WG_GO_LIB_PATH: ${{ github.workspace }}/lib
-  WG_GO_LIB_NAME: wireguard-go_apple_universal
+  WG_GO_LIB_PATH: ${{ github.workspace }}/build/lib
+  WG_GO_LIB_NAME: wireguard-go_ios_universal
   UPLOAD_DIR_IOS: ios_artifacts
 
 jobs:
@@ -42,10 +43,10 @@ jobs:
 
       - name: Setup cargo swift
         run: |
-          cargo install --git https://github.com/neacsu/cargo-swift.git
+          cargo install cargo-swift
 
       - name: Install Protoc
-        uses: arduino/setup-protoc@v2
+        uses: arduino/setup-protoc@v3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -61,7 +62,7 @@ jobs:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
           cargo swift package -p ios -n NymVpnLib --${{ env.CARGO_TARGET }}
-          ls -la ../target/release/ || true
+          ls -la ../target/universal-ios/release/ || true
 
       - name: Get rust version used for build
         id: rust-version

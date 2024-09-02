@@ -25,4 +25,4 @@ nym-authenticator-client = { path = "../nym-authenticator-client" }
 nym-gateway-directory = { path = "../nym-gateway-directory" }
 
 # Only a very weak dependency and something that we should need (soon)
-talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "94457e00a" }
+talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "f9fd4be7f" }
