@@ -195,11 +195,6 @@ impl CommandInterfaceConnectionHandler {
         debug!("VPN store account result: {:?}", result);
         result
     }
-
-    #[allow(unused)]
-    pub(crate) async fn handle_get_account_summary(&self) {
-        todo!()
-    }
 }
 
 fn directory_client(
