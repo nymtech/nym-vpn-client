@@ -14,8 +14,8 @@ impl Country {
     }
 }
 
-impl From<nym_vpn_api_client::Country> for Country {
-    fn from(country: nym_vpn_api_client::Country) -> Self {
+impl From<nym_vpn_api_client::response::Country> for Country {
+    fn from(country: nym_vpn_api_client::response::Country) -> Self {
         Self {
             iso_code: country.iso_code().to_string(),
         }

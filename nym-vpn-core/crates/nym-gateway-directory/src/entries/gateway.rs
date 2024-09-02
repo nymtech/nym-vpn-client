@@ -94,8 +94,8 @@ pub struct Exit {
     pub can_route_ip_external_v6: bool,
 }
 
-impl From<nym_vpn_api_client::Location> for Location {
-    fn from(location: nym_vpn_api_client::Location) -> Self {
+impl From<nym_vpn_api_client::response::Location> for Location {
+    fn from(location: nym_vpn_api_client::response::Location) -> Self {
         Location {
             two_letter_iso_country_code: location.two_letter_iso_country_code,
             latitude: location.latitude,
@@ -104,8 +104,8 @@ impl From<nym_vpn_api_client::Location> for Location {
     }
 }
 
-impl From<nym_vpn_api_client::types::Probe> for Probe {
-    fn from(probe: nym_vpn_api_client::types::Probe) -> Self {
+impl From<nym_vpn_api_client::response::Probe> for Probe {
+    fn from(probe: nym_vpn_api_client::response::Probe) -> Self {
         Probe {
             last_updated_utc: probe.last_updated_utc,
             outcome: ProbeOutcome::from(probe.outcome),
@@ -113,8 +113,8 @@ impl From<nym_vpn_api_client::types::Probe> for Probe {
     }
 }
 
-impl From<nym_vpn_api_client::types::ProbeOutcome> for ProbeOutcome {
-    fn from(outcome: nym_vpn_api_client::types::ProbeOutcome) -> Self {
+impl From<nym_vpn_api_client::response::ProbeOutcome> for ProbeOutcome {
+    fn from(outcome: nym_vpn_api_client::response::ProbeOutcome) -> Self {
         ProbeOutcome {
             as_entry: Entry::from(outcome.as_entry),
             as_exit: outcome.as_exit.map(Exit::from),
@@ -122,8 +122,8 @@ impl From<nym_vpn_api_client::types::ProbeOutcome> for ProbeOutcome {
     }
 }
 
-impl From<nym_vpn_api_client::types::Entry> for Entry {
-    fn from(entry: nym_vpn_api_client::types::Entry) -> Self {
+impl From<nym_vpn_api_client::response::Entry> for Entry {
+    fn from(entry: nym_vpn_api_client::response::Entry) -> Self {
         Entry {
             can_connect: entry.can_connect,
             can_route: entry.can_route,
@@ -131,8 +131,8 @@ impl From<nym_vpn_api_client::types::Entry> for Entry {
     }
 }
 
-impl From<nym_vpn_api_client::types::Exit> for Exit {
-    fn from(exit: nym_vpn_api_client::types::Exit) -> Self {
+impl From<nym_vpn_api_client::response::Exit> for Exit {
+    fn from(exit: nym_vpn_api_client::response::Exit) -> Self {
         Exit {
             can_connect: exit.can_connect,
             can_route_ip_v4: exit.can_route_ip_v4,
@@ -143,10 +143,10 @@ impl From<nym_vpn_api_client::types::Exit> for Exit {
     }
 }
 
-impl TryFrom<nym_vpn_api_client::Gateway> for Gateway {
+impl TryFrom<nym_vpn_api_client::response::Gateway> for Gateway {
     type Error = Error;
 
-    fn try_from(gateway: nym_vpn_api_client::Gateway) -> Result<Self> {
+    fn try_from(gateway: nym_vpn_api_client::response::Gateway) -> Result<Self> {
         let identity =
             NodeIdentity::from_base58_string(&gateway.identity_key).map_err(|source| {
                 Error::NodeIdentityFormattingError {

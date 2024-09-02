@@ -13,4 +13,3 @@ mod routes;
 
 pub use client::VpnApiClient;
 pub use error::VpnApiClientError;
-pub use types::{Country, Gateway, Location};
