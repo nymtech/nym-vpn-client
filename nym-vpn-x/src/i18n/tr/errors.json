@@ -13,7 +13,27 @@
   "connection": {
     "no-valid-credential": "Geçerli anahtar yok, lütfen önce bir anahtar ekleyin",
     "timeout": "Bağlantı zaman aşımı",
-    "bad-country-combination": "Desteklenmeyen ülke kombinasyonu, lütfen giriş veya çıkış ülkesini değiştirin"
+    "bad-country-combination": "Desteklenmeyen ülke kombinasyonu, lütfen giriş veya çıkış ülkesini değiştirin",
+    "gateway-lookup": {
+      "entry-id": "Entry gateway'i kimliği bulunamadı",
+      "exit-location": "Verilen konum için exit gateway bulunamadı",
+      "generic": "Gateway'ler bulunamadı",
+      "id": "Gateway kimliği bulunamadı",
+      "ipr": "IPR adresi bulunamadı",
+      "ip": "Gateway IP adresi bulunamadı",
+      "entry": "Entry gateway bulunamadı",
+      "entry-location": "Verilen konum için entry gateway bulunamadı",
+      "exit": "Exit gateway bulunamadı"
+    },
+    "mixnet": {
+      "timeout": "Mixnet bağlantı zaman aşımı",
+      "storage-path": "Mixnet için depolama yolları oluşturulamadı",
+      "default-storage": "Varsayılan depolama ile mixnet oluşturulamadı",
+      "build-client": "Mixnet istemcisi oluşturulamadı",
+      "connect": "Mixnet'e bağlanılamadı",
+      "entry-gateway": "Mixnet entry gateway'ine bağlanılamadı"
+    },
+    "ipr-connect": "IPR'ye bağlanılamadı"
   },
   "countries-request": {
     "entry": "Kullanılabilir entry node ülke bilgileri alınamadı",

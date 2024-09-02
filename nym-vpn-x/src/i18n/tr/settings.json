@@ -46,5 +46,10 @@
   "logs": {
     "title": "Günlükler",
     "desc": "Logları kopyala veya sil"
+  },
+  "info": {
+    "daemon-version": "Daemon sürümü",
+    "client-version": "İstemci sürümü",
+    "network-name": "Ağ"
   }
 }
