@@ -611,6 +611,7 @@ _uninstall() {
       "$xdg_bin_home/nym-vpnd"
       "/usr/bin/nym-vpnd"
       "/usr/lib/systemd/system/nym-vpnd.service"
+      "/etc/nym/nym-vpnd.toml"
     )
   fi
   if [ "$_vpnx" == 0 ]; then
