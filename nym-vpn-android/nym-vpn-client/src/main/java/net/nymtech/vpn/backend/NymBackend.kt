@@ -26,6 +26,7 @@ import nym_vpn_lib.ConnectionStatus
 import nym_vpn_lib.ExitStatus
 import nym_vpn_lib.FfiException
 import nym_vpn_lib.Ipv4Route
+import nym_vpn_lib.Ipv6Route
 import nym_vpn_lib.NymVpnStatus
 import nym_vpn_lib.TunStatus
 import nym_vpn_lib.TunnelNetworkSettings
@@ -44,7 +45,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	init {
 		System.loadLibrary(Constants.NYM_VPN_LIB)
-		initLogger("debug")
+		initLogger(Constants.LOG_LEVEL)
 	}
 
 	companion object : SingletonHolder<NymBackend, Context>(::NymBackend) {
@@ -250,15 +251,40 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			protect(socket)
 		}
 
-		private fun subnetMaskLength(mask: String): Int {
-			val octets = mask.split("\\.".toRegex())
-			val binOctets = octets.map { it.padStart(8, '0') }
-			val binMask = binOctets.joinToString("")
-			var length = 0
-			while (length < binMask.length && binMask[length] == '1') {
-				length++
+		private fun calculateSubnetMaskLength(mask: String): Int {
+			// Split the mask into its octets
+			val octets = mask.split('.').map { it.toInt() }
+
+			// Convert each octet to binary and count '1's
+			var totalBits = 0
+			for (octet in octets) {
+				var bits = octet
+				for (i in 0 until 8) {
+					if (bits and 1 == 1) {
+						totalBits++
+					}
+					bits = bits shr 1 // Right shift by 1
+				}
 			}
-			return length
+
+			return totalBits
+		}
+
+		private fun calculateIPv6PrefixLength(ipv6Address: String): Int {
+			// Split the IPv6 address into its components
+			val parts = ipv6Address.split(":").map { it.toInt(16) }
+
+			// Convert each part to binary
+			val binaryParts = parts.map { Integer.toBinaryString(it).padStart(16, '0') }
+
+			// Combine all binary parts into one string
+			val fullBinary = binaryParts.joinToString("")
+
+			// Find the first '0' which indicates the start of the host part
+			val prefixLength = fullBinary.indexOfFirst { it == '0' }
+
+			// If no '0' is found, the whole address is network part
+			return if (prefixLength == -1) 128 else prefixLength
 		}
 
 		@RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -282,25 +308,50 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 					Timber.d("DNS: $it")
 					addDnsServer(it)
 				}
-				config.ipv4Settings?.includedRoutes?.forEach {
-					Timber.d("Including routes: $it")
-					when(it) {
-						Ipv4Route.Default -> Unit
-						is Ipv4Route.Specific -> {
-							addRoute(it.destination, subnetMaskLength(it.subnetMask) )
+				val includeIpv4Routes = config.ipv4Settings?.includedRoutes
+				if (includeIpv4Routes.isNullOrEmpty()) {
+					Timber.d("No Ipv4 routes provided, using defaults to prevent leaks")
+					addRoute("0.0.0.0", 0)
+				} else {
+					includeIpv4Routes.forEach {
+						when (it) {
+							Ipv4Route.Default -> Unit
+							is Ipv4Route.Specific -> {
+								// don't add existing addresses to routes
+								if (config.ipv4Settings?.addresses?.any { address -> address.contains(it.destination) } == true) {
+									Timber.d("Skipping previously added address from routing: ${it.destination}")
+									return@forEach
+								}
+								val length = calculateSubnetMaskLength(it.subnetMask)
+								Timber.d("Including ipv4 routes: ${it.destination}/$length")
+								// need to use IpPrefix, strange bug with just string/int
+								addRoute(IpPrefix(InetAddress.getByName(it.destination), length))
+							}
 						}
 					}
 				}
-
-				config.ipv6Settings?.includedRoutes?.forEach {
-					//TODO
+				val includeIpv6Routes = config.ipv6Settings?.includedRoutes
+				if (includeIpv6Routes.isNullOrEmpty()) {
+					Timber.d("No Ipv6 routes provided, using defaults to prevent leaks")
 					addRoute("::", 0)
+				} else {
+					includeIpv6Routes.forEach {
+						when (it) {
+							is Ipv6Route.Specific -> {
+								val prefix = calculateIPv6PrefixLength(it.destination)
+								Timber.d("Including ipv4 routes: ${it.destination}/$prefix")
+								// need to use IpPrefix, strange bug with just string/int
+								addRoute(IpPrefix(InetAddress.getByName(it.destination), prefix))
+							}
+							Ipv6Route.Default -> Unit
+						}
+					}
 				}
 				config.ipv4Settings?.excludedRoutes?.forEach {
 					when (it) {
 						is Ipv4Route.Specific -> {
-							Timber.d("Excluding ${it.gateway}")
-							excludeRoute(IpPrefix(InetAddress.getByName(it.gateway), 32))
+							Timber.d("Excluding route: ${it.gateway}")
+							excludeRoute(IpPrefix(InetAddress.getByName(it.gateway), calculateSubnetMaskLength(it.subnetMask)))
 						}
 						Ipv4Route.Default -> Unit
 					}

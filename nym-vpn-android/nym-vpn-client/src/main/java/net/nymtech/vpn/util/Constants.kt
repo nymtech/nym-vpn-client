@@ -8,6 +8,8 @@ object Constants {
 	// Add Rust environment vars for lib
 	const val DEFAULT_COUNTRY_ISO = "DE"
 
+	const val LOG_LEVEL = "info"
+
 	const val STATISTICS_INTERVAL_MILLI = 1_000L
 
 	private fun setupCommon() {
