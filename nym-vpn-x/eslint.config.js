@@ -9,7 +9,6 @@ import hooksPlugin from 'eslint-plugin-react-hooks';
 // TODO add these plugins once support for ESLint 9 is added
 // - react-plugin-import https://github.com/import-js/eslint-plugin-import/pull/3018
 // - eslint-plugin-deprecation https://github.com/gund/eslint-plugin-deprecation/pull/79
-// - eslint-plugin-jsx-a11y https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/issues/978
 // also eslint-plugin-react-hooks has been tagged -> https://github.com/facebook/react/pull/28773
 
 export default [
@@ -23,7 +22,7 @@ export default [
   {
     languageOptions: {
       parserOptions: {
-        project: true,
+        projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -51,7 +50,6 @@ export default [
       },
     },
   },
-  // jsxA11y.flatConfigs.recommended,
   {
     rules: {
       ...hooksPlugin.configs.recommended.rules,
