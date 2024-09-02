@@ -16,6 +16,7 @@ use futures::{
 use nym_vpn_lib::{
     credentials::import_credential,
     gateway_directory::{self, EntryPoint, ExitPoint},
+    nym_config::defaults::NymNetworkDetails,
     GenericNymVpnConfig, MixnetClientConfig, NodeIdentity, Recipient,
 };
 use nym_vpn_store::keys::KeyStore as _;
@@ -563,7 +564,7 @@ where
     }
 
     async fn handle_info(&self) -> VpnServiceInfoResult {
-        let network = nym_vpn_lib::nym_config::defaults::NymNetworkDetails::new_from_env();
+        let network = NymNetworkDetails::new_from_env();
         let bin_info = nym_bin_common::bin_info_local_vergen!();
         VpnServiceInfoResult {
             version: bin_info.build_version.to_string(),
@@ -614,47 +615,77 @@ where
             })
     }
 
-    #[allow(unused)]
-    async fn handle_get_account_summary(&self) {
-        // Get account
-        let mnemonic = self.storage.load_mnemonic().await.unwrap();
-        let account = nym_vpn_api_client::types::Account::from(mnemonic);
-
-        // Setup client
-        let nym_vpn_api_url = nym_vpn_lib::nym_config::defaults::NymNetworkDetails::new_from_env()
-            .nym_vpn_api_url
-            .unwrap()
-            .parse()
-            .unwrap();
-        let user_agent = nym_vpn_lib::UserAgent::from(nym_bin_common::bin_info_local_vergen!());
-        let api_client =
-            nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent).unwrap();
-
-        let _ = api_client.get_account_summary(&account).await;
+    async fn load_account(&self) -> Result<nym_vpn_api_client::types::Account, StoreAccountError>
+    where
+        <S as nym_vpn_store::mnemonic::MnemonicStorage>::StorageError: Sync + Send + 'static,
+    {
+        self.storage
+            .load_mnemonic()
+            .await
+            .map_err(|err| StoreAccountError::FailedToLoad {
+                source: Box::new(err),
+            })
+            .map(nym_vpn_api_client::types::Account::from)
     }
 
-    #[allow(unused)]
-    async fn handle_register_device(&self) {
+    async fn handle_get_account_summary(
+        &self,
+    ) -> Result<nym_vpn_api_client::response::NymVpnAccountSummaryResponse, StoreAccountError>
+    where
+        <S as nym_vpn_store::mnemonic::MnemonicStorage>::StorageError: Sync + Send + 'static,
+    {
         // Get account
-        let mnemonic = self.storage.load_mnemonic().await.unwrap();
-        let account = nym_vpn_api_client::types::Account::from(mnemonic);
+        let account = self.load_account().await?;
+
+        // Setup client
+        let nym_vpn_api_url = NymNetworkDetails::new_from_env()
+            .nym_vpn_api_url
+            .ok_or(StoreAccountError::MissingApiUrl)?
+            .parse()
+            .map_err(|_| StoreAccountError::InvalidApiUrl)?;
+        let user_agent = nym_vpn_lib::UserAgent::from(nym_bin_common::bin_info_local_vergen!());
+        let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent)?;
+
+        api_client
+            .get_account_summary(&account)
+            .await
+            .map_err(Into::into)
+    }
+
+    async fn handle_register_device(
+        &self,
+    ) -> Result<nym_vpn_api_client::response::NymVpnDevice, StoreAccountError>
+    where
+        <S as nym_vpn_store::mnemonic::MnemonicStorage>::StorageError: Sync + Send + 'static,
+        <S as nym_vpn_store::keys::KeyStore>::StorageError: Sync + Send + 'static,
+    {
+        // Get account
+        let account = self.load_account().await?;
 
         // Get device
-        let device_keypair = self.storage.load_keys().await.unwrap();
+        let device_keypair =
+            self.storage
+                .load_keys()
+                .await
+                .map_err(|err| StoreAccountError::FailedToLoadKeys {
+                    source: Box::new(err),
+                })?;
         let device_keypair = device_keypair.device_keypair();
         let device = nym_vpn_api_client::types::Device::from(device_keypair);
 
         // Setup client
-        let nym_vpn_api_url = nym_vpn_lib::nym_config::defaults::NymNetworkDetails::new_from_env()
+        let nym_vpn_api_url = NymNetworkDetails::new_from_env()
             .nym_vpn_api_url
-            .unwrap()
+            .ok_or(StoreAccountError::MissingApiUrl)?
             .parse()
-            .unwrap();
+            .map_err(|_| StoreAccountError::InvalidApiUrl)?;
         let user_agent = nym_vpn_lib::UserAgent::from(nym_bin_common::bin_info_local_vergen!());
-        let api_client =
-            nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent).unwrap();
+        let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent)?;
 
-        let _ = api_client.register_device(&account, &device).await;
+        api_client
+            .register_device(&account, &device)
+            .await
+            .map_err(Into::into)
     }
 
     pub(crate) async fn run(mut self) -> anyhow::Result<()>

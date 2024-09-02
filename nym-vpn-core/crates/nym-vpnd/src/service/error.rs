@@ -329,4 +329,23 @@ pub enum StoreAccountError {
     FailedToStore {
         source: Box<dyn std::error::Error + Send + Sync>,
     },
+
+    #[error("failed to load account: {source}")]
+    FailedToLoad {
+        source: Box<dyn std::error::Error + Send + Sync>,
+    },
+
+    #[error("no nym-vpn-api url setup")]
+    MissingApiUrl,
+
+    #[error("invalid nym-vpn-api url")]
+    InvalidApiUrl,
+
+    #[error(transparent)]
+    VpnApiClientError(#[from] nym_vpn_api_client::VpnApiClientError),
+
+    #[error("failed to load keys: {source}")]
+    FailedToLoadKeys {
+        source: Box<dyn std::error::Error + Send + Sync>,
+    },
 }

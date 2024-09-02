@@ -259,6 +259,33 @@ impl From<StoreAccountError> for nym_vpn_proto::StoreAccountError {
                     "source".to_string() => source.to_string(),
                 },
             },
+            StoreAccountError::FailedToLoad { ref source } => nym_vpn_proto::StoreAccountError {
+                kind: StoreAccountErrorType::Storage as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "source".to_string() => source.to_string(),
+                },
+            },
+            StoreAccountError::MissingApiUrl => nym_vpn_proto::StoreAccountError {
+                kind: StoreAccountErrorType::Storage as i32,
+                message: err.to_string(),
+                details: hashmap! {},
+            },
+            StoreAccountError::InvalidApiUrl => nym_vpn_proto::StoreAccountError {
+                kind: StoreAccountErrorType::Storage as i32,
+                message: err.to_string(),
+                details: hashmap! {},
+            },
+            StoreAccountError::VpnApiClientError(_) => nym_vpn_proto::StoreAccountError {
+                kind: StoreAccountErrorType::Storage as i32,
+                message: err.to_string(),
+                details: hashmap! {},
+            },
+            StoreAccountError::FailedToLoadKeys { .. } => nym_vpn_proto::StoreAccountError {
+                kind: StoreAccountErrorType::Storage as i32,
+                message: err.to_string(),
+                details: hashmap! {},
+            },
         }
     }
 }
