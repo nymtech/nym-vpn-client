@@ -4,6 +4,5 @@ import net.nymtech.vpn.model.Country
 
 interface GatewayService {
 	suspend fun getLowLatencyCountry(): Result<Country>
-	suspend fun getEntryCountries(): Result<Set<Country>>
-	suspend fun getExitCountries(): Result<Set<Country>>
+	suspend fun getCountries(exitOnly: Boolean): Result<Set<Country>>
 }

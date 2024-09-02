@@ -271,6 +271,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 					Timber.d("DNS: $it")
 					addDnsServer(it)
 				}
+
 				Timber.d("Setting routes")
 				addRoute("0.0.0.0", 0)
 				addRoute("::", 0)

@@ -2,6 +2,7 @@ package net.nymtech.nymvpn
 
 import android.app.Application
 import android.content.Context
+import android.os.StrictMode
 import android.os.StrictMode.VmPolicy
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineDispatcher
@@ -10,6 +11,7 @@ import kotlinx.coroutines.launch
 import net.nymtech.localizationutil.LocaleStorage
 import net.nymtech.localizationutil.LocaleUtil
 import net.nymtech.logcatutil.LogCollect
+import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.module.ApplicationScope
 import net.nymtech.nymvpn.module.IoDispatcher
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
@@ -35,6 +37,9 @@ class NymVpn : Application() {
 	lateinit var ioDispatcher: CoroutineDispatcher
 
 	@Inject
+	lateinit var settingsRepository: SettingsRepository
+
+	@Inject
 	lateinit var logCollect: LogCollect
 
 	override fun onCreate() {
@@ -42,9 +47,9 @@ class NymVpn : Application() {
 		instance = this
 		if (BuildConfig.DEBUG) {
 			Timber.plant(DebugTree())
-			val builder = VmPolicy.Builder()
+//			val builder = VmPolicy.Builder()
 // 			StrictMode.setThreadPolicy(
-// 				ThreadPolicy.Builder()
+// 				StrictMode.ThreadPolicy.Builder()
 // 					.detectDiskReads()
 // 					.detectDiskWrites()
 // 					.detectNetwork()
@@ -54,6 +59,12 @@ class NymVpn : Application() {
 // 			StrictMode.setVmPolicy(builder.build())
 		} else {
 			Timber.plant(ReleaseTree())
+		}
+		applicationScope.launch {
+			//need to set env early for cache refresh
+			val env = settingsRepository.getEnvironment()
+			Timber.d("Configuring for env ${env.name}")
+			env.setup()
 		}
 		applicationScope.launch(ioDispatcher) {
 			logCollect.start()

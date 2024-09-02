@@ -17,6 +17,7 @@ import net.nymtech.logcatutil.LogcatHelper
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.GatewayRepository
+import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.service.country.CountryCacheService
 import net.nymtech.nymvpn.service.country.CountryDataStoreCacheService
 import net.nymtech.nymvpn.service.gateway.GatewayApi
@@ -49,7 +50,6 @@ object AppModule {
 	@Provides
 	fun provideNymApi(@IoDispatcher dispatcher: CoroutineDispatcher): NymApi {
 		return NymApi(
-			NymVpn.environment,
 			dispatcher,
 			UserAgent(BuildConfig.APP_NAME, BuildConfig.VERSION_NAME, "android-sdk${Build.VERSION.SDK_INT}", BuildConfig.COMMIT_HASH),
 		)
@@ -89,23 +89,23 @@ object AppModule {
 			.build()
 	}
 
-	@Native
 	@Singleton
 	@Provides
-	fun provideGatewayLibService(nymApi: NymApi): GatewayService {
-		return GatewayLibService(nymApi)
+	@Native
+	fun provideGatewayLibService(nymApi: NymApi, settingsRepository: SettingsRepository): GatewayService {
+		return GatewayLibService(nymApi, settingsRepository)
 	}
 
-	@Android
 	@Singleton
 	@Provides
+	@Android
 	fun provideGatewayApiService(gatewayApi: GatewayApi, gatewayLibService: GatewayLibService): GatewayService {
 		return GatewayApiService(gatewayApi, gatewayLibService)
 	}
 
 	@Singleton
 	@Provides
-	fun provideCountryCacheService(@Android gatewayService: GatewayService, gatewayRepository: GatewayRepository): CountryCacheService {
+	fun provideCountryCacheService(@Native gatewayService: GatewayService, gatewayRepository: GatewayRepository): CountryCacheService {
 		return CountryDataStoreCacheService(gatewayRepository, gatewayService)
 	}
 

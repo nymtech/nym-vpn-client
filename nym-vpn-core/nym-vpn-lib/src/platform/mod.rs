@@ -234,11 +234,11 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
             tracing::debug!("Starting VPN tunnel...");
 
             let shutdown_token = CancellationToken::new();
-            let cloned_shutdown_token = shutdown_token.clone();
+            let _cloned_shutdown_token = shutdown_token.clone();
 
             let join_handle = tokio::spawn(async move {
                 #[cfg(any(target_os = "android", target_os = "ios"))]
-                match WgTunnelRunner::new(config, cloned_shutdown_token) {
+                match WgTunnelRunner::new(config, _cloned_shutdown_token) {
                     Ok(tun_runner) => match tun_runner.start().await {
                         Ok(_) => {
                             tracing::debug!("Tunnel runner exited.");
@@ -285,11 +285,11 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn initLogger(level: String) {
+pub fn initLogger(_level: String) {
     #[cfg(target_os = "ios")]
-    swift::init_logs(level);
+    swift::init_logs();
     #[cfg(target_os = "android")]
-    android::init_logs(level);
+    android::init_logs(_level);
 }
 
 #[allow(non_snake_case)]

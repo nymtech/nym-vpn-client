@@ -12,7 +12,7 @@ class CountryDataStoreCacheService @Inject constructor(
 ) : CountryCacheService {
 	override suspend fun updateExitCountriesCache(): Result<Unit> {
 		return runCatching {
-			gatewayService.getExitCountries().onSuccess {
+			gatewayService.getCountries(true).onSuccess {
 				gatewayRepository.setExitCountries(it)
 			}
 		}
@@ -20,7 +20,7 @@ class CountryDataStoreCacheService @Inject constructor(
 
 	override suspend fun updateEntryCountriesCache(): Result<Unit> {
 		return runCatching {
-			gatewayService.getEntryCountries().onSuccess {
+			gatewayService.getCountries(false).onSuccess {
 				gatewayRepository.setEntryCountries(it)
 			}
 		}
