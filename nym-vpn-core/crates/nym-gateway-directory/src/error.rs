@@ -15,14 +15,11 @@ pub enum Error {
         source: nym_sdk::mixnet::RecipientFormattingError,
     },
 
-    #[error("{0}")]
+    #[error(transparent)]
     ValidatorClientError(#[from] nym_validator_client::ValidatorClientError),
 
     #[error(transparent)]
-    NymHttpApiError(#[from] nym_vpn_api_client::VpnApiError),
-
-    #[error(transparent)]
-    NymVpnApiClientError(#[from] nym_vpn_api_client::VpnApiClientError),
+    VpnApiClientError(#[from] nym_vpn_api_client::VpnApiClientError),
 
     #[error("failed to resolve gateway hostname: {hostname}: {source}")]
     FailedToDnsResolveGateway {
@@ -73,11 +70,6 @@ pub enum Error {
 
     #[error("gateway {0} doesn't have a description available")]
     NoGatewayDescriptionAvailable(String),
-
-    #[error("failed to lookup entry countries: {source}")]
-    FailedToLookupEntryCountries {
-        source: nym_vpn_api_client::VpnApiError,
-    },
 }
 
 // Result type based on our error type

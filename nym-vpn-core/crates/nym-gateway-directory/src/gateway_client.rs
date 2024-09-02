@@ -1,5 +1,13 @@
-// Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
+// Copyright 2023-2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
+
+use std::{fmt, net::IpAddr};
+
+use nym_sdk::{mixnet::Recipient, UserAgent};
+use nym_topology::IntoGatewayNode;
+use nym_validator_client::{models::DescribedGateway, nym_nodes::SkimmedNode, NymApiClient};
+use tracing::{debug, error, info};
+use url::Url;
 
 use crate::{
     entries::{
@@ -10,15 +18,6 @@ use crate::{
     helpers::try_resolve_hostname,
     AuthAddress, Error, IpPacketRouterAddress,
 };
-use nym_sdk::{mixnet::Recipient, UserAgent};
-use nym_topology::IntoGatewayNode;
-use nym_validator_client::{models::DescribedGateway, nym_nodes::SkimmedNode, NymApiClient};
-use nym_vpn_api_client::VpnApiClientExt;
-use std::{fmt, net::IpAddr, time::Duration};
-use tracing::{debug, error, info};
-use url::Url;
-
-const DIRECTORY_CLIENT_TIMEOUT: Duration = Duration::from_secs(20);
 
 #[derive(Clone, Debug)]
 pub struct Config {
@@ -121,24 +120,17 @@ impl Config {
 
 pub struct GatewayClient {
     api_client: NymApiClient,
-    nym_vpn_api_client: Option<nym_vpn_api_client::Client>,
+    nym_vpn_api_client: Option<nym_vpn_api_client::VpnApiClient>,
     min_gateway_performance: Option<u8>,
 }
 
 impl GatewayClient {
     pub fn new(config: Config, user_agent: UserAgent) -> Result<Self> {
         let api_client = NymApiClient::new_with_user_agent(config.api_url, user_agent.clone());
-        let nym_vpn_api_client = if let Some(url) = config.nym_vpn_api_url {
-            Some(
-                nym_vpn_api_client::ClientBuilder::new(url)
-                    .map_err(nym_vpn_api_client::VpnApiClientError::from)?
-                    .with_user_agent(user_agent)
-                    .with_timeout(DIRECTORY_CLIENT_TIMEOUT)
-                    .build()?,
-            )
-        } else {
-            None
-        };
+        let nym_vpn_api_client = config
+            .nym_vpn_api_url
+            .map(|url| nym_vpn_api_client::VpnApiClient::new(url, user_agent.clone()))
+            .transpose()?;
 
         Ok(GatewayClient {
             api_client,
@@ -320,7 +312,7 @@ impl GatewayClient {
         if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
             info!("Fetching entry countries from nym-vpn-api...");
             Ok(nym_vpn_api_client
-                .get_entry_countries()
+                .get_entry_gateway_countries()
                 .await?
                 .into_iter()
                 .map(Country::from)
@@ -347,7 +339,7 @@ impl GatewayClient {
         if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
             info!("Fetching exit countries from nym-vpn-api...");
             Ok(nym_vpn_api_client
-                .get_exit_countries()
+                .get_exit_gateway_countries()
                 .await?
                 .into_iter()
                 .map(Country::from)
