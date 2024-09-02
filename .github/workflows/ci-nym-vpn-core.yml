@@ -54,23 +54,23 @@ jobs:
           components: rustfmt, clippy
 
       - name: Install cargo ndk
-        if: contains(matrix.target, 'android')
+        if: matrix.target == 'android'
         run: cargo install cargo-ndk
 
       - name: Setup NDK
         uses: nttld/setup-ndk@v1
         id: setup-ndk
-        if: contains(matrix.target, 'android')
+        if: matrix.target == 'android'
         with:
           ndk-version: r26c
           add-to-path: false
 
       - name: Add iOS target
-        if: contains(matrix.target, 'ios')
+        if: matrix.target == 'ios'
         run: rustup target add aarch64-apple-ios
 
       - name: Add Android target
-        if: contains(matrix.target, 'android')
+        if: matrix.target == 'android'
         run: rustup target add aarch64-linux-android
 
       - name: Set env
@@ -130,18 +130,19 @@ jobs:
         uses: microsoft/setup-msbuild@v2
 
       - name: Build wireguard
+        if: matrix.target != 'ios'
         shell: bash
         run: |
           ./wireguard/build-wireguard-go.sh
 
       - name: Build wireguard (iOS)
-        if: contains(matrix.target, 'ios')
+        if: matrix.target == 'ios'
         shell: bash
         run: |
           ./wireguard/build-wireguard-go.sh --ios
 
       - name: Build wireguard (Android)
-        if: contains(matrix.target, 'android')
+        if: matrix.target == 'android'
         run: ./wireguard/libwg/build-android.sh
 
       - name: Download wintun.zip and winpcap.zip
@@ -193,37 +194,37 @@ jobs:
           cargo fmt --check
 
       - name: Build
-        if: "!contains(matrix.target, 'android')"
+        if: matrix.target != 'android'
         working-directory: nym-vpn-core
         run: |
           cargo build --verbose
 
       - name: Build (Android)
-        if: contains(matrix.target, 'android')
+        if: matrix.target == 'android'
         working-directory: nym-vpn-core
         run: |
           cargo ndk  -t aarch64-linux-android -o ./build build -p nym-vpn-lib
 
       - name: Build (iOS)
-        if: contains(matrix.target, 'ios')
+        if: matrix.target == 'ios'
         working-directory: nym-vpn-core
         run: |
           cargo build --verbose --target aarch64-apple-ios -p nym-vpn-lib
 
       - name: Generate uniffi (Android)
-        if: contains(matrix.target, 'android')
+        if: matrix.target == 'android'
         working-directory: nym-vpn-core
         run: |
           cargo run --bin uniffi-bindgen generate --library target/aarch64-linux-android/debug/libnym_vpn_lib.so  --language kotlin --out-dir build -n
 
       - name: Generate uniffi (iOS)
-        if: contains(matrix.target, 'ios')
+        if: matrix.target == 'ios'
         working-directory: nym-vpn-core
         run: |
           cargo run --bin uniffi-bindgen generate --library target/aarch64-apple-ios/debug/libnym_vpn_lib.a  --language swift --out-dir build -n
 
       - name: Uniffi diff check (Android)
-        if: contains(matrix.target, 'android')
+        if: matrix.target == 'android'
         working-directory: nym-vpn-core
         run: |
           diff -B build/nym_vpn_lib/nym_vpn_lib.kt nym-vpn-lib/uniffi/nym_vpn_lib.kt
@@ -231,7 +232,7 @@ jobs:
         id: diff_android
 
       - name: Upload generated uniffi file (Android)
-        if: steps.diff_android.outcome == 'failure' && contains(matrix.target, 'android')
+        if: steps.diff_android.outcome == 'failure' && matrix.target  == 'android'
         uses: actions/upload-artifact@v4
         with:
           name: updated-uniffi-android
@@ -239,11 +240,11 @@ jobs:
           retention-days: 1
 
       - name: Fail workflow for uniffi (Android)
-        if: steps.diff_android.outcome == 'failure' && contains(matrix.target, 'android')
+        if: steps.diff_android.outcome == 'failure' && matrix.target == 'android'
         run: exit 1
 
       - name: Uniffi diff check (iOS)
-        if: contains(matrix.target, 'ios')
+        if: matrix.target == 'ios'
         working-directory: nym-vpn-core
         run: |
           diff -B build/nym_vpn_lib.swift nym-vpn-lib/uniffi/nym_vpn_lib.swift
@@ -251,7 +252,7 @@ jobs:
         id: diff_ios
 
       - name: Upload generated uniffi file (iOS)
-        if: steps.diff_ios.outcome == 'failure' && contains(matrix.target, 'ios')
+        if: steps.diff_ios.outcome == 'failure' && matrix.target == 'ios'
         uses: actions/upload-artifact@v4
         with:
           name: updated-uniffi-ios
@@ -259,11 +260,11 @@ jobs:
           retention-days: 1
 
       - name: Fail workflow for uniffi (iOS)
-        if: steps.diff_ios.outcome == 'failure' && contains(matrix.target, 'ios')
+        if: steps.diff_ios.outcome == 'failure' && matrix.target == 'ios'
         run: exit 1
 
       - name: Run tests
-        if: "!contains(matrix.target, 'android')"
+        if: matrix.target != 'android'
         working-directory: nym-vpn-core
         run: |
           cargo test --verbose
@@ -274,13 +275,13 @@ jobs:
           cargo clippy -- -Dwarnings
 
       - name: Clippy (Android)
-        if: contains(matrix.target, 'android')
+        if: matrix.target == 'android'
         working-directory: nym-vpn-core
         run: |
           cargo ndk -t aarch64-linux-android clippy -p nym-vpn-lib -- -Dwarnings
 
       - name: Clippy (iOS)
-        if: contains(matrix.target, 'ios')
+        if: matrix.target == 'ios'
         working-directory: nym-vpn-core
         run: |
           cargo clippy --target aarch64-apple-ios -p nym-vpn-lib -- -Dwarnings
