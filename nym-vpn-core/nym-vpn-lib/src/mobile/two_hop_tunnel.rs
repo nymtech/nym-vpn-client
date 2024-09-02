@@ -12,13 +12,11 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 use super::{
-    dns64,
     two_hop_config::TwoHopConfig,
     wg_config::{WgNodeConfig, WgPeer},
     Error, Result,
 };
 
-use crate::mobile::dns64::Dns64Resolution;
 #[cfg(target_os = "android")]
 use crate::platform::android::AndroidTunProvider;
 use crate::platform::uniffi_set_listener_status;

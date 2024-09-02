@@ -26,6 +26,7 @@ use crate::platform::{uniffi_set_listener_status, VPNConfig};
 use crate::uniffi_custom_impls::{StatusEvent, TunStatus};
 use crate::{bandwidth_controller::BandwidthController, GenericNymVpnConfig};
 use crate::{GatewayDirectoryError, MixnetClientConfig};
+use crate::mobile::ios::tun_provider::OSTunProvider;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
