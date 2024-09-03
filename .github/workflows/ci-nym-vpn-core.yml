@@ -124,7 +124,7 @@ jobs:
         uses: microsoft/setup-msbuild@v2
 
       - name: Build wireguard
-        if: matrix.target != 'ios'
+        if: matrix.target != 'ios' && matrix.target != 'android'
         shell: bash
         run: |
           ./wireguard/build-wireguard-go.sh
