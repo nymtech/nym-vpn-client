@@ -6,9 +6,10 @@ use log::LevelFilter;
 use std::fmt::Debug;
 use std::os::fd::RawFd;
 
-pub(crate) fn init_logs(level: String) {
+pub(crate) fn init_logs(level: Option<String>) {
     use android_logger::{Config, FilterBuilder};
-    let levels = level + ",tungstenite=warn,mio=warn,tokio_tungstenite=warn";
+    let levels =
+        level.unwrap_or("info".to_string()) + ",tungstenite=warn,mio=warn,tokio_tungstenite=warn";
 
     android_logger::init_once(
         Config::default()

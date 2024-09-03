@@ -282,12 +282,12 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn initLogger(level: String) {
-    info!("Setting log level: {}", level);
+pub fn initLogger(level: Option<String>) {
+    info!("Setting log level: {:?}", level);
     #[cfg(target_os = "ios")]
     swift::init_logs(level);
     #[cfg(target_os = "android")]
-    android::init_logs(_level);
+    android::init_logs(level);
 }
 
 #[allow(non_snake_case)]
