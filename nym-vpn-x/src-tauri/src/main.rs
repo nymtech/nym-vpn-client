@@ -119,8 +119,12 @@ async fn main() -> Result<()> {
     };
     debug!("app_config: {app_config:?}");
 
-    if let Some(env_file) = &app_config.network_env_file {
-        info!("network environment: custom - {}", env_file.display());
+    if let Some(env_file) = cli
+        .network_env
+        .as_ref()
+        .or(app_config.network_env_file.as_ref())
+    {
+        info!("network environment: custom: {}", env_file.display());
         defaults::setup_env(Some(env_file.clone()));
     } else {
         info!("network environment: mainnet");
@@ -144,6 +148,7 @@ async fn main() -> Result<()> {
             let app_win = AppWindow::new(&app.handle(), MAIN_WINDOW_LABEL)?;
             app_win.restore_size(&db)?;
             app_win.restore_position(&db)?;
+            app_win.set_max_size().ok();
 
             // if splash-screen is disabled, remove it and show
             // the main window without waiting for frontend signal

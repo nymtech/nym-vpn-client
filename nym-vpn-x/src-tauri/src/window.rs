@@ -4,7 +4,7 @@ use tauri::{
     AppHandle, LogicalPosition, LogicalSize, Manager, PhysicalPosition, PhysicalSize,
     Window as TauriWindow, WindowBuilder,
 };
-use tracing::{debug, error};
+use tracing::{debug, error, instrument, warn};
 use ts_rs::TS;
 
 use crate::db::{Db, Key};
@@ -12,6 +12,7 @@ use crate::db::{Db, Key};
 pub struct AppWindow(pub TauriWindow);
 
 impl AppWindow {
+    #[instrument(skip(app))]
     pub fn new(app: &AppHandle, label: &str) -> Result<Self> {
         Ok(AppWindow(app.get_window(label).ok_or_else(|| {
             anyhow!("failed to get window {}", label)
@@ -19,6 +20,7 @@ impl AppWindow {
     }
 
     /// try to get the window, if not found recreate it from its config
+    #[instrument(skip(app))]
     pub fn get_or_create(app: &AppHandle, label: &str) -> Result<Self> {
         let window = app
             .get_window(label)
@@ -45,6 +47,7 @@ impl AppWindow {
     }
 
     /// restore any saved window size
+    #[instrument(skip_all)]
     pub fn restore_size(&self, db: &Db) -> Result<()> {
         let size = db.get_typed::<WindowSize>(Key::WindowSize)?;
         if let Some(s) = size {
@@ -58,6 +61,7 @@ impl AppWindow {
     }
 
     /// restore any saved window position
+    #[instrument(skip_all)]
     pub fn restore_position(&self, db: &Db) -> Result<()> {
         let position = db.get_typed::<WindowPosition>(Key::WindowPosition)?;
         if let Some(p) = position {
@@ -79,6 +83,7 @@ impl AppWindow {
     }
 
     /// remove splash screen from HTML and show main window
+    #[instrument(skip_all)]
     pub fn no_splash(&self) {
         self.0
             .eval("document.getElementById('splash').remove();")
@@ -89,6 +94,29 @@ impl AppWindow {
             .show()
             .inspect_err(|e| error!("failed to show the window: {e}"))
             .ok();
+    }
+
+    #[instrument(skip_all)]
+    pub fn set_max_size(&self) -> Result<()> {
+        let Some(monitor) = self.0.current_monitor().inspect_err(|e| {
+            error!("failed to get current monitor: {e}");
+        })?
+        else {
+            warn!("failed to get current monitor details");
+            return Ok(());
+        };
+        // in case of monitor > 1440p, increase the max allowed window size
+        if monitor.size().width > 2560 {
+            debug!("setting max window size to 739x1600");
+            self.0
+                .set_max_size(Some(PhysicalSize::new(739, 1600)))
+                .inspect_err(|e| {
+                    error!("failed to set max size: {e}");
+                })
+                .map_err(|e| anyhow!("failed to set window max size: {e}"))?;
+        }
+
+        Ok(())
     }
 }
 
