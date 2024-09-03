@@ -37,6 +37,7 @@ pub enum VpnMode {
 
 #[derive(Debug, Default)]
 pub struct AppState {
+    pub connection_attempts: u32,
     pub vpnd_status: VpndStatus,
     pub state: ConnectionState,
     pub vpn_mode: VpnMode,
@@ -56,6 +57,7 @@ impl AppState {
 
         // restore any state from the saved app data (previous user session)
         AppState {
+            connection_attempts: 0,
             vpn_mode,
             dns_server,
             ..Default::default()

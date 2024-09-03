@@ -207,6 +207,7 @@ async fn main() -> Result<()> {
             connection::connect,
             connection::disconnect,
             connection::get_connection_start_time,
+            connection::get_connection_attempts,
             cmd_db::db_set,
             cmd_db::db_get,
             cmd_db::db_flush,

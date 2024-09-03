@@ -57,7 +57,10 @@ function Home() {
     const handleNoValidCredError = async () => {
       if (error?.key === 'CStateNoValidCredential') {
         const expiry = await kvGet<string>('CredentialExpiry');
-        if (expiry) {
+        const connectionAttempts = await invoke<number>(
+          'get_connection_attempts',
+        );
+        if (expiry && connectionAttempts == 0) {
           dispatch({ type: 'reset-error' });
         } else {
           navigate(routes.credential);
@@ -66,7 +69,9 @@ function Home() {
       }
     };
 
-    handleNoValidCredError();
+    handleNoValidCredError().catch((e: unknown) => {
+      console.warn('error handling no valid cred error:', e);
+    });
   }, [error, dispatch, navigate]);
 
   useEffect(() => {

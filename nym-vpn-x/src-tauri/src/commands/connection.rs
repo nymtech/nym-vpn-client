@@ -138,7 +138,11 @@ pub async fn connect(
         .vpn_connect(entry_node, exit_node, two_hop_mod, dns)
         .await
     {
-        Ok(_) => Ok(ConnectionState::Connecting),
+        Ok(_) => {
+            let mut app_state = state.lock().await;
+            app_state.connection_attempts += 1;
+            Ok(ConnectionState::Connecting)
+        }
         Err(e) => {
             error!("grpc vpn_connect: {}", e);
             debug!("update connection state [Disconnected]");
@@ -211,4 +215,14 @@ pub async fn set_vpn_mode(
     db.insert(Key::VpnMode, &mode)
         .map_err(|_| BackendError::new_internal("Failed to save vpn mode in db", None))?;
     Ok(())
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn get_connection_attempts(
+    state: State<'_, SharedAppState>,
+) -> Result<u32, BackendError> {
+    debug!("get_connection_attempts");
+    let app_state = state.lock().await;
+    Ok(app_state.connection_attempts)
 }
