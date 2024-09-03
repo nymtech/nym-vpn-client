@@ -1,6 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
 
+#[cfg(target_os = "android")]
+use std::os::fd::RawFd;
 use std::{
     ffi::{c_char, c_void, CString},
     fmt,
@@ -118,6 +120,28 @@ impl Tunnel {
         }
     }
 
+    /// Get socket descriptor for IPv4 tunnel connection.
+    #[cfg(target_os = "android")]
+    pub fn get_socket_v4(&self) -> Result<RawFd> {
+        let fd = unsafe { wgNetGetSocketV4(self.handle) };
+        if fd >= 0 {
+            Ok(fd)
+        } else {
+            Err(Error::ObtainSocketFd)
+        }
+    }
+
+    /// Get socket descriptor for IPv6 tunnel connection.
+    #[cfg(target_os = "android")]
+    pub fn get_socket_v6(&self) -> Result<RawFd> {
+        let fd = unsafe { wgNetGetSocketV6(self.handle) };
+        if fd >= 0 {
+            Ok(fd)
+        } else {
+            Err(Error::ObtainSocketFd)
+        }
+    }
+
     /// Stop the tunnel.
     ///
     /// All connections over the tunnel will be terminated.
@@ -229,15 +253,18 @@ extern "C" {
         logging_callback: Option<LoggingCallback>,
         logging_context: *mut c_void,
     ) -> i32;
-    fn wgNetTurnOff(tunnelHandle: i32);
-    fn wgNetSetConfig(tunnelHandle: i32, settings: *const c_char) -> i64;
+    fn wgNetTurnOff(net_tunnel_handle: i32);
+    fn wgNetSetConfig(net_tunnel_handle: i32, settings: *const c_char) -> i64;
     #[allow(unused)]
-    fn wgNetGetConfig(tunnelHandle: i32) -> *const c_char;
+    fn wgNetGetConfig(net_tunnel_handle: i32) -> *const c_char;
     fn wgNetOpenConnectionThroughTunnel(
         entry_tunnel_handle: i32,
         listen_port: u16,
         client_port: u16,
         exit_endpoint: *const c_char,
     ) -> i32;
-    fn wgNetCloseConnectionThroughTunnel(handle: i32);
+    #[cfg(target_os = "android")]
+    fn wgNetGetSocketV4(net_tunnel_handle: i32) -> i32;
+    #[cfg(target_os = "android")]
+    fn wgNetGetSocketV6(net_tunnel_handle: i32) -> i32;
 }
