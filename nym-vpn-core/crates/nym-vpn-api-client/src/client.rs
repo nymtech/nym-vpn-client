@@ -19,7 +19,7 @@ use crate::{
         NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse, NymVpnZkNym, NymVpnZkNymResponse,
     },
     routes,
-    types::{Account, Device},
+    types::{Device, VpnApiAccount},
 };
 
 pub(crate) const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";
@@ -40,7 +40,7 @@ impl VpnApiClient {
     async fn get_authorized<T, E>(
         &self,
         path: PathSegments<'_>,
-        account: &Account,
+        account: &VpnApiAccount,
         device: Option<&Device>,
     ) -> std::result::Result<T, HttpClientError<E>>
     where
@@ -66,7 +66,7 @@ impl VpnApiClient {
         &self,
         path: PathSegments<'_>,
         json_body: &B,
-        account: &Account,
+        account: &VpnApiAccount,
         device: Option<&Device>,
     ) -> std::result::Result<T, HttpClientError<E>>
     where
@@ -91,7 +91,7 @@ impl VpnApiClient {
 
     // ACCOUNT
 
-    pub async fn get_account(&self, account: &Account) -> Result<NymVpnAccountResponse> {
+    pub async fn get_account(&self, account: &VpnApiAccount) -> Result<NymVpnAccountResponse> {
         self.get_authorized(
             &[routes::PUBLIC, routes::V1, routes::ACCOUNT, &account.id()],
             account,
@@ -103,7 +103,7 @@ impl VpnApiClient {
 
     pub async fn get_account_summary(
         &self,
-        account: &Account,
+        account: &VpnApiAccount,
     ) -> Result<NymVpnAccountSummaryResponse> {
         self.get_authorized(
             &[
@@ -122,7 +122,7 @@ impl VpnApiClient {
 
     // DEVICES
 
-    pub async fn get_devices(&self, account: &Account) -> Result<NymVpnDevicesResponse> {
+    pub async fn get_devices(&self, account: &VpnApiAccount) -> Result<NymVpnDevicesResponse> {
         self.get_authorized(
             &[
                 routes::PUBLIC,
@@ -140,7 +140,7 @@ impl VpnApiClient {
 
     pub async fn register_device(
         &self,
-        account: &Account,
+        account: &VpnApiAccount,
         device: &Device,
     ) -> Result<NymVpnDevice> {
         let body = RegisterDeviceRequestBody {
@@ -164,7 +164,10 @@ impl VpnApiClient {
         .map_err(VpnApiClientError::FailedToRegisterDevice)
     }
 
-    pub async fn get_active_devices(&self, account: &Account) -> Result<NymVpnDevicesResponse> {
+    pub async fn get_active_devices(
+        &self,
+        account: &VpnApiAccount,
+    ) -> Result<NymVpnDevicesResponse> {
         self.get_authorized(
             &[
                 routes::PUBLIC,
@@ -183,7 +186,7 @@ impl VpnApiClient {
 
     pub async fn get_device_by_id(
         &self,
-        account: &Account,
+        account: &VpnApiAccount,
         device: &Device,
     ) -> Result<NymVpnDevice> {
         self.get_authorized(
@@ -206,7 +209,7 @@ impl VpnApiClient {
 
     pub async fn get_device_zk_nyms(
         &self,
-        account: &Account,
+        account: &VpnApiAccount,
         device: &Device,
     ) -> Result<NymVpnZkNymResponse> {
         self.get_authorized(
@@ -226,7 +229,11 @@ impl VpnApiClient {
         .map_err(VpnApiClientError::FailedToGetDeviceZkNyms)
     }
 
-    pub async fn request_zk_nym(&self, account: &Account, device: &Device) -> Result<NymVpnZkNym> {
+    pub async fn request_zk_nym(
+        &self,
+        account: &VpnApiAccount,
+        device: &Device,
+    ) -> Result<NymVpnZkNym> {
         let body = RequestZkNymRequestBody {
             blinded_signing_request_base58: "todo".to_string(),
         };
@@ -251,7 +258,7 @@ impl VpnApiClient {
 
     pub async fn get_active_zk_nym(
         &self,
-        account: &Account,
+        account: &VpnApiAccount,
         device: &Device,
     ) -> Result<NymVpnZkNym> {
         self.get_authorized(
@@ -274,7 +281,7 @@ impl VpnApiClient {
 
     pub async fn get_zk_nym_by_id(
         &self,
-        account: &Account,
+        account: &VpnApiAccount,
         device: &Device,
         id: &str,
     ) -> Result<NymVpnZkNym> {
@@ -300,7 +307,7 @@ impl VpnApiClient {
 
     pub async fn get_subscriptions(
         &self,
-        account: &Account,
+        account: &VpnApiAccount,
     ) -> Result<NymVpnSubscriptionsResponse> {
         self.get_authorized(
             &[
@@ -317,7 +324,7 @@ impl VpnApiClient {
         .map_err(VpnApiClientError::FailedToGetSubscriptions)
     }
 
-    pub async fn create_subscription(&self, account: &Account) -> Result<NymVpnSubscription> {
+    pub async fn create_subscription(&self, account: &VpnApiAccount) -> Result<NymVpnSubscription> {
         let body = CreateSubscriptionRequestBody {
             valid_from_utc: "todo".to_string(),
             subscription_kind: CreateSubscriptionKind::OneMonth,
@@ -341,7 +348,7 @@ impl VpnApiClient {
 
     pub async fn get_active_subscriptions(
         &self,
-        account: &Account,
+        account: &VpnApiAccount,
     ) -> Result<NymVpnSubscriptionResponse> {
         self.get_authorized(
             &[
@@ -503,7 +510,7 @@ mod tests {
 
     #[tokio::test]
     async fn get_account() {
-        let account = Account::from(get_mnemonic());
+        let account = VpnApiAccount::from(get_mnemonic());
         let client = VpnApiClient::new(BASE_URL_PREVIEW.parse().unwrap(), user_agent()).unwrap();
         let r = client.get_account(&account).await;
         dbg!(&r);
@@ -512,7 +519,7 @@ mod tests {
 
     #[tokio::test]
     async fn get_device_zk_nyms() {
-        let account = Account::from(get_mnemonic());
+        let account = VpnApiAccount::from(get_mnemonic());
         let device = Device::from(get_ed25519_keypair());
         let client = VpnApiClient::new(BASE_URL_PREVIEW.parse().unwrap(), user_agent()).unwrap();
         let r = client.get_device_zk_nyms(&account, &device).await;
