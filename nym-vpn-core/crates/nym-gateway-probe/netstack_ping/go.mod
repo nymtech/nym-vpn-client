@@ -1,6 +1,11 @@
-module netstack_ping
+module github.com/nymtech/nym-vpn-client/nym-vpn-core/crates/nym-gateway-probe/netstack_ping
 
-go 1.22.3
+go 1.22
+
+require (
+	golang.org/x/net v0.15.0
+	golang.zx2c4.com/wireguard v0.0.0-20231211153847-12269c276173
+)
 
 require (
 	golang.org/x/exp v0.0.0-20230725093048-515e97ebf090

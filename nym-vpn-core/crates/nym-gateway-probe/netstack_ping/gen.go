@@ -8,6 +8,16 @@ package main
 #include <stdint.h>
 #include <stdlib.h>
 
+typedef struct ListRef {
+  const void *ptr;
+  uintptr_t len;
+} ListRef;
+
+typedef struct StringRef {
+  const uint8_t *ptr;
+  uintptr_t len;
+} StringRef;
+
 typedef struct NetstackResponseRef {
   bool can_handshake;
   uint16_t sent_ips;
@@ -16,16 +26,6 @@ typedef struct NetstackResponseRef {
   uint16_t received_hosts;
   bool can_resolve_dns;
 } NetstackResponseRef;
-
-typedef struct StringRef {
-  const uint8_t *ptr;
-  uintptr_t len;
-} StringRef;
-
-typedef struct ListRef {
-  const void *ptr;
-  uintptr_t len;
-} ListRef;
 
 typedef struct NetstackRequestRef {
   struct StringRef wg_ip;
