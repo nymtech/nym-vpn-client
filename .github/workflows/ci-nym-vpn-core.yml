@@ -93,11 +93,11 @@ jobs:
           elif ${{ matrix.os == 'macos-12' || matrix.os == 'macos-13' }}; then
             triplet=x86_64-apple-darwin
             echo "TRIPLET=$triplet" >> $GITHUB_ENV
-            echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet} >> $GITHUB_ENV
+            echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet}" >> $GITHUB_ENV
           elif ${{ contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1') }}; then
             triplet=universal-apple-darwin
             echo "TRIPLET=$triplet" >> $GITHUB_ENV
-            echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet} >> $GITHUB_ENV
+            echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet}" >> $GITHUB_ENV
           elif ${{ contains(matrix.os, 'windows') }}; then
             triplet=x86_64-pc-windows-msvc
             echo "TRIPLET=$triplet" >> $GITHUB_ENV
