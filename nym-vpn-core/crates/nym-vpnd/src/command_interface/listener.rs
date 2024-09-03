@@ -1,11 +1,11 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::time::SystemTime;
 use std::{
     fs,
     net::SocketAddr,
     path::{Path, PathBuf},
+    time::SystemTime,
 };
 
 use futures::{stream::BoxStream, StreamExt};
@@ -15,23 +15,24 @@ use nym_vpn_proto::{
     ImportUserCredentialRequest, ImportUserCredentialResponse, StatusRequest, StatusResponse,
 };
 use nym_vpn_proto::{
-    InfoRequest, InfoResponse, ListEntryCountriesRequest, ListEntryCountriesResponse,
-    ListEntryGatewaysRequest, ListEntryGatewaysResponse, ListExitCountriesRequest,
-    ListExitCountriesResponse, ListExitGatewaysRequest, ListExitGatewaysResponse,
-    StoreAccountError, StoreAccountRequest, StoreAccountResponse,
+    AccountError, GetAccountSummaryRequest, GetAccountSummaryResponse, InfoRequest, InfoResponse,
+    ListEntryCountriesRequest, ListEntryCountriesResponse, ListEntryGatewaysRequest,
+    ListEntryGatewaysResponse, ListExitCountriesRequest, ListExitCountriesResponse,
+    ListExitGatewaysRequest, ListExitGatewaysResponse, StoreAccountRequest, StoreAccountResponse,
 };
 use prost_types::Timestamp;
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 use tracing::{error, info};
+
+use crate::service::{
+    ConnectOptions, VpnServiceCommand, VpnServiceConnectResult, VpnServiceStateChange,
+};
 
 use super::{
     connection_handler::CommandInterfaceConnectionHandler,
     error::CommandInterfaceError,
     helpers::{parse_entry_point, parse_exit_point, threshold_into_u8},
     status_broadcaster::ConnectionStatusBroadcaster,
-};
-use crate::service::{
-    ConnectOptions, VpnServiceCommand, VpnServiceConnectResult, VpnServiceStateChange,
 };
 
 enum ListenerType {
@@ -425,11 +426,61 @@ impl NymVpnd for CommandInterface {
             },
             Err(err) => StoreAccountResponse {
                 success: false,
-                error: Some(StoreAccountError::from(err)),
+                error: Some(nym_vpn_proto::AccountError::from(err)),
             },
         };
 
         info!("Returning store account response: {:?}", response);
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn get_account_summary(
+        &self,
+        _request: tonic::Request<GetAccountSummaryRequest>,
+    ) -> Result<tonic::Response<GetAccountSummaryResponse>, tonic::Status> {
+        info!("Got get account summary request");
+
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_get_account_summary()
+            .await;
+
+        let response = match result {
+            Ok(summary) => GetAccountSummaryResponse {
+                json: serde_json::to_string(&summary).unwrap(),
+                error: None,
+            },
+            Err(err) => GetAccountSummaryResponse {
+                json: err.to_string(),
+                error: Some(AccountError::from(err)),
+            },
+        };
+
+        info!("Returning get account summary response");
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn register_device(
+        &self,
+        _request: tonic::Request<nym_vpn_proto::RegisterDeviceRequest>,
+    ) -> Result<tonic::Response<nym_vpn_proto::RegisterDeviceResponse>, tonic::Status> {
+        info!("Got register device request");
+
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_register_device()
+            .await;
+
+        let response = match result {
+            Ok(device) => nym_vpn_proto::RegisterDeviceResponse {
+                json: serde_json::to_string(&device).unwrap(),
+                error: None,
+            },
+            Err(err) => nym_vpn_proto::RegisterDeviceResponse {
+                json: err.to_string(),
+                error: Some(AccountError::from(err)),
+            },
+        };
+
+        info!("Returning register device response");
         Ok(tonic::Response::new(response))
     }
 }

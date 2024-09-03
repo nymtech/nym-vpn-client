@@ -3,7 +3,7 @@
 
 use maplit::hashmap;
 use nym_vpn_proto::{
-    error::ErrorType, import_error::ImportErrorType, store_account_error::StoreAccountErrorType,
+    account_error::AccountErrorType, error::ErrorType, import_error::ImportErrorType,
     Error as ProtoError, ImportError as ProtoImportError,
 };
 
@@ -242,47 +242,47 @@ impl From<ConnectionFailedError> for ProtoError {
     }
 }
 
-impl From<AccountError> for nym_vpn_proto::StoreAccountError {
+impl From<AccountError> for nym_vpn_proto::AccountError {
     fn from(err: AccountError) -> Self {
         match err {
-            AccountError::InvalidMnemonic { source } => nym_vpn_proto::StoreAccountError {
-                kind: StoreAccountErrorType::InvalidMnemonic as i32,
+            AccountError::InvalidMnemonic { source } => nym_vpn_proto::AccountError {
+                kind: AccountErrorType::InvalidMnemonic as i32,
                 message: err.to_string(),
                 details: hashmap! {
                     "source".to_string() => source.to_string(),
                 },
             },
-            AccountError::FailedToStoreAccount { ref source } => nym_vpn_proto::StoreAccountError {
-                kind: StoreAccountErrorType::Storage as i32,
+            AccountError::FailedToStoreAccount { ref source } => nym_vpn_proto::AccountError {
+                kind: AccountErrorType::Storage as i32,
                 message: err.to_string(),
                 details: hashmap! {
                     "source".to_string() => source.to_string(),
                 },
             },
-            AccountError::FailedToLoadAccount { ref source } => nym_vpn_proto::StoreAccountError {
-                kind: StoreAccountErrorType::Storage as i32,
+            AccountError::FailedToLoadAccount { ref source } => nym_vpn_proto::AccountError {
+                kind: AccountErrorType::Storage as i32,
                 message: err.to_string(),
                 details: hashmap! {
                     "source".to_string() => source.to_string(),
                 },
             },
-            AccountError::MissingApiUrl => nym_vpn_proto::StoreAccountError {
-                kind: StoreAccountErrorType::Storage as i32,
+            AccountError::MissingApiUrl => nym_vpn_proto::AccountError {
+                kind: AccountErrorType::Storage as i32,
                 message: err.to_string(),
                 details: hashmap! {},
             },
-            AccountError::InvalidApiUrl => nym_vpn_proto::StoreAccountError {
-                kind: StoreAccountErrorType::Storage as i32,
+            AccountError::InvalidApiUrl => nym_vpn_proto::AccountError {
+                kind: AccountErrorType::Storage as i32,
                 message: err.to_string(),
                 details: hashmap! {},
             },
-            AccountError::VpnApiClientError(_) => nym_vpn_proto::StoreAccountError {
-                kind: StoreAccountErrorType::Storage as i32,
+            AccountError::VpnApiClientError(_) => nym_vpn_proto::AccountError {
+                kind: AccountErrorType::Storage as i32,
                 message: err.to_string(),
                 details: hashmap! {},
             },
-            AccountError::FailedToLoadKeys { .. } => nym_vpn_proto::StoreAccountError {
-                kind: StoreAccountErrorType::Storage as i32,
+            AccountError::FailedToLoadKeys { .. } => nym_vpn_proto::AccountError {
+                kind: AccountErrorType::Storage as i32,
                 message: err.to_string(),
                 details: hashmap! {},
             },
