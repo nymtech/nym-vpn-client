@@ -15,5 +15,6 @@ for FILE in "${FILES[@]}"; do
         echo "File downloaded successfully: $DEST_DIR/$FILE"
     else
         echo "Failed to download the file: $FILE"
+        exit 1
     fi
 done
