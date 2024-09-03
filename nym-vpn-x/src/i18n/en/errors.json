@@ -6,7 +6,7 @@
   },
   "grpc": "Internal gRPC error",
   "connection": {
-    "no-valid-credential": "No valid credential, please add a credential first",
+    "no-valid-credential": "No valid credential found, please add a credential first",
     "timeout": "Connection timeout",
     "mixnet": {
       "timeout": "Mixnet connection timeout",

@@ -54,10 +54,19 @@ function Home() {
   };
 
   useEffect(() => {
-    if (error?.key === 'CStateNoValidCredential') {
-      navigate(routes.credential);
-      dispatch({ type: 'reset-error' });
-    }
+    const handleNoValidCredError = async () => {
+      if (error?.key === 'CStateNoValidCredential') {
+        const expiry = await kvGet<string>('CredentialExpiry');
+        if (expiry) {
+          dispatch({ type: 'reset-error' });
+        } else {
+          navigate(routes.credential);
+          dispatch({ type: 'reset-error' });
+        }
+      }
+    };
+
+    handleNoValidCredError();
   }, [error, dispatch, navigate]);
 
   useEffect(() => {
