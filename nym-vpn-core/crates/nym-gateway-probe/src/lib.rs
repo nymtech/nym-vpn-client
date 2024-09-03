@@ -1,11 +1,15 @@
 use std::{
-    net::{Ipv4Addr, Ipv6Addr}, sync::Arc, time::Duration
+    net::{Ipv4Addr, Ipv6Addr},
+    sync::Arc,
+    time::Duration,
 };
 
 use anyhow::bail;
 use base64::{engine::general_purpose, Engine as _};
 use bytes::BytesMut;
+use dns_lookup::lookup_host;
 use futures::StreamExt;
+use netstack::{NetstackCall as _, NetstackCallImpl};
 use nym_authenticator_requests::v1::response::{
     AuthenticatorResponseData, PendingRegistrationResponse, RegisteredResponse,
 };
@@ -22,12 +26,13 @@ use nym_ip_packet_requests::{
     IpPair,
 };
 use nym_sdk::mixnet::{MixnetClient, MixnetClientBuilder, ReconstructedMessage};
-use nym_wireguard_types::{registration::RegistrationData, ClientMessage, GatewayClient, InitMessage, PeerPublicKey};
-use tokio::{net::UdpSocket, sync::Mutex};
+use nym_wireguard_types::{
+    registration::RegistrationData, ClientMessage, GatewayClient, InitMessage, PeerPublicKey,
+};
+use tokio::sync::Mutex;
 use tokio_util::codec::Decoder;
 use tracing::*;
 use types::Wg;
-use wg::wireguard_test_peer;
 
 use crate::{
     icmp::{check_for_icmp_beacon_reply, icmp_identifier, send_ping_v4, send_ping_v6},
@@ -36,10 +41,8 @@ use crate::{
 
 mod error;
 mod icmp;
+mod netstack;
 mod types;
-mod wg;
-
-const MAX_PACKET: usize = 65535;
 
 pub use error::{Error, Result};
 pub use types::{IpPingReplies, ProbeOutcome, ProbeResult};
@@ -140,6 +143,9 @@ async fn wg_probe(
     let mut wg_outcome = Wg {
         can_register: false,
         can_handshake: false,
+        can_resolve_dns: false,
+        ping_hosts_performance: 0.,
+        ping_ips_performance: 0.,
     };
 
     if let Some(authenticator_address) = authenticator.0 {
@@ -184,8 +190,11 @@ async fn wg_probe(
         let peer_public = registered_data.pub_key.inner();
         let static_private = x25519_dalek::StaticSecret::from(private_key.to_bytes());
 
-        let _private_key_bs64 = general_purpose::STANDARD.encode(static_private.as_bytes());
+        // let private_key_bs64 = general_purpose::STANDARD.encode(static_private.as_bytes());
         let public_key_bs64 = general_purpose::STANDARD.encode(peer_public.as_bytes());
+
+        let private_key_hex = hex::encode(static_private.to_bytes());
+        let public_key_hex = hex::encode(peer_public.as_bytes());
 
         info!("WG connection details");
         // info!("Our private key: {}", private_key_bs64);
@@ -194,59 +203,43 @@ async fn wg_probe(
             "ip {}, port {}",
             registered_data.private_ip, registered_data.wg_port,
         );
-        let wg_endpoint = format!("{}:{}", gateway_host, registered_data.wg_port);
 
-        let (socket, _) = bind_udp_socket_in_range("0.0.0.0", 50000, 60000).await?;
-        let socket = Arc::new(socket);
-        socket
-            .connect(&wg_endpoint)
-            .await
-            .map_err(|err| anyhow::anyhow!("Failed connect to {}: {}", wg_endpoint, err))?;
+        let gateway_ip = match gateway_host {
+            nym_topology::NetworkAddress::Hostname(host) => lookup_host(host)?
+                .first()
+                .map(|ip| ip.to_string())
+                .unwrap_or_default(),
+            nym_topology::NetworkAddress::IpAddr(ip) => ip.to_string(),
+        };
+
+        let wg_endpoint = format!("{}:{}", gateway_ip, registered_data.wg_port);
 
         info!("Successfully registered with the gateway");
 
         wg_outcome.can_register = true;
 
-        match wireguard_test_peer(socket, static_private, peer_public, &gateway_host.to_string()).await {
-            Ok(can_handhshake) => {
-                info!("Successfully connected to the gateway");
-                wg_outcome.can_handshake = can_handhshake;
-            }
-            Err(err) => {
-                error!("Failed to connect to the gateway: {err}");
-            }
-        };
-    }
+        if wg_outcome.can_register {
+            let netstack_request = netstack::NetstackRequest {
+                wg_ip: registered_data.private_ip.to_string(),
+                private_key: private_key_hex,
+                public_key: public_key_hex,
+                endpoint: wg_endpoint.clone(),
+                ..Default::default()
+            };
 
-    Ok(wg_outcome)
-}
+            let netstack_response = NetstackCallImpl::ping(&netstack_request);
 
-fn random_port_in_range(start: u16, end: u16) -> u16 {
-    let mut rng = rand::thread_rng();
-    <rand::rngs::ThreadRng as rand::Rng>::gen_range(&mut rng, start..=end)
-}
-
-pub(crate) async fn bind_udp_socket_in_range(
-    addr: &str,
-    start_port: u16,
-    end_port: u16,
-) -> anyhow::Result<(UdpSocket, u16)> {
-    for _ in 0..10 {
-        let target_port = random_port_in_range(start_port, end_port);
-
-        let socket_address = format!("{}:{}", addr, target_port);
-        match UdpSocket::bind(&socket_address).await {
-            Ok(socket) => {
-                info!("Successfully bound to port {}", target_port);
-                return Ok((socket, target_port));
-            }
-            Err(e) => {
-                warn!("Failed to bind to port {}: {}, retrying...", target_port, e);
-            }
+            println!("Wireguard probe response: {:?}", netstack_response);
+            wg_outcome.can_handshake = netstack_response.can_handshake;
+            wg_outcome.can_resolve_dns = netstack_response.can_resolve_dns;
+            wg_outcome.ping_hosts_performance =
+                netstack_response.received_hosts as f32 / netstack_response.sent_hosts as f32;
+            wg_outcome.ping_ips_performance =
+                netstack_response.received_ips as f32 / netstack_response.sent_ips as f32;
         }
     }
 
-    Err(anyhow::anyhow!("Failed to bind to any port in range",))
+    Ok(wg_outcome)
 }
 
 async fn lookup_gateways() -> anyhow::Result<GatewayList> {

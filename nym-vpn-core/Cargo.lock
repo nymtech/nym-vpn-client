@@ -524,6 +524,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "bindgen"
+version = "0.69.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a00dc851838a2120612785d195287475a3ac45514741da670b735818822129a0"
+dependencies = [
+ "bitflags 2.5.0",
+ "cexpr",
+ "clang-sys",
+ "itertools 0.12.1",
+ "lazy_static",
+ "lazycell",
+ "log",
+ "prettyplease 0.2.17",
+ "proc-macro2",
+ "quote",
+ "regex",
+ "rustc-hash",
+ "shlex",
+ "syn 2.0.58",
+ "which",
+]
+
+[[package]]
 name = "bip32"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -593,15 +616,6 @@ dependencies = [
  "crypto-mac",
  "digest 0.8.1",
  "opaque-debug 0.2.3",
-]
-
-[[package]]
-name = "blake2"
-version = "0.10.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "46502ad458c9a52b69d4d4d32775c788b7a1b85e8bc9d482d92250fc0e3f8efe"
-dependencies = [
- "digest 0.10.7",
 ]
 
 [[package]]
@@ -680,29 +694,6 @@ name = "bnum"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ab9008b6bb9fc80b5277f2fe481c09e828743d9151203e804583eb4c9e15b31d"
-
-[[package]]
-name = "boringtun"
-version = "0.6.0"
-source = "git+https://github.com/cloudflare/boringtun.git#f672bb6c1e1e371240a8d151f15854687eb740bb"
-dependencies = [
- "aead 0.5.2",
- "base64 0.13.1",
- "blake2 0.10.6",
- "chacha20poly1305 0.10.1",
- "hex",
- "hmac",
- "ip_network",
- "ip_network_table",
- "libc",
- "nix 0.25.1",
- "parking_lot 0.12.1",
- "rand_core 0.6.4",
- "ring 0.17.8",
- "tracing",
- "untrusted 0.9.0",
- "x25519-dalek",
-]
 
 [[package]]
 name = "bs58"
@@ -830,6 +821,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "cbindgen"
+version = "0.26.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "da6bc11b07529f16944307272d5bd9b22530bc7d05751717c9d416586cedab49"
+dependencies = [
+ "heck 0.4.1",
+ "indexmap 1.9.3",
+ "log",
+ "proc-macro2",
+ "quote",
+ "serde",
+ "serde_json",
+ "syn 1.0.109",
+ "tempfile",
+ "toml 0.5.11",
+]
+
+[[package]]
 name = "cc"
 version = "1.0.90"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -849,6 +858,15 @@ name = "cesu8"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6d43a04d8753f35258c91f8ec639f792891f748a1edbd759cf1dcea3382ad83c"
+
+[[package]]
+name = "cexpr"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6fac387a98bb7c37292057cffc56d62ecb629900026402633ae9160df93a8766"
+dependencies = [
+ "nom",
+]
 
 [[package]]
 name = "cfg-if"
@@ -953,6 +971,17 @@ dependencies = [
  "crypto-common",
  "inout",
  "zeroize",
+]
+
+[[package]]
+name = "clang-sys"
+version = "1.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0b023947811758c97c59bf9d1c188fd619ad4718dcaa767947df1cadb14f39f4"
+dependencies = [
+ "glob",
+ "libc",
+ "libloading",
 ]
 
 [[package]]
@@ -1719,6 +1748,18 @@ dependencies = [
  "libc",
  "once_cell",
  "winapi",
+]
+
+[[package]]
+name = "dns-lookup"
+version = "2.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e5766087c2235fec47fafa4cfecc81e494ee679d0fd4a59887ea0919bfb0e4fc"
+dependencies = [
+ "cfg-if",
+ "libc",
+ "socket2 0.5.6",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -2986,28 +3027,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c429fffa658f288669529fc26565f728489a2e39bc7b24a428aaaf51355182e"
 
 [[package]]
-name = "ip_network"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa2f047c0a98b2f299aa5d6d7088443570faae494e9ae1305e48be000c9e0eb1"
-
-[[package]]
-name = "ip_network_table"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4099b7cfc5c5e2fe8c5edf3f6f7adf7a714c9cc697534f63a5a5da30397cb2c0"
-dependencies = [
- "ip_network",
- "ip_network_table-deps-treebitmap",
-]
-
-[[package]]
-name = "ip_network_table-deps-treebitmap"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e537132deb99c0eb4b752f0346b6a836200eaaa3516dd7e5514b63930a09e5d"
-
-[[package]]
 name = "ipconfig"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3214,6 +3233,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 
 [[package]]
+name = "lazycell"
+version = "1.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
+
+[[package]]
 name = "libc"
 version = "0.2.155"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3235,11 +3260,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c2a198fb6b0eada2a8df47933734e6d35d350665a33a3593d7164fa52c75c19"
 dependencies = [
  "cfg-if",
-<<<<<<< HEAD
  "windows-targets 0.52.6",
-=======
- "windows-targets 0.48.5",
->>>>>>> e6320bb4 (Generate random port for wg probe (#1013))
 ]
 
 [[package]]
@@ -3289,7 +3310,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4ae926706ba42c425c9457121178330d75e273df2e82e28b758faf3de3a9acb9"
 dependencies = [
  "arrayref",
- "blake2 0.8.1",
+ "blake2",
  "chacha",
  "keystream",
 ]
@@ -3649,18 +3670,6 @@ version = "0.24.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fa52e972a9a719cecb6864fb88568781eb706bac2cd1d4f04a648542dbf78069"
 dependencies = [
- "bitflags 1.3.2",
- "cfg-if",
- "libc",
-]
-
-[[package]]
-name = "nix"
-version = "0.25.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f346ff70e7dbfd675fe90590b92d59ef2de15a8779ae305ebcbfd3f0caf59be4"
-dependencies = [
- "autocfg",
  "bitflags 1.3.2",
  "cfg-if",
  "libc",
@@ -4510,12 +4519,13 @@ dependencies = [
  "anyhow",
  "base64 0.22.1",
  "bincode",
- "boringtun",
  "bs58 0.5.1",
  "bytes",
  "clap",
  "dirs 5.0.1",
+ "dns-lookup",
  "futures",
+ "hex",
  "log",
  "nym-authenticator-client",
  "nym-authenticator-requests",
@@ -4533,6 +4543,7 @@ dependencies = [
  "nym-wireguard-types 0.1.0 (git+https://github.com/nymtech/nym?rev=dff82f9)",
  "pnet_packet",
  "rand 0.8.5",
+ "rust2go",
  "serde",
  "serde_json",
  "thiserror",
@@ -6673,10 +6684,69 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust2go"
+version = "0.3.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b076f3860d19c2be389d6f7e1d49262b3a8baf27358ffd82ac811d5c4784315f"
+dependencies = [
+ "bindgen",
+ "rust2go-cli",
+ "rust2go-convert",
+ "rust2go-macro",
+ "syn 2.0.58",
+]
+
+[[package]]
+name = "rust2go-cli"
+version = "0.3.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b6fa35e543b9db7ff7372d4dbe1a3c94cc65d92b07793b7fc47a0e1c88691d35"
+dependencies = [
+ "cbindgen",
+ "clap",
+ "rust2go-common",
+]
+
+[[package]]
+name = "rust2go-common"
+version = "0.3.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "03c571c2056a86d51c57c1c1e908929e46c1c18cd0e5f10adb24ef8dbb0b7ec1"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.58",
+]
+
+[[package]]
+name = "rust2go-convert"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b4c9b9dcfbeec346b228b700861dc2b43f32ab6679b6440db3eedc459ef024be"
+
+[[package]]
+name = "rust2go-macro"
+version = "0.3.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "311ecc7d82951037595dd44b261fbacc3dfb38e99f700afa33aa854e8430ca12"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "rust2go-common",
+ "syn 2.0.58",
+]
+
+[[package]]
 name = "rustc-demangle"
 version = "0.1.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d626bb9dae77e28219937af045c257c28bfd3f69333c512553507f5f9798cb76"
+
+[[package]]
+name = "rustc-hash"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
 
 [[package]]
 name = "rustc_version"
@@ -6976,15 +7046,9 @@ dependencies = [
 
 [[package]]
 name = "serde"
-<<<<<<< HEAD
 version = "1.0.209"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "99fce0ffe7310761ca6bf9faf5115afbc19688edd00171d81b1bb1b116c63e09"
-=======
-version = "1.0.208"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cff085d2cb684faa248efb494c39b68e522822ac0de72ccf08109abde717cfb2"
->>>>>>> e6320bb4 (Generate random port for wg probe (#1013))
 dependencies = [
  "serde_derive",
 ]
@@ -7009,15 +7073,9 @@ dependencies = [
 
 [[package]]
 name = "serde_derive"
-<<<<<<< HEAD
 version = "1.0.209"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a5831b979fd7b5439637af1752d535ff49f4860c0f341d1baeb6faf0f4242170"
-=======
-version = "1.0.208"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "24008e81ff7613ed8e5ba0cfaf24e2c2f1e5b8a0495711e44fcd4882fca62bcf"
->>>>>>> e6320bb4 (Generate random port for wg probe (#1013))
 dependencies = [
  "proc-macro2",
  "quote",
@@ -7037,15 +7095,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-<<<<<<< HEAD
 version = "1.0.127"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8043c06d9f82bd7271361ed64f415fe5e12a77fdb52e573e7f06a516dea329ad"
-=======
-version = "1.0.125"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "83c8e735a073ccf5be70aa8066aa984eaf2fa000db6c8d0100ae605b366d31ed"
->>>>>>> e6320bb4 (Generate random port for wg probe (#1013))
 dependencies = [
  "itoa",
  "memchr",
@@ -7280,6 +7332,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "45bb67a18fa91266cc7807181f62f9178a6873bfad7dc788c42e6430db40184f"
 
 [[package]]
+name = "shlex"
+version = "1.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
+
+[[package]]
 name = "si-scale"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7368,7 +7426,7 @@ checksum = "dabeca95bf5fd0563d6be7ebcb1c6a9fcb135746a0ba9050c47dc68c8607e595"
 dependencies = [
  "aes 0.8.4",
  "arrayref",
- "blake2 0.8.1",
+ "blake2",
  "bs58 0.5.1",
  "byteorder",
  "chacha",
@@ -9575,7 +9633,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1e38bc4d79ed67fd075bcc251a1c39b32a1776bbe92e5bef1f0bf1f8c531853b"
 dependencies = [
  "windows-targets 0.52.6",
-<<<<<<< HEAD
 ]
 
 [[package]]
@@ -9591,8 +9648,6 @@ dependencies = [
  "windows_x86_64_gnu 0.42.2",
  "windows_x86_64_gnullvm 0.42.2",
  "windows_x86_64_msvc 0.42.2",
-=======
->>>>>>> e6320bb4 (Generate random port for wg probe (#1013))
 ]
 
 [[package]]

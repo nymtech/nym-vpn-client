@@ -7,18 +7,23 @@ homepage.workspace = true
 documentation.workspace = true
 edition.workspace = true
 license.workspace = true
+build = "build.rs"
 
 [dependencies]
 anyhow.workspace = true
+base64 = "0.22"
 bincode.workspace = true
 bs58.workspace = true
 bytes.workspace = true
 clap = { workspace = true, features = ["cargo", "derive"] }
 dirs.workspace = true
+dns-lookup = "2"
 futures.workspace = true
+hex = "0.4"
 log.workspace = true
 pnet_packet.workspace = true
 rand.workspace = true
+rust2go = { version = "0.3.4" }
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
@@ -51,9 +56,6 @@ nym-ip-packet-requests.workspace = true
 nym-sdk.workspace = true
 nym-task.workspace = true
 nym-topology.workspace = true
-boringtun = { git = "https://github.com/cloudflare/boringtun.git" }
-base64 = "0.22"
-
 
 [build-dependencies]
 vergen = { workspace = true, default-features = false, features = [
@@ -63,3 +65,5 @@ vergen = { workspace = true, default-features = false, features = [
     "rustc",
     "cargo",
 ] }
+
+rust2go = { version = "0.3.4", features = ["build"] }
