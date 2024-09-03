@@ -54,7 +54,7 @@ impl Dns64Resolution for WgPeer {
 }
 
 /// Re-resolve an endpoint with dns64
-pub(crate) fn reresolve_endpoint(endpoint: SocketAddr) -> Result<SocketAddr> {
+fn reresolve_endpoint(endpoint: SocketAddr) -> Result<SocketAddr> {
     reresolve_addr(endpoint).inspect(|resolved_endpoint| {
         if resolved_endpoint == &endpoint {
             tracing::info!("Resolved {} to self", endpoint);
