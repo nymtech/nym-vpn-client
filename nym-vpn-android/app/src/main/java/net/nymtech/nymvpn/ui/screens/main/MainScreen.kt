@@ -69,7 +69,6 @@ import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.buildCountryNameString
 import net.nymtech.nymvpn.util.extensions.go
 import net.nymtech.nymvpn.util.extensions.isInvalid
-import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
@@ -114,7 +113,6 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 		LaunchedEffect(Unit) {
 			didAutoStart = true
 			onConnectPressed()
-			navController.navigateAndForget(Destination.Main.route)
 		}
 	}
 

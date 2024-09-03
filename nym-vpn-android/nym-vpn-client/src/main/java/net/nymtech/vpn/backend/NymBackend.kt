@@ -2,10 +2,8 @@ package net.nymtech.vpn.backend
 
 import android.content.Context
 import android.content.Intent
-import android.net.IpPrefix
 import android.os.Build
 import android.os.IBinder
-import androidx.annotation.RequiresApi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -14,11 +12,11 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import net.nymtech.vpn.util.NotificationManager
 import net.nymtech.vpn.model.BackendMessage
 import net.nymtech.vpn.model.Statistics
 import net.nymtech.vpn.util.Constants
 import net.nymtech.vpn.util.InvalidCredentialException
+import net.nymtech.vpn.util.NotificationManager
 import net.nymtech.vpn.util.SingletonHolder
 import nym_vpn_lib.AndroidTunProvider
 import nym_vpn_lib.BandwidthStatus

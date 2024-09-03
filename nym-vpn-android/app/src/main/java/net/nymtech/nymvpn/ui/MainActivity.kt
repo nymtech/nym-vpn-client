@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -64,6 +65,7 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.resetTile
 import java.util.Locale
+import javax.inject.Inject
 
 @AndroidEntryPoint
 @Keep
@@ -74,6 +76,9 @@ class MainActivity : ComponentActivity() {
 	}
 
 	private lateinit var oldPrefLocaleCode: String
+
+	@Inject
+	lateinit var navController: NavHostController
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -87,12 +92,12 @@ class MainActivity : ComponentActivity() {
 			val appViewModel = hiltViewModel<AppViewModel>()
 			val appState by appViewModel.uiState.collectAsStateWithLifecycle(lifecycle = this.lifecycle)
 
-			val navBackStackEntry by appViewModel.navController.currentBackStackEntryAsState()
+			val navBackStackEntry by navController.currentBackStackEntryAsState()
 			var navHeight by remember { mutableStateOf(0.dp) }
 			var showNavBar by rememberSaveable { mutableStateOf(true) }
 			val density = LocalDensity.current
 
-			appViewModel.navController.addOnDestinationChangedListener { controller, destination, _ ->
+			navController.addOnDestinationChangedListener { controller, destination, _ ->
 				if (destination.route == Destination.Main.route &&
 					controller.previousBackStackEntry?.destination?.route == Destination.Language.route
 				) {
@@ -130,7 +135,7 @@ class MainActivity : ComponentActivity() {
 							if (showNavBar) {
 								NavBar(
 									appState,
-									appViewModel.navController,
+									navController,
 									{ appViewModel.onNavBarTrailingClick() },
 									Modifier
 										.onGloballyPositioned {
@@ -148,7 +153,7 @@ class MainActivity : ComponentActivity() {
 						},
 					) { padding ->
 						NavHost(
-							appViewModel.navController,
+							navController,
 							startDestination = if (isAnalyticsShown == true) Destination.Main.route else Destination.Analytics.route,
 							modifier =
 							Modifier
@@ -161,20 +166,21 @@ class MainActivity : ComponentActivity() {
 								Destination.Main.route,
 							) {
 								val autoStart = it.arguments?.getString("autoStart")
-								MainScreen(appViewModel.navController, appState, autoStart.toBoolean())
+								MainScreen(navController, appState, autoStart.toBoolean())
 							}
-							composable(Destination.Analytics.route) { AnalyticsScreen(appViewModel, appState) }
+							composable(Destination.Analytics.route) { AnalyticsScreen(appViewModel, navController, appState) }
 							composable(Destination.Permission.route) { nav ->
 								val argument = nav.arguments?.getString("permission")
 								requireNotNull(argument) { "No permission passed" }
 								runCatching {
 									val permission = Permission.valueOf(argument)
-									PermissionScreen(appViewModel.navController, permission)
+									PermissionScreen(navController, permission)
 								}
 							}
 							composable(Destination.Settings.route) {
 								SettingsScreen(
 									appViewModel,
+									navController,
 									appState,
 								)
 							}
@@ -182,35 +188,38 @@ class MainActivity : ComponentActivity() {
 								HopScreen(
 									gatewayLocation = GatewayLocation.ENTRY,
 									appViewModel,
+									navController,
 									appState,
+
 								)
 							}
 							composable(Destination.ExitLocation.route) {
 								HopScreen(
 									gatewayLocation = GatewayLocation.EXIT,
 									appViewModel,
+									navController,
 									appState,
 								)
 							}
 							composable(Destination.Logs.route) { LogsScreen() }
 							composable(Destination.Support.route) { SupportScreen() }
 							composable(Destination.Feedback.route) { FeedbackScreen() }
-							composable(Destination.Legal.route) { LegalScreen(appViewModel.navController) }
+							composable(Destination.Legal.route) { LegalScreen(navController) }
 							composable(Destination.Credential.route) {
 								CredentialScreen()
 							}
-							composable(Destination.Account.route) { AccountScreen(appViewModel.navController, appState) }
+							composable(Destination.Account.route) { AccountScreen(navController, appState) }
 							composable(Destination.Licenses.route) {
 								LicensesScreen()
 							}
 							composable(Destination.Appearance.route) {
-								AppearanceScreen(appViewModel.navController)
+								AppearanceScreen(navController)
 							}
 							composable(Destination.Display.route) {
 								DisplayScreen(appState)
 							}
 							composable(Destination.Language.route) {
-								LanguageScreen(appViewModel.navController, localeStorage)
+								LanguageScreen(navController, localeStorage)
 							}
 							composable(Destination.Environment.route) {
 								EnvironmentScreen(appState)

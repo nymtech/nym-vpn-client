@@ -2,6 +2,7 @@ package net.nymtech.nymvpn.module
 
 import android.content.Context
 import android.os.Build
+import androidx.navigation.NavHostController
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
@@ -23,10 +24,11 @@ import net.nymtech.nymvpn.service.gateway.GatewayApi
 import net.nymtech.nymvpn.service.gateway.GatewayApiService
 import net.nymtech.nymvpn.service.gateway.GatewayLibService
 import net.nymtech.nymvpn.service.gateway.GatewayService
+import net.nymtech.nymvpn.ui.common.navigation.NavigationService
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.FileUtils
-import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.NymApi
+import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.backend.NymBackend
 import nym_vpn_lib.UserAgent
 import okhttp3.OkHttpClient
@@ -91,15 +93,23 @@ object AppModule {
 	@Singleton
 	@Provides
 	@Native
-	fun provideGatewayLibService(nymApi: NymApi, settingsRepository: SettingsRepository): GatewayService {
-		return GatewayLibService(nymApi, settingsRepository)
+	fun provideGatewayLibService(
+		nymApi: NymApi,
+		settingsRepository: SettingsRepository,
+		@IoDispatcher ioDispatcher: CoroutineDispatcher,
+	): GatewayService {
+		return GatewayLibService(nymApi, settingsRepository, ioDispatcher)
 	}
 
 	@Singleton
 	@Provides
 	@Android
-	fun provideGatewayApiService(gatewayApi: GatewayApi, gatewayLibService: GatewayLibService): GatewayService {
-		return GatewayApiService(gatewayApi, gatewayLibService)
+	fun provideGatewayApiService(
+		gatewayApi: GatewayApi,
+		gatewayLibService: GatewayLibService,
+		@IoDispatcher ioDispatcher: CoroutineDispatcher,
+	): GatewayService {
+		return GatewayApiService(gatewayApi, gatewayLibService, ioDispatcher)
 	}
 
 	@Singleton
@@ -124,5 +134,11 @@ object AppModule {
 	@Provides
 	fun provideFileUtils(@ApplicationContext context: Context, @IoDispatcher dispatcher: CoroutineDispatcher): FileUtils {
 		return FileUtils(context, dispatcher)
+	}
+
+	@Singleton
+	@Provides
+	fun provideNestedNavController(@ApplicationContext context: Context): NavHostController {
+		return NavigationService(context).navController
 	}
 }
