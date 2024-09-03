@@ -19,6 +19,7 @@ pub enum Error {
     #[error("failed to locate tun fd")]
     CannotLocateTunFd,
 
+    #[cfg(target_os = "ios")]
     #[error("failed to obtain tun interface name")]
     ObtainTunName,
 

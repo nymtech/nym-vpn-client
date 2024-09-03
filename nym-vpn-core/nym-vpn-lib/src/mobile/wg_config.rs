@@ -4,7 +4,7 @@ use std::{
 };
 
 use ipnetwork::IpNetwork;
-use nym_wg_go::{netstack, wireguard_go, PeerConfig, PeerEndpointUpdate, PrivateKey, PublicKey};
+use nym_wg_go::{netstack, wireguard_go, PeerConfig, PrivateKey, PublicKey};
 
 #[derive(Debug)]
 pub struct WgNodeConfig {
@@ -54,6 +54,7 @@ pub struct WgPeer {
 }
 
 impl WgPeer {
+    #[cfg(target_os = "ios")]
     pub fn into_peer_endpoint_update(self) -> PeerEndpointUpdate {
         PeerEndpointUpdate {
             public_key: self.public_key,

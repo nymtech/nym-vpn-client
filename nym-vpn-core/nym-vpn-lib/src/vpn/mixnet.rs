@@ -139,8 +139,6 @@ impl NymVpn<MixnetVpn> {
             our_ips,
             entry_mixnet_gateway_ip,
             default_lan_gateway_ip,
-            #[cfg(target_os = "android")]
-            mixnet_client.gateway_ws_fd().await,
         );
         debug!("Routing config: {}", routing_config);
         let mixnet_tun_dev = routing::setup_mixnet_routing(

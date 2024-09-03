@@ -2,26 +2,20 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use netdev::Interface;
-#[cfg(not(target_os = "ios"))]
+#[cfg(not(any(target_os = "ios", target_os = "android")))]
 use std::collections::HashSet;
 use std::fmt::{Display, Formatter};
 use std::net::IpAddr;
 #[cfg(windows)]
 use std::net::Ipv4Addr;
-#[cfg(target_os = "android")]
-use std::os::fd::RawFd;
-#[cfg(target_os = "android")]
-use std::sync::{Arc, Mutex};
 use talpid_core::dns::DnsMonitor;
 
 use ipnetwork::IpNetwork;
 use netdev::interface::get_default_interface;
 use nym_ip_packet_requests::IpPair;
-#[cfg(not(target_os = "ios"))]
-use talpid_routing::Node;
-use talpid_routing::{RequiredRoute, RouteManager};
-#[cfg(target_os = "android")]
-use talpid_tunnel::tun_provider::TunProvider;
+use talpid_routing::RouteManager;
+#[cfg(not(any(target_os = "ios", target_os = "android")))]
+use talpid_routing::{Node, RequiredRoute};
 use tap::TapFallible;
 use tracing::{debug, error, info, trace};
 use tun2::AbstractDevice;
@@ -45,10 +39,6 @@ pub(crate) struct RoutingConfig {
     pub(crate) entry_mixnet_gateway_ip: IpAddr,
     pub(crate) lan_gateway_ip: LanGatewayIp,
     pub(crate) disable_routing: bool,
-    #[cfg(target_os = "android")]
-    pub(crate) gateway_ws_fd: Option<RawFd>,
-    #[cfg(target_os = "android")]
-    pub(crate) tun_provider: Arc<Mutex<TunProvider>>,
 }
 
 impl Display for RoutingConfig {
@@ -72,7 +62,6 @@ impl RoutingConfig {
         tun_ips: IpPair,
         entry_mixnet_gateway_ip: IpAddr,
         lan_gateway_ip: LanGatewayIp,
-        #[cfg(target_os = "android")] gateway_ws_fd: Option<RawFd>,
     ) -> Self {
         debug!("TUN device IPs: {}", tun_ips);
         let mut mixnet_tun_config = tun2::Configuration::default();
@@ -94,10 +83,6 @@ impl RoutingConfig {
             entry_mixnet_gateway_ip,
             lan_gateway_ip,
             disable_routing: vpn.generic_config.disable_routing,
-            #[cfg(target_os = "android")]
-            gateway_ws_fd,
-            #[cfg(target_os = "android")]
-            tun_provider: vpn.tun_provider.clone(),
         }
     }
 
@@ -107,6 +92,7 @@ impl RoutingConfig {
     }
 
     #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
+    #[allow(dead_code)]
     pub(crate) fn mtu(&self) -> u16 {
         self.mtu
     }
@@ -135,7 +121,7 @@ impl std::fmt::Display for LanGatewayIp {
 }
 
 #[cfg_attr(not(target_os = "windows"), allow(unused_variables))]
-#[cfg(not(target_os = "ios"))]
+#[cfg(not(any(target_os = "ios", target_os = "android")))]
 fn get_tunnel_nodes(iface_name: &str) -> (Node, Node) {
     #[cfg(windows)]
     {

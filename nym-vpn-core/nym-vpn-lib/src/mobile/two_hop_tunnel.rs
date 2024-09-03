@@ -8,14 +8,14 @@ use super::ios::{
     tun_provider::OSTunProvider,
 };
 use super::tunnel_settings::TunnelSettings;
+#[cfg(target_os = "ios")]
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-use super::{
-    two_hop_config::TwoHopConfig,
-    wg_config::{WgNodeConfig, WgPeer},
-    Error, Result,
-};
+use super::{two_hop_config::TwoHopConfig, wg_config::WgNodeConfig, Error, Result};
+
+#[cfg(target_os = "ios")]
+use super::wg_config::WgPeer;
 
 #[cfg(target_os = "android")]
 use crate::platform::android::AndroidTunProvider;
@@ -81,7 +81,7 @@ impl TwoHopTunnel {
         #[cfg(target_os = "ios")]
         let orig_entry_peer = entry_node_config.peer.clone();
 
-        let mut two_hop_config = TwoHopConfig::new(entry_node_config, exit_node_config);
+        let two_hop_config = TwoHopConfig::new(entry_node_config, exit_node_config);
 
         tracing::info!("Two-hop entry: {:#?}", two_hop_config.entry);
         tracing::info!("Two-hop exit: {:#?}", two_hop_config.exit);
@@ -124,7 +124,7 @@ impl TwoHopTunnel {
         }
 
         // Transform wg config structs into what nym-wg-go expects.
-        let mut entry_wg_config = two_hop_config.entry.into_netstack_config();
+        let entry_wg_config = two_hop_config.entry.into_netstack_config();
         let exit_wg_config = two_hop_config.exit.into_wireguard_config();
 
         // Create netstack wg connected to the entry node.

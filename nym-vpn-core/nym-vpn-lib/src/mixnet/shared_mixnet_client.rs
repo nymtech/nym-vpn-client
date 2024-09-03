@@ -24,16 +24,6 @@ impl SharedMixnetClient {
         self.lock().await.as_ref().unwrap().split_sender()
     }
 
-    #[cfg(target_os = "android")]
-    pub async fn gateway_ws_fd(&self) -> Option<std::os::fd::RawFd> {
-        self.lock()
-            .await
-            .as_ref()
-            .unwrap()
-            .gateway_connection()
-            .gateway_ws_fd
-    }
-
     pub async fn disconnect(self) -> Self {
         let handle = self.lock().await.take().unwrap();
         handle.disconnect().await;
