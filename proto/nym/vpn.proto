@@ -444,6 +444,7 @@ service NymVpnd {
   rpc ListEntryCountries (ListEntryCountriesRequest) returns (ListEntryCountriesResponse) {}
   rpc ListExitCountries (ListExitCountriesRequest) returns (ListExitCountriesResponse) {}
 
+  // Unstable
   rpc StoreAccount (StoreAccountRequest) returns (StoreAccountResponse) {}
   rpc GetAccountSummary (GetAccountSummaryRequest) returns (GetAccountSummaryResponse) {}
   rpc RegisterDevice (RegisterDeviceRequest) returns (RegisterDeviceResponse) {}
