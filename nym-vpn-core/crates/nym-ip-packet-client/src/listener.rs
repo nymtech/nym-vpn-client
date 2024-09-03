@@ -4,8 +4,10 @@
 use bytes::{Bytes, BytesMut};
 use nym_ip_packet_requests::{
     codec::MultiIpPacketCodec,
-    request::{IpPacketRequest, IpPacketRequestData},
-    response::{InfoLevel, IpPacketResponse, IpPacketResponseData},
+    v7::{
+        request::{IpPacketRequest, IpPacketRequestData},
+        response::{InfoLevel, IpPacketResponse, IpPacketResponseData},
+    },
 };
 use nym_sdk::mixnet::{Recipient, ReconstructedMessage};
 use tokio_util::codec::Decoder;
