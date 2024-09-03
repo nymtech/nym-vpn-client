@@ -13,6 +13,7 @@ use lazy_static::lazy_static;
 use log::*;
 
 use std::{
+    env,
     path::PathBuf,
     str::FromStr,
     sync::atomic::{AtomicBool, Ordering},
@@ -122,11 +123,9 @@ async fn stop_and_reset_shutdown_handle() -> Result<(), FFIError> {
     Ok(())
 }
 
-async fn reset_shutdown_handle() -> Result<(), FFIError> {
-    let mut guard = VPN_SHUTDOWN_HANDLE.lock().await;
-    *guard = None;
+async fn reset_shutdown_handle() {
+    let _ = VPN_SHUTDOWN_HANDLE.lock().await.take();
     debug!("VPN shutdown handle reset");
-    Ok(())
 }
 
 async fn _async_run_vpn(vpn: SpecificVpn) -> Result<(Arc<Notify>, NymVpnHandle), FFIError> {
@@ -250,6 +249,8 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
                 }
 
                 uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
+                RUNNING.store(false, Ordering::Relaxed);
+                reset_shutdown_handle().await;
             });
 
             let shutdown_handle = ShutdownHandle::CancellationToken {
@@ -282,12 +283,13 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn initLogger(level: Option<String>) {
-    info!("Setting log level: {:?}", level);
+pub fn initLogger() {
+    let log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
+    info!("Setting log level: {}", log_level);
     #[cfg(target_os = "ios")]
-    swift::init_logs(level);
+    swift::init_logs(log_level);
     #[cfg(target_os = "android")]
-    android::init_logs(level);
+    android::init_logs(log_level);
 }
 
 #[allow(non_snake_case)]
@@ -330,9 +332,7 @@ async fn run_vpn(vpn: SpecificVpn) -> Result<(), FFIError> {
     match _async_run_vpn(vpn).await {
         Err(err) => {
             debug!("Stopping and resetting shutdown handle");
-            reset_shutdown_handle()
-                .await
-                .expect("Failed to reset shutdown handle");
+            reset_shutdown_handle().await;
             RUNNING.store(false, Ordering::Relaxed);
             error!("Could not start the VPN: {:?}", err);
             uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failed {
