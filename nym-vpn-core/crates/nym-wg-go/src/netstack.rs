@@ -147,11 +147,10 @@ impl Tunnel {
             self.handle = -1;
         }
         if !self.boxed_logger_ptr.is_null() {
-            unsafe {
-                //this breaks android
-                #[cfg(target_os = "ios")]
-                let _ = Box::from_raw(self.boxed_logger_ptr);
-            }
+            // causes crash on ios and android
+            // unsafe {
+            //     let _ = Box::from_raw(self.boxed_logger_ptr);
+            // }
             self.boxed_logger_ptr = std::ptr::null_mut();
         }
     }
