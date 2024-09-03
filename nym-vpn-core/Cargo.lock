@@ -4137,6 +4137,7 @@ dependencies = [
  "clap",
  "dirs 5.0.1",
  "futures",
+ "hex",
  "log",
  "nym-authenticator-client",
  "nym-authenticator-requests",

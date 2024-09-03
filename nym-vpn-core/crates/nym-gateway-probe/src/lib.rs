@@ -25,6 +25,7 @@ use nym_wireguard_types::{
 
 use std::{
     net::{Ipv4Addr, Ipv6Addr},
+    process::Command,
     sync::Arc,
     time::Duration,
 };
@@ -189,8 +190,11 @@ async fn wg_probe(
         let peer_public = registered_data.pub_key.inner();
         let static_private = x25519_dalek::StaticSecret::from(private_key.to_bytes());
 
-        let _private_key_bs64 = general_purpose::STANDARD.encode(static_private.as_bytes());
+        // let private_key_bs64 = general_purpose::STANDARD.encode(static_private.as_bytes());
         let public_key_bs64 = general_purpose::STANDARD.encode(peer_public.as_bytes());
+
+        let private_key_hex = hex::encode(static_private.to_bytes());
+        let public_key_hex = hex::encode(peer_public.as_bytes());
 
         info!("WG connection details");
         // info!("Our private key: {}", private_key_bs64);
@@ -201,26 +205,45 @@ async fn wg_probe(
         );
         let wg_endpoint = format!("{}:{}", gateway_host, registered_data.wg_port);
 
-        let (socket, _) = bind_udp_socket_in_range("0.0.0.0", 50000, 60000).await?;
-        let socket = Arc::new(socket);
-        socket
-            .connect(&wg_endpoint)
-            .await
-            .map_err(|err| anyhow::anyhow!("Failed connect to {}: {}", wg_endpoint, err))?;
+        // let (socket, _) = bind_udp_socket_in_range("0.0.0.0", 50000, 60000).await?;
+        // let socket = Arc::new(socket);
+        // socket
+        //     .connect(&wg_endpoint)
+        //     .await
+        //     .map_err(|err| anyhow::anyhow!("Failed connect to {}: {}", wg_endpoint, err))?;
 
         info!("Successfully registered with the gateway");
 
         wg_outcome.can_register = true;
 
-        match wireguard_test_peer(socket, static_private, peer_public, gateway_host).await {
-            Ok(can_handhshake) => {
-                info!("Successfully connected to the gateway");
-                wg_outcome.can_handshake = can_handhshake;
-            }
-            Err(err) => {
-                error!("Failed to connect to the gateway: {err}");
-            }
-        };
+        if wg_outcome.can_register {
+            let cmd = Command::new("./ping_client/ping_client")
+                .arg("-ip")
+                .arg(registered_data.private_ip.to_string())
+                .arg("-private-key")
+                .arg(private_key_hex)
+                .arg("-public-key")
+                .arg(public_key_hex)
+                .arg("-endpoint")
+                .arg(wg_endpoint)
+                .output()
+                .expect("failed to execute process");
+
+            let out = cmd.stdout;
+            let err = cmd.stderr;
+            info!("output: {}", String::from_utf8_lossy(&out));
+            info!("error: {}", String::from_utf8_lossy(&err));
+        }
+
+        // match wireguard_test_peer(socket, static_private, peer_public, gateway_host).await {
+        //     Ok(can_handhshake) => {
+        //         info!("Successfully connected to the gateway");
+        //         wg_outcome.can_handshake = can_handhshake;
+        //     }
+        //     Err(err) => {
+        //         error!("Failed to connect to the gateway: {err}");
+        //     }
+        // };
     }
 
     Ok(wg_outcome)
