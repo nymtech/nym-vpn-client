@@ -122,11 +122,9 @@ async fn stop_and_reset_shutdown_handle() -> Result<(), FFIError> {
     Ok(())
 }
 
-async fn reset_shutdown_handle() -> Result<(), FFIError> {
-    let mut guard = VPN_SHUTDOWN_HANDLE.lock().await;
-    *guard = None;
+async fn reset_shutdown_handle() {
+    let _ = VPN_SHUTDOWN_HANDLE.lock().await.take();
     debug!("VPN shutdown handle reset");
-    Ok(())
 }
 
 async fn _async_run_vpn(vpn: SpecificVpn) -> Result<(Arc<Notify>, NymVpnHandle), FFIError> {
@@ -250,6 +248,8 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
                 }
 
                 uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
+                reset_shutdown_handle().await;
+                RUNNING.store(false, Ordering::Relaxed);
             });
 
             let shutdown_handle = ShutdownHandle::CancellationToken {
@@ -330,9 +330,7 @@ async fn run_vpn(vpn: SpecificVpn) -> Result<(), FFIError> {
     match _async_run_vpn(vpn).await {
         Err(err) => {
             debug!("Stopping and resetting shutdown handle");
-            reset_shutdown_handle()
-                .await
-                .expect("Failed to reset shutdown handle");
+            reset_shutdown_handle().await;
             RUNNING.store(false, Ordering::Relaxed);
             error!("Could not start the VPN: {:?}", err);
             uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failed {
