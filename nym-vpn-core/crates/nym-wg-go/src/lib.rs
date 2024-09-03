@@ -32,6 +32,9 @@ pub enum Error {
 
     #[error("failed to set UAPI config (code: {})", _0)]
     SetUapiConfig(i64),
+
+    #[error("failed to obtain tunnel socket fd")]
+    ObtainSocketFd,
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
