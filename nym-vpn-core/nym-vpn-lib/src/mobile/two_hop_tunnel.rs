@@ -1,10 +1,6 @@
 use std::sync::Arc;
 
 #[cfg(target_os = "ios")]
-use tokio::sync::mpsc;
-use tokio_util::sync::CancellationToken;
-
-#[cfg(target_os = "ios")]
 use super::ios::{
     default_path_observer::{DefaultPathObserver, DefaultPathReceiver, OSDefaultPath},
     dns64::Dns64Resolution,
@@ -12,11 +8,19 @@ use super::ios::{
     tun_provider::OSTunProvider,
 };
 use super::tunnel_settings::TunnelSettings;
+#[cfg(target_os = "ios")]
+use tokio::sync::mpsc;
+use tokio_util::sync::CancellationToken;
+
+use super::{two_hop_config::TwoHopConfig, wg_config::WgNodeConfig, Error, Result};
 
 #[cfg(target_os = "ios")]
 use super::wg_config::WgPeer;
-use super::{two_hop_config::TwoHopConfig, wg_config::WgNodeConfig, Error, Result};
 
+#[cfg(target_os = "android")]
+use crate::platform::android::AndroidTunProvider;
+use crate::platform::uniffi_set_listener_status;
+use crate::uniffi_custom_impls::{StatusEvent, TunStatus};
 use nym_wg_go::{netstack, wireguard_go};
 
 /// Two-hop WireGuard tunnel.
@@ -50,6 +54,11 @@ pub struct TwoHopTunnel {
     entry_peer: WgPeer,
 
     /// Interface for interacting with the iOS tunnel provider.
+    #[cfg(target_os = "android")]
+    #[allow(unused)]
+    tun_provider: Arc<dyn AndroidTunProvider>,
+
+    /// Interface for interacting with the iOS tunnel provider.
     #[cfg(target_os = "ios")]
     #[allow(unused)]
     tun_provider: Arc<dyn OSTunProvider>,
@@ -64,6 +73,7 @@ impl TwoHopTunnel {
     pub async fn start(
         entry_node_config: WgNodeConfig,
         exit_node_config: WgNodeConfig,
+        #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
         shutdown_token: CancellationToken,
     ) -> Result<()> {
@@ -71,7 +81,11 @@ impl TwoHopTunnel {
         #[cfg(target_os = "ios")]
         let orig_entry_peer = entry_node_config.peer.clone();
 
+        #[cfg(target_os = "ios")]
         let mut two_hop_config = TwoHopConfig::new(entry_node_config, exit_node_config);
+
+        #[cfg(target_os = "android")]
+        let two_hop_config = TwoHopConfig::new(entry_node_config, exit_node_config);
 
         tracing::info!("Two-hop entry: {:#?}", two_hop_config.entry);
         tracing::info!("Two-hop exit: {:#?}", two_hop_config.exit);
@@ -84,16 +98,17 @@ impl TwoHopTunnel {
 
         // Obtain tunnel file descriptor and interface name.
         #[cfg(target_os = "ios")]
-        let tun_fd = tun::get_tun_fd().ok_or(Error::CannotLocateTunFd)?;
-        #[cfg(target_os = "android")]
-        let tun_fd: std::os::fd::RawFd = todo!();
-        tracing::debug!("Found tunnel fd: {}", tun_fd);
+        let tun_fd = {
+            let tun_fd = tun::get_tun_fd().ok_or(Error::CannotLocateTunFd)?;
+            tracing::debug!("Found tunnel fd: {}", tun_fd);
+            tun_fd
+        };
 
         #[cfg(target_os = "ios")]
-        let tun_name = tun::get_tun_ifname(tun_fd).ok_or(Error::ObtainTunName)?;
-        #[cfg(target_os = "android")]
-        let tun_name: String = todo!();
-        tracing::debug!("Tunnel interface name: {}", tun_name);
+        {
+            let tun_name = tun::get_tun_ifname(tun_fd).ok_or(Error::ObtainTunName)?;
+            tracing::debug!("Tunnel interface name: {}", tun_name);
+        };
 
         let tunnel_settings = TunnelSettings {
             interface_addresses: two_hop_config.tun.addresses,
@@ -127,10 +142,24 @@ impl TwoHopTunnel {
             two_hop_config.forwarder.exit_endpoint,
         )?;
 
+        #[cfg(target_os = "android")]
+        let tun_fd = {
+            tun_provider
+                .configure_tunnel(tunnel_settings.into_tunnel_network_settings())
+                .map_err(Error::SetNetworkSettings)?
+        };
+
+        #[cfg(target_os = "android")]
+        if tun_fd == -1 {
+            return Err(Error::CannotLocateTunFd);
+        }
+
         // Create exit tunnel capturing exit traffic on device and sending it to the local udp forwarder.
         let exit_tunnel = wireguard_go::Tunnel::start(exit_wg_config, tun_fd, |s| {
             tracing::debug!(name = "wg-go", "{}", s);
         })?;
+
+        uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Up));
 
         // Setup default path observer.
         #[cfg(target_os = "ios")]
@@ -143,6 +172,8 @@ impl TwoHopTunnel {
             shutdown_token,
             #[cfg(target_os = "ios")]
             entry_peer: orig_entry_peer,
+            #[cfg(target_os = "android")]
+            tun_provider,
             #[cfg(target_os = "ios")]
             tun_provider,
             #[cfg(target_os = "ios")]

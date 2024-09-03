@@ -3,7 +3,7 @@ package net.nymtech.nymvpn.data
 import kotlinx.coroutines.flow.Flow
 import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.vpn.Tunnel
+import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.Country
 import java.time.Instant
 

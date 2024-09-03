@@ -8,7 +8,8 @@ object Constants {
 	// Add Rust environment vars for lib
 	const val DEFAULT_COUNTRY_ISO = "DE"
 
-	const val NATIVE_STORAGE_PATH = "/data/data/net.nymtech.nymvpn/files/"
+	const val LOG_LEVEL = "info"
+
 	const val STATISTICS_INTERVAL_MILLI = 1_000L
 
 	private fun setupCommon() {
@@ -106,11 +107,6 @@ object Constants {
 		Os.setenv(
 			"MIXNET_CONTRACT_ADDRESS",
 			"n14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9sjyvg3g",
-			true,
-		)
-		Os.setenv(
-			"VESTING_CONTRACT_ADDRESS",
-			"n1unyuj8qnmygvzuex3dwmg9yzt9alhvyeat0uu0jedg2wj33efl5qackslz",
 			true,
 		)
 		Os.setenv(

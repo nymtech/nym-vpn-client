@@ -5,7 +5,7 @@
 
 #[cfg(target_os = "ios")]
 pub mod ios;
-#[cfg(target_os = "ios")]
+#[cfg(any(target_os = "ios", target_os = "android"))]
 pub mod runner;
 pub mod tunnel_settings;
 pub mod two_hop_config;
@@ -19,6 +19,7 @@ pub enum Error {
     #[error("failed to locate tun fd")]
     CannotLocateTunFd,
 
+    #[cfg(target_os = "ios")]
     #[error("failed to obtain tun interface name")]
     ObtainTunName,
 

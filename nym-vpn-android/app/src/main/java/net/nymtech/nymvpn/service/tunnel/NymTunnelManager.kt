@@ -8,8 +8,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.util.extensions.isInvalid
-import net.nymtech.vpn.Backend
-import net.nymtech.vpn.Tunnel
+import net.nymtech.vpn.backend.Backend
+import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.BackendMessage
 import net.nymtech.vpn.model.Statistics
 import net.nymtech.vpn.util.InvalidCredentialException
@@ -56,7 +56,7 @@ class NymTunnelManager @Inject constructor(
 			if (credentialExpiry != null && credentialExpiry.isInvalid()) {
 				return Result.failure(InvalidCredentialException("Credential missing or expired"))
 			}
-			backend.get().start(tunnel)
+			backend.get().start(tunnel, false)
 		}
 	}
 

@@ -3,7 +3,7 @@ package net.nymtech.nymvpn.ui.screens.main
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.util.StringValue
-import net.nymtech.vpn.Tunnel
+import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.Country
 
 data class MainUiState(

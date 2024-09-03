@@ -1,4 +1,4 @@
-package net.nymtech.vpn
+package net.nymtech.vpn.backend
 
 import java.time.Instant
 
@@ -8,9 +8,9 @@ interface Backend {
 
 	suspend fun importCredential(credential: String): Instant?
 
-	fun start(tunnel: Tunnel): Tunnel.State
+	suspend fun start(tunnel: Tunnel, background: Boolean): Tunnel.State
 
-	fun stop(): Tunnel.State
+	suspend fun stop(): Tunnel.State
 
 	fun getState(): Tunnel.State
 }

@@ -1,7 +1,7 @@
 package net.nymtech.nymvpn.data.domain
 
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.vpn.Tunnel
+import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.Country
 import java.time.Instant
 

@@ -50,7 +50,7 @@ env:
 
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: arc-ubuntu-22.04
     env:
       SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
       SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
@@ -105,13 +105,9 @@ jobs:
         run: |
           cargo install cargo-ndk cargo-license --locked
 
-#      - name: Install deps
-#        run: |
-#          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip
-
-      - name: Install deps macos
+      - name: Install deps
         run: |
-          brew install protobuf
+          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip
 
       # Here we need to decode keystore.jks from base64 string and place it
       # in the folder specified in the release signing configuration

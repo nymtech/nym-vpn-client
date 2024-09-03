@@ -635,6 +635,12 @@ internal open class UniffiForeignFutureStructVoid(
 internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
     fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructVoid.UniffiByValue,)
 }
+internal interface UniffiCallbackInterfaceAndroidTunProviderMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`socket`: Int,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+internal interface UniffiCallbackInterfaceAndroidTunProviderMethod1 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`config`: RustBuffer.ByValue,`uniffiOutReturn`: IntByReference,uniffiCallStatus: UniffiRustCallStatus,)
+}
 internal interface UniffiCallbackInterfaceTunnelStatusListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`status`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
@@ -649,6 +655,25 @@ internal interface UniffiCallbackInterfaceTunnelStatusListenerMethod3 : com.sun.
 }
 internal interface UniffiCallbackInterfaceTunnelStatusListenerMethod4 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`status`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+@Structure.FieldOrder("bypass", "configureTunnel", "uniffiFree")
+internal open class UniffiVTableCallbackInterfaceAndroidTunProvider(
+    @JvmField internal var `bypass`: UniffiCallbackInterfaceAndroidTunProviderMethod0? = null,
+    @JvmField internal var `configureTunnel`: UniffiCallbackInterfaceAndroidTunProviderMethod1? = null,
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+) : Structure() {
+    class UniffiByValue(
+        `bypass`: UniffiCallbackInterfaceAndroidTunProviderMethod0? = null,
+        `configureTunnel`: UniffiCallbackInterfaceAndroidTunProviderMethod1? = null,
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    ): UniffiVTableCallbackInterfaceAndroidTunProvider(`bypass`,`configureTunnel`,`uniffiFree`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceAndroidTunProvider) {
+        `bypass` = other.`bypass`
+        `configureTunnel` = other.`configureTunnel`
+        `uniffiFree` = other.`uniffiFree`
+    }
+
 }
 @Structure.FieldOrder("onTunStatusChange", "onBandwidthStatusChange", "onConnectionStatusChange", "onNymVpnStatusChange", "onExitStatusChange", "uniffiFree")
 internal open class UniffiVTableCallbackInterfaceTunnelStatusListener(
@@ -763,6 +788,15 @@ internal open class UniffiVTableCallbackInterfaceTunnelStatusListener(
 
 
 
+
+
+
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -773,6 +807,7 @@ internal interface UniffiLib : Library {
             .also { lib: UniffiLib ->
                 uniffiCheckContractApiVersion(lib)
                 uniffiCheckApiChecksums(lib)
+                uniffiCallbackInterfaceAndroidTunProvider.register(lib)
                 uniffiCallbackInterfaceTunnelStatusListener.register(lib)
                 }
         }
@@ -783,6 +818,16 @@ internal interface UniffiLib : Library {
         }
     }
 
+    fun uniffi_nym_vpn_lib_fn_clone_androidtunprovider(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_nym_vpn_lib_fn_free_androidtunprovider(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_nym_vpn_lib_fn_init_callback_vtable_androidtunprovider(`vtable`: UniffiVTableCallbackInterfaceAndroidTunProvider,
+    ): Unit
+    fun uniffi_nym_vpn_lib_fn_method_androidtunprovider_bypass(`ptr`: Pointer,`socket`: Int,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_nym_vpn_lib_fn_method_androidtunprovider_configure_tunnel(`ptr`: Pointer,`config`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Int
     fun uniffi_nym_vpn_lib_fn_clone_tunnelstatuslistener(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_nym_vpn_lib_fn_free_tunnelstatuslistener(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -809,7 +854,9 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_nym_vpn_lib_fn_func_importcredential(`credential`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_nym_vpn_lib_fn_func_runvpn(`config`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_nym_vpn_lib_fn_func_initlogger(uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_nym_vpn_lib_fn_func_startvpn(`config`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_nym_vpn_lib_fn_func_stopvpn(uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
@@ -935,9 +982,15 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_nym_vpn_lib_checksum_func_importcredential(
     ): Short
-    fun uniffi_nym_vpn_lib_checksum_func_runvpn(
+    fun uniffi_nym_vpn_lib_checksum_func_initlogger(
+    ): Short
+    fun uniffi_nym_vpn_lib_checksum_func_startvpn(
     ): Short
     fun uniffi_nym_vpn_lib_checksum_func_stopvpn(
+    ): Short
+    fun uniffi_nym_vpn_lib_checksum_method_androidtunprovider_bypass(
+    ): Short
+    fun uniffi_nym_vpn_lib_checksum_method_androidtunprovider_configure_tunnel(
     ): Short
     fun uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_tun_status_change(
     ): Short
@@ -981,10 +1034,19 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_nym_vpn_lib_checksum_func_importcredential() != 8591.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_nym_vpn_lib_checksum_func_runvpn() != 2496.toShort()) {
+    if (lib.uniffi_nym_vpn_lib_checksum_func_initlogger() != 45606.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_nym_vpn_lib_checksum_func_startvpn() != 17465.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_nym_vpn_lib_checksum_func_stopvpn() != 23819.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_nym_vpn_lib_checksum_method_androidtunprovider_bypass() != 2706.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_nym_vpn_lib_checksum_method_androidtunprovider_configure_tunnel() != 31518.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_tun_status_change() != 55105.toShort()) {
@@ -1041,6 +1103,66 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
 
 /** Used to instantiate an interface without an actual pointer, for fakes in tests, mostly. */
 object NoPointer
+
+public object FfiConverterUByte: FfiConverter<UByte, Byte> {
+    override fun lift(value: Byte): UByte {
+        return value.toUByte()
+    }
+
+    override fun read(buf: ByteBuffer): UByte {
+        return lift(buf.get())
+    }
+
+    override fun lower(value: UByte): Byte {
+        return value.toByte()
+    }
+
+    override fun allocationSize(value: UByte) = 1UL
+
+    override fun write(value: UByte, buf: ByteBuffer) {
+        buf.put(value.toByte())
+    }
+}
+
+public object FfiConverterUShort: FfiConverter<UShort, Short> {
+    override fun lift(value: Short): UShort {
+        return value.toUShort()
+    }
+
+    override fun read(buf: ByteBuffer): UShort {
+        return lift(buf.getShort())
+    }
+
+    override fun lower(value: UShort): Short {
+        return value.toShort()
+    }
+
+    override fun allocationSize(value: UShort) = 2UL
+
+    override fun write(value: UShort, buf: ByteBuffer) {
+        buf.putShort(value.toShort())
+    }
+}
+
+public object FfiConverterInt: FfiConverter<Int, Int> {
+    override fun lift(value: Int): Int {
+        return value
+    }
+
+    override fun read(buf: ByteBuffer): Int {
+        return buf.getInt()
+    }
+
+    override fun lower(value: Int): Int {
+        return value
+    }
+
+    override fun allocationSize(value: Int) = 4UL
+
+    override fun write(value: Int, buf: ByteBuffer) {
+        buf.putInt(value)
+    }
+}
 
 public object FfiConverterLong: FfiConverter<Long, Long> {
     override fun lift(value: Long): Long {
@@ -1334,6 +1456,333 @@ private class JavaLangRefCleanable(
 ) : UniffiCleaner.Cleanable {
     override fun clean() = cleanable.clean()
 }
+public interface AndroidTunProvider {
+    
+    fun `bypass`(`socket`: kotlin.Int)
+    
+    fun `configureTunnel`(`config`: TunnelNetworkSettings): kotlin.Int
+    
+    companion object
+}
+
+open class AndroidTunProviderImpl: Disposable, AutoCloseable, AndroidTunProvider {
+
+    constructor(pointer: Pointer) {
+        this.pointer = pointer
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    /**
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noPointer: NoPointer) {
+        this.pointer = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    protected val pointer: Pointer?
+    protected val cleanable: UniffiCleaner.Cleanable
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the pointer being freed concurrently.
+        try {
+            return block(this.uniffiClonePointer())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+        override fun run() {
+            pointer?.let { ptr ->
+                uniffiRustCall { status ->
+                    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_free_androidtunprovider(ptr, status)
+                }
+            }
+        }
+    }
+
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_clone_androidtunprovider(pointer!!, status)
+        }
+    }
+
+    override fun `bypass`(`socket`: kotlin.Int)
+        = 
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_method_androidtunprovider_bypass(
+        it, FfiConverterInt.lower(`socket`),_status)
+}
+    }
+    
+    
+
+    
+    @Throws(FfiException::class)override fun `configureTunnel`(`config`: TunnelNetworkSettings): kotlin.Int {
+            return FfiConverterInt.lift(
+    callWithPointer {
+    uniffiRustCallWithError(FfiException) { _status ->
+    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_method_androidtunprovider_configure_tunnel(
+        it, FfiConverterTypeTunnelNetworkSettings.lower(`config`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+
+    
+    
+    companion object
+    
+}
+// Magic number for the Rust proxy to call using the same mechanism as every other method,
+// to free the callback once it's dropped by Rust.
+internal const val IDX_CALLBACK_FREE = 0
+// Callback return codes
+internal const val UNIFFI_CALLBACK_SUCCESS = 0
+internal const val UNIFFI_CALLBACK_ERROR = 1
+internal const val UNIFFI_CALLBACK_UNEXPECTED_ERROR = 2
+
+public abstract class FfiConverterCallbackInterface<CallbackInterface: Any>: FfiConverter<CallbackInterface, Long> {
+    internal val handleMap = UniffiHandleMap<CallbackInterface>()
+
+    internal fun drop(handle: Long) {
+        handleMap.remove(handle)
+    }
+
+    override fun lift(value: Long): CallbackInterface {
+        return handleMap.get(value)
+    }
+
+    override fun read(buf: ByteBuffer) = lift(buf.getLong())
+
+    override fun lower(value: CallbackInterface) = handleMap.insert(value)
+
+    override fun allocationSize(value: CallbackInterface) = 8UL
+
+    override fun write(value: CallbackInterface, buf: ByteBuffer) {
+        buf.putLong(lower(value))
+    }
+}
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceAndroidTunProvider {
+    internal object `bypass`: UniffiCallbackInterfaceAndroidTunProviderMethod0 {
+        override fun callback(`uniffiHandle`: Long,`socket`: Int,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeAndroidTunProvider.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`bypass`(
+                    FfiConverterInt.lift(`socket`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+    internal object `configureTunnel`: UniffiCallbackInterfaceAndroidTunProviderMethod1 {
+        override fun callback(`uniffiHandle`: Long,`config`: RustBuffer.ByValue,`uniffiOutReturn`: IntByReference,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeAndroidTunProvider.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`configureTunnel`(
+                    FfiConverterTypeTunnelNetworkSettings.lift(`config`),
+                )
+            }
+            val writeReturn = { value: kotlin.Int -> uniffiOutReturn.setValue(FfiConverterInt.lower(value)) }
+            uniffiTraitInterfaceCallWithError(
+                uniffiCallStatus,
+                makeCall,
+                writeReturn,
+                { e: FfiException -> FfiConverterTypeFFIError.lower(e) }
+            )
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeAndroidTunProvider.handleMap.remove(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceAndroidTunProvider.UniffiByValue(
+        `bypass`,
+        `configureTunnel`,
+        uniffiFree,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_nym_vpn_lib_fn_init_callback_vtable_androidtunprovider(vtable)
+    }
+}
+
+public object FfiConverterTypeAndroidTunProvider: FfiConverter<AndroidTunProvider, Pointer> {
+    internal val handleMap = UniffiHandleMap<AndroidTunProvider>()
+
+    override fun lower(value: AndroidTunProvider): Pointer {
+        return Pointer(handleMap.insert(value))
+    }
+
+    override fun lift(value: Pointer): AndroidTunProvider {
+        return AndroidTunProviderImpl(value)
+    }
+
+    override fun read(buf: ByteBuffer): AndroidTunProvider {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: AndroidTunProvider) = 8UL
+
+    override fun write(value: AndroidTunProvider, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// to the live Rust struct on the other side of the FFI.
+//
+// Each instance implements core operations for working with the Rust `Arc<T>` and the
+// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque pointer to the underlying Rust struct.
+//     Method calls need to read this pointer from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its pointer should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
+//      before it can pass the pointer over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
 public interface TunnelStatusListener {
     
     fun `onTunStatusChange`(`status`: TunStatus)
@@ -1492,35 +1941,7 @@ open class TunnelStatusListenerImpl: Disposable, AutoCloseable, TunnelStatusList
     companion object
     
 }
-// Magic number for the Rust proxy to call using the same mechanism as every other method,
-// to free the callback once it's dropped by Rust.
-internal const val IDX_CALLBACK_FREE = 0
-// Callback return codes
-internal const val UNIFFI_CALLBACK_SUCCESS = 0
-internal const val UNIFFI_CALLBACK_ERROR = 1
-internal const val UNIFFI_CALLBACK_UNEXPECTED_ERROR = 2
 
-public abstract class FfiConverterCallbackInterface<CallbackInterface: Any>: FfiConverter<CallbackInterface, Long> {
-    internal val handleMap = UniffiHandleMap<CallbackInterface>()
-
-    internal fun drop(handle: Long) {
-        handleMap.remove(handle)
-    }
-
-    override fun lift(value: Long): CallbackInterface {
-        return handleMap.get(value)
-    }
-
-    override fun read(buf: ByteBuffer) = lift(buf.getLong())
-
-    override fun lower(value: CallbackInterface) = handleMap.insert(value)
-
-    override fun allocationSize(value: CallbackInterface) = 8UL
-
-    override fun write(value: CallbackInterface, buf: ByteBuffer) {
-        buf.putLong(lower(value))
-    }
-}
 
 // Put the implementation in an object so we don't pollute the top-level namespace
 internal object uniffiCallbackInterfaceTunnelStatusListener {
@@ -1635,6 +2056,132 @@ public object FfiConverterTypeTunnelStatusListener: FfiConverter<TunnelStatusLis
 
 
 
+data class DnsSettings (
+    /**
+     * DNS IP addresses.
+     */
+    var `servers`: List<IpAddr>, 
+    /**
+     * DNS server search domains.
+     */
+    var `searchDomains`: List<kotlin.String>?, 
+    /**
+     * Which domains to resolve using these DNS settings.
+     */
+    var `matchDomains`: List<kotlin.String>?
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeDnsSettings: FfiConverterRustBuffer<DnsSettings> {
+    override fun read(buf: ByteBuffer): DnsSettings {
+        return DnsSettings(
+            FfiConverterSequenceTypeIpAddr.read(buf),
+            FfiConverterOptionalSequenceString.read(buf),
+            FfiConverterOptionalSequenceString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: DnsSettings) = (
+            FfiConverterSequenceTypeIpAddr.allocationSize(value.`servers`) +
+            FfiConverterOptionalSequenceString.allocationSize(value.`searchDomains`) +
+            FfiConverterOptionalSequenceString.allocationSize(value.`matchDomains`)
+    )
+
+    override fun write(value: DnsSettings, buf: ByteBuffer) {
+            FfiConverterSequenceTypeIpAddr.write(value.`servers`, buf)
+            FfiConverterOptionalSequenceString.write(value.`searchDomains`, buf)
+            FfiConverterOptionalSequenceString.write(value.`matchDomains`, buf)
+    }
+}
+
+
+
+data class Ipv4Settings (
+    /**
+     * IPv4 addresses that will be set on tunnel interface.
+     */
+    var `addresses`: List<Ipv4Network>, 
+    /**
+     * Traffic matching these routes will be routed over the tun interface.
+     */
+    var `includedRoutes`: List<Ipv4Route>?, 
+    /**
+     * Traffic matching these routes will be routed over the primary physical interface.
+     */
+    var `excludedRoutes`: List<Ipv4Route>?
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeIpv4Settings: FfiConverterRustBuffer<Ipv4Settings> {
+    override fun read(buf: ByteBuffer): Ipv4Settings {
+        return Ipv4Settings(
+            FfiConverterSequenceTypeIpv4Network.read(buf),
+            FfiConverterOptionalSequenceTypeIpv4Route.read(buf),
+            FfiConverterOptionalSequenceTypeIpv4Route.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: Ipv4Settings) = (
+            FfiConverterSequenceTypeIpv4Network.allocationSize(value.`addresses`) +
+            FfiConverterOptionalSequenceTypeIpv4Route.allocationSize(value.`includedRoutes`) +
+            FfiConverterOptionalSequenceTypeIpv4Route.allocationSize(value.`excludedRoutes`)
+    )
+
+    override fun write(value: Ipv4Settings, buf: ByteBuffer) {
+            FfiConverterSequenceTypeIpv4Network.write(value.`addresses`, buf)
+            FfiConverterOptionalSequenceTypeIpv4Route.write(value.`includedRoutes`, buf)
+            FfiConverterOptionalSequenceTypeIpv4Route.write(value.`excludedRoutes`, buf)
+    }
+}
+
+
+
+data class Ipv6Settings (
+    /**
+     * IPv4 addresses that will be set on tunnel interface.
+     */
+    var `addresses`: List<Ipv6Network>, 
+    /**
+     * Traffic matching these routes will be routed over the tun interface.
+     */
+    var `includedRoutes`: List<Ipv6Route>?, 
+    /**
+     * Traffic matching these routes will be routed over the primary physical interface.
+     */
+    var `excludedRoutes`: List<Ipv6Route>?
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeIpv6Settings: FfiConverterRustBuffer<Ipv6Settings> {
+    override fun read(buf: ByteBuffer): Ipv6Settings {
+        return Ipv6Settings(
+            FfiConverterSequenceTypeIpv6Network.read(buf),
+            FfiConverterOptionalSequenceTypeIpv6Route.read(buf),
+            FfiConverterOptionalSequenceTypeIpv6Route.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: Ipv6Settings) = (
+            FfiConverterSequenceTypeIpv6Network.allocationSize(value.`addresses`) +
+            FfiConverterOptionalSequenceTypeIpv6Route.allocationSize(value.`includedRoutes`) +
+            FfiConverterOptionalSequenceTypeIpv6Route.allocationSize(value.`excludedRoutes`)
+    )
+
+    override fun write(value: Ipv6Settings, buf: ByteBuffer) {
+            FfiConverterSequenceTypeIpv6Network.write(value.`addresses`, buf)
+            FfiConverterOptionalSequenceTypeIpv6Route.write(value.`includedRoutes`, buf)
+            FfiConverterOptionalSequenceTypeIpv6Route.write(value.`excludedRoutes`, buf)
+    }
+}
+
+
+
 data class Location (
     var `twoLetterIsoCountryCode`: kotlin.String
 ) {
@@ -1722,6 +2269,65 @@ public object FfiConverterTypeMixExitConnectionInfo: FfiConverterRustBuffer<MixE
 
 
 
+/**
+ * Tunnel + network settings
+ */
+data class TunnelNetworkSettings (
+    /**
+     * Tunnel remote address, which is mostly of decorative value.
+     */
+    var `tunnelRemoteAddress`: kotlin.String, 
+    /**
+     * IPv4 interface settings.
+     */
+    var `ipv4Settings`: Ipv4Settings?, 
+    /**
+     * IPv6 interface settings.
+     */
+    var `ipv6Settings`: Ipv6Settings?, 
+    /**
+     * DNS settings.
+     */
+    var `dnsSettings`: DnsSettings?, 
+    /**
+     * Tunnel device MTU.
+     */
+    var `mtu`: kotlin.UShort
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeTunnelNetworkSettings: FfiConverterRustBuffer<TunnelNetworkSettings> {
+    override fun read(buf: ByteBuffer): TunnelNetworkSettings {
+        return TunnelNetworkSettings(
+            FfiConverterString.read(buf),
+            FfiConverterOptionalTypeIpv4Settings.read(buf),
+            FfiConverterOptionalTypeIpv6Settings.read(buf),
+            FfiConverterOptionalTypeDnsSettings.read(buf),
+            FfiConverterUShort.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: TunnelNetworkSettings) = (
+            FfiConverterString.allocationSize(value.`tunnelRemoteAddress`) +
+            FfiConverterOptionalTypeIpv4Settings.allocationSize(value.`ipv4Settings`) +
+            FfiConverterOptionalTypeIpv6Settings.allocationSize(value.`ipv6Settings`) +
+            FfiConverterOptionalTypeDnsSettings.allocationSize(value.`dnsSettings`) +
+            FfiConverterUShort.allocationSize(value.`mtu`)
+    )
+
+    override fun write(value: TunnelNetworkSettings, buf: ByteBuffer) {
+            FfiConverterString.write(value.`tunnelRemoteAddress`, buf)
+            FfiConverterOptionalTypeIpv4Settings.write(value.`ipv4Settings`, buf)
+            FfiConverterOptionalTypeIpv6Settings.write(value.`ipv6Settings`, buf)
+            FfiConverterOptionalTypeDnsSettings.write(value.`dnsSettings`, buf)
+            FfiConverterUShort.write(value.`mtu`, buf)
+    }
+}
+
+
+
 data class UserAgent (
     var `application`: kotlin.String, 
     var `version`: kotlin.String, 
@@ -1765,6 +2371,7 @@ data class VpnConfig (
     var `entryGateway`: EntryPoint, 
     var `exitRouter`: ExitPoint, 
     var `enableTwoHop`: kotlin.Boolean, 
+    var `tunProvider`: AndroidTunProvider, 
     var `credentialDataPath`: PathBuf?, 
     var `tunStatusListener`: TunnelStatusListener?
 ) : Disposable {
@@ -1778,6 +2385,7 @@ data class VpnConfig (
         this.`entryGateway`, 
         this.`exitRouter`, 
         this.`enableTwoHop`, 
+        this.`tunProvider`, 
         this.`credentialDataPath`, 
         this.`tunStatusListener`)
     }
@@ -1793,6 +2401,7 @@ public object FfiConverterTypeVPNConfig: FfiConverterRustBuffer<VpnConfig> {
             FfiConverterTypeEntryPoint.read(buf),
             FfiConverterTypeExitPoint.read(buf),
             FfiConverterBoolean.read(buf),
+            FfiConverterTypeAndroidTunProvider.read(buf),
             FfiConverterOptionalTypePathBuf.read(buf),
             FfiConverterOptionalTypeTunnelStatusListener.read(buf),
         )
@@ -1804,6 +2413,7 @@ public object FfiConverterTypeVPNConfig: FfiConverterRustBuffer<VpnConfig> {
             FfiConverterTypeEntryPoint.allocationSize(value.`entryGateway`) +
             FfiConverterTypeExitPoint.allocationSize(value.`exitRouter`) +
             FfiConverterBoolean.allocationSize(value.`enableTwoHop`) +
+            FfiConverterTypeAndroidTunProvider.allocationSize(value.`tunProvider`) +
             FfiConverterOptionalTypePathBuf.allocationSize(value.`credentialDataPath`) +
             FfiConverterOptionalTypeTunnelStatusListener.allocationSize(value.`tunStatusListener`)
     )
@@ -1814,6 +2424,7 @@ public object FfiConverterTypeVPNConfig: FfiConverterRustBuffer<VpnConfig> {
             FfiConverterTypeEntryPoint.write(value.`entryGateway`, buf)
             FfiConverterTypeExitPoint.write(value.`exitRouter`, buf)
             FfiConverterBoolean.write(value.`enableTwoHop`, buf)
+            FfiConverterTypeAndroidTunProvider.write(value.`tunProvider`, buf)
             FfiConverterOptionalTypePathBuf.write(value.`credentialDataPath`, buf)
             FfiConverterOptionalTypeTunnelStatusListener.write(value.`tunStatusListener`, buf)
     }
@@ -2423,6 +3034,156 @@ public object FfiConverterTypeFFIError : FfiConverterRustBuffer<FfiException> {
 
 
 
+sealed class Ipv4Route {
+    
+    /**
+     * Default IPv4 route (0.0.0.0/0)
+     */
+    object Default : Ipv4Route()
+    
+    
+    /**
+     * Individual IPv4 route
+     */
+    data class Specific(
+        val `destination`: Ipv4Addr, 
+        val `subnetMask`: Ipv4Addr, 
+        val `gateway`: Ipv4Addr?) : Ipv4Route() {
+        companion object
+    }
+    
+
+    
+    companion object
+}
+
+public object FfiConverterTypeIpv4Route : FfiConverterRustBuffer<Ipv4Route>{
+    override fun read(buf: ByteBuffer): Ipv4Route {
+        return when(buf.getInt()) {
+            1 -> Ipv4Route.Default
+            2 -> Ipv4Route.Specific(
+                FfiConverterTypeIpv4Addr.read(buf),
+                FfiConverterTypeIpv4Addr.read(buf),
+                FfiConverterOptionalTypeIpv4Addr.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: Ipv4Route) = when(value) {
+        is Ipv4Route.Default -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is Ipv4Route.Specific -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeIpv4Addr.allocationSize(value.`destination`)
+                + FfiConverterTypeIpv4Addr.allocationSize(value.`subnetMask`)
+                + FfiConverterOptionalTypeIpv4Addr.allocationSize(value.`gateway`)
+            )
+        }
+    }
+
+    override fun write(value: Ipv4Route, buf: ByteBuffer) {
+        when(value) {
+            is Ipv4Route.Default -> {
+                buf.putInt(1)
+                Unit
+            }
+            is Ipv4Route.Specific -> {
+                buf.putInt(2)
+                FfiConverterTypeIpv4Addr.write(value.`destination`, buf)
+                FfiConverterTypeIpv4Addr.write(value.`subnetMask`, buf)
+                FfiConverterOptionalTypeIpv4Addr.write(value.`gateway`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+sealed class Ipv6Route {
+    
+    /**
+     * Default IPv6 route (::/0)
+     */
+    object Default : Ipv6Route()
+    
+    
+    /**
+     * Individual IPv6 route
+     */
+    data class Specific(
+        val `destination`: Ipv6Addr, 
+        val `prefixLength`: kotlin.UByte, 
+        val `gateway`: Ipv6Addr?) : Ipv6Route() {
+        companion object
+    }
+    
+
+    
+    companion object
+}
+
+public object FfiConverterTypeIpv6Route : FfiConverterRustBuffer<Ipv6Route>{
+    override fun read(buf: ByteBuffer): Ipv6Route {
+        return when(buf.getInt()) {
+            1 -> Ipv6Route.Default
+            2 -> Ipv6Route.Specific(
+                FfiConverterTypeIpv6Addr.read(buf),
+                FfiConverterUByte.read(buf),
+                FfiConverterOptionalTypeIpv6Addr.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: Ipv6Route) = when(value) {
+        is Ipv6Route.Default -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is Ipv6Route.Specific -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeIpv6Addr.allocationSize(value.`destination`)
+                + FfiConverterUByte.allocationSize(value.`prefixLength`)
+                + FfiConverterOptionalTypeIpv6Addr.allocationSize(value.`gateway`)
+            )
+        }
+    }
+
+    override fun write(value: Ipv6Route, buf: ByteBuffer) {
+        when(value) {
+            is Ipv6Route.Default -> {
+                buf.putInt(1)
+                Unit
+            }
+            is Ipv6Route.Specific -> {
+                buf.putInt(2)
+                FfiConverterTypeIpv6Addr.write(value.`destination`, buf)
+                FfiConverterUByte.write(value.`prefixLength`, buf)
+                FfiConverterOptionalTypeIpv6Addr.write(value.`gateway`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
 sealed class NymVpnStatus {
     
     data class MixConnectInfo(
@@ -2587,6 +3348,93 @@ public object FfiConverterOptionalTypeTunnelStatusListener: FfiConverterRustBuff
 
 
 
+public object FfiConverterOptionalTypeDnsSettings: FfiConverterRustBuffer<DnsSettings?> {
+    override fun read(buf: ByteBuffer): DnsSettings? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeDnsSettings.read(buf)
+    }
+
+    override fun allocationSize(value: DnsSettings?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeDnsSettings.allocationSize(value)
+        }
+    }
+
+    override fun write(value: DnsSettings?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeDnsSettings.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeIpv4Settings: FfiConverterRustBuffer<Ipv4Settings?> {
+    override fun read(buf: ByteBuffer): Ipv4Settings? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeIpv4Settings.read(buf)
+    }
+
+    override fun allocationSize(value: Ipv4Settings?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeIpv4Settings.allocationSize(value)
+        }
+    }
+
+    override fun write(value: Ipv4Settings?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeIpv4Settings.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeIpv6Settings: FfiConverterRustBuffer<Ipv6Settings?> {
+    override fun read(buf: ByteBuffer): Ipv6Settings? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeIpv6Settings.read(buf)
+    }
+
+    override fun allocationSize(value: Ipv6Settings?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeIpv6Settings.allocationSize(value)
+        }
+    }
+
+    override fun write(value: Ipv6Settings?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeIpv6Settings.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterOptionalTypeUserAgent: FfiConverterRustBuffer<UserAgent?> {
     override fun read(buf: ByteBuffer): UserAgent? {
         if (buf.get().toInt() == 0) {
@@ -2609,6 +3457,151 @@ public object FfiConverterOptionalTypeUserAgent: FfiConverterRustBuffer<UserAgen
         } else {
             buf.put(1)
             FfiConverterTypeUserAgent.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalSequenceString: FfiConverterRustBuffer<List<kotlin.String>?> {
+    override fun read(buf: ByteBuffer): List<kotlin.String>? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterSequenceString.read(buf)
+    }
+
+    override fun allocationSize(value: List<kotlin.String>?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterSequenceString.allocationSize(value)
+        }
+    }
+
+    override fun write(value: List<kotlin.String>?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterSequenceString.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalSequenceTypeIpv4Route: FfiConverterRustBuffer<List<Ipv4Route>?> {
+    override fun read(buf: ByteBuffer): List<Ipv4Route>? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterSequenceTypeIpv4Route.read(buf)
+    }
+
+    override fun allocationSize(value: List<Ipv4Route>?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterSequenceTypeIpv4Route.allocationSize(value)
+        }
+    }
+
+    override fun write(value: List<Ipv4Route>?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterSequenceTypeIpv4Route.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalSequenceTypeIpv6Route: FfiConverterRustBuffer<List<Ipv6Route>?> {
+    override fun read(buf: ByteBuffer): List<Ipv6Route>? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterSequenceTypeIpv6Route.read(buf)
+    }
+
+    override fun allocationSize(value: List<Ipv6Route>?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterSequenceTypeIpv6Route.allocationSize(value)
+        }
+    }
+
+    override fun write(value: List<Ipv6Route>?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterSequenceTypeIpv6Route.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeIpv4Addr: FfiConverterRustBuffer<Ipv4Addr?> {
+    override fun read(buf: ByteBuffer): Ipv4Addr? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeIpv4Addr.read(buf)
+    }
+
+    override fun allocationSize(value: Ipv4Addr?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeIpv4Addr.allocationSize(value)
+        }
+    }
+
+    override fun write(value: Ipv4Addr?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeIpv4Addr.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeIpv6Addr: FfiConverterRustBuffer<Ipv6Addr?> {
+    override fun read(buf: ByteBuffer): Ipv6Addr? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeIpv6Addr.read(buf)
+    }
+
+    override fun allocationSize(value: Ipv6Addr?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeIpv6Addr.allocationSize(value)
+        }
+    }
+
+    override fun write(value: Ipv6Addr?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeIpv6Addr.write(value, buf)
         }
     }
 }
@@ -2674,6 +3667,31 @@ public object FfiConverterOptionalTypeUrl: FfiConverterRustBuffer<Url?> {
 
 
 
+public object FfiConverterSequenceString: FfiConverterRustBuffer<List<kotlin.String>> {
+    override fun read(buf: ByteBuffer): List<kotlin.String> {
+        val len = buf.getInt()
+        return List<kotlin.String>(len) {
+            FfiConverterString.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<kotlin.String>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterString.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<kotlin.String>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterString.write(it, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterSequenceTypeLocation: FfiConverterRustBuffer<List<Location>> {
     override fun read(buf: ByteBuffer): List<Location> {
         val len = buf.getInt()
@@ -2698,6 +3716,141 @@ public object FfiConverterSequenceTypeLocation: FfiConverterRustBuffer<List<Loca
 
 
 
+
+public object FfiConverterSequenceTypeIpv4Route: FfiConverterRustBuffer<List<Ipv4Route>> {
+    override fun read(buf: ByteBuffer): List<Ipv4Route> {
+        val len = buf.getInt()
+        return List<Ipv4Route>(len) {
+            FfiConverterTypeIpv4Route.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<Ipv4Route>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeIpv4Route.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<Ipv4Route>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeIpv4Route.write(it, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterSequenceTypeIpv6Route: FfiConverterRustBuffer<List<Ipv6Route>> {
+    override fun read(buf: ByteBuffer): List<Ipv6Route> {
+        val len = buf.getInt()
+        return List<Ipv6Route>(len) {
+            FfiConverterTypeIpv6Route.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<Ipv6Route>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeIpv6Route.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<Ipv6Route>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeIpv6Route.write(it, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterSequenceTypeIpAddr: FfiConverterRustBuffer<List<IpAddr>> {
+    override fun read(buf: ByteBuffer): List<IpAddr> {
+        val len = buf.getInt()
+        return List<IpAddr>(len) {
+            FfiConverterTypeIpAddr.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<IpAddr>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeIpAddr.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<IpAddr>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeIpAddr.write(it, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterSequenceTypeIpv4Network: FfiConverterRustBuffer<List<Ipv4Network>> {
+    override fun read(buf: ByteBuffer): List<Ipv4Network> {
+        val len = buf.getInt()
+        return List<Ipv4Network>(len) {
+            FfiConverterTypeIpv4Network.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<Ipv4Network>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeIpv4Network.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<Ipv4Network>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeIpv4Network.write(it, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterSequenceTypeIpv6Network: FfiConverterRustBuffer<List<Ipv6Network>> {
+    override fun read(buf: ByteBuffer): List<Ipv6Network> {
+        val len = buf.getInt()
+        return List<Ipv6Network>(len) {
+            FfiConverterTypeIpv6Network.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<Ipv6Network>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeIpv6Network.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<Ipv6Network>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeIpv6Network.write(it, buf)
+        }
+    }
+}
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ * It's also what we have an external type that references a custom type.
+ */
+public typealias IpAddr = kotlin.String
+public typealias FfiConverterTypeIpAddr = FfiConverterString
+
+
+
 /**
  * Typealias from the type name used in the UDL file to the builtin type.  This
  * is needed because the UDL type name is used in function/method signatures.
@@ -2715,6 +3868,36 @@ public typealias FfiConverterTypeIpPair = FfiConverterString
  */
 public typealias Ipv4Addr = kotlin.String
 public typealias FfiConverterTypeIpv4Addr = FfiConverterString
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ * It's also what we have an external type that references a custom type.
+ */
+public typealias Ipv4Network = kotlin.String
+public typealias FfiConverterTypeIpv4Network = FfiConverterString
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ * It's also what we have an external type that references a custom type.
+ */
+public typealias Ipv6Addr = kotlin.String
+public typealias FfiConverterTypeIpv6Addr = FfiConverterString
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ * It's also what we have an external type that references a custom type.
+ */
+public typealias Ipv6Network = kotlin.String
+public typealias FfiConverterTypeIpv6Network = FfiConverterString
 
 
 
@@ -2834,11 +4017,19 @@ public object FfiConverterTypeUrl: FfiConverter<Url, RustBuffer.ByValue> {
     )
     }
     
+ fun `initLogger`()
+        = 
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_initlogger(
+        _status)
+}
+    
+    
 
-    @Throws(FfiException::class) fun `runVpn`(`config`: VpnConfig)
+    @Throws(FfiException::class) fun `startVpn`(`config`: VpnConfig)
         = 
     uniffiRustCallWithError(FfiException) { _status ->
-    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_runvpn(
+    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_startvpn(
         FfiConverterTypeVPNConfig.lower(`config`),_status)
 }
     

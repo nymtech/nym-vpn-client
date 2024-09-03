@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
-
+#[cfg(target_os = "macos")]
+use std::env;
 use tracing_appender::non_blocking::WorkerGuard;
 
 use crate::service;
@@ -8,7 +9,8 @@ use crate::service;
 pub fn setup_logging(_as_service: bool) {
     #[cfg(target_os = "macos")]
     if _as_service {
-        nym_vpn_lib::swift::init_logs();
+        let log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
+        nym_vpn_lib::swift::init_logs(log_level);
         return;
     }
 

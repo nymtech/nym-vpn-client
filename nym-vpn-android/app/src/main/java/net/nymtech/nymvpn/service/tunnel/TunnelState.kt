@@ -1,6 +1,6 @@
 package net.nymtech.nymvpn.service.tunnel
 
-import net.nymtech.vpn.Tunnel
+import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.BackendMessage
 import net.nymtech.vpn.model.Statistics
 

@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.map
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.vpn.Tunnel
+import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.Country
 import timber.log.Timber
 import java.time.Instant

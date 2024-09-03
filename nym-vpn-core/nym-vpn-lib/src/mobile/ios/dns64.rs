@@ -11,7 +11,7 @@ use nix::{
     sys::socket::{SockaddrIn, SockaddrIn6, SockaddrLike},
 };
 
-use super::super::wg_config::WgPeer;
+use crate::mobile::wg_config::WgPeer;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {

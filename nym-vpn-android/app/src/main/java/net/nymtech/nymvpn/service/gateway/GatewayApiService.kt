@@ -1,6 +1,7 @@
 package net.nymtech.nymvpn.service.gateway
 
 import net.nymtech.vpn.model.Country
+import timber.log.Timber
 import javax.inject.Inject
 
 class GatewayApiService @Inject constructor(
@@ -13,19 +14,15 @@ class GatewayApiService @Inject constructor(
 		return gatewayLibService.getLowLatencyCountry()
 	}
 
-	override suspend fun getEntryCountries(): Result<Set<Country>> {
+	override suspend fun getCountries(exitOnly: Boolean): Result<Set<Country>> {
+		Timber.d("Getting countries from nym api")
 		return safeApiCall {
-			gatewayApi.getAllEntryGatewayTwoCharacterCountryCodes().map {
-				Country(it)
-			}.toSet()
-		}
-	}
-
-	override suspend fun getExitCountries(): Result<Set<Country>> {
-		return safeApiCall {
-			gatewayApi.getAllExitGatewayTwoCharacterCountryCodes().map {
-				Country(it)
-			}.toSet()
+			val countries = if (exitOnly) {
+				gatewayApi.getAllExitGatewayTwoCharacterCountryCodes()
+			} else {
+				gatewayApi.getAllEntryGatewayTwoCharacterCountryCodes()
+			}
+			countries.map { Country(it) }.toSet()
 		}
 	}
 }

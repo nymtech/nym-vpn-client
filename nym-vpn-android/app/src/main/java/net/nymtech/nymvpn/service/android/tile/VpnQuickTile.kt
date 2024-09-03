@@ -15,7 +15,7 @@ import net.nymtech.nymvpn.service.tunnel.TunnelManager
 import net.nymtech.nymvpn.util.extensions.isInvalid
 import net.nymtech.nymvpn.util.extensions.startTunnelFromBackground
 import net.nymtech.nymvpn.util.extensions.stopTunnelFromBackground
-import net.nymtech.vpn.Tunnel
+import net.nymtech.vpn.backend.Tunnel
 import timber.log.Timber
 import javax.inject.Inject
 

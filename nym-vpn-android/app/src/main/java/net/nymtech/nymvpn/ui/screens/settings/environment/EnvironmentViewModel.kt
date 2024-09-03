@@ -8,7 +8,7 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.service.tunnel.TunnelManager
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.StringValue
-import net.nymtech.vpn.Tunnel
+import net.nymtech.vpn.backend.Tunnel
 import javax.inject.Inject
 
 @HiltViewModel

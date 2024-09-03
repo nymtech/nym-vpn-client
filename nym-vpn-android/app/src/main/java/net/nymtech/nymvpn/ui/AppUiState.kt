@@ -2,7 +2,7 @@ package net.nymtech.nymvpn.ui
 
 import net.nymtech.nymvpn.data.domain.Gateways
 import net.nymtech.nymvpn.data.domain.Settings
-import net.nymtech.vpn.Tunnel
+import net.nymtech.vpn.backend.Tunnel
 
 data class AppUiState(
 	val settings: Settings = Settings(),

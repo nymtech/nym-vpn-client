@@ -1,15 +1,14 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
 
+use super::{
+    uapi::UapiConfigBuilder, Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, PrivateKey,
+    Result,
+};
 use std::{
     ffi::{c_char, c_void, CString},
     fmt,
     net::{IpAddr, SocketAddr},
-};
-
-use super::{
-    uapi::UapiConfigBuilder, Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, PrivateKey,
-    Result,
 };
 
 /// Netstack interface configuration.
@@ -147,11 +146,11 @@ impl Tunnel {
             unsafe { wgNetTurnOff(self.handle) };
             self.handle = -1;
         }
-
         if !self.boxed_logger_ptr.is_null() {
-            unsafe {
-                let _ = Box::from_raw(self.boxed_logger_ptr);
-            }
+            // causes crash on ios and android
+            // unsafe {
+            //     let _ = Box::from_raw(self.boxed_logger_ptr);
+            // }
             self.boxed_logger_ptr = std::ptr::null_mut();
         }
     }

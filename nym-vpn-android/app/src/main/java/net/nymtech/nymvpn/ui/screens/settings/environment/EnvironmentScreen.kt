@@ -13,7 +13,7 @@ import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.common.buttons.IconSurfaceButton
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
-import net.nymtech.vpn.Tunnel
+import net.nymtech.vpn.backend.Tunnel
 
 @Composable
 fun EnvironmentScreen(appUiState: AppUiState, viewModel: EnvironmentViewModel = hiltViewModel()) {

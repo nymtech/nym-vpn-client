@@ -1,7 +1,7 @@
 package net.nymtech.nymvpn.service.tunnel
 
 import kotlinx.coroutines.flow.Flow
-import net.nymtech.vpn.Tunnel
+import net.nymtech.vpn.backend.Tunnel
 import java.time.Instant
 
 interface TunnelManager {

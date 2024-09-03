@@ -13,6 +13,7 @@ use lazy_static::lazy_static;
 use log::*;
 
 use std::{
+    env,
     path::PathBuf,
     str::FromStr,
     sync::atomic::{AtomicBool, Ordering},
@@ -42,7 +43,11 @@ use crate::vpn::{
 };
 
 #[cfg(target_os = "ios")]
-use crate::mobile::{ios::tun_provider::OSTunProvider, runner::WgTunnelRunner};
+use crate::mobile::ios::tun_provider::OSTunProvider;
+#[cfg(any(target_os = "ios", target_os = "android"))]
+use crate::mobile::runner::WgTunnelRunner;
+#[cfg(target_os = "android")]
+use crate::platform::android::AndroidTunProvider;
 
 lazy_static! {
     static ref VPN_SHUTDOWN_HANDLE: Mutex<Option<ShutdownHandle>> = Mutex::new(None);
@@ -118,11 +123,9 @@ async fn stop_and_reset_shutdown_handle() -> Result<(), FFIError> {
     Ok(())
 }
 
-async fn reset_shutdown_handle() -> Result<(), FFIError> {
-    let mut guard = VPN_SHUTDOWN_HANDLE.lock().await;
-    *guard = None;
+async fn reset_shutdown_handle() {
+    let _ = VPN_SHUTDOWN_HANDLE.lock().await.take();
     debug!("VPN shutdown handle reset");
-    Ok(())
 }
 
 async fn _async_run_vpn(vpn: SpecificVpn) -> Result<(Arc<Notify>, NymVpnHandle), FFIError> {
@@ -182,6 +185,8 @@ pub struct VPNConfig {
     pub entry_gateway: EntryPoint,
     pub exit_router: ExitPoint,
     pub enable_two_hop: bool,
+    #[cfg(target_os = "android")]
+    pub tun_provider: Arc<dyn AndroidTunProvider>,
     #[cfg(target_os = "ios")]
     pub tun_provider: Arc<dyn OSTunProvider>,
     pub credential_data_path: Option<PathBuf>,
@@ -189,16 +194,11 @@ pub struct VPNConfig {
 }
 
 fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
-    #[cfg(target_os = "android")]
-    let context = crate::platform::android::get_context().ok_or(FFIError::NoContext)?;
-    #[cfg(target_os = "android")]
-    debug!("got android context to create new vpn");
-
     let mut vpn = NymVpn::new_mixnet_vpn(
         config.entry_gateway.into(),
         config.exit_router.into(),
         #[cfg(target_os = "android")]
-        context,
+        config.tun_provider,
         #[cfg(target_os = "ios")]
         config.tun_provider,
     );
@@ -218,9 +218,6 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
         return Err(FFIError::VpnAlreadyRunning);
     }
 
-    #[cfg(any(target_os = "ios", target_os = "macos"))]
-    crate::platform::swift::init_logs();
-
     LISTENER
         .lock()
         .unwrap()
@@ -228,19 +225,16 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
 
     uniffi_set_listener_status(StatusEvent::Tun(TunStatus::InitializingClient));
 
-    #[cfg(target_os = "ios")]
     if config.enable_two_hop {
         RUNTIME.block_on(async move {
             tracing::debug!("Starting VPN tunnel...");
 
             let shutdown_token = CancellationToken::new();
-            let cloned_shutdown_token = shutdown_token.clone();
+            let _cloned_shutdown_token = shutdown_token.clone();
 
             let join_handle = tokio::spawn(async move {
-                // todo: set this only when two hop tunnel is actually up.
-                uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Up));
-
-                match WgTunnelRunner::new(config, cloned_shutdown_token) {
+                #[cfg(any(target_os = "android", target_os = "ios"))]
+                match WgTunnelRunner::new(config, _cloned_shutdown_token) {
                     Ok(tun_runner) => match tun_runner.start().await {
                         Ok(_) => {
                             tracing::debug!("Tunnel runner exited.");
@@ -255,6 +249,8 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
                 }
 
                 uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
+                RUNNING.store(false, Ordering::Relaxed);
+                reset_shutdown_handle().await;
             });
 
             let shutdown_handle = ShutdownHandle::CancellationToken {
@@ -265,25 +261,35 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
                 tracing::error!("Failed to set shutdown handle: {}", e);
             }
         });
+        Ok(())
+    } else {
+        debug!("Trying to run VPN");
+        let vpn = sync_run_vpn(config);
+        debug!("Got VPN");
+        if vpn.is_err() {
+            error!("Err creating VPN");
+            uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
+            RUNNING.store(false, Ordering::Relaxed);
+        }
+        let ret = RUNTIME.block_on(run_vpn(vpn?.into()));
+        if ret.is_err() {
+            error!("Error running VPN");
+            uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
+            RUNNING.store(false, Ordering::Relaxed);
+        }
+        ret
+    }
+}
 
-        return Ok(());
-    }
-
-    debug!("Trying to run VPN");
-    let vpn = sync_run_vpn(config);
-    debug!("Got VPN");
-    if vpn.is_err() {
-        error!("Err creating VPN");
-        uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
-        RUNNING.store(false, Ordering::Relaxed);
-    }
-    let ret = RUNTIME.block_on(run_vpn(vpn?.into()));
-    if ret.is_err() {
-        error!("Error running VPN");
-        uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
-        RUNNING.store(false, Ordering::Relaxed);
-    }
-    ret
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn initLogger() {
+    let log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
+    info!("Setting log level: {}", log_level);
+    #[cfg(target_os = "ios")]
+    swift::init_logs(log_level);
+    #[cfg(target_os = "android")]
+    android::init_logs(log_level);
 }
 
 #[allow(non_snake_case)]
@@ -326,9 +332,7 @@ async fn run_vpn(vpn: SpecificVpn) -> Result<(), FFIError> {
     match _async_run_vpn(vpn).await {
         Err(err) => {
             debug!("Stopping and resetting shutdown handle");
-            reset_shutdown_handle()
-                .await
-                .expect("Failed to reset shutdown handle");
+            reset_shutdown_handle().await;
             RUNNING.store(false, Ordering::Relaxed);
             error!("Could not start the VPN: {:?}", err);
             uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failed {

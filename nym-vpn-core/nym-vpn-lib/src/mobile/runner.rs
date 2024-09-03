@@ -15,16 +15,19 @@ use nym_task::TaskManager;
 use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
 use nym_wg_go::{PrivateKey, PublicKey};
 
-use crate::mixnet::SharedMixnetClient;
-use crate::platform::VPNConfig;
-use crate::{bandwidth_controller::BandwidthController, GenericNymVpnConfig};
-use crate::{GatewayDirectoryError, MixnetClientConfig};
-
-use super::ios::tun_provider::OSTunProvider;
 use super::{
     two_hop_tunnel::TwoHopTunnel,
     wg_config::{WgInterface, WgNodeConfig, WgPeer},
 };
+use crate::mixnet::SharedMixnetClient;
+#[cfg(target_os = "ios")]
+use crate::mobile::ios::tun_provider::OSTunProvider;
+#[cfg(target_os = "android")]
+use crate::platform::android::AndroidTunProvider;
+use crate::platform::{uniffi_set_listener_status, VPNConfig};
+use crate::uniffi_custom_impls::{StatusEvent, TunStatus};
+use crate::{bandwidth_controller::BandwidthController, GenericNymVpnConfig};
+use crate::{GatewayDirectoryError, MixnetClientConfig};
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -62,6 +65,8 @@ pub struct WgTunnelRunner {
     gateway_directory_client: GatewayClient,
     task_manager: TaskManager,
     generic_config: GenericNymVpnConfig,
+    #[cfg(target_os = "android")]
+    tun_provider: Arc<dyn AndroidTunProvider>,
     #[cfg(target_os = "ios")]
     tun_provider: Arc<dyn OSTunProvider>,
     shutdown_token: CancellationToken,
@@ -108,6 +113,8 @@ impl WgTunnelRunner {
             gateway_directory_client,
             task_manager,
             generic_config,
+            #[cfg(target_os = "android")]
+            tun_provider: config.tun_provider,
             #[cfg(target_os = "ios")]
             tun_provider: config.tun_provider,
             shutdown_token,
@@ -135,6 +142,8 @@ impl WgTunnelRunner {
 
         let mut shutdown_monitor_task_client = self.task_manager.subscribe();
         let cloned_shutdown_handle = self.shutdown_token.clone();
+
+        uniffi_set_listener_status(StatusEvent::Tun(TunStatus::EstablishingConnection));
 
         let mut set = JoinSet::new();
         set.spawn(async move {

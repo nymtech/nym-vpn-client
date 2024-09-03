@@ -118,14 +118,6 @@ android {
 			proguardFile("proguard-rules.pro")
 			buildConfigField("String", Constants.FLAVOR, "\"${Constants.GENERAL}\"")
 		}
-		create(Constants.SANDBOX) {
-			buildConfigField("String", Constants.FLAVOR, "\"${Constants.SANDBOX}\"")
-			dimension = Constants.TYPE
-		}
-		create(Constants.CANARY) {
-			buildConfigField("String", Constants.FLAVOR, "\"${Constants.CANARY}\"")
-			dimension = Constants.TYPE
-		}
 	}
 	compileOptions {
 		isCoreLibraryDesugaringEnabled = true

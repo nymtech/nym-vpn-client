@@ -18,11 +18,12 @@ use talpid_core::dns::DnsMonitor;
 use talpid_routing::RouteManager;
 use talpid_tunnel::tun_provider::TunProvider;
 
+use super::base::{GenericNymVpnConfig, NymVpn, ShadowHandle, Vpn};
 #[cfg(target_os = "ios")]
 use crate::mobile::ios::tun_provider::OSTunProvider;
+#[cfg(target_os = "android")]
+use crate::platform::android::AndroidTunProvider;
 use crate::{error::Result, mixnet::SharedMixnetClient, routing, Error, GatewayDirectoryError};
-
-use super::base::{GenericNymVpnConfig, NymVpn, ShadowHandle, Vpn};
 
 #[derive(Clone, Debug)]
 pub struct MixnetClientConfig {
@@ -63,20 +64,10 @@ impl NymVpn<MixnetVpn> {
     pub fn new_mixnet_vpn(
         entry_point: EntryPoint,
         exit_point: ExitPoint,
-        #[cfg(target_os = "android")] android_context: talpid_types::android::AndroidContext,
+        #[cfg(target_os = "android")] android_tun_provider: Arc<dyn AndroidTunProvider>,
         #[cfg(target_os = "ios")] ios_tun_provider: Arc<dyn OSTunProvider>,
     ) -> Self {
-        let tun_provider = Arc::new(Mutex::new(TunProvider::new(
-            #[cfg(target_os = "android")]
-            android_context,
-            #[cfg(target_os = "android")]
-            false,
-            #[cfg(target_os = "android")]
-            None,
-            #[cfg(target_os = "android")]
-            vec![],
-        )));
-
+        let tun_provider = Arc::new(Mutex::new(TunProvider::new()));
         Self {
             generic_config: GenericNymVpnConfig {
                 mixnet_client_config: MixnetClientConfig {
@@ -98,6 +89,8 @@ impl NymVpn<MixnetVpn> {
             },
             vpn_config: MixnetVpn {},
             tun_provider,
+            #[cfg(target_os = "android")]
+            android_tun_provider,
             #[cfg(target_os = "ios")]
             ios_tun_provider,
             shadow_handle: ShadowHandle { _inner: None },
@@ -146,13 +139,13 @@ impl NymVpn<MixnetVpn> {
             our_ips,
             entry_mixnet_gateway_ip,
             default_lan_gateway_ip,
-            #[cfg(target_os = "android")]
-            mixnet_client.gateway_ws_fd().await,
         );
         debug!("Routing config: {}", routing_config);
         let mixnet_tun_dev = routing::setup_mixnet_routing(
             route_manager,
             routing_config,
+            #[cfg(target_os = "android")]
+            self.android_tun_provider.clone(),
             #[cfg(target_os = "ios")]
             self.ios_tun_provider.clone(),
             dns_monitor,
