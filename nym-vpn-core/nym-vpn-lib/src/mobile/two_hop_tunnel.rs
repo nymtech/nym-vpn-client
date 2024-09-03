@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 #[cfg(target_os = "ios")]
 use super::ios::{
     default_path_observer::{DefaultPathObserver, DefaultPathReceiver, OSDefaultPath},
@@ -8,6 +6,9 @@ use super::ios::{
     tun_provider::OSTunProvider,
 };
 use super::tunnel_settings::TunnelSettings;
+#[cfg(target_os = "android")]
+use log::error;
+use std::sync::Arc;
 #[cfg(target_os = "ios")]
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
@@ -134,6 +135,18 @@ impl TwoHopTunnel {
         let mut entry_tunnel = netstack::Tunnel::start(entry_wg_config, |s| {
             tracing::debug!(name = "wg-netstack", "{}", s);
         })?;
+
+        #[cfg(target_os = "android")]
+        {
+            match entry_tunnel.get_socket_v4() {
+                Ok(fd) => tun_provider.bypass(fd),
+                Err(e) => error!("{}", e),
+            }
+            match entry_tunnel.get_socket_v6() {
+                Ok(fd) => tun_provider.bypass(fd),
+                Err(e) => error!("{}", e),
+            }
+        }
 
         // Open connection to the exit node via entry node.
         let exit_connection = entry_tunnel.open_connection(

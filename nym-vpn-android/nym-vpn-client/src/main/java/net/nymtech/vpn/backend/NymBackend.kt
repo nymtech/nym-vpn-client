@@ -287,7 +287,6 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			return if (prefixLength == -1) 128 else prefixLength
 		}
 
-		@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 		override fun configureTunnel(config: TunnelNetworkSettings): Int {
 			Timber.d("Configuring Wg tunnel")
 			if (prepare(this) != null) return -1
@@ -325,7 +324,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 								val length = calculateSubnetMaskLength(it.subnetMask)
 								Timber.d("Including ipv4 routes: ${it.destination}/$length")
 								// need to use IpPrefix, strange bug with just string/int
-								addRoute(IpPrefix(InetAddress.getByName(it.destination), length))
+								addRoute(InetAddress.getByName(it.destination), length)
 							}
 						}
 					}
@@ -341,19 +340,10 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 								val prefix = calculateIPv6PrefixLength(it.destination)
 								Timber.d("Including ipv4 routes: ${it.destination}/$prefix")
 								// need to use IpPrefix, strange bug with just string/int
-								addRoute(IpPrefix(InetAddress.getByName(it.destination), prefix))
+								addRoute(InetAddress.getByName(it.destination), prefix)
 							}
 							Ipv6Route.Default -> Unit
 						}
-					}
-				}
-				config.ipv4Settings?.excludedRoutes?.forEach {
-					when (it) {
-						is Ipv4Route.Specific -> {
-							Timber.d("Excluding route: ${it.gateway}")
-							excludeRoute(IpPrefix(InetAddress.getByName(it.gateway), calculateSubnetMaskLength(it.subnetMask)))
-						}
-						Ipv4Route.Default -> Unit
 					}
 				}
 

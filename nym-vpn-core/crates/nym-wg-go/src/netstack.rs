@@ -13,11 +13,6 @@ use super::{
     uapi::UapiConfigBuilder, Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, PrivateKey,
     Result,
 };
-use std::{
-    ffi::{c_char, c_void, CString},
-    fmt,
-    net::{IpAddr, SocketAddr},
-};
 
 /// Netstack interface configuration.
 pub struct InterfaceConfig {
@@ -268,6 +263,7 @@ extern "C" {
         client_port: u16,
         exit_endpoint: *const c_char,
     ) -> i32;
+    fn wgNetCloseConnectionThroughTunnel(handle: i32);
     #[cfg(target_os = "android")]
     fn wgNetGetSocketV4(net_tunnel_handle: i32) -> i32;
     #[cfg(target_os = "android")]
