@@ -61,7 +61,7 @@ jobs:
           # git push origin ${{ env.branch_name }}
 
       - name: Open a Pull Request
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
           branch: ${{ env.branch_name }}
           title: "Release: ${{ env.branch_name }}"
@@ -79,7 +79,7 @@ jobs:
       #     git push origin ${{ env.branch_name }}
 
       # - name: Update PR with bumped version
-      #   uses: peter-evans/create-pull-request@v6
+      #   uses: peter-evans/create-pull-request@v7
       #   with:
       #     branch: ${{ env.branch_name }}
       #     title: "Release: ${{ env.branch_name }} (Bumped)"
