@@ -94,25 +94,19 @@ jobs:
             triplet=x86_64-apple-darwin
             echo "TRIPLET=$triplet" >> $GITHUB_ENV
             echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet} >> $GITHUB_ENV
-          elif ${{ (contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')) && matrix.target != 'ios' }}; then
+          elif ${{ contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1') }}; then
             triplet=universal-apple-darwin
             echo "TRIPLET=$triplet" >> $GITHUB_ENV
             echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet} >> $GITHUB_ENV
           elif ${{ contains(matrix.os, 'windows') }}; then
             triplet=x86_64-pc-windows-msvc
             echo "TRIPLET=$triplet" >> $GITHUB_ENV
-            echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet}" >> $GITHUB_ENV
+            echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet} -L ${GITHUB_WORKSPACE}/build/lib/ -Clink-args=/LIBPATH:${GITHUB_WORKSPACE}/build/lib/x64-Debug" >> $GITHUB_ENV
+            mkdir -p ${GITHUB_WORKSPACE}/build/lib/
           else
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
             exit 1
           fi
-
-      - name: Set extra env for Windows
-        if: contains(matrix.os, 'windows')
-        shell: bash
-        run: |
-          echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/x86_64-pc-windows-msvc -L ${GITHUB_WORKSPACE}/build/lib/ -Clink-args=/LIBPATH:${GITHUB_WORKSPACE}/build/lib/x64-Debug" >> $GITHUB_ENV
-          mkdir -p ${GITHUB_WORKSPACE}/build/lib/
 
       - name: Install Go
         uses: actions/setup-go@v5
