@@ -85,7 +85,7 @@ fn reresolve_addr(socket_addr: SocketAddr) -> Result<SocketAddr> {
         return Err(Error::DnsLookup {
             code: err_code,
             addr: socket_addr,
-        })?;
+        });
     }
 
     if result.is_null() {
