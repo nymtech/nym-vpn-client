@@ -4,6 +4,8 @@ use std::{
 };
 
 use ipnetwork::IpNetwork;
+#[cfg(target_os = "ios")]
+use nym_wg_go::PeerEndpointUpdate;
 use nym_wg_go::{netstack, wireguard_go, PeerConfig, PrivateKey, PublicKey};
 
 #[derive(Debug)]

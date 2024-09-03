@@ -81,6 +81,10 @@ impl TwoHopTunnel {
         #[cfg(target_os = "ios")]
         let orig_entry_peer = entry_node_config.peer.clone();
 
+        #[cfg(target_os = "ios")]
+        let mut two_hop_config = TwoHopConfig::new(entry_node_config, exit_node_config);
+
+        #[cfg(target_os = "android")]
         let two_hop_config = TwoHopConfig::new(entry_node_config, exit_node_config);
 
         tracing::info!("Two-hop entry: {:#?}", two_hop_config.entry);
@@ -101,10 +105,9 @@ impl TwoHopTunnel {
         };
 
         #[cfg(target_os = "ios")]
-        let tun_name = {
+        {
             let tun_name = tun::get_tun_ifname(tun_fd).ok_or(Error::ObtainTunName)?;
             tracing::debug!("Tunnel interface name: {}", tun_name);
-            tun_name
         };
 
         let tunnel_settings = TunnelSettings {
