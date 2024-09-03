@@ -15,7 +15,8 @@ members = [
     "crates/nym-vpnd",
     "crates/nym-wg-gateway-client",
     "crates/nym-wg-go",
-    "nym-vpn-lib",
+    "nym-vpn-lib", 
+    "uniffi-bindgen",
 ]
 
 # For local development

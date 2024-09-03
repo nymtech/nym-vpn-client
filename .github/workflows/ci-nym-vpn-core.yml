@@ -215,13 +215,19 @@ jobs:
         if: matrix.target == 'android'
         working-directory: nym-vpn-core
         run: |
-          cargo run --bin uniffi-bindgen generate --library target/aarch64-linux-android/debug/libnym_vpn_lib.so  --language kotlin --out-dir build -n
+          cargo run --bin uniffi-bindgen generate \
+            --library target/aarch64-linux-android/debug/libnym_vpn_lib.so \
+            --config nym-vpn-lib/uniffi.toml \
+            --language kotlin --out-dir build -n
 
       - name: Generate uniffi (iOS)
         if: matrix.target == 'ios'
         working-directory: nym-vpn-core
         run: |
-          RUSTFLAGS= cargo run --bin uniffi-bindgen generate --library target/aarch64-apple-ios/debug/libnym_vpn_lib.a  --language swift --out-dir build -n
+          cargo run --bin uniffi-bindgen generate \
+            --library target/aarch64-apple-ios/debug/libnym_vpn_lib.a  \
+            --config nym-vpn-lib/uniffi.toml \
+            --language swift --out-dir build -n
 
       - name: Uniffi diff check (Android)
         if: matrix.target == 'android'
