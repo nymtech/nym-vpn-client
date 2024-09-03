@@ -18,6 +18,9 @@ pub struct ProbeOutcome {
 pub struct Wg {
     pub can_register: bool,
     pub can_handshake: bool,
+    pub can_resolve_dns: bool,
+    pub ping_hosts_performance: f32,
+    pub ping_ips_performance: f32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
