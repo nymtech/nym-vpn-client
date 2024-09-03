@@ -1,5 +1,3 @@
-//go:build ignore
-
 /* SPDX-License-Identifier: MIT
  *
  * Copyright (C) 2017-2023 WireGuard LLC. All Rights Reserved.
@@ -10,8 +8,8 @@ package main
 import (
 	"bytes"
 	"flag"
+	"fmt"
 	"log"
-	"math/rand"
 	"net/netip"
 	"strings"
 	"time"
@@ -23,6 +21,10 @@ import (
 	"golang.zx2c4.com/wireguard/device"
 	"golang.zx2c4.com/wireguard/tun/netstack"
 )
+
+const PING_ADDR = "1.1.1.1"
+const WRITE_TIMEOUT = 1
+const READ_TIMEOUT = 5
 
 func main() {
 	var (
@@ -59,35 +61,66 @@ func main() {
 		log.Panic(err)
 	}
 
-	socket, err := tnet.Dial("ping4", "google.com")
-	if err != nil {
-		log.Panic(err)
+	for i := uint16(0); i < 3; i++ {
+		log.Printf("Send ping seq=%d", i)
+
+		rt, err := sendPing(PING_ADDR, i, tnet)
+		if err != nil {
+			log.Printf("Failed to send ping: %v\n", err)
+			continue
+		}
+		log.Printf("Ping latency: %v\n", rt)
+		break
 	}
+}
+
+func sendPing(address string, seq uint16, tnet *netstack.Net) (time.Duration, error) {
+	socket, err := tnet.Dial("ping4", address)
+	if err != nil {
+		return 0, err
+	}
+
 	requestPing := icmp.Echo{
-		Seq:  rand.Intn(1 << 16),
+		ID:   1337,
+		Seq:  int(seq),
 		Data: []byte("gopher burrow"),
 	}
 	icmpBytes, _ := (&icmp.Message{Type: ipv4.ICMPTypeEcho, Code: 0, Body: &requestPing}).Marshal(nil)
-	socket.SetReadDeadline(time.Now().Add(time.Second * 20))
 	start := time.Now()
+
+	socket.SetWriteDeadline(time.Now().Add(time.Second * WRITE_TIMEOUT))
 	_, err = socket.Write(icmpBytes)
 	if err != nil {
-		log.Panic(err)
+		return 0, err
 	}
-	n, err := socket.Read(icmpBytes[:])
-	if err != nil {
-		log.Panic(err)
+
+	// Wait until either the right reply arrives or timeout
+	for {
+		socket.SetReadDeadline(time.Now().Add(time.Second * READ_TIMEOUT))
+		n, err := socket.Read(icmpBytes[:])
+		if err != nil {
+			return 0, err
+		}
+
+		replyPacket, err := icmp.ParseMessage(1, icmpBytes[:n])
+		if err != nil {
+			return 0, err
+		}
+		replyPing, ok := replyPacket.Body.(*icmp.Echo)
+
+		if !ok {
+			return 0, fmt.Errorf("invalid reply type: %v", replyPacket)
+		}
+
+		if bytes.Equal(replyPing.Data, requestPing.Data) {
+			// Check if seq is the same, because otherwise we might have received a reply from the preceding ping request.
+			if replyPing.Seq != requestPing.Seq {
+				log.Printf("Got echo reply from timed out request (expected %d, received %d)", requestPing.Seq, replyPing.Seq)
+			} else {
+				return time.Since(start), nil
+			}
+		} else {
+			return 0, fmt.Errorf("invalid ping reply: %v (request: %v)", replyPing, requestPing)
+		}
 	}
-	replyPacket, err := icmp.ParseMessage(1, icmpBytes[:n])
-	if err != nil {
-		log.Panic(err)
-	}
-	replyPing, ok := replyPacket.Body.(*icmp.Echo)
-	if !ok {
-		log.Panicf("invalid reply type: %v", replyPacket)
-	}
-	if !bytes.Equal(replyPing.Data, requestPing.Data) || replyPing.Seq != requestPing.Seq {
-		log.Panicf("invalid ping reply: %v", replyPing)
-	}
-	log.Printf("Ping latency: %v", time.Since(start))
 }
