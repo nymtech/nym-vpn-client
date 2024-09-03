@@ -148,6 +148,7 @@ async fn main() -> Result<()> {
             let app_win = AppWindow::new(&app.handle(), MAIN_WINDOW_LABEL)?;
             app_win.restore_size(&db)?;
             app_win.restore_position(&db)?;
+            app_win.set_max_size().ok();
 
             // if splash-screen is disabled, remove it and show
             // the main window without waiting for frontend signal
