@@ -1,0 +1,12 @@
+[package]
+name = "uniffi-bindgen"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+uniffi = { workspace = true, features = ["cli"] }

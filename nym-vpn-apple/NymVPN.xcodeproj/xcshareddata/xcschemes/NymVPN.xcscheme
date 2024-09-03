@@ -5,6 +5,24 @@
    <BuildAction
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES">
+      <PreActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "Update env vars"
+               scriptText = "if ! [ -f &quot;$PROJECT_DIR/Envs/canary.env&quot; ] || ! [ -f &quot;$PROJECT_DIR/Envs/sandbox.env&quot; ] || ! [ -f &quot;$PROJECT_DIR/Envs/mainnet.env&quot; ]; then&#10;  sh $PROJECT_DIR/Scripts/UpdateEnvVars.sh&#10;fi&#10;">
+               <EnvironmentBuildable>
+                  <BuildableReference
+                     BuildableIdentifier = "primary"
+                     BlueprintIdentifier = "D99A14752B357E9900F2728B"
+                     BuildableName = "NymVPN.app"
+                     BlueprintName = "NymVPN"
+                     ReferencedContainer = "container:NymVPN.xcodeproj">
+                  </BuildableReference>
+               </EnvironmentBuildable>
+            </ActionContent>
+         </ExecutionAction>
+      </PreActions>
       <BuildActionEntries>
          <BuildActionEntry
             buildForTesting = "YES"

@@ -11,10 +11,6 @@ license.workspace = true
 [lib]
 crate-type = ["cdylib", "lib", "staticlib"]
 
-[[bin]]
-name = "uniffi-bindgen"
-path = "uniffi-bindgen.rs"
-
 [dependencies]
 anyhow.workspace = true
 async-trait.workspace = true
@@ -48,7 +44,7 @@ tokio-util = { workspace = true, features = ["codec"] }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 tracing.workspace = true
 tun2 = { workspace = true, features = ["async"] }
-uniffi = { workspace = true, features = ["cli"] }
+uniffi.workspace = true
 url.workspace = true
 
 # Pin down shadowsocks to prevent mullvad dependencies from using newer crates that aren't compatible.
