@@ -1034,7 +1034,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_nym_vpn_lib_checksum_func_importcredential() != 8591.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_nym_vpn_lib_checksum_func_initlogger() != 45605.toShort()) {
+    if (lib.uniffi_nym_vpn_lib_checksum_func_initlogger() != 45649.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_nym_vpn_lib_checksum_func_startvpn() != 17465.toShort()) {
@@ -3290,6 +3290,35 @@ public object FfiConverterTypeTunStatus: FfiConverterRustBuffer<TunStatus> {
 
 
 
+public object FfiConverterOptionalString: FfiConverterRustBuffer<kotlin.String?> {
+    override fun read(buf: ByteBuffer): kotlin.String? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterString.read(buf)
+    }
+
+    override fun allocationSize(value: kotlin.String?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterString.allocationSize(value)
+        }
+    }
+
+    override fun write(value: kotlin.String?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterString.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterOptionalTimestamp: FfiConverterRustBuffer<java.time.Instant?> {
     override fun read(buf: ByteBuffer): java.time.Instant? {
         if (buf.get().toInt() == 0) {
@@ -4017,11 +4046,11 @@ public object FfiConverterTypeUrl: FfiConverter<Url, RustBuffer.ByValue> {
     )
     }
     
- fun `initLogger`(`level`: kotlin.String)
+ fun `initLogger`(`level`: kotlin.String?)
         = 
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_initlogger(
-        FfiConverterString.lower(`level`),_status)
+        FfiConverterOptionalString.lower(`level`),_status)
 }
     
     
