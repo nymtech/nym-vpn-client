@@ -119,8 +119,12 @@ async fn main() -> Result<()> {
     };
     debug!("app_config: {app_config:?}");
 
-    if let Some(env_file) = &app_config.network_env_file {
-        info!("network environment: custom - {}", env_file.display());
+    if let Some(env_file) = cli
+        .network_env
+        .as_ref()
+        .or(app_config.network_env_file.as_ref())
+    {
+        info!("network environment: custom: {}", env_file.display());
         defaults::setup_env(Some(env_file.clone()));
     } else {
         info!("network environment: mainnet");

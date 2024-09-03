@@ -18,13 +18,13 @@ build_info::build_info!(fn build_info);
 #[derive(Parser, Serialize, Deserialize, Debug, Clone)]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
-    /// Disable the splash-screen
-    #[arg(short, long)]
-    pub nosplash: bool,
-
     /// Print build information
     #[arg(short, long)]
     pub build_info: bool,
+
+    /// Path to an env file to load a custom network environment
+    #[arg(short = 'n', long)]
+    pub network_env: Option<PathBuf>,
 
     /// Unix socket path of gRPC endpoint in IPC mode
     #[arg(short, long)]
@@ -49,6 +49,10 @@ pub struct Cli {
     /// Open a console to see the log stream (Windows only)
     #[arg(short, long)]
     pub console: bool,
+
+    /// Disable the splash-screen
+    #[arg(short = 's', long)]
+    pub nosplash: bool,
 
     #[command(subcommand)]
     pub command: Option<Commands>,
