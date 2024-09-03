@@ -3,10 +3,11 @@
 
 use log::LevelFilter;
 use oslog::OsLogger;
+use std::str::FromStr;
 
-pub fn init_logs() {
+pub fn init_logs(level: String) {
     let result = OsLogger::new("net.nymtech.vpn.agent")
-        .level_filter(LevelFilter::Debug)
+        .level_filter(LevelFilter::from_str(level.as_str()).unwrap_or(LevelFilter::Info))
         .category_level_filter("hyper", LevelFilter::Warn)
         .category_level_filter("tokio_reactor", LevelFilter::Warn)
         .category_level_filter("reqwest", LevelFilter::Warn)

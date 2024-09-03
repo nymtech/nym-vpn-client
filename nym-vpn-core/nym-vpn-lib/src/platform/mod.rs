@@ -219,9 +219,6 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
         return Err(FFIError::VpnAlreadyRunning);
     }
 
-    #[cfg(any(target_os = "ios", target_os = "macos"))]
-    crate::platform::swift::init_logs();
-
     LISTENER
         .lock()
         .unwrap()
@@ -285,9 +282,10 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn initLogger(_level: String) {
+pub fn initLogger(level: String) {
+    info!("Setting log level: {}", level);
     #[cfg(target_os = "ios")]
-    swift::init_logs();
+    swift::init_logs(level);
     #[cfg(target_os = "android")]
     android::init_logs(_level);
 }
