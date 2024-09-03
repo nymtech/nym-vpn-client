@@ -140,13 +140,7 @@ async fn wg_probe(
         pub_key: PeerPublicKey::new(public_key.to_bytes().into()),
     });
 
-    let mut wg_outcome = Wg {
-        can_register: false,
-        can_handshake: false,
-        can_resolve_dns: false,
-        ping_hosts_performance: 0.,
-        ping_ips_performance: 0.,
-    };
+    let mut wg_outcome = Wg::default();
 
     if let Some(authenticator_address) = authenticator.0 {
         let response = auth_client
@@ -229,7 +223,7 @@ async fn wg_probe(
 
             let netstack_response = NetstackCallImpl::ping(&netstack_request);
 
-            println!("Wireguard probe response: {:?}", netstack_response);
+            info!("Wireguard probe response: {:?}", netstack_response);
             wg_outcome.can_handshake = netstack_response.can_handshake;
             wg_outcome.can_resolve_dns = netstack_response.can_resolve_dns;
             wg_outcome.ping_hosts_performance =
