@@ -854,7 +854,7 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_nym_vpn_lib_fn_func_importcredential(`credential`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_nym_vpn_lib_fn_func_initlogger(`level`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_nym_vpn_lib_fn_func_initlogger(uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_nym_vpn_lib_fn_func_startvpn(`config`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
@@ -1034,7 +1034,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_nym_vpn_lib_checksum_func_importcredential() != 8591.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_nym_vpn_lib_checksum_func_initlogger() != 45649.toShort()) {
+    if (lib.uniffi_nym_vpn_lib_checksum_func_initlogger() != 45606.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_nym_vpn_lib_checksum_func_startvpn() != 17465.toShort()) {
@@ -3290,35 +3290,6 @@ public object FfiConverterTypeTunStatus: FfiConverterRustBuffer<TunStatus> {
 
 
 
-public object FfiConverterOptionalString: FfiConverterRustBuffer<kotlin.String?> {
-    override fun read(buf: ByteBuffer): kotlin.String? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterString.read(buf)
-    }
-
-    override fun allocationSize(value: kotlin.String?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterString.allocationSize(value)
-        }
-    }
-
-    override fun write(value: kotlin.String?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterString.write(value, buf)
-        }
-    }
-}
-
-
-
-
 public object FfiConverterOptionalTimestamp: FfiConverterRustBuffer<java.time.Instant?> {
     override fun read(buf: ByteBuffer): java.time.Instant? {
         if (buf.get().toInt() == 0) {
@@ -4046,11 +4017,11 @@ public object FfiConverterTypeUrl: FfiConverter<Url, RustBuffer.ByValue> {
     )
     }
     
- fun `initLogger`(`level`: kotlin.String?)
+ fun `initLogger`()
         = 
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_initlogger(
-        FfiConverterOptionalString.lower(`level`),_status)
+        _status)
 }
     
     

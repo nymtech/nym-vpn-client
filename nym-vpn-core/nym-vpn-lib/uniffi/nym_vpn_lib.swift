@@ -2839,27 +2839,6 @@ extension TunStatus: Equatable, Hashable {}
 
 
 
-fileprivate struct FfiConverterOptionString: FfiConverterRustBuffer {
-    typealias SwiftType = String?
-
-    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
-        guard let value = value else {
-            writeInt(&buf, Int8(0))
-            return
-        }
-        writeInt(&buf, Int8(1))
-        FfiConverterString.write(value, into: &buf)
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
-        switch try readInt(&buf) as Int8 {
-        case 0: return nil
-        case 1: return try FfiConverterString.read(from: &buf)
-        default: throw UniffiInternalError.unexpectedOptionalTag
-        }
-    }
-}
-
 fileprivate struct FfiConverterOptionTimestamp: FfiConverterRustBuffer {
     typealias SwiftType = Date?
 
@@ -3812,9 +3791,8 @@ public func importCredential(credential: String, path: String)throws  -> Date? {
     )
 })
 }
-public func initLogger(level: String?) {try! rustCall() {
-    uniffi_nym_vpn_lib_fn_func_initlogger(
-        FfiConverterOptionString.lower(level),$0
+public func initLogger() {try! rustCall() {
+    uniffi_nym_vpn_lib_fn_func_initlogger($0
     )
 }
 }
@@ -3860,7 +3838,7 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_func_importcredential() != 8591) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_initlogger() != 45649) {
+    if (uniffi_nym_vpn_lib_checksum_func_initlogger() != 45606) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_startvpn() != 17465) {
