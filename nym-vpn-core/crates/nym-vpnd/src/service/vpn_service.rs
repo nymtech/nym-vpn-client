@@ -584,9 +584,22 @@ where
             return Err(ImportCredentialError::VpnRunning);
         }
 
-        import_credential(credential, self.data_dir.clone())
+        let res = import_credential(credential, self.data_dir.clone())
             .await
-            .map_err(|err| err.into())
+            .map_err(|err| err.into());
+        if res.is_ok()
+            && matches!(
+                self.shared_vpn_state.get(),
+                VpnState::ConnectionFailed(ConnectionFailedError::InvalidCredential {
+                    reason: _,
+                    location: _,
+                    gateway_id: _,
+                })
+            )
+        {
+            self.shared_vpn_state.set(VpnState::NotConnected);
+        }
+        res
     }
 
     async fn handle_store_account(&mut self, account: String) -> Result<(), StoreAccountError>
