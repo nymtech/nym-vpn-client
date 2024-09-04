@@ -483,6 +483,56 @@ impl NymVpnd for CommandInterface {
         info!("Returning register device response");
         Ok(tonic::Response::new(response))
     }
+
+    async fn request_zk_nym(
+        &self,
+        _request: tonic::Request<nym_vpn_proto::RequestZkNymRequest>,
+    ) -> Result<tonic::Response<nym_vpn_proto::RequestZkNymResponse>, tonic::Status> {
+        info!("Got request zk nym request");
+
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_request_zk_nym()
+            .await;
+
+        let response = match result {
+            Ok(device) => nym_vpn_proto::RequestZkNymResponse {
+                json: serde_json::to_string(&device).unwrap(),
+                error: None,
+            },
+            Err(err) => nym_vpn_proto::RequestZkNymResponse {
+                json: err.to_string(),
+                error: Some(AccountError::from(err)),
+            },
+        };
+
+        info!("Returning request zk nym response");
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn get_device_zk_nyms(
+        &self,
+        _request: tonic::Request<nym_vpn_proto::GetDeviceZkNymsRequest>,
+    ) -> Result<tonic::Response<nym_vpn_proto::GetDeviceZkNymsResponse>, tonic::Status> {
+        info!("Got get device zk nyms request");
+
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_get_device_zk_nyms()
+            .await;
+
+        let response = match result {
+            Ok(device) => nym_vpn_proto::GetDeviceZkNymsResponse {
+                json: serde_json::to_string(&device).unwrap(),
+                error: None,
+            },
+            Err(err) => nym_vpn_proto::GetDeviceZkNymsResponse {
+                json: err.to_string(),
+                error: Some(AccountError::from(err)),
+            },
+        };
+
+        info!("Returning get device zk nyms response");
+        Ok(tonic::Response::new(response))
+    }
 }
 
 impl TryFrom<ConnectRequest> for ConnectOptions {

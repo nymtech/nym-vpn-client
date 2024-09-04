@@ -410,6 +410,20 @@ message RegisterDeviceResponse {
   AccountError error = 2;
 }
 
+message RequestZkNymRequest {}
+
+message RequestZkNymResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
+message GetDeviceZkNymsRequest {}
+
+message GetDeviceZkNymsResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
 message AccountError {
   enum AccountErrorType {
     STORE_ACCOUNT_ERROR_UNSPECIFIED = 0;
@@ -448,5 +462,7 @@ service NymVpnd {
   rpc StoreAccount (StoreAccountRequest) returns (StoreAccountResponse) {}
   rpc GetAccountSummary (GetAccountSummaryRequest) returns (GetAccountSummaryResponse) {}
   rpc RegisterDevice (RegisterDeviceRequest) returns (RegisterDeviceResponse) {}
+  rpc RequestZkNym (RequestZkNymRequest) returns (RequestZkNymResponse) {}
+  rpc GetDeviceZkNyms (GetDeviceZkNymsRequest) returns (GetDeviceZkNymsResponse) {}
 }
 
