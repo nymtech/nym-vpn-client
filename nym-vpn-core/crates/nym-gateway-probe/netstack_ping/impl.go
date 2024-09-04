@@ -30,7 +30,7 @@ func (Netstack) ping(req NetstackRequest) NetstackResponse {
 	if err != nil {
 		log.Panic(err)
 	}
-	dev := device.NewDevice(tun, conn.NewDefaultBind(), device.NewLogger(device.LogLevelVerbose, ""))
+	dev := device.NewDevice(tun, conn.NewDefaultBind(), device.NewLogger(device.LogLevelError, ""))
 
 	var ipc strings.Builder
 
@@ -54,7 +54,7 @@ func (Netstack) ping(req NetstackRequest) NetstackResponse {
 
 	for _, host := range req.ping_hosts {
 		for i := uint8(0); i < req.num_ping; i++ {
-			log.Printf("Send ping seq=%d", i)
+			log.Printf("Pinging %s seq=%d", host, i)
 			response.sent_hosts += 1
 			rt, err := sendPing(host, i, req.send_timeout_sec, req.recv_timeout_sec, tnet)
 			if err != nil {
@@ -69,7 +69,7 @@ func (Netstack) ping(req NetstackRequest) NetstackResponse {
 
 	for _, ip := range req.ping_ips {
 		for i := uint8(0); i < req.num_ping; i++ {
-			log.Printf("Send ping seq=%d", i)
+			log.Printf("Pinging %s seq=%d", ip, i)
 			response.sent_ips += 1
 			rt, err := sendPing(ip, i, req.send_timeout_sec, req.recv_timeout_sec, tnet)
 			if err != nil {
