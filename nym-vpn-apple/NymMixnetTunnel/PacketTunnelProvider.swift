@@ -74,7 +74,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             case .statusUpdate(.establishingConnection):
                 logger.debug("Tunnel is establishing connection.")
             case .statusUpdate(.down):
-                logger.error("Failed to start backendØ")
+                logger.error("Failed to start backend")
                 throw PacketTunnelProviderError.backendStartFailure
             case .statusUpdate(.initializingClient):
                 logger.debug("Initializing the client")
