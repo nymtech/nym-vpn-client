@@ -1,9 +1,10 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
 
+use std::str::FromStr;
+
 use log::LevelFilter;
 use oslog::OsLogger;
-use std::str::FromStr;
 
 pub fn init_logs(level: String) {
     let result = OsLogger::new("net.nymtech.vpn.agent")

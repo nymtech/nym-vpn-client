@@ -1,14 +1,15 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use clap::{Args, Parser, Subcommand};
-use ipnetwork::{Ipv4Network, Ipv6Network};
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     path::PathBuf,
     str::FromStr,
     sync::OnceLock,
 };
+
+use clap::{Args, Parser, Subcommand};
+use ipnetwork::{Ipv4Network, Ipv6Network};
 
 const TUN_IP4_SUBNET: &str = "10.0.0.0/16";
 const TUN_IP6_SUBNET: &str = "2001:db8:a160::0/112";

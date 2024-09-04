@@ -10,29 +10,26 @@ use std::{
 
 use futures::{stream::BoxStream, StreamExt};
 use nym_vpn_proto::{
-    nym_vpnd_server::NymVpnd, ConnectRequest, ConnectResponse, ConnectionStateChange,
-    ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
-    ImportUserCredentialRequest, ImportUserCredentialResponse, StatusRequest, StatusResponse,
-};
-use nym_vpn_proto::{
-    AccountError, GetAccountSummaryRequest, GetAccountSummaryResponse, InfoRequest, InfoResponse,
-    ListEntryCountriesRequest, ListEntryCountriesResponse, ListEntryGatewaysRequest,
-    ListEntryGatewaysResponse, ListExitCountriesRequest, ListExitCountriesResponse,
-    ListExitGatewaysRequest, ListExitGatewaysResponse, StoreAccountRequest, StoreAccountResponse,
+    nym_vpnd_server::NymVpnd, AccountError, ConnectRequest, ConnectResponse, ConnectionStateChange,
+    ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty, GetAccountSummaryRequest,
+    GetAccountSummaryResponse, ImportUserCredentialRequest, ImportUserCredentialResponse,
+    InfoRequest, InfoResponse, ListEntryCountriesRequest, ListEntryCountriesResponse,
+    ListEntryGatewaysRequest, ListEntryGatewaysResponse, ListExitCountriesRequest,
+    ListExitCountriesResponse, ListExitGatewaysRequest, ListExitGatewaysResponse, StatusRequest,
+    StatusResponse, StoreAccountRequest, StoreAccountResponse,
 };
 use prost_types::Timestamp;
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 use tracing::{error, info};
-
-use crate::service::{
-    ConnectOptions, VpnServiceCommand, VpnServiceConnectResult, VpnServiceStateChange,
-};
 
 use super::{
     connection_handler::CommandInterfaceConnectionHandler,
     error::CommandInterfaceError,
     helpers::{parse_entry_point, parse_exit_point, threshold_into_u8},
     status_broadcaster::ConnectionStatusBroadcaster,
+};
+use crate::service::{
+    ConnectOptions, VpnServiceCommand, VpnServiceConnectResult, VpnServiceStateChange,
 };
 
 enum ListenerType {

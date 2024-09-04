@@ -1,8 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::service::VpnServiceInfoResult;
 use nym_vpn_proto::InfoResponse;
+
+use crate::service::VpnServiceInfoResult;
 
 impl From<VpnServiceInfoResult> for InfoResponse {
     fn from(info: VpnServiceInfoResult) -> Self {

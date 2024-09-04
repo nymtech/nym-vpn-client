@@ -1,8 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use serde::{Deserialize, Serialize};
 use std::error::Error;
+
+use serde::{Deserialize, Serialize};
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
 pub mod ephemeral;

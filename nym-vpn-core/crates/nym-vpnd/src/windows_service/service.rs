@@ -15,11 +15,10 @@ use windows_service::{
     service_dispatcher,
 };
 
+use super::install;
 use crate::{
     cli::CliArgs, command_interface::start_command_interface, logging, service::start_vpn_service,
 };
-
-use super::install;
 
 windows_service::define_windows_service!(ffi_service_main, service_main);
 

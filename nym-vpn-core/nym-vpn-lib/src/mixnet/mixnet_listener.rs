@@ -3,6 +3,7 @@
 
 use bytes::Bytes;
 use futures::{channel::mpsc, prelude::stream::SplitSink, SinkExt, StreamExt};
+use nym_connection_monitor::{ConnectionStatusEvent, IcmpBeaconReply, Icmpv6BeaconReply};
 use nym_ip_packet_client::{IprListener, MixnetMessageOutcome};
 use nym_ip_packet_requests::IpPair;
 use nym_task::TaskClient;
@@ -10,8 +11,6 @@ use tokio::task::JoinHandle;
 use tokio_util::codec::Framed;
 use tracing::{debug, error, trace};
 use tun2::{AsyncDevice, TunPacketCodec};
-
-use nym_connection_monitor::{ConnectionStatusEvent, IcmpBeaconReply, Icmpv6BeaconReply};
 
 use super::SharedMixnetClient;
 

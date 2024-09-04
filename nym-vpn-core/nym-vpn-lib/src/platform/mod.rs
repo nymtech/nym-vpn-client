@@ -9,45 +9,48 @@ mod status_listener;
 #[cfg(any(target_os = "ios", target_os = "macos"))]
 pub mod swift;
 
-use lazy_static::lazy_static;
-use log::*;
-
 use std::{
     env,
     path::PathBuf,
     str::FromStr,
-    sync::atomic::{AtomicBool, Ordering},
-    sync::Arc,
-    sync::Mutex as StdMutex,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc, Mutex as StdMutex,
+    },
     time::SystemTime,
 };
 
+use lazy_static::lazy_static;
+use log::*;
 use talpid_core::mpsc::Sender;
-use tokio::runtime::Runtime;
-use tokio::sync::{Mutex, Notify};
-use tokio::task::JoinHandle;
+use tokio::{
+    runtime::Runtime,
+    sync::{Mutex, Notify},
+    task::JoinHandle,
+};
 use tokio_util::sync::CancellationToken;
 use url::Url;
 
 use self::error::FFIError;
-use crate::credentials::{check_credential_base58, import_credential_base58};
-use crate::gateway_directory::GatewayClient;
-use crate::platform::status_listener::VpnServiceStatusListener;
-use crate::uniffi_custom_impls::{
-    BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, ExitStatus, Location, NymVpnStatus,
-    StatusEvent, TunStatus, UserAgent,
-};
-use crate::vpn::{
-    spawn_nym_vpn, MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
-    NymVpnHandle, SpecificVpn,
-};
-
 #[cfg(target_os = "ios")]
 use crate::mobile::ios::tun_provider::OSTunProvider;
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use crate::mobile::runner::WgTunnelRunner;
 #[cfg(target_os = "android")]
 use crate::platform::android::AndroidTunProvider;
+use crate::{
+    credentials::{check_credential_base58, import_credential_base58},
+    gateway_directory::GatewayClient,
+    platform::status_listener::VpnServiceStatusListener,
+    uniffi_custom_impls::{
+        BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, ExitStatus, Location,
+        NymVpnStatus, StatusEvent, TunStatus, UserAgent,
+    },
+    vpn::{
+        spawn_nym_vpn, MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError,
+        NymVpnExitStatusMessage, NymVpnHandle, SpecificVpn,
+    },
+};
 
 lazy_static! {
     static ref VPN_SHUTDOWN_HANDLE: Mutex<Option<ShutdownHandle>> = Mutex::new(None);

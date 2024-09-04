@@ -1,3 +1,8 @@
+use std::{
+    net::{Ipv4Addr, Ipv6Addr},
+    time::Duration,
+};
+
 use bytes::BytesMut;
 use futures::StreamExt;
 use nym_config::defaults::NymNetworkDetails;
@@ -13,10 +18,6 @@ use nym_ip_packet_requests::{
     IpPair,
 };
 use nym_sdk::mixnet::{MixnetClientBuilder, ReconstructedMessage};
-use std::{
-    net::{Ipv4Addr, Ipv6Addr},
-    time::Duration,
-};
 use tokio_util::codec::Decoder;
 use tracing::*;
 

@@ -1,22 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::IpAddr;
-use std::time::Duration;
+use std::{net::IpAddr, time::Duration};
 
-use crate::{
-    bandwidth_controller::BandwidthController,
-    error::{Error, GatewayDirectoryError, Result},
-    mixnet, platform,
-    routing::{self, catch_all_ipv4, catch_all_ipv6, replace_default_prefixes},
-    uniffi_custom_impls::{StatusEvent, TunStatus},
-    vpn::{
-        MixnetConnectionInfo, MixnetExitConnectionInfo, MixnetVpn, NymVpn, SpecificVpn,
-        WireguardConnectionInfo, WireguardVpn, MIXNET_CLIENT_STARTUP_TIMEOUT_SECS,
-    },
-    wireguard_config,
-    wireguard_setup::create_wireguard_tunnel,
-};
 use futures::{
     channel::{mpsc, oneshot},
     StreamExt,
@@ -31,6 +17,20 @@ use talpid_core::{dns::DnsMonitor, firewall::Firewall};
 use talpid_routing::{Node, RequiredRoute, RouteManager};
 use talpid_tunnel::{TunnelEvent, TunnelMetadata};
 use tokio::time::timeout;
+
+use crate::{
+    bandwidth_controller::BandwidthController,
+    error::{Error, GatewayDirectoryError, Result},
+    mixnet, platform,
+    routing::{self, catch_all_ipv4, catch_all_ipv6, replace_default_prefixes},
+    uniffi_custom_impls::{StatusEvent, TunStatus},
+    vpn::{
+        MixnetConnectionInfo, MixnetExitConnectionInfo, MixnetVpn, NymVpn, SpecificVpn,
+        WireguardConnectionInfo, WireguardVpn, MIXNET_CLIENT_STARTUP_TIMEOUT_SECS,
+    },
+    wireguard_config,
+    wireguard_setup::create_wireguard_tunnel,
+};
 
 pub(crate) struct TunnelSetup<T: TunnelSpecifcSetup> {
     pub(crate) specific_setup: T,

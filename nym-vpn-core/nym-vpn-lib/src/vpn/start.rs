@@ -4,13 +4,12 @@
 use futures::channel::{mpsc, oneshot};
 use tracing::{debug, error, info};
 
+use super::{NymVpnCtrlMessage, NymVpnExitStatusMessage, SpecificVpn};
 use crate::{
     error::Result,
     uniffi_custom_impls::{ExitStatus, StatusEvent},
     Error,
 };
-
-use super::{NymVpnCtrlMessage, NymVpnExitStatusMessage, SpecificVpn};
 
 /// Starts the Nym VPN client.
 ///

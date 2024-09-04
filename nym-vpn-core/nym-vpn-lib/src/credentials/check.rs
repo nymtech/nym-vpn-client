@@ -1,11 +1,9 @@
-use std::time::SystemTime;
-use std::{fs, path::PathBuf};
+use std::{fs, path::PathBuf, time::SystemTime};
 
 use nym_bandwidth_controller_pre_ecash::BandwidthController;
 use nym_credentials_pre_ecash::{
     coconut::bandwidth::issued::BandwidthCredentialIssuedDataVariant, IssuedBandwidthCredential,
 };
-
 use tracing::debug;
 
 use super::{

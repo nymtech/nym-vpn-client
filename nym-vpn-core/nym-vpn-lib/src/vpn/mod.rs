@@ -7,11 +7,10 @@ mod mixnet;
 mod start;
 mod wireguard;
 
-pub(crate) use base::{NymVpnExitError, MIXNET_CLIENT_STARTUP_TIMEOUT_SECS};
-pub(crate) use mixnet::{MixnetConnectionInfo, MixnetExitConnectionInfo, MixnetVpn};
-pub(crate) use wireguard::{WireguardConnectionInfo, WireguardVpn};
-
 pub use base::{GenericNymVpnConfig, NymVpn, SpecificVpn};
+pub(crate) use base::{NymVpnExitError, MIXNET_CLIENT_STARTUP_TIMEOUT_SECS};
 pub use messages::{NymVpnCtrlMessage, NymVpnExitStatusMessage, NymVpnStatusMessage};
 pub use mixnet::MixnetClientConfig;
+pub(crate) use mixnet::{MixnetConnectionInfo, MixnetExitConnectionInfo, MixnetVpn};
 pub use start::{spawn_nym_vpn, spawn_nym_vpn_with_new_runtime, NymVpnHandle};
+pub(crate) use wireguard::{WireguardConnectionInfo, WireguardVpn};

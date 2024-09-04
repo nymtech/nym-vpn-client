@@ -1,3 +1,5 @@
+use std::net::{Ipv4Addr, Ipv6Addr};
+
 use bytes::Bytes;
 use nym_connection_monitor::{
     is_icmp_beacon_reply, is_icmp_v6_beacon_reply,
@@ -13,7 +15,6 @@ use nym_ip_packet_requests::{codec::MultiIpPacketCodec, IpPair};
 use nym_sdk::mixnet::{InputMessage, Recipient};
 use nym_task::connections::TransmissionLane;
 use pnet_packet::Packet;
-use std::net::{Ipv4Addr, Ipv6Addr};
 
 use crate::Result;
 

@@ -17,7 +17,6 @@ use super::{
     listener::CommandInterface,
     socket_stream::setup_socket_stream,
 };
-
 use crate::service::{VpnServiceCommand, VpnServiceStateChange};
 
 fn grpc_span(req: &http::Request<()>) -> Span {

@@ -10,6 +10,7 @@ use std::{
     time::Duration,
 };
 
+pub use error::Error;
 use nym_authenticator_client::AuthClient;
 use nym_authenticator_requests::v1::response::{
     AuthenticatorResponseData, PendingRegistrationResponse, RegisteredResponse,
@@ -29,8 +30,6 @@ use rand::{rngs::OsRng, CryptoRng, RngCore};
 use talpid_types::net::wireguard::PublicKey; // TODO: this is a type we should provide instead
 use tokio_stream::{wrappers::IntervalStream, StreamExt};
 use tracing::{debug, error, info, trace, warn};
-
-pub use error::Error;
 
 use crate::error::Result;
 

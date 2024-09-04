@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #[cfg(target_os = "macos")]
 use std::env;
+
 use tracing_appender::non_blocking::WorkerGuard;
 
 use crate::service;

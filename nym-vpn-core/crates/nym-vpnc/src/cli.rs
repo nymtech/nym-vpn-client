@@ -1,10 +1,11 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
 
+use std::{net::IpAddr, path::PathBuf};
+
 use anyhow::{anyhow, Result};
 use clap::{Args, Parser, Subcommand};
 use nym_gateway_directory::{EntryPoint, ExitPoint, NodeIdentity, Recipient};
-use std::{net::IpAddr, path::PathBuf};
 
 #[derive(Parser)]
 #[clap(author = "Nymtech", version, about)]

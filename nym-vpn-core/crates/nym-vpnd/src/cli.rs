@@ -1,9 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use clap::Args;
-use clap::Parser;
 use std::{path::PathBuf, sync::OnceLock};
+
+use clap::{Args, Parser};
 
 // Helper for passing LONG_VERSION to clap
 fn pretty_build_info_static() -> &'static str {

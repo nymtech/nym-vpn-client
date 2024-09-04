@@ -1,8 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::types::gateway;
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
+
+use crate::types::gateway;
 
 impl From<gateway::Location> for nym_vpn_proto::Location {
     fn from(location: gateway::Location) -> Self {

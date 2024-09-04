@@ -1,13 +1,15 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{error::Result, Error};
+use std::net::IpAddr;
+
 use hickory_resolver::{
     config::{ResolverConfig, ResolverOpts},
     TokioAsyncResolver,
 };
-use std::net::IpAddr;
 use tracing::debug;
+
+use crate::{error::Result, Error};
 
 pub(crate) async fn try_resolve_hostname(hostname: &str) -> Result<IpAddr> {
     debug!("Trying to resolve hostname: {hostname}");

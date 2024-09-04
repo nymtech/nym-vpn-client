@@ -1,11 +1,11 @@
+use std::path::PathBuf;
+
 use anyhow::anyhow;
 use clap::Parser;
 use nym_config::defaults::setup_env;
 use nym_gateway_directory::EntryPoint;
-use std::path::PathBuf;
-use tracing::*;
-
 use nym_gateway_probe::ProbeResult;
+use tracing::*;
 
 #[derive(Parser)]
 #[clap(author, version, about)]

@@ -1,6 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::path::Path;
+
 use nym_vpn_store::{
     keys::{
         persistence::{DeviceKeysPaths, OnDiskKeysError},
@@ -8,8 +10,6 @@ use nym_vpn_store::{
     },
     mnemonic::{on_disk::OnDiskMnemonicStorageError, Mnemonic, MnemonicStorage},
 };
-
-use std::path::Path;
 
 mod helpers;
 
