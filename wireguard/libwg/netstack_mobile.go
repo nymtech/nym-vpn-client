@@ -184,36 +184,6 @@ func wgNetCloseConnectionThroughTunnel(udpForwarderHandle int32) {
 	(*udpForwarder).Close()
 }
 
-// todo: move wgNetGetSocket{V4,V6} to _android specific file.
-
-//export wgNetGetSocketV4
-func wgNetGetSocketV4(tunnelHandle int32) int32 {
-	tunnel, err := netTunnelHandles.Get(tunnelHandle)
-	if err != nil {
-		return ERROR_GENERAL_FAILURE
-	}
-	peek := tunnel.Device.Bind().(conn.PeekLookAtSocketFd)
-	fd, err := peek.PeekLookAtSocketFd4()
-	if err != nil {
-		return ERROR_GENERAL_FAILURE
-	}
-	return int32(fd)
-}
-
-//export wgNetGetSocketV6
-func wgNetGetSocketV6(tunnelHandle int32) int32 {
-	tunnel, err := netTunnelHandles.Get(tunnelHandle)
-	if err != nil {
-		return ERROR_GENERAL_FAILURE
-	}
-	peek := tunnel.Device.Bind().(conn.PeekLookAtSocketFd)
-	fd, err := peek.PeekLookAtSocketFd6()
-	if err != nil {
-		return ERROR_GENERAL_FAILURE
-	}
-	return int32(fd)
-}
-
 // Parse a list of comma-separated IP addresses into array of netip.Addr structs.
 func parseIPAddrs(input string) ([]netip.Addr, error) {
 	addrs := []netip.Addr{}
