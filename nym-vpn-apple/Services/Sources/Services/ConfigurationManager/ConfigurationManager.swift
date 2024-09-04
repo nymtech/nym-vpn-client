@@ -1,23 +1,50 @@
 import Foundation
 import Constants
+import Logging
 
-public class ConfigurationManager {
-    public static func setEnvVariables() throws {
-        let envString = try ConfigurationManager.contentOfEnvFile(named: Constants.currentEnvironment.rawValue)
-        try setEnvironmentVariables(envString: envString)
+public final class ConfigurationManager {
+    public static let shared = ConfigurationManager()
+
+    private let logger = Logger(label: "Configuration Manager")
+
+    private var currentEnv: Env = .mainnet
+
+    public var nymVpnApiURL: URL? {
+        getenv("NYM_VPN_API").flatMap { URL(string: String(cString: $0)) }
+    }
+
+    public var apiURL: URL? {
+        getenv("NYM_API").flatMap { URL(string: String(cString: $0)) }
+    }
+
+    public init() {}
+
+    public func setup() throws {
+        try setEnvVariables(for: currentEnv)
     }
 }
 
 private extension ConfigurationManager {
-    static func contentOfEnvFile(named: String) throws -> String {
-        guard let filePath = Bundle.main.path(forResource: named, ofType: "env") else {
+    func setEnvVariables(for environment: Env) throws {
+        do {
+            let envString = try contentOfEnvFile(named: environment.rawValue)
+            try setEnvironmentVariables(envString: envString)
+        } catch {
+            logger.error("setEnvVariables failed: \(error.localizedDescription)")
+        }
+    }
+}
+
+private extension ConfigurationManager {
+    func contentOfEnvFile(named: String) throws -> String {
+        guard let filePath = Bundle.main.path(forResource: named, ofType: "env")
+        else {
             throw GeneralNymError.noEnvFile
         }
-
         return try String(contentsOfFile: filePath, encoding: .utf8)
     }
 
-    static func setEnvironmentVariables(envString: String) throws {
+    func setEnvironmentVariables(envString: String) throws {
         let escapeQuote = "\""
         let lines = envString.split(whereSeparator: { $0.isNewline })
 

@@ -13,10 +13,19 @@ public final class LogsViewModel: ObservableObject {
     @Published var logs: String = ""
     @Published var isFileExporterPresented = false
     @Published var isDeleteDialogDisplayed = false
+    @Published var currentLogFileType: LogFileType = .app {
+        didSet {
+            readLogs()
+        }
+    }
 
     @Binding private var path: NavigationPath
 
-    init(path: Binding<NavigationPath>, logFileManager: LogFileManager = LogFileManager.shared) {
+    var logFileTypes: [LogFileType] {
+        LogFileType.allCases
+    }
+
+    init(path: Binding<NavigationPath>, logFileManager: LogFileManager) {
         _path = path
         self.logFileManager = logFileManager
         readLogs()
@@ -32,12 +41,19 @@ public final class LogsViewModel: ObservableObject {
     }
 
     func logFileURL() -> URL? {
-        logFileManager.logFileURL
+        logFileManager.logFileURL(logFileType: .tunnel)
     }
 }
 
 private extension LogsViewModel {
     func readLogs() {
-        logs = logFileManager.logs()
+        guard let logFileURL = logFileManager.logFileURL(logFileType: currentLogFileType),
+              let logData = try? Data(contentsOf: logFileURL),
+              let appLogs = String(data: logData, encoding: .utf8)
+        else {
+            logs = ""
+            return
+        }
+        logs = appLogs
     }
 }

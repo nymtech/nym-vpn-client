@@ -232,6 +232,17 @@
         }
       }
     },
+    "app" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App"
+          }
+        }
+      }
+    },
     "autoConnectSubtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1097,6 +1108,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Support"
+          }
+        }
+      }
+    },
+    "tunnel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tunnel"
           }
         }
       }

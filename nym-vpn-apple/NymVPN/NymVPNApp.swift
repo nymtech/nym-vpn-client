@@ -11,6 +11,8 @@ import Theme
 
 @main
 struct NymVPNApp: App {
+    private let logFileManager = LogFileManager(logFileType: .app)
+
     @ObservedObject private var appSettings = AppSettings.shared
     @StateObject private var homeViewModel = HomeViewModel()
 
@@ -36,6 +38,7 @@ struct NymVPNApp: App {
             }
             .environmentObject(appSettings)
             .environmentObject(KeyboardManager.shared)
+            .environmentObject(logFileManager)
         }
     }
 }
@@ -43,9 +46,9 @@ struct NymVPNApp: App {
 private extension NymVPNApp {
     func setup() {
         LoggingSystem.bootstrap { label in
-            FileLogHandler(label: label)
+            FileLogHandler(label: label, logFileManager: logFileManager)
         }
-        try? ConfigurationManager.setEnvVariables()
+        try? ConfigurationManager.shared.setup()
         ThemeConfiguration.setup()
         SentryManager.shared.setup()
     }

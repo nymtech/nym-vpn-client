@@ -1,6 +1,7 @@
 import Combine
 import SwiftUI
 import AppSettings
+import ConfigurationManager
 #if os(macOS)
 import GRPCManager
 import HelperManager
@@ -12,7 +13,8 @@ import Constants
 import Logging
 
 public final class CountriesManager: ObservableObject {
-    private var appSettings: AppSettings
+    private let appSettings: AppSettings
+    private let configurationManager: ConfigurationManager
 
     let logger = Logger(label: "CountriesManager")
 #if os(macOS)
@@ -25,13 +27,17 @@ public final class CountriesManager: ObservableObject {
     var entryLastHopStore = EntryLastHopStore()
     var cancellables = Set<AnyCancellable>()
 #if os(iOS)
-    public static let shared = CountriesManager(appSettings: AppSettings.shared)
+    public static let shared = CountriesManager(
+        appSettings: AppSettings.shared,
+        configurationManager: ConfigurationManager.shared
+    )
 #endif
 #if os(macOS)
     public static let shared = CountriesManager(
         appSettings: AppSettings.shared,
         grpcManager: GRPCManager.shared,
-        helperManager: HelperManager.shared
+        helperManager: HelperManager.shared,
+        configurationManager: ConfigurationManager.shared
     )
 #endif
 
@@ -40,8 +46,9 @@ public final class CountriesManager: ObservableObject {
     @Published public var lastError: Error?
 
 #if os(iOS)
-    public init(appSettings: AppSettings) {
+    public init(appSettings: AppSettings, configurationManager: ConfigurationManager) {
         self.appSettings = appSettings
+        self.configurationManager = configurationManager
         self.entryCountries = []
         self.exitCountries = []
 
@@ -50,8 +57,14 @@ public final class CountriesManager: ObservableObject {
 #endif
 
 #if os(macOS)
-    public init(appSettings: AppSettings, grpcManager: GRPCManager, helperManager: HelperManager) {
+    public init(
+        appSettings: AppSettings,
+        grpcManager: GRPCManager,
+        helperManager: HelperManager,
+        configurationManager: ConfigurationManager
+    ) {
         self.appSettings = appSettings
+        self.configurationManager = configurationManager
         self.grpcManager = grpcManager
         self.helperManager = helperManager
         self.entryCountries = []
@@ -205,7 +218,7 @@ private extension CountriesManager {
 #if os(iOS)
 private extension CountriesManager {
     func fetchEntryExitCountries() {
-        guard let apiURL = Constants.apiURL()
+        guard let apiURL = configurationManager.apiURL
         else {
             updateError(with: GeneralNymError.cannotFetchCountries)
             return
@@ -214,7 +227,7 @@ private extension CountriesManager {
         do {
             let entryExitLocations = try getGatewayCountries(
                 apiUrl: apiURL,
-                nymVpnApiUrl: nil,
+                nymVpnApiUrl: configurationManager.nymVpnApiURL,
                 exitOnly: false,
                 userAgent: nil
             )
@@ -225,7 +238,7 @@ private extension CountriesManager {
 
             let exitLocations = try getGatewayCountries(
                 apiUrl: apiURL,
-                nymVpnApiUrl: nil,
+                nymVpnApiUrl: configurationManager.nymVpnApiURL,
                 exitOnly: true,
                 userAgent: nil
             )
