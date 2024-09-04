@@ -1,10 +1,15 @@
 name: auto-assign-reviewer
 on:
-  - pull_request
+  pull_request:
+    # add needed activity types
+    # https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#pull_request
+    types: [opened, synchronize, reopened, ready_for_review, review_requested]
 
 jobs:
   assign_reviewer:
     runs-on: ubuntu-latest
+    # do not run while in draft mode
+    if: github.event.pull_request.draft == false
     steps:
       - uses: shufo/auto-assign-reviewer-by-files@v1.1.5
         with:
