@@ -476,8 +476,9 @@ impl VpnApiClient {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use nym_crypto::asymmetric::ed25519;
+
+    use super::*;
 
     const BASE_URL: &str = "https://nymvpn.com/api";
     const BASE_URL_PREVIEW: &str =

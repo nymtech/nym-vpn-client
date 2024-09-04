@@ -11,12 +11,11 @@ use nym_vpn_lib::{
 use time::OffsetDateTime;
 use tracing::{debug, info};
 
+use super::vpn_service::{SharedVpnState, VpnState};
 use crate::service::vpn_service::{
     ConnectedStateDetails, MixConnectedStateDetails, VpnConnectedStateDetails,
     WgConnectedStateDetails,
 };
-
-use super::vpn_service::{SharedVpnState, VpnState};
 
 pub(super) struct VpnServiceStatusListener {
     shared_vpn_state: SharedVpnState,

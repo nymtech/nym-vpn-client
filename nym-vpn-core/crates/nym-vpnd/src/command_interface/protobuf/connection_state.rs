@@ -1,8 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::service::VpnServiceStateChange;
 use nym_vpn_proto::{ConnectionStateChange, ConnectionStatus, Error as ProtoError};
+
+use crate::service::VpnServiceStateChange;
 
 impl From<VpnServiceStateChange> for ConnectionStateChange {
     fn from(status: VpnServiceStateChange) -> Self {

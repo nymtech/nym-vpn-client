@@ -3,12 +3,12 @@
 
 use std::fmt::{Display, Formatter};
 
-use crate::{error::Result, Error, IpPacketRouterAddress};
 use nym_sdk::mixnet::{NodeIdentity, Recipient};
 use serde::{Deserialize, Serialize};
 use tracing::{debug, info};
 
 use super::gateway::{Gateway, GatewayList};
+use crate::{error::Result, Error, IpPacketRouterAddress};
 
 // The exit point is a nym-address, but if the exit ip-packet-router is running embedded on a
 // gateway, we can refer to it by the gateway identity.

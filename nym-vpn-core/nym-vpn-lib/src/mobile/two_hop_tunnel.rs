@@ -1,3 +1,12 @@
+use std::sync::Arc;
+
+#[cfg(target_os = "android")]
+use log::error;
+use nym_wg_go::{netstack, wireguard_go};
+#[cfg(target_os = "ios")]
+use tokio::sync::mpsc;
+use tokio_util::sync::CancellationToken;
+
 #[cfg(target_os = "ios")]
 use super::ios::{
     default_path_observer::{DefaultPathObserver, DefaultPathReceiver, OSDefaultPath},
@@ -5,24 +14,18 @@ use super::ios::{
     tun,
     tun_provider::OSTunProvider,
 };
-use super::tunnel_settings::TunnelSettings;
-#[cfg(target_os = "android")]
-use log::error;
-use std::sync::Arc;
-#[cfg(target_os = "ios")]
-use tokio::sync::mpsc;
-use tokio_util::sync::CancellationToken;
-
-use super::{two_hop_config::TwoHopConfig, wg_config::WgNodeConfig, Error, Result};
-
 #[cfg(target_os = "ios")]
 use super::wg_config::WgPeer;
-
+use super::{
+    tunnel_settings::TunnelSettings, two_hop_config::TwoHopConfig, wg_config::WgNodeConfig, Error,
+    Result,
+};
 #[cfg(target_os = "android")]
 use crate::platform::android::AndroidTunProvider;
-use crate::platform::uniffi_set_listener_status;
-use crate::uniffi_custom_impls::{StatusEvent, TunStatus};
-use nym_wg_go::{netstack, wireguard_go};
+use crate::{
+    platform::uniffi_set_listener_status,
+    uniffi_custom_impls::{StatusEvent, TunStatus},
+};
 
 /// Two-hop WireGuard tunnel.
 ///

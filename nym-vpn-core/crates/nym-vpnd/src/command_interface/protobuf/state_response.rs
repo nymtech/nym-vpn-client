@@ -1,11 +1,12 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::service::{ConnectedStateDetails, VpnServiceStatusResult};
 use nym_vpn_proto::{
     connected_state_details, ConnectionStatus, Error as ProtoError, MixConnectedStateDetails,
     StatusResponse, WgConnectedStateDetails,
 };
+
+use crate::service::{ConnectedStateDetails, VpnServiceStatusResult};
 
 impl From<ConnectedStateDetails> for connected_state_details::ConnectedStateDetails {
     fn from(value: ConnectedStateDetails) -> Self {

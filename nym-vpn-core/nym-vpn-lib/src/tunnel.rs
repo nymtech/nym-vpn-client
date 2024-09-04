@@ -1,16 +1,17 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::channel::oneshot::Sender;
-use futures::channel::{mpsc, oneshot};
+use std::{
+    collections::HashSet,
+    path::Path,
+    sync::{Arc, Mutex},
+};
+
+use futures::channel::{mpsc, oneshot, oneshot::Sender};
 use log::*;
 use nym_sdk::TaskClient;
-use std::collections::HashSet;
-use std::path::Path;
-use std::sync::{Arc, Mutex};
 use talpid_routing::{RouteManager, RouteManagerHandle};
-use talpid_tunnel::tun_provider::TunProvider;
-use talpid_tunnel::{TunnelArgs, TunnelEvent};
+use talpid_tunnel::{tun_provider::TunProvider, TunnelArgs, TunnelEvent};
 use talpid_wireguard::{config::Config, WireguardMonitor};
 use tokio::task::JoinHandle;
 

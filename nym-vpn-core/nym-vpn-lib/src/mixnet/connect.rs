@@ -1,17 +1,17 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::path::PathBuf;
+
 use nym_config::defaults::NymNetworkDetails;
 use nym_sdk::mixnet::{MixnetClientBuilder, NodeIdentity, StoragePaths};
-use std::path::PathBuf;
 use tracing::{debug, info};
 
+use super::SharedMixnetClient;
 use crate::{
     error::{Error, MixnetError, Result},
     vpn::MixnetClientConfig,
 };
-
-use super::SharedMixnetClient;
 
 fn true_to_enabled(val: bool) -> &'static str {
     if val {

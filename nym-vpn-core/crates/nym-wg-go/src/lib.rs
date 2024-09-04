@@ -8,13 +8,12 @@ pub mod netstack;
 pub mod uapi;
 pub mod wireguard_go;
 
-use ipnetwork::IpNetwork;
 use std::{fmt, net::SocketAddr};
 
 use base64::engine::Engine;
-use zeroize::{Zeroize, ZeroizeOnDrop};
-
+use ipnetwork::IpNetwork;
 use uapi::UapiConfigBuilder;
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {

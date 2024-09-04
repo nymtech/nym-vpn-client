@@ -1,18 +1,19 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use netdev::Interface;
 #[cfg(not(any(target_os = "ios", target_os = "android")))]
 use std::collections::HashSet;
-use std::fmt::{Display, Formatter};
-use std::net::IpAddr;
 #[cfg(windows)]
 use std::net::Ipv4Addr;
-use talpid_core::dns::DnsMonitor;
+use std::{
+    fmt::{Display, Formatter},
+    net::IpAddr,
+};
 
 use ipnetwork::IpNetwork;
-use netdev::interface::get_default_interface;
+use netdev::{interface::get_default_interface, Interface};
 use nym_ip_packet_requests::IpPair;
+use talpid_core::dns::DnsMonitor;
 use talpid_routing::RouteManager;
 #[cfg(not(any(target_os = "ios", target_os = "android")))]
 use talpid_routing::{Node, RequiredRoute};

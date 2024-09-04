@@ -418,8 +418,9 @@ fn filter_on_min_performance(gateways: &mut Vec<Gateway>, min_gateway_performanc
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use nym_sdk::UserAgent;
+
+    use super::*;
 
     fn user_agent() -> UserAgent {
         UserAgent {

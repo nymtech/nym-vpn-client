@@ -1,6 +1,4 @@
-use nym_ip_packet_requests::{
-    response::DynamicConnectFailureReason, response::StaticConnectFailureReason,
-};
+use nym_ip_packet_requests::response::{DynamicConnectFailureReason, StaticConnectFailureReason};
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {

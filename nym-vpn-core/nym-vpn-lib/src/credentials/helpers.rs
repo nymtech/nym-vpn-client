@@ -4,7 +4,6 @@ use std::{
 };
 
 use nym_credential_storage_pre_ecash::persistent_storage::PersistentStorage;
-
 use nym_sdk::{mixnet::StoragePaths, NymNetworkDetails};
 use nym_validator_client::{
     nyxd::{Config as NyxdClientConfig, NyxdClient},
@@ -145,8 +144,7 @@ pub(super) async fn get_credentials_store(
 
     #[cfg(target_family = "unix")]
     {
-        use std::fs;
-        use std::os::unix::fs::PermissionsExt;
+        use std::{fs, os::unix::fs::PermissionsExt};
 
         let metadata = fs::metadata(&fork_credential_db_path).map_err(|err| {
             CredentialStoreError::FailedToReadCredentialStoreMetadata {

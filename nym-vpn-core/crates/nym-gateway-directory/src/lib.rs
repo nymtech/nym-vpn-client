@@ -6,6 +6,9 @@ mod error;
 mod gateway_client;
 mod helpers;
 
+pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
+pub use nym_validator_client::models::DescribedGateway;
+
 pub use crate::{
     entries::{
         auth_addresses::{AuthAddress, AuthAddresses},
@@ -18,6 +21,3 @@ pub use crate::{
     error::Error,
     gateway_client::{Config, GatewayClient},
 };
-
-pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
-pub use nym_validator_client::models::DescribedGateway;

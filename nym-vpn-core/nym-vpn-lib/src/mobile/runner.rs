@@ -1,11 +1,6 @@
-use std::net::IpAddr;
-use std::sync::Arc;
-use std::time::Duration;
+use std::{net::IpAddr, sync::Arc, time::Duration};
 
 use ipnetwork::{IpNetwork, Ipv4Network};
-use tokio::task::JoinSet;
-use tokio_util::sync::CancellationToken;
-
 use nym_authenticator_client::AuthClient;
 use nym_gateway_directory::{
     AuthAddresses, EntryPoint, ExitPoint, Gateway, GatewayClient, Recipient,
@@ -14,20 +9,24 @@ use nym_sdk::UserAgent;
 use nym_task::TaskManager;
 use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
 use nym_wg_go::{PrivateKey, PublicKey};
+use tokio::task::JoinSet;
+use tokio_util::sync::CancellationToken;
 
 use super::{
     two_hop_tunnel::TwoHopTunnel,
     wg_config::{WgInterface, WgNodeConfig, WgPeer},
 };
-use crate::mixnet::SharedMixnetClient;
 #[cfg(target_os = "ios")]
 use crate::mobile::ios::tun_provider::OSTunProvider;
 #[cfg(target_os = "android")]
 use crate::platform::android::AndroidTunProvider;
-use crate::platform::{uniffi_set_listener_status, VPNConfig};
-use crate::uniffi_custom_impls::{StatusEvent, TunStatus};
-use crate::{bandwidth_controller::BandwidthController, GenericNymVpnConfig};
-use crate::{GatewayDirectoryError, MixnetClientConfig};
+use crate::{
+    bandwidth_controller::BandwidthController,
+    mixnet::SharedMixnetClient,
+    platform::{uniffi_set_listener_status, VPNConfig},
+    uniffi_custom_impls::{StatusEvent, TunStatus},
+    GatewayDirectoryError, GenericNymVpnConfig, MixnetClientConfig,
+};
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {

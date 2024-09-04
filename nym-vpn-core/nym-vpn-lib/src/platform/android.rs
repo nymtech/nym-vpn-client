@@ -1,10 +1,11 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::mobile::tunnel_settings::TunnelNetworkSettings;
+use std::{fmt::Debug, os::fd::RawFd};
+
 use log::LevelFilter;
-use std::fmt::Debug;
-use std::os::fd::RawFd;
+
+use crate::mobile::tunnel_settings::TunnelNetworkSettings;
 
 pub(crate) fn init_logs(level: String) {
     use android_logger::{Config, FilterBuilder};

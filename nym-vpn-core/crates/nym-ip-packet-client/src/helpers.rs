@@ -1,8 +1,9 @@
 // Copyright 2023-2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_sdk::mixnet::ReconstructedMessage;
 use std::cmp::Ordering;
+
+use nym_sdk::mixnet::ReconstructedMessage;
 
 use crate::{error::Result, Error};
 

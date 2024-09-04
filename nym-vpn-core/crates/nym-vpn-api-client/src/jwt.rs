@@ -4,8 +4,7 @@
 use std::fmt;
 
 use nym_crypto::asymmetric::ed25519::KeyPair;
-use nym_validator_client::signing::signer::OfflineSigner;
-use nym_validator_client::DirectSecp256k1HdWallet;
+use nym_validator_client::{signing::signer::OfflineSigner, DirectSecp256k1HdWallet};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sha2::{Digest, Sha256};
@@ -137,9 +136,10 @@ impl fmt::Display for Jwt {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use nym_crypto::asymmetric::ed25519::KeyPair;
     use nym_validator_client::DirectSecp256k1HdWallet;
+
+    use super::*;
 
     fn get_secp256k1_keypair() -> DirectSecp256k1HdWallet {
         let mnemonic = "kiwi ketchup mix canvas curve ribbon congress method feel frozen act annual aunt comfort side joy mesh palace tennis cannon orange name tortoise piece";
