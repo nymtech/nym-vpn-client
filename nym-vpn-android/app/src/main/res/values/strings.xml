@@ -6,9 +6,9 @@
     <string name="disconnected">Disconnected</string>
     <string name="disconnecting">Disconnecting</string>
     <string name="connecting">Connecting</string>
-    <string name="five_hop_mixnet">Anonymous</string>
+    <string name="five_hop_mixnet">Anonymous (mixnet)</string>
     <string name="five_hop_description">For payments, emails, messages</string>
-    <string name="two_hop_mixnet">Fast</string>
+    <string name="two_hop_mixnet">Fast (WireGuard)</string>
     <string name="two_hop_description">Best for browsing, streaming, sharing</string>
     <string name="first_hop">Entry location</string>
     <string name="last_hop">Exit location</string>
@@ -32,7 +32,7 @@
     <string name="fastest">Fastest</string>
     <string name="auto_connect">Auto-connect</string>
     <string name="auto_connect_description">Auto connect on reboot</string>
-	<string name="logs">Logs</string>
+    <string name="logs">Logs</string>
     <string name="feedback">Feedback</string>
     <string name="support">Support</string>
     <string name="error_reporting">Share anonymous error reports</string>
@@ -40,7 +40,7 @@
     <string name="via">via</string>
     <string name="required_app_restart">applies on restart</string>
     <string name="legal">Legal</string>
-	<string name="privacy_link" translatable="false">https://nymvpn.com/en/privacy?type=apps</string>
+    <string name="privacy_link" translatable="false">https://nymvpn.com/en/privacy?type=apps</string>
     <string name="terms_of_use">Terms of use</string>
     <string name="privacy_policy">Privacy statement</string>
     <string name="licenses">Licenses</string>
@@ -81,10 +81,10 @@
     <string name="unknown">Unknown</string>
     <string name="no_scm_found">Source code url not found</string>
     <string name="terms_link" translatable="false">https://nymvpn.com/en/terms</string>
-	<string name="five_hop">5-hop</string>
+    <string name="five_hop">5-hop</string>
     <string name="mode">Mode</string>
     <string name="okay">Okay</string>
-	<string name="two_hop">2-hop</string>
+    <string name="two_hop">2-hop</string>
     <string name="error_reporting_alert">Changes to error reporting will not fully take effect until the app has been restarted.</string>
     <string name="feature_in_progress">This feature is still in progress.</string>
     <string name="logs_saved">Logs saved to downloads folder</string>
@@ -134,22 +134,22 @@
     <string name="five_hop_explanation">Enjoy maximum-level privacy by routing your connection through 5 servers via mixnet. Perfect for securely handling payments, emails, and messages.</string>
     <string name="two_hop_explanation">Experience maximum speed with 2-server connectivity. Perfect for fast browsing, streaming, and file sharing.</string>
     <string name="continue_reading">Continue reading</string>
-	<string name="entry_location">Entry location</string>
-	<string name="exit_location">Exit location</string>
-	<string name="appearance">Appearance</string>
-	<string name="language">Language</string>
-	<string name="gateway_modal_description">We infer server locations based on their IP addresses, but the actual locations may vary slightly.</string>
-	<string name="gateway_locations_title">Details on server locations</string>
-	<string name="remaining">remaining</string>
-	<string name="entry_location_selector">Entry location selector</string>
+    <string name="entry_location">Entry location</string>
+    <string name="exit_location">Exit location</string>
+    <string name="appearance">Appearance</string>
+    <string name="language">Language</string>
+    <string name="gateway_modal_description">We infer server locations based on their IP addresses, but the actual locations may vary slightly.</string>
+    <string name="gateway_locations_title">Details on server locations</string>
+    <string name="remaining">remaining</string>
+    <string name="entry_location_selector">Entry location selector</string>
     <string translatable="false" name="location_support_link">https://support.nymvpn.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN</string>
-	<string translatable="false" name="mode_support_link">https://support.nymvpn.com/hc/en-us/articles/24326365096721-What-s-the-difference-between-Fast-and-Anonymous-mode</string>
-	<string name="vpn_connection">VPN Connection</string>
-	<string name="vpn_permission_message">Attest to the VPN connection request by trying to reconnect.</string>
-	<string name="view_system_settings">View system settings</string>
-	<string name="try_reconnecting">Try reconnecting</string>
-	<string name="always_on_disbled">Always-on VPN disabled</string>
-	<string name="always_on_message">Not working? Make sure Always-on VPN is disable for other apps in</string>
-	<string name="vpn_settings">VPN system settings</string>
-	<string name="try_again">and try to reconnect</string>
+    <string translatable="false" name="mode_support_link">https://support.nymvpn.com/hc/en-us/articles/24326365096721-What-s-the-difference-between-Fast-and-Anonymous-mode</string>
+    <string name="vpn_connection">VPN Connection</string>
+    <string name="vpn_permission_message">Attest to the VPN connection request by trying to reconnect.</string>
+    <string name="view_system_settings">View system settings</string>
+    <string name="try_reconnecting">Try reconnecting</string>
+    <string name="always_on_disbled">Always-on VPN disabled</string>
+    <string name="always_on_message">Not working? Make sure Always-on VPN is disable for other apps in</string>
+    <string name="vpn_settings">VPN system settings</string>
+    <string name="try_again">and try to reconnect</string>
 </resources>
