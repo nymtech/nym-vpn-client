@@ -8,8 +8,6 @@ use std::{
     fmt,
 };
 
-use log::info;
-
 use super::{
     uapi::UapiConfigBuilder, Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, PrivateKey,
     Result,
@@ -103,7 +101,7 @@ impl Tunnel {
 
     /// Stop the tunnel.
     pub fn stop(mut self) {
-        info!("Stopping the wg tunnel");
+        tracing::info!("Stopping the wg tunnel");
         self.stop_inner();
     }
 
