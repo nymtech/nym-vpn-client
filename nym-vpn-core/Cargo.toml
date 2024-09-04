@@ -9,6 +9,7 @@ members = [
     "crates/nym-ip-packet-client",
     "crates/nym-vpn-api-client",
     "crates/nym-vpn-cli",
+    "crates/nym-vpn-lib",
     "crates/nym-vpn-proto",
     "crates/nym-vpn-store",
     "crates/nym-vpnc",
@@ -16,7 +17,6 @@ members = [
     "crates/nym-wg-gateway-client",
     "crates/nym-wg-go",
     "crates/uniffi-bindgen",
-    "nym-vpn-lib", 
 ]
 
 # For local development

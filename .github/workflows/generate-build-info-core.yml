@@ -55,7 +55,7 @@ jobs:
         id: package-version-lib
         uses: nicolaiunrein/cargo-get@master
         with:
-          subcommand: package.version --entry nym-vpn-core/nym-vpn-lib
+          subcommand: package.version --entry nym-vpn-core/crates/nym-vpn-lib
 
       - name: Generate build-info
         run: |

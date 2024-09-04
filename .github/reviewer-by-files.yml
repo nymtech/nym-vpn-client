@@ -9,7 +9,7 @@
   - octol
 
 # uniffi changes
-"nym-vpn-core/nym-vpn-lib/uniffi/*":
+"nym-vpn-core/crates/nym-vpn-lib/uniffi/*":
   - zaneschepke
   - rokas-ambrazevicius
   - neacsu
