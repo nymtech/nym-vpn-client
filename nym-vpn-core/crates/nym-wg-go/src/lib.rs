@@ -20,6 +20,9 @@ pub enum Error {
     #[error("failed to convert IP addr into C string")]
     IpAddrToCstr,
 
+    #[error("failed to convert socket addr into C string")]
+    SocketAddrToCstr,
+
     #[error("config contains nul byte")]
     ConfigContainsNulByte,
 

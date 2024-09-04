@@ -200,8 +200,8 @@ impl TunnelConnection {
         client_port: u16,
         exit_endpoint: SocketAddr,
     ) -> Result<Self> {
-        let exit_endpoint = CString::new(exit_endpoint.to_string())
-            .expect("failed to convert exit endpoint to CString");
+        let exit_endpoint =
+            CString::new(exit_endpoint.to_string()).map_err(|_| Error::SocketAddrToCstr)?;
         let handle = unsafe {
             wgNetOpenConnectionThroughTunnel(
                 entry_tunnel.handle,
