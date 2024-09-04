@@ -46,11 +46,11 @@ build-deb-vpnc:
 
 build-vpn-lib-swift:	
 	$(eval RUSTFLAGS += $(foreach arch,$(IPHONEOS_ARCHS),CARGO_TARGET_$(shell echo '$(arch)' | tr '[:lower:]' '[:upper:]' | tr '-' '_')_RUSTFLAGS="-L $(WG_BUILD_DIR)/$(arch)"))
-	cd nym-vpn-lib; \
+	cd crates/nym-vpn-lib; \
 	$(RUSTFLAGS) cargo swift package --platforms ios --name NymVpnLib --release
 
 generate-uniffi-swift:
-	cd nym-vpn-lib; \
+	cd crates/nym-vpn-lib; \
 	RUSTFLAGS="-L $(WG_TARGET_DIR)" cargo run --bin uniffi-bindgen generate \
 		--library $(CURDIR)/target/aarch64-apple-ios/release/libnym_vpn_lib.a \
 		--language swift --out-dir uniffi -n
