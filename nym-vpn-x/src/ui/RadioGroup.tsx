@@ -27,6 +27,7 @@ export type RadioGroupProps<K extends Key> = {
   rootLabel?: string;
   // either or not to show checked/unchecked circular icons
   radioIcons?: boolean;
+  disabled?: boolean;
 };
 
 function RadioGroup<K extends Key>({
@@ -35,6 +36,7 @@ function RadioGroup<K extends Key>({
   onChange,
   rootLabel,
   radioIcons = true,
+  disabled = false,
 }: RadioGroupProps<K>) {
   const [selected, setSelected] = useState(defaultValue || options[0]);
 
@@ -60,7 +62,11 @@ function RadioGroup<K extends Key>({
 
   return (
     <div className="select-none">
-      <HuRadioGroup value={selected} onChange={handleChange}>
+      <HuRadioGroup
+        value={selected}
+        onChange={handleChange}
+        disabled={disabled}
+      >
         {rootLabel && (
           <Label
             as="div"

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { invoke } from '@tauri-apps/api';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
@@ -36,7 +36,7 @@ function NetworkModeSelect() {
 
   const showSnackbar = useThrottle(
     () => {
-      let text = '';
+      let text = null;
       switch (state.state) {
         case 'Connected':
           text = t('snackbar-disabled-message.connected');
@@ -47,6 +47,9 @@ function NetworkModeSelect() {
         case 'Disconnecting':
           text = t('snackbar-disabled-message.disconnecting');
           break;
+      }
+      if (!text) {
+        return;
       }
       push({
         text,
@@ -80,7 +83,9 @@ function NetworkModeSelect() {
         key: 'TwoHop',
         label: t('fast-mode.title'),
         desc: t('fast-mode.desc'),
-        disabled: state.state !== 'Disconnected' || loading,
+        disabled:
+          // TODO remove os check when Windows is supported
+          state.os === 'windows' || state.state !== 'Disconnected' || loading,
         icon: (
           <span className="font-icon text-3xl text-baltic-sea dark:text-mercury-pinkish">
             speed
@@ -88,7 +93,23 @@ function NetworkModeSelect() {
         ),
       },
     ];
-  }, [loading, state.state, t]);
+  }, [loading, state.state, state.os, t]);
+
+  // TODO remove when 2h-wg Windows is supported
+  useEffect(() => {
+    const updtateVpnMode = async () => {
+      try {
+        await invoke<void>('set_vpn_mode', { mode: 'Mixnet' });
+        dispatch({ type: 'set-vpn-mode', mode: 'Mixnet' });
+      } catch (e) {
+        console.warn(e);
+      }
+    };
+
+    if (state.os === 'windows' && state.vpnMode === 'TwoHop') {
+      updtateVpnMode();
+    }
+  }, [dispatch, state.vpnMode, state.os]);
 
   return (
     <div>
