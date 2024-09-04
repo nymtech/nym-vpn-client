@@ -2,10 +2,8 @@ package net.nymtech.vpn.backend
 
 import android.content.Context
 import android.content.Intent
-import android.net.IpPrefix
 import android.os.Build
 import android.os.IBinder
-import androidx.annotation.RequiresApi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -14,11 +12,11 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import net.nymtech.vpn.util.NotificationManager
 import net.nymtech.vpn.model.BackendMessage
 import net.nymtech.vpn.model.Statistics
 import net.nymtech.vpn.util.Constants
 import net.nymtech.vpn.util.InvalidCredentialException
+import net.nymtech.vpn.util.NotificationManager
 import net.nymtech.vpn.util.SingletonHolder
 import nym_vpn_lib.AndroidTunProvider
 import nym_vpn_lib.BandwidthStatus
@@ -287,7 +285,6 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			return if (prefixLength == -1) 128 else prefixLength
 		}
 
-		@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 		override fun configureTunnel(config: TunnelNetworkSettings): Int {
 			Timber.d("Configuring Wg tunnel")
 			if (prepare(this) != null) return -1
@@ -325,7 +322,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 								val length = calculateSubnetMaskLength(it.subnetMask)
 								Timber.d("Including ipv4 routes: ${it.destination}/$length")
 								// need to use IpPrefix, strange bug with just string/int
-								addRoute(IpPrefix(InetAddress.getByName(it.destination), length))
+								addRoute(InetAddress.getByName(it.destination), length)
 							}
 						}
 					}
@@ -341,19 +338,10 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 								val prefix = calculateIPv6PrefixLength(it.destination)
 								Timber.d("Including ipv4 routes: ${it.destination}/$prefix")
 								// need to use IpPrefix, strange bug with just string/int
-								addRoute(IpPrefix(InetAddress.getByName(it.destination), prefix))
+								addRoute(InetAddress.getByName(it.destination), prefix)
 							}
 							Ipv6Route.Default -> Unit
 						}
-					}
-				}
-				config.ipv4Settings?.excludedRoutes?.forEach {
-					when (it) {
-						is Ipv4Route.Specific -> {
-							Timber.d("Excluding route: ${it.gateway}")
-							excludeRoute(IpPrefix(InetAddress.getByName(it.gateway), calculateSubnetMaskLength(it.subnetMask)))
-						}
-						Ipv4Route.Default -> Unit
 					}
 				}
 

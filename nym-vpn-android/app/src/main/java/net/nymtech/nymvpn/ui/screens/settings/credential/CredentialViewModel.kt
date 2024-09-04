@@ -33,7 +33,7 @@ constructor(
 			}
 		}.onSuccess {
 			SnackbarController.showMessage(StringValue.StringResource(R.string.credential_successful))
-			navHostController.navigateAndForget(Destination.Main.route)
+			navHostController.navigateAndForget(Destination.Main.createRoute(false))
 		}.onFailure {
 			onFailure()
 			Timber.e(it)

@@ -37,6 +37,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
@@ -58,10 +59,14 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
 
 @Composable
-fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel: SettingsViewModel = hiltViewModel()) {
+fun SettingsScreen(
+	appViewModel: AppViewModel,
+	navController: NavHostController,
+	appUiState: AppUiState,
+	viewModel: SettingsViewModel = hiltViewModel(),
+) {
 	val context = LocalContext.current
 	val clipboardManager: ClipboardManager = LocalClipboardManager.current
-	val navController = appViewModel.navController
 	val padding = WindowInsets.systemBars.asPaddingValues()
 
 	Column(

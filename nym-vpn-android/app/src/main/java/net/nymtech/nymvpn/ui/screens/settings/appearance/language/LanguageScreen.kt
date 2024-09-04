@@ -55,7 +55,7 @@ fun LanguageScreen(navController: NavController, localeStorage: LocaleStorage) {
 		Timber.d("Setting preferred locale: $locale")
 		localeStorage.setPreferredLocale(locale)
 		LocaleUtil.applyLocalizedContext(context, locale)
-		navController.go(Destination.Main.route)
+		navController.go(Destination.Main.createRoute(false))
 	}
 
 	LazyColumn(

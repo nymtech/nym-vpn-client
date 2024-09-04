@@ -29,6 +29,7 @@ fun EnvironmentScreen(appUiState: AppUiState, viewModel: EnvironmentViewModel = 
 		IconSurfaceButton(
 			title = Tunnel.Environment.CANARY.name,
 			onClick = {
+				if (appUiState.settings.environment == Tunnel.Environment.CANARY) return@IconSurfaceButton
 				viewModel.onEnvironmentChange(Tunnel.Environment.CANARY)
 			},
 			selected = appUiState.settings.environment == Tunnel.Environment.CANARY,
@@ -36,6 +37,7 @@ fun EnvironmentScreen(appUiState: AppUiState, viewModel: EnvironmentViewModel = 
 		IconSurfaceButton(
 			title = Tunnel.Environment.SANDBOX.name,
 			onClick = {
+				if (appUiState.settings.environment == Tunnel.Environment.SANDBOX) return@IconSurfaceButton
 				viewModel.onEnvironmentChange(Tunnel.Environment.SANDBOX)
 			},
 			selected = appUiState.settings.environment == Tunnel.Environment.SANDBOX,
@@ -43,6 +45,7 @@ fun EnvironmentScreen(appUiState: AppUiState, viewModel: EnvironmentViewModel = 
 		IconSurfaceButton(
 			title = Tunnel.Environment.MAINNET.name,
 			onClick = {
+				if (appUiState.settings.environment == Tunnel.Environment.MAINNET) return@IconSurfaceButton
 				viewModel.onEnvironmentChange(Tunnel.Environment.MAINNET)
 			},
 			selected = appUiState.settings.environment == Tunnel.Environment.MAINNET,
