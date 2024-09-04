@@ -48,7 +48,6 @@ public final class LogFileManager: ObservableObject {
 
     public func deleteLogs() {
         ioQueue.async {
-            guard let logFileURL = self.logFileURL(logFileType: self.logFileType) else { return }
             LogFileType.allCases.forEach { type in
                 guard let logFileURL = self.logFileURL(logFileType: type) else { return }
                 try? FileManager.default.removeItem(at: logFileURL)
@@ -68,27 +67,33 @@ private extension LogFileManager {
         ) { [weak self] in
             self?.ioQueue.async {
                 self?.fileHandle = nil
-                self?.configure()
+                self?.configureNoQueue()
             }
         }
     }
 
     func configure() {
         ioQueue.async {
-            guard let logFileURL = self.logFileURL(logFileType: self.logFileType) else { return }
+            self.configureNoQueue()
+        }
+    }
 
-            if !FileManager.default.fileExists(atPath: logFileURL.path(percentEncoded: false)) {
-                FileManager.default.createFile(
-                    atPath: logFileURL.path(percentEncoded: false),
-                    contents: nil,
-                    attributes: nil
-                )
-            }
+    func configureNoQueue() {
+        dispatchPrecondition(condition: .onQueue(ioQueue))
 
-            if self.fileHandle == nil {
-                self.fileHandle = try? FileHandle(forWritingTo: logFileURL)
-                _ = try? self.fileHandle?.seekToEnd()
-            }
+        guard let logFileURL = self.logFileURL(logFileType: self.logFileType) else { return }
+
+        if !FileManager.default.fileExists(atPath: logFileURL.path(percentEncoded: false)) {
+            FileManager.default.createFile(
+                atPath: logFileURL.path(percentEncoded: false),
+                contents: nil,
+                attributes: nil
+            )
+        }
+
+        if self.fileHandle == nil {
+            self.fileHandle = try? FileHandle(forWritingTo: logFileURL)
+            _ = try? self.fileHandle?.seekToEnd()
         }
     }
 }
