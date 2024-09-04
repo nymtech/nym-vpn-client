@@ -96,7 +96,9 @@ let package = Package(
         ),
         .target(
             name: "DarwinNotificationCenter",
-            dependencies: [],
+            dependencies: [
+                "Constants"
+            ],
             path: "Sources/Services/DarwinNotificationCenter"
         ),
         .target(

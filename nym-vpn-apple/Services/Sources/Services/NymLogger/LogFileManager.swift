@@ -1,4 +1,4 @@
-import SwiftUI
+import Foundation
 import Combine
 import Constants
 import DarwinNotificationCenter
@@ -49,17 +49,14 @@ public final class LogFileManager: ObservableObject {
     public func deleteLogs() {
         ioQueue.async {
             guard let logFileURL = self.logFileURL(logFileType: self.logFileType) else { return }
-            if let appLogFileURL = self.logFileURL(logFileType: .app) {
-                try? FileManager.default.removeItem(at: appLogFileURL)
-            }
-            if let tunnelLogFileURL = self.logFileURL(logFileType: .tunnel) {
-                try? FileManager.default.removeItem(at: tunnelLogFileURL)
+            LogFileType.allCases.forEach { type in
+                guard let logFileURL = self.logFileURL(logFileType: type) else { return }
+                try? FileManager.default.removeItem(at: logFileURL)
             }
             try? self.fileHandle?.close()
-            try? FileManager.default.removeItem(at: logFileURL)
             self.fileHandle = nil
 
-            DarwinNotificationCenter.shared.post(name: DarwinNotificationKey.reconfigureLogs.rawValue)
+            DarwinNotificationCenter.shared.post(name: DarwinNotificationKey.reconfigureLogs.key)
         }
     }
 }
@@ -67,10 +64,12 @@ public final class LogFileManager: ObservableObject {
 private extension LogFileManager {
     func setup() {
         notificationObservation = DarwinNotificationCenter.shared.addObserver(
-            name: DarwinNotificationKey.reconfigureLogs.rawValue
+            name: DarwinNotificationKey.reconfigureLogs.key
         ) { [weak self] in
-            self?.fileHandle = nil
-            self?.configure()
+            self?.ioQueue.async {
+                self?.fileHandle = nil
+                self?.configure()
+            }
         }
     }
 
@@ -85,7 +84,7 @@ private extension LogFileManager {
                     attributes: nil
                 )
             }
- 
+
             if self.fileHandle == nil {
                 self.fileHandle = try? FileHandle(forWritingTo: logFileURL)
                 _ = try? self.fileHandle?.seekToEnd()
