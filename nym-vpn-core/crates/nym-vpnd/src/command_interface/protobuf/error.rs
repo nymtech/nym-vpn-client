@@ -238,6 +238,26 @@ impl From<ConnectionFailedError> for ProtoError {
                 message: err.to_string(),
                 details: hashmap! {},
             },
+            ConnectionFailedError::OutOfBandwidthWhenSettingUpTunnel => ProtoError {
+                kind: ErrorType::OutOfBandwidthWhenSettingUpTunnel as i32,
+                message: err.to_string(),
+                details: hashmap! {},
+            },
+            ConnectionFailedError::FailedToBringInterfaceUpWgAuthFailed => ProtoError {
+                kind: ErrorType::FailedToBringInterfaceUpWgAuthFailed as i32,
+                message: err.to_string(),
+                details: hashmap! {},
+            },
+            ConnectionFailedError::FailedToBringInterfaceUpWgDown => ProtoError {
+                kind: ErrorType::FailedToBringInterfaceUpWgDown as i32,
+                message: err.to_string(),
+                details: hashmap! {},
+            },
+            ConnectionFailedError::FailedToBringInterfaceUpWgEventTunnelClose => ProtoError {
+                kind: ErrorType::FailedToBringInterfaceUpWgEventTunnelClose as i32,
+                message: err.to_string(),
+                details: hashmap! {},
+            },
         }
     }
 }

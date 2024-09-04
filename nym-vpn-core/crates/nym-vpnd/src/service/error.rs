@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use nym_vpn_lib::{
     credentials::ImportCredentialError as VpnLibImportCredentialError,
     wg_gateway_client::Error as WgGatewayClientError, CredentialStorageError,
-    GatewayDirectoryError, NymIdError,
+    GatewayDirectoryError, NodeIdentity, NymIdError,
 };
 use time::OffsetDateTime;
 use tracing::error;
@@ -149,6 +149,27 @@ pub enum ConnectionFailedError {
 
     #[error("we ran out of bandwidth")]
     OutOfBandwidth,
+
+    #[error("we ran out of bandwidth when setting up the tunnel")]
+    OutOfBandwidthWhenSettingUpTunnel,
+
+    #[error("failed to bring up tunnel, wireguard auth failed for {gateway_id}")]
+    FailedToBringInterfaceUpWgAuthFailed {
+        gateway_id: NodeIdentity,
+        public_key: String,
+    },
+
+    #[error("failed to bring up tunnel, wireguard is down for {gateway_id}")]
+    FailedToBringInterfaceUpWgDown {
+        gateway_id: NodeIdentity,
+        public_key: String,
+    },
+
+    #[error("failed to bring up tunnel, wireguard tunnel closed for {gateway_id}")]
+    FailedToBringInterfaceUpWgEventTunnelClose {
+        gateway_id: NodeIdentity,
+        public_key: String,
+    },
 }
 
 use nym_vpn_lib::gateway_directory::Error as DirError;
@@ -279,6 +300,30 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                     ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
                 }
             },
+            nym_vpn_lib::Error::NotEnoughBandwidthToSetupTunnel => {
+                ConnectionFailedError::OutOfBandwidthWhenSettingUpTunnel
+            }
+            nym_vpn_lib::Error::FailedToBringInterfaceUpWgAuthFailed {
+                gateway_id,
+                public_key,
+            } => ConnectionFailedError::FailedToBringInterfaceUpWgAuthFailed {
+                gateway_id: gateway_id.clone(),
+                public_key: public_key.clone(),
+            },
+            nym_vpn_lib::Error::FailedToBringInterfaceUpWgDown {
+                gateway_id,
+                public_key,
+            } => ConnectionFailedError::FailedToBringInterfaceUpWgDown {
+                gateway_id: gateway_id.clone(),
+                public_key: public_key.clone(),
+            },
+            nym_vpn_lib::Error::FailedToBringInterfaceUpWgEventTunnelClose {
+                gateway_id,
+                public_key,
+            } => ConnectionFailedError::FailedToBringInterfaceUpWgEventTunnelClose {
+                gateway_id: gateway_id.clone(),
+                public_key: public_key.clone(),
+            },
             nym_vpn_lib::Error::RoutingError(_)
             | nym_vpn_lib::Error::FailedToAddIpv6Route(_)
             | nym_vpn_lib::Error::DNSError(_)
@@ -297,11 +342,9 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
             | nym_vpn_lib::Error::ImportCredentialError(_)
             | nym_vpn_lib::Error::AuthenticationNotPossible(_)
             | nym_vpn_lib::Error::AuthenticatorAddressNotFound
-            | nym_vpn_lib::Error::NotEnoughBandwidth
             | nym_vpn_lib::Error::FailedToParseEntryGatewayIpv4(_)
             | nym_vpn_lib::Error::NymVpnExitWithError(_)
-            | nym_vpn_lib::Error::NymVpnExitUnexpectedChannelClose
-            | nym_vpn_lib::Error::BadWireguardEvent => {
+            | nym_vpn_lib::Error::NymVpnExitUnexpectedChannelClose => {
                 ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
             }
             #[cfg(windows)]
