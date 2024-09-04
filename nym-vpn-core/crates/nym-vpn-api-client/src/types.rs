@@ -8,11 +8,11 @@ use nym_validator_client::{signing::signer::OfflineSigner as _, DirectSecp256k1H
 
 use crate::jwt::Jwt;
 
-pub struct Account {
+pub struct VpnApiAccount {
     wallet: DirectSecp256k1HdWallet,
 }
 
-impl Account {
+impl VpnApiAccount {
     #[allow(unused)]
     fn random() -> Self {
         let mnemonic = bip39::Mnemonic::generate(24).unwrap();
@@ -29,7 +29,7 @@ impl Account {
     }
 }
 
-impl From<bip39::Mnemonic> for Account {
+impl From<bip39::Mnemonic> for VpnApiAccount {
     fn from(mnemonic: bip39::Mnemonic) -> Self {
         let wallet = DirectSecp256k1HdWallet::from_mnemonic("n", mnemonic);
         Self { wallet }

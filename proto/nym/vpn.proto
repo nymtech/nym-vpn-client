@@ -393,11 +393,39 @@ message StoreAccountRequest {
 
 message StoreAccountResponse {
   bool success = 1;
-  StoreAccountError error = 2;
+  AccountError error = 2;
 }
 
-message StoreAccountError {
-  enum StoreAccountErrorType {
+message GetAccountSummaryRequest {}
+
+message GetAccountSummaryResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
+message RegisterDeviceRequest {}
+
+message RegisterDeviceResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
+message RequestZkNymRequest {}
+
+message RequestZkNymResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
+message GetDeviceZkNymsRequest {}
+
+message GetDeviceZkNymsResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
+message AccountError {
+  enum AccountErrorType {
     STORE_ACCOUNT_ERROR_UNSPECIFIED = 0;
 
     // The provided mnemonic was not able to be parsed
@@ -407,7 +435,7 @@ message StoreAccountError {
     STORAGE = 2;
   }
 
-  StoreAccountErrorType kind = 1;
+  AccountErrorType kind = 1;
 
   // Detailed error message for logging and debugging
   string message = 2;
@@ -430,6 +458,11 @@ service NymVpnd {
   rpc ListEntryCountries (ListEntryCountriesRequest) returns (ListEntryCountriesResponse) {}
   rpc ListExitCountries (ListExitCountriesRequest) returns (ListExitCountriesResponse) {}
 
+  // Unstable
   rpc StoreAccount (StoreAccountRequest) returns (StoreAccountResponse) {}
+  rpc GetAccountSummary (GetAccountSummaryRequest) returns (GetAccountSummaryResponse) {}
+  rpc RegisterDevice (RegisterDeviceRequest) returns (RegisterDeviceResponse) {}
+  rpc RequestZkNym (RequestZkNymRequest) returns (RequestZkNymResponse) {}
+  rpc GetDeviceZkNyms (GetDeviceZkNymsRequest) returns (GetDeviceZkNymsResponse) {}
 }
 

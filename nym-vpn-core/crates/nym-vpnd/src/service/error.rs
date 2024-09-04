@@ -318,7 +318,7 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum StoreAccountError {
+pub enum AccountError {
     #[error("invalid mnemonic")]
     InvalidMnemonic {
         #[from]
@@ -326,7 +326,26 @@ pub enum StoreAccountError {
     },
 
     #[error("failed to store account: {source}")]
-    FailedToStore {
+    FailedToStoreAccount {
+        source: Box<dyn std::error::Error + Send + Sync>,
+    },
+
+    #[error("failed to load account: {source}")]
+    FailedToLoadAccount {
+        source: Box<dyn std::error::Error + Send + Sync>,
+    },
+
+    #[error("no nym-vpn-api url setup")]
+    MissingApiUrl,
+
+    #[error("invalid nym-vpn-api url")]
+    InvalidApiUrl,
+
+    #[error(transparent)]
+    VpnApiClientError(#[from] nym_vpn_api_client::VpnApiClientError),
+
+    #[error("failed to load keys: {source}")]
+    FailedToLoadKeys {
         source: Box<dyn std::error::Error + Send + Sync>,
     },
 }

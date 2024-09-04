@@ -24,6 +24,7 @@ prost-types.workspace = true
 prost.workspace = true
 reqwest = { workspace = true, default-features = false, features = ["rustls-tls"] }
 serde.workspace = true
+serde_json.workspace = true
 thiserror.workspace = true
 time.workspace = true
 tokio = { workspace = true, features = ["full"]}

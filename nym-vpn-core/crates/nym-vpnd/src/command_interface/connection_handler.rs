@@ -1,6 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_vpn_api_client::response::{
+    NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnZkNym, NymVpnZkNymResponse,
+};
 use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint, GatewayClient};
 use time::OffsetDateTime;
 use tokio::sync::{mpsc::UnboundedSender, oneshot};
@@ -8,7 +11,7 @@ use tracing::{debug, info, warn};
 
 use crate::{
     service::{
-        ConnectArgs, ConnectOptions, ImportCredentialError, StoreAccountError, VpnServiceCommand,
+        AccountError, ConnectArgs, ConnectOptions, ImportCredentialError, VpnServiceCommand,
         VpnServiceConnectResult, VpnServiceDisconnectResult, VpnServiceInfoResult,
         VpnServiceStatusResult,
     },
@@ -181,18 +184,57 @@ impl CommandInterfaceConnectionHandler {
         Ok(gateways.into_iter().map(gateway::Country::from).collect())
     }
 
-    pub(crate) async fn handle_store_account(
-        &self,
-        account: String,
-    ) -> Result<(), StoreAccountError> {
+    pub(crate) async fn handle_store_account(&self, account: String) -> Result<(), AccountError> {
         let (tx, rx) = oneshot::channel();
         self.vpn_command_tx
             .send(VpnServiceCommand::StoreAccount(tx, account))
             .unwrap();
-        debug!("Sent store account command to VPN");
-        debug!("Waiting for response");
         let result = rx.await.unwrap();
         debug!("VPN store account result: {:?}", result);
+        result
+    }
+
+    pub(crate) async fn handle_get_account_summary(
+        &self,
+    ) -> Result<NymVpnAccountSummaryResponse, AccountError> {
+        let (tx, rx) = oneshot::channel();
+        self.vpn_command_tx
+            .send(VpnServiceCommand::GetAccountSummary(tx))
+            .unwrap();
+        let result = rx.await.unwrap();
+        debug!("VPN get account summary result: {:?}", result);
+        result
+    }
+
+    pub(crate) async fn handle_register_device(&self) -> Result<NymVpnDevice, AccountError> {
+        let (tx, rx) = oneshot::channel();
+        self.vpn_command_tx
+            .send(VpnServiceCommand::RegisterDevice(tx))
+            .unwrap();
+        let result = rx.await.unwrap();
+        debug!("VPN register device result: {:?}", result);
+        result
+    }
+
+    pub(crate) async fn handle_request_zk_nym(&self) -> Result<NymVpnZkNym, AccountError> {
+        let (tx, rx) = oneshot::channel();
+        self.vpn_command_tx
+            .send(VpnServiceCommand::RequestZkNym(tx))
+            .unwrap();
+        let result = rx.await.unwrap();
+        debug!("VPN request zk nym result: {:?}", result);
+        result
+    }
+
+    pub(crate) async fn handle_get_device_zk_nyms(
+        &self,
+    ) -> Result<NymVpnZkNymResponse, AccountError> {
+        let (tx, rx) = oneshot::channel();
+        self.vpn_command_tx
+            .send(VpnServiceCommand::GetDeviceZkNyms(tx))
+            .unwrap();
+        let result = rx.await.unwrap();
+        debug!("VPN get device zk nyms result: {:?}", result);
         result
     }
 }
