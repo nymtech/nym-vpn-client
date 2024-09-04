@@ -12,10 +12,7 @@ use nym_wg_go::{PrivateKey, PublicKey};
 use tokio::task::JoinSet;
 use tokio_util::sync::CancellationToken;
 
-use super::{
-    two_hop_tunnel::TwoHopTunnel,
-    wg_config::{WgInterface, WgNodeConfig, WgPeer},
-};
+use super::wg_config::{WgInterface, WgNodeConfig, WgPeer};
 #[cfg(target_os = "ios")]
 use crate::mobile::ios::tun_provider::OSTunProvider;
 #[cfg(target_os = "android")]
@@ -23,6 +20,7 @@ use crate::platform::android::AndroidTunProvider;
 use crate::{
     bandwidth_controller::BandwidthController,
     mixnet::SharedMixnetClient,
+    mobile::two_hop_tunnel,
     platform::{uniffi_set_listener_status, VPNConfig},
     uniffi_custom_impls::{StatusEvent, TunStatus},
     GatewayDirectoryError, GenericNymVpnConfig, MixnetClientConfig,
@@ -316,7 +314,7 @@ impl WgTunnelRunner {
 
         tracing::info!("Created wg gateway clients");
 
-        TwoHopTunnel::start(
+        two_hop_tunnel::start(
             wg_entry_config,
             wg_exit_config,
             self.tun_provider.clone(),
