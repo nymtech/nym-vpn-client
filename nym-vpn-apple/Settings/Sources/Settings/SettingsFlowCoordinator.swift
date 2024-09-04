@@ -3,6 +3,8 @@ import AppSettings
 import NymLogger
 
 struct SettingsFlowCoordinator<Content: View>: View {
+    @EnvironmentObject private var logFileManager: LogFileManager
+
     @ObservedObject var flowState: SettingsFlowState
     let content: () -> Content
 
@@ -25,7 +27,7 @@ struct SettingsFlowCoordinator<Content: View>: View {
         case .addCredentials:
             AddCredentialsView(viewModel: AddCredentialsViewModel(path: $flowState.path))
         case .logs:
-            LogsView(viewModel: LogsViewModel(path: $flowState.path))
+            LogsView(viewModel: LogsViewModel(path: $flowState.path, logFileManager: logFileManager))
         case .acknowledgments:
             AcknowledgmentsView(viewModel: AcknowledgeMentsViewModel(navigationPath: $flowState.path))
         case let .licence(details: details):

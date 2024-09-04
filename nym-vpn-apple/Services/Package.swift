@@ -18,6 +18,7 @@ let package = Package(
         .library(name: "Constants", targets: ["Constants"]),
         .library(name: "CountriesManager", targets: ["CountriesManager"]),
         .library(name: "CredentialsManager", targets: ["CredentialsManager"]),
+        .library(name: "DarwinNotificationCenter", targets: ["DarwinNotificationCenter"]),
         .library(name: "ExternalLinkManager", targets: ["ExternalLinkManager"]),
         .library(name: "Keychain", targets: ["Keychain"]),
         .library(name: "Modifiers", targets: ["Modifiers"]),
@@ -48,7 +49,8 @@ let package = Package(
         .target(
             name: "ConfigurationManager",
             dependencies: [
-                "Constants"
+                "Constants",
+                "NymLogger"
             ],
             path: "Sources/Services/ConfigurationManager"
         ),
@@ -72,6 +74,7 @@ let package = Package(
             name: "CountriesManager",
             dependencies: [
                 "AppSettings",
+                "ConfigurationManager",
                 "Constants",
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
@@ -90,6 +93,11 @@ let package = Package(
                 "Theme"
             ],
             path: "Sources/Services/CredentialsManager"
+        ),
+        .target(
+            name: "DarwinNotificationCenter",
+            dependencies: [],
+            path: "Sources/Services/DarwinNotificationCenter"
         ),
         .target(
             name: "ExternalLinkManager",
@@ -117,6 +125,7 @@ let package = Package(
             name: "NymLogger",
             dependencies: [
                 "Constants",
+                "DarwinNotificationCenter",
                 .product(name: "Logging", package: "swift-log")
             ],
             path: "Sources/Services/NymLogger"
@@ -141,7 +150,7 @@ let package = Package(
         .target(
             name: "TunnelMixnet",
             dependencies: [
-                "Constants",
+                "ConfigurationManager",
                 "CountriesManager",
                 "CredentialsManager",
                 .product(name: "Logging", package: "swift-log"),

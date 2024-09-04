@@ -6,7 +6,7 @@ public class FileLogHandler: LogHandler {
     private let label: String
     private let logFileManager: LogFileManager
 
-    public init(label: String, logFileManager: LogFileManager = LogFileManager.shared) {
+    public init(label: String, logFileManager: LogFileManager) {
         self.label = label
         self.logFileManager = logFileManager
     }

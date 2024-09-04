@@ -34,8 +34,8 @@ public struct LogsView: View {
                         Spacer()
                     }
                 }
+                logTypePicker()
             }
-
             .frame(maxWidth: .infinity)
             .background {
                 NymColor.background
@@ -148,6 +148,17 @@ private extension LogsView {
             NymColor.navigationBarBackground
         }
         .frame(minHeight: 80)
+    }
+
+    @ViewBuilder
+    func logTypePicker() -> some View {
+        Picker("", selection: $viewModel.currentLogFileType) {
+            ForEach(viewModel.logFileTypes, id: \.self) {
+                Text($0.rawValue.capitalized.localizedString)
+            }
+        }
+        .pickerStyle(.segmented)
+        .padding(16)
     }
 }
 

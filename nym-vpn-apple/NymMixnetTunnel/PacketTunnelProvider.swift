@@ -1,30 +1,26 @@
 import NetworkExtension
 import Logging
+import ConfigurationManager
 import NymLogger
 import MixnetLibrary
 import TunnelMixnet
 import Tunnels
-import ConfigurationManager
-
-enum TunnelEvent {
-    case statusUpdate(TunStatus)
-}
 
 class PacketTunnelProvider: NEPacketTunnelProvider {
+    private let eventStream: AsyncStream<TunnelEvent>
+    private let eventContinuation: AsyncStream<TunnelEvent>.Continuation
+    private let stateLock = NSLock()
+
     private static var defaultPathObserverContext = 0
 
     private lazy var logger = Logger(label: "MixnetTunnel")
 
-    private let eventStream: AsyncStream<TunnelEvent>
-    private let eventContinuation: AsyncStream<TunnelEvent>.Continuation
-
-    private let stateLock = NSLock()
     private var defaultPathObserver: (any OsDefaultPathObserver)?
     private var installedDefaultPathObserver = false
 
     override init() {
         LoggingSystem.bootstrap { label in
-            let fileLogHandler = FileLogHandler(label: label)
+            let fileLogHandler = FileLogHandler(label: label, logFileManager: LogFileManager(logFileType: .tunnel))
 
             #if DEBUG
                 let osLogHandler = OSLogHandler(
@@ -52,7 +48,8 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         setup()
 
         guard let tunnelProviderProtocol = protocolConfiguration as? NETunnelProviderProtocol,
-              let mixnetConfig = tunnelProviderProtocol.asMixnetConfig() else {
+              let mixnetConfig = tunnelProviderProtocol.asMixnetConfig()
+        else {
             logger.error("Failed to obtain tunnel configuration")
             throw PacketTunnelProviderError.invalidSavedConfiguration
         }
@@ -70,27 +67,25 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         for await event in eventStream {
             switch event {
             case .statusUpdate(.up):
-                self.logger.debug("Tunnel is up.")
+                logger.debug("Tunnel is up.")
                 // Stop blocking startTunnel() to avoid being terminated due to system 60s timeout
                 return
 
             case .statusUpdate(.establishingConnection):
-                self.logger.debug("Tunnel is establishing connection.")
-
+                logger.debug("Tunnel is establishing connection.")
             case .statusUpdate(.down):
+                logger.error("Failed to start backendØ")
                 throw PacketTunnelProviderError.backendStartFailure
-
             case .statusUpdate(.initializingClient):
-                self.logger.debug("Initializing the client")
-
+                logger.debug("Initializing the client")
             case .statusUpdate(.disconnecting):
-                self.logger.debug("Disconnecting?")
+                logger.debug("Disconnecting?")
             }
         }
     }
 
     override func stopTunnel(with reason: NEProviderStopReason) async {
-        logger.info("Stop tunnel...")
+        logger.info("Stop tunnel... \(reason.rawValue)")
 
         do {
             try stopVpn()
@@ -101,10 +96,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 }
 
 extension PacketTunnelProvider {
-
     func setup() {
         do {
-            try ConfigurationManager.setEnvVariables()
+            try ConfigurationManager.shared.setup()
         } catch {
             self.logger.error("Failed to set environment: \(error)")
         }
@@ -177,13 +171,10 @@ extension PacketTunnelProvider: OsTunProvider {
     func setTunnelNetworkSettings(tunnelSettings: TunnelNetworkSettings) async throws {
         do {
             let networkSettings = tunnelSettings.asPacketTunnelNetworkSettings()
-
-            self.logger.debug("Set network settings: \(networkSettings)")
-
+            logger.debug("Set network settings: \(networkSettings)")
             try await setTunnelNetworkSettings(networkSettings)
         } catch {
-            self.logger.error("Failed to set tunnel network settings: \(error)")
-
+            logger.error("Failed to set tunnel network settings: \(error)")
             throw error
         }
     }

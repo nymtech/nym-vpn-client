@@ -14,6 +14,7 @@ import Theme
 @main
 struct NymVPNDaemonApp: App {
     private let autoUpdater = AutoUpdater.shared
+    private let logFileManager = LogFileManager(logFileType: .app)
 
     @ObservedObject private var appSettings = AppSettings.shared
     @StateObject private var homeViewModel = HomeViewModel()
@@ -38,6 +39,7 @@ struct NymVPNDaemonApp: App {
             .frame(width: 390, height: 800)
             .animation(.default, value: appSettings.welcomeScreenDidDisplay)
             .environmentObject(appSettings)
+            .environmentObject(logFileManager)
         }
         .windowResizability(.contentSize)
         .commands {
@@ -51,9 +53,9 @@ struct NymVPNDaemonApp: App {
 private extension NymVPNDaemonApp {
     func setup() {
         LoggingSystem.bootstrap { label in
-            FileLogHandler(label: label)
+            FileLogHandler(label: label, logFileManager: logFileManager)
         }
-        try? ConfigurationManager.setEnvVariables()
+        try? ConfigurationManager.shared.setup()
         ThemeConfiguration.setup()
         SentryManager.shared.setup()
         HelperManager.shared.setup(helperName: Constants.helperName.rawValue)
