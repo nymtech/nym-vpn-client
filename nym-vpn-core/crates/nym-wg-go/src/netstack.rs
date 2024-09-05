@@ -63,17 +63,10 @@ impl Config {
 #[derive(Debug)]
 pub struct Tunnel {
     handle: i32,
-    boxed_logger_ptr: *mut Box<dyn Fn(&str)>,
 }
 
-// *mut Box is safe to send
-unsafe impl Send for Tunnel {}
-
 impl Tunnel {
-    pub fn start<F>(config: Config, logger: F) -> Result<Self>
-    where
-        F: Fn(&str) + 'static,
-    {
+    pub fn start(config: Config) -> Result<Self> {
         let local_addrs = CString::new(to_comma_separated_addrs(&config.interface.local_addrs))
             .map_err(|_| Error::IpAddrToCstr)?;
         let dns_addrs = CString::new(to_comma_separated_addrs(&config.interface.dns_addrs))
@@ -81,23 +74,19 @@ impl Tunnel {
         let settings =
             CString::new(config.as_uapi_config()).map_err(|_| Error::ConfigContainsNulByte)?;
 
-        let boxed_logger_ptr = unsafe { super::logging::create_logger_callback(logger) };
         let handle = unsafe {
             wgNetTurnOn(
                 local_addrs.as_ptr(),
                 dns_addrs.as_ptr(),
                 i32::from(config.interface.mtu),
                 settings.as_ptr(),
-                Some(super::logging::wg_logger_callback),
-                boxed_logger_ptr as *mut _,
+                wg_netstack_logger_callback,
+                std::ptr::null_mut(),
             )
         };
 
         if handle >= 0 {
-            Ok(Self {
-                handle,
-                boxed_logger_ptr,
-            })
+            Ok(Self { handle })
         } else {
             Err(Error::StartTunnel(handle))
         }
@@ -171,13 +160,6 @@ impl Tunnel {
             unsafe { wgNetTurnOff(self.handle) };
             self.handle = -1;
         }
-        if !self.boxed_logger_ptr.is_null() {
-            // causes crash on ios and android
-            // unsafe {
-            //     let _ = Box::from_raw(self.boxed_logger_ptr);
-            // }
-            self.boxed_logger_ptr = std::ptr::null_mut();
-        }
     }
 }
 
@@ -208,6 +190,8 @@ impl TunnelConnection {
                 listen_port,
                 client_port,
                 exit_endpoint.as_ptr(),
+                wg_netstack_logger_callback,
+                std::ptr::null_mut(),
             )
         };
 
@@ -250,7 +234,7 @@ extern "C" {
         dns_addresses: *const c_char,
         mtu: i32,
         settings: *const c_char,
-        logging_callback: Option<LoggingCallback>,
+        logging_callback: LoggingCallback,
         logging_context: *mut c_void,
     ) -> i32;
     fn wgNetTurnOff(net_tunnel_handle: i32);
@@ -262,10 +246,23 @@ extern "C" {
         listen_port: u16,
         client_port: u16,
         exit_endpoint: *const c_char,
+        logging_callback: LoggingCallback,
+        logging_context: *mut c_void,
     ) -> i32;
     fn wgNetCloseConnectionThroughTunnel(handle: i32);
     #[cfg(target_os = "android")]
     fn wgNetGetSocketV4(net_tunnel_handle: i32) -> i32;
     #[cfg(target_os = "android")]
     fn wgNetGetSocketV6(net_tunnel_handle: i32) -> i32;
+}
+
+pub unsafe extern "system" fn wg_netstack_logger_callback(
+    _log_level: u32,
+    msg: *const c_char,
+    _ctx: *mut c_void,
+) {
+    if !msg.is_null() {
+        let str = std::ffi::CStr::from_ptr(msg).to_string_lossy();
+        tracing::debug!("{}", str);
+    }
 }

@@ -101,6 +101,7 @@ extension PacketTunnelProvider {
         } catch {
             self.logger.error("Failed to set environment: \(error)")
         }
+        initLogger()
         addDefaultPathObserver()
     }
 

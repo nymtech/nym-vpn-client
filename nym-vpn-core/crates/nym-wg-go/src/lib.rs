@@ -3,7 +3,6 @@
 
 #![cfg(any(target_os = "ios", target_os = "android"))]
 
-mod logging;
 pub mod netstack;
 pub mod uapi;
 pub mod wireguard_go;
