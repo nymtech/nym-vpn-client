@@ -28,7 +28,7 @@ use crate::mobile::ios::tun_provider::OSTunProvider;
 #[cfg(target_os = "android")]
 use crate::platform::android::AndroidTunProvider;
 use crate::{
-    error::Result,
+    error::{Error, Result},
     tunnel_setup::{AllTunnelsSetup, TunnelSetup},
     MixnetError,
 };
@@ -321,29 +321,37 @@ async fn init_firewall_dns(
         let (command_tx, _) = futures::channel::mpsc::unbounded();
         let command_tx = std::sync::Arc::new(command_tx);
         let weak_command_tx = std::sync::Arc::downgrade(&command_tx);
+
         tracing::debug!("Starting firewall");
         let firewall = tokio::task::spawn_blocking(move || {
-            Firewall::new().map_err(|err| crate::error::Error::FirewallError(err.to_string()))
+            Firewall::new().map_err(|err| Error::FirewallError(err.to_string()))
         })
-        .await??;
+        .await
+        .map_err(|err| Error::FirewallError(err.to_string()))??;
+
         tracing::debug!("Starting dns monitor");
         let dns_monitor = DnsMonitor::new(weak_command_tx)?;
+
         Ok((firewall, dns_monitor))
     }
 
     #[cfg(target_os = "linux")]
     {
         let fwmark = 0; // ?
+
         tracing::debug!("Starting firewall");
         let firewall = tokio::task::spawn_blocking(move || {
-            Firewall::new(fwmark).map_err(|err| crate::error::Error::FirewallError(err.to_string()))
+            Firewall::new(fwmark).map_err(|err| Error::FirewallError(err.to_string()))
         })
-        .await??;
+        .await
+        .map_err(|err| Error::FirewallError(err.to_string()))??;
+
         tracing::debug!("Starting dns monitor");
         let dns_monitor = DnsMonitor::new(
             tokio::runtime::Handle::current(),
             route_manager_handle.clone(),
         )?;
+
         Ok((firewall, dns_monitor))
     }
 
@@ -351,11 +359,14 @@ async fn init_firewall_dns(
     {
         tracing::debug!("Starting firewall");
         let firewall = tokio::task::spawn_blocking(move || {
-            Firewall::new().map_err(|err| crate::error::Error::FirewallError(err.to_string()))
+            Firewall::new().map_err(|err| Error::FirewallError(err.to_string()))
         })
-        .await??;
+        .await
+        .map_err(|err| Error::FirewallError(err.to_string()))??;
+
         tracing::debug!("Starting dns monitor");
         let dns_monitor = DnsMonitor::new()?;
+
         Ok((firewall, dns_monitor))
     }
 }

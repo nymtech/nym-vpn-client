@@ -164,7 +164,7 @@ pub enum ConnectionFailedError {
 impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
     fn from(err: &nym_vpn_lib::Error) -> Self {
         match err {
-            nym_vpn_lib::Error::StartMixnetTimeout(timeout_sec) => {
+            nym_vpn_lib::Error::StartMixnetClientTimeout(timeout_sec) => {
                 ConnectionFailedError::StartMixnetTimeout(*timeout_sec)
             }
             nym_vpn_lib::Error::FailedToSetupMixnetClient(e) => match e {

@@ -13,14 +13,8 @@ pub enum Error {
     #[error("{0}")]
     DNSError(#[from] talpid_core::dns::Error),
 
-    // We are not returning the underlying talpid_core::firewall:Error error as I ran into issues
-    // with the Send marker trait not being implemented when building on Mac. Possibly we can fix
-    // this in the future.
-    #[error("{0}")]
+    #[error("firewall error: {0}")]
     FirewallError(String),
-
-    #[error("{0}")]
-    JoinError(#[from] tokio::task::JoinError),
 
     #[error("{0}")]
     CanceledError(#[from] futures::channel::oneshot::Canceled),
@@ -41,7 +35,7 @@ pub enum Error {
     SetupMixTunnelError(#[from] SetupMixTunnelError),
 
     #[error("timeout after waiting {0}s for mixnet client to start")]
-    StartMixnetTimeout(u64),
+    StartMixnetClientTimeout(u64),
 
     #[error("failed to setup mixnet client: {0}")]
     FailedToSetupMixnetClient(#[source] MixnetError),
