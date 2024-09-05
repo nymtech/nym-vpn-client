@@ -3,6 +3,8 @@
 
 use std::path::PathBuf;
 
+use nym_gateway_directory::NodeIdentity;
+
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("{0}")]
@@ -104,7 +106,22 @@ pub enum Error {
     FailedToConnectToIpPacketRouter(#[source] nym_ip_packet_client::Error),
 
     #[error("received bad event for wireguard tunnel creation")]
-    BadWireguardEvent,
+    FailedToBringInterfaceUpWgEventTunnelClose {
+        gateway_id: Box<NodeIdentity>,
+        public_key: String,
+    },
+
+    #[error("wireguard authentication failed")]
+    FailedToBringInterfaceUpWgAuthFailed {
+        gateway_id: Box<NodeIdentity>,
+        public_key: String,
+    },
+
+    #[error("wireguard tunnel is down")]
+    FailedToBringInterfaceUpWgDown {
+        gateway_id: Box<NodeIdentity>,
+        public_key: String,
+    },
 
     #[error("wiregurad authentication is not possible due to one of the gateways not running the authenticator process: {0}")]
     AuthenticationNotPossible(String),
@@ -112,8 +129,8 @@ pub enum Error {
     #[error("failed to find authenticator address")]
     AuthenticatorAddressNotFound,
 
-    #[error("not enough bandwidth")]
-    NotEnoughBandwidth,
+    #[error("not enough bandwidth to setup tunnel")]
+    NotEnoughBandwidthToSetupTunnel,
 
     #[error("failed to add ipv6 route: {0}")]
     FailedToAddIpv6Route(#[source] std::io::Error),

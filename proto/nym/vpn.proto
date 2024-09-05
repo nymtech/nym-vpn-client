@@ -267,6 +267,18 @@ message Error {
 
     // Client ran out of allocated bandwidth
     OUT_OF_BANDWIDTH = 18;
+
+    // The user has no available bandwidth to setup tunnel
+    OUT_OF_BANDWIDTH_WHEN_SETTING_UP_TUNNEL = 26;
+
+    // Failed to bring up the wg interface due to auth failure
+    FAILED_TO_BRING_INTERFACE_UP_WG_AUTH_FAILED = 27;
+
+    // Failed to bring up the wg interface
+    FAILED_TO_BRING_INTERFACE_UP_WG_DOWN = 28;
+
+    // Failed to bring up the wg interface, tunnel was closed
+    FAILED_TO_BRING_INTERFACE_UP_WG_EVENT_TUNNEL_CLOSE = 29;
   }
 
   ErrorType kind = 1;

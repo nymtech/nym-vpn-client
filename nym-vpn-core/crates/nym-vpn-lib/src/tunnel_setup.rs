@@ -28,7 +28,7 @@ use crate::{
         MixnetConnectionInfo, MixnetExitConnectionInfo, MixnetVpn, NymVpn, SpecificVpn,
         WireguardConnectionInfo, WireguardVpn, MIXNET_CLIENT_STARTUP_TIMEOUT_SECS,
     },
-    wireguard_config,
+    wireguard_config::{self, WireguardConfig},
     wireguard_setup::create_wireguard_tunnel,
 };
 
@@ -113,6 +113,7 @@ pub(crate) async fn init_firewall_dns(
 
 async fn wait_interface_up(
     mut event_rx: mpsc::UnboundedReceiver<(TunnelEvent, oneshot::Sender<()>)>,
+    wg_config: &WireguardConfig,
 ) -> Result<TunnelMetadata> {
     loop {
         match event_rx.next().await {
@@ -124,9 +125,26 @@ async fn wait_interface_up(
                 debug!("Received up event");
                 break Ok(metadata);
             }
-            Some((TunnelEvent::AuthFailed(_), _)) | Some((TunnelEvent::Down, _)) | None => {
-                debug!("Received unexpected event");
-                return Err(Error::BadWireguardEvent);
+            Some((TunnelEvent::AuthFailed(_), _)) => {
+                debug!("Received tunnel auth failed");
+                return Err(Error::FailedToBringInterfaceUpWgAuthFailed {
+                    gateway_id: Box::new(wg_config.gateway_id),
+                    public_key: wg_config.gateway_data.public_key.to_base64(),
+                });
+            }
+            Some((TunnelEvent::Down, _)) => {
+                debug!("Received tunnel down event when waiting for interface up");
+                return Err(Error::FailedToBringInterfaceUpWgDown {
+                    gateway_id: Box::new(wg_config.gateway_id),
+                    public_key: wg_config.gateway_data.public_key.to_base64(),
+                });
+            }
+            None => {
+                debug!("Wireguard event channel closed when waiting for interface up");
+                return Err(Error::FailedToBringInterfaceUpWgEventTunnelClose {
+                    gateway_id: Box::new(wg_config.gateway_id),
+                    public_key: wg_config.gateway_data.public_key.to_base64(),
+                });
             }
         }
     }
@@ -194,7 +212,7 @@ async fn setup_wg_tunnel(
     .await?;
 
     if wg_entry_gateway_client.suspended().await? || wg_exit_gateway_client.suspended().await? {
-        return Err(Error::NotEnoughBandwidth);
+        return Err(Error::NotEnoughBandwidthToSetupTunnel);
     }
     tokio::spawn(
         wg_entry_gateway_client.run(task_manager.subscribe_named("bandwidth_entry_client")),
@@ -256,14 +274,14 @@ async fn setup_wg_tunnel(
         route_manager,
         task_manager.subscribe_named("entry_wg_tunnel"),
         nym_vpn.tun_provider.clone(),
-        entry_wireguard_config,
+        entry_wireguard_config.clone(),
     )
     .await?;
 
     // Wait for entry gateway routes to be finished before moving to exit gateway routes, as the two might race if
     // started one after the other
     debug!("Waiting for first interface up");
-    let metadata = wait_interface_up(event_rx).await?;
+    let metadata = wait_interface_up(event_rx, &entry_wireguard_config).await?;
     info!(
         "Created entry tun device {device_name} with ip={device_ip:?}",
         device_name = metadata.interface,
@@ -274,11 +292,11 @@ async fn setup_wg_tunnel(
         route_manager,
         task_manager.subscribe_named("exit_wg_tunnel"),
         nym_vpn.tun_provider.clone(),
-        exit_wireguard_config,
+        exit_wireguard_config.clone(),
     )
     .await?;
     debug!("Waiting for second interface up");
-    let metadata = wait_interface_up(event_rx).await?;
+    let metadata = wait_interface_up(event_rx, &exit_wireguard_config).await?;
     info!(
         "Created exit tun device {device_name} with ip={device_ip:?}",
         device_name = metadata.interface,
