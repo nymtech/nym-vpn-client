@@ -203,6 +203,31 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                     location: path.to_string_lossy().to_string(),
                     gateway_id: gateway_id.clone(),
                 },
+                nym_vpn_lib::MixnetError::FailedToSerializeMessage { .. }
+                | nym_vpn_lib::MixnetError::ConnectionMonitorError(_) => {
+                    ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
+                }
+            },
+            nym_vpn_lib::Error::SetupMixTunnelError(e) => match e {
+                nym_vpn_lib::SetupMixTunnelError::FailedToLookupGatewayIp {
+                    gateway_id,
+                    source,
+                } => ConnectionFailedError::FailedToLookupGatewayIp {
+                    gateway_id: gateway_id.clone(),
+                    reason: source.to_string(),
+                },
+                nym_vpn_lib::SetupMixTunnelError::FailedToConnectToIpPacketRouter(inner) => {
+                    ConnectionFailedError::FailedToConnectToIpPacketRouter {
+                        reason: inner.to_string(),
+                    }
+                }
+                nym_vpn_lib::SetupMixTunnelError::TunError(_)
+                | nym_vpn_lib::SetupMixTunnelError::ConnectionMonitorError(_)
+                | nym_vpn_lib::SetupMixTunnelError::FailedToAddIpv6Route(_)
+                | nym_vpn_lib::SetupMixTunnelError::RoutingError(_)
+                | nym_vpn_lib::SetupMixTunnelError::DNSError(_) => {
+                    ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
+                }
             },
             nym_vpn_lib::Error::SetupWgTunnelError(e) => match e {
                 nym_vpn_lib::SetupWgTunnelError::NotEnoughBandwidthToSetupTunnel => {
@@ -217,7 +242,12 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                     public_key: public_key.clone(),
                     reason: source.to_string(),
                 },
-                nym_vpn_lib::SetupWgTunnelError::GatewayDirectoryError(e) => e.into(),
+                nym_vpn_lib::SetupWgTunnelError::FailedToLookupGatewayIp { gateway_id, source } => {
+                    ConnectionFailedError::FailedToLookupGatewayIp {
+                        gateway_id: gateway_id.clone(),
+                        reason: source.to_string(),
+                    }
+                }
                 nym_vpn_lib::SetupWgTunnelError::WgGatewayClientError(ee) => match ee {
                     WgGatewayClientError::OutOfBandwidth => ConnectionFailedError::OutOfBandwidth,
                     WgGatewayClientError::InvalidGatewayAuthResponse
@@ -230,42 +260,25 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                 nym_vpn_lib::SetupWgTunnelError::AuthenticationNotPossible(_)
                 | nym_vpn_lib::SetupWgTunnelError::RoutingError(_)
                 | nym_vpn_lib::SetupWgTunnelError::FailedToParseEntryGatewayIpv4(_)
+                | nym_vpn_lib::SetupWgTunnelError::AuthenticatorAddressNotFound
                 | nym_vpn_lib::SetupWgTunnelError::WireguardConfigError(_) => {
                     ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
                 }
             },
             nym_vpn_lib::Error::GatewayDirectoryError(e) => e.into(),
-            nym_vpn_lib::Error::FailedToConnectToIpPacketRouter(inner) => {
-                ConnectionFailedError::FailedToConnectToIpPacketRouter {
-                    reason: inner.to_string(),
-                }
-            }
             nym_vpn_lib::Error::RoutingError(_)
-            | nym_vpn_lib::Error::FailedToAddIpv6Route(_)
             | nym_vpn_lib::Error::DNSError(_)
             | nym_vpn_lib::Error::FirewallError(_)
-            | nym_vpn_lib::Error::JoinError(_)
             | nym_vpn_lib::Error::CanceledError(_)
             | nym_vpn_lib::Error::FailedToSendWireguardShutdown
-            | nym_vpn_lib::Error::TunError(_)
             | nym_vpn_lib::Error::DefaultInterfaceError
             | nym_vpn_lib::Error::StopError
-            | nym_vpn_lib::Error::FailedToSerializeMessage { .. }
-            | nym_vpn_lib::Error::CountryCodeNotFound
-            | nym_vpn_lib::Error::FailedToDecodeBase58Credential { .. }
-            | nym_vpn_lib::Error::ConnectionMonitorError(_)
-            | nym_vpn_lib::Error::AuthenticatorAddressNotFound
             | nym_vpn_lib::Error::NymVpnExitWithError(_)
             | nym_vpn_lib::Error::NymVpnExitUnexpectedChannelClose => {
                 ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
             }
-            #[cfg(windows)]
-            nym_vpn_lib::Error::AdminPrivilegesRequired { .. } => {
-                ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
-            }
             #[cfg(unix)]
-            nym_vpn_lib::Error::TunProvider(_)
-            | nym_vpn_lib::Error::RootPrivilegesRequired { .. } => {
+            nym_vpn_lib::Error::TunProvider(_) => {
                 ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
             }
         }
@@ -328,12 +341,6 @@ impl From<&nym_vpn_lib::GatewayDirectoryError> for ConnectionFailedError {
             }
             GatewayDirectoryError::FailedToLookupRouterAddress { source } => {
                 ConnectionFailedError::FailedToLookupRouterAddress {
-                    reason: source.to_string(),
-                }
-            }
-            GatewayDirectoryError::FailedToLookupGatewayIp { gateway_id, source } => {
-                ConnectionFailedError::FailedToLookupGatewayIp {
-                    gateway_id: gateway_id.clone(),
                     reason: source.to_string(),
                 }
             }

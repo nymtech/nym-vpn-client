@@ -106,7 +106,7 @@ fn check_root_privileges(args: &commands::CliArgs) -> Result<()> {
 }
 
 #[cfg(unix)]
-pub fn unix_has_root(binary_name: &str) -> Result<()> {
+pub(crate) fn unix_has_root(binary_name: &str) -> Result<()> {
     use tracing::debug;
 
     if nix::unistd::geteuid().is_root() {
@@ -120,7 +120,7 @@ pub fn unix_has_root(binary_name: &str) -> Result<()> {
 }
 
 #[cfg(windows)]
-pub fn win_has_admin(binary_name: &str) -> Result<()> {
+pub(crate) fn win_has_admin(binary_name: &str) -> Result<()> {
     use tracing::debug;
 
     if is_elevated::is_elevated() {

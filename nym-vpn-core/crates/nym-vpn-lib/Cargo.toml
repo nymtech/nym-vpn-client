@@ -95,9 +95,6 @@ rand = "0.8.5"
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 oslog = "0.2.0"
 
-# [target.'cfg(unix)'.dependencies]
-# nix = { workspace = true, features = ["user"] }
-
 [target.'cfg(target_os = "ios")'.dependencies]
 nix = { workspace = true, features = ["socket", "net"] }
 

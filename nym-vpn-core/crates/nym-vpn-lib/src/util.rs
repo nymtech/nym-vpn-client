@@ -5,11 +5,7 @@ use futures::{channel::mpsc, StreamExt};
 use talpid_routing::RouteManager;
 use tracing::{error, info};
 
-use crate::{
-    error::{Error, Result},
-    tunnel_setup::WgTunnelSetup,
-    vpn::NymVpnCtrlMessage,
-};
+use crate::{tunnel_setup::WgTunnelSetup, vpn::NymVpnCtrlMessage};
 
 pub(crate) async fn wait_for_interrupt(
     mut task_manager: Option<nym_task::TaskManager>,
