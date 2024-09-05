@@ -107,19 +107,19 @@ pub enum Error {
 
     #[error("received bad event for wireguard tunnel creation")]
     FailedToBringInterfaceUpWgEventTunnelClose {
-        gateway_id: NodeIdentity,
+        gateway_id: Box<NodeIdentity>,
         public_key: String,
     },
 
     #[error("wireguard authentication failed")]
     FailedToBringInterfaceUpWgAuthFailed {
-        gateway_id: NodeIdentity,
+        gateway_id: Box<NodeIdentity>,
         public_key: String,
     },
 
     #[error("wireguard tunnel is down")]
     FailedToBringInterfaceUpWgDown {
-        gateway_id: NodeIdentity,
+        gateway_id: Box<NodeIdentity>,
         public_key: String,
     },
 

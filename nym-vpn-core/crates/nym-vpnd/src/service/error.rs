@@ -155,19 +155,19 @@ pub enum ConnectionFailedError {
 
     #[error("failed to bring up tunnel, wireguard auth failed for {gateway_id}")]
     FailedToBringInterfaceUpWgAuthFailed {
-        gateway_id: NodeIdentity,
+        gateway_id: Box<NodeIdentity>,
         public_key: String,
     },
 
     #[error("failed to bring up tunnel, wireguard is down for {gateway_id}")]
     FailedToBringInterfaceUpWgDown {
-        gateway_id: NodeIdentity,
+        gateway_id: Box<NodeIdentity>,
         public_key: String,
     },
 
     #[error("failed to bring up tunnel, wireguard tunnel closed for {gateway_id}")]
     FailedToBringInterfaceUpWgEventTunnelClose {
-        gateway_id: NodeIdentity,
+        gateway_id: Box<NodeIdentity>,
         public_key: String,
     },
 }

@@ -128,21 +128,21 @@ async fn wait_interface_up(
             Some((TunnelEvent::AuthFailed(_), _)) => {
                 debug!("Received tunnel auth failed");
                 return Err(Error::FailedToBringInterfaceUpWgAuthFailed {
-                    gateway_id: wg_config.gateway_id.clone(),
+                    gateway_id: Box::new(wg_config.gateway_id),
                     public_key: wg_config.gateway_data.public_key.to_base64(),
                 });
             }
             Some((TunnelEvent::Down, _)) => {
                 debug!("Received tunnel down event when waiting for interface up");
                 return Err(Error::FailedToBringInterfaceUpWgDown {
-                    gateway_id: wg_config.gateway_id.clone(),
+                    gateway_id: Box::new(wg_config.gateway_id),
                     public_key: wg_config.gateway_data.public_key.to_base64(),
                 });
             }
             None => {
                 debug!("Wireguard event channel closed when waiting for interface up");
                 return Err(Error::FailedToBringInterfaceUpWgEventTunnelClose {
-                    gateway_id: wg_config.gateway_id.clone(),
+                    gateway_id: Box::new(wg_config.gateway_id),
                     public_key: wg_config.gateway_data.public_key.to_base64(),
                 });
             }

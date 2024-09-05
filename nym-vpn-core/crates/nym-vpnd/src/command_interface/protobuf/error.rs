@@ -244,7 +244,7 @@ impl From<ConnectionFailedError> for ProtoError {
                 details: hashmap! {},
             },
             ConnectionFailedError::FailedToBringInterfaceUpWgAuthFailed {
-                gateway_id,
+                ref gateway_id,
                 ref public_key,
             } => ProtoError {
                 kind: ErrorType::FailedToBringInterfaceUpWgAuthFailed as i32,
@@ -255,7 +255,7 @@ impl From<ConnectionFailedError> for ProtoError {
                 },
             },
             ConnectionFailedError::FailedToBringInterfaceUpWgDown {
-                gateway_id,
+                ref gateway_id,
                 ref public_key,
             } => ProtoError {
                 kind: ErrorType::FailedToBringInterfaceUpWgDown as i32,
@@ -266,7 +266,7 @@ impl From<ConnectionFailedError> for ProtoError {
                 },
             },
             ConnectionFailedError::FailedToBringInterfaceUpWgEventTunnelClose {
-                gateway_id,
+                ref gateway_id,
                 ref public_key,
             } => ProtoError {
                 kind: ErrorType::FailedToBringInterfaceUpWgEventTunnelClose as i32,
