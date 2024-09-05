@@ -30,7 +30,7 @@
     "connected": "Disabled while connected to VPN",
     "connecting": "Disabled while connecting to VPN",
     "disconnecting": "Disabled while disconnecting from VPN",
-    "daemon-not-connected": "Disabled while not connected to VPN daemon"
+    "daemon-not-connected": "The NymVPN app is currently not connected to the NymVPN daemon."
   },
   "modes-dialog": {
     "title": "Mode selection",
