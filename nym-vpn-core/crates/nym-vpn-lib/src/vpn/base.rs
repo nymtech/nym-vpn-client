@@ -12,6 +12,7 @@ use nym_gateway_directory::{Config as GatewayDirectoryConfig, EntryPoint, ExitPo
 use nym_ip_packet_requests::IpPair;
 use nym_sdk::UserAgent;
 use nym_task::{manager::TaskStatus, TaskManager};
+use talpid_core::{dns::DnsMonitor, firewall::Firewall};
 use talpid_tunnel::tun_provider::TunProvider;
 use tokio::task::JoinHandle;
 use tracing::{error, info};
@@ -169,7 +170,7 @@ impl SpecificVpn {
         let mut task_manager = TaskManager::new(SHUTDOWN_TIMER_SECS).named("nym_vpn_lib");
         info!("Setting up route manager");
         let mut route_manager = crate::tunnel::setup_route_manager().await?;
-        let (mut firewall, mut dns_monitor) = crate::tunnel_setup::init_firewall_dns(
+        let (mut firewall, mut dns_monitor) = init_firewall_dns(
             #[cfg(target_os = "linux")]
             route_manager.handle()?,
         )
@@ -305,4 +306,51 @@ pub enum NymVpnExitError {
     // TODO: capture the concrete error type once we have time to investigate on Mac
     #[error("failed to reset firewall policy: {reason}")]
     FailedToResetFirewallPolicy { reason: String },
+}
+
+async fn init_firewall_dns(
+    #[cfg(target_os = "linux")] route_manager_handle: talpid_routing::RouteManagerHandle,
+) -> Result<(Firewall, DnsMonitor)> {
+    #[cfg(target_os = "macos")]
+    {
+        let (command_tx, _) = futures::channel::mpsc::unbounded();
+        let command_tx = std::sync::Arc::new(command_tx);
+        let weak_command_tx = std::sync::Arc::downgrade(&command_tx);
+        tracing::debug!("Starting firewall");
+        let firewall = tokio::task::spawn_blocking(move || {
+            Firewall::new().map_err(|err| crate::error::Error::FirewallError(err.to_string()))
+        })
+        .await??;
+        tracing::debug!("Starting dns monitor");
+        let dns_monitor = DnsMonitor::new(weak_command_tx)?;
+        Ok((firewall, dns_monitor))
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        let fwmark = 0; // ?
+        tracing::debug!("Starting firewall");
+        let firewall = tokio::task::spawn_blocking(move || {
+            Firewall::new(fwmark).map_err(|err| crate::error::Error::FirewallError(err.to_string()))
+        })
+        .await??;
+        tracing::debug!("Starting dns monitor");
+        let dns_monitor = DnsMonitor::new(
+            tokio::runtime::Handle::current(),
+            route_manager_handle.clone(),
+        )?;
+        Ok((firewall, dns_monitor))
+    }
+
+    #[cfg(all(not(target_os = "macos"), not(target_os = "linux")))]
+    {
+        tracing::debug!("Starting firewall");
+        let firewall = tokio::task::spawn_blocking(move || {
+            Firewall::new().map_err(|err| crate::error::Error::FirewallError(err.to_string()))
+        })
+        .await??;
+        tracing::debug!("Starting dns monitor");
+        let dns_monitor = DnsMonitor::new()?;
+        Ok((firewall, dns_monitor))
+    }
 }

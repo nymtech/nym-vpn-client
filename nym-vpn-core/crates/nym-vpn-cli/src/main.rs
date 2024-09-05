@@ -95,14 +95,42 @@ fn check_root_privileges(args: &commands::CliArgs) -> Result<()> {
     }
 
     #[cfg(unix)]
-    return Ok(nym_vpn_lib::util::unix_has_root("nym-vpn-cli")?);
+    return unix_has_root("nym-vpn-cli");
 
     #[cfg(windows)]
-    return Ok(nym_vpn_lib::util::win_has_admin("nym-vpn-cli")?);
+    return win_has_admin("nym-vpn-cli");
 
     // Assume we're all good on unknown platforms
     debug!("Platform not supported for root privilege check");
     Ok(())
+}
+
+#[cfg(unix)]
+pub fn unix_has_root(binary_name: &str) -> Result<()> {
+    use tracing::debug;
+
+    if nix::unistd::geteuid().is_root() {
+        debug!("Root privileges acquired");
+        Ok(())
+    } else {
+        Err(Error::RootPrivilegesRequired {
+            binary_name: binary_name.to_string(),
+        })
+    }
+}
+
+#[cfg(windows)]
+pub fn win_has_admin(binary_name: &str) -> Result<()> {
+    use tracing::debug;
+
+    if is_elevated::is_elevated() {
+        debug!("Admin privileges acquired");
+        Ok(())
+    } else {
+        Err(Error::AdminPrivilegesRequired {
+            binary_name: binary_name.to_string(),
+        })
+    }
 }
 
 async fn run() -> Result<()> {

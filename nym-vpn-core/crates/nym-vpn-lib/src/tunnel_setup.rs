@@ -13,7 +13,7 @@ use nym_authenticator_client::AuthClient;
 use nym_gateway_directory::{AuthAddresses, GatewayClient, IpPacketRouterAddress};
 use nym_task::TaskManager;
 use nym_wg_gateway_client::WgGatewayClient;
-use talpid_core::{dns::DnsMonitor, firewall::Firewall};
+use talpid_core::dns::DnsMonitor;
 use talpid_routing::{Node, RequiredRoute, RouteManager};
 use talpid_tunnel::{TunnelEvent, TunnelMetadata};
 use tokio::time::timeout;
@@ -28,8 +28,9 @@ use crate::{
         MixnetConnectionInfo, MixnetExitConnectionInfo, MixnetVpn, NymVpn, SpecificVpn,
         WireguardConnectionInfo, WireguardVpn, MIXNET_CLIENT_STARTUP_TIMEOUT_SECS,
     },
-    wireguard_config::{self},
+    wireguard_config,
     wireguard_setup::create_wireguard_tunnel,
+    MixnetError,
 };
 
 pub(crate) struct TunnelSetup<T: TunnelSpecifcSetup> {
@@ -62,53 +63,6 @@ pub(crate) enum AllTunnelsSetup {
         entry: TunnelSetup<WgTunnelSetup>,
         exit: TunnelSetup<WgTunnelSetup>,
     },
-}
-
-pub(crate) async fn init_firewall_dns(
-    #[cfg(target_os = "linux")] route_manager_handle: talpid_routing::RouteManagerHandle,
-) -> Result<(Firewall, DnsMonitor)> {
-    #[cfg(target_os = "macos")]
-    {
-        let (command_tx, _) = futures::channel::mpsc::unbounded();
-        let command_tx = std::sync::Arc::new(command_tx);
-        let weak_command_tx = std::sync::Arc::downgrade(&command_tx);
-        debug!("Starting firewall");
-        let firewall = tokio::task::spawn_blocking(move || {
-            Firewall::new().map_err(|err| crate::error::Error::FirewallError(err.to_string()))
-        })
-        .await??;
-        debug!("Starting dns monitor");
-        let dns_monitor = DnsMonitor::new(weak_command_tx)?;
-        Ok((firewall, dns_monitor))
-    }
-
-    #[cfg(target_os = "linux")]
-    {
-        let fwmark = 0; // ?
-        debug!("Starting firewall");
-        let firewall = tokio::task::spawn_blocking(move || {
-            Firewall::new(fwmark).map_err(|err| crate::error::Error::FirewallError(err.to_string()))
-        })
-        .await??;
-        debug!("Starting dns monitor");
-        let dns_monitor = DnsMonitor::new(
-            tokio::runtime::Handle::current(),
-            route_manager_handle.clone(),
-        )?;
-        Ok((firewall, dns_monitor))
-    }
-
-    #[cfg(all(not(target_os = "macos"), not(target_os = "linux")))]
-    {
-        debug!("Starting firewall");
-        let firewall = tokio::task::spawn_blocking(move || {
-            Firewall::new().map_err(|err| crate::error::Error::FirewallError(err.to_string()))
-        })
-        .await??;
-        debug!("Starting dns monitor");
-        let dns_monitor = DnsMonitor::new()?;
-        Ok((firewall, dns_monitor))
-    }
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -337,7 +291,7 @@ async fn setup_mix_tunnel(
     gateway_directory_client: GatewayClient,
     exit_mix_addresses: &IpPacketRouterAddress,
     default_lan_gateway_ip: routing::LanGatewayIp,
-) -> Result<AllTunnelsSetup> {
+) -> std::result::Result<AllTunnelsSetup, MixnetError> {
     info!("Wireguard is disabled");
 
     let connection_info = nym_vpn
@@ -435,19 +389,18 @@ pub async fn setup_tunnel(
             .await
             .map_err(Error::from)
         }
-        SpecificVpn::Mix(vpn) => {
-            setup_mix_tunnel(
-                vpn,
-                mixnet_client,
-                task_manager,
-                route_manager,
-                dns_monitor,
-                gateway_directory_client,
-                &exit.ipr_address.unwrap(),
-                default_lan_gateway_ip,
-            )
-            .await
-        }
+        SpecificVpn::Mix(vpn) => setup_mix_tunnel(
+            vpn,
+            mixnet_client,
+            task_manager,
+            route_manager,
+            dns_monitor,
+            gateway_directory_client,
+            &exit.ipr_address.unwrap(),
+            default_lan_gateway_ip,
+        )
+        .await
+        .map_err(Error::from),
     }?;
     Ok(tunnels_setup)
 }

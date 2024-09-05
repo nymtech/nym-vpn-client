@@ -23,6 +23,8 @@ use tun2::AbstractDevice;
 
 #[cfg(target_os = "android")]
 use crate::Error;
+#[cfg(not(any(target_os = "ios", target_os = "android")))]
+use crate::MixnetError;
 use crate::{
     error::Result,
     vpn::{MixnetVpn, NymVpn},
@@ -254,7 +256,7 @@ pub async fn setup_mixnet_routing(
     >,
     dns_monitor: &mut DnsMonitor,
     dns: Option<IpAddr>,
-) -> Result<tun2::AsyncDevice> {
+) -> std::result::Result<tun2::AsyncDevice, MixnetError> {
     debug!("Creating tun device");
     let mixnet_tun_config = config.mixnet_tun_config.clone();
 
@@ -284,13 +286,13 @@ pub async fn setup_mixnet_routing(
     std::process::Command::new("ip")
         .args(["-6", "addr", "add", &_ipv6_addr, "dev", &device_name])
         .output()
-        .map_err(crate::Error::FailedToAddIpv6Route)?;
+        .map_err(crate::MixnetError::FailedToAddIpv6Route)?;
 
     #[cfg(target_os = "macos")]
     std::process::Command::new("ifconfig")
         .args([&device_name, "inet6", "add", &_ipv6_addr])
         .output()
-        .map_err(crate::Error::FailedToAddIpv6Route)?;
+        .map_err(crate::MixnetError::FailedToAddIpv6Route)?;
 
     if config.disable_routing {
         info!("Routing is disabled, skipping adding routes");

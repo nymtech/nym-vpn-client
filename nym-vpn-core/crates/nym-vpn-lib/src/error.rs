@@ -30,8 +30,8 @@ pub enum Error {
     #[error("failed to send shutdown message to wireguard tunnel")]
     FailedToSendWireguardShutdown,
 
-    #[error("failed setting up local TUN network device: {0}")]
-    TunError(#[from] tun2::Error),
+    #[error(transparent)]
+    GatewayDirectoryError(#[from] GatewayDirectoryError),
 
     #[error("could not obtain the default interface")]
     DefaultInterfaceError,
@@ -71,34 +71,14 @@ pub enum Error {
     #[error("gateway does not contain a two character country ISO")]
     CountryCodeNotFound,
 
-    #[error(transparent)]
-    GatewayDirectoryError(#[from] GatewayDirectoryError),
-
     #[error("failed decode base58 credential: {source}")]
     FailedToDecodeBase58Credential {
         #[from]
         source: bs58::decode::Error,
     },
 
-    #[error("{0}")]
-    ConnectionMonitorError(#[from] nym_connection_monitor::Error),
-
-    #[cfg(unix)]
-    #[error("sudo/root privileges required, try rerunning with sudo: `sudo -E {binary_name} run`")]
-    RootPrivilegesRequired { binary_name: String },
-
-    #[cfg(windows)]
-    #[error("administrator privileges required, try rerunning with administrator privileges: `runas /user:Administrator {binary_name} run`")]
-    AdminPrivilegesRequired { binary_name: String },
-
-    #[error("failed to connect to ip packet router: {0}")]
-    FailedToConnectToIpPacketRouter(#[source] nym_ip_packet_client::Error),
-
     #[error("failed to find authenticator address")]
     AuthenticatorAddressNotFound,
-
-    #[error("failed to add ipv6 route: {0}")]
-    FailedToAddIpv6Route(#[source] std::io::Error),
 
     #[cfg(target_os = "ios")]
     #[error("failed to run wireguard tunnel")]
@@ -176,6 +156,26 @@ pub enum MixnetError {
         gateway_id: String,
     },
 
+    #[error("{0}")]
+    ConnectionMonitorError(#[from] nym_connection_monitor::Error),
+
+    #[error("failed to connect to ip packet router: {0}")]
+    FailedToConnectToIpPacketRouter(#[source] nym_ip_packet_client::Error),
+
+    #[error(transparent)]
+    GatewayDirectoryError(#[from] GatewayDirectoryError),
+
+    #[error("failed setting up local TUN network device: {0}")]
+    TunError(#[from] tun2::Error),
+
+    #[error("failed to add ipv6 route: {0}")]
+    FailedToAddIpv6Route(#[source] std::io::Error),
+
+    #[error("{0}")]
+    RoutingError(#[from] talpid_routing::Error),
+
+    #[error("{0}")]
+    DNSError(#[from] talpid_core::dns::Error),
 }
 
 #[derive(thiserror::Error, Debug)]

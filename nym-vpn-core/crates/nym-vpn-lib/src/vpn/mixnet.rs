@@ -23,7 +23,7 @@ use super::base::{GenericNymVpnConfig, NymVpn, ShadowHandle, Vpn};
 use crate::mobile::ios::tun_provider::OSTunProvider;
 #[cfg(target_os = "android")]
 use crate::platform::android::AndroidTunProvider;
-use crate::{error::Result, mixnet::SharedMixnetClient, routing, Error, GatewayDirectoryError};
+use crate::{mixnet::SharedMixnetClient, routing, GatewayDirectoryError, MixnetError};
 
 #[derive(Clone, Debug)]
 pub struct MixnetClientConfig {
@@ -107,7 +107,7 @@ impl NymVpn<MixnetVpn> {
         gateway_client: &GatewayClient,
         default_lan_gateway_ip: routing::LanGatewayIp,
         dns_monitor: &mut DnsMonitor,
-    ) -> Result<MixnetExitConnectionInfo> {
+    ) -> std::result::Result<MixnetExitConnectionInfo, MixnetError> {
         let exit_gateway = *exit_mix_addresses.gateway();
         info!("Connecting to exit gateway: {exit_gateway}");
         // Currently the IPR client is only used to connect. The next step would be to use it to
@@ -116,7 +116,7 @@ impl NymVpn<MixnetVpn> {
         let our_ips = ipr_client
             .connect(exit_mix_addresses.0, self.generic_config.nym_ips)
             .await
-            .map_err(Error::FailedToConnectToIpPacketRouter)?;
+            .map_err(MixnetError::FailedToConnectToIpPacketRouter)?;
         info!("Successfully connected to exit gateway");
         info!("Using mixnet VPN IP addresses: {our_ips}");
 
@@ -199,7 +199,7 @@ impl NymVpn<MixnetVpn> {
         gateway_client: &GatewayClient,
         default_lan_gateway_ip: routing::LanGatewayIp,
         dns_monitor: &mut DnsMonitor,
-    ) -> Result<(MixnetConnectionInfo, MixnetExitConnectionInfo)> {
+    ) -> std::result::Result<(MixnetConnectionInfo, MixnetExitConnectionInfo), MixnetError> {
         // Now that we have a connection, collection some info about that and return
         let nym_address = mixnet_client.nym_address().await;
         let entry_gateway = *(nym_address.gateway());
