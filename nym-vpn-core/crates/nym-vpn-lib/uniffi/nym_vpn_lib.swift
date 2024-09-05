@@ -2303,7 +2303,28 @@ extension ExitPoint: Equatable, Hashable {}
 public enum ExitStatus {
     
     case stopped
-    case failed(error: String
+    case generalFailure(message: String
+    )
+    case cannotLocateTunFd
+    case invalidCredential
+    case vpnStopFailure
+    case vpnNotStarted
+    case vpnAlreadyRunning
+    case failedToResetFirewallPolicy
+    case gatewayDirectoryError(message: String
+    )
+    case vpnApiClientError(message: String
+    )
+    case startMixnetTimeout
+    case startMixnetClient(message: String
+    )
+    case authenticatorAddressNotFound
+    case notEnoughBandwidth
+    case authenticationFailed(message: String
+    )
+    case wgGatewayClientFailure(message: String
+    )
+    case tunnelSetupFailure(message: String
     )
 }
 
@@ -2317,7 +2338,43 @@ public struct FfiConverterTypeExitStatus: FfiConverterRustBuffer {
         
         case 1: return .stopped
         
-        case 2: return .failed(error: try FfiConverterString.read(from: &buf)
+        case 2: return .generalFailure(message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 3: return .cannotLocateTunFd
+        
+        case 4: return .invalidCredential
+        
+        case 5: return .vpnStopFailure
+        
+        case 6: return .vpnNotStarted
+        
+        case 7: return .vpnAlreadyRunning
+        
+        case 8: return .failedToResetFirewallPolicy
+        
+        case 9: return .gatewayDirectoryError(message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 10: return .vpnApiClientError(message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 11: return .startMixnetTimeout
+        
+        case 12: return .startMixnetClient(message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 13: return .authenticatorAddressNotFound
+        
+        case 14: return .notEnoughBandwidth
+        
+        case 15: return .authenticationFailed(message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 16: return .wgGatewayClientFailure(message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 17: return .tunnelSetupFailure(message: try FfiConverterString.read(from: &buf)
         )
         
         default: throw UniffiInternalError.unexpectedEnumCase
@@ -2332,9 +2389,75 @@ public struct FfiConverterTypeExitStatus: FfiConverterRustBuffer {
             writeInt(&buf, Int32(1))
         
         
-        case let .failed(error):
+        case let .generalFailure(message):
             writeInt(&buf, Int32(2))
-            FfiConverterString.write(error, into: &buf)
+            FfiConverterString.write(message, into: &buf)
+            
+        
+        case .cannotLocateTunFd:
+            writeInt(&buf, Int32(3))
+        
+        
+        case .invalidCredential:
+            writeInt(&buf, Int32(4))
+        
+        
+        case .vpnStopFailure:
+            writeInt(&buf, Int32(5))
+        
+        
+        case .vpnNotStarted:
+            writeInt(&buf, Int32(6))
+        
+        
+        case .vpnAlreadyRunning:
+            writeInt(&buf, Int32(7))
+        
+        
+        case .failedToResetFirewallPolicy:
+            writeInt(&buf, Int32(8))
+        
+        
+        case let .gatewayDirectoryError(message):
+            writeInt(&buf, Int32(9))
+            FfiConverterString.write(message, into: &buf)
+            
+        
+        case let .vpnApiClientError(message):
+            writeInt(&buf, Int32(10))
+            FfiConverterString.write(message, into: &buf)
+            
+        
+        case .startMixnetTimeout:
+            writeInt(&buf, Int32(11))
+        
+        
+        case let .startMixnetClient(message):
+            writeInt(&buf, Int32(12))
+            FfiConverterString.write(message, into: &buf)
+            
+        
+        case .authenticatorAddressNotFound:
+            writeInt(&buf, Int32(13))
+        
+        
+        case .notEnoughBandwidth:
+            writeInt(&buf, Int32(14))
+        
+        
+        case let .authenticationFailed(message):
+            writeInt(&buf, Int32(15))
+            FfiConverterString.write(message, into: &buf)
+            
+        
+        case let .wgGatewayClientFailure(message):
+            writeInt(&buf, Int32(16))
+            FfiConverterString.write(message, into: &buf)
+            
+        
+        case let .tunnelSetupFailure(message):
+            writeInt(&buf, Int32(17))
+            FfiConverterString.write(message, into: &buf)
             
         }
     }
@@ -2364,16 +2487,14 @@ public enum FfiError {
     case InvalidCredential
     case VpnApiClientError(inner: String
     )
-    case InvalidPath
-    case FdNotFound
-    case VpnNotStopped
-    case VpnNotStarted
-    case VpnAlreadyRunning
-    case VpnNotRunning
     case LibError(inner: String
     )
     case GatewayDirectoryError(inner: String
     )
+    case InvalidPath
+    case VpnNotStopped
+    case VpnNotStarted
+    case VpnAlreadyRunning
 }
 
 
@@ -2392,18 +2513,16 @@ public struct FfiConverterTypeFFIError: FfiConverterRustBuffer {
         case 3: return .VpnApiClientError(
             inner: try FfiConverterString.read(from: &buf)
             )
-        case 4: return .InvalidPath
-        case 5: return .FdNotFound
-        case 6: return .VpnNotStopped
-        case 7: return .VpnNotStarted
-        case 8: return .VpnAlreadyRunning
-        case 9: return .VpnNotRunning
-        case 10: return .LibError(
+        case 4: return .LibError(
             inner: try FfiConverterString.read(from: &buf)
             )
-        case 11: return .GatewayDirectoryError(
+        case 5: return .GatewayDirectoryError(
             inner: try FfiConverterString.read(from: &buf)
             )
+        case 6: return .InvalidPath
+        case 7: return .VpnNotStopped
+        case 8: return .VpnNotStarted
+        case 9: return .VpnAlreadyRunning
 
          default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -2429,39 +2548,31 @@ public struct FfiConverterTypeFFIError: FfiConverterRustBuffer {
             FfiConverterString.write(inner, into: &buf)
             
         
-        case .InvalidPath:
-            writeInt(&buf, Int32(4))
-        
-        
-        case .FdNotFound:
-            writeInt(&buf, Int32(5))
-        
-        
-        case .VpnNotStopped:
-            writeInt(&buf, Int32(6))
-        
-        
-        case .VpnNotStarted:
-            writeInt(&buf, Int32(7))
-        
-        
-        case .VpnAlreadyRunning:
-            writeInt(&buf, Int32(8))
-        
-        
-        case .VpnNotRunning:
-            writeInt(&buf, Int32(9))
-        
-        
         case let .LibError(inner):
-            writeInt(&buf, Int32(10))
+            writeInt(&buf, Int32(4))
             FfiConverterString.write(inner, into: &buf)
             
         
         case let .GatewayDirectoryError(inner):
-            writeInt(&buf, Int32(11))
+            writeInt(&buf, Int32(5))
             FfiConverterString.write(inner, into: &buf)
             
+        
+        case .InvalidPath:
+            writeInt(&buf, Int32(6))
+        
+        
+        case .VpnNotStopped:
+            writeInt(&buf, Int32(7))
+        
+        
+        case .VpnNotStarted:
+            writeInt(&buf, Int32(8))
+        
+        
+        case .VpnAlreadyRunning:
+            writeInt(&buf, Int32(9))
+        
         }
     }
 }

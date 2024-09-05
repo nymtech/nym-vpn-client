@@ -2745,8 +2745,65 @@ sealed class ExitStatus {
     object Stopped : ExitStatus()
     
     
-    data class Failed(
-        val `error`: kotlin.String) : ExitStatus() {
+    data class GeneralFailure(
+        val `message`: kotlin.String) : ExitStatus() {
+        companion object
+    }
+    
+    object CannotLocateTunFd : ExitStatus()
+    
+    
+    object InvalidCredential : ExitStatus()
+    
+    
+    object VpnStopFailure : ExitStatus()
+    
+    
+    object VpnNotStarted : ExitStatus()
+    
+    
+    object VpnAlreadyRunning : ExitStatus()
+    
+    
+    object FailedToResetFirewallPolicy : ExitStatus()
+    
+    
+    data class GatewayDirectoryError(
+        val `message`: kotlin.String) : ExitStatus() {
+        companion object
+    }
+    
+    data class VpnApiClientError(
+        val `message`: kotlin.String) : ExitStatus() {
+        companion object
+    }
+    
+    object StartMixnetTimeout : ExitStatus()
+    
+    
+    data class StartMixnetClient(
+        val `message`: kotlin.String) : ExitStatus() {
+        companion object
+    }
+    
+    object AuthenticatorAddressNotFound : ExitStatus()
+    
+    
+    object NotEnoughBandwidth : ExitStatus()
+    
+    
+    data class AuthenticationFailed(
+        val `message`: kotlin.String) : ExitStatus() {
+        companion object
+    }
+    
+    data class WgGatewayClientFailure(
+        val `message`: kotlin.String) : ExitStatus() {
+        companion object
+    }
+    
+    data class TunnelSetupFailure(
+        val `message`: kotlin.String) : ExitStatus() {
         companion object
     }
     
@@ -2759,7 +2816,34 @@ public object FfiConverterTypeExitStatus : FfiConverterRustBuffer<ExitStatus>{
     override fun read(buf: ByteBuffer): ExitStatus {
         return when(buf.getInt()) {
             1 -> ExitStatus.Stopped
-            2 -> ExitStatus.Failed(
+            2 -> ExitStatus.GeneralFailure(
+                FfiConverterString.read(buf),
+                )
+            3 -> ExitStatus.CannotLocateTunFd
+            4 -> ExitStatus.InvalidCredential
+            5 -> ExitStatus.VpnStopFailure
+            6 -> ExitStatus.VpnNotStarted
+            7 -> ExitStatus.VpnAlreadyRunning
+            8 -> ExitStatus.FailedToResetFirewallPolicy
+            9 -> ExitStatus.GatewayDirectoryError(
+                FfiConverterString.read(buf),
+                )
+            10 -> ExitStatus.VpnApiClientError(
+                FfiConverterString.read(buf),
+                )
+            11 -> ExitStatus.StartMixnetTimeout
+            12 -> ExitStatus.StartMixnetClient(
+                FfiConverterString.read(buf),
+                )
+            13 -> ExitStatus.AuthenticatorAddressNotFound
+            14 -> ExitStatus.NotEnoughBandwidth
+            15 -> ExitStatus.AuthenticationFailed(
+                FfiConverterString.read(buf),
+                )
+            16 -> ExitStatus.WgGatewayClientFailure(
+                FfiConverterString.read(buf),
+                )
+            17 -> ExitStatus.TunnelSetupFailure(
                 FfiConverterString.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
@@ -2773,11 +2857,107 @@ public object FfiConverterTypeExitStatus : FfiConverterRustBuffer<ExitStatus>{
                 4UL
             )
         }
-        is ExitStatus.Failed -> {
+        is ExitStatus.GeneralFailure -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
-                + FfiConverterString.allocationSize(value.`error`)
+                + FfiConverterString.allocationSize(value.`message`)
+            )
+        }
+        is ExitStatus.CannotLocateTunFd -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ExitStatus.InvalidCredential -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ExitStatus.VpnStopFailure -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ExitStatus.VpnNotStarted -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ExitStatus.VpnAlreadyRunning -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ExitStatus.FailedToResetFirewallPolicy -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ExitStatus.GatewayDirectoryError -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`message`)
+            )
+        }
+        is ExitStatus.VpnApiClientError -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`message`)
+            )
+        }
+        is ExitStatus.StartMixnetTimeout -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ExitStatus.StartMixnetClient -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`message`)
+            )
+        }
+        is ExitStatus.AuthenticatorAddressNotFound -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ExitStatus.NotEnoughBandwidth -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ExitStatus.AuthenticationFailed -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`message`)
+            )
+        }
+        is ExitStatus.WgGatewayClientFailure -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`message`)
+            )
+        }
+        is ExitStatus.TunnelSetupFailure -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`message`)
             )
         }
     }
@@ -2788,9 +2968,75 @@ public object FfiConverterTypeExitStatus : FfiConverterRustBuffer<ExitStatus>{
                 buf.putInt(1)
                 Unit
             }
-            is ExitStatus.Failed -> {
+            is ExitStatus.GeneralFailure -> {
                 buf.putInt(2)
-                FfiConverterString.write(value.`error`, buf)
+                FfiConverterString.write(value.`message`, buf)
+                Unit
+            }
+            is ExitStatus.CannotLocateTunFd -> {
+                buf.putInt(3)
+                Unit
+            }
+            is ExitStatus.InvalidCredential -> {
+                buf.putInt(4)
+                Unit
+            }
+            is ExitStatus.VpnStopFailure -> {
+                buf.putInt(5)
+                Unit
+            }
+            is ExitStatus.VpnNotStarted -> {
+                buf.putInt(6)
+                Unit
+            }
+            is ExitStatus.VpnAlreadyRunning -> {
+                buf.putInt(7)
+                Unit
+            }
+            is ExitStatus.FailedToResetFirewallPolicy -> {
+                buf.putInt(8)
+                Unit
+            }
+            is ExitStatus.GatewayDirectoryError -> {
+                buf.putInt(9)
+                FfiConverterString.write(value.`message`, buf)
+                Unit
+            }
+            is ExitStatus.VpnApiClientError -> {
+                buf.putInt(10)
+                FfiConverterString.write(value.`message`, buf)
+                Unit
+            }
+            is ExitStatus.StartMixnetTimeout -> {
+                buf.putInt(11)
+                Unit
+            }
+            is ExitStatus.StartMixnetClient -> {
+                buf.putInt(12)
+                FfiConverterString.write(value.`message`, buf)
+                Unit
+            }
+            is ExitStatus.AuthenticatorAddressNotFound -> {
+                buf.putInt(13)
+                Unit
+            }
+            is ExitStatus.NotEnoughBandwidth -> {
+                buf.putInt(14)
+                Unit
+            }
+            is ExitStatus.AuthenticationFailed -> {
+                buf.putInt(15)
+                FfiConverterString.write(value.`message`, buf)
+                Unit
+            }
+            is ExitStatus.WgGatewayClientFailure -> {
+                buf.putInt(16)
+                FfiConverterString.write(value.`message`, buf)
+                Unit
+            }
+            is ExitStatus.TunnelSetupFailure -> {
+                buf.putInt(17)
+                FfiConverterString.write(value.`message`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -2825,13 +3071,23 @@ sealed class FfiException: Exception() {
             get() = "inner=${ `inner` }"
     }
     
-    class InvalidPath(
+    class LibException(
+        
+        val `inner`: kotlin.String
         ) : FfiException() {
         override val message
-            get() = ""
+            get() = "inner=${ `inner` }"
     }
     
-    class FdNotFound(
+    class GatewayDirectoryException(
+        
+        val `inner`: kotlin.String
+        ) : FfiException() {
+        override val message
+            get() = "inner=${ `inner` }"
+    }
+    
+    class InvalidPath(
         ) : FfiException() {
         override val message
             get() = ""
@@ -2855,34 +3111,6 @@ sealed class FfiException: Exception() {
             get() = ""
     }
     
-    class VpnNotRunning(
-        ) : FfiException() {
-        override val message
-            get() = ""
-    }
-    
-    class NoContext(
-        ) : FfiException() {
-        override val message
-            get() = ""
-    }
-    
-    class LibException(
-        
-        val `inner`: kotlin.String
-        ) : FfiException() {
-        override val message
-            get() = "inner=${ `inner` }"
-    }
-    
-    class GatewayDirectoryException(
-        
-        val `inner`: kotlin.String
-        ) : FfiException() {
-        override val message
-            get() = "inner=${ `inner` }"
-    }
-    
 
     companion object ErrorHandler : UniffiRustCallStatusErrorHandler<FfiException> {
         override fun lift(error_buf: RustBuffer.ByValue): FfiException = FfiConverterTypeFFIError.lift(error_buf)
@@ -2901,19 +3129,16 @@ public object FfiConverterTypeFFIError : FfiConverterRustBuffer<FfiException> {
             3 -> FfiException.VpnApiClientException(
                 FfiConverterString.read(buf),
                 )
-            4 -> FfiException.InvalidPath()
-            5 -> FfiException.FdNotFound()
-            6 -> FfiException.VpnNotStopped()
-            7 -> FfiException.VpnNotStarted()
-            8 -> FfiException.VpnAlreadyRunning()
-            9 -> FfiException.VpnNotRunning()
-            10 -> FfiException.NoContext()
-            11 -> FfiException.LibException(
+            4 -> FfiException.LibException(
                 FfiConverterString.read(buf),
                 )
-            12 -> FfiException.GatewayDirectoryException(
+            5 -> FfiException.GatewayDirectoryException(
                 FfiConverterString.read(buf),
                 )
+            6 -> FfiException.InvalidPath()
+            7 -> FfiException.VpnNotStopped()
+            8 -> FfiException.VpnNotStarted()
+            9 -> FfiException.VpnAlreadyRunning()
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
     }
@@ -2933,11 +3158,17 @@ public object FfiConverterTypeFFIError : FfiConverterRustBuffer<FfiException> {
                 4UL
                 + FfiConverterString.allocationSize(value.`inner`)
             )
-            is FfiException.InvalidPath -> (
+            is FfiException.LibException -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4UL
+                + FfiConverterString.allocationSize(value.`inner`)
             )
-            is FfiException.FdNotFound -> (
+            is FfiException.GatewayDirectoryException -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+                + FfiConverterString.allocationSize(value.`inner`)
+            )
+            is FfiException.InvalidPath -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4UL
             )
@@ -2952,24 +3183,6 @@ public object FfiConverterTypeFFIError : FfiConverterRustBuffer<FfiException> {
             is FfiException.VpnAlreadyRunning -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4UL
-            )
-            is FfiException.VpnNotRunning -> (
-                // Add the size for the Int that specifies the variant plus the size needed for all fields
-                4UL
-            )
-            is FfiException.NoContext -> (
-                // Add the size for the Int that specifies the variant plus the size needed for all fields
-                4UL
-            )
-            is FfiException.LibException -> (
-                // Add the size for the Int that specifies the variant plus the size needed for all fields
-                4UL
-                + FfiConverterString.allocationSize(value.`inner`)
-            )
-            is FfiException.GatewayDirectoryException -> (
-                // Add the size for the Int that specifies the variant plus the size needed for all fields
-                4UL
-                + FfiConverterString.allocationSize(value.`inner`)
             )
         }
     }
@@ -2989,42 +3202,30 @@ public object FfiConverterTypeFFIError : FfiConverterRustBuffer<FfiException> {
                 FfiConverterString.write(value.`inner`, buf)
                 Unit
             }
-            is FfiException.InvalidPath -> {
-                buf.putInt(4)
-                Unit
-            }
-            is FfiException.FdNotFound -> {
-                buf.putInt(5)
-                Unit
-            }
-            is FfiException.VpnNotStopped -> {
-                buf.putInt(6)
-                Unit
-            }
-            is FfiException.VpnNotStarted -> {
-                buf.putInt(7)
-                Unit
-            }
-            is FfiException.VpnAlreadyRunning -> {
-                buf.putInt(8)
-                Unit
-            }
-            is FfiException.VpnNotRunning -> {
-                buf.putInt(9)
-                Unit
-            }
-            is FfiException.NoContext -> {
-                buf.putInt(10)
-                Unit
-            }
             is FfiException.LibException -> {
-                buf.putInt(11)
+                buf.putInt(4)
                 FfiConverterString.write(value.`inner`, buf)
                 Unit
             }
             is FfiException.GatewayDirectoryException -> {
-                buf.putInt(12)
+                buf.putInt(5)
                 FfiConverterString.write(value.`inner`, buf)
+                Unit
+            }
+            is FfiException.InvalidPath -> {
+                buf.putInt(6)
+                Unit
+            }
+            is FfiException.VpnNotStopped -> {
+                buf.putInt(7)
+                Unit
+            }
+            is FfiException.VpnNotStarted -> {
+                buf.putInt(8)
+                Unit
+            }
+            is FfiException.VpnAlreadyRunning -> {
+                buf.putInt(9)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
