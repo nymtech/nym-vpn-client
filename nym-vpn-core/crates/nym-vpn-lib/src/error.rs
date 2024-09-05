@@ -40,11 +40,11 @@ pub enum Error {
     #[error(transparent)]
     SetupMixTunnelError(#[from] SetupMixTunnelError),
 
-    #[error(transparent)]
-    Mixnet(#[from] MixnetError),
-
     #[error("timeout after waiting {0}s for mixnet client to start")]
     StartMixnetTimeout(u64),
+
+    #[error("failed to setup mixnet client: {0}")]
+    FailedToSetupMixnetClient(#[source] MixnetError),
 
     #[error("vpn errored on stop")]
     StopError,
@@ -62,16 +62,6 @@ pub enum Error {
     #[cfg(target_os = "ios")]
     #[error("{0}")]
     UniffiError(#[from] crate::platform::error::FFIError),
-
-    #[error("failed to serialize message")]
-    FailedToSerializeMessage {
-        #[from]
-        source: bincode::Error,
-    },
-
-    // TODO: move me, this is created inside platform.rs
-    #[error("gateway does not contain a two character country ISO")]
-    CountryCodeNotFound,
 
     #[cfg(target_os = "ios")]
     #[error("failed to run wireguard tunnel")]

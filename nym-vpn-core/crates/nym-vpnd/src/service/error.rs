@@ -167,7 +167,7 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
             nym_vpn_lib::Error::StartMixnetTimeout(timeout_sec) => {
                 ConnectionFailedError::StartMixnetTimeout(*timeout_sec)
             }
-            nym_vpn_lib::Error::Mixnet(e) => match e {
+            nym_vpn_lib::Error::FailedToSetupMixnetClient(e) => match e {
                 nym_vpn_lib::MixnetError::FailedToSetupMixnetStoragePaths(source) => {
                     ConnectionFailedError::FailedToSetupMixnetStoragePaths {
                         reason: source.to_string(),

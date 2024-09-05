@@ -30,6 +30,7 @@ use crate::platform::android::AndroidTunProvider;
 use crate::{
     error::Result,
     tunnel_setup::{AllTunnelsSetup, TunnelSetup},
+    MixnetError,
 };
 
 pub(crate) const MIXNET_CLIENT_STARTUP_TIMEOUT_SECS: u64 = 30;
@@ -85,15 +86,19 @@ pub struct NymVpn<T: Vpn> {
     pub(super) ios_tun_provider: Arc<dyn OSTunProvider>,
 
     // Necessary so that the device doesn't get closed before cleanup has taken place
+    // Observation: this seems only used for mixnet mode? If so, can we move it to MixnetVpn?
     pub(super) shadow_handle: ShadowHandle,
 }
 
 pub(super) struct ShadowHandle {
-    pub(super) _inner: Option<JoinHandle<Result<AsyncDevice>>>,
+    pub(super) _inner: Option<JoinHandle<std::result::Result<AsyncDevice, MixnetError>>>,
 }
 
 impl<T: Vpn> NymVpn<T> {
-    pub(crate) fn set_shadow_handle(&mut self, shadow_handle: JoinHandle<Result<AsyncDevice>>) {
+    pub(crate) fn set_shadow_handle(
+        &mut self,
+        shadow_handle: JoinHandle<std::result::Result<AsyncDevice, MixnetError>>,
+    ) {
         self.shadow_handle = ShadowHandle {
             _inner: Some(shadow_handle),
         }

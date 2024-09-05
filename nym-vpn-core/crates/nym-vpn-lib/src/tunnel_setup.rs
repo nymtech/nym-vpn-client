@@ -359,7 +359,8 @@ pub async fn setup_tunnel(
         ),
     )
     .await
-    .map_err(|_| Error::StartMixnetTimeout(MIXNET_CLIENT_STARTUP_TIMEOUT_SECS))??;
+    .map_err(|_| Error::StartMixnetTimeout(MIXNET_CLIENT_STARTUP_TIMEOUT_SECS))?
+    .map_err(Error::FailedToSetupMixnetClient)?;
 
     let tunnels_setup = match nym_vpn {
         SpecificVpn::Wg(vpn) => {

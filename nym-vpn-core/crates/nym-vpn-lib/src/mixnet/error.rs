@@ -30,6 +30,12 @@ pub enum MixnetError {
         gateway_id: String,
     },
 
+    #[error("failed to serialize message")]
+    FailedToSerializeMessage {
+        #[from]
+        source: bincode::Error,
+    },
+
     #[error("{0}")]
     ConnectionMonitorError(#[from] nym_connection_monitor::Error),
 }
