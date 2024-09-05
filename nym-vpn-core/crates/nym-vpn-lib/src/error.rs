@@ -35,6 +35,9 @@ pub enum Error {
     DefaultInterfaceError,
 
     #[error(transparent)]
+    SetupWgTunnelError(#[from] SetupWgTunnelError),
+
+    #[error(transparent)]
     Mixnet(#[from] MixnetError),
 
     #[error("timeout after waiting {0}s for mixnet client to start")]
@@ -108,9 +111,6 @@ pub enum Error {
     #[cfg(target_os = "ios")]
     #[error("failed to run wireguard tunnel")]
     RunTunnel(#[from] crate::mobile::Error),
-
-    #[error(transparent)]
-    WgTunnelError(#[from] SetupWgTunnelError),
 }
 
 #[derive(thiserror::Error, Debug)]
