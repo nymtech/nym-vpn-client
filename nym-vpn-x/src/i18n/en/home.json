@@ -15,11 +15,11 @@
   "select-mode-label": "Select mode",
   "select-node-title": "Connect to",
   "privacy-mode": {
-    "title": "Anonymous",
+    "title": "Anonymous (mixnet)",
     "desc": "Best for payments, emails, messages"
   },
   "fast-mode": {
-    "title": "Fast",
+    "title": "Fast (WireGuard)",
     "desc": "Best for browsing, streaming, sharing"
   },
   "last-node-select": {
@@ -32,6 +32,7 @@
     "disconnecting": "Disabled while disconnecting from VPN",
     "daemon-not-connected": "The NymVPN app is currently not connected to the NymVPN daemon."
   },
+  "windows-no-fast-mode": "As we transition Fast mode to WireGuard, this option is temporarily unavailable.",
   "modes-dialog": {
     "title": "Mode selection",
     "privacy-description": "Enjoy maximum-level privacy by routing your connection through 5 servers via mixnet. Perfect for securely handling payments, emails, and messages.",

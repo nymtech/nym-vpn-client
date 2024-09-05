@@ -25,8 +25,12 @@ use commands::fs as cmd_fs;
 use commands::log as cmd_log;
 use commands::window as cmd_window;
 use commands::*;
+#[cfg(windows)]
+use db::Key;
 use nym_config::defaults;
 use states::app::AppState;
+#[cfg(windows)]
+use states::app::VpnMode;
 use tauri::api::path::config_dir;
 use tokio::sync::Mutex;
 use tokio::time::sleep;
@@ -144,6 +148,10 @@ async fn main() -> Result<()> {
         .manage(Arc::new(grpc.clone()))
         .setup(move |app| {
             info!("app setup");
+
+            // TODO remove when two-hop is supported on Windows
+            #[cfg(windows)]
+            db.insert(Key::VpnMode, VpnMode::Mixnet)?;
 
             let app_win = AppWindow::new(&app.handle(), MAIN_WINDOW_LABEL)?;
             app_win.restore_size(&db)?;

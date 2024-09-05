@@ -74,6 +74,15 @@ pub async fn connect(
 
     let app_state = state.lock().await;
     let vpn_mode = app_state.vpn_mode.clone();
+
+    #[cfg(windows)]
+    if matches!(vpn_mode, VpnMode::TwoHop) {
+        return Err(BackendError::new_internal(
+            "fast mode is not yet supported on windows",
+            None,
+        ));
+    }
+
     let dns = app_state
         .dns_server
         .clone()
@@ -195,6 +204,14 @@ pub async fn set_vpn_mode(
     mode: VpnMode,
 ) -> Result<(), BackendError> {
     debug!("set_vpn_mode");
+
+    #[cfg(windows)]
+    if matches!(mode, VpnMode::TwoHop) {
+        return Err(BackendError::new_internal(
+            "fast mode is not yet supported on windows",
+            None,
+        ));
+    }
 
     let mut state = app_state.lock().await;
 

@@ -18,6 +18,7 @@ export type RadioGroupOption<K extends Key> = {
   cursor?: RadioGroupOptionCursor;
   // custom style applied to the container of the option
   className?: string;
+  tooltip?: string;
 };
 
 export type RadioGroupProps<K extends Key> = {
@@ -27,6 +28,7 @@ export type RadioGroupProps<K extends Key> = {
   rootLabel?: string;
   // either or not to show checked/unchecked circular icons
   radioIcons?: boolean;
+  disabled?: boolean;
 };
 
 function RadioGroup<K extends Key>({
@@ -35,6 +37,7 @@ function RadioGroup<K extends Key>({
   onChange,
   rootLabel,
   radioIcons = true,
+  disabled = false,
 }: RadioGroupProps<K>) {
   const [selected, setSelected] = useState(defaultValue || options[0]);
 
@@ -60,7 +63,11 @@ function RadioGroup<K extends Key>({
 
   return (
     <div className="select-none">
-      <HuRadioGroup value={selected} onChange={handleChange}>
+      <HuRadioGroup
+        value={selected}
+        onChange={handleChange}
+        disabled={disabled}
+      >
         {rootLabel && (
           <Label
             as="div"
@@ -85,43 +92,51 @@ function RadioGroup<K extends Key>({
                     'hover:border-platinum dark:hover:border-baltic-sea-jaguar',
                   !option.disabled && 'hover:bg-platinum dark:hover:bg-onyx',
                   'transition-noborder cursor-default',
+                  option.tooltip && 'attach-tooltip',
                 ])
               }
               disabled={option.disabled}
             >
               {({ checked }) => {
                 return (
-                  <div
-                    className={clsx([
-                      'overflow-hidden flex flex-1 items-center justify-start gap-5',
-                      option.className && option.className,
-                    ])}
-                  >
-                    {radioIcons && checkedIcon(checked)}
-                    {option.icon && (
-                      <div className="w-7 flex justify-center items-center">
-                        {option.icon}
+                  <>
+                    {option.tooltip && (
+                      <div className="tooltip -mt-8 -ml-2 max-w-[90%]">
+                        {option.tooltip}
                       </div>
                     )}
-                    <div className="min-w-0 flex flex-col justify-center">
-                      <Label
-                        as="p"
-                        className={clsx([
-                          'truncate text-base text-baltic-sea dark:text-mercury-pinkish',
-                        ])}
-                      >
-                        {option.label}
-                      </Label>
-                      {option.desc && (
-                        <Description
-                          as="span"
-                          className="truncate text-sm text-cement-feet dark:text-mercury-mist"
-                        >
-                          <span>{option.desc}</span>
-                        </Description>
+                    <div
+                      className={clsx([
+                        'overflow-hidden flex flex-1 items-center justify-start gap-5',
+                        option.className && option.className,
+                      ])}
+                    >
+                      {radioIcons && checkedIcon(checked)}
+                      {option.icon && (
+                        <div className="w-7 flex justify-center items-center">
+                          {option.icon}
+                        </div>
                       )}
+                      <div className="min-w-0 flex flex-col justify-center">
+                        <Label
+                          as="p"
+                          className={clsx([
+                            'truncate text-base text-baltic-sea dark:text-mercury-pinkish',
+                          ])}
+                        >
+                          {option.label}
+                        </Label>
+                        {option.desc && (
+                          <Description
+                            as="span"
+                            className="truncate text-sm text-cement-feet dark:text-mercury-mist"
+                          >
+                            <span>{option.desc}</span>
+                          </Description>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  </>
                 );
               }}
             </Radio>
