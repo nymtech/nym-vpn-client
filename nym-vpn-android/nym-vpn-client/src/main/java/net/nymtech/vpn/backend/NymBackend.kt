@@ -205,13 +205,13 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	override fun onExitStatusChange(status: ExitStatus) {
 		when (status) {
 			ExitStatus.Stopped -> Timber.d("Tunnel stopped")
-//			else -> {
-//				// need to stop the vpn service even though vpn never started from lib perspective
-//				context.stopService(Intent(context, VpnService::class.java))
-//				tunnel?.onBackendMessage(BackendMessage.Error.StartFailed)
-//				// Need to set state down because this likely never happened in lib
-//				tunnel?.onStateChange(Tunnel.State.Down)
-//			}
+// 			else -> {
+// 				// need to stop the vpn service even though vpn never started from lib perspective
+// 				context.stopService(Intent(context, VpnService::class.java))
+// 				tunnel?.onBackendMessage(BackendMessage.Error.StartFailed)
+// 				// Need to set state down because this likely never happened in lib
+// 				tunnel?.onStateChange(Tunnel.State.Down)
+// 			}
 			is ExitStatus.AuthenticationFailed -> TODO()
 			ExitStatus.AuthenticatorAddressNotFound -> TODO()
 			ExitStatus.CannotLocateTunFd -> TODO()
