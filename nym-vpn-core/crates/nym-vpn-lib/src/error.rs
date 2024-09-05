@@ -91,13 +91,6 @@ pub enum Error {
     #[error("administrator privileges required, try rerunning with administrator privileges: `runas /user:Administrator {binary_name} run`")]
     AdminPrivilegesRequired { binary_name: String },
 
-    #[error("invalid credential: {reason}")]
-    InvalidCredential {
-        reason: crate::credentials::CheckImportedCredentialError,
-        path: PathBuf,
-        gateway_id: String,
-    },
-
     #[error("failed to connect to ip packet router: {0}")]
     FailedToConnectToIpPacketRouter(#[source] nym_ip_packet_client::Error),
 
@@ -175,6 +168,14 @@ pub enum MixnetError {
         gateway_id: String,
         source: Box<dyn std::error::Error + Send + Sync>,
     },
+
+    #[error("invalid credential: {reason}")]
+    InvalidCredential {
+        reason: crate::credentials::CheckImportedCredentialError,
+        path: PathBuf,
+        gateway_id: String,
+    },
+
 }
 
 #[derive(thiserror::Error, Debug)]

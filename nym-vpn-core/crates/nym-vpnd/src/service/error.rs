@@ -164,15 +164,6 @@ pub enum ConnectionFailedError {
 impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
     fn from(err: &nym_vpn_lib::Error) -> Self {
         match err {
-            nym_vpn_lib::Error::InvalidCredential {
-                reason,
-                path,
-                gateway_id,
-            } => ConnectionFailedError::InvalidCredential {
-                reason: reason.to_string(),
-                location: path.to_string_lossy().to_string(),
-                gateway_id: gateway_id.clone(),
-            },
             nym_vpn_lib::Error::StartMixnetTimeout(timeout_sec) => {
                 ConnectionFailedError::StartMixnetTimeout(*timeout_sec)
             }
@@ -203,6 +194,15 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                         reason: source.to_string(),
                     }
                 }
+                nym_vpn_lib::MixnetError::InvalidCredential {
+                    reason,
+                    path,
+                    gateway_id,
+                } => ConnectionFailedError::InvalidCredential {
+                    reason: reason.to_string(),
+                    location: path.to_string_lossy().to_string(),
+                    gateway_id: gateway_id.clone(),
+                },
             },
             nym_vpn_lib::Error::SetupWgTunnelError(e) => match e {
                 nym_vpn_lib::SetupWgTunnelError::NotEnoughBandwidthToSetupTunnel => {
