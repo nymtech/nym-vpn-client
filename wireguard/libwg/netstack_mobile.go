@@ -104,12 +104,6 @@ func wgNetTurnOff(tunnelHandle int32) {
 		return
 	}
 	dev.Close()
-
-	// Backported via reflection:
-	// https://github.com/WireGuard/wireguard-go/pull/101
-	//stack := reflect.ValueOf(dev).Elem().FieldByName("stack")
-	//dev.Verbosef("REFLECTION: %v", err)
-	//stack.Close()
 }
 
 //export wgNetSetConfig
