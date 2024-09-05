@@ -254,7 +254,6 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
             | nym_vpn_lib::Error::CountryCodeNotFound
             | nym_vpn_lib::Error::FailedToDecodeBase58Credential { .. }
             | nym_vpn_lib::Error::ConnectionMonitorError(_)
-            | nym_vpn_lib::Error::ImportCredentialError(_)
             | nym_vpn_lib::Error::AuthenticatorAddressNotFound
             | nym_vpn_lib::Error::NymVpnExitWithError(_)
             | nym_vpn_lib::Error::NymVpnExitUnexpectedChannelClose => {
