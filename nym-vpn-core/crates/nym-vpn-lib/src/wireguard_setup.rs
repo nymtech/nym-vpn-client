@@ -13,7 +13,7 @@ use talpid_tunnel::tun_provider::TunProvider;
 use tracing::debug;
 
 use crate::{
-    error::WgTunnelError,
+    error::SetupWgTunnelError,
     tunnel::{start_tunnel, EventReceiver, Tunnel},
     tunnel_setup::WgTunnelSetup,
     vpn::WireguardConnectionInfo,
@@ -25,7 +25,7 @@ pub(crate) fn create_wireguard_tunnel(
     shutdown: TaskClient,
     tun_provider: Arc<Mutex<TunProvider>>,
     wireguard_config: WireguardConfig,
-) -> Result<(WgTunnelSetup, EventReceiver), WgTunnelError> {
+) -> Result<(WgTunnelSetup, EventReceiver), SetupWgTunnelError> {
     debug!("Creating wireguard tunnel");
     let handle = route_manager.handle()?;
     let tunnel = Tunnel::new(wireguard_config.clone(), handle, tun_provider);

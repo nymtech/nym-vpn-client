@@ -110,7 +110,7 @@ pub enum Error {
     RunTunnel(#[from] crate::mobile::Error),
 
     #[error(transparent)]
-    WgTunnelError(#[from] WgTunnelError),
+    WgTunnelError(#[from] SetupWgTunnelError),
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -179,7 +179,7 @@ pub enum MixnetError {
 }
 
 #[derive(thiserror::Error, Debug)]
-pub enum WgTunnelError {
+pub enum SetupWgTunnelError {
     #[error("wiregurad authentication is not possible due to one of the gateways not running the authenticator process: {0}")]
     AuthenticationNotPossible(String),
 

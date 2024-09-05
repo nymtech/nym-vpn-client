@@ -20,7 +20,7 @@ use tokio::time::timeout;
 
 use crate::{
     bandwidth_controller::BandwidthController,
-    error::{Error, GatewayDirectoryError, Result, WgTunnelError},
+    error::{Error, GatewayDirectoryError, Result, SetupWgTunnelError},
     mixnet, platform,
     routing::{self, catch_all_ipv4, catch_all_ipv6, replace_default_prefixes},
     uniffi_custom_impls::{StatusEvent, TunStatus},
@@ -114,7 +114,7 @@ pub(crate) async fn init_firewall_dns(
 async fn wait_interface_up(
     mut event_rx: mpsc::UnboundedReceiver<(TunnelEvent, oneshot::Sender<()>)>,
     wg_config: &WireguardConfig,
-) -> std::result::Result<TunnelMetadata, WgTunnelError> {
+) -> std::result::Result<TunnelMetadata, SetupWgTunnelError> {
     loop {
         match event_rx.next().await {
             Some((TunnelEvent::InterfaceUp(_, _), _)) => {
@@ -127,24 +127,26 @@ async fn wait_interface_up(
             }
             Some((TunnelEvent::AuthFailed(_), _)) => {
                 debug!("Received tunnel auth failed");
-                return Err(WgTunnelError::FailedToBringInterfaceUpWgAuthFailed {
+                return Err(SetupWgTunnelError::FailedToBringInterfaceUpWgAuthFailed {
                     gateway_id: Box::new(wg_config.gateway_id),
                     public_key: wg_config.gateway_data.public_key.to_base64(),
                 });
             }
             Some((TunnelEvent::Down, _)) => {
                 debug!("Received tunnel down event when waiting for interface up");
-                return Err(WgTunnelError::FailedToBringInterfaceUpWgDown {
+                return Err(SetupWgTunnelError::FailedToBringInterfaceUpWgDown {
                     gateway_id: Box::new(wg_config.gateway_id),
                     public_key: wg_config.gateway_data.public_key.to_base64(),
                 });
             }
             None => {
                 debug!("Wireguard event channel closed when waiting for interface up");
-                return Err(WgTunnelError::FailedToBringInterfaceUpWgEventTunnelClose {
-                    gateway_id: Box::new(wg_config.gateway_id),
-                    public_key: wg_config.gateway_data.public_key.to_base64(),
-                });
+                return Err(
+                    SetupWgTunnelError::FailedToBringInterfaceUpWgEventTunnelClose {
+                        gateway_id: Box::new(wg_config.gateway_id),
+                        public_key: wg_config.gateway_data.public_key.to_base64(),
+                    },
+                );
             }
         }
     }
@@ -158,7 +160,7 @@ async fn setup_wg_tunnel(
     gateway_directory_client: GatewayClient,
     auth_addresses: AuthAddresses,
     default_lan_gateway_ip: routing::LanGatewayIp,
-) -> std::result::Result<AllTunnelsSetup, WgTunnelError> {
+) -> std::result::Result<AllTunnelsSetup, SetupWgTunnelError> {
     // MTU is computed as (MTU of wire interface) - ((IP header size) + (UDP header size) + (WireGuard metadata size))
     // The IP header size is 20 for IPv4 and 40 for IPv6
     // The UDP header size is 8
@@ -176,7 +178,7 @@ async fn setup_wg_tunnel(
     let (Some(entry_auth_recipient), Some(exit_auth_recipient)) =
         (auth_addresses.entry().0, auth_addresses.exit().0)
     else {
-        return Err(WgTunnelError::AuthenticationNotPossible(
+        return Err(SetupWgTunnelError::AuthenticationNotPossible(
             auth_addresses.to_string(),
         ));
     };
@@ -214,7 +216,7 @@ async fn setup_wg_tunnel(
     .await?;
 
     if wg_entry_gateway_client.suspended().await? || wg_exit_gateway_client.suspended().await? {
-        return Err(WgTunnelError::NotEnoughBandwidthToSetupTunnel);
+        return Err(SetupWgTunnelError::NotEnoughBandwidthToSetupTunnel);
     }
     tokio::spawn(
         wg_entry_gateway_client.run(task_manager.subscribe_named("bandwidth_entry_client")),

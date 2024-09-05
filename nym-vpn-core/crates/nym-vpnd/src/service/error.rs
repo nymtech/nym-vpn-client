@@ -257,35 +257,35 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
     }
 }
 
-impl From<&nym_vpn_lib::WgTunnelError> for ConnectionFailedError {
-    fn from(err: &nym_vpn_lib::WgTunnelError) -> Self {
+impl From<&nym_vpn_lib::SetupWgTunnelError> for ConnectionFailedError {
+    fn from(err: &nym_vpn_lib::SetupWgTunnelError) -> Self {
         match err {
-            nym_vpn_lib::WgTunnelError::NotEnoughBandwidthToSetupTunnel => {
+            nym_vpn_lib::SetupWgTunnelError::NotEnoughBandwidthToSetupTunnel => {
                 ConnectionFailedError::OutOfBandwidthWhenSettingUpTunnel
             }
-            nym_vpn_lib::WgTunnelError::FailedToBringInterfaceUpWgAuthFailed {
+            nym_vpn_lib::SetupWgTunnelError::FailedToBringInterfaceUpWgAuthFailed {
                 gateway_id,
                 public_key,
             } => ConnectionFailedError::FailedToBringInterfaceUpWgAuthFailed {
                 gateway_id: gateway_id.clone(),
                 public_key: public_key.clone(),
             },
-            nym_vpn_lib::WgTunnelError::FailedToBringInterfaceUpWgDown {
+            nym_vpn_lib::SetupWgTunnelError::FailedToBringInterfaceUpWgDown {
                 gateway_id,
                 public_key,
             } => ConnectionFailedError::FailedToBringInterfaceUpWgDown {
                 gateway_id: gateway_id.clone(),
                 public_key: public_key.clone(),
             },
-            nym_vpn_lib::WgTunnelError::FailedToBringInterfaceUpWgEventTunnelClose {
+            nym_vpn_lib::SetupWgTunnelError::FailedToBringInterfaceUpWgEventTunnelClose {
                 gateway_id,
                 public_key,
             } => ConnectionFailedError::FailedToBringInterfaceUpWgEventTunnelClose {
                 gateway_id: gateway_id.clone(),
                 public_key: public_key.clone(),
             },
-            nym_vpn_lib::WgTunnelError::GatewayDirectoryError(e) => e.into(),
-            nym_vpn_lib::WgTunnelError::WgGatewayClientError(ee) => match ee {
+            nym_vpn_lib::SetupWgTunnelError::GatewayDirectoryError(e) => e.into(),
+            nym_vpn_lib::SetupWgTunnelError::WgGatewayClientError(ee) => match ee {
                 WgGatewayClientError::OutOfBandwidth => ConnectionFailedError::OutOfBandwidth,
                 WgGatewayClientError::InvalidGatewayAuthResponse
                 | WgGatewayClientError::AuthenticatorClientError(_)
@@ -294,10 +294,10 @@ impl From<&nym_vpn_lib::WgTunnelError> for ConnectionFailedError {
                     ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
                 }
             },
-            nym_vpn_lib::WgTunnelError::AuthenticationNotPossible(_)
-            | nym_vpn_lib::WgTunnelError::RoutingError(_)
-            | nym_vpn_lib::WgTunnelError::FailedToParseEntryGatewayIpv4(_)
-            | nym_vpn_lib::WgTunnelError::WireguardConfigError(_) => {
+            nym_vpn_lib::SetupWgTunnelError::AuthenticationNotPossible(_)
+            | nym_vpn_lib::SetupWgTunnelError::RoutingError(_)
+            | nym_vpn_lib::SetupWgTunnelError::FailedToParseEntryGatewayIpv4(_)
+            | nym_vpn_lib::SetupWgTunnelError::WireguardConfigError(_) => {
                 ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
             }
         }
