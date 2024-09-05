@@ -4,6 +4,10 @@
 use vergen::EmitBuilder;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    rust2go::Builder::new()
+        .with_go_src("./netstack_ping")
+        .build();
+
     EmitBuilder::builder()
         .all_build()
         .all_git()

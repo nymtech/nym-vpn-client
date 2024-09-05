@@ -11,6 +11,17 @@ pub struct ProbeResult {
 pub struct ProbeOutcome {
     pub as_entry: Entry,
     pub as_exit: Option<Exit>,
+    pub wg: Option<WgProbeResults>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename = "wg")]
+pub struct WgProbeResults {
+    pub can_register: bool,
+    pub can_handshake: bool,
+    pub can_resolve_dns: bool,
+    pub ping_hosts_performance: f32,
+    pub ping_ips_performance: f32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

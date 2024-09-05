@@ -7,35 +7,55 @@ homepage.workspace = true
 documentation.workspace = true
 edition.workspace = true
 license.workspace = true
+build = "build.rs"
 
 [dependencies]
 anyhow.workspace = true
+base64.workspace = true
 bincode.workspace = true
 bs58.workspace = true
 bytes.workspace = true
 clap = { workspace = true, features = ["cargo", "derive"] }
 dirs.workspace = true
+dns-lookup = "2"
 futures.workspace = true
+hex.workspace = true
 log.workspace = true
 pnet_packet.workspace = true
 rand.workspace = true
+rust2go = "0.3.4"
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
-tokio = { workspace = true, features = ["process", "rt-multi-thread", "fs", "sync"] }
+tokio = { workspace = true, features = [
+    "process",
+    "rt-multi-thread",
+    "fs",
+    "sync",
+    "macros",
+] }
 tokio-util.workspace = true
 tracing-subscriber.workspace = true
 tracing.workspace = true
+x25519-dalek = { workspace = true, features = [
+    "reusable_secrets",
+    "static_secrets",
+] }
 
+nym-authenticator-requests.workspace = true
 nym-bin-common.workspace = true
 nym-client-core.workspace = true
+nym-crypto.workspace = true
 nym-config.workspace = true
 nym-connection-monitor = { path = "../nym-connection-monitor" }
 nym-gateway-directory = { path = "../nym-gateway-directory" }
 nym-ip-packet-client = { path = "../nym-ip-packet-client" }
+nym-authenticator-client = { path = "../nym-authenticator-client" }
+nym-wireguard-types.workspace = true
 nym-ip-packet-requests.workspace = true
 nym-sdk.workspace = true
 nym-task.workspace = true
+nym-topology.workspace = true
 
 [build-dependencies]
 vergen = { workspace = true, default-features = false, features = [
@@ -45,3 +65,5 @@ vergen = { workspace = true, default-features = false, features = [
     "rustc",
     "cargo",
 ] }
+
+rust2go = { version = "0.3.4", features = ["build"] }

@@ -119,6 +119,7 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+
       - name: Setup MSBuild.exe
         if: contains(matrix.os, 'windows')
         uses: microsoft/setup-msbuild@v2
@@ -263,11 +264,17 @@ jobs:
         if: steps.diff_ios.outcome == 'failure' && matrix.target == 'ios'
         run: exit 1
 
-      - name: Run tests
-        if: matrix.target != 'android' && matrix.target != 'ios'
+      - name: Run tests (Linux, macOS)
+        if: matrix.target != 'android' && matrix.target != 'ios' && !contains(matrix.os, 'windows')
         working-directory: nym-vpn-core
         run: |
           cargo test --verbose
+
+      - name: Run tests (Windows excluding gateway probe)
+        if: contains(matrix.os, 'windows')
+        working-directory: nym-vpn-core
+        run: |
+          cargo test --verbose --workspace --exclude nym-gateway-probe
 
       - name: Clippy
         working-directory: nym-vpn-core
