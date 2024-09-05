@@ -439,6 +439,7 @@
 				D99A14722B357E9900F2728B /* Sources */,
 				D99A14732B357E9900F2728B /* Frameworks */,
 				D99A14742B357E9900F2728B /* Resources */,
+				D9564BFF2C89E54500D32025 /* Update env files */,
 				D99A14872B359C8800F2728B /* Run Swiftlint */,
 				D954C0B32B51C17200C6BAAC /* Embed Foundation Extensions */,
 				D99820962BB6E73C000C1FEE /* Embed Frameworks */,
@@ -484,6 +485,7 @@
 				D9BEF2CE2BEB63310036C566 /* Resources */,
 				D94127BD2C00AB2E009EDB7A /* Run Swiftlint */,
 				D9FB33E52BECFA64009C3419 /* Embed Helper Tool */,
+				D9564C002C89E62500D32025 /* Update env vars */,
 			);
 			buildRules = (
 			);
@@ -669,6 +671,42 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "if [[ \"$(uname -m)\" == arm64 ]]; then\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\nif which swiftlint > /dev/null; then\n  swiftlint lint --no-cache\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+		};
+		D9564BFF2C89E54500D32025 /* Update env files */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Update env files";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "sh Scripts/UpdateEnvVars.sh\n";
+		};
+		D9564C002C89E62500D32025 /* Update env vars */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Update env vars";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "sh Scripts/UpdateEnvVars.sh\n";
 		};
 		D99A14872B359C8800F2728B /* Run Swiftlint */ = {
 			isa = PBXShellScriptBuildPhase;
