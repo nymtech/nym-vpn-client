@@ -243,20 +243,38 @@ impl From<ConnectionFailedError> for ProtoError {
                 message: err.to_string(),
                 details: hashmap! {},
             },
-            ConnectionFailedError::FailedToBringInterfaceUpWgAuthFailed => ProtoError {
+            ConnectionFailedError::FailedToBringInterfaceUpWgAuthFailed {
+                gateway_id,
+                ref public_key,
+            } => ProtoError {
                 kind: ErrorType::FailedToBringInterfaceUpWgAuthFailed as i32,
                 message: err.to_string(),
-                details: hashmap! {},
+                details: hashmap! {
+                    "gateway_id".to_string() => gateway_id.to_string(),
+                    "public_key".to_string() => public_key.clone(),
+                },
             },
-            ConnectionFailedError::FailedToBringInterfaceUpWgDown => ProtoError {
+            ConnectionFailedError::FailedToBringInterfaceUpWgDown {
+                gateway_id,
+                ref public_key,
+            } => ProtoError {
                 kind: ErrorType::FailedToBringInterfaceUpWgDown as i32,
                 message: err.to_string(),
-                details: hashmap! {},
+                details: hashmap! {
+                    "gateway_id".to_string() => gateway_id.to_string(),
+                    "public_key".to_string() => public_key.clone(),
+                },
             },
-            ConnectionFailedError::FailedToBringInterfaceUpWgEventTunnelClose => ProtoError {
+            ConnectionFailedError::FailedToBringInterfaceUpWgEventTunnelClose {
+                gateway_id,
+                ref public_key,
+            } => ProtoError {
                 kind: ErrorType::FailedToBringInterfaceUpWgEventTunnelClose as i32,
                 message: err.to_string(),
-                details: hashmap! {},
+                details: hashmap! {
+                    "gateway_id".to_string() => gateway_id.to_string(),
+                    "public_key".to_string() => public_key.clone(),
+                },
             },
         }
     }
