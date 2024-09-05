@@ -217,113 +217,13 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                     }
                 }
             },
-            nym_vpn_lib::Error::GatewayDirectoryError(e) => match e {
-                GatewayDirectoryError::FailedtoSetupGatewayDirectoryClient { config, source } => {
-                    ConnectionFailedError::FailedToSetupGatewayDirectoryClient {
-                        config: Box::new(*config.clone()),
-                        reason: source.to_string(),
-                    }
-                }
-                GatewayDirectoryError::FailedToLookupGateways { source } => {
-                    ConnectionFailedError::FailedToLookupGateways {
-                        reason: source.to_string(),
-                    }
-                }
-                GatewayDirectoryError::FailedToLookupGatewayIdentity { source } => {
-                    ConnectionFailedError::FailedToLookupGatewayIdentity {
-                        reason: source.to_string(),
-                    }
-                }
-                GatewayDirectoryError::FailedToSelectEntryGateway {
-                    source:
-                        DirError::NoMatchingEntryGatewayForLocation {
-                            requested_location,
-                            available_countries,
-                        },
-                } => ConnectionFailedError::FailedToSelectEntryGatewayLocation {
-                    requested_location: requested_location.clone(),
-                    available_countries: available_countries.clone(),
-                },
-                GatewayDirectoryError::FailedToSelectEntryGateway {
-                    source: DirError::NoMatchingGateway { requested_identity },
-                } => ConnectionFailedError::FailedToSelectEntryGatewayIdNotFound {
-                    requested_id: requested_identity.clone(),
-                },
-                GatewayDirectoryError::FailedToSelectEntryGateway { source } => {
-                    ConnectionFailedError::FailedToSelectEntryGateway {
-                        reason: source.to_string(),
-                    }
-                }
-                GatewayDirectoryError::FailedToSelectExitGateway {
-                    source:
-                        DirError::NoMatchingExitGatewayForLocation {
-                            requested_location,
-                            available_countries,
-                        },
-                } => ConnectionFailedError::FailedToSelectExitGatewayLocation {
-                    requested_location: requested_location.clone(),
-                    available_countries: available_countries.clone(),
-                },
-                GatewayDirectoryError::FailedToSelectExitGateway { source } => {
-                    ConnectionFailedError::FailedToSelectExitGateway {
-                        reason: source.to_string(),
-                    }
-                }
-                GatewayDirectoryError::FailedToLookupRouterAddress { source } => {
-                    ConnectionFailedError::FailedToLookupRouterAddress {
-                        reason: source.to_string(),
-                    }
-                }
-                GatewayDirectoryError::FailedToLookupGatewayIp { gateway_id, source } => {
-                    ConnectionFailedError::FailedToLookupGatewayIp {
-                        gateway_id: gateway_id.clone(),
-                        reason: source.to_string(),
-                    }
-                }
-                GatewayDirectoryError::SameEntryAndExitGatewayFromCountry {
-                    requested_location,
-                } => ConnectionFailedError::SameEntryAndExitGatewayFromCountry {
-                    requested_location: requested_location.clone(),
-                },
-            },
+            nym_vpn_lib::Error::GatewayDirectoryError(e) => e.into(),
+            nym_vpn_lib::Error::WgTunnelError(e) => e.into(),
             nym_vpn_lib::Error::FailedToConnectToIpPacketRouter(inner) => {
                 ConnectionFailedError::FailedToConnectToIpPacketRouter {
                     reason: inner.to_string(),
                 }
             }
-            nym_vpn_lib::Error::WgGatewayClientError(inner) => match inner {
-                WgGatewayClientError::OutOfBandwidth => ConnectionFailedError::OutOfBandwidth,
-                WgGatewayClientError::InvalidGatewayAuthResponse
-                | WgGatewayClientError::AuthenticatorClientError(_)
-                | WgGatewayClientError::WireguardTypesError(_)
-                | WgGatewayClientError::FailedToParseEntryGatewaySocketAddr(_) => {
-                    ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
-                }
-            },
-            nym_vpn_lib::Error::NotEnoughBandwidthToSetupTunnel => {
-                ConnectionFailedError::OutOfBandwidthWhenSettingUpTunnel
-            }
-            nym_vpn_lib::Error::FailedToBringInterfaceUpWgAuthFailed {
-                gateway_id,
-                public_key,
-            } => ConnectionFailedError::FailedToBringInterfaceUpWgAuthFailed {
-                gateway_id: gateway_id.clone(),
-                public_key: public_key.clone(),
-            },
-            nym_vpn_lib::Error::FailedToBringInterfaceUpWgDown {
-                gateway_id,
-                public_key,
-            } => ConnectionFailedError::FailedToBringInterfaceUpWgDown {
-                gateway_id: gateway_id.clone(),
-                public_key: public_key.clone(),
-            },
-            nym_vpn_lib::Error::FailedToBringInterfaceUpWgEventTunnelClose {
-                gateway_id,
-                public_key,
-            } => ConnectionFailedError::FailedToBringInterfaceUpWgEventTunnelClose {
-                gateway_id: gateway_id.clone(),
-                public_key: public_key.clone(),
-            },
             nym_vpn_lib::Error::RoutingError(_)
             | nym_vpn_lib::Error::FailedToAddIpv6Route(_)
             | nym_vpn_lib::Error::DNSError(_)
@@ -332,7 +232,6 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
             | nym_vpn_lib::Error::CanceledError(_)
             | nym_vpn_lib::Error::FailedToSendWireguardShutdown
             | nym_vpn_lib::Error::TunError(_)
-            | nym_vpn_lib::Error::WireguardConfigError(_)
             | nym_vpn_lib::Error::DefaultInterfaceError
             | nym_vpn_lib::Error::StopError
             | nym_vpn_lib::Error::FailedToSerializeMessage { .. }
@@ -340,9 +239,7 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
             | nym_vpn_lib::Error::FailedToDecodeBase58Credential { .. }
             | nym_vpn_lib::Error::ConnectionMonitorError(_)
             | nym_vpn_lib::Error::ImportCredentialError(_)
-            | nym_vpn_lib::Error::AuthenticationNotPossible(_)
             | nym_vpn_lib::Error::AuthenticatorAddressNotFound
-            | nym_vpn_lib::Error::FailedToParseEntryGatewayIpv4(_)
             | nym_vpn_lib::Error::NymVpnExitWithError(_)
             | nym_vpn_lib::Error::NymVpnExitUnexpectedChannelClose => {
                 ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
@@ -355,6 +252,127 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
             nym_vpn_lib::Error::TunProvider(_)
             | nym_vpn_lib::Error::RootPrivilegesRequired { .. } => {
                 ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
+            }
+        }
+    }
+}
+
+impl From<&nym_vpn_lib::WgTunnelError> for ConnectionFailedError {
+    fn from(err: &nym_vpn_lib::WgTunnelError) -> Self {
+        match err {
+            nym_vpn_lib::WgTunnelError::NotEnoughBandwidthToSetupTunnel => {
+                ConnectionFailedError::OutOfBandwidthWhenSettingUpTunnel
+            }
+            nym_vpn_lib::WgTunnelError::FailedToBringInterfaceUpWgAuthFailed {
+                gateway_id,
+                public_key,
+            } => ConnectionFailedError::FailedToBringInterfaceUpWgAuthFailed {
+                gateway_id: gateway_id.clone(),
+                public_key: public_key.clone(),
+            },
+            nym_vpn_lib::WgTunnelError::FailedToBringInterfaceUpWgDown {
+                gateway_id,
+                public_key,
+            } => ConnectionFailedError::FailedToBringInterfaceUpWgDown {
+                gateway_id: gateway_id.clone(),
+                public_key: public_key.clone(),
+            },
+            nym_vpn_lib::WgTunnelError::FailedToBringInterfaceUpWgEventTunnelClose {
+                gateway_id,
+                public_key,
+            } => ConnectionFailedError::FailedToBringInterfaceUpWgEventTunnelClose {
+                gateway_id: gateway_id.clone(),
+                public_key: public_key.clone(),
+            },
+            nym_vpn_lib::WgTunnelError::WgGatewayClientError(ee) => match ee {
+                WgGatewayClientError::OutOfBandwidth => ConnectionFailedError::OutOfBandwidth,
+                WgGatewayClientError::InvalidGatewayAuthResponse
+                | WgGatewayClientError::AuthenticatorClientError(_)
+                | WgGatewayClientError::WireguardTypesError(_)
+                | WgGatewayClientError::FailedToParseEntryGatewaySocketAddr(_) => {
+                    ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
+                }
+            },
+            nym_vpn_lib::WgTunnelError::AuthenticationNotPossible(_)
+            | nym_vpn_lib::WgTunnelError::RoutingError(_)
+            | nym_vpn_lib::WgTunnelError::FailedToParseEntryGatewayIpv4(_)
+            | nym_vpn_lib::WgTunnelError::WireguardConfigError(_) => {
+                ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
+            }
+            nym_vpn_lib::WgTunnelError::GatewayDirectoryError(e) => e.into(),
+        }
+    }
+}
+
+impl From<&nym_vpn_lib::GatewayDirectoryError> for ConnectionFailedError {
+    fn from(e: &nym_vpn_lib::GatewayDirectoryError) -> Self {
+        match e {
+            GatewayDirectoryError::FailedtoSetupGatewayDirectoryClient { config, source } => {
+                ConnectionFailedError::FailedToSetupGatewayDirectoryClient {
+                    config: Box::new(*config.clone()),
+                    reason: source.to_string(),
+                }
+            }
+            GatewayDirectoryError::FailedToLookupGateways { source } => {
+                ConnectionFailedError::FailedToLookupGateways {
+                    reason: source.to_string(),
+                }
+            }
+            GatewayDirectoryError::FailedToLookupGatewayIdentity { source } => {
+                ConnectionFailedError::FailedToLookupGatewayIdentity {
+                    reason: source.to_string(),
+                }
+            }
+            GatewayDirectoryError::FailedToSelectEntryGateway {
+                source:
+                    DirError::NoMatchingEntryGatewayForLocation {
+                        requested_location,
+                        available_countries,
+                    },
+            } => ConnectionFailedError::FailedToSelectEntryGatewayLocation {
+                requested_location: requested_location.clone(),
+                available_countries: available_countries.clone(),
+            },
+            GatewayDirectoryError::FailedToSelectEntryGateway {
+                source: DirError::NoMatchingGateway { requested_identity },
+            } => ConnectionFailedError::FailedToSelectEntryGatewayIdNotFound {
+                requested_id: requested_identity.clone(),
+            },
+            GatewayDirectoryError::FailedToSelectEntryGateway { source } => {
+                ConnectionFailedError::FailedToSelectEntryGateway {
+                    reason: source.to_string(),
+                }
+            }
+            GatewayDirectoryError::FailedToSelectExitGateway {
+                source:
+                    DirError::NoMatchingExitGatewayForLocation {
+                        requested_location,
+                        available_countries,
+                    },
+            } => ConnectionFailedError::FailedToSelectExitGatewayLocation {
+                requested_location: requested_location.clone(),
+                available_countries: available_countries.clone(),
+            },
+            GatewayDirectoryError::FailedToSelectExitGateway { source } => {
+                ConnectionFailedError::FailedToSelectExitGateway {
+                    reason: source.to_string(),
+                }
+            }
+            GatewayDirectoryError::FailedToLookupRouterAddress { source } => {
+                ConnectionFailedError::FailedToLookupRouterAddress {
+                    reason: source.to_string(),
+                }
+            }
+            GatewayDirectoryError::FailedToLookupGatewayIp { gateway_id, source } => {
+                ConnectionFailedError::FailedToLookupGatewayIp {
+                    gateway_id: gateway_id.clone(),
+                    reason: source.to_string(),
+                }
+            }
+            GatewayDirectoryError::SameEntryAndExitGatewayFromCountry { requested_location } => {
+                ConnectionFailedError::SameEntryAndExitGatewayFromCountry {
+                    requested_location: requested_location.clone(),
+                }
             }
         }
     }

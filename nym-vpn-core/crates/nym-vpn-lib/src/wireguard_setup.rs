@@ -6,15 +6,15 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use futures::channel::{mpsc, oneshot};
+use futures::channel::oneshot;
 use nym_sdk::TaskClient;
 use talpid_routing::RouteManager;
-use talpid_tunnel::{tun_provider::TunProvider, TunnelEvent};
+use talpid_tunnel::tun_provider::TunProvider;
 use tracing::debug;
 
 use crate::{
     error::WgTunnelError,
-    tunnel::{start_tunnel, Tunnel},
+    tunnel::{start_tunnel, EventReceiver, Tunnel},
     tunnel_setup::WgTunnelSetup,
     vpn::WireguardConnectionInfo,
     wireguard_config::WireguardConfig,
@@ -25,13 +25,7 @@ pub(crate) fn create_wireguard_tunnel(
     shutdown: TaskClient,
     tun_provider: Arc<Mutex<TunProvider>>,
     wireguard_config: WireguardConfig,
-) -> Result<
-    (
-        WgTunnelSetup,
-        mpsc::UnboundedReceiver<(TunnelEvent, oneshot::Sender<()>)>,
-    ),
-    WgTunnelError,
-> {
+) -> Result<(WgTunnelSetup, EventReceiver), WgTunnelError> {
     debug!("Creating wireguard tunnel");
     let handle = route_manager.handle()?;
     let tunnel = Tunnel::new(wireguard_config.clone(), handle, tun_provider);
