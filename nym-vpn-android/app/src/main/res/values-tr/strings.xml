@@ -113,7 +113,7 @@
     <string name="unknown_error">Tanımlanamayan bir hata meydana geldi</string>
     <string name="send_feedback">Bize geri bildirim gönderin</string>
     <string name="check_faq">SSS\'i kontrol edin</string>
-    <string name="credential_disclaimer">Yeni bir anahtar oluşturmak için lütfen alpha aşaması davet e-postasında verilen bağlantıyı kullanın.</string>
+    <string name="credential_disclaimer">Giriş bilginizi kullanarak giriş yapın, ardından QR kodunu yapıştırın veya tarayın. Giriş bilginiz yok mu? Hemen almak için nymvpn.com adresinden kaydolun.</string>
     <string name="error_vpn_halted_unexpectedly">VPN beklenmedik bir şekilde durdu. Lütfen yeniden bağlanmayı deneyin.</string>
     <string name="error_reporting_alert">Hata raporlama ayarlarındaki değişiklikler, uygulama yeniden başlatılana kadar tam olarak etkili olmayacaktır.</string>
     <string name="alpha_help_message">Alpha aşamasında uygulamamızı geliştirmemize yardımcı olun! Geri bildiriminiz, sorunları tespit etmemiz ve çözmemiz için son derece önemlidir.</string>
