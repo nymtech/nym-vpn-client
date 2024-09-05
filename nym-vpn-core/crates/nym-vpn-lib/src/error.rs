@@ -5,6 +5,8 @@ use std::path::PathBuf;
 
 use nym_gateway_directory::NodeIdentity;
 
+use crate::tunnel_setup::WaitInterfaceUpError;
+
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("{0}")]
@@ -198,26 +200,15 @@ pub enum SetupWgTunnelError {
     #[error("{0}")]
     WireguardConfigError(#[from] talpid_wireguard::config::Error),
 
-    #[error("received bad event for wireguard tunnel creation")]
-    FailedToBringInterfaceUpWgEventTunnelClose {
-        gateway_id: Box<NodeIdentity>,
-        public_key: String,
-    },
-
-    #[error("wireguard authentication failed")]
-    FailedToBringInterfaceUpWgAuthFailed {
-        gateway_id: Box<NodeIdentity>,
-        public_key: String,
-    },
-
-    #[error("wireguard tunnel is down")]
-    FailedToBringInterfaceUpWgDown {
-        gateway_id: Box<NodeIdentity>,
-        public_key: String,
-    },
-
     #[error("failed to parse entry gateway ipv4: {0}")]
     FailedToParseEntryGatewayIpv4(#[source] std::net::AddrParseError),
+
+    #[error("failed to bring up interface: {gateway_id}: {public_key}: {source}")]
+    FailedToBringInterfaceUp {
+        gateway_id: Box<NodeIdentity>,
+        public_key: String,
+        source: WaitInterfaceUpError,
+    },
 }
 
 // Result type based on our error type

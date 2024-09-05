@@ -154,21 +154,10 @@ pub enum ConnectionFailedError {
     OutOfBandwidthWhenSettingUpTunnel,
 
     #[error("failed to bring up tunnel, wireguard auth failed for {gateway_id}")]
-    FailedToBringInterfaceUpWgAuthFailed {
+    FailedToBringInterfaceUp {
         gateway_id: Box<NodeIdentity>,
         public_key: String,
-    },
-
-    #[error("failed to bring up tunnel, wireguard is down for {gateway_id}")]
-    FailedToBringInterfaceUpWgDown {
-        gateway_id: Box<NodeIdentity>,
-        public_key: String,
-    },
-
-    #[error("failed to bring up tunnel, wireguard tunnel closed for {gateway_id}")]
-    FailedToBringInterfaceUpWgEventTunnelClose {
-        gateway_id: Box<NodeIdentity>,
-        public_key: String,
+        reason: String,
     },
 }
 
@@ -219,26 +208,14 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                 nym_vpn_lib::SetupWgTunnelError::NotEnoughBandwidthToSetupTunnel => {
                     ConnectionFailedError::OutOfBandwidthWhenSettingUpTunnel
                 }
-                nym_vpn_lib::SetupWgTunnelError::FailedToBringInterfaceUpWgAuthFailed {
+                nym_vpn_lib::SetupWgTunnelError::FailedToBringInterfaceUp {
                     gateway_id,
                     public_key,
-                } => ConnectionFailedError::FailedToBringInterfaceUpWgAuthFailed {
+                    source,
+                } => ConnectionFailedError::FailedToBringInterfaceUp {
                     gateway_id: gateway_id.clone(),
                     public_key: public_key.clone(),
-                },
-                nym_vpn_lib::SetupWgTunnelError::FailedToBringInterfaceUpWgDown {
-                    gateway_id,
-                    public_key,
-                } => ConnectionFailedError::FailedToBringInterfaceUpWgDown {
-                    gateway_id: gateway_id.clone(),
-                    public_key: public_key.clone(),
-                },
-                nym_vpn_lib::SetupWgTunnelError::FailedToBringInterfaceUpWgEventTunnelClose {
-                    gateway_id,
-                    public_key,
-                } => ConnectionFailedError::FailedToBringInterfaceUpWgEventTunnelClose {
-                    gateway_id: gateway_id.clone(),
-                    public_key: public_key.clone(),
+                    reason: source.to_string(),
                 },
                 nym_vpn_lib::SetupWgTunnelError::GatewayDirectoryError(e) => e.into(),
                 nym_vpn_lib::SetupWgTunnelError::WgGatewayClientError(ee) => match ee {
