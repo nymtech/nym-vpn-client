@@ -6,9 +6,9 @@
     <string name="disconnected">Desconectado</string>
     <string name="disconnecting">Desconectando</string>
     <string name="connecting">Conectando</string>
-    <string name="five_hop_mixnet">Anônimo</string>
+    <string name="five_hop_mixnet">Anônimo (mixnet)</string>
     <string name="five_hop_description">Para pagamentos, e-mails e mensagens</string>
-    <string name="two_hop_mixnet">Rápido</string>
+    <string name="two_hop_mixnet">Rápido (WireGuard)</string>
     <string name="two_hop_description">Melhor para navegação, transmissão e compartilhamento</string>
     <string name="first_hop">Primeiro salto</string>
     <string name="last_hop">Último salto</string>
@@ -59,7 +59,7 @@
     <string name="add_cred_to_connect">Adicionar credencial para ligação</string>
     <string name="welcome_exclaim">Bem Vindo!</string>
     <string name="credential_message">Introduza a sua credencial para começar</string>
-    <string name="credential_disclaimer">Para gerar uma nova credencial, por favor utilize o link fornecido no email de convite da fase alpha.</string>
+    <string name="credential_disclaimer">Resgate a sua credencial e, em seguida, cole ou digitalize o código QR. Não tem um? Registe-se em nymvpn.com para a obter instantaneamente.</string>
     <string name="credential_label">Credencial</string>
     <string name="credential_failed_message">Credencial Inválida</string>
     <string name="unknown_error">Ocorreu um erro desconhecido</string>
@@ -87,11 +87,11 @@
     <string name="sentry_url">https://sentry.io</string>
     <string name="anonymous_analytics">Análises anónimas</string>
     <string name="anonymous_analytics_description">Ajude-nos a melhorar a NymVPN</string>
-    <string name="alpha_help_message">Ajude-nos a aperfeiçoar a nossa aplicação durante a fase alpha! O seu feedback é crucial para identificar e resolver problemas.</string>
+    <string name="alpha_help_message">Ajude-nos a aperfeiçoar a nossa aplicação durante o teste beta! O seu feedback é crucial para identificar e resolver problemas.</string>
     <string name="opt_in_message_first">Ative o monitoramento anónima de erros</string>
     <string name="opt_in_message_second">e análises à vontade - pode optar por não participar em qualquer altura.</string>
     <string name="thanks_for_support">Obrigado pelo vosso apoio!</string>
-    <string name="to_alpha">para NymVPN alpha</string>
+    <string name="to_alpha">para NymVPN beta</string>
     <string name="welcome">Bem Vindo</string>
     <string name="cont">Continuar</string>
     <string name="continue_agree">Por continuar, você concorda com NymVPN\'s</string>
