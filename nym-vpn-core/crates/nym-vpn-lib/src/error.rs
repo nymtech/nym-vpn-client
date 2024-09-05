@@ -31,12 +31,6 @@ pub enum Error {
     #[error("failed setting up local TUN network device: {0}")]
     TunError(#[from] tun2::Error),
 
-    #[error("{0}")]
-    WireguardConfigError(#[from] talpid_wireguard::config::Error),
-
-    #[error(transparent)]
-    WgGatewayClientError(#[from] nym_wg_gateway_client::Error),
-
     #[error("could not obtain the default interface")]
     DefaultInterfaceError,
 
@@ -105,42 +99,18 @@ pub enum Error {
     #[error("failed to connect to ip packet router: {0}")]
     FailedToConnectToIpPacketRouter(#[source] nym_ip_packet_client::Error),
 
-    #[error("received bad event for wireguard tunnel creation")]
-    FailedToBringInterfaceUpWgEventTunnelClose {
-        gateway_id: Box<NodeIdentity>,
-        public_key: String,
-    },
-
-    #[error("wireguard authentication failed")]
-    FailedToBringInterfaceUpWgAuthFailed {
-        gateway_id: Box<NodeIdentity>,
-        public_key: String,
-    },
-
-    #[error("wireguard tunnel is down")]
-    FailedToBringInterfaceUpWgDown {
-        gateway_id: Box<NodeIdentity>,
-        public_key: String,
-    },
-
-    #[error("wiregurad authentication is not possible due to one of the gateways not running the authenticator process: {0}")]
-    AuthenticationNotPossible(String),
-
     #[error("failed to find authenticator address")]
     AuthenticatorAddressNotFound,
-
-    #[error("not enough bandwidth to setup tunnel")]
-    NotEnoughBandwidthToSetupTunnel,
 
     #[error("failed to add ipv6 route: {0}")]
     FailedToAddIpv6Route(#[source] std::io::Error),
 
-    #[error("failed to parse entry gateway ipv4: {0}")]
-    FailedToParseEntryGatewayIpv4(#[source] std::net::AddrParseError),
-
     #[cfg(target_os = "ios")]
     #[error("failed to run wireguard tunnel")]
     RunTunnel(#[from] crate::mobile::Error),
+
+    #[error(transparent)]
+    WgTunnelError(#[from] WgTunnelError),
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -206,6 +176,48 @@ pub enum MixnetError {
         gateway_id: String,
         source: Box<dyn std::error::Error + Send + Sync>,
     },
+}
+
+#[derive(thiserror::Error, Debug)]
+pub enum WgTunnelError {
+    #[error("wiregurad authentication is not possible due to one of the gateways not running the authenticator process: {0}")]
+    AuthenticationNotPossible(String),
+
+    #[error("not enough bandwidth to setup tunnel")]
+    NotEnoughBandwidthToSetupTunnel,
+
+    #[error(transparent)]
+    GatewayDirectoryError(#[from] GatewayDirectoryError),
+
+    #[error(transparent)]
+    WgGatewayClientError(#[from] nym_wg_gateway_client::Error),
+
+    #[error("{0}")]
+    RoutingError(#[from] talpid_routing::Error),
+
+    #[error("{0}")]
+    WireguardConfigError(#[from] talpid_wireguard::config::Error),
+
+    #[error("received bad event for wireguard tunnel creation")]
+    FailedToBringInterfaceUpWgEventTunnelClose {
+        gateway_id: Box<NodeIdentity>,
+        public_key: String,
+    },
+
+    #[error("wireguard authentication failed")]
+    FailedToBringInterfaceUpWgAuthFailed {
+        gateway_id: Box<NodeIdentity>,
+        public_key: String,
+    },
+
+    #[error("wireguard tunnel is down")]
+    FailedToBringInterfaceUpWgDown {
+        gateway_id: Box<NodeIdentity>,
+        public_key: String,
+    },
+
+    #[error("failed to parse entry gateway ipv4: {0}")]
+    FailedToParseEntryGatewayIpv4(#[source] std::net::AddrParseError),
 }
 
 // Result type based on our error type

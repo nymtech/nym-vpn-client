@@ -20,7 +20,7 @@ use tokio::time::timeout;
 
 use crate::{
     bandwidth_controller::BandwidthController,
-    error::{Error, GatewayDirectoryError, Result},
+    error::{Error, GatewayDirectoryError, Result, WgTunnelError},
     mixnet, platform,
     routing::{self, catch_all_ipv4, catch_all_ipv6, replace_default_prefixes},
     uniffi_custom_impls::{StatusEvent, TunStatus},
@@ -114,7 +114,7 @@ pub(crate) async fn init_firewall_dns(
 async fn wait_interface_up(
     mut event_rx: mpsc::UnboundedReceiver<(TunnelEvent, oneshot::Sender<()>)>,
     wg_config: &WireguardConfig,
-) -> Result<TunnelMetadata> {
+) -> std::result::Result<TunnelMetadata, WgTunnelError> {
     loop {
         match event_rx.next().await {
             Some((TunnelEvent::InterfaceUp(_, _), _)) => {
@@ -127,21 +127,21 @@ async fn wait_interface_up(
             }
             Some((TunnelEvent::AuthFailed(_), _)) => {
                 debug!("Received tunnel auth failed");
-                return Err(Error::FailedToBringInterfaceUpWgAuthFailed {
+                return Err(WgTunnelError::FailedToBringInterfaceUpWgAuthFailed {
                     gateway_id: Box::new(wg_config.gateway_id),
                     public_key: wg_config.gateway_data.public_key.to_base64(),
                 });
             }
             Some((TunnelEvent::Down, _)) => {
                 debug!("Received tunnel down event when waiting for interface up");
-                return Err(Error::FailedToBringInterfaceUpWgDown {
+                return Err(WgTunnelError::FailedToBringInterfaceUpWgDown {
                     gateway_id: Box::new(wg_config.gateway_id),
                     public_key: wg_config.gateway_data.public_key.to_base64(),
                 });
             }
             None => {
                 debug!("Wireguard event channel closed when waiting for interface up");
-                return Err(Error::FailedToBringInterfaceUpWgEventTunnelClose {
+                return Err(WgTunnelError::FailedToBringInterfaceUpWgEventTunnelClose {
                     gateway_id: Box::new(wg_config.gateway_id),
                     public_key: wg_config.gateway_data.public_key.to_base64(),
                 });
@@ -158,7 +158,7 @@ async fn setup_wg_tunnel(
     gateway_directory_client: GatewayClient,
     auth_addresses: AuthAddresses,
     default_lan_gateway_ip: routing::LanGatewayIp,
-) -> Result<AllTunnelsSetup> {
+) -> std::result::Result<AllTunnelsSetup, WgTunnelError> {
     // MTU is computed as (MTU of wire interface) - ((IP header size) + (UDP header size) + (WireGuard metadata size))
     // The IP header size is 20 for IPv4 and 40 for IPv6
     // The UDP header size is 8
@@ -176,7 +176,9 @@ async fn setup_wg_tunnel(
     let (Some(entry_auth_recipient), Some(exit_auth_recipient)) =
         (auth_addresses.entry().0, auth_addresses.exit().0)
     else {
-        return Err(Error::AuthenticationNotPossible(auth_addresses.to_string()));
+        return Err(WgTunnelError::AuthenticationNotPossible(
+            auth_addresses.to_string(),
+        ));
     };
     let auth_client = AuthClient::new_from_inner(mixnet_client.inner()).await;
     log::info!("Created wg gateway clients");
@@ -212,7 +214,7 @@ async fn setup_wg_tunnel(
     .await?;
 
     if wg_entry_gateway_client.suspended().await? || wg_exit_gateway_client.suspended().await? {
-        return Err(Error::NotEnoughBandwidthToSetupTunnel);
+        return Err(WgTunnelError::NotEnoughBandwidthToSetupTunnel);
     }
     tokio::spawn(
         wg_entry_gateway_client.run(task_manager.subscribe_named("bandwidth_entry_client")),
@@ -275,8 +277,7 @@ async fn setup_wg_tunnel(
         task_manager.subscribe_named("entry_wg_tunnel"),
         nym_vpn.tun_provider.clone(),
         entry_wireguard_config.clone(),
-    )
-    .await?;
+    )?;
 
     // Wait for entry gateway routes to be finished before moving to exit gateway routes, as the two might race if
     // started one after the other
@@ -293,8 +294,7 @@ async fn setup_wg_tunnel(
         task_manager.subscribe_named("exit_wg_tunnel"),
         nym_vpn.tun_provider.clone(),
         exit_wireguard_config.clone(),
-    )
-    .await?;
+    )?;
     debug!("Waiting for second interface up");
     let metadata = wait_interface_up(event_rx, &exit_wireguard_config).await?;
     info!(
@@ -418,6 +418,7 @@ pub async fn setup_tunnel(
                 default_lan_gateway_ip,
             )
             .await
+            .map_err(Error::from)
         }
         SpecificVpn::Mix(vpn) => {
             setup_mix_tunnel(
