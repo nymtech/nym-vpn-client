@@ -256,6 +256,11 @@ extern "C" {
     fn wgNetGetSocketV6(net_tunnel_handle: i32) -> i32;
 }
 
+/// Callback used by libwg to pass netstack logs.
+///
+/// # Safety
+/// Do not call this method directly.
+#[doc(hidden)]
 pub unsafe extern "system" fn wg_netstack_logger_callback(
     _log_level: u32,
     msg: *const c_char,

@@ -161,6 +161,11 @@ extern "C" {
     fn wgBumpSockets(handle: i32);
 }
 
+/// Callback used by libwg to pass wireguard-go logs.
+///
+/// # Safety
+/// Do not call this method directly.
+#[doc(hidden)]
 pub unsafe extern "system" fn wg_logger_callback(
     _log_level: u32,
     msg: *const c_char,
