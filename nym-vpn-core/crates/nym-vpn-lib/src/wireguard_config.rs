@@ -148,7 +148,7 @@ pub(crate) async fn init_wireguard_config(
     let gateway_host = gateway_client
         .lookup_gateway_ip(&gateway_id)
         .await
-        .map_err(|source| GatewayDirectoryError::FailedToLookupGatewayIp { gateway_id, source })?;
+        .map_err(|source| SetupWgTunnelError::FailedToLookupGatewayIp { gateway_id, source })?;
     let wg_gateway_data = wg_gateway_client.register_wireguard(gateway_host).await?;
     tracing::debug!("Received wireguard gateway data: {wg_gateway_data:?}");
 

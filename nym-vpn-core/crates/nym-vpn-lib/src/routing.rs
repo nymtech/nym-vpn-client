@@ -24,7 +24,7 @@ use tun2::AbstractDevice;
 #[cfg(target_os = "android")]
 use crate::Error;
 #[cfg(not(any(target_os = "ios", target_os = "android")))]
-use crate::MixnetError;
+use crate::SetupMixTunnelError;
 use crate::{
     error::Result,
     vpn::{MixnetVpn, NymVpn},
@@ -256,7 +256,7 @@ pub async fn setup_mixnet_routing(
     >,
     dns_monitor: &mut DnsMonitor,
     dns: Option<IpAddr>,
-) -> std::result::Result<tun2::AsyncDevice, MixnetError> {
+) -> std::result::Result<tun2::AsyncDevice, SetupMixTunnelError> {
     debug!("Creating tun device");
     let mixnet_tun_config = config.mixnet_tun_config.clone();
 
@@ -286,7 +286,7 @@ pub async fn setup_mixnet_routing(
     std::process::Command::new("ip")
         .args(["-6", "addr", "add", &_ipv6_addr, "dev", &device_name])
         .output()
-        .map_err(crate::MixnetError::FailedToAddIpv6Route)?;
+        .map_err(crate::SetupMixTunnelError::FailedToAddIpv6Route)?;
 
     #[cfg(target_os = "macos")]
     std::process::Command::new("ifconfig")

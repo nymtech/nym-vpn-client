@@ -3,6 +3,7 @@
 
 use std::{
     net::IpAddr,
+    result::Result,
     sync::{Arc, Mutex},
 };
 
@@ -23,7 +24,7 @@ use super::base::{GenericNymVpnConfig, NymVpn, ShadowHandle, Vpn};
 use crate::mobile::ios::tun_provider::OSTunProvider;
 #[cfg(target_os = "android")]
 use crate::platform::android::AndroidTunProvider;
-use crate::{mixnet::SharedMixnetClient, routing, GatewayDirectoryError, MixnetError};
+use crate::{error::SetupMixTunnelError, mixnet::SharedMixnetClient, routing};
 
 #[derive(Clone, Debug)]
 pub struct MixnetClientConfig {
@@ -107,7 +108,7 @@ impl NymVpn<MixnetVpn> {
         gateway_client: &GatewayClient,
         default_lan_gateway_ip: routing::LanGatewayIp,
         dns_monitor: &mut DnsMonitor,
-    ) -> std::result::Result<MixnetExitConnectionInfo, MixnetError> {
+    ) -> Result<MixnetExitConnectionInfo, SetupMixTunnelError> {
         let exit_gateway = *exit_mix_addresses.gateway();
         info!("Connecting to exit gateway: {exit_gateway}");
         // Currently the IPR client is only used to connect. The next step would be to use it to
@@ -116,7 +117,7 @@ impl NymVpn<MixnetVpn> {
         let our_ips = ipr_client
             .connect(exit_mix_addresses.0, self.generic_config.nym_ips)
             .await
-            .map_err(MixnetError::FailedToConnectToIpPacketRouter)?;
+            .map_err(SetupMixTunnelError::FailedToConnectToIpPacketRouter)?;
         info!("Successfully connected to exit gateway");
         info!("Using mixnet VPN IP addresses: {our_ips}");
 
@@ -127,7 +128,7 @@ impl NymVpn<MixnetVpn> {
         let entry_mixnet_gateway_ip: IpAddr = gateway_client
             .lookup_gateway_ip(&gateway_used)
             .await
-            .map_err(|source| GatewayDirectoryError::FailedToLookupGatewayIp {
+            .map_err(|source| SetupMixTunnelError::FailedToLookupGatewayIp {
                 gateway_id: gateway_used,
                 source,
             })?;
@@ -199,7 +200,7 @@ impl NymVpn<MixnetVpn> {
         gateway_client: &GatewayClient,
         default_lan_gateway_ip: routing::LanGatewayIp,
         dns_monitor: &mut DnsMonitor,
-    ) -> std::result::Result<(MixnetConnectionInfo, MixnetExitConnectionInfo), MixnetError> {
+    ) -> Result<(MixnetConnectionInfo, MixnetExitConnectionInfo), SetupMixTunnelError> {
         // Now that we have a connection, collection some info about that and return
         let nym_address = mixnet_client.nym_address().await;
         let entry_gateway = *(nym_address.gateway());

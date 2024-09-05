@@ -20,7 +20,7 @@ use tokio::time::timeout;
 
 use crate::{
     bandwidth_controller::BandwidthController,
-    error::{Error, GatewayDirectoryError, Result, SetupWgTunnelError},
+    error::{Error, GatewayDirectoryError, Result, SetupMixTunnelError, SetupWgTunnelError},
     mixnet, platform,
     routing::{self, catch_all_ipv4, catch_all_ipv6, replace_default_prefixes},
     uniffi_custom_impls::{StatusEvent, TunStatus},
@@ -30,7 +30,6 @@ use crate::{
     },
     wireguard_config,
     wireguard_setup::create_wireguard_tunnel,
-    MixnetError,
 };
 
 pub(crate) struct TunnelSetup<T: TunnelSpecifcSetup> {
@@ -291,7 +290,7 @@ async fn setup_mix_tunnel(
     gateway_directory_client: GatewayClient,
     exit_mix_addresses: &IpPacketRouterAddress,
     default_lan_gateway_ip: routing::LanGatewayIp,
-) -> std::result::Result<AllTunnelsSetup, MixnetError> {
+) -> std::result::Result<AllTunnelsSetup, SetupMixTunnelError> {
     info!("Wireguard is disabled");
 
     let connection_info = nym_vpn
@@ -371,7 +370,7 @@ pub async fn setup_tunnel(
                     // errors and diconnecting the mixnet client needs to be unified down this code path
                     // and merged with the mix tunnel one.
                     mixnet_client.disconnect().await;
-                    return Err(err);
+                    return Err(err.into());
                 }
             };
 
@@ -408,13 +407,13 @@ pub async fn setup_tunnel(
 fn setup_auth_addresses(
     entry: &nym_gateway_directory::Gateway,
     exit: &nym_gateway_directory::Gateway,
-) -> Result<AuthAddresses> {
+) -> std::result::Result<AuthAddresses, SetupWgTunnelError> {
     let entry_authenticator_address = entry
         .authenticator_address
-        .ok_or(Error::AuthenticatorAddressNotFound)?;
+        .ok_or(SetupWgTunnelError::AuthenticatorAddressNotFound)?;
     let exit_authenticator_address = exit
         .authenticator_address
-        .ok_or(Error::AuthenticatorAddressNotFound)?;
+        .ok_or(SetupWgTunnelError::AuthenticatorAddressNotFound)?;
     Ok(AuthAddresses::new(
         entry_authenticator_address,
         exit_authenticator_address,

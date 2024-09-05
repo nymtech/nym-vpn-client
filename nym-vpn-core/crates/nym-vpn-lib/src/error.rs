@@ -1,11 +1,9 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::PathBuf;
-
 use nym_gateway_directory::NodeIdentity;
 
-use crate::tunnel_setup::WaitInterfaceUpError;
+use crate::{tunnel_setup::WaitInterfaceUpError, MixnetError};
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -40,6 +38,9 @@ pub enum Error {
     SetupWgTunnelError(#[from] SetupWgTunnelError),
 
     #[error(transparent)]
+    SetupMixTunnelError(#[from] SetupMixTunnelError),
+
+    #[error(transparent)]
     Mixnet(#[from] MixnetError),
 
     #[error("timeout after waiting {0}s for mixnet client to start")]
@@ -68,17 +69,9 @@ pub enum Error {
         source: bincode::Error,
     },
 
+    // TODO: move me, this is created inside platform.rs
     #[error("gateway does not contain a two character country ISO")]
     CountryCodeNotFound,
-
-    #[error("failed decode base58 credential: {source}")]
-    FailedToDecodeBase58Credential {
-        #[from]
-        source: bs58::decode::Error,
-    },
-
-    #[error("failed to find authenticator address")]
-    AuthenticatorAddressNotFound,
 
     #[cfg(target_os = "ios")]
     #[error("failed to run wireguard tunnel")]
@@ -118,52 +111,24 @@ pub enum GatewayDirectoryError {
         source: nym_gateway_directory::Error,
     },
 
-    #[error("failed to lookup gateway ip: {gateway_id}: {source}")]
-    FailedToLookupGatewayIp {
-        gateway_id: String,
-        source: nym_gateway_directory::Error,
-    },
-
     #[error("unable to use same entry and exit gateway for location: {requested_location}")]
     SameEntryAndExitGatewayFromCountry { requested_location: String },
 }
 
 // Errors specific to the mixnet. This often comes from the nym-sdk crate, but not necessarily.
 #[derive(thiserror::Error, Debug)]
-pub enum MixnetError {
-    #[error("failed to setup mixnet storage paths: {0}")]
-    FailedToSetupMixnetStoragePaths(#[source] nym_sdk::Error),
-
-    #[error("failed to create mixnet client with default storage: {0}")]
-    FailedToCreateMixnetClientWithDefaultStorage(#[source] nym_sdk::Error),
-
-    #[error("failed to build mixnet client: {0}")]
-    FailedToBuildMixnetClient(#[source] nym_sdk::Error),
-
-    #[error("failed to connect to mixnet: {0}")]
-    FailedToConnectToMixnet(#[source] nym_sdk::Error),
-
-    #[error("failed to connect to mixnet entry gateway {gateway_id}: {source}")]
-    EntryGateway {
-        gateway_id: String,
-        source: Box<dyn std::error::Error + Send + Sync>,
-    },
-
-    #[error("invalid credential: {reason}")]
-    InvalidCredential {
-        reason: crate::credentials::CheckImportedCredentialError,
-        path: PathBuf,
-        gateway_id: String,
-    },
-
+pub enum SetupMixTunnelError {
     #[error("{0}")]
     ConnectionMonitorError(#[from] nym_connection_monitor::Error),
 
     #[error("failed to connect to ip packet router: {0}")]
     FailedToConnectToIpPacketRouter(#[source] nym_ip_packet_client::Error),
 
-    #[error(transparent)]
-    GatewayDirectoryError(#[from] GatewayDirectoryError),
+    #[error("failed to lookup gateway ip: {gateway_id}: {source}")]
+    FailedToLookupGatewayIp {
+        gateway_id: String,
+        source: nym_gateway_directory::Error,
+    },
 
     #[error("failed setting up local TUN network device: {0}")]
     TunError(#[from] tun2::Error),
@@ -183,11 +148,17 @@ pub enum SetupWgTunnelError {
     #[error("wiregurad authentication is not possible due to one of the gateways not running the authenticator process: {0}")]
     AuthenticationNotPossible(String),
 
+    #[error("failed to find authenticator address")]
+    AuthenticatorAddressNotFound,
+
     #[error("not enough bandwidth to setup tunnel")]
     NotEnoughBandwidthToSetupTunnel,
 
-    #[error(transparent)]
-    GatewayDirectoryError(#[from] GatewayDirectoryError),
+    #[error("failed to lookup gateway ip: {gateway_id}: {source}")]
+    FailedToLookupGatewayIp {
+        gateway_id: String,
+        source: nym_gateway_directory::Error,
+    },
 
     #[error(transparent)]
     WgGatewayClientError(#[from] nym_wg_gateway_client::Error),

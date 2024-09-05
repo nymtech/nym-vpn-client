@@ -7,8 +7,8 @@ use nym_config::defaults::NymNetworkDetails;
 use nym_sdk::mixnet::{MixnetClientBuilder, NodeIdentity, StoragePaths};
 use tracing::{debug, info};
 
-use super::SharedMixnetClient;
-use crate::{error::MixnetError, vpn::MixnetClientConfig};
+use super::{MixnetError, SharedMixnetClient};
+use crate::vpn::MixnetClientConfig;
 
 fn true_to_enabled(val: bool) -> &'static str {
     if val {
