@@ -91,6 +91,9 @@ function NetworkModeSelect() {
             speed
           </span>
         ),
+        // TODO remove when Windows is supported
+        className: state.os === 'windows' ? 'opacity-50' : undefined,
+        tooltip: t('windows-no-fast-mode'),
       },
     ];
   }, [loading, state.state, state.os, t]);
