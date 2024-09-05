@@ -32,7 +32,7 @@ use nym_wireguard_types::{
 use tokio::sync::Mutex;
 use tokio_util::codec::Decoder;
 use tracing::*;
-use types::Wg;
+use types::WgProbeResults;
 
 use crate::{
     icmp::{check_for_icmp_beacon_reply, icmp_identifier, send_ping_v4, send_ping_v6},
@@ -107,7 +107,7 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
             .await
             .unwrap_or_default()
     } else {
-        Wg::default()
+        WgProbeResults::default()
     };
 
     let mixnet_client = shared_mixnet_client.lock().await.take().unwrap();
@@ -127,7 +127,7 @@ async fn wg_probe(
     authenticator: AuthAddress,
     shared_mixnet_client: Arc<Mutex<Option<MixnetClient>>>,
     gateway_host: &nym_topology::NetworkAddress,
-) -> anyhow::Result<Wg> {
+) -> anyhow::Result<WgProbeResults> {
     let auth_shared_client =
         nym_authenticator_client::SharedMixnetClient::from_shared(&shared_mixnet_client);
     let mut auth_client = nym_authenticator_client::AuthClient::new(auth_shared_client).await;
@@ -140,7 +140,7 @@ async fn wg_probe(
         pub_key: PeerPublicKey::new(public_key.to_bytes().into()),
     });
 
-    let mut wg_outcome = Wg::default();
+    let mut wg_outcome = WgProbeResults::default();
 
     if let Some(authenticator_address) = authenticator.0 {
         let response = auth_client

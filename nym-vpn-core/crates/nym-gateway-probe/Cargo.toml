@@ -11,7 +11,7 @@ build = "build.rs"
 
 [dependencies]
 anyhow.workspace = true
-base64 = "0.22"
+base64.workspace = true
 bincode.workspace = true
 bs58.workspace = true
 bytes.workspace = true
@@ -19,11 +19,11 @@ clap = { workspace = true, features = ["cargo", "derive"] }
 dirs.workspace = true
 dns-lookup = "2"
 futures.workspace = true
-hex = "0.4"
+hex.workspace = true
 log.workspace = true
 pnet_packet.workspace = true
 rand.workspace = true
-rust2go = { version = "0.3.4" }
+rust2go = "0.3.4"
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
@@ -37,7 +37,7 @@ tokio = { workspace = true, features = [
 tokio-util.workspace = true
 tracing-subscriber.workspace = true
 tracing.workspace = true
-x25519-dalek = { version = "2", features = [
+x25519-dalek = { workspace = true, features = [
     "reusable_secrets",
     "static_secrets",
 ] }
