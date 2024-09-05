@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { invoke } from '@tauri-apps/api';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
@@ -94,22 +94,6 @@ function NetworkModeSelect() {
       },
     ];
   }, [loading, state.state, state.os, t]);
-
-  // TODO remove when 2h-wg Windows is supported
-  useEffect(() => {
-    const updtateVpnMode = async () => {
-      try {
-        await invoke<void>('set_vpn_mode', { mode: 'Mixnet' });
-        dispatch({ type: 'set-vpn-mode', mode: 'Mixnet' });
-      } catch (e) {
-        console.warn(e);
-      }
-    };
-
-    if (state.os === 'windows' && state.vpnMode === 'TwoHop') {
-      updtateVpnMode();
-    }
-  }, [dispatch, state.vpnMode, state.os]);
 
   return (
     <div>
