@@ -16,7 +16,6 @@ use nym_sdk::UserAgent as NymUserAgent;
 use talpid_types::net::wireguard::{PresharedKey, PrivateKey, PublicKey};
 use url::Url;
 
-use crate::mobile::runner::Error;
 use crate::vpn::NymVpnExitError;
 use crate::{
     platform::error::FFIError,
@@ -25,7 +24,7 @@ use crate::{
 };
 
 #[cfg(any(target_os = "ios", target_os = "android"))]
-use super::mobile::runner::Error as WgError;
+use super::mobile::runner::Error as MobileError;
 
 uniffi::custom_type!(Ipv4Addr, String);
 uniffi::custom_type!(Ipv6Addr, String);
@@ -385,25 +384,25 @@ pub enum ExitStatus {
 }
 
 #[cfg(any(target_os = "ios", target_os = "android"))]
-impl From<WgError> for ExitStatus {
-    fn from(value: WgError) -> Self {
+impl From<MobileError> for ExitStatus {
+    fn from(value: MobileError) -> Self {
         match value {
-            Error::StartMixnetTimeout => ExitStatus::StartMixnetTimeout,
-            Error::StartMixnetClient(e) => ExitStatus::StartMixnetClient {
+            MobileError::StartMixnetTimeout => ExitStatus::StartMixnetTimeout,
+            MobileError::StartMixnetClient(e) => ExitStatus::StartMixnetClient {
                 message: e.to_string(),
             },
-            Error::GatewayDirectory(e) => ExitStatus::StartMixnetClient {
+            MobileError::GatewayDirectory(e) => ExitStatus::StartMixnetClient {
                 message: e.to_string(),
             },
-            Error::AuthenticatorAddressNotFound => ExitStatus::AuthenticatorAddressNotFound,
-            Error::NotEnoughBandwidth => ExitStatus::NotEnoughBandwidth,
-            Error::AuthenticationNotPossible(message) => {
+            MobileError::AuthenticatorAddressNotFound => ExitStatus::AuthenticatorAddressNotFound,
+            MobileError::NotEnoughBandwidth => ExitStatus::NotEnoughBandwidth,
+            MobileError::AuthenticationNotPossible(message) => {
                 ExitStatus::AuthenticationFailed { message }
             }
-            Error::WgGatewayClientFailure(e) => ExitStatus::WgGatewayClientFailure {
+            MobileError::WgGatewayClientFailure(e) => ExitStatus::WgGatewayClientFailure {
                 message: e.to_string(),
             },
-            Error::Tunnel(e) => ExitStatus::TunnelSetupFailure {
+            MobileError::Tunnel(e) => ExitStatus::TunnelSetupFailure {
                 message: e.to_string(),
             },
         }
