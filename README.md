@@ -15,16 +15,21 @@ Visit [NymVPN's blog](https://nymvpn.com/en/blog) for the latest announcements a
 
 
 
-## CLI client
+## Core
 
-[nym-vpn-cli](nym-vpn-cli/README.md)
+The `nym-vpn-core` Rust workspace contains among other things the daemon (`nym-vpnd`)  and the CLI client (`nym-vpnc`).
+
+[nym-vpnd](nym-vpn-core/crates/nym-vpnd)
+[nym-vpnc](nym-vpn-core/crates/nym-vpnc)
+
 
 ## GUI clients
+
+Interacting either with `nym-vpnd` or directly to `nym-vpn-lib` using FFI are a number of GUI clients.
 
 [nym-vpn-android](nym-vpn-android/README.md)\
 [nym-vpn-apple](nym-vpn-apple/README.md)\
 [nym-vpn-desktop](nym-vpn-x/README.md)
-
 
 
 ## Nym's mixnet overview
@@ -39,5 +44,3 @@ client ───► gateway ──┘  mix  │  mix  ┌─►mix ───► 
                               │       │
                          mix  └─►mix──┘  mix
 ```
-
-
