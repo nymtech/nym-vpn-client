@@ -17,12 +17,12 @@
     <string name="connect_to">Conectar ao</string>
     <string name="disabled_while_connected">Desativado enquanto conectado à VPN</string>
     <string name="unknown">Desconhecido</string>
-    <string name="credential_disclaimer">Para gerar uma nova credencial, use o link fornecido no email de convite da fase alfa.</string>
+    <string name="credential_disclaimer">Resgate sua credencial e cole ou escaneie o código QR. Não tem um? Registre-se em nymvpn.com para obtê-la instantaneamente.</string>
     <string name="error_reporting_alert">As alterações no relatório de erros não entrarão em vigor totalmente até que o aplicativo seja reiniciado.</string>
     <string name="light_theme">Tema claro</string>
     <string name="search_country">Pesquisar país</string>
     <string name="logs">Registros</string>
-    <string name="alpha_help_message">Ajude-nos a refinar nosso aplicativo durante a fase alfa! Seu feedback é fundamental para identificar e resolver problemas.</string>
+    <string name="alpha_help_message">Ajude-nos a refinar nosso aplicativo durante o teste beta! Seu feedback é fundamental para identificar e resolver problemas.</string>
     <string name="feedback">Comentário</string>
     <string name="email_subject">Suporte NymVPN</string>
     <string name="gateways_error">Falha ao recuperar gateways</string>
@@ -80,7 +80,7 @@
     <string name="opt_in_message_first">Opção de monitoramento anônimo de erros</string>
     <string name="opt_in_message_second">e análises à vontade - você pode optar por não participar a qualquer momento.</string>
     <string name="thanks_for_support">Obrigado pelo seu suporte!</string>
-    <string name="to_alpha">para a NymVPN alfa</string>
+    <string name="to_alpha">para a NymVPN beta</string>
     <string name="welcome">Bem vindo</string>
     <string name="cont">Continuar</string>
     <string name="continue_agree">Ao continuar, você concorda com os termos da NymVPN\'s</string>
@@ -92,8 +92,8 @@
     <string name="country_load_failure">Falha ao carregar países de salto</string>
     <string name="app_shortcuts">Atalhos do aplicativo</string>
     <string name="enable_shortcuts">Ativar atalhos do aplicativo</string>
-    <string name="five_hop_mixnet">Anônimo</string>
-    <string name="two_hop_mixnet">rápido</string>
+    <string name="five_hop_mixnet">Anônimo (mixnet)</string>
+    <string name="two_hop_mixnet">Rápido (WireGuard)</string>
     <string name="last_hop_selection">Local de saída</string>
     <string name="privacy_policy">Declaração de privacidade</string>
     <string name="licenses">Licenças</string>
