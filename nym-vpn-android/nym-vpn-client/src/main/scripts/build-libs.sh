@@ -20,7 +20,7 @@ esac
 
 #fix emulators later
 #(cd $PWD/src/tools/nym-vpn-client/crates/nym-vpn-lib; cargo ndk -t armeabi-v7a -t arm64-v8a -t i686-linux-android -t x86_64-linux-android  -o ../../../main/jniLibs build --release)
-(cd $PWD/../../nym-vpn-core/crates/nym-vpn-lib; cargo ndk -t arm64-v8a -o ../../nym-vpn-android/nym-vpn-client/src/main/jniLibs build --release)
+(cd $PWD/../../nym-vpn-core/crates/nym-vpn-lib; cargo ndk -t arm64-v8a -o ../../../nym-vpn-android/nym-vpn-client/src/main/jniLibs build --release)
 
 (cd $PWD/../../nym-vpn-core; cargo run --bin uniffi-bindgen generate --library ./target/aarch64-linux-android/release/libnym_vpn_lib.so  --language kotlin --out-dir ../nym-vpn-android/nym-vpn-client/src/main/java/net/nymtech/vpn -n)
 cargo license -j --avoid-dev-deps --current-dir ../../nym-vpn-core/crates/nym-vpn-lib --filter-platform aarch64-linux-android --avoid-build-deps > ./src/main/assets/licenses_rust.json

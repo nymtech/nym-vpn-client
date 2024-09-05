@@ -205,14 +205,29 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	override fun onExitStatusChange(status: ExitStatus) {
 		when (status) {
 			ExitStatus.Stopped -> Timber.d("Tunnel stopped")
-			is ExitStatus.Failed -> {
-				Timber.e(status.error)
-				// need to stop the vpn service even though vpn never started from lib perspective
-				context.stopService(Intent(context, VpnService::class.java))
-				tunnel?.onBackendMessage(BackendMessage.Error.StartFailed)
-				// Need to set state down because this likely never happened in lib
-				tunnel?.onStateChange(Tunnel.State.Down)
-			}
+//			else -> {
+//				// need to stop the vpn service even though vpn never started from lib perspective
+//				context.stopService(Intent(context, VpnService::class.java))
+//				tunnel?.onBackendMessage(BackendMessage.Error.StartFailed)
+//				// Need to set state down because this likely never happened in lib
+//				tunnel?.onStateChange(Tunnel.State.Down)
+//			}
+			is ExitStatus.AuthenticationFailed -> TODO()
+			ExitStatus.AuthenticatorAddressNotFound -> TODO()
+			ExitStatus.CannotLocateTunFd -> TODO()
+			ExitStatus.FailedToResetFirewallPolicy -> TODO()
+			is ExitStatus.GatewayDirectoryError -> TODO()
+			is ExitStatus.GeneralFailure -> TODO()
+			ExitStatus.InvalidCredential -> TODO()
+			ExitStatus.NotEnoughBandwidth -> TODO()
+			is ExitStatus.StartMixnetClient -> TODO()
+			ExitStatus.StartMixnetTimeout -> TODO()
+			is ExitStatus.TunnelSetupFailure -> TODO()
+			ExitStatus.VpnAlreadyRunning -> TODO()
+			is ExitStatus.VpnApiClientError -> TODO()
+			ExitStatus.VpnNotStarted -> TODO()
+			ExitStatus.VpnStopFailure -> TODO()
+			is ExitStatus.WgGatewayClientFailure -> TODO()
 		}
 	}
 

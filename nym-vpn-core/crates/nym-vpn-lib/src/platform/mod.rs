@@ -168,9 +168,7 @@ async fn wait_for_shutdown(
             let error = error
                 .downcast_ref::<NymVpnExitError>()
                 .ok_or(crate::Error::StopError)?;
-            uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failed {
-                error: error.to_string(),
-            }));
+            uniffi_set_listener_status(StatusEvent::Exit(error.into()));
             error!("Stopped Nym VPN with error: {:?}", error);
         }
         NymVpnExitStatusMessage::Stopped => {
@@ -218,7 +216,8 @@ fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
 #[uniffi::export]
 pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
     if RUNNING.fetch_or(true, Ordering::Relaxed) {
-        return Err(FFIError::VpnAlreadyRunning);
+        uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::VpnAlreadyRunning));
+        return Ok(());
     }
 
     LISTENER
@@ -241,13 +240,16 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
                     Ok(tun_runner) => match tun_runner.start().await {
                         Ok(_) => {
                             tracing::debug!("Tunnel runner exited.");
+                            uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Stopped));
                         }
                         Err(e) => {
                             tracing::error!("Tunnel runner exited with error: {}", e);
+                            uniffi_set_listener_status(StatusEvent::Exit(e.into()));
                         }
                     },
                     Err(e) => {
                         tracing::error!("Failed to create the tunnel runner: {}", e);
+                        uniffi_set_listener_status(StatusEvent::Exit(e.into()));
                     }
                 }
 
@@ -262,6 +264,7 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
             };
             if let Err(e) = set_shutdown_handle(shutdown_handle).await {
                 tracing::error!("Failed to set shutdown handle: {}", e);
+                uniffi_set_listener_status(StatusEvent::Exit(e.into()));
             }
         });
         Ok(())
@@ -269,18 +272,24 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
         debug!("Trying to run VPN");
         let vpn = sync_run_vpn(config);
         debug!("Got VPN");
-        if vpn.is_err() {
-            error!("Err creating VPN");
-            uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
-            RUNNING.store(false, Ordering::Relaxed);
+        match vpn {
+            Ok(vpn) => {
+                let ret = RUNTIME.block_on(run_vpn(vpn.into()));
+                if let Some(error) = ret.err() {
+                    error!("Error running VPN");
+                    uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
+                    uniffi_set_listener_status(StatusEvent::Exit(error.into()));
+                    RUNNING.store(false, Ordering::Relaxed);
+                }
+            }
+            Err(e) => {
+                error!("Err creating VPN");
+                uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
+                uniffi_set_listener_status(StatusEvent::Exit(e.into()));
+                RUNNING.store(false, Ordering::Relaxed);
+            }
         }
-        let ret = RUNTIME.block_on(run_vpn(vpn?.into()));
-        if ret.is_err() {
-            error!("Error running VPN");
-            uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
-            RUNNING.store(false, Ordering::Relaxed);
-        }
-        ret
+        Ok(())
     }
 }
 
@@ -338,11 +347,9 @@ async fn run_vpn(vpn: SpecificVpn) -> Result<(), FFIError> {
             reset_shutdown_handle().await;
             RUNNING.store(false, Ordering::Relaxed);
             error!("Could not start the VPN: {:?}", err);
-            uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failed {
-                error: err.to_string(),
-            }));
             uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
-            Err(err)
+            uniffi_set_listener_status(StatusEvent::Exit(err.into()));
+            Ok(())
         }
         Ok((stop_handle, handle)) => {
             debug!("Spawning wait for shutdown");

@@ -16,11 +16,16 @@ use nym_sdk::UserAgent as NymUserAgent;
 use talpid_types::net::wireguard::{PresharedKey, PrivateKey, PublicKey};
 use url::Url;
 
+use crate::mobile::runner::Error;
+use crate::vpn::NymVpnExitError;
 use crate::{
     platform::error::FFIError,
     vpn::{MixnetConnectionInfo, MixnetExitConnectionInfo, NymVpnStatusMessage},
     NodeIdentity, Recipient, UniffiCustomTypeConverter,
 };
+
+#[cfg(any(target_os = "ios", target_os = "android"))]
+use super::mobile::runner::Error as WgError;
 
 uniffi::custom_type!(Ipv4Addr, String);
 uniffi::custom_type!(Ipv6Addr, String);
@@ -361,7 +366,78 @@ pub enum StatusEvent {
 #[allow(clippy::large_enum_variant)]
 pub enum ExitStatus {
     Stopped,
-    Failed { error: String },
+    GeneralFailure { message: String },
+    CannotLocateTunFd,
+    InvalidCredential,
+    VpnStopFailure,
+    VpnNotStarted,
+    VpnAlreadyRunning,
+    FailedToResetFirewallPolicy,
+    GatewayDirectoryError { message: String },
+    VpnApiClientError { message: String },
+    StartMixnetTimeout,
+    StartMixnetClient { message: String },
+    AuthenticatorAddressNotFound,
+    NotEnoughBandwidth,
+    AuthenticationFailed { message: String },
+    WgGatewayClientFailure { message: String },
+    TunnelSetupFailure { message: String },
+}
+
+#[cfg(any(target_os = "ios", target_os = "android"))]
+impl From<WgError> for ExitStatus {
+    fn from(value: WgError) -> Self {
+        match value {
+            Error::StartMixnetTimeout => ExitStatus::StartMixnetTimeout,
+            Error::StartMixnetClient(e) => ExitStatus::StartMixnetClient {
+                message: e.to_string(),
+            },
+            Error::GatewayDirectory(e) => ExitStatus::StartMixnetClient {
+                message: e.to_string(),
+            },
+            Error::AuthenticatorAddressNotFound => ExitStatus::AuthenticatorAddressNotFound,
+            Error::NotEnoughBandwidth => ExitStatus::NotEnoughBandwidth,
+            Error::AuthenticationNotPossible(message) => {
+                ExitStatus::AuthenticationFailed { message }
+            }
+            Error::WgGatewayClientFailure(e) => ExitStatus::WgGatewayClientFailure {
+                message: e.to_string(),
+            },
+            Error::Tunnel(e) => ExitStatus::TunnelSetupFailure {
+                message: e.to_string(),
+            },
+        }
+    }
+}
+
+impl From<&NymVpnExitError> for ExitStatus {
+    fn from(value: &NymVpnExitError) -> Self {
+        match value {
+            NymVpnExitError::FailedToResetFirewallPolicy { .. } => {
+                ExitStatus::FailedToResetFirewallPolicy
+            }
+        }
+    }
+}
+impl From<FFIError> for ExitStatus {
+    fn from(value: FFIError) -> Self {
+        match value {
+            FFIError::InvalidCredential => ExitStatus::InvalidCredential,
+            FFIError::VpnNotStopped => ExitStatus::VpnStopFailure,
+            FFIError::VpnNotStarted => ExitStatus::VpnNotStarted,
+            FFIError::VpnAlreadyRunning => ExitStatus::VpnAlreadyRunning,
+            FFIError::LibError { inner } => ExitStatus::GeneralFailure { message: inner },
+            FFIError::GatewayDirectoryError { inner } => {
+                ExitStatus::GatewayDirectoryError { message: inner }
+            }
+            FFIError::VpnApiClientError { inner } => {
+                ExitStatus::VpnApiClientError { message: inner }
+            }
+            _ => ExitStatus::GeneralFailure {
+                message: "General uniffi failure".to_string(),
+            },
+        }
+    }
 }
 
 #[derive(uniffi::Enum, Clone, PartialEq)]

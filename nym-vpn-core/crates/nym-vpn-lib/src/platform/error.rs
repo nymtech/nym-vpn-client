@@ -12,11 +12,14 @@ pub enum FFIError {
     #[error("{inner}")]
     VpnApiClientError { inner: String },
 
+    #[error("{inner}")]
+    LibError { inner: String },
+
+    #[error("{inner}")]
+    GatewayDirectoryError { inner: String },
+
     #[error("Invalid path")]
     InvalidPath,
-
-    #[error("Could not obtain a fd")]
-    FdNotFound,
 
     #[error("VPN wasn't stopped properly")]
     VpnNotStopped,
@@ -26,19 +29,6 @@ pub enum FFIError {
 
     #[error("VPN already running")]
     VpnAlreadyRunning,
-
-    #[error("VPN not running")]
-    VpnNotRunning,
-
-    #[cfg(target_os = "android")]
-    #[error("Context was not initialised")]
-    NoContext,
-
-    #[error("{inner}")]
-    LibError { inner: String },
-
-    #[error("{inner}")]
-    GatewayDirectoryError { inner: String },
 }
 
 impl From<crate::Error> for FFIError {
