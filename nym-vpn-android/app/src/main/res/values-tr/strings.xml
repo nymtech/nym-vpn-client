@@ -7,10 +7,10 @@
     <string name="and_acknowledge">ve NymVPN\'i tanı</string>
     <string name="connected">Bağlantı sağlandı</string>
     <string name="connecting">Bağlanıyor</string>
-    <string name="five_hop_mixnet">Anonim</string>
+    <string name="five_hop_mixnet">Anonim (mixnet)</string>
     <string name="disconnecting">Bağlantı koptu</string>
     <string name="first_hop">Giriş lokasyonu</string>
-    <string name="two_hop_mixnet">Hızlı</string>
+    <string name="two_hop_mixnet">Hızlı (WireGuard)</string>
     <string name="disconnected">Bağlantı kesildi</string>
     <string name="init_client">İstemci başlatılıyor…</string>
     <string name="establishing_connection">Bağlantı kuruluyor</string>
