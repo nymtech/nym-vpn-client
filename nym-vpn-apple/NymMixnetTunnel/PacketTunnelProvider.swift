@@ -70,7 +70,6 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 logger.debug("Tunnel is up.")
                 // Stop blocking startTunnel() to avoid being terminated due to system 60s timeout
                 return
-
             case .statusUpdate(.establishingConnection):
                 logger.debug("Tunnel is establishing connection.")
             case .statusUpdate(.down):

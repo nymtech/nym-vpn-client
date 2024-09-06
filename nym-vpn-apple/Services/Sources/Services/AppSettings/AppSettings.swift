@@ -1,4 +1,5 @@
 import SwiftUI
+import Constants
 
 public final class AppSettings: ObservableObject {
     public static let shared = AppSettings()
@@ -43,6 +44,12 @@ public final class AppSettings: ObservableObject {
     @AppStorage(AppSettingKey.lastConnectionIntent.rawValue)
     public var lastConnectionIntent: String?
 
+    @AppStorage(
+        AppSettingKey.currentEnv.rawValue,
+        store: UserDefaults(suiteName: Constants.groupID.rawValue)
+    )
+    public var currentEnv: String = "mainnet"
+
     // Observed values for view models
     @Published public var isEntryLocationSelectionOnPublisher = false
     @Published public var isErrorReportingOnPublisher = false
@@ -70,4 +77,5 @@ enum AppSettingKey: String {
     case exitCountry
     case connectionType
     case lastConnectionIntent
+    case currentEnv
 }

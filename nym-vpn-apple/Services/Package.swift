@@ -38,7 +38,9 @@ let package = Package(
     targets: [
         .target(
             name: "AppSettings",
-            dependencies: [],
+            dependencies: [
+                "Constants"
+            ],
             path: "Sources/Services/AppSettings"
         ),
         .target(
@@ -49,6 +51,7 @@ let package = Package(
         .target(
             name: "ConfigurationManager",
             dependencies: [
+                "AppSettings",
                 "Constants",
                 "NymLogger"
             ],
