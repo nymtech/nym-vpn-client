@@ -285,7 +285,7 @@ pub async fn setup_mixnet_routing(
     std::process::Command::new("ifconfig")
         .args([&device_name, "inet6", "add", &_ipv6_addr])
         .output()
-        .map_err(crate::MixnetError::FailedToAddIpv6Route)?;
+        .map_err(crate::SetupMixTunnelError::FailedToAddIpv6Route)?;
 
     if config.disable_routing {
         info!("Routing is disabled, skipping adding routes");
