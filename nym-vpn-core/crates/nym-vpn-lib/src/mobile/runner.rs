@@ -40,7 +40,7 @@ pub enum Error {
     #[error("failed to lookup gateway ip: {gateway_id}: {source}")]
     FailedToLookupGatewayIp {
         gateway_id: String,
-        source: GatewayDirectoryError,
+        source: nym_gateway_directory::Error,
     },
 
     #[error("authenticator address not found")]
