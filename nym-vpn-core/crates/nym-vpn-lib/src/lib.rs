@@ -43,8 +43,9 @@ pub use nym_wg_gateway_client as wg_gateway_client;
 #[cfg(any(target_os = "ios", target_os = "macos"))]
 pub use crate::platform::swift;
 pub use crate::{
-    error::{Error, SelectGatewaysError, SetupMixTunnelError, SetupWgTunnelError},
+    error::{Error, SetupMixTunnelError, SetupWgTunnelError},
     mixnet::MixnetError,
+    tunnel_setup::SelectGatewaysError,
     vpn::{
         spawn_nym_vpn, spawn_nym_vpn_with_new_runtime, GenericNymVpnConfig, MixnetClientConfig,
         NymVpn, NymVpnCtrlMessage, NymVpnExitStatusMessage, NymVpnHandle, NymVpnStatusMessage,

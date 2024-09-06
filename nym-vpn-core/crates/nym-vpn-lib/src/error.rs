@@ -23,7 +23,7 @@ pub enum Error {
     FailedToSendWireguardShutdown,
 
     #[error(transparent)]
-    SelectGatewaysError(#[from] SelectGatewaysError),
+    SelectGatewaysError(#[from] crate::tunnel_setup::SelectGatewaysError),
 
     #[error("could not obtain the default interface")]
     DefaultInterfaceError,
@@ -64,43 +64,6 @@ pub enum Error {
     #[cfg(target_os = "ios")]
     #[error("failed to run wireguard tunnel")]
     RunTunnel(#[from] crate::mobile::Error),
-}
-
-#[derive(thiserror::Error, Debug)]
-pub enum SelectGatewaysError {
-    #[error("failed to setup gateway directory client: {source}")]
-    FailedtoSetupGatewayDirectoryClient {
-        config: Box<nym_gateway_directory::Config>,
-        source: nym_gateway_directory::Error,
-    },
-
-    #[error("failed to lookup gateways: {source}")]
-    FailedToLookupGateways {
-        source: nym_gateway_directory::Error,
-    },
-
-    #[error("failed to lookup gateway identity: {source}")]
-    FailedToLookupGatewayIdentity {
-        source: nym_gateway_directory::Error,
-    },
-
-    #[error("failed to select entry gateway: {source}")]
-    FailedToSelectEntryGateway {
-        source: nym_gateway_directory::Error,
-    },
-
-    #[error("failed to select exit gateway: {source}")]
-    FailedToSelectExitGateway {
-        source: nym_gateway_directory::Error,
-    },
-
-    #[error("failed to lookup router address: {source}")]
-    FailedToLookupRouterAddress {
-        source: nym_gateway_directory::Error,
-    },
-
-    #[error("unable to use same entry and exit gateway for location: {requested_location}")]
-    SameEntryAndExitGatewayFromCountry { requested_location: String },
 }
 
 // Errors specific to the mixnet. This often comes from the nym-sdk crate, but not necessarily.

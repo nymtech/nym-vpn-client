@@ -20,7 +20,7 @@ use tokio::time::timeout;
 
 use crate::{
     bandwidth_controller::BandwidthController,
-    error::{Error, SelectGatewaysError, Result, SetupMixTunnelError, SetupWgTunnelError},
+    error::{Error, Result, SetupMixTunnelError, SetupWgTunnelError},
     mixnet, platform,
     routing::{self, catch_all_ipv4, catch_all_ipv6, replace_default_prefixes},
     uniffi_custom_impls::{StatusEvent, TunStatus},
@@ -424,6 +424,43 @@ fn setup_auth_addresses(
 struct SelectedGateways {
     entry: nym_gateway_directory::Gateway,
     exit: nym_gateway_directory::Gateway,
+}
+
+#[derive(thiserror::Error, Debug)]
+pub enum SelectGatewaysError {
+    #[error("failed to setup gateway directory client: {source}")]
+    FailedtoSetupGatewayDirectoryClient {
+        config: Box<nym_gateway_directory::Config>,
+        source: nym_gateway_directory::Error,
+    },
+
+    #[error("failed to lookup gateways: {source}")]
+    FailedToLookupGateways {
+        source: nym_gateway_directory::Error,
+    },
+
+    #[error("failed to lookup gateway identity: {source}")]
+    FailedToLookupGatewayIdentity {
+        source: nym_gateway_directory::Error,
+    },
+
+    #[error("failed to select entry gateway: {source}")]
+    FailedToSelectEntryGateway {
+        source: nym_gateway_directory::Error,
+    },
+
+    #[error("failed to select exit gateway: {source}")]
+    FailedToSelectExitGateway {
+        source: nym_gateway_directory::Error,
+    },
+
+    #[error("failed to lookup router address: {source}")]
+    FailedToLookupRouterAddress {
+        source: nym_gateway_directory::Error,
+    },
+
+    #[error("unable to use same entry and exit gateway for location: {requested_location}")]
+    SameEntryAndExitGatewayFromCountry { requested_location: String },
 }
 
 async fn select_gateways(
