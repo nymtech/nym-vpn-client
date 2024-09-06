@@ -183,7 +183,7 @@ pub(crate) async fn setup_mixnet_routing(
     #[cfg(target_os = "ios")]
     {
         let fd =
-            crate::mobile::ios::tun::get_tun_fd().ok_or(crate::mobile::Error::CannotLocateTunFd)?;
+            crate::mobile::ios::tun::get_tun_fd().ok_or(SetupMixTunnelError::CannotLocateTunFd)?;
         tun_config.raw_fd(fd);
     };
 
