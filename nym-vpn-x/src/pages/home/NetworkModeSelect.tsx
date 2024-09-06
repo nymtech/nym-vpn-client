@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { invoke } from '@tauri-apps/api';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
@@ -19,6 +19,12 @@ function NetworkModeSelect() {
   const { push } = useInAppNotify();
 
   const { t } = useTranslation('home');
+
+  useEffect(() => {
+    if (state.vpnMode === 'TwoHop' && state.os === 'windows') {
+      dispatch({ type: 'set-vpn-mode', mode: 'Mixnet' });
+    }
+  }, [dispatch, state.vpnMode, state.os]);
 
   const handleNetworkModeChange = async (value: VpnMode) => {
     if (state.state === 'Disconnected' && value !== state.vpnMode) {

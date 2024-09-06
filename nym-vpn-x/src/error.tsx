@@ -42,7 +42,7 @@ function getErrorText(key: StartupErrorKey) {
             : 'Something went wrong while loading the app. Please check the logs.'}
         </p>
         {error?.details && (
-          <div className="max-h-32 overflow-auto select-text text-balance break-words">
+          <div className="w-full max-h-32 overflow-auto select-text text-balance break-words">
             <p className="text-teaberry text-center cursor-auto">
               {error.details}
             </p>
