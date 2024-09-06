@@ -1,7 +1,7 @@
 {
   "title": {
     "part1": "Hoş geldiniz",
-    "part2": "NymVPN Alpha'ya"
+    "part2": "NymVPN Beta'ya"
   },
   "experimental": "Bu deneysel yazılımdır. Şu anda güçlü anonimlik için buna güvenmeyin.",
   "tos": {
@@ -11,7 +11,7 @@
   },
   "continue-button": "Devam et",
   "description": {
-    "part1": "Alpha aşamasında uygulamamızı geliştirmemize yardımcı olun!",
+    "part1": "Beta test uygulamamızı geliştirmemize yardımcı olun!",
     "part2": "Geribildiriminiz çok önemli",
     "part3": "Sorunları tespit etmek ve çözmek için. Anonim hata izleme seçeneğini tercih et",
     "part4": "ve analizler, istediğiniz zaman vazgeçebilirsiniz. Desteğiniz için teşekkürler!"
