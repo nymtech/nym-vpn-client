@@ -104,10 +104,8 @@ pub(crate) struct LanGatewayIp(pub(crate) Interface);
 impl LanGatewayIp {
     pub(crate) fn get_default_interface() -> Result<Self> {
         trace!("Getting default interface");
-        let default_interface = get_default_interface().map_err(|err| {
-            error!("Failed to get default interface: {}", err);
-            crate::error::Error::DefaultInterfaceError
-        })?;
+        let default_interface =
+            get_default_interface().map_err(crate::error::Error::DefaultInterfaceError)?;
         info!("Default network interface: {}", default_interface.name);
         debug!("Default network interface: {:?}", default_interface);
         Ok(LanGatewayIp(default_interface))
@@ -344,7 +342,8 @@ pub async fn setup_mixnet_routing(
     let dns_servers = dns
         .map(|dns| vec![dns])
         .unwrap_or(crate::DEFAULT_DNS_SERVERS.to_vec());
-    tokio::task::block_in_place(move || dns_monitor.set(&device_name, &dns_servers))?;
+    tokio::task::block_in_place(move || dns_monitor.set(&device_name, &dns_servers))
+        .map_err(SetupMixTunnelError::FailedToSetDns)?;
 
     Ok(dev)
 }

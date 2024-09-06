@@ -10,17 +10,14 @@ pub enum Error {
     #[error("{0}")]
     RoutingError(#[from] talpid_routing::Error),
 
-    #[error("{0}")]
-    DNSError(#[from] talpid_core::dns::Error),
+    #[error("failed to init dns: {0}")]
+    FailedToInitDns(#[source] talpid_core::dns::Error),
 
-    #[error("firewall error: {0}")]
-    FirewallError(String),
+    #[error("failed to init firewall: {0}")]
+    FailedToInitFirewall(String),
 
     #[error("failed to reset firewall policy: {reason}")]
     FailedToResetFirewallPolicy { reason: String },
-
-    #[error("{0}")]
-    CanceledError(#[from] futures::channel::oneshot::Canceled),
 
     #[error("failed to send shutdown message to wireguard tunnel")]
     FailedToSendWireguardShutdown,
@@ -28,8 +25,8 @@ pub enum Error {
     #[error(transparent)]
     GatewayDirectoryError(#[from] GatewayDirectoryError),
 
-    #[error("could not obtain the default interface")]
-    DefaultInterfaceError,
+    #[error("could not obtain the default interface: {0}")]
+    DefaultInterfaceError(String),
 
     #[error(transparent)]
     SetupWgTunnelError(#[from] SetupWgTunnelError),
@@ -107,7 +104,6 @@ pub enum GatewayDirectoryError {
     SameEntryAndExitGatewayFromCountry { requested_location: String },
 }
 
-// Errors specific to the mixnet. This often comes from the nym-sdk crate, but not necessarily.
 #[derive(thiserror::Error, Debug)]
 pub enum SetupMixTunnelError {
     #[error("{0}")]
@@ -131,8 +127,8 @@ pub enum SetupMixTunnelError {
     #[error("{0}")]
     RoutingError(#[from] talpid_routing::Error),
 
-    #[error("{0}")]
-    DNSError(#[from] talpid_core::dns::Error),
+    #[error("failed to set DNS: {0}")]
+    FailedToSetDns(#[source] talpid_core::dns::Error),
 
     #[cfg(target_os = "android")]
     #[error("vpn errored on stop")]

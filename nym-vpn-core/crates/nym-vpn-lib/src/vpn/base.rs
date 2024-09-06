@@ -314,13 +314,13 @@ async fn init_firewall_dns(
 
         tracing::debug!("Starting firewall");
         let firewall = tokio::task::spawn_blocking(move || {
-            Firewall::new().map_err(|err| Error::FirewallError(err.to_string()))
+            Firewall::new().map_err(|err| Error::FailedToInitFirewall(err.to_string()))
         })
         .await
-        .map_err(|err| Error::FirewallError(err.to_string()))??;
+        .map_err(|err| Error::FailedToInitFirewall(err.to_string()))??;
 
         tracing::debug!("Starting dns monitor");
-        let dns_monitor = DnsMonitor::new(weak_command_tx)?;
+        let dns_monitor = DnsMonitor::new(weak_command_tx).map_err(Error::FailedToInitDns)?;
 
         Ok((firewall, dns_monitor))
     }
@@ -331,16 +331,17 @@ async fn init_firewall_dns(
 
         tracing::debug!("Starting firewall");
         let firewall = tokio::task::spawn_blocking(move || {
-            Firewall::new(fwmark).map_err(|err| Error::FirewallError(err.to_string()))
+            Firewall::new(fwmark).map_err(|err| Error::FailedToInitFirewall(err.to_string()))
         })
         .await
-        .map_err(|err| Error::FirewallError(err.to_string()))??;
+        .map_err(|err| Error::FailedToInitFirewall(err.to_string()))??;
 
         tracing::debug!("Starting dns monitor");
         let dns_monitor = DnsMonitor::new(
             tokio::runtime::Handle::current(),
             route_manager_handle.clone(),
-        )?;
+        )
+        .map_err(Error::FailedToInitDns)?;
 
         Ok((firewall, dns_monitor))
     }
@@ -349,13 +350,13 @@ async fn init_firewall_dns(
     {
         tracing::debug!("Starting firewall");
         let firewall = tokio::task::spawn_blocking(move || {
-            Firewall::new().map_err(|err| Error::FirewallError(err.to_string()))
+            Firewall::new().map_err(|err| Error::FailedToInitFirewall(err.to_string()))
         })
         .await
-        .map_err(|err| Error::FirewallError(err.to_string()))??;
+        .map_err(|err| Error::FailedToInitFirewall(err.to_string()))??;
 
         tracing::debug!("Starting dns monitor");
-        let dns_monitor = DnsMonitor::new()?;
+        let dns_monitor = DnsMonitor::new().map_err(Error::FailedToInitDns)?;
 
         Ok((firewall, dns_monitor))
     }

@@ -248,11 +248,46 @@ impl From<ConnectionFailedError> for ProtoError {
                 ref public_key,
                 ref reason,
             } => ProtoError {
-                kind: ErrorType::FailedToBringInterfaceUpWgEventTunnelClose as i32,
+                kind: ErrorType::BringInterfaceUp as i32,
                 message: err.to_string(),
                 details: hashmap! {
                     "gateway_id".to_string() => gateway_id.to_string(),
                     "public_key".to_string() => public_key.clone(),
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::FailedToInitFirewall { ref reason } => ProtoError {
+                kind: ErrorType::FirewallInit as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::FailedToResetFirewallPolicy { ref reason } => ProtoError {
+                kind: ErrorType::FirewallResetPolicy as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::FailedToInitDns { ref reason } => ProtoError {
+                kind: ErrorType::DnsInit as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::FailedToSetDns { ref reason } => ProtoError {
+                kind: ErrorType::DnsSet as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::FailedToFindTheDefaultInterface { ref reason } => ProtoError {
+                kind: ErrorType::FindDefaultInterface as i32,
+                message: err.to_string(),
+                details: hashmap! {
                     "reason".to_string() => reason.to_string(),
                 },
             },
