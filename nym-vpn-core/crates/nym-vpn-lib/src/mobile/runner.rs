@@ -23,7 +23,7 @@ use crate::{
     mobile::two_hop_tunnel,
     platform::{uniffi_set_listener_status, VPNConfig},
     uniffi_custom_impls::{StatusEvent, TunStatus},
-    GatewayDirectoryError, GenericNymVpnConfig, MixnetClientConfig,
+    GenericNymVpnConfig, MixnetClientConfig, SelectGatewaysError,
 };
 
 #[derive(thiserror::Error, Debug)]
@@ -35,7 +35,7 @@ pub enum Error {
     StartMixnetClient(#[source] Box<dyn std::error::Error + Send>),
 
     #[error("gateway directory error: {0}")]
-    GatewayDirectory(#[from] GatewayDirectoryError),
+    SelectGatewaysError(#[from] SelectGatewaysError),
 
     #[error("failed to lookup gateway ip: {gateway_id}: {source}")]
     FailedToLookupGatewayIp {
@@ -106,7 +106,7 @@ impl WgTunnelRunner {
         let task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS).named("nym_vpn_lib");
         let gateway_directory_client =
             GatewayClient::new(generic_config.gateway_config.clone(), user_agent.clone()).map_err(
-                |err| GatewayDirectoryError::FailedtoSetupGatewayDirectoryClient {
+                |err| SelectGatewaysError::FailedtoSetupGatewayDirectoryClient {
                     config: Box::new(generic_config.gateway_config.clone()),
                     source: err,
                 },
@@ -215,7 +215,7 @@ impl WgTunnelRunner {
             .gateway_directory_client
             .lookup_all_gateways()
             .await
-            .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
+            .map_err(|source| SelectGatewaysError::FailedToLookupGateways { source })?;
         let mut entry_gateways = all_gateways.clone();
         let exit_gateways = all_gateways;
 
@@ -223,7 +223,7 @@ impl WgTunnelRunner {
             .generic_config
             .exit_point
             .lookup_gateway(&exit_gateways)
-            .map_err(|source| GatewayDirectoryError::FailedToSelectExitGateway { source })?;
+            .map_err(|source| SelectGatewaysError::FailedToSelectExitGateway { source })?;
 
         // Exclude the exit gateway from the list of entry gateways for privacy reasons
         entry_gateways.remove_gateway(&exit_gateway);
@@ -240,11 +240,11 @@ impl WgTunnelRunner {
                 } if Some(requested_location.as_str())
                     == exit_gateway.two_letter_iso_country_code() =>
                 {
-                    GatewayDirectoryError::SameEntryAndExitGatewayFromCountry {
+                    SelectGatewaysError::SameEntryAndExitGatewayFromCountry {
                         requested_location: requested_location.to_string(),
                     }
                 }
-                _ => GatewayDirectoryError::FailedToSelectEntryGateway { source },
+                _ => SelectGatewaysError::FailedToSelectEntryGateway { source },
             })?;
 
         tracing::info!("Found {} entry gateways", entry_gateways.len());
