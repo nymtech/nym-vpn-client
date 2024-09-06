@@ -16,6 +16,9 @@ pub enum Error {
     #[error("firewall error: {0}")]
     FirewallError(String),
 
+    #[error("failed to reset firewall policy: {reason}")]
+    FailedToResetFirewallPolicy { reason: String },
+
     #[error("{0}")]
     CanceledError(#[from] futures::channel::oneshot::Canceled),
 

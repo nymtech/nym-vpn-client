@@ -47,8 +47,8 @@ use crate::{
         NymVpnStatus, StatusEvent, TunStatus, UserAgent,
     },
     vpn::{
-        spawn_nym_vpn, MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError,
-        NymVpnExitStatusMessage, NymVpnHandle, SpecificVpn,
+        spawn_nym_vpn, MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitStatusMessage, NymVpnHandle,
+        SpecificVpn,
     },
 };
 
