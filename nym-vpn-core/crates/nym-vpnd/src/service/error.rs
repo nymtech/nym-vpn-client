@@ -269,10 +269,10 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
             nym_vpn_lib::Error::RoutingError(_)
             | nym_vpn_lib::Error::DNSError(_)
             | nym_vpn_lib::Error::FirewallError(_)
+            | nym_vpn_lib::Error::FailedToResetFirewallPolicy { .. }
             | nym_vpn_lib::Error::CanceledError(_)
             | nym_vpn_lib::Error::FailedToSendWireguardShutdown
             | nym_vpn_lib::Error::DefaultInterfaceError
-            | nym_vpn_lib::Error::StopError
             | nym_vpn_lib::Error::NymVpnExitWithError(_)
             | nym_vpn_lib::Error::NymVpnExitUnexpectedChannelClose => {
                 ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))

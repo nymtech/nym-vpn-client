@@ -293,7 +293,7 @@ impl SpecificVpn {
                 .await??;
                 firewall.reset_policy().map_err(|err| {
                     error!("Failed to reset firewall policy: {err}");
-                    NymVpnExitError::FailedToResetFirewallPolicy {
+                    Error::FailedToResetFirewallPolicy {
                         reason: err.to_string(),
                     }
                 })?;
@@ -301,16 +301,6 @@ impl SpecificVpn {
             }
         }
     }
-}
-
-// We are mapping all errors to a generic error since I ran into issues with the error type
-// on a platform (mac) that I wasn't able to troubleshoot on in time. Basically it seemed like
-// not all error cases satisfied the Sync marker trait.
-#[derive(thiserror::Error, Debug)]
-pub enum NymVpnExitError {
-    // TODO: capture the concrete error type once we have time to investigate on Mac
-    #[error("failed to reset firewall policy: {reason}")]
-    FailedToResetFirewallPolicy { reason: String },
 }
 
 async fn init_firewall_dns(

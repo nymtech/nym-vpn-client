@@ -16,6 +16,9 @@ pub enum Error {
     #[error("firewall error: {0}")]
     FirewallError(String),
 
+    #[error("failed to reset firewall policy: {reason}")]
+    FailedToResetFirewallPolicy { reason: String },
+
     #[error("{0}")]
     CanceledError(#[from] futures::channel::oneshot::Canceled),
 
@@ -40,14 +43,15 @@ pub enum Error {
     #[error("failed to setup mixnet client: {0}")]
     FailedToSetupMixnetClient(#[source] MixnetError),
 
-    #[error("vpn errored on stop")]
-    StopError,
-
     #[error("{0}")]
     NymVpnExitWithError(#[source] Box<dyn std::error::Error + Send + Sync>),
 
     #[error("vpn exit listener channel unexpected close when listening")]
     NymVpnExitUnexpectedChannelClose,
+
+    #[cfg(any(target_os = "ios", target_os = "android"))]
+    #[error("vpn errored on stop")]
+    StopError,
 
     #[cfg(any(target_os = "ios", target_os = "android"))]
     #[error("failed setting up local TUN network device: {0}")]
