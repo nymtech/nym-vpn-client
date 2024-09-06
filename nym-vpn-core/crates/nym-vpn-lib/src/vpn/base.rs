@@ -320,7 +320,7 @@ async fn init_firewall_dns(
         .map_err(|err| Error::FailedToInitFirewall(err.to_string()))??;
 
         tracing::debug!("Starting dns monitor");
-        let dns_monitor = DnsMonitor::new(weak_command_tx)?;
+        let dns_monitor = DnsMonitor::new(weak_command_tx).map_err(Error::FailedToInitDns)?;
 
         Ok((firewall, dns_monitor))
     }
@@ -340,7 +340,8 @@ async fn init_firewall_dns(
         let dns_monitor = DnsMonitor::new(
             tokio::runtime::Handle::current(),
             route_manager_handle.clone(),
-        )?;
+        )
+        .map_err(Error::FailedToInitDns)?;
 
         Ok((firewall, dns_monitor))
     }
@@ -355,7 +356,7 @@ async fn init_firewall_dns(
         .map_err(|err| Error::FailedToInitFirewall(err.to_string()))??;
 
         tracing::debug!("Starting dns monitor");
-        let dns_monitor = DnsMonitor::new()?;
+        let dns_monitor = DnsMonitor::new().map_err(Error::FailedToInitDns)?;
 
         Ok((firewall, dns_monitor))
     }

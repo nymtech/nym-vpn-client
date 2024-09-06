@@ -159,6 +159,21 @@ pub enum ConnectionFailedError {
         public_key: String,
         reason: String,
     },
+
+    #[error("failed to init firewall: {reason}")]
+    FailedToInitFirewall { reason: String },
+
+    #[error("failed to reset firewall policy: {reason}")]
+    FailedToResetFirewallPolicy { reason: String },
+
+    #[error("DNS error: {reason}")]
+    FailedToInitDns { reason: String },
+
+    #[error("failed to set DNS: {reason}")]
+    FailedToSetDns { reason: String },
+
+    #[error("failed to find the default interface: {reason}")]
+    FailedToFindTheDefaultInterface { reason: String },
 }
 
 impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
@@ -221,11 +236,15 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                         reason: inner.to_string(),
                     }
                 }
+                nym_vpn_lib::SetupMixTunnelError::FailedToSetDns(inner) => {
+                    ConnectionFailedError::FailedToSetDns {
+                        reason: inner.to_string(),
+                    }
+                }
                 nym_vpn_lib::SetupMixTunnelError::TunError(_)
                 | nym_vpn_lib::SetupMixTunnelError::ConnectionMonitorError(_)
                 | nym_vpn_lib::SetupMixTunnelError::FailedToAddIpv6Route(_)
-                | nym_vpn_lib::SetupMixTunnelError::RoutingError(_)
-                | nym_vpn_lib::SetupMixTunnelError::DNSError(_) => {
+                | nym_vpn_lib::SetupMixTunnelError::RoutingError(_) => {
                     ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
                 }
             },
@@ -266,12 +285,26 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                 }
             },
             nym_vpn_lib::Error::GatewayDirectoryError(e) => e.into(),
+            nym_vpn_lib::Error::FailedToInitFirewall(inner) => {
+                ConnectionFailedError::FailedToInitFirewall {
+                    reason: inner.to_string(),
+                }
+            }
+            nym_vpn_lib::Error::FailedToInitDns(inner) => ConnectionFailedError::FailedToInitDns {
+                reason: inner.to_string(),
+            },
+            nym_vpn_lib::Error::FailedToResetFirewallPolicy { reason } => {
+                ConnectionFailedError::FailedToResetFirewallPolicy {
+                    reason: reason.to_string(),
+                }
+            }
+            nym_vpn_lib::Error::DefaultInterfaceError(inner) => {
+                ConnectionFailedError::FailedToFindTheDefaultInterface {
+                    reason: inner.to_string(),
+                }
+            }
             nym_vpn_lib::Error::RoutingError(_)
-            | nym_vpn_lib::Error::DNSError(_)
-            | nym_vpn_lib::Error::FailedToInitFirewall(_)
-            | nym_vpn_lib::Error::FailedToResetFirewallPolicy { .. }
             | nym_vpn_lib::Error::FailedToSendWireguardShutdown
-            | nym_vpn_lib::Error::DefaultInterfaceError
             | nym_vpn_lib::Error::NymVpnExitWithError(_)
             | nym_vpn_lib::Error::NymVpnExitUnexpectedChannelClose => {
                 ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
