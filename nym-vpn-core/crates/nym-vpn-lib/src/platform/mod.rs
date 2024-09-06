@@ -161,7 +161,10 @@ async fn wait_for_shutdown(
         VpnServiceStatusListener::new().start(vpn_status_rx).await;
     });
 
-    match vpn_exit_rx.await? {
+    match vpn_exit_rx
+        .await
+        .map_err(|_| crate::Error::NymVpnExitUnexpectedChannelClose)?
+    {
         NymVpnExitStatusMessage::Failed(error) => {
             debug!("received exit status message for vpn");
             RUNNING.store(false, Ordering::Relaxed);

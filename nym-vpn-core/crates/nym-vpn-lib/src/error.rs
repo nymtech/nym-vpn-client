@@ -19,9 +19,6 @@ pub enum Error {
     #[error("failed to reset firewall policy: {reason}")]
     FailedToResetFirewallPolicy { reason: String },
 
-    #[error("{0}")]
-    CanceledError(#[from] futures::channel::oneshot::Canceled),
-
     #[error("failed to send shutdown message to wireguard tunnel")]
     FailedToSendWireguardShutdown,
 
