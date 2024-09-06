@@ -256,12 +256,12 @@ impl From<ConnectionFailedError> for ProtoError {
                     "reason".to_string() => reason.to_string(),
                 },
             },
-            ConnectionFailedError::FailedToInitFirewall { ref reason } =>  ProtoError {
-                    kind: ErrorType::FirewallInit as i32,
-                    message: err.to_string(),
-                    details: hashmap! {
-                        "reason".to_string() => reason.to_string(),
-                    },
+            ConnectionFailedError::FailedToInitFirewall { ref reason } => ProtoError {
+                kind: ErrorType::FirewallInit as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.to_string(),
+                },
             },
             ConnectionFailedError::FailedToResetFirewallPolicy { ref reason } => ProtoError {
                 kind: ErrorType::FirewallResetPolicy as i32,
@@ -291,7 +291,6 @@ impl From<ConnectionFailedError> for ProtoError {
                     "reason".to_string() => reason.to_string(),
                 },
             },
-
         }
     }
 }
