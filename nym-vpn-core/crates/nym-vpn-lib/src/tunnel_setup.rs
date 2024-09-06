@@ -20,7 +20,7 @@ use tokio::time::timeout;
 
 use crate::{
     bandwidth_controller::BandwidthController,
-    error::{Error, GatewayDirectoryError, Result, SetupMixTunnelError, SetupWgTunnelError},
+    error::{Error, SelectGatewaysError, Result, SetupMixTunnelError, SetupWgTunnelError},
     mixnet, platform,
     routing::{self, catch_all_ipv4, catch_all_ipv6, replace_default_prefixes},
     uniffi_custom_impls::{StatusEvent, TunStatus},
@@ -332,7 +332,7 @@ pub(crate) async fn setup_tunnel(
     // handle wireguard registration
     let gateway_directory_client = GatewayClient::new(nym_vpn.gateway_config(), user_agent.clone())
         .map_err(
-            |err| GatewayDirectoryError::FailedtoSetupGatewayDirectoryClient {
+            |err| SelectGatewaysError::FailedtoSetupGatewayDirectoryClient {
                 config: Box::new(nym_vpn.gateway_config()),
                 source: err,
             },
@@ -429,7 +429,7 @@ struct SelectedGateways {
 async fn select_gateways(
     gateway_directory_client: &GatewayClient,
     nym_vpn: &SpecificVpn,
-) -> std::result::Result<SelectedGateways, GatewayDirectoryError> {
+) -> std::result::Result<SelectedGateways, SelectGatewaysError> {
     // The set of exit gateways is smaller than the set of entry gateways, so we start by selecting
     // the exit gateway and then filter out the exit gateway from the set of entry gateways.
 
@@ -438,25 +438,25 @@ async fn select_gateways(
         let exit_gateways = gateway_directory_client
             .lookup_exit_gateways()
             .await
-            .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
+            .map_err(|source| SelectGatewaysError::FailedToLookupGateways { source })?;
         // Setup the gateway that we will use as the entry point
         let entry_gateways = gateway_directory_client
             .lookup_entry_gateways()
             .await
-            .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
+            .map_err(|source| SelectGatewaysError::FailedToLookupGateways { source })?;
         (entry_gateways, exit_gateways)
     } else {
         let all_gateways = gateway_directory_client
             .lookup_all_gateways()
             .await
-            .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
+            .map_err(|source| SelectGatewaysError::FailedToLookupGateways { source })?;
         (all_gateways.clone(), all_gateways)
     };
 
     let exit_gateway = nym_vpn
         .exit_point()
         .lookup_gateway(&exit_gateways)
-        .map_err(|source| GatewayDirectoryError::FailedToSelectExitGateway { source })?;
+        .map_err(|source| SelectGatewaysError::FailedToSelectExitGateway { source })?;
 
     // Exclude the exit gateway from the list of entry gateways for privacy reasons
     entry_gateways.remove_gateway(&exit_gateway);
@@ -472,11 +472,11 @@ async fn select_gateways(
             } if Some(requested_location.as_str())
                 == exit_gateway.two_letter_iso_country_code() =>
             {
-                GatewayDirectoryError::SameEntryAndExitGatewayFromCountry {
+                SelectGatewaysError::SameEntryAndExitGatewayFromCountry {
                     requested_location: requested_location.to_string(),
                 }
             }
-            _ => GatewayDirectoryError::FailedToSelectEntryGateway { source },
+            _ => SelectGatewaysError::FailedToSelectEntryGateway { source },
         })?;
 
     info!("Found {} entry gateways", entry_gateways.len());

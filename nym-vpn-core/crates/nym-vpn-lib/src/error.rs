@@ -23,7 +23,7 @@ pub enum Error {
     FailedToSendWireguardShutdown,
 
     #[error(transparent)]
-    GatewayDirectoryError(#[from] GatewayDirectoryError),
+    SelectGatewaysError(#[from] SelectGatewaysError),
 
     #[error("could not obtain the default interface")]
     DefaultInterfaceError,
@@ -67,7 +67,7 @@ pub enum Error {
 }
 
 #[derive(thiserror::Error, Debug)]
-pub enum GatewayDirectoryError {
+pub enum SelectGatewaysError {
     #[error("failed to setup gateway directory client: {source}")]
     FailedtoSetupGatewayDirectoryClient {
         config: Box<nym_gateway_directory::Config>,

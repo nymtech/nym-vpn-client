@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use nym_vpn_lib::{
     credentials::ImportCredentialError as VpnLibImportCredentialError,
     gateway_directory::Error as DirError, wg_gateway_client::Error as WgGatewayClientError,
-    CredentialStorageError, GatewayDirectoryError, NodeIdentity, NymIdError,
+    CredentialStorageError, SelectGatewaysError, NodeIdentity, NymIdError,
 };
 use time::OffsetDateTime;
 use tracing::error;
@@ -265,7 +265,7 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                     ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
                 }
             },
-            nym_vpn_lib::Error::GatewayDirectoryError(e) => e.into(),
+            nym_vpn_lib::Error::SelectGatewaysError(e) => e.into(),
             nym_vpn_lib::Error::RoutingError(_)
             | nym_vpn_lib::Error::DNSError(_)
             | nym_vpn_lib::Error::FirewallError(_)
@@ -285,26 +285,26 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
     }
 }
 
-impl From<&nym_vpn_lib::GatewayDirectoryError> for ConnectionFailedError {
-    fn from(e: &nym_vpn_lib::GatewayDirectoryError) -> Self {
+impl From<&nym_vpn_lib::SelectGatewaysError> for ConnectionFailedError {
+    fn from(e: &nym_vpn_lib::SelectGatewaysError) -> Self {
         match e {
-            GatewayDirectoryError::FailedtoSetupGatewayDirectoryClient { config, source } => {
+            SelectGatewaysError::FailedtoSetupGatewayDirectoryClient { config, source } => {
                 ConnectionFailedError::FailedToSetupGatewayDirectoryClient {
                     config: Box::new(*config.clone()),
                     reason: source.to_string(),
                 }
             }
-            GatewayDirectoryError::FailedToLookupGateways { source } => {
+            SelectGatewaysError::FailedToLookupGateways { source } => {
                 ConnectionFailedError::FailedToLookupGateways {
                     reason: source.to_string(),
                 }
             }
-            GatewayDirectoryError::FailedToLookupGatewayIdentity { source } => {
+            SelectGatewaysError::FailedToLookupGatewayIdentity { source } => {
                 ConnectionFailedError::FailedToLookupGatewayIdentity {
                     reason: source.to_string(),
                 }
             }
-            GatewayDirectoryError::FailedToSelectEntryGateway {
+            SelectGatewaysError::FailedToSelectEntryGateway {
                 source:
                     DirError::NoMatchingEntryGatewayForLocation {
                         requested_location,
@@ -314,17 +314,17 @@ impl From<&nym_vpn_lib::GatewayDirectoryError> for ConnectionFailedError {
                 requested_location: requested_location.clone(),
                 available_countries: available_countries.clone(),
             },
-            GatewayDirectoryError::FailedToSelectEntryGateway {
+            SelectGatewaysError::FailedToSelectEntryGateway {
                 source: DirError::NoMatchingGateway { requested_identity },
             } => ConnectionFailedError::FailedToSelectEntryGatewayIdNotFound {
                 requested_id: requested_identity.clone(),
             },
-            GatewayDirectoryError::FailedToSelectEntryGateway { source } => {
+            SelectGatewaysError::FailedToSelectEntryGateway { source } => {
                 ConnectionFailedError::FailedToSelectEntryGateway {
                     reason: source.to_string(),
                 }
             }
-            GatewayDirectoryError::FailedToSelectExitGateway {
+            SelectGatewaysError::FailedToSelectExitGateway {
                 source:
                     DirError::NoMatchingExitGatewayForLocation {
                         requested_location,
@@ -334,17 +334,17 @@ impl From<&nym_vpn_lib::GatewayDirectoryError> for ConnectionFailedError {
                 requested_location: requested_location.clone(),
                 available_countries: available_countries.clone(),
             },
-            GatewayDirectoryError::FailedToSelectExitGateway { source } => {
+            SelectGatewaysError::FailedToSelectExitGateway { source } => {
                 ConnectionFailedError::FailedToSelectExitGateway {
                     reason: source.to_string(),
                 }
             }
-            GatewayDirectoryError::FailedToLookupRouterAddress { source } => {
+            SelectGatewaysError::FailedToLookupRouterAddress { source } => {
                 ConnectionFailedError::FailedToLookupRouterAddress {
                     reason: source.to_string(),
                 }
             }
-            GatewayDirectoryError::SameEntryAndExitGatewayFromCountry { requested_location } => {
+            SelectGatewaysError::SameEntryAndExitGatewayFromCountry { requested_location } => {
                 ConnectionFailedError::SameEntryAndExitGatewayFromCountry {
                     requested_location: requested_location.clone(),
                 }
