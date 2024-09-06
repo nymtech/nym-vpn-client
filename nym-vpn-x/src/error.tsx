@@ -13,7 +13,7 @@ function getErrorText(key: StartupErrorKey) {
     case 'StartupOpenDb':
       return 'Failed to open the application database.';
     case 'StartupOpenDbLocked':
-      return 'It is likely that the application is already running. You cannot run multiple instances of the application at the same time.';
+      return 'The application is likely already running. Multiple instances cannot be opened simultaneously.';
     default:
       return 'Unknown error';
   }
@@ -26,40 +26,35 @@ function getErrorText(key: StartupErrorKey) {
     <React.StrictMode>
       <div
         className={clsx([
-          'flex flex-col items-center justify-between h-full p-8 gap-10 cursor-default select-none',
+          'flex flex-col items-center justify-between h-full gap-4',
+          'cursor-default select-none p-6 px-6',
         ])}
       >
-        <div className="flex flex-col mt-auto">
-          <div className="flex flex-row items-center gap-2">
-            <MsIcon
-              className="text-2xl font-bold text-cement-feet"
-              icon={'error'}
-            />
-            <h1 className="text-xl font-semibold tracking-wider leading-loose">
-              Oops!
-            </h1>
-          </div>
-          <p className="font-semibold">
-            Something went wrong while loading the app.
-          </p>
-          {error && <p className="font-semibold">{getErrorText(error?.key)}</p>}
-          {error?.details && (
-            <div className="overflow-auto overscroll-auto max-h-32 mt-4">
-              <p
-                id="error-content"
-                className="italic text-mercury-mist cursor-auto select-text"
-              >
-                {error.details}
-              </p>
-            </div>
-          )}
+        <div className="flex flex-col justify-center items-center gap-2">
+          <MsIcon className="text-2xl font-bold" icon={'error'} />
+          <h1 className="text-xl font-bold tracking-wider leading-loose">
+            Problem detected
+          </h1>
         </div>
+        <p className="text-center">
+          {error
+            ? getErrorText(error?.key)
+            : 'Something went wrong while loading the app. Please check the logs.'}
+        </p>
+        {error?.details && (
+          <div className="max-h-32 overflow-auto select-text text-balance break-words">
+            <p className="text-teaberry text-center cursor-auto">
+              {error.details}
+            </p>
+          </div>
+        )}
+
         <Button
-          color="cornflower"
+          color="melon"
           onClick={() => {
             exit(0);
           }}
-          className="max-w-48 mt-auto"
+          className="mt-auto"
         >
           Close
         </Button>

@@ -60,9 +60,9 @@ pub fn show_window() -> Result<()> {
             .maximizable(false)
             .visible(true)
             .focused(true)
-            .inner_size(600.0, 560.0)
-            .min_inner_size(200.0, 340.0)
-            .max_inner_size(800.0, 1000.0)
+            .inner_size(480.0, 510.0)
+            .min_inner_size(200.0, 240.0)
+            .max_inner_size(900.0, 920.0)
             .center()
             .title(WIN_TITLE)
             .build()?;
