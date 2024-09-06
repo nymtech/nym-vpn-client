@@ -268,7 +268,7 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
             nym_vpn_lib::Error::GatewayDirectoryError(e) => e.into(),
             nym_vpn_lib::Error::RoutingError(_)
             | nym_vpn_lib::Error::DNSError(_)
-            | nym_vpn_lib::Error::FirewallError(_)
+            | nym_vpn_lib::Error::FailedToInitFirewall(_)
             | nym_vpn_lib::Error::FailedToResetFirewallPolicy { .. }
             | nym_vpn_lib::Error::FailedToSendWireguardShutdown
             | nym_vpn_lib::Error::DefaultInterfaceError

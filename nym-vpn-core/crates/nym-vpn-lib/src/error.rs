@@ -13,8 +13,8 @@ pub enum Error {
     #[error("{0}")]
     DNSError(#[from] talpid_core::dns::Error),
 
-    #[error("firewall error: {0}")]
-    FirewallError(String),
+    #[error("failed to init firewall: {0}")]
+    FailedToInitFirewall(String),
 
     #[error("failed to reset firewall policy: {reason}")]
     FailedToResetFirewallPolicy { reason: String },
