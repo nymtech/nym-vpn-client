@@ -21,8 +21,6 @@ use tap::TapFallible;
 use tracing::{debug, error, info, trace};
 use tun2::AbstractDevice;
 
-#[cfg(target_os = "android")]
-use crate::Error;
 use crate::{
     error::Result,
     vpn::{MixnetVpn, NymVpn},
