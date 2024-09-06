@@ -165,9 +165,6 @@ async fn wait_for_shutdown(
         NymVpnExitStatusMessage::Failed(error) => {
             debug!("received exit status message for vpn");
             RUNNING.store(false, Ordering::Relaxed);
-            let error = error
-                .downcast_ref::<NymVpnExitError>()
-                .ok_or(crate::Error::StopError)?;
             uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failed {
                 error: error.to_string(),
             }));
