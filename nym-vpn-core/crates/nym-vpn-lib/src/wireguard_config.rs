@@ -35,7 +35,7 @@ impl WireguardConfig {
         generic_options: &GenericTunnelOptions,
         gateway_data: GatewayData,
         gateway_id: NodeIdentity,
-    ) -> Result<Self> {
+    ) -> std::result::Result<Self, SetupWgTunnelError> {
         Ok(Self {
             talpid_config: talpid_wireguard::config::Config::new(
                 tunnel,
@@ -56,7 +56,7 @@ impl WireguardConfig {
         wg_gateway: Option<IpAddr>,
         gateway_id: NodeIdentity,
         mtu: u16,
-    ) -> Result<Self> {
+    ) -> std::result::Result<Self, SetupWgTunnelError> {
         let tunnel = TunnelConfig {
             private_key: PrivateKey::from(keypair.private_key().to_bytes()),
             addresses: vec![gateway_data.private_ipv4.into()],
@@ -68,7 +68,7 @@ impl WireguardConfig {
             psk: None,
         }];
         let default_ipv4_gateway = Ipv4Addr::from_str(&gateway_data.private_ipv4.to_string())
-            .map_err(Error::FailedToParseEntryGatewayIpv4)?;
+            .map_err(SetupWgTunnelError::FailedToParseEntryGatewayIpv4)?;
         let (ipv4_gateway, ipv6_gateway) = match wg_gateway {
             Some(IpAddr::V4(ipv4_gateway)) => (ipv4_gateway, None),
             Some(IpAddr::V6(ipv6_gateway)) => (default_ipv4_gateway, Some(ipv6_gateway)),
@@ -138,7 +138,7 @@ pub(crate) async fn init_wireguard_config(
     wg_gateway_client: &mut WgGatewayClient,
     wg_gateway: Option<IpAddr>,
     mtu: u16,
-) -> Result<(WireguardConfig, IpAddr)> {
+) -> std::result::Result<(WireguardConfig, IpAddr), SetupWgTunnelError> {
     // First we need to register with the gateway to setup keys and IP assignment
     tracing::info!("Registering with wireguard gateway");
     let gateway_id = wg_gateway_client
@@ -148,7 +148,7 @@ pub(crate) async fn init_wireguard_config(
     let gateway_host = gateway_client
         .lookup_gateway_ip(&gateway_id)
         .await
-        .map_err(|source| GatewayDirectoryError::FailedToLookupGatewayIp { gateway_id, source })?;
+        .map_err(|source| SetupWgTunnelError::FailedToLookupGatewayIp { gateway_id, source })?;
     let wg_gateway_data = wg_gateway_client.register_wireguard(gateway_host).await?;
     tracing::debug!("Received wireguard gateway data: {wg_gateway_data:?}");
 

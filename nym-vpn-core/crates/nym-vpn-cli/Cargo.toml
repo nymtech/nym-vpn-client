@@ -25,6 +25,12 @@ tracing.workspace = true
 nym-vpn-lib = { path = "../nym-vpn-lib" }
 nym-bin-common.workspace = true
 
+[target.'cfg(unix)'.dependencies]
+nix = { workspace = true, features = ["user"] }
+
+[target.'cfg(windows)'.dependencies]
+is_elevated = "0.1.2"
+
 [build-dependencies]
 vergen = { workspace = true, default-features = false, features = [
     "build",

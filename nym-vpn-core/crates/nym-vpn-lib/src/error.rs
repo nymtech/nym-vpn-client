@@ -1,9 +1,9 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::PathBuf;
-
 use nym_gateway_directory::NodeIdentity;
+
+use crate::{tunnel_setup::WaitInterfaceUpError, MixnetError};
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -13,14 +13,8 @@ pub enum Error {
     #[error("{0}")]
     DNSError(#[from] talpid_core::dns::Error),
 
-    // We are not returning the underlying talpid_core::firewall:Error error as I ran into issues
-    // with the Send marker trait not being implemented when building on Mac. Possibly we can fix
-    // this in the future.
-    #[error("{0}")]
+    #[error("firewall error: {0}")]
     FirewallError(String),
-
-    #[error("{0}")]
-    JoinError(#[from] tokio::task::JoinError),
 
     #[error("{0}")]
     CanceledError(#[from] futures::channel::oneshot::Canceled),
@@ -28,23 +22,23 @@ pub enum Error {
     #[error("failed to send shutdown message to wireguard tunnel")]
     FailedToSendWireguardShutdown,
 
-    #[error("failed setting up local TUN network device: {0}")]
-    TunError(#[from] tun2::Error),
-
-    #[error("{0}")]
-    WireguardConfigError(#[from] talpid_wireguard::config::Error),
-
     #[error(transparent)]
-    WgGatewayClientError(#[from] nym_wg_gateway_client::Error),
+    GatewayDirectoryError(#[from] GatewayDirectoryError),
 
     #[error("could not obtain the default interface")]
     DefaultInterfaceError,
 
     #[error(transparent)]
-    Mixnet(#[from] MixnetError),
+    SetupWgTunnelError(#[from] SetupWgTunnelError),
+
+    #[error(transparent)]
+    SetupMixTunnelError(#[from] SetupMixTunnelError),
 
     #[error("timeout after waiting {0}s for mixnet client to start")]
-    StartMixnetTimeout(u64),
+    StartMixnetClientTimeout(u64),
+
+    #[error("failed to setup mixnet client: {0}")]
+    FailedToSetupMixnetClient(#[source] MixnetError),
 
     #[error("vpn errored on stop")]
     StopError,
@@ -55,6 +49,10 @@ pub enum Error {
     #[error("vpn exit listener channel unexpected close when listening")]
     NymVpnExitUnexpectedChannelClose,
 
+    #[cfg(any(target_os = "ios", target_os = "android"))]
+    #[error("failed setting up local TUN network device: {0}")]
+    TunError(#[from] tun2::Error),
+
     #[cfg(any(unix, target_os = "android"))]
     #[error("{0}")]
     TunProvider(#[from] talpid_tunnel::tun_provider::Error),
@@ -62,81 +60,6 @@ pub enum Error {
     #[cfg(target_os = "ios")]
     #[error("{0}")]
     UniffiError(#[from] crate::platform::error::FFIError),
-
-    #[error("failed to serialize message")]
-    FailedToSerializeMessage {
-        #[from]
-        source: bincode::Error,
-    },
-
-    #[error("gateway does not contain a two character country ISO")]
-    CountryCodeNotFound,
-
-    #[error(transparent)]
-    GatewayDirectoryError(#[from] GatewayDirectoryError),
-
-    #[error("failed decode base58 credential: {source}")]
-    FailedToDecodeBase58Credential {
-        #[from]
-        source: bs58::decode::Error,
-    },
-
-    #[error("{0}")]
-    ConnectionMonitorError(#[from] nym_connection_monitor::Error),
-
-    #[cfg(unix)]
-    #[error("sudo/root privileges required, try rerunning with sudo: `sudo -E {binary_name} run`")]
-    RootPrivilegesRequired { binary_name: String },
-
-    #[cfg(windows)]
-    #[error("administrator privileges required, try rerunning with administrator privileges: `runas /user:Administrator {binary_name} run`")]
-    AdminPrivilegesRequired { binary_name: String },
-
-    #[error("invalid credential: {reason}")]
-    InvalidCredential {
-        reason: crate::credentials::CheckImportedCredentialError,
-        path: PathBuf,
-        gateway_id: String,
-    },
-
-    #[error(transparent)]
-    ImportCredentialError(#[from] crate::credentials::ImportCredentialError),
-
-    #[error("failed to connect to ip packet router: {0}")]
-    FailedToConnectToIpPacketRouter(#[source] nym_ip_packet_client::Error),
-
-    #[error("received bad event for wireguard tunnel creation")]
-    FailedToBringInterfaceUpWgEventTunnelClose {
-        gateway_id: Box<NodeIdentity>,
-        public_key: String,
-    },
-
-    #[error("wireguard authentication failed")]
-    FailedToBringInterfaceUpWgAuthFailed {
-        gateway_id: Box<NodeIdentity>,
-        public_key: String,
-    },
-
-    #[error("wireguard tunnel is down")]
-    FailedToBringInterfaceUpWgDown {
-        gateway_id: Box<NodeIdentity>,
-        public_key: String,
-    },
-
-    #[error("wiregurad authentication is not possible due to one of the gateways not running the authenticator process: {0}")]
-    AuthenticationNotPossible(String),
-
-    #[error("failed to find authenticator address")]
-    AuthenticatorAddressNotFound,
-
-    #[error("not enough bandwidth to setup tunnel")]
-    NotEnoughBandwidthToSetupTunnel,
-
-    #[error("failed to add ipv6 route: {0}")]
-    FailedToAddIpv6Route(#[source] std::io::Error),
-
-    #[error("failed to parse entry gateway ipv4: {0}")]
-    FailedToParseEntryGatewayIpv4(#[source] std::net::AddrParseError),
 
     #[cfg(target_os = "ios")]
     #[error("failed to run wireguard tunnel")]
@@ -176,35 +99,84 @@ pub enum GatewayDirectoryError {
         source: nym_gateway_directory::Error,
     },
 
-    #[error("failed to lookup gateway ip: {gateway_id}: {source}")]
-    FailedToLookupGatewayIp {
-        gateway_id: String,
-        source: nym_gateway_directory::Error,
-    },
-
     #[error("unable to use same entry and exit gateway for location: {requested_location}")]
     SameEntryAndExitGatewayFromCountry { requested_location: String },
 }
 
 // Errors specific to the mixnet. This often comes from the nym-sdk crate, but not necessarily.
 #[derive(thiserror::Error, Debug)]
-pub enum MixnetError {
-    #[error("failed to setup mixnet storage paths: {0}")]
-    FailedToSetupMixnetStoragePaths(#[source] nym_sdk::Error),
+pub enum SetupMixTunnelError {
+    #[error("{0}")]
+    ConnectionMonitorError(#[from] nym_connection_monitor::Error),
 
-    #[error("failed to create mixnet client with default storage: {0}")]
-    FailedToCreateMixnetClientWithDefaultStorage(#[source] nym_sdk::Error),
+    #[error("failed to connect to ip packet router: {0}")]
+    FailedToConnectToIpPacketRouter(#[source] nym_ip_packet_client::Error),
 
-    #[error("failed to build mixnet client: {0}")]
-    FailedToBuildMixnetClient(#[source] nym_sdk::Error),
-
-    #[error("failed to connect to mixnet: {0}")]
-    FailedToConnectToMixnet(#[source] nym_sdk::Error),
-
-    #[error("failed to connect to mixnet entry gateway {gateway_id}: {source}")]
-    EntryGateway {
+    #[error("failed to lookup gateway ip: {gateway_id}: {source}")]
+    FailedToLookupGatewayIp {
         gateway_id: String,
-        source: Box<dyn std::error::Error + Send + Sync>,
+        source: nym_gateway_directory::Error,
+    },
+
+    #[error("failed setting up local TUN network device: {0}")]
+    TunError(#[from] tun2::Error),
+
+    #[error("failed to add ipv6 route: {0}")]
+    FailedToAddIpv6Route(#[source] std::io::Error),
+
+    #[error("{0}")]
+    RoutingError(#[from] talpid_routing::Error),
+
+    #[error("{0}")]
+    DNSError(#[from] talpid_core::dns::Error),
+
+    #[cfg(target_os = "android")]
+    #[error("vpn errored on stop")]
+    StopError,
+
+    #[cfg(target_os = "ios")]
+    #[error("{0}")]
+    UniffiError(#[from] crate::platform::error::FFIError),
+
+    #[cfg(target_os = "ios")]
+    #[error("failed to locate tun fd")]
+    CannotLocateTunFd,
+}
+
+#[derive(thiserror::Error, Debug)]
+pub enum SetupWgTunnelError {
+    #[error("wiregurad authentication is not possible due to one of the gateways not running the authenticator process: {0}")]
+    AuthenticationNotPossible(String),
+
+    #[error("failed to find authenticator address")]
+    AuthenticatorAddressNotFound,
+
+    #[error("not enough bandwidth to setup tunnel")]
+    NotEnoughBandwidthToSetupTunnel,
+
+    #[error("failed to lookup gateway ip: {gateway_id}: {source}")]
+    FailedToLookupGatewayIp {
+        gateway_id: String,
+        source: nym_gateway_directory::Error,
+    },
+
+    #[error(transparent)]
+    WgGatewayClientError(#[from] nym_wg_gateway_client::Error),
+
+    #[error("{0}")]
+    RoutingError(#[from] talpid_routing::Error),
+
+    #[error("{0}")]
+    WireguardConfigError(#[from] talpid_wireguard::config::Error),
+
+    #[error("failed to parse entry gateway ipv4: {0}")]
+    FailedToParseEntryGatewayIpv4(#[source] std::net::AddrParseError),
+
+    #[error("failed to bring up interface: {gateway_id}: {public_key}: {source}")]
+    FailedToBringInterfaceUp {
+        gateway_id: Box<NodeIdentity>,
+        public_key: String,
+        source: WaitInterfaceUpError,
     },
 }
 

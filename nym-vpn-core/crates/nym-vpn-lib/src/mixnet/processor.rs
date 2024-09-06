@@ -1,6 +1,8 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::result::Result;
+
 use bytes::Bytes;
 use futures::{channel::mpsc, StreamExt};
 use nym_connection_monitor::{ConnectionMonitorTask, ConnectionStatusEvent};
@@ -11,8 +13,7 @@ use tokio::task::JoinHandle;
 use tracing::{debug, error, info, trace};
 use tun2::{AbstractDevice, AsyncDevice};
 
-use super::SharedMixnetClient;
-use crate::error::Result;
+use super::{MixnetError, SharedMixnetClient};
 
 #[derive(Debug)]
 pub(crate) struct Config {
@@ -36,7 +37,7 @@ impl MessageCreator {
         Self { recipient }
     }
 
-    fn create_input_message(&self, bundled_packets: Bytes) -> Result<InputMessage> {
+    fn create_input_message(&self, bundled_packets: Bytes) -> Result<InputMessage, MixnetError> {
         let packet = IpPacketRequest::new_data_request(bundled_packets).to_bytes()?;
 
         let lane = TransmissionLane::General;
@@ -77,7 +78,7 @@ impl MixnetProcessor {
         self,
         mut task_client_mix_processor: TaskClient,
         task_client_mix_listener: TaskClient,
-    ) -> Result<AsyncDevice> {
+    ) -> Result<AsyncDevice, MixnetError> {
         info!(
             "Opened mixnet processor on tun device {}",
             self.device.as_ref().tun_name().unwrap(),
@@ -178,7 +179,7 @@ pub(crate) async fn start_processor(
     task_manager: &TaskManager,
     our_ips: nym_ip_packet_requests::IpPair,
     connection_monitor: &ConnectionMonitorTask,
-) -> JoinHandle<Result<AsyncDevice>> {
+) -> JoinHandle<Result<AsyncDevice, MixnetError>> {
     info!("Creating mixnet processor");
     let processor = MixnetProcessor::new(
         dev,

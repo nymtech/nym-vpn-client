@@ -243,37 +243,17 @@ impl From<ConnectionFailedError> for ProtoError {
                 message: err.to_string(),
                 details: hashmap! {},
             },
-            ConnectionFailedError::FailedToBringInterfaceUpWgAuthFailed {
+            ConnectionFailedError::FailedToBringInterfaceUp {
                 ref gateway_id,
                 ref public_key,
-            } => ProtoError {
-                kind: ErrorType::FailedToBringInterfaceUpWgAuthFailed as i32,
-                message: err.to_string(),
-                details: hashmap! {
-                    "gateway_id".to_string() => gateway_id.to_string(),
-                    "public_key".to_string() => public_key.clone(),
-                },
-            },
-            ConnectionFailedError::FailedToBringInterfaceUpWgDown {
-                ref gateway_id,
-                ref public_key,
-            } => ProtoError {
-                kind: ErrorType::FailedToBringInterfaceUpWgDown as i32,
-                message: err.to_string(),
-                details: hashmap! {
-                    "gateway_id".to_string() => gateway_id.to_string(),
-                    "public_key".to_string() => public_key.clone(),
-                },
-            },
-            ConnectionFailedError::FailedToBringInterfaceUpWgEventTunnelClose {
-                ref gateway_id,
-                ref public_key,
+                ref reason,
             } => ProtoError {
                 kind: ErrorType::FailedToBringInterfaceUpWgEventTunnelClose as i32,
                 message: err.to_string(),
                 details: hashmap! {
                     "gateway_id".to_string() => gateway_id.to_string(),
                     "public_key".to_string() => public_key.clone(),
+                    "reason".to_string() => reason.to_string(),
                 },
             },
         }

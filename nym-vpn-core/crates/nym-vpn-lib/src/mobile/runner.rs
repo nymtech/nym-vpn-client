@@ -37,6 +37,12 @@ pub enum Error {
     #[error("gateway directory error: {0}")]
     GatewayDirectory(#[from] GatewayDirectoryError),
 
+    #[error("failed to lookup gateway ip: {gateway_id}: {source}")]
+    FailedToLookupGatewayIp {
+        gateway_id: String,
+        source: nym_gateway_directory::Error,
+    },
+
     #[error("authenticator address not found")]
     AuthenticatorAddressNotFound,
 
@@ -393,10 +399,7 @@ impl WgTunnelRunner {
             .gateway_directory_client
             .lookup_gateway_ip(&gateway_id)
             .await
-            .map_err(|source| GatewayDirectoryError::FailedToLookupGatewayIp {
-                gateway_id,
-                source,
-            })?;
+            .map_err(|source| Error::FailedToLookupGatewayIp { gateway_id, source })?;
         let wg_gateway_data = wg_gateway_client.register_wireguard(gateway_host).await?;
         tracing::debug!("Received wireguard gateway data: {wg_gateway_data:?}");
         Ok((wg_gateway_data, gateway_host))
