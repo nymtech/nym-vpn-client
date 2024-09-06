@@ -23,11 +23,10 @@ use tun2::AbstractDevice;
 
 #[cfg(target_os = "android")]
 use crate::Error;
-#[cfg(not(any(target_os = "ios", target_os = "android")))]
-use crate::SetupMixTunnelError;
 use crate::{
     error::Result,
     vpn::{MixnetVpn, NymVpn},
+    SetupMixTunnelError,
 };
 
 const DEFAULT_TUN_MTU: u16 = 1500;
@@ -178,7 +177,7 @@ pub(crate) async fn setup_mixnet_routing(
     >,
     _dns_monitor: &mut DnsMonitor,
     dns: Option<IpAddr>,
-) -> Result<tun2::AsyncDevice> {
+) -> std::result::Result<tun2::AsyncDevice, SetupMixTunnelError> {
     let mut tun_config = tun2::Configuration::default();
 
     #[cfg(target_os = "ios")]
@@ -212,10 +211,10 @@ pub(crate) async fn setup_mixnet_routing(
     {
         let fd = android_tun_provider
             .configure_tunnel(tunnel_settings.into_tunnel_network_settings())
-            .map_err(|_| Error::StopError)?;
+            .map_err(|_| SetupMixTunnelError::StopError)?;
         // if tun interface config fails on android, we return -1
         if fd.is_negative() {
-            return Err(Error::StopError);
+            return Err(SetupMixTunnelError::StopError);
         }
         tun_config.raw_fd(fd);
     };
@@ -248,12 +247,6 @@ pub(crate) async fn setup_mixnet_routing(
 pub async fn setup_mixnet_routing(
     route_manager: &mut RouteManager,
     config: RoutingConfig,
-    #[cfg(target_os = "android")] android_tun_provider: std::sync::Arc<
-        dyn crate::platform::android::AndroidTunProvider,
-    >,
-    #[cfg(target_os = "ios")] ios_tun_provider: std::sync::Arc<
-        dyn crate::platform::swift::OSTunProvider,
-    >,
     dns_monitor: &mut DnsMonitor,
     dns: Option<IpAddr>,
 ) -> std::result::Result<tun2::AsyncDevice, SetupMixTunnelError> {

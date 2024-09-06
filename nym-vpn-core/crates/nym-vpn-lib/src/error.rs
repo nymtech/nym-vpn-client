@@ -129,6 +129,18 @@ pub enum SetupMixTunnelError {
 
     #[error("{0}")]
     DNSError(#[from] talpid_core::dns::Error),
+
+    #[cfg(target_os = "android")]
+    #[error("vpn errored on stop")]
+    StopError,
+
+    #[cfg(target_os = "ios")]
+    #[error("{0}")]
+    UniffiError(#[from] crate::platform::error::FFIError),
+
+    #[cfg(target_os = "ios")]
+    #[error("failed to locate tun fd")]
+    CannotLocateTunFd,
 }
 
 #[derive(thiserror::Error, Debug)]
