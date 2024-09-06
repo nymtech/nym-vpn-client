@@ -3,11 +3,12 @@ import Constants
 import Logging
 
 public final class ConfigurationManager {
-    public static let shared = ConfigurationManager()
-
     private let logger = Logger(label: "Configuration Manager")
 
     private var currentEnv: Env = .mainnet
+
+    public static let shared = ConfigurationManager()
+    public let isTestFlight = Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
 
     public var nymVpnApiURL: URL? {
         getenv("NYM_VPN_API").flatMap { URL(string: String(cString: $0)) }
@@ -17,10 +18,16 @@ public final class ConfigurationManager {
         getenv("NYM_API").flatMap { URL(string: String(cString: $0)) }
     }
 
-    public init() {}
+    private init() {}
 
     public func setup() throws {
         try setEnvVariables(for: currentEnv)
+    }
+
+    public func updateEnv(to env: Env) {
+        guard isTestFlight, env != currentEnv else { return }
+        currentEnv = env
+        try? setup()
     }
 }
 

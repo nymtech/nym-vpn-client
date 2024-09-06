@@ -30,7 +30,21 @@ private extension SettingsList {
                 .foregroundStyle(NymColor.settingsVersion)
                 .textStyle(.Body.Medium.regular)
                 .padding(EdgeInsets(top: 0, leading: 16, bottom: 16, trailing: 0))
+                .contextMenu {
+                    environmentsMenu()
+                }
             Spacer()
+        }
+    }
+
+    @ViewBuilder
+    func environmentsMenu() -> some View {
+        if viewModel.isTestFlight {
+            ForEach(viewModel.envs, id: \.self) { env in
+                Button(env.rawValue) {
+                    viewModel.changeEnvironment(to: env)
+                }
+            }
         }
     }
 }
