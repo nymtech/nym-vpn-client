@@ -35,7 +35,7 @@ pub enum Error {
     StartMixnetClient(#[source] Box<dyn std::error::Error + Send>),
 
     #[error("gateway directory error: {0}")]
-    SelectGatewaysError(#[from] SelectGatewaysError),
+    SelectGateways(#[from] SelectGatewaysError),
 
     #[error("failed to lookup gateway ip: {gateway_id}: {source}")]
     FailedToLookupGatewayIp {
