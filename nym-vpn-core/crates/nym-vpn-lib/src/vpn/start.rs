@@ -114,9 +114,9 @@ async fn run_nym_vpn(
             error!("Nym VPN returned error: {err}");
             debug!("{err:?}");
             crate::platform::uniffi_set_listener_status(StatusEvent::Exit(
-                ExitStatus::GeneralFailure {
-                    message: err.to_string(),
-                },
+                ExitStatus::TunnelFailure {
+                    message: err.to_string()
+                }
             ));
             vpn_exit_tx
                 .send(NymVpnExitStatusMessage::Failed(err))

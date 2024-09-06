@@ -31,7 +31,7 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 use url::Url;
 
-use self::error::FFIError;
+use self::error::VpnError;
 #[cfg(target_os = "ios")]
 use crate::mobile::ios::tun_provider::OSTunProvider;
 #[cfg(any(target_os = "ios", target_os = "android"))]
@@ -69,11 +69,13 @@ enum ShutdownHandle {
     },
 }
 
-async fn set_shutdown_handle(shutdown_handle: ShutdownHandle) -> Result<(), FFIError> {
+async fn set_shutdown_handle(shutdown_handle: ShutdownHandle) -> Result<(), VpnError> {
     let mut guard: tokio::sync::MutexGuard<'_, Option<ShutdownHandle>> =
         VPN_SHUTDOWN_HANDLE.lock().await;
     if guard.is_some() {
-        return Err(FFIError::VpnNotStopped);
+        return Err(VpnError::InvalidState {
+            inner: "Vpn not stopped".to_string(),
+        });
     }
     *guard = Some(shutdown_handle);
 
@@ -93,13 +95,16 @@ pub(crate) fn uniffi_set_listener_status(status: StatusEvent) {
     }
 }
 
-async fn stop_and_reset_shutdown_handle() -> Result<(), FFIError> {
+async fn stop_and_reset_shutdown_handle() -> Result<(), VpnError> {
     tracing::debug!("Getting shutdown handle");
-    let shutdown_handle = VPN_SHUTDOWN_HANDLE
-        .lock()
-        .await
-        .take()
-        .ok_or(FFIError::VpnNotStarted)?;
+    let shutdown_handle =
+        VPN_SHUTDOWN_HANDLE
+            .lock()
+            .await
+            .take()
+            .ok_or(VpnError::InvalidState {
+                inner: "Vpn not started".to_string(),
+            })?;
 
     match shutdown_handle {
         ShutdownHandle::Notify(sh) => {
@@ -131,7 +136,7 @@ async fn reset_shutdown_handle() {
     debug!("VPN shutdown handle reset");
 }
 
-async fn _async_run_vpn(vpn: SpecificVpn) -> Result<(Arc<Notify>, NymVpnHandle), FFIError> {
+async fn _async_run_vpn(vpn: SpecificVpn) -> Result<(Arc<Notify>, NymVpnHandle), VpnError> {
     debug!("creating new stop handle");
     let stop_handle = Arc::new(Notify::new());
     debug!("new stop handle created");
@@ -194,7 +199,7 @@ pub struct VPNConfig {
     pub tun_status_listener: Option<Arc<dyn TunnelStatusListener>>,
 }
 
-fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
+fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, VpnError> {
     let mut vpn = NymVpn::new_mixnet_vpn(
         config.entry_gateway.into(),
         config.exit_router.into(),
@@ -214,9 +219,11 @@ fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
+pub fn startVPN(config: VPNConfig) -> Result<(), VpnError> {
     if RUNNING.fetch_or(true, Ordering::Relaxed) {
-        uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::VpnAlreadyRunning));
+        uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::InvalidStateError {
+            message: "Vpn already running".to_string(),
+        }));
         return Ok(());
     }
 
@@ -232,11 +239,12 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
             tracing::debug!("Starting VPN tunnel...");
 
             let shutdown_token = CancellationToken::new();
-            let _cloned_shutdown_token = shutdown_token.clone();
+            let clone_shutdown_token = shutdown_token.clone();
+            let clone_shutdown_token2 = shutdown_token.clone();
 
             let join_handle = tokio::spawn(async move {
                 #[cfg(any(target_os = "android", target_os = "ios"))]
-                match WgTunnelRunner::new(config, _cloned_shutdown_token) {
+                match WgTunnelRunner::new(config, clone_shutdown_token) {
                     Ok(tun_runner) => match tun_runner.start().await {
                         Ok(_) => {
                             tracing::debug!("Tunnel runner exited.");
@@ -264,6 +272,7 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
             };
             if let Err(e) = set_shutdown_handle(shutdown_handle).await {
                 tracing::error!("Failed to set shutdown handle: {}", e);
+                clone_shutdown_token2.cancel();
                 uniffi_set_listener_status(StatusEvent::Exit(e.into()));
             }
         });
@@ -306,41 +315,49 @@ pub fn initLogger() {
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn importCredential(credential: String, path: String) -> Result<Option<SystemTime>, FFIError> {
+pub fn importCredential(credential: String, path: String) -> Result<Option<SystemTime>, VpnError> {
     RUNTIME.block_on(import_credential_from_string(&credential, &path))
 }
 
 async fn import_credential_from_string(
     credential: &str,
     path: &str,
-) -> Result<Option<SystemTime>, FFIError> {
+) -> Result<Option<SystemTime>, VpnError> {
     let path_result = PathBuf::from_str(path);
     let path_buf = match path_result {
         Ok(p) => p,
-        Err(_) => return Err(FFIError::InvalidPath),
+        Err(_) => {
+            return Err(VpnError::Credential {
+                inner: "Invalid path".to_string(),
+            })
+        }
     };
     match import_credential_base58(credential, path_buf).await {
         Ok(time) => match time {
             None => Ok(None),
             Some(t) => Ok(Some(SystemTime::from(t))),
         },
-        Err(_) => Err(FFIError::InvalidCredential),
+        Err(_) => Err(VpnError::Credential {
+            inner: "Invalid credential".to_string(),
+        }),
     }
 }
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn checkCredential(credential: String) -> Result<Option<SystemTime>, FFIError> {
+pub fn checkCredential(credential: String) -> Result<Option<SystemTime>, VpnError> {
     RUNTIME.block_on(check_credential_string(&credential))
 }
 
-async fn check_credential_string(credential: &str) -> Result<Option<SystemTime>, FFIError> {
+async fn check_credential_string(credential: &str) -> Result<Option<SystemTime>, VpnError> {
     check_credential_base58(credential)
         .await
-        .map_err(|_| FFIError::InvalidCredential)
+        .map_err(|e| VpnError::Credential {
+            inner: e.to_string(),
+        })
 }
 
-async fn run_vpn(vpn: SpecificVpn) -> Result<(), FFIError> {
+async fn run_vpn(vpn: SpecificVpn) -> Result<(), VpnError> {
     match _async_run_vpn(vpn).await {
         Err(err) => {
             debug!("Stopping and resetting shutdown handle");
@@ -369,9 +386,11 @@ async fn run_vpn(vpn: SpecificVpn) -> Result<(), FFIError> {
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn stopVPN() -> Result<(), FFIError> {
+pub fn stopVPN() -> Result<(), VpnError> {
     if !RUNNING.fetch_and(false, Ordering::Relaxed) {
-        return Err(FFIError::VpnNotStarted);
+        return Err(VpnError::InvalidState {
+            inner: "Vpn not started".to_string(),
+        });
     }
     uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Disconnecting));
     debug!("Stopping VPN");
@@ -381,7 +400,7 @@ pub fn stopVPN() -> Result<(), FFIError> {
     Ok(())
 }
 
-async fn stop_vpn() -> Result<(), FFIError> {
+async fn stop_vpn() -> Result<(), VpnError> {
     debug!("Resetting shutdown handle");
     stop_and_reset_shutdown_handle().await
 }
@@ -393,7 +412,7 @@ pub fn getGatewayCountries(
     nym_vpn_api_url: Option<Url>,
     exit_only: bool,
     user_agent: Option<UserAgent>,
-) -> Result<Vec<Location>, FFIError> {
+) -> Result<Vec<Location>, VpnError> {
     RUNTIME.block_on(get_gateway_countries(
         api_url,
         nym_vpn_api_url,
@@ -407,7 +426,7 @@ async fn get_gateway_countries(
     nym_vpn_api_url: Option<Url>,
     exit_only: bool,
     user_agent: Option<UserAgent>,
-) -> Result<Vec<Location>, FFIError> {
+) -> Result<Vec<Location>, VpnError> {
     let user_agent = user_agent
         .map(nym_sdk::UserAgent::from)
         .unwrap_or_else(|| nym_bin_common::bin_info_local_vergen!().into());
@@ -431,7 +450,7 @@ pub fn getLowLatencyEntryCountry(
     api_url: Url,
     vpn_api_url: Option<Url>,
     harbour_master_url: Option<Url>,
-) -> Result<Location, FFIError> {
+) -> Result<Location, VpnError> {
     RUNTIME.block_on(get_low_latency_entry_country(
         api_url,
         vpn_api_url,
@@ -447,7 +466,7 @@ pub fn getLowLatencyEntryCountryUserAgent(
     vpn_api_url: Option<Url>,
     harbour_master_url: Option<Url>,
     user_agent: UserAgent,
-) -> Result<Location, FFIError> {
+) -> Result<Location, VpnError> {
     RUNTIME.block_on(get_low_latency_entry_country(
         api_url,
         vpn_api_url,
@@ -461,7 +480,7 @@ async fn get_low_latency_entry_country(
     vpn_api_url: Option<Url>,
     _harbour_master_url: Option<Url>,
     user_agent: Option<UserAgent>,
-) -> Result<Location, FFIError> {
+) -> Result<Location, VpnError> {
     let config = nym_gateway_directory::Config {
         api_url,
         nym_vpn_api_url: vpn_api_url,

@@ -59,7 +59,7 @@ pub enum Error {
 
     #[cfg(target_os = "ios")]
     #[error("{0}")]
-    UniffiError(#[from] crate::platform::error::FFIError),
+    UniffiError(#[from] crate::platform::error::VpnError),
 
     #[error("failed to serialize message")]
     FailedToSerializeMessage {

@@ -22,7 +22,6 @@ import nym_vpn_lib.AndroidTunProvider
 import nym_vpn_lib.BandwidthStatus
 import nym_vpn_lib.ConnectionStatus
 import nym_vpn_lib.ExitStatus
-import nym_vpn_lib.FfiException
 import nym_vpn_lib.Ipv4Route
 import nym_vpn_lib.Ipv6Route
 import nym_vpn_lib.NymVpnStatus
@@ -30,6 +29,7 @@ import nym_vpn_lib.TunStatus
 import nym_vpn_lib.TunnelNetworkSettings
 import nym_vpn_lib.TunnelStatusListener
 import nym_vpn_lib.VpnConfig
+import nym_vpn_lib.VpnException
 import nym_vpn_lib.checkCredential
 import nym_vpn_lib.initLogger
 import nym_vpn_lib.startVpn
@@ -68,7 +68,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			withContext(ioDispatcher) {
 				checkCredential(credential)
 			}
-		} catch (e: FfiException) {
+		} catch (e: VpnException) {
 			Timber.e(e)
 			throw InvalidCredentialException("Credential invalid or expired")
 		}
@@ -77,7 +77,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	override suspend fun importCredential(credential: String): Instant? {
 		return try {
 			nym_vpn_lib.importCredential(credential, storagePath)
-		} catch (e: FfiException) {
+		} catch (e: VpnException) {
 			Timber.e(e)
 			throw InvalidCredentialException("Credential invalid or expired")
 		}
@@ -205,29 +205,13 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	override fun onExitStatusChange(status: ExitStatus) {
 		when (status) {
 			ExitStatus.Stopped -> Timber.d("Tunnel stopped")
-// 			else -> {
-// 				// need to stop the vpn service even though vpn never started from lib perspective
-// 				context.stopService(Intent(context, VpnService::class.java))
-// 				tunnel?.onBackendMessage(BackendMessage.Error.StartFailed)
-// 				// Need to set state down because this likely never happened in lib
-// 				tunnel?.onStateChange(Tunnel.State.Down)
-// 			}
-			is ExitStatus.AuthenticationFailed -> TODO()
-			ExitStatus.AuthenticatorAddressNotFound -> TODO()
-			ExitStatus.CannotLocateTunFd -> TODO()
-			ExitStatus.FailedToResetFirewallPolicy -> TODO()
+			is ExitStatus.BandwidthError -> TODO()
+			is ExitStatus.CredentialError -> TODO()
 			is ExitStatus.GatewayDirectoryError -> TODO()
-			is ExitStatus.GeneralFailure -> TODO()
-			ExitStatus.InvalidCredential -> TODO()
-			ExitStatus.NotEnoughBandwidth -> TODO()
-			is ExitStatus.StartMixnetClient -> TODO()
-			ExitStatus.StartMixnetTimeout -> TODO()
-			is ExitStatus.TunnelSetupFailure -> TODO()
-			ExitStatus.VpnAlreadyRunning -> TODO()
+			is ExitStatus.InvalidStateError -> TODO()
+			is ExitStatus.TunnelFailure -> TODO()
+			is ExitStatus.TunnelSetupError -> TODO()
 			is ExitStatus.VpnApiClientError -> TODO()
-			ExitStatus.VpnNotStarted -> TODO()
-			ExitStatus.VpnStopFailure -> TODO()
-			is ExitStatus.WgGatewayClientFailure -> TODO()
 		}
 	}
 

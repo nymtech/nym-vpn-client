@@ -18,7 +18,7 @@ use url::Url;
 
 use crate::vpn::NymVpnExitError;
 use crate::{
-    platform::error::FFIError,
+    platform::error::VpnError,
     vpn::{MixnetConnectionInfo, MixnetExitConnectionInfo, NymVpnStatusMessage},
     NodeIdentity, Recipient, UniffiCustomTypeConverter,
 };
@@ -83,7 +83,9 @@ impl UniffiCustomTypeConverter for PrivateKey {
     fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
         Ok(PrivateKey::from(
             *PublicKey::from_base64(&val)
-                .map_err(|_| FFIError::InvalidValueUniffi)?
+                .map_err(|e| VpnError::Configuration {
+                    inner: "Invalid public key".to_string(),
+                })?
                 .as_bytes(),
         ))
     }
@@ -97,7 +99,11 @@ impl UniffiCustomTypeConverter for PublicKey {
     type Builtin = String;
 
     fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(PublicKey::from_base64(&val).map_err(|_| FFIError::InvalidValueUniffi)?)
+        Ok(
+            PublicKey::from_base64(&val).map_err(|e| VpnError::Configuration {
+                inner: "Invalid public key".to_string(),
+            })?,
+        )
     }
 
     fn from_custom(obj: Self) -> Self::Builtin {
@@ -122,7 +128,11 @@ impl UniffiCustomTypeConverter for IpPair {
     type Builtin = String;
 
     fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(serde_json::from_str(&val).map_err(|_| FFIError::InvalidValueUniffi)?)
+        Ok(
+            serde_json::from_str(&val).map_err(|e| VpnError::Configuration {
+                inner: e.to_string(),
+            })?,
+        )
     }
 
     fn from_custom(obj: Self) -> Self::Builtin {
@@ -364,45 +374,42 @@ pub enum StatusEvent {
 #[derive(uniffi::Enum, Clone, PartialEq)]
 #[allow(clippy::large_enum_variant)]
 pub enum ExitStatus {
-    Stopped,
-    GeneralFailure { message: String },
-    CannotLocateTunFd,
-    InvalidCredential,
-    VpnStopFailure,
-    VpnNotStarted,
-    VpnAlreadyRunning,
-    FailedToResetFirewallPolicy,
+    InvalidStateError { message: String },
     GatewayDirectoryError { message: String },
     VpnApiClientError { message: String },
-    StartMixnetTimeout,
-    StartMixnetClient { message: String },
-    AuthenticatorAddressNotFound,
-    NotEnoughBandwidth,
-    AuthenticationFailed { message: String },
-    WgGatewayClientFailure { message: String },
-    TunnelSetupFailure { message: String },
+    CredentialError { message: String },
+    BandwidthError { message: String },
+    TunnelSetupError { message: String },
+    TunnelFailure { message: String },
+    Stopped,
 }
 
 #[cfg(any(target_os = "ios", target_os = "android"))]
 impl From<MobileError> for ExitStatus {
     fn from(value: MobileError) -> Self {
         match value {
-            MobileError::StartMixnetTimeout => ExitStatus::StartMixnetTimeout,
-            MobileError::StartMixnetClient(e) => ExitStatus::StartMixnetClient {
+            MobileError::StartMixnetTimeout => ExitStatus::TunnelSetupError {
+                message: value.to_string(),
+            },
+            MobileError::StartMixnetClient(e) => ExitStatus::TunnelSetupError {
                 message: e.to_string(),
             },
-            MobileError::GatewayDirectory(e) => ExitStatus::StartMixnetClient {
+            MobileError::GatewayDirectory(e) => ExitStatus::GatewayDirectoryError {
                 message: e.to_string(),
             },
-            MobileError::AuthenticatorAddressNotFound => ExitStatus::AuthenticatorAddressNotFound,
-            MobileError::NotEnoughBandwidth => ExitStatus::NotEnoughBandwidth,
+            MobileError::AuthenticatorAddressNotFound => ExitStatus::TunnelSetupError {
+                message: value.to_string(),
+            },
+            MobileError::NotEnoughBandwidth => ExitStatus::BandwidthError {
+                message: value.to_string(),
+            },
             MobileError::AuthenticationNotPossible(message) => {
-                ExitStatus::AuthenticationFailed { message }
+                ExitStatus::TunnelSetupError { message }
             }
-            MobileError::WgGatewayClientFailure(e) => ExitStatus::WgGatewayClientFailure {
+            MobileError::WgGatewayClientFailure(e) => ExitStatus::TunnelSetupError {
                 message: e.to_string(),
             },
-            MobileError::Tunnel(e) => ExitStatus::TunnelSetupFailure {
+            MobileError::Tunnel(e) => ExitStatus::TunnelFailure {
                 message: e.to_string(),
             },
         }
@@ -412,29 +419,25 @@ impl From<MobileError> for ExitStatus {
 impl From<&NymVpnExitError> for ExitStatus {
     fn from(value: &NymVpnExitError) -> Self {
         match value {
-            NymVpnExitError::FailedToResetFirewallPolicy { .. } => {
-                ExitStatus::FailedToResetFirewallPolicy
+            NymVpnExitError::FailedToResetFirewallPolicy { reason } => {
+                ExitStatus::TunnelSetupError {
+                    message: reason.clone(),
+                }
             }
         }
     }
 }
-impl From<FFIError> for ExitStatus {
-    fn from(value: FFIError) -> Self {
+impl From<VpnError> for ExitStatus {
+    fn from(value: VpnError) -> Self {
         match value {
-            FFIError::InvalidCredential => ExitStatus::InvalidCredential,
-            FFIError::VpnNotStopped => ExitStatus::VpnStopFailure,
-            FFIError::VpnNotStarted => ExitStatus::VpnNotStarted,
-            FFIError::VpnAlreadyRunning => ExitStatus::VpnAlreadyRunning,
-            FFIError::LibError { inner } => ExitStatus::GeneralFailure { message: inner },
-            FFIError::GatewayDirectoryError { inner } => {
+            VpnError::Configuration { inner } => ExitStatus::TunnelSetupError { message: inner },
+            VpnError::TunnelShutdown { inner } => ExitStatus::TunnelFailure { message: inner },
+            VpnError::ApiClient { inner } => ExitStatus::TunnelSetupError { message: inner },
+            VpnError::GatewayDirectory { inner } => {
                 ExitStatus::GatewayDirectoryError { message: inner }
             }
-            FFIError::VpnApiClientError { inner } => {
-                ExitStatus::VpnApiClientError { message: inner }
-            }
-            _ => ExitStatus::GeneralFailure {
-                message: "General uniffi failure".to_string(),
-            },
+            VpnError::InvalidState { inner } => ExitStatus::InvalidStateError { message: inner },
+            VpnError::Credential { inner } => ExitStatus::CredentialError { message: inner },
         }
     }
 }

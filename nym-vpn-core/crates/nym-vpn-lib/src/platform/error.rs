@@ -2,54 +2,45 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #[derive(thiserror::Error, uniffi::Error, Debug)]
-pub enum FFIError {
-    #[error("Invalid value passed in uniffi")]
-    InvalidValueUniffi,
-
-    #[error("Invalid credential passed in uniffi")]
-    InvalidCredential,
+pub enum VpnError {
+    #[error("{inner}")]
+    Configuration { inner: String },
 
     #[error("{inner}")]
-    VpnApiClientError { inner: String },
+    TunnelShutdown { inner: String },
 
     #[error("{inner}")]
-    LibError { inner: String },
+    ApiClient { inner: String },
 
     #[error("{inner}")]
-    GatewayDirectoryError { inner: String },
+    GatewayDirectory { inner: String },
 
-    #[error("Invalid path")]
-    InvalidPath,
+    #[error("{inner}")]
+    InvalidState { inner: String },
 
-    #[error("VPN wasn't stopped properly")]
-    VpnNotStopped,
-
-    #[error("VPN wasn't started properly")]
-    VpnNotStarted,
-
-    #[error("VPN already running")]
-    VpnAlreadyRunning,
+    #[error("{inner}")]
+    Credential { inner: String },
 }
 
-impl From<crate::Error> for FFIError {
+impl From<crate::Error> for VpnError {
     fn from(value: crate::Error) -> Self {
-        Self::LibError {
+        Self::TunnelShutdown {
             inner: value.to_string(),
         }
     }
 }
 
-impl From<nym_gateway_directory::Error> for FFIError {
+impl From<nym_gateway_directory::Error> for VpnError {
     fn from(value: nym_gateway_directory::Error) -> Self {
-        Self::GatewayDirectoryError {
+        Self::GatewayDirectory {
             inner: value.to_string(),
         }
     }
 }
 
-impl From<nym_vpn_api_client::VpnApiClientError> for FFIError {
+impl From<nym_vpn_api_client::VpnApiClientError> for VpnError {
     fn from(value: nym_vpn_api_client::VpnApiClientError) -> Self {
-        Self::VpnApiClientError {
+        Self::ApiClient {
             inner: value.to_string(),
         }
     }
