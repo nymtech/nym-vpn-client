@@ -7,11 +7,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -32,7 +32,7 @@ fun SelectionItemButton(
 		modifier =
 		Modifier.clip(RoundedCornerShape(8.dp))
 			.clickable(
-				indication = if (ripple) rememberRipple() else null,
+				indication = if (ripple) ripple() else null,
 				interactionSource = remember { MutableInteractionSource() },
 				onClick = { onClick() },
 			)

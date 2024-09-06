@@ -24,11 +24,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -251,7 +251,7 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 							.defaultMinSize(minHeight = 1.dp, minWidth = 1.dp)
 							.clickable(
 								remember { MutableInteractionSource() },
-								indication = if (selectionEnabled) rememberRipple() else null,
+								indication = if (selectionEnabled) ripple() else null,
 							) {
 								if (selectionEnabled) {
 									navController.go(
@@ -282,7 +282,7 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 						.fillMaxWidth()
 						.height(60.dp.scaledHeight())
 						.defaultMinSize(minHeight = 1.dp, minWidth = 1.dp)
-						.clickable(remember { MutableInteractionSource() }, indication = if (selectionEnabled) rememberRipple() else null) {
+						.clickable(remember { MutableInteractionSource() }, indication = if (selectionEnabled) ripple() else null) {
 							if (selectionEnabled) {
 								navController.go(
 									Destination.ExitLocation.route,
