@@ -313,7 +313,7 @@ async fn setup_mix_tunnel(
     }))
 }
 
-pub async fn setup_tunnel(
+pub(crate) async fn setup_tunnel(
     nym_vpn: &mut SpecificVpn,
     task_manager: &mut TaskManager,
     route_manager: &mut RouteManager,
