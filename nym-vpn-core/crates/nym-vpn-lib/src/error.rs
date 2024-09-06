@@ -49,6 +49,10 @@ pub enum Error {
     #[error("vpn exit listener channel unexpected close when listening")]
     NymVpnExitUnexpectedChannelClose,
 
+    #[cfg(any(target_os = "ios", target_os = "android"))]
+    #[error("failed setting up local TUN network device: {0}")]
+    TunError(#[from] tun2::Error),
+
     #[cfg(any(unix, target_os = "android"))]
     #[error("{0}")]
     TunProvider(#[from] talpid_tunnel::tun_provider::Error),
