@@ -10,14 +10,7 @@ jobs:
     runs-on: arc-ubuntu-22.04-dind
     steps:
       - uses: actions/checkout@v4
-      # - run: |
-      #     sudo apt-get update && sudo apt-get install -y curl gcc git
       - uses: dtolnay/rust-toolchain@stable
-      # The cargo-deny action uses docker which we currently can't run on
-      # arc-ubuntu-22.04, so we have to build manually for now
-      # - run: cargo install --locked cargo-deny
-      # - run: |
-      #     cd nym-vpn-core
       - uses: EmbarkStudios/cargo-deny-action@v1
         with:
           manifest-path: ./nym-vpn-core/Cargo.toml
