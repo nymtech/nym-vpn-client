@@ -60,7 +60,7 @@ jobs:
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
-          cargo build --${{ env.CARGO_TARGET }} --target x86_64-apple-darwin
+          cargo build --${{ env.CARGO_TARGET }} --target x86_64-apple-darwin --workspace --exclude nym-gateway-probe
           ls -la target/x86_64-apple-darwin/release/ || true
 
       - name: Build nym-vpnd with extra flags (native)
