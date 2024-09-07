@@ -22,4 +22,4 @@ jobs:
         with:
           manifest-path: ./nym-vpn-core/Cargo.toml
           command: check licenses bans sources
-          arguments: --all-features  cargo deny --all-features check licenses bans sources
+          arguments: --all-features
