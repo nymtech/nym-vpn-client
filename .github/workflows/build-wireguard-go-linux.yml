@@ -15,17 +15,14 @@ jobs:
       - name: Checkout nym-vpn-client
         uses: actions/checkout@v4
 
-      - name: Check Go version
-        run: go version
-
       - name: Install Go
         uses: actions/setup-go@v5
         with:
+          # With "stable" here build fails with version mismatch "1.23.1 vs
+          # 1.23.0". So setting it to explicit version as a quick hack to
+          # unblock release builds
           go-version: 1.23.0
           cache-dependency-path: "**/go.sum"
-
-      - name: Check Go version
-        run: go version
 
       - name: Build wireguard
         run: ./wireguard/build-wireguard-go.sh
