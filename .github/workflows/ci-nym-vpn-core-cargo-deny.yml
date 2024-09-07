@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - "nym-vpn-core/**"
+  workflow_dispatch:
+
 jobs:
   cargo-deny:
     runs-on: arc-ubuntu-22.04
