@@ -88,7 +88,9 @@ jobs:
           lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpn-cli ${{ env.SRC_NATIVE_BINARY }}/nym-vpn-cli ${{ env.SRC_X86_64_BINARY }}/nym-vpn-cli
           lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpnc ${{ env.SRC_NATIVE_BINARY }}/nym-vpnc ${{ env.SRC_X86_64_BINARY }}/nym-vpnc
           lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpnd ${{ env.SRC_NATIVE_BINARY }}/nym-vpnd ${{ env.SRC_X86_64_BINARY }}/nym-vpnd
-          lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-gateway-probe ${{ env.SRC_NATIVE_BINARY }}/nym-gateway-probe ${{ env.SRC_X86_64_BINARY }}/nym-gateway-probe
+          #lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-gateway-probe ${{ env.SRC_NATIVE_BINARY }}/nym-gateway-probe ${{ env.SRC_X86_64_BINARY }}/nym-gateway-probe
+          # Native only for nym-gateway-probe
+          cp ${{ env.SRC_NATIVE_BINARY }}/nym-gateway-probe ${{ env.UPLOAD_DIR_MAC }}/nym-gateway-probe
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
