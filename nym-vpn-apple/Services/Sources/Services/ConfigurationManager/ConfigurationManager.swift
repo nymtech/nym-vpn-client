@@ -1,13 +1,21 @@
 import Foundation
+import AppSettings
 import Constants
 import Logging
 
 public final class ConfigurationManager {
+    private let appSettings: AppSettings
     private let logger = Logger(label: "Configuration Manager")
 
-    private var currentEnv: Env = .mainnet
+    // Source of truth in AppSettings.
+    // We need to set same settings in tunnel extension as well.
+    private var currentEnv: Env = .mainnet {
+        didSet {
+            appSettings.currentEnv = currentEnv.rawValue
+        }
+    }
 
-    public static let shared = ConfigurationManager()
+    public static let shared = ConfigurationManager(appSettings: AppSettings.shared)
     public let isTestFlight = Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
 
     public var nymVpnApiURL: URL? {
@@ -18,9 +26,18 @@ public final class ConfigurationManager {
         getenv("NYM_API").flatMap { URL(string: String(cString: $0)) }
     }
 
-    private init() {}
+    private init(appSettings: AppSettings) {
+        self.appSettings = appSettings
+    }
 
     public func setup() throws {
+        guard let env = Env(rawValue: appSettings.currentEnv)
+        else {
+            logger.error("Cannot load current env var from: \(appSettings.currentEnv)")
+            currentEnv = .mainnet
+            return
+        }
+        currentEnv = env
         try setEnvVariables(for: currentEnv)
     }
 
@@ -36,6 +53,7 @@ private extension ConfigurationManager {
         do {
             let envString = try contentOfEnvFile(named: environment.rawValue)
             try setEnvironmentVariables(envString: envString)
+            logger.info("Env vars enabled for \(environment.rawValue)")
         } catch {
             logger.error("setEnvVariables failed: \(error.localizedDescription)")
         }
