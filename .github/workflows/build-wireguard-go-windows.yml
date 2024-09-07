@@ -1,4 +1,4 @@
-name: build-wireguard-go-android
+name: build-wireguard-go-windows
 on: [workflow_dispatch, workflow_call]
 
 env:
