@@ -21,7 +21,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install rust toolchain
+      - name: Install Rust toolchain
         uses: brndnmtthws/rust-action-rustup@v1
         with:
           toolchain: stable
@@ -30,6 +30,11 @@ jobs:
       - name: Install extra arch apple
         run: |
           rustup target add x86_64-apple-darwin
+
+      - name: Install Go toochain
+        uses: actions/setup-go@v5
+        with:
+          go-version: "stable"
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
