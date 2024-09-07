@@ -21,7 +21,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install rust toolchain
+      - name: Install Rust toolchain
         uses: brndnmtthws/rust-action-rustup@v1
         with:
           toolchain: stable
@@ -30,6 +30,11 @@ jobs:
       - name: Install extra arch apple
         run: |
           rustup target add x86_64-apple-darwin
+
+      - name: Install Go toochain
+        uses: actions/setup-go@v5
+        with:
+          go-version: "stable"
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
@@ -55,7 +60,7 @@ jobs:
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
-          cargo build --${{ env.CARGO_TARGET }} --target x86_64-apple-darwin
+          cargo build --${{ env.CARGO_TARGET }} --target x86_64-apple-darwin --workspace --exclude nym-gateway-probe
           ls -la target/x86_64-apple-darwin/release/ || true
 
       - name: Build nym-vpnd with extra flags (native)
@@ -83,7 +88,9 @@ jobs:
           lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpn-cli ${{ env.SRC_NATIVE_BINARY }}/nym-vpn-cli ${{ env.SRC_X86_64_BINARY }}/nym-vpn-cli
           lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpnc ${{ env.SRC_NATIVE_BINARY }}/nym-vpnc ${{ env.SRC_X86_64_BINARY }}/nym-vpnc
           lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpnd ${{ env.SRC_NATIVE_BINARY }}/nym-vpnd ${{ env.SRC_X86_64_BINARY }}/nym-vpnd
-          lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-gateway-probe ${{ env.SRC_NATIVE_BINARY }}/nym-gateway-probe ${{ env.SRC_X86_64_BINARY }}/nym-gateway-probe
+          #lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-gateway-probe ${{ env.SRC_NATIVE_BINARY }}/nym-gateway-probe ${{ env.SRC_X86_64_BINARY }}/nym-gateway-probe
+          # Native only for nym-gateway-probe
+          cp ${{ env.SRC_NATIVE_BINARY }}/nym-gateway-probe ${{ env.UPLOAD_DIR_MAC }}/nym-gateway-probe
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

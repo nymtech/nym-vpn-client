@@ -90,6 +90,10 @@ jobs:
       - if: github.event_name == 'push'
         run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
 
+      - name: Set tag
+        id: set_tag
+        run: echo "tag=${{ env.TAG_NAME }}" >> "$GITHUB_OUTPUT"
+
       - name: Generate checksums and create tar.gz archive per platform
         run: |
           ARCHIVE_LINUX=nym-vpn-core-v${{ steps.workspace-version.outputs.metadata }}_linux_x86_64
