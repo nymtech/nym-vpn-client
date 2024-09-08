@@ -15,14 +15,23 @@ jobs:
       - name: Checkout nym-vpn-client
         uses: actions/checkout@v4
 
+      - run: |
+          which go
+          go version
+          echo $PATH
+
       - name: Install Go
         uses: actions/setup-go@v5
         with:
           go-version: "stable"
           cache-dependency-path: "**/go.sum"
 
+      - name: Clean Go build cache
+        run: go clean -cache -modcache -i -r
+
       - name: Build wireguard
         run: |
+          which go
           go version
           echo $PATH
           ./wireguard/build-wireguard-go.sh
