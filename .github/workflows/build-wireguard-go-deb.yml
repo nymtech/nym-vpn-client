@@ -25,11 +25,19 @@ jobs:
           go-version: "stable"
           cache-dependency-path: "**/go.sum"
 
-      - name: Override GOROOT
+      - name: Override GOROOT and GOTOOLDIR
         run: |
-          echo "Setting correct GOROOT"
+          echo "Setting correct GOROOT and GOTOOLDIR"
           export GOROOT=$(go env GOROOT)
+          export GOTOOLDIR=$(go env GOTOOLDIR)
           echo "GOROOT=$GOROOT" >> $GITHUB_ENV
+          echo "GOTOOLDIR=$GOTOOLDIR" >> $GITHUB_ENV
+
+      - name: Verify Go version, GOROOT, and GOTOOLDIR
+        run: |
+          go version
+          echo "GOROOT is set to: $GOROOT"
+          echo "GOTOOLDIR is set to: $GOTOOLDIR"
 
       - name: Build wireguard
         run: |
