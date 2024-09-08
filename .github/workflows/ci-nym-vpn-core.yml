@@ -113,6 +113,12 @@ jobs:
         with:
           go-version: "stable"
 
+      - name: Override GOROOT
+        run: |
+          echo "Setting correct GOROOT"
+          export GOROOT=$(go env GOROOT)
+          echo "GOROOT=$GOROOT" >> $GITHUB_ENV
+
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
         if: contains(matrix.os, 'macos') || contains(matrix.os, 'windows')

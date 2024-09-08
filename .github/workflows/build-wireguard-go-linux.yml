@@ -26,6 +26,12 @@ jobs:
           go-version: "stable"
           cache-dependency-path: "**/go.sum"
 
+      - name: Override GOROOT
+        run: |
+          echo "Setting correct GOROOT"
+          export GOROOT=$(go env GOROOT)
+          echo "GOROOT=$GOROOT" >> $GITHUB_ENV
+
       - name: Build wireguard
         run: |
           unset GOROOT
