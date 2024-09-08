@@ -21,7 +21,14 @@ jobs:
           echo $PATH
           ls -al /go
           ls -al /go/bin
-          rm -rf /usr/local/go
+          # rm -rf /usr/local/go
+
+      - name: Remove system Go from PATH
+        run: |
+          echo "Current PATH: $PATH"
+          export PATH=$(echo "$PATH" | sed -e 's|:/usr/local/go/bin||g')
+          echo "Modified PATH: $PATH"
+          echo "PATH after modification: $PATH" >> $GITHUB_ENV
 
       - name: Install Go
         uses: actions/setup-go@v5
