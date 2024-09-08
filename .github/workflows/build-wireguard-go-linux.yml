@@ -19,6 +19,8 @@ jobs:
           which go
           go version
           echo $PATH
+          ls -al /go
+          ls -al /go/bin
 
       - name: Install Go
         uses: actions/setup-go@v5
