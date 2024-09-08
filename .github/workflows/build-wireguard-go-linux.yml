@@ -27,6 +27,7 @@ jobs:
           cache-dependency-path: "**/go.sum"
 
       - name: Clean Go build cache
+        working-directory: wireguard-go/libwg
         run: go clean -cache -modcache -i -r
 
       - name: Build wireguard
