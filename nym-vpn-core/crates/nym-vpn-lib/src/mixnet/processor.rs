@@ -11,7 +11,7 @@ use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
 use tokio::task::JoinHandle;
 use tracing::{debug, error, info, trace};
-use tun2::{AbstractDevice, AsyncDevice};
+use tun2::AsyncDevice;
 
 use super::{MixnetError, SharedMixnetClient};
 
