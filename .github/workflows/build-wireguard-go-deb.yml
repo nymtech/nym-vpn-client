@@ -32,6 +32,8 @@ jobs:
           export GOTOOLDIR=$(go env GOTOOLDIR)
           echo "GOROOT=$GOROOT" >> $GITHUB_ENV
           echo "GOTOOLDIR=$GOTOOLDIR" >> $GITHUB_ENV
+          echo $GOROOT
+          echo $GOTOOLDIR
 
       - name: Verify Go version, GOROOT, and GOTOOLDIR
         run: |
