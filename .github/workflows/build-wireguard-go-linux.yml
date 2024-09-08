@@ -21,6 +21,7 @@ jobs:
           echo $PATH
           ls -al /go
           ls -al /go/bin
+          rm -rf /usr/local/go
 
       - name: Install Go
         uses: actions/setup-go@v5
