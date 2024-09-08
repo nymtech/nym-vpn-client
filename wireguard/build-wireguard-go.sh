@@ -133,6 +133,8 @@ function create_folder_and_build {
     target_triple_dir="../../build/lib/$1"
 
     mkdir -p $target_triple_dir
+    echo $PATH
+    go version
     go build -trimpath -v -o $target_triple_dir/libwg.a -buildmode c-archive
 }
 
