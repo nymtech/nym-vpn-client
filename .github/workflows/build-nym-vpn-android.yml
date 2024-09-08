@@ -85,11 +85,23 @@ jobs:
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+
       # Native build dependencies
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: "stable"
+
+      - name: Override GOROOT and GOTOOLDIR
+        if: contains(matrix.os, 'ubuntu')
+        run: |
+          echo "Setting correct GOROOT and GOTOOLDIR"
+          unset GOROOT
+          unset GOTOOLDIR
+          export GOROOT=$(go env GOROOT)
+          export GOTOOLDIR=$(go env GOTOOLDIR)
+          echo "GOROOT=$GOROOT" >> $GITHUB_ENV
+          echo "GOTOOLDIR=$GOTOOLDIR" >> $GITHUB_ENV
 
       - name: Add rust stable toolchain
         uses: dtolnay/rust-toolchain@stable
