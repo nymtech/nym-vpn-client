@@ -33,8 +33,6 @@ jobs:
 
       - name: Build wireguard
         run: |
-          unset GOROOT
-          unset GOTOOLDIR
           ./wireguard/build-wireguard-go.sh
 
       - name: Upload artifacts

@@ -133,8 +133,6 @@ jobs:
         if: matrix.target != 'ios' && matrix.target != 'android'
         shell: bash
         run: |
-          unset GOROOT
-          unset GOTOOLDIR
           ./wireguard/build-wireguard-go.sh
 
       - name: Build wireguard (iOS)
