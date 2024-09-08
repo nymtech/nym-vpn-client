@@ -34,14 +34,6 @@ jobs:
           export GOTOOLDIR=$(go env GOTOOLDIR)
           echo "GOROOT=$GOROOT" >> $GITHUB_ENV
           echo "GOTOOLDIR=$GOTOOLDIR" >> $GITHUB_ENV
-          echo $GOROOT
-          echo $GOTOOLDIR
-
-      - name: Verify Go version, GOROOT, and GOTOOLDIR
-        run: |
-          go version
-          echo "GOROOT is set to: $GOROOT"
-          echo "GOTOOLDIR is set to: $GOTOOLDIR"
 
       - name: Build wireguard
         run: |
