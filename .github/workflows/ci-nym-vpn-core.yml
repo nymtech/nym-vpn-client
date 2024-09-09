@@ -109,14 +109,14 @@ jobs:
           fi
 
       - name: Install Go
-        if: contains(matrix.os, 'macos') || contains(matrix.os, 'windows')
+        if: ${{ !contains(matrix.os, 'ubuntu') }}
         uses: actions/setup-go@v5
         with:
           go-version: "stable"
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
-        if: contains(matrix.os, 'macos') || contains(matrix.os, 'windows')
+        if: ${{ !contains(matrix.os, 'ubuntu') }}
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
