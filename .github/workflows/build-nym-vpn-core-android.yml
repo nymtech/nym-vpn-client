@@ -1,6 +1,9 @@
 name: build-nym-vpn-core-android
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/build-nym-vpn-core-android.yml"
   workflow_call:
     outputs:
       RUST_VERSION:
@@ -19,7 +22,7 @@ jobs:
 
   build-android:
     needs: build-wireguard-go-android
-    runs-on: ubuntu-20.04
+    runs-on: arc-ubuntu-22.04
     outputs:
       UPLOAD_DIR_ANDROID: ${{ env.UPLOAD_DIR_ANDROID }}
       RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}
@@ -43,12 +46,13 @@ jobs:
 
       - name: Setup Android SDK
         uses: nttld/setup-ndk@v1
+        id: setup-ndk
         with:
           ndk-version: r25c
 
       - name: Install cargo deps
         run: |
-          cargo install cargo-ndk cargo-license --locked
+          cargo install --locked cargo-ndk cargo-license
 
       - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v4
@@ -60,6 +64,7 @@ jobs:
         working-directory: nym-vpn-core/crates/nym-vpn-lib
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: |
           cargo ndk -t arm64-v8a -o ../target/aarch64-linux-android/release build --${{ env.CARGO_TARGET }}
           ls -la ../target/aarch64-linux-android/release/ || true
