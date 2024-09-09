@@ -109,20 +109,10 @@ jobs:
           fi
 
       - name: Install Go
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'windows')
         uses: actions/setup-go@v5
         with:
           go-version: "stable"
-
-      - name: Override GOROOT and GOTOOLDIR
-        if: contains(matrix.os, 'ubuntu')
-        run: |
-          echo "Setting correct GOROOT and GOTOOLDIR"
-          unset GOROOT
-          unset GOTOOLDIR
-          export GOROOT=$(go env GOROOT)
-          export GOTOOLDIR=$(go env GOTOOLDIR)
-          echo "GOROOT=$GOROOT" >> $GITHUB_ENV
-          echo "GOTOOLDIR=$GOTOOLDIR" >> $GITHUB_ENV
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
