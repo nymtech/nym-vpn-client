@@ -107,20 +107,20 @@ x25519-dalek = "2.0"
 zeroize = "1.6.0"
 nix = "0.29"
 
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", rev = "dff82f9" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "dff82f9" }
-nym-client-core = { git = "https://github.com/nymtech/nym", rev = "dff82f9" }
-nym-config = { git = "https://github.com/nymtech/nym", rev = "dff82f9" }
-nym-crypto = { git = "https://github.com/nymtech/nym", rev = "dff82f9" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", rev = "dff82f9" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "dff82f9" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "dff82f9" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", rev = "dff82f9" }
-nym-sdk = { git = "https://github.com/nymtech/nym", rev = "dff82f9" }
-nym-task = { git = "https://github.com/nymtech/nym", rev = "dff82f9" }
-nym-topology = { git = "https://github.com/nymtech/nym", rev = "dff82f9" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "dff82f9" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "dff82f9" }
+nym-authenticator-requests = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }
+nym-client-core = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }
+nym-config = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }
+nym-crypto = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }
+nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }
+nym-sdk = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }
+nym-task = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }
+nym-topology = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }
 
 # Pointing to before ecash was merged, for backwards compatibility and migration period
 

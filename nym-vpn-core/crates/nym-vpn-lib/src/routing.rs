@@ -19,7 +19,6 @@ use talpid_routing::RouteManager;
 use talpid_routing::{Node, RequiredRoute};
 use tap::TapFallible;
 use tracing::{debug, error, info, trace};
-use tun2::AbstractDevice;
 
 use crate::{
     error::Result,
