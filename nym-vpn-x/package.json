@@ -29,7 +29,7 @@
     "gen:licenses:rust": "cargo license -j --avoid-dev-deps --avoid-build-deps --manifest-path src-tauri/Cargo.toml > public/licenses-rust.json"
   },
   "dependencies": {
-    "@headlessui/react": "^2.1.2",
+    "@headlessui/react": "^2.1.5",
     "@mui/base": "^5.0.0-beta.39",
     "@sentry/react": "^8.22.0",
     "@tauri-apps/api": "^1.5.0",
