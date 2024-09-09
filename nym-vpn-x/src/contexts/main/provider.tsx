@@ -1,4 +1,4 @@
-import { invoke } from '@tauri-apps/api';
+import { invoke } from '@tauri-apps/api/core';
 import React, { useCallback, useEffect, useReducer } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CountryCacheDuration } from '../../constants';

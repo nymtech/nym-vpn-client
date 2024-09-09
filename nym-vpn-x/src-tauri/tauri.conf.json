@@ -9,13 +9,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": [
-      "deb",
-      "appimage",
-      "nsis",
-      "app",
-      "dmg"
-    ],
+    "targets": ["deb", "appimage", "nsis", "app", "dmg"],
     "windows": {
       "nsis": {
         "template": "./bundle/windows/installer.nsi",
@@ -41,9 +35,7 @@
     },
     "linux": {
       "deb": {
-        "depends": [
-          "nym-vpnd"
-        ],
+        "depends": ["nym-vpnd"],
         "desktopTemplate": "./bundle/deb/main.desktop"
       }
     },
@@ -55,9 +47,7 @@
       "windows": {
         "installMode": "passive"
       },
-      "endpoints": [
-        "https://nymvpn.net/api/updater/vpn"
-      ]
+      "endpoints": ["https://nymvpn.net/api/updater/vpn"]
     }
   },
   "app": {

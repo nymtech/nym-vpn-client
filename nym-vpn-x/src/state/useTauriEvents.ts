@@ -1,11 +1,7 @@
 import * as _ from 'lodash-es';
 import { useCallback, useEffect } from 'react';
 import { EventCallback, listen } from '@tauri-apps/api/event';
-import {
-  PhysicalPosition,
-  PhysicalSize,
-  getCurrentWebviewWindow,
-} from '@tauri-apps/api/webviewWindow';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import dayjs from 'dayjs';
 import { kvSet } from '../kvStore';
 import {
@@ -26,7 +22,9 @@ import {
   StatusUpdateEvent,
 } from '../constants';
 import logu from '../log';
-const appWindow = getCurrentWebviewWindow()
+import { PhysicalPosition, PhysicalSize } from '@tauri-apps/api/dpi';
+
+const appWindow = getCurrentWebviewWindow();
 
 function handleError(dispatch: StateDispatch, error?: BackendError | null) {
   if (!error) {

@@ -2,9 +2,7 @@
   "identifier": "app",
   "description": "Capability for the main window",
   "local": true,
-  "windows": [
-    "main"
-  ],
+  "windows": ["main"],
   "permissions": [
     "core:default",
     "core:window:allow-set-size",

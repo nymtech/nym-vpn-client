@@ -1,7 +1,7 @@
 import { CSSProperties, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { platform } from '@tauri-apps/plugin-os';
+import { type } from '@tauri-apps/plugin-os';
 import { FixedSizeList as List } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { useMainState } from '../../../../contexts';
@@ -9,6 +9,7 @@ import { routes } from '../../../../router';
 import { PageAnim, SettingsMenuCard } from '../../../../ui';
 import { CodeDependency } from '../../../../types';
 
+const os = type();
 const heightFactorLinux = 8;
 const heightFactor = 6;
 
@@ -61,16 +62,11 @@ function LicenseList({ language }: Props) {
   }, [language, codeDepsJs, codeDepsRust]);
 
   useEffect(() => {
-    const setItemSizeFn = async () => {
-      const os = await platform();
-      if (os === 'linux') {
-        setItemSize(rootFontSize * heightFactorLinux);
-      } else {
-        setItemSize(rootFontSize * heightFactor);
-      }
-    };
-
-    setItemSizeFn();
+    if (os === 'linux') {
+      setItemSize(rootFontSize * heightFactorLinux);
+    } else {
+      setItemSize(rootFontSize * heightFactor);
+    }
   }, [rootFontSize]);
 
   return (

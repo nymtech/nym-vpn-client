@@ -2,10 +2,11 @@ import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { ConnectionState } from '../../types';
 import { AnimateIn } from '../../ui';
-import { useMainState } from '../../contexts';
+import { type } from '@tauri-apps/plugin-os';
+
+const os = type();
 
 function ConnectionBadge({ state }: { state: ConnectionState }) {
-  const { os } = useMainState();
   const { t } = useTranslation('home');
 
   const statusBadgeDynStyles = {

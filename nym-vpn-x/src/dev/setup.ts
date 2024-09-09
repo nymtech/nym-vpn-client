@@ -1,15 +1,20 @@
 import { mockIPC, mockWindows } from '@tauri-apps/api/mocks';
+import { InvokeArgs } from '@tauri-apps/api/core';
 import { emit } from '@tauri-apps/api/event';
 import { Cli, ConnectionState, DbKey } from '../types';
 import { ConnectionEvent } from '../constants';
 import { Country } from '../types';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type MockIpcFn = (cmd: string, payload?: InvokeArgs) => Promise<any>;
+
 export function mockTauriIPC() {
   mockWindows('main');
 
-  mockIPC(async (cmd, args) => {
+  mockIPC((async (cmd, args) => {
     console.log(`IPC call mocked "${cmd}"`);
     console.log(args);
+
     if (cmd === 'connect') {
       await emit(ConnectionEvent, { state: 'Connecting' });
       return new Promise<ConnectionState>((resolve) =>
@@ -60,8 +65,11 @@ export function mockTauriIPC() {
     }
 
     if (cmd === 'db_get') {
-      let res: unknown;
-      switch (args.key as DbKey) {
+      let res: unknown = undefined;
+      if (!args) {
+        return;
+      }
+      switch ((args as Record<string, unknown>).key as DbKey) {
         case 'UiRootFontSize':
           res = 12;
           break;
@@ -77,7 +85,7 @@ export function mockTauriIPC() {
         default:
           return null;
       }
-      return new Promise((resolve) => resolve(res));
+      return new Promise<unknown>((resolve) => resolve(res));
     }
 
     if (cmd === 'cli_args') {
@@ -87,5 +95,5 @@ export function mockTauriIPC() {
         }),
       );
     }
-  });
+  }) as MockIpcFn);
 }
