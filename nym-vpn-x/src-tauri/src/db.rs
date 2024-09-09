@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value;
 use sled::IVec;
@@ -9,7 +9,7 @@ use std::{
     path::PathBuf,
 };
 use strum::{AsRefStr, EnumString};
-use tauri::api::path::data_dir;
+use tauri::path::BaseDirectory;
 use thiserror::Error;
 use tracing::{debug, error, info, instrument, warn};
 use ts_rs::TS;
@@ -87,11 +87,9 @@ pub enum DbError {
 impl Db {
     #[instrument]
     pub fn new() -> Result<Self, DbError> {
-        let mut path = data_dir()
-            .ok_or(anyhow!("failed to retrieve data directory path"))
-            .inspect_err(|e| error!("failed to retrieve data directory path: {e}"))?;
-        path.push(APP_DIR);
-        path.push(DB_DIR);
+        let path: PathBuf = [BaseDirectory::Data.variable(), APP_DIR, DB_DIR]
+            .iter()
+            .collect();
         info!("opening sled db at {}", path.display());
         create_dir_all(&path).map_err(|e| {
             error!("failed to create db directory {}", path.display());

@@ -2,32 +2,32 @@ use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 use tauri::{
     AppHandle, LogicalPosition, LogicalSize, Manager, PhysicalPosition, PhysicalSize,
-    Window as TauriWindow, WindowBuilder,
+    WebviewWindow, WebviewWindowBuilder,
 };
 use tracing::{debug, error, instrument, warn};
 use ts_rs::TS;
 
 use crate::db::{Db, Key};
 
-pub struct AppWindow(pub TauriWindow);
+pub struct AppWindow(pub WebviewWindow);
 
 impl AppWindow {
     #[instrument(skip(app))]
     pub fn new(app: &AppHandle, label: &str) -> Result<Self> {
-        Ok(AppWindow(app.get_window(label).ok_or_else(|| {
-            anyhow!("failed to get window {}", label)
-        })?))
+        Ok(AppWindow(app.get_webview_window(label).ok_or_else(
+            || anyhow!("failed to get window {}", label),
+        )?))
     }
 
     /// try to get the window, if not found recreate it from its config
     #[instrument(skip(app))]
     pub fn get_or_create(app: &AppHandle, label: &str) -> Result<Self> {
         let window = app
-            .get_window(label)
+            .get_webview_window(label)
             .or_else(|| {
                 debug!("main window not found, re-creating it");
                 app.config()
-                    .tauri
+                    .app
                     .windows
                     .iter()
                     .find(|cfg| cfg.label == label)
@@ -36,10 +36,16 @@ impl AppWindow {
                         None
                     })
                     .and_then(|cfg| {
-                        WindowBuilder::from_config(app, cfg.clone())
-                            .build()
-                            .inspect_err(|e| error!("failed to create window: {e}"))
+                        WebviewWindowBuilder::from_config(app, cfg)
+                            .inspect_err(|e| {
+                                error!("failed to create window builder from config: {e}")
+                            })
                             .ok()
+                            .and_then(|b| {
+                                b.build()
+                                    .inspect_err(|e| error!("failed to create window: {e}"))
+                                    .ok()
+                            })
                     })
             })
             .ok_or_else(|| anyhow!("failed to get window {}", label))?;

@@ -70,10 +70,10 @@ pub fn show_window() -> Result<()> {
         .setup(move |app| {
             info!("app setup");
 
-            tauri::WindowBuilder::new(
+            tauri::WebviewWindowBuilder::new(
                 app,
                 WIN_LABEL,
-                tauri::WindowUrl::App("src/error.html".into()),
+                tauri::WebviewUrl::App("src/error.html".into()),
             )
             .fullscreen(false)
             .resizable(true)

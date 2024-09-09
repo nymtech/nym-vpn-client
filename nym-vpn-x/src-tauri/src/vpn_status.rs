@@ -5,7 +5,7 @@ use crate::events::{
 use crate::states::{app::ConnectionState, SharedAppState};
 use anyhow::Result;
 use nym_vpn_proto::ConnectionStatusUpdate;
-use tauri::Manager;
+use tauri::{Emitter, Manager};
 use time::OffsetDateTime;
 use tracing::{debug, info, instrument, trace, warn};
 
@@ -21,7 +21,7 @@ pub async fn update(
     trace!("vpn status: {:?}", status);
 
     if failed {
-        app.emit_all(
+        app.emit(
             EVENT_CONNECTION_STATE,
             ConnectionEvent::Failed(error.clone()),
         )
@@ -48,7 +48,7 @@ pub async fn update(
             app_state.state = status.clone();
             app_state.connection_start_time = Some(t);
             drop(app_state);
-            app.emit_all(
+            app.emit(
                 EVENT_CONNECTION_STATE,
                 ConnectionEvent::update(
                     ConnectionState::Connected,
@@ -64,7 +64,7 @@ pub async fn update(
             app_state.state = status.clone();
             app_state.connection_start_time = None;
             drop(app_state);
-            app.emit_all(
+            app.emit(
                 EVENT_CONNECTION_STATE,
                 ConnectionEvent::update(ConnectionState::Disconnected, error, None),
             )
@@ -72,7 +72,7 @@ pub async fn update(
         }
         ConnectionState::Connecting => {
             info!("vpn status → [Connecting]");
-            app.emit_all(
+            app.emit(
                 EVENT_CONNECTION_STATE,
                 ConnectionEvent::update(ConnectionState::Connecting, error, None),
             )
@@ -80,7 +80,7 @@ pub async fn update(
         }
         ConnectionState::Disconnecting => {
             info!("vpn status → [Disconnecting]");
-            app.emit_all(
+            app.emit(
                 EVENT_CONNECTION_STATE,
                 ConnectionEvent::update(ConnectionState::Disconnecting, error, None),
             )
@@ -88,7 +88,7 @@ pub async fn update(
         }
         ConnectionState::Unknown => {
             warn!("vpn status → [Unknown]");
-            app.emit_all(
+            app.emit(
                 EVENT_CONNECTION_STATE,
                 ConnectionEvent::update(ConnectionState::Unknown, error, None),
             )
@@ -107,7 +107,7 @@ pub async fn connection_update(
     if !update.details.is_empty() {
         trace!("details: {:?}", update.details);
     }
-    app.emit_all(EVENT_STATUS_UPDATE, StatusUpdatePayload::from(update))
+    app.emit(EVENT_STATUS_UPDATE, StatusUpdatePayload::from(update))
         .ok();
     Ok(())
 }
