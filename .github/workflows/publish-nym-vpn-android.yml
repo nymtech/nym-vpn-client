@@ -59,7 +59,7 @@ jobs:
     if: ${{ inputs.release_type != 'none' }}
     needs:
       - build-nym-vpn-android
-    runs-on: arc-ubuntu-22.04
+    runs-on: arc-ubuntu-22.04-staging
     defaults:
       run:
         working-directory: nym-vpn-android
@@ -165,7 +165,7 @@ jobs:
 
 
   publish-nym-fdroid:
-    runs-on: arc-ubuntu-22.04
+    runs-on: arc-ubuntu-22.04-staging
     needs:
       - publish-github
     if: inputs.release_type == 'release'
@@ -180,7 +180,7 @@ jobs:
   publish-play:
     if: ${{ inputs.track != 'none' && inputs.track != '' }}
     # issue here: https://github.com/ruby/setup-ruby?tab=readme-ov-file#using-self-hosted-runners
-    runs-on: arc-ubuntu-22.04
+    runs-on: arc-ubuntu-22.04-staging
     defaults:
       run:
         working-directory: nym-vpn-android

@@ -11,7 +11,7 @@ env:
 
 jobs:
   build:
-    runs-on: arc-ubuntu-22.04
+    runs-on: arc-ubuntu-22.04-staging
 
     steps:
       - name: Install system dependencies

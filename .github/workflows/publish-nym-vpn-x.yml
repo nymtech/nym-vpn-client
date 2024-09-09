@@ -32,7 +32,7 @@ jobs:
       - build-nym-vpn-x-linux
       - build-nym-vpn-x-windows
       - generate-build-info-nym-vpn-x
-    runs-on: arc-ubuntu-22.04
+    runs-on: arc-ubuntu-22.04-staging
     outputs:
       tag: ${{ steps.set_tag.outputs.tag }}
     env:

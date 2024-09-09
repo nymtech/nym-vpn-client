@@ -52,7 +52,7 @@ jobs:
       - build-nym-vpn-core-ios
       - build-nym-vpn-core-windows
       - generate-build-info-core
-    runs-on: arc-ubuntu-22.04
+    runs-on: arc-ubuntu-22.04-staging
     permissions:
       contents: write
     outputs:
