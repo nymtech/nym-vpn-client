@@ -1,0 +1,29 @@
+{
+  "identifier": "app",
+  "description": "Capability for the main window",
+  "local": true,
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "core:default",
+    "core:window:allow-set-size",
+    "shell:allow-open",
+    "dialog:allow-open",
+    "notification:default",
+    "os:allow-platform",
+    "os:allow-version",
+    "os:allow-os-type",
+    "os:allow-family",
+    "os:allow-arch",
+    "os:allow-exe-extension",
+    "os:allow-locale",
+    "os:allow-hostname",
+    "process:allow-restart",
+    "process:allow-exit",
+    "clipboard-manager:allow-write-text",
+    "shell:default",
+    "os:default",
+    "updater:default"
+  ]
+}

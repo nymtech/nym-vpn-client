@@ -2,7 +2,7 @@ import { useCallback, useEffect } from 'react';
 import {
   isPermissionGranted,
   requestPermission,
-} from '@tauri-apps/api/notification';
+} from '@tauri-apps/plugin-notification';
 import { useMainDispatch, useMainState } from '../contexts';
 import { kvSet } from '../kvStore';
 import { StateDispatch } from '../types';

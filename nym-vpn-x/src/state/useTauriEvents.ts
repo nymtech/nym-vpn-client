@@ -4,8 +4,8 @@ import { EventCallback, listen } from '@tauri-apps/api/event';
 import {
   PhysicalPosition,
   PhysicalSize,
-  appWindow,
-} from '@tauri-apps/api/window';
+  getCurrentWebviewWindow,
+} from '@tauri-apps/api/webviewWindow';
 import dayjs from 'dayjs';
 import { kvSet } from '../kvStore';
 import {
@@ -26,6 +26,7 @@ import {
   StatusUpdateEvent,
 } from '../constants';
 import logu from '../log';
+const appWindow = getCurrentWebviewWindow()
 
 function handleError(dispatch: StateDispatch, error?: BackendError | null) {
   if (!error) {

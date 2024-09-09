@@ -1,7 +1,7 @@
 import { invoke } from '@tauri-apps/api';
 import { getVersion } from '@tauri-apps/api/app';
-import { platform } from '@tauri-apps/api/os';
-import { appWindow } from '@tauri-apps/api/window';
+import { platform } from '@tauri-apps/plugin-os';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import dayjs from 'dayjs';
 import { DefaultRootFontSize, DefaultThemeMode } from '../constants';
 import { getJsLicenses, getRustLicenses } from '../data';
@@ -21,6 +21,7 @@ import {
   WindowSize,
 } from '../types';
 import fireRequests, { TauriReq } from './helper';
+const appWindow = getCurrentWebviewWindow()
 
 // initialize connection state
 const getInitialConnectionState = async () => {

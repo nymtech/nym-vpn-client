@@ -3,10 +3,11 @@ import { useLocation } from 'react-router-dom';
 import {
   isPermissionGranted,
   sendNotification,
-} from '@tauri-apps/api/notification';
-import { appWindow } from '@tauri-apps/api/window';
+} from '@tauri-apps/plugin-notification';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { AppName } from '../constants';
 import { useMainState } from '../contexts';
+const appWindow = getCurrentWebviewWindow()
 
 const AntiSpamTimeout = 60000; // 1min
 
