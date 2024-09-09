@@ -5603,8 +5603,8 @@ dependencies = [
  "base64 0.22.1",
  "hex",
  "ipnetwork",
- "log",
  "thiserror",
+ "tracing",
  "x25519-dalek",
  "zeroize",
 ]

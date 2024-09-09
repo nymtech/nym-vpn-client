@@ -11,8 +11,8 @@ license.workspace = true
 [dependencies]
 ipnetwork.workspace = true
 thiserror.workspace = true
+tracing.workspace = true
 hex.workspace = true
 base64.workspace = true
 x25519-dalek = { workspace = true, features = ["static_secrets"] }
 zeroize.workspace = true
-log = "0.4.22"

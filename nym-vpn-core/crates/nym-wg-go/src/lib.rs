@@ -3,7 +3,6 @@
 
 #![cfg(any(target_os = "ios", target_os = "android"))]
 
-mod logging;
 pub mod netstack;
 pub mod uapi;
 pub mod wireguard_go;
@@ -19,6 +18,9 @@ use zeroize::{Zeroize, ZeroizeOnDrop};
 pub enum Error {
     #[error("failed to convert IP addr into C string")]
     IpAddrToCstr,
+
+    #[error("failed to convert socket addr into C string")]
+    SocketAddrToCstr,
 
     #[error("config contains nul byte")]
     ConfigContainsNulByte,

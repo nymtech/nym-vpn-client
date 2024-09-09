@@ -50,7 +50,6 @@ build-vpn-lib-swift:
 	$(RUSTFLAGS) cargo swift package --platforms ios --name NymVpnLib --release
 
 generate-uniffi-swift:
-	cd crates/nym-vpn-lib; \
 	RUSTFLAGS="-L $(WG_TARGET_DIR)" cargo run --bin uniffi-bindgen generate \
 		--library $(CURDIR)/target/aarch64-apple-ios/release/libnym_vpn_lib.a \
 		--language swift --out-dir uniffi -n

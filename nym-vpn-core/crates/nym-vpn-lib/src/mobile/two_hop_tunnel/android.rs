@@ -60,9 +60,7 @@ impl TwoHopTunnelImp {
         let exit_wg_config = two_hop_config.exit.into_wireguard_config();
 
         // Create netstack wg connected to the entry node.
-        let mut entry_tunnel = netstack::Tunnel::start(entry_wg_config, |s| {
-            tracing::debug!(name = "wg-netstack", "{}", s);
-        })?;
+        let mut entry_tunnel = netstack::Tunnel::start(entry_wg_config)?;
 
         // Configure tunnel sockets to bypass the tunnel interface.
         match entry_tunnel.get_socket_v4() {
@@ -89,9 +87,7 @@ impl TwoHopTunnelImp {
         }
 
         // Create exit tunnel capturing exit traffic on device and sending it to the local udp forwarder.
-        let exit_tunnel = wireguard_go::Tunnel::start(exit_wg_config, tun_fd, |s| {
-            tracing::debug!(name = "wg-go", "{}", s);
-        })?;
+        let exit_tunnel = wireguard_go::Tunnel::start(exit_wg_config, tun_fd)?;
 
         uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Up));
 

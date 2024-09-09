@@ -8,8 +8,6 @@ use std::{
     fmt,
 };
 
-use log::info;
-
 use super::{
     uapi::UapiConfigBuilder, Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, PrivateKey,
     Result,
@@ -66,36 +64,24 @@ impl Config {
 #[derive(Debug)]
 pub struct Tunnel {
     handle: i32,
-    boxed_logger_ptr: *mut Box<dyn Fn(&str)>,
 }
-
-// *mut Box is safe to send
-unsafe impl Send for Tunnel {}
 
 impl Tunnel {
     /// Start new WireGuard tunnel
-    pub fn start<F>(config: Config, tun_fd: RawFd, logger: F) -> Result<Self>
-    where
-        F: Fn(&str) + 'static + Send,
-    {
+    pub fn start(config: Config, tun_fd: RawFd) -> Result<Self> {
         let settings =
             CString::new(config.as_uapi_config()).map_err(|_| Error::ConfigContainsNulByte)?;
-
-        let boxed_logger_ptr = unsafe { super::logging::create_logger_callback(logger) };
         let handle = unsafe {
             wgTurnOn(
                 settings.as_ptr(),
                 tun_fd,
-                Some(super::logging::wg_logger_callback),
-                boxed_logger_ptr as *mut _,
+                wg_logger_callback,
+                std::ptr::null_mut(),
             )
         };
 
         if handle >= 0 {
-            Ok(Self {
-                handle,
-                boxed_logger_ptr,
-            })
+            Ok(Self { handle })
         } else {
             Err(Error::StartTunnel(handle))
         }
@@ -103,7 +89,7 @@ impl Tunnel {
 
     /// Stop the tunnel.
     pub fn stop(mut self) {
-        info!("Stopping the wg tunnel");
+        tracing::info!("Stopping the wg tunnel");
         self.stop_inner();
     }
 
@@ -137,14 +123,6 @@ impl Tunnel {
             unsafe { wgTurnOff(self.handle) };
             self.handle = -1;
         }
-
-        if !self.boxed_logger_ptr.is_null() {
-            // causes crash on ios and android
-            // unsafe {
-            //     let _ = Box::from_raw(self.boxed_logger_ptr);
-            // }
-            self.boxed_logger_ptr = std::ptr::null_mut();
-        }
     }
 }
 
@@ -160,7 +138,7 @@ extern "C" {
     fn wgTurnOn(
         settings: *const c_char,
         fd: RawFd,
-        logging_callback: Option<LoggingCallback>,
+        logging_callback: LoggingCallback,
         logging_context: *mut c_void,
     ) -> i32;
 
@@ -181,4 +159,20 @@ extern "C" {
     // Re-attach wireguard-go to the tunnel interface.
     #[cfg(target_os = "ios")]
     fn wgBumpSockets(handle: i32);
+}
+
+/// Callback used by libwg to pass wireguard-go logs.
+///
+/// # Safety
+/// Do not call this method directly.
+#[doc(hidden)]
+pub unsafe extern "system" fn wg_logger_callback(
+    _log_level: u32,
+    msg: *const c_char,
+    _ctx: *mut c_void,
+) {
+    if !msg.is_null() {
+        let str = std::ffi::CStr::from_ptr(msg).to_string_lossy();
+        tracing::debug!("{}", str);
+    }
 }
