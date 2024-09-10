@@ -227,11 +227,7 @@ fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, VpnError> {
 #[uniffi::export]
 pub fn startVPN(config: VPNConfig) -> Result<(), VpnError> {
     if RUNNING.fetch_or(true, Ordering::Relaxed) {
-        uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failure {
-            error: VpnError::InvalidStateError {
-                details: "Vpn is already running".to_string(),
-            },
-        }));
+        tracing::warn!("VPN already running");
         return Ok(());
     }
 
@@ -333,9 +329,9 @@ async fn import_credential_from_string(
     let path_result = PathBuf::from_str(path);
     let path_buf = match path_result {
         Ok(p) => p,
-        Err(_) => {
+        Err(e) => {
             return Err(VpnError::InternalError {
-                details: "Invalid path".to_string(),
+                details: e.to_string(),
             })
         }
     };
