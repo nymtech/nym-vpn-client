@@ -11,7 +11,7 @@ use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
 use tokio::task::JoinHandle;
 use tracing::{debug, error, info, trace};
-use tun2::AsyncDevice;
+use tun::{AsyncDevice, Device};
 
 use super::{MixnetError, SharedMixnetClient};
 
@@ -81,7 +81,7 @@ impl MixnetProcessor {
     ) -> Result<AsyncDevice, MixnetError> {
         info!(
             "Opened mixnet processor on tun device {}",
-            self.device.as_ref().tun_name().unwrap(),
+            self.device.get_ref().name().unwrap(),
         );
 
         debug!("Splitting tun device into sink and stream");
@@ -139,7 +139,7 @@ impl MixnetProcessor {
                 Some(Ok(packet)) = tun_device_stream.next() => {
                     // Bundle up IP packets into a single mixnet message
                     if let Some(input_message) = multi_ip_packet_encoder
-                        .append_packet(packet.into())
+                        .append_packet(packet.into_bytes())
                     {
                         match message_creator.create_input_message(input_message) {
                             Ok(input_message) => {

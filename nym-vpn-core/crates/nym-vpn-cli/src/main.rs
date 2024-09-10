@@ -1,29 +1,55 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+mod commands;
+mod error;
+mod shutdown_handler;
+
 use std::{fs, path::PathBuf};
 
+use anyhow::Context;
 use clap::Parser;
-use commands::{CliArgs, ImportCredentialTypeEnum};
-use futures::channel::mpsc;
+use time::OffsetDateTime;
+use tokio::sync::mpsc;
+use tokio_util::sync::CancellationToken;
+
 use nym_vpn_api_client::types::GatewayMinPerformance;
 use nym_vpn_lib::{
     gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint},
     nym_config::defaults::{setup_env, var_names},
-    GenericNymVpnConfig, IpPair, MixnetClientConfig, NodeIdentity, NymVpn, Recipient, SpecificVpn,
-};
-use time::OffsetDateTime;
-use tracing::{debug, error, info};
-
-use crate::{
-    commands::Commands,
-    error::{Error, Result},
+    tunnel_state_machine::{TunnelCommand, TunnelStateMachine},
+    GenericNymVpnConfig, IpPair, MixnetClientConfig, NodeIdentity, Recipient,
 };
 
-mod commands;
-mod error;
+use commands::{CliArgs, Commands, ImportCredentialTypeEnum};
+use error::{Error, Result};
 
 const CONFIG_DIRECTORY_NAME: &str = "nym-vpn-cli";
+
+#[tokio::main(flavor = "multi_thread")]
+async fn main() -> anyhow::Result<()> {
+    let args = commands::CliArgs::parse();
+    setup_logging(&args);
+    tracing::debug!("{:?}", nym_bin_common::bin_info_local_vergen!());
+    setup_env(args.config_env_file.as_ref());
+
+    check_root_privileges(&args)?;
+
+    let data_path = args.data_path.or(mixnet_data_path());
+
+    match args.command {
+        Commands::Run(args) => run_vpn(args, data_path).await,
+        Commands::ImportCredential(args) => {
+            let data_path = data_path.ok_or(Error::ConfigPathNotSet)?;
+            import_credential(args, data_path).await.map(|d| {
+                if let Some(d) = d {
+                    tracing::info!("Credential expiry date: {}", d);
+                }
+            })?;
+            Ok(())
+        }
+    }
+}
 
 pub(crate) fn setup_logging(args: &CliArgs) {
     let mut filter = tracing_subscriber::EnvFilter::builder()
@@ -91,7 +117,7 @@ fn check_root_privileges(args: &commands::CliArgs) -> Result<()> {
     };
 
     if !needs_root {
-        debug!("Root privileges not required for this command");
+        tracing::debug!("Root privileges not required for this command");
         return Ok(());
     }
 
@@ -102,16 +128,14 @@ fn check_root_privileges(args: &commands::CliArgs) -> Result<()> {
     return win_has_admin("nym-vpn-cli");
 
     // Assume we're all good on unknown platforms
-    debug!("Platform not supported for root privilege check");
+    tracing::debug!("Platform not supported for root privilege check");
     Ok(())
 }
 
 #[cfg(unix)]
 pub(crate) fn unix_has_root(binary_name: &str) -> Result<()> {
-    use tracing::debug;
-
     if nix::unistd::geteuid().is_root() {
-        debug!("Root privileges acquired");
+        tracing::debug!("Root privileges acquired");
         Ok(())
     } else {
         Err(Error::RootPrivilegesRequired {
@@ -125,7 +149,7 @@ pub(crate) fn win_has_admin(binary_name: &str) -> Result<()> {
     use tracing::debug;
 
     if is_elevated::is_elevated() {
-        debug!("Admin privileges acquired");
+        tracing::debug!("Admin privileges acquired");
         Ok(())
     } else {
         Err(Error::AdminPrivilegesRequired {
@@ -134,30 +158,7 @@ pub(crate) fn win_has_admin(binary_name: &str) -> Result<()> {
     }
 }
 
-async fn run() -> Result<()> {
-    let args = commands::CliArgs::parse();
-    setup_logging(&args);
-    debug!("{:?}", nym_bin_common::bin_info_local_vergen!());
-    setup_env(args.config_env_file.as_ref());
-
-    check_root_privileges(&args)?;
-
-    let data_path = args.data_path.or(mixnet_data_path());
-
-    match args.command {
-        Commands::Run(args) => run_vpn(args, data_path).await,
-        Commands::ImportCredential(args) => {
-            let data_path = data_path.ok_or(Error::ConfigPathNotSet)?;
-            import_credential(args, data_path).await.map(|d| {
-                if let Some(d) = d {
-                    info!("Credential expiry date: {}", d);
-                }
-            })
-        }
-    }
-}
-
-async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<()> {
+async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> anyhow::Result<()> {
     // Setup gateway directory configuration
     let min_gateway_performance = GatewayMinPerformance::from_percentage_values(
         args.min_gateway_mixnet_performance.map(u64::from),
@@ -168,8 +169,8 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
     let gateway_config =
         GatewayConfig::new_from_env().with_min_gateway_performance(min_gateway_performance);
 
-    info!("nym-api: {}", gateway_config.api_url());
-    info!(
+    tracing::info!("nym-api: {}", gateway_config.api_url());
+    tracing::info!(
         "nym-vpn-api: {}",
         gateway_config
             .nym_vpn_api_url()
@@ -204,69 +205,59 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
         user_agent: Some(nym_bin_common::bin_info_local_vergen!().into()),
     };
 
-    let nym_vpn: SpecificVpn = if args.wireguard_mode {
-        let mut nym_vpn = NymVpn::new_wireguard_vpn(entry_point, exit_point);
-        nym_vpn.generic_config = generic_config;
-        nym_vpn.into()
-    } else {
-        let mut nym_vpn = NymVpn::new_mixnet_vpn(entry_point, exit_point);
-        nym_vpn.generic_config = generic_config;
-        nym_vpn.into()
-    };
+    let (command_tx, command_rx) = mpsc::unbounded_channel();
+    let (event_tx, mut event_rx) = mpsc::unbounded_channel();
+    let shutdown_token = CancellationToken::new();
 
-    let handle = nym_vpn_lib::spawn_nym_vpn(nym_vpn).unwrap();
+    let state_machine_handle = TunnelStateMachine::spawn(
+        command_rx,
+        event_tx,
+        generic_config,
+        args.wireguard_mode,
+        shutdown_token.child_token(),
+    )
+    .await
+    .with_context(|| "Failed to start a tunnel state machine")?;
 
-    register_signal_handler(handle.ctrl_tx());
+    let mut shutdown_join_set = shutdown_handler::install(shutdown_token.clone());
 
-    handle.wait_until_stopped().await.map_err(Error::VpnLib)
-}
+    command_tx
+        .send(TunnelCommand::Connect)
+        .with_context(|| "Failed to send a connect command.")?;
 
-#[cfg(unix)]
-fn register_signal_handler(vpn_ctrl_tx: mpsc::UnboundedSender<nym_vpn_lib::NymVpnCtrlMessage>) {
-    use tokio::signal::unix::{signal, SignalKind};
-
-    tokio::spawn(async move {
-        let mut sigterm = signal(SignalKind::terminate()).expect("Failed to setup SIGTERM channel");
-        let mut sigquit = signal(SignalKind::quit()).expect("Failed to setup SIGQUIT channel");
-
+    loop {
         tokio::select! {
-            _ = tokio::signal::ctrl_c() => {
-                info!("Received Ctrl-C signal");
+            Some(event) = event_rx.recv() => {
+                tracing::info!("Received event: {:?}", event);
             }
-            _ = sigterm.recv() => {
-                info!("Received SIGTERM signal");
+            _ = shutdown_token.cancelled() => {
+                tracing::info!("Cancellation received. Breaking event loop.");
+                break;
             }
-            _ = sigquit.recv() => {
-                info!("Received SIGQUIT signal");
+            else => {
+                tracing::info!("Event receiver is closed. Breaking event loop.");
+                break;
             }
         }
-        info!("Sending stop message to VPN");
-        vpn_ctrl_tx
-            .unbounded_send(nym_vpn_lib::NymVpnCtrlMessage::Stop)
-            .unwrap();
-    });
-}
+    }
 
-#[cfg(not(unix))]
-fn register_signal_handler(vpn_ctrl_tx: mpsc::UnboundedSender<nym_vpn_lib::NymVpnCtrlMessage>) {
-    tokio::spawn(async move {
-        tokio::select! {
-            _ = tokio::signal::ctrl_c() => {
-                info!("Received Ctrl-C signal");
-            }
-        }
-        info!("Sending stop message to VPN");
-        vpn_ctrl_tx
-            .unbounded_send(nym_vpn_lib::NymVpnCtrlMessage::Stop)
-            .unwrap();
-    });
+    tracing::info!("Waiting for state machine to shutdown");
+    if let Err(e) = state_machine_handle.await {
+        tracing::warn!("Failed to join on state machine handle: {}", e);
+    }
+
+    tracing::info!("Aborting signal handlers.");
+    shutdown_join_set.shutdown().await;
+
+    tracing::info!("Goodbye.");
+    Ok(())
 }
 
 async fn import_credential(
     args: commands::ImportCredentialArgs,
     data_path: PathBuf,
 ) -> Result<Option<OffsetDateTime>> {
-    info!("Importing credential data into: {}", data_path.display());
+    tracing::info!("Importing credential data into: {}", data_path.display());
     let data: ImportCredentialTypeEnum = args.credential_type.into();
     let raw_credential = match data {
         ImportCredentialTypeEnum::Path(path) => {
@@ -288,14 +279,4 @@ fn mixnet_data_path() -> Option<PathBuf> {
     let network_name =
         std::env::var(var_names::NETWORK_NAME).expect("NETWORK_NAME env var not set");
     dirs::data_dir().map(|dir| dir.join(CONFIG_DIRECTORY_NAME).join(network_name))
-}
-
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    if let Err(err) = run().await {
-        error!("Exit with error: {err}");
-        eprintln!("An error occurred: {err}");
-        std::process::exit(1)
-    }
-    Ok(())
 }

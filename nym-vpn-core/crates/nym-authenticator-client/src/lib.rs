@@ -1,9 +1,11 @@
 use std::{cmp::Ordering, sync::Arc, time::Duration};
 
-use nym_authenticator_requests::latest::VERSION as LATEST_VERSION;
-use nym_authenticator_requests::v1::{
-    registration::InitMessage, request::AuthenticatorRequest, response::AuthenticatorResponse,
-    GatewayClient, VERSION as USED_VERSION,
+use nym_authenticator_requests::{
+    latest::VERSION as LATEST_VERSION,
+    v1::{
+        registration::InitMessage, request::AuthenticatorRequest, response::AuthenticatorResponse,
+        GatewayClient, VERSION as USED_VERSION,
+    },
 };
 
 use nym_sdk::mixnet::{

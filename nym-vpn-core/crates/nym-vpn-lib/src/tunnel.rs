@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
-    collections::HashSet,
     path::Path,
     sync::{Arc, Mutex},
 };
@@ -90,19 +89,27 @@ pub(crate) fn start_tunnel(
         };
         let monitor = match WireguardMonitor::start(
             config,
-            None,
+            false,
+            #[cfg(not(target_os = "android"))]
+            false,
             Some(Path::new(&resource_dir.join("logs"))),
             args,
         ) {
             Ok(monitor) => monitor,
             Err(e) => {
-                send_error_event(&mut shutdown, WgTunnelErrorEvent::WireguardMonitor(e));
+                send_error_event(
+                    &mut shutdown,
+                    WgTunnelErrorEvent::WireguardMonitor(e.to_string()),
+                );
                 return;
             }
         };
         debug!("Wireguard monitor started, blocking current thread until shutdown");
         if let Err(e) = monitor.wait() {
-            send_error_event(&mut shutdown, WgTunnelErrorEvent::WireguardMonitor(e));
+            send_error_event(
+                &mut shutdown,
+                WgTunnelErrorEvent::WireguardMonitor(e.to_string()),
+            );
         } else {
             if finished_shutdown_tx.send(()).is_err() {
                 send_error_event(&mut shutdown, WgTunnelErrorEvent::SendWireguardShutdown);
@@ -128,11 +135,11 @@ pub(crate) async fn setup_route_manager() -> crate::error::Result<RouteManager> 
     let route_manager = {
         let fwmark = 0;
         let table_id = 0;
-        RouteManager::new(HashSet::new(), fwmark, table_id).await?
+        RouteManager::new(fwmark, table_id).await?
     };
 
     #[cfg(not(target_os = "linux"))]
-    let route_manager = RouteManager::new(HashSet::new()).await?;
+    let route_manager = RouteManager::new().await?;
 
     Ok(route_manager)
 }

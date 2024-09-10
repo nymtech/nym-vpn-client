@@ -19,7 +19,6 @@ use talpid_tunnel::{TunnelEvent, TunnelMetadata};
 use tokio::time::timeout;
 
 use crate::{
-    bandwidth_controller::BandwidthController,
     error::{Error, GatewayDirectoryError, Result, SetupMixTunnelError, SetupWgTunnelError},
     mixnet, platform,
     routing::{self, catch_all_ipv4, catch_all_ipv6, replace_default_prefixes},
@@ -122,10 +121,6 @@ async fn setup_wg_tunnel(
     // 1440 - (40 + 8 + 32)
     let exit_mtu = 1360;
 
-    let bandwidth_controller =
-        BandwidthController::new(mixnet_client.clone(), task_manager.subscribe());
-    tokio::spawn(bandwidth_controller.run());
-
     let (Some(entry_auth_recipient), Some(exit_auth_recipient)) =
         (auth_addresses.entry().0, auth_addresses.exit().0)
     else {
@@ -155,8 +150,8 @@ async fn setup_wg_tunnel(
     .await?;
     let wg_gateway = exit_wireguard_config
         .talpid_config
-        .peers
-        .first()
+        .peers()
+        .next()
         .map(|config| config.endpoint.ip());
     let (mut entry_wireguard_config, entry_gateway_ip) = wireguard_config::init_wireguard_config(
         &gateway_directory_client,
@@ -205,14 +200,12 @@ async fn setup_wg_tunnel(
     tokio::spawn(wg_exit_gateway_client.run(task_manager.subscribe_named("bandwidth_exit_client")));
     entry_wireguard_config
         .talpid_config
-        .peers
-        .iter_mut()
+        .peers_mut()
         .for_each(|peer| {
             peer.allowed_ips.append(
                 &mut exit_wireguard_config
                     .talpid_config
-                    .peers
-                    .iter()
+                    .peers()
                     .map(|peer| IpNetwork::from(peer.endpoint.ip()))
                     .collect::<Vec<_>>(),
             );
@@ -221,8 +214,7 @@ async fn setup_wg_tunnel(
     if !nym_vpn.generic_config.disable_routing {
         exit_wireguard_config
             .talpid_config
-            .peers
-            .iter_mut()
+            .peers_mut()
             .for_each(|peer| {
                 peer.allowed_ips
                     .append(&mut replace_default_prefixes(catch_all_ipv4()));

@@ -7,7 +7,6 @@ pub mod credentials;
 pub mod storage;
 pub mod util;
 
-mod bandwidth_controller;
 mod error;
 mod event;
 mod mixnet;
@@ -17,8 +16,10 @@ mod platform;
 mod routing;
 mod tunnel;
 mod tunnel_setup;
+pub mod tunnel_state_machine;
 mod uniffi_custom_impls;
 mod vpn;
+mod wg_config;
 mod wireguard_config;
 mod wireguard_setup;
 
