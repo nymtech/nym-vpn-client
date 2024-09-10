@@ -52,6 +52,7 @@ mod tray;
 mod vpn_status;
 mod window;
 
+pub const APP_NAME: &str = "NymVPN";
 pub const APP_DIR: &str = "nymvpn-x";
 pub const MAIN_WINDOW_LABEL: &str = "main";
 const APP_CONFIG_FILE: &str = "config.toml";

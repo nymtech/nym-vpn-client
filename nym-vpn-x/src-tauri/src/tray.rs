@@ -4,9 +4,9 @@ use anyhow::anyhow;
 use anyhow::Result;
 use strum::AsRefStr;
 use tauri::menu::MenuEvent;
-use tauri::tray::MouseButton;
 use tauri::tray::TrayIcon;
 use tauri::tray::TrayIconEvent;
+use tauri::tray::{MouseButton, MouseButtonState};
 use tauri::Manager;
 use tauri::{menu::MenuBuilder, AppHandle};
 use tracing::{debug, error, instrument, trace, warn};
@@ -15,7 +15,7 @@ use crate::{
     grpc::client::GrpcClient,
     states::{app::ConnectionState, SharedAppState},
     window::AppWindow,
-    MAIN_WINDOW_LABEL,
+    APP_NAME, MAIN_WINDOW_LABEL,
 };
 
 pub const TRAY_ICON_ID: &str = "main";
@@ -29,12 +29,14 @@ enum MenuItemId {
 
 #[instrument(skip_all)]
 fn on_tray_event(tray_icon: &TrayIcon, event: TrayIconEvent) {
-    if let TrayIconEvent::Click { button, .. } = event {
-        trace!("tray event [click] {:?}", button);
-        //TODO check if matching MouseButtonState is needed
-        if let MouseButton::Left = button {
-            show_window(tray_icon.app_handle(), false).ok();
-        };
+    if let TrayIconEvent::Click {
+        button: MouseButton::Left,
+        button_state: MouseButtonState::Down,
+        ..
+    } = event
+    {
+        trace!("tray event left click");
+        show_window(tray_icon.app_handle(), false).ok();
     }
 }
 
