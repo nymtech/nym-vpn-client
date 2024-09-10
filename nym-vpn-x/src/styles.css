@@ -78,4 +78,21 @@
       transform: rotate(1turn);
     }
   }
+
+  /* Tooltip
+   *  usage:
+   *  <div class="attach-tooltip">
+   *    <span>Hover me</span>
+   *    <div class="tooltip">Tooltip content</div>
+   *  </div>
+   */
+  .tooltip {
+    @apply invisible absolute p-2 px-3 rounded shadow-md
+    bg-seashell dark:bg-poivre-noir text-sm
+    transition-opacity duration-200 opacity-0 ease-out;
+  }
+
+  .attach-tooltip:hover .tooltip {
+    @apply visible opacity-100 z-50;
+  }
 }

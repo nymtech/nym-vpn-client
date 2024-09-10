@@ -140,7 +140,9 @@ func wgNetGetConfig(tunnelHandle int32) *C.char {
 }
 
 //export wgNetOpenConnectionThroughTunnel
-func wgNetOpenConnectionThroughTunnel(entryTunnelHandle int32, listenPort uint16, clientPort uint16, exitEndpointStr *C.char) int32 {
+func wgNetOpenConnectionThroughTunnel(entryTunnelHandle int32, listenPort uint16, clientPort uint16, exitEndpointStr *C.char, logSink LogSink, logContext LogContext) int32 {
+	logger := logging.NewLogger(logSink, logContext)
+
 	dev, err := netTunnelHandles.Get(entryTunnelHandle)
 	if err != nil {
 		dev.Errorf("Invalid tunnel handle: %d", entryTunnelHandle)
@@ -159,7 +161,7 @@ func wgNetOpenConnectionThroughTunnel(entryTunnelHandle int32, listenPort uint16
 		ExitEndpoint: exitEndpoint,
 	}
 
-	udpForwarder, err := udp_forwarder.New(forwarderConfig, dev.Net, dev.Logger)
+	udpForwarder, err := udp_forwarder.New(forwarderConfig, dev.Net, logger)
 	if err != nil {
 		dev.Errorf("Failed to create udp forwarder: %v", err)
 		return ERROR_GENERAL_FAILURE

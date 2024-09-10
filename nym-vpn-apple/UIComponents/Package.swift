@@ -28,6 +28,7 @@ let package = Package(
                 "Theme",
                 .product(name: "ConnectionManager", package: "Services"),
                 .product(name: "CountriesManager", package: "Services"),
+                .product(name: "ConfigurationManager", package: "Services"),
                 .product(name: "Modifiers", package: "Services"),
                 .product(name: "Lottie", package: "lottie-spm")
             ],

@@ -17,16 +17,16 @@ use tokio::task::JoinHandle;
 
 use crate::wireguard_config::WireguardConfig;
 
-pub type EventReceiver = mpsc::UnboundedReceiver<(TunnelEvent, Sender<()>)>;
+pub(crate) type EventReceiver = mpsc::UnboundedReceiver<(TunnelEvent, Sender<()>)>;
 
-pub struct Tunnel {
-    pub config: Config,
-    pub route_manager_handle: RouteManagerHandle,
-    pub tun_provider: Arc<Mutex<TunProvider>>,
+pub(crate) struct Tunnel {
+    pub(crate) config: Config,
+    pub(crate) route_manager_handle: RouteManagerHandle,
+    pub(crate) tun_provider: Arc<Mutex<TunProvider>>,
 }
 
 impl Tunnel {
-    pub fn new(
+    pub(crate) fn new(
         config: WireguardConfig,
         route_manager_handle: RouteManagerHandle,
         tun_provider: Arc<Mutex<TunProvider>>,
@@ -39,11 +39,14 @@ impl Tunnel {
     }
 }
 
-pub fn start_tunnel(
+pub(crate) fn start_tunnel(
     tunnel: &Tunnel,
     mut shutdown: TaskClient,
     finished_shutdown_tx: Sender<()>,
-) -> Result<(JoinHandle<()>, EventReceiver, Sender<()>), crate::error::Error> {
+) -> std::result::Result<
+    (JoinHandle<()>, EventReceiver, Sender<()>),
+    crate::error::SetupWgTunnelError,
+> {
     debug!("Starting tunnel");
     let route_manager = tunnel.route_manager_handle.clone();
     // We only start the tunnel when we have wireguard enabled, and then we have the config
@@ -108,7 +111,7 @@ pub fn start_tunnel(
     Ok((handle, event_rx, tunnel_close_tx))
 }
 
-pub async fn setup_route_manager() -> crate::error::Result<RouteManager> {
+pub(crate) async fn setup_route_manager() -> crate::error::Result<RouteManager> {
     #[cfg(target_os = "linux")]
     let route_manager = {
         let fwmark = 0;

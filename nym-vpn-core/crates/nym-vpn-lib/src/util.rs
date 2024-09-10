@@ -5,11 +5,7 @@ use futures::{channel::mpsc, StreamExt};
 use talpid_routing::RouteManager;
 use tracing::{error, info};
 
-use crate::{
-    error::{Error, Result},
-    tunnel_setup::WgTunnelSetup,
-    vpn::NymVpnCtrlMessage,
-};
+use crate::{tunnel_setup::WgTunnelSetup, vpn::NymVpnCtrlMessage};
 
 pub(crate) async fn wait_for_interrupt(
     mut task_manager: Option<nym_task::TaskManager>,
@@ -93,33 +89,5 @@ pub(crate) async fn handle_interrupt(
     }
     if let Err(err) = exit.handle.await {
         error!("Error on exit tunnel handle {}", err);
-    }
-}
-
-#[cfg(unix)]
-pub fn unix_has_root(binary_name: &str) -> Result<()> {
-    use tracing::debug;
-
-    if nix::unistd::geteuid().is_root() {
-        debug!("Root privileges acquired");
-        Ok(())
-    } else {
-        Err(Error::RootPrivilegesRequired {
-            binary_name: binary_name.to_string(),
-        })
-    }
-}
-
-#[cfg(windows)]
-pub fn win_has_admin(binary_name: &str) -> Result<()> {
-    use tracing::debug;
-
-    if is_elevated::is_elevated() {
-        debug!("Admin privileges acquired");
-        Ok(())
-    } else {
-        Err(Error::AdminPrivilegesRequired {
-            binary_name: binary_name.to_string(),
-        })
     }
 }

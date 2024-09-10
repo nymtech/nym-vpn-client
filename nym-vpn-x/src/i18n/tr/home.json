@@ -21,14 +21,14 @@
     "connected": "VPN bağlıyken devre dışı",
     "connecting": "VPN bağlantısı sırasında devre dışı bırakıldı",
     "disconnecting": "VPN'den bağlantı kesilirken devre dışı bırakıldı",
-    "daemon-not-connected": "VPN daemon'ına bağlı değilken devre dışı"
+    "daemon-not-connected": "NymVPN uygulaması şu anda NymVPN daemon'una bağlı değil."
   },
   "privacy-mode": {
-    "title": "Anonim",
+    "title": "Anonim (mixnet)",
     "desc": "Ödemeler, e-postalar, mesajlar için en iyisi"
   },
   "fast-mode": {
-    "title": "Hızlı",
+    "title": "Hızlı (WireGuard)",
     "desc": "İnternet tarama, yayın, paylaşım için en iyisi"
   },
   "select-mode-label": "Mod seçin",
@@ -37,5 +37,6 @@
     "privacy-description": "Bağlantınızı mixnet üzerinden 5 sunucuya yönlendirerek maksimum düzeyde gizliliğin tadını çıkarın. Ödemeleri, e-postaları ve mesajları güvenli bir şekilde yönetmek için mükemmeldir.",
     "fast-description": "Maksimum hızı 2 sunucu bağlantısıyla deneyimleyin. Hızlı tarama, yayın izleme ve dosya paylaşımı için mükemmeldir.",
     "link": "Okumaya devam edin"
-  }
+  },
+  "windows-no-fast-mode": "Hızlı mod WireGuard'a geçirken, bu seçenek geçici olarak kullanılamamaktadır."
 }

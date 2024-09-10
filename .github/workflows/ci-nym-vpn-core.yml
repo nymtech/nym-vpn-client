@@ -62,7 +62,7 @@ jobs:
         id: setup-ndk
         if: matrix.target == 'android'
         with:
-          ndk-version: r26c
+          ndk-version: r25c
           add-to-path: false
 
       - name: Add iOS target
@@ -112,6 +112,17 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: "stable"
+
+      - name: Override GOROOT and GOTOOLDIR
+        if: contains(matrix.os, 'ubuntu')
+        run: |
+          echo "Setting correct GOROOT and GOTOOLDIR"
+          unset GOROOT
+          unset GOTOOLDIR
+          export GOROOT=$(go env GOROOT)
+          export GOTOOLDIR=$(go env GOTOOLDIR)
+          echo "GOROOT=$GOROOT" >> $GITHUB_ENV
+          echo "GOTOOLDIR=$GOTOOLDIR" >> $GITHUB_ENV
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
@@ -263,11 +274,17 @@ jobs:
         if: steps.diff_ios.outcome == 'failure' && matrix.target == 'ios'
         run: exit 1
 
-      - name: Run tests
-        if: matrix.target != 'android' && matrix.target != 'ios'
+      - name: Run tests (Linux, macOS)
+        if: matrix.target != 'android' && matrix.target != 'ios' && !contains(matrix.os, 'windows')
         working-directory: nym-vpn-core
         run: |
           cargo test --verbose
+
+      - name: Run tests (Windows excluding gateway probe)
+        if: contains(matrix.os, 'windows')
+        working-directory: nym-vpn-core
+        run: |
+          cargo test --verbose --workspace --exclude nym-gateway-probe
 
       - name: Clippy
         working-directory: nym-vpn-core

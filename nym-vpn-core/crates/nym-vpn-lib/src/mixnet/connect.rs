@@ -1,17 +1,14 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::PathBuf;
+use std::{path::PathBuf, result::Result};
 
 use nym_config::defaults::NymNetworkDetails;
 use nym_sdk::mixnet::{MixnetClientBuilder, NodeIdentity, StoragePaths};
 use tracing::{debug, info};
 
-use super::SharedMixnetClient;
-use crate::{
-    error::{Error, MixnetError, Result},
-    vpn::MixnetClientConfig,
-};
+use super::{MixnetError, SharedMixnetClient};
+use crate::vpn::MixnetClientConfig;
 
 fn true_to_enabled(val: bool) -> &'static str {
     if val {
@@ -79,7 +76,7 @@ pub(crate) async fn setup_mixnet_client(
     mixnet_client_key_storage_path: &Option<PathBuf>,
     mut task_client: nym_task::TaskClient,
     mixnet_client_config: MixnetClientConfig,
-) -> Result<SharedMixnetClient> {
+) -> Result<SharedMixnetClient, MixnetError> {
     let mut debug_config = nym_client_core::config::DebugConfig::default();
     apply_mixnet_client_config(&mixnet_client_config, &mut debug_config);
 
@@ -95,7 +92,7 @@ pub(crate) async fn setup_mixnet_client(
             // UGLY: flow needs to restructured to sort this out, but I don't want to refactor all
             // that just before release.
             task_client.disarm();
-            return Err(Error::InvalidCredential {
+            return Err(MixnetError::InvalidCredential {
                 reason: err,
                 path: path.to_path_buf(),
                 gateway_id,
@@ -138,14 +135,14 @@ pub(crate) async fn setup_mixnet_client(
 }
 
 // Map some specific mixnet errors to more specific ones
-fn map_mixnet_connect_error(err: nym_sdk::Error) -> Error {
+fn map_mixnet_connect_error(err: nym_sdk::Error) -> MixnetError {
     match err {
         nym_sdk::Error::ClientCoreError(
             nym_client_core::error::ClientCoreError::GatewayClientError { gateway_id, source },
-        ) => Error::Mixnet(MixnetError::EntryGateway {
+        ) => MixnetError::EntryGateway {
             gateway_id: gateway_id.to_string(),
             source: Box::new(source),
-        }),
-        _ => Error::Mixnet(MixnetError::FailedToConnectToMixnet(err)),
+        },
+        _ => MixnetError::FailedToConnectToMixnet(err),
     }
 }

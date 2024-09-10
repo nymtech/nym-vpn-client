@@ -1,20 +1,21 @@
 name: build-wireguard-go-android
-on: [workflow_dispatch, workflow_call]
+on:
+  workflow_dispatch:
+  workflow_call:
+  pull_request:
+    paths:
+      - ".github/workflows/build-wireguard-go-android.yml"
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   build:
-    runs-on: 'ubuntu-22.04'
+    runs-on: 'arc-ubuntu-22.04-dind'
 
     steps:
       - name: Checkout nym-vpn-client
         uses: actions/checkout@v4
-        with:
-          # fetch only the root files and wireguard dir
-          sparse-checkout: |
-            wireguard
 
       - name: Moving directories
         run: |

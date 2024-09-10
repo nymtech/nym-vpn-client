@@ -10,6 +10,7 @@ license.workspace = true
 
 [dependencies]
 base64-url.workspace = true
+bip39 = { workspace = true, features = ["zeroize"] }
 bs58.workspace = true
 chrono.workspace = true
 nym-crypto = { workspace = true, features = ["asymmetric"] }
@@ -22,10 +23,7 @@ sha2.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 
-# Remove me?
-bip39 = { version = "2.0.0", features = ["zeroize"] }
-
 [dev-dependencies]
 tokio = { workspace = true, features = ["full"] }
-bip39 = { version = "2.0.0", features = ["zeroize"] }
+bip39 = { workspace = true, features = ["zeroize"] }
 

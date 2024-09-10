@@ -1,5 +1,10 @@
-name: build-wireguard-go-android
-on: [workflow_dispatch, workflow_call]
+name: build-wireguard-go-windows
+on:
+  workflow_dispatch:
+  workflow_call:
+  pull_request:
+    paths:
+      - ".github/workflows/build-wireguard-go-windows.yml"
 
 env:
   CARGO_TERM_COLOR: always

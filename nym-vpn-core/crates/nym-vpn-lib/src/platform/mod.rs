@@ -47,8 +47,8 @@ use crate::{
         NymVpnStatus, StatusEvent, TunStatus, UserAgent,
     },
     vpn::{
-        spawn_nym_vpn, MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError,
-        NymVpnExitStatusMessage, NymVpnHandle, SpecificVpn,
+        spawn_nym_vpn, MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitStatusMessage, NymVpnHandle,
+        SpecificVpn,
     },
 };
 
@@ -170,7 +170,10 @@ async fn wait_for_shutdown(
         VpnServiceStatusListener::new().start(vpn_status_rx).await;
     });
 
-    match vpn_exit_rx.await? {
+    match vpn_exit_rx
+        .await
+        .map_err(|_| crate::Error::NymVpnExitUnexpectedChannelClose)?
+    {
         NymVpnExitStatusMessage::Failed(error) => {
             debug!("received exit status message for vpn");
             RUNNING.store(false, Ordering::Relaxed);
@@ -179,6 +182,7 @@ async fn wait_for_shutdown(
                 .ok_or(crate::Error::StopError)?;
             uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failure {
                 error: error.into(),
+
             }));
             error!("Stopped Nym VPN with error: {:?}", error);
         }
@@ -495,7 +499,10 @@ async fn get_low_latency_entry_country(
     let gateway = gateway_client.lookup_low_latency_entry_gateway().await?;
     let country = gateway
         .location
-        .ok_or(crate::Error::CountryCodeNotFound)?
+        // Using LibError here keep existing behaviour and not make any changes to FFIError
+        .ok_or(FFIError::LibError {
+            inner: "gateway does not contain a two character country ISO".to_string(),
+        })?
         .into();
 
     Ok(country)

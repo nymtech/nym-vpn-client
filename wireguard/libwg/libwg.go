@@ -13,7 +13,6 @@ import "C"
 import (
 	"bufio"
 	"bytes"
-	"net"
 	"runtime"
 	"unsafe"
 
@@ -28,7 +27,6 @@ const (
 
 type TunnelContext struct {
 	Device *device.Device
-	Uapi   net.Listener
 	Logger *device.Logger
 }
 

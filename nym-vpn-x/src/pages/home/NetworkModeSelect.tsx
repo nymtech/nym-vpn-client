@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { invoke } from '@tauri-apps/api';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
@@ -20,6 +20,12 @@ function NetworkModeSelect() {
 
   const { t } = useTranslation('home');
 
+  useEffect(() => {
+    if (state.vpnMode === 'TwoHop' && state.os === 'windows') {
+      dispatch({ type: 'set-vpn-mode', mode: 'Mixnet' });
+    }
+  }, [dispatch, state.vpnMode, state.os]);
+
   const handleNetworkModeChange = async (value: VpnMode) => {
     if (state.state === 'Disconnected' && value !== state.vpnMode) {
       setLoading(true);
@@ -36,7 +42,7 @@ function NetworkModeSelect() {
 
   const showSnackbar = useThrottle(
     () => {
-      let text = '';
+      let text = null;
       switch (state.state) {
         case 'Connected':
           text = t('snackbar-disabled-message.connected');
@@ -47,6 +53,9 @@ function NetworkModeSelect() {
         case 'Disconnecting':
           text = t('snackbar-disabled-message.disconnecting');
           break;
+      }
+      if (!text) {
+        return;
       }
       push({
         text,
@@ -80,15 +89,20 @@ function NetworkModeSelect() {
         key: 'TwoHop',
         label: t('fast-mode.title'),
         desc: t('fast-mode.desc'),
-        disabled: state.state !== 'Disconnected' || loading,
+        disabled:
+          // TODO remove os check when Windows is supported
+          state.os === 'windows' || state.state !== 'Disconnected' || loading,
         icon: (
           <span className="font-icon text-3xl text-baltic-sea dark:text-mercury-pinkish">
             speed
           </span>
         ),
+        // TODO remove when Windows is supported
+        className: state.os === 'windows' ? 'opacity-40' : undefined,
+        tooltip: state.os === 'windows' ? t('windows-no-fast-mode') : undefined,
       },
     ];
-  }, [loading, state.state, t]);
+  }, [loading, state.state, state.os, t]);
 
   return (
     <div>

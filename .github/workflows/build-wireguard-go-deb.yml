@@ -1,5 +1,10 @@
 name: build-wireguard-go-deb
-on: [workflow_dispatch, workflow_call]
+on:
+  workflow_dispatch:
+  workflow_call:
+  pull_request:
+    paths:
+      - ".github/workflows/build-wireguard-go-deb.yml"
 
 env:
   CARGO_TERM_COLOR: always
@@ -20,8 +25,19 @@ jobs:
           go-version: "stable"
           cache-dependency-path: "**/go.sum"
 
+      - name: Override GOROOT and GOTOOLDIR
+        run: |
+          echo "Setting correct GOROOT and GOTOOLDIR"
+          unset GOROOT
+          unset GOTOOLDIR
+          export GOROOT=$(go env GOROOT)
+          export GOTOOLDIR=$(go env GOTOOLDIR)
+          echo "GOROOT=$GOROOT" >> $GITHUB_ENV
+          echo "GOTOOLDIR=$GOTOOLDIR" >> $GITHUB_ENV
+
       - name: Build wireguard
-        run: ./wireguard/build-wireguard-go.sh
+        run: |
+          ./wireguard/build-wireguard-go.sh
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

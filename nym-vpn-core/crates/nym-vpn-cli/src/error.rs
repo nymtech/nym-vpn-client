@@ -26,6 +26,14 @@ pub(crate) enum Error {
 
     #[error("failed to parse encoded credential data")]
     FailedToParseEncodedCredentialData(#[source] bs58::decode::Error),
+
+    #[cfg(unix)]
+    #[error("sudo/root privileges required, try rerunning with sudo: `sudo -E {binary_name} run`")]
+    RootPrivilegesRequired { binary_name: String },
+
+    #[cfg(windows)]
+    #[error("administrator privileges required, try rerunning with administrator privileges: `runas /user:Administrator {binary_name} run`")]
+    AdminPrivilegesRequired { binary_name: String },
 }
 
 // Result type based on our error type

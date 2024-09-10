@@ -267,6 +267,27 @@ message Error {
 
     // Client ran out of allocated bandwidth
     OUT_OF_BANDWIDTH = 18;
+
+    // The user has no available bandwidth to setup tunnel
+    OUT_OF_BANDWIDTH_WHEN_SETTING_UP_TUNNEL = 26;
+
+    // Failed to bring up the wg interface up
+    BRING_INTERFACE_UP = 27;
+
+    // Failed to init firewall subsystem
+    FIREWALL_INIT = 28;
+
+    // Failed to reset the firewall policy
+    FIREWALL_RESET_POLICY = 29;
+
+    // Failed to init the DNS subsystem
+    DNS_INIT = 30;
+
+    // Failed to set DNS
+    DNS_SET = 31;
+
+    // Failed to find the default network interface
+    FIND_DEFAULT_INTERFACE = 32;
   }
 
   ErrorType kind = 1;

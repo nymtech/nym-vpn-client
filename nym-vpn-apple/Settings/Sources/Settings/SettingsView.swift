@@ -1,5 +1,6 @@
 import SwiftUI
 import AppSettings
+import ConfigurationManager
 import Modifiers
 import UIComponents
 import Theme
@@ -78,7 +79,8 @@ private extension SettingsView {
             viewModel:
                 SettingsListViewModel(
                     sections: viewModel.sections,
-                    appVersion: viewModel.appVersion()
+                    appVersion: viewModel.appVersion(),
+                    configurationManager: ConfigurationManager.shared
                 )
         )
     }

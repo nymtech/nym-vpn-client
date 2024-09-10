@@ -25,6 +25,10 @@ use crate::{
 pub struct SharedMixnetClient(Arc<tokio::sync::Mutex<Option<MixnetClient>>>);
 
 impl SharedMixnetClient {
+    pub fn from_shared(mixnet_client: &Arc<tokio::sync::Mutex<Option<MixnetClient>>>) -> Self {
+        Self(Arc::clone(mixnet_client))
+    }
+
     pub fn new(mixnet_client: MixnetClient) -> Self {
         Self(Arc::new(tokio::sync::Mutex::new(Some(mixnet_client))))
     }

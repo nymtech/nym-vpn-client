@@ -1,7 +1,7 @@
 {
   "vpn-tunnel-state": {
     "connected": "VPN tunnel connected",
-    "disconnected": "VPN tunnel disconnected",
+    "disconnected": "NymVPN has disconnected. To safeguard your privacy, please reconnect.",
     "failed": "VPN tunnel connection failed!"
   }
 }

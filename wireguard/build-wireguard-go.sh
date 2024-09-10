@@ -138,7 +138,7 @@ function create_folder_and_build {
 
 function build_macos_universal {
     patch_darwin_goruntime
-    
+
     export CGO_ENABLED=1
     export MACOSX_DEPLOYMENT_TARGET=10.13
 
@@ -165,7 +165,7 @@ function build_ios {
 
     export CGO_ENABLED=1
     export IPHONEOS_DEPLOYMENT_TARGET=16.0
-    
+
     pushd libwg
 
     echo "🍎 Building for ios/aarch64"
@@ -207,7 +207,7 @@ function build_ios {
     mkdir -p "../../build/lib/universal-apple-ios-sim/"
     lipo -create -output "../../build/lib/universal-apple-ios-sim/libwg.a"  "../../build/lib/x86_64-apple-ios/libwg.a" "../../build/lib/aarch64-apple-ios-sim/libwg.a"
     cp "../../build/lib/aarch64-apple-ios/libwg.h" "../../build/lib/universal-apple-ios-sim/libwg.h"
-    
+
     popd
 }
 

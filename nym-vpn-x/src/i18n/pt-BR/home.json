@@ -20,16 +20,16 @@
     "connected": "Desativado enquanto conectado à VPN",
     "connecting": "Desativado durante a conexão com a VPN",
     "disconnecting": "Desativado ao se desconectar da VPN",
-    "daemon-not-connected": "Desativado enquanto não estiver conectado ao daemon VPN"
+    "daemon-not-connected": "O aplicativo NymVPN não está conectado ao daemon NymVPN no momento."
   },
   "connection-time": "Tempo de conexão",
   "privacy-mode": {
     "desc": "Melhor para pagamentos, e-mails e mensagens",
-    "title": "Anônimo"
+    "title": "Anônimo (mixnet)"
   },
   "fast-mode": {
     "desc": "Melhor para pesquisar, trasmitir, compartilhar",
-    "title": "Rápido"
+    "title": "Rápido (WireGuard)"
   },
   "select-mode-label": "Selecionar modo",
   "modes-dialog": {
@@ -37,5 +37,6 @@
     "privacy-description": "Aproveite a privacidade de nível máximo ao rotear sua conexão por meio de 5 servidores via mixnet. Perfeito para lidar com segurança com pagamentos, emails e mensagens.",
     "fast-description": "Experimente a velocidade máxima com 2 servidores. Perfeito para navegação rápida, streaming e compartilhamento de arquivos.",
     "link": "Continuar lendo"
-  }
+  },
+  "windows-no-fast-mode": "Como estamos fazendo a transição do modo Fast para o WireGuard, essa opção está temporariamente indisponível."
 }
