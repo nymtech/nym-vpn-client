@@ -19,7 +19,6 @@ use url::Url;
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use super::mobile::runner::Error as MobileError;
 use crate::platform::error::VpnError;
-use crate::vpn::NymVpnExitError;
 use crate::{
     vpn::{MixnetConnectionInfo, MixnetExitConnectionInfo, NymVpnStatusMessage},
     NodeIdentity, Recipient, UniffiCustomTypeConverter,
@@ -403,16 +402,11 @@ impl From<MobileError> for VpnError {
             MobileError::Tunnel(e) => VpnError::InternalError {
                 details: e.to_string(),
             },
-        }
-    }
-}
-
-impl From<&NymVpnExitError> for VpnError {
-    fn from(value: &NymVpnExitError) -> Self {
-        match value {
-            NymVpnExitError::FailedToResetFirewallPolicy { reason } => VpnError::InternalError {
-                details: reason.clone(),
-            },
+            MobileError::FailedToLookupGatewayIp { gateway_id, source } => {
+                VpnError::NetworkConnectionError {
+                    details: format!("Failed to lookup gateway: {gateway_id} with error: {source}"),
+                }
+            }
         }
     }
 }

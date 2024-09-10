@@ -177,11 +177,10 @@ async fn wait_for_shutdown(
         NymVpnExitStatusMessage::Failed(error) => {
             debug!("received exit status message for vpn");
             RUNNING.store(false, Ordering::Relaxed);
-            let error = error
-                .downcast_ref::<NymVpnExitError>()
-                .ok_or(crate::Error::StopError)?;
             uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failure {
-                error: error.into(),
+                error: VpnError::InternalError {
+                    details: error.to_string(),
+                },
             }));
             error!("Stopped Nym VPN with error: {:?}", error);
         }
@@ -499,8 +498,8 @@ async fn get_low_latency_entry_country(
     let country = gateway
         .location
         // Using LibError here keep existing behaviour and not make any changes to FFIError
-        .ok_or(FFIError::LibError {
-            inner: "gateway does not contain a two character country ISO".to_string(),
+        .ok_or(VpnError::InternalError {
+            details: "gateway does not contain a two character country ISO".to_string(),
         })?
         .into();
 
