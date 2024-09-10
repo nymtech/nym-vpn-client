@@ -102,19 +102,23 @@ tower-http = { version = "0.5.2", features = ["cors"] }
 tracing = "0.1"
 tracing-appender = "0.2.3"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-tun2 = { version = "2.0.5", features = ["async"] }
+tun = { version = "0.6.1", features = ["async"] }
 uniffi = { version = "0.27.3", features = ["cli"] }
 url = "2.5"
 vergen = { version = "8.3.1", default-features = false }
 x25519-dalek = "2.0"
 zeroize = "1.6.0"
 
-talpid-core = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "95fb001fb" }
-talpid-platform-metadata = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "95fb001fb" }
-talpid-routing = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "95fb001fb" }
-talpid-tunnel = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "95fb001fb" }
-talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "95fb001fb" }
-talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "95fb001fb" }
+talpid-core = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "e63a599aa" }
+talpid-platform-metadata = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "e63a599aa" }
+talpid-routing = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "e63a599aa" }
+talpid-tunnel = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "e63a599aa" }
+talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "e63a599aa" }
+talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "e63a599aa" }
+
+# Pin down shadowsocks to prevent mullvad dependencies from using newer crates that aren't compatible.
+shadowsocks-service = { version = "=1.16" }
+shadowsocks = { version = "=1.16" }
 
 nym-authenticator-requests = { git = "https://github.com/nymtech/nym", rev = "fabd48b" }
 nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", rev = "fabd48b" }
