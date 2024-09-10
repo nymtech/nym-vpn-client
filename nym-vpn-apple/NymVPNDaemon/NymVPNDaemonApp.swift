@@ -8,6 +8,7 @@ import Constants
 import Home
 import HelperManager
 import NymLogger
+import Migrations
 import SentryManager
 import Theme
 
@@ -59,5 +60,6 @@ private extension NymVPNDaemonApp {
         ThemeConfiguration.setup()
         SentryManager.shared.setup()
         HelperManager.shared.setup(helperName: Constants.helperName.rawValue)
+        Migrations.shared.setup()
     }
 }

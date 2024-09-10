@@ -18,6 +18,7 @@
 		5854E81F2C80BB5A005EE1F4 /* mainnet.env in Resources */ = {isa = PBXBuildFile; fileRef = D94CC12E2C807B8E00B319B5 /* mainnet.env */; };
 		5854E8202C80BB5A005EE1F4 /* sandbox.env in Resources */ = {isa = PBXBuildFile; fileRef = D94CC12F2C807B8E00B319B5 /* sandbox.env */; };
 		5879C2062C80A37200BAB142 /* TunnelSettingsConversions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5879C2052C80A37200BAB142 /* TunnelSettingsConversions.swift */; };
+		D916EE672C90F2A700FADEEF /* Migrations in Frameworks */ = {isa = PBXBuildFile; productRef = D916EE662C90F2A700FADEEF /* Migrations */; };
 		D91E36A92BF3AA7F00BDE84A /* HelperManager in Frameworks */ = {isa = PBXBuildFile; productRef = D91E36A82BF3AA7F00BDE84A /* HelperManager */; };
 		D92219E62BA1CF99005EE6AC /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9CF05D82BA1CC7100489055 /* SystemConfiguration.framework */; };
 		D924A8E62C33F3D400465E84 /* ExternalLinkManager in Frameworks */ = {isa = PBXBuildFile; productRef = D924A8E52C33F3D400465E84 /* ExternalLinkManager */; };
@@ -244,6 +245,7 @@
 				D9FB33E82BECFD1F009C3419 /* ServiceManagement.framework in Frameworks */,
 				D92FBA2B2C6B6AB300D743DF /* ConfigurationManager in Frameworks */,
 				D9E9F1A02C3807A00056EB8C /* Sparkle in Frameworks */,
+				D916EE672C90F2A700FADEEF /* Migrations in Frameworks */,
 				D9E9F19D2C3806BB0056EB8C /* AutoUpdater in Frameworks */,
 				D9E6D8C92BF5FF5F009612CE /* TunnelStatus in Frameworks */,
 				D9BEF2E32BEB8D7E0036C566 /* Constants in Frameworks */,
@@ -506,6 +508,7 @@
 				D9FFC1F82C40F65F00A4766C /* AutoUpdates */,
 				D9B7BAF72C4866A0005AF2D6 /* NymLogger */,
 				D92FBA2A2C6B6AB300D743DF /* ConfigurationManager */,
+				D916EE662C90F2A700FADEEF /* Migrations */,
 			);
 			productName = NymVPNDaemon;
 			productReference = D9BEF2D02BEB63310036C566 /* NymVPN.app */;
@@ -1040,7 +1043,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = net.nymtech.vpn;
 				PRODUCT_NAME = NymVPN;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1077,7 +1080,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = net.nymtech.vpn;
 				PRODUCT_NAME = NymVPN;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1215,6 +1218,10 @@
 		582C5F8D2C7654A800B678AE /* ConfigurationManager */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = ConfigurationManager;
+		};
+		D916EE662C90F2A700FADEEF /* Migrations */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Migrations;
 		};
 		D91E36A82BF3AA7F00BDE84A /* HelperManager */ = {
 			isa = XCSwiftPackageProductDependency;

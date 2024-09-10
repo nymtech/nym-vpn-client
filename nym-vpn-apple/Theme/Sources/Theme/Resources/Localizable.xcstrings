@@ -23,17 +23,6 @@
         }
       }
     },
-    "2hopWireGuardTitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "2-hop WireGuard"
-          }
-        }
-      }
-    },
     "5hopMixnetSubtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -646,6 +635,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Last hop"
+          }
+        }
+      }
+    },
+    "home.fastDisabled" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As we transition Fast mode to WireGuard, this option is temporarily unavailable."
           }
         }
       }
