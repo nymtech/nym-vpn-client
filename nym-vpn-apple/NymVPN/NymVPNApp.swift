@@ -6,6 +6,7 @@ import Home
 import Extensions
 import KeyboardManager
 import NymLogger
+import NotificationsManager
 import SentryManager
 import Theme
 
@@ -49,6 +50,7 @@ private extension NymVPNApp {
             FileLogHandler(label: label, logFileManager: logFileManager)
         }
         try? ConfigurationManager.shared.setup()
+        NotificationsManager.shared.setup()
         ThemeConfiguration.setup()
         SentryManager.shared.setup()
     }

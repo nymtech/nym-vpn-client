@@ -22,6 +22,7 @@ let package = Package(
         .library(name: "ExternalLinkManager", targets: ["ExternalLinkManager"]),
         .library(name: "Keychain", targets: ["Keychain"]),
         .library(name: "Modifiers", targets: ["Modifiers"]),
+        .library(name: "NotificationsManager", targets: ["NotificationsManager"]),
         .library(name: "NymLogger", targets: ["NymLogger"]),
         .library(name: "SentryManager", targets: ["SentryManager"]),
         .library(name: "Tunnels", targets: ["Tunnels"]),
@@ -125,6 +126,14 @@ let package = Package(
                 "AppSettings"
             ],
             path: "Sources/Services/Modifiers"
+        ),
+        .target(
+            name: "NotificationsManager",
+            dependencies: [
+                "AppSettings",
+                "ConnectionManager"
+            ],
+            path: "Sources/Services/NotificationsManager"
         ),
         .target(
             name: "NymLogger",

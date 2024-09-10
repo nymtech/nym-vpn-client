@@ -1,4 +1,5 @@
 import NetworkExtension
+import UserNotifications
 import Logging
 import ConfigurationManager
 import NymLogger
@@ -152,11 +153,17 @@ extension PacketTunnelProvider: TunnelStatusListener {
     }
 
     func onExitStatusChange(status: ExitStatus) {
-        // todo: implement
+        if status != .stopped {
+            scheduleDisconnectNotification()
+        }
     }
 
     func onTunStatusChange(status: TunStatus) {
         eventContinuation.yield(.statusUpdate(status))
+        // TODO: remove, once onExitStatusChange is working
+        if status == .down {
+            scheduleDisconnectNotification()
+        }
     }
 }
 
@@ -175,6 +182,30 @@ extension PacketTunnelProvider: OsTunProvider {
         } catch {
             logger.error("Failed to set tunnel network settings: \(error)")
             throw error
+        }
+    }
+}
+
+// MARK: - Notifications -
+extension PacketTunnelProvider {
+    func scheduleDisconnectNotification() {
+        logger.info("🚀 scheduling disconnect notification")
+
+        // TODO: localize the notification content.
+        // TODO: move localizations to separate package
+        let content = UNMutableNotificationContent()
+        content.title = "The NymVPN connection has failed."
+        content.body = "Please try reconnecting."
+        content.sound = UNNotificationSound.default
+
+        let request = UNNotificationRequest(identifier: "disconnectNotification", content: content, trigger: nil)
+
+        UNUserNotificationCenter.current().add(request) { [weak self] error in
+            if let error = error {
+                print("Error scheduling notification: \(error.localizedDescription)")
+            } else {
+                self?.logger.info("🚀 Notification scheduled successfully")
+            }
         }
     }
 }
