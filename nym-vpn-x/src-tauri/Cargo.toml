@@ -44,6 +44,7 @@ bs58 = "0.5.1"
 parity-tokio-ipc = "0.9.0"
 tower = "0.4.8"
 rust_iso3166 = "0.1"
+dirs = "5.0.1"
 
 # nym deps
 nym-config = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }

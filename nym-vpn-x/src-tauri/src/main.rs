@@ -16,7 +16,8 @@ use crate::{
     grpc::client::GrpcClient,
 };
 
-use anyhow::Result;
+use crate::fs::path::APP_CONFIG_DIR;
+use anyhow::{anyhow, Result};
 use clap::Parser;
 use commands::country as cmd_country;
 use commands::daemon as cmd_daemon;
@@ -31,7 +32,6 @@ use nym_config::defaults;
 use states::app::AppState;
 #[cfg(windows)]
 use states::app::VpnMode;
-use tauri::path::BaseDirectory;
 use tokio::sync::Mutex;
 use tokio::time::sleep;
 use tracing::{debug, error, info, trace, warn};
@@ -96,8 +96,8 @@ async fn main() -> Result<()> {
     }
 
     let app_config_store = {
-        let app_config_path = [BaseDirectory::Config.variable(), APP_DIR].iter().collect();
-        AppStorage::<AppConfig>::new(app_config_path, APP_CONFIG_FILE, None)
+        let path = APP_CONFIG_DIR.clone().ok_or(anyhow!("failed to get app config dir"))?;
+        AppStorage::<AppConfig>::new(path, APP_CONFIG_FILE, None)
             .await
             .inspect_err(|e| error!("Failed to init app config store: {e}"))?
     };

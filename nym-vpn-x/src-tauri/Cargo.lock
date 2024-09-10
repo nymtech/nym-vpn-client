@@ -3022,6 +3022,7 @@ dependencies = [
  "build-info",
  "build-info-build",
  "clap",
+ "dirs",
  "dotenvy",
  "itertools 0.13.0",
  "nym-config",
