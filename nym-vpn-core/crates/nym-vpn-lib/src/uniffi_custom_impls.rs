@@ -404,7 +404,7 @@ impl From<MobileError> for VpnError {
             },
             MobileError::FailedToLookupGatewayIp { gateway_id, source } => {
                 VpnError::NetworkConnectionError {
-                    details: format!("Failed to lookup gateway: {gateway_id} with error: {source}"),
+                    details: format!("failed to lookup gateway ip: {gateway_id}: {source}"),
                 }
             }
         }
