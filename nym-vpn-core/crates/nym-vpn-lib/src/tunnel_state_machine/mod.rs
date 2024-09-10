@@ -31,6 +31,7 @@ pub enum TunnelState {
     Connecting,
     Connected,
     Disconnecting,
+    Error,
 }
 
 #[derive(Debug)]
