@@ -74,7 +74,7 @@ async fn set_shutdown_handle(shutdown_handle: ShutdownHandle) -> Result<(), VpnE
         VPN_SHUTDOWN_HANDLE.lock().await;
     if guard.is_some() {
         return Err(VpnError::InvalidStateError {
-            details: "Vpn not stopped".to_string(),
+            details: "Vpn in an invalid state, trying to set the shutdown handle when the vpn is not stopped".to_string(),
         });
     }
     *guard = Some(shutdown_handle);
@@ -107,7 +107,7 @@ async fn stop_and_reset_shutdown_handle() -> Result<(), VpnError> {
             .await
             .take()
             .ok_or(VpnError::InternalError {
-                details: "Vpn not started".to_string(),
+                details: "Vpn in an invalid state, trying to reset the shutdown handle when the vpn is not started".to_string(),
             })?;
 
     match shutdown_handle {
