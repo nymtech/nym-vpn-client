@@ -245,12 +245,12 @@ pub fn startVPN(config: VPNConfig) -> Result<(), VpnError> {
             tracing::debug!("Starting VPN tunnel...");
 
             let shutdown_token = CancellationToken::new();
-            let clone_shutdown_token = shutdown_token.clone();
-            let clone_shutdown_token2 = shutdown_token.clone();
+            let _clone_shutdown_token = shutdown_token.clone();
+            let _clone_shutdown_token2 = shutdown_token.clone();
 
             let join_handle = tokio::spawn(async move {
                 #[cfg(any(target_os = "android", target_os = "ios"))]
-                match WgTunnelRunner::new(config, clone_shutdown_token) {
+                match WgTunnelRunner::new(config, _clone_shutdown_token) {
                     Ok(tun_runner) => match tun_runner.start().await {
                         Ok(_) => {
                             tracing::debug!("Tunnel runner exited.");
@@ -281,7 +281,7 @@ pub fn startVPN(config: VPNConfig) -> Result<(), VpnError> {
             };
             if let Err(e) = set_shutdown_handle(shutdown_handle).await {
                 tracing::error!("Failed to set shutdown handle: {}", e);
-                clone_shutdown_token2.cancel();
+                _clone_shutdown_token2.cancel();
                 uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failure { error: e }));
             }
         });
