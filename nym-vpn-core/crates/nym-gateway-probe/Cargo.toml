@@ -23,7 +23,7 @@ hex.workspace = true
 log.workspace = true
 pnet_packet.workspace = true
 rand.workspace = true
-rust2go = "0.3.4"
+rust2go.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
@@ -66,4 +66,4 @@ vergen = { workspace = true, default-features = false, features = [
     "cargo",
 ] }
 
-rust2go = { version = "0.3.4", features = ["build"] }
+rust2go = { workspace = true, features = ["build"] }
