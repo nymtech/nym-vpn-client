@@ -32,15 +32,6 @@ clippy:
 fmt:
 	cargo fmt --all
 
-# License generation
-generate-licenses: generate-licenses-html generate-licenses-json
-
-generate-licenses-html:
-	cargo about generate --all-features about.hbs -o all_licenses_cli.html
-
-generate-licenses-json:
-	cargo about generate --all-features --format json -o all_licenses_cli.json
-
 # Debian package builds
 build-deb-vpn-cli:
 	RUSTFLAGS="-L $(WG_TARGET_DIR)" cargo deb -p nym-vpn-cli
