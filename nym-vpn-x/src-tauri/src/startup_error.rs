@@ -67,9 +67,10 @@ pub fn show_window() -> Result<()> {
 
     info!("Starting tauri app");
     tauri::Builder::default()
+        .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_os::init())
         .setup(move |app| {
             info!("app setup");
-
             tauri::WebviewWindowBuilder::new(
                 app,
                 WIN_LABEL,

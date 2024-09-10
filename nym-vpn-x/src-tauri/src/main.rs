@@ -96,7 +96,9 @@ async fn main() -> Result<()> {
     }
 
     let app_config_store = {
-        let path = APP_CONFIG_DIR.clone().ok_or(anyhow!("failed to get app config dir"))?;
+        let path = APP_CONFIG_DIR
+            .clone()
+            .ok_or(anyhow!("failed to get app config dir"))?;
         AppStorage::<AppConfig>::new(path, APP_CONFIG_FILE, None)
             .await
             .inspect_err(|e| error!("Failed to init app config store: {e}"))?
