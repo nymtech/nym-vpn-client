@@ -182,7 +182,6 @@ async fn wait_for_shutdown(
                 .ok_or(crate::Error::StopError)?;
             uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failure {
                 error: error.into(),
-
             }));
             error!("Stopped Nym VPN with error: {:?}", error);
         }
