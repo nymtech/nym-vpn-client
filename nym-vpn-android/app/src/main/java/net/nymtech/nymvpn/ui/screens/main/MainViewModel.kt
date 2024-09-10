@@ -21,7 +21,7 @@ import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
 import net.nymtech.nymvpn.util.extensions.go
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.BackendMessage
-import timber.log.Timber
+import nym_vpn_lib.VpnException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -39,9 +39,18 @@ constructor(
 		) { settings, manager ->
 			val connectionTime = manager.statistics.connectionSeconds.convertSecondsToTimeString()
 			val connectionState = ConnectionState.from(manager.state)
-			val stateMessage = when (manager.backendMessage) {
-				BackendMessage.Error.StartFailed -> StateMessage.Error(StringValue.StringResource(R.string.error_gateway_lookup))
-				BackendMessage.None -> connectionState.stateMessage
+			var stateMessage = connectionState.stateMessage
+			when (manager.backendMessage) {
+				is BackendMessage.Failure -> {
+					when (manager.backendMessage.exception) {
+						is VpnException.InvalidCredential -> {
+							SnackbarController.showMessage(StringValue.StringResource(R.string.exception_cred_invalid))
+							navController.go(Destination.Credential.route)
+						}
+						else -> stateMessage = StateMessage.Error(manager.backendMessage.exception)
+					}
+				}
+				BackendMessage.None -> stateMessage = connectionState.stateMessage
 			}
 			MainUiState(
 				false,
@@ -69,11 +78,7 @@ constructor(
 	}
 
 	fun onConnect() = viewModelScope.launch {
-		tunnelManager.start().onFailure {
-			Timber.e(it)
-			SnackbarController.showMessage(StringValue.StringResource(R.string.exception_cred_invalid))
-			navController.go(Destination.Credential.route)
-		}
+		tunnelManager.start()
 	}
 
 	fun onDisconnect() = viewModelScope.launch {

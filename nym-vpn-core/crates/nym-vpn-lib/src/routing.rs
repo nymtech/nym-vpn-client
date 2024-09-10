@@ -220,7 +220,7 @@ pub(crate) async fn setup_mixnet_routing(
 
     let dev = tun2::create_as_async(&tun_config)
         .tap_err(|err| error!("Failed to attach to tun device: {}", err))?;
-    let device_name = dev.as_ref().tun_name().unwrap().to_string();
+    let device_name = dev.as_ref().tun_name()?.to_string();
     info!(
         "Attached to tun device {device_name} with ip={device_ip:?}",
         device_name = device_name,

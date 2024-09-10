@@ -3,7 +3,8 @@ package net.nymtech.vpn.backend
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.os.IBinder
+import com.getkeepsafe.relinker.ReLinker
+import com.getkeepsafe.relinker.ReLinker.LoadListener
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -15,7 +16,7 @@ import kotlinx.coroutines.withContext
 import net.nymtech.vpn.model.BackendMessage
 import net.nymtech.vpn.model.Statistics
 import net.nymtech.vpn.util.Constants
-import net.nymtech.vpn.util.InvalidCredentialException
+import net.nymtech.vpn.util.NetworkUtils
 import net.nymtech.vpn.util.NotificationManager
 import net.nymtech.vpn.util.SingletonHolder
 import nym_vpn_lib.AndroidTunProvider
@@ -42,8 +43,20 @@ import java.util.concurrent.atomic.AtomicInteger
 class NymBackend private constructor(val context: Context) : Backend, TunnelStatusListener {
 
 	init {
-		System.loadLibrary(Constants.NYM_VPN_LIB)
-		initLogger()
+		ReLinker.loadLibrary(
+			context,
+			Constants.NYM_VPN_LIB,
+			object : LoadListener {
+				override fun success() {
+					Timber.i("Successfully loaded native nym library")
+					initLogger()
+				}
+				override fun failure(t: Throwable) {
+					Timber.e(t)
+				}
+			},
+		)
+		NotificationManager.createNotificationChannel(context)
 	}
 
 	companion object : SingletonHolder<NymBackend, Context>(::NymBackend) {
@@ -63,41 +76,30 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	@get:Synchronized @set:Synchronized
 	private var state: Tunnel.State = Tunnel.State.Down
 
+	@Throws(VpnException::class)
 	override suspend fun validateCredential(credential: String): Instant? {
-		return try {
-			withContext(ioDispatcher) {
-				checkCredential(credential)
-			}
-		} catch (e: VpnException) {
-			Timber.e(e)
-			throw InvalidCredentialException("Credential invalid or expired")
+		return withContext(ioDispatcher) {
+			checkCredential(credential)
 		}
 	}
 
+	@Throws(VpnException::class)
 	override suspend fun importCredential(credential: String): Instant? {
-		return try {
-			nym_vpn_lib.importCredential(credential, storagePath)
-		} catch (e: VpnException) {
-			Timber.e(e)
-			throw InvalidCredentialException("Credential invalid or expired")
-		}
+		return nym_vpn_lib.importCredential(credential, storagePath)
 	}
 
-	override suspend fun start(tunnel: Tunnel, background: Boolean): Tunnel.State {
+	override suspend fun start(tunnel: Tunnel, background: Boolean) {
 		val state = getState()
-		if (tunnel == this.tunnel && state != Tunnel.State.Down) return state
+		if (tunnel == this.tunnel && state != Tunnel.State.Down) return
 		this.tunnel = tunnel
 		tunnel.environment.setup()
 		if (!vpnService.isCompleted) {
 			kotlin.runCatching {
-				if (background) {
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-						context.startForegroundService(Intent(context, VpnBackgroundService::class.java))
-					} else {
-						context.startService(Intent(context, VpnBackgroundService::class.java))
-					}
+				if (background && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+					context.startForegroundService(Intent(context, VpnService::class.java))
+				} else {
+					context.startService(Intent(context, VpnService::class.java))
 				}
-				context.startService(Intent(context, VpnService::class.java))
 			}.onFailure { Timber.w("Ignoring not started in time exception") }
 		}
 		// reset any error state
@@ -118,23 +120,29 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 						this@NymBackend,
 					),
 				)
-			}.onFailure {
-				Timber.e(it)
-				// temp for now until we setup error/message callback
-				tunnel.onBackendMessage(BackendMessage.Error.StartFailed)
 			}
 		}
-		return Tunnel.State.Connecting.InitializingClient
+	}
+
+	override suspend fun stop()  {
+		withContext(ioDispatcher) {
+			runCatching {
+				Timber.d("Stopping vpn")
+				stopVpn()
+				onVpnShutdown()
+			}
+		}
 	}
 
 	@OptIn(ExperimentalCoroutinesApi::class)
-	override suspend fun stop(): Tunnel.State {
-		withContext(ioDispatcher) {
-			stopVpn()
-			currentTunnelHandle.getAndSet(-1)
+	private fun onVpnShutdown() {
+		kotlin.runCatching {
+			Timber.d("Stopping vpn service")
 			vpnService.getCompleted().stopSelf()
+			Timber.d("Vpn service stopped")
+		}.onFailure {
+			Timber.e(it)
 		}
-		return Tunnel.State.Disconnecting
 	}
 
 	private fun onDisconnect() {
@@ -204,19 +212,21 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	override fun onExitStatusChange(status: ExitStatus) {
 		when (status) {
-			ExitStatus.Stopped -> Timber.d("Tunnel stopped")
-			is ExitStatus.BandwidthError -> TODO()
-			is ExitStatus.CredentialError -> TODO()
-			is ExitStatus.GatewayDirectoryError -> TODO()
-			is ExitStatus.InvalidStateError -> TODO()
-			is ExitStatus.TunnelFailure -> TODO()
-			is ExitStatus.TunnelSetupError -> TODO()
-			is ExitStatus.VpnApiClientError -> TODO()
+			ExitStatus.Stopped -> {
+				state = Tunnel.State.Down
+			}
+			is ExitStatus.Failure -> {
+				Timber.e(status.error)
+				tunnel?.onBackendMessage(BackendMessage.Failure(status.error))
+				onVpnShutdown()
+			}
 		}
 	}
 
 	class VpnService : android.net.VpnService(), AndroidTunProvider {
 		private var owner: NymBackend? = null
+
+		val startId = 123
 
 		private val builder: Builder
 			get() = Builder()
@@ -234,9 +244,8 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		}
 
 		override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-			Timber.d("Vpn service on start")
 			vpnService.complete(this)
-			// TODO can add AOVPN callback here later
+			startForeground(startId, NotificationManager.createVpnRunningNotification(this))
 			return super.onStartCommand(intent, flags, startId)
 		}
 
@@ -248,44 +257,8 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			protect(socket)
 		}
 
-		private fun calculateSubnetMaskLength(mask: String): Int {
-			// Split the mask into its octets
-			val octets = mask.split('.').map { it.toInt() }
-
-			// Convert each octet to binary and count '1's
-			var totalBits = 0
-			for (octet in octets) {
-				var bits = octet
-				for (i in 0 until 8) {
-					if (bits and 1 == 1) {
-						totalBits++
-					}
-					bits = bits shr 1 // Right shift by 1
-				}
-			}
-
-			return totalBits
-		}
-
-		private fun calculateIPv6PrefixLength(ipv6Address: String): Int {
-			// Split the IPv6 address into its components
-			val parts = ipv6Address.split(":").map { it.toInt(16) }
-
-			// Convert each part to binary
-			val binaryParts = parts.map { Integer.toBinaryString(it).padStart(16, '0') }
-
-			// Combine all binary parts into one string
-			val fullBinary = binaryParts.joinToString("")
-
-			// Find the first '0' which indicates the start of the host part
-			val prefixLength = fullBinary.indexOfFirst { it == '0' }
-
-			// If no '0' is found, the whole address is network part
-			return if (prefixLength == -1) 128 else prefixLength
-		}
-
 		override fun configureTunnel(config: TunnelNetworkSettings): Int {
-			Timber.d("Configuring Wg tunnel")
+			Timber.d("Configuring tunnel")
 			if (prepare(this) != null) return -1
 			val currentHandle = currentTunnelHandle.get()
 			if (currentHandle != -1) return currentHandle
@@ -304,42 +277,50 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 					Timber.d("DNS: $it")
 					addDnsServer(it)
 				}
-				val includeIpv4Routes = config.ipv4Settings?.includedRoutes
-				if (includeIpv4Routes.isNullOrEmpty()) {
-					Timber.d("No Ipv4 routes provided, using defaults to prevent leaks")
-					addRoute("0.0.0.0", 0)
-				} else {
-					includeIpv4Routes.forEach {
-						when (it) {
-							Ipv4Route.Default -> Unit
-							is Ipv4Route.Specific -> {
-								// don't add existing addresses to routes
-								if (config.ipv4Settings?.addresses?.any { address -> address.contains(it.destination) } == true) {
-									Timber.d("Skipping previously added address from routing: ${it.destination}")
-									return@forEach
+				with(config.ipv4Settings?.includedRoutes) {
+					if (isNullOrEmpty()) {
+						Timber.d("No Ipv4 routes provided, using defaults to prevent leaks")
+						addRoute("0.0.0.0", 0)
+					} else {
+						forEach {
+							when (it) {
+								Ipv4Route.Default -> Unit
+								is Ipv4Route.Specific -> {
+									// don't add existing addresses to routes
+									if (config.ipv4Settings?.addresses?.any { address -> address.contains(it.destination) } == true) {
+										Timber.d("Skipping previously added address from routing: ${it.destination}")
+										return@forEach
+									}
+									val length = NetworkUtils.calculateIpv4SubnetMaskLength(it.subnetMask)
+									Timber.d("Including ipv4 routes: ${it.destination}/$length")
+									// need to use IpPrefix, strange bug with just string/int
+									addRoute(InetAddress.getByName(it.destination), length)
 								}
-								val length = calculateSubnetMaskLength(it.subnetMask)
-								Timber.d("Including ipv4 routes: ${it.destination}/$length")
-								// need to use IpPrefix, strange bug with just string/int
-								addRoute(InetAddress.getByName(it.destination), length)
 							}
 						}
 					}
 				}
-				val includeIpv6Routes = config.ipv6Settings?.includedRoutes
-				if (includeIpv6Routes.isNullOrEmpty()) {
-					Timber.d("No Ipv6 routes provided, using defaults to prevent leaks")
-					addRoute("::", 0)
-				} else {
-					includeIpv6Routes.forEach {
-						when (it) {
-							is Ipv6Route.Specific -> {
-								val prefix = calculateIPv6PrefixLength(it.destination)
-								Timber.d("Including ipv4 routes: ${it.destination}/$prefix")
-								// need to use IpPrefix, strange bug with just string/int
-								addRoute(InetAddress.getByName(it.destination), prefix)
+
+				Timber.d("Trying ipv6 stuff")
+				with(config.ipv6Settings?.includedRoutes) {
+					if (isNullOrEmpty()) {
+						Timber.d("No Ipv6 routes provided, using defaults to prevent leaks")
+						addRoute("::", 0)
+					} else {
+						forEach {
+							when (it) {
+								is Ipv6Route.Specific -> {
+									// don't add existing addresses to routes
+									if (config.ipv6Settings?.addresses?.any { address -> address.contains(it.destination) } == true) {
+										Timber.d("Skipping previously added address from routing: ${it.destination}")
+										return@forEach
+									}
+									Timber.d("Including ipv6 routes: ${it.destination}/${it.prefixLength}")
+									// need to use IpPrefix, strange bug with just string/int
+									addRoute(InetAddress.getByName(it.destination), it.prefixLength.toInt())
+								}
+								Ipv6Route.Default -> Unit
 							}
-							Ipv6Route.Default -> Unit
 						}
 					}
 				}
@@ -354,22 +335,6 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			val fd = vpnInterface?.detachFd() ?: return -1
 			currentTunnelHandle.getAndSet(fd)
 			return fd
-		}
-	}
-	class VpnBackgroundService : android.app.Service() {
-		override fun onBind(intent: Intent?): IBinder? {
-			return null
-		}
-
-		override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-			startService(Intent(this, VpnService::class.java))
-			startForeground(123, NotificationManager.createVpnRunningNotification(this))
-			return START_NOT_STICKY
-		}
-
-		override fun onDestroy() {
-			super.onDestroy()
-			Timber.d("Background service destroyed")
 		}
 	}
 }

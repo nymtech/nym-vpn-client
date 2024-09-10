@@ -1,47 +1,47 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
 
-#[derive(thiserror::Error, uniffi::Error, Debug)]
+#[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq)]
 pub enum VpnError {
-    #[error("{inner}")]
-    Configuration { inner: String },
+    #[error("{details}")]
+    InternalError { details: String },
 
-    #[error("{inner}")]
-    TunnelShutdown { inner: String },
+    #[error("{details}")]
+    NetworkConnectionError { details: String },
 
-    #[error("{inner}")]
-    ApiClient { inner: String },
+    #[error("{details}")]
+    GatewayError { details: String },
 
-    #[error("{inner}")]
-    GatewayDirectory { inner: String },
+    #[error("{details}")]
+    InvalidCredential { details: String },
 
-    #[error("{inner}")]
-    InvalidState { inner: String },
+    #[error("Client is out of bandwidth")]
+    OutOfBandwidth,
 
-    #[error("{inner}")]
-    Credential { inner: String },
+    #[error("{details}")]
+    InvalidStateError { details: String },
 }
 
 impl From<crate::Error> for VpnError {
     fn from(value: crate::Error) -> Self {
-        Self::TunnelShutdown {
-            inner: value.to_string(),
+        Self::InternalError {
+            details: value.to_string(),
         }
     }
 }
 
 impl From<nym_gateway_directory::Error> for VpnError {
     fn from(value: nym_gateway_directory::Error) -> Self {
-        Self::GatewayDirectory {
-            inner: value.to_string(),
+        Self::NetworkConnectionError {
+            details: value.to_string(),
         }
     }
 }
 
 impl From<nym_vpn_api_client::VpnApiClientError> for VpnError {
     fn from(value: nym_vpn_api_client::VpnApiClientError) -> Self {
-        Self::ApiClient {
-            inner: value.to_string(),
+        Self::NetworkConnectionError {
+            details: value.to_string(),
         }
     }
 }

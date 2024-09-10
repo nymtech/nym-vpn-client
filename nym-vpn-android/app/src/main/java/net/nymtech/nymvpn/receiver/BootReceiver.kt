@@ -9,7 +9,6 @@ import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.module.ApplicationScope
 import net.nymtech.nymvpn.service.tunnel.TunnelManager
-import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -29,10 +28,7 @@ class BootReceiver : BroadcastReceiver() {
 		if (Intent.ACTION_BOOT_COMPLETED != intent.action) return
 		applicationScope.launch {
 			if (settingsRepository.isAutoStartEnabled()) {
-				tunnelManager.start().onFailure {
-					// TODO handle failures
-					Timber.w(it)
-				}
+				tunnelManager.start()
 			}
 		}
 	}

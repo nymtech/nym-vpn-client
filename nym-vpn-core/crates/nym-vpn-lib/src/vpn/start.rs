@@ -5,6 +5,7 @@ use futures::channel::{mpsc, oneshot};
 use tracing::{debug, error, info};
 
 use super::{NymVpnCtrlMessage, NymVpnExitStatusMessage, SpecificVpn};
+use crate::platform::error::VpnError;
 use crate::{
     error::Result,
     uniffi_custom_impls::{ExitStatus, StatusEvent},
@@ -113,11 +114,11 @@ async fn run_nym_vpn(
         Err(err) => {
             error!("Nym VPN returned error: {err}");
             debug!("{err:?}");
-            crate::platform::uniffi_set_listener_status(StatusEvent::Exit(
-                ExitStatus::TunnelFailure {
-                    message: err.to_string()
-                }
-            ));
+            crate::platform::uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failure {
+                error: VpnError::InternalError {
+                    details: err.to_string(),
+                },
+            }));
             vpn_exit_tx
                 .send(NymVpnExitStatusMessage::Failed(err))
                 .expect("Failed to send exit status");

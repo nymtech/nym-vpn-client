@@ -73,6 +73,7 @@ import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
+import nym_vpn_lib.VpnException
 
 @Composable
 fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewModel = hiltViewModel()) {
@@ -143,7 +144,7 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 			ConnectionStateDisplay(connectionState = uiState.connectionState)
 			uiState.stateMessage.let {
 				when (it) {
-					is StateMessage.Info ->
+					is StateMessage.Status ->
 						StatusInfoLabel(
 							message = it.message.asString(context),
 							textColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -151,7 +152,14 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 
 					is StateMessage.Error ->
 						StatusInfoLabel(
-							message = it.message.asString(context),
+							message = when (it.exception) {
+								is VpnException.GatewayException -> stringResource(R.string.gateway_error)
+								is VpnException.InternalException -> stringResource(R.string.internal_error)
+								is VpnException.InvalidCredential -> stringResource(R.string.exception_cred_invalid)
+								is VpnException.InvalidStateException -> stringResource(R.string.state_error)
+								is VpnException.NetworkConnectionException -> stringResource(R.string.network_error)
+								is VpnException.OutOfBandwidth -> stringResource(R.string.out_of_bandwidth_error)
+							} + " ${it.exception.message}",
 							textColor = CustomColors.error,
 						)
 				}

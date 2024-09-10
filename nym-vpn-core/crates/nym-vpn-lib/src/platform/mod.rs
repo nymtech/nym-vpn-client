@@ -73,8 +73,8 @@ async fn set_shutdown_handle(shutdown_handle: ShutdownHandle) -> Result<(), VpnE
     let mut guard: tokio::sync::MutexGuard<'_, Option<ShutdownHandle>> =
         VPN_SHUTDOWN_HANDLE.lock().await;
     if guard.is_some() {
-        return Err(VpnError::InvalidState {
-            inner: "Vpn not stopped".to_string(),
+        return Err(VpnError::InvalidStateError {
+            details: "Vpn not stopped".to_string(),
         });
     }
     *guard = Some(shutdown_handle);
@@ -90,7 +90,11 @@ pub(crate) fn uniffi_set_listener_status(status: StatusEvent) {
             StatusEvent::Bandwidth(status) => listener.on_bandwidth_status_change(status),
             StatusEvent::NymVpn(status) => listener.on_nym_vpn_status_change(status),
             StatusEvent::Connection(status) => listener.on_connection_status_change(status),
-            StatusEvent::Exit(status) => listener.on_exit_status_change(status),
+            StatusEvent::Exit(status) => {
+                listener.on_exit_status_change(status);
+                //Exit errors will always mean tunnel is down
+                listener.on_tun_status_change(TunStatus::Down);
+            }
         }
     }
 }
@@ -102,8 +106,8 @@ async fn stop_and_reset_shutdown_handle() -> Result<(), VpnError> {
             .lock()
             .await
             .take()
-            .ok_or(VpnError::InvalidState {
-                inner: "Vpn not started".to_string(),
+            .ok_or(VpnError::InternalError {
+                details: "Vpn not started".to_string(),
             })?;
 
     match shutdown_handle {
@@ -173,7 +177,9 @@ async fn wait_for_shutdown(
             let error = error
                 .downcast_ref::<NymVpnExitError>()
                 .ok_or(crate::Error::StopError)?;
-            uniffi_set_listener_status(StatusEvent::Exit(error.into()));
+            uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failure {
+                error: error.into(),
+            }));
             error!("Stopped Nym VPN with error: {:?}", error);
         }
         NymVpnExitStatusMessage::Stopped => {
@@ -221,8 +227,10 @@ fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, VpnError> {
 #[uniffi::export]
 pub fn startVPN(config: VPNConfig) -> Result<(), VpnError> {
     if RUNNING.fetch_or(true, Ordering::Relaxed) {
-        uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::InvalidStateError {
-            message: "Vpn already running".to_string(),
+        uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failure {
+            error: VpnError::InvalidStateError {
+                details: "Vpn is already running".to_string(),
+            },
         }));
         return Ok(());
     }
@@ -252,16 +260,19 @@ pub fn startVPN(config: VPNConfig) -> Result<(), VpnError> {
                         }
                         Err(e) => {
                             tracing::error!("Tunnel runner exited with error: {}", e);
-                            uniffi_set_listener_status(StatusEvent::Exit(e.into()));
+                            uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failure {
+                                error: e.into(),
+                            }));
                         }
                     },
                     Err(e) => {
                         tracing::error!("Failed to create the tunnel runner: {}", e);
-                        uniffi_set_listener_status(StatusEvent::Exit(e.into()));
+                        uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failure {
+                            error: e.into(),
+                        }));
                     }
                 }
 
-                uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
                 RUNNING.store(false, Ordering::Relaxed);
                 reset_shutdown_handle().await;
             });
@@ -273,28 +284,24 @@ pub fn startVPN(config: VPNConfig) -> Result<(), VpnError> {
             if let Err(e) = set_shutdown_handle(shutdown_handle).await {
                 tracing::error!("Failed to set shutdown handle: {}", e);
                 clone_shutdown_token2.cancel();
-                uniffi_set_listener_status(StatusEvent::Exit(e.into()));
+                uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failure { error: e }));
             }
         });
         Ok(())
     } else {
-        debug!("Trying to run VPN");
         let vpn = sync_run_vpn(config);
-        debug!("Got VPN");
         match vpn {
             Ok(vpn) => {
                 let ret = RUNTIME.block_on(run_vpn(vpn.into()));
                 if let Some(error) = ret.err() {
-                    error!("Error running VPN");
-                    uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
-                    uniffi_set_listener_status(StatusEvent::Exit(error.into()));
+                    error!("Error running VPN {error}");
+                    uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failure { error }));
                     RUNNING.store(false, Ordering::Relaxed);
                 }
             }
             Err(e) => {
-                error!("Err creating VPN");
-                uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
-                uniffi_set_listener_status(StatusEvent::Exit(e.into()));
+                error!("Err creating VPN {e}");
+                uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failure { error: e }));
                 RUNNING.store(false, Ordering::Relaxed);
             }
         }
@@ -327,8 +334,8 @@ async fn import_credential_from_string(
     let path_buf = match path_result {
         Ok(p) => p,
         Err(_) => {
-            return Err(VpnError::Credential {
-                inner: "Invalid path".to_string(),
+            return Err(VpnError::InternalError {
+                details: "Invalid path".to_string(),
             })
         }
     };
@@ -337,8 +344,8 @@ async fn import_credential_from_string(
             None => Ok(None),
             Some(t) => Ok(Some(SystemTime::from(t))),
         },
-        Err(_) => Err(VpnError::Credential {
-            inner: "Invalid credential".to_string(),
+        Err(e) => Err(VpnError::InvalidCredential {
+            details: e.to_string(),
         }),
     }
 }
@@ -352,8 +359,8 @@ pub fn checkCredential(credential: String) -> Result<Option<SystemTime>, VpnErro
 async fn check_credential_string(credential: &str) -> Result<Option<SystemTime>, VpnError> {
     check_credential_base58(credential)
         .await
-        .map_err(|e| VpnError::Credential {
-            inner: e.to_string(),
+        .map_err(|e| VpnError::InvalidCredential {
+            details: e.to_string(),
         })
 }
 
@@ -364,8 +371,7 @@ async fn run_vpn(vpn: SpecificVpn) -> Result<(), VpnError> {
             reset_shutdown_handle().await;
             RUNNING.store(false, Ordering::Relaxed);
             error!("Could not start the VPN: {:?}", err);
-            uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
-            uniffi_set_listener_status(StatusEvent::Exit(err.into()));
+            uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failure { error: err }));
             Ok(())
         }
         Ok((stop_handle, handle)) => {
@@ -388,8 +394,8 @@ async fn run_vpn(vpn: SpecificVpn) -> Result<(), VpnError> {
 #[uniffi::export]
 pub fn stopVPN() -> Result<(), VpnError> {
     if !RUNNING.fetch_and(false, Ordering::Relaxed) {
-        return Err(VpnError::InvalidState {
-            inner: "Vpn not started".to_string(),
+        return Err(VpnError::InvalidStateError {
+            details: "Vpn not started".to_string(),
         });
     }
     uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Disconnecting));
