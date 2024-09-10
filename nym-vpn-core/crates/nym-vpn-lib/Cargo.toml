@@ -51,12 +51,12 @@ url.workspace = true
 shadowsocks-service = { version = "=1.14.3" }
 shadowsocks = { version = "=1.14.2" }
 
-talpid-core = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "95fb001fb" }
-talpid-platform-metadata = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "95fb001fb" }
-talpid-routing = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "95fb001fb" }
-talpid-tunnel = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "95fb001fb" }
-talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "95fb001fb" }
-talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "95fb001fb" }
+talpid-core.workspace = true
+talpid-platform-metadata.workspace = true
+talpid-routing.workspace = true
+talpid-tunnel.workspace = true
+talpid-types.workspace = true
+talpid-wireguard.workspace = true
 
 nym-authenticator-requests.workspace = true
 nym-bandwidth-controller-pre-ecash.workspace = true
@@ -90,7 +90,7 @@ android_logger = "0.14.1"
 err-derive = "0.3.1"
 jnix = { version = "=0.5.1", features = ["derive"] }
 nix = { workspace = true, features = ["socket", "net"] }
-rand = "0.8.5"
+rand.workspace = true
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 oslog = "0.2.0"
