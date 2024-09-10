@@ -124,7 +124,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		}
 	}
 
-	override suspend fun stop()  {
+	override suspend fun stop() {
 		withContext(ioDispatcher) {
 			runCatching {
 				Timber.d("Stopping vpn")
