@@ -46,5 +46,10 @@
   "logs": {
     "title": "Логи",
     "desc": "Скопировать или удалить логи"
+  },
+  "info": {
+    "client-version": "Версия клиента",
+    "daemon-version": "Версия демона",
+    "network-name": "Сеть"
   }
 }
