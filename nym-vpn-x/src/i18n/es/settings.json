@@ -46,5 +46,10 @@
   "logs": {
     "title": "Registros",
     "desc": "Copiar o borrar logs"
+  },
+  "info": {
+    "daemon-version": "Versión Demonio",
+    "network-name": "Red",
+    "client-version": "Versión de cliente"
   }
 }
