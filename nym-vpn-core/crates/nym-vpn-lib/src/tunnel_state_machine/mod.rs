@@ -1,8 +1,10 @@
+mod mixnet_route_handler;
 mod mixnet_tunnel;
 mod states;
 
 use std::collections::HashSet;
 
+use mixnet_route_handler::MixnetRouteHandler;
 use states::DisconnectedState;
 use talpid_routing::RouteManager;
 use tokio::{sync::mpsc, task::JoinHandle};
@@ -45,7 +47,7 @@ pub enum TunnelEvent {
 }
 
 pub struct SharedState {
-    route_manager: RouteManager,
+    route_handler: MixnetRouteHandler,
 }
 
 pub struct TunnelStateMachine {
@@ -64,17 +66,9 @@ impl TunnelStateMachine {
     ) -> Result<JoinHandle<()>> {
         let (current_state_handler, _) = DisconnectedState::enter();
 
-        let route_manager = RouteManager::new(
-            HashSet::new(),
-            #[cfg(target_os = "linux")]
-            0, // fwmark
-            #[cfg(target_os = "linux")]
-            0, // table_id
-        )
-        .await
-        .map_err(Error::CreateRouteManager)?;
+        let route_handler = MixnetRouteHandler::new().await;
 
-        let shared_state = SharedState { route_manager };
+        let shared_state = SharedState { route_handler };
 
         let tunnel_state_machine = Self {
             current_state_handler,
@@ -112,7 +106,7 @@ impl TunnelStateMachine {
             }
         }
 
-        self.shared_state.route_manager.stop().await;
+        self.shared_state.route_handler.stop().await;
     }
 }
 

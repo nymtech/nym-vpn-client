@@ -1,4 +1,9 @@
-use std::{io, net::Ipv6Addr, path::PathBuf, time::Duration};
+use std::{
+    io,
+    net::{IpAddr, Ipv6Addr},
+    path::PathBuf,
+    time::Duration,
+};
 
 use nym_connection_monitor::ConnectionMonitorTask;
 use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayClient};
@@ -38,6 +43,13 @@ pub enum Error {
     #[error("failed to setup mixnet client")]
     FailedToSetupMixnetClient(#[source] MixnetError),
 
+    #[error("failed to lookup gateway: {}", gateway_id)]
+    FailedToLookupGatewayIp {
+        gateway_id: String,
+        #[source]
+        source: nym_gateway_directory::Error,
+    },
+
     #[error("failed to connect ot ip packet router")]
     ConnectToIpPacketRouter(#[source] nym_ip_packet_client::Error),
 
@@ -53,6 +65,28 @@ pub enum Error {
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
 
+pub struct MixnetTunnelHandle {
+    tun_name: String,
+    entry_gateway_ip: IpAddr,
+    join_handle: JoinHandle<()>,
+}
+
+impl MixnetTunnelHandle {
+    pub fn tun_name(&self) -> &str {
+        &self.tun_name
+    }
+
+    pub fn entry_gateway_ip(&self) -> IpAddr {
+        self.entry_gateway_ip
+    }
+
+    pub async fn wait(self) {
+        if let Err(e) = self.join_handle.await {
+            tracing::error!("Failed to join handle: {}", e);
+        }
+    }
+}
+
 pub struct MixnetTunnel {
     task_manager: TaskManager,
     mixnet_client: SharedMixnetClient,
@@ -64,7 +98,7 @@ impl MixnetTunnel {
     pub async fn spawn(
         nym_config: GenericNymVpnConfig,
         shutdown_token: CancellationToken,
-    ) -> Result<JoinHandle<()>> {
+    ) -> Result<MixnetTunnelHandle> {
         // Craft user agent.
         let user_agent = nym_config
             .user_agent
@@ -99,6 +133,15 @@ impl MixnetTunnel {
 
         // Setup mixnet routing
         let mixnet_client_address = mixnet_client.nym_address().await;
+        let gateway_used = mixnet_client_address.gateway().to_base58_string();
+        let entry_mixnet_gateway_ip: IpAddr = gateway_directory_client
+            .lookup_gateway_ip(&gateway_used)
+            .await
+            .map_err(|source| Error::FailedToLookupGatewayIp {
+                gateway_id: gateway_used,
+                source,
+            })?;
+
         let exit_mix_addresses = exit.ipr_address.unwrap();
         let mut ipr_client = IprClientConnect::new_from_inner(mixnet_client.inner()).await;
 
@@ -147,7 +190,11 @@ impl MixnetTunnel {
             processor_handle,
         };
 
-        Ok(tokio::spawn(tunnel.run()))
+        Ok(MixnetTunnelHandle {
+            tun_name: device_name,
+            entry_gateway_ip: entry_mixnet_gateway_ip,
+            join_handle: tokio::spawn(tunnel.run()),
+        })
     }
 
     async fn run(mut self) {
@@ -165,6 +212,7 @@ impl MixnetTunnel {
 
         self.task_manager.wait_for_shutdown().await;
         self.mixnet_client.disconnect().await;
+        let _ = self.processor_handle.await;
     }
 }
 
