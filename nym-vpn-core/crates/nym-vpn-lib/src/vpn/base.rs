@@ -311,6 +311,8 @@ async fn stop_routing_manager(mut route_manager: RouteManager) {
     route_manager.stop().await;
     #[cfg(windows)]
     route_manager.stop();
+
+    tokio::task::spawn_blocking(move || drop(route_manager));
 }
 
 async fn init_firewall_dns(
