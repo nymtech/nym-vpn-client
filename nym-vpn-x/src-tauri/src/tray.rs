@@ -81,6 +81,7 @@ pub fn setup(app: &AppHandle) -> Result<()> {
         .build()
         .inspect_err(|e| error!("failed to build tray menu: {e}"))?;
 
+    #[allow(unused_variables)]
     let tray = TrayIconBuilder::with_id(TRAY_ICON_ID)
         .icon(APP_ICON)
         .menu(&menu)
