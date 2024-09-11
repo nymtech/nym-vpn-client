@@ -13,11 +13,11 @@
   "select-mode-label": "モードの選択",
   "select-node-title": "接続",
   "privacy-mode": {
-    "title": "匿名",
+    "title": "匿名（(mixnet)）",
     "desc": "支払い、メール、メッセージに最適"
   },
   "fast-mode": {
-    "title": "高速",
+    "title": "高速(WireGuard)",
     "desc": "ブラウジング、ストリーミング、ファイル共有に最適"
   },
   "last-node-select": {
@@ -28,7 +28,7 @@
     "connected": "VPN接続中は無効です",
     "connecting": "VPN接続中は無効です",
     "disconnecting": "VPNの切断中は無効です",
-    "daemon-not-connected": "VPNデーモンに接続していない間は無効です"
+    "daemon-not-connected": "NymVPNアプリが現在、NymVPNデーモンに接続されていません。"
   },
   "modes-dialog": {
     "title": "モード選択",
@@ -37,5 +37,6 @@
     "privacy-description": "5つのサーバーを通じてMixnet経由で接続をルーティングすることで、最高レベルのプライバシーを実現します。支払い、メール、メッセージの安全な取り扱いに最適です。"
   },
   "connect": "接続",
-  "connecting-message": "接続中"
+  "connecting-message": "接続中",
+  "windows-no-fast-mode": "高速モードをWireGuardに移行中のため、このオプションは一時的に利用できません。"
 }
