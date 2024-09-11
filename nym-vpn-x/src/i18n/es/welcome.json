@@ -1,7 +1,7 @@
 {
   "title": {
     "part1": "Bienvenido",
-    "part2": "al NymVPN Alpha"
+    "part2": "al NymVPN beta"
   },
   "tos": {
     "part1": "Al continuar, aceptas los términos de la NymVPN",
@@ -11,7 +11,7 @@
   "experimental": "Este es un software experimental. No confíes en él para obtener un anonimato fuerte (todavía).",
   "continue-button": "Continuar",
   "description": {
-    "part1": "¡Ayúdanos a perfeccionar nuestra aplicación durante la fase alfa!",
+    "part1": "¡Ayúdanos a perfeccionar nuestra aplicación durante la fase beta!",
     "part2": "Tu retroalimentación es importante",
     "part3": "para identificar y resolver problemas. Elige la supervisión anónima de errores",
     "part4": "y análisis, puedes darte de baja en cualquier momento. ¡Gracias por tu apoyo!"
