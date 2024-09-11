@@ -1,11 +1,12 @@
 use std::time::Duration;
 
 use futures::future::{Fuse, FutureExt};
+use talpid_routing::RouteManager;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
 use super::{
-    super::{NextTunnelState, TunnelCommand, TunnelState, TunnelStateHandler},
+    super::{NextTunnelState, SharedState, TunnelCommand, TunnelState, TunnelStateHandler},
     DisconnectedState,
 };
 
@@ -23,6 +24,17 @@ impl DisconnectingState {
 
         (Box::new(Self { wait_handle }), TunnelState::Disconnecting)
     }
+
+    async fn clear_routes(route_manager: &mut RouteManager) {
+        if let Err(e) = route_manager.clear_routes() {
+            tracing::error!("Failed to clear routes: {}", e);
+        }
+
+        #[cfg(target_os = "linux")]
+        if let Err(e) = route_manager.clear_routing_rules().await {
+            tracing::error!("Failed to clear routes: {}", e);
+        }
+    }
 }
 
 #[async_trait::async_trait]
@@ -31,6 +43,7 @@ impl TunnelStateHandler for DisconnectingState {
         mut self: Box<Self>,
         shutdown_token: &CancellationToken,
         command_rx: &'async_trait mut mpsc::UnboundedReceiver<TunnelCommand>,
+        shared_state: &'async_trait mut SharedState,
     ) -> NextTunnelState {
         tokio::select! {
             _ = shutdown_token.cancelled() => {

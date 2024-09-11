@@ -2,7 +2,7 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 use super::{
-    super::{NextTunnelState, TunnelCommand, TunnelState, TunnelStateHandler},
+    super::{NextTunnelState, SharedState, TunnelCommand, TunnelState, TunnelStateHandler},
     DisconnectingState,
 };
 
@@ -20,6 +20,7 @@ impl TunnelStateHandler for ConnectingState {
         mut self: Box<Self>,
         shutdown_token: &CancellationToken,
         command_rx: &'async_trait mut mpsc::UnboundedReceiver<TunnelCommand>,
+        shared_state: &'async_trait mut SharedState,
     ) -> NextTunnelState {
         tokio::select! {
             _ = shutdown_token.cancelled() => {
