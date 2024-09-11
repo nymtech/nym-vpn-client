@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
@@ -32,42 +32,33 @@ constructor(
 	private val tunnelManager: TunnelManager,
 	val navController: NavHostController,
 ) : ViewModel() {
-	val uiState =
-		combine(
-			settingsRepository.settingsFlow,
-			tunnelManager.stateFlow,
-		) { settings, manager ->
-			val connectionTime = manager.statistics.connectionSeconds.convertSecondsToTimeString()
-			val connectionState = ConnectionState.from(manager.state)
-			var stateMessage = connectionState.stateMessage
-			when (manager.backendMessage) {
-				is BackendMessage.Failure -> {
-					when (manager.backendMessage.exception) {
-						is VpnException.InvalidCredential -> {
-							SnackbarController.showMessage(StringValue.StringResource(R.string.exception_cred_invalid))
-							navController.go(Destination.Credential.route)
-						}
-						else -> stateMessage = StateMessage.Error(manager.backendMessage.exception)
+
+	val uiState = tunnelManager.stateFlow.map { manager ->
+		val connectionTime = manager.statistics.connectionSeconds.convertSecondsToTimeString()
+		val connectionState = ConnectionState.from(manager.state)
+		var stateMessage = connectionState.stateMessage
+		when (manager.backendMessage) {
+			is BackendMessage.Failure -> {
+				when (manager.backendMessage.exception) {
+					is VpnException.InvalidCredential -> {
+						SnackbarController.showMessage(StringValue.StringResource(R.string.exception_cred_invalid))
+						navController.go(Destination.Credential.route)
 					}
+					else -> stateMessage = StateMessage.Error(manager.backendMessage.exception)
 				}
-				BackendMessage.None -> stateMessage = connectionState.stateMessage
 			}
-			MainUiState(
-				false,
-				lastHopCountry = settings.lastHopCountry,
-				firstHopCounty = settings.firstHopCountry,
-				connectionTime = connectionTime,
-				networkMode = settings.vpnMode,
-				connectionState = connectionState,
-				firstHopEnabled = settings.firstHopSelectionEnabled,
-				stateMessage = stateMessage,
-			)
+			BackendMessage.None -> stateMessage = connectionState.stateMessage
 		}
-			.stateIn(
-				viewModelScope,
-				SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
-				MainUiState(),
-			)
+		MainUiState(
+			connectionTime = connectionTime,
+			connectionState = connectionState,
+			stateMessage = stateMessage,
+		)
+	}.stateIn(
+		viewModelScope,
+		SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
+		MainUiState(),
+	)
 
 	fun onTwoHopSelected() = viewModelScope.launch {
 		settingsRepository.setVpnMode(Tunnel.Mode.TWO_HOP_MIXNET)

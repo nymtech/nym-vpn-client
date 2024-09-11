@@ -7,13 +7,8 @@ import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.Country
 
 data class MainUiState(
-	val loading: Boolean = true,
 	val snackbarMessage: StringValue = StringValue.Empty,
 	val connectionState: ConnectionState = ConnectionState.Disconnected,
 	val stateMessage: StateMessage = StateMessage.Status(StringValue.Empty),
 	val connectionTime: String = "",
-	val networkMode: Tunnel.Mode = Tunnel.Mode.TWO_HOP_MIXNET,
-	val firstHopEnabled: Boolean = false,
-	val firstHopCounty: Country = Country(),
-	val lastHopCountry: Country = Country(),
 )

@@ -171,10 +171,10 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 				)
 			}
 		}
-		val firstHopName = context.buildCountryNameString(uiState.firstHopCounty)
-		val lastHopName = context.buildCountryNameString(uiState.lastHopCountry)
-		val firstHopIcon = countryIcon(uiState.firstHopCounty)
-		val lastHopIcon = countryIcon(uiState.lastHopCountry)
+		val firstHopName = context.buildCountryNameString(appUiState.settings.firstHopCountry)
+		val lastHopName = context.buildCountryNameString(appUiState.settings.lastHopCountry)
+		val firstHopIcon = countryIcon(appUiState.settings.firstHopCountry)
+		val lastHopIcon = countryIcon(appUiState.settings.lastHopCountry)
 		Column(
 			verticalArrangement = Arrangement.spacedBy(36.dp.scaledHeight(), Alignment.Bottom),
 			horizontalAlignment = Alignment.CenterHorizontally,
@@ -213,7 +213,7 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 								snackbar.showMessage(context.getString(R.string.disabled_while_connected))
 							}
 						},
-						selected = uiState.networkMode == Tunnel.Mode.FIVE_HOP_MIXNET,
+						selected = appUiState.settings.vpnMode == Tunnel.Mode.FIVE_HOP_MIXNET,
 					)
 					IconSurfaceButton(
 						leadingIcon = Icons.Outlined.Speed,
@@ -226,7 +226,7 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 								snackbar.showMessage(context.getString(R.string.disabled_while_connected))
 							}
 						},
-						selected = uiState.networkMode == Tunnel.Mode.TWO_HOP_MIXNET,
+						selected = appUiState.settings.vpnMode == Tunnel.Mode.TWO_HOP_MIXNET,
 					)
 				}
 			}
@@ -237,7 +237,7 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 				GroupLabel(title = stringResource(R.string.connect_to))
 				val trailingIcon = ImageVector.vectorResource(R.drawable.link_arrow_right)
 				val selectionEnabled = uiState.connectionState is ConnectionState.Disconnected
-				if (uiState.firstHopEnabled) {
+				if (appUiState.settings.firstHopSelectionEnabled) {
 					CustomTextField(
 						value = firstHopName,
 						readOnly = true,
