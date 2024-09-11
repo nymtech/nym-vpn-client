@@ -27,7 +27,7 @@ pub enum NextTunnelState {
 }
 
 #[derive(Debug)]
-enum TunnelCommand {
+pub enum TunnelCommand {
     Connect,
     Disconnect,
 }
@@ -93,7 +93,7 @@ impl TunnelStateMachine {
 
         let route_handler = MixnetRouteHandler::new()
             .await
-            .map_err(Error::RouteHandler)?;
+            .map_err(Error::CreateRouteHandler)?;
 
         let shared_state = SharedState {
             route_handler,
@@ -144,8 +144,8 @@ impl TunnelStateMachine {
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("routing failure")]
-    RouteHandler(#[source] mixnet_route_handler::Error),
+    #[error("failed to create a route handler")]
+    CreateRouteHandler(#[source] mixnet_route_handler::Error),
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
