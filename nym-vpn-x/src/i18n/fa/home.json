@@ -1,4 +1,13 @@
 {
   "connect": "اتصال",
-  "disconnect": "قطع"
+  "disconnect": "قطع",
+  "status": {
+    "connected": "متصل",
+    "disconnected": "قطع",
+    "connecting": "در حال اتصال",
+    "disconnecting": "در حال قطع"
+  },
+  "fast-mode": {
+    "title": "سریع (WireGuard)"
+  }
 }
