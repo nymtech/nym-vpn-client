@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
-use anyhow::anyhow;
 use anyhow::Result;
 use strum::AsRefStr;
+use tauri::image::Image;
 use tauri::menu::MenuEvent;
-use tauri::tray::TrayIcon;
 use tauri::tray::TrayIconEvent;
 use tauri::tray::{MouseButton, MouseButtonState};
-use tauri::Manager;
+use tauri::tray::{TrayIcon, TrayIconBuilder};
+use tauri::{include_image, Manager};
 use tauri::{menu::MenuBuilder, AppHandle};
 use tracing::{debug, error, instrument, trace, warn};
 
@@ -22,6 +22,7 @@ use crate::{
 
 pub const TRAY_ICON_ID: &str = "main";
 pub const TRAY_MENU_ID: &str = "tray_menu";
+const APP_ICON: Image<'_> = include_image!("icons/icon.png");
 
 #[derive(AsRefStr, Debug)]
 enum MenuItemId {
@@ -80,20 +81,17 @@ pub fn setup(app: &AppHandle) -> Result<()> {
         .build()
         .inspect_err(|e| error!("failed to build tray menu: {e}"))?;
 
-    let tray = app
-        .tray_by_id(TRAY_ICON_ID)
-        .ok_or_else(|| anyhow!("failed to get main tray"))?;
+    let tray = TrayIconBuilder::with_id(TRAY_ICON_ID)
+        .icon(APP_ICON)
+        .menu(&menu)
+        .on_tray_icon_event(on_tray_event)
+        .on_menu_event(on_menu_event)
+        .build(app)?;
 
     #[cfg(not(target_os = "linux"))]
     tray.set_tooltip(Some(APP_NAME))
         .inspect_err(|e| error!("failed to set tray tooltip {e}"))
         .ok();
-
-    tray.set_menu(Some(menu))
-        .inspect_err(|e| error!("failed to set tray menu {e}"))?;
-
-    tray.on_tray_icon_event(on_tray_event);
-    tray.on_menu_event(on_menu_event);
 
     Ok(())
 }

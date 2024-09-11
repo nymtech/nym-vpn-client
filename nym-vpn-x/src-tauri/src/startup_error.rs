@@ -71,7 +71,7 @@ pub fn show_window() -> Result<()> {
         .plugin(tauri_plugin_os::init())
         .setup(move |app| {
             info!("app setup");
-            tauri::WebviewWindowBuilder::new(
+            let window = tauri::WebviewWindowBuilder::new(
                 app,
                 WIN_LABEL,
                 tauri::WebviewUrl::App("src/error.html".into()),
@@ -87,6 +87,13 @@ pub fn show_window() -> Result<()> {
             .center()
             .title(WIN_TITLE)
             .build()?;
+
+            let handle = app.handle().clone();
+            window.on_window_event(move |event| {
+                if let tauri::WindowEvent::CloseRequested { .. } = event {
+                    handle.exit(0);
+                }
+            });
 
             Ok(())
         })
