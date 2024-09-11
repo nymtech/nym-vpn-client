@@ -164,7 +164,7 @@ wrapper="#! /bin/bash
 # https://github.com/nymtech/nym-vpn-client/issues/305
 export WEBKIT_DISABLE_DMABUF_RENDERER=1
 
-LOG_FILE=1 RUST_LOG=info,nym_vpn_x=trace INSTALL_DIR/$target_appimage -n NETENV"
+LOG_FILE=1 RUST_LOG=info,nymvpn_x=trace INSTALL_DIR/$target_appimage -n NETENV"
 ###
 
 ### app config ###

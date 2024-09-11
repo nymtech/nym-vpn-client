@@ -49,7 +49,7 @@ https://github.com/protocolbuffers/protobuf/releases and make sure
 To start the app in dev mode run:
 
 ```
-RUST_LOG=info,nym_vpn_x=trace npm run dev:app
+RUST_LOG=info,nymvpn_x=trace npm run dev:app
 ```
 
 (tweak `RUST_LOG` env var as needed)
@@ -58,7 +58,7 @@ or via `cargo`
 
 ```
 cd src-tauri
-RUST_LOG=info,nym_vpn_x=trace cargo tauri dev
+RUST_LOG=info,nymvpn_x=trace cargo tauri dev
 ```
 
 #### On Windows
@@ -66,7 +66,7 @@ RUST_LOG=info,nym_vpn_x=trace cargo tauri dev
 In a PowerShell terminal run
 
 ```powershell
-$env:RUST_LOG='debug,nym_vpn_x=trace'; cargo tauri dev; $env:RUST_LOG=$null
+$env:RUST_LOG='debug,nymvpn_x=trace'; cargo tauri dev; $env:RUST_LOG=$null
 ```
 
 ## Dev in the browser
