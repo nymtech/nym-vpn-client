@@ -307,7 +307,10 @@ async fn stop_routing_manager(mut route_manager: RouteManager) {
     if let Err(e) = route_manager.clear_routes() {
         tracing::error!("Failed to remove rules: {}", e);
     }
+    #[cfg(not(windows))]
     route_manager.stop().await;
+    #[cfg(windows)]
+    route_manager.stop();
 }
 
 async fn init_firewall_dns(
