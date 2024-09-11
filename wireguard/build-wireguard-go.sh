@@ -69,6 +69,7 @@ function win_create_lib_file {
 function build_windows {
     echo "Building wireguard-go for Windows"
     pushd libwg
+        export CGO_ENABLED=1
         go build -trimpath -v -o libwg.dll -buildmode c-shared
         win_create_lib_file
 
