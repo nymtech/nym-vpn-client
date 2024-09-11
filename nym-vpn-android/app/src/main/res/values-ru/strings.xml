@@ -3,8 +3,8 @@
     <string name="app_name">NymVPN</string>
     <string name="connected">Подключено</string>
     <string name="connecting">Подключение</string>
-    <string name="five_hop_mixnet">Анонимный</string>
-    <string name="two_hop_mixnet">Быстрый</string>
+    <string name="five_hop_mixnet">Анонимный (микснет)</string>
+    <string name="two_hop_mixnet">Быстрый (WireGuard)</string>
     <string name="first_hop">Локация входа</string>
     <string name="last_hop">Локация выхода</string>
     <string name="connect">Подключиться</string>
@@ -56,9 +56,9 @@
     <string name="ios">iOS</string>
     <string name="credential_successful">Учётные данные успешно добавлены</string>
     <string name="error_reporting_alert">Изменения в разделе \"Отчеты об ошибках\" не вступят в силу до тех пор, пока приложение не будет перезапущено.</string>
-    <string name="to_alpha">в альфу NymVPN</string>
+    <string name="to_alpha">в бету NymVPN</string>
     <string name="experimental_software_disclaimer">Это экспериментальное ПО. Не полагайтесь на него для обеспечения полной анонимности (пока).</string>
-    <string name="alpha_help_message">Помогите нам доработать наше приложение на этапе альфа-тестирования! Ваши отзывы имеют решающее значение для выявления и решения проблем.</string>
+    <string name="alpha_help_message">Помогите нам доработать наше приложение на этапе бета-тестирования! Ваши отзывы имеют решающее значение для выявления и решения проблем.</string>
     <string name="error_vpn_halted_unexpectedly">VPN неожиданно отключился. Пожалуйста, попробуйте подключиться еще раз.</string>
     <string name="share_anonymous_analytics">Поделиться анонимной аналитикой продукта</string>
     <string name="permission_message">Чтобы приложение корректно работало на вашем устройстве, пожалуйста, предоставьте следующие разрешения. Эти разрешения необходимы для работы приложения.</string>
@@ -66,7 +66,7 @@
     <string name="disabled_while_connected">Отключён при подключении к VPN</string>
     <string name="scan_nym_vpn_credential">Отсканировать QR-код с учётными данными NymVPN</string>
     <string name="credential_message">Введите ваши учётные данные для начала работы</string>
-    <string name="credential_disclaimer">Чтобы создать новые учётные данные, пожалуйста, воспользуйтесь ссылкой, указанной в электронном письме с приглашением в альфа-фазу.</string>
+    <string name="credential_disclaimer">Воспользуйтесь своими учетными данными, затем вставьте или отсканируйте QR-код. У вас их нет? Зарегистрируйтесь на сайте nymvpn.com, чтобы получить их мгновенно.</string>
     <string name="mode">Режим</string>
     <string name="welcome_exclaim">Добро пожаловать!</string>
     <string name="unknown_error">Произошла неизвестная ошибка</string>
