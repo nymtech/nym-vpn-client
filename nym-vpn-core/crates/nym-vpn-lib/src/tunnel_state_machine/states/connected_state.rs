@@ -24,13 +24,13 @@ impl TunnelStateHandler for ConnectedState {
     ) -> NextTunnelState {
         tokio::select! {
             _ = shutdown_token.cancelled() => {
-                NextTunnelState::NewState(DisconnectingState::enter())
+                NextTunnelState::NewState(DisconnectingState::enter(shared_state))
             }
             Some(command) = command_rx.recv() => {
                 match command {
                     TunnelCommand::Connect => NextTunnelState::SameState(self),
                     TunnelCommand::Disconnect => {
-                        NextTunnelState::NewState(DisconnectingState::enter())
+                        NextTunnelState::NewState(DisconnectingState::enter(shared_state))
                     },
                 }
             }

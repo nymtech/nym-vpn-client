@@ -15,9 +15,12 @@ impl ConnectingState {
     ) -> (Box<dyn TunnelStateHandler>, TunnelState) {
         let tunnel_shutdown_token = CancellationToken::new();
 
-        let nym_config = todo!();
-
-        match MixnetTunnel::spawn(nym_config, tunnel_shutdown_token.child_token()).await {
+        match MixnetTunnel::spawn(
+            shared_state.config.clone(),
+            tunnel_shutdown_token.child_token(),
+        )
+        .await
+        {
             Ok(tunnel_handle) => {
                 shared_state.tunnel_shutdown_token = Some(tunnel_shutdown_token);
                 shared_state.tunnel_handle = Some(tunnel_handle);
@@ -42,13 +45,13 @@ impl TunnelStateHandler for ConnectingState {
     ) -> NextTunnelState {
         tokio::select! {
             _ = shutdown_token.cancelled() => {
-                NextTunnelState::NewState(DisconnectingState::enter())
+                NextTunnelState::NewState(DisconnectingState::enter(shared_state))
             }
             Some(command) = command_rx.recv() => {
                 match command {
                     TunnelCommand::Connect => NextTunnelState::SameState(self),
                     TunnelCommand::Disconnect => {
-                        NextTunnelState::NewState(DisconnectingState::enter())
+                        NextTunnelState::NewState(DisconnectingState::enter(shared_state))
                     },
                 }
             }

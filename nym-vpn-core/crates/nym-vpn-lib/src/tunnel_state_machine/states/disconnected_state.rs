@@ -29,7 +29,7 @@ impl TunnelStateHandler for DisconnectedState {
             Some(command) = command_rx.recv() => {
                 match command {
                     TunnelCommand::Connect => {
-                        NextTunnelState::NewState(ConnectingState::enter())
+                        NextTunnelState::NewState(ConnectingState::enter(shared_state).await)
                     },
                     TunnelCommand::Disconnect => NextTunnelState::SameState(self),
                 }

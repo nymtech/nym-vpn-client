@@ -36,6 +36,7 @@ use crate::{
 pub(crate) const MIXNET_CLIENT_STARTUP_TIMEOUT_SECS: u64 = 30;
 const SHUTDOWN_TIMER_SECS: u64 = 10;
 
+#[derive(Clone, Debug)]
 pub struct GenericNymVpnConfig {
     pub mixnet_client_config: MixnetClientConfig,
 

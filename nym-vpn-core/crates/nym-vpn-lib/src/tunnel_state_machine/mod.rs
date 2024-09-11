@@ -9,6 +9,8 @@ use mixnet_route_handler::MixnetRouteHandler;
 use mixnet_tunnel::MixnetTunnelHandle;
 use states::DisconnectedState;
 
+use crate::GenericNymVpnConfig;
+
 #[async_trait::async_trait]
 trait TunnelStateHandler: Send {
     async fn handle_event(
@@ -49,6 +51,7 @@ pub struct SharedState {
     route_handler: MixnetRouteHandler,
     tunnel_shutdown_token: Option<CancellationToken>,
     tunnel_handle: Option<MixnetTunnelHandle>,
+    config: GenericNymVpnConfig,
 }
 
 pub struct TunnelStateMachine {
@@ -63,16 +66,20 @@ impl TunnelStateMachine {
     pub async fn spawn(
         command_receiver: mpsc::UnboundedReceiver<TunnelCommand>,
         event_sender: mpsc::UnboundedSender<TunnelEvent>,
+        config: GenericNymVpnConfig,
         shutdown_token: CancellationToken,
     ) -> Result<JoinHandle<()>> {
         let (current_state_handler, _) = DisconnectedState::enter();
 
-        let route_handler = MixnetRouteHandler::new().await?;
+        let route_handler = MixnetRouteHandler::new()
+            .await
+            .map_err(Error::RouteHandler)?;
 
         let shared_state = SharedState {
             route_handler,
             tunnel_shutdown_token: None,
             tunnel_handle: None,
+            config,
         };
 
         let tunnel_state_machine = Self {

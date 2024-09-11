@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use futures::future::{Fuse, FutureExt};
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
@@ -15,12 +13,17 @@ pub struct DisconnectingState {
 
 impl DisconnectingState {
     pub fn enter(shared_state: &mut SharedState) -> (Box<dyn TunnelStateHandler>, TunnelState) {
-        let tunnel_handle = shared_state.tunnel_handle.take();
         if let Some(token) = shared_state.tunnel_shutdown_token.take() {
             token.cancel();
         }
 
-        let wait_handle = tunnel_handle.fuse();
+        let tunnel_handle = shared_state.tunnel_handle.take();
+        let wait_handle = tokio::spawn(async move {
+            if let Some(tunnel_handle) = tunnel_handle {
+                tunnel_handle.wait().await;
+            }
+        })
+        .fuse();
 
         (Box::new(Self { wait_handle }), TunnelState::Disconnecting)
     }

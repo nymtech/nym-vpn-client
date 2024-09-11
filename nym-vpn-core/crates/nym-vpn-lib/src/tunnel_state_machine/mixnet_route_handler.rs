@@ -75,6 +75,10 @@ impl MixnetRouteHandler {
     }
 
     pub async fn stop(mut self) {
+        #[cfg(windows)]
+        self.route_manager.stop();
+
+        #[cfg(not(windows))]
         self.route_manager.stop().await;
     }
 }
