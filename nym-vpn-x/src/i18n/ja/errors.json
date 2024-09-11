@@ -5,7 +5,27 @@
   "connection": {
     "timeout": "接続タイムアウト",
     "bad-country-combination": "サポートされていない国の組み合わせです。エントリーまたは出口の国を変更してください。",
-    "no-valid-credential": "有効な認証情報がありません。認証情報を追加してください"
+    "no-valid-credential": "有効な認証情報がありません。認証情報を追加してください",
+    "gateway-lookup": {
+      "exit": "出口 Gateway の検索に失敗しました",
+      "generic": "gatewayの検索に失敗しました",
+      "id": "Gateway ID の検索に失敗しました",
+      "ipr": "IPRアドレスの検索に失敗しました",
+      "entry-location": "指定場所のエントリーgatewayの検索に失敗しました",
+      "ip": "gateway IPアドレスの検索に失敗しました",
+      "entry": "エントリーGatewayの検索に失敗しました",
+      "entry-id": "エントリー gateway IDの検索に失敗しました",
+      "exit-location": "指定場所の出口gatewayの検索に失敗しました"
+    },
+    "mixnet": {
+      "storage-path": "mixnetのストレージパスの作成に失敗しました",
+      "timeout": "Mixnet接続タイムアウト",
+      "default-storage": "デフォルトストレージでmixnetの作成に失敗しました",
+      "build-client": "mixnet clientの構築に失敗しました",
+      "connect": "mixnetへの接続に失敗しました",
+      "entry-gateway": "mixnet エントリーGatewayへの接続に失敗しました"
+    },
+    "ipr-connect": "IPRへの接続に失敗しました"
   },
   "credential": {
     "invalid": "無効な認証情報",
