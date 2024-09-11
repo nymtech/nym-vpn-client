@@ -61,9 +61,6 @@ const VPND_RETRY_INTERVAL: Duration = Duration::from_secs(2);
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // TODO is this still needed?
-    // tauri::async_runtime::set(tokio::runtime::Handle::current());
-
     dotenvy::dotenv().ok();
     // parse the command line arguments
     let cli = Cli::parse();
@@ -175,7 +172,6 @@ async fn main() -> Result<()> {
 
             tray::setup(app.handle())?;
 
-            // TODO check if clone works
             let handle = app.handle().clone();
             let c_grpc = grpc.clone();
             tokio::spawn(async move {
@@ -187,7 +183,6 @@ async fn main() -> Result<()> {
                 }
             });
 
-            // TODO check if clone works
             let handle = app.handle().clone();
             let c_grpc = grpc.clone();
             tokio::spawn(async move {
@@ -201,7 +196,6 @@ async fn main() -> Result<()> {
                 }
             });
 
-            // TODO check if clone works
             let handle = app.handle().clone();
             let c_grpc = grpc.clone();
             tokio::spawn(async move {
