@@ -274,15 +274,13 @@ private extension ConnectionManager {
                     credentialsDataPath: credentialURL.path(),
                     isTwoHopEnabled: false
                 )
-            case .mixnet2hop:
-                config = MixnetConfig(
-                    entryGateway: entryGateway,
-                    exitRouter: exitRouter,
-                    credentialsDataPath: credentialURL.path(),
-                    isTwoHopEnabled: true
-                )
             case .wireguard:
-                break
+                    config = MixnetConfig(
+                        entryGateway: entryGateway,
+                        exitRouter: exitRouter,
+                        credentialsDataPath: credentialURL.path(),
+                        isTwoHopEnabled: true
+                    )
             }
             isReconnecting = isReconnecting(newConfig: config)
             return config
@@ -308,14 +306,12 @@ extension ConnectionManager {
                 exitRouter: exitRouter,
                 isTwoHopEnabled: false
             )
-        case .mixnet2hop:
-            config = MixnetConfig(
-                entryGateway: entryGateway,
-                exitRouter: exitRouter,
-                isTwoHopEnabled: true
-            )
         case .wireguard:
-            break
+                config = MixnetConfig(
+                    entryGateway: entryGateway,
+                    exitRouter: exitRouter,
+                    isTwoHopEnabled: true
+                )
         }
         isReconnecting = isReconnecting(newConfig: config)
         return config

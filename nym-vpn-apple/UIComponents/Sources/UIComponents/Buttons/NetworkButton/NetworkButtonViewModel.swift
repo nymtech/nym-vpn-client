@@ -37,8 +37,6 @@ public final class NetworkButtonViewModel: ObservableObject {
         switch type {
         case .mixnet5hop:
             return "anonymous"
-        case .mixnet2hop:
-            return "fast"
         case .wireguard:
             return "fast"
         }
@@ -48,10 +46,8 @@ public final class NetworkButtonViewModel: ObservableObject {
         switch type {
         case .mixnet5hop:
             "5hopMixnetTitle".localizedString
-        case .mixnet2hop:
-            "2hopMixnetTitle".localizedString
         case .wireguard:
-            "2hopWireGuardTitle".localizedString
+            "2hopMixnetTitle".localizedString
         }
     }
 
@@ -59,8 +55,6 @@ public final class NetworkButtonViewModel: ObservableObject {
         switch type {
         case .mixnet5hop:
             "5hopMixnetSubtitle".localizedString
-        case .mixnet2hop:
-            "2hopWireGuardSubtitle".localizedString
         case .wireguard:
             "2hopWireGuardSubtitle".localizedString
         }

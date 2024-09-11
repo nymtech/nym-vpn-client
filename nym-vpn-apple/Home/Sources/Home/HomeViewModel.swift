@@ -13,6 +13,7 @@ import UIComponents
 #if os(macOS)
 import GRPCManager
 import HelperManager
+import Migrations
 #endif
 
 public class HomeViewModel: HomeFlowState {
@@ -27,6 +28,7 @@ public class HomeViewModel: HomeFlowState {
     let title = "NymVPN".localizedString
     let connectToLocalizedTitle = "connectTo".localizedString
     let networkSelectLocalizedTitle = "selectNetwork".localizedString
+    let wgDisabledLocalizedTitle = "home.fastDisabled".localizedString
 
     let appSettings: AppSettings
     let connectionManager: ConnectionManager
@@ -37,11 +39,12 @@ public class HomeViewModel: HomeFlowState {
 #if os(macOS)
     let grpcManager: GRPCManager
     let helperManager: HelperManager
+    let migrations: Migrations
 #endif
     let entryHopButtonViewModel = HopButtonViewModel(hopType: .entry)
     let exitHopButtonViewModel = HopButtonViewModel(hopType: .exit)
     let anonymousButtonViewModel = NetworkButtonViewModel(type: .mixnet5hop)
-    let fastButtonViewModel = NetworkButtonViewModel(type: .mixnet2hop)
+    let fastButtonViewModel = NetworkButtonViewModel(type: .wireguard)
 
     // If no time connected is shown, should be set to empty string,
     // so the time connected label would not disappear and re-center other UI elements.
@@ -79,7 +82,8 @@ public class HomeViewModel: HomeFlowState {
         credentialsManager: CredentialsManager = CredentialsManager.shared,
         grpcManager: GRPCManager = GRPCManager.shared,
         helperManager: HelperManager = HelperManager.shared,
-        externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared
+        externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared,
+        migrations: Migrations = Migrations.shared
     ) {
         self.appSettings = appSettings
         self.connectionManager = connectionManager
@@ -88,11 +92,22 @@ public class HomeViewModel: HomeFlowState {
         self.grpcManager = grpcManager
         self.helperManager = helperManager
         self.externalLinkManager = externalLinkManager
+        self.migrations = migrations
         super.init()
 
         setup()
     }
 #endif
+}
+
+extension HomeViewModel {
+    func isWgDisabledMigration() -> Bool {
+#if os(macOS)
+        migrations.isMacOSWgDisabled
+#else
+        false
+#endif
+    }
 }
 
 // MARK: - Navigation -

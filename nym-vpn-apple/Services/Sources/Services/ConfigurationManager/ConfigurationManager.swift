@@ -17,6 +17,7 @@ public final class ConfigurationManager {
 
     public static let shared = ConfigurationManager(appSettings: AppSettings.shared)
     public let isTestFlight = Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
+    public let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0"
 
     public var nymVpnApiURL: URL? {
         getenv("NYM_VPN_API").flatMap { URL(string: String(cString: $0)) }

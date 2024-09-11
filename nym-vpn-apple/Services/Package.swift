@@ -21,6 +21,7 @@ let package = Package(
         .library(name: "DarwinNotificationCenter", targets: ["DarwinNotificationCenter"]),
         .library(name: "ExternalLinkManager", targets: ["ExternalLinkManager"]),
         .library(name: "Keychain", targets: ["Keychain"]),
+        .library(name: "Migrations", targets: ["Migrations"]),
         .library(name: "Modifiers", targets: ["Modifiers"]),
         .library(name: "NymLogger", targets: ["NymLogger"]),
         .library(name: "SentryManager", targets: ["SentryManager"]),
@@ -118,6 +119,14 @@ let package = Package(
                 "NymLogger"
             ],
             path: "Sources/Services/Keychain"
+        ),
+        .target(
+            name: "Migrations",
+            dependencies: [
+                "AppSettings",
+                "ConfigurationManager"
+            ],
+            path: "Sources/Services/Migrations"
         ),
         .target(
             name: "Modifiers",
