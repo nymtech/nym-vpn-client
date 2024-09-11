@@ -44,7 +44,7 @@ fun LanguageScreen(navController: NavController, localeStorage: LocaleStorage) {
 
 	val sortedLocales =
 		remember(locales) {
-			locales.sortedWith(compareBy(collator) { it.getDisplayName(it) })
+			locales.sortedWith(compareBy(collator) { it.getDisplayName(it) }).toList()
 		}
 
 	LaunchedEffect(Unit) {
@@ -81,7 +81,7 @@ fun LanguageScreen(navController: NavController, localeStorage: LocaleStorage) {
 				ripple = false,
 			)
 		}
-		items(sortedLocales.toList()) { locale ->
+		items(sortedLocales, key = { it.toLanguageTag() }) { locale ->
 			SelectionItemButton(
 				buttonText = locale.getDisplayLanguage(locale).capitalize(locale) +
 					if (locale.toLanguageTag().contains("-")) " (${locale.getDisplayCountry(locale).capitalize(locale)})" else "",

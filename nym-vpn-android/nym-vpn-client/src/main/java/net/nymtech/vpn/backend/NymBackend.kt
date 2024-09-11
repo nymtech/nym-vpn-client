@@ -224,8 +224,6 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	class VpnService : android.net.VpnService(), AndroidTunProvider {
 		private var owner: NymBackend? = null
 
-		val startId = 123
-
 		private val builder: Builder
 			get() = Builder()
 
