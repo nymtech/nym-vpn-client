@@ -3,14 +3,32 @@ use tokio_util::sync::CancellationToken;
 
 use super::{
     super::{NextTunnelState, SharedState, TunnelCommand, TunnelState, TunnelStateHandler},
-    DisconnectingState,
+    DisconnectingState, ErrorState,
 };
+use crate::tunnel_state_machine::mixnet_tunnel::MixnetTunnel;
 
 pub struct ConnectingState;
 
 impl ConnectingState {
-    pub fn enter() -> (Box<dyn TunnelStateHandler>, TunnelState) {
-        (Box::new(Self), TunnelState::Connecting)
+    pub async fn enter(
+        shared_state: &mut SharedState,
+    ) -> (Box<dyn TunnelStateHandler>, TunnelState) {
+        let tunnel_shutdown_token = CancellationToken::new();
+
+        let nym_config = todo!();
+
+        match MixnetTunnel::spawn(nym_config, tunnel_shutdown_token.child_token()).await {
+            Ok(tunnel_handle) => {
+                shared_state.tunnel_shutdown_token = Some(tunnel_shutdown_token);
+                shared_state.tunnel_handle = Some(tunnel_handle);
+
+                (Box::new(Self), TunnelState::Connecting)
+            }
+            Err(e) => {
+                tracing::error!("Failed to start the tunnel: {}", e);
+                ErrorState::enter()
+            }
+        }
     }
 }
 

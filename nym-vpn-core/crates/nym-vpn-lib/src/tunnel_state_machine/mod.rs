@@ -2,13 +2,12 @@ mod mixnet_route_handler;
 mod mixnet_tunnel;
 mod states;
 
-use std::collections::HashSet;
-
-use mixnet_route_handler::MixnetRouteHandler;
-use states::DisconnectedState;
-use talpid_routing::RouteManager;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
+
+use mixnet_route_handler::MixnetRouteHandler;
+use mixnet_tunnel::MixnetTunnelHandle;
+use states::DisconnectedState;
 
 #[async_trait::async_trait]
 trait TunnelStateHandler: Send {
@@ -48,6 +47,8 @@ pub enum TunnelEvent {
 
 pub struct SharedState {
     route_handler: MixnetRouteHandler,
+    tunnel_shutdown_token: Option<CancellationToken>,
+    tunnel_handle: Option<MixnetTunnelHandle>,
 }
 
 pub struct TunnelStateMachine {
@@ -66,9 +67,13 @@ impl TunnelStateMachine {
     ) -> Result<JoinHandle<()>> {
         let (current_state_handler, _) = DisconnectedState::enter();
 
-        let route_handler = MixnetRouteHandler::new().await;
+        let route_handler = MixnetRouteHandler::new().await?;
 
-        let shared_state = SharedState { route_handler };
+        let shared_state = SharedState {
+            route_handler,
+            tunnel_shutdown_token: None,
+            tunnel_handle: None,
+        };
 
         let tunnel_state_machine = Self {
             current_state_handler,
@@ -112,8 +117,8 @@ impl TunnelStateMachine {
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("failed to create route manager")]
-    CreateRouteManager(#[source] talpid_routing::Error),
+    #[error("routing failure")]
+    RouteHandler(#[source] mixnet_route_handler::Error),
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use futures::future::{Fuse, FutureExt};
-use talpid_routing::RouteManager;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
@@ -9,19 +8,19 @@ use super::{
     super::{NextTunnelState, SharedState, TunnelCommand, TunnelState, TunnelStateHandler},
     DisconnectedState,
 };
-use crate::tunnel_state_machine::mixnet_route_handler::MixnetRouteHandler;
 
 pub struct DisconnectingState {
     wait_handle: Fuse<JoinHandle<()>>,
 }
 
 impl DisconnectingState {
-    pub fn enter() -> (Box<dyn TunnelStateHandler>, TunnelState) {
-        let wait_handle = tokio::spawn(async {
-            // todo: disconnect the tunnel
-            tokio::time::sleep(Duration::from_secs(1)).await;
-        })
-        .fuse();
+    pub fn enter(shared_state: &mut SharedState) -> (Box<dyn TunnelStateHandler>, TunnelState) {
+        let tunnel_handle = shared_state.tunnel_handle.take();
+        if let Some(token) = shared_state.tunnel_shutdown_token.take() {
+            token.cancel();
+        }
+
+        let wait_handle = tunnel_handle.fuse();
 
         (Box::new(Self { wait_handle }), TunnelState::Disconnecting)
     }
