@@ -60,7 +60,7 @@ impl TunnelStateHandler for DisconnectingState {
                 match self.after_disconnect {
                     ActionAfterDisconnect::Nothing => NextTunnelState::NewState(DisconnectedState::enter()),
                     ActionAfterDisconnect::Error(reason) => NextTunnelState::NewState(ErrorState::enter(reason)),
-                    ActionAfterDisconnect::Reconnect => NextTunnelState::NewState(ConnectingState::enter(shared_state).await)
+                    ActionAfterDisconnect::Reconnect => NextTunnelState::NewState(ConnectingState::enter(shared_state))
                 }
             }
             Some(command) = command_rx.recv() => {

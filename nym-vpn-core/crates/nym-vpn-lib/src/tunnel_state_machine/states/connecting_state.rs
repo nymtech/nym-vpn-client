@@ -13,9 +13,7 @@ pub struct ConnectingState {
 }
 
 impl ConnectingState {
-    pub async fn enter(
-        shared_state: &mut SharedState,
-    ) -> (Box<dyn TunnelStateHandler>, TunnelState) {
+    pub fn enter(shared_state: &mut SharedState) -> (Box<dyn TunnelStateHandler>, TunnelState) {
         let tunnel_shutdown_token = CancellationToken::new();
         let shutdown_child_token = tunnel_shutdown_token.child_token();
         let (tun_event_tx, tun_event_rx) = mpsc::unbounded_channel();
