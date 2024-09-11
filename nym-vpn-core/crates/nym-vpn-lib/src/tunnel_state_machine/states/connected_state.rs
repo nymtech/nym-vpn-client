@@ -1,16 +1,20 @@
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-use super::{
-    super::{NextTunnelState, SharedState, TunnelCommand, TunnelState, TunnelStateHandler},
-    DisconnectingState,
+use crate::tunnel_state_machine::{
+    mixnet_tunnel, states::DisconnectingState, ActionAfterDisconnect, ErrorStateReason,
+    NextTunnelState, SharedState, TunnelCommand, TunnelState, TunnelStateHandler,
 };
 
-pub struct ConnectedState;
+pub struct ConnectedState {
+    tun_event_rx: mixnet_tunnel::EventReceiver,
+}
 
 impl ConnectedState {
-    pub fn enter() -> (Box<dyn TunnelStateHandler>, TunnelState) {
-        (Box::new(Self), TunnelState::Connected)
+    pub fn enter(
+        tun_event_rx: mixnet_tunnel::EventReceiver,
+    ) -> (Box<dyn TunnelStateHandler>, TunnelState) {
+        (Box::new(Self { tun_event_rx }), TunnelState::Connected)
     }
 }
 
@@ -24,13 +28,29 @@ impl TunnelStateHandler for ConnectedState {
     ) -> NextTunnelState {
         tokio::select! {
             _ = shutdown_token.cancelled() => {
-                NextTunnelState::NewState(DisconnectingState::enter(shared_state))
+                NextTunnelState::NewState(DisconnectingState::enter(ActionAfterDisconnect::Nothing, shared_state))
+            }
+            Some(event) = self.tun_event_rx.recv() => {
+                match event {
+                    mixnet_tunnel::Event::Up { .. } => {
+                        tracing::warn!("Received tunnel up event which must not happen!");
+                        NextTunnelState::SameState(self)
+                    },
+                    mixnet_tunnel::Event::Down(error) => {
+                        if let Some(error) = error {
+                            tracing::error!("Tunnel went down with error: {}", error)
+                        } else {
+                            tracing::info!("Tunnel went down");
+                        }
+                        NextTunnelState::NewState(DisconnectingState::enter(ActionAfterDisconnect::Error(ErrorStateReason::TunnelDown), shared_state))
+                    }
+                }
             }
             Some(command) = command_rx.recv() => {
                 match command {
                     TunnelCommand::Connect => NextTunnelState::SameState(self),
                     TunnelCommand::Disconnect => {
-                        NextTunnelState::NewState(DisconnectingState::enter(shared_state))
+                        NextTunnelState::NewState(DisconnectingState::enter(ActionAfterDisconnect::Nothing, shared_state))
                     },
                 }
             }

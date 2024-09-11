@@ -1,16 +1,16 @@
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-use super::{
-    super::{NextTunnelState, SharedState, TunnelCommand, TunnelState, TunnelStateHandler},
-    ConnectingState, DisconnectedState,
+use crate::tunnel_state_machine::{
+    states::{ConnectingState, DisconnectedState},
+    ErrorStateReason, NextTunnelState, SharedState, TunnelCommand, TunnelState, TunnelStateHandler,
 };
 
 pub struct ErrorState;
 
 impl ErrorState {
-    pub fn enter() -> (Box<dyn TunnelStateHandler>, TunnelState) {
-        (Box::new(Self), TunnelState::Error)
+    pub fn enter(reason: ErrorStateReason) -> (Box<dyn TunnelStateHandler>, TunnelState) {
+        (Box::new(Self), TunnelState::Error(reason))
     }
 }
 

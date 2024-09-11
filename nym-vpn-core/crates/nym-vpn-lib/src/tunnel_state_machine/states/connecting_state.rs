@@ -1,37 +1,31 @@
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-use super::{
-    super::{NextTunnelState, SharedState, TunnelCommand, TunnelState, TunnelStateHandler},
-    DisconnectingState, ErrorState,
+use crate::tunnel_state_machine::{
+    mixnet_tunnel::{self, MixnetTunnel},
+    states::{ConnectedState, DisconnectingState},
+    ActionAfterDisconnect, ErrorStateReason, NextTunnelState, SharedState, TunnelCommand,
+    TunnelState, TunnelStateHandler,
 };
-use crate::tunnel_state_machine::mixnet_tunnel::MixnetTunnel;
 
-pub struct ConnectingState;
+pub struct ConnectingState {
+    tun_event_rx: mixnet_tunnel::EventReceiver,
+}
 
 impl ConnectingState {
     pub async fn enter(
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, TunnelState) {
         let tunnel_shutdown_token = CancellationToken::new();
-
-        match MixnetTunnel::spawn(
+        let shutdown_child_token = tunnel_shutdown_token.child_token();
+        let (tun_event_tx, tun_event_rx) = mpsc::unbounded_channel();
+        shared_state.tunnel_shutdown_token = Some(tunnel_shutdown_token);
+        shared_state.tunnel_handle = Some(MixnetTunnel::spawn(
             shared_state.config.clone(),
-            tunnel_shutdown_token.child_token(),
-        )
-        .await
-        {
-            Ok(tunnel_handle) => {
-                shared_state.tunnel_shutdown_token = Some(tunnel_shutdown_token);
-                shared_state.tunnel_handle = Some(tunnel_handle);
-
-                (Box::new(Self), TunnelState::Connecting)
-            }
-            Err(e) => {
-                tracing::error!("Failed to start the tunnel: {}", e);
-                ErrorState::enter()
-            }
-        }
+            tun_event_tx,
+            shutdown_child_token,
+        ));
+        (Box::new(Self { tun_event_rx }), TunnelState::Connecting)
     }
 }
 
@@ -45,13 +39,34 @@ impl TunnelStateHandler for ConnectingState {
     ) -> NextTunnelState {
         tokio::select! {
             _ = shutdown_token.cancelled() => {
-                NextTunnelState::NewState(DisconnectingState::enter(shared_state))
+                NextTunnelState::NewState(DisconnectingState::enter(ActionAfterDisconnect::Nothing, shared_state))
+            }
+            Some(event) = self.tun_event_rx.recv() => {
+                match event {
+                    mixnet_tunnel::Event::Up {  entry_mixnet_gateway_ip, tun_name } => {
+                        match shared_state.route_handler.add_routes(tun_name, entry_mixnet_gateway_ip).await {
+                            Ok(()) => NextTunnelState::NewState(ConnectedState::enter(self.tun_event_rx)),
+                            Err(e) => {
+                                tracing::error!("Failed to add routes: {}", e);
+                                NextTunnelState::NewState(DisconnectingState::enter(ActionAfterDisconnect::Error(ErrorStateReason::Routing), shared_state))
+                            }
+                        }
+                    },
+                    mixnet_tunnel::Event::Down(error) => {
+                        if let Some(error) = error {
+                            tracing::error!("Tunnel went down: {}", error);
+                        } else {
+                            tracing::error!("Tunnel went down without error.");
+                        }
+                        NextTunnelState::NewState(DisconnectingState::enter(ActionAfterDisconnect::Error(ErrorStateReason::EstablishConnection), shared_state))
+                    }
+                }
             }
             Some(command) = command_rx.recv() => {
                 match command {
                     TunnelCommand::Connect => NextTunnelState::SameState(self),
                     TunnelCommand::Disconnect => {
-                        NextTunnelState::NewState(DisconnectingState::enter(shared_state))
+                        NextTunnelState::NewState(DisconnectingState::enter(ActionAfterDisconnect::Nothing, shared_state))
                     },
                 }
             }

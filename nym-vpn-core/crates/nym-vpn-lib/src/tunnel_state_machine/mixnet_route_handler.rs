@@ -80,6 +80,8 @@ impl MixnetRouteHandler {
 
         #[cfg(not(windows))]
         self.route_manager.stop().await;
+
+        tokio::task::spawn_blocking(|| drop(self.route_manager));
     }
 }
 

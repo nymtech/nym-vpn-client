@@ -13,7 +13,7 @@ use nym_sdk::{
     NymNetworkDetails, UserAgent,
 };
 use nym_task::TaskManager;
-use tokio::task::JoinHandle;
+use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 use tun2::{AbstractDevice, AsyncDevice};
 
@@ -65,27 +65,16 @@ pub enum Error {
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
 
-pub struct MixnetTunnelHandle {
-    tun_name: String,
-    entry_gateway_ip: IpAddr,
-    join_handle: JoinHandle<()>,
+#[derive(Debug)]
+pub enum Event {
+    Up {
+        entry_mixnet_gateway_ip: IpAddr,
+        tun_name: String,
+    },
+    Down(Option<Error>),
 }
 
-impl MixnetTunnelHandle {
-    pub fn tun_name(&self) -> &str {
-        &self.tun_name
-    }
-
-    pub fn entry_gateway_ip(&self) -> IpAddr {
-        self.entry_gateway_ip
-    }
-
-    pub async fn wait(self) {
-        if let Err(e) = self.join_handle.await {
-            tracing::error!("Failed to join handle: {}", e);
-        }
-    }
-}
+pub type EventReceiver = mpsc::UnboundedReceiver<Event>;
 
 pub struct MixnetTunnel {
     task_manager: TaskManager,
@@ -95,10 +84,24 @@ pub struct MixnetTunnel {
 }
 
 impl MixnetTunnel {
-    pub async fn spawn(
+    pub fn spawn(
         nym_config: GenericNymVpnConfig,
+        event_tx: mpsc::UnboundedSender<Event>,
         shutdown_token: CancellationToken,
-    ) -> Result<MixnetTunnelHandle> {
+    ) -> JoinHandle<()> {
+        tokio::spawn(async move {
+            let err = Self::run(nym_config, event_tx.clone(), shutdown_token)
+                .await
+                .err();
+            _ = event_tx.send(Event::Down(err));
+        })
+    }
+
+    pub async fn run(
+        nym_config: GenericNymVpnConfig,
+        event_tx: mpsc::UnboundedSender<Event>,
+        shutdown_token: CancellationToken,
+    ) -> Result<()> {
         // Craft user agent.
         let user_agent = nym_config
             .user_agent
@@ -107,7 +110,7 @@ impl MixnetTunnel {
         // Select gateways
         let gateway_directory_client = GatewayClient::new(nym_config.gateway_config, user_agent)
             .map_err(Error::CreateGatewayClient)?;
-        let SelectedGateways { entry, exit } = select_gateways(
+        let selected_gateways = select_gateways(
             &gateway_directory_client,
             false,
             nym_config.entry_point,
@@ -117,19 +120,31 @@ impl MixnetTunnel {
         .map_err(Error::SelectGateways)?;
 
         // Create mixnet client
-        let task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS);
-        let mixnet_client = tokio::time::timeout(
+        let mut task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS);
+
+        let connect_mixnet_fut = tokio::time::timeout(
             MIXNET_CLIENT_STARTUP_TIMEOUT,
             setup_mixnet_client(
-                entry.identity(),
+                selected_gateways.entry.identity(),
                 &nym_config.data_path,
                 task_manager.subscribe_named("mixnet_client_main"),
                 nym_config.mixnet_client_config,
             ),
-        )
-        .await
-        .map_err(|_| Error::StartMixnetClientTimeout)?
-        .map_err(Error::FailedToSetupMixnetClient)?;
+        );
+
+        // Connect mixnet or catch cancellation
+        // todo: look into whether this will work?
+        let mixnet_client = tokio::select! {
+            _ = shutdown_token.cancelled() => {
+                _ = task_manager.signal_shutdown();
+                task_manager.wait_for_shutdown().await;
+                return Ok(())
+            }
+            timeout_result = connect_mixnet_fut => {
+                timeout_result.map_err(|_| Error::StartMixnetClientTimeout)?
+                .map_err(Error::FailedToSetupMixnetClient)?
+            }
+        };
 
         // Setup mixnet routing
         let mixnet_client_address = mixnet_client.nym_address().await;
@@ -142,7 +157,7 @@ impl MixnetTunnel {
                 source,
             })?;
 
-        let exit_mix_addresses = exit.ipr_address.unwrap();
+        let exit_mix_addresses = selected_gateways.exit.ipr_address.unwrap();
         let mut ipr_client = IprClientConnect::new_from_inner(mixnet_client.inner()).await;
 
         // Create tun device
@@ -183,6 +198,11 @@ impl MixnetTunnel {
             &task_manager,
         );
 
+        _ = event_tx.send(Event::Up {
+            entry_mixnet_gateway_ip,
+            tun_name: device_name,
+        });
+
         let tunnel = Self {
             task_manager,
             mixnet_client,
@@ -190,14 +210,12 @@ impl MixnetTunnel {
             processor_handle,
         };
 
-        Ok(MixnetTunnelHandle {
-            tun_name: device_name,
-            entry_gateway_ip: entry_mixnet_gateway_ip,
-            join_handle: tokio::spawn(tunnel.run()),
-        })
+        tunnel.wait().await;
+
+        Ok(())
     }
 
-    async fn run(mut self) {
+    async fn wait(mut self) {
         let mut shutdown_task_client = self.task_manager.subscribe();
 
         tokio::select! {
@@ -216,6 +234,7 @@ impl MixnetTunnel {
     }
 }
 
+#[derive(Debug, Clone)]
 struct SelectedGateways {
     entry: nym_gateway_directory::Gateway,
     exit: nym_gateway_directory::Gateway,

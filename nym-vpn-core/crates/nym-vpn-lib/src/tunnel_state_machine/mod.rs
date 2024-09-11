@@ -6,7 +6,6 @@ use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
 use mixnet_route_handler::MixnetRouteHandler;
-use mixnet_tunnel::MixnetTunnelHandle;
 use states::DisconnectedState;
 
 use crate::GenericNymVpnConfig;
@@ -38,8 +37,29 @@ pub enum TunnelState {
     Disconnected,
     Connecting,
     Connected,
-    Disconnecting,
-    Error,
+    Disconnecting {
+        after_disconnect: ActionAfterDisconnect,
+    },
+    Error(ErrorStateReason),
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+pub enum ActionAfterDisconnect {
+    Nothing,
+    Reconnect,
+    Error(ErrorStateReason),
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+pub enum ErrorStateReason {
+    /// Failure to configure routing
+    Routing,
+
+    /// Failure to establish connection
+    EstablishConnection,
+
+    /// Tunnel went down at runtime
+    TunnelDown,
 }
 
 #[derive(Debug)]
@@ -50,7 +70,7 @@ pub enum TunnelEvent {
 pub struct SharedState {
     route_handler: MixnetRouteHandler,
     tunnel_shutdown_token: Option<CancellationToken>,
-    tunnel_handle: Option<MixnetTunnelHandle>,
+    tunnel_handle: Option<JoinHandle<()>>,
     config: GenericNymVpnConfig,
 }
 

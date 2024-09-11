@@ -1,9 +1,9 @@
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-use super::{
-    super::{NextTunnelState, SharedState, TunnelCommand, TunnelState, TunnelStateHandler},
-    ConnectingState,
+use crate::tunnel_state_machine::{
+    states::ConnectingState, NextTunnelState, SharedState, TunnelCommand, TunnelState,
+    TunnelStateHandler,
 };
 
 pub struct DisconnectedState;
