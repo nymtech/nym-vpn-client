@@ -6,5 +6,9 @@
   "legal": "حقوقی",
   "connect": "اتصال",
   "logs": "گزارش‌ها",
-  "settings": "تنظیمات"
+  "settings": "تنظیمات",
+  "first-hop-selection": "موقعیت ورودی",
+  "tos": "قوانین استفاده",
+  "privacy-statement": "اعلامیه حریم خصوصی",
+  "last-hop-selection": "موقعیت خروجی"
 }
