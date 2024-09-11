@@ -13,6 +13,7 @@ use nym_ip_packet_requests::IpPair;
 use nym_sdk::UserAgent;
 use nym_task::{manager::TaskStatus, TaskManager};
 use talpid_core::{dns::DnsMonitor, firewall::Firewall};
+use talpid_routing::RouteManager;
 use talpid_tunnel::tun_provider::TunProvider;
 use tokio::task::JoinHandle;
 use tracing::{error, info};
@@ -191,6 +192,7 @@ impl SpecificVpn {
         {
             Ok(tunnels) => tunnels,
             Err(e) => {
+                stop_routing_manager(route_manager).await;
                 tokio::task::spawn_blocking(move || {
                     dns_monitor
                         .reset()
@@ -204,7 +206,6 @@ impl SpecificVpn {
                             error!("Failed to reset firewall policy: {err}");
                         })
                         .ok();
-                    drop(route_manager);
                 })
                 .await?;
                 return Err(Box::new(e));
@@ -240,13 +241,11 @@ impl SpecificVpn {
                     .unwrap();
 
                 // We are operational, wait for exit
-                let result = crate::util::wait_for_interrupt(
-                    Some(task_manager),
-                    Some(vpn_ctrl_rx),
-                    route_manager,
-                    None,
-                )
-                .await;
+                let result =
+                    crate::util::wait_for_interrupt(Some(task_manager), Some(vpn_ctrl_rx), None)
+                        .await;
+
+                stop_routing_manager(route_manager).await;
 
                 tokio::task::spawn_blocking(move || {
                     dns_monitor.reset().inspect_err(|err| {
@@ -280,10 +279,11 @@ impl SpecificVpn {
                 let result = crate::util::wait_for_interrupt(
                     Some(task_manager),
                     Some(vpn_ctrl_rx),
-                    route_manager,
                     Some([entry.specific_setup, exit.specific_setup]),
                 )
                 .await;
+
+                stop_routing_manager(route_manager).await;
 
                 tokio::task::spawn_blocking(move || {
                     dns_monitor.reset().inspect_err(|err| {
@@ -301,6 +301,13 @@ impl SpecificVpn {
             }
         }
     }
+}
+
+async fn stop_routing_manager(mut route_manager: RouteManager) {
+    if let Err(e) = route_manager.clear_routes() {
+        tracing::error!("Failed to remove rules: {}", e);
+    }
+    route_manager.stop().await;
 }
 
 async fn init_firewall_dns(

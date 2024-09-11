@@ -10,7 +10,6 @@ use crate::{tunnel_setup::WgTunnelSetup, vpn::NymVpnCtrlMessage};
 pub(crate) async fn wait_for_interrupt(
     mut task_manager: Option<nym_task::TaskManager>,
     mut vpn_ctrl_rx: Option<mpsc::UnboundedReceiver<NymVpnCtrlMessage>>,
-    route_manager: RouteManager,
     wireguard_waiting: Option<[WgTunnelSetup; 2]>,
 ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     let task_manager_wait = async {
@@ -51,7 +50,7 @@ pub(crate) async fn wait_for_interrupt(
         info!("Sending shutdown signal");
         task_manager.signal_shutdown().ok();
 
-        handle_interrupt(route_manager, wireguard_waiting).await;
+        handle_interrupt(wireguard_waiting).await;
 
         info!("Waiting for tasks to finish... (Press ctrl-c to force)");
         // TODO: this contains another signal handler that needs to be moved out.
@@ -63,13 +62,7 @@ pub(crate) async fn wait_for_interrupt(
 }
 
 #[cfg_attr(target_os = "windows", allow(unused_mut))]
-pub(crate) async fn handle_interrupt(
-    route_manager: RouteManager,
-    wireguard_waiting: Option<[WgTunnelSetup; 2]>,
-) {
-    tokio::task::spawn_blocking(|| drop(route_manager))
-        .await
-        .ok();
+pub(crate) async fn handle_interrupt(wireguard_waiting: Option<[WgTunnelSetup; 2]>) {
     let Some(wireguard_waiting) = wireguard_waiting else {
         return;
     };
