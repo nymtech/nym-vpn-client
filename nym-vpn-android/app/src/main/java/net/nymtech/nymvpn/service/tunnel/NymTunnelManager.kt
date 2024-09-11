@@ -12,8 +12,8 @@ import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.BackendMessage
 import net.nymtech.vpn.model.Statistics
-import net.nymtech.vpn.util.InvalidCredentialException
-import net.nymtech.vpn.util.MissingPermissionException
+import nym_vpn_lib.VpnException
+import timber.log.Timber
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Provider
@@ -27,36 +27,41 @@ class NymTunnelManager @Inject constructor(
 	private val _state = MutableStateFlow(TunnelState())
 	override val stateFlow: Flow<TunnelState> = _state.asStateFlow()
 
+	@get:Synchronized @set:Synchronized
+	private var running: Boolean = false
+
 	override fun getState(): Tunnel.State {
 		return backend.get().getState()
 	}
 
-	override suspend fun stop(): Result<Tunnel.State> {
-		return runCatching {
+	override suspend fun stop() {
+		runCatching {
 			backend.get().stop()
+			running = false
 		}
 	}
 
-	override suspend fun start(): Result<Tunnel.State> {
-		return runCatching {
+	override suspend fun start() {
+		runCatching {
+			Timber.d("Starting")
+			if (running) return Timber.w("Vpn already running")
 			val intent = VpnService.prepare(context)
-			if (intent != null) return Result.failure(MissingPermissionException("VPN permission missing"))
+			if (intent != null) return // TODO handle missing permission
+			val credentialExpiry = settingsRepository.getCredentialExpiry()
+			if (credentialExpiry.isInvalid()) return emitMessage(BackendMessage.Failure(VpnException.InvalidCredential(details = "Invalid credential")))
 			val entryCountry = settingsRepository.getFirstHopCountry()
 			val exitCountry = settingsRepository.getLastHopCountry()
-			val credentialExpiry = settingsRepository.getCredentialExpiry()
 			val tunnel = NymTunnel(
 				entryPoint = entryCountry.toEntryPoint(),
 				exitPoint = exitCountry.toExitPoint(),
 				mode = settingsRepository.getVpnMode(),
 				environment = settingsRepository.getEnvironment(),
 				statChange = ::emitStats,
-				stateChange = ::emitState,
+				stateChange = ::onStateChange,
 				backendMessage = ::emitMessage,
 			)
-			if (credentialExpiry != null && credentialExpiry.isInvalid()) {
-				return Result.failure(InvalidCredentialException("Credential missing or expired"))
-			}
 			backend.get().start(tunnel, false)
+			running = true
 		}
 	}
 
@@ -80,6 +85,11 @@ class NymTunnelManager @Inject constructor(
 				statistics = statistics,
 			)
 		}
+	}
+
+	private fun onStateChange(state: Tunnel.State) {
+		if (state == Tunnel.State.Down) running = false
+		emitState(state)
 	}
 
 	private fun emitState(state: Tunnel.State) {

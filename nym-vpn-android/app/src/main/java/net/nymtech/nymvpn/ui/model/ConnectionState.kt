@@ -9,7 +9,7 @@ sealed class ConnectionState(val status: StringValue) {
 
 	data object Connected : ConnectionState(StringValue.StringResource(R.string.connected)) {
 		override val stateMessage: StateMessage
-			get() = StateMessage.Info(StringValue.StringResource(R.string.connection_time))
+			get() = StateMessage.Status(StringValue.StringResource(R.string.connection_time))
 	}
 
 	data class Connecting(private val message: StateMessage) :
@@ -21,12 +21,12 @@ sealed class ConnectionState(val status: StringValue) {
 	data object Disconnecting :
 		ConnectionState(StringValue.StringResource(R.string.disconnecting)) {
 		override val stateMessage: StateMessage
-			get() = StateMessage.Info(StringValue.Empty)
+			get() = StateMessage.Status(StringValue.Empty)
 	}
 
 	data object Disconnected : ConnectionState(StringValue.StringResource(R.string.disconnected)) {
 		override val stateMessage: StateMessage
-			get() = StateMessage.Info(StringValue.Empty)
+			get() = StateMessage.Status(StringValue.Empty)
 	}
 
 	companion object {
@@ -36,7 +36,7 @@ sealed class ConnectionState(val status: StringValue) {
 				Tunnel.State.Up -> Connected
 				Tunnel.State.Connecting.InitializingClient ->
 					Connecting(
-						StateMessage.Info(
+						StateMessage.Status(
 							StringValue.StringResource(
 								R.string.init_client,
 							),
@@ -45,7 +45,7 @@ sealed class ConnectionState(val status: StringValue) {
 
 				Tunnel.State.Connecting.EstablishingConnection ->
 					Connecting(
-						StateMessage.Info(
+						StateMessage.Status(
 							StringValue.StringResource(R.string.establishing_connection),
 						),
 					)

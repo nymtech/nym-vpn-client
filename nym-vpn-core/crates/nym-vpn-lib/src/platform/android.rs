@@ -26,5 +26,5 @@ pub trait AndroidTunProvider: Send + Sync + Debug {
     fn configure_tunnel(
         &self,
         config: TunnelNetworkSettings,
-    ) -> Result<RawFd, crate::platform::error::FFIError>;
+    ) -> Result<RawFd, crate::platform::error::VpnError>;
 }

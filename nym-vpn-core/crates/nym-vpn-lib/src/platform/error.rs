@@ -1,66 +1,47 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
 
-#[derive(thiserror::Error, uniffi::Error, Debug)]
-pub enum FFIError {
-    #[error("Invalid value passed in uniffi")]
-    InvalidValueUniffi,
+#[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq)]
+pub enum VpnError {
+    #[error("{details}")]
+    InternalError { details: String },
 
-    #[error("Invalid credential passed in uniffi")]
-    InvalidCredential,
+    #[error("{details}")]
+    NetworkConnectionError { details: String },
 
-    #[error("{inner}")]
-    VpnApiClientError { inner: String },
+    #[error("{details}")]
+    GatewayError { details: String },
 
-    #[error("Invalid path")]
-    InvalidPath,
+    #[error("{details}")]
+    InvalidCredential { details: String },
 
-    #[error("Could not obtain a fd")]
-    FdNotFound,
+    #[error("Client is out of bandwidth")]
+    OutOfBandwidth,
 
-    #[error("VPN wasn't stopped properly")]
-    VpnNotStopped,
-
-    #[error("VPN wasn't started properly")]
-    VpnNotStarted,
-
-    #[error("VPN already running")]
-    VpnAlreadyRunning,
-
-    #[error("VPN not running")]
-    VpnNotRunning,
-
-    #[cfg(target_os = "android")]
-    #[error("Context was not initialised")]
-    NoContext,
-
-    #[error("{inner}")]
-    LibError { inner: String },
-
-    #[error("{inner}")]
-    GatewayDirectoryError { inner: String },
+    #[error("{details}")]
+    InvalidStateError { details: String },
 }
 
-impl From<crate::Error> for FFIError {
+impl From<crate::Error> for VpnError {
     fn from(value: crate::Error) -> Self {
-        Self::LibError {
-            inner: value.to_string(),
+        Self::InternalError {
+            details: value.to_string(),
         }
     }
 }
 
-impl From<nym_gateway_directory::Error> for FFIError {
+impl From<nym_gateway_directory::Error> for VpnError {
     fn from(value: nym_gateway_directory::Error) -> Self {
-        Self::GatewayDirectoryError {
-            inner: value.to_string(),
+        Self::NetworkConnectionError {
+            details: value.to_string(),
         }
     }
 }
 
-impl From<nym_vpn_api_client::VpnApiClientError> for FFIError {
+impl From<nym_vpn_api_client::VpnApiClientError> for VpnError {
     fn from(value: nym_vpn_api_client::VpnApiClientError) -> Self {
-        Self::VpnApiClientError {
-            inner: value.to_string(),
+        Self::NetworkConnectionError {
+            details: value.to_string(),
         }
     }
 }

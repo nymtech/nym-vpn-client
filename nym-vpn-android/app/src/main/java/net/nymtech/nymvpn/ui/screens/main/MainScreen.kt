@@ -24,11 +24,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -73,6 +73,7 @@ import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
+import nym_vpn_lib.VpnException
 
 @Composable
 fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewModel = hiltViewModel()) {
@@ -143,7 +144,7 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 			ConnectionStateDisplay(connectionState = uiState.connectionState)
 			uiState.stateMessage.let {
 				when (it) {
-					is StateMessage.Info ->
+					is StateMessage.Status ->
 						StatusInfoLabel(
 							message = it.message.asString(context),
 							textColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -151,7 +152,14 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 
 					is StateMessage.Error ->
 						StatusInfoLabel(
-							message = it.message.asString(context),
+							message = when (it.exception) {
+								is VpnException.GatewayException -> stringResource(R.string.gateway_error)
+								is VpnException.InternalException -> stringResource(R.string.internal_error)
+								is VpnException.InvalidCredential -> stringResource(R.string.exception_cred_invalid)
+								is VpnException.InvalidStateException -> stringResource(R.string.state_error)
+								is VpnException.NetworkConnectionException -> stringResource(R.string.network_error)
+								is VpnException.OutOfBandwidth -> stringResource(R.string.out_of_bandwidth_error)
+							} + " ${it.exception.message}",
 							textColor = CustomColors.error,
 						)
 				}
@@ -251,7 +259,7 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 							.defaultMinSize(minHeight = 1.dp, minWidth = 1.dp)
 							.clickable(
 								remember { MutableInteractionSource() },
-								indication = if (selectionEnabled) rememberRipple() else null,
+								indication = if (selectionEnabled) ripple() else null,
 							) {
 								if (selectionEnabled) {
 									navController.go(
@@ -282,7 +290,7 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 						.fillMaxWidth()
 						.height(60.dp.scaledHeight())
 						.defaultMinSize(minHeight = 1.dp, minWidth = 1.dp)
-						.clickable(remember { MutableInteractionSource() }, indication = if (selectionEnabled) rememberRipple() else null) {
+						.clickable(remember { MutableInteractionSource() }, indication = if (selectionEnabled) ripple() else null) {
 							if (selectionEnabled) {
 								navController.go(
 									Destination.ExitLocation.route,

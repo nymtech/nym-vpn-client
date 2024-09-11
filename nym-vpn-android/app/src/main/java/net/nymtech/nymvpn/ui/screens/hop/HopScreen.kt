@@ -69,13 +69,28 @@ fun HopScreen(
 	val currentLocale = ConfigurationCompat.getLocales(context.resources.configuration)[0]
 	val collator = Collator.getInstance(currentLocale)
 
-	val sortedCountries =
+	val countries = when (gatewayLocation) {
+		GatewayLocation.EXIT -> appUiState.gateways.exitCountries
+		GatewayLocation.ENTRY -> appUiState.gateways.entryCountries
+	}
+
+	val selectedCountry = when (gatewayLocation) {
+		GatewayLocation.EXIT -> appUiState.settings.lastHopCountry
+		GatewayLocation.ENTRY -> appUiState.settings.firstHopCountry
+	}
+
+	val queriedCountries =
 		remember(uiState.queriedCountries) {
 			uiState.queriedCountries.sortedWith(compareBy(collator) { it.name })
 		}
 
+	val allCountries = remember(countries) {
+		countries.sortedWith(compareBy(collator) { it.name })
+	}
+
+	val displayCountries = if (uiState.query.isBlank()) allCountries else queriedCountries
+
 	LaunchedEffect(Unit) {
-		viewModel.init(gatewayLocation)
 		viewModel.updateCountryCache(gatewayLocation)
 	}
 
@@ -120,7 +135,7 @@ fun HopScreen(
 					value = query,
 					onValueChange = {
 						query = it
-						viewModel.onQueryChange(it)
+						viewModel.onQueryChange(it, countries)
 					},
 					modifier = Modifier
 						.fillMaxWidth()
@@ -155,7 +170,7 @@ fun HopScreen(
 			}
 		}
 		item {
-			if (uiState.countries.isNotEmpty()) {
+			if (countries.isNotEmpty()) {
 				// TODO disable for now
 // 				val lowLatencyCountry = uiState.lowLatencyCountry
 // 				if (lowLatencyCountry != null) {
@@ -200,7 +215,7 @@ fun HopScreen(
 				)
 			}
 		}
-		items(sortedCountries) {
+		items(displayCountries, key = { it.isoCode }) {
 			if (it.isLowLatency) return@items
 			val icon =
 				ImageVector.vectorResource(
@@ -223,11 +238,11 @@ fun HopScreen(
 				},
 				buttonText = it.name,
 				onClick = {
-					viewModel.onSelected(it)
+					viewModel.onSelected(it, gatewayLocation)
 					navController.go(Destination.Main.createRoute(false))
 				},
 				trailing = {
-					if (it == uiState.selected) {
+					if (it.isoCode == selectedCountry.isoCode) {
 						SelectedLabel()
 					}
 				},

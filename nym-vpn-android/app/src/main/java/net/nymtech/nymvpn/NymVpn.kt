@@ -2,6 +2,7 @@ package net.nymtech.nymvpn
 
 import android.app.Application
 import android.content.Context
+import android.os.StrictMode
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -45,16 +46,16 @@ class NymVpn : Application() {
 		instance = this
 		if (BuildConfig.DEBUG) {
 			Timber.plant(DebugTree())
-// 			val builder = VmPolicy.Builder()
-// 			StrictMode.setThreadPolicy(
-// 				StrictMode.ThreadPolicy.Builder()
-// 					.detectDiskReads()
-// 					.detectDiskWrites()
-// 					.detectNetwork()
-// 					.penaltyLog()
-// 					.build(),
-// 			)
-// 			StrictMode.setVmPolicy(builder.build())
+			val builder = StrictMode.VmPolicy.Builder()
+			StrictMode.setThreadPolicy(
+				StrictMode.ThreadPolicy.Builder()
+					.detectDiskReads()
+					.detectDiskWrites()
+					.detectNetwork()
+					.penaltyLog()
+					.build(),
+			)
+			StrictMode.setVmPolicy(builder.build())
 		} else {
 			Timber.plant(ReleaseTree())
 		}

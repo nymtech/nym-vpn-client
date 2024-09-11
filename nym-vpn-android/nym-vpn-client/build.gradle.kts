@@ -87,6 +87,7 @@ dependencies {
 	implementation(libs.kotlinx.serialization)
 	implementation(libs.timber)
 	implementation(libs.jna)
+	implementation(libs.relinker)
 
 	testImplementation(libs.junit)
 	androidTestImplementation(libs.androidx.junit)

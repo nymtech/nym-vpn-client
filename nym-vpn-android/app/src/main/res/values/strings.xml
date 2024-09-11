@@ -159,4 +159,9 @@
 	<string name="delete_logs_description">Once deleted, the logs will not be recoverable.</string>
 	<string name="no">No</string>
 	<string name="yes">Yes</string>
+    <string name="out_of_bandwidth_error">Credential bandwidth limitation reached.</string>
+	<string name="gateway_error">Failed to connect to gateway. Try again or select a new gateway location.</string>
+	<string name="network_error">A network connection issue occurred. Please check your network connection and try again.</string>
+	<string name="state_error">"This should not happen, but a bad state as been reached. Please restart the app and try again. "</string>
+	<string name="internal_error">An internal tunnel error occured. Please try again.</string>
 </resources>

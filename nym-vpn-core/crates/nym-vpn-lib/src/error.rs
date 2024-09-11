@@ -60,7 +60,7 @@ pub enum Error {
 
     #[cfg(target_os = "ios")]
     #[error("{0}")]
-    UniffiError(#[from] crate::platform::error::FFIError),
+    UniffiError(#[from] crate::platform::error::VpnError),
 
     #[cfg(target_os = "ios")]
     #[error("failed to run wireguard tunnel")]
@@ -136,7 +136,7 @@ pub enum SetupMixTunnelError {
 
     #[cfg(target_os = "ios")]
     #[error("{0}")]
-    UniffiError(#[from] crate::platform::error::FFIError),
+    UniffiError(#[from] crate::platform::error::VpnError),
 
     #[cfg(target_os = "ios")]
     #[error("failed to locate tun fd")]

@@ -8,9 +8,9 @@ interface Backend {
 
 	suspend fun importCredential(credential: String): Instant?
 
-	suspend fun start(tunnel: Tunnel, background: Boolean): Tunnel.State
+	suspend fun start(tunnel: Tunnel, background: Boolean)
 
-	suspend fun stop(): Tunnel.State
+	suspend fun stop()
 
 	fun getState(): Tunnel.State
 }

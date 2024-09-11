@@ -16,7 +16,7 @@ import net.nymtech.vpn.R
 
 internal object NotificationManager {
 
-	const val VPN_NOTIFICATION_ID = 222
+	private const val VPN_NOTIFICATION_ID = 222
 	private const val VPN_CHANNEL_ID = "vpnChannel"
 
 	fun createNotificationChannel(context: Context) {

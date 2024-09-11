@@ -10,7 +10,7 @@ data class MainUiState(
 	val loading: Boolean = true,
 	val snackbarMessage: StringValue = StringValue.Empty,
 	val connectionState: ConnectionState = ConnectionState.Disconnected,
-	val stateMessage: StateMessage = StateMessage.Info(StringValue.Empty),
+	val stateMessage: StateMessage = StateMessage.Status(StringValue.Empty),
 	val connectionTime: String = "",
 	val networkMode: Tunnel.Mode = Tunnel.Mode.TWO_HOP_MIXNET,
 	val firstHopEnabled: Boolean = false,

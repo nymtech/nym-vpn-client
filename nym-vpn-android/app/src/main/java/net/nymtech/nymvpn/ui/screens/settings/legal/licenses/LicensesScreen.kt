@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -61,7 +62,7 @@ fun LicensesScreen(viewModel: LicensesViewModel = hiltViewModel()) {
 		item {
 			Row(modifier = Modifier.padding(bottom = 24.dp.scaledHeight())) {}
 		}
-		items(sortedLicenses) { artifact ->
+		itemsIndexed(sortedLicenses, key = { index, _ -> index }, contentType = { _: Int, _: Artifact -> null }) { _, artifact ->
 			SurfaceSelectionGroupButton(
 				items =
 				listOf(

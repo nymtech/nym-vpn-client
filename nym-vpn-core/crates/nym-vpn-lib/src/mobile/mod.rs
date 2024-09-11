@@ -12,7 +12,7 @@ pub mod two_hop_config;
 pub mod two_hop_tunnel;
 pub mod wg_config;
 
-use crate::platform::error::FFIError;
+use crate::platform::error::VpnError;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -31,11 +31,11 @@ pub enum Error {
     DnsResolution(#[from] ios::dns64::Error),
 
     #[error("failed to set network settings")]
-    SetNetworkSettings(#[source] FFIError),
+    SetNetworkSettings(#[source] VpnError),
 
     #[cfg(target_os = "ios")]
     #[error("failed to set default path observer")]
-    SetDefaultPathObserver(#[source] FFIError),
+    SetDefaultPathObserver(#[source] VpnError),
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

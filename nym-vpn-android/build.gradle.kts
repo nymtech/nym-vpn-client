@@ -8,6 +8,7 @@ plugins {
 	alias(libs.plugins.android.library) apply false
 	alias(libs.plugins.kotlinxSerialization) apply false
 	alias(libs.plugins.gross) apply false
+	alias(libs.plugins.licensee) apply false
 	alias(libs.plugins.ktlint)
 	alias(libs.plugins.detekt)
 }

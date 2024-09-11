@@ -16,8 +16,10 @@ use nym_sdk::UserAgent as NymUserAgent;
 use talpid_types::net::wireguard::{PresharedKey, PrivateKey, PublicKey};
 use url::Url;
 
+#[cfg(any(target_os = "ios", target_os = "android"))]
+use super::mobile::runner::Error as MobileError;
+use crate::platform::error::VpnError;
 use crate::{
-    platform::error::FFIError,
     vpn::{MixnetConnectionInfo, MixnetExitConnectionInfo, NymVpnStatusMessage},
     NodeIdentity, Recipient, UniffiCustomTypeConverter,
 };
@@ -79,7 +81,9 @@ impl UniffiCustomTypeConverter for PrivateKey {
     fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
         Ok(PrivateKey::from(
             *PublicKey::from_base64(&val)
-                .map_err(|_| FFIError::InvalidValueUniffi)?
+                .map_err(|_| VpnError::InternalError {
+                    details: "Invalid public key".to_string(),
+                })?
                 .as_bytes(),
         ))
     }
@@ -93,7 +97,11 @@ impl UniffiCustomTypeConverter for PublicKey {
     type Builtin = String;
 
     fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(PublicKey::from_base64(&val).map_err(|_| FFIError::InvalidValueUniffi)?)
+        Ok(
+            PublicKey::from_base64(&val).map_err(|_| VpnError::InternalError {
+                details: "Invalid public key".to_string(),
+            })?,
+        )
     }
 
     fn from_custom(obj: Self) -> Self::Builtin {
@@ -118,7 +126,11 @@ impl UniffiCustomTypeConverter for IpPair {
     type Builtin = String;
 
     fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(serde_json::from_str(&val).map_err(|_| FFIError::InvalidValueUniffi)?)
+        Ok(
+            serde_json::from_str(&val).map_err(|e| VpnError::InternalError {
+                details: e.to_string(),
+            })?,
+        )
     }
 
     fn from_custom(obj: Self) -> Self::Builtin {
@@ -360,8 +372,43 @@ pub enum StatusEvent {
 #[derive(uniffi::Enum, Clone, PartialEq)]
 #[allow(clippy::large_enum_variant)]
 pub enum ExitStatus {
+    Failure { error: VpnError },
     Stopped,
-    Failed { error: String },
+}
+
+#[cfg(any(target_os = "ios", target_os = "android"))]
+impl From<MobileError> for VpnError {
+    fn from(value: MobileError) -> Self {
+        match value {
+            MobileError::StartMixnetTimeout => VpnError::NetworkConnectionError {
+                details: value.to_string(),
+            },
+            MobileError::StartMixnetClient(e) => VpnError::NetworkConnectionError {
+                details: e.to_string(),
+            },
+            MobileError::GatewayDirectory(e) => VpnError::NetworkConnectionError {
+                details: e.to_string(),
+            },
+            MobileError::AuthenticatorAddressNotFound => VpnError::GatewayError {
+                details: value.to_string(),
+            },
+            MobileError::NotEnoughBandwidth => VpnError::OutOfBandwidth,
+            MobileError::AuthenticationNotPossible(message) => {
+                VpnError::GatewayError { details: message }
+            }
+            MobileError::WgGatewayClientFailure(e) => VpnError::GatewayError {
+                details: e.to_string(),
+            },
+            MobileError::Tunnel(e) => VpnError::InternalError {
+                details: e.to_string(),
+            },
+            MobileError::FailedToLookupGatewayIp { gateway_id, source } => {
+                VpnError::NetworkConnectionError {
+                    details: format!("failed to lookup gateway ip: {gateway_id}: {source}"),
+                }
+            }
+        }
+    }
 }
 
 #[derive(uniffi::Enum, Clone, PartialEq)]
