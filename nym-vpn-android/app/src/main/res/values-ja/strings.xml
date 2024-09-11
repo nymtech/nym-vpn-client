@@ -2,7 +2,7 @@
 <resources>
     <string name="join_discord">Discordに参加</string>
     <string name="add_credential">認証情報を追加</string>
-    <string name="credential_disclaimer">新しい認証情報を貰うには、αフェーズ招待メール記載のリンクからお願いします。</string>
+    <string name="credential_disclaimer">認証情報を引き換えて貼り付けるか、QRコードをスキャンしてください。認証情報をお持ちでない方は nymvpn.comにサインアップすると、すぐに取得できます。</string>
     <string name="thanks_for_support">サポートに感謝します！</string>
     <string name="gateways_error">gatewayの取得に失敗しました</string>
     <string name="experimental_software_disclaimer">これは実験的なソフトウェアです。現時点では強力な匿名性を期待しないでください。</string>
@@ -12,7 +12,7 @@
     <string name="disconnecting">接続解除中</string>
     <string name="connecting">接続中</string>
     <string name="five_hop_description">支払い、Eメール、メッセージに最適</string>
-    <string name="two_hop_mixnet">高速</string>
+    <string name="two_hop_mixnet">高速(WireGuard)</string>
     <string name="first_hop">エントリーロケーション</string>
     <string name="last_hop">出口ロケーション</string>
     <string name="connect">接続</string>
@@ -67,15 +67,15 @@
     <string name="no_scm_found">URLが見つかりませんでした</string>
     <string name="error_reporting_alert">エラーレポートに関する変更は、アプリを再起動するまで完全には反映されません。</string>
     <string name="feature_in_progress">この機能は開発段階です。</string>
-    <string name="logs_saved">ログがダウンロードフォルダーに保存されました。</string>
+    <string name="logs_saved">ログがダウンロードフォルダーに保存されました</string>
     <string name="sentry_url">https://sentry.io</string>
     <string name="anonymous_analytics">匿名分析</string>
     <string name="opt_in_message_first">匿名のエラーモニタリングに参加</string>
     <string name="welcome">ようこそ</string>
-    <string name="to_alpha">NymVPNアルファへ</string>
+    <string name="to_alpha">NymVPN βへ</string>
     <string name="cont">続ける</string>
-    <string name="continue_agree">続けることで、NymVPNの利用規約に同意したことになります</string>
-    <string name="and_acknowledge">NymVPNに同意</string>
+    <string name="continue_agree">続けることで、NymVPNの利用規約に同意したことに</string>
+    <string name="and_acknowledge">なります</string>
     <string name="share_anonymous_analytics">製品分析を匿名で報告</string>
     <string name="anonymous_error_reports">匿名のエラーレポート</string>
     <string name="error_invalid_credential">インポートされた認証情報は無効です</string>
@@ -114,10 +114,10 @@
     <string name="remaining">残り</string>
     <string name="entry_location_selector">エントリー地点選択</string>
     <string name="app_name">NymVPN</string>
-    <string name="five_hop_mixnet">匿名</string>
+    <string name="five_hop_mixnet">匿名(mixnet)</string>
     <string name="last_hop_selection">出口ロケーション</string>
     <string name="send_feedback">フィードバックを送信</string>
-    <string name="alpha_help_message">アルファ版アプリの改善にご協力ください！問題の特定と解決のために、皆様のフィードバックが非常に重要です。</string>
+    <string name="alpha_help_message">βテストの改善にご協力ください！問題の特定と解決のために、皆様のフィードバックが非常に重要です。</string>
     <string name="error_bad_peer_cert">"選択したgatewayのピア証明書に問題があります。別のgatewayに再接続してください。 "</string>
     <string name="vpn_connection">VPN接続</string>
     <string name="vpn_permission_message">VPN接続のリクエストを確認するため、再接続を試みてください。</string>
@@ -133,7 +133,7 @@
     <string name="anonymous_analytics_description">NymVPNの品質向上にご協力ください</string>
     <string name="app_shortcuts">アプリショートカット</string>
     <string name="permission_message">アプリが正しく動作するよう、以下の権限を許可してください。これらの権限はアプリが機能するのに必要です。</string>
-    <string name="legal">法的</string>
+    <string name="legal">法的事項</string>
     <string name="sentry">Sentry</string>
     <string name="init_client">クライアントを初期化中…</string>
     <string name="auto_connect_description">再起動時に自動接続</string>
