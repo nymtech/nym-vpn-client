@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use futures::{channel::mpsc, StreamExt};
-use talpid_routing::RouteManager;
 use tracing::{error, info};
 
 use crate::{tunnel_setup::WgTunnelSetup, vpn::NymVpnCtrlMessage};
