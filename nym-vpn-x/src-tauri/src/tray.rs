@@ -11,11 +11,13 @@ use tauri::Manager;
 use tauri::{menu::MenuBuilder, AppHandle};
 use tracing::{debug, error, instrument, trace, warn};
 
+#[cfg(not(target_os = "linux"))]
+use crate::APP_NAME;
 use crate::{
     grpc::client::GrpcClient,
     states::{app::ConnectionState, SharedAppState},
     window::AppWindow,
-    APP_NAME, MAIN_WINDOW_LABEL,
+    MAIN_WINDOW_LABEL,
 };
 
 pub const TRAY_ICON_ID: &str = "main";
