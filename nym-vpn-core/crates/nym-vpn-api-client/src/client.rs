@@ -372,9 +372,8 @@ impl VpnApiClient {
         self.inner
             .get_json(
                 &[
-                    // Add public/v1 to the path once the api is updated
-                    //routes::PUBLIC,
-                    //routes::V1,
+                    routes::PUBLIC,
+                    routes::V1,
                     routes::DIRECTORY,
                     routes::GATEWAYS,
                 ],
@@ -388,9 +387,8 @@ impl VpnApiClient {
         self.inner
             .get_json(
                 &[
-                    // Add public/v1 to the path once the api is updated
-                    //routes::PUBLIC,
-                    //routes::V1,
+                    routes::PUBLIC,
+                    routes::V1,
                     routes::DIRECTORY,
                     routes::GATEWAYS,
                     routes::COUNTRIES,
@@ -405,9 +403,8 @@ impl VpnApiClient {
         self.inner
             .get_json(
                 &[
-                    // Add public/v1 to the path once the api is updated
-                    //routes::PUBLIC,
-                    //routes::V1,
+                    routes::PUBLIC,
+                    routes::V1,
                     routes::DIRECTORY,
                     routes::GATEWAYS,
                     routes::ENTRY,
@@ -424,9 +421,8 @@ impl VpnApiClient {
         self.inner
             .get_json(
                 &[
-                    // Add public/v1 to the path once the api is updated
-                    //routes::PUBLIC,
-                    //routes::V1,
+                    routes::PUBLIC,
+                    routes::V1,
                     routes::DIRECTORY,
                     routes::GATEWAYS,
                     routes::ENTRY,
@@ -442,9 +438,8 @@ impl VpnApiClient {
         self.inner
             .get_json(
                 &[
-                    // Add public/v1 to the path once the api is updated
-                    //routes::PUBLIC,
-                    //routes::V1,
+                    routes::PUBLIC,
+                    routes::V1,
                     routes::DIRECTORY,
                     routes::GATEWAYS,
                     routes::EXIT,
@@ -459,9 +454,8 @@ impl VpnApiClient {
         self.inner
             .get_json(
                 &[
-                    // Add public/v1 to the path once the api is updated
-                    //routes::PUBLIC,
-                    //routes::V1,
+                    routes::PUBLIC,
+                    routes::V1,
                     routes::DIRECTORY,
                     routes::GATEWAYS,
                     routes::EXIT,
