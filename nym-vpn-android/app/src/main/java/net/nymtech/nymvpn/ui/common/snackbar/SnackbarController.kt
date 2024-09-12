@@ -24,7 +24,7 @@ private val LocalSnackbarController = staticCompositionLocalOf {
 		scope = CoroutineScope(EmptyCoroutineContext),
 	)
 }
-private val channel = Channel<SnackbarChannelMessage>(capacity = Int.MAX_VALUE)
+private val channel = Channel<SnackbarChannelMessage>(capacity = 1)
 
 @Composable
 fun SnackbarControllerProvider(content: @Composable (snackbarHost: SnackbarHostState) -> Unit) {
@@ -84,7 +84,7 @@ class SnackbarController(
 			 * note: uncomment this line if you want snackbar to be displayed immediately,
 			 * rather than being enqueued and waiting [duration] * current_queue_size
 			 */
-			// host.currentSnackbarData?.dismiss()
+			host.currentSnackbarData?.dismiss()
 			val result =
 				host.showSnackbar(
 					message = message,
