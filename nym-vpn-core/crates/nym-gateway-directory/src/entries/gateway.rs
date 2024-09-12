@@ -177,6 +177,7 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
                 }
             })?;
 
+        // Use the hostname if available, otherwise use the first IP address
         let host = gateway
             .entry
             .hostname
@@ -188,13 +189,7 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
                 .and_then(|ip| IpAddr::from_str(&ip).ok())
                 .map(nym_topology::NetworkAddress::IpAddr));
 
-        let performance = gateway
-            .performance
-            .parse::<f64>()
-            .map(|p| p * 100.0)
-            .map(|p| p.round() as u8)
-            .map(|p| p.clamp(0, 100))
-            .ok();
+        let performance = string_fraction_into_percentage_u8(&gateway.performance);
 
         Ok(Gateway {
             identity,
@@ -212,6 +207,16 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             performance,
         })
     }
+}
+
+// Convert from a String representing a fraction between 0.0 and 1.0, to a percentage number.
+// Example: "0.5" to 50
+fn string_fraction_into_percentage_u8(s: &str) -> Option<u8> {
+    s.parse::<f64>()
+        .map(|p| p * 100.0)
+        .map(|p| p.round() as u8)
+        .map(|p| p.clamp(0, 100))
+        .ok()
 }
 
 impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
