@@ -1,11 +1,14 @@
 import { Country } from './types';
 
 export const AppName = 'NymVPN';
+// ⚠ keep this default in sync with the one declared in
+// src-tauri/src/states/app.rs
+export const DefaultVpnMode = 'TwoHop';
 export const ConnectionEvent = 'connection-state';
 export const ProgressEvent = 'connection-progress';
 export const DaemonEvent = 'vpnd-status';
 export const StatusUpdateEvent = 'status-update';
-// TODO ⚠ keep this value in sync with the one declared in `index.html`
+// ⚠ keep this value in sync with the one declared in `index.html`
 export const DefaultRootFontSize = 14; // in px
 export const DefaultNodeCountry: Country = {
   name: 'France',

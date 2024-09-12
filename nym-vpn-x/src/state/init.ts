@@ -2,7 +2,11 @@ import { invoke } from '@tauri-apps/api/core';
 import { getVersion } from '@tauri-apps/api/app';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import dayjs from 'dayjs';
-import { DefaultRootFontSize, DefaultThemeMode } from '../constants';
+import {
+  DefaultRootFontSize,
+  DefaultThemeMode,
+  DefaultVpnMode,
+} from '../constants';
 import { getJsLicenses, getRustLicenses } from '../data';
 import { kvGet } from '../kvStore';
 import {
@@ -153,7 +157,7 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     name: 'getVpnMode',
     request: () => kvGet<VpnMode>('VpnMode'),
     onFulfilled: (vpnMode) => {
-      dispatch({ type: 'set-vpn-mode', mode: vpnMode || 'TwoHop' });
+      dispatch({ type: 'set-vpn-mode', mode: vpnMode || DefaultVpnMode });
     },
   };
 
