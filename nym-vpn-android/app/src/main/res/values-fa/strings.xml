@@ -116,7 +116,6 @@
     <string name="enable_shortcuts">فعال‌سازی میان‌برهای برنامه</string>
     <string name="allow_permissions">صدور مجوزها</string>
     <string name="error_vpn_halted_unexpectedly">VPN به‌طور غیرمنتظره‌ای متوقف شده است. لطفاً دوباره سعی کنید اتصال برقرار کنید.</string>
-    <string name="opt_in_message_second"></string>
     <string name="share_anonymous_analytics">به اشتراک‌گذاری ناشناس تحلیل‌های محصول</string>
     <string name="notification_permission_message">برای فعال نگه داشتن خدمات VPN در زمان بسته بودن برنامه، لازم است.</string>
     <string name="error_no_hostname_address">گیت‌وی آدرس نام میزبان ندارد. لطفا دوباره تلاش کنید و به یک گیت‌وی دیگر متصل شوید.</string>
