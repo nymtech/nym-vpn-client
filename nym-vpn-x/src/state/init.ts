@@ -23,6 +23,7 @@ import {
   WindowSize,
 } from '../types';
 import fireRequests, { TauriReq } from './helper';
+import { S_STATE } from '../static';
 
 // initialize connection state
 const getInitialConnectionState = async () => {
@@ -158,6 +159,7 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     request: () => kvGet<VpnMode>('VpnMode'),
     onFulfilled: (vpnMode) => {
       dispatch({ type: 'set-vpn-mode', mode: vpnMode || DefaultVpnMode });
+      S_STATE.vpnModeInit = true;
     },
   };
 

@@ -11,6 +11,7 @@ import { useThrottle } from '../../hooks';
 import { HomeThrottleDelay } from '../../constants';
 import MsIcon from '../../ui/MsIcon';
 import ModeDetailsDialog from './ModeDetailsDialog';
+import { S_STATE } from '../../static';
 
 const os = type();
 
@@ -136,6 +137,7 @@ function NetworkModeSelect() {
       />
       <div className="select-none" onClick={handleDisabledState}>
         <RadioGroup
+          key={`_${S_STATE.vpnModeInit}`}
           defaultValue={state.vpnMode}
           options={vpnModes}
           onChange={handleNetworkModeChange}
