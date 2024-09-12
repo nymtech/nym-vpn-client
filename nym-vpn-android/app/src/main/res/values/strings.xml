@@ -164,4 +164,5 @@
 	<string name="network_error">A network connection issue occurred. Please check your network connection and try again.</string>
 	<string name="state_error">"This should not happen, but a bad state as been reached. Please restart the app and try again. "</string>
 	<string name="internal_error">An internal tunnel error occured. Please try again.</string>
+	<string name="vpn_notification_channel_id">NymAlertChannel</string>
 </resources>

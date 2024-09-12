@@ -19,7 +19,7 @@ import net.nymtech.logcatutil.LogCollect
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.SettingsRepository
-import net.nymtech.nymvpn.module.ApplicationScope
+import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.service.country.CountryCacheService
 import net.nymtech.nymvpn.util.Constants
 import timber.log.Timber

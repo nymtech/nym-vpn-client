@@ -2,7 +2,7 @@ package net.nymtech.nymvpn.service.gateway
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
-import net.nymtech.nymvpn.module.IoDispatcher
+import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
 import net.nymtech.vpn.model.Country
 import timber.log.Timber
 import javax.inject.Inject

@@ -1,7 +1,5 @@
 package net.nymtech.nymvpn.service.tunnel
 
-import net.nymtech.nymvpn.NymVpn
-import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.BackendMessage
 import net.nymtech.vpn.model.Statistics
@@ -19,8 +17,6 @@ class NymTunnel(
 ) : Tunnel {
 	override fun onStateChange(newState: Tunnel.State) {
 		stateChange(newState)
-		// TODO maybe a better place to do this
-		NymVpn.instance.requestTileServiceStateUpdate()
 	}
 
 	override fun onStatisticChange(stats: Statistics) {

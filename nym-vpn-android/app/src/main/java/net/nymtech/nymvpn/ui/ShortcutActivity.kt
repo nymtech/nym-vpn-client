@@ -8,8 +8,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.nymtech.nymvpn.data.SettingsRepository
-import net.nymtech.nymvpn.module.ApplicationScope
-import net.nymtech.nymvpn.module.IoDispatcher
+import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
+import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.service.tunnel.TunnelManager
 import net.nymtech.vpn.util.Action
 import timber.log.Timber

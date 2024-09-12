@@ -21,7 +21,7 @@ class CredentialViewModel
 constructor(
 	private val settingsRepository: SettingsRepository,
 	private val tunnelManager: TunnelManager,
-	private val navHostController: NavHostController,
+	private val navController: NavHostController,
 ) : ViewModel() {
 
 	fun onImportCredential(credential: String, onFailure: () -> Unit) = viewModelScope.launch {
@@ -33,7 +33,7 @@ constructor(
 			}
 		}.onSuccess {
 			SnackbarController.showMessage(StringValue.StringResource(R.string.credential_successful))
-			navHostController.navigateAndForget(Destination.Main.createRoute(false))
+			navController.navigateAndForget(Destination.Main.createRoute(false))
 		}.onFailure {
 			onFailure()
 			Timber.e(it)

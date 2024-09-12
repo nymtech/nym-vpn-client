@@ -8,6 +8,8 @@ import dagger.hilt.android.scopes.ServiceScoped
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
+import net.nymtech.nymvpn.module.qualifiers.ServiceScope
 
 @Module
 @InstallIn(ServiceComponent::class)

@@ -1,7 +1,7 @@
 package net.nymtech.nymvpn.service.country
 
 import net.nymtech.nymvpn.data.GatewayRepository
-import net.nymtech.nymvpn.module.Native
+import net.nymtech.nymvpn.module.qualifiers.Native
 import net.nymtech.nymvpn.service.gateway.GatewayService
 import timber.log.Timber
 import javax.inject.Inject

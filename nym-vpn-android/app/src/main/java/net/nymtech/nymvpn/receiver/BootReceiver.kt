@@ -7,7 +7,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
-import net.nymtech.nymvpn.module.ApplicationScope
+import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.service.tunnel.TunnelManager
 import javax.inject.Inject
 

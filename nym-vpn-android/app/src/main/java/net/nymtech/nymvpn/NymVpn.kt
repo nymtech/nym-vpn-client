@@ -11,11 +11,11 @@ import net.nymtech.localizationutil.LocaleStorage
 import net.nymtech.localizationutil.LocaleUtil
 import net.nymtech.logcatutil.LogCollect
 import net.nymtech.nymvpn.data.SettingsRepository
-import net.nymtech.nymvpn.module.ApplicationScope
-import net.nymtech.nymvpn.module.IoDispatcher
+import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
+import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
-import net.nymtech.nymvpn.util.logging.DebugTree
-import net.nymtech.nymvpn.util.logging.ReleaseTree
+import net.nymtech.nymvpn.util.timber.DebugTree
+import net.nymtech.nymvpn.util.timber.ReleaseTree
 import net.nymtech.vpn.backend.Tunnel
 import timber.log.Timber
 import javax.inject.Inject

@@ -2,7 +2,6 @@ package net.nymtech.nymvpn.module
 
 import android.content.Context
 import android.os.Build
-import androidx.navigation.NavHostController
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
@@ -18,13 +17,19 @@ import net.nymtech.logcatutil.LogcatHelper
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.module.qualifiers.Android
+import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
+import net.nymtech.nymvpn.module.qualifiers.DefaultDispatcher
+import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
+import net.nymtech.nymvpn.module.qualifiers.Native
 import net.nymtech.nymvpn.service.country.CountryCacheService
 import net.nymtech.nymvpn.service.country.CountryDataStoreCacheService
 import net.nymtech.nymvpn.service.gateway.GatewayApi
 import net.nymtech.nymvpn.service.gateway.GatewayApiService
 import net.nymtech.nymvpn.service.gateway.GatewayLibService
 import net.nymtech.nymvpn.service.gateway.GatewayService
-import net.nymtech.nymvpn.ui.common.navigation.NavigationService
+import net.nymtech.nymvpn.service.notification.NotificationService
+import net.nymtech.nymvpn.service.notification.VpnAlertNotifications
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.FileUtils
 import net.nymtech.vpn.NymApi
@@ -138,7 +143,7 @@ object AppModule {
 
 	@Singleton
 	@Provides
-	fun provideNestedNavController(@ApplicationContext context: Context): NavHostController {
-		return NavigationService(context).navController
+	fun provideNotificationService(@ApplicationContext context: Context): NotificationService {
+		return VpnAlertNotifications(context)
 	}
 }
