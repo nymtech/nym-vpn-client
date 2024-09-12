@@ -7,6 +7,7 @@ import androidx.core.app.NotificationCompat
 interface NotificationService {
 
 	val channelName: String
+	val channelDescription: String
 	val builder: NotificationCompat.Builder
 
 	fun showNotification(

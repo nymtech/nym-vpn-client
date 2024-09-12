@@ -70,6 +70,7 @@ import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.go
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.resetTile
+import net.nymtech.nymvpn.util.extensions.toUserMessage
 import net.nymtech.vpn.model.BackendMessage
 import nym_vpn_lib.BandwidthStatus
 import nym_vpn_lib.VpnException
@@ -102,8 +103,7 @@ class MainActivity : ComponentActivity() {
 		setContent {
 			val appState by appViewModel.uiState.collectAsStateWithLifecycle(lifecycle = this.lifecycle)
 
-			val navController = appViewModel.navController
-
+			val navController = remember { appViewModel.navController }
 			val navBackStackEntry by navController.currentBackStackEntryAsState()
 			var navHeight by remember { mutableStateOf(0.dp) }
 			var showNavBar by rememberSaveable { mutableStateOf(true) }
@@ -129,33 +129,33 @@ class MainActivity : ComponentActivity() {
 			}
 
 			LaunchedEffect(appState.backendMessage) {
-				when(val message = appState.backendMessage) {
+				when (val message = appState.backendMessage) {
 					is BackendMessage.Failure -> {
-						when(message.exception) {
+						when (message.exception) {
 							is VpnException.InvalidCredential -> {
 								SnackbarController.showMessage(StringValue.StringResource(R.string.exception_cred_invalid))
 								navController.go(Destination.Credential.route)
 							}
 							else -> {
 								notificationService.showNotification(
-									title = "Vpn Failed",
-									description = "${message.exception.message}"
+									title = getString(R.string.connection_failed),
+									description = message.exception.toUserMessage(this@MainActivity),
 								)
 							}
 						}
 					}
 					is BackendMessage.BandwidthAlert -> {
-						when(val alert = message.status) {
+						when (val alert = message.status) {
 							BandwidthStatus.NoBandwidth -> {
 								notificationService.showNotification(
-									title = "Out of Bandwidth",
-									description = "No Bandwidth"
+									title = getString(R.string.bandwidth_alert),
+									description = getString(R.string.no_bandwidth),
 								)
 							}
 							is BandwidthStatus.RemainingBandwidth -> {
 								notificationService.showNotification(
-									title = "Low Bandwidth",
-									description = "Remaining bandwidth: ${alert.bandwidth}"
+									title = getString(R.string.bandwidth_alert),
+									description = getString(R.string.low_bandwidth) + " ${alert.bandwidth}",
 								)
 							}
 						}

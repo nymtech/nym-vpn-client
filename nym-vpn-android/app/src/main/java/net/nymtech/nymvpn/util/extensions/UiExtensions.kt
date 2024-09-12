@@ -1,9 +1,12 @@
 package net.nymtech.nymvpn.util.extensions
 
+import android.content.Context
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.navigation.NavController
 import net.nymtech.nymvpn.NymVpn
+import net.nymtech.nymvpn.R
+import nym_vpn_lib.VpnException
 
 fun Dp.scaledHeight(): Dp {
 	return NymVpn.instance.resizeHeight(this)
@@ -36,5 +39,16 @@ fun NavController.go(route: String) {
 		// reselecting the same item
 		launchSingleTop = true
 		restoreState = true
+	}
+}
+
+fun VpnException.toUserMessage(context: Context): String {
+	return when (this) {
+		is VpnException.GatewayException -> context.getString(R.string.gateway_error)
+		is VpnException.InternalException -> context.getString(R.string.internal_error)
+		is VpnException.InvalidCredential -> context.getString(R.string.exception_cred_invalid)
+		is VpnException.InvalidStateException -> context.getString(R.string.state_error)
+		is VpnException.NetworkConnectionException -> context.getString(R.string.network_error)
+		is VpnException.OutOfBandwidth -> context.getString(R.string.out_of_bandwidth_error)
 	}
 }

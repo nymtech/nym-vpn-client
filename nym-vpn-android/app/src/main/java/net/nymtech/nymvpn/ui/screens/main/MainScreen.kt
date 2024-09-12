@@ -72,8 +72,8 @@ import net.nymtech.nymvpn.util.extensions.isInvalid
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
+import net.nymtech.nymvpn.util.extensions.toUserMessage
 import net.nymtech.vpn.backend.Tunnel
-import nym_vpn_lib.VpnException
 
 @Composable
 fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewModel = hiltViewModel()) {
@@ -152,14 +152,7 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 
 					is StateMessage.Error ->
 						StatusInfoLabel(
-							message = when (it.exception) {
-								is VpnException.GatewayException -> stringResource(R.string.gateway_error)
-								is VpnException.InternalException -> stringResource(R.string.internal_error)
-								is VpnException.InvalidCredential -> stringResource(R.string.exception_cred_invalid)
-								is VpnException.InvalidStateException -> stringResource(R.string.state_error)
-								is VpnException.NetworkConnectionException -> stringResource(R.string.network_error)
-								is VpnException.OutOfBandwidth -> stringResource(R.string.out_of_bandwidth_error)
-							} + " ${it.exception.message}",
+							message = it.exception.toUserMessage(context),
 							textColor = CustomColors.error,
 						)
 				}

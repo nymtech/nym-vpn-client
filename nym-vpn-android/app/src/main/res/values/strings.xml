@@ -164,5 +164,10 @@
 	<string name="network_error">A network connection issue occurred. Please check your network connection and try again.</string>
 	<string name="state_error">"This should not happen, but a bad state as been reached. Please restart the app and try again. "</string>
 	<string name="internal_error">An internal tunnel error occured. Please try again.</string>
-	<string name="vpn_notification_channel_id">NymAlertChannel</string>
+	<string name="vpn_alerts_channel_id">NymVPN Alerts Channel</string>
+	<string name="vpn_alerts_channel_description">A channel for app related alert notifications.</string>
+	<string name="bandwidth_alert">Bandwidth alert</string>
+	<string name="no_bandwidth">No bandwidth remaining.</string>
+	<string name="connection_failed">Connection failed</string>
+	<string name="low_bandwidth">"Low bandwidth! Bandwidth remaining: "</string>
 </resources>

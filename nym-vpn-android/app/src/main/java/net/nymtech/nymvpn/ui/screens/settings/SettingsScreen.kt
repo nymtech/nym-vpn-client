@@ -37,7 +37,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
+import androidx.navigation.NavController
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
@@ -61,7 +61,7 @@ import net.nymtech.vpn.backend.Tunnel
 @Composable
 fun SettingsScreen(
 	appViewModel: AppViewModel,
-	navController: NavHostController,
+	navController: NavController,
 	appUiState: AppUiState,
 	viewModel: SettingsViewModel = hiltViewModel(),
 ) {

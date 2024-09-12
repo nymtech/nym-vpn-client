@@ -24,7 +24,8 @@ constructor(
 ) :
 	NotificationService {
 
-	override val channelName: String = context.getString(R.string.vpn_notification_channel_id)
+	override val channelName: String = context.getString(R.string.vpn_alerts_channel_id)
+	override val channelDescription: String = context.getString(R.string.vpn_alerts_channel_description)
 
 	override val builder: NotificationCompat.Builder =
 		NotificationCompat.Builder(
