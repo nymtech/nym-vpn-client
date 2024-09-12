@@ -1,2 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="five_hop_mixnet">مجهول (mixnet)</string>
+    <string name="settings">أعدادات</string>
+    <string name="connected">متصل</string>
+    <string name="disconnected">انفصال</string>
+    <string name="disconnecting">ينفصل</string>
+    <string name="five_hop_description">للدفع, الأيميل ,الرسائل</string>
+    <string name="connecting">يتصل الآن</string>
+</resources>
