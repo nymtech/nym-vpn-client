@@ -170,4 +170,5 @@
 	<string name="no_bandwidth">No bandwidth remaining.</string>
 	<string name="connection_failed">Connection failed</string>
 	<string name="low_bandwidth">"Low bandwidth! Bandwidth remaining: "</string>
+	<string name="vpn_permission_missing">Vpn permission has not been accepted or is being used by another app.</string>
 </resources>
