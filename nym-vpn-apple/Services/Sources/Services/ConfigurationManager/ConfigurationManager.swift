@@ -13,11 +13,7 @@ public final class ConfigurationManager {
     // fallbackEnv edge case, when we cannot parse from AppSettings.
     private var currentEnv: Env {
         get {
-            guard let env = Env(rawValue: appSettings.currentEnv)
-            else {
-                return fallbackEnv
-            }
-            return env
+            Env(rawValue: appSettings.currentEnv) ?? fallbackEnv
         }
         set {
             appSettings.currentEnv = newValue.rawValue
