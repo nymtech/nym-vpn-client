@@ -6,12 +6,17 @@ import Logging
 public final class ConfigurationManager {
     private let appSettings: AppSettings
     private let logger = Logger(label: "Configuration Manager")
+    private let fallbackEnv = Env.mainnet
 
     // Source of truth in AppSettings.
     // We need to set same settings in tunnel extension as well.
-    private var currentEnv: Env = .mainnet {
-        didSet {
-            appSettings.currentEnv = currentEnv.rawValue
+    // fallbackEnv edge case, when we cannot parse from AppSettings.
+    private var currentEnv: Env {
+        get {
+            Env(rawValue: appSettings.currentEnv) ?? fallbackEnv
+        }
+        set {
+            appSettings.currentEnv = newValue.rawValue
         }
     }
 
@@ -35,7 +40,7 @@ public final class ConfigurationManager {
         guard let env = Env(rawValue: appSettings.currentEnv)
         else {
             logger.error("Cannot load current env var from: \(appSettings.currentEnv)")
-            currentEnv = .mainnet
+            currentEnv = fallbackEnv
             return
         }
         currentEnv = env
