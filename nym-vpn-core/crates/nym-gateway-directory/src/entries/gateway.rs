@@ -177,29 +177,32 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
                 }
             })?;
 
-        // Use the hostname if available, otherwise use the first IP address
-        let host = gateway
+        let ipr_address = gateway
+            .ip_packet_router
+            .and_then(|ipr| IpPacketRouterAddress::try_from_base58_string(&ipr.address).ok());
+
+        let authenticator_address = gateway
+            .authenticator
+            .and_then(|auth| AuthAddress::try_from_base58_string(&auth.address).ok());
+
+        let hostname = gateway
             .entry
             .hostname
-            .map(nym_topology::NetworkAddress::Hostname)
-            .or(gateway
-                .ip_addresses
-                .first()
-                .cloned()
-                .and_then(|ip| IpAddr::from_str(&ip).ok())
-                .map(nym_topology::NetworkAddress::IpAddr));
+            .map(nym_topology::NetworkAddress::Hostname);
+        let first_ip_address = gateway.ip_addresses.first().cloned().and_then(|ip| {
+            IpAddr::from_str(&ip)
+                .ok()
+                .map(nym_topology::NetworkAddress::IpAddr)
+        });
+        let host = hostname.or(first_ip_address);
 
         let performance = string_fraction_into_percentage_u8(&gateway.performance);
 
         Ok(Gateway {
             identity,
             location: Some(gateway.location.into()),
-            ipr_address: gateway
-                .ip_packet_router
-                .and_then(|ipr| IpPacketRouterAddress::try_from_base58_string(&ipr.address).ok()),
-            authenticator_address: gateway
-                .authenticator
-                .and_then(|auth| AuthAddress::try_from_base58_string(&auth.address).ok()),
+            ipr_address,
+            authenticator_address,
             last_probe: gateway.last_probe.map(Probe::from),
             host,
             clients_ws_port: Some(gateway.entry.ws_port),
