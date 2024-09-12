@@ -14,7 +14,6 @@ import {
   DaemonStatus,
   NodeHop,
   NodeLocation,
-  OsType,
   ThemeMode,
   UiTheme,
   VpnMode,
@@ -64,8 +63,7 @@ export type StateAction =
   | { type: 'set-window-position'; position: WindowPosition }
   | { type: 'set-credential-expiry'; expiry: Dayjs | null }
   | { type: 'set-entry-countries-error'; payload: AppError | null }
-  | { type: 'set-exit-countries-error'; payload: AppError | null }
-  | { type: 'set-os'; os: OsType };
+  | { type: 'set-exit-countries-error'; payload: AppError | null };
 
 export const initialState: AppState = {
   initialized: false,
@@ -100,7 +98,6 @@ export const initialState: AppState = {
   fetchExitCountries: async () => {
     /* SCARECROW */
   },
-  os: 'unknown',
 };
 
 export function reducer(state: AppState, action: StateAction): AppState {
@@ -130,11 +127,6 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         vpnMode: action.mode,
-      };
-    case 'set-os':
-      return {
-        ...state,
-        os: action.os,
       };
     case 'set-entry-selector':
       return {

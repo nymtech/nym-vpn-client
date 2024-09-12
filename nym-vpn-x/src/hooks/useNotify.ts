@@ -3,12 +3,15 @@ import { useLocation } from 'react-router-dom';
 import {
   isPermissionGranted,
   sendNotification,
-} from '@tauri-apps/api/notification';
-import { appWindow } from '@tauri-apps/api/window';
+} from '@tauri-apps/plugin-notification';
+import { type } from '@tauri-apps/plugin-os';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { AppName } from '../constants';
 import { useMainState } from '../contexts';
 
+const appWindow = getCurrentWebviewWindow();
 const AntiSpamTimeout = 60000; // 1min
+const os = type();
 
 /**
  * Desktop notification options
@@ -32,7 +35,7 @@ export type NotifyOptions = {
  * @returns The `notify` function
  */
 function useNotify() {
-  const { desktopNotifications, os } = useMainState();
+  const { desktopNotifications } = useMainState();
   const location = useLocation();
 
   const [lastNotification, setLastNotification] = useState<string | null>(null);
@@ -89,7 +92,7 @@ function useNotify() {
       }
       setLastNotification(body);
     },
-    [os, desktopNotifications, location, lastNotification],
+    [desktopNotifications, location, lastNotification],
   );
 
   return { notify };

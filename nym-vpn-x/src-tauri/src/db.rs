@@ -9,12 +9,11 @@ use std::{
     path::PathBuf,
 };
 use strum::{AsRefStr, EnumString};
-use tauri::api::path::data_dir;
 use thiserror::Error;
 use tracing::{debug, error, info, instrument, warn};
 use ts_rs::TS;
 
-use crate::APP_DIR;
+use crate::fs::path::APP_DATA_DIR;
 
 const DB_DIR: &str = "db";
 
@@ -87,11 +86,10 @@ pub enum DbError {
 impl Db {
     #[instrument]
     pub fn new() -> Result<Self, DbError> {
-        let mut path = data_dir()
-            .ok_or(anyhow!("failed to retrieve data directory path"))
-            .inspect_err(|e| error!("failed to retrieve data directory path: {e}"))?;
-        path.push(APP_DIR);
-        path.push(DB_DIR);
+        let path = APP_DATA_DIR
+            .clone()
+            .ok_or(anyhow!("failed to get app data dir"))?
+            .join(DB_DIR);
         info!("opening sled db at {}", path.display());
         create_dir_all(&path).map_err(|e| {
             error!("failed to create db directory {}", path.display());

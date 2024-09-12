@@ -1,7 +1,7 @@
 use std::{fs, path::PathBuf};
 
 use crate::envi;
-use crate::fs::path::LOG_DIR_PATH;
+use crate::fs::path::APP_LOG_DIR;
 use anyhow::{anyhow, Result};
 use tracing_appender::{non_blocking::WorkerGuard, rolling};
 use tracing_subscriber::filter::LevelFilter;
@@ -41,9 +41,9 @@ pub async fn setup_tracing(log_file: bool) -> Result<Option<WorkerGuard>> {
         .add_directive("netlink_proto=info".parse()?);
 
     if log_file || envi::is_truthy(ENV_LOG_FILE) {
-        let log_dir = LOG_DIR_PATH
+        let log_dir = APP_LOG_DIR
             .clone()
-            .ok_or(anyhow!("Failed to retrieve log directory path"))?;
+            .ok_or(anyhow!("failed to get log dir"))?;
         rotate_log_file(log_dir.clone()).ok();
 
         let appender = rolling::never(log_dir, LOG_FILE);

@@ -16,6 +16,7 @@ use crate::{
     grpc::client::GrpcClient,
 };
 
+use crate::fs::path::APP_CONFIG_DIR;
 use anyhow::{anyhow, Result};
 use clap::Parser;
 use commands::country as cmd_country;
@@ -31,7 +32,6 @@ use nym_config::defaults;
 use states::app::AppState;
 #[cfg(windows)]
 use states::app::VpnMode;
-use tauri::api::path::config_dir;
 use tokio::sync::Mutex;
 use tokio::time::sleep;
 use tracing::{debug, error, info, trace, warn};
@@ -48,21 +48,19 @@ mod grpc;
 mod log;
 mod startup_error;
 mod states;
-mod system_tray;
+mod tray;
 mod vpn_status;
 mod window;
 
+pub const APP_NAME: &str = "NymVPN";
 pub const APP_DIR: &str = "nymvpn-x";
 pub const MAIN_WINDOW_LABEL: &str = "main";
 const APP_CONFIG_FILE: &str = "config.toml";
 const ENV_APP_NOSPLASH: &str = "APP_NOSPLASH";
 const VPND_RETRY_INTERVAL: Duration = Duration::from_secs(2);
-const SYSTRAY_ID: &str = "main";
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    tauri::async_runtime::set(tokio::runtime::Handle::current());
-
     dotenvy::dotenv().ok();
     // parse the command line arguments
     let cli = Cli::parse();
@@ -96,10 +94,10 @@ async fn main() -> Result<()> {
     }
 
     let app_config_store = {
-        let mut app_config_path =
-            config_dir().ok_or(anyhow!("Failed to retrieve config directory path"))?;
-        app_config_path.push(APP_DIR);
-        AppStorage::<AppConfig>::new(app_config_path, APP_CONFIG_FILE, None)
+        let path = APP_CONFIG_DIR
+            .clone()
+            .ok_or(anyhow!("failed to get app config dir"))?;
+        AppStorage::<AppConfig>::new(path, APP_CONFIG_FILE, None)
             .await
             .inspect_err(|e| error!("Failed to init app config store: {e}"))?
     };
@@ -141,6 +139,13 @@ async fn main() -> Result<()> {
 
     info!("Starting tauri app");
     tauri::Builder::default()
+        .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_shell::init())
         .manage(Arc::new(Mutex::new(app_state)))
         .manage(Arc::new(app_config))
         .manage(Arc::new(cli.clone()))
@@ -153,7 +158,7 @@ async fn main() -> Result<()> {
             #[cfg(windows)]
             db.insert(Key::VpnMode, VpnMode::Mixnet)?;
 
-            let app_win = AppWindow::new(&app.handle(), MAIN_WINDOW_LABEL)?;
+            let app_win = AppWindow::new(app.handle(), MAIN_WINDOW_LABEL)?;
             app_win.restore_size(&db)?;
             app_win.restore_position(&db)?;
             app_win.set_max_size().ok();
@@ -165,19 +170,9 @@ async fn main() -> Result<()> {
                 app_win.no_splash();
             }
 
-            debug!("building system tray");
-            let handle = app.handle();
-            system_tray::systray(SYSTRAY_ID)
-                .on_event(move |event| {
-                    let handle = handle.clone();
-                    tokio::spawn(async move {
-                        system_tray::on_tray_event(&handle, event).await;
-                    });
-                })
-                .build(app)
-                .inspect_err(|e| error!("error while building system tray: {e}"))?;
+            tray::setup(app.handle())?;
 
-            let handle = app.handle();
+            let handle = app.handle().clone();
             let c_grpc = grpc.clone();
             tokio::spawn(async move {
                 info!("starting vpnd health spy");
@@ -188,7 +183,7 @@ async fn main() -> Result<()> {
                 }
             });
 
-            let handle = app.handle();
+            let handle = app.handle().clone();
             let c_grpc = grpc.clone();
             tokio::spawn(async move {
                 info!("starting vpn status spy");
@@ -201,7 +196,7 @@ async fn main() -> Result<()> {
                 }
             });
 
-            let handle = app.handle();
+            let handle = app.handle().clone();
             let c_grpc = grpc.clone();
             tokio::spawn(async move {
                 info!("starting vpn connection updates spy");
@@ -233,9 +228,8 @@ async fn main() -> Result<()> {
             cmd_fs::log_dir,
         ])
         // keep the app running in the background on window close request
-        .on_window_event(|event| {
-            if let tauri::WindowEvent::CloseRequested { api, .. } = event.event() {
-                let win = event.window();
+        .on_window_event(|win, event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                 if win.label() == MAIN_WINDOW_LABEL {
                     win.hide()
                         .inspect_err(|e| error!("failed to hide main window: {e}"))

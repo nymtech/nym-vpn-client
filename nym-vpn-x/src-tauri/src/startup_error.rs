@@ -67,13 +67,14 @@ pub fn show_window() -> Result<()> {
 
     info!("Starting tauri app");
     tauri::Builder::default()
+        .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_os::init())
         .setup(move |app| {
             info!("app setup");
-
-            tauri::WindowBuilder::new(
+            let window = tauri::WebviewWindowBuilder::new(
                 app,
                 WIN_LABEL,
-                tauri::WindowUrl::App("src/error.html".into()),
+                tauri::WebviewUrl::App("src/error.html".into()),
             )
             .fullscreen(false)
             .resizable(true)
@@ -86,6 +87,13 @@ pub fn show_window() -> Result<()> {
             .center()
             .title(WIN_TITLE)
             .build()?;
+
+            let handle = app.handle().clone();
+            window.on_window_event(move |event| {
+                if let tauri::WindowEvent::CloseRequested { .. } = event {
+                    handle.exit(0);
+                }
+            });
 
             Ok(())
         })

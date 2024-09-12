@@ -2,7 +2,7 @@ use nym_vpn_proto::connection_status_update::StatusType;
 use nym_vpn_proto::ConnectionStatusUpdate;
 use serde::Serialize;
 use std::collections::HashMap;
-use tauri::Manager;
+use tauri::Emitter;
 use tracing::{debug, trace};
 use ts_rs::TS;
 
@@ -75,12 +75,12 @@ pub trait AppHandleEventEmitter {
 
 impl AppHandleEventEmitter for tauri::AppHandle {
     fn emit_vpnd_status(&self, status: VpndStatus) {
-        self.emit_all(EVENT_VPND_STATUS, status).ok();
+        self.emit(EVENT_VPND_STATUS, status).ok();
     }
 
     fn emit_connecting(&self) {
         debug!("sending event [{}]: Connecting", EVENT_CONNECTION_STATE);
-        self.emit_all(
+        self.emit(
             EVENT_CONNECTION_STATE,
             ConnectionEvent::update(ConnectionState::Connecting, None, None),
         )
@@ -89,7 +89,7 @@ impl AppHandleEventEmitter for tauri::AppHandle {
 
     fn emit_disconnecting(&self) {
         debug!("sending event [{}]: Disconnecting", EVENT_CONNECTION_STATE);
-        self.emit_all(
+        self.emit(
             EVENT_CONNECTION_STATE,
             ConnectionEvent::update(ConnectionState::Disconnecting, None, None),
         )
@@ -98,7 +98,7 @@ impl AppHandleEventEmitter for tauri::AppHandle {
 
     fn emit_disconnected(&self, error: Option<BackendError>) {
         debug!("sending event [{}]: Disconnected", EVENT_CONNECTION_STATE);
-        self.emit_all(
+        self.emit(
             EVENT_CONNECTION_STATE,
             ConnectionEvent::update(ConnectionState::Disconnected, error, None),
         )
@@ -107,7 +107,7 @@ impl AppHandleEventEmitter for tauri::AppHandle {
 
     fn emit_connection_progress(&self, key: ConnectProgressMsg) {
         trace!("sending event [{}]: {:?}", EVENT_CONNECTION_PROGRESS, key);
-        self.emit_all(EVENT_CONNECTION_PROGRESS, ProgressEventPayload { key })
+        self.emit(EVENT_CONNECTION_PROGRESS, ProgressEventPayload { key })
             .ok();
     }
 }

@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { Button } from '@headlessui/react';
-import { open } from '@tauri-apps/api/shell';
+import { open } from '@tauri-apps/plugin-shell';
 import MsIcon from './MsIcon';
 
 type LinkProps = {

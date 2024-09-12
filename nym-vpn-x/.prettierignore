@@ -1,4 +1,5 @@
 src-tauri/target
 src-tauri/src
 src-tauri/about.hbs
+src-tauri/gen
 public

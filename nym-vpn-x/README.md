@@ -12,7 +12,7 @@ Ne**x**t desktop client application for [NymVPN](https://nymvpn.com/en). For mor
 - protobuf
 
 Some system libraries are required depending on the host platform.
-Follow the instructions for your specific OS [here](https://tauri.app/v1/guides/getting-started/prerequisites)
+Follow the instructions for your specific OS [here](https://v2.tauri.app/start/prerequisites/)
 
 #### To install run
 
@@ -33,7 +33,7 @@ If you want to run tauri through cargo you can install it on your
 system, then you can run tauri commands via `cargo`
 
 ```
-cargo install tauri-cli
+cargo install tauri-cli@^2.0.0-rc
 cargo tauri help
 ```
 
@@ -49,7 +49,7 @@ https://github.com/protocolbuffers/protobuf/releases and make sure
 To start the app in dev mode run:
 
 ```
-RUST_LOG=info,nym_vpn_x=trace npm run dev:app
+RUST_LOG=info,nymvpn_x=trace npm run dev:app
 ```
 
 (tweak `RUST_LOG` env var as needed)
@@ -58,7 +58,7 @@ or via `cargo`
 
 ```
 cd src-tauri
-RUST_LOG=info,nym_vpn_x=trace cargo tauri dev
+RUST_LOG=info,nymvpn_x=trace cargo tauri dev
 ```
 
 #### On Windows
@@ -66,7 +66,7 @@ RUST_LOG=info,nym_vpn_x=trace cargo tauri dev
 In a PowerShell terminal run
 
 ```powershell
-$env:RUST_LOG='debug,nym_vpn_x=trace'; cargo tauri dev; $env:RUST_LOG=$null
+$env:RUST_LOG='debug,nymvpn_x=trace'; cargo tauri dev; $env:RUST_LOG=$null
 ```
 
 ## Dev in the browser
@@ -82,7 +82,7 @@ Then press `o` to open the app in the browser.
 
 #### Tauri commands mock
 
-Browser mode requires all tauri [commands](https://tauri.app/v1/guides/features/command) (IPC calls) to be mocked.
+Browser mode requires some of the tauri [commands](https://v2.tauri.app/develop/calling-rust/#commands) (IPC calls) to be mocked.
 When creating new tauri command, be sure to add the corresponding
 mock definition into `src/dev/tauri-cmd-mocks/` and update
 `src/dev/setup.ts` accordingly.

@@ -1,7 +1,6 @@
-import { invoke } from '@tauri-apps/api';
+import { invoke } from '@tauri-apps/api/core';
 import { getVersion } from '@tauri-apps/api/app';
-import { platform } from '@tauri-apps/api/os';
-import { appWindow } from '@tauri-apps/api/window';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import dayjs from 'dayjs';
 import { DefaultRootFontSize, DefaultThemeMode } from '../constants';
 import { getJsLicenses, getRustLicenses } from '../data';
@@ -12,7 +11,6 @@ import {
   Country,
   DaemonStatus,
   NodeLocation,
-  OsType,
   StateDispatch,
   ThemeMode,
   UiTheme,
@@ -50,23 +48,9 @@ const getExitCountries = async () => {
 
 const getTheme = async () => {
   const winTheme: UiTheme =
-    (await appWindow.theme()) === 'dark' ? 'Dark' : 'Light';
+    (await getCurrentWebviewWindow().theme()) === 'dark' ? 'Dark' : 'Light';
   const themeMode = await kvGet<ThemeMode>('UiTheme');
   return { winTheme, themeMode };
-};
-
-const getOs = async () => {
-  const os = await platform();
-  switch (os) {
-    case 'linux':
-      return 'linux';
-    case 'win32':
-      return 'windows';
-    case 'darwin':
-      return 'macos';
-    default:
-      return 'unknown';
-  }
 };
 
 export async function initFirstBatch(dispatch: StateDispatch) {
@@ -261,14 +245,6 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     },
   };
 
-  const getOsRq: TauriReq<() => Promise<OsType>> = {
-    name: 'getOsRq',
-    request: () => getOs(),
-    onFulfilled: (os) => {
-      dispatch({ type: 'set-os', os });
-    },
-  };
-
   // fire all requests concurrently
   await fireRequests([
     initStateRq,
@@ -287,7 +263,6 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     getDepsJsRq,
     getWindowSizeRq,
     getWindowPositionRq,
-    getOsRq,
     getDesktopNotificationsRq,
   ]);
 }

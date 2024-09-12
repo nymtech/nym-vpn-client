@@ -1,5 +1,5 @@
-import { invoke } from '@tauri-apps/api';
-import { exit as processExit } from '@tauri-apps/api/process';
+import { invoke } from '@tauri-apps/api/core';
+import { exit as processExit } from '@tauri-apps/plugin-process';
 import { useMainDispatch, useMainState } from '../contexts';
 import { kvFlush } from '../kvStore';
 import { StateDispatch } from '../types';

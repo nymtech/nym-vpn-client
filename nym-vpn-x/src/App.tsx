@@ -1,4 +1,4 @@
-import { invoke } from '@tauri-apps/api';
+import { invoke } from '@tauri-apps/api/core';
 import { Suspense, useEffect } from 'react';
 import { RouterProvider } from 'react-router-dom';
 import dayjs from 'dayjs';

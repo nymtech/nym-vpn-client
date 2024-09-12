@@ -9,6 +9,7 @@ import {
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
+import { type } from '@tauri-apps/plugin-os';
 import { NymVpnTextLogoDark, NymVpnTextLogoLight } from '../assets';
 import { useDialog, useMainState } from '../contexts';
 import { routes } from '../router';
@@ -30,12 +31,14 @@ type NavBarData = {
   [key in Routes]: NavLocation;
 };
 
+const os = type();
+
 export default function TopBar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  const { uiTheme, os } = useMainState();
+  const { uiTheme } = useMainState();
   const { show } = useDialog();
 
   const [currentNavLocation, setCurrentNavLocation] = useState<NavLocation>({
@@ -56,7 +59,7 @@ export default function TopBar() {
     ) : (
       <NymVpnTextLogoDark className="w-28 h-4" />
     );
-  }, [uiTheme, os]);
+  }, [uiTheme]);
 
   const navBarData = useMemo<NavBarData>(() => {
     return {
@@ -189,7 +192,7 @@ export default function TopBar() {
       '/hideout': {},
       '/hideout/welcome': {},
     };
-  }, [t, navigate, os, getMainScreenTitle, show]);
+  }, [t, navigate, getMainScreenTitle, show]);
 
   useEffect(() => {
     setCurrentNavLocation(navBarData[location.pathname as Routes]);

@@ -1,7 +1,9 @@
 import { ReactNode } from 'react';
 import clsx from 'clsx';
 import { Button as HuButton } from '@headlessui/react';
-import { useMainState } from '../contexts';
+import { type } from '@tauri-apps/plugin-os';
+
+const os = type();
 
 type ButtonProps = {
   children: ReactNode;
@@ -13,7 +15,6 @@ type ButtonProps = {
 };
 
 function Spinner() {
-  const { os } = useMainState();
   return (
     <span
       className={clsx([

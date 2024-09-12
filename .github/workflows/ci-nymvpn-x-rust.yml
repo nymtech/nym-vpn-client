@@ -7,8 +7,6 @@ on:
       - ".github/workflows/ci-nymvpn-x-rust.yml"
       - "nym-vpn-x/src-tauri/**"
       - "nym-vpn-core/crates/nym-vpn-proto/**"
-      - "nym-vpn-core/crates/nym-gateway-directory/**"
-      - "nym-vpn-core/crates/nym-vpnd/**"
 
 env:
   CARGO_TERM_COLOR: always
@@ -36,8 +34,9 @@ jobs:
         if: contains(matrix.os, 'ubuntu')
         run: |
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev \
-            protobuf-compiler libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev \
-            libgtk-3-dev squashfs-tools libayatana-appindicator3-dev git curl gcc g++ make unzip
+            protobuf-compiler libwebkit2gtk-4.1-dev build-essential curl wget libssl-dev \
+            libgtk-3-dev squashfs-tools libayatana-appindicator3-dev git curl gcc g++ make unzip \
+            libsoup-3.0-dev libjavascriptcoregtk-4.1-dev
 
       - name: Support longpaths on windows
         if: contains(matrix.os, 'windows')

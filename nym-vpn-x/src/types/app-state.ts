@@ -36,8 +36,6 @@ export type WindowPosition = {
 
 export type DaemonStatus = 'Ok' | 'NotOk';
 
-export type OsType = 'linux' | 'windows' | 'macos' | 'unknown';
-
 export type AppState = {
   // initial loading phase when the app is starting and fetching data from the backend
   initialized: boolean;
@@ -75,7 +73,6 @@ export type AppState = {
   credentialExpiry?: Dayjs | null;
   fetchEntryCountries: FetchCountriesFn;
   fetchExitCountries: FetchCountriesFn;
-  os: OsType;
 };
 
 export type ConnectionEvent =
