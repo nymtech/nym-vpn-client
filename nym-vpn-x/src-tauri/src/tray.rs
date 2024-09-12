@@ -48,11 +48,11 @@ fn on_menu_event(app: &AppHandle, event: MenuEvent) {
     trace!("menu event [{}]", event.id.0);
 
     match event.id().as_ref() {
-        "ShowHide" => {
+        x if x == MenuItemId::ShowHide.as_ref() => {
             trace!("show/hide menu clicked");
             show_window(app, true).ok();
         }
-        "Quit" => {
+        x if x == MenuItemId::Quit.as_ref() => {
             trace!("quit menu clicked");
             let c_app = app.clone();
             tokio::spawn(async move {
