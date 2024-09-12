@@ -213,6 +213,18 @@ pub struct NymDirectoryGateway {
     pub identity_key: String,
     pub location: Location,
     pub last_probe: Option<Probe>,
+    pub ip_addresses: Vec<String>,
+    pub entry: EntryInformation,
+    pub performance: String,
+    pub ipr_address: Option<String>,
+    pub authenticator_address: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct EntryInformation {
+    pub hostname: Option<String>,
+    pub ws_port: u16,
+    pub wss_port: Option<u16>,
 }
 
 impl NymDirectoryGateway {
