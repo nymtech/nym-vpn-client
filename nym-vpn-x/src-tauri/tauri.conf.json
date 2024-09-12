@@ -38,8 +38,7 @@
         "depends": ["nym-vpnd"],
         "desktopTemplate": "./bundle/deb/main.desktop"
       }
-    },
-    "createUpdaterArtifacts": "v1Compatible"
+    }
   },
   "plugins": {
     "updater": {
