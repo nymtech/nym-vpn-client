@@ -3,6 +3,7 @@ import {
   DefaultNodeCountry,
   DefaultRootFontSize,
   DefaultThemeMode,
+  DefaultVpnMode,
 } from '../constants';
 import {
   AppError,
@@ -71,7 +72,7 @@ export const initialState: AppState = {
   daemonStatus: 'NotOk',
   version: null,
   loading: false,
-  vpnMode: 'TwoHop',
+  vpnMode: DefaultVpnMode,
   entrySelector: false,
   uiTheme: 'Light',
   themeMode: DefaultThemeMode,

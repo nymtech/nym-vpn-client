@@ -30,8 +30,10 @@ pub enum ConnectionState {
 #[derive(Default, Debug, Serialize, Deserialize, TS, Clone, PartialEq, Eq)]
 #[ts(export)]
 pub enum VpnMode {
-    #[default]
     Mixnet,
+    // ⚠ keep this default in sync with the one declared in
+    // src/constants.ts
+    #[default]
     TwoHop,
 }
 
