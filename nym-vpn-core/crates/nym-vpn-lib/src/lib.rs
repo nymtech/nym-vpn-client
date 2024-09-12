@@ -7,7 +7,6 @@ pub mod credentials;
 pub mod storage;
 pub mod util;
 
-mod bandwidth_controller;
 mod error;
 mod mixnet;
 #[cfg(any(target_os = "ios", target_os = "android"))]

@@ -19,7 +19,6 @@ use talpid_tunnel::{TunnelEvent, TunnelMetadata};
 use tokio::time::timeout;
 
 use crate::{
-    bandwidth_controller::BandwidthController,
     error::{Error, GatewayDirectoryError, Result, SetupMixTunnelError, SetupWgTunnelError},
     mixnet, platform,
     routing::{self, catch_all_ipv4, catch_all_ipv6, replace_default_prefixes},
@@ -121,10 +120,6 @@ async fn setup_wg_tunnel(
     // Exit tunnel will deal with both v4 and v6, and it's "wire" interface is entry tunnel's MTU
     // 1440 - (40 + 8 + 32)
     let exit_mtu = 1360;
-
-    let bandwidth_controller =
-        BandwidthController::new(mixnet_client.clone(), task_manager.subscribe());
-    tokio::spawn(bandwidth_controller.run());
 
     let (Some(entry_auth_recipient), Some(exit_auth_recipient)) =
         (auth_addresses.entry().0, auth_addresses.exit().0)
