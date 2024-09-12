@@ -20,7 +20,7 @@ trait TunnelStateHandler: Send {
     ) -> NextTunnelState;
 }
 
-pub enum NextTunnelState {
+enum NextTunnelState {
     NewState((Box<dyn TunnelStateHandler>, TunnelState)),
     SameState(Box<dyn TunnelStateHandler>),
     Finished,
