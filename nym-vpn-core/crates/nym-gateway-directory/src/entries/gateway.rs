@@ -196,11 +196,11 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             identity,
             location: Some(gateway.location.into()),
             ipr_address: gateway
-                .ipr_address
-                .and_then(|ipr| IpPacketRouterAddress::try_from_base58_string(&ipr).ok()),
+                .ip_packet_router
+                .and_then(|ipr| IpPacketRouterAddress::try_from_base58_string(&ipr.address).ok()),
             authenticator_address: gateway
-                .authenticator_address
-                .and_then(|auth| AuthAddress::try_from_base58_string(&auth).ok()),
+                .authenticator
+                .and_then(|auth| AuthAddress::try_from_base58_string(&auth.address).ok()),
             last_probe: gateway.last_probe.map(Probe::from),
             host,
             clients_ws_port: Some(gateway.entry.ws_port),
