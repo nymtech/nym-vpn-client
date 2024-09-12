@@ -31,7 +31,7 @@
   "dependencies": {
     "@headlessui/react": "^2.1.2",
     "@mui/base": "^5.0.0-beta.39",
-    "@sentry/react": "^8.22.0",
+    "@sentry/react": "^8.30.0",
     "@tauri-apps/api": ">=2.0.0-rc.0",
     "@tauri-apps/plugin-clipboard-manager": "^2.0.0-rc.1",
     "@tauri-apps/plugin-dialog": "^2.0.0-rc",
