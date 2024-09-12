@@ -212,7 +212,13 @@ impl GatewayClient {
     pub async fn lookup_exit_gateways_from_nym_api(&self) -> Result<GatewayList> {
         self.lookup_all_gateways_from_nym_api()
             .await
-            .map(|gateways| gateways.into_exit_gateways())
+            .map(GatewayList::into_exit_gateways)
+    }
+
+    pub async fn lookup_vpn_gateways_from_nym_api(&self) -> Result<GatewayList> {
+        self.lookup_all_gateways_from_nym_api()
+            .await
+            .map(GatewayList::into_vpn_gateways)
     }
 
     pub async fn lookup_all_gateways(&self) -> Result<GatewayList> {
@@ -278,6 +284,26 @@ impl GatewayClient {
         }
     }
 
+    pub async fn lookup_vpn_gateways(&self) -> Result<GatewayList> {
+        if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
+            info!("Fetching vpn gateways from nym-vpn-api...");
+            let vpn_gateways: Vec<_> = nym_vpn_api_client
+                .get_vpn_gateways()
+                .await?
+                .into_iter()
+                .filter_map(|gw| {
+                    Gateway::try_from(gw)
+                        .inspect_err(|err| error!("Failed to parse gateway: {err}"))
+                        .ok()
+                })
+                .collect();
+
+            Ok(GatewayList::new(vpn_gateways))
+        } else {
+            self.lookup_vpn_gateways_from_nym_api().await
+        }
+    }
+
     pub async fn lookup_entry_countries(&self) -> Result<Vec<Country>> {
         // Workaround until we can pass a threshold parameter directly to the nym-vpn-api.
         // Get the full list, which is filtered, and get the countries from that.
@@ -327,6 +353,22 @@ impl GatewayClient {
                 .collect())
         } else {
             self.lookup_exit_gateways_from_nym_api()
+                .await
+                .map(GatewayList::into_countries)
+        }
+    }
+
+    pub async fn lookup_vpn_countries(&self) -> Result<Vec<Country>> {
+        if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
+            info!("Fetching vpn countries from nym-vpn-api...");
+            Ok(nym_vpn_api_client
+                .get_vpn_gateway_countries()
+                .await?
+                .into_iter()
+                .map(Country::from)
+                .collect())
+        } else {
+            self.lookup_vpn_gateways_from_nym_api()
                 .await
                 .map(GatewayList::into_countries)
         }

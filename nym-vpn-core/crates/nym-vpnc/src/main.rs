@@ -6,7 +6,8 @@ use clap::Parser;
 use nym_vpn_proto::{
     ConnectRequest, DisconnectRequest, Empty, ImportUserCredentialRequest, InfoRequest,
     ListEntryCountriesRequest, ListEntryGatewaysRequest, ListExitCountriesRequest,
-    ListExitGatewaysRequest, StatusRequest, StoreAccountRequest,
+    ListExitGatewaysRequest, ListVpnCountriesRequest, ListVpnGatewaysRequest, StatusRequest,
+    StoreAccountRequest,
 };
 use protobuf_conversion::into_threshold;
 use vpnd_client::ClientType;
@@ -48,11 +49,17 @@ async fn main() -> Result<()> {
         Command::ListExitGateways(ref list_args) => {
             list_exit_gateways(client_type, list_args).await?
         }
+        Command::ListVpnGateways(ref list_args) => {
+            list_vpn_gateways(client_type, list_args).await?
+        }
         Command::ListEntryCountries(ref list_args) => {
             list_entry_countries(client_type, list_args).await?
         }
         Command::ListExitCountries(ref list_args) => {
             list_exit_countries(client_type, list_args).await?
+        }
+        Command::ListVpnCountries(ref list_args) => {
+            list_vpn_countries(client_type, list_args).await?
         }
     }
     Ok(())
@@ -228,6 +235,19 @@ async fn list_exit_gateways(
     Ok(())
 }
 
+async fn list_vpn_gateways(
+    client_type: ClientType,
+    list_args: &cli::ListVpnGatewaysArgs,
+) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(ListVpnGatewaysRequest {
+        min_gateway_performance: list_args.min_gateway_performance.map(into_threshold),
+    });
+    let response = client.list_vpn_gateways(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
 async fn list_entry_countries(
     client_type: ClientType,
     list_args: &cli::ListEntryCountriesArgs,
@@ -250,6 +270,19 @@ async fn list_exit_countries(
         min_gateway_performance: list_args.min_gateway_performance.map(into_threshold),
     });
     let response = client.list_exit_countries(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn list_vpn_countries(
+    client_type: ClientType,
+    list_args: &cli::ListVpnCountriesArgs,
+) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(ListVpnCountriesRequest {
+        min_gateway_performance: list_args.min_gateway_performance.map(into_threshold),
+    });
+    let response = client.list_vpn_countries(request).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }

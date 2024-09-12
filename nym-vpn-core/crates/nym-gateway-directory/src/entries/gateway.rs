@@ -63,6 +63,10 @@ impl Gateway {
         self.ipr_address.is_some()
     }
 
+    pub fn has_authenticator_address(&self) -> bool {
+        self.authenticator_address.is_some()
+    }
+
     pub fn clients_address_no_tls(&self) -> Option<String> {
         match (&self.host, &self.clients_ws_port) {
             (Some(host), Some(port)) => Some(format!("ws://{}:{}", host, port)),
@@ -341,6 +345,15 @@ impl GatewayList {
             .gateways
             .into_iter()
             .filter(Gateway::has_ipr_address)
+            .collect();
+        Self::new(gw)
+    }
+
+    pub fn into_vpn_gateways(self) -> GatewayList {
+        let gw = self
+            .gateways
+            .into_iter()
+            .filter(Gateway::has_authenticator_address)
             .collect();
         Self::new(gw)
     }

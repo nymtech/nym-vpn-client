@@ -383,6 +383,37 @@ impl VpnApiClient {
             .map_err(VpnApiClientError::FailedToGetGateways)
     }
 
+    pub async fn get_vpn_gateways(&self) -> Result<NymDirectoryGatewaysResponse> {
+        self.inner
+            .get_json(
+                &[
+                    routes::PUBLIC,
+                    routes::V1,
+                    routes::DIRECTORY,
+                    routes::GATEWAYS,
+                ],
+                &[("show_vpn_only", "true")],
+            )
+            .await
+            .map_err(VpnApiClientError::FailedToGetVpnGateways)
+    }
+
+    pub async fn get_vpn_gateway_countries(&self) -> Result<NymDirectoryGatewayCountriesResponse> {
+        self.inner
+            .get_json(
+                &[
+                    routes::PUBLIC,
+                    routes::V1,
+                    routes::DIRECTORY,
+                    routes::GATEWAYS,
+                    routes::COUNTRIES,
+                ],
+                &[("show_vpn_only", "true")],
+            )
+            .await
+            .map_err(VpnApiClientError::FailedToGetVpnGatewayCountries)
+    }
+
     pub async fn get_gateway_countries(&self) -> Result<NymDirectoryGatewayCountriesResponse> {
         self.inner
             .get_json(

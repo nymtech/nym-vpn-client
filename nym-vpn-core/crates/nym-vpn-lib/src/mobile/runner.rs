@@ -209,11 +209,9 @@ impl WgTunnelRunner {
     }
 
     async fn select_gateways(&self) -> Result<SelectedGateways> {
-        // The set of exit gateways is smaller than the set of entry gateways, so we start by selecting
-        // the exit gateway and then filter out the exit gateway from the set of entry gateways.
         let all_gateways = self
             .gateway_directory_client
-            .lookup_all_gateways()
+            .lookup_vpn_gateways()
             .await
             .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
         let mut entry_gateways = all_gateways.clone();
