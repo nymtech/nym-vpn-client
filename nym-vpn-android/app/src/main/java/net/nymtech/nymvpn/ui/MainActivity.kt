@@ -70,9 +70,7 @@ import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.go
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.resetTile
-import net.nymtech.nymvpn.util.extensions.toUserMessage
 import net.nymtech.vpn.model.BackendMessage
-import nym_vpn_lib.BandwidthStatus
 import nym_vpn_lib.VpnException
 import java.util.Locale
 import javax.inject.Inject
@@ -124,43 +122,27 @@ class MainActivity : ComponentActivity() {
 				}
 			}
 
-			LaunchedEffect(appState.state) {
-				NymVpn.instance.requestTileServiceStateUpdate()
+
+			with(appState.settings) {
+				LaunchedEffect(vpnMode, lastHopCountry, firstHopCountry) {
+					this@MainActivity.requestTileServiceStateUpdate()
+				}
 			}
+
 
 			LaunchedEffect(appState.backendMessage) {
 				when (val message = appState.backendMessage) {
 					is BackendMessage.Failure -> {
 						when (message.exception) {
 							is VpnException.InvalidCredential -> {
-								SnackbarController.showMessage(StringValue.StringResource(R.string.exception_cred_invalid))
-								navController.go(Destination.Credential.route)
-							}
-							else -> {
-								notificationService.showNotification(
-									title = getString(R.string.connection_failed),
-									description = message.exception.toUserMessage(this@MainActivity),
-								)
-							}
+								if (NymVpn.isForeground()) {
+									SnackbarController.showMessage(StringValue.StringResource(R.string.exception_cred_invalid))
+									navController.go(Destination.Credential.route)
+								}
+							} else -> Unit
 						}
 					}
-					is BackendMessage.BandwidthAlert -> {
-						when (val alert = message.status) {
-							BandwidthStatus.NoBandwidth -> {
-								notificationService.showNotification(
-									title = getString(R.string.bandwidth_alert),
-									description = getString(R.string.no_bandwidth),
-								)
-							}
-							is BandwidthStatus.RemainingBandwidth -> {
-								notificationService.showNotification(
-									title = getString(R.string.bandwidth_alert),
-									description = getString(R.string.low_bandwidth) + " ${alert.bandwidth}",
-								)
-							}
-						}
-					}
-					BackendMessage.None -> Unit
+					else -> Unit
 				}
 			}
 

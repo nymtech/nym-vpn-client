@@ -56,7 +56,7 @@ constructor(
 	}
 
 	fun onConnect() = viewModelScope.launch {
-		tunnelManager.start()
+		tunnelManager.start(false)
 	}
 
 	fun onDisconnect() = viewModelScope.launch {

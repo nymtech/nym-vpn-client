@@ -6,7 +6,7 @@ import java.time.Instant
 
 interface TunnelManager {
 	suspend fun stop()
-	suspend fun start()
+	suspend fun start(fromBackground: Boolean = true)
 	suspend fun importCredential(credential: String): Result<Instant?>
 	val stateFlow: Flow<TunnelState>
 	fun getState(): Tunnel.State

@@ -48,22 +48,18 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 					Tunnel.State.Up -> {
 						setTileText()
 						setActive()
-						qsTile.updateTile()
 					}
 					Tunnel.State.Down -> {
 						setTileText()
 						setInactive()
-						qsTile.updateTile()
 					}
 					Tunnel.State.Disconnecting -> {
 						setTileDescription(this@VpnQuickTile.getString(R.string.disconnecting))
 						setActive()
-						qsTile.updateTile()
 					}
 					Tunnel.State.Connecting.EstablishingConnection, Tunnel.State.Connecting.InitializingClient -> {
 						setTileDescription(this@VpnQuickTile.getString(R.string.connecting))
 						setInactive()
-						qsTile.updateTile()
 					}
 				}
 			}.onFailure {
@@ -90,12 +86,8 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 		super.onClick()
 		unlockAndRun {
 			when (tunnelManager.getState()) {
-				Tunnel.State.Up -> {
-					stopTunnelFromBackground()
-				}
-				Tunnel.State.Down -> {
-					startTunnelFromBackground()
-				}
+				Tunnel.State.Up -> stopTunnelFromBackground()
+				Tunnel.State.Down -> startTunnelFromBackground()
 				else -> Unit
 			}
 		}
@@ -121,31 +113,47 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 			setTileDescription(
 				"${firstHopCountry.isoCode} -> ${lastHopCountry.isoCode}",
 			)
+			qsTile.updateTile()
 		}
 	}
 
 	private fun setActive() {
-		qsTile.state = Tile.STATE_ACTIVE
+		kotlin.runCatching {
+			qsTile.state = Tile.STATE_ACTIVE
+			qsTile.updateTile()
+		}
 	}
 
 	private fun setTitle(title: String) {
-		qsTile.label = title
+		kotlin.runCatching {
+			qsTile.label = title
+			qsTile.updateTile()
+		}
 	}
 
 	private fun setInactive() {
-		qsTile.state = Tile.STATE_INACTIVE
+		kotlin.runCatching {
+			qsTile.state = Tile.STATE_INACTIVE
+			qsTile.updateTile()
+		}
 	}
 
 	private fun setUnavailable() {
-		qsTile.state = Tile.STATE_UNAVAILABLE
+		kotlin.runCatching {
+			qsTile.state = Tile.STATE_UNAVAILABLE
+			qsTile.updateTile()
+		}
 	}
 
 	private fun setTileDescription(description: String) {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-			qsTile.subtitle = description
-		}
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-			qsTile.stateDescription = description
+		kotlin.runCatching {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+				qsTile.subtitle = description
+			}
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+				qsTile.stateDescription = description
+			}
+			qsTile.updateTile()
 		}
 	}
 

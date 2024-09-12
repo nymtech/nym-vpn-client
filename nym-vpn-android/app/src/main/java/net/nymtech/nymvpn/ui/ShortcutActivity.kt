@@ -11,15 +11,14 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.service.tunnel.TunnelManager
+import net.nymtech.nymvpn.util.extensions.startTunnelFromBackground
+import net.nymtech.nymvpn.util.extensions.stopTunnelFromBackground
 import net.nymtech.vpn.util.Action
 import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class ShortcutActivity : ComponentActivity() {
-
-	@Inject
-	lateinit var tunnelManager: TunnelManager
 
 	@Inject
 	lateinit var settingsRepository: SettingsRepository
@@ -40,12 +39,8 @@ class ShortcutActivity : ComponentActivity() {
 			}
 			if (enabled) {
 				when (intent.action) {
-					Action.START.name -> {
-						tunnelManager.start()
-					}
-					Action.STOP.name -> {
-						tunnelManager.stop()
-					}
+					Action.START.name -> startTunnelFromBackground()
+					Action.STOP.name -> stopTunnelFromBackground()
 				}
 			} else {
 				Timber.w("Shortcuts not enabled")

@@ -6,12 +6,18 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import net.nymtech.nymvpn.NymVpn
+import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.util.extensions.isInvalid
+import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
+import net.nymtech.nymvpn.util.extensions.toUserMessage
 import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.BackendMessage
 import net.nymtech.vpn.model.Statistics
+import nym_vpn_lib.BandwidthStatus
 import nym_vpn_lib.VpnException
 import timber.log.Timber
 import java.time.Instant
@@ -20,6 +26,7 @@ import javax.inject.Provider
 
 class NymTunnelManager @Inject constructor(
 	private val settingsRepository: SettingsRepository,
+	private val notificationService: NotificationService,
 	private val backend: Provider<Backend>,
 	private val context: Context,
 ) : TunnelManager {
@@ -41,9 +48,8 @@ class NymTunnelManager @Inject constructor(
 		}
 	}
 
-	override suspend fun start() {
+	override suspend fun start(background: Boolean) {
 		runCatching {
-			Timber.d("Starting")
 			if (running) return Timber.w("Vpn already running")
 			val intent = VpnService.prepare(context)
 			if (intent != null) return // TODO handle missing permission
@@ -58,9 +64,9 @@ class NymTunnelManager @Inject constructor(
 				environment = settingsRepository.getEnvironment(),
 				statChange = ::emitStats,
 				stateChange = ::onStateChange,
-				backendMessage = ::emitMessage,
+				backendMessage = ::onBackendMessage,
 			)
-			backend.get().start(tunnel, false)
+			backend.get().start(tunnel, background)
 			running = true
 		}
 	}
@@ -69,6 +75,11 @@ class NymTunnelManager @Inject constructor(
 		return kotlin.runCatching {
 			backend.get().importCredential(credential)
 		}
+	}
+
+	private fun onBackendMessage(backendMessage: BackendMessage) {
+		launchBackendNotification(backendMessage)
+		emitMessage(backendMessage)
 	}
 
 	private fun emitMessage(backendMessage: BackendMessage) {
@@ -89,6 +100,7 @@ class NymTunnelManager @Inject constructor(
 
 	private fun onStateChange(state: Tunnel.State) {
 		if (state == Tunnel.State.Down) running = false
+		context.requestTileServiceStateUpdate()
 		emitState(state)
 	}
 
@@ -97,6 +109,41 @@ class NymTunnelManager @Inject constructor(
 			it.copy(
 				state = state,
 			)
+		}
+	}
+
+	private fun launchBackendNotification(backendMessage: BackendMessage) {
+		when (backendMessage) {
+			is BackendMessage.Failure -> {
+				val launchNotification = when (backendMessage.exception) {
+					is VpnException.InvalidCredential -> !NymVpn.isForeground()
+					else -> true
+				}
+				if (launchNotification) {
+					notificationService.showNotification(
+						title = context.getString(R.string.connection_failed),
+						description = backendMessage.exception.toUserMessage(context),
+					)
+				}
+			}
+			is BackendMessage.BandwidthAlert -> {
+				when (val alert = backendMessage.status) {
+					BandwidthStatus.NoBandwidth -> {
+						notificationService.showNotification(
+							title = context.getString(R.string.bandwidth_alert),
+							description = context.getString(R.string.no_bandwidth),
+						)
+					}
+
+					is BandwidthStatus.RemainingBandwidth -> {
+						notificationService.showNotification(
+							title = context.getString(R.string.bandwidth_alert),
+							description = context.getString(R.string.low_bandwidth) + " ${alert.bandwidth}",
+						)
+					}
+				}
+			}
+			BackendMessage.None -> Unit
 		}
 	}
 }

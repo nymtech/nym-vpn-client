@@ -3,6 +3,9 @@ package net.nymtech.nymvpn
 import android.app.Application
 import android.content.Context
 import android.os.StrictMode
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -44,6 +47,7 @@ class NymVpn : Application() {
 	override fun onCreate() {
 		super.onCreate()
 		instance = this
+		ProcessLifecycleOwner.get().lifecycle.addObserver(AppLifecycleObserver())
 		if (BuildConfig.DEBUG) {
 			Timber.plant(DebugTree())
 			val builder = StrictMode.VmPolicy.Builder()
@@ -75,7 +79,24 @@ class NymVpn : Application() {
 		super.attachBaseContext(LocaleUtil.getLocalizedContext(base, LocaleStorage(base).getPreferredLocale()))
 	}
 
+	class AppLifecycleObserver : DefaultLifecycleObserver {
+
+		override fun onStart(owner: LifecycleOwner) {
+			Timber.d("Application entered foreground")
+			foreground = true
+		}
+		override fun onPause(owner: LifecycleOwner) {
+			Timber.d("Application entered background")
+			foreground = false
+		}
+	}
+
 	companion object {
+		private var foreground = false
+
+		fun isForeground(): Boolean {
+			return foreground
+		}
 
 		lateinit var instance: NymVpn
 			private set
