@@ -158,7 +158,13 @@ async fn run() -> Result<()> {
 
 async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<()> {
     // Setup gateway directory configuration
-    let gateway_config = GatewayConfig::new_from_env(args.min_gateway_performance);
+    let gateway_config = GatewayConfig::new_from_env(args.min_gateway_performance)
+        .with_custom_nym_vpn_api_url(
+            "https://nym-dot-com-git-feature-directory-gws-nyx-network-staging.vercel.app/api"
+                .parse()
+                .unwrap(),
+        );
+
     info!("nym-api: {}", gateway_config.api_url());
     info!(
         "nym-vpn-api: {}",
