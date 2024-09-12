@@ -40,11 +40,9 @@ async fn set_termination_handler(shutdown_token: CancellationToken) -> io::Resul
     tokio::select! {
         _ = sigterm.recv() => {
             tracing::info!("Received SIGTERM signal.");
-            shutdown_token.cancel();
         },
         _ = sigquit.recv() => {
             tracing::info!("Received SIGQUIT signal.");
-            shutdown_token.cancel();
         }
     }
 
