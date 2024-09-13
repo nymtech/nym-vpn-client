@@ -128,7 +128,7 @@ cd nym-vpn-x
 npm i
 mkdir dist
 
-TAURI_PRIVATE_KEY=1234 TAURI_KEY_PASSWORD=1234 npm run tauri build
+TAURI_SIGNING_PRIVATE_KEY=1234 TAURI_SIGNING_PRIVATE_KEY_PASSWORD=1234 npm run tauri build
 ```
 
 ## Custom app config
