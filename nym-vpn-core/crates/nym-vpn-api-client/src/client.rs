@@ -408,7 +408,7 @@ impl VpnApiClient {
                     routes::GATEWAYS,
                     routes::COUNTRIES,
                 ],
-                &[("show_vpn_only", "true")],
+                &[(routes::SHOW_VPN_ONLY, "true")],
             )
             .await
             .map_err(VpnApiClientError::FailedToGetVpnGatewayCountries)
