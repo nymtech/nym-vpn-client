@@ -38,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import net.nymtech.nymvpn.R
@@ -58,18 +59,10 @@ fun CredentialScreen(viewModel: CredentialViewModel = hiltViewModel()) {
 	val scrollState = rememberScrollState()
 	val padding = WindowInsets.systemBars.asPaddingValues()
 
+	val error = viewModel.error.collectAsStateWithLifecycle()
+
 	var credential by remember {
 		mutableStateOf("")
-	}
-
-	var isImportError: Boolean by remember {
-		mutableStateOf(false)
-	}
-
-	fun onAddCredential() {
-		viewModel.onImportCredential(credential) {
-			isImportError = true
-		}
 	}
 
 	val scanLauncher =
@@ -79,7 +72,7 @@ fun CredentialScreen(viewModel: CredentialViewModel = hiltViewModel()) {
 				if (it.contents != null) {
 					credential = ""
 					credential = it.contents
-					onAddCredential()
+					viewModel.onImportCredential(credential)
 				}
 			},
 		)
@@ -155,22 +148,27 @@ fun CredentialScreen(viewModel: CredentialViewModel = hiltViewModel()) {
 			CustomTextField(
 				value = credential,
 				onValueChange = {
-					if (isImportError) isImportError = false
+					if (error.value != null) viewModel.resetError()
 					credential = it
 				},
 				modifier = Modifier
 					.width(358.dp.scaledWidth())
 					.height(212.dp.scaledHeight()),
 				supportingText = {
-					if (isImportError) {
+					if (error.value != null) {
+						// TODO need a better way to determine this in the future
 						Text(
 							modifier = Modifier.fillMaxWidth(),
-							text = stringResource(R.string.credential_failed_message),
+							text = if (error.value!!.contains("unique constraint violation")) {
+								stringResource(R.string.credential_already_imported)
+							} else {
+								stringResource(R.string.credential_failed_message)
+							},
 							color = MaterialTheme.colorScheme.error,
 						)
 					}
 				},
-				isError = isImportError,
+				isError = error.value != null,
 				label = { Text(text = stringResource(id = R.string.credential_label)) },
 				textStyle = MaterialTheme.typography.bodyMedium.copy(
 					color = MaterialTheme.colorScheme.onSurface,
@@ -186,7 +184,7 @@ fun CredentialScreen(viewModel: CredentialViewModel = hiltViewModel()) {
 					MainStyledButton(
 						Constants.LOGIN_TEST_TAG,
 						onClick = {
-							onAddCredential()
+							viewModel.onImportCredential(credential)
 						},
 						content = {
 							Text(
