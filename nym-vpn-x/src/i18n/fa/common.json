@@ -1,0 +1,18 @@
+{
+  "disconnect": "قطع",
+  "feedback": "بازخورد",
+  "support": "پشتیبانی",
+  "sentry": "نگهبان",
+  "legal": "حقوقی",
+  "connect": "اتصال",
+  "logs": "گزارش‌ها",
+  "settings": "تنظیمات",
+  "first-hop-selection": "موقعیت ورودی",
+  "tos": "قوانین استفاده",
+  "privacy-statement": "اعلامیه حریم خصوصی",
+  "last-hop-selection": "موقعیت خروجی",
+  "fastest": "سریع‌ترین",
+  "notifications": "اعلان‌ها",
+  "appearance": "نمای ظاهری",
+  "language": "زبان"
+}

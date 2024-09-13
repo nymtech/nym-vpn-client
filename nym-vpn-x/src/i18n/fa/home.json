@@ -1,0 +1,24 @@
+{
+  "connect": "اتصال",
+  "disconnect": "قطع",
+  "status": {
+    "connected": "متصل",
+    "disconnected": "قطع",
+    "connecting": "در حال اتصال",
+    "disconnecting": "در حال قطع",
+    "unknown": "نامشخص"
+  },
+  "fast-mode": {
+    "title": "سریع (WireGuard)",
+    "desc": "ایده‌آل برای وب‌گردی، پخش زنده و اشتراک‌گذاری"
+  },
+  "last-hop": "موقعیت خروجی",
+  "first-hop": "موقعیت ورودی",
+  "connecting-message": "راه‌اندازی اتصال",
+  "connection-time": "زمان اتصال",
+  "select-mode-label": "انتخاب وضعیت",
+  "select-node-title": "اتصال به",
+  "privacy-mode": {
+    "title": "ناشناس (mixnet)"
+  }
+}

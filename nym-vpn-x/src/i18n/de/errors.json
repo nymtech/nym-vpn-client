@@ -1,6 +1,6 @@
 {
   "credential": {
-    "invalid": "Ungültige Zugangsberechtigung",
+    "invalid": "Ungültige Zugangsdaten",
     "expired": "Zugangsdaten abgelaufen",
     "no-duplicate": "Diese Zugangsdaten wurden bereits importiert",
     "storage": "Fehler beim importieren der Zugangsdaten auf Grund eines internen Fehlers",
@@ -16,16 +16,36 @@
   "connection": {
     "timeout": "Time-Out der Verbindung",
     "no-valid-credential": "Keine gültige Zugangsberechtigung, bitte gib zunächst deine Zugangsdaten ein",
-    "bad-country-combination": "Ungültige Länderkombination. Bitte ändere das Ein- oder Ausgangsland"
+    "bad-country-combination": "Ungültige Länderkombination. Bitte ändere das Ein- oder Austrittsland",
+    "mixnet": {
+      "build-client": "Fehler bei der Erstellung des Mixnet Client",
+      "connect": "Fehler beim Verbinden mit dem Mixnet",
+      "entry-gateway": "Fehler beim Verbinden mit dem Mixnet Eintritts-Gateway",
+      "timeout": "Time-Out der Mixnet Verbindung",
+      "default-storage": "Fehler bei der Erstellung des Mixnet mit Standardpfaden",
+      "storage-path": "Fehler bei der Erstellung der Mixnet Speicherpfade"
+    },
+    "ipr-connect": "Fehler beim Verbinden mit dem IPR",
+    "gateway-lookup": {
+      "generic": "Fehler beim Lookup des Gateway",
+      "id": "Fehler beim Lookup der Gateway-Identität",
+      "ip": "Fehler beim Lookup der Gateway IP-Addresse",
+      "entry": "Fehler beim Lookup des Eintritts-Gateway",
+      "entry-id": "Fehler beim Lookup der Identität des Eintritts-Gateway",
+      "exit": "Fehler beim Lookup des Austritts-Gateway",
+      "ipr": "Fehler beim Lookup der IPR Addresse",
+      "entry-location": "Fehler beim Lookup des Eintritts-Gateway für eine bestimmte Region",
+      "exit-location": "Fehler beim Lookup des Austritts-Gateway für eine bestimmte Region"
+    }
   },
   "countries-request": {
-    "entry": "Fehler beim Abrufen der verfügbaren Eingangsländer",
-    "exit": "Fehler beim Abrufen der verfügbaren Ausgangsländer"
+    "entry": "Fehler beim Abrufen der verfügbaren Eintrittsländer",
+    "exit": "Fehler beim Abrufen der verfügbaren Austrittsländer"
   },
-  "out-of-bandwidth": "Zugewiesene Bandbreite aufgebraucht",
-  "entry-node-routing": "Eingangs-Node leitet keine Daten (Internetverbindung inaktiv?)",
+  "out-of-bandwidth": "Verfügbare Bandbreite aufgebraucht",
+  "entry-node-routing": "Eintritts-Node sendet keine Daten (Internetverbindung inaktiv?)",
   "exit-node": {
-    "routing": "Ausgans-Node leitet keine {{protocol}} Daten",
-    "ping": "Ausgangs-Node Ping für {{protocol}} fehlgeschlagen"
+    "routing": "Austritts-Node sendet keine {{protocol}} Daten",
+    "ping": "Austritts-Node Ping für {{protocol}} fehlgeschlagen"
   }
 }
