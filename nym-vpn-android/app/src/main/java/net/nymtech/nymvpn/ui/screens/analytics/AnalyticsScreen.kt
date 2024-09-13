@@ -27,7 +27,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
+import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
@@ -43,7 +43,7 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun AnalyticsScreen(appViewModel: AppViewModel, navController: NavHostController, appUiState: AppUiState) {
+fun AnalyticsScreen(appViewModel: AppViewModel, navController: NavController, appUiState: AppUiState) {
 	val context = LocalContext.current
 	val padding = WindowInsets.systemBars.asPaddingValues()
 

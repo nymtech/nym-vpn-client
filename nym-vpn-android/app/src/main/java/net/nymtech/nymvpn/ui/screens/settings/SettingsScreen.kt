@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.settings
 
+import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -37,7 +38,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
+import androidx.navigation.NavController
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
@@ -61,7 +62,7 @@ import net.nymtech.vpn.backend.Tunnel
 @Composable
 fun SettingsScreen(
 	appViewModel: AppViewModel,
-	navController: NavHostController,
+	navController: NavController,
 	appUiState: AppUiState,
 	viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -153,26 +154,6 @@ fun SettingsScreen(
 					},
 				),
 				SelectionItem(
-					Icons.Outlined.AppShortcut,
-					{
-						ScaledSwitch(
-							appUiState.settings.isShortcutsEnabled,
-							onClick = { viewModel.onAppShortcutsSelected(it) },
-							modifier =
-							Modifier
-								.height(32.dp.scaledHeight())
-								.width(52.dp.scaledWidth()),
-						)
-					},
-					title = { Text(stringResource(R.string.app_shortcuts), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					description = {
-						Text(
-							stringResource(id = R.string.enable_shortcuts),
-							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-						)
-					},
-				),
-				SelectionItem(
 					ImageVector.vectorResource(R.drawable.two),
 					{
 						ScaledSwitch(
@@ -195,7 +176,7 @@ fun SettingsScreen(
 			),
 		)
 		SurfaceSelectionGroupButton(
-			listOf(
+			mutableListOf(
 				SelectionItem(
 					Icons.AutoMirrored.Outlined.ViewQuilt,
 					title = { Text(stringResource(R.string.appearance), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
@@ -208,7 +189,32 @@ fun SettingsScreen(
 						context.launchNotificationSettings()
 					},
 				),
-			),
+			).apply {
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+					this.add(
+						SelectionItem(
+							Icons.Outlined.AppShortcut,
+							{
+								ScaledSwitch(
+									appUiState.settings.isShortcutsEnabled,
+									onClick = { checked -> viewModel.onAppShortcutsSelected(checked) },
+									modifier =
+									Modifier
+										.height(32.dp.scaledHeight())
+										.width(52.dp.scaledWidth()),
+								)
+							},
+							title = { Text(stringResource(R.string.app_shortcuts), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+							description = {
+								Text(
+									stringResource(id = R.string.enable_shortcuts),
+									style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
+								)
+							},
+						),
+					)
+				}
+			},
 		)
 		val errorReportingDescription = buildAnnotatedString {
 			append("(")

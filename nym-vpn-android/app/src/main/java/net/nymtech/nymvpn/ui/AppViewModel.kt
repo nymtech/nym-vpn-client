@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
-import net.nymtech.nymvpn.module.Native
+import net.nymtech.nymvpn.module.qualifiers.Native
 import net.nymtech.nymvpn.service.gateway.GatewayService
 import net.nymtech.nymvpn.service.tunnel.TunnelManager
 import net.nymtech.nymvpn.util.Constants
@@ -28,9 +28,11 @@ constructor(
 	private val settingsRepository: SettingsRepository,
 	private val gatewayRepository: GatewayRepository,
 	@Native private val gatewayService: GatewayService,
-	private val tunnelManager: TunnelManager,
-	private val navController: NavHostController,
+	tunnelManager: TunnelManager,
+	navigationHostController: NavHostController,
 ) : ViewModel() {
+
+	val navController = navigationHostController
 
 	private val _uiState = MutableStateFlow(AppUiState())
 
@@ -46,6 +48,7 @@ constructor(
 				gateways,
 				state.showLocationTooltip,
 				manager.state,
+				manager.backendMessage,
 			)
 		}.stateIn(
 			viewModelScope,

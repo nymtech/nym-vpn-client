@@ -12,6 +12,7 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.datastore.DataStoreGatewayRepository
 import net.nymtech.nymvpn.data.datastore.DataStoreManager
 import net.nymtech.nymvpn.data.datastore.DataStoreSettingsRepository
+import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
 import javax.inject.Singleton
 
 @Module

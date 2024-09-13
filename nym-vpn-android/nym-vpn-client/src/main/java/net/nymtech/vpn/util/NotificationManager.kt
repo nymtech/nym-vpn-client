@@ -17,7 +17,7 @@ import net.nymtech.vpn.R
 internal object NotificationManager {
 
 	private const val VPN_NOTIFICATION_ID = 222
-	private const val VPN_CHANNEL_ID = "vpnChannel"
+	private const val VPN_CHANNEL_ID = "VpnForegroundChannel"
 
 	fun createNotificationChannel(context: Context) {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -42,16 +42,6 @@ internal object NotificationManager {
 		return notificationBuilder.setOngoing(true)
 			.setContentTitle(context.getString(R.string.vpn_notification_title))
 			.setContentText(context.getString(R.string.vpn_notification_text))
-			.setSmallIcon(R.drawable.ic_stat_name)
-			.setCategory(Notification.CATEGORY_SERVICE)
-			.build()
-	}
-
-	fun createVpnFailedNotification(context: Context): Notification {
-		val notificationBuilder = NotificationCompat.Builder(context, VPN_CHANNEL_ID)
-		return notificationBuilder.setOngoing(false)
-			.setContentTitle(context.getString(R.string.vpn_notification_title))
-			.setContentText(context.getString(R.string.failed))
 			.setSmallIcon(R.drawable.ic_stat_name)
 			.setCategory(Notification.CATEGORY_SERVICE)
 			.build()

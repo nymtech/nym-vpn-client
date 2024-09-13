@@ -72,8 +72,8 @@ import net.nymtech.nymvpn.util.extensions.isInvalid
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
+import net.nymtech.nymvpn.util.extensions.toUserMessage
 import net.nymtech.vpn.backend.Tunnel
-import nym_vpn_lib.VpnException
 
 @Composable
 fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewModel = hiltViewModel()) {
@@ -152,14 +152,7 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 
 					is StateMessage.Error ->
 						StatusInfoLabel(
-							message = when (it.exception) {
-								is VpnException.GatewayException -> stringResource(R.string.gateway_error)
-								is VpnException.InternalException -> stringResource(R.string.internal_error)
-								is VpnException.InvalidCredential -> stringResource(R.string.exception_cred_invalid)
-								is VpnException.InvalidStateException -> stringResource(R.string.state_error)
-								is VpnException.NetworkConnectionException -> stringResource(R.string.network_error)
-								is VpnException.OutOfBandwidth -> stringResource(R.string.out_of_bandwidth_error)
-							} + " ${it.exception.message}",
+							message = it.exception.toUserMessage(context),
 							textColor = CustomColors.error,
 						)
 				}
@@ -171,10 +164,10 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 				)
 			}
 		}
-		val firstHopName = context.buildCountryNameString(uiState.firstHopCounty)
-		val lastHopName = context.buildCountryNameString(uiState.lastHopCountry)
-		val firstHopIcon = countryIcon(uiState.firstHopCounty)
-		val lastHopIcon = countryIcon(uiState.lastHopCountry)
+		val firstHopName = context.buildCountryNameString(appUiState.settings.firstHopCountry)
+		val lastHopName = context.buildCountryNameString(appUiState.settings.lastHopCountry)
+		val firstHopIcon = countryIcon(appUiState.settings.firstHopCountry)
+		val lastHopIcon = countryIcon(appUiState.settings.lastHopCountry)
 		Column(
 			verticalArrangement = Arrangement.spacedBy(36.dp.scaledHeight(), Alignment.Bottom),
 			horizontalAlignment = Alignment.CenterHorizontally,
@@ -213,7 +206,7 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 								snackbar.showMessage(context.getString(R.string.disabled_while_connected))
 							}
 						},
-						selected = uiState.networkMode == Tunnel.Mode.FIVE_HOP_MIXNET,
+						selected = appUiState.settings.vpnMode == Tunnel.Mode.FIVE_HOP_MIXNET,
 					)
 					IconSurfaceButton(
 						leadingIcon = Icons.Outlined.Speed,
@@ -226,7 +219,7 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 								snackbar.showMessage(context.getString(R.string.disabled_while_connected))
 							}
 						},
-						selected = uiState.networkMode == Tunnel.Mode.TWO_HOP_MIXNET,
+						selected = appUiState.settings.vpnMode == Tunnel.Mode.TWO_HOP_MIXNET,
 					)
 				}
 			}
@@ -237,7 +230,7 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 				GroupLabel(title = stringResource(R.string.connect_to))
 				val trailingIcon = ImageVector.vectorResource(R.drawable.link_arrow_right)
 				val selectionEnabled = uiState.connectionState is ConnectionState.Disconnected
-				if (uiState.firstHopEnabled) {
+				if (appUiState.settings.firstHopSelectionEnabled) {
 					CustomTextField(
 						value = firstHopName,
 						readOnly = true,

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarData
 import androidx.compose.material3.SnackbarHost
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,10 +27,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -39,8 +39,12 @@ import kotlinx.coroutines.launch
 import net.nymtech.localizationutil.LocaleStorage
 import net.nymtech.localizationutil.LocaleUtil
 import net.nymtech.nymvpn.NymVpn
+import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.manager.shortcut.ShortcutManager
+import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
 import net.nymtech.nymvpn.ui.common.navigation.NavBar
+import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarControllerProvider
 import net.nymtech.nymvpn.ui.screens.analytics.AnalyticsScreen
 import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
@@ -63,7 +67,12 @@ import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.Constants
+import net.nymtech.nymvpn.util.StringValue
+import net.nymtech.nymvpn.util.extensions.go
+import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.resetTile
+import net.nymtech.vpn.model.BackendMessage
+import nym_vpn_lib.VpnException
 import java.util.Locale
 import javax.inject.Inject
 
@@ -78,20 +87,25 @@ class MainActivity : ComponentActivity() {
 	private lateinit var oldPrefLocaleCode: String
 
 	@Inject
-	lateinit var navController: NavHostController
+	lateinit var notificationService: NotificationService
+
+	@Inject
+	lateinit var shortcutManager: ShortcutManager
+
+	private lateinit var appViewModel: AppViewModel
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
-
+		appViewModel = ViewModelProvider(this)[AppViewModel::class.java]
 		this.resetTile()
 
 		val isAnalyticsShown = intent.extras?.getBoolean(SplashActivity.IS_ANALYTICS_SHOWN_INTENT_KEY)
 		val theme = intent.extras?.getString(SplashActivity.THEME)
 
 		setContent {
-			val appViewModel = hiltViewModel<AppViewModel>()
 			val appState by appViewModel.uiState.collectAsStateWithLifecycle(lifecycle = this.lifecycle)
 
+			val navController = remember { appViewModel.navController }
 			val navBackStackEntry by navController.currentBackStackEntryAsState()
 			var navHeight by remember { mutableStateOf(0.dp) }
 			var showNavBar by rememberSaveable { mutableStateOf(true) }
@@ -102,7 +116,6 @@ class MainActivity : ComponentActivity() {
 					controller.previousBackStackEntry?.destination?.route == Destination.Language.route
 				) {
 					val locale = LocaleUtil.getLocaleFromPrefCode(localeStorage.getPreferredLocale())
-
 					val currentLocale = Locale.getDefault()
 					if (locale != currentLocale) {
 						lifecycleScope.launch {
@@ -110,6 +123,35 @@ class MainActivity : ComponentActivity() {
 							recreate()
 						}
 					}
+				}
+			}
+
+			with(appState.settings) {
+				LaunchedEffect(vpnMode, lastHopCountry, firstHopCountry) {
+					this@MainActivity.requestTileServiceStateUpdate()
+				}
+				LaunchedEffect(isShortcutsEnabled) {
+					if (isShortcutsEnabled) {
+						shortcutManager.addShortcuts()
+					} else {
+						shortcutManager.removeShortcuts()
+					}
+				}
+			}
+
+			LaunchedEffect(appState.backendMessage) {
+				when (val message = appState.backendMessage) {
+					is BackendMessage.Failure -> {
+						when (message.exception) {
+							is VpnException.InvalidCredential -> {
+								if (NymVpn.isForeground()) {
+									SnackbarController.showMessage(StringValue.StringResource(R.string.exception_cred_invalid))
+									navController.go(Destination.Credential.route)
+								}
+							} else -> Unit
+						}
+					}
+					else -> Unit
 				}
 			}
 
@@ -161,6 +203,8 @@ class MainActivity : ComponentActivity() {
 								.padding(padding),
 							enterTransition = { fadeIn(tween(200)) },
 							exitTransition = { fadeOut(tween(200)) },
+							popEnterTransition = { fadeIn(tween(200)) },
+							popExitTransition = { fadeOut(tween(200)) },
 						) {
 							composable(
 								Destination.Main.route,

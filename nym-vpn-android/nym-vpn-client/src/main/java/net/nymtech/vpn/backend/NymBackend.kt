@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.nymtech.vpn.model.BackendMessage
 import net.nymtech.vpn.model.Statistics
+import net.nymtech.vpn.util.Action
 import net.nymtech.vpn.util.Constants
 import net.nymtech.vpn.util.NotificationManager
 import net.nymtech.vpn.util.SingletonHolder
@@ -37,6 +38,7 @@ import nym_vpn_lib.stopVpn
 import timber.log.Timber
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.properties.Delegates
 
 class NymBackend private constructor(val context: Context) : Backend, TunnelStatusListener {
 
@@ -94,7 +96,11 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		if (!vpnService.isCompleted) {
 			kotlin.runCatching {
 				if (background && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-					context.startForegroundService(Intent(context, VpnService::class.java))
+					context.startForegroundService(
+						Intent(context, VpnService::class.java).apply {
+							action = Action.START_FOREGROUND.name
+						},
+					)
 				} else {
 					context.startService(Intent(context, VpnService::class.java))
 				}
@@ -175,7 +181,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	}
 
 	override fun onTunStatusChange(status: TunStatus) {
-		val state = when (status) {
+		state = when (status) {
 			TunStatus.INITIALIZING_CLIENT -> Tunnel.State.Connecting.InitializingClient
 			TunStatus.ESTABLISHING_CONNECTION -> Tunnel.State.Connecting.EstablishingConnection
 			TunStatus.DOWN -> {
@@ -192,12 +198,12 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 				Tunnel.State.Disconnecting
 			}
 		}
-		this.state = state
 		tunnel?.onStateChange(state)
 	}
 
 	override fun onBandwidthStatusChange(status: BandwidthStatus) {
 		Timber.d("Bandwidth status: $status")
+		tunnel?.onBackendMessage(BackendMessage.BandwidthAlert(status))
 	}
 
 	override fun onConnectionStatusChange(status: ConnectionStatus) {
@@ -223,6 +229,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	class VpnService : android.net.VpnService(), AndroidTunProvider {
 		private var owner: NymBackend? = null
+		private var startId by Delegates.notNull<Int>()
 
 		private val builder: Builder
 			get() = Builder()
@@ -240,8 +247,11 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		}
 
 		override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+			this.startId = startId
 			vpnService.complete(this)
-			startForeground(startId, NotificationManager.createVpnRunningNotification(this))
+			intent?.let {
+				if (it.action == Action.START_FOREGROUND.name) startForeground(startId, NotificationManager.createVpnRunningNotification(this))
+			}
 			return super.onStartCommand(intent, flags, startId)
 		}
 

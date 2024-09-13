@@ -176,6 +176,7 @@ dependencies {
 	implementation(project(":nym-vpn-client"))
 	implementation(project(":logcat-util"))
 	implementation(project(":localization-util"))
+	implementation(libs.androidx.lifecycle.process)
 	coreLibraryDesugaring(libs.com.android.tools.desugar)
 
 	implementation(libs.androidx.core.ktx)

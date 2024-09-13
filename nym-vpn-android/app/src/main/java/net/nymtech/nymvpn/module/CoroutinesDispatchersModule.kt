@@ -6,6 +6,10 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import net.nymtech.nymvpn.module.qualifiers.DefaultDispatcher
+import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
+import net.nymtech.nymvpn.module.qualifiers.MainDispatcher
+import net.nymtech.nymvpn.module.qualifiers.MainImmediateDispatcher
 
 @InstallIn(SingletonComponent::class)
 @Module

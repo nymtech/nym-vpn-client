@@ -8,13 +8,13 @@ object Constants {
 	// Add Rust environment vars for lib
 	const val DEFAULT_COUNTRY_ISO = "DE"
 
-	const val LOG_LEVEL = "info"
+	private const val LOG_LEVEL = "info"
 
 	const val STATISTICS_INTERVAL_MILLI = 1_000L
 
 	private fun setupCommon() {
 		Os.setenv("CONFIGURED", "true", true)
-		Os.setenv("RUST_LOG", "info", true)
+		Os.setenv("RUST_LOG", LOG_LEVEL, true)
 		Os.setenv("RUST_BACKTRACE", "1", true)
 		Os.setenv("NETWORK_NAME", "sandbox", true)
 		Os.setenv("BECH32_PREFIX", "n", true)
