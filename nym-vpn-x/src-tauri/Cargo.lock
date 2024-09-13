@@ -3032,7 +3032,7 @@ dependencies = [
 
 [[package]]
 name = "nymvpn-x"
-version = "0.1.10-dev"
+version = "0.1.10"
 dependencies = [
  "anyhow",
  "bs58",
