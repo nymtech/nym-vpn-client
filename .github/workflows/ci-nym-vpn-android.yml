@@ -35,9 +35,6 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install NDK
-        run: sdkmanager "ndk;26.3.11579264"
-
       - name: Run ktlint
         run: ./gradlew ktlintCheck
 
