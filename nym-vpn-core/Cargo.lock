@@ -4517,7 +4517,7 @@ dependencies = [
 
 [[package]]
 name = "nym-gateway-probe"
-version = "0.2.1-dev"
+version = "0.2.2-dev"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -5400,7 +5400,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-cli"
-version = "0.2.1-dev"
+version = "0.2.2-dev"
 dependencies = [
  "anyhow",
  "bs58 0.5.1",
@@ -5422,7 +5422,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib"
-version = "0.2.1-dev"
+version = "0.2.2-dev"
 dependencies = [
  "android_logger",
  "anyhow",
@@ -5525,7 +5525,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpnc"
-version = "0.2.1-dev"
+version = "0.2.2-dev"
 dependencies = [
  "anyhow",
  "bs58 0.5.1",
@@ -5544,7 +5544,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpnd"
-version = "0.2.1-dev"
+version = "0.2.2-dev"
 dependencies = [
  "anyhow",
  "axum 0.7.5",
@@ -5591,7 +5591,7 @@ dependencies = [
 
 [[package]]
 name = "nym-wg-gateway-client"
-version = "0.2.1-dev"
+version = "0.2.2-dev"
 dependencies = [
  "nym-authenticator-client",
  "nym-authenticator-requests",
@@ -5611,7 +5611,7 @@ dependencies = [
 
 [[package]]
 name = "nym-wg-go"
-version = "0.2.1-dev"
+version = "0.2.2-dev"
 dependencies = [
  "base64 0.22.1",
  "hex",
@@ -9077,7 +9077,7 @@ dependencies = [
 
 [[package]]
 name = "uniffi-bindgen"
-version = "0.2.1-dev"
+version = "0.2.2-dev"
 dependencies = [
  "uniffi",
 ]
