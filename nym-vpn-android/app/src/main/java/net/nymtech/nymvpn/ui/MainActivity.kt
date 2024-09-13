@@ -126,17 +126,18 @@ class MainActivity : ComponentActivity() {
 				}
 			}
 
-
 			with(appState.settings) {
 				LaunchedEffect(vpnMode, lastHopCountry, firstHopCountry) {
 					this@MainActivity.requestTileServiceStateUpdate()
 				}
 				LaunchedEffect(isShortcutsEnabled) {
-					if(isShortcutsEnabled) shortcutManager.addShortcuts()
-					else shortcutManager.removeShortcuts()
+					if (isShortcutsEnabled) {
+						shortcutManager.addShortcuts()
+					} else {
+						shortcutManager.removeShortcuts()
+					}
 				}
 			}
-
 
 			LaunchedEffect(appState.backendMessage) {
 				when (val message = appState.backendMessage) {

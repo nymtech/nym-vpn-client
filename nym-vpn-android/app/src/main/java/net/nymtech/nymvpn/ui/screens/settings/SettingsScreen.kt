@@ -190,27 +190,29 @@ fun SettingsScreen(
 					},
 				),
 			).apply {
-				if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-					this.add(SelectionItem(
-						Icons.Outlined.AppShortcut,
-						{
-							ScaledSwitch(
-								appUiState.settings.isShortcutsEnabled,
-								onClick = { checked -> viewModel.onAppShortcutsSelected(checked) },
-								modifier =
-								Modifier
-									.height(32.dp.scaledHeight())
-									.width(52.dp.scaledWidth()),
-							)
-						},
-						title = { Text(stringResource(R.string.app_shortcuts), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-						description = {
-							Text(
-								stringResource(id = R.string.enable_shortcuts),
-								style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-							)
-						},
-					))
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+					this.add(
+						SelectionItem(
+							Icons.Outlined.AppShortcut,
+							{
+								ScaledSwitch(
+									appUiState.settings.isShortcutsEnabled,
+									onClick = { checked -> viewModel.onAppShortcutsSelected(checked) },
+									modifier =
+									Modifier
+										.height(32.dp.scaledHeight())
+										.width(52.dp.scaledWidth()),
+								)
+							},
+							title = { Text(stringResource(R.string.app_shortcuts), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+							description = {
+								Text(
+									stringResource(id = R.string.enable_shortcuts),
+									style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
+								)
+							},
+						),
+					)
 				}
 			},
 		)

@@ -104,12 +104,17 @@ class NymTunnelManager @Inject constructor(
 		emitState(state)
 	}
 
-	private fun onInvalidCredential(expiry : Instant?) {
-		val message = if(expiry == null) {
+	private fun onInvalidCredential(expiry: Instant?) {
+		val message = if (expiry == null) {
 			context.getString(R.string.missing_credential)
-		} else context.getString(R.string.exception_cred_invalid)
-		if(NymVpn.isForeground()) emitMessage(BackendMessage.Failure(VpnException.InvalidCredential(details = message)))
-		else launchCredentialNotification(message)
+		} else {
+			context.getString(R.string.exception_cred_invalid)
+		}
+		if (NymVpn.isForeground()) {
+			emitMessage(BackendMessage.Failure(VpnException.InvalidCredential(details = message)))
+		} else {
+			launchCredentialNotification(message)
+		}
 	}
 
 	private fun emitState(state: Tunnel.State) {
@@ -121,18 +126,18 @@ class NymTunnelManager @Inject constructor(
 	}
 
 	private fun launchVpnPermissionNotification() {
-		if(!NymVpn.isForeground()) {
+		if (!NymVpn.isForeground()) {
 			notificationService.showNotification(
-				title= context.getString(R.string.permission_required),
-				description = context.getString(R.string.vpn_permission_missing)
+				title = context.getString(R.string.permission_required),
+				description = context.getString(R.string.vpn_permission_missing),
 			)
 		}
 	}
 
-	private fun launchCredentialNotification(description : String) {
+	private fun launchCredentialNotification(description: String) {
 		notificationService.showNotification(
-			title= context.getString(R.string.credential_failed_message),
-			description = description
+			title = context.getString(R.string.credential_failed_message),
+			description = description,
 		)
 	}
 

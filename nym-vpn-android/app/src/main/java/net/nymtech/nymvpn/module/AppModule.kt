@@ -151,7 +151,7 @@ object AppModule {
 
 	@Singleton
 	@Provides
-	fun provideShortcutManager(@ApplicationContext context: Context) : ShortcutManager {
+	fun provideShortcutManager(@ApplicationContext context: Context): ShortcutManager {
 		return DynamicShortcutManager(context)
 	}
 }
