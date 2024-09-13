@@ -370,14 +370,20 @@ impl VpnApiClient {
 
     pub async fn get_gateways(
         &self,
-        threshold: Option<u8>,
+        mixnet_min_performance: Option<u8>,
+        vpn_min_performance: Option<u8>,
     ) -> Result<NymDirectoryGatewaysResponse> {
         let mut params = vec![];
-        if let Some(threshold) = threshold {
-            let mixnet_min_performance = percentage_u8_to_string_fraction(threshold);
+        if let Some(threshold) = mixnet_min_performance {
             params.push((
                 routes::MIXNET_MIN_PERFORMANCE,
-                mixnet_min_performance.as_str(),
+                percentage_u8_to_string_fraction(threshold),
+            ));
+        };
+        if let Some(threshold) = vpn_min_performance {
+            params.push((
+                routes::MIXNET_MIN_PERFORMANCE,
+                percentage_u8_to_string_fraction(threshold),
             ));
         };
 
@@ -529,6 +535,31 @@ impl VpnApiClient {
             .map_err(VpnApiClientError::FailedToGetExitGatewayCountries)
     }
 }
+
+// #[derive(Clone, Default)]
+// struct GatewayMinPerformance {
+//     mixnet_min_performance: Option<rust_decimal::Decimal>,
+//     vpn_min_performance: Option<rust_decimal::Decimal>,
+// }
+
+// impl GatewayMinPerformance {
+//     
+// }
+
+// #[derive(Copy, Clone, Debug)]
+// struct Threshold {
+//     threshold: u8,
+// }
+//
+// impl Threshold {
+//     fn from_string(s: &str) -> Result<Self> {
+//         s.parse::<f64>()
+//             .map(|p| p * 100.0)
+//             .map(|p| p.round() as u8)
+//             .map(|p| p.clamp(0, 100))
+//             .map(|threshold| Self { threshold })
+//     }
+// }
 
 fn percentage_u8_to_string_fraction(p: u8) -> String {
     (p as f64 / 100.0).clamp(0.0, 1.0).to_string()
