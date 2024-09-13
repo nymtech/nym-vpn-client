@@ -1,0 +1,5 @@
+Neuigkeiten:
+- Sychronisation des Verbindungsstatus korrigiert
+- Bessere Fehlermeldungen
+- "Erlaubnis verweigert"-Flow hinzugefügt
+- Debug Logfiles entfernt

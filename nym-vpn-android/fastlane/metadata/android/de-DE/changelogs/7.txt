@@ -1,0 +1,2 @@
+Neuigkeiten:
+- Bugfix für API Änderungen

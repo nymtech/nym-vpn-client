@@ -1,0 +1,4 @@
+Neuigkeiten:
+- Überarbeitung des VPN Client 
+- Bilder hinzugefügt
+- Fix "UI state sync with VPN"

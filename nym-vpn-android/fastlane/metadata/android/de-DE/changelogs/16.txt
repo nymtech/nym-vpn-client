@@ -1,0 +1,5 @@
+Neuigkeiten:
+- UI Verbesserungen
+- Caching Optimierung
+- Harbour master Integration
+- Optimierung des "Quick tile state sync"

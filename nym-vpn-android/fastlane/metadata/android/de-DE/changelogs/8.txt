@@ -1,0 +1,3 @@
+Nueigkeiten:
+- Verbesserte Logs
+- Bugfixes

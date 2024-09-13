@@ -1,0 +1,5 @@
+Neuigkeiten:
+- Sprachauswahl in der App
+- Weitere Sprachen
+- Verbesserte Status-Synchronisation
+- Bugfixes und Verbesserungen

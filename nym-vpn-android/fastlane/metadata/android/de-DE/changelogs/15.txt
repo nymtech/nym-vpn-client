@@ -1,0 +1,3 @@
+Neuigkeiten:
+- Check der Zugangsberechtigung
+- Verschlüsselte Speicherung der Zugangsberechtigung

@@ -1,0 +1,3 @@
+Neugikeiten:
+- Weitere Sprachen hinzugefügt
+- Verbesserungen des Homescreen

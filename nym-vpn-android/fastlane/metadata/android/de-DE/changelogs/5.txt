@@ -1,0 +1,3 @@
+Neuigkeiten:
+- Bugfixes
+- Lizenzen hinzugefügt

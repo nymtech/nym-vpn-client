@@ -1,0 +1,3 @@
+Neuigkeiten:
+- UI Verbesserungen und Bugfixes
+- Verschiedene Verbesserungen
