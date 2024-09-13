@@ -3,7 +3,6 @@
 
 use std::fmt;
 
-use nym_contracts_common::Percent;
 use nym_http_api_client::{HttpClientError, PathSegments, UserAgent, NO_PARAMS};
 use reqwest::Url;
 use serde::{de::DeserializeOwned, Serialize};
@@ -20,7 +19,7 @@ use crate::{
         NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse, NymVpnZkNym, NymVpnZkNymResponse,
     },
     routes,
-    types::{Device, VpnApiAccount},
+    types::{Device, GatewayMinPerformance, VpnApiAccount},
 };
 
 pub(crate) const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";
@@ -371,7 +370,7 @@ impl VpnApiClient {
 
     pub async fn get_gateways(
         &self,
-        min_performance: &GatewayMinPerformance,
+        min_performance: Option<GatewayMinPerformance>,
     ) -> Result<NymDirectoryGatewaysResponse> {
         self.inner
             .get_json(
@@ -381,7 +380,7 @@ impl VpnApiClient {
                     routes::DIRECTORY,
                     routes::GATEWAYS,
                 ],
-                &min_performance.to_param(),
+                &min_performance.unwrap_or_default().to_param(),
             )
             .await
             .map_err(VpnApiClientError::FailedToGetGateways)
@@ -389,8 +388,10 @@ impl VpnApiClient {
 
     pub async fn get_vpn_gateways(
         &self,
-        min_performance: &GatewayMinPerformance,
+        min_performance: Option<GatewayMinPerformance>,
     ) -> Result<NymDirectoryGatewaysResponse> {
+        let mut params = min_performance.unwrap_or_default().to_param();
+        params.push((routes::SHOW_VPN_ONLY.to_string(), "true".to_string()));
         self.inner
             .get_json(
                 &[
@@ -399,7 +400,7 @@ impl VpnApiClient {
                     routes::DIRECTORY,
                     routes::GATEWAYS,
                 ],
-                &[(routes::SHOW_VPN_ONLY, "true")],
+                &params,
             )
             .await
             .map_err(VpnApiClientError::FailedToGetVpnGateways)
@@ -407,8 +408,10 @@ impl VpnApiClient {
 
     pub async fn get_vpn_gateway_countries(
         &self,
-        threshold: Option<u8>,
+        min_performance: Option<GatewayMinPerformance>,
     ) -> Result<NymDirectoryGatewayCountriesResponse> {
+        let mut params = min_performance.unwrap_or_default().to_param();
+        params.push((routes::SHOW_VPN_ONLY.to_string(), "true".to_string()));
         self.inner
             .get_json(
                 &[
@@ -418,7 +421,7 @@ impl VpnApiClient {
                     routes::GATEWAYS,
                     routes::COUNTRIES,
                 ],
-                &[(routes::SHOW_VPN_ONLY, "true")],
+                &params,
             )
             .await
             .map_err(VpnApiClientError::FailedToGetVpnGatewayCountries)
@@ -426,7 +429,7 @@ impl VpnApiClient {
 
     pub async fn get_gateway_countries(
         &self,
-        threshold: Option<u8>,
+        min_performance: Option<GatewayMinPerformance>,
     ) -> Result<NymDirectoryGatewayCountriesResponse> {
         self.inner
             .get_json(
@@ -437,7 +440,7 @@ impl VpnApiClient {
                     routes::GATEWAYS,
                     routes::COUNTRIES,
                 ],
-                NO_PARAMS,
+                &min_performance.unwrap_or_default().to_param(),
             )
             .await
             .map_err(VpnApiClientError::FailedToGetGatewayCountries)
@@ -445,7 +448,7 @@ impl VpnApiClient {
 
     pub async fn get_entry_gateways(
         &self,
-        threshold: Option<u8>,
+        min_performance: Option<GatewayMinPerformance>,
     ) -> Result<NymDirectoryGatewaysResponse> {
         self.inner
             .get_json(
@@ -456,7 +459,7 @@ impl VpnApiClient {
                     routes::GATEWAYS,
                     routes::ENTRY,
                 ],
-                NO_PARAMS,
+                &min_performance.unwrap_or_default().to_param(),
             )
             .await
             .map_err(VpnApiClientError::FailedToGetEntryGateways)
@@ -464,7 +467,7 @@ impl VpnApiClient {
 
     pub async fn get_entry_gateway_countries(
         &self,
-        threshold: Option<u8>,
+        min_performance: Option<GatewayMinPerformance>,
     ) -> Result<NymDirectoryGatewayCountriesResponse> {
         self.inner
             .get_json(
@@ -476,7 +479,7 @@ impl VpnApiClient {
                     routes::ENTRY,
                     routes::COUNTRIES,
                 ],
-                NO_PARAMS,
+                &min_performance.unwrap_or_default().to_param(),
             )
             .await
             .map_err(VpnApiClientError::FailedToGetEntryGatewayCountries)
@@ -484,7 +487,7 @@ impl VpnApiClient {
 
     pub async fn get_exit_gateways(
         &self,
-        threshold: Option<u8>,
+        min_performance: Option<GatewayMinPerformance>,
     ) -> Result<NymDirectoryGatewaysResponse> {
         self.inner
             .get_json(
@@ -495,7 +498,7 @@ impl VpnApiClient {
                     routes::GATEWAYS,
                     routes::EXIT,
                 ],
-                NO_PARAMS,
+                &min_performance.unwrap_or_default().to_param(),
             )
             .await
             .map_err(VpnApiClientError::FailedToGetExitGateways)
@@ -503,7 +506,7 @@ impl VpnApiClient {
 
     pub async fn get_exit_gateway_countries(
         &self,
-        threshold: Option<u8>,
+        min_performance: Option<GatewayMinPerformance>,
     ) -> Result<NymDirectoryGatewayCountriesResponse> {
         self.inner
             .get_json(
@@ -515,35 +518,10 @@ impl VpnApiClient {
                     routes::EXIT,
                     routes::COUNTRIES,
                 ],
-                NO_PARAMS,
+                &min_performance.unwrap_or_default().to_param(),
             )
             .await
             .map_err(VpnApiClientError::FailedToGetExitGatewayCountries)
-    }
-}
-
-#[derive(Clone, Default)]
-struct GatewayMinPerformance {
-    mixnet_min_performance: Option<Percent>,
-    vpn_min_performance: Option<Percent>,
-}
-
-impl GatewayMinPerformance {
-    fn to_param(&self) -> Vec<(String, String)> {
-        let mut params = vec![];
-        if let Some(threshold) = self.mixnet_min_performance {
-            params.push((
-                routes::MIXNET_MIN_PERFORMANCE.to_string(),
-                threshold.to_string(),
-            ));
-        };
-        if let Some(threshold) = self.vpn_min_performance {
-            params.push((
-                routes::VPN_MIN_PERFORMANCE.to_string(),
-                threshold.to_string(),
-            ));
-        };
-        params
     }
 }
 
@@ -603,7 +581,10 @@ mod tests {
     #[tokio::test]
     async fn get_gateways() {
         let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-        let response = client.get_gateways().await.unwrap();
+        let response = client
+            .get_gateways(GatewayMinPerformance::default())
+            .await
+            .unwrap();
         dbg!(&response);
         assert!(!response.into_inner().is_empty());
     }
@@ -611,14 +592,20 @@ mod tests {
     #[tokio::test]
     async fn get_entry_gateways() {
         let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-        let response = client.get_entry_gateways().await.unwrap();
+        let response = client
+            .get_entry_gateways(GatewayMinPerformance::default())
+            .await
+            .unwrap();
         assert!(!response.into_inner().is_empty());
     }
 
     #[tokio::test]
     async fn get_exit_gateways() {
         let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-        let response = client.get_entry_gateways().await.unwrap();
+        let response = client
+            .get_entry_gateways(GatewayMinPerformance::default())
+            .await
+            .unwrap();
         assert!(!response.into_inner().is_empty());
     }
 

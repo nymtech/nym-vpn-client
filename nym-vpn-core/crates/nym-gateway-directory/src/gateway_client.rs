@@ -5,6 +5,7 @@ use std::{fmt, net::IpAddr};
 
 use nym_sdk::UserAgent;
 use nym_validator_client::{models::DescribedGateway, nym_nodes::SkimmedNode, NymApiClient};
+use nym_vpn_api_client::types::GatewayMinPerformance;
 use tracing::{debug, error, info};
 use url::Url;
 
@@ -22,7 +23,7 @@ use crate::{
 pub struct Config {
     pub api_url: Url,
     pub nym_vpn_api_url: Option<Url>,
-    pub min_gateway_performance: Option<u8>,
+    pub min_gateway_performance: Option<GatewayMinPerformance>,
 }
 
 impl Default for Config {
@@ -120,7 +121,9 @@ impl Config {
 pub struct GatewayClient {
     api_client: NymApiClient,
     nym_vpn_api_client: Option<nym_vpn_api_client::VpnApiClient>,
-    min_gateway_performance: Option<u8>,
+    // min_gateway_performance: Option<u8>,
+    vpn_min_performance: Option<u8>,
+    mixnet_min_performance: Option<u8>,
 }
 
 impl GatewayClient {
