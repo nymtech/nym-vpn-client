@@ -158,8 +158,8 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     name: 'getVpnMode',
     request: () => kvGet<VpnMode>('VpnMode'),
     onFulfilled: (vpnMode) => {
-      dispatch({ type: 'set-vpn-mode', mode: vpnMode || DefaultVpnMode });
       S_STATE.vpnModeInit = true;
+      dispatch({ type: 'set-vpn-mode', mode: vpnMode || DefaultVpnMode });
     },
   };
 
