@@ -222,6 +222,10 @@ fn string_fraction_into_percentage_u8(s: &str) -> Option<u8> {
         .ok()
 }
 
+fn percentage_u8_to_string_fraction(p: u8) -> String {
+    (p as f64 / 100.0).clamp(0.0, 1.0).to_string()
+}
+
 impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
     type Error = Error;
 

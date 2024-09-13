@@ -368,7 +368,19 @@ impl VpnApiClient {
 
     // GATEWAYS
 
-    pub async fn get_gateways(&self) -> Result<NymDirectoryGatewaysResponse> {
+    pub async fn get_gateways(
+        &self,
+        threshold: Option<u8>,
+    ) -> Result<NymDirectoryGatewaysResponse> {
+        let mut params = vec![];
+        if let Some(threshold) = threshold {
+            let mixnet_min_performance = percentage_u8_to_string_fraction(threshold);
+            params.push((
+                routes::MIXNET_MIN_PERFORMANCE,
+                mixnet_min_performance.as_str(),
+            ));
+        };
+
         self.inner
             .get_json(
                 &[
@@ -377,13 +389,16 @@ impl VpnApiClient {
                     routes::DIRECTORY,
                     routes::GATEWAYS,
                 ],
-                NO_PARAMS,
+                &params,
             )
             .await
             .map_err(VpnApiClientError::FailedToGetGateways)
     }
 
-    pub async fn get_vpn_gateways(&self) -> Result<NymDirectoryGatewaysResponse> {
+    pub async fn get_vpn_gateways(
+        &self,
+        threshold: Option<u8>,
+    ) -> Result<NymDirectoryGatewaysResponse> {
         self.inner
             .get_json(
                 &[
@@ -398,7 +413,10 @@ impl VpnApiClient {
             .map_err(VpnApiClientError::FailedToGetVpnGateways)
     }
 
-    pub async fn get_vpn_gateway_countries(&self) -> Result<NymDirectoryGatewayCountriesResponse> {
+    pub async fn get_vpn_gateway_countries(
+        &self,
+        threshold: Option<u8>,
+    ) -> Result<NymDirectoryGatewayCountriesResponse> {
         self.inner
             .get_json(
                 &[
@@ -414,7 +432,10 @@ impl VpnApiClient {
             .map_err(VpnApiClientError::FailedToGetVpnGatewayCountries)
     }
 
-    pub async fn get_gateway_countries(&self) -> Result<NymDirectoryGatewayCountriesResponse> {
+    pub async fn get_gateway_countries(
+        &self,
+        threshold: Option<u8>,
+    ) -> Result<NymDirectoryGatewayCountriesResponse> {
         self.inner
             .get_json(
                 &[
@@ -430,7 +451,10 @@ impl VpnApiClient {
             .map_err(VpnApiClientError::FailedToGetGatewayCountries)
     }
 
-    pub async fn get_entry_gateways(&self) -> Result<NymDirectoryGatewaysResponse> {
+    pub async fn get_entry_gateways(
+        &self,
+        threshold: Option<u8>,
+    ) -> Result<NymDirectoryGatewaysResponse> {
         self.inner
             .get_json(
                 &[
@@ -448,6 +472,7 @@ impl VpnApiClient {
 
     pub async fn get_entry_gateway_countries(
         &self,
+        threshold: Option<u8>,
     ) -> Result<NymDirectoryGatewayCountriesResponse> {
         self.inner
             .get_json(
@@ -465,7 +490,10 @@ impl VpnApiClient {
             .map_err(VpnApiClientError::FailedToGetEntryGatewayCountries)
     }
 
-    pub async fn get_exit_gateways(&self) -> Result<NymDirectoryGatewaysResponse> {
+    pub async fn get_exit_gateways(
+        &self,
+        threshold: Option<u8>,
+    ) -> Result<NymDirectoryGatewaysResponse> {
         self.inner
             .get_json(
                 &[
@@ -481,7 +509,10 @@ impl VpnApiClient {
             .map_err(VpnApiClientError::FailedToGetExitGateways)
     }
 
-    pub async fn get_exit_gateway_countries(&self) -> Result<NymDirectoryGatewayCountriesResponse> {
+    pub async fn get_exit_gateway_countries(
+        &self,
+        threshold: Option<u8>,
+    ) -> Result<NymDirectoryGatewayCountriesResponse> {
         self.inner
             .get_json(
                 &[
@@ -497,6 +528,10 @@ impl VpnApiClient {
             .await
             .map_err(VpnApiClientError::FailedToGetExitGatewayCountries)
     }
+}
+
+fn percentage_u8_to_string_fraction(p: u8) -> String {
+    (p as f64 / 100.0).clamp(0.0, 1.0).to_string()
 }
 
 #[cfg(test)]
