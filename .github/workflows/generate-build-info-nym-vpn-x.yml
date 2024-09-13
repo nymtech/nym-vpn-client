@@ -33,7 +33,7 @@ jobs:
       - name: Generate build-info
         run: |
           touch build-info.txt
-          echo "App name:  $(yq -oy '.productName' nym-vpn-x/src-tauri/tauri.conf.json)" >> build-info.txt
+          echo "App name:      $(yq -oy '.productName' nym-vpn-x/src-tauri/tauri.conf.json)" >> build-info.txt
           echo "Version:       $(yq -oy '.package.version' nym-vpn-x/src-tauri/Cargo.toml)" >> build-info.txt
           # TODO: extract this from the lock file instead
           echo "Tauri version: $(yq -oy '.dependencies.tauri.version' nym-vpn-x/src-tauri/Cargo.toml)" >> build-info.txt
