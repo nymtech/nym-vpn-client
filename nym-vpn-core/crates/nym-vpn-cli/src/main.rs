@@ -159,6 +159,7 @@ async fn run() -> Result<()> {
 async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<()> {
     // Setup gateway directory configuration
     let gateway_config = GatewayConfig::new_from_env(args.min_gateway_performance);
+
     info!("nym-api: {}", gateway_config.api_url());
     info!(
         "nym-vpn-api: {}",

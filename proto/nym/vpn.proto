@@ -391,6 +391,19 @@ message ListExitGatewaysResponse {
   repeated ExitGateway gateways = 1;
 }
 
+message VpnGateway {
+  Gateway id = 1;
+  Location location = 2;
+}
+
+message ListVpnGatewaysRequest {
+  Threshold min_gateway_performance = 1;
+}
+
+message ListVpnGatewaysResponse {
+  repeated VpnGateway gateways = 1;
+}
+
 message ListEntryCountriesRequest {
   Threshold min_gateway_performance = 1;
 }
@@ -404,6 +417,14 @@ message ListExitCountriesRequest {
 }
 
 message ListExitCountriesResponse {
+  repeated Location countries = 1;
+}
+
+message ListVpnCountriesRequest {
+  Threshold min_gateway_performance = 1;
+}
+
+message ListVpnCountriesResponse {
   repeated Location countries = 1;
 }
 
@@ -476,8 +497,10 @@ service NymVpnd {
 
   rpc ListEntryGateways (ListEntryGatewaysRequest) returns (ListEntryGatewaysResponse) {}
   rpc ListExitGateways (ListExitGatewaysRequest) returns (ListExitGatewaysResponse) {}
+  rpc ListVpnGateways (ListVpnGatewaysRequest) returns (ListVpnGatewaysResponse) {}
   rpc ListEntryCountries (ListEntryCountriesRequest) returns (ListEntryCountriesResponse) {}
   rpc ListExitCountries (ListExitCountriesRequest) returns (ListExitCountriesResponse) {}
+  rpc ListVpnCountries (ListVpnCountriesRequest) returns (ListVpnCountriesResponse) {}
 
   // Unstable
   rpc StoreAccount (StoreAccountRequest) returns (StoreAccountResponse) {}

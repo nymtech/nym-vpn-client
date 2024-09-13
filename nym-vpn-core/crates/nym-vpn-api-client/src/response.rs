@@ -211,8 +211,30 @@ impl IntoIterator for NymDirectoryGatewaysResponse {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct NymDirectoryGateway {
     pub identity_key: String,
+    pub ip_packet_router: Option<IpPacketRouter>,
+    pub authenticator: Option<Authenticator>,
     pub location: Location,
     pub last_probe: Option<Probe>,
+    pub ip_addresses: Vec<String>,
+    pub entry: EntryInformation,
+    pub performance: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct EntryInformation {
+    pub hostname: Option<String>,
+    pub ws_port: u16,
+    pub wss_port: Option<u16>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct IpPacketRouter {
+    pub address: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct Authenticator {
+    pub address: String,
 }
 
 impl NymDirectoryGateway {

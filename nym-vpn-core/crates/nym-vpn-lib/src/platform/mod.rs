@@ -448,6 +448,36 @@ async fn get_gateway_countries(
     Ok(locations.into_iter().map(Location::from).collect())
 }
 
+// Add an additional method to preserve backwards compatibility for a bit, so that we can use add
+// this functionality before all apps are ready
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn getVpnCountries(
+    api_url: Url,
+    nym_vpn_api_url: Option<Url>,
+    user_agent: Option<UserAgent>,
+) -> Result<Vec<Location>, VpnError> {
+    RUNTIME.block_on(get_vpn_countries(api_url, nym_vpn_api_url, user_agent))
+}
+
+async fn get_vpn_countries(
+    api_url: Url,
+    nym_vpn_api_url: Option<Url>,
+    user_agent: Option<UserAgent>,
+) -> Result<Vec<Location>, VpnError> {
+    let user_agent = user_agent
+        .map(nym_sdk::UserAgent::from)
+        .unwrap_or_else(|| nym_bin_common::bin_info_local_vergen!().into());
+    let directory_config = nym_gateway_directory::Config {
+        api_url,
+        nym_vpn_api_url,
+        min_gateway_performance: None,
+    };
+    let directory_client = GatewayClient::new(directory_config, user_agent)?;
+    let locations = directory_client.lookup_vpn_countries().await?;
+    Ok(locations.into_iter().map(Location::from).collect())
+}
+
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn getLowLatencyEntryCountry(

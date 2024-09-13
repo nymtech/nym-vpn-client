@@ -14,3 +14,5 @@ pub(crate) const GATEWAYS: &str = "gateways";
 pub(crate) const COUNTRIES: &str = "countries";
 pub(crate) const ENTRY: &str = "entry";
 pub(crate) const EXIT: &str = "exit";
+
+pub(crate) const SHOW_VPN_ONLY: &str = "show_vpn_only";

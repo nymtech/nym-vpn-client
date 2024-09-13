@@ -94,3 +94,13 @@ impl From<gateway::Country> for nym_vpn_proto::Location {
         }
     }
 }
+
+impl From<gateway::Gateway> for nym_vpn_proto::VpnGateway {
+    fn from(gateway: gateway::Gateway) -> Self {
+        let id = Some(nym_vpn_proto::Gateway {
+            id: gateway.identity_key.to_string(),
+        });
+        let location = gateway.location.map(nym_vpn_proto::Location::from);
+        nym_vpn_proto::VpnGateway { id, location }
+    }
+}

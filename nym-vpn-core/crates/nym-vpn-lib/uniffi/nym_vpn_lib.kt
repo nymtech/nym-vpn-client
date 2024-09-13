@@ -797,6 +797,8 @@ internal open class UniffiVTableCallbackInterfaceTunnelStatusListener(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -851,6 +853,8 @@ internal interface UniffiLib : Library {
     fun uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(`apiUrl`: RustBuffer.ByValue,`vpnApiUrl`: RustBuffer.ByValue,`harbourMasterUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountryuseragent(`apiUrl`: RustBuffer.ByValue,`vpnApiUrl`: RustBuffer.ByValue,`harbourMasterUrl`: RustBuffer.ByValue,`userAgent`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_nym_vpn_lib_fn_func_getvpncountries(`apiUrl`: RustBuffer.ByValue,`nymVpnApiUrl`: RustBuffer.ByValue,`userAgent`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_nym_vpn_lib_fn_func_importcredential(`credential`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -980,6 +984,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountryuseragent(
     ): Short
+    fun uniffi_nym_vpn_lib_checksum_func_getvpncountries(
+    ): Short
     fun uniffi_nym_vpn_lib_checksum_func_importcredential(
     ): Short
     fun uniffi_nym_vpn_lib_checksum_func_initlogger(
@@ -1029,6 +1035,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountryuseragent() != 14102.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_nym_vpn_lib_checksum_func_getvpncountries() != 17864.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_nym_vpn_lib_checksum_func_importcredential() != 49505.toShort()) {
@@ -3925,6 +3934,16 @@ public object FfiConverterTypeUrl: FfiConverter<Url, RustBuffer.ByValue> {
     uniffiRustCallWithError(VpnException) { _status ->
     UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountryuseragent(
         FfiConverterTypeUrl.lower(`apiUrl`),FfiConverterOptionalTypeUrl.lower(`vpnApiUrl`),FfiConverterOptionalTypeUrl.lower(`harbourMasterUrl`),FfiConverterTypeUserAgent.lower(`userAgent`),_status)
+}
+    )
+    }
+    
+
+    @Throws(VpnException::class) fun `getVpnCountries`(`apiUrl`: Url, `nymVpnApiUrl`: Url?, `userAgent`: UserAgent?): List<Location> {
+            return FfiConverterSequenceTypeLocation.lift(
+    uniffiRustCallWithError(VpnException) { _status ->
+    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_getvpncountries(
+        FfiConverterTypeUrl.lower(`apiUrl`),FfiConverterOptionalTypeUrl.lower(`nymVpnApiUrl`),FfiConverterOptionalTypeUserAgent.lower(`userAgent`),_status)
 }
     )
     }

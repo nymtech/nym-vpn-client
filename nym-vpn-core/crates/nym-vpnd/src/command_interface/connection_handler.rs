@@ -160,6 +160,18 @@ impl CommandInterfaceConnectionHandler {
         Ok(gateways.into_iter().map(gateway::Gateway::from).collect())
     }
 
+    pub(crate) async fn handle_list_vpn_gateways(
+        &self,
+        min_gateway_performance: Option<u8>,
+    ) -> Result<Vec<gateway::Gateway>, ListGatewayError> {
+        let gateways = directory_client(min_gateway_performance)?
+            .lookup_vpn_gateways()
+            .await
+            .map_err(|error| ListGatewayError::GetEntryGateways { error })?;
+
+        Ok(gateways.into_iter().map(gateway::Gateway::from).collect())
+    }
+
     pub(crate) async fn handle_list_entry_countries(
         &self,
         min_gateway_performance: Option<u8>,
@@ -180,6 +192,18 @@ impl CommandInterfaceConnectionHandler {
             .lookup_exit_countries()
             .await
             .map_err(|error| ListGatewayError::GetExitGateways { error })?;
+
+        Ok(gateways.into_iter().map(gateway::Country::from).collect())
+    }
+
+    pub(crate) async fn handle_list_vpn_countries(
+        &self,
+        min_gateway_performance: Option<u8>,
+    ) -> Result<Vec<gateway::Country>, ListGatewayError> {
+        let gateways = directory_client(min_gateway_performance)?
+            .lookup_vpn_countries()
+            .await
+            .map_err(|error| ListGatewayError::GetEntryGateways { error })?;
 
         Ok(gateways.into_iter().map(gateway::Country::from).collect())
     }

@@ -3,8 +3,7 @@
 
 use std::{fmt, net::IpAddr};
 
-use nym_sdk::{mixnet::Recipient, UserAgent};
-use nym_topology::IntoGatewayNode;
+use nym_sdk::UserAgent;
 use nym_validator_client::{models::DescribedGateway, nym_nodes::SkimmedNode, NymApiClient};
 use tracing::{debug, error, info};
 use url::Url;
@@ -16,7 +15,7 @@ use crate::{
     },
     error::Result,
     helpers::try_resolve_hostname,
-    AuthAddress, Error, IpPacketRouterAddress,
+    Error,
 };
 
 #[derive(Clone, Debug)]
@@ -213,7 +212,13 @@ impl GatewayClient {
     pub async fn lookup_exit_gateways_from_nym_api(&self) -> Result<GatewayList> {
         self.lookup_all_gateways_from_nym_api()
             .await
-            .map(|gateways| gateways.into_exit_gateways())
+            .map(GatewayList::into_exit_gateways)
+    }
+
+    pub async fn lookup_vpn_gateways_from_nym_api(&self) -> Result<GatewayList> {
+        self.lookup_all_gateways_from_nym_api()
+            .await
+            .map(GatewayList::into_vpn_gateways)
     }
 
     pub async fn lookup_all_gateways(&self) -> Result<GatewayList> {
@@ -230,12 +235,6 @@ impl GatewayClient {
                 })
                 .collect();
 
-            // Lookup the IPR and authenticator addresses from the nym-api as a temporary hack until
-            // the nymvpn.com endpoints are updated to also include these fields.
-            let described_gateways = self.lookup_described_gateways().await?;
-            let basic_gw = self.api_client.get_basic_gateways(None).await.unwrap();
-            append_ipr_and_authenticator_addresses(&mut gateways, described_gateways);
-            append_performance(&mut gateways, basic_gw);
             filter_on_min_performance(&mut gateways, self.min_gateway_performance);
             Ok(GatewayList::new(gateways))
         } else {
@@ -257,12 +256,6 @@ impl GatewayClient {
                 })
                 .collect();
 
-            // Lookup the IPR and authenticator addresses from the nym-api as a temporary hack until
-            // the nymvpn.com endpoints are updated to also include these fields.
-            let described_gateways = self.lookup_described_gateways().await?;
-            let basic_gw = self.api_client.get_basic_gateways(None).await.unwrap();
-            append_ipr_and_authenticator_addresses(&mut entry_gateways, described_gateways);
-            append_performance(&mut entry_gateways, basic_gw);
             filter_on_min_performance(&mut entry_gateways, self.min_gateway_performance);
             Ok(GatewayList::new(entry_gateways))
         } else {
@@ -284,16 +277,30 @@ impl GatewayClient {
                 })
                 .collect();
 
-            // Lookup the IPR and authenticator addresses from the nym-api as a temporary hack until
-            // the nymvpn.com endpoints are updated to also include these fields.
-            let described_gateways = self.lookup_described_gateways().await?;
-            let basic_gw = self.api_client.get_basic_gateways(None).await.unwrap();
-            append_ipr_and_authenticator_addresses(&mut exit_gateways, described_gateways);
-            append_performance(&mut exit_gateways, basic_gw);
             filter_on_min_performance(&mut exit_gateways, self.min_gateway_performance);
             Ok(GatewayList::new(exit_gateways))
         } else {
             self.lookup_exit_gateways_from_nym_api().await
+        }
+    }
+
+    pub async fn lookup_vpn_gateways(&self) -> Result<GatewayList> {
+        if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
+            info!("Fetching vpn gateways from nym-vpn-api...");
+            let vpn_gateways: Vec<_> = nym_vpn_api_client
+                .get_vpn_gateways()
+                .await?
+                .into_iter()
+                .filter_map(|gw| {
+                    Gateway::try_from(gw)
+                        .inspect_err(|err| error!("Failed to parse gateway: {err}"))
+                        .ok()
+                })
+                .collect();
+
+            Ok(GatewayList::new(vpn_gateways))
+        } else {
+            self.lookup_vpn_gateways_from_nym_api().await
         }
     }
 
@@ -350,41 +357,20 @@ impl GatewayClient {
                 .map(GatewayList::into_countries)
         }
     }
-}
 
-// Append the IPR and authenticator addresses to the gateways. This is a temporary hack until the
-// nymvpn.com endpoints are updated to also include these fields.
-fn append_ipr_and_authenticator_addresses(
-    gateways: &mut [Gateway],
-    described_gateways: Vec<DescribedGateway>,
-) {
-    for gateway in gateways.iter_mut() {
-        if let Some(described_gateway) = described_gateways
-            .iter()
-            .find(|dg| dg.identity() == gateway.identity().to_base58_string())
-        {
-            gateway.ipr_address = described_gateway
-                .self_described
-                .clone()
-                .and_then(|d| d.ip_packet_router)
-                .map(|ipr| ipr.address)
-                .and_then(|address| IpPacketRouterAddress::try_from_base58_string(&address).ok());
-            gateway.authenticator_address = described_gateway
-                .self_described
-                .clone()
-                .and_then(|d| d.authenticator)
-                .map(|auth| auth.address)
-                .and_then(|address| Recipient::try_from_base58_string(address).ok())
-                .map(|r| AuthAddress(Some(r)));
-            let gateway_node = nym_topology::gateway::Node::try_from(described_gateway).unwrap();
-            gateway.host = Some(gateway_node.host);
-            gateway.clients_ws_port = Some(gateway_node.clients_ws_port);
-            gateway.clients_wss_port = gateway_node.clients_wss_port;
+    pub async fn lookup_vpn_countries(&self) -> Result<Vec<Country>> {
+        if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
+            info!("Fetching vpn countries from nym-vpn-api...");
+            Ok(nym_vpn_api_client
+                .get_vpn_gateway_countries()
+                .await?
+                .into_iter()
+                .map(Country::from)
+                .collect())
         } else {
-            error!(
-                "Failed to find described gateway for gateway with identity {}",
-                gateway.identity()
-            );
+            self.lookup_vpn_gateways_from_nym_api()
+                .await
+                .map(GatewayList::into_countries)
         }
     }
 }

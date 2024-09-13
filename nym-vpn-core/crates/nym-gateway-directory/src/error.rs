@@ -42,6 +42,9 @@ pub enum Error {
     #[error("missing ip packet router address for gateway")]
     MissingIpPacketRouterAddress,
 
+    #[error("missing hostname or ip address for gateway")]
+    MissingHostnameOrIpAddress { gateway_identity: String },
+
     #[error("no matching gateway found: {requested_identity}")]
     NoMatchingGateway { requested_identity: String },
 

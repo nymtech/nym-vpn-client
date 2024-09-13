@@ -3761,6 +3761,15 @@ public func getLowLatencyEntryCountryUserAgent(apiUrl: Url, vpnApiUrl: Url?, har
     )
 })
 }
+public func getVpnCountries(apiUrl: Url, nymVpnApiUrl: Url?, userAgent: UserAgent?)throws  -> [Location] {
+    return try  FfiConverterSequenceTypeLocation.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_getvpncountries(
+        FfiConverterTypeUrl.lower(apiUrl),
+        FfiConverterOptionTypeUrl.lower(nymVpnApiUrl),
+        FfiConverterOptionTypeUserAgent.lower(userAgent),$0
+    )
+})
+}
 public func importCredential(credential: String, path: String)throws  -> Date? {
     return try  FfiConverterOptionTimestamp.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_importcredential(
@@ -3811,6 +3820,9 @@ private var initializationResult: InitializationResult {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountryuseragent() != 14102) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_getvpncountries() != 17864) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_importcredential() != 49505) {

@@ -372,9 +372,8 @@ impl VpnApiClient {
         self.inner
             .get_json(
                 &[
-                    // Add public/v1 to the path once the api is updated
-                    //routes::PUBLIC,
-                    //routes::V1,
+                    routes::PUBLIC,
+                    routes::V1,
                     routes::DIRECTORY,
                     routes::GATEWAYS,
                 ],
@@ -384,13 +383,43 @@ impl VpnApiClient {
             .map_err(VpnApiClientError::FailedToGetGateways)
     }
 
+    pub async fn get_vpn_gateways(&self) -> Result<NymDirectoryGatewaysResponse> {
+        self.inner
+            .get_json(
+                &[
+                    routes::PUBLIC,
+                    routes::V1,
+                    routes::DIRECTORY,
+                    routes::GATEWAYS,
+                ],
+                &[(routes::SHOW_VPN_ONLY, "true")],
+            )
+            .await
+            .map_err(VpnApiClientError::FailedToGetVpnGateways)
+    }
+
+    pub async fn get_vpn_gateway_countries(&self) -> Result<NymDirectoryGatewayCountriesResponse> {
+        self.inner
+            .get_json(
+                &[
+                    routes::PUBLIC,
+                    routes::V1,
+                    routes::DIRECTORY,
+                    routes::GATEWAYS,
+                    routes::COUNTRIES,
+                ],
+                &[(routes::SHOW_VPN_ONLY, "true")],
+            )
+            .await
+            .map_err(VpnApiClientError::FailedToGetVpnGatewayCountries)
+    }
+
     pub async fn get_gateway_countries(&self) -> Result<NymDirectoryGatewayCountriesResponse> {
         self.inner
             .get_json(
                 &[
-                    // Add public/v1 to the path once the api is updated
-                    //routes::PUBLIC,
-                    //routes::V1,
+                    routes::PUBLIC,
+                    routes::V1,
                     routes::DIRECTORY,
                     routes::GATEWAYS,
                     routes::COUNTRIES,
@@ -405,9 +434,8 @@ impl VpnApiClient {
         self.inner
             .get_json(
                 &[
-                    // Add public/v1 to the path once the api is updated
-                    //routes::PUBLIC,
-                    //routes::V1,
+                    routes::PUBLIC,
+                    routes::V1,
                     routes::DIRECTORY,
                     routes::GATEWAYS,
                     routes::ENTRY,
@@ -424,9 +452,8 @@ impl VpnApiClient {
         self.inner
             .get_json(
                 &[
-                    // Add public/v1 to the path once the api is updated
-                    //routes::PUBLIC,
-                    //routes::V1,
+                    routes::PUBLIC,
+                    routes::V1,
                     routes::DIRECTORY,
                     routes::GATEWAYS,
                     routes::ENTRY,
@@ -442,9 +469,8 @@ impl VpnApiClient {
         self.inner
             .get_json(
                 &[
-                    // Add public/v1 to the path once the api is updated
-                    //routes::PUBLIC,
-                    //routes::V1,
+                    routes::PUBLIC,
+                    routes::V1,
                     routes::DIRECTORY,
                     routes::GATEWAYS,
                     routes::EXIT,
@@ -459,9 +485,8 @@ impl VpnApiClient {
         self.inner
             .get_json(
                 &[
-                    // Add public/v1 to the path once the api is updated
-                    //routes::PUBLIC,
-                    //routes::V1,
+                    routes::PUBLIC,
+                    routes::V1,
                     routes::DIRECTORY,
                     routes::GATEWAYS,
                     routes::EXIT,

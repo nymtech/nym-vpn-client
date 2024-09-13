@@ -66,6 +66,12 @@ pub enum VpnApiClientError {
 
     #[error("failed to get exit gateway countries")]
     FailedToGetExitGatewayCountries(#[source] HttpClientError<UnexpectedError>),
+
+    #[error("failed to get vpn gateways")]
+    FailedToGetVpnGateways(#[source] HttpClientError<UnexpectedError>),
+
+    #[error("failed to get vpn gateway countries")]
+    FailedToGetVpnGatewayCountries(#[source] HttpClientError<UnexpectedError>),
 }
 
 pub type Result<T> = std::result::Result<T, VpnApiClientError>;

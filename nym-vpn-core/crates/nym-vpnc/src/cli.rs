@@ -30,8 +30,10 @@ pub(crate) enum Command {
     ListenToStateChanges,
     ListEntryGateways(ListEntryGatewaysArgs),
     ListExitGateways(ListExitGatewaysArgs),
+    ListVpnGateways(ListVpnGatewaysArgs),
     ListEntryCountries(ListEntryCountriesArgs),
     ListExitCountries(ListExitCountriesArgs),
+    ListVpnCountries(ListVpnCountriesArgs),
 }
 
 #[derive(Args)]
@@ -182,6 +184,14 @@ pub(crate) struct ListExitGatewaysArgs {
 }
 
 #[derive(Args)]
+pub(crate) struct ListVpnGatewaysArgs {
+    /// An integer between 0 and 100 representing the minimum gateway performance required to
+    /// consider a gateway for routing traffic.
+    #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
+    pub(crate) min_gateway_performance: Option<u8>,
+}
+
+#[derive(Args)]
 pub(crate) struct ListEntryCountriesArgs {
     /// An integer between 0 and 100 representing the minimum gateway performance required to
     /// consider a gateway for routing traffic.
@@ -191,6 +201,14 @@ pub(crate) struct ListEntryCountriesArgs {
 
 #[derive(Args)]
 pub(crate) struct ListExitCountriesArgs {
+    /// An integer between 0 and 100 representing the minimum gateway performance required to
+    /// consider a gateway for routing traffic.
+    #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
+    pub(crate) min_gateway_performance: Option<u8>,
+}
+
+#[derive(Args)]
+pub(crate) struct ListVpnCountriesArgs {
     /// An integer between 0 and 100 representing the minimum gateway performance required to
     /// consider a gateway for routing traffic.
     #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]

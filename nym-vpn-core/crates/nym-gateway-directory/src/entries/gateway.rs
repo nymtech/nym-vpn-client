@@ -1,6 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::{net::IpAddr, str::FromStr};
+
 use itertools::Itertools;
 use nym_sdk::mixnet::NodeIdentity;
 use nym_topology::IntoGatewayNode;
@@ -12,7 +14,7 @@ use crate::{error::Result, AuthAddress, Country, Error, IpPacketRouterAddress};
 // Decimal between 0 and 1 representing the performance of a gateway, measured over 24h.
 type Performance = u8;
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Gateway {
     pub identity: NodeIdentity,
     pub location: Option<Location>,
@@ -23,6 +25,22 @@ pub struct Gateway {
     pub clients_ws_port: Option<u16>,
     pub clients_wss_port: Option<u16>,
     pub performance: Option<Performance>,
+}
+
+impl std::fmt::Debug for Gateway {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Gateway")
+            .field("identity", &self.identity.to_base58_string())
+            .field("location", &self.location)
+            .field("ipr_address", &self.ipr_address)
+            .field("authenticator_address", &self.authenticator_address)
+            .field("last_probe", &self.last_probe)
+            .field("host", &self.host)
+            .field("clients_ws_port", &self.clients_ws_port)
+            .field("clients_wss_port", &self.clients_wss_port)
+            .field("performance", &self.performance)
+            .finish()
+    }
 }
 
 impl Gateway {
@@ -43,6 +61,10 @@ impl Gateway {
 
     pub fn has_ipr_address(&self) -> bool {
         self.ipr_address.is_some()
+    }
+
+    pub fn has_authenticator_address(&self) -> bool {
+        self.authenticator_address.is_some()
     }
 
     pub fn clients_address_no_tls(&self) -> Option<String> {
@@ -154,18 +176,50 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
                     source,
                 }
             })?;
+
+        let ipr_address = gateway
+            .ip_packet_router
+            .and_then(|ipr| IpPacketRouterAddress::try_from_base58_string(&ipr.address).ok());
+
+        let authenticator_address = gateway
+            .authenticator
+            .and_then(|auth| AuthAddress::try_from_base58_string(&auth.address).ok());
+
+        let hostname = gateway
+            .entry
+            .hostname
+            .map(nym_topology::NetworkAddress::Hostname);
+        let first_ip_address = gateway.ip_addresses.first().cloned().and_then(|ip| {
+            IpAddr::from_str(&ip)
+                .ok()
+                .map(nym_topology::NetworkAddress::IpAddr)
+        });
+        let host = hostname.or(first_ip_address);
+
+        let performance = string_fraction_into_percentage_u8(&gateway.performance);
+
         Ok(Gateway {
             identity,
             location: Some(gateway.location.into()),
-            ipr_address: None,
-            authenticator_address: None,
+            ipr_address,
+            authenticator_address,
             last_probe: gateway.last_probe.map(Probe::from),
-            host: None,
-            clients_ws_port: None,
-            clients_wss_port: None,
-            performance: None,
+            host,
+            clients_ws_port: Some(gateway.entry.ws_port),
+            clients_wss_port: gateway.entry.wss_port,
+            performance,
         })
     }
+}
+
+// Convert from a String representing a fraction between 0.0 and 1.0, to a percentage number.
+// Example: "0.5" to 50
+fn string_fraction_into_percentage_u8(s: &str) -> Option<u8> {
+    s.parse::<f64>()
+        .map(|p| p * 100.0)
+        .map(|p| p.round() as u8)
+        .map(|p| p.clamp(0, 100))
+        .ok()
 }
 
 impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
@@ -299,6 +353,15 @@ impl GatewayList {
             .gateways
             .into_iter()
             .filter(Gateway::has_ipr_address)
+            .collect();
+        Self::new(gw)
+    }
+
+    pub fn into_vpn_gateways(self) -> GatewayList {
+        let gw = self
+            .gateways
+            .into_iter()
+            .filter(Gateway::has_authenticator_address)
             .collect();
         Self::new(gw)
     }
