@@ -3,6 +3,7 @@
 
 use std::fmt;
 
+use nym_contracts_common::Percent;
 use nym_http_api_client::{HttpClientError, PathSegments, UserAgent, NO_PARAMS};
 use reqwest::Url;
 use serde::{de::DeserializeOwned, Serialize};
@@ -370,23 +371,8 @@ impl VpnApiClient {
 
     pub async fn get_gateways(
         &self,
-        mixnet_min_performance: Option<u8>,
-        vpn_min_performance: Option<u8>,
+        min_performance: &GatewayMinPerformance,
     ) -> Result<NymDirectoryGatewaysResponse> {
-        let mut params = vec![];
-        if let Some(threshold) = mixnet_min_performance {
-            params.push((
-                routes::MIXNET_MIN_PERFORMANCE,
-                percentage_u8_to_string_fraction(threshold),
-            ));
-        };
-        if let Some(threshold) = vpn_min_performance {
-            params.push((
-                routes::MIXNET_MIN_PERFORMANCE,
-                percentage_u8_to_string_fraction(threshold),
-            ));
-        };
-
         self.inner
             .get_json(
                 &[
@@ -395,7 +381,7 @@ impl VpnApiClient {
                     routes::DIRECTORY,
                     routes::GATEWAYS,
                 ],
-                &params,
+                &min_performance.to_param(),
             )
             .await
             .map_err(VpnApiClientError::FailedToGetGateways)
@@ -403,7 +389,7 @@ impl VpnApiClient {
 
     pub async fn get_vpn_gateways(
         &self,
-        threshold: Option<u8>,
+        min_performance: &GatewayMinPerformance,
     ) -> Result<NymDirectoryGatewaysResponse> {
         self.inner
             .get_json(
@@ -536,33 +522,29 @@ impl VpnApiClient {
     }
 }
 
-// #[derive(Clone, Default)]
-// struct GatewayMinPerformance {
-//     mixnet_min_performance: Option<rust_decimal::Decimal>,
-//     vpn_min_performance: Option<rust_decimal::Decimal>,
-// }
+#[derive(Clone, Default)]
+struct GatewayMinPerformance {
+    mixnet_min_performance: Option<Percent>,
+    vpn_min_performance: Option<Percent>,
+}
 
-// impl GatewayMinPerformance {
-//     
-// }
-
-// #[derive(Copy, Clone, Debug)]
-// struct Threshold {
-//     threshold: u8,
-// }
-//
-// impl Threshold {
-//     fn from_string(s: &str) -> Result<Self> {
-//         s.parse::<f64>()
-//             .map(|p| p * 100.0)
-//             .map(|p| p.round() as u8)
-//             .map(|p| p.clamp(0, 100))
-//             .map(|threshold| Self { threshold })
-//     }
-// }
-
-fn percentage_u8_to_string_fraction(p: u8) -> String {
-    (p as f64 / 100.0).clamp(0.0, 1.0).to_string()
+impl GatewayMinPerformance {
+    fn to_param(&self) -> Vec<(String, String)> {
+        let mut params = vec![];
+        if let Some(threshold) = self.mixnet_min_performance {
+            params.push((
+                routes::MIXNET_MIN_PERFORMANCE.to_string(),
+                threshold.to_string(),
+            ));
+        };
+        if let Some(threshold) = self.vpn_min_performance {
+            params.push((
+                routes::VPN_MIN_PERFORMANCE.to_string(),
+                threshold.to_string(),
+            ));
+        };
+        params
+    }
 }
 
 #[cfg(test)]
