@@ -1,6 +1,8 @@
+export { ar } from './ar';
 export { de } from './de';
 export { en } from './en';
 export { es } from './es';
+export { fa } from './fa';
 export { fr } from './fr';
 export { hi } from './hi';
 export { it } from './it';
