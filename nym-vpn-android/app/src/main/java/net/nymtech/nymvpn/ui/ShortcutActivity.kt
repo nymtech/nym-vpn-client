@@ -8,11 +8,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.manager.shortcut.ShortcutAction
 import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.service.tunnel.TunnelManager
 import net.nymtech.nymvpn.util.extensions.startTunnelFromBackground
 import net.nymtech.nymvpn.util.extensions.stopTunnelFromBackground
+import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.util.Action
 import timber.log.Timber
 import javax.inject.Inject
@@ -27,20 +29,20 @@ class ShortcutActivity : ComponentActivity() {
 	@ApplicationScope
 	lateinit var applicationScope: CoroutineScope
 
-	@Inject
-	@IoDispatcher
-	lateinit var ioDispatcher: CoroutineDispatcher
-
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		applicationScope.launch {
-			val enabled = withContext(ioDispatcher) {
-				settingsRepository.isApplicationShortcutsEnabled()
-			}
-			if (enabled) {
+			if (settingsRepository.isApplicationShortcutsEnabled()) {
 				when (intent.action) {
-					Action.START.name -> startTunnelFromBackground()
-					Action.STOP.name -> stopTunnelFromBackground()
+					ShortcutAction.START_MIXNET.name -> {
+						settingsRepository.setVpnMode(Tunnel.Mode.FIVE_HOP_MIXNET)
+						startTunnelFromBackground()
+					}
+					ShortcutAction.START_WG.name -> {
+						settingsRepository.setVpnMode(Tunnel.Mode.TWO_HOP_MIXNET)
+						startTunnelFromBackground()
+					}
+					ShortcutAction.STOP.name -> stopTunnelFromBackground()
 				}
 			} else {
 				Timber.w("Shortcuts not enabled")

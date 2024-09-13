@@ -17,6 +17,8 @@ import net.nymtech.logcatutil.LogcatHelper
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.manager.shortcut.DynamicShortcutManager
+import net.nymtech.nymvpn.manager.shortcut.ShortcutManager
 import net.nymtech.nymvpn.module.qualifiers.Android
 import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.module.qualifiers.DefaultDispatcher
@@ -145,5 +147,11 @@ object AppModule {
 	@Provides
 	fun provideNotificationService(@ApplicationContext context: Context): NotificationService {
 		return VpnAlertNotifications(context)
+	}
+
+	@Singleton
+	@Provides
+	fun provideShortcutManager(@ApplicationContext context: Context) : ShortcutManager {
+		return DynamicShortcutManager(context)
 	}
 }

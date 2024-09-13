@@ -51,10 +51,10 @@ class NymTunnelManager @Inject constructor(
 	override suspend fun start(fromBackground: Boolean) {
 		runCatching {
 			if (running) return Timber.w("Vpn already running")
+			val credentialExpiry = settingsRepository.getCredentialExpiry()
+			if (credentialExpiry.isInvalid()) return onInvalidCredential(credentialExpiry)
 			val intent = VpnService.prepare(context)
 			if (intent != null) return launchVpnPermissionNotification()
-			val credentialExpiry = settingsRepository.getCredentialExpiry()
-			if (credentialExpiry.isInvalid()) return emitMessage(BackendMessage.Failure(VpnException.InvalidCredential(details = "Invalid credential")))
 			val entryCountry = settingsRepository.getFirstHopCountry()
 			val exitCountry = settingsRepository.getLastHopCountry()
 			val tunnel = NymTunnel(
@@ -104,6 +104,14 @@ class NymTunnelManager @Inject constructor(
 		emitState(state)
 	}
 
+	private fun onInvalidCredential(expiry : Instant?) {
+		val message = if(expiry == null) {
+			context.getString(R.string.missing_credential)
+		} else context.getString(R.string.exception_cred_invalid)
+		if(NymVpn.isForeground()) emitMessage(BackendMessage.Failure(VpnException.InvalidCredential(details = message)))
+		else launchCredentialNotification(message)
+	}
+
 	private fun emitState(state: Tunnel.State) {
 		_state.update {
 			it.copy(
@@ -119,6 +127,13 @@ class NymTunnelManager @Inject constructor(
 				description = context.getString(R.string.vpn_permission_missing)
 			)
 		}
+	}
+
+	private fun launchCredentialNotification(description : String) {
+		notificationService.showNotification(
+			title= context.getString(R.string.credential_failed_message),
+			description = description
+		)
 	}
 
 	private fun launchBackendNotification(backendMessage: BackendMessage) {

@@ -40,6 +40,7 @@ import net.nymtech.localizationutil.LocaleStorage
 import net.nymtech.localizationutil.LocaleUtil
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.manager.shortcut.ShortcutManager
 import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
 import net.nymtech.nymvpn.ui.common.navigation.NavBar
@@ -88,6 +89,9 @@ class MainActivity : ComponentActivity() {
 	@Inject
 	lateinit var notificationService: NotificationService
 
+	@Inject
+	lateinit var shortcutManager: ShortcutManager
+
 	private lateinit var appViewModel: AppViewModel
 
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -126,6 +130,10 @@ class MainActivity : ComponentActivity() {
 			with(appState.settings) {
 				LaunchedEffect(vpnMode, lastHopCountry, firstHopCountry) {
 					this@MainActivity.requestTileServiceStateUpdate()
+				}
+				LaunchedEffect(isShortcutsEnabled) {
+					if(isShortcutsEnabled) shortcutManager.addShortcuts()
+					else shortcutManager.removeShortcuts()
 				}
 			}
 
