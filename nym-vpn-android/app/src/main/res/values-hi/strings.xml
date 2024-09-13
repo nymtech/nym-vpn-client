@@ -11,10 +11,10 @@
     <string name="five_hop_description">भुगतान, ईमेल और मेसेज के लिए</string>
     <string name="two_hop_mixnet">तेज़</string>
     <string name="first_hop">उद्भव स्थान</string>
-    <string name="last_hop">आखरी स्थान</string>
+    <string name="last_hop">VPN आखरी स्थान</string>
     <string name="connect">कनेक्ट</string>
-    <string name="last_hop_selection">आखरी स्थान</string>
-    <string name="first_hop_selection">उद्भव स्थान</string>
+    <string name="last_hop_selection">VPN आखरी स्थान</string>
+    <string name="first_hop_selection">VPN उद्भव स्थान</string>
     <string name="terms_of_use">उपयोग की शर्तें</string>
     <string name="error_reporting">अनाम त्रुटि रिपोर्ट साझा करें</string>
     <string name="open_github">GitHub मुद्दा खोलें</string>
