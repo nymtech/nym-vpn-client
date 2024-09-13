@@ -73,6 +73,8 @@ impl Tunnel {
             CString::new(config.as_uapi_config()).map_err(|_| Error::ConfigContainsNulByte)?;
         let handle = unsafe {
             wgTurnOn(
+                #[cfg(unix)]
+                0, // pass zero mtu to prevent wg-go from setting it
                 settings.as_ptr(),
                 tun_fd,
                 wg_logger_callback,
@@ -133,9 +135,10 @@ impl Drop for Tunnel {
 }
 
 extern "C" {
+
     // Start the tunnel.
-    #[cfg(any(target_os = "android", target_os = "ios"))]
     fn wgTurnOn(
+        #[cfg(unix)] mtu: i32,
         settings: *const c_char,
         fd: RawFd,
         logging_callback: LoggingCallback,

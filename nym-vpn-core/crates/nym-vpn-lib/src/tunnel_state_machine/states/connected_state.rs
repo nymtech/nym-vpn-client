@@ -2,17 +2,17 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 use crate::tunnel_state_machine::{
-    mixnet_tunnel, states::DisconnectingState, ActionAfterDisconnect, ErrorStateReason,
-    NextTunnelState, SharedState, TunnelCommand, TunnelState, TunnelStateHandler,
+    states::DisconnectingState, tunnel, ActionAfterDisconnect, ErrorStateReason, NextTunnelState,
+    SharedState, TunnelCommand, TunnelState, TunnelStateHandler,
 };
 
 pub struct ConnectedState {
-    tun_event_rx: mixnet_tunnel::EventReceiver,
+    tun_event_rx: tunnel::EventReceiver,
 }
 
 impl ConnectedState {
     pub fn enter(
-        tun_event_rx: mixnet_tunnel::EventReceiver,
+        tun_event_rx: tunnel::EventReceiver,
     ) -> (Box<dyn TunnelStateHandler>, TunnelState) {
         (Box::new(Self { tun_event_rx }), TunnelState::Connected)
     }
@@ -32,11 +32,11 @@ impl TunnelStateHandler for ConnectedState {
             }
             Some(event) = self.tun_event_rx.recv() => {
                 match event {
-                    mixnet_tunnel::Event::Up { .. } => {
+                    tunnel::Event::Up { .. } => {
                         tracing::warn!("Received tunnel up event which must not happen!");
                         NextTunnelState::SameState(self)
                     },
-                    mixnet_tunnel::Event::Down(error) => {
+                    tunnel::Event::Down(error) => {
                         if let Some(error) = error {
                             tracing::error!("Tunnel went down with error: {}", error)
                         } else {

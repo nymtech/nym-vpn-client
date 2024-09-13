@@ -1,6 +1,6 @@
 mod mixnet_route_handler;
-mod mixnet_tunnel;
 mod states;
+mod tunnel;
 
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;

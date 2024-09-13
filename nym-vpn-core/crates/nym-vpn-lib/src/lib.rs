@@ -18,6 +18,7 @@ mod tunnel_setup;
 pub mod tunnel_state_machine;
 mod uniffi_custom_impls;
 mod vpn;
+mod wg_config;
 mod wireguard_config;
 mod wireguard_setup;
 

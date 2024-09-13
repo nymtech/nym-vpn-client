@@ -3,10 +3,14 @@ use std::{
     net::{IpAddr, SocketAddr},
 };
 
-use ipnetwork::IpNetwork;
+use ipnetwork::{IpNetwork, Ipv4Network};
+use nym_wg_gateway_client::GatewayData;
 #[cfg(target_os = "ios")]
 use nym_wg_go::PeerEndpointUpdate;
-use nym_wg_go::{netstack, wireguard_go, PeerConfig, PrivateKey, PublicKey};
+use nym_wg_go::{wireguard_go, PeerConfig, PrivateKey, PublicKey};
+
+#[cfg(any(target_os = "ios", target_os = "android"))]
+use nym_wg_go::netstack;
 
 #[derive(Debug)]
 pub struct WgNodeConfig {
@@ -66,6 +70,7 @@ impl WgPeer {
 }
 
 impl WgNodeConfig {
+    #[cfg(any(target_os = "ios", target_os = "android"))]
     pub fn into_netstack_config(self) -> netstack::Config {
         netstack::Config {
             interface: netstack::InterfaceConfig {
@@ -102,6 +107,30 @@ impl WgNodeConfig {
                 endpoint: self.peer.endpoint,
                 allowed_ips: vec!["0.0.0.0/0".parse().unwrap(), "::/0".parse().unwrap()],
             }],
+        }
+    }
+}
+
+impl WgNodeConfig {
+    pub fn with_gateway_data(
+        gateway_data: GatewayData,
+        private_key: &nym_crypto::asymmetric::encryption::PrivateKey,
+    ) -> Self {
+        Self {
+            interface: WgInterface {
+                listen_port: None,
+                private_key: PrivateKey::from(private_key.to_bytes()),
+                addresses: vec![IpNetwork::V4(
+                    Ipv4Network::new(gateway_data.private_ipv4, 32)
+                        .expect("private_ipv4/32 to ipnetwork"),
+                )],
+                dns: crate::DEFAULT_DNS_SERVERS.to_vec(),
+                mtu: 0,
+            },
+            peer: WgPeer {
+                public_key: PublicKey::from(*gateway_data.public_key.as_bytes()),
+                endpoint: gateway_data.endpoint,
+            },
         }
     }
 }

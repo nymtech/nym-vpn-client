@@ -2,14 +2,13 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 use crate::tunnel_state_machine::{
-    mixnet_tunnel::{self, MixnetTunnel},
     states::{ConnectedState, DisconnectingState},
-    ActionAfterDisconnect, ErrorStateReason, NextTunnelState, SharedState, TunnelCommand,
+    tunnel, ActionAfterDisconnect, ErrorStateReason, NextTunnelState, SharedState, TunnelCommand,
     TunnelState, TunnelStateHandler,
 };
 
 pub struct ConnectingState {
-    tun_event_rx: mixnet_tunnel::EventReceiver,
+    tun_event_rx: tunnel::EventReceiver,
 }
 
 impl ConnectingState {
@@ -18,8 +17,9 @@ impl ConnectingState {
         let shutdown_child_token = tunnel_shutdown_token.child_token();
         let (tun_event_tx, tun_event_rx) = mpsc::unbounded_channel();
         shared_state.tunnel_shutdown_token = Some(tunnel_shutdown_token);
-        shared_state.tunnel_handle = Some(MixnetTunnel::spawn(
+        shared_state.tunnel_handle = Some(tunnel::spawn(
             shared_state.config.clone(),
+            false, // disable wireguard
             tun_event_tx,
             shutdown_child_token,
         ));
@@ -41,7 +41,7 @@ impl TunnelStateHandler for ConnectingState {
             }
             Some(event) = self.tun_event_rx.recv() => {
                 match event {
-                    mixnet_tunnel::Event::Up {  entry_mixnet_gateway_ip, tun_name } => {
+                    tunnel::Event::Up { entry_mixnet_gateway_ip, tun_name } => {
                         match shared_state.route_handler.add_routes(tun_name, entry_mixnet_gateway_ip).await {
                             Ok(()) => NextTunnelState::NewState(ConnectedState::enter(self.tun_event_rx)),
                             Err(e) => {
@@ -50,7 +50,7 @@ impl TunnelStateHandler for ConnectingState {
                             }
                         }
                     },
-                    mixnet_tunnel::Event::Down(error) => {
+                    tunnel::Event::Down(error) => {
                         if let Some(error) = error {
                             tracing::error!("Tunnel went down: {}", error);
                         } else {
