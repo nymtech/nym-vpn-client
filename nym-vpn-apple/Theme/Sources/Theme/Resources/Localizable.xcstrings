@@ -617,6 +617,28 @@
         }
       }
     },
+    "helper.successfullyUninstalled" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Successfully uninstalled NymVPN helper"
+          }
+        }
+      }
+    },
+    "helper.uninstallHelper" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uninstall NymVPN helper"
+          }
+        }
+      }
+    },
     "home.entryHop" : {
       "extractionState" : "manual",
       "localizations" : {
