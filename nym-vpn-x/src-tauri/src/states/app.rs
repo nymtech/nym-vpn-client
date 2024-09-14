@@ -13,7 +13,7 @@ use crate::{
     grpc::client::VpndStatus,
 };
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS, strum::Display)]
 #[ts(export)]
 pub enum ConnectionState {
     // TODO: once the frontend can handle it, include the connection info as part of the connection

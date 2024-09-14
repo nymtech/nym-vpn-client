@@ -25,7 +25,7 @@ pub struct Country {
 
 impl fmt::Display for Country {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Country: {} [{}]", self.name, self.code)
+        write!(f, "Country: [{}] {}", self.code, self.name)
     }
 }
 

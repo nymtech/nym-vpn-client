@@ -17,7 +17,7 @@ use nym_vpn_proto::{EntryNode, ExitNode, Location};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tauri::State;
-use tracing::{debug, error, info, instrument, trace};
+use tracing::{debug, error, info, instrument};
 use ts_rs::TS;
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
@@ -65,7 +65,7 @@ pub async fn connect(
         };
 
         // switch to "Connecting" state
-        trace!("update connection state [Connecting]");
+        debug!("update connection state [Connecting]");
         app_state.state = ConnectionState::Connecting;
     }
 
@@ -92,7 +92,7 @@ pub async fn connect(
 
     let entry_node = match entry {
         NodeLocation::Country(country) => {
-            debug!("entry node location set, using: {}", country);
+            info!("entry {}", country);
             EntryNode {
                 entry_node_enum: Some(EntryNodeEnum::Location(Location {
                     two_letter_iso_country_code: country.code.clone(),
@@ -101,7 +101,7 @@ pub async fn connect(
         }
         NodeLocation::Fastest => {
             debug!(
-                "entry node location set to `Fastest`, using: {}",
+                "entry country set to `Fastest`, using {}",
                 FASTEST_NODE_LOCATION.clone()
             );
             EntryNode {
@@ -114,7 +114,7 @@ pub async fn connect(
 
     let exit_node = match exit {
         NodeLocation::Country(country) => {
-            debug!("exit node location set, using: {}", country);
+            info!("exit {}", country);
             ExitNode {
                 exit_node_enum: Some(ExitNodeEnum::Location(Location {
                     two_letter_iso_country_code: country.code.clone(),
@@ -122,8 +122,8 @@ pub async fn connect(
             }
         }
         NodeLocation::Fastest => {
-            debug!(
-                "exit node location set to `Fastest`, using: {}",
+            info!(
+                "exit country set to `Fastest`, using {}",
                 FASTEST_NODE_LOCATION.clone()
             );
             ExitNode {
@@ -179,6 +179,7 @@ pub async fn disconnect(
         ));
     };
     app_state.state = ConnectionState::Disconnecting;
+    debug!("update connection state [Disconnecting]");
     drop(app_state);
     app.emit_disconnecting();
 
