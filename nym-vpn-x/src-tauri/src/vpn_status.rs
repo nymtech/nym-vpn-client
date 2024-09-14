@@ -34,12 +34,12 @@ pub async fn update(
     // release the lock asap
     drop(app_state);
 
+    info!("vpn status → [{}]", status);
     if current_state == status {
         return Ok(());
     }
     match status {
         ConnectionState::Connected => {
-            info!("vpn status → [Connected]");
             let t = connection_time.unwrap_or_else(|| {
                 debug!("established connection time was not given, using current utc time");
                 OffsetDateTime::now_utc()
@@ -59,7 +59,6 @@ pub async fn update(
             .ok();
         }
         ConnectionState::Disconnected => {
-            info!("vpn status → [Disconnected]");
             let mut app_state = state.lock().await;
             app_state.state = status.clone();
             app_state.connection_start_time = None;
@@ -71,7 +70,6 @@ pub async fn update(
             .ok();
         }
         ConnectionState::Connecting => {
-            info!("vpn status → [Connecting]");
             app.emit(
                 EVENT_CONNECTION_STATE,
                 ConnectionEvent::update(ConnectionState::Connecting, error, None),
@@ -79,7 +77,6 @@ pub async fn update(
             .ok();
         }
         ConnectionState::Disconnecting => {
-            info!("vpn status → [Disconnecting]");
             app.emit(
                 EVENT_CONNECTION_STATE,
                 ConnectionEvent::update(ConnectionState::Disconnecting, error, None),
