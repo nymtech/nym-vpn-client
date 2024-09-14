@@ -284,6 +284,7 @@ private extension GRPCManager {
 }
 
 private extension GRPCManager {
+    // swiftlint:disable:next function_body_length
     func convertToGeneralNymError(from error: Nym_Vpn_Error) -> GeneralNymError {
         switch error.kind {
         case .unspecified, .unhandled:
@@ -330,6 +331,22 @@ private extension GRPCManager {
         case .mixnetEntryGateway:
             GeneralNymError.library(message: error.message)
         case .gatewayDirectoryEntryID:
+            GeneralNymError.library(message: error.message)
+        case .iprFailedToConnect:
+            GeneralNymError.library(message: error.message)
+        case .outOfBandwidthWhenSettingUpTunnel:
+            GeneralNymError.library(message: error.message)
+        case .bringInterfaceUp:
+            GeneralNymError.library(message: error.message)
+        case .firewallInit:
+            GeneralNymError.library(message: error.message)
+        case .firewallResetPolicy:
+            GeneralNymError.library(message: error.message)
+        case .dnsInit:
+            GeneralNymError.library(message: error.message)
+        case .dnsSet:
+            GeneralNymError.library(message: error.message)
+        case .findDefaultInterface:
             GeneralNymError.library(message: error.message)
         }
     }

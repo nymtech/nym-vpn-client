@@ -154,7 +154,7 @@ fileprivate func writeDouble(_ writer: inout [UInt8], _ value: Double) {
 }
 
 // Protocol for types that transfer other types across the FFI. This is
-// analogous to the Rust trait of the same name.
+// analogous go the Rust trait of the same name.
 fileprivate protocol FfiConverter {
     associatedtype FfiType
     associatedtype SwiftType
@@ -254,19 +254,18 @@ fileprivate extension RustCallStatus {
 }
 
 private func rustCall<T>(_ callback: (UnsafeMutablePointer<RustCallStatus>) -> T) throws -> T {
-    let neverThrow: ((RustBuffer) throws -> Never)? = nil
-    return try makeRustCall(callback, errorHandler: neverThrow)
+    try makeRustCall(callback, errorHandler: nil)
 }
 
-private func rustCallWithError<T, E: Swift.Error>(
-    _ errorHandler: @escaping (RustBuffer) throws -> E,
+private func rustCallWithError<T>(
+    _ errorHandler: @escaping (RustBuffer) throws -> Error,
     _ callback: (UnsafeMutablePointer<RustCallStatus>) -> T) throws -> T {
     try makeRustCall(callback, errorHandler: errorHandler)
 }
 
-private func makeRustCall<T, E: Swift.Error>(
+private func makeRustCall<T>(
     _ callback: (UnsafeMutablePointer<RustCallStatus>) -> T,
-    errorHandler: ((RustBuffer) throws -> E)?
+    errorHandler: ((RustBuffer) throws -> Error)?
 ) throws -> T {
     uniffiEnsureInitialized()
     var callStatus = RustCallStatus.init()
@@ -275,9 +274,9 @@ private func makeRustCall<T, E: Swift.Error>(
     return returnedVal
 }
 
-private func uniffiCheckCallStatus<E: Swift.Error>(
+private func uniffiCheckCallStatus(
     callStatus: RustCallStatus,
-    errorHandler: ((RustBuffer) throws -> E)?
+    errorHandler: ((RustBuffer) throws -> Error)?
 ) throws {
     switch callStatus.code {
         case CALL_SUCCESS:
@@ -752,14 +751,14 @@ open func setTunnelNetworkSettings(tunnelSettings: TunnelNetworkSettings)async t
             completeFunc: ffi_nym_vpn_lib_rust_future_complete_void,
             freeFunc: ffi_nym_vpn_lib_rust_future_free_void,
             liftFunc: { $0 },
-            errorHandler: FfiConverterTypeFFIError.lift
+            errorHandler: FfiConverterTypeVpnError.lift
         )
 }
     
     /**
      * Set or unset the default path observer.
      */
-open func setDefaultPathObserver(observer: OsDefaultPathObserver?)throws  {try rustCallWithError(FfiConverterTypeFFIError.lift) {
+open func setDefaultPathObserver(observer: OsDefaultPathObserver?)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_method_ostunprovider_set_default_path_observer(self.uniffiClonePointer(),
         FfiConverterOptionTypeOSDefaultPathObserver.lower(observer),$0
     )
@@ -813,7 +812,7 @@ fileprivate struct UniffiCallbackInterfaceOSTunProvider {
                 makeCall: makeCall,
                 handleSuccess: uniffiHandleSuccess,
                 handleError: uniffiHandleError,
-                lowerError: FfiConverterTypeFFIError.lower
+                lowerError: FfiConverterTypeVpnError.lower
             )
             uniffiOutReturn.pointee = uniffiForeignFuture
         },
@@ -839,7 +838,7 @@ fileprivate struct UniffiCallbackInterfaceOSTunProvider {
                 callStatus: uniffiCallStatus,
                 makeCall: makeCall,
                 writeReturn: writeReturn,
-                lowerError: FfiConverterTypeFFIError.lower
+                lowerError: FfiConverterTypeVpnError.lower
             )
         },
         uniffiFree: { (uniffiHandle: UInt64) -> () in
@@ -2303,9 +2302,9 @@ extension ExitPoint: Equatable, Hashable {}
 
 public enum ExitStatus {
     
-    case stopped
-    case failed(error: String
+    case failure(error: VpnError
     )
+    case stopped
 }
 
 
@@ -2316,10 +2315,10 @@ public struct FfiConverterTypeExitStatus: FfiConverterRustBuffer {
         let variant: Int32 = try readInt(&buf)
         switch variant {
         
-        case 1: return .stopped
-        
-        case 2: return .failed(error: try FfiConverterString.read(from: &buf)
+        case 1: return .failure(error: try FfiConverterTypeVpnError.read(from: &buf)
         )
+        
+        case 2: return .stopped
         
         default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -2329,14 +2328,14 @@ public struct FfiConverterTypeExitStatus: FfiConverterRustBuffer {
         switch value {
         
         
-        case .stopped:
+        case let .failure(error):
             writeInt(&buf, Int32(1))
-        
-        
-        case let .failed(error):
-            writeInt(&buf, Int32(2))
-            FfiConverterString.write(error, into: &buf)
+            FfiConverterTypeVpnError.write(error, into: &buf)
             
+        
+        case .stopped:
+            writeInt(&buf, Int32(2))
+        
         }
     }
 }
@@ -2355,126 +2354,6 @@ public func FfiConverterTypeExitStatus_lower(_ value: ExitStatus) -> RustBuffer 
 extension ExitStatus: Equatable, Hashable {}
 
 
-
-
-public enum FfiError {
-
-    
-    
-    case InvalidValueUniffi
-    case InvalidCredential
-    case VpnApiClientError(inner: String
-    )
-    case InvalidPath
-    case FdNotFound
-    case VpnNotStopped
-    case VpnNotStarted
-    case VpnAlreadyRunning
-    case VpnNotRunning
-    case LibError(inner: String
-    )
-    case GatewayDirectoryError(inner: String
-    )
-}
-
-
-public struct FfiConverterTypeFFIError: FfiConverterRustBuffer {
-    typealias SwiftType = FfiError
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> FfiError {
-        let variant: Int32 = try readInt(&buf)
-        switch variant {
-
-        
-
-        
-        case 1: return .InvalidValueUniffi
-        case 2: return .InvalidCredential
-        case 3: return .VpnApiClientError(
-            inner: try FfiConverterString.read(from: &buf)
-            )
-        case 4: return .InvalidPath
-        case 5: return .FdNotFound
-        case 6: return .VpnNotStopped
-        case 7: return .VpnNotStarted
-        case 8: return .VpnAlreadyRunning
-        case 9: return .VpnNotRunning
-        case 10: return .LibError(
-            inner: try FfiConverterString.read(from: &buf)
-            )
-        case 11: return .GatewayDirectoryError(
-            inner: try FfiConverterString.read(from: &buf)
-            )
-
-         default: throw UniffiInternalError.unexpectedEnumCase
-        }
-    }
-
-    public static func write(_ value: FfiError, into buf: inout [UInt8]) {
-        switch value {
-
-        
-
-        
-        
-        case .InvalidValueUniffi:
-            writeInt(&buf, Int32(1))
-        
-        
-        case .InvalidCredential:
-            writeInt(&buf, Int32(2))
-        
-        
-        case let .VpnApiClientError(inner):
-            writeInt(&buf, Int32(3))
-            FfiConverterString.write(inner, into: &buf)
-            
-        
-        case .InvalidPath:
-            writeInt(&buf, Int32(4))
-        
-        
-        case .FdNotFound:
-            writeInt(&buf, Int32(5))
-        
-        
-        case .VpnNotStopped:
-            writeInt(&buf, Int32(6))
-        
-        
-        case .VpnNotStarted:
-            writeInt(&buf, Int32(7))
-        
-        
-        case .VpnAlreadyRunning:
-            writeInt(&buf, Int32(8))
-        
-        
-        case .VpnNotRunning:
-            writeInt(&buf, Int32(9))
-        
-        
-        case let .LibError(inner):
-            writeInt(&buf, Int32(10))
-            FfiConverterString.write(inner, into: &buf)
-            
-        
-        case let .GatewayDirectoryError(inner):
-            writeInt(&buf, Int32(11))
-            FfiConverterString.write(inner, into: &buf)
-            
-        }
-    }
-}
-
-
-extension FfiError: Equatable, Hashable {}
-
-extension FfiError: Foundation.LocalizedError {
-    public var errorDescription: String? {
-        String(reflecting: self)
-    }
-}
 
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
@@ -2843,6 +2722,100 @@ public func FfiConverterTypeTunStatus_lower(_ value: TunStatus) -> RustBuffer {
 extension TunStatus: Equatable, Hashable {}
 
 
+
+
+public enum VpnError {
+
+    
+    
+    case InternalError(details: String
+    )
+    case NetworkConnectionError(details: String
+    )
+    case GatewayError(details: String
+    )
+    case InvalidCredential(details: String
+    )
+    case OutOfBandwidth
+    case InvalidStateError(details: String
+    )
+}
+
+
+public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
+    typealias SwiftType = VpnError
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> VpnError {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+
+        
+
+        
+        case 1: return .InternalError(
+            details: try FfiConverterString.read(from: &buf)
+            )
+        case 2: return .NetworkConnectionError(
+            details: try FfiConverterString.read(from: &buf)
+            )
+        case 3: return .GatewayError(
+            details: try FfiConverterString.read(from: &buf)
+            )
+        case 4: return .InvalidCredential(
+            details: try FfiConverterString.read(from: &buf)
+            )
+        case 5: return .OutOfBandwidth
+        case 6: return .InvalidStateError(
+            details: try FfiConverterString.read(from: &buf)
+            )
+
+         default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: VpnError, into buf: inout [UInt8]) {
+        switch value {
+
+        
+
+        
+        
+        case let .InternalError(details):
+            writeInt(&buf, Int32(1))
+            FfiConverterString.write(details, into: &buf)
+            
+        
+        case let .NetworkConnectionError(details):
+            writeInt(&buf, Int32(2))
+            FfiConverterString.write(details, into: &buf)
+            
+        
+        case let .GatewayError(details):
+            writeInt(&buf, Int32(3))
+            FfiConverterString.write(details, into: &buf)
+            
+        
+        case let .InvalidCredential(details):
+            writeInt(&buf, Int32(4))
+            FfiConverterString.write(details, into: &buf)
+            
+        
+        case .OutOfBandwidth:
+            writeInt(&buf, Int32(5))
+        
+        
+        case let .InvalidStateError(details):
+            writeInt(&buf, Int32(6))
+            FfiConverterString.write(details, into: &buf)
+            
+        }
+    }
+}
+
+
+extension VpnError: Equatable, Hashable {}
+
+extension VpnError: Error { }
 
 fileprivate struct FfiConverterOptionTimestamp: FfiConverterRustBuffer {
     typealias SwiftType = Date?
@@ -3651,7 +3624,7 @@ fileprivate func uniffiRustCallAsync<F, T>(
     completeFunc: (UInt64, UnsafeMutablePointer<RustCallStatus>) -> F,
     freeFunc: (UInt64) -> (),
     liftFunc: (F) throws -> T,
-    errorHandler: ((RustBuffer) throws -> Swift.Error)?
+    errorHandler: ((RustBuffer) throws -> Error)?
 ) async throws -> T {
     // Make sure to call uniffiEnsureInitialized() since future creation doesn't have a
     // RustCallStatus param, so doesn't use makeRustCall()
@@ -3753,14 +3726,14 @@ public func uniffiForeignFutureHandleCountNymVpnLib() -> Int {
     UNIFFI_FOREIGN_FUTURE_HANDLE_MAP.count
 }
 public func checkCredential(credential: String)throws  -> Date? {
-    return try  FfiConverterOptionTimestamp.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
+    return try  FfiConverterOptionTimestamp.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_checkcredential(
         FfiConverterString.lower(credential),$0
     )
 })
 }
 public func getGatewayCountries(apiUrl: Url, nymVpnApiUrl: Url?, exitOnly: Bool, userAgent: UserAgent?)throws  -> [Location] {
-    return try  FfiConverterSequenceTypeLocation.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
+    return try  FfiConverterSequenceTypeLocation.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_getgatewaycountries(
         FfiConverterTypeUrl.lower(apiUrl),
         FfiConverterOptionTypeUrl.lower(nymVpnApiUrl),
@@ -3770,7 +3743,7 @@ public func getGatewayCountries(apiUrl: Url, nymVpnApiUrl: Url?, exitOnly: Bool,
 })
 }
 public func getLowLatencyEntryCountry(apiUrl: Url, vpnApiUrl: Url?, harbourMasterUrl: Url?)throws  -> Location {
-    return try  FfiConverterTypeLocation.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
+    return try  FfiConverterTypeLocation.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(
         FfiConverterTypeUrl.lower(apiUrl),
         FfiConverterOptionTypeUrl.lower(vpnApiUrl),
@@ -3779,7 +3752,7 @@ public func getLowLatencyEntryCountry(apiUrl: Url, vpnApiUrl: Url?, harbourMaste
 })
 }
 public func getLowLatencyEntryCountryUserAgent(apiUrl: Url, vpnApiUrl: Url?, harbourMasterUrl: Url?, userAgent: UserAgent)throws  -> Location {
-    return try  FfiConverterTypeLocation.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
+    return try  FfiConverterTypeLocation.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountryuseragent(
         FfiConverterTypeUrl.lower(apiUrl),
         FfiConverterOptionTypeUrl.lower(vpnApiUrl),
@@ -3788,21 +3761,35 @@ public func getLowLatencyEntryCountryUserAgent(apiUrl: Url, vpnApiUrl: Url?, har
     )
 })
 }
+public func getVpnCountries(apiUrl: Url, nymVpnApiUrl: Url?, userAgent: UserAgent?)throws  -> [Location] {
+    return try  FfiConverterSequenceTypeLocation.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_getvpncountries(
+        FfiConverterTypeUrl.lower(apiUrl),
+        FfiConverterOptionTypeUrl.lower(nymVpnApiUrl),
+        FfiConverterOptionTypeUserAgent.lower(userAgent),$0
+    )
+})
+}
 public func importCredential(credential: String, path: String)throws  -> Date? {
-    return try  FfiConverterOptionTimestamp.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
+    return try  FfiConverterOptionTimestamp.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_importcredential(
         FfiConverterString.lower(credential),
         FfiConverterString.lower(path),$0
     )
 })
 }
-public func startVpn(config: VpnConfig)throws  {try rustCallWithError(FfiConverterTypeFFIError.lift) {
+public func initLogger() {try! rustCall() {
+    uniffi_nym_vpn_lib_fn_func_initlogger($0
+    )
+}
+}
+public func startVpn(config: VpnConfig)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_startvpn(
         FfiConverterTypeVPNConfig.lower(config),$0
     )
 }
 }
-public func stopVpn()throws  {try rustCallWithError(FfiConverterTypeFFIError.lift) {
+public func stopVpn()throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_stopvpn($0
     )
 }
@@ -3813,9 +3800,9 @@ private enum InitializationResult {
     case contractVersionMismatch
     case apiChecksumMismatch
 }
-// Use a global variable to perform the versioning checks. Swift ensures that
+// Use a global variables to perform the versioning checks. Swift ensures that
 // the code inside is only computed once.
-private var initializationResult: InitializationResult = {
+private var initializationResult: InitializationResult {
     // Get the bindings contract version from our ComponentInterface
     let bindings_contract_version = 26
     // Get the scaffolding contract version by calling the into the dylib
@@ -3823,34 +3810,40 @@ private var initializationResult: InitializationResult = {
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_checkcredential() != 2527) {
+    if (uniffi_nym_vpn_lib_checksum_func_checkcredential() != 1684) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 63092) {
+    if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 18771) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 38719) {
+    if (uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 27206) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountryuseragent() != 14533) {
+    if (uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountryuseragent() != 14102) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_importcredential() != 8591) {
+    if (uniffi_nym_vpn_lib_checksum_func_getvpncountries() != 17864) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_startvpn() != 17465) {
+    if (uniffi_nym_vpn_lib_checksum_func_importcredential() != 49505) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_stopvpn() != 23819) {
+    if (uniffi_nym_vpn_lib_checksum_func_initlogger() != 45606) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_startvpn() != 55890) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_stopvpn() != 59823) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_method_osdefaultpathobserver_on_default_path_change() != 43452) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_method_ostunprovider_set_tunnel_network_settings() != 48304) {
+    if (uniffi_nym_vpn_lib_checksum_method_ostunprovider_set_tunnel_network_settings() != 45546) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_method_ostunprovider_set_default_path_observer() != 18569) {
+    if (uniffi_nym_vpn_lib_checksum_method_ostunprovider_set_default_path_observer() != 11941) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_tun_status_change() != 55105) {
@@ -3873,7 +3866,7 @@ private var initializationResult: InitializationResult = {
     uniffiCallbackInitOSTunProvider()
     uniffiCallbackInitTunnelStatusListener()
     return InitializationResult.ok
-}()
+}
 
 private func uniffiEnsureInitialized() {
     switch initializationResult {

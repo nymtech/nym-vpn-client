@@ -59,6 +59,16 @@ message Dns {
   string ip = 1;
 }
 
+message Url {
+  string url = 1;
+}
+
+message Endpoints {
+  Url nyxd_url = 1;
+  Url websocket_url = 2;
+  Url api_url = 3;
+}
+
 message InfoRequest {}
 
 message InfoResponse {
@@ -66,6 +76,9 @@ message InfoResponse {
   google.protobuf.Timestamp build_timestamp = 2;
   string triple = 3;
   string git_commit = 4;
+  string network_name = 5;
+  repeated Endpoints endpoints = 6;
+  Url nym_vpn_api_url = 7;
 }
 
 message Threshold {
@@ -82,6 +95,7 @@ message ConnectRequest {
   bool disable_background_cover_traffic = 7;
   bool enable_credentials_mode = 8;
   Threshold min_mixnode_performance = 9;
+  Threshold min_gateway_performance = 10;
 }
 
 message ConnectResponse {
@@ -215,6 +229,9 @@ message Error {
     // Failed to connect to the mixnet entry gateway
     MIXNET_ENTRY_GATEWAY = 23;
 
+    // Failed to connect to the IPR
+    IPR_FAILED_TO_CONNECT = 25;
+
     // Looking up gateways can fail in a number of ways.
     GATEWAY_DIRECTORY = 8;
 
@@ -250,6 +267,27 @@ message Error {
 
     // Client ran out of allocated bandwidth
     OUT_OF_BANDWIDTH = 18;
+
+    // The user has no available bandwidth to setup tunnel
+    OUT_OF_BANDWIDTH_WHEN_SETTING_UP_TUNNEL = 26;
+
+    // Failed to bring up the wg interface up
+    BRING_INTERFACE_UP = 27;
+
+    // Failed to init firewall subsystem
+    FIREWALL_INIT = 28;
+
+    // Failed to reset the firewall policy
+    FIREWALL_RESET_POLICY = 29;
+
+    // Failed to init the DNS subsystem
+    DNS_INIT = 30;
+
+    // Failed to set DNS
+    DNS_SET = 31;
+
+    // Failed to find the default network interface
+    FIND_DEFAULT_INTERFACE = 32;
   }
 
   ErrorType kind = 1;
@@ -331,7 +369,10 @@ message EntryGateway {
   Probe last_probe = 3;
 }
 
-message ListEntryGatewaysRequest {}
+message ListEntryGatewaysRequest {
+  Threshold min_gateway_performance = 1;
+}
+
 message ListEntryGatewaysResponse {
   repeated EntryGateway gateways = 1;
 }
@@ -342,18 +383,48 @@ message ExitGateway {
   Probe last_probe = 3;
 }
 
-message ListExitGatewaysRequest {}
+message ListExitGatewaysRequest {
+  Threshold min_gateway_performance = 1;
+}
+
 message ListExitGatewaysResponse {
   repeated ExitGateway gateways = 1;
 }
 
-message ListEntryCountriesRequest {}
+message VpnGateway {
+  Gateway id = 1;
+  Location location = 2;
+}
+
+message ListVpnGatewaysRequest {
+  Threshold min_gateway_performance = 1;
+}
+
+message ListVpnGatewaysResponse {
+  repeated VpnGateway gateways = 1;
+}
+
+message ListEntryCountriesRequest {
+  Threshold min_gateway_performance = 1;
+}
+
 message ListEntryCountriesResponse {
   repeated Location countries = 1;
 }
 
-message ListExitCountriesRequest {}
+message ListExitCountriesRequest {
+  Threshold min_gateway_performance = 1;
+}
+
 message ListExitCountriesResponse {
+  repeated Location countries = 1;
+}
+
+message ListVpnCountriesRequest {
+  Threshold min_gateway_performance = 1;
+}
+
+message ListVpnCountriesResponse {
   repeated Location countries = 1;
 }
 
@@ -364,11 +435,39 @@ message StoreAccountRequest {
 
 message StoreAccountResponse {
   bool success = 1;
-  StoreAccountError error = 2;
+  AccountError error = 2;
 }
 
-message StoreAccountError {
-  enum StoreAccountErrorType {
+message GetAccountSummaryRequest {}
+
+message GetAccountSummaryResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
+message RegisterDeviceRequest {}
+
+message RegisterDeviceResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
+message RequestZkNymRequest {}
+
+message RequestZkNymResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
+message GetDeviceZkNymsRequest {}
+
+message GetDeviceZkNymsResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
+message AccountError {
+  enum AccountErrorType {
     STORE_ACCOUNT_ERROR_UNSPECIFIED = 0;
 
     // The provided mnemonic was not able to be parsed
@@ -378,7 +477,7 @@ message StoreAccountError {
     STORAGE = 2;
   }
 
-  StoreAccountErrorType kind = 1;
+  AccountErrorType kind = 1;
 
   // Detailed error message for logging and debugging
   string message = 2;
@@ -398,9 +497,16 @@ service NymVpnd {
 
   rpc ListEntryGateways (ListEntryGatewaysRequest) returns (ListEntryGatewaysResponse) {}
   rpc ListExitGateways (ListExitGatewaysRequest) returns (ListExitGatewaysResponse) {}
+  rpc ListVpnGateways (ListVpnGatewaysRequest) returns (ListVpnGatewaysResponse) {}
   rpc ListEntryCountries (ListEntryCountriesRequest) returns (ListEntryCountriesResponse) {}
   rpc ListExitCountries (ListExitCountriesRequest) returns (ListExitCountriesResponse) {}
+  rpc ListVpnCountries (ListVpnCountriesRequest) returns (ListVpnCountriesResponse) {}
 
+  // Unstable
   rpc StoreAccount (StoreAccountRequest) returns (StoreAccountResponse) {}
+  rpc GetAccountSummary (GetAccountSummaryRequest) returns (GetAccountSummaryResponse) {}
+  rpc RegisterDevice (RegisterDeviceRequest) returns (RegisterDeviceResponse) {}
+  rpc RequestZkNym (RequestZkNymRequest) returns (RequestZkNymResponse) {}
+  rpc GetDeviceZkNyms (GetDeviceZkNymsRequest) returns (GetDeviceZkNymsResponse) {}
 }
 
