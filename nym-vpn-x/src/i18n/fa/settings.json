@@ -27,5 +27,8 @@
   },
   "error-monitoring": {
     "title": "گزارش ناشناس خطا"
+  },
+  "auto-connect": {
+    "title": "اتصال خودکار"
   }
 }
