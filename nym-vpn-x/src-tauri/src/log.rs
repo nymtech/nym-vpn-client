@@ -12,7 +12,7 @@ const ENV_LOG_FILE: &str = "LOG_FILE";
 const LOG_FILE: &str = "app.log";
 const LOG_FILE_OLD: &str = "app.old.log";
 
-fn rotate_log_file(log_dir: PathBuf) -> Result<()> {
+fn rotate_log_file(log_dir: PathBuf) -> Result<Option<PathBuf>> {
     let log_file = log_dir.join(LOG_FILE);
     if log_file.is_file() {
         let old_file = log_dir.join(LOG_FILE_OLD);
@@ -29,8 +29,9 @@ fn rotate_log_file(log_dir: PathBuf) -> Result<()> {
             )
         })?;
         fs::remove_file(log_file)?;
+        return Ok(Some(old_file));
     }
-    Ok(())
+    Ok(None)
 }
 
 pub async fn setup_tracing(log_file: bool) -> Result<Option<WorkerGuard>> {
@@ -44,8 +45,9 @@ pub async fn setup_tracing(log_file: bool) -> Result<Option<WorkerGuard>> {
         let log_dir = APP_LOG_DIR
             .clone()
             .ok_or(anyhow!("failed to get log dir"))?;
-        rotate_log_file(log_dir.clone()).ok();
+        let old_file = rotate_log_file(log_dir.clone()).ok().flatten();
 
+        let log_file = log_dir.join(LOG_FILE);
         let appender = rolling::never(log_dir, LOG_FILE);
         let (writer, guard) = tracing_appender::non_blocking(appender);
 
@@ -55,6 +57,12 @@ pub async fn setup_tracing(log_file: bool) -> Result<Option<WorkerGuard>> {
             .with_ansi(false)
             .with_writer(std::io::stdout.and(writer))
             .init();
+
+        tracing::info!("Logging to file: {}", log_file.display());
+        if let Some(old_file) = old_file {
+            tracing::info!("Rotating old log file to: {}", old_file.display());
+        }
+
         Ok(Some(guard))
     } else {
         tracing_subscriber::fmt()
