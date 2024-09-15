@@ -172,7 +172,7 @@ pub enum SetupWgTunnelError {
     #[error("failed to parse entry gateway ipv4: {0}")]
     FailedToParseEntryGatewayIpv4(#[source] std::net::AddrParseError),
 
-    #[error("failed to bring up interface: {gateway_id}: {public_key}: {source}")]
+    #[error("failed to bring up wireguard interface for gateway `{gateway_id}` with public key `{public_key}`: {source}")]
     FailedToBringInterfaceUp {
         gateway_id: Box<NodeIdentity>,
         public_key: String,

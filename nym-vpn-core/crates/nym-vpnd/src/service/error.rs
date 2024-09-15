@@ -153,7 +153,7 @@ pub enum ConnectionFailedError {
     #[error("we ran out of bandwidth when setting up the tunnel")]
     OutOfBandwidthWhenSettingUpTunnel,
 
-    #[error("failed to bring up tunnel, wireguard auth failed for {gateway_id}")]
+    #[error("failed to bring up tunnel to gateway `{gateway_id}` with public key `{public_key}`: {reason}")]
     FailedToBringInterfaceUp {
         gateway_id: Box<NodeIdentity>,
         public_key: String,

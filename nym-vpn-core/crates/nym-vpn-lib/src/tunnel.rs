@@ -96,7 +96,7 @@ pub(crate) fn start_tunnel(
         };
         debug!("Wireguard monitor started, blocking current thread until shutdown");
         if let Err(e) = monitor.wait() {
-            error!("Tunnel disconnected with error {:?}", e);
+            error!("Tunnel disconnected with error: {e}");
             shutdown.send_status_msg(Box::new(e));
         } else {
             if finished_shutdown_tx.send(()).is_err() {
