@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use futures::channel::{mpsc, oneshot};
-use tracing::{debug, error, info};
+use tracing::{debug, info};
 
 use super::{NymVpnCtrlMessage, NymVpnExitStatusMessage, SpecificVpn};
 use crate::platform::error::VpnError;
@@ -112,7 +112,7 @@ async fn run_nym_vpn(
                 .expect("Failed to send exit status");
         }
         Err(err) => {
-            error!("Nym VPN returned error: {err}");
+            info!("Nym VPN has shut down with error");
             debug!("{err:?}");
             crate::platform::uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failure {
                 error: VpnError::InternalError {

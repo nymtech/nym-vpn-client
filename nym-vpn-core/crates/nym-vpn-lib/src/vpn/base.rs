@@ -191,6 +191,11 @@ impl SpecificVpn {
         {
             Ok(tunnels) => tunnels,
             Err(e) => {
+                // Shutdown mixnet
+                task_manager.signal_shutdown().ok();
+                task_manager.wait_for_shutdown().await;
+
+                // Shutdown routing/dns/firewall
                 tokio::task::spawn_blocking(move || {
                     dns_monitor
                         .reset()
