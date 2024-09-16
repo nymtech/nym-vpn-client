@@ -78,6 +78,4 @@ enum AppSettingKey: String {
     case connectionType
     case lastConnectionIntent
     case currentEnv
-    case didConnectSuccessfullyOnce
-    case didAskForNotificationPermission
 }

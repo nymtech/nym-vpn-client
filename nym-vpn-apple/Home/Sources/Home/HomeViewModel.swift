@@ -354,11 +354,10 @@ private extension HomeViewModel {
     func needsHelperUpdate() async -> Bool {
         do {
             let version = try await grpcManager.version()
-            guard helperManager.requiredVersion != version else { return false }
+            return helperManager.requiredVersion != version
         } catch {
             return true
         }
-        return true
     }
 
     func updateConnectedStartDateMacOS(with status: TunnelStatus) {
