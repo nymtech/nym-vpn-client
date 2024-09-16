@@ -108,7 +108,7 @@ impl Config {
         self
     }
 
-    pub fn with_custom_min_gateway_performance(
+    pub fn with_min_gateway_performance(
         mut self,
         min_gateway_performance: GatewayMinPerformance,
     ) -> Self {

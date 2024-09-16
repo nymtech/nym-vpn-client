@@ -275,7 +275,7 @@ fn directory_client(
 ) -> Result<GatewayClient, ListGatewayError> {
     let user_agent = nym_bin_common::bin_info_local_vergen!().into();
     let directory_config = nym_vpn_lib::gateway_directory::Config::new_from_env()
-        .with_custom_min_gateway_performance(min_gateway_performance);
+        .with_min_gateway_performance(min_gateway_performance);
     GatewayClient::new(directory_config, user_agent)
         .map_err(|error| ListGatewayError::CreateGatewayDirectoryClient { error })
 }

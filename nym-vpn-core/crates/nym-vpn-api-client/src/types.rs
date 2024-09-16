@@ -8,7 +8,7 @@ use std::sync::Arc;
 use nym_crypto::asymmetric::ed25519;
 use nym_validator_client::{signing::signer::OfflineSigner as _, DirectSecp256k1HdWallet};
 
-use crate::jwt::Jwt;
+use crate::{jwt::Jwt, VpnApiClientError};
 
 pub struct VpnApiAccount {
     wallet: DirectSecp256k1HdWallet,
@@ -73,6 +73,24 @@ pub struct GatewayMinPerformance {
 }
 
 impl GatewayMinPerformance {
+    pub fn from_percentage_values(
+        mixnet_min_performance: Option<u64>,
+        vpn_min_performance: Option<u64>,
+    ) -> Result<Self, VpnApiClientError> {
+        let mixnet_min_performance = mixnet_min_performance
+            .map(Percent::from_percentage_value)
+            .transpose()
+            .map_err(VpnApiClientError::InvalidPercentValue)?;
+        let vpn_min_performance = vpn_min_performance
+            .map(Percent::from_percentage_value)
+            .transpose()
+            .map_err(VpnApiClientError::InvalidPercentValue)?;
+        Ok(Self {
+            mixnet_min_performance,
+            vpn_min_performance,
+        })
+    }
+
     pub(crate) fn to_param(&self) -> Vec<(String, String)> {
         let mut params = vec![];
         if let Some(threshold) = self.mixnet_min_performance {

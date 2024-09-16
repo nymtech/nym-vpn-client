@@ -34,6 +34,9 @@ pub(crate) enum Error {
     #[cfg(windows)]
     #[error("administrator privileges required, try rerunning with administrator privileges: `runas /user:Administrator {binary_name} run`")]
     AdminPrivilegesRequired { binary_name: String },
+
+    #[error("failed to setup gateway minimum performance threshold: {0}")]
+    FailedToSetupGatewayPerformanceThresholds(#[source] nym_vpn_api_client::VpnApiClientError),
 }
 
 // Result type based on our error type

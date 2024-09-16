@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_contracts_common::ContractsCommonError;
 use nym_http_api_client::HttpClientError;
 
 use crate::response::{NymErrorResponse, UnexpectedError};
@@ -72,6 +73,9 @@ pub enum VpnApiClientError {
 
     #[error("failed to get vpn gateway countries")]
     FailedToGetVpnGatewayCountries(#[source] HttpClientError<UnexpectedError>),
+
+    #[error("invalud percent value")]
+    InvalidPercentValue(#[source] ContractsCommonError),
 }
 
 pub type Result<T> = std::result::Result<T, VpnApiClientError>;

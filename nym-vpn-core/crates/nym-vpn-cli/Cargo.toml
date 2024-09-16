@@ -22,7 +22,9 @@ tokio = { workspace = true, features = ["process", "rt-multi-thread", "fs", "syn
 tracing-subscriber.workspace = true
 tracing.workspace = true
 
+nym-vpn-api-client = { path = "../nym-vpn-api-client" }
 nym-vpn-lib = { path = "../nym-vpn-lib" }
+
 nym-bin-common.workspace = true
 
 [target.'cfg(unix)'.dependencies]

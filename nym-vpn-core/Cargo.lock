@@ -5412,6 +5412,7 @@ dependencies = [
  "is_elevated",
  "nix 0.29.0",
  "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?rev=b7baff1)",
+ "nym-vpn-api-client",
  "nym-vpn-lib",
  "thiserror",
  "time",

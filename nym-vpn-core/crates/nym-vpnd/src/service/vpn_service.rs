@@ -15,7 +15,7 @@ use futures::{
 };
 use nym_vpn_api_client::{
     response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnZkNym, NymVpnZkNymResponse},
-    types::{GatewayMinPerformance, Percent, VpnApiAccount},
+    types::{GatewayMinPerformance, VpnApiAccount},
 };
 use nym_vpn_lib::{
     credentials::import_credential,
@@ -484,18 +484,19 @@ where
 
         info!("Using config: {}", config);
 
-        let mixnet_min_performance = options
-            .min_mixnode_performance
-            .map(|p| Percent::from_percentage_value(p as u64).unwrap());
-        let vpn_min_performance = options
-            .min_gateway_performance
-            .map(|p| Percent::from_percentage_value(p as u64).unwrap());
-        let min_gateway_performance = GatewayMinPerformance {
-            mixnet_min_performance,
-            vpn_min_performance,
+        let min_gateway_performance = match GatewayMinPerformance::from_percentage_values(
+            options.min_mixnode_performance.map(u64::from),
+            options.min_gateway_performance.map(u64::from),
+        ) {
+            Ok(min_gateway_performance) => min_gateway_performance,
+            Err(err) => {
+                self.shared_vpn_state.set(VpnState::NotConnected);
+                return VpnServiceConnectResult::Fail(err.to_string());
+            }
         };
+
         let gateway_config = gateway_directory::Config::new_from_env()
-            .with_custom_min_gateway_performance(min_gateway_performance);
+            .with_min_gateway_performance(min_gateway_performance);
 
         let generic_config = GenericNymVpnConfig {
             mixnet_client_config: MixnetClientConfig {
