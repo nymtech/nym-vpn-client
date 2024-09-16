@@ -6,6 +6,7 @@ import ConnectionManager
 
 final public class NotificationsManager: NSObject, ObservableObject {
     private let appSettings: AppSettings
+    private let userNotificationCenter: UNUserNotificationCenter
     @ObservedObject private var connectionManager: ConnectionManager
 
     private var tunnelStatusUpdateCancellable: AnyCancellable?
@@ -16,18 +17,22 @@ final public class NotificationsManager: NSObject, ObservableObject {
 
     init(
         appSettings: AppSettings = AppSettings.shared,
-        connectionManager: ConnectionManager = ConnectionManager.shared
+        connectionManager: ConnectionManager = ConnectionManager.shared,
+        userNotificationCenter: UNUserNotificationCenter = UNUserNotificationCenter.current()
     ) {
         self.appSettings = appSettings
         self.connectionManager = connectionManager
+        self.userNotificationCenter = userNotificationCenter
         super.init()
     }
 
     public func setup() {
-        UNUserNotificationCenter.current().delegate = self
+        userNotificationCenter.delegate = self
 
         setupObservers()
-        checkNotificationPermission()
+        Task {
+            await checkNotificationPermission()
+        }
     }
 }
 
@@ -57,39 +62,38 @@ private extension NotificationsManager {
             .removeDuplicates()
             .sink { [weak self] status in
                 guard status == .connected else { return }
-                self?.askForPermissionIfNeeded()
+                Task {
+                    await self?.askForPermissionIfNeeded()
+                }
             }
     }
 }
 
 // MARK: - Permissions -
 private extension NotificationsManager {
-    func checkNotificationPermission() {
-        UNUserNotificationCenter.current().getNotificationSettings { [weak self] settings in
-            switch settings.authorizationStatus {
-            case .notDetermined, .denied:
-                self?.permissionGranted = false
-            case .authorized, .provisional:
-                self?.permissionGranted = true
-            default:
-                self?.permissionGranted = false
-            }
+    func checkNotificationPermission() async {
+        let settings = await userNotificationCenter.notificationSettings()
+        switch settings.authorizationStatus {
+        case .notDetermined, .denied:
+            permissionGranted = false
+        case .authorized, .provisional:
+            permissionGranted = true
+        default:
+            permissionGranted = false
         }
     }
 
     func requestNotificationPermission() {
-        UNUserNotificationCenter.current().requestAuthorization(
+        userNotificationCenter.requestAuthorization(
             options: [.alert, .badge, .sound]
         ) { [weak self] granted, _ in
             self?.permissionGranted = granted
         }
     }
 
-    func askForPermissionIfNeeded() {
-        guard !appSettings.didAskForNotificationPermission else { return }
-        Task { @MainActor in
-            appSettings.didAskForNotificationPermission = true
-        }
+    func askForPermissionIfNeeded() async {
+        let notificationAuthorizationStatus = await userNotificationCenter.notificationSettings().authorizationStatus
+        guard notificationAuthorizationStatus == .notDetermined else { return }
         requestNotificationPermission()
     }
 }

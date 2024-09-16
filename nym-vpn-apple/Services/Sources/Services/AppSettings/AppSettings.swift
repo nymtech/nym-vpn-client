@@ -43,10 +43,6 @@ public final class AppSettings: ObservableObject {
     public var connectionType: Int?
     @AppStorage(AppSettingKey.lastConnectionIntent.rawValue)
     public var lastConnectionIntent: String?
-    @AppStorage(AppSettingKey.didConnectSuccessfullyOnce.rawValue)
-    public var didConnectSuccessfullyOnce = false
-    @AppStorage(AppSettingKey.didAskForNotificationPermission.rawValue)
-    public var didAskForNotificationPermission = false
 
     @AppStorage(
         AppSettingKey.currentEnv.rawValue,
