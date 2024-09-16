@@ -71,7 +71,7 @@ impl Config {
         }
     }
 
-    pub fn new_from_env(min_gateway_performance: Option<GatewayMinPerformance>) -> Self {
+    pub fn new_from_env() -> Self {
         let network = nym_sdk::NymNetworkDetails::new_from_env();
         let api_url = network
             .endpoints
@@ -86,7 +86,7 @@ impl Config {
         Config {
             api_url,
             nym_vpn_api_url,
-            min_gateway_performance,
+            min_gateway_performance: None,
         }
     }
 

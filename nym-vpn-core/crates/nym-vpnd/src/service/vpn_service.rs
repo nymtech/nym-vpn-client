@@ -494,6 +494,8 @@ where
             mixnet_min_performance,
             vpn_min_performance,
         };
+        let gateway_config = gateway_directory::Config::new_from_env()
+            .with_custom_min_gateway_performance(min_gateway_performance);
 
         let generic_config = GenericNymVpnConfig {
             mixnet_client_config: MixnetClientConfig {
@@ -504,7 +506,7 @@ where
                 min_gateway_performance: options.min_gateway_performance,
             },
             data_path: Some(self.data_dir.clone()),
-            gateway_config: gateway_directory::Config::new_from_env(Some(min_gateway_performance)),
+            gateway_config,
             entry_point: config.entry_point.clone(),
             exit_point: config.exit_point.clone(),
             nym_ips: None,

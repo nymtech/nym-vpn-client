@@ -166,10 +166,11 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
     let vpn_min_performance = args
         .min_gateway_performance
         .map(|p| Percent::from_percentage_value(p as u64).unwrap());
-    let gateway_config = GatewayConfig::new_from_env(Some(GatewayMinPerformance {
-        mixnet_min_performance,
-        vpn_min_performance,
-    }));
+    let gateway_config =
+        GatewayConfig::new_from_env().with_custom_min_gateway_performance(GatewayMinPerformance {
+            mixnet_min_performance,
+            vpn_min_performance,
+        });
 
     info!("nym-api: {}", gateway_config.api_url());
     info!(
