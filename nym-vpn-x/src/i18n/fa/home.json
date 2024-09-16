@@ -20,5 +20,13 @@
   "select-node-title": "اتصال به",
   "privacy-mode": {
     "title": "ناشناس (mixnet)"
+  },
+  "snackbar-disabled-message": {
+    "connected": "در حالت وصل به VPN فعال نیست"
+  },
+  "modes-dialog": {
+    "title": "انتخاب حالت",
+    "privacy-description": "با مسیریابی اتصال خود از طریق ۵ سرور با mixnet، از حریم خصوصی در بالاترین سطح لذت ببرید. ایده‌آل برای مدیریت امن پرداخت‌ها، ایمیل‌ها و پیام‌ها.",
+    "link": "ادامه مطلب"
   }
 }
