@@ -1,1 +1,18 @@
-{}
+{
+  "language": "Idioma",
+  "connect": "Conectar",
+  "disconnect": "Desconectar",
+  "first-hop-selection": "Local de entrada",
+  "last-hop-selection": "Local de saída",
+  "settings": "Configurações",
+  "notifications": "Notificações",
+  "logs": "Logs",
+  "feedback": "Feedback",
+  "legal": "Legal",
+  "support": "Suporte",
+  "fastest": "Mais rápido",
+  "sentry": "Sentry",
+  "tos": "Termos de uso",
+  "privacy-statement": "Declaração de Privacidade",
+  "appearance": "Aparência"
+}
