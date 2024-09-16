@@ -3,10 +3,12 @@
     "title": "Credencial"
   },
   "auto-connect": {
-    "title": "Ligação Automática"
+    "title": "Ligação Automática",
+    "desc": "Ligação automática ao iniciar a aplicação"
   },
   "entry-selector": {
-    "title": "Seletor de local de entrada"
+    "title": "Seletor de local de entrada",
+    "desc": "Selecionar manualmente o seu salto de entrada"
   },
   "feedback": {
     "title": "Feedback",
@@ -16,19 +18,38 @@
     "discord": "Junte-se a nós no Discord"
   },
   "error-monitoring": {
-    "title": "Relatórios de erros anónimos"
+    "title": "Relatórios de erros anónimos",
+    "desc": "aplica-se ao reiniciar a aplicação"
   },
   "support": {
     "title": "Suporte",
-    "faq": "Verificar as FAQ"
+    "faq": "Verificar as FAQ",
+    "contact": "Contactar o suporte"
   },
   "legal": {
     "title": "Legal",
     "policy": "Declaração de Privacidade",
-    "tos": "Termos de uso"
+    "tos": "Termos de uso",
+    "license": "Licença",
+    "licenses-rust": "Licenças (Rust)",
+    "licenses-js": "Licenças (JS)",
+    "emptyData": "Não há dados de licença disponíveis"
   },
   "logs": {
-    "title": "Logs"
+    "title": "Logs",
+    "desc": "Copiar ou apagar registos"
   },
-  "add-credential-button": "Adicionar credencial para ligação"
+  "add-credential-button": "Adicionar credencial para ligação",
+  "notifications": {
+    "title": "Notificações no ambiente de trabalho"
+  },
+  "monitoring-alert": "É necessário reiniciar a aplicação para que a alteração tenha efeito.",
+  "faq": "FAQ",
+  "display-theme": "Modo de visualização",
+  "quit": "Sair da NymVPN",
+  "info": {
+    "client-version": "Versão cliente",
+    "daemon-version": "Versão do daemon",
+    "network-name": "Rede"
+  }
 }
