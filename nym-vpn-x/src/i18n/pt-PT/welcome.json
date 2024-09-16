@@ -5,8 +5,15 @@
   },
   "tos": {
     "part1": "Por continuar, você concorda com NymVPN's",
-    "part2": "e reconhece NymVPN's"
+    "part2": "e reconhece NymVPN's",
+    "part3": "."
   },
   "experimental": "Este é um software experimental. Não confie nele para obter um anonimato forte (ainda).",
-  "continue-button": "Continuar"
+  "continue-button": "Continuar",
+  "description": {
+    "part1": "Ajude-nos a aperfeiçoar a nossa aplicação durante o teste beta!",
+    "part2": "O seu feedback é crucial",
+    "part3": "para identificar e resolver problemas. Opção de monitorização anónima de erros",
+    "part4": "e análises, pode optar por não participar em qualquer altura. Obrigado pelo vosso apoio!"
+  }
 }
