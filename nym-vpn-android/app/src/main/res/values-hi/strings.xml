@@ -7,9 +7,9 @@
     <string name="connected">कनेक्शन सफल हुआ</string>
     <string name="disconnected">डिस्कनेक्टेड</string>
     <string name="disconnecting">डिसकनेक्ट हो रहा है</string>
-    <string name="five_hop_mixnet">अनाम</string>
+    <string name="five_hop_mixnet">"अनाम  (mixnet)"</string>
     <string name="five_hop_description">भुगतान, ईमेल और मेसेज के लिए</string>
-    <string name="two_hop_mixnet">तेज़</string>
+    <string name="two_hop_mixnet">तेज़ (WireGuard)</string>
     <string name="first_hop">उद्भव स्थान</string>
     <string name="last_hop">VPN आखरी स्थान</string>
     <string name="connect">कनेक्ट</string>
@@ -29,7 +29,7 @@
     <string name="add_credential">क्रेडेंशियल जोड़ें</string>
     <string name="no_scm_found">स्रोत कोड URL नहीं मिला</string>
     <string name="logs_saved">लॉग्स डाउनलोड्स फोल्डर में सहेजे गए</string>
-    <string name="alpha_help_message">अल्फा चरण के दौरान हमारे ऐप को बेहतर बनाने में मदद करें! आपकी प्रतिक्रिया समस्याओं की पहचान और समाधान के लिए महत्वपूर्ण है।</string>
+    <string name="alpha_help_message">बीटा चरण के दौरान हमारे ऐप को बेहतर बनाने में मदद करें! आपकी प्रतिक्रिया समस्याओं की पहचान और समाधान के लिए महत्वपूर्ण है।</string>
     <string name="continue_agree">जारी रखते हुए, आप NymVPN की</string>
     <string name="five_hop_explanation">5 सर्वरों के माध्यम से मिक्सनेट के जरिए अपने कनेक्शन को रूट करके अधिकतम स्तर की गोपनीयता का आनंद लें। भुगतान, ईमेल, और संदेशों को सुरक्षित रूप से संभालने के लिए यह आदर्श है।</string>
     <string name="init_client">क्लाइंट प्रारंभ हो रहा है…</string>
@@ -79,7 +79,7 @@
     <string name="anonymous_analytics_description">हमें NymVPN में सुधार करने में मदद करें</string>
     <string name="opt_in_message_second">और विश्लेषण—आप किसी भी समय ऑप्ट-आउट कर सकते हैं।\"</string>
     <string name="thanks_for_support">आपके समर्थन के लिए धन्यवाद!</string>
-    <string name="to_alpha">NymVPN अल्फा के लिए</string>
+    <string name="to_alpha">NymVPN बीटा चरण के लिए</string>
     <string name="welcome">स्वागत है</string>
     <string name="cont">जारी रखें</string>
     <string name="and_acknowledge">और NymVPN की स्वीकृति और स्वीकार करते हैं</string>
