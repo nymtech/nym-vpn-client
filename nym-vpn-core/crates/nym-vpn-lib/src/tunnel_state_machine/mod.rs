@@ -1,11 +1,11 @@
-mod mixnet_route_handler;
+mod route_handler;
 mod states;
 mod tunnel;
 
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
-use mixnet_route_handler::MixnetRouteHandler;
+use route_handler::RouteHandler;
 use states::DisconnectedState;
 
 use crate::GenericNymVpnConfig;
@@ -68,7 +68,7 @@ pub enum TunnelEvent {
 }
 
 pub struct SharedState {
-    route_handler: MixnetRouteHandler,
+    route_handler: RouteHandler,
     tunnel_shutdown_token: Option<CancellationToken>,
     tunnel_handle: Option<JoinHandle<()>>,
     config: GenericNymVpnConfig,
@@ -91,7 +91,7 @@ impl TunnelStateMachine {
     ) -> Result<JoinHandle<()>> {
         let (current_state_handler, _) = DisconnectedState::enter();
 
-        let route_handler = MixnetRouteHandler::new()
+        let route_handler = RouteHandler::new()
             .await
             .map_err(Error::CreateRouteHandler)?;
 
@@ -145,7 +145,7 @@ impl TunnelStateMachine {
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("failed to create a route handler")]
-    CreateRouteHandler(#[source] mixnet_route_handler::Error),
+    CreateRouteHandler(#[source] route_handler::Error),
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

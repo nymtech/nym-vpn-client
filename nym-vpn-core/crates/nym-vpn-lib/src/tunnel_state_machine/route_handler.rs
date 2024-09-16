@@ -7,11 +7,11 @@ const TUNNEL_TABLE_ID: u32 = 0x14d;
 #[cfg(target_os = "linux")]
 const TUNNEL_FWMARK: u32 = 0x14d;
 
-pub struct MixnetRouteHandler {
+pub struct RouteHandler {
     route_manager: RouteManager,
 }
 
-impl MixnetRouteHandler {
+impl RouteHandler {
     pub async fn new() -> Result<Self> {
         let route_manager = RouteManager::new(
             HashSet::new(),

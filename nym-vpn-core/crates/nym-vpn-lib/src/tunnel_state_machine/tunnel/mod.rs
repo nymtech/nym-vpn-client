@@ -98,7 +98,7 @@ pub async fn run(
     };
 
     if enable_wireguard {
-        wireguard_tunnel::WireGuardTunnel::run(
+        let wireguard_tunnel = wireguard_tunnel::WireGuardTunnel::new(
             nym_config,
             task_manager,
             mixnet_client,
@@ -106,7 +106,9 @@ pub async fn run(
             selected_gateways,
             shutdown_token,
         )
-        .await
+        .await?;
+
+        wireguard_tunnel.run().await
     } else {
         mixnet_tunnel::MixnetTunnel::run(
             nym_config,
