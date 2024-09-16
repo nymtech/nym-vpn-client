@@ -36,10 +36,10 @@ jobs:
         include:
           - pkgtype: bfs
             pkgbuild: PKGBUILD
-            pkgname: nymvpn-app
+            pkgname: nym-vpn-app
           - pkgtype: bin
             pkgbuild: PKGBUILD-bin
-            pkgname: nymvpn-app-bin
+            pkgname: nym-vpn-app-bin
     env:
       PKGNAME: ${{ matrix.pkgname }}
       PKGBUILD: nym-vpn-app/.pkg/aur/${{ matrix.pkgbuild }}
@@ -74,9 +74,9 @@ jobs:
           #   the sources array declared in PKGBUILD
           SOURCES: |
             ${{ matrix.pkgtype == 'bfs' && env.TARBALL || env.LINUX_BIN }}
-            nym-vpn-app/.pkg/aur/nym-vpn-app-wrapper.sh
-            nym-vpn-app/.pkg/aur/nym-vpn-app.desktop
-            nym-vpn-app/.pkg/aur/nym-vpn-app.svg
+            nym-vpn-app/.pkg/aur/nym-vpn-wrapper.sh
+            nym-vpn-app/.pkg/aur/nym-vpn.desktop
+            nym-vpn-app/.pkg/aur/nym-vpn.svg
         run: ./.pkg/aur_update.sh
       - name: Rename PKGBUILD (bin)
         if: matrix.pkgtype == 'bin'
@@ -97,6 +97,6 @@ jobs:
           ssh_private_key: ${{ secrets.AUR_SSH_KEY }}
           commit_message: ${{ inputs.commit_msg || inputs.release_tag }}
           assets: |
-            nym-vpn-app/.pkg/aur/nym-vpn-app-wrapper.sh
-            nym-vpn-app/.pkg/aur/nym-vpn-app.desktop
-            nym-vpn-app/.pkg/aur/nym-vpn-app.svg
+            nym-vpn-app/.pkg/aur/nym-vpn-wrapper.sh
+            nym-vpn-app/.pkg/aur/nym-vpn.desktop
+            nym-vpn-app/.pkg/aur/nym-vpn.svg
