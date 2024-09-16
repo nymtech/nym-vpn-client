@@ -364,19 +364,7 @@ pub(crate) async fn setup_tunnel(
 
     let tunnels_setup = match nym_vpn {
         SpecificVpn::Wg(vpn) => {
-            let auth_addresses = match setup_auth_addresses(&entry, &exit) {
-                Ok(auth_addr) => auth_addr,
-                Err(err) => {
-                    // Put in some manual error handling, the correct long-term solution is that handling
-                    // errors and diconnecting the mixnet client needs to be unified down this code path
-                    // and merged with the mix tunnel one.
-                    mixnet_client.disconnect().await;
-                    return Err(err.into());
-                }
-            };
-
-            // HERE BE DRAGONS: this can fail and the mixnet_client is not disconnected when that
-            // happens!
+            let auth_addresses = setup_auth_addresses(&entry, &exit)?;
             setup_wg_tunnel(
                 vpn,
                 mixnet_client,

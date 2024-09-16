@@ -231,7 +231,6 @@ impl NymVpn<MixnetVpn> {
             Err(err) => {
                 error!("Failed to setup post mixnet: {err}");
                 debug!("{err:?}");
-                mixnet_client.disconnect().await;
                 Err(err)
             }
             Ok(exit_connection_info) => Ok((our_mixnet_connection, exit_connection_info)),
