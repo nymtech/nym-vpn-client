@@ -28,7 +28,7 @@ use tracing::{error, info};
 use super::{
     connection_handler::CommandInterfaceConnectionHandler,
     error::CommandInterfaceError,
-    helpers::{parse_entry_point, parse_exit_point, threshold_into_u8},
+    helpers::{parse_entry_point, parse_exit_point, threshold_into_percent},
     status_broadcaster::ConnectionStatusBroadcaster,
 };
 use crate::service::{
@@ -280,8 +280,7 @@ impl NymVpnd for CommandInterface {
         let min_gateway_performance = request
             .into_inner()
             .min_gateway_performance
-            .map(threshold_into_u8)
-            .map(|p| Percent::from_percentage_value(p as u64).unwrap());
+            .map(threshold_into_percent);
 
         let min_gateway_performance = GatewayMinPerformance {
             mixnet_min_performance: min_gateway_performance,
@@ -320,8 +319,7 @@ impl NymVpnd for CommandInterface {
         let min_gateway_performance = request
             .into_inner()
             .min_gateway_performance
-            .map(threshold_into_u8)
-            .map(|p| Percent::from_percentage_value(p as u64).unwrap());
+            .map(threshold_into_percent);
 
         let min_gateway_performance = GatewayMinPerformance {
             mixnet_min_performance: None,
@@ -360,8 +358,7 @@ impl NymVpnd for CommandInterface {
         let min_gateway_performance = request
             .into_inner()
             .min_gateway_performance
-            .map(threshold_into_u8)
-            .map(|p| Percent::from_percentage_value(p as u64).unwrap());
+            .map(threshold_into_percent);
 
         let min_gateway_performance = GatewayMinPerformance {
             mixnet_min_performance: min_gateway_performance,
@@ -400,8 +397,7 @@ impl NymVpnd for CommandInterface {
         let min_gateway_performance = request
             .into_inner()
             .min_gateway_performance
-            .map(threshold_into_u8)
-            .map(|p| Percent::from_percentage_value(p as u64).unwrap());
+            .map(threshold_into_percent);
 
         let min_gateway_performance = GatewayMinPerformance {
             mixnet_min_performance: min_gateway_performance,
@@ -440,8 +436,7 @@ impl NymVpnd for CommandInterface {
         let min_gateway_performance = request
             .into_inner()
             .min_gateway_performance
-            .map(threshold_into_u8)
-            .map(|p| Percent::from_percentage_value(p as u64).unwrap());
+            .map(threshold_into_percent);
 
         let min_gateway_performance = GatewayMinPerformance {
             mixnet_min_performance: min_gateway_performance,
@@ -480,8 +475,7 @@ impl NymVpnd for CommandInterface {
         let min_gateway_performance = request
             .into_inner()
             .min_gateway_performance
-            .map(threshold_into_u8)
-            .map(|p| Percent::from_percentage_value(p as u64).unwrap());
+            .map(threshold_into_percent);
 
         let min_gateway_performance = GatewayMinPerformance {
             mixnet_min_performance: None,
@@ -656,6 +650,14 @@ impl TryFrom<ConnectRequest> for ConnectOptions {
             })
             .transpose()?;
 
+        let min_mixnode_performance = request.min_mixnode_performance.map(threshold_into_percent);
+        let min_gateway_mixnet_performance = request
+            .min_gateway_mixnet_performance
+            .map(threshold_into_percent);
+        let min_gateway_vpn_performance = request
+            .min_gateway_vpn_performance
+            .map(threshold_into_percent);
+
         Ok(ConnectOptions {
             dns,
             disable_routing: request.disable_routing,
@@ -663,8 +665,9 @@ impl TryFrom<ConnectRequest> for ConnectOptions {
             enable_poisson_rate: request.enable_poisson_rate,
             disable_background_cover_traffic: request.disable_background_cover_traffic,
             enable_credentials_mode: request.enable_credentials_mode,
-            min_mixnode_performance: request.min_mixnode_performance.map(threshold_into_u8),
-            min_gateway_performance: request.min_gateway_performance.map(threshold_into_u8),
+            min_mixnode_performance,
+            min_gateway_mixnet_performance,
+            min_gateway_vpn_performance,
         })
     }
 }

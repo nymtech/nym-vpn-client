@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_vpn_api_client::types::Percent;
 use nym_vpn_lib::{
     gateway_directory::{EntryPoint, ExitPoint},
     NodeIdentity, Recipient,
@@ -79,6 +80,6 @@ pub(super) fn parse_exit_point(
     })
 }
 
-pub(super) fn threshold_into_u8(threshold: nym_vpn_proto::Threshold) -> u8 {
-    threshold.min_performance.clamp(0, 100) as u8
+pub(super) fn threshold_into_percent(threshold: nym_vpn_proto::Threshold) -> Percent {
+    Percent::from_percentage_value(threshold.min_performance.clamp(0, 100) as u64).unwrap()
 }

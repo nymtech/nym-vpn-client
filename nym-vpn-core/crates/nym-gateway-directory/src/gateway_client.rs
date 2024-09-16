@@ -5,7 +5,7 @@ use std::{fmt, net::IpAddr};
 
 use nym_sdk::UserAgent;
 use nym_validator_client::{models::DescribedGateway, nym_nodes::SkimmedNode, NymApiClient};
-use nym_vpn_api_client::types::GatewayMinPerformance;
+use nym_vpn_api_client::types::{GatewayMinPerformance, Percent};
 use tracing::{debug, error, info};
 use url::Url;
 
@@ -136,6 +136,18 @@ impl GatewayClient {
             nym_vpn_api_client,
             min_gateway_performance: config.min_gateway_performance,
         })
+    }
+
+    pub fn mixnet_min_performance(&self) -> Option<Percent> {
+        self.min_gateway_performance
+            .as_ref()
+            .and_then(|min_performance| min_performance.mixnet_min_performance)
+    }
+
+    pub fn vpn_min_performance(&self) -> Option<Percent> {
+        self.min_gateway_performance
+            .as_ref()
+            .and_then(|min_performance| min_performance.vpn_min_performance)
     }
 
     async fn lookup_described_gateways(&self) -> Result<Vec<DescribedGateway>> {

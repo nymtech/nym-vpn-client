@@ -160,8 +160,8 @@ async fn run() -> Result<()> {
 async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<()> {
     // Setup gateway directory configuration
     let min_gateway_performance = GatewayMinPerformance::from_percentage_values(
-        args.min_mixnode_performance.map(u64::from),
-        args.min_gateway_performance.map(u64::from),
+        args.min_gateway_mixnet_performance.map(u64::from),
+        args.min_gateway_vpn_performance.map(u64::from),
     )
     .map_err(Error::FailedToSetupGatewayPerformanceThresholds)?;
 
@@ -190,7 +190,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
             disable_background_cover_traffic: args.disable_background_cover_traffic,
             enable_credentials_mode: args.enable_credentials_mode,
             min_mixnode_performance: args.min_mixnode_performance,
-            min_gateway_performance: args.min_gateway_performance,
+            min_gateway_performance: args.min_gateway_mixnet_performance,
         },
         data_path,
         gateway_config,

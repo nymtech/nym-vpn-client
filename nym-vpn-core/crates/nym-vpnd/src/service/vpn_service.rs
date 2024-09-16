@@ -15,7 +15,7 @@ use futures::{
 };
 use nym_vpn_api_client::{
     response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnZkNym, NymVpnZkNymResponse},
-    types::{GatewayMinPerformance, VpnApiAccount},
+    types::{GatewayMinPerformance, Percent, VpnApiAccount},
 };
 use nym_vpn_lib::{
     credentials::import_credential,
@@ -172,8 +172,9 @@ pub(crate) struct ConnectOptions {
     pub(crate) enable_poisson_rate: bool,
     pub(crate) disable_background_cover_traffic: bool,
     pub(crate) enable_credentials_mode: bool,
-    pub(crate) min_mixnode_performance: Option<u8>,
-    pub(crate) min_gateway_performance: Option<u8>,
+    pub(crate) min_mixnode_performance: Option<Percent>,
+    pub(crate) min_gateway_mixnet_performance: Option<Percent>,
+    pub(crate) min_gateway_vpn_performance: Option<Percent>,
 }
 
 #[derive(Debug)]
@@ -484,15 +485,9 @@ where
 
         info!("Using config: {}", config);
 
-        let min_gateway_performance = match GatewayMinPerformance::from_percentage_values(
-            options.min_mixnode_performance.map(u64::from),
-            options.min_gateway_performance.map(u64::from),
-        ) {
-            Ok(min_gateway_performance) => min_gateway_performance,
-            Err(err) => {
-                self.shared_vpn_state.set(VpnState::NotConnected);
-                return VpnServiceConnectResult::Fail(err.to_string());
-            }
+        let min_gateway_performance = GatewayMinPerformance {
+            mixnet_min_performance: options.min_gateway_mixnet_performance,
+            vpn_min_performance: options.min_gateway_vpn_performance,
         };
 
         let gateway_config = gateway_directory::Config::new_from_env()
@@ -503,8 +498,12 @@ where
                 enable_poisson_rate: options.enable_poisson_rate,
                 disable_background_cover_traffic: options.disable_background_cover_traffic,
                 enable_credentials_mode: options.enable_credentials_mode,
-                min_mixnode_performance: options.min_mixnode_performance,
-                min_gateway_performance: options.min_gateway_performance,
+                min_mixnode_performance: options
+                    .min_mixnode_performance
+                    .map(|p| p.round_to_integer()),
+                min_gateway_performance: options
+                    .min_gateway_mixnet_performance
+                    .map(|p| p.round_to_integer()),
             },
             data_path: Some(self.data_dir.clone()),
             gateway_config,

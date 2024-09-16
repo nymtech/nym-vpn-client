@@ -418,6 +418,13 @@ async fn select_gateways(
     gateway_directory_client: &GatewayClient,
     nym_vpn: &SpecificVpn,
 ) -> std::result::Result<SelectedGateways, GatewayDirectoryError> {
+    if let Some(min_mixnet_performance) = gateway_directory_client.mixnet_min_performance() {
+        info!("Using min mixnet gateway performance: {min_mixnet_performance}");
+    }
+    if let Some(min_vpn_performance) = gateway_directory_client.vpn_min_performance() {
+        info!("Using min vpn gateway performance: {min_vpn_performance}");
+    }
+
     // The set of exit gateways is smaller than the set of entry gateways, so we start by selecting
     // the exit gateway and then filter out the exit gateway from the set of entry gateways.
 

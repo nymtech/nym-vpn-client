@@ -95,7 +95,8 @@ message ConnectRequest {
   bool disable_background_cover_traffic = 7;
   bool enable_credentials_mode = 8;
   Threshold min_mixnode_performance = 9;
-  Threshold min_gateway_performance = 10;
+  Threshold min_gateway_mixnet_performance = 10;
+  Threshold min_gateway_vpn_performance = 11;
 }
 
 message ConnectResponse {

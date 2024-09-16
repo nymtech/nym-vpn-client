@@ -209,6 +209,14 @@ impl WgTunnelRunner {
     }
 
     async fn select_gateways(&self) -> Result<SelectedGateways> {
+        if let Some(min_mixnet_performance) = self.gateway_directory_client.mixnet_min_performance()
+        {
+            tracing::info!("Using min mixnet gateway performance: {min_mixnet_performance}");
+        }
+        if let Some(min_vpn_performance) = self.gateway_directory_client.vpn_min_performance() {
+            tracing::info!("Using min vpn gateway performance: {min_vpn_performance}");
+        }
+
         let all_gateways = self
             .gateway_directory_client
             .lookup_vpn_gateways()
