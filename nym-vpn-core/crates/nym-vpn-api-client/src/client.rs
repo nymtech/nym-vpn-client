@@ -585,7 +585,6 @@ mod tests {
             .get_gateways(Some(GatewayMinPerformance::default()))
             .await
             .unwrap();
-        dbg!(&response);
         assert!(!response.into_inner().is_empty());
     }
 
