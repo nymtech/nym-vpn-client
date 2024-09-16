@@ -218,6 +218,8 @@ pub struct NymDirectoryGateway {
     pub last_probe: Option<Probe>,
     pub ip_addresses: Vec<String>,
     pub entry: EntryInformation,
+    // The performance data here originates from the nym-api, and is effectively mixnet performance
+    // at the time of writing this
     pub performance: Percent,
 }
 
@@ -287,6 +289,7 @@ impl Probe {
 pub struct ProbeOutcome {
     pub as_entry: Entry,
     pub as_exit: Option<Exit>,
+    pub wg: Option<WgProbeResults>,
 }
 
 impl ProbeOutcome {
@@ -320,6 +323,16 @@ pub struct Exit {
     pub can_route_ip_external_v4: bool,
     pub can_route_ip_v6: bool,
     pub can_route_ip_external_v6: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename = "wg")]
+pub struct WgProbeResults {
+    pub can_register: bool,
+    pub can_handshake: bool,
+    pub can_resolve_dns: bool,
+    pub ping_hosts_performance: f32,
+    pub ping_ips_performance: f32,
 }
 
 fn is_recently_updated(last_updated_utc: &str) -> bool {

@@ -476,7 +476,7 @@ async fn select_gateways(
             .two_letter_iso_country_code()
             .map_or_else(|| "unknown".to_string(), |code| code.to_string()),
         entry_gateway
-            .performance
+            .mixnet_performance
             .map_or_else(|| "unknown".to_string(), |perf| perf.to_string()),
     );
     info!(
@@ -486,7 +486,7 @@ async fn select_gateways(
             .two_letter_iso_country_code()
             .map_or_else(|| "unknown".to_string(), |code| code.to_string()),
         entry_gateway
-            .performance
+            .mixnet_performance
             .map_or_else(|| "unknown".to_string(), |perf| perf.to_string()),
     );
     info!(
