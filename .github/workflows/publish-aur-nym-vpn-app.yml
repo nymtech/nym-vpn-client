@@ -64,7 +64,7 @@ jobs:
       - name: Download prebuilt binary
         if: matrix.pkgtype == 'bin'
         run: |
-          curl -LfsSo $LINUX_BIN "https://github.com/$REPOSITORY/releases/download/$RELEASE_TAG/nym-vpn-app_${{ steps.app-version.outputs.metadata }}_linux_x64"
+          curl -LfsSo $LINUX_BIN "https://github.com/$REPOSITORY/releases/download/$RELEASE_TAG/nym-vpn_${{ steps.app-version.outputs.metadata }}_linux_x64"
       - name: Update PKGBUILD
         env:
           PKGBUILD: ${{ env.PKGBUILD }}

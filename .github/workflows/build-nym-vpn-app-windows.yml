@@ -211,9 +211,9 @@ jobs:
       - name: Move things around to prepare for upload
         shell: bash
         env:
-          WINDOWS_BUILT_NAME: ${{ env.TAURI_SRC }}/target/release/bundle/nsis/nym-vpn-app_${{ steps.package-version.outputs.metadata }}_x64-setup.nsis.zip
-          WINDOWS_UPDATER_NAME: updater_windows_x86_64.nsis.zip
-          BINARY: ${{ env.TAURI_SRC }}/target/release/bundle/nsis/nym-vpn-app_${{ steps.package-version.outputs.metadata }}_x64-setup.exe
+          WINDOWS_BUILT_NAME: ${{ env.TAURI_SRC }}/target/release/bundle/nsis/nym-vpn_${{ steps.package-version.outputs.metadata }}_x64-setup.nsis.zip
+          WINDOWS_UPDATER_NAME: updater_windows_x64.nsis.zip
+          BINARY: ${{ env.TAURI_SRC }}/target/release/bundle/nsis/nym-vpn_${{ steps.package-version.outputs.metadata }}_x64-setup.exe
         run: |
           echo "moving binaries into ${{ env.UPLOAD_DIR_WINDOWS }}"
           rm -rf ${{ env.UPLOAD_DIR_WINDOWS }} || true
