@@ -21,5 +21,14 @@
   "logs": {
     "title": "گزارش‌ها"
   },
-  "add-credential-button": "افزودن اعتبارنامه برای اتصال"
+  "add-credential-button": "افزودن اعتبارنامه برای اتصال",
+  "entry-selector": {
+    "title": "گزینش‌گر موقعیت ورودی"
+  },
+  "error-monitoring": {
+    "title": "گزارش ناشناس خطا"
+  },
+  "auto-connect": {
+    "title": "اتصال خودکار"
+  }
 }
