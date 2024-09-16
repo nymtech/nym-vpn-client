@@ -9,7 +9,7 @@ use std::{
 };
 
 use futures::{stream::BoxStream, StreamExt};
-use nym_vpn_api_client::types::{GatewayMinPerformance, Percent};
+use nym_vpn_api_client::types::GatewayMinPerformance;
 use nym_vpn_proto::{
     nym_vpnd_server::NymVpnd, AccountError, ConnectRequest, ConnectResponse, ConnectionStateChange,
     ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty, GetAccountSummaryRequest,
@@ -277,14 +277,15 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<ListEntryGatewaysResponse>, tonic::Status> {
         info!("Got list entry gateways request: {:?}", request);
 
-        let min_gateway_performance = request
-            .into_inner()
-            .min_gateway_performance
-            .map(threshold_into_percent);
+        let request = request.into_inner();
+
+        let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
+
+        let min_vpn_performance = request.min_vpn_performance.map(threshold_into_percent);
 
         let min_gateway_performance = GatewayMinPerformance {
-            mixnet_min_performance: min_gateway_performance,
-            vpn_min_performance: None,
+            mixnet_min_performance: min_mixnet_performance,
+            vpn_min_performance: min_vpn_performance,
         };
 
         let entry_gateways = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
@@ -316,14 +317,15 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<ListVpnGatewaysResponse>, tonic::Status> {
         info!("Got list VPN gateways request: {request:?}");
 
-        let min_gateway_performance = request
-            .into_inner()
-            .min_gateway_performance
-            .map(threshold_into_percent);
+        let request = request.into_inner();
+
+        let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
+
+        let min_vpn_performance = request.min_vpn_performance.map(threshold_into_percent);
 
         let min_gateway_performance = GatewayMinPerformance {
-            mixnet_min_performance: None,
-            vpn_min_performance: min_gateway_performance,
+            mixnet_min_performance: min_mixnet_performance,
+            vpn_min_performance: min_vpn_performance,
         };
 
         let gateways = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
@@ -355,14 +357,15 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<ListExitGatewaysResponse>, tonic::Status> {
         info!("Got list exit gateways request: {:?}", request);
 
-        let min_gateway_performance = request
-            .into_inner()
-            .min_gateway_performance
-            .map(threshold_into_percent);
+        let request = request.into_inner();
+
+        let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
+
+        let min_vpn_performance = request.min_vpn_performance.map(threshold_into_percent);
 
         let min_gateway_performance = GatewayMinPerformance {
-            mixnet_min_performance: min_gateway_performance,
-            vpn_min_performance: None,
+            mixnet_min_performance: min_mixnet_performance,
+            vpn_min_performance: min_vpn_performance,
         };
 
         let exit_gateways = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
@@ -394,14 +397,15 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<ListEntryCountriesResponse>, tonic::Status> {
         info!("Got list entry countries request: {request:?}");
 
-        let min_gateway_performance = request
-            .into_inner()
-            .min_gateway_performance
-            .map(threshold_into_percent);
+        let request = request.into_inner();
+
+        let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
+
+        let min_vpn_performance = request.min_vpn_performance.map(threshold_into_percent);
 
         let min_gateway_performance = GatewayMinPerformance {
-            mixnet_min_performance: min_gateway_performance,
-            vpn_min_performance: None,
+            mixnet_min_performance: min_mixnet_performance,
+            vpn_min_performance: min_vpn_performance,
         };
 
         let countries = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
@@ -433,14 +437,15 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<ListExitCountriesResponse>, tonic::Status> {
         info!("Got list exit countries request: {request:?}");
 
-        let min_gateway_performance = request
-            .into_inner()
-            .min_gateway_performance
-            .map(threshold_into_percent);
+        let request = request.into_inner();
+
+        let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
+
+        let min_vpn_performance = request.min_vpn_performance.map(threshold_into_percent);
 
         let min_gateway_performance = GatewayMinPerformance {
-            mixnet_min_performance: min_gateway_performance,
-            vpn_min_performance: None,
+            mixnet_min_performance: min_mixnet_performance,
+            vpn_min_performance: min_vpn_performance,
         };
 
         let countries = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
@@ -472,14 +477,15 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<ListVpnCountriesResponse>, tonic::Status> {
         info!("Got list VPN countries request: {request:?}");
 
-        let min_gateway_performance = request
-            .into_inner()
-            .min_gateway_performance
-            .map(threshold_into_percent);
+        let request = request.into_inner();
+
+        let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
+
+        let min_vpn_performance = request.min_vpn_performance.map(threshold_into_percent);
 
         let min_gateway_performance = GatewayMinPerformance {
-            mixnet_min_performance: None,
-            vpn_min_performance: min_gateway_performance,
+            mixnet_min_performance: min_mixnet_performance,
+            vpn_min_performance: min_vpn_performance,
         };
 
         let countries = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())

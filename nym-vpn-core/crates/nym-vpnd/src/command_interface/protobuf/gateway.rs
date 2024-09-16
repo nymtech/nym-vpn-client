@@ -38,7 +38,12 @@ impl From<gateway::ProbeOutcome> for nym_vpn_proto::ProbeOutcome {
     fn from(outcome: gateway::ProbeOutcome) -> Self {
         let as_entry = Some(nym_vpn_proto::AsEntry::from(outcome.as_entry));
         let as_exit = outcome.as_exit.map(nym_vpn_proto::AsExit::from);
-        nym_vpn_proto::ProbeOutcome { as_entry, as_exit }
+        let wg = None;
+        nym_vpn_proto::ProbeOutcome {
+            as_entry,
+            as_exit,
+            wg,
+        }
     }
 }
 
@@ -101,6 +106,11 @@ impl From<gateway::Gateway> for nym_vpn_proto::VpnGateway {
             id: gateway.identity_key.to_string(),
         });
         let location = gateway.location.map(nym_vpn_proto::Location::from);
-        nym_vpn_proto::VpnGateway { id, location }
+        let last_probe = gateway.last_probe.map(nym_vpn_proto::Probe::from);
+        nym_vpn_proto::VpnGateway {
+            id,
+            location,
+            last_probe,
+        }
     }
 }

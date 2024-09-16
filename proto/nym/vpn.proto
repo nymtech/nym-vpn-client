@@ -354,9 +354,18 @@ message AsExit {
   bool can_route_ip_external_v6 = 5;
 }
 
+message WgProbeResult {
+  bool can_register = 1;
+  bool can_handshake = 2;
+  bool can_resolve_dns = 3;
+  float ping_hosts_performance = 4;
+  float ping_ips_performance = 5;
+}
+
 message ProbeOutcome {
   AsEntry as_entry = 1;
   AsExit as_exit = 2;
+  WgProbeResult wg = 3;
 }
 
 message Probe {
@@ -371,7 +380,8 @@ message EntryGateway {
 }
 
 message ListEntryGatewaysRequest {
-  Threshold min_gateway_performance = 1;
+  Threshold min_mixnet_performance = 1;
+  Threshold min_vpn_performance = 2;
 }
 
 message ListEntryGatewaysResponse {
@@ -385,7 +395,8 @@ message ExitGateway {
 }
 
 message ListExitGatewaysRequest {
-  Threshold min_gateway_performance = 1;
+  Threshold min_mixnet_performance = 1;
+  Threshold min_vpn_performance = 2;
 }
 
 message ListExitGatewaysResponse {
@@ -395,10 +406,12 @@ message ListExitGatewaysResponse {
 message VpnGateway {
   Gateway id = 1;
   Location location = 2;
+  Probe last_probe = 3;
 }
 
 message ListVpnGatewaysRequest {
-  Threshold min_gateway_performance = 1;
+  Threshold min_mixnet_performance = 1;
+  Threshold min_vpn_performance = 2;
 }
 
 message ListVpnGatewaysResponse {
@@ -406,7 +419,8 @@ message ListVpnGatewaysResponse {
 }
 
 message ListEntryCountriesRequest {
-  Threshold min_gateway_performance = 1;
+  Threshold min_mixnet_performance = 1;
+  Threshold min_vpn_performance = 2;
 }
 
 message ListEntryCountriesResponse {
@@ -414,7 +428,8 @@ message ListEntryCountriesResponse {
 }
 
 message ListExitCountriesRequest {
-  Threshold min_gateway_performance = 1;
+  Threshold min_mixnet_performance = 1;
+  Threshold min_vpn_performance = 2;
 }
 
 message ListExitCountriesResponse {
@@ -422,7 +437,8 @@ message ListExitCountriesResponse {
 }
 
 message ListVpnCountriesRequest {
-  Threshold min_gateway_performance = 1;
+  Threshold min_mixnet_performance = 1;
+  Threshold min_vpn_performance = 2;
 }
 
 message ListVpnCountriesResponse {
