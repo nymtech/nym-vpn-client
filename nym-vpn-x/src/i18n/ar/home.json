@@ -1,1 +1,11 @@
-{}
+{
+  "status": {
+    "connected": "متصل",
+    "disconnected": "انفصال",
+    "connecting": "يتصل الآن",
+    "disconnecting": "ينفصل"
+  },
+  "privacy-mode": {
+    "title": "مجهول (mixnet)"
+  }
+}
