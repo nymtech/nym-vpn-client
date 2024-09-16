@@ -83,6 +83,11 @@ impl RouteHandler {
 
         _ = tokio::task::spawn_blocking(|| drop(self.route_manager)).await;
     }
+
+    #[cfg(target_os = "macos")]
+    pub(super) fn inner_handle(&self) -> Result<talpid_routing::RouteManagerHandle> {
+        Ok(self.route_manager.handle()?)
+    }
 }
 
 #[derive(Debug)]
@@ -104,7 +109,7 @@ impl From<talpid_routing::Error> for Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Failed to setup routing")
+        write!(f, "Routing error")
     }
 }
 
