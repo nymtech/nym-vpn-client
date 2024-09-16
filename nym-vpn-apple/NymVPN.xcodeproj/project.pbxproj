@@ -34,6 +34,7 @@
 		D94866FF2BE035C300F5331B /* CredentialsManager in Frameworks */ = {isa = PBXBuildFile; productRef = D94866FE2BE035C300F5331B /* CredentialsManager */; };
 		D94867012BE035FB00F5331B /* Constants in Frameworks */ = {isa = PBXBuildFile; productRef = D94867002BE035FB00F5331B /* Constants */; };
 		D9538E2E2B7E3F28002FA8B5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D9538E2D2B7E3F28002FA8B5 /* LaunchScreen.storyboard */; };
+		D953CFEA2C8ED73C008A942B /* NotificationsManager in Frameworks */ = {isa = PBXBuildFile; productRef = D953CFE92C8ED73C008A942B /* NotificationsManager */; };
 		D954C0B92B51C1CA00C6BAAC /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D954C0A62B51C17200C6BAAC /* NetworkExtension.framework */; };
 		D954C0BC2B51C1CA00C6BAAC /* PacketTunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D954C0BB2B51C1CA00C6BAAC /* PacketTunnelProvider.swift */; };
 		D954C0C12B51C1CA00C6BAAC /* NymMixnetTunnel.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D954C0B82B51C1CA00C6BAAC /* NymMixnetTunnel.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -219,6 +220,7 @@
 				D99A148C2B35A74200F2728B /* Theme in Frameworks */,
 				D94867012BE035FB00F5331B /* Constants in Frameworks */,
 				D9B7BAFC2C4866AF005AF2D6 /* NymLogger in Frameworks */,
+				D953CFEA2C8ED73C008A942B /* NotificationsManager in Frameworks */,
 				D9FB33DA2BECC163009C3419 /* Extensions in Frameworks */,
 				D924A8E62C33F3D400465E84 /* ExternalLinkManager in Frameworks */,
 				D94866FF2BE035C300F5331B /* CredentialsManager in Frameworks */,
@@ -472,6 +474,7 @@
 				D924A8E52C33F3D400465E84 /* ExternalLinkManager */,
 				D9B7BAFB2C4866AF005AF2D6 /* NymLogger */,
 				D92FBA2C2C6B6AB800D743DF /* ConfigurationManager */,
+				D953CFE92C8ED73C008A942B /* NotificationsManager */,
 			);
 			productName = NymVPN;
 			productReference = D99A14762B357E9900F2728B /* NymVPN.app */;
@@ -1268,6 +1271,10 @@
 		D94867002BE035FB00F5331B /* Constants */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Constants;
+		};
+		D953CFE92C8ED73C008A942B /* NotificationsManager */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = NotificationsManager;
 		};
 		D96740222B56A67A001F6891 /* Tunnels */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -48,7 +48,7 @@ public final class AppSettings: ObservableObject {
         AppSettingKey.currentEnv.rawValue,
         store: UserDefaults(suiteName: Constants.groupID.rawValue)
     )
-    public var currentEnv: String = "mainnet"
+    public var currentEnv: String = "canary"
 
     // Observed values for view models
     @Published public var isEntryLocationSelectionOnPublisher = false
@@ -78,4 +78,6 @@ enum AppSettingKey: String {
     case connectionType
     case lastConnectionIntent
     case currentEnv
+    case didConnectSuccessfullyOnce
+    case didAskForNotificationPermission
 }
