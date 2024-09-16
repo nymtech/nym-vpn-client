@@ -9,6 +9,7 @@ use std::{
 };
 
 use futures::{stream::BoxStream, StreamExt};
+use nym_vpn_api_client::types::{GatewayMinPerformance, Percent};
 use nym_vpn_proto::{
     nym_vpnd_server::NymVpnd, AccountError, ConnectRequest, ConnectResponse, ConnectionStateChange,
     ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty, GetAccountSummaryRequest,
@@ -279,7 +280,13 @@ impl NymVpnd for CommandInterface {
         let min_gateway_performance = request
             .into_inner()
             .min_gateway_performance
-            .map(threshold_into_u8);
+            .map(threshold_into_u8)
+            .map(|p| Percent::from_percentage_value(p as u64).unwrap());
+
+        let min_gateway_performance = GatewayMinPerformance {
+            mixnet_min_performance: min_gateway_performance,
+            vpn_min_performance: None,
+        };
 
         let entry_gateways = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_list_entry_gateways(min_gateway_performance)
@@ -313,7 +320,13 @@ impl NymVpnd for CommandInterface {
         let min_gateway_performance = request
             .into_inner()
             .min_gateway_performance
-            .map(threshold_into_u8);
+            .map(threshold_into_u8)
+            .map(|p| Percent::from_percentage_value(p as u64).unwrap());
+
+        let min_gateway_performance = GatewayMinPerformance {
+            mixnet_min_performance: None,
+            vpn_min_performance: min_gateway_performance,
+        };
 
         let gateways = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_list_vpn_gateways(min_gateway_performance)
@@ -347,7 +360,13 @@ impl NymVpnd for CommandInterface {
         let min_gateway_performance = request
             .into_inner()
             .min_gateway_performance
-            .map(threshold_into_u8);
+            .map(threshold_into_u8)
+            .map(|p| Percent::from_percentage_value(p as u64).unwrap());
+
+        let min_gateway_performance = GatewayMinPerformance {
+            mixnet_min_performance: min_gateway_performance,
+            vpn_min_performance: None,
+        };
 
         let exit_gateways = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_list_exit_gateways(min_gateway_performance)
@@ -381,7 +400,13 @@ impl NymVpnd for CommandInterface {
         let min_gateway_performance = request
             .into_inner()
             .min_gateway_performance
-            .map(threshold_into_u8);
+            .map(threshold_into_u8)
+            .map(|p| Percent::from_percentage_value(p as u64).unwrap());
+
+        let min_gateway_performance = GatewayMinPerformance {
+            mixnet_min_performance: min_gateway_performance,
+            vpn_min_performance: None,
+        };
 
         let countries = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_list_entry_countries(min_gateway_performance)
@@ -415,7 +440,13 @@ impl NymVpnd for CommandInterface {
         let min_gateway_performance = request
             .into_inner()
             .min_gateway_performance
-            .map(threshold_into_u8);
+            .map(threshold_into_u8)
+            .map(|p| Percent::from_percentage_value(p as u64).unwrap());
+
+        let min_gateway_performance = GatewayMinPerformance {
+            mixnet_min_performance: min_gateway_performance,
+            vpn_min_performance: None,
+        };
 
         let countries = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_list_exit_countries(min_gateway_performance)
@@ -449,7 +480,13 @@ impl NymVpnd for CommandInterface {
         let min_gateway_performance = request
             .into_inner()
             .min_gateway_performance
-            .map(threshold_into_u8);
+            .map(threshold_into_u8)
+            .map(|p| Percent::from_percentage_value(p as u64).unwrap());
+
+        let min_gateway_performance = GatewayMinPerformance {
+            mixnet_min_performance: None,
+            vpn_min_performance: min_gateway_performance,
+        };
 
         let countries = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_list_vpn_countries(min_gateway_performance)

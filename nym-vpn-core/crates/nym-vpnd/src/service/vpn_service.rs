@@ -15,7 +15,7 @@ use futures::{
 };
 use nym_vpn_api_client::{
     response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnZkNym, NymVpnZkNymResponse},
-    types::VpnApiAccount,
+    types::{GatewayMinPerformance, Percent, VpnApiAccount},
 };
 use nym_vpn_lib::{
     credentials::import_credential,
@@ -484,6 +484,17 @@ where
 
         info!("Using config: {}", config);
 
+        let mixnet_min_performance = options
+            .min_mixnode_performance
+            .map(|p| Percent::from_percentage_value(p as u64).unwrap());
+        let vpn_min_performance = options
+            .min_gateway_performance
+            .map(|p| Percent::from_percentage_value(p as u64).unwrap());
+        let min_gateway_performance = GatewayMinPerformance {
+            mixnet_min_performance,
+            vpn_min_performance,
+        };
+
         let generic_config = GenericNymVpnConfig {
             mixnet_client_config: MixnetClientConfig {
                 enable_poisson_rate: options.enable_poisson_rate,
@@ -493,9 +504,7 @@ where
                 min_gateway_performance: options.min_gateway_performance,
             },
             data_path: Some(self.data_dir.clone()),
-            gateway_config: gateway_directory::Config::new_from_env(
-                options.min_gateway_performance,
-            ),
+            gateway_config: gateway_directory::Config::new_from_env(Some(min_gateway_performance)),
             entry_point: config.entry_point.clone(),
             exit_point: config.exit_point.clone(),
             nym_ips: None,

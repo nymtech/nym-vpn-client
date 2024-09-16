@@ -1,9 +1,10 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+pub use nym_contracts_common::Percent;
+
 use std::sync::Arc;
 
-use nym_contracts_common::Percent;
 use nym_crypto::asymmetric::ed25519;
 use nym_validator_client::{signing::signer::OfflineSigner as _, DirectSecp256k1HdWallet};
 

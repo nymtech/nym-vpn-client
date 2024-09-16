@@ -6,6 +6,7 @@ use std::{net::IpAddr, str::FromStr};
 use itertools::Itertools;
 use nym_sdk::mixnet::NodeIdentity;
 use nym_topology::IntoGatewayNode;
+use nym_vpn_api_client::types::Percent;
 use rand::seq::IteratorRandom;
 use tracing::error;
 
@@ -13,6 +14,7 @@ use crate::{error::Result, AuthAddress, Country, Error, IpPacketRouterAddress};
 
 // Decimal between 0 and 1 representing the performance of a gateway, measured over 24h.
 type Performance = u8;
+// type Performance = nym_vpn_api_client::types::Percent;
 
 #[derive(Clone)]
 pub struct Gateway {
@@ -222,9 +224,9 @@ fn string_fraction_into_percentage_u8(s: &str) -> Option<u8> {
         .ok()
 }
 
-fn percentage_u8_to_string_fraction(p: u8) -> String {
-    (p as f64 / 100.0).clamp(0.0, 1.0).to_string()
-}
+// fn percentage_u8_to_string_fraction(p: u8) -> String {
+//     (p as f64 / 100.0).clamp(0.0, 1.0).to_string()
+// }
 
 impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
     type Error = Error;

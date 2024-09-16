@@ -582,7 +582,7 @@ mod tests {
     async fn get_gateways() {
         let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
         let response = client
-            .get_gateways(GatewayMinPerformance::default())
+            .get_gateways(Some(GatewayMinPerformance::default()))
             .await
             .unwrap();
         dbg!(&response);
@@ -592,27 +592,21 @@ mod tests {
     #[tokio::test]
     async fn get_entry_gateways() {
         let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-        let response = client
-            .get_entry_gateways(GatewayMinPerformance::default())
-            .await
-            .unwrap();
+        let response = client.get_entry_gateways(None).await.unwrap();
         assert!(!response.into_inner().is_empty());
     }
 
     #[tokio::test]
     async fn get_exit_gateways() {
         let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-        let response = client
-            .get_entry_gateways(GatewayMinPerformance::default())
-            .await
-            .unwrap();
+        let response = client.get_entry_gateways(None).await.unwrap();
         assert!(!response.into_inner().is_empty());
     }
 
     #[tokio::test]
     async fn get_gateway_countries() {
         let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-        let response = client.get_gateway_countries().await.unwrap();
+        let response = client.get_gateway_countries(None).await.unwrap();
         dbg!(&response);
         assert!(!response.into_inner().is_empty());
     }
@@ -620,14 +614,14 @@ mod tests {
     #[tokio::test]
     async fn get_entry_gateway_countries() {
         let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-        let response = client.get_entry_gateway_countries().await.unwrap();
+        let response = client.get_entry_gateway_countries(None).await.unwrap();
         assert!(!response.into_inner().is_empty());
     }
 
     #[tokio::test]
     async fn get_exit_gateway_countries() {
         let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-        let response = client.get_exit_gateway_countries().await.unwrap();
+        let response = client.get_exit_gateway_countries(None).await.unwrap();
         assert!(!response.into_inner().is_empty());
     }
 }

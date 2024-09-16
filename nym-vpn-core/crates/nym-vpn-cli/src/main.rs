@@ -7,7 +7,9 @@ use clap::Parser;
 use commands::{CliArgs, ImportCredentialTypeEnum};
 use futures::channel::mpsc;
 use nym_vpn_lib::{
-    gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint},
+    gateway_directory::{
+        Config as GatewayConfig, EntryPoint, ExitPoint, GatewayMinPerformance, Percent,
+    },
     nym_config::defaults::{setup_env, var_names},
     GenericNymVpnConfig, IpPair, MixnetClientConfig, NodeIdentity, NymVpn, Recipient, SpecificVpn,
 };
@@ -158,7 +160,16 @@ async fn run() -> Result<()> {
 
 async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<()> {
     // Setup gateway directory configuration
-    let gateway_config = GatewayConfig::new_from_env(args.min_gateway_performance);
+    let mixnet_min_performance = args
+        .min_mixnode_performance
+        .map(|p| Percent::from_percentage_value(p as u64).unwrap());
+    let vpn_min_performance = args
+        .min_gateway_performance
+        .map(|p| Percent::from_percentage_value(p as u64).unwrap());
+    let gateway_config = GatewayConfig::new_from_env(Some(GatewayMinPerformance {
+        mixnet_min_performance,
+        vpn_min_performance,
+    }));
 
     info!("nym-api: {}", gateway_config.api_url());
     info!(

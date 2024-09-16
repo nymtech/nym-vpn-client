@@ -1,8 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_api_client::response::{
-    NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnZkNym, NymVpnZkNymResponse,
+use nym_vpn_api_client::{
+    response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnZkNym, NymVpnZkNymResponse},
+    types::GatewayMinPerformance,
 };
 use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint, GatewayClient};
 use time::OffsetDateTime;
@@ -138,7 +139,8 @@ impl CommandInterfaceConnectionHandler {
 
     pub(crate) async fn handle_list_entry_gateways(
         &self,
-        min_gateway_performance: Option<u8>,
+        // min_gateway_performance: Option<u8>,
+        min_gateway_performance: GatewayMinPerformance,
     ) -> Result<Vec<gateway::Gateway>, ListGatewayError> {
         let gateways = directory_client(min_gateway_performance)?
             .lookup_entry_gateways()
@@ -150,7 +152,8 @@ impl CommandInterfaceConnectionHandler {
 
     pub(crate) async fn handle_list_exit_gateways(
         &self,
-        min_gateway_performance: Option<u8>,
+        // min_gateway_performance: Option<u8>,
+        min_gateway_performance: GatewayMinPerformance,
     ) -> Result<Vec<gateway::Gateway>, ListGatewayError> {
         let gateways = directory_client(min_gateway_performance)?
             .lookup_exit_gateways()
@@ -162,7 +165,8 @@ impl CommandInterfaceConnectionHandler {
 
     pub(crate) async fn handle_list_vpn_gateways(
         &self,
-        min_gateway_performance: Option<u8>,
+        // min_gateway_performance: Option<u8>,
+        min_gateway_performance: GatewayMinPerformance,
     ) -> Result<Vec<gateway::Gateway>, ListGatewayError> {
         let gateways = directory_client(min_gateway_performance)?
             .lookup_vpn_gateways()
@@ -174,7 +178,8 @@ impl CommandInterfaceConnectionHandler {
 
     pub(crate) async fn handle_list_entry_countries(
         &self,
-        min_gateway_performance: Option<u8>,
+        // min_gateway_performance: Option<u8>,
+        min_gateway_performance: GatewayMinPerformance,
     ) -> Result<Vec<gateway::Country>, ListGatewayError> {
         let gateways = directory_client(min_gateway_performance)?
             .lookup_entry_countries()
@@ -186,7 +191,8 @@ impl CommandInterfaceConnectionHandler {
 
     pub(crate) async fn handle_list_exit_countries(
         &self,
-        min_gateway_performance: Option<u8>,
+        // min_gateway_performance: Option<u8>,
+        min_gateway_performance: GatewayMinPerformance,
     ) -> Result<Vec<gateway::Country>, ListGatewayError> {
         let gateways = directory_client(min_gateway_performance)?
             .lookup_exit_countries()
@@ -198,7 +204,8 @@ impl CommandInterfaceConnectionHandler {
 
     pub(crate) async fn handle_list_vpn_countries(
         &self,
-        min_gateway_performance: Option<u8>,
+        // min_gateway_performance: Option<u8>,
+        min_gateway_performance: GatewayMinPerformance,
     ) -> Result<Vec<gateway::Country>, ListGatewayError> {
         let gateways = directory_client(min_gateway_performance)?
             .lookup_vpn_countries()
@@ -264,11 +271,12 @@ impl CommandInterfaceConnectionHandler {
 }
 
 fn directory_client(
-    min_gateway_performance: Option<u8>,
+    // min_gateway_performance: Option<u8>,
+    min_gateway_performance: GatewayMinPerformance,
 ) -> Result<GatewayClient, ListGatewayError> {
     let user_agent = nym_bin_common::bin_info_local_vergen!().into();
     let directory_config =
-        nym_vpn_lib::gateway_directory::Config::new_from_env(min_gateway_performance);
+        nym_vpn_lib::gateway_directory::Config::new_from_env(Some(min_gateway_performance));
     GatewayClient::new(directory_config, user_agent)
         .map_err(|error| ListGatewayError::CreateGatewayDirectoryClient { error })
 }
