@@ -1,1 +1,13 @@
-{}
+{
+  "loading": "Carregando...",
+  "none-found": "Não foram encontrados resultados. Por favor, tente outra pesquisa",
+  "list-loading": "A lista de localizações está a carregar…",
+  "search-country": "Localização da pesquisa",
+  "location-details": {
+    "link": "Ler mais"
+  },
+  "location-not-available": {
+    "entry": "O local de entrada selecionado não está disponível, mudou para{{location}}",
+    "exit": "O local de saída selecionado não está disponível, mudou para{{location}}"
+  }
+}
