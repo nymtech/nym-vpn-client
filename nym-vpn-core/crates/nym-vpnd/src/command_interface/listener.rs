@@ -14,12 +14,8 @@ use nym_vpn_proto::{
     nym_vpnd_server::NymVpnd, AccountError, ConnectRequest, ConnectResponse, ConnectionStateChange,
     ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty, GetAccountSummaryRequest,
     GetAccountSummaryResponse, ImportUserCredentialRequest, ImportUserCredentialResponse,
-    InfoRequest, InfoResponse, ListEntryCountriesRequest, ListEntryCountriesResponse,
-    ListEntryGatewaysRequest, ListEntryGatewaysResponse, ListExitCountriesRequest,
-    ListExitCountriesResponse, ListExitGatewaysRequest, ListExitGatewaysResponse,
-    ListVpnCountriesRequest, ListVpnCountriesResponse, ListVpnGatewaysRequest,
-    ListVpnGatewaysResponse, StatusRequest, StatusResponse, StoreAccountRequest,
-    StoreAccountResponse,
+    InfoRequest, InfoResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
+    ListGatewaysResponse, StatusRequest, StatusResponse, StoreAccountRequest, StoreAccountResponse,
 };
 use prost_types::Timestamp;
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
@@ -271,16 +267,15 @@ impl NymVpnd for CommandInterface {
         ))
     }
 
-    async fn list_entry_gateways(
+    async fn list_gateways(
         &self,
-        request: tonic::Request<ListEntryGatewaysRequest>,
-    ) -> Result<tonic::Response<ListEntryGatewaysResponse>, tonic::Status> {
-        info!("Got list entry gateways request: {:?}", request);
+        request: tonic::Request<ListGatewaysRequest>,
+    ) -> Result<tonic::Response<ListGatewaysResponse>, tonic::Status> {
+        info!("Got list gateways request: {:?}", request);
 
         let request = request.into_inner();
-
+        let kind = request.kind;
         let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
-
         let min_vpn_performance = request.min_vpn_performance.map(threshold_into_percent);
 
         let min_gateway_performance = GatewayMinPerformance {
@@ -288,24 +283,24 @@ impl NymVpnd for CommandInterface {
             vpn_min_performance: min_vpn_performance,
         };
 
-        let entry_gateways = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+        let gateways = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_list_entry_gateways(min_gateway_performance)
             .await
             .map_err(|err| {
-                let msg = format!("Failed to list entry gateways: {:?}", err);
+                let msg = format!("Failed to list gateways: {:?}", err);
                 error!(msg);
                 tonic::Status::internal(msg)
             })?;
 
-        let response = ListEntryGatewaysResponse {
-            gateways: entry_gateways
+        let response = ListGatewaysResponse {
+            gateways: gateways
                 .into_iter()
-                .map(nym_vpn_proto::EntryGateway::from)
+                .map(nym_vpn_proto::GatewayResponse::from)
                 .collect(),
         };
 
         info!(
-            "Returning list entry gateways response: {} entries",
+            "Returning list gateways response: {} entries",
             response.gateways.len()
         );
         Ok(tonic::Response::new(response))

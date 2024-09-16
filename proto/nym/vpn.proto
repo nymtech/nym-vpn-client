@@ -373,75 +373,41 @@ message Probe {
   ProbeOutcome outcome = 2;
 }
 
-message EntryGateway {
+message GatewayResponse {
   Gateway id = 1;
   Location location = 2;
   Probe last_probe = 3;
 }
 
-message ListEntryGatewaysRequest {
-  Threshold min_mixnet_performance = 1;
-  Threshold min_vpn_performance = 2;
+message ListGatewaysRequest {
+  enum ListGatewaysType {
+    LIST_GATEWAY_TYPE_UNSPECIFIED = 0;
+    ENTRY = 1;
+    EXIT = 2;
+    VPN = 3;
+  }
+  ListGatewaysType kind = 1;
+  Threshold min_mixnet_performance = 2;
+  Threshold min_vpn_performance = 3;
 }
 
-message ListEntryGatewaysResponse {
-  repeated EntryGateway gateways = 1;
+message ListGatewaysResponse {
+  repeated GatewayResponse gateways = 1;
 }
 
-message ExitGateway {
-  Gateway id = 1;
-  Location location = 2;
-  Probe last_probe = 3;
+message ListCountriesRequest {
+  enum ListCountriesType {
+    LIST_GATEWAY_TYPE_UNSPECIFIED = 0;
+    ENTRY = 1;
+    EXIT = 2;
+    VPN = 3;
+  }
+  ListCountriesType kind = 1;
+  Threshold min_mixnet_performance = 2;
+  Threshold min_vpn_performance = 3;
 }
 
-message ListExitGatewaysRequest {
-  Threshold min_mixnet_performance = 1;
-  Threshold min_vpn_performance = 2;
-}
-
-message ListExitGatewaysResponse {
-  repeated ExitGateway gateways = 1;
-}
-
-message VpnGateway {
-  Gateway id = 1;
-  Location location = 2;
-  Probe last_probe = 3;
-}
-
-message ListVpnGatewaysRequest {
-  Threshold min_mixnet_performance = 1;
-  Threshold min_vpn_performance = 2;
-}
-
-message ListVpnGatewaysResponse {
-  repeated VpnGateway gateways = 1;
-}
-
-message ListEntryCountriesRequest {
-  Threshold min_mixnet_performance = 1;
-  Threshold min_vpn_performance = 2;
-}
-
-message ListEntryCountriesResponse {
-  repeated Location countries = 1;
-}
-
-message ListExitCountriesRequest {
-  Threshold min_mixnet_performance = 1;
-  Threshold min_vpn_performance = 2;
-}
-
-message ListExitCountriesResponse {
-  repeated Location countries = 1;
-}
-
-message ListVpnCountriesRequest {
-  Threshold min_mixnet_performance = 1;
-  Threshold min_vpn_performance = 2;
-}
-
-message ListVpnCountriesResponse {
+message ListCountriesResponse {
   repeated Location countries = 1;
 }
 
@@ -512,12 +478,8 @@ service NymVpnd {
   rpc ListenToConnectionStateChanges (Empty) returns (stream ConnectionStateChange) {}
   rpc ListenToConnectionStatus (Empty) returns (stream ConnectionStatusUpdate) {}
 
-  rpc ListEntryGateways (ListEntryGatewaysRequest) returns (ListEntryGatewaysResponse) {}
-  rpc ListExitGateways (ListExitGatewaysRequest) returns (ListExitGatewaysResponse) {}
-  rpc ListVpnGateways (ListVpnGatewaysRequest) returns (ListVpnGatewaysResponse) {}
-  rpc ListEntryCountries (ListEntryCountriesRequest) returns (ListEntryCountriesResponse) {}
-  rpc ListExitCountries (ListExitCountriesRequest) returns (ListExitCountriesResponse) {}
-  rpc ListVpnCountries (ListVpnCountriesRequest) returns (ListVpnCountriesResponse) {}
+  rpc ListGateways (ListGatewaysRequest) returns (ListGatewaysResponse) {}
+  rpc ListCountries (ListCountriesRequest) returns (ListCountriesResponse) {}
 
   // Unstable
   rpc StoreAccount (StoreAccountRequest) returns (StoreAccountResponse) {}

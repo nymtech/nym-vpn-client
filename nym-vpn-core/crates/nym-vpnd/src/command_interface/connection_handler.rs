@@ -139,7 +139,6 @@ impl CommandInterfaceConnectionHandler {
 
     pub(crate) async fn handle_list_entry_gateways(
         &self,
-        // min_gateway_performance: Option<u8>,
         min_gateway_performance: GatewayMinPerformance,
     ) -> Result<Vec<gateway::Gateway>, ListGatewayError> {
         let gateways = directory_client(min_gateway_performance)?
@@ -152,7 +151,6 @@ impl CommandInterfaceConnectionHandler {
 
     pub(crate) async fn handle_list_exit_gateways(
         &self,
-        // min_gateway_performance: Option<u8>,
         min_gateway_performance: GatewayMinPerformance,
     ) -> Result<Vec<gateway::Gateway>, ListGatewayError> {
         let gateways = directory_client(min_gateway_performance)?
@@ -165,7 +163,6 @@ impl CommandInterfaceConnectionHandler {
 
     pub(crate) async fn handle_list_vpn_gateways(
         &self,
-        // min_gateway_performance: Option<u8>,
         min_gateway_performance: GatewayMinPerformance,
     ) -> Result<Vec<gateway::Gateway>, ListGatewayError> {
         let gateways = directory_client(min_gateway_performance)?
@@ -178,7 +175,6 @@ impl CommandInterfaceConnectionHandler {
 
     pub(crate) async fn handle_list_entry_countries(
         &self,
-        // min_gateway_performance: Option<u8>,
         min_gateway_performance: GatewayMinPerformance,
     ) -> Result<Vec<gateway::Country>, ListGatewayError> {
         let gateways = directory_client(min_gateway_performance)?
@@ -191,7 +187,6 @@ impl CommandInterfaceConnectionHandler {
 
     pub(crate) async fn handle_list_exit_countries(
         &self,
-        // min_gateway_performance: Option<u8>,
         min_gateway_performance: GatewayMinPerformance,
     ) -> Result<Vec<gateway::Country>, ListGatewayError> {
         let gateways = directory_client(min_gateway_performance)?
@@ -204,7 +199,6 @@ impl CommandInterfaceConnectionHandler {
 
     pub(crate) async fn handle_list_vpn_countries(
         &self,
-        // min_gateway_performance: Option<u8>,
         min_gateway_performance: GatewayMinPerformance,
     ) -> Result<Vec<gateway::Country>, ListGatewayError> {
         let gateways = directory_client(min_gateway_performance)?
