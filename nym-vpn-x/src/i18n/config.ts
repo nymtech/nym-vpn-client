@@ -3,9 +3,11 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
 
 import {
+  ar,
   de,
   en,
   es,
+  fa,
   fr,
   hi,
   it,
@@ -21,9 +23,11 @@ import { Lang } from './types';
 
 export const defaultNS = 'common';
 export const resources = {
+  ar,
   de,
   en,
   es,
+  fa,
   fr,
   hi,
   it,
@@ -37,9 +41,11 @@ export const resources = {
 } as const;
 
 export const languages: Lang[] = [
+  { code: 'ar', name: 'اَلْعَرَبِيَّةُ' },
   { code: 'de', name: 'Deutsch' },
   { code: 'en', name: 'English' },
   { code: 'es', name: 'Español' },
+  { code: 'fa', name: 'فارسی' },
   { code: 'fr', name: 'Français' },
   { code: 'hi', name: 'हिन्दी' },
   { code: 'it', name: 'Italiano' },
