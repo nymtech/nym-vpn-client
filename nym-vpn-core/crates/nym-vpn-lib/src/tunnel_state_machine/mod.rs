@@ -1,3 +1,4 @@
+mod dns_handler;
 mod route_handler;
 mod states;
 mod tunnel;
@@ -5,6 +6,7 @@ mod tunnel;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
+use dns_handler::DnsHandler;
 use route_handler::RouteHandler;
 use states::DisconnectedState;
 
