@@ -5,7 +5,7 @@ on:
   pull_request:
     paths:
       - ".github/workflows/ci-nym-vpn-app-js.yml"
-      - "../../nym-vpn-app/**"
+      - "nym-vpn-app/**"
 
 jobs:
   check:

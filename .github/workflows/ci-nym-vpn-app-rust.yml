@@ -5,7 +5,7 @@ on:
   pull_request:
     paths:
       - ".github/workflows/ci-nym-vpn-app-rust.yml"
-      - "../../nym-vpn-app/src-tauri/**"
+      - "nym-vpn-app/src-tauri/**"
       - "nym-vpn-core/crates/nym-vpn-proto/**"
 
 env:
