@@ -12,10 +12,6 @@ use tracing::error;
 
 use crate::{error::Result, AuthAddress, Country, Error, IpPacketRouterAddress};
 
-// Decimal between 0 and 1 representing the performance of a gateway, measured over 24h.
-type Performance = u8;
-// type Performance = nym_vpn_api_client::types::Percent;
-
 #[derive(Clone)]
 pub struct Gateway {
     pub identity: NodeIdentity,
@@ -26,7 +22,7 @@ pub struct Gateway {
     pub host: Option<nym_topology::NetworkAddress>,
     pub clients_ws_port: Option<u16>,
     pub clients_wss_port: Option<u16>,
-    pub performance: Option<Performance>,
+    pub performance: Option<Percent>,
 }
 
 impl std::fmt::Debug for Gateway {
@@ -198,8 +194,6 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
         });
         let host = hostname.or(first_ip_address);
 
-        let performance = string_fraction_into_percentage_u8(&gateway.performance);
-
         Ok(Gateway {
             identity,
             location: Some(gateway.location.into()),
@@ -209,24 +203,10 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             host,
             clients_ws_port: Some(gateway.entry.ws_port),
             clients_wss_port: gateway.entry.wss_port,
-            performance,
+            performance: Some(gateway.performance),
         })
     }
 }
-
-// Convert from a String representing a fraction between 0.0 and 1.0, to a percentage number.
-// Example: "0.5" to 50
-fn string_fraction_into_percentage_u8(s: &str) -> Option<u8> {
-    s.parse::<f64>()
-        .map(|p| p * 100.0)
-        .map(|p| p.round() as u8)
-        .map(|p| p.clamp(0, 100))
-        .ok()
-}
-
-// fn percentage_u8_to_string_fraction(p: u8) -> String {
-//     (p as f64 / 100.0).clamp(0.0, 1.0).to_string()
-// }
 
 impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
     type Error = Error;

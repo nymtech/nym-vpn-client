@@ -362,7 +362,7 @@ fn append_performance(
             .iter()
             .find(|bgw| bgw.ed25519_identity_pubkey == gateway.identity().to_base58_string())
         {
-            gateway.performance = Some(basic_gw.performance.round_to_integer());
+            gateway.performance = Some(basic_gw.performance);
         } else {
             error!(
                 "Failed to find skimmed node for gateway with identity {}",
@@ -379,7 +379,7 @@ fn filter_on_mixnet_min_performance(
     if let Some(min_performance) = min_gateway_performance {
         if let Some(mixnet_min_performance) = min_performance.mixnet_min_performance {
             gateways.retain(|gateway| {
-                gateway.performance.unwrap_or(0) >= mixnet_min_performance.round_to_integer()
+                gateway.performance.unwrap_or_default() >= mixnet_min_performance
             });
         }
     }

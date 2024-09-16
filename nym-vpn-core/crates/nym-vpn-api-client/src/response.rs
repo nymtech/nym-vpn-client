@@ -3,6 +3,7 @@
 
 use std::fmt;
 
+use nym_contracts_common::Percent;
 use serde::{Deserialize, Serialize};
 
 const MAX_PROBE_RESULT_AGE_MINUTES: i64 = 60;
@@ -217,7 +218,7 @@ pub struct NymDirectoryGateway {
     pub last_probe: Option<Probe>,
     pub ip_addresses: Vec<String>,
     pub entry: EntryInformation,
-    pub performance: String,
+    pub performance: Percent,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
