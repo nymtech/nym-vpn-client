@@ -108,10 +108,6 @@ impl Config {
         self
     }
 
-    pub fn min_gateway_performance(&self) -> Option<&GatewayMinPerformance> {
-        self.min_gateway_performance.as_ref()
-    }
-
     pub fn with_custom_min_gateway_performance(
         mut self,
         min_gateway_performance: GatewayMinPerformance,
