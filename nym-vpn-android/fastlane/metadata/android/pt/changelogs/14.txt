@@ -1,4 +1,0 @@
-Novidade:
-- Aprimoramentos da interface do usuário
-- Tela de seleção do Analytics
-- Diversos aprimoramentos e melhorias

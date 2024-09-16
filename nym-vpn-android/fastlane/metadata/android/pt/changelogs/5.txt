@@ -1,3 +1,0 @@
-Novidades:
-- Correções de bugs
-- Adição de licenças
