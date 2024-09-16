@@ -85,7 +85,7 @@ extended-description = '''NymVPN is a vpn service that uses the Nym mixnet.
 
 This package contains the nym-vpnd daemon binary, which runs as a background service.
 
-End-users should use either the CLI client, nym-vpnc, or the GUI client, nymvpn-x.'''
+End-users should use either the CLI client, nym-vpnc, or the GUI client, nym-vpn-app.'''
 maintainer-scripts = "debian"
 recommends = "nym-vpnc"
 

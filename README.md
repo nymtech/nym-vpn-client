@@ -29,7 +29,7 @@ Interacting either with `nym-vpnd` or directly to `nym-vpn-lib` using FFI are a 
 
 [nym-vpn-android](nym-vpn-android/README.md)\
 [nym-vpn-apple](nym-vpn-apple/README.md)\
-[nym-vpn-desktop](nym-vpn-x/README.md)
+[nym-vpn-app](nym-vpn-app/README.md)
 
 
 ## Nym's mixnet overview

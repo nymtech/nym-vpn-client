@@ -1,0 +1,129 @@
+name: build-nym-vpn-app-linux
+on:
+  workflow_dispatch:
+  workflow_call:
+    secrets:
+      TAURI_PRIVATE_KEY:
+        required: true
+      TAURI_KEY_PASSWORD:
+        required: true
+      DESKTOP_JS_SENTRY_DSN:
+        required: true
+    outputs:
+      UPLOAD_DIR_LINUX:
+        value: ${{ jobs.build-linux.outputs.UPLOAD_DIR_LINUX }}
+      PKG_VERSION:
+        value: ${{ jobs.build-linux.outputs.PKG_VERSION }}
+      RUST_VERSION:
+        value: ${{ jobs.build-linux.outputs.RUST_VERSION }}
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_TARGET: release
+  UPDATER_BUNDLE_NAME: updater_linux_x86_64.AppImage.tar.gz
+  UPLOAD_DIR_LINUX: linux_artifacts
+
+jobs:
+  build-linux:
+    runs-on: arc-ubuntu-22.04
+    outputs:
+      UPLOAD_DIR_LINUX: ${{ env.UPLOAD_DIR_LINUX }}
+      PKG_VERSION: ${{ steps.package-version.outputs.metadata }}
+      RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev \
+            libwebkit2gtk-4.1-dev build-essential curl wget libssl-dev jq \
+            libgtk-3-dev squashfs-tools libayatana-appindicator3-dev make libfuse2 unzip librsvg2-dev file \
+            libsoup-3.0-dev libjavascriptcoregtk-4.1-dev
+
+      - name: Install rust toolchain
+        uses: brndnmtthws/rust-action-rustup@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Install cargo-license
+        run: cargo install --locked cargo-license
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Get package version
+        id: package-version
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: package.version --entry nym-vpn-app/src-tauri
+
+      - name: Get rust version used for build
+        id: rust-version
+        run: |
+          echo "rustc=$(rustc -V)" >> $GITHUB_OUTPUT
+
+      - name: Install JS dependencies
+        working-directory: nym-vpn-app
+        shell: bash
+        run: npm ci
+
+      - name: Generate licenses file (Js)
+        working-directory: nym-vpn-app
+        shell: bash
+        run: |
+          rm public/licenses-js.json || true
+          npm run gen:licenses:js
+
+      - name: Generate licenses file (Rust)
+        working-directory: nym-vpn-app
+        shell: bash
+        run: |
+          rm public/licenses-rust.json || true
+          npm run gen:licenses:rust
+
+      - name: Build tauri desktop client
+        working-directory: nym-vpn-app/src-tauri
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+          APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
+          # RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+        run: |
+          if [ "${{ env.CARGO_TARGET }}" = "release" ]; then
+            npm run tauri build
+          else
+            npm run tauri build -- --debug
+          fi
+          ls -la target/release/ || true
+          ls -la target/release/bundle || true
+          ls -la target/release/bundle/* || true
+
+      - name: Move things around to prepare for upload
+        env:
+          SRC_APPIMAGE: nym-vpn-app/src-tauri/target/release/bundle/appimage/nym-vpn-app_${{ steps.package-version.outputs.metadata }}_amd64.AppImage
+          DST_APPIMAGE: nym-vpn-app_${{ steps.package-version.outputs.metadata }}.AppImage
+          SRC_DEB: nym-vpn-app/src-tauri/target/release/bundle/deb/nym-vpn-app_${{ steps.package-version.outputs.metadata }}_amd64.deb
+          SRC_BIN: nym-vpn-app/src-tauri/target/release/nym-vpn-app
+          DST_BIN: nym-vpn-app_${{ steps.package-version.outputs.metadata }}_linux_x64
+        run: |
+          mkdir ${{ env.UPLOAD_DIR_LINUX }}
+          echo "Copy AppImage"
+          cp -vpr ${{ env.SRC_APPIMAGE }} ${{ env.UPLOAD_DIR_LINUX }}/${{ env.DST_APPIMAGE }}
+          #echo "Copy updater bundle and signature"
+          #cp -vpr ${{ env.SRC_APPIMAGE }}.tar.gz     ${{ env.UPLOAD_DIR_LINUX }}/${{ env.UPDATER_BUNDLE_NAME }}
+          #cp -vpr ${{ env.SRC_APPIMAGE }}.tar.gz.sig ${{ env.UPLOAD_DIR_LINUX }}/${{ env.UPDATER_BUNDLE_NAME }}.sig
+          echo "Copy debian pkg"
+          cp -vpr ${{ env.SRC_DEB }} ${{ env.UPLOAD_DIR_LINUX }}
+          echo "Copy plain binary"
+          cp -vpr ${{ env.SRC_BIN }} ${{ env.UPLOAD_DIR_LINUX }}/${{ env.DST_BIN }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.UPLOAD_DIR_LINUX }}
+          path: ${{ env.UPLOAD_DIR_LINUX }}
+          retention-days: 1
