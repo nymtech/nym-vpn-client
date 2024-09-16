@@ -335,8 +335,9 @@ private extension HomeViewModel {
 
     func installHelperIfNeeded() async -> Bool {
         var isInstalledAndRunning = helperManager.isHelperAuthorizedAndRunning()
+        let needsUpdate = await needsHelperUpdate()
         // TODO: check if possible to split is helper running vs isHelperAuthorized
-        guard isInstalledAndRunning
+        guard isInstalledAndRunning && !needsUpdate
         else {
             do {
                 updateStatusInfoState(with: .error(message: "home.installDaemon".localizedString))
@@ -348,6 +349,16 @@ private extension HomeViewModel {
             return isInstalledAndRunning
         }
         return isInstalledAndRunning
+    }
+
+    func needsHelperUpdate() async -> Bool {
+        do {
+            let version = try await grpcManager.version()
+            guard helperManager.requiredVersion != version else { return false }
+        } catch {
+            return true
+        }
+        return true
     }
 
     func updateConnectedStartDateMacOS(with status: TunnelStatus) {

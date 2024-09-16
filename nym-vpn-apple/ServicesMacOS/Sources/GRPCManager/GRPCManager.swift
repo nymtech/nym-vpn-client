@@ -40,6 +40,24 @@ public final class GRPCManager: ObservableObject {
         try? group.syncShutdownGracefully()
     }
 
+    // MARK: - Info -
+
+    public func version() async throws -> String {
+        try await withCheckedThrowingContinuation { continuation in
+            let call = client.info(Nym_Vpn_InfoRequest(), callOptions: CallOptions(logger: logger))
+
+            call.response.whenComplete { result in
+                switch result {
+                case let .success(response):
+                    continuation.resume(returning: response.version)
+                case let .failure(error):
+                    print(error)
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+
     public func status() {
         let request = Nym_Vpn_StatusRequest()
         let call = client.vpnStatus(request)

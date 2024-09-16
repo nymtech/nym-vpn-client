@@ -6,9 +6,10 @@ import Shell
 // Any changes made to Info.plist & Launchd.plist - are used to create daemon in nym-vpnd.
 
 public final class HelperManager {
-    public static let shared = HelperManager()
-
     private var helperName = ""
+
+    public let requiredVersion = "0.2.1"
+    public static let shared = HelperManager()
 
     public func setup(helperName: String) {
         self.helperName = helperName
