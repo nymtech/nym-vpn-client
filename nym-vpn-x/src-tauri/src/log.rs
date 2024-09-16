@@ -16,19 +16,12 @@ fn rotate_log_file(log_dir: PathBuf) -> Result<()> {
     let log_file = log_dir.join(LOG_FILE);
     if log_file.is_file() {
         let old_file = log_dir.join(LOG_FILE_OLD);
-        let data = fs::read(&log_file).inspect_err(|e| {
+        fs::rename(&log_file, &old_file).inspect_err(|e| {
             eprintln!(
-                "failed to read log file during log rotation {}: {e}",
+                "failed to rename log file during log rotation {}: {e}",
                 log_file.display()
             )
         })?;
-        fs::write(&old_file, data).inspect_err(|e| {
-            eprintln!(
-                "failed to write log file during log rotation {}: {e}",
-                old_file.display()
-            )
-        })?;
-        fs::remove_file(log_file)?;
     }
     Ok(())
 }
