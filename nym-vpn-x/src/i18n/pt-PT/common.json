@@ -14,5 +14,14 @@
   "sentry": "Sentry",
   "tos": "Termos de uso",
   "privacy-statement": "Declaração de Privacidade",
-  "appearance": "Aparência"
+  "appearance": "Aparência",
+  "vpn-modes": {
+    "privacy": "Anónimo",
+    "fast": "Rápido"
+  },
+  "display-theme": "Exibir",
+  "ui-mode": {
+    "dark": "Modo escuro",
+    "light": "Modo claro"
+  }
 }
