@@ -28,7 +28,7 @@ prepare() {
   # rip off all useless sources
   rm -rf nym-vpn-android
   rm -rf nym-vpn-apple
-  rm -rf nym-vpn-x
+  rm -rf nym-vpn-app
   popd
 }
 
