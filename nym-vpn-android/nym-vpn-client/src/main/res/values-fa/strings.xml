@@ -3,4 +3,6 @@
     <string name="vpn_notification_title">NymVPN</string>
     <string name="channel_name">کانال NymVPN</string>
     <string name="channel_description">کانالی برای اعلانات مربوط به VPN.</string>
+    <string name="vpn_notification_text">در حال اجرا</string>
+    <string name="failed">ناموفق</string>
 </resources>
