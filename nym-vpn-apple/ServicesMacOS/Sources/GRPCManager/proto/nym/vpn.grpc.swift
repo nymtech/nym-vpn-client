@@ -63,6 +63,11 @@ internal protocol Nym_Vpn_NymVpndClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<Nym_Vpn_ListExitGatewaysRequest, Nym_Vpn_ListExitGatewaysResponse>
 
+  func listVpnGateways(
+    _ request: Nym_Vpn_ListVpnGatewaysRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Nym_Vpn_ListVpnGatewaysRequest, Nym_Vpn_ListVpnGatewaysResponse>
+
   func listEntryCountries(
     _ request: Nym_Vpn_ListEntryCountriesRequest,
     callOptions: CallOptions?
@@ -73,10 +78,35 @@ internal protocol Nym_Vpn_NymVpndClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<Nym_Vpn_ListExitCountriesRequest, Nym_Vpn_ListExitCountriesResponse>
 
+  func listVpnCountries(
+    _ request: Nym_Vpn_ListVpnCountriesRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Nym_Vpn_ListVpnCountriesRequest, Nym_Vpn_ListVpnCountriesResponse>
+
   func storeAccount(
     _ request: Nym_Vpn_StoreAccountRequest,
     callOptions: CallOptions?
   ) -> UnaryCall<Nym_Vpn_StoreAccountRequest, Nym_Vpn_StoreAccountResponse>
+
+  func getAccountSummary(
+    _ request: Nym_Vpn_GetAccountSummaryRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Nym_Vpn_GetAccountSummaryRequest, Nym_Vpn_GetAccountSummaryResponse>
+
+  func registerDevice(
+    _ request: Nym_Vpn_RegisterDeviceRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Nym_Vpn_RegisterDeviceRequest, Nym_Vpn_RegisterDeviceResponse>
+
+  func requestZkNym(
+    _ request: Nym_Vpn_RequestZkNymRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Nym_Vpn_RequestZkNymRequest, Nym_Vpn_RequestZkNymResponse>
+
+  func getDeviceZkNyms(
+    _ request: Nym_Vpn_GetDeviceZkNymsRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Nym_Vpn_GetDeviceZkNymsRequest, Nym_Vpn_GetDeviceZkNymsResponse>
 }
 
 extension Nym_Vpn_NymVpndClientProtocol {
@@ -252,6 +282,24 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
+  /// Unary call to ListVpnGateways
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to ListVpnGateways.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func listVpnGateways(
+    _ request: Nym_Vpn_ListVpnGatewaysRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Nym_Vpn_ListVpnGatewaysRequest, Nym_Vpn_ListVpnGatewaysResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.listVpnGateways.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeListVpnGatewaysInterceptors() ?? []
+    )
+  }
+
   /// Unary call to ListEntryCountries
   ///
   /// - Parameters:
@@ -288,7 +336,25 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
-  /// Unary call to StoreAccount
+  /// Unary call to ListVpnCountries
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to ListVpnCountries.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func listVpnCountries(
+    _ request: Nym_Vpn_ListVpnCountriesRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Nym_Vpn_ListVpnCountriesRequest, Nym_Vpn_ListVpnCountriesResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.listVpnCountries.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeListVpnCountriesInterceptors() ?? []
+    )
+  }
+
+  /// Unstable
   ///
   /// - Parameters:
   ///   - request: Request to send to StoreAccount.
@@ -303,6 +369,78 @@ extension Nym_Vpn_NymVpndClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeStoreAccountInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to GetAccountSummary
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to GetAccountSummary.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func getAccountSummary(
+    _ request: Nym_Vpn_GetAccountSummaryRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Nym_Vpn_GetAccountSummaryRequest, Nym_Vpn_GetAccountSummaryResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getAccountSummary.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetAccountSummaryInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to RegisterDevice
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to RegisterDevice.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func registerDevice(
+    _ request: Nym_Vpn_RegisterDeviceRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Nym_Vpn_RegisterDeviceRequest, Nym_Vpn_RegisterDeviceResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.registerDevice.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeRegisterDeviceInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to RequestZkNym
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to RequestZkNym.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func requestZkNym(
+    _ request: Nym_Vpn_RequestZkNymRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Nym_Vpn_RequestZkNymRequest, Nym_Vpn_RequestZkNymResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.requestZkNym.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeRequestZkNymInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to GetDeviceZkNyms
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to GetDeviceZkNyms.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func getDeviceZkNyms(
+    _ request: Nym_Vpn_GetDeviceZkNymsRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Nym_Vpn_GetDeviceZkNymsRequest, Nym_Vpn_GetDeviceZkNymsResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getDeviceZkNyms.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetDeviceZkNymsInterceptors() ?? []
     )
   }
 }
@@ -414,6 +552,11 @@ internal protocol Nym_Vpn_NymVpndAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Nym_Vpn_ListExitGatewaysRequest, Nym_Vpn_ListExitGatewaysResponse>
 
+  func makeListVpnGatewaysCall(
+    _ request: Nym_Vpn_ListVpnGatewaysRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_ListVpnGatewaysRequest, Nym_Vpn_ListVpnGatewaysResponse>
+
   func makeListEntryCountriesCall(
     _ request: Nym_Vpn_ListEntryCountriesRequest,
     callOptions: CallOptions?
@@ -424,10 +567,35 @@ internal protocol Nym_Vpn_NymVpndAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Nym_Vpn_ListExitCountriesRequest, Nym_Vpn_ListExitCountriesResponse>
 
+  func makeListVpnCountriesCall(
+    _ request: Nym_Vpn_ListVpnCountriesRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_ListVpnCountriesRequest, Nym_Vpn_ListVpnCountriesResponse>
+
   func makeStoreAccountCall(
     _ request: Nym_Vpn_StoreAccountRequest,
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Nym_Vpn_StoreAccountRequest, Nym_Vpn_StoreAccountResponse>
+
+  func makeGetAccountSummaryCall(
+    _ request: Nym_Vpn_GetAccountSummaryRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetAccountSummaryRequest, Nym_Vpn_GetAccountSummaryResponse>
+
+  func makeRegisterDeviceCall(
+    _ request: Nym_Vpn_RegisterDeviceRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_RegisterDeviceRequest, Nym_Vpn_RegisterDeviceResponse>
+
+  func makeRequestZkNymCall(
+    _ request: Nym_Vpn_RequestZkNymRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_RequestZkNymRequest, Nym_Vpn_RequestZkNymResponse>
+
+  func makeGetDeviceZkNymsCall(
+    _ request: Nym_Vpn_GetDeviceZkNymsRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetDeviceZkNymsRequest, Nym_Vpn_GetDeviceZkNymsResponse>
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -548,6 +716,18 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
     )
   }
 
+  internal func makeListVpnGatewaysCall(
+    _ request: Nym_Vpn_ListVpnGatewaysRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_ListVpnGatewaysRequest, Nym_Vpn_ListVpnGatewaysResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.listVpnGateways.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeListVpnGatewaysInterceptors() ?? []
+    )
+  }
+
   internal func makeListEntryCountriesCall(
     _ request: Nym_Vpn_ListEntryCountriesRequest,
     callOptions: CallOptions? = nil
@@ -572,6 +752,18 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
     )
   }
 
+  internal func makeListVpnCountriesCall(
+    _ request: Nym_Vpn_ListVpnCountriesRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_ListVpnCountriesRequest, Nym_Vpn_ListVpnCountriesResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.listVpnCountries.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeListVpnCountriesInterceptors() ?? []
+    )
+  }
+
   internal func makeStoreAccountCall(
     _ request: Nym_Vpn_StoreAccountRequest,
     callOptions: CallOptions? = nil
@@ -581,6 +773,54 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeStoreAccountInterceptors() ?? []
+    )
+  }
+
+  internal func makeGetAccountSummaryCall(
+    _ request: Nym_Vpn_GetAccountSummaryRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetAccountSummaryRequest, Nym_Vpn_GetAccountSummaryResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getAccountSummary.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetAccountSummaryInterceptors() ?? []
+    )
+  }
+
+  internal func makeRegisterDeviceCall(
+    _ request: Nym_Vpn_RegisterDeviceRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_RegisterDeviceRequest, Nym_Vpn_RegisterDeviceResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.registerDevice.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeRegisterDeviceInterceptors() ?? []
+    )
+  }
+
+  internal func makeRequestZkNymCall(
+    _ request: Nym_Vpn_RequestZkNymRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_RequestZkNymRequest, Nym_Vpn_RequestZkNymResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.requestZkNym.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeRequestZkNymInterceptors() ?? []
+    )
+  }
+
+  internal func makeGetDeviceZkNymsCall(
+    _ request: Nym_Vpn_GetDeviceZkNymsRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetDeviceZkNymsRequest, Nym_Vpn_GetDeviceZkNymsResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getDeviceZkNyms.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetDeviceZkNymsInterceptors() ?? []
     )
   }
 }
@@ -695,6 +935,18 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
     )
   }
 
+  internal func listVpnGateways(
+    _ request: Nym_Vpn_ListVpnGatewaysRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_ListVpnGatewaysResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.listVpnGateways.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeListVpnGatewaysInterceptors() ?? []
+    )
+  }
+
   internal func listEntryCountries(
     _ request: Nym_Vpn_ListEntryCountriesRequest,
     callOptions: CallOptions? = nil
@@ -719,6 +971,18 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
     )
   }
 
+  internal func listVpnCountries(
+    _ request: Nym_Vpn_ListVpnCountriesRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_ListVpnCountriesResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.listVpnCountries.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeListVpnCountriesInterceptors() ?? []
+    )
+  }
+
   internal func storeAccount(
     _ request: Nym_Vpn_StoreAccountRequest,
     callOptions: CallOptions? = nil
@@ -728,6 +992,54 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeStoreAccountInterceptors() ?? []
+    )
+  }
+
+  internal func getAccountSummary(
+    _ request: Nym_Vpn_GetAccountSummaryRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_GetAccountSummaryResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getAccountSummary.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetAccountSummaryInterceptors() ?? []
+    )
+  }
+
+  internal func registerDevice(
+    _ request: Nym_Vpn_RegisterDeviceRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_RegisterDeviceResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.registerDevice.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeRegisterDeviceInterceptors() ?? []
+    )
+  }
+
+  internal func requestZkNym(
+    _ request: Nym_Vpn_RequestZkNymRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_RequestZkNymResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.requestZkNym.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeRequestZkNymInterceptors() ?? []
+    )
+  }
+
+  internal func getDeviceZkNyms(
+    _ request: Nym_Vpn_GetDeviceZkNymsRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_GetDeviceZkNymsResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getDeviceZkNyms.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetDeviceZkNymsInterceptors() ?? []
     )
   }
 }
@@ -778,14 +1090,32 @@ internal protocol Nym_Vpn_NymVpndClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'listExitGateways'.
   func makeListExitGatewaysInterceptors() -> [ClientInterceptor<Nym_Vpn_ListExitGatewaysRequest, Nym_Vpn_ListExitGatewaysResponse>]
 
+  /// - Returns: Interceptors to use when invoking 'listVpnGateways'.
+  func makeListVpnGatewaysInterceptors() -> [ClientInterceptor<Nym_Vpn_ListVpnGatewaysRequest, Nym_Vpn_ListVpnGatewaysResponse>]
+
   /// - Returns: Interceptors to use when invoking 'listEntryCountries'.
   func makeListEntryCountriesInterceptors() -> [ClientInterceptor<Nym_Vpn_ListEntryCountriesRequest, Nym_Vpn_ListEntryCountriesResponse>]
 
   /// - Returns: Interceptors to use when invoking 'listExitCountries'.
   func makeListExitCountriesInterceptors() -> [ClientInterceptor<Nym_Vpn_ListExitCountriesRequest, Nym_Vpn_ListExitCountriesResponse>]
 
+  /// - Returns: Interceptors to use when invoking 'listVpnCountries'.
+  func makeListVpnCountriesInterceptors() -> [ClientInterceptor<Nym_Vpn_ListVpnCountriesRequest, Nym_Vpn_ListVpnCountriesResponse>]
+
   /// - Returns: Interceptors to use when invoking 'storeAccount'.
   func makeStoreAccountInterceptors() -> [ClientInterceptor<Nym_Vpn_StoreAccountRequest, Nym_Vpn_StoreAccountResponse>]
+
+  /// - Returns: Interceptors to use when invoking 'getAccountSummary'.
+  func makeGetAccountSummaryInterceptors() -> [ClientInterceptor<Nym_Vpn_GetAccountSummaryRequest, Nym_Vpn_GetAccountSummaryResponse>]
+
+  /// - Returns: Interceptors to use when invoking 'registerDevice'.
+  func makeRegisterDeviceInterceptors() -> [ClientInterceptor<Nym_Vpn_RegisterDeviceRequest, Nym_Vpn_RegisterDeviceResponse>]
+
+  /// - Returns: Interceptors to use when invoking 'requestZkNym'.
+  func makeRequestZkNymInterceptors() -> [ClientInterceptor<Nym_Vpn_RequestZkNymRequest, Nym_Vpn_RequestZkNymResponse>]
+
+  /// - Returns: Interceptors to use when invoking 'getDeviceZkNyms'.
+  func makeGetDeviceZkNymsInterceptors() -> [ClientInterceptor<Nym_Vpn_GetDeviceZkNymsRequest, Nym_Vpn_GetDeviceZkNymsResponse>]
 }
 
 internal enum Nym_Vpn_NymVpndClientMetadata {
@@ -802,9 +1132,15 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
       Nym_Vpn_NymVpndClientMetadata.Methods.listenToConnectionStatus,
       Nym_Vpn_NymVpndClientMetadata.Methods.listEntryGateways,
       Nym_Vpn_NymVpndClientMetadata.Methods.listExitGateways,
+      Nym_Vpn_NymVpndClientMetadata.Methods.listVpnGateways,
       Nym_Vpn_NymVpndClientMetadata.Methods.listEntryCountries,
       Nym_Vpn_NymVpndClientMetadata.Methods.listExitCountries,
+      Nym_Vpn_NymVpndClientMetadata.Methods.listVpnCountries,
       Nym_Vpn_NymVpndClientMetadata.Methods.storeAccount,
+      Nym_Vpn_NymVpndClientMetadata.Methods.getAccountSummary,
+      Nym_Vpn_NymVpndClientMetadata.Methods.registerDevice,
+      Nym_Vpn_NymVpndClientMetadata.Methods.requestZkNym,
+      Nym_Vpn_NymVpndClientMetadata.Methods.getDeviceZkNyms,
     ]
   )
 
@@ -863,6 +1199,12 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
       type: GRPCCallType.unary
     )
 
+    internal static let listVpnGateways = GRPCMethodDescriptor(
+      name: "ListVpnGateways",
+      path: "/nym.vpn.NymVpnd/ListVpnGateways",
+      type: GRPCCallType.unary
+    )
+
     internal static let listEntryCountries = GRPCMethodDescriptor(
       name: "ListEntryCountries",
       path: "/nym.vpn.NymVpnd/ListEntryCountries",
@@ -875,9 +1217,39 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
       type: GRPCCallType.unary
     )
 
+    internal static let listVpnCountries = GRPCMethodDescriptor(
+      name: "ListVpnCountries",
+      path: "/nym.vpn.NymVpnd/ListVpnCountries",
+      type: GRPCCallType.unary
+    )
+
     internal static let storeAccount = GRPCMethodDescriptor(
       name: "StoreAccount",
       path: "/nym.vpn.NymVpnd/StoreAccount",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getAccountSummary = GRPCMethodDescriptor(
+      name: "GetAccountSummary",
+      path: "/nym.vpn.NymVpnd/GetAccountSummary",
+      type: GRPCCallType.unary
+    )
+
+    internal static let registerDevice = GRPCMethodDescriptor(
+      name: "RegisterDevice",
+      path: "/nym.vpn.NymVpnd/RegisterDevice",
+      type: GRPCCallType.unary
+    )
+
+    internal static let requestZkNym = GRPCMethodDescriptor(
+      name: "RequestZkNym",
+      path: "/nym.vpn.NymVpnd/RequestZkNym",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getDeviceZkNyms = GRPCMethodDescriptor(
+      name: "GetDeviceZkNyms",
+      path: "/nym.vpn.NymVpnd/GetDeviceZkNyms",
       type: GRPCCallType.unary
     )
   }
@@ -905,11 +1277,24 @@ internal protocol Nym_Vpn_NymVpndProvider: CallHandlerProvider {
 
   func listExitGateways(request: Nym_Vpn_ListExitGatewaysRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_ListExitGatewaysResponse>
 
+  func listVpnGateways(request: Nym_Vpn_ListVpnGatewaysRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_ListVpnGatewaysResponse>
+
   func listEntryCountries(request: Nym_Vpn_ListEntryCountriesRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_ListEntryCountriesResponse>
 
   func listExitCountries(request: Nym_Vpn_ListExitCountriesRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_ListExitCountriesResponse>
 
+  func listVpnCountries(request: Nym_Vpn_ListVpnCountriesRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_ListVpnCountriesResponse>
+
+  /// Unstable
   func storeAccount(request: Nym_Vpn_StoreAccountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_StoreAccountResponse>
+
+  func getAccountSummary(request: Nym_Vpn_GetAccountSummaryRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetAccountSummaryResponse>
+
+  func registerDevice(request: Nym_Vpn_RegisterDeviceRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_RegisterDeviceResponse>
+
+  func requestZkNym(request: Nym_Vpn_RequestZkNymRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_RequestZkNymResponse>
+
+  func getDeviceZkNyms(request: Nym_Vpn_GetDeviceZkNymsRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetDeviceZkNymsResponse>
 }
 
 extension Nym_Vpn_NymVpndProvider {
@@ -1005,6 +1390,15 @@ extension Nym_Vpn_NymVpndProvider {
         userFunction: self.listExitGateways(request:context:)
       )
 
+    case "ListVpnGateways":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_ListVpnGatewaysRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_ListVpnGatewaysResponse>(),
+        interceptors: self.interceptors?.makeListVpnGatewaysInterceptors() ?? [],
+        userFunction: self.listVpnGateways(request:context:)
+      )
+
     case "ListEntryCountries":
       return UnaryServerHandler(
         context: context,
@@ -1023,6 +1417,15 @@ extension Nym_Vpn_NymVpndProvider {
         userFunction: self.listExitCountries(request:context:)
       )
 
+    case "ListVpnCountries":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_ListVpnCountriesRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_ListVpnCountriesResponse>(),
+        interceptors: self.interceptors?.makeListVpnCountriesInterceptors() ?? [],
+        userFunction: self.listVpnCountries(request:context:)
+      )
+
     case "StoreAccount":
       return UnaryServerHandler(
         context: context,
@@ -1030,6 +1433,42 @@ extension Nym_Vpn_NymVpndProvider {
         responseSerializer: ProtobufSerializer<Nym_Vpn_StoreAccountResponse>(),
         interceptors: self.interceptors?.makeStoreAccountInterceptors() ?? [],
         userFunction: self.storeAccount(request:context:)
+      )
+
+    case "GetAccountSummary":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetAccountSummaryRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetAccountSummaryResponse>(),
+        interceptors: self.interceptors?.makeGetAccountSummaryInterceptors() ?? [],
+        userFunction: self.getAccountSummary(request:context:)
+      )
+
+    case "RegisterDevice":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_RegisterDeviceRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_RegisterDeviceResponse>(),
+        interceptors: self.interceptors?.makeRegisterDeviceInterceptors() ?? [],
+        userFunction: self.registerDevice(request:context:)
+      )
+
+    case "RequestZkNym":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_RequestZkNymRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_RequestZkNymResponse>(),
+        interceptors: self.interceptors?.makeRequestZkNymInterceptors() ?? [],
+        userFunction: self.requestZkNym(request:context:)
+      )
+
+    case "GetDeviceZkNyms":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetDeviceZkNymsRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetDeviceZkNymsResponse>(),
+        interceptors: self.interceptors?.makeGetDeviceZkNymsInterceptors() ?? [],
+        userFunction: self.getDeviceZkNyms(request:context:)
       )
 
     default:
@@ -1091,6 +1530,11 @@ internal protocol Nym_Vpn_NymVpndAsyncProvider: CallHandlerProvider, Sendable {
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_ListExitGatewaysResponse
 
+  func listVpnGateways(
+    request: Nym_Vpn_ListVpnGatewaysRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_ListVpnGatewaysResponse
+
   func listEntryCountries(
     request: Nym_Vpn_ListEntryCountriesRequest,
     context: GRPCAsyncServerCallContext
@@ -1101,10 +1545,36 @@ internal protocol Nym_Vpn_NymVpndAsyncProvider: CallHandlerProvider, Sendable {
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_ListExitCountriesResponse
 
+  func listVpnCountries(
+    request: Nym_Vpn_ListVpnCountriesRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_ListVpnCountriesResponse
+
+  /// Unstable
   func storeAccount(
     request: Nym_Vpn_StoreAccountRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_StoreAccountResponse
+
+  func getAccountSummary(
+    request: Nym_Vpn_GetAccountSummaryRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_GetAccountSummaryResponse
+
+  func registerDevice(
+    request: Nym_Vpn_RegisterDeviceRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_RegisterDeviceResponse
+
+  func requestZkNym(
+    request: Nym_Vpn_RequestZkNymRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_RequestZkNymResponse
+
+  func getDeviceZkNyms(
+    request: Nym_Vpn_GetDeviceZkNymsRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_GetDeviceZkNymsResponse
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1207,6 +1677,15 @@ extension Nym_Vpn_NymVpndAsyncProvider {
         wrapping: { try await self.listExitGateways(request: $0, context: $1) }
       )
 
+    case "ListVpnGateways":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_ListVpnGatewaysRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_ListVpnGatewaysResponse>(),
+        interceptors: self.interceptors?.makeListVpnGatewaysInterceptors() ?? [],
+        wrapping: { try await self.listVpnGateways(request: $0, context: $1) }
+      )
+
     case "ListEntryCountries":
       return GRPCAsyncServerHandler(
         context: context,
@@ -1225,6 +1704,15 @@ extension Nym_Vpn_NymVpndAsyncProvider {
         wrapping: { try await self.listExitCountries(request: $0, context: $1) }
       )
 
+    case "ListVpnCountries":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_ListVpnCountriesRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_ListVpnCountriesResponse>(),
+        interceptors: self.interceptors?.makeListVpnCountriesInterceptors() ?? [],
+        wrapping: { try await self.listVpnCountries(request: $0, context: $1) }
+      )
+
     case "StoreAccount":
       return GRPCAsyncServerHandler(
         context: context,
@@ -1232,6 +1720,42 @@ extension Nym_Vpn_NymVpndAsyncProvider {
         responseSerializer: ProtobufSerializer<Nym_Vpn_StoreAccountResponse>(),
         interceptors: self.interceptors?.makeStoreAccountInterceptors() ?? [],
         wrapping: { try await self.storeAccount(request: $0, context: $1) }
+      )
+
+    case "GetAccountSummary":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetAccountSummaryRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetAccountSummaryResponse>(),
+        interceptors: self.interceptors?.makeGetAccountSummaryInterceptors() ?? [],
+        wrapping: { try await self.getAccountSummary(request: $0, context: $1) }
+      )
+
+    case "RegisterDevice":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_RegisterDeviceRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_RegisterDeviceResponse>(),
+        interceptors: self.interceptors?.makeRegisterDeviceInterceptors() ?? [],
+        wrapping: { try await self.registerDevice(request: $0, context: $1) }
+      )
+
+    case "RequestZkNym":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_RequestZkNymRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_RequestZkNymResponse>(),
+        interceptors: self.interceptors?.makeRequestZkNymInterceptors() ?? [],
+        wrapping: { try await self.requestZkNym(request: $0, context: $1) }
+      )
+
+    case "GetDeviceZkNyms":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetDeviceZkNymsRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetDeviceZkNymsResponse>(),
+        interceptors: self.interceptors?.makeGetDeviceZkNymsInterceptors() ?? [],
+        wrapping: { try await self.getDeviceZkNyms(request: $0, context: $1) }
       )
 
     default:
@@ -1278,6 +1802,10 @@ internal protocol Nym_Vpn_NymVpndServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeListExitGatewaysInterceptors() -> [ServerInterceptor<Nym_Vpn_ListExitGatewaysRequest, Nym_Vpn_ListExitGatewaysResponse>]
 
+  /// - Returns: Interceptors to use when handling 'listVpnGateways'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeListVpnGatewaysInterceptors() -> [ServerInterceptor<Nym_Vpn_ListVpnGatewaysRequest, Nym_Vpn_ListVpnGatewaysResponse>]
+
   /// - Returns: Interceptors to use when handling 'listEntryCountries'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeListEntryCountriesInterceptors() -> [ServerInterceptor<Nym_Vpn_ListEntryCountriesRequest, Nym_Vpn_ListEntryCountriesResponse>]
@@ -1286,9 +1814,29 @@ internal protocol Nym_Vpn_NymVpndServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeListExitCountriesInterceptors() -> [ServerInterceptor<Nym_Vpn_ListExitCountriesRequest, Nym_Vpn_ListExitCountriesResponse>]
 
+  /// - Returns: Interceptors to use when handling 'listVpnCountries'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeListVpnCountriesInterceptors() -> [ServerInterceptor<Nym_Vpn_ListVpnCountriesRequest, Nym_Vpn_ListVpnCountriesResponse>]
+
   /// - Returns: Interceptors to use when handling 'storeAccount'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeStoreAccountInterceptors() -> [ServerInterceptor<Nym_Vpn_StoreAccountRequest, Nym_Vpn_StoreAccountResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getAccountSummary'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetAccountSummaryInterceptors() -> [ServerInterceptor<Nym_Vpn_GetAccountSummaryRequest, Nym_Vpn_GetAccountSummaryResponse>]
+
+  /// - Returns: Interceptors to use when handling 'registerDevice'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeRegisterDeviceInterceptors() -> [ServerInterceptor<Nym_Vpn_RegisterDeviceRequest, Nym_Vpn_RegisterDeviceResponse>]
+
+  /// - Returns: Interceptors to use when handling 'requestZkNym'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeRequestZkNymInterceptors() -> [ServerInterceptor<Nym_Vpn_RequestZkNymRequest, Nym_Vpn_RequestZkNymResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getDeviceZkNyms'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetDeviceZkNymsInterceptors() -> [ServerInterceptor<Nym_Vpn_GetDeviceZkNymsRequest, Nym_Vpn_GetDeviceZkNymsResponse>]
 }
 
 internal enum Nym_Vpn_NymVpndServerMetadata {
@@ -1305,9 +1853,15 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
       Nym_Vpn_NymVpndServerMetadata.Methods.listenToConnectionStatus,
       Nym_Vpn_NymVpndServerMetadata.Methods.listEntryGateways,
       Nym_Vpn_NymVpndServerMetadata.Methods.listExitGateways,
+      Nym_Vpn_NymVpndServerMetadata.Methods.listVpnGateways,
       Nym_Vpn_NymVpndServerMetadata.Methods.listEntryCountries,
       Nym_Vpn_NymVpndServerMetadata.Methods.listExitCountries,
+      Nym_Vpn_NymVpndServerMetadata.Methods.listVpnCountries,
       Nym_Vpn_NymVpndServerMetadata.Methods.storeAccount,
+      Nym_Vpn_NymVpndServerMetadata.Methods.getAccountSummary,
+      Nym_Vpn_NymVpndServerMetadata.Methods.registerDevice,
+      Nym_Vpn_NymVpndServerMetadata.Methods.requestZkNym,
+      Nym_Vpn_NymVpndServerMetadata.Methods.getDeviceZkNyms,
     ]
   )
 
@@ -1366,6 +1920,12 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
       type: GRPCCallType.unary
     )
 
+    internal static let listVpnGateways = GRPCMethodDescriptor(
+      name: "ListVpnGateways",
+      path: "/nym.vpn.NymVpnd/ListVpnGateways",
+      type: GRPCCallType.unary
+    )
+
     internal static let listEntryCountries = GRPCMethodDescriptor(
       name: "ListEntryCountries",
       path: "/nym.vpn.NymVpnd/ListEntryCountries",
@@ -1378,9 +1938,39 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
       type: GRPCCallType.unary
     )
 
+    internal static let listVpnCountries = GRPCMethodDescriptor(
+      name: "ListVpnCountries",
+      path: "/nym.vpn.NymVpnd/ListVpnCountries",
+      type: GRPCCallType.unary
+    )
+
     internal static let storeAccount = GRPCMethodDescriptor(
       name: "StoreAccount",
       path: "/nym.vpn.NymVpnd/StoreAccount",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getAccountSummary = GRPCMethodDescriptor(
+      name: "GetAccountSummary",
+      path: "/nym.vpn.NymVpnd/GetAccountSummary",
+      type: GRPCCallType.unary
+    )
+
+    internal static let registerDevice = GRPCMethodDescriptor(
+      name: "RegisterDevice",
+      path: "/nym.vpn.NymVpnd/RegisterDevice",
+      type: GRPCCallType.unary
+    )
+
+    internal static let requestZkNym = GRPCMethodDescriptor(
+      name: "RequestZkNym",
+      path: "/nym.vpn.NymVpnd/RequestZkNym",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getDeviceZkNyms = GRPCMethodDescriptor(
+      name: "GetDeviceZkNyms",
+      path: "/nym.vpn.NymVpnd/GetDeviceZkNyms",
       type: GRPCCallType.unary
     )
   }

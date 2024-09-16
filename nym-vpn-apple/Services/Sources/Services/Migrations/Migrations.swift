@@ -19,7 +19,8 @@ public final class Migrations {
     }
 
     public var isMacOSWgDisabled: Bool {
-        appSettings.isMacOS && configurationManager.appVersion == "1.1.1"
+        appSettings.isMacOS &&
+        (configurationManager.appVersion == "1.1.1" || configurationManager.appVersion == "1.1.2")
     }
 
     public func setup() {
