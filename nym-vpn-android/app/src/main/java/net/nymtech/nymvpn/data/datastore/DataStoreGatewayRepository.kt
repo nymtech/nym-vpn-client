@@ -14,6 +14,7 @@ class DataStoreGatewayRepository(private val dataStoreManager: DataStoreManager)
 		val LOW_LATENCY_ENTRY_COUNTRY = stringPreferencesKey("LOW_LATENCY_ENTRY_COUNTRY")
 		val ENTRY_COUNTRIES = stringPreferencesKey("ENTRY_COUNTRIES")
 		val EXIT_COUNTRIES = stringPreferencesKey("EXIT_COUNTRIES")
+		val WG_COUNTRIES = stringPreferencesKey("WG_COUNTRIES")
 	}
 
 	override suspend fun getLowLatencyEntryCountry(): Country? {
@@ -43,6 +44,10 @@ class DataStoreGatewayRepository(private val dataStoreManager: DataStoreManager)
 		return Country.fromCollectionString(countries)
 	}
 
+	override suspend fun setWgCountries(countries: Set<Country>) {
+		dataStoreManager.saveToDataStore(WG_COUNTRIES, countries.toString())
+	}
+
 	override val gatewayFlow: Flow<Gateways> =
 		dataStoreManager.preferencesFlow.map { prefs ->
 			prefs?.let { pref ->
@@ -51,6 +56,7 @@ class DataStoreGatewayRepository(private val dataStoreManager: DataStoreManager)
 						lowLatencyEntryCountry = Country.from(pref[LOW_LATENCY_ENTRY_COUNTRY]),
 						exitCountries = Country.fromCollectionString(pref[EXIT_COUNTRIES]),
 						entryCountries = Country.fromCollectionString(pref[ENTRY_COUNTRIES]),
+						wgCountries = Country.fromCollectionString(pref[WG_COUNTRIES]),
 					)
 				} catch (e: IllegalArgumentException) {
 					Timber.e(e)

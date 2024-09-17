@@ -113,5 +113,5 @@ impl GatewayMinPerformance {
 pub enum GatewayType {
     MixnetEntry,
     MixnetExit,
-    Vpn,
+    Wg,
 }

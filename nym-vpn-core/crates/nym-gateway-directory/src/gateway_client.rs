@@ -221,7 +221,7 @@ impl GatewayClient {
         match gw_type {
             GatewayType::MixnetEntry => self.lookup_entry_gateways_from_nym_api().await,
             GatewayType::MixnetExit => self.lookup_exit_gateways_from_nym_api().await,
-            GatewayType::Vpn => self.lookup_vpn_gateways_from_nym_api().await,
+            GatewayType::Wg => self.lookup_vpn_gateways_from_nym_api().await,
         }
     }
 

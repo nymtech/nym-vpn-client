@@ -6,6 +6,7 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
 import net.nymtech.vpn.NymApi
 import net.nymtech.vpn.model.Country
+import nym_vpn_lib.GatewayType
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -23,12 +24,12 @@ class GatewayLibService @Inject constructor(
 		}
 	}
 
-	override suspend fun getCountries(exitOnly: Boolean): Result<Set<Country>> {
+	override suspend fun getCountries(type: GatewayType): Result<Set<Country>> {
 		return runCatching {
 			withContext(ioDispatcher) {
 				val env = settingsRepository.getEnvironment()
 				Timber.d("Getting countries from lib api")
-				nymApi.gateways(exitOnly, env)
+				nymApi.gateways(type, env)
 			}
 		}
 	}
