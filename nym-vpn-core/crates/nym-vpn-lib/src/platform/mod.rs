@@ -439,13 +439,11 @@ async fn get_gateway_countries(
         nym_vpn_api_url,
         min_gateway_performance: None,
     };
-    let locations = GatewayClient::new(directory_config, user_agent)?
+    GatewayClient::new(directory_config, user_agent)?
         .lookup_countries(gw_type.into())
-        .await?
-        .into_iter()
-        .map(Location::from)
-        .collect();
-    Ok(locations)
+        .await
+        .map(|countries| countries.into_iter().map(Location::from).collect())
+        .map_err(VpnError::from)
 }
 
 #[allow(non_snake_case)]
@@ -476,16 +474,16 @@ async fn get_low_latency_entry_country(
         .map(nym_sdk::UserAgent::from)
         .unwrap_or_else(|| nym_bin_common::bin_info_local_vergen!().into());
 
-    let country = GatewayClient::new(config, user_agent)?
+    GatewayClient::new(config, user_agent)?
         .lookup_low_latency_entry_gateway()
-        .await?
-        .location
-        .ok_or(VpnError::InternalError {
-            details: "gateway does not contain a two character country ISO".to_string(),
-        })?
-        .into();
-
-    Ok(country)
+        .await
+        .map_err(VpnError::from)
+        .and_then(|gateway| {
+            gateway.location.ok_or(VpnError::InternalError {
+                details: "gateway does not contain a two character country ISO".to_string(),
+            })
+        })
+        .map(Location::from)
 }
 
 #[uniffi::export(with_foreign)]
