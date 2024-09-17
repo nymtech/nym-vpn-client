@@ -386,7 +386,7 @@ impl VpnApiClient {
             .map_err(VpnApiClientError::FailedToGetGateways)
     }
 
-    pub async fn get_gateways_kind(
+    pub async fn get_gateways_by_type(
         &self,
         kind: GatewayType,
         min_performance: Option<GatewayMinPerformance>,
@@ -398,7 +398,7 @@ impl VpnApiClient {
         }
     }
 
-    pub async fn get_gateway_countries_kind(
+    pub async fn get_gateway_countries_by_type(
         &self,
         kind: GatewayType,
         min_performance: Option<GatewayMinPerformance>,

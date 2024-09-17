@@ -265,7 +265,7 @@ impl GatewayClient {
         if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
             info!("Fetching gateways from nym-vpn-api...");
             let gateways: Vec<_> = nym_vpn_api_client
-                .get_gateways_kind(gw_type.into(), self.min_gateway_performance.clone())
+                .get_gateways_by_type(gw_type.into(), self.min_gateway_performance.clone())
                 .await?
                 .into_iter()
                 .filter_map(|gw| {
@@ -284,7 +284,7 @@ impl GatewayClient {
         if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
             info!("Fetching entry countries from nym-vpn-api...");
             Ok(nym_vpn_api_client
-                .get_gateway_countries_kind(gw_type.into(), self.min_gateway_performance.clone())
+                .get_gateway_countries_by_type(gw_type.into(), self.min_gateway_performance.clone())
                 .await?
                 .into_iter()
                 .map(Country::from)
@@ -358,7 +358,7 @@ mod test {
     async fn lookup_gateways_in_nym_vpn_api() {
         let config = Config::new_mainnet();
         let client = GatewayClient::new(config, user_agent()).unwrap();
-        let gateways = client.lookup_exit_gateways().await.unwrap();
+        let gateways = client.lookup_gateways(GatewayType::Exit).await.unwrap();
         assert!(!gateways.is_empty());
     }
 }
