@@ -219,7 +219,7 @@ impl WgTunnelRunner {
 
         let all_gateways = self
             .gateway_directory_client
-            .lookup_gateways(GatewayType::Vpn)
+            .lookup_gateways(nym_gateway_directory::GatewayType::Vpn)
             .await
             .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
         let mut entry_gateways = all_gateways.clone();
@@ -262,7 +262,7 @@ impl WgTunnelRunner {
                 .two_letter_iso_country_code()
                 .map_or_else(|| "unknown".to_string(), |code| code.to_string()),
             entry_gateway
-                .performance
+                .mixnet_performance
                 .map_or_else(|| "unknown".to_string(), |perf| perf.to_string()),
         );
         tracing::info!(
@@ -272,7 +272,7 @@ impl WgTunnelRunner {
                 .two_letter_iso_country_code()
                 .map_or_else(|| "unknown".to_string(), |code| code.to_string()),
             entry_gateway
-                .performance
+                .mixnet_performance
                 .map_or_else(|| "unknown".to_string(), |perf| perf.to_string()),
         );
         tracing::info!(
