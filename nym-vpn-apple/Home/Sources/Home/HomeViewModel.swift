@@ -352,6 +352,7 @@ private extension HomeViewModel {
     }
 
     func needsHelperUpdate() async -> Bool {
+        guard helperManager.isHelperAuthorizedAndRunning() else { return false }
         do {
             let version = try await grpcManager.version()
             return helperManager.requiredVersion != version
