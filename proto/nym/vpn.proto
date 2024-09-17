@@ -94,6 +94,7 @@ message ConnectRequest {
   bool enable_poisson_rate = 6;
   bool disable_background_cover_traffic = 7;
   bool enable_credentials_mode = 8;
+  // Optional thresholds
   Threshold min_mixnode_performance = 9;
   Threshold min_gateway_mixnet_performance = 10;
   Threshold min_gateway_vpn_performance = 11;
@@ -388,6 +389,7 @@ enum GatewayType {
 
 message ListGatewaysRequest {
   GatewayType kind = 1;
+  // Optional thresholds
   Threshold min_mixnet_performance = 2;
   Threshold min_vpn_performance = 3;
 }
@@ -398,6 +400,7 @@ message ListGatewaysResponse {
 
 message ListCountriesRequest {
   GatewayType kind = 1;
+  // Optional thresholds
   Threshold min_mixnet_performance = 2;
   Threshold min_vpn_performance = 3;
 }
