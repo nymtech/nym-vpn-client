@@ -408,6 +408,19 @@ fileprivate struct FfiConverterUInt16: FfiConverterPrimitive {
     }
 }
 
+fileprivate struct FfiConverterUInt64: FfiConverterPrimitive {
+    typealias FfiType = UInt64
+    typealias SwiftType = UInt64
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> UInt64 {
+        return try lift(readInt(&buf))
+    }
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
 fileprivate struct FfiConverterInt64: FfiConverterPrimitive {
     typealias FfiType = Int64
     typealias SwiftType = Int64
@@ -1263,6 +1276,63 @@ public func FfiConverterTypeDnsSettings_lift(_ buf: RustBuffer) throws -> DnsSet
 
 public func FfiConverterTypeDnsSettings_lower(_ value: DnsSettings) -> RustBuffer {
     return FfiConverterTypeDnsSettings.lower(value)
+}
+
+
+public struct GatewayMinPerformance {
+    public var mixnetMinPerformance: UInt64?
+    public var vpnMinPerformance: UInt64?
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(mixnetMinPerformance: UInt64?, vpnMinPerformance: UInt64?) {
+        self.mixnetMinPerformance = mixnetMinPerformance
+        self.vpnMinPerformance = vpnMinPerformance
+    }
+}
+
+
+
+extension GatewayMinPerformance: Equatable, Hashable {
+    public static func ==(lhs: GatewayMinPerformance, rhs: GatewayMinPerformance) -> Bool {
+        if lhs.mixnetMinPerformance != rhs.mixnetMinPerformance {
+            return false
+        }
+        if lhs.vpnMinPerformance != rhs.vpnMinPerformance {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(mixnetMinPerformance)
+        hasher.combine(vpnMinPerformance)
+    }
+}
+
+
+public struct FfiConverterTypeGatewayMinPerformance: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> GatewayMinPerformance {
+        return
+            try GatewayMinPerformance(
+                mixnetMinPerformance: FfiConverterOptionUInt64.read(from: &buf), 
+                vpnMinPerformance: FfiConverterOptionUInt64.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: GatewayMinPerformance, into buf: inout [UInt8]) {
+        FfiConverterOptionUInt64.write(value.mixnetMinPerformance, into: &buf)
+        FfiConverterOptionUInt64.write(value.vpnMinPerformance, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeGatewayMinPerformance_lift(_ buf: RustBuffer) throws -> GatewayMinPerformance {
+    return try FfiConverterTypeGatewayMinPerformance.lift(buf)
+}
+
+public func FfiConverterTypeGatewayMinPerformance_lower(_ value: GatewayMinPerformance) -> RustBuffer {
+    return FfiConverterTypeGatewayMinPerformance.lower(value)
 }
 
 
@@ -2879,6 +2949,27 @@ extension VpnError: Equatable, Hashable {}
 
 extension VpnError: Error { }
 
+fileprivate struct FfiConverterOptionUInt64: FfiConverterRustBuffer {
+    typealias SwiftType = UInt64?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterUInt64.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterUInt64.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
 fileprivate struct FfiConverterOptionTimestamp: FfiConverterRustBuffer {
     typealias SwiftType = Date?
 
@@ -2958,6 +3049,27 @@ fileprivate struct FfiConverterOptionTypeDnsSettings: FfiConverterRustBuffer {
         switch try readInt(&buf) as Int8 {
         case 0: return nil
         case 1: return try FfiConverterTypeDnsSettings.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionTypeGatewayMinPerformance: FfiConverterRustBuffer {
+    typealias SwiftType = GatewayMinPerformance?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeGatewayMinPerformance.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeGatewayMinPerformance.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }
@@ -3794,13 +3906,22 @@ public func checkCredential(credential: String)throws  -> Date? {
     )
 })
 }
+<<<<<<< Updated upstream
 public func getGatewayCountries(apiUrl: Url, nymVpnApiUrl: Url?, gwType: GatewayType, userAgent: UserAgent?)throws  -> [Location] {
+=======
+public func getGatewayCountries(apiUrl: Url, nymVpnApiUrl: Url?, gwType: GatewayType, userAgent: UserAgent?, minGatewayPerformance: GatewayMinPerformance?)throws  -> [Location] {
+>>>>>>> Stashed changes
     return try  FfiConverterSequenceTypeLocation.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_getgatewaycountries(
         FfiConverterTypeUrl.lower(apiUrl),
         FfiConverterOptionTypeUrl.lower(nymVpnApiUrl),
         FfiConverterTypeGatewayType.lower(gwType),
+<<<<<<< Updated upstream
         FfiConverterOptionTypeUserAgent.lower(userAgent),$0
+=======
+        FfiConverterOptionTypeUserAgent.lower(userAgent),
+        FfiConverterOptionTypeGatewayMinPerformance.lower(minGatewayPerformance),$0
+>>>>>>> Stashed changes
     )
 })
 }
@@ -3856,7 +3977,11 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_func_checkcredential() != 1684) {
         return InitializationResult.apiChecksumMismatch
     }
+<<<<<<< Updated upstream
     if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 30440) {
+=======
+    if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 41607) {
+>>>>>>> Stashed changes
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 12628) {
