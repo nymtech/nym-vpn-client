@@ -1,0 +1,5 @@
+Neuigkeiten:
+- Ablauf der Zugangsberechtigung
+- QR-Code Scanfunktion
+- Killswitch
+- UI Verbesserungen

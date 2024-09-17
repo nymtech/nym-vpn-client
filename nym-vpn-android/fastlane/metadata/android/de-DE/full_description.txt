@@ -1,0 +1,54 @@
+Lade NymVPN herunter und mach deine Onlineaktivitäten sicher.
+Mit NymVPN kannst du deine IP Addresse verbergen, deinen Traffic verschlüsseln, deine Onlineidentität verschleiern und vieles mehr.
+
+Regierungen, große Technologiekonzerne, Datenbroker, Internetanbieter und Werbetreibende versuchen alle deine Onlineaktivitäten zu überwachen. Kürzlich geleakte Daten zeigen das man nicht mal mehr den traditionellen VPN Anbietern trauen kann.
+
+Unser VPN wurde entwickelt um deine Onlineaktivitäten privat zu halten indem wir das Loggen und Tracken deiner Aktivitäten unmöglich machen.
+
+NymVPN ist ein neuartiges VPN das so konzipiert wurde, dass es selbst uns unmöglich ist deine Aktivitäten zu überwachen. Unser VPN basiert auf einem dezentralen Netzwerk ohne "Trusted Parties", zentralisierten Netzwerkkomponenten oder "single points of failure". Sämtliche Aktivitäten von NymVPN basierend auf einem dezentralen und verteilen System ohne die Möglichkeit der Überwachung durch eine zentrale Stelle. Unser VPN verschlüsselt die Daten, versteckt die Metadaten und verhindert durch ein dezentrales Mixnet eine Analyse des Traffic. Einfach gesagt: Wir haben keine Möglichkeit deine Aktivitäten zu überwachen, ergo kann es auch kein Anderer.
+
+Aber was genau ist ein Mixnet? Ein Mixnet ist ein Netzwerk welches:
+
+1) Verschlüsselten Traffic sendet
+2) Den Traffic mixt
+3) Den Traffic umleitet
+
+Dieser Prozess wird bis zu 5 mal wiederholt (5-Hop Modus) was es unmöglich macht die Onlineaktivitäten zu überwachen.
+
+Aus diesem Grund solltest du unser dezentrales, sicheres und privates VPN wählen
+
+Privatsphäre:
+Unser dVPN wurde mit geschaffen um deine Privatsphäre zu wahren. Wir erstellen keine Logfiles (No-Log-Policy) noch tracken wir deine Aktivitäten. Selbst wenn jemand deine Daten von uns stehlen möchte gäbe es schlichtweg nichts zu stehlen.
+
+Zensurresistenz:
+Wir verschlüsseln deinen Traffic, deine IP Addresse, deinen Ort und alles was jemand mit schlechten Intentionen überwachen könnte. Du bist vollkommen geschützt, auch danke unseren Features wie z.b. einem Killswitch.
+
+Geschwindikeit:
+Die Geschwindigkeit unseres VPN Netzwerks wächst dank vieler zusätzlicher Nodes minütlich an. Darüber hinaus nutzen wir moderne kryptographische Algorithmen und innovative Protokolle wie z.b. Sphinx und Loopix um deine Verbindung so schnell wie möglich zu machen.
+
+Freie Ortswahl:
+Mit NymVPN kann du aus hunderten Regionen in der Welt auswählen.
+
+Kryptozahlungen:
+Du suchst ein VPN das Kryptozahlungen akzeptiert? Gerne akzeptieren wir Zahlungen in Form von Krypto für unsere Services.
+
+Keine Werbung:
+Unser Hauptanliegen ist deine Privatsphäre, deshalb gibt es bei uns keine Werbung in der App.
+
+Unbegrenzte Nutzung:
+NymVPN wird deinen Traffic niemals drosseln.
+
+Die wichtigsten Features unseres VPN:
+- 5-hop Mixnet. Deine Traffic wird verschlüsselt und fünf Mal von unseren Mixnodes mit anderem Traffic gemixt. Das macht es unmöglich das irgendjemand deinen deine Onlineaktivität trackt.
+
+- 2-hop dVPN: In diesem Modus wird dein Traffic verschlüsselt und zwei Mal von unseren Mixnodes gemixt. Die niedrigere Anzahl der Mixnodes sorgt für eine höhere Geschwindigkeit.
+
+- Keine zentralen Logfiles: Wir speichern keine Logfiles was es für Außenstehende unmöglich macht deine Onlineaktivität zu überwachen.
+
+- Geld-zurück-Garantie: Wenn du nicht zufrieden sein solltest kannst du dein Geld zurück fordern. Wenn dich dazu an support@nymvpn.com. Wir streben immer danach unseren Service zu verbessern.
+
+- "Split tunneling": Du kannst ganz einfach auswählen welche deiner Apps das Internet durch unser VPN nutzen und welche direkt darauf zu greifen können.
+
+- Verstecke deine IP: Unser dVPN versteckt alle deine persönlichen Informationen inklusive deiner IP Addresse.
+
+- Killswitch: Unser VPN stellt Privatsphäre und Sicherheit an erste Stelle. Deshalb wird ein Killswitch aktiviert sobald die VPN Verbindung abbricht. Das blockiert sofort deinen Internetzugang so das deine Daten und Identität geschützt bleiben.

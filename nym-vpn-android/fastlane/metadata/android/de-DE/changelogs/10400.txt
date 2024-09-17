@@ -1,0 +1,4 @@
+Neugikeiten:
+- Verbesserte Logfiles
+- Bugfixes
+- Weitere Performance-Verbesserungen

@@ -1,0 +1,4 @@
+Neuigkeiten:
+- Unterstützung für "Always-on" VPN
+- Unterstützung für schnelle Einstellungen
+- Ein Fehler in "auto-connect on Boot" behoben

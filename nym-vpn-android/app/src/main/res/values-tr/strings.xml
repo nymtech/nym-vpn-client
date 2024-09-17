@@ -7,10 +7,10 @@
     <string name="and_acknowledge">ve NymVPN\'i tanı</string>
     <string name="connected">Bağlantı sağlandı</string>
     <string name="connecting">Bağlanıyor</string>
-    <string name="five_hop_mixnet">Anonim</string>
+    <string name="five_hop_mixnet">Anonim (mixnet)</string>
     <string name="disconnecting">Bağlantı koptu</string>
     <string name="first_hop">Giriş lokasyonu</string>
-    <string name="two_hop_mixnet">Hızlı</string>
+    <string name="two_hop_mixnet">Hızlı (WireGuard)</string>
     <string name="disconnected">Bağlantı kesildi</string>
     <string name="init_client">İstemci başlatılıyor…</string>
     <string name="establishing_connection">Bağlantı kuruluyor</string>
@@ -72,7 +72,7 @@
     <string name="anonymous_analytics_description">NymVPN\'i geliştirmemize yardımcı olun</string>
     <string name="cont">Devam et</string>
     <string name="welcome">Hoş geldiniz</string>
-    <string name="to_alpha">NymVPN alpha sürümüne</string>
+    <string name="to_alpha">NymVPN beta sürümüne</string>
     <string name="thanks_for_support">Destekleriniz için teşekkür ederiz!</string>
     <string name="opt_in_message_first">Anonim hata izleme için katıl</string>
     <string name="error_logs_not_saved">Günlükler kaydedilemedi</string>
@@ -113,10 +113,10 @@
     <string name="unknown_error">Tanımlanamayan bir hata meydana geldi</string>
     <string name="send_feedback">Bize geri bildirim gönderin</string>
     <string name="check_faq">SSS\'i kontrol edin</string>
-    <string name="credential_disclaimer">Yeni bir anahtar oluşturmak için lütfen alpha aşaması davet e-postasında verilen bağlantıyı kullanın.</string>
+    <string name="credential_disclaimer">Giriş bilginizi kullanarak giriş yapın, ardından QR kodunu yapıştırın veya tarayın. Giriş bilginiz yok mu? Hemen almak için nymvpn.com adresinden kaydolun.</string>
     <string name="error_vpn_halted_unexpectedly">VPN beklenmedik bir şekilde durdu. Lütfen yeniden bağlanmayı deneyin.</string>
     <string name="error_reporting_alert">Hata raporlama ayarlarındaki değişiklikler, uygulama yeniden başlatılana kadar tam olarak etkili olmayacaktır.</string>
-    <string name="alpha_help_message">Alpha aşamasında uygulamamızı geliştirmemize yardımcı olun! Geri bildiriminiz, sorunları tespit etmemiz ve çözmemiz için son derece önemlidir.</string>
+    <string name="alpha_help_message">Beta aşamasında uygulamamızı geliştirmemize yardımcı olun! Geri bildiriminiz, sorunları tespit etmemiz ve çözmemiz için son derece önemlidir.</string>
     <string name="share_anonymous_analytics">Anonim ürün analizlerini paylaş</string>
     <string name="continue_agree">Devam ederek, NymVPN\'in şartlarını kabul etmiş olursunuz</string>
     <string name="opt_in_message_second">ve isteğe bağlı olarak analitiklere katılabilirsiniz —dilediğiniz zaman vazgeçebilirsiniz.</string>
