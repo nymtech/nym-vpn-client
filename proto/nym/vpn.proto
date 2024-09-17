@@ -382,8 +382,8 @@ message GatewayResponse {
 
 enum GatewayType {
   GATEWAY_TYPE_UNSPECIFIED = 0;
-  ENTRY = 1;
-  EXIT = 2;
+  MIXNET_ENTRY = 1;
+  MIXNET_EXIT = 2;
   VPN = 3;
 }
 

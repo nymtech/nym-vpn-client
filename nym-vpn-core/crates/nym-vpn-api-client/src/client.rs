@@ -392,8 +392,8 @@ impl VpnApiClient {
         min_performance: Option<GatewayMinPerformance>,
     ) -> Result<NymDirectoryGatewaysResponse> {
         match kind {
-            GatewayType::Entry => self.get_entry_gateways(min_performance).await,
-            GatewayType::Exit => self.get_exit_gateways(min_performance).await,
+            GatewayType::MixnetEntry => self.get_entry_gateways(min_performance).await,
+            GatewayType::MixnetExit => self.get_exit_gateways(min_performance).await,
             GatewayType::Vpn => self.get_vpn_gateways(min_performance).await,
         }
     }
@@ -404,8 +404,8 @@ impl VpnApiClient {
         min_performance: Option<GatewayMinPerformance>,
     ) -> Result<NymDirectoryGatewayCountriesResponse> {
         match kind {
-            GatewayType::Entry => self.get_entry_gateway_countries(min_performance).await,
-            GatewayType::Exit => self.get_exit_gateway_countries(min_performance).await,
+            GatewayType::MixnetEntry => self.get_entry_gateway_countries(min_performance).await,
+            GatewayType::MixnetExit => self.get_exit_gateway_countries(min_performance).await,
             GatewayType::Vpn => self.get_vpn_gateway_countries(min_performance).await,
         }
     }

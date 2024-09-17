@@ -111,7 +111,7 @@ impl GatewayMinPerformance {
 
 #[derive(Clone, Debug)]
 pub enum GatewayType {
-    Entry,
-    Exit,
+    MixnetEntry,
+    MixnetExit,
     Vpn,
 }

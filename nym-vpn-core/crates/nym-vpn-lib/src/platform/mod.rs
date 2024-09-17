@@ -442,9 +442,13 @@ async fn get_gateway_countries(
     };
     let directory_client = GatewayClient::new(directory_config, user_agent)?;
     let locations = if !exit_only {
-        directory_client.lookup_countries(GatewayType::Entry).await
+        directory_client
+            .lookup_countries(GatewayType::MixnetEntry)
+            .await
     } else {
-        directory_client.lookup_countries(GatewayType::Exit).await
+        directory_client
+            .lookup_countries(GatewayType::MixnetExit)
+            .await
     }?;
     Ok(locations.into_iter().map(Location::from).collect())
 }

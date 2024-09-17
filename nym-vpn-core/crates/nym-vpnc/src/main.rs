@@ -43,19 +43,19 @@ async fn main() -> Result<()> {
         Command::ListenToStatus => listen_to_status(client_type).await?,
         Command::ListenToStateChanges => listen_to_state_changes(client_type).await?,
         Command::ListEntryGateways(ref list_args) => {
-            list_gateways(client_type, list_args, GatewayType::Entry).await?
+            list_gateways(client_type, list_args, GatewayType::MixnetEntry).await?
         }
         Command::ListExitGateways(ref list_args) => {
-            list_gateways(client_type, list_args, GatewayType::Exit).await?
+            list_gateways(client_type, list_args, GatewayType::MixnetExit).await?
         }
         Command::ListVpnGateways(ref list_args) => {
             list_gateways(client_type, list_args, GatewayType::Vpn).await?
         }
         Command::ListEntryCountries(ref list_args) => {
-            list_countries(client_type, list_args, GatewayType::Entry).await?
+            list_countries(client_type, list_args, GatewayType::MixnetEntry).await?
         }
         Command::ListExitCountries(ref list_args) => {
-            list_countries(client_type, list_args, GatewayType::Exit).await?
+            list_countries(client_type, list_args, GatewayType::MixnetExit).await?
         }
         Command::ListVpnCountries(ref list_args) => {
             list_countries(client_type, list_args, GatewayType::Vpn).await?

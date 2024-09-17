@@ -431,12 +431,12 @@ async fn select_gateways(
     let (mut entry_gateways, exit_gateways) = if let SpecificVpn::Mix(_) = nym_vpn {
         // Setup the gateway that we will use as the exit point
         let exit_gateways = gateway_directory_client
-            .lookup_gateways(GatewayType::Exit)
+            .lookup_gateways(GatewayType::MixnetExit)
             .await
             .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
         // Setup the gateway that we will use as the entry point
         let entry_gateways = gateway_directory_client
-            .lookup_gateways(GatewayType::Entry)
+            .lookup_gateways(GatewayType::MixnetEntry)
             .await
             .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
         (entry_gateways, exit_gateways)

@@ -89,8 +89,8 @@ impl From<gateway::Country> for nym_vpn_proto::Location {
 pub(crate) fn into_gateway_type(gateway_type: nym_vpn_proto::GatewayType) -> Option<GatewayType> {
     match gateway_type {
         nym_vpn_proto::GatewayType::Unspecified => None,
-        nym_vpn_proto::GatewayType::Entry => Some(GatewayType::Entry),
-        nym_vpn_proto::GatewayType::Exit => Some(GatewayType::Exit),
+        nym_vpn_proto::GatewayType::MixnetEntry => Some(GatewayType::MixnetEntry),
+        nym_vpn_proto::GatewayType::MixnetExit => Some(GatewayType::MixnetExit),
         nym_vpn_proto::GatewayType::Vpn => Some(GatewayType::Vpn),
     }
 }

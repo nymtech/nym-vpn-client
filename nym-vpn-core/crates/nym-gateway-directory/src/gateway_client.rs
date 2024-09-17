@@ -168,7 +168,7 @@ impl GatewayClient {
 
     pub async fn lookup_low_latency_entry_gateway(&self) -> Result<Gateway> {
         debug!("Fetching low latency entry gateway...");
-        let gateways = self.lookup_gateways(GatewayType::Entry).await?;
+        let gateways = self.lookup_gateways(GatewayType::MixnetEntry).await?;
         gateways.random_low_latency_gateway().await
     }
 
@@ -219,8 +219,8 @@ impl GatewayClient {
 
     pub async fn lookup_gateways_from_nym_api(&self, gw_type: GatewayType) -> Result<GatewayList> {
         match gw_type {
-            GatewayType::Entry => self.lookup_entry_gateways_from_nym_api().await,
-            GatewayType::Exit => self.lookup_exit_gateways_from_nym_api().await,
+            GatewayType::MixnetEntry => self.lookup_entry_gateways_from_nym_api().await,
+            GatewayType::MixnetExit => self.lookup_exit_gateways_from_nym_api().await,
             GatewayType::Vpn => self.lookup_vpn_gateways_from_nym_api().await,
         }
     }
@@ -358,7 +358,10 @@ mod test {
     async fn lookup_gateways_in_nym_vpn_api() {
         let config = Config::new_mainnet();
         let client = GatewayClient::new(config, user_agent()).unwrap();
-        let gateways = client.lookup_gateways(GatewayType::Exit).await.unwrap();
+        let gateways = client
+            .lookup_gateways(GatewayType::MixnetExit)
+            .await
+            .unwrap();
         assert!(!gateways.is_empty());
     }
 }

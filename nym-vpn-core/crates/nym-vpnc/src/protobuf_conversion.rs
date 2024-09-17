@@ -107,8 +107,8 @@ pub(crate) fn into_threshold(performance: u8) -> nym_vpn_proto::Threshold {
 
 pub(crate) fn into_gateway_type(gateway_type: GatewayType) -> nym_vpn_proto::GatewayType {
     match gateway_type {
-        GatewayType::Entry => nym_vpn_proto::GatewayType::Entry,
-        GatewayType::Exit => nym_vpn_proto::GatewayType::Exit,
+        GatewayType::MixnetEntry => nym_vpn_proto::GatewayType::MixnetEntry,
+        GatewayType::MixnetExit => nym_vpn_proto::GatewayType::MixnetExit,
         GatewayType::Vpn => nym_vpn_proto::GatewayType::Vpn,
     }
 }
