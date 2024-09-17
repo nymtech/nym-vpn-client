@@ -844,11 +844,7 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_nym_vpn_lib_fn_func_checkcredential(`credential`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-<<<<<<< Updated upstream
-    fun uniffi_nym_vpn_lib_fn_func_getgatewaycountries(`apiUrl`: RustBuffer.ByValue,`nymVpnApiUrl`: RustBuffer.ByValue,`gwType`: RustBuffer.ByValue,`userAgent`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-=======
     fun uniffi_nym_vpn_lib_fn_func_getgatewaycountries(`apiUrl`: RustBuffer.ByValue,`nymVpnApiUrl`: RustBuffer.ByValue,`gwType`: RustBuffer.ByValue,`userAgent`: RustBuffer.ByValue,`minGatewayPerformance`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
->>>>>>> Stashed changes
     ): RustBuffer.ByValue
     fun uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(`apiUrl`: RustBuffer.ByValue,`vpnApiUrl`: RustBuffer.ByValue,`userAgent`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -1020,11 +1016,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_nym_vpn_lib_checksum_func_checkcredential() != 1684.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-<<<<<<< Updated upstream
-    if (lib.uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 30440.toShort()) {
-=======
     if (lib.uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 41607.toShort()) {
->>>>>>> Stashed changes
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 12628.toShort()) {
@@ -4034,19 +4026,11 @@ public object FfiConverterTypeUrl: FfiConverter<Url, RustBuffer.ByValue> {
     }
     
 
-<<<<<<< Updated upstream
-    @Throws(VpnException::class) fun `getGatewayCountries`(`apiUrl`: Url, `nymVpnApiUrl`: Url?, `gwType`: GatewayType, `userAgent`: UserAgent?): List<Location> {
-            return FfiConverterSequenceTypeLocation.lift(
-    uniffiRustCallWithError(VpnException) { _status ->
-    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_getgatewaycountries(
-        FfiConverterTypeUrl.lower(`apiUrl`),FfiConverterOptionalTypeUrl.lower(`nymVpnApiUrl`),FfiConverterTypeGatewayType.lower(`gwType`),FfiConverterOptionalTypeUserAgent.lower(`userAgent`),_status)
-=======
     @Throws(VpnException::class) fun `getGatewayCountries`(`apiUrl`: Url, `nymVpnApiUrl`: Url?, `gwType`: GatewayType, `userAgent`: UserAgent?, `minGatewayPerformance`: GatewayMinPerformance?): List<Location> {
             return FfiConverterSequenceTypeLocation.lift(
     uniffiRustCallWithError(VpnException) { _status ->
     UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_getgatewaycountries(
         FfiConverterTypeUrl.lower(`apiUrl`),FfiConverterOptionalTypeUrl.lower(`nymVpnApiUrl`),FfiConverterTypeGatewayType.lower(`gwType`),FfiConverterOptionalTypeUserAgent.lower(`userAgent`),FfiConverterOptionalTypeGatewayMinPerformance.lower(`minGatewayPerformance`),_status)
->>>>>>> Stashed changes
 }
     )
     }

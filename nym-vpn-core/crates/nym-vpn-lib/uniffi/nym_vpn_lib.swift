@@ -3906,22 +3906,14 @@ public func checkCredential(credential: String)throws  -> Date? {
     )
 })
 }
-<<<<<<< Updated upstream
-public func getGatewayCountries(apiUrl: Url, nymVpnApiUrl: Url?, gwType: GatewayType, userAgent: UserAgent?)throws  -> [Location] {
-=======
 public func getGatewayCountries(apiUrl: Url, nymVpnApiUrl: Url?, gwType: GatewayType, userAgent: UserAgent?, minGatewayPerformance: GatewayMinPerformance?)throws  -> [Location] {
->>>>>>> Stashed changes
     return try  FfiConverterSequenceTypeLocation.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_getgatewaycountries(
         FfiConverterTypeUrl.lower(apiUrl),
         FfiConverterOptionTypeUrl.lower(nymVpnApiUrl),
         FfiConverterTypeGatewayType.lower(gwType),
-<<<<<<< Updated upstream
-        FfiConverterOptionTypeUserAgent.lower(userAgent),$0
-=======
         FfiConverterOptionTypeUserAgent.lower(userAgent),
         FfiConverterOptionTypeGatewayMinPerformance.lower(minGatewayPerformance),$0
->>>>>>> Stashed changes
     )
 })
 }
@@ -3977,11 +3969,7 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_func_checkcredential() != 1684) {
         return InitializationResult.apiChecksumMismatch
     }
-<<<<<<< Updated upstream
-    if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 30440) {
-=======
     if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 41607) {
->>>>>>> Stashed changes
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 12628) {
