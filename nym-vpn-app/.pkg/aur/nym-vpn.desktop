@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=NymVPN
+Type=Application
+Version=1.0
+Comment=Decentralized, mixnet, and zero-knowledge VPN
+Exec=/usr/bin/nym-vpn-wrapper.sh %U
+Icon=/usr/share/icons/nym-vpn.svg
+Terminal=false
+Categories=Network;
+

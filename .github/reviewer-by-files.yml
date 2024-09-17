@@ -17,7 +17,7 @@
   - octol
 
 # client app changes
-"nym-vpn-x/*":
+"nym-vpn-app/*":
   - doums
 "nym-vpn-apple/*":
   - rokas-ambrazevicius
