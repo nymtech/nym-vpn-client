@@ -379,14 +379,15 @@ message GatewayResponse {
   Probe last_probe = 3;
 }
 
+enum GatewayType {
+  GATEWAY_TYPE_UNSPECIFIED = 0;
+  ENTRY = 1;
+  EXIT = 2;
+  VPN = 3;
+}
+
 message ListGatewaysRequest {
-  enum ListGatewaysType {
-    LIST_GATEWAY_TYPE_UNSPECIFIED = 0;
-    ENTRY = 1;
-    EXIT = 2;
-    VPN = 3;
-  }
-  ListGatewaysType kind = 1;
+  GatewayType kind = 1;
   Threshold min_mixnet_performance = 2;
   Threshold min_vpn_performance = 3;
 }
@@ -396,13 +397,7 @@ message ListGatewaysResponse {
 }
 
 message ListCountriesRequest {
-  enum ListCountriesType {
-    LIST_GATEWAY_TYPE_UNSPECIFIED = 0;
-    ENTRY = 1;
-    EXIT = 2;
-    VPN = 3;
-  }
-  ListCountriesType kind = 1;
+  GatewayType kind = 1;
   Threshold min_mixnet_performance = 2;
   Threshold min_vpn_performance = 3;
 }

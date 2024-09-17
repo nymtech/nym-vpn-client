@@ -11,7 +11,6 @@ use std::{
 use futures::{stream::BoxStream, StreamExt};
 use nym_vpn_api_client::types::GatewayMinPerformance;
 use nym_vpn_proto::{
-    list_countries_request::ListCountriesType, list_gateways_request::ListGatewaysType,
     nym_vpnd_server::NymVpnd, AccountError, ConnectRequest, ConnectResponse, ConnectionStateChange,
     ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty, GetAccountSummaryRequest,
     GetAccountSummaryResponse, ImportUserCredentialRequest, ImportUserCredentialResponse,
@@ -276,11 +275,14 @@ impl NymVpnd for CommandInterface {
 
         let request = request.into_inner();
 
-        let kind = ListGatewaysType::try_from(request.kind).map_err(|err| {
-            let msg = format!("Failed to parse list gateways kind: {:?}", err);
-            error!(msg);
-            tonic::Status::invalid_argument(msg)
-        })?;
+        let gw_type = nym_vpn_proto::GatewayType::try_from(request.kind)
+            .ok()
+            .and_then(crate::command_interface::protobuf::gateway::into_gateway_type)
+            .ok_or_else(|| {
+                let msg = format!("Failed to parse gateway type: {}", request.kind);
+                error!(msg);
+                tonic::Status::invalid_argument(msg)
+            })?;
 
         let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
         let min_vpn_performance = request.min_vpn_performance.map(threshold_into_percent);
@@ -289,7 +291,6 @@ impl NymVpnd for CommandInterface {
             mixnet_min_performance: min_mixnet_performance,
             vpn_min_performance: min_vpn_performance,
         };
-        let gw_type = crate::command_interface::protobuf::gateway::into_gateway_type(kind);
 
         let gateways = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_list_gateways(gw_type, min_gateway_performance)
@@ -322,13 +323,14 @@ impl NymVpnd for CommandInterface {
 
         let request = request.into_inner();
 
-        let kind = ListCountriesType::try_from(request.kind).map_err(|err| {
-            let msg = format!("Failed to parse list countries kind: {:?}", err);
-            error!(msg);
-            tonic::Status::invalid_argument(msg)
-        })?;
-        let gw_type =
-            crate::command_interface::protobuf::gateway::from_country_into_gateway_type(kind);
+        let gw_type = nym_vpn_proto::GatewayType::try_from(request.kind)
+            .ok()
+            .and_then(crate::command_interface::protobuf::gateway::into_gateway_type)
+            .ok_or_else(|| {
+                let msg = format!("Failed to parse list countries kind: {}", request.kind);
+                error!(msg);
+                tonic::Status::invalid_argument(msg)
+            })?;
 
         let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
         let min_vpn_performance = request.min_vpn_performance.map(threshold_into_percent);

@@ -4,9 +4,8 @@
 use anyhow::Result;
 use clap::Parser;
 use nym_vpn_proto::{
-    list_countries_request::ListCountriesType, list_gateways_request::ListGatewaysType,
-    ConnectRequest, DisconnectRequest, Empty, ImportUserCredentialRequest, InfoRequest,
-    ListCountriesRequest, ListGatewaysRequest, StatusRequest, StoreAccountRequest,
+    ConnectRequest, DisconnectRequest, Empty, GatewayType, ImportUserCredentialRequest,
+    InfoRequest, ListCountriesRequest, ListGatewaysRequest, StatusRequest, StoreAccountRequest,
 };
 use protobuf_conversion::into_threshold;
 use vpnd_client::ClientType;
@@ -197,7 +196,7 @@ async fn list_entry_gateways(
 ) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(ListGatewaysRequest {
-        kind: ListGatewaysType::Entry as i32,
+        kind: GatewayType::Entry as i32,
         min_mixnet_performance: list_args.min_mixnet_performance.map(into_threshold),
         min_vpn_performance: list_args.min_vpn_performance.map(into_threshold),
     });
@@ -222,7 +221,7 @@ async fn list_exit_gateways(
 ) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(ListGatewaysRequest {
-        kind: ListGatewaysType::Exit as i32,
+        kind: GatewayType::Exit as i32,
         min_mixnet_performance: list_args.min_mixnet_performance.map(into_threshold),
         min_vpn_performance: list_args.min_vpn_performance.map(into_threshold),
     });
@@ -247,7 +246,7 @@ async fn list_vpn_gateways(
 ) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(ListGatewaysRequest {
-        kind: ListGatewaysType::Vpn as i32,
+        kind: GatewayType::Vpn as i32,
         min_mixnet_performance: list_args.min_mixnet_performance.map(into_threshold),
         min_vpn_performance: list_args.min_vpn_performance.map(into_threshold),
     });
@@ -262,7 +261,7 @@ async fn list_entry_countries(
 ) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(ListCountriesRequest {
-        kind: ListCountriesType::Entry as i32,
+        kind: GatewayType::Entry as i32,
         min_mixnet_performance: list_args.min_mixnet_performance.map(into_threshold),
         min_vpn_performance: list_args.min_vpn_performance.map(into_threshold),
     });
@@ -277,7 +276,7 @@ async fn list_exit_countries(
 ) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(ListCountriesRequest {
-        kind: ListCountriesType::Exit as i32,
+        kind: GatewayType::Exit as i32,
         min_mixnet_performance: list_args.min_mixnet_performance.map(into_threshold),
         min_vpn_performance: list_args.min_vpn_performance.map(into_threshold),
     });
@@ -292,7 +291,7 @@ async fn list_vpn_countries(
 ) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(ListCountriesRequest {
-        kind: ListCountriesType::Vpn as i32,
+        kind: GatewayType::Vpn as i32,
         min_mixnet_performance: list_args.min_mixnet_performance.map(into_threshold),
         min_vpn_performance: list_args.min_vpn_performance.map(into_threshold),
     });
