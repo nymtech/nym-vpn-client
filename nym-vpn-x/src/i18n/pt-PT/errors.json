@@ -1,1 +1,51 @@
-{}
+{
+  "credential": {
+    "invalid": "Credencial Inválida",
+    "expired": "Credencial expirada",
+    "no-duplicate": "Esta credencial já foi importada",
+    "deserialize": "Falha ao desserializar a credencial",
+    "vpn-running": "Não é possível importar uma credencial enquanto estiver ligado à VPN",
+    "storage": "Falha ao importar a credencial devido a um erro interno"
+  },
+  "unknown": "Erro desconhecido",
+  "internal": "Erro interno",
+  "daemon": {
+    "not-connected": "Não está ligado ao daemon"
+  },
+  "grpc": "Erro interno do gRPC",
+  "connection": {
+    "no-valid-credential": "Nenhuma credencial válida, por favor adicione uma credencial primeiro",
+    "timeout": "Tempo limite de ligação",
+    "mixnet": {
+      "timeout": "Tempo limite da ligação Mixnet",
+      "default-storage": "Falha ao criar a mixnet com o armazenamento predefinido",
+      "build-client": "Falha ao construir o cliente mixnet",
+      "connect": "Falha na ligação à mixnet",
+      "entry-gateway": "Falha na ligação ao gateway de entrada da mixnet",
+      "storage-path": "Falha ao criar os caminhos de armazenamento da mixnet"
+    },
+    "ipr-connect": "Falha na ligação ao IPR",
+    "gateway-lookup": {
+      "id": "Falha ao procurar a identidade do gateway",
+      "ipr": "Falha na pesquisa do endereço IPR",
+      "ip": "Falha ao procurar o endereço IP do gateway",
+      "entry-id": "Falha ao procurar a identidade do gateway de entrada",
+      "entry-location": "Falha ao procurar o gateway de entrada para um determinado local",
+      "exit": "Falha ao procurar o gateway de saída",
+      "generic": "Falha ao procurar os gateways",
+      "entry": "Falha ao procurar o gateway de entrada",
+      "exit-location": "Falha ao procurar o gateway de saída para um determinado local"
+    },
+    "bad-country-combination": "Combinação de países não suportada, por favor altere o país de entrada ou de saída"
+  },
+  "countries-request": {
+    "entry": "Falha ao procurar os países com nós de entrada disponíveis",
+    "exit": "Falha ao procurar os países de nós de saída disponíveis"
+  },
+  "out-of-bandwidth": "Largura de banda não atribuída",
+  "entry-node-routing": "O nó de entrada não está a encaminhar o tráfego (a ligação à Internet caiu?)",
+  "exit-node": {
+    "routing": "O nó de saída não está a encaminhar {{protocol}}tráfego",
+    "ping": "O ping do nó de saída falhou para o {{protocol}}tráfego"
+  }
+}

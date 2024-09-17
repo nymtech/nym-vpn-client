@@ -1,1 +1,10 @@
-{}
+{
+  "options": {
+    "system": "Automático",
+    "light": "Tema claro",
+    "dark": "Tema escuro"
+  },
+  "system-desc": "Utilizar o tema do dispositivo",
+  "theme-section-title": "Tema",
+  "zoom-section-title": "Nível de zoom"
+}
