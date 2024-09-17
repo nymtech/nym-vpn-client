@@ -275,19 +275,21 @@ impl TryFrom<GatewayMinPerformance> for nym_gateway_directory::GatewayMinPerform
         let mixnet_min_performance = value
             .mixnet_min_performance
             .map(|p| {
-                nym_gateway_directory::Percent::from_percentage_value(p)
-                    .map_err(|_| VpnError::InternalError {
+                nym_gateway_directory::Percent::from_percentage_value(p).map_err(|_| {
+                    VpnError::InternalError {
                         details: "Invalid mixnet min performance percentage".to_string(),
-                    })
+                    }
+                })
             })
             .transpose()?;
         let vpn_min_performance = value
             .vpn_min_performance
             .map(|p| {
-                nym_gateway_directory::Percent::from_percentage_value(p)
-                    .map_err(|_| VpnError::InternalError {
+                nym_gateway_directory::Percent::from_percentage_value(p).map_err(|_| {
+                    VpnError::InternalError {
                         details: "Invalid vpn min performance percentage".to_string(),
-                    })
+                    }
+                })
             })
             .transpose()?;
         Ok(nym_gateway_directory::GatewayMinPerformance {
