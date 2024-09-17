@@ -47,13 +47,7 @@ public final class GRPCManager: ObservableObject {
             let call = client.info(Nym_Vpn_InfoRequest(), callOptions: CallOptions(logger: logger))
 
             call.response.whenComplete { result in
-                switch result {
-                case let .success(response):
-                    continuation.resume(returning: response.version)
-                case let .failure(error):
-                    print(error)
-                    continuation.resume(throwing: error)
-                }
+                continuation.resume(with: result.map { $0.version })
             }
         }
     }
