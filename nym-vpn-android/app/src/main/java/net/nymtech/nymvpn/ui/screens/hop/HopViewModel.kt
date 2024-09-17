@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.service.country.CountryCacheService
 import net.nymtech.vpn.model.Country
+import nym_vpn_lib.GatewayType
 import javax.inject.Inject
 
 @HiltViewModel
@@ -32,10 +33,11 @@ constructor(
 		}
 	}
 
-	fun updateCountryCache(gatewayLocation: GatewayLocation) = viewModelScope.launch {
-		when (gatewayLocation) {
-			GatewayLocation.ENTRY -> countryCacheService.updateEntryCountriesCache()
-			GatewayLocation.EXIT -> countryCacheService.updateExitCountriesCache()
+	fun updateCountryCache(type: GatewayType) = viewModelScope.launch {
+		when (type) {
+			GatewayType.MIXNET_ENTRY -> countryCacheService.updateEntryCountriesCache()
+			GatewayType.MIXNET_EXIT -> countryCacheService.updateExitCountriesCache()
+			GatewayType.VPN -> countryCacheService.updateWgCountriesCache()
 		}
 	}
 

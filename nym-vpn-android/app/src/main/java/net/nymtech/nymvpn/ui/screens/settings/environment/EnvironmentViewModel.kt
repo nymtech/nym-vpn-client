@@ -30,6 +30,9 @@ constructor(
 			launch {
 				cacheService.updateEntryCountriesCache()
 			}
+			launch {
+				cacheService.updateWgCountriesCache()
+			}
 		} else {
 			SnackbarController.showMessage(StringValue.DynamicString("Tunnel must be down"))
 		}

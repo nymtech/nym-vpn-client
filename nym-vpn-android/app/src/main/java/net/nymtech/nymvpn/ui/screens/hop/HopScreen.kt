@@ -53,6 +53,8 @@ import net.nymtech.nymvpn.util.extensions.go
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
+import net.nymtech.vpn.backend.Tunnel
+import nym_vpn_lib.GatewayType
 import java.text.Collator
 
 @Composable
@@ -69,9 +71,20 @@ fun HopScreen(
 	val currentLocale = ConfigurationCompat.getLocales(context.resources.configuration)[0]
 	val collator = Collator.getInstance(currentLocale)
 
-	val countries = when (gatewayLocation) {
-		GatewayLocation.EXIT -> appUiState.gateways.exitCountries
-		GatewayLocation.ENTRY -> appUiState.gateways.entryCountries
+	val gatewayType = when (appUiState.settings.vpnMode) {
+		Tunnel.Mode.FIVE_HOP_MIXNET -> {
+			when (gatewayLocation) {
+				GatewayLocation.EXIT -> GatewayType.MIXNET_EXIT
+				GatewayLocation.ENTRY -> GatewayType.MIXNET_ENTRY
+			}
+		}
+		Tunnel.Mode.TWO_HOP_MIXNET -> GatewayType.VPN
+	}
+
+	val countries = when (gatewayType) {
+		GatewayType.MIXNET_ENTRY -> appUiState.gateways.entryCountries
+		GatewayType.MIXNET_EXIT -> appUiState.gateways.exitCountries
+		GatewayType.VPN -> appUiState.gateways.wgCountries
 	}
 
 	val selectedCountry = when (gatewayLocation) {
@@ -91,7 +104,7 @@ fun HopScreen(
 	val displayCountries = if (uiState.query.isBlank()) allCountries else queriedCountries
 
 	LaunchedEffect(Unit) {
-		viewModel.updateCountryCache(gatewayLocation)
+		viewModel.updateCountryCache(gatewayType)
 	}
 
 	Modal(show = appUiState.showLocationTooltip, onDismiss = { appViewModel.onToggleShowLocationTooltip() }, title = {

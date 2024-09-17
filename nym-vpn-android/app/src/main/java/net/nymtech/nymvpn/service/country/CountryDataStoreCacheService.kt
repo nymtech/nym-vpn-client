@@ -3,6 +3,7 @@ package net.nymtech.nymvpn.service.country
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.module.qualifiers.Native
 import net.nymtech.nymvpn.service.gateway.GatewayService
+import nym_vpn_lib.GatewayType
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -12,7 +13,7 @@ class CountryDataStoreCacheService @Inject constructor(
 ) : CountryCacheService {
 	override suspend fun updateExitCountriesCache(): Result<Unit> {
 		return runCatching {
-			gatewayService.getCountries(true).onSuccess {
+			gatewayService.getCountries(GatewayType.MIXNET_EXIT).onSuccess {
 				gatewayRepository.setExitCountries(it)
 			}
 		}
@@ -20,8 +21,16 @@ class CountryDataStoreCacheService @Inject constructor(
 
 	override suspend fun updateEntryCountriesCache(): Result<Unit> {
 		return runCatching {
-			gatewayService.getCountries(false).onSuccess {
+			gatewayService.getCountries(GatewayType.MIXNET_ENTRY).onSuccess {
 				gatewayRepository.setEntryCountries(it)
+			}
+		}
+	}
+
+	override suspend fun updateWgCountriesCache(): Result<Unit> {
+		return kotlin.runCatching {
+			gatewayService.getCountries(GatewayType.VPN).onSuccess {
+				gatewayRepository.setWgCountries(it)
 			}
 		}
 	}

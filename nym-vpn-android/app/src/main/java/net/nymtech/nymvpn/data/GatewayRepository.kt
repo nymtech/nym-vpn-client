@@ -18,5 +18,7 @@ interface GatewayRepository {
 
 	suspend fun getExitCountries(): Set<Country>
 
+	suspend fun setWgCountries(it: Set<Country>)
+
 	val gatewayFlow: Flow<Gateways>
 }

@@ -62,6 +62,12 @@ class SplashActivity : ComponentActivity() {
 					Timber.d("Entry countries updated")
 				}.onFailure { Timber.w("Failed to get entry countries: ${it.message}") }
 			}
+			launch {
+				Timber.d("Updating entry country cache")
+				countryCacheService.updateWgCountriesCache().onSuccess {
+					Timber.d("Wg countries updated")
+				}.onFailure { Timber.w("Failed to get wg countries: ${it.message}") }
+			}
 		}
 
 		lifecycleScope.launch {
