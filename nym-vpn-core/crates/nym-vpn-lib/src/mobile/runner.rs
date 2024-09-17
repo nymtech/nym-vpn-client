@@ -219,7 +219,7 @@ impl WgTunnelRunner {
 
         let all_gateways = self
             .gateway_directory_client
-            .lookup_vpn_gateways()
+            .lookup_gateways(GatewayType::Vpn)
             .await
             .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
         let mut entry_gateways = all_gateways.clone();

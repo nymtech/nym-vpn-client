@@ -174,6 +174,10 @@ pub(crate) struct StoreAccountArgs {
 
 #[derive(Args)]
 pub(crate) struct ListGatewaysArgs {
+    /// Display additional information about the gateways.
+    #[arg(long, short)]
+    pub(crate) verbose: bool,
+
     /// An integer between 0 and 100 representing the minimum gateway performance required to
     /// consider a gateway for routing traffic.
     #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
