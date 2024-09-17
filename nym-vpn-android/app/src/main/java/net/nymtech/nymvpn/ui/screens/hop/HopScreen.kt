@@ -78,13 +78,13 @@ fun HopScreen(
 				GatewayLocation.ENTRY -> GatewayType.MIXNET_ENTRY
 			}
 		}
-		Tunnel.Mode.TWO_HOP_MIXNET -> GatewayType.VPN
+		Tunnel.Mode.TWO_HOP_MIXNET -> GatewayType.WG
 	}
 
 	val countries = when (gatewayType) {
 		GatewayType.MIXNET_ENTRY -> appUiState.gateways.entryCountries
 		GatewayType.MIXNET_EXIT -> appUiState.gateways.exitCountries
-		GatewayType.VPN -> appUiState.gateways.wgCountries
+		GatewayType.WG -> appUiState.gateways.wgCountries
 	}
 
 	val selectedCountry = when (gatewayLocation) {

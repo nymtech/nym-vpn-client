@@ -37,7 +37,7 @@ constructor(
 		when (type) {
 			GatewayType.MIXNET_ENTRY -> countryCacheService.updateEntryCountriesCache()
 			GatewayType.MIXNET_EXIT -> countryCacheService.updateExitCountriesCache()
-			GatewayType.VPN -> countryCacheService.updateWgCountriesCache()
+			GatewayType.WG -> countryCacheService.updateWgCountriesCache()
 		}
 	}
 

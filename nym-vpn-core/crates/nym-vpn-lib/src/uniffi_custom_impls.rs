@@ -249,7 +249,7 @@ impl From<nym_gateway_directory::Country> for Location {
 pub enum GatewayType {
     MixnetEntry,
     MixnetExit,
-    Vpn,
+    Wg,
 }
 
 impl From<GatewayType> for nym_gateway_directory::GatewayType {
@@ -257,7 +257,7 @@ impl From<GatewayType> for nym_gateway_directory::GatewayType {
         match value {
             GatewayType::MixnetEntry => nym_gateway_directory::GatewayType::MixnetEntry,
             GatewayType::MixnetExit => nym_gateway_directory::GatewayType::MixnetExit,
-            GatewayType::Vpn => nym_gateway_directory::GatewayType::Wg,
+            GatewayType::Wg => nym_gateway_directory::GatewayType::Wg,
         }
     }
 }

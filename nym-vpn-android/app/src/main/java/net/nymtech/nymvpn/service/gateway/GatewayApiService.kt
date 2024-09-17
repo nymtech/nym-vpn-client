@@ -27,7 +27,7 @@ class GatewayApiService @Inject constructor(
 				val countries = when (type) {
 					GatewayType.MIXNET_ENTRY -> gatewayApi.getAllEntryGatewayTwoCharacterCountryCodes()
 					GatewayType.MIXNET_EXIT -> gatewayApi.getAllExitGatewayTwoCharacterCountryCodes()
-					GatewayType.VPN -> {
+					GatewayType.WG -> {
 						Timber.w("Not implemented for VPN")
 						emptyList()
 					}

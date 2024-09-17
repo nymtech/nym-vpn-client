@@ -29,7 +29,7 @@ class CountryDataStoreCacheService @Inject constructor(
 
 	override suspend fun updateWgCountriesCache(): Result<Unit> {
 		return kotlin.runCatching {
-			gatewayService.getCountries(GatewayType.VPN).onSuccess {
+			gatewayService.getCountries(GatewayType.WG).onSuccess {
 				gatewayRepository.setWgCountries(it)
 			}
 		}
