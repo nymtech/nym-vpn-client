@@ -2358,6 +2358,68 @@ extension ExitStatus: Equatable, Hashable {}
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
+public enum GatewayType {
+    
+    case entry
+    case exit
+    case vpn
+}
+
+
+public struct FfiConverterTypeGatewayType: FfiConverterRustBuffer {
+    typealias SwiftType = GatewayType
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> GatewayType {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .entry
+        
+        case 2: return .exit
+        
+        case 3: return .vpn
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: GatewayType, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .entry:
+            writeInt(&buf, Int32(1))
+        
+        
+        case .exit:
+            writeInt(&buf, Int32(2))
+        
+        
+        case .vpn:
+            writeInt(&buf, Int32(3))
+        
+        }
+    }
+}
+
+
+public func FfiConverterTypeGatewayType_lift(_ buf: RustBuffer) throws -> GatewayType {
+    return try FfiConverterTypeGatewayType.lift(buf)
+}
+
+public func FfiConverterTypeGatewayType_lower(_ value: GatewayType) -> RustBuffer {
+    return FfiConverterTypeGatewayType.lower(value)
+}
+
+
+
+extension GatewayType: Equatable, Hashable {}
+
+
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
 public enum Ipv4Route {
     
     /**
@@ -3732,41 +3794,22 @@ public func checkCredential(credential: String)throws  -> Date? {
     )
 })
 }
-public func getGatewayCountries(apiUrl: Url, nymVpnApiUrl: Url?, exitOnly: Bool, userAgent: UserAgent?)throws  -> [Location] {
+public func getGatewayCountries(apiUrl: Url, nymVpnApiUrl: Url?, gwType: GatewayType, userAgent: UserAgent?)throws  -> [Location] {
     return try  FfiConverterSequenceTypeLocation.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_getgatewaycountries(
         FfiConverterTypeUrl.lower(apiUrl),
         FfiConverterOptionTypeUrl.lower(nymVpnApiUrl),
-        FfiConverterBool.lower(exitOnly),
+        FfiConverterTypeGatewayType.lower(gwType),
         FfiConverterOptionTypeUserAgent.lower(userAgent),$0
     )
 })
 }
-public func getLowLatencyEntryCountry(apiUrl: Url, vpnApiUrl: Url?, harbourMasterUrl: Url?)throws  -> Location {
+public func getLowLatencyEntryCountry(apiUrl: Url, vpnApiUrl: Url?, userAgent: UserAgent)throws  -> Location {
     return try  FfiConverterTypeLocation.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(
         FfiConverterTypeUrl.lower(apiUrl),
         FfiConverterOptionTypeUrl.lower(vpnApiUrl),
-        FfiConverterOptionTypeUrl.lower(harbourMasterUrl),$0
-    )
-})
-}
-public func getLowLatencyEntryCountryUserAgent(apiUrl: Url, vpnApiUrl: Url?, harbourMasterUrl: Url?, userAgent: UserAgent)throws  -> Location {
-    return try  FfiConverterTypeLocation.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
-    uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountryuseragent(
-        FfiConverterTypeUrl.lower(apiUrl),
-        FfiConverterOptionTypeUrl.lower(vpnApiUrl),
-        FfiConverterOptionTypeUrl.lower(harbourMasterUrl),
         FfiConverterTypeUserAgent.lower(userAgent),$0
-    )
-})
-}
-public func getVpnCountries(apiUrl: Url, nymVpnApiUrl: Url?, userAgent: UserAgent?)throws  -> [Location] {
-    return try  FfiConverterSequenceTypeLocation.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
-    uniffi_nym_vpn_lib_fn_func_getvpncountries(
-        FfiConverterTypeUrl.lower(apiUrl),
-        FfiConverterOptionTypeUrl.lower(nymVpnApiUrl),
-        FfiConverterOptionTypeUserAgent.lower(userAgent),$0
     )
 })
 }
@@ -3813,16 +3856,10 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_func_checkcredential() != 1684) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 18771) {
+    if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 30440) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 27206) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountryuseragent() != 14102) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_nym_vpn_lib_checksum_func_getvpncountries() != 17864) {
+    if (uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 12628) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_importcredential() != 49505) {
