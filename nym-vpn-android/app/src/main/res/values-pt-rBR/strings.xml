@@ -17,12 +17,12 @@
     <string name="connect_to">Conectar ao</string>
     <string name="disabled_while_connected">Desativado enquanto conectado à VPN</string>
     <string name="unknown">Desconhecido</string>
-    <string name="credential_disclaimer">Para gerar uma nova credencial, use o link fornecido no email de convite da fase alfa.</string>
+    <string name="credential_disclaimer">Resgate sua credencial e cole ou escaneie o código QR. Não tem um? Registre-se em nymvpn.com para obtê-la instantaneamente.</string>
     <string name="error_reporting_alert">As alterações no relatório de erros não entrarão em vigor totalmente até que o aplicativo seja reiniciado.</string>
     <string name="light_theme">Tema claro</string>
     <string name="search_country">Pesquisar país</string>
     <string name="logs">Registros</string>
-    <string name="alpha_help_message">Ajude-nos a refinar nosso aplicativo durante a fase alfa! Seu feedback é fundamental para identificar e resolver problemas.</string>
+    <string name="alpha_help_message">Ajude-nos a refinar nosso aplicativo durante o teste beta! Seu feedback é fundamental para identificar e resolver problemas.</string>
     <string name="feedback">Comentário</string>
     <string name="email_subject">Suporte NymVPN</string>
     <string name="gateways_error">Falha ao recuperar gateways</string>
@@ -80,7 +80,7 @@
     <string name="opt_in_message_first">Opção de monitoramento anônimo de erros</string>
     <string name="opt_in_message_second">e análises à vontade - você pode optar por não participar a qualquer momento.</string>
     <string name="thanks_for_support">Obrigado pelo seu suporte!</string>
-    <string name="to_alpha">para a NymVPN alfa</string>
+    <string name="to_alpha">para a NymVPN beta</string>
     <string name="welcome">Bem vindo</string>
     <string name="cont">Continuar</string>
     <string name="continue_agree">Ao continuar, você concorda com os termos da NymVPN\'s</string>
@@ -92,8 +92,8 @@
     <string name="country_load_failure">Falha ao carregar países de salto</string>
     <string name="app_shortcuts">Atalhos do aplicativo</string>
     <string name="enable_shortcuts">Ativar atalhos do aplicativo</string>
-    <string name="five_hop_mixnet">Anônimo</string>
-    <string name="two_hop_mixnet">rápido</string>
+    <string name="five_hop_mixnet">Anônimo (mixnet)</string>
+    <string name="two_hop_mixnet">Rápido (WireGuard)</string>
     <string name="last_hop_selection">Local de saída</string>
     <string name="privacy_policy">Declaração de privacidade</string>
     <string name="licenses">Licenças</string>
@@ -123,7 +123,7 @@
     <string name="error_no_hostname_address">O gateway está sem o endereço do hostname. Por favor, tente novamente conectando-se a um gateway diferente.</string>
     <string name="top_up">Recarregar</string>
     <string name="notification_permission_message">Necessário para manter os serviços de VPN em funcionamento enquanto o aplicativo está fechado.</string>
-    <string name="two_hop_explanation">Experimente velocidade máxima com conectividade de 2 servidores. Perfeito para navegação rápida, streaming e compartilhamento de arquivos.</string>
+    <string name="two_hop_explanation">Experimente a velocidade máxima com a conectividade de dois servidores. Perfeito para navegação rápida, streaming e compartilhamento de arquivos.</string>
     <string name="error_gateway_lookup">Falha ao buscar os gateways da Nym. Por favor, verifique sua conexão de rede e tente novamente.</string>
     <string name="entry_location">Local de entrada</string>
     <string name="exit_location">Local de saída</string>
@@ -131,4 +131,15 @@
     <string name="gateway_modal_description">Inferimos a localização dos servidores com base em seus endereços IP, mas a localização real pode variar um pouco.</string>
     <string name="gateway_locations_title">Detalhes sobre os locais dos servidores</string>
     <string name="entry_location_selector">Seletor de local de entrada</string>
+    <string name="appearance">Aparência</string>
+    <string name="remaining">restantes</string>
+    <string name="vpn_connection">Conexão VPN</string>
+    <string name="vpn_permission_message">Confirme a solicitação de conexão VPN tentando se reconectar.</string>
+    <string name="view_system_settings">Exibir configurações do sistema</string>
+    <string name="try_reconnecting">Tente reconectar</string>
+    <string name="always_on_disbled">VPN sempre ativa desativada</string>
+    <string name="always_on_message">Não está funcionando? Certifique-se de que a VPN sempre ativa esteja desativada para outros aplicativos em</string>
+    <string name="vpn_settings">Configurações do sistema VPN</string>
+    <string name="try_again">e tentar se reconectar</string>
+    <string name="two_hop">2-saltos</string>
 </resources>

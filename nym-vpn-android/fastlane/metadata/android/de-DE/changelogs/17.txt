@@ -1,0 +1,3 @@
+Neuigkeiten:
+- Fehler bei der Zwischenspeicherung der Länder behoben
+- Performanceoptimierung

@@ -7,14 +7,14 @@
     <string name="connected">कनेक्शन सफल हुआ</string>
     <string name="disconnected">डिस्कनेक्टेड</string>
     <string name="disconnecting">डिसकनेक्ट हो रहा है</string>
-    <string name="five_hop_mixnet">अनाम</string>
+    <string name="five_hop_mixnet">"अनाम  (mixnet)"</string>
     <string name="five_hop_description">भुगतान, ईमेल और मेसेज के लिए</string>
-    <string name="two_hop_mixnet">तेज़</string>
+    <string name="two_hop_mixnet">तेज़ (WireGuard)</string>
     <string name="first_hop">उद्भव स्थान</string>
-    <string name="last_hop">आखरी स्थान</string>
+    <string name="last_hop">VPN आखरी स्थान</string>
     <string name="connect">कनेक्ट</string>
-    <string name="last_hop_selection">आखरी स्थान</string>
-    <string name="first_hop_selection">उद्भव स्थान</string>
+    <string name="last_hop_selection">VPN आखरी स्थान</string>
+    <string name="first_hop_selection">VPN उद्भव स्थान</string>
     <string name="terms_of_use">उपयोग की शर्तें</string>
     <string name="error_reporting">अनाम त्रुटि रिपोर्ट साझा करें</string>
     <string name="open_github">GitHub मुद्दा खोलें</string>
@@ -29,7 +29,7 @@
     <string name="add_credential">क्रेडेंशियल जोड़ें</string>
     <string name="no_scm_found">स्रोत कोड URL नहीं मिला</string>
     <string name="logs_saved">लॉग्स डाउनलोड्स फोल्डर में सहेजे गए</string>
-    <string name="alpha_help_message">अल्फा चरण के दौरान हमारे ऐप को बेहतर बनाने में मदद करें! आपकी प्रतिक्रिया समस्याओं की पहचान और समाधान के लिए महत्वपूर्ण है।</string>
+    <string name="alpha_help_message">बीटा चरण के दौरान हमारे ऐप को बेहतर बनाने में मदद करें! आपकी प्रतिक्रिया समस्याओं की पहचान और समाधान के लिए महत्वपूर्ण है।</string>
     <string name="continue_agree">जारी रखते हुए, आप NymVPN की</string>
     <string name="five_hop_explanation">5 सर्वरों के माध्यम से मिक्सनेट के जरिए अपने कनेक्शन को रूट करके अधिकतम स्तर की गोपनीयता का आनंद लें। भुगतान, ईमेल, और संदेशों को सुरक्षित रूप से संभालने के लिए यह आदर्श है।</string>
     <string name="init_client">क्लाइंट प्रारंभ हो रहा है…</string>
@@ -79,7 +79,7 @@
     <string name="anonymous_analytics_description">हमें NymVPN में सुधार करने में मदद करें</string>
     <string name="opt_in_message_second">और विश्लेषण—आप किसी भी समय ऑप्ट-आउट कर सकते हैं।\"</string>
     <string name="thanks_for_support">आपके समर्थन के लिए धन्यवाद!</string>
-    <string name="to_alpha">NymVPN अल्फा के लिए</string>
+    <string name="to_alpha">NymVPN बीटा चरण के लिए</string>
     <string name="welcome">स्वागत है</string>
     <string name="cont">जारी रखें</string>
     <string name="and_acknowledge">और NymVPN की स्वीकृति और स्वीकार करते हैं</string>
@@ -128,4 +128,18 @@
     <string name="continue_reading">पढ़ना जारी रखें</string>
     <string name="entry_location">उद्भव स्थान</string>
     <string name="exit_location">आखरी स्थान</string>
+    <string name="try_again">और पुनः कनेक्ट करने का प्रयास करें</string>
+    <string name="gateway_modal_description">हम IP पतों के आधार पर सर्वर स्थानों का अनुमान लगाते हैं, लेकिन वास्तविक स्थानों में थोड़ा बदलाव हो सकता है।</string>
+    <string name="always_on_message">काम नहीं कर रहा? सुनिश्चित करें कि अन्य ऐप्स के लिए Always-on VPN बंद है।</string>
+    <string name="language">भाषा</string>
+    <string name="appearance">रूपरंग</string>
+    <string name="gateway_locations_title">सर्वर स्थानों की जानकारी</string>
+    <string name="remaining">बाकी</string>
+    <string name="entry_location_selector">प्रवेश स्थान चयनकर्ता</string>
+    <string name="vpn_connection">VPN कनेक्शन</string>
+    <string name="vpn_permission_message">VPN कनेक्शन अनुरोध को मान्यता देने के लिए पुनः कनेक्ट करने का प्रयास करें।</string>
+    <string name="view_system_settings">सिस्टम सेटिंग्स देखें</string>
+    <string name="try_reconnecting">फिर से कनेक्ट करने का प्रयास करें</string>
+    <string name="always_on_disbled">आगे-पीछे VPN बंद है</string>
+    <string name="vpn_settings">VPN सिस्टम सेटिंग्स</string>
 </resources>

@@ -1,0 +1,5 @@
+Neuigkeiten:
+- File descriptor Bug behoben
+- Nym Api v5 Bug
+- IPv4/IPv6 VPN Bug behoben
+- Weitere Bugfixes

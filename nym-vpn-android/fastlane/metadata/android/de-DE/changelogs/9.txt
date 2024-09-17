@@ -1,0 +1,4 @@
+Neuigkeiten:
+- Bugfix Navigation
+- Bugfix Zugangsberechtigung
+- Bugfix Länder API und Suche

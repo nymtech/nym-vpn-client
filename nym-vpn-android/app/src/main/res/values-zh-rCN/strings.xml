@@ -129,4 +129,17 @@
     <string name="entry_location">第一跳选择</string>
     <string name="exit_location">最后一跳选择</string>
     <string name="language">语言</string>
+    <string name="two_hop">2跳</string>
+    <string name="remaining">剩余的</string>
+    <string name="appearance">外观</string>
+    <string name="gateway_modal_description">我们根据 IP 地址推断服务器位置，但实际位置可能略有不同。</string>
+    <string name="gateway_locations_title">服务器位置详情</string>
+    <string name="vpn_connection">VPN 连接</string>
+    <string name="vpn_permission_message">通过尝试重新连接来验证 VPN 连接请求。</string>
+    <string name="view_system_settings">查看系统设置</string>
+    <string name="try_reconnecting">尝试重新连接</string>
+    <string name="always_on_disbled">禁用始终在线的 VPN</string>
+    <string name="always_on_message">无法工作？ 确保已禁用 Always-on VPN 中的其他应用程序</string>
+    <string name="vpn_settings">VPN 系统设置</string>
+    <string name="try_again">并尝试重新连接</string>
 </resources>

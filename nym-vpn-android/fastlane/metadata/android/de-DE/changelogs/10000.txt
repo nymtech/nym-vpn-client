@@ -1,0 +1,7 @@
+Neuigkeiten:
+- Verbesserte API Performance
+- Unterstützung für Shortcuts
+- UI Verbesserungen
+- Check der Zugangsberechtigungen korrigiert
+- UI Synchronisierung korrigiert
+- Schnelle Einstellungen verbessert

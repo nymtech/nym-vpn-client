@@ -1,0 +1,3 @@
+Neuigkeiten_
+- Weitere Sprachen: PT, FR, ES
+- Bugfixes
