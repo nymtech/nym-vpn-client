@@ -422,7 +422,7 @@ impl nym_client_core::init::helpers::ConnectableGateway for Gateway {
 pub enum GatewayType {
     MixnetEntry,
     MixnetExit,
-    Vpn,
+    Wg,
 }
 
 impl fmt::Display for GatewayType {
@@ -430,7 +430,7 @@ impl fmt::Display for GatewayType {
         match self {
             GatewayType::MixnetEntry => write!(f, "mixnet entry"),
             GatewayType::MixnetExit => write!(f, "mixnet exit"),
-            GatewayType::Vpn => write!(f, "vpn"),
+            GatewayType::Wg => write!(f, "vpn"),
         }
     }
 }
@@ -440,7 +440,7 @@ impl From<nym_vpn_api_client::types::GatewayType> for GatewayType {
         match gateway_type {
             nym_vpn_api_client::types::GatewayType::MixnetEntry => GatewayType::MixnetEntry,
             nym_vpn_api_client::types::GatewayType::MixnetExit => GatewayType::MixnetExit,
-            nym_vpn_api_client::types::GatewayType::Vpn => GatewayType::Vpn,
+            nym_vpn_api_client::types::GatewayType::Wg => GatewayType::Wg,
         }
     }
 }
@@ -450,7 +450,7 @@ impl From<GatewayType> for nym_vpn_api_client::types::GatewayType {
         match gateway_type {
             GatewayType::MixnetEntry => nym_vpn_api_client::types::GatewayType::MixnetEntry,
             GatewayType::MixnetExit => nym_vpn_api_client::types::GatewayType::MixnetExit,
-            GatewayType::Vpn => nym_vpn_api_client::types::GatewayType::Vpn,
+            GatewayType::Wg => nym_vpn_api_client::types::GatewayType::Wg,
         }
     }
 }

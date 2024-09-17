@@ -257,7 +257,7 @@ impl From<GatewayType> for nym_gateway_directory::GatewayType {
         match value {
             GatewayType::MixnetEntry => nym_gateway_directory::GatewayType::MixnetEntry,
             GatewayType::MixnetExit => nym_gateway_directory::GatewayType::MixnetExit,
-            GatewayType::Vpn => nym_gateway_directory::GatewayType::Vpn,
+            GatewayType::Vpn => nym_gateway_directory::GatewayType::Wg,
         }
     }
 }

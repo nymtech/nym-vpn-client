@@ -442,7 +442,7 @@ async fn select_gateways(
         (entry_gateways, exit_gateways)
     } else {
         let all_gateways = gateway_directory_client
-            .lookup_gateways(GatewayType::Vpn)
+            .lookup_gateways(GatewayType::Wg)
             .await
             .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
         (all_gateways.clone(), all_gateways)

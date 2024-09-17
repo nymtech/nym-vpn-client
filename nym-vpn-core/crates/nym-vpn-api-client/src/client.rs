@@ -394,7 +394,7 @@ impl VpnApiClient {
         match kind {
             GatewayType::MixnetEntry => self.get_entry_gateways(min_performance).await,
             GatewayType::MixnetExit => self.get_exit_gateways(min_performance).await,
-            GatewayType::Vpn => self.get_vpn_gateways(min_performance).await,
+            GatewayType::Wg => self.get_vpn_gateways(min_performance).await,
         }
     }
 
@@ -406,7 +406,7 @@ impl VpnApiClient {
         match kind {
             GatewayType::MixnetEntry => self.get_entry_gateway_countries(min_performance).await,
             GatewayType::MixnetExit => self.get_exit_gateway_countries(min_performance).await,
-            GatewayType::Vpn => self.get_vpn_gateway_countries(min_performance).await,
+            GatewayType::Wg => self.get_vpn_gateway_countries(min_performance).await,
         }
     }
 
