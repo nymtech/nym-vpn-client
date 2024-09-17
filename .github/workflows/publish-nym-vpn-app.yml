@@ -92,7 +92,7 @@ jobs:
         run: |
           (echo "SUBJECT=nym-vpn-app-v${{ steps.package-version.outputs.metadata }} nightly prerelease build";
            echo 'PRERELEASE=--prerelease';
-           echo 'NOTES_FILE=release-notes/release-notes-vpnx-nightly.md') >> $GITHUB_ENV
+           echo 'NOTES_FILE=release-notes/release-notes-vpn-app-nightly.md') >> $GITHUB_ENV
           gh release delete nym-vpn-app-nightly --yes || true
           git push origin :nym-vpn-app-nightly || true
 
@@ -101,7 +101,7 @@ jobs:
         run: |
           (echo "SUBJECT=$TAG_NAME"
            echo 'PRERELEASE='
-           echo 'NOTES_FILE=release-notes/release-notes-vpnx.md') >> $GITHUB_ENV
+           echo 'NOTES_FILE=release-notes/release-notes-vpn-app.md') >> $GITHUB_ENV
 
       - name: Generate checksums
         run: |
