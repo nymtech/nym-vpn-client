@@ -19,7 +19,7 @@ on:
         required: false
         default: false
       commit_msg:
-        description: "Commit message for the AUR repo (default to the release tag)"
+        description: "Commit message for the AUR repo (default to package version)"
         type: string
         required: false
 
@@ -95,7 +95,7 @@ jobs:
           commit_username: ${{ secrets.AUR_USERNAME }}
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_KEY }}
-          commit_message: ${{ inputs.commit_msg || inputs.release_tag }}
+          commit_message: ${{ inputs.commit_msg || format('v{0}', steps.app-version.outputs.metadata) }}
           assets: |
             nym-vpn-app/.pkg/aur/nym-vpn-wrapper.sh
             nym-vpn-app/.pkg/aur/nym-vpn.desktop
