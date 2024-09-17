@@ -10,7 +10,7 @@ use futures::{
 use ipnetwork::IpNetwork;
 use log::*;
 use nym_authenticator_client::AuthClient;
-use nym_gateway_directory::{AuthAddresses, GatewayClient, IpPacketRouterAddress};
+use nym_gateway_directory::{AuthAddresses, GatewayClient, GatewayType, IpPacketRouterAddress};
 use nym_task::TaskManager;
 use nym_wg_gateway_client::WgGatewayClient;
 use talpid_core::dns::DnsMonitor;
@@ -431,18 +431,18 @@ async fn select_gateways(
     let (mut entry_gateways, exit_gateways) = if let SpecificVpn::Mix(_) = nym_vpn {
         // Setup the gateway that we will use as the exit point
         let exit_gateways = gateway_directory_client
-            .lookup_exit_gateways()
+            .lookup_gateways(GatewayType::Exit)
             .await
             .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
         // Setup the gateway that we will use as the entry point
         let entry_gateways = gateway_directory_client
-            .lookup_entry_gateways()
+            .lookup_gateways(GatewayType::Entry)
             .await
             .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
         (entry_gateways, exit_gateways)
     } else {
         let all_gateways = gateway_directory_client
-            .lookup_vpn_gateways()
+            .lookup_gateways(GatewayType::Vpn)
             .await
             .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
         (all_gateways.clone(), all_gateways)

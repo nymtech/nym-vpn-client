@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{net::IpAddr, str::FromStr};
+use std::{fmt, net::IpAddr, str::FromStr};
 
 use itertools::Itertools;
 use nym_sdk::mixnet::NodeIdentity;
@@ -25,8 +25,8 @@ pub struct Gateway {
     pub mixnet_performance: Option<Percent>,
 }
 
-impl std::fmt::Debug for Gateway {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Debug for Gateway {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Gateway")
             .field("identity", &self.identity.to_base58_string())
             .field("location", &self.location)
@@ -415,5 +415,42 @@ impl nym_client_core::init::helpers::ConnectableGateway for Gateway {
 
     fn is_wss(&self) -> bool {
         self.clients_address_tls().is_some()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum GatewayType {
+    Entry,
+    Exit,
+    Vpn,
+}
+
+impl fmt::Display for GatewayType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            GatewayType::Entry => write!(f, "entry"),
+            GatewayType::Exit => write!(f, "exit"),
+            GatewayType::Vpn => write!(f, "vpn"),
+        }
+    }
+}
+
+impl From<nym_vpn_api_client::types::GatewayType> for GatewayType {
+    fn from(gateway_type: nym_vpn_api_client::types::GatewayType) -> Self {
+        match gateway_type {
+            nym_vpn_api_client::types::GatewayType::Entry => GatewayType::Entry,
+            nym_vpn_api_client::types::GatewayType::Exit => GatewayType::Exit,
+            nym_vpn_api_client::types::GatewayType::Vpn => GatewayType::Vpn,
+        }
+    }
+}
+
+impl From<GatewayType> for nym_vpn_api_client::types::GatewayType {
+    fn from(gateway_type: GatewayType) -> Self {
+        match gateway_type {
+            GatewayType::Entry => nym_vpn_api_client::types::GatewayType::Entry,
+            GatewayType::Exit => nym_vpn_api_client::types::GatewayType::Exit,
+            GatewayType::Vpn => nym_vpn_api_client::types::GatewayType::Vpn,
+        }
     }
 }

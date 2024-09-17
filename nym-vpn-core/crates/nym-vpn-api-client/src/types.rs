@@ -108,3 +108,10 @@ impl GatewayMinPerformance {
         params
     }
 }
+
+#[derive(Clone, Debug)]
+pub enum GatewayType {
+    Entry,
+    Exit,
+    Vpn,
+}

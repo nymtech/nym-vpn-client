@@ -1,6 +1,10 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_vpn_lib::gateway_directory::GatewayType;
+use nym_vpn_proto::{
+    list_countries_request::ListCountriesType, list_gateways_request::ListGatewaysType,
+};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
 use crate::types::gateway;
@@ -82,5 +86,27 @@ impl From<gateway::Country> for nym_vpn_proto::Location {
         nym_vpn_proto::Location {
             two_letter_iso_country_code: country.iso_code().to_string(),
         }
+    }
+}
+
+pub(crate) fn into_gateway_type(gateway_type: ListGatewaysType) -> GatewayType {
+    match gateway_type {
+        ListGatewaysType::ListGatewayTypeUnspecified => {
+            todo!();
+        }
+        ListGatewaysType::Entry => GatewayType::Entry,
+        ListGatewaysType::Exit => GatewayType::Exit,
+        ListGatewaysType::Vpn => GatewayType::Vpn,
+    }
+}
+
+pub(crate) fn from_country_into_gateway_type(gateway_type: ListCountriesType) -> GatewayType {
+    match gateway_type {
+        ListCountriesType::ListGatewayTypeUnspecified => {
+            todo!();
+        }
+        ListCountriesType::Entry => GatewayType::Entry,
+        ListCountriesType::Exit => GatewayType::Exit,
+        ListCountriesType::Vpn => GatewayType::Vpn,
     }
 }

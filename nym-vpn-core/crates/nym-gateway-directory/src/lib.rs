@@ -16,7 +16,7 @@ pub use crate::{
         country::Country,
         entry_point::EntryPoint,
         exit_point::ExitPoint,
-        gateway::{Entry, Exit, Gateway, GatewayList, Location, Probe, ProbeOutcome},
+        gateway::{Entry, Exit, Gateway, GatewayList, GatewayType, Location, Probe, ProbeOutcome},
         ipr_addresses::IpPacketRouterAddress,
     },
     error::Error,

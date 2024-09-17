@@ -12,7 +12,7 @@ use url::Url;
 use crate::{
     entries::{
         country::Country,
-        gateway::{Gateway, GatewayList},
+        gateway::{Gateway, GatewayList, GatewayType},
     },
     error::Result,
     helpers::try_resolve_hostname,
@@ -168,7 +168,7 @@ impl GatewayClient {
 
     pub async fn lookup_low_latency_entry_gateway(&self) -> Result<Gateway> {
         debug!("Fetching low latency entry gateway...");
-        let gateways = self.lookup_entry_gateways().await?;
+        let gateways = self.lookup_gateways(GatewayType::Entry).await?;
         gateways.random_low_latency_gateway().await
     }
 
@@ -217,18 +217,26 @@ impl GatewayClient {
         Ok(GatewayList::new(gateways))
     }
 
+    pub async fn lookup_gateways_from_nym_api(&self, gw_type: GatewayType) -> Result<GatewayList> {
+        match gw_type {
+            GatewayType::Entry => self.lookup_entry_gateways_from_nym_api().await,
+            GatewayType::Exit => self.lookup_exit_gateways_from_nym_api().await,
+            GatewayType::Vpn => self.lookup_vpn_gateways_from_nym_api().await,
+        }
+    }
+
     // This is currently the same as the set of all gateways, but it doesn't have to be.
-    pub async fn lookup_entry_gateways_from_nym_api(&self) -> Result<GatewayList> {
+    async fn lookup_entry_gateways_from_nym_api(&self) -> Result<GatewayList> {
         self.lookup_all_gateways_from_nym_api().await
     }
 
-    pub async fn lookup_exit_gateways_from_nym_api(&self) -> Result<GatewayList> {
+    async fn lookup_exit_gateways_from_nym_api(&self) -> Result<GatewayList> {
         self.lookup_all_gateways_from_nym_api()
             .await
             .map(GatewayList::into_exit_gateways)
     }
 
-    pub async fn lookup_vpn_gateways_from_nym_api(&self) -> Result<GatewayList> {
+    async fn lookup_vpn_gateways_from_nym_api(&self) -> Result<GatewayList> {
         self.lookup_all_gateways_from_nym_api()
             .await
             .map(GatewayList::into_vpn_gateways)
@@ -253,11 +261,11 @@ impl GatewayClient {
         }
     }
 
-    pub async fn lookup_entry_gateways(&self) -> Result<GatewayList> {
+    pub async fn lookup_gateways(&self, gw_type: GatewayType) -> Result<GatewayList> {
         if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
-            info!("Fetching entry gateways from nym-vpn-api...");
-            let entry_gateways: Vec<_> = nym_vpn_api_client
-                .get_entry_gateways(self.min_gateway_performance.clone())
+            info!("Fetching gateways from nym-vpn-api...");
+            let gateways: Vec<_> = nym_vpn_api_client
+                .get_gateways_kind(gw_type.into(), self.min_gateway_performance.clone())
                 .await?
                 .into_iter()
                 .filter_map(|gw| {
@@ -266,93 +274,23 @@ impl GatewayClient {
                         .ok()
                 })
                 .collect();
-            Ok(GatewayList::new(entry_gateways))
+            Ok(GatewayList::new(gateways))
         } else {
-            self.lookup_entry_gateways_from_nym_api().await
+            self.lookup_gateways_from_nym_api(gw_type).await
         }
     }
 
-    pub async fn lookup_exit_gateways(&self) -> Result<GatewayList> {
-        if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
-            info!("Fetching exit gateways from nym-vpn-api...");
-            let exit_gateways: Vec<_> = nym_vpn_api_client
-                .get_exit_gateways(self.min_gateway_performance.clone())
-                .await?
-                .into_iter()
-                .filter_map(|gw| {
-                    Gateway::try_from(gw)
-                        .inspect_err(|err| error!("Failed to parse gateway: {err}"))
-                        .ok()
-                })
-                .collect();
-            Ok(GatewayList::new(exit_gateways))
-        } else {
-            self.lookup_exit_gateways_from_nym_api().await
-        }
-    }
-
-    pub async fn lookup_vpn_gateways(&self) -> Result<GatewayList> {
-        if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
-            info!("Fetching vpn gateways from nym-vpn-api...");
-            let vpn_gateways: Vec<_> = nym_vpn_api_client
-                .get_vpn_gateways(self.min_gateway_performance.clone())
-                .await?
-                .into_iter()
-                .filter_map(|gw| {
-                    Gateway::try_from(gw)
-                        .inspect_err(|err| error!("Failed to parse gateway: {err}"))
-                        .ok()
-                })
-                .collect();
-            Ok(GatewayList::new(vpn_gateways))
-        } else {
-            self.lookup_vpn_gateways_from_nym_api().await
-        }
-    }
-
-    pub async fn lookup_entry_countries(&self) -> Result<Vec<Country>> {
+    pub async fn lookup_countries(&self, gw_type: GatewayType) -> Result<Vec<Country>> {
         if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
             info!("Fetching entry countries from nym-vpn-api...");
             Ok(nym_vpn_api_client
-                .get_entry_gateway_countries(self.min_gateway_performance.clone())
+                .get_gateway_countries_kind(gw_type.into(), self.min_gateway_performance.clone())
                 .await?
                 .into_iter()
                 .map(Country::from)
                 .collect())
         } else {
-            self.lookup_entry_gateways_from_nym_api()
-                .await
-                .map(GatewayList::into_countries)
-        }
-    }
-
-    pub async fn lookup_exit_countries(&self) -> Result<Vec<Country>> {
-        if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
-            info!("Fetching exit countries from nym-vpn-api...");
-            Ok(nym_vpn_api_client
-                .get_exit_gateway_countries(self.min_gateway_performance.clone())
-                .await?
-                .into_iter()
-                .map(Country::from)
-                .collect())
-        } else {
-            self.lookup_exit_gateways_from_nym_api()
-                .await
-                .map(GatewayList::into_countries)
-        }
-    }
-
-    pub async fn lookup_vpn_countries(&self) -> Result<Vec<Country>> {
-        if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
-            info!("Fetching vpn countries from nym-vpn-api...");
-            Ok(nym_vpn_api_client
-                .get_vpn_gateway_countries(self.min_gateway_performance.clone())
-                .await?
-                .into_iter()
-                .map(Country::from)
-                .collect())
-        } else {
-            self.lookup_vpn_gateways_from_nym_api()
+            self.lookup_gateways_from_nym_api(gw_type)
                 .await
                 .map(GatewayList::into_countries)
         }

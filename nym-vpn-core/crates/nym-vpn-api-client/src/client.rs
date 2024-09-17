@@ -19,7 +19,7 @@ use crate::{
         NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse, NymVpnZkNym, NymVpnZkNymResponse,
     },
     routes,
-    types::{Device, GatewayMinPerformance, VpnApiAccount},
+    types::{Device, GatewayMinPerformance, GatewayType, VpnApiAccount},
 };
 
 pub(crate) const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";
@@ -384,6 +384,30 @@ impl VpnApiClient {
             )
             .await
             .map_err(VpnApiClientError::FailedToGetGateways)
+    }
+
+    pub async fn get_gateways_kind(
+        &self,
+        kind: GatewayType,
+        min_performance: Option<GatewayMinPerformance>,
+    ) -> Result<NymDirectoryGatewaysResponse> {
+        match kind {
+            GatewayType::Entry => self.get_entry_gateways(min_performance).await,
+            GatewayType::Exit => self.get_exit_gateways(min_performance).await,
+            GatewayType::Vpn => self.get_vpn_gateways(min_performance).await,
+        }
+    }
+
+    pub async fn get_gateway_countries_kind(
+        &self,
+        kind: GatewayType,
+        min_performance: Option<GatewayMinPerformance>,
+    ) -> Result<NymDirectoryGatewayCountriesResponse> {
+        match kind {
+            GatewayType::Entry => self.get_entry_gateway_countries(min_performance).await,
+            GatewayType::Exit => self.get_exit_gateway_countries(min_performance).await,
+            GatewayType::Vpn => self.get_vpn_gateway_countries(min_performance).await,
+        }
     }
 
     pub async fn get_vpn_gateways(

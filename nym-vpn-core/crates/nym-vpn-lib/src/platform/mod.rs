@@ -22,6 +22,7 @@ use std::{
 
 use lazy_static::lazy_static;
 use log::*;
+use nym_gateway_directory::GatewayType;
 use talpid_core::mpsc::Sender;
 use tokio::{
     runtime::Runtime,
@@ -441,9 +442,9 @@ async fn get_gateway_countries(
     };
     let directory_client = GatewayClient::new(directory_config, user_agent)?;
     let locations = if !exit_only {
-        directory_client.lookup_entry_countries().await
+        directory_client.lookup_countries(GatewayType::Entry).await
     } else {
-        directory_client.lookup_exit_countries().await
+        directory_client.lookup_countries(GatewayType::Exit).await
     }?;
     Ok(locations.into_iter().map(Location::from).collect())
 }
@@ -474,7 +475,7 @@ async fn get_vpn_countries(
         min_gateway_performance: None,
     };
     let directory_client = GatewayClient::new(directory_config, user_agent)?;
-    let locations = directory_client.lookup_vpn_countries().await?;
+    let locations = directory_client.lookup_countries(GatewayType::Vpn).await?;
     Ok(locations.into_iter().map(Location::from).collect())
 }
 
