@@ -237,7 +237,7 @@ async fn wg_probe(
 }
 
 async fn lookup_gateways() -> anyhow::Result<GatewayList> {
-    let gateway_config = GatewayDirectoryConfig::new_from_env(None);
+    let gateway_config = GatewayDirectoryConfig::new_from_env();
     info!("nym-api: {}", gateway_config.api_url());
     info!(
         "nym-vpn-api: {}",

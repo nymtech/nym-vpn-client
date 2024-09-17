@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_vpn_lib::gateway_directory::GatewayType;
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
 use crate::types::gateway;
@@ -38,7 +39,12 @@ impl From<gateway::ProbeOutcome> for nym_vpn_proto::ProbeOutcome {
     fn from(outcome: gateway::ProbeOutcome) -> Self {
         let as_entry = Some(nym_vpn_proto::AsEntry::from(outcome.as_entry));
         let as_exit = outcome.as_exit.map(nym_vpn_proto::AsExit::from);
-        nym_vpn_proto::ProbeOutcome { as_entry, as_exit }
+        let wg = None;
+        nym_vpn_proto::ProbeOutcome {
+            as_entry,
+            as_exit,
+            wg,
+        }
     }
 }
 
@@ -57,29 +63,14 @@ impl From<gateway::Probe> for nym_vpn_proto::Probe {
     }
 }
 
-impl From<gateway::Gateway> for nym_vpn_proto::EntryGateway {
+impl From<gateway::Gateway> for nym_vpn_proto::GatewayResponse {
     fn from(gateway: gateway::Gateway) -> Self {
         let id = Some(nym_vpn_proto::Gateway {
             id: gateway.identity_key.to_string(),
         });
         let location = gateway.location.map(nym_vpn_proto::Location::from);
         let last_probe = gateway.last_probe.map(nym_vpn_proto::Probe::from);
-        nym_vpn_proto::EntryGateway {
-            id,
-            location,
-            last_probe,
-        }
-    }
-}
-
-impl From<gateway::Gateway> for nym_vpn_proto::ExitGateway {
-    fn from(gateway: gateway::Gateway) -> Self {
-        let id = Some(nym_vpn_proto::Gateway {
-            id: gateway.identity_key.to_string(),
-        });
-        let location = gateway.location.map(nym_vpn_proto::Location::from);
-        let last_probe = gateway.last_probe.map(nym_vpn_proto::Probe::from);
-        nym_vpn_proto::ExitGateway {
+        nym_vpn_proto::GatewayResponse {
             id,
             location,
             last_probe,
@@ -95,12 +86,11 @@ impl From<gateway::Country> for nym_vpn_proto::Location {
     }
 }
 
-impl From<gateway::Gateway> for nym_vpn_proto::VpnGateway {
-    fn from(gateway: gateway::Gateway) -> Self {
-        let id = Some(nym_vpn_proto::Gateway {
-            id: gateway.identity_key.to_string(),
-        });
-        let location = gateway.location.map(nym_vpn_proto::Location::from);
-        nym_vpn_proto::VpnGateway { id, location }
+pub(crate) fn into_gateway_type(gateway_type: nym_vpn_proto::GatewayType) -> Option<GatewayType> {
+    match gateway_type {
+        nym_vpn_proto::GatewayType::Unspecified => None,
+        nym_vpn_proto::GatewayType::MixnetEntry => Some(GatewayType::MixnetEntry),
+        nym_vpn_proto::GatewayType::MixnetExit => Some(GatewayType::MixnetExit),
+        nym_vpn_proto::GatewayType::Wg => Some(GatewayType::Wg),
     }
 }

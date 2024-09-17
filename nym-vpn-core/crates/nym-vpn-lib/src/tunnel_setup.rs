@@ -10,7 +10,7 @@ use futures::{
 use ipnetwork::IpNetwork;
 use log::*;
 use nym_authenticator_client::AuthClient;
-use nym_gateway_directory::{AuthAddresses, GatewayClient, IpPacketRouterAddress};
+use nym_gateway_directory::{AuthAddresses, GatewayClient, GatewayType, IpPacketRouterAddress};
 use nym_task::TaskManager;
 use nym_wg_gateway_client::WgGatewayClient;
 use talpid_core::dns::DnsMonitor;
@@ -418,24 +418,31 @@ async fn select_gateways(
     gateway_directory_client: &GatewayClient,
     nym_vpn: &SpecificVpn,
 ) -> std::result::Result<SelectedGateways, GatewayDirectoryError> {
+    if let Some(min_mixnet_performance) = gateway_directory_client.mixnet_min_performance() {
+        info!("Using min mixnet gateway performance: {min_mixnet_performance}");
+    }
+    if let Some(min_vpn_performance) = gateway_directory_client.vpn_min_performance() {
+        info!("Using min vpn gateway performance: {min_vpn_performance}");
+    }
+
     // The set of exit gateways is smaller than the set of entry gateways, so we start by selecting
     // the exit gateway and then filter out the exit gateway from the set of entry gateways.
 
     let (mut entry_gateways, exit_gateways) = if let SpecificVpn::Mix(_) = nym_vpn {
         // Setup the gateway that we will use as the exit point
         let exit_gateways = gateway_directory_client
-            .lookup_exit_gateways()
+            .lookup_gateways(GatewayType::MixnetExit)
             .await
             .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
         // Setup the gateway that we will use as the entry point
         let entry_gateways = gateway_directory_client
-            .lookup_entry_gateways()
+            .lookup_gateways(GatewayType::MixnetEntry)
             .await
             .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
         (entry_gateways, exit_gateways)
     } else {
         let all_gateways = gateway_directory_client
-            .lookup_vpn_gateways()
+            .lookup_gateways(GatewayType::Wg)
             .await
             .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
         (all_gateways.clone(), all_gateways)
@@ -476,7 +483,7 @@ async fn select_gateways(
             .two_letter_iso_country_code()
             .map_or_else(|| "unknown".to_string(), |code| code.to_string()),
         entry_gateway
-            .performance
+            .mixnet_performance
             .map_or_else(|| "unknown".to_string(), |perf| perf.to_string()),
     );
     info!(
@@ -486,7 +493,7 @@ async fn select_gateways(
             .two_letter_iso_country_code()
             .map_or_else(|| "unknown".to_string(), |code| code.to_string()),
         entry_gateway
-            .performance
+            .mixnet_performance
             .map_or_else(|| "unknown".to_string(), |perf| perf.to_string()),
     );
     info!(

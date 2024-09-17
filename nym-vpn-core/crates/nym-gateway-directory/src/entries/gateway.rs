@@ -1,18 +1,16 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{net::IpAddr, str::FromStr};
+use std::{fmt, net::IpAddr, str::FromStr};
 
 use itertools::Itertools;
 use nym_sdk::mixnet::NodeIdentity;
 use nym_topology::IntoGatewayNode;
+use nym_vpn_api_client::types::Percent;
 use rand::seq::IteratorRandom;
 use tracing::error;
 
 use crate::{error::Result, AuthAddress, Country, Error, IpPacketRouterAddress};
-
-// Decimal between 0 and 1 representing the performance of a gateway, measured over 24h.
-type Performance = u8;
 
 #[derive(Clone)]
 pub struct Gateway {
@@ -24,11 +22,11 @@ pub struct Gateway {
     pub host: Option<nym_topology::NetworkAddress>,
     pub clients_ws_port: Option<u16>,
     pub clients_wss_port: Option<u16>,
-    pub performance: Option<Performance>,
+    pub mixnet_performance: Option<Percent>,
 }
 
-impl std::fmt::Debug for Gateway {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Debug for Gateway {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Gateway")
             .field("identity", &self.identity.to_base58_string())
             .field("location", &self.location)
@@ -38,7 +36,7 @@ impl std::fmt::Debug for Gateway {
             .field("host", &self.host)
             .field("clients_ws_port", &self.clients_ws_port)
             .field("clients_wss_port", &self.clients_wss_port)
-            .field("performance", &self.performance)
+            .field("mixnet_performance", &self.mixnet_performance)
             .finish()
     }
 }
@@ -99,6 +97,7 @@ pub struct Probe {
 pub struct ProbeOutcome {
     pub as_entry: Entry,
     pub as_exit: Option<Exit>,
+    pub wg: Option<WgProbeResults>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -114,6 +113,15 @@ pub struct Exit {
     pub can_route_ip_external_v4: bool,
     pub can_route_ip_v6: bool,
     pub can_route_ip_external_v6: bool,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct WgProbeResults {
+    pub can_register: bool,
+    pub can_handshake: bool,
+    pub can_resolve_dns: bool,
+    pub ping_hosts_performance: f32,
+    pub ping_ips_performance: f32,
 }
 
 impl From<nym_vpn_api_client::response::Location> for Location {
@@ -140,6 +148,7 @@ impl From<nym_vpn_api_client::response::ProbeOutcome> for ProbeOutcome {
         ProbeOutcome {
             as_entry: Entry::from(outcome.as_entry),
             as_exit: outcome.as_exit.map(Exit::from),
+            wg: outcome.wg.map(WgProbeResults::from),
         }
     }
 }
@@ -161,6 +170,18 @@ impl From<nym_vpn_api_client::response::Exit> for Exit {
             can_route_ip_external_v4: exit.can_route_ip_external_v4,
             can_route_ip_v6: exit.can_route_ip_v6,
             can_route_ip_external_v6: exit.can_route_ip_external_v6,
+        }
+    }
+}
+
+impl From<nym_vpn_api_client::response::WgProbeResults> for WgProbeResults {
+    fn from(results: nym_vpn_api_client::response::WgProbeResults) -> Self {
+        WgProbeResults {
+            can_register: results.can_register,
+            can_handshake: results.can_handshake,
+            can_resolve_dns: results.can_resolve_dns,
+            ping_hosts_performance: results.ping_hosts_performance,
+            ping_ips_performance: results.ping_ips_performance,
         }
     }
 }
@@ -196,8 +217,6 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
         });
         let host = hostname.or(first_ip_address);
 
-        let performance = string_fraction_into_percentage_u8(&gateway.performance);
-
         Ok(Gateway {
             identity,
             location: Some(gateway.location.into()),
@@ -207,19 +226,9 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             host,
             clients_ws_port: Some(gateway.entry.ws_port),
             clients_wss_port: gateway.entry.wss_port,
-            performance,
+            mixnet_performance: Some(gateway.performance),
         })
     }
-}
-
-// Convert from a String representing a fraction between 0.0 and 1.0, to a percentage number.
-// Example: "0.5" to 50
-fn string_fraction_into_percentage_u8(s: &str) -> Option<u8> {
-    s.parse::<f64>()
-        .map(|p| p * 100.0)
-        .map(|p| p.round() as u8)
-        .map(|p| p.clamp(0, 100))
-        .ok()
 }
 
 impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
@@ -271,7 +280,7 @@ impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
             host,
             clients_ws_port,
             clients_wss_port,
-            performance: None,
+            mixnet_performance: None,
         })
     }
 }
@@ -406,5 +415,42 @@ impl nym_client_core::init::helpers::ConnectableGateway for Gateway {
 
     fn is_wss(&self) -> bool {
         self.clients_address_tls().is_some()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum GatewayType {
+    MixnetEntry,
+    MixnetExit,
+    Wg,
+}
+
+impl fmt::Display for GatewayType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            GatewayType::MixnetEntry => write!(f, "mixnet entry"),
+            GatewayType::MixnetExit => write!(f, "mixnet exit"),
+            GatewayType::Wg => write!(f, "vpn"),
+        }
+    }
+}
+
+impl From<nym_vpn_api_client::types::GatewayType> for GatewayType {
+    fn from(gateway_type: nym_vpn_api_client::types::GatewayType) -> Self {
+        match gateway_type {
+            nym_vpn_api_client::types::GatewayType::MixnetEntry => GatewayType::MixnetEntry,
+            nym_vpn_api_client::types::GatewayType::MixnetExit => GatewayType::MixnetExit,
+            nym_vpn_api_client::types::GatewayType::Wg => GatewayType::Wg,
+        }
+    }
+}
+
+impl From<GatewayType> for nym_vpn_api_client::types::GatewayType {
+    fn from(gateway_type: GatewayType) -> Self {
+        match gateway_type {
+            GatewayType::MixnetEntry => nym_vpn_api_client::types::GatewayType::MixnetEntry,
+            GatewayType::MixnetExit => nym_vpn_api_client::types::GatewayType::MixnetExit,
+            GatewayType::Wg => nym_vpn_api_client::types::GatewayType::Wg,
+        }
     }
 }

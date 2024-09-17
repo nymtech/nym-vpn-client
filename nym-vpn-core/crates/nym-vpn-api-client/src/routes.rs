@@ -16,3 +16,5 @@ pub(crate) const ENTRY: &str = "entry";
 pub(crate) const EXIT: &str = "exit";
 
 pub(crate) const SHOW_VPN_ONLY: &str = "show_vpn_only";
+pub(crate) const VPN_MIN_PERFORMANCE: &str = "vpn_min_performance";
+pub(crate) const MIXNET_MIN_PERFORMANCE: &str = "mixnet_min_performance";

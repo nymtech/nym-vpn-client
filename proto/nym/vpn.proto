@@ -94,8 +94,10 @@ message ConnectRequest {
   bool enable_poisson_rate = 6;
   bool disable_background_cover_traffic = 7;
   bool enable_credentials_mode = 8;
+  // Optional thresholds
   Threshold min_mixnode_performance = 9;
-  Threshold min_gateway_performance = 10;
+  Threshold min_gateway_mixnet_performance = 10;
+  Threshold min_gateway_vpn_performance = 11;
 }
 
 message ConnectResponse {
@@ -353,9 +355,18 @@ message AsExit {
   bool can_route_ip_external_v6 = 5;
 }
 
+message WgProbeResult {
+  bool can_register = 1;
+  bool can_handshake = 2;
+  bool can_resolve_dns = 3;
+  float ping_hosts_performance = 4;
+  float ping_ips_performance = 5;
+}
+
 message ProbeOutcome {
   AsEntry as_entry = 1;
   AsExit as_exit = 2;
+  WgProbeResult wg = 3;
 }
 
 message Probe {
@@ -363,68 +374,38 @@ message Probe {
   ProbeOutcome outcome = 2;
 }
 
-message EntryGateway {
+message GatewayResponse {
   Gateway id = 1;
   Location location = 2;
   Probe last_probe = 3;
 }
 
-message ListEntryGatewaysRequest {
-  Threshold min_gateway_performance = 1;
+enum GatewayType {
+  GATEWAY_TYPE_UNSPECIFIED = 0;
+  MIXNET_ENTRY = 1;
+  MIXNET_EXIT = 2;
+  WG = 3;
 }
 
-message ListEntryGatewaysResponse {
-  repeated EntryGateway gateways = 1;
+message ListGatewaysRequest {
+  GatewayType kind = 1;
+  // Optional thresholds
+  Threshold min_mixnet_performance = 2;
+  Threshold min_vpn_performance = 3;
 }
 
-message ExitGateway {
-  Gateway id = 1;
-  Location location = 2;
-  Probe last_probe = 3;
+message ListGatewaysResponse {
+  repeated GatewayResponse gateways = 1;
 }
 
-message ListExitGatewaysRequest {
-  Threshold min_gateway_performance = 1;
+message ListCountriesRequest {
+  GatewayType kind = 1;
+  // Optional thresholds
+  Threshold min_mixnet_performance = 2;
+  Threshold min_vpn_performance = 3;
 }
 
-message ListExitGatewaysResponse {
-  repeated ExitGateway gateways = 1;
-}
-
-message VpnGateway {
-  Gateway id = 1;
-  Location location = 2;
-}
-
-message ListVpnGatewaysRequest {
-  Threshold min_gateway_performance = 1;
-}
-
-message ListVpnGatewaysResponse {
-  repeated VpnGateway gateways = 1;
-}
-
-message ListEntryCountriesRequest {
-  Threshold min_gateway_performance = 1;
-}
-
-message ListEntryCountriesResponse {
-  repeated Location countries = 1;
-}
-
-message ListExitCountriesRequest {
-  Threshold min_gateway_performance = 1;
-}
-
-message ListExitCountriesResponse {
-  repeated Location countries = 1;
-}
-
-message ListVpnCountriesRequest {
-  Threshold min_gateway_performance = 1;
-}
-
-message ListVpnCountriesResponse {
+message ListCountriesResponse {
   repeated Location countries = 1;
 }
 
@@ -495,12 +476,8 @@ service NymVpnd {
   rpc ListenToConnectionStateChanges (Empty) returns (stream ConnectionStateChange) {}
   rpc ListenToConnectionStatus (Empty) returns (stream ConnectionStatusUpdate) {}
 
-  rpc ListEntryGateways (ListEntryGatewaysRequest) returns (ListEntryGatewaysResponse) {}
-  rpc ListExitGateways (ListExitGatewaysRequest) returns (ListExitGatewaysResponse) {}
-  rpc ListVpnGateways (ListVpnGatewaysRequest) returns (ListVpnGatewaysResponse) {}
-  rpc ListEntryCountries (ListEntryCountriesRequest) returns (ListEntryCountriesResponse) {}
-  rpc ListExitCountries (ListExitCountriesRequest) returns (ListExitCountriesResponse) {}
-  rpc ListVpnCountries (ListVpnCountriesRequest) returns (ListVpnCountriesResponse) {}
+  rpc ListGateways (ListGatewaysRequest) returns (ListGatewaysResponse) {}
+  rpc ListCountries (ListCountriesRequest) returns (ListCountriesResponse) {}
 
   // Unstable
   rpc StoreAccount (StoreAccountRequest) returns (StoreAccountResponse) {}

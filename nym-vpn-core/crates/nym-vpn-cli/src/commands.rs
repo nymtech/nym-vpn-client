@@ -96,7 +96,11 @@ pub(crate) struct RunArgs {
 
     // Set the minimum performance level for gateways.
     #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
-    pub(crate) min_gateway_performance: Option<u8>,
+    pub(crate) min_gateway_mixnet_performance: Option<u8>,
+
+    // Set the minimum performance level for VPN gateways.
+    #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
+    pub(crate) min_gateway_vpn_performance: Option<u8>,
 }
 
 #[derive(Args)]

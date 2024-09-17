@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
 
-use nym_gateway_directory::{EntryPoint, ExitPoint, NodeIdentity, Recipient};
+use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayType, NodeIdentity, Recipient};
 
 fn new_entry_node_gateway(identity: &NodeIdentity) -> nym_vpn_proto::EntryNode {
     nym_vpn_proto::EntryNode {
@@ -102,6 +102,14 @@ pub(crate) fn ipaddr_into_string(ip: std::net::IpAddr) -> nym_vpn_proto::Dns {
 pub(crate) fn into_threshold(performance: u8) -> nym_vpn_proto::Threshold {
     nym_vpn_proto::Threshold {
         min_performance: performance.into(),
+    }
+}
+
+pub(crate) fn into_gateway_type(gateway_type: GatewayType) -> nym_vpn_proto::GatewayType {
+    match gateway_type {
+        GatewayType::MixnetEntry => nym_vpn_proto::GatewayType::MixnetEntry,
+        GatewayType::MixnetExit => nym_vpn_proto::GatewayType::MixnetExit,
+        GatewayType::Wg => nym_vpn_proto::GatewayType::Wg,
     }
 }
 

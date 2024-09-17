@@ -1,10 +1,11 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_api_client::response::{
-    NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnZkNym, NymVpnZkNymResponse,
+use nym_vpn_api_client::{
+    response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnZkNym, NymVpnZkNymResponse},
+    types::GatewayMinPerformance,
 };
-use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint, GatewayClient};
+use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint, GatewayClient, GatewayType};
 use time::OffsetDateTime;
 use tokio::sync::{mpsc::UnboundedSender, oneshot};
 use tracing::{debug, info, warn};
@@ -20,19 +21,21 @@ use crate::{
 
 #[derive(Debug, thiserror::Error)]
 pub enum ListGatewayError {
-    #[error("failed to create gateway directory client: {error}")]
+    #[error("failed to create gateway directory client: {source}")]
     CreateGatewayDirectoryClient {
-        error: nym_vpn_lib::gateway_directory::Error,
+        source: nym_vpn_lib::gateway_directory::Error,
     },
 
-    #[error("failed to get entry gateways: {error}")]
-    GetEntryGateways {
-        error: nym_vpn_lib::gateway_directory::Error,
+    #[error("failed to get gateways ({gw_type}): {source}")]
+    GetGateways {
+        gw_type: GatewayType,
+        source: nym_vpn_lib::gateway_directory::Error,
     },
 
-    #[error("failed to get exit gateways: {error}")]
-    GetExitGateways {
-        error: nym_vpn_lib::gateway_directory::Error,
+    #[error("failed to get countries ({gw_type}): {source}")]
+    GetCountries {
+        gw_type: GatewayType,
+        source: nym_vpn_lib::gateway_directory::Error,
     },
 }
 
@@ -136,74 +139,28 @@ impl CommandInterfaceConnectionHandler {
         result
     }
 
-    pub(crate) async fn handle_list_entry_gateways(
+    pub(crate) async fn handle_list_gateways(
         &self,
-        min_gateway_performance: Option<u8>,
+        gw_type: GatewayType,
+        min_gateway_performance: GatewayMinPerformance,
     ) -> Result<Vec<gateway::Gateway>, ListGatewayError> {
         let gateways = directory_client(min_gateway_performance)?
-            .lookup_entry_gateways()
+            .lookup_gateways(gw_type.clone())
             .await
-            .map_err(|error| ListGatewayError::GetEntryGateways { error })?;
+            .map_err(|source| ListGatewayError::GetGateways { gw_type, source })?;
 
         Ok(gateways.into_iter().map(gateway::Gateway::from).collect())
     }
 
-    pub(crate) async fn handle_list_exit_gateways(
+    pub(crate) async fn handle_list_countries(
         &self,
-        min_gateway_performance: Option<u8>,
-    ) -> Result<Vec<gateway::Gateway>, ListGatewayError> {
-        let gateways = directory_client(min_gateway_performance)?
-            .lookup_exit_gateways()
-            .await
-            .map_err(|error| ListGatewayError::GetExitGateways { error })?;
-
-        Ok(gateways.into_iter().map(gateway::Gateway::from).collect())
-    }
-
-    pub(crate) async fn handle_list_vpn_gateways(
-        &self,
-        min_gateway_performance: Option<u8>,
-    ) -> Result<Vec<gateway::Gateway>, ListGatewayError> {
-        let gateways = directory_client(min_gateway_performance)?
-            .lookup_vpn_gateways()
-            .await
-            .map_err(|error| ListGatewayError::GetEntryGateways { error })?;
-
-        Ok(gateways.into_iter().map(gateway::Gateway::from).collect())
-    }
-
-    pub(crate) async fn handle_list_entry_countries(
-        &self,
-        min_gateway_performance: Option<u8>,
+        gw_type: GatewayType,
+        min_gateway_performance: GatewayMinPerformance,
     ) -> Result<Vec<gateway::Country>, ListGatewayError> {
         let gateways = directory_client(min_gateway_performance)?
-            .lookup_entry_countries()
+            .lookup_countries(gw_type.clone())
             .await
-            .map_err(|error| ListGatewayError::GetEntryGateways { error })?;
-
-        Ok(gateways.into_iter().map(gateway::Country::from).collect())
-    }
-
-    pub(crate) async fn handle_list_exit_countries(
-        &self,
-        min_gateway_performance: Option<u8>,
-    ) -> Result<Vec<gateway::Country>, ListGatewayError> {
-        let gateways = directory_client(min_gateway_performance)?
-            .lookup_exit_countries()
-            .await
-            .map_err(|error| ListGatewayError::GetExitGateways { error })?;
-
-        Ok(gateways.into_iter().map(gateway::Country::from).collect())
-    }
-
-    pub(crate) async fn handle_list_vpn_countries(
-        &self,
-        min_gateway_performance: Option<u8>,
-    ) -> Result<Vec<gateway::Country>, ListGatewayError> {
-        let gateways = directory_client(min_gateway_performance)?
-            .lookup_vpn_countries()
-            .await
-            .map_err(|error| ListGatewayError::GetEntryGateways { error })?;
+            .map_err(|source| ListGatewayError::GetCountries { gw_type, source })?;
 
         Ok(gateways.into_iter().map(gateway::Country::from).collect())
     }
@@ -264,11 +221,11 @@ impl CommandInterfaceConnectionHandler {
 }
 
 fn directory_client(
-    min_gateway_performance: Option<u8>,
+    min_gateway_performance: GatewayMinPerformance,
 ) -> Result<GatewayClient, ListGatewayError> {
     let user_agent = nym_bin_common::bin_info_local_vergen!().into();
-    let directory_config =
-        nym_vpn_lib::gateway_directory::Config::new_from_env(min_gateway_performance);
+    let directory_config = nym_vpn_lib::gateway_directory::Config::new_from_env()
+        .with_min_gateway_performance(min_gateway_performance);
     GatewayClient::new(directory_config, user_agent)
-        .map_err(|error| ListGatewayError::CreateGatewayDirectoryClient { error })
+        .map_err(|source| ListGatewayError::CreateGatewayDirectoryClient { source })
 }

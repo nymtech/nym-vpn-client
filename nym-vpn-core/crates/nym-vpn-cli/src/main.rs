@@ -6,6 +6,7 @@ use std::{fs, path::PathBuf};
 use clap::Parser;
 use commands::{CliArgs, ImportCredentialTypeEnum};
 use futures::channel::mpsc;
+use nym_vpn_api_client::types::GatewayMinPerformance;
 use nym_vpn_lib::{
     gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint},
     nym_config::defaults::{setup_env, var_names},
@@ -158,7 +159,14 @@ async fn run() -> Result<()> {
 
 async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<()> {
     // Setup gateway directory configuration
-    let gateway_config = GatewayConfig::new_from_env(args.min_gateway_performance);
+    let min_gateway_performance = GatewayMinPerformance::from_percentage_values(
+        args.min_gateway_mixnet_performance.map(u64::from),
+        args.min_gateway_vpn_performance.map(u64::from),
+    )
+    .map_err(Error::FailedToSetupGatewayPerformanceThresholds)?;
+
+    let gateway_config =
+        GatewayConfig::new_from_env().with_min_gateway_performance(min_gateway_performance);
 
     info!("nym-api: {}", gateway_config.api_url());
     info!(
@@ -182,7 +190,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
             disable_background_cover_traffic: args.disable_background_cover_traffic,
             enable_credentials_mode: args.enable_credentials_mode,
             min_mixnode_performance: args.min_mixnode_performance,
-            min_gateway_performance: args.min_gateway_performance,
+            min_gateway_performance: args.min_gateway_mixnet_performance,
         },
         data_path,
         gateway_config,

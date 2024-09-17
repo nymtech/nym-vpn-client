@@ -5,13 +5,14 @@ use std::{fmt, net::IpAddr};
 
 use nym_sdk::UserAgent;
 use nym_validator_client::{models::DescribedGateway, nym_nodes::SkimmedNode, NymApiClient};
+use nym_vpn_api_client::types::{GatewayMinPerformance, Percent};
 use tracing::{debug, error, info};
 use url::Url;
 
 use crate::{
     entries::{
         country::Country,
-        gateway::{Gateway, GatewayList},
+        gateway::{Gateway, GatewayList, GatewayType},
     },
     error::Result,
     helpers::try_resolve_hostname,
@@ -22,7 +23,7 @@ use crate::{
 pub struct Config {
     pub api_url: Url,
     pub nym_vpn_api_url: Option<Url>,
-    pub min_gateway_performance: Option<u8>,
+    pub min_gateway_performance: Option<GatewayMinPerformance>,
 }
 
 impl Default for Config {
@@ -70,7 +71,7 @@ impl Config {
         }
     }
 
-    pub fn new_from_env(min_gateway_performance: Option<u8>) -> Self {
+    pub fn new_from_env() -> Self {
         let network = nym_sdk::NymNetworkDetails::new_from_env();
         let api_url = network
             .endpoints
@@ -85,7 +86,7 @@ impl Config {
         Config {
             api_url,
             nym_vpn_api_url,
-            min_gateway_performance,
+            min_gateway_performance: None,
         }
     }
 
@@ -107,11 +108,10 @@ impl Config {
         self
     }
 
-    pub fn min_gateway_performance(&self) -> Option<u8> {
-        self.min_gateway_performance
-    }
-
-    pub fn with_custom_min_gateway_performance(mut self, min_gateway_performance: u8) -> Self {
+    pub fn with_min_gateway_performance(
+        mut self,
+        min_gateway_performance: GatewayMinPerformance,
+    ) -> Self {
         self.min_gateway_performance = Some(min_gateway_performance);
         self
     }
@@ -120,7 +120,7 @@ impl Config {
 pub struct GatewayClient {
     api_client: NymApiClient,
     nym_vpn_api_client: Option<nym_vpn_api_client::VpnApiClient>,
-    min_gateway_performance: Option<u8>,
+    min_gateway_performance: Option<GatewayMinPerformance>,
 }
 
 impl GatewayClient {
@@ -136,6 +136,18 @@ impl GatewayClient {
             nym_vpn_api_client,
             min_gateway_performance: config.min_gateway_performance,
         })
+    }
+
+    pub fn mixnet_min_performance(&self) -> Option<Percent> {
+        self.min_gateway_performance
+            .as_ref()
+            .and_then(|min_performance| min_performance.mixnet_min_performance)
+    }
+
+    pub fn vpn_min_performance(&self) -> Option<Percent> {
+        self.min_gateway_performance
+            .as_ref()
+            .and_then(|min_performance| min_performance.vpn_min_performance)
     }
 
     async fn lookup_described_gateways(&self) -> Result<Vec<DescribedGateway>> {
@@ -156,7 +168,7 @@ impl GatewayClient {
 
     pub async fn lookup_low_latency_entry_gateway(&self) -> Result<Gateway> {
         debug!("Fetching low latency entry gateway...");
-        let gateways = self.lookup_entry_gateways().await?;
+        let gateways = self.lookup_gateways(GatewayType::MixnetEntry).await?;
         gateways.random_low_latency_gateway().await
     }
 
@@ -201,21 +213,30 @@ impl GatewayClient {
             .collect::<Vec<_>>();
         let skimmed_gateways = self.lookup_skimmed_gateways().await?;
         append_performance(&mut gateways, skimmed_gateways);
+        filter_on_mixnet_min_performance(&mut gateways, &self.min_gateway_performance);
         Ok(GatewayList::new(gateways))
     }
 
+    pub async fn lookup_gateways_from_nym_api(&self, gw_type: GatewayType) -> Result<GatewayList> {
+        match gw_type {
+            GatewayType::MixnetEntry => self.lookup_entry_gateways_from_nym_api().await,
+            GatewayType::MixnetExit => self.lookup_exit_gateways_from_nym_api().await,
+            GatewayType::Wg => self.lookup_vpn_gateways_from_nym_api().await,
+        }
+    }
+
     // This is currently the same as the set of all gateways, but it doesn't have to be.
-    pub async fn lookup_entry_gateways_from_nym_api(&self) -> Result<GatewayList> {
+    async fn lookup_entry_gateways_from_nym_api(&self) -> Result<GatewayList> {
         self.lookup_all_gateways_from_nym_api().await
     }
 
-    pub async fn lookup_exit_gateways_from_nym_api(&self) -> Result<GatewayList> {
+    async fn lookup_exit_gateways_from_nym_api(&self) -> Result<GatewayList> {
         self.lookup_all_gateways_from_nym_api()
             .await
             .map(GatewayList::into_exit_gateways)
     }
 
-    pub async fn lookup_vpn_gateways_from_nym_api(&self) -> Result<GatewayList> {
+    async fn lookup_vpn_gateways_from_nym_api(&self) -> Result<GatewayList> {
         self.lookup_all_gateways_from_nym_api()
             .await
             .map(GatewayList::into_vpn_gateways)
@@ -224,8 +245,8 @@ impl GatewayClient {
     pub async fn lookup_all_gateways(&self) -> Result<GatewayList> {
         if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
             info!("Fetching all gateways from nym-vpn-api...");
-            let mut gateways: Vec<_> = nym_vpn_api_client
-                .get_gateways()
+            let gateways: Vec<_> = nym_vpn_api_client
+                .get_gateways(self.min_gateway_performance.clone())
                 .await?
                 .into_iter()
                 .filter_map(|gw| {
@@ -234,19 +255,17 @@ impl GatewayClient {
                         .ok()
                 })
                 .collect();
-
-            filter_on_min_performance(&mut gateways, self.min_gateway_performance);
             Ok(GatewayList::new(gateways))
         } else {
             self.lookup_all_gateways_from_nym_api().await
         }
     }
 
-    pub async fn lookup_entry_gateways(&self) -> Result<GatewayList> {
+    pub async fn lookup_gateways(&self, gw_type: GatewayType) -> Result<GatewayList> {
         if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
-            info!("Fetching entry gateways from nym-vpn-api...");
-            let mut entry_gateways: Vec<_> = nym_vpn_api_client
-                .get_entry_gateways()
+            info!("Fetching gateways from nym-vpn-api...");
+            let gateways: Vec<_> = nym_vpn_api_client
+                .get_gateways_by_type(gw_type.into(), self.min_gateway_performance.clone())
                 .await?
                 .into_iter()
                 .filter_map(|gw| {
@@ -255,120 +274,23 @@ impl GatewayClient {
                         .ok()
                 })
                 .collect();
-
-            filter_on_min_performance(&mut entry_gateways, self.min_gateway_performance);
-            Ok(GatewayList::new(entry_gateways))
+            Ok(GatewayList::new(gateways))
         } else {
-            self.lookup_entry_gateways_from_nym_api().await
+            self.lookup_gateways_from_nym_api(gw_type).await
         }
     }
 
-    pub async fn lookup_exit_gateways(&self) -> Result<GatewayList> {
-        if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
-            info!("Fetching exit gateways from nym-vpn-api...");
-            let mut exit_gateways: Vec<_> = nym_vpn_api_client
-                .get_exit_gateways()
-                .await?
-                .into_iter()
-                .filter_map(|gw| {
-                    Gateway::try_from(gw)
-                        .inspect_err(|err| error!("Failed to parse gateway: {err}"))
-                        .ok()
-                })
-                .collect();
-
-            filter_on_min_performance(&mut exit_gateways, self.min_gateway_performance);
-            Ok(GatewayList::new(exit_gateways))
-        } else {
-            self.lookup_exit_gateways_from_nym_api().await
-        }
-    }
-
-    pub async fn lookup_vpn_gateways(&self) -> Result<GatewayList> {
-        if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
-            info!("Fetching vpn gateways from nym-vpn-api...");
-            let vpn_gateways: Vec<_> = nym_vpn_api_client
-                .get_vpn_gateways()
-                .await?
-                .into_iter()
-                .filter_map(|gw| {
-                    Gateway::try_from(gw)
-                        .inspect_err(|err| error!("Failed to parse gateway: {err}"))
-                        .ok()
-                })
-                .collect();
-
-            Ok(GatewayList::new(vpn_gateways))
-        } else {
-            self.lookup_vpn_gateways_from_nym_api().await
-        }
-    }
-
-    pub async fn lookup_entry_countries(&self) -> Result<Vec<Country>> {
-        // Workaround until we can pass a threshold parameter directly to the nym-vpn-api.
-        // Get the full list, which is filtered, and get the countries from that.
-        if let Some(min_gateway_performance) = self.min_gateway_performance {
-            if min_gateway_performance != 50 {
-                return self
-                    .lookup_entry_gateways()
-                    .await
-                    .map(|list| list.all_countries());
-            }
-        }
-
+    pub async fn lookup_countries(&self, gw_type: GatewayType) -> Result<Vec<Country>> {
         if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
             info!("Fetching entry countries from nym-vpn-api...");
             Ok(nym_vpn_api_client
-                .get_entry_gateway_countries()
+                .get_gateway_countries_by_type(gw_type.into(), self.min_gateway_performance.clone())
                 .await?
                 .into_iter()
                 .map(Country::from)
                 .collect())
         } else {
-            self.lookup_entry_gateways_from_nym_api()
-                .await
-                .map(GatewayList::into_countries)
-        }
-    }
-
-    pub async fn lookup_exit_countries(&self) -> Result<Vec<Country>> {
-        // Workaround until we can pass a threshold parameter directly to the nym-vpn-api.
-        // Get the full list, which is filtered, and get the countries from that.
-        if let Some(min_gateway_performance) = self.min_gateway_performance {
-            if min_gateway_performance != 50 {
-                return self
-                    .lookup_exit_gateways()
-                    .await
-                    .map(|list| list.all_countries());
-            }
-        }
-
-        if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
-            info!("Fetching exit countries from nym-vpn-api...");
-            Ok(nym_vpn_api_client
-                .get_exit_gateway_countries()
-                .await?
-                .into_iter()
-                .map(Country::from)
-                .collect())
-        } else {
-            self.lookup_exit_gateways_from_nym_api()
-                .await
-                .map(GatewayList::into_countries)
-        }
-    }
-
-    pub async fn lookup_vpn_countries(&self) -> Result<Vec<Country>> {
-        if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
-            info!("Fetching vpn countries from nym-vpn-api...");
-            Ok(nym_vpn_api_client
-                .get_vpn_gateway_countries()
-                .await?
-                .into_iter()
-                .map(Country::from)
-                .collect())
-        } else {
-            self.lookup_vpn_gateways_from_nym_api()
+            self.lookup_gateways_from_nym_api(gw_type)
                 .await
                 .map(GatewayList::into_countries)
         }
@@ -386,7 +308,7 @@ fn append_performance(
             .iter()
             .find(|bgw| bgw.ed25519_identity_pubkey == gateway.identity().to_base58_string())
         {
-            gateway.performance = Some(basic_gw.performance.round_to_integer());
+            gateway.mixnet_performance = Some(basic_gw.performance);
         } else {
             error!(
                 "Failed to find skimmed node for gateway with identity {}",
@@ -396,9 +318,16 @@ fn append_performance(
     }
 }
 
-fn filter_on_min_performance(gateways: &mut Vec<Gateway>, min_gateway_performance: Option<u8>) {
+fn filter_on_mixnet_min_performance(
+    gateways: &mut Vec<Gateway>,
+    min_gateway_performance: &Option<GatewayMinPerformance>,
+) {
     if let Some(min_performance) = min_gateway_performance {
-        gateways.retain(|gateway| gateway.performance.unwrap_or(0) >= min_performance);
+        if let Some(mixnet_min_performance) = min_performance.mixnet_min_performance {
+            gateways.retain(|gateway| {
+                gateway.mixnet_performance.unwrap_or_default() >= mixnet_min_performance
+            });
+        }
     }
 }
 
@@ -429,7 +358,10 @@ mod test {
     async fn lookup_gateways_in_nym_vpn_api() {
         let config = Config::new_mainnet();
         let client = GatewayClient::new(config, user_agent()).unwrap();
-        let gateways = client.lookup_exit_gateways().await.unwrap();
+        let gateways = client
+            .lookup_gateways(GatewayType::MixnetExit)
+            .await
+            .unwrap();
         assert!(!gateways.is_empty());
     }
 }

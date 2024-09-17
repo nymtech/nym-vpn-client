@@ -119,6 +119,7 @@ nym-authenticator-requests = { git = "https://github.com/nymtech/nym", rev = "b7
 nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }
 nym-client-core = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }
 nym-config = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }
 nym-crypto = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }
 nym-http-api-client = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }
 nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }

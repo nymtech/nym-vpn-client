@@ -3,13 +3,12 @@
 
 use anyhow::Result;
 use clap::Parser;
+use nym_gateway_directory::GatewayType;
 use nym_vpn_proto::{
     ConnectRequest, DisconnectRequest, Empty, ImportUserCredentialRequest, InfoRequest,
-    ListEntryCountriesRequest, ListEntryGatewaysRequest, ListExitCountriesRequest,
-    ListExitGatewaysRequest, ListVpnCountriesRequest, ListVpnGatewaysRequest, StatusRequest,
-    StoreAccountRequest,
+    ListCountriesRequest, ListGatewaysRequest, StatusRequest, StoreAccountRequest,
 };
-use protobuf_conversion::into_threshold;
+use protobuf_conversion::{into_gateway_type, into_threshold};
 use vpnd_client::ClientType;
 
 use crate::{
@@ -44,22 +43,22 @@ async fn main() -> Result<()> {
         Command::ListenToStatus => listen_to_status(client_type).await?,
         Command::ListenToStateChanges => listen_to_state_changes(client_type).await?,
         Command::ListEntryGateways(ref list_args) => {
-            list_entry_gateways(client_type, list_args).await?
+            list_gateways(client_type, list_args, GatewayType::MixnetEntry).await?
         }
         Command::ListExitGateways(ref list_args) => {
-            list_exit_gateways(client_type, list_args).await?
+            list_gateways(client_type, list_args, GatewayType::MixnetExit).await?
         }
         Command::ListVpnGateways(ref list_args) => {
-            list_vpn_gateways(client_type, list_args).await?
+            list_gateways(client_type, list_args, GatewayType::Wg).await?
         }
         Command::ListEntryCountries(ref list_args) => {
-            list_entry_countries(client_type, list_args).await?
+            list_countries(client_type, list_args, GatewayType::MixnetEntry).await?
         }
         Command::ListExitCountries(ref list_args) => {
-            list_exit_countries(client_type, list_args).await?
+            list_countries(client_type, list_args, GatewayType::MixnetExit).await?
         }
         Command::ListVpnCountries(ref list_args) => {
-            list_vpn_countries(client_type, list_args).await?
+            list_countries(client_type, list_args, GatewayType::Wg).await?
         }
     }
     Ok(())
@@ -79,7 +78,10 @@ async fn connect(client_type: ClientType, connect_args: &cli::ConnectArgs) -> Re
         disable_background_cover_traffic: connect_args.disable_background_cover_traffic,
         enable_credentials_mode: connect_args.enable_credentials_mode,
         min_mixnode_performance: connect_args.min_mixnode_performance.map(into_threshold),
-        min_gateway_performance: connect_args.min_gateway_performance.map(into_threshold),
+        min_gateway_mixnet_performance: connect_args
+            .min_gateway_mixnet_performance
+            .map(into_threshold),
+        min_gateway_vpn_performance: connect_args.min_gateway_vpn_performance.map(into_threshold),
     });
 
     let mut client = vpnd_client::get_client(client_type).await?;
@@ -189,100 +191,43 @@ async fn listen_to_state_changes(client_type: ClientType) -> Result<()> {
     Ok(())
 }
 
-async fn list_entry_gateways(
+async fn list_gateways(
     client_type: ClientType,
-    list_args: &cli::ListEntryGatewaysArgs,
+    list_args: &cli::ListGatewaysArgs,
+    gw_type: GatewayType,
 ) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
-    let request = tonic::Request::new(ListEntryGatewaysRequest {
-        min_gateway_performance: list_args.min_gateway_performance.map(into_threshold),
+    let request = tonic::Request::new(ListGatewaysRequest {
+        kind: into_gateway_type(gw_type) as i32,
+        min_mixnet_performance: list_args.min_mixnet_performance.map(into_threshold),
+        min_vpn_performance: list_args.min_vpn_performance.map(into_threshold),
     });
-    let response = client.list_entry_gateways(request).await?.into_inner();
+    let response = client.list_gateways(request).await?.into_inner();
     println!("{:#?}", response);
 
-    // TODO: support a flag that enables brief output
-    if false {
-        for r in response.gateways {
-            let id = r.id.unwrap();
-            let last_updated_utc =
-                parse_offset_datetime(r.last_probe.unwrap().last_updated_utc.unwrap());
+    if list_args.verbose {
+        for gateway in response.gateways {
+            let id = gateway.id.unwrap();
+            let last_probe = gateway.last_probe.unwrap();
+            let last_updated_utc = parse_offset_datetime(last_probe.last_updated_utc.unwrap());
             println!("id: {:?}, last_updated_utc: {:?}", id, last_updated_utc);
         }
     }
     Ok(())
 }
 
-async fn list_exit_gateways(
+async fn list_countries(
     client_type: ClientType,
-    list_args: &cli::ListExitGatewaysArgs,
+    list_args: &cli::ListCountriesArgs,
+    gw_type: GatewayType,
 ) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
-    let request = tonic::Request::new(ListExitGatewaysRequest {
-        min_gateway_performance: list_args.min_gateway_performance.map(into_threshold),
+    let request = tonic::Request::new(ListCountriesRequest {
+        kind: into_gateway_type(gw_type) as i32,
+        min_mixnet_performance: list_args.min_mixnet_performance.map(into_threshold),
+        min_vpn_performance: list_args.min_vpn_performance.map(into_threshold),
     });
-    let response = client.list_exit_gateways(request).await?.into_inner();
-    println!("{:#?}", response);
-
-    // TODO: support a flag that enables brief output
-    if false {
-        for r in response.gateways {
-            let id = r.id.unwrap();
-            let last_updated_utc =
-                parse_offset_datetime(r.last_probe.unwrap().last_updated_utc.unwrap());
-            println!("id: {:?}, last_updated_utc: {:?}", id, last_updated_utc);
-        }
-    }
-    Ok(())
-}
-
-async fn list_vpn_gateways(
-    client_type: ClientType,
-    list_args: &cli::ListVpnGatewaysArgs,
-) -> Result<()> {
-    let mut client = vpnd_client::get_client(client_type).await?;
-    let request = tonic::Request::new(ListVpnGatewaysRequest {
-        min_gateway_performance: list_args.min_gateway_performance.map(into_threshold),
-    });
-    let response = client.list_vpn_gateways(request).await?.into_inner();
-    println!("{:#?}", response);
-    Ok(())
-}
-
-async fn list_entry_countries(
-    client_type: ClientType,
-    list_args: &cli::ListEntryCountriesArgs,
-) -> Result<()> {
-    let mut client = vpnd_client::get_client(client_type).await?;
-    let request = tonic::Request::new(ListEntryCountriesRequest {
-        min_gateway_performance: list_args.min_gateway_performance.map(into_threshold),
-    });
-    let response = client.list_entry_countries(request).await?.into_inner();
-    println!("{:#?}", response);
-    Ok(())
-}
-
-async fn list_exit_countries(
-    client_type: ClientType,
-    list_args: &cli::ListExitCountriesArgs,
-) -> Result<()> {
-    let mut client = vpnd_client::get_client(client_type).await?;
-    let request = tonic::Request::new(ListExitCountriesRequest {
-        min_gateway_performance: list_args.min_gateway_performance.map(into_threshold),
-    });
-    let response = client.list_exit_countries(request).await?.into_inner();
-    println!("{:#?}", response);
-    Ok(())
-}
-
-async fn list_vpn_countries(
-    client_type: ClientType,
-    list_args: &cli::ListVpnCountriesArgs,
-) -> Result<()> {
-    let mut client = vpnd_client::get_client(client_type).await?;
-    let request = tonic::Request::new(ListVpnCountriesRequest {
-        min_gateway_performance: list_args.min_gateway_performance.map(into_threshold),
-    });
-    let response = client.list_vpn_countries(request).await?.into_inner();
+    let response = client.list_countries(request).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }

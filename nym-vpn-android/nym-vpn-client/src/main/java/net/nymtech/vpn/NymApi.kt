@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.Country
+import nym_vpn_lib.GatewayType
 import nym_vpn_lib.UserAgent
 import nym_vpn_lib.getGatewayCountries
 
@@ -11,9 +12,9 @@ class NymApi(
 	private val ioDispatcher: CoroutineDispatcher,
 	private val userAgent: UserAgent,
 ) {
-	suspend fun gateways(exitOnly: Boolean, environment: Tunnel.Environment): Set<Country> {
+	suspend fun gateways(type: GatewayType, environment: Tunnel.Environment): Set<Country> {
 		return withContext(ioDispatcher) {
-			getGatewayCountries(environment.apiUrl, environment.nymVpnApiUrl, exitOnly, userAgent).map {
+			getGatewayCountries(environment.apiUrl, environment.nymVpnApiUrl, type, userAgent, null).map {
 				Country(isoCode = it.twoLetterIsoCountryCode)
 			}.toSet()
 		}
