@@ -22,7 +22,6 @@ use std::{
 
 use lazy_static::lazy_static;
 use log::*;
-use nym_gateway_directory::GatewayType;
 use talpid_core::mpsc::Sender;
 use tokio::{
     runtime::Runtime,
@@ -44,8 +43,8 @@ use crate::{
     gateway_directory::GatewayClient,
     platform::status_listener::VpnServiceStatusListener,
     uniffi_custom_impls::{
-        BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, ExitStatus, Location,
-        NymVpnStatus, StatusEvent, TunStatus, UserAgent,
+        BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, ExitStatus, GatewayType,
+        Location, NymVpnStatus, StatusEvent, TunStatus, UserAgent,
     },
     vpn::{
         spawn_nym_vpn, MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitStatusMessage, NymVpnHandle,
@@ -415,13 +414,13 @@ async fn stop_vpn() -> Result<(), VpnError> {
 pub fn getGatewayCountries(
     api_url: Url,
     nym_vpn_api_url: Option<Url>,
-    exit_only: bool,
+    gw_type: GatewayType,
     user_agent: Option<UserAgent>,
 ) -> Result<Vec<Location>, VpnError> {
     RUNTIME.block_on(get_gateway_countries(
         api_url,
         nym_vpn_api_url,
-        exit_only,
+        gw_type,
         user_agent,
     ))
 }
@@ -429,7 +428,7 @@ pub fn getGatewayCountries(
 async fn get_gateway_countries(
     api_url: Url,
     nym_vpn_api_url: Option<Url>,
-    exit_only: bool,
+    gw_type: GatewayType,
     user_agent: Option<UserAgent>,
 ) -> Result<Vec<Location>, VpnError> {
     let user_agent = user_agent
@@ -440,47 +439,13 @@ async fn get_gateway_countries(
         nym_vpn_api_url,
         min_gateway_performance: None,
     };
-    let directory_client = GatewayClient::new(directory_config, user_agent)?;
-    let locations = if !exit_only {
-        directory_client
-            .lookup_countries(GatewayType::MixnetEntry)
-            .await
-    } else {
-        directory_client
-            .lookup_countries(GatewayType::MixnetExit)
-            .await
-    }?;
-    Ok(locations.into_iter().map(Location::from).collect())
-}
-
-// Add an additional method to preserve backwards compatibility for a bit, so that we can use add
-// this functionality before all apps are ready
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn getVpnCountries(
-    api_url: Url,
-    nym_vpn_api_url: Option<Url>,
-    user_agent: Option<UserAgent>,
-) -> Result<Vec<Location>, VpnError> {
-    RUNTIME.block_on(get_vpn_countries(api_url, nym_vpn_api_url, user_agent))
-}
-
-async fn get_vpn_countries(
-    api_url: Url,
-    nym_vpn_api_url: Option<Url>,
-    user_agent: Option<UserAgent>,
-) -> Result<Vec<Location>, VpnError> {
-    let user_agent = user_agent
-        .map(nym_sdk::UserAgent::from)
-        .unwrap_or_else(|| nym_bin_common::bin_info_local_vergen!().into());
-    let directory_config = nym_gateway_directory::Config {
-        api_url,
-        nym_vpn_api_url,
-        min_gateway_performance: None,
-    };
-    let directory_client = GatewayClient::new(directory_config, user_agent)?;
-    let locations = directory_client.lookup_countries(GatewayType::Vpn).await?;
-    Ok(locations.into_iter().map(Location::from).collect())
+    let locations = GatewayClient::new(directory_config, user_agent)?
+        .lookup_countries(gw_type.into())
+        .await?
+        .into_iter()
+        .map(Location::from)
+        .collect();
+    Ok(locations)
 }
 
 #[allow(non_snake_case)]
@@ -488,28 +453,11 @@ async fn get_vpn_countries(
 pub fn getLowLatencyEntryCountry(
     api_url: Url,
     vpn_api_url: Option<Url>,
-    harbour_master_url: Option<Url>,
-) -> Result<Location, VpnError> {
-    RUNTIME.block_on(get_low_latency_entry_country(
-        api_url,
-        vpn_api_url,
-        harbour_master_url,
-        None,
-    ))
-}
-
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn getLowLatencyEntryCountryUserAgent(
-    api_url: Url,
-    vpn_api_url: Option<Url>,
-    harbour_master_url: Option<Url>,
     user_agent: UserAgent,
 ) -> Result<Location, VpnError> {
     RUNTIME.block_on(get_low_latency_entry_country(
         api_url,
         vpn_api_url,
-        harbour_master_url,
         Some(user_agent),
     ))
 }
@@ -517,7 +465,6 @@ pub fn getLowLatencyEntryCountryUserAgent(
 async fn get_low_latency_entry_country(
     api_url: Url,
     vpn_api_url: Option<Url>,
-    _harbour_master_url: Option<Url>,
     user_agent: Option<UserAgent>,
 ) -> Result<Location, VpnError> {
     let config = nym_gateway_directory::Config {
@@ -528,11 +475,11 @@ async fn get_low_latency_entry_country(
     let user_agent = user_agent
         .map(nym_sdk::UserAgent::from)
         .unwrap_or_else(|| nym_bin_common::bin_info_local_vergen!().into());
-    let gateway_client = GatewayClient::new(config, user_agent)?;
-    let gateway = gateway_client.lookup_low_latency_entry_gateway().await?;
-    let country = gateway
+
+    let country = GatewayClient::new(config, user_agent)?
+        .lookup_low_latency_entry_gateway()
+        .await?
         .location
-        // Using LibError here keep existing behaviour and not make any changes to FFIError
         .ok_or(VpnError::InternalError {
             details: "gateway does not contain a two character country ISO".to_string(),
         })?

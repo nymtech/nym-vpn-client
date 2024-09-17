@@ -245,6 +245,23 @@ impl From<nym_gateway_directory::Country> for Location {
     }
 }
 
+#[derive(uniffi::Enum)]
+pub enum GatewayType {
+    MixnetEntry,
+    MixnetExit,
+    Vpn,
+}
+
+impl From<GatewayType> for nym_gateway_directory::GatewayType {
+    fn from(value: GatewayType) -> Self {
+        match value {
+            GatewayType::MixnetEntry => nym_gateway_directory::GatewayType::MixnetEntry,
+            GatewayType::MixnetExit => nym_gateway_directory::GatewayType::MixnetExit,
+            GatewayType::Vpn => nym_gateway_directory::GatewayType::Vpn,
+        }
+    }
+}
+
 #[derive(uniffi::Record)]
 pub struct UserAgent {
     // The name of the application
