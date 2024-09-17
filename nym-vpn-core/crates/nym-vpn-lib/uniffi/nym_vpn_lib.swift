@@ -2430,9 +2430,9 @@ extension ExitStatus: Equatable, Hashable {}
 
 public enum GatewayType {
     
-    case entry
-    case exit
-    case vpn
+    case mixnetEntry
+    case mixnetExit
+    case wg
 }
 
 
@@ -2443,11 +2443,11 @@ public struct FfiConverterTypeGatewayType: FfiConverterRustBuffer {
         let variant: Int32 = try readInt(&buf)
         switch variant {
         
-        case 1: return .entry
+        case 1: return .mixnetEntry
         
-        case 2: return .exit
+        case 2: return .mixnetExit
         
-        case 3: return .vpn
+        case 3: return .wg
         
         default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -2457,15 +2457,15 @@ public struct FfiConverterTypeGatewayType: FfiConverterRustBuffer {
         switch value {
         
         
-        case .entry:
+        case .mixnetEntry:
             writeInt(&buf, Int32(1))
         
         
-        case .exit:
+        case .mixnetExit:
             writeInt(&buf, Int32(2))
         
         
-        case .vpn:
+        case .wg:
             writeInt(&buf, Int32(3))
         
         }

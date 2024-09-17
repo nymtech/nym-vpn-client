@@ -2844,9 +2844,9 @@ public object FfiConverterTypeExitStatus : FfiConverterRustBuffer<ExitStatus>{
 
 enum class GatewayType {
     
-    ENTRY,
-    EXIT,
-    VPN;
+    MIXNET_ENTRY,
+    MIXNET_EXIT,
+    WG;
     companion object
 }
 
