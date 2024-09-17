@@ -112,7 +112,7 @@ jobs:
         env:
           SRC_APPIMAGE: nym-vpn-app/src-tauri/target/release/bundle/appimage/nym-vpn_${{ steps.package-version.outputs.metadata }}_amd64.AppImage
           DST_APPIMAGE: nym-vpn_${{ steps.package-version.outputs.metadata }}_x64.AppImage
-          SRC_DEB: nym-vpn-app/src-tauri/target/release/bundle/deb/nym-vpn-app_${{ steps.package-version.outputs.metadata }}_amd64.deb
+          SRC_DEB: nym-vpn-app_${{ steps.package-version.outputs.metadata }}_amd64.deb
           SRC_BIN: nym-vpn-app/src-tauri/target/release/nym-vpn-app
           DST_BIN: nym-vpn_${{ steps.package-version.outputs.metadata }}_linux_x64
         run: |
