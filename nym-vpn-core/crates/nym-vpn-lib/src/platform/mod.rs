@@ -43,8 +43,9 @@ use crate::{
     gateway_directory::GatewayClient,
     platform::status_listener::VpnServiceStatusListener,
     uniffi_custom_impls::{
-        BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, ExitStatus, GatewayType,
-        Location, NymVpnStatus, StatusEvent, TunStatus, UserAgent,
+        BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, ExitStatus,
+        GatewayMinPerformance, GatewayType, Location, NymVpnStatus, StatusEvent, TunStatus,
+        UserAgent,
     },
     vpn::{
         spawn_nym_vpn, MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitStatusMessage, NymVpnHandle,
@@ -416,12 +417,14 @@ pub fn getGatewayCountries(
     nym_vpn_api_url: Option<Url>,
     gw_type: GatewayType,
     user_agent: Option<UserAgent>,
+    min_gateway_performance: Option<GatewayMinPerformance>,
 ) -> Result<Vec<Location>, VpnError> {
     RUNTIME.block_on(get_gateway_countries(
         api_url,
         nym_vpn_api_url,
         gw_type,
         user_agent,
+        min_gateway_performance,
     ))
 }
 
@@ -430,14 +433,16 @@ async fn get_gateway_countries(
     nym_vpn_api_url: Option<Url>,
     gw_type: GatewayType,
     user_agent: Option<UserAgent>,
+    min_gateway_performance: Option<GatewayMinPerformance>,
 ) -> Result<Vec<Location>, VpnError> {
     let user_agent = user_agent
         .map(nym_sdk::UserAgent::from)
         .unwrap_or_else(|| nym_bin_common::bin_info_local_vergen!().into());
+    let min_gateway_performance = min_gateway_performance.map(|p| p.try_into()).transpose()?;
     let directory_config = nym_gateway_directory::Config {
         api_url,
         nym_vpn_api_url,
-        min_gateway_performance: None,
+        min_gateway_performance,
     };
     GatewayClient::new(directory_config, user_agent)?
         .lookup_countries(gw_type.into())

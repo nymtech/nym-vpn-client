@@ -263,6 +263,41 @@ impl From<GatewayType> for nym_gateway_directory::GatewayType {
 }
 
 #[derive(uniffi::Record)]
+pub struct GatewayMinPerformance {
+    mixnet_min_performance: Option<u64>,
+    vpn_min_performance: Option<u64>,
+}
+
+impl TryFrom<GatewayMinPerformance> for nym_gateway_directory::GatewayMinPerformance {
+    type Error = VpnError;
+
+    fn try_from(value: GatewayMinPerformance) -> Result<Self, Self::Error> {
+        let mixnet_min_performance = value
+            .mixnet_min_performance
+            .map(|p| {
+                nym_gateway_directory::Percent::from_percentage_value(p)
+                    .map_err(|_| VpnError::InternalError {
+                        details: "Invalid mixnet min performance percentage".to_string(),
+                    })
+            })
+            .transpose()?;
+        let vpn_min_performance = value
+            .vpn_min_performance
+            .map(|p| {
+                nym_gateway_directory::Percent::from_percentage_value(p)
+                    .map_err(|_| VpnError::InternalError {
+                        details: "Invalid vpn min performance percentage".to_string(),
+                    })
+            })
+            .transpose()?;
+        Ok(nym_gateway_directory::GatewayMinPerformance {
+            mixnet_min_performance,
+            vpn_min_performance,
+        })
+    }
+}
+
+#[derive(uniffi::Record)]
 pub struct UserAgent {
     // The name of the application
     // Example: nym-vpnd
