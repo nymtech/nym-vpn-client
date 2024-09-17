@@ -11,6 +11,7 @@ use std::{
 use futures::{stream::BoxStream, StreamExt};
 use nym_vpn_api_client::types::GatewayMinPerformance;
 use nym_vpn_proto::{
+    list_countries_request::ListCountriesType, list_gateways_request::ListGatewaysType,
     nym_vpnd_server::NymVpnd, AccountError, ConnectRequest, ConnectResponse, ConnectionStateChange,
     ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty, GetAccountSummaryRequest,
     GetAccountSummaryResponse, ImportUserCredentialRequest, ImportUserCredentialResponse,
@@ -274,7 +275,13 @@ impl NymVpnd for CommandInterface {
         info!("Got list gateways request: {:?}", request);
 
         let request = request.into_inner();
-        let kind = request.kind;
+
+        let kind = ListGatewaysType::try_from(request.kind).map_err(|err| {
+            let msg = format!("Failed to parse list gateways kind: {:?}", err);
+            error!(msg);
+            tonic::Status::invalid_argument(msg)
+        })?;
+
         let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
         let min_vpn_performance = request.min_vpn_performance.map(threshold_into_percent);
 
@@ -284,7 +291,7 @@ impl NymVpnd for CommandInterface {
         };
 
         let gateways = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_list_entry_gateways(min_gateway_performance)
+            .handle_list_gateways(kind, min_gateway_performance)
             .await
             .map_err(|err| {
                 let msg = format!("Failed to list gateways: {:?}", err);
@@ -306,96 +313,21 @@ impl NymVpnd for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
-    async fn list_vpn_gateways(
+    async fn list_countries(
         &self,
-        request: tonic::Request<ListVpnGatewaysRequest>,
-    ) -> Result<tonic::Response<ListVpnGatewaysResponse>, tonic::Status> {
-        info!("Got list VPN gateways request: {request:?}");
-
-        let request = request.into_inner();
-
-        let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
-
-        let min_vpn_performance = request.min_vpn_performance.map(threshold_into_percent);
-
-        let min_gateway_performance = GatewayMinPerformance {
-            mixnet_min_performance: min_mixnet_performance,
-            vpn_min_performance: min_vpn_performance,
-        };
-
-        let gateways = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_list_vpn_gateways(min_gateway_performance)
-            .await
-            .map_err(|err| {
-                let msg = format!("Failed to list VPN gateways: {:?}", err);
-                error!(msg);
-                tonic::Status::internal(msg)
-            })?;
-
-        let response = ListVpnGatewaysResponse {
-            gateways: gateways
-                .into_iter()
-                .map(nym_vpn_proto::VpnGateway::from)
-                .collect(),
-        };
-
-        info!(
-            "Returning list VPN gateways response: {} entries",
-            response.gateways.len()
-        );
-        Ok(tonic::Response::new(response))
-    }
-
-    async fn list_exit_gateways(
-        &self,
-        request: tonic::Request<ListExitGatewaysRequest>,
-    ) -> Result<tonic::Response<ListExitGatewaysResponse>, tonic::Status> {
-        info!("Got list exit gateways request: {:?}", request);
-
-        let request = request.into_inner();
-
-        let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
-
-        let min_vpn_performance = request.min_vpn_performance.map(threshold_into_percent);
-
-        let min_gateway_performance = GatewayMinPerformance {
-            mixnet_min_performance: min_mixnet_performance,
-            vpn_min_performance: min_vpn_performance,
-        };
-
-        let exit_gateways = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_list_exit_gateways(min_gateway_performance)
-            .await
-            .map_err(|err| {
-                let msg = format!("Failed to list exit gateways: {:?}", err);
-                error!(msg);
-                tonic::Status::internal(msg)
-            })?;
-
-        let response = ListExitGatewaysResponse {
-            gateways: exit_gateways
-                .into_iter()
-                .map(nym_vpn_proto::ExitGateway::from)
-                .collect(),
-        };
-
-        info!(
-            "Returning list exit gateways response: {} entries",
-            response.gateways.len()
-        );
-        Ok(tonic::Response::new(response))
-    }
-
-    async fn list_entry_countries(
-        &self,
-        request: tonic::Request<ListEntryCountriesRequest>,
-    ) -> Result<tonic::Response<ListEntryCountriesResponse>, tonic::Status> {
+        request: tonic::Request<ListCountriesRequest>,
+    ) -> Result<tonic::Response<ListCountriesResponse>, tonic::Status> {
         info!("Got list entry countries request: {request:?}");
 
         let request = request.into_inner();
 
-        let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
+        let kind = ListCountriesType::try_from(request.kind).map_err(|err| {
+            let msg = format!("Failed to parse list countries kind: {:?}", err);
+            error!(msg);
+            tonic::Status::invalid_argument(msg)
+        })?;
 
+        let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
         let min_vpn_performance = request.min_vpn_performance.map(threshold_into_percent);
 
         let min_gateway_performance = GatewayMinPerformance {
@@ -404,7 +336,7 @@ impl NymVpnd for CommandInterface {
         };
 
         let countries = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_list_entry_countries(min_gateway_performance)
+            .handle_list_countries(kind, min_gateway_performance)
             .await
             .map_err(|err| {
                 let msg = format!("Failed to list entry countries: {:?}", err);
@@ -412,7 +344,7 @@ impl NymVpnd for CommandInterface {
                 tonic::Status::internal(msg)
             })?;
 
-        let response = nym_vpn_proto::ListEntryCountriesResponse {
+        let response = nym_vpn_proto::ListCountriesResponse {
             countries: countries
                 .into_iter()
                 .map(nym_vpn_proto::Location::from)
@@ -420,87 +352,7 @@ impl NymVpnd for CommandInterface {
         };
 
         info!(
-            "Returning list entry countries response: {} countries",
-            response.countries.len()
-        );
-        Ok(tonic::Response::new(response))
-    }
-
-    async fn list_exit_countries(
-        &self,
-        request: tonic::Request<ListExitCountriesRequest>,
-    ) -> Result<tonic::Response<ListExitCountriesResponse>, tonic::Status> {
-        info!("Got list exit countries request: {request:?}");
-
-        let request = request.into_inner();
-
-        let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
-
-        let min_vpn_performance = request.min_vpn_performance.map(threshold_into_percent);
-
-        let min_gateway_performance = GatewayMinPerformance {
-            mixnet_min_performance: min_mixnet_performance,
-            vpn_min_performance: min_vpn_performance,
-        };
-
-        let countries = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_list_exit_countries(min_gateway_performance)
-            .await
-            .map_err(|err| {
-                let msg = format!("Failed to list exit countries: {:?}", err);
-                error!(msg);
-                tonic::Status::internal(msg)
-            })?;
-
-        let response = ListExitCountriesResponse {
-            countries: countries
-                .into_iter()
-                .map(nym_vpn_proto::Location::from)
-                .collect(),
-        };
-
-        info!(
-            "Returning list exit countries response: {} countries",
-            response.countries.len()
-        );
-        Ok(tonic::Response::new(response))
-    }
-
-    async fn list_vpn_countries(
-        &self,
-        request: tonic::Request<ListVpnCountriesRequest>,
-    ) -> Result<tonic::Response<ListVpnCountriesResponse>, tonic::Status> {
-        info!("Got list VPN countries request: {request:?}");
-
-        let request = request.into_inner();
-
-        let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
-
-        let min_vpn_performance = request.min_vpn_performance.map(threshold_into_percent);
-
-        let min_gateway_performance = GatewayMinPerformance {
-            mixnet_min_performance: min_mixnet_performance,
-            vpn_min_performance: min_vpn_performance,
-        };
-
-        let countries = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_list_vpn_countries(min_gateway_performance)
-            .await
-            .map_err(|err| {
-                let msg = format!("Failed to list VPN countries: {:?}", err);
-                error!(msg);
-                tonic::Status::internal(msg)
-            })?;
-
-        let response = ListVpnCountriesResponse {
-            countries: countries
-                .into_iter()
-                .map(nym_vpn_proto::Location::from)
-                .collect(),
-        };
-
-        info!(
-            "Returning list VPN countries response: {} countries",
+            "Returning list countries response: {} countries",
             response.countries.len()
         );
         Ok(tonic::Response::new(response))

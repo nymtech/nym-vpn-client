@@ -62,29 +62,14 @@ impl From<gateway::Probe> for nym_vpn_proto::Probe {
     }
 }
 
-impl From<gateway::Gateway> for nym_vpn_proto::EntryGateway {
+impl From<gateway::Gateway> for nym_vpn_proto::GatewayResponse {
     fn from(gateway: gateway::Gateway) -> Self {
         let id = Some(nym_vpn_proto::Gateway {
             id: gateway.identity_key.to_string(),
         });
         let location = gateway.location.map(nym_vpn_proto::Location::from);
         let last_probe = gateway.last_probe.map(nym_vpn_proto::Probe::from);
-        nym_vpn_proto::EntryGateway {
-            id,
-            location,
-            last_probe,
-        }
-    }
-}
-
-impl From<gateway::Gateway> for nym_vpn_proto::ExitGateway {
-    fn from(gateway: gateway::Gateway) -> Self {
-        let id = Some(nym_vpn_proto::Gateway {
-            id: gateway.identity_key.to_string(),
-        });
-        let location = gateway.location.map(nym_vpn_proto::Location::from);
-        let last_probe = gateway.last_probe.map(nym_vpn_proto::Probe::from);
-        nym_vpn_proto::ExitGateway {
+        nym_vpn_proto::GatewayResponse {
             id,
             location,
             last_probe,
@@ -96,21 +81,6 @@ impl From<gateway::Country> for nym_vpn_proto::Location {
     fn from(country: gateway::Country) -> Self {
         nym_vpn_proto::Location {
             two_letter_iso_country_code: country.iso_code().to_string(),
-        }
-    }
-}
-
-impl From<gateway::Gateway> for nym_vpn_proto::VpnGateway {
-    fn from(gateway: gateway::Gateway) -> Self {
-        let id = Some(nym_vpn_proto::Gateway {
-            id: gateway.identity_key.to_string(),
-        });
-        let location = gateway.location.map(nym_vpn_proto::Location::from);
-        let last_probe = gateway.last_probe.map(nym_vpn_proto::Probe::from);
-        nym_vpn_proto::VpnGateway {
-            id,
-            location,
-            last_probe,
         }
     }
 }
