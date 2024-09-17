@@ -91,6 +91,6 @@ pub(crate) fn into_gateway_type(gateway_type: nym_vpn_proto::GatewayType) -> Opt
         nym_vpn_proto::GatewayType::Unspecified => None,
         nym_vpn_proto::GatewayType::MixnetEntry => Some(GatewayType::MixnetEntry),
         nym_vpn_proto::GatewayType::MixnetExit => Some(GatewayType::MixnetExit),
-        nym_vpn_proto::GatewayType::Vpn => Some(GatewayType::Wg),
+        nym_vpn_proto::GatewayType::Wg => Some(GatewayType::Wg),
     }
 }

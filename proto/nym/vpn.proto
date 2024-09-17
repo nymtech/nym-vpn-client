@@ -384,7 +384,7 @@ enum GatewayType {
   GATEWAY_TYPE_UNSPECIFIED = 0;
   MIXNET_ENTRY = 1;
   MIXNET_EXIT = 2;
-  VPN = 3;
+  WG = 3;
 }
 
 message ListGatewaysRequest {

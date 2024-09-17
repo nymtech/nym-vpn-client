@@ -109,7 +109,7 @@ pub(crate) fn into_gateway_type(gateway_type: GatewayType) -> nym_vpn_proto::Gat
     match gateway_type {
         GatewayType::MixnetEntry => nym_vpn_proto::GatewayType::MixnetEntry,
         GatewayType::MixnetExit => nym_vpn_proto::GatewayType::MixnetExit,
-        GatewayType::Wg => nym_vpn_proto::GatewayType::Vpn,
+        GatewayType::Wg => nym_vpn_proto::GatewayType::Wg,
     }
 }
 
