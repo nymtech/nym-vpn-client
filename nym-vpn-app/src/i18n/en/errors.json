@@ -28,7 +28,22 @@
       "exit": "Failed to lookup the exit gateway",
       "exit-location": "Failed to lookup the exit gateway for a given location"
     },
-    "bad-country-combination": "Unsupported country combination, please change the entry or exit country"
+    "bad-country-combination": "Unsupported country combination, please change the entry or exit country",
+    "bandwidth": {
+      "tunnel-up": "No available bandwidth to setup tunnel"
+    },
+    "interface": {
+      "find-default": "Failed to find the default network interface",
+      "wg-bring-up": "Failed to bring up the WireGuard interface"
+    },
+    "firewall": {
+      "init": "Failed to init firewall subsystem",
+      "reset-policy": "Failed to reset the firewall policy"
+    },
+    "dns": {
+      "init": "Failed to init DNS subsystem",
+      "set": "Failed to set DNS"
+    }
   },
   "credential": {
     "invalid": "Invalid credential",
