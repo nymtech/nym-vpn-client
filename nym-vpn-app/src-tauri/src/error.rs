@@ -179,7 +179,9 @@ pub enum ErrorKey {
     // Forwarded from proto `connection_status_update::StatusType`
     EntryGatewayNotRouting,
     ExitRouterPingIpv4,
+    ExitRouterPingIpv6,
     ExitRouterNotRoutingIpv4,
+    ExitRouterNotRoutingIpv6,
     UserNoBandwidth,
     // Failure when querying countries from gRPC
     GetEntryCountriesQuery,
@@ -277,9 +279,11 @@ impl From<StatusType> for ErrorKey {
         match value {
             StatusType::EntryGatewayNotRoutingMixnetMessages => ErrorKey::EntryGatewayNotRouting,
             StatusType::ExitRouterNotRespondingToIpv4Ping => ErrorKey::ExitRouterPingIpv4,
+            StatusType::ExitRouterNotRespondingToIpv6Ping => ErrorKey::ExitRouterPingIpv6,
             StatusType::ExitRouterNotRoutingIpv4Traffic => ErrorKey::ExitRouterNotRoutingIpv4,
+            StatusType::ExitRouterNotRoutingIpv6Traffic => ErrorKey::ExitRouterNotRoutingIpv6,
             StatusType::NoBandwidth => ErrorKey::UserNoBandwidth,
-            _ => ErrorKey::UnknownError,
+            _ => ErrorKey::UnknownError, // `Unspecified` & `Unknown`
         }
     }
 }

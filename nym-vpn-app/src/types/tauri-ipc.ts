@@ -69,7 +69,9 @@ export type BkdErrorKey =
   | 'CredentialExpired'
   | 'EntryGatewayNotRouting'
   | 'ExitRouterPingIpv4'
+  | 'ExitRouterPingIpv6'
   | 'ExitRouterNotRoutingIpv4'
+  | 'ExitRouterNotRoutingIpv6'
   | 'UserNoBandwidth'
   | 'GetEntryCountriesQuery'
   | 'GetExitCountriesQuery';

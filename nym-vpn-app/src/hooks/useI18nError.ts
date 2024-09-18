@@ -93,6 +93,10 @@ function useI18nError() {
           return t('exit-node.ping', { protocol: 'IPv4' });
         case 'ExitRouterNotRoutingIpv4':
           return t('exit-node.routing', { protocol: 'IPv4' });
+        case 'ExitRouterPingIpv6':
+          return t('exit-node.ping', { protocol: 'IPv6' });
+        case 'ExitRouterNotRoutingIpv6':
+          return t('exit-node.routing', { protocol: 'IPv6' });
         case 'UserNoBandwidth':
           return t('out-of-bandwidth');
         case 'GetEntryCountriesQuery':
