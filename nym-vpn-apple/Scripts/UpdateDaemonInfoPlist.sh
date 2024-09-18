@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Example:
+# nym-vpn-apple/Scripts$ ./Scripts/UpdateDaemonInfoPlist.sh 0.2.1
+# Must be run from nym-vpn-apple/Scripts.
+
 # Global error handling
 set -e  # Exit immediately on non-zero status return
 set -u  # Treat unset variables as errors
