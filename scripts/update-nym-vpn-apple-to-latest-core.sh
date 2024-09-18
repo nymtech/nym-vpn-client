@@ -7,10 +7,7 @@ set -euo pipefail
 
 source "$(dirname "$0")/common.sh"
 
-# TAG_BASE_NAME=nym-vpn-core
-# DIRNAME_CORE=nym-vpn-core
 APPLE_SCRIPTS_DIR=nym-vpn-apple/Scripts
-YES=false
 
 # Parse arguments
 for arg in "$@"; do
