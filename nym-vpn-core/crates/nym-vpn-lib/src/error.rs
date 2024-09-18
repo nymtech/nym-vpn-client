@@ -167,7 +167,7 @@ pub enum SetupWgTunnelError {
     WgGatewayClientError {
         gateway_id: String,
         authenticator_address: String,
-        source: nym_wg_gateway_client::Error
+        source: nym_wg_gateway_client::Error,
     },
 
     #[error("{0}")]
