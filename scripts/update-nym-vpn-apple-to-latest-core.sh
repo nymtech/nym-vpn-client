@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 #
-# Update nym-vpn-apple to use the latest release of nym-vpnd
+# Update nym-vpn-apple to use the latest version of nym-vpnd
 
 # set -x
 set -euo pipefail
