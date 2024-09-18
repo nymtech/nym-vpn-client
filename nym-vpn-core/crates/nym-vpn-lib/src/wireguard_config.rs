@@ -141,6 +141,7 @@ pub(crate) async fn init_wireguard_config(
 ) -> std::result::Result<(WireguardConfig, IpAddr), SetupWgTunnelError> {
     // First we need to register with the gateway to setup keys and IP assignment
     tracing::info!("Registering with wireguard gateway");
+    let authenticator_address = wg_gateway_client.auth_recipient().to_string();
     let gateway_id = wg_gateway_client
         .auth_recipient()
         .gateway()
@@ -148,8 +149,18 @@ pub(crate) async fn init_wireguard_config(
     let gateway_host = gateway_client
         .lookup_gateway_ip(&gateway_id)
         .await
-        .map_err(|source| SetupWgTunnelError::FailedToLookupGatewayIp { gateway_id, source })?;
-    let wg_gateway_data = wg_gateway_client.register_wireguard(gateway_host).await?;
+        .map_err(|source| SetupWgTunnelError::FailedToLookupGatewayIp {
+            gateway_id: gateway_id.clone(),
+            source,
+        })?;
+    let wg_gateway_data = wg_gateway_client
+        .register_wireguard(gateway_host)
+        .await
+        .map_err(|source| SetupWgTunnelError::WgGatewayClientError {
+            gateway_id,
+            authenticator_address,
+            source,
+        })?;
     tracing::debug!("Received wireguard gateway data: {wg_gateway_data:?}");
 
     let wireguard_config = WireguardConfig::init(

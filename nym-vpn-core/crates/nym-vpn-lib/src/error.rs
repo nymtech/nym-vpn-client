@@ -152,7 +152,10 @@ pub enum SetupWgTunnelError {
     AuthenticatorAddressNotFound,
 
     #[error("not enough bandwidth to setup tunnel")]
-    NotEnoughBandwidthToSetupTunnel,
+    NotEnoughBandwidthToSetupTunnel {
+        gateway_id: String,
+        authenticator_address: String,
+    },
 
     #[error("failed to lookup gateway ip: {gateway_id}: {source}")]
     FailedToLookupGatewayIp {
@@ -160,8 +163,12 @@ pub enum SetupWgTunnelError {
         source: nym_gateway_directory::Error,
     },
 
-    #[error(transparent)]
-    WgGatewayClientError(#[from] nym_wg_gateway_client::Error),
+    #[error("{source}")]
+    WgGatewayClientError {
+        gateway_id: String,
+        authenticator_address: String,
+        source: nym_wg_gateway_client::Error
+    },
 
     #[error("{0}")]
     RoutingError(#[from] talpid_routing::Error),

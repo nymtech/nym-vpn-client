@@ -24,6 +24,7 @@ mod wireguard_setup;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 // Re-export some our nym dependencies
+pub use nym_authenticator_client::Error as AuthenticatorClientError;
 pub use nym_config;
 pub use nym_connection_monitor as connection_monitor;
 pub use nym_credential_storage_pre_ecash::error::StorageError as CredentialStorageError;

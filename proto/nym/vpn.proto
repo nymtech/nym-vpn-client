@@ -204,6 +204,10 @@ message Error {
     // error that can happen
     UNHANDLED = 1;
 
+    // An internal error that indicates a programmer error and should not
+    // happen. If it did an invariant was probably broken at some point.
+    INTERNAL = 33;
+
     // If the credential storage does not contain any valid credentials when
     // connecting
     NO_VALID_CREDENTIALS = 2;
@@ -233,6 +237,12 @@ message Error {
 
     // Failed to connect to the IPR
     IPR_FAILED_TO_CONNECT = 25;
+
+    // Failed to connect to one of the authenticators
+    AUTHENTICATOR_FAILED_TO_CONNECT = 34;
+
+    // Failed to connect to the authenticator, timeout waiting for the connect response
+    AUTHENTICATOR_CONNECT_TIMEOUT = 35;
 
     // Looking up gateways can fail in a number of ways.
     GATEWAY_DIRECTORY = 8;

@@ -3,7 +3,8 @@ use std::path::PathBuf;
 use nym_vpn_lib::{
     credentials::ImportCredentialError as VpnLibImportCredentialError,
     gateway_directory::Error as DirError, wg_gateway_client::Error as WgGatewayClientError,
-    CredentialStorageError, GatewayDirectoryError, NodeIdentity, NymIdError, Recipient,
+    AuthenticatorClientError, CredentialStorageError, GatewayDirectoryError, NodeIdentity,
+    NymIdError, Recipient,
 };
 use time::OffsetDateTime;
 use tracing::error;
@@ -77,6 +78,10 @@ pub enum ConnectionFailedError {
     #[error("failed to connect (unhandled): {0}")]
     Unhandled(String),
 
+    // Errors that happen, that shouldn't ever really happen
+    #[error("internal error occurred: {0}")]
+    InternalError(String),
+
     #[error("failed to get next usable credential: {reason}")]
     InvalidCredential {
         reason: String,
@@ -110,6 +115,20 @@ pub enum ConnectionFailedError {
 
     #[error("failed to connect to ip packet router: {reason}")]
     FailedToConnectToIpPacketRouter { reason: String },
+
+    #[error("failed to connect to authenticator at {gateway_id}: {reason}")]
+    FailedToConnectToAuthenticator {
+        gateway_id: String,
+        authenticator_address: String,
+        reason: String,
+    },
+
+    #[error("timeout waiting for connect response from authenticator at {gateway_id}: {reason}")]
+    TimeoutWaitingForConnectResponseFromAuthenticator {
+        gateway_id: String,
+        authenticator_address: String,
+        reason: String,
+    },
 
     #[error("failed to lookup gateways: {reason}")]
     FailedToLookupGateways { reason: String },
@@ -153,8 +172,11 @@ pub enum ConnectionFailedError {
         authenticator_address: Box<Recipient>,
     },
 
-    #[error("we ran out of bandwidth when setting up the tunnel")]
-    OutOfBandwidthWhenSettingUpTunnel,
+    #[error("we ran out of bandwidth when setting up the tunnel: `{gateway_id}`")]
+    OutOfBandwidthWhenSettingUpTunnel {
+        gateway_id: String,
+        authenticator_address: String,
+    },
 
     #[error("failed to bring up tunnel to gateway `{gateway_id}` with public key `{public_key}`: {reason}")]
     FailedToBringInterfaceUp {
@@ -252,9 +274,13 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                 }
             },
             nym_vpn_lib::Error::SetupWgTunnelError(e) => match e {
-                nym_vpn_lib::SetupWgTunnelError::NotEnoughBandwidthToSetupTunnel => {
-                    ConnectionFailedError::OutOfBandwidthWhenSettingUpTunnel
-                }
+                nym_vpn_lib::SetupWgTunnelError::NotEnoughBandwidthToSetupTunnel {
+                    gateway_id,
+                    authenticator_address,
+                } => ConnectionFailedError::OutOfBandwidthWhenSettingUpTunnel {
+                    gateway_id: gateway_id.clone(),
+                    authenticator_address: authenticator_address.clone(),
+                },
                 nym_vpn_lib::SetupWgTunnelError::FailedToBringInterfaceUp {
                     gateway_id,
                     public_key,
@@ -270,7 +296,11 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                         reason: source.to_string(),
                     }
                 }
-                nym_vpn_lib::SetupWgTunnelError::WgGatewayClientError(ee) => match ee {
+                nym_vpn_lib::SetupWgTunnelError::WgGatewayClientError {
+                    gateway_id,
+                    authenticator_address,
+                    source,
+                } => match source {
                     WgGatewayClientError::OutOfBandwidth {
                         gateway_id,
                         authenticator_address,
@@ -278,8 +308,30 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                         gateway_id: gateway_id.clone(),
                         authenticator_address: authenticator_address.clone(),
                     },
+                    WgGatewayClientError::AuthenticatorClientError(auth_err) => match auth_err {
+                        AuthenticatorClientError::TimeoutWaitingForConnectResponse => {
+                            ConnectionFailedError::TimeoutWaitingForConnectResponseFromAuthenticator {
+                                gateway_id: gateway_id.clone(),
+                                authenticator_address: authenticator_address.clone(),
+                                reason: auth_err.to_string(),
+                            }
+                        }
+                        AuthenticatorClientError::SdkError(_) => {
+                            ConnectionFailedError::FailedToConnectToAuthenticator {
+                                gateway_id: gateway_id.clone(),
+                                authenticator_address: authenticator_address.clone(),
+                                reason: auth_err.to_string(),
+                            }
+                        }
+                        AuthenticatorClientError::NoMixnetMessagesReceived
+                        | AuthenticatorClientError::NoVersionInMessage
+                        | AuthenticatorClientError::ReceivedResponseWithOldVersion { .. }
+                        | AuthenticatorClientError::ReceivedResponseWithNewVersion { .. }
+                        | AuthenticatorClientError::UnableToGetMixnetHandle => {
+                            ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
+                        }
+                    },
                     WgGatewayClientError::InvalidGatewayAuthResponse
-                    | WgGatewayClientError::AuthenticatorClientError(_)
                     | WgGatewayClientError::WireguardTypesError(_)
                     | WgGatewayClientError::FailedToParseEntryGatewaySocketAddr(_) => {
                         ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))

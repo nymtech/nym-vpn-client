@@ -69,6 +69,13 @@ impl From<ConnectionFailedError> for ProtoError {
                     "reason".to_string() => reason.clone(),
                 },
             },
+            ConnectionFailedError::InternalError(ref reason) => ProtoError {
+                kind: ErrorType::Internal as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.clone(),
+                },
+            },
             ConnectionFailedError::InvalidCredential {
                 reason,
                 location,
@@ -133,6 +140,32 @@ impl From<ConnectionFailedError> for ProtoError {
                 kind: ErrorType::IprFailedToConnect as i32,
                 message: err.to_string(),
                 details: hashmap! {
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::FailedToConnectToAuthenticator {
+                ref gateway_id,
+                ref authenticator_address,
+                ref reason,
+            } => ProtoError {
+                kind: ErrorType::AuthenticatorFailedToConnect as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "gateway_id".to_string() => gateway_id.to_string(),
+                    "authenticator_address".to_string() => authenticator_address.to_string(),
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::TimeoutWaitingForConnectResponseFromAuthenticator {
+                ref gateway_id,
+                ref authenticator_address,
+                ref reason,
+            } => ProtoError {
+                kind: ErrorType::AuthenticatorConnectTimeout as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "gateway_id".to_string() => gateway_id.to_string(),
+                    "authenticator_address".to_string() => authenticator_address.to_string(),
                     "reason".to_string() => reason.to_string(),
                 },
             },
@@ -244,10 +277,16 @@ impl From<ConnectionFailedError> for ProtoError {
                     "authenticator_address".to_string() => authenticator_address.to_string(),
                 },
             },
-            ConnectionFailedError::OutOfBandwidthWhenSettingUpTunnel => ProtoError {
+            ConnectionFailedError::OutOfBandwidthWhenSettingUpTunnel {
+                ref gateway_id,
+                ref authenticator_address,
+            } => ProtoError {
                 kind: ErrorType::OutOfBandwidthWhenSettingUpTunnel as i32,
                 message: err.to_string(),
-                details: hashmap! {},
+                details: hashmap! {
+                    "gateway_id".to_string() => gateway_id.to_string(),
+                    "authenticator_address".to_string() => authenticator_address.to_string(),
+                },
             },
             ConnectionFailedError::FailedToBringInterfaceUp {
                 ref gateway_id,

@@ -1,8 +1,5 @@
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("got reply for connect request, but it appears intended for the wrong address?")]
-    GotReplyIntendedForWrongAddress,
-
     #[error("mixnet client stopped returning responses")]
     NoMixnetMessagesReceived,
 
@@ -21,8 +18,8 @@ pub enum Error {
     #[error("timeout waiting for connect response from exit gateway (authenticator)")]
     TimeoutWaitingForConnectResponse,
 
-    #[error("shutting down")]
-    ShuttingDown,
+    #[error("unable to get mixnet handle when sending authenticator message")]
+    UnableToGetMixnetHandle,
 }
 
 // Result type based on our error type

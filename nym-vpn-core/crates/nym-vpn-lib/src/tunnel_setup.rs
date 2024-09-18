@@ -166,9 +166,39 @@ async fn setup_wg_tunnel(
     )
     .await?;
 
-    if wg_entry_gateway_client.suspended().await? || wg_exit_gateway_client.suspended().await? {
-        return Err(SetupWgTunnelError::NotEnoughBandwidthToSetupTunnel);
+    let wg_entry_gateway_client_suspended =
+        wg_entry_gateway_client
+            .suspended()
+            .await
+            .map_err(|source| SetupWgTunnelError::WgGatewayClientError {
+                gateway_id: entry_auth_recipient.gateway().to_string(),
+                authenticator_address: entry_auth_recipient.to_string(),
+                source,
+            })?;
+
+    if wg_entry_gateway_client_suspended {
+        return Err(SetupWgTunnelError::NotEnoughBandwidthToSetupTunnel {
+            gateway_id: entry_auth_recipient.gateway().to_string(),
+            authenticator_address: entry_auth_recipient.to_string(),
+        });
     }
+
+    let wg_exit_gateway_client_suspended =
+        wg_exit_gateway_client.suspended().await.map_err(|source| {
+            SetupWgTunnelError::WgGatewayClientError {
+                gateway_id: exit_auth_recipient.gateway().to_string(),
+                authenticator_address: exit_auth_recipient.to_string(),
+                source,
+            }
+        })?;
+
+    if wg_exit_gateway_client_suspended {
+        return Err(SetupWgTunnelError::NotEnoughBandwidthToSetupTunnel {
+            gateway_id: exit_auth_recipient.gateway().to_string(),
+            authenticator_address: exit_auth_recipient.to_string(),
+        });
+    }
+
     tokio::spawn(
         wg_entry_gateway_client.run(task_manager.subscribe_named("bandwidth_entry_client")),
     );
