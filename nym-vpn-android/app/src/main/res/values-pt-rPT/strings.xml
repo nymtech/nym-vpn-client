@@ -150,4 +150,23 @@
     <string name="two_hop">2-saltos</string>
     <string name="gateway_modal_description">Inferimos as localizações dos servidores com base nos seus endereços IP, mas as localizações reais podem variar ligeiramente.</string>
     <string name="always_on_message">Não está a funcionar? Certifique-se de que a VPN sempre ativa está desactivada para outras aplicações em</string>
+    <string name="vpn_permission_missing">A permissão Vpn não foi aceite ou está a ser utilizada por outra aplicação.</string>
+    <string name="delete_logs_title">Tem a certeza de que pretende apagar todos os logs?</string>
+    <string name="gateway_error">Falha na ligação ao gateway. Tente novamente ou selecione uma nova localização de gateway.</string>
+    <string name="share">Compartilhar</string>
+    <string name="state_error">"Isto não deveria acontecer, mas foi atingido um estado incorreto. Por favor, reinicie a aplicação e tente novamente. "</string>
+    <string name="delete">Eliminar</string>
+    <string name="delete_logs_description">Uma vez eliminados, os logs não poderão ser recuperados.</string>
+    <string name="no">Não</string>
+    <string name="yes">Sim</string>
+    <string name="out_of_bandwidth_error">Limite de largura de banda da credencial atingido.</string>
+    <string name="network_error">Ocorreu um problema de ligação de rede. Verifique a sua ligação de rede e tente novamente.</string>
+    <string name="internal_error">Ocorreu um erro interno no túnel. Por favor, tente novamente.</string>
+    <string name="vpn_alerts_channel_id">Canal de alertas NymVPN</string>
+    <string name="vpn_alerts_channel_description">Um canal para notificações de alerta relacionadas com a aplicação.</string>
+    <string name="bandwidth_alert">Alerta de largura de banda</string>
+    <string name="no_bandwidth">Sem largura de banda restante.</string>
+    <string name="connection_failed">A ligação falhou</string>
+    <string name="low_bandwidth">"Pouca largura de banda! Largura de banda restante: "</string>
+    <string name="credential_already_imported">Credencial já importada.</string>
 </resources>
