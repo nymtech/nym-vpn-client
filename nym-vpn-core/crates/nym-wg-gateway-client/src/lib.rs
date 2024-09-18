@@ -245,10 +245,7 @@ impl WgGatewayClient {
                                     timeout_check_interval.next().await;
                                 }
                                 None => {
-                                    shutdown.send_we_stopped(Box::new(Error::OutOfBandwidth {
-                                        gateway_id: Box::new(*self.auth_recipient.gateway()),
-                                        authenticator_address: Box::new(self.auth_recipient),
-                                    }));
+                                    shutdown.send_we_stopped(Box::new(Error::OutOfBandwidth));
                                 }
                             }
                         },

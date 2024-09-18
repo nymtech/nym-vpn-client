@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_gateway_directory::NodeIdentity;
+use nym_gateway_directory::{NodeIdentity, Recipient};
 
 use crate::{tunnel_setup::WaitInterfaceUpError, MixnetError};
 
@@ -114,7 +114,7 @@ pub enum SetupMixTunnelError {
 
     #[error("failed to lookup gateway ip: {gateway_id}: {source}")]
     FailedToLookupGatewayIp {
-        gateway_id: String,
+        gateway_id: Box<NodeIdentity>,
         source: nym_gateway_directory::Error,
     },
 
@@ -153,20 +153,20 @@ pub enum SetupWgTunnelError {
 
     #[error("not enough bandwidth to setup tunnel")]
     NotEnoughBandwidthToSetupTunnel {
-        gateway_id: String,
-        authenticator_address: String,
+        gateway_id: Box<NodeIdentity>,
+        authenticator_address: Box<Recipient>,
     },
 
     #[error("failed to lookup gateway ip: {gateway_id}: {source}")]
     FailedToLookupGatewayIp {
-        gateway_id: String,
+        gateway_id: Box<NodeIdentity>,
         source: nym_gateway_directory::Error,
     },
 
     #[error("{source}")]
     WgGatewayClientError {
-        gateway_id: String,
-        authenticator_address: String,
+        gateway_id: Box<NodeIdentity>,
+        authenticator_address: Box<Recipient>,
         source: nym_wg_gateway_client::Error,
     },
 

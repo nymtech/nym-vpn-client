@@ -118,15 +118,15 @@ pub enum ConnectionFailedError {
 
     #[error("failed to connect to authenticator at {gateway_id}: {reason}")]
     FailedToConnectToAuthenticator {
-        gateway_id: String,
-        authenticator_address: String,
+        gateway_id: Box<NodeIdentity>,
+        authenticator_address: Box<Recipient>,
         reason: String,
     },
 
     #[error("timeout waiting for connect response from authenticator at {gateway_id}: {reason}")]
     TimeoutWaitingForConnectResponseFromAuthenticator {
-        gateway_id: String,
-        authenticator_address: String,
+        gateway_id: Box<NodeIdentity>,
+        authenticator_address: Box<Recipient>,
         reason: String,
     },
 
@@ -161,7 +161,10 @@ pub enum ConnectionFailedError {
     },
 
     #[error("failed to lookup gateway ip: {gateway_id}")]
-    FailedToLookupGatewayIp { gateway_id: String, reason: String },
+    FailedToLookupGatewayIp {
+        gateway_id: Box<NodeIdentity>,
+        reason: String,
+    },
 
     #[error("unable to use same entry and exit gateway for location: {requested_location}")]
     SameEntryAndExitGatewayFromCountry { requested_location: String },
@@ -174,8 +177,8 @@ pub enum ConnectionFailedError {
 
     #[error("we ran out of bandwidth when setting up the tunnel: `{gateway_id}`")]
     OutOfBandwidthWhenSettingUpTunnel {
-        gateway_id: String,
-        authenticator_address: String,
+        gateway_id: Box<NodeIdentity>,
+        authenticator_address: Box<Recipient>,
     },
 
     #[error("failed to bring up tunnel to gateway `{gateway_id}` with public key `{public_key}`: {reason}")]
@@ -301,10 +304,7 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                     authenticator_address,
                     source,
                 } => match source {
-                    WgGatewayClientError::OutOfBandwidth {
-                        gateway_id,
-                        authenticator_address,
-                    } => ConnectionFailedError::OutOfBandwidth {
+                    WgGatewayClientError::OutOfBandwidth => ConnectionFailedError::OutOfBandwidth {
                         gateway_id: gateway_id.clone(),
                         authenticator_address: authenticator_address.clone(),
                     },

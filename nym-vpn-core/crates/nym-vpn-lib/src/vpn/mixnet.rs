@@ -123,13 +123,13 @@ impl NymVpn<MixnetVpn> {
 
         // We need the IP of the gateway to correctly configure the routing table
         let mixnet_client_address = mixnet_client.nym_address().await;
-        let gateway_used = mixnet_client_address.gateway().to_base58_string();
+        let gateway_used = mixnet_client_address.gateway().clone();
         debug!("Entry gateway used for setting up routing table: {gateway_used}");
         let entry_mixnet_gateway_ip: IpAddr = gateway_client
-            .lookup_gateway_ip(&gateway_used)
+            .lookup_gateway_ip(&gateway_used.to_base58_string())
             .await
             .map_err(|source| SetupMixTunnelError::FailedToLookupGatewayIp {
-                gateway_id: gateway_used,
+                gateway_id: Box::new(gateway_used),
                 source,
             })?;
         debug!("Gateway ip resolves to: {entry_mixnet_gateway_ip}");

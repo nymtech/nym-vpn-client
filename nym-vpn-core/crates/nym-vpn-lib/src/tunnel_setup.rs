@@ -171,31 +171,31 @@ async fn setup_wg_tunnel(
             .suspended()
             .await
             .map_err(|source| SetupWgTunnelError::WgGatewayClientError {
-                gateway_id: entry_auth_recipient.gateway().to_string(),
-                authenticator_address: entry_auth_recipient.to_string(),
+                gateway_id: Box::new(*entry_auth_recipient.gateway()),
+                authenticator_address: Box::new(entry_auth_recipient),
                 source,
             })?;
 
     if wg_entry_gateway_client_suspended {
         return Err(SetupWgTunnelError::NotEnoughBandwidthToSetupTunnel {
-            gateway_id: entry_auth_recipient.gateway().to_string(),
-            authenticator_address: entry_auth_recipient.to_string(),
+            gateway_id: Box::new(*entry_auth_recipient.gateway()),
+            authenticator_address: Box::new(entry_auth_recipient),
         });
     }
 
     let wg_exit_gateway_client_suspended =
         wg_exit_gateway_client.suspended().await.map_err(|source| {
             SetupWgTunnelError::WgGatewayClientError {
-                gateway_id: exit_auth_recipient.gateway().to_string(),
-                authenticator_address: exit_auth_recipient.to_string(),
+                gateway_id: Box::new(*exit_auth_recipient.gateway()),
+                authenticator_address: Box::new(exit_auth_recipient),
                 source,
             }
         })?;
 
     if wg_exit_gateway_client_suspended {
         return Err(SetupWgTunnelError::NotEnoughBandwidthToSetupTunnel {
-            gateway_id: exit_auth_recipient.gateway().to_string(),
-            authenticator_address: exit_auth_recipient.to_string(),
+            gateway_id: Box::new(*exit_auth_recipient.gateway()),
+            authenticator_address: Box::new(exit_auth_recipient),
         });
     }
 
