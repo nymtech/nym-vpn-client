@@ -9,16 +9,6 @@ source "$(dirname "$0")/common.sh"
 
 APPLE_SCRIPTS_DIR=nym-vpn-apple/Scripts
 
-# Parse arguments
-for arg in "$@"; do
-    case $arg in
-        --yes)
-        YES=true
-        shift
-        ;;
-    esac
-done
-
 get_latest_core_version() {
     local repo="nymtech/nym-vpn-client"
 
