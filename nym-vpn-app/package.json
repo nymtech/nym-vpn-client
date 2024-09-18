@@ -56,7 +56,7 @@
   "devDependencies": {
     "@eslint/compat": "^1.1.1",
     "@eslint/js": "^9.8.0",
-    "@tauri-apps/cli": ">=2.0.0-rc.0",
+    "@tauri-apps/cli": ">=2.0.0-rc.16",
     "@types/eslint__js": "^8.42.3",
     "@types/lodash-es": "^4.17.0",
     "@types/node": "^22.5.0",
