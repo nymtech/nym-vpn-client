@@ -142,4 +142,23 @@
     <string name="vpn_settings">Configurações do sistema VPN</string>
     <string name="try_again">e tentar se reconectar</string>
     <string name="two_hop">2-saltos</string>
+    <string name="network_error">Ocorreu um problema de conexão de rede. Verifique sua conexão de rede e tente novamente.</string>
+    <string name="share">Compartilhar</string>
+    <string name="delete_logs_description">Uma vez excluídos, os registros não poderão ser recuperados.</string>
+    <string name="vpn_alerts_channel_description">Um canal para notificações de alerta relacionadas ao aplicativo.</string>
+    <string name="vpn_permission_missing">A permissão Vpn não foi aceita ou está sendo usada por outro aplicativo.</string>
+    <string name="delete">Excluir</string>
+    <string name="delete_logs_title">Tem certeza de que deseja excluir todos os logs?</string>
+    <string name="no">Não</string>
+    <string name="yes">Sim</string>
+    <string name="out_of_bandwidth_error">Limite de largura de banda da credencial atingido.</string>
+    <string name="gateway_error">Falha na conexão com o gateway. Tente novamente ou selecione um novo local de gateway.</string>
+    <string name="state_error">"Isto não deveria acontecer, mas um estado incorreto foi atingido. Por favor, reinicie o aplicativo e tente novamente. "</string>
+    <string name="internal_error">Ocorreu um erro interno no túnel. Por favor, tente novamente.</string>
+    <string name="vpn_alerts_channel_id">Canal de alertas da NymVPN</string>
+    <string name="bandwidth_alert">Alerta de banda larga</string>
+    <string name="no_bandwidth">Sem largura de banda restante.</string>
+    <string name="connection_failed">Falha na conexão</string>
+    <string name="low_bandwidth">"Pouca largura de banda! Largura de banda restante: "</string>
+    <string name="credential_already_imported">Credencial já importada.</string>
 </resources>
