@@ -139,7 +139,9 @@ impl WgGatewayClient {
             }) => {
                 // Unwrap since we have already checked that we have the keypair.
                 debug!("Verifying data");
-                gateway_data.verify(self.keypair.private_key(), nonce)?;
+                gateway_data
+                    .verify(self.keypair.private_key(), nonce)
+                    .map_err(Error::VerificationFailed)?;
 
                 let finalized_message = ClientMessage::Final(GatewayClient::new(
                     self.keypair.private_key(),

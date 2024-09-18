@@ -90,11 +90,6 @@ impl From<ConnectionFailedError> for ProtoError {
                 .into_iter()
                 .collect(),
             },
-            ConnectionFailedError::StartMixnetTimeout(timeout) => ProtoError {
-                kind: ErrorType::MixnetTimeout as i32,
-                message: timeout.to_string(),
-                details: Default::default(),
-            },
             ConnectionFailedError::FailedToSetupMixnetStoragePaths { ref reason } => ProtoError {
                 kind: ErrorType::MixnetStoragePaths as i32,
                 message: err.to_string(),
@@ -136,6 +131,22 @@ impl From<ConnectionFailedError> for ProtoError {
                     "reason".to_string() => reason.to_string(),
                 },
             },
+            ConnectionFailedError::StartMixnetTimeout(timeout) => ProtoError {
+                kind: ErrorType::MixnetTimeout as i32,
+                message: timeout.to_string(),
+                details: Default::default(),
+            },
+            ConnectionFailedError::FailedToSetupGatewayDirectoryClient {
+                ref config,
+                ref reason,
+            } => ProtoError {
+                kind: ErrorType::GatewayDirectory as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "config".to_string() => config.to_string(),
+                    "reason".to_string() => reason.clone(),
+                },
+            },
             ConnectionFailedError::FailedToConnectToIpPacketRouter { ref reason } => ProtoError {
                 kind: ErrorType::IprFailedToConnect as i32,
                 message: err.to_string(),
@@ -169,17 +180,31 @@ impl From<ConnectionFailedError> for ProtoError {
                     "reason".to_string() => reason.to_string(),
                 },
             },
-            ConnectionFailedError::FailedToSetupGatewayDirectoryClient {
-                ref config,
-                ref reason,
-            } => ProtoError {
-                kind: ErrorType::GatewayDirectory as i32,
-                message: err.to_string(),
-                details: hashmap! {
-                    "config".to_string() => config.to_string(),
-                    "reason".to_string() => reason.clone(),
-                },
-            },
+            ConnectionFailedError::InvalidGatewayAuthResponse {
+                gateway_id,
+                authenticator_address,
+                reason,
+            } => todo!(),
+            ConnectionFailedError::WgGatewayResponseVerificationFailed { reason } => todo!(),
+            ConnectionFailedError::WgGatewayResponseEntryGatewaySocketAddrFailedToParse {
+                reason,
+            } => todo!(),
+            ConnectionFailedError::WgGatewayResponseEntryGatewayIpv4FailedToParse { reason } => {
+                todo!()
+            }
+            ConnectionFailedError::AuthenticatorRespondedWithWrongVersion {
+                expected,
+                received,
+                gateway_id,
+                authenticator_address,
+            } => todo!(),
+            ConnectionFailedError::MailformedAuthenticatorReply {
+                gateway_id,
+                authenticator_address,
+                reason,
+            } => todo!(),
+            ConnectionFailedError::AuthenticatorAddressNotFound { gateway_id } => todo!(),
+            ConnectionFailedError::AuthenticationNotPossible { reason } => todo!(),
             ConnectionFailedError::FailedToLookupGateways { ref reason } => ProtoError {
                 kind: ErrorType::GatewayDirectoryLookupGateways as i32,
                 message: err.to_string(),
@@ -208,7 +233,7 @@ impl From<ConnectionFailedError> for ProtoError {
                 kind: ErrorType::GatewayDirectoryLookupIp as i32,
                 message: err.to_string(),
                 details: hashmap! {
-                    "gateway_id".to_string() => gateway_id.clone(),
+                    "gateway_id".to_string() => gateway_id.to_string(),
                     "reason".to_string() => reason.clone(),
                 },
             },
@@ -336,6 +361,11 @@ impl From<ConnectionFailedError> for ProtoError {
                     "reason".to_string() => reason.to_string(),
                 },
             },
+            ConnectionFailedError::FailedToAddIpv6Route { reason } => todo!(),
+            ConnectionFailedError::TunError { reason } => todo!(),
+            ConnectionFailedError::RoutingError { reason } => todo!(),
+            ConnectionFailedError::WireguardConfigError { reason } => todo!(),
+            ConnectionFailedError::MixnetConnectionMonitorError(reason) => todo!(),
         }
     }
 }

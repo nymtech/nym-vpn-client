@@ -35,7 +35,13 @@ impl SharedMixnetClient {
     }
 
     pub async fn send(&self, msg: nym_sdk::mixnet::InputMessage) -> Result<()> {
-        self.lock().await.as_mut().unwrap().send(msg).await?;
+        self.lock()
+            .await
+            .as_mut()
+            .unwrap()
+            .send(msg)
+            .await
+            .map_err(Error::FailedToSendMixnetMessage)?;
         Ok(())
     }
 
@@ -131,7 +137,8 @@ impl AuthClient {
                 TransmissionLane::General,
                 None,
             ))
-            .await?;
+            .await
+            .map_err(Error::FailedToSendMixnetMessage)?;
 
         Ok(request_id)
     }

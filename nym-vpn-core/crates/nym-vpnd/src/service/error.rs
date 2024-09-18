@@ -130,6 +130,43 @@ pub enum ConnectionFailedError {
         reason: String,
     },
 
+    #[error("invalid gateway auth response from `{gateway_id}`: {reason}")]
+    InvalidGatewayAuthResponse {
+        gateway_id: Box<NodeIdentity>,
+        authenticator_address: Box<Recipient>,
+        reason: String,
+    },
+
+    #[error("verification failed for wg gateway response: {reason}")]
+    WgGatewayResponseVerificationFailed { reason: String },
+
+    #[error("failed to parse the entry gateway socket addr in response: {reason}")]
+    WgGatewayResponseEntryGatewaySocketAddrFailedToParse { reason: String },
+
+    #[error("failed to parse the entry gateway ipv4 in response: {reason}")]
+    WgGatewayResponseEntryGatewayIpv4FailedToParse { reason: String },
+
+    #[error("gateway authenticator responded with unexpected version: {received}")]
+    AuthenticatorRespondedWithWrongVersion {
+        expected: u8,
+        received: u8,
+        gateway_id: Box<NodeIdentity>,
+        authenticator_address: Box<Recipient>,
+    },
+
+    #[error("mailformed authenticator reply from `{gateway_id}`: {reason}")]
+    MailformedAuthenticatorReply {
+        gateway_id: Box<NodeIdentity>,
+        authenticator_address: Box<Recipient>,
+        reason: String,
+    },
+
+    #[error("authenticator address not found for gateway: `{gateway_id}`")]
+    AuthenticatorAddressNotFound { gateway_id: Box<NodeIdentity> },
+
+    #[error("authentication not possible: {reason}")]
+    AuthenticationNotPossible { reason: String },
+
     #[error("failed to lookup gateways: {reason}")]
     FailedToLookupGateways { reason: String },
 
@@ -202,6 +239,21 @@ pub enum ConnectionFailedError {
 
     #[error("failed to find the default interface: {reason}")]
     FailedToFindTheDefaultInterface { reason: String },
+
+    #[error("failed to add ipv6 route: {reason}")]
+    FailedToAddIpv6Route { reason: String },
+
+    #[error("tun device error: {reason}")]
+    TunError { reason: String },
+
+    #[error("routing error: {reason}")]
+    RoutingError { reason: String },
+
+    #[error("wireguard config error: {reason}")]
+    WireguardConfigError { reason: String },
+
+    #[error("mixnet connection monitor error: {0}")]
+    MixnetConnectionMonitorError(String),
 }
 
 impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
@@ -246,9 +298,11 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                     location: path.to_string_lossy().to_string(),
                     gateway_id: gateway_id.clone(),
                 },
-                nym_vpn_lib::MixnetError::FailedToSerializeMessage { .. }
-                | nym_vpn_lib::MixnetError::ConnectionMonitorError(_) => {
-                    ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
+                nym_vpn_lib::MixnetError::FailedToSerializeMessage { source } => {
+                    ConnectionFailedError::InternalError(source.to_string())
+                }
+                nym_vpn_lib::MixnetError::ConnectionMonitorError(_) => {
+                    ConnectionFailedError::MixnetConnectionMonitorError(err.to_string())
                 }
             },
             nym_vpn_lib::Error::SetupMixTunnelError(e) => match e {
@@ -269,11 +323,23 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                         reason: inner.to_string(),
                     }
                 }
-                nym_vpn_lib::SetupMixTunnelError::TunError(_)
-                | nym_vpn_lib::SetupMixTunnelError::ConnectionMonitorError(_)
-                | nym_vpn_lib::SetupMixTunnelError::FailedToAddIpv6Route(_)
-                | nym_vpn_lib::SetupMixTunnelError::RoutingError(_) => {
-                    ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
+                nym_vpn_lib::SetupMixTunnelError::TunError(inner) => {
+                    ConnectionFailedError::TunError {
+                        reason: inner.to_string(),
+                    }
+                }
+                nym_vpn_lib::SetupMixTunnelError::FailedToAddIpv6Route(inner) => {
+                    ConnectionFailedError::FailedToAddIpv6Route {
+                        reason: inner.to_string(),
+                    }
+                }
+                nym_vpn_lib::SetupMixTunnelError::RoutingError(inner) => {
+                    ConnectionFailedError::RoutingError {
+                        reason: inner.to_string(),
+                    }
+                }
+                nym_vpn_lib::SetupMixTunnelError::ConnectionMonitorError(_) => {
+                    ConnectionFailedError::MixnetConnectionMonitorError(err.to_string())
                 }
             },
             nym_vpn_lib::Error::SetupWgTunnelError(e) => match e {
@@ -316,7 +382,7 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                                 reason: auth_err.to_string(),
                             }
                         }
-                        AuthenticatorClientError::SdkError(_) => {
+                        AuthenticatorClientError::FailedToSendMixnetMessage(_) => {
                             ConnectionFailedError::FailedToConnectToAuthenticator {
                                 gateway_id: gateway_id.clone(),
                                 authenticator_address: authenticator_address.clone(),
@@ -324,25 +390,68 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                             }
                         }
                         AuthenticatorClientError::NoMixnetMessagesReceived
-                        | AuthenticatorClientError::NoVersionInMessage
-                        | AuthenticatorClientError::ReceivedResponseWithOldVersion { .. }
-                        | AuthenticatorClientError::ReceivedResponseWithNewVersion { .. }
                         | AuthenticatorClientError::UnableToGetMixnetHandle => {
-                            ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
+                            ConnectionFailedError::InternalError(auth_err.to_string())
+                        }
+                        AuthenticatorClientError::ReceivedResponseWithOldVersion { expected, received  }
+                        | AuthenticatorClientError::ReceivedResponseWithNewVersion { expected, received } => {
+                            ConnectionFailedError::AuthenticatorRespondedWithWrongVersion {
+                                expected: *expected,
+                                received: *received,
+                                gateway_id: gateway_id.clone(),
+                                authenticator_address: authenticator_address.clone(),
+                            }
+                        }
+                        AuthenticatorClientError::NoVersionInMessage => {
+                            ConnectionFailedError::MailformedAuthenticatorReply {
+                                gateway_id: gateway_id.clone(),
+                                authenticator_address: authenticator_address.clone(),
+                                reason: "no version in message".to_string(),
+                            }
                         }
                     },
-                    WgGatewayClientError::InvalidGatewayAuthResponse
-                    | WgGatewayClientError::WireguardTypesError(_)
-                    | WgGatewayClientError::FailedToParseEntryGatewaySocketAddr(_) => {
-                        ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
+                    WgGatewayClientError::InvalidGatewayAuthResponse => {
+                        ConnectionFailedError::InvalidGatewayAuthResponse {
+                            gateway_id: gateway_id.clone(),
+                            authenticator_address: authenticator_address.clone(),
+                            reason: err.to_string(),
+                        }
+                    }
+                    WgGatewayClientError::VerificationFailed(inner) => {
+                        ConnectionFailedError::WgGatewayResponseVerificationFailed {
+                            reason: inner.to_string(),
+                        }
+                    }
+                    WgGatewayClientError::FailedToParseEntryGatewaySocketAddr(inner) => {
+                        ConnectionFailedError::WgGatewayResponseEntryGatewaySocketAddrFailedToParse {
+                            reason: inner.to_string(),
+                        }
                     }
                 },
-                nym_vpn_lib::SetupWgTunnelError::AuthenticationNotPossible(_)
-                | nym_vpn_lib::SetupWgTunnelError::RoutingError(_)
-                | nym_vpn_lib::SetupWgTunnelError::FailedToParseEntryGatewayIpv4(_)
-                | nym_vpn_lib::SetupWgTunnelError::AuthenticatorAddressNotFound
-                | nym_vpn_lib::SetupWgTunnelError::WireguardConfigError(_) => {
-                    ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
+                nym_vpn_lib::SetupWgTunnelError::RoutingError(inner) => {
+                    ConnectionFailedError::RoutingError {
+                        reason: inner.to_string(),
+                    }
+                }
+                nym_vpn_lib::SetupWgTunnelError::WireguardConfigError(inner) => {
+                    ConnectionFailedError::WireguardConfigError {
+                        reason: inner.to_string(),
+                    }
+                }
+                nym_vpn_lib::SetupWgTunnelError::AuthenticatorAddressNotFound { gateway_id } => {
+                    ConnectionFailedError::AuthenticatorAddressNotFound {
+                        gateway_id: gateway_id.clone(),
+                    }
+                }
+                nym_vpn_lib::SetupWgTunnelError::AuthenticationNotPossible(inner) => {
+                    ConnectionFailedError::AuthenticationNotPossible {
+                        reason: inner.to_string(),
+                    }
+                }
+                nym_vpn_lib::SetupWgTunnelError::FailedToParseEntryGatewayIpv4(inner) => {
+                    ConnectionFailedError::WgGatewayResponseEntryGatewayIpv4FailedToParse {
+                        reason: inner.to_string(),
+                    }
                 }
             },
             nym_vpn_lib::Error::GatewayDirectoryError(e) => e.into(),
@@ -364,15 +473,19 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                     reason: inner.to_string(),
                 }
             }
-            nym_vpn_lib::Error::RoutingError(_)
-            | nym_vpn_lib::Error::FailedToSendWireguardShutdown
+            nym_vpn_lib::Error::RoutingError(inner) => {
+                ConnectionFailedError::RoutingError {
+                    reason: inner.to_string(),
+                }
+            }
+            nym_vpn_lib::Error::FailedToSendWireguardShutdown
             | nym_vpn_lib::Error::NymVpnExitWithError(_)
             | nym_vpn_lib::Error::NymVpnExitUnexpectedChannelClose => {
-                ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
+                ConnectionFailedError::InternalError(err.to_string())
             }
             #[cfg(unix)]
-            nym_vpn_lib::Error::TunProvider(_) => {
-                ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
+            nym_vpn_lib::Error::TunProvider(inner) => {
+                ConnectionFailedError::TunError { reason: inner.to_string() }
             }
         }
     }

@@ -9,8 +9,8 @@ pub enum Error {
     #[error(transparent)]
     AuthenticatorClientError(#[from] nym_authenticator_client::Error),
 
-    #[error(transparent)]
-    WireguardTypesError(#[from] nym_wireguard_types::error::Error),
+    #[error("verification failed: {0}")]
+    VerificationFailed(#[source] nym_wireguard_types::Error),
 
     #[error("failed to parse entry gateway socket addr: {0}")]
     FailedToParseEntryGatewaySocketAddr(#[source] std::net::AddrParseError),

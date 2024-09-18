@@ -149,7 +149,7 @@ pub enum SetupWgTunnelError {
     AuthenticationNotPossible(String),
 
     #[error("failed to find authenticator address")]
-    AuthenticatorAddressNotFound,
+    AuthenticatorAddressNotFound { gateway_id: Box<NodeIdentity> },
 
     #[error("not enough bandwidth to setup tunnel")]
     NotEnoughBandwidthToSetupTunnel {

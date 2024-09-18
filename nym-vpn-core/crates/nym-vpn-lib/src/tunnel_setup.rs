@@ -427,12 +427,17 @@ fn setup_auth_addresses(
     entry: &nym_gateway_directory::Gateway,
     exit: &nym_gateway_directory::Gateway,
 ) -> std::result::Result<AuthAddresses, SetupWgTunnelError> {
-    let entry_authenticator_address = entry
-        .authenticator_address
-        .ok_or(SetupWgTunnelError::AuthenticatorAddressNotFound)?;
-    let exit_authenticator_address = exit
-        .authenticator_address
-        .ok_or(SetupWgTunnelError::AuthenticatorAddressNotFound)?;
+    let entry_authenticator_address =
+        entry
+            .authenticator_address
+            .ok_or(SetupWgTunnelError::AuthenticatorAddressNotFound {
+                gateway_id: Box::new(entry.identity().clone()),
+            })?;
+    let exit_authenticator_address =
+        exit.authenticator_address
+            .ok_or(SetupWgTunnelError::AuthenticatorAddressNotFound {
+                gateway_id: Box::new(exit.identity().clone()),
+            })?;
     Ok(AuthAddresses::new(
         entry_authenticator_address,
         exit_authenticator_address,
