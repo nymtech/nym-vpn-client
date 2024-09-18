@@ -7,13 +7,11 @@ set -euo pipefail
 
 source "$(dirname "$0")/common.sh"
 
+CORE_DIR=nym-vpn-core
 APPLE_SCRIPTS_DIR=nym-vpn-apple/Scripts
 
 get_latest_core_version() {
-    local repo="nymtech/nym-vpn-client"
-
-    # Fetch the latest release using the GitHub API
-    latest_release=$(curl -s "https://api.github.com/repos/$repo/releases/latest")
+    local core_version=$(cargo get --entry nym-vpn-core workspace.package.version)
 
     # Extract the version tag from the JSON response
     latest_version=$(echo "$latest_release" | jq -r .tag_name)
@@ -28,16 +26,20 @@ get_latest_core_version() {
 }
 
 update_daemon_version_on_mac() {
-    local core_version=$(get_latest_core_version)
+    local core_version=$1
     pushd "$APPLE_SCRIPTS_DIR"
-    ./UpdateDaemonInfoPlist.sh $core_version
+    local command="./UpdateDaemonInfoPlist.sh $core_version"
+    echo "Running: $command"
+    $command
     popd
 }
 
 main() {
     check_unstaged_changes
     confirm_root_directory
-    update_daemon_version_on_mac
+
+    local core_version=$(cargo get --entry nym-vpn-core workspace.package.version)
+    update_daemon_version_on_mac $core_version
 }
 
 main
