@@ -431,12 +431,12 @@ fn setup_auth_addresses(
         entry
             .authenticator_address
             .ok_or(SetupWgTunnelError::AuthenticatorAddressNotFound {
-                gateway_id: Box::new(entry.identity().clone()),
+                gateway_id: Box::new(*entry.identity()),
             })?;
     let exit_authenticator_address =
         exit.authenticator_address
             .ok_or(SetupWgTunnelError::AuthenticatorAddressNotFound {
-                gateway_id: Box::new(exit.identity().clone()),
+                gateway_id: Box::new(*exit.identity()),
             })?;
     Ok(AuthAddresses::new(
         entry_authenticator_address,
