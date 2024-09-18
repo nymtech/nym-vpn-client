@@ -7,7 +7,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fast"
+            "value" : "Fast (Wireguard)"
           }
         }
       }
@@ -40,7 +40,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Anonymous"
+            "value" : "Anonymous (mixnet)"
           }
         }
       }
