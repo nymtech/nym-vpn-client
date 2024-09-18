@@ -181,30 +181,87 @@ impl From<ConnectionFailedError> for ProtoError {
                 },
             },
             ConnectionFailedError::InvalidGatewayAuthResponse {
-                gateway_id,
-                authenticator_address,
-                reason,
-            } => todo!(),
-            ConnectionFailedError::WgGatewayResponseVerificationFailed { reason } => todo!(),
-            ConnectionFailedError::WgGatewayResponseEntryGatewaySocketAddrFailedToParse {
-                reason,
-            } => todo!(),
-            ConnectionFailedError::WgGatewayResponseEntryGatewayIpv4FailedToParse { reason } => {
-                todo!()
+                ref gateway_id,
+                ref authenticator_address,
+                ref reason,
+            } => ProtoError {
+                kind: ErrorType::AuthenticatorInvalidResponse as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "gateway_id".to_string() => gateway_id.to_string(),
+                    "authenticator_address".to_string() => authenticator_address.to_string(),
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::WgGatewayResponseVerificationFailed { ref reason } => {
+                ProtoError {
+                    kind: ErrorType::WgGatewayResponseVerification as i32,
+                    message: err.to_string(),
+                    details: hashmap! {
+                        "reason".to_string() => reason.clone(),
+                    },
+                }
             }
+            ConnectionFailedError::WgGatewayResponseEntryGatewaySocketAddrFailedToParse {
+                ref reason,
+            } => ProtoError {
+                kind: ErrorType::WgGatewayResponseEntryGwSocketAddr as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.clone(),
+                },
+            },
+            ConnectionFailedError::WgGatewayResponseEntryGatewayIpv4FailedToParse {
+                ref reason,
+            } => ProtoError {
+                kind: ErrorType::WgGatewayResponseEntryGwIpv4 as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.clone(),
+                },
+            },
             ConnectionFailedError::AuthenticatorRespondedWithWrongVersion {
-                expected,
-                received,
-                gateway_id,
-                authenticator_address,
-            } => todo!(),
+                ref expected,
+                ref received,
+                ref gateway_id,
+                ref authenticator_address,
+            } => ProtoError {
+                kind: ErrorType::AuthenticatorWrongVersion as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "expected".to_string() => expected.to_string(),
+                    "received".to_string() => received.to_string(),
+                    "gateway_id".to_string() => gateway_id.to_string(),
+                    "authenticator_address".to_string() => authenticator_address.to_string(),
+                },
+            },
             ConnectionFailedError::MailformedAuthenticatorReply {
-                gateway_id,
-                authenticator_address,
-                reason,
-            } => todo!(),
-            ConnectionFailedError::AuthenticatorAddressNotFound { gateway_id } => todo!(),
-            ConnectionFailedError::AuthenticationNotPossible { reason } => todo!(),
+                ref gateway_id,
+                ref authenticator_address,
+                ref reason,
+            } => ProtoError {
+                kind: ErrorType::AuthenticatorMalformedReply as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "gateway_id".to_string() => gateway_id.to_string(),
+                    "authenticator_address".to_string() => authenticator_address.to_string(),
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::AuthenticatorAddressNotFound { ref gateway_id } => ProtoError {
+                kind: ErrorType::AuthenticatorAddressNotFound as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "gateway_id".to_string() => gateway_id.to_string(),
+                },
+            },
+            ConnectionFailedError::AuthenticationNotPossible { ref reason } => ProtoError {
+                kind: ErrorType::AuthenticatorAuthenticationNotPossible as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.clone(),
+                },
+            },
             ConnectionFailedError::FailedToLookupGateways { ref reason } => ProtoError {
                 kind: ErrorType::GatewayDirectoryLookupGateways as i32,
                 message: err.to_string(),
@@ -361,11 +418,41 @@ impl From<ConnectionFailedError> for ProtoError {
                     "reason".to_string() => reason.to_string(),
                 },
             },
-            ConnectionFailedError::FailedToAddIpv6Route { reason } => todo!(),
-            ConnectionFailedError::TunError { reason } => todo!(),
-            ConnectionFailedError::RoutingError { reason } => todo!(),
-            ConnectionFailedError::WireguardConfigError { reason } => todo!(),
-            ConnectionFailedError::MixnetConnectionMonitorError(reason) => todo!(),
+            ConnectionFailedError::FailedToAddIpv6Route { ref reason } => ProtoError {
+                kind: ErrorType::AddIpv6Route as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::TunError { ref reason } => ProtoError {
+                kind: ErrorType::Tun as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::RoutingError { ref reason } => ProtoError {
+                kind: ErrorType::Routing as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::WireguardConfigError { ref reason } => ProtoError {
+                kind: ErrorType::WireguardConfig as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::MixnetConnectionMonitorError(ref reason) => ProtoError {
+                kind: ErrorType::MixnetConnectionMonitor as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
         }
     }
 }

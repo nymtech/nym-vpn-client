@@ -244,6 +244,23 @@ message Error {
     // Failed to connect to the authenticator, timeout waiting for the connect response
     AUTHENTICATOR_CONNECT_TIMEOUT = 35;
 
+    // Failed to connect to the authenticator, the response was invalid
+    AUTHENTICATOR_INVALID_RESPONSE = 36;
+
+    WG_GATEWAY_RESPONSE_VERIFICATION = 37;
+
+    WG_GATEWAY_RESPONSE_ENTRY_GW_SOCKET_ADDR = 38;
+
+    WG_GATEWAY_RESPONSE_ENTRY_GW_IPV4 = 39;
+
+    AUTHENTICATOR_WRONG_VERSION = 40;
+
+    AUTHENTICATOR_MALFORMED_REPLY = 41;
+
+    AUTHENTICATOR_ADDRESS_NOT_FOUND = 47;
+
+    AUTHENTICATOR_AUTHENTICATION_NOT_POSSIBLE = 48;
+
     // Looking up gateways can fail in a number of ways.
     GATEWAY_DIRECTORY = 8;
 
@@ -300,6 +317,16 @@ message Error {
 
     // Failed to find the default network interface
     FIND_DEFAULT_INTERFACE = 32;
+
+    ADD_IPV6_ROUTE = 42;
+
+    TUN = 43;
+
+    ROUTING = 44;
+
+    WIREGUARD_CONFIG = 45;
+
+    MIXNET_CONNECTION_MONITOR = 46;
   }
 
   ErrorType kind = 1;

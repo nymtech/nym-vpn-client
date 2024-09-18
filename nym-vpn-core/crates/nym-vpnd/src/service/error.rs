@@ -72,9 +72,6 @@ impl From<VpnLibImportCredentialError> for ImportCredentialError {
 
 #[derive(Clone, Debug, thiserror::Error)]
 pub enum ConnectionFailedError {
-    // This error type used only while we we are in the process of properly mapping all errors. The
-    // set of errors that can be returned by the vpn-lib is unmanagably large and is in the process
-    // of being cleaned up, but will take some time
     #[error("failed to connect (unhandled): {0}")]
     Unhandled(String),
 
