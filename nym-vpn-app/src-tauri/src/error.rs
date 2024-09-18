@@ -5,7 +5,7 @@ use std::{
 
 use nym_vpn_proto::connection_status_update::StatusType;
 use nym_vpn_proto::import_error::ImportErrorType;
-use nym_vpn_proto::{error::ErrorType as DaemonError, ImportError};
+use nym_vpn_proto::{error::ErrorType as DError, ImportError};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use ts_rs::TS;
@@ -161,6 +161,13 @@ pub enum ErrorKey {
     CStateGwDirExitLocation,
     CStateGwDirSameEntryAndExitGw,
     CStateOutOfBandwidth,
+    CStateOutOfBandwidthSettingUpTunnel,
+    CStateBringInterfaceUp,
+    CStateFirewallInit,
+    CStateFirewallResetPolicy,
+    CStateDnsInit,
+    CStateDnsSet,
+    CStateFindDefaultInterface,
     /// Import invalid credential format -> base58 decoding failed
     CredentialInvalid,
     // Forwarded from proto `import_error::ImportErrorType`
@@ -172,43 +179,48 @@ pub enum ErrorKey {
     // Forwarded from proto `connection_status_update::StatusType`
     EntryGatewayNotRouting,
     ExitRouterPingIpv4,
+    ExitRouterPingIpv6,
     ExitRouterNotRoutingIpv4,
+    ExitRouterNotRoutingIpv6,
     UserNoBandwidth,
     // Failure when querying countries from gRPC
     GetEntryCountriesQuery,
     GetExitCountriesQuery,
 }
 
-impl From<DaemonError> for ErrorKey {
-    fn from(value: DaemonError) -> Self {
+impl From<DError> for ErrorKey {
+    fn from(value: DError) -> Self {
         match value {
-            DaemonError::NoValidCredentials => ErrorKey::CStateNoValidCredential,
-            DaemonError::Timeout => ErrorKey::CStateTimeout,
-            DaemonError::MixnetTimeout => ErrorKey::CStateMixnetTimeout,
-            DaemonError::MixnetStoragePaths => ErrorKey::CStateMixnetStoragePaths,
-            DaemonError::MixnetDefaultStorage => ErrorKey::CStateMixnetDefaultStorage,
-            DaemonError::MixnetBuildClient => ErrorKey::CStateMixnetBuildClient,
-            DaemonError::MixnetConnect => ErrorKey::CStateMixnetConnect,
-            DaemonError::MixnetEntryGateway => ErrorKey::CStateMixnetEntryGateway,
-            DaemonError::IprFailedToConnect => ErrorKey::CStateIprFailedToConnect,
-            DaemonError::GatewayDirectory => ErrorKey::CStateGwDir,
-            DaemonError::GatewayDirectoryLookupGateways => ErrorKey::CStateGwDirLookupGateways,
-            DaemonError::GatewayDirectoryLookupGatewayIdentity => {
-                ErrorKey::CStateGwDirLookupGatewayId
+            DError::NoValidCredentials => ErrorKey::CStateNoValidCredential,
+            DError::Timeout => ErrorKey::CStateTimeout,
+            DError::MixnetTimeout => ErrorKey::CStateMixnetTimeout,
+            DError::MixnetStoragePaths => ErrorKey::CStateMixnetStoragePaths,
+            DError::MixnetDefaultStorage => ErrorKey::CStateMixnetDefaultStorage,
+            DError::MixnetBuildClient => ErrorKey::CStateMixnetBuildClient,
+            DError::MixnetConnect => ErrorKey::CStateMixnetConnect,
+            DError::MixnetEntryGateway => ErrorKey::CStateMixnetEntryGateway,
+            DError::IprFailedToConnect => ErrorKey::CStateIprFailedToConnect,
+            DError::GatewayDirectory => ErrorKey::CStateGwDir,
+            DError::GatewayDirectoryLookupGateways => ErrorKey::CStateGwDirLookupGateways,
+            DError::GatewayDirectoryLookupGatewayIdentity => ErrorKey::CStateGwDirLookupGatewayId,
+            DError::GatewayDirectoryLookupRouterAddress => ErrorKey::CStateGwDirLookupRouterAddr,
+            DError::GatewayDirectoryLookupIp => ErrorKey::CStateGwDirLookupIp,
+            DError::GatewayDirectoryEntry => ErrorKey::CStateGwDirEntry,
+            DError::GatewayDirectoryEntryId => ErrorKey::CStateGwDirEntryId,
+            DError::GatewayDirectoryEntryLocation => ErrorKey::CStateGwDirEntryLocation,
+            DError::GatewayDirectoryExit => ErrorKey::CStateGwDirExit,
+            DError::GatewayDirectoryExitLocation => ErrorKey::CStateGwDirExitLocation,
+            DError::GatewayDirectorySameEntryAndExitGw => ErrorKey::CStateGwDirSameEntryAndExitGw,
+            DError::OutOfBandwidth => ErrorKey::CStateOutOfBandwidth,
+            DError::OutOfBandwidthWhenSettingUpTunnel => {
+                ErrorKey::CStateOutOfBandwidthSettingUpTunnel
             }
-            DaemonError::GatewayDirectoryLookupRouterAddress => {
-                ErrorKey::CStateGwDirLookupRouterAddr
-            }
-            DaemonError::GatewayDirectoryLookupIp => ErrorKey::CStateGwDirLookupIp,
-            DaemonError::GatewayDirectoryEntry => ErrorKey::CStateGwDirEntry,
-            DaemonError::GatewayDirectoryEntryId => ErrorKey::CStateGwDirEntryId,
-            DaemonError::GatewayDirectoryEntryLocation => ErrorKey::CStateGwDirEntryLocation,
-            DaemonError::GatewayDirectoryExit => ErrorKey::CStateGwDirExit,
-            DaemonError::GatewayDirectoryExitLocation => ErrorKey::CStateGwDirExitLocation,
-            DaemonError::GatewayDirectorySameEntryAndExitGw => {
-                ErrorKey::CStateGwDirSameEntryAndExitGw
-            }
-            DaemonError::OutOfBandwidth => ErrorKey::CStateOutOfBandwidth,
+            DError::BringInterfaceUp => ErrorKey::CStateBringInterfaceUp,
+            DError::FirewallInit => ErrorKey::CStateFirewallInit,
+            DError::FirewallResetPolicy => ErrorKey::CStateFirewallResetPolicy,
+            DError::DnsInit => ErrorKey::CStateDnsInit,
+            DError::DnsSet => ErrorKey::CStateDnsSet,
+            DError::FindDefaultInterface => ErrorKey::CStateFindDefaultInterface,
             _ => ErrorKey::UnknownError, // `Unspecified` & `Unhandled`
         }
     }
@@ -267,9 +279,11 @@ impl From<StatusType> for ErrorKey {
         match value {
             StatusType::EntryGatewayNotRoutingMixnetMessages => ErrorKey::EntryGatewayNotRouting,
             StatusType::ExitRouterNotRespondingToIpv4Ping => ErrorKey::ExitRouterPingIpv4,
+            StatusType::ExitRouterNotRespondingToIpv6Ping => ErrorKey::ExitRouterPingIpv6,
             StatusType::ExitRouterNotRoutingIpv4Traffic => ErrorKey::ExitRouterNotRoutingIpv4,
+            StatusType::ExitRouterNotRoutingIpv6Traffic => ErrorKey::ExitRouterNotRoutingIpv6,
             StatusType::NoBandwidth => ErrorKey::UserNoBandwidth,
-            _ => ErrorKey::UnknownError,
+            _ => ErrorKey::UnknownError, // `Unspecified` & `Unknown`
         }
     }
 }

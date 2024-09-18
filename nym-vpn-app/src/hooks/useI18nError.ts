@@ -61,6 +61,20 @@ function useI18nError() {
           return t('connection.bad-country-combination');
         case 'CStateOutOfBandwidth':
           return t('out-of-bandwidth');
+        case 'CStateOutOfBandwidthSettingUpTunnel':
+          return t('connection.bandwidth.tunnel-up');
+        case 'CStateFindDefaultInterface':
+          return t('connection.interface.find-default');
+        case 'CStateBringInterfaceUp':
+          return t('connection.interface.wg-bring-up');
+        case 'CStateFirewallInit':
+          return t('connection.firewall.init');
+        case 'CStateFirewallResetPolicy':
+          return t('connection.firewall.reset-policy');
+        case 'CStateDnsInit':
+          return t('connection.dns.init');
+        case 'CStateDnsSet':
+          return t('connection.dns.set');
         case 'CredentialInvalid':
           return t('credential.invalid');
         case 'CredentialVpnRunning':
@@ -79,6 +93,10 @@ function useI18nError() {
           return t('exit-node.ping', { protocol: 'IPv4' });
         case 'ExitRouterNotRoutingIpv4':
           return t('exit-node.routing', { protocol: 'IPv4' });
+        case 'ExitRouterPingIpv6':
+          return t('exit-node.ping', { protocol: 'IPv6' });
+        case 'ExitRouterNotRoutingIpv6':
+          return t('exit-node.routing', { protocol: 'IPv6' });
         case 'UserNoBandwidth':
           return t('out-of-bandwidth');
         case 'GetEntryCountriesQuery':
