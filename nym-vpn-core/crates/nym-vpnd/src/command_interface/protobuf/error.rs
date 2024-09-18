@@ -233,10 +233,16 @@ impl From<ConnectionFailedError> for ProtoError {
                     "requested_location".to_string() => requested_location.clone(),
                 },
             },
-            ConnectionFailedError::OutOfBandwidth => ProtoError {
+            ConnectionFailedError::OutOfBandwidth {
+                ref gateway_id,
+                ref authenticator_address,
+            } => ProtoError {
                 kind: ErrorType::OutOfBandwidth as i32,
                 message: err.to_string(),
-                details: hashmap! {},
+                details: hashmap! {
+                    "gateway_id".to_string() => gateway_id.to_string(),
+                    "authenticator_address".to_string() => authenticator_address.to_string(),
+                },
             },
             ConnectionFailedError::OutOfBandwidthWhenSettingUpTunnel => ProtoError {
                 kind: ErrorType::OutOfBandwidthWhenSettingUpTunnel as i32,

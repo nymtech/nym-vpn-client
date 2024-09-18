@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use nym_vpn_lib::{
     credentials::ImportCredentialError as VpnLibImportCredentialError,
     gateway_directory::Error as DirError, wg_gateway_client::Error as WgGatewayClientError,
-    CredentialStorageError, GatewayDirectoryError, NodeIdentity, NymIdError,
+    CredentialStorageError, GatewayDirectoryError, NodeIdentity, NymIdError, Recipient,
 };
 use time::OffsetDateTime;
 use tracing::error;
@@ -147,8 +147,11 @@ pub enum ConnectionFailedError {
     #[error("unable to use same entry and exit gateway for location: {requested_location}")]
     SameEntryAndExitGatewayFromCountry { requested_location: String },
 
-    #[error("we ran out of bandwidth")]
-    OutOfBandwidth,
+    #[error("we ran out of bandwidth with gateway: `{gateway_id}`")]
+    OutOfBandwidth {
+        gateway_id: Box<NodeIdentity>,
+        authenticator_address: Box<Recipient>,
+    },
 
     #[error("we ran out of bandwidth when setting up the tunnel")]
     OutOfBandwidthWhenSettingUpTunnel,
@@ -268,7 +271,13 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                     }
                 }
                 nym_vpn_lib::SetupWgTunnelError::WgGatewayClientError(ee) => match ee {
-                    WgGatewayClientError::OutOfBandwidth => ConnectionFailedError::OutOfBandwidth,
+                    WgGatewayClientError::OutOfBandwidth {
+                        gateway_id,
+                        authenticator_address,
+                    } => ConnectionFailedError::OutOfBandwidth {
+                        gateway_id: gateway_id.clone(),
+                        authenticator_address: authenticator_address.clone(),
+                    },
                     WgGatewayClientError::InvalidGatewayAuthResponse
                     | WgGatewayClientError::AuthenticatorClientError(_)
                     | WgGatewayClientError::WireguardTypesError(_)
