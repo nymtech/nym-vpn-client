@@ -67,6 +67,7 @@ impl ConnectionStatusBroadcaster {
             } else if let Some(message) = status_update.downcast_ref::<BandwidthStatusMessage>() {
                 self.handle_bandwidth_status_message(message);
             } else {
+                tracing::warn!("Received unknown status update: {:?}", status_update);
                 self.status_tx
                     .send(ConnectionStatusUpdate {
                         kind: StatusType::Unknown as i32,
