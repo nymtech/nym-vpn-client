@@ -82,8 +82,23 @@ impl VpnServiceStatusListener {
                 BandwidthStatusMessage::RemainingBandwidth(_) => {}
                 BandwidthStatusMessage::NoBandwidth => {}
             }
+        } else if let Some(msg) = msg.downcast_ref::<Box<BandwidthStatusMessage>>() {
+            info!("VPN bandwidth status (box): monitor status: {msg}");
+            match **msg {
+                BandwidthStatusMessage::RemainingBandwidth(_) => {}
+                BandwidthStatusMessage::NoBandwidth => {}
+            }
+        } else if let Some(msg) =
+            msg.downcast_ref::<nym_bandwidth_controller_pre_ecash::BandwidthStatusMessage>()
+        {
+            info!("Mixnet bandwidth status: monitor status: {msg}");
+            match msg {
+                BandwidthStatusMessage::RemainingBandwidth(_) => {}
+                BandwidthStatusMessage::NoBandwidth => {}
+            }
         } else {
-            info!("VPN status: unknown: {msg}");
+            tracing::warn!("VPN status: unknown: {msg}");
+            tracing::warn!("{msg:#?}");
         }
         msg
     }

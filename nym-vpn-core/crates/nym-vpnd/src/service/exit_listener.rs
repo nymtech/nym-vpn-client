@@ -41,8 +41,14 @@ impl VpnServiceExitListener {
                             .map(ConnectionFailedError::from);
 
                         let connection_failed_err = match vpn_lib_err {
-                            Some(vpn_lib_err) => vpn_lib_err,
-                            None => ConnectionFailedError::Unhandled(err.to_string()),
+                            Some(vpn_lib_err) => {
+                                tracing::warn!("proper return error: {vpn_lib_err:#?}");
+                                vpn_lib_err
+                            },
+                            None => {
+                                tracing::warn!("unknown error type: {err:#?}");
+                                ConnectionFailedError::Unhandled(err.to_string())
+                            },
                         };
 
                         self.shared_vpn_state

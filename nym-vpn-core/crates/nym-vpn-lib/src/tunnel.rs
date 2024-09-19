@@ -69,6 +69,7 @@ pub(crate) fn start_tunnel(
             resource_dir = resource_dir.join(id);
         }
         if let Err(e) = std::fs::create_dir_all(&resource_dir) {
+            tracing::error!("Sending: {e}");
             shutdown.send_status_msg(Box::new(e));
             return;
         }
@@ -90,6 +91,7 @@ pub(crate) fn start_tunnel(
         ) {
             Ok(monitor) => monitor,
             Err(e) => {
+                tracing::error!("Sending: {e}");
                 shutdown.send_status_msg(Box::new(e));
                 return;
             }
@@ -97,11 +99,13 @@ pub(crate) fn start_tunnel(
         debug!("Wireguard monitor started, blocking current thread until shutdown");
         if let Err(e) = monitor.wait() {
             error!("Tunnel disconnected with error: {e}");
+            tracing::error!("Sending: {e}");
             shutdown.send_status_msg(Box::new(e));
         } else {
             if finished_shutdown_tx.send(()).is_err() {
-                shutdown
-                    .send_status_msg(Box::new(crate::error::Error::FailedToSendWireguardShutdown));
+                let status_msg = crate::error::Error::FailedToSendWireguardShutdown;
+                tracing::error!("Sending: {status_msg}");
+                shutdown.send_status_msg(Box::new(status_msg));
             }
             debug!("Sent shutdown message");
         }
