@@ -189,7 +189,7 @@ message ConnectionStatusUpdate {
   StatusType kind = 1;
 
   // Detailed message for logging and debugging
-  string message = 2;
+  string internal = 2;
 
   // Optional additional details
   map<string, string> details = 3;
@@ -350,7 +350,7 @@ message Error {
   ErrorType kind = 1;
 
   // Detailed error message for logging and debuggning
-  string message = 2;
+  string internal = 2;
 
   // Optional additional details
   map<string, string> details = 3;
@@ -391,7 +391,7 @@ message ImportError {
   ImportErrorType kind = 1;
 
   // Detailed error message for logging and debugging
-  string message = 2;
+  string internal = 2;
 
   // Optional additional details
   map<string, string> details = 3;
@@ -516,7 +516,7 @@ message AccountError {
   AccountErrorType kind = 1;
 
   // Detailed error message for logging and debugging
-  string message = 2;
+  string internal = 2;
 
   // Optional additional details
   map<string, string> details = 3;
