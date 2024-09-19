@@ -25,7 +25,7 @@
     <string name="logs">گزارش‌ها</string>
     <string name="feedback">بازخورد</string>
     <string name="support">پشتیبانی</string>
-    <string name="sentry">Sentry</string>
+    <string name="sentry">ابزار Sentry</string>
     <string name="via">توسط</string>
     <string name="required_app_restart">پس از راه‌اندازی مجدد اعمال می‌شود</string>
     <string name="legal">حقوقی</string>
@@ -77,7 +77,7 @@
     <string name="welcome_exclaim">خوش آمدید!</string>
     <string name="top_up_credential">افزایش موجودی اعتبارنامه</string>
     <string name="anonymous_analytics_description">به ما برای بهبود NymVPN کمک کنید</string>
-    <string name="unknown">نامعلوم</string>
+    <string name="unknown">نامشخص</string>
     <string name="error_reporting_alert">تغییرات گزارش خطا پس از راه‌اندازی مجدد برنامه به‌طور کامل اعمال می‌شود.</string>
     <string name="okay">قبول</string>
     <string name="credential_disclaimer">اعتبارنامه خود را فعال کنید، سپس QR Code را اسکن کنید. دسترسی ندارید؟ برای دسترسی بلافاصله در nymvpn.com ثبت‌نام کنید.</string>
