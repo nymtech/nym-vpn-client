@@ -39,6 +39,9 @@ tracing-subscriber = { workspace = true, features = ["env-filter"] }
 tracing.workspace = true
 url.workspace = true
 
+talpid-routing.workspace = true
+talpid-wireguard.workspace = true
+
 # Nym monorepo
 nym-bandwidth-controller-pre-ecash.workspace = true
 nym-bin-common.workspace = true

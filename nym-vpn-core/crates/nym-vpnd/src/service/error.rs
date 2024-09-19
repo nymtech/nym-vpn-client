@@ -331,8 +331,15 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                     }
                 }
                 nym_vpn_lib::SetupMixTunnelError::RoutingError(inner) => {
-                    ConnectionFailedError::RoutingError {
-                        reason: inner.to_string(),
+                    match inner {
+                        talpid_routing::Error::PlatformError(platform_error) => {
+                            ConnectionFailedError::RoutingError {
+                                reason: platform_error.to_string(),
+                            }
+                        },
+                        _ => ConnectionFailedError::RoutingError {
+                            reason: inner.to_string(),
+                        },
                     }
                 }
                 nym_vpn_lib::SetupMixTunnelError::ConnectionMonitorError(_) => {
@@ -430,9 +437,15 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                         reason: inner.to_string(),
                     }
                 }
-                nym_vpn_lib::SetupWgTunnelError::WireguardConfigError(inner) => {
-                    ConnectionFailedError::WireguardConfigError {
-                        reason: inner.to_string(),
+                nym_vpn_lib::SetupWgTunnelError::WireguardConfigError(wg_config_error) => {
+                    match wg_config_error {
+                        talpid_wireguard::config::Error::InvalidTunnelIpError
+                        | talpid_wireguard::config::Error::InvalidPeerIpError
+                        | talpid_wireguard::config::Error::NoPeersSuppliedError => {
+                            ConnectionFailedError::WireguardConfigError {
+                                reason: wg_config_error.to_string(),
+                            }
+                        }
                     }
                 }
                 nym_vpn_lib::SetupWgTunnelError::AuthenticatorAddressNotFound { gateway_id } => {

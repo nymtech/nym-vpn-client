@@ -5572,6 +5572,8 @@ dependencies = [
  "reqwest 0.11.27",
  "serde",
  "serde_json",
+ "talpid-routing",
+ "talpid-wireguard",
  "thiserror",
  "time",
  "tokio",
