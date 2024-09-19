@@ -193,28 +193,26 @@ impl From<ConnectionFailedError> for ProtoError {
                     "reason".to_string() => reason.to_string(),
                 },
             },
-            ConnectionFailedError::WgGatewayResponseVerificationFailed { ref reason } => {
+            ConnectionFailedError::AuthenticatorRegistrationDataVerificationFailed {
+                ref reason,
+            } => ProtoError {
+                kind: ErrorType::AuthenticatorRegistrationDataVerification as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.clone(),
+                },
+            },
+            ConnectionFailedError::WgEntryGatewaySocketAddrFailedToParse { ref reason } => {
                 ProtoError {
-                    kind: ErrorType::WgGatewayResponseVerification as i32,
+                    kind: ErrorType::AuthenticatorEntryGatewaySocketAddr as i32,
                     message: err.to_string(),
                     details: hashmap! {
                         "reason".to_string() => reason.clone(),
                     },
                 }
             }
-            ConnectionFailedError::WgGatewayResponseEntryGatewaySocketAddrFailedToParse {
-                ref reason,
-            } => ProtoError {
-                kind: ErrorType::WgGatewayResponseEntryGwSocketAddr as i32,
-                message: err.to_string(),
-                details: hashmap! {
-                    "reason".to_string() => reason.clone(),
-                },
-            },
-            ConnectionFailedError::WgGatewayResponseEntryGatewayIpv4FailedToParse {
-                ref reason,
-            } => ProtoError {
-                kind: ErrorType::WgGatewayResponseEntryGwIpv4 as i32,
+            ConnectionFailedError::WgEntryGatewayIpv4FailedToParse { ref reason } => ProtoError {
+                kind: ErrorType::AuthenticatorEntryGatewayIpv4 as i32,
                 message: err.to_string(),
                 details: hashmap! {
                     "reason".to_string() => reason.clone(),

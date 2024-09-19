@@ -135,13 +135,13 @@ pub enum ConnectionFailedError {
     },
 
     #[error("verification failed for wg gateway response: {reason}")]
-    WgGatewayResponseVerificationFailed { reason: String },
+    AuthenticatorRegistrationDataVerificationFailed { reason: String },
 
     #[error("failed to parse the entry gateway socket addr in response: {reason}")]
-    WgGatewayResponseEntryGatewaySocketAddrFailedToParse { reason: String },
+    WgEntryGatewaySocketAddrFailedToParse { reason: String },
 
     #[error("failed to parse the entry gateway ipv4 in response: {reason}")]
-    WgGatewayResponseEntryGatewayIpv4FailedToParse { reason: String },
+    WgEntryGatewayIpv4FailedToParse { reason: String },
 
     #[error("gateway authenticator responded with unexpected version: {received}")]
     AuthenticatorRespondedWithWrongVersion {
@@ -415,12 +415,12 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                         }
                     }
                     WgGatewayClientError::VerificationFailed(inner) => {
-                        ConnectionFailedError::WgGatewayResponseVerificationFailed {
+                        ConnectionFailedError::AuthenticatorRegistrationDataVerificationFailed {
                             reason: inner.to_string(),
                         }
                     }
                     WgGatewayClientError::FailedToParseEntryGatewaySocketAddr(inner) => {
-                        ConnectionFailedError::WgGatewayResponseEntryGatewaySocketAddrFailedToParse {
+                        ConnectionFailedError::WgEntryGatewaySocketAddrFailedToParse {
                             reason: inner.to_string(),
                         }
                     }
@@ -446,7 +446,7 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                     }
                 }
                 nym_vpn_lib::SetupWgTunnelError::FailedToParseEntryGatewayIpv4(inner) => {
-                    ConnectionFailedError::WgGatewayResponseEntryGatewayIpv4FailedToParse {
+                    ConnectionFailedError::WgEntryGatewayIpv4FailedToParse {
                         reason: inner.to_string(),
                     }
                 }

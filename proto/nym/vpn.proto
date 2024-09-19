@@ -241,24 +241,37 @@ message Error {
     // Failed to connect to one of the authenticators
     AUTHENTICATOR_FAILED_TO_CONNECT = 34;
 
-    // Failed to connect to the authenticator, timeout waiting for the connect response
+    // Failed to connect to the authenticator, timeout waiting for the connect
+    // response
     AUTHENTICATOR_CONNECT_TIMEOUT = 35;
 
     // Failed to connect to the authenticator, the response was invalid
     AUTHENTICATOR_INVALID_RESPONSE = 36;
 
-    WG_GATEWAY_RESPONSE_VERIFICATION = 37;
+    // Failed to verify the registeration data provided by the authenticator
+    AUTHENTICATOR_REGISTRATION_DATA_VERIFICATION = 37;
 
-    WG_GATEWAY_RESPONSE_ENTRY_GW_SOCKET_ADDR = 38;
+    // Failed to parse the socket addr provided by the authenticator when
+    // setting up the wireguard configuration
+    AUTHENTICATOR_ENTRY_GATEWAY_SOCKET_ADDR = 38;
 
-    WG_GATEWAY_RESPONSE_ENTRY_GW_IPV4 = 39;
+    // Failed to parse the IPv4 provided by the authenticator when setting up
+    // the wireguard configuration
+    AUTHENTICATOR_ENTRY_GATEWAY_IPV4 = 39;
 
+    // The authenticator responed with a response tagged with a version we
+    // can't understand.
     AUTHENTICATOR_WRONG_VERSION = 40;
 
+    // The authenticator, or someone else, responsed with a reply that we can't
+    // read.
     AUTHENTICATOR_MALFORMED_REPLY = 41;
 
+    // Not authenticator address found for the gateway(s) we're trying to use
     AUTHENTICATOR_ADDRESS_NOT_FOUND = 47;
 
+    // Authentication with the authenticators was not possible, as we we don't
+    // have addresses for them. This is likely an internal programming error.
     AUTHENTICATOR_AUTHENTICATION_NOT_POSSIBLE = 48;
 
     // Looking up gateways can fail in a number of ways.
@@ -318,14 +331,19 @@ message Error {
     // Failed to find the default network interface
     FIND_DEFAULT_INTERFACE = 32;
 
+    // Failed to add ipv6 default route to capture ipv6 traffic
     ADD_IPV6_ROUTE = 42;
 
+    // General failure for the tun device
     TUN = 43;
 
+    // General failure for routing
     ROUTING = 44;
 
+    // General failure setting up the wireguard configuration
     WIREGUARD_CONFIG = 45;
 
+    // General failure for the mixnet connection monitor
     MIXNET_CONNECTION_MONITOR = 46;
   }
 
