@@ -70,7 +70,7 @@ impl ConnectionStatusBroadcaster {
                 self.status_tx
                     .send(ConnectionStatusUpdate {
                         kind: StatusType::Unknown as i32,
-                        message: status_update.to_string(),
+                        internal: status_update.to_string(),
                         details: Default::default(),
                     })
                     .ok();
