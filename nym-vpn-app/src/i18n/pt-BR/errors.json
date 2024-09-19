@@ -36,7 +36,22 @@
       "exit": "Falha ao procurar o gateway de saída",
       "exit-location": "Falha ao procurar o gateway de saída para um determinado local"
     },
-    "ipr-connect": "Falha na conexão com o IPR"
+    "ipr-connect": "Falha na conexão com o IPR",
+    "interface": {
+      "find-default": "Falha ao localizar a interface de rede padrão",
+      "wg-bring-up": "Falha ao abrir a interface do WireGuard"
+    },
+    "firewall": {
+      "init": "Falha ao inicializar o subsistema de firewall",
+      "reset-policy": "Falha ao redefinir a política de firewall"
+    },
+    "dns": {
+      "set": "Falha ao configurar o DNS",
+      "init": "Falha ao inicializar o subsistema DNS"
+    },
+    "bandwidth": {
+      "tunnel-up": "Não há largura de banda disponível para configurar o túnel"
+    }
   },
   "countries-request": {
     "entry": "Falha ao buscar os países com nós de entrada disponíveis",
