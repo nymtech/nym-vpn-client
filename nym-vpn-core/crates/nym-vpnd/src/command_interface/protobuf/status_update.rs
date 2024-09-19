@@ -87,13 +87,15 @@ pub(crate) fn status_update_from_bandwidth_status_message(
     status: &nym_bandwidth_controller::BandwidthStatusMessage,
 ) -> ConnectionStatusUpdate {
     match status {
-        nym_bandwidth_controller::BandwidthStatusMessage::RemainingBandwidth(amount) => ConnectionStatusUpdate {
-            kind: StatusType::RemainingBandwidth as i32,
-            message: status.to_string(),
-            details: maplit::hashmap! {
-                "amount".to_string() => amount.to_string(),
-            },
-        },
+        nym_bandwidth_controller::BandwidthStatusMessage::RemainingBandwidth(amount) => {
+            ConnectionStatusUpdate {
+                kind: StatusType::RemainingBandwidth as i32,
+                message: status.to_string(),
+                details: maplit::hashmap! {
+                    "amount".to_string() => amount.to_string(),
+                },
+            }
+        }
         nym_bandwidth_controller::BandwidthStatusMessage::NoBandwidth => ConnectionStatusUpdate {
             kind: StatusType::NoBandwidth as i32,
             message: status.to_string(),

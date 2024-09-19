@@ -1,6 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_gateway_directory::{NodeIdentity, Recipient};
+
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("received invalid response from gateway authenticator")]
@@ -15,8 +17,11 @@ pub enum Error {
     #[error("failed to parse entry gateway socket addr: {0}")]
     FailedToParseEntryGatewaySocketAddr(#[source] std::net::AddrParseError),
 
-    #[error("out of bandwidth")]
-    OutOfBandwidth,
+    #[error("out of bandwidth for gateway: `{gateway_id}`")]
+    OutOfBandwidth {
+        gateway_id: Box<NodeIdentity>,
+        authenticator_address: Box<Recipient>,
+    },
 }
 
 // Result type based on our error type

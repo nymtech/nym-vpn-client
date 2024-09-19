@@ -40,15 +40,33 @@ impl VpnServiceExitListener {
                             .downcast_ref::<nym_vpn_lib::Error>()
                             .map(ConnectionFailedError::from);
 
+                        // If None, try to cast to nym_wg_gateway_client::Error since we are
+                        // sending error events from that task.
+                        // NOTE: man we are really twisting the arm of the error handling here,
+                        // this is not good.
+                        let vpn_lib_err = vpn_lib_err.or_else(|| {
+                            err.downcast_ref::<nym_vpn_lib::wg_gateway_client::Error>()
+                                .map(|err| match err {
+                                    nym_vpn_lib::wg_gateway_client::Error::OutOfBandwidth {
+                                        gateway_id,
+                                        authenticator_address,
+                                    } => ConnectionFailedError::OutOfBandwidth {
+                                        gateway_id: gateway_id.clone(),
+                                        authenticator_address: authenticator_address.clone(),
+                                    },
+                                    _ => ConnectionFailedError::Unhandled(err.to_string()),
+                                })
+                        });
+
                         let connection_failed_err = match vpn_lib_err {
                             Some(vpn_lib_err) => {
                                 tracing::warn!("proper return error: {vpn_lib_err:#?}");
                                 vpn_lib_err
-                            },
+                            }
                             None => {
                                 tracing::warn!("unknown error type: {err:#?}");
                                 ConnectionFailedError::Unhandled(err.to_string())
-                            },
+                            }
                         };
 
                         self.shared_vpn_state

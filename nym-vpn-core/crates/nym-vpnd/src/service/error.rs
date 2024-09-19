@@ -379,9 +379,11 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                     authenticator_address,
                     source,
                 } => match source {
-                    WgGatewayClientError::OutOfBandwidth => ConnectionFailedError::OutOfBandwidth {
-                        gateway_id: gateway_id.clone(),
-                        authenticator_address: authenticator_address.clone(),
+                    WgGatewayClientError::OutOfBandwidth { gateway_id, authenticator_address } => {
+                        ConnectionFailedError::OutOfBandwidth {
+                            gateway_id: gateway_id.clone(),
+                            authenticator_address: authenticator_address.clone(),
+                        }
                     },
                     WgGatewayClientError::AuthenticatorClientError(auth_err) => match auth_err {
                         AuthenticatorClientError::TimeoutWaitingForConnectResponse => {
