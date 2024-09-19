@@ -137,3 +137,5 @@ nym-credential-storage-pre-ecash = { git = "https://github.com/nymtech/nym", rev
 nym-credentials-pre-ecash = { git = "https://github.com/nymtech/nym", rev = "3f922cc0", package = "nym-credentials" }
 nym-id-pre-ecash = { git = "https://github.com/nymtech/nym", rev = "3f922cc0", package = "nym-id" }
 nym-bandwidth-controller-pre-ecash = { git = "https://github.com/nymtech/nym", rev = "3f922cc0", package = "nym-bandwidth-controller" }
+
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }

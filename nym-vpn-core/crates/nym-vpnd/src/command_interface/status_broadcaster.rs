@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use futures::StreamExt;
-use nym_bandwidth_controller_pre_ecash::BandwidthStatusMessage;
 use nym_vpn_lib::{connection_monitor::ConnectionMonitorStatus, NymVpnStatusMessage};
 use nym_vpn_proto::{connection_status_update::StatusType, ConnectionStatusUpdate};
 use tracing::debug;
 
 use super::protobuf::status_update::{
-    status_update_from_bandwidth_status_message, status_update_from_monitor_status,
+    status_update_from_bandwidth_status_message,
+    status_update_from_bandwidth_status_message_legacy, status_update_from_monitor_status,
     status_update_from_status_message,
 };
 
@@ -46,9 +46,21 @@ impl ConnectionStatusBroadcaster {
             .ok();
     }
 
-    fn handle_bandwidth_status_message(&self, message: &BandwidthStatusMessage) {
+    fn handle_bandwidth_status_message(
+        &self,
+        message: &nym_bandwidth_controller::BandwidthStatusMessage,
+    ) {
         self.status_tx
             .send(status_update_from_bandwidth_status_message(message))
+            .ok();
+    }
+
+    fn handle_bandwidth_status_message_legacy(
+        &self,
+        message: &nym_bandwidth_controller_pre_ecash::BandwidthStatusMessage,
+    ) {
+        self.status_tx
+            .send(status_update_from_bandwidth_status_message_legacy(message))
             .ok();
     }
 
@@ -64,8 +76,14 @@ impl ConnectionStatusBroadcaster {
                 self.handle_status_message(message);
             } else if let Some(message) = status_update.downcast_ref::<ConnectionMonitorStatus>() {
                 self.handle_connection_monitor_status(message);
-            } else if let Some(message) = status_update.downcast_ref::<BandwidthStatusMessage>() {
+            } else if let Some(message) =
+                status_update.downcast_ref::<nym_bandwidth_controller::BandwidthStatusMessage>()
+            {
                 self.handle_bandwidth_status_message(message);
+            } else if let Some(message) = status_update
+                .downcast_ref::<nym_bandwidth_controller_pre_ecash::BandwidthStatusMessage>(
+            ) {
+                self.handle_bandwidth_status_message_legacy(message);
             } else {
                 tracing::warn!("Received unknown status update: {:?}", status_update);
                 self.status_tx
