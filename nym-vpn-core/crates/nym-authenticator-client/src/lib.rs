@@ -41,7 +41,7 @@ impl SharedMixnetClient {
             .unwrap()
             .send(msg)
             .await
-            .map_err(Error::FailedToSendMixnetMessage)?;
+            .map_err(Error::SendMixnetMessage)?;
         Ok(())
     }
 
@@ -138,7 +138,7 @@ impl AuthClient {
                 None,
             ))
             .await
-            .map_err(Error::FailedToSendMixnetMessage)?;
+            .map_err(Error::SendMixnetMessage)?;
 
         Ok(request_id)
     }

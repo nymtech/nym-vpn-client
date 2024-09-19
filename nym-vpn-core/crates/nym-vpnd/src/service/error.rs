@@ -386,7 +386,7 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                                 reason: auth_err.to_string(),
                             }
                         }
-                        AuthenticatorClientError::FailedToSendMixnetMessage(_) => {
+                        AuthenticatorClientError::SendMixnetMessage(_) => {
                             ConnectionFailedError::FailedToConnectToAuthenticator {
                                 gateway_id: gateway_id.clone(),
                                 authenticator_address: authenticator_address.clone(),
