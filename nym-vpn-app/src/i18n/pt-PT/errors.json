@@ -36,7 +36,22 @@
       "entry": "Falha ao procurar o gateway de entrada",
       "exit-location": "Falha ao procurar o gateway de saída para um determinado local"
     },
-    "bad-country-combination": "Combinação de países não suportada, por favor altere o país de entrada ou de saída"
+    "bad-country-combination": "Combinação de países não suportada, por favor altere o país de entrada ou de saída",
+    "bandwidth": {
+      "tunnel-up": "Não há largura de banda disponível para configurar o túnel"
+    },
+    "interface": {
+      "wg-bring-up": "Falha ao abrir a interface do WireGuard",
+      "find-default": "Falha ao encontrar a interface de rede predefinida"
+    },
+    "firewall": {
+      "init": "Falha ao iniciar o subsistema de firewall",
+      "reset-policy": "Falha ao redefinir a política de firewall"
+    },
+    "dns": {
+      "init": "Falha ao iniciar o subsistema DNS",
+      "set": "Falha ao definir o DNS"
+    }
   },
   "countries-request": {
     "entry": "Falha ao procurar os países com nós de entrada disponíveis",
