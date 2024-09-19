@@ -73,8 +73,9 @@ export type BkdErrorKey =
   | 'ExitRouterNotRoutingIpv4'
   | 'ExitRouterNotRoutingIpv6'
   | 'UserNoBandwidth'
-  | 'GetEntryCountriesQuery'
-  | 'GetExitCountriesQuery';
+  | 'GetMixnetEntryCountriesQuery'
+  | 'GetMixnetExitCountriesQuery'
+  | 'GetWgCountriesQuery';
 
 export type StartupErrorKey = 'StartupOpenDb' | 'StartupOpenDbLocked';
 

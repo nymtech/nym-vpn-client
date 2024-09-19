@@ -71,8 +71,9 @@ export type AppState = {
   windowSize?: WindowSize | null;
   windowPosition?: WindowPosition | null;
   credentialExpiry?: Dayjs | null;
-  fetchEntryCountries: FetchCountriesFn;
-  fetchExitCountries: FetchCountriesFn;
+  fetchMxEntryCountries: FetchMxCountriesFn;
+  fetchMxExitCountries: FetchMxCountriesFn;
+  fetchWgCountries: FetchWgCountriesFn;
 };
 
 export type ConnectionEvent =
@@ -93,7 +94,8 @@ export type ProgressEventPayload = {
 
 export type StateDispatch = Dispatch<StateAction>;
 
-export type FetchCountriesFn = () => Promise<void> | undefined;
+export type FetchMxCountriesFn = () => Promise<void> | undefined;
+export type FetchWgCountriesFn = () => Promise<void> | undefined;
 
 export type AppError = {
   message: string;

@@ -32,10 +32,12 @@ function NodeLocation({ node }: { node: NodeHop }) {
     fastestNodeLocation,
     entryCountriesLoading,
     exitCountriesLoading,
-    fetchEntryCountries,
-    fetchExitCountries,
+    fetchMxEntryCountries,
+    fetchMxExitCountries,
+    fetchWgCountries,
     entryCountriesError,
     exitCountriesError,
+    vpnMode,
   } = useMainState();
   const { isOpen, close } = useDialog();
 
@@ -58,12 +60,20 @@ function NodeLocation({ node }: { node: NodeHop }) {
 
   // request backend to refresh cache
   useEffect(() => {
-    if (node === 'entry') {
-      fetchEntryCountries();
+    if (vpnMode === 'Mixnet' && node === 'entry') {
+      fetchMxEntryCountries();
+    } else if (vpnMode === 'Mixnet' && node === 'exit') {
+      fetchMxExitCountries();
     } else {
-      fetchExitCountries();
+      fetchWgCountries();
     }
-  }, [node, dispatch, fetchEntryCountries, fetchExitCountries]);
+  }, [
+    node,
+    vpnMode,
+    fetchMxEntryCountries,
+    fetchMxExitCountries,
+    fetchWgCountries,
+  ]);
 
   // update the UI country list whenever the country list or
   // fastest country change (likely from the backend)

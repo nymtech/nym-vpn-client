@@ -5,7 +5,7 @@ use std::{
 
 use nym_vpn_proto::connection_status_update::StatusType;
 use nym_vpn_proto::import_error::ImportErrorType;
-use nym_vpn_proto::{error::ErrorType as DError, ImportError};
+use nym_vpn_proto::{error::ErrorType as DError, GatewayType, ImportError};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use ts_rs::TS;
@@ -184,8 +184,9 @@ pub enum ErrorKey {
     ExitRouterNotRoutingIpv6,
     UserNoBandwidth,
     // Failure when querying countries from gRPC
-    GetEntryCountriesQuery,
-    GetExitCountriesQuery,
+    GetMixnetEntryCountriesQuery,
+    GetMixnetExitCountriesQuery,
+    GetWgCountriesQuery,
 }
 
 impl From<DError> for ErrorKey {
@@ -284,6 +285,17 @@ impl From<StatusType> for ErrorKey {
             StatusType::ExitRouterNotRoutingIpv6Traffic => ErrorKey::ExitRouterNotRoutingIpv6,
             StatusType::NoBandwidth => ErrorKey::UserNoBandwidth,
             _ => ErrorKey::UnknownError, // `Unspecified` & `Unknown`
+        }
+    }
+}
+
+impl From<GatewayType> for ErrorKey {
+    fn from(value: GatewayType) -> Self {
+        match value {
+            GatewayType::MixnetEntry => ErrorKey::GetMixnetEntryCountriesQuery,
+            GatewayType::MixnetExit => ErrorKey::GetMixnetExitCountriesQuery,
+            GatewayType::Wg => ErrorKey::GetWgCountriesQuery,
+            _ => ErrorKey::UnknownError,
         }
     }
 }

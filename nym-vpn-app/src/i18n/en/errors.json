@@ -55,7 +55,8 @@
   },
   "countries-request": {
     "entry": "Failed to fetch the available entry node countries",
-    "exit": "Failed to fetch the available exit node countries"
+    "exit": "Failed to fetch the available exit node countries",
+    "fast-mode": "Failed to fetch the available countries"
   },
   "out-of-bandwidth": "Out of allocated bandwidth",
   "entry-node-routing": "Entry node is not routing traffic (internet connection down?)",

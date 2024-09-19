@@ -5,7 +5,7 @@ use itertools::Itertools;
 use nym_vpn_proto::{
     health_check_response::ServingStatus, health_client::HealthClient,
     nym_vpnd_client::NymVpndClient, ConnectRequest, ConnectionStatus, DisconnectRequest, Dns,
-    Empty, EntryNode, ExitNode, HealthCheckRequest, ImportUserCredentialRequest,
+    Empty, EntryNode, ExitNode, GatewayType, HealthCheckRequest, ImportUserCredentialRequest,
     ImportUserCredentialResponse, InfoRequest, InfoResponse, ListCountriesRequest, Location,
     StatusRequest, StatusResponse,
 };
@@ -355,48 +355,18 @@ impl GrpcClient {
     }
 
     /// Get the list of available countries for entry gateways
-    #[instrument(skip_all)]
-    pub async fn entry_countries(&self) -> Result<Vec<Country>, VpndError> {
-        debug!("entry_countries");
+    #[instrument(skip(self))]
+    pub async fn countries(&self, gw_type: GatewayType) -> Result<Vec<Country>, VpndError> {
+        debug!("countries");
         let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(ListCountriesRequest {
-            kind: nym_vpn_proto::GatewayType::MixnetEntry as i32,
+            kind: gw_type as i32,
             min_mixnet_performance: None,
             min_vpn_performance: None,
         });
         let response = vpnd.list_countries(request).await.map_err(|e| {
-            error!("grpc list_entry_countries: {}", e);
-            VpndError::GrpcError(e)
-        })?;
-        debug!("countries count: {}", response.get_ref().countries.len());
-
-        let countries: Vec<Country> = response
-            .get_ref()
-            .countries
-            .iter()
-            .filter_map(|location| Country::try_from(location).ok())
-            .unique()
-            .sorted_by(|a, b| a.name.cmp(&b.name))
-            .collect();
-        debug!("filtered countries count: {}", countries.len());
-
-        Ok(countries)
-    }
-
-    /// Get the list of available countries for exit gateways
-    #[instrument(skip_all)]
-    pub async fn exit_countries(&self) -> Result<Vec<Country>, VpndError> {
-        debug!("exit_countries");
-        let mut vpnd = self.vpnd().await?;
-
-        let request = Request::new(ListCountriesRequest {
-            kind: nym_vpn_proto::GatewayType::MixnetExit as i32,
-            min_mixnet_performance: None,
-            min_vpn_performance: None,
-        });
-        let response = vpnd.list_countries(request).await.map_err(|e| {
-            error!("grpc list_exit_countries: {}", e);
+            error!("grpc list_countries: {}", e);
             VpndError::GrpcError(e)
         })?;
         debug!("countries count: {}", response.get_ref().countries.len());

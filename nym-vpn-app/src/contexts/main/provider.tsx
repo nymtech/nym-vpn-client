@@ -21,6 +21,7 @@ import {
 import { initFirstBatch, initSecondBatch } from '../../state/init';
 import { initialState, reducer } from '../../state';
 import { useTauriEvents } from '../../state/useTauriEvents';
+import { S_STATE } from '../../static';
 
 let initialized = false;
 
@@ -35,6 +36,7 @@ function MainStateProvider({ children }: Props) {
     exitCountryList,
     entryNodeLocation,
     exitNodeLocation,
+    vpnMode,
   } = state;
 
   useTauriEvents(dispatch, state);
@@ -83,47 +85,91 @@ function MainStateProvider({ children }: Props) {
     });
   }, []);
 
-  const fetchEntryCountries = useThrottle(
+  useEffect(() => {
+    if (!S_STATE.vpnModeInit) {
+      return;
+    }
+    if (vpnMode === 'Mixnet') {
+      fetchCountries('entry');
+      fetchCountries('exit');
+    } else {
+      fetchCountries('entry');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vpnMode]);
+
+  const fetchMxEntryCountries = useThrottle(
     async () => fetchCountries('entry'),
     CountryCacheDuration,
+    [vpnMode],
   );
 
-  const fetchExitCountries = useThrottle(
+  const fetchMxExitCountries = useThrottle(
     async () => fetchCountries('exit'),
     CountryCacheDuration,
+    [vpnMode],
   );
 
-  const fetchCountries = useCallback(async (node: NodeHop) => {
-    try {
-      const countries = await invoke<Country[]>('get_countries', {
-        nodeType: node === 'entry' ? 'Entry' : 'Exit',
-      });
-      dispatch({
-        type: 'set-country-list',
-        payload: {
-          hop: node,
-          countries,
-        },
-      });
-      // reset any previous error
-      dispatch({
-        type:
-          node === 'entry'
-            ? 'set-entry-countries-error'
-            : 'set-exit-countries-error',
-        payload: null,
-      });
-    } catch (e) {
-      console.warn(`Failed to fetch ${node} countries:`, e);
-      dispatch({
-        type:
-          node === 'entry'
-            ? 'set-entry-countries-error'
-            : 'set-exit-countries-error',
-        payload: e as BackendError,
-      });
-    }
-  }, []);
+  const fetchWgCountries = useThrottle(
+    // does not matter if entry or exit, the list is the same
+    async () => fetchCountries('entry'),
+    CountryCacheDuration,
+    [vpnMode],
+  );
+
+  const fetchCountries = useCallback(
+    async (node: NodeHop) => {
+      try {
+        const countries = await invoke<Country[]>('get_countries', {
+          vpnMode,
+          nodeType: node === 'entry' ? 'Entry' : 'Exit',
+        });
+        if (vpnMode === 'Mixnet') {
+          dispatch({
+            type: 'set-country-list',
+            payload: {
+              hop: node,
+              countries,
+            },
+          });
+          // reset any previous error
+          dispatch({
+            type:
+              node === 'entry'
+                ? 'set-entry-countries-error'
+                : 'set-exit-countries-error',
+            payload: null,
+          });
+        } else {
+          // in 2hop mode, the country list is the same for both entry and exit
+          dispatch({
+            type: 'set-fast-country-list',
+            payload: {
+              countries,
+            },
+          });
+          dispatch({
+            type: 'set-entry-countries-error',
+            payload: null,
+          });
+          dispatch({
+            type: 'set-exit-countries-error',
+            payload: null,
+          });
+        }
+      } catch (e) {
+        console.warn(`Failed to fetch ${node} countries:`, e);
+        dispatch({
+          type:
+            node === 'entry'
+              ? 'set-entry-countries-error'
+              : 'set-exit-countries-error',
+          payload: e as BackendError,
+        });
+      }
+    },
+    [vpnMode],
+  );
 
   const checkSelectedCountry = useCallback(
     async (hop: NodeHop, countries: Country[], selected: NodeLocation) => {
@@ -186,7 +232,12 @@ function MainStateProvider({ children }: Props) {
 
   return (
     <MainStateContext.Provider
-      value={{ ...state, fetchEntryCountries, fetchExitCountries }}
+      value={{
+        ...state,
+        fetchMxEntryCountries,
+        fetchMxExitCountries,
+        fetchWgCountries,
+      }}
     >
       <MainDispatchContext.Provider value={dispatch}>
         {children}
