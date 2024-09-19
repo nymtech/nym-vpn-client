@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Updates the lib and daemon in the iOS+macOS project
+# Example:
+# nym-vpn-apple/Scripts$ ./Scripts/UpdateCore.sh 0.2.1
+# Must be run from nym-vpn-apple/Scripts.
+
 # Global error handling
 set -e  # Exit immediately on non-zero status return
 set -u  # Treat unset variables as errors
@@ -142,6 +147,8 @@ else
     echo "Error: HelperManager.swift file not found at $helper_manager_file"
     exit 1
 fi
+
+sh UpdateDaemonInfoPlist.sh ${VERSION}
 
 # Remove the downloaded source zip file and extracted folder
 rm -f "nym-vpn-core-v${VERSION}.zip"
