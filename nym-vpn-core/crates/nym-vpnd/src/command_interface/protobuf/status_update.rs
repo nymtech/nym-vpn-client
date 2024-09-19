@@ -111,7 +111,7 @@ pub(crate) fn status_update_from_bandwidth_status_message_legacy(
         nym_bandwidth_controller_pre_ecash::BandwidthStatusMessage::RemainingBandwidth(amount) => {
             ConnectionStatusUpdate {
                 kind: StatusType::RemainingBandwidth as i32,
-                internal: status.to_string(),
+                message: status.to_string(),
                 details: maplit::hashmap! {
                     "amount".to_string() => amount.to_string(),
                 },
@@ -120,7 +120,7 @@ pub(crate) fn status_update_from_bandwidth_status_message_legacy(
         nym_bandwidth_controller_pre_ecash::BandwidthStatusMessage::NoBandwidth => {
             ConnectionStatusUpdate {
                 kind: StatusType::NoBandwidth as i32,
-                internal: status.to_string(),
+                message: status.to_string(),
                 details: Default::default(),
             }
         }
