@@ -41,9 +41,15 @@ impl VpnServiceExitListener {
                             .map(ConnectionFailedError::from);
 
                         // If None, try to cast to nym_wg_gateway_client::Error since we are
-                        // sending error events from that task.
-                        // NOTE: man we are really twisting the arm of the error handling here,
-                        // this is not good.
+                        // sending error `OutOfBandwidth` events from that task.
+                        //
+                        // NOTE: man this is nasty and we are really twisting the arm of the error
+                        // handling here, this is not good.
+                        //
+                        // We can't reuse the `From` error conversions because in this case the
+                        // error has not passed back up through the higher layers where it gets
+                        // wrapped in the appropriate wrapping type and its associated context.
+                        // Instead we construct the final connection failed error directly
                         let vpn_lib_err = vpn_lib_err.or_else(|| {
                             err.downcast_ref::<nym_vpn_lib::wg_gateway_client::Error>()
                                 .map(|err| match err {
