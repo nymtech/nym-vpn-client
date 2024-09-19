@@ -49,7 +49,7 @@ jobs:
 
       - name: Update nym-vpn-apple to use latest core
         run: |
-          ./script/update-nym-vpn-apple-to-latest-core.sh
+          ./scripts/update-nym-vpn-apple-to-latest-core.sh
           git diff || echo "No changes detected"
 
       - name: Build nym-vpn-core (native)
