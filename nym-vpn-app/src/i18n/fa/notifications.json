@@ -1,1 +1,5 @@
-{}
+{
+  "vpn-tunnel-state": {
+    "connected": "تونل VPN متصل شد"
+  }
+}

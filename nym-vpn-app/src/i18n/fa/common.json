@@ -2,7 +2,7 @@
   "disconnect": "قطع",
   "feedback": "بازخورد",
   "support": "پشتیبانی",
-  "sentry": "نگهبان",
+  "sentry": "Sentry",
   "legal": "حقوقی",
   "connect": "اتصال",
   "logs": "گزارش‌ها",
@@ -14,5 +14,9 @@
   "fastest": "سریع‌ترین",
   "notifications": "اعلان‌ها",
   "appearance": "نمای ظاهری",
-  "language": "زبان"
+  "language": "زبان",
+  "vpn-modes": {
+    "privacy": "ناشناس",
+    "fast": "سریع"
+  }
 }

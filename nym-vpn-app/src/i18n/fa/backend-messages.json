@@ -1,1 +1,5 @@
-{}
+{
+  "connection-progress": {
+    "Initializing": "در حال آماده‌سازی مشترک NymVPN …"
+  }
+}
