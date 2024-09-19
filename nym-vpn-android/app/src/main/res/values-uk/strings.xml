@@ -5,8 +5,8 @@
     <string name="connected">Підключено</string>
     <string name="disconnected">Від\'єднано</string>
     <string name="connecting">Підключення</string>
-    <string name="five_hop_mixnet">Анонімний</string>
-    <string name="two_hop_mixnet">Швидкий</string>
+    <string name="five_hop_mixnet">Анонімний (mixnet)</string>
+    <string name="two_hop_mixnet">Швидкий (WireGuard)</string>
     <string name="first_hop">Перша ланка</string>
     <string name="last_hop">Остання ланка</string>
     <string name="connect">Підключитись</string>
@@ -72,7 +72,7 @@
     <string name="opt_in_message_first">Погодитись на анонімний моніторинг помилок</string>
     <string name="opt_in_message_second">та аналітику - ви можете відмовитися в будь-який момент.</string>
     <string name="thanks_for_support">Дякуємо за вашу підтримку!</string>
-    <string name="to_alpha">до NymVPN alpha</string>
+    <string name="to_alpha">до NymVPN beta</string>
     <string name="welcome">Привіт</string>
     <string name="cont">Продовжити</string>
     <string name="and_acknowledge">з політикою конфіденційності NymVPN</string>
@@ -113,10 +113,10 @@
     <string name="anonymous_analytics_description">Допоможіть нам покращити NymVPN</string>
     <string name="permission_message">Щоб забезпечити коректну роботу додатку на вашому пристрої, будь ласка, надайте наступні дозволи.</string>
     <string name="open_github">Відкрити GitHub запит</string>
-    <string name="credential_disclaimer">Щоб згенерувати нові облікові дані, скористайтеся посиланням, наданим в електронному запрошенні на альфа-етап.</string>
+    <string name="credential_disclaimer">Використайте свої облікові дані, а потім вставте або відскануйте QR-код. Не маєте облікового запису? Зареєструйтесь на nymvpn.com, щоб отримати його миттєво.</string>
     <string name="join_discord">Приєднатись в Discord</string>
     <string name="error_reporting_alert">Зміни про помилку наберуть чинності після перезавантаження додатку.</string>
-    <string name="alpha_help_message">Допоможіть нам вдосконалити наш додаток під час альфа-тесту! Ваші відгуки мають вирішальне значення для виявлення та вирішення проблем.</string>
+    <string name="alpha_help_message">Допоможіть нам вдосконалити наш додаток під час бета-тесту! Ваші відгуки мають вирішальне значення для виявлення та вирішення проблем.</string>
     <string name="disabled_while_connected">Вимкнено при підключенні до VPN</string>
     <string name="error_gateway_lookup">Не вдалося знайти шлюзи Nym. Будь ласка, перевірте підключення до мережі та спробуйте ще раз.</string>
     <string name="select_mode">Вибір режиму</string>
@@ -142,4 +142,23 @@
     <string name="always_on_disbled">Постійно ввімкнений VPN вимкнено</string>
     <string name="always_on_message">Не працює? Переконайтеся, що Always-on VPN вимкнено для інших програм у</string>
     <string name="vpn_settings">налаштуваннях системи VPN</string>
+    <string name="network_error">Виникла проблема з підключенням до мережі. Будь ласка, перевірте підключення до мережі та спробуйте ще раз.</string>
+    <string name="share">Поділіться</string>
+    <string name="delete_logs_title">Ви впевнені, що хочете видалити всі журнали?</string>
+    <string name="out_of_bandwidth_error">Досягнуто обмеження пропускної здатності облікових даних.</string>
+    <string name="internal_error">Виникла помилка внутрішнього тунелю. Будь ласка, спробуйте ще раз.</string>
+    <string name="connection_failed">Не вдалося встановити з\'єднання</string>
+    <string name="vpn_permission_missing">Дозвіл на Vpn не прийнято або він використовується іншою програмою.</string>
+    <string name="delete">Видалити</string>
+    <string name="delete_logs_description">Після видалення журнали не можна буде відновити.</string>
+    <string name="no">Ні</string>
+    <string name="yes">Так</string>
+    <string name="gateway_error">Не вдалося підключитися до шлюзу. Спробуйте ще раз або виберіть нове розташування шлюзу.</string>
+    <string name="state_error">"Цього не повинно статись, але сталась помилка. Будь ласка, перезапустіть програму і спробуйте ще раз. "</string>
+    <string name="vpn_alerts_channel_id">Канал сповіщень NymVPN</string>
+    <string name="vpn_alerts_channel_description">Канал для сповіщень про тривоги, пов\'язані з додатками.</string>
+    <string name="bandwidth_alert">Попередження про пропускну здатність</string>
+    <string name="no_bandwidth">Пропускної здатності не залишилося.</string>
+    <string name="low_bandwidth">"Низька пропускна здатність! Смуга пропускання залишилася: "</string>
+    <string name="credential_already_imported">Облікові дані вже імпортовані.</string>
 </resources>
