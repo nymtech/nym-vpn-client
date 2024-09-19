@@ -47,6 +47,11 @@ jobs:
           name: ${{ env.WG_GO_LIB_NAME }}
           path: ${{ env.WG_GO_LIB_PATH }}
 
+      - name: Update nym-vpn-apple to use latest core
+        run: |
+          ./script/update-nym-vpn-apple-to-latest-core.sh
+          git diff || echo "No changes detected"
+
       - name: Build nym-vpn-core (native)
         working-directory: nym-vpn-core
         env:
