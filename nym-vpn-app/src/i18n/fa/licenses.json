@@ -1,5 +1,10 @@
 {
   "authors": "نویسندگان",
   "licenses": "مجوزها",
-  "license-texts": "متن‌های مجوز"
+  "license-texts": "متن‌های مجوز",
+  "name": "نام",
+  "language": "زبان برنامه‌نویسی",
+  "version": "نسخه",
+  "repository": "انبار (repository)",
+  "no-data": "اطلاعات مجوز موجود نیست"
 }
