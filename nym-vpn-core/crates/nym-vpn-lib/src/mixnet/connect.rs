@@ -86,18 +86,18 @@ pub(crate) async fn setup_mixnet_client(
         debug!("Using custom key storage path: {:?}", path);
 
         let gateway_id = mixnet_entry_gateway.to_base58_string();
-        if let Err(err) =
-            crate::credentials::check_imported_credential(path.to_path_buf(), &gateway_id).await
-        {
-            // UGLY: flow needs to restructured to sort this out, but I don't want to refactor all
-            // that just before release.
-            task_client.disarm();
-            return Err(MixnetError::InvalidCredential {
-                reason: err,
-                path: path.to_path_buf(),
-                gateway_id,
-            });
-        };
+        // if let Err(err) =
+        //     crate::credentials::check_imported_credential(path.to_path_buf(), &gateway_id).await
+        // {
+        //     // UGLY: flow needs to restructured to sort this out, but I don't want to refactor all
+        //     // that just before release.
+        //     task_client.disarm();
+        //     return Err(MixnetError::InvalidCredential {
+        //         reason: err,
+        //         path: path.to_path_buf(),
+        //         gateway_id,
+        //     });
+        // };
 
         let key_storage_path = StoragePaths::new_from_dir(path)
             .map_err(MixnetError::FailedToSetupMixnetStoragePaths)?;

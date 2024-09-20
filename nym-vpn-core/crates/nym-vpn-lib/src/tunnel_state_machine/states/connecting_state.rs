@@ -1,4 +1,4 @@
-#[cfg(not(target_os = "linux"))]
+// #[cfg(not(target_os = "linux"))]
 use std::net::IpAddr;
 
 use futures::{
@@ -100,13 +100,15 @@ impl ConnectingState {
             &tun_name,
             #[cfg(target_os = "linux")]
             shared_mixnet_client,
-            #[cfg(not(target_os = "linux"))]
+            // #[cfg(not(target_os = "linux"))]
             connected_tunnel.entry_mixnet_gateway_ip(),
             enable_ipv6,
             shared_state,
         )
         .await?;
-        Self::set_dns(&tun_name, shared_state)?;
+
+        tokio::task::block_in_place(move || Self::set_dns(&tun_name, shared_state)).unwrap();
+        // Self::set_dns(&tun_name, shared_state)?;
 
         Ok(connected_tunnel.run(tun_device).await)
     }
@@ -149,18 +151,19 @@ impl ConnectingState {
     async fn set_routes(
         tun_name: &str,
         #[cfg(target_os = "linux")] shared_mixnet_client: SharedMixnetClient,
-        #[cfg(not(target_os = "linux"))] entry_mixnet_gateway_ip: IpAddr,
+        // #[cfg(not(target_os = "linux"))] entry_mixnet_gateway_ip: IpAddr,
+        entry_mixnet_gateway_ip: IpAddr,
         enable_ipv6: bool,
         shared_state: &mut SharedState,
     ) -> Result<()> {
         #[cfg(target_os = "linux")]
-        self.set_mixnet_client_fwmark(shared_mixnet_client);
+        Self::set_mixnet_client_fwmark(shared_mixnet_client);
 
         shared_state
             .route_handler
             .add_routes(
                 tun_name,
-                #[cfg(not(target_os = "linux"))]
+                // #[cfg(not(target_os = "linux"))]
                 entry_mixnet_gateway_ip,
                 enable_ipv6,
             )
@@ -180,8 +183,8 @@ impl ConnectingState {
             .mtu(i32::from(mtu))
             .up();
 
-        #[cfg(target_os = "linux")]
-        tun_config.platform(|platform_config| platform_config.packet_information(false));
+        // #[cfg(target_os = "linux")]
+        // tun_config.platform(|platform_config| platform_config.packet_information(false));
 
         let tun_device = tun::create_as_async(&tun_config).map_err(Error::CreateTunDevice)?;
 

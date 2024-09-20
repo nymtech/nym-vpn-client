@@ -218,6 +218,8 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> anyhow:
         tokio::select! {
             event = event_rx.recv() => {
                 tracing::info!("Received event: {:?}", event);
+                // break;
+                tokio::time::sleep(std::time::Duration::from_secs(1)).await;
             }
             _ = shutdown_token.cancelled() => {
                 tracing::info!("Cancellation received. Breaking event loop.");

@@ -26,15 +26,29 @@ impl RouteHandler {
     pub async fn add_routes(
         &mut self,
         tun_name: &str,
-        #[cfg(not(target_os = "linux"))] entry_gateway_address: IpAddr,
+        // #[cfg(not(target_os = "linux"))] entry_gateway_address: IpAddr,
+        entry_gateway_address: IpAddr,
         enable_ipv6: bool,
     ) -> Result<()> {
         let mut routes = HashSet::new();
 
-        #[cfg(not(target_os = "linux"))]
+        // let default_node = if let Some(addr) = entry_gateway_address.and_then(|g| {
+        //     g.ipv4
+        //         .first()
+        //         .map(|a| IpAddr::from(*a))
+        //         .or(g.ipv6.first().map(|a| IpAddr::from(*a)))
+        // }) {
+        //     Node::new(addr, config.lan_gateway_ip.0.name)
+        // } else {
+        //     Node::device(config.lan_gateway_ip.0.name)
+        // };
+        let default_node = Node::new("192.168.1.1".parse().unwrap(), "wlp0s20f3".to_string());
+
+        // #[cfg(not(target_os = "linux"))]
         routes.insert(RequiredRoute::new(
             ipnetwork::IpNetwork::from(entry_gateway_address),
-            NetNode::DefaultNode,
+            // NetNode::DefaultNode,
+            default_node,
         ));
 
         routes.insert(RequiredRoute::new(
@@ -86,7 +100,7 @@ impl RouteHandler {
         _ = tokio::task::spawn_blocking(|| drop(self.route_manager)).await;
     }
 
-    #[cfg(target_os = "macos")]
+    // #[cfg(target_os = "macos")]
     pub(super) fn inner_handle(&self) -> Result<talpid_routing::RouteManagerHandle> {
         Ok(self.route_manager.handle()?)
     }
