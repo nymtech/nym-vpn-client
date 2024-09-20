@@ -7,7 +7,7 @@ use nym_bandwidth_controller_pre_ecash::BandwidthStatusMessage as LegacyBandwidt
 use nym_task::StatusSender;
 use nym_vpn_lib::{
     connection_monitor::ConnectionMonitorStatus, NymVpnStatusMessage, SentStatus, StatusReceiver,
-    TaskStatus,
+    TaskStatus, WgTunnelErrorEvent,
 };
 use time::OffsetDateTime;
 use tracing::{debug, info};
@@ -81,6 +81,8 @@ impl VpnServiceStatusListener {
             info!("VPN bandwidth status: monitor status: {msg}");
         } else if let Some(msg) = msg.downcast_ref::<LegacyBandwidthStatusMessage>() {
             info!("VPN bandwidth status (legacy): monitor status: {msg}");
+        } else if let Some(msg) = msg.downcast_ref::<WgTunnelErrorEvent>() {
+            info!("VPN error status: {msg}");
         } else {
             tracing::warn!("VPN status: unknown: {msg}");
             tracing::warn!("{msg:#?}");

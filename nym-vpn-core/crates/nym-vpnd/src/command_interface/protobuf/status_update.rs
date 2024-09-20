@@ -127,3 +127,13 @@ pub(crate) fn status_update_from_bandwidth_status_message_legacy(
         }
     }
 }
+
+pub(crate) fn status_update_from_wg_tunnel_error_event(
+    status: &nym_vpn_lib::WgTunnelErrorEvent,
+) -> ConnectionStatusUpdate {
+    ConnectionStatusUpdate {
+        kind: StatusType::WgTunnelError as i32,
+        message: status.to_string(),
+        details: Default::default(),
+    }
+}

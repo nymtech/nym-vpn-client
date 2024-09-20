@@ -3,7 +3,7 @@
 
 use std::{
     collections::HashSet,
-    path::{Path, PathBuf},
+    path::Path,
     sync::{Arc, Mutex},
 };
 
@@ -15,7 +15,7 @@ use talpid_tunnel::{tun_provider::TunProvider, TunnelArgs, TunnelEvent};
 use talpid_wireguard::{config::Config, WireguardMonitor};
 use tokio::task::JoinHandle;
 
-use crate::wireguard_config::WireguardConfig;
+use crate::{wireguard_config::WireguardConfig, WgTunnelErrorEvent};
 
 pub(crate) type EventReceiver = mpsc::UnboundedReceiver<(TunnelEvent, Sender<()>)>;
 
@@ -37,22 +37,6 @@ impl Tunnel {
             tun_provider,
         }
     }
-}
-
-// Wrap status events to make it easier to catch and downcast them in the status listener
-#[derive(Debug, thiserror::Error)]
-pub enum WgTunnelErrorEvent {
-    #[error("failed to create dir {path}: {source}")]
-    CreateDir {
-        path: PathBuf,
-        source: std::io::Error,
-    },
-
-    #[error("failed to start wireguard monitor: {0}")]
-    WireguardMonitor(#[source] talpid_wireguard::Error),
-
-    #[error("failed to send shutdown message to wireguard tunnel")]
-    SendWireguardShutdown,
 }
 
 pub(crate) fn start_tunnel(
@@ -85,12 +69,13 @@ pub(crate) fn start_tunnel(
             resource_dir = resource_dir.join(id);
         }
         if let Err(e) = std::fs::create_dir_all(&resource_dir) {
-            let error_event = WgTunnelErrorEvent::CreateDir {
-                path: resource_dir.clone(),
-                source: e,
-            };
-            tracing::error!("{error_event}");
-            shutdown.send_status_msg(Box::new(error_event));
+            send_error_event(
+                &mut shutdown,
+                WgTunnelErrorEvent::CreateDir {
+                    path: resource_dir.clone(),
+                    source: e,
+                },
+            );
             return;
         }
         debug!("Tunnel resource dir: {:?}", resource_dir);
@@ -111,22 +96,16 @@ pub(crate) fn start_tunnel(
         ) {
             Ok(monitor) => monitor,
             Err(e) => {
-                let error_event = WgTunnelErrorEvent::WireguardMonitor(e);
-                tracing::error!("{error_event}");
-                shutdown.send_status_msg(Box::new(error_event));
+                send_error_event(&mut shutdown, WgTunnelErrorEvent::WireguardMonitor(e));
                 return;
             }
         };
         debug!("Wireguard monitor started, blocking current thread until shutdown");
         if let Err(e) = monitor.wait() {
-            let error_event = WgTunnelErrorEvent::WireguardMonitor(e);
-            tracing::error!("{error_event}");
-            shutdown.send_status_msg(Box::new(error_event));
+            send_error_event(&mut shutdown, WgTunnelErrorEvent::WireguardMonitor(e));
         } else {
             if finished_shutdown_tx.send(()).is_err() {
-                let status_msg = WgTunnelErrorEvent::SendWireguardShutdown;
-                tracing::error!("{status_msg}");
-                shutdown.send_status_msg(Box::new(status_msg));
+                send_error_event(&mut shutdown, WgTunnelErrorEvent::SendWireguardShutdown);
             }
             debug!("Sent shutdown message");
         }
@@ -136,10 +115,13 @@ pub(crate) fn start_tunnel(
     Ok((handle, event_rx, tunnel_close_tx))
 }
 
-// fn send_error_event(&mut task_manager: TaskManager, error: WgTunnelErrorEvent) {
-//     tracing::error!("{status_msg}");
-//     task_manager.send_status_msg(Box::new(status_msg));
-// }
+// Send error events to to the status listener. We're doing this because at this point in
+// the connection process there is no exit listener listening. Ideally this will be
+// refactored and handled through the JoinHandle once the state machine is implemented.
+fn send_error_event(task_client: &mut TaskClient, error_event: WgTunnelErrorEvent) {
+    tracing::error!("{error_event}");
+    task_client.send_status_msg(Box::new(error_event));
+}
 
 pub(crate) async fn setup_route_manager() -> crate::error::Result<RouteManager> {
     #[cfg(target_os = "linux")]

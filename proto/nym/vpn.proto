@@ -184,6 +184,10 @@ message ConnectionStatusUpdate {
 
     // The user has run out of available bandwidth
     NO_BANDWIDTH = 13;
+
+    // Wireguard tunnel errors sent through the status channel. This error case
+    // will go away in the future.
+    WG_TUNNEL_ERROR = 14;
   }
 
   StatusType kind = 1;
