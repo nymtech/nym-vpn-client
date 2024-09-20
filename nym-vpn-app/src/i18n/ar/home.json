@@ -7,5 +7,7 @@
   },
   "privacy-mode": {
     "title": "مجهول (mixnet)"
-  }
+  },
+  "connect": "اتصل",
+  "disconnect": "ألغاء الاتصال"
 }
