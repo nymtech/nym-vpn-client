@@ -9,6 +9,7 @@ pub mod util;
 
 mod bandwidth_controller;
 mod error;
+mod event;
 mod mixnet;
 #[cfg(any(target_os = "ios", target_os = "android"))]
 mod mobile;
@@ -45,6 +46,7 @@ pub use nym_wg_gateway_client as wg_gateway_client;
 pub use crate::platform::swift;
 pub use crate::{
     error::{Error, GatewayDirectoryError, SetupMixTunnelError, SetupWgTunnelError},
+    event::WgTunnelErrorEvent,
     mixnet::MixnetError,
     vpn::{
         spawn_nym_vpn, spawn_nym_vpn_with_new_runtime, GenericNymVpnConfig, MixnetClientConfig,

@@ -1,7 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_bandwidth_controller_pre_ecash::BandwidthStatusMessage;
+use nym_bandwidth_controller::BandwidthStatusMessage;
+use nym_bandwidth_controller_pre_ecash::BandwidthStatusMessage as LegacyBandwidthStatusMessage;
 use nym_vpn_lib::{connection_monitor::ConnectionMonitorStatus, NymVpnStatusMessage};
 use nym_vpn_proto::{connection_status_update::StatusType, ConnectionStatusUpdate};
 
@@ -100,5 +101,35 @@ pub(crate) fn status_update_from_bandwidth_status_message(
             message: status.to_string(),
             details: Default::default(),
         },
+    }
+}
+
+// Temporary while we depend on a pre-cash rev of the bandwidth controller
+pub(crate) fn status_update_from_bandwidth_status_message_legacy(
+    status: &LegacyBandwidthStatusMessage,
+) -> ConnectionStatusUpdate {
+    match status {
+        LegacyBandwidthStatusMessage::RemainingBandwidth(amount) => ConnectionStatusUpdate {
+            kind: StatusType::RemainingBandwidth as i32,
+            message: status.to_string(),
+            details: maplit::hashmap! {
+                "amount".to_string() => amount.to_string(),
+            },
+        },
+        LegacyBandwidthStatusMessage::NoBandwidth => ConnectionStatusUpdate {
+            kind: StatusType::NoBandwidth as i32,
+            message: status.to_string(),
+            details: Default::default(),
+        },
+    }
+}
+
+pub(crate) fn status_update_from_wg_tunnel_error_event(
+    status: &nym_vpn_lib::WgTunnelErrorEvent,
+) -> ConnectionStatusUpdate {
+    ConnectionStatusUpdate {
+        kind: StatusType::WgTunnelError as i32,
+        message: status.to_string(),
+        details: Default::default(),
     }
 }

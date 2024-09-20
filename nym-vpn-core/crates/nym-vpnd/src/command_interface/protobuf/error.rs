@@ -69,6 +69,13 @@ impl From<ConnectionFailedError> for ProtoError {
                     "reason".to_string() => reason.clone(),
                 },
             },
+            ConnectionFailedError::UnhandledExit(ref reason) => ProtoError {
+                kind: ErrorType::UnhandledExit as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.clone(),
+                },
+            },
             ConnectionFailedError::InternalError(ref reason) => ProtoError {
                 kind: ErrorType::Internal as i32,
                 message: err.to_string(),

@@ -75,6 +75,9 @@ pub enum ConnectionFailedError {
     #[error("failed to connect (unhandled): {0}")]
     Unhandled(String),
 
+    #[error("failed to connect (unhandled exit): {0}")]
+    UnhandledExit(String),
+
     // Errors that happen, that shouldn't ever really happen
     #[error("internal error occurred: {0}")]
     InternalError(String),
@@ -379,10 +382,6 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                     authenticator_address,
                     source,
                 } => match source {
-                    WgGatewayClientError::OutOfBandwidth => ConnectionFailedError::OutOfBandwidth {
-                        gateway_id: gateway_id.clone(),
-                        authenticator_address: authenticator_address.clone(),
-                    },
                     WgGatewayClientError::AuthenticatorClientError(auth_err) => match auth_err {
                         AuthenticatorClientError::TimeoutWaitingForConnectResponse => {
                             ConnectionFailedError::TimeoutWaitingForConnectResponseFromAuthenticator {
@@ -570,6 +569,20 @@ impl From<&nym_vpn_lib::GatewayDirectoryError> for ConnectionFailedError {
                     requested_location: requested_location.clone(),
                 }
             }
+        }
+    }
+}
+
+impl From<&nym_vpn_lib::wg_gateway_client::ErrorMessage> for ConnectionFailedError {
+    fn from(err: &nym_vpn_lib::wg_gateway_client::ErrorMessage) -> Self {
+        match err {
+            nym_vpn_lib::wg_gateway_client::ErrorMessage::OutOfBandwidth {
+                gateway_id,
+                authenticator_address,
+            } => ConnectionFailedError::OutOfBandwidth {
+                gateway_id: gateway_id.clone(),
+                authenticator_address: authenticator_address.clone(),
+            },
         }
     }
 }

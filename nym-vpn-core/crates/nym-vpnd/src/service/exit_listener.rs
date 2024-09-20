@@ -40,9 +40,18 @@ impl VpnServiceExitListener {
                             .downcast_ref::<nym_vpn_lib::Error>()
                             .map(ConnectionFailedError::from);
 
+                        // If not, try to downcast to ErrorMessage that is sent from
+                        // nym_wg_gateway_client.
+                        let vpn_lib_err = vpn_lib_err.or(err
+                            .downcast_ref::<nym_vpn_lib::wg_gateway_client::ErrorMessage>()
+                            .map(ConnectionFailedError::from));
+
                         let connection_failed_err = match vpn_lib_err {
                             Some(vpn_lib_err) => vpn_lib_err,
-                            None => ConnectionFailedError::Unhandled(err.to_string()),
+                            None => {
+                                tracing::warn!("unknown error type: {err:#?}");
+                                ConnectionFailedError::UnhandledExit(err.to_string())
+                            }
                         };
 
                         self.shared_vpn_state

@@ -10,7 +10,7 @@ use std::{
     time::Duration,
 };
 
-pub use error::Error;
+pub use error::{Error, ErrorMessage};
 use nym_authenticator_client::AuthClient;
 use nym_authenticator_requests::v1::response::{
     AuthenticatorResponseData, PendingRegistrationResponse, RegisteredResponse,
@@ -247,7 +247,11 @@ impl WgGatewayClient {
                                     timeout_check_interval.next().await;
                                 }
                                 None => {
-                                    shutdown.send_we_stopped(Box::new(Error::OutOfBandwidth));
+                                    // TODO: try to return this error in the JoinHandle instead
+                                    shutdown.send_we_stopped(Box::new(ErrorMessage::OutOfBandwidth {
+                                        gateway_id: Box::new(*self.auth_recipient.gateway()),
+                                        authenticator_address: Box::new(self.auth_recipient),
+                                    }));
                                 }
                             }
                         },
