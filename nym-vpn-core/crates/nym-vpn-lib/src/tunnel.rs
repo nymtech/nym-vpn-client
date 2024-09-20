@@ -3,7 +3,7 @@
 
 use std::{
     collections::HashSet,
-    path::Path,
+    path::{Path, PathBuf},
     sync::{Arc, Mutex},
 };
 
@@ -39,6 +39,22 @@ impl Tunnel {
     }
 }
 
+// Wrap status events to make it easier to catch and downcast them in the status listener
+#[derive(Debug, thiserror::Error)]
+pub enum WgTunnelErrorEvent {
+    #[error("failed to create dir {path}: {source}")]
+    CreateDir {
+        path: PathBuf,
+        source: std::io::Error,
+    },
+
+    #[error("failed to start wireguard monitor: {0}")]
+    WireguardMonitor(#[source] talpid_wireguard::Error),
+
+    #[error("failed to send shutdown message to wireguard tunnel")]
+    SendWireguardShutdown,
+}
+
 pub(crate) fn start_tunnel(
     tunnel: &Tunnel,
     mut shutdown: TaskClient,
@@ -69,8 +85,12 @@ pub(crate) fn start_tunnel(
             resource_dir = resource_dir.join(id);
         }
         if let Err(e) = std::fs::create_dir_all(&resource_dir) {
-            tracing::error!("Sending: {e}");
-            shutdown.send_status_msg(Box::new(e));
+            let error_event = WgTunnelErrorEvent::CreateDir {
+                path: resource_dir.clone(),
+                source: e,
+            };
+            tracing::error!("{error_event}");
+            shutdown.send_status_msg(Box::new(error_event));
             return;
         }
         debug!("Tunnel resource dir: {:?}", resource_dir);
@@ -91,20 +111,21 @@ pub(crate) fn start_tunnel(
         ) {
             Ok(monitor) => monitor,
             Err(e) => {
-                tracing::error!("Sending: {e}");
-                shutdown.send_status_msg(Box::new(e));
+                let error_event = WgTunnelErrorEvent::WireguardMonitor(e);
+                tracing::error!("{error_event}");
+                shutdown.send_status_msg(Box::new(error_event));
                 return;
             }
         };
         debug!("Wireguard monitor started, blocking current thread until shutdown");
         if let Err(e) = monitor.wait() {
-            error!("Tunnel disconnected with error: {e}");
-            tracing::error!("Sending: {e}");
-            shutdown.send_status_msg(Box::new(e));
+            let error_event = WgTunnelErrorEvent::WireguardMonitor(e);
+            tracing::error!("{error_event}");
+            shutdown.send_status_msg(Box::new(error_event));
         } else {
             if finished_shutdown_tx.send(()).is_err() {
-                let status_msg = crate::error::Error::FailedToSendWireguardShutdown;
-                tracing::error!("Sending: {status_msg}");
+                let status_msg = WgTunnelErrorEvent::SendWireguardShutdown;
+                tracing::error!("{status_msg}");
                 shutdown.send_status_msg(Box::new(status_msg));
             }
             debug!("Sent shutdown message");
@@ -114,6 +135,11 @@ pub(crate) fn start_tunnel(
 
     Ok((handle, event_rx, tunnel_close_tx))
 }
+
+// fn send_error_event(&mut task_manager: TaskManager, error: WgTunnelErrorEvent) {
+//     tracing::error!("{status_msg}");
+//     task_manager.send_status_msg(Box::new(status_msg));
+// }
 
 pub(crate) async fn setup_route_manager() -> crate::error::Result<RouteManager> {
     #[cfg(target_os = "linux")]
