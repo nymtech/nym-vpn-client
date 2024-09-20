@@ -166,9 +166,39 @@ async fn setup_wg_tunnel(
     )
     .await?;
 
-    if wg_entry_gateway_client.suspended().await? || wg_exit_gateway_client.suspended().await? {
-        return Err(SetupWgTunnelError::NotEnoughBandwidthToSetupTunnel);
+    let wg_entry_gateway_client_suspended =
+        wg_entry_gateway_client
+            .suspended()
+            .await
+            .map_err(|source| SetupWgTunnelError::WgGatewayClientError {
+                gateway_id: Box::new(*entry_auth_recipient.gateway()),
+                authenticator_address: Box::new(entry_auth_recipient),
+                source,
+            })?;
+
+    if wg_entry_gateway_client_suspended {
+        return Err(SetupWgTunnelError::NotEnoughBandwidthToSetupTunnel {
+            gateway_id: Box::new(*entry_auth_recipient.gateway()),
+            authenticator_address: Box::new(entry_auth_recipient),
+        });
     }
+
+    let wg_exit_gateway_client_suspended =
+        wg_exit_gateway_client.suspended().await.map_err(|source| {
+            SetupWgTunnelError::WgGatewayClientError {
+                gateway_id: Box::new(*exit_auth_recipient.gateway()),
+                authenticator_address: Box::new(exit_auth_recipient),
+                source,
+            }
+        })?;
+
+    if wg_exit_gateway_client_suspended {
+        return Err(SetupWgTunnelError::NotEnoughBandwidthToSetupTunnel {
+            gateway_id: Box::new(*exit_auth_recipient.gateway()),
+            authenticator_address: Box::new(exit_auth_recipient),
+        });
+    }
+
     tokio::spawn(
         wg_entry_gateway_client.run(task_manager.subscribe_named("bandwidth_entry_client")),
     );
@@ -397,12 +427,17 @@ fn setup_auth_addresses(
     entry: &nym_gateway_directory::Gateway,
     exit: &nym_gateway_directory::Gateway,
 ) -> std::result::Result<AuthAddresses, SetupWgTunnelError> {
-    let entry_authenticator_address = entry
-        .authenticator_address
-        .ok_or(SetupWgTunnelError::AuthenticatorAddressNotFound)?;
-    let exit_authenticator_address = exit
-        .authenticator_address
-        .ok_or(SetupWgTunnelError::AuthenticatorAddressNotFound)?;
+    let entry_authenticator_address =
+        entry
+            .authenticator_address
+            .ok_or(SetupWgTunnelError::AuthenticatorAddressNotFound {
+                gateway_id: Box::new(*entry.identity()),
+            })?;
+    let exit_authenticator_address =
+        exit.authenticator_address
+            .ok_or(SetupWgTunnelError::AuthenticatorAddressNotFound {
+                gateway_id: Box::new(*exit.identity()),
+            })?;
     Ok(AuthAddresses::new(
         entry_authenticator_address,
         exit_authenticator_address,

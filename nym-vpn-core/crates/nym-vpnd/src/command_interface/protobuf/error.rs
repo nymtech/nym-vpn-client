@@ -69,6 +69,13 @@ impl From<ConnectionFailedError> for ProtoError {
                     "reason".to_string() => reason.clone(),
                 },
             },
+            ConnectionFailedError::InternalError(ref reason) => ProtoError {
+                kind: ErrorType::Internal as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.clone(),
+                },
+            },
             ConnectionFailedError::InvalidCredential {
                 reason,
                 location,
@@ -82,11 +89,6 @@ impl From<ConnectionFailedError> for ProtoError {
                 ]
                 .into_iter()
                 .collect(),
-            },
-            ConnectionFailedError::StartMixnetTimeout(timeout) => ProtoError {
-                kind: ErrorType::MixnetTimeout as i32,
-                message: timeout.to_string(),
-                details: Default::default(),
             },
             ConnectionFailedError::FailedToSetupMixnetStoragePaths { ref reason } => ProtoError {
                 kind: ErrorType::MixnetStoragePaths as i32,
@@ -129,12 +131,10 @@ impl From<ConnectionFailedError> for ProtoError {
                     "reason".to_string() => reason.to_string(),
                 },
             },
-            ConnectionFailedError::FailedToConnectToIpPacketRouter { ref reason } => ProtoError {
-                kind: ErrorType::IprFailedToConnect as i32,
-                message: err.to_string(),
-                details: hashmap! {
-                    "reason".to_string() => reason.to_string(),
-                },
+            ConnectionFailedError::StartMixnetTimeout(timeout) => ProtoError {
+                kind: ErrorType::MixnetTimeout as i32,
+                message: timeout.to_string(),
+                details: Default::default(),
             },
             ConnectionFailedError::FailedToSetupGatewayDirectoryClient {
                 ref config,
@@ -144,6 +144,119 @@ impl From<ConnectionFailedError> for ProtoError {
                 message: err.to_string(),
                 details: hashmap! {
                     "config".to_string() => config.to_string(),
+                    "reason".to_string() => reason.clone(),
+                },
+            },
+            ConnectionFailedError::FailedToConnectToIpPacketRouter { ref reason } => ProtoError {
+                kind: ErrorType::IprFailedToConnect as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::FailedToConnectToAuthenticator {
+                ref gateway_id,
+                ref authenticator_address,
+                ref reason,
+            } => ProtoError {
+                kind: ErrorType::AuthenticatorFailedToConnect as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "gateway_id".to_string() => gateway_id.to_string(),
+                    "authenticator_address".to_string() => authenticator_address.to_string(),
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::TimeoutWaitingForConnectResponseFromAuthenticator {
+                ref gateway_id,
+                ref authenticator_address,
+                ref reason,
+            } => ProtoError {
+                kind: ErrorType::AuthenticatorConnectTimeout as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "gateway_id".to_string() => gateway_id.to_string(),
+                    "authenticator_address".to_string() => authenticator_address.to_string(),
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::InvalidGatewayAuthResponse {
+                ref gateway_id,
+                ref authenticator_address,
+                ref reason,
+            } => ProtoError {
+                kind: ErrorType::AuthenticatorInvalidResponse as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "gateway_id".to_string() => gateway_id.to_string(),
+                    "authenticator_address".to_string() => authenticator_address.to_string(),
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::AuthenticatorRegistrationDataVerificationFailed {
+                ref reason,
+            } => ProtoError {
+                kind: ErrorType::AuthenticatorRegistrationDataVerification as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.clone(),
+                },
+            },
+            ConnectionFailedError::WgEntryGatewaySocketAddrFailedToParse { ref reason } => {
+                ProtoError {
+                    kind: ErrorType::AuthenticatorEntryGatewaySocketAddr as i32,
+                    message: err.to_string(),
+                    details: hashmap! {
+                        "reason".to_string() => reason.clone(),
+                    },
+                }
+            }
+            ConnectionFailedError::WgEntryGatewayIpv4FailedToParse { ref reason } => ProtoError {
+                kind: ErrorType::AuthenticatorEntryGatewayIpv4 as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.clone(),
+                },
+            },
+            ConnectionFailedError::AuthenticatorRespondedWithWrongVersion {
+                ref expected,
+                ref received,
+                ref gateway_id,
+                ref authenticator_address,
+            } => ProtoError {
+                kind: ErrorType::AuthenticatorWrongVersion as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "expected".to_string() => expected.to_string(),
+                    "received".to_string() => received.to_string(),
+                    "gateway_id".to_string() => gateway_id.to_string(),
+                    "authenticator_address".to_string() => authenticator_address.to_string(),
+                },
+            },
+            ConnectionFailedError::MailformedAuthenticatorReply {
+                ref gateway_id,
+                ref authenticator_address,
+                ref reason,
+            } => ProtoError {
+                kind: ErrorType::AuthenticatorMalformedReply as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "gateway_id".to_string() => gateway_id.to_string(),
+                    "authenticator_address".to_string() => authenticator_address.to_string(),
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::AuthenticatorAddressNotFound { ref gateway_id } => ProtoError {
+                kind: ErrorType::AuthenticatorAddressNotFound as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "gateway_id".to_string() => gateway_id.to_string(),
+                },
+            },
+            ConnectionFailedError::AuthenticationNotPossible { ref reason } => ProtoError {
+                kind: ErrorType::AuthenticatorAuthenticationNotPossible as i32,
+                message: err.to_string(),
+                details: hashmap! {
                     "reason".to_string() => reason.clone(),
                 },
             },
@@ -175,7 +288,7 @@ impl From<ConnectionFailedError> for ProtoError {
                 kind: ErrorType::GatewayDirectoryLookupIp as i32,
                 message: err.to_string(),
                 details: hashmap! {
-                    "gateway_id".to_string() => gateway_id.clone(),
+                    "gateway_id".to_string() => gateway_id.to_string(),
                     "reason".to_string() => reason.clone(),
                 },
             },
@@ -233,15 +346,27 @@ impl From<ConnectionFailedError> for ProtoError {
                     "requested_location".to_string() => requested_location.clone(),
                 },
             },
-            ConnectionFailedError::OutOfBandwidth => ProtoError {
+            ConnectionFailedError::OutOfBandwidth {
+                ref gateway_id,
+                ref authenticator_address,
+            } => ProtoError {
                 kind: ErrorType::OutOfBandwidth as i32,
                 message: err.to_string(),
-                details: hashmap! {},
+                details: hashmap! {
+                    "gateway_id".to_string() => gateway_id.to_string(),
+                    "authenticator_address".to_string() => authenticator_address.to_string(),
+                },
             },
-            ConnectionFailedError::OutOfBandwidthWhenSettingUpTunnel => ProtoError {
+            ConnectionFailedError::OutOfBandwidthWhenSettingUpTunnel {
+                ref gateway_id,
+                ref authenticator_address,
+            } => ProtoError {
                 kind: ErrorType::OutOfBandwidthWhenSettingUpTunnel as i32,
                 message: err.to_string(),
-                details: hashmap! {},
+                details: hashmap! {
+                    "gateway_id".to_string() => gateway_id.to_string(),
+                    "authenticator_address".to_string() => authenticator_address.to_string(),
+                },
             },
             ConnectionFailedError::FailedToBringInterfaceUp {
                 ref gateway_id,
@@ -286,6 +411,41 @@ impl From<ConnectionFailedError> for ProtoError {
             },
             ConnectionFailedError::FailedToFindTheDefaultInterface { ref reason } => ProtoError {
                 kind: ErrorType::FindDefaultInterface as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::FailedToAddIpv6Route { ref reason } => ProtoError {
+                kind: ErrorType::AddIpv6Route as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::TunError { ref reason } => ProtoError {
+                kind: ErrorType::Tun as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::RoutingError { ref reason } => ProtoError {
+                kind: ErrorType::Routing as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::WireguardConfigError { ref reason } => ProtoError {
+                kind: ErrorType::WireguardConfig as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::MixnetConnectionMonitorError(ref reason) => ProtoError {
+                kind: ErrorType::MixnetConnectionMonitor as i32,
                 message: err.to_string(),
                 details: hashmap! {
                     "reason".to_string() => reason.to_string(),

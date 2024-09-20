@@ -35,7 +35,13 @@ impl SharedMixnetClient {
     }
 
     pub async fn send(&self, msg: nym_sdk::mixnet::InputMessage) -> Result<()> {
-        self.lock().await.as_mut().unwrap().send(msg).await?;
+        self.lock()
+            .await
+            .as_mut()
+            .unwrap()
+            .send(msg)
+            .await
+            .map_err(Error::SendMixnetMessage)?;
         Ok(())
     }
 
@@ -95,7 +101,7 @@ impl AuthClient {
         // so that it doesn't interfere with message to the other gateway (entry/exit).
         let mut mixnet_client_handle = self.mixnet_client.lock().await;
         if mixnet_client_handle.is_none() {
-            return Err(Error::ShuttingDown);
+            return Err(Error::UnableToGetMixnetHandle);
         }
         let request_id = self
             .send_connect_request(message, authenticator_address)
@@ -131,7 +137,8 @@ impl AuthClient {
                 TransmissionLane::General,
                 None,
             ))
-            .await?;
+            .await
+            .map_err(Error::SendMixnetMessage)?;
 
         Ok(request_id)
     }

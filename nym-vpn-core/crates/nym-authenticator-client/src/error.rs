@@ -1,8 +1,5 @@
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("got reply for connect request, but it appears intended for the wrong address?")]
-    GotReplyIntendedForWrongAddress,
-
     #[error("mixnet client stopped returning responses")]
     NoMixnetMessagesReceived,
 
@@ -15,14 +12,14 @@ pub enum Error {
     #[error("received response with version v{received}, the client is too old and can only understand v{expected}")]
     ReceivedResponseWithNewVersion { expected: u8, received: u8 },
 
-    #[error(transparent)]
-    SdkError(#[from] nym_sdk::Error),
+    #[error("failed to send mixnet message")]
+    SendMixnetMessage(#[source] nym_sdk::Error),
 
     #[error("timeout waiting for connect response from exit gateway (authenticator)")]
     TimeoutWaitingForConnectResponse,
 
-    #[error("shutting down")]
-    ShuttingDown,
+    #[error("unable to get mixnet handle when sending authenticator message")]
+    UnableToGetMixnetHandle,
 }
 
 // Result type based on our error type
