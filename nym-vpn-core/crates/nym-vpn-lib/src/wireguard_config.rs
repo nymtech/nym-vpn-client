@@ -10,7 +10,9 @@ use nym_crypto::asymmetric::x25519::KeyPair;
 use nym_gateway_directory::{GatewayClient, NodeIdentity};
 use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
 use talpid_types::net::{
-    wireguard::{ConnectionConfig, PeerConfig, PrivateKey, TunnelConfig, TunnelOptions},
+    wireguard::{
+        ConnectionConfig, PeerConfig, PrivateKey, TunnelConfig, TunnelOptions, TunnelParameters,
+    },
     GenericTunnelOptions,
 };
 
@@ -28,23 +30,24 @@ pub(crate) struct WireguardConfig {
 
 impl WireguardConfig {
     fn new(
-        tunnel: TunnelConfig,
-        peers: Vec<PeerConfig>,
-        connection_config: &ConnectionConfig,
-        wg_options: &TunnelOptions,
-        generic_options: &GenericTunnelOptions,
+        connection_config: ConnectionConfig,
+        wg_options: TunnelOptions,
+        generic_options: GenericTunnelOptions,
         gateway_data: GatewayData,
         gateway_id: NodeIdentity,
     ) -> std::result::Result<Self, SetupWgTunnelError> {
+        let talpid_config = talpid_wireguard::config::Config::from_parameters(
+            &TunnelParameters {
+                connection: connection_config,
+                options: wg_options,
+                generic_options: generic_options,
+                obfuscation: None,
+            },
+            1500,
+        )?;
+
         Ok(Self {
-            talpid_config: talpid_wireguard::config::Config::new(
-                tunnel,
-                peers,
-                connection_config,
-                wg_options,
-                generic_options,
-                None,
-            )?,
+            talpid_config,
             gateway_data,
             gateway_id,
         })
@@ -77,7 +80,7 @@ impl WireguardConfig {
         let connection_config = ConnectionConfig {
             tunnel: tunnel.clone(),
             peer: peers[0].clone(),
-            exit_peer: None,
+            exit_peer: Some(peers[1].clone()),
             ipv4_gateway,
             ipv6_gateway,
             #[cfg(target_os = "linux")]
@@ -86,14 +89,12 @@ impl WireguardConfig {
         let generic_options = GenericTunnelOptions { enable_ipv6: false };
         let wg_options = TunnelOptions {
             mtu: Some(mtu),
-            ..Default::default()
+            quantum_resistant: false,
         };
         let config = Self::new(
-            tunnel,
-            peers,
-            &connection_config,
-            &wg_options,
-            &generic_options,
+            connection_config,
+            wg_options,
+            generic_options,
             gateway_data,
             gateway_id,
         )?;
@@ -112,7 +113,7 @@ impl std::fmt::Display for WireguardConfig {
             writeln!(f, "    - {}", address)?;
         }
         writeln!(f, "peers:")?;
-        for peer in &self.talpid_config.peers {
+        for peer in self.talpid_config.peers() {
             writeln!(f, "  - public_key: {}", peer.public_key)?;
             writeln!(f, "    allowed_ips:")?;
             for allowed_ip in &peer.allowed_ips {

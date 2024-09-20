@@ -14,7 +14,6 @@ pub struct RouteHandler {
 impl RouteHandler {
     pub async fn new() -> Result<Self> {
         let route_manager = RouteManager::new(
-            HashSet::new(),
             #[cfg(target_os = "linux")]
             TUNNEL_TABLE_ID,
             #[cfg(target_os = "linux")]
