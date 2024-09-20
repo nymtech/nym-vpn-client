@@ -16,7 +16,10 @@ pub enum Error {
 
     #[error("failed to parse entry gateway socket addr: {0}")]
     FailedToParseEntryGatewaySocketAddr(#[source] std::net::AddrParseError),
+}
 
+#[derive(Debug, thiserror::Error)]
+pub enum ErrorMessage {
     #[error("out of bandwidth for gateway: `{gateway_id}`")]
     OutOfBandwidth {
         gateway_id: Box<NodeIdentity>,

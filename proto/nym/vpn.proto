@@ -201,8 +201,12 @@ message Error {
 
     // An error that was not explicitly handled by the vpn service. This should
     // not happen but it will while we iterate on mapping out all possible
-    // error that can happen
+    // errors
     UNHANDLED = 1;
+
+    // The vpn exiting with an error that isn't handled by the automatic
+    // conversion. If this happens it's a bug.
+    UNHANDLED_EXIT = 49;
 
     // An internal error that indicates a programmer error and should not
     // happen. If it did an invariant was probably broken at some point.

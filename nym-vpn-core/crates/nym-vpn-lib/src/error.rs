@@ -65,6 +65,10 @@ pub enum Error {
     #[cfg(target_os = "ios")]
     #[error("failed to run wireguard tunnel")]
     RunTunnel(#[from] crate::mobile::Error),
+
+    // Messages sent through the task manager from the nym-wg-gateway-client
+    #[error(transparent)]
+    WgGatewayClientMessage(#[from] nym_wg_gateway_client::ErrorMessage),
 }
 
 #[derive(thiserror::Error, Debug)]

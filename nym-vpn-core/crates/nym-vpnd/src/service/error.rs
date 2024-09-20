@@ -75,6 +75,9 @@ pub enum ConnectionFailedError {
     #[error("failed to connect (unhandled): {0}")]
     Unhandled(String),
 
+    #[error("failed to connect (unhandled exit): {0}")]
+    UnhandledExit(String),
+
     // Errors that happen, that shouldn't ever really happen
     #[error("internal error occurred: {0}")]
     InternalError(String),
@@ -379,12 +382,6 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                     authenticator_address,
                     source,
                 } => match source {
-                    WgGatewayClientError::OutOfBandwidth { gateway_id, authenticator_address } => {
-                        ConnectionFailedError::OutOfBandwidth {
-                            gateway_id: gateway_id.clone(),
-                            authenticator_address: authenticator_address.clone(),
-                        }
-                    },
                     WgGatewayClientError::AuthenticatorClientError(auth_err) => match auth_err {
                         AuthenticatorClientError::TimeoutWaitingForConnectResponse => {
                             ConnectionFailedError::TimeoutWaitingForConnectResponseFromAuthenticator {
@@ -499,6 +496,15 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
             | nym_vpn_lib::Error::NymVpnExitWithError(_)
             | nym_vpn_lib::Error::NymVpnExitUnexpectedChannelClose => {
                 ConnectionFailedError::InternalError(err.to_string())
+            }
+            nym_vpn_lib::Error::WgGatewayClientMessage(wg_error_msg) => match wg_error_msg {
+                nym_vpn_lib::wg_gateway_client::ErrorMessage::OutOfBandwidth {
+                    gateway_id,
+                    authenticator_address,
+                } => ConnectionFailedError::OutOfBandwidth {
+                    gateway_id: gateway_id.clone(),
+                    authenticator_address: authenticator_address.clone(),
+                },
             }
             #[cfg(unix)]
             nym_vpn_lib::Error::TunProvider(inner) => {

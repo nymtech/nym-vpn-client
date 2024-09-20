@@ -40,38 +40,11 @@ impl VpnServiceExitListener {
                             .downcast_ref::<nym_vpn_lib::Error>()
                             .map(ConnectionFailedError::from);
 
-                        // If None, try to cast to nym_wg_gateway_client::Error since we are
-                        // sending error `OutOfBandwidth` events from that task.
-                        //
-                        // NOTE: man this is nasty and we are really twisting the arm of the error
-                        // handling here, this is not good.
-                        //
-                        // We can't reuse the `From` error conversions because in this case the
-                        // error has not passed back up through the higher layers where it gets
-                        // wrapped in the appropriate wrapping type and its associated context.
-                        // Instead we construct the final connection failed error directly
-                        let vpn_lib_err = vpn_lib_err.or_else(|| {
-                            err.downcast_ref::<nym_vpn_lib::wg_gateway_client::Error>()
-                                .map(|err| match err {
-                                    nym_vpn_lib::wg_gateway_client::Error::OutOfBandwidth {
-                                        gateway_id,
-                                        authenticator_address,
-                                    } => ConnectionFailedError::OutOfBandwidth {
-                                        gateway_id: gateway_id.clone(),
-                                        authenticator_address: authenticator_address.clone(),
-                                    },
-                                    _ => ConnectionFailedError::Unhandled(err.to_string()),
-                                })
-                        });
-
                         let connection_failed_err = match vpn_lib_err {
-                            Some(vpn_lib_err) => {
-                                tracing::warn!("proper return error: {vpn_lib_err:#?}");
-                                vpn_lib_err
-                            }
+                            Some(vpn_lib_err) => vpn_lib_err,
                             None => {
                                 tracing::warn!("unknown error type: {err:#?}");
-                                ConnectionFailedError::Unhandled(err.to_string())
+                                ConnectionFailedError::UnhandledExit(err.to_string())
                             }
                         };
 
