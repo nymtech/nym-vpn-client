@@ -140,6 +140,8 @@ pub enum ErrorKey {
     /// and attempts to make a gRPC call
     NotConnectedToDaemon,
     // Forwarded from proto `error::ErrorType`, connection state update
+    CSDaemonInternal,
+    CSUnhandledExit,
     CStateNoValidCredential,
     CStateTimeout,
     CStateMixnetTimeout,
@@ -168,6 +170,21 @@ pub enum ErrorKey {
     CStateDnsInit,
     CStateDnsSet,
     CStateFindDefaultInterface,
+    CSAuthenticatorFailedToConnect,
+    CSAuthenticatorConnectTimeout,
+    CSAuthenticatorInvalidResponse,
+    CSAuthenticatorRegistrationDataVerification,
+    CSAuthenticatorEntryGatewaySocketAddr,
+    CSAuthenticatorEntryGatewayIpv4,
+    CSAuthenticatorWrongVersion,
+    CSAuthenticatorMalformedReply,
+    CSAuthenticatorAddressNotFound,
+    CSAuthenticatorAuthenticationNotPossible,
+    CSAddIpv6Route,
+    CSTun,
+    CSRouting,
+    CSWireguardConfig,
+    CSMixnetConnectionMonitor,
     /// Import invalid credential format -> base58 decoding failed
     CredentialInvalid,
     // Forwarded from proto `import_error::ImportErrorType`
@@ -183,6 +200,7 @@ pub enum ErrorKey {
     ExitRouterNotRoutingIpv4,
     ExitRouterNotRoutingIpv6,
     UserNoBandwidth,
+    WgTunnelError,
     // Failure when querying countries from gRPC
     GetMixnetEntryCountriesQuery,
     GetMixnetExitCountriesQuery,
@@ -222,6 +240,29 @@ impl From<DError> for ErrorKey {
             DError::DnsInit => ErrorKey::CStateDnsInit,
             DError::DnsSet => ErrorKey::CStateDnsSet,
             DError::FindDefaultInterface => ErrorKey::CStateFindDefaultInterface,
+            DError::Internal => ErrorKey::CSDaemonInternal,
+            DError::AuthenticatorFailedToConnect => ErrorKey::CSAuthenticatorFailedToConnect,
+            DError::AuthenticatorConnectTimeout => ErrorKey::CSAuthenticatorConnectTimeout,
+            DError::AuthenticatorInvalidResponse => ErrorKey::CSAuthenticatorInvalidResponse,
+            DError::AuthenticatorRegistrationDataVerification => {
+                ErrorKey::CSAuthenticatorRegistrationDataVerification
+            }
+            DError::AuthenticatorEntryGatewaySocketAddr => {
+                ErrorKey::CSAuthenticatorEntryGatewaySocketAddr
+            }
+            DError::AuthenticatorEntryGatewayIpv4 => ErrorKey::CSAuthenticatorEntryGatewayIpv4,
+            DError::AuthenticatorWrongVersion => ErrorKey::CSAuthenticatorWrongVersion,
+            DError::AuthenticatorMalformedReply => ErrorKey::CSAuthenticatorMalformedReply,
+            DError::AuthenticatorAddressNotFound => ErrorKey::CSAuthenticatorAddressNotFound,
+            DError::AuthenticatorAuthenticationNotPossible => {
+                ErrorKey::CSAuthenticatorAuthenticationNotPossible
+            }
+            DError::AddIpv6Route => ErrorKey::CSAddIpv6Route,
+            DError::Tun => ErrorKey::CSTun,
+            DError::Routing => ErrorKey::CSRouting,
+            DError::WireguardConfig => ErrorKey::CSWireguardConfig,
+            DError::MixnetConnectionMonitor => ErrorKey::CSMixnetConnectionMonitor,
+            DError::UnhandledExit => ErrorKey::CSUnhandledExit,
             _ => ErrorKey::UnknownError, // `Unspecified` & `Unhandled`
         }
     }
@@ -284,7 +325,8 @@ impl From<StatusType> for ErrorKey {
             StatusType::ExitRouterNotRoutingIpv4Traffic => ErrorKey::ExitRouterNotRoutingIpv4,
             StatusType::ExitRouterNotRoutingIpv6Traffic => ErrorKey::ExitRouterNotRoutingIpv6,
             StatusType::NoBandwidth => ErrorKey::UserNoBandwidth,
-            _ => ErrorKey::UnknownError, // `Unspecified` & `Unknown`
+            StatusType::WgTunnelError => ErrorKey::WgTunnelError,
+            _ => ErrorKey::UnknownError, // & `Unspecified`
         }
     }
 }
@@ -295,7 +337,7 @@ impl From<GatewayType> for ErrorKey {
             GatewayType::MixnetEntry => ErrorKey::GetMixnetEntryCountriesQuery,
             GatewayType::MixnetExit => ErrorKey::GetMixnetExitCountriesQuery,
             GatewayType::Wg => ErrorKey::GetWgCountriesQuery,
-            _ => ErrorKey::UnknownError,
+            _ => ErrorKey::UnknownError, // & `Unspecified`
         }
     }
 }

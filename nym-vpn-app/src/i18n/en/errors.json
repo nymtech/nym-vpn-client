@@ -2,19 +2,26 @@
   "unknown": "Unknown error",
   "internal": "Internal error",
   "daemon": {
-    "not-connected": "Not connected to the daemon"
+    "not-connected": "Not connected to the daemon",
+    "internal": "Daemon internal error"
   },
   "grpc": "Internal gRPC error",
   "connection": {
     "no-valid-credential": "No valid credential, please add a credential first",
     "timeout": "Connection timeout",
+    "unhandled-exit": "The vpn exiting with an error. It's likely a bug.",
     "mixnet": {
       "timeout": "Mixnet connection timeout",
       "storage-path": "Failed to create the mixnet storage paths",
       "default-storage": "Failed to create the mixnet with default storage",
       "build-client": "Failed to build the mixnet client",
       "connect": "Failed to connect to the mixnet",
-      "entry-gateway": "Failed to connect to the mixnet entry gateway"
+      "entry-gateway": "Failed to connect to the mixnet entry gateway",
+      "monitor": "Mixnet Connection monitor failed"
+    },
+    "wireguard": {
+      "config": "Fail to setup the WireGuard configuration",
+      "tunnel": "WireGuard tunnel error"
     },
     "ipr-connect": "Failed to connect to the IPR",
     "gateway-lookup": {
@@ -43,7 +50,22 @@
     "dns": {
       "init": "Failed to init DNS subsystem",
       "set": "Failed to set DNS"
-    }
+    },
+    "authenticator": {
+      "connect": "Failed to connect to one of the authenticators",
+      "timeout": "Failed to connect to the authenticator, timeout waiting for the connect response",
+      "invalid-response": "Failed to connect to the authenticator, the response was invalid",
+      "registration-data": "Failed to verify the registration data provided by the authenticator",
+      "entry-gw-socket-addr": "Failed to parse the socket addr provided by the authenticator when setting up the WireGuard configuration",
+      "entry-gw-ipv4": "Failed to parse the IPv4 provided by the authenticator when setting up the WireGuard configuration",
+      "wrong-version": "The authenticator responded with a response tagged with a version we can't understand",
+      "malformed-reply": "The authenticator, or someone else, responded with a reply that we can't read",
+      "address-not-found": "Not authenticator address found for the gateway(s) we're trying to use",
+      "auth-not-possible": "Authentication with the authenticators was not possible, as we we don't have addresses for them. This is likely an internal programming error"
+    },
+    "add-ipv6-route": "Failed to add ipv6 default route to capture ipv6 traffic",
+    "tun-device": "Tun device failed",
+    "routing": "Routing failed"
   },
   "credential": {
     "invalid": "Invalid credential",

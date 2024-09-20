@@ -129,6 +129,7 @@ enum StatusUpdate {
     ConnectionOkIpv6,
     RemainingBandwidth,
     NoBandwidth,
+    WgTunnelError,
 }
 
 #[derive(Clone, Serialize, TS)]
@@ -151,7 +152,10 @@ fn status_update_to_error(update: ConnectionStatusUpdate) -> Option<BackendError
         StatusType::EntryGatewayNotRoutingMixnetMessages => Some(error),
         StatusType::ExitRouterNotRespondingToIpv4Ping => Some(error),
         StatusType::ExitRouterNotRoutingIpv4Traffic => Some(error),
+        StatusType::ExitRouterNotRespondingToIpv6Ping => Some(error),
+        StatusType::ExitRouterNotRoutingIpv6Traffic => Some(error),
         StatusType::NoBandwidth => Some(error),
+        StatusType::WgTunnelError => Some(error),
         _ => None,
     }
 }
@@ -188,7 +192,8 @@ impl From<ConnectionStatusUpdate> for StatusUpdatePayload {
                 StatusType::ConnectionOkIpv6 => StatusUpdate::ConnectionOkIpv6,
                 StatusType::RemainingBandwidth => StatusUpdate::RemainingBandwidth,
                 StatusType::NoBandwidth => StatusUpdate::NoBandwidth,
-                _ => StatusUpdate::Unknown,
+                StatusType::WgTunnelError => StatusUpdate::WgTunnelError,
+                _ => StatusUpdate::Unknown, // Unspecified & Unknown
             },
             message: update.message.clone(),
             data: Some(update.details.clone()),
