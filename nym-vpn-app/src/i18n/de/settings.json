@@ -1,40 +1,40 @@
 {
   "logs": {
     "title": "Logs",
-    "desc": "Kopiere oder lösche Logfiles"
+    "desc": "Kopier oder lösch die Logfiles"
   },
-  "add-credential-button": "Zum verbinden Zugangsdaten hinzufügen",
+  "add-credential-button": "Zum Verbinden Zugangsdaten hinzufügen",
   "credential": {
-    "title": "Zugangsberechtigung"
+    "title": "Zugangsdaten"
   },
   "auto-connect": {
     "title": "Automatisch verbinden",
-    "desc": "Bei Start der App automatisch verbinden"
+    "desc": "Beim Start der App automatisch verbinden"
   },
   "entry-selector": {
-    "title": "Auswahl der Eingangs Location",
-    "desc": "Wähle deinen Eingangs-Standort"
+    "title": "Auswahl der Eintrittsregion",
+    "desc": "Wähle deine Eintrittsregion"
   },
   "error-monitoring": {
     "title": "Anonymisierte Fehlerprotokolle",
-    "desc": "Gültig mit Neustart der App"
+    "desc": "aktiviert nach Neustart der App"
   },
   "feedback": {
     "title": "Feedback",
     "github": "Problem auf GitHub melden",
-    "send": "Schicke uns Feedback",
+    "send": "Schick uns Feedback",
     "matrix": "Tritt unserem Matrix Chat bei",
     "discord": "Tritt unserem Discord Channel bei"
   },
   "support": {
     "title": "Support",
-    "faq": "Lies die FAQ",
+    "faq": "Lies die FAQs",
     "contact": "Kontaktiere den Support"
   },
   "legal": {
     "title": "Rechtlich",
     "policy": "Datenschutzerklärung",
-    "tos": "Allgemeine Geschäftsbedingungen",
+    "tos": "Allgemeine Nutzungsbedingungen",
     "license": "Lizenz",
     "licenses-rust": "Lizenzen (Rust)",
     "licenses-js": "Lizenzen (JS)",
@@ -46,5 +46,10 @@
   "monitoring-alert": "Du musst die App neu starten damit die Änderungen aktiv werden.",
   "faq": "FAQ",
   "display-theme": "Anzeigemodus",
-  "quit": "NymVPN beenden"
+  "quit": "NymVPN beenden",
+  "info": {
+    "network-name": "Netzwerk",
+    "client-version": "Client Version",
+    "daemon-version": "Dienst Version"
+  }
 }
