@@ -75,6 +75,40 @@ function useI18nError() {
           return t('connection.dns.init');
         case 'CStateDnsSet':
           return t('connection.dns.set');
+        case 'CSDaemonInternal':
+          return t('daemon.internal');
+        case 'CSUnhandledExit':
+          return t('connection.unhandled-exit');
+        case 'CSAuthenticatorFailedToConnect':
+          return t('connection.authenticator.connect');
+        case 'CSAuthenticatorConnectTimeout':
+          return t('connection.authenticator.timeout');
+        case 'CSAuthenticatorInvalidResponse':
+          return t('connection.authenticator.invalid-response');
+        case 'CSAuthenticatorRegistrationDataVerification':
+          return t('connection.authenticator.registration-data');
+        case 'CSAuthenticatorEntryGatewaySocketAddr':
+          return t('connection.authenticator.entry-gw-socket-addr');
+        case 'CSAuthenticatorEntryGatewayIpv4':
+          return t('connection.authenticator.entry-gw-ipv4');
+        case 'CSAuthenticatorWrongVersion':
+          return t('connection.authenticator.wrong-version');
+        case 'CSAuthenticatorMalformedReply':
+          return t('connection.authenticator.malformed-reply');
+        case 'CSAuthenticatorAddressNotFound':
+          return t('connection.authenticator.address-not-found');
+        case 'CSAuthenticatorAuthenticationNotPossible':
+          return t('connection.authenticator.auth-not-possible');
+        case 'CSAddIpv6Route':
+          return t('connection.add-ipv6-route');
+        case 'CSTun':
+          return t('connection.tun-device');
+        case 'CSRouting':
+          return t('connection.routing');
+        case 'CSWireguardConfig':
+          return t('connection.wireguard.config');
+        case 'CSMixnetConnectionMonitor':
+          return t('connection.mixnet.monitor');
         case 'CredentialInvalid':
           return t('credential.invalid');
         case 'CredentialVpnRunning':
@@ -99,6 +133,8 @@ function useI18nError() {
           return t('exit-node.routing', { protocol: 'IPv6' });
         case 'UserNoBandwidth':
           return t('out-of-bandwidth');
+        case 'WgTunnelError':
+          return t('connection.wireguard.tunnel');
         case 'GetMixnetEntryCountriesQuery':
           return t('countries-request.entry');
         case 'GetMixnetExitCountriesQuery':

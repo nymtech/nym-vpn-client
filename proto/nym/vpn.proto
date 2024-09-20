@@ -256,7 +256,7 @@ message Error {
     // Failed to connect to the authenticator, the response was invalid
     AUTHENTICATOR_INVALID_RESPONSE = 36;
 
-    // Failed to verify the registeration data provided by the authenticator
+    // Failed to verify the registration data provided by the authenticator
     AUTHENTICATOR_REGISTRATION_DATA_VERIFICATION = 37;
 
     // Failed to parse the socket addr provided by the authenticator when
@@ -267,11 +267,11 @@ message Error {
     // the wireguard configuration
     AUTHENTICATOR_ENTRY_GATEWAY_IPV4 = 39;
 
-    // The authenticator responed with a response tagged with a version we
+    // The authenticator responded with a response tagged with a version we
     // can't understand.
     AUTHENTICATOR_WRONG_VERSION = 40;
 
-    // The authenticator, or someone else, responsed with a reply that we can't
+    // The authenticator, or someone else, responded with a reply that we can't
     // read.
     AUTHENTICATOR_MALFORMED_REPLY = 41;
 
@@ -357,7 +357,7 @@ message Error {
 
   ErrorType kind = 1;
 
-  // Detailed error message for logging and debuggning
+  // Detailed error message for logging and debugging
   string message = 2;
 
   // Optional additional details
