@@ -12,12 +12,15 @@ use tun::{AsyncDevice, Device};
 
 use nym_ip_packet_requests::IpPair;
 
-use crate::tunnel_state_machine::{
-    states::{ConnectedState, DisconnectingState},
-    tun_ipv6,
-    tunnel::{self, mixnet::connected_tunnel::TunnelHandle, ConnectedMixnet},
-    ActionAfterDisconnect, Error, NextTunnelState, Result, SharedState, TunnelCommand, TunnelState,
-    TunnelStateHandler,
+use crate::{
+    mixnet::SharedMixnetClient,
+    tunnel_state_machine::{
+        states::{ConnectedState, DisconnectingState},
+        tun_ipv6,
+        tunnel::{self, mixnet::connected_tunnel::TunnelHandle, ConnectedMixnet},
+        ActionAfterDisconnect, Error, NextTunnelState, Result, SharedState, TunnelCommand,
+        TunnelState, TunnelStateHandler,
+    },
 };
 
 const DEFAULT_TUN_MTU: u16 = 1500;
@@ -73,6 +76,9 @@ impl ConnectingState {
         connected_mixnet: ConnectedMixnet,
         shared_state: &mut SharedState,
     ) -> Result<TunnelHandle> {
+        #[cfg(target_os = "linux")]
+        let shared_mixnet_client = connected_mixnet.mixnet_client.clone();
+
         let connected_tunnel = connected_mixnet
             .connect_tunnel(shared_state.config.nym_ips.clone())
             .await
@@ -92,6 +98,9 @@ impl ConnectingState {
 
         Self::set_routes(
             &tun_name,
+            #[cfg(target_os = "linux")]
+            shared_mixnet_client,
+            #[cfg(not(target_os = "linux"))]
             connected_tunnel.entry_mixnet_gateway_ip(),
             enable_ipv6,
             shared_state,
@@ -115,12 +124,38 @@ impl ConnectingState {
             .map_err(Error::SetDns)
     }
 
+    #[cfg(target_os = "linux")]
+    async fn set_mixnet_client_fwmark(shared_mixnet_client: SharedMixnetClient) {
+        use nix::sys::socket::{self, sockopt::Mark};
+        use std::os::fd::{BorrowedFd, RawFd};
+
+        let gateway_ws_fd = shared_mixnet_client
+            .lock()
+            .await
+            .as_ref()
+            .and_then(|mixnet_client| mixnet_client.gateway_connection().gateway_ws_fd);
+
+        if let Some(gateway_ws_fd) = gateway_ws_fd {
+            let borrowed_fd = unsafe { BorrowedFd::borrow_raw(gateway_ws_fd) };
+            socket::setsockopt(
+                &borrowed_fd,
+                Mark,
+                crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK,
+            )
+            .expect("failed to set fwmark")
+        }
+    }
+
     async fn set_routes(
         tun_name: &str,
+        #[cfg(target_os = "linux")] shared_mixnet_client: SharedMixnetClient,
         #[cfg(not(target_os = "linux"))] entry_mixnet_gateway_ip: IpAddr,
         enable_ipv6: bool,
         shared_state: &mut SharedState,
     ) -> Result<()> {
+        #[cfg(target_os = "linux")]
+        self.set_mixnet_client_fwmark(shared_mixnet_client);
+
         shared_state
             .route_handler
             .add_routes(
@@ -143,8 +178,6 @@ impl ConnectingState {
 
         tun_config
             .address(interface_addresses.ipv4)
-            .netmask(ipv4_network.mask())
-            .destination(ipv4_network.broadcast())
             .mtu(i32::from(mtu))
             .up();
 

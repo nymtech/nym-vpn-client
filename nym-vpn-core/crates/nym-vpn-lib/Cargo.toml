@@ -81,6 +81,9 @@ nym-vpn-store = { path = "../nym-vpn-store" }
 nym-wg-gateway-client = { path = "../nym-wg-gateway-client" }
 nym-wg-go = { path = "../nym-wg-go" }
 
+[target.'cfg(target_os = "linux")'.dependencies]
+nix = { workspace = true, features = ["socket"] }
+
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.14.1"
 err-derive = "0.3.1"
