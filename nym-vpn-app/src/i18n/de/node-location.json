@@ -7,11 +7,11 @@
     "link": "Mehr lesen"
   },
   "loading": "Laden...",
-  "none-found": "Kein Ergebnis gefunden. Bitte versuch es erneut",
+  "none-found": "Kein Ergebnis gefunden. Bitte erneut versuchen",
   "list-loading": "Die Standortliste wird geladen…",
   "search-country": "Standortsuche",
   "location-not-available": {
-    "entry": "Ausgewählter Eintrittsstandort nicht verfügbar, gewechselt zu {{location}}",
-    "exit": "Ausgewählter Austrittsstandort nicht verfügbar, gewechselt zu {{location}}"
+    "entry": "Ausgewählte Eintrittsregion nicht verfügbar, gewechselt zu {{location}}",
+    "exit": "Ausgewählte Austrittsregion nicht verfügbar, gewechselt zu {{location}}"
   }
 }
