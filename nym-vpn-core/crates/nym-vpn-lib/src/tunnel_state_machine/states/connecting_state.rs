@@ -140,7 +140,7 @@ impl ConnectingState {
             socket::setsockopt(
                 &borrowed_fd,
                 Mark,
-                crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK,
+                &crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK,
             )
             .expect("failed to set fwmark")
         }
