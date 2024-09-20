@@ -150,4 +150,5 @@
     <string name="always_on_message">¿No funciona? Asegúrate de que VPN siempre activa está desactivada para otras aplicaciones</string>
     <string name="vpn_settings">Ajustes del sistema VPN</string>
     <string name="try_again">y intenta reconectar</string>
+    <string name="delete">Borrar</string>
 </resources>
