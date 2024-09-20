@@ -497,15 +497,6 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
             | nym_vpn_lib::Error::NymVpnExitUnexpectedChannelClose => {
                 ConnectionFailedError::InternalError(err.to_string())
             }
-            nym_vpn_lib::Error::WgGatewayClientMessage(wg_error_msg) => match wg_error_msg {
-                nym_vpn_lib::wg_gateway_client::ErrorMessage::OutOfBandwidth {
-                    gateway_id,
-                    authenticator_address,
-                } => ConnectionFailedError::OutOfBandwidth {
-                    gateway_id: gateway_id.clone(),
-                    authenticator_address: authenticator_address.clone(),
-                },
-            }
             #[cfg(unix)]
             nym_vpn_lib::Error::TunProvider(inner) => {
                 ConnectionFailedError::TunError { reason: inner.to_string() }
@@ -578,6 +569,20 @@ impl From<&nym_vpn_lib::GatewayDirectoryError> for ConnectionFailedError {
                     requested_location: requested_location.clone(),
                 }
             }
+        }
+    }
+}
+
+impl From<&nym_vpn_lib::wg_gateway_client::ErrorMessage> for ConnectionFailedError {
+    fn from(err: &nym_vpn_lib::wg_gateway_client::ErrorMessage) -> Self {
+        match err {
+            nym_vpn_lib::wg_gateway_client::ErrorMessage::OutOfBandwidth {
+                gateway_id,
+                authenticator_address,
+            } => ConnectionFailedError::OutOfBandwidth {
+                gateway_id: gateway_id.clone(),
+                authenticator_address: authenticator_address.clone(),
+            },
         }
     }
 }

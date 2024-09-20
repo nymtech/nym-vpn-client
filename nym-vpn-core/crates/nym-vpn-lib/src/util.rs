@@ -38,7 +38,8 @@ pub(crate) async fn wait_for_interrupt(
             }
         },
         Some(msg) = task_manager_wait => {
-            log::info!("Task error: {:?}", msg);
+            log::info!("Task error: {}", msg);
+            log::debug!("Task error: {:?}", msg);
             Err(msg)
         }
         else => {
