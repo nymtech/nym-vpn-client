@@ -151,4 +151,10 @@
     <string name="vpn_settings">Ajustes del sistema VPN</string>
     <string name="try_again">y intenta reconectar</string>
     <string name="delete">Borrar</string>
+    <string name="delete_logs_description">Una vez borrados, los logs no serán recuperables.</string>
+    <string name="share">Comparte</string>
+    <string name="delete_logs_title">¿Seguro que quieres borrar todos los logs?</string>
+    <string name="no">No</string>
+    <string name="yes">Sí</string>
+    <string name="vpn_alerts_channel_description">Un canal para notificaciones de alertas relacionadas con la app.</string>
 </resources>
