@@ -85,7 +85,7 @@ impl VpnServiceStatusListener {
             info!("VPN error status: {msg}");
         } else {
             tracing::warn!("VPN status: unknown: {msg}");
-            tracing::warn!("{msg:#?}");
+            tracing::debug!("Unknown status message received: {msg:#?}");
         }
         msg
     }
