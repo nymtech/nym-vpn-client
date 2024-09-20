@@ -241,6 +241,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		}
 
 		override fun onDestroy() {
+			Timber.d("Vpn service destroyed")
 			currentTunnelHandle.getAndSet(-1)
 			vpnService = CompletableDeferred()
 			super.onDestroy()
@@ -260,6 +261,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		}
 
 		override fun bypass(socket: Int) {
+			Timber.d("Bypassing fd: $socket")
 			protect(socket)
 		}
 

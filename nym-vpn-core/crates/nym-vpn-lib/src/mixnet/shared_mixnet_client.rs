@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::os::fd::RawFd;
 use std::sync::Arc;
 
 use nym_sdk::mixnet::{MixnetClient, MixnetClientSender, Recipient};
@@ -29,6 +30,15 @@ impl SharedMixnetClient {
         let handle = self.lock().await.take().unwrap();
         handle.disconnect().await;
         self
+    }
+
+    pub async fn gateway_ws_fd(&self) -> Option<RawFd> {
+        self.lock()
+            .await
+            .as_ref()
+            .unwrap()
+            .gateway_connection()
+            .gateway_ws_fd
     }
 
     pub fn inner(&self) -> Arc<tokio::sync::Mutex<Option<MixnetClient>>> {
