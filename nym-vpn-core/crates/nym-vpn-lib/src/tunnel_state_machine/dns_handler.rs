@@ -11,8 +11,11 @@ type MullvadTunnelCommand = talpid_core::tunnel_state_machine::TunnelCommand;
 
 pub struct DnsHandler {
     inner: DnsMonitor,
+
+    /// Internal sender a weak reference to which is passed into `talpid_core::dns::DnsMonitor`.
+    /// It must be retained throughout the lifetime of `DnsHandler`.
     #[cfg(target_os = "macos")]
-    tx: Arc<UnboundedSender<MullvadTunnelCommand>>,
+    _tx: Arc<UnboundedSender<MullvadTunnelCommand>>,
 }
 
 impl DnsHandler {
@@ -20,6 +23,7 @@ impl DnsHandler {
         #[cfg(target_os = "macos")]
         let tx = {
             let (tx, mut rx) = futures::channel::mpsc::unbounded();
+
             tokio::spawn(async move {
                 while let Some(cmd) = rx.next().await {
                     if let MullvadTunnelCommand::Block(_) = cmd {
@@ -30,6 +34,7 @@ impl DnsHandler {
                     }
                 }
             });
+
             Arc::new(tx)
         };
 
@@ -43,7 +48,7 @@ impl DnsHandler {
                 Arc::downgrade(&tx),
             )?,
             #[cfg(target_os = "macos")]
-            tx,
+            _tx: tx,
         })
     }
 

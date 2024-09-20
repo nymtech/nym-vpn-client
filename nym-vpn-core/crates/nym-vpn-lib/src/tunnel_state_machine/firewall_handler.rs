@@ -1,6 +1,8 @@
 use std::fmt;
 
-use talpid_core::firewall::{Firewall, FirewallArguments, FirewallPolicy, InitialFirewallState};
+use talpid_core::firewall::{Firewall, FirewallArguments, InitialFirewallState};
+
+pub use talpid_core::firewall::FirewallPolicy;
 
 pub struct FirewallHandler {
     inner: Firewall,

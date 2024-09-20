@@ -26,7 +26,7 @@ impl RouteHandler {
 
     pub async fn add_routes(
         &mut self,
-        tun_name: String,
+        tun_name: &str,
         #[cfg(not(target_os = "linux"))] entry_gateway_address: IpAddr,
     ) -> Result<()> {
         let mut routes = HashSet::new();
@@ -39,12 +39,12 @@ impl RouteHandler {
 
         routes.insert(RequiredRoute::new(
             "0.0.0.0/0".parse().unwrap(),
-            Node::device(tun_name.clone()),
+            Node::device(tun_name.to_owned()),
         ));
 
         routes.insert(RequiredRoute::new(
             "::0/0".parse().unwrap(),
-            Node::device(tun_name),
+            Node::device(tun_name.to_owned()),
         ));
 
         #[cfg(target_os = "linux")]

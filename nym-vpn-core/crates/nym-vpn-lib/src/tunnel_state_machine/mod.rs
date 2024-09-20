@@ -2,6 +2,7 @@ mod dns_handler;
 mod firewall_handler;
 mod route_handler;
 mod states;
+mod tun_ipv6;
 mod tunnel;
 
 use tokio::{sync::mpsc, task::JoinHandle};
@@ -11,7 +12,6 @@ use dns_handler::DnsHandler;
 use firewall_handler::FirewallHandler;
 use route_handler::RouteHandler;
 use states::DisconnectedState;
-use tunnel::mixnet::connected_tunnel::TunnelHandle;
 
 use crate::GenericNymVpnConfig;
 
@@ -57,13 +57,22 @@ pub enum ActionAfterDisconnect {
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum ErrorStateReason {
-    /// Failure to configure routing
+    /// Issues related to firewall configuration.
+    Firewall,
+
+    /// Failure to configure routing.
     Routing,
 
-    /// Failure to establish mixnet connection
+    /// Failure to configure dns.
+    Dns,
+
+    /// Failure to configure tunnel device.
+    TunDevice,
+
+    /// Failure to establish mixnet connection.
     EstablishMixnetConnection,
 
-    /// Tunnel went down at runtime
+    /// Tunnel went down at runtime.
     TunnelDown,
 }
 
@@ -150,6 +159,7 @@ impl TunnelStateMachine {
             }
         }
 
+        log::debug!("Tunnel state machine is exiting...");
         self.shared_state.route_handler.stop().await;
     }
 }
@@ -164,6 +174,44 @@ pub enum Error {
 
     #[error("failed to create firewall handler")]
     CreateFirewallHandler(#[source] firewall_handler::Error),
+
+    #[error("failed to create tunnel device")]
+    CreateTunDevice(#[source] tun2::Error),
+
+    #[error("failed to get tunnel device name")]
+    GetTunDeviceName(#[source] tun2::Error),
+
+    #[error("failed to set tunnel device ipv6 address")]
+    SetTunDeviceIpv6Addr(#[source] std::io::Error),
+
+    #[error("failed to add routes")]
+    AddRoutes(#[source] route_handler::Error),
+
+    #[error("failed to set dns")]
+    SetDns(#[source] dns_handler::Error),
+
+    #[error("failed to connect mixnet client")]
+    ConnectMixnetClient(#[source] tunnel::Error),
+
+    #[error("failed to connect mixnet tunnel")]
+    ConnectMixnetTunnel(#[source] tunnel::Error),
+}
+
+impl Error {
+    fn error_state_reason(&self) -> ErrorStateReason {
+        match self {
+            Self::CreateRouteHandler(_) | Self::AddRoutes(_) => ErrorStateReason::Routing,
+            Self::CreateDnsHandler(_) | Self::SetDns(_) => ErrorStateReason::Dns,
+            Self::CreateFirewallHandler(_) => ErrorStateReason::Firewall,
+            Self::CreateTunDevice(_)
+            | Self::GetTunDeviceName(_)
+            | Self::SetTunDeviceIpv6Addr(_) => ErrorStateReason::TunDevice,
+            Self::ConnectMixnetTunnel(_) | Self::ConnectMixnetClient(_) => {
+                // todo: add detail
+                ErrorStateReason::EstablishMixnetConnection
+            }
+        }
+    }
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

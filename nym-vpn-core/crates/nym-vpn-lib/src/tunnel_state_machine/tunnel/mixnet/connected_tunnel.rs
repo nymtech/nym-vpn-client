@@ -1,18 +1,14 @@
 use std::{error::Error as StdError, net::IpAddr};
 
-use futures::future::Fuse;
 use nym_connection_monitor::ConnectionMonitorTask;
-use tokio::task::JoinHandle;
+use tokio::task::{JoinError, JoinHandle};
 use tun2::AsyncDevice;
 
 use nym_ip_packet_requests::IpPair;
 use nym_task::TaskManager;
 
 use super::connector::AssignedAddresses;
-use crate::{
-    mixnet::{MixnetError, SharedMixnetClient},
-    tunnel_state_machine::tunnel::Result,
-};
+use crate::mixnet::{MixnetError, SharedMixnetClient};
 
 /// Type representing a connected mixnet tunnel.
 pub struct ConnectedTunnel {
@@ -104,12 +100,7 @@ impl TunnelHandle {
     }
 
     /// Wait until the tunnel finished execution.
-    pub async fn wait(self) -> Option<Result<AsyncDevice, MixnetError>> {
-        self.processor_handle
-            .await
-            .inspect_err(|e| {
-                tracing::error!("Failed to join processor handle: {}", e);
-            })
-            .ok()
+    pub async fn wait(self) -> Result<Result<AsyncDevice, MixnetError>, JoinError> {
+        self.processor_handle.await
     }
 }

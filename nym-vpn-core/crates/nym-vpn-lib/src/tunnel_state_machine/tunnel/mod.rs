@@ -1,17 +1,14 @@
 mod gateway_selector;
 pub mod mixnet;
-mod tun_ipv6;
-mod wireguard_tunnel;
+//mod wireguard_tunnel;
 
-use std::{io, net::IpAddr, time::Duration};
+use std::time::Duration;
 
 pub use gateway_selector::SelectedGateways;
 use nym_gateway_directory::GatewayClient;
 use nym_ip_packet_requests::IpPair;
-use nym_sdk::{TaskClient, UserAgent};
+use nym_sdk::UserAgent;
 use nym_task::TaskManager;
-use tokio::{sync::mpsc, task::JoinHandle};
-use tokio_util::sync::CancellationToken;
 
 use crate::{mixnet::SharedMixnetClient, GatewayDirectoryError, GenericNymVpnConfig, MixnetError};
 
@@ -108,35 +105,8 @@ pub enum Error {
     #[error("failed to connect ot ip packet router")]
     ConnectToIpPacketRouter(#[source] nym_ip_packet_client::Error),
 
-    #[error("failed to create tun device")]
-    CreateTunDevice(#[source] tun2::Error),
-
-    #[error("failed to set ipv6 address on tunnel interface")]
-    SetTunIpv6Addr(#[source] io::Error),
-
-    #[error("failed to obtain tun name")]
-    ObtainTunName(#[source] tun2::Error),
-
-    #[error("authenticator address is not found")]
-    AuthenticatorAddressNotFound,
-
-    #[error("not enough bandwidth")]
-    NotEnoughBandwidth,
-
-    #[error("wireguard authentication is not possible due to one of the gateways not running the authenticator process: {0}")]
-    AuthenticationNotPossible(String),
-
     #[error("wireguard gateway failure: {0}")]
     WgGatewayClientFailure(#[from] nym_wg_gateway_client::Error),
-
-    #[error("failed to start wireguard: {0}")]
-    StartWireguard(#[source] nym_wg_go::Error),
-
-    #[error("failed to lookup gateway ip: {gateway_id}: {source}")]
-    FailedToLookupGatewayIp {
-        gateway_id: String,
-        source: nym_gateway_directory::Error,
-    },
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
