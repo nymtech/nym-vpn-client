@@ -22,6 +22,7 @@ members = [
 # For local development
 # [patch."https://github.com/nymtech/nym"]
 # nym-authenticator-requests = { path = "../../nym/common/authenticator-requests" }
+# nym-bandwidth-controller = { path = "../../nym/common/bandwidth-controller" }
 # nym-bin-common = { path = "../../nym/common/bin-common" }
 # nym-client-core = { path = "../../nym/common/client-core" }
 # nym-config = { path = "../../nym/common/config" }
@@ -116,6 +117,7 @@ talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = 
 talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "95fb001fb" }
 
 nym-authenticator-requests = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }
 nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }
 nym-client-core = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }
 nym-config = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }
@@ -137,5 +139,3 @@ nym-credential-storage-pre-ecash = { git = "https://github.com/nymtech/nym", rev
 nym-credentials-pre-ecash = { git = "https://github.com/nymtech/nym", rev = "3f922cc0", package = "nym-credentials" }
 nym-id-pre-ecash = { git = "https://github.com/nymtech/nym", rev = "3f922cc0", package = "nym-id" }
 nym-bandwidth-controller-pre-ecash = { git = "https://github.com/nymtech/nym", rev = "3f922cc0", package = "nym-bandwidth-controller" }
-
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", rev = "b7baff1" }

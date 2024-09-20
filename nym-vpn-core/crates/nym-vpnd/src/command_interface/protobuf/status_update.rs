@@ -104,6 +104,7 @@ pub(crate) fn status_update_from_bandwidth_status_message(
     }
 }
 
+// Temporary while we depend on a pre-cash rev of the bandwidth controller
 pub(crate) fn status_update_from_bandwidth_status_message_legacy(
     status: &nym_bandwidth_controller_pre_ecash::BandwidthStatusMessage,
 ) -> ConnectionStatusUpdate {

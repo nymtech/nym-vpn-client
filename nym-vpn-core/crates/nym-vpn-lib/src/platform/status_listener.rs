@@ -1,7 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_bandwidth_controller_pre_ecash::BandwidthStatusMessage;
+use nym_bandwidth_controller::BandwidthStatusMessage;
+use nym_bandwidth_controller_pre_ecash::BandwidthStatusMessage as LegacyBandwidthStatusMessage;
 use nym_connection_monitor::ConnectionMonitorStatus;
 use nym_task::{
     manager::{SentStatus, TaskStatus},
@@ -37,6 +38,10 @@ impl VpnServiceStatusListener {
         }
 
         if let Some(message) = status_update.downcast_ref::<BandwidthStatusMessage>() {
+            uniffi_set_listener_status(StatusEvent::Bandwidth(message.into()))
+        }
+
+        if let Some(message) = status_update.downcast_ref::<LegacyBandwidthStatusMessage>() {
             uniffi_set_listener_status(StatusEvent::Bandwidth(message.into()))
         }
 
