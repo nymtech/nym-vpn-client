@@ -52,7 +52,7 @@
     <string name="join_discord">Tritt unserem Discord Channel bei</string>
     <string name="via">über</string>
     <string name="required_app_restart">Gültig ab Neustart</string>
-    <string name="legal">Rechtlich</string>
+    <string name="legal">Rechtliches</string>
     <string name="credential_message">Zum Starten Zugangsberechtigung eingeben</string>
     <string name="sentry">Sentry</string>
     <string name="credential_label">Zugangsberechtigung</string>
