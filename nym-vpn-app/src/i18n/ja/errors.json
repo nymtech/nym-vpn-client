@@ -25,7 +25,22 @@
       "connect": "mixnetへの接続に失敗しました",
       "entry-gateway": "mixnet エントリーGatewayへの接続に失敗しました"
     },
-    "ipr-connect": "IPRへの接続に失敗しました"
+    "ipr-connect": "IPRへの接続に失敗しました",
+    "interface": {
+      "wg-bring-up": "WireGuardインターフェースの起動に失敗しました",
+      "find-default": "デフォルトのネットワークインターフェースが見つかりませんでした"
+    },
+    "firewall": {
+      "init": "ファイアウォールサブシステムの初期化に失敗しました",
+      "reset-policy": "ファイアウォールポリシーのリセットに失敗しました"
+    },
+    "dns": {
+      "init": "DNSサブシステムの初期化に失敗しました",
+      "set": "DNSの設定に失敗しました"
+    },
+    "bandwidth": {
+      "tunnel-up": "トンネルを設定するために利用可能な帯域幅がありません"
+    }
   },
   "credential": {
     "invalid": "無効な認証情報",
