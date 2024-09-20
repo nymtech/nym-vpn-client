@@ -123,8 +123,8 @@
     <string name="vpn_permission_message">VPN接続のリクエストを確認するため、再接続を試みてください。</string>
     <string name="view_system_settings">システム設定を確認する</string>
     <string name="try_reconnecting">再接続を試みる</string>
-    <string name="always_on_disbled">常時接続VPNを無効に</string>
-    <string name="always_on_message">動作しない場合は、他のアプリで常時接続VPNが無効になっているか確認してください</string>
+    <string name="always_on_disbled">VPNの常時接続を無効化</string>
+    <string name="always_on_message">動作しない場合は、他のアプリでVPNの常時接続が無効になっているか確認してください</string>
     <string name="vpn_settings">VPNシステム設定</string>
     <string name="try_again">再接続を試みる</string>
     <string name="feedback">フィードバック</string>
@@ -142,4 +142,23 @@
     <string name="no_email_detected">Eメールアプリが検出できません</string>
     <string name="unknown">不明</string>
     <string name="add_cred_to_connect">認証情報を追加して接続</string>
+    <string name="delete_logs_title">全てのログを消去しますか？</string>
+    <string name="gateway_error">Gatewayへの接続に失敗しました。再試行するか、新しいGatewayの場所を選択してください。</string>
+    <string name="share">共有</string>
+    <string name="vpn_permission_missing">VPNの権限が承認されていないか、別のアプリによって使用されています。</string>
+    <string name="state_error">"予期せぬエラーが発生しました。アプリを再起動して、もう一度お試しください。 "</string>
+    <string name="delete">消去</string>
+    <string name="delete_logs_description">消去すると、2度とログにアクセスできません。</string>
+    <string name="no">いいえ</string>
+    <string name="yes">はい</string>
+    <string name="out_of_bandwidth_error">認証情報が使用制限に達しました。</string>
+    <string name="network_error">ネットワーク接続に問題が発生しました。ネットワーク接続を確認して、再度お試しください。</string>
+    <string name="internal_error">内部トンネルエラーが発生しました。もう一度お試しください。</string>
+    <string name="vpn_alerts_channel_description">アプリ関連の通知用チャンネル</string>
+    <string name="vpn_alerts_channel_id">NymVPN通知チャンネル</string>
+    <string name="bandwidth_alert">帯域幅の通知</string>
+    <string name="no_bandwidth">残りの帯域幅がありません。</string>
+    <string name="connection_failed">接続に失敗しました</string>
+    <string name="low_bandwidth">"帯域幅が不足しています！ 残りの帯域幅： "</string>
+    <string name="credential_already_imported">認証情報はすでにインポートされています。</string>
 </resources>
