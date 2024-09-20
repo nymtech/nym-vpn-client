@@ -41,12 +41,16 @@ const getSessionStartTime = async () => {
 
 // init country list
 const getEntryCountries = async () => {
+  const mode = await kvGet<VpnMode>('VpnMode');
   return await invoke<Country[]>('get_countries', {
+    vpnMode: mode || DefaultVpnMode,
     nodeType: 'Entry',
   });
 };
 const getExitCountries = async () => {
+  const mode = await kvGet<VpnMode>('VpnMode');
   return await invoke<Country[]>('get_countries', {
+    vpnMode: mode || DefaultVpnMode,
     nodeType: 'Exit',
   });
 };

@@ -49,6 +49,10 @@ export type StateAction =
       payload: { hop: NodeHop; countries: Country[] };
     }
   | {
+      type: 'set-fast-country-list';
+      payload: { countries: Country[] };
+    }
+  | {
       type: 'set-countries-loading';
       payload: { hop: NodeHop; loading: boolean };
     }
@@ -93,10 +97,13 @@ export const initialState: AppState = {
   codeDepsRust: [],
   codeDepsJs: [],
   credentialExpiry: null,
-  fetchEntryCountries: async () => {
+  fetchMxEntryCountries: async () => {
     /*  SCARECROW */
   },
-  fetchExitCountries: async () => {
+  fetchMxExitCountries: async () => {
+    /* SCARECROW */
+  },
+  fetchWgCountries: async () => {
     /* SCARECROW */
   },
 };
@@ -158,6 +165,12 @@ export function reducer(state: AppState, action: StateAction): AppState {
       }
       return {
         ...state,
+        exitCountryList: action.payload.countries,
+      };
+    case 'set-fast-country-list':
+      return {
+        ...state,
+        entryCountryList: action.payload.countries,
         exitCountryList: action.payload.countries,
       };
     case 'set-countries-loading':

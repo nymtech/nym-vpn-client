@@ -126,8 +126,8 @@ pub fn print_build_info(package_info: &PackageInfo) {
     let info = build_info();
 
     print!(
-        r"pkg name:      {}
-pkg version:   {}
+        r"app name:      {}
+app version:   {}
 crate name:    {}
 crate version: {}
 tauri version: {}

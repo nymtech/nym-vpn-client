@@ -99,10 +99,12 @@ function useI18nError() {
           return t('exit-node.routing', { protocol: 'IPv6' });
         case 'UserNoBandwidth':
           return t('out-of-bandwidth');
-        case 'GetEntryCountriesQuery':
+        case 'GetMixnetEntryCountriesQuery':
           return t('countries-request.entry');
-        case 'GetExitCountriesQuery':
+        case 'GetMixnetExitCountriesQuery':
           return t('countries-request.exit');
+        case 'GetWgCountriesQuery':
+          return t('countries-request.fast-mode');
         case 'UnknownError':
           return t('unknown');
 

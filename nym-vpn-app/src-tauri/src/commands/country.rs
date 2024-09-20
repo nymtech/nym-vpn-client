@@ -1,3 +1,4 @@
+use nym_vpn_proto::GatewayType;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tauri::State;
@@ -8,6 +9,7 @@ use crate::grpc::client::GrpcClient;
 use crate::{
     country::Country,
     error::{BackendError, ErrorKey},
+    states::app::VpnMode,
 };
 
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]
@@ -19,24 +21,25 @@ pub enum NodeType {
 #[instrument(skip(grpc))]
 #[tauri::command]
 pub async fn get_countries(
-    node_type: NodeType,
+    vpn_mode: VpnMode,
+    node_type: Option<NodeType>,
     grpc: State<'_, Arc<GrpcClient>>,
 ) -> Result<Vec<Country>, BackendError> {
     debug!("get_countries");
-    match node_type {
-        NodeType::Entry => grpc.entry_countries().await.map_err(|e| {
-            BackendError::new_with_details(
-                "failed to fetch entry countries",
-                ErrorKey::GetEntryCountriesQuery,
-                e.to_string(),
-            )
-        }),
-        NodeType::Exit => grpc.exit_countries().await.map_err(|e| {
-            BackendError::new_with_details(
-                "failed to fetch exit countries",
-                ErrorKey::GetExitCountriesQuery,
-                e.to_string(),
-            )
-        }),
-    }
+    let gw_type = match vpn_mode {
+        VpnMode::Mixnet => match node_type.ok_or_else(|| {
+            BackendError::new_internal("node type must be provided for Mixnet mode", None)
+        })? {
+            NodeType::Entry => GatewayType::MixnetEntry,
+            NodeType::Exit => GatewayType::MixnetExit,
+        },
+        VpnMode::TwoHop => GatewayType::Wg,
+    };
+    grpc.countries(gw_type).await.map_err(|e| {
+        BackendError::new_with_details(
+            &format!("failed to get countries for {:?}", gw_type),
+            ErrorKey::from(gw_type),
+            e.to_string(),
+        )
+    })
 }
