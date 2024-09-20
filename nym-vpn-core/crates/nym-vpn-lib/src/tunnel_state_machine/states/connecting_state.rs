@@ -174,7 +174,6 @@ impl ConnectingState {
         enable_ipv6: bool,
     ) -> Result<AsyncDevice> {
         let mut tun_config = tun::Configuration::default();
-        let ipv4_network = Ipv4Network::new(interface_addresses.ipv4, 32).unwrap();
 
         tun_config
             .address(interface_addresses.ipv4)
