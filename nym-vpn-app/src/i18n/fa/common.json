@@ -2,7 +2,7 @@
   "disconnect": "قطع",
   "feedback": "بازخورد",
   "support": "پشتیبانی",
-  "sentry": "Sentry",
+  "sentry": "ابزار Sentry",
   "legal": "حقوقی",
   "connect": "اتصال",
   "logs": "گزارش‌ها",
@@ -18,5 +18,10 @@
   "vpn-modes": {
     "privacy": "ناشناس",
     "fast": "سریع"
+  },
+  "display-theme": "نمایش",
+  "ui-mode": {
+    "dark": "طرح تاریک",
+    "light": "طرح روشن"
   }
 }

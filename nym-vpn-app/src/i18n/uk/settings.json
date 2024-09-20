@@ -46,5 +46,10 @@
   },
   "notifications": {
     "title": "Сповіщення на робочому столі"
+  },
+  "info": {
+    "daemon-version": "Версія Daemon",
+    "network-name": "Мережа",
+    "client-version": "Версія клієнту"
   }
 }

@@ -33,7 +33,22 @@
       "connect": "Mixnet'e bağlanılamadı",
       "entry-gateway": "Mixnet entry gateway'ine bağlanılamadı"
     },
-    "ipr-connect": "IPR'ye bağlanılamadı"
+    "ipr-connect": "IPR'ye bağlanılamadı",
+    "interface": {
+      "wg-bring-up": "WireGuard arayüzünü başlatma başarısız oldu",
+      "find-default": "Varsayılan ağ arayüzü bulunamadı"
+    },
+    "dns": {
+      "set": "DNS ayarını yapma başarısız oldu",
+      "init": "DNS alt sistemini başlatma başarısız oldu"
+    },
+    "bandwidth": {
+      "tunnel-up": "Tünel kurmak için yeterli bant genişliği mevcut değil"
+    },
+    "firewall": {
+      "reset-policy": "Güvenlik duvarı politikasını sıfırlama başarısız oldu",
+      "init": "Güvenlik duvarı alt sistemini başlatma başarısız oldu"
+    }
   },
   "countries-request": {
     "entry": "Kullanılabilir entry node ülke bilgileri alınamadı",
