@@ -1,16 +1,22 @@
 use futures::future::{Fuse, FutureExt};
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
+use tun2::AsyncDevice;
 
-use crate::tunnel_state_machine::{
-    states::{ConnectingState, DisconnectedState, ErrorState},
-    ActionAfterDisconnect, NextTunnelState, SharedState, TunnelCommand, TunnelState,
-    TunnelStateHandler,
+use crate::{
+    tunnel_state_machine::{
+        states::{ConnectingState, DisconnectedState, ErrorState},
+        ActionAfterDisconnect, NextTunnelState, SharedState, TunnelCommand, TunnelState,
+        TunnelStateHandler,
+    },
+    MixnetError,
 };
+
+type WaitHandle = JoinHandle<Option<Result<AsyncDevice, MixnetError>>>;
 
 pub struct DisconnectingState {
     after_disconnect: ActionAfterDisconnect,
-    wait_handle: Fuse<JoinHandle<()>>,
+    wait_handle: Fuse<WaitHandle>,
 }
 
 impl DisconnectingState {
@@ -18,17 +24,13 @@ impl DisconnectingState {
         after_disconnect: ActionAfterDisconnect,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, TunnelState) {
-        if let Some(token) = shared_state.tunnel_shutdown_token.take() {
-            token.cancel();
+        let tunnel_handle = shared_state.tunnel_handle.take();
+
+        if let Some(ref tunnel_handle) = tunnel_handle {
+            tunnel_handle.cancel();
         }
 
-        let tunnel_handle = shared_state.tunnel_handle.take();
-        let wait_handle = tokio::spawn(async move {
-            if let Some(tunnel_handle) = tunnel_handle {
-                _ = tunnel_handle.await;
-            }
-        })
-        .fuse();
+        let wait_handle = tokio::spawn(async move { tunnel_handle?.wait().await }).fuse();
 
         (
             Box::new(Self {

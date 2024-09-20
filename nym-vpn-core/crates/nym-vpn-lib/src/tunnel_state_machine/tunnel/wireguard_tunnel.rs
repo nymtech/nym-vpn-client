@@ -1,14 +1,24 @@
-use std::net::IpAddr;
+// todo: REFACTOR
 
-use nym_authenticator_client::AuthClient;
-use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
+use std::net::IpAddr;
+#[cfg(unix)]
+use std::os::unix::io::AsRawFd;
+
+use ipnetwork::IpNetwork;
 use tokio_util::sync::CancellationToken;
 
+use nym_authenticator_client::AuthClient;
 use nym_gateway_directory::{AuthAddresses, Gateway, GatewayClient, Recipient};
 use nym_task::TaskManager;
+use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
+use nym_wg_go::wireguard_go;
 
 use super::{gateway_selector::SelectedGateways, Error, Result};
-use crate::{mixnet::SharedMixnetClient, wg_config::WgNodeConfig, GenericNymVpnConfig};
+use crate::{
+    mixnet::SharedMixnetClient,
+    wg_config::{WgInterface, WgNodeConfig},
+    GenericNymVpnConfig,
+};
 
 pub struct WireGuardTunnel {
     nym_config: GenericNymVpnConfig,
@@ -18,7 +28,6 @@ pub struct WireGuardTunnel {
     entry_auth_recipient: Recipient,
     exit_auth_recipient: Recipient,
     gateway_directory_client: GatewayClient,
-    selected_gateways: SelectedGateways,
     shutdown_token: CancellationToken,
 }
 
@@ -48,14 +57,33 @@ impl WireGuardTunnel {
             entry_auth_recipient,
             exit_auth_recipient,
             gateway_directory_client,
-            selected_gateways,
             shutdown_token,
         })
     }
 
     pub async fn run(mut self) -> Result<()> {
-        let wg_entry_config = self.start_wg_entry_client().await?;
-        let wg_exit_config = self.start_wg_exit_client().await?;
+        let mut wg_entry_config = self.start_wg_entry_client().await?;
+        wg_entry_config.interface.mtu = 1440;
+
+        let mut wg_exit_config = self.start_wg_exit_client().await?;
+        wg_exit_config.interface.mtu = 1360;
+
+        let mut entry_tun_config = wg_entry_config.interface.as_tun_config();
+        let mut exit_tun_config = wg_exit_config.interface.as_tun_config();
+
+        let entry_tun = tun2::create_as_async(&entry_tun_config).map_err(Error::CreateTunDevice)?;
+        let exit_tun = tun2::create_as_async(&exit_tun_config).map_err(Error::CreateTunDevice)?;
+
+        let entry_tunnel = wireguard_go::Tunnel::start(
+            wg_entry_config.into_wireguard_config(),
+            entry_tun.as_raw_fd(),
+        )
+        .map_err(Error::StartWireguard)?;
+        let exit_tunnel = wireguard_go::Tunnel::start(
+            wg_exit_config.into_wireguard_config(),
+            exit_tun.as_raw_fd(),
+        )
+        .map_err(Error::StartWireguard)?;
 
         let mut shutdown_task_client = self.task_manager.subscribe();
 
@@ -68,6 +96,9 @@ impl WireGuardTunnel {
                 _ = self.task_manager.signal_shutdown();
             }
         }
+
+        entry_tunnel.stop();
+        exit_tunnel.stop();
 
         self.task_manager.wait_for_shutdown().await;
         self.mixnet_client.disconnect().await;
@@ -153,5 +184,23 @@ impl WireGuardTunnel {
         let wg_gateway_data = wg_gateway_client.register_wireguard(gateway_host).await?;
         tracing::debug!("Received wireguard gateway data: {wg_gateway_data:?}");
         Ok((wg_gateway_data, gateway_host))
+    }
+}
+
+trait AsTunConfig {
+    fn as_tun_config(&self) -> tun2::Configuration;
+}
+
+impl AsTunConfig for WgInterface {
+    fn as_tun_config(&self) -> tun2::Configuration {
+        let mut config = tun2::Configuration::default();
+        if let Some(IpNetwork::V4(ipv4_net)) = self.addresses.iter().find(|x| x.is_ipv4()) {
+            config.address(ipv4_net.ip()).netmask(ipv4_net.mask());
+        }
+        if self.mtu > 0 {
+            config.mtu(self.mtu);
+        }
+        config.up();
+        config
     }
 }

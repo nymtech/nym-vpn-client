@@ -3,9 +3,9 @@ use std::{collections::HashSet, fmt, net::IpAddr};
 use talpid_routing::{NetNode, Node, RequiredRoute, RouteManager};
 
 #[cfg(target_os = "linux")]
-const TUNNEL_TABLE_ID: u32 = 0x14d;
+pub const TUNNEL_TABLE_ID: u32 = 0x14d;
 #[cfg(target_os = "linux")]
-const TUNNEL_FWMARK: u32 = 0x14d;
+pub const TUNNEL_FWMARK: u32 = 0x14d;
 
 pub struct RouteHandler {
     route_manager: RouteManager,
@@ -94,6 +94,9 @@ impl RouteHandler {
 pub struct Error {
     inner: talpid_routing::Error,
 }
+
+unsafe impl Send for Error {}
+unsafe impl Sync for Error {}
 
 impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {

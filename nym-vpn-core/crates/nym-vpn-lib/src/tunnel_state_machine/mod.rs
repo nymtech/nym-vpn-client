@@ -1,4 +1,5 @@
 mod dns_handler;
+mod firewall_handler;
 mod route_handler;
 mod states;
 mod tunnel;
@@ -7,8 +8,10 @@ use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
 use dns_handler::DnsHandler;
+use firewall_handler::FirewallHandler;
 use route_handler::RouteHandler;
 use states::DisconnectedState;
+use tunnel::mixnet::connected_tunnel::TunnelHandle;
 
 use crate::GenericNymVpnConfig;
 
@@ -57,8 +60,8 @@ pub enum ErrorStateReason {
     /// Failure to configure routing
     Routing,
 
-    /// Failure to establish connection
-    EstablishConnection,
+    /// Failure to establish mixnet connection
+    EstablishMixnetConnection,
 
     /// Tunnel went down at runtime
     TunnelDown,
@@ -71,8 +74,9 @@ pub enum TunnelEvent {
 
 pub struct SharedState {
     route_handler: RouteHandler,
-    tunnel_shutdown_token: Option<CancellationToken>,
-    tunnel_handle: Option<JoinHandle<()>>,
+    firewall_handler: FirewallHandler,
+    dns_handler: DnsHandler,
+    tunnel_handle: Option<TunnelHandle>,
     config: GenericNymVpnConfig,
 }
 
@@ -96,10 +100,18 @@ impl TunnelStateMachine {
         let route_handler = RouteHandler::new()
             .await
             .map_err(Error::CreateRouteHandler)?;
+        let dns_handler = DnsHandler::new(
+            #[cfg(target_os = "linux")]
+            &route_handler,
+        )
+        .await
+        .map_err(Error::CreateDnsHandler)?;
+        let firewall_handler = FirewallHandler::new().map_err(Error::CreateFirewallHandler)?;
 
         let shared_state = SharedState {
             route_handler,
-            tunnel_shutdown_token: None,
+            firewall_handler,
+            dns_handler,
             tunnel_handle: None,
             config,
         };
@@ -148,6 +160,12 @@ impl TunnelStateMachine {
 pub enum Error {
     #[error("failed to create a route handler")]
     CreateRouteHandler(#[source] route_handler::Error),
+
+    #[error("failed to create a dns handler")]
+    CreateDnsHandler(#[source] dns_handler::Error),
+
+    #[error("failed to create firewall handler")]
+    CreateFirewallHandler(#[source] firewall_handler::Error),
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

@@ -3,6 +3,7 @@ use std::{fmt, net::IpAddr, sync::Arc};
 use futures::{channel::mpsc::UnboundedSender, StreamExt};
 use talpid_core::dns::DnsMonitor;
 
+#[cfg(target_os = "linux")]
 use super::route_handler::RouteHandler;
 
 #[cfg(target_os = "macos")]
@@ -15,7 +16,7 @@ pub struct DnsHandler {
 }
 
 impl DnsHandler {
-    pub async fn new(#[cfg(target_os = "linux")] route_handler: RouteHandler) -> Result<Self> {
+    pub async fn new(#[cfg(target_os = "linux")] route_handler: &RouteHandler) -> Result<Self> {
         #[cfg(target_os = "macos")]
         let tx = {
             let (tx, mut rx) = futures::channel::mpsc::unbounded();
@@ -63,6 +64,9 @@ impl DnsHandler {
 pub struct Error {
     inner: talpid_core::dns::Error,
 }
+
+unsafe impl Send for Error {}
+unsafe impl Sync for Error {}
 
 impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {

@@ -1,125 +1,95 @@
 mod gateway_selector;
-mod mixnet_tunnel;
+pub mod mixnet;
+mod tun_ipv6;
 mod wireguard_tunnel;
 
 use std::{io, net::IpAddr, time::Duration};
 
+pub use gateway_selector::SelectedGateways;
 use nym_gateway_directory::GatewayClient;
-use nym_sdk::UserAgent;
+use nym_sdk::{TaskClient, UserAgent};
 use nym_task::TaskManager;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
-use crate::{GatewayDirectoryError, GenericNymVpnConfig, MixnetError};
+use crate::{mixnet::SharedMixnetClient, GatewayDirectoryError, GenericNymVpnConfig, MixnetError};
 
 const MIXNET_CLIENT_STARTUP_TIMEOUT: Duration = Duration::from_secs(30);
 const TASK_MANAGER_SHUTDOWN_TIMER_SECS: u64 = 10;
 
-#[derive(Debug)]
-pub enum Event {
-    Up {
-        entry_mixnet_gateway_ip: IpAddr,
-        tun_name: String,
-    },
-    Down(Option<Error>),
+pub struct ConnectedMixnet {
+    pub task_manager: TaskManager,
+    pub gateway_directory_client: GatewayClient,
+    pub selected_gateways: SelectedGateways,
+    pub mixnet_client: SharedMixnetClient,
 }
 
-pub type EventReceiver = mpsc::UnboundedReceiver<Event>;
-
-pub fn spawn(
+pub async fn connect_mixnet(
     nym_config: GenericNymVpnConfig,
     enable_wireguard: bool,
-    event_tx: mpsc::UnboundedSender<Event>,
-    shutdown_token: CancellationToken,
-) -> JoinHandle<()> {
-    tokio::spawn(async move {
-        let err = run(
-            nym_config,
-            enable_wireguard,
-            event_tx.clone(),
-            shutdown_token,
-        )
-        .await
-        .err();
-        _ = event_tx.send(Event::Down(err));
-    })
-}
-
-pub async fn run(
-    nym_config: GenericNymVpnConfig,
-    enable_wireguard: bool,
-    event_tx: mpsc::UnboundedSender<Event>,
-    shutdown_token: CancellationToken,
-) -> Result<()> {
-    // Craft user agent.
+) -> Result<ConnectedMixnet> {
+    let task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS);
     let user_agent = nym_config
         .user_agent
-        .clone()
         .unwrap_or(UserAgent::from(nym_bin_common::bin_info_local_vergen!()));
 
     // Select gateways
-    let gateway_directory_client =
-        GatewayClient::new(nym_config.gateway_config.clone(), user_agent)
-            .map_err(Error::CreateGatewayClient)?;
+    let gateway_directory_client = GatewayClient::new(nym_config.gateway_config, user_agent)
+        .map_err(Error::CreateGatewayClient)?;
     let selected_gateways = gateway_selector::select_gateways(
         &gateway_directory_client,
         enable_wireguard,
-        nym_config.entry_point.clone(),
-        nym_config.exit_point.clone(),
+        nym_config.entry_point,
+        nym_config.exit_point,
     )
     .await
     .map_err(Error::SelectGateways)?;
 
-    // Create mixnet client
-    let mut task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS);
-
-    let connect_mixnet_fut = tokio::time::timeout(
+    let mixnet_client = tokio::time::timeout(
         MIXNET_CLIENT_STARTUP_TIMEOUT,
         crate::mixnet::setup_mixnet_client(
             selected_gateways.entry.identity(),
             &nym_config.data_path,
             task_manager.subscribe_named("mixnet_client_main"),
-            nym_config.mixnet_client_config.clone(),
+            nym_config.mixnet_client_config,
         ),
+    )
+    .await
+    .map_err(|_| Error::StartMixnetClientTimeout)?
+    .map_err(Error::MixnetClient)?;
+
+    Ok(ConnectedMixnet {
+        task_manager,
+        selected_gateways,
+        gateway_directory_client,
+        mixnet_client,
+    })
+}
+
+pub async fn run_mixnet_tunnel(
+    nym_config: GenericNymVpnConfig,
+    connected_mixnet: ConnectedMixnet,
+) -> Result<mixnet::connected_tunnel::TunnelHandle> {
+    let connector = mixnet::connector::Connector::new(
+        connected_mixnet.task_manager,
+        connected_mixnet.mixnet_client,
+        connected_mixnet.gateway_directory_client,
     );
-
-    // Connect mixnet or catch cancellation
-    // todo: look into whether this will work?
-    let mixnet_client = tokio::select! {
-        _ = shutdown_token.cancelled() => {
-            _ = task_manager.signal_shutdown();
-            task_manager.wait_for_shutdown().await;
-            return Ok(())
-        }
-        timeout_result = connect_mixnet_fut => {
-            timeout_result.map_err(|_| Error::StartMixnetClientTimeout)?
-            .map_err(Error::SetupMixnetClient)?
-        }
-    };
-
-    if enable_wireguard {
-        let wireguard_tunnel = wireguard_tunnel::WireGuardTunnel::new(
-            nym_config,
-            task_manager,
-            mixnet_client,
-            gateway_directory_client,
-            selected_gateways,
-            shutdown_token,
-        )
+    let connected_tunnel = connector
+        .connect(connected_mixnet.selected_gateways, nym_config.nym_ips)
         .await?;
 
-        wireguard_tunnel.run().await
-    } else {
-        mixnet_tunnel::MixnetTunnel::run(
-            nym_config,
-            task_manager,
-            mixnet_client,
-            gateway_directory_client,
-            selected_gateways,
-            shutdown_token,
-        )
-        .await
-    }
+    let interface_addresses = connected_tunnel.interface_addresses();
+
+    let mut tun_config = tun2::Configuration::default();
+    tun_config
+        .address(interface_addresses.ipv4)
+        .mtu(nym_config.nym_mtu.unwrap_or(1500))
+        .up();
+
+    let tun_device = tun2::create_as_async(&tun_config).map_err(Error::CreateTunDevice)?;
+
+    Ok(connected_tunnel.run(tun_device).await)
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -133,8 +103,8 @@ pub enum Error {
     #[error("start mixnet timeout")]
     StartMixnetClientTimeout,
 
-    #[error("failed to setup mixnet client")]
-    SetupMixnetClient(#[source] MixnetError),
+    #[error("mixnet tunnel has failed")]
+    MixnetClient(#[from] MixnetError),
 
     #[error("failed to lookup gateway: {}", gateway_id)]
     LookupGatewayIp {
@@ -166,6 +136,9 @@ pub enum Error {
 
     #[error("wireguard gateway failure: {0}")]
     WgGatewayClientFailure(#[from] nym_wg_gateway_client::Error),
+
+    #[error("failed to start wireguard: {0}")]
+    StartWireguard(#[source] nym_wg_go::Error),
 
     #[error("failed to lookup gateway ip: {gateway_id}: {source}")]
     FailedToLookupGatewayIp {

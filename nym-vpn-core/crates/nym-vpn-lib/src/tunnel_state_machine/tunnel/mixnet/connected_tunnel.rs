@@ -1,0 +1,115 @@
+use std::{error::Error as StdError, net::IpAddr};
+
+use futures::future::Fuse;
+use nym_connection_monitor::ConnectionMonitorTask;
+use tokio::task::JoinHandle;
+use tun2::AsyncDevice;
+
+use nym_ip_packet_requests::IpPair;
+use nym_task::TaskManager;
+
+use super::connector::AssignedAddresses;
+use crate::{
+    mixnet::{MixnetError, SharedMixnetClient},
+    tunnel_state_machine::tunnel::Result,
+};
+
+/// Type representing a connected mixnet tunnel.
+pub struct ConnectedTunnel {
+    task_manager: TaskManager,
+    mixnet_client: SharedMixnetClient,
+    assigned_addresses: AssignedAddresses,
+}
+
+impl ConnectedTunnel {
+    pub fn new(
+        task_manager: TaskManager,
+        mixnet_client: SharedMixnetClient,
+        assigned_addresses: AssignedAddresses,
+    ) -> Self {
+        Self {
+            task_manager,
+            mixnet_client,
+            assigned_addresses,
+        }
+    }
+    pub fn interface_addresses(&self) -> IpPair {
+        self.assigned_addresses.interface_addresses
+    }
+
+    pub fn entry_mixnet_gateway_ip(&self) -> IpAddr {
+        self.assigned_addresses.entry_mixnet_gateway_ip
+    }
+
+    pub async fn run(self, tun_device: AsyncDevice) -> TunnelHandle {
+        let connection_monitor = ConnectionMonitorTask::setup();
+
+        let processor_config =
+            crate::mixnet::Config::new(self.assigned_addresses.exit_mix_addresses.0);
+        let processor_handle = crate::mixnet::start_processor(
+            processor_config,
+            tun_device,
+            self.mixnet_client.clone(),
+            &self.task_manager,
+            self.assigned_addresses.interface_addresses,
+            &connection_monitor,
+        )
+        .await;
+
+        let mixnet_client_sender = self.mixnet_client.split_sender().await;
+        connection_monitor.start(
+            mixnet_client_sender,
+            self.assigned_addresses.mixnet_client_address,
+            self.assigned_addresses.interface_addresses,
+            self.assigned_addresses.exit_mix_addresses.0,
+            &self.task_manager,
+        );
+
+        TunnelHandle {
+            task_manager: self.task_manager,
+            processor_handle,
+        }
+    }
+}
+
+pub type ProcessorHandle = JoinHandle<Result<AsyncDevice, MixnetError>>;
+
+/// Type providing a back channel for tunnel errors and a way to wait for tunnel to finish execution.
+pub struct TunnelHandle {
+    task_manager: TaskManager,
+    processor_handle: ProcessorHandle,
+}
+
+impl TunnelHandle {
+    pub fn new(task_manager: TaskManager, processor_handle: ProcessorHandle) -> Self {
+        Self {
+            task_manager,
+            processor_handle,
+        }
+    }
+
+    /// Cancel tunnel execution.
+    pub fn cancel(&self) {
+        if let Err(e) = self.task_manager.signal_shutdown() {
+            tracing::error!("Failed to signal shutdown: {}", e);
+        }
+    }
+
+    /// Wait for the next error.
+    ///
+    /// This method is cancel safe.
+    /// Returns `None` if the underlying channel has been closed.
+    pub async fn recv_error(&mut self) -> Option<Box<dyn StdError + 'static + Send + Sync>> {
+        self.task_manager.wait_for_error().await
+    }
+
+    /// Wait until the tunnel finished execution.
+    pub async fn wait(self) -> Option<Result<AsyncDevice, MixnetError>> {
+        self.processor_handle
+            .await
+            .inspect_err(|e| {
+                tracing::error!("Failed to join processor handle: {}", e);
+            })
+            .ok()
+    }
+}

@@ -6,15 +6,11 @@ use crate::tunnel_state_machine::{
     SharedState, TunnelCommand, TunnelState, TunnelStateHandler,
 };
 
-pub struct ConnectedState {
-    tun_event_rx: tunnel::EventReceiver,
-}
+pub struct ConnectedState {}
 
 impl ConnectedState {
-    pub fn enter(
-        tun_event_rx: tunnel::EventReceiver,
-    ) -> (Box<dyn TunnelStateHandler>, TunnelState) {
-        (Box::new(Self { tun_event_rx }), TunnelState::Connected)
+    pub fn enter(shared_state: &mut SharedState) -> (Box<dyn TunnelStateHandler>, TunnelState) {
+        (Box::new(Self {}), TunnelState::Connected)
     }
 }
 
@@ -29,22 +25,6 @@ impl TunnelStateHandler for ConnectedState {
         tokio::select! {
             _ = shutdown_token.cancelled() => {
                 NextTunnelState::NewState(DisconnectingState::enter(ActionAfterDisconnect::Nothing, shared_state))
-            }
-            Some(event) = self.tun_event_rx.recv() => {
-                match event {
-                    tunnel::Event::Up { .. } => {
-                        tracing::warn!("Received tunnel up event which must not happen!");
-                        NextTunnelState::SameState(self)
-                    },
-                    tunnel::Event::Down(error) => {
-                        if let Some(error) = error {
-                            tracing::error!("Tunnel went down with error: {}", error)
-                        } else {
-                            tracing::info!("Tunnel went down");
-                        }
-                        NextTunnelState::NewState(DisconnectingState::enter(ActionAfterDisconnect::Error(ErrorStateReason::TunnelDown), shared_state))
-                    }
-                }
             }
             Some(command) = command_rx.recv() => {
                 match command {
