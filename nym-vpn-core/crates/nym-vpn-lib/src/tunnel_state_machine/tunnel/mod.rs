@@ -7,6 +7,7 @@ use std::{io, net::IpAddr, time::Duration};
 
 pub use gateway_selector::SelectedGateways;
 use nym_gateway_directory::GatewayClient;
+use nym_ip_packet_requests::IpPair;
 use nym_sdk::{TaskClient, UserAgent};
 use nym_task::TaskManager;
 use tokio::{sync::mpsc, task::JoinHandle};
@@ -22,6 +23,23 @@ pub struct ConnectedMixnet {
     pub gateway_directory_client: GatewayClient,
     pub selected_gateways: SelectedGateways,
     pub mixnet_client: SharedMixnetClient,
+}
+
+impl ConnectedMixnet {
+    /// Creates a tunnel over mixnet.
+    pub async fn connect_tunnel(
+        self,
+        interface_addresses: Option<IpPair>, // known as config.nym_ips
+    ) -> Result<mixnet::connected_tunnel::ConnectedTunnel> {
+        let connector = mixnet::connector::Connector::new(
+            self.task_manager,
+            self.mixnet_client,
+            self.gateway_directory_client,
+        );
+        connector
+            .connect(self.selected_gateways, interface_addresses)
+            .await
+    }
 }
 
 pub async fn connect_mixnet(
@@ -64,32 +82,6 @@ pub async fn connect_mixnet(
         gateway_directory_client,
         mixnet_client,
     })
-}
-
-pub async fn run_mixnet_tunnel(
-    nym_config: GenericNymVpnConfig,
-    connected_mixnet: ConnectedMixnet,
-) -> Result<mixnet::connected_tunnel::TunnelHandle> {
-    let connector = mixnet::connector::Connector::new(
-        connected_mixnet.task_manager,
-        connected_mixnet.mixnet_client,
-        connected_mixnet.gateway_directory_client,
-    );
-    let connected_tunnel = connector
-        .connect(connected_mixnet.selected_gateways, nym_config.nym_ips)
-        .await?;
-
-    let interface_addresses = connected_tunnel.interface_addresses();
-
-    let mut tun_config = tun2::Configuration::default();
-    tun_config
-        .address(interface_addresses.ipv4)
-        .mtu(nym_config.nym_mtu.unwrap_or(1500))
-        .up();
-
-    let tun_device = tun2::create_as_async(&tun_config).map_err(Error::CreateTunDevice)?;
-
-    Ok(connected_tunnel.run(tun_device).await)
 }
 
 #[derive(Debug, thiserror::Error)]

@@ -2,15 +2,21 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 use crate::tunnel_state_machine::{
-    states::DisconnectingState, tunnel, ActionAfterDisconnect, ErrorStateReason, NextTunnelState,
-    SharedState, TunnelCommand, TunnelState, TunnelStateHandler,
+    states::DisconnectingState, tunnel, tunnel::mixnet::connected_tunnel::TunnelHandle,
+    ActionAfterDisconnect, ErrorStateReason, NextTunnelState, SharedState, TunnelCommand,
+    TunnelState, TunnelStateHandler,
 };
 
-pub struct ConnectedState {}
+pub struct ConnectedState {
+    tunnel_handle: TunnelHandle,
+}
 
 impl ConnectedState {
-    pub fn enter(shared_state: &mut SharedState) -> (Box<dyn TunnelStateHandler>, TunnelState) {
-        (Box::new(Self {}), TunnelState::Connected)
+    pub fn enter(
+        shared_state: &mut SharedState,
+        tunnel_handle: TunnelHandle,
+    ) -> (Box<dyn TunnelStateHandler>, TunnelState) {
+        (Box::new(Self { tunnel_handle }), TunnelState::Connected)
     }
 }
 
@@ -32,6 +38,19 @@ impl TunnelStateHandler for ConnectedState {
                     TunnelCommand::Disconnect => {
                         NextTunnelState::NewState(DisconnectingState::enter(ActionAfterDisconnect::Nothing, shared_state))
                     },
+                }
+            }
+            maybe_error = self.tunnel_handle.recv_error() => {
+                match maybe_error {
+                    Some(error) => {
+                        tracing::error!("Tunnel error: {}", error);
+                        // todo: handle error
+                        NextTunnelState::SameState(self)
+                    }
+                    None => {
+                        tracing::info!("Tunnel went down unexpectedly.");
+                        NextTunnelState::NewState(DisconnectingState::enter(ActionAfterDisconnect::Error(ErrorStateReason::TunnelDown), shared_state))
+                    }
                 }
             }
             else => NextTunnelState::Finished

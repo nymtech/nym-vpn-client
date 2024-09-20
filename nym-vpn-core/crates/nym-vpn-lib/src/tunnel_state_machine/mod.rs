@@ -76,7 +76,6 @@ pub struct SharedState {
     route_handler: RouteHandler,
     firewall_handler: FirewallHandler,
     dns_handler: DnsHandler,
-    tunnel_handle: Option<TunnelHandle>,
     config: GenericNymVpnConfig,
 }
 
@@ -112,7 +111,6 @@ impl TunnelStateMachine {
             route_handler,
             firewall_handler,
             dns_handler,
-            tunnel_handle: None,
             config,
         };
 
