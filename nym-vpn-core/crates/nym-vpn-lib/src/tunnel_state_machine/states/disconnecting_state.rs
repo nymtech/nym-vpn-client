@@ -56,7 +56,7 @@ impl DisconnectingState {
         )
     }
 
-    async fn on_finish_wait(
+    async fn on_tunnel_exit(
         &self,
         result: Result<Option<AsyncDevice>, JoinError>,
         shared_state: &mut SharedState,
@@ -122,7 +122,7 @@ impl TunnelStateHandler for DisconnectingState {
                 NextTunnelState::NewState(DisconnectedState::enter())
             }
             result = (&mut self.wait_handle) => {
-                self.on_finish_wait(result, shared_state).await
+                self.on_tunnel_exit(result, shared_state).await
             }
             Some(command) = command_rx.recv() => {
                 match command {
