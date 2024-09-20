@@ -1,3 +1,9 @@
 {
-  "settings": "أعدادات"
+  "settings": "أعدادات",
+  "connect": "اتصل",
+  "disconnect": "ألغاء الاتصال",
+  "fastest": "الأسرع",
+  "logs": "سجلات الأداء",
+  "feedback": "ملاحظات",
+  "support": "دعم"
 }
