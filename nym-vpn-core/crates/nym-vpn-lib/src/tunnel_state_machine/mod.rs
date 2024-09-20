@@ -176,10 +176,10 @@ pub enum Error {
     CreateFirewallHandler(#[source] firewall_handler::Error),
 
     #[error("failed to create tunnel device")]
-    CreateTunDevice(#[source] tun2::Error),
+    CreateTunDevice(#[source] tun::Error),
 
     #[error("failed to get tunnel device name")]
-    GetTunDeviceName(#[source] tun2::Error),
+    GetTunDeviceName(#[source] tun::Error),
 
     #[error("failed to set tunnel device ipv6 address")]
     SetTunDeviceIpv6Addr(#[source] std::io::Error),

@@ -71,8 +71,8 @@ impl WireGuardTunnel {
         let mut entry_tun_config = wg_entry_config.interface.as_tun_config();
         let mut exit_tun_config = wg_exit_config.interface.as_tun_config();
 
-        let entry_tun = tun2::create_as_async(&entry_tun_config).map_err(Error::CreateTunDevice)?;
-        let exit_tun = tun2::create_as_async(&exit_tun_config).map_err(Error::CreateTunDevice)?;
+        let entry_tun = tun::create_as_async(&entry_tun_config).map_err(Error::CreateTunDevice)?;
+        let exit_tun = tun::create_as_async(&exit_tun_config).map_err(Error::CreateTunDevice)?;
 
         let entry_tunnel = wireguard_go::Tunnel::start(
             wg_entry_config.into_wireguard_config(),
@@ -188,12 +188,12 @@ impl WireGuardTunnel {
 }
 
 trait AsTunConfig {
-    fn as_tun_config(&self) -> tun2::Configuration;
+    fn as_tun_config(&self) -> tun::Configuration;
 }
 
 impl AsTunConfig for WgInterface {
-    fn as_tun_config(&self) -> tun2::Configuration {
-        let mut config = tun2::Configuration::default();
+    fn as_tun_config(&self) -> tun::Configuration {
+        let mut config = tun::Configuration::default();
         if let Some(IpNetwork::V4(ipv4_net)) = self.addresses.iter().find(|x| x.is_ipv4()) {
             config.address(ipv4_net.ip()).netmask(ipv4_net.mask());
         }

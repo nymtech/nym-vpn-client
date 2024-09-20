@@ -5,9 +5,10 @@ use futures::{
     future::{BoxFuture, Fuse},
     FutureExt,
 };
+use ipnetwork::Ipv4Network;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
-use tun2::{AbstractDevice, AsyncDevice};
+use tun::{AsyncDevice, Device};
 
 use nym_ip_packet_requests::IpPair;
 
@@ -77,21 +78,26 @@ impl ConnectingState {
             .await
             .map_err(Error::ConnectMixnetTunnel)?;
 
+        let enable_ipv6 = true;
         let mtu = shared_state.config.nym_mtu.unwrap_or(DEFAULT_TUN_MTU);
         let interface_addresses = connected_tunnel.interface_addresses();
-        let tun_device: AsyncDevice = Self::create_device(interface_addresses, mtu)?;
-        let tun_name = tun_device.tun_name().map_err(Error::GetTunDeviceName)?;
 
-        tun_ipv6::set_ipv6_addr(&tun_name, interface_addresses.ipv6)
-            .map_err(Error::SetTunDeviceIpv6Addr)?;
+        let tun_device: AsyncDevice = Self::create_device(interface_addresses, mtu, enable_ipv6)?;
+        let tun_name = tun_device
+            .get_ref()
+            .name()
+            .map_err(Error::GetTunDeviceName)?;
 
-        Self::set_dns(&tun_name, shared_state)?;
+        tracing::debug!("Created tun device: {}", tun_name);
+
         Self::set_routes(
             &tun_name,
             connected_tunnel.entry_mixnet_gateway_ip(),
+            enable_ipv6,
             shared_state,
         )
         .await?;
+        Self::set_dns(&tun_name, shared_state)?;
 
         Ok(connected_tunnel.run(tun_device).await)
     }
@@ -112,6 +118,7 @@ impl ConnectingState {
     async fn set_routes(
         tun_name: &str,
         #[cfg(not(target_os = "linux"))] entry_mixnet_gateway_ip: IpAddr,
+        enable_ipv6: bool,
         shared_state: &mut SharedState,
     ) -> Result<()> {
         shared_state
@@ -120,16 +127,43 @@ impl ConnectingState {
                 tun_name,
                 #[cfg(not(target_os = "linux"))]
                 entry_mixnet_gateway_ip,
+                enable_ipv6,
             )
             .await
             .map_err(Error::AddRoutes)
     }
 
-    fn create_device(interface_addresses: IpPair, mtu: u16) -> Result<AsyncDevice> {
-        let mut tun_config = tun2::Configuration::default();
-        tun_config.address(interface_addresses.ipv4).mtu(mtu).up();
+    fn create_device(
+        interface_addresses: IpPair,
+        mtu: u16,
+        enable_ipv6: bool,
+    ) -> Result<AsyncDevice> {
+        let mut tun_config = tun::Configuration::default();
+        let ipv4_network = Ipv4Network::new(interface_addresses.ipv4, 32).unwrap();
 
-        tun2::create_as_async(&tun_config).map_err(Error::CreateTunDevice)
+        tun_config
+            .address(interface_addresses.ipv4)
+            .netmask(ipv4_network.mask())
+            .destination(ipv4_network.broadcast())
+            .mtu(i32::from(mtu))
+            .up();
+
+        #[cfg(target_os = "linux")]
+        tun_config.platform(|platform_config| platform_config.packet_information(false));
+
+        let tun_device = tun::create_as_async(&tun_config).map_err(Error::CreateTunDevice)?;
+
+        if enable_ipv6 {
+            let tun_name = tun_device
+                .get_ref()
+                .name()
+                .map_err(Error::GetTunDeviceName)?;
+
+            tun_ipv6::set_ipv6_addr(&tun_name, interface_addresses.ipv6)
+                .map_err(Error::SetTunDeviceIpv6Addr)?;
+        }
+
+        Ok(tun_device)
     }
 }
 

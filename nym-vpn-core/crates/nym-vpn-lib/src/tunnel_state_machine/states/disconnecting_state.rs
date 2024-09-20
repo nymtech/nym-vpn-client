@@ -4,11 +4,10 @@ use tokio::{
     task::{JoinError, JoinHandle},
 };
 use tokio_util::sync::CancellationToken;
-use tun2::AsyncDevice;
+use tun::AsyncDevice;
 
 use crate::tunnel_state_machine::{
     dns_handler::DnsHandler,
-    route_handler::RouteHandler,
     states::{ConnectingState, DisconnectedState, ErrorState},
     tunnel::mixnet::connected_tunnel::TunnelHandle,
     ActionAfterDisconnect, NextTunnelState, SharedState, TunnelCommand, TunnelState,

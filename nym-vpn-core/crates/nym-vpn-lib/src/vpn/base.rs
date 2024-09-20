@@ -16,7 +16,7 @@ use talpid_core::{dns::DnsMonitor, firewall::Firewall};
 use talpid_tunnel::tun_provider::TunProvider;
 use tokio::task::JoinHandle;
 use tracing::{error, info};
-use tun2::AsyncDevice;
+use tun::AsyncDevice;
 
 use super::{
     messages::NymVpnStatusMessage,

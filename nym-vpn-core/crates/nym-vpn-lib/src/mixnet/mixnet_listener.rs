@@ -10,7 +10,7 @@ use nym_task::TaskClient;
 use tokio::task::JoinHandle;
 use tokio_util::codec::Framed;
 use tracing::{debug, error, trace};
-use tun2::{AsyncDevice, TunPacketCodec};
+use tun::{AsyncDevice, TunPacket, TunPacketCodec};
 
 use super::SharedMixnetClient;
 
@@ -27,7 +27,7 @@ pub(super) struct MixnetListener {
     task_client: TaskClient,
 
     // Sink for sending packets to the tun device
-    tun_device_sink: SplitSink<Framed<AsyncDevice, TunPacketCodec>, Vec<u8>>,
+    tun_device_sink: SplitSink<Framed<AsyncDevice, TunPacketCodec>, TunPacket>,
 
     // Identifier for ICMP beacon
     icmp_beacon_identifier: u16,
@@ -43,7 +43,7 @@ impl MixnetListener {
     pub(super) async fn new(
         mixnet_client: SharedMixnetClient,
         task_client: TaskClient,
-        tun_device_sink: SplitSink<Framed<AsyncDevice, TunPacketCodec>, Vec<u8>>,
+        tun_device_sink: SplitSink<Framed<AsyncDevice, TunPacketCodec>, TunPacket>,
         icmp_beacon_identifier: u16,
         our_ips: IpPair,
         connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
@@ -77,7 +77,7 @@ impl MixnetListener {
         }
     }
 
-    async fn run(mut self) -> SplitSink<Framed<AsyncDevice, TunPacketCodec>, Vec<u8>> {
+    async fn run(mut self) -> SplitSink<Framed<AsyncDevice, TunPacketCodec>, TunPacket> {
         // We are the only one listening for mixnet messages when this is active
         let mut mixnet_client_binding = self.mixnet_client.lock().await;
         let mixnet_client = mixnet_client_binding.as_mut().unwrap();
@@ -98,7 +98,7 @@ impl MixnetListener {
                                 // Consider not including packets that are ICMP ping replies to our beacon
                                 // in the responses. We are defensive here just in case we incorrectly
                                 // label real packets as ping replies to our beacon.
-                                if let Err(err) = self.tun_device_sink.send(packet.into()).await {
+                                if let Err(err) = self.tun_device_sink.send(TunPacket::new(packet.to_vec())).await {
                                     error!("Failed to send packet to tun device: {err}");
                                 }
                             }
@@ -125,7 +125,7 @@ impl MixnetListener {
 
     pub(super) fn start(
         self,
-    ) -> JoinHandle<SplitSink<Framed<AsyncDevice, TunPacketCodec>, Vec<u8>>> {
+    ) -> JoinHandle<SplitSink<Framed<AsyncDevice, TunPacketCodec>, TunPacket>> {
         tokio::spawn(self.run())
     }
 }

@@ -2877,7 +2877,7 @@ dependencies = [
  "iana-time-zone-haiku",
  "js-sys",
  "wasm-bindgen",
- "windows-core",
+ "windows-core 0.52.0",
 ]
 
 [[package]]
@@ -3017,6 +3017,12 @@ name = "ioctl-sys"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c429fffa658f288669529fc26565f728489a2e39bc7b24a428aaaf51355182e"
+
+[[package]]
+name = "ioctl-sys"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8bd11f3a29434026f5ff98c730b668ba74b1033637b8817940b54d040696133c"
 
 [[package]]
 name = "ipconfig"
@@ -5489,7 +5495,7 @@ dependencies = [
  "tokio-util",
  "tracing",
  "tracing-subscriber",
- "tun2",
+ "tun 0.6.1",
  "uniffi",
  "url",
  "vergen",
@@ -5941,7 +5947,7 @@ dependencies = [
  "derive_builder",
  "errno 0.2.8",
  "error-chain",
- "ioctl-sys",
+ "ioctl-sys 0.6.0",
  "ipnetwork",
  "libc",
 ]
@@ -7801,7 +7807,7 @@ dependencies = [
  "tonic-build 0.8.4",
  "triggered",
  "trust-dns-server",
- "tun",
+ "tun 0.5.5",
  "uuid 0.8.2",
  "which",
  "widestring",
@@ -7920,7 +7926,7 @@ dependencies = [
  "talpid-types",
  "talpid-windows-net",
  "tokio",
- "tun",
+ "tun 0.5.5",
  "windows-sys 0.42.0",
 ]
 
@@ -8904,31 +8910,27 @@ version = "0.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cbc25e23adc6cac7dd895ce2780f255902290fc39b00e1ae3c33e89f3d20fa66"
 dependencies = [
- "ioctl-sys",
+ "ioctl-sys 0.6.0",
  "libc",
  "thiserror",
 ]
 
 [[package]]
-name = "tun2"
-version = "2.0.9"
+name = "tun"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7b139b40733b3e81560335ccad94948916c4d03ed1ded505a8675428879075b4"
+checksum = "0adb9992bbd5ca76f3847ed579ad4ee8defb2ec2eea918cceef17ccc66fa4fd4"
 dependencies = [
+ "byteorder",
  "bytes",
- "cfg-if",
  "futures-core",
- "ipnet",
+ "ioctl-sys 0.8.0",
  "libc",
- "libloading",
  "log",
- "nix 0.29.0",
- "rustversion",
  "thiserror",
  "tokio",
  "tokio-util",
- "windows-sys 0.59.0",
- "wintun-bindings",
+ "wintun",
 ]
 
 [[package]]
@@ -9574,6 +9576,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 
 [[package]]
+name = "windows"
+version = "0.51.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ca229916c5ee38c2f2bc1e9d8f04df975b4bd93f9955dc69fabb5d91270045c9"
+dependencies = [
+ "windows-core 0.51.1",
+ "windows-targets 0.48.5",
+]
+
+[[package]]
+name = "windows-core"
+version = "0.51.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f1f8cf84f35d2db49a46868f947758c7a1138116f7fac3bc844f43ade1292e64"
+dependencies = [
+ "windows-targets 0.48.5",
+]
+
+[[package]]
 name = "windows-core"
 version = "0.52.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9925,16 +9946,16 @@ dependencies = [
 ]
 
 [[package]]
-name = "wintun-bindings"
-version = "0.6.4"
+name = "wintun"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3af47a132f449a64ff858f9ad876a3d1812df30e9500cddfdcabb2266ab68c0d"
+checksum = "29b83b0eca06dd125dbcd48a45327c708a6da8aada3d95a3f06db0ce4b17e0d4"
 dependencies = [
  "c2rust-bitfields",
  "libloading",
  "log",
  "thiserror",
- "windows-sys 0.59.0",
+ "windows",
 ]
 
 [[package]]

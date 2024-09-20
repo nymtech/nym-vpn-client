@@ -2,7 +2,7 @@ use std::{error::Error as StdError, net::IpAddr};
 
 use nym_connection_monitor::ConnectionMonitorTask;
 use tokio::task::{JoinError, JoinHandle};
-use tun2::AsyncDevice;
+use tun::AsyncDevice;
 
 use nym_ip_packet_requests::IpPair;
 use nym_task::TaskManager;

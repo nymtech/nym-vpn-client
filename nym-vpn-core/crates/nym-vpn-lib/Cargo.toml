@@ -43,7 +43,7 @@ tokio-stream.workspace = true
 tokio-util = { workspace = true, features = ["codec"] }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 tracing.workspace = true
-tun2 = { workspace = true, features = ["async"] }
+tun = { workspace = true, features = ["async"] }
 uniffi.workspace = true
 url.workspace = true
 

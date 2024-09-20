@@ -28,6 +28,7 @@ impl RouteHandler {
         &mut self,
         tun_name: &str,
         #[cfg(not(target_os = "linux"))] entry_gateway_address: IpAddr,
+        enable_ipv6: bool,
     ) -> Result<()> {
         let mut routes = HashSet::new();
 
@@ -42,10 +43,12 @@ impl RouteHandler {
             Node::device(tun_name.to_owned()),
         ));
 
-        routes.insert(RequiredRoute::new(
-            "::0/0".parse().unwrap(),
-            Node::device(tun_name.to_owned()),
-        ));
+        if enable_ipv6 {
+            routes.insert(RequiredRoute::new(
+                "::0/0".parse().unwrap(),
+                Node::device(tun_name.to_owned()),
+            ));
+        }
 
         #[cfg(target_os = "linux")]
         {
@@ -56,7 +59,7 @@ impl RouteHandler {
         }
 
         #[cfg(target_os = "linux")]
-        self.route_manager.create_routing_rules(true).await?;
+        self.route_manager.create_routing_rules(enable_ipv6).await?;
 
         self.route_manager.add_routes(routes).await?;
 
