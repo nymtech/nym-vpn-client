@@ -6,7 +6,8 @@ use clap::Parser;
 use nym_gateway_directory::GatewayType;
 use nym_vpn_proto::{
     ConnectRequest, DisconnectRequest, Empty, ImportUserCredentialRequest, InfoRequest,
-    ListCountriesRequest, ListGatewaysRequest, StatusRequest, StoreAccountRequest, UserAgent,
+    InfoResponse, ListCountriesRequest, ListGatewaysRequest, StatusRequest, StoreAccountRequest,
+    UserAgent,
 };
 use protobuf_conversion::{into_gateway_type, into_threshold};
 use vpnd_client::ClientType;
@@ -64,14 +65,20 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-fn construct_user_agent() -> UserAgent {
-    // TODO: include daemon info
+fn construct_user_agent(daemon_info: InfoResponse) -> UserAgent {
     let bin_info = nym_bin_common::bin_info_local_vergen!();
+    let version = format!("{} ({})", bin_info.build_version, daemon_info.version);
+    // Construct the platform string similar to how user agents are constructed in web browsers
+    let name = env!("VERGEN_SYSINFO_NAME");
+    let os = env!("VERGEN_SYSINFO_OS_VERSION");
+    let cpu = env!("VERGEN_SYSINFO_CPU_VENDOR");
+    let platform = format!("{}; {}; {}", name, os, cpu);
+    let git_commit = format!("{} ({})", bin_info.commit_sha, daemon_info.git_commit);
     UserAgent {
         application: bin_info.binary_name.to_string(),
-        version: bin_info.build_version.to_string(),
-        platform: bin_info.cargo_triple.to_string(),
-        git_commit: bin_info.commit_sha.to_string(),
+        version,
+        platform,
+        git_commit,
     }
 }
 
@@ -79,7 +86,10 @@ async fn connect(client_type: ClientType, connect_args: &cli::ConnectArgs) -> Re
     let entry = cli::parse_entry_point(connect_args)?;
     let exit = cli::parse_exit_point(connect_args)?;
 
-    let user_agent = construct_user_agent();
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let info_request = tonic::Request::new(InfoRequest {});
+    let info = client.info(info_request).await?.into_inner();
+    let user_agent = construct_user_agent(info);
 
     let request = tonic::Request::new(ConnectRequest {
         entry: entry.map(into_entry_point),
@@ -98,7 +108,6 @@ async fn connect(client_type: ClientType, connect_args: &cli::ConnectArgs) -> Re
         min_gateway_vpn_performance: connect_args.min_gateway_vpn_performance.map(into_threshold),
     });
 
-    let mut client = vpnd_client::get_client(client_type).await?;
     let response = client.vpn_connect(request).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
@@ -210,8 +219,13 @@ async fn list_gateways(
     list_args: &cli::ListGatewaysArgs,
     gw_type: GatewayType,
 ) -> Result<()> {
-    let user_agent = construct_user_agent();
     let mut client = vpnd_client::get_client(client_type).await?;
+
+    let info_request = tonic::Request::new(InfoRequest {});
+    let info = client.info(info_request).await?.into_inner();
+    let user_agent = construct_user_agent(info);
+    println!("UserAgent: {:?}", user_agent);
+
     let request = tonic::Request::new(ListGatewaysRequest {
         kind: into_gateway_type(gw_type) as i32,
         user_agent: Some(user_agent),
@@ -237,8 +251,13 @@ async fn list_countries(
     list_args: &cli::ListCountriesArgs,
     gw_type: GatewayType,
 ) -> Result<()> {
-    let user_agent = construct_user_agent();
     let mut client = vpnd_client::get_client(client_type).await?;
+
+    let info_request = tonic::Request::new(InfoRequest {});
+    let info = client.info(info_request).await?.into_inner();
+    let user_agent = construct_user_agent(info);
+    println!("UserAgent: {:?}", user_agent);
+
     let request = tonic::Request::new(ListCountriesRequest {
         kind: into_gateway_type(gw_type) as i32,
         user_agent: Some(user_agent),

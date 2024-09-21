@@ -9,6 +9,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .all_git()
         .all_rustc()
         .all_cargo()
+        .all_sysinfo()
         .emit()
         .expect("failed to extract build metadata");
     Ok(())
