@@ -21,6 +21,7 @@ tokio = { workspace = true, features = ["macros", "rt-multi-thread"]}
 tonic.workspace = true
 tower.workspace = true
 
+nym-bin-common.workspace = true
 nym-gateway-directory = { path = "../nym-gateway-directory" }
 nym-vpn-proto = { path = "../nym-vpn-proto" }
 

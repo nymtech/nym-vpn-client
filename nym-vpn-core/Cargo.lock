@@ -5533,6 +5533,7 @@ dependencies = [
  "anyhow",
  "bs58 0.5.1",
  "clap",
+ "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?rev=b7baff1)",
  "nym-gateway-directory",
  "nym-vpn-proto",
  "parity-tokio-ipc",
