@@ -306,6 +306,7 @@ impl GrpcClient {
             disable_background_cover_traffic: false,
             enable_credentials_mode: false,
             dns,
+            user_agent: None,
             min_mixnode_performance: None,
             min_gateway_mixnet_performance: None,
             min_gateway_vpn_performance: None,
@@ -362,6 +363,7 @@ impl GrpcClient {
 
         let request = Request::new(ListCountriesRequest {
             kind: gw_type as i32,
+            user_agent: None,
             min_mixnet_performance: None,
             min_vpn_performance: None,
         });
