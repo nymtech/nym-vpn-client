@@ -16,17 +16,17 @@ WG_TARGET_DIR = $(WG_BUILD_DIR)/$(ARCH)
 # Main targets
 all: help
 
-deb: build-deb-vpn-cli build-deb-vpnd build-deb-vpnc ## Build debian packages
-
 # Build targets
-build: ## Build the rust workspace
+build: ## Build the Rust workspace
 	RUSTFLAGS="-L $(WG_TARGET_DIR)" cargo build
 
-build-release: ## Build the rust workspace in release mode
+build-release: ## Build the Rust workspace in release mode
 	RUSTFLAGS="-L $(WG_TARGET_DIR)" cargo build --release
 
 build-mac: ## Build the Rust workspace suitable for running the daemon
 	RUSTFLAGS="-L $(WG_TARGET_DIR) -C link-arg=-all_load -C link-arg=-ObjC -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__info_plist -C link-arg=$(CURDIR)/../nym-vpn-apple/Daemon/Info.plist -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__launchd_plist -C link-arg=$(CURDIR)/nym-vpn-apple/Daemon/Launchd.plist" cargo build --release
+
+deb: build-deb-vpn-cli build-deb-vpnd build-deb-vpnc ## Build debian packages
 
 # Linting targets
 clippy: ## Run clippy
