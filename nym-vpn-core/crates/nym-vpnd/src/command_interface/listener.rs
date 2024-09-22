@@ -145,7 +145,7 @@ impl NymVpnd for CommandInterface {
             .user_agent
             .clone()
             .map(into_user_agent)
-            .unwrap_or_else(|| crate::util::construct_user_agent());
+            .unwrap_or_else(crate::util::construct_user_agent);
 
         let options = ConnectOptions::try_from(connect_request).map_err(|err| {
             error!("Failed to parse connect options: {:?}", err);
@@ -294,7 +294,7 @@ impl NymVpnd for CommandInterface {
         let user_agent = request
             .user_agent
             .map(into_user_agent)
-            .unwrap_or_else(|| crate::util::construct_user_agent());
+            .unwrap_or_else(crate::util::construct_user_agent);
 
         let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
         let min_vpn_performance = request.min_vpn_performance.map(threshold_into_percent);
@@ -347,7 +347,7 @@ impl NymVpnd for CommandInterface {
         let user_agent = request
             .user_agent
             .map(into_user_agent)
-            .unwrap_or_else(|| crate::util::construct_user_agent());
+            .unwrap_or_else(crate::util::construct_user_agent);
 
         let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
         let min_vpn_performance = request.min_vpn_performance.map(threshold_into_percent);
