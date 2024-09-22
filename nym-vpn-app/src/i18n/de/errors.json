@@ -1,10 +1,10 @@
 {
   "credential": {
-    "invalid": "Ungültige Zugangsdaten",
-    "expired": "Zugangsdaten abgelaufen",
+    "invalid": "Ungültige Zugangsberechtigung",
+    "expired": "Zugangsberechtigung abgelaufen",
     "no-duplicate": "Diese Zugangsdaten wurden bereits importiert",
     "storage": "Fehler beim importieren der Zugangsdaten auf Grund eines internen Fehlers",
-    "deserialize": "Fehler beim Auflösen der Zugangsdaten",
+    "deserialize": "Fehler beim verifizieren der Zugangsdaten",
     "vpn-running": "Du kannst keine Zugangsdaten importieren während du mit dem VPN verbunden bist"
   },
   "unknown": "Unbekannter Fehler",
@@ -27,20 +27,36 @@
     },
     "ipr-connect": "Fehler beim Verbinden mit dem IPR",
     "gateway-lookup": {
-      "generic": "Fehler beim Lookup des Gateway",
-      "id": "Fehler beim Lookup der Gateway-Identität",
-      "ip": "Fehler beim Lookup der Gateway IP-Addresse",
-      "entry": "Fehler beim Lookup des Eintritts-Gateway",
-      "entry-id": "Fehler beim Lookup der Identität des Eintritts-Gateway",
-      "exit": "Fehler beim Lookup des Austritts-Gateway",
-      "ipr": "Fehler beim Lookup der IPR Addresse",
-      "entry-location": "Fehler beim Lookup des Eintritts-Gateway für eine bestimmte Region",
-      "exit-location": "Fehler beim Lookup des Austritts-Gateway für eine bestimmte Region"
+      "generic": "Fehler bei der Suche des Gateway",
+      "id": "Fehler beim Nachschlagen der Gateway-Identität",
+      "ip": "Fehler beim Nachschlagen der Gateway IP-Addresse",
+      "entry": "Fehler beim Nachschlagen des Eintritts-Gateway",
+      "entry-id": "Fehler beim Nachschlagen der Identität des Eintritts-Gateway",
+      "exit": "Fehler beim Nachschlagen des Austritts-Gateway",
+      "ipr": "Fehler beim Nachschlagen der IPR Addresse",
+      "entry-location": "Fehler beim Nachschlagen des Eintritts-Gateway einer bestimmten Region",
+      "exit-location": "Fehler beim Nachschlagen des Austritts-Gateway für eine bestimmte Region"
+    },
+    "bandwidth": {
+      "tunnel-up": "Keine Bandbreite verfügbar um den Tunnel zu aktivieren"
+    },
+    "firewall": {
+      "reset-policy": "Fehler beim Zurücksetzen der Firewallregeln",
+      "init": "Fehler beim Initialisieren der Firewall"
+    },
+    "dns": {
+      "init": "Fehler beim Initialisieren des DNS",
+      "set": "Fehler beim Aktivieren des DNS"
+    },
+    "interface": {
+      "find-default": "Fehler beim Abrufen des Standard Netzwerk Interface",
+      "wg-bring-up": "Fehler beim Aktivieren des WireGuard Interface"
     }
   },
   "countries-request": {
     "entry": "Fehler beim Abrufen der verfügbaren Eintrittsländer",
-    "exit": "Fehler beim Abrufen der verfügbaren Austrittsländer"
+    "exit": "Fehler beim Abrufen der verfügbaren Austrittsländer",
+    "fast-mode": "Fehler beim Abrufen der verfügbaren Länder"
   },
   "out-of-bandwidth": "Verfügbare Bandbreite aufgebraucht",
   "entry-node-routing": "Eintritts-Node sendet keine Daten (Internetverbindung inaktiv?)",

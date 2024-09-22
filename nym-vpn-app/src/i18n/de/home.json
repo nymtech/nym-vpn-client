@@ -8,14 +8,14 @@
     "disconnecting": "Trennen",
     "unknown": "Unbekannt"
   },
-  "last-hop": "Ausgangs Region",
-  "first-hop": "Eingangs Location",
+  "last-hop": "Austrittsregion",
+  "first-hop": "Eintrittsregion",
   "connecting-message": "Verbindung wird hergestellt",
   "connection-time": "Verbindungsdauer",
   "select-mode-label": "Modus wählen",
   "fast-mode": {
-    "title": "Schnell",
-    "desc": "Ideal für browsen, streamen, file-sharing"
+    "title": "Schnell (WireGuard)",
+    "desc": "Ideal zum surfen, streamen, file sharing"
   },
   "select-node-title": "Verbinden mit",
   "privacy-mode": {
@@ -30,12 +30,13 @@
   },
   "modes-dialog": {
     "title": "Modus auswählen",
-    "privacy-description": "Geniesse die höchste Sicherheit indem du deine Verbindung durch 5 Server leitest. Ideal für die sichere Abwicklung von Zahlungen, E-Mails und Nachrichten.",
+    "privacy-description": "Geniess die höchste Sicherheit indem du deine Verbindung durch 5 Server leitest. Ideal für die sichere Abwicklung von Zahlungen, E-Mails und Nachrichten.",
     "link": "Weiter lesen",
     "fast-description": "Erlebe die maximale Geschwindigkeit mit dem 2-Server-Modus. Perfekt für schnelles surfen, streamen und File-Sharing."
   },
   "last-node-select": {
     "label": "Letzter Knoten",
     "text": "Schnellzugriff ({{country}})"
-  }
+  },
+  "windows-no-fast-mode": "Temporär nicht verfügbar während wir zu WireGuard migrieren."
 }
