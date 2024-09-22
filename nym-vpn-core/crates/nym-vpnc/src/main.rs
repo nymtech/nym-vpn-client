@@ -10,6 +10,7 @@ use nym_vpn_proto::{
     UserAgent,
 };
 use protobuf_conversion::{into_gateway_type, into_threshold};
+use sysinfo::System;
 use vpnd_client::ClientType;
 
 use crate::{
@@ -68,11 +69,13 @@ async fn main() -> Result<()> {
 fn construct_user_agent(daemon_info: InfoResponse) -> UserAgent {
     let bin_info = nym_bin_common::bin_info_local_vergen!();
     let version = format!("{} ({})", bin_info.build_version, daemon_info.version);
+
     // Construct the platform string similar to how user agents are constructed in web browsers
-    let name = env!("VERGEN_SYSINFO_NAME");
-    let os = env!("VERGEN_SYSINFO_OS_VERSION");
-    let cpu = env!("VERGEN_SYSINFO_CPU_VENDOR");
-    let platform = format!("{}; {}; {}", name, os, cpu);
+    let name = System::name().unwrap_or("unknown".to_string());
+    let os_long = System::long_os_version().unwrap_or("unknown".to_string());
+    let arch = System::cpu_arch().unwrap_or("unknown".to_string());
+    let platform = format!("{}; {}; {}", name, os_long, arch);
+
     let git_commit = format!("{} ({})", bin_info.commit_sha, daemon_info.git_commit);
     UserAgent {
         application: bin_info.binary_name.to_string(),
@@ -224,7 +227,6 @@ async fn list_gateways(
     let info_request = tonic::Request::new(InfoRequest {});
     let info = client.info(info_request).await?.into_inner();
     let user_agent = construct_user_agent(info);
-    println!("UserAgent: {:?}", user_agent);
 
     let request = tonic::Request::new(ListGatewaysRequest {
         kind: into_gateway_type(gw_type) as i32,
@@ -256,7 +258,6 @@ async fn list_countries(
     let info_request = tonic::Request::new(InfoRequest {});
     let info = client.info(info_request).await?.into_inner();
     let user_agent = construct_user_agent(info);
-    println!("UserAgent: {:?}", user_agent);
 
     let request = tonic::Request::new(ListCountriesRequest {
         kind: into_gateway_type(gw_type) as i32,

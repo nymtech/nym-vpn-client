@@ -104,6 +104,7 @@ message InfoResponse {
   string version = 1;
   google.protobuf.Timestamp build_timestamp = 2;
   string triple = 3;
+  string platform = 8;
   string git_commit = 4;
   string network_name = 5;
   repeated Endpoints endpoints = 6;

@@ -77,7 +77,7 @@ pub struct WgTunnelRunner {
 
 impl WgTunnelRunner {
     pub fn new(config: VPNConfig, shutdown_token: CancellationToken) -> Result<Self> {
-        let user_agent = UserAgent::from(nym_bin_common::bin_info_local_vergen!());
+        let user_agent = crate::util::construct_user_agent();
         tracing::info!("User agent: {user_agent}");
 
         let generic_config = GenericNymVpnConfig {

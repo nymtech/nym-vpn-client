@@ -71,6 +71,7 @@ lazy_static = "1.5.0"
 log = "0.4.22"
 maplit = "1.0.2"
 netdev = "0.29.0"
+nix = "0.29"
 parity-tokio-ipc = "0.9.0"
 pnet_packet = "0.35.0"
 prost = "0.12.6"
@@ -84,6 +85,7 @@ serde_json = "1.0"
 sha2 = "0.10"
 signature = "2.2.0"
 sqlx = "0.6.3"
+sysinfo = "0.31"
 tap = "1.0.1"
 tempfile = "3.12"
 thiserror = "1.0.63"
@@ -107,7 +109,6 @@ url = "2.5"
 vergen = { version = "8.3.1", default-features = false }
 x25519-dalek = "2.0"
 zeroize = "1.6.0"
-nix = "0.29"
 
 talpid-core = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "95fb001fb" }
 talpid-platform-metadata = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "95fb001fb" }

@@ -27,8 +27,9 @@ use super::{
     helpers::{parse_entry_point, parse_exit_point, threshold_into_percent},
     status_broadcaster::ConnectionStatusBroadcaster,
 };
-use crate::service::{
-    ConnectOptions, VpnServiceCommand, VpnServiceConnectResult, VpnServiceStateChange,
+use crate::{
+    command_interface::protobuf::gateway::into_user_agent,
+    service::{ConnectOptions, VpnServiceCommand, VpnServiceConnectResult, VpnServiceStateChange},
 };
 
 enum ListenerType {
@@ -140,13 +141,19 @@ impl NymVpnd for CommandInterface {
             .map(parse_exit_point)
             .transpose()?;
 
+        let user_agent = connect_request
+            .user_agent
+            .clone()
+            .map(into_user_agent)
+            .unwrap_or_else(|| crate::util::construct_user_agent());
+
         let options = ConnectOptions::try_from(connect_request).map_err(|err| {
             error!("Failed to parse connect options: {:?}", err);
             tonic::Status::invalid_argument("Invalid connect options")
         })?;
 
         let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_connect(entry, exit, options)
+            .handle_connect(entry, exit, options, user_agent)
             .await;
 
         let success = status.is_success();
@@ -284,6 +291,11 @@ impl NymVpnd for CommandInterface {
                 tonic::Status::invalid_argument(msg)
             })?;
 
+        let user_agent = request
+            .user_agent
+            .map(into_user_agent)
+            .unwrap_or_else(|| crate::util::construct_user_agent());
+
         let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
         let min_vpn_performance = request.min_vpn_performance.map(threshold_into_percent);
 
@@ -293,7 +305,7 @@ impl NymVpnd for CommandInterface {
         };
 
         let gateways = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_list_gateways(gw_type, min_gateway_performance)
+            .handle_list_gateways(gw_type, user_agent, min_gateway_performance)
             .await
             .map_err(|err| {
                 let msg = format!("Failed to list gateways: {:?}", err);
@@ -332,6 +344,11 @@ impl NymVpnd for CommandInterface {
                 tonic::Status::invalid_argument(msg)
             })?;
 
+        let user_agent = request
+            .user_agent
+            .map(into_user_agent)
+            .unwrap_or_else(|| crate::util::construct_user_agent());
+
         let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
         let min_vpn_performance = request.min_vpn_performance.map(threshold_into_percent);
 
@@ -341,7 +358,7 @@ impl NymVpnd for CommandInterface {
         };
 
         let countries = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_list_countries(gw_type, min_gateway_performance)
+            .handle_list_countries(gw_type, user_agent, min_gateway_performance)
             .await
             .map_err(|err| {
                 let msg = format!("Failed to list entry countries: {:?}", err);

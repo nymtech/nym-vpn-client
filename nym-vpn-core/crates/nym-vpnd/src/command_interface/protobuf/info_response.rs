@@ -21,6 +21,7 @@ impl From<VpnServiceInfoResult> for InfoResponse {
             version: info.version,
             build_timestamp,
             triple: info.triple,
+            platform: info.platform,
             git_commit: info.git_commit,
             network_name: info.network_name,
             endpoints,

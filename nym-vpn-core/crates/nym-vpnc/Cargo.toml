@@ -16,6 +16,7 @@ clap = { workspace = true, features = ["derive"] }
 parity-tokio-ipc.workspace = true
 prost-types.workspace = true
 prost.workspace = true
+sysinfo.workspace = true
 time = { workspace = true, features = ["formatting"] }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"]}
 tonic.workspace = true
@@ -32,7 +33,6 @@ vergen = { workspace = true, default-features = false, features = [
     "gitcl",
     "rustc",
     "cargo",
-    "si",
 ] }
 
 # Debian
