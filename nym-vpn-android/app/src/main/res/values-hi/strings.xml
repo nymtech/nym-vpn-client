@@ -142,4 +142,23 @@
     <string name="try_reconnecting">फिर से कनेक्ट करने का प्रयास करें</string>
     <string name="always_on_disbled">आगे-पीछे VPN बंद है</string>
     <string name="vpn_settings">VPN सिस्टम सेटिंग्स</string>
+    <string name="delete_logs_title">क्या आप सभी लॉग हटाना चाहते हैं?</string>
+    <string name="network_error">नेटवर्क कनेक्शन में समस्या आई है। कृपया अपना नेटवर्क कनेक्शन जाँचें और फिर से प्रयास करें।</string>
+    <string name="delete_logs_description">एक बार हटा देने के बाद, लॉग वापस प्राप्त नहीं किए जा सकेंगे।</string>
+    <string name="share">साझा करें</string>
+    <string name="gateway_error">गेटवे से कनेक्ट करने में विफल रहा। फिर से प्रयास करें या एक नया गेटवे स्थान चुनें।</string>
+    <string name="vpn_permission_missing">VPN अनुमति स्वीकृत नहीं हुई है या इसे किसी अन्य ऐप द्वारा उपयोग किया जा रहा है।</string>
+    <string name="state_error">"ऐसा नहीं होना चाहिए, परंतु एक खराब स्थिति में पहुँच गए हैं। कृपया ऐप को पुनः आरंभ करें और फिर से प्रयास करें। "</string>
+    <string name="delete">हटाएं</string>
+    <string name="no">नहीं</string>
+    <string name="yes">हाँ</string>
+    <string name="out_of_bandwidth_error">क्रेडेंशियल बैंडविड्थ सीमा पहुँच गई है।</string>
+    <string name="internal_error">एक आंतरिक त्रुटि हुई है। कृपया पुनः प्रयास करें।</string>
+    <string name="vpn_alerts_channel_id">NymVPN अलर्ट्स चैनल</string>
+    <string name="vpn_alerts_channel_description">ऐप संबंधित अलर्ट सूचनाओं के लिए एक चैनल।</string>
+    <string name="bandwidth_alert">बैंडविड्थ अलर्ट</string>
+    <string name="no_bandwidth">कोई बैंडविड्थ शेष नहीं है।</string>
+    <string name="connection_failed">कनेक्शन विफल रहा</string>
+    <string name="low_bandwidth">"कम बैंडविड्थ! शेष बैंडविड्थ: "</string>
+    <string name="credential_already_imported">क्रेडेंशियल पहले से ही आयात किया गया है।</string>
 </resources>
