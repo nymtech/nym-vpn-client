@@ -1,7 +1,10 @@
 package net.nymtech.vpn.backend
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.net.IpPrefix
+import android.net.RouteInfo
 import android.os.Build
 import com.getkeepsafe.relinker.ReLinker
 import com.getkeepsafe.relinker.ReLinker.LoadListener
@@ -25,6 +28,8 @@ import nym_vpn_lib.AndroidTunProvider
 import nym_vpn_lib.BandwidthStatus
 import nym_vpn_lib.ConnectionStatus
 import nym_vpn_lib.ExitStatus
+import nym_vpn_lib.Ipv4Route
+import nym_vpn_lib.Ipv6Route
 import nym_vpn_lib.NymVpnStatus
 import nym_vpn_lib.TunStatus
 import nym_vpn_lib.TunnelNetworkSettings
@@ -36,6 +41,7 @@ import nym_vpn_lib.initLogger
 import nym_vpn_lib.startVpn
 import nym_vpn_lib.stopVpn
 import timber.log.Timber
+import java.net.InetAddress
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.properties.Delegates
@@ -265,6 +271,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			protect(socket)
 		}
 
+		@SuppressLint("NewApi")
 		override fun configureTunnel(config: TunnelNetworkSettings): Int {
 			Timber.d("Configuring tunnel")
 			if (prepare(this) != null) return -1
@@ -285,6 +292,26 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 					Timber.d("DNS: $it")
 					addDnsServer(it)
 				}
+//				config.ipv4Settings?.excludedRoutes?.forEach {
+//					when(it) {
+//						is Ipv4Route.Specific -> {
+//							Timber.d("Excluding ipv4: ${it.destination}")
+//							addRoute(it.destination, RouteInfo.RTN_THROW)
+//							//excludeRoute(IpPrefix(InetAddress.getByName(it.destination), 32))
+//						}
+//						else -> Unit
+//					}
+//				}
+//
+//				config.ipv6Settings?.excludedRoutes?.forEach {
+//					when(it) {
+//						is Ipv6Route.Specific -> {
+//							Timber.d("Excluding ipv6: ${it.destination}")
+//							//excludeRoute(IpPrefix(InetAddress.getByName(it.destination), 128))
+//						}
+//						else -> Unit
+//					}
+//				}
 
 				addIpv4Routes(config)
 				addIpv6Routes(config)
