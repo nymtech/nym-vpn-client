@@ -30,7 +30,7 @@ impl From<ImportCredentialError> for ProtoImportError {
                 message: err.to_string(),
                 details: hashmap! {
                     "path".to_string() => path.to_string_lossy().to_string(),
-                    "error".to_string() => error.to_string()
+                    "reason".to_string() => error.to_string()
                 },
             },
             ImportCredentialError::DeserializationFailure {
@@ -90,12 +90,10 @@ impl From<ConnectionFailedError> for ProtoError {
             } => ProtoError {
                 kind: ErrorType::NoValidCredentials as i32,
                 message: reason,
-                details: [
-                    ("location".to_string(), location),
-                    ("gateway_id".to_string(), gateway_id),
-                ]
-                .into_iter()
-                .collect(),
+                details: hashmap! {
+                    "location".to_string() => location,
+                    "gateway_id".to_string() => gateway_id,
+                },
             },
             ConnectionFailedError::FailedToSetupMixnetStoragePaths { ref reason } => ProtoError {
                 kind: ErrorType::MixnetStoragePaths as i32,
@@ -469,21 +467,21 @@ impl From<AccountError> for nym_vpn_proto::AccountError {
                 kind: AccountErrorType::InvalidMnemonic as i32,
                 message: err.to_string(),
                 details: hashmap! {
-                    "source".to_string() => source.to_string(),
+                    "reason".to_string() => source.to_string(),
                 },
             },
             AccountError::FailedToStoreAccount { ref source } => nym_vpn_proto::AccountError {
                 kind: AccountErrorType::Storage as i32,
                 message: err.to_string(),
                 details: hashmap! {
-                    "source".to_string() => source.to_string(),
+                    "reason".to_string() => source.to_string(),
                 },
             },
             AccountError::FailedToLoadAccount { ref source } => nym_vpn_proto::AccountError {
                 kind: AccountErrorType::Storage as i32,
                 message: err.to_string(),
                 details: hashmap! {
-                    "source".to_string() => source.to_string(),
+                    "reason".to_string() => source.to_string(),
                 },
             },
             AccountError::MissingApiUrl => nym_vpn_proto::AccountError {
