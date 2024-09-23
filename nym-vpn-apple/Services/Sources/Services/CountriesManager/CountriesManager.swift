@@ -1,6 +1,7 @@
 import Combine
 import SwiftUI
 import AppSettings
+import AppVersionProvider
 import ConfigurationManager
 #if os(macOS)
 import GRPCManager
@@ -46,7 +47,9 @@ public final class CountriesManager: ObservableObject {
     @Published public var lastError: Error?
 
 #if os(iOS)
-    public init(appSettings: AppSettings, configurationManager: ConfigurationManager) {
+    public init(
+        appSettings: AppSettings,
+        configurationManager: ConfigurationManager) {
         self.appSettings = appSettings
         self.configurationManager = configurationManager
         self.entryCountries = []
@@ -229,7 +232,12 @@ private extension CountriesManager {
                 apiUrl: apiURL,
                 nymVpnApiUrl: configurationManager.nymVpnApiURL,
                 exitOnly: false,
-                userAgent: nil
+                userAgent: UserAgent(
+                    application: AppVersionProvider.app,
+                    version: AppVersionProvider.appVersion(),
+                    platform: AppVersionProvider.platform,
+                    gitCommit: ""
+                )
             )
             let newEntryCountries = entryExitLocations.compactMap {
                 country(with: $0.twoLetterIsoCountryCode)
@@ -240,12 +248,17 @@ private extension CountriesManager {
                 apiUrl: apiURL,
                 nymVpnApiUrl: configurationManager.nymVpnApiURL,
                 exitOnly: true,
-                userAgent: nil
+                userAgent: UserAgent(
+                    application: AppVersionProvider.app,
+                    version: AppVersionProvider.appVersion(),
+                    platform: AppVersionProvider.platform,
+                    gitCommit: ""
+                )
             )
             let newExitCountries = exitLocations.compactMap {
                 country(with: $0.twoLetterIsoCountryCode)
             }
-                .sorted(by: { $0.name < $1.name })
+            .sorted(by: { $0.name < $1.name })
 
             entryLastHopStore.entryCountries = entryCountries
             entryLastHopStore.exitCountries = exitCountries
