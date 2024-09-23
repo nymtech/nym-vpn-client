@@ -19,10 +19,12 @@ public class FileLogHandler: LogHandler {
         set { metadata[key] = newValue }
     }
 
+    // swiftlint:disable:next function_parameter_count
     public func log(
-        level: Logging.Logger.Level,
-        message: Logging.Logger.Message,
-        metadata: Logging.Logger.Metadata?,
+        level: Logger.Level,
+        message: Logger.Message,
+        metadata: Logger.Metadata?,
+        source: String,
         file: String,
         function: String,
         line: UInt
@@ -38,7 +40,6 @@ public class FileLogHandler: LogHandler {
         }
 
         let logLine = "\(Date()) [\(label)] \(level.emoji) \(level)\(metadataOutput): \(message)\n"
-
         logFileManager.write(logLine)
     }
 }
