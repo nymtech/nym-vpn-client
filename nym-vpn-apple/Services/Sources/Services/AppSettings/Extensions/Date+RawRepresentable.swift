@@ -1,6 +1,6 @@
 import Foundation
 
-extension Date: RawRepresentable {
+extension Foundation.Date: Swift.RawRepresentable {
     public typealias RawValue = String
 
     public init?(rawValue: RawValue) {

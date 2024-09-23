@@ -79,6 +79,7 @@ let package = Package(
             name: "CountriesManager",
             dependencies: [
                 "AppSettings",
+                "AppVersionProvider",
                 "ConfigurationManager",
                 "Constants",
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
