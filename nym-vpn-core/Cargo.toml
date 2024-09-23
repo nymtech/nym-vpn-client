@@ -103,6 +103,7 @@ tower-http = { version = "0.5.2", features = ["cors"] }
 tracing = "0.1"
 tracing-appender = "0.2.3"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tryhard = "0.5.1"
 tun2 = { version = "2.0.5", features = ["async"] }
 uniffi = { version = "0.27.3", features = ["cli"] }
 url = "2.5"
