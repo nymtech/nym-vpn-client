@@ -242,16 +242,18 @@ private extension CountriesManager {
         }
 
         do {
+            let userAgent = UserAgent(
+                application: AppVersionProvider.app,
+                version: "\(AppVersionProvider.appVersion()) (\(AppVersionProvider.libVersion))",
+                platform: AppVersionProvider.platform,
+                gitCommit: ""
+            )
             let entryExitLocations = try getGatewayCountries(
                 apiUrl: apiURL,
                 nymVpnApiUrl: configurationManager.nymVpnApiURL,
-                exitOnly: false,
-                userAgent: UserAgent(
-                    application: AppVersionProvider.app,
-                    version: "\(AppVersionProvider.appVersion()) (\(AppVersionProvider.libVersion))",
-                    platform: AppVersionProvider.platform,
-                    gitCommit: ""
-                )
+                gwType: .mixnetEntry,
+                userAgent: userAgent,
+                minGatewayPerformance: nil
             )
             let newEntryCountries = entryExitLocations.compactMap {
                 country(with: $0.twoLetterIsoCountryCode)
@@ -261,13 +263,9 @@ private extension CountriesManager {
             let exitLocations = try getGatewayCountries(
                 apiUrl: apiURL,
                 nymVpnApiUrl: configurationManager.nymVpnApiURL,
-                exitOnly: true,
-                userAgent: UserAgent(
-                    application: AppVersionProvider.app,
-                    version: "\(AppVersionProvider.appVersion()) (\(AppVersionProvider.libVersion))",
-                    platform: AppVersionProvider.platform,
-                    gitCommit: ""
-                )
+                gwType: .mixnetExit,
+                userAgent: userAgent,
+                minGatewayPerformance: nil
             )
             let newExitCountries = exitLocations.compactMap {
                 country(with: $0.twoLetterIsoCountryCode)

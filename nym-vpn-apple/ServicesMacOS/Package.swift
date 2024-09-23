@@ -15,6 +15,7 @@ let package = Package(
         .library(name: "Shell", targets: ["Shell"])
     ],
     dependencies: [
+        .package(path: "../ServicesMutual"),
         .package(url: "https://github.com/grpc/grpc-swift.git", from: "1.21.0"),
         .package(url: "https://github.com/keefertaylor/Base58Swift", from: "2.1.7"),
         .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.4")
@@ -30,6 +31,7 @@ let package = Package(
         .target(
             name: "GRPCManager",
             dependencies: [
+                .product(name: "AppVersionProvider", package: "ServicesMutual"),
                 .product(name: "Base58Swift", package: "Base58Swift"),
                 .product(name: "GRPC", package: "grpc-swift")
             ],

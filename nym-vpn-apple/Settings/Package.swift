@@ -19,6 +19,7 @@ let package = Package(
     dependencies: [
         .package(path: "../Services"),
         .package(path: "../ServicesIOS"),
+        .package(path: "../ServicesMutual"),
         .package(path: "../UIComponents"),
         .package(path: "../Theme"),
         .package(url: "https://github.com/vtourraine/AcknowList", from: "3.2.0")
@@ -28,7 +29,7 @@ let package = Package(
             name: "Settings",
             dependencies: [
                 .product(name: "AppSettings", package: "Services"),
-                .product(name: "AppVersionProvider", package: "Services"),
+                .product(name: "AppVersionProvider", package: "ServicesMutual"),
                 .product(name: "Constants", package: "Services"),
                 .product(name: "CredentialsManager", package: "Services"),
                 .product(name: "ExternalLinkManager", package: "Services"),
