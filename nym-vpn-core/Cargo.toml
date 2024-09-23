@@ -50,8 +50,6 @@ license = "GPL-3.0-only"
 
 anyhow = "1.0.89"
 async-trait = "0.1.81"
-axum = { version = "0.7.6" }
-axum-server = { version = "0.6.0", features = ["tls-rustls"] }
 backon = "1.2"
 base64 = "0.22"
 base64-url = "3.0.0"
