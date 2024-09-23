@@ -177,3 +177,7 @@ fun Context.launchAppSettings() {
 		startActivity(intent)
 	}
 }
+
+fun Context.isAndroidTV(): Boolean {
+	return packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
+}

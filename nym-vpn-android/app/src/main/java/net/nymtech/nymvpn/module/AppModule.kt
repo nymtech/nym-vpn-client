@@ -35,6 +35,7 @@ import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.service.notification.VpnAlertNotifications
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.FileUtils
+import net.nymtech.nymvpn.util.extensions.isAndroidTV
 import net.nymtech.vpn.NymApi
 import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.backend.NymBackend
@@ -57,13 +58,14 @@ object AppModule {
 
 	@Singleton
 	@Provides
-	fun provideNymApi(@IoDispatcher dispatcher: CoroutineDispatcher): NymApi {
+	fun provideNymApi(@IoDispatcher dispatcher: CoroutineDispatcher, @ApplicationContext context: Context): NymApi {
+		val platform = if(context.isAndroidTV()) "AndroidTV" else "Android"
 		return NymApi(
 			dispatcher,
 			UserAgent(
 				Constants.APP_PROJECT_NAME,
 				BuildConfig.VERSION_NAME,
-				"Android; ${Build.VERSION.SDK_INT}; ${NymVpn.getCPUArchitecture()}; ${BuildConfig.FLAVOR}",
+				"${platform}; ${Build.VERSION.SDK_INT}; ${NymVpn.getCPUArchitecture()}; ${BuildConfig.FLAVOR}",
 				BuildConfig.COMMIT_HASH,
 			),
 		)
