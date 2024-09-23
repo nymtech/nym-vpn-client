@@ -5,5 +5,8 @@
   "fastest": "الأسرع",
   "logs": "سجلات الأداء",
   "feedback": "ملاحظات",
-  "support": "دعم"
+  "support": "دعم",
+  "vpn-modes": {
+    "privacy": "مجهول"
+  }
 }
