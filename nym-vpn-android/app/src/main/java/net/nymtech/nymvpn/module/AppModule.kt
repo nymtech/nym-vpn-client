@@ -59,13 +59,13 @@ object AppModule {
 	@Singleton
 	@Provides
 	fun provideNymApi(@IoDispatcher dispatcher: CoroutineDispatcher, @ApplicationContext context: Context): NymApi {
-		val platform = if(context.isAndroidTV()) "AndroidTV" else "Android"
+		val platform = if (context.isAndroidTV()) "AndroidTV" else "Android"
 		return NymApi(
 			dispatcher,
 			UserAgent(
 				Constants.APP_PROJECT_NAME,
 				BuildConfig.VERSION_NAME,
-				"${platform}; ${Build.VERSION.SDK_INT}; ${NymVpn.getCPUArchitecture()}; ${BuildConfig.FLAVOR}",
+				"$platform; ${Build.VERSION.SDK_INT}; ${NymVpn.getCPUArchitecture()}; ${BuildConfig.FLAVOR}",
 				BuildConfig.COMMIT_HASH,
 			),
 		)
