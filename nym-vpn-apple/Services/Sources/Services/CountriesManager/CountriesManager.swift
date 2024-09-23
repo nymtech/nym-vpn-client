@@ -228,8 +228,9 @@ private extension CountriesManager {
             let entryExitLocations = try getGatewayCountries(
                 apiUrl: apiURL,
                 nymVpnApiUrl: configurationManager.nymVpnApiURL,
-                exitOnly: false,
-                userAgent: nil
+                gwType: .mixnetEntry,
+                userAgent: nil,
+                minGatewayPerformance: nil
             )
             let newEntryCountries = entryExitLocations.compactMap {
                 country(with: $0.twoLetterIsoCountryCode)
@@ -239,13 +240,14 @@ private extension CountriesManager {
             let exitLocations = try getGatewayCountries(
                 apiUrl: apiURL,
                 nymVpnApiUrl: configurationManager.nymVpnApiURL,
-                exitOnly: true,
-                userAgent: nil
+                gwType: .mixnetExit,
+                userAgent: nil,
+                minGatewayPerformance: nil
             )
             let newExitCountries = exitLocations.compactMap {
                 country(with: $0.twoLetterIsoCountryCode)
             }
-                .sorted(by: { $0.name < $1.name })
+            .sorted(by: { $0.name < $1.name })
 
             entryLastHopStore.entryCountries = entryCountries
             entryLastHopStore.exitCountries = exitCountries

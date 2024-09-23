@@ -187,11 +187,10 @@ public final class GRPCManager: ObservableObject {
     // MARK: - Countries -
     public func entryCountryCodes() async throws -> [String] {
         try await withCheckedThrowingContinuation { continuation in
-            let call = client.listEntryCountries(
-                Nym_Vpn_ListEntryCountriesRequest(),
-                callOptions: CallOptions(logger: logger)
-            )
+            var request = Nym_Vpn_ListCountriesRequest()
+            request.kind = .mixnetEntry
 
+            let call = client.listCountries(request, callOptions: CallOptions(logger: logger))
             call.response.whenComplete { result in
                 switch result {
                 case let .success(countries):
@@ -214,11 +213,10 @@ public final class GRPCManager: ObservableObject {
 
     public func exitCountryCodes() async throws -> [String] {
         try await withCheckedThrowingContinuation { continuation in
-            let call = client.listExitCountries(
-                Nym_Vpn_ListExitCountriesRequest(),
-                callOptions: CallOptions(logger: logger)
-            )
+            var request = Nym_Vpn_ListCountriesRequest()
+            request.kind = .mixnetExit
 
+            let call = client.listCountries(request, callOptions: CallOptions(logger: logger))
             call.response.whenComplete { result in
                 switch result {
                 case let .success(countries):
@@ -359,6 +357,40 @@ private extension GRPCManager {
         case .dnsSet:
             GeneralNymError.library(message: error.message)
         case .findDefaultInterface:
+            GeneralNymError.library(message: error.message)
+        case .unhandledExit:
+            GeneralNymError.library(message: error.message)
+        case .internal:
+            GeneralNymError.library(message: error.message)
+        case .authenticatorFailedToConnect:
+            GeneralNymError.library(message: error.message)
+        case .authenticatorConnectTimeout:
+            GeneralNymError.library(message: error.message)
+        case .authenticatorInvalidResponse:
+            GeneralNymError.library(message: error.message)
+        case .authenticatorRegistrationDataVerification:
+            GeneralNymError.library(message: error.message)
+        case .authenticatorEntryGatewaySocketAddr:
+            GeneralNymError.library(message: error.message)
+        case .authenticatorEntryGatewayIpv4:
+            GeneralNymError.library(message: error.message)
+        case .authenticatorWrongVersion:
+            GeneralNymError.library(message: error.message)
+        case .authenticatorMalformedReply:
+            GeneralNymError.library(message: error.message)
+        case .authenticatorAddressNotFound:
+            GeneralNymError.library(message: error.message)
+        case .authenticatorAuthenticationNotPossible:
+            GeneralNymError.library(message: error.message)
+        case .addIpv6Route:
+            GeneralNymError.library(message: error.message)
+        case .tun:
+            GeneralNymError.library(message: error.message)
+        case .routing:
+            GeneralNymError.library(message: error.message)
+        case .wireguardConfig:
+            GeneralNymError.library(message: error.message)
+        case .mixnetConnectionMonitor:
             GeneralNymError.library(message: error.message)
         }
     }

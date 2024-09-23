@@ -63,6 +63,35 @@ message Url {
   string url = 1;
 }
 
+// Inspired by
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent
+// Forward slashes '/' are not valid
+message UserAgent {
+  // Example:
+  //    nym-vpn-app
+  //    nym-vpnd
+  //    nym-vpn-cli
+  string application = 1;
+  // Format: version[-optional] [(daemon version[-optional])]
+  // Example:
+  //    0.1.8
+  //    0.1.8-debug (0.1.6)
+  //    0.2.1-fdroid
+  string version = 2;
+  // Format: OS; OS version; CPU
+  // Example:
+  //    Windows NT 6.1; Win64; x64
+  //    Macintosh; Intel Mac OS X 14.6.1
+  //    iPad; U; CPU OS 3_2 like Mac OS X; en-us
+  string platform = 3;
+  // Format: git hash [(daemon git hash)]
+  // Commit hash should be at least 7 characters long
+  // Example:
+  //    4h9fk59 (4kdufle)
+  //    4h9fk59
+  string git_commit = 4;
+}
+
 message Endpoints {
   Url nyxd_url = 1;
   Url websocket_url = 2;
@@ -75,6 +104,7 @@ message InfoResponse {
   string version = 1;
   google.protobuf.Timestamp build_timestamp = 2;
   string triple = 3;
+  string platform = 8;
   string git_commit = 4;
   string network_name = 5;
   repeated Endpoints endpoints = 6;
@@ -94,8 +124,11 @@ message ConnectRequest {
   bool enable_poisson_rate = 6;
   bool disable_background_cover_traffic = 7;
   bool enable_credentials_mode = 8;
+  UserAgent user_agent = 12;
+  // Optional thresholds
   Threshold min_mixnode_performance = 9;
-  Threshold min_gateway_performance = 10;
+  Threshold min_gateway_mixnet_performance = 10;
+  Threshold min_gateway_vpn_performance = 11;
 }
 
 message ConnectResponse {
@@ -182,6 +215,10 @@ message ConnectionStatusUpdate {
 
     // The user has run out of available bandwidth
     NO_BANDWIDTH = 13;
+
+    // Wireguard tunnel errors sent through the status channel. This error case
+    // will go away in the future.
+    WG_TUNNEL_ERROR = 14;
   }
 
   StatusType kind = 1;
@@ -199,8 +236,16 @@ message Error {
 
     // An error that was not explicitly handled by the vpn service. This should
     // not happen but it will while we iterate on mapping out all possible
-    // error that can happen
+    // errors
     UNHANDLED = 1;
+
+    // The vpn exiting with an error that isn't handled by the automatic
+    // conversion. If this happens it's a bug.
+    UNHANDLED_EXIT = 49;
+
+    // An internal error that indicates a programmer error and should not
+    // happen. If it did an invariant was probably broken at some point.
+    INTERNAL = 33;
 
     // If the credential storage does not contain any valid credentials when
     // connecting
@@ -231,6 +276,42 @@ message Error {
 
     // Failed to connect to the IPR
     IPR_FAILED_TO_CONNECT = 25;
+
+    // Failed to connect to one of the authenticators
+    AUTHENTICATOR_FAILED_TO_CONNECT = 34;
+
+    // Failed to connect to the authenticator, timeout waiting for the connect
+    // response
+    AUTHENTICATOR_CONNECT_TIMEOUT = 35;
+
+    // Failed to connect to the authenticator, the response was invalid
+    AUTHENTICATOR_INVALID_RESPONSE = 36;
+
+    // Failed to verify the registration data provided by the authenticator
+    AUTHENTICATOR_REGISTRATION_DATA_VERIFICATION = 37;
+
+    // Failed to parse the socket addr provided by the authenticator when
+    // setting up the wireguard configuration
+    AUTHENTICATOR_ENTRY_GATEWAY_SOCKET_ADDR = 38;
+
+    // Failed to parse the IPv4 provided by the authenticator when setting up
+    // the wireguard configuration
+    AUTHENTICATOR_ENTRY_GATEWAY_IPV4 = 39;
+
+    // The authenticator responded with a response tagged with a version we
+    // can't understand.
+    AUTHENTICATOR_WRONG_VERSION = 40;
+
+    // The authenticator, or someone else, responded with a reply that we can't
+    // read.
+    AUTHENTICATOR_MALFORMED_REPLY = 41;
+
+    // Not authenticator address found for the gateway(s) we're trying to use
+    AUTHENTICATOR_ADDRESS_NOT_FOUND = 47;
+
+    // Authentication with the authenticators was not possible, as we we don't
+    // have addresses for them. This is likely an internal programming error.
+    AUTHENTICATOR_AUTHENTICATION_NOT_POSSIBLE = 48;
 
     // Looking up gateways can fail in a number of ways.
     GATEWAY_DIRECTORY = 8;
@@ -288,11 +369,26 @@ message Error {
 
     // Failed to find the default network interface
     FIND_DEFAULT_INTERFACE = 32;
+
+    // Failed to add ipv6 default route to capture ipv6 traffic
+    ADD_IPV6_ROUTE = 42;
+
+    // General failure for the tun device
+    TUN = 43;
+
+    // General failure for routing
+    ROUTING = 44;
+
+    // General failure setting up the wireguard configuration
+    WIREGUARD_CONFIG = 45;
+
+    // General failure for the mixnet connection monitor
+    MIXNET_CONNECTION_MONITOR = 46;
   }
 
   ErrorType kind = 1;
 
-  // Detailed error message for logging and debuggning
+  // Detailed error message for logging and debugging
   string message = 2;
 
   // Optional additional details
@@ -353,9 +449,18 @@ message AsExit {
   bool can_route_ip_external_v6 = 5;
 }
 
+message WgProbeResult {
+  bool can_register = 1;
+  bool can_handshake = 2;
+  bool can_resolve_dns = 3;
+  float ping_hosts_performance = 4;
+  float ping_ips_performance = 5;
+}
+
 message ProbeOutcome {
   AsEntry as_entry = 1;
   AsExit as_exit = 2;
+  WgProbeResult wg = 3;
 }
 
 message Probe {
@@ -363,68 +468,40 @@ message Probe {
   ProbeOutcome outcome = 2;
 }
 
-message EntryGateway {
+message GatewayResponse {
   Gateway id = 1;
   Location location = 2;
   Probe last_probe = 3;
 }
 
-message ListEntryGatewaysRequest {
-  Threshold min_gateway_performance = 1;
+enum GatewayType {
+  GATEWAY_TYPE_UNSPECIFIED = 0;
+  MIXNET_ENTRY = 1;
+  MIXNET_EXIT = 2;
+  WG = 3;
 }
 
-message ListEntryGatewaysResponse {
-  repeated EntryGateway gateways = 1;
+message ListGatewaysRequest {
+  GatewayType kind = 1;
+  UserAgent user_agent = 4;
+  // Optional thresholds
+  Threshold min_mixnet_performance = 2;
+  Threshold min_vpn_performance = 3;
 }
 
-message ExitGateway {
-  Gateway id = 1;
-  Location location = 2;
-  Probe last_probe = 3;
+message ListGatewaysResponse {
+  repeated GatewayResponse gateways = 1;
 }
 
-message ListExitGatewaysRequest {
-  Threshold min_gateway_performance = 1;
+message ListCountriesRequest {
+  GatewayType kind = 1;
+  UserAgent user_agent = 4;
+  // Optional thresholds
+  Threshold min_mixnet_performance = 2;
+  Threshold min_vpn_performance = 3;
 }
 
-message ListExitGatewaysResponse {
-  repeated ExitGateway gateways = 1;
-}
-
-message VpnGateway {
-  Gateway id = 1;
-  Location location = 2;
-}
-
-message ListVpnGatewaysRequest {
-  Threshold min_gateway_performance = 1;
-}
-
-message ListVpnGatewaysResponse {
-  repeated VpnGateway gateways = 1;
-}
-
-message ListEntryCountriesRequest {
-  Threshold min_gateway_performance = 1;
-}
-
-message ListEntryCountriesResponse {
-  repeated Location countries = 1;
-}
-
-message ListExitCountriesRequest {
-  Threshold min_gateway_performance = 1;
-}
-
-message ListExitCountriesResponse {
-  repeated Location countries = 1;
-}
-
-message ListVpnCountriesRequest {
-  Threshold min_gateway_performance = 1;
-}
-
-message ListVpnCountriesResponse {
+message ListCountriesResponse {
   repeated Location countries = 1;
 }
 
@@ -495,12 +572,8 @@ service NymVpnd {
   rpc ListenToConnectionStateChanges (Empty) returns (stream ConnectionStateChange) {}
   rpc ListenToConnectionStatus (Empty) returns (stream ConnectionStatusUpdate) {}
 
-  rpc ListEntryGateways (ListEntryGatewaysRequest) returns (ListEntryGatewaysResponse) {}
-  rpc ListExitGateways (ListExitGatewaysRequest) returns (ListExitGatewaysResponse) {}
-  rpc ListVpnGateways (ListVpnGatewaysRequest) returns (ListVpnGatewaysResponse) {}
-  rpc ListEntryCountries (ListEntryCountriesRequest) returns (ListEntryCountriesResponse) {}
-  rpc ListExitCountries (ListExitCountriesRequest) returns (ListExitCountriesResponse) {}
-  rpc ListVpnCountries (ListVpnCountriesRequest) returns (ListVpnCountriesResponse) {}
+  rpc ListGateways (ListGatewaysRequest) returns (ListGatewaysResponse) {}
+  rpc ListCountries (ListCountriesRequest) returns (ListCountriesResponse) {}
 
   // Unstable
   rpc StoreAccount (StoreAccountRequest) returns (StoreAccountResponse) {}
