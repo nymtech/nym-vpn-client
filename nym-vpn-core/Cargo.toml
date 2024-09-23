@@ -50,7 +50,7 @@ license = "GPL-3.0-only"
 
 anyhow = "1.0.89"
 async-trait = "0.1.81"
-axum = { version = "0.7.5" }
+axum = { version = "0.7.6" }
 axum-server = { version = "0.6.0", features = ["tls-rustls"] }
 base64 = "0.22"
 base64-url = "3.0.0"
@@ -88,7 +88,7 @@ sqlx = "0.6.3"
 sysinfo = "0.31"
 tap = "1.0.1"
 tempfile = "3.12"
-thiserror = "1.0.63"
+thiserror = "1.0.64"
 time = "0.3.36"
 tokio = { version = "1.39" }
 tokio-stream = "0.1.15"
