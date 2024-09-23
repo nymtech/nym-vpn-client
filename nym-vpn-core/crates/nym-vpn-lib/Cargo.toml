@@ -49,7 +49,7 @@ url.workspace = true
 
 # Pin down shadowsocks to prevent mullvad dependencies from using newer crates that aren't compatible.
 shadowsocks-service = { version = "=1.14.3" }
-shadowsocks = { version = "=1.14.2" }
+shadowsocks = { version = "=1.21.0" }
 
 talpid-core.workspace = true
 talpid-platform-metadata.workspace = true
