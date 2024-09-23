@@ -63,7 +63,7 @@ object AppModule {
 			UserAgent(
 				Constants.APP_PROJECT_NAME,
 				BuildConfig.VERSION_NAME,
-				"Android; ${Build.VERSION.SDK_INT}; ${NymVpn.getCPUArchitecture()}",
+				"Android; ${Build.VERSION.SDK_INT}; ${NymVpn.getCPUArchitecture()}; ${BuildConfig.FLAVOR}",
 				BuildConfig.COMMIT_HASH,
 			),
 		)
