@@ -1,11 +1,12 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::fmt;
+use std::{fmt, time::Duration};
 
-use nym_http_api_client::{HttpClientError, PathSegments, UserAgent, NO_PARAMS};
+use backon::Retryable;
+use nym_http_api_client::{HttpClientError, Params, PathSegments, UserAgent, NO_PARAMS};
 use reqwest::Url;
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use crate::{
     error::{Result, VpnApiClientError},
@@ -24,6 +25,9 @@ use crate::{
 
 pub(crate) const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";
 
+// GET requests can unfortunately take a long time over the mixnet
+pub(crate) const NYM_VPN_API_TIMEOUT: Duration = Duration::from_secs(60);
+
 pub struct VpnApiClient {
     inner: nym_http_api_client::Client,
 }
@@ -31,7 +35,11 @@ pub struct VpnApiClient {
 impl VpnApiClient {
     pub fn new(base_url: Url, user_agent: UserAgent) -> Result<Self> {
         nym_http_api_client::Client::builder(base_url)
-            .map(|builder| builder.with_user_agent(user_agent))
+            .map(|builder| {
+                builder
+                    .with_user_agent(user_agent)
+                    .with_timeout(NYM_VPN_API_TIMEOUT)
+            })
             .and_then(|builder| builder.build())
             .map(|c| Self { inner: c })
             .map_err(VpnApiClientError::FailedToCreateVpnApiClient)
@@ -60,6 +68,27 @@ impl VpnApiClient {
         let response = request.send().await?;
 
         nym_http_api_client::parse_response(response, false).await
+    }
+
+    async fn get_json_with_retry<T, K, V, E>(
+        &self,
+        path: PathSegments<'_>,
+        params: Params<'_, K, V>,
+    ) -> std::result::Result<T, HttpClientError<E>>
+    where
+        for<'a> T: Deserialize<'a>,
+        K: AsRef<str>,
+        V: AsRef<str>,
+        E: fmt::Display + fmt::Debug + DeserializeOwned,
+    {
+        let response = (|| async { self.inner.get_json(path, params).await })
+            .retry(backon::ConstantBuilder::default())
+            .notify(|err: &HttpClientError<E>, dur: Duration| {
+                tracing::warn!("Failed to get JSON: {}", err);
+                tracing::warn!("retrying {:?} after {:?}", err, dur);
+            })
+            .await?;
+        Ok(response)
     }
 
     async fn post_authorized<T, B, E>(
@@ -372,18 +401,17 @@ impl VpnApiClient {
         &self,
         min_performance: Option<GatewayMinPerformance>,
     ) -> Result<NymDirectoryGatewaysResponse> {
-        self.inner
-            .get_json(
-                &[
-                    routes::PUBLIC,
-                    routes::V1,
-                    routes::DIRECTORY,
-                    routes::GATEWAYS,
-                ],
-                &min_performance.unwrap_or_default().to_param(),
-            )
-            .await
-            .map_err(VpnApiClientError::FailedToGetGateways)
+        self.get_json_with_retry(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::DIRECTORY,
+                routes::GATEWAYS,
+            ],
+            &min_performance.unwrap_or_default().to_param(),
+        )
+        .await
+        .map_err(VpnApiClientError::FailedToGetGateways)
     }
 
     pub async fn get_gateways_by_type(
@@ -416,18 +444,17 @@ impl VpnApiClient {
     ) -> Result<NymDirectoryGatewaysResponse> {
         let mut params = min_performance.unwrap_or_default().to_param();
         params.push((routes::SHOW_VPN_ONLY.to_string(), "true".to_string()));
-        self.inner
-            .get_json(
-                &[
-                    routes::PUBLIC,
-                    routes::V1,
-                    routes::DIRECTORY,
-                    routes::GATEWAYS,
-                ],
-                &params,
-            )
-            .await
-            .map_err(VpnApiClientError::FailedToGetVpnGateways)
+        self.get_json_with_retry(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::DIRECTORY,
+                routes::GATEWAYS,
+            ],
+            &params,
+        )
+        .await
+        .map_err(VpnApiClientError::FailedToGetVpnGateways)
     }
 
     pub async fn get_vpn_gateway_countries(
@@ -436,116 +463,110 @@ impl VpnApiClient {
     ) -> Result<NymDirectoryGatewayCountriesResponse> {
         let mut params = min_performance.unwrap_or_default().to_param();
         params.push((routes::SHOW_VPN_ONLY.to_string(), "true".to_string()));
-        self.inner
-            .get_json(
-                &[
-                    routes::PUBLIC,
-                    routes::V1,
-                    routes::DIRECTORY,
-                    routes::GATEWAYS,
-                    routes::COUNTRIES,
-                ],
-                &params,
-            )
-            .await
-            .map_err(VpnApiClientError::FailedToGetVpnGatewayCountries)
+        self.get_json_with_retry(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::DIRECTORY,
+                routes::GATEWAYS,
+                routes::COUNTRIES,
+            ],
+            &params,
+        )
+        .await
+        .map_err(VpnApiClientError::FailedToGetVpnGatewayCountries)
     }
 
     pub async fn get_gateway_countries(
         &self,
         min_performance: Option<GatewayMinPerformance>,
     ) -> Result<NymDirectoryGatewayCountriesResponse> {
-        self.inner
-            .get_json(
-                &[
-                    routes::PUBLIC,
-                    routes::V1,
-                    routes::DIRECTORY,
-                    routes::GATEWAYS,
-                    routes::COUNTRIES,
-                ],
-                &min_performance.unwrap_or_default().to_param(),
-            )
-            .await
-            .map_err(VpnApiClientError::FailedToGetGatewayCountries)
+        self.get_json_with_retry(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::DIRECTORY,
+                routes::GATEWAYS,
+                routes::COUNTRIES,
+            ],
+            &min_performance.unwrap_or_default().to_param(),
+        )
+        .await
+        .map_err(VpnApiClientError::FailedToGetGatewayCountries)
     }
 
     pub async fn get_entry_gateways(
         &self,
         min_performance: Option<GatewayMinPerformance>,
     ) -> Result<NymDirectoryGatewaysResponse> {
-        self.inner
-            .get_json(
-                &[
-                    routes::PUBLIC,
-                    routes::V1,
-                    routes::DIRECTORY,
-                    routes::GATEWAYS,
-                    routes::ENTRY,
-                ],
-                &min_performance.unwrap_or_default().to_param(),
-            )
-            .await
-            .map_err(VpnApiClientError::FailedToGetEntryGateways)
+        self.get_json_with_retry(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::DIRECTORY,
+                routes::GATEWAYS,
+                routes::ENTRY,
+            ],
+            &min_performance.unwrap_or_default().to_param(),
+        )
+        .await
+        .map_err(VpnApiClientError::FailedToGetEntryGateways)
     }
 
     pub async fn get_entry_gateway_countries(
         &self,
         min_performance: Option<GatewayMinPerformance>,
     ) -> Result<NymDirectoryGatewayCountriesResponse> {
-        self.inner
-            .get_json(
-                &[
-                    routes::PUBLIC,
-                    routes::V1,
-                    routes::DIRECTORY,
-                    routes::GATEWAYS,
-                    routes::ENTRY,
-                    routes::COUNTRIES,
-                ],
-                &min_performance.unwrap_or_default().to_param(),
-            )
-            .await
-            .map_err(VpnApiClientError::FailedToGetEntryGatewayCountries)
+        self.get_json_with_retry(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::DIRECTORY,
+                routes::GATEWAYS,
+                routes::ENTRY,
+                routes::COUNTRIES,
+            ],
+            &min_performance.unwrap_or_default().to_param(),
+        )
+        .await
+        .map_err(VpnApiClientError::FailedToGetEntryGatewayCountries)
     }
 
     pub async fn get_exit_gateways(
         &self,
         min_performance: Option<GatewayMinPerformance>,
     ) -> Result<NymDirectoryGatewaysResponse> {
-        self.inner
-            .get_json(
-                &[
-                    routes::PUBLIC,
-                    routes::V1,
-                    routes::DIRECTORY,
-                    routes::GATEWAYS,
-                    routes::EXIT,
-                ],
-                &min_performance.unwrap_or_default().to_param(),
-            )
-            .await
-            .map_err(VpnApiClientError::FailedToGetExitGateways)
+        self.get_json_with_retry(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::DIRECTORY,
+                routes::GATEWAYS,
+                routes::EXIT,
+            ],
+            &min_performance.unwrap_or_default().to_param(),
+        )
+        .await
+        .map_err(VpnApiClientError::FailedToGetExitGateways)
     }
 
     pub async fn get_exit_gateway_countries(
         &self,
         min_performance: Option<GatewayMinPerformance>,
     ) -> Result<NymDirectoryGatewayCountriesResponse> {
-        self.inner
-            .get_json(
-                &[
-                    routes::PUBLIC,
-                    routes::V1,
-                    routes::DIRECTORY,
-                    routes::GATEWAYS,
-                    routes::EXIT,
-                    routes::COUNTRIES,
-                ],
-                &min_performance.unwrap_or_default().to_param(),
-            )
-            .await
-            .map_err(VpnApiClientError::FailedToGetExitGatewayCountries)
+        self.get_json_with_retry(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::DIRECTORY,
+                routes::GATEWAYS,
+                routes::EXIT,
+                routes::COUNTRIES,
+            ],
+            &min_performance.unwrap_or_default().to_param(),
+        )
+        .await
+        .map_err(VpnApiClientError::FailedToGetExitGatewayCountries)
     }
 }
 
