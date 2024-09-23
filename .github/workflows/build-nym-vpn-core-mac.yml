@@ -47,6 +47,23 @@ jobs:
           name: ${{ env.WG_GO_LIB_NAME }}
           path: ${{ env.WG_GO_LIB_PATH }}
 
+      - name: Install cargo-get
+        run: |
+          cargo install --locked cargo-get
+
+      - name: Update nym-vpn-apple to use latest core
+        run: |
+          ./scripts/update-nym-vpn-apple-to-latest-core.sh
+          git diff || echo "No changes detected"
+          git diff > mac-plist-changes.patch
+
+      - name: Upload applied changes
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-plist-changes.patch
+          path: mac-plist-changes.patch
+          retention-days: 3
+
       - name: Build nym-vpn-core (native)
         working-directory: nym-vpn-core
         env:
