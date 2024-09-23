@@ -453,6 +453,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "backon"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e4fa97bb310c33c811334143cf64c5bb2b7b3c06e453db6b095d7061eff8f113"
+dependencies = [
+ "fastrand",
+ "gloo-timers 0.3.0",
+ "tokio",
+]
+
+[[package]]
 name = "backtrace"
 version = "0.3.73"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2416,6 +2427,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "gloo-timers"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbb143cf96099802033e0d4f4963b19fd2e0b728bcf076cd9cf7f6634f092994"
+dependencies = [
+ "futures-channel",
+ "futures-core",
+ "js-sys",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "gloo-utils"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3927,7 +3950,7 @@ dependencies = [
  "bs58 0.5.1",
  "cfg-if",
  "futures",
- "gloo-timers",
+ "gloo-timers 0.2.6",
  "http-body-util",
  "humantime-serde",
  "hyper 1.4.1",
@@ -5391,6 +5414,7 @@ dependencies = [
 name = "nym-vpn-api-client"
 version = "0.1.0"
 dependencies = [
+ "backon",
  "base64-url",
  "bip39",
  "bs58 0.5.1",
@@ -5406,7 +5430,6 @@ dependencies = [
  "thiserror",
  "tokio",
  "tracing",
- "tryhard",
 ]
 
 [[package]]
@@ -8930,17 +8953,6 @@ name = "try-lock"
 version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
-
-[[package]]
-name = "tryhard"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c9f0a709784e86923586cff0d872dba54cd2d2e116b3bc57587d15737cfce9d"
-dependencies = [
- "futures",
- "pin-project-lite",
- "tokio",
-]
 
 [[package]]
 name = "tun"

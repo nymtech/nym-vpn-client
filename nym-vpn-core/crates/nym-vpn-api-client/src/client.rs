@@ -3,6 +3,7 @@
 
 use std::{fmt, time::Duration};
 
+use backon::Retryable;
 use nym_http_api_client::{HttpClientError, Params, PathSegments, UserAgent, NO_PARAMS};
 use reqwest::Url;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -71,12 +72,16 @@ impl VpnApiClient {
         for<'a> T: Deserialize<'a>,
         K: AsRef<str>,
         V: AsRef<str>,
-        E: fmt::Display + DeserializeOwned,
+        E: fmt::Display + fmt::Debug + DeserializeOwned,
     {
-        tryhard::retry_fn(|| self.inner.get_json(path, params))
-            .retries(3)
-            .fixed_backoff(Duration::from_secs(1))
-            .await
+        let response = (|| async { self.inner.get_json(path, params).await })
+            .retry(backon::ConstantBuilder::default())
+            .notify(|err: &HttpClientError<E>, dur: Duration| {
+                tracing::warn!("Failed to get JSON: {}", err);
+                tracing::warn!("retrying {:?} after {:?}", err, dur);
+            })
+            .await?;
+        Ok(response)
     }
 
     async fn post_authorized<T, B, E>(
