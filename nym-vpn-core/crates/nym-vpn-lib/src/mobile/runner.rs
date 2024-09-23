@@ -5,7 +5,6 @@ use nym_authenticator_client::AuthClient;
 use nym_gateway_directory::{
     AuthAddresses, EntryPoint, ExitPoint, Gateway, GatewayClient, Recipient,
 };
-use nym_sdk::UserAgent;
 use nym_task::TaskManager;
 use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
 use nym_wg_go::{PrivateKey, PublicKey};
