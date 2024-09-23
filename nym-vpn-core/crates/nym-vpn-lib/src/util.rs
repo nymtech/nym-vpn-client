@@ -92,3 +92,17 @@ pub(crate) async fn handle_interrupt(
         error!("Error on exit tunnel handle {}", err);
     }
 }
+
+pub(crate) fn construct_user_agent() -> nym_sdk::UserAgent {
+    let bin_info = nym_bin_common::bin_info_local_vergen!();
+    let name = sysinfo::System::name().unwrap_or("unknown".to_string());
+    let os_long = sysinfo::System::long_os_version().unwrap_or("unknown".to_string());
+    let arch = sysinfo::System::cpu_arch().unwrap_or("unknown".to_string());
+    let platform = format!("{}; {}; {}", name, os_long, arch);
+    nym_sdk::UserAgent {
+        application: bin_info.binary_name.to_string(),
+        version: bin_info.build_version.to_string(),
+        platform,
+        git_commit: bin_info.commit_sha.to_string(),
+    }
+}

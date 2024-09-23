@@ -30,6 +30,7 @@ serde.workspace = true
 serde_json.workspace = true
 signature.workspace = true
 sqlx.workspace = true
+sysinfo.workspace = true
 tap.workspace = true
 thiserror.workspace = true
 time.workspace = true

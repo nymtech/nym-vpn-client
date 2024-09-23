@@ -63,6 +63,35 @@ message Url {
   string url = 1;
 }
 
+// Inspired by
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent
+// Forward slashes '/' are not valid
+message UserAgent {
+  // Example:
+  //    nym-vpn-app
+  //    nym-vpnd
+  //    nym-vpn-cli
+  string application = 1;
+  // Format: version[-optional] [(daemon version[-optional])]
+  // Example:
+  //    0.1.8
+  //    0.1.8-debug (0.1.6)
+  //    0.2.1-fdroid
+  string version = 2;
+  // Format: OS; OS version; CPU
+  // Example:
+  //    Windows NT 6.1; Win64; x64
+  //    Macintosh; Intel Mac OS X 14.6.1
+  //    iPad; U; CPU OS 3_2 like Mac OS X; en-us
+  string platform = 3;
+  // Format: git hash [(daemon git hash)]
+  // Commit hash should be at least 7 characters long
+  // Example:
+  //    4h9fk59 (4kdufle)
+  //    4h9fk59
+  string git_commit = 4;
+}
+
 message Endpoints {
   Url nyxd_url = 1;
   Url websocket_url = 2;
@@ -75,6 +104,7 @@ message InfoResponse {
   string version = 1;
   google.protobuf.Timestamp build_timestamp = 2;
   string triple = 3;
+  string platform = 8;
   string git_commit = 4;
   string network_name = 5;
   repeated Endpoints endpoints = 6;
@@ -94,6 +124,7 @@ message ConnectRequest {
   bool enable_poisson_rate = 6;
   bool disable_background_cover_traffic = 7;
   bool enable_credentials_mode = 8;
+  UserAgent user_agent = 12;
   // Optional thresholds
   Threshold min_mixnode_performance = 9;
   Threshold min_gateway_mixnet_performance = 10;
@@ -452,6 +483,7 @@ enum GatewayType {
 
 message ListGatewaysRequest {
   GatewayType kind = 1;
+  UserAgent user_agent = 4;
   // Optional thresholds
   Threshold min_mixnet_performance = 2;
   Threshold min_vpn_performance = 3;
@@ -463,6 +495,7 @@ message ListGatewaysResponse {
 
 message ListCountriesRequest {
   GatewayType kind = 1;
+  UserAgent user_agent = 4;
   // Optional thresholds
   Threshold min_mixnet_performance = 2;
   Threshold min_vpn_performance = 3;

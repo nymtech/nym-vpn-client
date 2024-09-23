@@ -94,3 +94,12 @@ pub(crate) fn into_gateway_type(gateway_type: nym_vpn_proto::GatewayType) -> Opt
         nym_vpn_proto::GatewayType::Wg => Some(GatewayType::Wg),
     }
 }
+
+pub(crate) fn into_user_agent(user_agent: nym_vpn_proto::UserAgent) -> nym_vpn_lib::UserAgent {
+    nym_vpn_lib::UserAgent {
+        application: user_agent.application,
+        version: user_agent.version,
+        platform: user_agent.platform,
+        git_commit: user_agent.git_commit,
+    }
+}

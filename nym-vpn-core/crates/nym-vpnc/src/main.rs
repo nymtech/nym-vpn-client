@@ -6,9 +6,11 @@ use clap::Parser;
 use nym_gateway_directory::GatewayType;
 use nym_vpn_proto::{
     ConnectRequest, DisconnectRequest, Empty, ImportUserCredentialRequest, InfoRequest,
-    ListCountriesRequest, ListGatewaysRequest, StatusRequest, StoreAccountRequest,
+    InfoResponse, ListCountriesRequest, ListGatewaysRequest, StatusRequest, StoreAccountRequest,
+    UserAgent,
 };
 use protobuf_conversion::{into_gateway_type, into_threshold};
+use sysinfo::System;
 use vpnd_client::ClientType;
 
 use crate::{
@@ -64,9 +66,33 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
+fn construct_user_agent(daemon_info: InfoResponse) -> UserAgent {
+    let bin_info = nym_bin_common::bin_info_local_vergen!();
+    let version = format!("{} ({})", bin_info.build_version, daemon_info.version);
+
+    // Construct the platform string similar to how user agents are constructed in web browsers
+    let name = System::name().unwrap_or("unknown".to_string());
+    let os_long = System::long_os_version().unwrap_or("unknown".to_string());
+    let arch = System::cpu_arch().unwrap_or("unknown".to_string());
+    let platform = format!("{}; {}; {}", name, os_long, arch);
+
+    let git_commit = format!("{} ({})", bin_info.commit_sha, daemon_info.git_commit);
+    UserAgent {
+        application: bin_info.binary_name.to_string(),
+        version,
+        platform,
+        git_commit,
+    }
+}
+
 async fn connect(client_type: ClientType, connect_args: &cli::ConnectArgs) -> Result<()> {
     let entry = cli::parse_entry_point(connect_args)?;
     let exit = cli::parse_exit_point(connect_args)?;
+
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let info_request = tonic::Request::new(InfoRequest {});
+    let info = client.info(info_request).await?.into_inner();
+    let user_agent = construct_user_agent(info);
 
     let request = tonic::Request::new(ConnectRequest {
         entry: entry.map(into_entry_point),
@@ -77,6 +103,7 @@ async fn connect(client_type: ClientType, connect_args: &cli::ConnectArgs) -> Re
         enable_poisson_rate: connect_args.enable_poisson_rate,
         disable_background_cover_traffic: connect_args.disable_background_cover_traffic,
         enable_credentials_mode: connect_args.enable_credentials_mode,
+        user_agent: Some(user_agent),
         min_mixnode_performance: connect_args.min_mixnode_performance.map(into_threshold),
         min_gateway_mixnet_performance: connect_args
             .min_gateway_mixnet_performance
@@ -84,7 +111,6 @@ async fn connect(client_type: ClientType, connect_args: &cli::ConnectArgs) -> Re
         min_gateway_vpn_performance: connect_args.min_gateway_vpn_performance.map(into_threshold),
     });
 
-    let mut client = vpnd_client::get_client(client_type).await?;
     let response = client.vpn_connect(request).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
@@ -197,8 +223,14 @@ async fn list_gateways(
     gw_type: GatewayType,
 ) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
+
+    let info_request = tonic::Request::new(InfoRequest {});
+    let info = client.info(info_request).await?.into_inner();
+    let user_agent = construct_user_agent(info);
+
     let request = tonic::Request::new(ListGatewaysRequest {
         kind: into_gateway_type(gw_type) as i32,
+        user_agent: Some(user_agent),
         min_mixnet_performance: list_args.min_mixnet_performance.map(into_threshold),
         min_vpn_performance: list_args.min_vpn_performance.map(into_threshold),
     });
@@ -222,8 +254,14 @@ async fn list_countries(
     gw_type: GatewayType,
 ) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
+
+    let info_request = tonic::Request::new(InfoRequest {});
+    let info = client.info(info_request).await?.into_inner();
+    let user_agent = construct_user_agent(info);
+
     let request = tonic::Request::new(ListCountriesRequest {
         kind: into_gateway_type(gw_type) as i32,
+        user_agent: Some(user_agent),
         min_mixnet_performance: list_args.min_mixnet_performance.map(into_threshold),
         min_vpn_performance: list_args.min_vpn_performance.map(into_threshold),
     });

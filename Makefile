@@ -10,5 +10,5 @@ build-wireguard-ios:
 	./wireguard/build-wireguard-go.sh --ios
 
 build-nym-vpn-core:
-	$(MAKE) -C nym-vpn-core
+	$(MAKE) -C nym-vpn-core build
 

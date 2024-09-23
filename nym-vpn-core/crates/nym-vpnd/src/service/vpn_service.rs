@@ -123,7 +123,11 @@ impl fmt::Display for VpnConnectedStateDetails {
 
 #[allow(clippy::large_enum_variant)]
 pub enum VpnServiceCommand {
-    Connect(oneshot::Sender<VpnServiceConnectResult>, ConnectArgs),
+    Connect(
+        oneshot::Sender<VpnServiceConnectResult>,
+        ConnectArgs,
+        nym_vpn_lib::UserAgent,
+    ),
     Disconnect(oneshot::Sender<VpnServiceDisconnectResult>),
     Status(oneshot::Sender<VpnServiceStatusResult>),
     Info(oneshot::Sender<VpnServiceInfoResult>),
@@ -142,7 +146,9 @@ pub enum VpnServiceCommand {
 impl fmt::Display for VpnServiceCommand {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            VpnServiceCommand::Connect(_, args) => write!(f, "Connect {{ {args:?} }}"),
+            VpnServiceCommand::Connect(_, args, user_agent) => {
+                write!(f, "Connect {{ {args:?}, {user_agent:?} }}")
+            }
             VpnServiceCommand::Disconnect(_) => write!(f, "Disconnect"),
             VpnServiceCommand::Status(_) => write!(f, "Status"),
             VpnServiceCommand::Info(_) => write!(f, "Info"),
@@ -175,6 +181,8 @@ pub(crate) struct ConnectOptions {
     pub(crate) min_mixnode_performance: Option<Percent>,
     pub(crate) min_gateway_mixnet_performance: Option<Percent>,
     pub(crate) min_gateway_vpn_performance: Option<Percent>,
+    // Consider adding this here once UserAgent implements Serialize/Deserialize
+    // pub(crate) user_agent: Option<nym_vpn_lib::UserAgent>,
 }
 
 #[derive(Debug)]
@@ -226,6 +234,7 @@ pub struct VpnServiceInfoResult {
     pub version: String,
     pub build_timestamp: Option<time::OffsetDateTime>,
     pub triple: String,
+    pub platform: String,
     pub git_commit: String,
     pub network_name: String,
     pub endpoints: Vec<nym_vpn_lib::nym_config::defaults::ValidatorDetails>,
@@ -451,7 +460,11 @@ where
         Ok(config)
     }
 
-    async fn handle_connect(&mut self, connect_args: ConnectArgs) -> VpnServiceConnectResult {
+    async fn handle_connect(
+        &mut self,
+        connect_args: ConnectArgs,
+        user_agent: nym_vpn_lib::UserAgent,
+    ) -> VpnServiceConnectResult {
         self.shared_vpn_state.set(VpnState::Connecting);
 
         let ConnectArgs {
@@ -513,7 +526,7 @@ where
             nym_mtu: None,
             dns: options.dns,
             disable_routing: options.disable_routing,
-            user_agent: Some(nym_bin_common::bin_info_local_vergen!().into()),
+            user_agent: Some(user_agent),
         };
 
         let nym_vpn = if options.enable_two_hop {
@@ -590,10 +603,13 @@ where
     async fn handle_info(&self) -> VpnServiceInfoResult {
         let network = NymNetworkDetails::new_from_env();
         let bin_info = nym_bin_common::bin_info_local_vergen!();
+        let user_agent = crate::util::construct_user_agent();
+
         VpnServiceInfoResult {
             version: bin_info.build_version.to_string(),
             build_timestamp: time::OffsetDateTime::parse(bin_info.build_timestamp, &Rfc3339).ok(),
             triple: bin_info.cargo_triple.to_string(),
+            platform: user_agent.platform,
             git_commit: bin_info.commit_sha.to_string(),
             network_name: network.network_name,
             endpoints: network.endpoints,
@@ -673,7 +689,7 @@ where
 
         // Setup client
         let nym_vpn_api_url = get_nym_vpn_api_url()?;
-        let user_agent = nym_vpn_lib::UserAgent::from(nym_bin_common::bin_info_local_vergen!());
+        let user_agent = crate::util::construct_user_agent();
         let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent)?;
 
         api_client
@@ -696,7 +712,7 @@ where
 
         // Setup client
         let nym_vpn_api_url = get_nym_vpn_api_url()?;
-        let user_agent = nym_vpn_lib::UserAgent::from(nym_bin_common::bin_info_local_vergen!());
+        let user_agent = crate::util::construct_user_agent();
         let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent)?;
 
         api_client
@@ -719,7 +735,7 @@ where
 
         // Setup client
         let nym_vpn_api_url = get_nym_vpn_api_url()?;
-        let user_agent = nym_vpn_lib::UserAgent::from(nym_bin_common::bin_info_local_vergen!());
+        let user_agent = crate::util::construct_user_agent();
         let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent)?;
 
         api_client
@@ -742,7 +758,7 @@ where
 
         // Setup client
         let nym_vpn_api_url = get_nym_vpn_api_url()?;
-        let user_agent = nym_vpn_lib::UserAgent::from(nym_bin_common::bin_info_local_vergen!());
+        let user_agent = crate::util::construct_user_agent();
         let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent)?;
 
         api_client
@@ -759,8 +775,8 @@ where
         while let Some(command) = self.vpn_command_rx.recv().await {
             debug!("VPN: Received command: {command}");
             match command {
-                VpnServiceCommand::Connect(tx, connect_args) => {
-                    let result = self.handle_connect(connect_args).await;
+                VpnServiceCommand::Connect(tx, connect_args, user_agent) => {
+                    let result = self.handle_connect(connect_args, user_agent).await;
                     tx.send(result).unwrap();
                 }
                 VpnServiceCommand::Disconnect(tx) => {

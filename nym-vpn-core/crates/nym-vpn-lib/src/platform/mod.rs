@@ -437,7 +437,7 @@ async fn get_gateway_countries(
 ) -> Result<Vec<Location>, VpnError> {
     let user_agent = user_agent
         .map(nym_sdk::UserAgent::from)
-        .unwrap_or_else(|| nym_bin_common::bin_info_local_vergen!().into());
+        .unwrap_or_else(crate::util::construct_user_agent);
     let min_gateway_performance = min_gateway_performance.map(|p| p.try_into()).transpose()?;
     let directory_config = nym_gateway_directory::Config {
         api_url,
@@ -477,7 +477,7 @@ async fn get_low_latency_entry_country(
     };
     let user_agent = user_agent
         .map(nym_sdk::UserAgent::from)
-        .unwrap_or_else(|| nym_bin_common::bin_info_local_vergen!().into());
+        .unwrap_or_else(crate::util::construct_user_agent);
 
     GatewayClient::new(config, user_agent)?
         .lookup_low_latency_entry_gateway()

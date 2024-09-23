@@ -349,9 +349,6 @@ pub(crate) async fn setup_tunnel(
     route_manager: &mut RouteManager,
     dns_monitor: &mut DnsMonitor,
 ) -> Result<AllTunnelsSetup> {
-    // The user agent is set on HTTP REST API calls, and ideally should identify the type of
-    // client. This means it needs to be set way higher in the call stack, but set a default for
-    // what we know here if we don't have anything.
     let user_agent = nym_vpn.user_agent().unwrap_or_else(|| {
         warn!("No user agent provided, using default");
         nym_bin_common::bin_info_local_vergen!().into()

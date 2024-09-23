@@ -53,6 +53,7 @@ impl CommandInterfaceConnectionHandler {
         entry: Option<EntryPoint>,
         exit: Option<ExitPoint>,
         options: ConnectOptions,
+        user_agent: nym_vpn_lib::UserAgent,
     ) -> VpnServiceConnectResult {
         info!("Starting VPN");
         let (tx, rx) = oneshot::channel();
@@ -62,7 +63,7 @@ impl CommandInterfaceConnectionHandler {
             options,
         };
         self.vpn_command_tx
-            .send(VpnServiceCommand::Connect(tx, connect_args))
+            .send(VpnServiceCommand::Connect(tx, connect_args, user_agent))
             .unwrap();
         debug!("Sent start command to VPN");
         debug!("Waiting for response");
@@ -142,9 +143,10 @@ impl CommandInterfaceConnectionHandler {
     pub(crate) async fn handle_list_gateways(
         &self,
         gw_type: GatewayType,
+        user_agent: nym_vpn_lib::UserAgent,
         min_gateway_performance: GatewayMinPerformance,
     ) -> Result<Vec<gateway::Gateway>, ListGatewayError> {
-        let gateways = directory_client(min_gateway_performance)?
+        let gateways = directory_client(user_agent, min_gateway_performance)?
             .lookup_gateways(gw_type.clone())
             .await
             .map_err(|source| ListGatewayError::GetGateways { gw_type, source })?;
@@ -155,9 +157,10 @@ impl CommandInterfaceConnectionHandler {
     pub(crate) async fn handle_list_countries(
         &self,
         gw_type: GatewayType,
+        user_agent: nym_vpn_lib::UserAgent,
         min_gateway_performance: GatewayMinPerformance,
     ) -> Result<Vec<gateway::Country>, ListGatewayError> {
-        let gateways = directory_client(min_gateway_performance)?
+        let gateways = directory_client(user_agent, min_gateway_performance)?
             .lookup_countries(gw_type.clone())
             .await
             .map_err(|source| ListGatewayError::GetCountries { gw_type, source })?;
@@ -221,9 +224,9 @@ impl CommandInterfaceConnectionHandler {
 }
 
 fn directory_client(
+    user_agent: nym_vpn_lib::UserAgent,
     min_gateway_performance: GatewayMinPerformance,
 ) -> Result<GatewayClient, ListGatewayError> {
-    let user_agent = nym_bin_common::bin_info_local_vergen!().into();
     let directory_config = nym_vpn_lib::gateway_directory::Config::new_from_env()
         .with_min_gateway_performance(min_gateway_performance);
     GatewayClient::new(directory_config, user_agent)
