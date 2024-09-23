@@ -157,4 +157,16 @@
     <string name="no">No</string>
     <string name="yes">Sí</string>
     <string name="vpn_alerts_channel_description">Un canal para notificaciones de alertas relacionadas con la app.</string>
+    <string name="vpn_permission_missing">El permiso Vpn no ha sido aceptado o está siendo utilizado por otra aplicación.</string>
+    <string name="out_of_bandwidth_error">Se ha alcanzado el límite de ancho de banda de las credenciales.</string>
+    <string name="gateway_error">No se ha podido conectar con el gateway. Inténtelo de nuevo o seleccione una nueva ubicación para el gateway.</string>
+    <string name="network_error">Se ha producido un problema en la conexión de red. Comprueba tu conexión de red e inténtelo de nuevo.</string>
+    <string name="state_error">"Esto no debería ocurrir, pero se ha alcanzado un mal estado. Reinicia la aplicación y vuelve a intentarlo. "</string>
+    <string name="internal_error">Se ha producido un error interno del túnel. Por favor, inténtalo de nuevo.</string>
+    <string name="vpn_alerts_channel_id">Canal de alertas de NymVPN</string>
+    <string name="bandwidth_alert">Alerta de ancho de banda</string>
+    <string name="no_bandwidth">No hay ancho de banda restante.</string>
+    <string name="connection_failed">Conexión fallida</string>
+    <string name="low_bandwidth">"¡Ancho de Banda bajo! Ancho de banda restante: "</string>
+    <string name="credential_already_imported">Credencial ya importada.</string>
 </resources>
