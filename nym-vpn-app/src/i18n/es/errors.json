@@ -9,12 +9,14 @@
   },
   "countries-request": {
     "entry": "Fallo al obtener los países disponibles del gateway de entrada",
-    "exit": "Fallo al obtener los países disponibles del gateway de salida"
+    "exit": "Fallo al obtener los países disponibles del gateway de salida",
+    "fast-mode": "Fallo al buscar los países disponibles"
   },
   "unknown": "Error desconocido",
   "internal": "Error interno",
   "daemon": {
-    "not-connected": "No conectado al demonio"
+    "not-connected": "No conectado al demonio",
+    "internal": "Error interno del demonio"
   },
   "grpc": "Error interno gRPC",
   "connection": {
@@ -27,7 +29,8 @@
       "storage-path": "Error al crear las rutas de almacenamiento mixnet",
       "default-storage": "Error al crear la mixnet con el almacenamiento predeterminado",
       "build-client": "Fallo al crear el cliente mixnet",
-      "connect": "Fallo al conectar con la mixnet"
+      "connect": "Fallo al conectar con la mixnet",
+      "monitor": "Error en el monitor de conexión a la Mixnet"
     },
     "gateway-lookup": {
       "ipr": "Fallo al buscar la dirección del IPR",
@@ -40,7 +43,42 @@
       "exit": "Fallo al buscar el gateway de salida",
       "exit-location": "Fallo al buscar el gateway de salida para la ubicación determinada"
     },
-    "ipr-connect": "Fallo al conectar con el IPR"
+    "ipr-connect": "Fallo al conectar con el IPR",
+    "bandwidth": {
+      "tunnel-up": "No hay ancho de banda disponible para configurar el túnel"
+    },
+    "interface": {
+      "wg-bring-up": "Error al abrir la interfaz de WireGuard",
+      "find-default": "Error al encontrar la interfaz de red por defecto"
+    },
+    "unhandled-exit": "La vpn tiene un error. Es probable que sea un bug.",
+    "wireguard": {
+      "tunnel": "Error de túnel de WireGuard",
+      "config": "Fallo en la configuración del WireGuard"
+    },
+    "firewall": {
+      "init": "Fallo al iniciar el subsistema firewall",
+      "reset-policy": "Error al restablecer la política del cortafuegos"
+    },
+    "dns": {
+      "init": "Error al iniciar el subsistema DNS",
+      "set": "Error al configurar DNS"
+    },
+    "authenticator": {
+      "timeout": "No se ha podido conectar con el autenticador, se supero el tiempo de espera de la respuesta de conexión",
+      "registration-data": "No se han podido verificar los datos de registro proporcionados por el autenticador",
+      "entry-gw-ipv4": "Error al analizar la IPv4 proporcionada por el autenticador al establecer la configuración de WireGuard",
+      "wrong-version": "El autenticador contestó con una respuesta etiquetada con una versión que no podemos entender",
+      "malformed-reply": "El autentificador, o alguien más, respondió con una respuesta que no podemos leer",
+      "address-not-found": "No se ha encontrado la dirección del autenticador para el/los gateway(s) de enlace que estamos intentando utilizar",
+      "invalid-response": "No se ha podido conectar con el autenticador, la respuesta no es válida",
+      "entry-gw-socket-addr": "No se ha podido analizar la dirección de socket proporcionada por el autenticador al establecer la configuración de WireGuard",
+      "auth-not-possible": "La autenticación con los autenticadores no fue posible, ya que no tenemos direcciones para ellos. Es probable que se trate de un error interno de programación",
+      "connect": "Error al conectar con uno de los autenticadores"
+    },
+    "add-ipv6-route": "Fallo al añadir la ruta por defecto al ipv6 para capturar tráfico ipv6",
+    "tun-device": "Fallo del dispositivo Tun",
+    "routing": "Error de enrutamiento"
   },
   "out-of-bandwidth": "Fuera del ancho de banda asignado",
   "exit-node": {
