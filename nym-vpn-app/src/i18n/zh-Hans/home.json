@@ -14,11 +14,11 @@
   "connection-time": "连接时间",
   "select-node-title": "连接到",
   "privacy-mode": {
-    "title": "匿名",
+    "title": "匿名 (mixnet)",
     "desc": "适用于付款、电子邮件和信息"
   },
   "fast-mode": {
-    "title": "快速",
+    "title": "快速(WireGuard)",
     "desc": "适用于浏览、流媒体、共享"
   },
   "last-node-select": {
