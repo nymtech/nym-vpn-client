@@ -12,7 +12,7 @@ pub enum Error {
     AuthenticatorClientError(#[from] nym_authenticator_client::Error),
 
     #[error("verification failed: {0}")]
-    VerificationFailed(#[source] nym_wireguard_types::Error),
+    VerificationFailed(#[source] nym_authenticator_requests::Error),
 
     #[error("failed to parse entry gateway socket addr: {0}")]
     FailedToParseEntryGatewaySocketAddr(#[source] std::net::AddrParseError),

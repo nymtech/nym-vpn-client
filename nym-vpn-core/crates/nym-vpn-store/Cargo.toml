@@ -10,7 +10,7 @@ license.workspace = true
 
 [dependencies]
 bip39.workspace = true
-nym-crypto = { workspace = true, features = ["rand", "symmetric", "asymmetric"] }
+nym-crypto = { workspace = true, features = ["rand", "asymmetric"] }
 nym-pemstore.workspace = true
 nym-validator-client.workspace = true
 rand.workspace = true
