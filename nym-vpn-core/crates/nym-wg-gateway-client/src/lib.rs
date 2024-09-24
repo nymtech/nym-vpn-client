@@ -12,20 +12,21 @@ use std::{
 
 pub use error::{Error, ErrorMessage};
 use nym_authenticator_client::AuthClient;
-use nym_authenticator_requests::v1::response::{
-    AuthenticatorResponseData, PendingRegistrationResponse, RegisteredResponse,
-    RemainingBandwidthResponse,
+use nym_authenticator_client::ClientMessage;
+use nym_authenticator_requests::latest::{
+    registration::{FinalMessage, GatewayClient, InitMessage, RegistrationData},
+    response::{
+        AuthenticatorResponseData, PendingRegistrationResponse, RegisteredResponse,
+        RemainingBandwidthResponse,
+    },
 };
+use nym_credentials_interface::CredentialSpendingData;
 use nym_crypto::asymmetric::{encryption, x25519::KeyPair};
 use nym_gateway_directory::Recipient;
-use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::{
-    ClientMessage, InitMessage, PeerPublicKey,
-};
+use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::PeerPublicKey;
 use nym_pemstore::KeyPairPath;
 use nym_sdk::TaskClient;
-use nym_wireguard_types::{
-    registration::RegistrationData, GatewayClient, DEFAULT_PEER_TIMEOUT_CHECK,
-};
+use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
 use rand::{rngs::OsRng, CryptoRng, RngCore};
 use talpid_types::net::wireguard::PublicKey; // TODO: this is a type we should provide instead
 use tokio_stream::{wrappers::IntervalStream, StreamExt};
@@ -118,7 +119,11 @@ impl WgGatewayClient {
         self.auth_recipient
     }
 
-    pub async fn register_wireguard(&mut self, gateway_host: IpAddr) -> Result<GatewayData> {
+    pub async fn register_wireguard(
+        &mut self,
+        gateway_host: IpAddr,
+        credential: Option<CredentialSpendingData>,
+    ) -> Result<GatewayData> {
         debug!("Registering with the wg gateway...");
         let init_message = ClientMessage::Initial(InitMessage {
             pub_key: PeerPublicKey::new(self.keypair.public_key().to_bytes().into()),
@@ -143,12 +148,15 @@ impl WgGatewayClient {
                     .verify(self.keypair.private_key(), nonce)
                     .map_err(Error::VerificationFailed)?;
 
-                let finalized_message = ClientMessage::Final(GatewayClient::new(
-                    self.keypair.private_key(),
-                    gateway_data.pub_key().inner(),
-                    gateway_data.private_ip,
-                    nonce,
-                ));
+                let finalized_message = ClientMessage::Final(Box::new(FinalMessage {
+                    gateway_client: GatewayClient::new(
+                        self.keypair.private_key(),
+                        gateway_data.pub_key().inner(),
+                        gateway_data.private_ip,
+                        nonce,
+                    ),
+                    credential,
+                }));
                 let response = self
                     .auth_client
                     .send(finalized_message, self.auth_recipient)
@@ -198,28 +206,23 @@ impl WgGatewayClient {
             _ => return Err(Error::InvalidGatewayAuthResponse),
         };
 
-        if remaining_bandwidth_data.suspended {
-            warn!("Wireguard access to gateway {} is suspended until tomorrow, UTC time. The client will shutdown", self.auth_recipient.gateway());
-            Ok(None)
+        let remaining_pretty = if remaining_bandwidth_data.available_bandwidth > 1024 * 1024 {
+            format!(
+                "{:.2} MB",
+                remaining_bandwidth_data.available_bandwidth as f64 / 1024.0 / 1024.0
+            )
         } else {
-            let remaining_pretty = if remaining_bandwidth_data.available_bandwidth > 1024 * 1024 {
-                format!(
-                    "{:.2} MB",
-                    remaining_bandwidth_data.available_bandwidth as f64 / 1024.0 / 1024.0
-                )
-            } else {
-                format!("{} KB", remaining_bandwidth_data.available_bandwidth / 1024)
-            };
-            info!(
-                "Remaining wireguard bandwidth with gateway {} for today: {}",
-                self.auth_recipient.gateway(),
-                remaining_pretty
-            );
-            if remaining_bandwidth_data.available_bandwidth < 1024 * 1024 {
-                warn!("Remaining bandwidth is under 1 MB. The wireguard mode will get suspended after that until tomorrow, UTC time. The client might shutdown with timeout soon");
-            }
-            Ok(Some(remaining_bandwidth_data.available_bandwidth))
+            format!("{} KB", remaining_bandwidth_data.available_bandwidth / 1024)
+        };
+        info!(
+            "Remaining wireguard bandwidth with gateway {} for today: {}",
+            self.auth_recipient.gateway(),
+            remaining_pretty
+        );
+        if remaining_bandwidth_data.available_bandwidth < 1024 * 1024 {
+            warn!("Remaining bandwidth is under 1 MB. The wireguard mode will get suspended after that until tomorrow, UTC time. The client might shutdown with timeout soon");
         }
+        Ok(Some(remaining_bandwidth_data.available_bandwidth))
     }
 
     pub async fn suspended(&mut self) -> Result<bool> {

@@ -1,18 +1,29 @@
 use std::{cmp::Ordering, sync::Arc, time::Duration};
 
-use nym_authenticator_requests::v1::{
-    request::AuthenticatorRequest, response::AuthenticatorResponse,
+use nym_authenticator_requests::latest::{
+    registration::{FinalMessage, InitMessage},
+    request::AuthenticatorRequest,
+    response::AuthenticatorResponse,
 };
 use nym_sdk::mixnet::{
     MixnetClient, MixnetClientSender, MixnetMessageSender, Recipient, ReconstructedMessage,
     TransmissionLane,
 };
-use nym_wireguard_types::ClientMessage;
+use nym_wireguard_types::PeerPublicKey;
+use serde::{Deserialize, Serialize};
 use tracing::{debug, error};
 
 mod error;
 
 pub use crate::error::{Error, Result};
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(tag = "type", rename_all = "camelCase")]
+pub enum ClientMessage {
+    Initial(InitMessage),
+    Final(Box<FinalMessage>),
+    Query(PeerPublicKey),
+}
 
 #[derive(Clone)]
 pub struct SharedMixnetClient(Arc<tokio::sync::Mutex<Option<MixnetClient>>>);
@@ -122,13 +133,16 @@ impl AuthClient {
                 AuthenticatorRequest::new_initial_request(init_message, self.nym_address)
             }
             ClientMessage::Final(gateway_client) => {
-                AuthenticatorRequest::new_final_request(gateway_client, self.nym_address)
+                AuthenticatorRequest::new_final_request(*gateway_client, self.nym_address)
             }
             ClientMessage::Query(peer_public_key) => {
                 AuthenticatorRequest::new_query_request(peer_public_key, self.nym_address)
             }
         };
-        debug!("Sent connect request with version v{}", request.version);
+        debug!(
+            "Sent connect request with version v{}",
+            request.protocol.version
+        );
 
         self.mixnet_sender
             .send(nym_sdk::mixnet::InputMessage::new_regular(

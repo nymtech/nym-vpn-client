@@ -10,6 +10,7 @@ license.workspace = true
 
 [dependencies]
 nym-authenticator-requests.workspace = true
+nym-credentials-interface.workspace = true
 nym-crypto.workspace = true
 nym-node-requests.workspace = true
 nym-pemstore.workspace = true
@@ -17,7 +18,12 @@ nym-sdk.workspace = true
 nym-wireguard-types.workspace = true
 rand.workspace = true
 thiserror.workspace = true
-tokio = { workspace = true, features = [ "process", "rt-multi-thread", "fs", "sync", ] }
+tokio = { workspace = true, features = [
+    "process",
+    "rt-multi-thread",
+    "fs",
+    "sync",
+] }
 tokio-stream.workspace = true
 tracing.workspace = true
 

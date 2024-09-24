@@ -12,6 +12,7 @@ license.workspace = true
 nym-authenticator-requests.workspace = true
 nym-sdk.workspace = true
 nym-wireguard-types.workspace = true
+serde = { workspace = true, features = ["derive"] }
 tracing.workspace = true
 thiserror.workspace = true
 tokio.workspace = true

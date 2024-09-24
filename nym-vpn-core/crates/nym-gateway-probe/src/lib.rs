@@ -10,8 +10,10 @@ use bytes::BytesMut;
 use dns_lookup::lookup_host;
 use futures::StreamExt;
 use netstack::{NetstackCall as _, NetstackCallImpl};
-use nym_authenticator_requests::v1::response::{
-    AuthenticatorResponseData, PendingRegistrationResponse, RegisteredResponse,
+use nym_authenticator_client::ClientMessage;
+use nym_authenticator_requests::latest::{
+    registration::{FinalMessage, GatewayClient, InitMessage, RegistrationData},
+    response::{AuthenticatorResponseData, PendingRegistrationResponse, RegisteredResponse},
 };
 use nym_config::defaults::NymNetworkDetails;
 use nym_connection_monitor::self_ping_and_wait;
@@ -26,9 +28,7 @@ use nym_ip_packet_requests::{
     IpPair,
 };
 use nym_sdk::mixnet::{MixnetClient, MixnetClientBuilder, ReconstructedMessage};
-use nym_wireguard_types::{
-    registration::RegistrationData, ClientMessage, GatewayClient, InitMessage, PeerPublicKey,
-};
+use nym_wireguard_types::PeerPublicKey;
 use tokio::sync::Mutex;
 use tokio_util::codec::Decoder;
 use tracing::*;
@@ -161,12 +161,15 @@ async fn wg_probe(
                 debug!("Verifying data");
                 gateway_data.verify(&private_key, nonce)?;
 
-                let finalized_message = ClientMessage::Final(GatewayClient::new(
-                    &private_key,
-                    gateway_data.pub_key().inner(),
-                    gateway_data.private_ip,
-                    nonce,
-                ));
+                let finalized_message = ClientMessage::Final(Box::new(FinalMessage {
+                    gateway_client: GatewayClient::new(
+                        &private_key,
+                        gateway_data.pub_key().inner(),
+                        gateway_data.private_ip,
+                        nonce,
+                    ),
+                    credential: None,
+                }));
                 let response = auth_client
                     .send(finalized_message, authenticator_address)
                     .await?;

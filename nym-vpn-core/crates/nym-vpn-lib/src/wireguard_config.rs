@@ -151,7 +151,7 @@ pub(crate) async fn init_wireguard_config(
             source,
         })?;
     let wg_gateway_data = wg_gateway_client
-        .register_wireguard(gateway_host)
+        .register_wireguard(gateway_host, None)
         .await
         .map_err(|source| SetupWgTunnelError::WgGatewayClientError {
             gateway_id: Box::new(gateway_id),
