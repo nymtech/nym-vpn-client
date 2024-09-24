@@ -2,6 +2,8 @@ package net.nymtech.nymvpn.util
 
 object Constants {
 
+	const val APP_PROJECT_NAME = "nym-vpn-android"
+
 	const val LANGUAGE_SWITCH_DELAY = 500L
 	const val VPN_API_BASE_URL = "https://nymvpn.com/api/"
 	const val SUBSCRIPTION_TIMEOUT = 5_000L

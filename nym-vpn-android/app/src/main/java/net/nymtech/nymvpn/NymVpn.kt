@@ -2,6 +2,7 @@ package net.nymtech.nymvpn
 
 import android.app.Application
 import android.content.Context
+import android.os.Build
 import android.os.StrictMode
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -102,5 +103,15 @@ class NymVpn : Application() {
 			private set
 
 		val environment = Tunnel.Environment.from(BuildConfig.FLAVOR)
+
+		fun getCPUArchitecture(): String {
+			return when (Build.SUPPORTED_ABIS.firstOrNull()) {
+				"arm64-v8a" -> "ARM64"
+				"armeabi-v7a" -> "ARM32"
+				"x86_64" -> "x86_64"
+				"x86" -> "x86"
+				else -> "Unknown"
+			}
+		}
 	}
 }

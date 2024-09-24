@@ -15,6 +15,7 @@ import kotlinx.coroutines.SupervisorJob
 import net.nymtech.logcatutil.LogCollect
 import net.nymtech.logcatutil.LogcatHelper
 import net.nymtech.nymvpn.BuildConfig
+import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.shortcut.DynamicShortcutManager
@@ -34,6 +35,7 @@ import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.service.notification.VpnAlertNotifications
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.FileUtils
+import net.nymtech.nymvpn.util.extensions.isAndroidTV
 import net.nymtech.vpn.NymApi
 import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.backend.NymBackend
@@ -56,10 +58,16 @@ object AppModule {
 
 	@Singleton
 	@Provides
-	fun provideNymApi(@IoDispatcher dispatcher: CoroutineDispatcher): NymApi {
+	fun provideNymApi(@IoDispatcher dispatcher: CoroutineDispatcher, @ApplicationContext context: Context): NymApi {
+		val platform = if (context.isAndroidTV()) "AndroidTV" else "Android"
 		return NymApi(
 			dispatcher,
-			UserAgent(BuildConfig.APP_NAME, BuildConfig.VERSION_NAME, "android-sdk${Build.VERSION.SDK_INT}", BuildConfig.COMMIT_HASH),
+			UserAgent(
+				Constants.APP_PROJECT_NAME,
+				BuildConfig.VERSION_NAME,
+				"$platform; ${Build.VERSION.SDK_INT}; ${NymVpn.getCPUArchitecture()}; ${BuildConfig.FLAVOR}",
+				BuildConfig.COMMIT_HASH,
+			),
 		)
 	}
 
