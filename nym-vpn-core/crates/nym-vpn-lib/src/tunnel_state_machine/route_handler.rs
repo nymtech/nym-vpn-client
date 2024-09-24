@@ -86,7 +86,7 @@ impl RouteHandler {
         _ = tokio::task::spawn_blocking(|| drop(self.route_manager)).await;
     }
 
-    #[cfg(target_os = "macos")]
+    #[cfg(target_os = "linux")]
     pub(super) fn inner_handle(&self) -> Result<talpid_routing::RouteManagerHandle> {
         Ok(self.route_manager.handle()?)
     }

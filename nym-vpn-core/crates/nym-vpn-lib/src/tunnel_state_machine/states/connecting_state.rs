@@ -154,7 +154,7 @@ impl ConnectingState {
         shared_state: &mut SharedState,
     ) -> Result<()> {
         #[cfg(target_os = "linux")]
-        self.set_mixnet_client_fwmark(shared_mixnet_client);
+        Self::set_mixnet_client_fwmark(shared_mixnet_client);
 
         shared_state
             .route_handler
@@ -181,7 +181,9 @@ impl ConnectingState {
             .up();
 
         #[cfg(target_os = "linux")]
-        tun_config.platform(|platform_config| platform_config.packet_information(false));
+        tun_config.platform(|platform_config| {
+            platform_config.packet_information(false);
+        });
 
         let tun_device = tun::create_as_async(&tun_config).map_err(Error::CreateTunDevice)?;
 
