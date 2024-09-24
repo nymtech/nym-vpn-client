@@ -11,9 +11,15 @@ let package = Package(
         .macOS(.v13)
     ],
     products: [
+        .library(name: "AppVersionProvider", targets: ["AppVersionProvider"]),
         .library(name: "TunnelStatus", targets: ["TunnelStatus"])
     ],
     targets: [
+        .target(
+            name: "AppVersionProvider",
+            dependencies: [],
+            path: "Sources/AppVersionProvider"
+        ),
         .target(
             name: "TunnelStatus",
             dependencies: [],

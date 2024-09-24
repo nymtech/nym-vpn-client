@@ -60,6 +60,16 @@ else
     exit 1
 fi
 
+# Update libVersion in AppVersionProvider.swift to the new version
+app_version_file="../Services/Sources/Services/AppVersionProvider/AppVersionProvider.swift"
+if [[ -f "$app_version_file" ]]; then
+    sed -i '' "s/public static let libVersion = \".*\"/public static let libVersion = \"$VERSION\"/g" "$app_version_file"
+    echo "libVersion updated to $VERSION in $app_version_file."
+else
+    echo "Error: AppVersionProvider.swift file not found at $app_version_file."
+    exit 1
+fi
+
 # Find and download the _macos_universal.tar.gz file
 macos_download_link="https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-core-v${VERSION}/nym-vpn-core-v${VERSION}_macos_universal.tar.gz"
 

@@ -1,6 +1,7 @@
 import Combine
 import SwiftUI
 import AppSettings
+import AppVersionProvider
 import ConfigurationManager
 #if os(macOS)
 import GRPCManager
@@ -20,12 +21,9 @@ public final class CountriesManager: ObservableObject {
 #if os(macOS)
     let grpcManager: GRPCManager
     let helperManager: HelperManager
-#endif
 
-    var isLoading = false
-    var timer: Timer?
-    var entryLastHopStore = EntryLastHopStore()
-    var cancellables = Set<AnyCancellable>()
+    var daemonVersion: String?
+#endif
 #if os(iOS)
     public static let shared = CountriesManager(
         appSettings: AppSettings.shared,
@@ -40,13 +38,20 @@ public final class CountriesManager: ObservableObject {
         configurationManager: ConfigurationManager.shared
     )
 #endif
+    var isLoading = false
+    var timer: Timer?
+    var entryLastHopStore = EntryLastHopStore()
+    var cancellables = Set<AnyCancellable>()
 
     @Published public var entryCountries: [Country]
     @Published public var exitCountries: [Country]
     @Published public var lastError: Error?
 
 #if os(iOS)
-    public init(appSettings: AppSettings, configurationManager: ConfigurationManager) {
+    public init(
+        appSettings: AppSettings,
+        configurationManager: ConfigurationManager
+    ) {
         self.appSettings = appSettings
         self.configurationManager = configurationManager
         self.entryCountries = []
@@ -103,6 +108,9 @@ private extension CountriesManager {
         setupAppSettingsObservers()
         setupAutoUpdates()
         fetchCountries()
+#if os(macOS)
+        updateDaemonVersionIfNecessary()
+#endif
     }
 
     func setupAppSettingsObservers() {
@@ -166,7 +174,16 @@ private extension CountriesManager {
 
 #if os(macOS)
 private extension CountriesManager {
+    func updateDaemonVersionIfNecessary() {
+        Task {
+            guard daemonVersion == nil else { return }
+            daemonVersion = try? await grpcManager.version()
+        }
+    }
+
     func fetchEntryExitCountries() {
+        updateDaemonVersionIfNecessary()
+
         guard helperManager.isHelperRunning()
         else {
             fetchCountriesAfterDelay()
@@ -225,11 +242,17 @@ private extension CountriesManager {
         }
 
         do {
+            let userAgent = UserAgent(
+                application: AppVersionProvider.app,
+                version: "\(AppVersionProvider.appVersion()) (\(AppVersionProvider.libVersion))",
+                platform: AppVersionProvider.platform,
+                gitCommit: ""
+            )
             let entryExitLocations = try getGatewayCountries(
                 apiUrl: apiURL,
                 nymVpnApiUrl: configurationManager.nymVpnApiURL,
                 gwType: .mixnetEntry,
-                userAgent: nil,
+                userAgent: userAgent,
                 minGatewayPerformance: nil
             )
             let newEntryCountries = entryExitLocations.compactMap {
@@ -241,7 +264,7 @@ private extension CountriesManager {
                 apiUrl: apiURL,
                 nymVpnApiUrl: configurationManager.nymVpnApiURL,
                 gwType: .mixnetExit,
-                userAgent: nil,
+                userAgent: userAgent,
                 minGatewayPerformance: nil
             )
             let newExitCountries = exitLocations.compactMap {

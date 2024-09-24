@@ -12,7 +12,6 @@ let package = Package(
     ],
     products: [
         .library(name: "AppSettings", targets: ["AppSettings"]),
-        .library(name: "AppVersionProvider", targets: ["AppVersionProvider"]),
         .library(name: "ConnectionManager", targets: ["ConnectionManager"]),
         .library(name: "ConfigurationManager", targets: ["ConfigurationManager"]),
         .library(name: "Constants", targets: ["Constants"]),
@@ -46,11 +45,6 @@ let package = Package(
             path: "Sources/Services/AppSettings"
         ),
         .target(
-            name: "AppVersionProvider",
-            dependencies: [],
-            path: "Sources/Services/AppVersionProvider"
-        ),
-        .target(
             name: "ConfigurationManager",
             dependencies: [
                 "AppSettings",
@@ -79,6 +73,7 @@ let package = Package(
             name: "CountriesManager",
             dependencies: [
                 "AppSettings",
+                .product(name: "AppVersionProvider", package: "ServicesMutual"),
                 "ConfigurationManager",
                 "Constants",
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
