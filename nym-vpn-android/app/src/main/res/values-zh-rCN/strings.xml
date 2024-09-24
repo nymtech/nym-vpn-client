@@ -93,7 +93,7 @@
     <string name="to_alpha">到 NymVPN beta</string>
     <string name="welcome">欢迎</string>
     <string name="cont">继续</string>
-    <string name="and_acknowledge">并承认 NymVPN的</string>
+    <string name="and_acknowledge">并承认 NymVPN 的</string>
     <string name="share_anonymous_analytics">共享匿名产品分析</string>
     <string name="anonymous_error_reports">匿名错误报告</string>
     <string name="gateways_error">检索网关失败</string>
@@ -126,8 +126,8 @@
     <string name="continue_reading">继续阅读</string>
     <string name="two_hop_explanation">通过双服务器连接，体验最快速度。 是快速浏览、流媒体和文件共享的完美选择。</string>
     <string name="entry_location_selector">输入位置选择器</string>
-    <string name="entry_location">第一跳选择</string>
-    <string name="exit_location">最后一跳选择</string>
+    <string name="entry_location">进入位置</string>
+    <string name="exit_location">出口位置</string>
     <string name="language">语言</string>
     <string name="two_hop">2跳</string>
     <string name="remaining">剩余的</string>
