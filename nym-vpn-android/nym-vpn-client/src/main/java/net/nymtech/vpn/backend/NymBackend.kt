@@ -1,6 +1,5 @@
 package net.nymtech.vpn.backend
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -142,7 +141,6 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	@OptIn(ExperimentalCoroutinesApi::class)
 	private fun onVpnShutdown() {
 		kotlin.runCatching {
-			Timber.d("Stopping vpn service")
 			vpnService.getCompleted().stopSelf()
 			Timber.d("Vpn service stopped")
 		}.onFailure {
@@ -262,11 +260,10 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		}
 
 		override fun bypass(socket: Int) {
-			Timber.d("Bypassing fd: $socket")
+			Timber.d("Bypassing socket: $socket")
 			protect(socket)
 		}
 
-		@SuppressLint("NewApi")
 		override fun configureTunnel(config: TunnelNetworkSettings): Int {
 			Timber.d("Configuring tunnel")
 			if (prepare(this) != null) return -1
