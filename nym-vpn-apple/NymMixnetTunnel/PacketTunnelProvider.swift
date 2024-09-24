@@ -153,17 +153,17 @@ extension PacketTunnelProvider: TunnelStatusListener {
     }
 
     func onExitStatusChange(status: ExitStatus) {
-        if status != .stopped {
+        switch status {
+        case .failure(let error):
+            logger.error("onExitStatus: \(error.localizedDescription)")
             scheduleDisconnectNotification()
+        case .stopped:
+            logger.info("onExitStatus: Tunnel stopped")
         }
     }
 
     func onTunStatusChange(status: TunStatus) {
         eventContinuation.yield(.statusUpdate(status))
-        // TODO: remove, once onExitStatusChange is working
-        if status == .down {
-            scheduleDisconnectNotification()
-        }
     }
 }
 
@@ -189,8 +189,6 @@ extension PacketTunnelProvider: OsTunProvider {
 // MARK: - Notifications -
 extension PacketTunnelProvider {
     func scheduleDisconnectNotification() {
-        logger.info("🚀 scheduling disconnect notification")
-
         // TODO: localize the notification content.
         // TODO: move localizations to separate package
         let content = UNMutableNotificationContent()
