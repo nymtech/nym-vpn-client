@@ -148,7 +148,7 @@ impl WgGatewayClient {
                     .verify(self.keypair.private_key(), nonce)
                     .map_err(Error::VerificationFailed)?;
 
-                let finalized_message = ClientMessage::Final(FinalMessage {
+                let finalized_message = ClientMessage::Final(Box::new(FinalMessage {
                     gateway_client: GatewayClient::new(
                         self.keypair.private_key(),
                         gateway_data.pub_key().inner(),
@@ -156,7 +156,7 @@ impl WgGatewayClient {
                         nonce,
                     ),
                     credential,
-                });
+                }));
                 let response = self
                     .auth_client
                     .send(finalized_message, self.auth_recipient)
