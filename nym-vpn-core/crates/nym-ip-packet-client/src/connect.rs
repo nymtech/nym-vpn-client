@@ -247,7 +247,9 @@ impl IprClientConnect {
                 Some(msgs) = mixnet_client.wait_for_messages() =>  {
                     for msg in msgs {
                         // Confirm that the version is correct
-                        check_ipr_message_version(&msg)?;
+                        if let Err(err) = check_ipr_message_version(&msg) {
+                            tracing::warn!("Received message with incorrect version: {:?}", err);
+                        }
 
                         // Then we deserialize the message
                         debug!("IprClient: got message while waiting for connect response");
