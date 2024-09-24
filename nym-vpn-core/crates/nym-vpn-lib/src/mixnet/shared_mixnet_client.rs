@@ -31,6 +31,16 @@ impl SharedMixnetClient {
         self
     }
 
+    #[cfg(target_os = "android")]
+    pub async fn gateway_ws_fd(&self) -> Option<std::os::fd::RawFd> {
+        self.lock()
+            .await
+            .as_ref()
+            .unwrap()
+            .gateway_connection()
+            .gateway_ws_fd
+    }
+
     pub fn inner(&self) -> Arc<tokio::sync::Mutex<Option<MixnetClient>>> {
         self.0.clone()
     }
