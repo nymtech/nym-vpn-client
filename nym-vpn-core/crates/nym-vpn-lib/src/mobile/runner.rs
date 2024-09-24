@@ -405,7 +405,9 @@ impl WgTunnelRunner {
             .lookup_gateway_ip(&gateway_id)
             .await
             .map_err(|source| Error::FailedToLookupGatewayIp { gateway_id, source })?;
-        let wg_gateway_data = wg_gateway_client.register_wireguard(gateway_host).await?;
+        let wg_gateway_data = wg_gateway_client
+            .register_wireguard(gateway_host, None)
+            .await?;
         tracing::debug!("Received wireguard gateway data: {wg_gateway_data:?}");
         Ok((wg_gateway_data, gateway_host))
     }
