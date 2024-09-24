@@ -52,7 +52,9 @@ fun android.net.VpnService.Builder.addIpv4Routes(config: TunnelNetworkSettings) 
 					Ipv4Route.Default -> Unit
 				}
 			}
-		} else includedRoutes.add("0.0.0.0/0")
+		} else {
+			includedRoutes.add("0.0.0.0/0")
+		}
 		Timber.d("Included routes: $includedRoutes")
 		val excludedRoutes = mutableListOf<String>()
 		if (!this?.excludedRoutes.isNullOrEmpty()) {
