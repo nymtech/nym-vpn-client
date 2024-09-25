@@ -1,4 +1,9 @@
-use nym_ip_packet_requests::response::{DynamicConnectFailureReason, StaticConnectFailureReason};
+// Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
+use crate::nym_ip_packet_requests_current::response::{
+    DynamicConnectFailureReason, StaticConnectFailureReason,
+};
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {

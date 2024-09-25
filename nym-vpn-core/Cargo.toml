@@ -116,23 +116,23 @@ talpid-tunnel = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev =
 talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "95fb001fb" }
 talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "95fb001fb" }
 
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", rev = "1bc26ed" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", rev = "1bc26ed" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "1bc26ed" }
-nym-client-core = { git = "https://github.com/nymtech/nym", rev = "1bc26ed" }
-nym-config = { git = "https://github.com/nymtech/nym", rev = "1bc26ed" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", rev = "1bc26ed" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", rev = "1bc26ed" }
-nym-crypto = { git = "https://github.com/nymtech/nym", rev = "1bc26ed" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", rev = "1bc26ed" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "1bc26ed" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "1bc26ed" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", rev = "1bc26ed" }
-nym-sdk = { git = "https://github.com/nymtech/nym", rev = "1bc26ed" }
-nym-task = { git = "https://github.com/nymtech/nym", rev = "1bc26ed" }
-nym-topology = { git = "https://github.com/nymtech/nym", rev = "1bc26ed" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "1bc26ed" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "1bc26ed" }
+nym-authenticator-requests = { git = "https://github.com/nymtech/nym", rev = "1627146" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", rev = "1627146" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "1627146" }
+nym-client-core = { git = "https://github.com/nymtech/nym", rev = "1627146" }
+nym-config = { git = "https://github.com/nymtech/nym", rev = "1627146" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", rev = "1627146" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", rev = "1627146" }
+nym-crypto = { git = "https://github.com/nymtech/nym", rev = "1627146" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", rev = "1627146" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "1627146" }
+nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "1627146" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", rev = "1627146" }
+nym-sdk = { git = "https://github.com/nymtech/nym", rev = "1627146" }
+nym-task = { git = "https://github.com/nymtech/nym", rev = "1627146" }
+nym-topology = { git = "https://github.com/nymtech/nym", rev = "1627146" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "1627146" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "1627146" }
 
 # Pointing to before ecash was merged, for backwards compatibility and migration period
 

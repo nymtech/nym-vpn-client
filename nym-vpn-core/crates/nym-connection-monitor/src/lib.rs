@@ -7,6 +7,9 @@ use nym_sdk::mixnet::{MixnetClientSender, Recipient};
 use nym_task::TaskManager;
 use tracing::info;
 
+// Import these here for for all modules to use, to keep the version consistent
+pub(crate) use nym_ip_packet_requests::v7 as nym_ip_packet_requests_current;
+
 mod error;
 mod icmp_beacon;
 mod mixnet_beacon;

@@ -9,3 +9,5 @@ mod listener;
 pub use connect::{IprClientConnect, SharedMixnetClient};
 pub use error::Error;
 pub use listener::{IprListener, MixnetMessageOutcome};
+
+pub(crate) use nym_ip_packet_requests::v7 as nym_ip_packet_requests_current;
