@@ -31,7 +31,7 @@ import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
-import net.nymtech.nymvpn.ui.Destination
+import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
@@ -193,7 +193,7 @@ fun AnalyticsScreen(appViewModel: AppViewModel, navController: NavController, ap
 			)
 			MainStyledButton(onClick = {
 				appViewModel.setAnalyticsShown()
-				navController.navigateAndForget(Destination.Main.createRoute(false))
+				navController.navigateAndForget(Route.Main.createRoute(false))
 			}, content = {
 				Text(stringResource(id = R.string.cont), style = CustomTypography.labelHuge.copy(color = MaterialTheme.colorScheme.onPrimary))
 			})

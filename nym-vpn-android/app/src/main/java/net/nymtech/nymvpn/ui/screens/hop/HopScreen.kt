@@ -40,7 +40,7 @@ import androidx.navigation.NavHostController
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
-import net.nymtech.nymvpn.ui.Destination
+import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.buttons.SelectionItemButton
 import net.nymtech.nymvpn.ui.common.labels.SelectedLabel
@@ -252,7 +252,7 @@ fun HopScreen(
 				buttonText = it.name,
 				onClick = {
 					viewModel.onSelected(it, gatewayLocation)
-					navController.go(Destination.Main.createRoute(false))
+					navController.go(Route.Main.createRoute(false))
 				},
 				trailing = {
 					if (it.isoCode == selectedCountry.isoCode) {

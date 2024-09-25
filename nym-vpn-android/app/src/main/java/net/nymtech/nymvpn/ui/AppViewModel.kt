@@ -109,9 +109,9 @@ constructor(
 
 	fun onNavBarTrailingClick() {
 		navController.currentBackStackEntry?.destination?.route?.let {
-			when (Destination.valueOf(it)) {
-				Destination.Main -> navController.go(Destination.Settings.route)
-				Destination.EntryLocation, Destination.ExitLocation -> onToggleShowLocationTooltip()
+			when (Route.valueOf(it)) {
+				Route.Main -> navController.go(Route.Settings.route)
+				Route.EntryLocation, Route.ExitLocation -> onToggleShowLocationTooltip()
 				else -> Unit
 			}
 		}

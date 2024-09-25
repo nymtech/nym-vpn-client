@@ -16,7 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.Destination
+import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.util.extensions.go
@@ -57,7 +57,7 @@ fun LegalScreen(navController: NavController) {
 				SelectionItem(
 					title = { Text(stringResource(R.string.licenses), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
-						navController.go(Destination.Licenses.route)
+						navController.go(Route.Licenses.route)
 					},
 				),
 			),

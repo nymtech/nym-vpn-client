@@ -49,7 +49,7 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
-import net.nymtech.nymvpn.ui.Destination
+import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
 import net.nymtech.nymvpn.ui.common.buttons.IconSurfaceButton
@@ -92,7 +92,7 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 			onResult = {
 				val accepted = (it.resultCode == RESULT_OK)
 				if (!accepted) {
-					navController.go(Destination.Permission.createRoute(Permission.VPN))
+					navController.go(Route.Permission.createRoute(Permission.VPN))
 				} else {
 					viewModel.onConnect()
 				}
@@ -256,7 +256,7 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 							) {
 								if (selectionEnabled) {
 									navController.go(
-										Destination.EntryLocation.route,
+										Route.EntryLocation.route,
 									)
 								} else {
 									snackbar.showMessage(context.getString(R.string.disabled_while_connected))
@@ -286,7 +286,7 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 						.clickable(remember { MutableInteractionSource() }, indication = if (selectionEnabled) ripple() else null) {
 							if (selectionEnabled) {
 								navController.go(
-									Destination.ExitLocation.route,
+									Route.ExitLocation.route,
 								)
 							} else {
 								snackbar.showMessage(context.getString(R.string.disabled_while_connected))
@@ -303,7 +303,7 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 								scope.launch {
 									if (appUiState.settings.credentialExpiry.isInvalid()
 									) {
-										return@launch navController.go(Destination.Credential.route)
+										return@launch navController.go(Route.Credential.route)
 									}
 									onConnectPressed()
 								}

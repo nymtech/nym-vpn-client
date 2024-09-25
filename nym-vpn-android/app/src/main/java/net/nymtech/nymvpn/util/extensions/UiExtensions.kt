@@ -3,9 +3,13 @@ package net.nymtech.nymvpn.util.extensions
 import android.content.Context
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavDestination.Companion.hierarchy
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.Route
 import nym_vpn_lib.VpnException
 
 fun Dp.scaledHeight(): Dp {
@@ -26,8 +30,14 @@ fun NavController.navigateAndForget(route: String) {
 	}
 }
 
-fun NavController.go(route: String) {
-	if (route == currentBackStackEntry?.destination?.route) return
+fun NavBackStackEntry?.isCurrentRoute(route: Route): Boolean {
+	return this?.destination?.hierarchy?.any {
+		it.hasRoute(route = route::class)
+	} == true
+}
+
+fun NavController.go(route: Route) {
+	if (currentBackStackEntry?.isCurrentRoute(route) == true) return
 	this.navigate(route) {
 		// Pop up to the start destination of the graph to
 		// avoid building up a large stack of destinations

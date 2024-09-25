@@ -27,7 +27,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.Destination
+import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.labels.PermissionLabel
@@ -116,7 +116,7 @@ fun PermissionScreen(navController: NavController, permission: Permission) {
 				Column(verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Bottom)) {
 					MainStyledButton(
 						onClick = {
-							navController.navigateAndForget(Destination.Main.createRoute(true))
+							navController.navigateAndForget(Route.Main.createRoute(true))
 						},
 						content = { Text(stringResource(R.string.try_reconnecting), style = CustomTypography.labelHuge) },
 					)
