@@ -1,7 +1,6 @@
 mod gateway_selector;
 pub mod mixnet;
 pub mod wireguard;
-//mod wireguard_tunnel;
 
 use std::time::Duration;
 
