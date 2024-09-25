@@ -1,7 +1,6 @@
 use std::net::IpAddr;
 
 use nym_gateway_directory::{GatewayClient, IpPacketRouterAddress, Recipient};
-
 use nym_ip_packet_client::IprClientConnect;
 use nym_ip_packet_requests::IpPair;
 use nym_task::TaskManager;

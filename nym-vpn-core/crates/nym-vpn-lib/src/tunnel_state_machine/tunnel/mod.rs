@@ -1,5 +1,6 @@
 mod gateway_selector;
 pub mod mixnet;
+pub mod wireguard;
 //mod wireguard_tunnel;
 
 use std::time::Duration;
@@ -107,6 +108,24 @@ pub enum Error {
 
     #[error("wireguard gateway failure: {0}")]
     WgGatewayClientFailure(#[from] nym_wg_gateway_client::Error),
+
+    #[error("wiregurad authentication is not possible due to one of the gateways not running the authenticator process: {0}")]
+    AuthenticationNotPossible(String),
+
+    #[error("failed to find authenticator address")]
+    AuthenticatorAddressNotFound,
+
+    #[error("not enough bandwidth")]
+    NotEnoughBandwidth,
+
+    #[error("failed to lookup gateway ip: {gateway_id}: {source}")]
+    FailedToLookupGatewayIp {
+        gateway_id: String,
+        source: nym_gateway_directory::Error,
+    },
+
+    #[error("Failure to start wireguard")]
+    StartWireguard(#[source] nym_wg_go::Error),
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
