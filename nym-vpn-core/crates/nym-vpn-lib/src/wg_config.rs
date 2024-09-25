@@ -39,7 +39,7 @@ pub struct WgInterface {
 
     /// Mark used for mark-based routing.
     #[cfg(target_os = "linux")]
-    pub fwmark: Option<u16>,
+    pub fwmark: Option<u32>,
 }
 
 impl fmt::Debug for WgInterface {

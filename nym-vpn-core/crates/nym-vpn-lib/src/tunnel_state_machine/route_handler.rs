@@ -1,6 +1,10 @@
-use std::{collections::HashSet, fmt, net::IpAddr};
+use std::{collections::HashSet, fmt};
+#[cfg(target_os = "linux")]
+use std::net::IpAddr;
 
-use talpid_routing::{NetNode, Node, RequiredRoute, RouteManager};
+use talpid_routing::{Node, RequiredRoute, RouteManager};
+#[cfg(not(target_os = "linux"))]
+use talpid_routing::NetNode;
 
 #[cfg(target_os = "linux")]
 pub const TUNNEL_TABLE_ID: u32 = 0x14d;

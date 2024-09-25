@@ -77,6 +77,9 @@ pub enum ErrorStateReason {
 
     /// Tunnel went down at runtime.
     TunnelDown,
+
+    /// Program errors that must not happen.
+    Internal,
 }
 
 #[derive(Debug)]
@@ -184,6 +187,9 @@ pub enum Error {
     #[error("failed to create tunnel device")]
     CreateTunDevice(#[source] tun::Error),
 
+    #[error("failed to obtain route handle")]
+    GetRouteHandle(#[source] route_handler::Error),
+
     #[error("failed to get tunnel device name")]
     GetTunDeviceName(#[source] tun::Error),
 
@@ -225,6 +231,9 @@ impl Error {
             Self::ConnectMixnetTunnel(_) | Self::ConnectMixnetClient(_) => {
                 // todo: add detail
                 ErrorStateReason::EstablishMixnetConnection
+            }
+            Self::GetRouteHandle(_) => {
+                ErrorStateReason::Internal
             }
         }
     }

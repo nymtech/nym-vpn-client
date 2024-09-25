@@ -19,7 +19,7 @@ pub struct InterfaceConfig {
     pub private_key: PrivateKey,
     pub mtu: u16,
     #[cfg(target_os = "linux")]
-    pub fwmark: Option<u16>,
+    pub fwmark: Option<u32>,
 }
 
 impl fmt::Debug for InterfaceConfig {

@@ -1,5 +1,8 @@
-use std::{fmt, net::IpAddr, sync::Arc};
+use std::{fmt, net::IpAddr};
 
+#[cfg(target_os = "macos")]
+use std::sync::Arc;
+#[cfg(target_os = "macos")]
 use futures::{channel::mpsc::UnboundedSender, StreamExt};
 use talpid_core::dns::DnsMonitor;
 
@@ -43,7 +46,7 @@ impl DnsHandler {
                 #[cfg(target_os = "linux")]
                 tokio::runtime::Handle::current(),
                 #[cfg(target_os = "linux")]
-                route_handler.inner_handle()?,
+                route_handler.inner_handle().map_err(|e| Error { inner: Box::new(e) })?,
                 #[cfg(target_os = "macos")]
                 Arc::downgrade(&tx),
             )?,
@@ -67,7 +70,7 @@ impl DnsHandler {
 
 #[derive(Debug)]
 pub struct Error {
-    inner: talpid_core::dns::Error,
+    inner: Box<dyn std::error::Error + 'static>,
 }
 
 unsafe impl Send for Error {}
@@ -75,13 +78,13 @@ unsafe impl Sync for Error {}
 
 impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.inner)
+        Some(self.inner.as_ref())
     }
 }
 
 impl From<talpid_core::dns::Error> for Error {
     fn from(value: talpid_core::dns::Error) -> Self {
-        Self { inner: value }
+        Self { inner: Box::new(value) }
     }
 }
 

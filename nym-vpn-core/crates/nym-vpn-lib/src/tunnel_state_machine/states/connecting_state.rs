@@ -79,7 +79,7 @@ impl ConnectingState {
         shared_state: &mut SharedState,
     ) -> Result<AnyTunnelHandle> {
         #[cfg(target_os = "linux")]
-        Self::set_mixnet_client_fwmark(connected_mixnet.mixnet_client.clone());
+        Self::set_mixnet_client_fwmark(connected_mixnet.mixnet_client.clone()).await;
 
         if shared_state.enable_wireguard {
             Self::start_wireguard_tunnel(connected_mixnet, shared_state).await
@@ -193,7 +193,7 @@ impl ConnectingState {
     #[cfg(target_os = "linux")]
     async fn set_mixnet_client_fwmark(shared_mixnet_client: SharedMixnetClient) {
         use nix::sys::socket::{self, sockopt::Mark};
-        use std::os::fd::{BorrowedFd, RawFd};
+        use std::os::fd::BorrowedFd;
 
         let gateway_ws_fd = shared_mixnet_client
             .lock()
