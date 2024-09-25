@@ -47,19 +47,22 @@ impl ConnectingState {
         shared_state: &mut SharedState,
     ) -> NextTunnelState {
         match result.map_err(Error::ConnectMixnetClient) {
-            Ok(connected_mixnet) => match Self::start_tunnel(connected_mixnet, shared_state) {
-                Ok(tunnel_handle) => {
-                    NextTunnelState::NewState(ConnectedState::enter(tunnel_handle, shared_state))
-                }
-                Err(e) => {
-                    tracing::error!("Failed to start the tunnel: {}", e);
-                    NextTunnelState::NewState(DisconnectingState::enter(
-                        ActionAfterDisconnect::Error(e.error_state_reason()),
-                        None,
+            Ok(connected_mixnet) => {
+                match Self::start_tunnel(connected_mixnet, shared_state).await {
+                    Ok(tunnel_handle) => NextTunnelState::NewState(ConnectedState::enter(
+                        tunnel_handle,
                         shared_state,
-                    ))
+                    )),
+                    Err(e) => {
+                        tracing::error!("Failed to start the tunnel: {}", e);
+                        NextTunnelState::NewState(DisconnectingState::enter(
+                            ActionAfterDisconnect::Error(e.error_state_reason()),
+                            None,
+                            shared_state,
+                        ))
+                    }
                 }
-            },
+            }
             Err(e) => {
                 tracing::error!("Failed to connect mixnet client: {}", e);
                 NextTunnelState::NewState(DisconnectingState::enter(
