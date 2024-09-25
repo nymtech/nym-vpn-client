@@ -3,16 +3,7 @@
 
 use std::{sync::Arc, time::Duration};
 
-use nym_ip_packet_requests::{
-    v7::{
-        request::IpPacketRequest,
-        response::{
-            DynamicConnectResponse, DynamicConnectResponseReply, IpPacketResponse,
-            IpPacketResponseData, StaticConnectResponse, StaticConnectResponseReply,
-        },
-    },
-    IpPair,
-};
+use nym_ip_packet_requests::IpPair;
 use nym_sdk::mixnet::{
     ed25519, MixnetClient, MixnetClientSender, MixnetMessageSender, Recipient, TransmissionLane,
 };
@@ -21,6 +12,13 @@ use tracing::{debug, error};
 use crate::{
     error::{Error, Result},
     helpers::check_ipr_message_version,
+    nym_ip_packet_requests_current::{
+        request::IpPacketRequest,
+        response::{
+            DynamicConnectResponse, DynamicConnectResponseReply, IpPacketResponse,
+            IpPacketResponseData, StaticConnectResponse, StaticConnectResponseReply,
+        },
+    },
 };
 
 #[derive(Clone)]

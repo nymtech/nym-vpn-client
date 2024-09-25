@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_ip_packet_requests::v7::response::{
+use crate::nym_ip_packet_requests_current::response::{
     DynamicConnectFailureReason, StaticConnectFailureReason,
 };
 

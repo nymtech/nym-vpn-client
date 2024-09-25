@@ -2,18 +2,18 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use bytes::{Bytes, BytesMut};
-use nym_ip_packet_requests::{
-    codec::MultiIpPacketCodec,
-    v7::{
-        request::{IpPacketRequest, IpPacketRequestData},
-        response::{InfoLevel, IpPacketResponse, IpPacketResponseData},
-    },
-};
+use nym_ip_packet_requests::codec::MultiIpPacketCodec;
 use nym_sdk::mixnet::{Recipient, ReconstructedMessage};
 use tokio_util::codec::Decoder;
 use tracing::{debug, error, info, warn};
 
-use crate::helpers::check_ipr_message_version;
+use crate::{
+    helpers::check_ipr_message_version,
+    nym_ip_packet_requests_current::{
+        request::{IpPacketRequest, IpPacketRequestData},
+        response::{InfoLevel, IpPacketResponse, IpPacketResponseData},
+    },
+};
 
 pub enum MixnetMessageOutcome {
     IpPackets(Vec<Bytes>),
