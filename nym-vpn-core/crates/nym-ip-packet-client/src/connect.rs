@@ -248,19 +248,20 @@ impl IprClientConnect {
                     for msg in msgs {
                         // Confirm that the version is correct
                         if let Err(err) = check_ipr_message_version(&msg) {
-                            tracing::warn!("Received message with incorrect version: {:?}", err);
+                            tracing::info!("Mixnet message version mismatch: {err}");
+                            continue;
                         }
 
                         // Then we deserialize the message
-                        debug!("IprClient: got message while waiting for connect response");
+                        tracing::debug!("IprClient: got message while waiting for connect response");
                         let Ok(response) = IpPacketResponse::from_reconstructed_message(&msg) else {
                             // This is ok, it's likely just one of our self-pings
-                            debug!("Failed to deserialize reconstructed message");
+                            tracing::debug!("Failed to deserialize mixnet message");
                             continue;
                         };
 
                         if response.id() == Some(request_id) {
-                            debug!("Got response with matching id");
+                            tracing::debug!("Got response with matching id");
                             return self.handle_ip_packet_router_response(response, ips).await;
                         }
                     }

@@ -7,7 +7,7 @@ use std::{
 };
 
 use bytes::Bytes;
-use nym_ip_packet_requests::{codec::MultiIpPacketCodec, request::IpPacketRequest, IpPair};
+use nym_ip_packet_requests::{codec::MultiIpPacketCodec, IpPair};
 use nym_sdk::{
     mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient},
     TaskClient,
@@ -19,6 +19,7 @@ use tracing::{debug, error, trace};
 
 use crate::{
     error::Result,
+    nym_ip_packet_requests_current::request::IpPacketRequest,
     packet_helpers::{
         create_icmpv4_echo_request, create_icmpv6_echo_request, is_icmp_echo_reply,
         is_icmp_v6_echo_reply, wrap_icmp_in_ipv4, wrap_icmp_in_ipv6,
