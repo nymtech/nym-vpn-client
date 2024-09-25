@@ -265,7 +265,9 @@ impl VpnApiClient {
         device: &Device,
     ) -> Result<NymVpnZkNym> {
         let body = RequestZkNymRequestBody {
-            blinded_signing_request_base58: "todo".to_string(),
+            withdrawal_request: "todo!".to_string(),
+            ecash_pubkey: "todo!".to_string(),
+            ticketbook_type: "todo!".to_string(),
         };
 
         self.post_authorized(

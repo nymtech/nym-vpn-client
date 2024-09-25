@@ -6,9 +6,9 @@ use clap::Parser;
 use nym_gateway_directory::GatewayType;
 use nym_vpn_proto::{
     ApplyFreepassRequest, ConnectRequest, DisconnectRequest, Empty, GetAccountSummaryRequest,
-    GetDevicesRequest, GetFreePassesRequest, ImportUserCredentialRequest, InfoRequest,
-    InfoResponse, ListCountriesRequest, ListGatewaysRequest, RegisterDeviceRequest, StatusRequest,
-    StoreAccountRequest, UserAgent,
+    GetDeviceZkNymsRequest, GetDevicesRequest, GetFreePassesRequest, ImportUserCredentialRequest,
+    InfoRequest, InfoResponse, ListCountriesRequest, ListGatewaysRequest, RegisterDeviceRequest,
+    RequestZkNymRequest, StatusRequest, StoreAccountRequest, UserAgent,
 };
 use protobuf_conversion::{into_gateway_type, into_threshold};
 use sysinfo::System;
@@ -66,6 +66,8 @@ async fn main() -> Result<()> {
         Command::GetAccountSummary => get_account_summary(client_type).await?,
         Command::GetDevices => get_devices(client_type).await?,
         Command::RegisterDevice => register_device(client_type).await?,
+        Command::RequestZkNym => request_zk_nym(client_type).await?,
+        Command::GetDeviceZkNym => get_device_zk_nym(client_type).await?,
         Command::GetFreePasses => get_free_passes(client_type).await?,
         Command::ApplyFreepass(ref args) => apply_freepass(client_type, args).await?,
     }
@@ -217,6 +219,22 @@ async fn register_device(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(RegisterDeviceRequest {});
     let response = client.register_device(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn request_zk_nym(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(RequestZkNymRequest {});
+    let response = client.request_zk_nym(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn get_device_zk_nym(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(GetDeviceZkNymsRequest {});
+    let response = client.get_device_zk_nyms(request).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }

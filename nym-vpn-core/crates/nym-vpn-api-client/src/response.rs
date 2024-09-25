@@ -144,7 +144,7 @@ pub struct NymVpnZkNymResponse {
     total_items: u64,
     page: u64,
     page_size: u64,
-    zk_nyms: Vec<NymVpnZkNym>,
+    items: Vec<NymVpnZkNym>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

@@ -37,6 +37,8 @@ pub(crate) enum Command {
     GetAccountSummary,
     GetDevices,
     RegisterDevice,
+    RequestZkNym,
+    GetDeviceZkNym,
     GetFreePasses,
     ApplyFreepass(ApplyFreepassArgs),
 }
