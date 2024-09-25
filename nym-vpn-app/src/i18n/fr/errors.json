@@ -10,7 +10,8 @@
   "unknown": "Erreur inconnue",
   "internal": "Erreur interne",
   "daemon": {
-    "not-connected": "Non connecté au daemon"
+    "not-connected": "Non connecté au daemon",
+    "internal": "Erreur interne du daemon"
   },
   "grpc": "Erreur interne gRPC",
   "connection": {
@@ -22,7 +23,8 @@
       "default-storage": "Échec de la création du client mixnet avec le stockage par défaut",
       "build-client": "Échec de la création du client mixnet",
       "connect": "Échec de la connexion au Mixnet",
-      "entry-gateway": "Échec de la connexion au nœud d'entrée mixnet"
+      "entry-gateway": "Échec de la connexion au nœud d'entrée mixnet",
+      "monitor": "Le moniteur de connexion du Mixnet a échoué"
     },
     "ipr-connect": "Échec de la connexion au routeur IP",
     "gateway-lookup": {
@@ -36,11 +38,47 @@
       "exit": "Échec de la recherche de la passerelle de sortie",
       "exit-location": "Échec de la recherche de la passerelle de sortie pour l'emplacement donné"
     },
-    "bad-country-combination": "Mauvaise combinaison pour les emplacements sélectionnés, veuillez changer l'emplacement d'entrée ou de sortie."
+    "bad-country-combination": "Mauvaise combinaison pour les emplacements sélectionnés, veuillez changer l'emplacement d'entrée ou de sortie.",
+    "dns": {
+      "set": "Échec de la configuration du DNS",
+      "init": "Échec de l'initialisation du sous-système DNS"
+    },
+    "wireguard": {
+      "config": "Échec de la configuration de WireGuard",
+      "tunnel": "Dysfonctionnement du tunnel WireGuard"
+    },
+    "bandwidth": {
+      "tunnel-up": "Pas de bande passante disponible pour établir un tunnel"
+    },
+    "interface": {
+      "find-default": "Échec de la recherche de l'interface réseau par défaut",
+      "wg-bring-up": "Échec de l'ouverture de l'interface WireGuard"
+    },
+    "firewall": {
+      "init": "Échec de l'initialisation du sous-système de pare-feu",
+      "reset-policy": "Échec de la réinitialisation de la politique de pare-feu"
+    },
+    "authenticator": {
+      "connect": "Échec de la connexion à l'un des authentificateurs",
+      "timeout": "Échec de la connexion à l'authentificateur, délai d'attente de la réponse de connexion",
+      "registration-data": "Échec de la vérification des données d'enregistrement fournies par l'authentificateur",
+      "entry-gw-socket-addr": "Échec de l'analyse de l'adresse de la prise fournie par l'authentificateur lors de la configuration de WireGuard",
+      "wrong-version": "L'authentificateur a répondu par une réponse étiquetée avec une version que nous ne pouvons pas comprendre",
+      "malformed-reply": "L'authentificateur, ou quelqu'un d'autre, a répondu par une réponse que nous ne pouvons pas lire",
+      "auth-not-possible": "L'authentification avec les authentificateurs n'a pas été possible, car nous n'avons pas d'adresse pour eux. Il s'agit probablement d'une erreur de programmation interne",
+      "invalid-response": "Échec de la connexion à l'authentificateur, la réponse n'est pas valide",
+      "entry-gw-ipv4": "Échec de l'analyse de l'IPv4 fourni par l'authentificateur lors de la configuration de WireGuard",
+      "address-not-found": "Aucune adresse d'authentification n'a été trouvée pour la (les) passerelle(s) que nous essayons d'utiliser"
+    },
+    "add-ipv6-route": "Échec de l'ajout d'une route par défaut ipv6 pour capturer le trafic ipv6",
+    "tun-device": "Échec du périphérique Tun",
+    "routing": "Échec du routage",
+    "unhandled-exit": "Le VPN a échoué à la sortie avec une erreur, probablement à cause d'un bug."
   },
   "countries-request": {
     "entry": "Échec de la recherche des pays de nœuds d'entrée disponibles",
-    "exit": "Échec de la recherche des pays de nœuds de sortie disponibles"
+    "exit": "Échec de la recherche des pays de nœuds de sortie disponibles",
+    "fast-mode": "Échec de la recherche des pays disponibles"
   },
   "out-of-bandwidth": "Bande passante entièrement consommée",
   "entry-node-routing": "Le nœud d'entrée ne relai pas le trafic réseau (connexion internet perdue ?)",
