@@ -1,9 +1,9 @@
 use std::{fmt, net::IpAddr};
 
 #[cfg(target_os = "macos")]
-use std::sync::Arc;
-#[cfg(target_os = "macos")]
 use futures::{channel::mpsc::UnboundedSender, StreamExt};
+#[cfg(target_os = "macos")]
+use std::sync::Arc;
 use talpid_core::dns::DnsMonitor;
 
 #[cfg(target_os = "linux")]
@@ -46,7 +46,9 @@ impl DnsHandler {
                 #[cfg(target_os = "linux")]
                 tokio::runtime::Handle::current(),
                 #[cfg(target_os = "linux")]
-                route_handler.inner_handle().map_err(|e| Error { inner: Box::new(e) })?,
+                route_handler
+                    .inner_handle()
+                    .map_err(|e| Error { inner: Box::new(e) })?,
                 #[cfg(target_os = "macos")]
                 Arc::downgrade(&tx),
             )?,
@@ -84,7 +86,9 @@ impl std::error::Error for Error {
 
 impl From<talpid_core::dns::Error> for Error {
     fn from(value: talpid_core::dns::Error) -> Self {
-        Self { inner: Box::new(value) }
+        Self {
+            inner: Box::new(value),
+        }
     }
 }
 

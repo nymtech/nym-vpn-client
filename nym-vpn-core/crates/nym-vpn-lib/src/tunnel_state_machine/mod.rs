@@ -196,7 +196,7 @@ pub enum Error {
     #[error("failed to set tunnel device ipv6 address")]
     SetTunDeviceIpv6Addr(#[source] std::io::Error),
 
-    #[error("failed to add routes")]
+    #[error("failed to add routes: {}", _0)]
     AddRoutes(#[source] route_handler::Error),
 
     #[error("failed to set dns")]
@@ -232,9 +232,7 @@ impl Error {
                 // todo: add detail
                 ErrorStateReason::EstablishMixnetConnection
             }
-            Self::GetRouteHandle(_) => {
-                ErrorStateReason::Internal
-            }
+            Self::GetRouteHandle(_) => ErrorStateReason::Internal,
         }
     }
 }

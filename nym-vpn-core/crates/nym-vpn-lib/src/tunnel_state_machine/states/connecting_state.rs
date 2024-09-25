@@ -133,19 +133,8 @@ impl ConnectingState {
             .await
             .map_err(Error::ConnectWireguardTunnel)?;
 
-        let enable_ipv6 = true;
+        let enable_ipv6 = false;
         let conn_data = connected_tunnel.connection_data();
-
-        let mut exit_config = tun::Configuration::default();
-        exit_config
-            .address(conn_data.exit.gateway.private_ipv4)
-            .netmask(Ipv4Addr::BROADCAST)
-            .destination(conn_data.entry.gateway.private_ipv4)
-            .mtu(i32::from(connected_tunnel.exit_mtu()))
-            .up();
-        let exit_tun = tun::create_as_async(&exit_config).map_err(Error::CreateTunDevice)?;
-        let exit_tun_name = exit_tun.get_ref().name().map_err(Error::GetTunDeviceName)?;
-        tracing::debug!("Created exit tun device: {}", exit_tun_name);
 
         let mut entry_config = tun::Configuration::default();
         entry_config
@@ -158,7 +147,18 @@ impl ConnectingState {
             .get_ref()
             .name()
             .map_err(Error::GetTunDeviceName)?;
-        tracing::debug!("Created entry tun device: {}", entry_tun_name);
+        tracing::info!("Created entry tun device: {}", entry_tun_name);
+
+        let mut exit_config = tun::Configuration::default();
+        exit_config
+            .address(conn_data.exit.gateway.private_ipv4)
+            .netmask(Ipv4Addr::BROADCAST)
+            .destination(conn_data.entry.gateway.private_ipv4)
+            .mtu(i32::from(connected_tunnel.exit_mtu()))
+            .up();
+        let exit_tun = tun::create_as_async(&exit_config).map_err(Error::CreateTunDevice)?;
+        let exit_tun_name = exit_tun.get_ref().name().map_err(Error::GetTunDeviceName)?;
+        tracing::info!("Created exit tun device: {}", exit_tun_name);
 
         Self::set_routes(
             &exit_tun_name,

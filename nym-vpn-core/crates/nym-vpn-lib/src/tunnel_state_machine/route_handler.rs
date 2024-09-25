@@ -118,7 +118,7 @@ impl From<talpid_routing::Error> for Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Routing error")
+        write!(f, "routing error: {}", self.inner)
     }
 }
 

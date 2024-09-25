@@ -10,7 +10,6 @@ pub mod runner;
 pub mod tunnel_settings;
 pub mod two_hop_config;
 pub mod two_hop_tunnel;
-pub mod wg_config;
 
 use crate::platform::error::FFIError;
 
