@@ -81,29 +81,48 @@ extension HopListViewModel {
 }
 
 // MARK: - Setup -
-extension HopListViewModel {
+private extension HopListViewModel {
     func setup() {
         updateCountries()
     }
+}
 
+// MARK: - Countries -
+private extension HopListViewModel {
     func updateCountries() {
         Task {
             let newCountries: [Country]?
-            switch type {
-            case .entry:
-                newCountries = !searchText.isEmpty ? countriesManager.entryCountries.filter {
-                    $0.name.lowercased().contains(searchText.lowercased()) ||
-                    $0.code.lowercased().contains(searchText.lowercased())
-                } : countriesManager.entryCountries
-            case .exit:
-                newCountries = !searchText.isEmpty ? countriesManager.exitCountries.filter {
-                    $0.name.lowercased().contains(searchText.lowercased()) ||
-                    $0.code.lowercased().contains(searchText.lowercased())
-                } : countriesManager.exitCountries
+            switch connectionManager.connectionType {
+            case .mixnet5hop:
+                newCountries = countriesMixnet()
+            case .wireguard:
+                newCountries = countriesWireGuard()
             }
-            Task { @MainActor in
+            await MainActor.run {
                 countries = newCountries
             }
         }
+    }
+
+    func countriesMixnet() -> [Country] {
+        switch type {
+        case .entry:
+            return !searchText.isEmpty ? countriesManager.entryCountries.filter {
+                $0.name.lowercased().contains(searchText.lowercased()) ||
+                $0.code.lowercased().contains(searchText.lowercased())
+            } : countriesManager.entryCountries
+        case .exit:
+            return !searchText.isEmpty ? countriesManager.exitCountries.filter {
+                $0.name.lowercased().contains(searchText.lowercased()) ||
+                $0.code.lowercased().contains(searchText.lowercased())
+            } : countriesManager.exitCountries
+        }
+    }
+
+    func countriesWireGuard() -> [Country] {
+        !searchText.isEmpty ? countriesManager.vpnCountries.filter {
+            $0.name.lowercased().contains(searchText.lowercased()) ||
+            $0.code.lowercased().contains(searchText.lowercased())
+        } : countriesManager.vpnCountries
     }
 }
