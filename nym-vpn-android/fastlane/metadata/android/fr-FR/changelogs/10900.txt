@@ -1,0 +1,2 @@
+Nouveautés :
+- Correction de bugs de navigation
