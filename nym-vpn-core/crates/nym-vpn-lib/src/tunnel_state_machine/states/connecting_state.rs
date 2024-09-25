@@ -47,28 +47,19 @@ impl ConnectingState {
         shared_state: &mut SharedState,
     ) -> NextTunnelState {
         match result.map_err(Error::ConnectMixnetClient) {
-            Ok(connected_mixnet) => {
-                let start_tunnel_result = if shared_state.enable_wireguard {
-                    Self::start_wireguard_tunnel(connected_mixnet, shared_state).await
-                } else {
-                    Self::start_mixnet_tunnel(connected_mixnet, shared_state).await
-                };
-
-                match start_tunnel_result {
-                    Ok(tunnel_handle) => NextTunnelState::NewState(ConnectedState::enter(
-                        tunnel_handle,
-                        shared_state,
-                    )),
-                    Err(e) => {
-                        tracing::error!("Failed to start mixnet tunnel: {}", e);
-                        NextTunnelState::NewState(DisconnectingState::enter(
-                            ActionAfterDisconnect::Error(e.error_state_reason()),
-                            None,
-                            shared_state,
-                        ))
-                    }
+            Ok(connected_mixnet) => match Self::start_tunnel(connected_mixnet, shared_state) {
+                Ok(tunnel_handle) => {
+                    NextTunnelState::NewState(ConnectedState::enter(tunnel_handle, shared_state))
                 }
-            }
+                Err(e) => {
+                    tracing::error!("Failed to start the tunnel: {}", e);
+                    NextTunnelState::NewState(DisconnectingState::enter(
+                        ActionAfterDisconnect::Error(e.error_state_reason()),
+                        None,
+                        shared_state,
+                    ))
+                }
+            },
             Err(e) => {
                 tracing::error!("Failed to connect mixnet client: {}", e);
                 NextTunnelState::NewState(DisconnectingState::enter(
@@ -80,13 +71,60 @@ impl ConnectingState {
         }
     }
 
-    async fn start_wireguard_tunnel(
+    async fn start_tunnel(
         connected_mixnet: ConnectedMixnet,
         shared_state: &mut SharedState,
     ) -> Result<AnyTunnelHandle> {
         #[cfg(target_os = "linux")]
-        let shared_mixnet_client = connected_mixnet.mixnet_client.clone();
+        Self::set_mixnet_client_fwmark(connected_mixnet.mixnet_client.clone());
 
+        if shared_state.enable_wireguard {
+            Self::start_wireguard_tunnel(connected_mixnet, shared_state).await
+        } else {
+            Self::start_mixnet_tunnel(connected_mixnet, shared_state).await
+        }
+    }
+
+    async fn start_mixnet_tunnel(
+        connected_mixnet: ConnectedMixnet,
+        shared_state: &mut SharedState,
+    ) -> Result<AnyTunnelHandle> {
+        let connected_tunnel = connected_mixnet
+            .connect_mixnet_tunnel(shared_state.config.nym_ips.clone())
+            .await
+            .map_err(Error::ConnectMixnetTunnel)?;
+
+        let enable_ipv6 = true;
+        let mtu = shared_state.config.nym_mtu.unwrap_or(DEFAULT_TUN_MTU);
+        let interface_addresses = connected_tunnel.interface_addresses();
+
+        let tun_device: AsyncDevice = Self::create_device(interface_addresses, mtu, enable_ipv6)?;
+        let tun_name = tun_device
+            .get_ref()
+            .name()
+            .map_err(Error::GetTunDeviceName)?;
+
+        tracing::debug!("Created tun device: {}", tun_name);
+
+        Self::set_routes(
+            &tun_name,
+            #[cfg(not(target_os = "linux"))]
+            connected_tunnel.entry_mixnet_gateway_ip(),
+            enable_ipv6,
+            shared_state,
+        )
+        .await?;
+        Self::set_dns(&tun_name, shared_state)?;
+
+        Ok(AnyTunnelHandle::from(
+            connected_tunnel.run(tun_device).await,
+        ))
+    }
+
+    async fn start_wireguard_tunnel(
+        connected_mixnet: ConnectedMixnet,
+        shared_state: &mut SharedState,
+    ) -> Result<AnyTunnelHandle> {
         let connected_tunnel = connected_mixnet
             .connect_wireguard_tunnel()
             .await
@@ -121,10 +159,8 @@ impl ConnectingState {
 
         Self::set_routes(
             &exit_tun_name,
-            #[cfg(target_os = "linux")]
-            shared_mixnet_client,
             #[cfg(not(target_os = "linux"))]
-            conn_data.entry.host_addr,
+            conn_data.entry.gateway.endpoint.ip(),
             enable_ipv6,
             shared_state,
         )
@@ -135,47 +171,6 @@ impl ConnectingState {
             connected_tunnel
                 .run(entry_tun, exit_tun)
                 .map_err(Error::RunWireguardTunnel)?,
-        ))
-    }
-
-    async fn start_mixnet_tunnel(
-        connected_mixnet: ConnectedMixnet,
-        shared_state: &mut SharedState,
-    ) -> Result<AnyTunnelHandle> {
-        #[cfg(target_os = "linux")]
-        let shared_mixnet_client = connected_mixnet.mixnet_client.clone();
-
-        let connected_tunnel = connected_mixnet
-            .connect_mixnet_tunnel(shared_state.config.nym_ips.clone())
-            .await
-            .map_err(Error::ConnectMixnetTunnel)?;
-
-        let enable_ipv6 = true;
-        let mtu = shared_state.config.nym_mtu.unwrap_or(DEFAULT_TUN_MTU);
-        let interface_addresses = connected_tunnel.interface_addresses();
-
-        let tun_device: AsyncDevice = Self::create_device(interface_addresses, mtu, enable_ipv6)?;
-        let tun_name = tun_device
-            .get_ref()
-            .name()
-            .map_err(Error::GetTunDeviceName)?;
-
-        tracing::debug!("Created tun device: {}", tun_name);
-
-        Self::set_routes(
-            &tun_name,
-            #[cfg(target_os = "linux")]
-            shared_mixnet_client,
-            #[cfg(not(target_os = "linux"))]
-            connected_tunnel.entry_mixnet_gateway_ip(),
-            enable_ipv6,
-            shared_state,
-        )
-        .await?;
-        Self::set_dns(&tun_name, shared_state)?;
-
-        Ok(AnyTunnelHandle::from(
-            connected_tunnel.run(tun_device).await,
         ))
     }
 
@@ -216,20 +211,16 @@ impl ConnectingState {
 
     async fn set_routes(
         tun_name: &str,
-        #[cfg(target_os = "linux")] shared_mixnet_client: SharedMixnetClient,
-        #[cfg(not(target_os = "linux"))] entry_mixnet_gateway_ip: IpAddr,
+        #[cfg(not(target_os = "linux"))] entry_gateway_ip: IpAddr,
         enable_ipv6: bool,
         shared_state: &mut SharedState,
     ) -> Result<()> {
-        #[cfg(target_os = "linux")]
-        Self::set_mixnet_client_fwmark(shared_mixnet_client);
-
         shared_state
             .route_handler
             .add_routes(
                 tun_name,
                 #[cfg(not(target_os = "linux"))]
-                entry_mixnet_gateway_ip,
+                entry_gateway_ip,
                 enable_ipv6,
             )
             .await
