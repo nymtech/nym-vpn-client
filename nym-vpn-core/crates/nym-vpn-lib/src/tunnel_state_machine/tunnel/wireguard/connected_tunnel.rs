@@ -57,7 +57,10 @@ impl ConnectedTunnel {
         );
         wg_entry_config.interface.mtu = self.entry_mtu();
         #[cfg(target_os = "linux")]
-        wg_entry_config.fwmark = Some(crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK);
+        {
+            wg_entry_config.interface.fwmark =
+                Some(crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK);
+        }
 
         let mut wg_exit_config = WgNodeConfig::with_gateway_data(
             self.connection_data.exit.gateway.clone(),
