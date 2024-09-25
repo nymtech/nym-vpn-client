@@ -6,7 +6,6 @@ use futures::{
     future::{BoxFuture, Fuse},
     FutureExt,
 };
-use ipnetwork::Ipv4Network;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 use tun::{AsyncDevice, Device};
@@ -19,10 +18,7 @@ use crate::mixnet::SharedMixnetClient;
 use crate::tunnel_state_machine::{
     states::{ConnectedState, DisconnectingState},
     tun_ipv6,
-    tunnel::{
-        self, any_tunnel_handle::AnyTunnelHandle, mixnet::connected_tunnel::TunnelHandle,
-        ConnectedMixnet,
-    },
+    tunnel::{self, any_tunnel_handle::AnyTunnelHandle, ConnectedMixnet},
     ActionAfterDisconnect, Error, NextTunnelState, Result, SharedState, TunnelCommand, TunnelState,
     TunnelStateHandler,
 };

@@ -3,23 +3,19 @@ use std::{error::Error as StdError, os::fd::AsRawFd};
 use tokio::task::JoinHandle;
 use tun::AsyncDevice;
 
-use nym_authenticator_client::AuthClient;
-use nym_gateway_directory::{AuthAddresses, Gateway, GatewayClient, Recipient};
 use nym_task::TaskManager;
-use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
+use nym_wg_gateway_client::WgGatewayClient;
 use nym_wg_go::wireguard_go;
 
 use super::connector::ConnectionData;
 use crate::{
     mixnet::SharedMixnetClient,
-    tunnel_state_machine::tunnel::{gateway_selector::SelectedGateways, Error, Result},
-    wg_config::{WgInterface, WgNodeConfig},
+    tunnel_state_machine::tunnel::{Error, Result},
+    wg_config::WgNodeConfig,
 };
 
 pub struct ConnectedTunnel {
     task_manager: TaskManager,
-    mixnet_client: SharedMixnetClient,
-    gateway_directory_client: GatewayClient,
     entry_gateway_client: WgGatewayClient,
     exit_gateway_client: WgGatewayClient,
     connection_data: ConnectionData,
@@ -28,16 +24,12 @@ pub struct ConnectedTunnel {
 impl ConnectedTunnel {
     pub fn new(
         task_manager: TaskManager,
-        mixnet_client: SharedMixnetClient,
-        gateway_directory_client: GatewayClient,
         entry_gateway_client: WgGatewayClient,
         exit_gateway_client: WgGatewayClient,
         connection_data: ConnectionData,
     ) -> Self {
         Self {
             task_manager,
-            mixnet_client,
-            gateway_directory_client,
             entry_gateway_client,
             exit_gateway_client,
             connection_data,
@@ -64,6 +56,8 @@ impl ConnectedTunnel {
             self.entry_gateway_client.keypair().private_key(),
         );
         wg_entry_config.interface.mtu = self.entry_mtu();
+        #[cfg(target_os = "linux")]
+        wg_entry_config.fwmark = Some(crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK);
 
         let mut wg_exit_config = WgNodeConfig::with_gateway_data(
             self.connection_data.exit.gateway.clone(),
@@ -76,6 +70,7 @@ impl ConnectedTunnel {
             entry_tun.get_ref().as_raw_fd(),
         )
         .map_err(Error::StartWireguard)?;
+
         let exit_tunnel = wireguard_go::Tunnel::start(
             wg_exit_config.into_wireguard_config(),
             exit_tun.get_ref().as_raw_fd(),

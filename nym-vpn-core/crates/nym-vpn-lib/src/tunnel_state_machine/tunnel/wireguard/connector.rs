@@ -73,8 +73,6 @@ impl Connector {
 
         Ok(ConnectedTunnel::new(
             self.task_manager,
-            self.mixnet_client,
-            self.gateway_directory_client,
             wg_entry_gateway_client,
             wg_exit_gateway_client,
             connection_data,

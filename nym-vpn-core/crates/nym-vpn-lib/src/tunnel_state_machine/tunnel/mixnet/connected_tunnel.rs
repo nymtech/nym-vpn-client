@@ -77,13 +77,6 @@ pub struct TunnelHandle {
 }
 
 impl TunnelHandle {
-    pub fn new(task_manager: TaskManager, processor_handle: ProcessorHandle) -> Self {
-        Self {
-            task_manager,
-            processor_handle,
-        }
-    }
-
     /// Cancel tunnel execution.
     pub fn cancel(&self) {
         if let Err(e) = self.task_manager.signal_shutdown() {

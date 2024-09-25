@@ -63,7 +63,7 @@ impl DisconnectingState {
                 if let Err(e) = shared_state.dns_handler.reset_before_interface_removal() {
                     tracing::error!("Failed to reset dns before interface removal: {}", e);
                 }
-                tracing::debug!("Closing tunnel device(s).");
+                tracing::debug!("Closing tunnel {} device(s).", tun_devices.len());
                 let _ = tun_devices;
             }
             Ok(None) => {
