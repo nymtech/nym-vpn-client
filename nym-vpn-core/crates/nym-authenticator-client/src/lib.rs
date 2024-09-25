@@ -180,11 +180,16 @@ impl AuthClient {
                                 continue;
                             }
                             // Confirm that the version is correct
-                            check_auth_message_version(&msg)?;
+                            let version = check_auth_message_version(&msg)?;
 
                             // Then we deserialize the message
                             debug!("AuthClient: got message while waiting for connect response");
-                            let Ok(response) = AuthenticatorResponse::from_reconstructed_message(&msg) else {
+                            let ret = if version == USED_VERSION + 1 {
+                                nym_authenticator_requests::latest::response::AuthenticatorResponse::from_reconstructed_message(&msg).map(Into::into)
+                            } else {
+                                AuthenticatorResponse::from_reconstructed_message(&msg)
+                            };
+                            let Ok(response) = ret else {
                                 // This is ok, it's likely just one of our self-pings
                                 debug!("Failed to deserialize reconstructed message");
                                 continue;
@@ -213,21 +218,28 @@ fn check_if_authenticator_message(message: &ReconstructedMessage) -> bool {
     }
 }
 
-fn check_auth_message_version(message: &ReconstructedMessage) -> Result<()> {
+fn check_auth_message_version(message: &ReconstructedMessage) -> Result<u8> {
     // Assuing it's an Authenticator message, it will have a version as its first byte
     if let Some(version) = message.message.first() {
         match version.cmp(&USED_VERSION) {
-            Ordering::Greater => Err(Error::ReceivedResponseWithNewVersion {
-                expected: USED_VERSION,
-                received: *version,
-            }),
+            Ordering::Greater => {
+                // We accept one unit of version difference, for easier transitions
+                if version.cmp(&(USED_VERSION + 1)) == Ordering::Greater {
+                    Err(Error::ReceivedResponseWithNewVersion {
+                        expected: USED_VERSION,
+                        received: *version,
+                    })
+                } else {
+                    Ok(*version + 1)
+                }
+            }
             Ordering::Less => Err(Error::ReceivedResponseWithOldVersion {
                 expected: USED_VERSION,
                 received: *version,
             }),
             Ordering::Equal => {
                 // We're good
-                Ok(())
+                Ok(*version)
             }
         }
     } else {
