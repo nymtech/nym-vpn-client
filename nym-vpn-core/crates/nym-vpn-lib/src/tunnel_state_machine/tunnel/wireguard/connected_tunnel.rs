@@ -1,6 +1,6 @@
 use std::{error::Error as StdError, os::fd::AsRawFd};
 
-use tokio::task::{JoinError, JoinHandle};
+use tokio::task::JoinHandle;
 use tun::AsyncDevice;
 
 use nym_authenticator_client::AuthClient;
@@ -157,6 +157,6 @@ impl TunnelHandle {
 }
 
 pub struct WaitResult {
-    entry_tun: AsyncDevice,
-    exit_tun: AsyncDevice,
+    pub entry_tun: AsyncDevice,
+    pub exit_tun: AsyncDevice,
 }

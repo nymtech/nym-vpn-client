@@ -203,6 +203,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> anyhow:
         command_rx,
         event_tx,
         generic_config,
+        args.wireguard_mode,
         shutdown_token.child_token(),
     )
     .await

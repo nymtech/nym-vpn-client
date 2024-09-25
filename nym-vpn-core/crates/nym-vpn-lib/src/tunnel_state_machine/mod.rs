@@ -72,6 +72,9 @@ pub enum ErrorStateReason {
     /// Failure to establish mixnet connection.
     EstablishMixnetConnection,
 
+    /// Failure to establish wireguard connection.
+    EstablishWireguardConnection,
+
     /// Tunnel went down at runtime.
     TunnelDown,
 }
@@ -86,6 +89,7 @@ pub struct SharedState {
     firewall_handler: FirewallHandler,
     dns_handler: DnsHandler,
     config: GenericNymVpnConfig,
+    enable_wireguard: bool,
 }
 
 pub struct TunnelStateMachine {
@@ -101,6 +105,7 @@ impl TunnelStateMachine {
         command_receiver: mpsc::UnboundedReceiver<TunnelCommand>,
         event_sender: mpsc::UnboundedSender<TunnelEvent>,
         config: GenericNymVpnConfig,
+        enable_wireguard: bool,
         shutdown_token: CancellationToken,
     ) -> Result<JoinHandle<()>> {
         let (current_state_handler, _) = DisconnectedState::enter();
@@ -121,6 +126,7 @@ impl TunnelStateMachine {
             firewall_handler,
             dns_handler,
             config,
+            enable_wireguard,
         };
 
         let tunnel_state_machine = Self {
@@ -195,6 +201,12 @@ pub enum Error {
 
     #[error("failed to connect mixnet tunnel")]
     ConnectMixnetTunnel(#[source] tunnel::Error),
+
+    #[error("failed to connect wireguard tunnel")]
+    ConnectWireguardTunnel(#[source] tunnel::Error),
+
+    #[error("failed to run wireguard tunnel")]
+    RunWireguardTunnel(#[source] tunnel::Error),
 }
 
 impl Error {
@@ -206,6 +218,10 @@ impl Error {
             Self::CreateTunDevice(_)
             | Self::GetTunDeviceName(_)
             | Self::SetTunDeviceIpv6Addr(_) => ErrorStateReason::TunDevice,
+            Self::ConnectWireguardTunnel(_) | Self::RunWireguardTunnel(_) => {
+                // todo: add detail
+                ErrorStateReason::EstablishWireguardConnection
+            }
             Self::ConnectMixnetTunnel(_) | Self::ConnectMixnetClient(_) => {
                 // todo: add detail
                 ErrorStateReason::EstablishMixnetConnection

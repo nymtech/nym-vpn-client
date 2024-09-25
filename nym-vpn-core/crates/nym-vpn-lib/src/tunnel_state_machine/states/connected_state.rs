@@ -2,18 +2,17 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 use crate::tunnel_state_machine::{
-    states::DisconnectingState, tunnel::mixnet::connected_tunnel::TunnelHandle,
-    ActionAfterDisconnect, ErrorStateReason, NextTunnelState, SharedState, TunnelCommand,
-    TunnelState, TunnelStateHandler,
+    states::DisconnectingState, tunnel::any_tunnel_handle::AnyTunnelHandle, ActionAfterDisconnect,
+    ErrorStateReason, NextTunnelState, SharedState, TunnelCommand, TunnelState, TunnelStateHandler,
 };
 
 pub struct ConnectedState {
-    tunnel_handle: TunnelHandle,
+    tunnel_handle: AnyTunnelHandle,
 }
 
 impl ConnectedState {
     pub fn enter(
-        tunnel_handle: TunnelHandle,
+        tunnel_handle: AnyTunnelHandle,
         _shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, TunnelState) {
         (Box::new(Self { tunnel_handle }), TunnelState::Connected)

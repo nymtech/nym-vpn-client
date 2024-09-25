@@ -1,8 +1,9 @@
+pub mod any_tunnel_handle;
 mod gateway_selector;
 pub mod mixnet;
 pub mod wireguard;
 
-use std::time::Duration;
+use std::{path::PathBuf, time::Duration};
 
 pub use gateway_selector::SelectedGateways;
 use nym_gateway_directory::GatewayClient;
@@ -19,12 +20,13 @@ pub struct ConnectedMixnet {
     pub task_manager: TaskManager,
     pub gateway_directory_client: GatewayClient,
     pub selected_gateways: SelectedGateways,
+    pub data_path: Option<PathBuf>,
     pub mixnet_client: SharedMixnetClient,
 }
 
 impl ConnectedMixnet {
     /// Creates a tunnel over mixnet.
-    pub async fn connect_tunnel(
+    pub async fn connect_mixnet_tunnel(
         self,
         interface_addresses: Option<IpPair>, // known as config.nym_ips
     ) -> Result<mixnet::connected_tunnel::ConnectedTunnel> {
@@ -35,6 +37,19 @@ impl ConnectedMixnet {
         );
         connector
             .connect(self.selected_gateways, interface_addresses)
+            .await
+    }
+
+    pub async fn connect_wireguard_tunnel(
+        self,
+    ) -> Result<wireguard::connected_tunnel::ConnectedTunnel> {
+        let connector = wireguard::connector::Connector::new(
+            self.task_manager,
+            self.mixnet_client,
+            self.gateway_directory_client,
+        );
+        connector
+            .connect(self.selected_gateways, self.data_path)
             .await
     }
 }
@@ -76,6 +91,7 @@ pub async fn connect_mixnet(
     Ok(ConnectedMixnet {
         task_manager,
         selected_gateways,
+        data_path: nym_config.data_path,
         gateway_directory_client,
         mixnet_client,
     })
@@ -108,7 +124,7 @@ pub enum Error {
     #[error("wireguard gateway failure: {0}")]
     WgGatewayClientFailure(#[from] nym_wg_gateway_client::Error),
 
-    #[error("wiregurad authentication is not possible due to one of the gateways not running the authenticator process: {0}")]
+    #[error("wireguard authentication is not possible due to one of the gateways not running the authenticator process: {0}")]
     AuthenticationNotPossible(String),
 
     #[error("failed to find authenticator address")]
@@ -123,7 +139,7 @@ pub enum Error {
         source: nym_gateway_directory::Error,
     },
 
-    #[error("Failure to start wireguard")]
+    #[error("failed to start wireguard")]
     StartWireguard(#[source] nym_wg_go::Error),
 }
 

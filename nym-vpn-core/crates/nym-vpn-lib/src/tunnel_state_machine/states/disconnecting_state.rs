@@ -9,12 +9,12 @@ use tun::AsyncDevice;
 use crate::tunnel_state_machine::{
     dns_handler::DnsHandler,
     states::{ConnectingState, DisconnectedState, ErrorState},
-    tunnel::mixnet::connected_tunnel::TunnelHandle,
+    tunnel::any_tunnel_handle::AnyTunnelHandle,
     ActionAfterDisconnect, NextTunnelState, SharedState, TunnelCommand, TunnelState,
     TunnelStateHandler,
 };
 
-type WaitHandle = JoinHandle<Option<AsyncDevice>>;
+type WaitHandle = JoinHandle<Option<Vec<AsyncDevice>>>;
 
 pub struct DisconnectingState {
     after_disconnect: ActionAfterDisconnect,
@@ -24,25 +24,21 @@ pub struct DisconnectingState {
 impl DisconnectingState {
     pub fn enter(
         after_disconnect: ActionAfterDisconnect,
-        tunnel_handle: Option<TunnelHandle>,
+        mut tunnel_handle: Option<AnyTunnelHandle>,
         _shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, TunnelState) {
-        if let Some(ref tunnel_handle) = tunnel_handle {
+        if let Some(tunnel_handle) = tunnel_handle.as_mut() {
             tunnel_handle.cancel();
         }
 
         let wait_handle = tokio::spawn(async move {
-            match tunnel_handle?.wait().await {
-                Ok(Ok(tun_device)) => Some(tun_device),
-                Ok(Err(e)) => {
+            tunnel_handle?
+                .wait()
+                .await
+                .inspect_err(|e| {
                     tracing::error!("Tunnel exited with error: {}", e);
-                    None
-                }
-                Err(e) => {
-                    tracing::error!("Failed to join on tunnel handle: {}", e);
-                    None
-                }
-            }
+                })
+                .ok()
         })
         .fuse();
 
@@ -57,18 +53,18 @@ impl DisconnectingState {
 
     async fn on_tunnel_exit(
         &self,
-        result: Result<Option<AsyncDevice>, JoinError>,
+        result: Result<Option<Vec<AsyncDevice>>, JoinError>,
         shared_state: &mut SharedState,
     ) -> NextTunnelState {
         shared_state.route_handler.remove_routes().await;
 
         match result {
-            Ok(Some(tun_device)) => {
+            Ok(Some(tun_devices)) => {
                 if let Err(e) = shared_state.dns_handler.reset_before_interface_removal() {
                     tracing::error!("Failed to reset dns before interface removal: {}", e);
                 }
-                tracing::debug!("Closing tunnel device.");
-                let _ = tun_device;
+                tracing::debug!("Closing tunnel device(s).");
+                let _ = tun_devices;
             }
             Ok(None) => {
                 Self::reset_dns(&mut shared_state.dns_handler);
