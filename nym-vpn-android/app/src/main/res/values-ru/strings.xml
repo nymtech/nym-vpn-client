@@ -142,4 +142,23 @@
     <string name="always_on_message">VPN не работает? Убедитесь, что функция постоянного VPN отключена для других приложений</string>
     <string name="vpn_settings">Настройки системы VPN</string>
     <string name="try_again">попробуйте переподключиться</string>
+    <string name="share">Поделиться</string>
+    <string name="credential_already_imported">Эти учётные данные уже используются.</string>
+    <string name="delete_logs_description">После удаления логи уже нельзя будет восстановить.</string>
+    <string name="state_error">"Этого не должно было случиться, но что-то пошло не так. Пожалуйста, перезапустите приложение и попробуйте еще раз. "</string>
+    <string name="gateway_error">Не удалось подключиться к шлюзу. Повторите попытку или выберите новое местоположение шлюза.</string>
+    <string name="delete">Удалить</string>
+    <string name="delete_logs_title">Вы точно хотите удалить все логи?</string>
+    <string name="no">Нет</string>
+    <string name="yes">Да</string>
+    <string name="out_of_bandwidth_error">Достигнуто ограничение пропускной способности учетных данных.</string>
+    <string name="network_error">Возникла проблема с сетевым подключением. Пожалуйста, проверьте сетевое соединение и повторите попытку.</string>
+    <string name="internal_error">Произошла внутренняя ошибка туннеля. Попробуйте еще раз.</string>
+    <string name="vpn_alerts_channel_id">Канал оповещений NymVPN</string>
+    <string name="vpn_alerts_channel_description">Канал для оповещений, связанных с приложениями.</string>
+    <string name="bandwidth_alert">Оповещение о пропускной способности</string>
+    <string name="no_bandwidth">Пропускная способность недоступна.</string>
+    <string name="connection_failed">Соединение не удалось</string>
+    <string name="low_bandwidth">"Низкая пропускная способность! Оставшаяся пропускная способность: "</string>
+    <string name="vpn_permission_missing">Разрешение VPN не принято или используется другим приложением.</string>
 </resources>
