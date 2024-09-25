@@ -36,17 +36,23 @@ pub struct WgInterface {
 
     /// Device MTU.
     pub mtu: u16,
+
+    /// Mark used for mark-based routing.
+    #[cfg(target_os = "linux")]
+    pub fwmark: Option<u16>,
 }
 
 impl fmt::Debug for WgInterface {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_struct("WgInterface")
-            .field("listen_port", &self.listen_port)
+        let mut d = f.debug_struct("WgInterface");
+        d.field("listen_port", &self.listen_port)
             .field("private_key", &"(hidden)")
             .field("address", &self.addresses)
             .field("dns", &self.dns)
-            .field("mtu", &self.mtu)
-            .finish()
+            .field("mtu", &self.mtu);
+        #[cfg(target_os = "linux")]
+        d.field("fwmark", &self.fwmark);
+        d.finish()
     }
 }
 
@@ -100,6 +106,8 @@ impl WgNodeConfig {
                 listen_port: self.interface.listen_port,
                 private_key: self.interface.private_key,
                 mtu: self.interface.mtu,
+                #[cfg(target_os = "linux")]
+                fwmark: self.interface.fwmark,
             },
             peers: vec![PeerConfig {
                 public_key: self.peer.public_key,
@@ -126,6 +134,8 @@ impl WgNodeConfig {
                 )],
                 dns: crate::DEFAULT_DNS_SERVERS.to_vec(),
                 mtu: 0,
+                #[cfg(target_os = "linux")]
+                fwmark: None,
             },
             peer: WgPeer {
                 public_key: PublicKey::from(*gateway_data.public_key.as_bytes()),
