@@ -13,8 +13,8 @@ use std::{
 pub use error::{Error, ErrorMessage};
 use nym_authenticator_client::AuthClient;
 use nym_authenticator_client::ClientMessage;
-use nym_authenticator_requests::latest::{
-    registration::{FinalMessage, GatewayClient, InitMessage, RegistrationData},
+use nym_authenticator_requests::v1::{
+    registration::{GatewayClient, InitMessage, RegistrationData},
     response::{
         AuthenticatorResponseData, PendingRegistrationResponse, RegisteredResponse,
         RemainingBandwidthResponse,
@@ -122,7 +122,7 @@ impl WgGatewayClient {
     pub async fn register_wireguard(
         &mut self,
         gateway_host: IpAddr,
-        credential: Option<CredentialSpendingData>,
+        _credential: Option<CredentialSpendingData>,
     ) -> Result<GatewayData> {
         debug!("Registering with the wg gateway...");
         let init_message = ClientMessage::Initial(InitMessage {
@@ -148,15 +148,12 @@ impl WgGatewayClient {
                     .verify(self.keypair.private_key(), nonce)
                     .map_err(Error::VerificationFailed)?;
 
-                let finalized_message = ClientMessage::Final(Box::new(FinalMessage {
-                    gateway_client: GatewayClient::new(
-                        self.keypair.private_key(),
-                        gateway_data.pub_key().inner(),
-                        gateway_data.private_ip,
-                        nonce,
-                    ),
-                    credential,
-                }));
+                let finalized_message = ClientMessage::Final(GatewayClient::new(
+                    self.keypair.private_key(),
+                    gateway_data.pub_key().inner(),
+                    gateway_data.private_ip,
+                    nonce,
+                ));
                 let response = self
                     .auth_client
                     .send(finalized_message, self.auth_recipient)
