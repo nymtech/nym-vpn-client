@@ -9,7 +9,6 @@ use nym_wg_go::wireguard_go;
 
 use super::connector::ConnectionData;
 use crate::{
-    mixnet::SharedMixnetClient,
     tunnel_state_machine::tunnel::{Error, Result},
     wg_config::WgNodeConfig,
 };
