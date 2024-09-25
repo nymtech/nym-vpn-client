@@ -1,9 +1,11 @@
 use std::{cmp::Ordering, sync::Arc, time::Duration};
 
+use nym_authenticator_requests::latest::VERSION as LATEST_VERSION;
 use nym_authenticator_requests::v1::{
     registration::InitMessage, request::AuthenticatorRequest, response::AuthenticatorResponse,
-    GatewayClient,
+    GatewayClient, VERSION as USED_VERSION,
 };
+
 use nym_sdk::mixnet::{
     MixnetClient, MixnetClientSender, MixnetMessageSender, Recipient, ReconstructedMessage,
     TransmissionLane,
@@ -16,7 +18,11 @@ mod error;
 
 pub use crate::error::{Error, Result};
 
-const USED_VERSION: u8 = 1;
+// We shouldn't get too much behind the latest version, or else it will be difficult
+// to support smooth version transitions. Right now, we support one unit of version
+// discrepancy between client and gateway, to account for the time a version moves
+// through the envs (qa, sandbox, mainnet).
+const _: () = assert!(USED_VERSION == LATEST_VERSION || USED_VERSION + 1 == LATEST_VERSION);
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag = "type", rename_all = "camelCase")]

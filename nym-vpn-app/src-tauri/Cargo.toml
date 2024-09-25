@@ -47,7 +47,7 @@ rust_iso3166 = "0.1"
 dirs = "5.0.1"
 
 # nym deps
-nym-config = { git = "https://github.com/nymtech/nym", rev = "1f8dc3fca1834f00269ce561a6f34d9413b9b79d" }
+nym-config = { git = "https://github.com/nymtech/nym", rev = "c6545d8c13f46de3e815206f63a702b1c6b9a95e" }
 nym-vpn-proto = { path = "../../nym-vpn-core/crates/nym-vpn-proto" }
 
 # tauri deps
