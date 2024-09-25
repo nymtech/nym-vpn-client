@@ -37,5 +37,6 @@
     "link": "Poursuivre la lecture",
     "privacy-description": "Bénéficiez d'une confidentialité maximale en acheminant votre connexion vers 5 serveurs via le mixnet. Parfait pour traiter en toute sécurité les paiements, les courriels et les messages.",
     "fast-description": "Profitez d'une vitesse maximale avec 2 serveurs. Parfait pour la navigation rapide, la diffusion en continu et le partage de fichiers."
-  }
+  },
+  "windows-no-fast-mode": "En raison de la transition du mode rapide vers WireGuard, cette option est temporairement indisponible."
 }
