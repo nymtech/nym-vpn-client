@@ -3,8 +3,8 @@
 
 use nym_vpn_api_client::{
     response::{
-        NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnZkNym,
-        NymVpnZkNymResponse,
+        NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnSubscription,
+        NymVpnSubscriptionsResponse, NymVpnZkNym, NymVpnZkNymResponse,
     },
     types::GatewayMinPerformance,
 };
@@ -219,7 +219,7 @@ impl CommandInterfaceConnectionHandler {
             .send(VpnServiceCommand::RequestZkNym(tx))
             .unwrap();
         let result = rx.await.unwrap();
-        debug!("VPN request zk nym result: {:?}", result);
+        info!("VPN request zk nym result: {:#?}", result);
         result
     }
 
@@ -231,7 +231,32 @@ impl CommandInterfaceConnectionHandler {
             .send(VpnServiceCommand::GetDeviceZkNyms(tx))
             .unwrap();
         let result = rx.await.unwrap();
-        debug!("VPN get device zk nyms result: {:?}", result);
+        info!("VPN get device zk nyms result: {:#?}", result);
+        result
+    }
+
+    pub(crate) async fn handle_get_free_passes(
+        &self,
+    ) -> Result<NymVpnSubscriptionsResponse, AccountError> {
+        let (tx, rx) = oneshot::channel();
+        self.vpn_command_tx
+            .send(VpnServiceCommand::GetFreePasses(tx))
+            .unwrap();
+        let result = rx.await.unwrap();
+        info!("VPN get free passes result: {:#?}", result);
+        result
+    }
+
+    pub(crate) async fn handle_apply_freepass(
+        &self,
+        code: String,
+    ) -> Result<NymVpnSubscription, AccountError> {
+        let (tx, rx) = oneshot::channel();
+        self.vpn_command_tx
+            .send(VpnServiceCommand::ApplyFreepass(tx, code))
+            .unwrap();
+        let result = rx.await.unwrap();
+        info!("VPN apply freepass result: {:#?}", result);
         result
     }
 }

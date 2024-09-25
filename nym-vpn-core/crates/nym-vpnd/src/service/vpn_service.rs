@@ -15,8 +15,8 @@ use futures::{
 };
 use nym_vpn_api_client::{
     response::{
-        NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnZkNym,
-        NymVpnZkNymResponse,
+        NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnSubscription,
+        NymVpnSubscriptionsResponse, NymVpnZkNym, NymVpnZkNymResponse,
     },
     types::{GatewayMinPerformance, Percent, VpnApiAccount},
 };
@@ -144,6 +144,11 @@ pub enum VpnServiceCommand {
     RegisterDevice(oneshot::Sender<Result<NymVpnDevice, AccountError>>),
     RequestZkNym(oneshot::Sender<Result<NymVpnZkNym, AccountError>>),
     GetDeviceZkNyms(oneshot::Sender<Result<NymVpnZkNymResponse, AccountError>>),
+    GetFreePasses(oneshot::Sender<Result<NymVpnSubscriptionsResponse, AccountError>>),
+    ApplyFreepass(
+        oneshot::Sender<Result<NymVpnSubscription, AccountError>>,
+        String,
+    ),
     Shutdown,
 }
 
@@ -163,6 +168,8 @@ impl fmt::Display for VpnServiceCommand {
             VpnServiceCommand::RegisterDevice(_) => write!(f, "RegisterDevice"),
             VpnServiceCommand::RequestZkNym(_) => write!(f, "RequestZkNym"),
             VpnServiceCommand::GetDeviceZkNyms(_) => write!(f, "GetDeviceZkNyms"),
+            VpnServiceCommand::GetFreePasses(_) => write!(f, "GetFreePasses"),
+            VpnServiceCommand::ApplyFreepass(_, _) => write!(f, "ApplyFreepass"),
             VpnServiceCommand::Shutdown => write!(f, "Shutdown"),
         }
     }
@@ -747,6 +754,42 @@ where
             .map_err(Into::into)
     }
 
+    async fn handle_get_free_passes(&self) -> Result<NymVpnSubscriptionsResponse, AccountError>
+    where
+        <S as nym_vpn_store::mnemonic::MnemonicStorage>::StorageError: Sync + Send + 'static,
+    {
+        // Get account
+        let account = self.load_account().await?;
+
+        // Setup client
+        let nym_vpn_api_url = get_nym_vpn_api_url()?;
+        let user_agent = crate::util::construct_user_agent();
+        let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent)?;
+
+        api_client
+            .get_free_passes(&account)
+            .await
+            .map_err(Into::into)
+    }
+
+    async fn handle_apply_freepass(&self, code: String) -> Result<NymVpnSubscription, AccountError>
+    where
+        <S as nym_vpn_store::mnemonic::MnemonicStorage>::StorageError: Sync + Send + 'static,
+    {
+        // Get account
+        let account = self.load_account().await?;
+
+        // Setup client
+        let nym_vpn_api_url = get_nym_vpn_api_url()?;
+        let user_agent = crate::util::construct_user_agent();
+        let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent)?;
+
+        api_client
+            .apply_freepass(&account, code)
+            .await
+            .map_err(Into::into)
+    }
+
     async fn handle_request_zk_nym(&self) -> Result<NymVpnZkNym, AccountError>
     where
         <S as nym_vpn_store::mnemonic::MnemonicStorage>::StorageError: Sync + Send + 'static,
@@ -843,6 +886,14 @@ where
                 }
                 VpnServiceCommand::GetDeviceZkNyms(tx) => {
                     let result = self.handle_get_device_zk_nyms().await;
+                    tx.send(result).unwrap();
+                }
+                VpnServiceCommand::GetFreePasses(tx) => {
+                    let result = self.handle_get_free_passes().await;
+                    tx.send(result).unwrap();
+                }
+                VpnServiceCommand::ApplyFreepass(tx, code) => {
+                    let result = self.handle_apply_freepass(code).await;
                     tx.send(result).unwrap();
                 }
                 VpnServiceCommand::Shutdown => {

@@ -11,8 +11,8 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use crate::{
     error::{Result, VpnApiClientError},
     request::{
-        CreateSubscriptionKind, CreateSubscriptionRequestBody, RegisterDeviceRequestBody,
-        RequestZkNymRequestBody,
+        ApplyFreepassRequestBody, CreateSubscriptionKind, CreateSubscriptionRequestBody,
+        RegisterDeviceRequestBody, RequestZkNymRequestBody,
     },
     response::{
         NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymVpnAccountResponse,
@@ -331,6 +331,50 @@ impl VpnApiClient {
         )
         .await
         .map_err(VpnApiClientError::FailedToGetZkNymById)
+    }
+
+    // FREEPASS
+
+    pub async fn get_free_passes(
+        &self,
+        account: &VpnApiAccount,
+    ) -> Result<NymVpnSubscriptionsResponse> {
+        self.get_authorized(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::ACCOUNT,
+                &account.id(),
+                routes::FREEPASS,
+            ],
+            account,
+            None,
+        )
+        .await
+        .map_err(VpnApiClientError::FailedToGetFreePasses)
+    }
+
+    pub async fn apply_freepass(
+        &self,
+        account: &VpnApiAccount,
+        code: String,
+    ) -> Result<NymVpnSubscription> {
+        let body = ApplyFreepassRequestBody { code };
+
+        self.post_authorized(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::ACCOUNT,
+                &account.id(),
+                routes::FREEPASS,
+            ],
+            &body,
+            account,
+            None,
+        )
+        .await
+        .map_err(VpnApiClientError::FailedToApplyFreepass)
     }
 
     // SUBSCRIPTIONS

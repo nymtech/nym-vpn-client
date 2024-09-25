@@ -5,9 +5,10 @@ use anyhow::Result;
 use clap::Parser;
 use nym_gateway_directory::GatewayType;
 use nym_vpn_proto::{
-    ConnectRequest, DisconnectRequest, Empty, GetAccountSummaryRequest, GetDevicesRequest,
-    ImportUserCredentialRequest, InfoRequest, InfoResponse, ListCountriesRequest,
-    ListGatewaysRequest, RegisterDeviceRequest, StatusRequest, StoreAccountRequest, UserAgent,
+    ApplyFreepassRequest, ConnectRequest, DisconnectRequest, Empty, GetAccountSummaryRequest,
+    GetDevicesRequest, GetFreePassesRequest, ImportUserCredentialRequest, InfoRequest,
+    InfoResponse, ListCountriesRequest, ListGatewaysRequest, RegisterDeviceRequest, StatusRequest,
+    StoreAccountRequest, UserAgent,
 };
 use protobuf_conversion::{into_gateway_type, into_threshold};
 use sysinfo::System;
@@ -65,6 +66,8 @@ async fn main() -> Result<()> {
         Command::GetAccountSummary => get_account_summary(client_type).await?,
         Command::GetDevices => get_devices(client_type).await?,
         Command::RegisterDevice => register_device(client_type).await?,
+        Command::GetFreePasses => get_free_passes(client_type).await?,
+        Command::ApplyFreepass(ref args) => apply_freepass(client_type, args).await?,
     }
     Ok(())
 }
@@ -214,6 +217,24 @@ async fn register_device(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(RegisterDeviceRequest {});
     let response = client.register_device(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn get_free_passes(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(GetFreePassesRequest {});
+    let response = client.get_free_passes(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn apply_freepass(client_type: ClientType, args: &cli::ApplyFreepassArgs) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(ApplyFreepassRequest {
+        code: args.code.clone(),
+    });
+    let response = client.apply_freepass(request).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }

@@ -495,8 +495,8 @@ impl NymVpnd for CommandInterface {
             .await;
 
         let response = match result {
-            Ok(device) => RequestZkNymResponse {
-                json: serde_json::to_string(&device).unwrap(),
+            Ok(response) => RequestZkNymResponse {
+                json: serde_json::to_string(&response).unwrap(),
                 error: None,
             },
             Err(err) => RequestZkNymResponse {
@@ -520,8 +520,8 @@ impl NymVpnd for CommandInterface {
             .await;
 
         let response = match result {
-            Ok(device) => GetDeviceZkNymsResponse {
-                json: serde_json::to_string(&device).unwrap(),
+            Ok(response) => GetDeviceZkNymsResponse {
+                json: serde_json::to_string(&response).unwrap(),
                 error: None,
             },
             Err(err) => GetDeviceZkNymsResponse {
@@ -531,6 +531,58 @@ impl NymVpnd for CommandInterface {
         };
 
         info!("Returning get device zk nyms response");
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn get_free_passes(
+        &self,
+        _request: tonic::Request<nym_vpn_proto::GetFreePassesRequest>,
+    ) -> Result<tonic::Response<nym_vpn_proto::GetFreePassesResponse>, tonic::Status> {
+        info!("Got get free passes request");
+
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_get_free_passes()
+            .await;
+
+        let response = match result {
+            Ok(response) => nym_vpn_proto::GetFreePassesResponse {
+                json: serde_json::to_string(&response).unwrap(),
+                error: None,
+            },
+            Err(err) => nym_vpn_proto::GetFreePassesResponse {
+                json: err.to_string(),
+                error: Some(AccountError::from(err)),
+            },
+        };
+
+        info!("Returning get free passes response");
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn apply_freepass(
+        &self,
+        request: tonic::Request<nym_vpn_proto::ApplyFreepassRequest>,
+    ) -> Result<tonic::Response<nym_vpn_proto::ApplyFreepassResponse>, tonic::Status> {
+        info!("Got apply freepass request");
+
+        let code = request.into_inner().code;
+
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_apply_freepass(code)
+            .await;
+
+        let response = match result {
+            Ok(response) => nym_vpn_proto::ApplyFreepassResponse {
+                json: serde_json::to_string(&response).unwrap(),
+                error: None,
+            },
+            Err(err) => nym_vpn_proto::ApplyFreepassResponse {
+                json: err.to_string(),
+                error: Some(AccountError::from(err)),
+            },
+        };
+
+        info!("Returning apply freepass response");
         Ok(tonic::Response::new(response))
     }
 }

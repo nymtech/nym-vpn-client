@@ -188,7 +188,7 @@ pub struct NymVpnSubscriptionsResponse {
     total_items: u64,
     page: u64,
     page_size: u64,
-    subscriptions: Vec<NymVpnSubscription>,
+    items: Vec<NymVpnSubscription>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -407,6 +407,17 @@ impl fmt::Display for NymErrorResponse {
         .filter_map(|x| x.clone())
         .collect::<Vec<_>>();
         write!(f, "{}", fields.join(", "))
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ErrorMessage {
+    message: String,
+}
+
+impl fmt::Display for ErrorMessage {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.message)
     }
 }
 

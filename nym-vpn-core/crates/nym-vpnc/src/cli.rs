@@ -37,6 +37,8 @@ pub(crate) enum Command {
     GetAccountSummary,
     GetDevices,
     RegisterDevice,
+    GetFreePasses,
+    ApplyFreepass(ApplyFreepassArgs),
 }
 
 #[derive(Args)]
@@ -173,6 +175,12 @@ pub(crate) struct StoreAccountArgs {
     /// The account mnemonic to be stored.
     #[arg(long)]
     pub(crate) mnemonic: String,
+}
+
+#[derive(Args)]
+pub(crate) struct ApplyFreepassArgs {
+    /// The freepass code to be applied.
+    pub(crate) code: String,
 }
 
 #[derive(Args)]

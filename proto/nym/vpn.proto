@@ -549,6 +549,22 @@ message GetDeviceZkNymsResponse {
   AccountError error = 2;
 }
 
+message GetFreePassesRequest {}
+
+message GetFreePassesResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
+message ApplyFreepassRequest {
+  string code = 1;
+}
+
+message ApplyFreepassResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
 message AccountError {
   enum AccountErrorType {
     STORE_ACCOUNT_ERROR_UNSPECIFIED = 0;
@@ -588,5 +604,7 @@ service NymVpnd {
   rpc RegisterDevice (RegisterDeviceRequest) returns (RegisterDeviceResponse) {}
   rpc RequestZkNym (RequestZkNymRequest) returns (RequestZkNymResponse) {}
   rpc GetDeviceZkNyms (GetDeviceZkNymsRequest) returns (GetDeviceZkNymsResponse) {}
+  rpc GetFreePasses (GetFreePassesRequest) returns (GetFreePassesResponse) {}
+  rpc ApplyFreepass (ApplyFreepassRequest) returns (ApplyFreepassResponse) {}
 }
 

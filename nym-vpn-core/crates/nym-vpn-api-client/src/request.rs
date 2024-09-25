@@ -24,6 +24,11 @@ pub struct RequestZkNymRequestBody {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct ApplyFreepassRequestBody {
+    pub code: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CreateSubscriptionInvoicesRequestBody {
     pub subscription: String,
     pub date: String,
