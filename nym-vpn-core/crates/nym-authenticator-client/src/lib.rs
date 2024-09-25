@@ -16,6 +16,8 @@ mod error;
 
 pub use crate::error::{Error, Result};
 
+const USED_VERSION: u8 = 1;
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum ClientMessage {
@@ -214,13 +216,13 @@ fn check_if_authenticator_message(message: &ReconstructedMessage) -> bool {
 fn check_auth_message_version(message: &ReconstructedMessage) -> Result<()> {
     // Assuing it's an Authenticator message, it will have a version as its first byte
     if let Some(version) = message.message.first() {
-        match version.cmp(&1) {
+        match version.cmp(&USED_VERSION) {
             Ordering::Greater => Err(Error::ReceivedResponseWithNewVersion {
-                expected: 1,
+                expected: USED_VERSION,
                 received: *version,
             }),
             Ordering::Less => Err(Error::ReceivedResponseWithOldVersion {
-                expected: 1,
+                expected: USED_VERSION,
                 received: *version,
             }),
             Ordering::Equal => {
