@@ -5304,6 +5304,7 @@ dependencies = [
  "tempfile",
  "thiserror",
  "tokio",
+ "tracing",
  "zeroize",
 ]
 

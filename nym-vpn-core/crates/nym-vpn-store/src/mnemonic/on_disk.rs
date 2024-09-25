@@ -72,6 +72,7 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
     }
 
     async fn load_mnemonic(&self) -> Result<bip39::Mnemonic, OnDiskMnemonicStorageError> {
+        tracing::info!("Opening: {}", self.path.display());
         let file = File::open(&self.path).map_err(OnDiskMnemonicStorageError::FileOpenError)?;
         serde_json::from_reader(file)
             .map_err(OnDiskMnemonicStorageError::ReadError)

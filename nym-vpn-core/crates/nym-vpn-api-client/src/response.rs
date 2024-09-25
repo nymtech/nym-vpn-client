@@ -51,8 +51,8 @@ pub struct NymVpnAccountSummaryDevices {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NymVpnAccountSummaryFairUsage {
-    used_gb: f64,
-    limit_gb: f64,
+    used_gb: Option<f64>,
+    limit_gb: Option<f64>,
     resets_on_utc: Option<String>,
 }
 
@@ -78,7 +78,7 @@ pub struct NymVpnDevicesResponse {
     total_items: u64,
     page: u64,
     page_size: u64,
-    devices: Vec<NymVpnDevice>,
+    items: Vec<NymVpnDevice>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

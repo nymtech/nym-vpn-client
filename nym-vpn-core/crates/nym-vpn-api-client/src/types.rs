@@ -10,6 +10,7 @@ use nym_validator_client::{signing::signer::OfflineSigner as _, DirectSecp256k1H
 
 use crate::{jwt::Jwt, VpnApiClientError};
 
+#[derive(Clone, Debug)]
 pub struct VpnApiAccount {
     wallet: DirectSecp256k1HdWallet,
 }

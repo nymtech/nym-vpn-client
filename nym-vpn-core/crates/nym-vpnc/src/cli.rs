@@ -34,6 +34,9 @@ pub(crate) enum Command {
     ListEntryCountries(ListCountriesArgs),
     ListExitCountries(ListCountriesArgs),
     ListVpnCountries(ListCountriesArgs),
+    GetAccountSummary,
+    GetDevices,
+    RegisterDevice,
 }
 
 #[derive(Args)]

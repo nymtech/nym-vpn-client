@@ -172,6 +172,7 @@ impl VpnApiClient {
         account: &VpnApiAccount,
         device: &Device,
     ) -> Result<NymVpnDevice> {
+        // TODO: this is not yet correctly implemented, the signature is a placeholder
         let body = RegisterDeviceRequestBody {
             device_identity_key: device.identity_key().to_base58_string(),
             signature: device.jwt().to_string(),
@@ -187,7 +188,7 @@ impl VpnApiClient {
             ],
             &body,
             account,
-            Some(device),
+            None,
         )
         .await
         .map_err(VpnApiClientError::FailedToRegisterDevice)
