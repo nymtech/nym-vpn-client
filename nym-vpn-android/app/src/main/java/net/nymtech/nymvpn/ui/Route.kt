@@ -1,25 +1,19 @@
 package net.nymtech.nymvpn.ui
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Settings
 import kotlinx.serialization.Serializable
-import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.util.StringValue
 
-sealed class Route(
-) {
+sealed class Route {
 	@Serializable
 	data class Main(
-		val autoStart : Boolean
+		val autoStart: Boolean = false,
+		val changeLanguage: Boolean = false,
 	) : Route()
 
 	@Serializable
 	data object Analytics : Route()
 
 	@Serializable
-	data class Permission(val permission : String) : Route()
+	data class Permission(val permission: net.nymtech.nymvpn.ui.screens.permission.Permission) : Route()
 
 	@Serializable
 	data object Settings : Route()
@@ -62,10 +56,4 @@ sealed class Route(
 
 	@Serializable
 	data object ExitLocation : Route()
-
-	companion object {
-		val settingsIcon = Icons.Outlined.Settings
-		val backIcon = Icons.AutoMirrored.Filled.ArrowBack
-		val infoIcon = Icons.Outlined.Info
-	}
 }

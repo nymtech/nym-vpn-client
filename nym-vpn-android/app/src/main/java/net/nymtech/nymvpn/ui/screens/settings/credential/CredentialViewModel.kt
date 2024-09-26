@@ -37,7 +37,7 @@ constructor(
 				settingsRepository.saveCredentialExpiry(it)
 			}
 			SnackbarController.showMessage(StringValue.StringResource(R.string.credential_successful))
-			navController.navigateAndForget(Route.Main.createRoute(false))
+			navController.navigateAndForget(Route.Main())
 		}.onFailure {
 			_error.emit(it.message)
 			Timber.e(it)

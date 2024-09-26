@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.annotation.Keep
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -18,7 +17,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -29,18 +27,17 @@ import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.toRoute
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import net.nymtech.localizationutil.LocaleStorage
 import net.nymtech.localizationutil.LocaleUtil
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.data.domain.Gateways
 import net.nymtech.nymvpn.manager.shortcut.ShortcutManager
 import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
@@ -79,7 +76,6 @@ import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
-@Keep
 class MainActivity : ComponentActivity() {
 
 	private val localeStorage: LocaleStorage by lazy {
@@ -106,24 +102,28 @@ class MainActivity : ComponentActivity() {
 
 		setContent {
 			val appState by appViewModel.uiState.collectAsStateWithLifecycle(lifecycle = this.lifecycle)
+			val navBarState by appViewModel.navBarState.collectAsStateWithLifecycle(lifecycle = this.lifecycle)
 
 			val navController = remember { appViewModel.navController }
 			val navBackStackEntry by navController.currentBackStackEntryAsState()
 			var navHeight by remember { mutableStateOf(0.dp) }
-			var showNavBar by rememberSaveable { mutableStateOf(true) }
 			val density = LocalDensity.current
 
-			navController.addOnDestinationChangedListener { controller, destination, _ ->
-				if (navBackStackEntry.isCurrentRoute(Route.Main()) && controller.previousBackStackEntry?.destination?.route == Route.Language.route
-				) {
+			LaunchedEffect(navBackStackEntry) {
+				if (navBackStackEntry.isCurrentRoute(Route.Main(changeLanguage = true)::class)) {
 					val locale = LocaleUtil.getLocaleFromPrefCode(localeStorage.getPreferredLocale())
 					val currentLocale = Locale.getDefault()
 					if (locale != currentLocale) {
-						lifecycleScope.launch {
-							delay(Constants.LANGUAGE_SWITCH_DELAY)
-							recreate()
-						}
+						delay(Constants.LANGUAGE_SWITCH_DELAY)
+						navController.clearBackStack<Route.Main>()
+						recreate()
 					}
+				}
+			}
+
+			LaunchedEffect(appState.gateways) {
+				if (appState.gateways != Gateways()) {
+					appViewModel.onGatewaysChanged()
 				}
 			}
 
@@ -132,11 +132,8 @@ class MainActivity : ComponentActivity() {
 					this@MainActivity.requestTileServiceStateUpdate()
 				}
 				LaunchedEffect(isShortcutsEnabled) {
-					if (isShortcutsEnabled) {
-						shortcutManager.addShortcuts()
-					} else {
-						shortcutManager.removeShortcuts()
-					}
+					if (!isShortcutsEnabled) return@LaunchedEffect shortcutManager.removeShortcuts()
+					shortcutManager.addShortcuts()
 				}
 			}
 
@@ -160,11 +157,6 @@ class MainActivity : ComponentActivity() {
 				return appState.settings.theme ?: theme?.let { Theme.valueOf(it) } ?: Theme.default()
 			}
 
-			showNavBar = when (Route.from(navBackStackEntry?.destination?.route).title.asString(this)) {
-				"" -> false
-				else -> true
-			}
-
 			SnackbarControllerProvider { host ->
 				NymVPNTheme(theme = getTheme()) {
 					Scaffold(
@@ -175,19 +167,15 @@ class MainActivity : ComponentActivity() {
 							testTagsAsResourceId = true
 						},
 						topBar = {
-							if (showNavBar) {
-								NavBar(
-									appState,
-									navController,
-									{ appViewModel.onNavBarTrailingClick() },
-									Modifier
-										.onGloballyPositioned {
-											navHeight = with(density) {
-												it.size.height.toDp()
-											}
-										},
-								)
-							}
+							NavBar(
+								navBarState,
+								navController,
+								Modifier.onGloballyPositioned {
+									navHeight = with(density) {
+										it.size.height.toDp()
+									}
+								},
+							)
 						},
 						snackbarHost = {
 							SnackbarHost(host) { snackbarData: SnackbarData ->
@@ -197,7 +185,7 @@ class MainActivity : ComponentActivity() {
 					) { padding ->
 						NavHost(
 							navController,
-							startDestination = if (isAnalyticsShown == true) Route.Main else Route.Analytics,
+							startDestination = if (isAnalyticsShown == true) Route.Main() else Route.Analytics,
 							modifier =
 							Modifier
 								.fillMaxSize()
@@ -209,14 +197,13 @@ class MainActivity : ComponentActivity() {
 						) {
 							composable<Route.Main> {
 								val args = it.toRoute<Route.Main>()
-								MainScreen(navController, appState, args.autoStart)
+								MainScreen(appViewModel, appState, args.autoStart)
 							}
 							composable<Route.Analytics> { AnalyticsScreen(appViewModel, navController, appState) }
 							composable<Route.Permission> {
 								val args = it.toRoute<Route.Permission>()
 								runCatching {
-									val permission = Permission.valueOf(args.permission)
-									PermissionScreen(navController, permission)
+									PermissionScreen(appViewModel, args.permission)
 								}
 							}
 							composable<Route.Settings> {
@@ -243,28 +230,28 @@ class MainActivity : ComponentActivity() {
 									appState,
 								)
 							}
-							composable<Route.Logs> { LogsScreen() }
-							composable<Route.Support> { SupportScreen() }
-							composable<Route.Feedback> { FeedbackScreen() }
-							composable<Route.Legal> { LegalScreen(navController) }
+							composable<Route.Logs> { LogsScreen(appViewModel) }
+							composable<Route.Support> { SupportScreen(appViewModel) }
+							composable<Route.Feedback> { FeedbackScreen(appViewModel) }
+							composable<Route.Legal> { LegalScreen(appViewModel) }
 							composable<Route.Credential> {
-								CredentialScreen()
+								CredentialScreen(appViewModel)
 							}
-							composable<Route.Account> { AccountScreen(navController, appState) }
+							composable<Route.Account> { AccountScreen(appViewModel, appState) }
 							composable<Route.Licenses> {
-								LicensesScreen()
+								LicensesScreen(appViewModel)
 							}
 							composable<Route.Appearance> {
-								AppearanceScreen(navController)
+								AppearanceScreen(appViewModel)
 							}
 							composable<Route.Display> {
-								DisplayScreen(appState)
+								DisplayScreen(appState, appViewModel)
 							}
 							composable<Route.Language> {
-								LanguageScreen(navController, localeStorage)
+								LanguageScreen(appViewModel, localeStorage)
 							}
 							composable<Route.Environment> {
-								EnvironmentScreen(appState)
+								EnvironmentScreen(appState, appViewModel)
 							}
 						}
 					}

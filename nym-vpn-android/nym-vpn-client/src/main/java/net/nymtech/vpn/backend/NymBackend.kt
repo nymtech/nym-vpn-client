@@ -202,7 +202,15 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	override fun onBandwidthStatusChange(status: BandwidthStatus) {
 		Timber.d("Bandwidth status: $status")
-		tunnel?.onBackendMessage(BackendMessage.BandwidthAlert(status))
+		when (status) {
+			BandwidthStatus.NoBandwidth -> {
+				tunnel?.onBackendMessage(BackendMessage.Failure(VpnException.OutOfBandwidth()))
+				onVpnShutdown()
+			}
+			is BandwidthStatus.RemainingBandwidth -> tunnel?.onBackendMessage(
+				BackendMessage.BandwidthAlert(status),
+			)
+		}
 	}
 
 	override fun onConnectionStatusChange(status: ConnectionStatus) {

@@ -11,6 +11,7 @@ import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
 import nym_vpn_lib.VpnException
+import kotlin.reflect.KClass
 
 fun Dp.scaledHeight(): Dp {
 	return NymVpn.instance.resizeHeight(this)
@@ -24,20 +25,20 @@ fun TextUnit.scaled(): TextUnit {
 	return NymVpn.instance.resizeHeight(this)
 }
 
-fun NavController.navigateAndForget(route: String) {
+fun NavController.navigateAndForget(route: Route) {
 	navigate(route) {
 		popUpTo(0)
 	}
 }
 
-fun NavBackStackEntry?.isCurrentRoute(route: Route): Boolean {
+fun <T : Route> NavBackStackEntry?.isCurrentRoute(cls: KClass<T>): Boolean {
 	return this?.destination?.hierarchy?.any {
-		it.hasRoute(route = route::class)
+		it.hasRoute(route = cls)
 	} == true
 }
 
 fun NavController.go(route: Route) {
-	if (currentBackStackEntry?.isCurrentRoute(route) == true) return
+	if (currentBackStackEntry?.isCurrentRoute(route::class) == true) return
 	this.navigate(route) {
 		// Pop up to the start destination of the graph to
 		// avoid building up a large stack of destinations

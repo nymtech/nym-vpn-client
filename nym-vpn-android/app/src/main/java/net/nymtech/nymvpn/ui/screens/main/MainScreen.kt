@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Icon
@@ -45,10 +46,10 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
+import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
@@ -57,6 +58,9 @@ import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.functions.countryIcon
 import net.nymtech.nymvpn.ui.common.labels.GroupLabel
 import net.nymtech.nymvpn.ui.common.labels.StatusInfoLabel
+import net.nymtech.nymvpn.ui.common.navigation.MainTitle
+import net.nymtech.nymvpn.ui.common.navigation.NavBarState
+import net.nymtech.nymvpn.ui.common.navigation.NavIcon
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.model.ConnectionState
@@ -64,6 +68,7 @@ import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.ui.screens.permission.Permission
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
+import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.buildCountryNameString
@@ -76,7 +81,7 @@ import net.nymtech.nymvpn.util.extensions.toUserMessage
 import net.nymtech.vpn.backend.Tunnel
 
 @Composable
-fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewModel = hiltViewModel()) {
+fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val context = LocalContext.current
 	val snackbar = SnackbarController.current
@@ -86,13 +91,26 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 	var didAutoStart by remember { mutableStateOf(false) }
 	var showDialog by remember { mutableStateOf(false) }
 
+	LaunchedEffect(Unit) {
+		appViewModel.onNavBarStateChange(
+			NavBarState(
+				title = { MainTitle(appUiState.settings.theme ?: Theme.default()) },
+				trailing = {
+					NavIcon(Icons.Outlined.Settings) {
+						appViewModel.navController.go(Route.Settings)
+					}
+				},
+			),
+		)
+	}
+
 	val vpnActivityResultState =
 		rememberLauncherForActivityResult(
 			ActivityResultContracts.StartActivityForResult(),
 			onResult = {
 				val accepted = (it.resultCode == RESULT_OK)
 				if (!accepted) {
-					navController.go(Route.Permission.createRoute(Permission.VPN))
+					appViewModel.navController.go(Route.Permission(Permission.VPN))
 				} else {
 					viewModel.onConnect()
 				}
@@ -255,8 +273,8 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 								indication = if (selectionEnabled) ripple() else null,
 							) {
 								if (selectionEnabled) {
-									navController.go(
-										Route.EntryLocation.route,
+									appViewModel.navController.go(
+										Route.EntryLocation,
 									)
 								} else {
 									snackbar.showMessage(context.getString(R.string.disabled_while_connected))
@@ -285,8 +303,8 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 						.defaultMinSize(minHeight = 1.dp, minWidth = 1.dp)
 						.clickable(remember { MutableInteractionSource() }, indication = if (selectionEnabled) ripple() else null) {
 							if (selectionEnabled) {
-								navController.go(
-									Route.ExitLocation.route,
+								appViewModel.navController.go(
+									Route.ExitLocation,
 								)
 							} else {
 								snackbar.showMessage(context.getString(R.string.disabled_while_connected))
@@ -303,7 +321,7 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 								scope.launch {
 									if (appUiState.settings.credentialExpiry.isInvalid()
 									) {
-										return@launch navController.go(Route.Credential.route)
+										return@launch appViewModel.navController.go(Route.Credential)
 									}
 									onConnectPressed()
 								}

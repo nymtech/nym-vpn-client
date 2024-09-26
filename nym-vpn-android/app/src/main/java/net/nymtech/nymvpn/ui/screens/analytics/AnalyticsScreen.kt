@@ -16,6 +16,7 @@ import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -36,6 +37,7 @@ import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
+import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.openWebUrl
@@ -46,6 +48,14 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 fun AnalyticsScreen(appViewModel: AppViewModel, navController: NavController, appUiState: AppUiState) {
 	val context = LocalContext.current
 	val padding = WindowInsets.systemBars.asPaddingValues()
+
+	LaunchedEffect(Unit) {
+		appViewModel.onNavBarStateChange(
+			NavBarState(
+				show = false,
+			),
+		)
+	}
 
 	val errorReportingDescription = buildAnnotatedString {
 		append("(")
@@ -193,7 +203,7 @@ fun AnalyticsScreen(appViewModel: AppViewModel, navController: NavController, ap
 			)
 			MainStyledButton(onClick = {
 				appViewModel.setAnalyticsShown()
-				navController.navigateAndForget(Route.Main.createRoute(false))
+				navController.navigateAndForget(Route.Main())
 			}, content = {
 				Text(stringResource(id = R.string.cont), style = CustomTypography.labelHuge.copy(color = MaterialTheme.colorScheme.onPrimary))
 			})

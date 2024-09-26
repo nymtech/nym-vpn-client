@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -14,13 +16,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import net.nymtech.localizationutil.LocaleStorage
 import net.nymtech.localizationutil.LocaleUtil
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.SelectionItemButton
 import net.nymtech.nymvpn.ui.common.labels.SelectedLabel
+import net.nymtech.nymvpn.ui.common.navigation.NavBarState
+import net.nymtech.nymvpn.ui.common.navigation.NavIcon
+import net.nymtech.nymvpn.ui.common.navigation.NavTitle
 import net.nymtech.nymvpn.util.extensions.capitalize
 import net.nymtech.nymvpn.util.extensions.go
 import net.nymtech.nymvpn.util.extensions.scaledHeight
@@ -30,7 +35,20 @@ import java.text.Collator
 import java.util.Locale
 
 @Composable
-fun LanguageScreen(navController: NavController, localeStorage: LocaleStorage) {
+fun LanguageScreen(appViewModel: AppViewModel, localeStorage: LocaleStorage) {
+	LaunchedEffect(Unit) {
+		appViewModel.onNavBarStateChange(
+			NavBarState(
+				title = { NavTitle(stringResource(R.string.language)) },
+				leading = {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
+						appViewModel.navController.popBackStack()
+					}
+				},
+			),
+		)
+	}
+
 	val context = LocalContext.current
 
 	val collator = Collator.getInstance(Locale.getDefault())
@@ -55,7 +73,7 @@ fun LanguageScreen(navController: NavController, localeStorage: LocaleStorage) {
 		Timber.d("Setting preferred locale: $locale")
 		localeStorage.setPreferredLocale(locale)
 		LocaleUtil.applyLocalizedContext(context, locale)
-		navController.go(Route.Main.createRoute(false))
+		appViewModel.navController.go(Route.Main(changeLanguage = true))
 	}
 
 	LazyColumn(

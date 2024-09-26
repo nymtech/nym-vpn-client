@@ -1,96 +1,38 @@
 package net.nymtech.nymvpn.ui.common.navigation
 
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.vectorResource
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.AppUiState
-import net.nymtech.nymvpn.ui.Route
-import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.ui.theme.iconSize
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NavBar(appUiState: AppUiState, navController: NavController, onTrailingClick: () -> Unit, modifier: Modifier = Modifier) {
+fun NavBar(navBarState: NavBarState, navController: NavController, modifier: Modifier = Modifier) {
 	val navBackStackEntry by navController.currentBackStackEntryAsState()
-	val navItem = Route.from(navBackStackEntry?.destination?.route)
-	val context = LocalContext.current
+
 	val keyboardController = LocalSoftwareKeyboardController.current
 
 	LaunchedEffect(navBackStackEntry) {
 		keyboardController?.hide()
 	}
 
-	CenterAlignedTopAppBar(
-		modifier = modifier,
-		title = {
-			if (navItem.route == Route.Main.route) {
-				val darkTheme =
-					when (appUiState.settings.theme) {
-						Theme.AUTOMATIC -> isSystemInDarkTheme()
-						Theme.DARK_MODE -> true
-						Theme.LIGHT_MODE -> false
-						else -> true
-					}
-				if (darkTheme) {
-					Icon(ImageVector.vectorResource(R.drawable.app_label_dark), "app_label", tint = Color.Unspecified)
-				} else {
-					Icon(ImageVector.vectorResource(R.drawable.app_label_light), "app_label", tint = Color.Unspecified)
-				}
-			} else {
-				Text(
-					navItem.title.asString(context),
-					style = MaterialTheme.typography.titleLarge,
-				)
-			}
-		},
-		actions = {
-			navItem.trailing?.let {
-				IconButton(
-					onClick = {
-						onTrailingClick()
-					},
-				) {
-					Icon(
-						imageVector = it,
-						contentDescription = it.name,
-						tint = MaterialTheme.colorScheme.onSurface,
-						modifier =
-						Modifier.size(
-							iconSize,
-						),
-					)
-				}
-			}
-		},
-		navigationIcon = {
-			navItem.leading?.let {
-				IconButton(
-					onClick = {
-						when {
-							it == Route.backIcon -> navController.popBackStack()
-						}
-					},
-				) {
-					Icon(imageVector = it, contentDescription = it.name)
-				}
-			}
-		},
-	)
+	if (navBarState.show) {
+		CenterAlignedTopAppBar(
+			modifier = modifier,
+			title = {
+				navBarState.title()
+			},
+			actions = {
+				navBarState.trailing()
+			},
+			navigationIcon = {
+				navBarState.leading()
+			},
+		)
+	}
 }

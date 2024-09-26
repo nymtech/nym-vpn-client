@@ -8,7 +8,6 @@ import net.nymtech.vpn.model.BackendMessage
 data class AppUiState(
 	val settings: Settings = Settings(),
 	val gateways: Gateways = Gateways(),
-	val showLocationTooltip: Boolean = false,
 	val state: Tunnel.State = Tunnel.State.Down,
 	val backendMessage: BackendMessage = BackendMessage.None,
 )
