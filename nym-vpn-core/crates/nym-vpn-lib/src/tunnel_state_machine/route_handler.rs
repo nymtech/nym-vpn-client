@@ -1,5 +1,4 @@
-use std::net::IpAddr;
-use std::{collections::HashSet, fmt};
+use std::{collections::HashSet, fmt, net::IpAddr};
 
 use ipnetwork::IpNetwork;
 #[cfg(not(target_os = "linux"))]
