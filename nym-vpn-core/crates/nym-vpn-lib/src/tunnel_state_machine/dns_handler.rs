@@ -64,11 +64,13 @@ impl DnsHandler {
     }
 
     pub fn reset(&mut self) -> Result<()> {
-        Ok(self.inner.reset()?)
+        Ok(tokio::task::block_in_place(|| self.inner.reset())?)
     }
 
     pub fn reset_before_interface_removal(&mut self) -> Result<()> {
-        Ok(self.inner.reset_before_interface_removal()?)
+        Ok(tokio::task::block_in_place(|| {
+            self.inner.reset_before_interface_removal()
+        })?)
     }
 }
 
