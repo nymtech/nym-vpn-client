@@ -189,7 +189,7 @@ impl AuthClient {
                             let version = check_auth_message_version(&msg)?;
 
                             // Then we deserialize the message
-                            debug!("AuthClient: got message while waiting for connect response");
+                            debug!("AuthClient: got message while waiting for connect response with version {version}");
                             let ret = if version == USED_VERSION + 1 {
                                 nym_authenticator_requests::latest::response::AuthenticatorResponse::from_reconstructed_message(&msg).map(Into::into)
                             } else {
@@ -236,7 +236,7 @@ fn check_auth_message_version(message: &ReconstructedMessage) -> Result<u8> {
                         received: *version,
                     })
                 } else {
-                    Ok(*version + 1)
+                    Ok(*version)
                 }
             }
             Ordering::Less => Err(Error::ReceivedResponseWithOldVersion {
