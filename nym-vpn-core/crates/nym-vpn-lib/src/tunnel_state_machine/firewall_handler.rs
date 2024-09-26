@@ -1,3 +1,7 @@
+// Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
+#![allow(dead_code)]
 use std::fmt;
 
 use talpid_core::firewall::{Firewall, FirewallArguments, InitialFirewallState};

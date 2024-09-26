@@ -1,3 +1,6 @@
+// Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 mod dns_handler;
 mod firewall_handler;
 mod route_handler;
@@ -89,6 +92,7 @@ pub enum TunnelEvent {
 
 pub struct SharedState {
     route_handler: RouteHandler,
+    #[allow(unused)]
     firewall_handler: FirewallHandler,
     dns_handler: DnsHandler,
     config: GenericNymVpnConfig,
@@ -237,7 +241,8 @@ impl Error {
                 ErrorStateReason::EstablishMixnetConnection
             }
             Self::GetRouteHandle(_) => ErrorStateReason::Internal,
-            #[cfg(target_os = "linux")] Self::GetDefaultInterface => ErrorStateReason::Internal,
+            #[cfg(target_os = "linux")]
+            Self::GetDefaultInterface(_) => ErrorStateReason::Internal,
         }
     }
 }

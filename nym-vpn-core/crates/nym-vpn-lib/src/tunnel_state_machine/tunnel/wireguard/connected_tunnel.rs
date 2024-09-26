@@ -1,3 +1,6 @@
+// Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 use std::{error::Error as StdError, os::fd::AsRawFd};
 
 use tokio::task::JoinHandle;
@@ -40,12 +43,12 @@ impl ConnectedTunnel {
     }
 
     pub fn entry_mtu(&self) -> u16 {
-        // 1500 - 60 (ipv4 header)
+        // 1500 - 60 (ipv4+wg header)
         1440
     }
 
     pub fn exit_mtu(&self) -> u16 {
-        // 1440 - 80 (ipv6 header)
+        // 1440 - 80 (ipv6+wg header)
         1360
     }
 
@@ -55,11 +58,6 @@ impl ConnectedTunnel {
             self.entry_gateway_client.keypair().private_key(),
         );
         wg_entry_config.interface.mtu = self.entry_mtu();
-        #[cfg(target_os = "linux")]
-        {
-            wg_entry_config.interface.fwmark =
-                Some(crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK);
-        }
 
         let mut wg_exit_config = WgNodeConfig::with_gateway_data(
             self.connection_data.exit.clone(),

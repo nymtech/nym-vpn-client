@@ -1,3 +1,6 @@
+// Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 use std::{collections::HashSet, fmt, net::IpAddr};
 
 use ipnetwork::IpNetwork;
@@ -28,16 +31,6 @@ pub enum RoutingConfig {
     },
 }
 
-impl RoutingConfig {
-    #[cfg(target_os = "linux")]
-    pub fn enable_ipv6(&self) -> bool {
-        match self {
-            Self::Mixnet { enable_ipv6, .. } => *enable_ipv6,
-            Self::Wireguard { enable_ipv6, .. } => *enable_ipv6,
-        }
-    }
-}
-
 pub struct RouteHandler {
     route_manager: RouteManager,
 }
@@ -55,26 +48,14 @@ impl RouteHandler {
     }
 
     pub async fn add_routes(&mut self, routing_config: RoutingConfig) -> Result<()> {
-        #[cfg(target_os = "linux")]
-        let enable_ipv6 = routing_config.enable_ipv6();
         let routes = Self::get_routes(routing_config);
-
-        #[cfg(target_os = "linux")]
-        self.route_manager.create_routing_rules(enable_ipv6).await?;
-
         self.route_manager.add_routes(routes).await?;
-
         Ok(())
     }
 
     pub async fn remove_routes(&mut self) {
         if let Err(e) = self.route_manager.clear_routes() {
             tracing::error!("Failed to remove routes: {}", e);
-        }
-
-        #[cfg(target_os = "linux")]
-        if let Err(e) = self.route_manager.clear_routing_rules().await {
-            tracing::error!("Failed to remove routing rules: {}", e);
         }
     }
 
@@ -102,7 +83,7 @@ impl RouteHandler {
                 tun_name,
                 entry_gateway_address,
                 #[cfg(target_os = "linux")]
-                physical_interface
+                physical_interface,
             } => {
                 #[cfg(not(target_os = "linux"))]
                 routes.insert(RequiredRoute::new(
@@ -113,7 +94,7 @@ impl RouteHandler {
                 #[cfg(target_os = "linux")]
                 routes.insert(RequiredRoute::new(
                     IpNetwork::from(entry_gateway_address),
-                    NetNode::RealNode(Node::device(physical_interface))
+                    NetNode::RealNode(Node::device(physical_interface)),
                 ));
 
                 routes.insert(RequiredRoute::new(
@@ -135,7 +116,7 @@ impl RouteHandler {
                 entry_gateway_address,
                 exit_gateway_address,
                 #[cfg(target_os = "linux")]
-                physical_interface
+                physical_interface,
             } => {
                 #[cfg(not(target_os = "linux"))]
                 routes.insert(RequiredRoute::new(

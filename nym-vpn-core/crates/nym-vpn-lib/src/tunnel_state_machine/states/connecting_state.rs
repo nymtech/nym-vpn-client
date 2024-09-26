@@ -1,3 +1,6 @@
+// Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 use std::net::Ipv4Addr;
 
 use futures::{
@@ -107,7 +110,7 @@ impl ConnectingState {
             tun_name: tun_name.clone(),
             entry_gateway_address: connected_tunnel.entry_mixnet_gateway_ip(),
             #[cfg(target_os = "linux")]
-            physical_interface: Self::get_default_interface()?
+            physical_interface: Self::get_default_interface()?,
         };
 
         Self::set_routes(routing_config, shared_state).await?;
@@ -153,9 +156,10 @@ impl ConnectingState {
             enable_ipv6,
             entry_tun_name,
             exit_tun_name: exit_tun_name.clone(),
-            #[cfg(not(target_os = "linux"))]
             entry_gateway_address: conn_data.entry.endpoint.ip(),
             exit_gateway_address: conn_data.exit.endpoint.ip(),
+            #[cfg(target_os = "linux")]
+            physical_interface: Self::get_default_interface()?,
         };
 
         Self::set_routes(routing_config, shared_state).await?;

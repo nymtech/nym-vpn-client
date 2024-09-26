@@ -1,3 +1,6 @@
+// Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 pub mod any_tunnel_handle;
 mod gateway_selector;
 pub mod mixnet;
@@ -99,16 +102,16 @@ pub async fn connect_mixnet(
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("failed to create gateway client")]
+    #[error("failed to create gateway client: {}", _0)]
     CreateGatewayClient(#[source] nym_gateway_directory::Error),
 
-    #[error("failed to select gateways")]
+    #[error("failed to select gateways: {}", _0)]
     SelectGateways(#[source] GatewayDirectoryError),
 
     #[error("start mixnet timeout")]
     StartMixnetClientTimeout,
 
-    #[error("mixnet tunnel has failed")]
+    #[error("mixnet tunnel has failed: {}", _0)]
     MixnetClient(#[from] MixnetError),
 
     #[error("failed to lookup gateway: {}", gateway_id)]
@@ -118,7 +121,7 @@ pub enum Error {
         source: nym_gateway_directory::Error,
     },
 
-    #[error("failed to connect ot ip packet router")]
+    #[error("failed to connect ot ip packet router: {}", _0)]
     ConnectToIpPacketRouter(#[source] nym_ip_packet_client::Error),
 
     #[error("wireguard gateway failure: {0}")]
@@ -139,7 +142,7 @@ pub enum Error {
         source: nym_gateway_directory::Error,
     },
 
-    #[error("failed to start wireguard")]
+    #[error("failed to start wireguard: {}", _0)]
     StartWireguard(#[source] nym_wg_go::Error),
 }
 

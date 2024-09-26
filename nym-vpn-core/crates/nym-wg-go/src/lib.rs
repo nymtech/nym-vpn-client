@@ -24,7 +24,7 @@ pub enum Error {
     #[error("config contains nul byte")]
     ConfigContainsNulByte,
 
-    #[error("failed to start netstack tunnel (code: {})", _0)]
+    #[error("failed to start the tunnel (code: {})", _0)]
     StartTunnel(i32),
 
     #[error("failed to open connection through the tunnel (code: {})", _0)]
