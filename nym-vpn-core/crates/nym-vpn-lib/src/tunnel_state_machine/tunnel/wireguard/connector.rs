@@ -1,4 +1,4 @@
-use std::{net::IpAddr, path::PathBuf};
+use std::path::PathBuf;
 
 use nym_authenticator_client::AuthClient;
 use nym_gateway_directory::{AuthAddresses, Gateway, GatewayClient};
@@ -11,14 +11,9 @@ use crate::{
     tunnel_state_machine::tunnel::{gateway_selector::SelectedGateways, Error, Result},
 };
 
-pub struct WgGatewayData {
-    pub gateway: GatewayData,
-    pub host_addr: IpAddr,
-}
-
 pub struct ConnectionData {
-    pub entry: WgGatewayData,
-    pub exit: WgGatewayData,
+    pub entry: GatewayData,
+    pub exit: GatewayData,
 }
 
 pub struct Connector {
@@ -95,7 +90,7 @@ impl Connector {
     async fn register_wg_key(
         &self,
         wg_gateway_client: &mut WgGatewayClient,
-    ) -> Result<WgGatewayData> {
+    ) -> Result<GatewayData> {
         // First we need to register with the gateway to setup keys and IP assignment
         tracing::info!("Registering with wireguard gateway");
         let gateway_id = wg_gateway_client
@@ -109,9 +104,6 @@ impl Connector {
             .map_err(|source| Error::FailedToLookupGatewayIp { gateway_id, source })?;
         let wg_gateway_data = wg_gateway_client.register_wireguard(gateway_host).await?;
         tracing::debug!("Received wireguard gateway data: {wg_gateway_data:?}");
-        Ok(WgGatewayData {
-            gateway: wg_gateway_data,
-            host_addr: gateway_host,
-        })
+        Ok(wg_gateway_data)
     }
 }

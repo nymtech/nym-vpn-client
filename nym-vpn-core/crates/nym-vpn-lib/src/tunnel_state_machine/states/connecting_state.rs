@@ -136,7 +136,7 @@ impl ConnectingState {
         let conn_data = connected_tunnel.connection_data();
 
         let entry_tun = Self::create_wireguard_device(
-            conn_data.entry.gateway.private_ipv4,
+            conn_data.entry.private_ipv4,
             None,
             connected_tunnel.entry_mtu(),
         )?;
@@ -147,8 +147,8 @@ impl ConnectingState {
         tracing::info!("Created entry tun device: {}", entry_tun_name);
 
         let exit_tun = Self::create_wireguard_device(
-            conn_data.exit.gateway.private_ipv4,
-            Some(conn_data.entry.gateway.private_ipv4),
+            conn_data.exit.private_ipv4,
+            Some(conn_data.entry.private_ipv4),
             connected_tunnel.exit_mtu(),
         )?;
         let exit_tun_name = exit_tun.get_ref().name().map_err(Error::GetTunDeviceName)?;
@@ -158,8 +158,8 @@ impl ConnectingState {
             enable_ipv6,
             entry_tun_name,
             exit_tun_name: exit_tun_name.clone(),
-            entry_gateway_address: conn_data.entry.gateway.endpoint.ip(),
-            exit_gateway_address: conn_data.exit.gateway.endpoint.ip(),
+            entry_gateway_address: conn_data.entry.endpoint.ip(),
+            exit_gateway_address: conn_data.exit.endpoint.ip(),
         };
 
         Self::set_routes(routing_config, shared_state).await?;

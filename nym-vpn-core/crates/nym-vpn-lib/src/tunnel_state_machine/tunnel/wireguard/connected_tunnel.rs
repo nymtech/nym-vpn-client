@@ -51,7 +51,7 @@ impl ConnectedTunnel {
 
     pub fn run(self, entry_tun: AsyncDevice, exit_tun: AsyncDevice) -> Result<TunnelHandle> {
         let mut wg_entry_config = WgNodeConfig::with_gateway_data(
-            self.connection_data.entry.gateway.clone(),
+            self.connection_data.entry.clone(),
             self.entry_gateway_client.keypair().private_key(),
         );
         wg_entry_config.interface.mtu = self.entry_mtu();
@@ -62,7 +62,7 @@ impl ConnectedTunnel {
         }
 
         let mut wg_exit_config = WgNodeConfig::with_gateway_data(
-            self.connection_data.exit.gateway.clone(),
+            self.connection_data.exit.clone(),
             self.exit_gateway_client.keypair().private_key(),
         );
         wg_exit_config.interface.mtu = self.exit_mtu();
