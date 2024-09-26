@@ -1,9 +1,8 @@
 use std::{cmp::Ordering, sync::Arc, time::Duration};
 
-use nym_authenticator_requests::latest::{
-    registration::{FinalMessage, InitMessage},
-    request::AuthenticatorRequest,
-    response::AuthenticatorResponse,
+use nym_authenticator_requests::v1::{
+    registration::InitMessage, request::AuthenticatorRequest, response::AuthenticatorResponse,
+    GatewayClient,
 };
 use nym_sdk::mixnet::{
     MixnetClient, MixnetClientSender, MixnetMessageSender, Recipient, ReconstructedMessage,
@@ -17,11 +16,13 @@ mod error;
 
 pub use crate::error::{Error, Result};
 
+const USED_VERSION: u8 = 1;
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum ClientMessage {
     Initial(InitMessage),
-    Final(Box<FinalMessage>),
+    Final(GatewayClient),
     Query(PeerPublicKey),
 }
 
@@ -132,17 +133,14 @@ impl AuthClient {
             ClientMessage::Initial(init_message) => {
                 AuthenticatorRequest::new_initial_request(init_message, self.nym_address)
             }
-            ClientMessage::Final(final_message) => {
-                AuthenticatorRequest::new_final_request(*final_message, self.nym_address)
+            ClientMessage::Final(gateway_client) => {
+                AuthenticatorRequest::new_final_request(gateway_client, self.nym_address)
             }
             ClientMessage::Query(peer_public_key) => {
                 AuthenticatorRequest::new_query_request(peer_public_key, self.nym_address)
             }
         };
-        debug!(
-            "Sent connect request with version v{}",
-            request.protocol.version
-        );
+        debug!("Sent connect request with version v{}", request.version);
 
         self.mixnet_sender
             .send(nym_sdk::mixnet::InputMessage::new_regular(
@@ -218,13 +216,13 @@ fn check_if_authenticator_message(message: &ReconstructedMessage) -> bool {
 fn check_auth_message_version(message: &ReconstructedMessage) -> Result<()> {
     // Assuing it's an Authenticator message, it will have a version as its first byte
     if let Some(version) = message.message.first() {
-        match version.cmp(&nym_authenticator_requests::CURRENT_VERSION) {
+        match version.cmp(&USED_VERSION) {
             Ordering::Greater => Err(Error::ReceivedResponseWithNewVersion {
-                expected: nym_authenticator_requests::CURRENT_VERSION,
+                expected: USED_VERSION,
                 received: *version,
             }),
             Ordering::Less => Err(Error::ReceivedResponseWithOldVersion {
-                expected: nym_authenticator_requests::CURRENT_VERSION,
+                expected: USED_VERSION,
                 received: *version,
             }),
             Ordering::Equal => {

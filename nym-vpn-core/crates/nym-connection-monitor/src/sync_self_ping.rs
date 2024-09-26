@@ -4,13 +4,13 @@
 use std::{sync::Arc, time::Duration};
 
 use futures::StreamExt;
-use nym_ip_packet_requests::request::IpPacketRequest;
 use nym_sdk::mixnet::{MixnetClient, MixnetMessageSender, Recipient};
 use tracing::{debug, error};
 
 use crate::{
     error::{Error, Result},
     mixnet_beacon::create_self_ping,
+    nym_ip_packet_requests_current::request::IpPacketRequest,
 };
 
 type SharedMixnetClient = Arc<tokio::sync::Mutex<Option<MixnetClient>>>;

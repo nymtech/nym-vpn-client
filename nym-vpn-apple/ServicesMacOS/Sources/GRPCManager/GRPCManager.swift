@@ -21,6 +21,13 @@ public final class GRPCManager: ObservableObject {
     public static let shared = GRPCManager()
 
     private var daemonVersion = "unknown"
+    private var userAgent: Nym_Vpn_UserAgent {
+        var agent = Nym_Vpn_UserAgent()
+        agent.application = AppVersionProvider.app
+        agent.version = "\(AppVersionProvider.appVersion()) (\(daemonVersion))"
+        agent.platform = AppVersionProvider.platform
+        return agent
+    }
 
     @Published public var tunnelStatus: TunnelStatus = .disconnected
     @Published public var lastError: GeneralNymError?
@@ -124,6 +131,7 @@ public final class GRPCManager: ObservableObject {
     ) {
         logger.log(level: .info, "Connecting...")
         var request = Nym_Vpn_ConnectRequest()
+        request.userAgent = userAgent
 
         var entryNode = Nym_Vpn_EntryNode()
         if let entryGatewayCountryCode {
@@ -196,11 +204,6 @@ public final class GRPCManager: ObservableObject {
     // MARK: - Countries -
     public func entryCountryCodes() async throws -> [String] {
         try await withCheckedThrowingContinuation { continuation in
-            var userAgent = Nym_Vpn_UserAgent()
-            userAgent.application = AppVersionProvider.app
-            userAgent.version = "\(AppVersionProvider.appVersion()) (\(daemonVersion))"
-            userAgent.platform = AppVersionProvider.platform
-
             var request = Nym_Vpn_ListCountriesRequest()
             request.kind = .mixnetEntry
             request.userAgent = userAgent
@@ -228,16 +231,38 @@ public final class GRPCManager: ObservableObject {
 
     public func exitCountryCodes() async throws -> [String] {
         try await withCheckedThrowingContinuation { continuation in
-            var userAgent = Nym_Vpn_UserAgent()
-            userAgent.application = AppVersionProvider.app
-            userAgent.version = "\(AppVersionProvider.appVersion()) (\(daemonVersion))"
-            userAgent.platform = AppVersionProvider.platform
-
             var request = Nym_Vpn_ListCountriesRequest()
             request.kind = .mixnetExit
             request.userAgent = userAgent
 
             let call = client.listCountries(request, callOptions: CallOptions(logger: logger))
+            call.response.whenComplete { result in
+                switch result {
+                case let .success(countries):
+                    continuation.resume(returning: countries.countries.map { $0.twoLetterIsoCountryCode })
+                case let .failure(error):
+                    continuation.resume(throwing: error)
+                }
+            }
+
+            call.status.whenComplete { [weak self] result in
+                switch result {
+                case .success:
+                    break
+                case let .failure(error):
+                    self?.logger.log(level: .error, "\(error.localizedDescription)")
+                }
+            }
+        }
+    }
+
+    public func vpnCountryCodes() async throws -> [String] {
+        try await withCheckedThrowingContinuation { continuation in
+            var request = Nym_Vpn_ListCountriesRequest()
+            request.kind = .wg
+            request.userAgent = userAgent
+
+            let call = client.listCountries(request, callOptions: nil)
             call.response.whenComplete { result in
                 switch result {
                 case let .success(countries):

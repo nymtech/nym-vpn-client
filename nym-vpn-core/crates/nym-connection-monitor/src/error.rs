@@ -1,3 +1,6 @@
+// Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("{0}")]

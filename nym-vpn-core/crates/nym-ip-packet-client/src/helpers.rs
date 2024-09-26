@@ -5,18 +5,18 @@ use std::cmp::Ordering;
 
 use nym_sdk::mixnet::ReconstructedMessage;
 
-use crate::{error::Result, Error};
+use crate::{error::Result, nym_ip_packet_requests_current::VERSION as CURRENT_VERSION, Error};
 
 pub(crate) fn check_ipr_message_version(message: &ReconstructedMessage) -> Result<()> {
     // Assuing it's a IPR message, it will have a version as its first byte
     if let Some(version) = message.message.first() {
-        match version.cmp(&nym_ip_packet_requests::CURRENT_VERSION) {
+        match version.cmp(&CURRENT_VERSION) {
             Ordering::Greater => Err(Error::ReceivedResponseWithNewVersion {
-                expected: nym_ip_packet_requests::CURRENT_VERSION,
+                expected: CURRENT_VERSION,
                 received: *version,
             }),
             Ordering::Less => Err(Error::ReceivedResponseWithOldVersion {
-                expected: nym_ip_packet_requests::CURRENT_VERSION,
+                expected: CURRENT_VERSION,
                 received: *version,
             }),
             Ordering::Equal => {

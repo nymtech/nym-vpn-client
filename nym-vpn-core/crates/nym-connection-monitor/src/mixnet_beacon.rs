@@ -3,7 +3,6 @@
 
 use std::time::Duration;
 
-use nym_ip_packet_requests::request::IpPacketRequest;
 use nym_sdk::{
     mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient},
     TaskClient,
@@ -12,7 +11,7 @@ use nym_task::connections::TransmissionLane;
 use tokio::task::JoinHandle;
 use tracing::{debug, error, trace};
 
-use crate::error::Result;
+use crate::{error::Result, nym_ip_packet_requests_current::request::IpPacketRequest};
 
 const MIXNET_SELF_PING_INTERVAL: Duration = Duration::from_millis(1000);
 

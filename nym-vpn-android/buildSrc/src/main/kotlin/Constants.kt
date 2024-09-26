@@ -1,8 +1,8 @@
 import org.gradle.api.JavaVersion
 
 object Constants {
-	const val VERSION_NAME = "v1.0.9"
-    const val VERSION_CODE = 10900
+	const val VERSION_NAME = "v1.1.0"
+    const val VERSION_CODE = 11000
     const val TARGET_SDK = 34
     const val COMPILE_SDK = 34
     const val MIN_SDK = 24
@@ -33,8 +33,6 @@ object Constants {
 
     const val FDROID = "fdroid"
     const val GENERAL = "general"
-    const val SANDBOX = "sandbox"
-	const val CANARY = "canary"
     const val BUILD_LIB_TASK = "buildDeps"
 
     //licensee

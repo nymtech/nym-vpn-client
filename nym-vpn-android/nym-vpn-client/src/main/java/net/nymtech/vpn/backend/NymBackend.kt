@@ -141,7 +141,6 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	@OptIn(ExperimentalCoroutinesApi::class)
 	private fun onVpnShutdown() {
 		kotlin.runCatching {
-			Timber.d("Stopping vpn service")
 			vpnService.getCompleted().stopSelf()
 			Timber.d("Vpn service stopped")
 		}.onFailure {
@@ -241,6 +240,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		}
 
 		override fun onDestroy() {
+			Timber.d("Vpn service destroyed")
 			currentTunnelHandle.getAndSet(-1)
 			vpnService = CompletableDeferred()
 			super.onDestroy()
@@ -260,6 +260,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		}
 
 		override fun bypass(socket: Int) {
+			Timber.d("Bypassing socket: $socket")
 			protect(socket)
 		}
 
@@ -282,6 +283,11 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 				config.dnsSettings?.servers?.forEach {
 					Timber.d("DNS: $it")
 					addDnsServer(it)
+				}
+
+				config.dnsSettings?.searchDomains?.forEach {
+					Timber.d("Adding search domain $it")
+					addSearchDomain(it)
 				}
 
 				addIpv4Routes(config)
