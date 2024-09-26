@@ -10,9 +10,6 @@ use tun::{AsyncDevice, Device};
 
 use nym_ip_packet_requests::IpPair;
 
-#[cfg(target_os = "linux")]
-use crate::mixnet::SharedMixnetClient;
-
 use crate::tunnel_state_machine::{
     route_handler::RoutingConfig,
     states::{ConnectedState, DisconnectingState},
@@ -77,9 +74,6 @@ impl ConnectingState {
         connected_mixnet: ConnectedMixnet,
         shared_state: &mut SharedState,
     ) -> Result<AnyTunnelHandle> {
-        #[cfg(target_os = "linux")]
-        Self::set_mixnet_client_fwmark(connected_mixnet.mixnet_client.clone()).await;
-
         if shared_state.enable_wireguard {
             Self::start_wireguard_tunnel(connected_mixnet, shared_state).await
         } else {
@@ -111,8 +105,9 @@ impl ConnectingState {
         let routing_config = RoutingConfig::Mixnet {
             enable_ipv6,
             tun_name: tun_name.clone(),
-            #[cfg(not(target_os = "linux"))]
             entry_gateway_address: connected_tunnel.entry_mixnet_gateway_ip(),
+            #[cfg(target_os = "linux")]
+            physical_interface: Self::get_default_interface()?
         };
 
         Self::set_routes(routing_config, shared_state).await?;
@@ -187,25 +182,10 @@ impl ConnectingState {
     }
 
     #[cfg(target_os = "linux")]
-    async fn set_mixnet_client_fwmark(shared_mixnet_client: SharedMixnetClient) {
-        use nix::sys::socket::{self, sockopt::Mark};
-        use std::os::fd::BorrowedFd;
-
-        let gateway_ws_fd = shared_mixnet_client
-            .lock()
-            .await
-            .as_ref()
-            .and_then(|mixnet_client| mixnet_client.gateway_connection().gateway_ws_fd);
-
-        if let Some(gateway_ws_fd) = gateway_ws_fd {
-            let borrowed_fd = unsafe { BorrowedFd::borrow_raw(gateway_ws_fd) };
-            socket::setsockopt(
-                &borrowed_fd,
-                Mark,
-                &crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK,
-            )
-            .expect("failed to set fwmark")
-        }
+    fn get_default_interface() -> Result<String> {
+        netdev::interface::get_default_interface()
+            .map_err(Error::GetDefaultInterface)
+            .map(|iface| iface.name)
     }
 
     async fn set_routes(

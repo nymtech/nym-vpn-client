@@ -1,7 +1,6 @@
 use std::{collections::HashSet, fmt, net::IpAddr};
 
 use ipnetwork::IpNetwork;
-#[cfg(not(target_os = "linux"))]
 use talpid_routing::NetNode;
 use talpid_routing::{Node, RequiredRoute, RouteManager};
 
@@ -14,16 +13,18 @@ pub enum RoutingConfig {
     Mixnet {
         enable_ipv6: bool,
         tun_name: String,
-        #[cfg(not(target_os = "linux"))]
         entry_gateway_address: IpAddr,
+        #[cfg(target_os = "linux")]
+        physical_interface: String,
     },
     Wireguard {
         enable_ipv6: bool,
         entry_tun_name: String,
         exit_tun_name: String,
-        #[cfg(not(target_os = "linux"))]
         entry_gateway_address: IpAddr,
         exit_gateway_address: IpAddr,
+        #[cfg(target_os = "linux")]
+        physical_interface: String,
     },
 }
 
@@ -99,13 +100,20 @@ impl RouteHandler {
             RoutingConfig::Mixnet {
                 enable_ipv6,
                 tun_name,
-                #[cfg(not(target_os = "linux"))]
                 entry_gateway_address,
+                #[cfg(target_os = "linux")]
+                physical_interface
             } => {
                 #[cfg(not(target_os = "linux"))]
                 routes.insert(RequiredRoute::new(
                     IpNetwork::from(entry_gateway_address),
                     NetNode::DefaultNode,
+                ));
+                // todo: remove once firewall/fwmark is active.
+                #[cfg(target_os = "linux")]
+                routes.insert(RequiredRoute::new(
+                    IpNetwork::from(entry_gateway_address),
+                    NetNode::RealNode(Node::device(physical_interface))
                 ));
 
                 routes.insert(RequiredRoute::new(
@@ -124,14 +132,21 @@ impl RouteHandler {
                 enable_ipv6,
                 entry_tun_name,
                 exit_tun_name,
-                #[cfg(not(target_os = "linux"))]
                 entry_gateway_address,
                 exit_gateway_address,
+                #[cfg(target_os = "linux")]
+                physical_interface
             } => {
                 #[cfg(not(target_os = "linux"))]
                 routes.insert(RequiredRoute::new(
                     IpNetwork::from(entry_gateway_address),
                     NetNode::DefaultNode,
+                ));
+                // todo: remove once firewall/fwmark is active.
+                #[cfg(target_os = "linux")]
+                routes.insert(RequiredRoute::new(
+                    IpNetwork::from(entry_gateway_address),
+                    NetNode::RealNode(Node::device(physical_interface)),
                 ));
 
                 routes.insert(RequiredRoute::new(

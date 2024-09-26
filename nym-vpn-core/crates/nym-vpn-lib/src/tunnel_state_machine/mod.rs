@@ -190,6 +190,10 @@ pub enum Error {
     #[error("failed to obtain route handle: {}", _0)]
     GetRouteHandle(#[source] route_handler::Error),
 
+    #[cfg(target_os = "linux")]
+    #[error("failed to obtain default interface: {}", _0)]
+    GetDefaultInterface(String),
+
     #[error("failed to get tunnel device name")]
     GetTunDeviceName(#[source] tun::Error),
 
@@ -233,6 +237,7 @@ impl Error {
                 ErrorStateReason::EstablishMixnetConnection
             }
             Self::GetRouteHandle(_) => ErrorStateReason::Internal,
+            #[cfg(target_os = "linux")] Self::GetDefaultInterface => ErrorStateReason::Internal,
         }
     }
 }
