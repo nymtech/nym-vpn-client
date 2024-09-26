@@ -100,7 +100,7 @@ impl ConnectingState {
         let mtu = shared_state.config.nym_mtu.unwrap_or(DEFAULT_TUN_MTU);
         let interface_addresses = connected_tunnel.interface_addresses();
 
-        let tun_device: AsyncDevice = Self::create_device(interface_addresses, mtu, enable_ipv6)?;
+        let tun_device = Self::create_mixnet_device(interface_addresses, mtu, enable_ipv6)?;
         let tun_name = tun_device
             .get_ref()
             .name()
@@ -135,27 +135,22 @@ impl ConnectingState {
         let enable_ipv6 = false;
         let conn_data = connected_tunnel.connection_data();
 
-        let mut entry_config = tun::Configuration::default();
-        entry_config
-            .address(conn_data.entry.gateway.private_ipv4)
-            .netmask(Ipv4Addr::BROADCAST)
-            .mtu(i32::from(connected_tunnel.entry_mtu()))
-            .up();
-        let entry_tun = tun::create_as_async(&entry_config).map_err(Error::CreateTunDevice)?;
+        let entry_tun = Self::create_wireguard_device(
+            conn_data.entry.gateway.private_ipv4,
+            None,
+            connected_tunnel.entry_mtu(),
+        )?;
         let entry_tun_name = entry_tun
             .get_ref()
             .name()
             .map_err(Error::GetTunDeviceName)?;
         tracing::info!("Created entry tun device: {}", entry_tun_name);
 
-        let mut exit_config = tun::Configuration::default();
-        exit_config
-            .address(conn_data.exit.gateway.private_ipv4)
-            .netmask(Ipv4Addr::BROADCAST)
-            .destination(conn_data.entry.gateway.private_ipv4)
-            .mtu(i32::from(connected_tunnel.exit_mtu()))
-            .up();
-        let exit_tun = tun::create_as_async(&exit_config).map_err(Error::CreateTunDevice)?;
+        let exit_tun = Self::create_wireguard_device(
+            conn_data.exit.gateway.private_ipv4,
+            Some(conn_data.entry.gateway.private_ipv4),
+            connected_tunnel.exit_mtu(),
+        )?;
         let exit_tun_name = exit_tun.get_ref().name().map_err(Error::GetTunDeviceName)?;
         tracing::info!("Created exit tun device: {}", exit_tun_name);
 
@@ -223,7 +218,7 @@ impl ConnectingState {
             .map_err(Error::AddRoutes)
     }
 
-    fn create_device(
+    fn create_mixnet_device(
         interface_addresses: IpPair,
         mtu: u16,
         enable_ipv6: bool,
@@ -253,6 +248,31 @@ impl ConnectingState {
         }
 
         Ok(tun_device)
+    }
+
+    fn create_wireguard_device(
+        interface_addr: Ipv4Addr,
+        destination: Option<Ipv4Addr>,
+        mtu: u16,
+    ) -> Result<AsyncDevice> {
+        let mut tun_config = tun::Configuration::default();
+
+        tun_config
+            .address(interface_addr)
+            .netmask(Ipv4Addr::BROADCAST)
+            .mtu(i32::from(mtu))
+            .up();
+
+        if let Some(destination) = destination {
+            tun_config.destination(destination);
+        }
+
+        #[cfg(target_os = "linux")]
+        tun_config.platform(|platform_config| {
+            platform_config.packet_information(false);
+        });
+
+        tun::create_as_async(&tun_config).map_err(Error::CreateTunDevice)
     }
 }
 

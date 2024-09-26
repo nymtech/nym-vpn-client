@@ -30,6 +30,7 @@ pub enum RoutingConfig {
 }
 
 impl RoutingConfig {
+    #[cfg(target_os = "linux")]
     pub fn enable_ipv6(&self) -> bool {
         match self {
             Self::Mixnet { enable_ipv6, .. } => *enable_ipv6,
@@ -55,6 +56,7 @@ impl RouteHandler {
     }
 
     pub async fn add_routes(&mut self, routing_config: RoutingConfig) -> Result<()> {
+        #[cfg(target_os = "linux")]
         let enable_ipv6 = routing_config.enable_ipv6();
         let routes = Self::get_routes(routing_config);
 
