@@ -2,6 +2,7 @@
 use std::net::IpAddr;
 use std::{collections::HashSet, fmt};
 
+use ipnetwork::IpNetwork;
 #[cfg(not(target_os = "linux"))]
 use talpid_routing::NetNode;
 use talpid_routing::{Node, RequiredRoute, RouteManager};
@@ -10,6 +11,32 @@ use talpid_routing::{Node, RequiredRoute, RouteManager};
 pub const TUNNEL_TABLE_ID: u32 = 0x14d;
 #[cfg(target_os = "linux")]
 pub const TUNNEL_FWMARK: u32 = 0x14d;
+
+pub enum RoutingConfig {
+    Mixnet {
+        enable_ipv6: bool,
+        tun_name: String,
+        #[cfg(not(target_os = "linux"))]
+        entry_gateway_address: IpAddr,
+    },
+    Wireguard {
+        enable_ipv6: bool,
+        entry_tun_name: String,
+        exit_tun_name: String,
+        #[cfg(not(target_os = "linux"))]
+        entry_gateway_address: IpAddr,
+        exit_gateway_address: IpAddr,
+    },
+}
+
+impl RoutingConfig {
+    pub fn enable_ipv6(&self) -> bool {
+        match self {
+            Self::Mixnet { enable_ipv6, .. } => *enable_ipv6,
+            Self::Wireguard { enable_ipv6, .. } => *enable_ipv6,
+        }
+    }
+}
 
 pub struct RouteHandler {
     route_manager: RouteManager,
@@ -27,30 +54,64 @@ impl RouteHandler {
         Ok(Self { route_manager })
     }
 
-    pub async fn add_routes(
-        &mut self,
-        tun_name: &str,
-        #[cfg(not(target_os = "linux"))] entry_gateway_address: IpAddr,
-        enable_ipv6: bool,
-    ) -> Result<()> {
+    pub async fn add_routes(&mut self, routing_config: RoutingConfig) -> Result<()> {
         let mut routes = HashSet::new();
 
-        #[cfg(not(target_os = "linux"))]
-        routes.insert(RequiredRoute::new(
-            ipnetwork::IpNetwork::from(entry_gateway_address),
-            NetNode::DefaultNode,
-        ));
+        match routing_config {
+            RoutingConfig::Mixnet {
+                enable_ipv6,
+                tun_name,
+                #[cfg(not(target_os = "linux"))]
+                entry_gateway_address,
+            } => {
+                #[cfg(not(target_os = "linux"))]
+                routes.insert(RequiredRoute::new(
+                    IpNetwork::from(entry_gateway_address),
+                    NetNode::DefaultNode,
+                ));
 
-        routes.insert(RequiredRoute::new(
-            "0.0.0.0/0".parse().unwrap(),
-            Node::device(tun_name.to_owned()),
-        ));
+                routes.insert(RequiredRoute::new(
+                    "0.0.0.0/0".parse().unwrap(),
+                    Node::device(tun_name.to_owned()),
+                ));
 
-        if enable_ipv6 {
-            routes.insert(RequiredRoute::new(
-                "::0/0".parse().unwrap(),
-                Node::device(tun_name.to_owned()),
-            ));
+                if enable_ipv6 {
+                    routes.insert(RequiredRoute::new(
+                        "::0/0".parse().unwrap(),
+                        Node::device(tun_name.to_owned()),
+                    ));
+                }
+            }
+            RoutingConfig::Wireguard {
+                enable_ipv6,
+                entry_tun_name,
+                exit_tun_name,
+                entry_gateway_address,
+                exit_gateway_address,
+            } => {
+                #[cfg(not(target_os = "linux"))]
+                routes.insert(RequiredRoute::new(
+                    IpNetwork::from(entry_gateway_address),
+                    NetNode::DefaultNode,
+                ));
+
+                routes.insert(RequiredRoute::new(
+                    IpNetwork::from(exit_gateway_address),
+                    Node::device(entry_tun_name.to_owned()),
+                ));
+
+                routes.insert(RequiredRoute::new(
+                    "0.0.0.0/0".parse().unwrap(),
+                    Node::device(exit_tun_name.to_owned()),
+                ));
+
+                if enable_ipv6 {
+                    routes.insert(RequiredRoute::new(
+                        "::0/0".parse().unwrap(),
+                        Node::device(exit_tun_name.to_owned()),
+                    ));
+                }
+            }
         }
 
         #[cfg(target_os = "linux")]
@@ -62,7 +123,9 @@ impl RouteHandler {
         }
 
         #[cfg(target_os = "linux")]
-        self.route_manager.create_routing_rules(enable_ipv6).await?;
+        self.route_manager
+            .create_routing_rules(routing_config.enable_ipv6())
+            .await?;
 
         self.route_manager.add_routes(routes).await?;
 

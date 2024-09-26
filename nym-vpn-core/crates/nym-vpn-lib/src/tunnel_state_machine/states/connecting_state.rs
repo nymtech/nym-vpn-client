@@ -1,5 +1,3 @@
-#[cfg(not(target_os = "linux"))]
-use std::net::IpAddr;
 use std::net::Ipv4Addr;
 
 use futures::{
@@ -16,6 +14,7 @@ use nym_ip_packet_requests::IpPair;
 use crate::mixnet::SharedMixnetClient;
 
 use crate::tunnel_state_machine::{
+    route_handler::RoutingConfig,
     states::{ConnectedState, DisconnectingState},
     tun_ipv6,
     tunnel::{self, any_tunnel_handle::AnyTunnelHandle, ConnectedMixnet},
@@ -109,14 +108,14 @@ impl ConnectingState {
 
         tracing::debug!("Created tun device: {}", tun_name);
 
-        Self::set_routes(
-            &tun_name,
-            #[cfg(not(target_os = "linux"))]
-            connected_tunnel.entry_mixnet_gateway_ip(),
+        let routing_config = RoutingConfig::Mixnet {
             enable_ipv6,
-            shared_state,
-        )
-        .await?;
+            tun_name: tun_name.clone(),
+            #[cfg(not(target_os = "linux"))]
+            entry_gateway_address: connected_tunnel.entry_mixnet_gateway_ip(),
+        };
+
+        Self::set_routes(routing_config, shared_state).await?;
         Self::set_dns(&tun_name, shared_state)?;
 
         Ok(AnyTunnelHandle::from(
@@ -157,17 +156,18 @@ impl ConnectingState {
             .mtu(i32::from(connected_tunnel.exit_mtu()))
             .up();
         let exit_tun = tun::create_as_async(&exit_config).map_err(Error::CreateTunDevice)?;
-        let exit_tun_name = exit_tun.get_ref().name().map_err(Error::GetTunDeviceName)?;
+        let exit_tun_name: String = exit_tun.get_ref().name().map_err(Error::GetTunDeviceName)?;
         tracing::info!("Created exit tun device: {}", exit_tun_name);
 
-        Self::set_routes(
-            &exit_tun_name,
-            #[cfg(not(target_os = "linux"))]
-            conn_data.entry.gateway.endpoint.ip(),
+        let routing_config = RoutingConfig::Wireguard {
             enable_ipv6,
-            shared_state,
-        )
-        .await?;
+            entry_tun_name,
+            exit_tun_name: exit_tun_name.clone(),
+            entry_gateway_address: conn_data.entry.gateway.endpoint.ip(),
+            exit_gateway_address: conn_data.exit.gateway.endpoint.ip(),
+        };
+
+        Self::set_routes(routing_config, shared_state).await?;
         Self::set_dns(&exit_tun_name, shared_state)?;
 
         Ok(AnyTunnelHandle::from(
@@ -213,19 +213,12 @@ impl ConnectingState {
     }
 
     async fn set_routes(
-        tun_name: &str,
-        #[cfg(not(target_os = "linux"))] entry_gateway_ip: IpAddr,
-        enable_ipv6: bool,
+        routing_config: RoutingConfig,
         shared_state: &mut SharedState,
     ) -> Result<()> {
         shared_state
             .route_handler
-            .add_routes(
-                tun_name,
-                #[cfg(not(target_os = "linux"))]
-                entry_gateway_ip,
-                enable_ipv6,
-            )
+            .add_routes(routing_config)
             .await
             .map_err(Error::AddRoutes)
     }
