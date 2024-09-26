@@ -175,19 +175,19 @@ impl TunnelStateMachine {
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("failed to create a route handler")]
+    #[error("failed to create a route handler: {}", _0)]
     CreateRouteHandler(#[source] route_handler::Error),
 
-    #[error("failed to create a dns handler")]
+    #[error("failed to create a dns handler: {}", _0)]
     CreateDnsHandler(#[source] dns_handler::Error),
 
-    #[error("failed to create firewall handler")]
+    #[error("failed to create firewall handler: {}", _0)]
     CreateFirewallHandler(#[source] firewall_handler::Error),
 
-    #[error("failed to create tunnel device")]
+    #[error("failed to create tunnel device: {}", _0)]
     CreateTunDevice(#[source] tun::Error),
 
-    #[error("failed to obtain route handle")]
+    #[error("failed to obtain route handle: {}", _0)]
     GetRouteHandle(#[source] route_handler::Error),
 
     #[error("failed to get tunnel device name")]
@@ -199,19 +199,19 @@ pub enum Error {
     #[error("failed to add routes: {}", _0)]
     AddRoutes(#[source] route_handler::Error),
 
-    #[error("failed to set dns")]
+    #[error("failed to set dns: {}", _0)]
     SetDns(#[source] dns_handler::Error),
 
-    #[error("failed to connect mixnet client")]
+    #[error("failed to connect mixnet client: {}", _0)]
     ConnectMixnetClient(#[source] tunnel::Error),
 
-    #[error("failed to connect mixnet tunnel")]
+    #[error("failed to connect mixnet tunnel: {}", _0)]
     ConnectMixnetTunnel(#[source] tunnel::Error),
 
-    #[error("failed to connect wireguard tunnel")]
+    #[error("failed to connect wireguard tunnel: {}", _0)]
     ConnectWireguardTunnel(#[source] tunnel::Error),
 
-    #[error("failed to run wireguard tunnel")]
+    #[error("failed to run wireguard tunnel: {}", _0)]
     RunWireguardTunnel(#[source] tunnel::Error),
 }
 
