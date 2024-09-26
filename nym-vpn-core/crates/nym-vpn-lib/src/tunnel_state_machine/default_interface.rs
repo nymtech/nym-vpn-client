@@ -1,6 +1,8 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::net::IpAddr;
+
 use super::{Error, Result};
 
 pub struct DefaultInterface {
@@ -20,10 +22,10 @@ impl DefaultInterface {
     }
 
     pub fn gateway_ip(&self) -> Option<IpAddr> {
-        if let Some(addr) = self.inner.gateway?.ipv4.first() {
-            Some(IpAddr::from(addr))
-        } else if let Some(addr) = self.inner.gateway?.ipv6.first() {
-            Some(IpAddr::from(addr))
+        if let Some(addr) = self.inner.gateway.as_ref()?.ipv4.first() {
+            Some(IpAddr::from(*addr))
+        } else if let Some(addr) = self.inner.gateway.as_ref()?.ipv6.first() {
+            Some(IpAddr::from(*addr))
         } else {
             None
         }

@@ -4,7 +4,9 @@
 use std::{collections::HashSet, fmt, net::IpAddr};
 
 use ipnetwork::IpNetwork;
-use talpid_routing::{NetNode, Node, RequiredRoute, RouteManager};
+#[cfg(not(target_os = "linux"))]
+use talpid_routing::NetNode;
+use talpid_routing::{Node, RequiredRoute, RouteManager};
 
 use super::default_interface::DefaultInterface;
 
@@ -74,7 +76,12 @@ impl RouteHandler {
         #[cfg(target_os = "linux")]
         let enable_ipv6 = routing_config.enable_ipv6();
         let routes = Self::get_routes(routing_config);
+
+        #[cfg(target_os = "linux")]
+        self.route_manager.create_routing_rules(enable_ipv6).await?;
+
         self.route_manager.add_routes(routes).await?;
+
         Ok(())
     }
 

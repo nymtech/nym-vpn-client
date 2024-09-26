@@ -14,7 +14,7 @@ use tun::{AsyncDevice, Device};
 use nym_ip_packet_requests::IpPair;
 
 #[cfg(target_os = "linux")]
-use super::default_interface::DefaultInterface;
+use crate::tunnel_state_machine::default_interface::DefaultInterface;
 
 use crate::tunnel_state_machine::{
     route_handler::RoutingConfig,
