@@ -82,8 +82,9 @@ impl Tunnel {
             CString::new(config.as_uapi_config()).map_err(|_| Error::ConfigContainsNulByte)?;
         let handle = unsafe {
             wgTurnOn(
+                // note: not all platforms accept mtu = 0
                 #[cfg(unix)]
-                0, // pass zero mtu to prevent wg-go from setting it
+                i32::from(config.interface.mtu),
                 settings.as_ptr(),
                 tun_fd,
                 wg_logger_callback,
