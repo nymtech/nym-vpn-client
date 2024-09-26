@@ -158,6 +158,7 @@ impl ConnectingState {
             enable_ipv6,
             entry_tun_name,
             exit_tun_name: exit_tun_name.clone(),
+            #[cfg(not(target_os = "linux"))]
             entry_gateway_address: conn_data.entry.endpoint.ip(),
             exit_gateway_address: conn_data.exit.endpoint.ip(),
         };

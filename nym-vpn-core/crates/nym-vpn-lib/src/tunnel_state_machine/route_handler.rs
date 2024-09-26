@@ -1,4 +1,3 @@
-#[cfg(not(target_os = "linux"))]
 use std::net::IpAddr;
 use std::{collections::HashSet, fmt};
 
@@ -126,6 +125,7 @@ impl RouteHandler {
                 enable_ipv6,
                 entry_tun_name,
                 exit_tun_name,
+                #[cfg(not(target_os = "linux"))]
                 entry_gateway_address,
                 exit_gateway_address,
             } => {
