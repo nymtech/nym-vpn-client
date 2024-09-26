@@ -54,15 +54,12 @@ impl RouteHandler {
         Ok(Self { route_manager })
     }
 
-
     pub async fn add_routes(&mut self, routing_config: RoutingConfig) -> Result<()> {
         let enable_ipv6 = routing_config.enable_ipv6();
-        let routes = self.get_routes(routing_config);
+        let routes = Self::get_routes(routing_config);
 
         #[cfg(target_os = "linux")]
-        self.route_manager
-            .create_routing_rules(enable_ipv6)
-            .await?;
+        self.route_manager.create_routing_rules(enable_ipv6).await?;
 
         self.route_manager.add_routes(routes).await?;
 
@@ -95,8 +92,7 @@ impl RouteHandler {
         Ok(self.route_manager.handle()?)
     }
 
-
-    fn get_routes(&self, routing_config: RoutingConfig) -> HashSet<RequiredRoute> {
+    fn get_routes(routing_config: RoutingConfig) -> HashSet<RequiredRoute> {
         let mut routes = HashSet::new();
 
         match routing_config {
@@ -155,7 +151,6 @@ impl RouteHandler {
                 }
             }
         }
-
 
         #[cfg(target_os = "linux")]
         {
