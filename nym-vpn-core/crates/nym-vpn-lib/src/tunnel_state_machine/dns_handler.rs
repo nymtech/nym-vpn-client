@@ -58,7 +58,9 @@ impl DnsHandler {
     }
 
     pub fn set(&mut self, interface: &str, servers: &[IpAddr]) -> Result<()> {
-        Ok(self.inner.set(interface, servers)?)
+        Ok(tokio::task::block_in_place(|| {
+            self.inner.set(interface, servers)
+        })?)
     }
 
     pub fn reset(&mut self) -> Result<()> {
