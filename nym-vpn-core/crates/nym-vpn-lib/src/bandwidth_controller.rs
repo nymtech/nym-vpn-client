@@ -5,14 +5,20 @@ use nym_sdk::TaskClient;
 
 use crate::mixnet::SharedMixnetClient;
 
-pub(crate) struct BandwidthController {
+pub(crate) struct BandwidthController<C, St> {
+    inner: nym_bandwidth_controller::BandwidthController<C, St>,
     shared_mixnet_client: SharedMixnetClient,
     shutdown: TaskClient,
 }
 
-impl BandwidthController {
-    pub(crate) fn new(shared_mixnet_client: SharedMixnetClient, shutdown: TaskClient) -> Self {
+impl<C, St> BandwidthController<C, St> {
+    pub(crate) fn new(
+        inner: nym_bandwidth_controller::BandwidthController<C, St>,
+        shared_mixnet_client: SharedMixnetClient,
+        shutdown: TaskClient,
+    ) -> Self {
         BandwidthController {
+            inner,
             shared_mixnet_client,
             shutdown,
         }

@@ -254,6 +254,12 @@ pub enum ConnectionFailedError {
 
     #[error("mixnet connection monitor error: {0}")]
     MixnetConnectionMonitorError(String),
+
+    #[error("storage error: {path}: {error}")]
+    StorageError { path: PathBuf, error: String },
+
+    #[error("nyxd client connection error: {reason}")]
+    NyxdClientError { reason: String },
 }
 
 impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
@@ -304,6 +310,7 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                 nym_vpn_lib::MixnetError::ConnectionMonitorError(_) => {
                     ConnectionFailedError::MixnetConnectionMonitorError(err.to_string())
                 }
+                nym_vpn_lib::MixnetError::NyxdClientError(reason) => ConnectionFailedError::NyxdClientError { reason: reason.to_string() },
             },
             nym_vpn_lib::Error::SetupMixTunnelError(e) => match e {
                 nym_vpn_lib::SetupMixTunnelError::FailedToLookupGatewayIp {
@@ -355,6 +362,8 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                 }
             },
             nym_vpn_lib::Error::SetupWgTunnelError(e) => match e {
+                nym_vpn_lib::SetupWgTunnelError::CredentialStoreError{ path, source } => ConnectionFailedError::StorageError { path: path.clone(), error: source.to_string() },
+                nym_vpn_lib::SetupWgTunnelError::NyxdClientError { source } => ConnectionFailedError::NyxdClientError { reason: source.to_string() },
                 nym_vpn_lib::SetupWgTunnelError::NotEnoughBandwidthToSetupTunnel {
                     gateway_id,
                     authenticator_address,

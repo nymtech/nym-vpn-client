@@ -3,7 +3,6 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use nym_credential_storage_pre_ecash::persistent_storage::PersistentStorage;
 use nym_sdk::{mixnet::StoragePaths, NymNetworkDetails};
 use nym_validator_client::{
     nyxd::{Config as NyxdClientConfig, NyxdClient},
@@ -30,6 +29,12 @@ pub enum CredentialStoreError {
 
     #[error("failed to initialize persistent storage: {path}: {source}")]
     FailedToInitializePersistentStorage {
+        path: PathBuf,
+        source: nym_credential_storage::error::StorageError,
+    },
+
+    #[error("failed to initialize pre-ecash persistent storage: {path}: {source}")]
+    FailedToInitializePreEcashPersistentStorage {
         path: PathBuf,
         source: nym_credential_storage_pre_ecash::error::StorageError,
     },
@@ -101,9 +106,15 @@ async fn migrate_to_forked_credential_db(
     Ok(fork_credential_db_path)
 }
 
-pub(super) async fn get_credentials_store(
+pub async fn get_credentials_store_pre_ecash(
     data_path: PathBuf,
-) -> Result<(PersistentStorage, PathBuf), CredentialStoreError> {
+) -> Result<
+    (
+        nym_credential_storage_pre_ecash::persistent_storage::PersistentStorage,
+        PathBuf,
+    ),
+    CredentialStoreError,
+> {
     // Create data_path if it doesn't exist
     std::fs::create_dir_all(&data_path).map_err(|err| {
         CredentialStoreError::FailedToCreateCredentialStoreDirectory {
@@ -132,6 +143,76 @@ pub(super) async fn get_credentials_store(
     );
 
     let storage = nym_credential_storage_pre_ecash::persistent_storage::PersistentStorage::init(
+        fork_credential_db_path.clone(),
+    )
+    .await
+    .map_err(
+        |err| CredentialStoreError::FailedToInitializePreEcashPersistentStorage {
+            path: fork_credential_db_path.clone(),
+            source: err,
+        },
+    )?;
+
+    #[cfg(target_family = "unix")]
+    {
+        use std::{fs, os::unix::fs::PermissionsExt};
+
+        let metadata = fs::metadata(&fork_credential_db_path).map_err(|err| {
+            CredentialStoreError::FailedToReadCredentialStoreMetadata {
+                path: fork_credential_db_path.clone(),
+                source: err,
+            }
+        })?;
+        let mut permissions = metadata.permissions();
+        permissions.set_mode(0o600);
+        fs::set_permissions(&fork_credential_db_path, permissions).map_err(|err| {
+            CredentialStoreError::FailedToSetCredentialStorePermissions {
+                path: fork_credential_db_path.clone(),
+                source: err,
+            }
+        })?;
+    }
+
+    Ok((storage, fork_credential_db_path))
+}
+
+pub async fn get_credentials_store(
+    data_path: PathBuf,
+) -> Result<
+    (
+        nym_credential_storage::persistent_storage::PersistentStorage,
+        PathBuf,
+    ),
+    CredentialStoreError,
+> {
+    // Create data_path if it doesn't exist
+    std::fs::create_dir_all(&data_path).map_err(|err| {
+        CredentialStoreError::FailedToCreateCredentialStoreDirectory {
+            path: data_path.clone(),
+            source: err,
+        }
+    })?;
+
+    let storage_path = StoragePaths::new_from_dir(data_path.clone()).map_err(|err| {
+        CredentialStoreError::FailedToSetupStoragePaths {
+            path: data_path.clone(),
+            source: err,
+        }
+    })?;
+    let credential_db_path = storage_path.credential_database_path;
+    debug!("Credential store: {}", credential_db_path.display());
+
+    // For the freepasses we need to work with a forked db copy as part of the transition to ecash.
+    // The credential path will used again later in the connection phase by the mixnet client where
+    // it will be migrated to a newer schema, and hence become incompatible with this client
+    // credential check.
+    let fork_credential_db_path = migrate_to_forked_credential_db(&credential_db_path).await?;
+    debug!(
+        "Forked credential store: {}",
+        fork_credential_db_path.display()
+    );
+
+    let storage = nym_credential_storage::persistent_storage::PersistentStorage::init(
         fork_credential_db_path.clone(),
     )
     .await
@@ -177,7 +258,7 @@ pub enum CredentialNyxdClientError {
     FailedToConnectUsingNyxdClient(nym_validator_client::nyxd::error::NyxdError),
 }
 
-pub(super) fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient, CredentialNyxdClientError> {
+pub fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient, CredentialNyxdClientError> {
     let network = NymNetworkDetails::new_from_env();
     let config = NyxdClientConfig::try_from_nym_network_details(&network)
         .map_err(CredentialNyxdClientError::FailedToCreateNyxdClientConfig)?;

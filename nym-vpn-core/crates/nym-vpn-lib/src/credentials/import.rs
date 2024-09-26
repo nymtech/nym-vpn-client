@@ -3,7 +3,7 @@ use std::{fs, path::PathBuf};
 use time::OffsetDateTime;
 use tracing::info;
 
-use super::{helpers::get_credentials_store, CredentialStoreError};
+use super::{helpers::get_credentials_store_pre_ecash, CredentialStoreError};
 
 #[derive(Debug, thiserror::Error)]
 pub enum ImportCredentialError {
@@ -27,7 +27,7 @@ pub async fn import_credential(
 ) -> Result<Option<OffsetDateTime>, ImportCredentialError> {
     info!("Importing credential");
     let (credentials_store, location) =
-        get_credentials_store(data_path.clone())
+        get_credentials_store_pre_ecash(data_path.clone())
             .await
             .map_err(|err| ImportCredentialError::CredentialStoreError {
                 path: data_path,

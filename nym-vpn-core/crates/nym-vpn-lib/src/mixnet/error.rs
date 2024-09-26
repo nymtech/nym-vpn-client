@@ -3,6 +3,8 @@
 
 use std::path::PathBuf;
 
+use crate::credentials::CredentialNyxdClientError;
+
 #[derive(thiserror::Error, Debug)]
 pub enum MixnetError {
     #[error("failed to setup mixnet storage paths: {0}")]
@@ -38,4 +40,7 @@ pub enum MixnetError {
 
     #[error("{0}")]
     ConnectionMonitorError(#[from] nym_connection_monitor::Error),
+
+    #[error("{0}")]
+    NyxdClientError(#[from] CredentialNyxdClientError),
 }

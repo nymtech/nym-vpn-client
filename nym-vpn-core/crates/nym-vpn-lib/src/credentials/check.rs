@@ -7,8 +7,8 @@ use nym_credentials_pre_ecash::{
 use tracing::debug;
 
 use super::{
-    helpers::{get_credentials_store, get_nyxd_client},
-    CredentialNyxdClientError, CredentialStoreError,
+    get_credentials_store_pre_ecash, helpers::get_nyxd_client, CredentialNyxdClientError,
+    CredentialStoreError,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -129,7 +129,7 @@ pub async fn check_imported_credential(
     gateway_id: &str,
 ) -> Result<(), CheckImportedCredentialError> {
     let client = get_nyxd_client()?;
-    let (credentials_store, _location) = get_credentials_store(data_path.clone()).await?;
+    let (credentials_store, _location) = get_credentials_store_pre_ecash(data_path.clone()).await?;
     let bandwidth_controller = BandwidthController::new(credentials_store, client);
     let _usable_credential = bandwidth_controller
         .get_next_usable_credential(gateway_id)

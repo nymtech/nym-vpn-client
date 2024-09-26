@@ -20,6 +20,7 @@ use tokio::time::timeout;
 
 use crate::{
     bandwidth_controller::BandwidthController,
+    credentials::{get_credentials_store, get_nyxd_client},
     error::{Error, GatewayDirectoryError, Result, SetupMixTunnelError, SetupWgTunnelError},
     mixnet, platform,
     routing::{self, catch_all_ipv4, catch_all_ipv6, replace_default_prefixes},
@@ -103,6 +104,21 @@ async fn wait_interface_up(
     }
 }
 
+fn spawn_bandwidth_controller<
+    C: Send + 'static,
+    St: nym_credential_storage::storage::Storage + 'static,
+>(
+    client: C,
+    storage: St,
+    mixnet_client: mixnet::SharedMixnetClient,
+    task_manager: &mut TaskManager,
+) {
+    let inner = nym_bandwidth_controller::BandwidthController::new(storage, client);
+    let bandwidth_controller =
+        BandwidthController::new(inner, mixnet_client, task_manager.subscribe());
+    tokio::spawn(bandwidth_controller.run());
+}
+
 async fn setup_wg_tunnel(
     nym_vpn: &mut NymVpn<WireguardVpn>,
     mixnet_client: mixnet::SharedMixnetClient,
@@ -122,9 +138,32 @@ async fn setup_wg_tunnel(
     // 1440 - (40 + 8 + 32)
     let exit_mtu = 1360;
 
-    let bandwidth_controller =
-        BandwidthController::new(mixnet_client.clone(), task_manager.subscribe());
-    tokio::spawn(bandwidth_controller.run());
+    let client =
+        get_nyxd_client().map_err(|source| SetupWgTunnelError::NyxdClientError { source })?;
+    if let Some(data_path) = nym_vpn.generic_config.data_path.clone() {
+        let credentials_store = get_credentials_store(data_path.clone())
+            .await
+            .map_err(|source| SetupWgTunnelError::CredentialStoreError {
+                path: data_path,
+                source,
+            })?
+            .0;
+        spawn_bandwidth_controller(
+            client,
+            credentials_store,
+            mixnet_client.clone(),
+            task_manager,
+        );
+    } else {
+        let credentials_store =
+            nym_credential_storage::ephemeral_storage::EphemeralStorage::default();
+        spawn_bandwidth_controller(
+            client,
+            credentials_store,
+            mixnet_client.clone(),
+            task_manager,
+        );
+    };
 
     let (Some(entry_auth_recipient), Some(exit_auth_recipient)) =
         (auth_addresses.entry().0, auth_addresses.exit().0)

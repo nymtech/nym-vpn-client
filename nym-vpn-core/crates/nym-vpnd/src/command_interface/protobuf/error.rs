@@ -456,6 +456,21 @@ impl From<ConnectionFailedError> for ProtoError {
                     "reason".to_string() => reason.to_string(),
                 },
             },
+            ConnectionFailedError::StorageError { path, error } => ProtoError {
+                kind: ErrorType::Storage as i32,
+                message: error.to_string(),
+                details: hashmap! {
+                    "path".to_string() => path.to_string_lossy().to_string(),
+                    "reason".to_string() => error.to_string()
+                },
+            },
+            ConnectionFailedError::NyxdClientError { ref reason } => ProtoError {
+                kind: ErrorType::NyxdClient as i32,
+                message: reason.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.to_string()
+                },
+            },
         }
     }
 }
