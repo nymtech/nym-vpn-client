@@ -1,0 +1,48 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+platform :mac do
+  desc "Bump version"
+  lane :bump_version do
+    # Get the app version from ARGV, assuming it's the third argument (ARGV[2])
+    app_version = ARGV[2]
+
+    puts "App version to set: #{app_version}"
+
+    if app_version.nil? || app_version.strip.empty?
+      UI.user_error!("App version is missing. Please provide an app version, e.g., 'fastlane mac bump_version 1.3'")
+    end
+
+    project_path = '../NymVPN.xcodeproj'
+    project = Xcodeproj::Project.open(project_path)
+
+    allowTargets = ["NymVPN", "NymMixnetTunnel", "NymVPNDaemon"]
+    
+    project.targets.each do |projectTarget|
+      if allowTargets.include?(projectTarget.name)
+        projectTarget.build_configurations.each do |configuration|
+          # Set the MARKETING_VERSION to the provided app_version
+          configuration.build_settings["MARKETING_VERSION"] = app_version
+
+          # Increment CURRENT_PROJECT_VERSION
+          newBundleVersion = (configuration.build_settings["CURRENT_PROJECT_VERSION"].to_i + 1).to_s
+          configuration.build_settings["CURRENT_PROJECT_VERSION"] = newBundleVersion
+        end
+      end
+    end
+
+    project.save()
+  end
+end
