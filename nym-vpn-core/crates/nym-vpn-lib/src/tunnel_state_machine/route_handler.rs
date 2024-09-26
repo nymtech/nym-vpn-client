@@ -54,7 +54,49 @@ impl RouteHandler {
         Ok(Self { route_manager })
     }
 
+
     pub async fn add_routes(&mut self, routing_config: RoutingConfig) -> Result<()> {
+        let enable_ipv6 = routing_config.enable_ipv6();
+        let routes = self.get_routes(routing_config);
+
+        #[cfg(target_os = "linux")]
+        self.route_manager
+            .create_routing_rules(enable_ipv6)
+            .await?;
+
+        self.route_manager.add_routes(routes).await?;
+
+        Ok(())
+    }
+
+    pub async fn remove_routes(&mut self) {
+        if let Err(e) = self.route_manager.clear_routes() {
+            tracing::error!("Failed to remove routes: {}", e);
+        }
+
+        #[cfg(target_os = "linux")]
+        if let Err(e) = self.route_manager.clear_routing_rules().await {
+            tracing::error!("Failed to remove routing rules: {}", e);
+        }
+    }
+
+    pub async fn stop(mut self) {
+        #[cfg(windows)]
+        self.route_manager.stop();
+
+        #[cfg(not(windows))]
+        self.route_manager.stop().await;
+
+        _ = tokio::task::spawn_blocking(|| drop(self.route_manager)).await;
+    }
+
+    #[cfg(target_os = "linux")]
+    pub(super) fn inner_handle(&self) -> Result<talpid_routing::RouteManagerHandle> {
+        Ok(self.route_manager.handle()?)
+    }
+
+
+    fn get_routes(&self, routing_config: RoutingConfig) -> HashSet<RequiredRoute> {
         let mut routes = HashSet::new();
 
         match routing_config {
@@ -114,6 +156,7 @@ impl RouteHandler {
             }
         }
 
+
         #[cfg(target_os = "linux")]
         {
             routes = routes
@@ -122,40 +165,7 @@ impl RouteHandler {
                 .collect();
         }
 
-        #[cfg(target_os = "linux")]
-        self.route_manager
-            .create_routing_rules(routing_config.enable_ipv6())
-            .await?;
-
-        self.route_manager.add_routes(routes).await?;
-
-        Ok(())
-    }
-
-    pub async fn remove_routes(&mut self) {
-        if let Err(e) = self.route_manager.clear_routes() {
-            tracing::error!("Failed to remove rules: {}", e);
-        }
-
-        #[cfg(target_os = "linux")]
-        if let Err(e) = self.route_manager.clear_routing_rules().await {
-            tracing::error!("Failed to remove routing rules: {}", e);
-        }
-    }
-
-    pub async fn stop(mut self) {
-        #[cfg(windows)]
-        self.route_manager.stop();
-
-        #[cfg(not(windows))]
-        self.route_manager.stop().await;
-
-        _ = tokio::task::spawn_blocking(|| drop(self.route_manager)).await;
-    }
-
-    #[cfg(target_os = "linux")]
-    pub(super) fn inner_handle(&self) -> Result<talpid_routing::RouteManagerHandle> {
-        Ok(self.route_manager.handle()?)
+        routes
     }
 }
 

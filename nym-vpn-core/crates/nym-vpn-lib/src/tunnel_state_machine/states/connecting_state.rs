@@ -156,7 +156,7 @@ impl ConnectingState {
             .mtu(i32::from(connected_tunnel.exit_mtu()))
             .up();
         let exit_tun = tun::create_as_async(&exit_config).map_err(Error::CreateTunDevice)?;
-        let exit_tun_name: String = exit_tun.get_ref().name().map_err(Error::GetTunDeviceName)?;
+        let exit_tun_name = exit_tun.get_ref().name().map_err(Error::GetTunDeviceName)?;
         tracing::info!("Created exit tun device: {}", exit_tun_name);
 
         let routing_config = RoutingConfig::Wireguard {
