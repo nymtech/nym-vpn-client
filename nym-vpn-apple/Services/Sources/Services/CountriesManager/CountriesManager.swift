@@ -40,11 +40,12 @@ public final class CountriesManager: ObservableObject {
 #endif
     var isLoading = false
     var timer: Timer?
-    var entryLastHopStore = EntryLastHopStore()
+    var countryStore = CountryStore()
     var cancellables = Set<AnyCancellable>()
 
     @Published public var entryCountries: [Country]
     @Published public var exitCountries: [Country]
+    @Published public var vpnCountries: [Country]
     @Published public var lastError: Error?
 
 #if os(iOS)
@@ -56,6 +57,7 @@ public final class CountriesManager: ObservableObject {
         self.configurationManager = configurationManager
         self.entryCountries = []
         self.exitCountries = []
+        self.vpnCountries = []
 
         setup()
     }
@@ -74,6 +76,7 @@ public final class CountriesManager: ObservableObject {
         self.helperManager = helperManager
         self.entryCountries = []
         self.exitCountries = []
+        self.vpnCountries = []
 
         setup()
     }
@@ -135,7 +138,8 @@ private extension CountriesManager {
 private extension CountriesManager {
     func loadPrebundledCountries() {
         guard let entryCountriesURL = Bundle.main.url(forResource: "gatewaysEntryCountries", withExtension: "json"),
-              let exitCountriesURL = Bundle.main.url(forResource: "gatewaysExitCountries", withExtension: "json")
+              let exitCountriesURL = Bundle.main.url(forResource: "gatewaysExitCountries", withExtension: "json"),
+              let vpnCountriesURL = Bundle.main.url(forResource: "vpnCountries", withExtension: "json")
         else {
             updateError(with: GeneralNymError.noPrebundledCountries)
             return
@@ -144,12 +148,15 @@ private extension CountriesManager {
         do {
             let prebundledEntryCountries = try loadPrebundledCountries(from: entryCountriesURL)
             let prebundledExitCountries = try loadPrebundledCountries(from: exitCountriesURL)
+            let prebundledVPNCountries = try loadPrebundledCountries(from: vpnCountriesURL)
 
-            entryLastHopStore.entryCountries = prebundledEntryCountries
-            entryLastHopStore.exitCountries = prebundledExitCountries
+            countryStore.entryCountries = prebundledEntryCountries
+            countryStore.exitCountries = prebundledExitCountries
+            countryStore.vpnCountries = prebundledVPNCountries
 
             entryCountries = prebundledEntryCountries
             exitCountries = prebundledExitCountries
+            vpnCountries = prebundledVPNCountries
         } catch let error {
             updateError(with: error)
             return
@@ -194,11 +201,13 @@ private extension CountriesManager {
             do {
                 try await fetchEntryCountries()
                 try await fetchExitCountries()
+                try await fetchVPNCountries()
             } catch {
                 Task { @MainActor in
                     lastError = error
                 }
             }
+            countryStore.lastFetchDate = Date()
         }
     }
 
@@ -210,8 +219,7 @@ private extension CountriesManager {
             .sorted(by: { $0.name < $1.name })
 
             Task { @MainActor in
-                entryLastHopStore.entryCountries = countries
-                entryLastHopStore.lastFetchDate = Date()
+                countryStore.entryCountries = countries
                 entryCountries = countries
             }
     }
@@ -224,9 +232,20 @@ private extension CountriesManager {
         .sorted(by: { $0.name < $1.name })
 
         Task { @MainActor in
-            entryLastHopStore.exitCountries = countries
-            entryLastHopStore.lastFetchDate = Date()
+            countryStore.exitCountries = countries
             exitCountries = countries
+        }
+    }
+
+    func fetchVPNCountries() async throws {
+        let countryCodes = try await grpcManager.vpnCountryCodes()
+        let countries = countryCodes.compactMap { countryCode in
+            country(with: countryCode)
+        }
+        .sorted(by: { $0.name < $1.name })
+
+        Task { @MainActor in
+            countryStore.vpnCountries = countries
         }
     }
 }
@@ -272,11 +291,25 @@ private extension CountriesManager {
             }
             .sorted(by: { $0.name < $1.name })
 
-            entryLastHopStore.entryCountries = entryCountries
-            entryLastHopStore.exitCountries = exitCountries
-            entryLastHopStore.lastFetchDate = Date()
+            let newVpnLocations = try getGatewayCountries(
+                apiUrl: apiURL,
+                nymVpnApiUrl: configurationManager.nymVpnApiURL,
+                gwType: .wg,
+                userAgent: userAgent,
+                minGatewayPerformance: nil
+            )
+            let newVpnCountries = newVpnLocations.compactMap {
+                country(with: $0.twoLetterIsoCountryCode)
+            }
+            .sorted(by: { $0.name < $1.name })
+
+            countryStore.entryCountries = entryCountries
+            countryStore.exitCountries = exitCountries
+            countryStore.vpnCountries = vpnCountries
+            countryStore.lastFetchDate = Date()
             entryCountries = newEntryCountries
             exitCountries = newExitCountries
+            vpnCountries = newVpnCountries
 
             isLoading = false
         } catch {
@@ -302,7 +335,7 @@ private extension CountriesManager {
 // MARK: - Temp storage -
 private extension CountriesManager {
     func needsReload(shouldFetchEntryCountries: Bool) -> Bool {
-        guard let lastFetchDate = entryLastHopStore.lastFetchDate else { return true }
+        guard let lastFetchDate = countryStore.lastFetchDate else { return true }
         return isLongerThan10Minutes(date: lastFetchDate)
     }
 
@@ -317,8 +350,8 @@ private extension CountriesManager {
 
     func loadTemporaryCountries(shouldFetchEntryCountries: Bool) {
         Task { @MainActor in
-            exitCountries = entryLastHopStore.exitCountries
-            entryCountries = entryLastHopStore.entryCountries
+            exitCountries = countryStore.exitCountries
+            entryCountries = countryStore.entryCountries
         }
     }
 }
