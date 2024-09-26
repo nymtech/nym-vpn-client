@@ -13,6 +13,9 @@ use tun::{AsyncDevice, Device};
 
 use nym_ip_packet_requests::IpPair;
 
+#[cfg(target_os = "linux")]
+use super::default_interface::DefaultInterface;
+
 use crate::tunnel_state_machine::{
     route_handler::RoutingConfig,
     states::{ConnectedState, DisconnectingState},
@@ -110,7 +113,7 @@ impl ConnectingState {
             tun_name: tun_name.clone(),
             entry_gateway_address: connected_tunnel.entry_mixnet_gateway_ip(),
             #[cfg(target_os = "linux")]
-            physical_interface: Self::get_default_interface()?,
+            physical_interface: DefaultInterface::current()?,
         };
 
         Self::set_routes(routing_config, shared_state).await?;
@@ -159,7 +162,7 @@ impl ConnectingState {
             entry_gateway_address: conn_data.entry.endpoint.ip(),
             exit_gateway_address: conn_data.exit.endpoint.ip(),
             #[cfg(target_os = "linux")]
-            physical_interface: Self::get_default_interface()?,
+            physical_interface: DefaultInterface::current()?,
         };
 
         Self::set_routes(routing_config, shared_state).await?;
@@ -183,13 +186,6 @@ impl ConnectingState {
             .dns_handler
             .set(tun_name, &dns_servers)
             .map_err(Error::SetDns)
-    }
-
-    #[cfg(target_os = "linux")]
-    fn get_default_interface() -> Result<String> {
-        netdev::interface::get_default_interface()
-            .map_err(Error::GetDefaultInterface)
-            .map(|iface| iface.name)
     }
 
     async fn set_routes(

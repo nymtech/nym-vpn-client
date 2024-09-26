@@ -4,8 +4,21 @@
 use std::{collections::HashSet, fmt, net::IpAddr};
 
 use ipnetwork::IpNetwork;
-use talpid_routing::NetNode;
-use talpid_routing::{Node, RequiredRoute, RouteManager};
+use talpid_routing::{NetNode, Node, RequiredRoute, RouteManager};
+
+use super::default_interface::DefaultInterface;
+
+impl DefaultInterface {
+    fn as_node(&self) -> Node {
+        let iface_name = self.interface_name().to_owned();
+        if let Some(gateway) = self.gateway_ip() {
+            Node::new(gateway, iface_name)
+        } else {
+            // based on tests this does not work!
+            Node::device(iface_name)
+        }
+    }
+}
 
 #[cfg(target_os = "linux")]
 pub const TUNNEL_TABLE_ID: u32 = 0x14d;
@@ -18,7 +31,7 @@ pub enum RoutingConfig {
         tun_name: String,
         entry_gateway_address: IpAddr,
         #[cfg(target_os = "linux")]
-        physical_interface: String,
+        physical_interface: DefaultInterface,
     },
     Wireguard {
         enable_ipv6: bool,
@@ -27,8 +40,18 @@ pub enum RoutingConfig {
         entry_gateway_address: IpAddr,
         exit_gateway_address: IpAddr,
         #[cfg(target_os = "linux")]
-        physical_interface: String,
+        physical_interface: DefaultInterface,
     },
+}
+
+impl RoutingConfig {
+    #[cfg(target_os = "linux")]
+    pub fn enable_ipv6(&self) -> bool {
+        match self {
+            Self::Mixnet { enable_ipv6, .. } => *enable_ipv6,
+            Self::Wireguard { enable_ipv6, .. } => *enable_ipv6,
+        }
+    }
 }
 
 pub struct RouteHandler {
@@ -48,6 +71,8 @@ impl RouteHandler {
     }
 
     pub async fn add_routes(&mut self, routing_config: RoutingConfig) -> Result<()> {
+        #[cfg(target_os = "linux")]
+        let enable_ipv6 = routing_config.enable_ipv6();
         let routes = Self::get_routes(routing_config);
         self.route_manager.add_routes(routes).await?;
         Ok(())
@@ -56,6 +81,11 @@ impl RouteHandler {
     pub async fn remove_routes(&mut self) {
         if let Err(e) = self.route_manager.clear_routes() {
             tracing::error!("Failed to remove routes: {}", e);
+        }
+
+        #[cfg(target_os = "linux")]
+        if let Err(e) = self.route_manager.clear_routing_rules().await {
+            tracing::error!("Failed to remove routing rules: {}", e);
         }
     }
 
@@ -94,7 +124,7 @@ impl RouteHandler {
                 #[cfg(target_os = "linux")]
                 routes.insert(RequiredRoute::new(
                     IpNetwork::from(entry_gateway_address),
-                    NetNode::RealNode(Node::device(physical_interface)),
+                    physical_interface.as_node(),
                 ));
 
                 routes.insert(RequiredRoute::new(
@@ -127,7 +157,7 @@ impl RouteHandler {
                 #[cfg(target_os = "linux")]
                 routes.insert(RequiredRoute::new(
                     IpNetwork::from(entry_gateway_address),
-                    NetNode::RealNode(Node::device(physical_interface)),
+                    physical_interface.as_node(),
                 ));
 
                 routes.insert(RequiredRoute::new(

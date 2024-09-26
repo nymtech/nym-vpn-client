@@ -1,6 +1,8 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(target_os = "linux")]
+mod default_interface;
 mod dns_handler;
 mod firewall_handler;
 mod route_handler;
