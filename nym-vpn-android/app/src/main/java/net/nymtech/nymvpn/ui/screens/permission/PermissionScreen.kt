@@ -49,7 +49,7 @@ fun PermissionScreen(appViewModel: AppViewModel, permission: Permission) {
 	LaunchedEffect(Unit) {
 		appViewModel.onNavBarStateChange(
 			NavBarState(
-				title = { NavTitle(stringResource(R.string.permission_message)) },
+				title = { NavTitle(stringResource(R.string.permission_required)) },
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
 						appViewModel.navController.popBackStack()
