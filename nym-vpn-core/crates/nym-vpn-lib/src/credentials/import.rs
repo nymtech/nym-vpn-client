@@ -26,13 +26,12 @@ pub async fn import_credential(
     data_path: PathBuf,
 ) -> Result<Option<OffsetDateTime>, ImportCredentialError> {
     info!("Importing credential");
-    let (credentials_store, location) =
-        get_credentials_store_pre_ecash(data_path.clone())
-            .await
-            .map_err(|err| ImportCredentialError::CredentialStoreError {
-                path: data_path,
-                source: err,
-            })?;
+    let (credentials_store, location) = get_credentials_store_pre_ecash(data_path.clone())
+        .await
+        .map_err(|err| ImportCredentialError::CredentialStoreError {
+            path: data_path,
+            source: err,
+        })?;
     let version = None;
     nym_id_pre_ecash::import_credential(credentials_store, raw_credential, version)
         .await

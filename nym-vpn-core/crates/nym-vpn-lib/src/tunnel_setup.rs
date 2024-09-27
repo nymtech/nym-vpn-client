@@ -111,11 +111,18 @@ fn spawn_bandwidth_controller<
     client: C,
     storage: St,
     mixnet_client: mixnet::SharedMixnetClient,
+    wg_entry_gateway_client: WgGatewayClient,
+    wg_exit_gateway_client: WgGatewayClient,
     task_manager: &mut TaskManager,
 ) {
     let inner = nym_bandwidth_controller::BandwidthController::new(storage, client);
-    let bandwidth_controller =
-        BandwidthController::new(inner, mixnet_client, task_manager.subscribe());
+    let bandwidth_controller = BandwidthController::new(
+        inner,
+        mixnet_client,
+        wg_entry_gateway_client,
+        wg_exit_gateway_client,
+        task_manager.subscribe(),
+    );
     tokio::spawn(bandwidth_controller.run());
 }
 
@@ -140,30 +147,6 @@ async fn setup_wg_tunnel(
 
     let client =
         get_nyxd_client().map_err(|source| SetupWgTunnelError::NyxdClientError { source })?;
-    if let Some(data_path) = nym_vpn.generic_config.data_path.clone() {
-        let credentials_store = get_credentials_store(data_path.clone())
-            .await
-            .map_err(|source| SetupWgTunnelError::CredentialStoreError {
-                path: data_path,
-                source,
-            })?
-            .0;
-        spawn_bandwidth_controller(
-            client,
-            credentials_store,
-            mixnet_client.clone(),
-            task_manager,
-        );
-    } else {
-        let credentials_store =
-            nym_credential_storage::ephemeral_storage::EphemeralStorage::default();
-        spawn_bandwidth_controller(
-            client,
-            credentials_store,
-            mixnet_client.clone(),
-            task_manager,
-        );
-    };
 
     let (Some(entry_auth_recipient), Some(exit_auth_recipient)) =
         (auth_addresses.entry().0, auth_addresses.exit().0)
@@ -238,10 +221,35 @@ async fn setup_wg_tunnel(
         });
     }
 
-    tokio::spawn(
-        wg_entry_gateway_client.run(task_manager.subscribe_named("bandwidth_entry_client")),
-    );
-    tokio::spawn(wg_exit_gateway_client.run(task_manager.subscribe_named("bandwidth_exit_client")));
+    if let Some(data_path) = nym_vpn.generic_config.data_path.clone() {
+        let credentials_store = get_credentials_store(data_path.clone())
+            .await
+            .map_err(|source| SetupWgTunnelError::CredentialStoreError {
+                path: data_path,
+                source,
+            })?
+            .0;
+        spawn_bandwidth_controller(
+            client,
+            credentials_store,
+            mixnet_client.clone(),
+            wg_entry_gateway_client,
+            wg_exit_gateway_client,
+            task_manager,
+        );
+    } else {
+        let credentials_store =
+            nym_credential_storage::ephemeral_storage::EphemeralStorage::default();
+        spawn_bandwidth_controller(
+            client,
+            credentials_store,
+            mixnet_client.clone(),
+            wg_entry_gateway_client,
+            wg_exit_gateway_client,
+            task_manager,
+        );
+    };
+
     entry_wireguard_config
         .talpid_config
         .peers
