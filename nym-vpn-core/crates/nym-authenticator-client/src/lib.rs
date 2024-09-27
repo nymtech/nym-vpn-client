@@ -1,9 +1,11 @@
 use std::{cmp::Ordering, sync::Arc, time::Duration};
 
+use nym_authenticator_requests::latest::VERSION as LATEST_VERSION;
 use nym_authenticator_requests::v1::{
     registration::InitMessage, request::AuthenticatorRequest, response::AuthenticatorResponse,
-    GatewayClient,
+    GatewayClient, VERSION as USED_VERSION,
 };
+
 use nym_sdk::mixnet::{
     MixnetClient, MixnetClientSender, MixnetMessageSender, Recipient, ReconstructedMessage,
     TransmissionLane,
@@ -16,7 +18,11 @@ mod error;
 
 pub use crate::error::{Error, Result};
 
-const USED_VERSION: u8 = 1;
+// We shouldn't get too much behind the latest version, or else it will be difficult
+// to support smooth version transitions. Right now, we support one unit of version
+// discrepancy between client and gateway, to account for the time a version moves
+// through the envs (qa, sandbox, mainnet).
+const _: () = assert!(USED_VERSION == LATEST_VERSION || USED_VERSION + 1 == LATEST_VERSION);
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag = "type", rename_all = "camelCase")]
@@ -180,11 +186,16 @@ impl AuthClient {
                                 continue;
                             }
                             // Confirm that the version is correct
-                            check_auth_message_version(&msg)?;
+                            let version = check_auth_message_version(&msg)?;
 
                             // Then we deserialize the message
-                            debug!("AuthClient: got message while waiting for connect response");
-                            let Ok(response) = AuthenticatorResponse::from_reconstructed_message(&msg) else {
+                            debug!("AuthClient: got message while waiting for connect response with version {version}");
+                            let ret = if version == USED_VERSION + 1 {
+                                nym_authenticator_requests::latest::response::AuthenticatorResponse::from_reconstructed_message(&msg).map(Into::into)
+                            } else {
+                                AuthenticatorResponse::from_reconstructed_message(&msg)
+                            };
+                            let Ok(response) = ret else {
                                 // This is ok, it's likely just one of our self-pings
                                 debug!("Failed to deserialize reconstructed message");
                                 continue;
@@ -213,21 +224,28 @@ fn check_if_authenticator_message(message: &ReconstructedMessage) -> bool {
     }
 }
 
-fn check_auth_message_version(message: &ReconstructedMessage) -> Result<()> {
+fn check_auth_message_version(message: &ReconstructedMessage) -> Result<u8> {
     // Assuing it's an Authenticator message, it will have a version as its first byte
     if let Some(version) = message.message.first() {
         match version.cmp(&USED_VERSION) {
-            Ordering::Greater => Err(Error::ReceivedResponseWithNewVersion {
-                expected: USED_VERSION,
-                received: *version,
-            }),
+            Ordering::Greater => {
+                // We accept one unit of version difference, for easier transitions
+                if version.cmp(&(USED_VERSION + 1)) == Ordering::Greater {
+                    Err(Error::ReceivedResponseWithNewVersion {
+                        expected: USED_VERSION,
+                        received: *version,
+                    })
+                } else {
+                    Ok(*version)
+                }
+            }
             Ordering::Less => Err(Error::ReceivedResponseWithOldVersion {
                 expected: USED_VERSION,
                 received: *version,
             }),
             Ordering::Equal => {
                 // We're good
-                Ok(())
+                Ok(*version)
             }
         }
     } else {
