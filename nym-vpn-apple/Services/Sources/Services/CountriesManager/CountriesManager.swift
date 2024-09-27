@@ -121,6 +121,14 @@ private extension CountriesManager {
             self?.fetchCountries()
         }
         .store(in: &cancellables)
+
+        appSettings.$envSelectorPublisher.sink { [weak self] _ in
+            self?.exitCountries = []
+            self?.entryCountries = []
+            self?.vpnCountries = []
+            self?.fetchEntryExitCountries()
+        }
+        .store(in: &cancellables)
     }
 
     func setupAutoUpdates() {
