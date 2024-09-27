@@ -56,7 +56,14 @@ fun NavController.go(route: Route) {
 fun VpnException.toUserMessage(context: Context): String {
 	return when (this) {
 		is VpnException.GatewayException -> context.getString(R.string.gateway_error)
-		is VpnException.InternalException -> context.getString(R.string.internal_error)
+		is VpnException.InternalException -> {
+			// TODO we need improved errors for this scenario from backend
+			when {
+				this.details.contains("no exit gateway available for location") -> context.getString(R.string.selected_exit_unavailable)
+				this.details.contains("no entry gateway available for location") -> context.getString(R.string.selected_entry_unavailable)
+				else -> context.getString(R.string.internal_error)
+			}
+		}
 		is VpnException.InvalidCredential -> context.getString(R.string.exception_cred_invalid)
 		is VpnException.InvalidStateException -> context.getString(R.string.state_error)
 		is VpnException.NetworkConnectionException -> context.getString(R.string.network_error)

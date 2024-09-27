@@ -37,7 +37,6 @@ import net.nymtech.localizationutil.LocaleStorage
 import net.nymtech.localizationutil.LocaleUtil
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.data.domain.Gateways
 import net.nymtech.nymvpn.manager.shortcut.ShortcutManager
 import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
@@ -117,12 +116,6 @@ class MainActivity : ComponentActivity() {
 						navController.clearBackStack<Route.Main>()
 						recreate()
 					}
-				}
-			}
-
-			LaunchedEffect(appState.gateways) {
-				if (appState.gateways != Gateways() && appState.settings.isAnalyticsShown) {
-					appViewModel.onGatewaysChanged()
 				}
 			}
 
