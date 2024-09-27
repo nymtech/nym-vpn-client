@@ -172,10 +172,9 @@ impl VpnApiClient {
         account: &VpnApiAccount,
         device: &Device,
     ) -> Result<NymVpnDevice> {
-        // TODO: this is not yet correctly implemented, the signature is a placeholder
         let body = RegisterDeviceRequestBody {
             device_identity_key: device.identity_key().to_base58_string(),
-            signature: device.jwt().to_string(),
+            signature: account.sign_device_key(device),
         };
 
         self.post_authorized(
@@ -188,7 +187,7 @@ impl VpnApiClient {
             ],
             &body,
             account,
-            None,
+            Some(device),
         )
         .await
         .map_err(VpnApiClientError::FailedToRegisterDevice)
@@ -621,6 +620,8 @@ impl VpnApiClient {
 mod tests {
     use nym_crypto::asymmetric::ed25519;
 
+    use crate::response::NymVpnAccountStatusResponse;
+
     use super::*;
 
     const BASE_URL: &str = "https://nymvpn.com/api";
@@ -628,7 +629,8 @@ mod tests {
         "https://nym-dot-com-git-deploy-canary-nyx-network-staging.vercel.app/api";
 
     fn get_mnemonic() -> bip39::Mnemonic {
-        let mnemonic = "kiwi ketchup mix canvas curve ribbon congress method feel frozen act annual aunt comfort side joy mesh palace tennis cannon orange name tortoise piece";
+        let mnemonic = "pill element gift second woman among bronze word boost expire lady believe plastic boil athlete advice place limb unable canvas twin tower feel carpet";
+
         bip39::Mnemonic::parse(mnemonic).unwrap()
     }
 
@@ -652,67 +654,141 @@ mod tests {
         }
     }
 
-    #[tokio::test]
-    async fn get_account() {
-        let account = VpnApiAccount::from(get_mnemonic());
-        let client = VpnApiClient::new(BASE_URL_PREVIEW.parse().unwrap(), user_agent()).unwrap();
-        let r = client.get_account(&account).await;
-        dbg!(&r);
-        println!("{}", r.unwrap_err());
+    mod account {
+        use crate::response::{
+            NymVpnAccountSummaryDevices, NymVpnAccountSummaryFairUsage,
+            NymVpnAccountSummarySubscription,
+        };
+
+        use super::*;
+
+        // These tests are all iffy since we are running against a preview deployment, but they are
+        // useful to drive implementetion and to check that the API is working as expected.
+
+        #[tokio::test]
+        async fn get_account() {
+            let account = VpnApiAccount::from(get_mnemonic());
+            let client =
+                VpnApiClient::new(BASE_URL_PREVIEW.parse().unwrap(), user_agent()).unwrap();
+            let _response = client.get_account(&account).await.unwrap();
+            let _expected_response = NymVpnAccountResponse {
+                created_on_utc: "2024-09-25 12:28:22.047Z".to_string(),
+                last_updated_utc: "2024-09-25 12:28:22.047Z".to_string(),
+                account_addr: "n1g4ly0yzxmvs8ex47l286weghgdpqz60zw4m059".to_string(),
+                status: NymVpnAccountStatusResponse::Active,
+            };
+            // assert_eq!(response, expected_response);
+        }
+
+        #[tokio::test]
+        async fn get_account_summary() {
+            let account = VpnApiAccount::from(get_mnemonic());
+            let client =
+                VpnApiClient::new(BASE_URL_PREVIEW.parse().unwrap(), user_agent()).unwrap();
+            let _response = client.get_account_summary(&account).await.unwrap();
+            let _expected_response = NymVpnAccountSummaryResponse {
+                account: NymVpnAccountResponse {
+                    created_on_utc: "2024-09-25 12:28:22.047Z".to_string(),
+                    last_updated_utc: "2024-09-25 12:28:22.047Z".to_string(),
+                    account_addr: "n1g4ly0yzxmvs8ex47l286weghgdpqz60zw4m059".to_string(),
+                    status: NymVpnAccountStatusResponse::Active,
+                },
+                subscription: NymVpnAccountSummarySubscription {
+                    is_active: false,
+                    active: None,
+                },
+                devices: NymVpnAccountSummaryDevices {
+                    active: 1,
+                    max: 3,
+                    remaining: 2,
+                },
+                fair_usage: NymVpnAccountSummaryFairUsage {
+                    used_gb: None,
+                    limit_gb: None,
+                    resets_on_utc: None,
+                },
+            };
+            // assert_eq!(response, expected_response);
+        }
+
+        #[tokio::test]
+        async fn get_devices() {
+            let account = VpnApiAccount::from(get_mnemonic());
+            let client =
+                VpnApiClient::new(BASE_URL_PREVIEW.parse().unwrap(), user_agent()).unwrap();
+            let _response = client.get_devices(&account).await.unwrap();
+            let _expected_response = NymVpnDevicesResponse {
+                total_items: 1,
+                page: 1,
+                page_size: 100,
+                items: vec![NymVpnDevice {
+                    created_on_utc: "2024-09-25 13:35:33.630Z".to_string(),
+                    last_updated_utc: "2024-09-25 13:35:33.630Z".to_string(),
+                    device_identity_key: "G2D9Re8FTeUJLiNiaiLWc2etTBBN55JzJeEZVPWcyxFv".to_string(),
+                    status: "active".to_string(),
+                }],
+            };
+            // assert_eq!(response, expected_response);
+        }
+
+        #[tokio::test]
+        async fn get_device_zk_nyms() {
+            let account = VpnApiAccount::from(get_mnemonic());
+            let device = Device::from(get_ed25519_keypair());
+            let client =
+                VpnApiClient::new(BASE_URL_PREVIEW.parse().unwrap(), user_agent()).unwrap();
+            let r = client.get_device_zk_nyms(&account, &device).await;
+            dbg!(&r);
+        }
     }
 
-    #[tokio::test]
-    async fn get_device_zk_nyms() {
-        let account = VpnApiAccount::from(get_mnemonic());
-        let device = Device::from(get_ed25519_keypair());
-        let client = VpnApiClient::new(BASE_URL_PREVIEW.parse().unwrap(), user_agent()).unwrap();
-        let r = client.get_device_zk_nyms(&account, &device).await;
-        dbg!(&r);
-    }
+    mod gateway_directory {
+        use super::*;
 
-    #[tokio::test]
-    async fn get_gateways() {
-        let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-        let response = client
-            .get_gateways(Some(GatewayMinPerformance::default()))
-            .await
-            .unwrap();
-        assert!(!response.into_inner().is_empty());
-    }
+        #[tokio::test]
+        async fn get_gateways() {
+            let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
+            let response = client
+                .get_gateways(Some(GatewayMinPerformance::default()))
+                .await
+                .unwrap();
+            assert!(!response.into_inner().is_empty());
+        }
 
-    #[tokio::test]
-    async fn get_entry_gateways() {
-        let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-        let response = client.get_entry_gateways(None).await.unwrap();
-        assert!(!response.into_inner().is_empty());
-    }
+        #[tokio::test]
+        async fn get_entry_gateways() {
+            let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
+            let response = client.get_entry_gateways(None).await.unwrap();
+            assert!(!response.into_inner().is_empty());
+        }
 
-    #[tokio::test]
-    async fn get_exit_gateways() {
-        let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-        let response = client.get_entry_gateways(None).await.unwrap();
-        assert!(!response.into_inner().is_empty());
-    }
+        #[tokio::test]
+        async fn get_exit_gateways() {
+            let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
+            let response = client.get_entry_gateways(None).await.unwrap();
+            assert!(!response.into_inner().is_empty());
+        }
 
-    #[tokio::test]
-    async fn get_gateway_countries() {
-        let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-        let response = client.get_gateway_countries(None).await.unwrap();
-        dbg!(&response);
-        assert!(!response.into_inner().is_empty());
-    }
+        #[tokio::test]
+        async fn get_gateway_countries() {
+            let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
+            let response = client.get_gateway_countries(None).await.unwrap();
+            dbg!(&response);
+            assert!(!response.into_inner().is_empty());
+        }
 
-    #[tokio::test]
-    async fn get_entry_gateway_countries() {
-        let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-        let response = client.get_entry_gateway_countries(None).await.unwrap();
-        assert!(!response.into_inner().is_empty());
-    }
+        #[tokio::test]
+        async fn get_entry_gateway_countries() {
+            let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
+            let response = client.get_entry_gateway_countries(None).await.unwrap();
+            assert!(!response.into_inner().is_empty());
+        }
 
-    #[tokio::test]
-    async fn get_exit_gateway_countries() {
-        let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-        let response = client.get_exit_gateway_countries(None).await.unwrap();
-        assert!(!response.into_inner().is_empty());
+        #[tokio::test]
+        async fn get_exit_gateway_countries() {
+            let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
+            let response = client.get_exit_gateway_countries(None).await.unwrap();
+            assert!(!response.into_inner().is_empty());
+        }
     }
 }
