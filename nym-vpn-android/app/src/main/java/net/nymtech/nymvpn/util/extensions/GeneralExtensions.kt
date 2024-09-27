@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn.util.extensions
 
+import net.nymtech.vpn.model.Country
 import java.time.Instant
 import java.util.Locale
 import kotlin.time.Duration
@@ -22,4 +23,8 @@ fun Instant.durationFromNow(): java.time.Duration {
 
 fun Instant?.isInvalid(): Boolean {
 	return this == null || this.isBefore(Instant.now())
+}
+
+fun Set<Country>.default(): Country {
+	return this.firstOrNull() ?: Country(isDefault = true)
 }
