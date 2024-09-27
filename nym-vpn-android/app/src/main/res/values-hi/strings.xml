@@ -7,7 +7,7 @@
     <string name="connected">कनेक्शन सफल हुआ</string>
     <string name="disconnected">डिस्कनेक्टेड</string>
     <string name="disconnecting">डिसकनेक्ट हो रहा है</string>
-    <string name="five_hop_mixnet">"अनाम  (mixnet)"</string>
+    <string name="five_hop_mixnet">अनाम (mixnet)</string>
     <string name="five_hop_description">भुगतान, ईमेल और मेसेज के लिए</string>
     <string name="two_hop_mixnet">तेज़ (WireGuard)</string>
     <string name="first_hop">उद्भव स्थान</string>
@@ -77,7 +77,7 @@
     <string name="okay">ठीक है</string>
     <string name="anonymous_analytics">अनाम विश्लेषण</string>
     <string name="anonymous_analytics_description">हमें NymVPN में सुधार करने में मदद करें</string>
-    <string name="opt_in_message_second">और विश्लेषण—आप किसी भी समय ऑप्ट-आउट कर सकते हैं।\"</string>
+    <string name="opt_in_message_second">और विश्लेषण—आप किसी भी समय ऑप्ट-आउट कर सकते हैं।</string>
     <string name="thanks_for_support">आपके समर्थन के लिए धन्यवाद!</string>
     <string name="to_alpha">NymVPN बीटा चरण के लिए</string>
     <string name="welcome">स्वागत है</string>
@@ -123,14 +123,14 @@
     <string name="email_chooser">ईमेल भेजें…</string>
     <string name="login">लॉगिन</string>
     <string name="welcome_exclaim">स्वागत है!</string>
-    <string name="credential_message">शुरू करने के लिए अपने क्रेडेंशियल दर्ज करें।</string>
+    <string name="credential_message">शुरू करने के लिए अपने क्रेडेंशियल दर्ज करें</string>
     <string name="mode_selection">मोड चयन</string>
     <string name="continue_reading">पढ़ना जारी रखें</string>
     <string name="entry_location">उद्भव स्थान</string>
     <string name="exit_location">आखरी स्थान</string>
     <string name="try_again">और पुनः कनेक्ट करने का प्रयास करें</string>
     <string name="gateway_modal_description">हम IP पतों के आधार पर सर्वर स्थानों का अनुमान लगाते हैं, लेकिन वास्तविक स्थानों में थोड़ा बदलाव हो सकता है।</string>
-    <string name="always_on_message">काम नहीं कर रहा? सुनिश्चित करें कि अन्य ऐप्स के लिए Always-on VPN बंद है।</string>
+    <string name="always_on_message">काम नहीं कर रहा? सुनिश्चित करें कि अन्य ऐप्स के लिए Always-on VPN बंद है</string>
     <string name="language">भाषा</string>
     <string name="appearance">रूपरंग</string>
     <string name="gateway_locations_title">सर्वर स्थानों की जानकारी</string>
