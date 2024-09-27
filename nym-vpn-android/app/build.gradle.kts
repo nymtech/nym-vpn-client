@@ -79,7 +79,7 @@ android {
 				"proguard-rules.pro",
 			)
 			resValue("string", "provider", "\"${Constants.APP_NAME}.provider\"")
-			signingConfig = signingConfigs.getByName(Constants.RELEASE)
+			signingConfig = signingConfigs.getByName("debug")
 		}
 		debug {
 			isMinifyEnabled = false

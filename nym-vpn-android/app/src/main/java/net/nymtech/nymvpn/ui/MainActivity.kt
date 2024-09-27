@@ -121,7 +121,7 @@ class MainActivity : ComponentActivity() {
 			}
 
 			LaunchedEffect(appState.gateways) {
-				if (appState.gateways != Gateways()) {
+				if (appState.gateways != Gateways() && appState.settings.isAnalyticsShown) {
 					appViewModel.onGatewaysChanged()
 				}
 			}
