@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.ViewQuilt
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.outlined.AdminPanelSettings
@@ -24,6 +25,7 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -43,11 +45,14 @@ import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
-import net.nymtech.nymvpn.ui.Destination
+import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
+import net.nymtech.nymvpn.ui.common.navigation.NavBarState
+import net.nymtech.nymvpn.ui.common.navigation.NavIcon
+import net.nymtech.nymvpn.ui.common.navigation.NavTitle
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.extensions.durationFromNow
 import net.nymtech.nymvpn.util.extensions.go
@@ -70,6 +75,19 @@ fun SettingsScreen(
 	val clipboardManager: ClipboardManager = LocalClipboardManager.current
 	val padding = WindowInsets.systemBars.asPaddingValues()
 
+	LaunchedEffect(Unit) {
+		appViewModel.onNavBarStateChange(
+			NavBarState(
+				title = { NavTitle(stringResource(R.string.settings)) },
+				leading = {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
+						navController.popBackStack()
+					}
+				},
+			),
+		)
+	}
+
 	Column(
 		horizontalAlignment = Alignment.Start,
 		verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.Top),
@@ -82,7 +100,7 @@ fun SettingsScreen(
 	) {
 		if (appUiState.settings.credentialExpiry.isInvalid()) {
 			MainStyledButton(
-				onClick = { navController.go(Destination.Credential.route) },
+				onClick = { navController.go(Route.Credential) },
 				content = {
 					Text(
 						stringResource(id = R.string.add_cred_to_connect),
@@ -115,7 +133,7 @@ fun SettingsScreen(
 						SelectionItem(
 							Icons.Filled.AccountCircle,
 							onClick = {
-								navController.go(Destination.Account.route)
+								navController.go(Route.Account)
 							},
 							title = { Text(stringResource(R.string.credential), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 							description = { Text(accountDescription.text, style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline)) },
@@ -180,7 +198,7 @@ fun SettingsScreen(
 				SelectionItem(
 					Icons.AutoMirrored.Outlined.ViewQuilt,
 					title = { Text(stringResource(R.string.appearance), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { navController.go(Destination.Appearance.route) },
+					onClick = { navController.go(Route.Appearance) },
 				),
 				SelectionItem(
 					Icons.Outlined.Notifications,
@@ -233,17 +251,17 @@ fun SettingsScreen(
 				SelectionItem(
 					ImageVector.vectorResource(R.drawable.feedback),
 					title = { Text(stringResource(R.string.feedback), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { navController.go(Destination.Feedback.route) },
+					onClick = { navController.go(Route.Feedback) },
 				),
 				SelectionItem(
 					ImageVector.vectorResource(R.drawable.support),
 					title = { Text(stringResource(R.string.support), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { navController.go(Destination.Support.route) },
+					onClick = { navController.go(Route.Support) },
 				),
 				SelectionItem(
 					ImageVector.vectorResource(R.drawable.logs),
 					title = { Text(stringResource(R.string.logs), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { navController.go(Destination.Logs.route) },
+					onClick = { navController.go(Route.Logs) },
 				),
 				SelectionItem(
 					Icons.Outlined.BugReport,
@@ -303,7 +321,7 @@ fun SettingsScreen(
 			listOf(
 				SelectionItem(
 					title = { Text(stringResource(R.string.legal), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { navController.go(Destination.Legal.route) },
+					onClick = { navController.go(Route.Legal) },
 				),
 			),
 		)
@@ -321,7 +339,7 @@ fun SettingsScreen(
 				color = MaterialTheme.colorScheme.secondary,
 				modifier = Modifier.clickable {
 					if (BuildConfig.DEBUG || BuildConfig.BUILD_TYPE == "prerelease") {
-						navController.go(Destination.Environment.route)
+						navController.go(Route.Environment)
 					} else {
 						clipboardManager.setText(
 							annotatedString = AnnotatedString(BuildConfig.VERSION_NAME),

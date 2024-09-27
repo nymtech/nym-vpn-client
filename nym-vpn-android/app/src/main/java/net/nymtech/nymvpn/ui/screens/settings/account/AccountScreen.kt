@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Icon
@@ -20,6 +21,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -28,14 +30,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
-import net.nymtech.nymvpn.ui.Destination
+import net.nymtech.nymvpn.ui.AppViewModel
+import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.common.labels.GroupLabel
+import net.nymtech.nymvpn.ui.common.navigation.NavBarState
+import net.nymtech.nymvpn.ui.common.navigation.NavIcon
+import net.nymtech.nymvpn.ui.common.navigation.NavTitle
 import net.nymtech.nymvpn.ui.screens.settings.account.model.Device
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.Constants
@@ -46,10 +51,23 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.nymvpn.util.extensions.showToast
 
 @Composable
-fun AccountScreen(navController: NavController, appUiState: AppUiState) {
+fun AccountScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 	val context = LocalContext.current
 
 	val devicesDisabled = true
+
+	LaunchedEffect(Unit) {
+		appViewModel.onNavBarStateChange(
+			NavBarState(
+				title = { NavTitle(stringResource(R.string.credential)) },
+				leading = {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
+						appViewModel.navController.popBackStack()
+					}
+				},
+			),
+		)
+	}
 
 	Column(
 		horizontalAlignment = Alignment.CenterHorizontally,
@@ -119,7 +137,7 @@ fun AccountScreen(navController: NavController, appUiState: AppUiState) {
 					Box(modifier = Modifier.width(100.dp.scaledWidth())) {
 						MainStyledButton(
 							onClick = {
-								navController.go(Destination.Credential.route)
+								appViewModel.navController.go(Route.Credential)
 							},
 							content = {
 								Text(

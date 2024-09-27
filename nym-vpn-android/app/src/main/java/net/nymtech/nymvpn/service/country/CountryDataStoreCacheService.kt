@@ -15,6 +15,7 @@ class CountryDataStoreCacheService @Inject constructor(
 		return runCatching {
 			gatewayService.getCountries(GatewayType.MIXNET_EXIT).onSuccess {
 				gatewayRepository.setExitCountries(it)
+				Timber.d("Updated mixnet exit countries cache")
 			}
 		}
 	}
@@ -23,6 +24,7 @@ class CountryDataStoreCacheService @Inject constructor(
 		return runCatching {
 			gatewayService.getCountries(GatewayType.MIXNET_ENTRY).onSuccess {
 				gatewayRepository.setEntryCountries(it)
+				Timber.d("Updated mixnet entry countries cache")
 			}
 		}
 	}
@@ -31,6 +33,7 @@ class CountryDataStoreCacheService @Inject constructor(
 		return kotlin.runCatching {
 			gatewayService.getCountries(GatewayType.WG).onSuccess {
 				gatewayRepository.setWgCountries(it)
+				Timber.d("Updated wg countries cache")
 			}
 		}
 	}

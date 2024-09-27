@@ -12,11 +12,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material.icons.outlined.VpnLock
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -25,12 +27,15 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.Destination
+import net.nymtech.nymvpn.ui.AppViewModel
+import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.labels.PermissionLabel
+import net.nymtech.nymvpn.ui.common.navigation.NavBarState
+import net.nymtech.nymvpn.ui.common.navigation.NavIcon
+import net.nymtech.nymvpn.ui.common.navigation.NavTitle
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.extensions.launchVpnSettings
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
@@ -38,8 +43,21 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun PermissionScreen(navController: NavController, permission: Permission) {
+fun PermissionScreen(appViewModel: AppViewModel, permission: Permission) {
 	val context = LocalContext.current
+
+	LaunchedEffect(Unit) {
+		appViewModel.onNavBarStateChange(
+			NavBarState(
+				title = { NavTitle(stringResource(R.string.permission_required)) },
+				leading = {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
+						appViewModel.navController.popBackStack()
+					}
+				},
+			),
+		)
+	}
 
 	Column(
 		modifier = Modifier
@@ -116,7 +134,7 @@ fun PermissionScreen(navController: NavController, permission: Permission) {
 				Column(verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Bottom)) {
 					MainStyledButton(
 						onClick = {
-							navController.navigateAndForget(Destination.Main.createRoute(true))
+							appViewModel.navController.navigateAndForget(Route.Main(true))
 						},
 						content = { Text(stringResource(R.string.try_reconnecting), style = CustomTypography.labelHuge) },
 					)

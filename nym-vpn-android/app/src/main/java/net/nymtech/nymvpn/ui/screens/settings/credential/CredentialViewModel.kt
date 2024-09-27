@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.service.tunnel.TunnelManager
-import net.nymtech.nymvpn.ui.Destination
+import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
@@ -37,7 +37,7 @@ constructor(
 				settingsRepository.saveCredentialExpiry(it)
 			}
 			SnackbarController.showMessage(StringValue.StringResource(R.string.credential_successful))
-			navController.navigateAndForget(Destination.Main.createRoute(false))
+			navController.navigateAndForget(Route.Main())
 		}.onFailure {
 			_error.emit(it.message)
 			Timber.e(it)

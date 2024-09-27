@@ -14,6 +14,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -40,10 +42,13 @@ import androidx.navigation.NavHostController
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
-import net.nymtech.nymvpn.ui.Destination
+import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.buttons.SelectionItemButton
 import net.nymtech.nymvpn.ui.common.labels.SelectedLabel
+import net.nymtech.nymvpn.ui.common.navigation.NavBarState
+import net.nymtech.nymvpn.ui.common.navigation.NavIcon
+import net.nymtech.nymvpn.ui.common.navigation.NavTitle
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
@@ -70,6 +75,33 @@ fun HopScreen(
 
 	val currentLocale = ConfigurationCompat.getLocales(context.resources.configuration)[0]
 	val collator = Collator.getInstance(currentLocale)
+
+	var showLocationTooltip by remember { mutableStateOf(false) }
+
+	LaunchedEffect(Unit) {
+		appViewModel.onNavBarStateChange(
+			NavBarState(
+				title = {
+					NavTitle(
+						when (gatewayLocation) {
+							GatewayLocation.EXIT -> stringResource(R.string.exit_location)
+							GatewayLocation.ENTRY -> stringResource(R.string.entry_location)
+						},
+					)
+				},
+				leading = {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
+						appViewModel.navController.popBackStack()
+					}
+				},
+				trailing = {
+					NavIcon(Icons.Outlined.Info) {
+						showLocationTooltip = true
+					}
+				},
+			),
+		)
+	}
 
 	val gatewayType = when (appUiState.settings.vpnMode) {
 		Tunnel.Mode.FIVE_HOP_MIXNET -> {
@@ -107,7 +139,7 @@ fun HopScreen(
 		viewModel.updateCountryCache(gatewayType)
 	}
 
-	Modal(show = appUiState.showLocationTooltip, onDismiss = { appViewModel.onToggleShowLocationTooltip() }, title = {
+	Modal(show = showLocationTooltip, onDismiss = { showLocationTooltip = false }, title = {
 		Text(
 			text = stringResource(R.string.gateway_locations_title),
 			color = MaterialTheme.colorScheme.onSurface,
@@ -252,7 +284,7 @@ fun HopScreen(
 				buttonText = it.name,
 				onClick = {
 					viewModel.onSelected(it, gatewayLocation)
-					navController.go(Destination.Main.createRoute(false))
+					navController.go(Route.Main())
 				},
 				trailing = {
 					if (it.isoCode == selectedCountry.isoCode) {

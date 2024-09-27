@@ -35,7 +35,10 @@
  # is used.
  -keep,allowobfuscation,allowshrinking class kotlin.coroutines.Continuation
 
--keep class net.nymtech.nymvpn.ui.Destination
--keep class net.nymtech.nymvpn.ui.Destination$* {
+# navigation
+-keep class net.nymtech.nymvpn.ui.screens.permission.Permission
+-keep class net.nymtech.nymvpn.ui.Route
+
+-keep class net.nymtech.nymvpn.ui.Route$* {
     *;
 }

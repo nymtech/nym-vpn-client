@@ -172,4 +172,7 @@
 	<string name="low_bandwidth">"Low bandwidth! Bandwidth remaining: "</string>
 	<string name="vpn_permission_missing">Vpn permission has not been accepted or is being used by another app.</string>
     <string name="credential_already_imported">Credential already imported.</string>
+    <string name="selected_country_not_available">Selected country no longer unavailable</string>
+	<string name="environment">Environment</string>
+	<string name="action_requires_tunnel_down">Action requires tunnel down</string>
 </resources>

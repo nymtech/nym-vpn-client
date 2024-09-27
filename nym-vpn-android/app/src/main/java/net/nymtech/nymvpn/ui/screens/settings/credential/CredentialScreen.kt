@@ -42,8 +42,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.functions.rememberImeState
+import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.iconSize
@@ -52,7 +54,7 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun CredentialScreen(viewModel: CredentialViewModel = hiltViewModel()) {
+fun CredentialScreen(appViewModel: AppViewModel, viewModel: CredentialViewModel = hiltViewModel()) {
 	val context = LocalContext.current
 
 	val imeState = rememberImeState()
@@ -60,6 +62,14 @@ fun CredentialScreen(viewModel: CredentialViewModel = hiltViewModel()) {
 	val padding = WindowInsets.systemBars.asPaddingValues()
 
 	val error = viewModel.error.collectAsStateWithLifecycle()
+
+	LaunchedEffect(Unit) {
+		appViewModel.onNavBarStateChange(
+			NavBarState(
+				show = false,
+			),
+		)
+	}
 
 	var credential by remember {
 		mutableStateOf("")

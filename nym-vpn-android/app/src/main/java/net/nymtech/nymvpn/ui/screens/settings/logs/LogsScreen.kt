@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Icon
@@ -41,14 +42,18 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import net.nymtech.logcatutil.model.LogMessage
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.labels.LogTypeLabel
+import net.nymtech.nymvpn.ui.common.navigation.NavBarState
+import net.nymtech.nymvpn.ui.common.navigation.NavIcon
+import net.nymtech.nymvpn.ui.common.navigation.NavTitle
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
+fun LogsScreen(appViewModel: AppViewModel, viewModel: LogsViewModel = hiltViewModel()) {
 	val lazyColumnListState = rememberLazyListState()
 	val clipboardManager: ClipboardManager = LocalClipboardManager.current
 	val scope = rememberCoroutineScope()
@@ -57,6 +62,19 @@ fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
 	val context = LocalContext.current
 
 	val logs = viewModel.logs
+
+	LaunchedEffect(Unit) {
+		appViewModel.onNavBarStateChange(
+			NavBarState(
+				title = { NavTitle(stringResource(R.string.logs)) },
+				leading = {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
+						appViewModel.navController.popBackStack()
+					}
+				},
+			),
+		)
+	}
 
 	LaunchedEffect(logs.size) {
 		scope.launch {
