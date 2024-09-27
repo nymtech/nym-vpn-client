@@ -8,7 +8,7 @@ import Shell
 public final class HelperManager {
     private var helperName = ""
 
-    public let requiredVersion = "0.2.2"
+    public let requiredVersion = "0.2.3"
     public static let shared = HelperManager()
 
     public func setup(helperName: String) {

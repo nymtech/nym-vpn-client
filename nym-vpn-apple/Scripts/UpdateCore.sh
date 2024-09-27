@@ -61,7 +61,7 @@ else
 fi
 
 # Update libVersion in AppVersionProvider.swift to the new version
-app_version_file="../Services/Sources/Services/AppVersionProvider/AppVersionProvider.swift"
+app_version_file="../ServicesMutual/Sources/AppVersionProvider/AppVersionProvider.swift"
 if [[ -f "$app_version_file" ]]; then
     sed -i '' "s/public static let libVersion = \".*\"/public static let libVersion = \"$VERSION\"/g" "$app_version_file"
     echo "libVersion updated to $VERSION in $app_version_file."
