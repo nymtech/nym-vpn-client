@@ -161,4 +161,8 @@
     <string name="connection_failed">Соединение не удалось</string>
     <string name="low_bandwidth">"Низкая пропускная способность! Оставшаяся пропускная способность: "</string>
     <string name="vpn_permission_missing">Разрешение VPN не принято или используется другим приложением.</string>
+    <string name="action_requires_tunnel_down">Требуется отключение туннеля</string>
+    <string name="selected_exit_unavailable">Выбранная страна выхода недоступна. Выберите другую страну выхода.</string>
+    <string name="environment">VPN-среда</string>
+    <string name="selected_entry_unavailable">Выбранная страна входа недоступна. Пожалуйста, выберите другую страну входа.</string>
 </resources>
