@@ -32,6 +32,20 @@ for arg in "$@"; do
     esac
 done
 
+# Check if cargo set-version is installed
+if cargo set-version --help >/dev/null 2>&1; then
+    echo "cargo set-version is installed."
+else
+    echo "cargo set-version is not installed. Please install it by running 'cargo install --locked cargo-get'"
+fi
+
+# Check if cargo-get is installed
+if cargo get --help >/dev/null 2>&1; then
+    echo "cargo-get is installed."
+else
+    echo "cargo-get is not installed. Please install it by running 'cargo install --locked cargo-get'."
+fi
+
 cargo_version_bump() {
     cd $DIRNAME
     local package_flags="-p $PACKAGE"
@@ -53,6 +67,7 @@ tag_release() {
 main() {
     check_unstaged_changes
     confirm_root_directory
+    check_cargo_utils_installed
     cargo_version_bump
     tag_release
 }

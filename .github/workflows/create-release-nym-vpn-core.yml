@@ -59,11 +59,11 @@ jobs:
         run: |
           ./scripts/create-nym-vpn-core-release.sh --yes
 
-      - name: Run update-nym-vpn-apple-to-latests-core.sh
-        run: |
-          ./scripts/update-nym-vpn-apple-to-latest-core.sh
-          git diff
-          git commit -a -m "Update Info.plist"
+      # - name: Run update-nym-vpn-apple-to-latests-core.sh
+      #   run: |
+      #     ./scripts/update-nym-vpn-apple-to-latest-core.sh
+      #     git diff
+      #     git commit -a -m "Update Info.plist"
 
       - name: Run bump-nym-vpn-core-to-next-dev-version.sh
         run: |

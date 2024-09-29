@@ -55,6 +55,7 @@ tag_release() {
 main() {
     check_unstaged_changes
     confirm_root_directory
+    check_cargo_utils_installed
     cargo_version_bump
     npm_version_bump
     tag_release
