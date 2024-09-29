@@ -8,7 +8,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       is_admin: ${{ steps.check.outputs.is_admin }}
-
     steps:
       - name: Check if user has admin access
         id: check
@@ -20,15 +19,16 @@ jobs:
 
           if [ "$permission" == "admin" ]; then
             echo "User ${{ github.actor }} is an admin."
-            echo "is_admin=true" >> $GITHUB_ENV
+            echo "is_admin=true" >> "$GITHUB_OUTPUT"
           else
             echo "User ${{ github.actor }} is not an admin."
-            echo "is_admin=false" >> $GITHUB_ENV
+            echo "is_admin=false" >> "$GITHUB_OUTPUT"
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   create_release:
+    needs: check_admin_permission
     if: needs.check_admin_permission.outputs.is_admin == 'true'
     runs-on: ubuntu-latest
     permissions:
