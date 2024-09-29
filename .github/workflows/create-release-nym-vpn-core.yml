@@ -42,17 +42,24 @@ jobs:
       - name: Create a new branch
         id: create_branch
         run: |
-          BRANCH_NAME="release-nym-vpn-core-$(date +'%Y%m%d%H%M%S')"
+          BRANCH_NAME="release/nym-vpn-core-$(date +'%Y%m%d%H%M%S')"
           git checkout -b $BRANCH_NAME
           echo "branch_name=$BRANCH_NAME" >> $GITHUB_ENV
 
       - name: Run release script
         run: |
-          ./scripts/create-nym-vpn-core-release.sh
+          ./scripts/create-nym-vpn-core-release.sh --yes
+
+      - name: Update nym-vpn-apple to latest core
+        run: |
+          ./scripts/update-nym-vpn-apple-to-latests-core.sh
+          git diff
+          git add -u
+          git commit -m "Update Info.plist"
 
       - name: Run bump to dev version script
         run: |
-          ./scripts/bump-nym-vpn-core-to-next-dev-version.sh
+          ./scripts/bump-nym-vpn-core-to-next-dev-version.sh --yes
 
       # - name: Commit bumped version
       #   run: |
