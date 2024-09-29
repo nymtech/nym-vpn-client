@@ -18,7 +18,7 @@ jobs:
           echo "$user_role"
           permission=$(echo "$user_role" | jq -r '.permission')
 
-          if [ "$user_role" == "admin" ]; then
+          if [ "$permission" == "admin" ]; then
             echo "User ${{ github.actor }} is an admin."
             echo "is_admin=true" >> $GITHUB_ENV
           else
