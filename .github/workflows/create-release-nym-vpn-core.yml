@@ -26,7 +26,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  create_version:
+  set_release_version_and_create_branch:
     needs: check_admin_permission
     outputs:
       branch_name: ${{ steps.create_branch.outputs.branch_name }}
@@ -65,14 +65,14 @@ jobs:
           git push origin HEAD:${{ steps.create_branch.outputs.branch_name }}
 
   update_nym_vpn_apple:
-    needs: create_version
+    needs: set_release_version_and_create_branch
     runs-on: macos-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ needs.create_version.outputs.branch_name }}
+          ref: ${{ needs.set_release_version_and_create_branch.outputs.branch_name }}
 
       - name: Set up Git user
         run: |
@@ -96,10 +96,10 @@ jobs:
           ./scripts/update-nym-vpn-apple-to-latest-core.sh
           git diff
           git commit -a -m "Update Info.plist"
-          git push
+          git push origin HEAD:${{ needs.set_release_version_and_create_branch.outputs.branch_name }}
 
-  create_pull_request:
-    needs: [create_version, update_nym_vpn_apple]
+  bump_to_dev_version_and_create_pull_request:
+    needs: [set_release_version_and_create_branch, update_nym_vpn_apple]
     if: needs.check_admin_permission.outputs.is_admin == 'true'
     runs-on: ubuntu-latest
 
@@ -107,7 +107,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ needs.create_version.outputs.branch_name }}
+          ref: ${{ needs.set_release_version_and_create_branch.outputs.branch_name }}
 
       - name: Install cargo-edit, cargo-get
         run: |
@@ -120,8 +120,8 @@ jobs:
       - name: Create PR
         uses: peter-evans/create-pull-request@v7
         with:
-          ref: ${{ needs.create_version.outputs.branch_name }}
-          title: "Release: ${{ needs.create_version.outputs.branch_name }}"
+          ref: ${{ needs.set_release_version_and_create_branch.outputs.branch_name }}
+          title: "Release: ${{ needs.set_release_version_and_create_branch.outputs.branch_name }}"
           body: "Automated PR for the release."
           base: "main"
           draft: true
