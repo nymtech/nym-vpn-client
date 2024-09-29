@@ -125,7 +125,7 @@ jobs:
       - name: Create PR
         uses: peter-evans/create-pull-request@v7
         with:
-          ref: ${{ needs.set_release_version_and_create_branch.outputs.branch_name }}
+          branch: ${{ needs.set_release_version_and_create_branch.outputs.branch_name }}
           title: "Release: ${{ needs.set_release_version_and_create_branch.outputs.branch_name }}"
           body: "Automated PR for the release."
           base: "main"
