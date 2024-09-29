@@ -161,4 +161,8 @@
     <string name="connection_failed">Bağlantı başarısız oldu</string>
     <string name="vpn_permission_missing">VPN izni kabul edilmedi veya başka bir uygulama tarafından kullanılıyor.</string>
     <string name="credential_already_imported">Giriş anahtarı zaten içe aktarıldı.</string>
+    <string name="selected_entry_unavailable">Seçilen giriş ülkesi kullanılamıyor. Lütfen farklı bir giriş ülkesi seçin.</string>
+    <string name="environment">Ortam</string>
+    <string name="action_requires_tunnel_down">Bu işlem için tünelin kapalı olması gerekiyor</string>
+    <string name="selected_exit_unavailable">Seçilen çıkış ülkesi kullanılamıyor. Lütfen farklı bir çıkış ülkesi seçin.</string>
 </resources>
