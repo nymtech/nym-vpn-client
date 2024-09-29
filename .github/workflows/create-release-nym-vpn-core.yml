@@ -46,7 +46,7 @@ jobs:
       - name: Setup branch name
         id: create_branch
         run: |
-          BRANCH_NAME="release/nym-vpn-core-$(date +'%Y%m%d%H%M%S')"
+          BRANCH_NAME="release-nym-vpn-core-$(date +'%Y%m%d%H%M%S')"
           # git checkout -b $BRANCH_NAME
           echo "branch_name=$BRANCH_NAME" >> $GITHUB_ENV
 
