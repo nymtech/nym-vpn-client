@@ -51,9 +51,9 @@ jobs:
           # git checkout -b $BRANCH_NAME
           echo "branch_name=$BRANCH_NAME" >> $GITHUB_ENV
 
-      - name: Install cargo-edit
+      - name: Install cargo-edit, cargo-get
         run: |
-          cargo install --locked cargo-edit
+          cargo install --locked cargo-edit cargo-get
 
       - name: Run create-nym-vpn-core-release.sh
         run: |
