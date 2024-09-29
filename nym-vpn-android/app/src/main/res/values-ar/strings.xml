@@ -34,7 +34,7 @@
     <string name="first_hop_selection">موقع الدخول</string>
     <string name="feedback">ملاحظات</string>
     <string name="support">دعم</string>
-    <string name="auto_connect">الأتصال تلقائياً</string>
+    <string name="auto_connect">الاتصال التلقائي</string>
     <string name="error_reporting">مشاركة تقارير الأخطاء بشكل مجهول</string>
     <string name="scan_nym_vpn_credential">قم بمسح QR لشهادة NymVPN</string>
     <string name="vpn_alerts_channel_description">قناة للإشعارات و التنبيهات المتعلقة بالتطبيقات.</string>
