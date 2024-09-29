@@ -53,7 +53,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Download sources
         run: |
-          curl -LfsSo $TARBALL "https://github.com/$REPOSITORY/archive/refs/tags/$RELEASE_TAG.tar.gz"
+          curl -LfsSo ${{ env.TARBALL }} "https://github.com/${{ env.REPOSITORY }}/archive/refs/tags/${{ env.RELEASE_TAG }}.tar.gz"
           mkdir tarball
           tar -xzf $TARBALL -C tarball
       - name: Get app version
