@@ -13,9 +13,10 @@ jobs:
       - name: Check if user has admin access
         id: check
         run: |
-          user_role=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/collaborators/${{ github.actor }}/permission" \
-            | jq -r '.permission')
+          user_role=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/collaborators/${{ github.actor }}/permission")
+          echo "$user_role"
+          permission=$(echo "$user_role" | jq -r '.permission')
 
           if [ "$user_role" == "admin" ]; then
             echo "User ${{ github.actor }} is an admin."
