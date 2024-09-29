@@ -161,4 +161,8 @@
     <string name="connection_failed">Falha na conexão</string>
     <string name="low_bandwidth">"Pouca largura de banda! Largura de banda restante: "</string>
     <string name="credential_already_imported">Credencial já importada.</string>
+    <string name="environment">Ambiente</string>
+    <string name="action_requires_tunnel_down">A ação requer o fechamento do túnel</string>
+    <string name="selected_exit_unavailable">O país de saída selecionado não está disponível. Selecione um país de saída diferente.</string>
+    <string name="selected_entry_unavailable">O país de entrada selecionado não está disponível. Selecione um país de entrada diferente.</string>
 </resources>
