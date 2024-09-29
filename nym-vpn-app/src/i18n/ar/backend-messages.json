@@ -1,1 +1,6 @@
-{}
+{
+  "connection-progress": {
+    "Initializing": "تجري عملية تهيئة عميل Nym VPN…",
+    "InitDone": "تم تهيئة عميل Nym VPN"
+  }
+}
