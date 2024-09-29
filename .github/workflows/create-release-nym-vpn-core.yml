@@ -61,7 +61,7 @@ jobs:
 
       - name: Run update-nym-vpn-apple-to-latests-core.sh
         run: |
-          ./scripts/update-nym-vpn-apple-to-latests-core.sh
+          ./scripts/update-nym-vpn-apple-to-latest-core.sh
           git diff
           git commit -a -m "Update Info.plist"
 
