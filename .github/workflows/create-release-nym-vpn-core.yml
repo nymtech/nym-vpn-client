@@ -14,7 +14,6 @@ jobs:
         run: |
           user_role=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             "https://api.github.com/repos/${{ github.repository }}/collaborators/${{ github.actor }}/permission")
-          echo "$user_role"
           permission=$(echo "$user_role" | jq -r '.permission')
 
           if [ "$permission" == "admin" ]; then
