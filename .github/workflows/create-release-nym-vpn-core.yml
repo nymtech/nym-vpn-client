@@ -75,12 +75,18 @@ jobs:
       #     git commit -m "Bump version to next dev version"
           # git push origin ${{ env.branch_name }}
 
+      - name: git status
+        run: |
+          git status
+          git diff
+
       - name: Open a Pull Request
         uses: peter-evans/create-pull-request@v7
         with:
           branch: ${{ env.branch_name }}
           title: "Release: ${{ env.branch_name }}"
           body: "Automated PR for the release."
+          base: "main"
           draft: true
 
       # - name: Push the new branch and tags
