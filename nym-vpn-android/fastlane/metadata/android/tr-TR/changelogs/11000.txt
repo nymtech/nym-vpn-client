@@ -1,0 +1,5 @@
+Yenilikler:
+- WireGuard ile iki hop hız iyileştirmeleri
+- Uygulama performansı iyileştirmeleri
+- Kullanıcı arayüzü iyileştirmeleri
+- Çeşitli hata düzeltmeleri
