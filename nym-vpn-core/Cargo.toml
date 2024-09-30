@@ -49,7 +49,7 @@ license = "GPL-3.0-only"
 [workspace.dependencies]
 
 anyhow = "1.0.89"
-async-trait = "0.1.81"
+async-trait = "0.1.83"
 backon = "1.2"
 base64 = "0.22"
 base64-url = "3.0.0"
