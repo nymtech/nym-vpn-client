@@ -161,4 +161,8 @@
     <string name="connection_failed">接続に失敗しました</string>
     <string name="low_bandwidth">"帯域幅が不足しています！ 残りの帯域幅： "</string>
     <string name="credential_already_imported">認証情報はすでにインポートされています。</string>
+    <string name="selected_entry_unavailable">選択した国は入口として利用できません。別の国を選択してください。</string>
+    <string name="environment">環境</string>
+    <string name="action_requires_tunnel_down">アクションにはトンネルダウンが必要です</string>
+    <string name="selected_exit_unavailable">選択した国は出口として利用できません。別の国を選択してください。</string>
 </resources>
