@@ -82,7 +82,7 @@ impl WgTunnelRunner {
         let generic_config = GenericNymVpnConfig {
             mixnet_client_config: MixnetClientConfig {
                 enable_poisson_rate: false,
-                disable_background_cover_traffic: false,
+                disable_background_cover_traffic: true,
                 enable_credentials_mode: false,
                 min_mixnode_performance: None,
                 min_gateway_performance: None,

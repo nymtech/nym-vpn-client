@@ -533,12 +533,19 @@ impl TryFrom<ConnectRequest> for ConnectOptions {
             .min_gateway_vpn_performance
             .map(threshold_into_percent);
 
+        let disable_background_cover_traffic = if request.enable_two_hop {
+            // If two-hop is enabled, we always disable background cover traffic
+            true
+        } else {
+            request.disable_background_cover_traffic
+        };
+
         Ok(ConnectOptions {
             dns,
             disable_routing: request.disable_routing,
             enable_two_hop: request.enable_two_hop,
             enable_poisson_rate: request.enable_poisson_rate,
-            disable_background_cover_traffic: request.disable_background_cover_traffic,
+            disable_background_cover_traffic,
             enable_credentials_mode: request.enable_credentials_mode,
             min_mixnode_performance,
             min_gateway_mixnet_performance,

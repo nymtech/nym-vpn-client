@@ -187,7 +187,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
     let generic_config = GenericNymVpnConfig {
         mixnet_client_config: MixnetClientConfig {
             enable_poisson_rate: args.enable_poisson_rate,
-            disable_background_cover_traffic: args.disable_background_cover_traffic,
+            disable_background_cover_traffic: args.wireguard_mode || args.disable_background_cover_traffic,
             enable_credentials_mode: args.enable_credentials_mode,
             min_mixnode_performance: args.min_mixnode_performance,
             min_gateway_performance: args.min_gateway_mixnet_performance,
