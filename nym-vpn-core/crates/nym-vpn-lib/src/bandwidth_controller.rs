@@ -1,17 +1,25 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_bandwidth_controller::PreparedCredential;
+use nym_credential_storage::storage::Storage;
+use nym_credentials_interface::TicketType;
+use nym_gateway_directory::GatewayClient;
 use nym_sdk::TaskClient;
-use nym_wg_gateway_client::{ErrorMessage, WgGatewayClient};
+use nym_validator_client::nyxd::contract_traits::DkgQueryClient;
+use nym_wg_gateway_client::{ErrorMessage, GatewayData, WgGatewayClient, WgGatewayLightClient};
 use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
+use std::net::IpAddr;
 use std::time::Duration;
 use tokio_stream::{wrappers::IntervalStream, StreamExt};
 use tracing::{trace, warn};
 
 use crate::mixnet::SharedMixnetClient;
+use crate::SetupWgTunnelError;
 
 const DEFAULT_BANDWIDTH_CHECK: Duration = Duration::from_secs(10); // 10 seconds
 const ASSUMED_BANDWIDTH_DEPLETION_RATE: u64 = 10 * 1024 * 1024; // 10 MB/s
+const TICKETS_TO_SPEND: u32 = 1;
 
 fn update_dynamic_check_interval(remaining_bandwidth: u64) -> Option<Duration> {
     let estimated_depletion_secs = remaining_bandwidth / ASSUMED_BANDWIDTH_DEPLETION_RATE;
@@ -31,17 +39,17 @@ fn update_dynamic_check_interval(remaining_bandwidth: u64) -> Option<Duration> {
 pub(crate) struct BandwidthController<C, St> {
     inner: nym_bandwidth_controller::BandwidthController<C, St>,
     shared_mixnet_client: SharedMixnetClient,
-    wg_entry_gateway_client: WgGatewayClient,
-    wg_exit_gateway_client: WgGatewayClient,
+    wg_entry_gateway_client: WgGatewayLightClient,
+    wg_exit_gateway_client: WgGatewayLightClient,
     shutdown: TaskClient,
 }
 
-impl<C, St> BandwidthController<C, St> {
+impl<C, St: Storage> BandwidthController<C, St> {
     pub(crate) fn new(
         inner: nym_bandwidth_controller::BandwidthController<C, St>,
         shared_mixnet_client: SharedMixnetClient,
-        wg_entry_gateway_client: WgGatewayClient,
-        wg_exit_gateway_client: WgGatewayClient,
+        wg_entry_gateway_client: WgGatewayLightClient,
+        wg_exit_gateway_client: WgGatewayLightClient,
         shutdown: TaskClient,
     ) -> Self {
         BandwidthController {
@@ -51,6 +59,55 @@ impl<C, St> BandwidthController<C, St> {
             wg_exit_gateway_client,
             shutdown,
         }
+    }
+
+    pub(crate) async fn get_initial_bandwidth(
+        &self,
+        gateway_client: &GatewayClient,
+        wg_gateway_client: &mut WgGatewayClient,
+    ) -> std::result::Result<(GatewayData, IpAddr), SetupWgTunnelError>
+    where
+        C: DkgQueryClient + Sync + Send,
+        <St as Storage>::StorageError: Send + Sync + 'static,
+    {
+        let credential = self.request_bandwidth().await?;
+
+        // First we need to register with the gateway to setup keys and IP assignment
+        tracing::info!("Registering with wireguard gateway");
+        let authenticator_address = wg_gateway_client.auth_recipient();
+        let gateway_id = *wg_gateway_client.auth_recipient().gateway();
+        let gateway_host = gateway_client
+            .lookup_gateway_ip(&gateway_id.to_base58_string())
+            .await
+            .map_err(|source| SetupWgTunnelError::FailedToLookupGatewayIp {
+                gateway_id: Box::new(gateway_id),
+                source,
+            })?;
+        let wg_gateway_data = wg_gateway_client
+            .register_wireguard(gateway_host, Some(credential.data))
+            .await
+            .map_err(|source| SetupWgTunnelError::WgGatewayClientError {
+                gateway_id: Box::new(gateway_id),
+                authenticator_address: Box::new(authenticator_address),
+                source,
+            })?;
+        tracing::debug!("Received wireguard gateway data: {wg_gateway_data:?}");
+
+        Ok((wg_gateway_data, gateway_host))
+    }
+
+    pub(crate) async fn request_bandwidth(
+        &self,
+    ) -> std::result::Result<PreparedCredential, SetupWgTunnelError>
+    where
+        C: DkgQueryClient + Sync + Send,
+        <St as Storage>::StorageError: Send + Sync + 'static,
+    {
+        let credential = self
+            .inner
+            .prepare_ecash_ticket(TicketType::V1WireguardEntry, [0; 32], TICKETS_TO_SPEND)
+            .await?;
+        Ok(credential)
     }
 
     async fn check_bandwidth(&mut self, entry: bool) -> Option<Duration> {

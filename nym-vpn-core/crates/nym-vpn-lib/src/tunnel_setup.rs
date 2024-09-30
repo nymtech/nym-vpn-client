@@ -10,9 +10,11 @@ use futures::{
 use ipnetwork::IpNetwork;
 use log::*;
 use nym_authenticator_client::AuthClient;
+use nym_credential_storage::storage::Storage;
 use nym_gateway_directory::{AuthAddresses, GatewayClient, GatewayType, IpPacketRouterAddress};
 use nym_task::TaskManager;
-use nym_wg_gateway_client::WgGatewayClient;
+use nym_validator_client::nyxd::contract_traits::DkgQueryClient;
+use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
 use talpid_core::dns::DnsMonitor;
 use talpid_routing::{Node, RequiredRoute, RouteManager};
 use talpid_tunnel::{TunnelEvent, TunnelMetadata};
@@ -29,7 +31,7 @@ use crate::{
         MixnetConnectionInfo, MixnetExitConnectionInfo, MixnetVpn, NymVpn, SpecificVpn,
         WireguardConnectionInfo, WireguardVpn, MIXNET_CLIENT_STARTUP_TIMEOUT_SECS,
     },
-    wireguard_config,
+    wireguard_config::WireguardConfig,
     wireguard_setup::create_wireguard_tunnel,
 };
 
@@ -63,6 +65,12 @@ pub(crate) enum AllTunnelsSetup {
         entry: TunnelSetup<WgTunnelSetup>,
         exit: TunnelSetup<WgTunnelSetup>,
     },
+}
+
+pub(crate) struct RegistrationConfigs {
+    entry_gateway_data: GatewayData,
+    exit_gateway_data: GatewayData,
+    exit_ip: IpAddr,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -104,26 +112,42 @@ async fn wait_interface_up(
     }
 }
 
-fn spawn_bandwidth_controller<
-    C: Send + 'static,
-    St: nym_credential_storage::storage::Storage + 'static,
->(
+async fn spawn_bandwidth_controller<C, St>(
     client: C,
     storage: St,
     mixnet_client: mixnet::SharedMixnetClient,
-    wg_entry_gateway_client: WgGatewayClient,
-    wg_exit_gateway_client: WgGatewayClient,
+    gateway_client: &GatewayClient,
+    wg_entry_gateway_client: &mut WgGatewayClient,
+    wg_exit_gateway_client: &mut WgGatewayClient,
     task_manager: &mut TaskManager,
-) {
+) -> std::result::Result<RegistrationConfigs, SetupWgTunnelError>
+where
+    C: DkgQueryClient + Sync + Send + 'static,
+    St: Storage + 'static,
+    <St as Storage>::StorageError: Send + Sync + 'static,
+{
     let inner = nym_bandwidth_controller::BandwidthController::new(storage, client);
     let bandwidth_controller = BandwidthController::new(
         inner,
         mixnet_client,
-        wg_entry_gateway_client,
-        wg_exit_gateway_client,
+        wg_entry_gateway_client.light_client(),
+        wg_exit_gateway_client.light_client(),
         task_manager.subscribe(),
     );
+    let (exit_config, _) = bandwidth_controller
+        .get_initial_bandwidth(gateway_client, wg_exit_gateway_client)
+        .await?;
+    let (entry_config, exit_ip) = bandwidth_controller
+        .get_initial_bandwidth(gateway_client, wg_entry_gateway_client)
+        .await?;
+
     tokio::spawn(bandwidth_controller.run());
+
+    Ok(RegistrationConfigs {
+        entry_gateway_data: entry_config,
+        exit_gateway_data: exit_config,
+        exit_ip,
+    })
 }
 
 async fn setup_wg_tunnel(
@@ -168,60 +192,11 @@ async fn setup_wg_tunnel(
         exit_auth_recipient,
     );
 
-    let (mut exit_wireguard_config, _) = wireguard_config::init_wireguard_config(
-        &gateway_directory_client,
-        &mut wg_exit_gateway_client,
-        None,
-        exit_mtu,
-    )
-    .await?;
-    let wg_gateway = exit_wireguard_config
-        .talpid_config
-        .peers
-        .first()
-        .map(|config| config.endpoint.ip());
-    let (mut entry_wireguard_config, entry_gateway_ip) = wireguard_config::init_wireguard_config(
-        &gateway_directory_client,
-        &mut wg_entry_gateway_client,
-        wg_gateway,
-        entry_mtu,
-    )
-    .await?;
-
-    let wg_entry_gateway_client_suspended =
-        wg_entry_gateway_client
-            .suspended()
-            .await
-            .map_err(|source| SetupWgTunnelError::WgGatewayClientError {
-                gateway_id: Box::new(*entry_auth_recipient.gateway()),
-                authenticator_address: Box::new(entry_auth_recipient),
-                source,
-            })?;
-
-    if wg_entry_gateway_client_suspended {
-        return Err(SetupWgTunnelError::NotEnoughBandwidthToSetupTunnel {
-            gateway_id: Box::new(*entry_auth_recipient.gateway()),
-            authenticator_address: Box::new(entry_auth_recipient),
-        });
-    }
-
-    let wg_exit_gateway_client_suspended =
-        wg_exit_gateway_client.suspended().await.map_err(|source| {
-            SetupWgTunnelError::WgGatewayClientError {
-                gateway_id: Box::new(*exit_auth_recipient.gateway()),
-                authenticator_address: Box::new(exit_auth_recipient),
-                source,
-            }
-        })?;
-
-    if wg_exit_gateway_client_suspended {
-        return Err(SetupWgTunnelError::NotEnoughBandwidthToSetupTunnel {
-            gateway_id: Box::new(*exit_auth_recipient.gateway()),
-            authenticator_address: Box::new(exit_auth_recipient),
-        });
-    }
-
-    if let Some(data_path) = nym_vpn.generic_config.data_path.clone() {
+    let RegistrationConfigs {
+        entry_gateway_data,
+        exit_gateway_data,
+        exit_ip,
+    } = if let Some(data_path) = nym_vpn.generic_config.data_path.clone() {
         let credentials_store = get_credentials_store(data_path.clone())
             .await
             .map_err(|source| SetupWgTunnelError::CredentialStoreError {
@@ -233,10 +208,12 @@ async fn setup_wg_tunnel(
             client,
             credentials_store,
             mixnet_client.clone(),
-            wg_entry_gateway_client,
-            wg_exit_gateway_client,
+            &gateway_directory_client,
+            &mut wg_entry_gateway_client,
+            &mut wg_exit_gateway_client,
             task_manager,
-        );
+        )
+        .await?
     } else {
         let credentials_store =
             nym_credential_storage::ephemeral_storage::EphemeralStorage::default();
@@ -244,11 +221,67 @@ async fn setup_wg_tunnel(
             client,
             credentials_store,
             mixnet_client.clone(),
-            wg_entry_gateway_client,
-            wg_exit_gateway_client,
+            &gateway_directory_client,
+            &mut wg_entry_gateway_client,
+            &mut wg_exit_gateway_client,
             task_manager,
-        );
+        )
+        .await?
     };
+
+    let mut exit_wireguard_config = WireguardConfig::init(
+        wg_exit_gateway_client.keypair(),
+        exit_gateway_data,
+        None,
+        *wg_exit_gateway_client.auth_recipient().gateway(),
+        exit_mtu,
+    )?;
+    let wg_gateway = exit_wireguard_config
+        .talpid_config
+        .peers
+        .first()
+        .map(|config| config.endpoint.ip());
+    let mut entry_wireguard_config = WireguardConfig::init(
+        wg_entry_gateway_client.keypair(),
+        entry_gateway_data,
+        wg_gateway,
+        *wg_entry_gateway_client.auth_recipient().gateway(),
+        entry_mtu,
+    )?;
+
+    let wg_entry_gateway_client_suspended = wg_entry_gateway_client
+        .light_client()
+        .suspended()
+        .await
+        .map_err(|source| SetupWgTunnelError::WgGatewayClientError {
+            gateway_id: Box::new(*entry_auth_recipient.gateway()),
+            authenticator_address: Box::new(entry_auth_recipient),
+            source,
+        })?;
+
+    if wg_entry_gateway_client_suspended {
+        return Err(SetupWgTunnelError::NotEnoughBandwidthToSetupTunnel {
+            gateway_id: Box::new(*entry_auth_recipient.gateway()),
+            authenticator_address: Box::new(entry_auth_recipient),
+        });
+    }
+
+    let wg_exit_gateway_client_suspended = wg_exit_gateway_client
+        .light_client()
+        .suspended()
+        .await
+        .map_err(|source| SetupWgTunnelError::WgGatewayClientError {
+            gateway_id: Box::new(*exit_auth_recipient.gateway()),
+            authenticator_address: Box::new(exit_auth_recipient),
+            source,
+        })?;
+
+    if wg_exit_gateway_client_suspended {
+        return Err(SetupWgTunnelError::NotEnoughBandwidthToSetupTunnel {
+            gateway_id: Box::new(*exit_auth_recipient.gateway()),
+            authenticator_address: Box::new(exit_auth_recipient),
+        });
+    }
 
     entry_wireguard_config
         .talpid_config
@@ -292,7 +325,7 @@ async fn setup_wg_tunnel(
     } else {
         Node::device(default_lan_gateway_ip.0.name)
     };
-    let _routes = replace_default_prefixes(entry_gateway_ip.into())
+    let _routes = replace_default_prefixes(exit_ip.into())
         .into_iter()
         .map(move |ip| RequiredRoute::new(ip, default_node.clone()));
     #[cfg(target_os = "linux")]

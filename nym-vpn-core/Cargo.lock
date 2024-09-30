@@ -5402,6 +5402,7 @@ dependencies = [
  "nym-credential-storage 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
  "nym-credential-storage 0.1.0 (git+https://github.com/nymtech/nym?rev=889fdcc60393d24570f1e3a01e303f7c4c764a68)",
  "nym-credentials 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?rev=889fdcc60393d24570f1e3a01e303f7c4c764a68)",
  "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?rev=889fdcc60393d24570f1e3a01e303f7c4c764a68)",
  "nym-gateway-directory",
  "nym-id 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",

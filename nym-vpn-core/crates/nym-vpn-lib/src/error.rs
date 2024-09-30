@@ -151,6 +151,9 @@ pub enum SetupWgTunnelError {
     #[error("failed to find authenticator address")]
     AuthenticatorAddressNotFound { gateway_id: Box<NodeIdentity> },
 
+    #[error("{0}")]
+    BandwidthControllerError(#[from] nym_bandwidth_controller::error::BandwidthControllerError),
+
     #[error("credential store error: {path}: {source}")]
     CredentialStoreError {
         path: std::path::PathBuf,

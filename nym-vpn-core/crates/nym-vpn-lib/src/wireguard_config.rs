@@ -7,8 +7,8 @@ use std::{
 };
 
 use nym_crypto::asymmetric::x25519::KeyPair;
-use nym_gateway_directory::{GatewayClient, NodeIdentity};
-use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
+use nym_gateway_directory::NodeIdentity;
+use nym_wg_gateway_client::GatewayData;
 use talpid_types::net::{
     wireguard::{ConnectionConfig, PeerConfig, PrivateKey, TunnelConfig, TunnelOptions},
     GenericTunnelOptions,
@@ -50,7 +50,7 @@ impl WireguardConfig {
         })
     }
 
-    fn init(
+    pub(crate) fn init(
         keypair: &KeyPair,
         gateway_data: GatewayData,
         wg_gateway: Option<IpAddr>,
@@ -131,41 +131,4 @@ impl std::fmt::Display for WireguardConfig {
         }
         Ok(())
     }
-}
-
-pub(crate) async fn init_wireguard_config(
-    gateway_client: &GatewayClient,
-    wg_gateway_client: &mut WgGatewayClient,
-    wg_gateway: Option<IpAddr>,
-    mtu: u16,
-) -> std::result::Result<(WireguardConfig, IpAddr), SetupWgTunnelError> {
-    // First we need to register with the gateway to setup keys and IP assignment
-    tracing::info!("Registering with wireguard gateway");
-    let authenticator_address = wg_gateway_client.auth_recipient();
-    let gateway_id = *wg_gateway_client.auth_recipient().gateway();
-    let gateway_host = gateway_client
-        .lookup_gateway_ip(&gateway_id.to_base58_string())
-        .await
-        .map_err(|source| SetupWgTunnelError::FailedToLookupGatewayIp {
-            gateway_id: Box::new(gateway_id),
-            source,
-        })?;
-    let wg_gateway_data = wg_gateway_client
-        .register_wireguard(gateway_host, None)
-        .await
-        .map_err(|source| SetupWgTunnelError::WgGatewayClientError {
-            gateway_id: Box::new(gateway_id),
-            authenticator_address: Box::new(authenticator_address),
-            source,
-        })?;
-    tracing::debug!("Received wireguard gateway data: {wg_gateway_data:?}");
-
-    let wireguard_config = WireguardConfig::init(
-        wg_gateway_client.keypair(),
-        wg_gateway_data,
-        wg_gateway,
-        *wg_gateway_client.auth_recipient().gateway(),
-        mtu,
-    )?;
-    Ok((wireguard_config, gateway_host))
 }

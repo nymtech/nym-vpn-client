@@ -476,6 +476,7 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                         reason: inner.to_string(),
                     }
                 }
+                nym_vpn_lib::SetupWgTunnelError::BandwidthControllerError(inner) => ConnectionFailedError::WireguardConfigError{ reason: inner.to_string() },
             },
             nym_vpn_lib::Error::GatewayDirectoryError(e) => e.into(),
             nym_vpn_lib::Error::FailedToInitFirewall(inner) => {
