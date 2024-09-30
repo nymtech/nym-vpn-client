@@ -2995,21 +2995,21 @@ dependencies = [
 [[package]]
 name = "nym-config"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=b7baff1#b7baff1a79d19ff8729531b1b8b10510b68cd8ca"
+source = "git+https://github.com/nymtech/nym?rev=fabd48b#fabd48b7ea564df952abe058db93025a80a27f36"
 dependencies = [
  "dirs",
  "handlebars",
  "log",
  "nym-network-defaults",
  "serde",
- "toml 0.7.8",
+ "toml 0.8.19",
  "url",
 ]
 
 [[package]]
 name = "nym-network-defaults"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=b7baff1#b7baff1a79d19ff8729531b1b8b10510b68cd8ca"
+source = "git+https://github.com/nymtech/nym?rev=fabd48b#fabd48b7ea564df952abe058db93025a80a27f36"
 dependencies = [
  "dotenvy",
  "log",

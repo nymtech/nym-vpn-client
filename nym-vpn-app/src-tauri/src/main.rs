@@ -59,6 +59,9 @@ const APP_CONFIG_FILE: &str = "config.toml";
 const ENV_APP_NOSPLASH: &str = "APP_NOSPLASH";
 const VPND_RETRY_INTERVAL: Duration = Duration::from_secs(2);
 
+// build time pkg data
+build_info::build_info!(fn build_info);
+
 #[tokio::main]
 async fn main() -> Result<()> {
     dotenvy::dotenv().ok();
@@ -135,7 +138,7 @@ async fn main() -> Result<()> {
 
     let app_state = AppState::new(&db, &app_config, &cli);
 
-    let grpc = GrpcClient::new(&app_config, &cli);
+    let grpc = GrpcClient::new(&app_config, &cli, context.package_info());
 
     info!("Starting tauri app");
     tauri::Builder::default()

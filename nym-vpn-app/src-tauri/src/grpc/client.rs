@@ -1,3 +1,4 @@
+use std::env::consts::OS;
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
@@ -7,11 +8,11 @@ use nym_vpn_proto::{
     nym_vpnd_client::NymVpndClient, ConnectRequest, ConnectionStatus, DisconnectRequest, Dns,
     Empty, EntryNode, ExitNode, GatewayType, HealthCheckRequest, ImportUserCredentialRequest,
     ImportUserCredentialResponse, InfoRequest, InfoResponse, ListCountriesRequest, Location,
-    StatusRequest, StatusResponse,
+    StatusRequest, StatusResponse, UserAgent,
 };
 use parity_tokio_ipc::Endpoint as IpcEndpoint;
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, PackageInfo};
 use thiserror::Error;
 use time::OffsetDateTime;
 use tokio::sync::mpsc;
@@ -59,13 +60,31 @@ pub enum VpndError {
 }
 
 #[derive(Debug, Default, Clone)]
-pub struct GrpcClient(Transport);
+pub struct GrpcClient {
+    transport: Transport,
+    user_agent: UserAgent,
+}
 
 impl GrpcClient {
     #[instrument(skip_all)]
-    pub fn new(config: &AppConfig, cli: &Cli) -> Self {
-        let client = GrpcClient(Transport::from((config, cli)));
-        match &client.0 {
+    pub fn new(config: &AppConfig, cli: &Cli, pkg: &PackageInfo) -> Self {
+        let git_commit = crate::build_info()
+            .version_control
+            .as_ref()
+            .and_then(|vc| vc.git())
+            .map(|g| g.commit_short_id.clone())
+            .unwrap_or_default();
+
+        let client = GrpcClient {
+            transport: Transport::from((config, cli)),
+            user_agent: UserAgent {
+                application: pkg.name.clone(),
+                version: pkg.version.to_string(),
+                platform: OS.to_string(),
+                git_commit,
+            },
+        };
+        match &client.transport {
             Transport::Http(endpoint) => {
                 info!("using grpc HTTP transport: {}", endpoint);
             }
@@ -79,7 +98,7 @@ impl GrpcClient {
     /// Get the Vpnd service client
     #[instrument(skip_all)]
     pub async fn vpnd(&self) -> Result<NymVpndClient<Channel>, VpndError> {
-        match &self.0 {
+        match &self.transport {
             Transport::Http(endpoint) => {
                 NymVpndClient::connect(endpoint.clone()).await.map_err(|e| {
                     warn!("failed to connect to the daemon: {}", e);
@@ -99,7 +118,7 @@ impl GrpcClient {
     /// Get the Health service client
     #[instrument(skip_all)]
     pub async fn health(&self) -> Result<HealthClient<Channel>, VpndError> {
-        match &self.0 {
+        match &self.transport {
             Transport::Http(endpoint) => {
                 HealthClient::connect(endpoint.clone()).await.map_err(|e| {
                     warn!("failed to connect to the daemon: {}", e);
@@ -306,7 +325,7 @@ impl GrpcClient {
             disable_background_cover_traffic: false,
             enable_credentials_mode: false,
             dns,
-            user_agent: None,
+            user_agent: Some(self.user_agent.clone()),
             min_mixnode_performance: None,
             min_gateway_mixnet_performance: None,
             min_gateway_vpn_performance: None,
@@ -363,7 +382,7 @@ impl GrpcClient {
 
         let request = Request::new(ListCountriesRequest {
             kind: gw_type as i32,
-            user_agent: None,
+            user_agent: Some(self.user_agent.clone()),
             min_mixnet_performance: None,
             min_vpn_performance: None,
         });
