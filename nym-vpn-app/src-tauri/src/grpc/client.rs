@@ -1,4 +1,4 @@
-use std::env::consts::OS;
+use std::env::consts::{ARCH, OS};
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
@@ -80,7 +80,7 @@ impl GrpcClient {
             user_agent: UserAgent {
                 application: pkg.name.clone(),
                 version: pkg.version.to_string(),
-                platform: OS.to_string(),
+                platform: format!("{}-{}", OS, ARCH),
                 git_commit,
             },
         };
