@@ -161,4 +161,8 @@
     <string name="no_bandwidth">Пропускної здатності не залишилося.</string>
     <string name="low_bandwidth">"Низька пропускна здатність! Смуга пропускання залишилася: "</string>
     <string name="credential_already_imported">Облікові дані вже імпортовані.</string>
+    <string name="environment">Довкілля</string>
+    <string name="action_requires_tunnel_down">Дія вимагає тунелю внизу</string>
+    <string name="selected_exit_unavailable">Вибрана країна вильоту недоступна. Будь ласка, виберіть іншу країну виходу.</string>
+    <string name="selected_entry_unavailable">Обрана країна в\'їзду недоступна. Будь ласка, оберіть іншу країну в\'їзду.</string>
 </resources>
