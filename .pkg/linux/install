@@ -35,13 +35,13 @@ BI="$ITL$BLD"
 ####
 
 # nym-vpn-app AppImage
-app_tag=nym-vpn-app-v0.2.0
-app_version=0.2.0
+app_tag=nym-vpn-app-nightly
+app_version=0.2.1-dev
 appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/nym-vpn_${app_version}_x64.AppImage"
 
 # nym-vpnd prebuilt binary
-vpnd_tag=nym-vpn-core-v0.2.1
-vpnd_version=0.2.1
+vpnd_tag=nym-vpn-core-v0.2.3
+vpnd_version=0.2.3
 vpnd_url="https://github.com/nymtech/nym-vpn-client/releases/download/$vpnd_tag/nym-vpn-core-v${vpnd_version}_linux_x86_64.tar.gz"
 
 # function called when an error occurs, will print the exit
