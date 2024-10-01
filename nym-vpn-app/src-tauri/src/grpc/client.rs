@@ -171,6 +171,25 @@ impl GrpcClient {
         Ok(response.into_inner())
     }
 
+    /// Update `user_agent` with the daemon info
+    // TODO this is dirty, this logic shouldn't be handled in the client side
+    #[instrument(skip_all)]
+    pub async fn update_agent(&mut self) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let request = Request::new(InfoRequest {});
+        let response = vpnd.info(request).await.map_err(|e| {
+            error!("grpc info: {}", e);
+            VpndError::GrpcError(e)
+        })?;
+        let d_info = response.get_ref();
+        self.user_agent.version = format!("{} ({})", self.user_agent.version, d_info.version);
+        self.user_agent.git_commit =
+            format!("{} ({})", self.user_agent.git_commit, d_info.git_commit);
+        info!("updated user agent: {:?}", self.user_agent);
+        Ok(())
+    }
+
     /// Get VPN status
     #[instrument(skip_all)]
     pub async fn vpn_status(&self) -> Result<StatusResponse, VpndError> {
