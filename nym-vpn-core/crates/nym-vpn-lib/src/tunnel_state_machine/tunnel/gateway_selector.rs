@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_gateway_directory::{EntryPoint, ExitPoint, Gateway, GatewayClient};
+use nym_gateway_directory::{EntryPoint, ExitPoint, Gateway, GatewayClient, GatewayType};
 
 use crate::GatewayDirectoryError;
 
@@ -21,19 +21,19 @@ pub async fn select_gateways(
     // the exit gateway and then filter out the exit gateway from the set of entry gateways.
     let (mut entry_gateways, exit_gateways) = if enable_wireguard {
         let all_gateways = gateway_directory_client
-            .lookup_all_gateways()
+            .lookup_gateways_from_nym_api(GatewayType::Wg)
             .await
             .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
         (all_gateways.clone(), all_gateways)
     } else {
         // Setup the gateway that we will use as the exit point
         let exit_gateways = gateway_directory_client
-            .lookup_exit_gateways()
+            .lookup_gateways_from_nym_api(GatewayType::MixnetExit)
             .await
             .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
         // Setup the gateway that we will use as the entry point
         let entry_gateways = gateway_directory_client
-            .lookup_entry_gateways()
+            .lookup_gateways_from_nym_api(GatewayType::MixnetEntry)
             .await
             .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
         (entry_gateways, exit_gateways)
@@ -73,7 +73,7 @@ pub async fn select_gateways(
             .two_letter_iso_country_code()
             .map_or_else(|| "unknown".to_string(), |code| code.to_string()),
         entry_gateway
-            .performance
+            .mixnet_performance
             .map_or_else(|| "unknown".to_string(), |perf| perf.to_string()),
     );
     tracing::info!(
@@ -83,7 +83,7 @@ pub async fn select_gateways(
             .two_letter_iso_country_code()
             .map_or_else(|| "unknown".to_string(), |code| code.to_string()),
         entry_gateway
-            .performance
+            .mixnet_performance
             .map_or_else(|| "unknown".to_string(), |perf| perf.to_string()),
     );
     tracing::info!(

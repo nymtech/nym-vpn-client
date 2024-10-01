@@ -149,7 +149,7 @@ pub(crate) fn win_has_admin(binary_name: &str) -> Result<()> {
     use tracing::debug;
 
     if is_elevated::is_elevated() {
-        debug!("Admin privileges acquired");
+        tracing::debug!("Admin privileges acquired");
         Ok(())
     } else {
         Err(Error::AdminPrivilegesRequired {
@@ -169,8 +169,8 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> anyhow:
     let gateway_config =
         GatewayConfig::new_from_env().with_min_gateway_performance(min_gateway_performance);
 
-    info!("nym-api: {}", gateway_config.api_url());
-    info!(
+    tracing::info!("nym-api: {}", gateway_config.api_url());
+    tracing::info!(
         "nym-vpn-api: {}",
         gateway_config
             .nym_vpn_api_url()
