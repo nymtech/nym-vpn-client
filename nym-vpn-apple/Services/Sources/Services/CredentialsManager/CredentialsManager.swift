@@ -9,11 +9,13 @@ import MixnetLibrary
 
 #if os(macOS)
 import GRPCManager
+import HelperManager
 #endif
 
 public final class CredentialsManager {
 #if os(macOS)
     private let grpcManager = GRPCManager.shared
+    private let helperManager = HelperManager.shared
 #endif
     private let appSettings = AppSettings.shared
 
@@ -55,6 +57,7 @@ public final class CredentialsManager {
             }
 #endif
 #if os(macOS)
+            guard helperManager.isHelperAuthorizedAndRunning() else { return }
             let expiryDate = try grpcManager.importCredential(credential: trimmedCredential)
 #endif
             appSettings.isCredentialImported = true
