@@ -113,9 +113,9 @@ impl Db {
             }
         })?;
         if db.was_recovered() {
-            info!("sled db recovered");
+            info!("using existing db at {}", &path.display());
         } else {
-            info!("new sled db created");
+            info!("new db created at {}", &path.display());
         }
         Ok(Self { db, path })
     }

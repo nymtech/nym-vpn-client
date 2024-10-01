@@ -80,7 +80,7 @@ impl GrpcClient {
             user_agent: UserAgent {
                 application: pkg.name.clone(),
                 version: pkg.version.to_string(),
-                platform: format!("{}-{}", OS, ARCH),
+                platform: format!("{}-{}-{}", OS, tauri_plugin_os::version(), ARCH),
                 git_commit,
             },
         };
