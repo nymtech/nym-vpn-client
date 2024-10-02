@@ -10,11 +10,6 @@ use tracing::{error, info};
 
 pub type ManagedCli = Arc<Cli>;
 
-// generate `crate::build_info` function that returns the data
-// collected during build time
-// see https://github.com/danielschemmel/build-info
-build_info::build_info!(fn build_info);
-
 #[derive(Parser, Serialize, Deserialize, Debug, Clone)]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
@@ -123,7 +118,7 @@ pub fn db_command(db: &Db, command: &DbCommands) -> Result<()> {
 }
 
 pub fn print_build_info(package_info: &PackageInfo) {
-    let info = build_info();
+    let info = crate::build_info();
 
     print!(
         r"app name:      {}

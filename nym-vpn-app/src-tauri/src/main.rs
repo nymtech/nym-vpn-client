@@ -59,6 +59,9 @@ const APP_CONFIG_FILE: &str = "config.toml";
 const ENV_APP_NOSPLASH: &str = "APP_NOSPLASH";
 const VPND_RETRY_INTERVAL: Duration = Duration::from_secs(2);
 
+// build time pkg data
+build_info::build_info!(fn build_info);
+
 #[tokio::main]
 async fn main() -> Result<()> {
     dotenvy::dotenv().ok();
@@ -135,7 +138,8 @@ async fn main() -> Result<()> {
 
     let app_state = AppState::new(&db, &app_config, &cli);
 
-    let grpc = GrpcClient::new(&app_config, &cli);
+    let mut grpc = GrpcClient::new(&app_config, &cli, context.package_info());
+    grpc.update_agent().await.ok();
 
     info!("Starting tauri app");
     tauri::Builder::default()
@@ -184,11 +188,12 @@ async fn main() -> Result<()> {
             });
 
             let handle = app.handle().clone();
-            let c_grpc = grpc.clone();
+            let mut c_grpc = grpc.clone();
             tokio::spawn(async move {
                 info!("starting vpn status spy");
                 loop {
                     if c_grpc.refresh_vpn_status(&handle).await.is_ok() {
+                        c_grpc.update_agent().await.ok();
                         c_grpc.watch_vpn_state(&handle).await.ok();
                     }
                     sleep(VPND_RETRY_INTERVAL).await;
