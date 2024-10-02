@@ -97,13 +97,19 @@ pub(crate) fn start_tunnel(
         ) {
             Ok(monitor) => monitor,
             Err(e) => {
-                send_error_event(&mut shutdown, WgTunnelErrorEvent::WireguardMonitor(e.to_string()));
+                send_error_event(
+                    &mut shutdown,
+                    WgTunnelErrorEvent::WireguardMonitor(e.to_string()),
+                );
                 return;
             }
         };
         debug!("Wireguard monitor started, blocking current thread until shutdown");
         if let Err(e) = monitor.wait() {
-            send_error_event(&mut shutdown, WgTunnelErrorEvent::WireguardMonitor(e.to_string()));
+            send_error_event(
+                &mut shutdown,
+                WgTunnelErrorEvent::WireguardMonitor(e.to_string()),
+            );
         } else {
             if finished_shutdown_tx.send(()).is_err() {
                 send_error_event(&mut shutdown, WgTunnelErrorEvent::SendWireguardShutdown);
