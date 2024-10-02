@@ -19,8 +19,8 @@ use url::Url;
 
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use super::mobile::runner::Error as MobileError;
-use crate::platform::error::VpnError;
 use crate::{
+    platform::error::VpnError,
     vpn::{MixnetConnectionInfo, MixnetExitConnectionInfo, NymVpnStatusMessage},
     NodeIdentity, Recipient, UniffiCustomTypeConverter,
 };

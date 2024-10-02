@@ -4,12 +4,10 @@ use nym_wg_go::{netstack, wireguard_go};
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    mobile::{
-        tunnel_settings::TunnelSettings, two_hop_config::TwoHopConfig, wg_config::WgNodeConfig,
-        Error, Result,
-    },
+    mobile::{tunnel_settings::TunnelSettings, two_hop_config::TwoHopConfig, Error, Result},
     platform::{android::AndroidTunProvider, uniffi_set_listener_status},
     uniffi_custom_impls::{StatusEvent, TunStatus},
+    wg_config::WgNodeConfig,
 };
 
 pub struct TwoHopTunnelImp {

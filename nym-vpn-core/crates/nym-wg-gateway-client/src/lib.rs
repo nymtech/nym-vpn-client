@@ -11,8 +11,7 @@ use std::{
 };
 
 pub use error::{Error, ErrorMessage};
-use nym_authenticator_client::AuthClient;
-use nym_authenticator_client::ClientMessage;
+use nym_authenticator_client::{AuthClient, ClientMessage};
 use nym_authenticator_requests::v1::{
     registration::{GatewayClient, InitMessage, RegistrationData},
     response::{
