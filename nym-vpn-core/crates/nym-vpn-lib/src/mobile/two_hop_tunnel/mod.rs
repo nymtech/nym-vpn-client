@@ -12,9 +12,10 @@ use tokio_util::sync::CancellationToken;
 
 #[cfg(target_os = "ios")]
 use super::ios::tun_provider::OSTunProvider;
-use super::{wg_config::WgNodeConfig, Result};
+use super::Result;
 #[cfg(target_os = "android")]
 use crate::platform::android::AndroidTunProvider;
+use crate::wg_config::WgNodeConfig;
 
 /// Start two-hop WireGuard tunnel.
 ///
