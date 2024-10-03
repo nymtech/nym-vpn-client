@@ -70,7 +70,9 @@ impl<C, St: Storage> BandwidthController<C, St> {
         C: DkgQueryClient + Sync + Send,
         <St as Storage>::StorageError: Send + Sync + 'static,
     {
-        let credential = self.request_bandwidth().await?;
+        let credential = self
+            .request_bandwidth(wg_gateway_client.auth_recipient().gateway().to_bytes())
+            .await?;
 
         // First we need to register with the gateway to setup keys and IP assignment
         tracing::info!("Registering with wireguard gateway");
@@ -98,6 +100,7 @@ impl<C, St: Storage> BandwidthController<C, St> {
 
     pub(crate) async fn request_bandwidth(
         &self,
+        provider_pk: [u8; 32],
     ) -> std::result::Result<PreparedCredential, SetupWgTunnelError>
     where
         C: DkgQueryClient + Sync + Send,
@@ -105,7 +108,7 @@ impl<C, St: Storage> BandwidthController<C, St> {
     {
         let credential = self
             .inner
-            .prepare_ecash_ticket(TicketType::V1WireguardEntry, [0; 32], TICKETS_TO_SPEND)
+            .prepare_ecash_ticket(TicketType::V1WireguardEntry, provider_pk, TICKETS_TO_SPEND)
             .await?;
         Ok(credential)
     }
