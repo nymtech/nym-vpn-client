@@ -21,10 +21,10 @@
     "connected": "Désactivé lors de la connexion au VPN",
     "disconnecting": "Désactivé lors de la déconnexion du VPN",
     "connecting": "Désactivé lors de la connexion au VPN",
-    "daemon-not-connected": "Désactivé lorsque non connecté au daemon VPN"
+    "daemon-not-connected": "Désactivé lorsque non connecté au daemon VPN."
   },
   "privacy-mode": {
-    "title": "Anonyme",
+    "title": "Anonyme (mixnet)",
     "desc": "Pour les paiements, emails et messages"
   },
   "fast-mode": {
