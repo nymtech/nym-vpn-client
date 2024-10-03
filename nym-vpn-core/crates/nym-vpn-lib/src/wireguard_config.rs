@@ -40,7 +40,7 @@ impl WireguardConfig {
             &TunnelParameters {
                 connection: connection_config,
                 options: wg_options,
-                generic_options: generic_options,
+                generic_options,
                 obfuscation: None,
             },
             1500,
@@ -64,12 +64,12 @@ impl WireguardConfig {
             private_key: PrivateKey::from(keypair.private_key().to_bytes()),
             addresses: vec![gateway_data.private_ipv4.into()],
         };
-        let peers = vec![PeerConfig {
+        let peer = PeerConfig {
             public_key: gateway_data.public_key.clone(),
             allowed_ips: vec![IpAddr::from(gateway_data.private_ipv4).into()],
             endpoint: gateway_data.endpoint,
             psk: None,
-        }];
+        };
         let default_ipv4_gateway = Ipv4Addr::from_str(&gateway_data.private_ipv4.to_string())
             .map_err(SetupWgTunnelError::FailedToParseEntryGatewayIpv4)?;
         let (ipv4_gateway, ipv6_gateway) = match wg_gateway {
@@ -79,8 +79,8 @@ impl WireguardConfig {
         };
         let connection_config = ConnectionConfig {
             tunnel: tunnel.clone(),
-            peer: peers[0].clone(),
-            exit_peer: Some(peers[1].clone()),
+            peer,
+            exit_peer: None,
             ipv4_gateway,
             ipv6_gateway,
             #[cfg(target_os = "linux")]
