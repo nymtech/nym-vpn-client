@@ -54,6 +54,8 @@ talpid-routing.workspace = true
 talpid-tunnel.workspace = true
 talpid-types.workspace = true
 talpid-wireguard.workspace = true
+shadowsocks-service.workspace = true
+shadowsocks.workspace = true
 
 nym-authenticator-requests.workspace = true
 nym-bandwidth-controller-pre-ecash.workspace = true
