@@ -1673,7 +1673,7 @@ dependencies = [
  "rand_core 0.6.4",
  "serde",
  "sha2 0.10.8",
- "signature 2.2.0",
+ "signature",
  "subtle 2.6.1",
  "zeroize",
 ]
