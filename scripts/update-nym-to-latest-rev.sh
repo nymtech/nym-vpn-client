@@ -16,8 +16,8 @@ update_cargo_file() {
         return 1
     fi
 
-    # Update the Cargo.toml file with the latest commit SHA
-    sed -i -E "s/(nym-.* = \{ git = \"https:\/\/github\.com\/nymtech\/nym\", rev = \")([a-f0-9]+)/\1$latest_commit/" "$cargo_file"
+    # Update the Cargo.toml file with the latest commit SHA, but not for packages containing "-pre-ecash"
+    sed -i -E "/-pre-ecash/!s/(nym-.* = \{ git = \"https:\/\/github\.com\/nymtech\/nym\", rev = \")([a-f0-9]+)/\1$latest_commit/" "$cargo_file"
 
     if [ $? -eq 0 ]; then
         echo "Updated $cargo_file with the latest commit SHA: $latest_commit"
