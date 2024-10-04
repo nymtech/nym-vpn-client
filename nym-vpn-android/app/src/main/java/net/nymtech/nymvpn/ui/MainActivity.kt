@@ -65,7 +65,7 @@ import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.StringValue
-import net.nymtech.nymvpn.util.extensions.go
+import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.isCurrentRoute
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.resetTile
@@ -137,7 +137,7 @@ class MainActivity : ComponentActivity() {
 							is VpnException.InvalidCredential -> {
 								if (NymVpn.isForeground()) {
 									SnackbarController.showMessage(StringValue.StringResource(R.string.exception_cred_invalid))
-									navController.go(Route.Credential)
+									navController.goFromRoot(Route.Credential)
 								}
 							} else -> Unit
 						}

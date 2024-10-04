@@ -72,7 +72,7 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.buildCountryNameString
-import net.nymtech.nymvpn.util.extensions.go
+import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.isInvalid
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
@@ -97,7 +97,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 				title = { MainTitle(appUiState.settings.theme ?: Theme.default()) },
 				trailing = {
 					NavIcon(Icons.Outlined.Settings) {
-						appViewModel.navController.go(Route.Settings)
+						appViewModel.navController.goFromRoot(Route.Settings)
 					}
 				},
 			),
@@ -110,7 +110,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			onResult = {
 				val accepted = (it.resultCode == RESULT_OK)
 				if (!accepted) {
-					appViewModel.navController.go(Route.Permission(Permission.VPN))
+					appViewModel.navController.goFromRoot(Route.Permission(Permission.VPN))
 				} else {
 					viewModel.onConnect()
 				}
@@ -273,7 +273,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 								indication = if (selectionEnabled) ripple() else null,
 							) {
 								if (selectionEnabled) {
-									appViewModel.navController.go(
+									appViewModel.navController.goFromRoot(
 										Route.EntryLocation,
 									)
 								} else {
@@ -303,7 +303,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 						.defaultMinSize(minHeight = 1.dp, minWidth = 1.dp)
 						.clickable(remember { MutableInteractionSource() }, indication = if (selectionEnabled) ripple() else null) {
 							if (selectionEnabled) {
-								appViewModel.navController.go(
+								appViewModel.navController.goFromRoot(
 									Route.ExitLocation,
 								)
 							} else {
@@ -321,7 +321,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 								scope.launch {
 									if (appUiState.settings.credentialExpiry.isInvalid()
 									) {
-										return@launch appViewModel.navController.go(Route.Credential)
+										return@launch appViewModel.navController.goFromRoot(Route.Credential)
 									}
 									onConnectPressed()
 								}

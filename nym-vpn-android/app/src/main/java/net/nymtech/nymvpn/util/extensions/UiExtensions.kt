@@ -8,6 +8,7 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
@@ -39,15 +40,15 @@ fun <T : Route> NavBackStackEntry?.isCurrentRoute(cls: KClass<T>): Boolean {
 	} == true
 }
 
-fun NavController.go(route: Route) {
+fun NavController.goFromRoot(route: Route) {
 	if (currentBackStackEntry?.isCurrentRoute(route::class) == true) return
 	this.navigate(route) {
 		// Pop up to the start destination of the graph to
 		// avoid building up a large stack of destinations
 		// on the back stack as users select items
-// 		popUpTo(graph.findStartDestination().id) {
-// 			saveState = true
-// 		}
+		popUpTo(graph.findStartDestination().id) {
+			saveState = true
+		}
 		// Avoid multiple copies of the same destination when
 		// reselecting the same item
 		launchSingleTop = true

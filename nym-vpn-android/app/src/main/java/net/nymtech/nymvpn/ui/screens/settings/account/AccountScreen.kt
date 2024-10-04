@@ -45,7 +45,6 @@ import net.nymtech.nymvpn.ui.screens.settings.account.model.Device
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.durationFromNow
-import net.nymtech.nymvpn.util.extensions.go
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.nymvpn.util.extensions.showToast
@@ -137,7 +136,7 @@ fun AccountScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 					Box(modifier = Modifier.width(100.dp.scaledWidth())) {
 						MainStyledButton(
 							onClick = {
-								appViewModel.navController.go(Route.Credential)
+								appViewModel.navController.navigate(Route.Credential)
 							},
 							content = {
 								Text(
