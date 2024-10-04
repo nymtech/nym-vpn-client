@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn.util.extensions
 
+import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
@@ -31,6 +32,7 @@ fun NavController.navigateAndForget(route: Route) {
 	}
 }
 
+@SuppressLint("RestrictedApi")
 fun <T : Route> NavBackStackEntry?.isCurrentRoute(cls: KClass<T>): Boolean {
 	return this?.destination?.hierarchy?.any {
 		it.hasRoute(route = cls)
