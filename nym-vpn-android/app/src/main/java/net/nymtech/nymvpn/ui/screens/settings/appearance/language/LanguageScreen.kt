@@ -27,7 +27,6 @@ import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.navigation.NavIcon
 import net.nymtech.nymvpn.ui.common.navigation.NavTitle
 import net.nymtech.nymvpn.util.extensions.capitalize
-import net.nymtech.nymvpn.util.extensions.go
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import timber.log.Timber
@@ -73,7 +72,7 @@ fun LanguageScreen(appViewModel: AppViewModel, localeStorage: LocaleStorage) {
 		Timber.d("Setting preferred locale: $locale")
 		localeStorage.setPreferredLocale(locale)
 		LocaleUtil.applyLocalizedContext(context, locale)
-		appViewModel.navController.go(Route.Main(changeLanguage = true))
+		appViewModel.navController.navigate(Route.Main(changeLanguage = true))
 	}
 
 	LazyColumn(

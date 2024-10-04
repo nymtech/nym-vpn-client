@@ -55,7 +55,6 @@ import net.nymtech.nymvpn.ui.common.navigation.NavIcon
 import net.nymtech.nymvpn.ui.common.navigation.NavTitle
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.extensions.durationFromNow
-import net.nymtech.nymvpn.util.extensions.go
 import net.nymtech.nymvpn.util.extensions.isInvalid
 import net.nymtech.nymvpn.util.extensions.launchNotificationSettings
 import net.nymtech.nymvpn.util.extensions.launchVpnSettings
@@ -100,7 +99,7 @@ fun SettingsScreen(
 	) {
 		if (appUiState.settings.credentialExpiry.isInvalid()) {
 			MainStyledButton(
-				onClick = { navController.go(Route.Credential) },
+				onClick = { navController.navigate(Route.Credential) },
 				content = {
 					Text(
 						stringResource(id = R.string.add_cred_to_connect),
@@ -133,7 +132,7 @@ fun SettingsScreen(
 						SelectionItem(
 							Icons.Filled.AccountCircle,
 							onClick = {
-								navController.go(Route.Account)
+								navController.navigate(Route.Account)
 							},
 							title = { Text(stringResource(R.string.credential), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 							description = { Text(accountDescription.text, style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline)) },
@@ -198,7 +197,7 @@ fun SettingsScreen(
 				SelectionItem(
 					Icons.AutoMirrored.Outlined.ViewQuilt,
 					title = { Text(stringResource(R.string.appearance), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { navController.go(Route.Appearance) },
+					onClick = { navController.navigate(Route.Appearance) },
 				),
 				SelectionItem(
 					Icons.Outlined.Notifications,
@@ -251,17 +250,17 @@ fun SettingsScreen(
 				SelectionItem(
 					ImageVector.vectorResource(R.drawable.feedback),
 					title = { Text(stringResource(R.string.feedback), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { navController.go(Route.Feedback) },
+					onClick = { navController.navigate(Route.Feedback) },
 				),
 				SelectionItem(
 					ImageVector.vectorResource(R.drawable.support),
 					title = { Text(stringResource(R.string.support), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { navController.go(Route.Support) },
+					onClick = { navController.navigate(Route.Support) },
 				),
 				SelectionItem(
 					ImageVector.vectorResource(R.drawable.logs),
 					title = { Text(stringResource(R.string.logs), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { navController.go(Route.Logs) },
+					onClick = { navController.navigate(Route.Logs) },
 				),
 				SelectionItem(
 					Icons.Outlined.BugReport,
@@ -321,7 +320,7 @@ fun SettingsScreen(
 			listOf(
 				SelectionItem(
 					title = { Text(stringResource(R.string.legal), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { navController.go(Route.Legal) },
+					onClick = { navController.navigate(Route.Legal) },
 				),
 			),
 		)
@@ -339,7 +338,7 @@ fun SettingsScreen(
 				color = MaterialTheme.colorScheme.secondary,
 				modifier = Modifier.clickable {
 					if (BuildConfig.DEBUG || BuildConfig.BUILD_TYPE == "prerelease") {
-						navController.go(Route.Environment)
+						navController.navigate(Route.Environment)
 					} else {
 						clipboardManager.setText(
 							annotatedString = AnnotatedString(BuildConfig.VERSION_NAME),

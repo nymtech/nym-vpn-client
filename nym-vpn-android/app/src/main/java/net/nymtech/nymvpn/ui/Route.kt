@@ -56,4 +56,7 @@ sealed class Route {
 
 	@Serializable
 	data object ExitLocation : Route()
+
+	@Serializable
+	data object CredentialScanner : Route()
 }

@@ -1,6 +1,7 @@
 package net.nymtech.nymvpn.ui.screens.settings.credential
 
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,13 +40,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.journeyapps.barcodescanner.ScanContract
-import com.journeyapps.barcodescanner.ScanOptions
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppViewModel
+import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.functions.rememberImeState
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
+import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.iconSize
@@ -53,15 +55,23 @@ import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun CredentialScreen(appViewModel: AppViewModel, viewModel: CredentialViewModel = hiltViewModel()) {
-	val context = LocalContext.current
-
+	val snackbar = SnackbarController.current
 	val imeState = rememberImeState()
 	val scrollState = rememberScrollState()
 	val padding = WindowInsets.systemBars.asPaddingValues()
+	val context = LocalContext.current
 
 	val error = viewModel.error.collectAsStateWithLifecycle()
+
+	val requestPermissionLauncher = rememberLauncherForActivityResult(
+		ActivityResultContracts.RequestPermission(),
+	) { isGranted ->
+		if (!isGranted) return@rememberLauncherForActivityResult snackbar.showMessage(context.getString(R.string.permission_required))
+		appViewModel.navController.navigate(Route.CredentialScanner)
+	}
 
 	LaunchedEffect(Unit) {
 		appViewModel.onNavBarStateChange(
@@ -75,33 +85,10 @@ fun CredentialScreen(appViewModel: AppViewModel, viewModel: CredentialViewModel 
 		mutableStateOf("")
 	}
 
-	val scanLauncher =
-		rememberLauncherForActivityResult(
-			contract = ScanContract(),
-			onResult = {
-				if (it.contents != null) {
-					credential = ""
-					credential = it.contents
-					viewModel.onImportCredential(credential)
-				}
-			},
-		)
-
 	LaunchedEffect(imeState.value) {
 		if (imeState.value) {
 			scrollState.animateScrollTo(scrollState.viewportSize)
 		}
-	}
-
-	fun launchQrScanner() {
-		val scanOptions = ScanOptions()
-		scanOptions.setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-		scanOptions.setOrientationLocked(true)
-		scanOptions.setPrompt(
-			context.getString(R.string.scan_nym_vpn_credential),
-		)
-		scanOptions.setBeepEnabled(false)
-		scanLauncher.launch(scanOptions)
 	}
 
 	Column(
@@ -208,7 +195,7 @@ fun CredentialScreen(appViewModel: AppViewModel, viewModel: CredentialViewModel 
 				Box(modifier = Modifier.width(56.dp.scaledWidth())) {
 					MainStyledButton(
 						onClick = {
-							launchQrScanner()
+							requestPermissionLauncher.launch(android.Manifest.permission.CAMERA)
 						},
 						content = {
 							val icon = Icons.Outlined.QrCodeScanner
