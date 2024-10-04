@@ -13,11 +13,10 @@ import net.nymtech.nymvpn.ui.AppViewModel
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun ScannerScreen(appViewModel: AppViewModel) {
-
 	val context = LocalContext.current
 
 	val barcodeView = remember {
-			CompoundBarcodeView(context).apply {
+		CompoundBarcodeView(context).apply {
 			this.initializeFromIntent((context as Activity).intent)
 			this.setStatusText("")
 			this.decodeSingle { result ->
@@ -28,7 +27,7 @@ fun ScannerScreen(appViewModel: AppViewModel) {
 		}
 	}
 	AndroidView(factory = { barcodeView })
-	DisposableEffect(Unit){
+	DisposableEffect(Unit) {
 		barcodeView.resume()
 		onDispose {
 			barcodeView.pause()

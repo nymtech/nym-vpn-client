@@ -67,9 +67,9 @@ fun CredentialScreen(appViewModel: AppViewModel, viewModel: CredentialViewModel 
 	val error = viewModel.error.collectAsStateWithLifecycle()
 
 	val requestPermissionLauncher = rememberLauncherForActivityResult(
-		ActivityResultContracts.RequestPermission()
+		ActivityResultContracts.RequestPermission(),
 	) { isGranted ->
-		if(!isGranted) return@rememberLauncherForActivityResult snackbar.showMessage(context.getString(R.string.permission_required))
+		if (!isGranted) return@rememberLauncherForActivityResult snackbar.showMessage(context.getString(R.string.permission_required))
 		appViewModel.navController.navigate(Route.CredentialScanner)
 	}
 

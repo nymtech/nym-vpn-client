@@ -2,8 +2,11 @@ package net.nymtech.nymvpn.ui.screens.settings.legal.licenses
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
@@ -75,7 +78,7 @@ fun LicensesScreen(appViewModel: AppViewModel, viewModel: LicensesViewModel = hi
 		modifier =
 		Modifier
 			.fillMaxSize()
-			.padding(horizontal = 24.dp.scaledWidth()),
+			.padding(horizontal = 24.dp.scaledWidth()).windowInsetsPadding(WindowInsets.navigationBars),
 	) {
 		item {
 			Row(modifier = Modifier.padding(bottom = 24.dp.scaledHeight())) {}

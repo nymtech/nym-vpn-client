@@ -60,4 +60,3 @@ sealed class Route {
 	@Serializable
 	data object CredentialScanner : Route()
 }
-

@@ -30,7 +30,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
@@ -68,12 +67,10 @@ import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.go
 import net.nymtech.nymvpn.util.extensions.isCurrentRoute
-import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.resetTile
 import net.nymtech.vpn.model.BackendMessage
 import nym_vpn_lib.VpnException
-import timber.log.Timber
 import java.util.Locale
 import javax.inject.Inject
 
