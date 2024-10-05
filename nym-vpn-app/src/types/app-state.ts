@@ -2,7 +2,7 @@ import { Dispatch } from 'react';
 import { Dayjs } from 'dayjs';
 import { StateAction } from '../state';
 import { Country, NodeLocation, ThemeMode, UiTheme } from './common';
-import { BackendError, BkdErrorKey } from './tauri-ipc';
+import { BackendError, ErrorKey } from './tauri-ipc';
 
 export type ConnectionState =
   | 'Connected'
@@ -99,7 +99,7 @@ export type FetchWgCountriesFn = () => Promise<void> | undefined;
 
 export type AppError = {
   message: string;
-  key: BkdErrorKey;
+  key: ErrorKey;
   data?: Record<string, string> | null;
 };
 

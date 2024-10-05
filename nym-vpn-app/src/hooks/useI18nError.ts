@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BkdErrorKey } from '../types';
+import { ErrorKey } from '../types';
 
 /**
  * Hook to get the translation function for backend errors
@@ -11,7 +11,7 @@ function useI18nError() {
   const { t } = useTranslation('errors');
 
   const translateError = useCallback(
-    (key: BkdErrorKey) => {
+    (key: ErrorKey) => {
       switch (key) {
         case 'InternalError':
           return t('internal');
