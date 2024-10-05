@@ -72,6 +72,22 @@ public final class HelperManager {
     public func isHelperAuthorizedAndRunning() -> Bool {
         isHelperAuthorized() && isHelperRunning()
     }
+
+    public func uninstallHelper() -> Bool {
+        let domain = kSMDomainSystemLaunchd
+        var authRef: AuthorizationRef?
+        let status = AuthorizationCreate(nil, nil, [], &authRef)
+
+        guard status == errAuthorizationSuccess,
+              let authorization = authRef
+        else {
+            return false
+        }
+
+        var cfError: Unmanaged<CFError>?
+        let success = SMJobRemove(domain, helperName as CFString, authorization, true, &cfError)
+        return success
+    }
 }
 
 private extension HelperManager {

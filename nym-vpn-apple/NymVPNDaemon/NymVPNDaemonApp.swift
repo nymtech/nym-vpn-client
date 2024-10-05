@@ -16,9 +16,12 @@ import Theme
 struct NymVPNDaemonApp: App {
     private let autoUpdater = AutoUpdater.shared
     private let logFileManager = LogFileManager(logFileType: .app)
+    private let helperManager = HelperManager.shared
 
     @ObservedObject private var appSettings = AppSettings.shared
     @StateObject private var homeViewModel = HomeViewModel()
+    @State private var isDisplayingAlert = false
+    @State private var alertTitle = ""
 
     init() {
         setup()
@@ -27,6 +30,7 @@ struct NymVPNDaemonApp: App {
     var body: some Scene {
         WindowGroup {
             NavigationStack {
+                // TODO: create flow coordinator, add to flow coordinator.
                 if !homeViewModel.splashScreenDidDisplay {
                     LaunchView(splashScreenDidDisplay: $homeViewModel.splashScreenDidDisplay)
                 } else if !appSettings.welcomeScreenDidDisplay {
@@ -37,6 +41,9 @@ struct NymVPNDaemonApp: App {
                         .transition(.slide)
                 }
             }
+            .alert(alertTitle, isPresented: $isDisplayingAlert) {
+                Button("ok".localizedString, role: .cancel) { }
+            }
             .frame(width: 390, height: 800)
             .animation(.default, value: appSettings.welcomeScreenDidDisplay)
             .environmentObject(appSettings)
@@ -46,6 +53,19 @@ struct NymVPNDaemonApp: App {
         .commands {
             CommandGroup(after: .appInfo) {
                 CheckForUpdatesView(viewModel: CheckForUpdatesViewModel(updater: autoUpdater.updater))
+            }
+            CommandGroup(after: .help) {
+                if helperManager.isHelperAuthorizedAndRunning() {
+                    Button("helper.uninstallHelper".localizedString) {
+                        let result = HelperManager.shared.uninstallHelper()
+                        if result {
+                            alertTitle = "helper.successfullyUninstalled".localizedString
+                        } else {
+                            alertTitle = "error.unexpected".localizedString
+                        }
+                        isDisplayingAlert = true
+                    }
+                }
             }
         }
     }
