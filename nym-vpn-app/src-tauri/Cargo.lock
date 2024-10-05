@@ -533,9 +533,9 @@ dependencies = [
 
 [[package]]
 name = "build-info"
-version = "0.0.38"
+version = "0.0.39"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3465eaabbf2f3bf2a28a4ee66d16316071ef63c1ab9f336e833ea67f519c0348"
+checksum = "24c8169feaff1e5d9686706c0a56a54ed0422d2df41fa1c543e53f7cea0e70d4"
 dependencies = [
  "bincode",
  "build-info-common",
@@ -544,9 +544,9 @@ dependencies = [
 
 [[package]]
 name = "build-info-build"
-version = "0.0.38"
+version = "0.0.39"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c967db0724d13dfcd67d6f54023bfd0f7093872810c1377f00c6b86ce507513f"
+checksum = "e73a4a2bdb1e3fae84472b5a9f806208331eb89783bf9b19819cb1d8fbc6d5ec"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -564,9 +564,9 @@ dependencies = [
 
 [[package]]
 name = "build-info-common"
-version = "0.0.38"
+version = "0.0.39"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c88e36f2531db6136c2d42810698ced69af85872f4559c7b6dccb8e7c30485d2"
+checksum = "8b6fa54101dfbd88efc3981859e92c3d47c729ff54d5df73ec36505c337e5c5e"
 dependencies = [
  "chrono",
  "derive_more 1.0.0",
@@ -576,9 +576,9 @@ dependencies = [
 
 [[package]]
 name = "build-info-proc"
-version = "0.0.38"
+version = "0.0.39"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "58463d44fa27e9afbf377c0f5661eaf8d3b69b1a4a45b0fa601b822ccf7512e8"
+checksum = "5c5458d2f0ed8bb88f7f6b5706460ca55fab08db16456ea03b920691b4cac163"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -587,7 +587,7 @@ dependencies = [
  "chrono",
  "num-bigint",
  "num-traits",
- "proc-macro-error",
+ "proc-macro-error2",
  "proc-macro2",
  "quote",
  "serde_json",
@@ -3772,6 +3772,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "proc-macro-error-attr2"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "96de42df36bb9bba5542fe9f1a054b8cc87e172759a1868aa05c1f3acc89dfc5"
+dependencies = [
+ "proc-macro2",
+ "quote",
+]
+
+[[package]]
+name = "proc-macro-error2"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "11ec05c52be0a07b08061f7dd003e7d7092e0472bc731b4af7bb1ef876109802"
+dependencies = [
+ "proc-macro-error-attr2",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.77",
+]
+
+[[package]]
 name = "proc-macro-hack"
 version = "0.5.20+deprecated"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5753,20 +5775,21 @@ checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 
 [[package]]
 name = "ts-rs"
-version = "9.0.1"
+version = "10.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b44017f9f875786e543595076374b9ef7d13465a518dd93d6ccdbf5b432dde8c"
+checksum = "3a2f31991cee3dce1ca4f929a8a04fdd11fd8801aac0f2030b0fa8a0a3fef6b9"
 dependencies = [
  "chrono",
+ "lazy_static",
  "thiserror",
  "ts-rs-macros",
 ]
 
 [[package]]
 name = "ts-rs-macros"
-version = "9.0.1"
+version = "10.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c88cc88fd23b5a04528f3a8436024f20010a16ec18eb23c164b1242f65860130"
+checksum = "0ea0b99e8ec44abd6f94a18f28f7934437809dd062820797c52401298116f70e"
 dependencies = [
  "proc-macro2",
  "quote",
