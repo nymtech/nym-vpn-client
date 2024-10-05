@@ -68,21 +68,9 @@ pub struct GrpcClient {
 impl GrpcClient {
     #[instrument(skip_all)]
     pub fn new(config: &AppConfig, cli: &Cli, pkg: &PackageInfo) -> Self {
-        let git_commit = crate::build_info()
-            .version_control
-            .as_ref()
-            .and_then(|vc| vc.git())
-            .map(|g| g.commit_short_id.clone())
-            .unwrap_or_default();
-
         let client = GrpcClient {
             transport: Transport::from((config, cli)),
-            user_agent: UserAgent {
-                application: pkg.name.clone(),
-                version: pkg.version.to_string(),
-                platform: format!("{}; {}; {}", OS, tauri_plugin_os::version(), ARCH),
-                git_commit,
-            },
+            user_agent: GrpcClient::user_agent(pkg, None),
         };
         match &client.transport {
             Transport::Http(endpoint) => {
@@ -93,6 +81,29 @@ impl GrpcClient {
             }
         }
         client
+    }
+
+    /// Create a user agent
+    pub fn user_agent(pkg: &PackageInfo, daemon_info: Option<&InfoResponse>) -> UserAgent {
+        let app_git_commit = crate::build_info()
+            .version_control
+            .as_ref()
+            .and_then(|vc| vc.git())
+            .map(|g| g.commit_short_id.clone())
+            .unwrap_or_default();
+
+        UserAgent {
+            application: pkg.name.clone(),
+            version: daemon_info.map_or_else(
+                || pkg.version.to_string(),
+                |info| format!("{} ({})", pkg.version, info.version),
+            ),
+            platform: format!("{}; {}; {}", OS, tauri_plugin_os::version(), ARCH),
+            git_commit: daemon_info.map_or_else(
+                || app_git_commit.clone(),
+                |info| format!("{} ({})", app_git_commit, info.git_commit),
+            ),
+        }
     }
 
     /// Get the Vpnd service client
@@ -174,7 +185,7 @@ impl GrpcClient {
     /// Update `user_agent` with the daemon info
     // TODO this is dirty, this logic shouldn't be handled in the client side
     #[instrument(skip_all)]
-    pub async fn update_agent(&mut self) -> Result<(), VpndError> {
+    pub async fn update_agent(&mut self, pkg: &PackageInfo) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(InfoRequest {});
@@ -183,9 +194,7 @@ impl GrpcClient {
             VpndError::GrpcError(e)
         })?;
         let d_info = response.get_ref();
-        self.user_agent.version = format!("{} ({})", self.user_agent.version, d_info.version);
-        self.user_agent.git_commit =
-            format!("{} ({})", self.user_agent.git_commit, d_info.git_commit);
+        self.user_agent = GrpcClient::user_agent(pkg, Some(d_info));
         info!("updated user agent: {:?}", self.user_agent);
         Ok(())
     }
