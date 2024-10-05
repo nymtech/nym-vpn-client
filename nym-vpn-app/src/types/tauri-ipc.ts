@@ -2,7 +2,7 @@ import { ConnectionState } from './app-state.ts';
 
 export type BackendError = {
   message: string;
-  key: BkdErrorKey;
+  key: ErrorKey;
   data: Record<string, string> | null;
 };
 
@@ -28,7 +28,7 @@ export type DbKey =
   | 'CredentialExpiry'
   | 'DesktopNotifications';
 
-export type BkdErrorKey =
+export type ErrorKey =
   | 'UnknownError'
   | 'InternalError'
   | 'GrpcError'
