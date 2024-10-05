@@ -10,7 +10,8 @@
   "unknown": "Erro desconhecido",
   "internal": "Erro interno",
   "daemon": {
-    "not-connected": "Não está ligado ao daemon"
+    "not-connected": "Não está ligado ao daemon",
+    "internal": "Erro interno do daemon"
   },
   "grpc": "Erro interno do gRPC",
   "connection": {
@@ -22,7 +23,8 @@
       "build-client": "Falha ao construir o cliente mixnet",
       "connect": "Falha na ligação à mixnet",
       "entry-gateway": "Falha na ligação ao gateway de entrada da mixnet",
-      "storage-path": "Falha ao criar os caminhos de armazenamento da mixnet"
+      "storage-path": "Falha ao criar os caminhos de armazenamento da mixnet",
+      "monitor": "Falha do monitor de ligação Mixnet"
     },
     "ipr-connect": "Falha na ligação ao IPR",
     "gateway-lookup": {
@@ -51,11 +53,32 @@
     "dns": {
       "init": "Falha ao iniciar o subsistema DNS",
       "set": "Falha ao definir o DNS"
-    }
+    },
+    "wireguard": {
+      "tunnel": "Erro no túnel do WireGuard",
+      "config": "Falha ao definir a configuração do WireGuard"
+    },
+    "authenticator": {
+      "address-not-found": "Não foi encontrado o endereço do autenticador para a(s) gateway(s) que estamos a tentar utilizar",
+      "malformed-reply": "O autenticador, ou outra pessoa, respondeu com uma resposta que não conseguimos ler",
+      "wrong-version": "O autenticador respondeu com uma resposta marcada com uma versão que não conseguimos compreender",
+      "entry-gw-ipv4": "Falha ao analisar o IPv4 fornecido pelo autenticador ao definir a configuração do WireGuard",
+      "registration-data": "Falha na verificação dos dados de registo fornecidos pelo autenticador",
+      "invalid-response": "Falha na ligação ao autenticador, a resposta era inválida",
+      "timeout": "Falha na ligação ao autenticador, tempo limite de espera pela resposta de ligação",
+      "connect": "Falha na ligação a um dos autenticadores",
+      "auth-not-possible": "A autenticação com os autenticadores não foi possível, uma vez que não dispomos de endereços para os mesmos. Trata-se provavelmente de um erro de programação interno",
+      "entry-gw-socket-addr": "Falha ao analisar o endereço do soquete fornecido pelo autenticador ao definir a configuração do WireGuard"
+    },
+    "routing": "Falha no encaminhamento",
+    "tun-device": "Falha do dispositivo Tun",
+    "unhandled-exit": "A VPN está a sair com um erro. É provável que seja um bug.",
+    "add-ipv6-route": "Falha ao adicionar a rota predefinida ipv6 para capturar o tráfego ipv6"
   },
   "countries-request": {
     "entry": "Falha ao procurar os países com nós de entrada disponíveis",
-    "exit": "Falha ao procurar os países de nós de saída disponíveis"
+    "exit": "Falha ao procurar os países de nós de saída disponíveis",
+    "fast-mode": "Falha ao procurar os países disponíveis"
   },
   "out-of-bandwidth": "Largura de banda não atribuída",
   "entry-node-routing": "O nó de entrada não está a encaminhar o tráfego (a ligação à Internet caiu?)",

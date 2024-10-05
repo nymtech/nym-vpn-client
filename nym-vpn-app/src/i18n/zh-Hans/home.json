@@ -14,11 +14,11 @@
   "connection-time": "连接时间",
   "select-node-title": "连接到",
   "privacy-mode": {
-    "title": "匿名",
+    "title": "匿名 (mixnet)",
     "desc": "适用于付款、电子邮件和信息"
   },
   "fast-mode": {
-    "title": "快速",
+    "title": "快速(WireGuard)",
     "desc": "适用于浏览、流媒体、共享"
   },
   "last-node-select": {
@@ -29,7 +29,7 @@
     "connected": "连接 VPN 时禁用",
     "connecting": "连接 VPN 时禁用",
     "disconnecting": "断开 VPN 连接时禁用",
-    "daemon-not-connected": "未连接 VPN 守护进程时禁用"
+    "daemon-not-connected": "NymVPN 应用程序当前未连接到 NymVPN 守护进程。"
   },
   "select-mode-label": "选择模式",
   "modes-dialog": {
@@ -37,5 +37,6 @@
     "privacy-description": "通过 mixnet 通过 5 个服务器路由连接，享受最高级别的隐私保护。是安全处理付款、电子邮件和信息的完美选择。",
     "fast-description": "使用双服务器连接，体验最高速度。是快速浏览、流媒体和文件共享的完美选择。",
     "link": "继续阅读"
-  }
+  },
+  "windows-no-fast-mode": "由于我们正在将快速模式过渡到 WireGuard，因此该选项暂时不可用。"
 }

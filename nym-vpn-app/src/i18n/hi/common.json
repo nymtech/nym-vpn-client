@@ -18,5 +18,10 @@
   "fastest": "सबसे तेज़",
   "sentry": "सेंट्री",
   "language": "भाषा",
-  "appearance": "रूपरंग"
+  "appearance": "रूपरंग",
+  "display-theme": "डिस्प्ले",
+  "ui-mode": {
+    "dark": "डार्क मोड",
+    "light": "लाइट मोड"
+  }
 }

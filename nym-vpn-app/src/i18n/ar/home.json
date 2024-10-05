@@ -3,11 +3,40 @@
     "connected": "متصل",
     "disconnected": "انفصال",
     "connecting": "يتصل الآن",
-    "disconnecting": "ينفصل"
+    "disconnecting": "ينفصل",
+    "unknown": "غير معروف"
   },
   "privacy-mode": {
-    "title": "مجهول (mixnet)"
+    "title": "مجهول (mixnet)",
+    "desc": "الأفضل للمدفوعات، الرسائل الإلكترونية، والمراسلات"
   },
   "connect": "اتصل",
-  "disconnect": "ألغاء الاتصال"
+  "disconnect": "ألغاء الاتصال",
+  "select-node-title": "الاتصال بـ",
+  "fast-mode": {
+    "desc": "الأفضل للتصفح والبث والمشاركة",
+    "title": "سريع(wireGuard)"
+  },
+  "snackbar-disabled-message": {
+    "daemon-not-connected": "تطبيق NymVPN غير متصل حاليًا بالديمن الخاص بـ NymVPN.",
+    "connected": "مُعطّل أثناء الاتصا‫‫ل بشبكة VPN",
+    "connecting": "مُعطّل أثناء محاولة الاتصا‫‫ل بشبكة VPN",
+    "disconnecting": "مُعطّل أثناء قطع الاتصال بشبكة الـVPN"
+  },
+  "modes-dialog": {
+    "privacy-description": "تفد من أقصى درجات الخصوصية عن طريق تمرير اتصالك عبر 5 خوادم عبر الشبكة المختلطة(mixnet). مثالي للتعامل مع المدفوعات، والبريد الإلكتروني، والرسائل بشكل آمن.",
+    "title": "اختيار النمط",
+    "fast-description": "استمتع بأقصى سرعة مع خادمين. مثالي للتصفح السريع والبث المباشر ومشاركة الملفات.",
+    "link": "متابعة القراءة"
+  },
+  "last-hop": "موقع الخروج",
+  "first-hop": "موقع الدخول",
+  "connecting-message": "إنشاء اتصال",
+  "connection-time": "وقت الاتصال",
+  "select-mode-label": "اختر نمط",
+  "last-node-select": {
+    "label": "القفزة الاخيرة",
+    "text": "الاتصال السريع ({{country}})"
+  },
+  "windows-no-fast-mode": "أثناء انتقالنا من الوضع السريع إلى WireGuard، هذا الخيار غير متاح مؤقتًا."
 }

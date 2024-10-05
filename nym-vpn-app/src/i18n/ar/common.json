@@ -5,5 +5,23 @@
   "fastest": "الأسرع",
   "logs": "سجلات الأداء",
   "feedback": "ملاحظات",
-  "support": "دعم"
+  "support": "دعم",
+  "vpn-modes": {
+    "privacy": "مجهول",
+    "fast": "سريع"
+  },
+  "appearance": "المظهر",
+  "language": "اللغة",
+  "first-hop-selection": "موقع الدخول",
+  "last-hop-selection": "موقع الخروج",
+  "display-theme": "عرض",
+  "tos": "شروط الاستخدام",
+  "privacy-statement": "بيان الخصوصية",
+  "ui-mode": {
+    "dark": "نمط داكن",
+    "light": "نمط فاتح"
+  },
+  "sentry": "سينتاري",
+  "legal": "قانوني",
+  "notifications": "التنبيهات"
 }

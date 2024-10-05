@@ -46,5 +46,10 @@
   "logs": {
     "title": "Journaux",
     "desc": "Copier ou supprimer les journaux"
+  },
+  "info": {
+    "client-version": "Version du client",
+    "daemon-version": "Version du daemon",
+    "network-name": "Réseau"
   }
 }

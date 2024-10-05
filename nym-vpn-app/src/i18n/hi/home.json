@@ -8,10 +8,11 @@
     "unknown": "अज्ञात"
   },
   "privacy-mode": {
-    "title": "अनाम"
+    "title": "अनाम (मिक्सनेट)",
+    "desc": "भुगतान, ईमेल, संदेशों के लिए आदर्श"
   },
   "fast-mode": {
-    "title": "तेज़",
+    "title": "तेज़ (WireGuard)",
     "desc": "ब्राउज़िंग, स्ट्रीमिंग और साझाकरण के लिए"
   },
   "first-hop": "उद्भव स्थान",
@@ -20,13 +21,22 @@
   "modes-dialog": {
     "link": "पढ़ना जारी रखें",
     "privacy-description": "5 सर्वरों के माध्यम से मिक्सनेट के जरिए अपने कनेक्शन को रूट करके अधिकतम स्तर की गोपनीयता का आनंद लें। भुगतान, ईमेल, और संदेशों को सुरक्षित रूप से संभालने के लिए यह आदर्श है।",
-    "title": "मोड चयन"
+    "title": "मोड चयन",
+    "fast-description": "सबसे अधिक गति का लाभ 2-सर्वर से पाएं। ब्राउज़िंग, स्ट्रीमिंग और साझाकरण के लिए आदर्श।"
   },
   "disconnect": "डिस्कनेक्ट करें",
   "select-mode-label": "मोड चुनें",
   "select-node-title": "कनेक्ट करें",
   "snackbar-disabled-message": {
-    "connected": "VPN से जुड़े रहते समय अक्षम"
+    "connected": "VPN से जुड़े रहते समय अक्षम",
+    "connecting": "VPN से जुड़ते समय अक्षम",
+    "disconnecting": "VPN से डिसकनेक्ट होते समय अक्षम",
+    "daemon-not-connected": "NymVPN ऐप इस समय NymVPN daemon से कनेक्टेड नहीं है।"
   },
-  "connection-time": "कनेक्शन समय"
+  "connection-time": "कनेक्शन समय",
+  "last-node-select": {
+    "label": "अंतिम हॉप",
+    "text": "जल्द से कनेक्ट करें ({{country}})"
+  },
+  "windows-no-fast-mode": "जैसे हम तेज़ मोड से WireGuard में जा रहे हैं, यह विकल्प अनुपलब्ध है।"
 }

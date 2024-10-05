@@ -16,21 +16,21 @@
   "first-hop": "موقعیت ورودی",
   "connecting-message": "راه‌اندازی اتصال",
   "connection-time": "زمان اتصال",
-  "select-mode-label": "انتخاب وضعیت",
+  "select-mode-label": "انتخاب حالت",
   "select-node-title": "اتصال به",
   "privacy-mode": {
-    "title": "ناشناس (mixnet)",
+    "title": "ناشناس (Mixnet)",
     "desc": "ایده‌آل برای پرداخت‌ها، ایمیل‌ها و پیام‌ها"
   },
   "snackbar-disabled-message": {
-    "connected": "در حالت وصل به VPN فعال نیست",
+    "connected": "در حال اتصال به VPN فعال نیست",
     "connecting": "در زمان اتصال به VPN غیرفعال است",
     "disconnecting": "در زمان قطع اتصال VPN غیرفعال است",
     "daemon-not-connected": "برنامه NymVPN در حال حاضر به دیمون (daemon) NymVPN متصل نیست."
   },
   "modes-dialog": {
     "title": "انتخاب حالت",
-    "privacy-description": "با مسیریابی اتصال خود از طریق ۵ سرور با mixnet، از حریم خصوصی در بالاترین سطح لذت ببرید. ایده‌آل برای مدیریت امن پرداخت‌ها، ایمیل‌ها و پیام‌ها.",
+    "privacy-description": "با مسیریابی اتصال خود از طریق ۵ سرور با Mixnet، از حریم خصوصی در بالاترین سطح لذت ببرید. ایده‌آل برای مدیریت امن پرداخت‌ها، ایمیل‌ها و پیام‌ها.",
     "link": "ادامه مطلب",
     "fast-description": "بالاترین سرعت را با ۲ سرور (پرش)‌ تجربه کنید. ایده‌آل برای وب‌گردی سریع، پخش آنلاین و اشتراک‌گذاری فایل."
   },

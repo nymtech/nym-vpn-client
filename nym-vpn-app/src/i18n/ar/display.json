@@ -1,1 +1,10 @@
-{}
+{
+  "system-desc": "استخدام نمط الجهاز",
+  "theme-section-title": "الثيم(theme)",
+  "zoom-section-title": "مستوى التكبير(الزوم)",
+  "options": {
+    "system": "بشكل آلي",
+    "light": "نمط فاتح",
+    "dark": "نمط داكن"
+  }
+}

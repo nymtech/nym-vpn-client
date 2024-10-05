@@ -23,7 +23,8 @@
       "default-storage": "デフォルトストレージでmixnetの作成に失敗しました",
       "build-client": "mixnet clientの構築に失敗しました",
       "connect": "mixnetへの接続に失敗しました",
-      "entry-gateway": "mixnet エントリーGatewayへの接続に失敗しました"
+      "entry-gateway": "mixnet エントリーGatewayへの接続に失敗しました",
+      "monitor": "Mixnet接続モニターが失敗しました"
     },
     "ipr-connect": "IPRへの接続に失敗しました",
     "interface": {
@@ -40,7 +41,27 @@
     },
     "bandwidth": {
       "tunnel-up": "トンネルを設定するために利用可能な帯域幅がありません"
-    }
+    },
+    "wireguard": {
+      "config": "WireGuardの設定に失敗しました",
+      "tunnel": "WireGuardトンネルエラー"
+    },
+    "authenticator": {
+      "connect": "認証サーバーの一つに接続できませんでした",
+      "invalid-response": "認証サーバーへの接続に失敗しました。応答が無効でした。",
+      "entry-gw-socket-addr": "WireGuardの設定中に、認証サーバーから提供されたソケットアドレスの解析に失敗しました",
+      "entry-gw-ipv4": "WireGuardの設定中に、認証サーバーから提供されたIPv4の処理に失敗しました",
+      "wrong-version": "認証サーバーが、理解できないバージョンのタグが付いた応答を返しました",
+      "address-not-found": "使用しようとしているgatewayに対する認証サーバーのアドレスが見つかりません",
+      "registration-data": "認証サーバーが提供した登録データの検証に失敗しました",
+      "auth-not-possible": "認証サーバーとの認証ができませんでした。これは、アドレスがないためです。これはおそらく内部のプログラミングエラーです",
+      "timeout": "認証サーバーに接続できず、接続応答を待機中にタイムアウトしました",
+      "malformed-reply": "認証サーバー、または他の誰かが、読み取れない応答を返しました"
+    },
+    "add-ipv6-route": "IPv6トラフィックをキャプチャするためのIPv6デフォルトルートの追加に失敗しました",
+    "tun-device": "TUNデバイスに失敗しました",
+    "routing": "ルーティングに失敗しました",
+    "unhandled-exit": "VPNがエラーで終了しました。バグの可能性があります。"
   },
   "credential": {
     "invalid": "無効な認証情報",
@@ -52,7 +73,8 @@
   },
   "countries-request": {
     "entry": "利用可能なエントリーノードの国を取得できませんでした",
-    "exit": "利用可能な出口ノードの国を取得できませんでした"
+    "exit": "利用可能な出口ノードの国を取得できませんでした",
+    "fast-mode": "利用可能な国を取得できませんでした"
   },
   "out-of-bandwidth": "帯域幅の割り当てを超えました",
   "exit-node": {
@@ -60,7 +82,8 @@
     "ping": "出口ノードの{{protocol}}トラフィックのPingに失敗しました"
   },
   "daemon": {
-    "not-connected": "デーモンに接続されていません"
+    "not-connected": "デーモンに接続されていません",
+    "internal": "デーモン内部エラー"
   },
   "entry-node-routing": "エントリーノードがトラフィックをルーティングしていません（インターネット接続がダウンしている可能性があります）"
 }
