@@ -139,7 +139,7 @@ async fn main() -> Result<()> {
     let app_state = AppState::new(&db, &app_config, &cli);
 
     let mut grpc = GrpcClient::new(&app_config, &cli, context.package_info());
-    grpc.update_agent().await.ok();
+    grpc.update_agent(context.package_info()).await.ok();
 
     info!("Starting tauri app");
     tauri::Builder::default()
@@ -193,7 +193,7 @@ async fn main() -> Result<()> {
                 info!("starting vpn status spy");
                 loop {
                     if c_grpc.refresh_vpn_status(&handle).await.is_ok() {
-                        c_grpc.update_agent().await.ok();
+                        c_grpc.update_agent(handle.package_info()).await.ok();
                         c_grpc.watch_vpn_state(&handle).await.ok();
                     }
                     sleep(VPND_RETRY_INTERVAL).await;
