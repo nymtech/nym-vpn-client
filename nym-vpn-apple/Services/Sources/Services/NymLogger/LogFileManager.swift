@@ -24,14 +24,21 @@ public final class LogFileManager: ObservableObject {
 
     public func logFileURL(logFileType: LogFileType) -> URL? {
         let fileManager = FileManager.default
-        let logsDirectory = fileManager
+        var logsDirectory: URL?
+        #if os(macOS)
+        logsDirectory = try? fileManager
+            .url(for: .libraryDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+        #else
+        logsDirectory = fileManager
             .containerURL(
                 forSecurityApplicationGroupIdentifier: Constants.groupID.rawValue
-            )?
+            )
+        #endif
+
+        guard var logsDirectory else { return nil }
+        logsDirectory = logsDirectory
             .appendingPathComponent("net.nymtech.vpn")
             .appendingPathComponent("Logs")
-
-        guard let logsDirectory else { return nil }
 
         try? fileManager.createDirectory(at: logsDirectory, withIntermediateDirectories: true, attributes: nil)
         let fileName = "\(logFileType.rawValue)\(Constants.logFileName.rawValue)"
