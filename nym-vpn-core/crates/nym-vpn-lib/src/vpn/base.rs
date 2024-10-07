@@ -16,7 +16,7 @@ use talpid_core::{dns::DnsMonitor, firewall::Firewall};
 use talpid_tunnel::tun_provider::TunProvider;
 use tokio::task::JoinHandle;
 use tracing::{error, info};
-use tun2::AsyncDevice;
+use tun::AsyncDevice;
 
 use super::{
     messages::NymVpnStatusMessage,
@@ -36,6 +36,7 @@ use crate::{
 pub(crate) const MIXNET_CLIENT_STARTUP_TIMEOUT_SECS: u64 = 30;
 const SHUTDOWN_TIMER_SECS: u64 = 10;
 
+#[derive(Clone, Debug)]
 pub struct GenericNymVpnConfig {
     pub mixnet_client_config: MixnetClientConfig,
 

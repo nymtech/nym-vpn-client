@@ -16,7 +16,7 @@ pub enum WgTunnelErrorEvent {
     },
 
     #[error("failed to start wireguard monitor: {0}")]
-    WireguardMonitor(#[source] talpid_wireguard::Error),
+    WireguardMonitor(String),
 
     #[error("failed to send shutdown message to wireguard tunnel")]
     SendWireguardShutdown,

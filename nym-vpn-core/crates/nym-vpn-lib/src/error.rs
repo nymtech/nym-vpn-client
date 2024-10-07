@@ -52,7 +52,7 @@ pub enum Error {
 
     #[cfg(any(target_os = "ios", target_os = "android"))]
     #[error("failed setting up local TUN network device: {0}")]
-    TunError(#[from] tun2::Error),
+    TunError(#[from] tun::Error),
 
     #[cfg(any(unix, target_os = "android"))]
     #[error("{0}")]
@@ -119,7 +119,7 @@ pub enum SetupMixTunnelError {
     },
 
     #[error("failed setting up local TUN network device: {0}")]
-    TunError(#[from] tun2::Error),
+    TunError(#[from] tun::Error),
 
     #[error("failed to add ipv6 route: {0}")]
     FailedToAddIpv6Route(#[source] std::io::Error),

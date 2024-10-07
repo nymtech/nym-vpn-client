@@ -18,15 +18,19 @@ pub struct InterfaceConfig {
     pub listen_port: Option<u16>,
     pub private_key: PrivateKey,
     pub mtu: u16,
+    #[cfg(target_os = "linux")]
+    pub fwmark: Option<u32>,
 }
 
 impl fmt::Debug for InterfaceConfig {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_struct("InterfaceConfig")
-            .field("listen_port", &self.listen_port)
+        let mut d = f.debug_struct("InterfaceConfig");
+        d.field("listen_port", &self.listen_port)
             .field("private_key", &"(hidden)")
-            .field("mtu", &self.mtu)
-            .finish()
+            .field("mtu", &self.mtu);
+        #[cfg(target_os = "linux")]
+        d.field("fwmark", &self.fwmark);
+        d.finish()
     }
 }
 
@@ -47,6 +51,11 @@ impl Config {
 
         if let Some(listen_port) = self.interface.listen_port {
             config_builder.add("listen_port", listen_port.to_string().as_str());
+        }
+
+        #[cfg(target_os = "linux")]
+        if let Some(fwmark) = self.interface.fwmark {
+            config_builder.add("fwmark", fwmark.to_string().as_str());
         }
 
         if !self.peers.is_empty() {
@@ -73,6 +82,9 @@ impl Tunnel {
             CString::new(config.as_uapi_config()).map_err(|_| Error::ConfigContainsNulByte)?;
         let handle = unsafe {
             wgTurnOn(
+                // note: not all platforms accept mtu = 0
+                #[cfg(unix)]
+                i32::from(config.interface.mtu),
                 settings.as_ptr(),
                 tun_fd,
                 wg_logger_callback,
@@ -133,9 +145,10 @@ impl Drop for Tunnel {
 }
 
 extern "C" {
+
     // Start the tunnel.
-    #[cfg(any(target_os = "android", target_os = "ios"))]
     fn wgTurnOn(
+        #[cfg(unix)] mtu: i32,
         settings: *const c_char,
         fd: RawFd,
         logging_callback: LoggingCallback,

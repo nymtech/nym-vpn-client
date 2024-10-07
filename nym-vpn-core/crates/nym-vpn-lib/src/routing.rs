@@ -19,6 +19,7 @@ use talpid_routing::RouteManager;
 use talpid_routing::{Node, RequiredRoute};
 use tap::TapFallible;
 use tracing::{debug, error, info, trace};
+use tun::Device;
 
 use crate::{
     error::Result,
@@ -30,7 +31,7 @@ const DEFAULT_TUN_MTU: u16 = 1500;
 
 #[derive(Clone)]
 pub(crate) struct RoutingConfig {
-    pub(crate) mixnet_tun_config: tun2::Configuration,
+    pub(crate) mixnet_tun_config: tun::Configuration,
     // In case we need them, as they're not read-accessible in the tun2 config
     pub(crate) tun_ips: IpPair,
     pub(crate) mtu: u16,
@@ -63,17 +64,12 @@ impl RoutingConfig {
         lan_gateway_ip: LanGatewayIp,
     ) -> Self {
         debug!("TUN device IPs: {}", tun_ips);
-        let mut mixnet_tun_config = tun2::Configuration::default();
+        let mut mixnet_tun_config = tun::Configuration::default();
         let mtu = vpn.generic_config.nym_mtu.unwrap_or(DEFAULT_TUN_MTU);
         // only IPv4 is supported by tun2 for now
         mixnet_tun_config.address(tun_ips.ipv4);
-        mixnet_tun_config.mtu(mtu);
+        mixnet_tun_config.mtu(i32::from(mtu));
         mixnet_tun_config.up();
-
-        #[cfg(target_os = "linux")]
-        mixnet_tun_config.platform_config(|config| {
-            config.ensure_root_privileges(true);
-        });
 
         Self {
             mixnet_tun_config,
@@ -172,8 +168,8 @@ pub(crate) async fn setup_mixnet_routing(
     >,
     _dns_monitor: &mut DnsMonitor,
     dns: Option<IpAddr>,
-) -> std::result::Result<tun2::AsyncDevice, SetupMixTunnelError> {
-    let mut tun_config = tun2::Configuration::default();
+) -> std::result::Result<tun::AsyncDevice, SetupMixTunnelError> {
+    let mut tun_config = tun::Configuration::default();
 
     #[cfg(target_os = "ios")]
     {
@@ -214,7 +210,7 @@ pub(crate) async fn setup_mixnet_routing(
         tun_config.raw_fd(fd);
     };
 
-    let dev = tun2::create_as_async(&tun_config)
+    let dev = tun::create_as_async(&tun_config)
         .tap_err(|err| error!("Failed to attach to tun device: {}", err))?;
     let device_name = dev.as_ref().tun_name()?.to_string();
     info!(
@@ -244,29 +240,29 @@ pub async fn setup_mixnet_routing(
     config: RoutingConfig,
     dns_monitor: &mut DnsMonitor,
     dns: Option<IpAddr>,
-) -> std::result::Result<tun2::AsyncDevice, SetupMixTunnelError> {
+) -> std::result::Result<tun::AsyncDevice, SetupMixTunnelError> {
     debug!("Creating tun device");
     let mixnet_tun_config = config.mixnet_tun_config.clone();
 
-    let dev = tun2::create_as_async(&mixnet_tun_config)
+    let dev = tun::create_as_async(&mixnet_tun_config)
         .tap_err(|err| error!("Failed to create tun device: {}", err))?;
-    let device_name = dev.as_ref().tun_name().unwrap().to_string();
+    let device_name = dev.get_ref().name().unwrap().to_string();
     info!(
         "Created tun device {device_name} with ip={device_ip:?}",
         device_name = device_name,
         device_ip = dev
-            .as_ref()
+            .get_ref()
             .address()
             .map(|ip| ip.to_string())
             .unwrap_or("None".to_string())
     );
     debug!("Created tun device {device_name}: ip={device_ip:?}, broadcast={device_broadcast:?}, netmask={device_netmask:?}, destination={device_destination:?}, mtu={device_mtu:?}",
         device_name = device_name,
-        device_ip = dev.as_ref().address(),
-        device_broadcast = dev.as_ref().broadcast(),
-        device_netmask = dev.as_ref().netmask(),
-        device_destination = dev.as_ref().destination(),
-        device_mtu = dev.as_ref().mtu(),
+        device_ip = dev.get_ref().address(),
+        device_broadcast = dev.get_ref().broadcast(),
+        device_netmask = dev.get_ref().netmask(),
+        device_destination = dev.get_ref().destination(),
+        device_mtu = dev.get_ref().mtu(),
     );
 
     let _ipv6_addr = config.tun_ips.ipv6.to_string();

@@ -5,9 +5,9 @@ use futures::channel::{mpsc, oneshot};
 use tracing::{debug, info};
 
 use super::{NymVpnCtrlMessage, NymVpnExitStatusMessage, SpecificVpn};
-use crate::platform::error::VpnError;
 use crate::{
     error::Result,
+    platform::error::VpnError,
     uniffi_custom_impls::{ExitStatus, StatusEvent},
     Error,
 };

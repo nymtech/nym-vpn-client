@@ -3,10 +3,14 @@ use std::{
     net::{IpAddr, SocketAddr},
 };
 
-use ipnetwork::IpNetwork;
+use ipnetwork::{IpNetwork, Ipv4Network};
+use nym_wg_gateway_client::GatewayData;
 #[cfg(target_os = "ios")]
 use nym_wg_go::PeerEndpointUpdate;
-use nym_wg_go::{netstack, wireguard_go, PeerConfig, PrivateKey, PublicKey};
+use nym_wg_go::{wireguard_go, PeerConfig, PrivateKey, PublicKey};
+
+#[cfg(any(target_os = "ios", target_os = "android"))]
+use nym_wg_go::netstack;
 
 #[derive(Debug)]
 pub struct WgNodeConfig {
@@ -32,17 +36,23 @@ pub struct WgInterface {
 
     /// Device MTU.
     pub mtu: u16,
+
+    /// Mark used for mark-based routing.
+    #[cfg(target_os = "linux")]
+    pub fwmark: Option<u32>,
 }
 
 impl fmt::Debug for WgInterface {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_struct("WgInterface")
-            .field("listen_port", &self.listen_port)
+        let mut d = f.debug_struct("WgInterface");
+        d.field("listen_port", &self.listen_port)
             .field("private_key", &"(hidden)")
             .field("address", &self.addresses)
             .field("dns", &self.dns)
-            .field("mtu", &self.mtu)
-            .finish()
+            .field("mtu", &self.mtu);
+        #[cfg(target_os = "linux")]
+        d.field("fwmark", &self.fwmark);
+        d.finish()
     }
 }
 
@@ -66,6 +76,7 @@ impl WgPeer {
 }
 
 impl WgNodeConfig {
+    #[cfg(any(target_os = "ios", target_os = "android"))]
     pub fn into_netstack_config(self) -> netstack::Config {
         netstack::Config {
             interface: netstack::InterfaceConfig {
@@ -95,6 +106,8 @@ impl WgNodeConfig {
                 listen_port: self.interface.listen_port,
                 private_key: self.interface.private_key,
                 mtu: self.interface.mtu,
+                #[cfg(target_os = "linux")]
+                fwmark: self.interface.fwmark,
             },
             peers: vec![PeerConfig {
                 public_key: self.peer.public_key,
@@ -102,6 +115,32 @@ impl WgNodeConfig {
                 endpoint: self.peer.endpoint,
                 allowed_ips: vec!["0.0.0.0/0".parse().unwrap(), "::/0".parse().unwrap()],
             }],
+        }
+    }
+}
+
+impl WgNodeConfig {
+    pub fn with_gateway_data(
+        gateway_data: GatewayData,
+        private_key: &nym_crypto::asymmetric::encryption::PrivateKey,
+    ) -> Self {
+        Self {
+            interface: WgInterface {
+                listen_port: None,
+                private_key: PrivateKey::from(private_key.to_bytes()),
+                addresses: vec![IpNetwork::V4(
+                    Ipv4Network::new(gateway_data.private_ipv4, 32)
+                        .expect("private_ipv4/32 to ipnetwork"),
+                )],
+                dns: crate::DEFAULT_DNS_SERVERS.to_vec(),
+                mtu: 0,
+                #[cfg(target_os = "linux")]
+                fwmark: None,
+            },
+            peer: WgPeer {
+                public_key: PublicKey::from(*gateway_data.public_key.as_bytes()),
+                endpoint: gateway_data.endpoint,
+            },
         }
     }
 }

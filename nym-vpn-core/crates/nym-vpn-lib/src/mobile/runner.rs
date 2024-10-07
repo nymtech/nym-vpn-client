@@ -17,7 +17,6 @@ use crate::mobile::ios::tun_provider::OSTunProvider;
 #[cfg(target_os = "android")]
 use crate::platform::android::AndroidTunProvider;
 use crate::{
-    bandwidth_controller::BandwidthController,
     mixnet::SharedMixnetClient,
     mobile::two_hop_tunnel,
     platform::{uniffi_set_listener_status, VPNConfig},
@@ -48,7 +47,7 @@ pub enum Error {
     #[error("not enough bandwidth")]
     NotEnoughBandwidth,
 
-    #[error("wirewireguardurad authentication is not possible due to one of the gateways not running the authenticator process: {0}")]
+    #[error("wireguard authentication is not possible due to one of the gateways not running the authenticator process: {0}")]
     AuthenticationNotPossible(String),
 
     #[error("wireguard gateway failure: {0}")]
@@ -137,10 +136,6 @@ impl WgTunnelRunner {
                 return Err(err);
             }
         };
-
-        let bandwidth_controller =
-            BandwidthController::new(mixnet_client.clone(), self.task_manager.subscribe());
-        tokio::spawn(bandwidth_controller.run());
 
         let mut shutdown_monitor_task_client = self.task_manager.subscribe();
         let cloned_shutdown_handle = self.shutdown_token.clone();
@@ -416,28 +411,4 @@ impl WgTunnelRunner {
 struct SelectedGateways {
     entry: nym_gateway_directory::Gateway,
     exit: nym_gateway_directory::Gateway,
-}
-
-impl WgNodeConfig {
-    fn with_gateway_data(
-        gateway_data: GatewayData,
-        private_key: &nym_crypto::asymmetric::encryption::PrivateKey,
-    ) -> Self {
-        Self {
-            interface: WgInterface {
-                listen_port: None,
-                private_key: PrivateKey::from(private_key.to_bytes()),
-                addresses: vec![IpNetwork::V4(
-                    Ipv4Network::new(gateway_data.private_ipv4, 32)
-                        .expect("private_ipv4/32 to ipnetwork"),
-                )],
-                dns: crate::DEFAULT_DNS_SERVERS.to_vec(),
-                mtu: 0,
-            },
-            peer: WgPeer {
-                public_key: PublicKey::from(*gateway_data.public_key.as_bytes()),
-                endpoint: gateway_data.endpoint,
-            },
-        }
-    }
 }

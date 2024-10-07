@@ -444,8 +444,7 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                 nym_vpn_lib::SetupWgTunnelError::WireguardConfigError(wg_config_error) => {
                     match wg_config_error {
                         talpid_wireguard::config::Error::InvalidTunnelIpError
-                        | talpid_wireguard::config::Error::InvalidPeerIpError
-                        | talpid_wireguard::config::Error::NoPeersSuppliedError => {
+                        | talpid_wireguard::config::Error::InvalidPeerIpError => {
                             ConnectionFailedError::WireguardConfigError {
                                 reason: wg_config_error.to_string(),
                             }

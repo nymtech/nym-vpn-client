@@ -44,13 +44,9 @@ tokio-stream.workspace = true
 tokio-util = { workspace = true, features = ["codec"] }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 tracing.workspace = true
-tun2 = { workspace = true, features = ["async"] }
+tun = { workspace = true, features = ["async"] }
 uniffi.workspace = true
 url.workspace = true
-
-# Pin down shadowsocks to prevent mullvad dependencies from using newer crates that aren't compatible.
-shadowsocks-service = { version = "=1.14.3" }
-shadowsocks = { version = "=1.14.2" }
 
 talpid-core.workspace = true
 talpid-platform-metadata.workspace = true
@@ -58,6 +54,8 @@ talpid-routing.workspace = true
 talpid-tunnel.workspace = true
 talpid-types.workspace = true
 talpid-wireguard.workspace = true
+shadowsocks-service.workspace = true
+shadowsocks.workspace = true
 
 nym-authenticator-requests.workspace = true
 nym-bandwidth-controller-pre-ecash.workspace = true
