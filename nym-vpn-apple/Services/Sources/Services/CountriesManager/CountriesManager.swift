@@ -123,11 +123,10 @@ private extension CountriesManager {
         .store(in: &cancellables)
 
         appSettings.$envSelectorPublisher.sink { [weak self] _ in
-            self?.exitCountries = []
-            self?.entryCountries = []
-            self?.vpnCountries = []
-            self?.fetchEntryExitCountries()
+            self?.countryStore.lastFetchDate = nil
+            self?.fetchCountries()
         }
+
         .store(in: &cancellables)
     }
 
@@ -226,6 +225,8 @@ private extension CountriesManager {
             }
             .sorted(by: { $0.name < $1.name })
 
+            logger.info("Fetched \(countries.count) entry countries")
+
             Task { @MainActor in
                 countryStore.entryCountries = countries
                 entryCountries = countries
@@ -239,6 +240,8 @@ private extension CountriesManager {
         }
         .sorted(by: { $0.name < $1.name })
 
+        logger.info("Fetched \(countries.count) exit countries")
+
         Task { @MainActor in
             countryStore.exitCountries = countries
             exitCountries = countries
@@ -251,6 +254,8 @@ private extension CountriesManager {
             country(with: countryCode)
         }
         .sorted(by: { $0.name < $1.name })
+
+        logger.info("Fetched \(countries.count) vpn countries")
 
         Task { @MainActor in
             countryStore.vpnCountries = countries
