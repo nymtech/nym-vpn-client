@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use anyhow::Result;
 use strum::AsRefStr;
 use tauri::image::Image;
@@ -57,7 +55,7 @@ fn on_menu_event(app: &AppHandle, event: MenuEvent) {
             let c_app = app.clone();
             tokio::spawn(async move {
                 let state = c_app.state::<SharedAppState>();
-                let grpc = c_app.state::<Arc<GrpcClient>>();
+                let grpc = c_app.state::<GrpcClient>();
 
                 let app_state = state.lock().await;
                 if let ConnectionState::Connected = app_state.state {

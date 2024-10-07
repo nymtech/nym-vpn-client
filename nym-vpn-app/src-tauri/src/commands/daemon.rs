@@ -2,7 +2,6 @@ use crate::error::BackendError;
 use crate::grpc::client::{GrpcClient, VpndStatus};
 use crate::states::SharedAppState;
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 use tauri::State;
 use tracing::{debug, instrument, warn};
 use ts_rs::TS;
@@ -18,7 +17,7 @@ pub struct DaemonInfo {
 #[tauri::command]
 pub async fn daemon_status(
     app_state: State<'_, SharedAppState>,
-    grpc_client: State<'_, Arc<GrpcClient>>,
+    grpc_client: State<'_, GrpcClient>,
 ) -> Result<VpndStatus, BackendError> {
     debug!("daemon_status");
     let status = grpc_client
@@ -34,9 +33,7 @@ pub async fn daemon_status(
 
 #[instrument(skip_all)]
 #[tauri::command]
-pub async fn daemon_info(
-    grpc_client: State<'_, Arc<GrpcClient>>,
-) -> Result<DaemonInfo, BackendError> {
+pub async fn daemon_info(grpc_client: State<'_, GrpcClient>) -> Result<DaemonInfo, BackendError> {
     debug!("daemon_info");
     let res = grpc_client.vpnd_info().await.inspect_err(|e| {
         warn!("failed to get daemon info: {:?}", e);
