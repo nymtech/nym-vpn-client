@@ -141,6 +141,9 @@ pub enum GatewayType {
 mod tests {
     use super::*;
 
+    const DEFAULT_MNEMONIC: &str =
+        "range mystery picture decline olympic acoustic lesson quick rebuild panda royal fold start leader egg hammer width olympic worry length crawl couch link mobile";
+
     fn get_secp256k1_keypair() -> DirectSecp256k1HdWallet {
         // This is the default mnemonic used in the js integration tests
         let mnemonic = "range mystery picture decline olympic acoustic lesson quick rebuild panda royal fold start leader egg hammer width olympic worry length crawl couch link mobile";
@@ -228,6 +231,13 @@ mod tests {
         // But something is wrong
         let _expected_public_key_base58 = "FJDUECYAeosXhNGjxf8w5MJM7N2DfDwQznvWwTxJz6ft";
         //assert_eq!(public_key_base58, expected_public_key_base58);
+    }
+
+    #[test]
+    fn create_account_from_mnemonic() {
+        let account = VpnApiAccount::from(get_secp256k1_keypair());
+        let expected_account_id = "n1sslaag27wfydyrvyua72hg5e0vteglxrs8nw3c";
+        assert_eq!(account.id(), expected_account_id);
     }
 
     #[test]
