@@ -161,4 +161,7 @@
     <string name="no_bandwidth">پهنای باندی باقی نمانده است.</string>
     <string name="connection_failed">اتصال ناموفق</string>
     <string name="credential_already_imported">اعتبارنامه قبلا وارد شده است.</string>
+    <string name="selected_entry_unavailable">کشور ورودی در دسترس نیست. لطفا کشور وردی دیگری را انتخاب کنید.</string>
+    <string name="environment">محیط</string>
+    <string name="selected_exit_unavailable">کشور خروجی انتخاب‌شده در دسترس نیست. لطفا کشور خروجی دیگری را انتخاب کنید.</string>
 </resources>
