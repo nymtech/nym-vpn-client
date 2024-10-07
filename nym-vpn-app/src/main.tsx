@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { invoke } from '@tauri-apps/api/core';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import duration from 'dayjs/plugin/duration';
@@ -7,6 +8,8 @@ import App from './App';
 import { mockTauriIPC } from './dev/setup';
 import { kvGet } from './kvStore';
 import initSentry from './sentry';
+import { StartupError as TStartupError } from './types';
+import { StartupError } from './pages';
 
 // needed locales to load for dayjs
 import 'dayjs/locale/es';
@@ -28,6 +31,15 @@ dayjs.extend(relativeTime);
 dayjs.extend(duration);
 
 (async () => {
+  const error = await invoke<TStartupError | undefined>('startup_error');
+  if (error) {
+    return ReactDOM.createRoot(document.getElementById('root')!).render(
+      <React.StrictMode>
+        <StartupError error={error} />
+      </React.StrictMode>,
+    );
+  }
+
   const monitoring = await kvGet<boolean>('Monitoring');
 
   if (monitoring) {

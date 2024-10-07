@@ -186,15 +186,9 @@ impl GrpcClient {
     // TODO this is dirty, this logic shouldn't be handled in the client side
     #[instrument(skip_all)]
     pub async fn update_agent(&mut self, pkg: &PackageInfo) -> Result<(), VpndError> {
-        let mut vpnd = self.vpnd().await?;
-
-        let request = Request::new(InfoRequest {});
-        let response = vpnd.info(request).await.map_err(|e| {
-            error!("grpc info: {}", e);
-            VpndError::GrpcError(e)
-        })?;
-        let d_info = response.get_ref();
-        self.user_agent = GrpcClient::user_agent(pkg, Some(d_info));
+        let d_info = self.vpnd_info().await?;
+        self.user_agent = GrpcClient::user_agent(pkg, Some(&d_info));
+        info!("vpnd version: {}", d_info.version);
         info!("updated user agent: {:?}", self.user_agent);
         Ok(())
     }
