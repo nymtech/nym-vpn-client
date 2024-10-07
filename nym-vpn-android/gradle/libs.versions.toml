@@ -3,6 +3,7 @@ accompanist = "0.36.0"
 agp = "8.7.0"
 coreSplashscreen = "1.0.1"
 detektRulesCompose = "1.4.0"
+ipaddress = "5.5.1"
 jna = "5.15.0"
 kotlin = "2.0.20"
 ksp = "2.0.20-1.0.25"
@@ -42,7 +43,8 @@ gradlePlugins-sentry = "4.11.0"
 appcompat = "1.7.0"
 material = "1.12.0"
 gradlePlugins-ktlint="12.1.1"
-gradlePlugins-grgit="5.2.2"
+gradlePlugins-grgit="5.3.0"
+jetbrainsKotlinJvm = "1.9.24"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -52,6 +54,7 @@ androidx-security-crypto = { module = "androidx.security:security-crypto", versi
 androidx-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "uiautomator" }
 androidx-window = { module = "androidx.window:window", version.ref = "window" }
 detekt-rules-compose = { module = "ru.kode:detekt-rules-compose", version.ref = "detektRulesCompose" }
+ipaddress = { module = "com.github.seancfoley:ipaddress", version.ref = "ipaddress" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
 
 
@@ -122,4 +125,5 @@ detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "gradlePlugins-dete
 sentry = { id = "io.sentry.android.gradle", version.ref = "gradlePlugins-sentry" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "gradlePlugins-ktlint" }
 grgit = { id = "org.ajoberstar.grgit.service", version.ref = "gradlePlugins-grgit" }
+jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
 

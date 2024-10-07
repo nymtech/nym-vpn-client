@@ -13,14 +13,14 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import net.nymtech.ipcalculator.AllowedIpCalculator
 import net.nymtech.vpn.model.BackendMessage
 import net.nymtech.vpn.model.Statistics
 import net.nymtech.vpn.util.Action
 import net.nymtech.vpn.util.Constants
 import net.nymtech.vpn.util.NotificationManager
 import net.nymtech.vpn.util.SingletonHolder
-import net.nymtech.vpn.util.addIpv4Routes
-import net.nymtech.vpn.util.addIpv6Routes
+import net.nymtech.vpn.util.addRoutes
 import nym_vpn_lib.AndroidTunProvider
 import nym_vpn_lib.BandwidthStatus
 import nym_vpn_lib.ConnectionStatus
@@ -237,6 +237,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	class VpnService : android.net.VpnService(), AndroidTunProvider {
 		private var owner: NymBackend? = null
 		private var startId by Delegates.notNull<Int>()
+		private val calculator = AllowedIpCalculator()
 
 		private val builder: Builder
 			get() = Builder()
@@ -273,7 +274,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		}
 
 		override fun configureTunnel(config: TunnelNetworkSettings): Int {
-			Timber.d("Configuring tunnel")
+			Timber.i("Configuring tunnel")
 			if (prepare(this) != null) return -1
 			val currentHandle = currentTunnelHandle.get()
 			if (currentHandle != -1) return currentHandle
@@ -298,8 +299,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 					addSearchDomain(it)
 				}
 
-				addIpv4Routes(config)
-				addIpv6Routes(config)
+				addRoutes(config, calculator)
 
 				setMtu(config.mtu.toInt())
 
