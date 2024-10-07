@@ -14,7 +14,7 @@ class AllowedIpCalculator() : IpCalculator {
 	private val tag = this::class::simpleName.name
 
 	private fun parseIpNetworks(ips: List<String>): List<IPAddress> {
-		return ips.mapNotNull {
+		val allowed = ips.mapNotNull {
 			try {
 				IPAddressString(it.trim()).toAddress()
 			} catch (_: Exception) {
@@ -22,6 +22,7 @@ class AllowedIpCalculator() : IpCalculator {
 				null
 			}
 		}
+		return if (allowed.isEmpty()) defaultAllowedIps() else allowed
 	}
 
 	private fun excludeNetworks(allowedNetworks: List<IPAddress>, disallowedNetworks: List<IPAddress>): List<IPAddress> {
@@ -51,7 +52,7 @@ class AllowedIpCalculator() : IpCalculator {
 	}
 
 	override fun calculateAllowedIps(allowedIps: List<String>, disallowedIps: List<String>): List<Pair<InetAddress, Prefix>> {
-		val allowed = if (allowedIps.isEmpty()) defaultAllowedIps() else parseIpNetworks(allowedIps)
+		val allowed = parseIpNetworks(allowedIps)
 		if (disallowedIps.isEmpty()) return allowed.map { it.toInetAddress() to it.prefixLength }
 		val disallowed = parseIpNetworks(disallowedIps)
 		val excludedAllowedNetworks = excludeNetworks(allowed, disallowed)
