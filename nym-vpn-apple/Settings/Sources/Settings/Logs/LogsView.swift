@@ -23,9 +23,17 @@ public struct LogsView: View {
 
             VStack {
                 if !viewModel.logs.isEmpty {
-                    ScrollView(.vertical) {
-                        Text(viewModel.logs)
-                            .padding()
+                    ScrollViewReader { proxy in
+                        ScrollView(.vertical) {
+                            Text(viewModel.logs)
+                                .id("log")
+                                .padding()
+                        }
+                        .onAppear {
+                            withAnimation {
+                                proxy.scrollTo("log", anchor: .bottom)
+                            }
+                        }
                     }
                 } else {
                     VStack {

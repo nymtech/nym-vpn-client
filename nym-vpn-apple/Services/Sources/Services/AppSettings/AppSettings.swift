@@ -50,6 +50,7 @@ public final class AppSettings: ObservableObject {
     )
     public var currentEnv: String = "mainnet" {
         didSet {
+            guard currentEnv != envSelectorPublisher else { return }
             envSelectorPublisher = currentEnv
         }
     }
