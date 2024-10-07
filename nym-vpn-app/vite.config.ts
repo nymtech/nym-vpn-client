@@ -24,10 +24,6 @@ export default defineConfig(async () => ({
   envPrefix: ['VITE_', 'TAURI_', 'APP_'],
   build: {
     rollupOptions: {
-      input: {
-        main: resolve(__dirname, 'index.html'),
-        startupError: resolve(__dirname, 'src/error.html'),
-      },
       output: {
         manualChunks: {
           // put the following packages in their own chunk

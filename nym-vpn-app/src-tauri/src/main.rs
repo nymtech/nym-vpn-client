@@ -2,7 +2,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::path::PathBuf;
-use std::process::exit;
 use std::time::Duration;
 
 use crate::cli::{db_command, Commands};
@@ -78,9 +77,11 @@ async fn main() -> Result<()> {
     }
 
     let context = tauri::generate_context!();
+    let pkg_info = context.package_info();
+    info!("app version: {}", pkg_info.version);
 
     if cli.build_info {
-        print_build_info(context.package_info());
+        print_build_info(pkg_info);
         return Ok(());
     }
 
@@ -106,8 +107,8 @@ async fn main() -> Result<()> {
             let Ok(db) = Db::new().inspect_err(|e| {
                 startup_error::set_error(ErrorKey::from(e), Some(&e.to_string()));
             }) else {
-                // TODO blocking startup error logic
-                exit(1);
+                startup_error::show_window(app.handle())?;
+                return Ok(());
             };
             app.manage(db.clone());
 
@@ -235,6 +236,7 @@ async fn main() -> Result<()> {
             cmd_daemon::daemon_status,
             cmd_daemon::daemon_info,
             cmd_fs::log_dir,
+            startup::startup_error,
         ])
         // keep the app running in the background on window close request
         .on_window_event(|win, event| {

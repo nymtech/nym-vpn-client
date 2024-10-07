@@ -1,10 +1,11 @@
-use crate::commands::startup;
 use crate::db::DbError;
+use crate::MAIN_WINDOW_LABEL;
 
 use anyhow::Result;
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
-use tracing::{info, warn};
+use tauri::{AppHandle, Manager};
+use tracing::{error, info, instrument, warn};
 use ts_rs::TS;
 
 pub static STARTUP_ERROR: OnceCell<StartupError> = OnceCell::new();
@@ -49,8 +50,14 @@ struct WinSizes {
     max: (f64, f64),
 }
 
-pub fn show_window() -> Result<()> {
-    let context = tauri::generate_context!();
+#[instrument(skip(app))]
+pub fn show_window(app: &AppHandle) -> Result<()> {
+    info!("hide the main window");
+    let main_win = app.get_webview_window(MAIN_WINDOW_LABEL).unwrap();
+    main_win
+        .hide()
+        .inspect_err(|e| warn!("failed to hide main window: {}", e))
+        .ok();
 
     #[cfg(windows)]
     let sizes = WinSizes {
@@ -64,42 +71,42 @@ pub fn show_window() -> Result<()> {
         min: (260.0, 280.0),
         max: (900.0, 920.0),
     };
+    let window = tauri::WebviewWindowBuilder::new(
+        app,
+        WIN_LABEL,
+        tauri::WebviewUrl::App("index.html".into()),
+    )
+    .title(WIN_TITLE)
+    .fullscreen(false)
+    .resizable(true)
+    .maximizable(false)
+    .visible(true)
+    .center()
+    .focused(true)
+    .inner_size(sizes.inner.0, sizes.inner.1)
+    .min_inner_size(sizes.min.0, sizes.min.1)
+    .max_inner_size(sizes.max.0, sizes.max.1)
+    .build()
+    .inspect_err(|e| {
+        error!("failed to build the error window: {e}");
+    })?;
+    // remove the splash screen from HTML
+    window
+        .eval("document.getElementById('splash').remove();")
+        .inspect_err(|e| warn!("failed to remove splash screen: {e}"))
+        .ok();
 
-    info!("Starting tauri app");
-    tauri::Builder::default()
-        .plugin(tauri_plugin_process::init())
-        .plugin(tauri_plugin_os::init())
-        .setup(move |app| {
-            info!("app setup");
-            let window = tauri::WebviewWindowBuilder::new(
-                app,
-                WIN_LABEL,
-                tauri::WebviewUrl::App("src/error.html".into()),
-            )
-            .fullscreen(false)
-            .resizable(true)
-            .maximizable(false)
-            .visible(true)
-            .focused(true)
-            .inner_size(sizes.inner.0, sizes.inner.1)
-            .min_inner_size(sizes.min.0, sizes.min.1)
-            .max_inner_size(sizes.max.0, sizes.max.1)
-            .center()
-            .title(WIN_TITLE)
-            .build()?;
+    let handle = app.clone();
+    window.on_window_event(move |event| {
+        if let tauri::WindowEvent::CloseRequested { .. } = event {
+            handle.exit(0);
+        }
+    });
 
-            let handle = app.handle().clone();
-            window.on_window_event(move |event| {
-                if let tauri::WindowEvent::CloseRequested { .. } = event {
-                    handle.exit(0);
-                }
-            });
-
-            Ok(())
-        })
-        .invoke_handler(tauri::generate_handler![startup::startup_error])
-        .run(context)
-        .expect("error while running tauri application");
+    info!("showing the startup error window");
+    window.show().inspect_err(|e| {
+        error!("failed to show the error window: {e}");
+    })?;
 
     Ok(())
 }
