@@ -661,17 +661,6 @@
         }
       }
     },
-    "home.fastDisabled" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "As we transition Fast mode to WireGuard, this option is temporarily unavailable."
-          }
-        }
-      }
-    },
     "home.installDaemon" : {
       "extractionState" : "manual",
       "localizations" : {

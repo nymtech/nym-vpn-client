@@ -109,11 +109,9 @@ private extension HomeView {
         NetworkButton(
             viewModel: viewModel.fastButtonViewModel
         )
-        .opacity(viewModel.isWgDisabledMigration() ? 0.4 : 1.0)
+        .opacity(1.0)
         .padding(.horizontal, 16)
-        .help(viewModel.isWgDisabledMigration() ? viewModel.wgDisabledLocalizedTitle : "")
         .onTapGesture {
-            guard !viewModel.isWgDisabledMigration() else { return }
             viewModel.connectionManager.connectionType = .wireguard
         }
         Spacer()

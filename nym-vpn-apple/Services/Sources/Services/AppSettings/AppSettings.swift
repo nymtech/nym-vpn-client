@@ -48,7 +48,7 @@ public final class AppSettings: ObservableObject {
         AppSettingKey.currentEnv.rawValue,
         store: UserDefaults(suiteName: Constants.groupID.rawValue)
     )
-    public var currentEnv: String = "canary" {
+    public var currentEnv: String = "mainnet" {
         didSet {
             envSelectorPublisher = currentEnv
         }
