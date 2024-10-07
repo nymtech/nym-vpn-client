@@ -151,10 +151,24 @@ pub enum SetupWgTunnelError {
     #[error("failed to find authenticator address")]
     AuthenticatorAddressNotFound { gateway_id: Box<NodeIdentity> },
 
+    #[error("{0}")]
+    BandwidthControllerError(#[from] nym_bandwidth_controller::error::BandwidthControllerError),
+
+    #[error("credential store error: {path}: {source}")]
+    CredentialStoreError {
+        path: std::path::PathBuf,
+        source: crate::credentials::CredentialStoreError,
+    },
+
     #[error("not enough bandwidth to setup tunnel")]
     NotEnoughBandwidthToSetupTunnel {
         gateway_id: Box<NodeIdentity>,
         authenticator_address: Box<Recipient>,
+    },
+
+    #[error("{source}")]
+    NyxdClientError {
+        source: crate::credentials::CredentialNyxdClientError,
     },
 
     #[error("failed to lookup gateway ip: {gateway_id}: {source}")]

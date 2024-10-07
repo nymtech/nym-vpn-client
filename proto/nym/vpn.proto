@@ -384,6 +384,12 @@ message Error {
 
     // General failure for the mixnet connection monitor
     MIXNET_CONNECTION_MONITOR = 46;
+
+    // General failure for storage
+    STORAGE = 50;
+
+    // General failure for setting up a nyxd client
+    NYXD_CLIENT = 51;
   }
 
   ErrorType kind = 1;
