@@ -143,11 +143,8 @@ impl WgTunnelRunner {
         uniffi_set_listener_status(StatusEvent::Tun(TunStatus::EstablishingConnection));
 
         let mut set = JoinSet::new();
-        let cloned_mixnet_client = mixnet_client.clone();
         set.spawn(async move {
-            let result = self
-                .start_wireguard(cloned_mixnet_client, auth_addresses)
-                .await;
+            let result = self.start_wireguard(mixnet_client, auth_addresses).await;
 
             // Shutdown task manager if the tunnel had to exit sooner.
             if self.task_manager.signal_shutdown().is_err() {
@@ -181,9 +178,6 @@ impl WgTunnelRunner {
                 }
             }
         }
-
-        // Shutdown mixnet client.
-        mixnet_client.disconnect().await;
 
         result
     }
