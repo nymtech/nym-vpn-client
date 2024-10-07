@@ -19,7 +19,7 @@ function Spinner() {
     <span
       className={clsx([
         'loader',
-        os === 'linux' ? 'h-[32px] w-[32px]' : 'h-[22px] w-[22px] border-4',
+        os === 'linux' ? 'h-[28px] w-[28px]' : 'h-[22px] w-[22px] border-4',
         'border:white dark:border-[#2c2b2e] border-b-transparent dark:border-b-transparent',
       ])}
     ></span>

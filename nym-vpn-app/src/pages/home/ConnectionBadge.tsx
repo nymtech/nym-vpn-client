@@ -2,9 +2,6 @@ import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { ConnectionState } from '../../types';
 import { AnimateIn } from '../../ui';
-import { type } from '@tauri-apps/plugin-os';
-
-const os = type();
 
 function ConnectionBadge({ state }: { state: ConnectionState }) {
   const { t } = useTranslation('home');
@@ -70,14 +67,14 @@ function ConnectionBadge({ state }: { state: ConnectionState }) {
             'relative flex justify-center items-center',
             // use static pixel sizes for animated elements to avoid glitches
             // with the different UI scaling factors
-            os === 'windows' ? 'h-[12px] w-[12px]' : 'h-[14px] w-[14px]',
+            'h-[12px] w-[12px]',
           ])}
         >
           <div className="animate-ping absolute h-full w-full rounded-full bg-cornflower opacity-75" />
           <div
             className={clsx([
               'relative rounded-full bg-cornflower',
-              os === 'windows' ? 'h-[8px] w-[8px]' : 'h-[10px] w-[10px]',
+              'h-[8px] w-[8px]',
             ])}
           />
         </div>
