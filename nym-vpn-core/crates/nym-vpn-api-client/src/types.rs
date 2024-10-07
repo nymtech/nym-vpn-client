@@ -53,11 +53,11 @@ impl From<bip39::Mnemonic> for VpnApiAccount {
     }
 }
 
-impl From<DirectSecp256k1HdWallet> for VpnApiAccount {
-    fn from(wallet: DirectSecp256k1HdWallet) -> Self {
-        Self { wallet }
-    }
-}
+//impl From<DirectSecp256k1HdWallet> for VpnApiAccount {
+//    fn from(wallet: DirectSecp256k1HdWallet) -> Self {
+//        Self { wallet }
+//    }
+//}
 
 pub struct Device {
     keypair: Arc<ed25519::KeyPair>,
@@ -81,6 +81,45 @@ impl From<Arc<ed25519::KeyPair>> for Device {
 
 impl From<ed25519::KeyPair> for Device {
     fn from(keypair: ed25519::KeyPair) -> Self {
+        Self {
+            keypair: Arc::new(keypair),
+        }
+    }
+}
+
+//impl From<&str> for Device {
+//    fn from(mnemonic: &str) -> Self {
+//        let mnemonic = bip39::Mnemonic::parse_in(bip39::Language::English, mnemonic).unwrap();
+//        let seed = mnemonic.to_seed("");
+//        let seed_bytes = &seed[..32].try_into().unwrap();
+//
+//        let signing_key = ed25519_dalek::SigningKey::from_bytes(seed_bytes);
+//        let verifying_key = signing_key.verifying_key();
+//
+//        let privkey = signing_key.to_bytes().to_vec();
+//        let pubkey = verifying_key.to_bytes().to_vec();
+//
+//        let keypair = ed25519::KeyPair::from_bytes(&privkey, &pubkey).unwrap();
+//
+//        Self {
+//            keypair: Arc::new(keypair),
+//        }
+//    }
+//}
+
+impl From<bip39::Mnemonic> for Device {
+    fn from(mnemonic: bip39::Mnemonic) -> Self {
+        let seed = mnemonic.to_seed("");
+        let seed_bytes = &seed[..32].try_into().unwrap();
+
+        let signing_key = ed25519_dalek::SigningKey::from_bytes(seed_bytes);
+        let verifying_key = signing_key.verifying_key();
+
+        let privkey = signing_key.to_bytes().to_vec();
+        let pubkey = verifying_key.to_bytes().to_vec();
+
+        let keypair = ed25519::KeyPair::from_bytes(&privkey, &pubkey).unwrap();
+
         Self {
             keypair: Arc::new(keypair),
         }
@@ -141,22 +180,28 @@ pub enum GatewayType {
 mod tests {
     use super::*;
 
+    // The default acccount mnemonic, the same as in the js integration tests
     const DEFAULT_MNEMONIC: &str =
-        "range mystery picture decline olympic acoustic lesson quick rebuild panda royal fold start leader egg hammer width olympic worry length crawl couch link mobile";
+       "range mystery picture decline olympic acoustic lesson quick rebuild panda royal fold start leader egg hammer width olympic worry length crawl couch link mobile";
+    const DEFAULT_MNEMONIC_ID: &str = "n1sslaag27wfydyrvyua72hg5e0vteglxrs8nw3c";
 
-    fn get_secp256k1_keypair() -> DirectSecp256k1HdWallet {
-        // This is the default mnemonic used in the js integration tests
-        let mnemonic = "range mystery picture decline olympic acoustic lesson quick rebuild panda royal fold start leader egg hammer width olympic worry length crawl couch link mobile";
+    // The default device mnemonic, the same as in the js integration tests
+    const DEFAULT_DEVICE_MNEMONIC: &str =
+        "pitch deputy proof fire movie put bread ribbon what chef zebra car vacuum gadget steak board state oyster layer glory barely thrive nice box";
+    const DEFAULT_DEVICE_IDENTITY_KEY: &str = "FJDUECYAeosXhNGjxf8w5MJM7N2DfDwQznvWwTxJz6ft";
 
-        let mnemonic = bip39::Mnemonic::parse(mnemonic).unwrap();
-        DirectSecp256k1HdWallet::from_mnemonic("n", mnemonic)
+    #[test]
+    fn create_account_from_mnemonic() {
+        let account = VpnApiAccount::from(bip39::Mnemonic::parse(DEFAULT_MNEMONIC).unwrap());
+        assert_eq!(account.id(), DEFAULT_MNEMONIC_ID);
     }
 
     // The JS code generates the keypair from this mnemonic. But we are currently unable to
     // replicate this step in Rust, so we use the keypair directly.
-    #[allow(unused)]
-    fn get_ed25519_keypair() -> ed25519::KeyPair {
-        // let mnemonic = "kiwi ketchup mix canvas curve ribbon congress method feel frozen act annual aunt comfort side joy mesh palace tennis cannon orange name tortoise piece";
+    fn ed25519_keypair_fixture() -> ed25519::KeyPair {
+        let _mnemonic = "kiwi ketchup mix canvas curve ribbon congress method feel frozen act annual aunt comfort side joy mesh palace tennis cannon orange name tortoise piece";
+
+        // The corresponding keypair generated from the mnemonic
         let private_key_base58 = "9JqXnPvTrWkq1Yq66d8GbXrcz5eryAhPZvZ46cEsBPUY";
         let public_key_base58 = "4SPdxfBYsuARBw6REQQa5vFiKcvmYiet9sSWqb751i3Z";
 
@@ -166,30 +211,68 @@ mod tests {
         ed25519::KeyPair::from_bytes(&private_key, &public_key).unwrap()
     }
 
-    fn get_ed25519_keypair_from_mnemonic(mnemonic: String) -> ed25519::KeyPair {
-        let mnemonic = bip39::Mnemonic::parse_in(bip39::Language::English, mnemonic).unwrap();
-        let seed = mnemonic.to_seed("");
-        let seed_bytes = &seed[..32].try_into().unwrap();
+    #[ignore]
+    #[test]
+    fn verify_ed25519_keypair_fixture() {
+        let device = Device::from(
+            bip39::Mnemonic::parse("kiwi ketchup mix canvas curve ribbon congress method feel frozen act annual aunt comfort side joy mesh palace tennis cannon orange name tortoise piece").unwrap()
+        );
+        let expected_keypair = ed25519_keypair_fixture();
+        assert_eq!(
+            device.keypair.private_key().to_base58_string(),
+            expected_keypair.private_key().to_base58_string()
+        );
+        assert_eq!(
+            device.keypair.public_key().to_base58_string(),
+            expected_keypair.public_key().to_base58_string()
+        );
+    }
 
-        let signing_key = ed25519_dalek::SigningKey::from_bytes(seed_bytes);
-        let verifying_key = signing_key.verifying_key();
-
-        let privkey = signing_key.to_bytes().to_vec();
-        let pubkey = verifying_key.to_bytes().to_vec();
-
-        ed25519::KeyPair::from_bytes(&privkey, &pubkey).unwrap()
+    #[ignore]
+    #[test]
+    fn create_device_from_mnemonic() {
+        let device = Device::from(bip39::Mnemonic::parse(DEFAULT_DEVICE_MNEMONIC).unwrap());
+        assert_eq!(
+            device.identity_key().to_base58_string(),
+            DEFAULT_DEVICE_IDENTITY_KEY
+        );
     }
 
     #[test]
-    fn generate_ed25519_keypair_from_mnemonic_1() {
-        let mnemonic = "kiwi ketchup mix canvas curve ribbon congress method feel frozen act annual aunt comfort side joy mesh palace tennis cannon orange name tortoise piece";
-        let mnemonic = bip39::Mnemonic::parse_in(bip39::Language::English, mnemonic).unwrap();
+    fn create_device_from_keypair() {
+        let device = Device::from(ed25519_keypair_fixture());
+        let expected_priv_key = "9JqXnPvTrWkq1Yq66d8GbXrcz5eryAhPZvZ46cEsBPUY";
+        let expected_pub_key = "4SPdxfBYsuARBw6REQQa5vFiKcvmYiet9sSWqb751i3Z";
+        assert_eq!(
+            device.keypair.public_key().to_base58_string(),
+            expected_pub_key
+        );
+        assert_eq!(
+            device.keypair.private_key().to_base58_string(),
+            expected_priv_key
+        );
+    }
 
+    fn generate_ed25519_keypair_from_mnemonic(
+        mnemonic: bip39::Mnemonic,
+    ) -> (ed25519_dalek::SigningKey, ed25519_dalek::VerifyingKey) {
         let seed = mnemonic.to_seed("");
         let seed_bytes = &seed[..32].try_into().unwrap();
 
         let secret_key = ed25519_dalek::SigningKey::from_bytes(seed_bytes);
         let public_key = secret_key.verifying_key();
+        (secret_key, public_key)
+    }
+
+    // WIP
+    #[test]
+    fn generate_ed25519_keypair_from_mnemonic_1() {
+        let mnemonic = bip39::Mnemonic::parse_in(
+            bip39::Language::English,
+            "kiwi ketchup mix canvas curve ribbon congress method feel frozen act annual aunt comfort side joy mesh palace tennis cannon orange name tortoise piece",
+        ).unwrap();
+
+        let (secret_key, public_key) = generate_ed25519_keypair_from_mnemonic(mnemonic);
 
         let secret_key_base58 = bs58::encode(secret_key.to_bytes()).into_string();
         let public_key_base58 = bs58::encode(public_key.to_bytes()).into_string();
@@ -210,21 +293,25 @@ mod tests {
         //assert_eq!(public_key_base58, expected_public_key_base58);
     }
 
+    // WIP
     #[test]
     fn generate_ed25519_keypair_from_mnemonic_2() {
-        let mnemonic = "pitch deputy proof fire movie put bread ribbon what chef zebra car vacuum gadget steak board state oyster layer glory barely thrive nice box";
-        let mnemonic = bip39::Mnemonic::parse_in(bip39::Language::English, mnemonic).unwrap();
+        let mnemonic = bip39::Mnemonic::parse_in(
+            bip39::Language::English,
+            DEFAULT_DEVICE_MNEMONIC,
+        ).unwrap();
 
-        let seed = mnemonic.to_seed("");
-        let seed_bytes = &seed[..32].try_into().unwrap();
+        let (secret_key, public_key) = generate_ed25519_keypair_from_mnemonic(mnemonic);
 
-        let secret_key = ed25519_dalek::SigningKey::from_bytes(seed_bytes);
-        let public_key = secret_key.verifying_key();
-
+        let secret_key_base58 = bs58::encode(secret_key.to_bytes()).into_string();
         let public_key_base58 = bs58::encode(public_key.to_bytes()).into_string();
+
+        let secret_key_base64 = base64_url::encode(&secret_key.to_bytes());
         let public_key_base64 = base64_url::encode(&public_key.to_bytes());
 
+        println!("secret key (base58): {:?}", secret_key_base58);
         println!("public key (base58): {:?}", public_key_base58);
+        println!("secret key (base64): {:?}", secret_key_base64);
         println!("public key (base64): {:?}", public_key_base64);
 
         // Expected to be according to the js tests.
@@ -234,17 +321,10 @@ mod tests {
     }
 
     #[test]
-    fn create_account_from_mnemonic() {
-        let account = VpnApiAccount::from(get_secp256k1_keypair());
-        let expected_account_id = "n1sslaag27wfydyrvyua72hg5e0vteglxrs8nw3c";
-        assert_eq!(account.id(), expected_account_id);
-    }
-
-    #[test]
     fn sign_device_key() {
         // Setup to use the same mnemonics as the js integration test snapshot
-        let account = VpnApiAccount::from(get_secp256k1_keypair());
-        let device = Device::from(get_ed25519_keypair_from_mnemonic("pitch deputy proof fire movie put bread ribbon what chef zebra car vacuum gadget steak board state oyster layer glory barely thrive nice box".to_string()));
+        let account = VpnApiAccount::from(bip39::Mnemonic::parse(DEFAULT_MNEMONIC).unwrap());
+        let device = Device::from(bip39::Mnemonic::parse(DEFAULT_DEVICE_MNEMONIC).unwrap());
         println!("account id: {}", account.id());
         println!(
             "device identity key (base58): {:?}",
