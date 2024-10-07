@@ -18,19 +18,14 @@ public final class Migrations {
         self.configurationManager = configurationManager
     }
 
-    public var isMacOSWgDisabled: Bool {
-        appSettings.isMacOS &&
-        (configurationManager.appVersion == "1.1.1" || configurationManager.appVersion == "1.1.2")
-    }
-
     public func setup() {
-        macOSWgDisabledMigration()
+        migrateToMainnet()
     }
 }
 
 private extension Migrations {
-    func macOSWgDisabledMigration() {
-        guard isMacOSWgDisabled else { return }
-        appSettings.connectionType = nil
+    func migrateToMainnet() {
+        guard appSettings.currentEnv != "mainnet" else { return }
+        appSettings.currentEnv = "mainnet"
     }
 }

@@ -28,7 +28,6 @@ public class HomeViewModel: HomeFlowState {
     let title = "NymVPN".localizedString
     let connectToLocalizedTitle = "connectTo".localizedString
     let networkSelectLocalizedTitle = "selectNetwork".localizedString
-    let wgDisabledLocalizedTitle = "home.fastDisabled".localizedString
 
     let appSettings: AppSettings
     let connectionManager: ConnectionManager
@@ -98,16 +97,6 @@ public class HomeViewModel: HomeFlowState {
         setup()
     }
 #endif
-}
-
-extension HomeViewModel {
-    func isWgDisabledMigration() -> Bool {
-#if os(macOS)
-        migrations.isMacOSWgDisabled
-#else
-        false
-#endif
-    }
 }
 
 // MARK: - Navigation -
