@@ -3,7 +3,6 @@
 
 use std::path::PathBuf;
 use std::process::exit;
-use std::sync::Arc;
 use std::time::Duration;
 
 use crate::cli::{db_command, Commands};
@@ -150,11 +149,11 @@ async fn main() -> Result<()> {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_shell::init())
-        .manage(Arc::new(Mutex::new(app_state)))
-        .manage(Arc::new(app_config))
-        .manage(Arc::new(cli.clone()))
+        .manage(Mutex::new(app_state))
+        .manage(app_config)
+        .manage(cli.clone())
         .manage(db.clone())
-        .manage(Arc::new(grpc.clone()))
+        .manage(grpc.clone())
         .setup(move |app| {
             info!("app setup");
 

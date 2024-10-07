@@ -15,7 +15,6 @@ use nym_vpn_proto::entry_node::EntryNodeEnum;
 use nym_vpn_proto::exit_node::ExitNodeEnum;
 use nym_vpn_proto::{EntryNode, ExitNode, Location};
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 use tauri::State;
 use tracing::{debug, error, info, instrument};
 use ts_rs::TS;
@@ -31,7 +30,7 @@ pub struct ConnectionStateResponse {
 #[tauri::command]
 pub async fn get_connection_state(
     state: State<'_, SharedAppState>,
-    grpc: State<'_, Arc<GrpcClient>>,
+    grpc: State<'_, GrpcClient>,
 ) -> Result<ConnectionStateResponse, BackendError> {
     debug!("get_connection_state");
     let res = grpc.vpn_status().await?;
@@ -50,7 +49,7 @@ pub async fn get_connection_state(
 pub async fn connect(
     app: tauri::AppHandle,
     state: State<'_, SharedAppState>,
-    grpc: State<'_, Arc<GrpcClient>>,
+    grpc: State<'_, GrpcClient>,
     entry: NodeLocation,
     exit: NodeLocation,
 ) -> Result<ConnectionState, BackendError> {
@@ -168,7 +167,7 @@ pub async fn connect(
 pub async fn disconnect(
     app: tauri::AppHandle,
     state: State<'_, SharedAppState>,
-    grpc: State<'_, Arc<GrpcClient>>,
+    grpc: State<'_, GrpcClient>,
 ) -> Result<ConnectionState, BackendError> {
     debug!("disconnect");
     let mut app_state = state.lock().await;

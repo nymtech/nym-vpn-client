@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use tauri::State;
 use tracing::{debug, info, instrument, warn};
 
@@ -12,7 +10,7 @@ use crate::{
 #[tauri::command]
 pub async fn add_credential(
     credential: String,
-    grpc: State<'_, Arc<GrpcClient>>,
+    grpc: State<'_, GrpcClient>,
 ) -> Result<Option<i64>, BackendError> {
     debug!("add_credential");
 

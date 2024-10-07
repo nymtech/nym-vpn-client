@@ -1,6 +1,5 @@
 use nym_vpn_proto::GatewayType;
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 use tauri::State;
 use tracing::{debug, instrument};
 use ts_rs::TS;
@@ -23,7 +22,7 @@ pub enum NodeType {
 pub async fn get_countries(
     vpn_mode: VpnMode,
     node_type: Option<NodeType>,
-    grpc: State<'_, Arc<GrpcClient>>,
+    grpc: State<'_, GrpcClient>,
 ) -> Result<Vec<Country>, BackendError> {
     debug!("get_countries");
     let gw_type = match vpn_mode {

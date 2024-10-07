@@ -3,12 +3,10 @@ use anyhow::{anyhow, Result};
 use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::path::PathBuf;
 use std::str::FromStr;
-use std::{path::PathBuf, sync::Arc};
 use tauri::PackageInfo;
 use tracing::{error, info};
-
-pub type ManagedCli = Arc<Cli>;
 
 #[derive(Parser, Serialize, Deserialize, Debug, Clone)]
 #[command(author, version, about, long_about = None)]
