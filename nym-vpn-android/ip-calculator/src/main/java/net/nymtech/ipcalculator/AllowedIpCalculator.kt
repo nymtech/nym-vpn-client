@@ -9,7 +9,7 @@ import java.net.InetAddress
 
 typealias Prefix = Int
 
-class AllowedIpCalculator() : IpCalculator {
+class AllowedIpCalculator : IpCalculator {
 
 	private val tag = this::class::simpleName.name
 
