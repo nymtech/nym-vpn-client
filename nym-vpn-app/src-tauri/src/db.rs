@@ -90,7 +90,7 @@ impl Db {
             .clone()
             .ok_or(anyhow!("failed to get app data dir"))?
             .join(DB_DIR);
-        info!("opening sled db at {}", path.display());
+        info!("opening db at {}", path.display());
         create_dir_all(&path).map_err(|e| {
             error!("failed to create db directory {}", path.display());
             DbError::Io(e)

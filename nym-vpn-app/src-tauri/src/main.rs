@@ -31,6 +31,7 @@ use nym_config::defaults;
 use states::app::AppState;
 #[cfg(windows)]
 use states::app::VpnMode;
+use tauri::Manager;
 use tokio::sync::Mutex;
 use tokio::time::sleep;
 use tracing::{debug, error, info, trace, warn};
@@ -83,62 +84,9 @@ async fn main() -> Result<()> {
         return Ok(());
     }
 
-    info!("Creating k/v embedded db");
-    let Ok(db) = Db::new().inspect_err(|e| {
-        startup_error::set_error(ErrorKey::from(e), Some(&e.to_string()));
-    }) else {
-        startup_error::show_window()?;
-        exit(1);
-    };
-
     if let Some(Commands::Db { command: Some(cmd) }) = &cli.command {
-        return db_command(&db, cmd);
+        return db_command(cmd);
     }
-
-    let app_config_store = {
-        let path = APP_CONFIG_DIR
-            .clone()
-            .ok_or(anyhow!("failed to get app config dir"))?;
-        AppStorage::<AppConfig>::new(path, APP_CONFIG_FILE, None)
-            .await
-            .inspect_err(|e| error!("Failed to init app config store: {e}"))?
-    };
-    debug!(
-        "app_config_store: {}",
-        &app_config_store.full_path.display()
-    );
-
-    let app_config = match app_config_store.read().await {
-        Ok(cfg) => cfg,
-        Err(e) => {
-            warn!("failed to read app config: {e}, falling back to default (empty) config");
-            debug!("clearing the config file");
-            app_config_store
-                .clear()
-                .await
-                .inspect_err(|e| error!("failed to clear the config file: {e}"))
-                .ok();
-            AppConfig::default()
-        }
-    };
-    debug!("app_config: {app_config:?}");
-
-    if let Some(env_file) = cli
-        .network_env
-        .as_ref()
-        .or(app_config.network_env_file.as_ref())
-    {
-        info!("network environment: custom: {}", env_file.display());
-        defaults::setup_env(Some(env_file.clone()));
-    } else {
-        info!("network environment: mainnet");
-        defaults::setup_env::<PathBuf>(None);
-    }
-
-    let app_state = AppState::new(&db, &app_config, &cli);
-
-    let mut grpc = GrpcClient::new(&app_config, &cli, context.package_info());
-    grpc.update_agent(context.package_info()).await.ok();
 
     info!("Starting tauri app");
     tauri::Builder::default()
@@ -149,17 +97,74 @@ async fn main() -> Result<()> {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_shell::init())
-        .manage(Mutex::new(app_state))
-        .manage(app_config)
-        .manage(cli.clone())
-        .manage(db.clone())
-        .manage(grpc.clone())
         .setup(move |app| {
             info!("app setup");
+
+            app.manage(cli.clone());
+
+            info!("Creating k/v embedded db");
+            let Ok(db) = Db::new().inspect_err(|e| {
+                startup_error::set_error(ErrorKey::from(e), Some(&e.to_string()));
+            }) else {
+                // TODO blocking startup error logic
+                exit(1);
+            };
+            app.manage(db.clone());
 
             // TODO remove when two-hop is supported on Windows
             #[cfg(windows)]
             db.insert(Key::VpnMode, VpnMode::Mixnet)?;
+
+            let app_config_store = {
+                let path = APP_CONFIG_DIR
+                    .clone()
+                    .ok_or(anyhow!("failed to get app config dir"))?;
+                AppStorage::<AppConfig>::new(path, APP_CONFIG_FILE, None)
+                    .inspect_err(|e| error!("Failed to init app config store: {e}"))?
+            };
+            debug!(
+                "app_config_store: {}",
+                &app_config_store.full_path.display()
+            );
+
+            let app_config = match app_config_store.read() {
+                Ok(cfg) => cfg,
+                Err(e) => {
+                    warn!("failed to read app config: {e}, falling back to default (empty) config");
+                    debug!("clearing the config file");
+                    app_config_store
+                        .clear()
+                        .inspect_err(|e| error!("failed to clear the config file: {e}"))
+                        .ok();
+                    AppConfig::default()
+                }
+            };
+            debug!("app_config: {app_config:?}");
+
+            if let Some(env_file) = cli
+                .network_env
+                .as_ref()
+                .or(app_config.network_env_file.as_ref())
+            {
+                info!("network environment: custom: {}", env_file.display());
+                defaults::setup_env(Some(env_file.clone()));
+            } else {
+                info!("network environment: mainnet");
+                defaults::setup_env::<PathBuf>(None);
+            }
+
+            let app_state = AppState::new(&db, &app_config, &cli);
+            app.manage(Mutex::new(app_state));
+
+            let pkg_info = app.package_info().clone();
+            let grpc = GrpcClient::new(&app_config, &cli, &pkg_info);
+            let mut c_grpc = grpc.clone();
+            tokio::spawn(async move {
+                c_grpc.update_agent(&pkg_info).await.ok();
+            });
+
+            app.manage(app_config);
+            app.manage(grpc.clone());
 
             let app_win = AppWindow::new(app.handle(), MAIN_WINDOW_LABEL)?;
             app_win.restore_size(&db)?;

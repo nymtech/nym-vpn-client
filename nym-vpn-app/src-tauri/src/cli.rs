@@ -82,7 +82,11 @@ pub enum DbCommands {
     },
 }
 
-pub fn db_command(db: &Db, command: &DbCommands) -> Result<()> {
+pub fn db_command(command: &DbCommands) -> Result<()> {
+    let db = Db::new().inspect_err(|e| {
+        error!("failed to get db: {e}");
+    })?;
+
     match command {
         DbCommands::Get { key: k } => {
             info!("cli db get {k}");
