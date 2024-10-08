@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { invoke } from '@tauri-apps/api/core';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import duration from 'dayjs/plugin/duration';
@@ -31,13 +32,20 @@ dayjs.extend(relativeTime);
 dayjs.extend(duration);
 
 (async () => {
+  // check for unrecoverable errors
   const error = await invoke<TStartupError | undefined>('startup_error');
   if (error) {
-    return ReactDOM.createRoot(document.getElementById('root')!).render(
+    const theme = await getCurrentWebviewWindow().theme();
+    const splash = document.getElementById('splash');
+    if (splash) {
+      splash.remove();
+    }
+    ReactDOM.createRoot(document.getElementById('root')!).render(
       <React.StrictMode>
-        <StartupError error={error} />
+        <StartupError error={error} theme={theme} />
       </React.StrictMode>,
     );
+    return;
   }
 
   const monitoring = await kvGet<boolean>('Monitoring');

@@ -80,7 +80,7 @@ pub fn show_window(app: &AppHandle) -> Result<()> {
     .fullscreen(false)
     .resizable(true)
     .maximizable(false)
-    .visible(true)
+    .visible(false)
     .center()
     .focused(true)
     .inner_size(sizes.inner.0, sizes.inner.1)
@@ -90,11 +90,6 @@ pub fn show_window(app: &AppHandle) -> Result<()> {
     .inspect_err(|e| {
         error!("failed to build the error window: {e}");
     })?;
-    // remove the splash screen from HTML
-    window
-        .eval("document.getElementById('splash').remove();")
-        .inspect_err(|e| warn!("failed to remove splash screen: {e}"))
-        .ok();
 
     let handle = app.clone();
     window.on_window_event(move |event| {
@@ -102,11 +97,6 @@ pub fn show_window(app: &AppHandle) -> Result<()> {
             handle.exit(0);
         }
     });
-
-    info!("showing the startup error window");
-    window.show().inspect_err(|e| {
-        error!("failed to show the error window: {e}");
-    })?;
 
     Ok(())
 }

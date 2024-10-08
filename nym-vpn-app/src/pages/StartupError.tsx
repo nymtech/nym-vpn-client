@@ -1,7 +1,10 @@
+import { useEffect } from 'react';
 import clsx from 'clsx';
 import { exit } from '@tauri-apps/plugin-process';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { Button, MsIcon } from '../ui';
 import { StartupErrorKey, StartupError as TStartupError } from '../types';
+import logu from '../log';
 
 function getErrorText(key: StartupErrorKey) {
   switch (key) {
@@ -14,43 +17,63 @@ function getErrorText(key: StartupErrorKey) {
   }
 }
 
-function StartupError({ error }: { error: TStartupError }) {
-  return (
-    <div
-      className={clsx([
-        'min-w-64 bg-white dark:bg-oil text-baltic-sea dark:text-mercury-pinkish',
-        'flex flex-col items-center justify-between h-full gap-4',
-        'cursor-default select-none p-6 px-6',
-      ])}
-    >
-      <div className="flex flex-col justify-center items-center gap-2">
-        <MsIcon className="text-2xl font-bold" icon={'error'} />
-        <h1 className="text-xl font-bold tracking-wider leading-loose">
-          Problem detected
-        </h1>
-      </div>
-      <p className="text-center">
-        {error
-          ? getErrorText(error?.key)
-          : 'Something went wrong while loading the app. Please check the logs.'}
-      </p>
-      {error?.details && (
-        <div className="w-full max-h-32 overflow-auto select-text text-balance break-words">
-          <p className="text-teaberry text-center cursor-auto">
-            {error.details}
-          </p>
-        </div>
-      )}
+let initialized = false;
 
-      <Button
-        color="melon"
-        onClick={() => {
-          exit(0);
-        }}
-        className="mt-auto"
+function StartupError({
+  error,
+  theme,
+}: {
+  error: TStartupError;
+  theme: 'light' | 'dark' | null;
+}) {
+  useEffect(() => {
+    if (initialized) {
+      return;
+    }
+    initialized = true;
+    const window = getCurrentWebviewWindow();
+    logu.info('show error window');
+    window.show();
+  }, []);
+
+  return (
+    <div className={clsx([theme === 'dark' && 'dark', 'h-full'])}>
+      <div
+        className={clsx([
+          'min-w-64 bg-white dark:bg-oil text-baltic-sea dark:text-mercury-pinkish',
+          'flex flex-col items-center justify-between h-full gap-4',
+          'cursor-default select-none p-6 px-6',
+        ])}
       >
-        Close
-      </Button>
+        <div className="flex flex-col justify-center items-center gap-2">
+          <MsIcon className="text-2xl font-bold" icon={'error'} />
+          <h1 className="text-xl font-bold tracking-wider leading-loose">
+            Problem detected
+          </h1>
+        </div>
+        <p className="text-center">
+          {error
+            ? getErrorText(error?.key)
+            : 'Something went wrong while loading the app. Please check the logs.'}
+        </p>
+        {error?.details && (
+          <div className="w-full max-h-32 overflow-auto select-text text-balance break-words">
+            <p className="text-teaberry text-center cursor-auto">
+              {error.details}
+            </p>
+          </div>
+        )}
+
+        <Button
+          color="melon"
+          onClick={() => {
+            exit(0);
+          }}
+          className="mt-auto"
+        >
+          Close
+        </Button>
+      </div>
     </div>
   );
 }
