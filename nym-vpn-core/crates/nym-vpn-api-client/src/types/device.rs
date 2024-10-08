@@ -1,63 +1,11 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-pub use nym_contracts_common::Percent;
-
 use std::sync::Arc;
 
 use nym_crypto::asymmetric::ed25519;
-use nym_validator_client::{signing::signer::OfflineSigner as _, DirectSecp256k1HdWallet};
 
-use crate::{jwt::Jwt, VpnApiClientError};
-
-#[derive(Clone, Debug)]
-pub struct VpnApiAccount {
-    wallet: DirectSecp256k1HdWallet,
-}
-
-impl VpnApiAccount {
-    #[allow(unused)]
-    fn random() -> Self {
-        let mnemonic = bip39::Mnemonic::generate(24).unwrap();
-        let wallet = DirectSecp256k1HdWallet::from_mnemonic("n", mnemonic);
-        Self { wallet }
-    }
-
-    pub fn id(&self) -> String {
-        self.wallet.get_accounts().unwrap()[0].address().to_string()
-    }
-
-    pub(crate) fn jwt(&self) -> Jwt {
-        Jwt::new_secp256k1(&self.wallet)
-    }
-
-    // Base64 encoded signature
-    pub(crate) fn sign_device_key(&self, device: &Device) -> String {
-        let accounts = self.wallet.get_accounts().unwrap();
-        let address = accounts[0].address();
-        let device_identity_key = device.identity_key().to_bytes();
-        let signature = self
-            .wallet
-            .sign_raw(address, device_identity_key)
-            .unwrap()
-            .to_bytes()
-            .to_vec();
-        base64_url::encode(&signature)
-    }
-}
-
-impl From<bip39::Mnemonic> for VpnApiAccount {
-    fn from(mnemonic: bip39::Mnemonic) -> Self {
-        let wallet = DirectSecp256k1HdWallet::from_mnemonic("n", mnemonic);
-        Self { wallet }
-    }
-}
-
-//impl From<DirectSecp256k1HdWallet> for VpnApiAccount {
-//    fn from(wallet: DirectSecp256k1HdWallet) -> Self {
-//        Self { wallet }
-//    }
-//}
+use crate::jwt::Jwt;
 
 pub struct Device {
     keypair: Arc<ed25519::KeyPair>,
@@ -109,10 +57,14 @@ impl From<ed25519::KeyPair> for Device {
 
 impl From<bip39::Mnemonic> for Device {
     fn from(mnemonic: bip39::Mnemonic) -> Self {
-        let seed = mnemonic.to_seed("");
-        let seed_bytes = &seed[..32].try_into().unwrap();
+        let (entropy, _) = mnemonic.to_entropy_array();
+        // Entropy is statically >= 32 bytes, so we can safely unwrap here
+        let seed = &entropy[0..32].try_into().unwrap();
 
-        let signing_key = ed25519_dalek::SigningKey::from_bytes(seed_bytes);
+        // let seed = mnemonic.to_seed("");
+        // let seed_bytes = &seed[..32].try_into().unwrap();
+
+        let signing_key = ed25519_dalek::SigningKey::from_bytes(seed);
         let verifying_key = signing_key.verifying_key();
 
         let privkey = signing_key.to_bytes().to_vec();
@@ -126,75 +78,11 @@ impl From<bip39::Mnemonic> for Device {
     }
 }
 
-#[derive(Clone, Default, Debug)]
-pub struct GatewayMinPerformance {
-    pub mixnet_min_performance: Option<Percent>,
-    pub vpn_min_performance: Option<Percent>,
-}
-
-impl GatewayMinPerformance {
-    pub fn from_percentage_values(
-        mixnet_min_performance: Option<u64>,
-        vpn_min_performance: Option<u64>,
-    ) -> Result<Self, VpnApiClientError> {
-        let mixnet_min_performance = mixnet_min_performance
-            .map(Percent::from_percentage_value)
-            .transpose()
-            .map_err(VpnApiClientError::InvalidPercentValue)?;
-        let vpn_min_performance = vpn_min_performance
-            .map(Percent::from_percentage_value)
-            .transpose()
-            .map_err(VpnApiClientError::InvalidPercentValue)?;
-        Ok(Self {
-            mixnet_min_performance,
-            vpn_min_performance,
-        })
-    }
-
-    pub(crate) fn to_param(&self) -> Vec<(String, String)> {
-        let mut params = vec![];
-        if let Some(threshold) = self.mixnet_min_performance {
-            params.push((
-                crate::routes::MIXNET_MIN_PERFORMANCE.to_string(),
-                threshold.to_string(),
-            ));
-        };
-        if let Some(threshold) = self.vpn_min_performance {
-            params.push((
-                crate::routes::VPN_MIN_PERFORMANCE.to_string(),
-                threshold.to_string(),
-            ));
-        };
-        params
-    }
-}
-
-#[derive(Clone, Debug)]
-pub enum GatewayType {
-    MixnetEntry,
-    MixnetExit,
-    Wg,
-}
-
 #[cfg(test)]
 mod tests {
+    use crate::types::test_fixtures::{DEFAULT_DEVICE_IDENTITY_KEY, DEFAULT_DEVICE_MNEMONIC};
+
     use super::*;
-
-    // The default acccount mnemonic, the same as in the js integration tests
-    const DEFAULT_MNEMONIC: &str =
-       "range mystery picture decline olympic acoustic lesson quick rebuild panda royal fold start leader egg hammer width olympic worry length crawl couch link mobile";
-    const DEFAULT_MNEMONIC_ID: &str = "n1sslaag27wfydyrvyua72hg5e0vteglxrs8nw3c";
-
-    // The default device mnemonic, the same as in the js integration tests
-    const DEFAULT_DEVICE_MNEMONIC: &str =
-        "pitch deputy proof fire movie put bread ribbon what chef zebra car vacuum gadget steak board state oyster layer glory barely thrive nice box";
-    const DEFAULT_DEVICE_IDENTITY_KEY: &str = "FJDUECYAeosXhNGjxf8w5MJM7N2DfDwQznvWwTxJz6ft";
-
-    #[test]
-    fn create_account_from_mnemonic() {
-        let account = VpnApiAccount::from(bip39::Mnemonic::parse(DEFAULT_MNEMONIC).unwrap());
-        assert_eq!(account.id(), DEFAULT_MNEMONIC_ID);
-    }
 
     // The JS code generates the keypair from this mnemonic. But we are currently unable to
     // replicate this step in Rust, so we use the keypair directly.
@@ -211,7 +99,6 @@ mod tests {
         ed25519::KeyPair::from_bytes(&private_key, &public_key).unwrap()
     }
 
-    #[ignore]
     #[test]
     fn verify_ed25519_keypair_fixture() {
         let device = Device::from(
@@ -228,7 +115,6 @@ mod tests {
         );
     }
 
-    #[ignore]
     #[test]
     fn create_device_from_mnemonic() {
         let device = Device::from(bip39::Mnemonic::parse(DEFAULT_DEVICE_MNEMONIC).unwrap());
@@ -264,6 +150,18 @@ mod tests {
         (secret_key, public_key)
     }
 
+    fn generate_ed25519_keypair_from_mnemonic_jon(
+        entropy: &[u8; 32],
+    ) -> (ed25519_dalek::SigningKey, ed25519_dalek::VerifyingKey) {
+        // let seed = mnemonic.to_seed("");
+        // let seed_bytes = &seed[..32].try_into().unwrap();
+        // let seed_bytes = entropy.as_ref();
+
+        let secret_key = ed25519_dalek::SigningKey::from_bytes(entropy);
+        let public_key = secret_key.verifying_key();
+        (secret_key, public_key)
+    }
+
     // WIP
     #[test]
     fn generate_ed25519_keypair_from_mnemonic_1() {
@@ -272,7 +170,11 @@ mod tests {
             "kiwi ketchup mix canvas curve ribbon congress method feel frozen act annual aunt comfort side joy mesh palace tennis cannon orange name tortoise piece",
         ).unwrap();
 
-        let (secret_key, public_key) = generate_ed25519_keypair_from_mnemonic(mnemonic);
+        let entropy = mnemonic.to_entropy_array().0;
+        let bytes = &entropy[0..32].try_into().unwrap();
+
+        // let (secret_key, public_key) = generate_ed25519_keypair_from_mnemonic(mnemonic);
+        let (secret_key, public_key) = generate_ed25519_keypair_from_mnemonic_jon(bytes);
 
         let secret_key_base58 = bs58::encode(secret_key.to_bytes()).into_string();
         let public_key_base58 = bs58::encode(public_key.to_bytes()).into_string();
@@ -296,10 +198,8 @@ mod tests {
     // WIP
     #[test]
     fn generate_ed25519_keypair_from_mnemonic_2() {
-        let mnemonic = bip39::Mnemonic::parse_in(
-            bip39::Language::English,
-            DEFAULT_DEVICE_MNEMONIC,
-        ).unwrap();
+        let mnemonic =
+            bip39::Mnemonic::parse_in(bip39::Language::English, DEFAULT_DEVICE_MNEMONIC).unwrap();
 
         let (secret_key, public_key) = generate_ed25519_keypair_from_mnemonic(mnemonic);
 
@@ -318,33 +218,5 @@ mod tests {
         // But something is wrong
         let _expected_public_key_base58 = "FJDUECYAeosXhNGjxf8w5MJM7N2DfDwQznvWwTxJz6ft";
         //assert_eq!(public_key_base58, expected_public_key_base58);
-    }
-
-    #[test]
-    fn sign_device_key() {
-        // Setup to use the same mnemonics as the js integration test snapshot
-        let account = VpnApiAccount::from(bip39::Mnemonic::parse(DEFAULT_MNEMONIC).unwrap());
-        let device = Device::from(bip39::Mnemonic::parse(DEFAULT_DEVICE_MNEMONIC).unwrap());
-        println!("account id: {}", account.id());
-        println!(
-            "device identity key (base58): {:?}",
-            device.identity_key().to_base58_string()
-        );
-        let device_identity_key_bytes = device.identity_key().to_bytes();
-        let device_identity_key_base64 = base64_url::encode(&device_identity_key_bytes);
-        println!(
-            "device identity key (base64): {:?}",
-            device_identity_key_base64,
-        );
-        let signature = account.sign_device_key(&device);
-        println!("signature: {signature}");
-
-        // From the js integration tests
-        let expected_account_id = "n1sslaag27wfydyrvyua72hg5e0vteglxrs8nw3c";
-        let _expected_device_identity_key = "FJDUECYAeosXhNGjxf8w5MJM7N2DfDwQznvWwTxJz6ft";
-        let _expected_signature = "W5Zv1QhG37Al0QQH/9tqOmv1MU9IjfWP1xDq116GGSu/1Z6cnAW0sOyfrIiqdEleUKJB9wC/HjcsifaogymWAw==";
-        assert_eq!(account.id(), expected_account_id);
-        //assert_eq!(device_identity_key_base64, expected_device_identity_key);
-        //assert_eq!(signature, expected_signature);
     }
 }
