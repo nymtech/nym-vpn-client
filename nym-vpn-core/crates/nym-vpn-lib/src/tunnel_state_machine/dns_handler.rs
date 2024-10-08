@@ -19,9 +19,7 @@ impl DnsHandler {
                 #[cfg(target_os = "linux")]
                 tokio::runtime::Handle::current(),
                 #[cfg(target_os = "linux")]
-                route_handler
-                    .inner_handle()
-                    .map_err(|e| Error { inner: Box::new(e) })?,
+                route_handler.inner_handle()
             )?,
         })
     }

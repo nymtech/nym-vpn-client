@@ -96,8 +96,8 @@ impl RouteHandler {
     }
 
     #[cfg(target_os = "linux")]
-    pub(super) fn inner_handle(&self) -> Result<nym_routing::RouteManagerHandle> {
-        Ok(self.route_manager.handle()?)
+    pub(super) fn inner_handle(&self) -> nym_routing::RouteManagerHandle {
+        self.route_manager.clone()
     }
 
     fn get_routes(routing_config: RoutingConfig) -> HashSet<RequiredRoute> {

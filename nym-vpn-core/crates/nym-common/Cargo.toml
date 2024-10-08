@@ -1,5 +1,6 @@
 [package]
 name = "nym-common"
+version.workspace = true
 authors.workspace = true
 repository.workspace = true
 license.workspace = true
@@ -7,3 +8,7 @@ edition.workspace = true
 
 [dependencies]
 log = { workspace = true }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+libc = "0.2"
+thiserror.workspace = true

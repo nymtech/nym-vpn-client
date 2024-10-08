@@ -1,5 +1,6 @@
 [package]
 name = "nym-routing"
+version.workspace = true
 authors.workspace = true
 repository.workspace = true
 license.workspace = true

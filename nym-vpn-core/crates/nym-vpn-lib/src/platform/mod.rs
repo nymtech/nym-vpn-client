@@ -12,10 +12,7 @@ use std::{
     env,
     path::PathBuf,
     str::FromStr,
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc, Mutex as StdMutex,
-    },
+    sync::Arc,
     time::SystemTime,
 };
 
