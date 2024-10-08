@@ -28,7 +28,7 @@ fn rotate_log_file(log_dir: PathBuf) -> Result<Option<PathBuf>> {
     Ok(None)
 }
 
-pub async fn setup_tracing(log_file: bool) -> Result<Option<WorkerGuard>> {
+pub async fn setup_tracing(log_file: bool, win_console: bool) -> Result<Option<WorkerGuard>> {
     let filter = EnvFilter::builder()
         .with_default_directive(LevelFilter::INFO.into())
         .from_env()?
@@ -58,10 +58,12 @@ pub async fn setup_tracing(log_file: bool) -> Result<Option<WorkerGuard>> {
         info!("logging to file: {}", log_file.display());
         Ok(Some(guard))
     } else {
-        tracing_subscriber::fmt()
-            .with_env_filter(filter)
-            .compact()
-            .init();
+        let mut sub = tracing_subscriber::fmt().with_env_filter(filter).compact();
+        if cfg!(windows) && win_console {
+            // disable ANSI color codes for the attached console in release mode
+            sub = sub.with_ansi(false);
+        }
+        sub.init();
         Ok(None)
     }
 }
