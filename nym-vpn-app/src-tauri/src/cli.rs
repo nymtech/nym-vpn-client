@@ -67,8 +67,9 @@ pub struct Cli {
     #[arg(short, long)]
     pub log_file: bool,
 
-    /// Open a console to see the logs (Windows only)
+    /// Open a console to see the logs
     #[arg(short, long)]
+    #[cfg(windows)]
     pub console: bool,
 
     /// Disable the splash-screen

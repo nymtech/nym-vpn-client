@@ -70,8 +70,7 @@ async fn main() -> Result<()> {
 
     // parse the command line arguments
     let cli = Cli::parse();
-
-    let _guard = log::setup_tracing(cli.log_file, cli.console).await?;
+    let _guard = log::setup_tracing(&cli).await?;
     trace!("cli args: {:#?}", cli);
 
     #[cfg(windows)]
