@@ -54,7 +54,8 @@ fun LanguageScreen(appViewModel: AppViewModel, localeStorage: LocaleStorage) {
 
 	val currentLocale = remember { mutableStateOf(LocaleUtil.OPTION_PHONE_LANGUAGE) }
 
-	val locales = LocaleUtil.supportedLocales.map {
+	// TODO re-enable fa
+	val locales = LocaleUtil.supportedLocales.filter { it != "fa" }.map {
 		val tag = it.replace("_", "-")
 		Locale.forLanguageTag(tag)
 	}
