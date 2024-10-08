@@ -8,18 +8,6 @@ use sha2::Digest as _;
 
 use crate::jwt::Jwt;
 
-pub struct DeviceSignature([u8; 64]);
-
-impl DeviceSignature {
-    pub fn to_base64_url_string(&self) -> String {
-        base64_url::encode(&self.0)
-    }
-
-    pub fn to_base64_string(&self) -> String {
-        base64_url::unescape(&self.to_base64_url_string()).to_string()
-    }
-}
-
 pub struct Device {
     keypair: Arc<ed25519::KeyPair>,
 }
@@ -40,13 +28,11 @@ impl Device {
             hasher.finalize()
         };
 
-        DeviceSignature(self.keypair.private_key().sign(digest).to_bytes())
+        DeviceSignature(self.keypair.private_key().sign(digest))
     }
 
-    pub fn sign_identity_key(&self) -> String {
-        let device_identity_key_base58 = self.identity_key().to_base58_string();
-
-        self.sign(&device_identity_key_base58).to_base64_string()
+    pub fn sign_identity_key(&self) -> DeviceSignature {
+        self.sign(self.identity_key().to_base58_string())
     }
 }
 
@@ -81,6 +67,23 @@ impl From<bip39::Mnemonic> for Device {
         Self {
             keypair: Arc::new(keypair),
         }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DeviceSignature(ed25519::Signature);
+
+impl DeviceSignature {
+    pub fn to_bytes(&self) -> [u8; 64] {
+        self.0.to_bytes()
+    }
+
+    pub fn to_base64_url_string(&self) -> String {
+        base64_url::encode(&self.to_bytes())
+    }
+
+    pub fn to_base64_string(&self) -> String {
+        base64_url::unescape(&self.to_base64_url_string()).to_string()
     }
 }
 
@@ -165,7 +168,7 @@ mod tests {
             DEFAULT_DEVICE_IDENTITY_KEY
         );
 
-        let signature = device.sign_identity_key();
+        let signature = device.sign_identity_key().to_base64_string();
         assert_eq!(
             signature,
             "W5Zv1QhG37Al0QQH/9tqOmv1MU9IjfWP1xDq116GGSu/1Z6cnAW0sOyfrIiqdEleUKJB9wC/HjcsifaogymWAw=="
