@@ -8,20 +8,13 @@ pub mod storage;
 pub mod util;
 
 mod error;
-mod event;
 mod mixnet;
 #[cfg(any(target_os = "ios", target_os = "android"))]
 mod mobile;
 mod platform;
-mod routing;
-mod tunnel;
-mod tunnel_setup;
 pub mod tunnel_state_machine;
 mod uniffi_custom_impls;
-mod vpn;
 mod wg_config;
-mod wireguard_config;
-mod wireguard_setup;
 
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
@@ -47,13 +40,7 @@ pub use nym_wg_gateway_client as wg_gateway_client;
 pub use crate::platform::swift;
 pub use crate::{
     error::{Error, GatewayDirectoryError, SetupMixTunnelError, SetupWgTunnelError},
-    event::WgTunnelErrorEvent,
     mixnet::MixnetError,
-    vpn::{
-        spawn_nym_vpn, spawn_nym_vpn_with_new_runtime, GenericNymVpnConfig, MixnetClientConfig,
-        NymVpn, NymVpnCtrlMessage, NymVpnExitStatusMessage, NymVpnHandle, NymVpnStatusMessage,
-        SpecificVpn,
-    },
 };
 
 pub const DEFAULT_DNS_SERVERS: [IpAddr; 4] = [
