@@ -4,6 +4,7 @@
 use std::sync::Arc;
 
 use nym_crypto::asymmetric::ed25519;
+use sha2::Digest as _;
 
 use crate::jwt::Jwt;
 
@@ -18,6 +19,25 @@ impl Device {
 
     pub(crate) fn jwt(&self) -> Jwt {
         Jwt::new_ecdsa(&self.keypair)
+    }
+
+    pub(crate) fn sign_identity_key(&self) -> String {
+        let device_identity_key_base58 = self.identity_key().to_base58_string();
+
+        let device_identity_key_sha256 = {
+            let mut hasher = sha2::Sha256::new();
+            hasher.update(device_identity_key_base58);
+            hasher.finalize()
+        };
+
+        let signature = self
+            .keypair
+            .private_key()
+            .sign(device_identity_key_sha256)
+            .to_bytes();
+
+        let base64_url = base64_url::encode(&signature);
+        base64_url::unescape(&base64_url).to_string()
     }
 }
 
@@ -35,34 +55,11 @@ impl From<ed25519::KeyPair> for Device {
     }
 }
 
-//impl From<&str> for Device {
-//    fn from(mnemonic: &str) -> Self {
-//        let mnemonic = bip39::Mnemonic::parse_in(bip39::Language::English, mnemonic).unwrap();
-//        let seed = mnemonic.to_seed("");
-//        let seed_bytes = &seed[..32].try_into().unwrap();
-//
-//        let signing_key = ed25519_dalek::SigningKey::from_bytes(seed_bytes);
-//        let verifying_key = signing_key.verifying_key();
-//
-//        let privkey = signing_key.to_bytes().to_vec();
-//        let pubkey = verifying_key.to_bytes().to_vec();
-//
-//        let keypair = ed25519::KeyPair::from_bytes(&privkey, &pubkey).unwrap();
-//
-//        Self {
-//            keypair: Arc::new(keypair),
-//        }
-//    }
-//}
-
 impl From<bip39::Mnemonic> for Device {
     fn from(mnemonic: bip39::Mnemonic) -> Self {
         let (entropy, _) = mnemonic.to_entropy_array();
         // Entropy is statically >= 32 bytes, so we can safely unwrap here
         let seed = &entropy[0..32].try_into().unwrap();
-
-        // let seed = mnemonic.to_seed("");
-        // let seed_bytes = &seed[..32].try_into().unwrap();
 
         let signing_key = ed25519_dalek::SigningKey::from_bytes(seed);
         let verifying_key = signing_key.verifying_key();
@@ -148,6 +145,21 @@ mod tests {
         assert_eq!(
             device.keypair.private_key().to_base58_string(),
             "9JqXnPvTrWkq1Yq66d8GbXrcz5eryAhPZvZ46cEsBPUY",
+        );
+    }
+
+    #[test]
+    fn sign_identity_key() {
+        let device = Device::from(bip39::Mnemonic::parse(DEFAULT_DEVICE_MNEMONIC).unwrap());
+        assert_eq!(
+            device.identity_key().to_base58_string(),
+            DEFAULT_DEVICE_IDENTITY_KEY
+        );
+
+        let signature = device.sign_identity_key();
+        assert_eq!(
+            signature,
+            "W5Zv1QhG37Al0QQH/9tqOmv1MU9IjfWP1xDq116GGSu/1Z6cnAW0sOyfrIiqdEleUKJB9wC/HjcsifaogymWAw=="
         );
     }
 }

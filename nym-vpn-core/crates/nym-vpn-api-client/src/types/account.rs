@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_validator_client::{signing::signer::OfflineSigner as _, DirectSecp256k1HdWallet};
+use sha2::Digest as _;
 
 use crate::jwt::Jwt;
 
@@ -35,9 +36,19 @@ impl VpnApiAccount {
 
         let device_identity_key = device.identity_key().to_bytes();
 
+        let device_identity_key_sha256 = {
+            let mut hasher = sha2::Sha256::new();
+            hasher.update(device_identity_key);
+            hasher.finalize()
+        };
+        println!(
+            "device identity key sha256: {:?}",
+            device_identity_key_sha256
+        );
+
         let signature = self
             .wallet
-            .sign_raw(address, device_identity_key)
+            .sign_raw(address, device_identity_key_sha256)
             .unwrap()
             .to_bytes()
             .to_vec();
@@ -90,7 +101,10 @@ mod tests {
         let expected_device_identity_key = "FJDUECYAeosXhNGjxf8w5MJM7N2DfDwQznvWwTxJz6ft";
         let expected_signature = "W5Zv1QhG37Al0QQH/9tqOmv1MU9IjfWP1xDq116GGSu/1Z6cnAW0sOyfrIiqdEleUKJB9wC/HjcsifaogymWAw==";
         assert_eq!(account.id(), expected_account_id);
-        assert_eq!(device.identity_key().to_string(), expected_device_identity_key);
+        assert_eq!(
+            device.identity_key().to_string(),
+            expected_device_identity_key
+        );
         assert_eq!(signature, expected_signature);
     }
 }
