@@ -11,8 +11,8 @@ pub use get_best_default_route::{get_best_default_route, InterfaceAndGateway};
 use net::AddressFamily;
 pub use route_manager::{Callback, CallbackHandle, Route, RouteManagerInternal};
 use std::{collections::HashSet, io, net::IpAddr};
-use talpid_types::ErrorExt;
-use talpid_windows::net;
+use nym_common::ErrorExt;
+use nym_windows::net;
 
 mod default_route_monitor;
 mod get_best_default_route;

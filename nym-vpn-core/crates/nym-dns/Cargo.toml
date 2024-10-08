@@ -12,3 +12,12 @@ license.workspace = true
 crate-type = ["cdylib", "lib", "staticlib"]
 
 [dependencies]
+thiserror.workspace = true
+log.workspace = true
+parking_lot.workspace = true
+
+nym-routing = { path = "../nym-routing" }
+nym-common = { path = "../nym-common" }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+system-configuration = { workspace = true }

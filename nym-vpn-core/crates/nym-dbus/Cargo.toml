@@ -1,0 +1,13 @@
+[package]
+name = "nym-dbus"
+authors.workspace = true
+repository.workspace = true
+license.workspace = true
+edition.workspace = true
+
+[target.'cfg(target_os = "linux")'.dependencies]
+dbus = "0.9"
+thiserror = { workspace = true }
+log = { workspace = true }
+libc = "0.2"
+tokio = { workspace = true, features = ["rt"] }

@@ -4,10 +4,6 @@ authors.workspace = true
 repository.workspace = true
 license.workspace = true
 edition.workspace = true
-rust-version.workspace = true
-
-[lints]
-workspace = true
 
 [dependencies]
 thiserror = { workspace = true }
@@ -23,7 +19,7 @@ tokio = { workspace = true, features = [
 ] }
 
 [target.'cfg(not(target_os="android"))'.dependencies]
-talpid-types = { path = "../talpid-types" }
+nym-common = { path = "../nym-common" }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 libc = "0.2"
@@ -39,7 +35,7 @@ system-configuration = "0.5.1"
 
 
 [target.'cfg(windows)'.dependencies]
-talpid-windows = { path = "../talpid-windows" }
+nym-windows = { path = "../nym-windows" }
 widestring = "1.0"
 
 [target.'cfg(windows)'.dependencies.windows-sys]

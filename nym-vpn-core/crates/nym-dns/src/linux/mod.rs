@@ -7,8 +7,8 @@ use self::{
     network_manager::NetworkManager, resolvconf::Resolvconf, static_resolv_conf::StaticResolvConf,
     systemd_resolved::SystemdResolved,
 };
+use nym_routing::RouteManagerHandle;
 use std::{env, fmt, net::IpAddr};
-use talpid_routing::RouteManagerHandle;
 
 use super::ResolvedDnsConfig;
 
@@ -97,7 +97,7 @@ impl fmt::Display for DnsMonitorHolder {
 
 impl DnsMonitorHolder {
     fn new() -> Result<Self> {
-        let dns_module = env::var_os("TALPID_DNS_MODULE");
+        let dns_module = env::var_os("NYM_DNS_MODULE");
 
         let manager = match dns_module.as_ref().and_then(|value| value.to_str()) {
             Some("static-file") => DnsMonitorHolder::StaticResolvConf(StaticResolvConf::new()?),

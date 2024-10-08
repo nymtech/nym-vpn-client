@@ -1,4 +1,6 @@
 use crate::dns::{DnsMonitorT, ResolvedDnsConfig};
+use nym_common::{net::IpVersion, ErrorExt};
+use nym_windows::net::{index_from_luid, luid_from_alias};
 use std::{
     ffi::OsString,
     io::{self, Write},
@@ -8,8 +10,6 @@ use std::{
     process::{Child, Command, ExitStatus, Stdio},
     time::Duration,
 };
-use talpid_types::{net::IpVersion, ErrorExt};
-use talpid_windows::net::{index_from_luid, luid_from_alias};
 use windows_sys::Win32::{
     Foundation::{MAX_PATH, WAIT_OBJECT_0, WAIT_TIMEOUT},
     System::{

@@ -29,3 +29,4 @@ tracing.workspace = true
 
 nym-authenticator-client = { path = "../nym-authenticator-client" }
 nym-gateway-directory = { path = "../nym-gateway-directory" }
+nym-wg-go = { path = "../nym-wg-go" }

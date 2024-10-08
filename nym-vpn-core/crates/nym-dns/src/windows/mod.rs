@@ -32,7 +32,7 @@ impl DnsMonitorT for DnsMonitor {
     type Error = Error;
 
     fn new() -> Result<Self, Error> {
-        let dns_module = env::var_os("TALPID_DNS_MODULE");
+        let dns_module = env::var_os("NYM_DNS_MODULE");
 
         let inner = match dns_module.as_ref().and_then(|value| value.to_str()) {
             Some("iphlpapi") => DnsMonitorHolder::Iphlpapi(iphlpapi::DnsMonitor::new()?),

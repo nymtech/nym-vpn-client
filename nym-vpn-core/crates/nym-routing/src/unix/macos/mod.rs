@@ -13,7 +13,7 @@ use std::{
     sync::Weak,
     time::Duration,
 };
-use talpid_types::ErrorExt;
+use nym_common::ErrorExt;
 use watch::RoutingTable;
 
 use super::{DefaultRouteEvent, RouteManagerCommand};
@@ -163,7 +163,7 @@ impl RouteManagerImpl {
         let mut completion_tx = None;
 
         loop {
-            talpid_types::detect_flood!();
+            nym_common::detect_flood!();
 
             futures::select_biased! {
                 route_message = self.routing_table.next_message().fuse() => {
@@ -171,7 +171,7 @@ impl RouteManagerImpl {
                 }
 
                 _ = self.check_default_routes_restored.next() => {
-                    talpid_types::detect_flood!();
+                    nym_common::detect_flood!();
 
                     if self.check_default_routes_restored.is_terminated() {
                         continue;
@@ -352,7 +352,7 @@ impl RouteManagerImpl {
         &mut self,
         message: std::result::Result<RouteSocketMessage, watch::Error>,
     ) {
-        talpid_types::detect_flood!();
+        nym_common::detect_flood!();
 
         match message {
             Ok(RouteSocketMessage::DeleteRoute(route)) => {
@@ -420,7 +420,7 @@ impl RouteManagerImpl {
     ///   server. The gateway of the relay route is set to the first interface in the network
     ///   service order that has a working ifscoped default route.
     async fn refresh_routes(&mut self) -> Result<()> {
-        talpid_types::detect_flood!();
+        nym_common::detect_flood!();
 
         self.update_best_default_route(interface::Family::V4)?;
         self.update_best_default_route(interface::Family::V6)?;

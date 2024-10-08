@@ -39,7 +39,7 @@ pub use nym_wg_gateway_client as wg_gateway_client;
 #[cfg(any(target_os = "ios", target_os = "macos"))]
 pub use crate::platform::swift;
 pub use crate::{
-    error::{Error, GatewayDirectoryError, SetupMixTunnelError, SetupWgTunnelError},
+    error::{Error, GatewayDirectoryError},
     mixnet::MixnetError,
 };
 

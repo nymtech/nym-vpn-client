@@ -1,3 +1,4 @@
+use nym_routing::debounce::BurstGuard;
 use parking_lot::Mutex;
 use std::{
     collections::{BTreeSet, HashMap},
@@ -19,7 +20,6 @@ use system_configuration::{
     dynamic_store::{SCDynamicStore, SCDynamicStoreBuilder, SCDynamicStoreCallBackContext},
     sys::schema_definitions::{kSCPropNetDNSServerAddresses, kSCPropNetInterfaceDeviceName},
 };
-use talpid_routing::debounce::BurstGuard;
 
 use super::ResolvedDnsConfig;
 
@@ -79,7 +79,7 @@ impl State {
         interface: &str,
         servers: &[IpAddr],
     ) -> Result<()> {
-        talpid_types::detect_flood!();
+        nym_common::detect_flood!();
 
         let servers: Vec<DnsServer> = servers.iter().map(|ip| ip.to_string()).collect();
         let new_settings = DnsSettings::from_server_addresses(&servers, interface.to_string());

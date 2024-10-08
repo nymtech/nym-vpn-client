@@ -8,7 +8,7 @@ use std::{
     io,
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
 };
-use talpid_types::ErrorExt;
+use nym_common::ErrorExt;
 
 use futures::{
     channel::mpsc::{UnboundedReceiver, UnboundedSender},

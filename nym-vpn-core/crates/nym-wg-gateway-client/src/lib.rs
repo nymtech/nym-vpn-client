@@ -25,9 +25,9 @@ use nym_gateway_directory::Recipient;
 use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::PeerPublicKey;
 use nym_pemstore::KeyPairPath;
 use nym_sdk::TaskClient;
+use nym_wg_go::PublicKey;
 use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
 use rand::{rngs::OsRng, CryptoRng, RngCore};
-use talpid_types::net::wireguard::PublicKey; // TODO: this is a type we should provide instead
 use tokio_stream::{wrappers::IntervalStream, StreamExt};
 use tracing::{debug, error, info, trace, warn};
 

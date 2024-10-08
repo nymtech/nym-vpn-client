@@ -1,8 +1,7 @@
-use std::fmt;
-use std::net::IpAddr;
+use std::{fmt, net::IpAddr};
 
 #[cfg(target_os = "linux")]
-use talpid_routing::RouteManagerHandle;
+use nym_routing::RouteManagerHandle;
 
 #[cfg(target_os = "macos")]
 #[path = "macos.rs"]
@@ -67,7 +66,7 @@ enum InnerDnsConfig {
 }
 
 impl DnsConfig {
-    pub(crate) fn resolve(&self, default_tun_config: &[IpAddr]) -> ResolvedDnsConfig {
+    pub fn resolve(&self, default_tun_config: &[IpAddr]) -> ResolvedDnsConfig {
         match &self.config {
             InnerDnsConfig::Default => ResolvedDnsConfig {
                 tunnel_config: default_tun_config.to_owned(),

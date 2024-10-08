@@ -4,6 +4,8 @@
 //! back on other methods if it is not available.
 
 use crate::dns::{DnsMonitorT, ResolvedDnsConfig};
+use nym_common::win32_err;
+use nym_windows::net::{guid_from_luid, luid_from_alias};
 use once_cell::sync::OnceCell;
 use std::{
     ffi::OsString,
@@ -12,8 +14,6 @@ use std::{
     os::windows::ffi::OsStrExt,
     ptr,
 };
-use talpid_types::win32_err;
-use talpid_windows::net::{guid_from_luid, luid_from_alias};
 use windows_sys::{
     core::GUID,
     s, w,

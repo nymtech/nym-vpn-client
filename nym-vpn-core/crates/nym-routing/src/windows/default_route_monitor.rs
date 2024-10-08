@@ -4,12 +4,12 @@ use super::{
 };
 use crate::debounce::BurstGuard;
 
+use nym_common::win32_err;
 use std::{
     ffi::c_void,
     sync::{Arc, Mutex},
     time::Duration,
 };
-use talpid_types::win32_err;
 use windows_sys::Win32::{
     Foundation::{BOOLEAN, HANDLE},
     NetworkManagement::{
@@ -22,7 +22,7 @@ use windows_sys::Win32::{
     },
 };
 
-use talpid_windows::net::AddressFamily;
+use nym_windows::net::AddressFamily;
 
 const WIN_FALSE: BOOLEAN = 0;
 

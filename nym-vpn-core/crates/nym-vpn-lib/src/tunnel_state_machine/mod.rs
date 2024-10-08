@@ -4,7 +4,7 @@
 #[cfg(target_os = "linux")]
 mod default_interface;
 mod dns_handler;
-mod firewall_handler;
+//mod firewall_handler;
 mod route_handler;
 mod states;
 mod tun_ipv6;
@@ -14,7 +14,7 @@ use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
 use dns_handler::DnsHandler;
-use firewall_handler::FirewallHandler;
+//use firewall_handler::FirewallHandler;
 use route_handler::RouteHandler;
 use states::DisconnectedState;
 
@@ -94,8 +94,7 @@ pub enum TunnelEvent {
 
 pub struct SharedState {
     route_handler: RouteHandler,
-    #[allow(unused)]
-    firewall_handler: FirewallHandler,
+    //firewall_handler: FirewallHandler,
     dns_handler: DnsHandler,
     config: GenericNymVpnConfig,
     enable_wireguard: bool,
@@ -128,11 +127,11 @@ impl TunnelStateMachine {
         )
         .await
         .map_err(Error::CreateDnsHandler)?;
-        let firewall_handler = FirewallHandler::new().map_err(Error::CreateFirewallHandler)?;
+        //let firewall_handler = FirewallHandler::new().map_err(Error::CreateFirewallHandler)?;
 
         let shared_state = SharedState {
             route_handler,
-            firewall_handler,
+            //firewall_handler,
             dns_handler,
             config,
             enable_wireguard,
@@ -187,9 +186,8 @@ pub enum Error {
     #[error("failed to create a dns handler: {}", _0)]
     CreateDnsHandler(#[source] dns_handler::Error),
 
-    #[error("failed to create firewall handler: {}", _0)]
-    CreateFirewallHandler(#[source] firewall_handler::Error),
-
+    //#[error("failed to create firewall handler: {}", _0)]
+    //CreateFirewallHandler(#[source] firewall_handler::Error),
     #[error("failed to create tunnel device: {}", _0)]
     CreateTunDevice(#[source] tun::Error),
 
@@ -230,7 +228,7 @@ impl Error {
         match self {
             Self::CreateRouteHandler(_) | Self::AddRoutes(_) => ErrorStateReason::Routing,
             Self::CreateDnsHandler(_) | Self::SetDns(_) => ErrorStateReason::Dns,
-            Self::CreateFirewallHandler(_) => ErrorStateReason::Firewall,
+            //Self::CreateFirewallHandler(_) => ErrorStateReason::Firewall,
             Self::CreateTunDevice(_)
             | Self::GetTunDeviceName(_)
             | Self::SetTunDeviceIpv6Addr(_) => ErrorStateReason::TunDevice,

@@ -336,7 +336,7 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                 nym_vpn_lib::SetupMixTunnelError::RoutingError(inner) => {
                     #[cfg(unix)]
                     match inner {
-                        talpid_routing::Error::PlatformError(platform_error) => {
+                        nym_routing::Error::PlatformError(platform_error) => {
                             ConnectionFailedError::RoutingError {
                                 reason: platform_error.to_string(),
                             }

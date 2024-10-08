@@ -1,9 +1,7 @@
 use super::{Error, Result};
+use nym_common::win32_err;
+use nym_windows::net::{get_ip_interface_entry, try_socketaddr_from_inet_sockaddr, AddressFamily};
 use std::{net::SocketAddr, slice};
-use talpid_types::win32_err;
-use talpid_windows::net::{
-    get_ip_interface_entry, try_socketaddr_from_inet_sockaddr, AddressFamily,
-};
 use widestring::{widecstr, WideCStr};
 use windows_sys::Win32::NetworkManagement::{
     IpHelper::{

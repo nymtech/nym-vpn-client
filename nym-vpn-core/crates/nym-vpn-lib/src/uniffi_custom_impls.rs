@@ -14,7 +14,7 @@ use nym_connection_monitor::ConnectionMonitorStatus;
 use nym_gateway_directory::{EntryPoint as GwEntryPoint, ExitPoint as GwExitPoint};
 use nym_ip_packet_requests::IpPair;
 use nym_sdk::UserAgent as NymUserAgent;
-use talpid_types::net::wireguard::{PresharedKey, PrivateKey, PublicKey};
+use nym_wg_go::PublicKey;
 use url::Url;
 
 #[cfg(any(target_os = "ios", target_os = "android"))]
@@ -28,13 +28,11 @@ use crate::{
 uniffi::custom_type!(Ipv4Addr, String);
 uniffi::custom_type!(Ipv6Addr, String);
 uniffi::custom_type!(IpAddr, String);
-uniffi::custom_type!(PrivateKey, String);
 uniffi::custom_type!(PublicKey, String);
 uniffi::custom_type!(IpNetwork, String);
 uniffi::custom_type!(Ipv4Network, String);
 uniffi::custom_type!(Ipv6Network, String);
 uniffi::custom_type!(SocketAddr, String);
-uniffi::custom_type!(PresharedKey, String);
 uniffi::custom_type!(Url, String);
 uniffi::custom_type!(NodeIdentity, String);
 uniffi::custom_type!(Recipient, String);
@@ -76,31 +74,13 @@ impl UniffiCustomTypeConverter for Url {
     }
 }
 
-impl UniffiCustomTypeConverter for PrivateKey {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(PrivateKey::from(
-            *PublicKey::from_base64(&val)
-                .map_err(|_| VpnError::InternalError {
-                    details: "Invalid public key".to_string(),
-                })?
-                .as_bytes(),
-        ))
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.to_base64()
-    }
-}
-
 impl UniffiCustomTypeConverter for PublicKey {
     type Builtin = String;
 
     fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
         Ok(
-            PublicKey::from_base64(&val).map_err(|_| VpnError::InternalError {
-                details: "Invalid public key".to_string(),
+            PublicKey::from_base64(&val).ok_or_else(|| VpnError::InternalError {
+                details: "Invalid public key".to_owned(),
             })?,
         )
     }
@@ -208,20 +188,6 @@ impl UniffiCustomTypeConverter for SocketAddr {
 
     fn from_custom(obj: Self) -> Self::Builtin {
         obj.to_string()
-    }
-}
-
-impl UniffiCustomTypeConverter for PresharedKey {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(PresharedKey::from(Box::new(
-            PrivateKey::into_custom(val)?.to_bytes(),
-        )))
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        PrivateKey::from_custom(PrivateKey::from(*obj.as_bytes()))
     }
 }
 
