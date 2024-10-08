@@ -20,7 +20,14 @@ pub struct RegisterDeviceRequestBody {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RequestZkNymRequestBody {
-    pub blinded_signing_request_base58: String,
+    pub withdrawal_request: String,
+    pub ecash_pubkey: String,
+    pub ticketbook_type: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ApplyFreepassRequestBody {
+    pub code: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

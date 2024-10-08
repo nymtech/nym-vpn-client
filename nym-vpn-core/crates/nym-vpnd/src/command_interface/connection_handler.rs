@@ -2,7 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_api_client::{
-    response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnZkNym, NymVpnZkNymResponse},
+    response::{
+        NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnSubscription,
+        NymVpnSubscriptionsResponse, NymVpnZkNym, NymVpnZkNymResponse,
+    },
     types::GatewayMinPerformance,
 };
 use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint, GatewayClient, GatewayType};
@@ -186,7 +189,17 @@ impl CommandInterfaceConnectionHandler {
             .send(VpnServiceCommand::GetAccountSummary(tx))
             .unwrap();
         let result = rx.await.unwrap();
-        debug!("VPN get account summary result: {:?}", result);
+        info!("VPN get account summary result: {:#?}", result);
+        result
+    }
+
+    pub(crate) async fn handle_get_devices(&self) -> Result<NymVpnDevicesResponse, AccountError> {
+        let (tx, rx) = oneshot::channel();
+        self.vpn_command_tx
+            .send(VpnServiceCommand::GetDevices(tx))
+            .unwrap();
+        let result = rx.await.unwrap();
+        info!("VPN get devices result: {:#?}", result);
         result
     }
 
@@ -196,7 +209,7 @@ impl CommandInterfaceConnectionHandler {
             .send(VpnServiceCommand::RegisterDevice(tx))
             .unwrap();
         let result = rx.await.unwrap();
-        debug!("VPN register device result: {:?}", result);
+        info!("VPN register device result: {:#?}", result);
         result
     }
 
@@ -206,7 +219,7 @@ impl CommandInterfaceConnectionHandler {
             .send(VpnServiceCommand::RequestZkNym(tx))
             .unwrap();
         let result = rx.await.unwrap();
-        debug!("VPN request zk nym result: {:?}", result);
+        info!("VPN request zk nym result: {:#?}", result);
         result
     }
 
@@ -218,7 +231,32 @@ impl CommandInterfaceConnectionHandler {
             .send(VpnServiceCommand::GetDeviceZkNyms(tx))
             .unwrap();
         let result = rx.await.unwrap();
-        debug!("VPN get device zk nyms result: {:?}", result);
+        info!("VPN get device zk nyms result: {:#?}", result);
+        result
+    }
+
+    pub(crate) async fn handle_get_free_passes(
+        &self,
+    ) -> Result<NymVpnSubscriptionsResponse, AccountError> {
+        let (tx, rx) = oneshot::channel();
+        self.vpn_command_tx
+            .send(VpnServiceCommand::GetFreePasses(tx))
+            .unwrap();
+        let result = rx.await.unwrap();
+        info!("VPN get free passes result: {:#?}", result);
+        result
+    }
+
+    pub(crate) async fn handle_apply_freepass(
+        &self,
+        code: String,
+    ) -> Result<NymVpnSubscription, AccountError> {
+        let (tx, rx) = oneshot::channel();
+        self.vpn_command_tx
+            .send(VpnServiceCommand::ApplyFreepass(tx, code))
+            .unwrap();
+        let result = rx.await.unwrap();
+        info!("VPN apply freepass result: {:#?}", result);
         result
     }
 }

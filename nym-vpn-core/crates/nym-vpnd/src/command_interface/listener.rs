@@ -13,9 +13,11 @@ use nym_vpn_api_client::types::GatewayMinPerformance;
 use nym_vpn_proto::{
     nym_vpnd_server::NymVpnd, AccountError, ConnectRequest, ConnectResponse, ConnectionStateChange,
     ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty, GetAccountSummaryRequest,
-    GetAccountSummaryResponse, ImportUserCredentialRequest, ImportUserCredentialResponse,
-    InfoRequest, InfoResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
-    ListGatewaysResponse, StatusRequest, StatusResponse, StoreAccountRequest, StoreAccountResponse,
+    GetAccountSummaryResponse, GetDeviceZkNymsRequest, GetDeviceZkNymsResponse, GetDevicesRequest,
+    GetDevicesResponse, ImportUserCredentialRequest, ImportUserCredentialResponse, InfoRequest,
+    InfoResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
+    ListGatewaysResponse, RegisterDeviceRequest, RegisterDeviceResponse, RequestZkNymRequest,
+    RequestZkNymResponse, StatusRequest, StatusResponse, StoreAccountRequest, StoreAccountResponse,
 };
 use prost_types::Timestamp;
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
@@ -432,10 +434,35 @@ impl NymVpnd for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
+    async fn get_devices(
+        &self,
+        _request: tonic::Request<GetDevicesRequest>,
+    ) -> Result<tonic::Response<GetDevicesResponse>, tonic::Status> {
+        info!("Got get devices request");
+
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_get_devices()
+            .await;
+
+        let response = match result {
+            Ok(devices) => GetDevicesResponse {
+                json: serde_json::to_string(&devices).unwrap(),
+                error: None,
+            },
+            Err(err) => GetDevicesResponse {
+                json: err.to_string(),
+                error: Some(AccountError::from(err)),
+            },
+        };
+
+        info!("Returning get devices response");
+        Ok(tonic::Response::new(response))
+    }
+
     async fn register_device(
         &self,
-        _request: tonic::Request<nym_vpn_proto::RegisterDeviceRequest>,
-    ) -> Result<tonic::Response<nym_vpn_proto::RegisterDeviceResponse>, tonic::Status> {
+        _request: tonic::Request<RegisterDeviceRequest>,
+    ) -> Result<tonic::Response<RegisterDeviceResponse>, tonic::Status> {
         info!("Got register device request");
 
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
@@ -443,11 +470,11 @@ impl NymVpnd for CommandInterface {
             .await;
 
         let response = match result {
-            Ok(device) => nym_vpn_proto::RegisterDeviceResponse {
+            Ok(device) => RegisterDeviceResponse {
                 json: serde_json::to_string(&device).unwrap(),
                 error: None,
             },
-            Err(err) => nym_vpn_proto::RegisterDeviceResponse {
+            Err(err) => RegisterDeviceResponse {
                 json: err.to_string(),
                 error: Some(AccountError::from(err)),
             },
@@ -459,8 +486,8 @@ impl NymVpnd for CommandInterface {
 
     async fn request_zk_nym(
         &self,
-        _request: tonic::Request<nym_vpn_proto::RequestZkNymRequest>,
-    ) -> Result<tonic::Response<nym_vpn_proto::RequestZkNymResponse>, tonic::Status> {
+        _request: tonic::Request<RequestZkNymRequest>,
+    ) -> Result<tonic::Response<RequestZkNymResponse>, tonic::Status> {
         info!("Got request zk nym request");
 
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
@@ -468,11 +495,11 @@ impl NymVpnd for CommandInterface {
             .await;
 
         let response = match result {
-            Ok(device) => nym_vpn_proto::RequestZkNymResponse {
-                json: serde_json::to_string(&device).unwrap(),
+            Ok(response) => RequestZkNymResponse {
+                json: serde_json::to_string(&response).unwrap(),
                 error: None,
             },
-            Err(err) => nym_vpn_proto::RequestZkNymResponse {
+            Err(err) => RequestZkNymResponse {
                 json: err.to_string(),
                 error: Some(AccountError::from(err)),
             },
@@ -484,8 +511,8 @@ impl NymVpnd for CommandInterface {
 
     async fn get_device_zk_nyms(
         &self,
-        _request: tonic::Request<nym_vpn_proto::GetDeviceZkNymsRequest>,
-    ) -> Result<tonic::Response<nym_vpn_proto::GetDeviceZkNymsResponse>, tonic::Status> {
+        _request: tonic::Request<GetDeviceZkNymsRequest>,
+    ) -> Result<tonic::Response<GetDeviceZkNymsResponse>, tonic::Status> {
         info!("Got get device zk nyms request");
 
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
@@ -493,17 +520,69 @@ impl NymVpnd for CommandInterface {
             .await;
 
         let response = match result {
-            Ok(device) => nym_vpn_proto::GetDeviceZkNymsResponse {
-                json: serde_json::to_string(&device).unwrap(),
+            Ok(response) => GetDeviceZkNymsResponse {
+                json: serde_json::to_string(&response).unwrap(),
                 error: None,
             },
-            Err(err) => nym_vpn_proto::GetDeviceZkNymsResponse {
+            Err(err) => GetDeviceZkNymsResponse {
                 json: err.to_string(),
                 error: Some(AccountError::from(err)),
             },
         };
 
         info!("Returning get device zk nyms response");
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn get_free_passes(
+        &self,
+        _request: tonic::Request<nym_vpn_proto::GetFreePassesRequest>,
+    ) -> Result<tonic::Response<nym_vpn_proto::GetFreePassesResponse>, tonic::Status> {
+        info!("Got get free passes request");
+
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_get_free_passes()
+            .await;
+
+        let response = match result {
+            Ok(response) => nym_vpn_proto::GetFreePassesResponse {
+                json: serde_json::to_string(&response).unwrap(),
+                error: None,
+            },
+            Err(err) => nym_vpn_proto::GetFreePassesResponse {
+                json: err.to_string(),
+                error: Some(AccountError::from(err)),
+            },
+        };
+
+        info!("Returning get free passes response");
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn apply_freepass(
+        &self,
+        request: tonic::Request<nym_vpn_proto::ApplyFreepassRequest>,
+    ) -> Result<tonic::Response<nym_vpn_proto::ApplyFreepassResponse>, tonic::Status> {
+        info!("Got apply freepass request");
+
+        let code = request.into_inner().code;
+
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_apply_freepass(code)
+            .await;
+
+        let response = match result {
+            Ok(response) => nym_vpn_proto::ApplyFreepassResponse {
+                json: serde_json::to_string(&response).unwrap(),
+                error: None,
+            },
+            Err(err) => nym_vpn_proto::ApplyFreepassResponse {
+                json: err.to_string(),
+                error: Some(AccountError::from(err)),
+            },
+        };
+
+        info!("Returning apply freepass response");
         Ok(tonic::Response::new(response))
     }
 }

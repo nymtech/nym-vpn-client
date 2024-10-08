@@ -4,7 +4,7 @@
 use nym_contracts_common::ContractsCommonError;
 use nym_http_api_client::HttpClientError;
 
-use crate::response::{NymErrorResponse, UnexpectedError};
+use crate::response::{ErrorMessage, NymErrorResponse, UnexpectedError};
 
 #[derive(Debug, thiserror::Error)]
 pub enum VpnApiClientError {
@@ -40,6 +40,12 @@ pub enum VpnApiClientError {
 
     #[error("failed to get zk-nym by id")]
     FailedToGetZkNymById(#[source] HttpClientError<NymErrorResponse>),
+
+    #[error("failed to get free passes")]
+    FailedToGetFreePasses(#[source] HttpClientError<ErrorMessage>),
+
+    #[error("failed to apply free pass")]
+    FailedToApplyFreepass(#[source] HttpClientError<NymErrorResponse>),
 
     #[error("failed to get subscriptions")]
     FailedToGetSubscriptions(#[source] HttpClientError<NymErrorResponse>),

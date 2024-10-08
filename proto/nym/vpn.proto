@@ -522,6 +522,12 @@ message GetAccountSummaryResponse {
   AccountError error = 2;
 }
 
+message GetDevicesRequest {}
+message GetDevicesResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
 message RegisterDeviceRequest {}
 
 message RegisterDeviceResponse {
@@ -539,6 +545,22 @@ message RequestZkNymResponse {
 message GetDeviceZkNymsRequest {}
 
 message GetDeviceZkNymsResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
+message GetFreePassesRequest {}
+
+message GetFreePassesResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
+message ApplyFreepassRequest {
+  string code = 1;
+}
+
+message ApplyFreepassResponse {
   string json = 1;
   AccountError error = 2;
 }
@@ -578,8 +600,11 @@ service NymVpnd {
   // Unstable
   rpc StoreAccount (StoreAccountRequest) returns (StoreAccountResponse) {}
   rpc GetAccountSummary (GetAccountSummaryRequest) returns (GetAccountSummaryResponse) {}
+  rpc GetDevices (GetDevicesRequest) returns (GetDevicesResponse) {}
   rpc RegisterDevice (RegisterDeviceRequest) returns (RegisterDeviceResponse) {}
   rpc RequestZkNym (RequestZkNymRequest) returns (RequestZkNymResponse) {}
   rpc GetDeviceZkNyms (GetDeviceZkNymsRequest) returns (GetDeviceZkNymsResponse) {}
+  rpc GetFreePasses (GetFreePassesRequest) returns (GetFreePassesResponse) {}
+  rpc ApplyFreepass (ApplyFreepassRequest) returns (ApplyFreepassResponse) {}
 }
 
