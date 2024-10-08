@@ -60,16 +60,14 @@ object LogcatHelper {
 		private var logcatReader: LogcatReader? = null
 
 		override suspend fun start(onLogMessage: ((message: LogMessage) -> Unit)?) {
-			withContext(ioDispatcher) {
-				logcatReader ?: run {
-					logcatReader = LogcatReader(LogcatHelperInit.pID.toString(), LogcatHelperInit.logcatPath, onLogMessage)
-				}
-				logcatReader?.run()
+			logcatReader ?: run {
+				logcatReader = LogcatReader(LogcatHelperInit.pID.toString(), LogcatHelperInit.logcatPath, onLogMessage)
 			}
+			logcatReader?.run()
 		}
 
 		override fun stop() {
-			logcatReader?.pause()
+			logcatReader?.stop()
 			logcatReader = null
 		}
 
@@ -99,8 +97,10 @@ object LogcatHelper {
 		@OptIn(ExperimentalCoroutinesApi::class)
 		override suspend fun deleteAndClearLogs() {
 			withContext(ioDispatcher) {
+				logcatReader?.pause()
 				_bufferedLogs.resetReplayCache()
 				logcatReader?.deleteAllFiles()
+				logcatReader?.resume()
 			}
 		}
 
@@ -124,7 +124,12 @@ object LogcatHelper {
 		) {
 			private var logcatProc: Process? = null
 			private var reader: BufferedReader? = null
-			private var mRunning = true
+
+			@get:Synchronized @set:Synchronized
+			private var paused = false
+
+			@get:Synchronized @set:Synchronized
+			private var stopped = false
 			private var command = ""
 			private var clearLogCommand = ""
 			private var outputStream: FileOutputStream? = null
@@ -141,71 +146,72 @@ object LogcatHelper {
 			}
 
 			fun pause() {
-				mRunning = false
+				paused = true
+			}
+			fun stop() {
+				stopped = true
 			}
 
 			fun resume() {
-				mRunning = true
+				paused = false
 			}
 
 			fun clear() {
 				Runtime.getRuntime().exec(clearLogCommand)
 			}
 
-			fun run() {
-				if (outputStream == null) return
-				try {
-					clear()
-					logcatProc = Runtime.getRuntime().exec(command)
-					reader = BufferedReader(InputStreamReader(logcatProc!!.inputStream), 1024)
-					var line: String? = null
+			suspend fun run() {
+				withContext(ioDispatcher) {
+					paused = false
+					stopped = false
+					if (outputStream == null) return@withContext
+					try {
+						clear()
+						logcatProc = Runtime.getRuntime().exec(command)
+						reader = BufferedReader(InputStreamReader(logcatProc!!.inputStream), 1024)
+						var line: String? = null
 
-					while (mRunning && run {
-							line = reader!!.readLine()
-							line
-						} != null
-					) {
-						if (!mRunning) {
-							break
-						}
-						if (line!!.isEmpty()) {
-							continue
-						}
-
-						if (outputStream!!.channel.size() >= LogcatHelperInit.maxFileSize) {
-							outputStream!!.close()
-							outputStream = FileOutputStream(createLogFile(logcatPath))
-						}
-						if (getFolderSize(logcatPath) >= LogcatHelperInit.maxFolderSize) {
-							deleteOldestFile()
-						}
-						line?.let { text ->
-							outputStream!!.write((text + System.lineSeparator()).toByteArray())
-							try {
-								val logMessage = LogMessage.from(text)
-								_bufferedLogs.tryEmit(logMessage)
-								_liveLogs.tryEmit(logMessage)
-								callback?.let {
-									it(logMessage)
+						while (!stopped) {
+							if (paused) continue
+							line = reader?.readLine()
+							if (line.isNullOrEmpty()) continue
+							outputStream?.let {
+								if (it.channel.size() >= LogcatHelperInit.maxFileSize) {
+									it.close()
+									outputStream = createNewLogFileStream()
 								}
-							} catch (e: Exception) {
-								Timber.e(e)
+								if (getFolderSize(logcatPath) >= LogcatHelperInit.maxFolderSize) {
+									deleteOldestFile()
+								}
+								line.let { text ->
+									it.write((text + System.lineSeparator()).toByteArray())
+									try {
+										val logMessage = LogMessage.from(text)
+										_bufferedLogs.tryEmit(logMessage)
+										_liveLogs.tryEmit(logMessage)
+										callback?.let {
+											it(logMessage)
+										}
+									} catch (e: Exception) {
+										Timber.e(e)
+									}
+								}
 							}
 						}
-					}
-				} catch (e: IOException) {
-					Timber.e(e)
-				} finally {
-					logcatProc?.destroy()
-					logcatProc = null
-
-					try {
-						reader?.close()
-						outputStream?.close()
-						reader = null
-						outputStream = null
 					} catch (e: IOException) {
 						Timber.e(e)
+					} finally {
+						logcatProc?.destroy()
+						logcatProc = null
+
+						try {
+							reader?.close()
+							outputStream?.close()
+							reader = null
+							outputStream = null
+						} catch (e: IOException) {
+							Timber.e(e)
+						}
 					}
 				}
 			}
@@ -237,11 +243,17 @@ object LogcatHelper {
 					}
 				}
 			}
+
+			private fun createNewLogFileStream(): FileOutputStream {
+				return FileOutputStream(createLogFile(logcatPath))
+			}
+
 			fun deleteAllFiles() {
 				val directory = File(logcatPath)
 				directory.listFiles()?.toMutableList()?.run {
 					this.forEach { it.delete() }
 				}
+				outputStream = createNewLogFileStream()
 			}
 		}
 	}

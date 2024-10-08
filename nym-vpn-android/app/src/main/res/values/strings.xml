@@ -162,8 +162,8 @@
     <string name="out_of_bandwidth_error">Credential bandwidth limitation reached.</string>
 	<string name="gateway_error">Failed to connect to gateway. Try again or select a new gateway location.</string>
 	<string name="network_error">A network connection issue occurred. Please check your network connection and try again.</string>
-	<string name="state_error">"This should not happen, but a bad state as been reached. Please restart the app and try again. "</string>
-	<string name="internal_error">An internal tunnel error occured. Please try again.</string>
+	<string name="state_error">"This should not happen, but a bad state has been reached. Please restart the app and try again. "</string>
+	<string name="internal_error">An internal tunnel error occurred. Please try again.</string>
 	<string name="vpn_alerts_channel_id">NymVPN Alerts Channel</string>
 	<string name="vpn_alerts_channel_description">A channel for app related alert notifications.</string>
 	<string name="bandwidth_alert">Bandwidth alert</string>
