@@ -24,6 +24,9 @@ pub enum OnDiskMnemonicStorageError {
 
     #[error("failed to write mnemonic to file")]
     WriteError(serde_json::Error),
+
+    #[error("failed to remove mnemonic file")]
+    RemoveError(std::io::Error),
 }
 
 pub struct OnDiskMnemonicStorage {
@@ -77,6 +80,10 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
         serde_json::from_reader(file)
             .map_err(OnDiskMnemonicStorageError::ReadError)
             .map(|s: StoredMnemonic| s.mnemonic.clone())
+    }
+
+    async fn remove_mnemonic(&self) -> Result<(), OnDiskMnemonicStorageError> {
+        std::fs::remove_file(&self.path).map_err(OnDiskMnemonicStorageError::RemoveError)
     }
 }
 

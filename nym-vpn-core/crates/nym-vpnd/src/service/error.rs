@@ -599,6 +599,11 @@ pub enum AccountError {
         source: Box<dyn std::error::Error + Send + Sync>,
     },
 
+    #[error("failed to remove account: {source}")]
+    FailedToRemoveAccount {
+        source: Box<dyn std::error::Error + Send + Sync>,
+    },
+
     #[error("failed to load account: {source}")]
     FailedToLoadAccount {
         source: Box<dyn std::error::Error + Send + Sync>,

@@ -515,6 +515,13 @@ message StoreAccountResponse {
   AccountError error = 2;
 }
 
+message RemoveAccountRequest {}
+
+message RemoveAccountResponse {
+  bool success = 1;
+  AccountError error = 2;
+}
+
 message GetAccountSummaryRequest {}
 
 message GetAccountSummaryResponse {
@@ -599,6 +606,7 @@ service NymVpnd {
 
   // Unstable
   rpc StoreAccount (StoreAccountRequest) returns (StoreAccountResponse) {}
+  rpc RemoveAccount (RemoveAccountRequest) returns (RemoveAccountResponse) {}
   rpc GetAccountSummary (GetAccountSummaryRequest) returns (GetAccountSummaryResponse) {}
   rpc GetDevices (GetDevicesRequest) returns (GetDevicesResponse) {}
   rpc RegisterDevice (RegisterDeviceRequest) returns (RegisterDeviceResponse) {}

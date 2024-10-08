@@ -16,8 +16,9 @@ use nym_vpn_proto::{
     GetAccountSummaryResponse, GetDeviceZkNymsRequest, GetDeviceZkNymsResponse, GetDevicesRequest,
     GetDevicesResponse, ImportUserCredentialRequest, ImportUserCredentialResponse, InfoRequest,
     InfoResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
-    ListGatewaysResponse, RegisterDeviceRequest, RegisterDeviceResponse, RequestZkNymRequest,
-    RequestZkNymResponse, StatusRequest, StatusResponse, StoreAccountRequest, StoreAccountResponse,
+    ListGatewaysResponse, RegisterDeviceRequest, RegisterDeviceResponse, RemoveAccountRequest,
+    RemoveAccountResponse, RequestZkNymRequest, RequestZkNymResponse, StatusRequest,
+    StatusResponse, StoreAccountRequest, StoreAccountResponse,
 };
 use prost_types::Timestamp;
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
@@ -406,6 +407,31 @@ impl NymVpnd for CommandInterface {
         };
 
         info!("Returning store account response: {:?}", response);
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn remove_account(
+        &self,
+        _request: tonic::Request<RemoveAccountRequest>,
+    ) -> Result<tonic::Response<RemoveAccountResponse>, tonic::Status> {
+        info!("Got remove account request");
+
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_remove_account()
+            .await;
+
+        let response = match result {
+            Ok(()) => RemoveAccountResponse {
+                success: true,
+                error: None,
+            },
+            Err(err) => RemoveAccountResponse {
+                success: false,
+                error: Some(nym_vpn_proto::AccountError::from(err)),
+            },
+        };
+
+        info!("Returning remove account response");
         Ok(tonic::Response::new(response))
     }
 

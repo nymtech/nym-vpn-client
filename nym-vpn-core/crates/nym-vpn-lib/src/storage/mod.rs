@@ -64,4 +64,8 @@ impl MnemonicStorage for VpnClientOnDiskStorage {
     async fn store_mnemonic(&self, mnemonic: Mnemonic) -> Result<(), Self::StorageError> {
         self.mnemonic_storage.store_mnemonic(mnemonic).await
     }
+
+    async fn remove_mnemonic(&self) -> Result<(), Self::StorageError> {
+        self.mnemonic_storage.remove_mnemonic().await
+    }
 }
