@@ -22,6 +22,7 @@ use std::{
 
 use lazy_static::lazy_static;
 use log::*;
+use nym_vpn_store::mnemonic::MnemonicStorage as _;
 use talpid_core::mpsc::Sender;
 use tokio::{
     runtime::Runtime,
@@ -347,6 +348,64 @@ async fn import_credential_from_string(
             details: e.to_string(),
         }),
     }
+}
+
+fn setup_account_storage(path: &str) -> Result<crate::storage::VpnClientOnDiskStorage, VpnError> {
+    let path = PathBuf::from_str(path).map_err(|err| VpnError::InternalError {
+        details: err.to_string(),
+    })?;
+    Ok(crate::storage::VpnClientOnDiskStorage::new(path))
+}
+
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn storeAccountMnemonic(mnemonic: String, path: String) -> Result<(), VpnError> {
+    RUNTIME.block_on(store_account_mnemonic(&mnemonic, &path))
+}
+
+async fn store_account_mnemonic(mnemonic: &str, path: &str) -> Result<(), VpnError> {
+    let storage = setup_account_storage(path)?;
+
+    let mnemonic = nym_vpn_store::mnemonic::Mnemonic::parse(mnemonic).map_err(|err| {
+        VpnError::InternalError {
+            details: err.to_string(),
+        }
+    })?;
+
+    storage
+        .store_mnemonic(mnemonic)
+        .await
+        .map_err(|err| VpnError::InternalError {
+            details: err.to_string(),
+        })?;
+
+    Ok(())
+}
+
+#[allow(non_snake_case)]
+pub fn isAccountMnemonicStored(path: String) -> Result<bool, VpnError> {
+    RUNTIME.block_on(is_account_mnemonic_stored(&path))
+}
+
+async fn is_account_mnemonic_stored(path: &str) -> Result<bool, VpnError> {
+    let storage = setup_account_storage(path)?;
+    storage
+        .load_mnemonic()
+        .await
+        .map(|_| true)
+        .map_err(|err| VpnError::InternalError {
+            details: err.to_string(),
+        })
+}
+
+#[allow(non_snake_case)]
+pub fn removeAccountMnemonic(path: String) -> Result<bool, VpnError> {
+    RUNTIME.block_on(remove_account_mnemonic(&path))
+}
+
+async fn remove_account_mnemonic(_path: &str) -> Result<bool, VpnError> {
+    // This is not yet available in the vpn store API
+    todo!();
 }
 
 #[allow(non_snake_case)]
