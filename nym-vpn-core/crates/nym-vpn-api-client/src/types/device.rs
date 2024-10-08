@@ -8,6 +8,18 @@ use sha2::Digest as _;
 
 use crate::jwt::Jwt;
 
+pub struct DeviceSignature([u8; 64]);
+
+impl DeviceSignature {
+    pub fn to_base64_url_string(&self) -> String {
+        base64_url::encode(&self.0)
+    }
+
+    pub fn to_base64_string(&self) -> String {
+        base64_url::unescape(&self.to_base64_url_string()).to_string()
+    }
+}
+
 pub struct Device {
     keypair: Arc<ed25519::KeyPair>,
 }
@@ -21,23 +33,20 @@ impl Device {
         Jwt::new_ecdsa(&self.keypair)
     }
 
-    pub fn sign_identity_key(&self) -> String {
-        let device_identity_key_base58 = self.identity_key().to_base58_string();
-
-        let device_identity_key_sha256 = {
+    pub fn sign<M: AsRef<[u8]>>(&self, message: M) -> DeviceSignature {
+        let digest = {
             let mut hasher = sha2::Sha256::new();
-            hasher.update(device_identity_key_base58);
+            hasher.update(message);
             hasher.finalize()
         };
 
-        let signature = self
-            .keypair
-            .private_key()
-            .sign(device_identity_key_sha256)
-            .to_bytes();
+        DeviceSignature(self.keypair.private_key().sign(digest).to_bytes())
+    }
 
-        let base64_url = base64_url::encode(&signature);
-        base64_url::unescape(&base64_url).to_string()
+    pub fn sign_identity_key(&self) -> String {
+        let device_identity_key_base58 = self.identity_key().to_base58_string();
+
+        self.sign(&device_identity_key_base58).to_base64_string()
     }
 }
 
