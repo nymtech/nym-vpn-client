@@ -3,66 +3,32 @@
 
 use std::{fmt, net::IpAddr};
 
-#[cfg(target_os = "macos")]
-use futures::{channel::mpsc::UnboundedSender, StreamExt};
-#[cfg(target_os = "macos")]
-use std::sync::Arc;
-use talpid_core::dns::DnsMonitor;
+use nym_dns::{DnsConfig, DnsMonitor};
 
 #[cfg(target_os = "linux")]
 use super::route_handler::RouteHandler;
 
-#[cfg(target_os = "macos")]
-type MullvadTunnelCommand = talpid_core::tunnel_state_machine::TunnelCommand;
-
 pub struct DnsHandler {
     inner: DnsMonitor,
-
-    /// Internal sender a weak reference to which is passed into `talpid_core::dns::DnsMonitor`.
-    /// It must be retained throughout the lifetime of `DnsHandler`.
-    #[cfg(target_os = "macos")]
-    _tx: Arc<UnboundedSender<MullvadTunnelCommand>>,
 }
 
 impl DnsHandler {
     pub async fn new(#[cfg(target_os = "linux")] route_handler: &RouteHandler) -> Result<Self> {
-        #[cfg(target_os = "macos")]
-        let tx = {
-            let (tx, mut rx) = futures::channel::mpsc::unbounded();
-
-            tokio::spawn(async move {
-                while let Some(cmd) = rx.next().await {
-                    if let MullvadTunnelCommand::Block(_) = cmd {
-                        tracing::debug!(
-                            "Failed to set dns at runtime caused by a burst of changes to dns"
-                        );
-                        // todo: bubble error to consumer
-                    }
-                }
-            });
-
-            Arc::new(tx)
-        };
-
         Ok(Self {
             inner: DnsMonitor::new(
                 #[cfg(target_os = "linux")]
                 tokio::runtime::Handle::current(),
                 #[cfg(target_os = "linux")]
-                route_handler
-                    .inner_handle()
-                    .map_err(|e| Error { inner: Box::new(e) })?,
-                #[cfg(target_os = "macos")]
-                Arc::downgrade(&tx),
+                route_handler.inner_handle()
             )?,
-            #[cfg(target_os = "macos")]
-            _tx: tx,
         })
     }
 
     pub fn set(&mut self, interface: &str, servers: &[IpAddr]) -> Result<()> {
         Ok(tokio::task::block_in_place(|| {
-            self.inner.set(interface, servers)
+            let dns_config = DnsConfig::default().resolve(servers);
+
+            self.inner.set(interface, dns_config)
         })?)
     }
 
@@ -91,8 +57,8 @@ impl std::error::Error for Error {
     }
 }
 
-impl From<talpid_core::dns::Error> for Error {
-    fn from(value: talpid_core::dns::Error) -> Self {
+impl From<nym_dns::Error> for Error {
+    fn from(value: nym_dns::Error) -> Self {
         Self {
             inner: Box::new(value),
         }

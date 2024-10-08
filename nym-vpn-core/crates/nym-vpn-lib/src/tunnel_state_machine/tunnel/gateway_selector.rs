@@ -3,7 +3,7 @@
 
 use nym_gateway_directory::{EntryPoint, ExitPoint, Gateway, GatewayClient, GatewayType};
 
-use crate::GatewayDirectoryError;
+use crate::{tunnel_state_machine::TunnelType, GatewayDirectoryError};
 
 #[derive(Debug, Clone)]
 pub struct SelectedGateways {
@@ -13,30 +13,34 @@ pub struct SelectedGateways {
 
 pub async fn select_gateways(
     gateway_directory_client: &GatewayClient,
-    enable_wireguard: bool,
+    tunnel_type: TunnelType,
     entry_point: EntryPoint,
     exit_point: ExitPoint,
 ) -> Result<SelectedGateways, GatewayDirectoryError> {
     // The set of exit gateways is smaller than the set of entry gateways, so we start by selecting
     // the exit gateway and then filter out the exit gateway from the set of entry gateways.
-    let (mut entry_gateways, exit_gateways) = if enable_wireguard {
-        let all_gateways = gateway_directory_client
-            .lookup_gateways_from_nym_api(GatewayType::Wg)
-            .await
-            .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
-        (all_gateways.clone(), all_gateways)
-    } else {
-        // Setup the gateway that we will use as the exit point
-        let exit_gateways = gateway_directory_client
-            .lookup_gateways_from_nym_api(GatewayType::MixnetExit)
-            .await
-            .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
-        // Setup the gateway that we will use as the entry point
-        let entry_gateways = gateway_directory_client
-            .lookup_gateways_from_nym_api(GatewayType::MixnetEntry)
-            .await
-            .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
-        (entry_gateways, exit_gateways)
+
+    let (mut entry_gateways, exit_gateways) = match tunnel_type {
+        TunnelType::Wireguard => {
+            let all_gateways = gateway_directory_client
+                .lookup_gateways_from_nym_api(GatewayType::Wg)
+                .await
+                .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
+            (all_gateways.clone(), all_gateways)
+        }
+        TunnelType::Mixnet => {
+            // Setup the gateway that we will use as the exit point
+            let exit_gateways = gateway_directory_client
+                .lookup_gateways_from_nym_api(GatewayType::MixnetExit)
+                .await
+                .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
+            // Setup the gateway that we will use as the entry point
+            let entry_gateways = gateway_directory_client
+                .lookup_gateways_from_nym_api(GatewayType::MixnetEntry)
+                .await
+                .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
+            (entry_gateways, exit_gateways)
+        }
     };
 
     let exit_gateway = exit_point

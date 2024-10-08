@@ -3,23 +3,52 @@
 
 use std::time::Duration;
 
+use tokio_stream::{wrappers::IntervalStream, StreamExt};
+
 use nym_bandwidth_controller::PreparedCredential;
 use nym_credentials_interface::TicketType;
 use nym_gateway_directory::GatewayClient;
 use nym_sdk::{mixnet::CredentialStorage as Storage, NymNetworkDetails, TaskClient};
 use nym_validator_client::{
-    nyxd::{contract_traits::DkgQueryClient, Config as NyxdClientConfig, NyxdClient},
+    nyxd::{Config as NyxdClientConfig, NyxdClient},
     QueryHttpRpcNyxdClient,
 };
 use nym_wg_gateway_client::{ErrorMessage, GatewayData, WgGatewayClient, WgGatewayLightClient};
 use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
-use tokio_stream::{wrappers::IntervalStream, StreamExt};
-
-use crate::SetupWgTunnelError;
 
 const DEFAULT_BANDWIDTH_CHECK: Duration = Duration::from_secs(10); // 10 seconds
 const ASSUMED_BANDWIDTH_DEPLETION_RATE: u64 = 10 * 1024 * 1024; // 10 MB/s
 const TICKETS_TO_SPEND: u32 = 1;
+
+#[derive(thiserror::Error, Debug)]
+pub enum Error {
+    #[error("failed to lookup gateway ip: {source}")]
+    LookupGatewayIp {
+        gateway_id: String,
+        #[source]
+        source: nym_gateway_directory::Error,
+    },
+
+    #[error("WireGuard gateway client error: {source}")]
+    WgGatewayClientError {
+        gateway_id: String,
+        authenticator_address: Box<nym_gateway_directory::Recipient>,
+        #[source]
+        source: nym_wg_gateway_client::Error,
+    },
+
+    #[error("failed to get {ticketbook_type} ticket: {source}")]
+    GetTicket {
+        ticketbook_type: TicketType,
+        #[source]
+        source: nym_bandwidth_controller::error::BandwidthControllerError,
+    },
+
+    #[error("nyxd client error: {0}")]
+    Nyxd(#[from] CredentialNyxdClientError),
+}
+
+pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 #[derive(Debug, thiserror::Error)]
 pub enum CredentialNyxdClientError {
@@ -33,8 +62,7 @@ pub enum CredentialNyxdClientError {
     FailedToConnectUsingNyxdClient(nym_validator_client::nyxd::error::NyxdError),
 }
 
-pub(crate) fn get_nyxd_client(
-) -> std::result::Result<QueryHttpRpcNyxdClient, CredentialNyxdClientError> {
+fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient> {
     let network = NymNetworkDetails::new_from_env();
     let config = NyxdClientConfig::try_from_nym_network_details(&network)
         .map_err(CredentialNyxdClientError::FailedToCreateNyxdClientConfig)?;
@@ -46,8 +74,8 @@ pub(crate) fn get_nyxd_client(
         .ok_or(CredentialNyxdClientError::NoNyxdEndpointsFound)?
         .nyxd_url();
 
-    NyxdClient::connect(config, nyxd_url.as_str())
-        .map_err(CredentialNyxdClientError::FailedToConnectUsingNyxdClient)
+    Ok(NyxdClient::connect(config, nyxd_url.as_str())
+        .map_err(CredentialNyxdClientError::FailedToConnectUsingNyxdClient)?)
 }
 
 fn update_dynamic_check_interval(remaining_bandwidth: u64) -> Option<Duration> {
@@ -65,26 +93,29 @@ fn update_dynamic_check_interval(remaining_bandwidth: u64) -> Option<Duration> {
     }
 }
 
-pub(crate) struct BandwidthController<C, St> {
-    inner: nym_bandwidth_controller::BandwidthController<C, St>,
+pub(crate) struct BandwidthController<St> {
+    inner: nym_bandwidth_controller::BandwidthController<QueryHttpRpcNyxdClient, St>,
     wg_entry_gateway_client: WgGatewayLightClient,
     wg_exit_gateway_client: WgGatewayLightClient,
     shutdown: TaskClient,
 }
 
-impl<C, St: Storage> BandwidthController<C, St> {
+impl<St: Storage> BandwidthController<St> {
     pub(crate) fn new(
-        inner: nym_bandwidth_controller::BandwidthController<C, St>,
+        storage: St,
         wg_entry_gateway_client: WgGatewayLightClient,
         wg_exit_gateway_client: WgGatewayLightClient,
         shutdown: TaskClient,
-    ) -> Self {
-        BandwidthController {
+    ) -> Result<Self> {
+        let client = get_nyxd_client()?;
+        let inner = nym_bandwidth_controller::BandwidthController::new(storage, client);
+
+        Ok(BandwidthController {
             inner,
             wg_entry_gateway_client,
             wg_exit_gateway_client,
             shutdown,
-        }
+        })
     }
 
     pub(crate) async fn get_initial_bandwidth(
@@ -92,9 +123,8 @@ impl<C, St: Storage> BandwidthController<C, St> {
         ticketbook_type: TicketType,
         gateway_client: &GatewayClient,
         wg_gateway_client: &mut WgGatewayClient,
-    ) -> std::result::Result<GatewayData, SetupWgTunnelError>
+    ) -> Result<GatewayData>
     where
-        C: DkgQueryClient + Sync + Send,
         <St as Storage>::StorageError: Send + Sync + 'static,
     {
         let credential = self
@@ -111,15 +141,15 @@ impl<C, St: Storage> BandwidthController<C, St> {
         let gateway_host = gateway_client
             .lookup_gateway_ip(&gateway_id.to_base58_string())
             .await
-            .map_err(|source| SetupWgTunnelError::FailedToLookupGatewayIp {
-                gateway_id: Box::new(gateway_id),
+            .map_err(|source| Error::LookupGatewayIp {
+                gateway_id: gateway_id.to_base58_string(),
                 source,
             })?;
         let wg_gateway_data = wg_gateway_client
             .register_wireguard(gateway_host, Some(credential.data))
             .await
-            .map_err(|source| SetupWgTunnelError::WgGatewayClientError {
-                gateway_id: Box::new(gateway_id),
+            .map_err(|source| Error::WgGatewayClientError {
+                gateway_id: gateway_id.to_base58_string(),
                 authenticator_address: Box::new(authenticator_address),
                 source,
             })?;
@@ -132,15 +162,18 @@ impl<C, St: Storage> BandwidthController<C, St> {
         &self,
         ticketbook_type: TicketType,
         provider_pk: [u8; 32],
-    ) -> std::result::Result<PreparedCredential, SetupWgTunnelError>
+    ) -> Result<PreparedCredential>
     where
-        C: DkgQueryClient + Sync + Send,
         <St as Storage>::StorageError: Send + Sync + 'static,
     {
         let credential = self
             .inner
             .prepare_ecash_ticket(ticketbook_type, provider_pk, TICKETS_TO_SPEND)
-            .await?;
+            .await
+            .map_err(|source| Error::GetTicket {
+                ticketbook_type,
+                source,
+            })?;
         Ok(credential)
     }
 

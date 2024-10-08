@@ -4,21 +4,34 @@
 #[cfg(target_os = "linux")]
 mod default_interface;
 mod dns_handler;
-mod firewall_handler;
+//mod firewall_handler;
 mod route_handler;
 mod states;
 mod tun_ipv6;
 mod tunnel;
 
+use std::{
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
+    path::PathBuf,
+};
+
+use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
+use nym_gateway_directory::{
+    Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, NodeIdentity, Recipient,
+};
+use nym_ip_packet_requests::IpPair;
+use nym_wg_gateway_client::GatewayData;
+use nym_wg_go::PublicKey;
+
 use dns_handler::DnsHandler;
-use firewall_handler::FirewallHandler;
+//use firewall_handler::FirewallHandler;
 use route_handler::RouteHandler;
 use states::DisconnectedState;
 
-use crate::GenericNymVpnConfig;
+use crate::MixnetClientConfig;
 
 #[async_trait::async_trait]
 trait TunnelStateHandler: Send {
@@ -36,31 +49,158 @@ enum NextTunnelState {
     Finished,
 }
 
-#[derive(Debug)]
-pub enum TunnelCommand {
-    Connect,
-    Disconnect,
+#[derive(Debug, Clone, Copy, Eq, PartialEq, uniffi::Enum)]
+pub enum TunnelType {
+    Mixnet,
+    Wireguard,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
+pub struct TunnelSettings {
+    /// Type of tunnel.
+    pub tunnel_type: TunnelType,
+
+    /// Mixnet tunnel options.
+    pub mixnet_tunnel_options: MixnetTunnelOptions,
+
+    /// Overrides gateway config.
+    pub gateway_performance_options: GatewayPerformanceOptions,
+
+    /// Overrides mixnet client config when provided.
+    /// Leave `None` to use sane defaults.
+    pub mixnet_client_config: Option<MixnetClientConfig>,
+
+    /// Entry node.
+    pub entry_point: EntryPoint,
+
+    /// Exit node.
+    pub exit_point: ExitPoint,
+
+    /// DNS configuration.
+    pub dns: DnsOptions,
+}
+
+#[derive(Debug, Default, Clone, Copy, Eq, PartialEq)]
+pub struct GatewayPerformanceOptions {
+    pub mixnet_min_performance: Option<u8>,
+    pub vpn_min_performance: Option<u8>,
+}
+
+#[derive(Debug, Default, Clone, Eq, PartialEq)]
+pub struct MixnetTunnelOptions {
+    /// Overrides tunnel interface addresses.
+    pub interface_addrs: Option<IpPair>,
+
+    /// Overrides tunnel interface MTU.
+    pub mtu: Option<u16>,
+}
+
+#[derive(Debug, Default, Clone, Eq, PartialEq)]
+pub enum DnsOptions {
+    #[default]
+    Default,
+    Custom(Vec<IpAddr>),
+}
+
+impl Default for TunnelSettings {
+    fn default() -> Self {
+        Self {
+            tunnel_type: TunnelType::Wireguard,
+            mixnet_tunnel_options: MixnetTunnelOptions::default(),
+            mixnet_client_config: None,
+            gateway_performance_options: GatewayPerformanceOptions::default(),
+            entry_point: EntryPoint::Random,
+            exit_point: ExitPoint::Random,
+            dns: DnsOptions::Default,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum TunnelCommand {
+    /// Connect the tunnel.
+    Connect,
+
+    /// Disconnect the tunnel.
+    Disconnect,
+
+    /// Set new tunnel settings.
+    SetTunnelSettings(TunnelSettings),
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, uniffi::Record)]
+pub struct ConnectionData {
+    /// Mixnet entry gateway
+    pub entry_gateway: NodeIdentity,
+
+    /// Mixnet exit gateway
+    pub exit_gateway: NodeIdentity,
+
+    /// When the tunnel was last established.
+    pub connected_at: OffsetDateTime,
+
+    /// Tunnel connection data.
+    pub tunnel: TunnelConnectionData,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, uniffi::Enum)]
+pub enum TunnelConnectionData {
+    Mixnet(MixnetConnectionData),
+    Wireguard(WireguardConnectionData),
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, uniffi::Record)]
+pub struct MixnetConnectionData {
+    pub nym_address: Recipient,
+    pub exit_ipr: Recipient,
+    pub ipv4: Ipv4Addr,
+    pub ipv6: Ipv6Addr,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, uniffi::Record)]
+pub struct WireguardNode {
+    pub endpoint: SocketAddr,
+    pub public_key: PublicKey,
+    pub private_ipv4: Ipv4Addr,
+}
+
+impl From<GatewayData> for WireguardNode {
+    fn from(value: GatewayData) -> Self {
+        Self {
+            endpoint: value.endpoint,
+            public_key: value.public_key,
+            private_ipv4: value.private_ipv4,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, uniffi::Record)]
+pub struct WireguardConnectionData {
+    pub entry: WireguardNode,
+    pub exit: WireguardNode,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, uniffi::Enum)]
 pub enum TunnelState {
     Disconnected,
     Connecting,
-    Connected,
+    Connected {
+        connection_data: ConnectionData,
+    },
     Disconnecting {
         after_disconnect: ActionAfterDisconnect,
     },
     Error(ErrorStateReason),
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, uniffi::Enum)]
 pub enum ActionAfterDisconnect {
     Nothing,
     Reconnect,
     Error(ErrorStateReason),
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, uniffi::Enum)]
 pub enum ErrorStateReason {
     /// Issues related to firewall configuration.
     Firewall,
@@ -87,18 +227,49 @@ pub enum ErrorStateReason {
     Internal,
 }
 
-#[derive(Debug)]
+#[derive(Debug, uniffi::Enum)]
 pub enum TunnelEvent {
     NewState(TunnelState),
+    MixnetEvent(MixnetEvent),
+}
+
+#[derive(Debug, Copy, Clone, uniffi::Enum)]
+pub enum MixnetEvent {
+    Bandwidth(BandwidthEvent),
+    Connection(ConnectionEvent),
+}
+
+#[derive(Debug, Copy, Clone, uniffi::Enum)]
+pub enum BandwidthEvent {
+    NoBandwidth,
+    RemainingBandwidth(i64),
+}
+
+#[derive(Debug, Copy, Clone, uniffi::Enum)]
+pub enum ConnectionEvent {
+    EntryGatewayDown,
+    ExitGatewayDownIpv4,
+    ExitGatewayDownIpv6,
+    ExitGatewayRoutingErrorIpv4,
+    ExitGatewayRoutingErrorIpv6,
+    ConnectedIpv4,
+    ConnectedIpv6,
 }
 
 pub struct SharedState {
+    mixnet_event_sender: mpsc::UnboundedSender<MixnetEvent>,
     route_handler: RouteHandler,
-    #[allow(unused)]
-    firewall_handler: FirewallHandler,
+    //firewall_handler: FirewallHandler,
     dns_handler: DnsHandler,
-    config: GenericNymVpnConfig,
-    enable_wireguard: bool,
+    nym_config: NymConfig,
+    tunnel_settings: TunnelSettings,
+    status_listener_handle: Option<JoinHandle<()>>,
+}
+
+#[derive(Debug, Clone)]
+pub struct NymConfig {
+    pub data_path: Option<PathBuf>,
+    pub gateway_config: GatewayDirectoryConfig,
 }
 
 pub struct TunnelStateMachine {
@@ -106,6 +277,7 @@ pub struct TunnelStateMachine {
     shared_state: SharedState,
     command_receiver: mpsc::UnboundedReceiver<TunnelCommand>,
     event_sender: mpsc::UnboundedSender<TunnelEvent>,
+    mixnet_event_receiver: mpsc::UnboundedReceiver<MixnetEvent>,
     shutdown_token: CancellationToken,
 }
 
@@ -113,8 +285,8 @@ impl TunnelStateMachine {
     pub async fn spawn(
         command_receiver: mpsc::UnboundedReceiver<TunnelCommand>,
         event_sender: mpsc::UnboundedSender<TunnelEvent>,
-        config: GenericNymVpnConfig,
-        enable_wireguard: bool,
+        nym_config: NymConfig,
+        tunnel_settings: TunnelSettings,
         shutdown_token: CancellationToken,
     ) -> Result<JoinHandle<()>> {
         let (current_state_handler, _) = DisconnectedState::enter();
@@ -128,14 +300,18 @@ impl TunnelStateMachine {
         )
         .await
         .map_err(Error::CreateDnsHandler)?;
-        let firewall_handler = FirewallHandler::new().map_err(Error::CreateFirewallHandler)?;
+        //let firewall_handler = FirewallHandler::new().map_err(Error::CreateFirewallHandler)?;
 
-        let shared_state = SharedState {
+        let (mixnet_event_sender, mixnet_event_receiver) = mpsc::unbounded_channel();
+
+        let shared_state: SharedState = SharedState {
+            mixnet_event_sender,
             route_handler,
-            firewall_handler,
+            //firewall_handler,
             dns_handler,
-            config,
-            enable_wireguard,
+            nym_config,
+            tunnel_settings,
+            status_listener_handle: None,
         };
 
         let tunnel_state_machine = Self {
@@ -143,6 +319,7 @@ impl TunnelStateMachine {
             shared_state,
             command_receiver,
             event_sender,
+            mixnet_event_receiver,
             shutdown_token,
         };
 
@@ -150,6 +327,16 @@ impl TunnelStateMachine {
     }
 
     async fn run(mut self) {
+        let mut mixnet_event_receiver = self.mixnet_event_receiver;
+        let cloned_event_sender = self.event_sender.clone();
+        tokio::spawn(async move {
+            while let Some(event) = mixnet_event_receiver.recv().await {
+                if let Err(e) = cloned_event_sender.send(TunnelEvent::MixnetEvent(event)) {
+                    tracing::error!("Failed to send tunnel event: {}", e);
+                }
+            }
+        });
+
         loop {
             let next_state = self
                 .current_state_handler
@@ -164,7 +351,7 @@ impl TunnelStateMachine {
                 NextTunnelState::NewState((new_state_handler, new_state)) => {
                     self.current_state_handler = new_state_handler;
 
-                    log::debug!("New tunnel state: {:?}", new_state);
+                    tracing::debug!("New tunnel state: {:?}", new_state);
                     let _ = self.event_sender.send(TunnelEvent::NewState(new_state));
                 }
                 NextTunnelState::SameState(same_state) => {
@@ -174,7 +361,7 @@ impl TunnelStateMachine {
             }
         }
 
-        log::debug!("Tunnel state machine is exiting...");
+        tracing::debug!("Tunnel state machine is exiting...");
         self.shared_state.route_handler.stop().await;
     }
 }
@@ -187,9 +374,8 @@ pub enum Error {
     #[error("failed to create a dns handler: {}", _0)]
     CreateDnsHandler(#[source] dns_handler::Error),
 
-    #[error("failed to create firewall handler: {}", _0)]
-    CreateFirewallHandler(#[source] firewall_handler::Error),
-
+    //#[error("failed to create firewall handler: {}", _0)]
+    //CreateFirewallHandler(#[source] firewall_handler::Error),
     #[error("failed to create tunnel device: {}", _0)]
     CreateTunDevice(#[source] tun::Error),
 
@@ -230,7 +416,7 @@ impl Error {
         match self {
             Self::CreateRouteHandler(_) | Self::AddRoutes(_) => ErrorStateReason::Routing,
             Self::CreateDnsHandler(_) | Self::SetDns(_) => ErrorStateReason::Dns,
-            Self::CreateFirewallHandler(_) => ErrorStateReason::Firewall,
+            //Self::CreateFirewallHandler(_) => ErrorStateReason::Firewall,
             Self::CreateTunDevice(_)
             | Self::GetTunDeviceName(_)
             | Self::SetTunDeviceIpv6Addr(_) => ErrorStateReason::TunDevice,

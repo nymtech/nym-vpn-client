@@ -23,8 +23,8 @@ use nym_crypto::asymmetric::{encryption, x25519::KeyPair};
 use nym_gateway_directory::Recipient;
 use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::PeerPublicKey;
 use nym_pemstore::KeyPairPath;
+use nym_wg_go::PublicKey;
 use rand::{rngs::OsRng, CryptoRng, RngCore};
-use talpid_types::net::wireguard::PublicKey; // TODO: this is a type we should provide instead
 use tracing::{debug, error, info, warn};
 
 use crate::error::Result;

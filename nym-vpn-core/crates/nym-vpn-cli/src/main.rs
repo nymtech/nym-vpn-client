@@ -16,8 +16,11 @@ use nym_vpn_api_client::types::GatewayMinPerformance;
 use nym_vpn_lib::{
     gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint},
     nym_config::defaults::{setup_env, var_names},
-    tunnel_state_machine::{TunnelCommand, TunnelStateMachine},
-    GenericNymVpnConfig, IpPair, MixnetClientConfig, NodeIdentity, Recipient,
+    tunnel_state_machine::{
+        DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
+        TunnelSettings, TunnelStateMachine, TunnelType,
+    },
+    IpPair, MixnetClientConfig, NodeIdentity, Recipient,
 };
 use nym_vpn_store::mnemonic::MnemonicStorage as _;
 
@@ -177,35 +180,56 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> anyhow:
     } else {
         None
     };
-    let generic_config = GenericNymVpnConfig {
-        mixnet_client_config: MixnetClientConfig {
-            enable_poisson_rate: args.enable_poisson_rate,
-            disable_background_cover_traffic: args.wireguard_mode
-                || args.disable_background_cover_traffic,
-            enable_credentials_mode: args.enable_credentials_mode,
-            min_mixnode_performance: args.min_mixnode_performance,
-            min_gateway_performance: args.min_gateway_mixnet_performance,
-        },
-        data_path,
-        gateway_config,
-        entry_point: entry_point.clone(),
-        exit_point: exit_point.clone(),
-        nym_ips,
-        nym_mtu: args.nym_mtu,
-        dns: args.dns,
-        disable_routing: args.disable_routing,
-        user_agent: Some(nym_bin_common::bin_info_local_vergen!().into()),
-    };
 
     let (command_tx, command_rx) = mpsc::unbounded_channel();
     let (event_tx, mut event_rx) = mpsc::unbounded_channel();
     let shutdown_token = CancellationToken::new();
 
+    let dns = args
+        .dns
+        .map(|ip| DnsOptions::Custom(vec![ip]))
+        .unwrap_or_default();
+
+    let tunnel_type = if args.wireguard_mode {
+        TunnelType::Wireguard
+    } else {
+        TunnelType::Mixnet
+    };
+
+    let mixnet_client_config = MixnetClientConfig {
+        enable_poisson_rate: args.enable_poisson_rate,
+        disable_background_cover_traffic: args.wireguard_mode
+            || args.disable_background_cover_traffic,
+        enable_credentials_mode: args.enable_credentials_mode,
+        min_mixnode_performance: args.min_mixnode_performance,
+        min_gateway_performance: args.min_gateway_mixnet_performance,
+    };
+
+    let mixnet_tunnel_options = MixnetTunnelOptions {
+        interface_addrs: nym_ips,
+        mtu: args.nym_mtu,
+    };
+
+    let nym_config = NymConfig {
+        data_path,
+        gateway_config,
+    };
+
+    let tunnel_settings = TunnelSettings {
+        tunnel_type,
+        mixnet_client_config: Some(mixnet_client_config),
+        gateway_performance_options: GatewayPerformanceOptions::default(),
+        mixnet_tunnel_options,
+        entry_point,
+        exit_point,
+        dns,
+    };
+
     let state_machine_handle = TunnelStateMachine::spawn(
         command_rx,
         event_tx,
-        generic_config,
-        args.wireguard_mode,
+        nym_config,
+        tunnel_settings,
         shutdown_token.child_token(),
     )
     .await

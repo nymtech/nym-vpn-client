@@ -35,6 +35,10 @@ impl TunnelStateHandler for DisconnectedState {
                         NextTunnelState::NewState(ConnectingState::enter(shared_state))
                     },
                     TunnelCommand::Disconnect => NextTunnelState::SameState(self),
+                    TunnelCommand::SetTunnelSettings(tunnel_settings) => {
+                        shared_state.tunnel_settings = tunnel_settings;
+                        NextTunnelState::SameState(self)
+                    }
                 }
             }
             else => NextTunnelState::Finished
