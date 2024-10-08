@@ -21,7 +21,7 @@ impl Device {
         Jwt::new_ecdsa(&self.keypair)
     }
 
-    pub(crate) fn sign_identity_key(&self) -> String {
+    pub fn sign_identity_key(&self) -> String {
         let device_identity_key_base58 = self.identity_key().to_base58_string();
 
         let device_identity_key_sha256 = {

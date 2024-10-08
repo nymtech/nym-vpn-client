@@ -174,7 +174,7 @@ impl VpnApiClient {
     ) -> Result<NymVpnDevice> {
         let body = RegisterDeviceRequestBody {
             device_identity_key: device.identity_key().to_base58_string(),
-            signature: account.sign_device_key(device),
+            signature: device.sign_identity_key(),
         };
 
         self.post_authorized(
