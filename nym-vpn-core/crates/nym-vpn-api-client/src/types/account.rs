@@ -32,7 +32,9 @@ impl VpnApiAccount {
     pub(crate) fn sign_device_key(&self, device: &Device) -> String {
         let accounts = self.wallet.get_accounts().unwrap();
         let address = accounts[0].address();
+
         let device_identity_key = device.identity_key().to_bytes();
+
         let signature = self
             .wallet
             .sign_raw(address, device_identity_key)
@@ -85,10 +87,10 @@ mod tests {
 
         // From the js integration tests
         let expected_account_id = "n1sslaag27wfydyrvyua72hg5e0vteglxrs8nw3c";
-        let _expected_device_identity_key = "FJDUECYAeosXhNGjxf8w5MJM7N2DfDwQznvWwTxJz6ft";
-        let _expected_signature = "W5Zv1QhG37Al0QQH/9tqOmv1MU9IjfWP1xDq116GGSu/1Z6cnAW0sOyfrIiqdEleUKJB9wC/HjcsifaogymWAw==";
+        let expected_device_identity_key = "FJDUECYAeosXhNGjxf8w5MJM7N2DfDwQznvWwTxJz6ft";
+        let expected_signature = "W5Zv1QhG37Al0QQH/9tqOmv1MU9IjfWP1xDq116GGSu/1Z6cnAW0sOyfrIiqdEleUKJB9wC/HjcsifaogymWAw==";
         assert_eq!(account.id(), expected_account_id);
-        //assert_eq!(device_identity_key_base64, expected_device_identity_key);
-        //assert_eq!(signature, expected_signature);
+        assert_eq!(device.identity_key().to_string(), expected_device_identity_key);
+        assert_eq!(signature, expected_signature);
     }
 }
