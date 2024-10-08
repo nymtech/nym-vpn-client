@@ -60,7 +60,10 @@ pub async fn setup_tracing(cli: &Cli) -> Result<Option<WorkerGuard>> {
         info!("logging to file: {}", log_file.display());
         Ok(Some(guard))
     } else {
-        let disable_ansi = if cfg!(windows) { cli.console } else { false };
+        #[cfg(windows)]
+        let disable_ansi = cli.console;
+        #[cfg(not(windows))]
+        let disable_ansi = false;
         tracing_subscriber::fmt()
             .with_env_filter(filter)
             .compact()
