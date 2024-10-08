@@ -1,0 +1,14 @@
+[package]
+name = "nym-dns"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["cdylib", "lib", "staticlib"]
+
+[dependencies]

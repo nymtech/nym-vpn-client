@@ -48,10 +48,6 @@ tun = { workspace = true, features = ["async"] }
 uniffi.workspace = true
 url.workspace = true
 
-talpid-core.workspace = true
-talpid-routing.workspace = true
-talpid-types.workspace = true
-
 nym-authenticator-requests.workspace = true
 nym-bandwidth-controller-pre-ecash.workspace = true
 nym-bandwidth-controller.workspace = true
