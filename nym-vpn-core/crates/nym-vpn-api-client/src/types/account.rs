@@ -36,13 +36,13 @@ impl From<bip39::Mnemonic> for VpnApiAccount {
 
 #[cfg(test)]
 mod tests {
-    use crate::types::test_fixtures::{DEFAULT_MNEMONIC, DEFAULT_MNEMONIC_ID};
+    use crate::types::test_fixtures::{TEST_DEFAULT_MNEMONIC, TEST_DEFAULT_MNEMONIC_ID};
 
     use super::*;
 
     #[test]
     fn create_account_from_mnemonic() {
-        let account = VpnApiAccount::from(bip39::Mnemonic::parse(DEFAULT_MNEMONIC).unwrap());
-        assert_eq!(account.id(), DEFAULT_MNEMONIC_ID);
+        let account = VpnApiAccount::from(bip39::Mnemonic::parse(TEST_DEFAULT_MNEMONIC).unwrap());
+        assert_eq!(account.id(), TEST_DEFAULT_MNEMONIC_ID);
     }
 }

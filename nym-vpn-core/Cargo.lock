@@ -1673,7 +1673,6 @@ dependencies = [
  "rand_core 0.6.4",
  "serde",
  "sha2 0.10.8",
- "signature",
  "subtle 2.6.1",
  "zeroize",
 ]
@@ -5166,7 +5165,6 @@ dependencies = [
  "bip39",
  "bs58 0.5.1",
  "chrono",
- "ed25519-dalek",
  "nym-contracts-common 0.5.0 (git+https://github.com/nymtech/nym?rev=fabd48b)",
  "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?rev=fabd48b)",
  "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?rev=fabd48b)",
