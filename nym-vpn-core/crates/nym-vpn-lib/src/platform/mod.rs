@@ -5,7 +5,6 @@
 #[cfg(target_os = "android")]
 pub mod android;
 pub(crate) mod error;
-mod status_listener;
 #[cfg(any(target_os = "ios", target_os = "macos"))]
 pub mod swift;
 
@@ -22,16 +21,17 @@ use std::{
 
 use lazy_static::lazy_static;
 use log::*;
-use nym_vpn_api_client::types::VpnApiAccount;
-use nym_vpn_store::mnemonic::MnemonicStorage as _;
-use talpid_core::mpsc::Sender;
 use tokio::{
     runtime::Runtime,
-    sync::{Mutex, Notify},
+    sync::{mpsc, Mutex},
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
 use url::Url;
+
+use nym_gateway_directory::Config as GatewayDirectoryConfig;
+use nym_vpn_api_client::types::VpnApiAccount;
+use nym_vpn_store::mnemonic::MnemonicStorage as _;
 
 use self::error::VpnError;
 #[cfg(target_os = "ios")]
@@ -43,270 +43,58 @@ use crate::platform::android::AndroidTunProvider;
 use crate::{
     credentials::{check_credential_base58, import_credential_base58},
     gateway_directory::GatewayClient,
-    platform::status_listener::VpnServiceStatusListener,
+    tunnel_state_machine::{TunnelCommand, TunnelEvent, TunnelState, TunnelStateMachine},
     uniffi_custom_impls::{
         BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, ExitStatus,
         GatewayMinPerformance, GatewayType, Location, NymVpnStatus, StatusEvent, TunStatus,
         UserAgent,
     },
-    vpn::{
-        spawn_nym_vpn, MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitStatusMessage, NymVpnHandle,
-        SpecificVpn,
-    },
+    GenericNymVpnConfig, MixnetClientConfig,
 };
 
 lazy_static! {
-    static ref VPN_SHUTDOWN_HANDLE: Mutex<Option<ShutdownHandle>> = Mutex::new(None);
-    static ref RUNNING: AtomicBool = AtomicBool::new(false);
     static ref RUNTIME: Runtime = Runtime::new().unwrap();
-    static ref LISTENER: StdMutex<Option<Arc<dyn TunnelStatusListener>>> = StdMutex::new(None);
-}
-
-enum ShutdownHandle {
-    Notify(Arc<Notify>),
-
-    #[allow(unused)]
-    CancellationToken {
-        join_handle: JoinHandle<()>,
-        shutdown_token: CancellationToken,
-    },
-}
-
-async fn set_shutdown_handle(shutdown_handle: ShutdownHandle) -> Result<(), VpnError> {
-    let mut guard: tokio::sync::MutexGuard<'_, Option<ShutdownHandle>> =
-        VPN_SHUTDOWN_HANDLE.lock().await;
-    if guard.is_some() {
-        return Err(VpnError::InvalidStateError {
-            details: "Vpn in an invalid state, trying to set the shutdown handle when the vpn is not stopped".to_string(),
-        });
-    }
-    *guard = Some(shutdown_handle);
-
-    Ok(())
-}
-
-pub(crate) fn uniffi_set_listener_status(status: StatusEvent) {
-    let mut guard = LISTENER.lock().unwrap();
-    if let Some(listener) = &mut *guard {
-        match status {
-            StatusEvent::Tun(status) => listener.on_tun_status_change(status),
-            StatusEvent::Bandwidth(status) => listener.on_bandwidth_status_change(status),
-            StatusEvent::NymVpn(status) => listener.on_nym_vpn_status_change(status),
-            StatusEvent::Connection(status) => listener.on_connection_status_change(status),
-            StatusEvent::Exit(status) => {
-                listener.on_exit_status_change(status);
-                //Exit errors will always mean tunnel is down
-                listener.on_tun_status_change(TunStatus::Down);
-            }
-        }
-    }
-}
-
-async fn stop_and_reset_shutdown_handle() -> Result<(), VpnError> {
-    tracing::debug!("Getting shutdown handle");
-    let shutdown_handle =
-        VPN_SHUTDOWN_HANDLE
-            .lock()
-            .await
-            .take()
-            .ok_or(VpnError::InternalError {
-                details: "Vpn in an invalid state, trying to reset the shutdown handle when the vpn is not started".to_string(),
-            })?;
-
-    match shutdown_handle {
-        ShutdownHandle::Notify(sh) => {
-            tracing::debug!("Notifying waiters");
-            sh.notify_waiters();
-            tracing::debug!("Waiting for waiters to be notified");
-            sh.notified().await;
-            tracing::debug!("Waiters notified");
-        }
-        ShutdownHandle::CancellationToken {
-            join_handle,
-            shutdown_token,
-        } => {
-            tracing::debug!("Cancel shutdown token.");
-            shutdown_token.cancel();
-            if let Err(e) = join_handle.await {
-                tracing::error!("Failed to join on shutdown handle task: {}", e);
-            }
-        }
-    }
-
-    tracing::debug!("VPN shutdown handle reset");
-    uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
-    Ok(())
-}
-
-async fn reset_shutdown_handle() {
-    let _ = VPN_SHUTDOWN_HANDLE.lock().await.take();
-    debug!("VPN shutdown handle reset");
-}
-
-async fn _async_run_vpn(vpn: SpecificVpn) -> Result<(Arc<Notify>, NymVpnHandle), VpnError> {
-    debug!("creating new stop handle");
-    let stop_handle = Arc::new(Notify::new());
-    debug!("new stop handle created");
-    set_shutdown_handle(ShutdownHandle::Notify(stop_handle.clone())).await?;
-    debug!("shutdown handle set with new stop handle");
-    let handle = spawn_nym_vpn(vpn)?;
-    debug!("spawned vpn handle");
-    Ok((stop_handle, handle))
-}
-
-async fn wait_for_shutdown(
-    stop_handle: Arc<Notify>,
-    handle: NymVpnHandle,
-) -> crate::error::Result<()> {
-    let NymVpnHandle {
-        vpn_ctrl_tx,
-        vpn_status_rx,
-        vpn_exit_rx,
-    } = handle;
-
-    RUNTIME.spawn(async move {
-        stop_handle.notified().await;
-        vpn_ctrl_tx.send(NymVpnCtrlMessage::Stop)
-    });
-
-    RUNTIME.spawn(async move {
-        VpnServiceStatusListener::new().start(vpn_status_rx).await;
-    });
-
-    match vpn_exit_rx
-        .await
-        .map_err(|_| crate::Error::NymVpnExitUnexpectedChannelClose)?
-    {
-        NymVpnExitStatusMessage::Failed(error) => {
-            debug!("received exit status message for vpn");
-            RUNNING.store(false, Ordering::Relaxed);
-            uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failure {
-                error: VpnError::InternalError {
-                    details: error.to_string(),
-                },
-            }));
-            error!("Stopped Nym VPN with error: {:?}", error);
-        }
-        NymVpnExitStatusMessage::Stopped => {
-            uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Stopped));
-            debug!("Stopped Nym VPN")
-        }
-    }
-    Ok(())
-}
-
-#[derive(uniffi::Record)]
-pub struct VPNConfig {
-    pub api_url: Url,
-    pub vpn_api_url: Option<Url>,
-    pub entry_gateway: EntryPoint,
-    pub exit_router: ExitPoint,
-    pub enable_two_hop: bool,
-    #[cfg(target_os = "android")]
-    pub tun_provider: Arc<dyn AndroidTunProvider>,
-    #[cfg(target_os = "ios")]
-    pub tun_provider: Arc<dyn OSTunProvider>,
-    pub credential_data_path: Option<PathBuf>,
-    pub tun_status_listener: Option<Arc<dyn TunnelStatusListener>>,
-}
-
-fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, VpnError> {
-    let mut vpn = NymVpn::new_mixnet_vpn(
-        config.entry_gateway.into(),
-        config.exit_router.into(),
-        #[cfg(target_os = "android")]
-        config.tun_provider,
-        #[cfg(target_os = "ios")]
-        config.tun_provider,
-    );
-    debug!("Created new mixnet vpn");
-    vpn.generic_config.gateway_config.api_url = config.api_url;
-    vpn.generic_config.gateway_config.nym_vpn_api_url = config.vpn_api_url;
-    vpn.generic_config
-        .data_path
-        .clone_from(&config.credential_data_path);
-    Ok(vpn)
+    static ref STATE_MACHINE_HANDLE: Mutex<Option<StateMachineHandle>> = Mutex::new(None);
 }
 
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn startVPN(config: VPNConfig) -> Result<(), VpnError> {
-    if RUNNING.fetch_or(true, Ordering::Relaxed) {
-        tracing::warn!("VPN already running");
-        return Ok(());
-    }
+    RUNTIME.block_on(start_vpn_inner(config))
+}
 
-    LISTENER
-        .lock()
-        .unwrap()
-        .clone_from(&config.tun_status_listener);
+async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
+    let mut guard = STATE_MACHINE_HANDLE.lock().await;
 
-    uniffi_set_listener_status(StatusEvent::Tun(TunStatus::InitializingClient));
-
-    if config.enable_two_hop {
-        RUNTIME.block_on(async move {
-            tracing::debug!("Starting VPN tunnel...");
-
-            let shutdown_token = CancellationToken::new();
-            let _clone_shutdown_token = shutdown_token.clone();
-            let _clone_shutdown_token2 = shutdown_token.clone();
-
-            let join_handle = tokio::spawn(async move {
-                #[cfg(any(target_os = "android", target_os = "ios"))]
-                match WgTunnelRunner::new(config, _clone_shutdown_token) {
-                    Ok(tun_runner) => match tun_runner.start().await {
-                        Ok(_) => {
-                            tracing::debug!("Tunnel runner exited.");
-                            uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Stopped));
-                        }
-                        Err(e) => {
-                            tracing::error!("Tunnel runner exited with error: {}", e);
-                            uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failure {
-                                error: e.into(),
-                            }));
-                        }
-                    },
-                    Err(e) => {
-                        tracing::error!("Failed to create the tunnel runner: {}", e);
-                        uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failure {
-                            error: e.into(),
-                        }));
-                    }
-                }
-
-                RUNNING.store(false, Ordering::Relaxed);
-                reset_shutdown_handle().await;
-            });
-
-            let shutdown_handle = ShutdownHandle::CancellationToken {
-                join_handle,
-                shutdown_token,
-            };
-            if let Err(e) = set_shutdown_handle(shutdown_handle).await {
-                tracing::error!("Failed to set shutdown handle: {}", e);
-                _clone_shutdown_token2.cancel();
-                uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failure { error: e }));
-            }
-        });
+    if guard.is_none() {
+        let state_machine_handle = start_state_machine(config).await?;
+        state_machine_handle.send_command(TunnelCommand::Connect);
+        *guard = Some(state_machine_handle);
         Ok(())
     } else {
-        let vpn = sync_run_vpn(config);
-        match vpn {
-            Ok(vpn) => {
-                let ret = RUNTIME.block_on(run_vpn(vpn.into()));
-                if let Some(error) = ret.err() {
-                    error!("Error running VPN {error}");
-                    uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failure { error }));
-                    RUNNING.store(false, Ordering::Relaxed);
-                }
-            }
-            Err(e) => {
-                error!("Err creating VPN {e}");
-                uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failure { error: e }));
-                RUNNING.store(false, Ordering::Relaxed);
-            }
+        Err(VpnError::InvalidStateError {
+            details: "State machine is already running.".to_owned(),
+        })
+    }
+}
+
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn stopVPN() -> Result<(), VpnError> {
+    RUNTIME.block_on(stop_vpn_inner())
+}
+
+async fn stop_vpn_inner() -> Result<(), VpnError> {
+    let mut guard = STATE_MACHINE_HANDLE.lock().await;
+
+    match guard.take() {
+        Some(state_machine_handle) => {
+            state_machine_handle.shutdown_and_wait().await;
+            Ok(())
         }
-        Ok(())
+        None => Err(VpnError::InvalidStateError {
+            details: "State machine is not running.".to_owned(),
+        }),
     }
 }
 
@@ -466,53 +254,6 @@ async fn check_credential_string(credential: &str) -> Result<Option<SystemTime>,
         })
 }
 
-async fn run_vpn(vpn: SpecificVpn) -> Result<(), VpnError> {
-    match _async_run_vpn(vpn).await {
-        Err(err) => {
-            debug!("Stopping and resetting shutdown handle");
-            reset_shutdown_handle().await;
-            RUNNING.store(false, Ordering::Relaxed);
-            error!("Could not start the VPN: {:?}", err);
-            uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failure { error: err }));
-            Ok(())
-        }
-        Ok((stop_handle, handle)) => {
-            debug!("Spawning wait for shutdown");
-            RUNTIME.spawn(async move {
-                wait_for_shutdown(stop_handle.clone(), handle)
-                    .await
-                    .map_err(|err| {
-                        warn!("error during vpn run: {}", err);
-                    })
-                    .ok();
-                stop_handle.notify_one();
-            });
-            Ok(())
-        }
-    }
-}
-
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn stopVPN() -> Result<(), VpnError> {
-    if !RUNNING.fetch_and(false, Ordering::Relaxed) {
-        return Err(VpnError::InvalidStateError {
-            details: "Vpn not started".to_string(),
-        });
-    }
-    uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Disconnecting));
-    debug!("Stopping VPN");
-
-    RUNTIME.block_on(stop_vpn())?;
-
-    Ok(())
-}
-
-async fn stop_vpn() -> Result<(), VpnError> {
-    debug!("Resetting shutdown handle");
-    stop_and_reset_shutdown_handle().await
-}
-
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn getGatewayCountries(
@@ -594,11 +335,130 @@ async fn get_low_latency_entry_country(
         .map(Location::from)
 }
 
+#[deprecated]
+pub(crate) fn uniffi_set_listener_status(_status: StatusEvent) {
+    // TODO: pass events via tunnel state machine event broadcast
+}
+
+#[derive(uniffi::Record)]
+pub struct VPNConfig {
+    pub api_url: Url,
+    pub vpn_api_url: Option<Url>,
+    pub entry_gateway: EntryPoint,
+    pub exit_router: ExitPoint,
+    pub enable_two_hop: bool,
+    #[cfg(target_os = "android")]
+    pub tun_provider: Arc<dyn AndroidTunProvider>,
+    #[cfg(target_os = "ios")]
+    pub tun_provider: Arc<dyn OSTunProvider>,
+    pub credential_data_path: Option<PathBuf>,
+    pub tun_status_listener: Option<Arc<dyn TunnelStatusListener>>,
+}
+
 #[uniffi::export(with_foreign)]
 pub trait TunnelStatusListener: Send + Sync {
+    fn on_event(&self, event: TunnelEvent);
     fn on_tun_status_change(&self, status: TunStatus);
     fn on_bandwidth_status_change(&self, status: BandwidthStatus);
     fn on_connection_status_change(&self, status: ConnectionStatus);
     fn on_nym_vpn_status_change(&self, status: NymVpnStatus);
     fn on_exit_status_change(&self, status: ExitStatus);
+}
+
+struct StateMachineHandle {
+    state_machine_handle: JoinHandle<()>,
+    event_broadcaster_handler: JoinHandle<()>,
+    command_sender: mpsc::UnboundedSender<TunnelCommand>,
+    shutdown_token: CancellationToken,
+}
+
+impl StateMachineHandle {
+    fn send_command(&self, command: TunnelCommand) {
+        if let Err(e) = self.command_sender.send(command) {
+            tracing::error!("Failed to send comamnd: {}", e);
+        }
+    }
+
+    async fn shutdown_and_wait(self) {
+        self.shutdown_token.cancel();
+
+        if let Err(e) = self.state_machine_handle.await {
+            tracing::error!("Failed to join on state machine handle: {}", e);
+        }
+
+        if let Err(e) = self.event_broadcaster_handler.await {
+            tracing::error!("Failed to join on event broadcaster handle: {}", e);
+        }
+    }
+}
+
+async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, VpnError> {
+    let mut gateway_config = GatewayDirectoryConfig::default();
+    gateway_config.api_url = config.api_url;
+    gateway_config.nym_vpn_api_url = config.vpn_api_url;
+
+    let generic_config = GenericNymVpnConfig {
+        data_path: config.credential_data_path,
+        mixnet_client_config: if config.enable_two_hop {
+            MixnetClientConfig::wireguard_default()
+        } else {
+            MixnetClientConfig::mixnet_default()
+        },
+        entry_point: nym_gateway_directory::EntryPoint::from(config.entry_gateway),
+        exit_point: nym_gateway_directory::ExitPoint::from(config.exit_router),
+        dns: None,
+        gateway_config,
+        nym_ips: None,
+        nym_mtu: None,
+        disable_routing: false,
+        user_agent: None,
+    };
+
+    let (command_sender, command_receiver) = mpsc::unbounded_channel();
+    let (event_sender, mut event_receiver) = mpsc::unbounded_channel();
+
+    let state_listener = config.tun_status_listener;
+    let event_broadcaster_handler = tokio::spawn(async move {
+        while let Some(event) = event_receiver.recv().await {
+            if let Some(ref state_listener) = state_listener {
+                // todo: done this way for compatibility. New code should use on_event() instead.
+                match event {
+                    TunnelEvent::NewState(ref state) => {
+                        (*state_listener).on_tun_status_change(TunStatus::from(state));
+                    }
+                }
+                (*state_listener).on_event(event);
+            }
+        }
+    });
+
+    let shutdown_token = CancellationToken::new();
+    let state_machine_handle = TunnelStateMachine::spawn(
+        command_receiver,
+        event_sender,
+        generic_config,
+        config.enable_two_hop,
+        shutdown_token.child_token(),
+    )
+    .await?;
+
+    Ok(StateMachineHandle {
+        state_machine_handle,
+        event_broadcaster_handler,
+        command_sender,
+        shutdown_token,
+    })
+}
+
+impl From<&TunnelState> for TunStatus {
+    fn from(value: &TunnelState) -> Self {
+        // TODO: this cannot be accurate so we must switch frontends to use TunnelState instead! But for now that will do.
+        match value {
+            TunnelState::Connecting => Self::EstablishingConnection,
+            TunnelState::Connected => Self::Up,
+            TunnelState::Disconnecting { .. } => Self::Disconnecting,
+            TunnelState::Disconnected => Self::Down,
+            TunnelState::Error(_) => Self::Down,
+        }
+    }
 }

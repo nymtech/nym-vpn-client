@@ -31,7 +31,7 @@ netlink-sys = "0.8.3"
 nix = { version = "0.28", features = ["socket", "fs", "net"] }
 libc = "0.2"
 bitflags = "2"
-system-configuration = "0.5.1"
+system-configuration.workspace = true
 
 
 [target.'cfg(windows)'.dependencies]

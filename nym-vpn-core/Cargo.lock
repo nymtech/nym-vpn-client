@@ -4293,7 +4293,7 @@ dependencies = [
  "nym-common",
  "nym-windows",
  "rtnetlink",
- "system-configuration 0.5.1",
+ "system-configuration 0.6.1",
  "thiserror",
  "tokio",
  "widestring",

@@ -42,7 +42,7 @@ pub enum TunnelCommand {
     Disconnect,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq, uniffi::Enum)]
 pub enum TunnelState {
     Disconnected,
     Connecting,
@@ -53,14 +53,14 @@ pub enum TunnelState {
     Error(ErrorStateReason),
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, uniffi::Enum)]
 pub enum ActionAfterDisconnect {
     Nothing,
     Reconnect,
     Error(ErrorStateReason),
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, uniffi::Enum)]
 pub enum ErrorStateReason {
     /// Issues related to firewall configuration.
     Firewall,
@@ -87,7 +87,7 @@ pub enum ErrorStateReason {
     Internal,
 }
 
-#[derive(Debug)]
+#[derive(Debug, uniffi::Enum)]
 pub enum TunnelEvent {
     NewState(TunnelState),
 }
@@ -163,7 +163,7 @@ impl TunnelStateMachine {
                 NextTunnelState::NewState((new_state_handler, new_state)) => {
                     self.current_state_handler = new_state_handler;
 
-                    log::debug!("New tunnel state: {:?}", new_state);
+                    tracing::debug!("New tunnel state: {:?}", new_state);
                     let _ = self.event_sender.send(TunnelEvent::NewState(new_state));
                 }
                 NextTunnelState::SameState(same_state) => {
@@ -173,7 +173,7 @@ impl TunnelStateMachine {
             }
         }
 
-        log::debug!("Tunnel state machine is exiting...");
+        tracing::debug!("Tunnel state machine is exiting...");
         self.shared_state.route_handler.stop().await;
     }
 }

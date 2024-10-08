@@ -20,4 +20,4 @@ nym-routing = { path = "../nym-routing" }
 nym-common = { path = "../nym-common" }
 
 [target.'cfg(target_os = "macos")'.dependencies]
-system-configuration = { workspace = true }
+system-configuration.workspace = true
