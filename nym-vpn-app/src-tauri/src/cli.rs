@@ -8,6 +8,34 @@ use std::str::FromStr;
 use tauri::PackageInfo;
 use tracing::{error, info};
 
+#[cfg(all(not(debug_assertions), windows))]
+const CONSOLE_FLAGS: [&str; 8] = [
+    "-h",
+    "--help",
+    "-V",
+    "--version",
+    "-b",
+    "--build-info",
+    "help",
+    "db",
+];
+
+/// In release mode on Windows the app is configured as a GUI app so
+/// Windows won't attach a console window to it. In order to see
+/// output of CLI arguments like `help` or `version` this function
+/// attaches a console to the parent process when needed.
+// see https://github.com/tauri-apps/tauri/issues/8305#issuecomment-1826871949
+#[cfg(all(not(debug_assertions), windows))]
+pub fn attach_console() {
+    if std::env::args().any(|arg| CONSOLE_FLAGS.contains(&arg.as_str())) {
+        {
+            use windows::Win32::System::Console::{AttachConsole, ATTACH_PARENT_PROCESS};
+            let _ = unsafe { AttachConsole(ATTACH_PARENT_PROCESS) };
+            println!();
+        }
+    }
+}
+
 #[derive(Parser, Serialize, Deserialize, Debug, Clone)]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
@@ -39,8 +67,9 @@ pub struct Cli {
     #[arg(short, long)]
     pub log_file: bool,
 
-    /// Open a console to see the log stream (Windows only)
+    /// Open a console to see the logs
     #[arg(short, long)]
+    #[cfg(windows)]
     pub console: bool,
 
     /// Disable the splash-screen

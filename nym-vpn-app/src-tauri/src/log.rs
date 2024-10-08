@@ -2,6 +2,8 @@ use std::{fs, path::PathBuf};
 
 use crate::envi;
 use crate::fs::path::APP_LOG_DIR;
+use crate::Cli;
+
 use anyhow::{anyhow, Result};
 use tracing::{debug, info};
 use tracing_appender::{non_blocking::WorkerGuard, rolling};
@@ -28,14 +30,14 @@ fn rotate_log_file(log_dir: PathBuf) -> Result<Option<PathBuf>> {
     Ok(None)
 }
 
-pub async fn setup_tracing(log_file: bool) -> Result<Option<WorkerGuard>> {
+pub async fn setup_tracing(cli: &Cli) -> Result<Option<WorkerGuard>> {
     let filter = EnvFilter::builder()
         .with_default_directive(LevelFilter::INFO.into())
         .from_env()?
         .add_directive("hyper::proto=info".parse()?)
         .add_directive("netlink_proto=info".parse()?);
 
-    if log_file || envi::is_truthy(ENV_LOG_FILE) {
+    if cli.log_file || envi::is_truthy(ENV_LOG_FILE) {
         let log_dir = APP_LOG_DIR
             .clone()
             .ok_or(anyhow!("failed to get log dir"))?;
@@ -58,9 +60,14 @@ pub async fn setup_tracing(log_file: bool) -> Result<Option<WorkerGuard>> {
         info!("logging to file: {}", log_file.display());
         Ok(Some(guard))
     } else {
+        #[cfg(windows)]
+        let disable_ansi = cli.console;
+        #[cfg(not(windows))]
+        let disable_ansi = false;
         tracing_subscriber::fmt()
             .with_env_filter(filter)
             .compact()
+            .with_ansi(!disable_ansi)
             .init();
         Ok(None)
     }

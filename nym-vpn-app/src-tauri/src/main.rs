@@ -64,10 +64,13 @@ build_info::build_info!(fn build_info);
 #[tokio::main]
 async fn main() -> Result<()> {
     dotenvy::dotenv().ok();
+
+    #[cfg(all(not(debug_assertions), windows))]
+    cli::attach_console();
+
     // parse the command line arguments
     let cli = Cli::parse();
-
-    let _guard = log::setup_tracing(cli.log_file).await?;
+    let _guard = log::setup_tracing(&cli).await?;
     trace!("cli args: {:#?}", cli);
 
     #[cfg(windows)]
@@ -78,7 +81,6 @@ async fn main() -> Result<()> {
 
     let context = tauri::generate_context!();
     let pkg_info = context.package_info();
-    info!("app version: {}", pkg_info.version);
 
     if cli.build_info {
         print_build_info(pkg_info);
@@ -89,6 +91,7 @@ async fn main() -> Result<()> {
         return db_command(cmd);
     }
 
+    info!("app version: {}", pkg_info.version);
     info!("Starting tauri app");
     tauri::Builder::default()
         .plugin(tauri_plugin_clipboard_manager::init())
