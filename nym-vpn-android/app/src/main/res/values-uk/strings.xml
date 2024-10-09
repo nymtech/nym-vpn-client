@@ -154,7 +154,7 @@
     <string name="no">Ні</string>
     <string name="yes">Так</string>
     <string name="gateway_error">Не вдалося підключитися до шлюзу. Спробуйте ще раз або виберіть нове розташування шлюзу.</string>
-    <string name="state_error">"Цього не повинно статись, але сталась помилка. Будь ласка, перезапустіть програму і спробуйте ще раз. "</string>
+    <string name="state_error">"Цього не повинно статися, але було досягнуто поганого стану. Будь ласка, перезапустіть програму і спробуйте ще раз. "</string>
     <string name="vpn_alerts_channel_id">Канал сповіщень NymVPN</string>
     <string name="vpn_alerts_channel_description">Канал для сповіщень про тривоги, пов\'язані з додатками.</string>
     <string name="bandwidth_alert">Попередження про пропускну здатність</string>
