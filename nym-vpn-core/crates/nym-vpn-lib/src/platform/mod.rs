@@ -22,6 +22,7 @@ use std::{
 
 use lazy_static::lazy_static;
 use log::*;
+use nym_vpn_api_client::types::VpnApiAccount;
 use nym_vpn_store::mnemonic::MnemonicStorage as _;
 use talpid_core::mpsc::Sender;
 use tokio::{
@@ -410,6 +411,44 @@ async fn remove_account_mnemonic(path: &str) -> Result<bool, VpnError> {
         .map(|_| true)
         .map_err(|err| VpnError::InternalError {
             details: err.to_string(),
+        })
+}
+
+#[allow(non_snake_case)]
+pub fn getAccountSummary(
+    path: String,
+    nym_vpn_api_url: Url,
+    user_agent: UserAgent,
+) -> Result<String, VpnError> {
+    RUNTIME.block_on(get_account_summary(path, nym_vpn_api_url, user_agent))
+}
+
+async fn get_account_summary(
+    path: String,
+    nym_vpn_api_url: Url,
+    user_agent: UserAgent,
+) -> Result<String, VpnError> {
+    let storage = setup_account_storage(&path)?;
+    let account = storage
+        .load_mnemonic()
+        .await
+        .map(VpnApiAccount::from)
+        .map_err(|err| VpnError::InternalError {
+            details: err.to_string(),
+        })?;
+
+    let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent.into())?;
+
+    api_client
+        .get_account_summary(&account)
+        .await
+        .map_err(|err| VpnError::InternalError {
+            details: err.to_string(),
+        })
+        .and_then(|summary| {
+            serde_json::to_string(&summary).map_err(|err| VpnError::InternalError {
+                details: err.to_string(),
+            })
         })
 }
 
