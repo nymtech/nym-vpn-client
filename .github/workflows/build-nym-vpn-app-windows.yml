@@ -211,14 +211,14 @@ jobs:
       - name: Move things around to prepare for upload
         shell: bash
         env:
-          WINDOWS_BUILT_NAME: ${{ env.TAURI_SRC }}/target/release/bundle/nsis/nym-vpn_${{ steps.package-version.outputs.metadata }}_x64-setup.nsis.zip
+          WINDOWS_BUILT_NAME: ${{ env.TAURI_SRC }}/target/release/bundle/nsis/NymVPN_${{ steps.package-version.outputs.metadata }}_x64-setup.nsis.zip
           WINDOWS_UPDATER_NAME: updater_windows_x64.nsis.zip
-          BINARY: ${{ env.TAURI_SRC }}/target/release/bundle/nsis/nym-vpn_${{ steps.package-version.outputs.metadata }}_x64-setup.exe
+          SETUP_EXE: ${{ env.TAURI_SRC }}/target/release/bundle/nsis/NymVPN_${{ steps.package-version.outputs.metadata }}_x64-setup.exe
         run: |
           echo "moving binaries into ${{ env.UPLOAD_DIR_WINDOWS }}"
           rm -rf ${{ env.UPLOAD_DIR_WINDOWS }} || true
           mkdir ${{ env.UPLOAD_DIR_WINDOWS }}
-          cp -vpr '${{ env.BINARY }}' ${{ env.UPLOAD_DIR_WINDOWS }}/
+          cp -vpr '${{ env.SETUP_EXE }}' ${{ env.UPLOAD_DIR_WINDOWS }}/
           #cp -vpr '${{ env.WINDOWS_BUILT_NAME }}'     ${{ env.UPLOAD_DIR_WINDOWS }}/${WINDOWS_UPDATER_NAME}
           #cp -vpr '${{ env.WINDOWS_BUILT_NAME }}.sig' ${{ env.UPLOAD_DIR_WINDOWS }}/${WINDOWS_UPDATER_NAME}.sig
 
