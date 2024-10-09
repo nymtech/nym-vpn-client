@@ -4350,7 +4350,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "widestring",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -5104,7 +5104,7 @@ dependencies = [
  "nym-common",
  "socket2",
  "thiserror",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]

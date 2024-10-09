@@ -115,7 +115,7 @@ url = "2.5"
 vergen = { version = "8.3.1", default-features = false }
 x25519-dalek = "2.0"
 zeroize = "1.6.0"
-windows-sys = "0.59"
+windows-sys = "0.52"
 
 nym-authenticator-requests = { git = "https://github.com/nymtech/nym", rev = "fabd48b" }
 nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", rev = "fabd48b" }
