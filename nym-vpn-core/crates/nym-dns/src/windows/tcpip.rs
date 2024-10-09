@@ -1,8 +1,6 @@
-use crate::dns::{DnsMonitorT, ResolvedDnsConfig};
-use nym_common::{
-    net::{guid_from_luid, luid_from_alias},
-    ErrorExt,
-};
+use crate::{DnsMonitorT, ResolvedDnsConfig};
+use nym_common::ErrorExt;
+use nym_windows::net::{guid_from_luid, luid_from_alias};
 use std::{io, net::IpAddr};
 use windows_sys::{core::GUID, Win32::System::Com::StringFromGUID2};
 use winreg::{

@@ -12,3 +12,9 @@ log = { workspace = true }
 [target.'cfg(target_os = "linux")'.dependencies]
 libc = "0.2"
 thiserror.workspace = true
+
+[target.'cfg(windows)'.dependencies.windows-sys]
+workspace = true
+features = [
+    "Win32_Foundation",
+]

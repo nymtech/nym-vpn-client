@@ -3,7 +3,7 @@
 //! it requires at least Windows 10, build 19041. For that reason, use run-time linking and fall
 //! back on other methods if it is not available.
 
-use crate::dns::{DnsMonitorT, ResolvedDnsConfig};
+use crate::{DnsMonitorT, ResolvedDnsConfig};
 use nym_common::win32_err;
 use nym_windows::net::{guid_from_luid, luid_from_alias};
 use once_cell::sync::OnceCell;

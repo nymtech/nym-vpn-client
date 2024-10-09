@@ -1,5 +1,5 @@
-use crate::dns::{DnsMonitorT, ResolvedDnsConfig};
-use nym_common::{net::IpVersion, ErrorExt};
+use crate::{DnsMonitorT, ResolvedDnsConfig};
+use nym_common::ErrorExt;
 use nym_windows::net::{index_from_luid, luid_from_alias};
 use std::{
     ffi::OsString,
@@ -215,4 +215,10 @@ fn get_system_dir() -> io::Result<PathBuf> {
     Ok(PathBuf::from(OsString::from_wide(
         &sysdir[0..(len as usize)],
     )))
+}
+
+/// IP protocol version.
+enum IpVersion {
+    V4,
+    V6,
 }
