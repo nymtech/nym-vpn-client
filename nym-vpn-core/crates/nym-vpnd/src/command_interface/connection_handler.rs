@@ -181,6 +181,16 @@ impl CommandInterfaceConnectionHandler {
         result
     }
 
+    pub(crate) async fn handle_remove_account(&self) -> Result<(), AccountError> {
+        let (tx, rx) = oneshot::channel();
+        self.vpn_command_tx
+            .send(VpnServiceCommand::RemoveAccount(tx))
+            .unwrap();
+        let result = rx.await.unwrap();
+        debug!("VPN remove account result: {:?}", result);
+        result
+    }
+
     pub(crate) async fn handle_get_account_summary(
         &self,
     ) -> Result<NymVpnAccountSummaryResponse, AccountError> {

@@ -390,9 +390,8 @@ pub fn isAccountMnemonicStored(path: String) -> Result<bool, VpnError> {
 async fn is_account_mnemonic_stored(path: &str) -> Result<bool, VpnError> {
     let storage = setup_account_storage(path)?;
     storage
-        .load_mnemonic()
+        .is_mnemonic_stored()
         .await
-        .map(|_| true)
         .map_err(|err| VpnError::InternalError {
             details: err.to_string(),
         })
@@ -403,9 +402,15 @@ pub fn removeAccountMnemonic(path: String) -> Result<bool, VpnError> {
     RUNTIME.block_on(remove_account_mnemonic(&path))
 }
 
-async fn remove_account_mnemonic(_path: &str) -> Result<bool, VpnError> {
-    // This is not yet available in the vpn store API
-    todo!();
+async fn remove_account_mnemonic(path: &str) -> Result<bool, VpnError> {
+    let storage = setup_account_storage(path)?;
+    storage
+        .remove_mnemonic()
+        .await
+        .map(|_| true)
+        .map_err(|err| VpnError::InternalError {
+            details: err.to_string(),
+        })
 }
 
 #[allow(non_snake_case)]

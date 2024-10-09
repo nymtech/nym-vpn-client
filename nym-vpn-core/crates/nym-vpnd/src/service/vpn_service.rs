@@ -139,6 +139,7 @@ pub enum VpnServiceCommand {
         Vec<u8>,
     ),
     StoreAccount(oneshot::Sender<Result<(), AccountError>>, String),
+    RemoveAccount(oneshot::Sender<Result<(), AccountError>>),
     GetAccountSummary(oneshot::Sender<Result<NymVpnAccountSummaryResponse, AccountError>>),
     GetDevices(oneshot::Sender<Result<NymVpnDevicesResponse, AccountError>>),
     RegisterDevice(oneshot::Sender<Result<NymVpnDevice, AccountError>>),
@@ -163,6 +164,7 @@ impl fmt::Display for VpnServiceCommand {
             VpnServiceCommand::Info(_) => write!(f, "Info"),
             VpnServiceCommand::ImportCredential(_, _) => write!(f, "ImportCredential"),
             VpnServiceCommand::StoreAccount(_, _) => write!(f, "StoreAccount"),
+            VpnServiceCommand::RemoveAccount(_) => write!(f, "RemoveAccount"),
             VpnServiceCommand::GetAccountSummary(_) => write!(f, "GetAccountSummery"),
             VpnServiceCommand::GetDevices(_) => write!(f, "GetDevices"),
             VpnServiceCommand::RegisterDevice(_) => write!(f, "RegisterDevice"),
@@ -667,6 +669,18 @@ where
             })
     }
 
+    async fn handle_remove_account(&mut self) -> Result<(), AccountError>
+    where
+        <S as nym_vpn_store::mnemonic::MnemonicStorage>::StorageError: Sync + Send + 'static,
+    {
+        self.storage
+            .remove_mnemonic()
+            .await
+            .map_err(|err| AccountError::FailedToRemoveAccount {
+                source: Box::new(err),
+            })
+    }
+
     async fn load_account(&self) -> Result<VpnApiAccount, AccountError>
     where
         <S as nym_vpn_store::mnemonic::MnemonicStorage>::StorageError: Sync + Send + 'static,
@@ -866,6 +880,10 @@ where
                 }
                 VpnServiceCommand::StoreAccount(tx, account) => {
                     let result = self.handle_store_account(account).await;
+                    tx.send(result).unwrap();
+                }
+                VpnServiceCommand::RemoveAccount(tx) => {
+                    let result = self.handle_remove_account().await;
                     tx.send(result).unwrap();
                 }
                 VpnServiceCommand::GetAccountSummary(tx) => {

@@ -19,6 +19,14 @@ pub trait MnemonicStorage {
 
     #[allow(async_fn_in_trait)]
     async fn store_mnemonic(&self, mnemonic: Mnemonic) -> Result<(), Self::StorageError>;
+
+    #[allow(async_fn_in_trait)]
+    async fn remove_mnemonic(&self) -> Result<(), Self::StorageError>;
+
+    #[allow(async_fn_in_trait)]
+    async fn is_mnemonic_stored(&self) -> Result<bool, Self::StorageError> {
+        self.load_mnemonic().await.map(|_| true).or(Ok(false))
+    }
 }
 
 #[derive(Serialize, Deserialize, Zeroize, ZeroizeOnDrop)]

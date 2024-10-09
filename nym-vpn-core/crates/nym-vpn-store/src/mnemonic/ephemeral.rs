@@ -60,6 +60,17 @@ impl MnemonicStorage for InMemoryMnemonicStorage {
             .map(|stored| stored.mnemonic.clone())
             .ok_or(InMemoryMnemonicStorageError::NoMnemonicStored)
     }
+
+    async fn remove_mnemonic(&self) -> Result<(), InMemoryMnemonicStorageError> {
+        let mut handle = self.mnemonic.lock().await;
+
+        if handle.is_some() {
+            *handle = None;
+            Ok(())
+        } else {
+            Err(InMemoryMnemonicStorageError::NoMnemonicStored)
+        }
+    }
 }
 
 #[cfg(test)]
