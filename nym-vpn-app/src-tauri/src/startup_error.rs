@@ -50,8 +50,10 @@ struct WinSizes {
     max: (f64, f64),
 }
 
+// NOTE: the error window is created here but frontend is
+// responsible for showing it
 #[instrument(skip(app))]
-pub fn show_window(app: &AppHandle) -> Result<()> {
+pub fn create_window(app: &AppHandle) -> Result<()> {
     info!("hide the main window");
     let main_win = app.get_webview_window(MAIN_WINDOW_LABEL).unwrap();
     main_win

@@ -110,7 +110,7 @@ async fn main() -> Result<()> {
             let Ok(db) = Db::new().inspect_err(|e| {
                 startup_error::set_error(ErrorKey::from(e), Some(&e.to_string()));
             }) else {
-                startup_error::show_window(app.handle())?;
+                startup_error::create_window(app.handle())?;
                 return Ok(());
             };
             app.manage(db.clone());
