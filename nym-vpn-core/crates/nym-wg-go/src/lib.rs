@@ -22,7 +22,11 @@ pub enum Error {
     SocketAddrToCstr,
 
     #[error("config contains nul byte")]
-    ConfigContainsNulByte,
+    ConfigContainsNulByte,    
+    
+    #[cfg(target_os = "windows")]
+    #[error("interface name contains nul byte")]
+    InterfaceNameContainsNulByte,
 
     #[error("failed to start the tunnel (code: {})", _0)]
     StartTunnel(i32),
