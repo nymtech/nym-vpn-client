@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 const MAX_PROBE_RESULT_AGE_MINUTES: i64 = 60;
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct NymVpnAccountResponse {
     pub created_on_utc: String,
     pub last_updated_utc: String,
@@ -16,7 +16,7 @@ pub struct NymVpnAccountResponse {
     pub status: NymVpnAccountStatusResponse,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum NymVpnAccountStatusResponse {
     Active,
@@ -24,7 +24,7 @@ pub enum NymVpnAccountStatusResponse {
     DeleteMe,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct NymVpnAccountSummaryResponse {
     pub account: NymVpnAccountResponse,
@@ -33,14 +33,14 @@ pub struct NymVpnAccountSummaryResponse {
     pub fair_usage: NymVpnAccountSummaryFairUsage,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct NymVpnAccountSummarySubscription {
     pub is_active: bool,
     pub active: Option<NymVpnSubscription>,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct NymVpnAccountSummaryDevices {
     pub active: u64,
@@ -48,7 +48,7 @@ pub struct NymVpnAccountSummaryDevices {
     pub remaining: u64,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct NymVpnAccountSummaryFairUsage {
     pub used_gb: Option<f64>,
@@ -56,15 +56,15 @@ pub struct NymVpnAccountSummaryFairUsage {
     pub resets_on_utc: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct NymVpnDevice {
     pub created_on_utc: String,
     pub last_updated_utc: String,
     pub device_identity_key: String,
-    pub status: String,
+    pub status: NymVpnDeviceStatus,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum NymVpnDeviceStatus {
     Active,
@@ -72,7 +72,7 @@ pub enum NymVpnDeviceStatus {
     DeleteMe,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct NymVpnDevicesResponse {
     pub total_items: u64,
@@ -81,7 +81,7 @@ pub struct NymVpnDevicesResponse {
     pub items: Vec<NymVpnDevice>,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct NymVpnRefundsResponse {
     pub total_items: u64,
@@ -90,7 +90,7 @@ pub struct NymVpnRefundsResponse {
     pub items: Vec<NymVpnRefund>,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct NymVpnRefund {
     pub created_on_utc: String,
     pub last_updated_utc: String,
@@ -100,7 +100,7 @@ pub struct NymVpnRefund {
     pub data: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum NymVpnRefundStatus {
     Pending,
@@ -108,7 +108,7 @@ pub enum NymVpnRefundStatus {
     Rejected,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum NymVpnRefundUserReason {
     SubscriptionInError,
@@ -116,7 +116,7 @@ pub enum NymVpnRefundUserReason {
     Other,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct NymVpnZkNym {
     pub created_on_utc: String,
     pub last_updated_utc: String,
@@ -128,7 +128,7 @@ pub struct NymVpnZkNym {
     pub status: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum NymVpnZkNymStatus {
     Pending,
@@ -138,7 +138,7 @@ pub enum NymVpnZkNymStatus {
     Error,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct NymVpnZkNymResponse {
     pub total_items: u64,
@@ -147,7 +147,7 @@ pub struct NymVpnZkNymResponse {
     pub items: Vec<NymVpnZkNym>,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct NymVpnSubscription {
     pub created_on_utc: String,
     pub last_updated_utc: String,
@@ -158,7 +158,7 @@ pub struct NymVpnSubscription {
     pub kind: NymVpnSubscriptionKind,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum NymVpnSubscriptionStatus {
     Pending,
@@ -166,7 +166,7 @@ pub enum NymVpnSubscriptionStatus {
     Active,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum NymVpnSubscriptionKind {
     OneMonth,
@@ -174,7 +174,7 @@ pub enum NymVpnSubscriptionKind {
     TwoYears,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct NymVpnSubscriptionResponse {
     pub is_subscription_active: bool,
@@ -182,7 +182,7 @@ pub struct NymVpnSubscriptionResponse {
     pub remaining_allowance_in_gb: f64,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct NymVpnSubscriptionsResponse {
     pub total_items: u64,

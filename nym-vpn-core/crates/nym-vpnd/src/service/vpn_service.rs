@@ -30,8 +30,11 @@ use nym_vpn_store::keys::KeyStore as _;
 use serde::{Deserialize, Serialize};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use tokio::sync::{broadcast, mpsc::UnboundedReceiver, oneshot};
+use tokio_util::sync::CancellationToken;
 use tracing::{debug, error, info};
 use url::Url;
+
+use crate::account::{AccountCommand, AccountController, SharedAccountState};
 
 use super::{
     config::{
@@ -384,7 +387,11 @@ pub(crate) struct NymVpnService<S>
 where
     S: nym_vpn_store::VpnStorage,
 {
+    // The current state of the VPN service
     shared_vpn_state: SharedVpnState,
+
+    // The account state, updated by the account controller
+    shared_account_state: SharedAccountState,
 
     // Listen for commands from the command interface, like the grpc listener that listens user
     // commands.
@@ -393,18 +400,23 @@ where
     // Send commands to the actual vpn service task
     vpn_ctrl_sender: Option<UnboundedSender<nym_vpn_lib::NymVpnCtrlMessage>>,
 
+    #[allow(unused)]
+    // Send commands to the account controller
+    account_command_tx: tokio::sync::mpsc::UnboundedSender<AccountCommand>,
+
     config_file: PathBuf,
 
     data_dir: PathBuf,
 
     // Storage backend
-    storage: S,
+    storage: Arc<tokio::sync::Mutex<S>>,
 }
 
 impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
     pub(crate) fn new(
         vpn_state_changes_tx: broadcast::Sender<VpnServiceStateChange>,
         vpn_command_rx: UnboundedReceiver<VpnServiceCommand>,
+        cancel_token: CancellationToken,
     ) -> Self {
         let config_dir = std::env::var("NYM_VPND_CONFIG_DIR")
             .map(PathBuf::from)
@@ -413,11 +425,22 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         let data_dir = std::env::var("NYM_VPND_DATA_DIR")
             .map(PathBuf::from)
             .unwrap_or_else(|_| config::default_data_dir());
-        let storage = nym_vpn_lib::storage::VpnClientOnDiskStorage::new(data_dir.clone());
+
+        let storage = Arc::new(tokio::sync::Mutex::new(
+            nym_vpn_lib::storage::VpnClientOnDiskStorage::new(data_dir.clone()),
+        ));
+
+        let account_controller = AccountController::new(Arc::clone(&storage), cancel_token);
+        let shared_account_state = account_controller.shared_state();
+        let account_command_tx = account_controller.command_tx();
+        let _account_controller_handle = tokio::task::spawn(account_controller.run());
+
         Self {
             shared_vpn_state: SharedVpnState::new(vpn_state_changes_tx),
+            shared_account_state,
             vpn_command_rx,
             vpn_ctrl_sender: None,
+            account_command_tx,
             config_file,
             data_dir,
             storage,
@@ -432,7 +455,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         }
 
         // Generate the device keys if we don't already have them
-        if let Err(err) = self.storage.init_keys(None).await {
+        if let Err(err) = self.storage.lock().await.init_keys(None).await {
             self.shared_vpn_state.set(VpnState::NotConnected);
             return Err(ConfigSetupError::FailedToInitKeys { source: err });
         }
@@ -479,6 +502,10 @@ where
         connect_args: ConnectArgs,
         user_agent: nym_vpn_lib::UserAgent,
     ) -> VpnServiceConnectResult {
+        if !self.shared_account_state.is_ready_to_connect().await {
+            return VpnServiceConnectResult::Fail("not logged in with a valid account".to_string());
+        }
+
         self.shared_vpn_state.set(VpnState::Connecting);
 
         let ConnectArgs {
@@ -657,11 +684,10 @@ where
         res
     }
 
-    async fn handle_store_account(&mut self, account: String) -> Result<(), AccountError>
-    where
-        <S as nym_vpn_store::mnemonic::MnemonicStorage>::StorageError: Sync + Send + 'static,
-    {
+    async fn handle_store_account(&mut self, account: String) -> Result<(), AccountError> {
         self.storage
+            .lock()
+            .await
             .store_mnemonic(Mnemonic::parse(&account)?)
             .await
             .map_err(|err| AccountError::FailedToStoreAccount {
@@ -669,11 +695,10 @@ where
             })
     }
 
-    async fn handle_remove_account(&mut self) -> Result<(), AccountError>
-    where
-        <S as nym_vpn_store::mnemonic::MnemonicStorage>::StorageError: Sync + Send + 'static,
-    {
+    async fn handle_remove_account(&mut self) -> Result<(), AccountError> {
         self.storage
+            .lock()
+            .await
             .remove_mnemonic()
             .await
             .map_err(|err| AccountError::FailedToRemoveAccount {
@@ -681,11 +706,10 @@ where
             })
     }
 
-    async fn load_account(&self) -> Result<VpnApiAccount, AccountError>
-    where
-        <S as nym_vpn_store::mnemonic::MnemonicStorage>::StorageError: Sync + Send + 'static,
-    {
+    async fn load_account(&self) -> Result<VpnApiAccount, AccountError> {
         self.storage
+            .lock()
+            .await
             .load_mnemonic()
             .await
             .map_err(|err| AccountError::FailedToLoadAccount {
@@ -695,11 +719,10 @@ where
             .inspect(|account| tracing::info!("Loading account id: {}", account.id()))
     }
 
-    async fn load_device_keys(&self) -> Result<nym_vpn_store::keys::DeviceKeys, AccountError>
-    where
-        <S as nym_vpn_store::keys::KeyStore>::StorageError: Sync + Send + 'static,
-    {
+    async fn load_device_keys(&self) -> Result<nym_vpn_store::keys::DeviceKeys, AccountError> {
         self.storage
+            .lock()
+            .await
             .load_keys()
             .await
             .map_err(|err| AccountError::FailedToLoadKeys {
@@ -711,10 +734,9 @@ where
             })
     }
 
-    async fn handle_get_account_summary(&self) -> Result<NymVpnAccountSummaryResponse, AccountError>
-    where
-        <S as nym_vpn_store::mnemonic::MnemonicStorage>::StorageError: Sync + Send + 'static,
-    {
+    async fn handle_get_account_summary(
+        &self,
+    ) -> Result<NymVpnAccountSummaryResponse, AccountError> {
         // Get account
         let account = self.load_account().await?;
 
@@ -729,11 +751,7 @@ where
             .map_err(Into::into)
     }
 
-    async fn handle_get_devices(&self) -> Result<NymVpnDevicesResponse, AccountError>
-    where
-        <S as nym_vpn_store::mnemonic::MnemonicStorage>::StorageError: Sync + Send + 'static,
-        <S as nym_vpn_store::keys::KeyStore>::StorageError: Sync + Send + 'static,
-    {
+    async fn handle_get_devices(&self) -> Result<NymVpnDevicesResponse, AccountError> {
         // Get account
         let account = self.load_account().await?;
 
@@ -745,11 +763,7 @@ where
         api_client.get_devices(&account).await.map_err(Into::into)
     }
 
-    async fn handle_register_device(&self) -> Result<NymVpnDevice, AccountError>
-    where
-        <S as nym_vpn_store::mnemonic::MnemonicStorage>::StorageError: Sync + Send + 'static,
-        <S as nym_vpn_store::keys::KeyStore>::StorageError: Sync + Send + 'static,
-    {
+    async fn handle_register_device(&self) -> Result<NymVpnDevice, AccountError> {
         // Get account
         let account = self.load_account().await?;
 
@@ -768,10 +782,7 @@ where
             .map_err(Into::into)
     }
 
-    async fn handle_get_free_passes(&self) -> Result<NymVpnSubscriptionsResponse, AccountError>
-    where
-        <S as nym_vpn_store::mnemonic::MnemonicStorage>::StorageError: Sync + Send + 'static,
-    {
+    async fn handle_get_free_passes(&self) -> Result<NymVpnSubscriptionsResponse, AccountError> {
         // Get account
         let account = self.load_account().await?;
 
@@ -786,10 +797,10 @@ where
             .map_err(Into::into)
     }
 
-    async fn handle_apply_freepass(&self, code: String) -> Result<NymVpnSubscription, AccountError>
-    where
-        <S as nym_vpn_store::mnemonic::MnemonicStorage>::StorageError: Sync + Send + 'static,
-    {
+    async fn handle_apply_freepass(
+        &self,
+        code: String,
+    ) -> Result<NymVpnSubscription, AccountError> {
         // Get account
         let account = self.load_account().await?;
 
@@ -804,11 +815,7 @@ where
             .map_err(Into::into)
     }
 
-    async fn handle_request_zk_nym(&self) -> Result<NymVpnZkNym, AccountError>
-    where
-        <S as nym_vpn_store::mnemonic::MnemonicStorage>::StorageError: Sync + Send + 'static,
-        <S as nym_vpn_store::keys::KeyStore>::StorageError: Sync + Send + 'static,
-    {
+    async fn handle_request_zk_nym(&self) -> Result<NymVpnZkNym, AccountError> {
         // Get account
         let account = self.load_account().await?;
 
@@ -827,11 +834,7 @@ where
             .map_err(Into::into)
     }
 
-    async fn handle_get_device_zk_nyms(&self) -> Result<NymVpnZkNymResponse, AccountError>
-    where
-        <S as nym_vpn_store::mnemonic::MnemonicStorage>::StorageError: Sync + Send + 'static,
-        <S as nym_vpn_store::keys::KeyStore>::StorageError: Sync + Send + 'static,
-    {
+    async fn handle_get_device_zk_nyms(&self) -> Result<NymVpnZkNymResponse, AccountError> {
         // Get account
         let account = self.load_account().await?;
 
@@ -850,11 +853,7 @@ where
             .map_err(Into::into)
     }
 
-    pub(crate) async fn run(mut self) -> anyhow::Result<()>
-    where
-        <S as nym_vpn_store::mnemonic::MnemonicStorage>::StorageError: Sync + Send + 'static,
-        <S as nym_vpn_store::keys::KeyStore>::StorageError: Sync + Send + 'static,
-    {
+    pub(crate) async fn run(mut self) -> anyhow::Result<()> {
         while let Some(command) = self.vpn_command_rx.recv().await {
             debug!("VPN: Received command: {command}");
             match command {

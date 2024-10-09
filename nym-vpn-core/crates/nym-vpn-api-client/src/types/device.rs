@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::sync::Arc;
+use std::{fmt, sync::Arc};
 
 use nym_crypto::asymmetric::ed25519;
 use sha2::Digest as _;
@@ -13,7 +13,7 @@ pub struct Device {
 }
 
 impl Device {
-    pub(crate) fn identity_key(&self) -> &ed25519::PublicKey {
+    pub fn identity_key(&self) -> &ed25519::PublicKey {
         self.keypair.public_key()
     }
 
@@ -33,6 +33,22 @@ impl Device {
 
     pub fn sign_identity_key(&self) -> DeviceSignature {
         self.sign(self.identity_key().to_base58_string())
+    }
+}
+
+impl fmt::Display for Device {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Device {{ {} }}", self.identity_key().to_base58_string())
+    }
+}
+
+impl fmt::Debug for Device {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "Device {{ identity_key: {} }}",
+            self.identity_key().to_base58_string()
+        )
     }
 }
 
