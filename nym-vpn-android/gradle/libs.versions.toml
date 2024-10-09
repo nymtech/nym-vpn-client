@@ -40,11 +40,9 @@ gradlePlugins-licensee = "1.11.0"
 gradlePlugins-detekt = "1.23.7"
 gradlePlugins-gross = "0.4.2"
 gradlePlugins-sentry = "4.11.0"
-appcompat = "1.7.0"
 material = "1.12.0"
 gradlePlugins-ktlint="12.1.1"
 gradlePlugins-grgit="5.3.0"
-jetbrainsKotlinJvm = "1.9.24"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -107,7 +105,6 @@ hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", ve
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-window-core-android = { group = "androidx.window", name = "window-core-android", version.ref = "windowCoreAndroid" }
-androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "lifecycle-compose" }
 
@@ -125,5 +122,3 @@ detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "gradlePlugins-dete
 sentry = { id = "io.sentry.android.gradle", version.ref = "gradlePlugins-sentry" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "gradlePlugins-ktlint" }
 grgit = { id = "org.ajoberstar.grgit.service", version.ref = "gradlePlugins-grgit" }
-jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
-
