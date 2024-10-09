@@ -154,7 +154,7 @@
     <string name="no">خیر</string>
     <string name="yes">بله</string>
     <string name="gateway_error">اتصال به گیت‌وی ناموفق بود. دوباره تلاش کنید یا یک موقعیت جدید برای گیت‌وی انتخاب کنید.</string>
-    <string name="state_error">"این نباید اتفاق بیفتد، اما وضعیت نامناسب است. لطفا برنامه را مجددا راه‌اندازی کرده و دوباره تلاش کنید. "</string>
+    <string name="state_error">"وضعیت نامناسب است. لطفا برنامه را مجددا راه‌اندازی کرده و دوباره تلاش کنید. "</string>
     <string name="vpn_alerts_channel_id">کانال هشدارهای NymVPN</string>
     <string name="vpn_alerts_channel_description">کانالی برای اعلان‌های هشدار مربوط به برنامه.</string>
     <string name="bandwidth_alert">هشدار پهنای باند</string>
