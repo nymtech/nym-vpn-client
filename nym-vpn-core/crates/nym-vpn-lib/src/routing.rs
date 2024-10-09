@@ -212,24 +212,24 @@ pub(crate) async fn setup_mixnet_routing(
 
     let dev = tun::create_as_async(&tun_config)
         .tap_err(|err| error!("Failed to attach to tun device: {}", err))?;
-    let device_name = dev.as_ref().tun_name()?.to_string();
-    info!(
-        "Attached to tun device {device_name} with ip={device_ip:?}",
-        device_name = device_name,
-        device_ip = dev
-            .as_ref()
-            .address()
-            .map(|ip| ip.to_string())
-            .unwrap_or("None".to_string())
-    );
-    debug!("Attached to tun device {device_name}: ip={device_ip:?}, broadcast={device_broadcast:?}, netmask={device_netmask:?}, destination={device_destination:?}, mtu={device_mtu:?}",
-        device_name = device_name,
-        device_ip = dev.as_ref().address(),
-        device_broadcast = dev.as_ref().broadcast(),
-        device_netmask = dev.as_ref().netmask(),
-        device_destination = dev.as_ref().destination(),
-        device_mtu = dev.as_ref().mtu(),
-    );
+    //let device_name = dev.as_ref().tun_name()?.to_string();
+    // info!(
+    //     "Attached to tun device {device_name} with ip={device_ip:?}",
+    //     device_name = device_name,
+    //     device_ip = dev
+    //         .as_ref()
+    //         .address()
+    //         .map(|ip| ip.to_string())
+    //         .unwrap_or("None".to_string())
+    // );
+    // debug!("Attached to tun device {device_name}: ip={device_ip:?}, broadcast={device_broadcast:?}, netmask={device_netmask:?}, destination={device_destination:?}, mtu={device_mtu:?}",
+    //     device_name = device_name,
+    //     device_ip = dev.as_ref().address(),
+    //     device_broadcast = dev.as_ref().broadcast(),
+    //     device_netmask = dev.as_ref().netmask(),
+    //     device_destination = dev.as_ref().destination(),
+    //     device_mtu = dev.as_ref().mtu(),
+    // );
 
     Ok(dev)
 }

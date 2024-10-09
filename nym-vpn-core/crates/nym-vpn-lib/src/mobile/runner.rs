@@ -11,7 +11,7 @@ use nym_wg_go::{PrivateKey, PublicKey};
 use tokio::task::JoinSet;
 use tokio_util::sync::CancellationToken;
 
-use super::wg_config::{WgInterface, WgNodeConfig, WgPeer};
+use crate::wg_config::{WgInterface, WgNodeConfig, WgPeer};
 #[cfg(target_os = "ios")]
 use crate::mobile::ios::tun_provider::OSTunProvider;
 #[cfg(target_os = "android")]
@@ -132,7 +132,7 @@ impl WgTunnelRunner {
                 // Put in some manual error handling, the correct long-term solution is that handling
                 // errors and diconnecting the mixnet client needs to be unified down this code path
                 // and merged with the mix tunnel one.
-                mixnet_client.disconnect().await;
+                //mixnet_client.disconnect().await;
                 return Err(err);
             }
         };

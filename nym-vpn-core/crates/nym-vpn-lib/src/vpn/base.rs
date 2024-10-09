@@ -78,6 +78,7 @@ pub struct NymVpn<T: Vpn> {
     /// VPN configuration, depending on the type used
     pub vpn_config: T,
 
+    #[cfg(not(target_os = "android"))]
     pub tun_provider: Arc<Mutex<TunProvider>>,
 
     #[cfg(target_os = "android")]

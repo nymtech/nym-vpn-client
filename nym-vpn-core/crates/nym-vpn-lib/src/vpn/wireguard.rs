@@ -36,6 +36,7 @@ impl NymVpn<WireguardVpn> {
         #[cfg(target_os = "android")] android_tun_provider: Arc<dyn AndroidTunProvider>,
         #[cfg(target_os = "ios")] ios_tun_provider: Arc<dyn OSTunProvider>,
     ) -> Self {
+        #[cfg(not(target_os = "android"))]
         let tun_provider = Arc::new(Mutex::new(TunProvider::new()));
 
         Self {
@@ -58,6 +59,7 @@ impl NymVpn<WireguardVpn> {
                 user_agent: None,
             },
             vpn_config: WireguardVpn {},
+            #[cfg(not(target_os = "android"))]
             tun_provider,
             #[cfg(target_os = "android")]
             android_tun_provider,

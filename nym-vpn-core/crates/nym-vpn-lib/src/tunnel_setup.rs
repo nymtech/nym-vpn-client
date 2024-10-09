@@ -102,6 +102,7 @@ async fn wait_interface_up(
     }
 }
 
+#[cfg(not(target_os = "android"))]
 async fn setup_wg_tunnel(
     nym_vpn: &mut NymVpn<WireguardVpn>,
     mixnet_client: mixnet::SharedMixnetClient,
@@ -383,18 +384,23 @@ pub(crate) async fn setup_tunnel(
 
     let tunnels_setup = match nym_vpn {
         SpecificVpn::Wg(vpn) => {
-            let auth_addresses = setup_auth_addresses(&entry, &exit)?;
-            setup_wg_tunnel(
-                vpn,
-                mixnet_client,
-                task_manager,
-                route_manager,
-                gateway_directory_client,
-                auth_addresses,
-                default_lan_gateway_ip,
-            )
-            .await
-            .map_err(Error::from)
+            #[cfg(not(target_os = "android"))]
+            {
+                let auth_addresses = setup_auth_addresses(&entry, &exit)?;
+                setup_wg_tunnel(
+                    vpn,
+                    mixnet_client,
+                    task_manager,
+                    route_manager,
+                    gateway_directory_client,
+                    auth_addresses,
+                    default_lan_gateway_ip,
+                )
+                    .await
+                    .map_err(Error::from);
+            }
+            #[cfg(target_os = "android")]
+            Err(Error::StopError)
         }
         SpecificVpn::Mix(vpn) => setup_mix_tunnel(
             vpn,

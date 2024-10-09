@@ -15,7 +15,7 @@ mod platform;
 mod routing;
 mod tunnel;
 mod tunnel_setup;
-pub mod tunnel_state_machine;
+//pub mod tunnel_state_machine;
 mod uniffi_custom_impls;
 mod vpn;
 mod wg_config;
