@@ -15,7 +15,6 @@ import io.sentry.android.core.SentryAndroid
 import io.sentry.opentelemetry.OpenTelemetryLinkErrorEventProcessor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import net.nymtech.logcatutil.LogCollect
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.SettingsRepository
@@ -34,9 +33,6 @@ class SplashActivity : ComponentActivity() {
 
 	@Inject
 	lateinit var settingsRepository: SettingsRepository
-
-	@Inject
-	lateinit var logCollect: LogCollect
 
 	@Inject
 	@ApplicationScope

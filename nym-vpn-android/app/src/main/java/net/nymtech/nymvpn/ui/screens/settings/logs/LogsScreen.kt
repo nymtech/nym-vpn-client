@@ -10,10 +10,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -28,6 +31,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,6 +43,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.nymtech.logcatutil.model.LogMessage
 import net.nymtech.nymvpn.R
@@ -57,7 +62,9 @@ fun LogsScreen(appViewModel: AppViewModel, viewModel: LogsViewModel = hiltViewMo
 	val lazyColumnListState = rememberLazyListState()
 	val clipboardManager: ClipboardManager = LocalClipboardManager.current
 	val scope = rememberCoroutineScope()
+	var isAutoScrolling by remember { mutableStateOf(true) }
 	var showModal by remember { mutableStateOf(false) }
+	var lastScrollPosition by remember { mutableStateOf(0) }
 
 	val context = LocalContext.current
 
@@ -76,9 +83,30 @@ fun LogsScreen(appViewModel: AppViewModel, viewModel: LogsViewModel = hiltViewMo
 		)
 	}
 
+	LaunchedEffect(lazyColumnListState) {
+		snapshotFlow { lazyColumnListState.firstVisibleItemIndex }
+			.collect { currentScrollPosition ->
+				if (currentScrollPosition < lastScrollPosition && isAutoScrolling) {
+					isAutoScrolling = false
+				}
+				val visible = lazyColumnListState.layoutInfo.visibleItemsInfo
+				if (visible.isNotEmpty()) {
+					if (visible.last().index
+						== lazyColumnListState.layoutInfo.totalItemsCount - 1 && !isAutoScrolling
+					) {
+						isAutoScrolling = true
+					}
+				}
+				lastScrollPosition = currentScrollPosition
+			}
+	}
+
 	LaunchedEffect(logs.size) {
-		scope.launch {
-			lazyColumnListState.animateScrollToItem(logs.size)
+		if (isAutoScrolling) {
+			scope.launch {
+				delay(1000)
+				lazyColumnListState.animateScrollToItem(logs.size)
+			}
 		}
 	}
 
@@ -97,6 +125,25 @@ fun LogsScreen(appViewModel: AppViewModel, viewModel: LogsViewModel = hiltViewMo
 	})
 
 	Scaffold(
+		floatingActionButton = {
+			FloatingActionButton(
+				onClick = {
+					scope.launch {
+						lazyColumnListState.animateScrollToItem(logs.size)
+						isAutoScrolling = true
+					}
+				},
+				shape = RoundedCornerShape(16.dp),
+				containerColor = MaterialTheme.colorScheme.primary,
+			) {
+				val icon = Icons.Filled.KeyboardDoubleArrowDown
+				Icon(
+					imageVector = icon,
+					contentDescription = icon.name,
+					tint = MaterialTheme.colorScheme.onPrimary,
+				)
+			}
+		},
 		contentWindowInsets = WindowInsets(0.dp),
 		bottomBar = {
 			NavigationBar(
