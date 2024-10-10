@@ -34,7 +34,7 @@ use tokio_util::sync::CancellationToken;
 use tracing::{debug, error, info};
 use url::Url;
 
-use nym_account_controller::{AccountCommand, AccountController, SharedAccountState};
+use nym_vpn_account_controller::{AccountCommand, AccountController, SharedAccountState};
 
 use super::{
     config::{
