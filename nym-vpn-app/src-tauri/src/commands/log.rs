@@ -13,7 +13,7 @@ pub enum Level {
     Error,
 }
 
-#[instrument(skip_all, name="js")]
+#[instrument(skip_all, name = "js")]
 #[tauri::command]
 pub async fn log_js(message: String, level: Option<Level>) -> Result<(), BackendError> {
     match level {
