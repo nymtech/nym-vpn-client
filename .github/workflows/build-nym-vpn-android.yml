@@ -12,6 +12,10 @@ on:
           - prerelease
           - nightly
           - release
+      core_build:
+        description: "Core release version tag or \"source"\"
+        required: true
+        default: source
     secrets:
       ANDROID_SIGNING_KEY_ALIAS:
         required: false
@@ -32,6 +36,10 @@ on:
         description: "Build type"
         required: true
         default: debug
+      core_build:
+        description: "Core release version tag or \"source"\"
+        required: true
+        default: source
     secrets:
       ANDROID_SIGNING_KEY_ALIAS:
         required: false
@@ -129,25 +137,25 @@ jobs:
 
       - name: Build Fdroid Release APK
         if: ${{ inputs.build_type == 'release' }}
-        run: ./gradlew :app:assembleFdroidRelease --info
+        run: ./gradlew :app:assembleFdroidRelease -PlibVersion=${{ inputs.core_build }} --info
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
       - name: Build Fdroid Prerelease APK
         if: ${{ inputs.build_type == 'prerelease' }}
-        run: ./gradlew :app:assembleFdroidPrerelease --info
+        run: ./gradlew :app:assembleFdroidPrerelease -PlibVersion=${{ inputs.core_build }} --info
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
       - name: Build Fdroid Nightly APK
         if: ${{ inputs.build_type == 'nightly' }}
-        run: ./gradlew :app:assembleFdroidNightly --info
+        run: ./gradlew :app:assembleFdroidNightly -PlibVersion=${{ inputs.core_build }} --info
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
       - name: Build Debug APK
         if: ${{ inputs.build_type == 'debug' }}
-        run: ./gradlew :app:assembleFdroidDebug --stacktrace
+        run: ./gradlew :app:assembleFdroidDebug -PlibVersion=${{ inputs.core_build }} --stacktrace
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
