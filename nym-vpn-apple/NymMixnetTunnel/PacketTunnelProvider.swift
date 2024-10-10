@@ -18,6 +18,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
     private var defaultPathObserver: (any OsDefaultPathObserver)?
     private var installedDefaultPathObserver = false
+    private var connectionStartDate: Date?
 
     override init() {
         LoggingSystem.bootstrap { label in
@@ -64,6 +65,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             throw PacketTunnelProviderError.backendStartFailure
         }
         logger.info("Backend is up an running...")
+        connectionStartDate = Date()
 
         for await event in eventStream {
             switch event {
@@ -153,12 +155,20 @@ extension PacketTunnelProvider: TunnelStatusListener {
     }
 
     func onExitStatusChange(status: ExitStatus) {
+        var durationString = ""
+        if let connectionStartDate {
+            let dateFormatter = DateComponentsFormatter()
+            dateFormatter.allowedUnits = [.hour, .minute, .second]
+            dateFormatter.zeroFormattingBehavior = .pad
+            durationString = dateFormatter.string(from: connectionStartDate, to: Date()) ?? ""
+        }
+
         switch status {
         case .failure(let error):
-            logger.error("onExitStatus: \(error.localizedDescription)")
+            logger.error("onExitStatus: \(error.localizedDescription) after: \(durationString)")
             scheduleDisconnectNotification()
         case .stopped:
-            logger.info("onExitStatus: Tunnel stopped")
+            logger.info("onExitStatus: Tunnel stopped after: \(durationString)")
         }
     }
 
