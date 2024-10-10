@@ -83,7 +83,7 @@ pub(crate) enum SubscriptionState {
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) enum DeviceState {
     NotRegistered,
-    NotActive,
+    Inactive,
     Active,
 }
 
@@ -110,7 +110,7 @@ impl From<NymVpnDeviceStatus> for DeviceState {
     fn from(status: NymVpnDeviceStatus) -> Self {
         match status {
             NymVpnDeviceStatus::Active => DeviceState::Active,
-            _ => DeviceState::NotActive,
+            _ => DeviceState::Inactive,
         }
     }
 }
