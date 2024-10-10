@@ -70,7 +70,7 @@ pub(crate) enum MnemonicState {
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) enum RemoteAccountState {
     NotRegistered,
-    NotActive,
+    Inactive,
     Active,
 }
 
@@ -91,7 +91,7 @@ impl From<NymVpnAccountStatusResponse> for RemoteAccountState {
     fn from(status: NymVpnAccountStatusResponse) -> Self {
         match status {
             NymVpnAccountStatusResponse::Active => RemoteAccountState::Active,
-            _ => RemoteAccountState::NotActive,
+            _ => RemoteAccountState::Inactive,
         }
     }
 }
