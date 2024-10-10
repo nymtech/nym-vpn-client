@@ -16,8 +16,7 @@ use tracing::{debug, info, warn};
 use crate::{
     service::{
         AccountError, ConnectArgs, ConnectOptions, ImportCredentialError, VpnServiceCommand,
-        VpnServiceConnectResult, VpnServiceDisconnectResult, VpnServiceInfoResult,
-        VpnServiceStatusResult,
+        VpnServiceInfoResult, VpnServiceStatusResult,
     },
     types::gateway,
 };
@@ -57,51 +56,26 @@ impl CommandInterfaceConnectionHandler {
         exit: Option<ExitPoint>,
         options: ConnectOptions,
         user_agent: nym_vpn_lib::UserAgent,
-    ) -> VpnServiceConnectResult {
-        info!("Starting VPN");
-        let (tx, rx) = oneshot::channel();
+    ) {
+        tracing::info!("Starting VPN");
         let connect_args = ConnectArgs {
             entry,
             exit,
             options,
         };
-        self.vpn_command_tx
-            .send(VpnServiceCommand::Connect(tx, connect_args, user_agent))
-            .unwrap();
-        debug!("Sent start command to VPN");
-        debug!("Waiting for response");
-        let result = rx.await.unwrap();
-        match result {
-            VpnServiceConnectResult::Success(ref _connect_handle) => {
-                info!("VPN started successfully");
-            }
-            VpnServiceConnectResult::Fail(ref err) => {
-                info!("VPN failed to start: {err}");
-            }
-        };
-        result
+
+        if let Err(e) = self
+            .vpn_command_tx
+            .send(VpnServiceCommand::Connect(connect_args, user_agent))
+        {
+            tracing::error!("Failed to send connect: {}", e);
+        }
     }
 
-    pub(crate) async fn handle_disconnect(&self) -> VpnServiceDisconnectResult {
-        let (tx, rx) = oneshot::channel();
-        self.vpn_command_tx
-            .send(VpnServiceCommand::Disconnect(tx))
-            .unwrap();
-        debug!("Sent stop command to VPN");
-        debug!("Waiting for response");
-        let result = rx.await.unwrap();
-        match result {
-            VpnServiceDisconnectResult::Success => {
-                debug!("VPN disconnect command sent successfully");
-            }
-            VpnServiceDisconnectResult::NotRunning => {
-                info!("VPN can't stop - it's not running");
-            }
-            VpnServiceDisconnectResult::Fail(ref err) => {
-                warn!("VPN failed to send disconnect command: {err}");
-            }
-        };
-        result
+    pub(crate) async fn handle_disconnect(&self) {
+        if let Err(e) = self.vpn_command_tx.send(VpnServiceCommand::Disconnect) {
+            tracing::error!("Failed to send disconnect: {}", e);
+        }
     }
 
     pub(crate) async fn handle_info(&self) -> VpnServiceInfoResult {

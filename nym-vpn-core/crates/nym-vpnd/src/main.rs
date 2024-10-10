@@ -13,6 +13,7 @@ mod windows_service;
 
 use clap::Parser;
 use nym_vpn_lib::nym_config::defaults::setup_env;
+use service::NymVpnService;
 use tokio::sync::broadcast;
 use tokio_util::sync::CancellationToken;
 
@@ -20,7 +21,6 @@ use crate::{
     cli::CliArgs,
     command_interface::{start_command_interface, CommandInterfaceOptions},
     logging::setup_logging,
-    service::start_vpn_service,
 };
 
 fn run_inner(args: CliArgs) -> Result<(), Box<dyn std::error::Error>> {
@@ -47,13 +47,13 @@ async fn run_inner_async(args: CliArgs) -> Result<(), Box<dyn std::error::Error>
     );
 
     // Start the VPN service that wraps the actual VPN
-    let vpn_handle = start_vpn_service(
+    let vpn_service_handle = NymVpnService::spawn(
         state_changes_tx,
         vpn_command_rx,
         shutdown_token.child_token(),
     );
 
-    vpn_handle.await;
+    vpn_service_handle.await;
     command_handle.await;
 
     Ok(())
