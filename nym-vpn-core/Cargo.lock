@@ -5157,6 +5157,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-vpn-account-controller"
+version = "0.2.5-dev"
+dependencies = [
+ "nym-config 0.1.0 (git+https://github.com/nymtech/nym?rev=fabd48b)",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?rev=fabd48b)",
+ "nym-vpn-api-client",
+ "nym-vpn-store",
+ "thiserror",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "url",
+]
+
+[[package]]
 name = "nym-vpn-api-client"
 version = "0.2.5-dev"
 dependencies = [
@@ -5346,6 +5361,7 @@ dependencies = [
  "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?rev=fabd48b)",
  "nym-task",
  "nym-validator-client 0.1.0 (git+https://github.com/nymtech/nym?rev=fabd48b)",
+ "nym-vpn-account-controller",
  "nym-vpn-api-client",
  "nym-vpn-lib",
  "nym-vpn-proto",
@@ -5363,6 +5379,7 @@ dependencies = [
  "time",
  "tokio",
  "tokio-stream",
+ "tokio-util",
  "toml 0.8.19",
  "tonic 0.11.0",
  "tonic-health",

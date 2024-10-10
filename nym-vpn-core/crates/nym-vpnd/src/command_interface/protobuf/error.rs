@@ -511,6 +511,11 @@ impl From<AccountError> for nym_vpn_proto::AccountError {
                 message: err.to_string(),
                 details: hashmap! {},
             },
+            AccountError::FailedToGetAccountSummary { .. } => nym_vpn_proto::AccountError {
+                kind: AccountErrorType::Storage as i32,
+                message: err.to_string(),
+                details: hashmap! {},
+            },
         }
     }
 }

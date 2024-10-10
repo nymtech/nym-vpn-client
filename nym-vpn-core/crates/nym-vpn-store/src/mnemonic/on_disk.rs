@@ -3,7 +3,7 @@
 
 use std::{fs::File, path::PathBuf};
 
-use super::{MnemonicStorage, StoredMnemonic};
+use super::{MnemonicStorage, MnemonicStorageError, StoredMnemonic};
 
 #[derive(Debug, thiserror::Error)]
 pub enum OnDiskMnemonicStorageError {
@@ -27,6 +27,15 @@ pub enum OnDiskMnemonicStorageError {
 
     #[error("failed to remove mnemonic file")]
     RemoveError(std::io::Error),
+}
+
+impl MnemonicStorageError for OnDiskMnemonicStorageError {
+    fn is_mnemonic_stored(&self) -> bool {
+        matches!(
+            self,
+            OnDiskMnemonicStorageError::MnemonicAlreadyStored { .. }
+        )
+    }
 }
 
 pub struct OnDiskMnemonicStorage {
@@ -75,7 +84,7 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
     }
 
     async fn load_mnemonic(&self) -> Result<bip39::Mnemonic, OnDiskMnemonicStorageError> {
-        tracing::info!("Opening: {}", self.path.display());
+        tracing::debug!("Opening: {}", self.path.display());
         let file = File::open(&self.path).map_err(OnDiskMnemonicStorageError::FileOpenError)?;
         serde_json::from_reader(file)
             .map_err(OnDiskMnemonicStorageError::ReadError)

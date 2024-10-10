@@ -11,8 +11,12 @@ pub mod on_disk;
 
 pub use bip39::Mnemonic;
 
+pub trait MnemonicStorageError: Error + Send + Sync + 'static {
+    fn is_mnemonic_stored(&self) -> bool;
+}
+
 pub trait MnemonicStorage {
-    type StorageError: Error;
+    type StorageError: MnemonicStorageError;
 
     #[allow(async_fn_in_trait)]
     async fn load_mnemonic(&self) -> Result<Mnemonic, Self::StorageError>;

@@ -6,7 +6,7 @@ use std::error::Error;
 use super::DeviceKeys;
 
 pub trait KeyStore {
-    type StorageError: Error;
+    type StorageError: Error + Send + Sync + 'static;
 
     #[allow(async_fn_in_trait)]
     async fn load_keys(&self) -> Result<DeviceKeys, Self::StorageError>;

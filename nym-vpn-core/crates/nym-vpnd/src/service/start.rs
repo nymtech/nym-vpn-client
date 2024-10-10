@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use tokio::sync::mpsc::UnboundedReceiver;
+use tokio_util::sync::CancellationToken;
 use tracing::{error, info};
 
 use super::{vpn_service::NymVpnService, VpnServiceCommand, VpnServiceStateChange};
@@ -22,7 +23,12 @@ pub(crate) fn start_vpn_service(
             .build()
             .unwrap();
         vpn_rt.block_on(async {
-            let service = NymVpnService::new(vpn_state_changes_tx, vpn_command_rx);
+            let cancel_token = CancellationToken::new();
+            let service = NymVpnService::new(
+                vpn_state_changes_tx,
+                vpn_command_rx,
+                cancel_token.child_token(),
+            );
             match service.init_storage().await {
                 Ok(()) => {
                     info!("VPN service initialized successfully");
@@ -32,6 +38,9 @@ pub(crate) fn start_vpn_service(
                     error!("Failed to initialize VPN service: {:?}", err);
                 }
             }
+
+            cancel_token.cancel();
+            // TODO: await the join handle(s) here
 
             // The task handling of the vpn libary is not yet integrated with the daemon task
             // handling, so sleep here to give the mixnet client a sporting chance to flush data to
