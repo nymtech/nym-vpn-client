@@ -57,4 +57,37 @@ const logu: Logu = Object.freeze({
   error: (msg: string) => logJs('Error', msg),
 });
 
+type ConsoleFn = 'log' | 'debug' | 'info' | 'warn' | 'error';
+
+const ConsoleLoggerMap: Record<ConsoleFn, keyof Logu> = {
+  log: 'trace',
+  debug: 'debug',
+  info: 'info',
+  warn: 'warn',
+  error: 'error',
+};
+
+function forwardConsole(fnName: ConsoleFn, loguFn: keyof Logu) {
+  const original = console[fnName];
+  console[fnName] = (message?: unknown, ...rest: unknown[]) => {
+    original(message, ...rest);
+    const messageStr =
+      typeof message === 'string' ? message : JSON.stringify(message);
+    const restStr = rest
+      .map((r) => (typeof r === 'string' ? r : JSON.stringify(r)))
+      .join(' ');
+    if (restStr.length > 0) {
+      logu[loguFn](`${messageStr} ${restStr}`);
+    } else {
+      logu[loguFn](messageStr);
+    }
+  };
+}
+
+export function init() {
+  Object.keys(ConsoleLoggerMap).forEach((fnName) => {
+    forwardConsole(fnName as ConsoleFn, ConsoleLoggerMap[fnName as ConsoleFn]);
+  });
+}
+
 export default logu;

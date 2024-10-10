@@ -13,9 +13,9 @@ pub enum Level {
     Error,
 }
 
-#[instrument(skip_all)]
+#[instrument(skip_all, name = "js")]
 #[tauri::command]
-pub fn log_js(message: String, level: Option<Level>) -> Result<(), BackendError> {
+pub async fn log_js(message: String, level: Option<Level>) -> Result<(), BackendError> {
     match level {
         Some(Level::Trace) => trace!(message),
         Some(Level::Debug) => debug!(message),

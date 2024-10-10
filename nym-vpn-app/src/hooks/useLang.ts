@@ -24,7 +24,7 @@ function useLang() {
       if (i18n.language === lng) {
         return;
       }
-      console.log('set language:', lng);
+      console.info('set language:', lng);
       if (updateDb) {
         kvSet('UiLanguage', lng);
       }

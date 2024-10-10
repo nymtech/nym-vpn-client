@@ -21,7 +21,6 @@ import {
   ProgressEvent,
   StatusUpdateEvent,
 } from '../constants';
-import logu from '../log';
 import { PhysicalPosition, PhysicalSize } from '@tauri-apps/api/dpi';
 
 const appWindow = getCurrentWebviewWindow();
@@ -137,7 +136,7 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
               width: payload.width,
               height: payload.height,
             };
-            logu.trace(
+            console.log(
               `window resized ${payload.type} ${size.width}x${size.height}`,
             );
             kvSet<WindowSize>('WindowSize', size);
@@ -170,7 +169,7 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
               x: payload.x,
               y: payload.y,
             };
-            logu.trace(
+            console.log(
               `window moved ${payload.type} ${payload.x},${payload.y}`,
             );
             kvSet<WindowPosition>('WindowPosition', position);

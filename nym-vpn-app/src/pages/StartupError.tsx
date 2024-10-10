@@ -4,7 +4,6 @@ import { exit } from '@tauri-apps/plugin-process';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { Button, MsIcon } from '../ui';
 import { StartupErrorKey, StartupError as TStartupError } from '../types';
-import logu from '../log';
 
 function getErrorText(key: StartupErrorKey) {
   switch (key) {
@@ -32,9 +31,9 @@ function StartupError({
     }
     initialized = true;
     const window = getCurrentWindow();
-    logu.info(`show window [${window.label}]`);
+    console.info(`show window [${window.label}]`);
     window.show().catch((e: unknown) => {
-      logu.error(`failed to show error window: ${e}`);
+      console.error(`failed to show error window: ${e}`);
     });
   }, []);
 
