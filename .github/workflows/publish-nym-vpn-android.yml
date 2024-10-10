@@ -39,6 +39,7 @@ on:
         default: release
         required: true
       core_build:
+        type: string
         description: "Core release version tag or \"source"\"
         required: true
         default: source

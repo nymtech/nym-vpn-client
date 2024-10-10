@@ -13,6 +13,7 @@ on:
           - nightly
           - release
       core_build:
+        type: string
         description: "Core release version tag or \"source"\"
         required: true
         default: source
@@ -37,6 +38,7 @@ on:
         required: true
         default: debug
       core_build:
+        type: string
         description: "Core release version tag or \"source"\"
         required: true
         default: source
