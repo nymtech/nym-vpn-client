@@ -92,7 +92,7 @@ impl Tunnel {
                 #[cfg(windows)]
                 interface_name.as_ptr(),
                 // note: not all platforms accept mtu = 0
-                #[cfg(unix)]
+                #[cfg(all(unix, not(target_os = "android")))]
                 i32::from(config.interface.mtu),
                 settings.as_ptr(),
                 #[cfg(not(windows))]
@@ -155,11 +155,10 @@ impl Drop for Tunnel {
 }
 
 extern "C" {
-
     // Start the tunnel.
     fn wgTurnOn(
         #[cfg(windows)] interface_name: *const c_char,
-        #[cfg(unix)] mtu: i32,
+        #[cfg(any(target_os = "linux", target_os = "macos"))] mtu: i32,
         settings: *const c_char,
         #[cfg(not(windows))] fd: RawFd,
         logging_callback: LoggingCallback,
