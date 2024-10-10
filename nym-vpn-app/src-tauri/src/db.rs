@@ -8,7 +8,7 @@ use std::{
     io,
     path::PathBuf,
 };
-use strum::{AsRefStr, EnumString};
+use strum::{AsRefStr, EnumIter, EnumString};
 use thiserror::Error;
 use tracing::{debug, error, info, instrument, warn};
 use ts_rs::TS;
@@ -20,7 +20,7 @@ const DB_DIR: &str = "db";
 pub type JsonValue = Value;
 
 #[allow(dead_code)]
-#[derive(Deserialize, Serialize, AsRefStr, EnumString, Debug, Clone, Copy, TS)]
+#[derive(Deserialize, Serialize, AsRefStr, EnumString, EnumIter, Debug, Clone, Copy, TS)]
 #[ts(export)]
 pub enum Key {
     #[strum(serialize = "monitoring")]

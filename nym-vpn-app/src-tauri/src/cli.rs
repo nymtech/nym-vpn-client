@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::path::PathBuf;
 use std::str::FromStr;
+use strum::IntoEnumIterator;
 use tauri::PackageInfo;
 use tracing::{error, info};
 
@@ -91,6 +92,8 @@ pub enum Commands {
 
 #[derive(Subcommand, Serialize, Deserialize, Debug, Clone)]
 pub enum DbCommands {
+    /// List all keys
+    Keys,
     /// Get a key
     Get {
         #[arg()]
@@ -117,6 +120,13 @@ pub fn db_command(command: &DbCommands) -> Result<()> {
     })?;
 
     match command {
+        DbCommands::Keys => {
+            info!("cli db keys");
+            Key::iter().for_each(|key| {
+                println!("{key}");
+            });
+            Ok(())
+        }
         DbCommands::Get { key: k } => {
             info!("cli db get {k}");
             let key = Key::from_str(k).map_err(|_| anyhow!("invalid key"))?;
