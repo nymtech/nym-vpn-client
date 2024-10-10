@@ -28,6 +28,11 @@ on:
         description: "Tag name for release"
         required: false
         default: nym-vpn-android-nightly
+      core_build:
+        type: string
+        description: "Core release version tag or \"source"\"
+        required: true
+        default: source
       release_type:
         type: choice
         description: "GitHub release type"
@@ -38,11 +43,6 @@ on:
           - release
         default: release
         required: true
-      core_build:
-        type: string
-        description: "Core release version tag or \"source"\"
-        required: true
-        default: source
 
   push:
     tags:
