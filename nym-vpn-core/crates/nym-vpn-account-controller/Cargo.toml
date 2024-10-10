@@ -1,5 +1,5 @@
 [package]
-name = "nym-account-controller"
+name = "nym-vpn-account-controller"
 version.workspace = true
 authors.workspace = true
 repository.workspace = true
