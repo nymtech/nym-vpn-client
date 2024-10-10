@@ -148,7 +148,7 @@ where
                 self.account_state
                     .set_account(RemoteAccountState::NotRegistered)
                     .await;
-                return Err(Error::FailedToGetAccountSummary);
+                return Err(Error::GetAccountSummary);
             }
         };
 

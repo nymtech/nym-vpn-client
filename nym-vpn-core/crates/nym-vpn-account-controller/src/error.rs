@@ -4,7 +4,7 @@
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("failed to get account summary")]
-    FailedToGetAccountSummary,
+    GetAccountSummary,
 
     #[error("missing API URL")]
     MissingApiUrl,
