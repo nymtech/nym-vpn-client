@@ -622,4 +622,7 @@ pub enum AccountError {
     FailedToLoadKeys {
         source: Box<dyn std::error::Error + Send + Sync>,
     },
+
+    #[error("failed to get account summary")]
+    FailedToGetAccountSummary,
 }

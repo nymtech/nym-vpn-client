@@ -391,6 +391,7 @@ where
     shared_vpn_state: SharedVpnState,
 
     // The account state, updated by the account controller
+    #[allow(unused)]
     shared_account_state: SharedAccountState,
 
     // Listen for commands from the command interface, like the grpc listener that listens user
@@ -502,10 +503,6 @@ where
         connect_args: ConnectArgs,
         user_agent: nym_vpn_lib::UserAgent,
     ) -> VpnServiceConnectResult {
-        if !self.shared_account_state.is_ready_to_connect().await {
-            return VpnServiceConnectResult::Fail("not logged in with a valid account".to_string());
-        }
-
         self.shared_vpn_state.set(VpnState::Connecting);
 
         let ConnectArgs {
@@ -854,6 +851,9 @@ where
     }
 
     pub(crate) async fn run(mut self) -> anyhow::Result<()> {
+        // Start by refreshing the account state
+        self.account_command_tx.send(AccountCommand::RefreshAccountState).ok();
+
         while let Some(command) = self.vpn_command_rx.recv().await {
             debug!("VPN: Received command: {command}");
             match command {

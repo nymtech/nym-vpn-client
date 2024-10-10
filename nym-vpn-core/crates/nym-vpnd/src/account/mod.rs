@@ -6,7 +6,7 @@
 // 2. register the device
 // 3. request ticketbooks and top up the local credential store
 
-use std::{sync::Arc, time::Duration};
+use std::sync::Arc;
 
 use nym_vpn_api_client::{
     response::{NymVpnAccountStatusResponse, NymVpnAccountSummarySubscription, NymVpnDeviceStatus},
@@ -35,6 +35,7 @@ impl SharedAccountState {
         self.inner.lock().await.clone()
     }
 
+    #[allow(unused)]
     pub(crate) async fn is_ready_to_connect(&self) -> bool {
         let state = self.get().await;
         state.mnemonic == Some(MnemonicState::Stored)
@@ -245,18 +246,18 @@ where
         }
     }
 
-    async fn update_remote_account_state(&self, account: &VpnApiAccount) {
+    async fn update_remote_account_state(&self, account: &VpnApiAccount) -> Result<(), AccountError> {
         let account_summary = match self.api_client.get_account_summary(account).await {
             Ok(account_summary) => {
                 tracing::info!("Account summary: {:?}", account_summary);
                 account_summary
             }
             Err(err) => {
-                tracing::error!("Failed to get account summary: {:?}", err);
+                tracing::warn!("Failed to get account summary: {:?}", err);
                 self.account_state
                     .set_account(RemoteAccountState::NotRegistered)
                     .await;
-                return;
+                return Err(AccountError::FailedToGetAccountSummary);
             }
         };
 
@@ -267,6 +268,8 @@ where
         self.account_state
             .set_subscription(SubscriptionState::from(account_summary.subscription))
             .await;
+
+        Ok(())
     }
 
     async fn update_device_state(&self, account: &VpnApiAccount) {
@@ -281,7 +284,7 @@ where
         let devices = match self.api_client.get_devices(account).await {
             Ok(devices) => devices,
             Err(err) => {
-                tracing::error!("Failed to get devices: {:?}", err);
+                tracing::warn!("Failed to get devices: {:?}", err);
                 return;
             }
         };
@@ -308,8 +311,9 @@ where
         let Some(account) = self.update_mnemonic_state().await else {
             return;
         };
-        self.update_remote_account_state(&account).await;
-        self.update_device_state(&account).await;
+        if self.update_remote_account_state(&account).await.is_ok() {
+            self.update_device_state(&account).await;
+        }
     }
 
     async fn handle_command(&self, command: AccountCommand) {
@@ -325,27 +329,22 @@ where
     }
 
     pub(crate) async fn run(mut self) {
-        let mut interval = tokio::time::interval(Duration::from_secs(5));
         loop {
             tokio::select! {
-                //_ = interval.tick() => {
-                //    tracing::info!("Checking account");
-                //    self.refresh_account_state().await;
-                //}
                 Some(command) = self.command_rx.recv() => {
                     self.handle_command(command).await;
                 }
                 _ = self.cancel_token.cancelled() => {
-                    tracing::info!("Received cancellation signal");
+                    tracing::trace!("Received cancellation signal");
                     break;
                 }
                 else => {
-                    tracing::info!("Account controller channel closed");
+                    tracing::debug!("Account controller channel closed");
                     break;
                 }
             }
         }
-        tracing::info!("Account controller is exiting...");
+        tracing::debug!("Account controller is exiting");
     }
 
     pub(crate) fn shared_state(&self) -> SharedAccountState {
