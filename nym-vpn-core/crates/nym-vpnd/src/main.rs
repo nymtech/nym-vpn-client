@@ -12,9 +12,9 @@ mod util;
 mod windows_service;
 
 use clap::Parser;
-use nym_task::TaskManager;
 use nym_vpn_lib::nym_config::defaults::setup_env;
 use tokio::sync::broadcast;
+use tokio_util::sync::CancellationToken;
 
 use crate::{
     cli::CliArgs,
@@ -23,37 +23,38 @@ use crate::{
     service::start_vpn_service,
 };
 
-const SHUTDOWN_TIMER_SECS: u64 = 10;
-
 fn run_inner(args: CliArgs) -> Result<(), Box<dyn std::error::Error>> {
-    let task_manager = TaskManager::new(SHUTDOWN_TIMER_SECS).named("nym_vpnd");
-    let service_task_client = task_manager.subscribe_named("vpn_service");
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .worker_threads(4)
+        .build()
+        .unwrap()
+        .block_on(run_inner_async(args))
+}
 
+async fn run_inner_async(args: CliArgs) -> Result<(), Box<dyn std::error::Error>> {
     let state_changes_tx = broadcast::channel(10).0;
-
-    // Channels used to send events from the OS system handler (windows service, dbus etc)
-    let (_event_tx, event_rx) = tokio::sync::mpsc::unbounded_channel();
-
-    // The idea here for explicly starting two separate runtimes is to make sure they are properly
-    // separated. Looking ahead a little ideally it would be nice to be able for the command
-    // interface to be able to forcefully terminate the vpn if needed.
+    let shutdown_token = CancellationToken::new();
 
     // Start the command interface that listens for commands from the outside
     let (command_handle, vpn_command_rx) = start_command_interface(
         state_changes_tx.subscribe(),
-        task_manager,
         Some(CommandInterfaceOptions {
             disable_socket_listener: args.disable_socket_listener,
             enable_http_listener: args.enable_http_listener,
         }),
-        event_rx,
+        shutdown_token.child_token(),
     );
 
     // Start the VPN service that wraps the actual VPN
-    let vpn_handle = start_vpn_service(state_changes_tx, vpn_command_rx, service_task_client);
+    let vpn_handle = start_vpn_service(
+        state_changes_tx,
+        vpn_command_rx,
+        shutdown_token.child_token(),
+    );
 
-    vpn_handle.join().unwrap();
-    command_handle.join().unwrap();
+    vpn_handle.await;
+    command_handle.await;
 
     Ok(())
 }

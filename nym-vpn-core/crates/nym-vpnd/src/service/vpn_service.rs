@@ -411,13 +411,15 @@ where
 
     // Storage backend
     storage: Arc<tokio::sync::Mutex<S>>,
+
+    shutdown_token: CancellationToken,
 }
 
 impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
     pub(crate) fn new(
         vpn_state_changes_tx: broadcast::Sender<VpnServiceStateChange>,
         vpn_command_rx: UnboundedReceiver<VpnServiceCommand>,
-        cancel_token: CancellationToken,
+        shutdown_token: CancellationToken,
     ) -> Self {
         let config_dir = std::env::var("NYM_VPND_CONFIG_DIR")
             .map(PathBuf::from)
@@ -435,7 +437,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         // pick up build time constants.
         let user_agent = crate::util::construct_user_agent();
         let account_controller =
-            AccountController::new(Arc::clone(&storage), user_agent, cancel_token);
+            AccountController::new(Arc::clone(&storage), user_agent, shutdown_token);
         let shared_account_state = account_controller.shared_state();
         let account_command_tx = account_controller.command_tx();
         let _account_controller_handle = tokio::task::spawn(account_controller.run());
@@ -449,6 +451,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             config_file,
             data_dir,
             storage,
+            shutdown_token,
         }
     }
 
@@ -859,75 +862,84 @@ where
         self.account_command_tx
             .send(AccountCommand::RefreshAccountState)?;
 
-        while let Some(command) = self.vpn_command_rx.recv().await {
-            debug!("VPN: Received command: {command}");
-            match command {
-                VpnServiceCommand::Connect(tx, connect_args, user_agent) => {
-                    let result = self.handle_connect(connect_args, user_agent).await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::Disconnect(tx) => {
-                    let result = self.handle_disconnect().await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::Status(tx) => {
-                    let result = self.handle_status().await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::Info(tx) => {
-                    let result = self.handle_info().await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::ImportCredential(tx, credential) => {
-                    let result = self.handle_import_credential(credential).await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::StoreAccount(tx, account) => {
-                    let result = self.handle_store_account(account).await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::RemoveAccount(tx) => {
-                    let result = self.handle_remove_account().await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::GetAccountSummary(tx) => {
-                    let result = self.handle_get_account_summary().await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::GetDevices(tx) => {
-                    let result = self.handle_get_devices().await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::RegisterDevice(tx) => {
-                    let result = self.handle_register_device().await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::RequestZkNym(tx) => {
-                    let result = self.handle_request_zk_nym().await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::GetDeviceZkNyms(tx) => {
-                    let result = self.handle_get_device_zk_nyms().await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::GetFreePasses(tx) => {
-                    let result = self.handle_get_free_passes().await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::ApplyFreepass(tx, code) => {
-                    let result = self.handle_apply_freepass(code).await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::Shutdown => {
-                    let result = self.handle_disconnect().await;
-                    info!("VPN: Shutting down: {:?}", result);
-                    while self.is_running() {
-                        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+        loop {
+            tokio::select! {
+                Some(command) = self.vpn_command_rx.recv() => {
+                    tracing::debug!("VPN: Received command: {command}");
+                    match command {
+                        VpnServiceCommand::Connect(tx, connect_args, user_agent) => {
+                            let result = self.handle_connect(connect_args, user_agent).await;
+                            tx.send(result).unwrap();
+                        }
+                        VpnServiceCommand::Disconnect(tx) => {
+                            let result = self.handle_disconnect().await;
+                            tx.send(result).unwrap();
+                        }
+                        VpnServiceCommand::Status(tx) => {
+                            let result = self.handle_status().await;
+                            tx.send(result).unwrap();
+                        }
+                        VpnServiceCommand::Info(tx) => {
+                            let result = self.handle_info().await;
+                            tx.send(result).unwrap();
+                        }
+                        VpnServiceCommand::ImportCredential(tx, credential) => {
+                            let result = self.handle_import_credential(credential).await;
+                            tx.send(result).unwrap();
+                        }
+                        VpnServiceCommand::StoreAccount(tx, account) => {
+                            let result = self.handle_store_account(account).await;
+                            tx.send(result).unwrap();
+                        }
+                        VpnServiceCommand::RemoveAccount(tx) => {
+                            let result = self.handle_remove_account().await;
+                            tx.send(result).unwrap();
+                        }
+                        VpnServiceCommand::GetAccountSummary(tx) => {
+                            let result = self.handle_get_account_summary().await;
+                            tx.send(result).unwrap();
+                        }
+                        VpnServiceCommand::GetDevices(tx) => {
+                            let result = self.handle_get_devices().await;
+                            tx.send(result).unwrap();
+                        }
+                        VpnServiceCommand::RegisterDevice(tx) => {
+                            let result = self.handle_register_device().await;
+                            tx.send(result).unwrap();
+                        }
+                        VpnServiceCommand::RequestZkNym(tx) => {
+                            let result = self.handle_request_zk_nym().await;
+                            tx.send(result).unwrap();
+                        }
+                        VpnServiceCommand::GetDeviceZkNyms(tx) => {
+                            let result = self.handle_get_device_zk_nyms().await;
+                            tx.send(result).unwrap();
+                        }
+                        VpnServiceCommand::GetFreePasses(tx) => {
+                            let result = self.handle_get_free_passes().await;
+                            tx.send(result).unwrap();
+                        }
+                        VpnServiceCommand::ApplyFreepass(tx, code) => {
+                            let result = self.handle_apply_freepass(code).await;
+                            tx.send(result).unwrap();
+                        }
+                        VpnServiceCommand::Shutdown => {
+                            let result = self.handle_disconnect().await;
+                            info!("VPN: Shutting down: {:?}", result);
+                            while self.is_running() {
+                                tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+                            }
+                            break;
+                        }
                     }
-                    break;
+                },
+                _ = self.shutdown_token.cancelled() => {
+                    tracing::info!("Received shutdown signal");
                 }
+
             }
         }
+
         Ok(())
     }
 }

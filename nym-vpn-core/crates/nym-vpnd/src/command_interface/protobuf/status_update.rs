@@ -3,45 +3,8 @@
 
 use nym_bandwidth_controller::BandwidthStatusMessage;
 use nym_bandwidth_controller_pre_ecash::BandwidthStatusMessage as LegacyBandwidthStatusMessage;
-use nym_vpn_lib::{connection_monitor::ConnectionMonitorStatus, NymVpnStatusMessage};
+use nym_vpn_lib::connection_monitor::ConnectionMonitorStatus;
 use nym_vpn_proto::{connection_status_update::StatusType, ConnectionStatusUpdate};
-
-pub(crate) fn status_update_from_status_message(
-    status: &NymVpnStatusMessage,
-) -> ConnectionStatusUpdate {
-    match status {
-        NymVpnStatusMessage::MixConnectionInfo {
-            mixnet_connection_info,
-            mixnet_exit_connection_info,
-        } => ConnectionStatusUpdate {
-            kind: StatusType::TunnelEndToEndConnectionEstablished as i32,
-            message: status.to_string(),
-            details: maplit::hashmap! {
-                "nym_address".to_string() => mixnet_connection_info.nym_address.to_string(),
-                "entry_gateway".to_string() => mixnet_connection_info.entry_gateway.to_base58_string(),
-                "exit_gateway".to_string() => mixnet_exit_connection_info.exit_gateway.to_base58_string(),
-                "exit_ipr".to_string() => mixnet_exit_connection_info.exit_ipr.to_string(),
-                "ipv4".to_string() => mixnet_exit_connection_info.ips.ipv4.to_string(),
-                "ipv6".to_string() => mixnet_exit_connection_info.ips.ipv6.to_string(),
-            },
-        },
-        NymVpnStatusMessage::WgConnectionInfo {
-            entry_connection_info,
-            exit_connection_info,
-        } => ConnectionStatusUpdate {
-            kind: StatusType::TunnelEndToEndConnectionEstablished as i32,
-            message: status.to_string(),
-            details: maplit::hashmap! {
-                "entry_gateway".to_string() => entry_connection_info.gateway_id.to_base58_string(),
-                "exit_gateway".to_string() => exit_connection_info.gateway_id.to_base58_string(),
-                "entry_public_key".to_string() => entry_connection_info.public_key.clone(),
-                "exit_public_key".to_string() => exit_connection_info.public_key.clone(),
-                "entry_private_ipv4".to_string() => entry_connection_info.private_ipv4.to_string(),
-                "exit_private_ipv4".to_string() => exit_connection_info.private_ipv4.to_string(),
-            },
-        },
-    }
-}
 
 pub(crate) fn status_update_from_monitor_status(
     status: &ConnectionMonitorStatus,
@@ -121,15 +84,5 @@ pub(crate) fn status_update_from_bandwidth_status_message_legacy(
             message: status.to_string(),
             details: Default::default(),
         },
-    }
-}
-
-pub(crate) fn status_update_from_wg_tunnel_error_event(
-    status: &nym_vpn_lib::WgTunnelErrorEvent,
-) -> ConnectionStatusUpdate {
-    ConnectionStatusUpdate {
-        kind: StatusType::WgTunnelError as i32,
-        message: status.to_string(),
-        details: Default::default(),
     }
 }

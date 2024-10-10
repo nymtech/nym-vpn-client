@@ -3,14 +3,16 @@
 
 use std::{net::SocketAddr, path::PathBuf};
 
-use nym_task::TaskManager;
 use nym_vpn_proto::{nym_vpnd_server::NymVpndServer, VPN_FD_SET};
-use tokio::sync::{
-    broadcast,
-    mpsc::{UnboundedReceiver, UnboundedSender},
+use tokio::{
+    sync::{
+        broadcast,
+        mpsc::{UnboundedReceiver, UnboundedSender},
+    },
+    task::JoinHandle,
 };
+use tokio_util::sync::CancellationToken;
 use tonic::transport::Server;
-use tracing::{debug, debug_span, info, info_span, trace, trace_span, Span};
 
 use super::{
     config::{default_socket_path, default_uri_addr},
@@ -19,21 +21,21 @@ use super::{
 };
 use crate::service::{VpnServiceCommand, VpnServiceStateChange};
 
-fn grpc_span(req: &http::Request<()>) -> Span {
+fn grpc_span(req: &http::Request<()>) -> tracing::Span {
     let service = req.uri().path().trim_start_matches('/');
     let method = service.split('/').last().unwrap_or(service);
     if service.contains("grpc.reflection.v1") {
-        let span = trace_span!("grpc_reflection");
-        trace!(target: "grpc_reflection", "← {} {:?}", method, req.body());
+        let span = tracing::trace_span!("grpc_reflection");
+        tracing::trace!(target: "grpc_reflection", "← {} {:?}", method, req.body());
         return span;
     }
     if service.contains("grpc.health.v1") {
-        let span = debug_span!("grpc_health");
-        debug!(target: "grpc_health", "← {} {:?}", method, req.body());
+        let span = tracing::debug_span!("grpc_health");
+        tracing::debug!(target: "grpc_health", "← {} {:?}", method, req.body());
         return span;
     }
-    let span = info_span!("grpc_vpnd");
-    info!(target: "grpc_vpnd", "← {} {:?}", method, req.body());
+    let span = tracing::info_span!("grpc_vpnd");
+    tracing::info!(target: "grpc_vpnd", "← {} {:?}", method, req.body());
     span
 }
 
@@ -41,8 +43,9 @@ fn spawn_uri_listener(
     vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
     addr: SocketAddr,
-) {
-    info!("Starting HTTP listener on: {addr}");
+    shutdown_token: CancellationToken,
+) -> JoinHandle<()> {
+    tracing::info!("Starting HTTP listener on: {addr}");
     tokio::task::spawn(async move {
         let (mut health_reporter, health_service) = tonic_health::server::health_reporter();
         health_reporter
@@ -60,18 +63,19 @@ fn spawn_uri_listener(
             .add_service(health_service)
             .add_service(reflection_service)
             .add_service(NymVpndServer::new(command_interface))
-            .serve(addr)
+            .serve_with_shutdown(addr, shutdown_token.cancelled_owned())
             .await
             .unwrap();
-    });
+    })
 }
 
 fn spawn_socket_listener(
     vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
     socket_path: PathBuf,
-) {
-    info!("Starting socket listener on: {}", socket_path.display());
+    shutdown_token: CancellationToken,
+) -> JoinHandle<()> {
+    tracing::info!("Starting socket listener on: {}", socket_path.display());
     tokio::task::spawn(async move {
         let (mut health_reporter, health_service) = tonic_health::server::health_reporter();
         health_reporter
@@ -93,10 +97,10 @@ fn spawn_socket_listener(
             .add_service(health_service)
             .add_service(reflection_service)
             .add_service(NymVpndServer::new(command_interface))
-            .serve_with_incoming(incoming)
+            .serve_with_incoming_shutdown(incoming, shutdown_token.cancelled_owned())
             .await
             .unwrap();
-    });
+    })
 }
 
 #[derive(Default)]
@@ -107,14 +111,10 @@ pub(crate) struct CommandInterfaceOptions {
 
 pub(crate) fn start_command_interface(
     vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
-    mut task_manager: TaskManager,
     command_interface_options: Option<CommandInterfaceOptions>,
-    mut event_rx: tokio::sync::mpsc::UnboundedReceiver<()>,
-) -> (
-    std::thread::JoinHandle<()>,
-    UnboundedReceiver<VpnServiceCommand>,
-) {
-    info!("Starting command interface");
+    shutdown_token: CancellationToken,
+) -> (JoinHandle<()>, UnboundedReceiver<VpnServiceCommand>) {
+    tracing::info!("Starting command interface");
     // Channel to send commands to the vpn service
     let (vpn_command_tx, vpn_command_rx) = tokio::sync::mpsc::unbounded_channel();
 
@@ -122,68 +122,45 @@ pub(crate) fn start_command_interface(
     let socket_path = default_socket_path();
     let uri_addr = default_uri_addr();
 
-    let handle = std::thread::spawn(move || {
-        // Explicitly create a multu-threaded runtime for the command interface.
-        // We should consider also explictly setting the number of threads here to something like
-        // max(num_vcpu, 4) or something like that.
-        let command_rt = tokio::runtime::Builder::new_multi_thread()
-            .enable_all()
-            .build()
-            .unwrap();
+    let handle = tokio::spawn(async {
+        let socket_listener_handle = if !command_interface_options.disable_socket_listener {
+            Some(spawn_socket_listener(
+                vpn_state_changes_rx.resubscribe(),
+                vpn_command_tx.clone(),
+                socket_path.to_path_buf(),
+                shutdown_token.child_token(),
+            ))
+        } else {
+            None
+        };
 
-        command_rt.block_on(async move {
-            if !command_interface_options.disable_socket_listener {
-                spawn_socket_listener(
-                    vpn_state_changes_rx.resubscribe(),
-                    vpn_command_tx.clone(),
-                    socket_path.to_path_buf(),
-                );
-            }
+        let url_listener_handle = if command_interface_options.enable_http_listener {
+            Some(spawn_uri_listener(
+                vpn_state_changes_rx,
+                vpn_command_tx.clone(),
+                uri_addr,
+                shutdown_token.child_token(),
+            ))
+        } else {
+            None
+        };
 
-            if command_interface_options.enable_http_listener {
-                spawn_uri_listener(vpn_state_changes_rx, vpn_command_tx.clone(), uri_addr);
-            }
+        // Wait for shutdown signal.
+        shutdown_token.cancelled().await;
 
-            // Using TaskManager::catch_interrupt() here is a bit of a hack that we use for now.
-            // The real solution is to:
-            //
-            // 1. Register signal handler as a separate task. This handler will need the ability to
-            //    signal shutdown, which TaskClient currently doesn't have
-            //
-            // 2. Register error message handler that listens for errors / drops of the tasks, this
-            //    will also signal shutdown.
-            //
-            // 3. (TaskManager needs to be updated so that the vpn-lib does not wait for signals.
-            //    Or maybe we can just not call catch_interrupt() at all in vpn-lib.)
-            //
-            // 4. Then we need to wait for all tasks to finish, like in
-            //    TaskManager::wait_for_shutdown(). Since this also listens to ctrl-c, we can't
-            //    start this until shutdown has already been signalled.
-            //
-            // 5. Back up at the top-level where we join the threads, we check for return errors
-            //    and handle that there.
+        tracing::info!("Caught event stop");
+        tracing::info!("Signalling shutdown...");
+        vpn_command_tx.send(VpnServiceCommand::Shutdown).unwrap();
 
-            // This call will:
-            // Wait for interrupt
-            // Send shutdown signal to all tasks
-            // Wait for all tasks to finish
-            tokio::select! {
-                _ = task_manager.catch_interrupt() => {
-                    info!("Caught interrupt");
-                    vpn_command_tx.send(VpnServiceCommand::Shutdown).unwrap();
-                },
-                _ = event_rx.recv() => {
-                    info!("Caught event stop");
-                    info!("Signalling shutdown...");
-                    task_manager.signal_shutdown().ok();
-                    info!("Waiting for shutdown ...");
-                    task_manager.wait_for_shutdown().await;
-                    vpn_command_tx.send(VpnServiceCommand::Shutdown).unwrap();
-                }
-            }
+        // Wait for rpc services to shutdown
+        if let Some(socket_listener_handle) = socket_listener_handle {
+            socket_listener_handle.await;
+        }
+        if let Some(url_listener_handle) = url_listener_handle {
+            url_listener_handle.await;
+        }
 
-            info!("Command interface exiting");
-        });
+        tracing::info!("Command interface exiting");
     });
 
     (handle, vpn_command_rx)
