@@ -36,7 +36,7 @@
     <string name="via">aracılığıyla</string>
     <string name="required_app_restart">Yeniden başlatıldığında geçerli olur</string>
     <string name="legal">Hukuki</string>
-    <string name="disconnect">Bağlantı kesildi</string>
+    <string name="disconnect">Bağlantıyı kes</string>
     <string name="terms_of_use">Kullanım şartları</string>
     <string name="privacy_policy">Gizlilik politikası</string>
     <string name="two_hop_description">İnternet tarama, yayın, paylaşım için en iyisi</string>
