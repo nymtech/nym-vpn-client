@@ -44,22 +44,22 @@ impl SharedAccountState {
     }
 
     async fn set_mnemonic(&self, state: MnemonicState) {
-        tracing::info!("setting mnemonic state to {:?}", state);
+        tracing::info!("Setting mnemonic state to {:?}", state);
         self.inner.lock().await.mnemonic = Some(state);
     }
 
     async fn set_account(&self, state: RemoteAccountState) {
-        tracing::info!("setting account state to {:?}", state);
+        tracing::info!("Setting account state to {:?}", state);
         self.inner.lock().await.account = Some(state);
     }
 
     async fn set_subscription(&self, state: SubscriptionState) {
-        tracing::info!("setting subscription state to {:?}", state);
+        tracing::info!("Setting subscription state to {:?}", state);
         self.inner.lock().await.subscription = Some(state);
     }
 
     async fn set_device(&self, state: DeviceState) {
-        tracing::info!("setting device state to {:?}", state);
+        tracing::info!("Setting device state to {:?}", state);
         self.inner.lock().await.device = Some(state);
     }
 }
@@ -231,12 +231,12 @@ where
     async fn update_mnemonic_state(&self) -> Option<VpnApiAccount> {
         match self.load_account().await {
             Ok(account) => {
-                tracing::info!("Our account id: {}", account.id());
+                tracing::debug!("Our account id: {}", account.id());
                 self.account_state.set_mnemonic(MnemonicState::Stored).await;
                 Some(account)
             }
             Err(err) => {
-                tracing::info!("No account stored: {}", err);
+                tracing::debug!("No account stored: {}", err);
                 self.account_state
                     .set_mnemonic(MnemonicState::NotStored)
                     .await;
@@ -328,10 +328,10 @@ where
         let mut interval = tokio::time::interval(Duration::from_secs(5));
         loop {
             tokio::select! {
-                _ = interval.tick() => {
-                    tracing::info!("Checking account");
-                    self.refresh_account_state().await;
-                }
+                //_ = interval.tick() => {
+                //    tracing::info!("Checking account");
+                //    self.refresh_account_state().await;
+                //}
                 Some(command) = self.command_rx.recv() => {
                     self.handle_command(command).await;
                 }
