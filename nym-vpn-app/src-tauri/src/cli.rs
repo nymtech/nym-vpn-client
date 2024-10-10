@@ -122,9 +122,9 @@ pub fn db_command(command: &DbCommands) -> Result<()> {
     match command {
         DbCommands::Keys => {
             info!("cli db keys");
-            Key::iter().for_each(|key| {
+            for key in Key::iter() {
                 println!("{key}");
-            });
+            }
             Ok(())
         }
         DbCommands::Get { key: k } => {
