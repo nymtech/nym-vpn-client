@@ -11,6 +11,7 @@ import { kvGet } from './kvStore';
 import initSentry from './sentry';
 import { StartupError as TStartupError } from './types';
 import { StartupError } from './pages';
+import { init } from './log';
 
 // needed locales to load for dayjs
 import 'dayjs/locale/es';
@@ -34,9 +35,13 @@ dayjs.extend(relativeTime);
 dayjs.extend(duration);
 
 (async () => {
+  init();
+  console.info('starting UI');
+
   // check for unrecoverable errors
   const error = await invoke<TStartupError | undefined>('startup_error');
   if (error) {
+    console.info('get unrecoverable error');
     const window = getCurrentWebviewWindow();
     if (window.label !== ErrorWindowLabel) {
       // the index.html entry point is called by all webview windows rendering it

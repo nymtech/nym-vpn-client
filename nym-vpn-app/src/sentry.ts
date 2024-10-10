@@ -7,7 +7,6 @@ import {
 } from 'react-router-dom';
 import * as Sentry from '@sentry/react';
 import { getVersion } from '@tauri-apps/api/app';
-import logu from './log';
 
 async function initSentry() {
   const dsn = import.meta.env.APP_SENTRY_DSN;
@@ -19,13 +18,12 @@ async function initSentry() {
   }
 
   if (!dsn) {
-    console.warn(`unable to initialize sentry, APP_SENTRY_DSN env var not set`);
-    logu.warn('JS Sentry DSN not set, monitoring disabled');
+    console.warn(`unable to initialize Sentry, APP_SENTRY_DSN env var not set`);
     return;
   }
-  logu.info(`JS Sentry monitoring enabled`);
-  console.log('⚠ performance monitoring and error reporting enabled');
-  console.log('initializing sentry');
+  console.info(
+    '⚠ performance monitoring and error reporting enabled, initializing Sentry',
+  );
 
   Sentry.init({
     dsn,

@@ -30,6 +30,7 @@ function Home() {
   const handleClick = () => {
     dispatch({ type: 'disconnect' });
     if (state === 'Connected') {
+      console.info('disconnect');
       invoke('disconnect')
         .then((result) => {
           console.log('disconnect result');
@@ -40,11 +41,11 @@ function Home() {
           dispatch({ type: 'set-error', error: e as BackendError });
         });
     } else if (state === 'Disconnected') {
+      console.info('connect');
       dispatch({ type: 'connect' });
       invoke('connect', { entry: entryNodeLocation, exit: exitNodeLocation })
         .then((result) => {
-          console.log('connect result');
-          console.log(result);
+          console.log('connect result:', result);
         })
         .catch((e: unknown) => {
           console.warn('backend error:', e);
