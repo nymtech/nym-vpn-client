@@ -39,7 +39,7 @@ function MainStateProvider({ children }: Props) {
     vpnMode,
   } = state;
 
-  useTauriEvents(dispatch, state);
+  useTauriEvents(dispatch);
   const { push } = useInAppNotify();
 
   const { t } = useTranslation();
@@ -75,6 +75,7 @@ function MainStateProvider({ children }: Props) {
         // to ensure it's done before removing the splash screen
         await sleep(300);
         splash.remove();
+        console.log('splash animation done');
       }
     });
 

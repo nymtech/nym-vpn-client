@@ -1,19 +1,14 @@
-import * as _ from 'lodash-es';
 import { useCallback, useEffect } from 'react';
-import { EventCallback, listen } from '@tauri-apps/api/event';
+import { listen } from '@tauri-apps/api/event';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import dayjs from 'dayjs';
-import { kvSet } from '../kvStore';
 import {
-  AppState,
   BackendError,
   ConnectionEvent as ConnectionEventData,
   DaemonStatus,
   ProgressEventPayload,
   StateDispatch,
   StatusUpdatePayload,
-  WindowPosition,
-  WindowSize,
 } from '../types';
 import {
   ConnectionEvent,
@@ -21,7 +16,6 @@ import {
   ProgressEvent,
   StatusUpdateEvent,
 } from '../constants';
-import { PhysicalPosition, PhysicalSize } from '@tauri-apps/api/dpi';
 
 const appWindow = getCurrentWebviewWindow();
 
@@ -34,7 +28,7 @@ function handleError(dispatch: StateDispatch, error?: BackendError | null) {
   dispatch({ type: 'set-error', error });
 }
 
-export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
+export function useTauriEvents(dispatch: StateDispatch) {
   const registerDaemonListener = useCallback(() => {
     return listen<DaemonStatus>(DaemonEvent, (event) => {
       console.log(`received event [${event.event}], status: ${event.payload}`);
@@ -119,72 +113,6 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
     });
   }, [dispatch]);
 
-  const registerWindowResizedListener = useCallback(() => {
-    return appWindow.onResized(
-      _.debounce<EventCallback<PhysicalSize>>(
-        ({ payload }) => {
-          if (payload.width === 0 || payload.height === 0) {
-            // that happens when window is minimized
-            return;
-          }
-          if (
-            payload.width !== state.windowSize?.width ||
-            payload.height !== state.windowSize.height
-          ) {
-            const size: WindowSize = {
-              type: 'Physical',
-              width: payload.width,
-              height: payload.height,
-            };
-            console.log(
-              `window resized ${payload.type} ${size.width}x${size.height}`,
-            );
-            kvSet<WindowSize>('WindowSize', size);
-            dispatch({ type: 'set-window-size', size });
-          }
-        },
-        200,
-        {
-          leading: false,
-          trailing: true,
-        },
-      ),
-    );
-  }, [dispatch, state.windowSize]);
-
-  const registerWindowMovedListener = useCallback(() => {
-    return appWindow.onMoved(
-      _.debounce<EventCallback<PhysicalPosition>>(
-        ({ payload }) => {
-          if (payload.x < 0 || payload.y < 0) {
-            // that happens when moving the window on a secondary monitor
-            return;
-          }
-          if (
-            payload.x !== state.windowPosition?.x ||
-            payload.y !== state.windowPosition.y
-          ) {
-            const position: WindowPosition = {
-              type: 'Physical',
-              x: payload.x,
-              y: payload.y,
-            };
-            console.log(
-              `window moved ${payload.type} ${payload.x},${payload.y}`,
-            );
-            kvSet<WindowPosition>('WindowPosition', position);
-            dispatch({ type: 'set-window-position', position });
-          }
-        },
-        200,
-        {
-          leading: false,
-          trailing: true,
-        },
-      ),
-    );
-  }, [dispatch, state.windowPosition]);
-
   // register/unregister event listener
   useEffect(() => {
     const unlistenDaemon = registerDaemonListener();
@@ -192,8 +120,6 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
     const unlistenStatusUpdate = registerStatusUpdateListener();
     const unlistenProgress = registerProgressListener();
     const unlistenThemeChanges = registerThemeChangedListener();
-    const unlistenWindowResized = registerWindowResizedListener();
-    const unlistenWindowMoved = registerWindowMovedListener();
 
     return () => {
       unlistenDaemon.then((f) => f());
@@ -201,8 +127,6 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
       unlistenStatusUpdate.then((f) => f());
       unlistenProgress.then((f) => f());
       unlistenThemeChanges.then((f) => f());
-      unlistenWindowResized.then((f) => f());
-      unlistenWindowMoved.then((f) => f());
     };
   }, [
     registerDaemonListener,
@@ -210,7 +134,5 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
     registerStatusUpdateListener,
     registerProgressListener,
     registerThemeChangedListener,
-    registerWindowResizedListener,
-    registerWindowMovedListener,
   ]);
 }

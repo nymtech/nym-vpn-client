@@ -1,5 +1,5 @@
 use crate::db::DbError;
-use crate::MAIN_WINDOW_LABEL;
+use crate::{ERROR_WINDOW_LABEL, MAIN_WINDOW_LABEL};
 
 use anyhow::Result;
 use once_cell::sync::OnceCell;
@@ -9,7 +9,6 @@ use tracing::{error, info, instrument, warn};
 use ts_rs::TS;
 
 pub static STARTUP_ERROR: OnceCell<StartupError> = OnceCell::new();
-const WIN_LABEL: &str = "error";
 const WIN_TITLE: &str = "NymVPN - Startup error";
 
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]
@@ -75,7 +74,7 @@ pub fn create_window(app: &AppHandle) -> Result<()> {
     };
     let window = tauri::WebviewWindowBuilder::new(
         app,
-        WIN_LABEL,
+        ERROR_WINDOW_LABEL,
         tauri::WebviewUrl::App("index.html".into()),
     )
     .title(WIN_TITLE)

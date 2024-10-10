@@ -40,6 +40,7 @@
     "@tauri-apps/plugin-process": "^2.0.0",
     "@tauri-apps/plugin-shell": "^2.0.0",
     "@tauri-apps/plugin-updater": "^2.0.0",
+    "@tauri-apps/plugin-window-state": "^2.0.0",
     "clsx": "^2.0.0",
     "dayjs": "^1.11.10",
     "framer-motion": "^11.2.14",

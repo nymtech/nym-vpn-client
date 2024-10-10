@@ -18,8 +18,6 @@ import {
   ThemeMode,
   UiTheme,
   VpnMode,
-  WindowPosition,
-  WindowSize,
 } from '../types';
 
 export type StateAction =
@@ -64,8 +62,6 @@ export type StateAction =
   | { type: 'set-root-font-size'; size: number }
   | { type: 'set-code-deps-js'; dependencies: CodeDependency[] }
   | { type: 'set-code-deps-rust'; dependencies: CodeDependency[] }
-  | { type: 'set-window-size'; size: WindowSize }
-  | { type: 'set-window-position'; position: WindowPosition }
   | { type: 'set-credential-expiry'; expiry: Dayjs | null }
   | { type: 'set-entry-countries-error'; payload: AppError | null }
   | { type: 'set-exit-countries-error'; payload: AppError | null };
@@ -282,16 +278,6 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         codeDepsRust: action.dependencies,
-      };
-    case 'set-window-size':
-      return {
-        ...state,
-        windowSize: action.size,
-      };
-    case 'set-window-position':
-      return {
-        ...state,
-        windowPosition: action.position,
       };
     case 'set-entry-countries-error':
       return {
