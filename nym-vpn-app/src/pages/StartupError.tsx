@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import clsx from 'clsx';
 import { exit } from '@tauri-apps/plugin-process';
-import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import { Button, MsIcon } from '../ui';
 import { StartupErrorKey, StartupError as TStartupError } from '../types';
 import logu from '../log';
@@ -31,9 +31,11 @@ function StartupError({
       return;
     }
     initialized = true;
-    const window = getCurrentWebviewWindow();
-    logu.info('show error window');
-    window.show();
+    const window = getCurrentWindow();
+    logu.info(`show window [${window.label}]`);
+    window.show().catch((e: unknown) => {
+      logu.error(`failed to show error window: ${e}`);
+    });
   }, []);
 
   return (

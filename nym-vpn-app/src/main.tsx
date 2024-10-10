@@ -23,6 +23,8 @@ import 'dayjs/locale/tr';
 import 'dayjs/locale/uk';
 import 'dayjs/locale/zh-cn';
 
+const ErrorWindowLabel = 'error';
+
 if (import.meta.env.MODE === 'dev-browser') {
   console.log('Running in dev-browser mode. Mocking tauri window and IPCs');
   mockTauriIPC();
@@ -35,7 +37,13 @@ dayjs.extend(duration);
   // check for unrecoverable errors
   const error = await invoke<TStartupError | undefined>('startup_error');
   if (error) {
-    const theme = await getCurrentWebviewWindow().theme();
+    const window = getCurrentWebviewWindow();
+    if (window.label !== ErrorWindowLabel) {
+      // the index.html entry point is called by all webview windows rendering it
+      // so check which window is calling it, if it's not the error window, return
+      return;
+    }
+    const theme = await window.theme();
     const splash = document.getElementById('splash');
     if (splash) {
       splash.remove();
