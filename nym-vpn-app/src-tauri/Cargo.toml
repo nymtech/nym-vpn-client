@@ -58,6 +58,7 @@ tauri-plugin-dialog = "2.0.1"
 tauri-plugin-process = "2.0.1"
 tauri-plugin-clipboard-manager = "2.0.1"
 tauri-plugin-updater = "2.0.1"
+tauri-plugin-single-instance = "2.0.1"
 
 [target."cfg(windows)".dependencies]
 windows = { version = "0.58.0", features = [

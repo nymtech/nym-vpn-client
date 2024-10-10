@@ -94,6 +94,10 @@ async fn main() -> Result<()> {
     info!("app version: {}", pkg_info.version);
     info!("Starting tauri app");
     tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, _, _| {
+            info!("an app instance is already running, focusing main window");
+            window::focus_main_window(app)
+        }))
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_dialog::init())
