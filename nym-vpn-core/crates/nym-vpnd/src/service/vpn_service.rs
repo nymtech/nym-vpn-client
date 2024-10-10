@@ -34,7 +34,7 @@ use tokio_util::sync::CancellationToken;
 use tracing::{debug, error, info};
 use url::Url;
 
-use crate::account::{AccountCommand, AccountController, SharedAccountState};
+use nym_account_controller::{AccountCommand, AccountController, SharedAccountState};
 
 use super::{
     config::{
@@ -431,7 +431,11 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             nym_vpn_lib::storage::VpnClientOnDiskStorage::new(data_dir.clone()),
         ));
 
-        let account_controller = AccountController::new(Arc::clone(&storage), cancel_token);
+        // We need to create the user agent here and not in the controller so that we correctly
+        // pick up build time constants.
+        let user_agent = crate::util::construct_user_agent();
+        let account_controller =
+            AccountController::new(Arc::clone(&storage), user_agent, cancel_token);
         let shared_account_state = account_controller.shared_state();
         let account_command_tx = account_controller.command_tx();
         let _account_controller_handle = tokio::task::spawn(account_controller.run());

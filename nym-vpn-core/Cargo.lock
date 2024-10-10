@@ -3509,6 +3509,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-account-controller"
+version = "0.2.5-dev"
+dependencies = [
+ "nym-config 0.1.0 (git+https://github.com/nymtech/nym?rev=fabd48b)",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?rev=fabd48b)",
+ "nym-vpn-api-client",
+ "nym-vpn-store",
+ "thiserror",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "url",
+]
+
+[[package]]
 name = "nym-api-requests"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?rev=3f922cc0#3f922cc0aee9ce82472aadada2e7445ef7f03ca0"
@@ -5341,6 +5356,7 @@ dependencies = [
  "futures",
  "http 0.2.12",
  "maplit",
+ "nym-account-controller",
  "nym-bandwidth-controller 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
  "nym-bandwidth-controller 0.1.0 (git+https://github.com/nymtech/nym?rev=fabd48b)",
  "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?rev=fabd48b)",

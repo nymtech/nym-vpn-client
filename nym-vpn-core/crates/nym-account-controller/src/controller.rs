@@ -1,140 +1,30 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-// The account controller is responsible for
-// 1. checking if the account exists
-// 2. register the device
-// 3. request ticketbooks and top up the local credential store
-
 use std::sync::Arc;
 
-use nym_vpn_api_client::{
-    response::{NymVpnAccountStatusResponse, NymVpnAccountSummarySubscription, NymVpnDeviceStatus},
-    types::{Device, VpnApiAccount},
-};
-use nym_vpn_lib::nym_config::defaults::NymNetworkDetails;
+use nym_config::defaults::NymNetworkDetails;
+use nym_http_api_client::UserAgent;
+use nym_vpn_api_client::types::{Device, VpnApiAccount};
 use nym_vpn_store::{keys::KeyStore, mnemonic::MnemonicStorage};
 use tokio_util::sync::CancellationToken;
 use url::Url;
 
-use crate::service::AccountError;
-
-#[derive(Clone)]
-pub(crate) struct SharedAccountState {
-    inner: Arc<tokio::sync::Mutex<AccountState>>,
-}
-
-impl SharedAccountState {
-    pub(crate) fn new() -> Self {
-        SharedAccountState {
-            inner: Arc::new(tokio::sync::Mutex::new(AccountState::default())),
-        }
-    }
-
-    async fn get(&self) -> AccountState {
-        self.inner.lock().await.clone()
-    }
-
-    #[allow(unused)]
-    pub(crate) async fn is_ready_to_connect(&self) -> bool {
-        let state = self.get().await;
-        state.mnemonic == Some(MnemonicState::Stored)
-            && state.account == Some(RemoteAccountState::Active)
-            && state.subscription == Some(SubscriptionState::Subscribed)
-            && state.device == Some(DeviceState::Active)
-    }
-
-    async fn set_mnemonic(&self, state: MnemonicState) {
-        tracing::info!("Setting mnemonic state to {:?}", state);
-        self.inner.lock().await.mnemonic = Some(state);
-    }
-
-    async fn set_account(&self, state: RemoteAccountState) {
-        tracing::info!("Setting account state to {:?}", state);
-        self.inner.lock().await.account = Some(state);
-    }
-
-    async fn set_subscription(&self, state: SubscriptionState) {
-        tracing::info!("Setting subscription state to {:?}", state);
-        self.inner.lock().await.subscription = Some(state);
-    }
-
-    async fn set_device(&self, state: DeviceState) {
-        tracing::info!("Setting device state to {:?}", state);
-        self.inner.lock().await.device = Some(state);
-    }
-}
-
-#[derive(Debug, Clone, Default, PartialEq)]
-pub(crate) struct AccountState {
-    mnemonic: Option<MnemonicState>,
-    account: Option<RemoteAccountState>,
-    subscription: Option<SubscriptionState>,
-    device: Option<DeviceState>,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub(crate) enum MnemonicState {
-    NotStored,
-    Stored,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub(crate) enum RemoteAccountState {
-    NotRegistered,
-    NotActive,
-    Active,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub(crate) enum SubscriptionState {
-    NotSubscribed,
-    Subscribed,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub(crate) enum DeviceState {
-    NotRegistered,
-    NotActive,
-    Active,
-}
-
-impl From<NymVpnAccountStatusResponse> for RemoteAccountState {
-    fn from(status: NymVpnAccountStatusResponse) -> Self {
-        match status {
-            NymVpnAccountStatusResponse::Active => RemoteAccountState::Active,
-            _ => RemoteAccountState::NotActive,
-        }
-    }
-}
-
-impl From<NymVpnAccountSummarySubscription> for SubscriptionState {
-    fn from(subscription: NymVpnAccountSummarySubscription) -> Self {
-        if subscription.is_active {
-            SubscriptionState::Subscribed
-        } else {
-            SubscriptionState::NotSubscribed
-        }
-    }
-}
-
-impl From<NymVpnDeviceStatus> for DeviceState {
-    fn from(status: NymVpnDeviceStatus) -> Self {
-        match status {
-            NymVpnDeviceStatus::Active => DeviceState::Active,
-            _ => DeviceState::NotActive,
-        }
-    }
-}
+use crate::{
+    error::Error,
+    shared_state::{
+        DeviceState, MnemonicState, RemoteAccountState, SharedAccountState, SubscriptionState,
+    },
+};
 
 #[allow(unused)]
 #[derive(Clone, Debug)]
-pub(crate) enum AccountCommand {
+pub enum AccountCommand {
     RefreshAccountState,
     RegisterDevice,
 }
 
-pub(crate) struct AccountController<S>
+pub struct AccountController<S>
 where
     S: nym_vpn_store::VpnStorage,
 {
@@ -161,15 +51,16 @@ impl<S> AccountController<S>
 where
     S: nym_vpn_store::VpnStorage,
 {
-    pub(crate) fn new(
+    pub fn new(
         storage: Arc<tokio::sync::Mutex<S>>,
+        user_agent: UserAgent,
         cancel_token: CancellationToken,
     ) -> Self {
         let (command_tx, command_rx) = tokio::sync::mpsc::unbounded_channel();
         AccountController {
             storage,
             account_state: SharedAccountState::new(),
-            api_client: create_api_client(),
+            api_client: create_api_client(user_agent),
             command_rx,
             command_tx,
             cancel_token,
@@ -246,10 +137,7 @@ where
         }
     }
 
-    async fn update_remote_account_state(
-        &self,
-        account: &VpnApiAccount,
-    ) -> Result<(), AccountError> {
+    async fn update_remote_account_state(&self, account: &VpnApiAccount) -> Result<(), Error> {
         let account_summary = match self.api_client.get_account_summary(account).await {
             Ok(account_summary) => {
                 tracing::info!("Account summary: {:?}", account_summary);
@@ -260,7 +148,7 @@ where
                 self.account_state
                     .set_account(RemoteAccountState::NotRegistered)
                     .await;
-                return Err(AccountError::FailedToGetAccountSummary);
+                return Err(Error::FailedToGetAccountSummary);
             }
         };
 
@@ -331,7 +219,7 @@ where
         }
     }
 
-    pub(crate) async fn run(mut self) {
+    pub async fn run(mut self) {
         loop {
             tokio::select! {
                 Some(command) = self.command_rx.recv() => {
@@ -350,26 +238,25 @@ where
         tracing::debug!("Account controller is exiting");
     }
 
-    pub(crate) fn shared_state(&self) -> SharedAccountState {
+    pub fn shared_state(&self) -> SharedAccountState {
         self.account_state.clone()
     }
 
-    pub(crate) fn command_tx(&self) -> tokio::sync::mpsc::UnboundedSender<AccountCommand> {
+    pub fn command_tx(&self) -> tokio::sync::mpsc::UnboundedSender<AccountCommand> {
         self.command_tx.clone()
     }
 }
 
-fn get_nym_vpn_api_url() -> Result<Url, AccountError> {
+fn get_nym_vpn_api_url() -> Result<Url, Error> {
     NymNetworkDetails::new_from_env()
         .nym_vpn_api_url
-        .ok_or(AccountError::MissingApiUrl)?
+        .ok_or(Error::MissingApiUrl)?
         .parse()
-        .map_err(|_| AccountError::InvalidApiUrl)
+        .map_err(|_| Error::InvalidApiUrl)
         .inspect(|url| tracing::info!("Using nym-vpn-api url: {}", url))
 }
 
-fn create_api_client() -> nym_vpn_api_client::VpnApiClient {
+fn create_api_client(user_agent: UserAgent) -> nym_vpn_api_client::VpnApiClient {
     let nym_vpn_api_url = get_nym_vpn_api_url().unwrap();
-    let user_agent = crate::util::construct_user_agent();
     nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent).unwrap()
 }

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = [
+members = [ "crates/nym-account-controller",
     "crates/nym-authenticator-client",
     "crates/nym-connection-monitor",
     "crates/nym-gateway-directory",

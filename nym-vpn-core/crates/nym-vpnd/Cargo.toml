@@ -50,6 +50,7 @@ nym-task.workspace = true
 nym-validator-client.workspace = true
 
 # Local crates
+nym-account-controller = { path = "../nym-account-controller" }
 nym-vpn-api-client = { path = "../nym-vpn-api-client" }
 nym-vpn-lib = { path = "../nym-vpn-lib" }
 nym-vpn-proto = { path = "../nym-vpn-proto" }
