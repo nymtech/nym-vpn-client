@@ -99,16 +99,53 @@ dependencies {
 	detektPlugins(libs.detekt.rules.compose)
 }
 
-tasks.register<Exec>(Constants.BUILD_LIB_TASK) {
-	val ndkPath = android.sdkDirectory.resolve("ndk").listFilesOrdered().lastOrNull()?.path ?: System.getenv("ANDROID_NDK_HOME")
-	commandLine("echo", "NDK HOME: $ndkPath")
-	val script = "${projectDir.path}/src/main/scripts/build-libs.sh"
-	// TODO find a better way to limit builds
-	if (file("${projectDir.path}/src/main/jniLibs/arm64-v8a/libnym_vpn_lib.so").exists() &&
-		file("${projectDir.path}/src/main/jniLibs/arm64-v8a/libwg.so").exists()
-	) {
-		commandLine("echo", "Libs already compiled")
-	} else {
-		commandLine("bash").args(script, ndkPath)
+fun cleanSharedLibs() {
+	val jniArch = listOf("arm64-v8a", "armeabi-v7a, x86, x86_64")
+	jniArch.forEach {
+		delete("${projectDir.path}/src/main/jniLibs/$it/libnym_vpn_lib.so")
 	}
 }
+
+open class CustomBuildExtension {
+	var libVersion: String = ""
+}
+
+val buildExtension by extra(CustomBuildExtension())
+
+afterEvaluate {
+	if (project.hasProperty("libVersion")) {
+		buildExtension.libVersion = project.property("libVersion") as String
+	}
+}
+
+tasks.named<Delete>("clean") {
+	cleanSharedLibs()
+}
+
+tasks.register(Constants.BUILD_LIB_TASK) {
+	with(buildExtension.libVersion) {
+		when {
+			isEmpty() -> {
+				println("Skipping shared object libraries, assuming already built")
+				return@register
+			}
+			equals("source") -> {
+				println("Building shared object libraries from source")
+				cleanSharedLibs()
+				val ndkPath = android.sdkDirectory.resolve("ndk").listFilesOrdered().lastOrNull()?.path ?: System.getenv("ANDROID_NDK_HOME")
+				exec {
+					commandLine("echo", "NDK HOME: $ndkPath")
+					val script = "${projectDir.path}/src/main/scripts/build-libs.sh"
+					commandLine("bash").args(script, ndkPath)
+				}
+			}
+			else -> {
+				println("Retrieving share object libraries from release tag")
+				cleanSharedLibs()
+				//TODO download required shared libs and move them to proper dirs
+			}
+		}
+	}
+}
+
+
