@@ -83,7 +83,7 @@ impl Tunnel {
         let handle = unsafe {
             wgTurnOn(
                 // note: not all platforms accept mtu = 0
-                #[cfg(unix)]
+                #[cfg(any(target_os = "linux", target_os = "macos"))]
                 i32::from(config.interface.mtu),
                 settings.as_ptr(),
                 tun_fd,
@@ -145,10 +145,9 @@ impl Drop for Tunnel {
 }
 
 extern "C" {
-
     // Start the tunnel.
     fn wgTurnOn(
-        #[cfg(unix)] mtu: i32,
+        #[cfg(any(target_os = "linux", target_os = "macos"))] mtu: i32,
         settings: *const c_char,
         fd: RawFd,
         logging_callback: LoggingCallback,
