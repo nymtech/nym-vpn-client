@@ -19,8 +19,6 @@ import {
   ThemeMode,
   UiTheme,
   VpnMode,
-  WindowPosition,
-  WindowSize,
 } from '../types';
 import fireRequests, { TauriReq } from './helper';
 import { S_STATE } from '../static';
@@ -211,28 +209,6 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     },
   };
 
-  const getWindowSizeRq: TauriReq<() => Promise<WindowSize | undefined>> = {
-    name: 'getWindowSize',
-    request: () => kvGet<WindowSize>('WindowSize'),
-    onFulfilled: (size) => {
-      if (size) {
-        dispatch({ type: 'set-window-size', size });
-      }
-    },
-  };
-
-  const getWindowPositionRq: TauriReq<
-    () => Promise<WindowPosition | undefined>
-  > = {
-    name: 'getWindowPosition',
-    request: () => kvGet<WindowPosition>('WindowPosition'),
-    onFulfilled: (position) => {
-      if (position) {
-        dispatch({ type: 'set-window-position', position });
-      }
-    },
-  };
-
   const getDepsRustRq: TauriReq<() => Promise<CodeDependency[] | undefined>> = {
     name: 'getDepsRustRq',
     request: () => getRustLicenses(),
@@ -271,8 +247,6 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     getMonitoringRq,
     getDepsRustRq,
     getDepsJsRq,
-    getWindowSizeRq,
-    getWindowPositionRq,
     getDesktopNotificationsRq,
   ]);
 }

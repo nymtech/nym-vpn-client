@@ -44,9 +44,9 @@ function App() {
       // allow more time to the app window to be fully ready
       // avoiding the initial "white flash"
       await sleep(100);
+      console.info('show main window');
       invoke<void>('show_main_window')
         .then(() => {
-          console.log('show_main_window invoked');
           const splashLogo = document.getElementById('splash-logo');
           if (splashLogo) {
             // show the nym logo in the splash-screen

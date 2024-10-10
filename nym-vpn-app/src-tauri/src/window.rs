@@ -7,7 +7,6 @@ use tauri::{
 use tracing::{debug, error, instrument, warn};
 use ts_rs::TS;
 
-use crate::db::{Db, Key};
 use crate::MAIN_WINDOW_LABEL;
 
 pub struct AppWindow(pub WebviewWindow);
@@ -75,34 +74,6 @@ impl AppWindow {
             .set_focus()
             .inspect_err(|e| error!("failed to focus window: {e}"))
             .ok();
-    }
-
-    /// restore any saved window size
-    #[instrument(skip_all)]
-    pub fn restore_size(&self, db: &Db) -> Result<()> {
-        let size = db.get_typed::<WindowSize>(Key::WindowSize)?;
-        if let Some(s) = size {
-            debug!("restoring window size: {:?}", s);
-            self.0
-                .set_size(s)
-                .inspect_err(|e| error!("failed to set window size {}", e))
-                .ok();
-        }
-        Ok(())
-    }
-
-    /// restore any saved window position
-    #[instrument(skip_all)]
-    pub fn restore_position(&self, db: &Db) -> Result<()> {
-        let position = db.get_typed::<WindowPosition>(Key::WindowPosition)?;
-        if let Some(p) = position {
-            debug!("restoring window position: {:?}", p);
-            self.0
-                .set_position(p)
-                .inspect_err(|e| error!("failed to set window position {}", e))
-                .ok();
-        }
-        Ok(())
     }
 
     pub fn is_visible(&self) -> bool {

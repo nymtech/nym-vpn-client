@@ -31,6 +31,7 @@ use states::app::AppState;
 #[cfg(windows)]
 use states::app::VpnMode;
 use tauri::Manager;
+use tauri_plugin_window_state::StateFlags;
 use tokio::sync::Mutex;
 use tokio::time::sleep;
 use tracing::{debug, error, info, trace, warn};
@@ -54,6 +55,7 @@ mod window;
 pub const APP_NAME: &str = "NymVPN";
 pub const APP_DIR: &str = "nym-vpn-app";
 pub const MAIN_WINDOW_LABEL: &str = "main";
+pub const ERROR_WINDOW_LABEL: &str = "error";
 const APP_CONFIG_FILE: &str = "config.toml";
 const ENV_APP_NOSPLASH: &str = "APP_NOSPLASH";
 const VPND_RETRY_INTERVAL: Duration = Duration::from_secs(2);
@@ -94,6 +96,12 @@ async fn main() -> Result<()> {
     info!("app version: {}", pkg_info.version);
     info!("Starting tauri app");
     tauri::Builder::default()
+        .plugin(
+            tauri_plugin_window_state::Builder::new()
+                .with_state_flags(StateFlags::SIZE | StateFlags::POSITION)
+                .with_denylist(&[ERROR_WINDOW_LABEL])
+                .build(),
+        )
         .plugin(tauri_plugin_single_instance::init(|app, _, _| {
             info!("an app instance is already running, focusing main window");
             window::focus_main_window(app)
@@ -175,8 +183,6 @@ async fn main() -> Result<()> {
             app.manage(grpc.clone());
 
             let app_win = AppWindow::new(app.handle(), MAIN_WINDOW_LABEL)?;
-            app_win.restore_size(&db)?;
-            app_win.restore_position(&db)?;
             app_win.set_max_size().ok();
 
             // if splash-screen is disabled, remove it and show

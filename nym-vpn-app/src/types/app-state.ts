@@ -22,18 +22,6 @@ export type CodeDependency = {
   copyright?: string;
 };
 
-export type WindowSize = {
-  type: 'Physical' | 'Logical';
-  width: number;
-  height: number;
-};
-
-export type WindowPosition = {
-  type: 'Physical' | 'Logical';
-  x: number;
-  y: number;
-};
-
 export type DaemonStatus = 'Ok' | 'NotOk';
 
 export type AppState = {
@@ -68,8 +56,6 @@ export type AppState = {
   rootFontSize: number;
   codeDepsJs: CodeDependency[];
   codeDepsRust: CodeDependency[];
-  windowSize?: WindowSize | null;
-  windowPosition?: WindowPosition | null;
   credentialExpiry?: Dayjs | null;
   fetchMxEntryCountries: FetchMxCountriesFn;
   fetchMxExitCountries: FetchMxCountriesFn;
