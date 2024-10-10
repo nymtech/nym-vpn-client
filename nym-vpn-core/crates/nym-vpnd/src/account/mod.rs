@@ -246,7 +246,10 @@ where
         }
     }
 
-    async fn update_remote_account_state(&self, account: &VpnApiAccount) -> Result<(), AccountError> {
+    async fn update_remote_account_state(
+        &self,
+        account: &VpnApiAccount,
+    ) -> Result<(), AccountError> {
         let account_summary = match self.api_client.get_account_summary(account).await {
             Ok(account_summary) => {
                 tracing::info!("Account summary: {:?}", account_summary);
