@@ -8,6 +8,7 @@ use tracing::{debug, error, instrument, warn};
 use ts_rs::TS;
 
 use crate::db::{Db, Key};
+use crate::MAIN_WINDOW_LABEL;
 
 pub struct AppWindow(pub WebviewWindow);
 
@@ -15,7 +16,10 @@ impl AppWindow {
     #[instrument(skip(app))]
     pub fn new(app: &AppHandle, label: &str) -> Result<Self> {
         Ok(AppWindow(app.get_webview_window(label).ok_or_else(
-            || anyhow!("failed to get window {}", label),
+            || {
+                error!("failed to get window {}", label);
+                anyhow!("failed to get window {}", label)
+            },
         )?))
     }
 
@@ -50,6 +54,27 @@ impl AppWindow {
             })
             .ok_or_else(|| anyhow!("failed to get window {}", label))?;
         Ok(AppWindow(window))
+    }
+
+    /// "Wake up" the window, show it, unminimize it and focus it
+    #[instrument(skip_all)]
+    pub fn wake_up(&self) {
+        if !self.is_visible() {
+            self.0
+                .show()
+                .inspect_err(|e| error!("failed to show window: {e}"))
+                .ok();
+        }
+        if self.is_minimized() {
+            self.0
+                .unminimize()
+                .inspect_err(|e| error!("failed to unminimize window: {e}"))
+                .ok();
+        }
+        self.0
+            .set_focus()
+            .inspect_err(|e| error!("failed to focus window: {e}"))
+            .ok();
     }
 
     /// restore any saved window size
@@ -183,5 +208,14 @@ impl From<&PhysicalPosition<i32>> for WindowPosition {
             x: size.x,
             y: size.y,
         }
+    }
+}
+
+#[instrument(skip_all)]
+pub fn focus_main_window(app: &AppHandle) {
+    if let Ok(win) = AppWindow::new(app, MAIN_WINDOW_LABEL) {
+        win.wake_up();
+    } else {
+        error!("failed to get window {}", MAIN_WINDOW_LABEL);
     }
 }
