@@ -58,6 +58,7 @@ import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.functions.countryIcon
 import net.nymtech.nymvpn.ui.common.labels.GroupLabel
 import net.nymtech.nymvpn.ui.common.labels.StatusInfoLabel
+import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.MainTitle
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.navigation.NavIcon
@@ -87,6 +88,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	val snackbar = SnackbarController.current
 	val scope = rememberCoroutineScope()
 	val padding = WindowInsets.systemBars.asPaddingValues()
+	val navController = LocalNavController.current
 
 	var didAutoStart by remember { mutableStateOf(false) }
 	var showDialog by remember { mutableStateOf(false) }
@@ -97,7 +99,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 				title = { MainTitle(appUiState.settings.theme ?: Theme.default()) },
 				trailing = {
 					NavIcon(Icons.Outlined.Settings) {
-						appViewModel.navController.goFromRoot(Route.Settings)
+						navController.goFromRoot(Route.Settings)
 					}
 				},
 			),
@@ -110,7 +112,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			onResult = {
 				val accepted = (it.resultCode == RESULT_OK)
 				if (!accepted) {
-					appViewModel.navController.goFromRoot(Route.Permission(Permission.VPN))
+					navController.goFromRoot(Route.Permission(Permission.VPN))
 				} else {
 					viewModel.onConnect()
 				}
@@ -273,7 +275,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 								indication = if (selectionEnabled) ripple() else null,
 							) {
 								if (selectionEnabled) {
-									appViewModel.navController.goFromRoot(
+									navController.goFromRoot(
 										Route.EntryLocation,
 									)
 								} else {
@@ -303,7 +305,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 						.defaultMinSize(minHeight = 1.dp, minWidth = 1.dp)
 						.clickable(remember { MutableInteractionSource() }, indication = if (selectionEnabled) ripple() else null) {
 							if (selectionEnabled) {
-								appViewModel.navController.goFromRoot(
+								navController.goFromRoot(
 									Route.ExitLocation,
 								)
 							} else {
@@ -321,7 +323,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 								scope.launch {
 									if (appUiState.settings.credentialExpiry.isInvalid()
 									) {
-										return@launch appViewModel.navController.goFromRoot(Route.Credential)
+										return@launch navController.goFromRoot(Route.Credential)
 									}
 									onConnectPressed()
 								}

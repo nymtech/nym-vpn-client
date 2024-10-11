@@ -33,6 +33,7 @@ import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.labels.PermissionLabel
+import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.navigation.NavIcon
 import net.nymtech.nymvpn.ui.common.navigation.NavTitle
@@ -45,6 +46,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 @Composable
 fun PermissionScreen(appViewModel: AppViewModel, permission: Permission) {
 	val context = LocalContext.current
+	val navController = LocalNavController.current
 
 	LaunchedEffect(Unit) {
 		appViewModel.onNavBarStateChange(
@@ -52,7 +54,7 @@ fun PermissionScreen(appViewModel: AppViewModel, permission: Permission) {
 				title = { NavTitle(stringResource(R.string.permission_required)) },
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
-						appViewModel.navController.popBackStack()
+						navController.popBackStack()
 					}
 				},
 			),
@@ -134,7 +136,7 @@ fun PermissionScreen(appViewModel: AppViewModel, permission: Permission) {
 				Column(verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Bottom)) {
 					MainStyledButton(
 						onClick = {
-							appViewModel.navController.navigateAndForget(Route.Main(true))
+							navController.navigateAndForget(Route.Main(true))
 						},
 						content = { Text(stringResource(R.string.try_reconnecting), style = CustomTypography.labelHuge) },
 					)
