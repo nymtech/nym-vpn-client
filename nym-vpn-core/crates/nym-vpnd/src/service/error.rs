@@ -82,12 +82,8 @@ pub enum ConnectionFailedError {
     #[error("internal error occurred: {0}")]
     InternalError(String),
 
-    #[error("failed to get next usable credential: {reason}")]
-    InvalidCredential {
-        reason: String,
-        location: String,
-        gateway_id: String,
-    },
+    #[error("failed to get next usable credential")]
+    InvalidCredential,
 
     #[error("failed to setup mixnet storage paths: {reason}")]
     FailedToSetupMixnetStoragePaths { reason: String },
@@ -289,15 +285,7 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                         reason: source.to_string(),
                     }
                 }
-                nym_vpn_lib::MixnetError::InvalidCredential {
-                    reason,
-                    path,
-                    gateway_id,
-                } => ConnectionFailedError::InvalidCredential {
-                    reason: reason.to_string(),
-                    location: path.to_string_lossy().to_string(),
-                    gateway_id: gateway_id.clone(),
-                },
+                nym_vpn_lib::MixnetError::InvalidCredential => ConnectionFailedError::InvalidCredential,
                 nym_vpn_lib::MixnetError::FailedToSerializeMessage { source } => {
                     ConnectionFailedError::InternalError(source.to_string())
                 }

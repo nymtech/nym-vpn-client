@@ -673,11 +673,7 @@ where
         if res.is_ok()
             && matches!(
                 self.shared_vpn_state.get(),
-                VpnState::ConnectionFailed(ConnectionFailedError::InvalidCredential {
-                    reason: _,
-                    location: _,
-                    gateway_id: _,
-                })
+                VpnState::ConnectionFailed(ConnectionFailedError::InvalidCredential)
             )
         {
             self.shared_vpn_state.set(VpnState::NotConnected);

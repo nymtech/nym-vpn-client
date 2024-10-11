@@ -5,10 +5,11 @@ use std::{path::PathBuf, result::Result};
 
 use nym_config::defaults::NymNetworkDetails;
 use nym_sdk::mixnet::{MixnetClientBuilder, NodeIdentity, StoragePaths};
+use nym_vpn_store::mnemonic::MnemonicStorage as _;
 use tracing::{debug, info};
 
 use super::{MixnetError, SharedMixnetClient};
-use crate::vpn::MixnetClientConfig;
+use crate::{storage::VpnClientOnDiskStorage, vpn::MixnetClientConfig};
 
 fn true_to_enabled(val: bool) -> &'static str {
     if val {
@@ -85,19 +86,12 @@ pub(crate) async fn setup_mixnet_client(
     let mixnet_client = if let Some(path) = mixnet_client_key_storage_path {
         debug!("Using custom key storage path: {:?}", path);
 
-        let gateway_id = mixnet_entry_gateway.to_base58_string();
-        if let Err(err) =
-            crate::credentials::check_imported_credential(path.to_path_buf(), &gateway_id).await
-        {
-            // UGLY: flow needs to restructured to sort this out, but I don't want to refactor all
-            // that just before release.
+        let storage = VpnClientOnDiskStorage::new(path.clone());
+        if let Err(err) = storage.is_mnemonic_stored().await {
+            tracing::error!("failed to check credential: {:?}", err);
             task_client.disarm();
-            return Err(MixnetError::InvalidCredential {
-                reason: err,
-                path: path.to_path_buf(),
-                gateway_id,
-            });
-        };
+            return Err(MixnetError::InvalidCredential);
+        }
 
         let key_storage_path = StoragePaths::new_from_dir(path)
             .map_err(MixnetError::FailedToSetupMixnetStoragePaths)?;

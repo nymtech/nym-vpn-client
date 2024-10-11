@@ -1,8 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::PathBuf;
-
 #[derive(thiserror::Error, Debug)]
 pub enum MixnetError {
     #[error("failed to setup mixnet storage paths: {0}")]
@@ -23,12 +21,8 @@ pub enum MixnetError {
         source: Box<dyn std::error::Error + Send + Sync>,
     },
 
-    #[error("invalid credential: {reason}")]
-    InvalidCredential {
-        reason: crate::credentials::CheckImportedCredentialError,
-        path: PathBuf,
-        gateway_id: String,
-    },
+    #[error("invalid credential")]
+    InvalidCredential,
 
     #[error("failed to serialize message")]
     FailedToSerializeMessage {

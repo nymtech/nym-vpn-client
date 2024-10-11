@@ -83,17 +83,10 @@ impl From<ConnectionFailedError> for ProtoError {
                     "reason".to_string() => reason.clone(),
                 },
             },
-            ConnectionFailedError::InvalidCredential {
-                reason,
-                location,
-                gateway_id,
-            } => ProtoError {
+            ConnectionFailedError::InvalidCredential => ProtoError {
                 kind: ErrorType::NoValidCredentials as i32,
-                message: reason,
-                details: hashmap! {
-                    "location".to_string() => location,
-                    "gateway_id".to_string() => gateway_id,
-                },
+                message: err.to_string(),
+                details: Default::default(),
             },
             ConnectionFailedError::FailedToSetupMixnetStoragePaths { ref reason } => ProtoError {
                 kind: ErrorType::MixnetStoragePaths as i32,
