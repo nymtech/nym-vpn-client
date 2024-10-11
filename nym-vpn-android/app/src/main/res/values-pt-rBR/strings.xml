@@ -154,7 +154,7 @@
     <string name="out_of_bandwidth_error">Limite de largura de banda da credencial atingido.</string>
     <string name="gateway_error">Falha na conexão com o gateway. Tente novamente ou selecione um novo local de gateway.</string>
     <string name="state_error">"Isto não deveria acontecer, mas um estado incorreto foi atingido. Por favor, reinicie o aplicativo e tente novamente. "</string>
-    <string name="internal_error">Ocorreu um erro interno no túnel. Por favor, tente novamente.</string>
+    <string name="internal_error">Ocorreu um erro interno no túnel. Por favor tente novamente.</string>
     <string name="vpn_alerts_channel_id">Canal de alertas da NymVPN</string>
     <string name="bandwidth_alert">Alerta de banda larga</string>
     <string name="no_bandwidth">Sem largura de banda restante.</string>
