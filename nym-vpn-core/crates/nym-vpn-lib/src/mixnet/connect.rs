@@ -87,10 +87,18 @@ pub(crate) async fn setup_mixnet_client(
         debug!("Using custom key storage path: {:?}", path);
 
         let storage = VpnClientOnDiskStorage::new(path.clone());
-        if let Err(err) = storage.is_mnemonic_stored().await {
-            tracing::error!("failed to check credential: {:?}", err);
-            task_client.disarm();
-            return Err(MixnetError::InvalidCredential);
+        match storage.is_mnemonic_stored().await {
+            Ok(is_stored) if !is_stored => {
+                tracing::error!("No credential stored");
+                task_client.disarm();
+                return Err(MixnetError::InvalidCredential);
+            }
+            Ok(_) => {}
+            Err(err) => {
+                tracing::error!("failed to check credential: {:?}", err);
+                task_client.disarm();
+                return Err(MixnetError::InvalidCredential);
+            }
         }
 
         let key_storage_path = StoragePaths::new_from_dir(path)
