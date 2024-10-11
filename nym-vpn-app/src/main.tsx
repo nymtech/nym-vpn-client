@@ -26,6 +26,13 @@ import 'dayjs/locale/zh-cn';
 
 const ErrorWindowLabel = 'error';
 
+if (!import.meta.env.DEV) {
+  // In production env, disable right-click context menu
+  document.oncontextmenu = (event) => {
+    event.preventDefault()
+  }
+}
+
 if (import.meta.env.MODE === 'dev-browser') {
   console.log('Running in dev-browser mode. Mocking tauri window and IPCs');
   mockTauriIPC();
