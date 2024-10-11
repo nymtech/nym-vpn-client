@@ -22,6 +22,7 @@ import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
+import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.navigation.NavIcon
 import net.nymtech.nymvpn.ui.common.navigation.NavTitle
@@ -32,6 +33,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 @Composable
 fun LegalScreen(appViewModel: AppViewModel) {
 	val context = LocalContext.current
+	val navController = LocalNavController.current
 
 	LaunchedEffect(Unit) {
 		appViewModel.onNavBarStateChange(
@@ -39,7 +41,7 @@ fun LegalScreen(appViewModel: AppViewModel) {
 				title = { NavTitle(stringResource(R.string.legal)) },
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
-						appViewModel.navController.popBackStack()
+						navController.popBackStack()
 					}
 				},
 			),
@@ -75,7 +77,7 @@ fun LegalScreen(appViewModel: AppViewModel) {
 				SelectionItem(
 					title = { Text(stringResource(R.string.licenses), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
-						appViewModel.navController.navigate(Route.Licenses)
+						navController.navigate(Route.Licenses)
 					},
 				),
 			),

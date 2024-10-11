@@ -27,6 +27,7 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
+import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.navigation.NavIcon
 import net.nymtech.nymvpn.ui.common.navigation.NavTitle
@@ -38,6 +39,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 @Composable
 fun LicensesScreen(appViewModel: AppViewModel, viewModel: LicensesViewModel = hiltViewModel()) {
 	val context = LocalContext.current
+	val navController = LocalNavController.current
 	val snackbar = SnackbarController.current
 	val licenses = viewModel.licenses
 
@@ -47,7 +49,7 @@ fun LicensesScreen(appViewModel: AppViewModel, viewModel: LicensesViewModel = hi
 				title = { NavTitle(stringResource(R.string.licenses)) },
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
-						appViewModel.navController.popBackStack()
+						navController.popBackStack()
 					}
 				},
 			),

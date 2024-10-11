@@ -23,10 +23,12 @@ import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.SelectionItemButton
 import net.nymtech.nymvpn.ui.common.labels.SelectedLabel
+import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.navigation.NavIcon
 import net.nymtech.nymvpn.ui.common.navigation.NavTitle
 import net.nymtech.nymvpn.util.extensions.capitalize
+import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import timber.log.Timber
@@ -35,13 +37,15 @@ import java.util.Locale
 
 @Composable
 fun LanguageScreen(appViewModel: AppViewModel, localeStorage: LocaleStorage) {
+	val navController = LocalNavController.current
+
 	LaunchedEffect(Unit) {
 		appViewModel.onNavBarStateChange(
 			NavBarState(
 				title = { NavTitle(stringResource(R.string.language)) },
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
-						appViewModel.navController.popBackStack()
+						navController.popBackStack()
 					}
 				},
 			),
@@ -73,7 +77,7 @@ fun LanguageScreen(appViewModel: AppViewModel, localeStorage: LocaleStorage) {
 		Timber.d("Setting preferred locale: $locale")
 		localeStorage.setPreferredLocale(locale)
 		LocaleUtil.applyLocalizedContext(context, locale)
-		appViewModel.navController.navigate(Route.Main(changeLanguage = true))
+		navController.navigateAndForget(Route.Main(changeLanguage = true))
 	}
 
 	LazyColumn(

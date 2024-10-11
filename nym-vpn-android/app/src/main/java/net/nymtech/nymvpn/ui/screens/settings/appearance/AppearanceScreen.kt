@@ -21,6 +21,7 @@ import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
+import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.navigation.NavIcon
 import net.nymtech.nymvpn.ui.common.navigation.NavTitle
@@ -29,13 +30,14 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
 fun AppearanceScreen(appViewModel: AppViewModel) {
+	val navController = LocalNavController.current
 	LaunchedEffect(Unit) {
 		appViewModel.onNavBarStateChange(
 			NavBarState(
 				title = { NavTitle(stringResource(R.string.appearance)) },
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
-						appViewModel.navController.popBackStack()
+						navController.popBackStack()
 					}
 				},
 			),
@@ -56,7 +58,7 @@ fun AppearanceScreen(appViewModel: AppViewModel) {
 				SelectionItem(
 					Icons.Outlined.Translate,
 					title = { Text(stringResource(R.string.language), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { appViewModel.navController.navigate(Route.Language) },
+					onClick = { navController.navigate(Route.Language) },
 				),
 			),
 		)
@@ -65,7 +67,7 @@ fun AppearanceScreen(appViewModel: AppViewModel) {
 				SelectionItem(
 					Icons.Outlined.Contrast,
 					title = { Text(stringResource(R.string.display_theme), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { appViewModel.navController.navigate(Route.Display) },
+					onClick = { navController.navigate(Route.Display) },
 				),
 			),
 		)
