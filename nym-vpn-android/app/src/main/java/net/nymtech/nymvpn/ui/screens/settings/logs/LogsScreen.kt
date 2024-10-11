@@ -81,7 +81,7 @@ fun LogsScreen(appViewModel: AppViewModel, viewModel: LogsViewModel = hiltViewMo
 	}
 
 	LaunchedEffect(isAutoScrolling) {
-		if(isAutoScrolling) {
+		if (isAutoScrolling) {
 			lazyColumnListState.animateScrollToItem(logs.size)
 		}
 	}
