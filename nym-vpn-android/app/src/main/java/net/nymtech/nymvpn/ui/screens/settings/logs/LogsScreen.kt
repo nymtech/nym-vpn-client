@@ -63,7 +63,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 fun LogsScreen(appViewModel: AppViewModel, viewModel: LogsViewModel = hiltViewModel()) {
 	val lazyColumnListState = rememberLazyListState()
 	val clipboardManager: ClipboardManager = LocalClipboardManager.current
-	val scope = rememberCoroutineScope{ Dispatchers.IO }
+	val scope = rememberCoroutineScope { Dispatchers.IO }
 	var isAutoScrolling by remember { mutableStateOf(true) }
 	var showModal by remember { mutableStateOf(false) }
 	var lastScrollPosition by remember { mutableIntStateOf(0) }

@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-	namespace = "net.nymtech.ipcalculator"
+	namespace = "${Constants.NAMESPACE_ROOT}.ipcalculator"
 	compileSdk = Constants.COMPILE_SDK
 
 	defaultConfig {
@@ -21,11 +21,11 @@ android {
 		}
 	}
 	compileOptions {
-		sourceCompatibility = Constants.JAVA_VERSION
-		targetCompatibility = Constants.JAVA_VERSION
+		sourceCompatibility = getJavaVersion()
+		targetCompatibility = getJavaVersion()
 	}
 	kotlinOptions {
-		jvmTarget = Constants.JVM_TARGET
+		jvmTarget = getJavaTarget()
 	}
 }
 

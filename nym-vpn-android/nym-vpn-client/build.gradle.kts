@@ -1,5 +1,6 @@
 import com.android.build.gradle.internal.tasks.factory.dependsOn
 import org.gradle.kotlin.dsl.support.listFilesOrdered
+import task.DownloadCoreTask
 
 plugins {
 	alias(libs.plugins.android.library)
@@ -9,11 +10,21 @@ plugins {
 }
 
 android {
-
-	project.tasks.preBuild.dependsOn(Constants.BUILD_LIB_TASK)
-
-	namespace = "${Constants.NAMESPACE}.${Constants.VPN_LIB_NAME}"
+	namespace = "${Constants.NAMESPACE_ROOT}.${Constants.VPN_LIB_NAME}"
 	compileSdk = Constants.COMPILE_SDK
+
+	if (project.hasProperty(Constants.CORE_BUILD_PROP)) {
+		val coreBuild = project.property(Constants.CORE_BUILD_PROP) as String
+		if (Regex("^v\\d+\\.\\d+\\.\\d+\$").matches(coreBuild)) {
+			tasks.register<DownloadCoreTask>(Constants.DOWNLOAD_LIB_TASK) {
+				tag = coreBuild
+				extractPath = "/nym-vpn-client/src/main/jniLibs/arm64-v8a"
+			}
+			tasks.preBuild.dependsOn(Constants.DOWNLOAD_LIB_TASK)
+		} else {
+			tasks.preBuild.dependsOn(Constants.BUILD_SOURCE_TASK)
+		}
+	}
 
 	defaultConfig {
 		minSdk = Constants.MIN_SDK
@@ -59,11 +70,11 @@ android {
 
 	compileOptions {
 		isCoreLibraryDesugaringEnabled = true
-		sourceCompatibility = Constants.JAVA_VERSION
-		targetCompatibility = Constants.JAVA_VERSION
+		sourceCompatibility = getJavaVersion()
+		targetCompatibility = getJavaVersion()
 	}
 	kotlinOptions {
-		jvmTarget = Constants.JVM_TARGET
+		jvmTarget = getJavaTarget()
 		// R8 kotlinx.serialization
 		freeCompilerArgs =
 			listOf(
@@ -99,53 +110,15 @@ dependencies {
 	detektPlugins(libs.detekt.rules.compose)
 }
 
-fun cleanSharedLibs() {
-	val jniArch = listOf("arm64-v8a", "armeabi-v7a, x86, x86_64")
-	jniArch.forEach {
-		delete("${projectDir.path}/src/main/jniLibs/$it/libnym_vpn_lib.so")
-	}
+tasks.named<Delete>(Constants.CLEAN_TASK) {
+	removeJniLibsFile(Constants.NYM_SHARED_LIB)
+	removeJniLibsFile(Constants.WG_SHARED_LIB)
 }
 
-open class CustomBuildExtension {
-	var libVersion: String = ""
+tasks.register<Exec>(Constants.BUILD_SOURCE_TASK) {
+	dependsOn(Constants.CLEAN_TASK)
+	val ndkPath = android.sdkDirectory.resolve("ndk").listFilesOrdered().lastOrNull()?.path ?: System.getenv("ANDROID_NDK_HOME")
+	commandLine("echo", "NDK HOME: $ndkPath")
+	val script = "${projectDir.path}/src/main/scripts/build-libs.sh"
+	commandLine("bash").args(script, ndkPath)
 }
-
-val buildExtension by extra(CustomBuildExtension())
-
-afterEvaluate {
-	if (project.hasProperty("libVersion")) {
-		buildExtension.libVersion = project.property("libVersion") as String
-	}
-}
-
-tasks.named<Delete>("clean") {
-	cleanSharedLibs()
-}
-
-tasks.register(Constants.BUILD_LIB_TASK) {
-	with(buildExtension.libVersion) {
-		when {
-			isEmpty() -> {
-				println("Skipping shared object libraries, assuming already built")
-				return@register
-			}
-			equals("source") -> {
-				println("Building shared object libraries from source")
-				cleanSharedLibs()
-				val ndkPath = android.sdkDirectory.resolve("ndk").listFilesOrdered().lastOrNull()?.path ?: System.getenv("ANDROID_NDK_HOME")
-				exec {
-					commandLine("echo", "NDK HOME: $ndkPath")
-					val script = "${projectDir.path}/src/main/scripts/build-libs.sh"
-					commandLine("bash").args(script, ndkPath)
-				}
-			}
-			else -> {
-				println("Retrieving share object libraries from release tag")
-				cleanSharedLibs()
-				//TODO download required shared libs and move them to proper dirs
-			}
-		}
-	}
-}
-
-
