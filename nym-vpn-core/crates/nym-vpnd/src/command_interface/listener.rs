@@ -5,7 +5,6 @@ use std::{
     fs,
     net::SocketAddr,
     path::{Path, PathBuf},
-    time::SystemTime,
 };
 
 use futures::{stream::BoxStream, StreamExt};
@@ -14,13 +13,11 @@ use nym_vpn_proto::{
     nym_vpnd_server::NymVpnd, AccountError, ConnectRequest, ConnectResponse, ConnectionStateChange,
     ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty, GetAccountSummaryRequest,
     GetAccountSummaryResponse, GetDeviceZkNymsRequest, GetDeviceZkNymsResponse, GetDevicesRequest,
-    GetDevicesResponse, ImportUserCredentialRequest, ImportUserCredentialResponse, InfoRequest,
-    InfoResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
-    ListGatewaysResponse, RegisterDeviceRequest, RegisterDeviceResponse, RemoveAccountRequest,
-    RemoveAccountResponse, RequestZkNymRequest, RequestZkNymResponse, StatusRequest,
-    StatusResponse, StoreAccountRequest, StoreAccountResponse,
+    GetDevicesResponse, InfoRequest, InfoResponse, ListCountriesRequest, ListCountriesResponse,
+    ListGatewaysRequest, ListGatewaysResponse, RegisterDeviceRequest, RegisterDeviceResponse,
+    RemoveAccountRequest, RemoveAccountResponse, RequestZkNymRequest, RequestZkNymResponse,
+    StatusRequest, StatusResponse, StoreAccountRequest, StoreAccountResponse,
 };
-use prost_types::Timestamp;
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 use tracing::{error, info};
 
@@ -205,35 +202,6 @@ impl NymVpnd for CommandInterface {
 
         let response = StatusResponse::from(status);
         info!("Returning status response: {:?}", response);
-        Ok(tonic::Response::new(response))
-    }
-
-    async fn import_user_credential(
-        &self,
-        request: tonic::Request<ImportUserCredentialRequest>,
-    ) -> Result<tonic::Response<ImportUserCredentialResponse>, tonic::Status> {
-        info!("Got import credential request");
-
-        let credential = request.into_inner().credential;
-
-        let response = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_import_credential(credential)
-            .await;
-
-        let response = match response {
-            Ok(time) => ImportUserCredentialResponse {
-                success: true,
-                error: None,
-                expiry: time.map(|t| Timestamp::from(SystemTime::from(t))),
-            },
-            Err(err) => ImportUserCredentialResponse {
-                success: false,
-                error: Some(err.into()),
-                expiry: None,
-            },
-        };
-        info!("Returning import credential response: {:?}", response);
-
         Ok(tonic::Response::new(response))
     }
 

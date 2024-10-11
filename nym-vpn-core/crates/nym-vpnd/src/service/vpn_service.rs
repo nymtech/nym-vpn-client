@@ -21,14 +21,13 @@ use nym_vpn_api_client::{
     types::{GatewayMinPerformance, Percent, VpnApiAccount},
 };
 use nym_vpn_lib::{
-    credentials::import_credential,
     gateway_directory::{self, EntryPoint, ExitPoint},
     nym_config::defaults::NymNetworkDetails,
     GenericNymVpnConfig, MixnetClientConfig, NodeIdentity, Recipient,
 };
 use nym_vpn_store::keys::KeyStore as _;
 use serde::{Deserialize, Serialize};
-use time::{format_description::well_known::Rfc3339, OffsetDateTime};
+use time::format_description::well_known::Rfc3339;
 use tokio::sync::{broadcast, mpsc::UnboundedReceiver, oneshot};
 use tokio_util::sync::CancellationToken;
 use tracing::{debug, error, info};
@@ -41,7 +40,7 @@ use super::{
         self, create_config_file, create_data_dir, read_config_file, write_config_file,
         ConfigSetupError, NymVpnServiceConfig, DEFAULT_CONFIG_FILE,
     },
-    error::{AccountError, ConnectionFailedError, ImportCredentialError},
+    error::{AccountError, ConnectionFailedError},
     exit_listener::VpnServiceExitListener,
     status_listener::VpnServiceStatusListener,
 };
@@ -137,10 +136,6 @@ pub enum VpnServiceCommand {
     Disconnect(oneshot::Sender<VpnServiceDisconnectResult>),
     Status(oneshot::Sender<VpnServiceStatusResult>),
     Info(oneshot::Sender<VpnServiceInfoResult>),
-    ImportCredential(
-        oneshot::Sender<Result<Option<OffsetDateTime>, ImportCredentialError>>,
-        Vec<u8>,
-    ),
     StoreAccount(oneshot::Sender<Result<(), AccountError>>, String),
     RemoveAccount(oneshot::Sender<Result<(), AccountError>>),
     GetAccountSummary(oneshot::Sender<Result<NymVpnAccountSummaryResponse, AccountError>>),
@@ -165,7 +160,6 @@ impl fmt::Display for VpnServiceCommand {
             VpnServiceCommand::Disconnect(_) => write!(f, "Disconnect"),
             VpnServiceCommand::Status(_) => write!(f, "Status"),
             VpnServiceCommand::Info(_) => write!(f, "Info"),
-            VpnServiceCommand::ImportCredential(_, _) => write!(f, "ImportCredential"),
             VpnServiceCommand::StoreAccount(_, _) => write!(f, "StoreAccount"),
             VpnServiceCommand::RemoveAccount(_) => write!(f, "RemoveAccount"),
             VpnServiceCommand::GetAccountSummary(_) => write!(f, "GetAccountSummery"),
@@ -659,28 +653,6 @@ where
         }
     }
 
-    async fn handle_import_credential(
-        &mut self,
-        credential: Vec<u8>,
-    ) -> Result<Option<OffsetDateTime>, ImportCredentialError> {
-        if self.is_running() {
-            return Err(ImportCredentialError::VpnRunning);
-        }
-
-        let res = import_credential(credential, self.data_dir.clone())
-            .await
-            .map_err(|err| err.into());
-        if res.is_ok()
-            && matches!(
-                self.shared_vpn_state.get(),
-                VpnState::ConnectionFailed(ConnectionFailedError::InvalidCredential)
-            )
-        {
-            self.shared_vpn_state.set(VpnState::NotConnected);
-        }
-        res
-    }
-
     async fn handle_store_account(&mut self, account: String) -> Result<(), AccountError> {
         self.storage
             .lock()
@@ -872,10 +844,6 @@ where
                 }
                 VpnServiceCommand::Info(tx) => {
                     let result = self.handle_info().await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::ImportCredential(tx, credential) => {
-                    let result = self.handle_import_credential(credential).await;
                     tx.send(result).unwrap();
                 }
                 VpnServiceCommand::StoreAccount(tx, account) => {

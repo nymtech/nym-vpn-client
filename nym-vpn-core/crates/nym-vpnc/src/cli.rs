@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
 
-use std::{net::IpAddr, path::PathBuf};
+use std::net::IpAddr;
 
 use anyhow::{anyhow, Result};
 use clap::{Args, Parser, Subcommand};
@@ -24,7 +24,6 @@ pub(crate) enum Command {
     Disconnect,
     Status,
     Info,
-    ImportCredential(ImportCredentialArgs),
     StoreAccount(StoreAccountArgs),
     ListenToStatus,
     ListenToStateChanges,
@@ -132,44 +131,6 @@ pub(crate) struct CliExit {
     /// Auto-select exit gateway randomly.
     #[clap(long, alias = "exit-random")]
     pub(crate) exit_gateway_random: bool,
-}
-
-#[derive(Args)]
-pub(crate) struct ImportCredentialArgs {
-    #[command(flatten)]
-    pub(crate) credential_type: ImportCredentialType,
-
-    // currently hidden as there exists only a single serialization standard
-    #[arg(long, hide = true)]
-    pub(crate) version: Option<u8>,
-}
-
-#[derive(Args, Clone)]
-#[group(required = true, multiple = false)]
-pub(crate) struct ImportCredentialType {
-    /// Credential encoded using base58.
-    #[arg(long)]
-    pub(crate) credential_data: Option<String>,
-
-    /// Path to the credential file.
-    #[arg(long)]
-    pub(crate) credential_path: Option<PathBuf>,
-}
-
-// Workaround until clap supports enums for ArgGroups
-pub(crate) enum ImportCredentialTypeEnum {
-    Path(PathBuf),
-    Data(String),
-}
-
-impl From<ImportCredentialType> for ImportCredentialTypeEnum {
-    fn from(ict: ImportCredentialType) -> Self {
-        match (ict.credential_data, ict.credential_path) {
-            (Some(data), None) => ImportCredentialTypeEnum::Data(data),
-            (None, Some(path)) => ImportCredentialTypeEnum::Path(path),
-            _ => unreachable!(),
-        }
-    }
 }
 
 #[derive(Args)]

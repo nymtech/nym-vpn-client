@@ -1,74 +1,11 @@
-use std::path::PathBuf;
+// Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_lib::{
-    credentials::ImportCredentialError as VpnLibImportCredentialError,
     gateway_directory::Error as DirError, wg_gateway_client::Error as WgGatewayClientError,
-    AuthenticatorClientError, CredentialStorageError, GatewayDirectoryError, NodeIdentity,
-    NymIdError, Recipient,
+    AuthenticatorClientError, GatewayDirectoryError, NodeIdentity, Recipient,
 };
-use time::OffsetDateTime;
 use tracing::error;
-
-#[derive(Clone, Debug, thiserror::Error)]
-pub enum ImportCredentialError {
-    #[error("vpn is connected")]
-    VpnRunning,
-
-    #[error("credential already imported")]
-    CredentialAlreadyImported,
-
-    #[error("storage error: {path}: {error}")]
-    StorageError { path: PathBuf, error: String },
-
-    #[error("failed to deserialize credential: {reason}")]
-    DeserializationFailure { reason: String, location: PathBuf },
-
-    #[error("credential expired: {expiration}")]
-    CredentialExpired {
-        expiration: OffsetDateTime,
-        location: PathBuf,
-    },
-}
-
-impl From<VpnLibImportCredentialError> for ImportCredentialError {
-    fn from(err: VpnLibImportCredentialError) -> Self {
-        match err {
-            VpnLibImportCredentialError::CredentialStoreError { path, source } => {
-                ImportCredentialError::StorageError {
-                    path,
-                    error: source.to_string(),
-                }
-            }
-            VpnLibImportCredentialError::FailedToImportRawCredential { location, source } => {
-                match source {
-                    NymIdError::CredentialDeserializationFailure { source } => {
-                        ImportCredentialError::DeserializationFailure {
-                            reason: source.to_string(),
-                            location,
-                        }
-                    }
-                    NymIdError::ExpiredCredentialImport { expiration } => {
-                        ImportCredentialError::CredentialExpired {
-                            expiration,
-                            location,
-                        }
-                    }
-                    NymIdError::StorageError { source } => {
-                        if let Some(CredentialStorageError::ConstraintUnique) =
-                            source.downcast_ref::<CredentialStorageError>()
-                        {
-                            return ImportCredentialError::CredentialAlreadyImported;
-                        }
-                        ImportCredentialError::StorageError {
-                            path: location,
-                            error: source.to_string(),
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
 
 #[derive(Clone, Debug, thiserror::Error)]
 pub enum ConnectionFailedError {

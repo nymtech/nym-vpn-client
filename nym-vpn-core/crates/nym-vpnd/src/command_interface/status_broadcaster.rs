@@ -3,7 +3,6 @@
 
 use futures::StreamExt;
 use nym_bandwidth_controller::BandwidthStatusMessage;
-use nym_bandwidth_controller_pre_ecash::BandwidthStatusMessage as LegacyBandwidthStatusMessage;
 use nym_vpn_lib::{
     connection_monitor::ConnectionMonitorStatus, NymVpnStatusMessage, WgTunnelErrorEvent,
 };
@@ -11,8 +10,7 @@ use nym_vpn_proto::{connection_status_update::StatusType, ConnectionStatusUpdate
 use tracing::debug;
 
 use super::protobuf::status_update::{
-    status_update_from_bandwidth_status_message,
-    status_update_from_bandwidth_status_message_legacy, status_update_from_monitor_status,
+    status_update_from_bandwidth_status_message, status_update_from_monitor_status,
     status_update_from_status_message, status_update_from_wg_tunnel_error_event,
 };
 
@@ -56,15 +54,6 @@ impl ConnectionStatusBroadcaster {
             .ok();
     }
 
-    fn handle_bandwidth_status_message_legacy(
-        &self,
-        message: &nym_bandwidth_controller_pre_ecash::BandwidthStatusMessage,
-    ) {
-        self.status_tx
-            .send(status_update_from_bandwidth_status_message_legacy(message))
-            .ok();
-    }
-
     fn handle_wg_tunnel_error_event(&self, message: &nym_vpn_lib::WgTunnelErrorEvent) {
         self.status_tx
             .send(status_update_from_wg_tunnel_error_event(message))
@@ -85,10 +74,6 @@ impl ConnectionStatusBroadcaster {
                 self.handle_connection_monitor_status(message);
             } else if let Some(message) = status_update.downcast_ref::<BandwidthStatusMessage>() {
                 self.handle_bandwidth_status_message(message);
-            } else if let Some(message) =
-                status_update.downcast_ref::<LegacyBandwidthStatusMessage>()
-            {
-                self.handle_bandwidth_status_message_legacy(message);
             } else if let Some(message) = status_update.downcast_ref::<WgTunnelErrorEvent>() {
                 self.handle_wg_tunnel_error_event(message);
             } else {

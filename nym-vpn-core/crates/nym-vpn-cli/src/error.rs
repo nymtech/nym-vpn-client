@@ -6,26 +6,11 @@ pub(crate) enum Error {
     #[error(transparent)]
     VpnLib(#[from] nym_vpn_lib::Error),
 
-    #[error(transparent)]
-    ImportCredential(#[from] nym_vpn_lib::credentials::ImportCredentialError),
-
-    #[error("failed to read credential path: {0}")]
-    FailedToReadCredentialPath(#[source] std::io::Error),
-
-    #[error("failed to create credential data path: {0}")]
-    FailedToCreateCredentialDataPath(#[source] std::io::Error),
-
     #[error("identity not formatted correctly")]
     NodeIdentityFormatting,
 
     #[error("recipient is not formatted correctly")]
     RecipientFormatting,
-
-    #[error("config path not set")]
-    ConfigPathNotSet,
-
-    #[error("failed to parse encoded credential data")]
-    FailedToParseEncodedCredentialData(#[source] bs58::decode::Error),
 
     #[cfg(unix)]
     #[error("sudo/root privileges required, try rerunning with sudo: `sudo -E {binary_name} run`")]

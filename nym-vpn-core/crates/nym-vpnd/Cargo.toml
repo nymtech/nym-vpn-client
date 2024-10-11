@@ -43,7 +43,6 @@ talpid-routing.workspace = true
 talpid-wireguard.workspace = true
 
 # Nym monorepo
-nym-bandwidth-controller-pre-ecash.workspace = true
 nym-bandwidth-controller.workspace = true
 nym-bin-common.workspace = true
 nym-task.workspace = true

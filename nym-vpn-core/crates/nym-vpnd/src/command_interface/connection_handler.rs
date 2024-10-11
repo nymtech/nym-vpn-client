@@ -9,15 +9,13 @@ use nym_vpn_api_client::{
     types::GatewayMinPerformance,
 };
 use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint, GatewayClient, GatewayType};
-use time::OffsetDateTime;
 use tokio::sync::{mpsc::UnboundedSender, oneshot};
 use tracing::{debug, info, warn};
 
 use crate::{
     service::{
-        AccountError, ConnectArgs, ConnectOptions, ImportCredentialError, VpnServiceCommand,
-        VpnServiceConnectResult, VpnServiceDisconnectResult, VpnServiceInfoResult,
-        VpnServiceStatusResult,
+        AccountError, ConnectArgs, ConnectOptions, VpnServiceCommand, VpnServiceConnectResult,
+        VpnServiceDisconnectResult, VpnServiceInfoResult, VpnServiceStatusResult,
     },
     types::gateway,
 };
@@ -126,21 +124,6 @@ impl CommandInterfaceConnectionHandler {
         let status = rx.await.unwrap();
         debug!("VPN status: {}", status);
         status
-    }
-
-    pub(crate) async fn handle_import_credential(
-        &self,
-        credential: Vec<u8>,
-    ) -> Result<Option<OffsetDateTime>, ImportCredentialError> {
-        let (tx, rx) = oneshot::channel();
-        self.vpn_command_tx
-            .send(VpnServiceCommand::ImportCredential(tx, credential))
-            .unwrap();
-        debug!("Sent import credential command to VPN");
-        debug!("Waiting for response");
-        let result = rx.await.unwrap();
-        debug!("VPN import credential result: {:?}", result);
-        result
     }
 
     pub(crate) async fn handle_list_gateways(

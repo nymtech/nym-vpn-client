@@ -3,7 +3,6 @@
 
 use futures::{SinkExt, StreamExt};
 use nym_bandwidth_controller::BandwidthStatusMessage;
-use nym_bandwidth_controller_pre_ecash::BandwidthStatusMessage as LegacyBandwidthStatusMessage;
 use nym_task::StatusSender;
 use nym_vpn_lib::{
     connection_monitor::ConnectionMonitorStatus, NymVpnStatusMessage, SentStatus, StatusReceiver,
@@ -79,8 +78,6 @@ impl VpnServiceStatusListener {
             info!("VPN connection monitor status: {msg}");
         } else if let Some(msg) = msg.downcast_ref::<BandwidthStatusMessage>() {
             info!("VPN bandwidth status: monitor status: {msg}");
-        } else if let Some(msg) = msg.downcast_ref::<LegacyBandwidthStatusMessage>() {
-            info!("VPN bandwidth status (legacy): monitor status: {msg}");
         } else if let Some(msg) = msg.downcast_ref::<WgTunnelErrorEvent>() {
             info!("VPN error status: {msg}");
         } else {
