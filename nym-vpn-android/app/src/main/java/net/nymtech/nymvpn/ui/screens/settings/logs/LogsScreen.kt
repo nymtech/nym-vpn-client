@@ -27,7 +27,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -44,7 +43,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.nymtech.logcatutil.model.LogMessage
@@ -63,10 +61,10 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 fun LogsScreen(appViewModel: AppViewModel, viewModel: LogsViewModel = hiltViewModel()) {
 	val lazyColumnListState = rememberLazyListState()
 	val clipboardManager: ClipboardManager = LocalClipboardManager.current
-	val scope = rememberCoroutineScope { Dispatchers.IO }
+	val scope = rememberCoroutineScope()
 	var isAutoScrolling by remember { mutableStateOf(true) }
 	var showModal by remember { mutableStateOf(false) }
-	var lastScrollPosition by remember { mutableIntStateOf(0) }
+	var lastScrollPosition by remember { mutableStateOf(0) }
 
 	val context = LocalContext.current
 
