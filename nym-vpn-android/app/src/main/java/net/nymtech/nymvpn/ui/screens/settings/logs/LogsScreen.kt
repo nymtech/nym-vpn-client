@@ -30,7 +30,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -44,9 +43,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import net.nymtech.logcatutil.model.LogMessage
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppViewModel
@@ -63,7 +59,6 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 fun LogsScreen(appViewModel: AppViewModel, viewModel: LogsViewModel = hiltViewModel()) {
 	val lazyColumnListState = rememberLazyListState()
 	val clipboardManager: ClipboardManager = LocalClipboardManager.current
-	val scope = rememberCoroutineScope { Dispatchers.IO }
 	var isAutoScrolling by remember { mutableStateOf(true) }
 	var showModal by remember { mutableStateOf(false) }
 	var lastScrollPosition by remember { mutableIntStateOf(0) }
@@ -83,6 +78,12 @@ fun LogsScreen(appViewModel: AppViewModel, viewModel: LogsViewModel = hiltViewMo
 				},
 			),
 		)
+	}
+
+	LaunchedEffect(isAutoScrolling) {
+		if(isAutoScrolling) {
+			lazyColumnListState.animateScrollToItem(logs.size)
+		}
 	}
 
 	LaunchedEffect(lazyColumnListState) {
@@ -105,10 +106,7 @@ fun LogsScreen(appViewModel: AppViewModel, viewModel: LogsViewModel = hiltViewMo
 
 	LaunchedEffect(logs.size) {
 		if (isAutoScrolling) {
-			scope.launch {
-				delay(1000)
-				lazyColumnListState.animateScrollToItem(logs.size)
-			}
+			lazyColumnListState.animateScrollToItem(logs.size)
 		}
 	}
 
@@ -130,10 +128,7 @@ fun LogsScreen(appViewModel: AppViewModel, viewModel: LogsViewModel = hiltViewMo
 		floatingActionButton = {
 			FloatingActionButton(
 				onClick = {
-					scope.launch {
-						lazyColumnListState.animateScrollToItem(logs.size)
-						isAutoScrolling = true
-					}
+					isAutoScrolling = true
 				},
 				shape = RoundedCornerShape(16.dp),
 				containerColor = MaterialTheme.colorScheme.primary,
