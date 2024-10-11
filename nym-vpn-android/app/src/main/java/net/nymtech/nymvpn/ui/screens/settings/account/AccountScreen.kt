@@ -38,6 +38,7 @@ import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.common.labels.GroupLabel
+import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.navigation.NavIcon
 import net.nymtech.nymvpn.ui.common.navigation.NavTitle
@@ -52,6 +53,7 @@ import net.nymtech.nymvpn.util.extensions.showToast
 @Composable
 fun AccountScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 	val context = LocalContext.current
+	val navController = LocalNavController.current
 
 	val devicesDisabled = true
 
@@ -61,7 +63,7 @@ fun AccountScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 				title = { NavTitle(stringResource(R.string.credential)) },
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
-						appViewModel.navController.popBackStack()
+						navController.popBackStack()
 					}
 				},
 			),
@@ -136,7 +138,7 @@ fun AccountScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 					Box(modifier = Modifier.width(100.dp.scaledWidth())) {
 						MainStyledButton(
 							onClick = {
-								appViewModel.navController.navigate(Route.Credential)
+								navController.navigate(Route.Credential)
 							},
 							content = {
 								Text(

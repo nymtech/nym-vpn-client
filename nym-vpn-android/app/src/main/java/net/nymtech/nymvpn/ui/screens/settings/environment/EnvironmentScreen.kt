@@ -17,6 +17,7 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.common.buttons.IconSurfaceButton
+import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.navigation.NavIcon
 import net.nymtech.nymvpn.ui.common.navigation.NavTitle
@@ -26,13 +27,15 @@ import net.nymtech.vpn.backend.Tunnel
 
 @Composable
 fun EnvironmentScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewModel: EnvironmentViewModel = hiltViewModel()) {
+	val navController = LocalNavController.current
+
 	LaunchedEffect(Unit) {
 		appViewModel.onNavBarStateChange(
 			NavBarState(
 				title = { NavTitle(stringResource(R.string.environment)) },
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
-						appViewModel.navController.popBackStack()
+						navController.popBackStack()
 					}
 				},
 			),

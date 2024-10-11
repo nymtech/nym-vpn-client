@@ -46,12 +46,14 @@ import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.functions.rememberImeState
+import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.Constants
+import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
@@ -63,14 +65,22 @@ fun CredentialScreen(appViewModel: AppViewModel, viewModel: CredentialViewModel 
 	val scrollState = rememberScrollState()
 	val padding = WindowInsets.systemBars.asPaddingValues()
 	val context = LocalContext.current
+	val navController = LocalNavController.current
 
 	val error = viewModel.error.collectAsStateWithLifecycle()
+	val success = viewModel.success.collectAsStateWithLifecycle(null)
+
+	LaunchedEffect(success.value) {
+		if (success.value == true) {
+			navController.navigateAndForget(Route.Main())
+		}
+	}
 
 	val requestPermissionLauncher = rememberLauncherForActivityResult(
 		ActivityResultContracts.RequestPermission(),
 	) { isGranted ->
 		if (!isGranted) return@rememberLauncherForActivityResult snackbar.showMessage(context.getString(R.string.permission_required))
-		appViewModel.navController.navigate(Route.CredentialScanner)
+		navController.navigate(Route.CredentialScanner)
 	}
 
 	LaunchedEffect(Unit) {
