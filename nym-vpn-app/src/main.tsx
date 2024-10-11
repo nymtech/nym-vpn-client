@@ -29,8 +29,8 @@ const ErrorWindowLabel = 'error';
 if (!import.meta.env.DEV) {
   // In production env, disable right-click context menu
   document.oncontextmenu = (event) => {
-    event.preventDefault()
-  }
+    event.preventDefault();
+  };
 }
 
 if (import.meta.env.MODE === 'dev-browser') {
