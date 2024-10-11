@@ -10,7 +10,7 @@ import { mockTauriIPC } from './dev/setup';
 import { kvGet } from './kvStore';
 import initSentry from './sentry';
 import { StartupError as TStartupError } from './types';
-import { StartupError } from './pages';
+import { StartupError } from './screens';
 import { init } from './log';
 
 // needed locales to load for dayjs
@@ -25,6 +25,13 @@ import 'dayjs/locale/uk';
 import 'dayjs/locale/zh-cn';
 
 const ErrorWindowLabel = 'error';
+
+if (!import.meta.env.DEV) {
+  // In production env, disable right-click context menu
+  document.oncontextmenu = (event) => {
+    event.preventDefault();
+  };
+}
 
 if (import.meta.env.MODE === 'dev-browser') {
   console.log('Running in dev-browser mode. Mocking tauri window and IPCs');

@@ -19,10 +19,10 @@ import {
   SettingsRouteIndex,
   Support,
   Welcome,
-} from './pages';
+} from './screens';
 
 // Lazy loads Home
-const Home = lazy(() => import('./pages/home/Home'));
+const Home = lazy(() => import('./screens/home/Home'));
 
 export const routes = {
   root: '/',
