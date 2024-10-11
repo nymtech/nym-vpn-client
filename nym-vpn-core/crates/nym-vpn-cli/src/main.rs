@@ -5,11 +5,10 @@ mod commands;
 mod error;
 mod shutdown_handler;
 
-use std::{fs, path::PathBuf};
+use std::path::PathBuf;
 
 use anyhow::Context;
 use clap::Parser;
-use time::OffsetDateTime;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
@@ -21,7 +20,7 @@ use nym_vpn_lib::{
     GenericNymVpnConfig, IpPair, MixnetClientConfig, NodeIdentity, Recipient,
 };
 
-use commands::{CliArgs, Commands, ImportCredentialTypeEnum};
+use commands::{CliArgs, Commands};
 use error::{Error, Result};
 
 const CONFIG_DIRECTORY_NAME: &str = "nym-vpn-cli";
@@ -39,15 +38,6 @@ async fn main() -> anyhow::Result<()> {
 
     match args.command {
         Commands::Run(args) => run_vpn(args, data_path).await,
-        Commands::ImportCredential(args) => {
-            let data_path = data_path.ok_or(Error::ConfigPathNotSet)?;
-            import_credential(args, data_path).await.map(|d| {
-                if let Some(d) = d {
-                    tracing::info!("Credential expiry date: {}", d);
-                }
-            })?;
-            Ok(())
-        }
     }
 }
 
@@ -58,12 +48,11 @@ pub(crate) fn setup_logging(args: &CliArgs) {
         .unwrap()
         .add_directive("hyper::proto=info".parse().unwrap())
         .add_directive("netlink_proto=info".parse().unwrap());
-    if let Commands::Run(run_args) = &args.command {
-        if run_args.wireguard_mode {
-            filter = filter
-                .add_directive("nym_client_core=warn".parse().unwrap())
-                .add_directive("nym_gateway_client=warn".parse().unwrap());
-        }
+    let Commands::Run(run_args) = &args.command;
+    if run_args.wireguard_mode {
+        filter = filter
+            .add_directive("nym_client_core=warn".parse().unwrap())
+            .add_directive("nym_gateway_client=warn".parse().unwrap());
     }
 
     tracing_subscriber::fmt()
@@ -113,7 +102,6 @@ fn parse_exit_point(args: &commands::RunArgs) -> Result<ExitPoint> {
 fn check_root_privileges(args: &commands::CliArgs) -> Result<()> {
     let needs_root = match &args.command {
         Commands::Run(run_args) => !run_args.disable_routing,
-        Commands::ImportCredential(_) => true,
     };
 
     if !needs_root {
@@ -251,28 +239,6 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> anyhow:
 
     tracing::info!("Goodbye.");
     Ok(())
-}
-
-async fn import_credential(
-    args: commands::ImportCredentialArgs,
-    data_path: PathBuf,
-) -> Result<Option<OffsetDateTime>> {
-    tracing::info!("Importing credential data into: {}", data_path.display());
-    let data: ImportCredentialTypeEnum = args.credential_type.into();
-    let raw_credential = match data {
-        ImportCredentialTypeEnum::Path(path) => {
-            fs::read(path).map_err(Error::FailedToReadCredentialPath)?
-        }
-        ImportCredentialTypeEnum::Data(data) => parse_encoded_credential_data(&data)?,
-    };
-    fs::create_dir_all(&data_path).map_err(Error::FailedToCreateCredentialDataPath)?;
-    Ok(nym_vpn_lib::credentials::import_credential(raw_credential, data_path).await?)
-}
-
-fn parse_encoded_credential_data(raw: &str) -> Result<Vec<u8>> {
-    bs58::decode(raw)
-        .into_vec()
-        .map_err(Error::FailedToParseEncodedCredentialData)
 }
 
 fn mixnet_data_path() -> Option<PathBuf> {

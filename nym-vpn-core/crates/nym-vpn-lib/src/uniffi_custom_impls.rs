@@ -8,8 +8,7 @@ use std::{
 };
 
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
-use nym_bandwidth_controller::BandwidthStatusMessage as LegacyBandwidthStatusMessage;
-use nym_bandwidth_controller_pre_ecash::BandwidthStatusMessage;
+use nym_bandwidth_controller::BandwidthStatusMessage;
 use nym_connection_monitor::ConnectionMonitorStatus;
 use nym_gateway_directory::{EntryPoint as GwEntryPoint, ExitPoint as GwExitPoint};
 use nym_ip_packet_requests::IpPair;
@@ -526,19 +525,6 @@ impl From<&BandwidthStatusMessage> for BandwidthStatus {
                 }
             }
             BandwidthStatusMessage::NoBandwidth => BandwidthStatus::NoBandwidth,
-        }
-    }
-}
-
-impl From<&LegacyBandwidthStatusMessage> for BandwidthStatus {
-    fn from(value: &LegacyBandwidthStatusMessage) -> Self {
-        match value {
-            LegacyBandwidthStatusMessage::RemainingBandwidth(bandwidth) => {
-                BandwidthStatus::RemainingBandwidth {
-                    bandwidth: *bandwidth,
-                }
-            }
-            LegacyBandwidthStatusMessage::NoBandwidth => BandwidthStatus::NoBandwidth,
         }
     }
 }

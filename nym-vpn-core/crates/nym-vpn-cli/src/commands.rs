@@ -39,9 +39,6 @@ pub(crate) struct CliArgs {
 pub(crate) enum Commands {
     /// Run the client
     Run(RunArgs),
-
-    /// Import credential
-    ImportCredential(ImportCredentialArgs),
 }
 
 #[derive(Args)]
@@ -135,28 +132,6 @@ pub(crate) struct CliExit {
     pub(crate) exit_gateway_country: Option<String>,
 }
 
-#[derive(Args)]
-pub(crate) struct ImportCredentialArgs {
-    #[command(flatten)]
-    pub(crate) credential_type: ImportCredentialType,
-
-    // currently hidden as there exists only a single serialization standard
-    #[arg(long, hide = true)]
-    pub(crate) version: Option<u8>,
-}
-
-#[derive(Args)]
-#[group(required = true, multiple = false)]
-pub(crate) struct ImportCredentialType {
-    /// Credential encoded using base58.
-    #[arg(long)]
-    pub(crate) credential_data: Option<String>,
-
-    /// Path to the credential file.
-    #[arg(long, value_parser = check_path)]
-    pub(crate) credential_path: Option<PathBuf>,
-}
-
 fn validate_ipv4(ip: &str) -> Result<Ipv4Addr, String> {
     let ip = Ipv4Addr::from_str(ip).map_err(|err| err.to_string())?;
     let network = Ipv4Network::from_str(TUN_IP4_SUBNET).unwrap();
@@ -190,20 +165,4 @@ fn check_path(path: &str) -> Result<PathBuf, String> {
         return Err(format!("Path {:?} is not a file", path));
     }
     Ok(path)
-}
-
-// Workaround until clap supports enums for ArgGroups
-pub enum ImportCredentialTypeEnum {
-    Path(PathBuf),
-    Data(String),
-}
-
-impl From<ImportCredentialType> for ImportCredentialTypeEnum {
-    fn from(ict: ImportCredentialType) -> Self {
-        match (ict.credential_data, ict.credential_path) {
-            (Some(data), None) => ImportCredentialTypeEnum::Data(data),
-            (None, Some(path)) => ImportCredentialTypeEnum::Path(path),
-            _ => unreachable!(),
-        }
-    }
 }

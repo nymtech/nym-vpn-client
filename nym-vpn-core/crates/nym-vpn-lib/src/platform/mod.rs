@@ -17,7 +17,6 @@ use std::{
         atomic::{AtomicBool, Ordering},
         Arc, Mutex as StdMutex,
     },
-    time::SystemTime,
 };
 
 use lazy_static::lazy_static;
@@ -41,7 +40,6 @@ use crate::mobile::runner::WgTunnelRunner;
 #[cfg(target_os = "android")]
 use crate::platform::android::AndroidTunProvider;
 use crate::{
-    credentials::{check_credential_base58, import_credential_base58},
     gateway_directory::GatewayClient,
     platform::status_listener::VpnServiceStatusListener,
     uniffi_custom_impls::{
@@ -321,36 +319,6 @@ pub fn initLogger() {
     android::init_logs(log_level);
 }
 
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn importCredential(credential: String, path: String) -> Result<Option<SystemTime>, VpnError> {
-    RUNTIME.block_on(import_credential_from_string(&credential, &path))
-}
-
-async fn import_credential_from_string(
-    credential: &str,
-    path: &str,
-) -> Result<Option<SystemTime>, VpnError> {
-    let path_result = PathBuf::from_str(path);
-    let path_buf = match path_result {
-        Ok(p) => p,
-        Err(e) => {
-            return Err(VpnError::InternalError {
-                details: e.to_string(),
-            })
-        }
-    };
-    match import_credential_base58(credential, path_buf).await {
-        Ok(time) => match time {
-            None => Ok(None),
-            Some(t) => Ok(Some(SystemTime::from(t))),
-        },
-        Err(e) => Err(VpnError::InvalidCredential {
-            details: e.to_string(),
-        }),
-    }
-}
-
 fn setup_account_storage(path: &str) -> Result<crate::storage::VpnClientOnDiskStorage, VpnError> {
     let path = PathBuf::from_str(path).map_err(|err| VpnError::InternalError {
         details: err.to_string(),
@@ -449,20 +417,6 @@ async fn get_account_summary(
             serde_json::to_string(&summary).map_err(|err| VpnError::InternalError {
                 details: err.to_string(),
             })
-        })
-}
-
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn checkCredential(credential: String) -> Result<Option<SystemTime>, VpnError> {
-    RUNTIME.block_on(check_credential_string(&credential))
-}
-
-async fn check_credential_string(credential: &str) -> Result<Option<SystemTime>, VpnError> {
-    check_credential_base58(credential)
-        .await
-        .map_err(|e| VpnError::InvalidCredential {
-            details: e.to_string(),
         })
 }
 

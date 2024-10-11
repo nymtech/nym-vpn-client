@@ -6,16 +6,16 @@ use clap::Parser;
 use nym_gateway_directory::GatewayType;
 use nym_vpn_proto::{
     ApplyFreepassRequest, ConnectRequest, DisconnectRequest, Empty, GetAccountSummaryRequest,
-    GetDeviceZkNymsRequest, GetDevicesRequest, GetFreePassesRequest, ImportUserCredentialRequest,
-    InfoRequest, InfoResponse, ListCountriesRequest, ListGatewaysRequest, RegisterDeviceRequest,
-    RequestZkNymRequest, StatusRequest, StoreAccountRequest, UserAgent,
+    GetDeviceZkNymsRequest, GetDevicesRequest, GetFreePassesRequest, InfoRequest, InfoResponse,
+    ListCountriesRequest, ListGatewaysRequest, RegisterDeviceRequest, RequestZkNymRequest,
+    StatusRequest, StoreAccountRequest, UserAgent,
 };
 use protobuf_conversion::{into_gateway_type, into_threshold};
 use sysinfo::System;
 use vpnd_client::ClientType;
 
 use crate::{
-    cli::{Command, ImportCredentialTypeEnum},
+    cli::Command,
     protobuf_conversion::{
         into_entry_point, into_exit_point, ipaddr_into_string, parse_offset_datetime,
     },
@@ -39,9 +39,6 @@ async fn main() -> Result<()> {
         Command::Disconnect => disconnect(client_type).await?,
         Command::Status => status(client_type).await?,
         Command::Info => info(client_type).await?,
-        Command::ImportCredential(ref import_args) => {
-            import_credential(client_type, import_args).await?
-        }
         Command::StoreAccount(ref store_args) => store_account(client_type, store_args).await?,
         Command::ListenToStatus => listen_to_status(client_type).await?,
         Command::ListenToStateChanges => listen_to_state_changes(client_type).await?,
@@ -164,28 +161,6 @@ async fn info(client_type: ClientType) -> Result<()> {
         );
     }
     Ok(())
-}
-
-async fn import_credential(
-    client_type: ClientType,
-    import_args: &cli::ImportCredentialArgs,
-) -> Result<()> {
-    let import_type: ImportCredentialTypeEnum = import_args.credential_type.clone().into();
-    let raw_credential = match import_type {
-        ImportCredentialTypeEnum::Path(path) => std::fs::read(path)?,
-        ImportCredentialTypeEnum::Data(data) => parse_encoded_credential_data(&data)?,
-    };
-    let request = tonic::Request::new(ImportUserCredentialRequest {
-        credential: raw_credential,
-    });
-    let mut client = vpnd_client::get_client(client_type).await?;
-    let response = client.import_user_credential(request).await?.into_inner();
-    println!("{:#?}", response);
-    Ok(())
-}
-
-fn parse_encoded_credential_data(raw: &str) -> bs58::decode::Result<Vec<u8>> {
-    bs58::decode(raw).into_vec()
 }
 
 async fn store_account(client_type: ClientType, store_args: &cli::StoreAccountArgs) -> Result<()> {

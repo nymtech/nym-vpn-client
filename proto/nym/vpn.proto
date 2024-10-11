@@ -395,47 +395,6 @@ message Error {
   map<string, string> details = 3;
 }
 
-message ImportUserCredentialRequest {
-  bytes credential = 1;
-}
-
-message ImportUserCredentialResponse {
-  bool success = 1;
-  ImportError error = 2;
-  google.protobuf.Timestamp expiry = 3;
-}
-
-message ImportError {
-  enum ImportErrorType {
-    IMPORT_ERROR_TYPE_UNSPECIFIED = 0;
-
-    // Credential import is not supported while the vpn is already connected
-    VPN_RUNNING = 1;
-
-    // Importing the same credential twice will return an error
-    CREDENTIAL_ALREADY_IMPORTED = 2;
-
-    // If the credential storage fails in some way. It's very likely due to a
-    // permission error.
-    STORAGE_ERROR = 3;
-
-    // If the provided credential fails to deserialize. This is probably due to
-    // incorrect credential, but it could also be due to other internal reasons
-    DESERIALIZATION_FAILURE = 4;
-
-    // Credentials have a date when they expire
-    CREDENTIAL_EXPIRED = 5;
-  }
-
-  ImportErrorType kind = 1;
-
-  // Detailed error message for logging and debugging
-  string message = 2;
-
-  // Optional additional details
-  map<string, string> details = 3;
-}
-
 message AsEntry {
   bool can_connect = 1;
   bool can_route = 2;
@@ -597,7 +556,6 @@ service NymVpnd {
   rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
   rpc VpnDisconnect (DisconnectRequest) returns (DisconnectResponse) {}
   rpc VpnStatus (StatusRequest) returns (StatusResponse) {}
-  rpc ImportUserCredential (ImportUserCredentialRequest) returns (ImportUserCredentialResponse) {}
   rpc ListenToConnectionStateChanges (Empty) returns (stream ConnectionStateChange) {}
   rpc ListenToConnectionStatus (Empty) returns (stream ConnectionStatusUpdate) {}
 

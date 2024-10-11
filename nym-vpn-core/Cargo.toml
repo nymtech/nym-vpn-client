@@ -138,10 +138,3 @@ nym-task = { git = "https://github.com/nymtech/nym", rev = "fabd48b" }
 nym-topology = { git = "https://github.com/nymtech/nym", rev = "fabd48b" }
 nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "fabd48b" }
 nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "fabd48b" }
-
-# Pointing to before ecash was merged, for backwards compatibility and migration period
-
-nym-credential-storage-pre-ecash = { git = "https://github.com/nymtech/nym", rev = "3f922cc0", package = "nym-credential-storage" }
-nym-credentials-pre-ecash = { git = "https://github.com/nymtech/nym", rev = "3f922cc0", package = "nym-credentials" }
-nym-id-pre-ecash = { git = "https://github.com/nymtech/nym", rev = "3f922cc0", package = "nym-id" }
-nym-bandwidth-controller-pre-ecash = { git = "https://github.com/nymtech/nym", rev = "3f922cc0", package = "nym-bandwidth-controller" }

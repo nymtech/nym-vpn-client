@@ -3,7 +3,6 @@
 
 uniffi::setup_scaffolding!();
 
-pub mod credentials;
 pub mod storage;
 pub mod util;
 
@@ -29,9 +28,7 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 pub use nym_authenticator_client::Error as AuthenticatorClientError;
 pub use nym_config;
 pub use nym_connection_monitor as connection_monitor;
-pub use nym_credential_storage_pre_ecash::error::StorageError as CredentialStorageError;
 pub use nym_gateway_directory as gateway_directory;
-pub use nym_id_pre_ecash::error::NymIdError;
 pub use nym_ip_packet_requests::IpPair;
 pub use nym_sdk::{
     mixnet::{NodeIdentity, Recipient, StoragePaths},
