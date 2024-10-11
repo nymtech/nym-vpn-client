@@ -245,7 +245,7 @@ async fn main() -> Result<()> {
             cmd_window::show_main_window,
             commands::cli::cli_args,
             cmd_log::log_js,
-            credential::add_credential,
+            account::add_account,
             cmd_daemon::daemon_status,
             cmd_daemon::daemon_info,
             cmd_fs::log_dir,

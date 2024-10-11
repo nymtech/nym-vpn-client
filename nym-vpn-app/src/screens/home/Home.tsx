@@ -56,7 +56,7 @@ function Home() {
 
   useEffect(() => {
     if (error?.key === 'CStateNoValidCredential') {
-      navigate(routes.credential);
+      navigate(routes.addAccount);
       dispatch({ type: 'reset-error' });
     }
   }, [error, dispatch, navigate]);

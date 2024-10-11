@@ -6,9 +6,9 @@ use itertools::Itertools;
 use nym_vpn_proto::{
     health_check_response::ServingStatus, health_client::HealthClient,
     nym_vpnd_client::NymVpndClient, ConnectRequest, ConnectionStatus, DisconnectRequest, Dns,
-    Empty, EntryNode, ExitNode, GatewayType, HealthCheckRequest, ImportUserCredentialRequest,
-    ImportUserCredentialResponse, InfoRequest, InfoResponse, ListCountriesRequest, Location,
-    StatusRequest, StatusResponse, UserAgent,
+    Empty, EntryNode, ExitNode, GatewayType, GetAccountSummaryRequest, GetAccountSummaryResponse,
+    HealthCheckRequest, InfoRequest, InfoResponse, ListCountriesRequest, Location, StatusRequest,
+    StatusResponse, StoreAccountRequest, StoreAccountResponse, UserAgent,
 };
 use parity_tokio_ipc::Endpoint as IpcEndpoint;
 use serde::{Deserialize, Serialize};
@@ -377,18 +377,32 @@ impl GrpcClient {
         Ok(response.into_inner().success)
     }
 
-    /// Import user credential from base58 encoded string
+    /// Store account
     #[instrument(skip_all)]
-    pub async fn import_credential(
-        &self,
-        credential: Vec<u8>,
-    ) -> Result<ImportUserCredentialResponse, VpndError> {
-        debug!("import_credential");
+    pub async fn store_account(&self, mnemonic: String) -> Result<StoreAccountResponse, VpndError> {
+        debug!("store_account");
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(ImportUserCredentialRequest { credential });
-        let response = vpnd.import_user_credential(request).await.map_err(|e| {
-            error!("grpc import_user_credential: {}", e);
+        let request = Request::new(StoreAccountRequest { mnemonic, nonce: 0 });
+        let response = vpnd.store_account(request).await.map_err(|e| {
+            error!("grpc store_account: {}", e);
+            VpndError::GrpcError(e)
+        })?;
+        debug!("grpc response: {:?}", response);
+
+        Ok(response.into_inner())
+    }
+
+    /// Get account info
+    /// Note: if the account is not stored yet, the call will fail
+    #[instrument(skip_all)]
+    pub async fn get_account_summary(&self) -> Result<GetAccountSummaryResponse, VpndError> {
+        debug!("get_account_summary");
+        let mut vpnd = self.vpnd().await?;
+
+        let request = Request::new(GetAccountSummaryRequest {});
+        let response = vpnd.get_account_summary(request).await.map_err(|e| {
+            error!("grpc get_account_summary: {}", e);
             VpndError::GrpcError(e)
         })?;
         debug!("grpc response: {:?}", response);

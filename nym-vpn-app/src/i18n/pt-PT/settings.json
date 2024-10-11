@@ -39,7 +39,7 @@
     "title": "Logs",
     "desc": "Copiar ou apagar registos"
   },
-  "add-credential-button": "Adicionar credencial para ligação",
+  "add-account-button": "Adicionar credencial para ligação",
   "notifications": {
     "title": "Notificações no ambiente de trabalho"
   },

@@ -3,7 +3,7 @@
     "title": "Logs",
     "desc": "Kopier oder lösch die Logfiles"
   },
-  "add-credential-button": "Zum Verbinden Zugangsdaten hinzufügen",
+  "add-account-button": "Zum Verbinden Zugangsdaten hinzufügen",
   "credential": {
     "title": "Zugangsdaten"
   },

@@ -71,7 +71,7 @@ export default function TopBar() {
         },
         noBackground: os === 'windows' || os === 'macos',
       },
-      '/credential': {
+      '/add-account': {
         leftIcon: 'arrow_back',
         handleLeftNav: () => {
           navigate(-1);

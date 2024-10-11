@@ -109,18 +109,10 @@ function useI18nError() {
           return t('connection.wireguard.config');
         case 'CSMixnetConnectionMonitor':
           return t('connection.mixnet.monitor');
-        case 'CredentialInvalid':
-          return t('credential.invalid');
-        case 'CredentialVpnRunning':
-          return t('credential.vpn-running');
-        case 'CredentialAlreadyImported':
-          return t('credential.no-duplicate');
-        case 'CredentialStorageError':
-          return t('credential.storage');
-        case 'CredentialDeserializationFailure':
-          return t('credential.deserialize');
-        case 'CredentialExpired':
-          return t('credential.expired');
+        case 'AccountInvalidMnemonic':
+          return t('account.invalid-recovery-phrase');
+        case 'AccountStorage':
+          return t('account.storage');
         case 'EntryGatewayNotRouting':
           return t('entry-node-routing');
         case 'ExitRouterPingIpv4':

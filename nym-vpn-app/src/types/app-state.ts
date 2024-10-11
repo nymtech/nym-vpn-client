@@ -56,7 +56,8 @@ export type AppState = {
   rootFontSize: number;
   codeDepsJs: CodeDependency[];
   codeDepsRust: CodeDependency[];
-  credentialExpiry?: Dayjs | null;
+  // TODO just a boolean for now to indicate if the user has added an account
+  account: boolean;
   fetchMxEntryCountries: FetchMxCountriesFn;
   fetchMxExitCountries: FetchMxCountriesFn;
   fetchWgCountries: FetchWgCountriesFn;

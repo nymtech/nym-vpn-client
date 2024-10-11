@@ -29,7 +29,7 @@
     "emptyData": "Дані про ліцензію відсутні"
   },
   "display-theme": "Тема",
-  "add-credential-button": "Додайте облікові дані для підключення",
+  "add-account-button": "Додайте облікові дані для підключення",
   "credential": {
     "title": "Облікові дані"
   },

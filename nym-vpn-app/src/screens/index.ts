@@ -5,4 +5,4 @@ export { default as Welcome } from './Welcome';
 export * from './home';
 export * from './settings';
 export * from './location';
-export * from './credential';
+export * from './account';

@@ -1,7 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { getVersion } from '@tauri-apps/api/app';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
-import dayjs from 'dayjs';
 import {
   DefaultRootFontSize,
   DefaultThemeMode,
@@ -121,14 +120,16 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     },
   };
 
-  const getCredentialExpiryRq: TauriReq<() => Promise<string | undefined>> = {
-    name: 'getCredentialExpiry',
-    request: () => kvGet<string>('CredentialExpiry'),
-    onFulfilled: (expiry) => {
-      dispatch({
-        type: 'set-credential-expiry',
-        expiry: expiry ? dayjs(expiry) : null,
-      });
+  const getAccountInfoRq: TauriReq<() => Promise<object | undefined>> = {
+    name: 'getAccountInfo',
+    request: () => invoke<object>('get_account_info'),
+    onFulfilled: (info) => {
+      if (info) {
+        dispatch({
+          type: 'set-account',
+          stored: true,
+        });
+      }
     },
   };
 
@@ -241,7 +242,7 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     getExitLocationRq,
     getVersionRq,
     getThemeRq,
-    getCredentialExpiryRq,
+    getAccountInfoRq,
     getRootFontSizeRq,
     getEntrySelectorRq,
     getMonitoringRq,

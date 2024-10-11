@@ -1,6 +1,6 @@
 {
-  "credential": {
-    "title": "Credential"
+  "account": {
+    "title": "Account"
   },
   "auto-connect": {
     "title": "Auto-connect",
@@ -46,7 +46,7 @@
   "faq": "FAQ",
   "display-theme": "Display mode",
   "quit": "Quit NymVPN",
-  "add-credential-button": "Add credential to connect",
+  "add-account-button": "Add credential to connect",
   "info": {
     "client-version": "Client version",
     "daemon-version": "Daemon version",
