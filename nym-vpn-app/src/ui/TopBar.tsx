@@ -188,7 +188,7 @@ export default function TopBar() {
           show('location-info');
         },
       },
-      // these pages do not use the TopBar
+      // these screens do not use the TopBar
       '/hideout': {},
       '/hideout/welcome': {},
     };

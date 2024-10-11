@@ -10,7 +10,7 @@ import { mockTauriIPC } from './dev/setup';
 import { kvGet } from './kvStore';
 import initSentry from './sentry';
 import { StartupError as TStartupError } from './types';
-import { StartupError } from './pages';
+import { StartupError } from './screens';
 import { init } from './log';
 
 // needed locales to load for dayjs
