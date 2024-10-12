@@ -1,0 +1,2 @@
+Yenilikler:
+- Günlüklerde oluşan hata düzeltildi
