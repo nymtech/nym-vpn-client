@@ -524,6 +524,11 @@ pub enum AccountError {
         source: Box<dyn std::error::Error + Send + Sync>,
     },
 
+    #[error("failed to check if account is stored: {source}")]
+    FailedToCheckIfAccountIsStored {
+        source: Box<dyn std::error::Error + Send + Sync>,
+    },
+
     #[error("failed to remove account: {source}")]
     FailedToRemoveAccount {
         source: Box<dyn std::error::Error + Send + Sync>,

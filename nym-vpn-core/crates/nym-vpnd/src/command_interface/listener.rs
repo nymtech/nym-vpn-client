@@ -13,10 +13,11 @@ use nym_vpn_proto::{
     nym_vpnd_server::NymVpnd, AccountError, ConnectRequest, ConnectResponse, ConnectionStateChange,
     ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty, GetAccountSummaryRequest,
     GetAccountSummaryResponse, GetDeviceZkNymsRequest, GetDeviceZkNymsResponse, GetDevicesRequest,
-    GetDevicesResponse, InfoRequest, InfoResponse, ListCountriesRequest, ListCountriesResponse,
-    ListGatewaysRequest, ListGatewaysResponse, RegisterDeviceRequest, RegisterDeviceResponse,
-    RemoveAccountRequest, RemoveAccountResponse, RequestZkNymRequest, RequestZkNymResponse,
-    StatusRequest, StatusResponse, StoreAccountRequest, StoreAccountResponse,
+    GetDevicesResponse, InfoRequest, InfoResponse, IsAccountStoredRequest, IsAccountStoredResponse,
+    ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest, ListGatewaysResponse,
+    RegisterDeviceRequest, RegisterDeviceResponse, RemoveAccountRequest, RemoveAccountResponse,
+    RequestZkNymRequest, RequestZkNymResponse, StatusRequest, StatusResponse, StoreAccountRequest,
+    StoreAccountResponse,
 };
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 use tracing::{error, info};
@@ -375,6 +376,33 @@ impl NymVpnd for CommandInterface {
         };
 
         info!("Returning store account response: {:?}", response);
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn is_account_stored(
+        &self,
+        _request: tonic::Request<IsAccountStoredRequest>,
+    ) -> Result<tonic::Response<IsAccountStoredResponse>, tonic::Status> {
+        info!("Got is account stored request");
+
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_is_account_stored()
+            .await;
+
+        let response = match result {
+            Ok(is_stored) => IsAccountStoredResponse {
+                resp: Some(nym_vpn_proto::is_account_stored_response::Resp::IsStored(
+                    is_stored,
+                )),
+            },
+            Err(err) => IsAccountStoredResponse {
+                resp: Some(nym_vpn_proto::is_account_stored_response::Resp::Error(
+                    nym_vpn_proto::AccountError::from(err),
+                )),
+            },
+        };
+
+        info!("Returning is account stored response");
         Ok(tonic::Response::new(response))
     }
 

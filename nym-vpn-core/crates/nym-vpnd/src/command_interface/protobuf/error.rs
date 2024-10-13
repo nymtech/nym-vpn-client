@@ -417,6 +417,15 @@ impl From<AccountError> for nym_vpn_proto::AccountError {
                     "reason".to_string() => source.to_string(),
                 },
             },
+            AccountError::FailedToCheckIfAccountIsStored { ref source } => {
+                nym_vpn_proto::AccountError {
+                    kind: AccountErrorType::Storage as i32,
+                    message: err.to_string(),
+                    details: hashmap! {
+                        "reason".to_string() => source.to_string(),
+                    },
+                }
+            }
             AccountError::FailedToRemoveAccount { ref source } => nym_vpn_proto::AccountError {
                 kind: AccountErrorType::Storage as i32,
                 message: err.to_string(),
