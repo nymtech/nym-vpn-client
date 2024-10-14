@@ -58,16 +58,13 @@ impl CommandInterfaceConnectionHandler {
         Self { vpn_command_tx }
     }
 
-    // TODO: generalise this function:
-    // - generic error type
-    // - use for all functiosn
-    // - remove unwraps
-    async fn vpn_command_send<T, F>(
+    // TODO: generalise this function to be used for all commands
+    async fn vpn_command_send<T, E, F>(
         &self,
         command: F,
-    ) -> Result<Result<T, AccountError>, VpnCommandSendError>
+    ) -> Result<Result<T, E>, VpnCommandSendError>
     where
-        F: FnOnce(oneshot::Sender<Result<T, AccountError>>) -> VpnServiceCommand,
+        F: FnOnce(oneshot::Sender<Result<T, E>>) -> VpnServiceCommand,
     {
         let (tx, rx) = oneshot::channel();
         if let Err(err) = self.vpn_command_tx.send(command(tx)) {
