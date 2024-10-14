@@ -205,7 +205,7 @@ async fn wg_probe(
                 .unwrap_or_default(),
             nym_topology::NetworkAddress::IpAddr(ip) => match ip {
                 IpAddr::V4(ip) => ip.to_string(),
-                IpAddr::V6(ip) => format!("[{}]", ip.to_string()),
+                IpAddr::V6(ip) => format!("[{}]", ip),
             },
         };
 
