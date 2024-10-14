@@ -249,9 +249,7 @@ async fn store_account(
     args: commands::StoreAccountArgs,
     data_path: Option<PathBuf>,
 ) -> anyhow::Result<()> {
-    let Some(path) = data_path else {
-        anyhow::bail!("Data path not set");
-    };
+    let path = data_path.context("Data path not set")?;
     let mnemonic = nym_vpn_store::mnemonic::Mnemonic::parse(&args.mnemonic)
         .context("Failed to parse mnemonic")?;
     let storage = nym_vpn_lib::storage::VpnClientOnDiskStorage::new(path);
