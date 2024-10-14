@@ -19,6 +19,7 @@ use nym_vpn_lib::{
     tunnel_state_machine::{TunnelCommand, TunnelStateMachine},
     GenericNymVpnConfig, IpPair, MixnetClientConfig, NodeIdentity, Recipient,
 };
+use nym_vpn_store::mnemonic::MnemonicStorage as _;
 
 use commands::{CliArgs, Commands};
 use error::{Error, Result};
@@ -38,6 +39,7 @@ async fn main() -> anyhow::Result<()> {
 
     match args.command {
         Commands::Run(args) => run_vpn(args, data_path).await,
+        Commands::StoreAccount(args) => store_account(args, data_path).await,
     }
 }
 
@@ -48,11 +50,12 @@ pub(crate) fn setup_logging(args: &CliArgs) {
         .unwrap()
         .add_directive("hyper::proto=info".parse().unwrap())
         .add_directive("netlink_proto=info".parse().unwrap());
-    let Commands::Run(run_args) = &args.command;
-    if run_args.wireguard_mode {
-        filter = filter
-            .add_directive("nym_client_core=warn".parse().unwrap())
-            .add_directive("nym_gateway_client=warn".parse().unwrap());
+    if let Commands::Run(run_args) = &args.command {
+        if run_args.wireguard_mode {
+            filter = filter
+                .add_directive("nym_client_core=warn".parse().unwrap())
+                .add_directive("nym_gateway_client=warn".parse().unwrap());
+        }
     }
 
     tracing_subscriber::fmt()
@@ -102,6 +105,7 @@ fn parse_exit_point(args: &commands::RunArgs) -> Result<ExitPoint> {
 fn check_root_privileges(args: &commands::CliArgs) -> Result<()> {
     let needs_root = match &args.command {
         Commands::Run(run_args) => !run_args.disable_routing,
+        Commands::StoreAccount(_) => true,
     };
 
     if !needs_root {
@@ -239,6 +243,20 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> anyhow:
 
     tracing::info!("Goodbye.");
     Ok(())
+}
+
+async fn store_account(
+    args: commands::StoreAccountArgs,
+    data_path: Option<PathBuf>,
+) -> anyhow::Result<()> {
+    let path = data_path.context("Data path not set")?;
+    let mnemonic = nym_vpn_store::mnemonic::Mnemonic::parse(&args.mnemonic)
+        .context("Failed to parse mnemonic")?;
+    let storage = nym_vpn_lib::storage::VpnClientOnDiskStorage::new(path);
+    storage
+        .store_mnemonic(mnemonic)
+        .await
+        .context("Failed to store mnemonic")
 }
 
 fn mixnet_data_path() -> Option<PathBuf> {
