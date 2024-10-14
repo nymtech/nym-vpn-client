@@ -61,7 +61,10 @@ impl VpnApiClient {
             .bearer_auth(account.jwt().to_string());
 
         let request = match device {
-            Some(device) => request.header(DEVICE_AUTHORIZATION_HEADER, device.jwt().to_string()),
+            Some(device) => request.header(
+                DEVICE_AUTHORIZATION_HEADER,
+                format!("Bearer {}", device.jwt()),
+            ),
             None => request,
         };
 
@@ -109,7 +112,10 @@ impl VpnApiClient {
             .bearer_auth(account.jwt().to_string());
 
         let request = match device {
-            Some(device) => request.header(DEVICE_AUTHORIZATION_HEADER, device.jwt().to_string()),
+            Some(device) => request.header(
+                DEVICE_AUTHORIZATION_HEADER,
+                format!("Bearer {}", device.jwt()),
+            ),
             None => request,
         };
 
