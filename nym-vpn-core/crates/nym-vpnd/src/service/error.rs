@@ -556,4 +556,10 @@ pub enum AccountError {
 
     #[error("failed to get account summary")]
     FailedToGetAccountSummary,
+
+    #[error("failed to send command")]
+    SendCommand {
+        source:
+            Box<tokio::sync::mpsc::error::SendError<nym_vpn_account_controller::AccountCommand>>,
+    },
 }

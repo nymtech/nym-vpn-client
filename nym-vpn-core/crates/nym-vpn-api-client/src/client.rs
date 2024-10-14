@@ -262,13 +262,15 @@ impl VpnApiClient {
         &self,
         account: &VpnApiAccount,
         device: &Device,
+        withdrawal_request: String,
+        ecash_pubkey: String,
+        ticketbook_type: String,
     ) -> Result<NymVpnZkNym> {
         let body = RequestZkNymRequestBody {
-            withdrawal_request: "todo!".to_string(),
-            ecash_pubkey: "todo!".to_string(),
-            ticketbook_type: "todo!".to_string(),
+            withdrawal_request,
+            ecash_pubkey,
+            ticketbook_type,
         };
-
         self.post_authorized(
             &[
                 routes::PUBLIC,

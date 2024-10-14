@@ -3,6 +3,7 @@
 
 use std::{fmt, sync::Arc};
 
+use nym_compact_ecash::scheme::keygen::KeyPairUser;
 use nym_crypto::asymmetric::ed25519;
 use sha2::Digest as _;
 
@@ -33,6 +34,10 @@ impl Device {
 
     pub fn sign_identity_key(&self) -> DeviceSignature {
         self.sign(self.identity_key().to_base58_string())
+    }
+
+    pub fn create_ecash_keypair(&self) -> KeyPairUser {
+        KeyPairUser::new_seeded(self.keypair.private_key().to_bytes())
     }
 }
 

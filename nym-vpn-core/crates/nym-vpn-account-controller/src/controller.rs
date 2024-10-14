@@ -3,7 +3,10 @@
 
 use std::sync::Arc;
 
+use nym_compact_ecash::Base58 as _;
 use nym_config::defaults::NymNetworkDetails;
+use nym_credentials_interface::TicketType;
+use nym_ecash_time::EcashTime as _;
 use nym_http_api_client::UserAgent;
 use nym_vpn_api_client::types::{Device, VpnApiAccount};
 use nym_vpn_store::{keys::KeyStore, mnemonic::MnemonicStorage};
@@ -22,6 +25,7 @@ use crate::{
 pub enum AccountCommand {
     RefreshAccountState,
     RegisterDevice,
+    RequestZkNym,
 }
 
 pub struct AccountController<S>
@@ -89,8 +93,7 @@ where
             })
     }
 
-    #[allow(unused)]
-    pub(crate) async fn register_device(&self) {
+    async fn register_device(&self) {
         tracing::info!("Registering device");
 
         let account = match self.load_account().await {
@@ -116,6 +119,60 @@ where
             }
             Err(err) => {
                 tracing::error!("Failed to register device: {:?}", err);
+            }
+        }
+    }
+
+    async fn request_zk_nym(&self) {
+        tracing::info!("Requesting zk-nym");
+
+        let account = match self.load_account().await {
+            Ok(account) => account,
+            Err(err) => {
+                tracing::error!("Failed to load account: {:?}", err);
+                return;
+            }
+        };
+
+        let device = match self.load_device_keys().await {
+            Ok(device) => device,
+            Err(err) => {
+                tracing::error!("Failed to load device keys: {:?}", err);
+                return;
+            }
+        };
+
+        let ecash_keypair = device.create_ecash_keypair();
+        let ticketbook_type = TicketType::V1MixnetEntry;
+
+        let expiration_date = nym_ecash_time::ecash_default_expiration_date();
+
+        let (withdrawal_request, _request_info) = nym_compact_ecash::withdrawal_request(
+            ecash_keypair.secret_key(),
+            expiration_date.ecash_unix_timestamp(),
+            ticketbook_type.encode(),
+        )
+        .unwrap();
+
+        let ecash_pubkey = ecash_keypair.public_key().to_base58_string();
+
+        let result = self
+            .api_client
+            .request_zk_nym(
+                &account,
+                &device,
+                withdrawal_request.to_bs58(),
+                ecash_pubkey,
+                ticketbook_type.to_string(),
+            )
+            .await;
+
+        match result {
+            Ok(zknym) => {
+                tracing::info!("zk-nym requested: {:?}", zknym);
+            }
+            Err(err) => {
+                tracing::error!("Failed to request zknym: {:?}", err);
             }
         }
     }
@@ -215,6 +272,9 @@ where
             }
             AccountCommand::RegisterDevice => {
                 self.register_device().await;
+            }
+            AccountCommand::RequestZkNym => {
+                self.request_zk_nym().await;
             }
         }
     }
