@@ -109,7 +109,6 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<InfoRequest>,
     ) -> Result<tonic::Response<InfoResponse>, tonic::Status> {
-
         let info = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_info()
             .await;
@@ -190,7 +189,7 @@ impl NymVpnd for CommandInterface {
 
     async fn vpn_status(
         &self,
-        request: tonic::Request<StatusRequest>,
+        _request: tonic::Request<StatusRequest>,
     ) -> Result<tonic::Response<StatusResponse>, tonic::Status> {
         let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_status()

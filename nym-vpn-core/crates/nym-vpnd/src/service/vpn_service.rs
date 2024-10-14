@@ -16,7 +16,7 @@ use futures::{
 use nym_vpn_api_client::{
     response::{
         NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnSubscription,
-        NymVpnSubscriptionsResponse, NymVpnZkNymResponse,
+        NymVpnSubscriptionsResponse,
     },
     types::{GatewayMinPerformance, Percent, VpnApiAccount},
 };
@@ -143,7 +143,7 @@ pub enum VpnServiceCommand {
     GetDevices(oneshot::Sender<Result<NymVpnDevicesResponse, AccountError>>),
     RegisterDevice(oneshot::Sender<Result<NymVpnDevice, AccountError>>),
     RequestZkNym(oneshot::Sender<Result<(), AccountError>>),
-    GetDeviceZkNyms(oneshot::Sender<Result<NymVpnZkNymResponse, AccountError>>),
+    GetDeviceZkNyms(oneshot::Sender<Result<(), AccountError>>),
     GetFreePasses(oneshot::Sender<Result<NymVpnSubscriptionsResponse, AccountError>>),
     ApplyFreepass(
         oneshot::Sender<Result<NymVpnSubscription, AccountError>>,
@@ -805,23 +805,12 @@ where
             })
     }
 
-    async fn handle_get_device_zk_nyms(&self) -> Result<NymVpnZkNymResponse, AccountError> {
-        // Get account
-        let account = self.load_account().await?;
-
-        // Get device
-        let device_keypair = self.load_device_keys().await?.device_keypair();
-        let device = nym_vpn_api_client::types::Device::from(device_keypair);
-
-        // Setup client
-        let nym_vpn_api_url = get_nym_vpn_api_url()?;
-        let user_agent = crate::util::construct_user_agent();
-        let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent)?;
-
-        api_client
-            .get_device_zk_nyms(&account, &device)
-            .await
-            .map_err(Into::into)
+    async fn handle_get_device_zk_nyms(&self) -> Result<(), AccountError> {
+        self.account_command_tx
+            .send(AccountCommand::GetDeviceZkNym)
+            .map_err(|err| AccountError::SendCommand {
+                source: Box::new(err),
+            })
     }
 
     pub(crate) async fn run(mut self) -> anyhow::Result<()> {

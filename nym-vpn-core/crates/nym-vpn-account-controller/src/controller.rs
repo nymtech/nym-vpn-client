@@ -8,7 +8,10 @@ use nym_config::defaults::NymNetworkDetails;
 use nym_credentials_interface::TicketType;
 use nym_ecash_time::EcashTime as _;
 use nym_http_api_client::UserAgent;
-use nym_vpn_api_client::types::{Device, VpnApiAccount};
+use nym_vpn_api_client::{
+    response::NymVpnZkNymStatus,
+    types::{Device, VpnApiAccount},
+};
 use nym_vpn_store::{keys::KeyStore, mnemonic::MnemonicStorage};
 use tokio_util::sync::CancellationToken;
 use url::Url;
@@ -26,6 +29,7 @@ pub enum AccountCommand {
     RefreshAccountState,
     RegisterDevice,
     RequestZkNym,
+    GetDeviceZkNym,
 }
 
 pub struct AccountController<S>
@@ -178,6 +182,56 @@ where
         }
     }
 
+    async fn get_device_zk_nym(&self) {
+        tracing::info!("Getting device zk-nym");
+
+        let account = match self.load_account().await {
+            Ok(account) => account,
+            Err(err) => {
+                tracing::error!("Failed to load account: {:?}", err);
+                return;
+            }
+        };
+
+        let device = match self.load_device_keys().await {
+            Ok(device) => device,
+            Err(err) => {
+                tracing::error!("Failed to load device keys: {:?}", err);
+                return;
+            }
+        };
+
+        let response = self.api_client.get_device_zk_nyms(&account, &device).await;
+        let zknym = match response {
+            Ok(zknym) => {
+                tracing::info!("zk-nym: {:?}", zknym);
+                zknym
+            }
+            Err(err) => {
+                tracing::error!("Failed to get zknym: {:?}", err);
+                return;
+            }
+        };
+
+        // TODO: pagination
+        for zknym in zknym.items {
+            tracing::info!("zk-nym: {:?}", zknym);
+
+            let _blinded_shares = match zknym.status {
+                NymVpnZkNymStatus::Active => zknym.blinded_shares,
+                NymVpnZkNymStatus::Pending
+                | NymVpnZkNymStatus::Revoking
+                | NymVpnZkNymStatus::Revoked
+                | NymVpnZkNymStatus::Error => {
+                    break;
+                }
+            };
+
+            // TODO: unblind and verify
+            // TODO: aggregate partial wallets
+        }
+    }
+
     async fn update_mnemonic_state(&self) -> Option<VpnApiAccount> {
         match self.load_account().await {
             Ok(account) => {
@@ -286,6 +340,9 @@ where
             }
             AccountCommand::RequestZkNym => {
                 self.request_zk_nym().await;
+            }
+            AccountCommand::GetDeviceZkNym => {
+                self.get_device_zk_nym().await;
             }
         }
     }
