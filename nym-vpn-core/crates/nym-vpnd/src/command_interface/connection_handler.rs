@@ -71,13 +71,10 @@ impl CommandInterfaceConnectionHandler {
             tracing::error!("Failed to send command to VPN: {:?}", err);
             return Err(VpnCommandSendError::Send);
         }
-        match rx.await {
-            Err(err) => {
-                tracing::error!("Failed to receive response from VPN: {:?}", err);
-                Err(VpnCommandSendError::Receive)
-            }
-            Ok(result) => Ok(result),
-        }
+        rx.await.map_err(|err| {
+            tracing::error!("Failed to receive response from VPN: {:?}", err);
+            VpnCommandSendError::Receive
+        })
     }
 
     pub(crate) async fn handle_connect(
