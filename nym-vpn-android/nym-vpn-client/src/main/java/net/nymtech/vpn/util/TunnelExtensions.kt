@@ -63,6 +63,8 @@ fun android.net.VpnService.Builder.addRoutes(config: TunnelNetworkSettings, calc
 	}
 	Timber.d("Included routes: $includedRoutes")
 	Timber.d("Excluded routes: $excludedRoutes")
+	// Add all ipv6 to included to block ipv6 leaks
+	if (!includedRoutes.contains(IpCalculator.ALL_IPV6_ADDRESS)) includedRoutes.add(IpCalculator.ALL_IPV6_ADDRESS)
 	val allowedIps = calculator.calculateAllowedIps(includedRoutes, excludedRoutes)
 	allowedIps.forEach {
 		Timber.d("Adding allowed route: ${it.first}/${it.second}")
