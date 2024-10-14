@@ -44,6 +44,15 @@ pub(super) struct CommandInterfaceConnectionHandler {
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
 }
 
+#[derive(Debug, thiserror::Error)]
+pub(crate) enum VpnCommandSendError {
+    #[error("failed to send command to VPN")]
+    Send,
+
+    #[error("failed to receive response from VPN")]
+    Receive,
+}
+
 impl CommandInterfaceConnectionHandler {
     pub(super) fn new(vpn_command_tx: UnboundedSender<VpnServiceCommand>) -> Self {
         Self { vpn_command_tx }
@@ -53,13 +62,25 @@ impl CommandInterfaceConnectionHandler {
     // - generic error type
     // - use for all functiosn
     // - remove unwraps
-    async fn vpn_command_send<T, F>(&self, command: F) -> Result<T, AccountError>
+    async fn vpn_command_send<T, F>(
+        &self,
+        command: F,
+    ) -> Result<Result<T, AccountError>, VpnCommandSendError>
     where
         F: FnOnce(oneshot::Sender<Result<T, AccountError>>) -> VpnServiceCommand,
     {
         let (tx, rx) = oneshot::channel();
-        self.vpn_command_tx.send(command(tx)).unwrap();
-        rx.await.unwrap()
+        if let Err(err) = self.vpn_command_tx.send(command(tx)) {
+            tracing::error!("Failed to send command to VPN: {:?}", err);
+            return Err(VpnCommandSendError::Send);
+        }
+        match rx.await {
+            Err(err) => {
+                tracing::error!("Failed to receive response from VPN: {:?}", err);
+                Err(VpnCommandSendError::Receive)
+            }
+            Ok(result) => Ok(result),
+        }
     }
 
     pub(crate) async fn handle_connect(
@@ -177,46 +198,56 @@ impl CommandInterfaceConnectionHandler {
         result
     }
 
-    pub(crate) async fn handle_is_account_stored(&self) -> Result<bool, AccountError> {
+    pub(crate) async fn handle_is_account_stored(
+        &self,
+    ) -> Result<Result<bool, AccountError>, VpnCommandSendError> {
         self.vpn_command_send(VpnServiceCommand::IsAccountStored)
             .await
     }
 
-    pub(crate) async fn handle_remove_account(&self) -> Result<(), AccountError> {
+    pub(crate) async fn handle_remove_account(
+        &self,
+    ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
         self.vpn_command_send(VpnServiceCommand::RemoveAccount)
             .await
     }
 
     pub(crate) async fn handle_get_account_summary(
         &self,
-    ) -> Result<NymVpnAccountSummaryResponse, AccountError> {
+    ) -> Result<Result<NymVpnAccountSummaryResponse, AccountError>, VpnCommandSendError> {
         self.vpn_command_send(VpnServiceCommand::GetAccountSummary)
             .await
     }
 
-    pub(crate) async fn handle_get_devices(&self) -> Result<NymVpnDevicesResponse, AccountError> {
+    pub(crate) async fn handle_get_devices(
+        &self,
+    ) -> Result<Result<NymVpnDevicesResponse, AccountError>, VpnCommandSendError> {
         self.vpn_command_send(VpnServiceCommand::GetDevices).await
     }
 
-    pub(crate) async fn handle_register_device(&self) -> Result<NymVpnDevice, AccountError> {
+    pub(crate) async fn handle_register_device(
+        &self,
+    ) -> Result<Result<NymVpnDevice, AccountError>, VpnCommandSendError> {
         self.vpn_command_send(VpnServiceCommand::RegisterDevice)
             .await
     }
 
-    pub(crate) async fn handle_request_zk_nym(&self) -> Result<NymVpnZkNym, AccountError> {
+    pub(crate) async fn handle_request_zk_nym(
+        &self,
+    ) -> Result<Result<NymVpnZkNym, AccountError>, VpnCommandSendError> {
         self.vpn_command_send(VpnServiceCommand::RequestZkNym).await
     }
 
     pub(crate) async fn handle_get_device_zk_nyms(
         &self,
-    ) -> Result<NymVpnZkNymResponse, AccountError> {
+    ) -> Result<Result<NymVpnZkNymResponse, AccountError>, VpnCommandSendError> {
         self.vpn_command_send(VpnServiceCommand::GetDeviceZkNyms)
             .await
     }
 
     pub(crate) async fn handle_get_free_passes(
         &self,
-    ) -> Result<NymVpnSubscriptionsResponse, AccountError> {
+    ) -> Result<Result<NymVpnSubscriptionsResponse, AccountError>, VpnCommandSendError> {
         self.vpn_command_send(VpnServiceCommand::GetFreePasses)
             .await
     }

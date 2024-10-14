@@ -387,7 +387,10 @@ impl NymVpnd for CommandInterface {
 
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_is_account_stored()
-            .await;
+            .await
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to check if account is stored: {err}"))
+            })?;
 
         let response = match result {
             Ok(is_stored) => IsAccountStoredResponse {
@@ -414,7 +417,8 @@ impl NymVpnd for CommandInterface {
 
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_remove_account()
-            .await;
+            .await
+            .map_err(|err| tonic::Status::internal(format!("Failed to remove account: {err}")))?;
 
         let response = match result {
             Ok(()) => RemoveAccountResponse {
@@ -439,7 +443,10 @@ impl NymVpnd for CommandInterface {
 
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_account_summary()
-            .await;
+            .await
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to get account summary: {err}"))
+            })?;
 
         let response = match result {
             Ok(summary) => GetAccountSummaryResponse {
@@ -464,7 +471,8 @@ impl NymVpnd for CommandInterface {
 
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_devices()
-            .await;
+            .await
+            .map_err(|err| tonic::Status::internal(format!("Failed to get devices: {err}")))?;
 
         let response = match result {
             Ok(devices) => GetDevicesResponse {
@@ -489,7 +497,8 @@ impl NymVpnd for CommandInterface {
 
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_register_device()
-            .await;
+            .await
+            .map_err(|err| tonic::Status::internal(format!("Failed to register device: {err}")))?;
 
         let response = match result {
             Ok(device) => RegisterDeviceResponse {
@@ -514,7 +523,8 @@ impl NymVpnd for CommandInterface {
 
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_request_zk_nym()
-            .await;
+            .await
+            .map_err(|err| tonic::Status::internal(format!("Failed to request zk nym: {err}")))?;
 
         let response = match result {
             Ok(response) => RequestZkNymResponse {
@@ -539,7 +549,10 @@ impl NymVpnd for CommandInterface {
 
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_device_zk_nyms()
-            .await;
+            .await
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to get device zk nyms: {err}"))
+            })?;
 
         let response = match result {
             Ok(response) => GetDeviceZkNymsResponse {
@@ -564,7 +577,8 @@ impl NymVpnd for CommandInterface {
 
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_free_passes()
-            .await;
+            .await
+            .map_err(|err| tonic::Status::internal(format!("Failed to get free passes: {err}")))?;
 
         let response = match result {
             Ok(response) => nym_vpn_proto::GetFreePassesResponse {
