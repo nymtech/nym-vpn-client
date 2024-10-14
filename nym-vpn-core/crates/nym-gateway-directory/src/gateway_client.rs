@@ -262,6 +262,12 @@ impl GatewayClient {
     }
 
     pub async fn lookup_gateways(&self, gw_type: GatewayType) -> Result<GatewayList> {
+        // WIP(JON): temporary workaround
+        let network = nym_sdk::NymNetworkDetails::new_from_env();
+        if network.network_name == "canary" {
+            return self.lookup_gateways_from_nym_api(gw_type).await;
+        }
+
         if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
             info!("Fetching gateways from nym-vpn-api...");
             let gateways: Vec<_> = nym_vpn_api_client
