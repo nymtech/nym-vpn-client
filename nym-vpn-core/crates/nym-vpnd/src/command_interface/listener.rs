@@ -107,9 +107,8 @@ impl Drop for CommandInterface {
 impl NymVpnd for CommandInterface {
     async fn info(
         &self,
-        request: tonic::Request<InfoRequest>,
+        _request: tonic::Request<InfoRequest>,
     ) -> Result<tonic::Response<InfoResponse>, tonic::Status> {
-        info!("Got info request: {:?}", request);
 
         let info = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_info()
@@ -176,10 +175,8 @@ impl NymVpnd for CommandInterface {
 
     async fn vpn_disconnect(
         &self,
-        request: tonic::Request<DisconnectRequest>,
+        _request: tonic::Request<DisconnectRequest>,
     ) -> Result<tonic::Response<DisconnectResponse>, tonic::Status> {
-        info!("Got disconnect request: {:?}", request);
-
         let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_disconnect()
             .await;
@@ -195,8 +192,6 @@ impl NymVpnd for CommandInterface {
         &self,
         request: tonic::Request<StatusRequest>,
     ) -> Result<tonic::Response<StatusResponse>, tonic::Status> {
-        info!("Got status request: {:?}", request);
-
         let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_status()
             .await;
@@ -356,8 +351,6 @@ impl NymVpnd for CommandInterface {
         &self,
         request: tonic::Request<StoreAccountRequest>,
     ) -> Result<tonic::Response<StoreAccountResponse>, tonic::Status> {
-        info!("Got store account request");
-
         let account = request.into_inner().mnemonic;
 
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
@@ -383,8 +376,6 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<IsAccountStoredRequest>,
     ) -> Result<tonic::Response<IsAccountStoredResponse>, tonic::Status> {
-        info!("Got is account stored request");
-
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_is_account_stored()
             .await
@@ -413,8 +404,6 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<RemoveAccountRequest>,
     ) -> Result<tonic::Response<RemoveAccountResponse>, tonic::Status> {
-        info!("Got remove account request");
-
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_remove_account()
             .await
@@ -439,8 +428,6 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<GetAccountSummaryRequest>,
     ) -> Result<tonic::Response<GetAccountSummaryResponse>, tonic::Status> {
-        info!("Got get account summary request");
-
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_account_summary()
             .await
@@ -467,8 +454,6 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<GetDevicesRequest>,
     ) -> Result<tonic::Response<GetDevicesResponse>, tonic::Status> {
-        info!("Got get devices request");
-
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_devices()
             .await
@@ -493,8 +478,6 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<RegisterDeviceRequest>,
     ) -> Result<tonic::Response<RegisterDeviceResponse>, tonic::Status> {
-        info!("Got register device request");
-
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_register_device()
             .await
@@ -519,8 +502,6 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<RequestZkNymRequest>,
     ) -> Result<tonic::Response<RequestZkNymResponse>, tonic::Status> {
-        info!("Got request zk nym request");
-
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_request_zk_nym()
             .await
@@ -545,8 +526,6 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<GetDeviceZkNymsRequest>,
     ) -> Result<tonic::Response<GetDeviceZkNymsResponse>, tonic::Status> {
-        info!("Got get device zk nyms request");
-
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_device_zk_nyms()
             .await
@@ -573,8 +552,6 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<nym_vpn_proto::GetFreePassesRequest>,
     ) -> Result<tonic::Response<nym_vpn_proto::GetFreePassesResponse>, tonic::Status> {
-        info!("Got get free passes request");
-
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_free_passes()
             .await
@@ -599,8 +576,6 @@ impl NymVpnd for CommandInterface {
         &self,
         request: tonic::Request<nym_vpn_proto::ApplyFreepassRequest>,
     ) -> Result<tonic::Response<nym_vpn_proto::ApplyFreepassResponse>, tonic::Status> {
-        info!("Got apply freepass request");
-
         let code = request.into_inner().code;
 
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())

@@ -115,6 +115,7 @@ where
         let result = self.api_client.register_device(&account, &device).await;
         match result {
             Ok(device_result) => {
+                dbg!(&device_result);
                 tracing::info!("Device registered: {}", device_result.device_identity_key);
             }
             Err(err) => {
@@ -195,6 +196,7 @@ where
     }
 
     async fn update_remote_account_state(&self, account: &VpnApiAccount) -> Result<(), Error> {
+        tracing::info!("Updating remote account state");
         let account_summary = match self.api_client.get_account_summary(account).await {
             Ok(account_summary) => {
                 tracing::info!("Account summary: {:?}", account_summary);
@@ -221,6 +223,7 @@ where
     }
 
     async fn update_device_state(&self, account: &VpnApiAccount) {
+        tracing::info!("Updating device state");
         let our_device = match self.load_device_keys().await {
             Ok(device) => device,
             Err(err) => {
@@ -236,6 +239,8 @@ where
                 return;
             }
         };
+
+        tracing::info!("Registered devices: {:?}", devices);
 
         // TODO: pagination
         let found_device = devices.items.iter().find(|device| {
@@ -259,7 +264,13 @@ where
         let Some(account) = self.update_mnemonic_state().await else {
             return;
         };
+
         if self.update_remote_account_state(&account).await.is_ok() {
+            self.update_device_state(&account).await;
+        }
+
+        if self.shared_state().is_ready_to_register_device().await {
+            self.register_device().await;
             self.update_device_state(&account).await;
         }
     }

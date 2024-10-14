@@ -5,6 +5,7 @@ use nym_vpn_lib::{
     gateway_directory::Error as DirError, wg_gateway_client::Error as WgGatewayClientError,
     AuthenticatorClientError, GatewayDirectoryError, NodeIdentity, Recipient,
 };
+use tokio::sync::mpsc::error::SendError;
 use tracing::error;
 
 #[derive(Clone, Debug, thiserror::Error)]
@@ -559,7 +560,6 @@ pub enum AccountError {
 
     #[error("failed to send command")]
     SendCommand {
-        source:
-            Box<tokio::sync::mpsc::error::SendError<nym_vpn_account_controller::AccountCommand>>,
+        source: Box<SendError<nym_vpn_account_controller::AccountCommand>>,
     },
 }

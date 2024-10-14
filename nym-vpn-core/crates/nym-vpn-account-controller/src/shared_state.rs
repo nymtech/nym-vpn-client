@@ -32,6 +32,13 @@ impl SharedAccountState {
             && state.device == Some(DeviceState::Active)
     }
 
+    pub(crate) async fn is_ready_to_register_device(&self) -> bool {
+        let state = self.get().await;
+        state.mnemonic == Some(MnemonicState::Stored)
+            && state.account == Some(RemoteAccountState::Active)
+            && state.device == Some(DeviceState::NotRegistered)
+    }
+
     pub(crate) async fn set_mnemonic(&self, state: MnemonicState) {
         tracing::info!("Setting mnemonic state to {:?}", state);
         self.inner.lock().await.mnemonic = Some(state);
