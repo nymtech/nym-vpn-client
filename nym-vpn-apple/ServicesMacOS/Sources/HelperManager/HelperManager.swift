@@ -1,26 +1,66 @@
 import SecurityFoundation
 import ServiceManagement
-import GRPCManager
 import Shell
 
 // Any changes made to Info.plist & Launchd.plist - are used to create daemon in nym-vpnd.
 
 public final class HelperManager {
-    private var helperName = ""
-
-    public let requiredVersion = "0.2.4"
+    private let secondInNanoseconds: UInt64 = 1000000000
     public static let shared = HelperManager()
+    public let requiredVersion = "0.2.4"
+
+    private var helperName = ""
 
     public func setup(helperName: String) {
         self.helperName = helperName
     }
 
-    // TODO: throw some errors
-    // TODO: add completion block on success
-    public func authorizeAndInstallHelper() throws -> Bool {
+    public func isHelperAuthorizedAndRunning() -> Bool {
+        isHelperAuthorized() && isHelperRunning()
+    }
+
+    public func installHelperIfNeeded() async throws -> Bool {
+        guard !isHelperAuthorizedAndRunning() else { return true }
+
+        do {
+            _ = try authorizeAndInstallHelper()
+
+            var retryCount = 0
+            while retryCount < 10 {
+                retryCount += 1
+                if isHelperAuthorizedAndRunning() {
+                    // Hack: Wait for daemon to start, to avoid connect button unresponsivness
+                    try? await Task.sleep(nanoseconds: secondInNanoseconds * 5)
+                    return true
+                }
+                try? await Task.sleep(nanoseconds: secondInNanoseconds)
+            }
+            return false
+        }
+    }
+
+    public func uninstallHelper() -> Bool {
+        let domain = kSMDomainSystemLaunchd
         var authRef: AuthorizationRef?
         let status = AuthorizationCreate(nil, nil, [], &authRef)
-        guard status == errAuthorizationSuccess, let authRef = authRef else {
+
+        guard status == errAuthorizationSuccess,
+              let authorization = authRef
+        else {
+            return false
+        }
+
+        var cfError: Unmanaged<CFError>?
+        return SMJobRemove(domain, helperName as CFString, authorization, true, &cfError)
+    }
+}
+
+private extension HelperManager {
+    func authorizeAndInstallHelper() throws -> Bool {
+        var authRef: AuthorizationRef?
+        let status = AuthorizationCreate(nil, nil, [], &authRef)
+        guard status == errAuthorizationSuccess, let authRef = authRef
+        else {
             return false
         }
 
@@ -54,43 +94,6 @@ public final class HelperManager {
         return result
     }
 
-    public func isHelperAuthorized() -> Bool {
-        if let url = URL(string: "/Library/LaunchDaemons/\(helperName).plist"),
-           SMAppService.statusForLegacyPlist(at: url) == .enabled {
-            return true
-        }
-        return false
-    }
-
-    public func isHelperRunning() -> Bool {
-        if let output = Shell.exec(command: Command.isHelperRunning), !output.isEmpty {
-            return true
-        }
-        return false
-    }
-
-    public func isHelperAuthorizedAndRunning() -> Bool {
-        isHelperAuthorized() && isHelperRunning()
-    }
-
-    public func uninstallHelper() -> Bool {
-        let domain = kSMDomainSystemLaunchd
-        var authRef: AuthorizationRef?
-        let status = AuthorizationCreate(nil, nil, [], &authRef)
-
-        guard status == errAuthorizationSuccess,
-              let authorization = authRef
-        else {
-            return false
-        }
-
-        var cfError: Unmanaged<CFError>?
-        let success = SMJobRemove(domain, helperName as CFString, authorization, true, &cfError)
-        return success
-    }
-}
-
-private extension HelperManager {
     func installHelper(with authRef: AuthorizationRef?, error: inout Unmanaged<CFError>?) -> Bool {
         // TODO: refactor using SMAPPService
         if !SMJobBless(kSMDomainSystemLaunchd, helperName as CFString, authRef, &error) {
@@ -103,5 +106,20 @@ private extension HelperManager {
             SMAppService.openSystemSettingsLoginItems()
         }
         return true
+    }
+
+    func isHelperAuthorized() -> Bool {
+        if let url = URL(string: "/Library/LaunchDaemons/\(helperName).plist"),
+           SMAppService.statusForLegacyPlist(at: url) == .enabled {
+            return true
+        }
+        return false
+    }
+
+    func isHelperRunning() -> Bool {
+        if let output = Shell.exec(command: Command.isHelperRunning), !output.isEmpty {
+            return true
+        }
+        return false
     }
 }

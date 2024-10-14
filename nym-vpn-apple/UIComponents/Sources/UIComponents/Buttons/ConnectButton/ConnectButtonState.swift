@@ -7,6 +7,7 @@ public enum ConnectButtonState {
     case disconnect
     case disconnecting
     case stop
+    case installingDaemon
 
     public init(tunnelStatus: TunnelStatus) {
         switch tunnelStatus {
@@ -31,6 +32,8 @@ public enum ConnectButtonState {
             "disconnecting".localizedString
         case .stop:
             "stop".localizedString
+        case .installingDaemon:
+            "home.installDaemonButton".localizedString
         }
     }
 
@@ -40,7 +43,7 @@ public enum ConnectButtonState {
             NymColor.primaryOrange
         case .disconnect:
             NymColor.disconnect
-        case .stop, .disconnecting:
+        case .stop, .disconnecting, .installingDaemon:
             NymColor.sysSecondary
         }
     }

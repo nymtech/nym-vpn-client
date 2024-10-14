@@ -6,7 +6,12 @@ public final class AppSettings: ObservableObject {
 
     #if os(iOS)
     @AppStorage(AppSettingKey.currentAppearance.rawValue)
-    public var currentAppearance: AppSetting.Appearance = .automatic
+    public var currentAppearance: AppSetting.Appearance = .automatic {
+        didSet {
+//            guard let keyWindow = AppSettings.keyWindow else { return }
+//            keyWindow.rootViewController?.overrideUserInterfaceStyle = currentAppearance.userInterfaceStyle
+        }
+    }
     #else
     @AppStorage(AppSettingKey.currentAppearance.rawValue)
     public var currentAppearance: AppSetting.Appearance = .light
@@ -68,6 +73,19 @@ public final class AppSettings: ObservableObject {
         return false
 #endif
     }
+}
+
+private extension AppSettings {
+//    static var keyWindow: UIWindow? {
+//        guard let window = UIApplication.shared.connectedScenes
+//            .compactMap({ $0 as? UIWindowScene })
+//            .flatMap({ $0.windows })
+//            .first(where: { $0.isKeyWindow })
+//        else {
+//            return nil
+//        }
+//        return window
+//    }
 }
 
 enum AppSettingKey: String {
