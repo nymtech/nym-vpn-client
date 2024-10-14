@@ -1,3 +1,4 @@
+use nym_vpn_proto::is_account_stored_response::Resp;
 use serde_json::Value as JsonValue;
 use tauri::State;
 use tracing::{debug, error, info, instrument, warn};
@@ -26,6 +27,18 @@ pub async fn add_account(
             .map(|e| e.into())
             .unwrap_or_else(|| BackendError::new("failed to add account", ErrorKey::UnknownError));
         Err(error)
+    }
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn is_account_stored(grpc: State<'_, GrpcClient>) -> Result<bool, BackendError> {
+    debug!("is_account_stored");
+
+    let res = grpc.is_account_stored().await?;
+    match res {
+        Resp::IsStored(v) => Ok(v),
+        Resp::Error(e) => Err(e.into()),
     }
 }
 

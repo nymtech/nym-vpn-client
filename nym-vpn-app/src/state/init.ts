@@ -120,16 +120,14 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     },
   };
 
-  const getAccountInfoRq: TauriReq<() => Promise<object | undefined>> = {
-    name: 'getAccountInfo',
-    request: () => invoke<object>('get_account_info'),
-    onFulfilled: (info) => {
-      if (info) {
-        dispatch({
-          type: 'set-account',
-          stored: true,
-        });
-      }
+  const getStoredAccountRq: TauriReq<() => Promise<boolean | undefined>> = {
+    name: 'getStoredAccountRq',
+    request: () => invoke<boolean>('is_account_stored'),
+    onFulfilled: (stored) => {
+      dispatch({
+        type: 'set-account',
+        stored: stored || false,
+      });
     },
   };
 
@@ -242,7 +240,7 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     getExitLocationRq,
     getVersionRq,
     getThemeRq,
-    getAccountInfoRq,
+    getStoredAccountRq,
     getRootFontSizeRq,
     getEntrySelectorRq,
     getMonitoringRq,

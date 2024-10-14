@@ -33,8 +33,17 @@ function Settings() {
   const toggleDNotifications = useDesktopNotifications();
 
   useEffect(() => {
-    // TODO refresh the account status
-  }, []);
+    const checkAccount = async () => {
+      try {
+        const stored = await invoke<boolean | undefined>('is_stored_account');
+        dispatch({ type: 'set-account', stored: stored || false });
+      } catch (e) {
+        console.warn('Error checking account status:', e);
+      }
+    };
+
+    checkAccount();
+  }, [dispatch]);
 
   const handleEntrySelectorChange = () => {
     const isChecked = !entrySelector;

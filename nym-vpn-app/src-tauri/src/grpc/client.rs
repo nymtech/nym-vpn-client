@@ -5,10 +5,11 @@ use anyhow::{anyhow, Result};
 use itertools::Itertools;
 use nym_vpn_proto::{
     health_check_response::ServingStatus, health_client::HealthClient,
-    nym_vpnd_client::NymVpndClient, ConnectRequest, ConnectionStatus, DisconnectRequest, Dns,
-    Empty, EntryNode, ExitNode, GatewayType, GetAccountSummaryRequest, GetAccountSummaryResponse,
-    HealthCheckRequest, InfoRequest, InfoResponse, ListCountriesRequest, Location, StatusRequest,
-    StatusResponse, StoreAccountRequest, StoreAccountResponse, UserAgent,
+    is_account_stored_response::Resp as IsAccountStoredResp, nym_vpnd_client::NymVpndClient,
+    ConnectRequest, ConnectionStatus, DisconnectRequest, Dns, Empty, EntryNode, ExitNode,
+    GatewayType, GetAccountSummaryRequest, GetAccountSummaryResponse, HealthCheckRequest,
+    InfoRequest, InfoResponse, IsAccountStoredRequest, ListCountriesRequest, Location,
+    StatusRequest, StatusResponse, StoreAccountRequest, StoreAccountResponse, UserAgent,
 };
 use parity_tokio_ipc::Endpoint as IpcEndpoint;
 use serde::{Deserialize, Serialize};
@@ -377,7 +378,7 @@ impl GrpcClient {
         Ok(response.into_inner().success)
     }
 
-    /// Store account
+    /// Store an account
     #[instrument(skip_all)]
     pub async fn store_account(&self, mnemonic: String) -> Result<StoreAccountResponse, VpndError> {
         debug!("store_account");
@@ -393,8 +394,28 @@ impl GrpcClient {
         Ok(response.into_inner())
     }
 
+    /// Check if an account is stored
+    #[instrument(skip_all)]
+    pub async fn is_account_stored(&self) -> Result<IsAccountStoredResp, VpndError> {
+        debug!("is_account_stored");
+        let mut vpnd = self.vpnd().await?;
+
+        let request = Request::new(IsAccountStoredRequest {});
+        let response = vpnd.is_account_stored(request).await.map_err(|e| {
+            error!("grpc is_account_stored: {}", e);
+            VpndError::GrpcError(e)
+        })?;
+        debug!("grpc response: {:?}", response);
+        response.into_inner().resp.ok_or_else(|| {
+            error!("failed to get stored account: invalid response");
+            VpndError::GrpcError(tonic::Status::internal(
+                "failed to get stored account: invalid response",
+            ))
+        })
+    }
+
     /// Get account info
-    /// Note: if the account is not stored yet, the call will fail
+    /// Note: if no account is stored yet, the call will fail
     #[instrument(skip_all)]
     pub async fn get_account_summary(&self) -> Result<GetAccountSummaryResponse, VpndError> {
         debug!("get_account_summary");
