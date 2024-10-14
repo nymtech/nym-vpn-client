@@ -195,7 +195,7 @@ where
 
         // TODO: pagination
         for zknym in zknym.items {
-            tracing::info!("zk-nym: {:?}", zknym);
+            tracing::info!("zk-nym: {:#?}", zknym);
 
             let _blinded_shares = match zknym.status {
                 NymVpnZkNymStatus::Active => zknym.blinded_shares,
