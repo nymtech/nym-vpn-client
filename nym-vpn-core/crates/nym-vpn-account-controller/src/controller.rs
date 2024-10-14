@@ -270,7 +270,7 @@ where
             .await
             .map_err(Error::GetDevices)?;
 
-        tracing::info!("Registered devices: {:?}", devices);
+        tracing::info!("Registered devices: {:#?}", devices);
 
         // TODO: pagination
         let found_device = devices.items.iter().find(|device| {
