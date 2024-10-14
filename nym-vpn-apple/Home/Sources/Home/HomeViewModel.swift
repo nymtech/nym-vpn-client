@@ -155,13 +155,13 @@ public extension HomeViewModel {
             guard await isHelperInstalled() else { return }
 #endif
 
+            resetStatusInfoState()
+
             guard credentialsManager.isValidCredentialImported
             else {
                 await navigateToAddCredentials()
                 return
             }
-
-            resetStatusInfoState()
 
             Task { @MainActor in
                 do {
@@ -329,9 +329,8 @@ private extension HomeViewModel {
         guard isInstalledAndRunning && !needsUpdate
         else {
             do {
-                updateStatusInfoState(with: .error(message: "home.installDaemon".localizedString))
-                isInstalledAndRunning = try helperManager.authorizeAndInstallHelper()
-                resetStatusInfoState()
+                updateStatusInfoState(with: .installingDaemon)
+                isInstalledAndRunning = try await helperManager.installHelperIfNeeded()
             } catch let error {
                 updateStatusInfoState(with: .error(message: error.localizedDescription))
             }

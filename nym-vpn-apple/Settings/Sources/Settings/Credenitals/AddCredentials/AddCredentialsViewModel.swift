@@ -76,7 +76,7 @@ final class AddCredentialsViewModel: ObservableObject {
 
         Task {
             do {
-                try credentialsManager.add(credential: credentialText)
+                try await credentialsManager.add(credential: credentialText)
                 credentialsDidAdd()
             } catch let newError {
                 Task { @MainActor in

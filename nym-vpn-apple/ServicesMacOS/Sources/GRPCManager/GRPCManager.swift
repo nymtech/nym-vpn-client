@@ -9,14 +9,16 @@ import NIOConcurrencyHelpers
 import SwiftProtobuf
 import AppVersionProvider
 import Constants
+import HelperManager
 import TunnelStatus
 
 public final class GRPCManager: ObservableObject {
-    private let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+    private let group = MultiThreadedEventLoopGroup(numberOfThreads: 4)
     private let client: Nym_Vpn_NymVpndClientProtocol
     private let channel: GRPCChannel
     private let unixDomainSocket = "/var/run/nym-vpn.sock"
     private let logger = Logger(label: "GRPC Manager")
+    private let helperManager: HelperManager
 
     public static let shared = GRPCManager()
 
@@ -33,7 +35,8 @@ public final class GRPCManager: ObservableObject {
     @Published public var lastError: GeneralNymError?
     @Published public var connectedDate: Date?
 
-    private init() {
+    private init(helperManager: HelperManager = HelperManager.shared) {
+        self.helperManager = helperManager
         channel = ClientConnection(
             configuration:
                     .default(
@@ -41,7 +44,7 @@ public final class GRPCManager: ObservableObject {
                         eventLoopGroup: group
                     )
         )
-        client = Nym_Vpn_NymVpndNIOClient(channel: channel, defaultCallOptions: CallOptions(logger: logger))
+        client = Nym_Vpn_NymVpndNIOClient(channel: channel)
         setup()
     }
 
@@ -53,8 +56,14 @@ public final class GRPCManager: ObservableObject {
     // MARK: - Info -
 
     public func version() async throws -> String {
-        try await withCheckedThrowingContinuation { continuation in
-            let call = client.info(Nym_Vpn_InfoRequest(), callOptions: CallOptions(logger: logger))
+        guard helperManager.isHelperAuthorizedAndRunning()
+        else {
+            throw GRPCError.daemonNotRunning
+        }
+
+        logger.log(level: .info, "Version")
+        return try await withCheckedThrowingContinuation { continuation in
+            let call = client.info(Nym_Vpn_InfoRequest(), callOptions: nil)
 
             call.response.whenComplete { [weak self] result in
                 switch result {
@@ -69,6 +78,12 @@ public final class GRPCManager: ObservableObject {
     }
 
     public func status() {
+        guard helperManager.isHelperAuthorizedAndRunning()
+        else {
+            return
+        }
+
+        logger.log(level: .info, "Status")
         let request = Nym_Vpn_StatusRequest()
         let call = client.vpnStatus(request)
 
@@ -87,6 +102,12 @@ public final class GRPCManager: ObservableObject {
 
     // MARK: - Credentials -
     public func importCredential(credential: String) throws -> Date? {
+        guard helperManager.isHelperAuthorizedAndRunning()
+        else {
+            throw GRPCError.daemonNotRunning
+        }
+
+        logger.log(level: .info, "Importing credentials")
         var request = Nym_Vpn_ImportUserCredentialRequest()
 
         guard let base58Array = Base58.base58Decode(credential)
@@ -129,7 +150,9 @@ public final class GRPCManager: ObservableObject {
         exitRouterCountryCode: String?,
         isTwoHopEnabled: Bool
     ) {
-        logger.log(level: .info, "Connecting...")
+        guard helperManager.isHelperAuthorizedAndRunning() else { return }
+
+        logger.log(level: .info, "Connecting")
         var request = Nym_Vpn_ConnectRequest()
         request.userAgent = userAgent
 
@@ -162,7 +185,7 @@ public final class GRPCManager: ObservableObject {
         request.disableBackgroundCoverTraffic = false
         request.enableCredentialsMode = false
 
-        let call = client.vpnConnect(request, callOptions: CallOptions(logger: logger))
+        let call = client.vpnConnect(request, callOptions: nil)
 
         call.response.whenComplete { [weak self] result in
             switch result {
@@ -181,6 +204,12 @@ public final class GRPCManager: ObservableObject {
     }
 
     public func disconnect() {
+        guard helperManager.isHelperAuthorizedAndRunning()
+        else {
+            return
+        }
+
+        logger.log(level: .info, "Disconnecting")
         let request = Nym_Vpn_DisconnectRequest()
 
         let call = client.vpnDisconnect(request)
@@ -203,12 +232,18 @@ public final class GRPCManager: ObservableObject {
 
     // MARK: - Countries -
     public func entryCountryCodes() async throws -> [String] {
-        try await withCheckedThrowingContinuation { continuation in
+        guard helperManager.isHelperAuthorizedAndRunning()
+        else {
+            throw GRPCError.daemonNotRunning
+        }
+
+        logger.log(level: .info, "Fetching entry countries")
+        return try await withCheckedThrowingContinuation { continuation in
             var request = Nym_Vpn_ListCountriesRequest()
             request.kind = .mixnetEntry
             request.userAgent = userAgent
 
-            let call = client.listCountries(request, callOptions: CallOptions(logger: logger))
+            let call = client.listCountries(request, callOptions: nil)
             call.response.whenComplete { result in
                 switch result {
                 case let .success(countries):
@@ -230,12 +265,18 @@ public final class GRPCManager: ObservableObject {
     }
 
     public func exitCountryCodes() async throws -> [String] {
-        try await withCheckedThrowingContinuation { continuation in
+        guard helperManager.isHelperAuthorizedAndRunning()
+        else {
+            throw GRPCError.daemonNotRunning
+        }
+
+        logger.log(level: .info, "Fetching exit countries")
+        return try await withCheckedThrowingContinuation { continuation in
             var request = Nym_Vpn_ListCountriesRequest()
             request.kind = .mixnetExit
             request.userAgent = userAgent
 
-            let call = client.listCountries(request, callOptions: CallOptions(logger: logger))
+            let call = client.listCountries(request, callOptions: nil)
             call.response.whenComplete { result in
                 switch result {
                 case let .success(countries):
@@ -257,7 +298,13 @@ public final class GRPCManager: ObservableObject {
     }
 
     public func vpnCountryCodes() async throws -> [String] {
-        try await withCheckedThrowingContinuation { continuation in
+        guard helperManager.isHelperAuthorizedAndRunning()
+        else {
+            throw GRPCError.daemonNotRunning
+        }
+
+        logger.log(level: .info, "Fetching VPN countries")
+        return try await withCheckedThrowingContinuation { continuation in
             var request = Nym_Vpn_ListCountriesRequest()
             request.kind = .wg
             request.userAgent = userAgent
@@ -312,9 +359,14 @@ private extension GRPCManager {
             }
         }
 
-        call.status.whenComplete { result in
+        call.status.whenComplete { [weak self] result in
             switch result {
             case .success(let status):
+                if status.code == .unavailable {
+                    self?.tunnelStatus = .disconnected
+                    self?.setup()
+                }
+                self?.logger.error("Stream status code: \(status.code)")
                 print("Stream completed with status: \(status)")
             case .failure(let error):
                 print("Stream failed with error: \(error)")
@@ -335,109 +387,6 @@ private extension GRPCManager {
             case .failure(let error):
                 print("Stream failed with error: \(error)")
             }
-        }
-    }
-}
-
-private extension GRPCManager {
-    // swiftlint:disable:next function_body_length
-    func convertToGeneralNymError(from error: Nym_Vpn_Error) -> GeneralNymError {
-        switch error.kind {
-        case .unspecified, .unhandled:
-            GeneralNymError.library(message: "\("error.unexpected".localizedString): \(error.message)")
-        case .noValidCredentials:
-            GeneralNymError.invalidCredential
-        case .timeout:
-            GeneralNymError.library(message: "error.timeout".localizedString)
-        case .gatewayDirectory:
-            GeneralNymError.library(message: "error.gatewayDirectory".localizedString)
-        case .UNRECOGNIZED(let code):
-            GeneralNymError.library(message: "error.unrecognized".localizedString + " \(code)")
-        case .mixnetTimeout:
-            // TODO: localize errors
-            GeneralNymError.library(message: error.message)
-        case .gatewayDirectoryLookupGateways:
-            GeneralNymError.library(message: error.message)
-        case .gatewayDirectoryLookupGatewayIdentity:
-            GeneralNymError.library(message: error.message)
-        case .gatewayDirectoryLookupRouterAddress:
-            GeneralNymError.library(message: error.message)
-        case .gatewayDirectoryLookupIp:
-            GeneralNymError.library(message: error.message)
-        case .gatewayDirectoryEntry:
-            GeneralNymError.library(message: error.message)
-        case .gatewayDirectoryEntryLocation:
-            GeneralNymError.library(message: error.message)
-        case .gatewayDirectoryExit:
-            GeneralNymError.library(message: error.message)
-        case .gatewayDirectoryExitLocation:
-            GeneralNymError.library(message: error.message)
-        case .gatewayDirectorySameEntryAndExitGw:
-            GeneralNymError.library(message: error.message)
-        case .outOfBandwidth:
-            GeneralNymError.library(message: error.message)
-        case .mixnetStoragePaths:
-            GeneralNymError.library(message: error.message)
-        case .mixnetDefaultStorage:
-            GeneralNymError.library(message: error.message)
-        case .mixnetBuildClient:
-            GeneralNymError.library(message: error.message)
-        case .mixnetConnect:
-            GeneralNymError.library(message: error.message)
-        case .mixnetEntryGateway:
-            GeneralNymError.library(message: error.message)
-        case .gatewayDirectoryEntryID:
-            GeneralNymError.library(message: error.message)
-        case .iprFailedToConnect:
-            GeneralNymError.library(message: error.message)
-        case .outOfBandwidthWhenSettingUpTunnel:
-            GeneralNymError.library(message: error.message)
-        case .bringInterfaceUp:
-            GeneralNymError.library(message: error.message)
-        case .firewallInit:
-            GeneralNymError.library(message: error.message)
-        case .firewallResetPolicy:
-            GeneralNymError.library(message: error.message)
-        case .dnsInit:
-            GeneralNymError.library(message: error.message)
-        case .dnsSet:
-            GeneralNymError.library(message: error.message)
-        case .findDefaultInterface:
-            GeneralNymError.library(message: error.message)
-        case .unhandledExit:
-            GeneralNymError.library(message: error.message)
-        case .internal:
-            GeneralNymError.library(message: error.message)
-        case .authenticatorFailedToConnect:
-            GeneralNymError.library(message: error.message)
-        case .authenticatorConnectTimeout:
-            GeneralNymError.library(message: error.message)
-        case .authenticatorInvalidResponse:
-            GeneralNymError.library(message: error.message)
-        case .authenticatorRegistrationDataVerification:
-            GeneralNymError.library(message: error.message)
-        case .authenticatorEntryGatewaySocketAddr:
-            GeneralNymError.library(message: error.message)
-        case .authenticatorEntryGatewayIpv4:
-            GeneralNymError.library(message: error.message)
-        case .authenticatorWrongVersion:
-            GeneralNymError.library(message: error.message)
-        case .authenticatorMalformedReply:
-            GeneralNymError.library(message: error.message)
-        case .authenticatorAddressNotFound:
-            GeneralNymError.library(message: error.message)
-        case .authenticatorAuthenticationNotPossible:
-            GeneralNymError.library(message: error.message)
-        case .addIpv6Route:
-            GeneralNymError.library(message: error.message)
-        case .tun:
-            GeneralNymError.library(message: error.message)
-        case .routing:
-            GeneralNymError.library(message: error.message)
-        case .wireguardConfig:
-            GeneralNymError.library(message: error.message)
-        case .mixnetConnectionMonitor:
-            GeneralNymError.library(message: error.message)
         }
     }
 }

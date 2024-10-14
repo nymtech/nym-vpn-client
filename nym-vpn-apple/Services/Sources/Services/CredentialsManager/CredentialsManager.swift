@@ -41,7 +41,7 @@ public final class CredentialsManager {
         setup()
     }
 
-    public func add(credential: String) throws {
+    public func add(credential: String) async throws {
         let trimmedCredential = credential.trimmingCharacters(in: .whitespacesAndNewlines)
         do {
 #if os(iOS)
@@ -57,12 +57,14 @@ public final class CredentialsManager {
             }
 #endif
 #if os(macOS)
-            guard helperManager.isHelperAuthorizedAndRunning() else { return }
+            _ = try await helperManager.installHelperIfNeeded()
             let expiryDate = try grpcManager.importCredential(credential: trimmedCredential)
 #endif
-            appSettings.isCredentialImported = true
-            appSettings.credentialExpiryDate = expiryDate
-            appSettings.credentialStartDate = Date()
+            Task { @MainActor in
+                appSettings.isCredentialImported = true
+                appSettings.credentialExpiryDate = expiryDate
+                appSettings.credentialStartDate = Date()
+            }
         } catch let error {
             throw error
         }

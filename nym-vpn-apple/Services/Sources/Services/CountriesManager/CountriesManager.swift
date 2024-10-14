@@ -83,7 +83,7 @@ public final class CountriesManager: ObservableObject {
 #endif
 
     @objc public func fetchCountries() {
-        guard !isLoading, needsReload(shouldFetchEntryCountries: appSettings.isEntryLocationSelectionOn)
+        guard !isLoading, needsReload()
         else {
             loadTemporaryCountries(shouldFetchEntryCountries: appSettings.isEntryLocationSelectionOn)
             return
@@ -198,7 +198,7 @@ private extension CountriesManager {
     func fetchEntryExitCountries() {
         updateDaemonVersionIfNecessary()
 
-        guard helperManager.isHelperRunning()
+        guard helperManager.isHelperAuthorizedAndRunning()
         else {
             fetchCountriesAfterDelay()
             return
@@ -210,9 +210,7 @@ private extension CountriesManager {
                 try await fetchExitCountries()
                 try await fetchVPNCountries()
             } catch {
-                Task { @MainActor in
-                    lastError = error
-                }
+                logger.error("\(error.localizedDescription)")
             }
             countryStore.lastFetchDate = Date()
         }
@@ -327,7 +325,7 @@ private extension CountriesManager {
             isLoading = false
         } catch {
             isLoading = false
-            updateError(with: error)
+            logger.error("\(error.localizedDescription)")
             fetchCountriesAfterDelay()
         }
     }
@@ -347,18 +345,14 @@ private extension CountriesManager {
 
 // MARK: - Temp storage -
 private extension CountriesManager {
-    func needsReload(shouldFetchEntryCountries: Bool) -> Bool {
+    func needsReload() -> Bool {
         guard let lastFetchDate = countryStore.lastFetchDate else { return true }
         return isLongerThan10Minutes(date: lastFetchDate)
     }
 
     func isLongerThan10Minutes(date: Date) -> Bool {
         let difference = Date().timeIntervalSince(date)
-        if difference > 600 {
-            return true
-        } else {
-            return false
-        }
+        return difference > 600 ? true : false
     }
 
     func loadTemporaryCountries(shouldFetchEntryCountries: Bool) {
