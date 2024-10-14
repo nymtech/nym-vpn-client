@@ -44,9 +44,37 @@ pub(super) struct CommandInterfaceConnectionHandler {
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
 }
 
+#[derive(Debug, thiserror::Error)]
+pub(crate) enum VpnCommandSendError {
+    #[error("failed to send command to VPN")]
+    Send,
+
+    #[error("failed to receive response from VPN")]
+    Receive,
+}
+
 impl CommandInterfaceConnectionHandler {
     pub(super) fn new(vpn_command_tx: UnboundedSender<VpnServiceCommand>) -> Self {
         Self { vpn_command_tx }
+    }
+
+    // TODO: generalise this function to be used for all commands
+    async fn vpn_command_send<T, E, F>(
+        &self,
+        command: F,
+    ) -> Result<Result<T, E>, VpnCommandSendError>
+    where
+        F: FnOnce(oneshot::Sender<Result<T, E>>) -> VpnServiceCommand,
+    {
+        let (tx, rx) = oneshot::channel();
+        if let Err(err) = self.vpn_command_tx.send(command(tx)) {
+            tracing::error!("Failed to send command to VPN: {:?}", err);
+            return Err(VpnCommandSendError::Send);
+        }
+        rx.await.map_err(|err| {
+            tracing::error!("Failed to receive response from VPN: {:?}", err);
+            VpnCommandSendError::Receive
+        })
     }
 
     pub(crate) async fn handle_connect(
@@ -164,80 +192,58 @@ impl CommandInterfaceConnectionHandler {
         result
     }
 
-    pub(crate) async fn handle_remove_account(&self) -> Result<(), AccountError> {
-        let (tx, rx) = oneshot::channel();
-        self.vpn_command_tx
-            .send(VpnServiceCommand::RemoveAccount(tx))
-            .unwrap();
-        let result = rx.await.unwrap();
-        debug!("VPN remove account result: {:?}", result);
-        result
+    pub(crate) async fn handle_is_account_stored(
+        &self,
+    ) -> Result<Result<bool, AccountError>, VpnCommandSendError> {
+        self.vpn_command_send(VpnServiceCommand::IsAccountStored)
+            .await
+    }
+
+    pub(crate) async fn handle_remove_account(
+        &self,
+    ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
+        self.vpn_command_send(VpnServiceCommand::RemoveAccount)
+            .await
     }
 
     pub(crate) async fn handle_get_account_summary(
         &self,
-    ) -> Result<NymVpnAccountSummaryResponse, AccountError> {
-        let (tx, rx) = oneshot::channel();
-        self.vpn_command_tx
-            .send(VpnServiceCommand::GetAccountSummary(tx))
-            .unwrap();
-        let result = rx.await.unwrap();
-        info!("VPN get account summary result: {:#?}", result);
-        result
+    ) -> Result<Result<NymVpnAccountSummaryResponse, AccountError>, VpnCommandSendError> {
+        self.vpn_command_send(VpnServiceCommand::GetAccountSummary)
+            .await
     }
 
-    pub(crate) async fn handle_get_devices(&self) -> Result<NymVpnDevicesResponse, AccountError> {
-        let (tx, rx) = oneshot::channel();
-        self.vpn_command_tx
-            .send(VpnServiceCommand::GetDevices(tx))
-            .unwrap();
-        let result = rx.await.unwrap();
-        info!("VPN get devices result: {:#?}", result);
-        result
+    pub(crate) async fn handle_get_devices(
+        &self,
+    ) -> Result<Result<NymVpnDevicesResponse, AccountError>, VpnCommandSendError> {
+        self.vpn_command_send(VpnServiceCommand::GetDevices).await
     }
 
-    pub(crate) async fn handle_register_device(&self) -> Result<NymVpnDevice, AccountError> {
-        let (tx, rx) = oneshot::channel();
-        self.vpn_command_tx
-            .send(VpnServiceCommand::RegisterDevice(tx))
-            .unwrap();
-        let result = rx.await.unwrap();
-        info!("VPN register device result: {:#?}", result);
-        result
+    pub(crate) async fn handle_register_device(
+        &self,
+    ) -> Result<Result<NymVpnDevice, AccountError>, VpnCommandSendError> {
+        self.vpn_command_send(VpnServiceCommand::RegisterDevice)
+            .await
     }
 
-    pub(crate) async fn handle_request_zk_nym(&self) -> Result<NymVpnZkNym, AccountError> {
-        let (tx, rx) = oneshot::channel();
-        self.vpn_command_tx
-            .send(VpnServiceCommand::RequestZkNym(tx))
-            .unwrap();
-        let result = rx.await.unwrap();
-        info!("VPN request zk nym result: {:#?}", result);
-        result
+    pub(crate) async fn handle_request_zk_nym(
+        &self,
+    ) -> Result<Result<NymVpnZkNym, AccountError>, VpnCommandSendError> {
+        self.vpn_command_send(VpnServiceCommand::RequestZkNym).await
     }
 
     pub(crate) async fn handle_get_device_zk_nyms(
         &self,
-    ) -> Result<NymVpnZkNymResponse, AccountError> {
-        let (tx, rx) = oneshot::channel();
-        self.vpn_command_tx
-            .send(VpnServiceCommand::GetDeviceZkNyms(tx))
-            .unwrap();
-        let result = rx.await.unwrap();
-        info!("VPN get device zk nyms result: {:#?}", result);
-        result
+    ) -> Result<Result<NymVpnZkNymResponse, AccountError>, VpnCommandSendError> {
+        self.vpn_command_send(VpnServiceCommand::GetDeviceZkNyms)
+            .await
     }
 
     pub(crate) async fn handle_get_free_passes(
         &self,
-    ) -> Result<NymVpnSubscriptionsResponse, AccountError> {
-        let (tx, rx) = oneshot::channel();
-        self.vpn_command_tx
-            .send(VpnServiceCommand::GetFreePasses(tx))
-            .unwrap();
-        let result = rx.await.unwrap();
-        info!("VPN get free passes result: {:#?}", result);
-        result
+    ) -> Result<Result<NymVpnSubscriptionsResponse, AccountError>, VpnCommandSendError> {
+        self.vpn_command_send(VpnServiceCommand::GetFreePasses)
+            .await
     }
 
     pub(crate) async fn handle_apply_freepass(
