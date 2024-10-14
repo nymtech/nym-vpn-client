@@ -11,14 +11,11 @@ public struct AppSetting {
         public var colorScheme: ColorScheme? {
             switch self {
             case .light:
-                print("light")
                 return .light
             case .dark:
-                print("dark")
                 return .dark
             #if os(iOS)
             case .automatic:
-                print("system")
                 return nil
             #endif
             }
