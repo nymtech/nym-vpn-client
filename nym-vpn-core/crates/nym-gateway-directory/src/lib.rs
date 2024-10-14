@@ -7,7 +7,7 @@ mod gateway_client;
 mod helpers;
 
 pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
-pub use nym_validator_client::models::DescribedGateway;
+pub use nym_validator_client::models::LegacyDescribedGateway;
 pub use nym_vpn_api_client::types::{GatewayMinPerformance, Percent};
 
 pub use crate::{

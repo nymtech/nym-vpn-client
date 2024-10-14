@@ -63,8 +63,8 @@ impl From<nym_vpn_lib::gateway_directory::Country> for Country {
     }
 }
 
-impl From<nym_validator_client::models::DescribedGateway> for Gateway {
-    fn from(gateway: nym_validator_client::models::DescribedGateway) -> Self {
+impl From<nym_validator_client::models::LegacyDescribedGateway> for Gateway {
+    fn from(gateway: nym_validator_client::models::LegacyDescribedGateway) -> Self {
         Self {
             identity_key: gateway.bond.identity().clone(),
             location: None,

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_sdk::mixnet::{NodeIdentity, Recipient};
-use nym_validator_client::models::DescribedGateway;
+use nym_validator_client::models::LegacyDescribedGateway;
 
 use crate::{error::Result, Error};
 
@@ -21,7 +21,7 @@ impl IpPacketRouterAddress {
         ))
     }
 
-    pub fn try_from_described_gateway(gateway: &DescribedGateway) -> Result<Self> {
+    pub fn try_from_described_gateway(gateway: &LegacyDescribedGateway) -> Result<Self> {
         let address = gateway
             .self_described
             .clone()

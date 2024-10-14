@@ -4,7 +4,7 @@
 use std::{fmt, net::IpAddr};
 
 use nym_sdk::UserAgent;
-use nym_validator_client::{models::DescribedGateway, nym_nodes::SkimmedNode, NymApiClient};
+use nym_validator_client::{models::LegacyDescribedGateway, nym_nodes::SkimmedNode, NymApiClient};
 use nym_vpn_api_client::types::{GatewayMinPerformance, Percent};
 use tracing::{debug, error, info};
 use url::Url;
@@ -150,7 +150,7 @@ impl GatewayClient {
             .and_then(|min_performance| min_performance.vpn_min_performance)
     }
 
-    async fn lookup_described_gateways(&self) -> Result<Vec<DescribedGateway>> {
+    async fn lookup_described_gateways(&self) -> Result<Vec<LegacyDescribedGateway>> {
         info!("Fetching described gateways from nym-api...");
         self.api_client
             .get_cached_described_gateways()
@@ -306,7 +306,7 @@ fn append_performance(
     for gateway in gateways.iter_mut() {
         if let Some(basic_gw) = basic_gw
             .iter()
-            .find(|bgw| bgw.ed25519_identity_pubkey == gateway.identity().to_base58_string())
+            .find(|bgw| bgw.ed25519_identity_pubkey == *gateway.identity())
         {
             gateway.mixnet_performance = Some(basic_gw.performance);
         } else {

@@ -5,7 +5,7 @@ use std::{fmt, net::IpAddr, str::FromStr};
 
 use itertools::Itertools;
 use nym_sdk::mixnet::NodeIdentity;
-use nym_topology::IntoGatewayNode;
+use nym_topology::NetworkAddress;
 use nym_vpn_api_client::types::Percent;
 use rand::seq::IteratorRandom;
 use tracing::error;
@@ -231,16 +231,17 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
     }
 }
 
-impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
+impl TryFrom<nym_validator_client::models::LegacyDescribedGateway> for Gateway {
     type Error = Error;
 
-    fn try_from(gateway: nym_validator_client::models::DescribedGateway) -> Result<Self> {
-        let identity = NodeIdentity::from_base58_string(gateway.identity()).map_err(|source| {
-            Error::NodeIdentityFormattingError {
-                identity: gateway.identity().to_string(),
-                source,
-            }
-        })?;
+    fn try_from(gateway: nym_validator_client::models::LegacyDescribedGateway) -> Result<Self> {
+        let identity =
+            NodeIdentity::from_base58_string(gateway.bond.identity()).map_err(|source| {
+                Error::NodeIdentityFormattingError {
+                    identity: gateway.bond.identity().to_string(),
+                    source,
+                }
+            })?;
         let location = gateway
             .self_described
             .as_ref()
@@ -267,10 +268,25 @@ impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
                     .inspect_err(|err| error!("Failed to parse authenticator address: {err}"))
                     .ok()
             });
-        let gateway = nym_topology::gateway::Node::try_from(gateway).ok();
-        let host = gateway.clone().map(|g| g.host);
-        let clients_ws_port = gateway.as_ref().map(|g| g.clients_ws_port);
-        let clients_wss_port = gateway.and_then(|g| g.clients_wss_port);
+        let host = gateway.self_described.clone().and_then(|g| {
+            if let Some(ip) = g.host_information.ip_address.first() {
+                Some(
+                    g.host_information
+                        .hostname
+                        .map(NetworkAddress::Hostname)
+                        .unwrap_or(NetworkAddress::IpAddr(*ip)),
+                )
+            } else {
+                None
+            }
+        });
+        let clients_ws_port = gateway
+            .self_described
+            .as_ref()
+            .map(|g| g.mixnet_websockets.ws_port);
+        let clients_wss_port = gateway
+            .self_described
+            .and_then(|g| g.mixnet_websockets.wss_port);
         Ok(Gateway {
             identity,
             location,
