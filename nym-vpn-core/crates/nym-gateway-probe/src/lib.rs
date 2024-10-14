@@ -1,5 +1,5 @@
 use std::{
-    net::{Ipv4Addr, Ipv6Addr},
+    net::{IpAddr, Ipv4Addr, Ipv6Addr},
     sync::Arc,
     time::Duration,
 };
@@ -203,7 +203,10 @@ async fn wg_probe(
                 .first()
                 .map(|ip| ip.to_string())
                 .unwrap_or_default(),
-            nym_topology::NetworkAddress::IpAddr(ip) => ip.to_string(),
+            nym_topology::NetworkAddress::IpAddr(ip) => match ip {
+                IpAddr::V4(ip) => ip.to_string(),
+                IpAddr::V6(ip) => format!("[{}]", ip),
+            },
         };
 
         let wg_endpoint = format!("{}:{}", gateway_ip, registered_data.wg_port);
