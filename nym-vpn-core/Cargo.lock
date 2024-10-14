@@ -4704,6 +4704,7 @@ dependencies = [
  "nym-bin-common",
  "nym-vpn-api-client",
  "nym-vpn-lib",
+ "nym-vpn-store",
  "thiserror",
  "time",
  "tokio",

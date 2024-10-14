@@ -39,6 +39,9 @@ pub(crate) struct CliArgs {
 pub(crate) enum Commands {
     /// Run the client
     Run(RunArgs),
+
+    /// Store the account
+    StoreAccount(StoreAccountArgs),
 }
 
 #[derive(Args)]
@@ -104,15 +107,15 @@ pub(crate) struct RunArgs {
 #[group(multiple = false)]
 pub(crate) struct CliEntry {
     /// Mixnet public ID of the entry gateway.
-    #[clap(long, alias = "entry-id")]
+    #[arg(long, alias = "entry-id")]
     pub(crate) entry_gateway_id: Option<String>,
 
     /// Auto-select entry gateway by country ISO.
-    #[clap(long, alias = "entry-country")]
+    #[arg(long, alias = "entry-country")]
     pub(crate) entry_gateway_country: Option<String>,
 
     /// Auto-select entry gateway by latency
-    #[clap(long, alias = "entry-fastest")]
+    #[arg(long, alias = "entry-fastest")]
     pub(crate) entry_gateway_low_latency: bool,
 }
 
@@ -120,16 +123,23 @@ pub(crate) struct CliEntry {
 #[group(multiple = false)]
 pub(crate) struct CliExit {
     /// Mixnet recipient address.
-    #[clap(long, alias = "exit-address")]
+    #[arg(long, alias = "exit-address")]
     pub(crate) exit_router_address: Option<String>,
 
     /// Mixnet public ID of the exit gateway.
-    #[clap(long, alias = "exit-id")]
+    #[arg(long, alias = "exit-id")]
     pub(crate) exit_gateway_id: Option<String>,
 
     /// Auto-select exit gateway by country ISO.
-    #[clap(long, alias = "exit-country")]
+    #[arg(long, alias = "exit-country")]
     pub(crate) exit_gateway_country: Option<String>,
+}
+
+#[derive(Args)]
+pub(crate) struct StoreAccountArgs {
+    /// Path to the file containing the account credentials.
+    #[arg(long)]
+    pub(crate) mnemonic: String,
 }
 
 fn validate_ipv4(ip: &str) -> Result<Ipv4Addr, String> {
