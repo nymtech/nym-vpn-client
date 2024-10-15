@@ -7,7 +7,7 @@ use nym_compact_ecash::Base58 as _;
 use nym_config::defaults::NymNetworkDetails;
 use nym_credentials_interface::TicketType;
 use nym_ecash_time::EcashTime as _;
-use nym_http_api_client::UserAgent;
+use nym_http_api_client::{HttpClientError, UserAgent};
 use nym_vpn_api_client::{
     response::NymVpnZkNymStatus,
     types::{Device, VpnApiAccount},
@@ -233,20 +233,16 @@ where
     async fn update_remote_account_state(&self, account: &VpnApiAccount) -> Result<(), Error> {
         tracing::info!("Updating remote account state");
 
-        let response = self
-            .api_client
-            .get_account_summary(account)
-            .await
-            .map_err(Error::GetAccountSummary);
+        let response = self.api_client.get_account_summary(account).await;
 
-        // TODO: inspect the error and look for account not registered in the reponse
-        if let Err(_err) = &response {
+        // Check if the response indicates that we are not registered
+        if let Some(403) = &response.as_ref().err().and_then(extract_status_code) {
             self.account_state
                 .set_account(RemoteAccountState::NotRegistered)
                 .await;
         }
 
-        let account_summary = response?;
+        let account_summary = response.map_err(Error::GetAccountSummary)?;
         tracing::info!("Account summary: {:#?}", account_summary);
 
         self.account_state
@@ -358,4 +354,28 @@ fn get_nym_vpn_api_url() -> Result<Url, Error> {
 fn create_api_client(user_agent: UserAgent) -> nym_vpn_api_client::VpnApiClient {
     let nym_vpn_api_url = get_nym_vpn_api_url().unwrap();
     nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent).unwrap()
+}
+
+fn extract_status_code<E>(err: &E) -> Option<u16>
+where
+    E: std::error::Error + 'static,
+{
+    let mut source = err.source();
+    while let Some(err) = source {
+        if let Some(status) = err
+            .downcast_ref::<HttpClientError>()
+            .and_then(extract_status_code_inner)
+        {
+            return Some(status);
+        }
+        source = err.source();
+    }
+    None
+}
+
+fn extract_status_code_inner(err: &HttpClientError) -> Option<u16> {
+    match err {
+        HttpClientError::EndpointFailure { status, .. } => Some((*status).into()),
+        _ => None,
+    }
 }

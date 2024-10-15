@@ -4671,6 +4671,7 @@ dependencies = [
  "nym-http-api-client",
  "nym-vpn-api-client",
  "nym-vpn-store",
+ "reqwest 0.11.27",
  "thiserror",
  "tokio",
  "tokio-util",
