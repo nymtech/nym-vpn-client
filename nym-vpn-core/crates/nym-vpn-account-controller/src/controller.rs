@@ -184,6 +184,9 @@ where
     async fn get_device_zk_nym(&self) -> Result<(), Error> {
         tracing::info!("Getting device zk-nym");
 
+        // Current pending zk-nym requests
+        tracing::info!("Pending zk-nym requests: {:#?}", self.pending_zk_nym);
+
         let account = self.load_account().await?;
         let device = self.load_device_keys().await?;
 
