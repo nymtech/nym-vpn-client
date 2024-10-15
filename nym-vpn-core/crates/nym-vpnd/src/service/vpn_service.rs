@@ -662,14 +662,21 @@ where
     }
 
     async fn handle_store_account(&mut self, account: String) -> Result<(), AccountError> {
-        self.storage
+        let store_result = self
+            .storage
             .lock()
             .await
             .store_mnemonic(Mnemonic::parse(&account)?)
             .await
             .map_err(|err| AccountError::FailedToStoreAccount {
                 source: Box::new(err),
-            })
+            })?;
+
+        if let Err(err) = self.account_command_tx.send(AccountCommand::RegisterDevice) {
+            tracing::error!("Failed to send register device command: {:?}", err);
+        }
+
+        Ok(store_result)
     }
 
     async fn handle_is_account_stored(&self) -> Result<bool, AccountError> {
