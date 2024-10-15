@@ -15,7 +15,7 @@ use futures::{
 };
 use nym_vpn_api_client::{
     response::{
-        NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnSubscription,
+        NymVpnAccountSummaryResponse, NymVpnDevicesResponse, NymVpnSubscription,
         NymVpnSubscriptionsResponse,
     },
     types::{GatewayMinPerformance, Percent, VpnApiAccount},
@@ -141,7 +141,7 @@ pub enum VpnServiceCommand {
     RemoveAccount(oneshot::Sender<Result<(), AccountError>>),
     GetAccountSummary(oneshot::Sender<Result<NymVpnAccountSummaryResponse, AccountError>>),
     GetDevices(oneshot::Sender<Result<NymVpnDevicesResponse, AccountError>>),
-    RegisterDevice(oneshot::Sender<Result<NymVpnDevice, AccountError>>),
+    RegisterDevice(oneshot::Sender<Result<(), AccountError>>),
     RequestZkNym(oneshot::Sender<Result<(), AccountError>>),
     GetDeviceZkNyms(oneshot::Sender<Result<(), AccountError>>),
     GetFreePasses(oneshot::Sender<Result<NymVpnSubscriptionsResponse, AccountError>>),
@@ -662,8 +662,7 @@ where
     }
 
     async fn handle_store_account(&mut self, account: String) -> Result<(), AccountError> {
-        let store_result = self
-            .storage
+        self.storage
             .lock()
             .await
             .store_mnemonic(Mnemonic::parse(&account)?)
@@ -672,11 +671,13 @@ where
                 source: Box::new(err),
             })?;
 
-        if let Err(err) = self.account_command_tx.send(AccountCommand::RegisterDevice) {
-            tracing::error!("Failed to send register device command: {:?}", err);
-        }
+        self.account_command_tx
+            .send(AccountCommand::UpdateSharedAccountState)
+            .map_err(|err| AccountError::SendCommand {
+                source: Box::new(err),
+            })?;
 
-        Ok(store_result)
+        Ok(())
     }
 
     async fn handle_is_account_stored(&self) -> Result<bool, AccountError> {
@@ -698,7 +699,15 @@ where
             .await
             .map_err(|err| AccountError::FailedToRemoveAccount {
                 source: Box::new(err),
-            })
+            })?;
+
+        self.account_command_tx
+            .send(AccountCommand::UpdateSharedAccountState)
+            .map_err(|err| AccountError::SendCommand {
+                source: Box::new(err),
+            })?;
+
+        Ok(())
     }
 
     async fn load_account(&self) -> Result<VpnApiAccount, AccountError> {
@@ -714,6 +723,7 @@ where
             .inspect(|account| tracing::info!("Loading account id: {}", account.id()))
     }
 
+    #[allow(unused)]
     async fn load_device_keys(&self) -> Result<nym_vpn_store::keys::DeviceKeys, AccountError> {
         self.storage
             .lock()
@@ -758,23 +768,12 @@ where
         api_client.get_devices(&account).await.map_err(Into::into)
     }
 
-    async fn handle_register_device(&self) -> Result<NymVpnDevice, AccountError> {
-        // Get account
-        let account = self.load_account().await?;
-
-        // Get device
-        let device_keypair = self.load_device_keys().await?.device_keypair();
-        let device = nym_vpn_api_client::types::Device::from(device_keypair);
-
-        // Setup client
-        let nym_vpn_api_url = get_nym_vpn_api_url()?;
-        let user_agent = crate::util::construct_user_agent();
-        let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent)?;
-
-        api_client
-            .register_device(&account, &device)
-            .await
-            .map_err(Into::into)
+    async fn handle_register_device(&self) -> Result<(), AccountError> {
+        self.account_command_tx
+            .send(AccountCommand::RegisterDevice)
+            .map_err(|err| AccountError::SendCommand {
+                source: Box::new(err),
+            })
     }
 
     async fn handle_get_free_passes(&self) -> Result<NymVpnSubscriptionsResponse, AccountError> {
@@ -833,7 +832,7 @@ where
     pub(crate) async fn run(mut self) -> anyhow::Result<()> {
         // Start by refreshing the account state
         self.account_command_tx
-            .send(AccountCommand::RefreshAccountState)?;
+            .send(AccountCommand::UpdateSharedAccountState)?;
 
         while let Some(command) = self.vpn_command_rx.recv().await {
             debug!("VPN: Received command: {command}");

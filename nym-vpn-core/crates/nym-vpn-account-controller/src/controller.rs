@@ -27,7 +27,7 @@ use crate::{
 #[allow(unused)]
 #[derive(Clone, Debug)]
 pub enum AccountCommand {
-    RefreshAccountState,
+    UpdateSharedAccountState,
     RegisterDevice,
     RequestZkNym,
     GetDeviceZkNym,
@@ -150,8 +150,9 @@ where
             })
             .map_err(Error::RegisterDevice)?;
 
-        // Queue up a refresh account state command
-        self.command_tx.send(AccountCommand::RefreshAccountState)?;
+        self.command_tx
+            .send(AccountCommand::UpdateSharedAccountState)?;
+
         Ok(())
     }
 
@@ -321,7 +322,7 @@ where
     async fn handle_command(&mut self, command: AccountCommand) -> Result<(), Error> {
         tracing::info!("Received command: {:?}", command);
         match command {
-            AccountCommand::RefreshAccountState => self.update_shared_account_state().await,
+            AccountCommand::UpdateSharedAccountState => self.update_shared_account_state().await,
             AccountCommand::RegisterDevice => self.register_device().await,
             AccountCommand::RequestZkNym => self.request_zk_nym().await,
             AccountCommand::GetDeviceZkNym => self.get_device_zk_nym().await,
