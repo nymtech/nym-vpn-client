@@ -161,15 +161,15 @@ async fn setup_wg_tunnel(
     )
     .await?;
 
-    let wg_entry_gateway_client_suspended =
-        wg_entry_gateway_client
-            .suspended()
-            .await
-            .map_err(|source| SetupWgTunnelError::WgGatewayClientError {
-                gateway_id: Box::new(*entry_auth_recipient.gateway()),
-                authenticator_address: Box::new(entry_auth_recipient),
-                source,
-            })?;
+    let wg_entry_gateway_client_suspended = wg_entry_gateway_client
+        .light_client()
+        .suspended()
+        .await
+        .map_err(|source| SetupWgTunnelError::WgGatewayClientError {
+            gateway_id: Box::new(*entry_auth_recipient.gateway()),
+            authenticator_address: Box::new(entry_auth_recipient),
+            source,
+        })?;
 
     if wg_entry_gateway_client_suspended {
         return Err(SetupWgTunnelError::NotEnoughBandwidthToSetupTunnel {
@@ -178,13 +178,14 @@ async fn setup_wg_tunnel(
         });
     }
 
-    let wg_exit_gateway_client_suspended =
-        wg_exit_gateway_client.suspended().await.map_err(|source| {
-            SetupWgTunnelError::WgGatewayClientError {
-                gateway_id: Box::new(*exit_auth_recipient.gateway()),
-                authenticator_address: Box::new(exit_auth_recipient),
-                source,
-            }
+    let wg_exit_gateway_client_suspended = wg_exit_gateway_client
+        .light_client()
+        .suspended()
+        .await
+        .map_err(|source| SetupWgTunnelError::WgGatewayClientError {
+            gateway_id: Box::new(*exit_auth_recipient.gateway()),
+            authenticator_address: Box::new(exit_auth_recipient),
+            source,
         })?;
 
     if wg_exit_gateway_client_suspended {
@@ -194,10 +195,6 @@ async fn setup_wg_tunnel(
         });
     }
 
-    tokio::spawn(
-        wg_entry_gateway_client.run(task_manager.subscribe_named("bandwidth_entry_client")),
-    );
-    tokio::spawn(wg_exit_gateway_client.run(task_manager.subscribe_named("bandwidth_exit_client")));
     entry_wireguard_config
         .talpid_config
         .peers_mut()

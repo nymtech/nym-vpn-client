@@ -4748,6 +4748,8 @@ dependencies = [
  "nym-client-core",
  "nym-config",
  "nym-connection-monitor",
+ "nym-credential-storage",
+ "nym-credentials-interface",
  "nym-crypto",
  "nym-gateway-directory",
  "nym-ip-packet-client",
