@@ -90,8 +90,8 @@ public final class GRPCManager: ObservableObject {
         call.response.whenComplete { [weak self] result in
             switch result {
             case let .success(response):
-                // Set VPN connected date
                 self?.connectedDate = Date(timeIntervalSince1970: response.details.since.timeIntervalSince1970)
+                self?.updateTunnelStatus(with: response.status)
             case let .failure(error):
                 print("Call failed with error: \(error)")
             }
@@ -342,17 +342,7 @@ private extension GRPCManager {
         let call = client.listenToConnectionStateChanges(Nym_Vpn_Empty()) { [weak self] connectionStateChange in
             guard let self else { return }
 
-            switch connectionStateChange.status {
-            case .UNRECOGNIZED, .connectionFailed, .notConnected, .statusUnspecified, .unknown:
-                self.tunnelStatus = .disconnected
-                self.connectedDate = nil
-            case .connecting:
-                self.tunnelStatus = .connecting
-            case .connected:
-                self.tunnelStatus = .connected
-            case .disconnecting:
-                self.tunnelStatus = .disconnecting
-            }
+            updateTunnelStatus(with: connectionStateChange.status)
 
             if !connectionStateChange.error.message.isEmpty {
                 self.lastError = convertToGeneralNymError(from: connectionStateChange.error)
@@ -387,6 +377,22 @@ private extension GRPCManager {
             case .failure(let error):
                 print("Stream failed with error: \(error)")
             }
+        }
+    }
+}
+
+private extension GRPCManager {
+    func updateTunnelStatus(with status: Nym_Vpn_ConnectionStatus) {
+        switch status {
+        case .UNRECOGNIZED, .connectionFailed, .notConnected, .statusUnspecified, .unknown:
+            self.tunnelStatus = .disconnected
+            self.connectedDate = nil
+        case .connecting:
+            self.tunnelStatus = .connecting
+        case .connected:
+            self.tunnelStatus = .connected
+        case .disconnecting:
+            self.tunnelStatus = .disconnecting
         }
     }
 }

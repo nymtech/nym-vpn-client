@@ -202,6 +202,7 @@ private extension HomeViewModel {
         setupTunnelManagerObservers()
 #if os(macOS)
         setupGRPCManagerObservers()
+        updateInitialTunnelStatus()
 #endif
         setupCountriesManagerObservers()
     }
@@ -367,6 +368,11 @@ private extension HomeViewModel {
             }
             timeConnected = dateFormatter.string(from: connectedDate, to: Date()) ?? emptyTimeText
         }
+    }
+
+    func updateInitialTunnelStatus() {
+        guard helperManager.isHelperAuthorizedAndRunning() else { return }
+        grpcManager.status()
     }
 }
 #endif

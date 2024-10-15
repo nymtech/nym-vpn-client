@@ -53,6 +53,7 @@ Updates
 Remove installed daemon from `/Library/LaunchDaemons` and `/Library/PrivilegedHelperTools`. Kill the process in `Activity monitor`. Comment out `isHelperInstalled()` call.
 
 Run daemon with logs:
+`chmod +x ./net.nymtech.vpn.helper`
 `sudo RUST_LOG=debug ./net.nymtech.vpn.helper`
 
 
