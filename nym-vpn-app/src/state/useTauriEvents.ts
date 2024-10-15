@@ -17,8 +17,6 @@ import {
   StatusUpdateEvent,
 } from '../constants';
 
-const appWindow = getCurrentWebviewWindow();
-
 function handleError(dispatch: StateDispatch, error?: BackendError | null) {
   if (!error) {
     dispatch({ type: 'reset-error' });
@@ -29,6 +27,8 @@ function handleError(dispatch: StateDispatch, error?: BackendError | null) {
 }
 
 export function useTauriEvents(dispatch: StateDispatch) {
+  const window = getCurrentWebviewWindow();
+
   const registerDaemonListener = useCallback(() => {
     return listen<DaemonStatus>(DaemonEvent, (event) => {
       console.log(`received event [${event.event}], status: ${event.payload}`);
@@ -104,7 +104,7 @@ export function useTauriEvents(dispatch: StateDispatch) {
   }, [dispatch]);
 
   const registerThemeChangedListener = useCallback(() => {
-    return appWindow.onThemeChanged(({ payload }) => {
+    return window.onThemeChanged(({ payload }) => {
       console.log(`system theme changed: ${payload}`);
       dispatch({
         type: 'system-theme-changed',

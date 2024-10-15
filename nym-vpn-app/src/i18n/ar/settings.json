@@ -51,5 +51,5 @@
     "daemon-version": "نسخة الديمن",
     "network-name": "الشبكة"
   },
-  "add-account-button": "أضف بيانات الاعتماد للاتصال"
+  "login-button": "أضف بيانات الاعتماد للاتصال"
 }

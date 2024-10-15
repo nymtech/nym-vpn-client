@@ -1,4 +1,4 @@
-import { ConnectionState } from './app-state.ts';
+import { ConnectionState } from './app-state';
 
 export type BackendError = {
   message: string;

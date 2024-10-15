@@ -35,10 +35,10 @@ function Settings() {
   useEffect(() => {
     const checkAccount = async () => {
       try {
-        const stored = await invoke<boolean | undefined>('is_stored_account');
+        const stored = await invoke<boolean | undefined>('is_account_stored');
         dispatch({ type: 'set-account', stored: stored || false });
       } catch (e) {
-        console.warn('Error checking account status:', e);
+          console.warn('error checking stored account:', e);
       }
     };
 
@@ -88,12 +88,12 @@ function Settings() {
     <PageAnim className="h-full flex flex-col mt-2 gap-6">
       {!account && (
         <Button
-          onClick={() => navigate(routes.addAccount)}
+          onClick={() => navigate(routes.login)}
           disabled={
             import.meta.env.MODE !== 'dev-browser' && daemonStatus !== 'Ok'
           }
         >
-          {t('add-account-button')}
+          {t('login-button')}
         </Button>
       )}
       {account && (

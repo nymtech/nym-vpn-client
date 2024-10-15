@@ -46,7 +46,7 @@
   "faq": "FAQ",
   "display-theme": "Display mode",
   "quit": "Quit NymVPN",
-  "add-account-button": "Add credential to connect",
+  "login-button": "Log in",
   "info": {
     "client-version": "Client version",
     "daemon-version": "Daemon version",

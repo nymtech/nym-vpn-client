@@ -2,7 +2,6 @@ import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import * as Sentry from '@sentry/react';
 import {
-  AddAccount,
   Appearance,
   AppearanceRouteIndex,
   Display,
@@ -13,6 +12,7 @@ import {
   LegalRouteIndex,
   LicenseDetails,
   LicenseList,
+  Login,
   MainLayout,
   NodeLocation,
   Settings,
@@ -26,7 +26,7 @@ const Home = lazy(() => import('./screens/home/Home'));
 
 export const routes = {
   root: '/',
-  addAccount: '/add-account',
+  login: '/login',
   settings: '/settings',
   appearance: '/settings/appearance',
   display: '/settings/appearance/display',
@@ -61,8 +61,8 @@ const router = createRouterFn([
         index: true,
       },
       {
-        path: routes.addAccount,
-        element: <AddAccount />,
+        path: routes.login,
+        element: <Login />,
         errorElement: <Error />,
       },
       {

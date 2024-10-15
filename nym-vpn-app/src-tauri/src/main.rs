@@ -246,6 +246,8 @@ async fn main() -> Result<()> {
             commands::cli::cli_args,
             cmd_log::log_js,
             account::add_account,
+            account::is_account_stored,
+            account::get_account_info,
             cmd_daemon::daemon_status,
             cmd_daemon::daemon_info,
             cmd_fs::log_dir,

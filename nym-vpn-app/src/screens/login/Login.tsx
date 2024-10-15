@@ -9,9 +9,10 @@ import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
 import { useI18nError } from '../../hooks';
 import { routes } from '../../router';
 import { BackendError, StateDispatch } from '../../types';
-import { Button, PageAnim, TextArea } from '../../ui';
+import { Button, Link, PageAnim, TextArea } from '../../ui';
+import { CreateAccountUrl } from '../../constants';
 
-function AddAccount() {
+function Login() {
   const { uiTheme, daemonStatus } = useMainState();
   const [phrase, setPhrase] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -62,6 +63,9 @@ function AddAccount() {
         <h2 className="text-center dark:text-laughing-jack">
           {t('description1')}
         </h2>
+        <p className="text-xs text-center text-dim-gray dark:text-mercury-mist w-11/12">
+          {t('description2')}
+        </p>
       </div>
       <div className="w-full">
         <TextArea
@@ -69,8 +73,9 @@ function AddAccount() {
           onChange={onChange}
           spellCheck={false}
           resize="none"
-          rows={10}
+          rows={5}
           label={t('input-label')}
+          placeholder={t('input-placeholder')}
           className="sentry-ignore"
         />
         {error ? (
@@ -86,18 +91,26 @@ function AddAccount() {
           <div className="h-3"></div>
         )}
       </div>
-      <Button
-        onClick={handleClick}
-        disabled={daemonStatus !== 'Ok'}
-        className={clsx(
-          daemonStatus !== 'Ok' &&
-            'opacity-50 disabled:opacity-50 hover:opacity-50',
-        )}
-      >
-        {t('add-button')}
-      </Button>
+      <div className="w-full flex flex-col justify-center items-center gap-6 mb-2">
+        <Button
+          onClick={handleClick}
+          disabled={daemonStatus !== 'Ok'}
+          className={clsx(
+            daemonStatus !== 'Ok' &&
+              'opacity-50 disabled:opacity-50 hover:opacity-50',
+          )}
+        >
+          {t('login-button')}
+        </Button>
+        <div className="flex flex-row justify-center items-center gap-2">
+          <span className="dark:text-mercury-pinkish">
+            {t('create-account.text')}
+          </span>
+          <Link text={t('create-account.link')} url={CreateAccountUrl} />
+        </div>
+      </div>
     </PageAnim>
   );
 }
 
-export default AddAccount;
+export default Login;

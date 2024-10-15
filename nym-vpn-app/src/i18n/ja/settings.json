@@ -42,7 +42,7 @@
   "faq": "よくある質問",
   "display-theme": "ディスプレイモード",
   "quit": "NymVPNを終了する",
-  "add-account-button": "接続するには、認証情報を追加してください",
+  "login-button": "接続するには、認証情報を追加してください",
   "credential": {
     "title": "認証情報"
   },

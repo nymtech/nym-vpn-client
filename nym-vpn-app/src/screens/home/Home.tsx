@@ -15,7 +15,6 @@ import HopSelect from './HopSelect';
 
 function Home() {
   const {
-    error,
     state,
     loading,
     entryNodeLocation,
@@ -53,13 +52,6 @@ function Home() {
         });
     }
   };
-
-  useEffect(() => {
-    if (error?.key === 'CStateNoValidCredential') {
-      navigate(routes.addAccount);
-      dispatch({ type: 'reset-error' });
-    }
-  }, [error, dispatch, navigate]);
 
   useEffect(() => {
     const showWelcomeScreen = async () => {

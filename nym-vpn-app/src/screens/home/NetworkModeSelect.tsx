@@ -13,14 +13,13 @@ import MsIcon from '../../ui/MsIcon';
 import ModeDetailsDialog from './ModeDetailsDialog';
 import { S_STATE } from '../../static';
 
-const os = type();
-
 function NetworkModeSelect() {
   const state = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const [isDialogModesOpen, setIsDialogModesOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const { push } = useInAppNotify();
+  const os = type();
 
   const { t } = useTranslation('home');
 

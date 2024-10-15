@@ -15,6 +15,10 @@ export function mockTauriIPC() {
     console.log(`IPC call mocked "${cmd}"`);
     console.log(args);
 
+    if (cmd === 'startup_error') {
+      return null;
+    }
+
     if (cmd === 'connect') {
       await emit(ConnectionEvent, { state: 'Connecting' });
       return new Promise<ConnectionState>((resolve) =>

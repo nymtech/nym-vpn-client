@@ -31,12 +31,11 @@ type NavBarData = {
   [key in Routes]: NavLocation;
 };
 
-const os = type();
-
 export default function TopBar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const os = type();
 
   const { uiTheme } = useMainState();
   const { show } = useDialog();
@@ -71,7 +70,7 @@ export default function TopBar() {
         },
         noBackground: os === 'windows' || os === 'macos',
       },
-      '/add-account': {
+      '/login': {
         leftIcon: 'arrow_back',
         handleLeftNav: () => {
           navigate(-1);

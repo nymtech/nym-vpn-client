@@ -29,7 +29,7 @@
     "licenses-js": "Licencia (JS)"
   },
   "display-theme": "Tema",
-  "add-account-button": "Agregar credencial para conectar",
+  "login-button": "Agregar credencial para conectar",
   "credential": {
     "title": "Credencial"
   },

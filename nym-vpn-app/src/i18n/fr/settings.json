@@ -29,7 +29,7 @@
     "licenses-js": "Licences (JavaScript)"
   },
   "display-theme": "Apparence",
-  "add-account-button": "Ajoutez un identifiant pour vous connecter",
+  "login-button": "Ajoutez un identifiant pour vous connecter",
   "entry-selector": {
     "title": "Sélecteur d'emplacement d'entrée",
     "desc": "Choix manuel du nœud d'entrée"
