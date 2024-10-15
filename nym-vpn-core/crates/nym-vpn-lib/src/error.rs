@@ -185,6 +185,9 @@ pub enum SetupWgTunnelError {
         public_key: String,
         source: WaitInterfaceUpError,
     },
+
+    #[error("{0}")]
+    BandwidthControllerError(#[from] nym_bandwidth_controller::error::BandwidthControllerError),
 }
 
 // Result type based on our error type

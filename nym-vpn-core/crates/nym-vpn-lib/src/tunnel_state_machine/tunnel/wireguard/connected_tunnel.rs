@@ -21,6 +21,7 @@ pub struct ConnectedTunnel {
     entry_gateway_client: WgGatewayClient,
     exit_gateway_client: WgGatewayClient,
     connection_data: ConnectionData,
+    bandwidth_controller_handle: JoinHandle<()>,
 }
 
 impl ConnectedTunnel {
@@ -29,12 +30,14 @@ impl ConnectedTunnel {
         entry_gateway_client: WgGatewayClient,
         exit_gateway_client: WgGatewayClient,
         connection_data: ConnectionData,
+        bandwidth_controller_handle: JoinHandle<()>,
     ) -> Self {
         Self {
             task_manager,
             entry_gateway_client,
             exit_gateway_client,
             connection_data,
+            bandwidth_controller_handle,
         }
     }
 
@@ -77,23 +80,13 @@ impl ConnectedTunnel {
         )
         .map_err(Error::StartWireguard)?;
 
-        let entry_gateway_client_handle = tokio::spawn(
-            self.entry_gateway_client
-                .run(self.task_manager.subscribe_named("bandwidth_entry_client")),
-        );
-        let exit_gateway_client_handle = tokio::spawn(
-            self.exit_gateway_client
-                .run(self.task_manager.subscribe_named("bandwidth_exit_client")),
-        );
-
         Ok(TunnelHandle {
             task_manager: self.task_manager,
             entry_tun,
             exit_tun,
             entry_wg_tunnel: Some(entry_tunnel),
             exit_wg_tunnel: Some(exit_tunnel),
-            entry_gateway_client_handle,
-            exit_gateway_client_handle,
+            bandwidth_controller_handle: self.bandwidth_controller_handle,
         })
     }
 }
@@ -104,8 +97,7 @@ pub struct TunnelHandle {
     exit_tun: AsyncDevice,
     entry_wg_tunnel: Option<wireguard_go::Tunnel>,
     exit_wg_tunnel: Option<wireguard_go::Tunnel>,
-    entry_gateway_client_handle: JoinHandle<()>,
-    exit_gateway_client_handle: JoinHandle<()>,
+    bandwidth_controller_handle: JoinHandle<()>,
 }
 
 impl TunnelHandle {
@@ -136,12 +128,8 @@ impl TunnelHandle {
     ///
     /// Returns a pair of tun devices no longer in use.
     pub async fn wait(self) -> WaitResult {
-        if let Err(e) = self.entry_gateway_client_handle.await {
-            tracing::error!("Failed to join on entry gateway client: {}", e);
-        }
-
-        if let Err(e) = self.exit_gateway_client_handle.await {
-            tracing::error!("Failed to join on exit gateway client: {}", e);
+        if let Err(e) = self.bandwidth_controller_handle.await {
+            tracing::error!("Failed to join on bandwidth controller: {}", e);
         }
 
         WaitResult {
