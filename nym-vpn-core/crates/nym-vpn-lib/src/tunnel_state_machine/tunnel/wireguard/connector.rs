@@ -4,6 +4,7 @@
 use std::path::PathBuf;
 
 use nym_authenticator_client::AuthClient;
+use nym_credentials_interface::TicketType;
 use nym_gateway_directory::{AuthAddresses, Gateway, GatewayClient};
 use nym_sdk::mixnet::{EphemeralCredentialStorage, StoragePaths};
 use nym_task::TaskManager;
@@ -63,48 +64,63 @@ impl Connector {
             reason: e.to_string(),
         })?;
         let shutdown = self.task_manager.subscribe_named("bandwidth controller");
-        let (connection_data, bandwidth_controller_handle) = if let Some(data_path) =
-            data_path.as_ref()
-        {
-            let paths = StoragePaths::new_from_dir(data_path)?;
-            let storage = paths.persistent_credential_storage().await?;
-            let inner = nym_bandwidth_controller::BandwidthController::new(storage, client);
-            let bw = BandwidthController::new(
-                inner,
-                wg_entry_gateway_client.light_client(),
-                wg_exit_gateway_client.light_client(),
-                shutdown,
-            );
-            let entry = bw
-                .get_initial_bandwidth(&self.gateway_directory_client, &mut wg_entry_gateway_client)
-                .await?;
-            let exit = bw
-                .get_initial_bandwidth(&self.gateway_directory_client, &mut wg_exit_gateway_client)
-                .await?;
+        let (connection_data, bandwidth_controller_handle) =
+            if let Some(data_path) = data_path.as_ref() {
+                let paths = StoragePaths::new_from_dir(data_path)?;
+                let storage = paths.persistent_credential_storage().await?;
+                let inner = nym_bandwidth_controller::BandwidthController::new(storage, client);
+                let bw = BandwidthController::new(
+                    inner,
+                    wg_entry_gateway_client.light_client(),
+                    wg_exit_gateway_client.light_client(),
+                    shutdown,
+                );
+                let entry = bw
+                    .get_initial_bandwidth(
+                        TicketType::V1WireguardEntry,
+                        &self.gateway_directory_client,
+                        &mut wg_entry_gateway_client,
+                    )
+                    .await?;
+                let exit = bw
+                    .get_initial_bandwidth(
+                        TicketType::V1WireguardExit,
+                        &self.gateway_directory_client,
+                        &mut wg_exit_gateway_client,
+                    )
+                    .await?;
 
-            let bandwidth_controller_handle = tokio::spawn(bw.run());
+                let bandwidth_controller_handle = tokio::spawn(bw.run());
 
-            (ConnectionData { entry, exit }, bandwidth_controller_handle)
-        } else {
-            let storage = EphemeralCredentialStorage::default();
-            let inner = nym_bandwidth_controller::BandwidthController::new(storage, client);
-            let bw = BandwidthController::new(
-                inner,
-                wg_entry_gateway_client.light_client(),
-                wg_exit_gateway_client.light_client(),
-                shutdown,
-            );
-            let entry = bw
-                .get_initial_bandwidth(&self.gateway_directory_client, &mut wg_entry_gateway_client)
-                .await?;
-            let exit = bw
-                .get_initial_bandwidth(&self.gateway_directory_client, &mut wg_exit_gateway_client)
-                .await?;
+                (ConnectionData { entry, exit }, bandwidth_controller_handle)
+            } else {
+                let storage = EphemeralCredentialStorage::default();
+                let inner = nym_bandwidth_controller::BandwidthController::new(storage, client);
+                let bw = BandwidthController::new(
+                    inner,
+                    wg_entry_gateway_client.light_client(),
+                    wg_exit_gateway_client.light_client(),
+                    shutdown,
+                );
+                let entry = bw
+                    .get_initial_bandwidth(
+                        TicketType::V1WireguardEntry,
+                        &self.gateway_directory_client,
+                        &mut wg_entry_gateway_client,
+                    )
+                    .await?;
+                let exit = bw
+                    .get_initial_bandwidth(
+                        TicketType::V1WireguardExit,
+                        &self.gateway_directory_client,
+                        &mut wg_exit_gateway_client,
+                    )
+                    .await?;
 
-            let bandwidth_controller_handle = tokio::spawn(bw.run());
+                let bandwidth_controller_handle = tokio::spawn(bw.run());
 
-            (ConnectionData { entry, exit }, bandwidth_controller_handle)
-        };
+                (ConnectionData { entry, exit }, bandwidth_controller_handle)
+            };
 
         Ok(ConnectedTunnel::new(
             self.task_manager,
