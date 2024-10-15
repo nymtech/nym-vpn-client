@@ -38,7 +38,7 @@ function Settings() {
         const stored = await invoke<boolean | undefined>('is_account_stored');
         dispatch({ type: 'set-account', stored: stored || false });
       } catch (e) {
-          console.warn('error checking stored account:', e);
+        console.warn('error checking stored account:', e);
       }
     };
 

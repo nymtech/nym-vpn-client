@@ -27,7 +27,7 @@ function NetworkModeSelect() {
     if (state.vpnMode === 'TwoHop' && os === 'windows') {
       dispatch({ type: 'set-vpn-mode', mode: 'Mixnet' });
     }
-  }, [dispatch, state.vpnMode]);
+  }, [os, dispatch, state.vpnMode]);
 
   const handleNetworkModeChange = async (value: VpnMode) => {
     if (state.state === 'Disconnected' && value !== state.vpnMode) {
@@ -105,7 +105,7 @@ function NetworkModeSelect() {
         tooltip: os === 'windows' ? t('windows-no-fast-mode') : undefined,
       },
     ];
-  }, [loading, state.state, t]);
+  }, [os, loading, state.state, t]);
 
   return (
     <div>

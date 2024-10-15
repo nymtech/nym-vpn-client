@@ -58,7 +58,7 @@ export default function TopBar() {
     ) : (
       <NymVpnTextLogoDark className="w-28 h-4" />
     );
-  }, [uiTheme]);
+  }, [os, uiTheme]);
 
   const navBarData = useMemo<NavBarData>(() => {
     return {
@@ -191,7 +191,7 @@ export default function TopBar() {
       '/hideout': {},
       '/hideout/welcome': {},
     };
-  }, [t, navigate, getMainScreenTitle, show]);
+  }, [os, t, navigate, getMainScreenTitle, show]);
 
   useEffect(() => {
     setCurrentNavLocation(navBarData[location.pathname as Routes]);

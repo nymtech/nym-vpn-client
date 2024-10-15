@@ -188,17 +188,6 @@ pub enum ErrorKey {
     // Forwarded from proto `account_error::AccountErrorType`
     AccountInvalidMnemonic,
     AccountStorage,
-
-    ///////////////// REMOVED
-    /// Import invalid account format -> base58 decoding failed
-    // CredentialInvalid,
-    // CredentialVpnRunning,
-    // CredentialAlreadyImported,
-    // CredentialStorageError,
-    // CredentialDeserializationFailure,
-    // CredentialExpired,
-    ///////////////// REMOVED
-
     // Forwarded from proto `connection_status_update::StatusType`
     EntryGatewayNotRouting,
     ExitRouterPingIpv4,
