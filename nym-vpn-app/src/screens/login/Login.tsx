@@ -4,18 +4,17 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import dayjs from 'dayjs';
 import { NymDarkOutlineIcon, NymIcon } from '../../assets';
 import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
 import { useI18nError } from '../../hooks';
 import { routes } from '../../router';
 import { BackendError, StateDispatch } from '../../types';
-import { Button, PageAnim, TextArea } from '../../ui';
-import { kvSet } from '../../kvStore';
+import { Button, Link, PageAnim, TextArea } from '../../ui';
+import { CreateAccountUrl } from '../../constants';
 
-function AddCredential() {
+function Login() {
   const { uiTheme, daemonStatus } = useMainState();
-  const [credential, setCredential] = useState('');
+  const [phrase, setPhrase] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const { push } = useInAppNotify();
@@ -24,27 +23,21 @@ function AddCredential() {
   const { tE } = useI18nError();
   const dispatch = useMainDispatch() as StateDispatch;
 
-  const onChange = (credential: string) => {
-    setCredential(credential);
-    if (credential.length == 0) {
+  const onChange = (phrase: string) => {
+    setPhrase(phrase);
+    if (phrase.length == 0) {
       setError(null);
     }
   };
 
   const handleClick = () => {
-    if (credential.length === 0) {
+    if (phrase.length === 0) {
       return;
     }
-    invoke<number | null>('add_credential', { credential: credential.trim() })
-      .then((expiry) => {
-        if (expiry) {
-          const date = dayjs.unix(expiry);
-          kvSet<string>('CredentialExpiry', date.toISOString());
-          dispatch({ type: 'set-credential-expiry', expiry: date });
-        } else {
-          console.warn('no expiry date returned from the backend');
-        }
+    invoke<number | null>('add_account', { mnemonic: phrase.trim() })
+      .then(() => {
         navigate(routes.root);
+        dispatch({ type: 'set-account', stored: true });
         push({
           text: t('added-notification'),
           position: 'top',
@@ -54,15 +47,7 @@ function AddCredential() {
       .catch((e: unknown) => {
         const eT = e as BackendError;
         console.log('backend error:', e);
-        if (eT.key === 'CredentialExpired' && eT.data?.expiration) {
-          // TODO the expiration date format passed from the backend is not ISO_8601
-          // So we have to parse it manually
-          setError(
-            `${tE(eT.key)}: ${dayjs(eT.data.expiration, 'YYYY-MM-DD').format('YYYY-MM-DD')}`,
-          );
-        } else {
-          setError(tE(eT.key));
-        }
+        setError(tE(eT.key));
       });
   };
 
@@ -78,18 +63,19 @@ function AddCredential() {
         <h2 className="text-center dark:text-laughing-jack">
           {t('description1')}
         </h2>
-        <p className="text-xs text-center text-dim-gray dark:text-mercury-mist w-5/6">
+        <p className="text-xs text-center text-dim-gray dark:text-mercury-mist w-11/12">
           {t('description2')}
         </p>
       </div>
       <div className="w-full">
         <TextArea
-          value={credential}
+          value={phrase}
           onChange={onChange}
           spellCheck={false}
           resize="none"
-          rows={10}
+          rows={5}
           label={t('input-label')}
+          placeholder={t('input-placeholder')}
           className="sentry-ignore"
         />
         {error ? (
@@ -105,18 +91,26 @@ function AddCredential() {
           <div className="h-3"></div>
         )}
       </div>
-      <Button
-        onClick={handleClick}
-        disabled={daemonStatus !== 'Ok'}
-        className={clsx(
-          daemonStatus !== 'Ok' &&
-            'opacity-50 disabled:opacity-50 hover:opacity-50',
-        )}
-      >
-        {t('add-button')}
-      </Button>
+      <div className="w-full flex flex-col justify-center items-center gap-6 mb-2">
+        <Button
+          onClick={handleClick}
+          disabled={daemonStatus !== 'Ok'}
+          className={clsx(
+            daemonStatus !== 'Ok' &&
+              'opacity-50 disabled:opacity-50 hover:opacity-50',
+          )}
+        >
+          {t('login-button')}
+        </Button>
+        <div className="flex flex-row justify-center items-center gap-2">
+          <span className="dark:text-mercury-pinkish">
+            {t('create-account.text')}
+          </span>
+          <Link text={t('create-account.link')} url={CreateAccountUrl} />
+        </div>
+      </div>
     </PageAnim>
   );
 }
 
-export default AddCredential;
+export default Login;

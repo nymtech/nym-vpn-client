@@ -67,13 +67,9 @@
     "tun-device": "Tun device failed",
     "routing": "Routing failed"
   },
-  "credential": {
-    "invalid": "Invalid credential",
-    "expired": "Credential expired",
-    "no-duplicate": "This credential has already been imported",
-    "storage": "Failed to import credential because of an internal error",
-    "deserialize": "Failed to deserialize the credential",
-    "vpn-running": "You cannot import a credential while connected to the VPN"
+  "account": {
+    "invalid-recovery-phrase": "Invalid recovery phrase",
+    "storage": "Storage backend error"
   },
   "countries-request": {
     "entry": "Failed to fetch the available entry node countries",

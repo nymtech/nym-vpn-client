@@ -1,7 +1,4 @@
 {
-  "credential": {
-    "title": "Credential"
-  },
   "auto-connect": {
     "title": "Auto-connect",
     "desc": "Auto connect at app startup"
@@ -46,7 +43,7 @@
   "faq": "FAQ",
   "display-theme": "Display mode",
   "quit": "Quit NymVPN",
-  "add-credential-button": "Add credential to connect",
+  "login-button": "Log in",
   "info": {
     "client-version": "Client version",
     "daemon-version": "Daemon version",

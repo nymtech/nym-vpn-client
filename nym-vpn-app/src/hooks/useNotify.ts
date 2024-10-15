@@ -9,9 +9,7 @@ import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { AppName } from '../constants';
 import { useMainState } from '../contexts';
 
-const appWindow = getCurrentWebviewWindow();
 const AntiSpamTimeout = 60000; // 1min
-const os = type();
 
 /**
  * Desktop notification options
@@ -60,14 +58,16 @@ function useNotify() {
   const notify = useCallback(
     async (body: string, opts: NotifyOptions = {}) => {
       const { force = false, locationPath, noSpamCheck } = opts;
+      const os = type();
+      const window = getCurrentWebviewWindow();
 
       if (!desktopNotifications) {
         return;
       }
 
       if (!force) {
-        const windowFocused = await appWindow.isFocused();
-        const windowVisible = await appWindow.isVisible();
+        const windowFocused = await window.isFocused();
+        const windowVisible = await window.isVisible();
         const onRightScreen = locationPath
           ? location.pathname === locationPath
           : true;

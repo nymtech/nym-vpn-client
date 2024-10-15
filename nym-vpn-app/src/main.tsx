@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { invoke } from '@tauri-apps/api/core';
+import { invoke, isTauri } from '@tauri-apps/api/core';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -42,7 +42,9 @@ dayjs.extend(relativeTime);
 dayjs.extend(duration);
 
 (async () => {
-  init();
+  if (isTauri()) {
+    init();
+  }
   console.info('starting UI');
 
   // check for unrecoverable errors

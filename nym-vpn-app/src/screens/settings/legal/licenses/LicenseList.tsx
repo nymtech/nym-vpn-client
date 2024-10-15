@@ -9,7 +9,6 @@ import { routes } from '../../../../router';
 import { PageAnim, SettingsMenuCard } from '../../../../ui';
 import { CodeDependency } from '../../../../types';
 
-const os = type();
 const heightFactorLinux = 8;
 const heightFactor = 6;
 
@@ -62,6 +61,7 @@ function LicenseList({ language }: Props) {
   }, [language, codeDepsJs, codeDepsRust]);
 
   useEffect(() => {
+    const os = type();
     if (os === 'linux') {
       setItemSize(rootFontSize * heightFactorLinux);
     } else {

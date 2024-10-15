@@ -1,7 +1,7 @@
+pub mod account;
 pub mod cli;
 pub mod connection;
 pub mod country;
-pub mod credential;
 pub mod daemon;
 pub mod db;
 pub mod fs;

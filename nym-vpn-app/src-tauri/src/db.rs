@@ -43,8 +43,6 @@ pub enum Key {
     ExitNodeLocation,
     #[strum(serialize = "welcome_screen_seen")]
     WelcomeScreenSeen,
-    #[strum(serialize = "credential_expiry")]
-    CredentialExpiry,
     #[strum(serialize = "desktop_notifications")]
     DesktopNotifications,
 }

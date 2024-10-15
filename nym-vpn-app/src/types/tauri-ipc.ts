@@ -1,4 +1,4 @@
-import { ConnectionState } from './app-state.ts';
+import { ConnectionState } from './app-state';
 
 export type BackendError = {
   message: string;
@@ -25,7 +25,6 @@ export type DbKey =
   | 'WindowSize'
   | 'WindowPosition'
   | 'WelcomeScreenSeen'
-  | 'CredentialExpiry'
   | 'DesktopNotifications';
 
 export type ErrorKey =
@@ -78,12 +77,8 @@ export type ErrorKey =
   | 'CSRouting'
   | 'CSWireguardConfig'
   | 'CSMixnetConnectionMonitor'
-  | 'CredentialInvalid'
-  | 'CredentialVpnRunning'
-  | 'CredentialAlreadyImported'
-  | 'CredentialStorageError'
-  | 'CredentialDeserializationFailure'
-  | 'CredentialExpired'
+  | 'AccountInvalidMnemonic'
+  | 'AccountStorage'
   | 'EntryGatewayNotRouting'
   | 'ExitRouterPingIpv4'
   | 'ExitRouterPingIpv6'

@@ -1,4 +1,4 @@
-import dayjs, { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import {
   DefaultNodeCountry,
   DefaultRootFontSize,
@@ -62,7 +62,7 @@ export type StateAction =
   | { type: 'set-root-font-size'; size: number }
   | { type: 'set-code-deps-js'; dependencies: CodeDependency[] }
   | { type: 'set-code-deps-rust'; dependencies: CodeDependency[] }
-  | { type: 'set-credential-expiry'; expiry: Dayjs | null }
+  | { type: 'set-account'; stored: boolean }
   | { type: 'set-entry-countries-error'; payload: AppError | null }
   | { type: 'set-exit-countries-error'; payload: AppError | null };
 
@@ -92,7 +92,7 @@ export const initialState: AppState = {
   rootFontSize: DefaultRootFontSize,
   codeDepsRust: [],
   codeDepsJs: [],
-  credentialExpiry: null,
+  account: false,
   fetchMxEntryCountries: async () => {
     /*  SCARECROW */
   },
@@ -220,12 +220,8 @@ export function reducer(state: AppState, action: StateAction): AppState {
         sessionStartDate: null,
       };
     }
-    case 'set-credential-expiry': {
-      return {
-        ...state,
-        credentialExpiry: action.expiry,
-      };
-    }
+    case 'set-account':
+      return { ...state, account: action.stored };
     case 'set-connection-start-time':
       return {
         ...state,

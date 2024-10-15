@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import dayjs from 'dayjs';
 import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-shell';
 import { useDesktopNotifications, useThrottle } from '../../hooks';
@@ -14,6 +13,7 @@ import { Button, MsIcon, PageAnim, SettingsMenuCard, Switch } from '../../ui';
 import InfoData from './InfoData';
 import SettingsGroup from './SettingsGroup';
 import { capFirst } from '../../helpers';
+import { AccountUrl } from '../../constants';
 
 const ThrottleDelay = 10000; // ms
 
@@ -23,11 +23,9 @@ function Settings() {
     autoConnect,
     monitoring,
     daemonStatus,
-    credentialExpiry,
+    account,
     desktopNotifications,
   } = useMainState();
-
-  const [hasValidCredential, setHasValidCredential] = useState(false);
 
   const navigate = useNavigate();
   const dispatch = useMainDispatch() as StateDispatch;
@@ -37,12 +35,17 @@ function Settings() {
   const toggleDNotifications = useDesktopNotifications();
 
   useEffect(() => {
-    if (!credentialExpiry || dayjs().isAfter(credentialExpiry)) {
-      setHasValidCredential(false);
-    } else {
-      setHasValidCredential(true);
-    }
-  }, [credentialExpiry]);
+    const checkAccount = async () => {
+      try {
+        const stored = await invoke<boolean | undefined>('is_account_stored');
+        dispatch({ type: 'set-account', stored: stored || false });
+      } catch (e) {
+        console.warn('error checking stored account:', e);
+      }
+    };
+
+    checkAccount();
+  }, [dispatch]);
 
   const handleEntrySelectorChange = () => {
     const isChecked = !entrySelector;
@@ -85,23 +88,24 @@ function Settings() {
 
   return (
     <PageAnim className="h-full flex flex-col mt-2 gap-6">
-      {import.meta.env.APP_DISABLE_DATA_STORAGE !== 'true' &&
-        !hasValidCredential && (
-          <Button
-            onClick={() => navigate(routes.credential)}
-            disabled={
-              import.meta.env.MODE !== 'dev-browser' && daemonStatus !== 'Ok'
-            }
-          >
-            {t('add-credential-button')}
-          </Button>
-        )}
-      {credentialExpiry && hasValidCredential && (
+      {!account && (
+        <Button
+          onClick={() => navigate(routes.login)}
+          disabled={
+            import.meta.env.MODE !== 'dev-browser' && daemonStatus !== 'Ok'
+          }
+        >
+          {t('login-button')}
+        </Button>
+      )}
+      {account && (
         <SettingsMenuCard
-          title={t('credential.title')}
-          desc={`${capFirst(dayjs().to(credentialExpiry, true))} ${t('left', { ns: 'glossary' })}`}
-          leadingIcon="account_circle"
-          noHoverEffect
+          title={capFirst(t('account', { ns: 'glossary' }))}
+          onClick={() => {
+            open(AccountUrl);
+          }}
+          leadingIcon="person"
+          trailingIcon="open_in_new"
         />
       )}
       <SettingsGroup

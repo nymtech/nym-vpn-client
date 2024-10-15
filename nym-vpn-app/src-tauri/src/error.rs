@@ -3,9 +3,9 @@ use std::{
     fmt::{self, Display},
 };
 
+use nym_vpn_proto::account_error::AccountErrorType;
 use nym_vpn_proto::connection_status_update::StatusType;
-use nym_vpn_proto::import_error::ImportErrorType;
-use nym_vpn_proto::{error::ErrorType as DError, GatewayType, ImportError};
+use nym_vpn_proto::{error::ErrorType as DError, AccountError, GatewayType};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use ts_rs::TS;
@@ -185,14 +185,9 @@ pub enum ErrorKey {
     CSRouting,
     CSWireguardConfig,
     CSMixnetConnectionMonitor,
-    /// Import invalid credential format -> base58 decoding failed
-    CredentialInvalid,
-    // Forwarded from proto `import_error::ImportErrorType`
-    CredentialVpnRunning,
-    CredentialAlreadyImported,
-    CredentialStorageError,
-    CredentialDeserializationFailure,
-    CredentialExpired,
+    // Forwarded from proto `account_error::AccountErrorType`
+    AccountInvalidMnemonic,
+    AccountStorage,
     // Forwarded from proto `connection_status_update::StatusType`
     EntryGatewayNotRouting,
     ExitRouterPingIpv4,
@@ -268,48 +263,21 @@ impl From<DError> for ErrorKey {
     }
 }
 
-impl From<ImportError> for BackendError {
-    fn from(error: ImportError) -> Self {
+impl From<AccountError> for BackendError {
+    fn from(error: AccountError) -> Self {
         let data = error.details.clone().into();
         match error.kind() {
-            ImportErrorType::Unspecified => BackendError::new_internal("grpc unspecified", data),
-            ImportErrorType::VpnRunning => BackendError::new_with_optional_data(
-                "vpn running",
-                ErrorKey::CredentialVpnRunning,
-                data,
-            ),
-            ImportErrorType::CredentialAlreadyImported => BackendError::new_with_optional_data(
-                "credential already imported",
-                ErrorKey::CredentialAlreadyImported,
-                data,
-            ),
-            ImportErrorType::StorageError => {
-                // TODO remove this
-                // backward compatibility check with the old error message from daemon
-                if data.as_ref().is_some_and(|d| {
-                    d.get("error")
-                        .is_some_and(|e| e.contains("unique constraint violation"))
-                }) {
-                    return BackendError::new_with_optional_data(
-                        "credential already imported",
-                        ErrorKey::CredentialAlreadyImported,
-                        data,
-                    );
-                }
-                BackendError::new_with_optional_data(
-                    "credential strorage error",
-                    ErrorKey::CredentialStorageError,
-                    data,
-                )
+            AccountErrorType::StoreAccountErrorUnspecified => {
+                BackendError::new_internal("grpc UNSPECIFIED", data)
             }
-            ImportErrorType::DeserializationFailure => BackendError::new_with_optional_data(
-                "credential deserialization failure",
-                ErrorKey::CredentialDeserializationFailure,
+            AccountErrorType::InvalidMnemonic => BackendError::new_with_optional_data(
+                "The provided mnemonic was not able to be parsed",
+                ErrorKey::AccountInvalidMnemonic,
                 data,
             ),
-            ImportErrorType::CredentialExpired => BackendError::new_with_optional_data(
-                "credential expired",
-                ErrorKey::CredentialExpired,
+            AccountErrorType::Storage => BackendError::new_with_optional_data(
+                "General error from the storage backend",
+                ErrorKey::AccountStorage,
                 data,
             ),
         }

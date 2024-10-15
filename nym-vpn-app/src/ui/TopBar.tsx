@@ -31,12 +31,11 @@ type NavBarData = {
   [key in Routes]: NavLocation;
 };
 
-const os = type();
-
 export default function TopBar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const os = type();
 
   const { uiTheme } = useMainState();
   const { show } = useDialog();
@@ -59,7 +58,7 @@ export default function TopBar() {
     ) : (
       <NymVpnTextLogoDark className="w-28 h-4" />
     );
-  }, [uiTheme]);
+  }, [os, uiTheme]);
 
   const navBarData = useMemo<NavBarData>(() => {
     return {
@@ -71,7 +70,7 @@ export default function TopBar() {
         },
         noBackground: os === 'windows' || os === 'macos',
       },
-      '/credential': {
+      '/login': {
         leftIcon: 'arrow_back',
         handleLeftNav: () => {
           navigate(-1);
@@ -192,7 +191,7 @@ export default function TopBar() {
       '/hideout': {},
       '/hideout/welcome': {},
     };
-  }, [t, navigate, getMainScreenTitle, show]);
+  }, [os, t, navigate, getMainScreenTitle, show]);
 
   useEffect(() => {
     setCurrentNavLocation(navBarData[location.pathname as Routes]);

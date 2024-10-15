@@ -22,7 +22,7 @@
     "policy": "Privacy policy",
     "tos": "Termini di utilizzo"
   },
-  "add-credential-button": "Aggiungi le credenziali per connetterti",
+  "login-button": "Aggiungi le credenziali per connetterti",
   "logs": {
     "title": "Logs"
   },
