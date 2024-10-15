@@ -5,11 +5,13 @@ use std::path::PathBuf;
 
 use nym_authenticator_client::AuthClient;
 use nym_gateway_directory::{AuthAddresses, Gateway, GatewayClient};
+use nym_sdk::mixnet::{EphemeralCredentialStorage, StoragePaths};
 use nym_task::TaskManager;
 use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
 
 use super::connected_tunnel::ConnectedTunnel;
 use crate::{
+    bandwidth_controller::{get_nyxd_client, BandwidthController},
     mixnet::SharedMixnetClient,
     tunnel_state_machine::tunnel::{gateway_selector::SelectedGateways, Error, Result},
 };
@@ -57,16 +59,51 @@ impl Connector {
         let mut wg_exit_gateway_client =
             WgGatewayClient::new_entry(&data_path, auth_client.clone(), exit_auth_recipient);
 
-        let entry_gateway_data = self.register_wg_key(&mut wg_entry_gateway_client).await?;
-        let exit_gateway_data = self.register_wg_key(&mut wg_exit_gateway_client).await?;
+        let client = get_nyxd_client().map_err(|e| Error::NyxdSetup {
+            reason: e.to_string(),
+        })?;
+        let shutdown = self.task_manager.subscribe_named("bandwidth controller");
+        let (connection_data, bandwidth_controller_handle) = if let Some(data_path) =
+            data_path.as_ref()
+        {
+            let paths = StoragePaths::new_from_dir(data_path)?;
+            let storage = paths.persistent_credential_storage().await?;
+            let inner = nym_bandwidth_controller::BandwidthController::new(storage, client);
+            let bw = BandwidthController::new(
+                inner,
+                wg_entry_gateway_client.light_client(),
+                wg_exit_gateway_client.light_client(),
+                shutdown,
+            );
+            let entry = bw
+                .get_initial_bandwidth(&self.gateway_directory_client, &mut wg_entry_gateway_client)
+                .await?;
+            let exit = bw
+                .get_initial_bandwidth(&self.gateway_directory_client, &mut wg_exit_gateway_client)
+                .await?;
 
-        if wg_entry_gateway_client.suspended().await? || wg_exit_gateway_client.suspended().await? {
-            return Err(Error::NotEnoughBandwidth);
-        }
+            let bandwidth_controller_handle = tokio::spawn(bw.run());
 
-        let connection_data = ConnectionData {
-            entry: entry_gateway_data,
-            exit: exit_gateway_data,
+            (ConnectionData { entry, exit }, bandwidth_controller_handle)
+        } else {
+            let storage = EphemeralCredentialStorage::default();
+            let inner = nym_bandwidth_controller::BandwidthController::new(storage, client);
+            let bw = BandwidthController::new(
+                inner,
+                wg_entry_gateway_client.light_client(),
+                wg_exit_gateway_client.light_client(),
+                shutdown,
+            );
+            let entry = bw
+                .get_initial_bandwidth(&self.gateway_directory_client, &mut wg_entry_gateway_client)
+                .await?;
+            let exit = bw
+                .get_initial_bandwidth(&self.gateway_directory_client, &mut wg_exit_gateway_client)
+                .await?;
+
+            let bandwidth_controller_handle = tokio::spawn(bw.run());
+
+            (ConnectionData { entry, exit }, bandwidth_controller_handle)
         };
 
         Ok(ConnectedTunnel::new(
@@ -74,6 +111,7 @@ impl Connector {
             wg_entry_gateway_client,
             wg_exit_gateway_client,
             connection_data,
+            bandwidth_controller_handle,
         ))
     }
 
@@ -88,27 +126,5 @@ impl Connector {
             entry_authenticator_address,
             exit_authenticator_address,
         ))
-    }
-
-    async fn register_wg_key(
-        &self,
-        wg_gateway_client: &mut WgGatewayClient,
-    ) -> Result<GatewayData> {
-        // First we need to register with the gateway to setup keys and IP assignment
-        tracing::info!("Registering with wireguard gateway");
-        let gateway_id = wg_gateway_client
-            .auth_recipient()
-            .gateway()
-            .to_base58_string();
-        let gateway_host = self
-            .gateway_directory_client
-            .lookup_gateway_ip(&gateway_id)
-            .await
-            .map_err(|source| Error::FailedToLookupGatewayIp { gateway_id, source })?;
-        let wg_gateway_data = wg_gateway_client
-            .register_wireguard(gateway_host, None)
-            .await?;
-        tracing::debug!("Received wireguard gateway data: {wg_gateway_data:?}");
-        Ok(wg_gateway_data)
     }
 }

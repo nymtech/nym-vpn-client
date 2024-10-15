@@ -144,6 +144,15 @@ pub enum Error {
 
     #[error("failed to start wireguard: {}", _0)]
     StartWireguard(#[source] nym_wg_go::Error),
+
+    #[error("failed to setup nyxd client: {reason}")]
+    NyxdSetup { reason: String },
+
+    #[error("nym sdk error: {0}")]
+    NymSdk(#[from] nym_sdk::Error),
+
+    #[error("setup wireguard tunnel: {0}")]
+    SetupWgTunnel(#[from] crate::SetupWgTunnelError),
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
