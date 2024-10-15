@@ -16,6 +16,8 @@ public final class Migrations {
     ) {
         self.appSettings = appSettings
         self.configurationManager = configurationManager
+
+        setup()
     }
 
     public func setup() {
