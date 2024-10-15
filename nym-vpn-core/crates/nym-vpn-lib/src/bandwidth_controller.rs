@@ -14,7 +14,6 @@ use nym_validator_client::{
 use nym_wg_gateway_client::{ErrorMessage, GatewayData, WgGatewayClient, WgGatewayLightClient};
 use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
 use tokio_stream::{wrappers::IntervalStream, StreamExt};
-use tracing::*;
 
 use crate::SetupWgTunnelError;
 
@@ -147,7 +146,7 @@ impl<C, St: Storage> BandwidthController<C, St> {
             &mut self.wg_exit_gateway_client
         };
         match wg_gateway_client.query_bandwidth().await {
-            Err(e) => warn!("Error querying remaining bandwidth {:?}", e),
+            Err(e) => tracing::warn!("Error querying remaining bandwidth {:?}", e),
             Ok(Some(remaining_bandwidth)) => {
                 match update_dynamic_check_interval(remaining_bandwidth) {
                     Some(new_duration) => {
@@ -176,7 +175,7 @@ impl<C, St: Storage> BandwidthController<C, St> {
         while !self.shutdown.is_shutdown() {
             tokio::select! {
                 _ = self.shutdown.recv() => {
-                    trace!("BandwidthController: Received shutdown");
+                    tracing::trace!("BandwidthController: Received shutdown");
                 }
                 _ = timeout_check_interval.next() => {
                     let entry_duration = self.check_bandwidth(true).await;
