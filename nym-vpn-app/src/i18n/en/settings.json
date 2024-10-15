@@ -1,7 +1,4 @@
 {
-  "account": {
-    "title": "Account"
-  },
   "auto-connect": {
     "title": "Auto-connect",
     "desc": "Auto connect at app startup"

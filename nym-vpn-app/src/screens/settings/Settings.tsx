@@ -12,6 +12,8 @@ import { StateDispatch } from '../../types';
 import { Button, MsIcon, PageAnim, SettingsMenuCard, Switch } from '../../ui';
 import InfoData from './InfoData';
 import SettingsGroup from './SettingsGroup';
+import { capFirst } from '../../helpers';
+import { AccountUrl } from '../../constants';
 
 const ThrottleDelay = 10000; // ms
 
@@ -98,10 +100,12 @@ function Settings() {
       )}
       {account && (
         <SettingsMenuCard
-          title={t('account.title')}
-          desc={`Account stored`}
-          leadingIcon="account_circle"
-          noHoverEffect
+          title={capFirst(t('account', { ns: 'glossary' }))}
+          onClick={() => {
+            open(AccountUrl);
+          }}
+          leadingIcon="person"
+          trailingIcon="open_in_new"
         />
       )}
       <SettingsGroup
