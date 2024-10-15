@@ -128,6 +128,7 @@ nym-client-core = { git = "https://github.com/nymtech/nym", rev = "8758bea" }
 nym-config = { git = "https://github.com/nymtech/nym", rev = "8758bea" }
 nym-contracts-common = { git = "https://github.com/nymtech/nym", rev = "8758bea" }
 nym-credentials-interface = { git = "https://github.com/nymtech/nym", rev = "8758bea" }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", rev = "8758bea" }
 nym-crypto = { git = "https://github.com/nymtech/nym", rev = "8758bea" }
 nym-http-api-client = { git = "https://github.com/nymtech/nym", rev = "8758bea" }
 nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "8758bea" }
