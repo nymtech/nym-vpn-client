@@ -85,6 +85,9 @@ private extension LogsDeleteConfirmationDialog {
     func yesButton() -> some View {
         GenericButton(title: viewModel.yesLocalizedString)
             .onTapGesture {
+#if os(iOS)
+                viewModel.impactGenerator.success()
+#endif
                 viewModel.action()
             }
     }
@@ -93,6 +96,9 @@ private extension LogsDeleteConfirmationDialog {
     func noButton() -> some View {
         GenericButton(title: viewModel.noLocalizedString, borderOnly: true)
             .onTapGesture {
+#if os(iOS)
+                viewModel.impactGenerator.impact()
+#endif
                 viewModel.isDisplayed = false
             }
     }

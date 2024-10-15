@@ -11,6 +11,9 @@ import TunnelMixnet
 import TunnelStatus
 import Tunnels
 import UIComponents
+#if os(iOS)
+import ImpactGenerator
+#endif
 #if os(macOS)
 import GRPCManager
 import HelperManager
@@ -35,7 +38,9 @@ public class HomeViewModel: HomeFlowState {
     let credentialsManager: CredentialsManager
     let externalLinkManager: ExternalLinkManager
     let migrations: Migrations
-
+#if os(iOS)
+    let impactGenerator: ImpactGenerator
+#endif
 #if os(macOS)
     let grpcManager: GRPCManager
     let helperManager: HelperManager
@@ -61,14 +66,17 @@ public class HomeViewModel: HomeFlowState {
         countriesManager: CountriesManager = CountriesManager.shared,
         credentialsManager: CredentialsManager = CredentialsManager.shared,
         externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared,
-        migrations: Migrations = Migrations.shared
+        migrations: Migrations = Migrations.shared,
+        impactGenerator: ImpactGenerator = ImpactGenerator.shared
     ) {
         self.appSettings = appSettings
         self.connectionManager = connectionManager
         self.countriesManager = countriesManager
-        self.externalLinkManager = externalLinkManager
         self.credentialsManager = credentialsManager
+        self.externalLinkManager = externalLinkManager
+        self.impactGenerator = impactGenerator
         self.migrations = migrations
+
         super.init()
 
         setup()
@@ -148,6 +156,10 @@ public extension HomeViewModel {
 // MARK: - Connection -
 public extension HomeViewModel {
     func connectDisconnect() {
+        guard connectionManager.currentTunnelStatus != .disconnecting else { return }
+#if os(iOS)
+        impactGenerator.impact()
+#endif
         Task {
             lastError = nil
             resetStatusInfoState()
@@ -155,8 +167,6 @@ public extension HomeViewModel {
 #if os(macOS)
             guard await isHelperInstalled() else { return }
 #endif
-
-            resetStatusInfoState()
 
             guard credentialsManager.isValidCredentialImported
             else {
@@ -169,6 +179,9 @@ public extension HomeViewModel {
                     try await connectionManager.connectDisconnect()
                 } catch let error {
                     statusInfoState = .error(message: error.localizedDescription)
+#if os(iOS)
+                    impactGenerator.error()
+#endif
                 }
             }
         }
@@ -265,7 +278,11 @@ private extension HomeViewModel {
         } else {
             newStatus = status
         }
-
+#if os(iOS)
+        if status == .connected && !connectionManager.isDisconnecting {
+            impactGenerator.success()
+        }
+#endif
         Task { @MainActor in
             statusButtonConfig = StatusButtonConfig(tunnelStatus: newStatus)
             connectButtonState = ConnectButtonState(tunnelStatus: newStatus)
@@ -379,9 +396,7 @@ private extension HomeViewModel {
 
 private extension HomeViewModel {
     func resetStatusInfoState() {
-        Task { @MainActor in
-            statusInfoState = .unknown
-        }
+        updateStatusInfoState(with: .unknown)
     }
 
     func updateStatusInfoState(with newState: StatusInfoState) {

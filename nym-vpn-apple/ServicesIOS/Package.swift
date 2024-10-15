@@ -11,6 +11,7 @@ let package = Package(
     ],
     products: [
         .library(name: "Extensions", targets: ["Extensions"]),
+        .library(name: "ImpactGenerator", targets: ["ImpactGenerator"]),
         .library(name: "KeyboardManager", targets: ["KeyboardManager"])
     ],
     targets: [
@@ -18,6 +19,11 @@ let package = Package(
             name: "Extensions",
             dependencies: [],
             path: "Sources/Extensions"
+        ),
+        .target(
+            name: "ImpactGenerator",
+            dependencies: [],
+            path: "Sources/ImpactGenerator"
         ),
         .target(
             name: "KeyboardManager",

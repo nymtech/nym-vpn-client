@@ -4,17 +4,10 @@ import Theme
 import UIComponents
 
 public struct LogsView: View {
-#if os(iOS)
-    private let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-#endif
-
     @ObservedObject private var viewModel: LogsViewModel
 
     public init(viewModel: LogsViewModel) {
         self.viewModel = viewModel
-#if os(iOS)
-        impactFeedback.prepare()
-#endif
     }
 
     public var body: some View {
@@ -112,7 +105,7 @@ private extension LogsView {
                 }
                 .disabled(viewModel.logs.isEmpty)
                 .simultaneousGesture(
-                    TapGesture().onEnded { generateImpact() }
+                    TapGesture().onEnded { viewModel.impactGenerator.impact() }
                 )
 #endif
 #if os(macOS)
@@ -130,7 +123,9 @@ private extension LogsView {
         button(systemImageName: "trash", title: viewModel.deleteLocalizedString)
             .disabled(viewModel.logs.isEmpty)
             .onTapGesture {
-                generateImpact()
+#if os(iOS)
+                viewModel.impactGenerator.impact()
+#endif
                 if !viewModel.logs.isEmpty {
                     viewModel.isDeleteDialogDisplayed.toggle()
                 }
@@ -167,13 +162,5 @@ private extension LogsView {
         }
         .pickerStyle(.segmented)
         .padding(16)
-    }
-}
-
-private extension LogsView {
-    func generateImpact() {
-#if os(iOS)
-        impactFeedback.impactOccurred()
-#endif
     }
 }
