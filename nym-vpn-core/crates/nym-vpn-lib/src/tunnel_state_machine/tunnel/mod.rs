@@ -149,7 +149,7 @@ pub enum Error {
     NyxdSetup { reason: String },
 
     #[error("nym sdk error: {0}")]
-    NymSdkError(#[from] nym_sdk::Error),
+    NymSdk(#[from] nym_sdk::Error),
 
     #[error("setup wireguard tunnel: {0}")]
     SetupWgTunnel(#[from] crate::SetupWgTunnelError),
