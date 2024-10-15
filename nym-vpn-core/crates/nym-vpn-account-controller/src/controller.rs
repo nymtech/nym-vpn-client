@@ -337,8 +337,8 @@ where
         }
 
         let pending_ticketbooks = self.credential_storage.get_pending_ticketbooks().await?;
-        for a in pending_ticketbooks {
-            tracing::info!("Pending ticketbook id: {}", a.pending_id);
+        for pending in pending_ticketbooks {
+            tracing::info!("Pending ticketbook id: {}", pending.pending_id);
         }
         Ok(())
     }
