@@ -25,7 +25,6 @@ export type DbKey =
   | 'WindowSize'
   | 'WindowPosition'
   | 'WelcomeScreenSeen'
-  | 'CredentialExpiry'
   | 'DesktopNotifications';
 
 export type ErrorKey =
