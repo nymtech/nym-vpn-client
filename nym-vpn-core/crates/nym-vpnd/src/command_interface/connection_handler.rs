@@ -258,6 +258,13 @@ impl CommandInterfaceConnectionHandler {
         info!("VPN apply freepass result: {:#?}", result);
         result
     }
+
+    pub(crate) async fn handle_is_ready_to_connect(
+        &self,
+    ) -> Result<Result<bool, AccountError>, VpnCommandSendError> {
+        self.vpn_command_send(VpnServiceCommand::IsReadyToConnect)
+            .await
+    }
 }
 
 fn directory_client(

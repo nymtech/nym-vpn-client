@@ -4666,9 +4666,11 @@ version = "0.2.5-dev"
 dependencies = [
  "nym-compact-ecash",
  "nym-config",
+ "nym-credential-storage",
  "nym-credentials-interface",
  "nym-ecash-time",
  "nym-http-api-client",
+ "nym-sdk",
  "nym-vpn-api-client",
  "nym-vpn-store",
  "reqwest 0.11.27",

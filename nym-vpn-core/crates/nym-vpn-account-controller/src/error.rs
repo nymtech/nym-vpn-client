@@ -26,6 +26,9 @@ pub enum Error {
         source: Box<dyn std::error::Error + Send + Sync>,
     },
 
+    #[error(transparent)]
+    CredentialStorage(#[from] nym_credential_storage::error::StorageError),
+
     #[error("failed to register device")]
     RegisterDevice(#[source] nym_vpn_api_client::VpnApiClientError),
 

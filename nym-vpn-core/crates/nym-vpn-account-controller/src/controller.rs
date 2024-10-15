@@ -1,13 +1,14 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, path::PathBuf, sync::Arc};
 
 use nym_compact_ecash::Base58 as _;
 use nym_config::defaults::NymNetworkDetails;
 use nym_credentials_interface::TicketType;
 use nym_ecash_time::EcashTime as _;
 use nym_http_api_client::{HttpClientError, UserAgent};
+use nym_sdk::mixnet::CredentialStorage;
 use nym_vpn_api_client::{
     response::NymVpnZkNymStatus,
     types::{Device, VpnApiAccount},
@@ -39,6 +40,9 @@ where
     // The underlying storage used to store the account and device keys
     storage: Arc<tokio::sync::Mutex<S>>,
 
+    // Storage used for credentials
+    credential_storage: nym_credential_storage::persistent_storage::PersistentStorage,
+
     // The API client used to interact with the nym-vpn-api
     api_client: nym_vpn_api_client::VpnApiClient,
 
@@ -63,14 +67,21 @@ impl<S> AccountController<S>
 where
     S: nym_vpn_store::VpnStorage,
 {
-    pub fn new(
+    pub async fn new(
         storage: Arc<tokio::sync::Mutex<S>>,
+        data_dir: PathBuf,
         user_agent: UserAgent,
         cancel_token: CancellationToken,
     ) -> Self {
+        // TODO: remove unwraps.
+        let storage_paths = nym_sdk::mixnet::StoragePaths::new_from_dir(data_dir).unwrap();
+        let credential_storage = storage_paths.persistent_credential_storage().await.unwrap();
+
         let (command_tx, command_rx) = tokio::sync::mpsc::unbounded_channel();
+
         AccountController {
             storage,
+            credential_storage,
             account_state: SharedAccountState::new(),
             api_client: create_api_client(user_agent),
             pending_zk_nym: Default::default(),
@@ -163,6 +174,8 @@ where
         .map_err(Error::ConstructWithdrawalRequest)?;
 
         let ecash_pubkey = ecash_keypair.public_key().to_base58_string();
+
+        // TODO: insert pending request into credential storage?
 
         let response = self
             .api_client
@@ -315,7 +328,25 @@ where
         }
     }
 
+    async fn print_credential_storage_info(&self) -> Result<(), Error> {
+        tracing::info!("Printing credential storage info");
+        let ticketbooks_info = self.credential_storage.get_ticketbooks_info().await?;
+        for ticketbook in ticketbooks_info {
+            tracing::info!("Ticketbook id: {}", ticketbook.id);
+        }
+
+        let pending_ticketbooks = self.credential_storage.get_pending_ticketbooks().await?;
+        for a in pending_ticketbooks {
+            tracing::info!("Pending ticketbook id: {}", a.pending_id);
+        }
+        Ok(())
+    }
+
     pub async fn run(mut self) {
+        if let Err(err) = self.print_credential_storage_info().await {
+            tracing::error!("Failed to print credential storage info: {:#?}", err);
+        }
+
         loop {
             tokio::select! {
                 Some(command) = self.command_rx.recv() => {

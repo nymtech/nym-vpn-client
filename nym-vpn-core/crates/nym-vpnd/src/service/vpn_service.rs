@@ -149,6 +149,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<NymVpnSubscription, AccountError>>,
         String,
     ),
+    IsReadyToConnect(oneshot::Sender<Result<bool, AccountError>>),
     Shutdown,
 }
 
@@ -171,6 +172,7 @@ impl fmt::Display for VpnServiceCommand {
             VpnServiceCommand::GetDeviceZkNyms(_) => write!(f, "GetDeviceZkNyms"),
             VpnServiceCommand::GetFreePasses(_) => write!(f, "GetFreePasses"),
             VpnServiceCommand::ApplyFreepass(_, _) => write!(f, "ApplyFreepass"),
+            VpnServiceCommand::IsReadyToConnect(_) => write!(f, "IsReadyToConnect"),
             VpnServiceCommand::Shutdown => write!(f, "Shutdown"),
         }
     }
@@ -387,7 +389,6 @@ where
     shared_vpn_state: SharedVpnState,
 
     // The account state, updated by the account controller
-    #[allow(unused)]
     shared_account_state: SharedAccountState,
 
     // Listen for commands from the command interface, like the grpc listener that listens user
@@ -410,7 +411,7 @@ where
 }
 
 impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
-    pub(crate) fn new(
+    pub(crate) async fn new(
         vpn_state_changes_tx: broadcast::Sender<VpnServiceStateChange>,
         vpn_command_rx: UnboundedReceiver<VpnServiceCommand>,
         cancel_token: CancellationToken,
@@ -430,8 +431,13 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         // We need to create the user agent here and not in the controller so that we correctly
         // pick up build time constants.
         let user_agent = crate::util::construct_user_agent();
-        let account_controller =
-            AccountController::new(Arc::clone(&storage), user_agent, cancel_token);
+        let account_controller = AccountController::new(
+            Arc::clone(&storage),
+            data_dir.clone(),
+            user_agent,
+            cancel_token,
+        )
+        .await;
         let shared_account_state = account_controller.shared_state();
         let account_command_tx = account_controller.command_tx();
         let _account_controller_handle = tokio::task::spawn(account_controller.run());
@@ -813,6 +819,10 @@ where
             })
     }
 
+    async fn handle_is_ready_to_connect(&self) -> bool {
+        self.shared_account_state.is_ready_to_connect().await
+    }
+
     pub(crate) async fn run(mut self) -> anyhow::Result<()> {
         // Start by refreshing the account state
         self.account_command_tx
@@ -875,6 +885,10 @@ where
                 }
                 VpnServiceCommand::ApplyFreepass(tx, code) => {
                     let result = self.handle_apply_freepass(code).await;
+                    tx.send(result).unwrap();
+                }
+                VpnServiceCommand::IsReadyToConnect(tx) => {
+                    let result = Ok(self.handle_is_ready_to_connect().await);
                     tx.send(result).unwrap();
                 }
                 VpnServiceCommand::Shutdown => {
