@@ -31,9 +31,9 @@ let package = Package(
                 .product(name: "CountriesManager", package: "Services"),
                 .product(name: "ConnectionManager", package: "Services"),
                 .product(name: "ExternalLinkManager", package: "Services"),
+                .product(name: "Migrations", package: "Services"),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
-                .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
-                .product(name: "Migrations", package: "Services", condition: .when(platforms: [.macOS]))
+                .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS]))
             ],
             path: "Sources"
         ),

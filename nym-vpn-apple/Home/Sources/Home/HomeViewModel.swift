@@ -5,6 +5,7 @@ import ConnectionManager
 import CountriesManager
 import CredentialsManager
 import ExternalLinkManager
+import Migrations
 import Settings
 import TunnelMixnet
 import TunnelStatus
@@ -13,7 +14,6 @@ import UIComponents
 #if os(macOS)
 import GRPCManager
 import HelperManager
-import Migrations
 #endif
 
 public class HomeViewModel: HomeFlowState {
@@ -34,11 +34,11 @@ public class HomeViewModel: HomeFlowState {
     let countriesManager: CountriesManager
     let credentialsManager: CredentialsManager
     let externalLinkManager: ExternalLinkManager
+    let migrations: Migrations
 
 #if os(macOS)
     let grpcManager: GRPCManager
     let helperManager: HelperManager
-    let migrations: Migrations
 #endif
     let entryHopButtonViewModel = HopButtonViewModel(hopType: .entry)
     let exitHopButtonViewModel = HopButtonViewModel(hopType: .exit)
@@ -60,14 +60,15 @@ public class HomeViewModel: HomeFlowState {
         connectionManager: ConnectionManager = ConnectionManager.shared,
         countriesManager: CountriesManager = CountriesManager.shared,
         credentialsManager: CredentialsManager = CredentialsManager.shared,
-        externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared
+        externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared,
+        migrations: Migrations = Migrations.shared
     ) {
         self.appSettings = appSettings
         self.connectionManager = connectionManager
         self.countriesManager = countriesManager
         self.externalLinkManager = externalLinkManager
         self.credentialsManager = credentialsManager
-
+        self.migrations = migrations
         super.init()
 
         setup()
