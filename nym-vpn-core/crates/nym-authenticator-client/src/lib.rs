@@ -6,6 +6,7 @@ use nym_authenticator_requests::{
         registration::{FinalMessage, InitMessage},
         request::AuthenticatorRequest,
         response::AuthenticatorResponse,
+        topup::TopUpMessage,
         VERSION as USED_VERSION,
     },
 };
@@ -34,6 +35,7 @@ pub enum ClientMessage {
     Initial(InitMessage),
     Final(FinalMessage),
     Query(PeerPublicKey),
+    TopUp(TopUpMessage),
 }
 
 #[derive(Clone)]
@@ -148,6 +150,9 @@ impl AuthClient {
             }
             ClientMessage::Query(peer_public_key) => {
                 AuthenticatorRequest::new_query_request(peer_public_key, self.nym_address)
+            }
+            ClientMessage::TopUp(top_up_message) => {
+                AuthenticatorRequest::new_topup_request(top_up_message, self.nym_address)
             }
         };
         debug!(

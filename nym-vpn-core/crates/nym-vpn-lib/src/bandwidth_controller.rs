@@ -128,6 +128,36 @@ impl<C, St: Storage> BandwidthController<C, St> {
         Ok(wg_gateway_data)
     }
 
+    pub(crate) async fn top_up_bandwidth(
+        &self,
+        ticketbook_type: TicketType,
+        wg_gateway_client: &mut WgGatewayLightClient,
+    ) -> std::result::Result<i64, SetupWgTunnelError>
+    where
+        C: DkgQueryClient + Sync + Send,
+        <St as Storage>::StorageError: Send + Sync + 'static,
+    {
+        let credential = self
+            .request_bandwidth(
+                ticketbook_type,
+                wg_gateway_client.auth_recipient().gateway().to_bytes(),
+            )
+            .await?;
+        let authenticator_address = wg_gateway_client.auth_recipient();
+        let gateway_id = *wg_gateway_client.auth_recipient().gateway();
+        let remaining_bandwidth =
+            wg_gateway_client
+                .top_up(credential.data)
+                .await
+                .map_err(|source| SetupWgTunnelError::WgGatewayClientError {
+                    gateway_id: Box::new(gateway_id),
+                    authenticator_address: Box::new(authenticator_address),
+                    source,
+                })?;
+
+        Ok(remaining_bandwidth)
+    }
+
     pub(crate) async fn request_bandwidth(
         &self,
         ticketbook_type: TicketType,
@@ -144,11 +174,15 @@ impl<C, St: Storage> BandwidthController<C, St> {
         Ok(credential)
     }
 
-    async fn check_bandwidth(&mut self, entry: bool) -> Option<Duration> {
-        let wg_gateway_client = if entry {
-            &mut self.wg_entry_gateway_client
+    async fn check_bandwidth(&mut self, entry: bool) -> Option<Duration>
+    where
+        C: DkgQueryClient + Sync + Send,
+        <St as Storage>::StorageError: Send + Sync + 'static,
+    {
+        let mut wg_gateway_client = if entry {
+            self.wg_entry_gateway_client.clone()
         } else {
-            &mut self.wg_exit_gateway_client
+            self.wg_exit_gateway_client.clone()
         };
         match wg_gateway_client.query_bandwidth().await {
             Err(e) => tracing::warn!("Error querying remaining bandwidth {:?}", e),
@@ -158,12 +192,27 @@ impl<C, St: Storage> BandwidthController<C, St> {
                         return Some(new_duration);
                     }
                     None => {
-                        // TODO: try to return this error in the JoinHandle instead
-                        self.shutdown
-                            .send_we_stopped(Box::new(ErrorMessage::OutOfBandwidth {
-                                gateway_id: Box::new(*wg_gateway_client.auth_recipient().gateway()),
-                                authenticator_address: Box::new(wg_gateway_client.auth_recipient()),
-                            }));
+                        let ticketbook_type = if entry {
+                            TicketType::V1WireguardEntry
+                        } else {
+                            TicketType::V1WireguardExit
+                        };
+                        if let Err(e) = self
+                            .top_up_bandwidth(ticketbook_type, &mut wg_gateway_client)
+                            .await
+                        {
+                            tracing::warn!("Error topping up with more bandwidth {:?}", e);
+                            // TODO: try to return this error in the JoinHandle instead
+                            self.shutdown
+                                .send_we_stopped(Box::new(ErrorMessage::OutOfBandwidth {
+                                    gateway_id: Box::new(
+                                        *wg_gateway_client.auth_recipient().gateway(),
+                                    ),
+                                    authenticator_address: Box::new(
+                                        wg_gateway_client.auth_recipient(),
+                                    ),
+                                }));
+                        }
                     }
                 }
             }
@@ -172,7 +221,11 @@ impl<C, St: Storage> BandwidthController<C, St> {
         None
     }
 
-    pub(crate) async fn run(mut self) {
+    pub(crate) async fn run(mut self)
+    where
+        C: DkgQueryClient + Sync + Send,
+        <St as Storage>::StorageError: Send + Sync + 'static,
+    {
         let mut timeout_check_interval =
             IntervalStream::new(tokio::time::interval(DEFAULT_BANDWIDTH_CHECK));
         // Skip the first, immediate tick
