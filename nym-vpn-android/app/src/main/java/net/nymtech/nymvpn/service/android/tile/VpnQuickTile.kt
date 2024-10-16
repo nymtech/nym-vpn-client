@@ -12,7 +12,6 @@ import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.service.tunnel.TunnelManager
-import net.nymtech.nymvpn.util.extensions.isInvalid
 import net.nymtech.nymvpn.util.extensions.startTunnelFromBackground
 import net.nymtech.nymvpn.util.extensions.stopTunnelFromBackground
 import net.nymtech.vpn.backend.Tunnel
@@ -40,8 +39,7 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 		lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
 
 		lifecycleScope.launch {
-			val credExpiry = settingsRepository.getCredentialExpiry()
-			if (credExpiry.isInvalid()) return@launch setUnavailable()
+			if (!tunnelManager.isMnemonicStored()) return@launch setUnavailable()
 			val state = tunnelManager.getState()
 			kotlin.runCatching {
 				when (state) {

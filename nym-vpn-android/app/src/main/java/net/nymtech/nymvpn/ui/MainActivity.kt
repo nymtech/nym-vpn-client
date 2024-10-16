@@ -209,7 +209,6 @@ class MainActivity : ComponentActivity() {
 								composable<Route.Settings> {
 									SettingsScreen(
 										appViewModel,
-										navController,
 										appState,
 									)
 								}

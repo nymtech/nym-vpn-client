@@ -34,7 +34,7 @@ fun ScannerScreen(viewModel: ScannerViewModel = hiltViewModel()) {
 			this.setStatusText("")
 			this.decodeSingle { result ->
 				result.text?.let { barCodeOrQr ->
-					viewModel.onCredentialImport(barCodeOrQr)
+					viewModel.onMnemonicImport(barCodeOrQr)
 				}
 			}
 		}
