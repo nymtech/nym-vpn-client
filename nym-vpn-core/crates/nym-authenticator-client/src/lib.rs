@@ -2,7 +2,7 @@ use std::{cmp::Ordering, sync::Arc, time::Duration};
 
 use nym_authenticator_requests::{
     latest::VERSION as LATEST_VERSION,
-    v2::{
+    v3::{
         registration::{FinalMessage, InitMessage},
         request::AuthenticatorRequest,
         response::AuthenticatorResponse,

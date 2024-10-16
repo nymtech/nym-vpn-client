@@ -11,7 +11,7 @@ use dns_lookup::lookup_host;
 use futures::StreamExt;
 use netstack::{NetstackCall as _, NetstackCallImpl};
 use nym_authenticator_client::ClientMessage;
-use nym_authenticator_requests::v2::{
+use nym_authenticator_requests::v3::{
     registration::{FinalMessage, GatewayClient, InitMessage, RegistrationData},
     response::{AuthenticatorResponseData, PendingRegistrationResponse, RegisteredResponse},
 };
