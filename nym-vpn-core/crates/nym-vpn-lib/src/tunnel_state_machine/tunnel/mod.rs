@@ -145,8 +145,8 @@ pub enum Error {
     #[error("failed to start wireguard: {}", _0)]
     StartWireguard(#[source] nym_wg_go::Error),
 
-    #[error("failed to setup nyxd client: {reason}")]
-    NyxdSetup { reason: String },
+    #[error("failed to setup nyxd client: {0}")]
+    NyxdSetup(#[from] crate::bandwidth_controller::CredentialNyxdClientError),
 
     #[error("nym sdk error: {0}")]
     NymSdk(#[from] nym_sdk::Error),
