@@ -38,5 +38,3 @@ cargo install cargo-ndk cargo-license --locked
 
 # install other dependencies
 sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip
-
-./gradlew :app:assembleFdroidRelease --info
