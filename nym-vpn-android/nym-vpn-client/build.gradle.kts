@@ -17,13 +17,14 @@ android {
 		if(!project.hasProperty(Constants.CORE_BUILD_PROP)) return@runCatching
 		val coreBuild = project.property(Constants.CORE_BUILD_PROP) as String
 		if (Regex("^v\\d+\\.\\d+\\.\\d+\$").matches(coreBuild)) {
+			//TODO how do we get bindings for this
 			tasks.register<DownloadCoreTask>(Constants.DOWNLOAD_LIB_TASK) {
 				tag = coreBuild
 				extractPath = "/nym-vpn-client/src/main/jniLibs/arm64-v8a"
 			}
-			tasks.getByName(Constants.DOWNLOAD_LIB_TASK).finalizedBy(Constants.GENERATE_BINDINGS_TASK)
+			tasks.getByName(Constants.DOWNLOAD_LIB_TASK)
 			tasks.preBuild.dependsOn(Constants.DOWNLOAD_LIB_TASK)
-		}
+		} else tasks.preBuild.dependsOn(Constants.BUILD_SOURCE_TASK)
 	}.onFailure {
 		tasks.preBuild.dependsOn(Constants.BUILD_SOURCE_TASK)
 	}
@@ -117,24 +118,18 @@ tasks.named<Delete>(Constants.CLEAN_TASK) {
 	removeJniLibsFile(Constants.WG_SHARED_LIB)
 }
 
-tasks.register<Exec>(Constants.BUILD_SOURCE_TASK) {
+tasks.register(Constants.BUILD_SOURCE_TASK) {
 	dependsOn(Constants.CLEAN_TASK)
-	val ndkPath = android.sdkDirectory.resolve("ndk").listFilesOrdered().lastOrNull()?.path ?: System.getenv("ANDROID_NDK_HOME")
-	commandLine("echo", "NDK HOME: $ndkPath")
-	val script = "${projectDir.path}/src/main/scripts/build-libs.sh"
-	commandLine("bash").args(script, ndkPath)
+	exec {
+		val ndkPath = android.sdkDirectory.resolve("ndk").listFilesOrdered().lastOrNull()?.path ?: System.getenv("ANDROID_NDK_HOME")
+		commandLine("echo", "NDK HOME: $ndkPath")
+		val script = "${projectDir.path}/src/main/scripts/build-libs.sh"
+		commandLine("bash").args(script, ndkPath)
+	}
 }
 
-tasks.register<Exec>(Constants.GENERATE_BINDINGS_TASK) {
-	dependsOn()
-	val script = "${projectDir.path}/src/main/scripts/generate-bindings.sh"
-	commandLine("bash").args(script)
-}
 
 tasks.register<Exec>(Constants.GENERATE_LICENSES_TASK) {
 	val script = "${projectDir.path}/src/main/scripts/generate-licenses.sh"
 	commandLine("bash").args(script)
 }
-
-tasks.getByName(Constants.BUILD_SOURCE_TASK).finalizedBy(Constants.GENERATE_BINDINGS_TASK)
-tasks.getByName(Constants.GENERATE_BINDINGS_TASK).finalizedBy(Constants.GENERATE_LICENSES_TASK)
