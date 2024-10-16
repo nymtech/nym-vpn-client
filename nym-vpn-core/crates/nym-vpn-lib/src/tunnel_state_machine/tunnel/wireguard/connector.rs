@@ -59,9 +59,7 @@ impl Connector {
         let mut wg_exit_gateway_client =
             WgGatewayClient::new_entry(&data_path, auth_client.clone(), exit_auth_recipient);
 
-        let client = get_nyxd_client().map_err(|e| Error::NyxdSetup {
-            reason: e.to_string(),
-        })?;
+        let client = get_nyxd_client()?;
         let shutdown = self.task_manager.subscribe_named("bandwidth controller");
         let (connection_data, bandwidth_controller_handle) = if let Some(data_path) =
             data_path.as_ref()
