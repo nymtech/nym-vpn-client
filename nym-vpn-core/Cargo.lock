@@ -4674,6 +4674,8 @@ dependencies = [
  "nym-vpn-api-client",
  "nym-vpn-store",
  "reqwest 0.11.27",
+ "strum",
+ "strum_macros",
  "thiserror",
  "tokio",
  "tokio-util",
