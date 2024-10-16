@@ -41,9 +41,12 @@ object Constants {
 	const val NYM_SHARED_LIB = "libnym_vpn_lib.so"
 	const val WG_SHARED_LIB = "libwg.so"
 
+	// tasks
 	const val CLEAN_TASK = "clean"
 	const val BUILD_SOURCE_TASK = "buildSource"
 	const val DOWNLOAD_LIB_TASK = "downloadLib"
+	const val GENERATE_BINDINGS_TASK = "generateBindings"
+	const val GENERATE_LICENSES_TASK = "generateLicenses"
 
 	const val CORE_BUILD_PROP = "libVersion"
 
