@@ -153,7 +153,7 @@ impl<C, St: Storage> BandwidthController<C, St> {
         match wg_gateway_client.query_bandwidth().await {
             Err(e) => tracing::warn!("Error querying remaining bandwidth {:?}", e),
             Ok(Some(remaining_bandwidth)) => {
-                match update_dynamic_check_interval(remaining_bandwidth) {
+                match update_dynamic_check_interval(remaining_bandwidth as u64) {
                     Some(new_duration) => {
                         return Some(new_duration);
                     }

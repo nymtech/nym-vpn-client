@@ -11,8 +11,8 @@ use std::{
 
 pub use error::{Error, ErrorMessage};
 use nym_authenticator_client::{AuthClient, ClientMessage};
-use nym_authenticator_requests::v1::{
-    registration::{GatewayClient, InitMessage, RegistrationData},
+use nym_authenticator_requests::v2::{
+    registration::{FinalMessage, GatewayClient, InitMessage, RegistrationData},
     response::{
         AuthenticatorResponseData, PendingRegistrationResponse, RegisteredResponse,
         RemainingBandwidthResponse,
@@ -52,7 +52,7 @@ impl WgGatewayLightClient {
         self.auth_recipient
     }
 
-    pub async fn query_bandwidth(&mut self) -> Result<Option<u64>> {
+    pub async fn query_bandwidth(&mut self) -> Result<Option<i64>> {
         let query_message =
             ClientMessage::Query(PeerPublicKey::new(self.public_key.to_bytes().into()));
         let response = self
@@ -178,7 +178,7 @@ impl WgGatewayClient {
     pub async fn register_wireguard(
         &mut self,
         gateway_host: IpAddr,
-        _credential: Option<CredentialSpendingData>,
+        credential: Option<CredentialSpendingData>,
     ) -> Result<GatewayData> {
         debug!("Registering with the wg gateway...");
         let init_message = ClientMessage::Initial(InitMessage {
@@ -204,12 +204,15 @@ impl WgGatewayClient {
                     .verify(self.keypair.private_key(), nonce)
                     .map_err(Error::VerificationFailed)?;
 
-                let finalized_message = ClientMessage::Final(GatewayClient::new(
-                    self.keypair.private_key(),
-                    gateway_data.pub_key().inner(),
-                    gateway_data.private_ip,
-                    nonce,
-                ));
+                let finalized_message = ClientMessage::Final(FinalMessage {
+                    gateway_client: GatewayClient::new(
+                        self.keypair.private_key(),
+                        gateway_data.pub_key().inner(),
+                        gateway_data.private_ip,
+                        nonce,
+                    ),
+                    credential,
+                });
                 let response = self
                     .auth_client
                     .send(finalized_message, self.auth_recipient)

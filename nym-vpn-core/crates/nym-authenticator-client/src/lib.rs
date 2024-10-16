@@ -2,9 +2,11 @@ use std::{cmp::Ordering, sync::Arc, time::Duration};
 
 use nym_authenticator_requests::{
     latest::VERSION as LATEST_VERSION,
-    v1::{
-        registration::InitMessage, request::AuthenticatorRequest, response::AuthenticatorResponse,
-        GatewayClient, VERSION as USED_VERSION,
+    v2::{
+        registration::{FinalMessage, InitMessage},
+        request::AuthenticatorRequest,
+        response::AuthenticatorResponse,
+        VERSION as USED_VERSION,
     },
 };
 
@@ -30,7 +32,7 @@ const _: () = assert!(USED_VERSION == LATEST_VERSION || USED_VERSION + 1 == LATE
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum ClientMessage {
     Initial(InitMessage),
-    Final(GatewayClient),
+    Final(FinalMessage),
     Query(PeerPublicKey),
 }
 
@@ -148,7 +150,10 @@ impl AuthClient {
                 AuthenticatorRequest::new_query_request(peer_public_key, self.nym_address)
             }
         };
-        debug!("Sent connect request with version v{}", request.version);
+        debug!(
+            "Sent connect request with version v{}",
+            request.protocol.version
+        );
 
         self.mixnet_sender
             .send(nym_sdk::mixnet::InputMessage::new_regular(
