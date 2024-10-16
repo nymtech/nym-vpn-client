@@ -28,6 +28,8 @@ public final class Migrations {
 private extension Migrations {
     func migrateToMainnet() {
         guard appSettings.currentEnv != "mainnet" else { return }
-        appSettings.currentEnv = "mainnet"
+        Task { @MainActor in
+            appSettings.currentEnv = "mainnet"
+        }
     }
 }

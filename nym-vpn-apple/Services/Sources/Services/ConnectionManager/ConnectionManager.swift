@@ -91,6 +91,7 @@ public final class ConnectionManager: ObservableObject {
         setup()
     }
 #endif
+
 #if os(macOS)
     public init(
         appSettings: AppSettings = AppSettings.shared,

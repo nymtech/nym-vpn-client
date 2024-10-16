@@ -82,6 +82,7 @@ public class HomeViewModel: HomeFlowState {
         setup()
     }
 #endif
+
 #if os(macOS)
     public init(
         appSettings: AppSettings = AppSettings.shared,
