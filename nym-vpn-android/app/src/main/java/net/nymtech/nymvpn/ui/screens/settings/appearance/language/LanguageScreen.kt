@@ -1,8 +1,11 @@
 package net.nymtech.nymvpn.ui.screens.settings.appearance.language
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -87,7 +90,7 @@ fun LanguageScreen(appViewModel: AppViewModel, localeStorage: LocaleStorage) {
 		Modifier
 			.fillMaxSize()
 			.padding(top = 24.dp.scaledHeight())
-			.padding(horizontal = 24.dp.scaledWidth()),
+			.padding(horizontal = 24.dp.scaledWidth()).windowInsetsPadding(WindowInsets.navigationBars),
 	) {
 		item {
 			SelectionItemButton(

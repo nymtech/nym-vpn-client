@@ -176,4 +176,18 @@
 	<string name="action_requires_tunnel_down">Action requires tunnel down</string>
 	<string name="selected_exit_unavailable">Selected exit country is unavailable. Please select a different exit country.</string>
 	<string name="selected_entry_unavailable">Selected entry country is unavailable. Please select a different entry country.</string>
+    <string name="missing_mnemonic">Missing mnemonic</string>
+	<string name="device_added_success">Device successfully added to your account</string>
+	<string name="invalid_recovery_phrase">Invalid recovery phrase</string>
+	<string name="recovery_phrase">Recovery phrase</string>
+	<string name="log_in">Log in</string>
+	<string name="log_out">Log out</string>
+	<string name="new_to_nym">New to NymVPN?</string>
+	<string name="create_account_link" translatable="false" >https://nymvpn.com/account/create</string>
+	<string name="create_account">Create an account</string>
+	<string name="account">Account</string>
+	<string name="account_url" translatable="false">https://nymvpn.com/account/login</string>
+	<string name="mnemonic_example">e.g. smoke artefact velvet skull pop palace tortoise damage rough...</string>
+	<string name="recovery_phrase_message">Enter your 24-word secret recovery phrase below to log in to your account</string>
+	<string name="recovery_phrase_disclaimer">You can only use the recovery phrase created in NymVPN, not the Nym Wallet.</string>
 </resources>
