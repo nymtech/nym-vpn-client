@@ -89,6 +89,7 @@ impl<C, St: Storage> BandwidthController<C, St> {
 
     pub(crate) async fn get_initial_bandwidth(
         &self,
+        ticketbook_type: TicketType,
         gateway_client: &GatewayClient,
         wg_gateway_client: &mut WgGatewayClient,
     ) -> std::result::Result<GatewayData, SetupWgTunnelError>
@@ -97,7 +98,10 @@ impl<C, St: Storage> BandwidthController<C, St> {
         <St as Storage>::StorageError: Send + Sync + 'static,
     {
         let credential = self
-            .request_bandwidth(wg_gateway_client.auth_recipient().gateway().to_bytes())
+            .request_bandwidth(
+                ticketbook_type,
+                wg_gateway_client.auth_recipient().gateway().to_bytes(),
+            )
             .await?;
 
         // First we need to register with the gateway to setup keys and IP assignment
@@ -126,6 +130,7 @@ impl<C, St: Storage> BandwidthController<C, St> {
 
     pub(crate) async fn request_bandwidth(
         &self,
+        ticketbook_type: TicketType,
         provider_pk: [u8; 32],
     ) -> std::result::Result<PreparedCredential, SetupWgTunnelError>
     where
@@ -134,7 +139,7 @@ impl<C, St: Storage> BandwidthController<C, St> {
     {
         let credential = self
             .inner
-            .prepare_ecash_ticket(TicketType::V1WireguardEntry, provider_pk, TICKETS_TO_SPEND)
+            .prepare_ecash_ticket(ticketbook_type, provider_pk, TICKETS_TO_SPEND)
             .await?;
         Ok(credential)
     }
