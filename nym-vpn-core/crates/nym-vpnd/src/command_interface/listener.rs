@@ -14,10 +14,10 @@ use nym_vpn_proto::{
     ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty, GetAccountSummaryRequest,
     GetAccountSummaryResponse, GetDeviceZkNymsRequest, GetDeviceZkNymsResponse, GetDevicesRequest,
     GetDevicesResponse, InfoRequest, InfoResponse, IsAccountStoredRequest, IsAccountStoredResponse,
-    ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest, ListGatewaysResponse,
-    RegisterDeviceRequest, RegisterDeviceResponse, RemoveAccountRequest, RemoveAccountResponse,
-    RequestZkNymRequest, RequestZkNymResponse, StatusRequest, StatusResponse, StoreAccountRequest,
-    StoreAccountResponse,
+    IsReadyToConnectRequest, IsReadyToConnectResponse, ListCountriesRequest, ListCountriesResponse,
+    ListGatewaysRequest, ListGatewaysResponse, RegisterDeviceRequest, RegisterDeviceResponse,
+    RemoveAccountRequest, RemoveAccountResponse, RequestZkNymRequest, RequestZkNymResponse,
+    StatusRequest, StatusResponse, StoreAccountRequest, StoreAccountResponse,
 };
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 use tracing::{error, info};
@@ -593,6 +593,25 @@ impl NymVpnd for CommandInterface {
         };
 
         info!("Returning apply freepass response");
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn is_ready_to_connect(
+        &self,
+        _request: tonic::Request<IsReadyToConnectRequest>,
+    ) -> Result<tonic::Response<IsReadyToConnectResponse>, tonic::Status> {
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_is_ready_to_connect()
+            .await
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to check if ready to connect: {err}"))
+            })?;
+
+        let response = IsReadyToConnectResponse {
+            is_ready_to_connect: result.unwrap_or(false),
+        };
+
+        info!("Returning is ready to connect response");
         Ok(tonic::Response::new(response))
     }
 }

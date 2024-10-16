@@ -15,7 +15,7 @@ use futures::{
 };
 use nym_vpn_api_client::{
     response::{
-        NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnSubscription,
+        NymVpnAccountSummaryResponse, NymVpnDevicesResponse, NymVpnSubscription,
         NymVpnSubscriptionsResponse,
     },
     types::{GatewayMinPerformance, Percent, VpnApiAccount},
@@ -141,7 +141,7 @@ pub enum VpnServiceCommand {
     RemoveAccount(oneshot::Sender<Result<(), AccountError>>),
     GetAccountSummary(oneshot::Sender<Result<NymVpnAccountSummaryResponse, AccountError>>),
     GetDevices(oneshot::Sender<Result<NymVpnDevicesResponse, AccountError>>),
-    RegisterDevice(oneshot::Sender<Result<NymVpnDevice, AccountError>>),
+    RegisterDevice(oneshot::Sender<Result<(), AccountError>>),
     RequestZkNym(oneshot::Sender<Result<(), AccountError>>),
     GetDeviceZkNyms(oneshot::Sender<Result<(), AccountError>>),
     GetFreePasses(oneshot::Sender<Result<NymVpnSubscriptionsResponse, AccountError>>),
@@ -149,6 +149,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<NymVpnSubscription, AccountError>>,
         String,
     ),
+    IsReadyToConnect(oneshot::Sender<Result<bool, AccountError>>),
     Shutdown,
 }
 
@@ -171,6 +172,7 @@ impl fmt::Display for VpnServiceCommand {
             VpnServiceCommand::GetDeviceZkNyms(_) => write!(f, "GetDeviceZkNyms"),
             VpnServiceCommand::GetFreePasses(_) => write!(f, "GetFreePasses"),
             VpnServiceCommand::ApplyFreepass(_, _) => write!(f, "ApplyFreepass"),
+            VpnServiceCommand::IsReadyToConnect(_) => write!(f, "IsReadyToConnect"),
             VpnServiceCommand::Shutdown => write!(f, "Shutdown"),
         }
     }
@@ -387,7 +389,6 @@ where
     shared_vpn_state: SharedVpnState,
 
     // The account state, updated by the account controller
-    #[allow(unused)]
     shared_account_state: SharedAccountState,
 
     // Listen for commands from the command interface, like the grpc listener that listens user
@@ -410,7 +411,7 @@ where
 }
 
 impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
-    pub(crate) fn new(
+    pub(crate) async fn new(
         vpn_state_changes_tx: broadcast::Sender<VpnServiceStateChange>,
         vpn_command_rx: UnboundedReceiver<VpnServiceCommand>,
         cancel_token: CancellationToken,
@@ -430,8 +431,13 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         // We need to create the user agent here and not in the controller so that we correctly
         // pick up build time constants.
         let user_agent = crate::util::construct_user_agent();
-        let account_controller =
-            AccountController::new(Arc::clone(&storage), user_agent, cancel_token);
+        let account_controller = AccountController::new(
+            Arc::clone(&storage),
+            data_dir.clone(),
+            user_agent,
+            cancel_token,
+        )
+        .await;
         let shared_account_state = account_controller.shared_state();
         let account_command_tx = account_controller.command_tx();
         let _account_controller_handle = tokio::task::spawn(account_controller.run());
@@ -663,7 +669,15 @@ where
             .await
             .map_err(|err| AccountError::FailedToStoreAccount {
                 source: Box::new(err),
-            })
+            })?;
+
+        self.account_command_tx
+            .send(AccountCommand::UpdateSharedAccountState)
+            .map_err(|err| AccountError::SendCommand {
+                source: Box::new(err),
+            })?;
+
+        Ok(())
     }
 
     async fn handle_is_account_stored(&self) -> Result<bool, AccountError> {
@@ -685,7 +699,15 @@ where
             .await
             .map_err(|err| AccountError::FailedToRemoveAccount {
                 source: Box::new(err),
-            })
+            })?;
+
+        self.account_command_tx
+            .send(AccountCommand::UpdateSharedAccountState)
+            .map_err(|err| AccountError::SendCommand {
+                source: Box::new(err),
+            })?;
+
+        Ok(())
     }
 
     async fn load_account(&self) -> Result<VpnApiAccount, AccountError> {
@@ -701,6 +723,7 @@ where
             .inspect(|account| tracing::info!("Loading account id: {}", account.id()))
     }
 
+    #[allow(unused)]
     async fn load_device_keys(&self) -> Result<nym_vpn_store::keys::DeviceKeys, AccountError> {
         self.storage
             .lock()
@@ -745,23 +768,12 @@ where
         api_client.get_devices(&account).await.map_err(Into::into)
     }
 
-    async fn handle_register_device(&self) -> Result<NymVpnDevice, AccountError> {
-        // Get account
-        let account = self.load_account().await?;
-
-        // Get device
-        let device_keypair = self.load_device_keys().await?.device_keypair();
-        let device = nym_vpn_api_client::types::Device::from(device_keypair);
-
-        // Setup client
-        let nym_vpn_api_url = get_nym_vpn_api_url()?;
-        let user_agent = crate::util::construct_user_agent();
-        let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent)?;
-
-        api_client
-            .register_device(&account, &device)
-            .await
-            .map_err(Into::into)
+    async fn handle_register_device(&self) -> Result<(), AccountError> {
+        self.account_command_tx
+            .send(AccountCommand::RegisterDevice)
+            .map_err(|err| AccountError::SendCommand {
+                source: Box::new(err),
+            })
     }
 
     async fn handle_get_free_passes(&self) -> Result<NymVpnSubscriptionsResponse, AccountError> {
@@ -813,10 +825,14 @@ where
             })
     }
 
+    async fn handle_is_ready_to_connect(&self) -> bool {
+        self.shared_account_state.is_ready_to_connect().await
+    }
+
     pub(crate) async fn run(mut self) -> anyhow::Result<()> {
         // Start by refreshing the account state
         self.account_command_tx
-            .send(AccountCommand::RefreshAccountState)?;
+            .send(AccountCommand::UpdateSharedAccountState)?;
 
         while let Some(command) = self.vpn_command_rx.recv().await {
             debug!("VPN: Received command: {command}");
@@ -875,6 +891,10 @@ where
                 }
                 VpnServiceCommand::ApplyFreepass(tx, code) => {
                     let result = self.handle_apply_freepass(code).await;
+                    tx.send(result).unwrap();
+                }
+                VpnServiceCommand::IsReadyToConnect(tx) => {
+                    let result = Ok(self.handle_is_ready_to_connect().await);
                     tx.send(result).unwrap();
                 }
                 VpnServiceCommand::Shutdown => {

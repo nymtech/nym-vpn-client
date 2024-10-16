@@ -23,8 +23,7 @@ impl SharedAccountState {
         self.inner.lock().await.clone()
     }
 
-    #[allow(unused)]
-    pub(crate) async fn is_ready_to_connect(&self) -> bool {
+    pub async fn is_ready_to_connect(&self) -> bool {
         let state = self.get().await;
         state.mnemonic == Some(MnemonicState::Stored)
             && state.account == Some(RemoteAccountState::Active)

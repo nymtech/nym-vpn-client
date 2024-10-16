@@ -3,7 +3,7 @@
 
 use nym_vpn_api_client::{
     response::{
-        NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnSubscription,
+        NymVpnAccountSummaryResponse, NymVpnDevicesResponse, NymVpnSubscription,
         NymVpnSubscriptionsResponse,
     },
     types::GatewayMinPerformance,
@@ -221,7 +221,7 @@ impl CommandInterfaceConnectionHandler {
 
     pub(crate) async fn handle_register_device(
         &self,
-    ) -> Result<Result<NymVpnDevice, AccountError>, VpnCommandSendError> {
+    ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
         self.vpn_command_send(VpnServiceCommand::RegisterDevice)
             .await
     }
@@ -257,6 +257,13 @@ impl CommandInterfaceConnectionHandler {
         let result = rx.await.unwrap();
         info!("VPN apply freepass result: {:#?}", result);
         result
+    }
+
+    pub(crate) async fn handle_is_ready_to_connect(
+        &self,
+    ) -> Result<Result<bool, AccountError>, VpnCommandSendError> {
+        self.vpn_command_send(VpnServiceCommand::IsReadyToConnect)
+            .await
     }
 }
 
