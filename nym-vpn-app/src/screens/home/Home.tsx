@@ -21,12 +21,17 @@ function Home() {
     exitNodeLocation,
     entrySelector,
     daemonStatus,
+    account,
   } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const navigate = useNavigate();
   const { t } = useTranslation('home');
 
   const handleClick = () => {
+    if (!account) {
+      navigate(routes.login);
+      return;
+    }
     dispatch({ type: 'disconnect' });
     if (state === 'Connected') {
       console.info('disconnect');
