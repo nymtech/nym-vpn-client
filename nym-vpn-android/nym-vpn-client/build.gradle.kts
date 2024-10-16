@@ -1,5 +1,4 @@
 import com.android.build.gradle.internal.tasks.factory.dependsOn
-import com.android.support.InvalidDataException
 import org.gradle.kotlin.dsl.support.listFilesOrdered
 import task.DownloadCoreTask
 
@@ -15,20 +14,19 @@ android {
 	compileSdk = Constants.COMPILE_SDK
 
 	runCatching {
+		if(!project.hasProperty(Constants.CORE_BUILD_PROP)) return@runCatching
 		val coreBuild = project.property(Constants.CORE_BUILD_PROP) as String
 		if (Regex("^v\\d+\\.\\d+\\.\\d+\$").matches(coreBuild)) {
 			tasks.register<DownloadCoreTask>(Constants.DOWNLOAD_LIB_TASK) {
 				tag = coreBuild
 				extractPath = "/nym-vpn-client/src/main/jniLibs/arm64-v8a"
 			}
+			tasks.getByName(Constants.DOWNLOAD_LIB_TASK).finalizedBy(Constants.GENERATE_BINDINGS_TASK)
 			tasks.preBuild.dependsOn(Constants.DOWNLOAD_LIB_TASK)
-		} else throw InvalidDataException()
+		}
 	}.onFailure {
 		tasks.preBuild.dependsOn(Constants.BUILD_SOURCE_TASK)
 	}
-
-	tasks.preBuild.dependsOn(Constants.GENERATE_BINDINGS_TASK)
-	tasks.preBuild.dependsOn(Constants.GENERATE_LICENSES_TASK)
 
 	defaultConfig {
 		minSdk = Constants.MIN_SDK
@@ -128,6 +126,7 @@ tasks.register<Exec>(Constants.BUILD_SOURCE_TASK) {
 }
 
 tasks.register<Exec>(Constants.GENERATE_BINDINGS_TASK) {
+	dependsOn()
 	val script = "${projectDir.path}/src/main/scripts/generate-bindings.sh"
 	commandLine("bash").args(script)
 }
@@ -136,3 +135,6 @@ tasks.register<Exec>(Constants.GENERATE_LICENSES_TASK) {
 	val script = "${projectDir.path}/src/main/scripts/generate-licenses.sh"
 	commandLine("bash").args(script)
 }
+
+tasks.getByName(Constants.BUILD_SOURCE_TASK).finalizedBy(Constants.GENERATE_BINDINGS_TASK)
+tasks.getByName(Constants.GENERATE_BINDINGS_TASK).finalizedBy(Constants.GENERATE_LICENSES_TASK)
