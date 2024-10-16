@@ -1,12 +1,12 @@
 package net.nymtech.vpn.backend
 
-import java.time.Instant
-
 interface Backend {
 
-	suspend fun validateCredential(credential: String): Instant?
+	suspend fun storeMnemonic(credential: String)
 
-	suspend fun importCredential(credential: String): Instant?
+	suspend fun isMnemonicStored(): Boolean
+
+	suspend fun removeMnemonic()
 
 	suspend fun start(tunnel: Tunnel, background: Boolean)
 

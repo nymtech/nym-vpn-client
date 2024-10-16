@@ -7,21 +7,23 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.Launch
 import androidx.compose.material.icons.automirrored.outlined.ViewQuilt
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.AppShortcut
 import androidx.compose.material.icons.outlined.BugReport
+import androidx.compose.material.icons.outlined.Launch
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,7 +42,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
@@ -50,27 +51,24 @@ import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
+import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.navigation.NavIcon
 import net.nymtech.nymvpn.ui.common.navigation.NavTitle
+import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.theme.CustomTypography
-import net.nymtech.nymvpn.util.extensions.durationFromNow
-import net.nymtech.nymvpn.util.extensions.isInvalid
+import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.launchNotificationSettings
 import net.nymtech.nymvpn.util.extensions.launchVpnSettings
 import net.nymtech.nymvpn.util.extensions.openWebUrl
-import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
 
 @Composable
-fun SettingsScreen(
-	appViewModel: AppViewModel,
-	navController: NavController,
-	appUiState: AppUiState,
-	viewModel: SettingsViewModel = hiltViewModel(),
-) {
+fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel: SettingsViewModel = hiltViewModel()) {
 	val context = LocalContext.current
+	val snackbar = SnackbarController.current
+	val navController = LocalNavController.current
 	val clipboardManager: ClipboardManager = LocalClipboardManager.current
 	val padding = WindowInsets.systemBars.asPaddingValues()
 
@@ -97,49 +95,33 @@ fun SettingsScreen(
 			.padding(top = 24.dp)
 			.padding(horizontal = 24.dp.scaledWidth()).padding(bottom = padding.calculateBottomPadding()),
 	) {
-		if (appUiState.settings.credentialExpiry.isInvalid()) {
+		if (!appUiState.isMnemonicStored) {
 			MainStyledButton(
 				onClick = { navController.navigate(Route.Credential) },
 				content = {
 					Text(
-						stringResource(id = R.string.add_cred_to_connect),
+						stringResource(id = R.string.log_in),
 						style = CustomTypography.labelHuge,
 					)
 				},
 				color = MaterialTheme.colorScheme.primary,
 			)
 		} else {
-			appUiState.settings.credentialExpiry?.let {
-				val credentialDuration = it.durationFromNow()
-				val days = credentialDuration.toDaysPart()
-				val hours = credentialDuration.toHoursPart()
-				val accountDescription =
-					buildAnnotatedString {
-						if (days != 0L) {
-							append(days.toString())
-							append(" ")
-							append(if (days != 1L) stringResource(id = R.string.days) else stringResource(id = R.string.day))
-						} else {
-							append(hours.toString())
-							append(" ")
-							append(if (hours != 1) stringResource(id = R.string.hours) else stringResource(id = R.string.hour))
-						}
-						append(" ")
-						append(stringResource(id = R.string.remaining))
-					}
-				SurfaceSelectionGroupButton(
-					listOf(
-						SelectionItem(
-							Icons.Filled.AccountCircle,
-							onClick = {
-								navController.navigate(Route.Account)
-							},
-							title = { Text(stringResource(R.string.credential), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-							description = { Text(accountDescription.text, style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline)) },
-						),
+			SurfaceSelectionGroupButton(
+				listOf(
+					SelectionItem(
+						Icons.Outlined.Person,
+						{
+							val icon = Icons.AutoMirrored.Outlined.Launch
+							Icon(icon, icon.name, Modifier.size(iconSize))
+						},
+						title = { Text(stringResource(R.string.account), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+						onClick = {
+							context.openWebUrl(context.getString(R.string.account_url))
+						},
 					),
-				)
-			}
+				),
+			)
 		}
 		SurfaceSelectionGroupButton(
 			listOf(
@@ -149,10 +131,6 @@ fun SettingsScreen(
 						ScaledSwitch(
 							appUiState.settings.autoStartEnabled,
 							onClick = { viewModel.onAutoConnectSelected(it) },
-							modifier =
-							Modifier
-								.height(32.dp.scaledHeight())
-								.width(52.dp.scaledWidth()),
 						)
 					},
 					title = { Text(stringResource(R.string.auto_connect), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
@@ -176,10 +154,6 @@ fun SettingsScreen(
 						ScaledSwitch(
 							appUiState.settings.firstHopSelectionEnabled,
 							onClick = { appViewModel.onEntryLocationSelected(it) },
-							modifier =
-							Modifier
-								.height(32.dp.scaledHeight())
-								.width(52.dp.scaledWidth()),
 							enabled = (appUiState.state is Tunnel.State.Down),
 						)
 					},
@@ -215,10 +189,6 @@ fun SettingsScreen(
 								ScaledSwitch(
 									appUiState.settings.isShortcutsEnabled,
 									onClick = { checked -> viewModel.onAppShortcutsSelected(checked) },
-									modifier =
-									Modifier
-										.height(32.dp.scaledHeight())
-										.width(52.dp.scaledWidth()),
 								)
 							},
 							title = { Text(stringResource(R.string.app_shortcuts), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
@@ -281,10 +251,6 @@ fun SettingsScreen(
 						ScaledSwitch(
 							checked = appUiState.settings.errorReportingEnabled,
 							onClick = { appViewModel.onErrorReportingSelected() },
-							modifier =
-							Modifier
-								.height(32.dp.scaledHeight())
-								.width(52.dp.scaledWidth()),
 						)
 					},
 				),
@@ -324,6 +290,23 @@ fun SettingsScreen(
 				),
 			),
 		)
+		if (appUiState.isMnemonicStored) {
+			SurfaceSelectionGroupButton(
+				listOf(
+					SelectionItem(
+						title = { Text(stringResource(R.string.log_out), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+						onClick = {
+							if (appUiState.state == Tunnel.State.Down) {
+								appViewModel.logout()
+							} else {
+								snackbar.showMessage(context.getString(R.string.action_requires_tunnel_down))
+							}
+						},
+						trailing = {},
+					),
+				),
+			)
+		}
 		Column(
 			verticalArrangement = Arrangement.Bottom,
 			horizontalAlignment = Alignment.Start,

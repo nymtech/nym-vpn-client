@@ -352,6 +352,7 @@ async fn store_account_mnemonic(mnemonic: &str, path: &str) -> Result<(), VpnErr
 }
 
 #[allow(non_snake_case)]
+#[uniffi::export]
 pub fn isAccountMnemonicStored(path: String) -> Result<bool, VpnError> {
     RUNTIME.block_on(is_account_mnemonic_stored(&path))
 }
@@ -367,6 +368,7 @@ async fn is_account_mnemonic_stored(path: &str) -> Result<bool, VpnError> {
 }
 
 #[allow(non_snake_case)]
+#[uniffi::export]
 pub fn removeAccountMnemonic(path: String) -> Result<bool, VpnError> {
     RUNTIME.block_on(remove_account_mnemonic(&path))
 }

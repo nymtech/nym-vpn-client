@@ -28,7 +28,7 @@ constructor(
 	private val settingsRepository: SettingsRepository,
 	private val gatewayRepository: GatewayRepository,
 	@Native private val gatewayService: GatewayService,
-	tunnelManager: TunnelManager,
+	private val tunnelManager: TunnelManager,
 ) : ViewModel() {
 
 	private val _navBarState = MutableStateFlow(NavBarState())
@@ -45,6 +45,7 @@ constructor(
 				gateways,
 				manager.state,
 				manager.backendMessage,
+				isMnemonicStored = manager.isMnemonicStored,
 			)
 		}.stateIn(
 			viewModelScope,
@@ -75,6 +76,10 @@ constructor(
 		}.onFailure {
 			Timber.w(it)
 		}
+	}
+
+	fun logout() = viewModelScope.launch {
+		tunnelManager.removeMnemonic()
 	}
 
 	fun onErrorReportingSelected() = viewModelScope.launch {

@@ -2,15 +2,19 @@ package net.nymtech.nymvpn.service.tunnel
 
 import android.content.Context
 import android.net.VpnService
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.service.notification.NotificationService
-import net.nymtech.nymvpn.util.extensions.isInvalid
+import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.toUserMessage
 import net.nymtech.vpn.backend.Backend
@@ -20,7 +24,6 @@ import net.nymtech.vpn.model.Statistics
 import nym_vpn_lib.BandwidthStatus
 import nym_vpn_lib.VpnException
 import timber.log.Timber
-import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Provider
 
@@ -29,10 +32,15 @@ class NymTunnelManager @Inject constructor(
 	private val notificationService: NotificationService,
 	private val backend: Provider<Backend>,
 	private val context: Context,
+	@ApplicationScope private val applicationScope: CoroutineScope,
 ) : TunnelManager {
 
 	private val _state = MutableStateFlow(TunnelState())
-	override val stateFlow: Flow<TunnelState> = _state.asStateFlow()
+	override val stateFlow: Flow<TunnelState> = _state.onStart {
+		_state.update {
+			it.copy(isMnemonicStored = isMnemonicStored())
+		}
+	}.stateIn(applicationScope, SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT), TunnelState())
 
 	@get:Synchronized @set:Synchronized
 	private var running: Boolean = false
@@ -51,8 +59,7 @@ class NymTunnelManager @Inject constructor(
 	override suspend fun start(fromBackground: Boolean) {
 		runCatching {
 			if (running) return Timber.w("Vpn already running")
-			val credentialExpiry = settingsRepository.getCredentialExpiry()
-			if (credentialExpiry.isInvalid()) return onInvalidCredential(credentialExpiry)
+			if (!isMnemonicStored()) return onMissingMnemonic()
 			val intent = VpnService.prepare(context)
 			if (intent != null) return launchVpnPermissionNotification()
 			val entryCountry = settingsRepository.getFirstHopCountry()
@@ -71,9 +78,23 @@ class NymTunnelManager @Inject constructor(
 		}
 	}
 
-	override suspend fun importCredential(credential: String): Result<Instant?> {
-		return kotlin.runCatching {
-			backend.get().importCredential(credential)
+	override suspend fun storeMnemonic(mnemonic: String) {
+		backend.get().storeMnemonic(mnemonic)
+		emitMnemonicStored(true)
+	}
+
+	override suspend fun isMnemonicStored(): Boolean {
+		return backend.get().isMnemonicStored()
+	}
+
+	override suspend fun removeMnemonic() {
+		backend.get().removeMnemonic()
+		emitMnemonicStored(false)
+	}
+
+	private fun emitMnemonicStored(stored: Boolean) {
+		_state.update {
+			it.copy(isMnemonicStored = stored)
 		}
 	}
 
@@ -104,16 +125,12 @@ class NymTunnelManager @Inject constructor(
 		emitState(state)
 	}
 
-	private fun onInvalidCredential(expiry: Instant?) {
-		val message = if (expiry == null) {
-			context.getString(R.string.missing_credential)
-		} else {
-			context.getString(R.string.exception_cred_invalid)
-		}
+	private fun onMissingMnemonic() {
+		val message = context.getString(R.string.missing_mnemonic)
 		if (NymVpn.isForeground()) {
 			emitMessage(BackendMessage.Failure(VpnException.InvalidCredential(details = message)))
 		} else {
-			launchCredentialNotification(message)
+			launchMnemonicNotification(message)
 		}
 	}
 
@@ -134,9 +151,9 @@ class NymTunnelManager @Inject constructor(
 		}
 	}
 
-	private fun launchCredentialNotification(description: String) {
+	private fun launchMnemonicNotification(description: String) {
 		notificationService.showNotification(
-			title = context.getString(R.string.credential_failed_message),
+			title = context.getString(R.string.connection_failed),
 			description = description,
 		)
 	}
