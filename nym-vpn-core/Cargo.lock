@@ -4664,10 +4664,14 @@ dependencies = [
 name = "nym-vpn-account-controller"
 version = "0.2.5-dev"
 dependencies = [
+ "nym-compact-ecash",
  "nym-config",
+ "nym-credentials-interface",
+ "nym-ecash-time",
  "nym-http-api-client",
  "nym-vpn-api-client",
  "nym-vpn-store",
+ "reqwest 0.11.27",
  "thiserror",
  "tokio",
  "tokio-util",
@@ -4684,8 +4688,11 @@ dependencies = [
  "bip39",
  "bs58",
  "chrono",
+ "nym-compact-ecash",
  "nym-contracts-common",
+ "nym-credentials-interface",
  "nym-crypto",
+ "nym-ecash-time",
  "nym-http-api-client",
  "nym-validator-client",
  "reqwest 0.11.27",

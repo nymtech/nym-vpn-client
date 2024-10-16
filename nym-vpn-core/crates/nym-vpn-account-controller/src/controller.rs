@@ -1,11 +1,17 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
+use nym_compact_ecash::Base58 as _;
 use nym_config::defaults::NymNetworkDetails;
-use nym_http_api_client::UserAgent;
-use nym_vpn_api_client::types::{Device, VpnApiAccount};
+use nym_credentials_interface::TicketType;
+use nym_ecash_time::EcashTime as _;
+use nym_http_api_client::{HttpClientError, UserAgent};
+use nym_vpn_api_client::{
+    response::NymVpnZkNymStatus,
+    types::{Device, VpnApiAccount},
+};
 use nym_vpn_store::{keys::KeyStore, mnemonic::MnemonicStorage};
 use tokio_util::sync::CancellationToken;
 use url::Url;
@@ -22,6 +28,8 @@ use crate::{
 pub enum AccountCommand {
     RefreshAccountState,
     RegisterDevice,
+    RequestZkNym,
+    GetDeviceZkNym,
 }
 
 pub struct AccountController<S>
@@ -37,10 +45,14 @@ where
     // The current state of the account
     account_state: SharedAccountState,
 
+    // Pending zk-nym requests that we are waiting for
+    pending_zk_nym: HashMap<String, NymVpnZkNymStatus>,
+
     // Receiver channel used to receive commands from the consumer
     command_rx: tokio::sync::mpsc::UnboundedReceiver<AccountCommand>,
 
-    // Sender channel only used when the consumer requests a channel to talk to the controller
+    // Sender channel primarily used when the consumer requests a channel to talk to the
+    // controller, but also to queue up commands to itself
     command_tx: tokio::sync::mpsc::UnboundedSender<AccountCommand>,
 
     // Listen for cancellation signals
@@ -61,13 +73,17 @@ where
             storage,
             account_state: SharedAccountState::new(),
             api_client: create_api_client(user_agent),
+            pending_zk_nym: Default::default(),
             command_rx,
             command_tx,
             cancel_token,
         }
     }
 
-    async fn load_account(&self) -> Result<VpnApiAccount, <S as MnemonicStorage>::StorageError> {
+    // Load account and keep the error type
+    async fn load_account_from_storage(
+        &self,
+    ) -> Result<VpnApiAccount, <S as MnemonicStorage>::StorageError> {
         self.storage
             .lock()
             .await
@@ -77,7 +93,17 @@ where
             .inspect(|account| tracing::info!("Loading account id: {}", account.id()))
     }
 
-    async fn load_device_keys(&self) -> Result<Device, <S as KeyStore>::StorageError> {
+    // Convenience function to load account and box the error
+    async fn load_account(&self) -> Result<VpnApiAccount, Error> {
+        self.load_account_from_storage()
+            .await
+            .map_err(|err| Error::MnemonicStore {
+                source: Box::new(err),
+            })
+    }
+
+    // Load device keys and keep the error type
+    async fn load_device_keys_from_storage(&self) -> Result<Device, <S as KeyStore>::StorageError> {
         self.storage
             .lock()
             .await
@@ -89,35 +115,105 @@ where
             })
     }
 
-    #[allow(unused)]
-    pub(crate) async fn register_device(&self) {
+    // Convenience function to load device keys and box the error
+    async fn load_device_keys(&self) -> Result<Device, Error> {
+        self.load_device_keys_from_storage()
+            .await
+            .map_err(|err| Error::KeyStore {
+                source: Box::new(err),
+            })
+    }
+
+    async fn register_device(&self) -> Result<(), Error> {
         tracing::info!("Registering device");
 
-        let account = match self.load_account().await {
-            Ok(account) => account,
-            Err(err) => {
-                tracing::error!("Failed to load account: {:?}", err);
-                return;
-            }
-        };
+        let account = self.load_account().await?;
+        let device = self.load_device_keys().await?;
 
-        let device = match self.load_device_keys().await {
-            Ok(device) => device,
-            Err(err) => {
-                tracing::error!("Failed to load device keys: {:?}", err);
-                return;
-            }
-        };
-
-        let result = self.api_client.register_device(&account, &device).await;
-        match result {
-            Ok(device_result) => {
+        self.api_client
+            .register_device(&account, &device)
+            .await
+            .map(|device_result| {
+                tracing::info!("Response: {:#?}", device_result);
                 tracing::info!("Device registered: {}", device_result.device_identity_key);
-            }
-            Err(err) => {
-                tracing::error!("Failed to register device: {:?}", err);
-            }
+            })
+            .map_err(Error::RegisterDevice)?;
+
+        // Queue up a refresh account state command
+        self.command_tx.send(AccountCommand::RefreshAccountState)?;
+        Ok(())
+    }
+
+    async fn request_zk_nym(&mut self) -> Result<(), Error> {
+        tracing::info!("Requesting zk-nym");
+
+        let account = self.load_account().await?;
+        let device = self.load_device_keys().await?;
+
+        let ecash_keypair = device.create_ecash_keypair();
+        let ticketbook_type = TicketType::V1MixnetEntry;
+
+        let expiration_date = nym_ecash_time::ecash_default_expiration_date();
+
+        let (withdrawal_request, _request_info) = nym_compact_ecash::withdrawal_request(
+            ecash_keypair.secret_key(),
+            expiration_date.ecash_unix_timestamp(),
+            ticketbook_type.encode(),
+        )
+        .map_err(Error::ConstructWithdrawalRequest)?;
+
+        let ecash_pubkey = ecash_keypair.public_key().to_base58_string();
+
+        let response = self
+            .api_client
+            .request_zk_nym(
+                &account,
+                &device,
+                withdrawal_request.to_bs58(),
+                ecash_pubkey,
+                ticketbook_type.to_string(),
+            )
+            .await
+            .map_err(Error::RequestZkNym)?;
+
+        tracing::info!("zk-nym requested: {:#?}", response);
+        self.pending_zk_nym.insert(response.id, response.status);
+        Ok(())
+    }
+
+    async fn get_device_zk_nym(&self) -> Result<(), Error> {
+        tracing::info!("Getting device zk-nym");
+
+        // Current pending zk-nym requests
+        tracing::info!("Pending zk-nym requests: {:#?}", self.pending_zk_nym);
+
+        let account = self.load_account().await?;
+        let device = self.load_device_keys().await?;
+
+        let zknym = self
+            .api_client
+            .get_device_zk_nyms(&account, &device)
+            .await
+            .map_err(Error::GetZkNyms)?;
+
+        // TODO: pagination
+        for zknym in zknym.items {
+            tracing::info!("zk-nym: {:#?}", zknym);
+
+            let _blinded_shares = match zknym.status {
+                NymVpnZkNymStatus::Active => zknym.blinded_shares,
+                NymVpnZkNymStatus::Pending
+                | NymVpnZkNymStatus::Revoking
+                | NymVpnZkNymStatus::Revoked
+                | NymVpnZkNymStatus::Error => {
+                    break;
+                }
+            };
+
+            // TODO: unblind and verify
+            // TODO: aggregate partial wallets
         }
+        Ok(())
     }
 
     async fn update_mnemonic_state(&self) -> Option<VpnApiAccount> {
@@ -138,19 +234,19 @@ where
     }
 
     async fn update_remote_account_state(&self, account: &VpnApiAccount) -> Result<(), Error> {
-        let account_summary = match self.api_client.get_account_summary(account).await {
-            Ok(account_summary) => {
-                tracing::info!("Account summary: {:?}", account_summary);
-                account_summary
-            }
-            Err(err) => {
-                tracing::warn!("Failed to get account summary: {:?}", err);
-                self.account_state
-                    .set_account(RemoteAccountState::NotRegistered)
-                    .await;
-                return Err(Error::GetAccountSummary);
-            }
-        };
+        tracing::info!("Updating remote account state");
+
+        let response = self.api_client.get_account_summary(account).await;
+
+        // Check if the response indicates that we are not registered
+        if let Some(403) = &response.as_ref().err().and_then(extract_status_code) {
+            self.account_state
+                .set_account(RemoteAccountState::NotRegistered)
+                .await;
+        }
+
+        let account_summary = response.map_err(Error::GetAccountSummary)?;
+        tracing::info!("Account summary: {:#?}", account_summary);
 
         self.account_state
             .set_account(RemoteAccountState::from(account_summary.account.status))
@@ -163,22 +259,17 @@ where
         Ok(())
     }
 
-    async fn update_device_state(&self, account: &VpnApiAccount) {
-        let our_device = match self.load_device_keys().await {
-            Ok(device) => device,
-            Err(err) => {
-                tracing::error!("Failed to load device keys: {:?}", err);
-                return;
-            }
-        };
+    async fn update_device_state(&self, account: &VpnApiAccount) -> Result<(), Error> {
+        tracing::info!("Updating device state");
+        let our_device = self.load_device_keys().await?;
 
-        let devices = match self.api_client.get_devices(account).await {
-            Ok(devices) => devices,
-            Err(err) => {
-                tracing::warn!("Failed to get devices: {:?}", err);
-                return;
-            }
-        };
+        let devices = self
+            .api_client
+            .get_devices(account)
+            .await
+            .map_err(Error::GetDevices)?;
+
+        tracing::info!("Registered devices: {:#?}", devices);
 
         // TODO: pagination
         let found_device = devices.items.iter().find(|device| {
@@ -190,32 +281,37 @@ where
             self.account_state
                 .set_device(DeviceState::NotRegistered)
                 .await;
-            return;
+            return Ok(());
         };
 
         self.account_state
             .set_device(DeviceState::from(found_device.status))
             .await;
+
+        Ok(())
     }
 
-    pub(crate) async fn refresh_account_state(&self) {
+    pub(crate) async fn update_shared_account_state(&self) -> Result<(), Error> {
         let Some(account) = self.update_mnemonic_state().await else {
-            return;
+            return Ok(());
         };
-        if self.update_remote_account_state(&account).await.is_ok() {
-            self.update_device_state(&account).await;
+
+        self.update_remote_account_state(&account).await?;
+        self.update_device_state(&account).await?;
+
+        if self.shared_state().is_ready_to_register_device().await {
+            self.command_tx.send(AccountCommand::RegisterDevice)?;
         }
+        Ok(())
     }
 
-    async fn handle_command(&self, command: AccountCommand) {
+    async fn handle_command(&mut self, command: AccountCommand) -> Result<(), Error> {
         tracing::info!("Received command: {:?}", command);
         match command {
-            AccountCommand::RefreshAccountState => {
-                self.refresh_account_state().await;
-            }
-            AccountCommand::RegisterDevice => {
-                self.register_device().await;
-            }
+            AccountCommand::RefreshAccountState => self.update_shared_account_state().await,
+            AccountCommand::RegisterDevice => self.register_device().await,
+            AccountCommand::RequestZkNym => self.request_zk_nym().await,
+            AccountCommand::GetDeviceZkNym => self.get_device_zk_nym().await,
         }
     }
 
@@ -223,7 +319,9 @@ where
         loop {
             tokio::select! {
                 Some(command) = self.command_rx.recv() => {
-                    self.handle_command(command).await;
+                    if let Err(err) = self.handle_command(command).await {
+                        tracing::error!("{:#?}", err);
+                    }
                 }
                 _ = self.cancel_token.cancelled() => {
                     tracing::trace!("Received cancellation signal");
@@ -259,4 +357,28 @@ fn get_nym_vpn_api_url() -> Result<Url, Error> {
 fn create_api_client(user_agent: UserAgent) -> nym_vpn_api_client::VpnApiClient {
     let nym_vpn_api_url = get_nym_vpn_api_url().unwrap();
     nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent).unwrap()
+}
+
+fn extract_status_code<E>(err: &E) -> Option<u16>
+where
+    E: std::error::Error + 'static,
+{
+    let mut source = err.source();
+    while let Some(err) = source {
+        if let Some(status) = err
+            .downcast_ref::<HttpClientError>()
+            .and_then(extract_status_code_inner)
+        {
+            return Some(status);
+        }
+        source = err.source();
+    }
+    None
+}
+
+fn extract_status_code_inner(err: &HttpClientError) -> Option<u16> {
+    match err {
+        HttpClientError::EndpointFailure { status, .. } => Some((*status).into()),
+        _ => None,
+    }
 }

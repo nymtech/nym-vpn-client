@@ -61,7 +61,10 @@ impl VpnApiClient {
             .bearer_auth(account.jwt().to_string());
 
         let request = match device {
-            Some(device) => request.header(DEVICE_AUTHORIZATION_HEADER, device.jwt().to_string()),
+            Some(device) => request.header(
+                DEVICE_AUTHORIZATION_HEADER,
+                format!("Bearer {}", device.jwt()),
+            ),
             None => request,
         };
 
@@ -109,7 +112,10 @@ impl VpnApiClient {
             .bearer_auth(account.jwt().to_string());
 
         let request = match device {
-            Some(device) => request.header(DEVICE_AUTHORIZATION_HEADER, device.jwt().to_string()),
+            Some(device) => request.header(
+                DEVICE_AUTHORIZATION_HEADER,
+                format!("Bearer {}", device.jwt()),
+            ),
             None => request,
         };
 
@@ -262,13 +268,15 @@ impl VpnApiClient {
         &self,
         account: &VpnApiAccount,
         device: &Device,
+        withdrawal_request: String,
+        ecash_pubkey: String,
+        ticketbook_type: String,
     ) -> Result<NymVpnZkNym> {
         let body = RequestZkNymRequestBody {
-            withdrawal_request: "todo!".to_string(),
-            ecash_pubkey: "todo!".to_string(),
-            ticketbook_type: "todo!".to_string(),
+            withdrawal_request,
+            ecash_pubkey,
+            ticketbook_type,
         };
-
         self.post_authorized(
             &[
                 routes::PUBLIC,

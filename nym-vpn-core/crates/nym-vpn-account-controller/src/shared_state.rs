@@ -32,24 +32,35 @@ impl SharedAccountState {
             && state.device == Some(DeviceState::Active)
     }
 
+    pub(crate) async fn is_ready_to_register_device(&self) -> bool {
+        let state = self.get().await;
+        state.mnemonic == Some(MnemonicState::Stored)
+            && state.account == Some(RemoteAccountState::Active)
+            && state.device == Some(DeviceState::NotRegistered)
+    }
+
     pub(crate) async fn set_mnemonic(&self, state: MnemonicState) {
+        let mut guard = self.inner.lock().await;
         tracing::info!("Setting mnemonic state to {:?}", state);
-        self.inner.lock().await.mnemonic = Some(state);
+        guard.mnemonic = Some(state);
     }
 
     pub(crate) async fn set_account(&self, state: RemoteAccountState) {
+        let mut guard = self.inner.lock().await;
         tracing::info!("Setting account state to {:?}", state);
-        self.inner.lock().await.account = Some(state);
+        guard.account = Some(state);
     }
 
     pub(crate) async fn set_subscription(&self, state: SubscriptionState) {
+        let mut guard = self.inner.lock().await;
         tracing::info!("Setting subscription state to {:?}", state);
-        self.inner.lock().await.subscription = Some(state);
+        guard.subscription = Some(state);
     }
 
     pub(crate) async fn set_device(&self, state: DeviceState) {
+        let mut guard = self.inner.lock().await;
         tracing::info!("Setting device state to {:?}", state);
-        self.inner.lock().await.device = Some(state);
+        guard.device = Some(state);
     }
 }
 

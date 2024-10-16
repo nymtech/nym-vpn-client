@@ -9,10 +9,14 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+nym-compact-ecash.workspace = true
 nym-config.workspace = true
+nym-credentials-interface.workspace = true
+nym-ecash-time.workspace = true
 nym-http-api-client.workspace = true
 nym-vpn-api-client = { path = "../nym-vpn-api-client" }
 nym-vpn-store = { path = "../nym-vpn-store" }
+reqwest.workspace = true
 thiserror.workspace = true
 tokio-util.workspace = true
 tokio.workspace = true

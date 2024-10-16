@@ -125,10 +125,10 @@ pub struct NymVpnZkNym {
     pub valid_from_utc: String,
     pub issued_bandwidth_in_gb: f64,
     pub blinded_shares: Vec<String>,
-    pub status: String,
+    pub status: NymVpnZkNymStatus,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum NymVpnZkNymStatus {
     Pending,

@@ -4,7 +4,7 @@
 use nym_vpn_api_client::{
     response::{
         NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnSubscription,
-        NymVpnSubscriptionsResponse, NymVpnZkNym, NymVpnZkNymResponse,
+        NymVpnSubscriptionsResponse,
     },
     types::GatewayMinPerformance,
 };
@@ -228,13 +228,13 @@ impl CommandInterfaceConnectionHandler {
 
     pub(crate) async fn handle_request_zk_nym(
         &self,
-    ) -> Result<Result<NymVpnZkNym, AccountError>, VpnCommandSendError> {
+    ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
         self.vpn_command_send(VpnServiceCommand::RequestZkNym).await
     }
 
     pub(crate) async fn handle_get_device_zk_nyms(
         &self,
-    ) -> Result<Result<NymVpnZkNymResponse, AccountError>, VpnCommandSendError> {
+    ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
         self.vpn_command_send(VpnServiceCommand::GetDeviceZkNyms)
             .await
     }
