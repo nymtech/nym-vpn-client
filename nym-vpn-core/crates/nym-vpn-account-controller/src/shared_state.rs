@@ -19,7 +19,7 @@ impl SharedAccountState {
         }
     }
 
-    async fn get(&self) -> AccountState {
+    pub async fn get(&self) -> AccountState {
         self.inner.lock().await.clone()
     }
 
@@ -64,7 +64,7 @@ impl SharedAccountState {
 }
 
 #[derive(Debug, Clone, Default, PartialEq)]
-pub(crate) struct AccountState {
+pub struct AccountState {
     mnemonic: Option<MnemonicState>,
     account: Option<RemoteAccountState>,
     subscription: Option<SubscriptionState>,

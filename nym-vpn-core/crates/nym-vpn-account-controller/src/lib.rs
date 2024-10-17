@@ -7,6 +7,7 @@
 // 3. request ticketbooks and top up the local credential store
 
 mod controller;
+mod ecash_client;
 mod error;
 mod shared_state;
 
