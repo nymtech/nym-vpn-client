@@ -3,7 +3,7 @@
 
 use std::{collections::HashMap, path::PathBuf, sync::Arc};
 
-use nym_compact_ecash::Base58 as _;
+use nym_compact_ecash::{Base58 as _, BlindedSignature};
 use nym_config::defaults::NymNetworkDetails;
 use nym_credentials::{
     AggregatedCoinIndicesSignatures, AggregatedExpirationDateSignatures, EpochVerificationKey,
@@ -17,6 +17,7 @@ use nym_vpn_api_client::{
     types::{Device, VpnApiAccount},
 };
 use nym_vpn_store::{keys::KeyStore, mnemonic::MnemonicStorage};
+use serde::{Deserialize, Serialize};
 use tokio_util::sync::CancellationToken;
 use url::Url;
 
@@ -292,6 +293,20 @@ where
         // 1. Unblind and verify
         // 2. Aggregate partial wallets
         // 3. Store in credential storage
+
+        for zk_nym in self
+            .remote_zk_nym
+            .values()
+            .filter(|zkn| matches!(zkn.status, NymVpnZkNymStatus::Active))
+        {
+            tracing::info!("Processing zk-nym: {:#?}", zk_nym);
+            for share in &zk_nym.blinded_shares {
+                let share: WalletShare = serde_json::from_str(share).unwrap();
+                dbg!(&share);
+                let blinded_sig =
+                    BlindedSignature::try_from_bs58(share.bs58_encoded_share).unwrap();
+            }
+        }
 
         Ok(())
     }
@@ -702,4 +717,40 @@ fn ticketbook_types() -> [TicketType; 4] {
         TicketType::V1WireguardEntry,
         TicketType::V1WireguardExit,
     ]
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct WalletShare {
+    pub node_index: u64,
+    pub bs58_encoded_share: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct TicketbookWalletSharesResponse {
+    pub epoch_id: u64,
+    pub shares: Vec<WalletShare>,
+    pub master_verification_key: Option<MasterVerificationKeyResponse>,
+    pub aggregated_coin_index_signatures: Option<AggregatedCoinIndicesSignaturesResponse>,
+    pub aggregated_expiration_date_signatures: Option<AggregatedExpirationDateSignaturesResponse>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct MasterVerificationKeyResponse {
+    pub epoch_id: u64,
+    pub bs58_encoded_key: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct AggregatedCoinIndicesSignaturesResponse {
+    pub signatures: AggregatedCoinIndicesSignatures,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct AggregatedExpirationDateSignaturesResponse {
+    pub signatures: AggregatedExpirationDateSignatures,
 }

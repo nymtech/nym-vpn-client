@@ -22,6 +22,7 @@ nym-vpn-api-client = { path = "../nym-vpn-api-client" }
 nym-vpn-store = { path = "../nym-vpn-store" }
 reqwest.workspace = true
 serde.workspace = true
+serde_json.workspace = true
 strum.workspace = true
 strum_macros.workspace = true
 thiserror.workspace = true
