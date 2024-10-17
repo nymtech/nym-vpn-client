@@ -64,7 +64,7 @@ impl SharedAccountState {
 }
 
 #[derive(Debug, Clone, Default, PartialEq)]
-pub(crate) struct AccountState {
+pub struct AccountState {
     mnemonic: Option<MnemonicState>,
     account: Option<RemoteAccountState>,
     subscription: Option<SubscriptionState>,
