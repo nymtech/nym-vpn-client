@@ -49,4 +49,10 @@ pub enum Error {
 
     #[error(transparent)]
     HttpClient(#[from] nym_http_api_client::HttpClientError),
+
+    #[error("trying to use epoch before it's available")]
+    NoEpoch,
+
+    #[error("failed to import zk-nym")]
+    ImportZkNym(nym_compact_ecash::CompactEcashError),
 }
