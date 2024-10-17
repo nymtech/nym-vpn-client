@@ -31,12 +31,13 @@ import nym_vpn_lib.TunnelNetworkSettings
 import nym_vpn_lib.TunnelStatusListener
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.VpnException
-import nym_vpn_lib.checkCredential
 import nym_vpn_lib.initLogger
+import nym_vpn_lib.isAccountMnemonicStored
+import nym_vpn_lib.removeAccountMnemonic
 import nym_vpn_lib.startVpn
 import nym_vpn_lib.stopVpn
+import nym_vpn_lib.storeAccountMnemonic
 import timber.log.Timber
-import java.time.Instant
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.properties.Delegates
 
@@ -77,15 +78,18 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	private var state: Tunnel.State = Tunnel.State.Down
 
 	@Throws(VpnException::class)
-	override suspend fun validateCredential(credential: String): Instant? {
-		return withContext(ioDispatcher) {
-			checkCredential(credential)
-		}
+	override suspend fun storeMnemonic(mnemonic: String) {
+		return storeAccountMnemonic(mnemonic, storagePath)
 	}
 
 	@Throws(VpnException::class)
-	override suspend fun importCredential(credential: String): Instant? {
-		return nym_vpn_lib.importCredential(credential, storagePath)
+	override suspend fun isMnemonicStored(): Boolean {
+		return isAccountMnemonicStored(storagePath)
+	}
+
+	@Throws(VpnException::class)
+	override suspend fun removeMnemonic() {
+		removeAccountMnemonic(storagePath)
 	}
 
 	override suspend fun start(tunnel: Tunnel, background: Boolean) {

@@ -17,7 +17,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,7 +27,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
@@ -44,8 +42,6 @@ import net.nymtech.nymvpn.ui.common.navigation.NavIcon
 import net.nymtech.nymvpn.ui.common.navigation.NavTitle
 import net.nymtech.nymvpn.ui.screens.settings.account.model.Device
 import net.nymtech.nymvpn.ui.theme.CustomTypography
-import net.nymtech.nymvpn.util.Constants
-import net.nymtech.nymvpn.util.extensions.durationFromNow
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.nymvpn.util.extensions.showToast
@@ -90,36 +86,36 @@ fun AccountScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 				horizontalAlignment = Alignment.Start,
 				modifier = Modifier.fillMaxSize(),
 			) {
-				appUiState.settings.credentialExpiry?.let {
-					val credentialDuration = it.durationFromNow()
-					val days = credentialDuration.toDaysPart()
-					val hours = credentialDuration.toHoursPart()
-					val durationLeft =
-						buildAnnotatedString {
-							append(days.toString())
-							append(" ")
-							append(if (days != 1L) stringResource(id = R.string.days) else stringResource(id = R.string.day))
-							append(", ")
-							append(hours.toString())
-							append(" ")
-							append(if (hours != 1) stringResource(id = R.string.hours) else stringResource(id = R.string.hour))
-							append(" ")
-							append(stringResource(id = R.string.remaining))
-						}
-					Text(
-						durationLeft.text,
-						style = CustomTypography.labelHuge,
-						color = MaterialTheme.colorScheme.onSurface,
-					)
-					LinearProgressIndicator(
-						modifier =
-						Modifier
-							.fillMaxWidth(),
-						progress = {
-							days.toFloat() / Constants.FREE_PASS_CRED_DURATION
-						},
-					)
-				}
+// 				appUiState.settings.credentialExpiry?.let {
+// 					val credentialDuration = it.durationFromNow()
+// 					val days = credentialDuration.toDaysPart()
+// 					val hours = credentialDuration.toHoursPart()
+// 					val durationLeft =
+// 						buildAnnotatedString {
+// 							append(days.toString())
+// 							append(" ")
+// 							append(if (days != 1L) stringResource(id = R.string.days) else stringResource(id = R.string.day))
+// 							append(", ")
+// 							append(hours.toString())
+// 							append(" ")
+// 							append(if (hours != 1) stringResource(id = R.string.hours) else stringResource(id = R.string.hour))
+// 							append(" ")
+// 							append(stringResource(id = R.string.remaining))
+// 						}
+// 					Text(
+// 						durationLeft.text,
+// 						style = CustomTypography.labelHuge,
+// 						color = MaterialTheme.colorScheme.onSurface,
+// 					)
+// 					LinearProgressIndicator(
+// 						modifier =
+// 						Modifier
+// 							.fillMaxWidth(),
+// 						progress = {
+// 							days.toFloat() / Constants.FREE_PASS_CRED_DURATION
+// 						},
+// 					)
+// 				}
 
 				Row(
 					horizontalArrangement = Arrangement.SpaceBetween,

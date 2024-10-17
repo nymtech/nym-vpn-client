@@ -39,30 +39,29 @@ pub async fn select_gateways(
         (entry_gateways, exit_gateways)
     };
 
-    let exit_gateway = entry_point
+    let exit_gateway = exit_point
         .lookup_gateway(&exit_gateways)
-        .await
         .map_err(|source| GatewayDirectoryError::FailedToSelectExitGateway { source })?;
 
     // Exclude the exit gateway from the list of entry gateways for privacy reasons
     entry_gateways.remove_gateway(&exit_gateway);
 
-    let entry_gateway =
-        exit_point
-            .lookup_gateway(&entry_gateways)
-            .map_err(|source| match source {
-                nym_gateway_directory::Error::NoMatchingEntryGatewayForLocation {
-                    requested_location,
-                    available_countries: _,
-                } if Some(requested_location.as_str())
-                    == exit_gateway.two_letter_iso_country_code() =>
-                {
-                    GatewayDirectoryError::SameEntryAndExitGatewayFromCountry {
-                        requested_location: requested_location.to_string(),
-                    }
+    let entry_gateway = entry_point
+        .lookup_gateway(&entry_gateways)
+        .await
+        .map_err(|source| match source {
+            nym_gateway_directory::Error::NoMatchingEntryGatewayForLocation {
+                requested_location,
+                available_countries: _,
+            } if Some(requested_location.as_str())
+                == exit_gateway.two_letter_iso_country_code() =>
+            {
+                GatewayDirectoryError::SameEntryAndExitGatewayFromCountry {
+                    requested_location: requested_location.to_string(),
                 }
-                _ => GatewayDirectoryError::FailedToSelectEntryGateway { source },
-            })?;
+            }
+            _ => GatewayDirectoryError::FailedToSelectEntryGateway { source },
+        })?;
 
     tracing::info!("Found {} entry gateways", entry_gateways.len());
     tracing::info!("Found {} exit gateways", exit_gateways.len());
@@ -82,7 +81,7 @@ pub async fn select_gateways(
         exit_gateway
             .two_letter_iso_country_code()
             .map_or_else(|| "unknown".to_string(), |code| code.to_string()),
-        entry_gateway
+        exit_gateway
             .mixnet_performance
             .map_or_else(|| "unknown".to_string(), |perf| perf.to_string()),
     );

@@ -28,7 +28,8 @@ pub(crate) fn start_vpn_service(
                 vpn_state_changes_tx,
                 vpn_command_rx,
                 cancel_token.child_token(),
-            );
+            )
+            .await;
             match service.init_storage().await {
                 Ok(()) => {
                     info!("VPN service initialized successfully");

@@ -10,4 +10,5 @@ data class AppUiState(
 	val gateways: Gateways = Gateways(),
 	val state: Tunnel.State = Tunnel.State.Down,
 	val backendMessage: BackendMessage = BackendMessage.None,
+	val isMnemonicStored: Boolean = false,
 )
