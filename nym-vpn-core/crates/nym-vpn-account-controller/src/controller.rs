@@ -2,27 +2,29 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
-    collections::HashMap,
     path::PathBuf,
     sync::Arc,
     time::{Duration, Instant},
 };
 
-use nym_compact_ecash::{Base58 as _, BlindedSignature};
+use nym_compact_ecash::{Base58 as _, BlindedSignature, VerificationKeyAuth};
 use nym_config::defaults::NymNetworkDetails;
 use nym_credentials::{
     AggregatedCoinIndicesSignatures, AggregatedExpirationDateSignatures, EpochVerificationKey,
+    IssuedTicketBook,
 };
-use nym_credentials_interface::TicketType;
-use nym_ecash_time::EcashTime as _;
+use nym_credentials_interface::{RequestInfo, TicketType};
+use nym_ecash_time::EcashTime;
 use nym_http_api_client::{HttpClientError, UserAgent};
 use nym_sdk::mixnet::CredentialStorage;
 use nym_vpn_api_client::{
     response::{NymVpnZkNym, NymVpnZkNymStatus},
     types::{Device, VpnApiAccount},
+    VpnApiClientError,
 };
 use nym_vpn_store::{keys::KeyStore, mnemonic::MnemonicStorage};
 use serde::{Deserialize, Serialize};
+use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use tokio::task::JoinError;
 use tokio_util::sync::CancellationToken;
 use url::Url;
@@ -65,15 +67,11 @@ where
     // The current state of the account
     account_state: SharedAccountState,
 
-    // Remove zk-nym status
-    remote_zk_nym: HashMap<String, NymVpnZkNym>,
-
-    // Map of zk-nym types to ticket types, since the remote doesn't returns this info
-    // TODO: make the vpn-api return this as part of NymVpnZkNym
-    zk_nym_types_map: HashMap<String, TicketType>,
+    // Keep track of the current ecash epoch
+    current_epoch: Option<u64>,
 
     // Tasks used to poll the status of zk-nyms
-    polling_tasks: tokio::task::JoinSet<Option<NymVpnZkNym>>,
+    polling_tasks: tokio::task::JoinSet<PollingResult>,
 
     // Keep track of which zknyms we have imported, so that we don't import the same twice
     // TODO: can we extend the credential store with a name field?
@@ -110,10 +108,9 @@ where
         AccountController {
             storage,
             credential_storage,
-            account_state: SharedAccountState::new(),
             api_client: create_api_client(user_agent),
-            remote_zk_nym: Default::default(),
-            zk_nym_types_map: Default::default(),
+            account_state: SharedAccountState::new(),
+            current_epoch: None,
             zk_nym_imported: Default::default(),
             polling_tasks: tokio::task::JoinSet::new(),
             command_rx,
@@ -198,7 +195,7 @@ where
         let ecash_keypair = device.create_ecash_keypair();
         let expiration_date = nym_ecash_time::ecash_default_expiration_date();
 
-        let (withdrawal_request, _request_info) = nym_compact_ecash::withdrawal_request(
+        let (withdrawal_request, request_info) = nym_compact_ecash::withdrawal_request(
             ecash_keypair.secret_key(),
             expiration_date.ecash_unix_timestamp(),
             ticketbook_type.encode(),
@@ -226,12 +223,25 @@ where
         tracing::info!("zk-nym requested: {:#?}", response);
 
         // Spawn a task to poll the status of the zk-nym
-        self.spawn_polling_task(response.id.clone(), account.clone(), device.clone());
+        self.spawn_polling_task(
+            response.id,
+            ticketbook_type,
+            request_info,
+            account.clone(),
+            device.clone(),
+        );
 
         Ok(())
     }
 
-    fn spawn_polling_task(&mut self, id: String, account: VpnApiAccount, device: Device) {
+    fn spawn_polling_task(
+        &mut self,
+        id: String,
+        ticketbook_type: TicketType,
+        request_info: RequestInfo,
+        account: VpnApiAccount,
+        device: Device,
+    ) {
         let api_client = self.api_client.clone();
         self.polling_tasks.spawn(async move {
             let start_time = Instant::now();
@@ -241,24 +251,26 @@ where
                 match api_client.get_zk_nym_by_id(&account, &device, &id).await {
                     Ok(response) if response.status != NymVpnZkNymStatus::Pending => {
                         tracing::info!("zk-nym polling finished with status: {:#?}", response);
-                        return Some(response);
+                        return PollingResult::Finished(response, ticketbook_type, request_info);
                     }
                     Ok(response) => {
                         tracing::info!("zk-nym polling not finished: {:#?}", response);
                         if start_time.elapsed() > Duration::from_secs(60) {
                             tracing::error!("zk-nym polling timed out: {}", id);
-                            return None;
+                            return PollingResult::Timeout(response);
                         }
                     }
-                    Err(err) => {
-                        tracing::error!("Failed to poll zk-nym ({}) status: {:#?}", id, err);
-                        return None;
+                    Err(error) => {
+                        tracing::error!("Failed to poll zk-nym ({}) status: {:#?}", id, error);
+                        return PollingResult::Error(PollingError { id, error });
                     }
                 }
             }
         });
     }
 
+    // Check the local credential storage to see if we need to request more zk-nyms, the proceed to
+    // request zk-nyms for each ticket type that we need.
     async fn request_zk_nym_all(&mut self) -> Result<(), Error> {
         tracing::info!("Requesting zk-nym (inner)");
 
@@ -293,8 +305,7 @@ where
         Ok(())
     }
 
-    // Get zk-nyms for the device and store them in the credential storage if they are active and
-    // we have not already stored them.
+    // Get and list zk-nyms for the device
     async fn get_device_zk_nym(&mut self) -> Result<(), Error> {
         tracing::info!("Getting device zk-nym from API");
 
@@ -340,7 +351,7 @@ where
     }
 
     #[allow(unused)]
-    async fn is_verification_key_valid(&self) -> Result<bool, Error> {
+    async fn update_ecash_epoch(&mut self) -> Result<(), Error> {
         let base_url = get_api_url()?;
         let vpn_ecash_api_client = VpnEcashApiClient::new(base_url)?;
 
@@ -349,11 +360,8 @@ where
             .await?;
         let current_epoch = aggregated_coin_indices_signatures.epoch_id;
 
-        self.credential_storage
-            .get_master_verification_key(current_epoch)
-            .await
-            .map(|key| key.is_some())
-            .map_err(Error::from)
+        self.current_epoch = Some(current_epoch);
+        Ok(())
     }
 
     async fn update_verification_key(&mut self) -> Result<(), Error> {
@@ -379,20 +387,11 @@ where
             .map_err(Error::from)
     }
 
-    #[allow(unused)]
-    async fn is_coin_indices_signatures_valid(&self) -> Result<bool, Error> {
-        let base_url = get_api_url()?;
-        let vpn_ecash_api_client = VpnEcashApiClient::new(base_url)?;
-
-        let aggregated_coin_indices_signatures = vpn_ecash_api_client
-            .get_aggregated_coin_indices_signatures()
-            .await?;
-        let current_epoch = aggregated_coin_indices_signatures.epoch_id;
-
+    async fn get_current_verification_key(&self) -> Result<Option<VerificationKeyAuth>, Error> {
+        let current_epoch = self.current_epoch.ok_or(Error::NoEpoch)?;
         self.credential_storage
-            .get_coin_index_signatures(current_epoch)
+            .get_master_verification_key(current_epoch)
             .await
-            .map(|signatures| signatures.is_some())
             .map_err(Error::from)
     }
 
@@ -415,11 +414,6 @@ where
             .insert_coin_index_signatures(&coin_indices_signatures)
             .await
             .map_err(Error::from)
-    }
-
-    #[allow(unused)]
-    async fn is_expiration_date_signatures_valid(&self) -> Result<bool, Error> {
-        todo!();
     }
 
     async fn update_expiration_date_signatures(&mut self) -> Result<(), Error> {
@@ -535,7 +529,66 @@ where
         Ok(())
     }
 
-    fn handle_polling_result(&mut self, result: Result<Option<NymVpnZkNym>, JoinError>) {
+    async fn import_zk_nym(
+        &mut self,
+        response: NymVpnZkNym,
+        ticketbook_type: TicketType,
+        request_info: RequestInfo,
+    ) -> Result<(), Error> {
+        let device = self.load_device_keys().await?;
+        let ecash_keypair = device.create_ecash_keypair();
+        // TODO: use explicit epoch id, that we include together with the request_info
+        let current_epoch = self.current_epoch.ok_or(Error::NoEpoch)?;
+        let vk_auth = self.get_current_verification_key().await?.unwrap();
+
+        let mut partial_wallets = Vec::new();
+        for blinded_share in response.blinded_shares {
+            let blinded_share: WalletShare = serde_json::from_str(&blinded_share).unwrap();
+
+            let blinded_sig =
+                BlindedSignature::try_from_bs58(&blinded_share.bs58_encoded_share).unwrap();
+
+            match nym_compact_ecash::issue_verify(
+                &vk_auth,
+                ecash_keypair.secret_key(),
+                &blinded_sig,
+                &request_info,
+                blinded_share.node_index,
+            ) {
+                Ok(partial_wallet) => partial_wallets.push(partial_wallet),
+                Err(err) => {
+                    tracing::error!("Failed to import zk-nym: {:#?}", err);
+                    return Err(Error::ImportZkNym(err));
+                }
+            }
+        }
+
+        let aggregated_wallets = nym_compact_ecash::aggregate_wallets(
+            &vk_auth,
+            ecash_keypair.secret_key(),
+            &partial_wallets,
+            &request_info,
+        )
+        .unwrap();
+
+        let expiration_date = OffsetDateTime::parse(&response.valid_until_utc, &Rfc3339).unwrap();
+
+        let ticketbook = IssuedTicketBook::new(
+            aggregated_wallets.into_wallet_signatures(),
+            current_epoch,
+            ecash_keypair.into(),
+            ticketbook_type,
+            expiration_date.ecash_date(),
+        );
+
+        self.credential_storage
+            .insert_issued_ticketbook(&ticketbook)
+            .await?;
+
+        Ok(())
+    }
+
+    async fn handle_polling_result(&mut self, result: Result<PollingResult, JoinError>) {
         tracing::info!("Handling polling result: {:#?}", result);
         let result = match result {
             Ok(result) => result,
@@ -544,10 +597,22 @@ where
                 return;
             }
         };
-        if let Some(result) = result {
-            tracing::info!("Polling task finished: {:#?}", result);
-        } else {
-            tracing::error!("Polling task finished without a result");
+        match result {
+            PollingResult::Finished(response, ticketbook_type, request_info) => {
+                tracing::info!("Polling task finished: {:#?}", response);
+                if let Err(err) = self
+                    .import_zk_nym(response, ticketbook_type, request_info)
+                    .await
+                {
+                    tracing::error!("Failed to import zk-nym: {:#?}", err);
+                }
+            }
+            PollingResult::Timeout(response) => {
+                tracing::info!("Polling task timed out: {:#?}", response);
+            }
+            PollingResult::Error(error) => {
+                tracing::error!("Polling task failed for {}: {:#?}", error.id, error.error);
+            }
         }
     }
 
@@ -612,7 +677,7 @@ where
                 }
                 _ = polling_timer.tick() => {
                     while let Some(result) = self.polling_tasks.try_join_next() {
-                        self.handle_polling_result(result);
+                        self.handle_polling_result(result).await;
                     }
                 }
                 _ = self.cancel_token.cancelled() => {
@@ -691,6 +756,19 @@ fn ticketbook_types() -> [TicketType; 4] {
         TicketType::V1WireguardEntry,
         TicketType::V1WireguardExit,
     ]
+}
+
+#[derive(Debug)]
+enum PollingResult {
+    Finished(NymVpnZkNym, TicketType, RequestInfo),
+    Timeout(NymVpnZkNym),
+    Error(PollingError),
+}
+
+#[derive(Debug)]
+struct PollingError {
+    id: String,
+    error: VpnApiClientError,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
