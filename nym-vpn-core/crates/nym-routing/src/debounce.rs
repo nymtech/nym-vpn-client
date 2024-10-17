@@ -10,7 +10,9 @@ use std::{
 };
 
 /// BurstGuard is a wrapper for a function that protects that function from being called too many
-/// times in a short amount of time. To call the function use `burst_guard.trigger()`, at that point
+/// times in a short amount of time.
+///
+/// To call the function use `burst_guard.trigger()`, at that point
 /// `BurstGuard` will wait for `buffer_period` and if no more calls to `trigger` are made then it
 /// will call the wrapped function. If another call to `trigger` is made during this wait then it
 /// will wait another `buffer_period`, this happens over and over until either
