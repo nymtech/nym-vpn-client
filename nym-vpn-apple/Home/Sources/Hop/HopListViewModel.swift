@@ -2,6 +2,7 @@ import SwiftUI
 import AppSettings
 import ConnectionManager
 import CountriesManager
+import CountriesManagerTypes
 import UIComponents
 
 public class HopListViewModel: ObservableObject {
