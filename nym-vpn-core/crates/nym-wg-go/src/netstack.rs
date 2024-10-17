@@ -16,6 +16,8 @@ use super::{
     uapi::UapiConfigBuilder, Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, PrivateKey,
     Result,
 };
+#[cfg(feature = "amnezia")]
+use crate::amnezia::AmneziaConfig;
 
 /// Netstack interface configuration.
 pub struct InterfaceConfig {
@@ -23,6 +25,8 @@ pub struct InterfaceConfig {
     pub local_addrs: Vec<IpAddr>,
     pub dns_addrs: Vec<IpAddr>,
     pub mtu: u16,
+    #[cfg(feature = "amnezia")]
+    pub azwg_config: Option<AmneziaConfig>,
 }
 
 impl fmt::Debug for InterfaceConfig {
@@ -50,6 +54,11 @@ impl Config {
             "private_key",
             self.interface.private_key.to_bytes().as_ref(),
         );
+
+        #[cfg(feature = "amnezia")]
+        if let Some(azwg_config) = &self.interface.azwg_config {
+            azwg_config.append_to(&mut config_builder);
+        }
 
         if !self.peers.is_empty() {
             config_builder.add("replace_peers", "true");
