@@ -27,19 +27,24 @@ modules:
       - type: file
         path: net.nymtech.NymVPN.metainfo.xml
       - type: file
-        path: net.nymtech.NymVPN.desktop
+        path: ../app.desktop
       - type: script
         dest-filename: run.sh
         # wrapper script to set the needed environment variables
         commands:
           # use `WEBKIT_DISABLE_DMABUF_RENDERER=1` to fix an issue with NVIDIA gpu
           # https://github.com/nymtech/nym-vpn-client/issues/305
-          - WEBKIT_DISABLE_DMABUF_RENDERER=1 LOG_FILE=1 /app/bin/nym-vpn "$@"
+          - |
+            if [ -c /dev/nvidia0 ]; then
+              export WEBKIT_DISABLE_DMABUF_RENDERER=1
+            fi
+            LOG_FILE=1 /app/bin/nym-vpn "$@"
       - type: file
-        path: icon.svg
+        path: ../icon.svg
     build-commands:
       - install -Dm755 nym-vpn /app/bin/nym-vpn
       - install -Dm755 run.sh /app/bin/run.sh
-      - install -Dm644 net.nymtech.NymVPN.desktop /app/share/applications/net.nymtech.NymVPN.desktop
+      - sed -i "s/^Icon=.*/Icon=net.nymtech.NymVPN/" app.desktop
+      - install -Dm644 app.desktop /app/share/applications/net.nymtech.NymVPN.desktop
       - install -Dm644 icon.svg /app/share/icons/hicolor/scalable/apps/net.nymtech.NymVPN.svg
       - install -Dm644 net.nymtech.NymVPN.metainfo.xml /app/share/metainfo/net.nymtech.NymVPN.metainfo.xml

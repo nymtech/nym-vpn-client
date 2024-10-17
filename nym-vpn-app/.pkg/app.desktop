@@ -4,6 +4,6 @@ Type=Application
 Version=1.0
 Comment=Decentralized, mixnet, and zero-knowledge VPN
 Exec=run.sh %U
-Icon=net.nymtech.NymVPN
+Icon=nym-vpn
 Terminal=false
 Categories=Network;
