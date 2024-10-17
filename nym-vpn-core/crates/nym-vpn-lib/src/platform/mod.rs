@@ -349,9 +349,11 @@ async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, Vp
     let entry_point = nym_gateway_directory::EntryPoint::from(config.entry_gateway);
     let exit_point = nym_gateway_directory::ExitPoint::from(config.exit_router);
 
-    let mut gateway_config = GatewayDirectoryConfig::default();
-    gateway_config.api_url = config.api_url;
-    gateway_config.nym_vpn_api_url = config.vpn_api_url;
+    let gateway_config = GatewayDirectoryConfig {
+        api_url: config.api_url,
+        nym_vpn_api_url: config.vpn_api_url,
+        ..Default::default()
+    };
 
     let nym_config = NymConfig {
         data_path: config.credential_data_path,

@@ -150,8 +150,7 @@ impl ConnectingState {
         let interface_addrs = shared_state
             .tunnel_settings
             .mixnet_tunnel_options
-            .interface_addrs
-            .clone();
+            .interface_addrs;
 
         let connected_tunnel = connected_mixnet
             .connect_mixnet_tunnel(interface_addrs)
