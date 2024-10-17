@@ -17,8 +17,8 @@ use nym_vpn_lib::{
     gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint},
     nym_config::defaults::{setup_env, var_names},
     tunnel_state_machine::{
-        DnsOptions, GatewayPerformanceOptions, MixnetEvent, MixnetTunnelOptions, NymConfig,
-        TunnelCommand, TunnelEvent, TunnelSettings, TunnelStateMachine, TunnelType,
+        DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
+        TunnelEvent, TunnelSettings, TunnelStateMachine, TunnelType,
     },
     IpPair, MixnetClientConfig, NodeIdentity, Recipient,
 };
