@@ -52,6 +52,42 @@ impl Config {
         if let Some(listen_port) = self.interface.listen_port {
             config_builder.add("listen_port", listen_port.to_string().as_str());
         }
+        config_builder.add(
+            "jc",
+            "4"
+        );
+        config_builder.add(
+            "jmin",
+            "40"
+        );
+        config_builder.add(
+            "jmax",
+            "70"
+        );
+        config_builder.add(
+            "s1",
+            "0"
+        );
+        config_builder.add(
+            "s2",
+            "0"
+        );
+        config_builder.add(
+            "h1",
+            "1"
+        );
+        config_builder.add(
+            "h2",
+            "2"
+        );
+        config_builder.add(
+            "h3",
+            "3"
+        );
+        config_builder.add(
+            "h4",
+            "4"
+        );
 
         #[cfg(target_os = "linux")]
         if let Some(fwmark) = self.interface.fwmark {

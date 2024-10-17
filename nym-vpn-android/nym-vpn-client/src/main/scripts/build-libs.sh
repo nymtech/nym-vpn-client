@@ -3,9 +3,9 @@
 echo "Building WireGuard dep"
 
 # Ensure Go compiler is accessible
-export GOROOT="$HOME/go"
-export PATH="$PATH:$GOROOT/bin"
-source "$HOME/.cargo/env"
+#export GOROOT="$HOME/go"
+#export PATH="$PATH:$GOROOT/bin"
+#source "$HOME/.cargo/env"
 
 echo "Working dir: $PWD"
 echo "NDK_HOME: $1"
@@ -14,8 +14,8 @@ archDir=$(basename $1/toolchains/llvm/prebuilt/*/)
 echo "archdir: ${archDir}"
 export ANDROID_NDK_HOME="$1"
 export NDK_TOOLCHAIN_DIR="$1/toolchains/llvm/prebuilt/${archDir}/bin"
-bash $PWD/../../wireguard/build-wireguard-go.sh
-bash $PWD/../../wireguard/libwg/build-android.sh
+bash $PWD/../../wireguard/build-wireguard-go.sh --amnezia
+bash $PWD/../../wireguard/libamnezia/build-android.sh
 echo "Building nym-vpn-lib dep"
 
 case  "$(uname -s)" in
