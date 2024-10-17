@@ -14,8 +14,8 @@ pub struct SelectedGateways {
 pub async fn select_gateways(
     gateway_directory_client: &GatewayClient,
     tunnel_type: TunnelType,
-    entry_point: EntryPoint,
-    exit_point: ExitPoint,
+    entry_point: Box<EntryPoint>,
+    exit_point: Box<ExitPoint>,
 ) -> Result<SelectedGateways, GatewayDirectoryError> {
     // The set of exit gateways is smaller than the set of entry gateways, so we start by selecting
     // the exit gateway and then filter out the exit gateway from the set of entry gateways.

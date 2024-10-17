@@ -199,8 +199,8 @@ pub enum VpnServiceStatusResult {
 impl From<ConnectionData> for ConnectedResultDetails {
     fn from(value: ConnectionData) -> Self {
         ConnectedResultDetails {
-            entry_gateway: value.entry_gateway,
-            exit_gateway: value.exit_gateway,
+            entry_gateway: *value.entry_gateway,
+            exit_gateway: *value.exit_gateway,
             specific_details: ConnectedStateDetails::from(value.tunnel),
             since: value.connected_at,
         }
@@ -212,8 +212,8 @@ impl From<TunnelConnectionData> for ConnectedStateDetails {
         match value {
             TunnelConnectionData::Mixnet(data) => {
                 ConnectedStateDetails::Mix(Box::new(MixConnectedStateDetails {
-                    nym_address: data.nym_address,
-                    exit_ipr: data.exit_ipr,
+                    nym_address: *data.nym_address,
+                    exit_ipr: *data.exit_ipr,
                     ipv4: data.ipv4,
                     ipv6: data.ipv6,
                 }))
@@ -240,8 +240,8 @@ impl From<TunnelState> for VpnServiceStatusResult {
         match value {
             TunnelState::Connected { connection_data } => {
                 Self::Connected(Box::new(ConnectedResultDetails {
-                    entry_gateway: connection_data.entry_gateway,
-                    exit_gateway: connection_data.exit_gateway,
+                    entry_gateway: *connection_data.entry_gateway,
+                    exit_gateway: *connection_data.exit_gateway,
                     specific_details: ConnectedStateDetails::from(connection_data.tunnel),
                     since: time::OffsetDateTime::now_utc(),
                 }))
@@ -712,8 +712,8 @@ where
             mixnet_tunnel_options: MixnetTunnelOptions::default(),
             gateway_performance_options: gateway_options,
             mixnet_client_config: Some(mixnet_client_config),
-            entry_point: config.entry_point.clone(),
-            exit_point: config.exit_point.clone(),
+            entry_point: Box::new(config.entry_point),
+            exit_point: Box::new(config.exit_point),
             dns,
         };
 

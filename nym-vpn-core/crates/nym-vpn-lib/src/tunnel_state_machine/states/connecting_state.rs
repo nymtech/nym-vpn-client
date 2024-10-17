@@ -134,8 +134,8 @@ impl ConnectingState {
         };
 
         let conn_data = ConnectionData {
-            entry_gateway: selected_gateways.entry.identity().clone(),
-            exit_gateway: selected_gateways.exit.identity().clone(),
+            entry_gateway: Box::new(*selected_gateways.entry.identity()),
+            exit_gateway: Box::new(*selected_gateways.exit.identity()),
             connected_at: OffsetDateTime::now_utc(),
             tunnel: tunnel_conn_data,
         };
@@ -186,8 +186,8 @@ impl ConnectingState {
         Self::set_dns(&tun_name, shared_state)?;
 
         let tunnel_conn_data = TunnelConnectionData::Mixnet(MixnetConnectionData {
-            nym_address: assigned_addresses.mixnet_client_address.clone(),
-            exit_ipr: assigned_addresses.exit_mix_addresses.0.clone(),
+            nym_address: Box::new(assigned_addresses.mixnet_client_address),
+            exit_ipr: Box::new(assigned_addresses.exit_mix_addresses.0),
             ipv4: assigned_addresses.interface_addresses.ipv4,
             ipv6: assigned_addresses.interface_addresses.ipv6,
         });

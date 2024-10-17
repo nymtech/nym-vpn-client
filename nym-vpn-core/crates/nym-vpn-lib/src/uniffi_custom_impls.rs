@@ -35,6 +35,11 @@ uniffi::custom_type!(Recipient, String);
 uniffi::custom_type!(PathBuf, String);
 uniffi::custom_type!(OffsetDateTime, i64);
 
+pub type BoxedRecepient = Box<Recipient>;
+pub type BoxedNodeIdentity = Box<NodeIdentity>;
+uniffi::custom_type!(BoxedRecepient, String);
+uniffi::custom_type!(BoxedNodeIdentity, String);
+
 impl UniffiCustomTypeConverter for NodeIdentity {
     type Builtin = String;
 
@@ -47,11 +52,35 @@ impl UniffiCustomTypeConverter for NodeIdentity {
     }
 }
 
+impl UniffiCustomTypeConverter for BoxedNodeIdentity {
+    type Builtin = String;
+
+    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
+        Ok(Box::new(NodeIdentity::from_base58_string(val)?))
+    }
+
+    fn from_custom(obj: Self) -> Self::Builtin {
+        obj.to_base58_string()
+    }
+}
+
 impl UniffiCustomTypeConverter for Recipient {
     type Builtin = String;
 
     fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
         Ok(Recipient::try_from_base58_string(val)?)
+    }
+
+    fn from_custom(obj: Self) -> Self::Builtin {
+        obj.to_string()
+    }
+}
+
+impl crate::UniffiCustomTypeConverter for BoxedRecepient {
+    type Builtin = String;
+
+    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
+        Ok(Box::new(Recipient::try_from_base58_string(val)?))
     }
 
     fn from_custom(obj: Self) -> Self::Builtin {

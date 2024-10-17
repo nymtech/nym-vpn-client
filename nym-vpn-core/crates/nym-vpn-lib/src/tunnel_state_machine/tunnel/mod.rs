@@ -84,8 +84,8 @@ pub struct MixnetConnectOptions {
     pub gateway_config: nym_gateway_directory::Config,
     pub mixnet_client_config: Option<MixnetClientConfig>,
     pub tunnel_type: TunnelType,
-    pub entry_point: EntryPoint,
-    pub exit_point: ExitPoint,
+    pub entry_point: Box<EntryPoint>,
+    pub exit_point: Box<ExitPoint>,
     pub user_agent: Option<UserAgent>,
 }
 

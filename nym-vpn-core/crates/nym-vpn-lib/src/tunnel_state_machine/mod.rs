@@ -71,10 +71,10 @@ pub struct TunnelSettings {
     pub mixnet_client_config: Option<MixnetClientConfig>,
 
     /// Entry node.
-    pub entry_point: EntryPoint,
+    pub entry_point: Box<EntryPoint>,
 
     /// Exit node.
-    pub exit_point: ExitPoint,
+    pub exit_point: Box<ExitPoint>,
 
     /// DNS configuration.
     pub dns: DnsOptions,
@@ -109,8 +109,8 @@ impl Default for TunnelSettings {
             mixnet_tunnel_options: MixnetTunnelOptions::default(),
             mixnet_client_config: None,
             gateway_performance_options: GatewayPerformanceOptions::default(),
-            entry_point: EntryPoint::Random,
-            exit_point: ExitPoint::Random,
+            entry_point: Box::new(EntryPoint::Random),
+            exit_point: Box::new(ExitPoint::Random),
             dns: DnsOptions::Default,
         }
     }
@@ -131,10 +131,10 @@ pub enum TunnelCommand {
 #[derive(Debug, Clone, Eq, PartialEq, uniffi::Record)]
 pub struct ConnectionData {
     /// Mixnet entry gateway
-    pub entry_gateway: NodeIdentity,
+    pub entry_gateway: Box<NodeIdentity>,
 
     /// Mixnet exit gateway
-    pub exit_gateway: NodeIdentity,
+    pub exit_gateway: Box<NodeIdentity>,
 
     /// When the tunnel was last established.
     pub connected_at: OffsetDateTime,
@@ -151,8 +151,8 @@ pub enum TunnelConnectionData {
 
 #[derive(Debug, Clone, Eq, PartialEq, uniffi::Record)]
 pub struct MixnetConnectionData {
-    pub nym_address: Recipient,
-    pub exit_ipr: Recipient,
+    pub nym_address: Box<Recipient>,
+    pub exit_ipr: Box<Recipient>,
     pub ipv4: Ipv4Addr,
     pub ipv6: Ipv6Addr,
 }

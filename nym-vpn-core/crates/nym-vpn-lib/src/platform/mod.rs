@@ -365,8 +365,8 @@ async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, Vp
         mixnet_tunnel_options: MixnetTunnelOptions::default(),
         gateway_performance_options: GatewayPerformanceOptions::default(),
         mixnet_client_config: None,
-        entry_point,
-        exit_point,
+        entry_point: Box::new(entry_point),
+        exit_point: Box::new(exit_point),
         dns: DnsOptions::default(),
     };
 
@@ -441,12 +441,12 @@ fn nym_vpn_status_from_tunnel_state(value: &TunnelState) -> Option<NymVpnStatus>
         TunnelState::Connected { connection_data } => Some(match &connection_data.tunnel {
             TunnelConnectionData::Mixnet(mixnet_data) => NymVpnStatus::MixConnectInfo {
                 mix_connection_info: MixConnectionInfo {
-                    nym_address: mixnet_data.nym_address,
-                    entry_gateway: connection_data.entry_gateway,
+                    nym_address: *mixnet_data.nym_address,
+                    entry_gateway: *connection_data.entry_gateway,
                 },
                 mix_exit_connection_info: MixExitConnectionInfo {
-                    exit_gateway: connection_data.exit_gateway,
-                    exit_ipr: mixnet_data.exit_ipr,
+                    exit_gateway: *connection_data.exit_gateway,
+                    exit_ipr: *mixnet_data.exit_ipr,
                     ips: IpPair {
                         ipv4: mixnet_data.ipv4,
                         ipv6: mixnet_data.ipv6,
@@ -455,12 +455,12 @@ fn nym_vpn_status_from_tunnel_state(value: &TunnelState) -> Option<NymVpnStatus>
             },
             TunnelConnectionData::Wireguard(data) => NymVpnStatus::WgConnectInfo {
                 entry_connection_info: WireguardConnectionInfo {
-                    gateway_id: connection_data.entry_gateway,
+                    gateway_id: *connection_data.entry_gateway,
                     public_key: data.entry.public_key.to_base64(),
                     private_ipv4: data.entry.private_ipv4,
                 },
                 exit_connection_info: WireguardConnectionInfo {
-                    gateway_id: connection_data.exit_gateway,
+                    gateway_id: *connection_data.exit_gateway,
                     public_key: data.exit.public_key.to_base64(),
                     private_ipv4: data.exit.private_ipv4,
                 },

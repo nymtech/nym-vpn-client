@@ -220,8 +220,8 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> anyhow:
         mixnet_client_config: Some(mixnet_client_config),
         gateway_performance_options: GatewayPerformanceOptions::default(),
         mixnet_tunnel_options,
-        entry_point,
-        exit_point,
+        entry_point: Box::new(entry_point),
+        exit_point: Box::new(exit_point),
         dns,
     };
 
