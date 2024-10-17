@@ -17,7 +17,7 @@ import (
 	"unsafe"
 
 	"github.com/nymtech/nym-vpn-client/wireguard/libwg/container"
-	"golang.zx2c4.com/wireguard/device"
+	"github.com/amnezia-vpn/amneziawg-go/device"
 )
 
 const (
