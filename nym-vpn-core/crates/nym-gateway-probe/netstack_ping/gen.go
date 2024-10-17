@@ -31,6 +31,7 @@ typedef struct NetstackRequestGoRef {
   uint64_t send_timeout_sec;
   uint64_t recv_timeout_sec;
   uint64_t download_timeout_sec;
+  struct StringRef awg_args;
 } NetstackRequestGoRef;
 
 typedef struct NetstackResponseRef {
@@ -232,6 +233,7 @@ type NetstackRequestGo struct {
 	send_timeout_sec     uint64
 	recv_timeout_sec     uint64
 	download_timeout_sec uint64
+	awg_args             string
 }
 
 func newNetstackRequestGo(p C.NetstackRequestGoRef) NetstackRequestGo {
@@ -248,6 +250,7 @@ func newNetstackRequestGo(p C.NetstackRequestGoRef) NetstackRequestGo {
 		send_timeout_sec:     newC_uint64_t(p.send_timeout_sec),
 		recv_timeout_sec:     newC_uint64_t(p.recv_timeout_sec),
 		download_timeout_sec: newC_uint64_t(p.download_timeout_sec),
+		awg_args:             newString(p.awg_args),
 	}
 }
 func cntNetstackRequestGo(s *NetstackRequestGo, cnt *uint) [0]C.NetstackRequestGoRef {
@@ -269,6 +272,7 @@ func refNetstackRequestGo(p *NetstackRequestGo, buffer *[]byte) C.NetstackReques
 		send_timeout_sec:     refC_uint64_t(&p.send_timeout_sec, buffer),
 		recv_timeout_sec:     refC_uint64_t(&p.recv_timeout_sec, buffer),
 		download_timeout_sec: refC_uint64_t(&p.download_timeout_sec, buffer),
+		awg_args:             refString(&p.awg_args, buffer),
 	}
 }
 

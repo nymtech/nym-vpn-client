@@ -5103,6 +5103,7 @@ dependencies = [
  "hex",
  "ipnetwork",
  "nym-windows",
+ "rand 0.8.5",
  "thiserror",
  "tracing",
  "windows-sys 0.52.0",

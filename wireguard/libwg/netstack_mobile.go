@@ -15,9 +15,10 @@ import (
 	"strings"
 
 	"github.com/nymtech/nym-vpn-client/wireguard/libwg/logging"
-	"golang.zx2c4.com/wireguard/conn"
-	"golang.zx2c4.com/wireguard/device"
-	"golang.zx2c4.com/wireguard/tun/netstack"
+
+	"github.com/amnezia-vpn/amneziawg-go/conn"
+	"github.com/amnezia-vpn/amneziawg-go/device"
+	"github.com/amnezia-vpn/amneziawg-go/tun/netstack"
 )
 
 //export wgNetTurnOn
