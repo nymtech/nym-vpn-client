@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-	namespace = "net.nymtech.localizationutil"
+	namespace = "${Constants.NAMESPACE_ROOT}.localizationutil"
 	compileSdk = Constants.COMPILE_SDK
 
 	defaultConfig {
 		minSdk = Constants.MIN_SDK
 
-		buildConfigField("String[]", "LANGUAGES", "new String[]{ ${languageList().joinToString(separator = ", ") { "\"$it\"" }} }")
+		buildConfigField("String[]", "LANGUAGES", "new String[]{ ${getSupportlanguages().joinToString(separator = ", ") { "\"$it\"" }} }")
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 		consumerProguardFiles("consumer-rules.pro")
@@ -33,11 +33,11 @@ android {
 		}
 	}
 	compileOptions {
-		sourceCompatibility = Constants.JAVA_VERSION
-		targetCompatibility = Constants.JAVA_VERSION
+		sourceCompatibility = getJavaVersion()
+		targetCompatibility = getJavaVersion()
 	}
 	kotlinOptions {
-		jvmTarget = Constants.JVM_TARGET
+		jvmTarget = getJavaTarget()
 	}
 	buildFeatures {
 		buildConfig = true

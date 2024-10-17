@@ -27,7 +27,7 @@ android {
 		versionName = determineVersionName()
 
 		// keep all language resources
-		resourceConfigurations.addAll(languageList())
+		resourceConfigurations.addAll(getSupportlanguages())
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 		vectorDrawables {
@@ -65,8 +65,7 @@ android {
 							"-${variant.versionName}"
 					buildConfigField("String", "APP_NAME", "\"${fullName}\"")
 					variant.resValue("string", "fullVersionName", fullName)
-					val outputFileName =
-						"$fullName.apk"
+					val outputFileName = "$fullName.apk"
 					output.outputFileName = outputFileName
 				}
 		}
@@ -121,12 +120,12 @@ android {
 	}
 	compileOptions {
 		isCoreLibraryDesugaringEnabled = true
-		sourceCompatibility = Constants.JAVA_VERSION
-		targetCompatibility = Constants.JAVA_VERSION
+		sourceCompatibility = getJavaVersion()
+		targetCompatibility = getJavaVersion()
 	}
 
 	kotlinOptions {
-		jvmTarget = Constants.JVM_TARGET
+		jvmTarget = getJavaTarget()
 	}
 
 	kotlin {
@@ -139,7 +138,7 @@ android {
 	}
 
 	licensee {
-		Constants.allowedLicenses.forEach { allow(it) }
+		getAllowedLicenses().forEach { allow(it) }
 		allowUrl(Constants.ANDROID_TERMS_URL)
 		allowUrl(Constants.XZING_LICENSE_URL)
 	}
