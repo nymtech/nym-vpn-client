@@ -15,6 +15,7 @@ pub struct NetstackRequest {
     pub num_ping: u8,
     pub send_timeout_sec: u64,
     pub recv_timeout_sec: u64,
+    pub awg_args: String,
 }
 
 impl Default for NetstackRequest {
@@ -27,9 +28,10 @@ impl Default for NetstackRequest {
             dns: "1.1.1.1".to_string(),
             ping_hosts: vec!["nymtech.net".to_string()],
             ping_ips: vec!["1.1.1.1".to_string()],
-            num_ping: 3,
-            send_timeout_sec: 1,
-            recv_timeout_sec: 2,
+            num_ping: 10,
+            send_timeout_sec: 3,
+            recv_timeout_sec: 3,
+            awg_args: Default::default(),
         }
     }
 }
