@@ -5,6 +5,9 @@ use std::{collections::HashMap, path::PathBuf, sync::Arc};
 
 use nym_compact_ecash::Base58 as _;
 use nym_config::defaults::NymNetworkDetails;
+use nym_credentials::{
+    AggregatedCoinIndicesSignatures, AggregatedExpirationDateSignatures, EpochVerificationKey,
+};
 use nym_credentials_interface::TicketType;
 use nym_ecash_time::EcashTime as _;
 use nym_http_api_client::{HttpClientError, UserAgent};
@@ -18,6 +21,7 @@ use tokio_util::sync::CancellationToken;
 use url::Url;
 
 use crate::{
+    ecash_client::VpnEcashApiClient,
     error::Error,
     shared_state::{
         DeviceState, MnemonicState, RemoteAccountState, SharedAccountState, SubscriptionState,
@@ -316,6 +320,70 @@ where
         request_zk_nym
     }
 
+    async fn update_credential_signatures(&mut self) -> Result<(), Error> {
+        tracing::info!("Updating credential signatures");
+
+        let base_url = get_api_url()?;
+        tracing::info!("Using base url: {}", base_url);
+
+        let vpn_ecash_api_client = VpnEcashApiClient::new(base_url)?;
+
+        tracing::info!("Fetching master verification key");
+        let master_verification_key = vpn_ecash_api_client.get_master_verification_key().await?;
+
+        tracing::info!("Fetching aggregated coin indices signatures");
+        let aggregated_coin_indices_signatures = vpn_ecash_api_client
+            .get_aggregated_coin_indices_signatures()
+            .await?;
+
+        tracing::info!("Fetching aggregated expiration data signatures");
+        let aggregated_expiration_data_signatures = vpn_ecash_api_client
+            .get_aggregated_expiration_data_signatures()
+            .await?;
+
+        let current_epoch = aggregated_coin_indices_signatures.epoch_id;
+        tracing::info!("Current epoch: {}", current_epoch);
+
+        {
+            let verification_key = EpochVerificationKey {
+                epoch_id: current_epoch,
+                key: master_verification_key.key,
+            };
+
+            tracing::info!("Inserting master verification key");
+            self.credential_storage
+                .insert_master_verification_key(&verification_key)
+                .await?;
+        }
+
+        {
+            let coin_indices_signatures = AggregatedCoinIndicesSignatures {
+                epoch_id: aggregated_coin_indices_signatures.epoch_id,
+                signatures: aggregated_coin_indices_signatures.signatures,
+            };
+
+            tracing::info!("Inserting coin index signatures");
+            self.credential_storage
+                .insert_coin_index_signatures(&coin_indices_signatures)
+                .await?;
+        }
+
+        {
+            let expiration_date_signatures = AggregatedExpirationDateSignatures {
+                epoch_id: aggregated_expiration_data_signatures.epoch_id,
+                expiration_date: aggregated_expiration_data_signatures.expiration_date,
+                signatures: aggregated_expiration_data_signatures.signatures,
+            };
+
+            tracing::info!("Inserting expiration date signatures");
+            self.credential_storage
+                .insert_expiration_date_signatures(&expiration_date_signatures)
+                .await?;
+        }
+
+        Ok(())
+    }
+
     async fn update_remote_zk_nym_status(&mut self) -> Result<(), Error> {
         tracing::info!("Updating remote zk-nym status");
         let account = self.load_account().await?;
@@ -489,6 +557,13 @@ where
             tracing::error!("Failed to print credential storage info: {:#?}", err);
         }
 
+        self.update_credential_signatures()
+            .await
+            .inspect_err(|err| {
+                tracing::error!("Failed to update credential signatures: {:#?}", err);
+            })
+            .ok();
+
         loop {
             tokio::select! {
                 Some(command) = self.command_rx.recv() => {
@@ -518,12 +593,20 @@ where
     }
 }
 
+fn get_api_url() -> Result<Url, Error> {
+    NymNetworkDetails::new_from_env()
+        .endpoints
+        .first()
+        .unwrap()
+        .api_url()
+        .ok_or(Error::MissingApiUrl)
+        .inspect(|url| tracing::info!("Using nym-api url: {}", url))
+}
+
 fn get_nym_vpn_api_url() -> Result<Url, Error> {
     NymNetworkDetails::new_from_env()
-        .nym_vpn_api_url
-        .ok_or(Error::MissingApiUrl)?
-        .parse()
-        .map_err(|_| Error::InvalidApiUrl)
+        .nym_vpn_api_url()
+        .ok_or(Error::MissingApiUrl)
         .inspect(|url| tracing::info!("Using nym-vpn-api url: {}", url))
 }
 
