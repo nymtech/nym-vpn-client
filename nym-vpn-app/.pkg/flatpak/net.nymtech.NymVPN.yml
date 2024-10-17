@@ -22,7 +22,7 @@ modules:
       - type: file
         url: https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-app-v0.2.3/nym-vpn_0.2.3_linux_x64
         sha256: bfc302e582d086c691ac6038bc626ec94f7dae99eb8790ef66785a106a8f9a1c
-        only-arches: [ x86_64 ]
+        only-arches: [x86_64]
         dest-filename: nym-vpn
       - type: file
         path: net.nymtech.NymVPN.metainfo.xml
