@@ -91,6 +91,7 @@ public final class ConnectionManager: ObservableObject {
         setup()
     }
 #endif
+
 #if os(macOS)
     public init(
         appSettings: AppSettings = AppSettings.shared,
@@ -194,6 +195,7 @@ private extension ConnectionManager {
     func setup() {
         setupTunnelManagerObservers()
         setupCountriesManagerObserver()
+        setupAppSettingsObservers()
     }
 
     func setupTunnelManagerObservers() {
@@ -221,6 +223,7 @@ private extension ConnectionManager {
     func setup() {
         setupGRPCManagerObservers()
         setupCountriesManagerObserver()
+        setupAppSettingsObservers()
     }
 
     func setupGRPCManagerObservers() {
@@ -359,6 +362,13 @@ private extension ConnectionManager {
         .store(in: &cancellables)
 
         countriesManager.$exitCountries.sink { [weak self] _ in
+            self?.updateCountries()
+        }
+        .store(in: &cancellables)
+    }
+
+    func setupAppSettingsObservers() {
+        appSettings.$isEntryLocationSelectionOnPublisher.sink { [weak self] _ in
             self?.updateCountries()
         }
         .store(in: &cancellables)

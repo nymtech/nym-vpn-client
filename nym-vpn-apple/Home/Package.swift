@@ -29,9 +29,9 @@ let package = Package(
                 "UIComponents",
                 "Settings",
                 .product(name: "CountriesManager", package: "Services"),
+                .product(name: "CountriesManagerTypes", package: "Services"),
                 .product(name: "ConnectionManager", package: "Services"),
                 .product(name: "ExternalLinkManager", package: "Services"),
-                .product(name: "Migrations", package: "Services"),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS]))
             ],

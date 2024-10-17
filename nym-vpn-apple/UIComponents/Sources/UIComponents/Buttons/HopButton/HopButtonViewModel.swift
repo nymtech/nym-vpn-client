@@ -53,15 +53,39 @@ private extension HopButtonViewModel {
             case .entry:
                 isQuickest = connectionManager.entryGateway.isQuickest
                 countryCode = connectionManager.entryGateway.countryCode
-                text = countriesManager.country(with: countryCode ?? "", isEntryHop: hopType == .entry)?.name
+                switch connectionManager.connectionType {
+                case .mixnet5hop:
+                    text = countryName(for: countryCode ?? "", countryType: .entry)
+                case .wireguard:
+                    text = countryName(for: countryCode ?? "", countryType: .vpn)
+                }
             case .exit:
                 isQuickest = connectionManager.exitRouter.isQuickest
                 countryCode = connectionManager.exitRouter.countryCode
-                text = countriesManager.country(with: countryCode ?? "", isEntryHop: false)?.name
+                switch connectionManager.connectionType {
+                case .mixnet5hop:
+                    text = countryName(for: countryCode ?? "", countryType: .exit)
+                case .wireguard:
+                    text = countryName(for: countryCode ?? "", countryType: .vpn)
+                }
             }
 
-            guard let text else { return countryName = isQuickest ? "fastest".localizedString : nil }
+            guard let text
+            else {
+                return countryName = isQuickest ? "fastest".localizedString : nil
+            }
             countryName = isQuickest ? "fastest".localizedString + " (\(text))" : text
+        }
+    }
+
+    func countryName(for countryCode: String, countryType: CountryType) -> String? {
+        switch countryType {
+        case .entry:
+            countriesManager.country(with: countryCode, countryType: .entry)?.name
+        case .exit:
+            countriesManager.country(with: countryCode, countryType: .exit)?.name
+        case .vpn:
+            countriesManager.country(with: countryCode, countryType: .vpn)?.name
         }
     }
 }
