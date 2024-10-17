@@ -29,8 +29,8 @@ pub enum Error {
         source: nym_gateway_directory::Error,
     },
 
-    #[error("WireGuard gateway client error: {source}")]
-    WgGatewayClientError {
+    #[error("failed to register wireguard with the gateway: {source}")]
+    RegisterWireguard {
         gateway_id: String,
         authenticator_address: Box<nym_gateway_directory::Recipient>,
         #[source]
@@ -148,7 +148,7 @@ impl<St: Storage> BandwidthController<St> {
         let wg_gateway_data = wg_gateway_client
             .register_wireguard(gateway_host, Some(credential.data))
             .await
-            .map_err(|source| Error::WgGatewayClientError {
+            .map_err(|source| Error::RegisterWireguard {
                 gateway_id: gateway_id.to_base58_string(),
                 authenticator_address: Box::new(authenticator_address),
                 source,
