@@ -32,7 +32,7 @@ const _: () = assert!(USED_VERSION == LATEST_VERSION || USED_VERSION + 1 == LATE
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum ClientMessage {
     Initial(InitMessage),
-    Final(FinalMessage),
+    Final(Box<FinalMessage>),
     Query(PeerPublicKey),
 }
 
@@ -143,8 +143,8 @@ impl AuthClient {
             ClientMessage::Initial(init_message) => {
                 AuthenticatorRequest::new_initial_request(init_message, self.nym_address)
             }
-            ClientMessage::Final(gateway_client) => {
-                AuthenticatorRequest::new_final_request(gateway_client, self.nym_address)
+            ClientMessage::Final(final_message) => {
+                AuthenticatorRequest::new_final_request(*final_message, self.nym_address)
             }
             ClientMessage::Query(peer_public_key) => {
                 AuthenticatorRequest::new_query_request(peer_public_key, self.nym_address)
