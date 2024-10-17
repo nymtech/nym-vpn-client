@@ -13,9 +13,6 @@ pub enum Error {
     #[error("missing API URL")]
     MissingApiUrl,
 
-    #[error("invalid API URL")]
-    InvalidApiUrl,
-
     #[error("mnemonic store error")]
     MnemonicStore {
         source: Box<dyn std::error::Error + Send + Sync>,
@@ -49,4 +46,7 @@ pub enum Error {
 
     #[error("failed to send request zk-nym request")]
     RequestZkNym(#[source] nym_vpn_api_client::VpnApiClientError),
+
+    #[error(transparent)]
+    HttpClient(#[from] nym_http_api_client::HttpClientError),
 }
