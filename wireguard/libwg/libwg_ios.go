@@ -14,9 +14,9 @@ import (
 
 	"github.com/nymtech/nym-vpn-client/wireguard/libwg/logging"
 	"golang.org/x/sys/unix"
-	"golang.zx2c4.com/wireguard/conn"
-	"golang.zx2c4.com/wireguard/device"
-	"golang.zx2c4.com/wireguard/tun"
+	"github.com/amnezia-vpn/amneziawg-go/conn"
+	"github.com/amnezia-vpn/amneziawg-go/device"
+	"github.com/amnezia-vpn/amneziawg-go/tun"
 )
 
 // Redefined here because otherwise the compiler doesn't realize it's a type alias for a type that's safe to export.

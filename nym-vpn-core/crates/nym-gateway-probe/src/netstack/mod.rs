@@ -9,6 +9,7 @@ pub struct NetstackRequest {
     endpoint: String,
     v4_ping_config: PingConfig,
     v6_ping_config: PingConfig,
+    awg_args: String,
 }
 
 pub struct PingConfig {
@@ -54,9 +55,9 @@ impl Default for PingConfig {
             dns: Default::default(),
             ping_hosts: vec![],
             ping_ips: vec![],
-            num_ping: 3,
-            send_timeout_sec: 1,
-            recv_timeout_sec: 2,
+            num_ping: 10,
+            send_timeout_sec: 3,
+            recv_timeout_sec: 3,
         }
     }
 }
@@ -70,11 +71,13 @@ impl NetstackRequest {
         endpoint: &str,
         dns_v4: Option<String>,
         dns_v6: Option<String>,
+        awg_args: &str,
     ) -> Self {
         Self {
             private_key: private_key.to_string(),
             public_key: public_key.to_string(),
             endpoint: endpoint.to_string(),
+            awg_args: awg_args.to_string(),
             v4_ping_config: PingConfig::default_v4(wg_ip4, dns_v4),
             v6_ping_config: PingConfig::default_v6(wg_ip6, dns_v6),
         }
@@ -99,6 +102,7 @@ impl Default for NetstackRequest {
             endpoint: Default::default(),
             v4_ping_config: PingConfig::default_v4(Default::default(), None),
             v6_ping_config: PingConfig::default_v6(Default::default(), None),
+            awg_args: Default::default(),
         }
     }
 }

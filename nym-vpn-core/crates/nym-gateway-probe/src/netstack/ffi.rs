@@ -18,6 +18,7 @@ pub struct NetstackRequestGo {
     num_ping: u8,
     send_timeout_sec: u64,
     recv_timeout_sec: u64,
+    awg_args: String,
 }
 
 impl NetstackRequestGo {
@@ -34,6 +35,7 @@ impl NetstackRequestGo {
             num_ping: req.v4_ping_config.num_ping,
             send_timeout_sec: req.v4_ping_config.send_timeout_sec,
             recv_timeout_sec: req.v4_ping_config.recv_timeout_sec,
+            awg_args: req.awg_args.clone(),
         }
     }
 
@@ -50,6 +52,7 @@ impl NetstackRequestGo {
             num_ping: req.v6_ping_config.num_ping,
             send_timeout_sec: req.v6_ping_config.send_timeout_sec,
             recv_timeout_sec: req.v6_ping_config.recv_timeout_sec,
+            awg_args: req.awg_args.clone(),
         }
     }
 }
