@@ -532,13 +532,13 @@ where
                     break;
                 }
                 else => {
-                    tracing::warn!("Event loop is interrupted.");
+                    tracing::warn!("Event loop is interrupted");
                     break;
                 }
             }
         }
 
-        tracing::info!("Exiting vpn service run loop.");
+        tracing::info!("Exiting vpn service run loop");
 
         if let Err(e) = self.state_machine_handle.await {
             tracing::error!("Failed to join on state machine handle: {}", e);
