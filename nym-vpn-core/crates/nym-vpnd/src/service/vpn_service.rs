@@ -644,7 +644,7 @@ where
     async fn handle_connect(
         &mut self,
         connect_args: ConnectArgs,
-        user_agent: nym_vpn_lib::UserAgent,
+        _user_agent: nym_vpn_lib::UserAgent, // todo: use user-agent!
     ) -> VpnServiceConnectResult {
         let ConnectArgs {
             entry,

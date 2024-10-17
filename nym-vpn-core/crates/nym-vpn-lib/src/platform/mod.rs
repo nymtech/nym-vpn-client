@@ -168,7 +168,7 @@ async fn remove_account_mnemonic(path: &str) -> Result<bool, VpnError> {
         })
 }
 
-#[allow(non_snake_case)]
+#[allow(non_snake_case, dead_code)]
 pub fn getAccountSummary(
     path: String,
     nym_vpn_api_url: Url,
@@ -177,6 +177,7 @@ pub fn getAccountSummary(
     RUNTIME.block_on(get_account_summary(path, nym_vpn_api_url, user_agent))
 }
 
+#[allow(dead_code)]
 async fn get_account_summary(
     path: String,
     nym_vpn_api_url: Url,
