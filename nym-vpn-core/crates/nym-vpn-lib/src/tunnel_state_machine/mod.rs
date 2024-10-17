@@ -11,6 +11,7 @@ mod tun_ipv6;
 mod tunnel;
 
 use std::{
+    fmt,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     path::PathBuf,
 };
@@ -436,3 +437,73 @@ impl Error {
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
+
+impl fmt::Display for TunnelState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Disconnected => f.write_str("Disconnected"),
+            Self::Connecting => f.write_str("Connecting"),
+            Self::Connected { connection_data } => match connection_data.tunnel {
+                TunnelConnectionData::Mixnet(ref data) => {
+                    write!(
+                        f,
+                        "Connected Mixnet tunnel with entry {} and exit {}",
+                        data.nym_address.gateway().to_base58_string(),
+                        data.exit_ipr.gateway().to_base58_string(),
+                    )
+                }
+                TunnelConnectionData::Wireguard(ref data) => {
+                    write!(
+                        f,
+                        "Connected WireGuard tunnel with entry {} and exit {}",
+                        data.entry.endpoint, data.exit.endpoint
+                    )
+                }
+            },
+            Self::Disconnecting { after_disconnect } => match after_disconnect {
+                ActionAfterDisconnect::Nothing => f.write_str("Disconnecting"),
+                ActionAfterDisconnect::Reconnect => f.write_str("Disconnecting to reconnect"),
+                ActionAfterDisconnect::Error(_) => f.write_str("Disconnecting because of an error"),
+            },
+            Self::Error(reason) => {
+                write!(f, "Error state: {:?}", reason)
+            }
+        }
+    }
+}
+
+impl fmt::Display for MixnetEvent {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Bandwidth(event) => write!(f, "{}", event),
+            Self::Connection(event) => write!(f, "{}", event),
+        }
+    }
+}
+
+impl fmt::Display for ConnectionEvent {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let s = match self {
+            Self::ConnectedIpv4 => "Connected with IPv4",
+            Self::ConnectedIpv6 => "Connected with IPv6",
+            Self::EntryGatewayDown => {
+                "Entry gateway appears down - it's not routing our mixnet traffic"
+            }
+            Self::ExitGatewayDownIpv4 => "Exit gateway (or ipr) appears down - it's not responding to IPv4 traffic",
+            Self::ExitGatewayDownIpv6 => "Exit gateway (or ipr) appears down - it's not responding to IPv6 traffic",
+            Self::ExitGatewayRoutingErrorIpv4 => "Exit gateway (or ipr) appears to be having issues routing and forwarding our external IPv4 traffic",
+            Self::ExitGatewayRoutingErrorIpv6 => "Exit gateway (or ipr) appears to be having issues routing and forwarding our external IPv6 traffic",
+        };
+
+        f.write_str(s)
+    }
+}
+
+impl fmt::Display for BandwidthEvent {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::NoBandwidth => f.write_str("No bandwidth"),
+            Self::RemainingBandwidth(value) => write!(f, "Remaining bandwidth: {}", value),
+        }
+    }
+}

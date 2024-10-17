@@ -17,8 +17,8 @@ use nym_vpn_lib::{
     gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint},
     nym_config::defaults::{setup_env, var_names},
     tunnel_state_machine::{
-        DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
-        TunnelSettings, TunnelStateMachine, TunnelType,
+        DnsOptions, GatewayPerformanceOptions, MixnetEvent, MixnetTunnelOptions, NymConfig,
+        TunnelCommand, TunnelEvent, TunnelSettings, TunnelStateMachine, TunnelType,
     },
     IpPair, MixnetClientConfig, NodeIdentity, Recipient,
 };
@@ -244,7 +244,14 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> anyhow:
     loop {
         tokio::select! {
             Some(event) = event_rx.recv() => {
-                tracing::info!("Received event: {:?}", event);
+                match event {
+                    TunnelEvent::NewState(new_state) => {
+                        tracing::info!("New state: {}", new_state);
+                    }
+                    TunnelEvent::MixnetEvent(event) => {
+                        tracing::info!("Mixnet event: {}", event);
+                    }
+                }
             }
             _ = shutdown_token.cancelled() => {
                 tracing::info!("Cancellation received. Breaking event loop.");
