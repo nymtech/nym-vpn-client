@@ -1,7 +1,12 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{collections::HashMap, path::PathBuf, sync::Arc};
+use std::{
+    collections::HashMap,
+    path::PathBuf,
+    sync::Arc,
+    time::{Duration, Instant},
+};
 
 use nym_compact_ecash::{Base58 as _, BlindedSignature};
 use nym_config::defaults::NymNetworkDetails;
@@ -18,6 +23,7 @@ use nym_vpn_api_client::{
 };
 use nym_vpn_store::{keys::KeyStore, mnemonic::MnemonicStorage};
 use serde::{Deserialize, Serialize};
+use tokio::task::JoinError;
 use tokio_util::sync::CancellationToken;
 use url::Url;
 
@@ -66,6 +72,9 @@ where
     // TODO: make the vpn-api return this as part of NymVpnZkNym
     zk_nym_types_map: HashMap<String, TicketType>,
 
+    // Tasks used to poll the status of zk-nyms
+    polling_tasks: tokio::task::JoinSet<Option<NymVpnZkNym>>,
+
     // Keep track of which zknyms we have imported, so that we don't import the same twice
     // TODO: can we extend the credential store with a name field?
     #[allow(unused)]
@@ -106,6 +115,7 @@ where
             remote_zk_nym: Default::default(),
             zk_nym_types_map: Default::default(),
             zk_nym_imported: Default::default(),
+            polling_tasks: tokio::task::JoinSet::new(),
             command_rx,
             command_tx,
             cancel_token,
@@ -198,7 +208,7 @@ where
         let ecash_pubkey = ecash_keypair.public_key().to_base58_string();
 
         // Insert pending request into credential storage?
-        // Since we the id for the request is a string for the api, and a number in the storage,
+        // Since the id for the request is a string for the api, and a number in the storage,
         // this would be awkard.
 
         let response = self
@@ -214,10 +224,39 @@ where
             .map_err(Error::RequestZkNym)?;
 
         tracing::info!("zk-nym requested: {:#?}", response);
-        self.remote_zk_nym
-            .insert(response.id.clone(), response.clone());
-        self.zk_nym_types_map.insert(response.id, ticketbook_type);
+
+        // Spawn a task to poll the status of the zk-nym
+        self.spawn_polling_task(response.id.clone(), account.clone(), device.clone());
+
         Ok(())
+    }
+
+    fn spawn_polling_task(&mut self, id: String, account: VpnApiAccount, device: Device) {
+        let api_client = self.api_client.clone();
+        self.polling_tasks.spawn(async move {
+            let start_time = Instant::now();
+            loop {
+                tracing::info!("polling zk-nym status: {}", id);
+                tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+                match api_client.get_zk_nym_by_id(&account, &device, &id).await {
+                    Ok(response) if response.status != NymVpnZkNymStatus::Pending => {
+                        tracing::info!("zk-nym polling finished with status: {:#?}", response);
+                        return Some(response);
+                    }
+                    Ok(response) => {
+                        tracing::info!("zk-nym polling not finished: {:#?}", response);
+                        if start_time.elapsed() > Duration::from_secs(60) {
+                            tracing::error!("zk-nym polling timed out: {}", id);
+                            return None;
+                        }
+                    }
+                    Err(err) => {
+                        tracing::error!("Failed to poll zk-nym ({}) status: {:#?}", id, err);
+                        return None;
+                    }
+                }
+            }
+        });
     }
 
     async fn request_zk_nym_all(&mut self) -> Result<(), Error> {
@@ -226,47 +265,21 @@ where
         let account = self.load_account().await?;
         let device = self.load_device_keys().await?;
 
-        // When requesing zknyms we first update the remote status so that we don't re-request
-        // ticketbook types we have already requested.
-        self.update_remote_zk_nym_status().await?;
-
-        // Check which ticket types we already have pending
-        let remote_zknym_id_pending = self
-            .remote_zk_nym
-            .iter()
-            .filter_map(|(id, zkn)| {
-                if matches!(zkn.status, NymVpnZkNymStatus::Pending) {
-                    Some(id)
-                } else {
-                    None
-                }
-            })
-            .collect::<Vec<_>>();
-        let remote_zknym_types_pending = remote_zknym_id_pending
-            .iter()
-            .filter_map(|id| self.zk_nym_types_map.get(*id))
-            .cloned()
-            .collect::<Vec<_>>();
-
         // Then we check local storage to see what ticket types we already have stored
         let local_remaining_tickets = self.check_local_remaining_tickets().await;
         for (ticket_type, remaining) in &local_remaining_tickets {
             tracing::info!("{}, remaining: {}", ticket_type, remaining);
         }
 
-        let ticket_types_already_stored_with_sufficient_tickets = local_remaining_tickets
+        let ticket_types_needed_to_request = local_remaining_tickets
             .into_iter()
-            .filter(|(_, remaining)| *remaining > TICKET_THRESHOLD)
-            .map(|(ticket_type, _)| ticket_type)
-            .collect::<Vec<_>>();
-
-        let ticket_types_needed_to_request = ticketbook_types()
-            .iter()
-            .filter(|ticket_type| {
-                !ticket_types_already_stored_with_sufficient_tickets.contains(ticket_type)
-                    && !remote_zknym_types_pending.contains(ticket_type)
+            .filter_map(|(ticket_type, remaining)| {
+                if remaining < TICKET_THRESHOLD {
+                    Some(ticket_type)
+                } else {
+                    None
+                }
             })
-            .cloned()
             .collect::<Vec<_>>();
 
         for ticketbook_type in ticket_types_needed_to_request {
@@ -283,31 +296,22 @@ where
     // Get zk-nyms for the device and store them in the credential storage if they are active and
     // we have not already stored them.
     async fn get_device_zk_nym(&mut self) -> Result<(), Error> {
-        tracing::info!("Getting device zk-nym");
+        tracing::info!("Getting device zk-nym from API");
 
-        // First we sync our local state with the remote state
-        self.update_remote_zk_nym_status().await?;
+        let account = self.load_account().await?;
+        let device = self.load_device_keys().await?;
 
-        // TODO: iterate through the zk-nym status we just updated.
-        // For all of them that are marked as Active, and not already stored:
-        // 1. Unblind and verify
-        // 2. Aggregate partial wallets
-        // 3. Store in credential storage
+        let reported_device_zk_nyms = self
+            .api_client
+            .get_device_zk_nyms(&account, &device)
+            .await
+            .map_err(Error::GetZkNyms)?;
 
-        for zk_nym in self
-            .remote_zk_nym
-            .values()
-            .filter(|zkn| matches!(zkn.status, NymVpnZkNymStatus::Active))
-        {
-            tracing::info!("Processing zk-nym: {:#?}", zk_nym);
-            for share in &zk_nym.blinded_shares {
-                let share: WalletShare = serde_json::from_str(share).unwrap();
-                dbg!(&share);
-                let blinded_sig =
-                    BlindedSignature::try_from_bs58(share.bs58_encoded_share).unwrap();
-            }
+        tracing::info!("The device as the following zk-nyms associated to it on the account:");
+        // TODO: pagination
+        for zk_nym in &reported_device_zk_nyms.items {
+            tracing::info!("{:?}", zk_nym);
         }
-
         Ok(())
     }
 
@@ -439,61 +443,6 @@ where
             .map_err(Error::from)
     }
 
-    async fn update_remote_zk_nym_status(&mut self) -> Result<(), Error> {
-        tracing::info!("Updating remote zk-nym status");
-        let account = self.load_account().await?;
-        let device = self.load_device_keys().await?;
-
-        let remote_zknym = self
-            .api_client
-            .get_device_zk_nyms(&account, &device)
-            .await
-            .map_err(Error::GetZkNyms)?;
-
-        tracing::info!("Received remote zk-nyms:");
-        for remote_zknym in &remote_zknym.items {
-            tracing::info!("{:?}", remote_zknym);
-        }
-
-        // Update the local pending zk-nym status map
-        for remote_zknym in &remote_zknym.items {
-            let zknym_new = remote_zknym.clone();
-            if let Some(old) = self
-                .remote_zk_nym
-                .insert(remote_zknym.id.clone(), remote_zknym.clone())
-            {
-                tracing::info!(
-                    "zk-nym status updated for {}: {:?} -> {:?}",
-                    zknym_new.id,
-                    old.status,
-                    zknym_new.status
-                );
-            } else {
-                tracing::info!("zk-nym added (must be from previous run): {}", zknym_new.id);
-            }
-        }
-
-        // Check if we have record of a pending zknym that is not listed in the response
-        let pending_zknym_ids = self.remote_zk_nym.keys().cloned().collect::<Vec<_>>();
-        let missing_zknym_ids = pending_zknym_ids
-            .iter()
-            .filter(|id| !remote_zknym.items.iter().any(|zknym| zknym.id == **id))
-            .cloned()
-            .collect::<Vec<_>>();
-
-        for missing_id in missing_zknym_ids {
-            tracing::info!("zk-nym missing from response: {}", missing_id);
-        }
-
-        // Log zk-nym status
-        tracing::info!("Local zk-nym state:");
-        for zknym in self.remote_zk_nym.values() {
-            tracing::info!("{:#?}", zknym);
-        }
-
-        Ok(())
-    }
-
     async fn update_mnemonic_state(&self) -> Option<VpnApiAccount> {
         match self.load_account().await {
             Ok(account) => {
@@ -569,7 +518,7 @@ where
         Ok(())
     }
 
-    pub(crate) async fn update_shared_account_state(&self) -> Result<(), Error> {
+    pub(crate) async fn update_shared_account_state(&mut self) -> Result<(), Error> {
         let Some(account) = self.update_mnemonic_state().await else {
             return Ok(());
         };
@@ -582,7 +531,24 @@ where
         if self.shared_state().is_ready_to_register_device().await {
             self.command_tx.send(AccountCommand::RegisterDevice)?;
         }
+
         Ok(())
+    }
+
+    fn handle_polling_result(&mut self, result: Result<Option<NymVpnZkNym>, JoinError>) {
+        tracing::info!("Handling polling result: {:#?}", result);
+        let result = match result {
+            Ok(result) => result,
+            Err(err) => {
+                tracing::error!("Polling task failed: {:#?}", err);
+                return;
+            }
+        };
+        if let Some(result) = result {
+            tracing::info!("Polling task finished: {:#?}", result);
+        } else {
+            tracing::error!("Polling task finished without a result");
+        }
     }
 
     async fn handle_command(&mut self, command: AccountCommand) -> Result<(), Error> {
@@ -634,11 +600,19 @@ where
             })
             .ok();
 
+        // Timer to check if any zk-nym polling tasks have finished
+        let mut polling_timer = tokio::time::interval(Duration::from_millis(500));
+
         loop {
             tokio::select! {
                 Some(command) = self.command_rx.recv() => {
                     if let Err(err) = self.handle_command(command).await {
                         tracing::error!("{:#?}", err);
+                    }
+                }
+                _ = polling_timer.tick() => {
+                    while let Some(result) = self.polling_tasks.try_join_next() {
+                        self.handle_polling_result(result);
                     }
                 }
                 _ = self.cancel_token.cancelled() => {
