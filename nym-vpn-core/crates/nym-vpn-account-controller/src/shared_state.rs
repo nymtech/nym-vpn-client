@@ -19,7 +19,7 @@ impl SharedAccountState {
         }
     }
 
-    async fn get(&self) -> AccountState {
+    pub async fn get(&self) -> AccountState {
         self.inner.lock().await.clone()
     }
 

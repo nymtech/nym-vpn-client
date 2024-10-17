@@ -320,68 +320,108 @@ where
         request_zk_nym
     }
 
-    async fn update_credential_signatures(&mut self) -> Result<(), Error> {
-        tracing::info!("Updating credential signatures");
-
+    #[allow(unused)]
+    async fn is_verification_key_valid(&self) -> Result<bool, Error> {
         let base_url = get_api_url()?;
-        tracing::info!("Using base url: {}", base_url);
-
         let vpn_ecash_api_client = VpnEcashApiClient::new(base_url)?;
 
-        tracing::info!("Fetching master verification key");
-        let master_verification_key = vpn_ecash_api_client.get_master_verification_key().await?;
+        let aggregated_coin_indices_signatures = vpn_ecash_api_client
+            .get_aggregated_coin_indices_signatures()
+            .await?;
+        let current_epoch = aggregated_coin_indices_signatures.epoch_id;
 
-        tracing::info!("Fetching aggregated coin indices signatures");
+        self.credential_storage
+            .get_master_verification_key(current_epoch)
+            .await
+            .map(|key| key.is_some())
+            .map_err(Error::from)
+    }
+
+    async fn update_verification_key(&mut self) -> Result<(), Error> {
+        tracing::info!("Updating verification key");
+
+        let base_url = get_api_url()?;
+        let vpn_ecash_api_client = VpnEcashApiClient::new(base_url)?;
+
+        let master_verification_key = vpn_ecash_api_client.get_master_verification_key().await?;
+        let aggregated_coin_indices_signatures = vpn_ecash_api_client
+            .get_aggregated_coin_indices_signatures()
+            .await?;
+        let current_epoch = aggregated_coin_indices_signatures.epoch_id;
+
+        let verification_key = EpochVerificationKey {
+            epoch_id: current_epoch,
+            key: master_verification_key.key,
+        };
+
+        self.credential_storage
+            .insert_master_verification_key(&verification_key)
+            .await
+            .map_err(Error::from)
+    }
+
+    #[allow(unused)]
+    async fn is_coin_indices_signatures_valid(&self) -> Result<bool, Error> {
+        let base_url = get_api_url()?;
+        let vpn_ecash_api_client = VpnEcashApiClient::new(base_url)?;
+
+        let aggregated_coin_indices_signatures = vpn_ecash_api_client
+            .get_aggregated_coin_indices_signatures()
+            .await?;
+        let current_epoch = aggregated_coin_indices_signatures.epoch_id;
+
+        self.credential_storage
+            .get_coin_index_signatures(current_epoch)
+            .await
+            .map(|signatures| signatures.is_some())
+            .map_err(Error::from)
+    }
+
+    async fn update_coin_indices_signatures(&mut self) -> Result<(), Error> {
+        tracing::info!("Updating coin indices signatures");
+
+        let base_url = get_api_url()?;
+        let vpn_ecash_api_client = VpnEcashApiClient::new(base_url)?;
+
         let aggregated_coin_indices_signatures = vpn_ecash_api_client
             .get_aggregated_coin_indices_signatures()
             .await?;
 
-        tracing::info!("Fetching aggregated expiration data signatures");
+        let coin_indices_signatures = AggregatedCoinIndicesSignatures {
+            epoch_id: aggregated_coin_indices_signatures.epoch_id,
+            signatures: aggregated_coin_indices_signatures.signatures,
+        };
+
+        self.credential_storage
+            .insert_coin_index_signatures(&coin_indices_signatures)
+            .await
+            .map_err(Error::from)
+    }
+
+    #[allow(unused)]
+    async fn is_expiration_date_signatures_valid(&self) -> Result<bool, Error> {
+        todo!();
+    }
+
+    async fn update_expiration_date_signatures(&mut self) -> Result<(), Error> {
+        tracing::info!("Updating expiration date signatures");
+
+        let base_url = get_api_url()?;
+        let vpn_ecash_api_client = VpnEcashApiClient::new(base_url)?;
+
         let aggregated_expiration_data_signatures = vpn_ecash_api_client
             .get_aggregated_expiration_data_signatures()
             .await?;
 
-        let current_epoch = aggregated_coin_indices_signatures.epoch_id;
-        tracing::info!("Current epoch: {}", current_epoch);
-
-        {
-            let verification_key = EpochVerificationKey {
-                epoch_id: current_epoch,
-                key: master_verification_key.key,
-            };
-
-            tracing::info!("Inserting master verification key");
-            self.credential_storage
-                .insert_master_verification_key(&verification_key)
-                .await?;
-        }
-
-        {
-            let coin_indices_signatures = AggregatedCoinIndicesSignatures {
-                epoch_id: aggregated_coin_indices_signatures.epoch_id,
-                signatures: aggregated_coin_indices_signatures.signatures,
-            };
-
-            tracing::info!("Inserting coin index signatures");
-            self.credential_storage
-                .insert_coin_index_signatures(&coin_indices_signatures)
-                .await?;
-        }
-
-        {
-            let expiration_date_signatures = AggregatedExpirationDateSignatures {
-                epoch_id: aggregated_expiration_data_signatures.epoch_id,
-                expiration_date: aggregated_expiration_data_signatures.expiration_date,
-                signatures: aggregated_expiration_data_signatures.signatures,
-            };
-
-            tracing::info!("Inserting expiration date signatures");
-            self.credential_storage
-                .insert_expiration_date_signatures(&expiration_date_signatures)
-                .await?;
-        }
-
-        Ok(())
+        let expiration_date_signatures = AggregatedExpirationDateSignatures {
+            epoch_id: aggregated_expiration_data_signatures.epoch_id,
+            expiration_date: aggregated_expiration_data_signatures.expiration_date,
+            signatures: aggregated_expiration_data_signatures.signatures,
+        };
+        self.credential_storage
+            .insert_expiration_date_signatures(&expiration_date_signatures)
+            .await
+            .map_err(Error::from)
     }
 
     async fn update_remote_zk_nym_status(&mut self) -> Result<(), Error> {
@@ -522,6 +562,8 @@ where
         self.update_remote_account_state(&account).await?;
         self.update_device_state(&account).await?;
 
+        tracing::info!("Current state: {:#?}", self.shared_state().get().await);
+
         if self.shared_state().is_ready_to_register_device().await {
             self.command_tx.send(AccountCommand::RegisterDevice)?;
         }
@@ -541,6 +583,7 @@ where
     async fn print_credential_storage_info(&self) -> Result<(), Error> {
         tracing::info!("Printing credential storage info");
         let ticketbooks_info = self.credential_storage.get_ticketbooks_info().await?;
+        tracing::info!("Ticketbooks stored: {}", ticketbooks_info.len());
         for ticketbook in ticketbooks_info {
             tracing::info!("Ticketbook id: {}", ticketbook.id);
         }
@@ -557,10 +600,22 @@ where
             tracing::error!("Failed to print credential storage info: {:#?}", err);
         }
 
-        self.update_credential_signatures()
+        self.update_verification_key()
             .await
             .inspect_err(|err| {
-                tracing::error!("Failed to update credential signatures: {:#?}", err);
+                tracing::error!("Failed to update master verification key: {:#?}", err)
+            })
+            .ok();
+        self.update_coin_indices_signatures()
+            .await
+            .inspect_err(|err| {
+                tracing::error!("Failed to update coin indices signatures: {:#?}", err)
+            })
+            .ok();
+        self.update_expiration_date_signatures()
+            .await
+            .inspect_err(|err| {
+                tracing::error!("Failed to update expiration date signatures: {:#?}", err)
             })
             .ok();
 
