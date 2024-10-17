@@ -585,6 +585,8 @@ where
             .insert_issued_ticketbook(&ticketbook)
             .await?;
 
+        self.zk_nym_imported.push(response.id);
+
         Ok(())
     }
 
