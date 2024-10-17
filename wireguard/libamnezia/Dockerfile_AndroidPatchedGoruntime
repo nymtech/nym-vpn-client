@@ -1,0 +1,50 @@
+# To build the image:
+# docker build . -t docker.io/pronebird1337/nymtech-android-app -f Dockerfile_AndroidPatchedGoruntime
+# To push the image to docker.io:
+# docker push docker.io/pronebird1337/nymtech-android-app
+
+FROM debian@sha256:77f46c1cf862290e750e913defffb2828c889d291a93bdd10a7a0597720948fc
+
+RUN apt-get update -y && apt-get install -y \
+    curl \
+    file \
+    gcc \
+    git \
+    make \
+    python \
+    unzip
+
+# Install Android NDK
+RUN cd /tmp && \
+    curl -sf -L -o ndk.zip https://dl.google.com/android/repository/android-ndk-r20b-linux-x86_64.zip && \
+    echo "8381c440fe61fcbb01e209211ac01b519cd6adf51ab1c2281d5daad6ca4c8c8c ndk.zip" | sha256sum -c - && \
+    mkdir /opt/android && \
+    cd /opt/android && \
+    unzip -q /tmp/ndk.zip && \
+    rm /tmp/ndk.zip
+
+
+ENV ANDROID_NDK_HOME="/opt/android/android-ndk-r20b"
+ENV NDK_TOOLCHAIN_DIR="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin"
+
+ENV GOLANG_VERSION=1.22.6
+ENV GOLANG_HASH=999805bed7d9039ec3da1a53bfbcafc13e367da52aa823cb60b68ba22d44c616
+
+# Install Go-lang and patch it to use the appropriate monotonic clock
+COPY goruntime-boottime-over-monotonic.diff /opt/goruntime-boottime-over-monotonic.diff
+RUN cd /tmp && \
+    curl -sf -L -o go.tgz https://go.dev/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz && \
+    echo "${GOLANG_HASH} go.tgz" | sha256sum -c - && \
+    cd /opt && \
+    tar -xzf /tmp/go.tgz && \
+    rm /tmp/go.tgz && \
+    patch -p1 -f -N -r- -d "/opt/go" < /opt/goruntime-boottime-over-monotonic.diff
+
+ENV PATH=${PATH}:/opt/go/bin
+ENV GOROOT=/opt/go
+ENV GOPATH=/opt/go-path
+
+RUN apt-get remove -y curl && \
+    apt-get autoremove -y
+
+ENTRYPOINT []
