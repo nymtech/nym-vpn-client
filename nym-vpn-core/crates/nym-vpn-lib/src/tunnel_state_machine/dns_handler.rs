@@ -19,7 +19,7 @@ impl DnsHandler {
                 #[cfg(target_os = "linux")]
                 tokio::runtime::Handle::current(),
                 #[cfg(target_os = "linux")]
-                route_handler.inner_handle()
+                route_handler.inner_handle(),
             )?,
         })
     }

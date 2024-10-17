@@ -6,6 +6,7 @@ use futures::{
     stream::{FusedStream, StreamExt},
 };
 use ipnetwork::IpNetwork;
+use nym_common::ErrorExt;
 use std::{
     collections::{BTreeMap, HashSet},
     net::{IpAddr, SocketAddr},
@@ -13,7 +14,6 @@ use std::{
     sync::Weak,
     time::Duration,
 };
-use nym_common::ErrorExt;
 use watch::RoutingTable;
 
 use super::{DefaultRouteEvent, RouteManagerCommand};

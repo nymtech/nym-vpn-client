@@ -1,3 +1,4 @@
+use nym_common::win32_err;
 use socket2::SockAddr;
 use std::{
     ffi::{OsStr, OsString},
@@ -8,7 +9,6 @@ use std::{
     sync::Mutex,
     time::{Duration, Instant},
 };
-use nym_common::win32_err;
 use windows_sys::{
     core::GUID,
     Win32::{

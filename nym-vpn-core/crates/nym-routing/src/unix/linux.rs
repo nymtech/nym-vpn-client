@@ -3,12 +3,12 @@ use crate::{
     NetNode, Node, RequiredRoute, Route,
 };
 use netlink_sys::AsyncSocket;
+use nym_common::ErrorExt;
 use std::{
     collections::{BTreeMap, HashSet},
     io,
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
 };
-use nym_common::ErrorExt;
 
 use futures::{
     channel::mpsc::{UnboundedReceiver, UnboundedSender},

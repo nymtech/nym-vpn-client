@@ -9,10 +9,10 @@ use futures::{
 };
 pub use get_best_default_route::{get_best_default_route, InterfaceAndGateway};
 use net::AddressFamily;
-pub use route_manager::{Callback, CallbackHandle, Route, RouteManagerInternal};
-use std::{collections::HashSet, io, net::IpAddr};
 use nym_common::ErrorExt;
 use nym_windows::net;
+pub use route_manager::{Callback, CallbackHandle, Route, RouteManagerInternal};
+use std::{collections::HashSet, io, net::IpAddr};
 
 mod default_route_monitor;
 mod get_best_default_route;

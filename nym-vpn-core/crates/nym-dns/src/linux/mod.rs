@@ -167,6 +167,5 @@ impl DnsMonitorHolder {
 
 /// Returns true if DnsMonitor will use NetworkManager to manage DNS.
 pub fn will_use_nm() -> bool {
-    crate::imp::SystemdResolved::new().is_err()
-        && crate::imp::NetworkManager::new().is_ok()
+    crate::imp::SystemdResolved::new().is_err() && crate::imp::NetworkManager::new().is_ok()
 }
