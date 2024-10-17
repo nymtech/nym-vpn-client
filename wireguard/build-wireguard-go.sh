@@ -9,6 +9,7 @@ IS_ANDROID_BUILD=false
 IS_IOS_BUILD=false
 IS_DOCKER_BUILD=true
 IS_WIN_ARM64=false
+IS_AMNEXIA_BUILD=false
 
 function parseArgs {
     for arg in "$@"; do
@@ -29,6 +30,10 @@ function parseArgs {
         "--arm64" )
             IS_WIN_ARM64=true;
             shift ;;
+        # handle --android option
+        "--amnezia" )
+            IS_AMNEZIA_BUILD=true;
+            shift ;;
         # if we receive "--" consider everything after to be inner arguments
         -- ) shift; break ;;
         # any other args before "--" are improper
@@ -37,6 +42,14 @@ function parseArgs {
     done
 
     echo "android:$IS_ANDROID_BUILD ios:$IS_IOS_BUILD docker:$IS_DOCKER_BUILD win_arm64:$IS_WIN_ARM64"
+}
+
+function win_deduce_lib_executable_path {
+    msbuild_path="$(which msbuild.exe)"
+    msbuild_dir=$(dirname "$msbuild_path")
+    find "$msbuild_dir/../../../../" -name "lib.exe" | \
+        grep -i "hostx64/x64" | \
+        head -n1
 }
 
 function win_gather_export_symbols {
@@ -238,6 +251,11 @@ function patch_darwin_goruntime {
 function build_wireguard_go {
     parseArgs $@
 
+    if $IS_AMNEXIA_BUILD ; then
+        LIB_DIR=$AMNEZIA_DIR
+        echo "amnezia wireguard build enabled"
+    fi
+
     if $IS_ANDROID_BUILD ; then
         build_android $@
         return
@@ -255,6 +273,9 @@ function build_wireguard_go {
         MINGW*|MSYS_NT*) build_windows;;
     esac
 }
+
+AMNEZIA_DIR="libamnezia"
+LIB_DIR="libwg"
 
 # Ensure we are in the correct directory for the execution of this script
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
