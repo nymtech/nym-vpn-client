@@ -53,26 +53,19 @@ private extension SettingsView {
 
     @ViewBuilder
     func credentialOrAddCredentialView() -> some View {
-        if viewModel.isValidCredentialImported {
-            credentialView()
-        } else {
-            addCredentialsButton()
+        if !viewModel.isValidCredentialImported {
+            loginButton()
         }
     }
 
     @ViewBuilder
-    func addCredentialsButton() -> some View {
-        GenericButton(title: "settings.addCredential".localizedString)
+    func loginButton() -> some View {
+        GenericButton(title: "settings.logIn".localizedString)
             .frame(height: 64)
             .padding(EdgeInsets(top: 24, leading: 16, bottom: 0, trailing: 16))
             .onTapGesture {
                 viewModel.navigateToAddCredentialsOrCredential()
             }
-    }
-
-    @ViewBuilder
-    func credentialView() -> some View {
-        CredentialView(viewModel: CredentialViewModel(path: $viewModel.path))
     }
 
     @ViewBuilder

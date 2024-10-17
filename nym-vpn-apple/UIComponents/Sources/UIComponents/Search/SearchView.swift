@@ -53,7 +53,7 @@ extension SearchView {
             TextField("", text: $searchText)
                 .foregroundStyle(NymColor.sysOnSurface)
                 .textFieldStyle(PlainTextFieldStyle())
-                .textStyle(.Body.Large.primary)
+                .textStyle(.Body.Large.semibold)
                 .focused($isSearchFocused)
         }
     }

@@ -14,11 +14,13 @@ import TunnelStatus
 
 public final class GRPCManager: ObservableObject {
     private let group = MultiThreadedEventLoopGroup(numberOfThreads: 4)
-    private let client: Nym_Vpn_NymVpndClientProtocol
+
     private let channel: GRPCChannel
     private let unixDomainSocket = "/var/run/nym-vpn.sock"
-    private let logger = Logger(label: "GRPC Manager")
-    private let helperManager: HelperManager
+
+    let client: Nym_Vpn_NymVpndClientProtocol
+    let logger = Logger(label: "GRPC Manager")
+    let helperManager: HelperManager
 
     public static let shared = GRPCManager()
 
@@ -100,106 +102,87 @@ public final class GRPCManager: ObservableObject {
         _ = try? call.status.wait()
     }
 
-    // MARK: - Credentials -
-    public func importCredential(credential: String) throws -> Date? {
-        guard helperManager.isHelperAuthorizedAndRunning()
-        else {
-            throw GRPCError.daemonNotRunning
-        }
-
-        logger.log(level: .info, "Importing credentials")
-        var request = Nym_Vpn_ImportUserCredentialRequest()
-
-        guard let base58Array = Base58.base58Decode(credential)
-        else {
-            throw GRPCError.invalidData
-        }
-        request.credential = Data(base58Array)
-
-        let call = client.importUserCredential(request)
-
-        var isCredentialImported = false
-        var errorMessage: String?
-        var expiryDate: Date?
-
-        call.response.whenComplete { result in
-            switch result {
-            case .success(let response):
-                isCredentialImported = response.success
-                errorMessage = response.error.message
-                expiryDate = Date(timeIntervalSince1970: TimeInterval(response.expiry.seconds))
-            case .failure(let error):
-                isCredentialImported = false
-                errorMessage = error.localizedDescription
-            }
-        }
-
-        do {
-            _ = try call.status.wait()
-            if !isCredentialImported {
-                logger.log(level: .error, "Failed to import credential with \(String(describing: errorMessage))")
-                throw GRPCError.invalidCredential
-            }
-            return expiryDate
-        }
-    }
-
     // MARK: - Connection -
-    public func connect(
-        entryGatewayCountryCode: String?,
-        exitRouterCountryCode: String?,
-        isTwoHopEnabled: Bool
-    ) {
+    public func isReadyToConnect() {
         guard helperManager.isHelperAuthorizedAndRunning() else { return }
+        logger.log(level: .info, "isReadyToConnect")
 
-        logger.log(level: .info, "Connecting")
-        var request = Nym_Vpn_ConnectRequest()
-        request.userAgent = userAgent
-
-        var entryNode = Nym_Vpn_EntryNode()
-        if let entryGatewayCountryCode {
-            var location = Nym_Vpn_Location()
-            location.twoLetterIsoCountryCode = entryGatewayCountryCode
-            entryNode.location = location
-        } else {
-            // TODO: use it when functionality becomes available
-//            entryNode.randomLowLatency = Nym_Vpn_Empty()
-            entryNode.random = Nym_Vpn_Empty()
-        }
-
-        var exitNode = Nym_Vpn_ExitNode()
-        if let exitRouterCountryCode {
-            var location = Nym_Vpn_Location()
-            location.twoLetterIsoCountryCode = exitRouterCountryCode
-            exitNode.location = location
-        } else {
-            exitNode.random = Nym_Vpn_Empty()
-        }
-
-        request.entry = entryNode
-        request.exit = exitNode
-
-        request.disableRouting = false
-        request.enableTwoHop = isTwoHopEnabled
-        request.enablePoissonRate = false
-        request.disableBackgroundCoverTraffic = false
-        request.enableCredentialsMode = false
-
-        let call = client.vpnConnect(request, callOptions: nil)
-
+        let request = Nym_Vpn_IsReadyToConnectRequest()
+        let call = client.isReadyToConnect(request)
         call.response.whenComplete { [weak self] result in
             switch result {
-            case .success:
-                self?.logger.log(level: .info, "Connected to VPN")
+            case .success(let response):
+                print(response)
+                self?.logger.log(level: .info, "\(response)")
+
             case .failure(let error):
                 self?.logger.log(level: .info, "Failed to connect to VPN: \(error)")
             }
         }
+    }
 
-        do {
-            _ = try call.status.wait()
-        } catch {
-            logger.log(level: .info, "Failed to connect to VPN: \(error)")
+    public func connect(
+        entryGatewayCountryCode: String?,
+        exitRouterCountryCode: String?,
+        isTwoHopEnabled: Bool
+    ) async throws {
+        guard helperManager.isHelperAuthorizedAndRunning() else { return }
+        logger.log(level: .info, "Connecting")
+
+        return try await withCheckedThrowingContinuation { continuation in
+            var request = Nym_Vpn_ConnectRequest()
+            request.userAgent = userAgent
+
+            var entryNode = Nym_Vpn_EntryNode()
+            if let entryGatewayCountryCode {
+                var location = Nym_Vpn_Location()
+                location.twoLetterIsoCountryCode = entryGatewayCountryCode
+                entryNode.location = location
+            } else {
+                // TODO: use it when functionality becomes available
+                //            entryNode.randomLowLatency = Nym_Vpn_Empty()
+                entryNode.random = Nym_Vpn_Empty()
+            }
+
+            var exitNode = Nym_Vpn_ExitNode()
+            if let exitRouterCountryCode {
+                var location = Nym_Vpn_Location()
+                location.twoLetterIsoCountryCode = exitRouterCountryCode
+                exitNode.location = location
+            } else {
+                exitNode.random = Nym_Vpn_Empty()
+            }
+
+            request.entry = entryNode
+            request.exit = exitNode
+
+            request.disableRouting = false
+            request.enableTwoHop = isTwoHopEnabled
+            request.disableBackgroundCoverTraffic = false
+            request.enableCredentialsMode = true
+
+            let call = client.vpnConnect(request, callOptions: nil)
+
+            call.response.whenComplete { [weak self] result in
+                switch result {
+                case .success(let response):
+                    print(response)
+                    self?.logger.log(level: .info, "\(response)")
+
+                    if response.hasError {
+                        if response.error.kind == .noAccountStored {
+                            self?.lastError = GeneralNymError.noMnemonicStored
+                            continuation.resume(throwing: GeneralNymError.noMnemonicStored)
+                        } else {
+                            continuation.resume(throwing: GeneralNymError.library(message: response.error.message))
+                        }
+                    } else {
+                        continuation.resume()
+                    }
+                case .failure(let error):
+                    self?.logger.log(level: .info, "Failed to connect to VPN: \(error)")
+                }
+            }
         }
     }
 

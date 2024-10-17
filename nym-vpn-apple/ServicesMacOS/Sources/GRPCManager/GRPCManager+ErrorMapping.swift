@@ -7,7 +7,7 @@ extension GRPCManager {
         case .unspecified, .unhandled:
             GeneralNymError.library(message: "\("error.unexpected".localizedString): \(error.message)")
         case .noValidCredentials:
-            GeneralNymError.invalidCredential
+            GeneralNymError.library(message: error.message)
         case .timeout:
             GeneralNymError.library(message: "error.timeout".localizedString)
         case .gatewayDirectory:
