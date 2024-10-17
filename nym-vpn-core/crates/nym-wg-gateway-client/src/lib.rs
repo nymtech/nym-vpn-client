@@ -188,7 +188,7 @@ impl WgGatewayClient {
             .auth_client
             .send(init_message, self.auth_recipient)
             .await?;
-        let registred_data = match response.data {
+        let registered_data = match response.data {
             AuthenticatorResponseData::PendingRegistration(PendingRegistrationResponse {
                 reply:
                     RegistrationData {
@@ -228,13 +228,16 @@ impl WgGatewayClient {
             _ => return Err(Error::InvalidGatewayAuthResponse),
         };
 
-        let IpAddr::V4(private_ipv4) = registred_data.private_ip else {
+        let IpAddr::V4(private_ipv4) = registered_data.private_ip else {
             return Err(Error::InvalidGatewayAuthResponse);
         };
         let gateway_data = GatewayData {
-            public_key: PublicKey::from(registred_data.pub_key.to_bytes()),
-            endpoint: SocketAddr::from_str(&format!("{}:{}", gateway_host, registred_data.wg_port))
-                .map_err(Error::FailedToParseEntryGatewaySocketAddr)?,
+            public_key: PublicKey::from(registered_data.pub_key.to_bytes()),
+            endpoint: SocketAddr::from_str(&format!(
+                "{}:{}",
+                gateway_host, registered_data.wg_port
+            ))
+            .map_err(Error::FailedToParseEntryGatewaySocketAddr)?,
             private_ipv4,
         };
 
