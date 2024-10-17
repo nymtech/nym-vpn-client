@@ -1,3 +1,7 @@
+// Copyright 2016-2024 Mullvad VPN AB. All Rights Reserved.
+// Copyright 2024 Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 use super::{
     default_route_monitor::{DefaultRouteMonitor, EventType as RouteMonitorEventType},
     get_best_default_route, Error, InterfaceAndGateway, Result,

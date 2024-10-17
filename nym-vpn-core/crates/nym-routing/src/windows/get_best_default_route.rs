@@ -1,3 +1,7 @@
+// Copyright 2016-2024 Mullvad VPN AB. All Rights Reserved.
+// Copyright 2024 Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 use super::{Error, Result};
 use nym_common::win32_err;
 use nym_windows::net::{get_ip_interface_entry, try_socketaddr_from_inet_sockaddr, AddressFamily};

@@ -1,3 +1,7 @@
+// Copyright 2016-2024 Mullvad VPN AB. All Rights Reserved.
+// Copyright 2024 Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 //! DNS monitor that uses `SetInterfaceDnsSettings`. According to
 //! <https://learn.microsoft.com/en-us/windows/win32/api/netioapi/nf-netioapi-setinterfacednssettings>,
 //! it requires at least Windows 10, build 19041. For that reason, use run-time linking and fall
