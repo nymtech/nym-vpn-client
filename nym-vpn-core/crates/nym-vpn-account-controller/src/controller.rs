@@ -190,7 +190,7 @@ where
         device: &Device,
         ticketbook_type: TicketType,
     ) -> Result<(), Error> {
-        tracing::info!("Requesting zk-nym (inner)");
+        tracing::info!("Requesting zk-nym by type: {}", ticketbook_type);
 
         let ecash_keypair = device.create_ecash_keypair();
         let expiration_date = nym_ecash_time::ecash_default_expiration_date();
