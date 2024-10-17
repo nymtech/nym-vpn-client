@@ -1,6 +1,12 @@
 #!/bin/bash
 # requires cargo, cargo-ndk and android NDK to be installed
 echo "Building WireGuard dep"
+
+# Ensure Go compiler is accessible
+export GOROOT="$HOME/go"
+export PATH="$PATH:$GOROOT/bin"
+source "$HOME/.cargo/env"
+
 echo "Working dir: $PWD"
 echo "NDK_HOME: $1"
 #fix to work with different OS
