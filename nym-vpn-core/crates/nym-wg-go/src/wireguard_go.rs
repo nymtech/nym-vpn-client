@@ -77,15 +77,25 @@ pub struct Tunnel {
 
 impl Tunnel {
     /// Start new WireGuard tunnel
-    pub fn start(config: Config, tun_fd: RawFd) -> Result<Self> {
+    pub fn start(
+        config: Config,
+        #[cfg(not(windows))] tun_fd: RawFd,
+        #[cfg(windows)] interface_name: &str,
+    ) -> Result<Self> {
         let settings =
             CString::new(config.as_uapi_config()).map_err(|_| Error::ConfigContainsNulByte)?;
+        #[cfg(windows)]
+        let interface_name =
+            CString::new(interface_name).map_err(|_| Error::InterfaceNameContainsNulByte)?;
         let handle = unsafe {
             wgTurnOn(
+                #[cfg(windows)]
+                interface_name.as_ptr(),
                 // note: not all platforms accept mtu = 0
                 #[cfg(any(target_os = "linux", target_os = "macos"))]
                 i32::from(config.interface.mtu),
                 settings.as_ptr(),
+                #[cfg(not(windows))]
                 tun_fd,
                 wg_logger_callback,
                 std::ptr::null_mut(),
@@ -147,9 +157,10 @@ impl Drop for Tunnel {
 extern "C" {
     // Start the tunnel.
     fn wgTurnOn(
+        #[cfg(windows)] interface_name: *const c_char,
         #[cfg(any(target_os = "linux", target_os = "macos"))] mtu: i32,
         settings: *const c_char,
-        fd: RawFd,
+        #[cfg(not(windows))] fd: RawFd,
         logging_callback: LoggingCallback,
         logging_context: *mut c_void,
     ) -> i32;

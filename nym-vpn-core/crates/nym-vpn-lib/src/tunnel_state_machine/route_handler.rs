@@ -5,8 +5,8 @@ use std::{collections::HashSet, fmt, net::IpAddr};
 
 use ipnetwork::IpNetwork;
 #[cfg(not(target_os = "linux"))]
-use talpid_routing::NetNode;
-use talpid_routing::{Node, RequiredRoute, RouteManager};
+use nym_routing::NetNode;
+use nym_routing::{Node, RequiredRoute, RouteManagerHandle};
 
 #[cfg(target_os = "linux")]
 use super::default_interface::DefaultInterface;
@@ -46,12 +46,12 @@ impl RoutingConfig {
 }
 
 pub struct RouteHandler {
-    route_manager: RouteManager,
+    route_manager: RouteManagerHandle,
 }
 
 impl RouteHandler {
     pub async fn new() -> Result<Self> {
-        let route_manager = RouteManager::new(
+        let route_manager = RouteManagerHandle::spawn(
             #[cfg(target_os = "linux")]
             TUNNEL_TABLE_ID,
             #[cfg(target_os = "linux")]
@@ -85,7 +85,7 @@ impl RouteHandler {
         }
     }
 
-    pub async fn stop(mut self) {
+    pub async fn stop(self) {
         #[cfg(windows)]
         self.route_manager.stop();
 
@@ -96,8 +96,8 @@ impl RouteHandler {
     }
 
     #[cfg(target_os = "linux")]
-    pub(super) fn inner_handle(&self) -> Result<talpid_routing::RouteManagerHandle> {
-        Ok(self.route_manager.handle()?)
+    pub(super) fn inner_handle(&self) -> nym_routing::RouteManagerHandle {
+        self.route_manager.clone()
     }
 
     fn get_routes(routing_config: RoutingConfig) -> HashSet<RequiredRoute> {
@@ -189,7 +189,7 @@ impl RouteHandler {
 
 #[derive(Debug)]
 pub struct Error {
-    inner: talpid_routing::Error,
+    inner: nym_routing::Error,
 }
 
 unsafe impl Send for Error {}
@@ -201,8 +201,8 @@ impl std::error::Error for Error {
     }
 }
 
-impl From<talpid_routing::Error> for Error {
-    fn from(value: talpid_routing::Error) -> Self {
+impl From<nym_routing::Error> for Error {
+    fn from(value: nym_routing::Error) -> Self {
         Self { inner: value }
     }
 }

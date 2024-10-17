@@ -29,6 +29,4 @@ tracing.workspace = true
 
 nym-authenticator-client = { path = "../nym-authenticator-client" }
 nym-gateway-directory = { path = "../nym-gateway-directory" }
-
-# Only a very very weak dependency and something that we should not need (soon)
-talpid-types.workspace = true
+nym-wg-go = { path = "../nym-wg-go" }

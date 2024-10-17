@@ -23,8 +23,8 @@ use nym_crypto::asymmetric::{encryption, x25519::KeyPair};
 use nym_gateway_directory::Recipient;
 use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::PeerPublicKey;
 use nym_pemstore::KeyPairPath;
+use nym_wg_go::PublicKey;
 use rand::{rngs::OsRng, CryptoRng, RngCore};
-use talpid_types::net::wireguard::PublicKey; // TODO: this is a type we should provide instead
 use tracing::{debug, error, info, warn};
 
 use crate::error::Result;
@@ -188,7 +188,7 @@ impl WgGatewayClient {
             .auth_client
             .send(init_message, self.auth_recipient)
             .await?;
-        let registred_data = match response.data {
+        let registered_data = match response.data {
             AuthenticatorResponseData::PendingRegistration(PendingRegistrationResponse {
                 reply:
                     RegistrationData {
@@ -228,13 +228,16 @@ impl WgGatewayClient {
             _ => return Err(Error::InvalidGatewayAuthResponse),
         };
 
-        let IpAddr::V4(private_ipv4) = registred_data.private_ip else {
+        let IpAddr::V4(private_ipv4) = registered_data.private_ip else {
             return Err(Error::InvalidGatewayAuthResponse);
         };
         let gateway_data = GatewayData {
-            public_key: PublicKey::from(registred_data.pub_key.to_bytes()),
-            endpoint: SocketAddr::from_str(&format!("{}:{}", gateway_host, registred_data.wg_port))
-                .map_err(Error::FailedToParseEntryGatewaySocketAddr)?,
+            public_key: PublicKey::from(registered_data.pub_key.to_bytes()),
+            endpoint: SocketAddr::from_str(&format!(
+                "{}:{}",
+                gateway_host, registered_data.wg_port
+            ))
+            .map_err(Error::FailedToParseEntryGatewaySocketAddr)?,
             private_ipv4,
         };
 

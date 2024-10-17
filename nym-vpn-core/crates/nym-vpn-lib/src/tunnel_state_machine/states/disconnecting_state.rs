@@ -28,10 +28,15 @@ impl DisconnectingState {
     pub fn enter(
         after_disconnect: ActionAfterDisconnect,
         mut tunnel_handle: Option<AnyTunnelHandle>,
-        _shared_state: &mut SharedState,
+        shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, TunnelState) {
         if let Some(tunnel_handle) = tunnel_handle.as_mut() {
             tunnel_handle.cancel();
+        }
+
+        // It's safe to abort status listener as it's stateless.
+        if let Some(status_listener_handle) = shared_state.status_listener_handle.take() {
+            status_listener_handle.abort();
         }
 
         let wait_handle = tokio::spawn(async move {
@@ -129,6 +134,9 @@ impl TunnelStateHandler for DisconnectingState {
                     },
                     TunnelCommand::Disconnect => {
                         self.after_disconnect = ActionAfterDisconnect::Nothing;
+                    }
+                    TunnelCommand::SetTunnelSettings(tunnel_settings) => {
+                        shared_state.tunnel_settings = tunnel_settings;
                     }
                 }
                 NextTunnelState::SameState(self)

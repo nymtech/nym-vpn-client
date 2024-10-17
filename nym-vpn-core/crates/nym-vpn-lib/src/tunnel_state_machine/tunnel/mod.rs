@@ -4,31 +4,52 @@
 pub mod any_tunnel_handle;
 mod gateway_selector;
 pub mod mixnet;
+mod status_listener;
 pub mod wireguard;
 
 use std::{path::PathBuf, time::Duration};
 
 pub use gateway_selector::SelectedGateways;
-use nym_gateway_directory::GatewayClient;
+use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayClient};
 use nym_ip_packet_requests::IpPair;
 use nym_sdk::UserAgent;
-use nym_task::TaskManager;
+use nym_task::{manager::TaskStatus, TaskManager};
+use tokio::{sync::mpsc, task::JoinHandle};
 
-use crate::{mixnet::SharedMixnetClient, GatewayDirectoryError, GenericNymVpnConfig, MixnetError};
+use super::{MixnetEvent, TunnelType};
+use crate::{mixnet::SharedMixnetClient, GatewayDirectoryError, MixnetClientConfig, MixnetError};
+use status_listener::StatusListener;
 
 const MIXNET_CLIENT_STARTUP_TIMEOUT: Duration = Duration::from_secs(30);
 const TASK_MANAGER_SHUTDOWN_TIMER_SECS: u64 = 10;
 
 pub struct ConnectedMixnet {
-    pub task_manager: TaskManager,
-    pub gateway_directory_client: GatewayClient,
-    pub selected_gateways: SelectedGateways,
-    pub data_path: Option<PathBuf>,
-    pub mixnet_client: SharedMixnetClient,
+    task_manager: TaskManager,
+    gateway_directory_client: GatewayClient,
+    selected_gateways: SelectedGateways,
+    data_path: Option<PathBuf>,
+    mixnet_client: SharedMixnetClient,
 }
 
 impl ConnectedMixnet {
-    /// Creates a tunnel over mixnet.
+    pub fn selected_gateways(&self) -> &SelectedGateways {
+        &self.selected_gateways
+    }
+
+    pub async fn start_event_listener(
+        &mut self,
+        event_sender: mpsc::UnboundedSender<MixnetEvent>,
+    ) -> JoinHandle<()> {
+        let (status_tx, status_rx) = futures::channel::mpsc::channel(10);
+
+        self.task_manager
+            .start_status_listener(status_tx, TaskStatus::Ready)
+            .await;
+
+        StatusListener::spawn(status_rx, event_sender)
+    }
+
+    /// Creates a tunnel over Mixnet.
     pub async fn connect_mixnet_tunnel(
         self,
         interface_addresses: Option<IpPair>, // known as config.nym_ips
@@ -43,6 +64,7 @@ impl ConnectedMixnet {
             .await
     }
 
+    /// Creates a tunnel over WireGuard.
     pub async fn connect_wireguard_tunnel(
         self,
     ) -> Result<wireguard::connected_tunnel::ConnectedTunnel> {
@@ -57,34 +79,50 @@ impl ConnectedMixnet {
     }
 }
 
-pub async fn connect_mixnet(
-    nym_config: GenericNymVpnConfig,
-    enable_wireguard: bool,
-) -> Result<ConnectedMixnet> {
+pub struct MixnetConnectOptions {
+    pub data_path: Option<PathBuf>,
+    pub gateway_config: nym_gateway_directory::Config,
+    pub mixnet_client_config: Option<MixnetClientConfig>,
+    pub tunnel_type: TunnelType,
+    pub entry_point: Box<EntryPoint>,
+    pub exit_point: Box<ExitPoint>,
+    pub user_agent: Option<UserAgent>,
+}
+
+pub async fn connect_mixnet(options: MixnetConnectOptions) -> Result<ConnectedMixnet> {
     let task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS);
-    let user_agent = nym_config
+    let user_agent = options
         .user_agent
         .unwrap_or(UserAgent::from(nym_bin_common::bin_info_local_vergen!()));
 
     // Select gateways
-    let gateway_directory_client = GatewayClient::new(nym_config.gateway_config, user_agent)
+    let gateway_directory_client = GatewayClient::new(options.gateway_config, user_agent)
         .map_err(Error::CreateGatewayClient)?;
     let selected_gateways = gateway_selector::select_gateways(
         &gateway_directory_client,
-        enable_wireguard,
-        nym_config.entry_point,
-        nym_config.exit_point,
+        options.tunnel_type,
+        options.entry_point,
+        options.exit_point,
     )
     .await
     .map_err(Error::SelectGateways)?;
+
+    let mut mixnet_client_config = options.mixnet_client_config.unwrap_or_default();
+    match options.tunnel_type {
+        TunnelType::Mixnet => {}
+        TunnelType::Wireguard => {
+            // Always disable background cover traffic in wireguard.
+            mixnet_client_config.disable_background_cover_traffic = true;
+        }
+    };
 
     let mixnet_client = tokio::time::timeout(
         MIXNET_CLIENT_STARTUP_TIMEOUT,
         crate::mixnet::setup_mixnet_client(
             selected_gateways.entry.identity(),
-            &nym_config.data_path,
+            &options.data_path,
             task_manager.subscribe_named("mixnet_client_main"),
-            nym_config.mixnet_client_config,
+            mixnet_client_config,
         ),
     )
     .await
@@ -94,7 +132,7 @@ pub async fn connect_mixnet(
     Ok(ConnectedMixnet {
         task_manager,
         selected_gateways,
-        data_path: nym_config.data_path,
+        data_path: options.data_path,
         gateway_directory_client,
         mixnet_client,
     })
@@ -124,35 +162,20 @@ pub enum Error {
     #[error("failed to connect ot ip packet router: {}", _0)]
     ConnectToIpPacketRouter(#[source] nym_ip_packet_client::Error),
 
-    #[error("wireguard gateway failure: {0}")]
-    WgGatewayClientFailure(#[from] nym_wg_gateway_client::Error),
-
     #[error("wireguard authentication is not possible due to one of the gateways not running the authenticator process: {0}")]
     AuthenticationNotPossible(String),
 
     #[error("failed to find authenticator address")]
     AuthenticatorAddressNotFound,
 
-    #[error("not enough bandwidth")]
-    NotEnoughBandwidth,
-
-    #[error("failed to lookup gateway ip: {gateway_id}: {source}")]
-    FailedToLookupGatewayIp {
-        gateway_id: String,
-        source: nym_gateway_directory::Error,
-    },
-
     #[error("failed to start wireguard: {}", _0)]
     StartWireguard(#[source] nym_wg_go::Error),
 
-    #[error("failed to setup nyxd client: {0}")]
-    NyxdSetup(#[from] crate::bandwidth_controller::CredentialNyxdClientError),
+    #[error("failed to setup storage paths: {0}")]
+    SetupStoragePaths(#[source] nym_sdk::Error),
 
-    #[error("nym sdk error: {0}")]
-    NymSdk(#[from] nym_sdk::Error),
-
-    #[error("setup wireguard tunnel: {0}")]
-    SetupWgTunnel(#[from] crate::SetupWgTunnelError),
+    #[error("bandwidth controller error: {0}")]
+    BandwidthController(#[from] crate::bandwidth_controller::Error),
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

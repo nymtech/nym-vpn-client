@@ -47,7 +47,7 @@ pub(super) fn default_config_dir() -> PathBuf {
 }
 
 #[derive(thiserror::Error, Debug)]
-pub(super) enum ConfigSetupError {
+pub enum ConfigSetupError {
     #[error("failed to parse config file {file}: {error}")]
     Parse {
         file: PathBuf,

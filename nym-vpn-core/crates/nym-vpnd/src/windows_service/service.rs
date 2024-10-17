@@ -4,8 +4,8 @@
 use std::{env, ffi::OsString, time::Duration};
 
 use nym_task::TaskManager;
-use tokio::sync::broadcast;
-use tracing::{error, info};
+use tokio::sync::{broadcast, mpsc};
+use tokio_util::sync::CancellationToken;
 use windows_service::{
     service::{
         ServiceControl, ServiceControlAccept, ServiceDependency, ServiceErrorControl,
@@ -17,7 +17,9 @@ use windows_service::{
 
 use super::install;
 use crate::{
-    cli::CliArgs, command_interface::start_command_interface, logging, service::start_vpn_service,
+    cli::CliArgs,
+    command_interface, logging, runtime,
+    service::{start_vpn_service, NymVpnService},
 };
 
 windows_service::define_windows_service!(ffi_service_main, service_main);
@@ -30,22 +32,25 @@ pub(crate) static SERVICE_DESCRIPTION: &str =
 static SERVICE_TYPE: ServiceType = ServiceType::OWN_PROCESS;
 
 fn service_main(arguments: Vec<OsString>) {
-    if let Err(err) = run_service(arguments) {
+    let result = runtime::new_runtime().block_on(run_service(arguments));
+
+    if let Err(err) = result {
         // Handle error in some way.
         println!("service_main: {:?}", err);
-        error!("service_main: {:?}", err);
+        tracing::error!("service_main: {:?}", err);
     }
 }
 
-fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
+async fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
     info!("Setting up event handler");
 
-    let (event_tx, event_rx) = tokio::sync::mpsc::unbounded_channel();
+    let shutdown_token = CancellationToken::new();
+    let cloned_shutdown_token = shutdown_token.clone();
     let event_handler = move |control_event| -> ServiceControlHandlerResult {
         match control_event {
             ServiceControl::Stop => {
-                event_tx.send(()).unwrap();
-
+                // todo: check if this works without tokio runtime.
+                cloned_shutdown_token.cancel();
                 ServiceControlHandlerResult::NoError
             }
             ServiceControl::Interrogate => ServiceControlHandlerResult::NoError,
@@ -68,23 +73,29 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
         process_id: None,
     })?;
 
-    let task_manager = TaskManager::new(crate::SHUTDOWN_TIMER_SECS).named("nym_vpnd");
-    let service_task_client = task_manager.subscribe_named("vpn_service");
-
-    let state_changes_tx = broadcast::channel(10).0;
+    let (state_changes_tx, states_changes_rx) = broadcast::channel(10);
+    let (status_tx, status_rx) = broadcast::channel(10);
 
     // The idea here for explicly starting two separate runtimes is to make sure they are properly
     // separated. Looking ahead a little ideally it would be nice to be able for the command
     // interface to be able to forcefully terminate the vpn if needed.
 
     // Start the command interface that listens for commands from the outside
-    let (command_handle, vpn_command_rx) =
-        start_command_interface(state_changes_tx.subscribe(), task_manager, None, event_rx);
+    let (command_handle, vpn_command_rx) = command_interface::start_command_interface(
+        state_changes_rx,
+        status_rx,
+        shutdown_token.child_token(),
+    );
 
     // Start the VPN service that wraps the actual VPN
-    let vpn_handle = start_vpn_service(state_changes_tx, vpn_command_rx, service_task_client);
+    let vpn_handle = NymVpnService::spawn(
+        state_changes_tx,
+        vpn_command_rx,
+        status_tx,
+        shutdown_token.child_token(),
+    );
 
-    info!("Service has started");
+    tracing::info!("Service has started");
 
     // Tell the system that the service is running now
     status_handle.set_service_status(ServiceStatus {
@@ -97,10 +108,15 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
         process_id: None,
     })?;
 
-    vpn_handle.join().unwrap();
-    command_handle.join().unwrap();
+    if let Err(e) = vpn_handle.join().await {
+        tracing::error!("Failed to join on vpn service: {}", e);
+    }
 
-    info!("Service is stopping!");
+    if let Err(e) = command_handle.join().await {
+        tracing::error!("Failed to join on command interface: {}", e);
+    }
+
+    tracing::info!("Service is stopping!");
 
     // Tell the system that service has stopped.
     status_handle.set_service_status(ServiceStatus {
@@ -113,7 +129,7 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
         process_id: None,
     })?;
 
-    info!("Service has stopped!");
+    tracing::info!("Service has stopped!");
 
     Ok(())
 }

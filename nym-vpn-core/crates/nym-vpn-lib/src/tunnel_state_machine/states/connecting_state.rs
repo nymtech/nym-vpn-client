@@ -7,6 +7,8 @@ use futures::{
     future::{BoxFuture, Fuse},
     FutureExt,
 };
+use nym_gateway_directory::GatewayMinPerformance;
+use time::OffsetDateTime;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 use tun::{AsyncDevice, Device};
@@ -20,12 +22,19 @@ use crate::tunnel_state_machine::{
     route_handler::RoutingConfig,
     states::{ConnectedState, DisconnectingState},
     tun_ipv6,
-    tunnel::{self, any_tunnel_handle::AnyTunnelHandle, ConnectedMixnet},
-    ActionAfterDisconnect, Error, NextTunnelState, Result, SharedState, TunnelCommand, TunnelState,
-    TunnelStateHandler,
+    tunnel::{self, any_tunnel_handle::AnyTunnelHandle, ConnectedMixnet, MixnetConnectOptions},
+    ActionAfterDisconnect, ConnectionData, DnsOptions, Error, MixnetConnectionData,
+    NextTunnelState, Result, SharedState, TunnelCommand, TunnelConnectionData, TunnelState,
+    TunnelStateHandler, TunnelType, WireguardConnectionData, WireguardNode,
 };
 
-const DEFAULT_TUN_MTU: u16 = 1500;
+/// Default MTU for mixnet tun device.
+#[cfg(not(all(target_os = "ios", target_os = "android")))]
+const DEFAULT_TUN_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android")) {
+    1280
+} else {
+    1500
+};
 
 type ConnectFut = BoxFuture<'static, tunnel::Result<ConnectedMixnet>>;
 
@@ -35,11 +44,41 @@ pub struct ConnectingState {
 
 impl ConnectingState {
     pub fn enter(shared_state: &mut SharedState) -> (Box<dyn TunnelStateHandler>, TunnelState) {
-        let config = shared_state.config.clone();
+        let gateway_performance_options = shared_state.tunnel_settings.gateway_performance_options;
 
-        let connect_fut = tunnel::connect_mixnet(config, shared_state.enable_wireguard)
-            .boxed()
-            .fuse();
+        let gateway_min_performance = GatewayMinPerformance::from_percentage_values(
+            gateway_performance_options
+                .mixnet_min_performance
+                .map(u64::from),
+            gateway_performance_options
+                .vpn_min_performance
+                .map(u64::from),
+        );
+
+        let mut gateway_config = shared_state.nym_config.gateway_config.clone();
+        match gateway_min_performance {
+            Ok(gateway_min_performance) => {
+                gateway_config =
+                    gateway_config.with_min_gateway_performance(gateway_min_performance);
+            }
+            Err(e) => {
+                tracing::error!(
+                    "Invalid gateway performance values. Will carry on with initial values. Error: {}"
+                , e);
+            }
+        }
+
+        let connect_options = MixnetConnectOptions {
+            data_path: shared_state.nym_config.data_path.clone(),
+            gateway_config,
+            mixnet_client_config: shared_state.tunnel_settings.mixnet_client_config.clone(),
+            tunnel_type: shared_state.tunnel_settings.tunnel_type,
+            entry_point: shared_state.tunnel_settings.entry_point.clone(),
+            exit_point: shared_state.tunnel_settings.exit_point.clone(),
+            user_agent: None, // todo: provide user-agent
+        };
+
+        let connect_fut = tunnel::connect_mixnet(connect_options).boxed().fuse();
 
         (Box::new(Self { connect_fut }), TunnelState::Connecting)
     }
@@ -49,14 +88,20 @@ impl ConnectingState {
         shared_state: &mut SharedState,
     ) -> NextTunnelState {
         match result.map_err(Error::ConnectMixnetClient) {
-            Ok(connected_mixnet) => {
+            Ok(mut connected_mixnet) => {
+                shared_state.status_listener_handle = Some(
+                    connected_mixnet
+                        .start_event_listener(shared_state.mixnet_event_sender.clone())
+                        .await,
+                );
+
                 match Self::start_tunnel(connected_mixnet, shared_state).await {
-                    Ok(tunnel_handle) => NextTunnelState::NewState(ConnectedState::enter(
-                        tunnel_handle,
-                        shared_state,
-                    )),
+                    Ok((conn_data, tunnel_handle)) => NextTunnelState::NewState(
+                        ConnectedState::enter(conn_data, tunnel_handle, shared_state),
+                    ),
                     Err(e) => {
                         tracing::error!("Failed to start the tunnel: {}", e);
+
                         NextTunnelState::NewState(DisconnectingState::enter(
                             ActionAfterDisconnect::Error(e.error_state_reason()),
                             None,
@@ -79,28 +124,49 @@ impl ConnectingState {
     async fn start_tunnel(
         connected_mixnet: ConnectedMixnet,
         shared_state: &mut SharedState,
-    ) -> Result<AnyTunnelHandle> {
-        if shared_state.enable_wireguard {
-            Self::start_wireguard_tunnel(connected_mixnet, shared_state).await
-        } else {
-            Self::start_mixnet_tunnel(connected_mixnet, shared_state).await
-        }
+    ) -> Result<(ConnectionData, AnyTunnelHandle)> {
+        let selected_gateways = connected_mixnet.selected_gateways().clone();
+        let (tunnel_conn_data, tunnel_handle) = match shared_state.tunnel_settings.tunnel_type {
+            TunnelType::Mixnet => Self::start_mixnet_tunnel(connected_mixnet, shared_state).await?,
+            TunnelType::Wireguard => {
+                Self::start_wireguard_tunnel(connected_mixnet, shared_state).await?
+            }
+        };
+
+        let conn_data = ConnectionData {
+            entry_gateway: Box::new(*selected_gateways.entry.identity()),
+            exit_gateway: Box::new(*selected_gateways.exit.identity()),
+            connected_at: OffsetDateTime::now_utc(),
+            tunnel: tunnel_conn_data,
+        };
+
+        Ok((conn_data, tunnel_handle))
     }
 
     async fn start_mixnet_tunnel(
         connected_mixnet: ConnectedMixnet,
         shared_state: &mut SharedState,
-    ) -> Result<AnyTunnelHandle> {
+    ) -> Result<(TunnelConnectionData, AnyTunnelHandle)> {
+        let interface_addrs = shared_state
+            .tunnel_settings
+            .mixnet_tunnel_options
+            .interface_addrs;
+
         let connected_tunnel = connected_mixnet
-            .connect_mixnet_tunnel(shared_state.config.nym_ips.clone())
+            .connect_mixnet_tunnel(interface_addrs)
             .await
             .map_err(Error::ConnectMixnetTunnel)?;
+        let assigned_addresses = connected_tunnel.assigned_addresses();
 
         let enable_ipv6 = true;
-        let mtu = shared_state.config.nym_mtu.unwrap_or(DEFAULT_TUN_MTU);
-        let interface_addresses = connected_tunnel.interface_addresses();
+        let mtu = shared_state
+            .tunnel_settings
+            .mixnet_tunnel_options
+            .mtu
+            .unwrap_or(DEFAULT_TUN_MTU);
 
-        let tun_device = Self::create_mixnet_device(interface_addresses, mtu, enable_ipv6)?;
+        let tun_device =
+            Self::create_mixnet_device(assigned_addresses.interface_addresses, mtu, enable_ipv6)?;
         let tun_name = tun_device
             .get_ref()
             .name()
@@ -111,7 +177,7 @@ impl ConnectingState {
         let routing_config = RoutingConfig::Mixnet {
             enable_ipv6,
             tun_name: tun_name.clone(),
-            entry_gateway_address: connected_tunnel.entry_mixnet_gateway_ip(),
+            entry_gateway_address: assigned_addresses.entry_mixnet_gateway_ip,
             #[cfg(target_os = "linux")]
             physical_interface: DefaultInterface::current()?,
         };
@@ -119,15 +185,22 @@ impl ConnectingState {
         Self::set_routes(routing_config, shared_state).await?;
         Self::set_dns(&tun_name, shared_state)?;
 
-        Ok(AnyTunnelHandle::from(
-            connected_tunnel.run(tun_device).await,
-        ))
+        let tunnel_conn_data = TunnelConnectionData::Mixnet(MixnetConnectionData {
+            nym_address: Box::new(assigned_addresses.mixnet_client_address),
+            exit_ipr: Box::new(assigned_addresses.exit_mix_addresses.0),
+            ipv4: assigned_addresses.interface_addresses.ipv4,
+            ipv6: assigned_addresses.interface_addresses.ipv6,
+        });
+
+        let tunnel_handle = AnyTunnelHandle::from(connected_tunnel.run(tun_device).await);
+
+        Ok((tunnel_conn_data, tunnel_handle))
     }
 
     async fn start_wireguard_tunnel(
         connected_mixnet: ConnectedMixnet,
         shared_state: &mut SharedState,
-    ) -> Result<AnyTunnelHandle> {
+    ) -> Result<(TunnelConnectionData, AnyTunnelHandle)> {
         let connected_tunnel = connected_mixnet
             .connect_wireguard_tunnel()
             .await
@@ -168,19 +241,24 @@ impl ConnectingState {
         Self::set_routes(routing_config, shared_state).await?;
         Self::set_dns(&exit_tun_name, shared_state)?;
 
-        Ok(AnyTunnelHandle::from(
+        let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
+            entry: WireguardNode::from(conn_data.entry.clone()),
+            exit: WireguardNode::from(conn_data.exit.clone()),
+        });
+        let tunnel_handle = AnyTunnelHandle::from(
             connected_tunnel
                 .run(entry_tun, exit_tun)
                 .map_err(Error::RunWireguardTunnel)?,
-        ))
+        );
+
+        Ok((tunnel_conn_data, tunnel_handle))
     }
 
     fn set_dns(tun_name: &str, shared_state: &mut SharedState) -> Result<()> {
-        let dns_servers = shared_state
-            .config
-            .dns
-            .map(|ip_addr| vec![ip_addr])
-            .unwrap_or_else(|| crate::DEFAULT_DNS_SERVERS.to_vec());
+        let dns_servers = match shared_state.tunnel_settings.dns {
+            DnsOptions::Default => crate::DEFAULT_DNS_SERVERS.to_vec(),
+            DnsOptions::Custom(ref addrs) => addrs.clone(),
+        };
 
         shared_state
             .dns_handler
@@ -278,6 +356,14 @@ impl TunnelStateHandler for ConnectingState {
                     TunnelCommand::Disconnect => {
                         NextTunnelState::NewState(DisconnectingState::enter(ActionAfterDisconnect::Nothing, None, shared_state))
                     },
+                    TunnelCommand::SetTunnelSettings(tunnel_settings) => {
+                        if shared_state.tunnel_settings == tunnel_settings {
+                            NextTunnelState::SameState(self)
+                        } else {
+                            shared_state.tunnel_settings = tunnel_settings;
+                            NextTunnelState::NewState(DisconnectingState::enter(ActionAfterDisconnect::Reconnect, None, shared_state))
+                        }
+                    }
                 }
             }
             else => NextTunnelState::Finished

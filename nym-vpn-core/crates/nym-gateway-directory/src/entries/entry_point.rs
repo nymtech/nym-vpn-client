@@ -12,7 +12,7 @@ use crate::{error::Result, Error};
 
 // The entry point is always a gateway identity, or some other entry that can be resolved to a
 // gateway identity.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq, Serialize)]
 pub enum EntryPoint {
     // An explicit entry gateway identity.
     Gateway { identity: NodeIdentity },

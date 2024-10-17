@@ -9,7 +9,7 @@ use nym_vpn_store::mnemonic::MnemonicStorage as _;
 use tracing::{debug, info};
 
 use super::{MixnetError, SharedMixnetClient};
-use crate::{storage::VpnClientOnDiskStorage, vpn::MixnetClientConfig};
+use crate::{storage::VpnClientOnDiskStorage, MixnetClientConfig};
 
 fn true_to_enabled(val: bool) -> &'static str {
     if val {
