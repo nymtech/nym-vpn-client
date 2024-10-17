@@ -8,6 +8,10 @@ documentation.workspace = true
 edition.workspace = true
 license.workspace = true
 
+[features]
+default = []
+amnezia = []
+
 [dependencies]
 ipnetwork.workspace = true
 thiserror.workspace = true

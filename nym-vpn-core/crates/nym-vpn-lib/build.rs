@@ -1,8 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use vergen::EmitBuilder;
 use std::{env, path::PathBuf};
+use vergen::EmitBuilder;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     EmitBuilder::builder()
