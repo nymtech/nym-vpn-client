@@ -40,8 +40,6 @@ pub(crate) enum Command {
     RegisterDevice,
     RequestZkNym,
     GetDeviceZkNym,
-    GetFreePasses,
-    ApplyFreepass(ApplyFreepassArgs),
 }
 
 #[derive(Args)]
