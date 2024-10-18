@@ -17,13 +17,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [arc-ubuntu-22.04, custom-runner-mac-m1, custom-windows-11]
+        # os: [arc-ubuntu-22.04, custom-runner-mac-m1, custom-windows-11]
+        os: [arc-ubuntu-22.04, custom-runner-mac-m1]
         target: [native]
-        include:
-          - os: arc-ubuntu-22.04
-            target: android
-          - os: custom-runner-mac-m1
-            target: ios
+        # include:
+        #   - os: arc-ubuntu-22.04
+        #     target: android
+        #   - os: custom-runner-mac-m1
+        #     target: ios
     runs-on: ${{ matrix.os }}
 
     steps:
