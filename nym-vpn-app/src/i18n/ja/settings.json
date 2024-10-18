@@ -43,9 +43,6 @@
   "display-theme": "ディスプレイモード",
   "quit": "NymVPNを終了する",
   "login-button": "接続するには、認証情報を追加してください",
-  "credential": {
-    "title": "認証情報"
-  },
   "monitoring-alert": "変更を反映させるには、アプリを再起動する必要があります。",
   "info": {
     "client-version": "クライアントバージョン",

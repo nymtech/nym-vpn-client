@@ -37,9 +37,6 @@
   "monitoring-alert": "Değişikliğin etkili olması için uygulamayı yeniden başlatmalısınız.",
   "faq": "SSS",
   "quit": "NymVPN'yi kapat",
-  "credential": {
-    "title": "Anahtar"
-  },
   "notifications": {
     "title": "Bilgisayar masaüstü bildirimleri"
   },
