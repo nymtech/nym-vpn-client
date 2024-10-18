@@ -21,6 +21,8 @@ use crate::{
     },
 };
 
+const IPR_CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
+
 #[derive(Clone)]
 pub struct SharedMixnetClient(Arc<tokio::sync::Mutex<Option<MixnetClient>>>);
 
@@ -233,7 +235,7 @@ impl IprClientConnect {
         let mut mixnet_client_handle = self.mixnet_client.lock().await;
         let mixnet_client = mixnet_client_handle.as_mut().unwrap();
 
-        let timeout = tokio::time::sleep(Duration::from_secs(5));
+        let timeout = tokio::time::sleep(IPR_CONNECT_TIMEOUT);
         tokio::pin!(timeout);
 
         loop {

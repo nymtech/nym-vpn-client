@@ -11,6 +11,7 @@ use tracing::{debug, info};
 use super::{MixnetError, SharedMixnetClient};
 use crate::{storage::VpnClientOnDiskStorage, MixnetClientConfig};
 
+#[allow(unused)]
 fn true_to_enabled(val: bool) -> &'static str {
     if val {
         "enabled"
@@ -32,21 +33,20 @@ fn apply_mixnet_client_config(
     debug_config: &mut nym_client_core::config::DebugConfig,
 ) {
     let MixnetClientConfig {
-        enable_poisson_rate,
+        disable_poisson_rate,
         disable_background_cover_traffic,
         enable_credentials_mode: _enable_credentials_mode,
         min_mixnode_performance,
         min_gateway_performance,
     } = mixnet_client_config;
 
-    // Disable Poisson rate limiter by default
     info!(
         "mixnet client poisson rate limiting: {}",
-        true_to_enabled(*enable_poisson_rate)
+        true_to_disabled(*disable_poisson_rate)
     );
     debug_config
         .traffic
-        .disable_main_poisson_packet_distribution = !enable_poisson_rate;
+        .disable_main_poisson_packet_distribution = *disable_poisson_rate;
 
     info!(
         "mixnet client background loop cover traffic stream: {}",
