@@ -29,6 +29,8 @@ mod generated {
     include!(concat!(env!("OUT_DIR"), "/env.rs"));
 }
 
+static ENVIRONMENTS: std::sync::OnceLock<Environments> = std::sync::OnceLock::new();
+
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct Environments {
     pub environments: Vec<String>,
@@ -36,6 +38,7 @@ pub struct Environments {
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     write_default_available_environments();
+    fetch_latest_available_enviroments();
     run()
 }
 
@@ -51,6 +54,15 @@ fn write_default_available_environments() {
             serde_json::to_string_pretty(&default_env).expect("Failed to serialize default env");
         std::fs::write(env_path, env_json).expect("Failed to write env file");
     }
+}
+
+// Fetch the latest available environments from the server
+fn fetch_latest_available_enviroments() {
+    //let latest = .. fetch remotely ..
+    let latest = generated::get_environments();
+
+    // Initialize the global variable with the latest available environments
+    ENVIRONMENTS.get_or_init(|| latest);
 }
 
 #[cfg(unix)]
