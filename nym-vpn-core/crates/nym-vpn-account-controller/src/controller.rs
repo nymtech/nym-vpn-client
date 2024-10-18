@@ -1,23 +1,36 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{collections::HashMap, path::PathBuf, sync::Arc};
+use std::{
+    path::PathBuf,
+    sync::Arc,
+    time::{Duration, Instant},
+};
 
-use nym_compact_ecash::Base58 as _;
+use nym_compact_ecash::{Base58 as _, BlindedSignature, VerificationKeyAuth};
 use nym_config::defaults::NymNetworkDetails;
-use nym_credentials_interface::TicketType;
-use nym_ecash_time::EcashTime as _;
+use nym_credentials::{
+    AggregatedCoinIndicesSignatures, AggregatedExpirationDateSignatures, EpochVerificationKey,
+    IssuedTicketBook,
+};
+use nym_credentials_interface::{RequestInfo, TicketType};
+use nym_ecash_time::EcashTime;
 use nym_http_api_client::{HttpClientError, UserAgent};
 use nym_sdk::mixnet::CredentialStorage;
 use nym_vpn_api_client::{
     response::{NymVpnZkNym, NymVpnZkNymStatus},
     types::{Device, VpnApiAccount},
+    VpnApiClientError,
 };
 use nym_vpn_store::{keys::KeyStore, mnemonic::MnemonicStorage};
+use serde::{Deserialize, Serialize};
+use time::{format_description::well_known::Rfc3339, OffsetDateTime};
+use tokio::{task::JoinError, time::timeout};
 use tokio_util::sync::CancellationToken;
 use url::Url;
 
 use crate::{
+    ecash_client::VpnEcashApiClient,
     error::Error,
     shared_state::{
         DeviceState, MnemonicState, RemoteAccountState, SharedAccountState, SubscriptionState,
@@ -25,7 +38,7 @@ use crate::{
 };
 
 // If we go below this threshold, we should request more tickets
-// TODO: I picket a random number, check what is shoult be. Or if we can express this in terms of
+// TODO: I picked a random number, check what is should be. Or if we can express this in terms of
 // data/bandwidth.
 const TICKET_THRESHOLD: u32 = 10;
 
@@ -54,12 +67,11 @@ where
     // The current state of the account
     account_state: SharedAccountState,
 
-    // Remove zk-nym status
-    remote_zk_nym: HashMap<String, NymVpnZkNym>,
+    // Keep track of the current ecash epoch
+    current_epoch: Option<u64>,
 
-    // Map of zk-nym types to ticket types, since the remote doesn't returns this info
-    // TODO: make the vpn-api return this as part of NymVpnZkNym
-    zk_nym_types_map: HashMap<String, TicketType>,
+    // Tasks used to poll the status of zk-nyms
+    polling_tasks: tokio::task::JoinSet<PollingResult>,
 
     // Keep track of which zknyms we have imported, so that we don't import the same twice
     // TODO: can we extend the credential store with a name field?
@@ -96,11 +108,11 @@ where
         AccountController {
             storage,
             credential_storage,
-            account_state: SharedAccountState::new(),
             api_client: create_api_client(user_agent),
-            remote_zk_nym: Default::default(),
-            zk_nym_types_map: Default::default(),
+            account_state: SharedAccountState::new(),
+            current_epoch: None,
             zk_nym_imported: Default::default(),
+            polling_tasks: tokio::task::JoinSet::new(),
             command_rx,
             command_tx,
             cancel_token,
@@ -178,12 +190,12 @@ where
         device: &Device,
         ticketbook_type: TicketType,
     ) -> Result<(), Error> {
-        tracing::info!("Requesting zk-nym (inner)");
+        tracing::info!("Requesting zk-nym by type: {}", ticketbook_type);
 
         let ecash_keypair = device.create_ecash_keypair();
         let expiration_date = nym_ecash_time::ecash_default_expiration_date();
 
-        let (withdrawal_request, _request_info) = nym_compact_ecash::withdrawal_request(
+        let (withdrawal_request, request_info) = nym_compact_ecash::withdrawal_request(
             ecash_keypair.secret_key(),
             expiration_date.ecash_unix_timestamp(),
             ticketbook_type.encode(),
@@ -193,7 +205,7 @@ where
         let ecash_pubkey = ecash_keypair.public_key().to_base58_string();
 
         // Insert pending request into credential storage?
-        // Since we the id for the request is a string for the api, and a number in the storage,
+        // Since the id for the request is a string for the api, and a number in the storage,
         // this would be awkard.
 
         let response = self
@@ -209,39 +221,65 @@ where
             .map_err(Error::RequestZkNym)?;
 
         tracing::info!("zk-nym requested: {:#?}", response);
-        self.remote_zk_nym
-            .insert(response.id.clone(), response.clone());
-        self.zk_nym_types_map.insert(response.id, ticketbook_type);
+
+        // Spawn a task to poll the status of the zk-nym
+        self.spawn_polling_task(
+            response.id,
+            ticketbook_type,
+            request_info,
+            account.clone(),
+            device.clone(),
+        );
+
         Ok(())
     }
 
+    fn spawn_polling_task(
+        &mut self,
+        id: String,
+        ticketbook_type: TicketType,
+        request_info: RequestInfo,
+        account: VpnApiAccount,
+        device: Device,
+    ) {
+        let api_client = self.api_client.clone();
+        self.polling_tasks.spawn(async move {
+            let start_time = Instant::now();
+            loop {
+                tracing::info!("polling zk-nym status: {}", id);
+                tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+                match api_client.get_zk_nym_by_id(&account, &device, &id).await {
+                    Ok(response) if response.status != NymVpnZkNymStatus::Pending => {
+                        tracing::info!("zk-nym polling finished: {:#?}", response);
+                        return PollingResult::Finished(
+                            response,
+                            ticketbook_type,
+                            Box::new(request_info),
+                        );
+                    }
+                    Ok(response) => {
+                        tracing::info!("zk-nym polling not finished: {:#?}", response);
+                        if start_time.elapsed() > Duration::from_secs(60) {
+                            tracing::error!("zk-nym polling timed out: {}", id);
+                            return PollingResult::Timeout(response);
+                        }
+                    }
+                    Err(error) => {
+                        tracing::error!("Failed to poll zk-nym ({}) status: {:#?}", id, error);
+                        return PollingResult::Error(PollingError { id, error });
+                    }
+                }
+            }
+        });
+    }
+
+    // Check the local credential storage to see if we need to request more zk-nyms, the proceed to
+    // request zk-nyms for each ticket type that we need.
     async fn request_zk_nym_all(&mut self) -> Result<(), Error> {
         tracing::info!("Requesting zk-nym (inner)");
 
         let account = self.load_account().await?;
         let device = self.load_device_keys().await?;
-
-        // When requesing zknyms we first update the remote status so that we don't re-request
-        // ticketbook types we have already requested.
-        self.update_remote_zk_nym_status().await?;
-
-        // Check which ticket types we already have pending
-        let remote_zknym_id_pending = self
-            .remote_zk_nym
-            .iter()
-            .filter_map(|(id, zkn)| {
-                if matches!(zkn.status, NymVpnZkNymStatus::Pending) {
-                    Some(id)
-                } else {
-                    None
-                }
-            })
-            .collect::<Vec<_>>();
-        let remote_zknym_types_pending = remote_zknym_id_pending
-            .iter()
-            .filter_map(|id| self.zk_nym_types_map.get(*id))
-            .cloned()
-            .collect::<Vec<_>>();
 
         // Then we check local storage to see what ticket types we already have stored
         let local_remaining_tickets = self.check_local_remaining_tickets().await;
@@ -249,19 +287,15 @@ where
             tracing::info!("{}, remaining: {}", ticket_type, remaining);
         }
 
-        let ticket_types_already_stored_with_sufficient_tickets = local_remaining_tickets
+        let ticket_types_needed_to_request = local_remaining_tickets
             .into_iter()
-            .filter(|(_, remaining)| *remaining > TICKET_THRESHOLD)
-            .map(|(ticket_type, _)| ticket_type)
-            .collect::<Vec<_>>();
-
-        let ticket_types_needed_to_request = ticketbook_types()
-            .iter()
-            .filter(|ticket_type| {
-                !ticket_types_already_stored_with_sufficient_tickets.contains(ticket_type)
-                    && !remote_zknym_types_pending.contains(ticket_type)
+            .filter_map(|(ticket_type, remaining)| {
+                if remaining < TICKET_THRESHOLD {
+                    Some(ticket_type)
+                } else {
+                    None
+                }
             })
-            .cloned()
             .collect::<Vec<_>>();
 
         for ticketbook_type in ticket_types_needed_to_request {
@@ -275,24 +309,29 @@ where
         Ok(())
     }
 
-    // Get zk-nyms for the device and store them in the credential storage if they are active and
-    // we have not already stored them.
+    // Get and list zk-nyms for the device
     async fn get_device_zk_nym(&mut self) -> Result<(), Error> {
-        tracing::info!("Getting device zk-nym");
+        tracing::info!("Getting device zk-nym from API");
 
-        // First we sync our local state with the remote state
-        self.update_remote_zk_nym_status().await?;
+        let account = self.load_account().await?;
+        let device = self.load_device_keys().await?;
 
-        // TODO: iterate through the zk-nym status we just updated.
-        // For all of them that are marked as Active, and not already stored:
-        // 1. Unblind and verify
-        // 2. Aggregate partial wallets
-        // 3. Store in credential storage
+        let reported_device_zk_nyms = self
+            .api_client
+            .get_device_zk_nyms(&account, &device)
+            .await
+            .map_err(Error::GetZkNyms)?;
 
+        tracing::info!("The device as the following zk-nyms associated to it on the account:");
+        // TODO: pagination
+        for zk_nym in &reported_device_zk_nyms.items {
+            tracing::info!("{:?}", zk_nym);
+        }
         Ok(())
     }
 
     async fn check_local_remaining_tickets(&self) -> Vec<(TicketType, u32)> {
+        // TODO: remove unwrap
         let ticketbooks_info = self
             .credential_storage
             .get_ticketbooks_info()
@@ -316,59 +355,91 @@ where
         request_zk_nym
     }
 
-    async fn update_remote_zk_nym_status(&mut self) -> Result<(), Error> {
-        tracing::info!("Updating remote zk-nym status");
-        let account = self.load_account().await?;
-        let device = self.load_device_keys().await?;
+    #[allow(unused)]
+    async fn update_ecash_epoch(&mut self) -> Result<(), Error> {
+        let base_url = get_api_url()?;
+        let vpn_ecash_api_client = VpnEcashApiClient::new(base_url)?;
 
-        let remote_zknym = self
-            .api_client
-            .get_device_zk_nyms(&account, &device)
-            .await
-            .map_err(Error::GetZkNyms)?;
+        let aggregated_coin_indices_signatures = vpn_ecash_api_client
+            .get_aggregated_coin_indices_signatures()
+            .await?;
+        let current_epoch = aggregated_coin_indices_signatures.epoch_id;
 
-        tracing::info!("Received remote zk-nyms:");
-        for remote_zknym in &remote_zknym.items {
-            tracing::info!("{:?}", remote_zknym);
-        }
-
-        // Update the local pending zk-nym status map
-        for remote_zknym in &remote_zknym.items {
-            let zknym_new = remote_zknym.clone();
-            if let Some(old) = self
-                .remote_zk_nym
-                .insert(remote_zknym.id.clone(), remote_zknym.clone())
-            {
-                tracing::info!(
-                    "zk-nym status updated for {}: {:?} -> {:?}",
-                    zknym_new.id,
-                    old.status,
-                    zknym_new.status
-                );
-            } else {
-                tracing::info!("zk-nym added (must be from previous run): {}", zknym_new.id);
-            }
-        }
-
-        // Check if we have record of a pending zknym that is not listed in the response
-        let pending_zknym_ids = self.remote_zk_nym.keys().cloned().collect::<Vec<_>>();
-        let missing_zknym_ids = pending_zknym_ids
-            .iter()
-            .filter(|id| !remote_zknym.items.iter().any(|zknym| zknym.id == **id))
-            .cloned()
-            .collect::<Vec<_>>();
-
-        for missing_id in missing_zknym_ids {
-            tracing::info!("zk-nym missing from response: {}", missing_id);
-        }
-
-        // Log zk-nym status
-        tracing::info!("Local zk-nym state:");
-        for zknym in self.remote_zk_nym.values() {
-            tracing::info!("{:#?}", zknym);
-        }
-
+        self.current_epoch = Some(current_epoch);
         Ok(())
+    }
+
+    async fn update_verification_key(&mut self) -> Result<(), Error> {
+        tracing::info!("Updating verification key");
+
+        let base_url = get_api_url()?;
+        let vpn_ecash_api_client = VpnEcashApiClient::new(base_url)?;
+
+        let master_verification_key = vpn_ecash_api_client.get_master_verification_key().await?;
+        let aggregated_coin_indices_signatures = vpn_ecash_api_client
+            .get_aggregated_coin_indices_signatures()
+            .await?;
+        let current_epoch = aggregated_coin_indices_signatures.epoch_id;
+
+        let verification_key = EpochVerificationKey {
+            epoch_id: current_epoch,
+            key: master_verification_key.key,
+        };
+
+        self.credential_storage
+            .insert_master_verification_key(&verification_key)
+            .await
+            .map_err(Error::from)
+    }
+
+    async fn get_current_verification_key(&self) -> Result<Option<VerificationKeyAuth>, Error> {
+        let current_epoch = self.current_epoch.ok_or(Error::NoEpoch)?;
+        self.credential_storage
+            .get_master_verification_key(current_epoch)
+            .await
+            .map_err(Error::from)
+    }
+
+    async fn update_coin_indices_signatures(&mut self) -> Result<(), Error> {
+        tracing::info!("Updating coin indices signatures");
+
+        let base_url = get_api_url()?;
+        let vpn_ecash_api_client = VpnEcashApiClient::new(base_url)?;
+
+        let aggregated_coin_indices_signatures = vpn_ecash_api_client
+            .get_aggregated_coin_indices_signatures()
+            .await?;
+
+        let coin_indices_signatures = AggregatedCoinIndicesSignatures {
+            epoch_id: aggregated_coin_indices_signatures.epoch_id,
+            signatures: aggregated_coin_indices_signatures.signatures,
+        };
+
+        self.credential_storage
+            .insert_coin_index_signatures(&coin_indices_signatures)
+            .await
+            .map_err(Error::from)
+    }
+
+    async fn update_expiration_date_signatures(&mut self) -> Result<(), Error> {
+        tracing::info!("Updating expiration date signatures");
+
+        let base_url = get_api_url()?;
+        let vpn_ecash_api_client = VpnEcashApiClient::new(base_url)?;
+
+        let aggregated_expiration_data_signatures = vpn_ecash_api_client
+            .get_aggregated_expiration_data_signatures()
+            .await?;
+
+        let expiration_date_signatures = AggregatedExpirationDateSignatures {
+            epoch_id: aggregated_expiration_data_signatures.epoch_id,
+            expiration_date: aggregated_expiration_data_signatures.expiration_date,
+            signatures: aggregated_expiration_data_signatures.signatures,
+        };
+        self.credential_storage
+            .insert_expiration_date_signatures(&expiration_date_signatures)
+            .await
+            .map_err(Error::from)
     }
 
     async fn update_mnemonic_state(&self) -> Option<VpnApiAccount> {
@@ -446,7 +517,7 @@ where
         Ok(())
     }
 
-    pub(crate) async fn update_shared_account_state(&self) -> Result<(), Error> {
+    pub(crate) async fn update_shared_account_state(&mut self) -> Result<(), Error> {
         let Some(account) = self.update_mnemonic_state().await else {
             return Ok(());
         };
@@ -454,10 +525,113 @@ where
         self.update_remote_account_state(&account).await?;
         self.update_device_state(&account).await?;
 
+        tracing::info!("Current state: {:#?}", self.shared_state().get().await);
+
         if self.shared_state().is_ready_to_register_device().await {
             self.command_tx.send(AccountCommand::RegisterDevice)?;
         }
+
         Ok(())
+    }
+
+    async fn import_zk_nym(
+        &mut self,
+        response: NymVpnZkNym,
+        ticketbook_type: TicketType,
+        request_info: RequestInfo,
+    ) -> Result<(), Error> {
+        let device = self.load_device_keys().await?;
+        let ecash_keypair = device.create_ecash_keypair();
+        // TODO: use explicit epoch id, that we include together with the request_info
+        let current_epoch = self.current_epoch.ok_or(Error::NoEpoch)?;
+        // TODO: remove unwrap
+        let vk_auth = self.get_current_verification_key().await?.unwrap();
+
+        let mut partial_wallets = Vec::new();
+        for blinded_share in response.blinded_shares {
+            // TODO: remove unwrap
+            let blinded_share: WalletShare = serde_json::from_str(&blinded_share).unwrap();
+
+            // TODO: remove unwrap
+            let blinded_sig =
+                BlindedSignature::try_from_bs58(&blinded_share.bs58_encoded_share).unwrap();
+
+            match nym_compact_ecash::issue_verify(
+                &vk_auth,
+                ecash_keypair.secret_key(),
+                &blinded_sig,
+                &request_info,
+                blinded_share.node_index,
+            ) {
+                Ok(partial_wallet) => partial_wallets.push(partial_wallet),
+                Err(err) => {
+                    tracing::error!("Failed to issue verify: {:#?}", err);
+                    return Err(Error::ImportZkNym(err));
+                }
+            }
+        }
+
+        // TODO: remove unwrap
+        let aggregated_wallets = nym_compact_ecash::aggregate_wallets(
+            &vk_auth,
+            ecash_keypair.secret_key(),
+            &partial_wallets,
+            &request_info,
+        )
+        .unwrap();
+
+        // TODO: remove unwrap
+        let expiration_date = OffsetDateTime::parse(&response.valid_until_utc, &Rfc3339).unwrap();
+
+        let ticketbook = IssuedTicketBook::new(
+            aggregated_wallets.into_wallet_signatures(),
+            current_epoch,
+            ecash_keypair.into(),
+            ticketbook_type,
+            expiration_date.ecash_date(),
+        );
+
+        self.credential_storage
+            .insert_issued_ticketbook(&ticketbook)
+            .await?;
+
+        self.zk_nym_imported.push(response.id);
+
+        Ok(())
+    }
+
+    async fn handle_polling_result(&mut self, result: Result<PollingResult, JoinError>) {
+        let result = match result {
+            Ok(result) => result,
+            Err(err) => {
+                tracing::error!("Polling task failed: {:#?}", err);
+                return;
+            }
+        };
+        match result {
+            PollingResult::Finished(response, ticketbook_type, request_info) => {
+                tracing::info!("Polling task finished: {:#?}", response);
+                if response.status == NymVpnZkNymStatus::Active {
+                    if let Err(err) = self
+                        .import_zk_nym(response, ticketbook_type, *request_info)
+                        .await
+                    {
+                        tracing::error!("Failed to import zk-nym: {:#?}", err);
+                    }
+                } else {
+                    tracing::warn!(
+                        "Polling finished with status: {:?}, not importing!",
+                        response.status
+                    );
+                }
+            }
+            PollingResult::Timeout(response) => {
+                tracing::info!("Polling task timed out: {:#?}", response);
+            }
+            PollingResult::Error(error) => {
+                tracing::error!("Polling task failed for {}: {:#?}", error.id, error.error);
+            }
+        }
     }
 
     async fn handle_command(&mut self, command: AccountCommand) -> Result<(), Error> {
@@ -473,6 +647,7 @@ where
     async fn print_credential_storage_info(&self) -> Result<(), Error> {
         tracing::info!("Printing credential storage info");
         let ticketbooks_info = self.credential_storage.get_ticketbooks_info().await?;
+        tracing::info!("Ticketbooks stored: {}", ticketbooks_info.len());
         for ticketbook in ticketbooks_info {
             tracing::info!("Ticketbook id: {}", ticketbook.id);
         }
@@ -489,6 +664,29 @@ where
             tracing::error!("Failed to print credential storage info: {:#?}", err);
         }
 
+        self.update_verification_key()
+            .await
+            .inspect_err(|err| {
+                tracing::error!("Failed to update master verification key: {:#?}", err)
+            })
+            .ok();
+        self.update_coin_indices_signatures()
+            .await
+            .inspect_err(|err| {
+                tracing::error!("Failed to update coin indices signatures: {:#?}", err)
+            })
+            .ok();
+        self.update_expiration_date_signatures()
+            .await
+            .inspect_err(|err| {
+                tracing::error!("Failed to update expiration date signatures: {:#?}", err)
+            })
+            .ok();
+
+        // Timer to check if any zk-nym polling tasks have finished
+        let polling_timer = tokio::time::sleep(Duration::from_millis(500));
+        tokio::pin!(polling_timer);
+
         loop {
             tokio::select! {
                 Some(command) = self.command_rx.recv() => {
@@ -496,8 +694,20 @@ where
                         tracing::error!("{:#?}", err);
                     }
                 }
+                _ = &mut polling_timer => {
+                    while let Some(result) = self.polling_tasks.try_join_next() {
+                        self.handle_polling_result(result).await;
+                    }
+                }
                 _ = self.cancel_token.cancelled() => {
                     tracing::trace!("Received cancellation signal");
+                    if !self.polling_tasks.is_empty() {
+                        tracing::info!("Waiting for polling remaining zknyms (5 secs) ...");
+                        match timeout(Duration::from_secs(5), self.polling_tasks.join_all()).await {
+                            Ok(_) => tracing::info!("All polling tasks finished"),
+                            Err(err) => tracing::warn!("Failed to wait for polling tasks, pending zknym's not imported into local credential store! {:#?}", err),
+                        }
+                    }
                     break;
                 }
                 else => {
@@ -518,17 +728,28 @@ where
     }
 }
 
+fn get_api_url() -> Result<Url, Error> {
+    // TODO: remove unwrap
+    NymNetworkDetails::new_from_env()
+        .endpoints
+        .first()
+        .unwrap()
+        .api_url()
+        .ok_or(Error::MissingApiUrl)
+        .inspect(|url| tracing::info!("Using nym-api url: {}", url))
+}
+
 fn get_nym_vpn_api_url() -> Result<Url, Error> {
     NymNetworkDetails::new_from_env()
-        .nym_vpn_api_url
-        .ok_or(Error::MissingApiUrl)?
-        .parse()
-        .map_err(|_| Error::InvalidApiUrl)
+        .nym_vpn_api_url()
+        .ok_or(Error::MissingApiUrl)
         .inspect(|url| tracing::info!("Using nym-vpn-api url: {}", url))
 }
 
 fn create_api_client(user_agent: UserAgent) -> nym_vpn_api_client::VpnApiClient {
+    // TODO: remove unwrap
     let nym_vpn_api_url = get_nym_vpn_api_url().unwrap();
+    // TODO: remove unwrap
     nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent).unwrap()
 }
 
@@ -564,4 +785,56 @@ fn ticketbook_types() -> [TicketType; 4] {
         TicketType::V1WireguardEntry,
         TicketType::V1WireguardExit,
     ]
+}
+
+#[derive(Debug)]
+enum PollingResult {
+    Finished(NymVpnZkNym, TicketType, Box<RequestInfo>),
+    Timeout(NymVpnZkNym),
+    Error(PollingError),
+}
+
+#[derive(Debug)]
+struct PollingError {
+    id: String,
+    error: VpnApiClientError,
+}
+
+// These are temporarily copy pasted here from the nym-credential-proxy. They will eventually make
+// their way into the crates we use through the nym repo.
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct WalletShare {
+    pub node_index: u64,
+    pub bs58_encoded_share: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+struct TicketbookWalletSharesResponse {
+    epoch_id: u64,
+    shares: Vec<WalletShare>,
+    master_verification_key: Option<MasterVerificationKeyResponse>,
+    aggregated_coin_index_signatures: Option<AggregatedCoinIndicesSignaturesResponse>,
+    aggregated_expiration_date_signatures: Option<AggregatedExpirationDateSignaturesResponse>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+struct MasterVerificationKeyResponse {
+    epoch_id: u64,
+    bs58_encoded_key: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+struct AggregatedCoinIndicesSignaturesResponse {
+    signatures: AggregatedCoinIndicesSignatures,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+struct AggregatedExpirationDateSignaturesResponse {
+    signatures: AggregatedExpirationDateSignatures,
 }
