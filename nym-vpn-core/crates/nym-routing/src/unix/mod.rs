@@ -32,7 +32,7 @@ pub mod imp;
 mod imp;
 
 #[allow(clippy::module_inception)]
-#[cfg(target_os = "android")]
+#[cfg(any(target_os = "android", target_os = "ios"))]
 #[path = "android.rs"]
 mod imp;
 
@@ -98,7 +98,7 @@ pub(crate) enum RouteManagerCommand {
 }
 
 /// Commands for the underlying route manager object.
-#[cfg(target_os = "android")]
+#[cfg(any(target_os = "android", target_os = "ios"))]
 #[derive(Debug)]
 pub(crate) enum RouteManagerCommand {
     AddRoutes(

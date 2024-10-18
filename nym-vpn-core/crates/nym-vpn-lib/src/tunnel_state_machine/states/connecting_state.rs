@@ -1,31 +1,36 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use std::net::Ipv4Addr;
 
 use futures::{
     future::{BoxFuture, Fuse},
     FutureExt,
 };
+#[cfg(any(target_os = "ios", target_os = "android"))]
+use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use nym_gateway_directory::GatewayMinPerformance;
 use time::OffsetDateTime;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
-use tun::{AsyncDevice, Device};
+use tun::AsyncDevice;
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+use tun::Device;
 
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_ip_packet_requests::IpPair;
 
 #[cfg(target_os = "linux")]
 use crate::tunnel_state_machine::default_interface::DefaultInterface;
-
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+use crate::tunnel_state_machine::{route_handler::RoutingConfig, tun_ipv6};
 use crate::tunnel_state_machine::{
-    route_handler::RoutingConfig,
     states::{ConnectedState, DisconnectingState},
-    tun_ipv6,
     tunnel::{self, any_tunnel_handle::AnyTunnelHandle, ConnectedMixnet, MixnetConnectOptions},
-    ActionAfterDisconnect, ConnectionData, DnsOptions, Error, MixnetConnectionData,
-    NextTunnelState, Result, SharedState, TunnelCommand, TunnelConnectionData, TunnelState,
-    TunnelStateHandler, TunnelType, WireguardConnectionData, WireguardNode,
+    ActionAfterDisconnect, ConnectionData, Error, MixnetConnectionData, NextTunnelState, Result,
+    SharedState, TunnelCommand, TunnelConnectionData, TunnelState, TunnelStateHandler, TunnelType,
+    WireguardConnectionData, WireguardNode,
 };
 
 /// Default MTU for mixnet tun device.
@@ -158,32 +163,61 @@ impl ConnectingState {
             .map_err(Error::ConnectMixnetTunnel)?;
         let assigned_addresses = connected_tunnel.assigned_addresses();
 
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let enable_ipv6 = true;
-        let mtu = shared_state
+        let mtu: u16 = shared_state
             .tunnel_settings
             .mixnet_tunnel_options
             .mtu
             .unwrap_or(DEFAULT_TUN_MTU);
 
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let tun_device =
             Self::create_mixnet_device(assigned_addresses.interface_addresses, mtu, enable_ipv6)?;
-        let tun_name = tun_device
-            .get_ref()
-            .name()
-            .map_err(Error::GetTunDeviceName)?;
 
-        tracing::debug!("Created tun device: {}", tun_name);
+        #[cfg(any(target_os = "ios", target_os = "android"))]
+        let tun_device = {
+            let packet_tunnel_settings = tunnel::wireguard::tunnel_settings::TunnelSettings {
+                dns_servers: shared_state.tunnel_settings.dns.ip_addresses().to_vec(),
+                interface_addresses: vec![
+                    IpNetwork::V4(
+                        Ipv4Network::new(assigned_addresses.interface_addresses.ipv4.clone(), 32)
+                            .expect("map to error"),
+                    ),
+                    IpNetwork::V6(
+                        Ipv6Network::new(assigned_addresses.interface_addresses.ipv6.clone(), 128)
+                            .expect("map to error"),
+                    ),
+                ],
+                remote_addresses: vec![assigned_addresses.entry_mixnet_gateway_ip],
+                mtu,
+            };
 
-        let routing_config = RoutingConfig::Mixnet {
-            enable_ipv6,
-            tun_name: tun_name.clone(),
-            entry_gateway_address: assigned_addresses.entry_mixnet_gateway_ip,
-            #[cfg(target_os = "linux")]
-            physical_interface: DefaultInterface::current()?,
+            let tun_device = Self::create_tun_device(packet_tunnel_settings, shared_state).await?;
+            tracing::debug!("Created tun device");
+            tun_device
         };
 
-        Self::set_routes(routing_config, shared_state).await?;
-        Self::set_dns(&tun_name, shared_state)?;
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        {
+            let tun_name = tun_device
+                .get_ref()
+                .name()
+                .map_err(Error::GetTunDeviceName)?;
+
+            tracing::debug!("Created tun device: {}", tun_name);
+
+            let routing_config = RoutingConfig::Mixnet {
+                enable_ipv6,
+                tun_name: tun_name.clone(),
+                entry_gateway_address: assigned_addresses.entry_mixnet_gateway_ip,
+                #[cfg(target_os = "linux")]
+                physical_interface: DefaultInterface::current()?,
+            };
+
+            Self::set_routes(routing_config, shared_state).await?;
+            Self::set_dns(&tun_name, shared_state)?;
+        }
 
         let tunnel_conn_data = TunnelConnectionData::Mixnet(MixnetConnectionData {
             nym_address: Box::new(assigned_addresses.mixnet_client_address),
@@ -197,6 +231,7 @@ impl ConnectingState {
         Ok((tunnel_conn_data, tunnel_handle))
     }
 
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     async fn start_wireguard_tunnel(
         connected_mixnet: ConnectedMixnet,
         shared_state: &mut SharedState,
@@ -245,38 +280,90 @@ impl ConnectingState {
             entry: WireguardNode::from(conn_data.entry.clone()),
             exit: WireguardNode::from(conn_data.exit.clone()),
         });
-        let tunnel_handle = AnyTunnelHandle::from(
-            connected_tunnel
-                .run(entry_tun, exit_tun)
-                .map_err(Error::RunWireguardTunnel)?,
-        );
 
-        Ok((tunnel_conn_data, tunnel_handle))
+        let tunnel_handle = connected_tunnel
+            .run(
+                entry_tun,
+                exit_tun,
+                shared_state.tunnel_settings.dns.ip_addresses().to_vec(),
+            )
+            .map_err(Error::RunWireguardTunnel)?;
+
+        let any_tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
+
+        Ok((tunnel_conn_data, any_tunnel_handle))
     }
 
-    fn set_dns(tun_name: &str, shared_state: &mut SharedState) -> Result<()> {
-        let dns_servers = match shared_state.tunnel_settings.dns {
-            DnsOptions::Default => crate::DEFAULT_DNS_SERVERS.to_vec(),
-            DnsOptions::Custom(ref addrs) => addrs.clone(),
+    #[cfg(any(target_os = "ios", target_os = "android"))]
+    async fn start_wireguard_tunnel(
+        connected_mixnet: ConnectedMixnet,
+        shared_state: &mut SharedState,
+    ) -> Result<(TunnelConnectionData, AnyTunnelHandle)> {
+        let connected_tunnel = connected_mixnet
+            .connect_wireguard_tunnel()
+            .await
+            .map_err(Error::ConnectWireguardTunnel)?;
+
+        let conn_data = connected_tunnel.connection_data();
+
+        let packet_tunnel_settings = tunnel::wireguard::tunnel_settings::TunnelSettings {
+            dns_servers: shared_state.tunnel_settings.dns.ip_addresses().to_vec(),
+            interface_addresses: vec![IpNetwork::V4(
+                Ipv4Network::new(conn_data.entry.private_ipv4.clone(), 32).expect("map to error"),
+            )],
+            remote_addresses: vec![conn_data.entry.endpoint.ip()],
+            mtu: connected_tunnel.exit_mtu(),
         };
+
+        let tun_device = Self::create_tun_device(packet_tunnel_settings, shared_state).await?;
+
+        tracing::info!("Created tun device");
+
+        let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
+            entry: WireguardNode::from(conn_data.entry.clone()),
+            exit: WireguardNode::from(conn_data.exit.clone()),
+        });
+
+        let tunnel_handle = connected_tunnel
+            .run(
+                tun_device,
+                shared_state.tunnel_settings.dns.ip_addresses().to_vec(),
+                #[cfg(any(target_os = "ios", target_os = "android"))]
+                shared_state.tun_provider.clone(),
+            )
+            .map_err(Error::RunWireguardTunnel)?;
+
+        let any_tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
+
+        Ok((tunnel_conn_data, any_tunnel_handle))
+    }
+
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    fn set_dns(tun_name: &str, shared_state: &mut SharedState) -> Result<()> {
+        let dns_servers = shared_state.tunnel_settings.dns.ip_addresses();
 
         shared_state
             .dns_handler
-            .set(tun_name, &dns_servers)
+            .set(tun_name, dns_servers)
             .map_err(Error::SetDns)
     }
 
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     async fn set_routes(
         routing_config: RoutingConfig,
         shared_state: &mut SharedState,
     ) -> Result<()> {
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         shared_state
             .route_handler
             .add_routes(routing_config)
             .await
-            .map_err(Error::AddRoutes)
+            .map_err(Error::AddRoutes)?;
+
+        Ok(())
     }
 
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     fn create_mixnet_device(
         interface_addresses: IpPair,
         mtu: u16,
@@ -309,6 +396,7 @@ impl ConnectingState {
         Ok(tun_device)
     }
 
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     fn create_wireguard_device(
         interface_addr: Ipv4Addr,
         destination: Option<Ipv4Addr>,
@@ -330,6 +418,41 @@ impl ConnectingState {
         tun_config.platform(|platform_config| {
             platform_config.packet_information(false);
         });
+
+        tun::create_as_async(&tun_config).map_err(Error::CreateTunDevice)
+    }
+
+    #[cfg(any(target_os = "ios", target_os = "android"))]
+    async fn create_tun_device(
+        packet_tunnel_settings: tunnel::wireguard::tunnel_settings::TunnelSettings,
+        shared_state: &mut SharedState,
+    ) -> Result<AsyncDevice> {
+        let mut tun_config = tun::Configuration::default();
+
+        #[cfg(target_os = "android")]
+        {
+            let tun_fd = shared_state
+                .tun_provider
+                .configure_tunnel(packet_tunnel_settings.into_tunnel_network_settings())
+                .expect("map to error");
+
+            tun_config.raw_fd(tun_fd);
+            tun_config.platform(|platform_config| {
+                platform_config.packet_information(false);
+            });
+        }
+
+        #[cfg(target_os = "ios")]
+        {
+            let tun_fd = tunnel::wireguard::ios::tun::get_tun_fd().ok_or(Error::LocateTunDevice)?;
+            tun_config.raw_fd(tun_fd);
+
+            shared_state
+                .tun_provider
+                .set_tunnel_network_settings(packet_tunnel_settings.into_tunnel_network_settings())
+                .await
+                .expect("map to error");
+        }
 
         tun::create_as_async(&tun_config).map_err(Error::CreateTunDevice)
     }

@@ -3,13 +3,10 @@
 
 use std::{
     ffi::{c_char, c_ulong, CStr},
-    os::fd::{BorrowedFd, RawFd},
+    os::fd::RawFd,
 };
 
-use nix::{
-    libc::{self, sockaddr, sockaddr_ctl, socklen_t, AF_SYSTEM},
-    sys::socket,
-};
+use nix::libc::{self, sockaddr, sockaddr_ctl, socklen_t, AF_SYSTEM};
 
 const UTUN_CTL_NAME: &CStr = c"com.apple.net.utun_control";
 const CTLIOCGINFO: c_ulong = 0xc0644e03;
@@ -50,14 +47,4 @@ pub fn get_tun_fd() -> Option<RawFd> {
             false
         }
     })
-}
-
-/// Returns tunnel interface name
-pub fn get_tun_ifname(tun_fd: RawFd) -> Option<String> {
-    let borrowed_fd = unsafe { BorrowedFd::borrow_raw(tun_fd) };
-
-    socket::getsockopt(&borrowed_fd, socket::sockopt::UtunIfname)
-        .ok()?
-        .into_string()
-        .ok()
 }

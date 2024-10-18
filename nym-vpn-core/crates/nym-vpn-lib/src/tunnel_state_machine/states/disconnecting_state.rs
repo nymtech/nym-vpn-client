@@ -9,8 +9,10 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 use tun::AsyncDevice;
 
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+use crate::tunnel_state_machine::dns_handler::DnsHandler;
+
 use crate::tunnel_state_machine::{
-    dns_handler::DnsHandler,
     states::{ConnectingState, DisconnectedState, ErrorState},
     tunnel::any_tunnel_handle::AnyTunnelHandle,
     ActionAfterDisconnect, NextTunnelState, SharedState, TunnelCommand, TunnelState,
@@ -64,10 +66,12 @@ impl DisconnectingState {
         result: Result<Option<Vec<AsyncDevice>>, JoinError>,
         shared_state: &mut SharedState,
     ) -> NextTunnelState {
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         shared_state.route_handler.remove_routes().await;
 
         match result {
             Ok(Some(tun_devices)) => {
+                #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
                 if let Err(e) = shared_state.dns_handler.reset_before_interface_removal() {
                     tracing::error!("Failed to reset dns before interface removal: {}", e);
                 }
@@ -75,15 +79,18 @@ impl DisconnectingState {
                 let _ = tun_devices;
             }
             Ok(None) => {
+                #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
                 Self::reset_dns(&mut shared_state.dns_handler);
                 tracing::debug!("Tunnel device has already been closed.");
             }
             Err(e) => {
+                #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
                 Self::reset_dns(&mut shared_state.dns_handler);
                 tracing::error!("Failed to join on tunnel handle: {}", e);
             }
         }
 
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         shared_state.route_handler.remove_routes().await;
         // todo: reset firewall
 
@@ -98,12 +105,14 @@ impl DisconnectingState {
         }
     }
 
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     fn reset_dns(dns_handler: &mut DnsHandler) {
         if let Err(e) = dns_handler.reset() {
             tracing::error!("Failed to reset dns: {}", e);
         }
     }
 
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     async fn reset_on_cancel(shared_state: &mut SharedState) {
         Self::reset_dns(&mut shared_state.dns_handler);
         shared_state.route_handler.remove_routes().await;
@@ -121,6 +130,7 @@ impl TunnelStateHandler for DisconnectingState {
     ) -> NextTunnelState {
         tokio::select! {
             _ = shutdown_token.cancelled() => {
+                #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
                 Self::reset_on_cancel(shared_state).await;
                 NextTunnelState::NewState(DisconnectedState::enter())
             }
