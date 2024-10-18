@@ -350,6 +350,12 @@ pub enum AccountError {
     },
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum SetNetworkError {
+    #[error("failed to set network: {0}")]
+    Network(String),
+}
+
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     // FIXME: this variant should be constructed

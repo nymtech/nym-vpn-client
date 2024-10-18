@@ -5,7 +5,9 @@ use maplit::hashmap;
 use nym_vpn_account_controller::ReadyToConnect;
 use nym_vpn_proto::{account_error::AccountErrorType, error::ErrorType, Error as ProtoError};
 
-use crate::service::{AccountError, ConnectionFailedError, VpnServiceConnectError};
+use crate::service::{
+    AccountError, ConnectionFailedError, SetNetworkError, VpnServiceConnectError,
+};
 
 impl From<VpnServiceConnectError> for nym_vpn_proto::ConnectRequestError {
     fn from(err: VpnServiceConnectError) -> Self {
@@ -535,6 +537,18 @@ impl From<VpnCommandSendError> for tonic::Status {
             VpnCommandSendError::Send | VpnCommandSendError::Receive => {
                 tonic::Status::internal(err.to_string())
             }
+        }
+    }
+}
+
+impl From<SetNetworkError> for nym_vpn_proto::SetNetworkRequestError {
+    fn from(err: SetNetworkError) -> Self {
+        match err {
+            SetNetworkError::Network(ref err) => nym_vpn_proto::SetNetworkRequestError {
+                kind: nym_vpn_proto::set_network_request_error::SetNetworkRequestErrorType::Internal
+                    as i32,
+                message: err.to_string(),
+            },
         }
     }
 }

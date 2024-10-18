@@ -111,6 +111,34 @@ message InfoResponse {
   Url nym_vpn_api_url = 7;
 }
 
+message SetNetworkRequest {
+  string network = 1;
+}
+
+message SetNetworkResponse {
+  SetNetworkRequestError error = 1;
+}
+
+message SetNetworkRequestError {
+  enum SetNetworkRequestErrorType {
+    SET_NETWORK_REQUEST_ERROR_TYPE_UNSPECIFIED = 0;
+
+    // Unspecified internal error
+    INTERNAL = 1;
+
+    // The network name provided is not valid
+    INVALID_NETWORK_NAME = 2;
+
+    // The network name provided is not valid
+    NETWORK_NOT_FOUND = 3;
+  }
+
+  SetNetworkRequestErrorType kind = 1;
+
+  // Internal message for logging and debugging
+  string message = 2;
+}
+
 message Threshold {
   uint32 min_performance = 1;
 }
@@ -618,6 +646,9 @@ message AccountError {
 service NymVpnd {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info (InfoRequest) returns (InfoResponse) {}
+
+  // Set the network. This requires a restart to take effect
+  rpc SetNetwork (SetNetworkRequest) returns (SetNetworkResponse) {}
 
   // Start the tunnel and connect
   rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}

@@ -12,8 +12,8 @@ use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint, GatewayClient, Gatew
 
 use crate::{
     service::{
-        AccountError, ConnectArgs, ConnectOptions, VpnServiceCommand, VpnServiceConnectError,
-        VpnServiceDisconnectError, VpnServiceInfo, VpnServiceStatus,
+        AccountError, ConnectArgs, ConnectOptions, SetNetworkError, VpnServiceCommand,
+        VpnServiceConnectError, VpnServiceDisconnectError, VpnServiceInfo, VpnServiceStatus,
     },
     types::gateway,
 };
@@ -75,6 +75,14 @@ impl CommandInterfaceConnectionHandler {
 
     pub(crate) async fn handle_info(&self) -> Result<VpnServiceInfo, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::Info, ()).await
+    }
+
+    pub(crate) async fn handle_set_network(
+        &self,
+        network: String,
+    ) -> Result<Result<(), SetNetworkError>, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::SetNetwork, network)
+            .await
     }
 
     pub(crate) async fn handle_status(&self) -> Result<VpnServiceStatus, VpnCommandSendError> {

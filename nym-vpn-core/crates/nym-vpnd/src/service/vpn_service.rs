@@ -38,11 +38,8 @@ use nym_vpn_lib::{
 use nym_vpn_store::keys::KeyStore as _;
 
 use super::{
-    config::{
-        self, create_config_file, create_data_dir, read_config_file, write_config_file,
-        ConfigSetupError, NymVpnServiceConfig, DEFAULT_CONFIG_FILE,
-    },
-    error::{AccountError, ConnectionFailedError, Error, Result},
+    config::{ConfigSetupError, NetworkEnvironments, NymVpnServiceConfig, DEFAULT_CONFIG_FILE},
+    error::{AccountError, ConnectionFailedError, Error, Result, SetNetworkError},
     VpnServiceConnectError, VpnServiceDisconnectError,
 };
 
@@ -96,6 +93,7 @@ pub enum VpnServiceCommand {
     Disconnect(oneshot::Sender<Result<(), VpnServiceDisconnectError>>, ()),
     Status(oneshot::Sender<VpnServiceStatus>, ()),
     Info(oneshot::Sender<VpnServiceInfo>, ()),
+    SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     StoreAccount(oneshot::Sender<Result<(), AccountError>>, String),
     IsAccountStored(oneshot::Sender<Result<bool, AccountError>>, ()),
     RemoveAccount(oneshot::Sender<Result<(), AccountError>>, ()),
@@ -123,6 +121,7 @@ impl fmt::Display for VpnServiceCommand {
             VpnServiceCommand::Disconnect(..) => write!(f, "Disconnect"),
             VpnServiceCommand::Status(..) => write!(f, "Status"),
             VpnServiceCommand::Info(..) => write!(f, "Info"),
+            VpnServiceCommand::SetNetwork(..) => write!(f, "SetNetwork"),
             VpnServiceCommand::StoreAccount(..) => write!(f, "StoreAccount"),
             VpnServiceCommand::IsAccountStored(..) => write!(f, "IsAccountStored"),
             VpnServiceCommand::RemoveAccount(..) => write!(f, "RemoveAccount"),
@@ -395,20 +394,16 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         status_tx: broadcast::Sender<MixnetEvent>,
         shutdown_token: CancellationToken,
     ) -> Result<Self> {
-        let config_dir = std::env::var("NYM_VPND_CONFIG_DIR")
-            .map(PathBuf::from)
-            .unwrap_or_else(|_| config::default_config_dir());
+        let config_dir = super::config::config_dir();
         let config_file = config_dir.join(DEFAULT_CONFIG_FILE);
-        let data_dir = std::env::var("NYM_VPND_DATA_DIR")
-            .map(PathBuf::from)
-            .unwrap_or_else(|_| config::default_data_dir());
+        let data_dir = super::config::data_dir();
 
         let storage = Arc::new(tokio::sync::Mutex::new(
             nym_vpn_lib::storage::VpnClientOnDiskStorage::new(data_dir.clone()),
         ));
 
         // Make sure the data dir exists
-        create_data_dir(&data_dir).map_err(Error::ConfigSetup)?;
+        super::config::create_data_dir(&data_dir).map_err(Error::ConfigSetup)?;
 
         // Generate the device keys if we don't already have them
         storage
@@ -538,6 +533,10 @@ where
                 let result = self.handle_info().await;
                 let _ = tx.send(result);
             }
+            VpnServiceCommand::SetNetwork(tx, network) => {
+                let result = self.handle_set_network(network).await;
+                let _ = tx.send(result);
+            }
             VpnServiceCommand::StoreAccount(tx, account) => {
                 let result = self.handle_store_account(account).await;
                 let _ = tx.send(result);
@@ -588,24 +587,27 @@ where
     ) -> Result<NymVpnServiceConfig> {
         // If the config file does not exit, create it
         let config = if self.config_file.exists() {
-            let mut read_config = read_config_file(&self.config_file)
-                .map_err(|err| {
-                    tracing::error!(
-                        "Failed to read config file, resetting to defaults: {:?}",
-                        err
-                    );
-                })
-                .unwrap_or_default();
+            let mut read_config: NymVpnServiceConfig =
+                super::config::read_config_file(&self.config_file)
+                    .map_err(|err| {
+                        tracing::error!(
+                            "Failed to read config file, resetting to defaults: {:?}",
+                            err
+                        );
+                    })
+                    .unwrap_or_default();
             read_config.entry_point = entry.unwrap_or(read_config.entry_point);
             read_config.exit_point = exit.unwrap_or(read_config.exit_point);
-            write_config_file(&self.config_file, &read_config).map_err(Error::ConfigSetup)?;
+            super::config::write_config_file(&self.config_file, &read_config)
+                .map_err(Error::ConfigSetup)?;
             read_config
         } else {
             let config = NymVpnServiceConfig {
                 entry_point: entry.unwrap_or(EntryPoint::Random),
                 exit_point: exit.unwrap_or(ExitPoint::Random),
             };
-            create_config_file(&self.config_file, config).map_err(Error::ConfigSetup)?
+            super::config::create_config_file(&self.config_file, config)
+                .map_err(Error::ConfigSetup)?
         };
         Ok(config)
     }
@@ -739,6 +741,23 @@ where
             endpoints: network.endpoints,
             nym_vpn_api_url: network.nym_vpn_api_url,
         }
+    }
+
+    async fn handle_set_network(&self, network: String) -> Result<(), SetNetworkError> {
+        let mut global_config = crate::discovery::read_global_config_file().map_err(|err| {
+            SetNetworkError::Network(format!("Failed to read global config: {:?}", err))
+        })?;
+
+        // Manually restrict the set of possible network, until we handle this automatically
+        let network_selected = NetworkEnvironments::try_from(network.as_str())
+            .map_err(|err| SetNetworkError::Network(format!("Invalid network: {:?}", err)))?;
+        global_config.network_name = network_selected.to_string();
+
+        crate::discovery::write_global_config_file(global_config).map_err(|err| {
+            SetNetworkError::Network(format!("Failed to write global config: {:?}", err))
+        })?;
+
+        Ok(())
     }
 
     async fn handle_store_account(&mut self, account: String) -> Result<(), AccountError> {
