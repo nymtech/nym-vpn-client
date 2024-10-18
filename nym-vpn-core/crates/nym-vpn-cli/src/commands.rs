@@ -78,12 +78,12 @@ pub(crate) struct RunArgs {
     #[arg(long)]
     pub(crate) disable_routing: bool,
 
-    /// Enable Poisson process rate limiting of outbound traffic.
-    #[arg(long)]
-    pub(crate) enable_poisson_rate: bool,
+    /// Disable the Poisson process rate limiting of outbound traffic.
+    #[arg(long, hide = true)]
+    pub(crate) disable_poisson_rate: bool,
 
     /// Disable constant rate background loop cover traffic.
-    #[arg(long)]
+    #[arg(long, hide = true)]
     pub(crate) disable_background_cover_traffic: bool,
 
     /// Enable credentials mode.
@@ -137,7 +137,7 @@ pub(crate) struct CliExit {
 
 #[derive(Args)]
 pub(crate) struct StoreAccountArgs {
-    /// Path to the file containing the account credentials.
+    /// Recovery phrase for the account.
     #[arg(long)]
     pub(crate) mnemonic: String,
 }

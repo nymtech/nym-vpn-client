@@ -50,8 +50,8 @@ pub const DEFAULT_DNS_SERVERS: [IpAddr; 4] = [
 
 #[derive(Clone, Default, Debug, Eq, PartialEq)]
 pub struct MixnetClientConfig {
-    /// Enable Poission process rate limiting of outbound traffic.
-    pub enable_poisson_rate: bool,
+    /// Disable Poission process rate limiting of outbound traffic.
+    pub disable_poisson_rate: bool,
 
     /// Disable constant rate background loop cover traffic
     pub disable_background_cover_traffic: bool,
