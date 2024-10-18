@@ -6,7 +6,8 @@ use tokio_util::sync::CancellationToken;
 
 use crate::tunnel_state_machine::{
     states::DisconnectingState, tunnel::any_tunnel_handle::AnyTunnelHandle, ActionAfterDisconnect,
-    ErrorStateReason, NextTunnelState, SharedState, TunnelCommand, TunnelState, TunnelStateHandler,
+    ConnectionData, ErrorStateReason, NextTunnelState, SharedState, TunnelCommand, TunnelState,
+    TunnelStateHandler,
 };
 
 pub struct ConnectedState {
@@ -15,10 +16,14 @@ pub struct ConnectedState {
 
 impl ConnectedState {
     pub fn enter(
+        connection_data: ConnectionData,
         tunnel_handle: AnyTunnelHandle,
         _shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, TunnelState) {
-        (Box::new(Self { tunnel_handle }), TunnelState::Connected)
+        (
+            Box::new(Self { tunnel_handle }),
+            TunnelState::Connected { connection_data },
+        )
     }
 }
 
@@ -40,6 +45,14 @@ impl TunnelStateHandler for ConnectedState {
                     TunnelCommand::Disconnect => {
                         NextTunnelState::NewState(DisconnectingState::enter(ActionAfterDisconnect::Nothing, Some(self.tunnel_handle) , shared_state))
                     },
+                    TunnelCommand::SetTunnelSettings(tunnel_settings) => {
+                        if shared_state.tunnel_settings == tunnel_settings {
+                            NextTunnelState::SameState(self)
+                        } else {
+                            shared_state.tunnel_settings = tunnel_settings;
+                            NextTunnelState::NewState(DisconnectingState::enter(ActionAfterDisconnect::Reconnect, Some(self.tunnel_handle), shared_state))
+                        }
+                    }
                 }
             }
             maybe_error = self.tunnel_handle.recv_error() => {

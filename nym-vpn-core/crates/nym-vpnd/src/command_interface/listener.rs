@@ -8,7 +8,10 @@ use std::{
 };
 
 use futures::{stream::BoxStream, StreamExt};
+use tokio::sync::{broadcast, mpsc::UnboundedSender};
+
 use nym_vpn_api_client::types::GatewayMinPerformance;
+use nym_vpn_lib::tunnel_state_machine::MixnetEvent;
 use nym_vpn_proto::{
     nym_vpnd_server::NymVpnd, AccountError, ConnectRequest, ConnectResponse, ConnectionStateChange,
     ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty, GetAccountSummaryRequest,
@@ -19,18 +22,15 @@ use nym_vpn_proto::{
     RemoveAccountRequest, RemoveAccountResponse, RequestZkNymRequest, RequestZkNymResponse,
     StatusRequest, StatusResponse, StoreAccountRequest, StoreAccountResponse,
 };
-use tokio::sync::{broadcast, mpsc::UnboundedSender};
-use tracing::{error, info};
 
 use super::{
     connection_handler::CommandInterfaceConnectionHandler,
     error::CommandInterfaceError,
     helpers::{parse_entry_point, parse_exit_point, threshold_into_percent},
-    status_broadcaster::ConnectionStatusBroadcaster,
 };
 use crate::{
     command_interface::protobuf::gateway::into_user_agent,
-    service::{ConnectOptions, VpnServiceCommand, VpnServiceConnectResult, VpnServiceStateChange},
+    service::{ConnectOptions, VpnServiceCommand, VpnServiceStateChange},
 };
 
 enum ListenerType {
@@ -46,7 +46,7 @@ pub(super) struct CommandInterface {
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
 
     // Broadcast connection status updates to our API endpoint listeners
-    status_tx: tokio::sync::broadcast::Sender<ConnectionStatusUpdate>,
+    status_rx: broadcast::Receiver<MixnetEvent>,
 
     listener: ListenerType,
 }
@@ -55,12 +55,13 @@ impl CommandInterface {
     pub(super) fn new_with_path(
         vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
         vpn_command_tx: UnboundedSender<VpnServiceCommand>,
+        status_rx: broadcast::Receiver<MixnetEvent>,
         socket_path: &Path,
     ) -> Self {
         Self {
             vpn_state_changes_rx,
             vpn_command_tx,
-            status_tx: tokio::sync::broadcast::channel(10).0,
+            status_rx,
             listener: ListenerType::Path(socket_path.to_path_buf()),
         }
     }
@@ -68,12 +69,13 @@ impl CommandInterface {
     pub(super) fn new_with_uri(
         vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
         vpn_command_tx: UnboundedSender<VpnServiceCommand>,
+        status_rx: broadcast::Receiver<MixnetEvent>,
         uri: SocketAddr,
     ) -> Self {
         Self {
             vpn_state_changes_rx,
             vpn_command_tx,
-            status_tx: tokio::sync::broadcast::channel(10).0,
+            status_rx,
             listener: ListenerType::Uri(uri),
         }
     }
@@ -81,13 +83,13 @@ impl CommandInterface {
     pub(super) fn remove_previous_socket_file(&self) {
         if let ListenerType::Path(ref socket_path) = self.listener {
             match fs::remove_file(socket_path) {
-                Ok(_) => info!(
+                Ok(_) => tracing::info!(
                     "Removed previous command interface socket: {:?}",
                     socket_path
                 ),
                 Err(err) if err.kind() == std::io::ErrorKind::NotFound => {}
                 Err(err) => {
-                    error!(
+                    tracing::error!(
                         "Failed to remove previous command interface socket: {:?}",
                         err
                     );
@@ -114,7 +116,7 @@ impl NymVpnd for CommandInterface {
             .await;
 
         let response = InfoResponse::from(info);
-        info!("Returning info response: {:?}", response);
+        tracing::info!("Returning info response: {:?}", response);
         Ok(tonic::Response::new(response))
     }
 
@@ -122,7 +124,7 @@ impl NymVpnd for CommandInterface {
         &self,
         request: tonic::Request<ConnectRequest>,
     ) -> Result<tonic::Response<ConnectResponse>, tonic::Status> {
-        info!("Got connect request: {:?}", request);
+        tracing::info!("Got connect request: {:?}", request);
 
         let connect_request = request.into_inner();
 
@@ -147,7 +149,7 @@ impl NymVpnd for CommandInterface {
             .unwrap_or_else(crate::util::construct_user_agent);
 
         let options = ConnectOptions::try_from(connect_request).map_err(|err| {
-            error!("Failed to parse connect options: {:?}", err);
+            tracing::error!("Failed to parse connect options: {:?}", err);
             tonic::Status::invalid_argument("Invalid connect options")
         })?;
 
@@ -155,20 +157,10 @@ impl NymVpnd for CommandInterface {
             .handle_connect(entry, exit, options, user_agent)
             .await;
 
-        let success = status.is_success();
-
-        // After connecting we start a task that listens for status updates and broadcasts them for
-        // listeners to the connection status stream.
-        if let VpnServiceConnectResult::Success(connect_handle) = status {
-            ConnectionStatusBroadcaster::new(
-                self.status_tx.clone(),
-                connect_handle.listener_vpn_status_rx,
-            )
-            .start();
-        }
-
-        let response = ConnectResponse { success };
-        info!("Returning connect response: {:?}", response);
+        let response = ConnectResponse {
+            success: status.is_success(),
+        };
+        tracing::info!("Returning connect response: {:?}", response);
         Ok(tonic::Response::new(response))
     }
 
@@ -183,7 +175,7 @@ impl NymVpnd for CommandInterface {
         let response = DisconnectResponse {
             success: status.is_success(),
         };
-        info!("Returning disconnect response: {:?}", response);
+        tracing::info!("Returning disconnect response: {:?}", response);
         Ok(tonic::Response::new(response))
     }
 
@@ -196,7 +188,7 @@ impl NymVpnd for CommandInterface {
             .await;
 
         let response = StatusResponse::from(status);
-        info!("Returning status response: {:?}", response);
+        tracing::info!("Returning status response: {:?}", response);
         Ok(tonic::Response::new(response))
     }
 
@@ -207,13 +199,15 @@ impl NymVpnd for CommandInterface {
         &self,
         request: tonic::Request<Empty>,
     ) -> Result<tonic::Response<Self::ListenToConnectionStatusStream>, tonic::Status> {
-        info!("Got connection status stream request: {request:?}");
-        let rx = self.status_tx.subscribe();
+        tracing::info!("Got connection status stream request: {request:?}");
+        let rx = self.status_rx.resubscribe();
         let stream = tokio_stream::wrappers::BroadcastStream::new(rx).map(|status| {
-            status.map_err(|err| {
-                error!("Failed to receive connection status update: {:?}", err);
-                tonic::Status::internal("Failed to receive connection status update")
-            })
+            status
+                .map(crate::command_interface::protobuf::status_update::status_update_from_event)
+                .map_err(|err| {
+                    tracing::error!("Failed to receive connection status update: {:?}", err);
+                    tonic::Status::internal("Failed to receive connection status update")
+                })
         });
         Ok(tonic::Response::new(
             Box::pin(stream) as Self::ListenToConnectionStatusStream
@@ -227,11 +221,11 @@ impl NymVpnd for CommandInterface {
         &self,
         request: tonic::Request<Empty>,
     ) -> Result<tonic::Response<Self::ListenToConnectionStateChangesStream>, tonic::Status> {
-        info!("Got connection status stream request: {request:?}");
+        tracing::info!("Got connection status stream request: {request:?}");
         let rx = self.vpn_state_changes_rx.resubscribe();
         let stream = tokio_stream::wrappers::BroadcastStream::new(rx).map(|status| {
             status.map(ConnectionStateChange::from).map_err(|err| {
-                error!("Failed to receive connection state change: {:?}", err);
+                tracing::error!("Failed to receive connection state change: {:?}", err);
                 tonic::Status::internal("Failed to receive connection state change")
             })
         });
@@ -244,7 +238,7 @@ impl NymVpnd for CommandInterface {
         &self,
         request: tonic::Request<ListGatewaysRequest>,
     ) -> Result<tonic::Response<ListGatewaysResponse>, tonic::Status> {
-        info!("Got list gateways request: {:?}", request);
+        tracing::info!("Got list gateways request: {:?}", request);
 
         let request = request.into_inner();
 
@@ -253,7 +247,7 @@ impl NymVpnd for CommandInterface {
             .and_then(crate::command_interface::protobuf::gateway::into_gateway_type)
             .ok_or_else(|| {
                 let msg = format!("Failed to parse gateway type: {}", request.kind);
-                error!(msg);
+                tracing::error!(msg);
                 tonic::Status::invalid_argument(msg)
             })?;
 
@@ -275,7 +269,7 @@ impl NymVpnd for CommandInterface {
             .await
             .map_err(|err| {
                 let msg = format!("Failed to list gateways: {:?}", err);
-                error!(msg);
+                tracing::error!(msg);
                 tonic::Status::internal(msg)
             })?;
 
@@ -286,7 +280,7 @@ impl NymVpnd for CommandInterface {
                 .collect(),
         };
 
-        info!(
+        tracing::info!(
             "Returning list gateways response: {} entries",
             response.gateways.len()
         );
@@ -297,7 +291,7 @@ impl NymVpnd for CommandInterface {
         &self,
         request: tonic::Request<ListCountriesRequest>,
     ) -> Result<tonic::Response<ListCountriesResponse>, tonic::Status> {
-        info!("Got list entry countries request: {request:?}");
+        tracing::info!("Got list entry countries request: {request:?}");
 
         let request = request.into_inner();
 
@@ -306,7 +300,7 @@ impl NymVpnd for CommandInterface {
             .and_then(crate::command_interface::protobuf::gateway::into_gateway_type)
             .ok_or_else(|| {
                 let msg = format!("Failed to parse list countries kind: {}", request.kind);
-                error!(msg);
+                tracing::error!(msg);
                 tonic::Status::invalid_argument(msg)
             })?;
 
@@ -328,7 +322,7 @@ impl NymVpnd for CommandInterface {
             .await
             .map_err(|err| {
                 let msg = format!("Failed to list entry countries: {:?}", err);
-                error!(msg);
+                tracing::error!(msg);
                 tonic::Status::internal(msg)
             })?;
 
@@ -339,7 +333,7 @@ impl NymVpnd for CommandInterface {
                 .collect(),
         };
 
-        info!(
+        tracing::info!(
             "Returning list countries response: {} countries",
             response.countries.len()
         );
@@ -367,7 +361,7 @@ impl NymVpnd for CommandInterface {
             },
         };
 
-        info!("Returning store account response: {:?}", response);
+        tracing::info!("Returning store account response: {:?}", response);
         Ok(tonic::Response::new(response))
     }
 
@@ -395,7 +389,7 @@ impl NymVpnd for CommandInterface {
             },
         };
 
-        info!("Returning is account stored response");
+        tracing::info!("Returning is account stored response");
         Ok(tonic::Response::new(response))
     }
 
@@ -419,7 +413,7 @@ impl NymVpnd for CommandInterface {
             },
         };
 
-        info!("Returning remove account response");
+        tracing::info!("Returning remove account response");
         Ok(tonic::Response::new(response))
     }
 
@@ -445,7 +439,7 @@ impl NymVpnd for CommandInterface {
             },
         };
 
-        info!("Returning get account summary response");
+        tracing::info!("Returning get account summary response");
         Ok(tonic::Response::new(response))
     }
 
@@ -469,7 +463,7 @@ impl NymVpnd for CommandInterface {
             },
         };
 
-        info!("Returning get devices response");
+        tracing::info!("Returning get devices response");
         Ok(tonic::Response::new(response))
     }
 
@@ -493,7 +487,7 @@ impl NymVpnd for CommandInterface {
             },
         };
 
-        info!("Returning register device response");
+        tracing::info!("Returning register device response");
         Ok(tonic::Response::new(response))
     }
 
@@ -517,7 +511,7 @@ impl NymVpnd for CommandInterface {
             },
         };
 
-        info!("Returning request zk nym response");
+        tracing::info!("Returning request zk nym response");
         Ok(tonic::Response::new(response))
     }
 
@@ -543,7 +537,7 @@ impl NymVpnd for CommandInterface {
             },
         };
 
-        info!("Returning get device zk nyms response");
+        tracing::info!("Returning get device zk nyms response");
         Ok(tonic::Response::new(response))
     }
 
@@ -567,7 +561,7 @@ impl NymVpnd for CommandInterface {
             },
         };
 
-        info!("Returning get free passes response");
+        tracing::info!("Returning get free passes response");
         Ok(tonic::Response::new(response))
     }
 
@@ -592,7 +586,7 @@ impl NymVpnd for CommandInterface {
             },
         };
 
-        info!("Returning apply freepass response");
+        tracing::info!("Returning apply freepass response");
         Ok(tonic::Response::new(response))
     }
 
@@ -611,7 +605,7 @@ impl NymVpnd for CommandInterface {
             is_ready_to_connect: result.unwrap_or(false),
         };
 
-        info!("Returning is ready to connect response");
+        tracing::info!("Returning is ready to connect response");
         Ok(tonic::Response::new(response))
     }
 }

@@ -24,6 +24,10 @@ pub enum Error {
     #[error("config contains nul byte")]
     ConfigContainsNulByte,
 
+    #[cfg(target_os = "windows")]
+    #[error("interface name contains nul byte")]
+    InterfaceNameContainsNulByte,
+
     #[error("failed to start the tunnel (code: {})", _0)]
     StartTunnel(i32),
 
@@ -130,7 +134,7 @@ impl From<[u8; 32]> for PrivateKey {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Eq, PartialEq, Hash, Copy)]
 pub struct PublicKey(x25519_dalek::PublicKey);
 
 impl PublicKey {
