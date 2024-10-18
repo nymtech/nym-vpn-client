@@ -62,7 +62,11 @@ where
     credential_storage: nym_credential_storage::persistent_storage::PersistentStorage,
 
     // The API client used to interact with the nym-vpn-api
-    api_client: nym_vpn_api_client::VpnApiClient,
+    vpn_api_client: nym_vpn_api_client::VpnApiClient,
+
+    // The API client used to interact with cash endpoints
+    // NOTE: this is a temporary solution until the data is available on the vpn-api
+    vpn_ecash_api_client: VpnEcashApiClient,
 
     // The current state of the account
     account_state: SharedAccountState,
@@ -108,7 +112,8 @@ where
         AccountController {
             storage,
             credential_storage,
-            api_client: create_api_client(user_agent),
+            vpn_api_client: create_api_client(user_agent),
+            vpn_ecash_api_client: create_ecash_api_client(),
             account_state: SharedAccountState::new(),
             current_epoch: None,
             zk_nym_imported: Default::default(),
@@ -169,7 +174,7 @@ where
         let account = self.load_account().await?;
         let device = self.load_device_keys().await?;
 
-        self.api_client
+        self.vpn_api_client
             .register_device(&account, &device)
             .await
             .map(|device_result| {
@@ -209,7 +214,7 @@ where
         // this would be awkard.
 
         let response = self
-            .api_client
+            .vpn_api_client
             .request_zk_nym(
                 account,
                 device,
@@ -242,7 +247,7 @@ where
         account: VpnApiAccount,
         device: Device,
     ) {
-        let api_client = self.api_client.clone();
+        let api_client = self.vpn_api_client.clone();
         self.polling_tasks.spawn(async move {
             let start_time = Instant::now();
             loop {
@@ -317,7 +322,7 @@ where
         let device = self.load_device_keys().await?;
 
         let reported_device_zk_nyms = self
-            .api_client
+            .vpn_api_client
             .get_device_zk_nyms(&account, &device)
             .await
             .map_err(Error::GetZkNyms)?;
@@ -357,10 +362,8 @@ where
 
     #[allow(unused)]
     async fn update_ecash_epoch(&mut self) -> Result<(), Error> {
-        let base_url = get_api_url()?;
-        let vpn_ecash_api_client = VpnEcashApiClient::new(base_url)?;
-
-        let aggregated_coin_indices_signatures = vpn_ecash_api_client
+        let aggregated_coin_indices_signatures = self
+            .vpn_ecash_api_client
             .get_aggregated_coin_indices_signatures()
             .await?;
         let current_epoch = aggregated_coin_indices_signatures.epoch_id;
@@ -372,11 +375,12 @@ where
     async fn update_verification_key(&mut self) -> Result<(), Error> {
         tracing::info!("Updating verification key");
 
-        let base_url = get_api_url()?;
-        let vpn_ecash_api_client = VpnEcashApiClient::new(base_url)?;
-
-        let master_verification_key = vpn_ecash_api_client.get_master_verification_key().await?;
-        let aggregated_coin_indices_signatures = vpn_ecash_api_client
+        let master_verification_key = self
+            .vpn_ecash_api_client
+            .get_master_verification_key()
+            .await?;
+        let aggregated_coin_indices_signatures = self
+            .vpn_ecash_api_client
             .get_aggregated_coin_indices_signatures()
             .await?;
         let current_epoch = aggregated_coin_indices_signatures.epoch_id;
@@ -403,10 +407,8 @@ where
     async fn update_coin_indices_signatures(&mut self) -> Result<(), Error> {
         tracing::info!("Updating coin indices signatures");
 
-        let base_url = get_api_url()?;
-        let vpn_ecash_api_client = VpnEcashApiClient::new(base_url)?;
-
-        let aggregated_coin_indices_signatures = vpn_ecash_api_client
+        let aggregated_coin_indices_signatures = self
+            .vpn_ecash_api_client
             .get_aggregated_coin_indices_signatures()
             .await?;
 
@@ -424,10 +426,8 @@ where
     async fn update_expiration_date_signatures(&mut self) -> Result<(), Error> {
         tracing::info!("Updating expiration date signatures");
 
-        let base_url = get_api_url()?;
-        let vpn_ecash_api_client = VpnEcashApiClient::new(base_url)?;
-
-        let aggregated_expiration_data_signatures = vpn_ecash_api_client
+        let aggregated_expiration_data_signatures = self
+            .vpn_ecash_api_client
             .get_aggregated_expiration_data_signatures()
             .await?;
 
@@ -462,7 +462,7 @@ where
     async fn update_remote_account_state(&self, account: &VpnApiAccount) -> Result<(), Error> {
         tracing::info!("Updating remote account state");
 
-        let response = self.api_client.get_account_summary(account).await;
+        let response = self.vpn_api_client.get_account_summary(account).await;
 
         // Check if the response indicates that we are not registered
         if let Some(403) = &response.as_ref().err().and_then(extract_status_code) {
@@ -490,7 +490,7 @@ where
         let our_device = self.load_device_keys().await?;
 
         let devices = self
-            .api_client
+            .vpn_api_client
             .get_devices(account)
             .await
             .map_err(Error::GetDevices)?;
@@ -525,7 +525,7 @@ where
         self.update_remote_account_state(&account).await?;
         self.update_device_state(&account).await?;
 
-        tracing::info!("Current state: {:#?}", self.shared_state().get().await);
+        tracing::info!("Current state: {}", self.shared_state().lock().await);
 
         if self.shared_state().is_ready_to_register_device().await {
             self.command_tx.send(AccountCommand::RegisterDevice)?;
@@ -751,6 +751,13 @@ fn create_api_client(user_agent: UserAgent) -> nym_vpn_api_client::VpnApiClient 
     let nym_vpn_api_url = get_nym_vpn_api_url().unwrap();
     // TODO: remove unwrap
     nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent).unwrap()
+}
+
+fn create_ecash_api_client() -> VpnEcashApiClient {
+    // TODO: remove unwrap
+    let base_url = get_api_url().unwrap();
+    // TODO: remove unwrap
+    VpnEcashApiClient::new(base_url).unwrap()
 }
 
 fn extract_status_code<E>(err: &E) -> Option<u16>

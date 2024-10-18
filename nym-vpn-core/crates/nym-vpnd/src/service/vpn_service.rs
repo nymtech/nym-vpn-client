@@ -18,7 +18,9 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 use url::Url;
 
-use nym_vpn_account_controller::{AccountCommand, AccountController, SharedAccountState};
+use nym_vpn_account_controller::{
+    AccountCommand, AccountController, AccountState, SharedAccountState,
+};
 use nym_vpn_api_client::{
     response::{
         NymVpnAccountSummaryResponse, NymVpnDevicesResponse, NymVpnSubscription,
@@ -100,6 +102,7 @@ pub enum VpnServiceCommand {
     StoreAccount(oneshot::Sender<Result<(), AccountError>>, String),
     IsAccountStored(oneshot::Sender<Result<bool, AccountError>>),
     RemoveAccount(oneshot::Sender<Result<(), AccountError>>),
+    GetLocalAccountState(oneshot::Sender<Result<AccountState, AccountError>>),
     GetAccountSummary(oneshot::Sender<Result<NymVpnAccountSummaryResponse, AccountError>>),
     GetDevices(oneshot::Sender<Result<NymVpnDevicesResponse, AccountError>>),
     RegisterDevice(oneshot::Sender<Result<(), AccountError>>),
@@ -125,6 +128,7 @@ impl fmt::Display for VpnServiceCommand {
             VpnServiceCommand::StoreAccount(_, _) => write!(f, "StoreAccount"),
             VpnServiceCommand::IsAccountStored(_) => write!(f, "IsAccountStored"),
             VpnServiceCommand::RemoveAccount(_) => write!(f, "RemoveAccount"),
+            VpnServiceCommand::GetLocalAccountState(_) => write!(f, "GetLocalAccountState"),
             VpnServiceCommand::GetAccountSummary(_) => write!(f, "GetAccountSummery"),
             VpnServiceCommand::GetDevices(_) => write!(f, "GetDevices"),
             VpnServiceCommand::RegisterDevice(_) => write!(f, "RegisterDevice"),
@@ -577,6 +581,10 @@ where
                 let result = self.handle_remove_account().await;
                 let _ = tx.send(result);
             }
+            VpnServiceCommand::GetLocalAccountState(tx) => {
+                let result = self.handle_get_local_account_state().await;
+                let _ = tx.send(result);
+            }
             VpnServiceCommand::GetAccountSummary(tx) => {
                 let result = self.handle_get_account_summary().await;
                 let _ = tx.send(result);
@@ -816,6 +824,10 @@ where
             })?;
 
         Ok(())
+    }
+
+    async fn handle_get_local_account_state(&self) -> Result<AccountState, AccountError> {
+        Ok(self.shared_account_state.lock().await.clone())
     }
 
     async fn load_account(&self) -> Result<VpnApiAccount, AccountError> {

@@ -16,11 +16,12 @@ use nym_vpn_proto::{
     nym_vpnd_server::NymVpnd, AccountError, ConnectRequest, ConnectResponse, ConnectionStateChange,
     ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty, GetAccountSummaryRequest,
     GetAccountSummaryResponse, GetDeviceZkNymsRequest, GetDeviceZkNymsResponse, GetDevicesRequest,
-    GetDevicesResponse, InfoRequest, InfoResponse, IsAccountStoredRequest, IsAccountStoredResponse,
-    IsReadyToConnectRequest, IsReadyToConnectResponse, ListCountriesRequest, ListCountriesResponse,
-    ListGatewaysRequest, ListGatewaysResponse, RegisterDeviceRequest, RegisterDeviceResponse,
-    RemoveAccountRequest, RemoveAccountResponse, RequestZkNymRequest, RequestZkNymResponse,
-    StatusRequest, StatusResponse, StoreAccountRequest, StoreAccountResponse,
+    GetDevicesResponse, GetLocalAccountStateRequest, GetLocalAccountStateResponse, InfoRequest,
+    InfoResponse, IsAccountStoredRequest, IsAccountStoredResponse, IsReadyToConnectRequest,
+    IsReadyToConnectResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
+    ListGatewaysResponse, RegisterDeviceRequest, RegisterDeviceResponse, RemoveAccountRequest,
+    RemoveAccountResponse, RequestZkNymRequest, RequestZkNymResponse, StatusRequest,
+    StatusResponse, StoreAccountRequest, StoreAccountResponse,
 };
 
 use super::{
@@ -414,6 +415,27 @@ impl NymVpnd for CommandInterface {
         };
 
         tracing::info!("Returning remove account response");
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn get_local_account_state(
+        &self,
+        _request: tonic::Request<GetLocalAccountStateRequest>,
+    ) -> Result<tonic::Response<GetLocalAccountStateResponse>, tonic::Status> {
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_get_local_account_state()
+            .await
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to get local account state: {err}"))
+            })?
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to get local account state: {err}"))
+            })?;
+
+        let response = GetLocalAccountStateResponse {
+            json: serde_json::to_string(&result).unwrap(),
+        };
+
         Ok(tonic::Response::new(response))
     }
 
