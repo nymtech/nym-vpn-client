@@ -6,6 +6,7 @@ use std::sync::Arc;
 use nym_vpn_api_client::response::{
     NymVpnAccountStatusResponse, NymVpnAccountSummarySubscription, NymVpnDeviceStatus,
 };
+use serde::Serialize;
 
 #[derive(Clone)]
 pub struct SharedAccountState {
@@ -63,7 +64,7 @@ impl SharedAccountState {
     }
 }
 
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize)]
 pub struct AccountState {
     mnemonic: Option<MnemonicState>,
     account: Option<RemoteAccountState>,
@@ -71,26 +72,26 @@ pub struct AccountState {
     device: Option<DeviceState>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub(crate) enum MnemonicState {
     NotStored,
     Stored,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub(crate) enum RemoteAccountState {
     NotRegistered,
     Inactive,
     Active,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub(crate) enum SubscriptionState {
     NotSubscribed,
     Subscribed,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub(crate) enum DeviceState {
     NotRegistered,
     Inactive,

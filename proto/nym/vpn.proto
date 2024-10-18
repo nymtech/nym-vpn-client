@@ -490,6 +490,12 @@ message RemoveAccountResponse {
   AccountError error = 2;
 }
 
+message GetLocalAccountStateRequest {}
+
+message GetLocalAccountStateResponse {
+  string json = 1;
+}
+
 message GetAccountSummaryRequest {}
 
 message GetAccountSummaryResponse {
@@ -581,6 +587,7 @@ service NymVpnd {
   rpc StoreAccount (StoreAccountRequest) returns (StoreAccountResponse) {}
   rpc IsAccountStored (IsAccountStoredRequest) returns (IsAccountStoredResponse) {}
   rpc RemoveAccount (RemoveAccountRequest) returns (RemoveAccountResponse) {}
+  rpc GetLocalAccountState (GetLocalAccountStateRequest) returns (GetLocalAccountStateResponse) {}
   rpc GetAccountSummary (GetAccountSummaryRequest) returns (GetAccountSummaryResponse) {}
   rpc GetDevices (GetDevicesRequest) returns (GetDevicesResponse) {}
   rpc RegisterDevice (RegisterDeviceRequest) returns (RegisterDeviceResponse) {}

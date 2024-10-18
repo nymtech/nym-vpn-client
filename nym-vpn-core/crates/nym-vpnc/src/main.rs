@@ -6,9 +6,9 @@ use clap::Parser;
 use nym_gateway_directory::GatewayType;
 use nym_vpn_proto::{
     ApplyFreepassRequest, ConnectRequest, DisconnectRequest, Empty, GetAccountSummaryRequest,
-    GetDeviceZkNymsRequest, GetDevicesRequest, GetFreePassesRequest, InfoRequest, InfoResponse,
-    ListCountriesRequest, ListGatewaysRequest, RegisterDeviceRequest, RequestZkNymRequest,
-    StatusRequest, StoreAccountRequest, UserAgent,
+    GetDeviceZkNymsRequest, GetDevicesRequest, GetFreePassesRequest, GetLocalAccountStateRequest,
+    InfoRequest, InfoResponse, ListCountriesRequest, ListGatewaysRequest, RegisterDeviceRequest,
+    RemoveAccountRequest, RequestZkNymRequest, StatusRequest, StoreAccountRequest, UserAgent,
 };
 use protobuf_conversion::{into_gateway_type, into_threshold};
 use sysinfo::System;
@@ -40,6 +40,8 @@ async fn main() -> Result<()> {
         Command::Status => status(client_type).await?,
         Command::Info => info(client_type).await?,
         Command::StoreAccount(ref store_args) => store_account(client_type, store_args).await?,
+        Command::RemoveAccount => remove_account(client_type).await?,
+        Command::GetLocalAccountState => get_local_account_state(client_type).await?,
         Command::ListenToStatus => listen_to_status(client_type).await?,
         Command::ListenToStateChanges => listen_to_state_changes(client_type).await?,
         Command::ListEntryGateways(ref list_args) => {
@@ -170,6 +172,22 @@ async fn store_account(client_type: ClientType, store_args: &cli::StoreAccountAr
         nonce: 0,
     });
     let response = client.store_account(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn remove_account(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(RemoveAccountRequest {});
+    let response = client.remove_account(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn get_local_account_state(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(GetLocalAccountStateRequest {});
+    let response = client.get_local_account_state(request).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }

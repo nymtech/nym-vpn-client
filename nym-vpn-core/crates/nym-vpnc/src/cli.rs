@@ -25,6 +25,8 @@ pub(crate) enum Command {
     Status,
     Info,
     StoreAccount(StoreAccountArgs),
+    RemoveAccount,
+    GetLocalAccountState,
     ListenToStatus,
     ListenToStateChanges,
     ListEntryGateways(ListGatewaysArgs),
