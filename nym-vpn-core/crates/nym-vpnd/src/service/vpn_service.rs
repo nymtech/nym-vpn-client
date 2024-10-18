@@ -153,7 +153,7 @@ pub(crate) struct ConnectOptions {
     pub(crate) dns: Option<IpAddr>,
     pub(crate) disable_routing: bool,
     pub(crate) enable_two_hop: bool,
-    pub(crate) enable_poisson_rate: bool,
+    pub(crate) disable_poisson_rate: bool,
     pub(crate) disable_background_cover_traffic: bool,
     pub(crate) enable_credentials_mode: bool,
     pub(crate) min_mixnode_performance: Option<Percent>,
@@ -693,7 +693,7 @@ where
         };
 
         let mixnet_client_config = MixnetClientConfig {
-            enable_poisson_rate: options.enable_poisson_rate,
+            disable_poisson_rate: options.disable_poisson_rate,
             disable_background_cover_traffic: options.disable_background_cover_traffic,
             enable_credentials_mode: options.enable_credentials_mode,
             min_mixnode_performance: options

@@ -668,7 +668,7 @@ impl TryFrom<ConnectRequest> for ConnectOptions {
             dns,
             disable_routing: request.disable_routing,
             enable_two_hop: request.enable_two_hop,
-            enable_poisson_rate: request.enable_poisson_rate,
+            disable_poisson_rate: request.disable_poisson_rate,
             disable_background_cover_traffic,
             enable_credentials_mode: request.enable_credentials_mode,
             min_mixnode_performance,
