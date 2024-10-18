@@ -1,7 +1,4 @@
 {
-  "credential": {
-    "title": "Credencial"
-  },
   "auto-connect": {
     "title": "Ligação Automática",
     "desc": "Ligação automática ao iniciar a aplicação"

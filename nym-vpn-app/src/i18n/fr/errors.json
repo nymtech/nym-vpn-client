@@ -1,12 +1,4 @@
 {
-  "credential": {
-    "invalid": "Identifiant invalide",
-    "vpn-running": "Vous ne pouvez pas importer d'identifiant lorsque vous êtes connecté au VPN",
-    "expired": "Identifiant expiré",
-    "no-duplicate": "Cet identifiant a déjà été importé",
-    "storage": "L'identifiant n'a pas pu être ajouté en raison d'une erreur interne",
-    "deserialize": "Échec de la désérialisation de l'identifiant"
-  },
   "unknown": "Erreur inconnue",
   "internal": "Erreur interne",
   "daemon": {

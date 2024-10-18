@@ -1,12 +1,4 @@
 {
-  "credential": {
-    "invalid": "Credencial inválida",
-    "expired": "Credencial expirada",
-    "no-duplicate": "Essa credencial já foi importada",
-    "storage": "Falha ao importar a credencial devido a um erro interno",
-    "deserialize": "Falha ao desserializar a credencial",
-    "vpn-running": "Não é possível importar uma credencial enquanto estiver conectado à VPN"
-  },
   "unknown": "Erro desconhecido",
   "internal": "Erro interno",
   "daemon": {

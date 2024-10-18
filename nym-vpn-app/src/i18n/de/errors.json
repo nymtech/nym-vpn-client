@@ -1,12 +1,4 @@
 {
-  "credential": {
-    "invalid": "Ungültige Zugangsberechtigung",
-    "expired": "Zugangsberechtigung abgelaufen",
-    "no-duplicate": "Diese Zugangsdaten wurden bereits importiert",
-    "storage": "Fehler beim importieren der Zugangsdaten auf Grund eines internen Fehlers",
-    "deserialize": "Fehler beim verifizieren der Zugangsdaten",
-    "vpn-running": "Du kannst keine Zugangsdaten importieren während du mit dem VPN verbunden bist"
-  },
   "unknown": "Unbekannter Fehler",
   "internal": "Interner Fehler",
   "daemon": {
