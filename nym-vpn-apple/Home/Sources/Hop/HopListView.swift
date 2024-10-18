@@ -1,5 +1,5 @@
 import SwiftUI
-import CountriesManager
+import CountriesManagerTypes
 import ExternalLinkManager
 import Theme
 import UIComponents

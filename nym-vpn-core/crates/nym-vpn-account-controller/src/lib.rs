@@ -7,8 +7,9 @@
 // 3. request ticketbooks and top up the local credential store
 
 mod controller;
+mod ecash_client;
 mod error;
 mod shared_state;
 
 pub use controller::{AccountCommand, AccountController};
-pub use shared_state::SharedAccountState;
+pub use shared_state::{AccountState, SharedAccountState};

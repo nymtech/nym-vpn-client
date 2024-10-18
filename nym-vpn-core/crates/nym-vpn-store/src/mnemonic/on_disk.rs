@@ -1,7 +1,10 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{fs::File, path::PathBuf};
+use std::{
+    fs::{self, File},
+    path::PathBuf,
+};
 
 use super::{MnemonicStorage, MnemonicStorageError, StoredMnemonic};
 
@@ -17,16 +20,16 @@ pub enum OnDiskMnemonicStorageError {
     },
 
     #[error("failed to open file")]
-    FileOpenError(std::io::Error),
+    FileOpenError(#[source] std::io::Error),
 
     #[error("failed to read mnemonic from file")]
-    ReadError(serde_json::Error),
+    ReadError(#[source] serde_json::Error),
 
     #[error("failed to write mnemonic to file")]
-    WriteError(serde_json::Error),
+    WriteError(#[source] serde_json::Error),
 
     #[error("failed to remove mnemonic file")]
-    RemoveError(std::io::Error),
+    RemoveError(#[source] std::io::Error),
 }
 
 impl MnemonicStorageError for OnDiskMnemonicStorageError {
@@ -79,6 +82,17 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
                 path: self.path.clone(),
                 source: err,
             })?;
+
+        // Create parent directories
+        if let Some(parent) = self.path.parent() {
+            fs::create_dir_all(parent).map_err(|err| {
+                OnDiskMnemonicStorageError::FileCreateError {
+                    path: parent.to_path_buf(),
+                    source: err,
+                }
+            })?;
+        }
+
         serde_json::to_writer(file, &stored_mnemonic)
             .map_err(OnDiskMnemonicStorageError::WriteError)
     }

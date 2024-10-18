@@ -9,6 +9,7 @@ use sha2::Digest as _;
 
 use crate::jwt::Jwt;
 
+#[derive(Clone)]
 pub struct Device {
     keypair: Arc<ed25519::KeyPair>,
 }

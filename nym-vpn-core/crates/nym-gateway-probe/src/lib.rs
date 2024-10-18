@@ -161,7 +161,7 @@ async fn wg_probe(
                 debug!("Verifying data");
                 gateway_data.verify(&private_key, nonce)?;
 
-                let finalized_message = ClientMessage::Final(FinalMessage {
+                let finalized_message = ClientMessage::Final(Box::new(FinalMessage {
                     gateway_client: GatewayClient::new(
                         &private_key,
                         gateway_data.pub_key().inner(),
@@ -169,7 +169,7 @@ async fn wg_probe(
                         nonce,
                     ),
                     credential: None,
-                });
+                }));
                 let response = auth_client
                     .send(finalized_message, authenticator_address)
                     .await?;

@@ -17,6 +17,11 @@ members = [
     "crates/nym-vpnd",
     "crates/nym-wg-gateway-client",
     "crates/nym-wg-go",
+    "crates/nym-dns",
+    "crates/nym-routing",
+    "crates/nym-dbus",
+    "crates/nym-common",
+    "crates/nym-windows",
     "crates/uniffi-bindgen",
 ]
 
@@ -48,7 +53,6 @@ edition = "2021"
 license = "GPL-3.0-only"
 
 [workspace.dependencies]
-
 anyhow = "1.0.89"
 async-trait = "0.1.83"
 backon = "1.2"
@@ -72,6 +76,7 @@ log = "0.4.22"
 maplit = "1.0.2"
 netdev = "0.29.0"
 nix = "0.29"
+parking_lot = "0.12"
 parity-tokio-ipc = "0.9.0"
 pnet_packet = "0.35.0"
 prost = "0.12.6"
@@ -84,10 +89,10 @@ serde = "1.0"
 serde_json = "1.0"
 sha2 = "0.10"
 signature = "2.2.0"
-sqlx = "0.6.3"
 strum = "0.26"
 strum_macros = "0.26"
 sysinfo = "0.31"
+system-configuration = "0.6"
 tap = "1.0.1"
 tempfile = "3.13"
 thiserror = "1.0.64"
@@ -111,17 +116,7 @@ url = "2.5"
 vergen = { version = "8.3.1", default-features = false }
 x25519-dalek = "2.0"
 zeroize = "1.6.0"
-
-talpid-core = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "e63a599aa" }
-talpid-platform-metadata = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "e63a599aa" }
-talpid-routing = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "e63a599aa" }
-talpid-tunnel = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "e63a599aa" }
-talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "e63a599aa" }
-talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "e63a599aa" }
-
-# Pin down shadowsocks to prevent mullvad dependencies from using newer crates that aren't compatible.
-shadowsocks-service = { version = "=1.16" }
-shadowsocks = { version = "=1.16" }
+windows-sys = "0.52"
 
 nym-authenticator-requests = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
 nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
@@ -130,8 +125,9 @@ nym-client-core = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b
 nym-compact-ecash = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
 nym-config = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
 nym-contracts-common = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
 nym-credential-storage = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
+nym-credentials = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
 nym-crypto = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
 nym-ecash-time = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
 nym-http-api-client = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }

@@ -1,5 +1,6 @@
 import SwiftUI
 import Constants
+import CountriesManagerTypes
 
 public final class AppSettings: ObservableObject {
     public static let shared = AppSettings()
@@ -48,6 +49,8 @@ public final class AppSettings: ObservableObject {
     public var connectionType: Int?
     @AppStorage(AppSettingKey.lastConnectionIntent.rawValue)
     public var lastConnectionIntent: String?
+    @AppStorage(AppSettingKey.countryStore.rawValue)
+    public var countryStore: String?
 
     @AppStorage(
         AppSettingKey.currentEnv.rawValue,
@@ -56,7 +59,9 @@ public final class AppSettings: ObservableObject {
     public var currentEnv: String = "mainnet" {
         didSet {
             guard currentEnv != envSelectorPublisher else { return }
-            envSelectorPublisher = currentEnv
+            Task { @MainActor in
+                envSelectorPublisher = currentEnv
+            }
         }
     }
     @Published public var envSelectorPublisher = ""
@@ -104,4 +109,5 @@ enum AppSettingKey: String {
     case connectionType
     case lastConnectionIntent
     case currentEnv
+    case countryStore
 }

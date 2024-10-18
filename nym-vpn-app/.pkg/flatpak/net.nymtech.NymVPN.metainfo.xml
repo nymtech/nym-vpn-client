@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+    <id>net.nymtech.NymVPN</id>
+    <name>NymVPN</name>
+    <url type="homepage">https://nymtech.net/</url>
+    <developer id="net.nymtech">
+        <name>PierreD</name>
+        <name>Nym</name>
+    </developer>
+    <summary>Decentralized, mixnet, and zero-knowledge VPN</summary>
+    <metadata_license>MIT</metadata_license>
+    <project_license>GPL-3.0-only</project_license>
+    <description>
+        <p>
+            <em>NymVPN client application</em>
+        </p>
+        <p>NymVPN is a decentralized, mixnet and and zero-knowledge VPN</p>
+
+        <p>It provides the following features</p>
+        <ul>
+            <li>5-hop <em>Anonymous</em> mode (using Nym <em>mixnet</em>)
+            </li>
+            <li>2-hop <em>Fast</em> mode (using <em>WireGuard</em>)
+            </li>
+            <li>No centralized logs</li>
+            <li>Hide your public IP</li>
+            <li>Entry and exit hop location</li>
+        </ul>
+    </description>
+    <releases>
+        <release version="0.2.3" date="2024-10-11">
+            <url type="details">
+                https://github.com/nymtech/nym-vpn-client/releases/tag/nym-vpn-app-v0.2.3
+            </url>
+        </release>
+    </releases>
+    <launchable type="desktop-id">net.nymtech.NymVPN.desktop</launchable>
+    <screenshots>
+        <screenshot type="default">
+            <image>
+                https://raw.githubusercontent.com/nymtech/nym-vpn-client/09c9a18/nym-vpn-app/.pkg/screenshots/home-light.png
+            </image>
+            <caption>NymVPN app screenshot, home screen</caption>
+        </screenshot>
+        <screenshot>
+            <image>
+                https://raw.githubusercontent.com/nymtech/nym-vpn-client/09c9a18/nym-vpn-app/.pkg/screenshots/home-connected-light.png
+            </image>
+            <caption>NymVPN app screenshot, home screen connected</caption>
+        </screenshot>
+        <screenshot>
+            <image>
+                https://raw.githubusercontent.com/nymtech/nym-vpn-client/09c9a18/nym-vpn-app/.pkg/screenshots/home-countries-light.png
+            </image>
+            <caption>NymVPN app screenshot, countries selection screen</caption>
+        </screenshot>
+        <screenshot>
+            <image>
+                https://raw.githubusercontent.com/nymtech/nym-vpn-client/09c9a18/nym-vpn-app/.pkg/screenshots/home-dark.png
+            </image>
+            <caption>NymVPN app screenshot, home screen (Dark mode)</caption>
+        </screenshot>
+        <screenshot>
+            <image>
+                https://raw.githubusercontent.com/nymtech/nym-vpn-client/09c9a18/nym-vpn-app/.pkg/screenshots/home-connected-dark.png
+            </image>
+            <caption>NymVPN app screenshot, home screen connected (Dark mode)
+            </caption>
+        </screenshot>
+    </screenshots>
+    <content_rating type="oars-1.1"/>
+</component>
