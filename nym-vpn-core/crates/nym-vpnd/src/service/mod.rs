@@ -5,7 +5,9 @@ mod config;
 mod error;
 mod vpn_service;
 
-pub(crate) use config::{default_log_dir, DEFAULT_LOG_FILE};
+pub(crate) use config::{
+    default_config_dir, default_log_dir, DEFAULT_CONFIG_FILE, DEFAULT_LOG_FILE,
+};
 pub(crate) use error::{AccountError, ConnectionFailedError};
 pub(crate) use vpn_service::{
     ConnectArgs, ConnectOptions, ConnectedStateDetails, NymVpnService, VpnServiceCommand,

@@ -14,7 +14,7 @@ const DEFAULT_DATA_DIR: &str = "/var/lib/nym-vpnd";
 const DEFAULT_LOG_DIR: &str = "/var/log/nym-vpnd";
 #[cfg(not(windows))]
 const DEFAULT_CONFIG_DIR: &str = "/etc/nym";
-pub(super) const DEFAULT_CONFIG_FILE: &str = "nym-vpnd.toml";
+pub(crate) const DEFAULT_CONFIG_FILE: &str = "nym-vpnd.toml";
 pub(crate) const DEFAULT_LOG_FILE: &str = "nym-vpnd.log";
 
 #[cfg(windows)]
@@ -22,7 +22,7 @@ pub(crate) fn program_data_path() -> PathBuf {
     PathBuf::from(std::env::var("ProgramData").unwrap_or(std::env::var("PROGRAMDATA").unwrap()))
 }
 
-pub(super) fn default_data_dir() -> PathBuf {
+pub(crate) fn default_data_dir() -> PathBuf {
     #[cfg(windows)]
     return program_data_path().join("nym-vpnd").join("data");
 
@@ -38,7 +38,7 @@ pub(crate) fn default_log_dir() -> PathBuf {
     return DEFAULT_LOG_DIR.into();
 }
 
-pub(super) fn default_config_dir() -> PathBuf {
+pub(crate) fn default_config_dir() -> PathBuf {
     #[cfg(windows)]
     return program_data_path().join("nym-vpnd").join("config");
 
