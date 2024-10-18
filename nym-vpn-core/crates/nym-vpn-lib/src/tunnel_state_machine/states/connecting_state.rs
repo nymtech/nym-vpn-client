@@ -18,8 +18,10 @@ use nym_ip_packet_requests::IpPair;
 #[cfg(target_os = "linux")]
 use crate::tunnel_state_machine::default_interface::DefaultInterface;
 
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+use crate::tunnel_state_machine::route_handler::RoutingConfig;
+
 use crate::tunnel_state_machine::{
-    route_handler::RoutingConfig,
     states::{ConnectedState, DisconnectingState},
     tun_ipv6,
     tunnel::{self, any_tunnel_handle::AnyTunnelHandle, ConnectedMixnet, MixnetConnectOptions},
@@ -174,6 +176,7 @@ impl ConnectingState {
 
         tracing::debug!("Created tun device: {}", tun_name);
 
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let routing_config = RoutingConfig::Mixnet {
             enable_ipv6,
             tun_name: tun_name.clone(),
@@ -182,7 +185,9 @@ impl ConnectingState {
             physical_interface: DefaultInterface::current()?,
         };
 
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         Self::set_routes(routing_config, shared_state).await?;
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         Self::set_dns(&tun_name, shared_state)?;
 
         let tunnel_conn_data = TunnelConnectionData::Mixnet(MixnetConnectionData {
@@ -228,6 +233,7 @@ impl ConnectingState {
         let exit_tun_name = exit_tun.get_ref().name().map_err(Error::GetTunDeviceName)?;
         tracing::info!("Created exit tun device: {}", exit_tun_name);
 
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let routing_config = RoutingConfig::Wireguard {
             enable_ipv6,
             entry_tun_name,
@@ -238,7 +244,9 @@ impl ConnectingState {
             physical_interface: DefaultInterface::current()?,
         };
 
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         Self::set_routes(routing_config, shared_state).await?;
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         Self::set_dns(&exit_tun_name, shared_state)?;
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
@@ -254,6 +262,7 @@ impl ConnectingState {
         Ok((tunnel_conn_data, tunnel_handle))
     }
 
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     fn set_dns(tun_name: &str, shared_state: &mut SharedState) -> Result<()> {
         let dns_servers = match shared_state.tunnel_settings.dns {
             DnsOptions::Default => crate::DEFAULT_DNS_SERVERS.to_vec(),
@@ -266,15 +275,19 @@ impl ConnectingState {
             .map_err(Error::SetDns)
     }
 
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     async fn set_routes(
         routing_config: RoutingConfig,
         shared_state: &mut SharedState,
     ) -> Result<()> {
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         shared_state
             .route_handler
             .add_routes(routing_config)
             .await
-            .map_err(Error::AddRoutes)
+            .map_err(Error::AddRoutes)?;
+
+        Ok(())
     }
 
     fn create_mixnet_device(

@@ -17,8 +17,6 @@ use nym_wg_go::PublicKey;
 use time::OffsetDateTime;
 use url::Url;
 
-#[cfg(any(target_os = "ios", target_os = "android"))]
-use super::mobile::runner::Error as MobileError;
 use crate::{platform::error::VpnError, NodeIdentity, Recipient, UniffiCustomTypeConverter};
 
 uniffi::custom_type!(Ipv4Addr, String);
@@ -390,49 +388,12 @@ impl From<ExitPoint> for GwExitPoint {
 }
 
 #[derive(uniffi::Enum, Clone, PartialEq)]
-#[allow(clippy::large_enum_variant)]
 pub enum ExitStatus {
     Failure { error: VpnError },
     Stopped,
 }
 
-#[cfg(any(target_os = "ios", target_os = "android"))]
-impl From<MobileError> for VpnError {
-    fn from(value: MobileError) -> Self {
-        match value {
-            MobileError::StartMixnetTimeout => VpnError::NetworkConnectionError {
-                details: value.to_string(),
-            },
-            MobileError::StartMixnetClient(e) => VpnError::NetworkConnectionError {
-                details: e.to_string(),
-            },
-            MobileError::GatewayDirectory(e) => VpnError::NetworkConnectionError {
-                details: e.to_string(),
-            },
-            MobileError::AuthenticatorAddressNotFound => VpnError::GatewayError {
-                details: value.to_string(),
-            },
-            MobileError::NotEnoughBandwidth => VpnError::OutOfBandwidth,
-            MobileError::AuthenticationNotPossible(message) => {
-                VpnError::GatewayError { details: message }
-            }
-            MobileError::WgGatewayClientFailure(e) => VpnError::GatewayError {
-                details: e.to_string(),
-            },
-            MobileError::Tunnel(e) => VpnError::InternalError {
-                details: e.to_string(),
-            },
-            MobileError::FailedToLookupGatewayIp { gateway_id, source } => {
-                VpnError::NetworkConnectionError {
-                    details: format!("failed to lookup gateway ip: {gateway_id}: {source}"),
-                }
-            }
-        }
-    }
-}
-
 #[derive(uniffi::Enum, Clone, PartialEq)]
-#[allow(clippy::large_enum_variant)]
 pub enum TunStatus {
     Up,
     Down,
@@ -455,7 +416,6 @@ pub enum NymVpnStatus {
 }
 
 #[derive(uniffi::Enum, Clone, PartialEq)]
-#[allow(clippy::large_enum_variant)]
 pub enum BandwidthStatus {
     NoBandwidth,
     RemainingBandwidth { bandwidth: i64 },
@@ -475,7 +435,6 @@ impl From<&BandwidthStatusMessage> for BandwidthStatus {
 }
 
 #[derive(uniffi::Enum, Clone, PartialEq)]
-#[allow(clippy::large_enum_variant)]
 pub enum ConnectionStatus {
     EntryGatewayDown,
     ExitGatewayDownIpv4,

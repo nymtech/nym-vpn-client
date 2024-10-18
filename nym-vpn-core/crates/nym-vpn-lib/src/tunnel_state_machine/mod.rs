@@ -3,8 +3,10 @@
 
 #[cfg(target_os = "linux")]
 mod default_interface;
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 mod dns_handler;
 //mod firewall_handler;
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 mod route_handler;
 mod states;
 mod tun_ipv6;
@@ -27,8 +29,10 @@ use nym_ip_packet_requests::IpPair;
 use nym_wg_gateway_client::GatewayData;
 use nym_wg_go::PublicKey;
 
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use dns_handler::DnsHandler;
 //use firewall_handler::FirewallHandler;
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use route_handler::RouteHandler;
 use states::DisconnectedState;
 
@@ -259,8 +263,11 @@ pub enum ConnectionEvent {
 
 pub struct SharedState {
     mixnet_event_sender: mpsc::UnboundedSender<MixnetEvent>,
+
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     route_handler: RouteHandler,
     //firewall_handler: FirewallHandler,
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     dns_handler: DnsHandler,
     nym_config: NymConfig,
     tunnel_settings: TunnelSettings,
@@ -292,9 +299,11 @@ impl TunnelStateMachine {
     ) -> Result<JoinHandle<()>> {
         let (current_state_handler, _) = DisconnectedState::enter();
 
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let route_handler = RouteHandler::new()
             .await
             .map_err(Error::CreateRouteHandler)?;
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let dns_handler = DnsHandler::new(
             #[cfg(target_os = "linux")]
             &route_handler,
@@ -307,8 +316,10 @@ impl TunnelStateMachine {
 
         let shared_state: SharedState = SharedState {
             mixnet_event_sender,
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             route_handler,
             //firewall_handler,
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             dns_handler,
             nym_config,
             tunnel_settings,
@@ -363,15 +374,19 @@ impl TunnelStateMachine {
         }
 
         tracing::debug!("Tunnel state machine is exiting...");
+
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         self.shared_state.route_handler.stop().await;
     }
 }
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     #[error("failed to create a route handler: {}", _0)]
     CreateRouteHandler(#[source] route_handler::Error),
 
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     #[error("failed to create a dns handler: {}", _0)]
     CreateDnsHandler(#[source] dns_handler::Error),
 
@@ -380,6 +395,7 @@ pub enum Error {
     #[error("failed to create tunnel device: {}", _0)]
     CreateTunDevice(#[source] tun::Error),
 
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     #[error("failed to obtain route handle: {}", _0)]
     GetRouteHandle(#[source] route_handler::Error),
 
@@ -393,9 +409,11 @@ pub enum Error {
     #[error("failed to set tunnel device ipv6 address")]
     SetTunDeviceIpv6Addr(#[source] std::io::Error),
 
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     #[error("failed to add routes: {}", _0)]
     AddRoutes(#[source] route_handler::Error),
 
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     #[error("failed to set dns: {}", _0)]
     SetDns(#[source] dns_handler::Error),
 
@@ -415,7 +433,9 @@ pub enum Error {
 impl Error {
     fn error_state_reason(&self) -> ErrorStateReason {
         match self {
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::CreateRouteHandler(_) | Self::AddRoutes(_) => ErrorStateReason::Routing,
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::CreateDnsHandler(_) | Self::SetDns(_) => ErrorStateReason::Dns,
             //Self::CreateFirewallHandler(_) => ErrorStateReason::Firewall,
             Self::CreateTunDevice(_)
@@ -429,6 +449,7 @@ impl Error {
                 // todo: add detail
                 ErrorStateReason::EstablishMixnetConnection
             }
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::GetRouteHandle(_) => ErrorStateReason::Internal,
             #[cfg(target_os = "linux")]
             Self::GetDefaultInterface(_) => ErrorStateReason::Internal,

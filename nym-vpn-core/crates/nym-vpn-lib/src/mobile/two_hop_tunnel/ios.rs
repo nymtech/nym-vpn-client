@@ -14,11 +14,9 @@ use crate::{
         },
         tunnel_settings::TunnelSettings,
         two_hop_config::TwoHopConfig,
-        wg_config::{WgNodeConfig, WgPeer},
         Error, Result,
     },
-    platform::uniffi_set_listener_status,
-    uniffi_custom_impls::{StatusEvent, TunStatus},
+    wg_config::{WgNodeConfig, WgPeer},
 };
 
 pub struct TwoHopTunnelImp {
@@ -103,8 +101,6 @@ impl TwoHopTunnelImp {
 
         // Create exit tunnel capturing exit traffic on device and sending it to the local udp forwarder.
         let exit_tunnel = wireguard_go::Tunnel::start(exit_wg_config, tun_fd)?;
-
-        uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Up));
 
         // Setup default path observer.
         let default_path_receiver = Self::add_default_path_observer(tun_provider.clone())?;
