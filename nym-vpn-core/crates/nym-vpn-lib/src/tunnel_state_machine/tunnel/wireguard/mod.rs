@@ -4,7 +4,11 @@
 pub mod connected_tunnel;
 pub mod connector;
 
+#[cfg(target_os = "android")]
+pub mod android;
 #[cfg(target_os = "ios")]
-pub mod dns64;
+pub mod ios;
+#[cfg(any(target_os = "ios", target_os = "android"))]
+pub mod tunnel_settings;
 #[cfg(any(target_os = "ios", target_os = "android"))]
 pub mod two_hop_config;
