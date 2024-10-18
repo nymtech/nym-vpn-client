@@ -678,19 +678,19 @@ where
         self.update_verification_key()
             .await
             .inspect_err(|err| {
-                tracing::error!("Failed to update master verification key: {:#?}", err)
+                tracing::error!("Failed to update master verification key: {:?}", err)
             })
             .ok();
         self.update_coin_indices_signatures()
             .await
             .inspect_err(|err| {
-                tracing::error!("Failed to update coin indices signatures: {:#?}", err)
+                tracing::error!("Failed to update coin indices signatures: {:?}", err)
             })
             .ok();
         self.update_expiration_date_signatures()
             .await
             .inspect_err(|err| {
-                tracing::error!("Failed to update expiration date signatures: {:#?}", err)
+                tracing::error!("Failed to update expiration date signatures: {:?}", err)
             })
             .ok();
 
@@ -698,7 +698,7 @@ where
         let mut polling_timer = tokio::time::interval(Duration::from_millis(500));
 
         // Timer to periodically refresh the remote account state
-        let mut update_shared_account_state_timer = tokio::time::interval(Duration::from_secs(10));
+        let mut update_shared_account_state_timer = tokio::time::interval(Duration::from_secs(60));
 
         loop {
             tokio::select! {

@@ -654,15 +654,6 @@ where
         connect_args: ConnectArgs,
         _user_agent: nym_vpn_lib::UserAgent, // todo: use user-agent!
     ) -> VpnServiceConnectResult {
-        match self.shared_account_state.is_ready_to_connect().await {
-            ReadyToConnect::Ready => {}
-            not_ready => {
-                let msg = format!("Not ready to connect: {:?}", not_ready);
-                tracing::info!(msg);
-                return VpnServiceConnectResult::Fail(msg);
-            }
-        }
-
         let ConnectArgs {
             entry,
             exit,
