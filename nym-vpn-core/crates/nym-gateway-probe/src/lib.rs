@@ -236,6 +236,9 @@ async fn wg_probe(
                 netstack_response.received_hosts as f32 / netstack_response.sent_hosts as f32;
             wg_outcome.ping_ips_performance =
                 netstack_response.received_ips as f32 / netstack_response.sent_ips as f32;
+            wg_outcome.download_duration = netstack_response.download_duration;
+            wg_outcome.downloaded_file = netstack_response.downloaded_file;
+            wg_outcome.download_err = netstack_response.download_err;
         }
     }
 

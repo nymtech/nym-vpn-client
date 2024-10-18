@@ -2,11 +2,17 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"fmt"
+	"io"
 	"log"
+	"net"
+	"net/http"
 	"net/netip"
 	"strings"
 	"time"
+
+	"math/rand"
 
 	"golang.org/x/net/icmp"
 	"golang.org/x/net/ipv4"
@@ -19,6 +25,17 @@ type Netstack struct{}
 
 func init() {
 	NetstackCallImpl = Netstack{}
+}
+
+var fileUrls = []string{
+	"https://hil-speed.hetzner.com/100MB.bin",
+	"https://nbg1-speed.hetzner.com/100MB.bin",
+	"https://fsn1-speed.hetzner.com/100MB.bin",
+	"https://ash-speed.hetzner.com/100MB.bin",
+	"https://hel1-speed.hetzner.com/100MB.bin",
+	"https://proof.ovh.net/files/100Mb.dat",
+	"http://cachefly.cachefly.net/100mb.test",
+	"https://sin-speed.hetzner.com/100MB.bin",
 }
 
 func (Netstack) ping(req NetstackRequest) NetstackResponse {
@@ -42,7 +59,7 @@ func (Netstack) ping(req NetstackRequest) NetstackResponse {
 	ipc.WriteString(req.endpoint)
 	ipc.WriteString("\nallowed_ip=0.0.0.0/0\n")
 
-	response := NetstackResponse{false, 0, 0, 0, 0, false}
+	response := NetstackResponse{false, 0, 0, 0, 0, false, "", 0, ""}
 
 	dev.IpcSet(ipc.String())
 	err = dev.Up()
@@ -79,6 +96,26 @@ func (Netstack) ping(req NetstackRequest) NetstackResponse {
 			response.received_ips += 1
 			log.Printf("Ping latency: %v\n", rt)
 		}
+	}
+
+	randomIndex := rand.Intn(len(fileUrls))
+	fileURL := fileUrls[randomIndex]
+
+	// Download the file
+	fileContent, downloadDuration, err := downloadFile(fileURL, req.download_timeout_sec, tnet)
+	if err != nil {
+		log.Printf("Failed to download file: %v\n", err)
+	} else {
+		log.Printf("Downloaded file content length: %.2f MB\n", float64(len(fileContent))/1024/1024)
+		log.Printf("Download duration: %v\n", downloadDuration)
+	}
+
+	response.download_duration = uint64(downloadDuration.Seconds())
+	response.downloaded_file = fileURL
+	if err != nil {
+		response.download_err = err.Error()
+	} else {
+		response.download_err = ""
 	}
 
 	return response
@@ -133,4 +170,39 @@ func sendPing(address string, seq uint8, send_timeout_secs uint64, recieve_timou
 			return 0, fmt.Errorf("invalid ping reply: %v (request: %v)", replyPing, requestPing)
 		}
 	}
+}
+
+func downloadFile(url string, timeoutSecs uint64, tnet *netstack.Net) ([]byte, time.Duration, error) {
+	transport := &http.Transport{
+		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			return tnet.Dial(network, addr)
+		},
+	}
+
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   time.Second * time.Duration(timeoutSecs),
+	}
+
+	start := time.Now() // Start timing
+
+	resp, err := client.Get(url)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, 0, fmt.Errorf("failed to download file: %s", resp.Status)
+	}
+
+	var buf bytes.Buffer
+	_, err = io.Copy(&buf, resp.Body)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	duration := time.Since(start) // Calculate duration
+
+	return buf.Bytes(), duration, nil
 }

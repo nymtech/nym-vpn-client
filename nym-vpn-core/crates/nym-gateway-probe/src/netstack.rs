@@ -15,6 +15,7 @@ pub struct NetstackRequest {
     pub num_ping: u8,
     pub send_timeout_sec: u64,
     pub recv_timeout_sec: u64,
+    pub download_timeout_sec: u64,
 }
 
 impl Default for NetstackRequest {
@@ -30,6 +31,7 @@ impl Default for NetstackRequest {
             num_ping: 3,
             send_timeout_sec: 1,
             recv_timeout_sec: 2,
+            download_timeout_sec: 180,
         }
     }
 }
@@ -42,6 +44,9 @@ pub struct NetstackResponse {
     pub sent_hosts: u16,
     pub received_hosts: u16,
     pub can_resolve_dns: bool,
+    pub downloaded_file: String,
+    pub download_duration: u64,
+    pub download_err: String,
 }
 
 #[rust2go::r2g]
