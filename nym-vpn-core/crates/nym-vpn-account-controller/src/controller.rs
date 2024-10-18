@@ -33,7 +33,8 @@ use crate::{
     ecash_client::VpnEcashApiClient,
     error::Error,
     shared_state::{
-        DeviceState, MnemonicState, RemoteAccountState, SharedAccountState, SubscriptionState,
+        DeviceState, MnemonicState, ReadyToRegisterDevice, RemoteAccountState, SharedAccountState,
+        SubscriptionState,
     },
 };
 
@@ -527,8 +528,19 @@ where
 
         tracing::info!("Current state: {}", self.shared_state().lock().await);
 
-        if self.shared_state().is_ready_to_register_device().await {
-            self.command_tx.send(AccountCommand::RegisterDevice)?;
+        self.register_device_if_ready().await?;
+
+        Ok(())
+    }
+
+    async fn register_device_if_ready(&self) -> Result<(), Error> {
+        match self.shared_state().is_ready_to_register_device().await {
+            ReadyToRegisterDevice::Ready => {
+                self.command_tx.send(AccountCommand::RegisterDevice)?;
+            }
+            device_register_state => {
+                tracing::info!("Not ready to register device: {:?}", device_register_state);
+            }
         }
 
         Ok(())
@@ -687,12 +699,18 @@ where
         let polling_timer = tokio::time::sleep(Duration::from_millis(500));
         tokio::pin!(polling_timer);
 
+        let update_shared_account_state_timer = tokio::time::sleep(Duration::from_secs(10));
+        tokio::pin!(update_shared_account_state_timer);
+
         loop {
             tokio::select! {
                 Some(command) = self.command_rx.recv() => {
                     if let Err(err) = self.handle_command(command).await {
                         tracing::error!("{:#?}", err);
                     }
+                }
+                _ = &mut update_shared_account_state_timer => {
+                    self.queue_command(AccountCommand::UpdateSharedAccountState);
                 }
                 _ = &mut polling_timer => {
                     while let Some(result) = self.polling_tasks.try_join_next() {
@@ -725,6 +743,12 @@ where
 
     pub fn command_tx(&self) -> tokio::sync::mpsc::UnboundedSender<AccountCommand> {
         self.command_tx.clone()
+    }
+
+    fn queue_command(&self, command: AccountCommand) {
+        if let Err(err) = self.command_tx.send(command) {
+            tracing::error!("Failed to queue command: {:#?}", err);
+        }
     }
 }
 

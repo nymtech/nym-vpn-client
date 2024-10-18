@@ -14,6 +14,16 @@ pub struct SharedAccountState {
     inner: Arc<tokio::sync::Mutex<AccountState>>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub enum ReadyToRegisterDevice {
+    Ready,
+    NoMnemonicStored,
+    RemoteAccountNotActive,
+    NoActiveSubscription,
+    DeviceAlreadyRegistered,
+    DeviceInactive,
+}
+
 impl SharedAccountState {
     pub(crate) fn new() -> Self {
         SharedAccountState {
@@ -33,11 +43,24 @@ impl SharedAccountState {
             && state.device == Some(DeviceState::Active)
     }
 
-    pub(crate) async fn is_ready_to_register_device(&self) -> bool {
-        let state = self.lock().await;
-        state.mnemonic == Some(MnemonicState::Stored)
-            && state.account == Some(RemoteAccountState::Active)
-            && state.device == Some(DeviceState::NotRegistered)
+    pub(crate) async fn is_ready_to_register_device(&self) -> ReadyToRegisterDevice {
+        let state = self.lock().await.clone();
+        if state.mnemonic != Some(MnemonicState::Stored) {
+            return ReadyToRegisterDevice::NoMnemonicStored;
+        }
+        if state.account != Some(RemoteAccountState::Active) {
+            return ReadyToRegisterDevice::RemoteAccountNotActive;
+        }
+        if state.subscription != Some(SubscriptionState::Subscribed) {
+            return ReadyToRegisterDevice::NoActiveSubscription;
+        }
+        if state.device == Some(DeviceState::Active) {
+            return ReadyToRegisterDevice::DeviceAlreadyRegistered;
+        }
+        if state.device == Some(DeviceState::Inactive) {
+            return ReadyToRegisterDevice::DeviceInactive;
+        }
+        ReadyToRegisterDevice::Ready
     }
 
     pub(crate) async fn set_mnemonic(&self, state: MnemonicState) {
