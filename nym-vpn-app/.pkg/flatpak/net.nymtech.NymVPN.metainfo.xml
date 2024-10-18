@@ -11,12 +11,10 @@
     <metadata_license>MIT</metadata_license>
     <project_license>GPL-3.0-only</project_license>
     <description>
-        <p>
-            <em>NymVPN client application</em>
-        </p>
+        <p><em>NymVPN</em> desktop application</p>
         <p>NymVPN is a decentralized, mixnet and and zero-knowledge VPN</p>
 
-        <p>It provides the following features</p>
+        <p>It provides the following features:</p>
         <ul>
             <li>5-hop <em>Anonymous</em> mode (using Nym <em>mixnet</em>)
             </li>
@@ -26,6 +24,15 @@
             <li>Hide your public IP</li>
             <li>Entry and exit hop location</li>
         </ul>
+
+        <p>NOTE: this package only provides the desktop <em>client</em> application.</p>
+        <p>For the VPN to work, the <em>daemon</em> must be installed and running.</p>
+        <p>We provide separate packages for the daemon:</p>
+        <ul>
+            <li>deb package (Nym repo): nym-vpnd</li>
+            <li>AUR packages: nym-vpnd and nym-vpnd-bin</li>
+        </ul>
+        <p>For more details, please check https://nymvpn.com/en/download/linux</p>
     </description>
     <releases>
         <release version="0.2.3" date="2024-10-11">
