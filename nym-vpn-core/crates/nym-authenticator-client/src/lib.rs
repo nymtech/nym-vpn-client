@@ -35,7 +35,7 @@ pub enum ClientMessage {
     Initial(InitMessage),
     Final(Box<FinalMessage>),
     Query(PeerPublicKey),
-    TopUp(TopUpMessage),
+    TopUp(Box<TopUpMessage>),
 }
 
 #[derive(Clone)]
@@ -152,7 +152,7 @@ impl AuthClient {
                 AuthenticatorRequest::new_query_request(peer_public_key, self.nym_address)
             }
             ClientMessage::TopUp(top_up_message) => {
-                AuthenticatorRequest::new_topup_request(top_up_message, self.nym_address)
+                AuthenticatorRequest::new_topup_request(*top_up_message, self.nym_address)
             }
         };
         debug!(

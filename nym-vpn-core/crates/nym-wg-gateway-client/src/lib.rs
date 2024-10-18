@@ -97,10 +97,10 @@ impl WgGatewayLightClient {
     }
 
     pub async fn top_up(&mut self, credential: CredentialSpendingData) -> Result<i64> {
-        let init_message = ClientMessage::TopUp(TopUpMessage {
+        let init_message = ClientMessage::TopUp(Box::new(TopUpMessage {
             pub_key: PeerPublicKey::new(self.public_key.to_bytes().into()),
             credential,
-        });
+        }));
         let response = self
             .auth_client
             .send(init_message, self.auth_recipient)
