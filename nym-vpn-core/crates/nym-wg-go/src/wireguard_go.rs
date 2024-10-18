@@ -18,15 +18,62 @@ pub struct InterfaceConfig {
     pub listen_port: Option<u16>,
     pub private_key: PrivateKey,
     pub mtu: u16,
+    #[cfg(target_os = "linux")]
+    pub fwmark: Option<u32>,
+    #[cfg(feature = "amnezia")]
+    pub azwg_config: Option<AmneziaConfig>,
 }
 
 impl fmt::Debug for InterfaceConfig {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_struct("InterfaceConfig")
-            .field("listen_port", &self.listen_port)
+        let mut d = f.debug_struct("InterfaceConfig");
+        d.field("listen_port", &self.listen_port)
             .field("private_key", &"(hidden)")
-            .field("mtu", &self.mtu)
-            .finish()
+            .field("mtu", &self.mtu);
+        #[cfg(target_os = "linux")]
+        d.field("fwmark", &self.fwmark);
+        d.finish()
+    }
+}
+/// Hold Amnezia-wireguard configuration parameters.
+///
+/// All parameters should be the same between Client and Server, except Jc - it can vary.
+///
+/// - Jc — 1 ≤ Jc ≤ 128; recommended range is from 3 to 10 inclusive
+/// - Jmin — Jmin < Jmax; recommended value is 50
+/// - Jmax — Jmin < Jmax ≤ 1280; recommended value is 1000
+/// - S1 — S1 < 1280; S1 + 56 ≠ S2; recommended range is from 15 to 150 inclusive
+/// - S2 — S2 < 1280; recommended range is from 15 to 150 inclusive
+/// - H1/H2/H3/H4 — must be unique among each other;
+///     recommended range is from 5 to 2_147_483_647  (2^31 - 1   i.e. signed 32 bit int) inclusive
+#[cfg(feature = "amnezia")]
+#[derive(Debug)]
+pub struct AmneziaConfig {
+    pub junk_packet_count: i32,              // Jc
+    pub junk_packet_min_size: i32,           // Jmin
+    pub junk_packet_max_size: i32,           // Jmax
+    pub init_packet_junk_size: i32,          // S0
+    pub response_packet_junk_size: i32,      // S1
+    pub init_packet_magic_header: u32,       // H1
+    pub response_packet_magic_header: u32,   // H2
+    pub under_load_packet_magic_header: u32, // H3
+    pub transport_packet_magic_header: u32,  // H4
+}
+
+#[cfg(feature = "amnezia")]
+impl Default for AmneziaConfig {
+    fn default() -> Self {
+        Self {
+            junk_packet_count: 4_i32,
+            junk_packet_min_size: 40_i32,
+            junk_packet_max_size: 70_i32,
+            init_packet_junk_size: 0_i32,
+            response_packet_junk_size: 0_i32,
+            init_packet_magic_header: 1_u32,
+            response_packet_magic_header: 2_u32,
+            under_load_packet_magic_header: 3_u32,
+            transport_packet_magic_header: 4_u32,
+        }
     }
 }
 
@@ -47,6 +94,11 @@ impl Config {
 
         if let Some(listen_port) = self.interface.listen_port {
             config_builder.add("listen_port", listen_port.to_string().as_str());
+        }
+
+        #[cfg(target_os = "linux")]
+        if let Some(fwmark) = self.interface.fwmark {
+            config_builder.add("fwmark", fwmark.to_string().as_str());
         }
 
         if !self.peers.is_empty() {
@@ -73,6 +125,9 @@ impl Tunnel {
             CString::new(config.as_uapi_config()).map_err(|_| Error::ConfigContainsNulByte)?;
         let handle = unsafe {
             wgTurnOn(
+                // note: not all platforms accept mtu = 0
+                #[cfg(any(target_os = "linux", target_os = "macos"))]
+                i32::from(config.interface.mtu),
                 settings.as_ptr(),
                 tun_fd,
                 wg_logger_callback,
@@ -134,8 +189,8 @@ impl Drop for Tunnel {
 
 extern "C" {
     // Start the tunnel.
-    #[cfg(any(target_os = "android", target_os = "ios"))]
     fn wgTurnOn(
+        #[cfg(any(target_os = "linux", target_os = "macos"))] mtu: i32,
         settings: *const c_char,
         fd: RawFd,
         logging_callback: LoggingCallback,

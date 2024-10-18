@@ -1,8 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
 
-#![cfg(any(target_os = "ios", target_os = "android"))]
-
+#[cfg(any(target_os = "ios", target_os = "android"))]
 pub mod netstack;
 pub mod uapi;
 pub mod wireguard_go;
@@ -25,7 +24,7 @@ pub enum Error {
     #[error("config contains nul byte")]
     ConfigContainsNulByte,
 
-    #[error("failed to start netstack tunnel (code: {})", _0)]
+    #[error("failed to start the tunnel (code: {})", _0)]
     StartTunnel(i32),
 
     #[error("failed to open connection through the tunnel (code: {})", _0)]
