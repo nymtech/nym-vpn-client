@@ -123,23 +123,23 @@ talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", re
 shadowsocks-service = { version = "=1.16" }
 shadowsocks = { version = "=1.16" }
 
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", rev = "ac1e9852b8cde168bf5449d8912cbb4ba003cf82" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", rev = "ac1e9852b8cde168bf5449d8912cbb4ba003cf82" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "ac1e9852b8cde168bf5449d8912cbb4ba003cf82" }
-nym-client-core = { git = "https://github.com/nymtech/nym", rev = "ac1e9852b8cde168bf5449d8912cbb4ba003cf82" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", rev = "ac1e9852b8cde168bf5449d8912cbb4ba003cf82" }
-nym-config = { git = "https://github.com/nymtech/nym", rev = "ac1e9852b8cde168bf5449d8912cbb4ba003cf82" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", rev = "ac1e9852b8cde168bf5449d8912cbb4ba003cf82" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", rev = "ac1e9852b8cde168bf5449d8912cbb4ba003cf82" }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", rev = "ac1e9852b8cde168bf5449d8912cbb4ba003cf82" }
-nym-crypto = { git = "https://github.com/nymtech/nym", rev = "ac1e9852b8cde168bf5449d8912cbb4ba003cf82" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", rev = "ac1e9852b8cde168bf5449d8912cbb4ba003cf82" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", rev = "ac1e9852b8cde168bf5449d8912cbb4ba003cf82" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "ac1e9852b8cde168bf5449d8912cbb4ba003cf82" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "ac1e9852b8cde168bf5449d8912cbb4ba003cf82" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", rev = "ac1e9852b8cde168bf5449d8912cbb4ba003cf82" }
-nym-sdk = { git = "https://github.com/nymtech/nym", rev = "ac1e9852b8cde168bf5449d8912cbb4ba003cf82" }
-nym-task = { git = "https://github.com/nymtech/nym", rev = "ac1e9852b8cde168bf5449d8912cbb4ba003cf82" }
-nym-topology = { git = "https://github.com/nymtech/nym", rev = "ac1e9852b8cde168bf5449d8912cbb4ba003cf82" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "ac1e9852b8cde168bf5449d8912cbb4ba003cf82" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "ac1e9852b8cde168bf5449d8912cbb4ba003cf82" }
+nym-authenticator-requests = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
+nym-client-core = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
+nym-config = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
+nym-crypto = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
+nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
+nym-sdk = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
+nym-task = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
+nym-topology = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
