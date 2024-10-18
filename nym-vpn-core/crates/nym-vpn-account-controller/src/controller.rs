@@ -43,7 +43,6 @@ use crate::{
 // data/bandwidth.
 const TICKET_THRESHOLD: u32 = 10;
 
-#[allow(unused)]
 #[derive(Clone, Debug)]
 pub enum AccountCommand {
     UpdateSharedAccountState,
@@ -696,11 +695,10 @@ where
             .ok();
 
         // Timer to check if any zk-nym polling tasks have finished
-        let polling_timer = tokio::time::sleep(Duration::from_millis(500));
-        tokio::pin!(polling_timer);
+        let mut polling_timer = tokio::time::interval(Duration::from_millis(500));
 
-        let update_shared_account_state_timer = tokio::time::sleep(Duration::from_secs(10));
-        tokio::pin!(update_shared_account_state_timer);
+        // Timer to periodically refresh the remote account state
+        let mut update_shared_account_state_timer = tokio::time::interval(Duration::from_secs(10));
 
         loop {
             tokio::select! {
@@ -709,10 +707,10 @@ where
                         tracing::error!("{:#?}", err);
                     }
                 }
-                _ = &mut update_shared_account_state_timer => {
+                _ = update_shared_account_state_timer.tick() => {
                     self.queue_command(AccountCommand::UpdateSharedAccountState);
                 }
-                _ = &mut polling_timer => {
+                _ = polling_timer.tick() => {
                     while let Some(result) = self.polling_tasks.try_join_next() {
                         self.handle_polling_result(result).await;
                     }

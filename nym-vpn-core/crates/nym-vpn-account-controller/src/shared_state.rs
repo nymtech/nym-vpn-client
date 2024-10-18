@@ -24,6 +24,15 @@ pub enum ReadyToRegisterDevice {
     DeviceInactive,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub enum ReadyToConnect {
+    Ready,
+    NoMnemonicStored,
+    RemoteAccountNotActive,
+    NoActiveSubscription,
+    DeviceInactive,
+}
+
 impl SharedAccountState {
     pub(crate) fn new() -> Self {
         SharedAccountState {
@@ -35,12 +44,21 @@ impl SharedAccountState {
         self.inner.lock().await
     }
 
-    pub async fn is_ready_to_connect(&self) -> bool {
-        let state = self.lock().await;
-        state.mnemonic == Some(MnemonicState::Stored)
-            && state.account == Some(RemoteAccountState::Active)
-            && state.subscription == Some(SubscriptionState::Subscribed)
-            && state.device == Some(DeviceState::Active)
+    pub async fn is_ready_to_connect(&self) -> ReadyToConnect {
+        let state = self.lock().await.clone();
+        if state.mnemonic != Some(MnemonicState::Stored) {
+            return ReadyToConnect::NoMnemonicStored;
+        }
+        if state.account != Some(RemoteAccountState::Active) {
+            return ReadyToConnect::RemoteAccountNotActive;
+        }
+        if state.subscription != Some(SubscriptionState::Subscribed) {
+            return ReadyToConnect::NoActiveSubscription;
+        }
+        if state.device == Some(DeviceState::Inactive) {
+            return ReadyToConnect::DeviceInactive;
+        }
+        ReadyToConnect::Ready
     }
 
     pub(crate) async fn is_ready_to_register_device(&self) -> ReadyToRegisterDevice {

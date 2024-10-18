@@ -19,7 +19,7 @@ use tokio_util::sync::CancellationToken;
 use url::Url;
 
 use nym_vpn_account_controller::{
-    AccountCommand, AccountController, AccountState, SharedAccountState,
+    AccountCommand, AccountController, AccountState, ReadyToConnect, SharedAccountState,
 };
 use nym_vpn_api_client::{
     response::{
@@ -113,7 +113,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<NymVpnSubscription, AccountError>>,
         String,
     ),
-    IsReadyToConnect(oneshot::Sender<Result<bool, AccountError>>),
+    IsReadyToConnect(oneshot::Sender<Result<ReadyToConnect, AccountError>>),
 }
 
 impl fmt::Display for VpnServiceCommand {
@@ -654,6 +654,15 @@ where
         connect_args: ConnectArgs,
         _user_agent: nym_vpn_lib::UserAgent, // todo: use user-agent!
     ) -> VpnServiceConnectResult {
+        match self.shared_account_state.is_ready_to_connect().await {
+            ReadyToConnect::Ready => {}
+            not_ready => {
+                let msg = format!("Not ready to connect: {:?}", not_ready);
+                tracing::info!(msg);
+                return VpnServiceConnectResult::Fail(msg);
+            }
+        }
+
         let ConnectArgs {
             entry,
             exit,
@@ -945,7 +954,7 @@ where
             })
     }
 
-    async fn handle_is_ready_to_connect(&self) -> bool {
+    async fn handle_is_ready_to_connect(&self) -> ReadyToConnect {
         self.shared_account_state.is_ready_to_connect().await
     }
 }
