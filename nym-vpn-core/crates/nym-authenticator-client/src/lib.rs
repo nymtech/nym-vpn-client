@@ -2,10 +2,11 @@ use std::{cmp::Ordering, sync::Arc, time::Duration};
 
 use nym_authenticator_requests::{
     latest::VERSION as LATEST_VERSION,
-    v2::{
+    v3::{
         registration::{FinalMessage, InitMessage},
         request::AuthenticatorRequest,
         response::AuthenticatorResponse,
+        topup::TopUpMessage,
         VERSION as USED_VERSION,
     },
 };
@@ -34,6 +35,7 @@ pub enum ClientMessage {
     Initial(InitMessage),
     Final(Box<FinalMessage>),
     Query(PeerPublicKey),
+    TopUp(Box<TopUpMessage>),
 }
 
 #[derive(Clone)]
@@ -148,6 +150,9 @@ impl AuthClient {
             }
             ClientMessage::Query(peer_public_key) => {
                 AuthenticatorRequest::new_query_request(peer_public_key, self.nym_address)
+            }
+            ClientMessage::TopUp(top_up_message) => {
+                AuthenticatorRequest::new_topup_request(*top_up_message, self.nym_address)
             }
         };
         debug!(

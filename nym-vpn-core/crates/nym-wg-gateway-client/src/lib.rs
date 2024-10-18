@@ -11,12 +11,13 @@ use std::{
 
 pub use error::{Error, ErrorMessage};
 use nym_authenticator_client::{AuthClient, ClientMessage};
-use nym_authenticator_requests::v2::{
+use nym_authenticator_requests::v3::{
     registration::{FinalMessage, GatewayClient, InitMessage, RegistrationData},
     response::{
         AuthenticatorResponseData, PendingRegistrationResponse, RegisteredResponse,
-        RemainingBandwidthResponse,
+        RemainingBandwidthResponse, TopUpBandwidthResponse,
     },
+    topup::TopUpMessage,
 };
 use nym_credentials_interface::CredentialSpendingData;
 use nym_crypto::asymmetric::{encryption, x25519::KeyPair};
@@ -93,6 +94,26 @@ impl WgGatewayLightClient {
 
     pub async fn suspended(&mut self) -> Result<bool> {
         Ok(self.query_bandwidth().await?.is_none())
+    }
+
+    pub async fn top_up(&mut self, credential: CredentialSpendingData) -> Result<i64> {
+        let init_message = ClientMessage::TopUp(Box::new(TopUpMessage {
+            pub_key: PeerPublicKey::new(self.public_key.to_bytes().into()),
+            credential,
+        }));
+        let response = self
+            .auth_client
+            .send(init_message, self.auth_recipient)
+            .await?;
+
+        let remaining_bandwidth = match response.data {
+            AuthenticatorResponseData::TopUpBandwidth(TopUpBandwidthResponse { reply, .. }) => {
+                reply.available_bandwidth
+            }
+            _ => return Err(Error::InvalidGatewayAuthResponse),
+        };
+
+        Ok(remaining_bandwidth)
     }
 }
 
