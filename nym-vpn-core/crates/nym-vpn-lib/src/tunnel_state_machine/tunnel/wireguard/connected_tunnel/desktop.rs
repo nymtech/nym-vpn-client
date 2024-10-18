@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{error::Error as StdError, os::fd::AsRawFd};
+use std::{error::Error as StdError, net::IpAddr, os::fd::AsRawFd};
 
 use tokio::task::JoinHandle;
 use tun::AsyncDevice;
@@ -10,7 +10,7 @@ use nym_task::TaskManager;
 use nym_wg_gateway_client::WgGatewayClient;
 use nym_wg_go::wireguard_go;
 
-use super::connector::ConnectionData;
+use super::super::connector::ConnectionData;
 use crate::{
     tunnel_state_machine::tunnel::{Error, Result},
     wg_config::WgNodeConfig,
@@ -55,18 +55,25 @@ impl ConnectedTunnel {
         1360
     }
 
-    pub fn run(self, entry_tun: AsyncDevice, exit_tun: AsyncDevice) -> Result<TunnelHandle> {
-        let mut wg_entry_config = WgNodeConfig::with_gateway_data(
+    pub fn run(
+        self,
+        entry_tun: AsyncDevice,
+        exit_tun: AsyncDevice,
+        dns: Vec<IpAddr>,
+    ) -> Result<TunnelHandle> {
+        let wg_entry_config = WgNodeConfig::with_gateway_data(
             self.connection_data.entry.clone(),
             self.entry_gateway_client.keypair().private_key(),
+            dns.clone(),
+            self.entry_mtu(),
         );
-        wg_entry_config.interface.mtu = self.entry_mtu();
 
-        let mut wg_exit_config = WgNodeConfig::with_gateway_data(
+        let wg_exit_config = WgNodeConfig::with_gateway_data(
             self.connection_data.exit.clone(),
             self.exit_gateway_client.keypair().private_key(),
+            dns,
+            self.exit_mtu(),
         );
-        wg_exit_config.interface.mtu = self.exit_mtu();
 
         let entry_tunnel = wireguard_go::Tunnel::start(
             wg_entry_config.into_wireguard_config(),

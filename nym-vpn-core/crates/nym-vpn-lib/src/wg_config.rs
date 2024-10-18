@@ -123,6 +123,8 @@ impl WgNodeConfig {
     pub fn with_gateway_data(
         gateway_data: GatewayData,
         private_key: &nym_crypto::asymmetric::encryption::PrivateKey,
+        dns: Vec<IpAddr>,
+        mtu: u16,
     ) -> Self {
         Self {
             interface: WgInterface {
@@ -132,8 +134,8 @@ impl WgNodeConfig {
                     Ipv4Network::new(gateway_data.private_ipv4, 32)
                         .expect("private_ipv4/32 to ipnetwork"),
                 )],
-                dns: crate::DEFAULT_DNS_SERVERS.to_vec(),
-                mtu: 0,
+                dns,
+                mtu,
                 #[cfg(target_os = "linux")]
                 fwmark: None,
             },
