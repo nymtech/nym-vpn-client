@@ -25,7 +25,17 @@ use crate::{
     logging::setup_logging,
 };
 
+mod generated {
+    include!(concat!(env!("OUT_DIR"), "/env.rs"));
+}
+
+#[derive(Debug)]
+pub struct Environments {
+    pub environments: Vec<String>,
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let _environments = generated::get_environments();
     run()
 }
 
