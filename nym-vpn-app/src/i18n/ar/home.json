@@ -1,9 +1,9 @@
 {
   "status": {
     "connected": "متصل",
-    "disconnected": "انفصال",
+    "disconnected": "انقطاع",
     "connecting": "يتصل الآن",
-    "disconnecting": "ينفصل",
+    "disconnecting": "ينفصل الآن",
     "unknown": "غير معروف"
   },
   "privacy-mode": {
