@@ -15,7 +15,7 @@ mod windows_service;
 
 use clap::Parser;
 use nym_vpn_lib::nym_config::defaults::setup_env;
-use service::NymVpnService;
+use service::{default_log_dir, NymVpnService};
 use tokio::sync::broadcast;
 use tokio_util::sync::CancellationToken;
 
@@ -29,14 +29,28 @@ mod generated {
     include!(concat!(env!("OUT_DIR"), "/env.rs"));
 }
 
-#[derive(Debug)]
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct Environments {
     pub environments: Vec<String>,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let _environments = generated::get_environments();
+    write_default_available_environments();
     run()
+}
+
+// In the configuration directory. If the env.json file doesn't already exists, we write the
+// default one that we get from the build script.
+fn write_default_available_environments() {
+    // TODO: handle the env variable override consistently
+    let env_file = "env.json";
+    let env_path = service::default_config_dir().join(env_file);
+    if !env_path.exists() {
+        let default_env = generated::get_environments();
+        let env_json =
+            serde_json::to_string_pretty(&default_env).expect("Failed to serialize default env");
+        std::fs::write(env_path, env_json).expect("Failed to write env file");
+    }
 }
 
 #[cfg(unix)]
