@@ -1,12 +1,13 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::sync::Arc;
+use std::{fmt, sync::Arc};
 
 use nym_vpn_api_client::response::{
     NymVpnAccountStatusResponse, NymVpnAccountSummarySubscription, NymVpnDeviceStatus,
 };
 use serde::Serialize;
+use tokio::sync::MutexGuard;
 
 #[derive(Clone)]
 pub struct SharedAccountState {
@@ -20,12 +21,12 @@ impl SharedAccountState {
         }
     }
 
-    pub async fn get(&self) -> AccountState {
-        self.inner.lock().await.clone()
+    pub async fn lock(&self) -> MutexGuard<'_, AccountState> {
+        self.inner.lock().await
     }
 
     pub async fn is_ready_to_connect(&self) -> bool {
-        let state = self.get().await;
+        let state = self.lock().await;
         state.mnemonic == Some(MnemonicState::Stored)
             && state.account == Some(RemoteAccountState::Active)
             && state.subscription == Some(SubscriptionState::Subscribed)
@@ -33,7 +34,7 @@ impl SharedAccountState {
     }
 
     pub(crate) async fn is_ready_to_register_device(&self) -> bool {
-        let state = self.get().await;
+        let state = self.lock().await;
         state.mnemonic == Some(MnemonicState::Stored)
             && state.account == Some(RemoteAccountState::Active)
             && state.device == Some(DeviceState::NotRegistered)
@@ -96,6 +97,25 @@ pub(crate) enum DeviceState {
     NotRegistered,
     Inactive,
     Active,
+}
+
+impl fmt::Display for AccountState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "AccountState {{ Mnemonic: {}, Account: {}, Subscription: {}, Device: {} }}",
+            debug_or_unknown(self.mnemonic.as_ref()),
+            debug_or_unknown(self.account.as_ref()),
+            debug_or_unknown(self.subscription.as_ref()),
+            debug_or_unknown(self.device.as_ref())
+        )
+    }
+}
+
+fn debug_or_unknown(state: Option<&impl fmt::Debug>) -> String {
+    state
+        .map(|s| format!("{:?}", s))
+        .unwrap_or_else(|| "Unknown".to_string())
 }
 
 impl From<NymVpnAccountStatusResponse> for RemoteAccountState {

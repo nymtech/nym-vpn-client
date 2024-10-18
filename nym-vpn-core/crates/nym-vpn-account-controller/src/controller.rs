@@ -525,7 +525,7 @@ where
         self.update_remote_account_state(&account).await?;
         self.update_device_state(&account).await?;
 
-        tracing::info!("Current state: {:#?}", self.shared_state().get().await);
+        tracing::info!("Current state: {}", self.shared_state().lock().await);
 
         if self.shared_state().is_ready_to_register_device().await {
             self.command_tx.send(AccountCommand::RegisterDevice)?;

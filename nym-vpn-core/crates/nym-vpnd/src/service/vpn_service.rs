@@ -827,7 +827,7 @@ where
     }
 
     async fn handle_get_local_account_state(&self) -> Result<AccountState, AccountError> {
-        Ok(self.shared_account_state.get().await)
+        Ok(self.shared_account_state.lock().await.clone())
     }
 
     async fn load_account(&self) -> Result<VpnApiAccount, AccountError> {
