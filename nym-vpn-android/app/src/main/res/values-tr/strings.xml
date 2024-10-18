@@ -165,4 +165,16 @@
     <string name="environment">Ortam</string>
     <string name="action_requires_tunnel_down">Bu işlem için tünelin kapalı olması gerekiyor</string>
     <string name="selected_exit_unavailable">Seçilen çıkış ülkesi kullanılamıyor. Lütfen farklı bir çıkış ülkesi seçin.</string>
+    <string name="device_added_success">Cihaz hesabınıza başarıyla eklendi</string>
+    <string name="invalid_recovery_phrase">Geçersiz kurtarma ifadesi</string>
+    <string name="recovery_phrase">Kurtarma ifadesi</string>
+    <string name="log_in">Giriş yap</string>
+    <string name="new_to_nym">NymVPN\'de yeni misiniz?</string>
+    <string name="create_account">Hesap oluştur</string>
+    <string name="account">Hesap</string>
+    <string name="recovery_phrase_message">Hesabınıza giriş yapmak için 24 kelimelik gizli kurtarma ifadenizi aşağıya girin</string>
+    <string name="recovery_phrase_disclaimer">Sadece NymVPN\'de oluşturulan kurtarma ifadesini kullanabilirsiniz, Nym Cüzdanını değil</string>
+    <string name="missing_mnemonic">Eksik kurtarma ifadesi</string>
+    <string name="log_out">Çıkış yap</string>
+    <string name="mnemonic_example">örneğin: smoke artefact velvet skull pop palace tortoise damage rough...</string>
 </resources>
