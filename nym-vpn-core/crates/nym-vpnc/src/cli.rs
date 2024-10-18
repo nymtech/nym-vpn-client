@@ -65,7 +65,7 @@ pub(crate) struct ConnectArgs {
     #[arg(long)]
     pub(crate) enable_two_hop: bool,
 
-    /// Enable Poisson process rate limiting of outbound traffic.
+    /// Disable Poisson process rate limiting of outbound traffic.
     #[arg(long, hide = true)]
     pub(crate) disable_poisson_rate: bool,
 
