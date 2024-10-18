@@ -25,7 +25,7 @@ use nym_vpn_api_client::{
 use nym_vpn_store::{keys::KeyStore, mnemonic::MnemonicStorage};
 use serde::{Deserialize, Serialize};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
-use tokio::task::JoinError;
+use tokio::{task::JoinError, time::timeout};
 use tokio_util::sync::CancellationToken;
 use url::Url;
 
@@ -38,7 +38,7 @@ use crate::{
 };
 
 // If we go below this threshold, we should request more tickets
-// TODO: I picket a random number, check what is shoult be. Or if we can express this in terms of
+// TODO: I picked a random number, check what is should be. Or if we can express this in terms of
 // data/bandwidth.
 const TICKET_THRESHOLD: u32 = 10;
 
@@ -250,8 +250,12 @@ where
                 tokio::time::sleep(std::time::Duration::from_secs(5)).await;
                 match api_client.get_zk_nym_by_id(&account, &device, &id).await {
                     Ok(response) if response.status != NymVpnZkNymStatus::Pending => {
-                        tracing::info!("zk-nym polling finished with status: {:#?}", response);
-                        return PollingResult::Finished(response, ticketbook_type, request_info);
+                        tracing::info!("zk-nym polling finished: {:#?}", response);
+                        return PollingResult::Finished(
+                            response,
+                            ticketbook_type,
+                            Box::new(request_info),
+                        );
                     }
                     Ok(response) => {
                         tracing::info!("zk-nym polling not finished: {:#?}", response);
@@ -327,6 +331,7 @@ where
     }
 
     async fn check_local_remaining_tickets(&self) -> Vec<(TicketType, u32)> {
+        // TODO: remove unwrap
         let ticketbooks_info = self
             .credential_storage
             .get_ticketbooks_info()
@@ -539,12 +544,15 @@ where
         let ecash_keypair = device.create_ecash_keypair();
         // TODO: use explicit epoch id, that we include together with the request_info
         let current_epoch = self.current_epoch.ok_or(Error::NoEpoch)?;
+        // TODO: remove unwrap
         let vk_auth = self.get_current_verification_key().await?.unwrap();
 
         let mut partial_wallets = Vec::new();
         for blinded_share in response.blinded_shares {
+            // TODO: remove unwrap
             let blinded_share: WalletShare = serde_json::from_str(&blinded_share).unwrap();
 
+            // TODO: remove unwrap
             let blinded_sig =
                 BlindedSignature::try_from_bs58(&blinded_share.bs58_encoded_share).unwrap();
 
@@ -557,12 +565,13 @@ where
             ) {
                 Ok(partial_wallet) => partial_wallets.push(partial_wallet),
                 Err(err) => {
-                    tracing::error!("Failed to import zk-nym: {:#?}", err);
+                    tracing::error!("Failed to issue verify: {:#?}", err);
                     return Err(Error::ImportZkNym(err));
                 }
             }
         }
 
+        // TODO: remove unwrap
         let aggregated_wallets = nym_compact_ecash::aggregate_wallets(
             &vk_auth,
             ecash_keypair.secret_key(),
@@ -571,6 +580,7 @@ where
         )
         .unwrap();
 
+        // TODO: remove unwrap
         let expiration_date = OffsetDateTime::parse(&response.valid_until_utc, &Rfc3339).unwrap();
 
         let ticketbook = IssuedTicketBook::new(
@@ -591,7 +601,6 @@ where
     }
 
     async fn handle_polling_result(&mut self, result: Result<PollingResult, JoinError>) {
-        tracing::info!("Handling polling result: {:#?}", result);
         let result = match result {
             Ok(result) => result,
             Err(err) => {
@@ -602,11 +611,18 @@ where
         match result {
             PollingResult::Finished(response, ticketbook_type, request_info) => {
                 tracing::info!("Polling task finished: {:#?}", response);
-                if let Err(err) = self
-                    .import_zk_nym(response, ticketbook_type, request_info)
-                    .await
-                {
-                    tracing::error!("Failed to import zk-nym: {:#?}", err);
+                if response.status == NymVpnZkNymStatus::Active {
+                    if let Err(err) = self
+                        .import_zk_nym(response, ticketbook_type, *request_info)
+                        .await
+                    {
+                        tracing::error!("Failed to import zk-nym: {:#?}", err);
+                    }
+                } else {
+                    tracing::warn!(
+                        "Polling finished with status: {:?}, not importing!",
+                        response.status
+                    );
                 }
             }
             PollingResult::Timeout(response) => {
@@ -668,7 +684,8 @@ where
             .ok();
 
         // Timer to check if any zk-nym polling tasks have finished
-        let mut polling_timer = tokio::time::interval(Duration::from_millis(500));
+        let polling_timer = tokio::time::sleep(Duration::from_millis(500));
+        tokio::pin!(polling_timer);
 
         loop {
             tokio::select! {
@@ -677,13 +694,20 @@ where
                         tracing::error!("{:#?}", err);
                     }
                 }
-                _ = polling_timer.tick() => {
+                _ = &mut polling_timer => {
                     while let Some(result) = self.polling_tasks.try_join_next() {
                         self.handle_polling_result(result).await;
                     }
                 }
                 _ = self.cancel_token.cancelled() => {
                     tracing::trace!("Received cancellation signal");
+                    if !self.polling_tasks.is_empty() {
+                        tracing::info!("Waiting for polling remaining zknyms (5 secs) ...");
+                        match timeout(Duration::from_secs(5), self.polling_tasks.join_all()).await {
+                            Ok(_) => tracing::info!("All polling tasks finished"),
+                            Err(err) => tracing::warn!("Failed to wait for polling tasks, pending zknym's not imported into local credential store! {:#?}", err),
+                        }
+                    }
                     break;
                 }
                 else => {
@@ -705,6 +729,7 @@ where
 }
 
 fn get_api_url() -> Result<Url, Error> {
+    // TODO: remove unwrap
     NymNetworkDetails::new_from_env()
         .endpoints
         .first()
@@ -722,7 +747,9 @@ fn get_nym_vpn_api_url() -> Result<Url, Error> {
 }
 
 fn create_api_client(user_agent: UserAgent) -> nym_vpn_api_client::VpnApiClient {
+    // TODO: remove unwrap
     let nym_vpn_api_url = get_nym_vpn_api_url().unwrap();
+    // TODO: remove unwrap
     nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent).unwrap()
 }
 
@@ -762,7 +789,7 @@ fn ticketbook_types() -> [TicketType; 4] {
 
 #[derive(Debug)]
 enum PollingResult {
-    Finished(NymVpnZkNym, TicketType, RequestInfo),
+    Finished(NymVpnZkNym, TicketType, Box<RequestInfo>),
     Timeout(NymVpnZkNym),
     Error(PollingError),
 }
@@ -773,6 +800,9 @@ struct PollingError {
     error: VpnApiClientError,
 }
 
+// These are temporarily copy pasted here from the nym-credential-proxy. They will eventually make
+// their way into the crates we use through the nym repo.
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct WalletShare {
@@ -782,29 +812,29 @@ pub struct WalletShare {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct TicketbookWalletSharesResponse {
-    pub epoch_id: u64,
-    pub shares: Vec<WalletShare>,
-    pub master_verification_key: Option<MasterVerificationKeyResponse>,
-    pub aggregated_coin_index_signatures: Option<AggregatedCoinIndicesSignaturesResponse>,
-    pub aggregated_expiration_date_signatures: Option<AggregatedExpirationDateSignaturesResponse>,
+struct TicketbookWalletSharesResponse {
+    epoch_id: u64,
+    shares: Vec<WalletShare>,
+    master_verification_key: Option<MasterVerificationKeyResponse>,
+    aggregated_coin_index_signatures: Option<AggregatedCoinIndicesSignaturesResponse>,
+    aggregated_expiration_date_signatures: Option<AggregatedExpirationDateSignaturesResponse>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct MasterVerificationKeyResponse {
-    pub epoch_id: u64,
-    pub bs58_encoded_key: String,
+struct MasterVerificationKeyResponse {
+    epoch_id: u64,
+    bs58_encoded_key: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct AggregatedCoinIndicesSignaturesResponse {
-    pub signatures: AggregatedCoinIndicesSignatures,
+struct AggregatedCoinIndicesSignaturesResponse {
+    signatures: AggregatedCoinIndicesSignatures,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct AggregatedExpirationDateSignaturesResponse {
-    pub signatures: AggregatedExpirationDateSignatures,
+struct AggregatedExpirationDateSignaturesResponse {
+    signatures: AggregatedExpirationDateSignatures,
 }
