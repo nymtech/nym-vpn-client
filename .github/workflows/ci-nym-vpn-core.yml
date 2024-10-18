@@ -17,7 +17,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [arc-ubuntu-22.04, custom-runner-mac-m1, custom-windows-11]
+        # os: [arc-ubuntu-22.04, custom-runner-mac-m1, custom-windows-11]
+        os: [arc-ubuntu-22.04, custom-runner-mac-m1]
         target: [native]
         include:
           - os: arc-ubuntu-22.04
