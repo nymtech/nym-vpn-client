@@ -24,7 +24,7 @@
             </li>
             <li>No centralized logs</li>
             <li>Hide your public IP</li>
-            <lib>Entry and exit hop location</lib>
+            <li>Entry and exit hop location</li>
         </ul>
     </description>
     <releases>
