@@ -12,4 +12,4 @@ mod error;
 mod shared_state;
 
 pub use controller::{AccountCommand, AccountController};
-pub use shared_state::{AccountState, SharedAccountState};
+pub use shared_state::{AccountState, ReadyToConnect, SharedAccountState};
