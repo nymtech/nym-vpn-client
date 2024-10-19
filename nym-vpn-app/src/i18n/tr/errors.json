@@ -79,6 +79,7 @@
   },
   "entry-node-routing": "Giriş nodeu trafiği iletmiyor (internet bağlantısı mı kesik?)",
   "account": {
-    "invalid-recovery-phrase": "Geçersiz kurtarma ifadesi"
+    "invalid-recovery-phrase": "Geçersiz kurtarma ifadesi",
+    "storage": "Depolama arka ucu hatası"
   }
 }
