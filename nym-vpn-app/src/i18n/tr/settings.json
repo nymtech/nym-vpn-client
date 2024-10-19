@@ -1,6 +1,6 @@
 {
   "display-theme": "Ekran modu",
-  "login-button": "Bağlanmak için anahtar ekleyin",
+  "login-button": "Giriş yapın",
   "auto-connect": {
     "title": "Otomatik bağlan",
     "desc": "Uygulama başlangıcında otomatik bağlan"
