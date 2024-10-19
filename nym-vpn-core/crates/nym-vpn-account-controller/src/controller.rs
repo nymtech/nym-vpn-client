@@ -33,7 +33,8 @@ use crate::{
     ecash_client::VpnEcashApiClient,
     error::Error,
     shared_state::{
-        DeviceState, MnemonicState, RemoteAccountState, SharedAccountState, SubscriptionState,
+        DeviceState, MnemonicState, ReadyToRegisterDevice, RemoteAccountState, SharedAccountState,
+        SubscriptionState,
     },
 };
 
@@ -42,7 +43,6 @@ use crate::{
 // data/bandwidth.
 const TICKET_THRESHOLD: u32 = 10;
 
-#[allow(unused)]
 #[derive(Clone, Debug)]
 pub enum AccountCommand {
     UpdateSharedAccountState,
@@ -527,8 +527,19 @@ where
 
         tracing::info!("Current state: {}", self.shared_state().lock().await);
 
-        if self.shared_state().is_ready_to_register_device().await {
-            self.command_tx.send(AccountCommand::RegisterDevice)?;
+        self.register_device_if_ready().await?;
+
+        Ok(())
+    }
+
+    async fn register_device_if_ready(&self) -> Result<(), Error> {
+        match self.shared_state().is_ready_to_register_device().await {
+            ReadyToRegisterDevice::Ready => {
+                self.command_tx.send(AccountCommand::RegisterDevice)?;
+            }
+            device_register_state => {
+                tracing::info!("Not ready to register device: {:?}", device_register_state);
+            }
         }
 
         Ok(())
@@ -667,25 +678,27 @@ where
         self.update_verification_key()
             .await
             .inspect_err(|err| {
-                tracing::error!("Failed to update master verification key: {:#?}", err)
+                tracing::error!("Failed to update master verification key: {:?}", err)
             })
             .ok();
         self.update_coin_indices_signatures()
             .await
             .inspect_err(|err| {
-                tracing::error!("Failed to update coin indices signatures: {:#?}", err)
+                tracing::error!("Failed to update coin indices signatures: {:?}", err)
             })
             .ok();
         self.update_expiration_date_signatures()
             .await
             .inspect_err(|err| {
-                tracing::error!("Failed to update expiration date signatures: {:#?}", err)
+                tracing::error!("Failed to update expiration date signatures: {:?}", err)
             })
             .ok();
 
         // Timer to check if any zk-nym polling tasks have finished
-        let polling_timer = tokio::time::sleep(Duration::from_millis(500));
-        tokio::pin!(polling_timer);
+        let mut polling_timer = tokio::time::interval(Duration::from_millis(500));
+
+        // Timer to periodically refresh the remote account state
+        let mut update_shared_account_state_timer = tokio::time::interval(Duration::from_secs(60));
 
         loop {
             tokio::select! {
@@ -694,7 +707,10 @@ where
                         tracing::error!("{:#?}", err);
                     }
                 }
-                _ = &mut polling_timer => {
+                _ = update_shared_account_state_timer.tick() => {
+                    self.queue_command(AccountCommand::UpdateSharedAccountState);
+                }
+                _ = polling_timer.tick() => {
                     while let Some(result) = self.polling_tasks.try_join_next() {
                         self.handle_polling_result(result).await;
                     }
@@ -725,6 +741,12 @@ where
 
     pub fn command_tx(&self) -> tokio::sync::mpsc::UnboundedSender<AccountCommand> {
         self.command_tx.clone()
+    }
+
+    fn queue_command(&self, command: AccountCommand) {
+        if let Err(err) = self.command_tx.send(command) {
+            tracing::error!("Failed to queue command: {:#?}", err);
+        }
     }
 }
 

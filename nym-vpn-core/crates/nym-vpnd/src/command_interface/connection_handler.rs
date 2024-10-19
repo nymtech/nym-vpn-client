@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_account_controller::AccountState;
+use nym_vpn_account_controller::{AccountState, ReadyToConnect};
 use tokio::sync::{mpsc::UnboundedSender, oneshot};
 
 use nym_vpn_api_client::{
@@ -228,7 +228,7 @@ impl CommandInterfaceConnectionHandler {
 
     pub(crate) async fn handle_is_ready_to_connect(
         &self,
-    ) -> Result<Result<bool, AccountError>, VpnCommandSendError> {
+    ) -> Result<Result<ReadyToConnect, AccountError>, VpnCommandSendError> {
         self.vpn_command_send(VpnServiceCommand::IsReadyToConnect)
             .await
     }

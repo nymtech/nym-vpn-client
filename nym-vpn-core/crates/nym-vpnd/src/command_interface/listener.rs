@@ -8,6 +8,7 @@ use std::{
 };
 
 use futures::{stream::BoxStream, StreamExt};
+use nym_vpn_account_controller::ReadyToConnect;
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 
 use nym_vpn_api_client::types::GatewayMinPerformance;
@@ -621,7 +622,8 @@ impl NymVpnd for CommandInterface {
             .await
             .map_err(|err| {
                 tonic::Status::internal(format!("Failed to check if ready to connect: {err}"))
-            })?;
+            })?
+            .map(|ready| ready == ReadyToConnect::Ready);
 
         let response = IsReadyToConnectResponse {
             is_ready_to_connect: result.unwrap_or(false),
