@@ -12,27 +12,35 @@
     <project_license>GPL-3.0-only</project_license>
     <description>
         <p><em>NymVPN</em> desktop application</p>
-        <p>NymVPN is a decentralized, mixnet and and zero-knowledge VPN</p>
-
-        <p>It provides the following features:</p>
+        <p>
+            NymVPN is a decentralized, mixnet and zero-knowledge VPN.
+            It provides the following features:
+        </p>
         <ul>
-            <li>5-hop <em>Anonymous</em> mode (using Nym <em>mixnet</em>)
-            </li>
-            <li>2-hop <em>Fast</em> mode (using <em>WireGuard</em>)
-            </li>
+            <li>5-hop <em>Anonymous</em> mode (using Nym <em>mixnet</em>)</li>
+            <li>2-hop <em>Fast</em> mode (using <em>WireGuard</em>)</li>
             <li>No centralized logs</li>
             <li>Hide your public IP</li>
             <li>Entry and exit hop location</li>
         </ul>
-
-        <p>NOTE: this package only provides the desktop <em>client</em> application.</p>
-        <p>For the VPN to work, the <em>daemon</em> must be installed and running.</p>
-        <p>We provide separate packages for the daemon:</p>
+        <p>
+            NOTE: this package only provides the <em>client</em> application.
+            For the VPN to work, the <em>daemon</em> must be installed and running.
+            You can install it from these separate packages:
+        </p>
         <ul>
-            <li>deb package (Nym repo): nym-vpnd</li>
+            <li>deb package (requires to setup the Nym deb repository): nym-vpnd</li>
             <li>AUR packages: nym-vpnd and nym-vpnd-bin</li>
         </ul>
         <p>For more details, please check https://nymvpn.com/en/download/linux</p>
+        <p>
+            Alternatively you can get the binary directly from the GitHub releases:
+            Go to https://github.com/nymtech/nym-vpn-client/releases
+            Find the latest release with tag <em>nym-vpn-core-v1.2.3</em> and
+            download the linux binaries archive nym-vpn-core-v1.2.3_linux_x86_64.tar.gz
+            Extract the archive and run `nym-vpnd` binary (make it executable).
+            NOTE: the daemon requires root privileges to run, e.g. run it with `sudo`.
+        </p>
     </description>
     <releases>
         <release version="0.2.3" date="2024-10-11">
