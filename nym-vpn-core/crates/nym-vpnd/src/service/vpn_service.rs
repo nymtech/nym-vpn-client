@@ -166,11 +166,11 @@ pub(crate) struct ConnectOptions {
 #[derive(Debug)]
 pub enum VpnServiceConnectResult {
     Success,
-    #[allow(unused)]
     Fail(String),
 }
 
 impl VpnServiceConnectResult {
+    #[allow(unused)]
     pub fn is_success(&self) -> bool {
         matches!(self, VpnServiceConnectResult::Success)
     }
@@ -654,6 +654,14 @@ where
         connect_args: ConnectArgs,
         _user_agent: nym_vpn_lib::UserAgent, // todo: use user-agent!
     ) -> VpnServiceConnectResult {
+        match self.shared_account_state.is_ready_to_connect().await {
+            ReadyToConnect::Ready => {}
+            not_ready_to_connect => {
+                tracing::info!("Not ready to connect: {:?}", not_ready_to_connect);
+                return VpnServiceConnectResult::Fail(format!("{:?}", not_ready_to_connect));
+            }
+        }
+
         let ConnectArgs {
             entry,
             exit,

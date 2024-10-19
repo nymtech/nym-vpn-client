@@ -115,6 +115,26 @@ message Threshold {
   uint32 min_performance = 1;
 }
 
+message ConnectRequestError {
+  enum ConnectRequestErrorType {
+    CONNECT_REQUEST_ERROR_TYPE_UNSPECIFIED = 0;
+
+    NOT_READY = 1;
+
+    ACCOUNT = 2;
+
+    SUBSCRIPTION = 3;
+
+    DEVICE = 4;
+
+    TICKET = 5;
+  }
+
+  ConnectRequestErrorType kind = 1;
+
+  string message = 2;
+}
+
 message ConnectRequest {
   EntryNode entry = 1;
   ExitNode exit = 2;
@@ -132,7 +152,9 @@ message ConnectRequest {
 }
 
 message ConnectResponse {
+  // TODO: remove me
   bool success = 1;
+  ConnectRequestError error = 2;
 }
 
 message DisconnectRequest {}

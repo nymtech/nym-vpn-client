@@ -14,15 +14,16 @@ use tokio::sync::{broadcast, mpsc::UnboundedSender};
 use nym_vpn_api_client::types::GatewayMinPerformance;
 use nym_vpn_lib::tunnel_state_machine::MixnetEvent;
 use nym_vpn_proto::{
-    nym_vpnd_server::NymVpnd, AccountError, ConnectRequest, ConnectResponse, ConnectionStateChange,
-    ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty, GetAccountSummaryRequest,
-    GetAccountSummaryResponse, GetDeviceZkNymsRequest, GetDeviceZkNymsResponse, GetDevicesRequest,
-    GetDevicesResponse, GetLocalAccountStateRequest, GetLocalAccountStateResponse, InfoRequest,
-    InfoResponse, IsAccountStoredRequest, IsAccountStoredResponse, IsReadyToConnectRequest,
-    IsReadyToConnectResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
-    ListGatewaysResponse, RegisterDeviceRequest, RegisterDeviceResponse, RemoveAccountRequest,
-    RemoveAccountResponse, RequestZkNymRequest, RequestZkNymResponse, StatusRequest,
-    StatusResponse, StoreAccountRequest, StoreAccountResponse,
+    nym_vpnd_server::NymVpnd, AccountError, ConnectRequest, ConnectRequestError, ConnectResponse,
+    ConnectionStateChange, ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
+    GetAccountSummaryRequest, GetAccountSummaryResponse, GetDeviceZkNymsRequest,
+    GetDeviceZkNymsResponse, GetDevicesRequest, GetDevicesResponse, GetLocalAccountStateRequest,
+    GetLocalAccountStateResponse, InfoRequest, InfoResponse, IsAccountStoredRequest,
+    IsAccountStoredResponse, IsReadyToConnectRequest, IsReadyToConnectResponse,
+    ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest, ListGatewaysResponse,
+    RegisterDeviceRequest, RegisterDeviceResponse, RemoveAccountRequest, RemoveAccountResponse,
+    RequestZkNymRequest, RequestZkNymResponse, StatusRequest, StatusResponse, StoreAccountRequest,
+    StoreAccountResponse,
 };
 
 use super::{
@@ -32,7 +33,7 @@ use super::{
 };
 use crate::{
     command_interface::protobuf::gateway::into_user_agent,
-    service::{ConnectOptions, VpnServiceCommand, VpnServiceStateChange},
+    service::{ConnectOptions, VpnServiceCommand, VpnServiceConnectResult, VpnServiceStateChange},
 };
 
 enum ListenerType {
@@ -159,9 +160,21 @@ impl NymVpnd for CommandInterface {
             .handle_connect(entry, exit, options, user_agent)
             .await;
 
-        let response = ConnectResponse {
-            success: status.is_success(),
+        let response = match status {
+            VpnServiceConnectResult::Success => ConnectResponse {
+                success: true,
+                error: None,
+            },
+            VpnServiceConnectResult::Fail(err) => ConnectResponse {
+                success: false,
+                error: Some(ConnectRequestError {
+                    kind: nym_vpn_proto::connect_request_error::ConnectRequestErrorType::NotReady
+                        as i32,
+                    message: err,
+                }),
+            },
         };
+
         tracing::info!("Returning connect response: {:?}", response);
         Ok(tonic::Response::new(response))
     }

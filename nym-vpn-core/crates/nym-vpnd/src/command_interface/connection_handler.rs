@@ -76,9 +76,7 @@ impl CommandInterfaceConnectionHandler {
         let (tx, rx) = oneshot::channel();
         self.send_and_wait(VpnServiceCommand::Connect(tx, connect_args, user_agent), rx)
             .await
-            .err()
-            .map(|e| VpnServiceConnectResult::Fail(e.to_string()))
-            .unwrap_or(VpnServiceConnectResult::Success)
+            .unwrap_or_else(|e| VpnServiceConnectResult::Fail(e.to_string()))
     }
 
     pub(crate) async fn handle_disconnect(&self) -> VpnServiceDisconnectResult {
