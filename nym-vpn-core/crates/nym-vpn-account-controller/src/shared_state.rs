@@ -28,9 +28,10 @@ pub enum ReadyToRegisterDevice {
 pub enum ReadyToConnect {
     Ready,
     NoMnemonicStored,
-    RemoteAccountNotActive,
+    AccountNotActive,
     NoActiveSubscription,
-    DeviceInactive,
+    DeviceNotRegistered,
+    DeviceNotActive,
 }
 
 impl SharedAccountState {
@@ -50,13 +51,16 @@ impl SharedAccountState {
             return ReadyToConnect::NoMnemonicStored;
         }
         if state.account != Some(RemoteAccountState::Active) {
-            return ReadyToConnect::RemoteAccountNotActive;
+            return ReadyToConnect::AccountNotActive;
         }
         if state.subscription != Some(SubscriptionState::Subscribed) {
             return ReadyToConnect::NoActiveSubscription;
         }
-        if state.device == Some(DeviceState::Inactive) {
-            return ReadyToConnect::DeviceInactive;
+        match state.device {
+            None => return ReadyToConnect::DeviceNotRegistered,
+            Some(DeviceState::NotRegistered) => return ReadyToConnect::DeviceNotRegistered,
+            Some(DeviceState::Inactive) => return ReadyToConnect::DeviceNotActive,
+            _ => {}
         }
         ReadyToConnect::Ready
     }

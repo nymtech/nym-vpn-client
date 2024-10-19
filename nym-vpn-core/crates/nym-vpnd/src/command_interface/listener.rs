@@ -577,55 +577,6 @@ impl NymVpnd for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
-    async fn get_free_passes(
-        &self,
-        _request: tonic::Request<nym_vpn_proto::GetFreePassesRequest>,
-    ) -> Result<tonic::Response<nym_vpn_proto::GetFreePassesResponse>, tonic::Status> {
-        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_get_free_passes()
-            .await
-            .map_err(|err| tonic::Status::internal(format!("Failed to get free passes: {err}")))?;
-
-        let response = match result {
-            Ok(response) => nym_vpn_proto::GetFreePassesResponse {
-                json: serde_json::to_string(&response).unwrap(),
-                error: None,
-            },
-            Err(err) => nym_vpn_proto::GetFreePassesResponse {
-                json: err.to_string(),
-                error: Some(AccountError::from(err)),
-            },
-        };
-
-        tracing::info!("Returning get free passes response");
-        Ok(tonic::Response::new(response))
-    }
-
-    async fn apply_freepass(
-        &self,
-        request: tonic::Request<nym_vpn_proto::ApplyFreepassRequest>,
-    ) -> Result<tonic::Response<nym_vpn_proto::ApplyFreepassResponse>, tonic::Status> {
-        let code = request.into_inner().code;
-
-        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_apply_freepass(code)
-            .await;
-
-        let response = match result {
-            Ok(response) => nym_vpn_proto::ApplyFreepassResponse {
-                json: serde_json::to_string(&response).unwrap(),
-                error: None,
-            },
-            Err(err) => nym_vpn_proto::ApplyFreepassResponse {
-                json: err.to_string(),
-                error: Some(AccountError::from(err)),
-            },
-        };
-
-        tracing::info!("Returning apply freepass response");
-        Ok(tonic::Response::new(response))
-    }
-
     async fn is_ready_to_connect(
         &self,
         _request: tonic::Request<IsReadyToConnectRequest>,
