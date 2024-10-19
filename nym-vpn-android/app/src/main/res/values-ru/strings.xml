@@ -165,4 +165,16 @@
     <string name="selected_exit_unavailable">Выбранная страна выхода недоступна. Выберите другую страну выхода.</string>
     <string name="environment">VPN-среда</string>
     <string name="selected_entry_unavailable">Выбранная страна входа недоступна. Пожалуйста, выберите другую страну входа.</string>
+    <string name="missing_mnemonic">Отсутствует мнемоническая</string>
+    <string name="device_added_success">Устройство успешно добавлено к вашему аккаунту</string>
+    <string name="invalid_recovery_phrase">Неверная фраза восстановления</string>
+    <string name="recovery_phrase">Фраза восстановления</string>
+    <string name="log_in">Войти</string>
+    <string name="log_out">Выйти</string>
+    <string name="new_to_nym">Еще не используете NymVPN?</string>
+    <string name="create_account">Создайте аккаунт</string>
+    <string name="account">Аккаунт</string>
+    <string name="recovery_phrase_message">Чтобы войти, введите фразу восстановления состоящую из 24 слов</string>
+    <string name="mnemonic_example">например, smoke artefact velvet skull pop palace tortoise damage rough...</string>
+    <string name="recovery_phrase_disclaimer">Используйте только фразу восстановления созданную в NymVPN, а не в кошельке Nym.</string>
 </resources>
