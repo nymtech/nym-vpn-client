@@ -8,7 +8,6 @@ use std::{
 };
 
 use futures::{stream::BoxStream, StreamExt};
-use nym_vpn_account_controller::ReadyToConnect;
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 
 use nym_vpn_api_client::types::GatewayMinPerformance;
@@ -31,7 +30,9 @@ use super::{
     helpers::{parse_entry_point, parse_exit_point, threshold_into_percent},
 };
 use crate::{
-    command_interface::protobuf::gateway::into_user_agent,
+    command_interface::protobuf::{
+        connection_state::into_is_ready_to_connect_response_type, gateway::into_user_agent,
+    },
     service::{ConnectOptions, VpnServiceCommand, VpnServiceStateChange},
 };
 
@@ -587,16 +588,9 @@ impl NymVpnd for CommandInterface {
                 tonic::Status::internal(format!("Failed to check if ready to connect: {err}"))
             })?;
 
-        let kind = match result {
-            ReadyToConnect::Ready => nym_vpn_proto::is_ready_to_connect_response::IsReadyToConnectResponseType::Ready as i32,
-            ReadyToConnect::NoMnemonicStored => nym_vpn_proto::is_ready_to_connect_response::IsReadyToConnectResponseType::NoAccountStored as i32,
-            ReadyToConnect::AccountNotActive => nym_vpn_proto::is_ready_to_connect_response::IsReadyToConnectResponseType::AccountNotActive as i32,
-            ReadyToConnect::NoActiveSubscription => nym_vpn_proto::is_ready_to_connect_response::IsReadyToConnectResponseType::NoActiveSubscription as i32,
-            ReadyToConnect::DeviceNotRegistered => nym_vpn_proto::is_ready_to_connect_response::IsReadyToConnectResponseType::DeviceNotRegistered as i32,
-            ReadyToConnect::DeviceNotActive => nym_vpn_proto::is_ready_to_connect_response::IsReadyToConnectResponseType::DeviceNotActive as i32,
+        let response = IsReadyToConnectResponse {
+            kind: into_is_ready_to_connect_response_type(result) as i32,
         };
-
-        let response = IsReadyToConnectResponse { kind };
 
         tracing::info!("Returning is ready to connect response");
         Ok(tonic::Response::new(response))

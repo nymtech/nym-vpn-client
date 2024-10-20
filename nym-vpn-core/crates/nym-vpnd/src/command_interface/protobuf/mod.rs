@@ -3,9 +3,9 @@
 
 // This module primarily handles conversions to protobuf types
 
-pub mod connection_state;
-pub mod error;
-pub mod gateway;
-pub mod info_response;
-pub mod state_response;
-pub mod status_update;
+pub(crate) mod connection_state;
+pub(crate) mod error;
+pub(crate) mod gateway;
+pub(crate) mod info_response;
+pub(crate) mod state_response;
+pub(crate) mod status_update;
