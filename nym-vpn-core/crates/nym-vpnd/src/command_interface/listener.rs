@@ -14,7 +14,7 @@ use tokio::sync::{broadcast, mpsc::UnboundedSender};
 use nym_vpn_api_client::types::GatewayMinPerformance;
 use nym_vpn_lib::tunnel_state_machine::MixnetEvent;
 use nym_vpn_proto::{
-    nym_vpnd_server::NymVpnd, AccountError, ConnectRequest, ConnectRequestError, ConnectResponse,
+    nym_vpnd_server::NymVpnd, AccountError, ConnectRequest, ConnectResponse,
     ConnectionStateChange, ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
     GetAccountSummaryRequest, GetAccountSummaryResponse, GetDeviceZkNymsRequest,
     GetDeviceZkNymsResponse, GetDevicesRequest, GetDevicesResponse, GetLocalAccountStateRequest,
@@ -33,7 +33,7 @@ use super::{
 };
 use crate::{
     command_interface::protobuf::gateway::into_user_agent,
-    service::{ConnectOptions, VpnServiceCommand, VpnServiceConnectResult, VpnServiceStateChange},
+    service::{ConnectOptions, VpnServiceCommand, VpnServiceStateChange},
 };
 
 enum ListenerType {
@@ -158,20 +158,17 @@ impl NymVpnd for CommandInterface {
 
         let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_connect(entry, exit, options, user_agent)
-            .await;
+            .await
+            .map_err(|err| tonic::Status::internal(format!("internal error: {}", err)))?;
 
         let response = match status {
-            VpnServiceConnectResult::Success => ConnectResponse {
+            Ok(()) => ConnectResponse {
                 success: true,
                 error: None,
             },
-            VpnServiceConnectResult::Fail(err) => ConnectResponse {
+            Err(err) => ConnectResponse {
                 success: false,
-                error: Some(ConnectRequestError {
-                    kind: nym_vpn_proto::connect_request_error::ConnectRequestErrorType::NotReady
-                        as i32,
-                    message: err,
-                }),
+                error: Some(nym_vpn_proto::ConnectRequestError::from(err)),
             },
         };
 
@@ -587,11 +584,20 @@ impl NymVpnd for CommandInterface {
             .map_err(|err| {
                 tonic::Status::internal(format!("Failed to check if ready to connect: {err}"))
             })?
-            .map(|ready| ready == ReadyToConnect::Ready);
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to check if ready to connect: {err}"))
+            })?;
 
-        let response = IsReadyToConnectResponse {
-            is_ready_to_connect: result.unwrap_or(false),
+        let kind = match result {
+            ReadyToConnect::Ready => nym_vpn_proto::is_ready_to_connect_response::IsReadyToConnectResponseType::Ready as i32,
+            ReadyToConnect::NoMnemonicStored => nym_vpn_proto::is_ready_to_connect_response::IsReadyToConnectResponseType::NoAccountStored as i32,
+            ReadyToConnect::AccountNotActive => nym_vpn_proto::is_ready_to_connect_response::IsReadyToConnectResponseType::AccountNotActive as i32,
+            ReadyToConnect::NoActiveSubscription => nym_vpn_proto::is_ready_to_connect_response::IsReadyToConnectResponseType::NoActiveSubscription as i32,
+            ReadyToConnect::DeviceNotRegistered => nym_vpn_proto::is_ready_to_connect_response::IsReadyToConnectResponseType::DeviceNotRegistered as i32,
+            ReadyToConnect::DeviceNotActive => nym_vpn_proto::is_ready_to_connect_response::IsReadyToConnectResponseType::DeviceNotActive as i32,
         };
+
+        let response = IsReadyToConnectResponse { kind };
 
         tracing::info!("Returning is ready to connect response");
         Ok(tonic::Response::new(response))

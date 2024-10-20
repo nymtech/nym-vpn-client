@@ -5,17 +5,14 @@ use nym_vpn_account_controller::{AccountState, ReadyToConnect};
 use tokio::sync::{mpsc::UnboundedSender, oneshot};
 
 use nym_vpn_api_client::{
-    response::{
-        NymVpnAccountSummaryResponse, NymVpnDevicesResponse, NymVpnSubscription,
-        NymVpnSubscriptionsResponse,
-    },
+    response::{NymVpnAccountSummaryResponse, NymVpnDevicesResponse},
     types::GatewayMinPerformance,
 };
 use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint, GatewayClient, GatewayType};
 
 use crate::{
     service::{
-        AccountError, ConnectArgs, ConnectOptions, VpnServiceCommand, VpnServiceConnectResult,
+        AccountError, ConnectArgs, ConnectOptions, VpnServiceCommand, VpnServiceConnectError,
         VpnServiceDisconnectResult, VpnServiceInfoResult, VpnServiceStatusResult,
     },
     types::gateway,
@@ -65,7 +62,7 @@ impl CommandInterfaceConnectionHandler {
         exit: Option<ExitPoint>,
         options: ConnectOptions,
         user_agent: nym_vpn_lib::UserAgent,
-    ) -> VpnServiceConnectResult {
+    ) -> Result<Result<(), VpnServiceConnectError>, VpnCommandSendError> {
         tracing::info!("Starting VPN");
         let connect_args = ConnectArgs {
             entry,
@@ -73,10 +70,22 @@ impl CommandInterfaceConnectionHandler {
             options,
         };
 
+        //self.vpn_command_send(VpnServiceCommand::Connect(tx, connect_args, user_agent), rx)
+        //    .await
+
         let (tx, rx) = oneshot::channel();
-        self.send_and_wait(VpnServiceCommand::Connect(tx, connect_args, user_agent), rx)
-            .await
-            .unwrap_or_else(|e| VpnServiceConnectResult::Fail(e.to_string()))
+
+        self.vpn_command_tx
+            .send(VpnServiceCommand::Connect(tx, connect_args, user_agent))
+            .map_err(|err| {
+                tracing::error!("Failed to send command to VPN: {:?}", err);
+                VpnCommandSendError::Send
+            })?;
+
+        rx.await.map_err(|err| {
+            tracing::error!("Failed to receive response from VPN: {:?}", err);
+            VpnCommandSendError::Receive
+        })
     }
 
     pub(crate) async fn handle_disconnect(&self) -> VpnServiceDisconnectResult {
@@ -202,26 +211,6 @@ impl CommandInterfaceConnectionHandler {
     ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
         self.vpn_command_send(VpnServiceCommand::GetDeviceZkNyms)
             .await
-    }
-
-    pub(crate) async fn handle_get_free_passes(
-        &self,
-    ) -> Result<Result<NymVpnSubscriptionsResponse, AccountError>, VpnCommandSendError> {
-        self.vpn_command_send(VpnServiceCommand::GetFreePasses)
-            .await
-    }
-
-    pub(crate) async fn handle_apply_freepass(
-        &self,
-        code: String,
-    ) -> Result<NymVpnSubscription, AccountError> {
-        let (tx, rx) = oneshot::channel();
-        self.vpn_command_tx
-            .send(VpnServiceCommand::ApplyFreepass(tx, code))
-            .unwrap();
-        let result = rx.await.unwrap();
-        tracing::info!("VPN apply freepass result: {:#?}", result);
-        result
     }
 
     pub(crate) async fn handle_is_ready_to_connect(

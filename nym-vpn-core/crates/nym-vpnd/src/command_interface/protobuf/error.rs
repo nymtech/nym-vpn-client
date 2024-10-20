@@ -4,7 +4,21 @@
 use maplit::hashmap;
 use nym_vpn_proto::{account_error::AccountErrorType, error::ErrorType, Error as ProtoError};
 
-use crate::service::{AccountError, ConnectionFailedError};
+use crate::service::{AccountError, ConnectionFailedError, VpnServiceConnectError};
+
+impl From<VpnServiceConnectError> for nym_vpn_proto::ConnectRequestError {
+    fn from(err: VpnServiceConnectError) -> Self {
+        match err {
+            VpnServiceConnectError::Internal(ref _account_error) => {
+                nym_vpn_proto::ConnectRequestError {
+                    kind: nym_vpn_proto::connect_request_error::ConnectRequestErrorType::Internal
+                        as i32,
+                    message: err.to_string(),
+                }
+            }
+        }
+    }
+}
 
 impl From<ConnectionFailedError> for ProtoError {
     fn from(err: ConnectionFailedError) -> Self {

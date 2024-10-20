@@ -22,10 +22,7 @@ use nym_vpn_account_controller::{
     AccountCommand, AccountController, AccountState, ReadyToConnect, SharedAccountState,
 };
 use nym_vpn_api_client::{
-    response::{
-        NymVpnAccountSummaryResponse, NymVpnDevicesResponse, NymVpnSubscription,
-        NymVpnSubscriptionsResponse,
-    },
+    response::{NymVpnAccountSummaryResponse, NymVpnDevicesResponse},
     types::{Percent, VpnApiAccount},
 };
 use nym_vpn_lib::{
@@ -92,7 +89,7 @@ impl fmt::Display for ConnectedStateDetails {
 #[allow(clippy::large_enum_variant)]
 pub enum VpnServiceCommand {
     Connect(
-        oneshot::Sender<VpnServiceConnectResult>,
+        oneshot::Sender<Result<(), VpnServiceConnectError>>,
         ConnectArgs,
         nym_vpn_lib::UserAgent,
     ),
@@ -108,11 +105,6 @@ pub enum VpnServiceCommand {
     RegisterDevice(oneshot::Sender<Result<(), AccountError>>),
     RequestZkNym(oneshot::Sender<Result<(), AccountError>>),
     GetDeviceZkNyms(oneshot::Sender<Result<(), AccountError>>),
-    GetFreePasses(oneshot::Sender<Result<NymVpnSubscriptionsResponse, AccountError>>),
-    ApplyFreepass(
-        oneshot::Sender<Result<NymVpnSubscription, AccountError>>,
-        String,
-    ),
     IsReadyToConnect(oneshot::Sender<Result<ReadyToConnect, AccountError>>),
 }
 
@@ -134,8 +126,6 @@ impl fmt::Display for VpnServiceCommand {
             VpnServiceCommand::RegisterDevice(_) => write!(f, "RegisterDevice"),
             VpnServiceCommand::RequestZkNym(_) => write!(f, "RequestZkNym"),
             VpnServiceCommand::GetDeviceZkNyms(_) => write!(f, "GetDeviceZkNyms"),
-            VpnServiceCommand::GetFreePasses(_) => write!(f, "GetFreePasses"),
-            VpnServiceCommand::ApplyFreepass(_, _) => write!(f, "ApplyFreepass"),
             VpnServiceCommand::IsReadyToConnect(_) => write!(f, "IsReadyToConnect"),
         }
     }
@@ -163,17 +153,10 @@ pub(crate) struct ConnectOptions {
     // pub(crate) user_agent: Option<nym_vpn_lib::UserAgent>,
 }
 
-#[derive(Debug)]
-pub enum VpnServiceConnectResult {
-    Success,
-    Fail(String),
-}
-
-impl VpnServiceConnectResult {
-    #[allow(unused)]
-    pub fn is_success(&self) -> bool {
-        matches!(self, VpnServiceConnectResult::Success)
-    }
+#[derive(Debug, thiserror::Error)]
+pub enum VpnServiceConnectError {
+    #[error("internal error: {0}")]
+    Internal(String),
 }
 
 #[derive(Debug)]
@@ -605,14 +588,6 @@ where
                 let result = self.handle_get_device_zk_nyms().await;
                 let _ = tx.send(result);
             }
-            VpnServiceCommand::GetFreePasses(tx) => {
-                let result = self.handle_get_free_passes().await;
-                let _ = tx.send(result);
-            }
-            VpnServiceCommand::ApplyFreepass(tx, code) => {
-                let result = self.handle_apply_freepass(code).await;
-                let _ = tx.send(result);
-            }
             VpnServiceCommand::IsReadyToConnect(tx) => {
                 let result = Ok(self.handle_is_ready_to_connect().await);
                 tx.send(result).unwrap();
@@ -653,12 +628,15 @@ where
         &mut self,
         connect_args: ConnectArgs,
         _user_agent: nym_vpn_lib::UserAgent, // todo: use user-agent!
-    ) -> VpnServiceConnectResult {
+    ) -> Result<(), VpnServiceConnectError> {
         match self.shared_account_state.is_ready_to_connect().await {
             ReadyToConnect::Ready => {}
             not_ready_to_connect => {
                 tracing::info!("Not ready to connect: {:?}", not_ready_to_connect);
-                return VpnServiceConnectResult::Fail(format!("{:?}", not_ready_to_connect));
+                return Err(VpnServiceConnectError::Internal(format!(
+                    "{:?}",
+                    not_ready_to_connect
+                )));
             }
         }
 
@@ -683,12 +661,9 @@ where
         );
         tracing::info!("Using options: {:?}", options);
 
-        let config = match self.try_setup_config(entry, exit) {
-            Ok(config) => config,
-            Err(err) => {
-                return VpnServiceConnectResult::Fail(err.to_string());
-            }
-        };
+        let config = self
+            .try_setup_config(entry, exit)
+            .map_err(|err| VpnServiceConnectError::Internal(err.to_string()))?;
         tracing::info!("Using config: {}", config);
 
         let gateway_options = GatewayPerformanceOptions {
@@ -740,15 +715,15 @@ where
             Ok(()) => self
                 .command_sender
                 .send(TunnelCommand::Connect)
-                .err()
-                .map(|e| {
+                .map_err(|e| {
                     tracing::error!("Failed to send command to connect: {}", e);
-                    VpnServiceConnectResult::Fail("Internal error".to_owned())
-                })
-                .unwrap_or(VpnServiceConnectResult::Success),
+                    VpnServiceConnectError::Internal("failed to send tunnel command".to_owned())
+                }),
             Err(e) => {
                 tracing::error!("Failed to send command to set tunnel options: {}", e);
-                VpnServiceConnectResult::Fail("Internal error".to_owned())
+                Err(VpnServiceConnectError::Internal(
+                    "failed to send command to set tunnel options".to_owned(),
+                ))
             }
         }
     }
@@ -902,39 +877,6 @@ where
             .map_err(|err| AccountError::SendCommand {
                 source: Box::new(err),
             })
-    }
-
-    async fn handle_get_free_passes(&self) -> Result<NymVpnSubscriptionsResponse, AccountError> {
-        // Get account
-        let account = self.load_account().await?;
-
-        // Setup client
-        let nym_vpn_api_url = get_nym_vpn_api_url()?;
-        let user_agent = crate::util::construct_user_agent();
-        let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent)?;
-
-        api_client
-            .get_free_passes(&account)
-            .await
-            .map_err(Into::into)
-    }
-
-    async fn handle_apply_freepass(
-        &self,
-        code: String,
-    ) -> Result<NymVpnSubscription, AccountError> {
-        // Get account
-        let account = self.load_account().await?;
-
-        // Setup client
-        let nym_vpn_api_url = get_nym_vpn_api_url()?;
-        let user_agent = crate::util::construct_user_agent();
-        let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent)?;
-
-        api_client
-            .apply_freepass(&account, code)
-            .await
-            .map_err(Into::into)
     }
 
     async fn handle_request_zk_nym(&self) -> Result<(), AccountError> {

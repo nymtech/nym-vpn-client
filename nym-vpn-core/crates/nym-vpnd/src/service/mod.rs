@@ -9,6 +9,6 @@ pub(crate) use config::{default_log_dir, DEFAULT_LOG_FILE};
 pub(crate) use error::{AccountError, ConnectionFailedError};
 pub(crate) use vpn_service::{
     ConnectArgs, ConnectOptions, ConnectedStateDetails, NymVpnService, VpnServiceCommand,
-    VpnServiceConnectResult, VpnServiceDisconnectResult, VpnServiceInfoResult,
+    VpnServiceConnectError, VpnServiceDisconnectResult, VpnServiceInfoResult,
     VpnServiceStateChange, VpnServiceStatusResult,
 };

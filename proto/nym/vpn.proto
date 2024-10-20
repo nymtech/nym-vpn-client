@@ -568,7 +568,7 @@ message GetDeviceZkNymsResponse {
 message IsReadyToConnectRequest {}
 
 message IsReadyToConnectResponse {
-  enum IsReadyToConnectReponseType {
+  enum IsReadyToConnectResponseType {
     IS_READY_TO_CONNECT_RESPONSE_TYPE_UNSPECIFIED = 0;
 
     // We are ready to attempt to connect
@@ -592,10 +592,7 @@ message IsReadyToConnectResponse {
     DEVICE_NOT_ACTIVE = 6;
   }
 
-  IsReadyToConnectReponseType kind = 1;
-
-  // Internal message for logging and debugging
-  string message = 2;
+  IsReadyToConnectResponseType kind = 1;
 }
 
 message AccountError {
