@@ -90,8 +90,7 @@ impl fmt::Display for ConnectedStateDetails {
 pub enum VpnServiceCommand {
     Connect(
         oneshot::Sender<Result<(), VpnServiceConnectError>>,
-        ConnectArgs,
-        nym_vpn_lib::UserAgent,
+        (ConnectArgs, nym_vpn_lib::UserAgent),
     ),
     Disconnect(oneshot::Sender<VpnServiceDisconnectResult>),
     Status(oneshot::Sender<VpnServiceStatusResult>),
@@ -111,7 +110,7 @@ pub enum VpnServiceCommand {
 impl fmt::Display for VpnServiceCommand {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            VpnServiceCommand::Connect(_, args, user_agent) => {
+            VpnServiceCommand::Connect(_, (args, user_agent)) => {
                 write!(f, "Connect {{ {args:?}, {user_agent:?} }}")
             }
             VpnServiceCommand::Disconnect(_) => write!(f, "Disconnect"),
@@ -536,7 +535,7 @@ where
 
     async fn handle_service_command(&mut self, command: VpnServiceCommand) {
         match command {
-            VpnServiceCommand::Connect(tx, connect_args, user_agent) => {
+            VpnServiceCommand::Connect(tx, (connect_args, user_agent)) => {
                 let result = self.handle_connect(connect_args, user_agent).await;
                 let _ = tx.send(result);
             }

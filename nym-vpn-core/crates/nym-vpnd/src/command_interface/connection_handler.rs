@@ -70,22 +70,8 @@ impl CommandInterfaceConnectionHandler {
             options,
         };
 
-        //self.vpn_command_send(VpnServiceCommand::Connect(tx, connect_args, user_agent), rx)
-        //    .await
-
-        let (tx, rx) = oneshot::channel();
-
-        self.vpn_command_tx
-            .send(VpnServiceCommand::Connect(tx, connect_args, user_agent))
-            .map_err(|err| {
-                tracing::error!("Failed to send command to VPN: {:?}", err);
-                VpnCommandSendError::Send
-            })?;
-
-        rx.await.map_err(|err| {
-            tracing::error!("Failed to receive response from VPN: {:?}", err);
-            VpnCommandSendError::Receive
-        })
+        self.vpn_command_send_opt(VpnServiceCommand::Connect, (connect_args, user_agent))
+            .await
     }
 
     pub(crate) async fn handle_disconnect(&self) -> VpnServiceDisconnectResult {
@@ -231,6 +217,27 @@ impl CommandInterfaceConnectionHandler {
         let (tx, rx) = oneshot::channel();
 
         self.vpn_command_tx.send(command(tx)).map_err(|err| {
+            tracing::error!("Failed to send command to VPN: {:?}", err);
+            VpnCommandSendError::Send
+        })?;
+
+        rx.await.map_err(|err| {
+            tracing::error!("Failed to receive response from VPN: {:?}", err);
+            VpnCommandSendError::Receive
+        })
+    }
+
+    async fn vpn_command_send_opt<T, E, F, O>(
+        &self,
+        command: F,
+        opts: O,
+    ) -> Result<Result<T, E>, VpnCommandSendError>
+    where
+        F: FnOnce(oneshot::Sender<Result<T, E>>, O) -> VpnServiceCommand,
+    {
+        let (tx, rx) = oneshot::channel();
+
+        self.vpn_command_tx.send(command(tx, opts)).map_err(|err| {
             tracing::error!("Failed to send command to VPN: {:?}", err);
             VpnCommandSendError::Send
         })?;
