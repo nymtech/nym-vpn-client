@@ -544,7 +544,7 @@ where
             }
             VpnServiceCommand::IsAccountStored(tx, ()) => {
                 let result = self.handle_is_account_stored().await;
-                tx.send(result).unwrap();
+                let _ = tx.send(result);
             }
             VpnServiceCommand::RemoveAccount(tx, ()) => {
                 let result = self.handle_remove_account().await;
@@ -576,7 +576,7 @@ where
             }
             VpnServiceCommand::IsReadyToConnect(tx, ()) => {
                 let result = Ok(self.handle_is_ready_to_connect().await);
-                tx.send(result).unwrap();
+                let _ = tx.send(result);
             }
         }
     }
