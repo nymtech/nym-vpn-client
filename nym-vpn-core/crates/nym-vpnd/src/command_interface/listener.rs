@@ -14,16 +14,15 @@ use tokio::sync::{broadcast, mpsc::UnboundedSender};
 use nym_vpn_api_client::types::GatewayMinPerformance;
 use nym_vpn_lib::tunnel_state_machine::MixnetEvent;
 use nym_vpn_proto::{
-    nym_vpnd_server::NymVpnd, AccountError, ConnectRequest, ConnectResponse,
-    ConnectionStateChange, ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
-    GetAccountSummaryRequest, GetAccountSummaryResponse, GetDeviceZkNymsRequest,
-    GetDeviceZkNymsResponse, GetDevicesRequest, GetDevicesResponse, GetLocalAccountStateRequest,
-    GetLocalAccountStateResponse, InfoRequest, InfoResponse, IsAccountStoredRequest,
-    IsAccountStoredResponse, IsReadyToConnectRequest, IsReadyToConnectResponse,
-    ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest, ListGatewaysResponse,
-    RegisterDeviceRequest, RegisterDeviceResponse, RemoveAccountRequest, RemoveAccountResponse,
-    RequestZkNymRequest, RequestZkNymResponse, StatusRequest, StatusResponse, StoreAccountRequest,
-    StoreAccountResponse,
+    nym_vpnd_server::NymVpnd, AccountError, ConnectRequest, ConnectResponse, ConnectionStateChange,
+    ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty, GetAccountSummaryRequest,
+    GetAccountSummaryResponse, GetDeviceZkNymsRequest, GetDeviceZkNymsResponse, GetDevicesRequest,
+    GetDevicesResponse, GetLocalAccountStateRequest, GetLocalAccountStateResponse, InfoRequest,
+    InfoResponse, IsAccountStoredRequest, IsAccountStoredResponse, IsReadyToConnectRequest,
+    IsReadyToConnectResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
+    ListGatewaysResponse, RegisterDeviceRequest, RegisterDeviceResponse, RemoveAccountRequest,
+    RemoveAccountResponse, RequestZkNymRequest, RequestZkNymResponse, StatusRequest,
+    StatusResponse, StoreAccountRequest, StoreAccountResponse,
 };
 
 use super::{
