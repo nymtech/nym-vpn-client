@@ -3,10 +3,10 @@
 
 use nym_vpn_proto::InfoResponse;
 
-use crate::service::VpnServiceInfoResult;
+use crate::service::VpnServiceInfo;
 
-impl From<VpnServiceInfoResult> for InfoResponse {
-    fn from(info: VpnServiceInfoResult) -> Self {
+impl From<VpnServiceInfo> for InfoResponse {
+    fn from(info: VpnServiceInfo) -> Self {
         let build_timestamp = info.build_timestamp.map(offset_datetime_to_timestamp);
 
         let endpoints = info

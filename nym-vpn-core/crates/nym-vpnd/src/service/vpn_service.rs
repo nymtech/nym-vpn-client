@@ -95,7 +95,7 @@ pub enum VpnServiceCommand {
     ),
     Disconnect(oneshot::Sender<Result<(), VpnServiceDisconnectError>>, ()),
     Status(oneshot::Sender<VpnServiceStatusResult>, ()),
-    Info(oneshot::Sender<VpnServiceInfoResult>, ()),
+    Info(oneshot::Sender<VpnServiceInfo>, ()),
     StoreAccount(oneshot::Sender<Result<(), AccountError>>, String),
     IsAccountStored(oneshot::Sender<Result<bool, AccountError>>, ()),
     RemoveAccount(oneshot::Sender<Result<(), AccountError>>, ()),
@@ -231,7 +231,7 @@ impl From<TunnelState> for VpnServiceStatusResult {
 }
 
 #[derive(Clone, Debug)]
-pub struct VpnServiceInfoResult {
+pub struct VpnServiceInfo {
     pub version: String,
     pub build_timestamp: Option<time::OffsetDateTime>,
     pub triple: String,
@@ -728,12 +728,12 @@ where
         VpnServiceStatusResult::from(self.tunnel_state.clone())
     }
 
-    async fn handle_info(&self) -> VpnServiceInfoResult {
+    async fn handle_info(&self) -> VpnServiceInfo {
         let network = NymNetworkDetails::new_from_env();
         let bin_info = nym_bin_common::bin_info_local_vergen!();
         let user_agent = crate::util::construct_user_agent();
 
-        VpnServiceInfoResult {
+        VpnServiceInfo {
             version: bin_info.build_version.to_string(),
             build_timestamp: time::OffsetDateTime::parse(bin_info.build_timestamp, &Rfc3339).ok(),
             triple: bin_info.cargo_triple.to_string(),

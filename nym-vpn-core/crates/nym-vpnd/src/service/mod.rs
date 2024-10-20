@@ -11,5 +11,5 @@ pub(crate) use error::{
 };
 pub(crate) use vpn_service::{
     ConnectArgs, ConnectOptions, ConnectedStateDetails, NymVpnService, VpnServiceCommand,
-    VpnServiceInfoResult, VpnServiceStateChange, VpnServiceStatusResult,
+    VpnServiceInfo, VpnServiceStateChange, VpnServiceStatusResult,
 };
