@@ -43,6 +43,7 @@ use super::{
         ConfigSetupError, NymVpnServiceConfig, DEFAULT_CONFIG_FILE,
     },
     error::{AccountError, ConnectionFailedError, Error, Result},
+    VpnServiceConnectError, VpnServiceDisconnectError,
 };
 
 #[derive(Debug, Clone)]
@@ -92,7 +93,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<(), VpnServiceConnectError>>,
         (ConnectArgs, nym_vpn_lib::UserAgent),
     ),
-    Disconnect(oneshot::Sender<VpnServiceDisconnectResult>),
+    Disconnect(oneshot::Sender<Result<(), VpnServiceDisconnectError>>),
     Status(oneshot::Sender<VpnServiceStatusResult>),
     Info(oneshot::Sender<VpnServiceInfoResult>),
     StoreAccount(oneshot::Sender<Result<(), AccountError>>, String),
@@ -150,25 +151,6 @@ pub(crate) struct ConnectOptions {
     pub(crate) min_gateway_vpn_performance: Option<Percent>,
     // Consider adding this here once UserAgent implements Serialize/Deserialize
     // pub(crate) user_agent: Option<nym_vpn_lib::UserAgent>,
-}
-
-#[derive(Debug, thiserror::Error)]
-pub enum VpnServiceConnectError {
-    #[error("internal error: {0}")]
-    Internal(String),
-}
-
-#[derive(Debug)]
-pub enum VpnServiceDisconnectResult {
-    Success,
-    #[allow(unused)]
-    Fail(String),
-}
-
-impl VpnServiceDisconnectResult {
-    pub fn is_success(&self) -> bool {
-        matches!(self, VpnServiceDisconnectResult::Success)
-    }
 }
 
 // Respond with the current state of the VPN service. This is currently almost the same as VpnState,
@@ -727,15 +709,13 @@ where
         }
     }
 
-    async fn handle_disconnect(&mut self) -> VpnServiceDisconnectResult {
+    async fn handle_disconnect(&mut self) -> Result<(), VpnServiceDisconnectError> {
         self.command_sender
             .send(TunnelCommand::Disconnect)
-            .err()
-            .map(|e| {
+            .map_err(|e| {
                 tracing::error!("Failed to send command to disconnect: {}", e);
-                VpnServiceDisconnectResult::Fail("Internal error".to_owned())
+                VpnServiceDisconnectError::Internal("failed to send dicsonnect command".to_owned())
             })
-            .unwrap_or(VpnServiceDisconnectResult::Success)
     }
 
     async fn handle_status(&self) -> VpnServiceStatusResult {

@@ -182,10 +182,11 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<DisconnectResponse>, tonic::Status> {
         let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_disconnect()
-            .await;
+            .await
+            .map_err(|err| tonic::Status::internal(format!("internal error: {}", err)))?;
 
         let response = DisconnectResponse {
-            success: status.is_success(),
+            success: status.is_ok(),
         };
         tracing::info!("Returning disconnect response: {:?}", response);
         Ok(tonic::Response::new(response))

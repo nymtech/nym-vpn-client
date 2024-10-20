@@ -10,6 +10,20 @@ use tracing::error;
 
 use super::config::ConfigSetupError;
 
+// Failure to initiate the connect
+#[derive(Debug, thiserror::Error)]
+pub enum VpnServiceConnectError {
+    #[error("internal error: {0}")]
+    Internal(String),
+}
+
+// Failure to initiate the disconnect
+#[derive(Debug, thiserror::Error)]
+pub enum VpnServiceDisconnectError {
+    #[error("internal error: {0}")]
+    Internal(String),
+}
+
 #[derive(Clone, Debug, thiserror::Error)]
 pub enum ConnectionFailedError {
     #[error("failed to connect (unhandled): {0}")]

@@ -13,7 +13,7 @@ use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint, GatewayClient, Gatew
 use crate::{
     service::{
         AccountError, ConnectArgs, ConnectOptions, VpnServiceCommand, VpnServiceConnectError,
-        VpnServiceDisconnectResult, VpnServiceInfoResult, VpnServiceStatusResult,
+        VpnServiceDisconnectError, VpnServiceInfoResult, VpnServiceStatusResult,
     },
     types::gateway,
 };
@@ -74,13 +74,10 @@ impl CommandInterfaceConnectionHandler {
             .await
     }
 
-    pub(crate) async fn handle_disconnect(&self) -> VpnServiceDisconnectResult {
-        let (tx, rx) = oneshot::channel();
-        self.send_and_wait(VpnServiceCommand::Disconnect(tx), rx)
-            .await
-            .err()
-            .map(|e| VpnServiceDisconnectResult::Fail(e.to_string()))
-            .unwrap_or(VpnServiceDisconnectResult::Success)
+    pub(crate) async fn handle_disconnect(
+        &self,
+    ) -> Result<Result<(), VpnServiceDisconnectError>, VpnCommandSendError> {
+        self.vpn_command_send(VpnServiceCommand::Disconnect).await
     }
 
     pub(crate) async fn handle_info(&self) -> VpnServiceInfoResult {
@@ -244,21 +241,6 @@ impl CommandInterfaceConnectionHandler {
 
         rx.await.map_err(|err| {
             tracing::error!("Failed to receive response from VPN: {:?}", err);
-            VpnCommandSendError::Receive
-        })
-    }
-
-    async fn send_and_wait<T>(
-        &self,
-        command: VpnServiceCommand,
-        rx: oneshot::Receiver<T>,
-    ) -> Result<T, VpnCommandSendError> {
-        self.vpn_command_tx.send(command).map_err(|e| {
-            tracing::error!("Failed to send command to VPN: {:?}", e);
-            VpnCommandSendError::Send
-        })?;
-        rx.await.map_err(|e| {
-            tracing::error!("Failed to receive response from VPN: {:?}", e);
             VpnCommandSendError::Receive
         })
     }
