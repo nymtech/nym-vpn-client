@@ -6,7 +6,7 @@ use nym_vpn_proto::{
     StatusResponse, WgConnectedStateDetails,
 };
 
-use crate::service::{ConnectedStateDetails, VpnServiceStatusResult};
+use crate::service::{ConnectedStateDetails, VpnServiceStatus};
 
 impl From<ConnectedStateDetails> for connected_state_details::ConnectedStateDetails {
     fn from(value: ConnectedStateDetails) -> Self {
@@ -33,14 +33,14 @@ impl From<ConnectedStateDetails> for connected_state_details::ConnectedStateDeta
     }
 }
 
-impl From<VpnServiceStatusResult> for StatusResponse {
-    fn from(status: VpnServiceStatusResult) -> Self {
+impl From<VpnServiceStatus> for StatusResponse {
+    fn from(status: VpnServiceStatus) -> Self {
         let mut details = None;
         let mut error = None;
         let status = match status {
-            VpnServiceStatusResult::NotConnected => ConnectionStatus::NotConnected,
-            VpnServiceStatusResult::Connecting => ConnectionStatus::Connecting,
-            VpnServiceStatusResult::Connected(conn_details) => {
+            VpnServiceStatus::NotConnected => ConnectionStatus::NotConnected,
+            VpnServiceStatus::Connecting => ConnectionStatus::Connecting,
+            VpnServiceStatus::Connected(conn_details) => {
                 let timestamp = prost_types::Timestamp {
                     seconds: conn_details.since.unix_timestamp(),
                     nanos: conn_details.since.nanosecond() as i32,
@@ -63,8 +63,8 @@ impl From<VpnServiceStatusResult> for StatusResponse {
                 });
                 ConnectionStatus::Connected
             }
-            VpnServiceStatusResult::Disconnecting => ConnectionStatus::Disconnecting,
-            VpnServiceStatusResult::ConnectionFailed(reason) => {
+            VpnServiceStatus::Disconnecting => ConnectionStatus::Disconnecting,
+            VpnServiceStatus::ConnectionFailed(reason) => {
                 error = Some(ProtoError::from(reason));
                 ConnectionStatus::ConnectionFailed
             }

@@ -6,9 +6,10 @@ mod error;
 mod vpn_service;
 
 pub(crate) use config::{default_log_dir, DEFAULT_LOG_FILE};
-pub(crate) use error::{AccountError, ConnectionFailedError};
+pub(crate) use error::{
+    AccountError, ConnectionFailedError, VpnServiceConnectError, VpnServiceDisconnectError,
+};
 pub(crate) use vpn_service::{
     ConnectArgs, ConnectOptions, ConnectedStateDetails, NymVpnService, VpnServiceCommand,
-    VpnServiceConnectResult, VpnServiceDisconnectResult, VpnServiceInfoResult,
-    VpnServiceStateChange, VpnServiceStatusResult,
+    VpnServiceInfo, VpnServiceStateChange, VpnServiceStatus,
 };

@@ -714,6 +714,7 @@ where
                     while let Some(result) = self.polling_tasks.try_join_next() {
                         self.handle_polling_result(result).await;
                     }
+                    self.account_state.set_pending_zk_nym(!self.polling_tasks.is_empty()).await;
                 }
                 _ = self.cancel_token.cancelled() => {
                     tracing::trace!("Received cancellation signal");

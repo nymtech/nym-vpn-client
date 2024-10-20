@@ -2,9 +2,55 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use maplit::hashmap;
+use nym_vpn_account_controller::ReadyToConnect;
 use nym_vpn_proto::{account_error::AccountErrorType, error::ErrorType, Error as ProtoError};
 
-use crate::service::{AccountError, ConnectionFailedError};
+use crate::service::{AccountError, ConnectionFailedError, VpnServiceConnectError};
+
+impl From<VpnServiceConnectError> for nym_vpn_proto::ConnectRequestError {
+    fn from(err: VpnServiceConnectError) -> Self {
+        match err {
+            VpnServiceConnectError::Internal(ref _account_error) => {
+                nym_vpn_proto::ConnectRequestError {
+                    kind: nym_vpn_proto::connect_request_error::ConnectRequestErrorType::Internal
+                        as i32,
+                    message: err.to_string(),
+                }
+            }
+            VpnServiceConnectError::Account(ref not_ready_to_connect) => {
+                nym_vpn_proto::ConnectRequestError {
+                    kind: into_connect_request_error_type(not_ready_to_connect.clone()) as i32,
+                    message: not_ready_to_connect.to_string(),
+                }
+            }
+        }
+    }
+}
+
+fn into_connect_request_error_type(
+    ready: ReadyToConnect,
+) -> nym_vpn_proto::connect_request_error::ConnectRequestErrorType {
+    match ready {
+        ReadyToConnect::Ready => {
+            nym_vpn_proto::connect_request_error::ConnectRequestErrorType::Internal
+        }
+        ReadyToConnect::NoMnemonicStored => {
+            nym_vpn_proto::connect_request_error::ConnectRequestErrorType::NoAccountStored
+        }
+        ReadyToConnect::AccountNotActive => {
+            nym_vpn_proto::connect_request_error::ConnectRequestErrorType::AccountNotActive
+        }
+        ReadyToConnect::NoActiveSubscription => {
+            nym_vpn_proto::connect_request_error::ConnectRequestErrorType::NoActiveSubscription
+        }
+        ReadyToConnect::DeviceNotRegistered => {
+            nym_vpn_proto::connect_request_error::ConnectRequestErrorType::DeviceNotRegistered
+        }
+        ReadyToConnect::DeviceNotActive => {
+            nym_vpn_proto::connect_request_error::ConnectRequestErrorType::DeviceNotActive
+        }
+    }
+}
 
 impl From<ConnectionFailedError> for ProtoError {
     fn from(err: ConnectionFailedError) -> Self {
@@ -470,6 +516,25 @@ impl From<AccountError> for nym_vpn_proto::AccountError {
                 message: err.to_string(),
                 details: hashmap! {},
             },
+        }
+    }
+}
+
+#[derive(Debug, thiserror::Error)]
+pub(crate) enum VpnCommandSendError {
+    #[error("failed to send command to VPN service task")]
+    Send,
+
+    #[error("failed to receive response from VPN service task")]
+    Receive,
+}
+
+impl From<VpnCommandSendError> for tonic::Status {
+    fn from(err: VpnCommandSendError) -> Self {
+        match err {
+            VpnCommandSendError::Send | VpnCommandSendError::Receive => {
+                tonic::Status::internal(err.to_string())
+            }
         }
     }
 }

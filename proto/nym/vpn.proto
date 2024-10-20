@@ -115,6 +115,37 @@ message Threshold {
   uint32 min_performance = 1;
 }
 
+message ConnectRequestError {
+  enum ConnectRequestErrorType {
+    CONNECT_REQUEST_ERROR_TYPE_UNSPECIFIED = 0;
+
+    // Unspecified internal error
+    INTERNAL = 1;
+
+    // No account recovery phrase stored
+    NO_ACCOUNT_STORED = 2;
+
+    // The account is not active
+    ACCOUNT_NOT_ACTIVE = 3;
+
+    // The account does not have an active subscripion
+    NO_ACTIVE_SUBSCRIPTION = 4;
+
+    // The device is not registered
+    DEVICE_NOT_REGISTERED = 5;
+
+    // The device is not active
+    // NOTE: in the future we will try to re-active an inactive device on
+    // connect
+    DEVICE_NOT_ACTIVE = 6;
+  }
+
+  ConnectRequestErrorType kind = 1;
+
+  // Internal message for logging and debugging
+  string message = 2;
+}
+
 message ConnectRequest {
   EntryNode entry = 1;
   ExitNode exit = 2;
@@ -132,7 +163,9 @@ message ConnectRequest {
 }
 
 message ConnectResponse {
+  // TODO: consider simplifying by removing the bool
   bool success = 1;
+  ConnectRequestError error = 2;
 }
 
 message DisconnectRequest {}
@@ -230,6 +263,8 @@ message ConnectionStatusUpdate {
   map<string, string> details = 3;
 }
 
+// TODO: consider rename this to something like `ConnectionError`, to
+// distinguish from all other types of errors.
 message Error {
   enum ErrorType {
     ERROR_TYPE_UNSPECIFIED = 0;
@@ -530,26 +565,34 @@ message GetDeviceZkNymsResponse {
   AccountError error = 2;
 }
 
-message GetFreePassesRequest {}
-
-message GetFreePassesResponse {
-  string json = 1;
-  AccountError error = 2;
-}
-
-message ApplyFreepassRequest {
-  string code = 1;
-}
-
-message ApplyFreepassResponse {
-  string json = 1;
-  AccountError error = 2;
-}
-
 message IsReadyToConnectRequest {}
 
 message IsReadyToConnectResponse {
-  bool is_ready_to_connect = 1;
+  enum IsReadyToConnectResponseType {
+    IS_READY_TO_CONNECT_RESPONSE_TYPE_UNSPECIFIED = 0;
+
+    // We are ready to attempt to connect
+    READY = 1;
+
+    // No account recovery phrase stored
+    NO_ACCOUNT_STORED = 2;
+
+    // The account is not active
+    ACCOUNT_NOT_ACTIVE = 3;
+
+    // The account does not have an active subscripion
+    NO_ACTIVE_SUBSCRIPTION = 4;
+
+    // The device is not registered
+    DEVICE_NOT_REGISTERED = 5;
+
+    // The device is not active
+    // NOTE: in the future we will try to re-active an inactive device on
+    // connect
+    DEVICE_NOT_ACTIVE = 6;
+  }
+
+  IsReadyToConnectResponseType kind = 1;
 }
 
 message AccountError {
@@ -573,28 +616,62 @@ message AccountError {
 }
 
 service NymVpnd {
+  // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info (InfoRequest) returns (InfoResponse) {}
+
+  // Start the tunnel and connect
   rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
+
+  // Disconnect and stop the tunnel
   rpc VpnDisconnect (DisconnectRequest) returns (DisconnectResponse) {}
+
+  // Get the current tunnel and connection status
   rpc VpnStatus (StatusRequest) returns (StatusResponse) {}
+
+  // Listen for events that indicate that the connection state changes, such as
+  // from Connecting -> Connected
   rpc ListenToConnectionStateChanges (Empty) returns (stream ConnectionStateChange) {}
+
+  // Listen for general status evens emitted by nym-vpnd, which in turn might
+  // originate from elsewhere such as remote gateways.
   rpc ListenToConnectionStatus (Empty) returns (stream ConnectionStatusUpdate) {}
 
+  // List the available gateways for the selected mode
   rpc ListGateways (ListGatewaysRequest) returns (ListGatewaysResponse) {}
+
+  // List the avaiable countries for the selected mode
   rpc ListCountries (ListCountriesRequest) returns (ListCountriesResponse) {}
 
-  // Unstable
+  // -- Unstable --
+  // These below are considered unstable, in the sense that their definitions
+  // are still being interated upon and their meaning might change
+
+  // Handle the stored recovery phrase, which is also the account identity and authentication
   rpc StoreAccount (StoreAccountRequest) returns (StoreAccountResponse) {}
   rpc IsAccountStored (IsAccountStoredRequest) returns (IsAccountStoredResponse) {}
   rpc RemoveAccount (RemoveAccountRequest) returns (RemoveAccountResponse) {}
+
+  // Query the account state, which refers to the server side account, as it is
+  // known and interpreted by nym-vpnd
   rpc GetLocalAccountState (GetLocalAccountStateRequest) returns (GetLocalAccountStateResponse) {}
-  rpc GetAccountSummary (GetAccountSummaryRequest) returns (GetAccountSummaryResponse) {}
-  rpc GetDevices (GetDevicesRequest) returns (GetDevicesResponse) {}
-  rpc RegisterDevice (RegisterDeviceRequest) returns (RegisterDeviceResponse) {}
-  rpc RequestZkNym (RequestZkNymRequest) returns (RequestZkNymResponse) {}
-  rpc GetDeviceZkNyms (GetDeviceZkNymsRequest) returns (GetDeviceZkNymsResponse) {}
-  rpc GetFreePasses (GetFreePassesRequest) returns (GetFreePassesResponse) {}
-  rpc ApplyFreepass (ApplyFreepassRequest) returns (ApplyFreepassResponse) {}
   rpc IsReadyToConnect (IsReadyToConnectRequest) returns (IsReadyToConnectResponse) {}
+
+  // Try to register the local device with the nym-vpn-api
+  rpc RegisterDevice (RegisterDeviceRequest) returns (RegisterDeviceResponse) {}
+
+  // Request new zk-nyms (ticketbooks) from the nym-vpn-api
+  rpc RequestZkNym (RequestZkNymRequest) returns (RequestZkNymResponse) {}
+
+  // -- Delegated remote calls --
+  // These query the remote nym-vpn-api state directly
+
+  // Get the server side account summary directly from the nym-vpn-api
+  rpc GetAccountSummary (GetAccountSummaryRequest) returns (GetAccountSummaryResponse) {}
+
+  // Get the list of devices directly from the nym-vpn-api
+  rpc GetDevices (GetDevicesRequest) returns (GetDevicesResponse) {}
+
+  // List the zk-nyms associated with this device from the nym-vpn-api
+  rpc GetDeviceZkNyms (GetDeviceZkNymsRequest) returns (GetDeviceZkNymsResponse) {}
 }
 

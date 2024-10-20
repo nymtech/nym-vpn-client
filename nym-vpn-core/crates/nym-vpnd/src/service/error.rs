@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_vpn_account_controller::ReadyToConnect;
 use nym_vpn_lib::{
     gateway_directory::Error as DirError, tunnel_state_machine, GatewayDirectoryError,
     NodeIdentity, Recipient,
@@ -9,6 +10,23 @@ use tokio::sync::mpsc::error::SendError;
 use tracing::error;
 
 use super::config::ConfigSetupError;
+
+// Failure to initiate the connect
+#[derive(Debug, thiserror::Error)]
+pub enum VpnServiceConnectError {
+    #[error("internal error: {0}")]
+    Internal(String),
+
+    #[error("failed to connect: {0}")]
+    Account(ReadyToConnect),
+}
+
+// Failure to initiate the disconnect
+#[derive(Debug, thiserror::Error)]
+pub enum VpnServiceDisconnectError {
+    #[error("internal error: {0}")]
+    Internal(String),
+}
 
 #[derive(Clone, Debug, thiserror::Error)]
 pub enum ConnectionFailedError {

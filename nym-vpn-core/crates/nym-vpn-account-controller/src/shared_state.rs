@@ -28,9 +28,23 @@ pub enum ReadyToRegisterDevice {
 pub enum ReadyToConnect {
     Ready,
     NoMnemonicStored,
-    RemoteAccountNotActive,
+    AccountNotActive,
     NoActiveSubscription,
-    DeviceInactive,
+    DeviceNotRegistered,
+    DeviceNotActive,
+}
+
+impl fmt::Display for ReadyToConnect {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ReadyToConnect::Ready => write!(f, "Ready to connect"),
+            ReadyToConnect::NoMnemonicStored => write!(f, "No mnemonic stored"),
+            ReadyToConnect::AccountNotActive => write!(f, "Account not active"),
+            ReadyToConnect::NoActiveSubscription => write!(f, "No active subscription"),
+            ReadyToConnect::DeviceNotRegistered => write!(f, "Device not registered"),
+            ReadyToConnect::DeviceNotActive => write!(f, "Device not active"),
+        }
+    }
 }
 
 impl SharedAccountState {
@@ -50,13 +64,16 @@ impl SharedAccountState {
             return ReadyToConnect::NoMnemonicStored;
         }
         if state.account != Some(RemoteAccountState::Active) {
-            return ReadyToConnect::RemoteAccountNotActive;
+            return ReadyToConnect::AccountNotActive;
         }
         if state.subscription != Some(SubscriptionState::Subscribed) {
             return ReadyToConnect::NoActiveSubscription;
         }
-        if state.device == Some(DeviceState::Inactive) {
-            return ReadyToConnect::DeviceInactive;
+        match state.device {
+            None => return ReadyToConnect::DeviceNotRegistered,
+            Some(DeviceState::NotRegistered) => return ReadyToConnect::DeviceNotRegistered,
+            Some(DeviceState::Inactive) => return ReadyToConnect::DeviceNotActive,
+            _ => {}
         }
         ReadyToConnect::Ready
     }
@@ -104,14 +121,33 @@ impl SharedAccountState {
         tracing::info!("Setting device state to {:?}", state);
         guard.device = Some(state);
     }
+
+    pub(crate) async fn set_pending_zk_nym(&self, pending: bool) {
+        let mut guard = self.inner.lock().await;
+        if guard.pending_zk_nym != pending {
+            tracing::info!("Setting pending zk-nym to {}", pending);
+            guard.pending_zk_nym = pending;
+        }
+    }
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize)]
 pub struct AccountState {
+    // The locally stored recovery phrase that is deeply tied to the account
     mnemonic: Option<MnemonicState>,
+
+    // The state of the account on the remote server
     account: Option<RemoteAccountState>,
+
+    // The state of the subscription on the remote server
     subscription: Option<SubscriptionState>,
+
+    // The state of the device on the remote server
     device: Option<DeviceState>,
+
+    // If there are any pending zk-nym requests. This is not stopping from trying to connect, but
+    // it might be useful to hold off.
+    pending_zk_nym: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -144,11 +180,12 @@ impl fmt::Display for AccountState {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "AccountState {{ Mnemonic: {}, Account: {}, Subscription: {}, Device: {} }}",
+            "AccountState {{ Mnemonic: {}, Account: {}, Subscription: {}, Device: {}, Pending ZK-Nym: {} }}",
             debug_or_unknown(self.mnemonic.as_ref()),
             debug_or_unknown(self.account.as_ref()),
             debug_or_unknown(self.subscription.as_ref()),
-            debug_or_unknown(self.device.as_ref())
+            debug_or_unknown(self.device.as_ref()),
+            self.pending_zk_nym,
         )
     }
 }
