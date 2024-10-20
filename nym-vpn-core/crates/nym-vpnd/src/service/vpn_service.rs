@@ -94,7 +94,7 @@ pub enum VpnServiceCommand {
         (ConnectArgs, nym_vpn_lib::UserAgent),
     ),
     Disconnect(oneshot::Sender<Result<(), VpnServiceDisconnectError>>, ()),
-    Status(oneshot::Sender<VpnServiceStatusResult>, ()),
+    Status(oneshot::Sender<VpnServiceStatus>, ()),
     Info(oneshot::Sender<VpnServiceInfo>, ()),
     StoreAccount(oneshot::Sender<Result<(), AccountError>>, String),
     IsAccountStored(oneshot::Sender<Result<bool, AccountError>>, ()),
@@ -162,7 +162,7 @@ pub(crate) struct ConnectOptions {
 // Respond with the current state of the VPN service. This is currently almost the same as VpnState,
 // but it's conceptually not the same thing, so we keep them separate.
 #[derive(Clone, Debug)]
-pub enum VpnServiceStatusResult {
+pub enum VpnServiceStatus {
     NotConnected,
     Connecting,
     Connected(Box<ConnectedResultDetails>),
@@ -209,7 +209,7 @@ impl From<TunnelConnectionData> for ConnectedStateDetails {
     }
 }
 
-impl From<TunnelState> for VpnServiceStatusResult {
+impl From<TunnelState> for VpnServiceStatus {
     fn from(value: TunnelState) -> Self {
         match value {
             TunnelState::Connected { connection_data } => {
@@ -242,14 +242,14 @@ pub struct VpnServiceInfo {
     pub nym_vpn_api_url: Option<String>,
 }
 
-impl fmt::Display for VpnServiceStatusResult {
+impl fmt::Display for VpnServiceStatus {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            VpnServiceStatusResult::NotConnected => write!(f, "NotConnected"),
-            VpnServiceStatusResult::Connecting => write!(f, "Connecting"),
-            VpnServiceStatusResult::Connected(details) => write!(f, "Connected({})", details),
-            VpnServiceStatusResult::Disconnecting => write!(f, "Disconnecting"),
-            VpnServiceStatusResult::ConnectionFailed(reason) => {
+            VpnServiceStatus::NotConnected => write!(f, "NotConnected"),
+            VpnServiceStatus::Connecting => write!(f, "Connecting"),
+            VpnServiceStatus::Connected(details) => write!(f, "Connected({})", details),
+            VpnServiceStatus::Disconnecting => write!(f, "Disconnecting"),
+            VpnServiceStatus::ConnectionFailed(reason) => {
                 write!(f, "ConnectionFailed({})", reason)
             }
         }
@@ -274,10 +274,10 @@ impl fmt::Display for ConnectedResultDetails {
     }
 }
 
-impl VpnServiceStatusResult {
+impl VpnServiceStatus {
     pub fn error(&self) -> Option<ConnectionFailedError> {
         match self {
-            VpnServiceStatusResult::ConnectionFailed(reason) => Some(reason.clone()),
+            VpnServiceStatus::ConnectionFailed(reason) => Some(reason.clone()),
             _ => None,
         }
     }
@@ -329,7 +329,6 @@ where
     vpn_state_changes_tx: broadcast::Sender<VpnServiceStateChange>,
     status_tx: broadcast::Sender<MixnetEvent>,
 
-    #[allow(unused)]
     // Send commands to the account controller
     account_command_tx: tokio::sync::mpsc::UnboundedSender<AccountCommand>,
 
@@ -724,8 +723,8 @@ where
             })
     }
 
-    async fn handle_status(&self) -> VpnServiceStatusResult {
-        VpnServiceStatusResult::from(self.tunnel_state.clone())
+    async fn handle_status(&self) -> VpnServiceStatus {
+        VpnServiceStatus::from(self.tunnel_state.clone())
     }
 
     async fn handle_info(&self) -> VpnServiceInfo {

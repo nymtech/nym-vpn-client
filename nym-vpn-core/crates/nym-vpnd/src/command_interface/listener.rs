@@ -199,7 +199,8 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<StatusResponse>, tonic::Status> {
         let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_status()
-            .await;
+            .await
+            .map_err(|err| tonic::Status::internal(format!("{}", err)))?;
 
         let response = StatusResponse::from(status);
         tracing::info!("Returning status response: {:?}", response);
