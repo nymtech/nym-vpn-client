@@ -18,6 +18,8 @@ use crate::{
     types::gateway,
 };
 
+use super::protobuf::error::VpnCommandSendError;
+
 #[derive(Debug, thiserror::Error)]
 pub enum ListGatewayError {
     #[error("failed to create gateway directory client: {source}")]
@@ -40,15 +42,6 @@ pub enum ListGatewayError {
 
 pub(super) struct CommandInterfaceConnectionHandler {
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
-}
-
-#[derive(Debug, thiserror::Error)]
-pub(crate) enum VpnCommandSendError {
-    #[error("failed to send command to VPN")]
-    Send,
-
-    #[error("failed to receive response from VPN")]
-    Receive,
 }
 
 impl CommandInterfaceConnectionHandler {

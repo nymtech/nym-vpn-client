@@ -116,8 +116,7 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<InfoResponse>, tonic::Status> {
         let info = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_info()
-            .await
-            .map_err(|err| tonic::Status::internal(format!("{}", err)))?;
+            .await?;
 
         let response = InfoResponse::from(info);
         tracing::info!("Returning info response: {:?}", response);
@@ -159,8 +158,7 @@ impl NymVpnd for CommandInterface {
 
         let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_connect(entry, exit, options, user_agent)
-            .await
-            .map_err(|err| tonic::Status::internal(format!("internal error: {}", err)))?;
+            .await?;
 
         let response = match status {
             Ok(()) => ConnectResponse {
@@ -183,8 +181,7 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<DisconnectResponse>, tonic::Status> {
         let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_disconnect()
-            .await
-            .map_err(|err| tonic::Status::internal(format!("internal error: {}", err)))?;
+            .await?;
 
         let response = DisconnectResponse {
             success: status.is_ok(),
@@ -199,8 +196,7 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<StatusResponse>, tonic::Status> {
         let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_status()
-            .await
-            .map_err(|err| tonic::Status::internal(format!("{}", err)))?;
+            .await?;
 
         let response = StatusResponse::from(status);
         tracing::info!("Returning status response: {:?}", response);
@@ -363,8 +359,7 @@ impl NymVpnd for CommandInterface {
 
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_store_account(account)
-            .await
-            .map_err(|err| tonic::Status::internal(format!("{err}")))?;
+            .await?;
 
         let response = match result {
             Ok(()) => StoreAccountResponse {
@@ -387,10 +382,7 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<IsAccountStoredResponse>, tonic::Status> {
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_is_account_stored()
-            .await
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to check if account is stored: {err}"))
-            })?;
+            .await?;
 
         let response = match result {
             Ok(is_stored) => IsAccountStoredResponse {
@@ -415,8 +407,7 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<RemoveAccountResponse>, tonic::Status> {
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_remove_account()
-            .await
-            .map_err(|err| tonic::Status::internal(format!("Failed to remove account: {err}")))?;
+            .await?;
 
         let response = match result {
             Ok(()) => RemoveAccountResponse {
@@ -439,16 +430,19 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<GetLocalAccountStateResponse>, tonic::Status> {
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_local_account_state()
-            .await
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to get local account state: {err}"))
-            })?
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to get local account state: {err}"))
-            })?;
+            .await?;
 
-        let response = GetLocalAccountStateResponse {
-            json: serde_json::to_string(&result).unwrap(),
+        let response = match result {
+            Ok(state) => GetLocalAccountStateResponse {
+                json: serde_json::to_string(&state)
+                    .unwrap_or_else(|_| "failed to serialize".to_owned()),
+            },
+            Err(err) => {
+                // TODO: consider proper error handling for AccountError in this context
+                return Err(tonic::Status::internal(format!(
+                    "Failed to get local account state: {err}"
+                )));
+            }
         };
 
         Ok(tonic::Response::new(response))
@@ -460,14 +454,12 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<GetAccountSummaryResponse>, tonic::Status> {
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_account_summary()
-            .await
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to get account summary: {err}"))
-            })?;
+            .await?;
 
         let response = match result {
             Ok(summary) => GetAccountSummaryResponse {
-                json: serde_json::to_string(&summary).unwrap(),
+                json: serde_json::to_string(&summary)
+                    .unwrap_or_else(|_| "failed to serialize".to_owned()),
                 error: None,
             },
             Err(err) => GetAccountSummaryResponse {
@@ -486,12 +478,12 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<GetDevicesResponse>, tonic::Status> {
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_devices()
-            .await
-            .map_err(|err| tonic::Status::internal(format!("Failed to get devices: {err}")))?;
+            .await?;
 
         let response = match result {
             Ok(devices) => GetDevicesResponse {
-                json: serde_json::to_string(&devices).unwrap(),
+                json: serde_json::to_string(&devices)
+                    .unwrap_or_else(|_| "failed to serialize".to_owned()),
                 error: None,
             },
             Err(err) => GetDevicesResponse {
@@ -510,12 +502,12 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<RegisterDeviceResponse>, tonic::Status> {
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_register_device()
-            .await
-            .map_err(|err| tonic::Status::internal(format!("Failed to register device: {err}")))?;
+            .await?;
 
         let response = match result {
             Ok(device) => RegisterDeviceResponse {
-                json: serde_json::to_string(&device).unwrap(),
+                json: serde_json::to_string(&device)
+                    .unwrap_or_else(|_| "failed to serialize".to_owned()),
                 error: None,
             },
             Err(err) => RegisterDeviceResponse {
@@ -534,12 +526,12 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<RequestZkNymResponse>, tonic::Status> {
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_request_zk_nym()
-            .await
-            .map_err(|err| tonic::Status::internal(format!("Failed to request zk nym: {err}")))?;
+            .await?;
 
         let response = match result {
             Ok(response) => RequestZkNymResponse {
-                json: serde_json::to_string(&response).unwrap(),
+                json: serde_json::to_string(&response)
+                    .unwrap_or_else(|_| "failed to serialize".to_owned()),
                 error: None,
             },
             Err(err) => RequestZkNymResponse {
@@ -558,14 +550,12 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<GetDeviceZkNymsResponse>, tonic::Status> {
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_device_zk_nyms()
-            .await
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to get device zk nyms: {err}"))
-            })?;
+            .await?;
 
         let response = match result {
             Ok(response) => GetDeviceZkNymsResponse {
-                json: serde_json::to_string(&response).unwrap(),
+                json: serde_json::to_string(&response)
+                    .unwrap_or_else(|_| "failed to serialize".to_owned()),
                 error: None,
             },
             Err(err) => GetDeviceZkNymsResponse {
@@ -584,16 +574,19 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<IsReadyToConnectResponse>, tonic::Status> {
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_is_ready_to_connect()
-            .await
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to check if ready to connect: {err}"))
-            })?
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to check if ready to connect: {err}"))
-            })?;
+            .await?;
 
-        let response = IsReadyToConnectResponse {
-            kind: into_is_ready_to_connect_response_type(result) as i32,
+        let response = match result {
+            Ok(ready) => IsReadyToConnectResponse {
+                kind: into_is_ready_to_connect_response_type(ready) as i32,
+            },
+            Err(err) => {
+                // TODO: consider proper error handling for AccountError in this context
+                tracing::error!("Failed to check if ready to connect: {:?}", err);
+                return Err(tonic::Status::internal(
+                    "Failed to check if ready to connect",
+                ));
+            }
         };
 
         tracing::info!("Returning is ready to connect response");

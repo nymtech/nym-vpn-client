@@ -487,3 +487,22 @@ impl From<AccountError> for nym_vpn_proto::AccountError {
         }
     }
 }
+
+#[derive(Debug, thiserror::Error)]
+pub(crate) enum VpnCommandSendError {
+    #[error("failed to send command to VPN service task")]
+    Send,
+
+    #[error("failed to receive response from VPN service task")]
+    Receive,
+}
+
+impl From<VpnCommandSendError> for tonic::Status {
+    fn from(err: VpnCommandSendError) -> Self {
+        match err {
+            VpnCommandSendError::Send | VpnCommandSendError::Receive => {
+                tonic::Status::internal(err.to_string())
+            }
+        }
+    }
+}
