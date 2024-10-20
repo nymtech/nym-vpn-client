@@ -93,19 +93,25 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<(), VpnServiceConnectError>>,
         (ConnectArgs, nym_vpn_lib::UserAgent),
     ),
-    Disconnect(oneshot::Sender<Result<(), VpnServiceDisconnectError>>),
-    Status(oneshot::Sender<VpnServiceStatusResult>),
-    Info(oneshot::Sender<VpnServiceInfoResult>),
+    Disconnect(oneshot::Sender<Result<(), VpnServiceDisconnectError>>, ()),
+    Status(oneshot::Sender<VpnServiceStatusResult>, ()),
+    Info(oneshot::Sender<VpnServiceInfoResult>, ()),
     StoreAccount(oneshot::Sender<Result<(), AccountError>>, String),
-    IsAccountStored(oneshot::Sender<Result<bool, AccountError>>),
-    RemoveAccount(oneshot::Sender<Result<(), AccountError>>),
-    GetLocalAccountState(oneshot::Sender<Result<AccountState, AccountError>>),
-    GetAccountSummary(oneshot::Sender<Result<NymVpnAccountSummaryResponse, AccountError>>),
-    GetDevices(oneshot::Sender<Result<NymVpnDevicesResponse, AccountError>>),
-    RegisterDevice(oneshot::Sender<Result<(), AccountError>>),
-    RequestZkNym(oneshot::Sender<Result<(), AccountError>>),
-    GetDeviceZkNyms(oneshot::Sender<Result<(), AccountError>>),
-    IsReadyToConnect(oneshot::Sender<Result<ReadyToConnect, AccountError>>),
+    IsAccountStored(oneshot::Sender<Result<bool, AccountError>>, ()),
+    RemoveAccount(oneshot::Sender<Result<(), AccountError>>, ()),
+    GetLocalAccountState(oneshot::Sender<Result<AccountState, AccountError>>, ()),
+    GetAccountSummary(
+        oneshot::Sender<Result<NymVpnAccountSummaryResponse, AccountError>>,
+        (),
+    ),
+    GetDevices(
+        oneshot::Sender<Result<NymVpnDevicesResponse, AccountError>>,
+        (),
+    ),
+    RegisterDevice(oneshot::Sender<Result<(), AccountError>>, ()),
+    RequestZkNym(oneshot::Sender<Result<(), AccountError>>, ()),
+    GetDeviceZkNyms(oneshot::Sender<Result<(), AccountError>>, ()),
+    IsReadyToConnect(oneshot::Sender<Result<ReadyToConnect, AccountError>>, ()),
 }
 
 impl fmt::Display for VpnServiceCommand {
@@ -114,19 +120,19 @@ impl fmt::Display for VpnServiceCommand {
             VpnServiceCommand::Connect(_, (args, user_agent)) => {
                 write!(f, "Connect {{ {args:?}, {user_agent:?} }}")
             }
-            VpnServiceCommand::Disconnect(_) => write!(f, "Disconnect"),
-            VpnServiceCommand::Status(_) => write!(f, "Status"),
-            VpnServiceCommand::Info(_) => write!(f, "Info"),
-            VpnServiceCommand::StoreAccount(_, _) => write!(f, "StoreAccount"),
-            VpnServiceCommand::IsAccountStored(_) => write!(f, "IsAccountStored"),
-            VpnServiceCommand::RemoveAccount(_) => write!(f, "RemoveAccount"),
-            VpnServiceCommand::GetLocalAccountState(_) => write!(f, "GetLocalAccountState"),
-            VpnServiceCommand::GetAccountSummary(_) => write!(f, "GetAccountSummery"),
-            VpnServiceCommand::GetDevices(_) => write!(f, "GetDevices"),
-            VpnServiceCommand::RegisterDevice(_) => write!(f, "RegisterDevice"),
-            VpnServiceCommand::RequestZkNym(_) => write!(f, "RequestZkNym"),
-            VpnServiceCommand::GetDeviceZkNyms(_) => write!(f, "GetDeviceZkNyms"),
-            VpnServiceCommand::IsReadyToConnect(_) => write!(f, "IsReadyToConnect"),
+            VpnServiceCommand::Disconnect(..) => write!(f, "Disconnect"),
+            VpnServiceCommand::Status(..) => write!(f, "Status"),
+            VpnServiceCommand::Info(..) => write!(f, "Info"),
+            VpnServiceCommand::StoreAccount(..) => write!(f, "StoreAccount"),
+            VpnServiceCommand::IsAccountStored(..) => write!(f, "IsAccountStored"),
+            VpnServiceCommand::RemoveAccount(..) => write!(f, "RemoveAccount"),
+            VpnServiceCommand::GetLocalAccountState(..) => write!(f, "GetLocalAccountState"),
+            VpnServiceCommand::GetAccountSummary(..) => write!(f, "GetAccountSummery"),
+            VpnServiceCommand::GetDevices(..) => write!(f, "GetDevices"),
+            VpnServiceCommand::RegisterDevice(..) => write!(f, "RegisterDevice"),
+            VpnServiceCommand::RequestZkNym(..) => write!(f, "RequestZkNym"),
+            VpnServiceCommand::GetDeviceZkNyms(..) => write!(f, "GetDeviceZkNyms"),
+            VpnServiceCommand::IsReadyToConnect(..) => write!(f, "IsReadyToConnect"),
         }
     }
 }
@@ -521,15 +527,15 @@ where
                 let result = self.handle_connect(connect_args, user_agent).await;
                 let _ = tx.send(result);
             }
-            VpnServiceCommand::Disconnect(tx) => {
+            VpnServiceCommand::Disconnect(tx, ()) => {
                 let result = self.handle_disconnect().await;
                 let _ = tx.send(result);
             }
-            VpnServiceCommand::Status(tx) => {
+            VpnServiceCommand::Status(tx, ()) => {
                 let result = self.handle_status().await;
                 let _ = tx.send(result);
             }
-            VpnServiceCommand::Info(tx) => {
+            VpnServiceCommand::Info(tx, ()) => {
                 let result = self.handle_info().await;
                 let _ = tx.send(result);
             }
@@ -537,39 +543,39 @@ where
                 let result = self.handle_store_account(account).await;
                 let _ = tx.send(result);
             }
-            VpnServiceCommand::IsAccountStored(tx) => {
+            VpnServiceCommand::IsAccountStored(tx, ()) => {
                 let result = self.handle_is_account_stored().await;
                 tx.send(result).unwrap();
             }
-            VpnServiceCommand::RemoveAccount(tx) => {
+            VpnServiceCommand::RemoveAccount(tx, ()) => {
                 let result = self.handle_remove_account().await;
                 let _ = tx.send(result);
             }
-            VpnServiceCommand::GetLocalAccountState(tx) => {
+            VpnServiceCommand::GetLocalAccountState(tx, ()) => {
                 let result = self.handle_get_local_account_state().await;
                 let _ = tx.send(result);
             }
-            VpnServiceCommand::GetAccountSummary(tx) => {
+            VpnServiceCommand::GetAccountSummary(tx, ()) => {
                 let result = self.handle_get_account_summary().await;
                 let _ = tx.send(result);
             }
-            VpnServiceCommand::GetDevices(tx) => {
+            VpnServiceCommand::GetDevices(tx, ()) => {
                 let result = self.handle_get_devices().await;
                 let _ = tx.send(result);
             }
-            VpnServiceCommand::RegisterDevice(tx) => {
+            VpnServiceCommand::RegisterDevice(tx, ()) => {
                 let result = self.handle_register_device().await;
                 let _ = tx.send(result);
             }
-            VpnServiceCommand::RequestZkNym(tx) => {
+            VpnServiceCommand::RequestZkNym(tx, ()) => {
                 let result = self.handle_request_zk_nym().await;
                 let _ = tx.send(result);
             }
-            VpnServiceCommand::GetDeviceZkNyms(tx) => {
+            VpnServiceCommand::GetDeviceZkNyms(tx, ()) => {
                 let result = self.handle_get_device_zk_nyms().await;
                 let _ = tx.send(result);
             }
-            VpnServiceCommand::IsReadyToConnect(tx) => {
+            VpnServiceCommand::IsReadyToConnect(tx, ()) => {
                 let result = Ok(self.handle_is_ready_to_connect().await);
                 tx.send(result).unwrap();
             }
