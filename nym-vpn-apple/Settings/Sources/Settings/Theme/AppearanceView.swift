@@ -1,4 +1,5 @@
 import SwiftUI
+import Device
 import Modifiers
 import Theme
 import UIComponents
@@ -14,6 +15,7 @@ public struct AppearanceView: View {
         VStack {
             navbar()
             themeOptions()
+                .frame(maxWidth: Device.type == .ipad ? 358 : .infinity)
             Spacer()
         }
         .appearanceUpdate()
