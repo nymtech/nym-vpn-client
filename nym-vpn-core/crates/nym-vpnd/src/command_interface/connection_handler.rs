@@ -80,16 +80,8 @@ impl CommandInterfaceConnectionHandler {
         self.send_and_wait(VpnServiceCommand::Disconnect, ()).await
     }
 
-    pub(crate) async fn handle_info(&self) -> VpnServiceInfo {
-        let (tx, rx) = oneshot::channel();
-        self.vpn_command_tx
-            .send(VpnServiceCommand::Info(tx, ()))
-            .unwrap();
-        tracing::debug!("Sent info command to VPN");
-        tracing::debug!("Waiting for response");
-        let info = rx.await.unwrap();
-        tracing::debug!("VPN info: {:?}", info);
-        info
+    pub(crate) async fn handle_info(&self) -> Result<VpnServiceInfo, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::Info, ()).await
     }
 
     pub(crate) async fn handle_status(&self) -> VpnServiceStatusResult {
@@ -202,13 +194,9 @@ impl CommandInterfaceConnectionHandler {
             .await
     }
 
-    async fn send_and_wait<T, E, F, O>(
-        &self,
-        command: F,
-        opts: O,
-    ) -> Result<Result<T, E>, VpnCommandSendError>
+    async fn send_and_wait<R, F, O>(&self, command: F, opts: O) -> Result<R, VpnCommandSendError>
     where
-        F: FnOnce(oneshot::Sender<Result<T, E>>, O) -> VpnServiceCommand,
+        F: FnOnce(oneshot::Sender<R>, O) -> VpnServiceCommand,
     {
         let (tx, rx) = oneshot::channel();
 
