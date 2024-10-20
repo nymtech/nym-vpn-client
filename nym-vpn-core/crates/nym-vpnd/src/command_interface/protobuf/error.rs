@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use maplit::hashmap;
+use nym_vpn_account_controller::ReadyToConnect;
 use nym_vpn_proto::{account_error::AccountErrorType, error::ErrorType, Error as ProtoError};
 
 use crate::service::{AccountError, ConnectionFailedError, VpnServiceConnectError};
@@ -16,6 +17,37 @@ impl From<VpnServiceConnectError> for nym_vpn_proto::ConnectRequestError {
                     message: err.to_string(),
                 }
             }
+            VpnServiceConnectError::Account(ref not_ready_to_connect) => {
+                nym_vpn_proto::ConnectRequestError {
+                    kind: into_connect_request_error_type(not_ready_to_connect.clone()) as i32,
+                    message: not_ready_to_connect.to_string(),
+                }
+            }
+        }
+    }
+}
+
+fn into_connect_request_error_type(
+    ready: ReadyToConnect,
+) -> nym_vpn_proto::connect_request_error::ConnectRequestErrorType {
+    match ready {
+        ReadyToConnect::Ready => {
+            nym_vpn_proto::connect_request_error::ConnectRequestErrorType::Internal
+        }
+        ReadyToConnect::NoMnemonicStored => {
+            nym_vpn_proto::connect_request_error::ConnectRequestErrorType::NoAccountStored
+        }
+        ReadyToConnect::AccountNotActive => {
+            nym_vpn_proto::connect_request_error::ConnectRequestErrorType::AccountNotActive
+        }
+        ReadyToConnect::NoActiveSubscription => {
+            nym_vpn_proto::connect_request_error::ConnectRequestErrorType::NoActiveSubscription
+        }
+        ReadyToConnect::DeviceNotRegistered => {
+            nym_vpn_proto::connect_request_error::ConnectRequestErrorType::DeviceNotRegistered
+        }
+        ReadyToConnect::DeviceNotActive => {
+            nym_vpn_proto::connect_request_error::ConnectRequestErrorType::DeviceNotActive
         }
     }
 }

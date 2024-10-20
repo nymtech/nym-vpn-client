@@ -34,6 +34,19 @@ pub enum ReadyToConnect {
     DeviceNotActive,
 }
 
+impl fmt::Display for ReadyToConnect {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ReadyToConnect::Ready => write!(f, "Ready to connect"),
+            ReadyToConnect::NoMnemonicStored => write!(f, "No mnemonic stored"),
+            ReadyToConnect::AccountNotActive => write!(f, "Account not active"),
+            ReadyToConnect::NoActiveSubscription => write!(f, "No active subscription"),
+            ReadyToConnect::DeviceNotRegistered => write!(f, "Device not registered"),
+            ReadyToConnect::DeviceNotActive => write!(f, "Device not active"),
+        }
+    }
+}
+
 impl SharedAccountState {
     pub(crate) fn new() -> Self {
         SharedAccountState {

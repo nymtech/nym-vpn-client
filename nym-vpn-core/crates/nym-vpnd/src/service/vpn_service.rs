@@ -619,10 +619,7 @@ where
             ReadyToConnect::Ready => {}
             not_ready_to_connect => {
                 tracing::info!("Not ready to connect: {:?}", not_ready_to_connect);
-                return Err(VpnServiceConnectError::Internal(format!(
-                    "{:?}",
-                    not_ready_to_connect
-                )));
+                return Err(VpnServiceConnectError::Account(not_ready_to_connect));
             }
         }
 
