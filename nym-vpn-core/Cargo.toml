@@ -53,7 +53,7 @@ edition = "2021"
 license = "GPL-3.0-only"
 
 [workspace.dependencies]
-anyhow = "1.0.89"
+anyhow = "1.0.90"
 async-trait = "0.1.83"
 backon = "1.2"
 base64 = "0.22"
@@ -67,7 +67,7 @@ clap = "4.5"
 dbus = "0.9"
 dirs = "5.0.1"
 duct = "0.13"
-futures = "0.3.30"
+futures = "0.3.31"
 hex = "0.4"
 hickory-resolver = "0.24.1"
 http = "0.2.12"                                                     # version compatible with tonic
