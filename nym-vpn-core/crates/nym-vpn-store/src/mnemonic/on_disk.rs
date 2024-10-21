@@ -1,9 +1,10 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
 use std::{
     fs::{self, File},
-    os::unix::fs::PermissionsExt as _,
     path::PathBuf,
 };
 
