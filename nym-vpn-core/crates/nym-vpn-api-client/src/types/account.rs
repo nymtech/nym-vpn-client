@@ -38,7 +38,7 @@ impl VpnApiAccount {
         // Manual implementation, until we extend the API for DirectSecp256k1HdWallet to handle it
         // there.
 
-        let hd_path = cosmos_derivation_path()?;
+        let hd_path = cosmos_derivation_path();
         let bip39_password = String::new();
         let seed = self.mnemonic.to_seed(bip39_password);
         let extended_private_key =
@@ -60,10 +60,10 @@ impl From<bip39::Mnemonic> for VpnApiAccount {
     }
 }
 
-fn cosmos_derivation_path() -> Result<DerivationPath> {
+fn cosmos_derivation_path() -> DerivationPath {
     nym_config::defaults::COSMOS_DERIVATION_PATH
         .parse()
-        .map_err(VpnApiClientError::CosmosDerivationPath)
+        .unwrap()
 }
 
 #[cfg(test)]
