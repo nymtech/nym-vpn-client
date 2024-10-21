@@ -43,6 +43,13 @@ pub struct Discovery {
     pub network: nym_vpn_lib::nym_config::defaults::NymNetworkDetails,
 }
 
+//#[derive(Debug, serde::Serialize, serde::Deserialize)]
+//pub struct Environment {
+//    pub variables: std::collections::HashMap<String, String>,
+//}
+
+type Environment = std::collections::HashMap<String, String>;
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     write_default_available_environments();
     write_default_nym_network();
@@ -69,13 +76,20 @@ fn write_default_nym_network() {
     let env_file = "discovery.json";
     let env_path = service::default_config_dir().join(env_file);
     println!("env_path: {:?}", env_path);
-    let network = nym_vpn_lib::nym_config::defaults::NymNetworkDetails::new_mainnet();
-    if !env_path.exists() {
-        // let default_env = generated::get_environments();
-        let network_json =
-            serde_json::to_string_pretty(&network).expect("Failed to serialize network env");
-        std::fs::write(env_path, network_json).expect("Failed to write env file");
-    }
+    // let network = nym_vpn_lib::nym_config::defaults::NymNetworkDetails::new_mainnet();
+    let mut network = std::collections::HashMap::new();
+
+    network
+        .insert("NETWORK_NAME".to_string(), "mainnet".to_string());
+    network
+        .insert("BECH32_PREFIX".to_string(), "n".to_string());
+
+    // if !env_path.exists() {
+    // let default_env = generated::get_environments();
+    let network_json =
+        serde_json::to_string_pretty(&network).expect("Failed to serialize network env");
+    std::fs::write(env_path, network_json).expect("Failed to write env file");
+    // }
 }
 
 fn read_discovery_file() -> nym_vpn_lib::nym_config::defaults::NymNetworkDetails {
@@ -108,7 +122,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         setup_env(Some(env));
     } else {
         // Read the local discovery file, that we synced on last time
-        let network = read_discovery_file();
+        // let network = read_discovery_file();
     }
 
     run_inner(args)
