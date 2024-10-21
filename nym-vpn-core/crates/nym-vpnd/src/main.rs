@@ -31,13 +31,21 @@ mod generated {
 
 static ENVIRONMENTS: std::sync::OnceLock<Environments> = std::sync::OnceLock::new();
 
+static NYM_NETWORK: std::sync::OnceLock<nym_vpn_lib::nym_config::defaults::NymNetworkDetails> =
+    std::sync::OnceLock::new();
+
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct Environments {
     pub environments: Vec<String>,
 }
 
+pub struct Discovery {
+    pub network: nym_vpn_lib::nym_config::defaults::NymNetworkDetails,
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     write_default_available_environments();
+    write_default_nym_network();
     fetch_latest_available_enviroments();
     run()
 }
@@ -56,6 +64,33 @@ fn write_default_available_environments() {
     }
 }
 
+fn write_default_nym_network() {
+    // TODO: handle the env variable override consistently
+    let env_file = "discovery.json";
+    let env_path = service::default_config_dir().join(env_file);
+    println!("env_path: {:?}", env_path);
+    let network = nym_vpn_lib::nym_config::defaults::NymNetworkDetails::new_mainnet();
+    if !env_path.exists() {
+        // let default_env = generated::get_environments();
+        let network_json =
+            serde_json::to_string_pretty(&network).expect("Failed to serialize network env");
+        std::fs::write(env_path, network_json).expect("Failed to write env file");
+    }
+}
+
+fn read_discovery_file() -> nym_vpn_lib::nym_config::defaults::NymNetworkDetails {
+    let discovery_file = "discovery.json";
+    let discovery_path = service::default_config_dir().join(discovery_file);
+    tracing::info!("discovery_path: {:?}", discovery_path);
+
+    // Read json file from discovery_path
+    let file_str = std::fs::read_to_string(discovery_path).expect("Failed to read discovery file");
+    let network: nym_vpn_lib::nym_config::defaults::NymNetworkDetails =
+        serde_json::from_str(&file_str).expect("Failed to parse network file");
+    dbg!(&network);
+    network
+}
+
 // Fetch the latest available environments from the server
 fn fetch_latest_available_enviroments() {
     //let latest = .. fetch remotely ..
@@ -69,7 +104,12 @@ fn fetch_latest_available_enviroments() {
 fn run() -> Result<(), Box<dyn std::error::Error>> {
     let args = CliArgs::parse();
     setup_logging(args.command.run_as_service);
-    setup_env(args.config_env_file.as_ref());
+    if let Some(ref env) = args.config_env_file {
+        setup_env(Some(env));
+    } else {
+        // Read the local discovery file, that we synced on last time
+        let network = read_discovery_file();
+    }
 
     run_inner(args)
 }

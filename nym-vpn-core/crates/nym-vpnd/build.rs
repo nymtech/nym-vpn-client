@@ -19,6 +19,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Ensure the build script runs when env.json changes
     println!("cargo:rerun-if-changed=env.json");
+    println!("cargo:rerun-if-changed=discovery.json");
 
     // Read env.json file and store it as a constant
     let env_path = "../../env/env.json";
