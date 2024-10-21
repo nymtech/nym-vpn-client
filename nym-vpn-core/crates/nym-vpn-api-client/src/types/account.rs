@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_compact_ecash::scheme::keygen::KeyPairUser;
+use nym_crypto::ctr::cipher::zeroize::Zeroizing;
 use nym_validator_client::{
     nyxd::bip32::DerivationPath, signing::signer::OfflineSigner as _, DirectSecp256k1HdWallet,
 };
@@ -11,7 +12,7 @@ use crate::{error::Result, jwt::Jwt, VpnApiClientError};
 #[derive(Clone, Debug)]
 pub struct VpnApiAccount {
     wallet: DirectSecp256k1HdWallet,
-    mnemonic: bip39::Mnemonic,
+    mnemonic: Zeroizing<bip39::Mnemonic>,
 }
 
 impl VpnApiAccount {
@@ -19,7 +20,10 @@ impl VpnApiAccount {
     fn random() -> Self {
         let mnemonic = bip39::Mnemonic::generate(24).unwrap();
         let wallet = DirectSecp256k1HdWallet::from_mnemonic("n", mnemonic.clone());
-        Self { wallet, mnemonic }
+        Self {
+            wallet,
+            mnemonic: Zeroizing::new(mnemonic),
+        }
     }
 
     pub fn id(&self) -> String {
@@ -49,7 +53,10 @@ impl VpnApiAccount {
 impl From<bip39::Mnemonic> for VpnApiAccount {
     fn from(mnemonic: bip39::Mnemonic) -> Self {
         let wallet = DirectSecp256k1HdWallet::from_mnemonic("n", mnemonic.clone());
-        Self { wallet, mnemonic }
+        Self {
+            wallet,
+            mnemonic: Zeroizing::new(mnemonic),
+        }
     }
 }
 
