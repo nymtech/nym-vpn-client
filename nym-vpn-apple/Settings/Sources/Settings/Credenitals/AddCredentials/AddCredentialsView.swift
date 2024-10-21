@@ -1,5 +1,6 @@
 import SwiftUI
 import CredentialsManager
+import Device
 #if os(iOS)
 import ExternalLinkManager
 import KeyboardManager
@@ -31,6 +32,7 @@ struct AddCredentialsView: View {
                 scrollViewContent(geometry: geometry)
 #endif
             }
+            .frame(maxWidth: Device.type == .ipad ? 358 : .infinity)
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)

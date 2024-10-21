@@ -1,5 +1,6 @@
 import SwiftUI
 import AppSettings
+import Device
 import ConfigurationManager
 import Modifiers
 import UIComponents
@@ -29,6 +30,7 @@ private extension SettingsView {
                     .frame(height: 24)
                 settingsList()
             }
+            .frame(maxWidth: Device.type == .ipad ? 358 : .infinity)
             Spacer()
         }
         .appearanceUpdate()

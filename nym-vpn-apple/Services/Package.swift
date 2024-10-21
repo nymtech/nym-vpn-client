@@ -19,6 +19,7 @@ let package = Package(
         .library(name: "CountriesManagerTypes", targets: ["CountriesManagerTypes"]),
         .library(name: "CredentialsManager", targets: ["CredentialsManager"]),
         .library(name: "DarwinNotificationCenter", targets: ["DarwinNotificationCenter"]),
+        .library(name: "Device", targets: ["Device"]),
         .library(name: "ExternalLinkManager", targets: ["ExternalLinkManager"]),
         .library(name: "Keychain", targets: ["Keychain"]),
         .library(name: "Migrations", targets: ["Migrations"]),
@@ -109,6 +110,11 @@ let package = Package(
                 "Constants"
             ],
             path: "Sources/Services/DarwinNotificationCenter"
+        ),
+        .target(
+            name: "Device",
+            dependencies: [],
+            path: "Sources/Services/Device"
         ),
         .target(
             name: "ExternalLinkManager",

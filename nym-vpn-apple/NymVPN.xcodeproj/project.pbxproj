@@ -43,6 +43,8 @@
 		D954C0B92B51C1CA00C6BAAC /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D954C0A62B51C17200C6BAAC /* NetworkExtension.framework */; };
 		D954C0BC2B51C1CA00C6BAAC /* PacketTunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D954C0BB2B51C1CA00C6BAAC /* PacketTunnelProvider.swift */; };
 		D954C0C12B51C1CA00C6BAAC /* NymMixnetTunnel.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D954C0B82B51C1CA00C6BAAC /* NymMixnetTunnel.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		D96680D12CC4FC7200267FA1 /* Device in Frameworks */ = {isa = PBXBuildFile; productRef = D96680D02CC4FC7200267FA1 /* Device */; };
+		D96680D32CC4FC7800267FA1 /* Device in Frameworks */ = {isa = PBXBuildFile; productRef = D96680D22CC4FC7800267FA1 /* Device */; };
 		D96740232B56A67A001F6891 /* Tunnels in Frameworks */ = {isa = PBXBuildFile; productRef = D96740222B56A67A001F6891 /* Tunnels */; };
 		D9677D342C85C76400E4436D /* TunnelEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9677D332C85C76400E4436D /* TunnelEvent.swift */; };
 		D968BDC92B6AEA9D003F42E5 /* AppSettings in Frameworks */ = {isa = PBXBuildFile; productRef = D968BDC82B6AEA9D003F42E5 /* AppSettings */; };
@@ -231,6 +233,7 @@
 				D9FB33DA2BECC163009C3419 /* Extensions in Frameworks */,
 				D924A8E62C33F3D400465E84 /* ExternalLinkManager in Frameworks */,
 				D94866FF2BE035C300F5331B /* CredentialsManager in Frameworks */,
+				D96680D12CC4FC7200267FA1 /* Device in Frameworks */,
 				D9BD6A142BD84EF400B42D6F /* SentryManager in Frameworks */,
 				D974C03B2BBED2460011924A /* ConnectionManager in Frameworks */,
 				D9144C632CC10AA20021A617 /* Migrations in Frameworks */,
@@ -257,6 +260,7 @@
 				D9FB33E82BECFD1F009C3419 /* ServiceManagement.framework in Frameworks */,
 				D92FBA2B2C6B6AB300D743DF /* ConfigurationManager in Frameworks */,
 				D9E9F1A02C3807A00056EB8C /* Sparkle in Frameworks */,
+				D96680D32CC4FC7800267FA1 /* Device in Frameworks */,
 				D916EE672C90F2A700FADEEF /* Migrations in Frameworks */,
 				D9E9F19D2C3806BB0056EB8C /* AutoUpdater in Frameworks */,
 				D9E6D8C92BF5FF5F009612CE /* TunnelStatus in Frameworks */,
@@ -489,6 +493,7 @@
 				D9144C5A2CC1057A0021A617 /* CountriesManagerTypes */,
 				D9144C602CC10A860021A617 /* CountriesManager */,
 				D9144C622CC10AA20021A617 /* Migrations */,
+				D96680D02CC4FC7200267FA1 /* Device */,
 			);
 			productName = NymVPN;
 			productReference = D99A14762B357E9900F2728B /* NymVPN.app */;
@@ -528,6 +533,7 @@
 				D916EE662C90F2A700FADEEF /* Migrations */,
 				D9144C5C2CC1057F0021A617 /* CountriesManagerTypes */,
 				D9144C5E2CC105B20021A617 /* CountriesManager */,
+				D96680D22CC4FC7800267FA1 /* Device */,
 			);
 			productName = NymVPNDaemon;
 			productReference = D9BEF2D02BEB63310036C566 /* NymVPN.app */;
@@ -1312,6 +1318,14 @@
 		D953CFE92C8ED73C008A942B /* NotificationsManager */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = NotificationsManager;
+		};
+		D96680D02CC4FC7200267FA1 /* Device */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Device;
+		};
+		D96680D22CC4FC7800267FA1 /* Device */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Device;
 		};
 		D96740222B56A67A001F6891 /* Tunnels */ = {
 			isa = XCSwiftPackageProductDependency;

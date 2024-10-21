@@ -11,10 +11,10 @@ public struct LogsView: View {
     }
 
     public var body: some View {
-        VStack {
+        VStack(spacing: .zero) {
             navbar()
 
-            VStack {
+            VStack(spacing: .zero) {
                 if !viewModel.logs.isEmpty {
                     ScrollViewReader { proxy in
                         ScrollView(.vertical) {

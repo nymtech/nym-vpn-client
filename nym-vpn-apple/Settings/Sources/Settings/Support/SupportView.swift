@@ -1,4 +1,5 @@
 import SwiftUI
+import Device
 import Modifiers
 import Theme
 import UIComponents
@@ -16,6 +17,7 @@ struct SupportView: View {
             Spacer()
                 .frame(height: 24)
             sections()
+                .frame(maxWidth: Device.type == .ipad ? 358 : .infinity)
             Spacer()
         }
         .navigationBarBackButtonHidden(true)
