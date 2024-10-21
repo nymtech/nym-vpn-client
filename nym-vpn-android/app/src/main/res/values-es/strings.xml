@@ -175,4 +175,14 @@
     <string name="selected_entry_unavailable">El país seleccionado no está disponible. Selecciona otro país de entrada.</string>
     <string name="create_account">Crear cuenta</string>
     <string name="account">Cuenta</string>
+    <string name="missing_mnemonic">Mnemotecnia perdida</string>
+    <string name="device_added_success">Dispositivo añadido correctamente a tu cuenta</string>
+    <string name="invalid_recovery_phrase">Frase de recuperación inválida</string>
+    <string name="recovery_phrase">Frase de recuperación</string>
+    <string name="log_in">Inicio de sesión</string>
+    <string name="log_out">Cierre de sesión</string>
+    <string name="new_to_nym">¿Eres nuevo en la NymVPN?</string>
+    <string name="mnemonic_example">por ejemplo, humo artefacto terciopelo cráneo pop palacio tortuga daño áspero...</string>
+    <string name="recovery_phrase_message">Introduce a continuación tu frase secreta de recuperación de 24 palabras para acceder a tu cuenta</string>
+    <string name="recovery_phrase_disclaimer">Sólo puedes utilizar la frase de recuperación creada en la NymVPN, no en la wallet de Nym.</string>
 </resources>
