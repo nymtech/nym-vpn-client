@@ -12,10 +12,15 @@ import { BackendError, StateDispatch } from '../../types';
 import { Button, Link, PageAnim, TextArea } from '../../ui';
 import { CreateAccountUrl } from '../../constants';
 
+type AddError = {
+  error: string;
+  details?: string;
+};
+
 function Login() {
   const { uiTheme, daemonStatus } = useMainState();
   const [phrase, setPhrase] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<AddError | null>(null);
 
   const { push } = useInAppNotify();
   const navigate = useNavigate();
@@ -46,8 +51,11 @@ function Login() {
       })
       .catch((e: unknown) => {
         const eT = e as BackendError;
-        console.log('backend error:', e);
-        setError(tE(eT.key));
+        console.info('backend error:', e);
+        setError({
+          error: tE(eT.key),
+          details: eT.data?.reason,
+        });
       });
   };
 
@@ -83,12 +91,16 @@ function Login() {
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.15, ease: 'easeInOut' }}
-            className="text-teaberry h-3"
+            className={clsx([
+              'text-teaberry overflow-y-scroll max-h-16 mt-3 break-words',
+              'select-text',
+            ])}
           >
-            {error}
+            {error.error}
+            {error.details && `: ${error.details}`}
           </motion.div>
         ) : (
-          <div className="h-3"></div>
+          <div className="h-4"></div>
         )}
       </div>
       <div className="w-full flex flex-col justify-center items-center gap-6 mb-2">

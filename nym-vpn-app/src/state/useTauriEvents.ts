@@ -13,6 +13,7 @@ import {
 import {
   ConnectionEvent,
   DaemonEvent,
+  ErrorEvent,
   ProgressEvent,
   StatusUpdateEvent,
 } from '../constants';
@@ -76,6 +77,16 @@ export function useTauriEvents(dispatch: StateDispatch) {
     });
   }, [dispatch]);
 
+  const registerErrorListener = useCallback(() => {
+    return listen<BackendError>(ErrorEvent, (event) => {
+      console.info(`received event [${event.event}]`, event.payload);
+      dispatch({
+        type: 'set-error',
+        error: event.payload,
+      });
+    });
+  }, [dispatch]);
+
   const registerStatusUpdateListener = useCallback(() => {
     return listen<StatusUpdatePayload>(StatusUpdateEvent, (event) => {
       const { payload } = event;
@@ -116,6 +127,7 @@ export function useTauriEvents(dispatch: StateDispatch) {
   useEffect(() => {
     const unlistenDaemon = registerDaemonListener();
     const unlistenState = registerStateListener();
+    const unlistenError = registerErrorListener();
     const unlistenStatusUpdate = registerStatusUpdateListener();
     const unlistenProgress = registerProgressListener();
     const unlistenThemeChanges = registerThemeChangedListener();
@@ -123,6 +135,7 @@ export function useTauriEvents(dispatch: StateDispatch) {
     return () => {
       unlistenDaemon.then((f) => f());
       unlistenState.then((f) => f());
+      unlistenError.then((f) => f());
       unlistenStatusUpdate.then((f) => f());
       unlistenProgress.then((f) => f());
       unlistenThemeChanges.then((f) => f());
@@ -130,6 +143,7 @@ export function useTauriEvents(dispatch: StateDispatch) {
   }, [
     registerDaemonListener,
     registerStateListener,
+    registerErrorListener,
     registerStatusUpdateListener,
     registerProgressListener,
     registerThemeChangedListener,

@@ -5,6 +5,7 @@ export const AppName = 'NymVPN';
 // src-tauri/src/states/app.rs
 export const DefaultVpnMode = 'TwoHop';
 export const ConnectionEvent = 'connection-state';
+export const ErrorEvent = 'error';
 export const ProgressEvent = 'connection-progress';
 export const DaemonEvent = 'vpnd-status';
 export const StatusUpdateEvent = 'status-update';

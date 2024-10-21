@@ -3144,7 +3144,7 @@ dependencies = [
 [[package]]
 name = "nym-config"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=e78040f0ecfc795691a800c72831bd7ba7a02b9c#e78040f0ecfc795691a800c72831bd7ba7a02b9c"
+source = "git+https://github.com/nymtech/nym?rev=8d305c29eb55b759e7452d5dce82eebb0236c08d#8d305c29eb55b759e7452d5dce82eebb0236c08d"
 dependencies = [
  "dirs",
  "handlebars",
@@ -3158,7 +3158,7 @@ dependencies = [
 [[package]]
 name = "nym-network-defaults"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=e78040f0ecfc795691a800c72831bd7ba7a02b9c#e78040f0ecfc795691a800c72831bd7ba7a02b9c"
+source = "git+https://github.com/nymtech/nym?rev=8d305c29eb55b759e7452d5dce82eebb0236c08d#8d305c29eb55b759e7452d5dce82eebb0236c08d"
 dependencies = [
  "dotenvy",
  "log",
@@ -3215,7 +3215,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-proto"
-version = "0.2.5-dev"
+version = "1.0.0-dev"
 dependencies = [
  "prost",
  "prost-types",

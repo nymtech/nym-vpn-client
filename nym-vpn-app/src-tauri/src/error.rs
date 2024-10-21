@@ -4,8 +4,9 @@ use std::{
 };
 
 use nym_vpn_proto::account_error::AccountErrorType;
+use nym_vpn_proto::connect_request_error::ConnectRequestErrorType;
 use nym_vpn_proto::connection_status_update::StatusType;
-use nym_vpn_proto::{error::ErrorType as DError, AccountError, GatewayType};
+use nym_vpn_proto::{error::ErrorType as DError, AccountError, ConnectRequestError, GatewayType};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use ts_rs::TS;
@@ -133,7 +134,7 @@ pub enum ErrorKey {
     /// to the application layer
     /// Extra data should be passed along to help specialize the problem
     InternalError,
-    /// gRPC bare layer error, when a RPC call fails (aka `Tonic::Status`)
+    /// gRPC bare layer error, when an RPC call fails (aka `Tonic::Status`)
     /// That is, the error does not come from the application layer
     GrpcError,
     /// Happens when the app is not connected to a running daemon
@@ -188,6 +189,12 @@ pub enum ErrorKey {
     // Forwarded from proto `account_error::AccountErrorType`
     AccountInvalidMnemonic,
     AccountStorage,
+    // Other account related errors, forwarded from `connect_request_error::ConnectRequestErrorType`
+    NoAccountStored,
+    AccountNotActive,
+    NoActiveSubscription,
+    DeviceNotRegistered,
+    DeviceNotActive,
     // Forwarded from proto `connection_status_update::StatusType`
     EntryGatewayNotRouting,
     ExitRouterPingIpv4,
@@ -281,6 +288,28 @@ impl From<AccountError> for BackendError {
                 data,
             ),
         }
+    }
+}
+
+impl From<ConnectRequestErrorType> for ErrorKey {
+    fn from(error: ConnectRequestErrorType) -> Self {
+        match error {
+            ConnectRequestErrorType::Internal | ConnectRequestErrorType::Unspecified => {
+                ErrorKey::InternalError
+            }
+            ConnectRequestErrorType::NoAccountStored => ErrorKey::NoAccountStored,
+            ConnectRequestErrorType::AccountNotActive => ErrorKey::AccountNotActive,
+            ConnectRequestErrorType::NoActiveSubscription => ErrorKey::NoActiveSubscription,
+            ConnectRequestErrorType::DeviceNotRegistered => ErrorKey::DeviceNotRegistered,
+            ConnectRequestErrorType::DeviceNotActive => ErrorKey::DeviceNotActive,
+        }
+    }
+}
+
+impl From<ConnectRequestError> for BackendError {
+    fn from(error: ConnectRequestError) -> Self {
+        let message = error.message.clone();
+        BackendError::new(&message, ErrorKey::from(error.kind()))
     }
 }
 
