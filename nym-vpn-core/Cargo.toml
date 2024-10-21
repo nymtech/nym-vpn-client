@@ -64,7 +64,9 @@ bs58 = "0.5.1"
 bytes = "1.7"
 chrono = "0.4.38"
 clap = "4.5"
+dbus = "0.9"
 dirs = "5.0.1"
+duct = "0.13"
 futures = "0.3.30"
 hex = "0.4"
 hickory-resolver = "0.24.1"
@@ -72,12 +74,13 @@ http = "0.2.12"                                                     # version co
 ipnetwork = "0.16"
 itertools = "0.13.0"
 lazy_static = "1.5.0"
+libc = "0.2"
 log = "0.4.22"
 maplit = "1.0.2"
 netdev = "0.29.0"
 nix = "0.29"
-parking_lot = "0.12"
 parity-tokio-ipc = "0.9.0"
+parking_lot = "0.12"
 pnet_packet = "0.35.0"
 prost = "0.12.6"
 prost-types = "0.12.6"
@@ -114,9 +117,9 @@ tun = { version = "0.6.1", features = ["async"] }
 uniffi = { version = "0.27.3", features = ["cli"] }
 url = "2.5"
 vergen = { version = "8.3.1", default-features = false }
+windows-sys = "0.52"
 x25519-dalek = "2.0"
 zeroize = "1.6.0"
-windows-sys = "0.52"
 
 nym-authenticator-requests = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
 nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", rev = "8d305c29eb55b759e7452d5dce82eebb0236c08d" }
