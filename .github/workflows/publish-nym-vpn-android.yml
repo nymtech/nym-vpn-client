@@ -38,6 +38,10 @@ on:
           - release
         default: release
         required: true
+      core_build:
+        description: "Core release version tag or \"source\""
+        required: true
+        default: source
 
   push:
     tags:
@@ -53,7 +57,7 @@ jobs:
     secrets: inherit
     with:
       build_type: ${{ inputs.release_type == '' && 'nightly' || inputs.release_type }}
-
+      core_build: ${{ inputs.core_build == '' && 'source' || inputs.core_build }}
 
   publish-github:
     if: ${{ inputs.release_type != 'none' }}
