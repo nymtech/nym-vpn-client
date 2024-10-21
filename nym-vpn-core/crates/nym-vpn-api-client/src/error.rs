@@ -82,6 +82,12 @@ pub enum VpnApiClientError {
 
     #[error("invalud percent value")]
     InvalidPercentValue(#[source] ContractsCommonError),
+
+    #[error("failed to parse cosmos derivation path")]
+    CosmosDerivationPath(#[source] nym_validator_client::nyxd::bip32::Error),
+
+    #[error("failed to derive from path")]
+    CosmosDeriveFromPath(#[source] nym_validator_client::nyxd::bip32::Error),
 }
 
 pub type Result<T> = std::result::Result<T, VpnApiClientError>;
