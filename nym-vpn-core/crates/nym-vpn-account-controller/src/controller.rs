@@ -627,6 +627,8 @@ where
         Ok(())
     }
 
+    // Once we finish polling the result of the zk-nym request, we now import the zk-nym into the
+    // local credential store
     async fn handle_polling_result(&mut self, result: Result<PollingResult, JoinError>) {
         let result = match result {
             Ok(result) => result,
