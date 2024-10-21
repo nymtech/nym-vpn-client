@@ -1,6 +1,6 @@
 use serde_json::Value as JsonValue;
 use tauri::State;
-use tracing::{debug, error, info, instrument, warn};
+use tracing::{debug, error, info, instrument};
 
 use crate::{error::BackendError, grpc::client::GrpcClient};
 
