@@ -173,4 +173,6 @@
     <string name="action_requires_tunnel_down">La acción requiere bajar el túnel</string>
     <string name="selected_exit_unavailable">El país de salida seleccionado no está disponible. Seleccione otro país de salida.</string>
     <string name="selected_entry_unavailable">El país seleccionado no está disponible. Selecciona otro país de entrada.</string>
+    <string name="create_account">Crear cuenta</string>
+    <string name="account">Cuenta</string>
 </resources>
