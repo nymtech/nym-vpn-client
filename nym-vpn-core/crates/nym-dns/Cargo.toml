@@ -25,13 +25,13 @@ nym-common = { path = "../nym-common" }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 system-configuration.workspace = true
-duct = "0.13"
+duct.workspace = true
 
 [target.'cfg(target_os = "linux")'.dependencies]
 which = { version = "4.0", default-features = false }
 inotify = "0.10"
 resolv-conf = "0.7"
-duct = "0.13"
+duct.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 once_cell = "1.16"

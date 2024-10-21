@@ -234,12 +234,23 @@ where
             request_info,
             account.clone(),
             device.clone(),
-        );
+        )
+        .await;
 
         Ok(())
     }
 
-    fn spawn_polling_task(
+    async fn update_pending_zk_nym_tasks(&self) {
+        self.account_state
+            .set_pending_zk_nym(self.is_pending_zk_nym_tasks().await)
+            .await
+    }
+
+    async fn is_pending_zk_nym_tasks(&self) -> bool {
+        !self.polling_tasks.is_empty()
+    }
+
+    async fn spawn_polling_task(
         &mut self,
         id: String,
         ticketbook_type: TicketType,
@@ -247,6 +258,8 @@ where
         account: VpnApiAccount,
         device: Device,
     ) {
+        self.account_state.set_pending_zk_nym(true).await;
+
         let api_client = self.vpn_api_client.clone();
         self.polling_tasks.spawn(async move {
             let start_time = Instant::now();
@@ -459,8 +472,8 @@ where
         }
     }
 
-    async fn update_remote_account_state(&self, account: &VpnApiAccount) -> Result<(), Error> {
-        tracing::info!("Updating remote account state");
+    async fn update_account_state(&self, account: &VpnApiAccount) -> Result<(), Error> {
+        tracing::info!("Updating account state");
 
         let response = self.vpn_api_client.get_account_summary(account).await;
 
@@ -471,7 +484,10 @@ where
                 .await;
         }
 
-        let account_summary = response.map_err(Error::GetAccountSummary)?;
+        let account_summary = response.map_err(|source| Error::GetAccountSummary {
+            base_url: self.vpn_api_client.current_url().clone(),
+            source: Box::new(source),
+        })?;
         tracing::info!("Account summary: {:#?}", account_summary);
 
         self.account_state
@@ -522,7 +538,7 @@ where
             return Ok(());
         };
 
-        self.update_remote_account_state(&account).await?;
+        self.update_account_state(&account).await?;
         self.update_device_state(&account).await?;
 
         tracing::info!("Current state: {}", self.shared_state().lock().await);
@@ -611,6 +627,8 @@ where
         Ok(())
     }
 
+    // Once we finish polling the result of the zk-nym request, we now import the zk-nym into the
+    // local credential store
     async fn handle_polling_result(&mut self, result: Result<PollingResult, JoinError>) {
         let result = match result {
             Ok(result) => result,
@@ -656,7 +674,6 @@ where
     }
 
     async fn print_credential_storage_info(&self) -> Result<(), Error> {
-        tracing::info!("Printing credential storage info");
         let ticketbooks_info = self.credential_storage.get_ticketbooks_info().await?;
         tracing::info!("Ticketbooks stored: {}", ticketbooks_info.len());
         for ticketbook in ticketbooks_info {
@@ -704,7 +721,7 @@ where
             tokio::select! {
                 Some(command) = self.command_rx.recv() => {
                     if let Err(err) = self.handle_command(command).await {
-                        tracing::error!("{:#?}", err);
+                        tracing::error!("{err}");
                     }
                 }
                 _ = update_shared_account_state_timer.tick() => {
@@ -714,7 +731,7 @@ where
                     while let Some(result) = self.polling_tasks.try_join_next() {
                         self.handle_polling_result(result).await;
                     }
-                    self.account_state.set_pending_zk_nym(!self.polling_tasks.is_empty()).await;
+                    self.update_pending_zk_nym_tasks().await;
                 }
                 _ = self.cancel_token.cancelled() => {
                     tracing::trace!("Received cancellation signal");

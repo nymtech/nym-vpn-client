@@ -46,6 +46,10 @@ impl VpnApiClient {
             .map_err(VpnApiClientError::FailedToCreateVpnApiClient)
     }
 
+    pub fn current_url(&self) -> &Url {
+        self.inner.current_url()
+    }
+
     async fn get_authorized<T, E>(
         &self,
         path: PathSegments<'_>,
