@@ -1,7 +1,7 @@
 use crate::country::FASTEST_NODE_LOCATION;
 use crate::db::{Db, Key};
 use crate::error::ErrorKey;
-use crate::grpc::client::GrpcClient;
+use crate::grpc::client::{GrpcClient, VpndError};
 use crate::states::app::NodeLocation;
 use crate::{
     error::BackendError,
@@ -16,7 +16,7 @@ use nym_vpn_proto::exit_node::ExitNodeEnum;
 use nym_vpn_proto::{EntryNode, ExitNode, Location};
 use serde::{Deserialize, Serialize};
 use tauri::State;
-use tracing::{debug, error, info, instrument};
+use tracing::{debug, error, info, instrument, warn};
 use ts_rs::TS;
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
@@ -146,24 +146,25 @@ pub async fn connect(
         .vpn_connect(entry_node, exit_node, two_hop_mod, dns)
         .await
     {
-        Ok(response) => {
-            if let Some(error) = response.error {
-                info!("connect error: [{}] {}", error.kind, error.message);
-                app.emit_error(error.into());
-            }
-            Ok(ConnectionState::Connecting)
-        }
-        Err(e) => {
-            error!("grpc vpn_connect: {}", e);
+        Ok(_) => Ok(ConnectionState::Connecting),
+        Err(vpnd_err) => {
+            warn!("grpc vpn_connect: {}", vpnd_err);
             debug!("update connection state [Disconnected]");
             let mut app_state = state.lock().await;
             app_state.state = ConnectionState::Disconnected;
             drop(app_state);
-            app.emit_disconnected(Some(BackendError::new(
-                "Internal gRPC error",
-                ErrorKey::GrpcError,
-            )));
-            Err(e.into())
+            match vpnd_err {
+                VpndError::Response(ref e) => {
+                    app.emit_disconnected(Some(e.clone()));
+                }
+                _ => {
+                    app.emit_disconnected(Some(BackendError::new(
+                        "Internal gRPC error",
+                        ErrorKey::GrpcError,
+                    )));
+                }
+            }
+            Err(vpnd_err.into())
         }
     }
 }

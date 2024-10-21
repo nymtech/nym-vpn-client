@@ -72,7 +72,7 @@ pub trait AppHandleEventEmitter {
     fn emit_disconnecting(&self);
     fn emit_disconnected(&self, error: Option<BackendError>);
     fn emit_connection_progress(&self, key: ConnectProgressMsg);
-    fn emit_error(&self, error: BackendError);
+    fn _emit_error(&self, error: BackendError);
 }
 
 impl AppHandleEventEmitter for tauri::AppHandle {
@@ -113,7 +113,7 @@ impl AppHandleEventEmitter for tauri::AppHandle {
             .ok();
     }
 
-    fn emit_error(&self, error: BackendError) {
+    fn _emit_error(&self, error: BackendError) {
         debug!("sending event [{}]: {}", EVENT_ERROR, error);
         self.emit(EVENT_ERROR, error).ok();
     }

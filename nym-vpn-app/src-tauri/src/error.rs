@@ -109,6 +109,7 @@ impl From<VpndError> for BackendError {
                     ErrorKey::NotConnectedToDaemon,
                 )
             }
+            VpndError::Response(e) => e,
         }
     }
 }
