@@ -2,13 +2,17 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use tokio::sync::mpsc::error::SendError;
+use url::Url;
 
 use crate::AccountCommand;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("failed to get account summary")]
-    GetAccountSummary(#[source] nym_vpn_api_client::VpnApiClientError),
+    #[error("failed to get account summary from nym-vpn-api at {base_url}")]
+    GetAccountSummary {
+        base_url: Url,
+        source: Box<nym_vpn_api_client::VpnApiClientError>,
+    },
 
     #[error("missing API URL")]
     MissingApiUrl,
