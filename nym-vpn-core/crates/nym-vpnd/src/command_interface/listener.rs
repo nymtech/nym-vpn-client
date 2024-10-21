@@ -119,7 +119,7 @@ impl NymVpnd for CommandInterface {
             .await?;
 
         let response = InfoResponse::from(info);
-        tracing::info!("Returning info response: {:?}", response);
+        tracing::debug!("Returning info response: {:?}", response);
         Ok(tonic::Response::new(response))
     }
 
@@ -171,7 +171,7 @@ impl NymVpnd for CommandInterface {
             },
         };
 
-        tracing::info!("Returning connect response: {:?}", response);
+        tracing::debug!("Returning connect response: {:?}", response);
         Ok(tonic::Response::new(response))
     }
 
@@ -186,7 +186,7 @@ impl NymVpnd for CommandInterface {
         let response = DisconnectResponse {
             success: status.is_ok(),
         };
-        tracing::info!("Returning disconnect response: {:?}", response);
+        tracing::debug!("Returning disconnect response: {:?}", response);
         Ok(tonic::Response::new(response))
     }
 
@@ -199,7 +199,7 @@ impl NymVpnd for CommandInterface {
             .await?;
 
         let response = StatusResponse::from(status);
-        tracing::info!("Returning status response: {:?}", response);
+        tracing::debug!("Returning status response: {:?}", response);
         Ok(tonic::Response::new(response))
     }
 
@@ -210,7 +210,7 @@ impl NymVpnd for CommandInterface {
         &self,
         request: tonic::Request<Empty>,
     ) -> Result<tonic::Response<Self::ListenToConnectionStatusStream>, tonic::Status> {
-        tracing::info!("Got connection status stream request: {request:?}");
+        tracing::debug!("Got connection status stream request: {request:?}");
         let rx = self.status_rx.resubscribe();
         let stream = tokio_stream::wrappers::BroadcastStream::new(rx).map(|status| {
             status
@@ -232,7 +232,7 @@ impl NymVpnd for CommandInterface {
         &self,
         request: tonic::Request<Empty>,
     ) -> Result<tonic::Response<Self::ListenToConnectionStateChangesStream>, tonic::Status> {
-        tracing::info!("Got connection status stream request: {request:?}");
+        tracing::debug!("Got connection status stream request: {request:?}");
         let rx = self.vpn_state_changes_rx.resubscribe();
         let stream = tokio_stream::wrappers::BroadcastStream::new(rx).map(|status| {
             status.map(ConnectionStateChange::from).map_err(|err| {
@@ -249,7 +249,7 @@ impl NymVpnd for CommandInterface {
         &self,
         request: tonic::Request<ListGatewaysRequest>,
     ) -> Result<tonic::Response<ListGatewaysResponse>, tonic::Status> {
-        tracing::info!("Got list gateways request: {:?}", request);
+        tracing::debug!("Got list gateways request: {:?}", request);
 
         let request = request.into_inner();
 
@@ -291,7 +291,7 @@ impl NymVpnd for CommandInterface {
                 .collect(),
         };
 
-        tracing::info!(
+        tracing::debug!(
             "Returning list gateways response: {} entries",
             response.gateways.len()
         );
@@ -302,7 +302,7 @@ impl NymVpnd for CommandInterface {
         &self,
         request: tonic::Request<ListCountriesRequest>,
     ) -> Result<tonic::Response<ListCountriesResponse>, tonic::Status> {
-        tracing::info!("Got list entry countries request: {request:?}");
+        tracing::debug!("Got list entry countries request: {request:?}");
 
         let request = request.into_inner();
 
@@ -344,7 +344,7 @@ impl NymVpnd for CommandInterface {
                 .collect(),
         };
 
-        tracing::info!(
+        tracing::debug!(
             "Returning list countries response: {} countries",
             response.countries.len()
         );
@@ -372,7 +372,7 @@ impl NymVpnd for CommandInterface {
             },
         };
 
-        tracing::info!("Returning store account response: {:?}", response);
+        tracing::debug!("Returning store account response: {:?}", response);
         Ok(tonic::Response::new(response))
     }
 
@@ -397,7 +397,7 @@ impl NymVpnd for CommandInterface {
             },
         };
 
-        tracing::info!("Returning is account stored response");
+        tracing::debug!("Returning is account stored response");
         Ok(tonic::Response::new(response))
     }
 
@@ -420,7 +420,7 @@ impl NymVpnd for CommandInterface {
             },
         };
 
-        tracing::info!("Returning remove account response");
+        tracing::debug!("Returning remove account response");
         Ok(tonic::Response::new(response))
     }
 
@@ -468,7 +468,7 @@ impl NymVpnd for CommandInterface {
             },
         };
 
-        tracing::info!("Returning get account summary response");
+        tracing::debug!("Returning get account summary response");
         Ok(tonic::Response::new(response))
     }
 
@@ -492,7 +492,7 @@ impl NymVpnd for CommandInterface {
             },
         };
 
-        tracing::info!("Returning get devices response");
+        tracing::debug!("Returning get devices response");
         Ok(tonic::Response::new(response))
     }
 
@@ -516,7 +516,7 @@ impl NymVpnd for CommandInterface {
             },
         };
 
-        tracing::info!("Returning register device response");
+        tracing::debug!("Returning register device response");
         Ok(tonic::Response::new(response))
     }
 
@@ -540,7 +540,7 @@ impl NymVpnd for CommandInterface {
             },
         };
 
-        tracing::info!("Returning request zk nym response");
+        tracing::debug!("Returning request zk nym response");
         Ok(tonic::Response::new(response))
     }
 
@@ -564,7 +564,7 @@ impl NymVpnd for CommandInterface {
             },
         };
 
-        tracing::info!("Returning get device zk nyms response");
+        tracing::debug!("Returning get device zk nyms response");
         Ok(tonic::Response::new(response))
     }
 
@@ -589,7 +589,7 @@ impl NymVpnd for CommandInterface {
             }
         };
 
-        tracing::info!("Returning is ready to connect response");
+        tracing::debug!("Returning is ready to connect response");
         Ok(tonic::Response::new(response))
     }
 }
