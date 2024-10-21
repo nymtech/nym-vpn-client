@@ -390,8 +390,12 @@ impl GrpcClient {
             VpndError::GrpcError(e)
         })?;
         debug!("grpc response: {:?}", response);
+        let response = response.into_inner();
+        if let Some(error) = response.error.as_ref() {
+            warn!("store account error: {:?}", error);
+        }
 
-        Ok(response.into_inner())
+        Ok(response)
     }
 
     /// Check if an account is stored
