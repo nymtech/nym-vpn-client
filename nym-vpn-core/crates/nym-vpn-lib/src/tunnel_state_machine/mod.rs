@@ -10,7 +10,7 @@ mod dns_handler;
 mod route_handler;
 mod states;
 mod tun_ipv6;
-mod tunnel;
+pub mod tunnel;
 
 use std::{
     fmt,

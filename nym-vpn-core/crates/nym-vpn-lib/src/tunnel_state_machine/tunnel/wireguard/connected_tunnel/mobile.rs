@@ -10,7 +10,7 @@ use nym_task::TaskManager;
 use nym_wg_gateway_client::WgGatewayClient;
 use nym_wg_go::wireguard_go;
 
-use super::connector::ConnectionData;
+use super::super::connector::ConnectionData;
 use crate::{
     tunnel_state_machine::tunnel::{Error, Result},
     wg_config::WgNodeConfig,
@@ -55,7 +55,7 @@ impl ConnectedTunnel {
         1360
     }
 
-    pub fn run(self, entry_tun: AsyncDevice, exit_tun: AsyncDevice) -> Result<TunnelHandle> {
+    pub fn run(self, exit_tun: AsyncDevice) -> Result<TunnelHandle> {
         let mut wg_entry_config = WgNodeConfig::with_gateway_data(
             self.connection_data.entry.clone(),
             self.entry_gateway_client.keypair().private_key(),

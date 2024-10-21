@@ -5,10 +5,10 @@ use ipnetwork::IpNetwork;
 use crate::wg_config::{WgInterface, WgNodeConfig, WgPeer};
 
 /// Minimum IPv6 MTU that the hosts should be ready to accept.
-const MIN_IPV6_MTU: u16 = 1280;
+pub const MIN_IPV6_MTU: u16 = 1280;
 
 /// WG tunnel overhead (IPv6)
-const WG_TUNNEL_OVERHEAD: u16 = 80;
+pub const WG_TUNNEL_OVERHEAD: u16 = 80;
 
 /// Local port used for accepting exit traffic.
 const UDP_FORWARDER_PORT: u16 = 34001;

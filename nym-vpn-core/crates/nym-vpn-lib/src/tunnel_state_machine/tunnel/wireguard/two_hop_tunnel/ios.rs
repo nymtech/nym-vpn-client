@@ -5,15 +5,17 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    mobile::{
-        ios::{
-            default_path_observer::{DefaultPathObserver, DefaultPathReceiver, OSDefaultPath},
-            dns64::Dns64Resolution,
-            tun,
-            tun_provider::OSTunProvider,
+    tunnel_state_machine::tunnel::{
+        wireguard::{
+            ios::{
+                default_path_observer::{DefaultPathObserver, DefaultPathReceiver, OSDefaultPath},
+                dns64::Dns64Resolution,
+                tun,
+                tun_provider::OSTunProvider,
+            },
+            tunnel_settings::TunnelSettings,
+            two_hop_config::TwoHopConfig,
         },
-        tunnel_settings::TunnelSettings,
-        two_hop_config::TwoHopConfig,
         Error, Result,
     },
     wg_config::{WgNodeConfig, WgPeer},
