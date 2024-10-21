@@ -58,5 +58,8 @@ pub enum Error {
     NoEpoch,
 
     #[error("failed to import zk-nym")]
-    ImportZkNym(nym_compact_ecash::CompactEcashError),
+    ImportZkNym(#[source] nym_compact_ecash::CompactEcashError),
+
+    #[error("failed to create ecash key pair")]
+    CreateEcashKeyPair(#[source] nym_vpn_api_client::VpnApiClientError),
 }

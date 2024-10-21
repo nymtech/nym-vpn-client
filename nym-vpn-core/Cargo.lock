@@ -4378,6 +4378,7 @@ dependencies = [
  "bs58",
  "chrono",
  "nym-compact-ecash",
+ "nym-config",
  "nym-contracts-common",
  "nym-credentials-interface",
  "nym-crypto",

@@ -197,7 +197,9 @@ where
     ) -> Result<(), Error> {
         tracing::info!("Requesting zk-nym by type: {}", ticketbook_type);
 
-        let ecash_keypair = device.create_ecash_keypair();
+        let ecash_keypair = account
+            .create_ecash_keypair()
+            .map_err(Error::CreateEcashKeyPair)?;
         let expiration_date = nym_ecash_time::ecash_default_expiration_date();
 
         let (withdrawal_request, request_info) = nym_compact_ecash::withdrawal_request(
@@ -567,8 +569,10 @@ where
         ticketbook_type: TicketType,
         request_info: RequestInfo,
     ) -> Result<(), Error> {
-        let device = self.load_device_keys().await?;
-        let ecash_keypair = device.create_ecash_keypair();
+        let account = self.load_account().await?;
+        let ecash_keypair = account
+            .create_ecash_keypair()
+            .map_err(Error::CreateEcashKeyPair)?;
         // TODO: use explicit epoch id, that we include together with the request_info
         let current_epoch = self.current_epoch.ok_or(Error::NoEpoch)?;
         // TODO: remove unwrap
