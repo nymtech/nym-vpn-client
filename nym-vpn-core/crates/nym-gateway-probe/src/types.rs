@@ -22,6 +22,9 @@ pub struct WgProbeResults {
     pub can_resolve_dns: bool,
     pub ping_hosts_performance: f32,
     pub ping_ips_performance: f32,
+    pub download_duration: u64,
+    pub downloaded_file: String,
+    pub download_err: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
