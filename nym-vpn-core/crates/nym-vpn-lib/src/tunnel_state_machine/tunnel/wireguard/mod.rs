@@ -12,5 +12,3 @@ pub mod ios;
 pub mod tunnel_settings;
 #[cfg(any(target_os = "ios", target_os = "android"))]
 pub mod two_hop_config;
-#[cfg(any(target_os = "ios", target_os = "android"))]
-pub mod two_hop_tunnel;

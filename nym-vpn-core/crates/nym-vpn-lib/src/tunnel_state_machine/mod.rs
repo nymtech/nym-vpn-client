@@ -12,6 +12,8 @@ mod states;
 mod tun_ipv6;
 pub mod tunnel;
 
+#[cfg(any(target_os = "ios", target_os = "android"))]
+use std::sync::Arc;
 use std::{
     fmt,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
@@ -35,6 +37,9 @@ use dns_handler::DnsHandler;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use route_handler::RouteHandler;
 use states::DisconnectedState;
+
+#[cfg(target_os = "ios")]
+use tunnel::wireguard::ios::{self, tun_provider::OSTunProvider};
 
 use crate::MixnetClientConfig;
 
@@ -263,7 +268,6 @@ pub enum ConnectionEvent {
 
 pub struct SharedState {
     mixnet_event_sender: mpsc::UnboundedSender<MixnetEvent>,
-
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     route_handler: RouteHandler,
     //firewall_handler: FirewallHandler,
@@ -272,6 +276,10 @@ pub struct SharedState {
     nym_config: NymConfig,
     tunnel_settings: TunnelSettings,
     status_listener_handle: Option<JoinHandle<()>>,
+    #[cfg(target_os = "ios")]
+    tun_provider: Arc<dyn OSTunProvider>,
+    #[cfg(target_os = "android")]
+    tun_provider: Arc<dyn AndroidTunProvider>,
 }
 
 #[derive(Debug, Clone)]
@@ -295,6 +303,8 @@ impl TunnelStateMachine {
         event_sender: mpsc::UnboundedSender<TunnelEvent>,
         nym_config: NymConfig,
         tunnel_settings: TunnelSettings,
+        #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
+        #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
         shutdown_token: CancellationToken,
     ) -> Result<JoinHandle<()>> {
         let (current_state_handler, _) = DisconnectedState::enter();
@@ -324,6 +334,8 @@ impl TunnelStateMachine {
             nym_config,
             tunnel_settings,
             status_listener_handle: None,
+            #[cfg(any(target_os = "ios", target_os = "android"))]
+            tun_provider,
         };
 
         let tunnel_state_machine = Self {
@@ -395,6 +407,10 @@ pub enum Error {
     #[error("failed to create tunnel device: {}", _0)]
     CreateTunDevice(#[source] tun::Error),
 
+    #[cfg(target_os = "ios")]
+    #[error("failed to locate tun device")]
+    LocateTunDevice,
+
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     #[error("failed to obtain route handle: {}", _0)]
     GetRouteHandle(#[source] route_handler::Error),
@@ -403,9 +419,15 @@ pub enum Error {
     #[error("failed to obtain default interface: {}", _0)]
     GetDefaultInterface(String),
 
+    #[cfg(not(target_os = "ios"))]
     #[error("failed to get tunnel device name")]
     GetTunDeviceName(#[source] tun::Error),
 
+    #[cfg(target_os = "ios")]
+    #[error("failed to get tunnel device name")]
+    GetTunDeviceName,
+
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     #[error("failed to set tunnel device ipv6 address")]
     SetTunDeviceIpv6Addr(#[source] std::io::Error),
 
@@ -438,9 +460,19 @@ impl Error {
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::CreateDnsHandler(_) | Self::SetDns(_) => ErrorStateReason::Dns,
             //Self::CreateFirewallHandler(_) => ErrorStateReason::Firewall,
-            Self::CreateTunDevice(_)
-            | Self::GetTunDeviceName(_)
-            | Self::SetTunDeviceIpv6Addr(_) => ErrorStateReason::TunDevice,
+            Self::CreateTunDevice(_) => ErrorStateReason::TunDevice,
+
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+            Self::GetTunDeviceName(_) | Self::SetTunDeviceIpv6Addr(_) => {
+                ErrorStateReason::TunDevice
+            }
+
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+            Self::GetTunDeviceName(_) => ErrorStateReason::TunDevice,
+
+            #[cfg(target_os = "ios")]
+            Self::GetTunDeviceName | Self::LocateTunDevice => ErrorStateReason::TunDevice,
+
             Self::ConnectWireguardTunnel(_) | Self::RunWireguardTunnel(_) => {
                 // todo: add detail
                 ErrorStateReason::EstablishWireguardConnection

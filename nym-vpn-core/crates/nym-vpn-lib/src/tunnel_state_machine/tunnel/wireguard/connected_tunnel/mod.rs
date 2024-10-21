@@ -11,4 +11,4 @@ mod mobile;
 pub use desktop::{ConnectedTunnel, TunnelHandle, WaitResult};
 
 #[cfg(any(target_os = "ios", target_os = "android"))]
-pub use mobile::{ConnectedTunnel, TunnelHandle, WaitResult};
+pub use mobile::{ConnectedTunnel, TunnelHandle};

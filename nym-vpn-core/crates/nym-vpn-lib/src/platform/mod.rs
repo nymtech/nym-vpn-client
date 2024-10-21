@@ -409,6 +409,8 @@ async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, Vp
         event_sender,
         nym_config,
         tunnel_settings,
+        #[cfg(any(target_os = "ios", target_os = "android"))]
+        config.tun_provider,
         shutdown_token.child_token(),
     )
     .await?;

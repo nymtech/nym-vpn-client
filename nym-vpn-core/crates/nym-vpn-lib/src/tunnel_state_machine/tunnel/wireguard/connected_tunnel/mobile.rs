@@ -8,13 +8,16 @@ use tun::AsyncDevice;
 
 use nym_task::TaskManager;
 use nym_wg_gateway_client::WgGatewayClient;
-use nym_wg_go::wireguard_go;
+use nym_wg_go::{netstack, wireguard_go};
 
 use super::super::connector::ConnectionData;
 use crate::{
-    tunnel_state_machine::tunnel::{Error, Result},
-    wg_config::WgNodeConfig,
+    tunnel_state_machine::tunnel::{wireguard::two_hop_config::TwoHopConfig, Error, Result},
+    wg_config::{WgNodeConfig, WgPeer},
 };
+
+#[cfg(target_os = "ios")]
+use crate::tunnel_state_machine::tunnel::wireguard::ios::dns64::Dns64Resolution;
 
 pub struct ConnectedTunnel {
     task_manager: TaskManager,
@@ -46,46 +49,53 @@ impl ConnectedTunnel {
     }
 
     pub fn entry_mtu(&self) -> u16 {
-        // 1500 - 60 (ipv4+wg header)
-        1440
-    }
-
-    pub fn exit_mtu(&self) -> u16 {
-        // 1440 - 80 (ipv6+wg header)
         1360
     }
 
-    pub fn run(self, exit_tun: AsyncDevice) -> Result<TunnelHandle> {
+    pub fn exit_mtu(&self) -> u16 {
+        1280
+    }
+
+    pub fn run(self, tun_device: AsyncDevice) -> Result<TunnelHandle> {
         let mut wg_entry_config = WgNodeConfig::with_gateway_data(
             self.connection_data.entry.clone(),
             self.entry_gateway_client.keypair().private_key(),
+            self.entry_mtu(),
         );
-        wg_entry_config.interface.mtu = self.entry_mtu();
 
-        let mut wg_exit_config = WgNodeConfig::with_gateway_data(
+        let wg_exit_config = WgNodeConfig::with_gateway_data(
             self.connection_data.exit.clone(),
             self.exit_gateway_client.keypair().private_key(),
+            self.exit_mtu(),
         );
-        wg_exit_config.interface.mtu = self.exit_mtu();
 
-        let entry_tunnel = wireguard_go::Tunnel::start(
-            wg_entry_config.into_wireguard_config(),
-            entry_tun.get_ref().as_raw_fd(),
-        )
-        .map_err(Error::StartWireguard)?;
+        // Save entry peer so that we can re-resolve it and update wg config on network changes.
+        let orig_entry_peer = wg_entry_config.peer.clone();
+
+        let mut two_hop_config = TwoHopConfig::new(wg_entry_config, wg_exit_config);
+
+        // iOS does not perform dns64 resolution by default. Do that manually.
+        two_hop_config
+            .entry
+            .peer
+            .resolve_in_place()
+            .expect("map to error");
+
+        let entry_tunnel = netstack::Tunnel::start(two_hop_config.entry.into_netstack_config())
+            .map_err(Error::StartWireguard)?;
 
         let exit_tunnel = wireguard_go::Tunnel::start(
-            wg_exit_config.into_wireguard_config(),
-            exit_tun.get_ref().as_raw_fd(),
+            two_hop_config.exit.into_wireguard_config(),
+            tun_device.get_ref().as_raw_fd(),
         )
         .map_err(Error::StartWireguard)?;
 
         Ok(TunnelHandle {
             task_manager: self.task_manager,
-            entry_tun,
-            exit_tun,
+            tun_device,
             entry_wg_tunnel: Some(entry_tunnel),
             exit_wg_tunnel: Some(exit_tunnel),
+            orig_entry_peer,
             bandwidth_controller_handle: self.bandwidth_controller_handle,
         })
     }
@@ -93,10 +103,10 @@ impl ConnectedTunnel {
 
 pub struct TunnelHandle {
     task_manager: TaskManager,
-    entry_tun: AsyncDevice,
-    exit_tun: AsyncDevice,
-    entry_wg_tunnel: Option<wireguard_go::Tunnel>,
+    tun_device: AsyncDevice,
+    entry_wg_tunnel: Option<netstack::Tunnel>,
     exit_wg_tunnel: Option<wireguard_go::Tunnel>,
+    orig_entry_peer: WgPeer,
     bandwidth_controller_handle: JoinHandle<()>,
 }
 
@@ -127,19 +137,11 @@ impl TunnelHandle {
     /// Wait until the tunnel finished execution.
     ///
     /// Returns a pair of tun devices no longer in use.
-    pub async fn wait(self) -> WaitResult {
+    pub async fn wait(self) -> AsyncDevice {
         if let Err(e) = self.bandwidth_controller_handle.await {
             tracing::error!("Failed to join on bandwidth controller: {}", e);
         }
 
-        WaitResult {
-            entry_tun: self.entry_tun,
-            exit_tun: self.exit_tun,
-        }
+        self.tun_device
     }
-}
-
-pub struct WaitResult {
-    pub entry_tun: AsyncDevice,
-    pub exit_tun: AsyncDevice,
 }
