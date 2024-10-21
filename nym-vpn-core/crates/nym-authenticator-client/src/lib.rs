@@ -195,6 +195,7 @@ impl AuthClient {
                         for msg in msgs {
                             if !check_if_authenticator_message(&msg) {
                                 debug!("Received non-authenticator message while waiting for connect response");
+                                debug!("Received non-authenticator message while waiting for connect response: {:?}", msg);
                                 continue;
                             }
                             // Confirm that the version is correct
