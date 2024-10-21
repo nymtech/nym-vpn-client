@@ -234,12 +234,23 @@ where
             request_info,
             account.clone(),
             device.clone(),
-        );
+        )
+        .await;
 
         Ok(())
     }
 
-    fn spawn_polling_task(
+    async fn update_pending_zk_nym_tasks(&self) {
+        self.account_state
+            .set_pending_zk_nym(self.is_pending_zk_nym_tasks().await)
+            .await
+    }
+
+    async fn is_pending_zk_nym_tasks(&self) -> bool {
+        !self.polling_tasks.is_empty()
+    }
+
+    async fn spawn_polling_task(
         &mut self,
         id: String,
         ticketbook_type: TicketType,
@@ -247,6 +258,8 @@ where
         account: VpnApiAccount,
         device: Device,
     ) {
+        self.account_state.set_pending_zk_nym(true).await;
+
         let api_client = self.vpn_api_client.clone();
         self.polling_tasks.spawn(async move {
             let start_time = Instant::now();
@@ -716,7 +729,7 @@ where
                     while let Some(result) = self.polling_tasks.try_join_next() {
                         self.handle_polling_result(result).await;
                     }
-                    self.account_state.set_pending_zk_nym(!self.polling_tasks.is_empty()).await;
+                    self.update_pending_zk_nym_tasks().await;
                 }
                 _ = self.cancel_token.cancelled() => {
                     tracing::trace!("Received cancellation signal");
