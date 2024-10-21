@@ -152,7 +152,7 @@ message ConnectRequest {
   Dns dns = 3;
   bool disable_routing = 4;
   bool enable_two_hop = 5;
-  bool enable_poisson_rate = 6;
+  bool disable_poisson_rate = 6;
   bool disable_background_cover_traffic = 7;
   bool enable_credentials_mode = 8;
   UserAgent user_agent = 12;

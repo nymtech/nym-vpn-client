@@ -344,7 +344,7 @@ impl GrpcClient {
             exit: Some(exit_node),
             disable_routing: false,
             enable_two_hop: two_hop_mod,
-            enable_poisson_rate: false,
+            disable_poisson_rate: false,
             disable_background_cover_traffic: false,
             enable_credentials_mode: false,
             dns,

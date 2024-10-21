@@ -197,7 +197,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> anyhow:
     };
 
     let mixnet_client_config = MixnetClientConfig {
-        enable_poisson_rate: args.enable_poisson_rate,
+        disable_poisson_rate: args.wireguard_mode || args.disable_poisson_rate,
         disable_background_cover_traffic: args.wireguard_mode
             || args.disable_background_cover_traffic,
         enable_credentials_mode: args.enable_credentials_mode,
