@@ -146,7 +146,13 @@ pub async fn connect(
         .vpn_connect(entry_node, exit_node, two_hop_mod, dns)
         .await
     {
-        Ok(_) => Ok(ConnectionState::Connecting),
+        Ok(response) => {
+            if let Some(error) = response.error {
+                info!("connect error: [{}] {}", error.kind, error.message);
+                app.emit_error(error.into());
+            }
+            Ok(ConnectionState::Connecting)
+        }
         Err(e) => {
             error!("grpc vpn_connect: {}", e);
             debug!("update connection state [Disconnected]");

@@ -6,8 +6,8 @@ use itertools::Itertools;
 use nym_vpn_proto::{
     health_check_response::ServingStatus, health_client::HealthClient,
     is_account_stored_response::Resp as IsAccountStoredResp, nym_vpnd_client::NymVpndClient,
-    ConnectRequest, ConnectionStatus, DisconnectRequest, Dns, Empty, EntryNode, ExitNode,
-    GatewayType, GetAccountSummaryRequest, GetAccountSummaryResponse, HealthCheckRequest,
+    ConnectRequest, ConnectResponse, ConnectionStatus, DisconnectRequest, Dns, Empty, EntryNode,
+    ExitNode, GatewayType, GetAccountSummaryRequest, GetAccountSummaryResponse, HealthCheckRequest,
     InfoRequest, InfoResponse, IsAccountStoredRequest, ListCountriesRequest, Location,
     StatusRequest, StatusResponse, StoreAccountRequest, StoreAccountResponse, UserAgent,
 };
@@ -335,7 +335,7 @@ impl GrpcClient {
         exit_node: ExitNode,
         two_hop_mod: bool,
         dns: Option<Dns>,
-    ) -> Result<bool, VpndError> {
+    ) -> Result<ConnectResponse, VpndError> {
         debug!("vpn_connect");
         let mut vpnd = self.vpnd().await?;
 
@@ -359,7 +359,7 @@ impl GrpcClient {
         })?;
         debug!("grpc response: {:?}", response);
 
-        Ok(response.into_inner().success)
+        Ok(response.into_inner())
     }
 
     /// Disconnect from the VPN
