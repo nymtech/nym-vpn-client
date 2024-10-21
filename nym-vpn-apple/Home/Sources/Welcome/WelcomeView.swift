@@ -1,5 +1,6 @@
 import SwiftUI
 import Constants
+import Device
 import Theme
 import UIComponents
 
@@ -17,10 +18,13 @@ public struct WelcomeView: View {
             titleView()
             subtitleView()
             sentryToggle()
+                .frame(maxWidth: Device.type == .ipad ? 450 : .infinity)
             continueButton()
+                .frame(maxWidth: Device.type == .ipad ? 450 : .infinity)
             privacyPolicy()
                 .padding(.bottom, 24)
         }
+        .frame(maxWidth: .infinity)
         .background {
             NymColor.background
                 .ignoresSafeArea()

@@ -69,15 +69,6 @@ public final class AppSettings: ObservableObject {
     // Observed values for view models
     @Published public var isEntryLocationSelectionOnPublisher = false
     @Published public var isErrorReportingOnPublisher = false
-
-    // Computed properties
-    public var isMacOS: Bool {
-#if os(macOS)
-        return true
-#else
-        return false
-#endif
-    }
 }
 
 #if os(iOS)
