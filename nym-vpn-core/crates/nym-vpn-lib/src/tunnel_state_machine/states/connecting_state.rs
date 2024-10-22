@@ -181,11 +181,11 @@ impl ConnectingState {
                 dns_servers: shared_state.tunnel_settings.dns.ip_addresses().to_vec(),
                 interface_addresses: vec![
                     IpNetwork::V4(
-                        Ipv4Network::new(assigned_addresses.interface_addresses.ipv4.clone(), 32)
+                        Ipv4Network::new(assigned_addresses.interface_addresses.ipv4, 32)
                             .expect("map to error"),
                     ),
                     IpNetwork::V6(
-                        Ipv6Network::new(assigned_addresses.interface_addresses.ipv6.clone(), 128)
+                        Ipv6Network::new(assigned_addresses.interface_addresses.ipv6, 128)
                             .expect("map to error"),
                     ),
                 ],
@@ -309,7 +309,7 @@ impl ConnectingState {
         let packet_tunnel_settings = tunnel::wireguard::tunnel_settings::TunnelSettings {
             dns_servers: shared_state.tunnel_settings.dns.ip_addresses().to_vec(),
             interface_addresses: vec![IpNetwork::V4(
-                Ipv4Network::new(conn_data.entry.private_ipv4.clone(), 32).expect("map to error"),
+                Ipv4Network::new(conn_data.entry.private_ipv4, 32).expect("map to error"),
             )],
             remote_addresses: vec![conn_data.entry.endpoint.ip()],
             mtu: connected_tunnel.exit_mtu(),

@@ -48,7 +48,7 @@ impl Dns64Resolution for WgPeer {
     fn resolved(&self) -> Result<Self> {
         Ok(WgPeer {
             endpoint: reresolve_endpoint(self.endpoint)?,
-            public_key: self.public_key.clone(),
+            public_key: self.public_key,
         })
     }
 }
