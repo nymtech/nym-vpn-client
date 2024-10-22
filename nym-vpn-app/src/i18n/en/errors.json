@@ -69,7 +69,14 @@
   },
   "account": {
     "invalid-recovery-phrase": "Invalid recovery phrase",
-    "storage": "Storage backend error"
+    "storage": "Storage backend error",
+    "no-account-stored": "No account recovery phrase stored",
+    "not-active": "The account is not active",
+    "no-active-subscription": "The account does not have an active subscription",
+    "device": {
+      "not-registered": "The device is not registered",
+      "not-active": "The device is not active"
+    }
   },
   "countries-request": {
     "entry": "Failed to fetch the available entry node countries",

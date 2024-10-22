@@ -13,6 +13,7 @@ pub const EVENT_VPND_STATUS: &str = "vpnd-status";
 pub const EVENT_CONNECTION_STATE: &str = "connection-state";
 pub const EVENT_CONNECTION_PROGRESS: &str = "connection-progress";
 pub const EVENT_STATUS_UPDATE: &str = "status-update";
+pub const EVENT_ERROR: &str = "error";
 
 #[derive(Clone, Debug, Serialize)]
 pub enum ConnectProgressMsg {
@@ -71,6 +72,7 @@ pub trait AppHandleEventEmitter {
     fn emit_disconnecting(&self);
     fn emit_disconnected(&self, error: Option<BackendError>);
     fn emit_connection_progress(&self, key: ConnectProgressMsg);
+    fn _emit_error(&self, error: BackendError);
 }
 
 impl AppHandleEventEmitter for tauri::AppHandle {
@@ -109,6 +111,11 @@ impl AppHandleEventEmitter for tauri::AppHandle {
         trace!("sending event [{}]: {:?}", EVENT_CONNECTION_PROGRESS, key);
         self.emit(EVENT_CONNECTION_PROGRESS, ProgressEventPayload { key })
             .ok();
+    }
+
+    fn _emit_error(&self, error: BackendError) {
+        debug!("sending event [{}]: {}", EVENT_ERROR, error);
+        self.emit(EVENT_ERROR, error).ok();
     }
 }
 
