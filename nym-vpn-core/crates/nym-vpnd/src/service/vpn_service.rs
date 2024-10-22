@@ -37,6 +37,8 @@ use nym_vpn_lib::{
 };
 use nym_vpn_store::keys::KeyStore as _;
 
+use crate::GLOBAL_NETWORK_DETAILS;
+
 use super::{
     config::{ConfigSetupError, NetworkEnvironments, NymVpnServiceConfig, DEFAULT_CONFIG_FILE},
     error::{AccountError, ConnectionFailedError, Error, Result, SetNetworkError},
@@ -394,9 +396,15 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         status_tx: broadcast::Sender<MixnetEvent>,
         shutdown_token: CancellationToken,
     ) -> Result<Self> {
-        let config_dir = super::config::config_dir();
+        let network_details = GLOBAL_NETWORK_DETAILS
+            .get()
+            .ok_or(Error::ConfigSetup(ConfigSetupError::GlobalNetworkNotSet))?
+            .clone();
+        let network_name = network_details.network_name.clone();
+
+        let config_dir = super::config::config_dir().join(&network_name);
         let config_file = config_dir.join(DEFAULT_CONFIG_FILE);
-        let data_dir = super::config::data_dir();
+        let data_dir = super::config::data_dir().join(&network_name);
 
         let storage = Arc::new(tokio::sync::Mutex::new(
             nym_vpn_lib::storage::VpnClientOnDiskStorage::new(data_dir.clone()),

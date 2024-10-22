@@ -131,6 +131,9 @@ pub enum ConfigSetupError {
     FailedToInitKeys {
         source: nym_vpn_store::keys::persistence::OnDiskKeysError,
     },
+
+    #[error("global network details not set")]
+    GlobalNetworkNotSet,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]

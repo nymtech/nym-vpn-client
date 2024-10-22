@@ -13,15 +13,27 @@ mod util;
 #[cfg(windows)]
 mod windows_service;
 
+use std::sync::OnceLock;
+
 use clap::Parser;
+use nym_vpn_lib::nym_config::defaults::NymNetworkDetails;
 use service::NymVpnService;
 use tokio::sync::broadcast;
 use tokio_util::sync::CancellationToken;
 
 use crate::{cli::CliArgs, command_interface::CommandInterfaceOptions};
 
+// Lazy initialized global NymNetworkDetails
+static GLOBAL_NETWORK_DETAILS: OnceLock<NymNetworkDetails> = OnceLock::new();
+
 fn main() -> anyhow::Result<()> {
     run()
+}
+
+fn set_global_network_details(network_details: NymNetworkDetails) -> anyhow::Result<()> {
+    GLOBAL_NETWORK_DETAILS
+        .set(network_details)
+        .map_err(|_| anyhow::anyhow!("Failed to set network details"))
 }
 
 #[cfg(unix)]
@@ -33,6 +45,8 @@ fn run() -> anyhow::Result<()> {
 
     if let Some(ref env) = args.config_env_file {
         nym_vpn_lib::nym_config::defaults::setup_env(Some(env));
+        let network_details = NymNetworkDetails::new_from_env();
+        set_global_network_details(network_details)?;
     } else {
         let network_name = global_config_file.network_name.clone();
         tracing::info!("Setting up environment by discovering the network: {network_name}");
@@ -49,6 +63,10 @@ fn run() -> anyhow::Result<()> {
 
     if let Some(ref env) = args.config_env_file {
         nym_vpn_lib::nym_config::defaults::setup_env(Some(env));
+        let network_details = NymNetworkDetails::new_from_env();
+        GLOBAL_NETWORK_DETAILS
+            .set(network_details)
+            .map_err(|_| anyhow::anyhow!("Failed to set network details"))?;
     } else {
         let network_name = global_config_file.network_name.clone();
         tracing::info!("Setting up environment from discovery file: {network_name}");

@@ -8,7 +8,7 @@ const DISCOVERY_FILE: &str = "discovery.json";
 const NETWORKS_SUBDIR: &str = "networks";
 const DISCOVERY_WELLKNOWN: &str = "https://nymvpn.com/api/public/v1/.wellknown";
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub(crate) struct GlobalConfigFile {
     pub(crate) network_name: String,
 }
@@ -21,7 +21,7 @@ impl Default for GlobalConfigFile {
     }
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 struct Discovery {
     network_name: String,
     nym_api_url: String,
@@ -46,12 +46,12 @@ impl Default for Discovery {
 }
 
 // This is the type we fetch remotely from nym-api
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 struct NetworkDetails {
     pub network: NymNetworkDetails,
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 struct NymVpnNetworkDetails {
     pub nym_vpn_api_url: String,
 }
@@ -185,18 +185,18 @@ fn write_nym_network_details_to_file(network: &NymNetworkDetails) -> anyhow::Res
     Ok(())
 }
 
-fn setup_nym_network_details(network_name: &str) -> anyhow::Result<()> {
+fn setup_nym_network_details(network_name: &str) -> anyhow::Result<NymNetworkDetails> {
     let network = read_nym_network_details_from_file(network_name)?;
-    export_nym_network_details_to_env(network);
-    Ok(())
+    export_nym_network_details_to_env(network.clone());
+    Ok(network)
 }
 
-fn setup_nym_vpn_network_details(nym_vpn_api_url: Url) -> anyhow::Result<()> {
+fn setup_nym_vpn_network_details(nym_vpn_api_url: Url) -> anyhow::Result<NymVpnNetworkDetails> {
     let vpn_network_details = NymVpnNetworkDetails {
         nym_vpn_api_url: nym_vpn_api_url.to_string(),
     };
-    export_nym_vpn_network_details_to_env(vpn_network_details);
-    Ok(())
+    export_nym_vpn_network_details_to_env(vpn_network_details.clone());
+    Ok(vpn_network_details)
 }
 
 fn export_nym_network_details_to_env(network_details: NymNetworkDetails) {
@@ -328,7 +328,8 @@ pub(crate) fn discover_env(network_name: &str) -> anyhow::Result<()> {
         }
         write_nym_network_details_to_file(&network_details.network)?;
     }
-    setup_nym_network_details(&discovery.network_name)?;
+    let network_details = setup_nym_network_details(&discovery.network_name)?;
+    crate::set_global_network_details(network_details)?;
 
     // Using discovery, setup nym vpn network details
     setup_nym_vpn_network_details(discovery.nym_vpn_api_url.parse()?)?;
