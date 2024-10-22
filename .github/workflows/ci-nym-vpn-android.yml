@@ -40,8 +40,8 @@ jobs:
 
       - name: Run detekt
         run: ./gradlew detekt --info
-# disable ci builds until state machine
-#  build-nym-vpn-android:
-#    uses: ./.github/workflows/build-nym-vpn-android.yml
-#    with:
-#      build_type: 'debug'
+
+  build-nym-vpn-android:
+    uses: ./.github/workflows/build-nym-vpn-android.yml
+    with:
+      build_type: 'debug'

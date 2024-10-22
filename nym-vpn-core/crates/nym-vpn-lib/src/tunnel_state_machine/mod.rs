@@ -43,6 +43,8 @@ use states::DisconnectedState;
 use tunnel::wireguard::ios::tun_provider::OSTunProvider;
 
 use crate::MixnetClientConfig;
+#[cfg(target_os = "android")]
+use tunnel::wireguard::android::AndroidTunProvider;
 
 #[async_trait::async_trait]
 trait TunnelStateHandler: Send {
@@ -253,7 +255,7 @@ pub enum ErrorStateReason {
 #[derive(Debug, uniffi::Enum)]
 pub enum TunnelEvent {
     NewState(TunnelState),
-    MixnetEvent(MixnetEvent),
+    MixnetState(MixnetEvent),
 }
 
 #[derive(Debug, Copy, Clone, uniffi::Enum)]
@@ -368,7 +370,7 @@ impl TunnelStateMachine {
         let cloned_event_sender = self.event_sender.clone();
         tokio::spawn(async move {
             while let Some(event) = mixnet_event_receiver.recv().await {
-                if let Err(e) = cloned_event_sender.send(TunnelEvent::MixnetEvent(event)) {
+                if let Err(e) = cloned_event_sender.send(TunnelEvent::MixnetState(event)) {
                     tracing::error!("Failed to send tunnel event: {}", e);
                 }
             }
