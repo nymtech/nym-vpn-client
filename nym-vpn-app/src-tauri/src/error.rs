@@ -135,7 +135,7 @@ pub enum ErrorKey {
     /// to the application layer
     /// Extra data should be passed along to help specialize the problem
     InternalError,
-    /// gRPC bare layer error, when an RPC call fails (aka `Tonic::Status`)
+    /// gRPC bare layer error, when an RPC call fails (aka `tonic::Status`)
     /// That is, the error does not come from the application layer
     GrpcError,
     /// Happens when the app is not connected to a running daemon
