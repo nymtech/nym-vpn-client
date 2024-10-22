@@ -352,8 +352,18 @@ pub enum AccountError {
 
 #[derive(Debug, thiserror::Error)]
 pub enum SetNetworkError {
+    #[error("failed to read config")]
+    ReadConfig {
+        source: Box<dyn std::error::Error + Send + Sync>,
+    },
+
+    #[error("failed to write config")]
+    WriteConfig {
+        source: Box<dyn std::error::Error + Send + Sync>,
+    },
+
     #[error("failed to set network: {0}")]
-    Network(String),
+    NetworkNotFound(String),
 }
 
 #[derive(thiserror::Error, Debug)]

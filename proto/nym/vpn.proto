@@ -128,9 +128,6 @@ message SetNetworkRequestError {
 
     // The network name provided is not valid
     INVALID_NETWORK_NAME = 2;
-
-    // The network name provided is not valid
-    NETWORK_NOT_FOUND = 3;
   }
 
   SetNetworkRequestErrorType kind = 1;
