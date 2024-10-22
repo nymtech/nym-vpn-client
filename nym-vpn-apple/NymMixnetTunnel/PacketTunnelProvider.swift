@@ -142,6 +142,10 @@ extension PacketTunnelProvider {
 }
 
 extension PacketTunnelProvider: TunnelStatusListener {
+    func onEvent(event: MixnetLibrary.TunnelEvent) {
+        // todo: implement
+    }
+
     func onBandwidthStatusChange(status: BandwidthStatus) {
         // todo: implement
     }

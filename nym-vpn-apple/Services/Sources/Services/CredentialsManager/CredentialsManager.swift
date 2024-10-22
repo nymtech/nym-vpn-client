@@ -24,9 +24,7 @@ public final class CredentialsManager {
     public static let shared = CredentialsManager()
 
     public var isValidCredentialImported: Bool {
-        guard let expiryDate = appSettings.credentialExpiryDate, appSettings.isCredentialImported else { return false }
-        let isValid = Date() < expiryDate
-        return appSettings.isCredentialImported && isValid
+        appSettings.isCredentialImported
     }
 
     public var expiryDate: Date? {
@@ -50,11 +48,7 @@ public final class CredentialsManager {
             if !FileManager.default.fileExists(atPath: dataFolderURL.path()) {
                 try FileManager.default.createDirectory(at: dataFolderURL, withIntermediateDirectories: true)
             }
-            let expiryDate = try importCredential(credential: trimmedCredential, path: dataFolderURL.path())
-            guard let expiryDate
-            else {
-                throw CredentialsManagerError.noExpiryDate
-            }
+            try storeAccountMnemonic(mnemonic: trimmedCredential, path: dataFolderURL.path())
 #endif
 #if os(macOS)
             _ = try await helperManager.installHelperIfNeeded()
@@ -62,8 +56,8 @@ public final class CredentialsManager {
 #endif
             Task { @MainActor in
                 appSettings.isCredentialImported = true
-                appSettings.credentialExpiryDate = expiryDate
-                appSettings.credentialStartDate = Date()
+//                appSettings.credentialExpiryDate = expiryDate
+//                appSettings.credentialStartDate = Date()
             }
         } catch let error {
             throw error
