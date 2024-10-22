@@ -39,7 +39,6 @@ build() {
   pushd wireguard
   ./build-wireguard-go.sh
   popd
-  wg_go=$srcdir/$_srcdir/build/lib/$CARCH-unknown-linux-gnu
 
   # build nym-vpnd
   pushd nym-vpn-core/crates/nym-vpnd/
@@ -47,7 +46,7 @@ build() {
   # sqlx does not support LTO build flag, which is enabled by default in Arch
   # set the C flag -ffat-lto-objects to solve the issue
   # see https://github.com/launchbadge/sqlx/issues/3149
-  CFLAGS+=" -ffat-lto-objects" RUSTFLAGS="-L $wg_go" cargo build --release --locked
+  CFLAGS+=" -ffat-lto-objects" cargo build --release --locked
 }
 
 package() {
