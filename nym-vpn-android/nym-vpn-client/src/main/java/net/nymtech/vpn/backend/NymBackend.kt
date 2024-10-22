@@ -27,6 +27,7 @@ import nym_vpn_lib.ConnectionStatus
 import nym_vpn_lib.ExitStatus
 import nym_vpn_lib.NymVpnStatus
 import nym_vpn_lib.TunStatus
+import nym_vpn_lib.TunnelEvent
 import nym_vpn_lib.TunnelNetworkSettings
 import nym_vpn_lib.TunnelStatusListener
 import nym_vpn_lib.VpnConfig
@@ -181,6 +182,10 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 				delay(Constants.STATISTICS_INTERVAL_MILLI)
 			} while (true)
 		}
+	}
+
+	override fun onEvent(event: TunnelEvent) {
+		TODO("Not yet implemented")
 	}
 
 	override fun onTunStatusChange(status: TunStatus) {

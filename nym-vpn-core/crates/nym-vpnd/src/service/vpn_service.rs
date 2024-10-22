@@ -496,7 +496,7 @@ where
                                 tracing::error!("Failed to send vpn state change: {}", e);
                             }
                         }
-                        TunnelEvent::MixnetEvent(event) => {
+                        TunnelEvent::MixnetState(event) => {
                             if let Err(e) = self.status_tx.send(event) {
                                 tracing::error!("Failed to send mixnet event: {}", e);
                             }

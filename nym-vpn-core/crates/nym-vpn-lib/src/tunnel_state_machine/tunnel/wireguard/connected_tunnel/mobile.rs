@@ -11,16 +11,15 @@ use nym_task::TaskManager;
 use nym_wg_gateway_client::WgGatewayClient;
 use nym_wg_go::{netstack, wireguard_go};
 
+#[cfg(target_os = "android")]
+use crate::tunnel_state_machine::tunnel::wireguard::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_state_machine::tunnel::wireguard::ios::{
-    default_path_observer::DefaultPathObserver, dns64::Dns64Resolution,
+    default_path_observer::DefaultPathObserver, dns64::Dns64Resolution, tun_provider::OSTunProvider,
 };
 use crate::{
     tunnel_state_machine::tunnel::{
-        wireguard::{
-            connector::ConnectionData, ios::tun_provider::OSTunProvider,
-            two_hop_config::TwoHopConfig,
-        },
+        wireguard::{connector::ConnectionData, two_hop_config::TwoHopConfig},
         Error, Result,
     },
     wg_config::WgNodeConfig,

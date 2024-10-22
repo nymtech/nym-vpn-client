@@ -183,7 +183,6 @@ pub enum Error {
     #[error("failed to resolve using dns64")]
     ResolveDns64(#[source] wireguard::ios::dns64::Error),
 
-    #[cfg(target_os = "ios")]
     #[error("failed to open exit connection through the entry tunnel: {0}")]
     OpenExitConnection(#[source] nym_wg_go::Error),
 
