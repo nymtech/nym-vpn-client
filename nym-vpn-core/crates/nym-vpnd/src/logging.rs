@@ -30,7 +30,7 @@ pub fn setup_logging(_as_service: bool) {
 
 #[allow(unused)]
 pub fn setup_logging_to_file() -> WorkerGuard {
-    let log_dir = service::default_log_dir();
+    let log_dir = service::log_dir();
 
     println!("log_dir: {}", log_dir.display());
 

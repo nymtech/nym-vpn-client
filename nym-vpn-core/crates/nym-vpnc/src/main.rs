@@ -8,7 +8,8 @@ use nym_vpn_proto::{
     ConnectRequest, DisconnectRequest, Empty, GetAccountSummaryRequest, GetDeviceZkNymsRequest,
     GetDevicesRequest, GetLocalAccountStateRequest, InfoRequest, InfoResponse,
     IsReadyToConnectRequest, ListCountriesRequest, ListGatewaysRequest, RegisterDeviceRequest,
-    RemoveAccountRequest, RequestZkNymRequest, StatusRequest, StoreAccountRequest, UserAgent,
+    RemoveAccountRequest, RequestZkNymRequest, SetNetworkRequest, StatusRequest,
+    StoreAccountRequest, UserAgent,
 };
 use protobuf_conversion::{into_gateway_type, into_threshold};
 use sysinfo::System;
@@ -39,6 +40,7 @@ async fn main() -> Result<()> {
         Command::Disconnect => disconnect(client_type).await?,
         Command::Status => status(client_type).await?,
         Command::Info => info(client_type).await?,
+        Command::SetNetwork(ref args) => set_network(client_type, args).await?,
         Command::StoreAccount(ref store_args) => store_account(client_type, store_args).await?,
         Command::RemoveAccount => remove_account(client_type).await?,
         Command::GetLocalAccountState => get_local_account_state(client_type).await?,
@@ -161,6 +163,16 @@ async fn info(client_type: ClientType) -> Result<()> {
             time::OffsetDateTime::now_utc() - utc_build_timestamp
         );
     }
+    Ok(())
+}
+
+async fn set_network(client_type: ClientType, args: &cli::SetNetworkArgs) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(SetNetworkRequest {
+        network: args.network.clone(),
+    });
+    let response = client.set_network(request).await?.into_inner();
+    println!("{:#?}", response);
     Ok(())
 }
 

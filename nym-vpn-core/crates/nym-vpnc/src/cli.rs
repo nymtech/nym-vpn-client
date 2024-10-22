@@ -24,6 +24,7 @@ pub(crate) enum Command {
     Disconnect,
     Status,
     Info,
+    SetNetwork(SetNetworkArgs),
     StoreAccount(StoreAccountArgs),
     RemoveAccount,
     GetLocalAccountState,
@@ -132,6 +133,12 @@ pub(crate) struct CliExit {
     /// Auto-select exit gateway randomly.
     #[clap(long, alias = "exit-random")]
     pub(crate) exit_gateway_random: bool,
+}
+
+#[derive(Args)]
+pub(crate) struct SetNetworkArgs {
+    /// The network to be set.
+    pub(crate) network: String,
 }
 
 #[derive(Args)]

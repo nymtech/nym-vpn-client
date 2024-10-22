@@ -20,8 +20,8 @@ use nym_vpn_proto::{
     InfoResponse, IsAccountStoredRequest, IsAccountStoredResponse, IsReadyToConnectRequest,
     IsReadyToConnectResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
     ListGatewaysResponse, RegisterDeviceRequest, RegisterDeviceResponse, RemoveAccountRequest,
-    RemoveAccountResponse, RequestZkNymRequest, RequestZkNymResponse, StatusRequest,
-    StatusResponse, StoreAccountRequest, StoreAccountResponse,
+    RemoveAccountResponse, RequestZkNymRequest, RequestZkNymResponse, SetNetworkRequest,
+    SetNetworkResponse, StatusRequest, StatusResponse, StoreAccountRequest, StoreAccountResponse,
 };
 
 use super::{
@@ -120,6 +120,25 @@ impl NymVpnd for CommandInterface {
 
         let response = InfoResponse::from(info);
         tracing::debug!("Returning info response: {:?}", response);
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn set_network(
+        &self,
+        request: tonic::Request<SetNetworkRequest>,
+    ) -> Result<tonic::Response<SetNetworkResponse>, tonic::Status> {
+        let network = request.into_inner().network;
+
+        let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_set_network(network)
+            .await?;
+
+        let response = nym_vpn_proto::SetNetworkResponse {
+            error: status
+                .err()
+                .map(nym_vpn_proto::SetNetworkRequestError::from),
+        };
+        tracing::debug!("Returning set network response: {:?}", response);
         Ok(tonic::Response::new(response))
     }
 
