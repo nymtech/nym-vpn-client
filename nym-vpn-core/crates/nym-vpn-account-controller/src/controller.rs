@@ -726,6 +726,7 @@ where
                 Some(command) = self.command_rx.recv() => {
                     if let Err(err) = self.handle_command(command).await {
                         tracing::error!("{err}");
+                        tracing::debug!("{err:#?}");
                     }
                 }
                 _ = update_shared_account_state_timer.tick() => {

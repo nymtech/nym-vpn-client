@@ -89,7 +89,7 @@ pub(crate) async fn setup_mixnet_client(
         let storage = VpnClientOnDiskStorage::new(path.clone());
         match storage.is_mnemonic_stored().await {
             Ok(is_stored) if !is_stored => {
-                tracing::error!("No credential stored");
+                tracing::error!("No account stored");
                 task_client.disarm();
                 return Err(MixnetError::InvalidCredential);
             }
