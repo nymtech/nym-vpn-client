@@ -185,7 +185,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	}
 
 	override fun onEvent(event: TunnelEvent) {
-		TODO("Not yet implemented")
+		Timber.d(event.toString())
 	}
 
 	override fun onTunStatusChange(status: TunStatus) {
