@@ -32,6 +32,8 @@ public final class ConfigurationManager {
         getenv("NYM_API").flatMap { URL(string: String(cString: $0)) }
     }
 
+    public var environmentDidChange: (() -> Void)?
+
     private init(appSettings: AppSettings) {
         self.appSettings = appSettings
     }
@@ -51,6 +53,7 @@ public final class ConfigurationManager {
         guard isTestFlight, env != currentEnv else { return }
         currentEnv = env
         try? setup()
+        environmentDidChange?()
     }
 }
 

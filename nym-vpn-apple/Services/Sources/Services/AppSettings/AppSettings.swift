@@ -56,15 +56,7 @@ public final class AppSettings: ObservableObject {
         AppSettingKey.currentEnv.rawValue,
         store: UserDefaults(suiteName: Constants.groupID.rawValue)
     )
-    public var currentEnv: String = "mainnet" {
-        didSet {
-            guard currentEnv != envSelectorPublisher else { return }
-            Task { @MainActor in
-                envSelectorPublisher = currentEnv
-            }
-        }
-    }
-    @Published public var envSelectorPublisher = ""
+    public var currentEnv: String = "mainnet"
 
     // Observed values for view models
     @Published public var isEntryLocationSelectionOnPublisher = false
