@@ -14,7 +14,6 @@ anyhow.workspace = true
 bip39.workspace = true
 clap.workspace = true
 dirs.workspace = true
-dotenvy = "0.15"
 futures.workspace = true
 http.workspace = true
 maplit.workspace = true
