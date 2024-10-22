@@ -432,6 +432,10 @@ pub enum Error {
     #[error("failed to configure tunnel provider: {}", _0)]
     ConfigureTunnelProvider(String),
 
+    #[cfg(any(target_os = "ios", target_os = "android"))]
+    #[error("failed to configure tunnel provider: {}", _0)]
+    ConfigureTunnelProvider(String),
+
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     #[error("failed to obtain route handle: {}", _0)]
     GetRouteHandle(#[source] route_handler::Error),
