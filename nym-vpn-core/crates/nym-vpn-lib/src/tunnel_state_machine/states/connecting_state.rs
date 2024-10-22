@@ -189,11 +189,19 @@ impl ConnectingState {
                 interface_addresses: vec![
                     IpNetwork::V4(
                         Ipv4Network::new(assigned_addresses.interface_addresses.ipv4, 32)
+<<<<<<< HEAD
                             .expect("ipv4/32 to ipnetwork"),
                     ),
                     IpNetwork::V6(
                         Ipv6Network::new(assigned_addresses.interface_addresses.ipv6, 128)
                             .expect("ipv6/128 addr to ipnetwork"),
+=======
+                            .expect("map to error"),
+                    ),
+                    IpNetwork::V6(
+                        Ipv6Network::new(assigned_addresses.interface_addresses.ipv6, 128)
+                            .expect("map to error"),
+>>>>>>> f5ce6979 (clippy: fix)
                     ),
                 ],
                 remote_addresses: vec![assigned_addresses.entry_mixnet_gateway_ip],
@@ -316,7 +324,11 @@ impl ConnectingState {
         let packet_tunnel_settings = tunnel_provider::tunnel_settings::TunnelSettings {
             dns_servers: shared_state.tunnel_settings.dns.ip_addresses().to_vec(),
             interface_addresses: vec![IpNetwork::V4(
+<<<<<<< HEAD
                 Ipv4Network::new(conn_data.entry.private_ipv4, 32).expect("ipv4 to ipnetwork/32"),
+=======
+                Ipv4Network::new(conn_data.entry.private_ipv4, 32).expect("map to error"),
+>>>>>>> f5ce6979 (clippy: fix)
             )],
             remote_addresses: vec![conn_data.entry.endpoint.ip()],
             mtu: connected_tunnel.exit_mtu(),
