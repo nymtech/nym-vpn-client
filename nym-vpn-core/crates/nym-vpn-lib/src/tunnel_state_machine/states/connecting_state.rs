@@ -182,11 +182,11 @@ impl ConnectingState {
                 interface_addresses: vec![
                     IpNetwork::V4(
                         Ipv4Network::new(assigned_addresses.interface_addresses.ipv4, 32)
-                            .expect("map to error"),
+                            .expect("ipv4/32 to ipnetwork"),
                     ),
                     IpNetwork::V6(
                         Ipv6Network::new(assigned_addresses.interface_addresses.ipv6, 128)
-                            .expect("map to error"),
+                            .expect("ipv6/128 addr to ipnetwork"),
                     ),
                 ],
                 remote_addresses: vec![assigned_addresses.entry_mixnet_gateway_ip],
@@ -309,7 +309,7 @@ impl ConnectingState {
         let packet_tunnel_settings = tunnel::wireguard::tunnel_settings::TunnelSettings {
             dns_servers: shared_state.tunnel_settings.dns.ip_addresses().to_vec(),
             interface_addresses: vec![IpNetwork::V4(
-                Ipv4Network::new(conn_data.entry.private_ipv4, 32).expect("map to error"),
+                Ipv4Network::new(conn_data.entry.private_ipv4, 32).expect("ipv4 to ipnetwork/32"),
             )],
             remote_addresses: vec![conn_data.entry.endpoint.ip()],
             mtu: connected_tunnel.exit_mtu(),
@@ -434,7 +434,7 @@ impl ConnectingState {
             let tun_fd = shared_state
                 .tun_provider
                 .configure_tunnel(packet_tunnel_settings.into_tunnel_network_settings())
-                .expect("map to error");
+                .map_err(|e| Error::ConfigureTunnelProvider(e.to_string()))?;
 
             tun_config.raw_fd(tun_fd);
             tun_config.platform(|platform_config| {
@@ -451,7 +451,7 @@ impl ConnectingState {
                 .tun_provider
                 .set_tunnel_network_settings(packet_tunnel_settings.into_tunnel_network_settings())
                 .await
-                .expect("map to error");
+                .map_err(|e| Error::ConfigureTunnelProvider(e.to_string()))?
         }
 
         tun::create_as_async(&tun_config).map_err(Error::CreateTunDevice)
