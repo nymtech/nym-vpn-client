@@ -3,9 +3,7 @@
 
 use std::{error::Error as StdError, net::IpAddr, os::fd::AsRawFd, sync::Arc};
 
-#[cfg(target_os = "ios")]
-use tokio::sync::mpsc;
-use tokio::task::JoinHandle;
+use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 use tun::AsyncDevice;
 
@@ -14,11 +12,10 @@ use nym_wg_gateway_client::WgGatewayClient;
 use nym_wg_go::{netstack, wireguard_go};
 
 #[cfg(target_os = "android")]
-use crate::tunnel_provider::android::AndroidTunProvider;
+use crate::tunnel_state_machine::tunnel::wireguard::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
-use crate::{
-    tunnel_provider::ios::{default_path_observer::DefaultPathObserver, OSTunProvider},
-    tunnel_state_machine::tunnel::wireguard::dns64::Dns64Resolution,
+use crate::tunnel_state_machine::tunnel::wireguard::ios::{
+    default_path_observer::DefaultPathObserver, dns64::Dns64Resolution, tun_provider::OSTunProvider,
 };
 use crate::{
     tunnel_state_machine::tunnel::{
@@ -128,7 +125,6 @@ impl ConnectedTunnel {
             )
             .map_err(Error::OpenExitConnection)?;
 
-        #[allow(unused_mut)]
         let mut exit_tunnel = wireguard_go::Tunnel::start(
             two_hop_config.exit.into_wireguard_config(),
             tun_device.get_ref().as_raw_fd(),
@@ -242,8 +238,8 @@ impl TunnelHandle {
 
     /// Wait until the tunnel finished execution.
     ///
-    /// Returns an array with a single tunnel device that is no longer in use.
-    pub async fn wait(self) -> Vec<AsyncDevice> {
+    /// Returns a pair of tun devices no longer in use.
+    pub async fn wait(self) -> AsyncDevice {
         if let Err(e) = self.event_loop_handle.await {
             tracing::error!("Failed to join on event loop handle: {}", e);
         }
@@ -252,6 +248,6 @@ impl TunnelHandle {
             tracing::error!("Failed to join on bandwidth controller: {}", e);
         }
 
-        vec![self.tun_device]
+        self.tun_device
     }
 }

@@ -35,14 +35,16 @@ use nym_wg_go::PublicKey;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use dns_handler::DnsHandler;
 //use firewall_handler::FirewallHandler;
-#[cfg(target_os = "android")]
-use crate::tunnel_provider::android::AndroidTunProvider;
-#[cfg(target_os = "ios")]
-use crate::tunnel_provider::ios::OSTunProvider;
-use crate::MixnetClientConfig;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use route_handler::RouteHandler;
 use states::DisconnectedState;
+
+#[cfg(target_os = "ios")]
+use tunnel::wireguard::ios::tun_provider::OSTunProvider;
+
+use crate::MixnetClientConfig;
+#[cfg(target_os = "android")]
+use tunnel::wireguard::android::AndroidTunProvider;
 
 #[async_trait::async_trait]
 trait TunnelStateHandler: Send {
@@ -70,9 +72,6 @@ pub enum TunnelType {
 pub struct TunnelSettings {
     /// Type of tunnel.
     pub tunnel_type: TunnelType,
-
-    /// Enable the credentials mode between the client and the gateways.
-    pub enable_credentials_mode: bool,
 
     /// Mixnet tunnel options.
     pub mixnet_tunnel_options: MixnetTunnelOptions,
@@ -129,7 +128,6 @@ impl Default for TunnelSettings {
     fn default() -> Self {
         Self {
             tunnel_type: TunnelType::Wireguard,
-            enable_credentials_mode: false,
             mixnet_tunnel_options: MixnetTunnelOptions::default(),
             mixnet_client_config: None,
             gateway_performance_options: GatewayPerformanceOptions::default(),
@@ -426,11 +424,7 @@ pub enum Error {
 
     #[cfg(target_os = "ios")]
     #[error("failed to locate tun device")]
-    LocateTunDevice(std::io::Error),
-
-    #[cfg(any(target_os = "ios", target_os = "android"))]
-    #[error("failed to configure tunnel provider: {}", _0)]
-    ConfigureTunnelProvider(String),
+    LocateTunDevice,
 
     #[cfg(any(target_os = "ios", target_os = "android"))]
     #[error("failed to configure tunnel provider: {}", _0)]
@@ -492,7 +486,7 @@ impl Error {
             Self::ConfigureTunnelProvider(_) => ErrorStateReason::TunnelProvider,
 
             #[cfg(target_os = "ios")]
-            Self::LocateTunDevice(_) => ErrorStateReason::TunDevice,
+            Self::LocateTunDevice => ErrorStateReason::TunDevice,
 
             Self::ConnectWireguardTunnel(_) | Self::RunWireguardTunnel(_) => {
                 // todo: add detail

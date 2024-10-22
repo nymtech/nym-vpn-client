@@ -437,6 +437,7 @@ impl ConnectingState {
                 .map_err(|e| Error::ConfigureTunnelProvider(e.to_string()))?;
 
             tun_config.raw_fd(tun_fd);
+            #[cfg(target_os = "linux")]
             tun_config.platform(|platform_config| {
                 platform_config.packet_information(false);
             });
