@@ -234,6 +234,9 @@ pub enum ErrorStateReason {
     /// Failure to configure tunnel device.
     TunDevice,
 
+    /// Failure to configure packet tunnel provider.
+    TunnelProvider,
+
     /// Failure to establish mixnet connection.
     EstablishMixnetConnection,
 
@@ -421,6 +424,10 @@ pub enum Error {
     #[error("failed to locate tun device")]
     LocateTunDevice,
 
+    #[cfg(any(target_os = "ios", target_os = "android"))]
+    #[error("failed to configure tunnel provider: {}", _0)]
+    ConfigureTunnelProvider(String),
+
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     #[error("failed to obtain route handle: {}", _0)]
     GetRouteHandle(#[source] route_handler::Error),
@@ -472,6 +479,9 @@ impl Error {
             Self::GetTunDeviceName(_) | Self::SetTunDeviceIpv6Addr(_) => {
                 ErrorStateReason::TunDevice
             }
+
+            #[cfg(any(target_os = "ios", target_os = "android"))]
+            Self::ConfigureTunnelProvider(_) => ErrorStateReason::TunnelProvider,
 
             #[cfg(target_os = "ios")]
             Self::LocateTunDevice => ErrorStateReason::TunDevice,

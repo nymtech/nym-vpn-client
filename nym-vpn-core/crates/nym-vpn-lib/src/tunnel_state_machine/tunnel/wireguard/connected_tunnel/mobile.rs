@@ -99,7 +99,7 @@ impl ConnectedTunnel {
             .entry
             .peer
             .resolve_in_place()
-            .expect("map to error");
+            .map_err(Error::ResolveDns64)?;
 
         let mut entry_tunnel = netstack::Tunnel::start(two_hop_config.entry.into_netstack_config())
             .map_err(Error::StartWireguard)?;
@@ -124,7 +124,7 @@ impl ConnectedTunnel {
                 two_hop_config.forwarder.client_port,
                 two_hop_config.forwarder.exit_endpoint,
             )
-            .expect("map to error");
+            .map_err(Error::OpenExitConnection)?;
 
         let mut exit_tunnel = wireguard_go::Tunnel::start(
             two_hop_config.exit.into_wireguard_config(),
@@ -142,7 +142,7 @@ impl ConnectedTunnel {
 
             tun_provider
                 .set_default_path_observer(Some(default_path_observer))
-                .expect("map to error");
+                .map_err(|e| Error::SetDefaultPathObserver(e.to_string()))?;
 
             default_path_rx
         };
