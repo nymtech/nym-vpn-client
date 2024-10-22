@@ -14,7 +14,7 @@ Pero ¿qué es exactamente una Mixnet? Una Mixnet es una red de nodos que:
 3. Redirige el tráfico.
 Este proceso se realiza hasta 5 veces (5 saltos) y hace imposible que alguien pueda monitorear o rastrear tu actividad en línea.
 
-Por eso deberías elegir nuestra VPN descentralizada, segura y privada
+Por eso deberías elegir nuestra VPN descentralizada, segura y privada.
 
 Privacidad
 Nuestro dVPN se creó teniendo en cuenta la privacidad. No almacenamos registros (política de no registros) ni rastreamos tu actividad. Incluso si alguien quisiera robarnos tus datos, no habría nada que robar.
