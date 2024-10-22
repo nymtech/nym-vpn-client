@@ -165,4 +165,16 @@
     <string name="action_requires_tunnel_down">行动需要下穿隧道</string>
     <string name="selected_exit_unavailable">所选出口国家不可用，请选择其他出口国家。</string>
     <string name="selected_entry_unavailable">所选入口国家不可用，请选择其他入口国家。</string>
+    <string name="missing_mnemonic">缺失助记词</string>
+    <string name="device_added_success">设备已成功添加到您的账户</string>
+    <string name="invalid_recovery_phrase">恢复短语无效</string>
+    <string name="recovery_phrase">恢复词组</string>
+    <string name="log_in">登录</string>
+    <string name="log_out">退出登录</string>
+    <string name="new_to_nym">NymVPN 新手？</string>
+    <string name="create_account">创建账户</string>
+    <string name="account">账户</string>
+    <string name="recovery_phrase_message">在下面输入您的 24 个字符的助记词，登录您的帐户</string>
+    <string name="recovery_phrase_disclaimer">您只能使用在 NymVPN 中创建的助记词，而不能使用 Nym 钱包。</string>
+    <string name="mnemonic_example">例如：smoke artefact velvet skull pop palace tortoise damage rough...</string>
 </resources>
