@@ -50,7 +50,11 @@ extension NotificationsManager: UNUserNotificationCenterDelegate {
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification
     ) async -> UNNotificationPresentationOptions {
-        []
+        if UIApplication.shared.applicationState == .active {
+            return []
+        } else {
+            return [.badge, .banner, .sound]
+        }
     }
 }
 
