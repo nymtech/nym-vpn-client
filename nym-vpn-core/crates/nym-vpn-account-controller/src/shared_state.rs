@@ -5,6 +5,7 @@ use std::{fmt, sync::Arc};
 
 use nym_vpn_api_client::response::{
     NymVpnAccountStatusResponse, NymVpnAccountSummarySubscription, NymVpnDeviceStatus,
+    NymVpnSubscriptionStatus,
 };
 use serde::Serialize;
 use tokio::sync::MutexGuard;
@@ -152,30 +153,55 @@ pub struct AccountStateSummary {
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum MnemonicState {
+    // The recovery phrase is not stored locally, or at least not confirmed to be stored
     NotStored,
+
+    // The recovery phrase is stored locally
     Stored,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum AccountState {
+    // The account is not registered on the remote server
     NotRegistered,
+
+    // The account is registered but not active
     Inactive,
+
+    // The account is registered and active
     Active,
+
+    // The account is marked for deletion
     DeleteMe,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum SubscriptionState {
-    NotSubscribed,
+    // There is no active subscription
+    NotActive,
+
+    // The subscription is pending
     Pending,
+
+    // The subscription is complete
+    Complete,
+
+    // The subscription is active
     Active,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum DeviceState {
+    // The device is not registered on the remote server
     NotRegistered,
+
+    // The device is registered but not active
     Inactive,
+
+    // The device is registered and active
     Active,
+
+    // The device is marked for deletion
     DeleteMe,
 }
 
@@ -203,7 +229,8 @@ impl From<NymVpnAccountStatusResponse> for AccountState {
     fn from(status: NymVpnAccountStatusResponse) -> Self {
         match status {
             NymVpnAccountStatusResponse::Active => AccountState::Active,
-            _ => AccountState::Inactive,
+            NymVpnAccountStatusResponse::Inactive => AccountState::Inactive,
+            NymVpnAccountStatusResponse::DeleteMe => AccountState::DeleteMe,
         }
     }
 }
@@ -212,8 +239,15 @@ impl From<NymVpnAccountSummarySubscription> for SubscriptionState {
     fn from(subscription: NymVpnAccountSummarySubscription) -> Self {
         if subscription.is_active {
             SubscriptionState::Active
+        } else if let Some(subscription) = subscription.active {
+            match subscription.status {
+                NymVpnSubscriptionStatus::Pending => SubscriptionState::Pending,
+                NymVpnSubscriptionStatus::Complete => SubscriptionState::Complete,
+                NymVpnSubscriptionStatus::Active => SubscriptionState::Active,
+            }
         } else {
-            SubscriptionState::NotSubscribed
+            tracing::warn!("Subscription state is not active, but no active field is present");
+            SubscriptionState::NotActive
         }
     }
 }
@@ -222,7 +256,8 @@ impl From<NymVpnDeviceStatus> for DeviceState {
     fn from(status: NymVpnDeviceStatus) -> Self {
         match status {
             NymVpnDeviceStatus::Active => DeviceState::Active,
-            _ => DeviceState::Inactive,
+            NymVpnDeviceStatus::Inactive => DeviceState::Inactive,
+            NymVpnDeviceStatus::DeleteMe => DeviceState::DeleteMe,
         }
     }
 }
