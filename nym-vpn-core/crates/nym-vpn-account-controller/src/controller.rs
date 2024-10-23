@@ -16,7 +16,6 @@ use nym_credentials::{
 use nym_credentials_interface::{RequestInfo, TicketType};
 use nym_ecash_time::EcashTime;
 use nym_http_api_client::UserAgent;
-use nym_sdk::mixnet::CredentialStorage;
 use nym_vpn_api_client::{
     response::{NymErrorResponse, NymVpnZkNym, NymVpnZkNymStatus},
     types::{Device, VpnApiAccount},
@@ -39,7 +38,7 @@ use crate::{
         AccountState, DeviceState, MnemonicState, ReadyToRegisterDevice, SharedAccountState,
         SubscriptionState,
     },
-    storage::AccountStorage,
+    storage::{AccountStorage, VpnCredentialStorage},
 };
 
 // If we go below this threshold, we should request more tickets
@@ -63,7 +62,7 @@ where
     account_storage: AccountStorage<S>,
 
     // Storage used for credentials
-    credential_storage: nym_credential_storage::persistent_storage::PersistentStorage,
+    credential_storage: VpnCredentialStorage,
 
     // The API client used to interact with the nym-vpn-api
     vpn_api_client: nym_vpn_api_client::VpnApiClient,
@@ -111,7 +110,9 @@ where
 
         // TODO: remove unwraps.
         let storage_paths = nym_sdk::mixnet::StoragePaths::new_from_dir(data_dir).unwrap();
-        let credential_storage = storage_paths.persistent_credential_storage().await.unwrap();
+        let credential_storage = VpnCredentialStorage {
+            storage: storage_paths.persistent_credential_storage().await.unwrap(),
+        };
 
         let (command_tx, command_rx) = tokio::sync::mpsc::unbounded_channel();
 
@@ -264,7 +265,10 @@ where
         let device = self.account_storage.load_device_keys().await?;
 
         // Then we check local storage to see what ticket types we already have stored
-        let local_remaining_tickets = self.check_local_remaining_tickets().await;
+        let local_remaining_tickets = self
+            .credential_storage
+            .check_local_remaining_tickets()
+            .await;
         for (ticket_type, remaining) in &local_remaining_tickets {
             tracing::info!("{}, remaining: {}", ticket_type, remaining);
         }
@@ -312,31 +316,6 @@ where
         Ok(())
     }
 
-    async fn check_local_remaining_tickets(&self) -> Vec<(TicketType, u32)> {
-        // TODO: remove unwrap
-        let ticketbooks_info = self
-            .credential_storage
-            .get_ticketbooks_info()
-            .await
-            .unwrap();
-
-        // For each ticketbook type, iterate over and check if we have enough tickets stored
-        // locally
-        let ticketbook_types = ticketbook_types();
-
-        let mut request_zk_nym = Vec::new();
-        for ticketbook_type in ticketbook_types.iter() {
-            let available_tickets: u32 = ticketbooks_info
-                .iter()
-                .filter(|ticketbook| ticketbook.ticketbook_type == ticketbook_type.to_string())
-                .map(|ticketbook| ticketbook.total_tickets - ticketbook.used_tickets)
-                .sum();
-
-            request_zk_nym.push((*ticketbook_type, available_tickets));
-        }
-        request_zk_nym
-    }
-
     #[allow(unused)]
     async fn update_ecash_epoch(&mut self) -> Result<(), Error> {
         let aggregated_coin_indices_signatures = self
@@ -370,7 +349,6 @@ where
         self.credential_storage
             .insert_master_verification_key(&verification_key)
             .await
-            .map_err(Error::from)
     }
 
     async fn get_current_verification_key(&self) -> Result<Option<VerificationKeyAuth>, Error> {
@@ -378,7 +356,6 @@ where
         self.credential_storage
             .get_master_verification_key(current_epoch)
             .await
-            .map_err(Error::from)
     }
 
     async fn update_coin_indices_signatures(&mut self) -> Result<(), Error> {
@@ -397,7 +374,6 @@ where
         self.credential_storage
             .insert_coin_index_signatures(&coin_indices_signatures)
             .await
-            .map_err(Error::from)
     }
 
     async fn update_expiration_date_signatures(&mut self) -> Result<(), Error> {
@@ -416,7 +392,6 @@ where
         self.credential_storage
             .insert_expiration_date_signatures(&expiration_date_signatures)
             .await
-            .map_err(Error::from)
     }
 
     async fn update_mnemonic_state(&self) -> Option<VpnApiAccount> {
@@ -641,20 +616,6 @@ where
         }
     }
 
-    async fn print_credential_storage_info(&self) -> Result<(), Error> {
-        let ticketbooks_info = self.credential_storage.get_ticketbooks_info().await?;
-        tracing::info!("Ticketbooks stored: {}", ticketbooks_info.len());
-        for ticketbook in ticketbooks_info {
-            tracing::info!("Ticketbook id: {}", ticketbook.id);
-        }
-
-        let pending_ticketbooks = self.credential_storage.get_pending_ticketbooks().await?;
-        for pending in pending_ticketbooks {
-            tracing::info!("Pending ticketbook id: {}", pending.pending_id);
-        }
-        Ok(())
-    }
-
     async fn cleanup(mut self) {
         let timeout = tokio::time::sleep(Duration::from_secs(5));
         tokio::pin!(timeout);
@@ -687,7 +648,7 @@ where
     }
 
     pub async fn run(mut self) {
-        if let Err(err) = self.print_credential_storage_info().await {
+        if let Err(err) = self.credential_storage.print_info().await {
             tracing::error!("Failed to print credential storage info: {:#?}", err);
         }
 
@@ -805,16 +766,6 @@ fn extract_status_code_inner(
         HttpClientError::EndpointFailure { status, .. } => Some((*status).into()),
         _ => None,
     }
-}
-
-// TODO: add #[derive(EnumIter)] to TicketType so we can iterate over it directly.
-fn ticketbook_types() -> [TicketType; 4] {
-    [
-        TicketType::V1MixnetEntry,
-        TicketType::V1MixnetExit,
-        TicketType::V1WireguardEntry,
-        TicketType::V1WireguardExit,
-    ]
 }
 
 #[derive(Debug)]
