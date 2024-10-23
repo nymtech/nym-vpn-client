@@ -605,21 +605,22 @@ where
         };
 
         match result {
-            PollingResult::Finished(response, ticketbook_type, request_info) => {
-                tracing::info!("Polling task finished: {:#?}", response);
-                if response.status == NymVpnZkNymStatus::Active {
-                    if let Err(err) = self
-                        .import_zk_nym(response, ticketbook_type, *request_info)
-                        .await
-                    {
+            PollingResult::Finished(response, ticketbook_type, request_info)
+                if response.status == NymVpnZkNymStatus::Active =>
+            {
+                tracing::info!("Polling finished succesfully, importing ticketbook");
+                self.import_zk_nym(response, ticketbook_type, *request_info)
+                    .await
+                    .inspect_err(|err| {
                         tracing::error!("Failed to import zk-nym: {:#?}", err);
-                    }
-                } else {
-                    tracing::warn!(
-                        "Polling finished with status: {:?}, not importing!",
-                        response.status
-                    );
-                }
+                    })
+                    .ok();
+            }
+            PollingResult::Finished(response, _, _) => {
+                tracing::warn!(
+                    "Polling finished with status: {:?}, not importing!",
+                    response.status
+                );
             }
             PollingResult::Timeout(response) => {
                 tracing::info!("Polling task timed out: {:#?}", response);
