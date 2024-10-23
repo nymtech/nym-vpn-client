@@ -3,6 +3,7 @@
 
 // This module primarily handles conversions to protobuf types
 
+pub(crate) mod account;
 pub(crate) mod connection_state;
 pub(crate) mod error;
 pub(crate) mod gateway;
