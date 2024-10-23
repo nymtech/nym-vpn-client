@@ -15,12 +15,12 @@ use nym_credentials::{
 };
 use nym_credentials_interface::{RequestInfo, TicketType};
 use nym_ecash_time::EcashTime;
-use nym_http_api_client::{HttpClientError, UserAgent};
+use nym_http_api_client::UserAgent;
 use nym_sdk::mixnet::CredentialStorage;
 use nym_vpn_api_client::{
-    response::{NymVpnZkNym, NymVpnZkNymStatus},
+    response::{NymErrorResponse, NymVpnZkNym, NymVpnZkNymStatus},
     types::{Device, VpnApiAccount},
-    VpnApiClientError,
+    HttpClientError, VpnApiClientError,
 };
 use nym_vpn_store::{keys::KeyStore, mnemonic::MnemonicStorage};
 use serde::{Deserialize, Serialize};
@@ -33,7 +33,7 @@ use crate::{
     ecash_client::VpnEcashApiClient,
     error::Error,
     shared_state::{
-        DeviceState, MnemonicState, ReadyToRegisterDevice, RemoteAccountState, SharedAccountState,
+        AccountState, DeviceState, MnemonicState, ReadyToRegisterDevice, SharedAccountState,
         SubscriptionState,
     },
 };
@@ -388,7 +388,7 @@ where
     }
 
     async fn update_verification_key(&mut self) -> Result<(), Error> {
-        tracing::info!("Updating verification key");
+        tracing::debug!("Updating verification key");
 
         let master_verification_key = self
             .vpn_ecash_api_client
@@ -420,7 +420,7 @@ where
     }
 
     async fn update_coin_indices_signatures(&mut self) -> Result<(), Error> {
-        tracing::info!("Updating coin indices signatures");
+        tracing::debug!("Updating coin indices signatures");
 
         let aggregated_coin_indices_signatures = self
             .vpn_ecash_api_client
@@ -439,7 +439,7 @@ where
     }
 
     async fn update_expiration_date_signatures(&mut self) -> Result<(), Error> {
-        tracing::info!("Updating expiration date signatures");
+        tracing::debug!("Updating expiration date signatures");
 
         let aggregated_expiration_data_signatures = self
             .vpn_ecash_api_client
@@ -476,24 +476,27 @@ where
 
     async fn update_account_state(&self, account: &VpnApiAccount) -> Result<(), Error> {
         tracing::info!("Updating account state");
-
         let response = self.vpn_api_client.get_account_summary(account).await;
 
         // Check if the response indicates that we are not registered
         if let Some(403) = &response.as_ref().err().and_then(extract_status_code) {
+            tracing::warn!("NymVPN API reports: access denied (403)");
             self.account_state
-                .set_account(RemoteAccountState::NotRegistered)
+                .set_account(AccountState::NotRegistered)
                 .await;
         }
 
-        let account_summary = response.map_err(|source| Error::GetAccountSummary {
-            base_url: self.vpn_api_client.current_url().clone(),
-            source: Box::new(source),
+        let account_summary = response.map_err(|source| {
+            tracing::warn!("NymVPN API error response: {:?}", source);
+            Error::GetAccountSummary {
+                base_url: self.vpn_api_client.current_url().clone(),
+                source: Box::new(source),
+            }
         })?;
         tracing::info!("Account summary: {:#?}", account_summary);
 
         self.account_state
-            .set_account(RemoteAccountState::from(account_summary.account.status))
+            .set_account(AccountState::from(account_summary.account.status))
             .await;
 
         self.account_state
@@ -699,19 +702,19 @@ where
         self.update_verification_key()
             .await
             .inspect_err(|err| {
-                tracing::error!("Failed to update master verification key: {:?}", err)
+                tracing::debug!("Failed to update master verification key: {:?}", err)
             })
             .ok();
         self.update_coin_indices_signatures()
             .await
             .inspect_err(|err| {
-                tracing::error!("Failed to update coin indices signatures: {:?}", err)
+                tracing::debug!("Failed to update coin indices signatures: {:?}", err)
             })
             .ok();
         self.update_expiration_date_signatures()
             .await
             .inspect_err(|err| {
-                tracing::error!("Failed to update expiration date signatures: {:?}", err)
+                tracing::debug!("Failed to update expiration date signatures: {:?}", err)
             })
             .ok();
 
@@ -812,7 +815,7 @@ where
     let mut source = err.source();
     while let Some(err) = source {
         if let Some(status) = err
-            .downcast_ref::<HttpClientError>()
+            .downcast_ref::<HttpClientError<NymErrorResponse>>()
             .and_then(extract_status_code_inner)
         {
             return Some(status);
@@ -822,7 +825,9 @@ where
     None
 }
 
-fn extract_status_code_inner(err: &HttpClientError) -> Option<u16> {
+fn extract_status_code_inner(
+    err: &nym_vpn_api_client::HttpClientError<NymErrorResponse>,
+) -> Option<u16> {
     match err {
         HttpClientError::EndpointFailure { status, .. } => Some((*status).into()),
         _ => None,

@@ -26,8 +26,9 @@ pub(crate) enum Command {
     Info,
     SetNetwork(SetNetworkArgs),
     StoreAccount(StoreAccountArgs),
+    IsAccountStored,
     RemoveAccount,
-    GetLocalAccountState,
+    GetAccountState,
     IsReadyToConnect,
     ListenToStatus,
     ListenToStateChanges,
@@ -37,11 +38,11 @@ pub(crate) enum Command {
     ListEntryCountries(ListCountriesArgs),
     ListExitCountries(ListCountriesArgs),
     ListVpnCountries(ListCountriesArgs),
-    GetAccountSummary,
-    GetDevices,
     RegisterDevice,
     RequestZkNym,
     GetDeviceZkNym,
+    FetchRawAccountSummary,
+    FetchRawDevices,
 }
 
 #[derive(Args)]

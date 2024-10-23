@@ -3,11 +3,9 @@
 
 use maplit::hashmap;
 use nym_vpn_account_controller::ReadyToConnect;
-use nym_vpn_proto::{account_error::AccountErrorType, error::ErrorType, Error as ProtoError};
+use nym_vpn_proto::{error::ErrorType, Error as ProtoError};
 
-use crate::service::{
-    AccountError, ConnectionFailedError, SetNetworkError, VpnServiceConnectError,
-};
+use crate::service::{ConnectionFailedError, SetNetworkError, VpnServiceConnectError};
 
 impl From<VpnServiceConnectError> for nym_vpn_proto::ConnectRequestError {
     fn from(err: VpnServiceConnectError) -> Self {
@@ -443,80 +441,6 @@ impl From<ConnectionFailedError> for ProtoError {
                 details: hashmap! {
                     "reason".to_string() => reason.to_string(),
                 },
-            },
-        }
-    }
-}
-
-impl From<AccountError> for nym_vpn_proto::AccountError {
-    fn from(err: AccountError) -> Self {
-        match err {
-            AccountError::InvalidMnemonic { source } => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::InvalidMnemonic as i32,
-                message: err.to_string(),
-                details: hashmap! {
-                    "reason".to_string() => source.to_string(),
-                },
-            },
-            AccountError::FailedToStoreAccount { ref source } => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
-                message: err.to_string(),
-                details: hashmap! {
-                    "reason".to_string() => source.to_string(),
-                },
-            },
-            AccountError::FailedToCheckIfAccountIsStored { ref source } => {
-                nym_vpn_proto::AccountError {
-                    kind: AccountErrorType::Storage as i32,
-                    message: err.to_string(),
-                    details: hashmap! {
-                        "reason".to_string() => source.to_string(),
-                    },
-                }
-            }
-            AccountError::FailedToRemoveAccount { ref source } => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
-                message: err.to_string(),
-                details: hashmap! {
-                    "reason".to_string() => source.to_string(),
-                },
-            },
-            AccountError::FailedToLoadAccount { ref source } => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
-                message: err.to_string(),
-                details: hashmap! {
-                    "reason".to_string() => source.to_string(),
-                },
-            },
-            AccountError::MissingApiUrl => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
-                message: err.to_string(),
-                details: hashmap! {},
-            },
-            AccountError::InvalidApiUrl => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
-                message: err.to_string(),
-                details: hashmap! {},
-            },
-            AccountError::VpnApiClientError(_) => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
-                message: err.to_string(),
-                details: hashmap! {},
-            },
-            AccountError::FailedToLoadKeys { .. } => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
-                message: err.to_string(),
-                details: hashmap! {},
-            },
-            AccountError::FailedToGetAccountSummary { .. } => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
-                message: err.to_string(),
-                details: hashmap! {},
-            },
-            AccountError::SendCommand { .. } => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
-                message: err.to_string(),
-                details: hashmap! {},
             },
         }
     }

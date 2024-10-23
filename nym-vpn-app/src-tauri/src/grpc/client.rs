@@ -7,7 +7,7 @@ use nym_vpn_proto::{
     health_check_response::ServingStatus, health_client::HealthClient,
     is_account_stored_response::Resp as IsAccountStoredResp, nym_vpnd_client::NymVpndClient,
     ConnectRequest, ConnectionStatus, DisconnectRequest, Dns, Empty, EntryNode, ExitNode,
-    GatewayType, GetAccountSummaryRequest, HealthCheckRequest, InfoRequest, InfoResponse,
+    FetchRawAccountSummaryRequest, GatewayType, HealthCheckRequest, InfoRequest, InfoResponse,
     IsAccountStoredRequest, ListCountriesRequest, Location, SetNetworkRequest, StatusRequest,
     StatusResponse, StoreAccountRequest, UserAgent,
 };
@@ -458,9 +458,9 @@ impl GrpcClient {
         debug!("get_account_summary");
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(GetAccountSummaryRequest {});
+        let request = Request::new(FetchRawAccountSummaryRequest {});
         let response = vpnd
-            .get_account_summary(request)
+            .fetch_raw_account_summary(request)
             .await
             .map_err(|e| {
                 error!("grpc get_account_summary: {}", e);

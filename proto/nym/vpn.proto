@@ -550,21 +550,63 @@ message RemoveAccountResponse {
   AccountError error = 2;
 }
 
-message GetLocalAccountStateRequest {}
-
-message GetLocalAccountStateResponse {
-  string json = 1;
+enum MnemonicState {
+  MNEMONIC_STATE_UNSPECIFIED = 0;
+  MNEMONIC_STATE_NOT_STORED = 1;
+  MNEMONIC_STATE_STORED = 2;
 }
 
-message GetAccountSummaryRequest {}
+enum AccountState {
+  ACCOUNT_STATE_UNSPECIFIED = 0;
+  ACCOUNT_STATE_NOT_REGISTERED = 1;
+  ACCOUNT_STATE_INACTIVE = 2;
+  ACCOUNT_STATE_ACTIVE = 3;
+  ACCOUNT_STATE_DELETE_ME = 4;
+}
 
-message GetAccountSummaryResponse {
+enum SubscriptionState {
+  SUBSCRIPTION_STATE_UNSPECIFIED = 0;
+  SUBSCRIPTION_STATE_NOT_REGISTERED = 1;
+  SUBSCRIPTION_STATE_PENDING = 2;
+  SUBSCRIPTION_STATE_ACTIVE = 3;
+  SUBSCRIPTION_STATE_COMPLETE = 4;
+}
+
+enum DeviceState {
+  DEVICE_STATE_UNSPECIFIED = 0;
+  DEVICE_STATE_NOT_REGISTERED = 1;
+  DEVICE_STATE_INACTIVE = 2;
+  DEVICE_STATE_ACTIVE = 3;
+  DEVICE_STATE_DELETE_ME = 4;
+}
+
+message AccountSummary {
+  optional MnemonicState mnemonic = 1;
+  optional AccountState account = 2;
+  optional SubscriptionState subscription = 3;
+  optional DeviceState device = 4;
+  bool pending_zk_nym = 5;
+}
+
+message GetAccountStateRequest {}
+
+message GetAccountStateResponse {
+  oneof result {
+    AccountSummary account_summary = 1;
+    AccountError error = 2;
+  }
+}
+
+message FetchRawAccountSummaryRequest {}
+
+message FetchRawAccountSummaryResponse {
   string json = 1;
   AccountError error = 2;
 }
 
-message GetDevicesRequest {}
-message GetDevicesResponse {
+message FetchRawDevicesRequest {}
+
+message FetchRawDevicesResponse {
   string json = 1;
   AccountError error = 2;
 }
@@ -681,7 +723,7 @@ service NymVpnd {
 
   // Query the account state, which refers to the server side account, as it is
   // known and interpreted by nym-vpnd
-  rpc GetLocalAccountState (GetLocalAccountStateRequest) returns (GetLocalAccountStateResponse) {}
+  rpc GetAccountState (GetAccountStateRequest) returns (GetAccountStateResponse) {}
   rpc IsReadyToConnect (IsReadyToConnectRequest) returns (IsReadyToConnectResponse) {}
 
   // Try to register the local device with the nym-vpn-api
@@ -690,16 +732,16 @@ service NymVpnd {
   // Request new zk-nyms (ticketbooks) from the nym-vpn-api
   rpc RequestZkNym (RequestZkNymRequest) returns (RequestZkNymResponse) {}
 
+  // List the zk-nyms associated with this device from the nym-vpn-api
+  rpc GetDeviceZkNyms (GetDeviceZkNymsRequest) returns (GetDeviceZkNymsResponse) {}
+
   // -- Delegated remote calls --
   // These query the remote nym-vpn-api state directly
 
   // Get the server side account summary directly from the nym-vpn-api
-  rpc GetAccountSummary (GetAccountSummaryRequest) returns (GetAccountSummaryResponse) {}
+  rpc FetchRawAccountSummary (FetchRawAccountSummaryRequest) returns (FetchRawAccountSummaryResponse) {}
 
   // Get the list of devices directly from the nym-vpn-api
-  rpc GetDevices (GetDevicesRequest) returns (GetDevicesResponse) {}
-
-  // List the zk-nyms associated with this device from the nym-vpn-api
-  rpc GetDeviceZkNyms (GetDeviceZkNymsRequest) returns (GetDeviceZkNymsResponse) {}
+  rpc FetchRawDevices (FetchRawDevicesRequest) returns (FetchRawDevicesResponse) {}
 }
 

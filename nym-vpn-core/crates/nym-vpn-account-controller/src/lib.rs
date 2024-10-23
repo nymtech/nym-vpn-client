@@ -9,7 +9,7 @@
 mod controller;
 mod ecash_client;
 mod error;
-mod shared_state;
+pub mod shared_state;
 
 pub use controller::{AccountCommand, AccountController};
-pub use shared_state::{AccountState, ReadyToConnect, SharedAccountState};
+pub use shared_state::{AccountStateSummary, ReadyToConnect, SharedAccountState};

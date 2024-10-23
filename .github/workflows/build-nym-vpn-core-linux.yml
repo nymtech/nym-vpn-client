@@ -37,6 +37,12 @@ jobs:
           toolchain: stable
           components: rustfmt, clippy
 
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v4
         with:

@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_account_controller::{AccountState, ReadyToConnect};
+use nym_vpn_account_controller::{AccountStateSummary, ReadyToConnect};
 use tokio::sync::{mpsc::UnboundedSender, oneshot};
 
 use nym_vpn_api_client::{
@@ -139,24 +139,25 @@ impl CommandInterfaceConnectionHandler {
             .await
     }
 
-    pub(crate) async fn handle_get_local_account_state(
+    pub(crate) async fn handle_get_account_state(
         &self,
-    ) -> Result<Result<AccountState, AccountError>, VpnCommandSendError> {
-        self.send_and_wait(VpnServiceCommand::GetLocalAccountState, ())
+    ) -> Result<Result<AccountStateSummary, AccountError>, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::GetAccountState, ())
             .await
     }
 
-    pub(crate) async fn handle_get_account_summary(
+    pub(crate) async fn handle_fetch_raw_account_summary(
         &self,
     ) -> Result<Result<NymVpnAccountSummaryResponse, AccountError>, VpnCommandSendError> {
-        self.send_and_wait(VpnServiceCommand::GetAccountSummary, ())
+        self.send_and_wait(VpnServiceCommand::FetchRawAccountSummary, ())
             .await
     }
 
-    pub(crate) async fn handle_get_devices(
+    pub(crate) async fn handle_fetch_raw_devices(
         &self,
     ) -> Result<Result<NymVpnDevicesResponse, AccountError>, VpnCommandSendError> {
-        self.send_and_wait(VpnServiceCommand::GetDevices, ()).await
+        self.send_and_wait(VpnServiceCommand::FetchRawDevices, ())
+            .await
     }
 
     pub(crate) async fn handle_register_device(

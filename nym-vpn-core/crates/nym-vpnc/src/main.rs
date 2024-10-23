@@ -5,11 +5,11 @@ use anyhow::Result;
 use clap::Parser;
 use nym_gateway_directory::GatewayType;
 use nym_vpn_proto::{
-    ConnectRequest, DisconnectRequest, Empty, GetAccountSummaryRequest, GetDeviceZkNymsRequest,
-    GetDevicesRequest, GetLocalAccountStateRequest, InfoRequest, InfoResponse,
-    IsReadyToConnectRequest, ListCountriesRequest, ListGatewaysRequest, RegisterDeviceRequest,
-    RemoveAccountRequest, RequestZkNymRequest, SetNetworkRequest, StatusRequest,
-    StoreAccountRequest, UserAgent,
+    ConnectRequest, DisconnectRequest, Empty, FetchRawAccountSummaryRequest,
+    FetchRawDevicesRequest, GetAccountStateRequest, GetDeviceZkNymsRequest, InfoRequest,
+    InfoResponse, IsAccountStoredRequest, IsReadyToConnectRequest, ListCountriesRequest,
+    ListGatewaysRequest, RegisterDeviceRequest, RemoveAccountRequest, RequestZkNymRequest,
+    SetNetworkRequest, StatusRequest, StoreAccountRequest, UserAgent,
 };
 use protobuf_conversion::{into_gateway_type, into_threshold};
 use sysinfo::System;
@@ -42,8 +42,9 @@ async fn main() -> Result<()> {
         Command::Info => info(client_type).await?,
         Command::SetNetwork(ref args) => set_network(client_type, args).await?,
         Command::StoreAccount(ref store_args) => store_account(client_type, store_args).await?,
+        Command::IsAccountStored => is_account_stored(client_type).await?,
         Command::RemoveAccount => remove_account(client_type).await?,
-        Command::GetLocalAccountState => get_local_account_state(client_type).await?,
+        Command::GetAccountState => get_account_state(client_type).await?,
         Command::IsReadyToConnect => is_ready_to_connect(client_type).await?,
         Command::ListenToStatus => listen_to_status(client_type).await?,
         Command::ListenToStateChanges => listen_to_state_changes(client_type).await?,
@@ -65,11 +66,11 @@ async fn main() -> Result<()> {
         Command::ListVpnCountries(ref list_args) => {
             list_countries(client_type, list_args, GatewayType::Wg).await?
         }
-        Command::GetAccountSummary => get_account_summary(client_type).await?,
-        Command::GetDevices => get_devices(client_type).await?,
         Command::RegisterDevice => register_device(client_type).await?,
         Command::RequestZkNym => request_zk_nym(client_type).await?,
         Command::GetDeviceZkNym => get_device_zk_nym(client_type).await?,
+        Command::FetchRawAccountSummary => fetch_raw_account_summary(client_type).await?,
+        Command::FetchRawDevices => fetch_raw_devices(client_type).await?,
     }
     Ok(())
 }
@@ -187,6 +188,14 @@ async fn store_account(client_type: ClientType, store_args: &cli::StoreAccountAr
     Ok(())
 }
 
+async fn is_account_stored(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(IsAccountStoredRequest {});
+    let response = client.is_account_stored(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
 async fn remove_account(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(RemoveAccountRequest {});
@@ -195,10 +204,10 @@ async fn remove_account(client_type: ClientType) -> Result<()> {
     Ok(())
 }
 
-async fn get_local_account_state(client_type: ClientType) -> Result<()> {
+async fn get_account_state(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
-    let request = tonic::Request::new(GetLocalAccountStateRequest {});
-    let response = client.get_local_account_state(request).await?.into_inner();
+    let request = tonic::Request::new(GetAccountStateRequest {});
+    let response = client.get_account_state(request).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
@@ -211,18 +220,21 @@ async fn is_ready_to_connect(client_type: ClientType) -> Result<()> {
     Ok(())
 }
 
-async fn get_account_summary(client_type: ClientType) -> Result<()> {
+async fn fetch_raw_account_summary(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
-    let request = tonic::Request::new(GetAccountSummaryRequest {});
-    let response = client.get_account_summary(request).await?.into_inner();
+    let request = tonic::Request::new(FetchRawAccountSummaryRequest {});
+    let response = client
+        .fetch_raw_account_summary(request)
+        .await?
+        .into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
-async fn get_devices(client_type: ClientType) -> Result<()> {
+async fn fetch_raw_devices(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
-    let request = tonic::Request::new(GetDevicesRequest {});
-    let response = client.get_devices(request).await?.into_inner();
+    let request = tonic::Request::new(FetchRawDevicesRequest {});
+    let response = client.fetch_raw_devices(request).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
