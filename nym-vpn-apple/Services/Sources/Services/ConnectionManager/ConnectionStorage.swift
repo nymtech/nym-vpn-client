@@ -29,7 +29,10 @@ public final class ConnectionStorage {
             return .random
         }
 
-        if !appSettings.entryCountryCode.isEmpty {
+        let countryType: CountryType = connectionType() == .wireguard ? .vpn : .entry
+        let country = countriesManager.country(with: appSettings.entryCountryCode, countryType: countryType)
+
+        if !appSettings.entryCountryCode.isEmpty && country != nil {
             return .country(code: existingCountryCode(with: appSettings.entryCountryCode, countryType: .entry))
         } else {
             guard let entryCountry = self.countriesManager.entryCountries.first
@@ -41,7 +44,10 @@ public final class ConnectionStorage {
     }
 
     func exitRouter() -> ExitRouter {
-        if !appSettings.exitCountryCode.isEmpty {
+        let countryType: CountryType = connectionType() == .wireguard ? .vpn : .exit
+        let country = countriesManager.country(with: appSettings.entryCountryCode, countryType: countryType)
+
+        if !appSettings.exitCountryCode.isEmpty && country != nil {
             return .country(code: existingCountryCode(with: appSettings.exitCountryCode, countryType: .exit))
         } else {
             guard let exitCountry = self.countriesManager.exitCountries.first
