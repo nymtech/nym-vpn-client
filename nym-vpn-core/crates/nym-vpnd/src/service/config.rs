@@ -23,16 +23,18 @@ pub(crate) const DEFAULT_GLOBAL_CONFIG_FILE: &str = "config.toml";
 #[derive(Debug, Clone)]
 pub(crate) enum NetworkEnvironments {
     Mainnet,
-    Qa,
+    Sandbox,
     Canary,
+    Qa,
 }
 
 impl fmt::Display for NetworkEnvironments {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             NetworkEnvironments::Mainnet => write!(f, "mainnet"),
-            NetworkEnvironments::Qa => write!(f, "qa"),
+            NetworkEnvironments::Sandbox => write!(f, "sandbox"),
             NetworkEnvironments::Canary => write!(f, "canary"),
+            NetworkEnvironments::Qa => write!(f, "qa"),
         }
     }
 }
@@ -43,8 +45,9 @@ impl TryFrom<&str> for NetworkEnvironments {
     fn try_from(env: &str) -> Result<Self, Self::Error> {
         match env {
             "mainnet" => Ok(NetworkEnvironments::Mainnet),
-            "qa" => Ok(NetworkEnvironments::Qa),
+            "sandbox" => Ok(NetworkEnvironments::Sandbox),
             "canary" => Ok(NetworkEnvironments::Canary),
+            "qa" => Ok(NetworkEnvironments::Qa),
             _ => Err("Invalid network environment"),
         }
     }
