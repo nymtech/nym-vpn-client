@@ -23,6 +23,7 @@ pub enum ReadyToRegisterDevice {
     NoActiveSubscription,
     DeviceAlreadyRegistered,
     DeviceInactive,
+    DeviceDeleted,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -95,6 +96,9 @@ impl SharedAccountState {
         }
         if state.device == Some(DeviceState::Inactive) {
             return ReadyToRegisterDevice::DeviceInactive;
+        }
+        if state.device == Some(DeviceState::DeleteMe) {
+            return ReadyToRegisterDevice::DeviceDeleted;
         }
         ReadyToRegisterDevice::Ready
     }
