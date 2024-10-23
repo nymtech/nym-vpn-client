@@ -480,10 +480,6 @@ where
     S: nym_vpn_store::VpnStorage,
 {
     pub(crate) async fn run(mut self) -> anyhow::Result<()> {
-        // Start by refreshing the account state
-        self.account_command_tx
-            .send(AccountCommand::UpdateSharedAccountState)?;
-
         loop {
             tokio::select! {
                 Some(command) = self.vpn_command_rx.recv() => {
