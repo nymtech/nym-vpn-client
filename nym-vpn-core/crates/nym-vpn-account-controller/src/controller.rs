@@ -28,7 +28,6 @@ use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use tokio::{
     sync::mpsc::{UnboundedReceiver, UnboundedSender},
     task::{JoinError, JoinSet},
-    time::timeout,
 };
 use tokio_util::sync::CancellationToken;
 use url::Url;
@@ -657,6 +656,37 @@ where
         Ok(())
     }
 
+    async fn cleanup(mut self) {
+        let timeout = tokio::time::sleep(Duration::from_secs(5));
+        tokio::pin!(timeout);
+        loop {
+            tokio::select! {
+                _ = &mut timeout => {
+                    tracing::warn!("Timeout waiting for polling tasks to finish, pending zk-nym's not imported into local credential store!");
+                    break;
+                }
+                result = self.polling_tasks.join_next() => match result {
+                    Some(result) => self.handle_polling_result(result).await,
+                    None => break,
+                }
+            }
+        }
+    }
+
+    pub fn shared_state(&self) -> SharedAccountState {
+        self.account_state.clone()
+    }
+
+    pub fn command_tx(&self) -> UnboundedSender<AccountCommand> {
+        self.command_tx.clone()
+    }
+
+    fn queue_command(&self, command: AccountCommand) {
+        if let Err(err) = self.command_tx.send(command) {
+            tracing::error!("Failed to queue command: {:#?}", err);
+        }
+    }
+
     pub async fn run(mut self) {
         if let Err(err) = self.print_credential_storage_info().await {
             tracing::error!("Failed to print credential storage info: {:#?}", err);
@@ -706,13 +736,6 @@ where
                 }
                 _ = self.cancel_token.cancelled() => {
                     tracing::trace!("Received cancellation signal");
-                    if !self.polling_tasks.is_empty() {
-                        tracing::info!("Waiting for polling remaining zknyms (5 secs) ...");
-                        match timeout(Duration::from_secs(5), self.polling_tasks.join_all()).await {
-                            Ok(_) => tracing::info!("All polling tasks finished"),
-                            Err(err) => tracing::warn!("Failed to wait for polling tasks, pending zknym's not imported into local credential store! {:#?}", err),
-                        }
-                    }
                     break;
                 }
                 else => {
@@ -721,21 +744,9 @@ where
                 }
             }
         }
+
+        self.cleanup().await;
         tracing::debug!("Account controller is exiting");
-    }
-
-    pub fn shared_state(&self) -> SharedAccountState {
-        self.account_state.clone()
-    }
-
-    pub fn command_tx(&self) -> UnboundedSender<AccountCommand> {
-        self.command_tx.clone()
-    }
-
-    fn queue_command(&self, command: AccountCommand) {
-        if let Err(err) = self.command_tx.send(command) {
-            tracing::error!("Failed to queue command: {:#?}", err);
-        }
     }
 }
 
