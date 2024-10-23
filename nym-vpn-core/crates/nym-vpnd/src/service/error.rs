@@ -348,6 +348,9 @@ pub enum AccountError {
     SendCommand {
         source: Box<SendError<nym_vpn_account_controller::AccountCommand>>,
     },
+
+    #[error("no account stored")]
+    NoAccountStored,
 }
 
 #[derive(Debug, thiserror::Error)]
