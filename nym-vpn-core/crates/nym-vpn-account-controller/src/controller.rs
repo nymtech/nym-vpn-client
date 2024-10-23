@@ -22,7 +22,7 @@ use nym_vpn_api_client::{
     types::{Device, VpnApiAccount},
     HttpClientError, VpnApiClientError,
 };
-use nym_vpn_store::{keys::KeyStore, mnemonic::MnemonicStorage, VpnStorage};
+use nym_vpn_store::VpnStorage;
 use serde::{Deserialize, Serialize};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use tokio::{
