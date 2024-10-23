@@ -12,4 +12,4 @@ mod request;
 mod routes;
 
 pub use client::VpnApiClient;
-pub use error::{VpnApiClientError, HttpClientError};
+pub use error::{HttpClientError, VpnApiClientError};
