@@ -26,6 +26,7 @@ pub(crate) enum Command {
     Info,
     SetNetwork(SetNetworkArgs),
     StoreAccount(StoreAccountArgs),
+    IsAccountStored,
     RemoveAccount,
     GetLocalAccountState,
     IsReadyToConnect,
