@@ -10,8 +10,7 @@ use std::{
 use nym_compact_ecash::{Base58 as _, BlindedSignature, VerificationKeyAuth};
 use nym_config::defaults::NymNetworkDetails;
 use nym_credentials::{
-    AggregatedCoinIndicesSignatures, AggregatedExpirationDateSignatures, EpochVerificationKey,
-    IssuedTicketBook,
+    AggregatedCoinIndicesSignatures, AggregatedExpirationDateSignatures, IssuedTicketBook,
 };
 use nym_credentials_interface::{RequestInfo, TicketType};
 use nym_ecash_time::EcashTime;
@@ -318,34 +317,21 @@ where
 
     #[allow(unused)]
     async fn update_ecash_epoch(&mut self) -> Result<(), Error> {
-        let aggregated_coin_indices_signatures = self
+        self.current_epoch = self
             .vpn_ecash_api_client
             .get_aggregated_coin_indices_signatures()
-            .await?;
-        let current_epoch = aggregated_coin_indices_signatures.epoch_id;
-
-        self.current_epoch = Some(current_epoch);
+            .await
+            .ok()
+            .map(|response| response.epoch_id);
         Ok(())
     }
 
     async fn update_verification_key(&mut self) -> Result<(), Error> {
         tracing::debug!("Updating verification key");
-
-        let master_verification_key = self
+        let verification_key = self
             .vpn_ecash_api_client
             .get_master_verification_key()
             .await?;
-        let aggregated_coin_indices_signatures = self
-            .vpn_ecash_api_client
-            .get_aggregated_coin_indices_signatures()
-            .await?;
-        let current_epoch = aggregated_coin_indices_signatures.epoch_id;
-
-        let verification_key = EpochVerificationKey {
-            epoch_id: current_epoch,
-            key: master_verification_key.key,
-        };
-
         self.credential_storage
             .insert_master_verification_key(&verification_key)
             .await
@@ -360,17 +346,10 @@ where
 
     async fn update_coin_indices_signatures(&mut self) -> Result<(), Error> {
         tracing::debug!("Updating coin indices signatures");
-
-        let aggregated_coin_indices_signatures = self
+        let coin_indices_signatures = self
             .vpn_ecash_api_client
             .get_aggregated_coin_indices_signatures()
             .await?;
-
-        let coin_indices_signatures = AggregatedCoinIndicesSignatures {
-            epoch_id: aggregated_coin_indices_signatures.epoch_id,
-            signatures: aggregated_coin_indices_signatures.signatures,
-        };
-
         self.credential_storage
             .insert_coin_index_signatures(&coin_indices_signatures)
             .await
@@ -378,17 +357,10 @@ where
 
     async fn update_expiration_date_signatures(&mut self) -> Result<(), Error> {
         tracing::debug!("Updating expiration date signatures");
-
-        let aggregated_expiration_data_signatures = self
+        let expiration_date_signatures = self
             .vpn_ecash_api_client
             .get_aggregated_expiration_data_signatures()
             .await?;
-
-        let expiration_date_signatures = AggregatedExpirationDateSignatures {
-            epoch_id: aggregated_expiration_data_signatures.epoch_id,
-            expiration_date: aggregated_expiration_data_signatures.expiration_date,
-            signatures: aggregated_expiration_data_signatures.signatures,
-        };
         self.credential_storage
             .insert_expiration_date_signatures(&expiration_date_signatures)
             .await
