@@ -218,7 +218,7 @@ impl From<TunnelState> for VpnServiceStatus {
                     entry_gateway: *connection_data.entry_gateway,
                     exit_gateway: *connection_data.exit_gateway,
                     specific_details: ConnectedStateDetails::from(connection_data.tunnel),
-                    since: time::OffsetDateTime::now_utc(),
+                    since: connection_data.connected_at,
                 }))
             }
             TunnelState::Connecting => Self::Connecting,
