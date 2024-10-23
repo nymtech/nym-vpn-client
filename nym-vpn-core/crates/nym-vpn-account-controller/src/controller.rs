@@ -22,10 +22,14 @@ use nym_vpn_api_client::{
     types::{Device, VpnApiAccount},
     HttpClientError, VpnApiClientError,
 };
-use nym_vpn_store::{keys::KeyStore, mnemonic::MnemonicStorage};
+use nym_vpn_store::{keys::KeyStore, mnemonic::MnemonicStorage, VpnStorage};
 use serde::{Deserialize, Serialize};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
-use tokio::{task::JoinError, time::timeout};
+use tokio::{
+    sync::mpsc::{UnboundedReceiver, UnboundedSender},
+    task::{JoinError, JoinSet},
+    time::timeout,
+};
 use tokio_util::sync::CancellationToken;
 use url::Url;
 
@@ -36,6 +40,7 @@ use crate::{
         AccountState, DeviceState, MnemonicState, ReadyToRegisterDevice, SharedAccountState,
         SubscriptionState,
     },
+    storage::AccountStorage,
 };
 
 // If we go below this threshold, we should request more tickets
@@ -53,10 +58,10 @@ pub enum AccountCommand {
 
 pub struct AccountController<S>
 where
-    S: nym_vpn_store::VpnStorage,
+    S: VpnStorage,
 {
-    // The underlying storage used to store the account and device keys
-    storage: Arc<tokio::sync::Mutex<S>>,
+    // The storage used for the account and device keys
+    account_storage: AccountStorage<S>,
 
     // Storage used for credentials
     credential_storage: nym_credential_storage::persistent_storage::PersistentStorage,
@@ -75,7 +80,7 @@ where
     current_epoch: Option<u64>,
 
     // Tasks used to poll the status of zk-nyms
-    polling_tasks: tokio::task::JoinSet<PollingResult>,
+    polling_tasks: JoinSet<PollingResult>,
 
     // Keep track of which zknyms we have imported, so that we don't import the same twice
     // TODO: can we extend the credential store with a name field?
@@ -83,11 +88,11 @@ where
     zk_nym_imported: Vec<String>,
 
     // Receiver channel used to receive commands from the consumer
-    command_rx: tokio::sync::mpsc::UnboundedReceiver<AccountCommand>,
+    command_rx: UnboundedReceiver<AccountCommand>,
 
     // Sender channel primarily used when the consumer requests a channel to talk to the
     // controller, but also to queue up commands to itself
-    command_tx: tokio::sync::mpsc::UnboundedSender<AccountCommand>,
+    command_tx: UnboundedSender<AccountCommand>,
 
     // Listen for cancellation signals
     cancel_token: CancellationToken,
@@ -95,7 +100,7 @@ where
 
 impl<S> AccountController<S>
 where
-    S: nym_vpn_store::VpnStorage,
+    S: VpnStorage,
 {
     pub async fn new(
         storage: Arc<tokio::sync::Mutex<S>>,
@@ -103,6 +108,8 @@ where
         user_agent: UserAgent,
         cancel_token: CancellationToken,
     ) -> Self {
+        let account_storage = AccountStorage::from(storage);
+
         // TODO: remove unwraps.
         let storage_paths = nym_sdk::mixnet::StoragePaths::new_from_dir(data_dir).unwrap();
         let credential_storage = storage_paths.persistent_credential_storage().await.unwrap();
@@ -110,69 +117,25 @@ where
         let (command_tx, command_rx) = tokio::sync::mpsc::unbounded_channel();
 
         AccountController {
-            storage,
+            account_storage,
             credential_storage,
             vpn_api_client: create_api_client(user_agent),
             vpn_ecash_api_client: create_ecash_api_client(),
             account_state: SharedAccountState::new(),
             current_epoch: None,
             zk_nym_imported: Default::default(),
-            polling_tasks: tokio::task::JoinSet::new(),
+            polling_tasks: JoinSet::new(),
             command_rx,
             command_tx,
             cancel_token,
         }
     }
 
-    // Load account and keep the error type
-    async fn load_account_from_storage(
-        &self,
-    ) -> Result<VpnApiAccount, <S as MnemonicStorage>::StorageError> {
-        self.storage
-            .lock()
-            .await
-            .load_mnemonic()
-            .await
-            .map(VpnApiAccount::from)
-            .inspect(|account| tracing::info!("Loading account id: {}", account.id()))
-    }
-
-    // Convenience function to load account and box the error
-    async fn load_account(&self) -> Result<VpnApiAccount, Error> {
-        self.load_account_from_storage()
-            .await
-            .map_err(|err| Error::MnemonicStore {
-                source: Box::new(err),
-            })
-    }
-
-    // Load device keys and keep the error type
-    async fn load_device_keys_from_storage(&self) -> Result<Device, <S as KeyStore>::StorageError> {
-        self.storage
-            .lock()
-            .await
-            .load_keys()
-            .await
-            .map(|keys| Device::from(keys.device_keypair()))
-            .inspect(|device| {
-                tracing::info!("Loading device keys: {}", device.identity_key());
-            })
-    }
-
-    // Convenience function to load device keys and box the error
-    async fn load_device_keys(&self) -> Result<Device, Error> {
-        self.load_device_keys_from_storage()
-            .await
-            .map_err(|err| Error::KeyStore {
-                source: Box::new(err),
-            })
-    }
-
     async fn register_device(&self) -> Result<(), Error> {
         tracing::info!("Registering device");
 
-        let account = self.load_account().await?;
-        let device = self.load_device_keys().await?;
+        let account = self.account_storage.load_account().await?;
+        let device = self.account_storage.load_device_keys().await?;
 
         self.vpn_api_client
             .register_device(&account, &device)
@@ -298,8 +261,8 @@ where
     async fn request_zk_nym_all(&mut self) -> Result<(), Error> {
         tracing::info!("Requesting zk-nym (inner)");
 
-        let account = self.load_account().await?;
-        let device = self.load_device_keys().await?;
+        let account = self.account_storage.load_account().await?;
+        let device = self.account_storage.load_device_keys().await?;
 
         // Then we check local storage to see what ticket types we already have stored
         let local_remaining_tickets = self.check_local_remaining_tickets().await;
@@ -333,8 +296,8 @@ where
     async fn get_device_zk_nym(&mut self) -> Result<(), Error> {
         tracing::info!("Getting device zk-nym from API");
 
-        let account = self.load_account().await?;
-        let device = self.load_device_keys().await?;
+        let account = self.account_storage.load_account().await?;
+        let device = self.account_storage.load_device_keys().await?;
 
         let reported_device_zk_nyms = self
             .vpn_api_client
@@ -458,7 +421,7 @@ where
     }
 
     async fn update_mnemonic_state(&self) -> Option<VpnApiAccount> {
-        match self.load_account().await {
+        match self.account_storage.load_account().await {
             Ok(account) => {
                 tracing::debug!("Our account id: {}", account.id());
                 self.account_state.set_mnemonic(MnemonicState::Stored).await;
@@ -508,7 +471,7 @@ where
 
     async fn update_device_state(&self, account: &VpnApiAccount) -> Result<(), Error> {
         tracing::info!("Updating device state");
-        let our_device = self.load_device_keys().await?;
+        let our_device = self.account_storage.load_device_keys().await?;
 
         let devices = self
             .vpn_api_client
@@ -572,7 +535,7 @@ where
         ticketbook_type: TicketType,
         request_info: RequestInfo,
     ) -> Result<(), Error> {
-        let account = self.load_account().await?;
+        let account = self.account_storage.load_account().await?;
         let ecash_keypair = account
             .create_ecash_keypair()
             .map_err(Error::CreateEcashKeyPair)?;
@@ -765,7 +728,7 @@ where
         self.account_state.clone()
     }
 
-    pub fn command_tx(&self) -> tokio::sync::mpsc::UnboundedSender<AccountCommand> {
+    pub fn command_tx(&self) -> UnboundedSender<AccountCommand> {
         self.command_tx.clone()
     }
 
