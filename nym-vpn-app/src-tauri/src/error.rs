@@ -6,7 +6,11 @@ use std::{
 use nym_vpn_proto::account_error::AccountErrorType;
 use nym_vpn_proto::connect_request_error::ConnectRequestErrorType;
 use nym_vpn_proto::connection_status_update::StatusType;
-use nym_vpn_proto::{error::ErrorType as DError, AccountError, ConnectRequestError, GatewayType};
+use nym_vpn_proto::set_network_request_error::SetNetworkRequestErrorType;
+use nym_vpn_proto::{
+    error::ErrorType as DError, AccountError, ConnectRequestError, GatewayType,
+    SetNetworkRequestError,
+};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use ts_rs::TS;
@@ -208,6 +212,8 @@ pub enum ErrorKey {
     GetMixnetEntryCountriesQuery,
     GetMixnetExitCountriesQuery,
     GetWgCountriesQuery,
+    // Forwarded from proto `set_network_request_error::SetNetworkRequestErrorType`
+    InvalidNetworkName,
 }
 
 impl From<DError> for ErrorKey {
@@ -337,5 +343,22 @@ impl From<GatewayType> for ErrorKey {
             GatewayType::Wg => ErrorKey::GetWgCountriesQuery,
             _ => ErrorKey::UnknownError, // & `Unspecified`
         }
+    }
+}
+
+impl From<SetNetworkRequestErrorType> for ErrorKey {
+    fn from(error: SetNetworkRequestErrorType) -> Self {
+        match error {
+            SetNetworkRequestErrorType::Internal => ErrorKey::InternalError,
+            SetNetworkRequestErrorType::InvalidNetworkName => ErrorKey::InvalidNetworkName,
+            SetNetworkRequestErrorType::Unspecified => ErrorKey::UnknownError,
+        }
+    }
+}
+
+impl From<SetNetworkRequestError> for BackendError {
+    fn from(error: SetNetworkRequestError) -> Self {
+        let message = error.message.clone();
+        BackendError::new(&message, ErrorKey::from(error.kind()))
     }
 }

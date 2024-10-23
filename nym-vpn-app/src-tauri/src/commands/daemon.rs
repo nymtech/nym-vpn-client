@@ -13,6 +13,17 @@ pub struct DaemonInfo {
     network: String,
 }
 
+#[derive(strum::AsRefStr, Serialize, Deserialize, Debug, Clone, TS)]
+#[serde(rename_all = "lowercase")]
+#[strum(serialize_all = "lowercase")]
+#[ts(export)]
+pub enum NetworkEnv {
+    Mainnet,
+    Cannary,
+    QA,
+    Sandbox,
+}
+
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn daemon_status(
@@ -43,4 +54,20 @@ pub async fn daemon_info(grpc_client: State<'_, GrpcClient>) -> Result<DaemonInf
         version: res.version,
         network: res.network_name,
     })
+}
+
+#[instrument(skip(grpc_client))]
+#[tauri::command]
+pub async fn set_network(
+    grpc_client: State<'_, GrpcClient>,
+    network: NetworkEnv,
+) -> Result<(), BackendError> {
+    debug!("set_network");
+    grpc_client
+        .set_network(network.as_ref())
+        .await
+        .map_err(|e| {
+            warn!("failed to set network {}: {:?}", network.as_ref(), e);
+            e.into()
+        })
 }

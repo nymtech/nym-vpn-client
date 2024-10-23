@@ -10,7 +10,7 @@ import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
 import { useExit } from '../../state';
 import { StateDispatch } from '../../types';
 import { Button, MsIcon, PageAnim, SettingsMenuCard, Switch } from '../../ui';
-import InfoData from './InfoData';
+import { InfoData } from './info-data';
 import SettingsGroup from './SettingsGroup';
 import { capFirst } from '../../helpers';
 import { AccountUrl } from '../../constants';

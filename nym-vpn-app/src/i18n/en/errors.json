@@ -3,7 +3,8 @@
   "internal": "Internal error",
   "daemon": {
     "not-connected": "Not connected to the daemon",
-    "internal": "Daemon internal error"
+    "internal": "Daemon internal error",
+    "invalid-network": "Invalid network"
   },
   "grpc": "Internal gRPC error",
   "connection": {

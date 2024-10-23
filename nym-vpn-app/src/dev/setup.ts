@@ -1,7 +1,13 @@
 import { mockIPC, mockWindows } from '@tauri-apps/api/mocks';
 import { InvokeArgs } from '@tauri-apps/api/core';
 import { emit } from '@tauri-apps/api/event';
-import { Cli, ConnectionState, DaemonStatus, DbKey } from '../types';
+import {
+  Cli,
+  ConnectionState,
+  DaemonInfo,
+  DaemonStatus,
+  DbKey,
+} from '../types';
 import { ConnectionEvent } from '../constants';
 import { Country } from '../types';
 
@@ -111,6 +117,19 @@ export function mockTauriIPC() {
 
     if (cmd === 'is_account_stored') {
       return new Promise<boolean>((resolve) => resolve(false));
+    }
+
+    // if (cmd === 'add_account') {
+    //   return new Promise<boolean>((_, reject) => reject(new Error('nope')));
+    // }
+
+    if (cmd === 'daemon_info') {
+      return new Promise<DaemonInfo>((resolve) =>
+        resolve({
+          network: 'Mainnet',
+          version: '0.1.0',
+        }),
+      );
     }
   }) as MockIpcFn);
 }
