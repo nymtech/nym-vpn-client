@@ -31,7 +31,7 @@ constructor(
 		var stateMessage = connectionState.stateMessage
 		when (manager.backendMessage) {
 			is BackendMessage.Failure -> {
-				stateMessage = StateMessage.Error(manager.backendMessage.exception)
+				stateMessage = StateMessage.Error(manager.backendMessage.reason)
 			}
 			BackendMessage.None -> stateMessage = connectionState.stateMessage
 			is BackendMessage.BandwidthAlert -> Unit
