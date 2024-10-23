@@ -890,6 +890,10 @@ where
     async fn handle_fetch_raw_account_summary(
         &self,
     ) -> Result<NymVpnAccountSummaryResponse, AccountError> {
+        if !self.handle_is_account_stored().await? {
+            return Err(AccountError::NoAccountStored);
+        }
+
         // Get account
         let account = self.load_account().await?;
 
@@ -905,6 +909,10 @@ where
     }
 
     async fn handle_fetch_raw_devices(&self) -> Result<NymVpnDevicesResponse, AccountError> {
+        if !self.handle_is_account_stored().await? {
+            return Err(AccountError::NoAccountStored);
+        }
+
         // Get account
         let account = self.load_account().await?;
 
