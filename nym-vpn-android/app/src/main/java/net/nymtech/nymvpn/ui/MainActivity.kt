@@ -136,16 +136,17 @@ class MainActivity : ComponentActivity() {
 			LaunchedEffect(appState.backendMessage) {
 				when (val message = appState.backendMessage) {
 					is BackendMessage.Failure -> {
-						when (message.exception) {
-							is VpnException.InvalidCredential -> {
-								if (NymVpn.isForeground()) {
-									SnackbarController.showMessage(StringValue.StringResource(R.string.exception_cred_invalid))
-									navController.goFromRoot(Route.Credential)
-								}
-							}
-
-							else -> Unit
-						}
+						//TODO invalid credential errors?
+//						when (message.exception) {
+//							is VpnException.InvalidCredential -> {
+//								if (NymVpn.isForeground()) {
+//									SnackbarController.showMessage(StringValue.StringResource(R.string.exception_cred_invalid))
+//									navController.goFromRoot(Route.Credential)
+//								}
+//							}
+//
+//							else -> Unit
+//						}
 					}
 
 					else -> Unit

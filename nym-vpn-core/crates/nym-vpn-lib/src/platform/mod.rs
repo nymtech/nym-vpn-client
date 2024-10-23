@@ -304,11 +304,6 @@ pub struct VPNConfig {
 #[uniffi::export(with_foreign)]
 pub trait TunnelStatusListener: Send + Sync {
     fn on_event(&self, event: TunnelEvent);
-    fn on_tun_status_change(&self, status: TunStatus);
-    fn on_bandwidth_status_change(&self, status: BandwidthStatus);
-    fn on_connection_status_change(&self, status: ConnectionStatus);
-    fn on_nym_vpn_status_change(&self, status: NymVpnStatus);
-    fn on_exit_status_change(&self, status: ExitStatus);
 }
 
 struct StateMachineHandle {
@@ -376,28 +371,6 @@ async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, Vp
     let event_broadcaster_handler = tokio::spawn(async move {
         while let Some(event) = event_receiver.recv().await {
             if let Some(ref state_listener) = state_listener {
-                // todo: done this way for compatibility. New code should use on_event() instead.
-                match event {
-                    TunnelEvent::NewState(ref state) => {
-                        if let Some(nym_vpn_status) = nym_vpn_status_from_tunnel_state(state) {
-                            (*state_listener).on_nym_vpn_status_change(nym_vpn_status);
-                        }
-
-                        if let Some(exit_status) = exit_status_from_tunnel_state(state) {
-                            (*state_listener).on_exit_status_change(exit_status);
-                        }
-
-                        (*state_listener).on_tun_status_change(TunStatus::from(state));
-                    }
-                    TunnelEvent::MixnetState(MixnetEvent::Bandwidth(sub_event)) => {
-                        (*state_listener)
-                            .on_bandwidth_status_change(BandwidthStatus::from(sub_event))
-                    }
-                    TunnelEvent::MixnetState(MixnetEvent::Connection(sub_event)) => {
-                        (*state_listener)
-                            .on_connection_status_change(ConnectionStatus::from(sub_event));
-                    }
-                }
                 (*state_listener).on_event(event);
             }
         }
