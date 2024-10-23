@@ -3,7 +3,7 @@
 
 use std::{fmt::Debug, os::fd::RawFd};
 
-use super::tunnel_settings::{TunnelNetworkSettings, TunnelSettings};
+use super::tunnel_settings::TunnelNetworkSettings;
 use crate::platform::error::VpnError;
 
 #[uniffi::export(with_foreign)]

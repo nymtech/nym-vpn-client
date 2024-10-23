@@ -4,6 +4,7 @@
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 
 /// The type alias for the receiving end of path observer.
+#[allow(unused)]
 pub type DefaultPathReceiver = UnboundedReceiver<OSDefaultPath>;
 
 /// Observer type that wraps network path changes into a channel.

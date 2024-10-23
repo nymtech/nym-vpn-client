@@ -11,8 +11,6 @@ mod route_handler;
 mod states;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 mod tun_ipv6;
-#[cfg(any(target_os = "ios", target_os = "android"))]
-pub mod tun_provider;
 pub mod tunnel;
 
 #[cfg(any(target_os = "ios", target_os = "android"))]
@@ -37,16 +35,14 @@ use nym_wg_go::PublicKey;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use dns_handler::DnsHandler;
 //use firewall_handler::FirewallHandler;
+#[cfg(target_os = "android")]
+use crate::tunnel_provider::android::AndroidTunProvider;
+#[cfg(target_os = "ios")]
+use crate::tunnel_provider::ios::OSTunProvider;
+use crate::MixnetClientConfig;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use route_handler::RouteHandler;
 use states::DisconnectedState;
-
-#[cfg(target_os = "ios")]
-use tun_provider::ios::OSTunProvider;
-
-use crate::MixnetClientConfig;
-#[cfg(target_os = "android")]
-use tun_provider::android::AndroidTunProvider;
 
 #[async_trait::async_trait]
 trait TunnelStateHandler: Send {

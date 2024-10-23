@@ -21,10 +21,10 @@ use tun::Device;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_ip_packet_requests::IpPair;
 
+#[cfg(any(target_os = "ios", target_os = "android"))]
+use crate::tunnel_provider;
 #[cfg(target_os = "linux")]
 use crate::tunnel_state_machine::default_interface::DefaultInterface;
-#[cfg(any(target_os = "ios", target_os = "android"))]
-use crate::tunnel_state_machine::tunnel_provider;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use crate::tunnel_state_machine::{route_handler::RoutingConfig, tun_ipv6};
 use crate::tunnel_state_machine::{
