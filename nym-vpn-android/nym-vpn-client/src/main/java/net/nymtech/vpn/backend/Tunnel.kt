@@ -81,7 +81,14 @@ interface Tunnel {
 				get() = null
 			override val apiUrl: URL
 				get() = URL("https://canary-api.performance.nymte.ch/api")
-		}, ;
+		},
+		QA {
+			override val nymVpnApiUrl: URL?
+				get() = null
+			override val apiUrl: URL
+				get() = URL("https://qa-nym-api.qa.nymte.ch/api")
+
+		};
 
 		/**
 		 * Utility function to set all required environment variables for a [Tunnel].
@@ -91,6 +98,7 @@ interface Tunnel {
 				MAINNET -> Constants.setupEnvironmentMainnet()
 				SANDBOX -> Constants.setupEnvironmentSandbox()
 				CANARY -> Constants.setupEnvironmentCanary()
+				QA -> Constants.setupEnvironmentQA()
 			}
 		}
 

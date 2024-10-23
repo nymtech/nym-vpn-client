@@ -52,6 +52,14 @@ fun EnvironmentScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMo
 			.padding(horizontal = 24.dp.scaledWidth()),
 	) {
 		IconSurfaceButton(
+			title = Tunnel.Environment.QA.name,
+			onClick = {
+				if (appUiState.settings.environment == Tunnel.Environment.QA) return@IconSurfaceButton
+				viewModel.onEnvironmentChange(Tunnel.Environment.QA)
+			},
+			selected = appUiState.settings.environment == Tunnel.Environment.QA,
+		)
+		IconSurfaceButton(
 			title = Tunnel.Environment.CANARY.name,
 			onClick = {
 				if (appUiState.settings.environment == Tunnel.Environment.CANARY) return@IconSurfaceButton
