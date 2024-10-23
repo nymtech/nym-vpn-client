@@ -1,9 +1,15 @@
+// Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: Apache-2.0
+
 use std::sync::Arc;
 
-use super::{
-    super::tunnel_settings::TunnelNetworkSettings, default_path_observer::OSDefaultPathObserver,
-};
+use super::tunnel_settings::TunnelNetworkSettings;
 use crate::platform::error::VpnError;
+
+pub mod default_path_observer;
+pub mod interface;
+
+use default_path_observer::OSDefaultPathObserver;
 
 #[uniffi::export(with_foreign)]
 #[async_trait::async_trait]

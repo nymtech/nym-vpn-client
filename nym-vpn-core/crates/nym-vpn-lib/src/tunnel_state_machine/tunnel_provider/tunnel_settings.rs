@@ -1,3 +1,6 @@
+// Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: Apache-2.0
+
 //! Tunnel and network settings.
 
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};

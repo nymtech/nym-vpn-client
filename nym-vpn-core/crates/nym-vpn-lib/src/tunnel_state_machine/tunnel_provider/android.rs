@@ -1,3 +1,6 @@
+// Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: Apache-2.0
+
 use std::{fmt::Debug, os::fd::RawFd};
 
 use super::tunnel_settings::{TunnelNetworkSettings, TunnelSettings};

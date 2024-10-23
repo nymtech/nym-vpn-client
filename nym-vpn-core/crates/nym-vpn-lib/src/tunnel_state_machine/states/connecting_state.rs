@@ -23,6 +23,8 @@ use nym_ip_packet_requests::IpPair;
 
 #[cfg(target_os = "linux")]
 use crate::tunnel_state_machine::default_interface::DefaultInterface;
+#[cfg(any(target_os = "ios", target_os = "android"))]
+use crate::tunnel_state_machine::tunnel_provider;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use crate::tunnel_state_machine::{route_handler::RoutingConfig, tun_ipv6};
 use crate::tunnel_state_machine::{
@@ -177,7 +179,7 @@ impl ConnectingState {
 
         #[cfg(any(target_os = "ios", target_os = "android"))]
         let tun_device = {
-            let packet_tunnel_settings = tunnel::wireguard::tunnel_settings::TunnelSettings {
+            let packet_tunnel_settings = tunnel_provider::tunnel_settings::TunnelSettings {
                 dns_servers: shared_state.tunnel_settings.dns.ip_addresses().to_vec(),
                 interface_addresses: vec![
                     IpNetwork::V4(
@@ -306,7 +308,7 @@ impl ConnectingState {
 
         let conn_data = connected_tunnel.connection_data();
 
-        let packet_tunnel_settings = tunnel::wireguard::tunnel_settings::TunnelSettings {
+        let packet_tunnel_settings = tunnel_provider::tunnel_settings::TunnelSettings {
             dns_servers: shared_state.tunnel_settings.dns.ip_addresses().to_vec(),
             interface_addresses: vec![IpNetwork::V4(
                 Ipv4Network::new(conn_data.entry.private_ipv4, 32).expect("ipv4 to ipnetwork/32"),
@@ -424,7 +426,7 @@ impl ConnectingState {
 
     #[cfg(any(target_os = "ios", target_os = "android"))]
     async fn create_tun_device(
-        packet_tunnel_settings: tunnel::wireguard::tunnel_settings::TunnelSettings,
+        packet_tunnel_settings: tunnel_provider::tunnel_settings::TunnelSettings,
         shared_state: &mut SharedState,
     ) -> Result<AsyncDevice> {
         let mut tun_config = tun::Configuration::default();
@@ -445,7 +447,8 @@ impl ConnectingState {
 
         #[cfg(target_os = "ios")]
         {
-            let tun_fd = tunnel::wireguard::ios::tun::get_tun_fd().ok_or(Error::LocateTunDevice)?;
+            let tun_fd =
+                tunnel_provider::ios::interface::get_tun_fd().ok_or(Error::LocateTunDevice)?;
             tun_config.raw_fd(tun_fd);
 
             shared_state

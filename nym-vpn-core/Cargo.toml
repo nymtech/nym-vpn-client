@@ -7,7 +7,7 @@ members = [
     "crates/nym-dbus",
     "crates/nym-dns",
     "crates/nym-gateway-directory",
-    "crates/nym-gateway-probe",
+    # "crates/nym-gateway-probe",
     "crates/nym-harbour-master-client",
     "crates/nym-ip-packet-client",
     "crates/nym-routing",

@@ -425,26 +425,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bindgen"
-version = "0.70.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f49d8fed880d473ea71efb9bf597651e77201bdd4893efe54c9e5d65ae04ce6f"
-dependencies = [
- "bitflags 2.6.0",
- "cexpr",
- "clang-sys",
- "itertools 0.13.0",
- "log",
- "prettyplease",
- "proc-macro2",
- "quote",
- "regex",
- "rustc-hash",
- "shlex",
- "syn 2.0.77",
-]
-
-[[package]]
 name = "bip32"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -681,24 +661,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cbindgen"
-version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3fce8dd7fcfcbf3a0a87d8f515194b49d6135acab73e18bd380d1d93bb1a15eb"
-dependencies = [
- "heck 0.4.1",
- "indexmap 2.5.0",
- "log",
- "proc-macro2",
- "quote",
- "serde",
- "serde_json",
- "syn 2.0.77",
- "tempfile",
- "toml 0.8.19",
-]
-
-[[package]]
 name = "cc"
 version = "1.1.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -721,15 +683,6 @@ name = "cesu8"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6d43a04d8753f35258c91f8ec639f792891f748a1edbd759cf1dcea3382ad83c"
-
-[[package]]
-name = "cexpr"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6fac387a98bb7c37292057cffc56d62ecb629900026402633ae9160df93a8766"
-dependencies = [
- "nom",
-]
 
 [[package]]
 name = "cfg-if"
@@ -806,17 +759,6 @@ dependencies = [
  "crypto-common",
  "inout",
  "zeroize",
-]
-
-[[package]]
-name = "clang-sys"
-version = "1.8.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b023947811758c97c59bf9d1c188fd619ad4718dcaa767947df1cadb14f39f4"
-dependencies = [
- "glob",
- "libc",
- "libloading",
 ]
 
 [[package]]
@@ -1407,18 +1349,6 @@ dependencies = [
  "libc",
  "once_cell",
  "winapi",
-]
-
-[[package]]
-name = "dns-lookup"
-version = "2.0.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e5766087c2235fec47fafa4cfecc81e494ee679d0fd4a59887ea0919bfb0e4fc"
-dependencies = [
- "cfg-if",
- "libc",
- "socket2",
- "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -3616,49 +3546,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "nym-gateway-probe"
-version = "1.0.0-dev"
-dependencies = [
- "anyhow",
- "base64 0.22.1",
- "bincode",
- "bs58",
- "bytes",
- "clap",
- "dirs",
- "dns-lookup",
- "futures",
- "hex",
- "log",
- "nym-authenticator-client",
- "nym-authenticator-requests",
- "nym-bin-common",
- "nym-client-core",
- "nym-config",
- "nym-connection-monitor",
- "nym-crypto",
- "nym-gateway-directory",
- "nym-ip-packet-client",
- "nym-ip-packet-requests",
- "nym-sdk",
- "nym-task",
- "nym-topology",
- "nym-wireguard-types",
- "pnet_packet",
- "rand 0.8.5",
- "rust2go",
- "serde",
- "serde_json",
- "thiserror",
- "tokio",
- "tokio-util",
- "tracing",
- "tracing-subscriber",
- "vergen",
- "x25519-dalek",
-]
-
-[[package]]
 name = "nym-gateway-requests"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?rev=8d305c29eb55b759e7452d5dce82eebb0236c08d#8d305c29eb55b759e7452d5dce82eebb0236c08d"
@@ -5535,70 +5422,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "rust2go"
-version = "0.3.16"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1fb8398eed0838a26fda0a3eb2228c85e51b0f32206e97e687b8e79b1d34e8c2"
-dependencies = [
- "bindgen",
- "rust2go-cli",
- "rust2go-convert",
- "rust2go-macro",
- "syn 2.0.77",
-]
-
-[[package]]
-name = "rust2go-cli"
-version = "0.3.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f61be8d1dbce9757a3174b7c651b995908af56c3cf4832d0e8809e1653a0f38"
-dependencies = [
- "cbindgen",
- "clap",
- "itertools 0.13.0",
- "rust2go-common",
-]
-
-[[package]]
-name = "rust2go-common"
-version = "0.3.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c501dad4b73f3fa62258bed2623cb695f69686a8c304d6b90f807f9b19772fb6"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.77",
-]
-
-[[package]]
-name = "rust2go-convert"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4c9b9dcfbeec346b228b700861dc2b43f32ab6679b6440db3eedc459ef024be"
-
-[[package]]
-name = "rust2go-macro"
-version = "0.3.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "311ecc7d82951037595dd44b261fbacc3dfb38e99f700afa33aa854e8430ca12"
-dependencies = [
- "proc-macro2",
- "quote",
- "rust2go-common",
- "syn 2.0.77",
-]
-
-[[package]]
 name = "rustc-demangle"
 version = "0.1.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "719b953e2095829ee67db738b3bfa9fa368c94900df327b3f07fe6e794d2fe1f"
-
-[[package]]
-name = "rustc-hash"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
 
 [[package]]
 name = "rustc_version"

@@ -11,6 +11,8 @@ mod route_handler;
 mod states;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 mod tun_ipv6;
+#[cfg(any(target_os = "ios", target_os = "android"))]
+pub mod tun_provider;
 pub mod tunnel;
 
 #[cfg(any(target_os = "ios", target_os = "android"))]
@@ -40,11 +42,11 @@ use route_handler::RouteHandler;
 use states::DisconnectedState;
 
 #[cfg(target_os = "ios")]
-use tunnel::wireguard::ios::tun_provider::OSTunProvider;
+use tun_provider::ios::OSTunProvider;
 
 use crate::MixnetClientConfig;
 #[cfg(target_os = "android")]
-use tunnel::wireguard::android::AndroidTunProvider;
+use tun_provider::android::AndroidTunProvider;
 
 #[async_trait::async_trait]
 trait TunnelStateHandler: Send {
