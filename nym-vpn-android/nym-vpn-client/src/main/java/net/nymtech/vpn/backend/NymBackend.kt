@@ -207,6 +207,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 						onVpnShutdown()
 					}
 				}
+				Timber.d("State: $state")
 				tunnel?.onStateChange(state)
 			}
 		}
