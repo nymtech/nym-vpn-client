@@ -491,7 +491,8 @@ where
                     tracing::info!("Tunnel event: {:?}", event);
                     match event {
                         TunnelEvent::NewState(new_state) => {
-                            let vpn_state_change = VpnServiceStateChange::from(new_state.clone());
+                            self.tunnel_state = new_state.clone();
+                            let vpn_state_change = VpnServiceStateChange::from(new_state);
                             if let Err(e) = self.vpn_state_changes_tx.send(vpn_state_change) {
                                 tracing::error!("Failed to send vpn state change: {}", e);
                             }
