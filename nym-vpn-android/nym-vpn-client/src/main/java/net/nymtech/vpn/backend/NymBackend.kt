@@ -183,25 +183,25 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	}
 
 	override fun onEvent(event: TunnelEvent) {
-		when(event) {
+		when (event) {
 			is TunnelEvent.MixnetState -> {
-				when(event.v1) {
-					is MixnetEvent.Bandwidth ->  {
+				when (event.v1) {
+					is MixnetEvent.Bandwidth -> {
 						tunnel?.onBackendMessage(BackendMessage.BandwidthAlert(event.v1.v1))
-						if(event.v1.v1 is BandwidthEvent.NoBandwidth) onVpnShutdown()
+						if (event.v1.v1 is BandwidthEvent.NoBandwidth) onVpnShutdown()
 					}
 					is MixnetEvent.Connection -> {
-						//just logs these for now
+						// just logs these for now
 						Timber.d(event.v1.v1.toString())
 					}
 				}
 			}
 			is TunnelEvent.NewState -> {
-				state = when(event.v1) {
+				state = when (event.v1) {
 					is TunnelState.Connected -> Tunnel.State.Up.also { statsJob = onConnect() }
 					TunnelState.Connecting -> Tunnel.State.Connecting.EstablishingConnection
 					TunnelState.Disconnected -> Tunnel.State.Down
-					is TunnelState.Disconnecting -> Tunnel.State.Disconnecting.also{ onDisconnect() }
+					is TunnelState.Disconnecting -> Tunnel.State.Disconnecting.also { onDisconnect() }
 					is TunnelState.Error -> Tunnel.State.Down.also {
 						tunnel?.onBackendMessage(BackendMessage.Failure(event.v1.v1))
 						onVpnShutdown()
