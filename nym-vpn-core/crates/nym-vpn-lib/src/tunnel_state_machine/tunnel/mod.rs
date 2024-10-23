@@ -84,6 +84,7 @@ pub struct MixnetConnectOptions {
     pub gateway_config: nym_gateway_directory::Config,
     pub mixnet_client_config: Option<MixnetClientConfig>,
     pub tunnel_type: TunnelType,
+    pub enable_credentials_mode: bool,
     pub entry_point: Box<EntryPoint>,
     pub exit_point: Box<ExitPoint>,
     pub user_agent: Option<UserAgent>,
@@ -125,6 +126,7 @@ pub async fn connect_mixnet(options: MixnetConnectOptions) -> Result<ConnectedMi
             &options.data_path,
             task_manager.subscribe_named("mixnet_client_main"),
             mixnet_client_config,
+            options.enable_credentials_mode,
         ),
     )
     .await

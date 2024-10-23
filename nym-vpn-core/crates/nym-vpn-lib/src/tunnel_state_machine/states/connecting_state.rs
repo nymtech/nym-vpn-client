@@ -78,6 +78,7 @@ impl ConnectingState {
             gateway_config,
             mixnet_client_config: shared_state.tunnel_settings.mixnet_client_config.clone(),
             tunnel_type: shared_state.tunnel_settings.tunnel_type,
+            enable_credentials_mode: shared_state.tunnel_settings.enable_credentials_mode,
             entry_point: shared_state.tunnel_settings.entry_point.clone(),
             exit_point: shared_state.tunnel_settings.exit_point.clone(),
             user_agent: None, // todo: provide user-agent
