@@ -12,11 +12,11 @@ pub trait OSTunProvider: Send + Sync + std::fmt::Debug {
     async fn set_tunnel_network_settings(
         &self,
         tunnel_settings: TunnelNetworkSettings,
-    ) -> std::result::Result<(), VpnError>;
+    ) -> Result<(), VpnError>;
 
     /// Set or unset the default path observer.
     fn set_default_path_observer(
         &self,
         observer: Option<Arc<dyn OSDefaultPathObserver>>,
-    ) -> std::result::Result<(), VpnError>;
+    ) -> Result<(), VpnError>;
 }

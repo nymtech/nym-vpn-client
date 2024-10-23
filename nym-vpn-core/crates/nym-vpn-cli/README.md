@@ -53,21 +53,11 @@ libwg.a  libwg.h
 
 #### Step 2.
 
-Next, to build the Rust CLI, you need to add the library to the search path by prepending `cargo build` with `RUSTFLAGS`,
+Next, build the Rust CLI using cargo:
 
 ```sh
-RUSTFLAGS='-L [PATH_TO_CLI_REPO]/build/lib/aarch64-apple-darwin' cargo build --release
+cargo build --release
 ```
-
-replacing the `[PATH_TO_CLI_REPO]` with the absolute path to the `nym-vpn-cli` repository, and of course adjust the path to match the target arch.
-Alternatively add rustflags to `.cargo/config.toml`
-
-```
-$ cat .cargo/config.toml 
-[build]
-rustflags = ['-L', '/home/nymuser/src/nym/nym-vpn-cli/build/lib/x86_64-unknown-linux-gnu']
-```
-and then run `cargo build --release` like normal.
 
 ## How to run
 

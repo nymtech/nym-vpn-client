@@ -248,7 +248,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> anyhow:
                     TunnelEvent::NewState(new_state) => {
                         tracing::info!("New state: {}", new_state);
                     }
-                    TunnelEvent::MixnetEvent(event) => {
+                    TunnelEvent::MixnetState(event) => {
                         tracing::info!("Mixnet event: {}", event);
                     }
                 }

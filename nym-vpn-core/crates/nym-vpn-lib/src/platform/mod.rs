@@ -26,12 +26,10 @@ use nym_vpn_api_client::types::VpnApiAccount;
 use nym_vpn_store::mnemonic::MnemonicStorage as _;
 
 use self::error::VpnError;
-#[cfg(target_os = "ios")]
-use crate::mobile::ios::tun_provider::OSTunProvider;
-#[cfg(any(target_os = "ios", target_os = "android"))]
-use crate::mobile::runner::WgTunnelRunner;
 #[cfg(target_os = "android")]
-use crate::platform::android::AndroidTunProvider;
+use crate::tunnel_state_machine::tunnel::wireguard::android::AndroidTunProvider;
+#[cfg(target_os = "ios")]
+use crate::tunnel_state_machine::tunnel::wireguard::ios::tun_provider::OSTunProvider;
 use crate::{
     gateway_directory::GatewayClient,
     tunnel_state_machine::{
@@ -391,11 +389,11 @@ async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, Vp
 
                         (*state_listener).on_tun_status_change(TunStatus::from(state));
                     }
-                    TunnelEvent::MixnetEvent(MixnetEvent::Bandwidth(sub_event)) => {
+                    TunnelEvent::MixnetState(MixnetEvent::Bandwidth(sub_event)) => {
                         (*state_listener)
                             .on_bandwidth_status_change(BandwidthStatus::from(sub_event))
                     }
-                    TunnelEvent::MixnetEvent(MixnetEvent::Connection(sub_event)) => {
+                    TunnelEvent::MixnetState(MixnetEvent::Connection(sub_event)) => {
                         (*state_listener)
                             .on_connection_status_change(ConnectionStatus::from(sub_event));
                     }
@@ -411,6 +409,8 @@ async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, Vp
         event_sender,
         nym_config,
         tunnel_settings,
+        #[cfg(any(target_os = "ios", target_os = "android"))]
+        config.tun_provider,
         shutdown_token.child_token(),
     )
     .await?;

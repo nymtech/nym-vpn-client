@@ -9,8 +9,6 @@ pub mod util;
 mod bandwidth_controller;
 mod error;
 mod mixnet;
-#[cfg(any(target_os = "ios", target_os = "android"))]
-mod mobile;
 mod platform;
 pub mod tunnel_state_machine;
 mod uniffi_custom_impls;

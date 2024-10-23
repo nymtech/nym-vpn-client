@@ -11,7 +11,7 @@ use nix::{
     sys::socket::{SockaddrIn, SockaddrIn6, SockaddrLike},
 };
 
-use crate::mobile::wg_config::WgPeer;
+use crate::wg_config::WgPeer;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -48,7 +48,7 @@ impl Dns64Resolution for WgPeer {
     fn resolved(&self) -> Result<Self> {
         Ok(WgPeer {
             endpoint: reresolve_endpoint(self.endpoint)?,
-            public_key: self.public_key.clone(),
+            public_key: self.public_key,
         })
     }
 }

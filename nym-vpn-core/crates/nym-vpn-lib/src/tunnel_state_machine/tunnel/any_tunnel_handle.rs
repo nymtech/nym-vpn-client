@@ -59,9 +59,17 @@ impl AnyTunnelHandle {
                 }
             },
             Self::Wireguard(handle) => {
-                let wait_result = handle.wait().await;
+                #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+                {
+                    let wait_result = handle.wait().await;
+                    Ok(vec![wait_result.entry_tun, wait_result.exit_tun])
+                }
 
-                Ok(vec![wait_result.entry_tun, wait_result.exit_tun])
+                #[cfg(any(target_os = "ios", target_os = "android"))]
+                {
+                    let tun_device = handle.wait().await;
+                    Ok(vec![tun_device])
+                }
             }
         }
     }
