@@ -238,8 +238,8 @@ impl TunnelHandle {
 
     /// Wait until the tunnel finished execution.
     ///
-    /// Returns a pair of tun devices no longer in use.
-    pub async fn wait(self) -> AsyncDevice {
+    /// Returns an array with a single tunnel device that is no longer in use.
+    pub async fn wait(self) -> Vec<AsyncDevice> {
         if let Err(e) = self.event_loop_handle.await {
             tracing::error!("Failed to join on event loop handle: {}", e);
         }
@@ -248,6 +248,6 @@ impl TunnelHandle {
             tracing::error!("Failed to join on bandwidth controller: {}", e);
         }
 
-        self.tun_device
+        vec![self.tun_device]
     }
 }

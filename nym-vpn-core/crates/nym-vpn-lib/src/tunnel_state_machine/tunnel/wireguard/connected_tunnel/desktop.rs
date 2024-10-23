@@ -10,9 +10,8 @@ use nym_task::TaskManager;
 use nym_wg_gateway_client::WgGatewayClient;
 use nym_wg_go::wireguard_go;
 
-use super::super::connector::ConnectionData;
 use crate::{
-    tunnel_state_machine::tunnel::{Error, Result},
+    tunnel_state_machine::tunnel::{wireguard::connector::ConnectionData, Error, Result},
     wg_config::WgNodeConfig,
 };
 
@@ -134,19 +133,11 @@ impl TunnelHandle {
     /// Wait until the tunnel finished execution.
     ///
     /// Returns a pair of tun devices no longer in use.
-    pub async fn wait(self) -> WaitResult {
+    pub async fn wait(self) -> Vec<AsyncDevice> {
         if let Err(e) = self.bandwidth_controller_handle.await {
             tracing::error!("Failed to join on bandwidth controller: {}", e);
         }
 
-        WaitResult {
-            entry_tun: self.entry_tun,
-            exit_tun: self.exit_tun,
-        }
+        vec![self.entry_tun, self.exit_tun]
     }
-}
-
-pub struct WaitResult {
-    pub entry_tun: AsyncDevice,
-    pub exit_tun: AsyncDevice,
 }
