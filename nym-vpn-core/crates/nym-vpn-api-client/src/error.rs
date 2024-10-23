@@ -1,8 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+pub use nym_http_api_client::HttpClientError;
+
 use nym_contracts_common::ContractsCommonError;
-use nym_http_api_client::HttpClientError;
 
 use crate::response::{ErrorMessage, NymErrorResponse, UnexpectedError};
 

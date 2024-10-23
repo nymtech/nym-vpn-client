@@ -481,14 +481,18 @@ where
 
         // Check if the response indicates that we are not registered
         if let Some(403) = &response.as_ref().err().and_then(extract_status_code) {
+            tracing::info!("Account is not found: access denied");
             self.account_state
                 .set_account(AccountState::NotRegistered)
                 .await;
         }
 
-        let account_summary = response.map_err(|source| Error::GetAccountSummary {
-            base_url: self.vpn_api_client.current_url().clone(),
-            source: Box::new(source),
+        let account_summary = response.map_err(|source| {
+            tracing::error!("Failed to get account summary: {:#?}", source);
+            Error::GetAccountSummary {
+                base_url: self.vpn_api_client.current_url().clone(),
+                source: Box::new(source),
+            }
         })?;
         tracing::info!("Account summary: {:#?}", account_summary);
 
@@ -812,7 +816,7 @@ where
     let mut source = err.source();
     while let Some(err) = source {
         if let Some(status) = err
-            .downcast_ref::<HttpClientError>()
+            .downcast_ref::<nym_vpn_api_client::HttpClientError<nym_vpn_api_client::response::NymErrorResponse>>()
             .and_then(extract_status_code_inner)
         {
             return Some(status);
@@ -822,7 +826,9 @@ where
     None
 }
 
-fn extract_status_code_inner(err: &HttpClientError) -> Option<u16> {
+fn extract_status_code_inner(
+    err: &nym_vpn_api_client::HttpClientError<nym_vpn_api_client::response::NymErrorResponse>,
+) -> Option<u16> {
     match err {
         HttpClientError::EndpointFailure { status, .. } => Some((*status).into()),
         _ => None,
