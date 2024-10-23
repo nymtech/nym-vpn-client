@@ -238,7 +238,7 @@ impl ConnectingState {
         shared_state: &mut SharedState,
     ) -> Result<(TunnelConnectionData, AnyTunnelHandle)> {
         let connected_tunnel = connected_mixnet
-            .connect_wireguard_tunnel()
+            .connect_wireguard_tunnel(shared_state.tunnel_settings.enable_credentials_mode)
             .await
             .map_err(Error::ConnectWireguardTunnel)?;
 

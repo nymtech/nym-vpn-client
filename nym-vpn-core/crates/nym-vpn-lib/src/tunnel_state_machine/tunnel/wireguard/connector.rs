@@ -43,6 +43,7 @@ impl Connector {
 
     pub async fn connect(
         self,
+        enable_credentials_mode: bool,
         selected_gateways: SelectedGateways,
         data_path: Option<PathBuf>,
     ) -> Result<ConnectedTunnel> {
@@ -77,6 +78,7 @@ impl Connector {
             )?;
             let entry = bw
                 .get_initial_bandwidth(
+                    enable_credentials_mode,
                     TicketType::V1WireguardEntry,
                     &self.gateway_directory_client,
                     &mut wg_entry_gateway_client,
@@ -84,6 +86,7 @@ impl Connector {
                 .await?;
             let exit = bw
                 .get_initial_bandwidth(
+                    enable_credentials_mode,
                     TicketType::V1WireguardExit,
                     &self.gateway_directory_client,
                     &mut wg_exit_gateway_client,
@@ -103,6 +106,7 @@ impl Connector {
             )?;
             let entry = bw
                 .get_initial_bandwidth(
+                    enable_credentials_mode,
                     TicketType::V1WireguardEntry,
                     &self.gateway_directory_client,
                     &mut wg_entry_gateway_client,
@@ -110,6 +114,7 @@ impl Connector {
                 .await?;
             let exit = bw
                 .get_initial_bandwidth(
+                    enable_credentials_mode,
                     TicketType::V1WireguardExit,
                     &self.gateway_directory_client,
                     &mut wg_exit_gateway_client,
