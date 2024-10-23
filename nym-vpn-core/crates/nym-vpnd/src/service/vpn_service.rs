@@ -773,6 +773,11 @@ where
             }
         })?;
 
+        tracing::info!(
+            "Network updated to: {} (SERVICE RESTART REQUIRED!)",
+            network_selected
+        );
+
         Ok(())
     }
 
