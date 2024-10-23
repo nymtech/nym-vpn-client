@@ -119,6 +119,7 @@ private extension CountriesManager {
         loadPrebundledCountriesIfNecessary()
         setupAppSettingsObservers()
         setupAutoUpdates()
+        configureEnvironmentChange()
         fetchCountries()
 #if os(macOS)
         updateDaemonVersionIfNecessary()
@@ -130,13 +131,6 @@ private extension CountriesManager {
             self?.fetchCountries()
         }
         .store(in: &cancellables)
-
-        appSettings.$envSelectorPublisher.sink { [weak self] _ in
-//            self?.countryStore.lastFetchDate = nil
-            self?.fetchCountries()
-        }
-
-        .store(in: &cancellables)
     }
 
     func setupAutoUpdates() {
@@ -147,6 +141,13 @@ private extension CountriesManager {
             userInfo: nil,
             repeats: true
         )
+    }
+
+    func configureEnvironmentChange() {
+        configurationManager.environmentDidChange = { [weak self] in
+            self?.countryStore.lastFetchDate = nil
+            self?.fetchCountries()
+        }
     }
 }
 
@@ -294,6 +295,7 @@ private extension CountriesManager {
     func fetchEntryExitCountries() {
         guard let apiURL = configurationManager.apiURL
         else {
+            logger.error("Cannot fetch countries. No API URL.")
             updateError(with: GeneralNymError.cannotFetchCountries)
             return
         }
