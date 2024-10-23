@@ -12,6 +12,8 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
+import net.nymtech.vpn.model.BackendMessage
+import nym_vpn_lib.ErrorStateReason
 import nym_vpn_lib.VpnException
 import kotlin.reflect.KClass
 
@@ -56,7 +58,8 @@ fun NavController.goFromRoot(route: Route) {
 	}
 }
 
-fun VpnException.toUserMessage(context: Context): String {
+fun ErrorStateReason.toUserMessage(context: Context): String {
+	//TODO clean these up and map proper error messages with string values
 	return when (this) {
 		is VpnException.GatewayException -> context.getString(R.string.gateway_error)
 		is VpnException.InternalException -> {
