@@ -35,7 +35,7 @@ fn into_account(
 ) -> nym_vpn_proto::AccountState {
     match account {
         nym_vpn_account_controller::shared_state::AccountState::NotRegistered => {
-            todo!()
+            nym_vpn_proto::AccountState::NotRegistered
         }
         nym_vpn_account_controller::shared_state::AccountState::Inactive => {
             nym_vpn_proto::AccountState::Inactive
@@ -44,7 +44,7 @@ fn into_account(
             nym_vpn_proto::AccountState::Active
         }
         nym_vpn_account_controller::shared_state::AccountState::DeleteMe => {
-            todo!()
+            nym_vpn_proto::AccountState::DeleteMe
         }
     }
 }
@@ -53,9 +53,18 @@ fn into_subscription(
     subscription: nym_vpn_account_controller::shared_state::SubscriptionState,
 ) -> nym_vpn_proto::SubscriptionState {
     match subscription {
-        nym_vpn_account_controller::shared_state::SubscriptionState::NotSubscribed => todo!(),
-        nym_vpn_account_controller::shared_state::SubscriptionState::Pending => todo!(),
-        nym_vpn_account_controller::shared_state::SubscriptionState::Active => todo!(),
+        nym_vpn_account_controller::shared_state::SubscriptionState::NotActive => {
+            nym_vpn_proto::SubscriptionState::NotRegistered
+        }
+        nym_vpn_account_controller::shared_state::SubscriptionState::Pending => {
+            nym_vpn_proto::SubscriptionState::Pending
+        }
+        nym_vpn_account_controller::shared_state::SubscriptionState::Active => {
+            nym_vpn_proto::SubscriptionState::Active
+        }
+        nym_vpn_account_controller::shared_state::SubscriptionState::Complete => {
+            nym_vpn_proto::SubscriptionState::Complete
+        }
     }
 }
 
@@ -63,10 +72,18 @@ fn into_device(
     device: nym_vpn_account_controller::shared_state::DeviceState,
 ) -> nym_vpn_proto::DeviceState {
     match device {
-        nym_vpn_account_controller::shared_state::DeviceState::NotRegistered => todo!(),
-        nym_vpn_account_controller::shared_state::DeviceState::Inactive => todo!(),
-        nym_vpn_account_controller::shared_state::DeviceState::Active => todo!(),
-        nym_vpn_account_controller::shared_state::DeviceState::DeleteMe => todo!(),
+        nym_vpn_account_controller::shared_state::DeviceState::NotRegistered => {
+            nym_vpn_proto::DeviceState::NotRegistered
+        }
+        nym_vpn_account_controller::shared_state::DeviceState::Inactive => {
+            nym_vpn_proto::DeviceState::Inactive
+        }
+        nym_vpn_account_controller::shared_state::DeviceState::Active => {
+            nym_vpn_proto::DeviceState::Active
+        }
+        nym_vpn_account_controller::shared_state::DeviceState::DeleteMe => {
+            nym_vpn_proto::DeviceState::DeleteMe
+        }
     }
 }
 
