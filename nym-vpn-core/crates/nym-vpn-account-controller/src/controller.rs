@@ -33,7 +33,7 @@ use crate::{
     ecash_client::VpnEcashApiClient,
     error::Error,
     shared_state::{
-        DeviceState, MnemonicState, ReadyToRegisterDevice, RemoteAccountState, SharedAccountState,
+        AccountState, DeviceState, MnemonicState, ReadyToRegisterDevice, SharedAccountState,
         SubscriptionState,
     },
 };
@@ -482,7 +482,7 @@ where
         // Check if the response indicates that we are not registered
         if let Some(403) = &response.as_ref().err().and_then(extract_status_code) {
             self.account_state
-                .set_account(RemoteAccountState::NotRegistered)
+                .set_account(AccountState::NotRegistered)
                 .await;
         }
 
@@ -493,7 +493,7 @@ where
         tracing::info!("Account summary: {:#?}", account_summary);
 
         self.account_state
-            .set_account(RemoteAccountState::from(account_summary.account.status))
+            .set_account(AccountState::from(account_summary.account.status))
             .await;
 
         self.account_state

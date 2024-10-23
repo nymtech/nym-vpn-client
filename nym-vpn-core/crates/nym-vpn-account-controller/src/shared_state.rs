@@ -11,14 +11,14 @@ use tokio::sync::MutexGuard;
 
 #[derive(Clone)]
 pub struct SharedAccountState {
-    inner: Arc<tokio::sync::Mutex<AccountState>>,
+    inner: Arc<tokio::sync::Mutex<AccountStateSummary>>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub enum ReadyToRegisterDevice {
     Ready,
     NoMnemonicStored,
-    RemoteAccountNotActive,
+    AccountNotActive,
     NoActiveSubscription,
     DeviceAlreadyRegistered,
     DeviceInactive,
@@ -50,11 +50,11 @@ impl fmt::Display for ReadyToConnect {
 impl SharedAccountState {
     pub(crate) fn new() -> Self {
         SharedAccountState {
-            inner: Arc::new(tokio::sync::Mutex::new(AccountState::default())),
+            inner: Arc::new(tokio::sync::Mutex::new(AccountStateSummary::default())),
         }
     }
 
-    pub async fn lock(&self) -> MutexGuard<'_, AccountState> {
+    pub async fn lock(&self) -> MutexGuard<'_, AccountStateSummary> {
         self.inner.lock().await
     }
 
@@ -63,10 +63,10 @@ impl SharedAccountState {
         if state.mnemonic != Some(MnemonicState::Stored) {
             return ReadyToConnect::NoMnemonicStored;
         }
-        if state.account != Some(RemoteAccountState::Active) {
+        if state.account != Some(AccountState::Active) {
             return ReadyToConnect::AccountNotActive;
         }
-        if state.subscription != Some(SubscriptionState::Subscribed) {
+        if state.subscription != Some(SubscriptionState::Active) {
             return ReadyToConnect::NoActiveSubscription;
         }
         match state.device {
@@ -83,10 +83,10 @@ impl SharedAccountState {
         if state.mnemonic != Some(MnemonicState::Stored) {
             return ReadyToRegisterDevice::NoMnemonicStored;
         }
-        if state.account != Some(RemoteAccountState::Active) {
-            return ReadyToRegisterDevice::RemoteAccountNotActive;
+        if state.account != Some(AccountState::Active) {
+            return ReadyToRegisterDevice::AccountNotActive;
         }
-        if state.subscription != Some(SubscriptionState::Subscribed) {
+        if state.subscription != Some(SubscriptionState::Active) {
             return ReadyToRegisterDevice::NoActiveSubscription;
         }
         if state.device == Some(DeviceState::Active) {
@@ -104,7 +104,7 @@ impl SharedAccountState {
         guard.mnemonic = Some(state);
     }
 
-    pub(crate) async fn set_account(&self, state: RemoteAccountState) {
+    pub(crate) async fn set_account(&self, state: AccountState) {
         let mut guard = self.inner.lock().await;
         tracing::info!("Setting account state to {:?}", state);
         guard.account = Some(state);
@@ -132,51 +132,54 @@ impl SharedAccountState {
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize)]
-pub struct AccountState {
+pub struct AccountStateSummary {
     // The locally stored recovery phrase that is deeply tied to the account
-    mnemonic: Option<MnemonicState>,
+    pub mnemonic: Option<MnemonicState>,
 
     // The state of the account on the remote server
-    account: Option<RemoteAccountState>,
+    pub account: Option<AccountState>,
 
     // The state of the subscription on the remote server
-    subscription: Option<SubscriptionState>,
+    pub subscription: Option<SubscriptionState>,
 
     // The state of the device on the remote server
-    device: Option<DeviceState>,
+    pub device: Option<DeviceState>,
 
     // If there are any pending zk-nym requests. This is not stopping from trying to connect, but
     // it might be useful to hold off.
-    pending_zk_nym: bool,
+    pub pending_zk_nym: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
-pub(crate) enum MnemonicState {
+pub enum MnemonicState {
     NotStored,
     Stored,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
-pub(crate) enum RemoteAccountState {
+pub enum AccountState {
     NotRegistered,
     Inactive,
     Active,
+    DeleteMe,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
-pub(crate) enum SubscriptionState {
+pub enum SubscriptionState {
     NotSubscribed,
-    Subscribed,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize)]
-pub(crate) enum DeviceState {
-    NotRegistered,
-    Inactive,
+    Pending,
     Active,
 }
 
-impl fmt::Display for AccountState {
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub enum DeviceState {
+    NotRegistered,
+    Inactive,
+    Active,
+    DeleteMe,
+}
+
+impl fmt::Display for AccountStateSummary {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -196,11 +199,11 @@ fn debug_or_unknown(state: Option<&impl fmt::Debug>) -> String {
         .unwrap_or_else(|| "Unknown".to_string())
 }
 
-impl From<NymVpnAccountStatusResponse> for RemoteAccountState {
+impl From<NymVpnAccountStatusResponse> for AccountState {
     fn from(status: NymVpnAccountStatusResponse) -> Self {
         match status {
-            NymVpnAccountStatusResponse::Active => RemoteAccountState::Active,
-            _ => RemoteAccountState::Inactive,
+            NymVpnAccountStatusResponse::Active => AccountState::Active,
+            _ => AccountState::Inactive,
         }
     }
 }
@@ -208,7 +211,7 @@ impl From<NymVpnAccountStatusResponse> for RemoteAccountState {
 impl From<NymVpnAccountSummarySubscription> for SubscriptionState {
     fn from(subscription: NymVpnAccountSummarySubscription) -> Self {
         if subscription.is_active {
-            SubscriptionState::Subscribed
+            SubscriptionState::Active
         } else {
             SubscriptionState::NotSubscribed
         }

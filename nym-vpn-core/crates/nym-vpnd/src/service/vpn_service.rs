@@ -19,7 +19,7 @@ use tokio_util::sync::CancellationToken;
 use url::Url;
 
 use nym_vpn_account_controller::{
-    AccountCommand, AccountController, AccountState, ReadyToConnect, SharedAccountState,
+    AccountCommand, AccountController, AccountStateSummary, ReadyToConnect, SharedAccountState,
 };
 use nym_vpn_api_client::{
     response::{NymVpnAccountSummaryResponse, NymVpnDevicesResponse},
@@ -99,7 +99,10 @@ pub enum VpnServiceCommand {
     StoreAccount(oneshot::Sender<Result<(), AccountError>>, String),
     IsAccountStored(oneshot::Sender<Result<bool, AccountError>>, ()),
     RemoveAccount(oneshot::Sender<Result<(), AccountError>>, ()),
-    GetLocalAccountState(oneshot::Sender<Result<AccountState, AccountError>>, ()),
+    GetLocalAccountState(
+        oneshot::Sender<Result<AccountStateSummary, AccountError>>,
+        (),
+    ),
     GetAccountSummary(
         oneshot::Sender<Result<NymVpnAccountSummaryResponse, AccountError>>,
         (),
@@ -822,7 +825,7 @@ where
         Ok(())
     }
 
-    async fn handle_get_local_account_state(&self) -> Result<AccountState, AccountError> {
+    async fn handle_get_local_account_state(&self) -> Result<AccountStateSummary, AccountError> {
         Ok(self.shared_account_state.lock().await.clone())
     }
 

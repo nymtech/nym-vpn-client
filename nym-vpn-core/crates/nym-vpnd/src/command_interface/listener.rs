@@ -453,8 +453,11 @@ impl NymVpnd for CommandInterface {
 
         let response = match result {
             Ok(state) => GetLocalAccountStateResponse {
-                json: serde_json::to_string(&state)
-                    .unwrap_or_else(|_| "failed to serialize".to_owned()),
+                result: Some(
+                    nym_vpn_proto::get_local_account_state_response::Result::AccountSummary(
+                        super::protobuf::account::into_account_summary(state),
+                    ),
+                ),
             },
             Err(err) => {
                 // TODO: consider proper error handling for AccountError in this context
