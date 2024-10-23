@@ -22,13 +22,11 @@ import net.nymtech.vpn.util.NotificationManager
 import net.nymtech.vpn.util.SingletonHolder
 import net.nymtech.vpn.util.addRoutes
 import nym_vpn_lib.AndroidTunProvider
-import nym_vpn_lib.BandwidthStatus
-import nym_vpn_lib.ConnectionStatus
-import nym_vpn_lib.ExitStatus
-import nym_vpn_lib.NymVpnStatus
-import nym_vpn_lib.TunStatus
+import nym_vpn_lib.BandwidthEvent
+import nym_vpn_lib.MixnetEvent
 import nym_vpn_lib.TunnelEvent
 import nym_vpn_lib.TunnelNetworkSettings
+import nym_vpn_lib.TunnelState
 import nym_vpn_lib.TunnelStatusListener
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.VpnException
@@ -185,60 +183,31 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	}
 
 	override fun onEvent(event: TunnelEvent) {
-		Timber.d(event.toString())
-	}
-
-	override fun onTunStatusChange(status: TunStatus) {
-		state = when (status) {
-			TunStatus.INITIALIZING_CLIENT -> Tunnel.State.Connecting.InitializingClient
-			TunStatus.ESTABLISHING_CONNECTION -> Tunnel.State.Connecting.EstablishingConnection
-			TunStatus.DOWN -> {
-				Tunnel.State.Down
+		when(event) {
+			is TunnelEvent.MixnetState -> {
+				when(event.v1) {
+					is MixnetEvent.Bandwidth ->  {
+						tunnel?.onBackendMessage(BackendMessage.BandwidthAlert(event.v1.v1))
+						if(event.v1.v1 is BandwidthEvent.NoBandwidth) onVpnShutdown()
+					}
+					is MixnetEvent.Connection -> {
+						//just logs these for now
+						Timber.d(event.v1.v1.toString())
+					}
+				}
 			}
-
-			TunStatus.UP -> {
-				statsJob = onConnect()
-				Tunnel.State.Up
-			}
-
-			TunStatus.DISCONNECTING -> {
-				onDisconnect()
-				Tunnel.State.Disconnecting
-			}
-		}
-		tunnel?.onStateChange(state)
-	}
-
-	override fun onBandwidthStatusChange(status: BandwidthStatus) {
-		Timber.d("Bandwidth status: $status")
-		when (status) {
-			BandwidthStatus.NoBandwidth -> {
-				tunnel?.onBackendMessage(BackendMessage.Failure(VpnException.OutOfBandwidth()))
-				onVpnShutdown()
-			}
-			is BandwidthStatus.RemainingBandwidth -> tunnel?.onBackendMessage(
-				BackendMessage.BandwidthAlert(status),
-			)
-		}
-	}
-
-	override fun onConnectionStatusChange(status: ConnectionStatus) {
-		Timber.d("Connection status: $status")
-	}
-
-	override fun onNymVpnStatusChange(status: NymVpnStatus) {
-		Timber.d("VPN status: $status")
-	}
-
-	override fun onExitStatusChange(status: ExitStatus) {
-		when (status) {
-			ExitStatus.Stopped -> {
-				state = Tunnel.State.Down
-			}
-			is ExitStatus.Failure -> {
-				Timber.e(status.error)
-				tunnel?.onBackendMessage(BackendMessage.Failure(status.error))
-				onVpnShutdown()
+			is TunnelEvent.NewState -> {
+				state = when(event.v1) {
+					is TunnelState.Connected -> Tunnel.State.Up.also { statsJob = onConnect() }
+					TunnelState.Connecting -> Tunnel.State.Connecting.EstablishingConnection
+					TunnelState.Disconnected -> Tunnel.State.Down
+					is TunnelState.Disconnecting -> Tunnel.State.Disconnecting.also{ onDisconnect() }
+					is TunnelState.Error -> Tunnel.State.Down.also {
+						tunnel?.onBackendMessage(BackendMessage.Failure(event.v1.v1))
+						onVpnShutdown()
+					}
+				}
+				tunnel?.onStateChange(state)
 			}
 		}
 	}
