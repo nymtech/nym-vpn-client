@@ -139,21 +139,21 @@ impl CommandInterfaceConnectionHandler {
             .await
     }
 
-    pub(crate) async fn handle_get_local_account_state(
+    pub(crate) async fn handle_get_account_state(
         &self,
     ) -> Result<Result<AccountStateSummary, AccountError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::GetLocalAccountState, ())
             .await
     }
 
-    pub(crate) async fn handle_get_account_summary(
+    pub(crate) async fn handle_fetch_raw_account_summary(
         &self,
     ) -> Result<Result<NymVpnAccountSummaryResponse, AccountError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::GetAccountSummary, ())
             .await
     }
 
-    pub(crate) async fn handle_get_devices(
+    pub(crate) async fn handle_fetch_raw_devices(
         &self,
     ) -> Result<Result<NymVpnDevicesResponse, AccountError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::GetDevices, ()).await

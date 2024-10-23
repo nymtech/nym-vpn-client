@@ -588,24 +588,25 @@ message AccountSummary {
   bool pending_zk_nym = 5;
 }
 
-message GetLocalAccountStateRequest {}
+message GetAccountStateRequest {}
 
-message GetLocalAccountStateResponse {
+message GetAccountStateResponse {
   oneof result {
     AccountSummary account_summary = 1;
     AccountError error = 2;
   }
 }
 
-message GetAccountSummaryRequest {}
+message FetchRawAccountSummaryRequest {}
 
-message GetAccountSummaryResponse {
+message FetchRawAccountSummaryResponse {
   string json = 1;
   AccountError error = 2;
 }
 
-message GetDevicesRequest {}
-message GetDevicesResponse {
+message FetchRawDevicesRequest {}
+
+message FetchRawDevicesResponse {
   string json = 1;
   AccountError error = 2;
 }
@@ -722,7 +723,7 @@ service NymVpnd {
 
   // Query the account state, which refers to the server side account, as it is
   // known and interpreted by nym-vpnd
-  rpc GetLocalAccountState (GetLocalAccountStateRequest) returns (GetLocalAccountStateResponse) {}
+  rpc GetAccountState (GetAccountStateRequest) returns (GetAccountStateResponse) {}
   rpc IsReadyToConnect (IsReadyToConnectRequest) returns (IsReadyToConnectResponse) {}
 
   // Try to register the local device with the nym-vpn-api
@@ -731,16 +732,16 @@ service NymVpnd {
   // Request new zk-nyms (ticketbooks) from the nym-vpn-api
   rpc RequestZkNym (RequestZkNymRequest) returns (RequestZkNymResponse) {}
 
+  // List the zk-nyms associated with this device from the nym-vpn-api
+  rpc GetDeviceZkNyms (GetDeviceZkNymsRequest) returns (GetDeviceZkNymsResponse) {}
+
   // -- Delegated remote calls --
   // These query the remote nym-vpn-api state directly
 
   // Get the server side account summary directly from the nym-vpn-api
-  rpc GetAccountSummary (GetAccountSummaryRequest) returns (GetAccountSummaryResponse) {}
+  rpc FetchRawAccountSummary (FetchRawAccountSummaryRequest) returns (FetchRawAccountSummaryResponse) {}
 
   // Get the list of devices directly from the nym-vpn-api
-  rpc GetDevices (GetDevicesRequest) returns (GetDevicesResponse) {}
-
-  // List the zk-nyms associated with this device from the nym-vpn-api
-  rpc GetDeviceZkNyms (GetDeviceZkNymsRequest) returns (GetDeviceZkNymsResponse) {}
+  rpc FetchRawDevices (FetchRawDevicesRequest) returns (FetchRawDevicesResponse) {}
 }
 

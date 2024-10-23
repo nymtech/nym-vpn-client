@@ -14,10 +14,11 @@ use nym_vpn_api_client::types::GatewayMinPerformance;
 use nym_vpn_lib::tunnel_state_machine::MixnetEvent;
 use nym_vpn_proto::{
     nym_vpnd_server::NymVpnd, AccountError, ConnectRequest, ConnectResponse, ConnectionStateChange,
-    ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty, GetAccountSummaryRequest,
-    GetAccountSummaryResponse, GetDeviceZkNymsRequest, GetDeviceZkNymsResponse, GetDevicesRequest,
-    GetDevicesResponse, GetLocalAccountStateRequest, GetLocalAccountStateResponse, InfoRequest,
-    InfoResponse, IsAccountStoredRequest, IsAccountStoredResponse, IsReadyToConnectRequest,
+    ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
+    FetchRawAccountSummaryRequest, FetchRawAccountSummaryResponse, FetchRawDevicesRequest,
+    FetchRawDevicesResponse, GetAccountStateRequest, GetAccountStateResponse,
+    GetDeviceZkNymsRequest, GetDeviceZkNymsResponse, InfoRequest, InfoResponse,
+    IsAccountStoredRequest, IsAccountStoredResponse, IsReadyToConnectRequest,
     IsReadyToConnectResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
     ListGatewaysResponse, RegisterDeviceRequest, RegisterDeviceResponse, RemoveAccountRequest,
     RemoveAccountResponse, RequestZkNymRequest, RequestZkNymResponse, SetNetworkRequest,
@@ -443,18 +444,18 @@ impl NymVpnd for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
-    async fn get_local_account_state(
+    async fn get_account_state(
         &self,
-        _request: tonic::Request<GetLocalAccountStateRequest>,
-    ) -> Result<tonic::Response<GetLocalAccountStateResponse>, tonic::Status> {
+        _request: tonic::Request<GetAccountStateRequest>,
+    ) -> Result<tonic::Response<GetAccountStateResponse>, tonic::Status> {
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_get_local_account_state()
+            .handle_get_account_state()
             .await?;
 
         let response = match result {
-            Ok(state) => GetLocalAccountStateResponse {
+            Ok(state) => GetAccountStateResponse {
                 result: Some(
-                    nym_vpn_proto::get_local_account_state_response::Result::AccountSummary(
+                    nym_vpn_proto::get_account_state_response::Result::AccountSummary(
                         super::protobuf::account::into_account_summary(state),
                     ),
                 ),
@@ -462,7 +463,7 @@ impl NymVpnd for CommandInterface {
             Err(err) => {
                 // TODO: consider proper error handling for AccountError in this context
                 return Err(tonic::Status::internal(format!(
-                    "Failed to get local account state: {err}"
+                    "Failed to get account state: {err}"
                 )));
             }
         };
@@ -470,51 +471,28 @@ impl NymVpnd for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
-    async fn get_account_summary(
+    async fn is_ready_to_connect(
         &self,
-        _request: tonic::Request<GetAccountSummaryRequest>,
-    ) -> Result<tonic::Response<GetAccountSummaryResponse>, tonic::Status> {
+        _request: tonic::Request<IsReadyToConnectRequest>,
+    ) -> Result<tonic::Response<IsReadyToConnectResponse>, tonic::Status> {
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_get_account_summary()
+            .handle_is_ready_to_connect()
             .await?;
 
         let response = match result {
-            Ok(summary) => GetAccountSummaryResponse {
-                json: serde_json::to_string(&summary)
-                    .unwrap_or_else(|_| "failed to serialize".to_owned()),
-                error: None,
+            Ok(ready) => IsReadyToConnectResponse {
+                kind: into_is_ready_to_connect_response_type(ready) as i32,
             },
-            Err(err) => GetAccountSummaryResponse {
-                json: err.to_string(),
-                error: Some(AccountError::from(err)),
-            },
+            Err(err) => {
+                // TODO: consider proper error handling for AccountError in this context
+                tracing::error!("Failed to check if ready to connect: {:?}", err);
+                return Err(tonic::Status::internal(
+                    "Failed to check if ready to connect",
+                ));
+            }
         };
 
-        tracing::debug!("Returning get account summary response");
-        Ok(tonic::Response::new(response))
-    }
-
-    async fn get_devices(
-        &self,
-        _request: tonic::Request<GetDevicesRequest>,
-    ) -> Result<tonic::Response<GetDevicesResponse>, tonic::Status> {
-        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_get_devices()
-            .await?;
-
-        let response = match result {
-            Ok(devices) => GetDevicesResponse {
-                json: serde_json::to_string(&devices)
-                    .unwrap_or_else(|_| "failed to serialize".to_owned()),
-                error: None,
-            },
-            Err(err) => GetDevicesResponse {
-                json: err.to_string(),
-                error: Some(AccountError::from(err)),
-            },
-        };
-
-        tracing::debug!("Returning get devices response");
+        tracing::debug!("Returning is ready to connect response");
         Ok(tonic::Response::new(response))
     }
 
@@ -590,28 +568,49 @@ impl NymVpnd for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
-    async fn is_ready_to_connect(
+    async fn fetch_raw_account_summary(
         &self,
-        _request: tonic::Request<IsReadyToConnectRequest>,
-    ) -> Result<tonic::Response<IsReadyToConnectResponse>, tonic::Status> {
+        _request: tonic::Request<FetchRawAccountSummaryRequest>,
+    ) -> Result<tonic::Response<FetchRawAccountSummaryResponse>, tonic::Status> {
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_is_ready_to_connect()
+            .handle_fetch_raw_account_summary()
             .await?;
 
         let response = match result {
-            Ok(ready) => IsReadyToConnectResponse {
-                kind: into_is_ready_to_connect_response_type(ready) as i32,
+            Ok(summary) => FetchRawAccountSummaryResponse {
+                json: serde_json::to_string(&summary)
+                    .unwrap_or_else(|_| "failed to serialize".to_owned()),
+                error: None,
             },
-            Err(err) => {
-                // TODO: consider proper error handling for AccountError in this context
-                tracing::error!("Failed to check if ready to connect: {:?}", err);
-                return Err(tonic::Status::internal(
-                    "Failed to check if ready to connect",
-                ));
-            }
+            Err(err) => FetchRawAccountSummaryResponse {
+                json: err.to_string(),
+                error: Some(AccountError::from(err)),
+            },
         };
 
-        tracing::debug!("Returning is ready to connect response");
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn fetch_raw_devices(
+        &self,
+        _request: tonic::Request<FetchRawDevicesRequest>,
+    ) -> Result<tonic::Response<FetchRawDevicesResponse>, tonic::Status> {
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_fetch_raw_devices()
+            .await?;
+
+        let response = match result {
+            Ok(devices) => FetchRawDevicesResponse {
+                json: serde_json::to_string(&devices)
+                    .unwrap_or_else(|_| "failed to serialize".to_owned()),
+                error: None,
+            },
+            Err(err) => FetchRawDevicesResponse {
+                json: err.to_string(),
+                error: Some(AccountError::from(err)),
+            },
+        };
+
         Ok(tonic::Response::new(response))
     }
 }
