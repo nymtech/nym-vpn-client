@@ -699,19 +699,19 @@ where
         self.update_verification_key()
             .await
             .inspect_err(|err| {
-                tracing::error!("Failed to update master verification key: {:?}", err)
+                tracing::debug!("Failed to update master verification key: {:?}", err)
             })
             .ok();
         self.update_coin_indices_signatures()
             .await
             .inspect_err(|err| {
-                tracing::error!("Failed to update coin indices signatures: {:?}", err)
+                tracing::debug!("Failed to update coin indices signatures: {:?}", err)
             })
             .ok();
         self.update_expiration_date_signatures()
             .await
             .inspect_err(|err| {
-                tracing::error!("Failed to update expiration date signatures: {:?}", err)
+                tracing::debug!("Failed to update expiration date signatures: {:?}", err)
             })
             .ok();
 
