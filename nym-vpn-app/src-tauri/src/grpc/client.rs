@@ -8,8 +8,8 @@ use nym_vpn_proto::{
     is_account_stored_response::Resp as IsAccountStoredResp, nym_vpnd_client::NymVpndClient,
     ConnectRequest, ConnectionStatus, DisconnectRequest, Dns, Empty, EntryNode, ExitNode,
     GatewayType, GetAccountSummaryRequest, HealthCheckRequest, InfoRequest, InfoResponse,
-    IsAccountStoredRequest, ListCountriesRequest, Location, StatusRequest, StatusResponse,
-    StoreAccountRequest, UserAgent,
+    IsAccountStoredRequest, ListCountriesRequest, Location, SetNetworkRequest, StatusRequest,
+    StatusResponse, StoreAccountRequest, UserAgent,
 };
 use parity_tokio_ipc::Endpoint as IpcEndpoint;
 use serde::{Deserialize, Serialize};
@@ -550,6 +550,32 @@ impl GrpcClient {
             state.vpnd_status = status.into();
         }
 
+        Ok(())
+    }
+
+    /// Set the network environment of the daemon.
+    /// ⚠ This requires to restart the daemon to take effect.
+    #[instrument(skip(self))]
+    pub async fn set_network(&self, network: &str) -> Result<(), VpndError> {
+        debug!("set_network");
+        let mut vpnd = self.vpnd().await?;
+
+        let request = Request::new(SetNetworkRequest {
+            network: network.to_owned(),
+        });
+        let response = vpnd
+            .set_network(request)
+            .await
+            .map_err(|e| {
+                error!("grpc set_network: {}", e);
+                VpndError::GrpcError(e)
+            })?
+            .into_inner();
+        debug!("grpc response: {:?}", response);
+        if let Some(e) = response.error {
+            error!("set network env error: {:?}", e);
+            return Err(VpndError::Response(e.into()));
+        }
         Ok(())
     }
 }

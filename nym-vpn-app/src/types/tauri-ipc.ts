@@ -12,6 +12,8 @@ export type Cli = {
   nosplash: boolean;
 };
 
+export type NetworkEnv = 'mainnet' | 'cannary' | 'qa' | 'sandbox';
+
 export type DbKey =
   | 'Monitoring'
   | 'Autoconnect'
@@ -93,7 +95,8 @@ export type ErrorKey =
   | 'WgTunnelError'
   | 'GetMixnetEntryCountriesQuery'
   | 'GetMixnetExitCountriesQuery'
-  | 'GetWgCountriesQuery';
+  | 'GetWgCountriesQuery'
+  | 'InvalidNetworkName';
 
 export type StartupErrorKey = 'StartupOpenDb' | 'StartupOpenDbLocked';
 

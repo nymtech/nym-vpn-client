@@ -250,6 +250,7 @@ async fn main() -> Result<()> {
             account::get_account_info,
             cmd_daemon::daemon_status,
             cmd_daemon::daemon_info,
+            cmd_daemon::set_network,
             cmd_fs::log_dir,
             startup::startup_error,
         ])

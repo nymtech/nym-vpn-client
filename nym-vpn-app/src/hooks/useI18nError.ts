@@ -143,6 +143,8 @@ function useI18nError() {
           return t('countries-request.exit');
         case 'GetWgCountriesQuery':
           return t('countries-request.fast-mode');
+        case 'InvalidNetworkName':
+          return t('daemon.invalid-network');
         case 'UnknownError':
           return t('unknown');
 
