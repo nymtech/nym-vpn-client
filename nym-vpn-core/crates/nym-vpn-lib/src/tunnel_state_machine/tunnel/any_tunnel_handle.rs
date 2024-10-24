@@ -58,7 +58,13 @@ impl AnyTunnelHandle {
                     Ok(vec![])
                 }
             },
-            Self::Wireguard(handle) => Ok(vec![handle.wait().await]),
+            Self::Wireguard(handle) => {
+                if cfg!(target_os = "ios") || cfg!(target_os = "android") {
+                    Ok(vec![handle.wait().await])
+                } else {
+                    Ok(handle.wait().await)
+                }
+            }
         }
     }
 }
