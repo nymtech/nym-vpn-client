@@ -18,6 +18,7 @@ use tun::AsyncDevice;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use tun::Device;
 
+#[cfg(any(target_os = "ios", target_os = "android"))]
 use crate::tunnel_provider::tunnel_settings::TunnelSettings;
 #[cfg(target_os = "linux")]
 use crate::tunnel_state_machine::default_interface::DefaultInterface;
