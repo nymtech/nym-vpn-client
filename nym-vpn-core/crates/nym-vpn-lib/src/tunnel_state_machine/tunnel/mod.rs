@@ -67,6 +67,7 @@ impl ConnectedMixnet {
     /// Creates a tunnel over WireGuard.
     pub async fn connect_wireguard_tunnel(
         self,
+        enable_credentials_mode: bool,
     ) -> Result<wireguard::connected_tunnel::ConnectedTunnel> {
         let connector = wireguard::connector::Connector::new(
             self.task_manager,
@@ -74,7 +75,11 @@ impl ConnectedMixnet {
             self.gateway_directory_client,
         );
         connector
-            .connect(self.selected_gateways, self.data_path)
+            .connect(
+                enable_credentials_mode,
+                self.selected_gateways,
+                self.data_path,
+            )
             .await
     }
 }
@@ -84,6 +89,7 @@ pub struct MixnetConnectOptions {
     pub gateway_config: nym_gateway_directory::Config,
     pub mixnet_client_config: Option<MixnetClientConfig>,
     pub tunnel_type: TunnelType,
+    pub enable_credentials_mode: bool,
     pub entry_point: Box<EntryPoint>,
     pub exit_point: Box<ExitPoint>,
     pub user_agent: Option<UserAgent>,
@@ -125,6 +131,7 @@ pub async fn connect_mixnet(options: MixnetConnectOptions) -> Result<ConnectedMi
             &options.data_path,
             task_manager.subscribe_named("mixnet_client_main"),
             mixnet_client_config,
+            options.enable_credentials_mode,
         ),
     )
     .await

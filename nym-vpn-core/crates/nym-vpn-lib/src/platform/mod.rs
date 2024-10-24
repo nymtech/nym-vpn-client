@@ -361,6 +361,7 @@ async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, Vp
 
     let tunnel_settings = TunnelSettings {
         tunnel_type,
+        enable_credentials_mode: false,
         mixnet_tunnel_options: MixnetTunnelOptions::default(),
         gateway_performance_options: GatewayPerformanceOptions::default(),
         mixnet_client_config: None,

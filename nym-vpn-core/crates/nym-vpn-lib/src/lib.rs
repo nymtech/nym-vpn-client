@@ -54,9 +54,6 @@ pub struct MixnetClientConfig {
     /// Disable constant rate background loop cover traffic
     pub disable_background_cover_traffic: bool,
 
-    /// Enable the credentials mode between the client and the entry gateway.
-    pub enable_credentials_mode: bool,
-
     /// The minimum performance of mixnodes to use.
     pub min_mixnode_performance: Option<u8>,
 

@@ -35,7 +35,6 @@ fn apply_mixnet_client_config(
     let MixnetClientConfig {
         disable_poisson_rate,
         disable_background_cover_traffic,
-        enable_credentials_mode: _enable_credentials_mode,
         min_mixnode_performance,
         min_gateway_performance,
     } = mixnet_client_config;
@@ -77,6 +76,7 @@ pub(crate) async fn setup_mixnet_client(
     mixnet_client_key_storage_path: &Option<PathBuf>,
     mut task_client: nym_task::TaskClient,
     mixnet_client_config: MixnetClientConfig,
+    enable_credentials_mode: bool,
 ) -> Result<SharedMixnetClient, MixnetError> {
     let mut debug_config = nym_client_core::config::DebugConfig::default();
     apply_mixnet_client_config(&mixnet_client_config, &mut debug_config);
@@ -111,7 +111,7 @@ pub(crate) async fn setup_mixnet_client(
             .network_details(NymNetworkDetails::new_from_env())
             .debug_config(debug_config)
             .custom_shutdown(task_client)
-            .credentials_mode(mixnet_client_config.enable_credentials_mode)
+            .credentials_mode(enable_credentials_mode)
             .build()
             .map_err(MixnetError::FailedToBuildMixnetClient)?
             .connect_to_mixnet()
@@ -125,7 +125,7 @@ pub(crate) async fn setup_mixnet_client(
             .network_details(NymNetworkDetails::new_from_env())
             .debug_config(debug_config)
             .custom_shutdown(task_client)
-            .credentials_mode(mixnet_client_config.enable_credentials_mode)
+            .credentials_mode(enable_credentials_mode)
             .build()
             .map_err(MixnetError::FailedToBuildMixnetClient)?
             .connect_to_mixnet()

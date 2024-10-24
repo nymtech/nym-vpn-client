@@ -73,6 +73,9 @@ pub struct TunnelSettings {
     /// Type of tunnel.
     pub tunnel_type: TunnelType,
 
+    /// Enable the credentials mode between the client and the gateways.
+    pub enable_credentials_mode: bool,
+
     /// Mixnet tunnel options.
     pub mixnet_tunnel_options: MixnetTunnelOptions,
 
@@ -128,6 +131,7 @@ impl Default for TunnelSettings {
     fn default() -> Self {
         Self {
             tunnel_type: TunnelType::Wireguard,
+            enable_credentials_mode: false,
             mixnet_tunnel_options: MixnetTunnelOptions::default(),
             mixnet_client_config: None,
             gateway_performance_options: GatewayPerformanceOptions::default(),

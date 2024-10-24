@@ -200,7 +200,6 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> anyhow:
         disable_poisson_rate: args.wireguard_mode || args.disable_poisson_rate,
         disable_background_cover_traffic: args.wireguard_mode
             || args.disable_background_cover_traffic,
-        enable_credentials_mode: args.enable_credentials_mode,
         min_mixnode_performance: args.min_mixnode_performance,
         min_gateway_performance: args.min_gateway_mixnet_performance,
     };
@@ -217,6 +216,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> anyhow:
 
     let tunnel_settings = TunnelSettings {
         tunnel_type,
+        enable_credentials_mode: args.enable_credentials_mode,
         mixnet_client_config: Some(mixnet_client_config),
         gateway_performance_options: GatewayPerformanceOptions::default(),
         mixnet_tunnel_options,

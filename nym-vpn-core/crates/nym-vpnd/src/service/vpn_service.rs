@@ -671,7 +671,6 @@ where
         let mixnet_client_config = MixnetClientConfig {
             disable_poisson_rate: options.disable_poisson_rate,
             disable_background_cover_traffic: options.disable_background_cover_traffic,
-            enable_credentials_mode: options.enable_credentials_mode,
             min_mixnode_performance: options
                 .min_mixnode_performance
                 .map(|p| p.round_to_integer()),
@@ -693,6 +692,7 @@ where
 
         let tunnel_settings = TunnelSettings {
             tunnel_type,
+            enable_credentials_mode: options.enable_credentials_mode,
             mixnet_tunnel_options: MixnetTunnelOptions::default(),
             gateway_performance_options: gateway_options,
             mixnet_client_config: Some(mixnet_client_config),
