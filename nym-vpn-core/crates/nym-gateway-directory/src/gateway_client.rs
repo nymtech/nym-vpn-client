@@ -346,6 +346,8 @@ mod test {
         }
     }
 
+    // TODO: Remove ignore when aero hits mainnet
+    #[ignore]
     #[tokio::test]
     async fn lookup_described_gateways() {
         let config = Config::new_mainnet();
