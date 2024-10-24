@@ -106,6 +106,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<AccountStateSummary, AccountError>>,
         (),
     ),
+    RefreshAccountState(oneshot::Sender<Result<(), AccountError>>, ()),
     IsReadyToConnect(oneshot::Sender<Result<ReadyToConnect, AccountError>>, ()),
     ResetDeviceIdentity(oneshot::Sender<Result<(), AccountError>>, Option<Seed>),
     RegisterDevice(oneshot::Sender<Result<(), AccountError>>, ()),
@@ -135,6 +136,7 @@ impl fmt::Display for VpnServiceCommand {
             VpnServiceCommand::IsAccountStored(..) => write!(f, "IsAccountStored"),
             VpnServiceCommand::RemoveAccount(..) => write!(f, "RemoveAccount"),
             VpnServiceCommand::GetAccountState(..) => write!(f, "GetAccountState"),
+            VpnServiceCommand::RefreshAccountState(..) => write!(f, "RefreshAccountState"),
             VpnServiceCommand::IsReadyToConnect(..) => write!(f, "IsReadyToConnect"),
             VpnServiceCommand::ResetDeviceIdentity(..) => write!(f, "ResetDeviceIdentity"),
             VpnServiceCommand::RegisterDevice(..) => write!(f, "RegisterDevice"),
@@ -566,6 +568,10 @@ where
                 let result = self.handle_get_account_state().await;
                 let _ = tx.send(result);
             }
+            VpnServiceCommand::RefreshAccountState(tx, ()) => {
+                let result = self.handle_refresh_account_state().await;
+                let _ = tx.send(result);
+            }
             VpnServiceCommand::IsReadyToConnect(tx, ()) => {
                 let result = Ok(self.handle_is_ready_to_connect().await);
                 let _ = tx.send(result);
@@ -837,6 +843,14 @@ where
 
     async fn handle_get_account_state(&self) -> Result<AccountStateSummary, AccountError> {
         Ok(self.shared_account_state.lock().await.clone())
+    }
+
+    async fn handle_refresh_account_state(&self) -> Result<(), AccountError> {
+        self.account_command_tx
+            .send(AccountCommand::UpdateSharedAccountState)
+            .map_err(|err| AccountError::SendCommand {
+                source: Box::new(err),
+            })
     }
 
     async fn handle_is_ready_to_connect(&self) -> ReadyToConnect {

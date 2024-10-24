@@ -29,6 +29,7 @@ pub(crate) enum Command {
     IsAccountStored,
     RemoveAccount,
     GetAccountState,
+    RefreshAccountState,
     IsReadyToConnect,
     ListenToStatus,
     ListenToStateChanges,

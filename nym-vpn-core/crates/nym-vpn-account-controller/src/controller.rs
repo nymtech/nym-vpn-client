@@ -16,7 +16,10 @@ use nym_credentials_interface::{RequestInfo, TicketType};
 use nym_ecash_time::EcashTime;
 use nym_http_api_client::UserAgent;
 use nym_vpn_api_client::{
-    response::{NymErrorResponse, NymVpnZkNym, NymVpnZkNymStatus},
+    response::{
+        NymErrorResponse, NymVpnAccountSummaryResponse, NymVpnDevicesResponse, NymVpnZkNym,
+        NymVpnZkNymStatus,
+    },
     types::{Device, VpnApiAccount},
     HttpClientError, VpnApiClientError,
 };
@@ -73,6 +76,14 @@ where
     // The current state of the account
     account_state: SharedAccountState,
 
+    // The last account summary we received from the API. We use this to check if the account state
+    // has changed.
+    last_account_summary: Option<NymVpnAccountSummaryResponse>,
+
+    // The last devices we received from the API. We use this to check if the device state has
+    // changed.
+    last_devices: Option<NymVpnDevicesResponse>,
+
     // Keep track of the current ecash epoch
     current_epoch: Option<u64>,
 
@@ -121,6 +132,8 @@ where
             vpn_api_client: create_api_client(user_agent),
             vpn_ecash_api_client: create_ecash_api_client(),
             account_state: SharedAccountState::new(),
+            last_account_summary: None,
+            last_devices: None,
             current_epoch: None,
             zk_nym_imported: Default::default(),
             polling_tasks: JoinSet::new(),
@@ -383,8 +396,8 @@ where
         }
     }
 
-    async fn update_account_state(&self, account: &VpnApiAccount) -> Result<(), Error> {
-        tracing::info!("Updating account state");
+    async fn update_account_state(&mut self, account: &VpnApiAccount) -> Result<(), Error> {
+        tracing::debug!("Updating account state");
         let response = self.vpn_api_client.get_account_summary(account).await;
 
         // Check if the response indicates that we are not registered
@@ -402,7 +415,11 @@ where
                 source: Box::new(source),
             }
         })?;
-        tracing::info!("Account summary: {:#?}", account_summary);
+
+        if self.last_account_summary.as_ref() != Some(&account_summary) {
+            self.last_account_summary = Some(account_summary.clone());
+            tracing::info!("Account summary: {:#?}", account_summary);
+        }
 
         self.account_state
             .set_account(AccountState::from(account_summary.account.status))
@@ -415,8 +432,8 @@ where
         Ok(())
     }
 
-    async fn update_device_state(&self, account: &VpnApiAccount) -> Result<(), Error> {
-        tracing::info!("Updating device state");
+    async fn update_device_state(&mut self, account: &VpnApiAccount) -> Result<(), Error> {
+        tracing::debug!("Updating device state");
         let our_device = self.account_storage.load_device_keys().await?;
 
         let devices = self
@@ -425,7 +442,10 @@ where
             .await
             .map_err(Error::GetDevices)?;
 
-        tracing::info!("Registered devices: {:#?}", devices);
+        if self.last_devices.as_ref() != Some(&devices) {
+            self.last_devices = Some(devices.clone());
+            tracing::info!("Registered devices: {}", devices);
+        }
 
         // TODO: pagination
         let found_device = devices.items.iter().find(|device| {
@@ -455,7 +475,7 @@ where
         self.update_account_state(&account).await?;
         self.update_device_state(&account).await?;
 
-        tracing::info!("Current state: {}", self.shared_state().lock().await);
+        tracing::debug!("Current state: {}", self.shared_state().lock().await);
 
         self.register_device_if_ready().await?;
 
@@ -467,8 +487,17 @@ where
             ReadyToRegisterDevice::Ready => {
                 self.command_tx.send(AccountCommand::RegisterDevice)?;
             }
-            device_register_state => {
-                tracing::info!("Not ready to register device: {:?}", device_register_state);
+            ReadyToRegisterDevice::DeviceAlreadyRegistered => {
+                tracing::debug!("Skipping device registration, already registered");
+            }
+            s @ ReadyToRegisterDevice::NoMnemonicStored
+            | s @ ReadyToRegisterDevice::AccountNotActive
+            | s @ ReadyToRegisterDevice::NoActiveSubscription => {
+                tracing::info!("Not ready to register device: {}", s);
+            }
+            s @ ReadyToRegisterDevice::DeviceInactive
+            | s @ ReadyToRegisterDevice::DeviceDeleted => {
+                tracing::info!("Skipping registering device: {}", s);
             }
         }
 
@@ -619,10 +648,32 @@ where
         }
     }
 
-    pub async fn run(mut self) {
+    async fn print_info(&self) {
+        let account_id = self
+            .account_storage
+            .load_account()
+            .await
+            .map(|account| account.id())
+            .ok()
+            .unwrap_or_else(|| "(unset)".to_string());
+        let device_id = self
+            .account_storage
+            .load_device_keys()
+            .await
+            .map(|device| device.identity_key().to_string())
+            .ok()
+            .unwrap_or_else(|| "(unset)".to_string());
+
+        tracing::info!("Account id: {}", account_id);
+        tracing::info!("Device id: {}", device_id);
+
         if let Err(err) = self.credential_storage.print_info().await {
             tracing::error!("Failed to print credential storage info: {:#?}", err);
         }
+    }
+
+    pub async fn run(mut self) {
+        self.print_info().await;
 
         self.update_verification_key()
             .await
@@ -647,7 +698,8 @@ where
         let mut polling_timer = tokio::time::interval(Duration::from_millis(500));
 
         // Timer to periodically refresh the remote account state
-        let mut update_shared_account_state_timer = tokio::time::interval(Duration::from_secs(60));
+        let mut update_shared_account_state_timer =
+            tokio::time::interval(Duration::from_secs(5 * 60));
 
         loop {
             tokio::select! {

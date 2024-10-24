@@ -146,6 +146,13 @@ impl CommandInterfaceConnectionHandler {
             .await
     }
 
+    pub(crate) async fn handle_refresh_account_state(
+        &self,
+    ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::RefreshAccountState, ())
+            .await
+    }
+
     pub(crate) async fn handle_is_ready_to_connect(
         &self,
     ) -> Result<Result<ReadyToConnect, AccountError>, VpnCommandSendError> {

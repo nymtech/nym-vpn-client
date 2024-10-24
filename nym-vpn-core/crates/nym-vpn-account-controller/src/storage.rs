@@ -40,7 +40,7 @@ where
             .load_mnemonic()
             .await
             .map(VpnApiAccount::from)
-            .inspect(|account| tracing::info!("Loading account id: {}", account.id()))
+            .inspect(|account| tracing::debug!("Loading account id: {}", account.id()))
     }
 
     // Convenience function to load account and box the error
@@ -63,7 +63,7 @@ where
             .await
             .map(|keys| Device::from(keys.device_keypair()))
             .inspect(|device| {
-                tracing::info!("Loading device keys: {}", device.identity_key());
+                tracing::debug!("Loading device keys: {}", device.identity_key());
             })
     }
 

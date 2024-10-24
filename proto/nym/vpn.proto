@@ -597,6 +597,9 @@ message GetAccountStateResponse {
   }
 }
 
+message RefreshAccountStateRequest {}
+message RefreshAccountStateResponse {}
+
 message FetchRawAccountSummaryRequest {}
 
 message FetchRawAccountSummaryResponse {
@@ -734,6 +737,7 @@ service NymVpnd {
   // Query the account state, which refers to the server side account, as it is
   // known and interpreted by nym-vpnd
   rpc GetAccountState (GetAccountStateRequest) returns (GetAccountStateResponse) {}
+  rpc RefreshAccountState (RefreshAccountStateRequest) returns (RefreshAccountStateResponse) {}
   rpc IsReadyToConnect (IsReadyToConnectRequest) returns (IsReadyToConnectResponse) {}
 
   // Reset the device identity

@@ -26,6 +26,22 @@ pub enum ReadyToRegisterDevice {
     DeviceDeleted,
 }
 
+impl fmt::Display for ReadyToRegisterDevice {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ReadyToRegisterDevice::Ready => write!(f, "ready to register device"),
+            ReadyToRegisterDevice::NoMnemonicStored => write!(f, "no mnemonic stored"),
+            ReadyToRegisterDevice::AccountNotActive => write!(f, "account not active"),
+            ReadyToRegisterDevice::NoActiveSubscription => write!(f, "no active subscription"),
+            ReadyToRegisterDevice::DeviceAlreadyRegistered => {
+                write!(f, "device already registered")
+            }
+            ReadyToRegisterDevice::DeviceInactive => write!(f, "device inactive"),
+            ReadyToRegisterDevice::DeviceDeleted => write!(f, "device marked for deletion"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub enum ReadyToConnect {
     Ready,
@@ -39,12 +55,12 @@ pub enum ReadyToConnect {
 impl fmt::Display for ReadyToConnect {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ReadyToConnect::Ready => write!(f, "Ready to connect"),
-            ReadyToConnect::NoMnemonicStored => write!(f, "No mnemonic stored"),
-            ReadyToConnect::AccountNotActive => write!(f, "Account not active"),
-            ReadyToConnect::NoActiveSubscription => write!(f, "No active subscription"),
-            ReadyToConnect::DeviceNotRegistered => write!(f, "Device not registered"),
-            ReadyToConnect::DeviceNotActive => write!(f, "Device not active"),
+            ReadyToConnect::Ready => write!(f, "ready to connect"),
+            ReadyToConnect::NoMnemonicStored => write!(f, "no mnemonic stored"),
+            ReadyToConnect::AccountNotActive => write!(f, "account not active"),
+            ReadyToConnect::NoActiveSubscription => write!(f, "no active subscription"),
+            ReadyToConnect::DeviceNotRegistered => write!(f, "device not registered"),
+            ReadyToConnect::DeviceNotActive => write!(f, "device not active"),
         }
     }
 }
@@ -105,32 +121,40 @@ impl SharedAccountState {
 
     pub(crate) async fn set_mnemonic(&self, state: MnemonicState) {
         let mut guard = self.inner.lock().await;
-        tracing::info!("Setting mnemonic state to {:?}", state);
+        if guard.mnemonic.as_ref() != Some(&state) {
+            tracing::info!("Setting mnemonic state to {:?}", state);
+        }
         guard.mnemonic = Some(state);
     }
 
     pub(crate) async fn set_account(&self, state: AccountState) {
         let mut guard = self.inner.lock().await;
-        tracing::info!("Setting account state to {:?}", state);
+        if guard.account.as_ref() != Some(&state) {
+            tracing::info!("Setting account state to {:?}", state);
+        }
         guard.account = Some(state);
     }
 
     pub(crate) async fn set_subscription(&self, state: SubscriptionState) {
         let mut guard = self.inner.lock().await;
-        tracing::info!("Setting subscription state to {:?}", state);
+        if guard.subscription.as_ref() != Some(&state) {
+            tracing::info!("Setting subscription state to {:?}", state);
+        }
         guard.subscription = Some(state);
     }
 
     pub(crate) async fn set_device(&self, state: DeviceState) {
         let mut guard = self.inner.lock().await;
-        tracing::info!("Setting device state to {:?}", state);
+        if guard.device.as_ref() != Some(&state) {
+            tracing::info!("Setting device state to {:?}", state);
+        }
         guard.device = Some(state);
     }
 
     pub(crate) async fn set_pending_zk_nym(&self, pending: bool) {
         let mut guard = self.inner.lock().await;
         if guard.pending_zk_nym != pending {
-            tracing::info!("Setting pending zk-nym to {}", pending);
+            tracing::debug!("Setting pending zk-nym to {}", pending);
             guard.pending_zk_nym = pending;
         }
     }
