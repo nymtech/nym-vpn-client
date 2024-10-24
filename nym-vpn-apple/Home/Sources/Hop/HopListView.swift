@@ -1,5 +1,6 @@
 import SwiftUI
 import CountriesManagerTypes
+import Device
 import ExternalLinkManager
 import Theme
 import UIComponents
@@ -19,6 +20,7 @@ public struct HopListView: View {
                 .frame(height: 24)
 
             searchView()
+                .frame(maxWidth: Device.type == .ipad ? 358 : .infinity)
             Spacer()
                 .frame(height: 24)
 
@@ -27,7 +29,7 @@ public struct HopListView: View {
                 quickestConnection()
                 availableCountryList()
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(maxWidth: Device.type == .ipad ? 358 : .infinity)
             .ignoresSafeArea(.all)
         }
         .navigationBarBackButtonHidden(true)
