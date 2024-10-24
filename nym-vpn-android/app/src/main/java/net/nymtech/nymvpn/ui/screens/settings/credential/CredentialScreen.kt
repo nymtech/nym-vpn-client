@@ -41,6 +41,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
@@ -55,10 +56,11 @@ import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
+import net.nymtech.vpn.backend.Tunnel
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun CredentialScreen(appViewModel: AppViewModel, viewModel: CredentialViewModel = hiltViewModel()) {
+fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewModel: CredentialViewModel = hiltViewModel()) {
 	val snackbar = SnackbarController.current
 	val imeState = rememberImeState()
 	val scrollState = rememberScrollState()
@@ -219,7 +221,7 @@ fun CredentialScreen(appViewModel: AppViewModel, viewModel: CredentialViewModel 
 					val createAccountMessage = buildAnnotatedString {
 						append(stringResource(id = R.string.new_to_nym))
 						append(" ")
-						pushStringAnnotation(tag = "create", annotation = stringResource(id = R.string.create_account_link))
+						pushStringAnnotation(tag = "create", annotation = if(appUiState.settings.environment == Tunnel.Environment.MAINNET) stringResource(id = R.string.create_account_link) else stringResource(R.string.create_account_link_qa))
 						withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
 							append(stringResource(id = R.string.create_account))
 						}
