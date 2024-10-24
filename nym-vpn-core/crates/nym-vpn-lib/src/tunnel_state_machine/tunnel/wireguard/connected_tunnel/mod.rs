@@ -8,7 +8,7 @@ mod desktop;
 mod mobile;
 
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-pub use desktop::{ConnectedTunnel, TunnelHandle, WaitResult};
+pub use desktop::{ConnectedTunnel, TunnelHandle};
 
 #[cfg(any(target_os = "ios", target_os = "android"))]
 pub use mobile::{ConnectedTunnel, TunnelHandle};

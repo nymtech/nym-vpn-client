@@ -1,6 +1,9 @@
+// Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 use std::{fmt::Debug, os::fd::RawFd};
 
-use super::tunnel_settings::{TunnelNetworkSettings, TunnelSettings};
+use super::tunnel_settings::TunnelNetworkSettings;
 use crate::platform::error::VpnError;
 
 #[uniffi::export(with_foreign)]

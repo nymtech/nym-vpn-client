@@ -1,5 +1,5 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: GPL-3.0-only
 #![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 
 #[cfg(target_os = "android")]
@@ -27,9 +27,9 @@ use nym_vpn_store::mnemonic::MnemonicStorage as _;
 
 use self::error::VpnError;
 #[cfg(target_os = "android")]
-use crate::tunnel_state_machine::tunnel::wireguard::android::AndroidTunProvider;
+use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
-use crate::tunnel_state_machine::tunnel::wireguard::ios::tun_provider::OSTunProvider;
+use crate::tunnel_provider::ios::OSTunProvider;
 use crate::{
     gateway_directory::GatewayClient,
     tunnel_state_machine::{

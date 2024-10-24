@@ -35,16 +35,14 @@ use nym_wg_go::PublicKey;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use dns_handler::DnsHandler;
 //use firewall_handler::FirewallHandler;
+#[cfg(target_os = "android")]
+use crate::tunnel_provider::android::AndroidTunProvider;
+#[cfg(target_os = "ios")]
+use crate::tunnel_provider::ios::OSTunProvider;
+use crate::MixnetClientConfig;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use route_handler::RouteHandler;
 use states::DisconnectedState;
-
-#[cfg(target_os = "ios")]
-use tunnel::wireguard::ios::tun_provider::OSTunProvider;
-
-use crate::MixnetClientConfig;
-#[cfg(target_os = "android")]
-use tunnel::wireguard::android::AndroidTunProvider;
 
 #[async_trait::async_trait]
 trait TunnelStateHandler: Send {
