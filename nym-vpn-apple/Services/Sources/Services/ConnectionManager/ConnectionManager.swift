@@ -196,6 +196,7 @@ private extension ConnectionManager {
         setupTunnelManagerObservers()
         setupCountriesManagerObserver()
         setupAppSettingsObservers()
+        setupConnectionChangeObserver()
     }
 
     func setupTunnelManagerObservers() {
@@ -365,10 +366,22 @@ private extension ConnectionManager {
             self?.updateCountries()
         }
         .store(in: &cancellables)
+
+        countriesManager.$vpnCountries.sink { [weak self] _ in
+            self?.updateCountries()
+        }
+        .store(in: &cancellables)
     }
 
     func setupAppSettingsObservers() {
         appSettings.$isEntryLocationSelectionOnPublisher.sink { [weak self] _ in
+            self?.updateCountries()
+        }
+        .store(in: &cancellables)
+    }
+
+    func setupConnectionChangeObserver() {
+        $connectionType.sink { [weak self] _ in
             self?.updateCountries()
         }
         .store(in: &cancellables)
