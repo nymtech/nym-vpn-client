@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-	namespace = "net.nymtech.logcatutil"
+	namespace = "${Constants.NAMESPACE_ROOT}.logcatutil"
 	compileSdk = Constants.COMPILE_SDK
 
 	defaultConfig {
@@ -36,11 +36,11 @@ android {
 	}
 	compileOptions {
 		isCoreLibraryDesugaringEnabled = true
-		sourceCompatibility = Constants.JAVA_VERSION
-		targetCompatibility = Constants.JAVA_VERSION
+		sourceCompatibility = getJavaVersion()
+		targetCompatibility = getJavaVersion()
 	}
 	kotlinOptions {
-		jvmTarget = Constants.JVM_TARGET
+		jvmTarget = getJavaTarget()
 	}
 }
 
