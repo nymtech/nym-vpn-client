@@ -33,10 +33,6 @@ public final class AppSettings: ObservableObject {
     }
     @AppStorage(AppSettingKey.credenitalExists.rawValue)
     public var isCredentialImported = false
-    @AppStorage(AppSettingKey.credentialExpiryDate.rawValue)
-    public var credentialExpiryDate: Date?
-    @AppStorage(AppSettingKey.credentialStartDate.rawValue)
-    public var credentialStartDate: Date?
     @AppStorage(AppSettingKey.smallScreen.rawValue)
     public var isSmallScreen = false
     @AppStorage(AppSettingKey.welcomeScreenDidDisplay.rawValue)
@@ -83,8 +79,6 @@ enum AppSettingKey: String {
     case entryLocation
     case errorReporting
     case credenitalExists
-    case credentialExpiryDate
-    case credentialStartDate
     case smallScreen
     case welcomeScreenDidDisplay
     case entryCountry

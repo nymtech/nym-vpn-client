@@ -7,7 +7,7 @@ public enum GeneralNymError: Error, Equatable {
     case noPrebundledCountries
     case cannotParseCountries
     case library(message: String)
-    case invalidCredential
+    case noMnemonicStored
     case noEnvFile
 }
 
@@ -24,8 +24,8 @@ extension GeneralNymError: LocalizedError {
             return "generalNymError.cannotParseCountries".localizedString
         case .library(message: let message):
             return message
-        case .invalidCredential:
-            return "error.noValidCredential".localizedString
+        case .noMnemonicStored:
+            return "error.noMnemonicStored".localizedString
         case .noEnvFile:
             return "generalNymError.noEnvFile".localizedString
         }

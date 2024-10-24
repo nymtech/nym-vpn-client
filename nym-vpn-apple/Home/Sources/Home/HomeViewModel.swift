@@ -350,6 +350,7 @@ private extension HomeViewModel {
             do {
                 updateStatusInfoState(with: .installingDaemon)
                 isInstalledAndRunning = try await helperManager.installHelperIfNeeded()
+                resetStatusInfoState()
             } catch let error {
                 updateStatusInfoState(with: .error(message: error.localizedDescription))
             }
@@ -401,6 +402,7 @@ private extension HomeViewModel {
 
     func updateStatusInfoState(with newState: StatusInfoState) {
         Task { @MainActor in
+            guard newState != statusInfoState else { return }
             statusInfoState = newState
         }
     }

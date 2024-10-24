@@ -66,7 +66,7 @@ private extension SettingsListItem {
         VStack(alignment: .leading) {
             Text(viewModel.title)
                 .foregroundStyle(NymColor.sysOnSurface)
-                .textStyle(.Body.Large.primary)
+                .textStyle(.Body.Large.semibold)
             if let subtitle = viewModel.subtitle {
                 Text(subtitle)
                     .foregroundStyle(NymColor.sysOutline)

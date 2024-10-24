@@ -7,7 +7,7 @@ import Shell
 public final class HelperManager {
     private let secondInNanoseconds: UInt64 = 1000000000
     public static let shared = HelperManager()
-    public let requiredVersion = "0.2.4"
+    public let requiredVersion = "1.0.0"
 
     private var helperName = ""
 
@@ -117,9 +117,10 @@ private extension HelperManager {
     }
 
     func isHelperRunning() -> Bool {
-        if let output = Shell.exec(command: Command.isHelperRunning), !output.isEmpty {
-            return true
+        guard let output = Shell.exec(command: Command.isHelperRunning), !output.isEmpty
+        else {
+            return false
         }
-        return false
+        return true
     }
 }
