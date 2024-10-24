@@ -611,6 +611,16 @@ message FetchRawDevicesResponse {
   AccountError error = 2;
 }
 
+message ResetDeviceIdentityRequest {
+  // 32 byte seed, [u8; 32]
+  bytes seed = 1;
+}
+
+message ResetDeviceIdentityResponse {
+  bool success = 1;
+  AccountError error = 2;
+}
+
 message RegisterDeviceRequest {}
 
 message RegisterDeviceResponse {
@@ -725,6 +735,9 @@ service NymVpnd {
   // known and interpreted by nym-vpnd
   rpc GetAccountState (GetAccountStateRequest) returns (GetAccountStateResponse) {}
   rpc IsReadyToConnect (IsReadyToConnectRequest) returns (IsReadyToConnectResponse) {}
+
+  // Reset the device identity
+  rpc ResetDeviceIdentity (ResetDeviceIdentityRequest) returns (ResetDeviceIdentityResponse) {}
 
   // Try to register the local device with the nym-vpn-api
   rpc RegisterDevice (RegisterDeviceRequest) returns (RegisterDeviceResponse) {}

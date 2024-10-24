@@ -21,8 +21,9 @@ use nym_vpn_proto::{
     IsAccountStoredRequest, IsAccountStoredResponse, IsReadyToConnectRequest,
     IsReadyToConnectResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
     ListGatewaysResponse, RegisterDeviceRequest, RegisterDeviceResponse, RemoveAccountRequest,
-    RemoveAccountResponse, RequestZkNymRequest, RequestZkNymResponse, SetNetworkRequest,
-    SetNetworkResponse, StatusRequest, StatusResponse, StoreAccountRequest, StoreAccountResponse,
+    RemoveAccountResponse, RequestZkNymRequest, RequestZkNymResponse, ResetDeviceIdentityRequest,
+    ResetDeviceIdentityResponse, SetNetworkRequest, SetNetworkResponse, StatusRequest,
+    StatusResponse, StoreAccountRequest, StoreAccountResponse,
 };
 
 use super::{
@@ -493,6 +494,28 @@ impl NymVpnd for CommandInterface {
         };
 
         tracing::debug!("Returning is ready to connect response");
+        Ok(tonic::Response::new(response))
+    }
+    async fn reset_device_identity(
+        &self,
+        request: tonic::Request<ResetDeviceIdentityRequest>,
+    ) -> Result<tonic::Response<ResetDeviceIdentityResponse>, tonic::Status> {
+        let seed: [u8; 32] = request
+            .into_inner()
+            .seed
+            .as_slice()
+            .try_into()
+            .map_err(|_| tonic::Status::invalid_argument("Seed must be 32 bytes long"))?;
+
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_reset_device_identity(Some(seed))
+            .await?;
+
+        let response = ResetDeviceIdentityResponse {
+            success: result.is_ok(),
+            error: result.err().map(AccountError::from),
+        };
+
         Ok(tonic::Response::new(response))
     }
 

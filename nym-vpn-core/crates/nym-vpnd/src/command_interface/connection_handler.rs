@@ -146,17 +146,18 @@ impl CommandInterfaceConnectionHandler {
             .await
     }
 
-    pub(crate) async fn handle_fetch_raw_account_summary(
+    pub(crate) async fn handle_is_ready_to_connect(
         &self,
-    ) -> Result<Result<NymVpnAccountSummaryResponse, AccountError>, VpnCommandSendError> {
-        self.send_and_wait(VpnServiceCommand::FetchRawAccountSummary, ())
+    ) -> Result<Result<ReadyToConnect, AccountError>, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::IsReadyToConnect, ())
             .await
     }
 
-    pub(crate) async fn handle_fetch_raw_devices(
+    pub(crate) async fn handle_reset_device_identity(
         &self,
-    ) -> Result<Result<NymVpnDevicesResponse, AccountError>, VpnCommandSendError> {
-        self.send_and_wait(VpnServiceCommand::FetchRawDevices, ())
+        seed: Option<[u8; 32]>,
+    ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::ResetDeviceIdentity, seed)
             .await
     }
 
@@ -181,10 +182,17 @@ impl CommandInterfaceConnectionHandler {
             .await
     }
 
-    pub(crate) async fn handle_is_ready_to_connect(
+    pub(crate) async fn handle_fetch_raw_account_summary(
         &self,
-    ) -> Result<Result<ReadyToConnect, AccountError>, VpnCommandSendError> {
-        self.send_and_wait(VpnServiceCommand::IsReadyToConnect, ())
+    ) -> Result<Result<NymVpnAccountSummaryResponse, AccountError>, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::FetchRawAccountSummary, ())
+            .await
+    }
+
+    pub(crate) async fn handle_fetch_raw_devices(
+        &self,
+    ) -> Result<Result<NymVpnDevicesResponse, AccountError>, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::FetchRawDevices, ())
             .await
     }
 
