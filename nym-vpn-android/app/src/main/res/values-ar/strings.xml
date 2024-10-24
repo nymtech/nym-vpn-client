@@ -165,4 +165,16 @@
     <string name="low_bandwidth">"عرض النطاق الترددي منخفض! عرض النطاق الترددي المتبقي: "</string>
     <string name="vpn_permission_missing">تم رفض إذن VPN أو أنه مستخدم حالياً بواسطة تطبيق آخر.</string>
     <string name="credential_already_imported">بينات الاعتماد قد تم استيرادها بالفعل.</string>
+    <string name="missing_mnemonic">تقنية التذكر</string>
+    <string name="device_added_success">تمت إضافة الجهاز إلى حسابك بنجاح</string>
+    <string name="recovery_phrase">عبارة الاسترجاع</string>
+    <string name="invalid_recovery_phrase">عبارة الاسترداد غير صحيحة</string>
+    <string name="log_in">تسجيل دخول</string>
+    <string name="log_out">تسجيل خروج</string>
+    <string name="account">حساب</string>
+    <string name="recovery_phrase_disclaimer">يمكنك استخدام عبارة الاسترداد التي تم إنشاؤها فقط في NymVPN، وليس في Nym Wallet.</string>
+    <string name="create_account">قم بإنشاء حساب</string>
+    <string name="mnemonic_example">مثال: دخان، قطعة أثرية، مخمل، جمجمة، فرقعة، قصر، سلحفاة، ضرر، خشن...</string>
+    <string name="recovery_phrase_message">أدخل العبارة السرية المكونة من 24-كلمة أدناه لتسجيل الدخول إلى حسابك</string>
+    <string name="new_to_nym">هل أنت جديد على NymVPN؟</string>
 </resources>
