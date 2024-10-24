@@ -12,7 +12,7 @@ export type Cli = {
   nosplash: boolean;
 };
 
-export type NetworkEnv = 'mainnet' | 'cannary' | 'qa' | 'sandbox';
+export type NetworkEnv = 'mainnet' | 'canary' | 'qa' | 'sandbox';
 
 export type DbKey =
   | 'Monitoring'

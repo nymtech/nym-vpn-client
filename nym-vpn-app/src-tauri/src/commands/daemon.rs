@@ -19,7 +19,7 @@ pub struct DaemonInfo {
 #[ts(export)]
 pub enum NetworkEnv {
     Mainnet,
-    Cannary,
+    Canary,
     QA,
     Sandbox,
 }
