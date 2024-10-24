@@ -225,6 +225,7 @@ private extension ConnectionManager {
         setupGRPCManagerObservers()
         setupCountriesManagerObserver()
         setupAppSettingsObservers()
+        setupConnectionChangeObserver()
     }
 
     func setupGRPCManagerObservers() {

@@ -7,6 +7,10 @@ public final class ConnectionStorage {
     private let appSettings: AppSettings
     private let countriesManager: CountriesManager
 
+    private var countryType: CountryType {
+        connectionType() == .wireguard ? .vpn : .entry
+    }
+
     public init(
         appSettings: AppSettings = AppSettings.shared,
         countriesManager: CountriesManager = CountriesManager.shared
@@ -29,32 +33,18 @@ public final class ConnectionStorage {
             return .random
         }
 
-        let countryType: CountryType = connectionType() == .wireguard ? .vpn : .entry
-        let country = countriesManager.country(with: appSettings.entryCountryCode, countryType: countryType)
-
-        if !appSettings.entryCountryCode.isEmpty && country != nil {
+        if !appSettings.entryCountryCode.isEmpty {
             return .country(code: existingCountryCode(with: appSettings.entryCountryCode, countryType: .entry))
         } else {
-            guard let entryCountry = self.countriesManager.entryCountries.first
-            else {
-                return .country(code: "CH")
-            }
-            return .country(code: entryCountry.code)
+            return .country(code: fallbackCountryCode(countryType: countryType))
         }
     }
 
     func exitRouter() -> ExitRouter {
-        let countryType: CountryType = connectionType() == .wireguard ? .vpn : .exit
-        let country = countriesManager.country(with: appSettings.entryCountryCode, countryType: countryType)
-
-        if !appSettings.exitCountryCode.isEmpty && country != nil {
-            return .country(code: existingCountryCode(with: appSettings.exitCountryCode, countryType: .exit))
+        if !appSettings.exitCountryCode.isEmpty {
+            return .country(code: existingCountryCode(with: appSettings.exitCountryCode, countryType: countryType))
         } else {
-            guard let exitCountry = self.countriesManager.exitCountries.first
-            else {
-                return .country(code: "CH")
-            }
-            return .country(code: exitCountry.code)
+            return .country(code: fallbackCountryCode(countryType: countryType))
         }
     }
 }
