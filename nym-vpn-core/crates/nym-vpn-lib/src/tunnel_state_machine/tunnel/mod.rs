@@ -76,7 +76,11 @@ impl ConnectedMixnet {
             self.gateway_directory_client,
         );
         connector
-            .connect(ENABLE_CREDENTIALS_WG, self.selected_gateways, self.data_path)
+            .connect(
+                ENABLE_CREDENTIALS_WG,
+                self.selected_gateways,
+                self.data_path,
+            )
             .await
     }
 }

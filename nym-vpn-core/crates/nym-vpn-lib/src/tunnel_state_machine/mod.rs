@@ -42,9 +42,9 @@ use states::DisconnectedState;
 #[cfg(target_os = "ios")]
 use tunnel::wireguard::ios::tun_provider::OSTunProvider;
 
-use crate::MixnetClientConfig;
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::android::AndroidTunProvider;
+use crate::MixnetClientConfig;
 
 #[async_trait::async_trait]
 trait TunnelStateHandler: Send {

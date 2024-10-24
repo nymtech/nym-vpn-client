@@ -18,8 +18,6 @@ use tun::AsyncDevice;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use tun::Device;
 
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-use nym_ip_packet_requests::IpPair;
 use crate::tunnel_provider::tunnel_settings::TunnelSettings;
 #[cfg(target_os = "linux")]
 use crate::tunnel_state_machine::default_interface::DefaultInterface;
@@ -32,6 +30,8 @@ use crate::tunnel_state_machine::{
     SharedState, TunnelCommand, TunnelConnectionData, TunnelState, TunnelStateHandler, TunnelType,
     WireguardConnectionData, WireguardNode,
 };
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+use nym_ip_packet_requests::IpPair;
 
 /// Default MTU for mixnet tun device.
 #[cfg(not(all(target_os = "ios", target_os = "android")))]
