@@ -227,7 +227,7 @@ class MainActivity : ComponentActivity() {
 								composable<Route.Feedback> { FeedbackScreen(appViewModel) }
 								composable<Route.Legal> { LegalScreen(appViewModel) }
 								composable<Route.Credential> {
-									CredentialScreen(appState,appViewModel)
+									CredentialScreen(appState, appViewModel)
 								}
 								composable<Route.Account> { AccountScreen(appViewModel, appState) }
 								composable<Route.Licenses> {

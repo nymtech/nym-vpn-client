@@ -221,7 +221,16 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 					val createAccountMessage = buildAnnotatedString {
 						append(stringResource(id = R.string.new_to_nym))
 						append(" ")
-						pushStringAnnotation(tag = "create", annotation = if(appUiState.settings.environment == Tunnel.Environment.MAINNET) stringResource(id = R.string.create_account_link) else stringResource(R.string.create_account_link_qa))
+						pushStringAnnotation(
+							tag = "create",
+							annotation = if (appUiState.settings.environment == Tunnel.Environment.MAINNET) {
+								stringResource(
+									id = R.string.create_account_link,
+								)
+							} else {
+								stringResource(R.string.create_account_link_qa)
+							},
+						)
 						withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
 							append(stringResource(id = R.string.create_account))
 						}
