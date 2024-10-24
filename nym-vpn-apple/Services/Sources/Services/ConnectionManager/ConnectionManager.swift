@@ -178,7 +178,7 @@ public final class ConnectionManager: ObservableObject {
                 Task { @MainActor in
                     appSettings.lastConnectionIntent = config.toJson()
                 }
-                grpcManager.connect(
+                try await grpcManager.connect(
                     entryGatewayCountryCode: config.entryGateway?.countryCode,
                     exitRouterCountryCode: config.exitRouter.countryCode,
                     isTwoHopEnabled: config.isTwoHopEnabled

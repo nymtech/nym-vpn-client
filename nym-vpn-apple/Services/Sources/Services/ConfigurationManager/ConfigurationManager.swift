@@ -1,5 +1,9 @@
 import Foundation
 import AppSettings
+import Device
+#if os(macOS)
+import GRPCManager
+#endif
 import Constants
 import Logging
 
@@ -7,6 +11,10 @@ public final class ConfigurationManager {
     private let appSettings: AppSettings
     private let logger = Logger(label: "Configuration Manager")
     private let fallbackEnv = Env.mainnet
+
+#if os(macOS)
+    private let grpcManager: GRPCManager
+#endif
 
     // Source of truth in AppSettings.
     // We need to set same settings in tunnel extension as well.
@@ -19,8 +27,16 @@ public final class ConfigurationManager {
             appSettings.currentEnv = newValue.rawValue
         }
     }
-
+#if os(iOS)
     public static let shared = ConfigurationManager(appSettings: AppSettings.shared)
+#endif
+
+#if os(macOS)
+    public static let shared = ConfigurationManager(
+        appSettings: AppSettings.shared,
+        grpcManager: GRPCManager.shared
+    )
+#endif
     public let isTestFlight = Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
     public let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0"
 
@@ -34,9 +50,18 @@ public final class ConfigurationManager {
 
     public var environmentDidChange: (() -> Void)?
 
+#if os(iOS)
     private init(appSettings: AppSettings) {
         self.appSettings = appSettings
     }
+#endif
+
+#if os(macOS)
+    private init(appSettings: AppSettings, grpcManager: GRPCManager) {
+        self.appSettings = appSettings
+        self.grpcManager = grpcManager
+    }
+#endif
 
     public func setup() throws {
         guard let env = Env(rawValue: appSettings.currentEnv)
@@ -46,11 +71,21 @@ public final class ConfigurationManager {
             return
         }
         currentEnv = env
+#if os(iOS)
         try setEnvVariables(for: currentEnv)
+#endif
+
+#if os(macOS)
+        try setDaemonEnvironmentVariables()
+#endif
     }
 
     public func updateEnv(to env: Env) {
-        guard isTestFlight, env != currentEnv else { return }
+        guard isTestFlight || Device.isMacOS,
+                env != currentEnv
+        else {
+            return
+        }
         currentEnv = env
         try? setup()
         environmentDidChange?()
@@ -101,4 +136,10 @@ private extension ConfigurationManager {
             }
         }
     }
+
+#if os(macOS)
+    func setDaemonEnvironmentVariables() throws {
+        try grpcManager.switchEnvironment(to: currentEnv.rawValue)
+    }
+#endif
 }

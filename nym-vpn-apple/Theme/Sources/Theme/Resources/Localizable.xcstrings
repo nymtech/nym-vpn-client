@@ -45,13 +45,13 @@
         }
       }
     },
-    "addCredentials.addCredential.Title" : {
+    "addCredentials.createAccount" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Add credential"
+            "value" : "Create an account"
           }
         }
       }
@@ -139,7 +139,40 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter your credential to get started"
+            "value" : "Enter the 24 words of your NymVPN recovery phrase to log in to your account"
+          }
+        }
+      }
+    },
+    "addCredentials.Login.Title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log in"
+          }
+        }
+      }
+    },
+    "addCredentials.newToNymVPN" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New to NymVPN?"
+          }
+        }
+      }
+    },
+    "addCredentials.placeholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "e.g. smoke artefact velvet skull pop palace tortoise damage rough..."
           }
         }
       }
@@ -194,7 +227,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Welcome!"
+            "value" : "Welcome to NymVPN!"
           }
         }
       }
@@ -205,7 +238,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "To generate a new credential, please use the link\nprovided in the beta phase invitation email."
+            "value" : "You can only use the recovery phrase created in NymVPN, not the Nym Wallet."
           }
         }
       }
@@ -430,13 +463,13 @@
         }
       }
     },
-    "error.noValidCredential" : {
+    "error.noMnemonicStored" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No valid credentials"
+            "value" : "No mnemonic stored"
           }
         }
       }
@@ -1057,17 +1090,6 @@
         }
       }
     },
-    "settings.addCredential" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add credential to connect"
-          }
-        }
-      }
-    },
     "settings.anonymousErrorReports.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1097,6 +1119,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Appearance"
+          }
+        }
+      }
+    },
+    "settings.logIn" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log in"
           }
         }
       }

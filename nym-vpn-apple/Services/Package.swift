@@ -52,6 +52,8 @@ let package = Package(
             dependencies: [
                 "AppSettings",
                 "Constants",
+                "Device",
+                .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 "NymLogger"
             ],
             path: "Sources/Services/ConfigurationManager"

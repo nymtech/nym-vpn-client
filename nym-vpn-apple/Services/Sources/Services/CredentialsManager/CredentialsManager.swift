@@ -27,14 +27,6 @@ public final class CredentialsManager {
         appSettings.isCredentialImported
     }
 
-    public var expiryDate: Date? {
-        appSettings.credentialExpiryDate
-    }
-
-    public var startDate: Date? {
-        appSettings.credentialStartDate
-    }
-
     private init() {
         setup()
     }
@@ -52,12 +44,10 @@ public final class CredentialsManager {
 #endif
 #if os(macOS)
             _ = try await helperManager.installHelperIfNeeded()
-            let expiryDate = try grpcManager.importCredential(credential: trimmedCredential)
+            try grpcManager.storeAccount(with: trimmedCredential)
 #endif
             Task { @MainActor in
                 appSettings.isCredentialImported = true
-//                appSettings.credentialExpiryDate = expiryDate
-//                appSettings.credentialStartDate = Date()
             }
         } catch let error {
             throw error
@@ -86,7 +76,7 @@ extension CredentialsManager {
 #if os(macOS)
         grpcManager.$lastError.sink { [weak self] error in
             guard let self,
-                  error == GeneralNymError.invalidCredential
+                  error == GeneralNymError.noMnemonicStored
             else {
                 return
             }

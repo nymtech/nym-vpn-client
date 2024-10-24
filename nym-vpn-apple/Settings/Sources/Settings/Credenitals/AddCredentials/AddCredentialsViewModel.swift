@@ -13,12 +13,14 @@ final class AddCredentialsViewModel: ObservableObject {
 #endif
 
     let appSettings: AppSettings
-    let addCredentialButtonTitle = "addCredentials.addCredential.Title".localizedString
+    let loginButtonTitle = "addCredentials.Login.Title".localizedString
     let welcomeTitle = "addCredentials.welcome.Title".localizedString
     let getStartedTitle = "addCredentials.getStarted.Title".localizedString
     let getStartedSubtitle = "addCredentialsGetStarted.Subtitle".localizedString
     let credentialSubtitle = "addCredtenials.credential".localizedString
-    let credentialsPlaceholderTitle = "".localizedString
+    let credentialsPlaceholderTitle = "addCredentials.placeholder".localizedString
+    let newToNymVPNTitle = "addCredentials.newToNymVPN".localizedString
+    let createAccountTitle = "addCredentials.createAccount".localizedString
     let logoImageName = "addCredentialsLogo"
     let scannerIconName = "qrcode.viewfinder"
 
