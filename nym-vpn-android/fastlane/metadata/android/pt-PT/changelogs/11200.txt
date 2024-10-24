@@ -1,0 +1,2 @@
+O que há de novo:
+- Corrigido o erro de falha dos logs
