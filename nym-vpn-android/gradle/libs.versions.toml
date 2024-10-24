@@ -35,7 +35,7 @@ moshiKotlinCodegen = "1.15.1"
 converterMoshi = "2.11.0"
 zxingAndroidEmbedded = "4.3.0"
 
-gradlePlugins-licensee = "1.11.0"
+gradlePlugins-licensee = "1.12.0"
 gradlePlugins-detekt = "1.23.7"
 gradlePlugins-gross = "0.4.2"
 gradlePlugins-sentry = "4.11.0"
