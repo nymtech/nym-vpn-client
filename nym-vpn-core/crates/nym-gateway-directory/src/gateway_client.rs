@@ -346,7 +346,7 @@ mod test {
         }
     }
 
-    // TODO: Remove ignore when aero hits mainnet
+    // TODO: Remove ignore when magura hits mainnet
     #[ignore]
     #[tokio::test]
     async fn lookup_described_gateways() {
