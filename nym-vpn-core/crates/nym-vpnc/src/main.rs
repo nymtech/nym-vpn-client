@@ -8,8 +8,8 @@ use nym_vpn_proto::{
     ConnectRequest, DisconnectRequest, Empty, FetchRawAccountSummaryRequest,
     FetchRawDevicesRequest, GetAccountStateRequest, GetDeviceZkNymsRequest, InfoRequest,
     InfoResponse, IsAccountStoredRequest, IsReadyToConnectRequest, ListCountriesRequest,
-    ListGatewaysRequest, RegisterDeviceRequest, RemoveAccountRequest, RequestZkNymRequest,
-    SetNetworkRequest, StatusRequest, StoreAccountRequest, UserAgent,
+    ListGatewaysRequest, RefreshAccountStateRequest, RegisterDeviceRequest, RemoveAccountRequest,
+    RequestZkNymRequest, SetNetworkRequest, StatusRequest, StoreAccountRequest, UserAgent,
 };
 use protobuf_conversion::{into_gateway_type, into_threshold};
 use sysinfo::System;
@@ -42,6 +42,7 @@ async fn main() -> Result<()> {
         Command::Info => info(client_type).await?,
         Command::SetNetwork(ref args) => set_network(client_type, args).await?,
         Command::StoreAccount(ref store_args) => store_account(client_type, store_args).await?,
+        Command::RefreshAccountState => refresh_account_state(client_type).await?,
         Command::IsAccountStored => is_account_stored(client_type).await?,
         Command::RemoveAccount => remove_account(client_type).await?,
         Command::GetAccountState => get_account_state(client_type).await?,
@@ -184,6 +185,14 @@ async fn store_account(client_type: ClientType, store_args: &cli::StoreAccountAr
         nonce: 0,
     });
     let response = client.store_account(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn refresh_account_state(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(RefreshAccountStateRequest {});
+    let response = client.refresh_account_state(request).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }

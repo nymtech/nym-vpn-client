@@ -116,7 +116,11 @@ impl OnDiskKeys {
         if self.paths.exists() {
             return Ok(());
         }
+        self.reset_keys(seed)
+    }
 
+    // Generate new keys and overwrite the existing ones if they exist
+    fn reset_keys(&self, seed: Option<[u8; 32]>) -> Result<(), OnDiskKeysError> {
         let device_keys = if let Some(seed) = seed {
             let mut rng = rand_chacha::ChaCha20Rng::from_seed(seed);
             DeviceKeys::generate_new(&mut rng)
@@ -141,5 +145,9 @@ impl KeyStore for OnDiskKeys {
 
     async fn init_keys(&self, seed: Option<[u8; 32]>) -> Result<(), Self::StorageError> {
         self.init_keys(seed)
+    }
+
+    async fn reset_keys(&self, seed: Option<[u8; 32]>) -> Result<(), Self::StorageError> {
+        self.reset_keys(seed)
     }
 }

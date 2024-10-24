@@ -20,9 +20,11 @@ use nym_vpn_proto::{
     GetDeviceZkNymsRequest, GetDeviceZkNymsResponse, InfoRequest, InfoResponse,
     IsAccountStoredRequest, IsAccountStoredResponse, IsReadyToConnectRequest,
     IsReadyToConnectResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
-    ListGatewaysResponse, RegisterDeviceRequest, RegisterDeviceResponse, RemoveAccountRequest,
-    RemoveAccountResponse, RequestZkNymRequest, RequestZkNymResponse, SetNetworkRequest,
-    SetNetworkResponse, StatusRequest, StatusResponse, StoreAccountRequest, StoreAccountResponse,
+    ListGatewaysResponse, RefreshAccountStateRequest, RefreshAccountStateResponse,
+    RegisterDeviceRequest, RegisterDeviceResponse, RemoveAccountRequest, RemoveAccountResponse,
+    RequestZkNymRequest, RequestZkNymResponse, ResetDeviceIdentityRequest,
+    ResetDeviceIdentityResponse, SetNetworkRequest, SetNetworkResponse, StatusRequest,
+    StatusResponse, StoreAccountRequest, StoreAccountResponse,
 };
 
 use super::{
@@ -471,6 +473,20 @@ impl NymVpnd for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
+    async fn refresh_account_state(
+        &self,
+        _request: tonic::Request<RefreshAccountStateRequest>,
+    ) -> Result<tonic::Response<RefreshAccountStateResponse>, tonic::Status> {
+        CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_refresh_account_state()
+            .await?
+            .map_err(|err| {
+                tracing::error!("Failed to refresh account state: {:?}", err);
+                tonic::Status::internal("Failed to refresh account state")
+            })
+            .map(|_| tonic::Response::new(RefreshAccountStateResponse {}))
+    }
+
     async fn is_ready_to_connect(
         &self,
         _request: tonic::Request<IsReadyToConnectRequest>,
@@ -493,6 +509,28 @@ impl NymVpnd for CommandInterface {
         };
 
         tracing::debug!("Returning is ready to connect response");
+        Ok(tonic::Response::new(response))
+    }
+    async fn reset_device_identity(
+        &self,
+        request: tonic::Request<ResetDeviceIdentityRequest>,
+    ) -> Result<tonic::Response<ResetDeviceIdentityResponse>, tonic::Status> {
+        let seed: [u8; 32] = request
+            .into_inner()
+            .seed
+            .as_slice()
+            .try_into()
+            .map_err(|_| tonic::Status::invalid_argument("Seed must be 32 bytes long"))?;
+
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_reset_device_identity(Some(seed))
+            .await?;
+
+        let response = ResetDeviceIdentityResponse {
+            success: result.is_ok(),
+            error: result.err().map(AccountError::from),
+        };
+
         Ok(tonic::Response::new(response))
     }
 
