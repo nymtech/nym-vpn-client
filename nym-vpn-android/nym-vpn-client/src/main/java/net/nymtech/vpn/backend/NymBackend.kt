@@ -3,6 +3,7 @@ package net.nymtech.vpn.backend
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import androidx.lifecycle.lifecycleScope
 import com.getkeepsafe.relinker.ReLinker
 import com.getkeepsafe.relinker.ReLinker.LoadListener
 import kotlinx.coroutines.CompletableDeferred
@@ -18,6 +19,7 @@ import net.nymtech.vpn.model.BackendMessage
 import net.nymtech.vpn.model.Statistics
 import net.nymtech.vpn.util.Action
 import net.nymtech.vpn.util.Constants
+import net.nymtech.vpn.util.LifecycleVpnService
 import net.nymtech.vpn.util.NotificationManager
 import net.nymtech.vpn.util.SingletonHolder
 import net.nymtech.vpn.util.addRoutes
@@ -213,7 +215,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		}
 	}
 
-	class VpnService : android.net.VpnService(), AndroidTunProvider {
+	class VpnService : LifecycleVpnService(), AndroidTunProvider {
 		private var owner: NymBackend? = null
 		private var startId by Delegates.notNull<Int>()
 		private val calculator = AllowedIpCalculator()
@@ -230,6 +232,9 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		override fun onDestroy() {
 			Timber.d("Vpn service destroyed")
 			currentTunnelHandle.getAndSet(-1)
+			lifecycleScope.launch {
+				stopVpn()
+			}
 			vpnService = CompletableDeferred()
 			super.onDestroy()
 		}
