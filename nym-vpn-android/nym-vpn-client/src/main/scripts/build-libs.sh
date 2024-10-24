@@ -3,6 +3,12 @@
 echo "Building WireGuard dep"
 echo "Working dir: $PWD"
 echo "NDK_HOME: $1"
+
+# Ensure Go compiler is accessible
+export GOROOT="$HOME/go"
+export PATH="$PATH:$GOROOT/bin"
+source "$HOME/.cargo/env"
+
 #fix to work with different OS
 archDir=$(basename $1/toolchains/llvm/prebuilt/*/)
 echo "archdir: ${archDir}"
