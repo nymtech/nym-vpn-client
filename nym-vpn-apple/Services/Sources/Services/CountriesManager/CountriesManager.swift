@@ -166,8 +166,8 @@ private extension CountriesManager {
     }
 
     func loadPrebundledCountriesIfNecessary() {
-        guard entryCountries.isEmpty || exitCountries.isEmpty || vpnCountries.isEmpty,
-              let entryCountriesURL = Bundle.main.url(forResource: "gatewaysEntryCountries", withExtension: "json"),
+        guard entryCountries.isEmpty || exitCountries.isEmpty || vpnCountries.isEmpty else { return }
+        guard let entryCountriesURL = Bundle.main.url(forResource: "gatewaysEntryCountries", withExtension: "json"),
               let exitCountriesURL = Bundle.main.url(forResource: "gatewaysExitCountries", withExtension: "json"),
               let vpnCountriesURL = Bundle.main.url(forResource: "vpnCountries", withExtension: "json")
         else {
