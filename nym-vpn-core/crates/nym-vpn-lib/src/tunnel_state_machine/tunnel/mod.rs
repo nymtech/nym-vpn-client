@@ -23,6 +23,8 @@ use status_listener::StatusListener;
 const MIXNET_CLIENT_STARTUP_TIMEOUT: Duration = Duration::from_secs(30);
 const TASK_MANAGER_SHUTDOWN_TIMER_SECS: u64 = 10;
 
+const ENABLE_CREDENTIALS_WG: bool = false;
+
 pub struct ConnectedMixnet {
     task_manager: TaskManager,
     gateway_directory_client: GatewayClient,
@@ -74,7 +76,7 @@ impl ConnectedMixnet {
             self.gateway_directory_client,
         );
         connector
-            .connect(self.selected_gateways, self.data_path)
+            .connect(ENABLE_CREDENTIALS_WG, self.selected_gateways, self.data_path)
             .await
     }
 }
@@ -125,6 +127,7 @@ pub async fn connect_mixnet(options: MixnetConnectOptions) -> Result<ConnectedMi
             &options.data_path,
             task_manager.subscribe_named("mixnet_client_main"),
             mixnet_client_config,
+            ENABLE_CREDENTIALS_WG,
         ),
     )
     .await

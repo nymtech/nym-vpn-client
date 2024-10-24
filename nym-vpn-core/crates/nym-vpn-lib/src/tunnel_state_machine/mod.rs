@@ -44,7 +44,7 @@ use tunnel::wireguard::ios::tun_provider::OSTunProvider;
 
 use crate::MixnetClientConfig;
 #[cfg(target_os = "android")]
-use tunnel::wireguard::android::AndroidTunProvider;
+use crate::tunnel_provider::android::AndroidTunProvider;
 
 #[async_trait::async_trait]
 trait TunnelStateHandler: Send {

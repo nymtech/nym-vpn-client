@@ -27,7 +27,7 @@ use nym_vpn_store::mnemonic::MnemonicStorage as _;
 
 use self::error::VpnError;
 #[cfg(target_os = "android")]
-use crate::tunnel_state_machine::tunnel::wireguard::android::AndroidTunProvider;
+use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_state_machine::tunnel::wireguard::ios::tun_provider::OSTunProvider;
 use crate::{
