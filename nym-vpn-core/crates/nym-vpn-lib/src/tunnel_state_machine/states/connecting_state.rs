@@ -3,6 +3,10 @@
 
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use std::net::Ipv4Addr;
+#[cfg(any(target_os = "android", target_os = "ios"))]
+use std::os::fd::{AsRawFd, IntoRawFd};
+#[cfg(target_os = "android")]
+use std::os::fd::{FromRawFd, OwnedFd};
 
 use futures::{
     future::{BoxFuture, Fuse},
@@ -303,7 +307,7 @@ impl ConnectingState {
         shared_state: &mut SharedState,
     ) -> Result<(TunnelConnectionData, AnyTunnelHandle)> {
         let connected_tunnel = connected_mixnet
-            .connect_wireguard_tunnel()
+            .connect_wireguard_tunnel(shared_state.tunnel_settings.enable_credentials_mode)
             .await
             .map_err(Error::ConnectWireguardTunnel)?;
 
@@ -430,16 +434,23 @@ impl ConnectingState {
         packet_tunnel_settings: tunnel_provider::tunnel_settings::TunnelSettings,
         shared_state: &mut SharedState,
     ) -> Result<AsyncDevice> {
-        let mut tun_config = tun::Configuration::default();
+        #[cfg(target_os = "ios")]
+        let owned_tun_fd =
+            tunnel_provider::ios::interface::get_tun_fd().map_err(Error::LocateTunDevice)?;
 
         #[cfg(target_os = "android")]
-        {
-            let tun_fd = shared_state
+        let owned_tun_fd = {
+            let raw_tun_fd = shared_state
                 .tun_provider
                 .configure_tunnel(packet_tunnel_settings.into_tunnel_network_settings())
                 .map_err(|e| Error::ConfigureTunnelProvider(e.to_string()))?;
+            unsafe { OwnedFd::from_raw_fd(raw_tun_fd) }
+        };
 
-            tun_config.raw_fd(tun_fd);
+        let mut tun_config = tun::Configuration::default();
+        tun_config.raw_fd(owned_tun_fd.as_raw_fd());
+        #[cfg(target_os = "android")]
+        {
             #[cfg(target_os = "linux")]
             tun_config.platform(|platform_config| {
                 platform_config.packet_information(false);
@@ -448,10 +459,6 @@ impl ConnectingState {
 
         #[cfg(target_os = "ios")]
         {
-            let tun_fd =
-                tunnel_provider::ios::interface::get_tun_fd().ok_or(Error::LocateTunDevice)?;
-            tun_config.raw_fd(tun_fd);
-
             shared_state
                 .tun_provider
                 .set_tunnel_network_settings(packet_tunnel_settings.into_tunnel_network_settings())
@@ -459,7 +466,12 @@ impl ConnectingState {
                 .map_err(|e| Error::ConfigureTunnelProvider(e.to_string()))?
         }
 
-        tun::create_as_async(&tun_config).map_err(Error::CreateTunDevice)
+        let device = tun::create_as_async(&tun_config).map_err(Error::CreateTunDevice)?;
+
+        // Consume the owned fd, since the device is now responsible for closing the underlying raw fd.
+        let _ = owned_tun_fd.into_raw_fd();
+
+        Ok(device)
     }
 }
 

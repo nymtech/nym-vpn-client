@@ -426,7 +426,7 @@ pub enum Error {
 
     #[cfg(target_os = "ios")]
     #[error("failed to locate tun device")]
-    LocateTunDevice,
+    LocateTunDevice(std::io::Error),
 
     #[cfg(any(target_os = "ios", target_os = "android"))]
     #[error("failed to configure tunnel provider: {}", _0)]
@@ -488,7 +488,7 @@ impl Error {
             Self::ConfigureTunnelProvider(_) => ErrorStateReason::TunnelProvider,
 
             #[cfg(target_os = "ios")]
-            Self::LocateTunDevice => ErrorStateReason::TunDevice,
+            Self::LocateTunDevice(_) => ErrorStateReason::TunDevice,
 
             Self::ConnectWireguardTunnel(_) | Self::RunWireguardTunnel(_) => {
                 // todo: add detail
