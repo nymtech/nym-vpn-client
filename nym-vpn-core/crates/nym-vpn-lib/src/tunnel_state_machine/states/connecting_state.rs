@@ -3,10 +3,6 @@
 
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use std::net::Ipv4Addr;
-#[cfg(any(target_os = "android", target_os = "ios"))]
-use std::os::fd::{AsRawFd, IntoRawFd};
-#[cfg(target_os = "android")]
-use std::os::fd::{FromRawFd, OwnedFd};
 
 use futures::{
     future::{BoxFuture, Fuse},
@@ -22,11 +18,8 @@ use tun::AsyncDevice;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use tun::Device;
 
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-use nym_ip_packet_requests::IpPair;
-
 #[cfg(any(target_os = "ios", target_os = "android"))]
-use crate::tunnel_provider;
+use crate::tunnel_provider::tunnel_settings::TunnelSettings;
 #[cfg(target_os = "linux")]
 use crate::tunnel_state_machine::default_interface::DefaultInterface;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -38,6 +31,8 @@ use crate::tunnel_state_machine::{
     SharedState, TunnelCommand, TunnelConnectionData, TunnelState, TunnelStateHandler, TunnelType,
     WireguardConnectionData, WireguardNode,
 };
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+use nym_ip_packet_requests::IpPair;
 
 /// Default MTU for mixnet tun device.
 #[cfg(not(all(target_os = "ios", target_os = "android")))]
@@ -84,7 +79,6 @@ impl ConnectingState {
             gateway_config,
             mixnet_client_config: shared_state.tunnel_settings.mixnet_client_config.clone(),
             tunnel_type: shared_state.tunnel_settings.tunnel_type,
-            enable_credentials_mode: shared_state.tunnel_settings.enable_credentials_mode,
             entry_point: shared_state.tunnel_settings.entry_point.clone(),
             exit_point: shared_state.tunnel_settings.exit_point.clone(),
             user_agent: None, // todo: provide user-agent
@@ -184,7 +178,7 @@ impl ConnectingState {
 
         #[cfg(any(target_os = "ios", target_os = "android"))]
         let tun_device = {
-            let packet_tunnel_settings = tunnel_provider::tunnel_settings::TunnelSettings {
+            let packet_tunnel_settings = TunnelSettings {
                 dns_servers: shared_state.tunnel_settings.dns.ip_addresses().to_vec(),
                 interface_addresses: vec![
                     IpNetwork::V4(
@@ -244,7 +238,7 @@ impl ConnectingState {
         shared_state: &mut SharedState,
     ) -> Result<(TunnelConnectionData, AnyTunnelHandle)> {
         let connected_tunnel = connected_mixnet
-            .connect_wireguard_tunnel(shared_state.tunnel_settings.enable_credentials_mode)
+            .connect_wireguard_tunnel()
             .await
             .map_err(Error::ConnectWireguardTunnel)?;
 
@@ -307,13 +301,13 @@ impl ConnectingState {
         shared_state: &mut SharedState,
     ) -> Result<(TunnelConnectionData, AnyTunnelHandle)> {
         let connected_tunnel = connected_mixnet
-            .connect_wireguard_tunnel(shared_state.tunnel_settings.enable_credentials_mode)
+            .connect_wireguard_tunnel()
             .await
             .map_err(Error::ConnectWireguardTunnel)?;
 
         let conn_data = connected_tunnel.connection_data();
 
-        let packet_tunnel_settings = tunnel_provider::tunnel_settings::TunnelSettings {
+        let packet_tunnel_settings = TunnelSettings {
             dns_servers: shared_state.tunnel_settings.dns.ip_addresses().to_vec(),
             interface_addresses: vec![IpNetwork::V4(
                 Ipv4Network::new(conn_data.entry.private_ipv4, 32).expect("ipv4 to ipnetwork/32"),
@@ -431,26 +425,19 @@ impl ConnectingState {
 
     #[cfg(any(target_os = "ios", target_os = "android"))]
     async fn create_tun_device(
-        packet_tunnel_settings: tunnel_provider::tunnel_settings::TunnelSettings,
+        packet_tunnel_settings: TunnelSettings,
         shared_state: &mut SharedState,
     ) -> Result<AsyncDevice> {
-        #[cfg(target_os = "ios")]
-        let owned_tun_fd =
-            tunnel_provider::ios::interface::get_tun_fd().map_err(Error::LocateTunDevice)?;
+        let mut tun_config = tun::Configuration::default();
 
         #[cfg(target_os = "android")]
-        let owned_tun_fd = {
-            let raw_tun_fd = shared_state
+        {
+            let tun_fd = shared_state
                 .tun_provider
                 .configure_tunnel(packet_tunnel_settings.into_tunnel_network_settings())
                 .map_err(|e| Error::ConfigureTunnelProvider(e.to_string()))?;
-            unsafe { OwnedFd::from_raw_fd(raw_tun_fd) }
-        };
 
-        let mut tun_config = tun::Configuration::default();
-        tun_config.raw_fd(owned_tun_fd.as_raw_fd());
-        #[cfg(target_os = "android")]
-        {
+            tun_config.raw_fd(tun_fd);
             #[cfg(target_os = "linux")]
             tun_config.platform(|platform_config| {
                 platform_config.packet_information(false);
@@ -459,6 +446,9 @@ impl ConnectingState {
 
         #[cfg(target_os = "ios")]
         {
+            let tun_fd = tunnel::wireguard::ios::tun::get_tun_fd().ok_or(Error::LocateTunDevice)?;
+            tun_config.raw_fd(tun_fd);
+
             shared_state
                 .tun_provider
                 .set_tunnel_network_settings(packet_tunnel_settings.into_tunnel_network_settings())
@@ -466,12 +456,7 @@ impl ConnectingState {
                 .map_err(|e| Error::ConfigureTunnelProvider(e.to_string()))?
         }
 
-        let device = tun::create_as_async(&tun_config).map_err(Error::CreateTunDevice)?;
-
-        // Consume the owned fd, since the device is now responsible for closing the underlying raw fd.
-        let _ = owned_tun_fd.into_raw_fd();
-
-        Ok(device)
+        tun::create_as_async(&tun_config).map_err(Error::CreateTunDevice)
     }
 }
 

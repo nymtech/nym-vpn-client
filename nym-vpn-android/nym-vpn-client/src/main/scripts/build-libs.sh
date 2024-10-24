@@ -3,6 +3,7 @@
 echo "Building WireGuard dep"
 echo "Working dir: $PWD"
 echo "NDK_HOME: $1"
+
 #fix to work with different OS
 archDir=$(basename $1/toolchains/llvm/prebuilt/*/)
 echo "archdir: ${archDir}"

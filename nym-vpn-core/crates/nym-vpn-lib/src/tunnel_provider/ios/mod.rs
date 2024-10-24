@@ -7,7 +7,6 @@ use super::tunnel_settings::TunnelNetworkSettings;
 use crate::platform::error::VpnError;
 
 pub mod default_path_observer;
-pub mod interface;
 
 use default_path_observer::OSDefaultPathObserver;
 
