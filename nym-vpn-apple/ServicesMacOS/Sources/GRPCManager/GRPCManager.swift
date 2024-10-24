@@ -71,6 +71,8 @@ public final class GRPCManager: ObservableObject {
                 switch result {
                 case .success(let response):
                     self?.daemonVersion = response.version
+                    self?.logger.info("🛜 \(response.networkName)")
+
                     continuation.resume(returning: response.version)
                 case .failure(let error):
                     continuation.resume(throwing: error)
@@ -159,7 +161,8 @@ public final class GRPCManager: ObservableObject {
             request.disableRouting = false
             request.enableTwoHop = isTwoHopEnabled
             request.disableBackgroundCoverTraffic = false
-            request.enableCredentialsMode = true
+            // TODO: 🔥🔥🔥 enable credentials mode later
+//            request.enableCredentialsMode = true
 
             let call = client.vpnConnect(request, callOptions: nil)
 
