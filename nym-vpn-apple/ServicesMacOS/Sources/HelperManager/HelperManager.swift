@@ -7,7 +7,7 @@ import Shell
 public final class HelperManager {
     private let secondInNanoseconds: UInt64 = 1000000000
     public static let shared = HelperManager()
-    public let requiredVersion = "1.0.0"
+    public let requiredVersion = "1.0.0-dev"
 
     private var helperName = ""
 
@@ -20,8 +20,6 @@ public final class HelperManager {
     }
 
     public func installHelperIfNeeded() async throws -> Bool {
-        guard !isHelperAuthorizedAndRunning() else { return true }
-
         do {
             _ = try authorizeAndInstallHelper()
 
