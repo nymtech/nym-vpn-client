@@ -21,8 +21,8 @@ jobs:
         os: [arc-ubuntu-22.04, custom-runner-mac-m1]
         target: [native]
         include:
-        #   - os: arc-ubuntu-22.04
-        #     target: android
+          - os: arc-ubuntu-22.04
+            target: android
           - os: custom-runner-mac-m1
             target: ios
     runs-on: ${{ matrix.os }}
