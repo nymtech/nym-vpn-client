@@ -29,7 +29,7 @@
     "emptyData": "Não há dados de licença disponíveis"
   },
   "display-theme": "Modo de visualização",
-  "login-button": "adicionar credencial para conectar",
+  "login-button": "Entrar",
   "entry-selector": {
     "title": "Seletor de local de entrada",
     "desc": "Selecione manualmente seu salto de entrada"
