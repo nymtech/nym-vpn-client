@@ -1,7 +1,8 @@
-use std::{env, path::PathBuf};
+use std::{env, path::PathBuf, time::Duration};
 
 use anyhow::Context;
 use nym_vpn_lib::nym_config::defaults::{var_names, NymNetworkDetails};
+use tokio_util::sync::CancellationToken;
 use url::Url;
 
 const DISCOVERY_FILE: &str = "discovery.json";
@@ -316,6 +317,16 @@ pub(crate) fn discover_env(network_name: &str) -> anyhow::Result<()> {
         }
         write_discovery_to_file(&discovery)?;
     }
+
+    // If the file is too old, refresh it.
+    // TODO: in the future, we should only refresh the discovery file when the tunnel is up.
+    // Probably in a background task.
+    if let Some(age) = get_age_of_discovery_file(network_name)? {
+        if age > MAX_DISCOVERY_AGE {
+            refresh_discovery_file(network_name)?;
+        }
+    }
+
     let discovery = read_discovery_file(network_name)?;
 
     // Using discovery, fetch and setup nym network details
@@ -335,4 +346,58 @@ pub(crate) fn discover_env(network_name: &str) -> anyhow::Result<()> {
     setup_nym_vpn_network_details(discovery.nym_vpn_api_url.parse()?)?;
 
     Ok(())
+}
+
+// Refresh the discovery file periodically
+const MAX_DISCOVERY_AGE: Duration = Duration::from_secs(60 * 60 * 24);
+
+fn get_age_of_discovery_file(network_name: &str) -> anyhow::Result<Option<Duration>> {
+    let discovery_path = discovery_file_path(network_name);
+    if !discovery_path.exists() {
+        return Ok(None);
+    }
+    let metadata = std::fs::metadata(discovery_path)?;
+    Ok(Some(metadata.modified()?.elapsed()?))
+}
+
+fn refresh_discovery_file(network_name: &str) -> anyhow::Result<()> {
+    if let Some(age) = get_age_of_discovery_file(network_name)? {
+        if age < MAX_DISCOVERY_AGE {
+            return Ok(());
+        }
+    }
+
+    let discovery = fetch_discovery(network_name)?;
+    if discovery.network_name != network_name {
+        anyhow::bail!("Network name mismatch between requested and fetched discovery")
+    }
+    write_discovery_to_file(&discovery)?;
+
+    Ok(())
+}
+
+// Ideally we only refresh the discovery file when the tunnel is up
+// #[allow(unused)]
+async fn start_background_discovery_refresh(
+    network_name: String,
+    cancel_token: CancellationToken,
+) -> tokio::task::JoinHandle<()> {
+    tokio::spawn(async move {
+        // Check once an hour
+        let mut interval = tokio::time::interval(Duration::from_secs(60 * 60));
+        interval.tick().await; // initial tick
+
+        loop {
+            tokio::select! {
+                _ = interval.tick() => {
+                    if let Err(err) = refresh_discovery_file(&network_name) {
+                        tracing::error!("Failed to refresh discovery file: {:?}", err);
+                    }
+                }
+                _ = cancel_token.cancelled() => {
+                    break;
+                }
+            }
+        }
+    })
 }
