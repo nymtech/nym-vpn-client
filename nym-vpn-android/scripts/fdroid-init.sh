@@ -28,3 +28,6 @@ curl -sf -L -o go.tgz https://go.dev/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz
 echo "$GOLANG_HASH go.tgz" | sha256sum -c
 tar -xzvf go.tgz
 patch -p1 -f -N -r- -d "$HOME/go" < "$REPO_DIR/wireguard/libwg/goruntime-boottime-over-monotonic.diff"
+
+# install cargo dependencies
+cargo install cargo-ndk cargo-license --locked
