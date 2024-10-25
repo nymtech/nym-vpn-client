@@ -1,7 +1,8 @@
 {
   "daemon": {
     "not-connected": "Daemon'a bağlı değil",
-    "internal": "Daemon dahili hata"
+    "internal": "Daemon dahili hata",
+    "invalid-network": "Geçersiz ağ"
   },
   "connection": {
     "no-valid-credential": "Geçerli anahtar yok, lütfen önce bir anahtar ekleyin",
@@ -80,6 +81,13 @@
   "entry-node-routing": "Giriş nodeu trafiği iletmiyor (internet bağlantısı mı kesik?)",
   "account": {
     "invalid-recovery-phrase": "Geçersiz kurtarma ifadesi",
-    "storage": "Depolama arka ucu hatası"
+    "storage": "Depolama arka ucu hatası",
+    "device": {
+      "not-registered": "Cihaz kaydedilmemiş",
+      "not-active": "Cihaz aktif değil"
+    },
+    "no-active-subscription": "Hesapta aktif bir abonelik yok",
+    "not-active": "Hesap aktif değil",
+    "no-account-stored": "Hiçbir hesap kurtarma ifadesi saklanmamış"
   }
 }
