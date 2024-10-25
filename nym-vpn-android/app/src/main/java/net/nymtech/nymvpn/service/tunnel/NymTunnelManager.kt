@@ -172,19 +172,14 @@ class NymTunnelManager @Inject constructor(
 			}
 			is BackendMessage.BandwidthAlert -> {
 				when (val alert = backendMessage.status) {
-					BandwidthStatus.NoBandwidth -> {
-						notificationService.showNotification(
-							title = context.getString(R.string.bandwidth_alert),
-							description = context.getString(R.string.no_bandwidth),
-						)
-					}
-
-					is BandwidthStatus.RemainingBandwidth -> {
-						notificationService.showNotification(
-							title = context.getString(R.string.bandwidth_alert),
-							description = context.getString(R.string.low_bandwidth) + " ${alert.bandwidth}",
-						)
-					}
+					BandwidthEvent.NoBandwidth -> notificationService.showNotification(
+						title = context.getString(R.string.bandwidth_alert),
+						description = context.getString(R.string.no_bandwidth),
+					)
+					is BandwidthEvent.RemainingBandwidth -> notificationService.showNotification(
+						title = context.getString(R.string.bandwidth_alert),
+						description = context.getString(R.string.low_bandwidth) + " ${alert.v1}",
+					)
 				}
 			}
 			BackendMessage.None -> Unit

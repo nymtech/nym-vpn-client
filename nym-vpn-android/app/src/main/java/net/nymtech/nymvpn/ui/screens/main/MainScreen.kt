@@ -171,7 +171,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 
 					is StateMessage.Error ->
 						StatusInfoLabel(
-							message = it.exception.toUserMessage(context),
+							message = it.reason.toUserMessage(context),
 							textColor = CustomColors.error,
 						)
 				}
