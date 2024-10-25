@@ -37,9 +37,8 @@ use crate::{
         TunnelStateMachine, TunnelType,
     },
     uniffi_custom_impls::{
-        BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, ExitStatus,
-        GatewayMinPerformance, GatewayType, Location, MixConnectionInfo, MixExitConnectionInfo,
-        NymVpnStatus, TunStatus, UserAgent, WireguardConnectionInfo,
+        BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, GatewayMinPerformance,
+        GatewayType, Location, TunStatus, UserAgent,
     },
 };
 
