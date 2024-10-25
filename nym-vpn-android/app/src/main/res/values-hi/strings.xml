@@ -165,4 +165,7 @@
     <string name="selected_entry_unavailable">चयनित एंट्री देश उपलब्ध नहीं है। कृपया एक अलग एंट्री देश चुनें।</string>
     <string name="action_requires_tunnel_down">कार्य के लिए आवश्यक टनल बंद है</string>
     <string name="selected_exit_unavailable">चयनित आखरी स्थान उपलब्ध नहीं है। कृपया एक अलग देश चुनें।</string>
+    <string name="missing_mnemonic">Mnemonic नहीं मिल पाया</string>
+    <string name="device_added_success">डिवाइस सफलतापूर्वक आपके खाते में जुड़ गया है</string>
+    <string name="invalid_recovery_phrase">अमान्य रिकवरी फ्रेज़</string>
 </resources>
