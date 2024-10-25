@@ -76,7 +76,7 @@ fn run() -> anyhow::Result<()> {
     if args.command.is_any() {
         Ok(windows_service::start(args)?)
     } else {
-        setup_logging(false);
+        logging::setup_logging(false);
         run_inner(args)
     }
 }

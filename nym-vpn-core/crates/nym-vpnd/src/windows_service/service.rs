@@ -3,8 +3,7 @@
 
 use std::{env, ffi::OsString, time::Duration};
 
-use nym_task::TaskManager;
-use tokio::sync::{broadcast, mpsc};
+use tokio::sync::broadcast;
 use tokio_util::sync::CancellationToken;
 use windows_service::{
     service::{
@@ -16,11 +15,7 @@ use windows_service::{
 };
 
 use super::install;
-use crate::{
-    cli::CliArgs,
-    command_interface, logging, runtime,
-    service::{start_vpn_service, NymVpnService},
-};
+use crate::{cli::CliArgs, command_interface, logging, runtime, service::NymVpnService};
 
 windows_service::define_windows_service!(ffi_service_main, service_main);
 
@@ -42,7 +37,7 @@ fn service_main(arguments: Vec<OsString>) {
 }
 
 async fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
-    info!("Setting up event handler");
+    tracing::info!("Setting up event handler");
 
     let shutdown_token = CancellationToken::new();
     let cloned_shutdown_token = shutdown_token.clone();
@@ -61,7 +56,7 @@ async fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
     // Register system service event handler
     let status_handle = service_control_handler::register(SERVICE_NAME, event_handler)?;
 
-    info!("Service is starting...");
+    tracing::info!("Service is starting...");
 
     status_handle.set_service_status(ServiceStatus {
         service_type: SERVICE_TYPE,
@@ -73,7 +68,7 @@ async fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
         process_id: None,
     })?;
 
-    let (state_changes_tx, states_changes_rx) = broadcast::channel(10);
+    let (state_changes_tx, state_changes_rx) = broadcast::channel(10);
     let (status_tx, status_rx) = broadcast::channel(10);
 
     // The idea here for explicly starting two separate runtimes is to make sure they are properly
@@ -84,6 +79,7 @@ async fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
     let (command_handle, vpn_command_rx) = command_interface::start_command_interface(
         state_changes_rx,
         status_rx,
+        None,
         shutdown_token.child_token(),
     );
 
@@ -108,11 +104,11 @@ async fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
         process_id: None,
     })?;
 
-    if let Err(e) = vpn_handle.join().await {
+    if let Err(e) = vpn_handle.await {
         tracing::error!("Failed to join on vpn service: {}", e);
     }
 
-    if let Err(e) = command_handle.join().await {
+    if let Err(e) = command_handle.await {
         tracing::error!("Failed to join on command interface: {}", e);
     }
 
