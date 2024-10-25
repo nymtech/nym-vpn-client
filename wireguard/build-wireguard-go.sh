@@ -37,6 +37,17 @@ function is_docker_build {
     return 0
 }
 
+function is_win_arm64 {
+    for arg in "$@"
+    do
+        case "$arg" in
+            "--arm64")
+                return 0
+        esac
+    done
+    return 1
+}
+
 function win_gather_export_symbols {
    grep -Eo "\/\/export \w+" libwg.go libwg_windows.go | cut -d' ' -f2
 }
@@ -56,13 +67,27 @@ function win_create_lib_file {
 }
 
 function build_windows {
-    echo "Building wireguard-go for Windows"
+    export CGO_ENABLED=1
+    export GOOS=windows
+
+    if is_win_arm64 $@; then
+        local arch="aarch64"
+        export GOARCH=arm64
+        export CC="/clangarm64/bin/aarch64-w64-mingw32-cc"
+    else
+        local arch="x86_64"
+        export GOARCH=amd64
+        export CC="/mingw64/bin/x86_64-w64-mingw32-cc"
+    fi
+    
+    echo "Building wireguard-go for Windows ($arch)"
+
     pushd libwg
-        export CGO_ENABLED=1
         go build -trimpath -v -o libwg.dll -buildmode c-shared
         win_create_lib_file
 
-        local target_dir=../../build/lib/x86_64-pc-windows-msvc/
+        local target_dir="../../build/lib/$arch-pc-windows-msvc/"
+        echo "Copying files to $(realpath "$target_dir")"
         mkdir -p $target_dir
         mv libwg.dll libwg.lib $target_dir
     popd
@@ -226,7 +251,7 @@ function build_wireguard_go {
     case  "$platform" in
         Darwin*) build_macos_universal;;
         Linux*) build_unix ${1:-$(unix_target_triple)};;
-        MINGW*|MSYS_NT*) build_windows;;
+        MINGW*|MSYS_NT*) build_windows $@;;
     esac
 }
 
