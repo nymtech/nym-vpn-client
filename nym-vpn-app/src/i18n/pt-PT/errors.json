@@ -77,5 +77,8 @@
   "exit-node": {
     "routing": "O nó de saída não está a encaminhar {{protocol}}tráfego",
     "ping": "O ping do nó de saída falhou para o {{protocol}}tráfego"
+  },
+  "account": {
+    "invalid-recovery-phrase": "Frase de recuperação inválida"
   }
 }
