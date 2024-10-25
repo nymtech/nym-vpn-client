@@ -63,10 +63,6 @@ function build_windows {
         win_create_lib_file
 
         local target_dir=../../build/lib/x86_64-pc-windows-msvc/
-        local arch="$(uname -m)"
-        if [[ ("${arch}" == "arm64") ]]; then
-            arch="aarch64"
-        fi
         mkdir -p $target_dir
         mv libwg.dll libwg.lib $target_dir
     popd
