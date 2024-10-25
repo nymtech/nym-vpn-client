@@ -77,5 +77,8 @@
     "not-connected": "به daemon متصل نیست",
     "internal": "خطای داخلی Daemon"
   },
-  "grpc": "خطای gRPC داخلی"
+  "grpc": "خطای gRPC داخلی",
+  "account": {
+    "invalid-recovery-phrase": "عبارت بازیابی نامعتبر است"
+  }
 }
