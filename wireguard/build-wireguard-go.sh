@@ -60,10 +60,18 @@ function win_create_lib_file {
         printf "\t%s\n" "$symbol" >> exports.def
     done
 
+    if is_win_arm64 $@; then
+        local arch="ARM64"
+    else
+        local arch="X64"
+    fi
+
+    echo "Creating lib for $arch"
+
     lib.exe \
         "/def:exports.def" \
         "/out:libwg.lib" \
-        "/machine:X64"
+        "/machine:$arch"
 }
 
 function build_windows {
@@ -84,7 +92,7 @@ function build_windows {
 
     pushd libwg
         go build -trimpath -v -o libwg.dll -buildmode c-shared
-        win_create_lib_file
+        win_create_lib_file $@
 
         local target_dir="../../build/lib/$arch-pc-windows-msvc/"
         echo "Copying files to $(realpath "$target_dir")"
