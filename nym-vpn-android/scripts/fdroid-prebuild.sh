@@ -8,6 +8,8 @@ export NDK_TOOLCHAIN_DIR="$NDK_PATH/toolchains/llvm/prebuilt/$(basename $NDK_PAT
 # install cargo dependencies
 cargo install cargo-ndk cargo-license --locked
 
+export RUSTFLAGS="-L ../build/lib/aarch64-linux-android -L ../build/lib/x86_64-unknown-linux-gnu"
+
 bash ../wireguard/build-wireguard-go.sh
 bash ../wireguard/libwg/build-android.sh
 
