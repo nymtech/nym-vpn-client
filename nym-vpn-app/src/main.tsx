@@ -12,6 +12,7 @@ import initSentry from './sentry';
 import { StartupError as TStartupError } from './types';
 import { StartupError } from './screens';
 import { init } from './log';
+import { S_STATE } from './static';
 
 // needed locales to load for dayjs
 import 'dayjs/locale/es';
@@ -46,6 +47,12 @@ dayjs.extend(duration);
     init();
   }
   console.info('starting UI');
+
+  const env = await invoke<Record<string, unknown>>('env');
+  if (env.NETWORK_ENV_SELECT === true) {
+    console.info('network env selector enabled');
+    S_STATE.networkEnvSelect = true;
+  }
 
   // check for unrecoverable errors
   const error = await invoke<TStartupError | undefined>('startup_error');

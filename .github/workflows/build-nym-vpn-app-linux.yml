@@ -2,6 +2,12 @@ name: build-nym-vpn-app-linux
 on:
   workflow_dispatch:
   workflow_call:
+    inputs:
+      # set to true when it is a 'dev' build
+      dev_mode:
+        required: true
+        type: boolean
+        default: false
     secrets:
       TAURI_PRIVATE_KEY:
         required: true
@@ -92,6 +98,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
           APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
           # RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+          NETWORK_ENV_SELECT: ${{ inputs.dev_mode == true }}
         run: |
           if [ "${{ env.CARGO_TARGET }}" = "release" ]; then
             npm run tauri build

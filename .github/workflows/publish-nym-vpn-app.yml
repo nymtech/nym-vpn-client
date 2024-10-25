@@ -15,9 +15,13 @@ on:
 jobs:
   build-nym-vpn-app-linux:
     uses: ./.github/workflows/build-nym-vpn-app-linux.yml
+    with:
+      dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || contains(inputs.tag_name, 'dev') || contains(inputs.tag_name, 'nightly') }}
     secrets: inherit
   build-nym-vpn-app-windows:
     uses: ./.github/workflows/build-nym-vpn-app-windows.yml
+    with:
+      dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || contains(inputs.tag_name, 'dev') || contains(inputs.tag_name, 'nightly') }}
     secrets: inherit
 
   generate-build-info-nym-vpn-app:

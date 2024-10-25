@@ -1,9 +1,10 @@
+use crate::env::NETWORK_ENV_SELECT;
 use crate::error::BackendError;
 use crate::grpc::client::{GrpcClient, VpndStatus};
 use crate::states::SharedAppState;
 use serde::{Deserialize, Serialize};
 use tauri::State;
-use tracing::{debug, instrument, warn};
+use tracing::{debug, info, instrument, warn};
 use ts_rs::TS;
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
@@ -63,11 +64,18 @@ pub async fn set_network(
     network: NetworkEnv,
 ) -> Result<(), BackendError> {
     debug!("set_network");
+    if !*NETWORK_ENV_SELECT {
+        warn!("network env selector is disabled");
+        return Err(BackendError::new_internal("nope", None));
+    }
     grpc_client
         .set_network(network.as_ref())
         .await
         .map_err(|e| {
             warn!("failed to set network {}: {:?}", network.as_ref(), e);
             e.into()
+        })
+        .inspect(|_| {
+            info!("vpnd network set to {}, ⚠ restart vpnd!", network.as_ref());
         })
 }
