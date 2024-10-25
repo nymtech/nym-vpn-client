@@ -141,8 +141,6 @@ pub(crate) fn unix_has_root(binary_name: &str) -> Result<()> {
 
 #[cfg(windows)]
 pub(crate) fn win_has_admin(binary_name: &str) -> Result<()> {
-    use tracing::debug;
-
     if is_elevated::is_elevated() {
         tracing::debug!("Admin privileges acquired");
         Ok(())

@@ -86,10 +86,6 @@ impl RouteHandler {
     }
 
     pub async fn stop(self) {
-        #[cfg(windows)]
-        self.route_manager.stop();
-
-        #[cfg(not(windows))]
         self.route_manager.stop().await;
 
         _ = tokio::task::spawn_blocking(|| drop(self.route_manager)).await;

@@ -29,11 +29,17 @@ fn main() {
 
     println!("cargo::rustc-link-search={}", build_dir.display());
 
+    let lib_prefix = if target_os.as_str() == "windows" {
+        "lib"
+    } else {
+        ""
+    };
+
     let link_type = match target_os.as_str() {
         "android" => "",
         "linux" | "macos" | "ios" => "=static",
-        "windows" => "dylib",
+        "windows" => "=dylib",
         _ => panic!("Unsupported platform: {}", target_os),
     };
-    println!("cargo:rustc-link-lib{}=wg", link_type);
+    println!("cargo:rustc-link-lib{}={}wg", link_type, lib_prefix);
 }
