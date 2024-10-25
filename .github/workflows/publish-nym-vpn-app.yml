@@ -12,12 +12,19 @@ on:
     tags:
       - nym-vpn-app-v[0-9]+.[0-9]+.[0-9]+*
 
+env:
+  DEV_MODE: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || contains(inputs.tag_name, 'dev') || contains(inputs.tag_name, 'nightly') }}
+
 jobs:
   build-nym-vpn-app-linux:
     uses: ./.github/workflows/build-nym-vpn-app-linux.yml
+    with:
+      dev_mode: ${{ env.DEV_MODE }}
     secrets: inherit
   build-nym-vpn-app-windows:
     uses: ./.github/workflows/build-nym-vpn-app-windows.yml
+    with:
+      dev_mode: ${{ env.DEV_MODE }}
     secrets: inherit
 
   generate-build-info-nym-vpn-app:
