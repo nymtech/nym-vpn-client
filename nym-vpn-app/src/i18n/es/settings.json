@@ -29,7 +29,7 @@
     "licenses-js": "Licencia (JS)"
   },
   "display-theme": "Tema",
-  "login-button": "Agregar credencial para conectar",
+  "login-button": "Iniciar sesión",
   "entry-selector": {
     "desc": "Seleccione manualmente el salto de entrada",
     "title": "Selector de ubicación de entrada"
