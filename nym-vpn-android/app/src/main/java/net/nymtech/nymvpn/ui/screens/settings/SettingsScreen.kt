@@ -117,12 +117,11 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 						},
 						title = { Text(stringResource(R.string.account), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 						onClick = {
-							val url = if (appUiState.settings.environment == Tunnel.Environment.MAINNET) {
-								context.getString(
+							val url = when (appUiState.settings.environment) {
+								Tunnel.Environment.MAINNET -> context.getString(
 									R.string.account_url,
 								)
-							} else {
-								context.getString(R.string.account_url_qa)
+								else -> context.getString(R.string.account_url_qa)
 							}
 							context.openWebUrl(url)
 						},

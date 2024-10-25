@@ -51,37 +51,15 @@ fun EnvironmentScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMo
 			.padding(top = 24.dp.scaledHeight())
 			.padding(horizontal = 24.dp.scaledWidth()),
 	) {
-		IconSurfaceButton(
-			title = Tunnel.Environment.QA.name,
-			onClick = {
-				if (appUiState.settings.environment == Tunnel.Environment.QA) return@IconSurfaceButton
-				viewModel.onEnvironmentChange(Tunnel.Environment.QA)
-			},
-			selected = appUiState.settings.environment == Tunnel.Environment.QA,
-		)
-		IconSurfaceButton(
-			title = Tunnel.Environment.CANARY.name,
-			onClick = {
-				if (appUiState.settings.environment == Tunnel.Environment.CANARY) return@IconSurfaceButton
-				viewModel.onEnvironmentChange(Tunnel.Environment.CANARY)
-			},
-			selected = appUiState.settings.environment == Tunnel.Environment.CANARY,
-		)
-		IconSurfaceButton(
-			title = Tunnel.Environment.SANDBOX.name,
-			onClick = {
-				if (appUiState.settings.environment == Tunnel.Environment.SANDBOX) return@IconSurfaceButton
-				viewModel.onEnvironmentChange(Tunnel.Environment.SANDBOX)
-			},
-			selected = appUiState.settings.environment == Tunnel.Environment.SANDBOX,
-		)
-		IconSurfaceButton(
-			title = Tunnel.Environment.MAINNET.name,
-			onClick = {
-				if (appUiState.settings.environment == Tunnel.Environment.MAINNET) return@IconSurfaceButton
-				viewModel.onEnvironmentChange(Tunnel.Environment.MAINNET)
-			},
-			selected = appUiState.settings.environment == Tunnel.Environment.MAINNET,
-		)
+		enumValues<Tunnel.Environment>().forEach {
+			IconSurfaceButton(
+				title = it.name,
+				onClick = {
+					if (appUiState.settings.environment == it) return@IconSurfaceButton
+					viewModel.onEnvironmentChange(it)
+				},
+				selected = appUiState.settings.environment == it,
+			)
+		}
 	}
 }

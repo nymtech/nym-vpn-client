@@ -223,12 +223,11 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 						append(" ")
 						pushStringAnnotation(
 							tag = "create",
-							annotation = if (appUiState.settings.environment == Tunnel.Environment.MAINNET) {
-								stringResource(
+							annotation = when (appUiState.settings.environment) {
+								Tunnel.Environment.MAINNET -> stringResource(
 									id = R.string.create_account_link,
 								)
-							} else {
-								stringResource(R.string.create_account_link_qa)
+								else -> stringResource(R.string.create_account_link_qa)
 							},
 						)
 						withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
