@@ -5,6 +5,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { useMainState } from '../../../contexts';
 import { DaemonInfo, NetworkEnv } from '../../../types';
 import NetworkEnvSelect from './NetworkEnvSelect.tsx';
+import { S_STATE } from '../../../static';
 
 function InfoData() {
   const [daemonInfo, setDaemonInfo] = useState<DaemonInfo | undefined>();
@@ -52,13 +53,16 @@ function InfoData() {
           </p>
         </div>
       </div>
-      {daemonStatus === 'Ok' && daemonInfo && showEnvSelect && (
-        <NetworkEnvSelect
-          open={showEnvSelect}
-          onClose={() => setShowEnvSelect(false)}
-          current={daemonInfo.network as NetworkEnv}
-        />
-      )}
+      {S_STATE.networkEnvSelect &&
+        daemonStatus === 'Ok' &&
+        daemonInfo &&
+        showEnvSelect && (
+          <NetworkEnvSelect
+            open={showEnvSelect}
+            onClose={() => setShowEnvSelect(false)}
+            current={daemonInfo.network as NetworkEnv}
+          />
+        )}
     </>
   );
 }

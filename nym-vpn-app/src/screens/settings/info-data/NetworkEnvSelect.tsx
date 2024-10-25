@@ -27,6 +27,7 @@ function NetworkEnvSelect({ open, onClose, current }: Props) {
   const handleOnSelect = async (network: NetworkEnv) => {
     setError(null);
     try {
+      console.info('setting network to', network);
       await invoke<void>('set_network', { network });
     } catch (e: unknown) {
       const error = e as BackendError;

@@ -19,6 +19,7 @@ use clap::Parser;
 use commands::country as cmd_country;
 use commands::daemon as cmd_daemon;
 use commands::db as cmd_db;
+use commands::env as cmd_env;
 use commands::fs as cmd_fs;
 use commands::log as cmd_log;
 use commands::window as cmd_window;
@@ -38,6 +39,7 @@ mod cli;
 mod commands;
 mod country;
 mod db;
+mod env;
 mod envi;
 mod error;
 mod events;
@@ -239,6 +241,7 @@ async fn main() -> Result<()> {
             cmd_daemon::set_network,
             cmd_fs::log_dir,
             startup::startup_error,
+            cmd_env::env,
         ])
         // keep the app running in the background on window close request
         .on_window_event(|win, event| {
