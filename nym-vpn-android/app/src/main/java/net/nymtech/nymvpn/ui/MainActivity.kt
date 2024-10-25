@@ -38,13 +38,11 @@ import kotlinx.coroutines.delay
 import net.nymtech.localizationutil.LocaleStorage
 import net.nymtech.localizationutil.LocaleUtil
 import net.nymtech.nymvpn.NymVpn
-import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.manager.shortcut.ShortcutManager
 import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBar
-import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarControllerProvider
 import net.nymtech.nymvpn.ui.screens.analytics.AnalyticsScreen
 import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
@@ -67,13 +65,10 @@ import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.Constants
-import net.nymtech.nymvpn.util.StringValue
-import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.isCurrentRoute
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.resetTile
 import net.nymtech.vpn.model.BackendMessage
-import nym_vpn_lib.VpnException
 import java.util.Locale
 import javax.inject.Inject
 
@@ -136,17 +131,17 @@ class MainActivity : ComponentActivity() {
 			LaunchedEffect(appState.backendMessage) {
 				when (val message = appState.backendMessage) {
 					is BackendMessage.Failure -> {
-						//TODO invalid credential errors?
-//						when (message.exception) {
-//							is VpnException.InvalidCredential -> {
-//								if (NymVpn.isForeground()) {
-//									SnackbarController.showMessage(StringValue.StringResource(R.string.exception_cred_invalid))
-//									navController.goFromRoot(Route.Credential)
-//								}
-//							}
+						// TODO invalid credential errors?
+// 						when (message.exception) {
+// 							is VpnException.InvalidCredential -> {
+// 								if (NymVpn.isForeground()) {
+// 									SnackbarController.showMessage(StringValue.StringResource(R.string.exception_cred_invalid))
+// 									navController.goFromRoot(Route.Credential)
+// 								}
+// 							}
 //
-//							else -> Unit
-//						}
+// 							else -> Unit
+// 						}
 					}
 
 					else -> Unit
@@ -232,7 +227,7 @@ class MainActivity : ComponentActivity() {
 								composable<Route.Feedback> { FeedbackScreen(appViewModel) }
 								composable<Route.Legal> { LegalScreen(appViewModel) }
 								composable<Route.Credential> {
-									CredentialScreen(appViewModel)
+									CredentialScreen(appState, appViewModel)
 								}
 								composable<Route.Account> { AccountScreen(appViewModel, appState) }
 								composable<Route.Licenses> {

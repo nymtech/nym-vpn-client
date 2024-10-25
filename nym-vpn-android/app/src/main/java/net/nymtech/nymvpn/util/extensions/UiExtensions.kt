@@ -10,11 +10,8 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import net.nymtech.nymvpn.NymVpn
-import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
-import net.nymtech.vpn.model.BackendMessage
 import nym_vpn_lib.ErrorStateReason
-import nym_vpn_lib.VpnException
 import kotlin.reflect.KClass
 
 fun Dp.scaledHeight(): Dp {
