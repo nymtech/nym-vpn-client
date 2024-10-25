@@ -12,7 +12,6 @@ use std::{env, path::PathBuf, str::FromStr, sync::Arc};
 
 use lazy_static::lazy_static;
 use log::*;
-use nym_ip_packet_requests::IpPair;
 use tokio::{
     runtime::Runtime,
     sync::{mpsc, Mutex},
@@ -33,9 +32,9 @@ use crate::tunnel_provider::ios::OSTunProvider;
 use crate::{
     gateway_directory::GatewayClient,
     tunnel_state_machine::{
-        BandwidthEvent, ConnectionEvent, DnsOptions, GatewayPerformanceOptions, MixnetEvent,
-        MixnetTunnelOptions, NymConfig, TunnelCommand, TunnelConnectionData, TunnelEvent,
-        TunnelSettings, TunnelState, TunnelStateMachine, TunnelType,
+        BandwidthEvent, ConnectionEvent, DnsOptions, GatewayPerformanceOptions,
+        MixnetTunnelOptions, NymConfig, TunnelCommand, TunnelEvent, TunnelSettings, TunnelState,
+        TunnelStateMachine, TunnelType,
     },
     uniffi_custom_impls::{
         BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, ExitStatus,
@@ -395,57 +394,6 @@ async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, Vp
         command_sender,
         shutdown_token,
     })
-}
-
-fn exit_status_from_tunnel_state(value: &TunnelState) -> Option<ExitStatus> {
-    match value {
-        TunnelState::Disconnected => Some(ExitStatus::Stopped),
-        TunnelState::Error(reason) => Some(ExitStatus::Failure {
-            error: VpnError::InternalError {
-                details: format!("{:?}", reason),
-            },
-        }),
-        TunnelState::Disconnecting { .. }
-        | TunnelState::Connecting
-        | TunnelState::Connected { .. } => None,
-    }
-}
-
-fn nym_vpn_status_from_tunnel_state(value: &TunnelState) -> Option<NymVpnStatus> {
-    match value {
-        TunnelState::Connected { connection_data } => Some(match &connection_data.tunnel {
-            TunnelConnectionData::Mixnet(mixnet_data) => NymVpnStatus::MixConnectInfo {
-                mix_connection_info: MixConnectionInfo {
-                    nym_address: *mixnet_data.nym_address,
-                    entry_gateway: *connection_data.entry_gateway,
-                },
-                mix_exit_connection_info: MixExitConnectionInfo {
-                    exit_gateway: *connection_data.exit_gateway,
-                    exit_ipr: *mixnet_data.exit_ipr,
-                    ips: IpPair {
-                        ipv4: mixnet_data.ipv4,
-                        ipv6: mixnet_data.ipv6,
-                    },
-                },
-            },
-            TunnelConnectionData::Wireguard(data) => NymVpnStatus::WgConnectInfo {
-                entry_connection_info: WireguardConnectionInfo {
-                    gateway_id: *connection_data.entry_gateway,
-                    public_key: data.entry.public_key.to_base64(),
-                    private_ipv4: data.entry.private_ipv4,
-                },
-                exit_connection_info: WireguardConnectionInfo {
-                    gateway_id: *connection_data.exit_gateway,
-                    public_key: data.exit.public_key.to_base64(),
-                    private_ipv4: data.exit.private_ipv4,
-                },
-            },
-        }),
-        TunnelState::Connecting
-        | TunnelState::Disconnected
-        | TunnelState::Disconnecting { .. }
-        | TunnelState::Error(_) => None,
-    }
 }
 
 impl From<&TunnelState> for TunStatus {
