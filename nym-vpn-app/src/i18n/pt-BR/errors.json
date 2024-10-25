@@ -77,5 +77,8 @@
     "ping": "Falha no ping do nó de saída para o tráfego {{protocol}}"
   },
   "out-of-bandwidth": "Fora da largura de banda alocada",
-  "entry-node-routing": "O nó de entrada não está roteando o tráfego (a conexão com a Internet caiu?)"
+  "entry-node-routing": "O nó de entrada não está roteando o tráfego (a conexão com a Internet caiu?)",
+  "account": {
+    "invalid-recovery-phrase": "Frase de recuperação inválida"
+  }
 }
