@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #[cfg(unix)]
-use os::fd::AsRawFd;
+use std::os::fd::AsRawFd;
 use std::{error::Error as StdError, net::IpAddr};
 
 use tokio::task::JoinHandle;
