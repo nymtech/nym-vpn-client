@@ -277,9 +277,9 @@ impl ConnectingState {
         tracing::info!("Created exit tun device: {}", exit_tun_name);
 
         #[cfg(windows)]
-        let entry_tun_name = "nym0";
+        let entry_tun_name = "nym0".to_owned();
         #[cfg(windows)]
-        let exit_tun_name = "nym1";
+        let exit_tun_name = "nym1".to_owned();
 
         let routing_config = RoutingConfig::Wireguard {
             enable_ipv6,
@@ -288,9 +288,9 @@ impl ConnectingState {
             #[cfg(unix)]
             exit_tun_name: exit_tun_name.clone(),
             #[cfg(windows)]
-            entry_tun_name: entry_tun_name.to_owned(),
+            entry_tun_name: entry_tun_name.clone(),
             #[cfg(windows)]
-            exit_tun_name: exit_tun_name.to_owned(),
+            exit_tun_name: exit_tun_name.clone(),
             entry_gateway_address: conn_data.entry.endpoint.ip(),
             exit_gateway_address: conn_data.exit.endpoint.ip(),
             #[cfg(target_os = "linux")]
@@ -312,9 +312,9 @@ impl ConnectingState {
                 #[cfg(unix)]
                 exit_tun,
                 #[cfg(windows)]
-                entry_tun_name,
+                &entry_tun_name,
                 #[cfg(windows)]
-                exit_tun_name,
+                &exit_tun_name,
                 shared_state.tunnel_settings.dns.ip_addresses().to_vec(),
             )
             .map_err(Error::RunWireguardTunnel)?;
