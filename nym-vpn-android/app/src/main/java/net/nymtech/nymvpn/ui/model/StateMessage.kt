@@ -6,5 +6,5 @@ import nym_vpn_lib.VpnException
 
 sealed class StateMessage {
 	data class Status(val message: StringValue) : StateMessage()
-	data class Error(val exception: VpnException) : StateMessage()
+	data class Error(val reason: ErrorStateReason) : StateMessage()
 }
