@@ -22,3 +22,7 @@ nym-vpn-core/crates/nym-vpn-lib/NymVpnLib
 nym-vpn-core/crates/nym-vpn-lib/generated
 nym-vpn-apple/MixnetLibrary/Sources/MixnetLibrary/RustFramework.xcframework
 
+# Wireguard-go artifacts
+wireguard/libwg/exports.def
+wireguard/libwg/libwg.exp
+wireguard/libwg/libwg.h
