@@ -4,7 +4,7 @@ import { Description, Field, Label, Select } from '@headlessui/react';
 import { motion } from 'framer-motion';
 import { invoke } from '@tauri-apps/api/core';
 import { BackendError, NetworkEnv } from '../../../types';
-import { Button, Dialog } from '../../../ui';
+import { Button, Dialog, MsIcon } from '../../../ui';
 
 type NetworkOption = { value: NetworkEnv; label: string };
 
@@ -67,6 +67,10 @@ function NetworkEnvSelect({ open, onClose, current }: Props) {
               </option>
             ))}
           </Select>
+          <MsIcon
+            icon="keyboard_arrow_down"
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-black/50 dark:text-white/60"
+          />
         </div>
       </Field>
       {error && (
