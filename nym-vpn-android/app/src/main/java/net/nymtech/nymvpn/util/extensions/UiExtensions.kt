@@ -59,20 +59,15 @@ fun NavController.goFromRoot(route: Route) {
 }
 
 fun ErrorStateReason.toUserMessage(context: Context): String {
-	//TODO clean these up and map proper error messages with string values
 	return when (this) {
-		is VpnException.GatewayException -> context.getString(R.string.gateway_error)
-		is VpnException.InternalException -> {
-			// TODO we need improved errors for this scenario from backend
-			when {
-				this.details.contains("no exit gateway available for location") -> context.getString(R.string.selected_exit_unavailable)
-				this.details.contains("no entry gateway available for location") -> context.getString(R.string.selected_entry_unavailable)
-				else -> context.getString(R.string.internal_error)
-			}
-		}
-		is VpnException.InvalidCredential -> context.getString(R.string.exception_cred_invalid)
-		is VpnException.InvalidStateException -> context.getString(R.string.state_error)
-		is VpnException.NetworkConnectionException -> context.getString(R.string.network_error)
-		is VpnException.OutOfBandwidth -> context.getString(R.string.out_of_bandwidth_error)
+		ErrorStateReason.FIREWALL -> "A firewall issue occurred"
+		ErrorStateReason.ROUTING -> "A routing issue occurred"
+		ErrorStateReason.DNS -> "A dns issue occurred"
+		ErrorStateReason.TUN_DEVICE -> "A tunnel device issue occurred"
+		ErrorStateReason.TUNNEL_PROVIDER -> "A tunnel provider issue occurred"
+		ErrorStateReason.ESTABLISH_MIXNET_CONNECTION -> "Failed to establish mixnet connection"
+		ErrorStateReason.ESTABLISH_WIREGUARD_CONNECTION -> "Failed to establish wireguard connection"
+		ErrorStateReason.TUNNEL_DOWN -> "Tunnel down error"
+		ErrorStateReason.INTERNAL -> "Internal error"
 	}
 }
