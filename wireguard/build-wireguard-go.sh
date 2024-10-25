@@ -37,21 +37,6 @@ function is_docker_build {
     return 0
 }
 
-
-function win_deduce_lib_executable_path {
-    msbuild_path="$(which msbuild.exe)"
-    msbuild_dir=$(dirname "$msbuild_path")
-    local arch="$(uname -m)"
-    local lib_target="hostx64/x64"
-    if [[ ("${arch}" == "arm64") ]]; then
-       lib_target="hostarm64/arm64"
-    fi
-
-    find "$msbuild_dir/../../../../" -name "lib.exe" | \
-            grep -i "$lib_target" | \
-            head -n1
-}
-
 function win_gather_export_symbols {
    grep -Eo "\/\/export \w+" libwg.go libwg_windows.go | cut -d' ' -f2
 }
@@ -64,9 +49,7 @@ function win_create_lib_file {
         printf "\t%s\n" "$symbol" >> exports.def
     done
 
-    lib_path="$(win_deduce_lib_executable_path)"
-
-    "$lib_path" \
+    lib.exe \
         "/def:exports.def" \
         "/out:libwg.lib" \
         "/machine:X64"
@@ -79,7 +62,11 @@ function build_windows {
         go build -trimpath -v -o libwg.dll -buildmode c-shared
         win_create_lib_file
 
-        target_dir=../../build/lib/x86_64-pc-windows-msvc/
+        local target_dir=../../build/lib/x86_64-pc-windows-msvc/
+        local arch="$(uname -m)"
+        if [[ ("${arch}" == "arm64") ]]; then
+            arch="aarch64"
+        fi
         mkdir -p $target_dir
         mv libwg.dll libwg.lib $target_dir
     popd
