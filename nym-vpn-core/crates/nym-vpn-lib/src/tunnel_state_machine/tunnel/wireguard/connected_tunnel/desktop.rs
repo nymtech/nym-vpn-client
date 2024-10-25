@@ -1,7 +1,9 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{error::Error as StdError, net::IpAddr, os::fd::AsRawFd};
+#[cfg(unix)]
+use os::fd::AsRawFd;
+use std::{error::Error as StdError, net::IpAddr};
 
 use tokio::task::JoinHandle;
 use tun::AsyncDevice;
@@ -56,8 +58,10 @@ impl ConnectedTunnel {
 
     pub fn run(
         self,
-        entry_tun: AsyncDevice,
-        exit_tun: AsyncDevice,
+        #[cfg(unix)] entry_tun: AsyncDevice,
+        #[cfg(unix)] exit_tun: AsyncDevice,
+        #[cfg(windows)] entry_tun_name: &str,
+        #[cfg(windows)] exit_tun_name: &str,
         dns: Vec<IpAddr>,
     ) -> Result<TunnelHandle> {
         let wg_entry_config = WgNodeConfig::with_gateway_data(
@@ -76,19 +80,27 @@ impl ConnectedTunnel {
 
         let entry_tunnel = wireguard_go::Tunnel::start(
             wg_entry_config.into_wireguard_config(),
+            #[cfg(unix)]
             entry_tun.get_ref().as_raw_fd(),
+            #[cfg(windows)]
+            entry_tun_name,
         )
         .map_err(Error::StartWireguard)?;
 
         let exit_tunnel = wireguard_go::Tunnel::start(
             wg_exit_config.into_wireguard_config(),
+            #[cfg(unix)]
             exit_tun.get_ref().as_raw_fd(),
+            #[cfg(windows)]
+            exit_tun_name,
         )
         .map_err(Error::StartWireguard)?;
 
         Ok(TunnelHandle {
             task_manager: self.task_manager,
+            #[cfg(unix)]
             entry_tun,
+            #[cfg(unix)]
             exit_tun,
             entry_wg_tunnel: Some(entry_tunnel),
             exit_wg_tunnel: Some(exit_tunnel),
@@ -99,7 +111,9 @@ impl ConnectedTunnel {
 
 pub struct TunnelHandle {
     task_manager: TaskManager,
+    #[cfg(unix)]
     entry_tun: AsyncDevice,
+    #[cfg(unix)]
     exit_tun: AsyncDevice,
     entry_wg_tunnel: Option<wireguard_go::Tunnel>,
     exit_wg_tunnel: Option<wireguard_go::Tunnel>,
@@ -138,6 +152,12 @@ impl TunnelHandle {
             tracing::error!("Failed to join on bandwidth controller: {}", e);
         }
 
-        vec![self.entry_tun, self.exit_tun]
+        #[cfg(unix)]
+        {
+            vec![self.entry_tun, self.exit_tun]
+        }
+
+        #[cfg(windows)]
+        vec![]
     }
 }

@@ -41,9 +41,15 @@ function is_docker_build {
 function win_deduce_lib_executable_path {
     msbuild_path="$(which msbuild.exe)"
     msbuild_dir=$(dirname "$msbuild_path")
+    local arch="$(uname -m)"
+    local lib_target="hostx64/x64"
+    if [[ ("${arch}" == "arm64") ]]; then
+       lib_target="hostarm64/arm64"
+    fi
+
     find "$msbuild_dir/../../../../" -name "lib.exe" | \
-        grep -i "hostx64/x64" | \
-        head -n1
+            grep -i "$lib_target" | \
+            head -n1
 }
 
 function win_gather_export_symbols {

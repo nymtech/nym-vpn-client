@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 use std::net::Ipv4Addr;
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use std::os::fd::{AsRawFd, IntoRawFd};
@@ -251,29 +251,46 @@ impl ConnectingState {
         let enable_ipv6 = false;
         let conn_data = connected_tunnel.connection_data();
 
+        #[cfg(unix)]
         let entry_tun = Self::create_wireguard_device(
             conn_data.entry.private_ipv4,
             None,
             connected_tunnel.entry_mtu(),
         )?;
+        #[cfg(unix)]
         let entry_tun_name = entry_tun
             .get_ref()
             .name()
             .map_err(Error::GetTunDeviceName)?;
+        #[cfg(unix)]
         tracing::info!("Created entry tun device: {}", entry_tun_name);
 
+        #[cfg(unix)]
         let exit_tun = Self::create_wireguard_device(
             conn_data.exit.private_ipv4,
             Some(conn_data.entry.private_ipv4),
             connected_tunnel.exit_mtu(),
         )?;
+        #[cfg(unix)]
         let exit_tun_name = exit_tun.get_ref().name().map_err(Error::GetTunDeviceName)?;
+        #[cfg(unix)]
         tracing::info!("Created exit tun device: {}", exit_tun_name);
+
+        #[cfg(windows)]
+        let entry_tun_name = "nym0";
+        #[cfg(windows)]
+        let exit_tun_name = "nym1";
 
         let routing_config = RoutingConfig::Wireguard {
             enable_ipv6,
+            #[cfg(unix)]
             entry_tun_name,
+            #[cfg(unix)]
             exit_tun_name: exit_tun_name.clone(),
+            #[cfg(windows)]
+            entry_tun_name: entry_tun_name.to_owned(),
+            #[cfg(windows)]
+            exit_tun_name: exit_tun_name.to_owned(),
             entry_gateway_address: conn_data.entry.endpoint.ip(),
             exit_gateway_address: conn_data.exit.endpoint.ip(),
             #[cfg(target_os = "linux")]
@@ -290,8 +307,14 @@ impl ConnectingState {
 
         let tunnel_handle = connected_tunnel
             .run(
+                #[cfg(unix)]
                 entry_tun,
+                #[cfg(unix)]
                 exit_tun,
+                #[cfg(windows)]
+                entry_tun_name,
+                #[cfg(windows)]
+                exit_tun_name,
                 shared_state.tunnel_settings.dns.ip_addresses().to_vec(),
             )
             .map_err(Error::RunWireguardTunnel)?;
@@ -403,7 +426,7 @@ impl ConnectingState {
         Ok(tun_device)
     }
 
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
     fn create_wireguard_device(
         interface_addr: Ipv4Addr,
         destination: Option<Ipv4Addr>,
