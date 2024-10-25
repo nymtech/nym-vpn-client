@@ -86,6 +86,9 @@ impl fmt::Display for ConnectedStateDetails {
     }
 }
 
+// Seed used to generate device identity keys
+type Seed = [u8; 32];
+
 #[allow(clippy::large_enum_variant)]
 pub enum VpnServiceCommand {
     Connect(
@@ -103,7 +106,9 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<AccountStateSummary, AccountError>>,
         (),
     ),
+    RefreshAccountState(oneshot::Sender<Result<(), AccountError>>, ()),
     IsReadyToConnect(oneshot::Sender<Result<ReadyToConnect, AccountError>>, ()),
+    ResetDeviceIdentity(oneshot::Sender<Result<(), AccountError>>, Option<Seed>),
     RegisterDevice(oneshot::Sender<Result<(), AccountError>>, ()),
     RequestZkNym(oneshot::Sender<Result<(), AccountError>>, ()),
     GetDeviceZkNyms(oneshot::Sender<Result<(), AccountError>>, ()),
@@ -131,7 +136,9 @@ impl fmt::Display for VpnServiceCommand {
             VpnServiceCommand::IsAccountStored(..) => write!(f, "IsAccountStored"),
             VpnServiceCommand::RemoveAccount(..) => write!(f, "RemoveAccount"),
             VpnServiceCommand::GetAccountState(..) => write!(f, "GetAccountState"),
+            VpnServiceCommand::RefreshAccountState(..) => write!(f, "RefreshAccountState"),
             VpnServiceCommand::IsReadyToConnect(..) => write!(f, "IsReadyToConnect"),
+            VpnServiceCommand::ResetDeviceIdentity(..) => write!(f, "ResetDeviceIdentity"),
             VpnServiceCommand::RegisterDevice(..) => write!(f, "RegisterDevice"),
             VpnServiceCommand::RequestZkNym(..) => write!(f, "RequestZkNym"),
             VpnServiceCommand::GetDeviceZkNyms(..) => write!(f, "GetDeviceZkNyms"),
@@ -334,7 +341,7 @@ where
     status_tx: broadcast::Sender<MixnetEvent>,
 
     // Send commands to the account controller
-    account_command_tx: tokio::sync::mpsc::UnboundedSender<AccountCommand>,
+    account_command_tx: mpsc::UnboundedSender<AccountCommand>,
 
     config_file: PathBuf,
 
@@ -561,8 +568,16 @@ where
                 let result = self.handle_get_account_state().await;
                 let _ = tx.send(result);
             }
+            VpnServiceCommand::RefreshAccountState(tx, ()) => {
+                let result = self.handle_refresh_account_state().await;
+                let _ = tx.send(result);
+            }
             VpnServiceCommand::IsReadyToConnect(tx, ()) => {
                 let result = Ok(self.handle_is_ready_to_connect().await);
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::ResetDeviceIdentity(tx, seed) => {
+                let result = self.handle_reset_device_identity(seed).await;
                 let _ = tx.send(result);
             }
             VpnServiceCommand::RegisterDevice(tx, ()) => {
@@ -830,6 +845,14 @@ where
         Ok(self.shared_account_state.lock().await.clone())
     }
 
+    async fn handle_refresh_account_state(&self) -> Result<(), AccountError> {
+        self.account_command_tx
+            .send(AccountCommand::UpdateSharedAccountState)
+            .map_err(|err| AccountError::SendCommand {
+                source: Box::new(err),
+            })
+    }
+
     async fn handle_is_ready_to_connect(&self) -> ReadyToConnect {
         self.shared_account_state.is_ready_to_connect().await
     }
@@ -860,6 +883,20 @@ where
             .inspect(|keys| {
                 let device_keypair = keys.device_keypair();
                 tracing::info!("Loading device key: {}", device_keypair.public_key())
+            })
+    }
+
+    async fn handle_reset_device_identity(
+        &self,
+        seed: Option<[u8; 32]>,
+    ) -> Result<(), AccountError> {
+        self.storage
+            .lock()
+            .await
+            .reset_keys(seed)
+            .await
+            .map_err(|err| AccountError::FailedToResetKeys {
+                source: Box::new(err),
             })
     }
 

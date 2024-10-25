@@ -10,22 +10,26 @@ use std::{
 use nym_compact_ecash::{Base58 as _, BlindedSignature, VerificationKeyAuth};
 use nym_config::defaults::NymNetworkDetails;
 use nym_credentials::{
-    AggregatedCoinIndicesSignatures, AggregatedExpirationDateSignatures, EpochVerificationKey,
-    IssuedTicketBook,
+    AggregatedCoinIndicesSignatures, AggregatedExpirationDateSignatures, IssuedTicketBook,
 };
 use nym_credentials_interface::{RequestInfo, TicketType};
 use nym_ecash_time::EcashTime;
 use nym_http_api_client::UserAgent;
-use nym_sdk::mixnet::CredentialStorage;
 use nym_vpn_api_client::{
-    response::{NymErrorResponse, NymVpnZkNym, NymVpnZkNymStatus},
+    response::{
+        NymErrorResponse, NymVpnAccountSummaryResponse, NymVpnDevicesResponse, NymVpnZkNym,
+        NymVpnZkNymStatus,
+    },
     types::{Device, VpnApiAccount},
     HttpClientError, VpnApiClientError,
 };
-use nym_vpn_store::{keys::KeyStore, mnemonic::MnemonicStorage};
+use nym_vpn_store::VpnStorage;
 use serde::{Deserialize, Serialize};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
-use tokio::{task::JoinError, time::timeout};
+use tokio::{
+    sync::mpsc::{UnboundedReceiver, UnboundedSender},
+    task::{JoinError, JoinSet},
+};
 use tokio_util::sync::CancellationToken;
 use url::Url;
 
@@ -36,6 +40,7 @@ use crate::{
         AccountState, DeviceState, MnemonicState, ReadyToRegisterDevice, SharedAccountState,
         SubscriptionState,
     },
+    storage::{AccountStorage, VpnCredentialStorage},
 };
 
 // If we go below this threshold, we should request more tickets
@@ -53,13 +58,13 @@ pub enum AccountCommand {
 
 pub struct AccountController<S>
 where
-    S: nym_vpn_store::VpnStorage,
+    S: VpnStorage,
 {
-    // The underlying storage used to store the account and device keys
-    storage: Arc<tokio::sync::Mutex<S>>,
+    // The storage used for the account and device keys
+    account_storage: AccountStorage<S>,
 
     // Storage used for credentials
-    credential_storage: nym_credential_storage::persistent_storage::PersistentStorage,
+    credential_storage: VpnCredentialStorage,
 
     // The API client used to interact with the nym-vpn-api
     vpn_api_client: nym_vpn_api_client::VpnApiClient,
@@ -71,11 +76,19 @@ where
     // The current state of the account
     account_state: SharedAccountState,
 
+    // The last account summary we received from the API. We use this to check if the account state
+    // has changed.
+    last_account_summary: Option<NymVpnAccountSummaryResponse>,
+
+    // The last devices we received from the API. We use this to check if the device state has
+    // changed.
+    last_devices: Option<NymVpnDevicesResponse>,
+
     // Keep track of the current ecash epoch
     current_epoch: Option<u64>,
 
     // Tasks used to poll the status of zk-nyms
-    polling_tasks: tokio::task::JoinSet<PollingResult>,
+    polling_tasks: JoinSet<PollingResult>,
 
     // Keep track of which zknyms we have imported, so that we don't import the same twice
     // TODO: can we extend the credential store with a name field?
@@ -83,11 +96,11 @@ where
     zk_nym_imported: Vec<String>,
 
     // Receiver channel used to receive commands from the consumer
-    command_rx: tokio::sync::mpsc::UnboundedReceiver<AccountCommand>,
+    command_rx: UnboundedReceiver<AccountCommand>,
 
     // Sender channel primarily used when the consumer requests a channel to talk to the
     // controller, but also to queue up commands to itself
-    command_tx: tokio::sync::mpsc::UnboundedSender<AccountCommand>,
+    command_tx: UnboundedSender<AccountCommand>,
 
     // Listen for cancellation signals
     cancel_token: CancellationToken,
@@ -95,7 +108,7 @@ where
 
 impl<S> AccountController<S>
 where
-    S: nym_vpn_store::VpnStorage,
+    S: VpnStorage,
 {
     pub async fn new(
         storage: Arc<tokio::sync::Mutex<S>>,
@@ -103,76 +116,38 @@ where
         user_agent: UserAgent,
         cancel_token: CancellationToken,
     ) -> Self {
+        let account_storage = AccountStorage::from(storage);
+
         // TODO: remove unwraps.
         let storage_paths = nym_sdk::mixnet::StoragePaths::new_from_dir(data_dir).unwrap();
-        let credential_storage = storage_paths.persistent_credential_storage().await.unwrap();
+        let credential_storage = VpnCredentialStorage {
+            storage: storage_paths.persistent_credential_storage().await.unwrap(),
+        };
 
         let (command_tx, command_rx) = tokio::sync::mpsc::unbounded_channel();
 
         AccountController {
-            storage,
+            account_storage,
             credential_storage,
             vpn_api_client: create_api_client(user_agent),
             vpn_ecash_api_client: create_ecash_api_client(),
             account_state: SharedAccountState::new(),
+            last_account_summary: None,
+            last_devices: None,
             current_epoch: None,
             zk_nym_imported: Default::default(),
-            polling_tasks: tokio::task::JoinSet::new(),
+            polling_tasks: JoinSet::new(),
             command_rx,
             command_tx,
             cancel_token,
         }
     }
 
-    // Load account and keep the error type
-    async fn load_account_from_storage(
-        &self,
-    ) -> Result<VpnApiAccount, <S as MnemonicStorage>::StorageError> {
-        self.storage
-            .lock()
-            .await
-            .load_mnemonic()
-            .await
-            .map(VpnApiAccount::from)
-            .inspect(|account| tracing::info!("Loading account id: {}", account.id()))
-    }
-
-    // Convenience function to load account and box the error
-    async fn load_account(&self) -> Result<VpnApiAccount, Error> {
-        self.load_account_from_storage()
-            .await
-            .map_err(|err| Error::MnemonicStore {
-                source: Box::new(err),
-            })
-    }
-
-    // Load device keys and keep the error type
-    async fn load_device_keys_from_storage(&self) -> Result<Device, <S as KeyStore>::StorageError> {
-        self.storage
-            .lock()
-            .await
-            .load_keys()
-            .await
-            .map(|keys| Device::from(keys.device_keypair()))
-            .inspect(|device| {
-                tracing::info!("Loading device keys: {}", device.identity_key());
-            })
-    }
-
-    // Convenience function to load device keys and box the error
-    async fn load_device_keys(&self) -> Result<Device, Error> {
-        self.load_device_keys_from_storage()
-            .await
-            .map_err(|err| Error::KeyStore {
-                source: Box::new(err),
-            })
-    }
-
     async fn register_device(&self) -> Result<(), Error> {
         tracing::info!("Registering device");
 
-        let account = self.load_account().await?;
-        let device = self.load_device_keys().await?;
+        let account = self.account_storage.load_account().await?;
+        let device = self.account_storage.load_device_keys().await?;
 
         self.vpn_api_client
             .register_device(&account, &device)
@@ -298,11 +273,14 @@ where
     async fn request_zk_nym_all(&mut self) -> Result<(), Error> {
         tracing::info!("Requesting zk-nym (inner)");
 
-        let account = self.load_account().await?;
-        let device = self.load_device_keys().await?;
+        let account = self.account_storage.load_account().await?;
+        let device = self.account_storage.load_device_keys().await?;
 
         // Then we check local storage to see what ticket types we already have stored
-        let local_remaining_tickets = self.check_local_remaining_tickets().await;
+        let local_remaining_tickets = self
+            .credential_storage
+            .check_local_remaining_tickets()
+            .await;
         for (ticket_type, remaining) in &local_remaining_tickets {
             tracing::info!("{}, remaining: {}", ticket_type, remaining);
         }
@@ -333,8 +311,8 @@ where
     async fn get_device_zk_nym(&mut self) -> Result<(), Error> {
         tracing::info!("Getting device zk-nym from API");
 
-        let account = self.load_account().await?;
-        let device = self.load_device_keys().await?;
+        let account = self.account_storage.load_account().await?;
+        let device = self.account_storage.load_device_keys().await?;
 
         let reported_device_zk_nyms = self
             .vpn_api_client
@@ -350,65 +328,26 @@ where
         Ok(())
     }
 
-    async fn check_local_remaining_tickets(&self) -> Vec<(TicketType, u32)> {
-        // TODO: remove unwrap
-        let ticketbooks_info = self
-            .credential_storage
-            .get_ticketbooks_info()
-            .await
-            .unwrap();
-
-        // For each ticketbook type, iterate over and check if we have enough tickets stored
-        // locally
-        let ticketbook_types = ticketbook_types();
-
-        let mut request_zk_nym = Vec::new();
-        for ticketbook_type in ticketbook_types.iter() {
-            let available_tickets: u32 = ticketbooks_info
-                .iter()
-                .filter(|ticketbook| ticketbook.ticketbook_type == ticketbook_type.to_string())
-                .map(|ticketbook| ticketbook.total_tickets - ticketbook.used_tickets)
-                .sum();
-
-            request_zk_nym.push((*ticketbook_type, available_tickets));
-        }
-        request_zk_nym
-    }
-
     #[allow(unused)]
     async fn update_ecash_epoch(&mut self) -> Result<(), Error> {
-        let aggregated_coin_indices_signatures = self
+        self.current_epoch = self
             .vpn_ecash_api_client
             .get_aggregated_coin_indices_signatures()
-            .await?;
-        let current_epoch = aggregated_coin_indices_signatures.epoch_id;
-
-        self.current_epoch = Some(current_epoch);
+            .await
+            .ok()
+            .map(|response| response.epoch_id);
         Ok(())
     }
 
     async fn update_verification_key(&mut self) -> Result<(), Error> {
         tracing::debug!("Updating verification key");
-
-        let master_verification_key = self
+        let verification_key = self
             .vpn_ecash_api_client
             .get_master_verification_key()
             .await?;
-        let aggregated_coin_indices_signatures = self
-            .vpn_ecash_api_client
-            .get_aggregated_coin_indices_signatures()
-            .await?;
-        let current_epoch = aggregated_coin_indices_signatures.epoch_id;
-
-        let verification_key = EpochVerificationKey {
-            epoch_id: current_epoch,
-            key: master_verification_key.key,
-        };
-
         self.credential_storage
             .insert_master_verification_key(&verification_key)
             .await
-            .map_err(Error::from)
     }
 
     async fn get_current_verification_key(&self) -> Result<Option<VerificationKeyAuth>, Error> {
@@ -416,49 +355,32 @@ where
         self.credential_storage
             .get_master_verification_key(current_epoch)
             .await
-            .map_err(Error::from)
     }
 
     async fn update_coin_indices_signatures(&mut self) -> Result<(), Error> {
         tracing::debug!("Updating coin indices signatures");
-
-        let aggregated_coin_indices_signatures = self
+        let coin_indices_signatures = self
             .vpn_ecash_api_client
             .get_aggregated_coin_indices_signatures()
             .await?;
-
-        let coin_indices_signatures = AggregatedCoinIndicesSignatures {
-            epoch_id: aggregated_coin_indices_signatures.epoch_id,
-            signatures: aggregated_coin_indices_signatures.signatures,
-        };
-
         self.credential_storage
             .insert_coin_index_signatures(&coin_indices_signatures)
             .await
-            .map_err(Error::from)
     }
 
     async fn update_expiration_date_signatures(&mut self) -> Result<(), Error> {
         tracing::debug!("Updating expiration date signatures");
-
-        let aggregated_expiration_data_signatures = self
+        let expiration_date_signatures = self
             .vpn_ecash_api_client
             .get_aggregated_expiration_data_signatures()
             .await?;
-
-        let expiration_date_signatures = AggregatedExpirationDateSignatures {
-            epoch_id: aggregated_expiration_data_signatures.epoch_id,
-            expiration_date: aggregated_expiration_data_signatures.expiration_date,
-            signatures: aggregated_expiration_data_signatures.signatures,
-        };
         self.credential_storage
             .insert_expiration_date_signatures(&expiration_date_signatures)
             .await
-            .map_err(Error::from)
     }
 
     async fn update_mnemonic_state(&self) -> Option<VpnApiAccount> {
-        match self.load_account().await {
+        match self.account_storage.load_account().await {
             Ok(account) => {
                 tracing::debug!("Our account id: {}", account.id());
                 self.account_state.set_mnemonic(MnemonicState::Stored).await;
@@ -474,8 +396,8 @@ where
         }
     }
 
-    async fn update_account_state(&self, account: &VpnApiAccount) -> Result<(), Error> {
-        tracing::info!("Updating account state");
+    async fn update_account_state(&mut self, account: &VpnApiAccount) -> Result<(), Error> {
+        tracing::debug!("Updating account state");
         let response = self.vpn_api_client.get_account_summary(account).await;
 
         // Check if the response indicates that we are not registered
@@ -493,7 +415,11 @@ where
                 source: Box::new(source),
             }
         })?;
-        tracing::info!("Account summary: {:#?}", account_summary);
+
+        if self.last_account_summary.as_ref() != Some(&account_summary) {
+            self.last_account_summary = Some(account_summary.clone());
+            tracing::info!("Account summary: {:#?}", account_summary);
+        }
 
         self.account_state
             .set_account(AccountState::from(account_summary.account.status))
@@ -506,9 +432,9 @@ where
         Ok(())
     }
 
-    async fn update_device_state(&self, account: &VpnApiAccount) -> Result<(), Error> {
-        tracing::info!("Updating device state");
-        let our_device = self.load_device_keys().await?;
+    async fn update_device_state(&mut self, account: &VpnApiAccount) -> Result<(), Error> {
+        tracing::debug!("Updating device state");
+        let our_device = self.account_storage.load_device_keys().await?;
 
         let devices = self
             .vpn_api_client
@@ -516,7 +442,10 @@ where
             .await
             .map_err(Error::GetDevices)?;
 
-        tracing::info!("Registered devices: {:#?}", devices);
+        if self.last_devices.as_ref() != Some(&devices) {
+            self.last_devices = Some(devices.clone());
+            tracing::info!("Registered devices: {}", devices);
+        }
 
         // TODO: pagination
         let found_device = devices.items.iter().find(|device| {
@@ -546,7 +475,7 @@ where
         self.update_account_state(&account).await?;
         self.update_device_state(&account).await?;
 
-        tracing::info!("Current state: {}", self.shared_state().lock().await);
+        tracing::debug!("Current state: {}", self.shared_state().lock().await);
 
         self.register_device_if_ready().await?;
 
@@ -558,8 +487,17 @@ where
             ReadyToRegisterDevice::Ready => {
                 self.command_tx.send(AccountCommand::RegisterDevice)?;
             }
-            device_register_state => {
-                tracing::info!("Not ready to register device: {:?}", device_register_state);
+            ReadyToRegisterDevice::DeviceAlreadyRegistered => {
+                tracing::debug!("Skipping device registration, already registered");
+            }
+            s @ ReadyToRegisterDevice::NoMnemonicStored
+            | s @ ReadyToRegisterDevice::AccountNotActive
+            | s @ ReadyToRegisterDevice::NoActiveSubscription => {
+                tracing::info!("Not ready to register device: {}", s);
+            }
+            s @ ReadyToRegisterDevice::DeviceInactive
+            | s @ ReadyToRegisterDevice::DeviceDeleted => {
+                tracing::info!("Skipping registering device: {}", s);
             }
         }
 
@@ -572,7 +510,7 @@ where
         ticketbook_type: TicketType,
         request_info: RequestInfo,
     ) -> Result<(), Error> {
-        let account = self.load_account().await?;
+        let account = self.account_storage.load_account().await?;
         let ecash_keypair = account
             .create_ecash_keypair()
             .map_err(Error::CreateEcashKeyPair)?;
@@ -637,29 +575,28 @@ where
     // Once we finish polling the result of the zk-nym request, we now import the zk-nym into the
     // local credential store
     async fn handle_polling_result(&mut self, result: Result<PollingResult, JoinError>) {
-        let result = match result {
-            Ok(result) => result,
-            Err(err) => {
-                tracing::error!("Polling task failed: {:#?}", err);
-                return;
-            }
+        let Ok(result) = result else {
+            tracing::error!("Polling task failed: {:#?}", result);
+            return;
         };
+
         match result {
-            PollingResult::Finished(response, ticketbook_type, request_info) => {
-                tracing::info!("Polling task finished: {:#?}", response);
-                if response.status == NymVpnZkNymStatus::Active {
-                    if let Err(err) = self
-                        .import_zk_nym(response, ticketbook_type, *request_info)
-                        .await
-                    {
+            PollingResult::Finished(response, ticketbook_type, request_info)
+                if response.status == NymVpnZkNymStatus::Active =>
+            {
+                tracing::info!("Polling finished succesfully, importing ticketbook");
+                self.import_zk_nym(response, ticketbook_type, *request_info)
+                    .await
+                    .inspect_err(|err| {
                         tracing::error!("Failed to import zk-nym: {:#?}", err);
-                    }
-                } else {
-                    tracing::warn!(
-                        "Polling finished with status: {:?}, not importing!",
-                        response.status
-                    );
-                }
+                    })
+                    .ok();
+            }
+            PollingResult::Finished(response, _, _) => {
+                tracing::warn!(
+                    "Polling finished with status: {:?}, not importing!",
+                    response.status
+                );
             }
             PollingResult::Timeout(response) => {
                 tracing::info!("Polling task timed out: {:#?}", response);
@@ -680,24 +617,63 @@ where
         }
     }
 
-    async fn print_credential_storage_info(&self) -> Result<(), Error> {
-        let ticketbooks_info = self.credential_storage.get_ticketbooks_info().await?;
-        tracing::info!("Ticketbooks stored: {}", ticketbooks_info.len());
-        for ticketbook in ticketbooks_info {
-            tracing::info!("Ticketbook id: {}", ticketbook.id);
+    async fn cleanup(mut self) {
+        let timeout = tokio::time::sleep(Duration::from_secs(5));
+        tokio::pin!(timeout);
+        loop {
+            tokio::select! {
+                _ = &mut timeout => {
+                    tracing::warn!("Timeout waiting for polling tasks to finish, pending zk-nym's not imported into local credential store!");
+                    break;
+                }
+                result = self.polling_tasks.join_next() => match result {
+                    Some(result) => self.handle_polling_result(result).await,
+                    None => break,
+                }
+            }
         }
+    }
 
-        let pending_ticketbooks = self.credential_storage.get_pending_ticketbooks().await?;
-        for pending in pending_ticketbooks {
-            tracing::info!("Pending ticketbook id: {}", pending.pending_id);
+    pub fn shared_state(&self) -> SharedAccountState {
+        self.account_state.clone()
+    }
+
+    pub fn command_tx(&self) -> UnboundedSender<AccountCommand> {
+        self.command_tx.clone()
+    }
+
+    fn queue_command(&self, command: AccountCommand) {
+        if let Err(err) = self.command_tx.send(command) {
+            tracing::error!("Failed to queue command: {:#?}", err);
         }
-        Ok(())
+    }
+
+    async fn print_info(&self) {
+        let account_id = self
+            .account_storage
+            .load_account()
+            .await
+            .map(|account| account.id())
+            .ok()
+            .unwrap_or_else(|| "(unset)".to_string());
+        let device_id = self
+            .account_storage
+            .load_device_keys()
+            .await
+            .map(|device| device.identity_key().to_string())
+            .ok()
+            .unwrap_or_else(|| "(unset)".to_string());
+
+        tracing::info!("Account id: {}", account_id);
+        tracing::info!("Device id: {}", device_id);
+
+        if let Err(err) = self.credential_storage.print_info().await {
+            tracing::error!("Failed to print credential storage info: {:#?}", err);
+        }
     }
 
     pub async fn run(mut self) {
-        if let Err(err) = self.print_credential_storage_info().await {
-            tracing::error!("Failed to print credential storage info: {:#?}", err);
-        }
+        self.print_info().await;
 
         self.update_verification_key()
             .await
@@ -722,7 +698,8 @@ where
         let mut polling_timer = tokio::time::interval(Duration::from_millis(500));
 
         // Timer to periodically refresh the remote account state
-        let mut update_shared_account_state_timer = tokio::time::interval(Duration::from_secs(60));
+        let mut update_shared_account_state_timer =
+            tokio::time::interval(Duration::from_secs(5 * 60));
 
         loop {
             tokio::select! {
@@ -743,13 +720,6 @@ where
                 }
                 _ = self.cancel_token.cancelled() => {
                     tracing::trace!("Received cancellation signal");
-                    if !self.polling_tasks.is_empty() {
-                        tracing::info!("Waiting for polling remaining zknyms (5 secs) ...");
-                        match timeout(Duration::from_secs(5), self.polling_tasks.join_all()).await {
-                            Ok(_) => tracing::info!("All polling tasks finished"),
-                            Err(err) => tracing::warn!("Failed to wait for polling tasks, pending zknym's not imported into local credential store! {:#?}", err),
-                        }
-                    }
                     break;
                 }
                 else => {
@@ -758,21 +728,9 @@ where
                 }
             }
         }
+
+        self.cleanup().await;
         tracing::debug!("Account controller is exiting");
-    }
-
-    pub fn shared_state(&self) -> SharedAccountState {
-        self.account_state.clone()
-    }
-
-    pub fn command_tx(&self) -> tokio::sync::mpsc::UnboundedSender<AccountCommand> {
-        self.command_tx.clone()
-    }
-
-    fn queue_command(&self, command: AccountCommand) {
-        if let Err(err) = self.command_tx.send(command) {
-            tracing::error!("Failed to queue command: {:#?}", err);
-        }
     }
 }
 
@@ -832,16 +790,6 @@ fn extract_status_code_inner(
         HttpClientError::EndpointFailure { status, .. } => Some((*status).into()),
         _ => None,
     }
-}
-
-// TODO: add #[derive(EnumIter)] to TicketType so we can iterate over it directly.
-fn ticketbook_types() -> [TicketType; 4] {
-    [
-        TicketType::V1MixnetEntry,
-        TicketType::V1MixnetExit,
-        TicketType::V1WireguardEntry,
-        TicketType::V1WireguardExit,
-    ]
 }
 
 #[derive(Debug)]
