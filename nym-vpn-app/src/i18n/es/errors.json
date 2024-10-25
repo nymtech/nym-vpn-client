@@ -77,5 +77,8 @@
     "ping": "Falló el ping del nodo de salida para el tráfico {{protocolo}}",
     "routing": "El nodo de salida no está enrutando tráfico {{protocolo}}"
   },
-  "entry-node-routing": "El nodo de entrada no enruta el tráfico (¿se ha caído la conexión a Internet?)"
+  "entry-node-routing": "El nodo de entrada no enruta el tráfico (¿se ha caído la conexión a Internet?)",
+  "account": {
+    "invalid-recovery-phrase": "Frase de recuperación inválida"
+  }
 }

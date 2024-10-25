@@ -77,5 +77,8 @@
   "exit-node": {
     "routing": "出口节点未路由{{protocol}} 流量",
     "ping": "{{protocol}} 流量的出口节点 ping 失败"
+  },
+  "account": {
+    "invalid-recovery-phrase": "恢复短语无效"
   }
 }

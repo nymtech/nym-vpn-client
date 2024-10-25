@@ -77,5 +77,8 @@
   },
   "unknown": "خطأ غير معروف",
   "internal": "خطأ داخلي",
-  "grpc": "خطأ داخلي في خدمة gRPC"
+  "grpc": "خطأ داخلي في خدمة gRPC",
+  "account": {
+    "invalid-recovery-phrase": "عبارة الاسترداد غير صحيحة"
+  }
 }
