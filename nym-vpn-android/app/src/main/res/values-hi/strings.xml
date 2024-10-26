@@ -168,4 +168,13 @@
     <string name="missing_mnemonic">Mnemonic नहीं मिल पाया</string>
     <string name="device_added_success">डिवाइस सफलतापूर्वक आपके खाते में जुड़ गया है</string>
     <string name="invalid_recovery_phrase">अमान्य रिकवरी फ्रेज़</string>
+    <string name="recovery_phrase">रिकवरी वाक्यांश</string>
+    <string name="log_in">लॉग इन करें</string>
+    <string name="log_out">लॉग आउट करें</string>
+    <string name="new_to_nym">NymVPN में नए हैं?</string>
+    <string name="create_account">खाता बनाएं</string>
+    <string name="account">खाता</string>
+    <string name="mnemonic_example">जैसे: धुंआ, कला वस्तु, मखमली, कंकाल, महल, कछुआ, क्षति, खुरदुरी.।</string>
+    <string name="recovery_phrase_message">लॉग इन करने के लिए नीचे अपने 24-शब्दीय गुप्त रिकवरी वाक्यांश को दर्ज करें।</string>
+    <string name="recovery_phrase_disclaimer">आप केवल NymVPN में उत्पन्न किए गए पुनर्प्राप्ति वाक्यांश का उपयोग कर सकते हैं, Nym वॉलेट का नहीं।</string>
 </resources>
