@@ -62,10 +62,9 @@ impl DisconnectingState {
     }
 
     async fn on_tunnel_exit(
-        &self,
         result: Result<Option<Vec<AsyncDevice>>, JoinError>,
         shared_state: &mut SharedState,
-    ) -> NextTunnelState {
+    ) {
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         shared_state.route_handler.remove_routes().await;
 
@@ -93,16 +92,6 @@ impl DisconnectingState {
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         shared_state.route_handler.remove_routes().await;
         // todo: reset firewall
-
-        match self.after_disconnect {
-            ActionAfterDisconnect::Nothing => NextTunnelState::NewState(DisconnectedState::enter()),
-            ActionAfterDisconnect::Error(reason) => {
-                NextTunnelState::NewState(ErrorState::enter(reason))
-            }
-            ActionAfterDisconnect::Reconnect => {
-                NextTunnelState::NewState(ConnectingState::enter(shared_state))
-            }
-        }
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -110,13 +99,6 @@ impl DisconnectingState {
         if let Err(e) = dns_handler.reset() {
             tracing::error!("Failed to reset dns: {}", e);
         }
-    }
-
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-    async fn reset_on_cancel(shared_state: &mut SharedState) {
-        Self::reset_dns(&mut shared_state.dns_handler);
-        shared_state.route_handler.remove_routes().await;
-        // todo: reset firewall
     }
 }
 
@@ -130,12 +112,24 @@ impl TunnelStateHandler for DisconnectingState {
     ) -> NextTunnelState {
         tokio::select! {
             _ = shutdown_token.cancelled() => {
-                #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-                Self::reset_on_cancel(shared_state).await;
+                // Wait for tunnel to exit anyway because it's unsafe to drop the task manager.
+                let result = self.wait_handle.await;
+                Self::on_tunnel_exit(result, shared_state).await;
+
                 NextTunnelState::NewState(DisconnectedState::enter())
             }
             result = (&mut self.wait_handle) => {
-                self.on_tunnel_exit(result, shared_state).await
+                Self::on_tunnel_exit(result, shared_state).await;
+
+                match self.after_disconnect {
+                    ActionAfterDisconnect::Nothing => NextTunnelState::NewState(DisconnectedState::enter()),
+                    ActionAfterDisconnect::Error(reason) => {
+                        NextTunnelState::NewState(ErrorState::enter(reason))
+                    }
+                    ActionAfterDisconnect::Reconnect => {
+                        NextTunnelState::NewState(ConnectingState::enter(shared_state))
+                    }
+                }
             }
             Some(command) = command_rx.recv() => {
                 match command {
