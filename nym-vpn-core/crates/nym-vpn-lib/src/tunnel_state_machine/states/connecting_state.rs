@@ -40,7 +40,6 @@ use crate::tunnel_state_machine::{
 };
 
 /// Default MTU for mixnet tun device.
-#[cfg(not(all(target_os = "ios", target_os = "android")))]
 const DEFAULT_TUN_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android")) {
     1280
 } else {
