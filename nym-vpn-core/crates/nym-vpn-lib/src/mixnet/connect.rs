@@ -6,7 +6,6 @@ use std::{path::PathBuf, result::Result};
 use nym_config::defaults::NymNetworkDetails;
 use nym_sdk::mixnet::{MixnetClientBuilder, NodeIdentity, StoragePaths};
 use nym_vpn_store::mnemonic::MnemonicStorage as _;
-use tracing::{debug, info};
 
 use super::{MixnetError, SharedMixnetClient};
 use crate::{storage::VpnClientOnDiskStorage, MixnetClientConfig};
@@ -39,7 +38,7 @@ fn apply_mixnet_client_config(
         min_gateway_performance,
     } = mixnet_client_config;
 
-    info!(
+    tracing::info!(
         "mixnet client poisson rate limiting: {}",
         true_to_disabled(*disable_poisson_rate)
     );
@@ -47,7 +46,7 @@ fn apply_mixnet_client_config(
         .traffic
         .disable_main_poisson_packet_distribution = *disable_poisson_rate;
 
-    info!(
+    tracing::info!(
         "mixnet client background loop cover traffic stream: {}",
         true_to_disabled(*disable_background_cover_traffic)
     );
@@ -57,7 +56,7 @@ fn apply_mixnet_client_config(
     if let Some(min_mixnode_performance) = min_mixnode_performance {
         debug_config.topology.minimum_mixnode_performance = *min_mixnode_performance;
     }
-    info!(
+    tracing::info!(
         "mixnet client minimum mixnode performance: {}",
         debug_config.topology.minimum_mixnode_performance,
     );
@@ -65,7 +64,7 @@ fn apply_mixnet_client_config(
     if let Some(min_gateway_performance) = min_gateway_performance {
         debug_config.topology.minimum_gateway_performance = *min_gateway_performance;
     }
-    info!(
+    tracing::info!(
         "mixnet client minimum gateway performance: {}",
         debug_config.topology.minimum_gateway_performance,
     );
@@ -84,7 +83,7 @@ pub(crate) async fn setup_mixnet_client(
     let user_agent = nym_bin_common::bin_info_owned!().into();
 
     let mixnet_client = if let Some(path) = mixnet_client_key_storage_path {
-        debug!("Using custom key storage path: {:?}", path);
+        tracing::debug!("Using custom key storage path: {:?}", path);
 
         let storage = VpnClientOnDiskStorage::new(path.clone());
         match storage.is_mnemonic_stored().await {
@@ -118,7 +117,7 @@ pub(crate) async fn setup_mixnet_client(
             .await
             .map_err(map_mixnet_connect_error)?
     } else {
-        debug!("Using ephemeral key storage");
+        tracing::debug!("Using ephemeral key storage");
         MixnetClientBuilder::new_ephemeral()
             .with_user_agent(user_agent)
             .request_gateway(mixnet_entry_gateway.to_string())
