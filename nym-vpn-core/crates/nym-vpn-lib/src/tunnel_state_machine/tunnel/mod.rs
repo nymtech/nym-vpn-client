@@ -15,6 +15,7 @@ use nym_ip_packet_requests::IpPair;
 use nym_sdk::UserAgent;
 use nym_task::{manager::TaskStatus, TaskManager};
 use tokio::{sync::mpsc, task::JoinHandle};
+use tokio_util::sync::CancellationToken;
 
 use super::{MixnetEvent, TunnelType};
 use crate::{mixnet::SharedMixnetClient, GatewayDirectoryError, MixnetClientConfig, MixnetError};
@@ -82,6 +83,11 @@ impl ConnectedMixnet {
             )
             .await
     }
+
+    /// Gracefully shutdown the mixnet client and consume the struct.
+    pub async fn dispose(self) {
+        shutdown_task_manager(self.task_manager).await;
+    }
 }
 
 pub struct MixnetConnectOptions {
@@ -95,8 +101,10 @@ pub struct MixnetConnectOptions {
     pub user_agent: Option<UserAgent>,
 }
 
-pub async fn connect_mixnet(options: MixnetConnectOptions) -> Result<ConnectedMixnet> {
-    let task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS);
+pub async fn connect_mixnet(
+    options: MixnetConnectOptions,
+    cancel_token: CancellationToken,
+) -> Result<ConnectedMixnet> {
     let user_agent = options
         .user_agent
         .unwrap_or(UserAgent::from(nym_bin_common::bin_info_local_vergen!()));
@@ -104,14 +112,18 @@ pub async fn connect_mixnet(options: MixnetConnectOptions) -> Result<ConnectedMi
     // Select gateways
     let gateway_directory_client = GatewayClient::new(options.gateway_config, user_agent)
         .map_err(Error::CreateGatewayClient)?;
-    let selected_gateways = gateway_selector::select_gateways(
+
+    let select_gateways_fut = gateway_selector::select_gateways(
         &gateway_directory_client,
         options.tunnel_type,
         options.entry_point,
         options.exit_point,
-    )
-    .await
-    .map_err(Error::SelectGateways)?;
+    );
+    let selected_gateways = cancel_token
+        .run_until_cancelled(select_gateways_fut)
+        .await
+        .ok_or(Error::MixnetClientCancelled)?
+        .map_err(Error::SelectGateways)?;
 
     let mut mixnet_client_config = options.mixnet_client_config.unwrap_or_default();
     match options.tunnel_type {
@@ -124,7 +136,8 @@ pub async fn connect_mixnet(options: MixnetConnectOptions) -> Result<ConnectedMi
         }
     };
 
-    let mixnet_client = tokio::time::timeout(
+    let task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS);
+    let connect_fut = tokio::time::timeout(
         MIXNET_CLIENT_STARTUP_TIMEOUT,
         crate::mixnet::setup_mixnet_client(
             selected_gateways.entry.identity(),
@@ -133,18 +146,40 @@ pub async fn connect_mixnet(options: MixnetConnectOptions) -> Result<ConnectedMi
             mixnet_client_config,
             options.enable_credentials_mode,
         ),
-    )
-    .await
-    .map_err(|_| Error::StartMixnetClientTimeout)?
-    .map_err(Error::MixnetClient)?;
+    );
 
-    Ok(ConnectedMixnet {
-        task_manager,
-        selected_gateways,
-        data_path: options.data_path,
-        gateway_directory_client,
-        mixnet_client,
-    })
+    let res = cancel_token
+        .run_until_cancelled(connect_fut)
+        .await
+        .ok_or(Error::MixnetClientCancelled)
+        .and_then(|res| {
+            res.map_err(|_| Error::StartMixnetClientTimeout)
+                .and_then(|x| x.map_err(Error::MixnetClient))
+        });
+
+    match res {
+        Ok(mixnet_client) => Ok(ConnectedMixnet {
+            task_manager,
+            selected_gateways,
+            data_path: options.data_path,
+            gateway_directory_client,
+            mixnet_client,
+        }),
+        Err(e) => {
+            shutdown_task_manager(task_manager).await;
+            Err(e)
+        }
+    }
+}
+
+async fn shutdown_task_manager(mut task_manager: TaskManager) {
+    log::debug!("Shutting down task manager");
+    if task_manager.signal_shutdown().is_err() {
+        log::error!("Failed to signal task manager shutdown");
+    }
+
+    task_manager.wait_for_shutdown().await;
+    log::debug!("Task manager finished");
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -155,8 +190,11 @@ pub enum Error {
     #[error("failed to select gateways: {}", _0)]
     SelectGateways(#[source] GatewayDirectoryError),
 
-    #[error("start mixnet timeout")]
+    #[error("start mixnet client timeout")]
     StartMixnetClientTimeout,
+
+    #[error("mixnet client connection is cancelled")]
+    MixnetClientCancelled,
 
     #[error("mixnet tunnel has failed: {}", _0)]
     MixnetClient(#[from] MixnetError),

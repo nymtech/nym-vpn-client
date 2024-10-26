@@ -9,7 +9,7 @@ use std::os::fd::{AsRawFd, IntoRawFd};
 use std::os::fd::{FromRawFd, OwnedFd};
 
 use futures::{
-    future::{BoxFuture, Fuse},
+    future::{BoxFuture, Fuse, FusedFuture},
     FutureExt,
 };
 #[cfg(any(target_os = "ios", target_os = "android"))]
@@ -50,7 +50,11 @@ const DEFAULT_TUN_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android
 type ConnectFut = BoxFuture<'static, tunnel::Result<ConnectedMixnet>>;
 
 pub struct ConnectingState {
+    /// Fused future connecting the mixnet client.
     connect_fut: Fuse<ConnectFut>,
+
+    /// Cancellation token used by `connect_fut`.
+    connect_cancel_token: CancellationToken,
 }
 
 impl ConnectingState {
@@ -90,9 +94,19 @@ impl ConnectingState {
             user_agent: None, // todo: provide user-agent
         };
 
-        let connect_fut = tunnel::connect_mixnet(connect_options).boxed().fuse();
+        let connect_cancel_token = CancellationToken::new();
+        let connect_fut =
+            tunnel::connect_mixnet(connect_options, connect_cancel_token.child_token())
+                .boxed()
+                .fuse();
 
-        (Box::new(Self { connect_fut }), TunnelState::Connecting)
+        (
+            Box::new(Self {
+                connect_fut,
+                connect_cancel_token,
+            }),
+            TunnelState::Connecting,
+        )
     }
 
     async fn on_connect_mixnet_client(
@@ -131,6 +145,25 @@ impl ConnectingState {
                 ))
             }
         }
+    }
+
+    async fn on_cancel(
+        self,
+        after_disconnect: ActionAfterDisconnect,
+        shared_state: &mut SharedState,
+    ) -> NextTunnelState {
+        self.connect_cancel_token.cancel();
+
+        if !self.connect_fut.is_terminated() {
+            if let Ok(connected_mixnet) = self.connect_fut.await {
+                connected_mixnet.dispose().await;
+            }
+        }
+        NextTunnelState::NewState(DisconnectingState::enter(
+            after_disconnect,
+            None,
+            shared_state,
+        ))
     }
 
     async fn start_tunnel(
@@ -508,7 +541,7 @@ impl TunnelStateHandler for ConnectingState {
     ) -> NextTunnelState {
         tokio::select! {
             _ = shutdown_token.cancelled() => {
-                NextTunnelState::NewState(DisconnectingState::enter(ActionAfterDisconnect::Nothing, None, shared_state))
+                self.on_cancel(ActionAfterDisconnect::Nothing, shared_state).await
             }
             result = &mut self.connect_fut => {
                 Self::on_connect_mixnet_client(result, shared_state).await
@@ -517,14 +550,14 @@ impl TunnelStateHandler for ConnectingState {
                 match command {
                     TunnelCommand::Connect => NextTunnelState::SameState(self),
                     TunnelCommand::Disconnect => {
-                        NextTunnelState::NewState(DisconnectingState::enter(ActionAfterDisconnect::Nothing, None, shared_state))
+                        self.on_cancel(ActionAfterDisconnect::Nothing, shared_state).await
                     },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
                         if shared_state.tunnel_settings == tunnel_settings {
                             NextTunnelState::SameState(self)
                         } else {
                             shared_state.tunnel_settings = tunnel_settings;
-                            NextTunnelState::NewState(DisconnectingState::enter(ActionAfterDisconnect::Reconnect, None, shared_state))
+                            self.on_cancel(ActionAfterDisconnect::Reconnect, shared_state).await
                         }
                     }
                 }
