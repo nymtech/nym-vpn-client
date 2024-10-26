@@ -228,7 +228,7 @@ impl TunnelHandle {
         self.shutdown_token.cancel();
 
         if let Err(e) = self.task_manager.signal_shutdown() {
-            tracing::error!("Failed to signal shutdown: {}", e);
+            tracing::error!("Failed to signal task manager shutdown: {}", e);
         }
     }
 

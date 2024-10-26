@@ -79,7 +79,7 @@ impl TunnelHandle {
     /// Cancel tunnel execution.
     pub fn cancel(&self) {
         if let Err(e) = self.task_manager.signal_shutdown() {
-            tracing::error!("Failed to signal shutdown: {}", e);
+            tracing::error!("Failed to signal task manager shutdown: {}", e);
         }
     }
 
