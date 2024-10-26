@@ -12,20 +12,12 @@ bash $PWD/../../wireguard/build-wireguard-go.sh
 bash $PWD/../../wireguard/libwg/build-android.sh
 echo "Building nym-vpn-lib dep"
 
-case  "$(uname -s)" in
-    Darwin*) export RUSTFLAGS="-L ${PWD}/../../build/lib/aarch64-linux-android -L ${PWD}/../../build/lib/universal-apple-darwin";;
-    Linux*) export RUSTFLAGS="-L ${PWD}/../../build/lib/aarch64-linux-android -L ${PWD}/../../build/lib/x86_64-unknown-linux-gnu";;
-    MINGW*|MSYS_NT*) export RUSTFLAGS="-L ${PWD}/../../build/lib/aarch64-linux-android -L ${PWD}/../../build/lib/x86_64-pc-windows-msvc";;
-esac
-
 #fix emulators later
 #(cd $PWD/src/tools/nym-vpn-client/crates/nym-vpn-lib; cargo ndk -t armeabi-v7a -t arm64-v8a -t i686-linux-android -t x86_64-linux-android  -o ../../../main/jniLibs build --release)
 (cd $PWD/../../nym-vpn-core/crates/nym-vpn-lib; cargo ndk -t arm64-v8a -o ../../../nym-vpn-android/nym-vpn-client/src/main/jniLibs build --release)
 
 (cd $PWD/../../nym-vpn-core; cargo run --bin uniffi-bindgen generate --library ./target/aarch64-linux-android/release/libnym_vpn_lib.so  --language kotlin --out-dir ../nym-vpn-android/nym-vpn-client/src/main/java/net/nymtech/vpn -n)
 cargo license -j --avoid-dev-deps --current-dir ../../nym-vpn-core/crates/nym-vpn-lib --filter-platform aarch64-linux-android --avoid-build-deps > ./src/main/assets/licenses_rust.json
-#fix package name
-#sed -i 's/package nym-vpn-lib;/package nym_vpn_lib;/g' $PWD/src/main/java/net/nymtech/vpn/nym-vpn-lib/nym_vpn_lib.kt
 
 mv $PWD/src/main/jniLibs/arm64-v8a/libnym_vpn_lib.so $PWD/src/main/jniLibs/arm64-v8a/libnym_vpn_lib.so
 #mv $PWD/src/main/jniLibs/armeabi-v7a/libnym_vpn_lib.so $PWD/src/main/jniLibs/armeabi-v7a/libnym_vpn_lib.so

@@ -134,4 +134,34 @@ object Constants {
 		Os.setenv("NYXD", "https://canary-validator.performance.nymte.ch", true)
 		Os.setenv("NYM_API", "https://canary-api.performance.nymte.ch/api", true)
 	}
+
+	fun setupEnvironmentQA() {
+		setupCommon()
+
+		Os.setenv("REWARDING_VALIDATOR_ADDRESS", "n1rfvpsynktze6wvn6ldskj8xgwfzzk5v6pnff39", true)
+		Os.setenv(
+			"MIXNET_CONTRACT_ADDRESS",
+			"n1hm4y6fzgxgu688jgf7ek66px6xkrtmn3gyk8fax3eawhp68c2d5qujz296",
+			true,
+		)
+		Os.setenv(
+			"GROUP_CONTRACT_ADDRESS",
+			"n13l7rwuwktklrwskc7m6lv70zws07en85uma28j7dxwsz9y5hvvhspl7a2t",
+			true,
+		)
+		Os.setenv(
+			"MULTISIG_CONTRACT_ADDRESS",
+			"n138c9pyf7f3hyx0j3t6vmsz7ultnw2wj0lu6hzndep9z5grgq9haqlc25k0",
+			true,
+		)
+		Os.setenv(
+			"COCONUT_DKG_CONTRACT_ADDRESS",
+			"n1pk8jgr6y4c5k93gz7qf3xc0hvygmp7csk88c2tf8l39tkq6834wq2a6dtr",
+			true,
+		)
+
+		Os.setenv("EXPLORER_API", "https://qa-network-explorer.qa.nymte.ch/api", true)
+		Os.setenv("NYXD", "https://qa-validator.qa.nymte.ch", true)
+		Os.setenv("NYM_API", "https://qa-nym-api.qa.nymte.ch/api", true)
+	}
 }

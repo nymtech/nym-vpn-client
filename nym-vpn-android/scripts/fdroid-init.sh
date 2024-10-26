@@ -29,12 +29,5 @@ echo "$GOLANG_HASH go.tgz" | sha256sum -c
 tar -xzvf go.tgz
 patch -p1 -f -N -r- -d "$HOME/go" < "$REPO_DIR/wireguard/libwg/goruntime-boottime-over-monotonic.diff"
 
-# Ensure Go compiler is accessible
-export GOROOT="$HOME/go"
-export PATH="$PATH:$GOROOT/bin"
-
 # install cargo dependencies
 cargo install cargo-ndk cargo-license --locked
-
-# install other dependencies
-sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip

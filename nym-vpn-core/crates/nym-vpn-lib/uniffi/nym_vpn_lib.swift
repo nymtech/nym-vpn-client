@@ -885,16 +885,6 @@ public protocol TunnelStatusListener : AnyObject {
     
     func onEvent(event: TunnelEvent) 
     
-    func onTunStatusChange(status: TunStatus) 
-    
-    func onBandwidthStatusChange(status: BandwidthStatus) 
-    
-    func onConnectionStatusChange(status: ConnectionStatus) 
-    
-    func onNymVpnStatusChange(status: NymVpnStatus) 
-    
-    func onExitStatusChange(status: ExitStatus) 
-    
 }
 
 open class TunnelStatusListenerImpl:
@@ -945,41 +935,6 @@ open func onEvent(event: TunnelEvent) {try! rustCall() {
 }
 }
     
-open func onTunStatusChange(status: TunStatus) {try! rustCall() {
-    uniffi_nym_vpn_lib_fn_method_tunnelstatuslistener_on_tun_status_change(self.uniffiClonePointer(),
-        FfiConverterTypeTunStatus.lower(status),$0
-    )
-}
-}
-    
-open func onBandwidthStatusChange(status: BandwidthStatus) {try! rustCall() {
-    uniffi_nym_vpn_lib_fn_method_tunnelstatuslistener_on_bandwidth_status_change(self.uniffiClonePointer(),
-        FfiConverterTypeBandwidthStatus.lower(status),$0
-    )
-}
-}
-    
-open func onConnectionStatusChange(status: ConnectionStatus) {try! rustCall() {
-    uniffi_nym_vpn_lib_fn_method_tunnelstatuslistener_on_connection_status_change(self.uniffiClonePointer(),
-        FfiConverterTypeConnectionStatus.lower(status),$0
-    )
-}
-}
-    
-open func onNymVpnStatusChange(status: NymVpnStatus) {try! rustCall() {
-    uniffi_nym_vpn_lib_fn_method_tunnelstatuslistener_on_nym_vpn_status_change(self.uniffiClonePointer(),
-        FfiConverterTypeNymVpnStatus.lower(status),$0
-    )
-}
-}
-    
-open func onExitStatusChange(status: ExitStatus) {try! rustCall() {
-    uniffi_nym_vpn_lib_fn_method_tunnelstatuslistener_on_exit_status_change(self.uniffiClonePointer(),
-        FfiConverterTypeExitStatus.lower(status),$0
-    )
-}
-}
-    
 
 }
 
@@ -1003,126 +958,6 @@ fileprivate struct UniffiCallbackInterfaceTunnelStatusListener {
                 }
                 return uniffiObj.onEvent(
                      event: try FfiConverterTypeTunnelEvent.lift(event)
-                )
-            }
-
-            
-            let writeReturn = { () }
-            uniffiTraitInterfaceCall(
-                callStatus: uniffiCallStatus,
-                makeCall: makeCall,
-                writeReturn: writeReturn
-            )
-        },
-        onTunStatusChange: { (
-            uniffiHandle: UInt64,
-            status: RustBuffer,
-            uniffiOutReturn: UnsafeMutableRawPointer,
-            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
-        ) in
-            let makeCall = {
-                () throws -> () in
-                guard let uniffiObj = try? FfiConverterTypeTunnelStatusListener.handleMap.get(handle: uniffiHandle) else {
-                    throw UniffiInternalError.unexpectedStaleHandle
-                }
-                return uniffiObj.onTunStatusChange(
-                     status: try FfiConverterTypeTunStatus.lift(status)
-                )
-            }
-
-            
-            let writeReturn = { () }
-            uniffiTraitInterfaceCall(
-                callStatus: uniffiCallStatus,
-                makeCall: makeCall,
-                writeReturn: writeReturn
-            )
-        },
-        onBandwidthStatusChange: { (
-            uniffiHandle: UInt64,
-            status: RustBuffer,
-            uniffiOutReturn: UnsafeMutableRawPointer,
-            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
-        ) in
-            let makeCall = {
-                () throws -> () in
-                guard let uniffiObj = try? FfiConverterTypeTunnelStatusListener.handleMap.get(handle: uniffiHandle) else {
-                    throw UniffiInternalError.unexpectedStaleHandle
-                }
-                return uniffiObj.onBandwidthStatusChange(
-                     status: try FfiConverterTypeBandwidthStatus.lift(status)
-                )
-            }
-
-            
-            let writeReturn = { () }
-            uniffiTraitInterfaceCall(
-                callStatus: uniffiCallStatus,
-                makeCall: makeCall,
-                writeReturn: writeReturn
-            )
-        },
-        onConnectionStatusChange: { (
-            uniffiHandle: UInt64,
-            status: RustBuffer,
-            uniffiOutReturn: UnsafeMutableRawPointer,
-            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
-        ) in
-            let makeCall = {
-                () throws -> () in
-                guard let uniffiObj = try? FfiConverterTypeTunnelStatusListener.handleMap.get(handle: uniffiHandle) else {
-                    throw UniffiInternalError.unexpectedStaleHandle
-                }
-                return uniffiObj.onConnectionStatusChange(
-                     status: try FfiConverterTypeConnectionStatus.lift(status)
-                )
-            }
-
-            
-            let writeReturn = { () }
-            uniffiTraitInterfaceCall(
-                callStatus: uniffiCallStatus,
-                makeCall: makeCall,
-                writeReturn: writeReturn
-            )
-        },
-        onNymVpnStatusChange: { (
-            uniffiHandle: UInt64,
-            status: RustBuffer,
-            uniffiOutReturn: UnsafeMutableRawPointer,
-            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
-        ) in
-            let makeCall = {
-                () throws -> () in
-                guard let uniffiObj = try? FfiConverterTypeTunnelStatusListener.handleMap.get(handle: uniffiHandle) else {
-                    throw UniffiInternalError.unexpectedStaleHandle
-                }
-                return uniffiObj.onNymVpnStatusChange(
-                     status: try FfiConverterTypeNymVpnStatus.lift(status)
-                )
-            }
-
-            
-            let writeReturn = { () }
-            uniffiTraitInterfaceCall(
-                callStatus: uniffiCallStatus,
-                makeCall: makeCall,
-                writeReturn: writeReturn
-            )
-        },
-        onExitStatusChange: { (
-            uniffiHandle: UInt64,
-            status: RustBuffer,
-            uniffiOutReturn: UnsafeMutableRawPointer,
-            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
-        ) in
-            let makeCall = {
-                () throws -> () in
-                guard let uniffiObj = try? FfiConverterTypeTunnelStatusListener.handleMap.get(handle: uniffiHandle) else {
-                    throw UniffiInternalError.unexpectedStaleHandle
-                }
-                return uniffiObj.onExitStatusChange(
-                     status: try FfiConverterTypeExitStatus.lift(status)
                 )
             }
 
@@ -5112,21 +4947,6 @@ private var initializationResult: InitializationResult {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_event() != 60728) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_tun_status_change() != 40558) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_bandwidth_status_change() != 60451) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_connection_status_change() != 30665) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_nym_vpn_status_change() != 62947) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_exit_status_change() != 50420) {
         return InitializationResult.apiChecksumMismatch
     }
 
