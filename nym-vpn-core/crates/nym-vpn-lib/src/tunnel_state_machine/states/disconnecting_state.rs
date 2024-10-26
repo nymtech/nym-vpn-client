@@ -63,15 +63,15 @@ impl DisconnectingState {
 
     async fn on_tunnel_exit(
         result: Result<Option<Vec<AsyncDevice>>, JoinError>,
-        shared_state: &mut SharedState,
+        _shared_state: &mut SharedState,
     ) {
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-        shared_state.route_handler.remove_routes().await;
+        _shared_state.route_handler.remove_routes().await;
 
         match result {
             Ok(Some(tun_devices)) => {
                 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-                if let Err(e) = shared_state.dns_handler.reset_before_interface_removal() {
+                if let Err(e) = _shared_state.dns_handler.reset_before_interface_removal() {
                     tracing::error!("Failed to reset dns before interface removal: {}", e);
                 }
                 tracing::debug!("Closing tunnel {} device(s).", tun_devices.len());
@@ -79,18 +79,18 @@ impl DisconnectingState {
             }
             Ok(None) => {
                 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-                Self::reset_dns(&mut shared_state.dns_handler);
+                Self::reset_dns(&mut _shared_state.dns_handler);
                 tracing::debug!("Tunnel device has already been closed.");
             }
             Err(e) => {
                 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-                Self::reset_dns(&mut shared_state.dns_handler);
+                Self::reset_dns(&mut _shared_state.dns_handler);
                 tracing::error!("Failed to join on tunnel handle: {}", e);
             }
         }
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-        shared_state.route_handler.remove_routes().await;
+        _shared_state.route_handler.remove_routes().await;
         // todo: reset firewall
     }
 
