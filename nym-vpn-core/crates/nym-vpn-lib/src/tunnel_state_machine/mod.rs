@@ -392,7 +392,7 @@ impl TunnelStateMachine {
                 NextTunnelState::NewState((new_state_handler, new_state)) => {
                     self.current_state_handler = new_state_handler;
 
-                    tracing::debug!("New tunnel state: {:?}", new_state);
+                    tracing::debug!("New tunnel state: {}", new_state);
                     let _ = self.event_sender.send(TunnelEvent::NewState(new_state));
                 }
                 NextTunnelState::SameState(same_state) => {
