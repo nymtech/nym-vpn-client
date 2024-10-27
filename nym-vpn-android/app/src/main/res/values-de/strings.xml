@@ -161,4 +161,5 @@
     <string name="connection_failed">Verbindung fehlgeschlagen</string>
     <string name="low_bandwidth">"Niedrige Bandbreite! Verbleibende Bandbreite "</string>
     <string name="credential_already_imported">Zugangsdaten bereits importiert.</string>
+    <string name="log_in">Zum Verbinden Zugangsdaten hinzufügen</string>
 </resources>
