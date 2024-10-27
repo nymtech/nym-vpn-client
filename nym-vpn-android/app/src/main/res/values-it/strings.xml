@@ -140,4 +140,5 @@
     <string name="exception_cred_missing">Nessuna credenziale trovata.</string>
     <string name="exception_permission_not_granted">Il permesso richiesto non è stato concesso.</string>
     <string name="exception_cred_invalid">Le credenziali sono invalide o scadute</string>
+    <string name="log_in">Aggiungi le credenziali per connetterti</string>
 </resources>
