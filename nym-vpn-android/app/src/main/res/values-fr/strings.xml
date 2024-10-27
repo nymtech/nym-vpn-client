@@ -172,4 +172,5 @@
     <string name="selected_entry_unavailable">Le pays d’entrée sélectionné n’est pas disponible. Veuillez sélectionner un autre pays d\'entrée.</string>
     <string name="action_requires_tunnel_down">L\'action nécessite un tunnel down</string>
     <string name="selected_exit_unavailable">Le pays de sortie sélectionné n\'est pas disponible. Veuillez sélectionner un autre pays de sortie.</string>
+    <string name="log_in">Ajoutez un identifiant pour vous connecter</string>
 </resources>
