@@ -5,87 +5,77 @@ use std::{env, path::PathBuf};
 
 use anyhow::Context;
 use nym_vpn_lib::nym_config::defaults::{var_names, NymNetworkDetails};
-use url::Url;
 
-fn network_details_path(network_name: &str) -> PathBuf {
-    crate::service::config_dir()
-        .join(super::NETWORKS_SUBDIR)
-        .join(format!("{}.json", network_name))
-}
-
-// This is the type we fetch remotely from nym-api
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
-pub(super) struct NetworkDetails {
-    pub(super) network: NymNetworkDetails,
+pub(crate) struct NymNetwork {
+    pub(crate) network: NymNetworkDetails,
 }
 
-pub(super) fn fetch_nym_network_details(nym_api_url: Url) -> anyhow::Result<NetworkDetails> {
-    let url = format!("{}/v1/network/details", nym_api_url);
-    tracing::info!("Fetching nym network details from: {}", url);
-    reqwest::blocking::get(&url)
-        .with_context(|| format!("Failed to fetch network details from {}", url))?
-        .json()
-        .with_context(|| "Failed to parse network details")
-}
-
-pub(super) fn check_if_nym_network_details_file_exists(network_name: &str) -> bool {
-    network_details_path(network_name).exists()
-}
-
-fn read_nym_network_details_from_file(
-    network_name: &str,
-) -> anyhow::Result<NymNetworkDetails> {
-    let network_details_path = network_details_path(network_name);
-    tracing::info!(
-        "Reading network details from: {}",
-        network_details_path.display()
-    );
-    let file_str = std::fs::read_to_string(network_details_path)?;
-    let network: NymNetworkDetails = serde_json::from_str(&file_str)?;
-    Ok(network)
-}
-
-pub(super) fn write_nym_network_details_to_file(network: &NymNetworkDetails) -> anyhow::Result<()> {
-    let network_details_path = network_details_path(&network.network_name);
-
-    // Create parent directories if they don't exist
-    if let Some(parent) = network_details_path.parent() {
-        std::fs::create_dir_all(parent).with_context(|| {
-            format!(
-                "Failed to create parent directories for {:?}",
-                network_details_path
-            )
-        })?;
+impl NymNetwork {
+    fn path(network_name: &str) -> PathBuf {
+        crate::service::config_dir()
+            .join(super::NETWORKS_SUBDIR)
+            .join(format!("{}.json", network_name))
     }
 
-    let file = std::fs::OpenOptions::new()
-        .write(true)
-        .create(true)
-        .truncate(true)
-        .open(&network_details_path)
-        .with_context(|| {
-            format!(
-                "Failed to open network details file at {:?}",
-                network_details_path
-            )
-        })?;
+    fn path_is_stale(network_name: &str) -> anyhow::Result<bool> {
+        if let Some(age) = crate::util::get_age_of_file(&Self::path(network_name))? {
+            Ok(age > super::MAX_FILE_AGE)
+        } else {
+            Ok(true)
+        }
+    }
 
-    serde_json::to_writer_pretty(&file, network).with_context(|| {
-        format!(
-            "Failed to write network details file at {:?}",
-            network_details_path
-        )
-    })?;
+    pub(super) fn read_from_file(network_name: &str) -> anyhow::Result<Self> {
+        let path = Self::path(network_name);
+        tracing::info!("Reading network details from: {}", path.display());
+        let file_str = std::fs::read_to_string(path)?;
+        let network: NymNetworkDetails = serde_json::from_str(&file_str)?;
+        Ok(Self { network })
+    }
 
-    Ok(())
+    pub(super) fn write_to_file(&self) -> anyhow::Result<()> {
+        let network = &self.network;
+        let path = Self::path(&network.network_name);
+
+        // Create parent directories if they don't exist
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent)
+                .with_context(|| format!("Failed to create parent directories for {:?}", path))?;
+        }
+
+        let file = std::fs::OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open(&path)
+            .with_context(|| format!("Failed to open network details file at {:?}", path))?;
+
+        serde_json::to_writer_pretty(&file, network)
+            .with_context(|| format!("Failed to write network details file at {:?}", path))?;
+
+        Ok(())
+    }
+
+    pub(super) fn ensure_exists(discovery: &super::bootstrap::Discovery) -> anyhow::Result<Self> {
+        if Self::path_is_stale(&discovery.network_name)? {
+            discovery.fetch_nym_network_details()?.write_to_file()?;
+        }
+        Self::read_from_file(&discovery.network_name)
+    }
+
+    pub(super) fn export_to_env(&self) {
+        export_nym_network_details_to_env(self.network.clone())
+    }
 }
 
-pub(super) fn setup_nym_network_details(network_name: &str) -> anyhow::Result<NymNetworkDetails> {
-    let network = read_nym_network_details_from_file(network_name)?;
-    export_nym_network_details_to_env(network.clone());
-    Ok(network)
+impl From<NymNetworkDetails> for NymNetwork {
+    fn from(network: NymNetworkDetails) -> Self {
+        Self { network }
+    }
 }
 
+// TODO: move this to the NymNetworkDetails struct in the nym repo
 fn export_nym_network_details_to_env(network_details: NymNetworkDetails) {
     fn set_optional_var(var_name: &str, value: Option<String>) {
         if let Some(value) = value {

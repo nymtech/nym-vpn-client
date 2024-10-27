@@ -16,19 +16,21 @@ impl Default for GlobalConfigFile {
     }
 }
 
-pub(crate) fn read_global_config_file() -> anyhow::Result<GlobalConfigFile> {
-    let global_config_file_path =
-        crate::service::config_dir().join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE);
+impl GlobalConfigFile {
+    pub(crate) fn read_from_file() -> anyhow::Result<Self> {
+        let global_config_file_path =
+            crate::service::config_dir().join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE);
 
-    crate::service::create_config_file(&global_config_file_path, &GlobalConfigFile::default())?;
-    crate::service::read_config_file(&global_config_file_path).map_err(Into::into)
-}
+        crate::service::create_config_file(&global_config_file_path, &GlobalConfigFile::default())?;
+        crate::service::read_config_file(&global_config_file_path).map_err(Into::into)
+    }
 
-pub(crate) fn write_global_config_file(
-    global_config: GlobalConfigFile,
-) -> anyhow::Result<GlobalConfigFile> {
-    let global_config_file_path =
-        crate::service::config_dir().join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE);
+    pub(crate) fn write_to_file(&self) -> anyhow::Result<Self> {
+        let global_config = self.clone();
+        let global_config_file_path =
+            crate::service::config_dir().join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE);
 
-    crate::service::write_config_file(&global_config_file_path, global_config).map_err(Into::into)
+        crate::service::write_config_file(&global_config_file_path, global_config)
+            .map_err(Into::into)
+    }
 }

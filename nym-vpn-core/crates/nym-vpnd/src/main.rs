@@ -39,19 +39,21 @@ fn set_global_network_details(network_details: NymNetworkDetails) -> anyhow::Res
 #[cfg(unix)]
 fn run() -> anyhow::Result<()> {
     let args = CliArgs::parse();
-    let global_config_file = discovery::read_global_config_file()?;
+    let global_config_file = discovery::GlobalConfigFile::read_from_file()?;
 
     logging::setup_logging(args.command.run_as_service);
 
-    if let Some(ref env) = args.config_env_file {
+    let _network_env = if let Some(ref env) = args.config_env_file {
         nym_vpn_lib::nym_config::defaults::setup_env(Some(env));
         let network_details = NymNetworkDetails::new_from_env();
-        set_global_network_details(network_details)?;
+        discovery::manual_env(&network_details)?
     } else {
         let network_name = global_config_file.network_name.clone();
         tracing::info!("Setting up environment by discovering the network: {network_name}");
-        discovery::discover_env(&network_name)?;
-    }
+        discovery::discover_env(&network_name)?
+    };
+
+    // TODO: pass network_env explicitly instead of relying on being exported to env
 
     run_inner(args)
 }
@@ -59,19 +61,17 @@ fn run() -> anyhow::Result<()> {
 #[cfg(windows)]
 fn run() -> anyhow::Result<()> {
     let args = CliArgs::parse();
-    let global_config_file = discovery::read_global_config_file()?;
+    let global_config_file = discovery::GlobalConfigFile::read_from_file()?;
 
-    if let Some(ref env) = args.config_env_file {
+    let _network_env = if let Some(ref env) = args.config_env_file {
         nym_vpn_lib::nym_config::defaults::setup_env(Some(env));
         let network_details = NymNetworkDetails::new_from_env();
-        GLOBAL_NETWORK_DETAILS
-            .set(network_details)
-            .map_err(|_| anyhow::anyhow!("Failed to set network details"))?;
+        discovery::manual_env(&network_details)?;
     } else {
         let network_name = global_config_file.network_name.clone();
         tracing::info!("Setting up environment from discovery file: {network_name}");
         discovery::discover_env(&network_name)?;
-    }
+    };
 
     if args.command.is_any() {
         Ok(windows_service::start(args)?)

@@ -7,10 +7,10 @@ use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
 fn refresh_discovery_file(network_name: &str) -> anyhow::Result<()> {
-    if !super::bootstrap::is_time_to_refresh_discovery_file(network_name)? {
+    if !super::bootstrap::Discovery::path_is_stale(network_name)? {
         return Ok(());
     }
-    super::bootstrap::download_discovery_to_file(network_name)?;
+    super::bootstrap::Discovery::fetch(network_name)?.write_to_file()?;
     Ok(())
 }
 
