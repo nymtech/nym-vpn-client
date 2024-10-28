@@ -6,6 +6,8 @@ use std::env;
 use nym_vpn_lib::nym_config::defaults::{var_names, NymNetworkDetails};
 use url::Url;
 
+use super::bootstrap::Discovery;
+
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub(crate) struct NymVpnNetwork {
     pub(super) nym_vpn_api_url: Url,
@@ -17,8 +19,8 @@ impl NymVpnNetwork {
     }
 }
 
-impl From<super::bootstrap::Discovery> for NymVpnNetwork {
-    fn from(discovery: super::bootstrap::Discovery) -> Self {
+impl From<Discovery> for NymVpnNetwork {
+    fn from(discovery: Discovery) -> Self {
         Self {
             nym_vpn_api_url: discovery.nym_vpn_api_url,
         }

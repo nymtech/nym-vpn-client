@@ -7,6 +7,8 @@ use anyhow::Context;
 use nym_vpn_lib::nym_config::defaults::NymNetworkDetails;
 use url::Url;
 
+use super::{nym_network::NymNetwork, MAX_FILE_AGE, NETWORKS_SUBDIR};
+
 // TODO: integrate with nym-vpn-api-client
 
 const DISCOVERY_FILE: &str = "discovery.json";
@@ -22,13 +24,13 @@ pub(super) struct Discovery {
 impl Discovery {
     fn path(network_name: &str) -> PathBuf {
         crate::service::config_dir()
-            .join(super::NETWORKS_SUBDIR)
+            .join(NETWORKS_SUBDIR)
             .join(format!("{}_{}", network_name, DISCOVERY_FILE))
     }
 
     pub(super) fn path_is_stale(network_name: &str) -> anyhow::Result<bool> {
         if let Some(age) = crate::util::get_age_of_file(&Self::path(network_name))? {
-            Ok(age > super::MAX_FILE_AGE)
+            Ok(age > MAX_FILE_AGE)
         } else {
             Ok(true)
         }
@@ -101,9 +103,7 @@ impl Discovery {
         Self::read_from_file(network_name)
     }
 
-    pub(crate) fn fetch_nym_network_details(
-        &self,
-    ) -> anyhow::Result<super::nym_network::NymNetwork> {
+    pub(crate) fn fetch_nym_network_details(&self) -> anyhow::Result<NymNetwork> {
         let url = format!("{}/v1/network/details", self.nym_api_url);
         tracing::info!("Fetching nym network details from: {}", url);
         let network_details: NymNetworkDetailsResponse = reqwest::blocking::get(&url)
@@ -113,7 +113,7 @@ impl Discovery {
         if network_details.network.network_name != self.network_name {
             anyhow::bail!("Network name mismatch between requested and fetched network details")
         }
-        Ok(crate::discovery::nym_network::NymNetwork {
+        Ok(NymNetwork {
             network: network_details.network,
         })
     }

@@ -6,11 +6,13 @@ use std::time::Duration;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
+use super::bootstrap::Discovery;
+
 fn refresh_discovery_file(network_name: &str) -> anyhow::Result<()> {
-    if !super::bootstrap::Discovery::path_is_stale(network_name)? {
+    if !Discovery::path_is_stale(network_name)? {
         return Ok(());
     }
-    super::bootstrap::Discovery::fetch(network_name)?.write_to_file()?;
+    Discovery::fetch(network_name)?.write_to_file()?;
     Ok(())
 }
 

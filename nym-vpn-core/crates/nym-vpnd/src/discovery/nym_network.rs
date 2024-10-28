@@ -6,6 +6,8 @@ use std::{env, path::PathBuf};
 use anyhow::Context;
 use nym_vpn_lib::nym_config::defaults::{var_names, NymNetworkDetails};
 
+use super::{bootstrap::Discovery, MAX_FILE_AGE, NETWORKS_SUBDIR};
+
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub(crate) struct NymNetwork {
     pub(crate) network: NymNetworkDetails,
@@ -14,13 +16,13 @@ pub(crate) struct NymNetwork {
 impl NymNetwork {
     fn path(network_name: &str) -> PathBuf {
         crate::service::config_dir()
-            .join(super::NETWORKS_SUBDIR)
+            .join(NETWORKS_SUBDIR)
             .join(format!("{}.json", network_name))
     }
 
     fn path_is_stale(network_name: &str) -> anyhow::Result<bool> {
         if let Some(age) = crate::util::get_age_of_file(&Self::path(network_name))? {
-            Ok(age > super::MAX_FILE_AGE)
+            Ok(age > MAX_FILE_AGE)
         } else {
             Ok(true)
         }
@@ -57,7 +59,7 @@ impl NymNetwork {
         Ok(())
     }
 
-    pub(super) fn ensure_exists(discovery: &super::bootstrap::Discovery) -> anyhow::Result<Self> {
+    pub(super) fn ensure_exists(discovery: &Discovery) -> anyhow::Result<Self> {
         if Self::path_is_stale(&discovery.network_name)? {
             discovery.fetch_nym_network_details()?.write_to_file()?;
         }
