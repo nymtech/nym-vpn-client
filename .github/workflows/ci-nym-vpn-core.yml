@@ -220,10 +220,16 @@ jobs:
           cargo fmt --check
 
       - name: Build
-        if: matrix.target != 'android' && matrix.target != 'ios'
+        if: matrix.target != 'android' && matrix.target != 'ios' && !contains(matrix.os, 'windows')
         working-directory: nym-vpn-core
         run: |
           cargo build --verbose
+
+      - name: Build (Windows)
+        if: contains(matrix.os, 'windows')
+        working-directory: nym-vpn-core
+        run: |
+          cargo build --verbose --workspace --exclude nym-gateway-probe
 
       - name: Build (Android)
         if: matrix.target == 'android'
