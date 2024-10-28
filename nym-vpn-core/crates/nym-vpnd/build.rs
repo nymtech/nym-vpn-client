@@ -3,7 +3,6 @@
 
 use std::{env, path::PathBuf};
 use vergen::EmitBuilder;
-use std::{env, path::PathBuf};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let manifest_path = env::var_os("CARGO_MANIFEST_DIR").expect("manifest dir is not set");

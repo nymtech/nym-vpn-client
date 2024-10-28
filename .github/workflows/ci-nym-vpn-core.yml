@@ -18,11 +18,11 @@ jobs:
       fail-fast: false
       matrix:
         # os: [arc-ubuntu-22.04, custom-runner-mac-m1, custom-windows-11]
-        os: [arc-ubuntu-22.04, custom-runner-mac-m1]
+        os: [custom-runner-mac-m1] #, arc-ubuntu-22.04]
         target: [native]
         include:
-          - os: arc-ubuntu-22.04
-            target: android
+          # - os: arc-ubuntu-22.04
+          #   target: android
           - os: custom-runner-mac-m1
             target: ios
     runs-on: ${{ matrix.os }}
@@ -44,6 +44,10 @@ jobs:
       - name: Support longpaths on windows
         if: contains(matrix.os, 'windows')
         run: git config --system core.longpaths true
+
+      - name: Install script dependencies 
+        if: contains(matrix.os, 'mac')
+        run: brew install gnu-getopt
 
       - name: Checkout repo
         uses: actions/checkout@v4

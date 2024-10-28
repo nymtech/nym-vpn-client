@@ -123,9 +123,14 @@ impl Probe {
         let outcome = do_ping(shared_mixnet_client.clone(), exit_router_address).await;
 
         let wg_outcome = if let Some(authenticator) = authenticator {
-            wg_probe(authenticator, shared_client, &gateway_host, self.amnezia_args)
-                .await
-                .unwrap_or_default()
+            wg_probe(
+                authenticator,
+                shared_client,
+                &gateway_host,
+                self.amnezia_args,
+            )
+            .await
+            .unwrap_or_default()
         } else {
             WgProbeResults::default()
         };
