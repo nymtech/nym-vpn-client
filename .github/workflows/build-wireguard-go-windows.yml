@@ -52,7 +52,7 @@ jobs:
         uses: msys2/setup-msys2@v2
         with:
           update: true
-          msystem: mingw64
+          msystem: MINGW64
           install: mingw-w64-x86_64-clang
 
       - name: Build wireguard
