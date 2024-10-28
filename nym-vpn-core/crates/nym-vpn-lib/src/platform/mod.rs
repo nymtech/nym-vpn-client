@@ -37,8 +37,8 @@ use crate::{
         TunnelStateMachine, TunnelType,
     },
     uniffi_custom_impls::{
-        BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, GatewayMinPerformance,
-        GatewayType, Location, TunStatus, UserAgent,
+        AccountStateSummary, BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint,
+        GatewayMinPerformance, GatewayType, Location, TunStatus, UserAgent,
     },
 };
 
@@ -233,16 +233,16 @@ async fn remove_account_mnemonic(path: &str) -> Result<bool, VpnError> {
 }
 
 #[allow(non_snake_case)]
-pub fn getAccountSummary() -> Result<String, VpnError> {
+pub fn getAccountSummary() -> Result<AccountStateSummary, VpnError> {
     RUNTIME.block_on(get_account_summary())
 }
 
-async fn get_account_summary() -> Result<String, VpnError> {
+async fn get_account_summary() -> Result<AccountStateSummary, VpnError> {
     let guard = ACCOUNT_CONTROLLER_HANDLE.lock().await;
 
     if let Some(guard) = &*guard {
         let shared_account_state = guard.shared_state.lock().await.clone();
-        Ok(shared_account_state.to_string())
+        Ok(AccountStateSummary::from(shared_account_state))
     } else {
         Err(VpnError::InvalidStateError {
             details: "Account controller is not running.".to_owned(),
