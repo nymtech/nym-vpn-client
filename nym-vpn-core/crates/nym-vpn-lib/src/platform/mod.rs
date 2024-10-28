@@ -67,6 +67,10 @@ async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
         }
     };
 
+    // TODO: we do a pre-connect check here. This mirrors the logic in the daemon.
+    // We want to move this check into the state machine so that it happens during the connecting
+    // state instead. This would allow us more flexibility in waiting for the account to be ready
+    // and handle errors in a unified manner.
     match shared_account_state.is_ready_to_connect().await {
         ReadyToConnect::Ready => {}
         not_ready_to_connect => {
@@ -230,7 +234,7 @@ async fn remove_account_mnemonic(path: &str) -> Result<bool, VpnError> {
 
 #[allow(non_snake_case)]
 pub fn getAccountSummary() -> Result<String, VpnError> {
-    RUNTIME.block_on(get_account_summary(path, nym_vpn_api_url, user_agent))
+    RUNTIME.block_on(get_account_summary())
 }
 
 async fn get_account_summary() -> Result<String, VpnError> {
