@@ -1,78 +1,73 @@
 package net.nymtech.vpn.util
-
+import net.nymtech.ipcalculator.IpCalculator
 import nym_vpn_lib.Ipv4Route
 import nym_vpn_lib.Ipv6Route
 import nym_vpn_lib.TunnelNetworkSettings
 import timber.log.Timber
-import java.net.InetAddress
 
-fun android.net.VpnService.Builder.addIpv6Routes(config: TunnelNetworkSettings) {
-	with(config.ipv6Settings?.includedRoutes) {
-		if (isNullOrEmpty()) {
-			Timber.d("No Ipv6 routes provided, using defaults to prevent leaks")
-			addRoute("::", 0)
-		} else {
-			forEach {
-				when (it) {
-					is Ipv6Route.Specific -> {
-						// don't add existing addresses to routes
-						val routeAddress = "${it.destination}/${it.prefixLength}"
-						if (config.ipv6Settings?.addresses?.any { address -> address == routeAddress } == true) {
-							Timber.d("Skipping previously added address from routing: $routeAddress")
-							return@forEach
-						}
-						Timber.d("Including ipv6 routes: $routeAddress")
-						// need to use IpPrefix, strange bug with just string/int
-						addRoute(InetAddress.getByName(it.destination), it.prefixLength.toInt())
+fun android.net.VpnService.Builder.addRoutes(config: TunnelNetworkSettings, calculator: IpCalculator) {
+	val includedRoutes = mutableListOf<String>()
+	val excludedRoutes = mutableListOf<String>()
+	with(config.ipv4Settings) {
+		this?.includedRoutes?.forEach {
+			when (it) {
+				is Ipv4Route.Specific -> {
+					val length = NetworkUtils.calculateIpv4SubnetMaskLength(it.subnetMask)
+					val routeAddress = "${it.destination}/$length"
+					// don't add existing addresses to routes
+					if (config.ipv4Settings?.addresses?.any { address -> address == routeAddress } == true) {
+						Timber.d("Skipping previously added address from routing: $routeAddress")
+						return@forEach
 					}
-					Ipv6Route.Default -> Unit
+					Timber.d("Adding specific allowed $routeAddress")
+					includedRoutes.add(routeAddress)
 				}
+
+				Ipv4Route.Default -> Unit
+			}
+		}
+		this?.excludedRoutes?.forEach {
+			when (it) {
+				is Ipv4Route.Specific -> {
+					Timber.d("Excluding route: ${it.destination}")
+					excludedRoutes.add(it.destination)
+				}
+				Ipv4Route.Default -> Unit
 			}
 		}
 	}
-}
-
-fun android.net.VpnService.Builder.addIpv4Routes(config: TunnelNetworkSettings) {
-	with(config.ipv4Settings) {
-		val includedRoutes = mutableListOf<String>()
-		if (!this?.includedRoutes.isNullOrEmpty()) {
-			this?.includedRoutes?.forEach {
-				when (it) {
-					is Ipv4Route.Specific -> {
-						val length = NetworkUtils.calculateIpv4SubnetMaskLength(it.subnetMask)
-						val routeAddress = "${it.destination}/$length"
-						if (config.ipv4Settings?.addresses?.any { address -> address == routeAddress } == true) {
-							Timber.d("Skipping previously added address from routing: $routeAddress")
-							return@forEach
-						}
-						Timber.d("Adding specific allowed $routeAddress")
-						includedRoutes.add(routeAddress)
+	with(config.ipv6Settings) {
+		this?.includedRoutes?.forEach {
+			when (it) {
+				is Ipv6Route.Specific -> {
+					// don't add existing addresses to routes
+					val routeAddress = "${it.destination}/${it.prefixLength}"
+					if (config.ipv6Settings?.addresses?.any { address -> address == routeAddress } == true) {
+						Timber.d("Skipping previously added address from routing: $routeAddress")
+						return@forEach
 					}
-
-					Ipv4Route.Default -> Unit
+					// need to use IpPrefix, strange bug with just string/int
+					includedRoutes.add(routeAddress)
 				}
-			}
-		} else {
-			includedRoutes.add("0.0.0.0/0")
-		}
-		Timber.d("Included routes: $includedRoutes")
-		val excludedRoutes = mutableListOf<String>()
-		if (!this?.excludedRoutes.isNullOrEmpty()) {
-			this?.excludedRoutes?.forEach {
-				when (it) {
-					is Ipv4Route.Specific -> {
-						excludedRoutes.add(it.destination)
-					}
-					Ipv4Route.Default -> Unit
-				}
+				Ipv6Route.Default -> Unit
 			}
 		}
-		Timber.d("Excluded routes: $excludedRoutes")
-		val allowedIps = AllowedIpsCalculator.calculateAllowedIps(includedRoutes, excludedRoutes)
-		allowedIps.forEach {
-			Timber.d("Adding allowed ip: $it")
-			val address = it.split("/")
-			addRoute(InetAddress.getByName(address[0]), address[1].toInt())
+		this?.excludedRoutes?.forEach {
+			when (it) {
+				is Ipv6Route.Specific -> {
+					excludedRoutes.add(it.destination)
+				}
+				Ipv6Route.Default -> Unit
+			}
 		}
+	}
+	Timber.d("Included routes: $includedRoutes")
+	Timber.d("Excluded routes: $excludedRoutes")
+	// Add all ipv6 to included to block ipv6 leaks
+	if (!includedRoutes.contains(IpCalculator.ALL_IPV6_ADDRESS)) includedRoutes.add(IpCalculator.ALL_IPV6_ADDRESS)
+	val allowedIps = calculator.calculateAllowedIps(includedRoutes, excludedRoutes)
+	allowedIps.forEach {
+		Timber.d("Adding allowed route: ${it.first}/${it.second}")
+		addRoute(it.first, it.second)
 	}
 }

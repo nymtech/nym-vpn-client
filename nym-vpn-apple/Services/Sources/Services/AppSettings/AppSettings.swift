@@ -1,12 +1,18 @@
 import SwiftUI
 import Constants
+import CountriesManagerTypes
 
 public final class AppSettings: ObservableObject {
     public static let shared = AppSettings()
 
     #if os(iOS)
     @AppStorage(AppSettingKey.currentAppearance.rawValue)
-    public var currentAppearance: AppSetting.Appearance = .automatic
+    public var currentAppearance: AppSetting.Appearance = .automatic {
+        didSet {
+            guard let keyWindow = AppSettings.keyWindow else { return }
+            keyWindow.rootViewController?.overrideUserInterfaceStyle = currentAppearance.userInterfaceStyle
+        }
+    }
     #else
     @AppStorage(AppSettingKey.currentAppearance.rawValue)
     public var currentAppearance: AppSetting.Appearance = .light
@@ -27,10 +33,6 @@ public final class AppSettings: ObservableObject {
     }
     @AppStorage(AppSettingKey.credenitalExists.rawValue)
     public var isCredentialImported = false
-    @AppStorage(AppSettingKey.credentialExpiryDate.rawValue)
-    public var credentialExpiryDate: Date?
-    @AppStorage(AppSettingKey.credentialStartDate.rawValue)
-    public var credentialStartDate: Date?
     @AppStorage(AppSettingKey.smallScreen.rawValue)
     public var isSmallScreen = false
     @AppStorage(AppSettingKey.welcomeScreenDidDisplay.rawValue)
@@ -43,39 +45,40 @@ public final class AppSettings: ObservableObject {
     public var connectionType: Int?
     @AppStorage(AppSettingKey.lastConnectionIntent.rawValue)
     public var lastConnectionIntent: String?
+    @AppStorage(AppSettingKey.countryStore.rawValue)
+    public var countryStore: String?
 
     @AppStorage(
         AppSettingKey.currentEnv.rawValue,
         store: UserDefaults(suiteName: Constants.groupID.rawValue)
     )
-    public var currentEnv: String = "mainnet" {
-        didSet {
-            envSelectorPublisher = currentEnv
-        }
-    }
-    @Published public var envSelectorPublisher = ""
+    public var currentEnv: String = "mainnet"
 
     // Observed values for view models
     @Published public var isEntryLocationSelectionOnPublisher = false
     @Published public var isErrorReportingOnPublisher = false
+}
 
-    // Computed properties
-    public var isMacOS: Bool {
-#if os(macOS)
-        return true
-#else
-        return false
-#endif
+#if os(iOS)
+private extension AppSettings {
+    static var keyWindow: UIWindow? {
+        guard let window = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .flatMap({ $0.windows })
+            .first(where: { $0.isKeyWindow })
+        else {
+            return nil
+        }
+        return window
     }
 }
+#endif
 
 enum AppSettingKey: String {
     case currentAppearance
     case entryLocation
     case errorReporting
     case credenitalExists
-    case credentialExpiryDate
-    case credentialStartDate
     case smallScreen
     case welcomeScreenDidDisplay
     case entryCountry
@@ -83,4 +86,5 @@ enum AppSettingKey: String {
     case connectionType
     case lastConnectionIntent
     case currentEnv
+    case countryStore
 }

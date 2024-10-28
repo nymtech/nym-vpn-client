@@ -1,7 +1,13 @@
 import { mockIPC, mockWindows } from '@tauri-apps/api/mocks';
 import { InvokeArgs } from '@tauri-apps/api/core';
 import { emit } from '@tauri-apps/api/event';
-import { Cli, ConnectionState, DbKey } from '../types';
+import {
+  Cli,
+  ConnectionState,
+  DaemonInfo,
+  DaemonStatus,
+  DbKey,
+} from '../types';
 import { ConnectionEvent } from '../constants';
 import { Country } from '../types';
 
@@ -10,10 +16,23 @@ type MockIpcFn = (cmd: string, payload?: InvokeArgs) => Promise<any>;
 
 export function mockTauriIPC() {
   mockWindows('main');
+  window.__TAURI_OS_PLUGIN_INTERNALS__ = {
+    // @ts-expect-error mocking os plugin
+    os: {
+      type: () => 'linux',
+    },
+  };
 
   mockIPC((async (cmd, args) => {
     console.log(`IPC call mocked "${cmd}"`);
     console.log(args);
+
+    if (cmd === 'daemon_status') {
+      return new Promise<DaemonStatus>((resolve) => resolve('Ok'));
+    }
+    if (cmd === 'startup_error') {
+      return null;
+    }
 
     if (cmd === 'connect') {
       await emit(ConnectionEvent, { state: 'Connecting' });
@@ -92,6 +111,23 @@ export function mockTauriIPC() {
       return new Promise<Cli>((resolve) =>
         resolve({
           nosplash: false,
+        }),
+      );
+    }
+
+    if (cmd === 'is_account_stored') {
+      return new Promise<boolean>((resolve) => resolve(false));
+    }
+
+    // if (cmd === 'add_account') {
+    //   return new Promise<boolean>((_, reject) => reject(new Error('nope')));
+    // }
+
+    if (cmd === 'daemon_info') {
+      return new Promise<DaemonInfo>((resolve) =>
+        resolve({
+          network: 'mainnet',
+          version: '0.1.0',
         }),
       );
     }

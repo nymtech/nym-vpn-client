@@ -5,8 +5,37 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::path::PathBuf;
 use std::str::FromStr;
+use strum::IntoEnumIterator;
 use tauri::PackageInfo;
 use tracing::{error, info};
+
+#[cfg(all(not(debug_assertions), windows))]
+const CONSOLE_FLAGS: [&str; 8] = [
+    "-h",
+    "--help",
+    "-V",
+    "--version",
+    "-b",
+    "--build-info",
+    "help",
+    "db",
+];
+
+/// In release mode on Windows the app is configured as a GUI app so
+/// Windows won't attach a console window to it. In order to see
+/// output of CLI arguments like `help` or `version` this function
+/// attaches a console to the parent process when needed.
+// see https://github.com/tauri-apps/tauri/issues/8305#issuecomment-1826871949
+#[cfg(all(not(debug_assertions), windows))]
+pub fn attach_console() {
+    if std::env::args().any(|arg| CONSOLE_FLAGS.contains(&arg.as_str())) {
+        {
+            use windows::Win32::System::Console::{AttachConsole, ATTACH_PARENT_PROCESS};
+            let _ = unsafe { AttachConsole(ATTACH_PARENT_PROCESS) };
+            println!();
+        }
+    }
+}
 
 #[derive(Parser, Serialize, Deserialize, Debug, Clone)]
 #[command(author, version, about, long_about = None)]
@@ -14,10 +43,6 @@ pub struct Cli {
     /// Print build information
     #[arg(short, long)]
     pub build_info: bool,
-
-    /// Path to an env file to load a custom network environment
-    #[arg(short = 'n', long)]
-    pub network_env: Option<PathBuf>,
 
     /// Unix socket path of gRPC endpoint in IPC mode
     #[arg(short, long)]
@@ -39,8 +64,9 @@ pub struct Cli {
     #[arg(short, long)]
     pub log_file: bool,
 
-    /// Open a console to see the log stream (Windows only)
+    /// Open a console to see the logs
     #[arg(short, long)]
+    #[cfg(windows)]
     pub console: bool,
 
     /// Disable the splash-screen
@@ -62,6 +88,8 @@ pub enum Commands {
 
 #[derive(Subcommand, Serialize, Deserialize, Debug, Clone)]
 pub enum DbCommands {
+    /// List all keys
+    Keys,
     /// Get a key
     Get {
         #[arg()]
@@ -82,8 +110,19 @@ pub enum DbCommands {
     },
 }
 
-pub fn db_command(db: &Db, command: &DbCommands) -> Result<()> {
+pub fn db_command(command: &DbCommands) -> Result<()> {
+    let db = Db::new().inspect_err(|e| {
+        error!("failed to get db: {e}");
+    })?;
+
     match command {
+        DbCommands::Keys => {
+            info!("cli db keys");
+            for key in Key::iter() {
+                println!("{key}");
+            }
+            Ok(())
+        }
         DbCommands::Get { key: k } => {
             info!("cli db get {k}");
             let key = Key::from_str(k).map_err(|_| anyhow!("invalid key"))?;

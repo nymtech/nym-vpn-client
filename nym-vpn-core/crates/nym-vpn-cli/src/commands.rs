@@ -40,8 +40,8 @@ pub(crate) enum Commands {
     /// Run the client
     Run(RunArgs),
 
-    /// Import credential
-    ImportCredential(ImportCredentialArgs),
+    /// Store the account
+    StoreAccount(StoreAccountArgs),
 }
 
 #[derive(Args)]
@@ -78,12 +78,12 @@ pub(crate) struct RunArgs {
     #[arg(long)]
     pub(crate) disable_routing: bool,
 
-    /// Enable Poisson process rate limiting of outbound traffic.
-    #[arg(long)]
-    pub(crate) enable_poisson_rate: bool,
+    /// Disable the Poisson process rate limiting of outbound traffic.
+    #[arg(long, hide = true)]
+    pub(crate) disable_poisson_rate: bool,
 
     /// Disable constant rate background loop cover traffic.
-    #[arg(long)]
+    #[arg(long, hide = true)]
     pub(crate) disable_background_cover_traffic: bool,
 
     /// Enable credentials mode.
@@ -107,15 +107,15 @@ pub(crate) struct RunArgs {
 #[group(multiple = false)]
 pub(crate) struct CliEntry {
     /// Mixnet public ID of the entry gateway.
-    #[clap(long, alias = "entry-id")]
+    #[arg(long, alias = "entry-id")]
     pub(crate) entry_gateway_id: Option<String>,
 
     /// Auto-select entry gateway by country ISO.
-    #[clap(long, alias = "entry-country")]
+    #[arg(long, alias = "entry-country")]
     pub(crate) entry_gateway_country: Option<String>,
 
     /// Auto-select entry gateway by latency
-    #[clap(long, alias = "entry-fastest")]
+    #[arg(long, alias = "entry-fastest")]
     pub(crate) entry_gateway_low_latency: bool,
 }
 
@@ -123,38 +123,23 @@ pub(crate) struct CliEntry {
 #[group(multiple = false)]
 pub(crate) struct CliExit {
     /// Mixnet recipient address.
-    #[clap(long, alias = "exit-address")]
+    #[arg(long, alias = "exit-address")]
     pub(crate) exit_router_address: Option<String>,
 
     /// Mixnet public ID of the exit gateway.
-    #[clap(long, alias = "exit-id")]
+    #[arg(long, alias = "exit-id")]
     pub(crate) exit_gateway_id: Option<String>,
 
     /// Auto-select exit gateway by country ISO.
-    #[clap(long, alias = "exit-country")]
+    #[arg(long, alias = "exit-country")]
     pub(crate) exit_gateway_country: Option<String>,
 }
 
 #[derive(Args)]
-pub(crate) struct ImportCredentialArgs {
-    #[command(flatten)]
-    pub(crate) credential_type: ImportCredentialType,
-
-    // currently hidden as there exists only a single serialization standard
-    #[arg(long, hide = true)]
-    pub(crate) version: Option<u8>,
-}
-
-#[derive(Args)]
-#[group(required = true, multiple = false)]
-pub(crate) struct ImportCredentialType {
-    /// Credential encoded using base58.
+pub(crate) struct StoreAccountArgs {
+    /// Recovery phrase for the account.
     #[arg(long)]
-    pub(crate) credential_data: Option<String>,
-
-    /// Path to the credential file.
-    #[arg(long, value_parser = check_path)]
-    pub(crate) credential_path: Option<PathBuf>,
+    pub(crate) mnemonic: String,
 }
 
 fn validate_ipv4(ip: &str) -> Result<Ipv4Addr, String> {
@@ -190,20 +175,4 @@ fn check_path(path: &str) -> Result<PathBuf, String> {
         return Err(format!("Path {:?} is not a file", path));
     }
     Ok(path)
-}
-
-// Workaround until clap supports enums for ArgGroups
-pub enum ImportCredentialTypeEnum {
-    Path(PathBuf),
-    Data(String),
-}
-
-impl From<ImportCredentialType> for ImportCredentialTypeEnum {
-    fn from(ict: ImportCredentialType) -> Self {
-        match (ict.credential_data, ict.credential_path) {
-            (Some(data), None) => ImportCredentialTypeEnum::Data(data),
-            (None, Some(path)) => ImportCredentialTypeEnum::Path(path),
-            _ => unreachable!(),
-        }
-    }
 }

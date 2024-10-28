@@ -7,7 +7,7 @@ use tauri::{
 use tracing::{debug, error, instrument, warn};
 use ts_rs::TS;
 
-use crate::db::{Db, Key};
+use crate::MAIN_WINDOW_LABEL;
 
 pub struct AppWindow(pub WebviewWindow);
 
@@ -15,7 +15,10 @@ impl AppWindow {
     #[instrument(skip(app))]
     pub fn new(app: &AppHandle, label: &str) -> Result<Self> {
         Ok(AppWindow(app.get_webview_window(label).ok_or_else(
-            || anyhow!("failed to get window {}", label),
+            || {
+                error!("failed to get window {}", label);
+                anyhow!("failed to get window {}", label)
+            },
         )?))
     }
 
@@ -52,32 +55,25 @@ impl AppWindow {
         Ok(AppWindow(window))
     }
 
-    /// restore any saved window size
+    /// "Wake up" the window, show it, unminimize it and focus it
     #[instrument(skip_all)]
-    pub fn restore_size(&self, db: &Db) -> Result<()> {
-        let size = db.get_typed::<WindowSize>(Key::WindowSize)?;
-        if let Some(s) = size {
-            debug!("restoring window size: {:?}", s);
+    pub fn wake_up(&self) {
+        if !self.is_visible() {
             self.0
-                .set_size(s)
-                .inspect_err(|e| error!("failed to set window size {}", e))
+                .show()
+                .inspect_err(|e| error!("failed to show window: {e}"))
                 .ok();
         }
-        Ok(())
-    }
-
-    /// restore any saved window position
-    #[instrument(skip_all)]
-    pub fn restore_position(&self, db: &Db) -> Result<()> {
-        let position = db.get_typed::<WindowPosition>(Key::WindowPosition)?;
-        if let Some(p) = position {
-            debug!("restoring window position: {:?}", p);
+        if self.is_minimized() {
             self.0
-                .set_position(p)
-                .inspect_err(|e| error!("failed to set window position {}", e))
+                .unminimize()
+                .inspect_err(|e| error!("failed to unminimize window: {e}"))
                 .ok();
         }
-        Ok(())
+        self.0
+            .set_focus()
+            .inspect_err(|e| error!("failed to focus window: {e}"))
+            .ok();
     }
 
     pub fn is_visible(&self) -> bool {
@@ -183,5 +179,14 @@ impl From<&PhysicalPosition<i32>> for WindowPosition {
             x: size.x,
             y: size.y,
         }
+    }
+}
+
+#[instrument(skip_all)]
+pub fn focus_main_window(app: &AppHandle) {
+    if let Ok(win) = AppWindow::new(app, MAIN_WINDOW_LABEL) {
+        win.wake_up();
+    } else {
+        error!("failed to get window {}", MAIN_WINDOW_LABEL);
     }
 }

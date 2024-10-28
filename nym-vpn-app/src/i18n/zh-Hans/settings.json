@@ -36,10 +36,7 @@
     "discord": "加入Discord"
   },
   "display-theme": "显示模式",
-  "add-credential-button": "添加凭证以连接",
-  "credential": {
-    "title": "凭证"
-  },
+  "login-button": "添加凭证以连接",
   "notifications": {
     "title": "桌面通知"
   },

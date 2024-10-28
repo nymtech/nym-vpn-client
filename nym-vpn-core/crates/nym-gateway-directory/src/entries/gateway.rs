@@ -5,7 +5,6 @@ use std::{fmt, net::IpAddr, str::FromStr};
 
 use itertools::Itertools;
 use nym_sdk::mixnet::NodeIdentity;
-use nym_topology::IntoGatewayNode;
 use nym_vpn_api_client::types::Percent;
 use rand::seq::IteratorRandom;
 use tracing::error;
@@ -231,43 +230,52 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
     }
 }
 
-impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
+impl TryFrom<nym_validator_client::models::NymNodeDescription> for Gateway {
     type Error = Error;
 
-    fn try_from(gateway: nym_validator_client::models::DescribedGateway) -> Result<Self> {
-        let identity = NodeIdentity::from_base58_string(gateway.identity()).map_err(|source| {
-            Error::NodeIdentityFormattingError {
-                identity: gateway.identity().to_string(),
-                source,
-            }
-        })?;
-        let location = gateway
-            .self_described
-            .as_ref()
-            .and_then(|d| d.auxiliary_details.location)
+    fn try_from(
+        node_description: nym_validator_client::models::NymNodeDescription,
+    ) -> Result<Self> {
+        let identity = node_description.description.host_information.keys.ed25519;
+        let location = node_description
+            .description
+            .auxiliary_details
+            .location
             .map(|l| Location {
                 two_letter_iso_country_code: l.alpha2.to_string(),
                 ..Default::default()
             });
-        let ipr_address = gateway
-            .self_described
+        let ipr_address = node_description
+            .description
+            .ip_packet_router
             .as_ref()
-            .and_then(|d| d.ip_packet_router.clone())
             .and_then(|ipr| {
                 IpPacketRouterAddress::try_from_base58_string(&ipr.address)
                     .inspect_err(|err| error!("Failed to parse IPR address: {err}"))
                     .ok()
             });
-        let authenticator_address = gateway
-            .self_described
+        let authenticator_address = node_description
+            .description
+            .authenticator
             .as_ref()
-            .and_then(|d| d.authenticator.clone())
             .and_then(|a| {
                 AuthAddress::try_from_base58_string(&a.address)
                     .inspect_err(|err| error!("Failed to parse authenticator address: {err}"))
                     .ok()
             });
-        let gateway = nym_topology::gateway::Node::try_from(gateway).ok();
+        let role = if node_description.description.declared_role.entry {
+            nym_validator_client::nym_nodes::NodeRole::EntryGateway
+        } else if node_description.description.declared_role.exit_ipr
+            || node_description.description.declared_role.exit_nr
+        {
+            nym_validator_client::nym_nodes::NodeRole::ExitGateway
+        } else {
+            nym_validator_client::nym_nodes::NodeRole::Inactive
+        };
+        let gateway = nym_topology::gateway::LegacyNode::try_from(
+            &node_description.to_skimmed_node(role, Default::default()),
+        )
+        .ok();
         let host = gateway.clone().map(|g| g.host);
         let clients_ws_port = gateway.as_ref().map(|g| g.clients_ws_port);
         let clients_wss_port = gateway.and_then(|g| g.clients_wss_port);

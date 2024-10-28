@@ -3,7 +3,7 @@
 
 use tokio::sync::Mutex;
 
-use super::{MnemonicStorage, StoredMnemonic};
+use super::{MnemonicStorage, MnemonicStorageError, StoredMnemonic};
 
 struct InMemoryMnemonicStorage {
     mnemonic: Mutex<Option<StoredMnemonic>>,
@@ -25,6 +25,15 @@ enum InMemoryMnemonicStorageError {
 
     #[error("mnemonic already stored")]
     MnemonicAlreadyStored,
+}
+
+impl MnemonicStorageError for InMemoryMnemonicStorageError {
+    fn is_mnemonic_stored(&self) -> bool {
+        match self {
+            InMemoryMnemonicStorageError::NoMnemonicStored => false,
+            InMemoryMnemonicStorageError::MnemonicAlreadyStored => true,
+        }
+    }
 }
 
 impl MnemonicStorage for InMemoryMnemonicStorage {
@@ -59,6 +68,17 @@ impl MnemonicStorage for InMemoryMnemonicStorage {
             .as_ref()
             .map(|stored| stored.mnemonic.clone())
             .ok_or(InMemoryMnemonicStorageError::NoMnemonicStored)
+    }
+
+    async fn remove_mnemonic(&self) -> Result<(), InMemoryMnemonicStorageError> {
+        let mut handle = self.mnemonic.lock().await;
+
+        if handle.is_some() {
+            *handle = None;
+            Ok(())
+        } else {
+            Err(InMemoryMnemonicStorageError::NoMnemonicStored)
+        }
     }
 }
 

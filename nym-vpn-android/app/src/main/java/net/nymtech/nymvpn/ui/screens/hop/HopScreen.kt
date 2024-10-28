@@ -41,7 +41,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.os.ConfigurationCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavHostController
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
@@ -49,6 +48,7 @@ import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.buttons.SelectionItemButton
 import net.nymtech.nymvpn.ui.common.labels.SelectedLabel
+import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.navigation.NavIcon
 import net.nymtech.nymvpn.ui.common.navigation.NavTitle
@@ -57,6 +57,7 @@ import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getFlagImageVectorByName
+import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
@@ -65,15 +66,10 @@ import nym_vpn_lib.GatewayType
 import java.text.Collator
 
 @Composable
-fun HopScreen(
-	gatewayLocation: GatewayLocation,
-	appViewModel: AppViewModel,
-	navController: NavHostController,
-	appUiState: AppUiState,
-	viewModel: HopViewModel = hiltViewModel(),
-) {
+fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appUiState: AppUiState, viewModel: HopViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val context = LocalContext.current
+	val navController = LocalNavController.current
 
 	val currentLocale = ConfigurationCompat.getLocales(context.resources.configuration)[0]
 	val collator = Collator.getInstance(currentLocale)
@@ -93,7 +89,7 @@ fun HopScreen(
 				},
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
-						appViewModel.navController.popBackStack()
+						navController.popBackStack()
 					}
 				},
 				trailing = {
@@ -286,7 +282,7 @@ fun HopScreen(
 				buttonText = it.name,
 				onClick = {
 					viewModel.onSelected(it, gatewayLocation)
-					navController.navigate(Route.Main())
+					navController.navigateAndForget(Route.Main())
 				},
 				trailing = {
 					if (it.isoCode == selectedCountry.isoCode) {

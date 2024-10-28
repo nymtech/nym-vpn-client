@@ -64,13 +64,10 @@ class NymVpn : Application() {
 		} else {
 			Timber.plant(ReleaseTree())
 		}
-		applicationScope.launch {
-			// need to set env early for cache refresh
+		applicationScope.launch(ioDispatcher) {
 			val env = settingsRepository.getEnvironment()
 			Timber.d("Configuring for env ${env.name}")
 			env.setup()
-		}
-		applicationScope.launch(ioDispatcher) {
 			logCollect.start()
 		}
 		requestTileServiceStateUpdate()

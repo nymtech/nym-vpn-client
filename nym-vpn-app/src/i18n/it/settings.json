@@ -7,9 +7,6 @@
     "matrix": "Unisciti a noi su Matrix",
     "discord": "Unisciti a noi su Discord"
   },
-  "credential": {
-    "title": "Credenziali"
-  },
   "support": {
     "title": "Supporto",
     "faq": "Controlla le FAQ"
@@ -22,7 +19,7 @@
     "policy": "Privacy policy",
     "tos": "Termini di utilizzo"
   },
-  "add-credential-button": "Aggiungi le credenziali per connetterti",
+  "login-button": "Aggiungi le credenziali per connetterti",
   "logs": {
     "title": "Logs"
   },

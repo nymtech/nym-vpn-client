@@ -29,7 +29,6 @@ rand.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 signature.workspace = true
-sqlx.workspace = true
 sysinfo.workspace = true
 tap.workspace = true
 thiserror.workspace = true
@@ -41,34 +40,21 @@ tokio = { workspace = true, features = [
     "sync",
 ] }
 tokio-stream.workspace = true
-tokio-util = { workspace = true, features = ["codec"] }
+tokio-util = { workspace = true, features = ["codec", "rt"] }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 tracing.workspace = true
-tun2 = { workspace = true, features = ["async"] }
+tun = { workspace = true, features = ["async"] }
 uniffi.workspace = true
 url.workspace = true
 
-# Pin down shadowsocks to prevent mullvad dependencies from using newer crates that aren't compatible.
-shadowsocks-service = { version = "=1.14.3" }
-shadowsocks = { version = "=1.14.2" }
-
-talpid-core.workspace = true
-talpid-platform-metadata.workspace = true
-talpid-routing.workspace = true
-talpid-tunnel.workspace = true
-talpid-types.workspace = true
-talpid-wireguard.workspace = true
-
 nym-authenticator-requests.workspace = true
-nym-bandwidth-controller-pre-ecash.workspace = true
 nym-bandwidth-controller.workspace = true
 nym-bin-common.workspace = true
 nym-client-core.workspace = true
 nym-config.workspace = true
-nym-credential-storage-pre-ecash.workspace = true
-nym-credentials-pre-ecash.workspace = true
+nym-credential-storage.workspace = true
+nym-credentials-interface.workspace = true
 nym-crypto.workspace = true
-nym-id-pre-ecash.workspace = true
 nym-ip-packet-requests.workspace = true
 nym-node-requests.workspace = true
 nym-pemstore.workspace = true
@@ -86,6 +72,10 @@ nym-vpn-api-client = { path = "../nym-vpn-api-client" }
 nym-vpn-store = { path = "../nym-vpn-store" }
 nym-wg-gateway-client = { path = "../nym-wg-gateway-client" }
 nym-wg-go = { path = "../nym-wg-go" }
+
+[target.'cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))'.dependencies]
+nym-routing = { path = "../nym-routing" }
+nym-dns = { path = "../nym-dns" }
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.14.1"

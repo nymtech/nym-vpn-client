@@ -1,73 +1,31 @@
-use std::path::PathBuf;
+// Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
 
+use nym_vpn_account_controller::ReadyToConnect;
 use nym_vpn_lib::{
-    credentials::ImportCredentialError as VpnLibImportCredentialError,
-    gateway_directory::Error as DirError, wg_gateway_client::Error as WgGatewayClientError,
-    AuthenticatorClientError, CredentialStorageError, GatewayDirectoryError, NodeIdentity,
-    NymIdError, Recipient,
+    gateway_directory::Error as DirError, tunnel_state_machine, GatewayDirectoryError,
+    NodeIdentity, Recipient,
 };
-use time::OffsetDateTime;
+use tokio::sync::mpsc::error::SendError;
 use tracing::error;
 
-#[derive(Clone, Debug, thiserror::Error)]
-pub enum ImportCredentialError {
-    #[error("vpn is connected")]
-    VpnRunning,
+use super::config::ConfigSetupError;
 
-    #[error("credential already imported")]
-    CredentialAlreadyImported,
+// Failure to initiate the connect
+#[derive(Debug, thiserror::Error)]
+pub enum VpnServiceConnectError {
+    #[error("internal error: {0}")]
+    Internal(String),
 
-    #[error("storage error: {path}: {error}")]
-    StorageError { path: PathBuf, error: String },
-
-    #[error("failed to deserialize credential: {reason}")]
-    DeserializationFailure { reason: String, location: PathBuf },
-
-    #[error("credential expired: {expiration}")]
-    CredentialExpired {
-        expiration: OffsetDateTime,
-        location: PathBuf,
-    },
+    #[error("failed to connect: {0}")]
+    Account(ReadyToConnect),
 }
 
-impl From<VpnLibImportCredentialError> for ImportCredentialError {
-    fn from(err: VpnLibImportCredentialError) -> Self {
-        match err {
-            VpnLibImportCredentialError::CredentialStoreError { path, source } => {
-                ImportCredentialError::StorageError {
-                    path,
-                    error: source.to_string(),
-                }
-            }
-            VpnLibImportCredentialError::FailedToImportRawCredential { location, source } => {
-                match source {
-                    NymIdError::CredentialDeserializationFailure { source } => {
-                        ImportCredentialError::DeserializationFailure {
-                            reason: source.to_string(),
-                            location,
-                        }
-                    }
-                    NymIdError::ExpiredCredentialImport { expiration } => {
-                        ImportCredentialError::CredentialExpired {
-                            expiration,
-                            location,
-                        }
-                    }
-                    NymIdError::StorageError { source } => {
-                        if let Some(CredentialStorageError::ConstraintUnique) =
-                            source.downcast_ref::<CredentialStorageError>()
-                        {
-                            return ImportCredentialError::CredentialAlreadyImported;
-                        }
-                        ImportCredentialError::StorageError {
-                            path: location,
-                            error: source.to_string(),
-                        }
-                    }
-                }
-            }
-        }
-    }
+// Failure to initiate the disconnect
+#[derive(Debug, thiserror::Error)]
+pub enum VpnServiceDisconnectError {
+    #[error("internal error: {0}")]
+    Internal(String),
 }
 
 #[derive(Clone, Debug, thiserror::Error)]
@@ -82,12 +40,8 @@ pub enum ConnectionFailedError {
     #[error("internal error occurred: {0}")]
     InternalError(String),
 
-    #[error("failed to get next usable credential: {reason}")]
-    InvalidCredential {
-        reason: String,
-        location: String,
-        gateway_id: String,
-    },
+    #[error("failed to get next usable credential")]
+    InvalidCredential,
 
     #[error("failed to setup mixnet storage paths: {reason}")]
     FailedToSetupMixnetStoragePaths { reason: String },
@@ -258,250 +212,8 @@ pub enum ConnectionFailedError {
 
 impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
     fn from(err: &nym_vpn_lib::Error) -> Self {
-        match err {
-            nym_vpn_lib::Error::StartMixnetClientTimeout(timeout_sec) => {
-                ConnectionFailedError::StartMixnetTimeout(*timeout_sec)
-            }
-            nym_vpn_lib::Error::FailedToSetupMixnetClient(e) => match e {
-                nym_vpn_lib::MixnetError::FailedToSetupMixnetStoragePaths(source) => {
-                    ConnectionFailedError::FailedToSetupMixnetStoragePaths {
-                        reason: source.to_string(),
-                    }
-                }
-                nym_vpn_lib::MixnetError::FailedToCreateMixnetClientWithDefaultStorage(source) => {
-                    ConnectionFailedError::FailedToCreateMixnetClientWithDefaultStorage {
-                        reason: source.to_string(),
-                    }
-                }
-                nym_vpn_lib::MixnetError::FailedToBuildMixnetClient(source) => {
-                    ConnectionFailedError::FailedToBuildMixnetClient {
-                        reason: source.to_string(),
-                    }
-                }
-                nym_vpn_lib::MixnetError::FailedToConnectToMixnet(source) => {
-                    ConnectionFailedError::FailedToConnectToMixnet {
-                        reason: source.to_string(),
-                    }
-                }
-                nym_vpn_lib::MixnetError::EntryGateway { gateway_id, source } => {
-                    ConnectionFailedError::FailedToConnectToMixnetEntryGateway {
-                        gateway_id: gateway_id.clone(),
-                        reason: source.to_string(),
-                    }
-                }
-                nym_vpn_lib::MixnetError::InvalidCredential {
-                    reason,
-                    path,
-                    gateway_id,
-                } => ConnectionFailedError::InvalidCredential {
-                    reason: reason.to_string(),
-                    location: path.to_string_lossy().to_string(),
-                    gateway_id: gateway_id.clone(),
-                },
-                nym_vpn_lib::MixnetError::FailedToSerializeMessage { source } => {
-                    ConnectionFailedError::InternalError(source.to_string())
-                }
-                nym_vpn_lib::MixnetError::ConnectionMonitorError(_) => {
-                    ConnectionFailedError::MixnetConnectionMonitorError(err.to_string())
-                }
-            },
-            nym_vpn_lib::Error::SetupMixTunnelError(e) => match e {
-                nym_vpn_lib::SetupMixTunnelError::FailedToLookupGatewayIp {
-                    gateway_id,
-                    source,
-                } => ConnectionFailedError::FailedToLookupGatewayIp {
-                    gateway_id: gateway_id.clone(),
-                    reason: source.to_string(),
-                },
-                nym_vpn_lib::SetupMixTunnelError::FailedToConnectToIpPacketRouter(inner) => {
-                    ConnectionFailedError::FailedToConnectToIpPacketRouter {
-                        reason: inner.to_string(),
-                    }
-                }
-                nym_vpn_lib::SetupMixTunnelError::FailedToSetDns(inner) => {
-                    ConnectionFailedError::FailedToSetDns {
-                        reason: inner.to_string(),
-                    }
-                }
-                nym_vpn_lib::SetupMixTunnelError::TunError(inner) => {
-                    ConnectionFailedError::TunError {
-                        reason: inner.to_string(),
-                    }
-                }
-                nym_vpn_lib::SetupMixTunnelError::FailedToAddIpv6Route(inner) => {
-                    ConnectionFailedError::FailedToAddIpv6Route {
-                        reason: inner.to_string(),
-                    }
-                }
-                nym_vpn_lib::SetupMixTunnelError::RoutingError(inner) => {
-                    #[cfg(unix)]
-                    match inner {
-                        talpid_routing::Error::PlatformError(platform_error) => {
-                            ConnectionFailedError::RoutingError {
-                                reason: platform_error.to_string(),
-                            }
-                        },
-                        _ => ConnectionFailedError::RoutingError {
-                            reason: inner.to_string(),
-                        },
-                    }
-                    #[cfg(not(unix))]
-                    ConnectionFailedError::RoutingError {
-                        reason: inner.to_string(),
-                    }
-                }
-                nym_vpn_lib::SetupMixTunnelError::ConnectionMonitorError(_) => {
-                    ConnectionFailedError::MixnetConnectionMonitorError(err.to_string())
-                }
-            },
-            nym_vpn_lib::Error::SetupWgTunnelError(e) => match e {
-                nym_vpn_lib::SetupWgTunnelError::NotEnoughBandwidthToSetupTunnel {
-                    gateway_id,
-                    authenticator_address,
-                } => ConnectionFailedError::OutOfBandwidthWhenSettingUpTunnel {
-                    gateway_id: gateway_id.clone(),
-                    authenticator_address: authenticator_address.clone(),
-                },
-                nym_vpn_lib::SetupWgTunnelError::FailedToBringInterfaceUp {
-                    gateway_id,
-                    public_key,
-                    source,
-                } => ConnectionFailedError::FailedToBringInterfaceUp {
-                    gateway_id: gateway_id.clone(),
-                    public_key: public_key.clone(),
-                    reason: source.to_string(),
-                },
-                nym_vpn_lib::SetupWgTunnelError::FailedToLookupGatewayIp { gateway_id, source } => {
-                    ConnectionFailedError::FailedToLookupGatewayIp {
-                        gateway_id: gateway_id.clone(),
-                        reason: source.to_string(),
-                    }
-                }
-                nym_vpn_lib::SetupWgTunnelError::WgGatewayClientError {
-                    gateway_id,
-                    authenticator_address,
-                    source,
-                } => match source {
-                    WgGatewayClientError::AuthenticatorClientError(auth_err) => match auth_err {
-                        AuthenticatorClientError::TimeoutWaitingForConnectResponse => {
-                            ConnectionFailedError::TimeoutWaitingForConnectResponseFromAuthenticator {
-                                gateway_id: gateway_id.clone(),
-                                authenticator_address: authenticator_address.clone(),
-                                reason: auth_err.to_string(),
-                            }
-                        }
-                        AuthenticatorClientError::SendMixnetMessage(_) => {
-                            ConnectionFailedError::FailedToConnectToAuthenticator {
-                                gateway_id: gateway_id.clone(),
-                                authenticator_address: authenticator_address.clone(),
-                                reason: auth_err.to_string(),
-                            }
-                        }
-                        AuthenticatorClientError::NoMixnetMessagesReceived
-                        | AuthenticatorClientError::UnableToGetMixnetHandle => {
-                            ConnectionFailedError::InternalError(auth_err.to_string())
-                        }
-                        AuthenticatorClientError::ReceivedResponseWithOldVersion { expected, received  }
-                        | AuthenticatorClientError::ReceivedResponseWithNewVersion { expected, received } => {
-                            ConnectionFailedError::AuthenticatorRespondedWithWrongVersion {
-                                expected: *expected,
-                                received: *received,
-                                gateway_id: gateway_id.clone(),
-                                authenticator_address: authenticator_address.clone(),
-                            }
-                        }
-                        AuthenticatorClientError::NoVersionInMessage => {
-                            ConnectionFailedError::MailformedAuthenticatorReply {
-                                gateway_id: gateway_id.clone(),
-                                authenticator_address: authenticator_address.clone(),
-                                reason: "no version in message".to_string(),
-                            }
-                        }
-                    },
-                    WgGatewayClientError::InvalidGatewayAuthResponse => {
-                        ConnectionFailedError::InvalidGatewayAuthResponse {
-                            gateway_id: gateway_id.clone(),
-                            authenticator_address: authenticator_address.clone(),
-                            reason: err.to_string(),
-                        }
-                    }
-                    WgGatewayClientError::VerificationFailed(inner) => {
-                        ConnectionFailedError::AuthenticatorRegistrationDataVerificationFailed {
-                            reason: inner.to_string(),
-                        }
-                    }
-                    WgGatewayClientError::FailedToParseEntryGatewaySocketAddr(inner) => {
-                        ConnectionFailedError::WgEntryGatewaySocketAddrFailedToParse {
-                            reason: inner.to_string(),
-                        }
-                    }
-                },
-                nym_vpn_lib::SetupWgTunnelError::RoutingError(inner) => {
-                    ConnectionFailedError::RoutingError {
-                        reason: inner.to_string(),
-                    }
-                }
-                nym_vpn_lib::SetupWgTunnelError::WireguardConfigError(wg_config_error) => {
-                    match wg_config_error {
-                        talpid_wireguard::config::Error::InvalidTunnelIpError
-                        | talpid_wireguard::config::Error::InvalidPeerIpError
-                        | talpid_wireguard::config::Error::NoPeersSuppliedError => {
-                            ConnectionFailedError::WireguardConfigError {
-                                reason: wg_config_error.to_string(),
-                            }
-                        }
-                    }
-                }
-                nym_vpn_lib::SetupWgTunnelError::AuthenticatorAddressNotFound { gateway_id } => {
-                    ConnectionFailedError::AuthenticatorAddressNotFound {
-                        gateway_id: gateway_id.clone(),
-                    }
-                }
-                nym_vpn_lib::SetupWgTunnelError::AuthenticationNotPossible(inner) => {
-                    ConnectionFailedError::AuthenticationNotPossible {
-                        reason: inner.to_string(),
-                    }
-                }
-                nym_vpn_lib::SetupWgTunnelError::FailedToParseEntryGatewayIpv4(inner) => {
-                    ConnectionFailedError::WgEntryGatewayIpv4FailedToParse {
-                        reason: inner.to_string(),
-                    }
-                }
-            },
-            nym_vpn_lib::Error::GatewayDirectoryError(e) => e.into(),
-            nym_vpn_lib::Error::FailedToInitFirewall(inner) => {
-                ConnectionFailedError::FailedToInitFirewall {
-                    reason: inner.to_string(),
-                }
-            }
-            nym_vpn_lib::Error::FailedToInitDns(inner) => ConnectionFailedError::FailedToInitDns {
-                reason: inner.to_string(),
-            },
-            nym_vpn_lib::Error::FailedToResetFirewallPolicy { reason } => {
-                ConnectionFailedError::FailedToResetFirewallPolicy {
-                    reason: reason.to_string(),
-                }
-            }
-            nym_vpn_lib::Error::DefaultInterfaceError(inner) => {
-                ConnectionFailedError::FailedToFindTheDefaultInterface {
-                    reason: inner.to_string(),
-                }
-            }
-            nym_vpn_lib::Error::RoutingError(inner) => {
-                ConnectionFailedError::RoutingError {
-                    reason: inner.to_string(),
-                }
-            }
-            nym_vpn_lib::Error::FailedToSendWireguardShutdown
-            | nym_vpn_lib::Error::NymVpnExitWithError(_)
-            | nym_vpn_lib::Error::NymVpnExitUnexpectedChannelClose => {
-                ConnectionFailedError::InternalError(err.to_string())
-            }
-            #[cfg(unix)]
-            nym_vpn_lib::Error::TunProvider(inner) => {
-                ConnectionFailedError::TunError { reason: inner.to_string() }
-            }
-        }
+        // TODO: this will be replaced with error reason passed via grpc
+        ConnectionFailedError::InternalError(err.to_string())
     }
 }
 
@@ -600,6 +312,16 @@ pub enum AccountError {
         source: Box<dyn std::error::Error + Send + Sync>,
     },
 
+    #[error("failed to check if account is stored: {source}")]
+    FailedToCheckIfAccountIsStored {
+        source: Box<dyn std::error::Error + Send + Sync>,
+    },
+
+    #[error("failed to remove account: {source}")]
+    FailedToRemoveAccount {
+        source: Box<dyn std::error::Error + Send + Sync>,
+    },
+
     #[error("failed to load account: {source}")]
     FailedToLoadAccount {
         source: Box<dyn std::error::Error + Send + Sync>,
@@ -618,4 +340,52 @@ pub enum AccountError {
     FailedToLoadKeys {
         source: Box<dyn std::error::Error + Send + Sync>,
     },
+
+    #[error("failed to get account summary")]
+    FailedToGetAccountSummary,
+
+    #[error("failed to send command")]
+    SendCommand {
+        source: Box<SendError<nym_vpn_account_controller::AccountCommand>>,
+    },
+
+    #[error("no account stored")]
+    NoAccountStored,
+
+    #[error("failed to reset device keys")]
+    FailedToResetKeys {
+        source: Box<dyn std::error::Error + Send + Sync>,
+    },
 }
+
+#[derive(Debug, thiserror::Error)]
+pub enum SetNetworkError {
+    #[error("failed to read config")]
+    ReadConfig {
+        source: Box<dyn std::error::Error + Send + Sync>,
+    },
+
+    #[error("failed to write config")]
+    WriteConfig {
+        source: Box<dyn std::error::Error + Send + Sync>,
+    },
+
+    #[error("failed to set network: {0}")]
+    NetworkNotFound(String),
+}
+
+#[derive(thiserror::Error, Debug)]
+pub enum Error {
+    // FIXME: this variant should be constructed
+    #[allow(unused)]
+    #[error("account error: {0}")]
+    Account(#[source] AccountError),
+
+    #[error("config setup error: {0}")]
+    ConfigSetup(#[source] ConfigSetupError),
+
+    #[error("state machine error: {0}")]
+    StateMachine(#[source] tunnel_state_machine::Error),
+}
+
+pub type Result<T, E = Error> = std::result::Result<T, E>;

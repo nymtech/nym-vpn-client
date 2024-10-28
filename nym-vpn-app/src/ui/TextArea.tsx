@@ -6,6 +6,7 @@ type TextAreaProps = {
   value: string;
   onChange: (value: string) => void;
   label?: string;
+  placeholder?: string;
   // The number of visible text lines
   rows?: number;
   resize?: 'none' | 'vertical' | 'horizontal' | 'both';
@@ -21,6 +22,7 @@ function TextArea({
   spellCheck,
   resize,
   label,
+  placeholder,
   className,
 }: TextAreaProps) {
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -59,12 +61,12 @@ function TextArea({
           'w-full flex flex-row justify-between items-center py-4 px-4',
           'text-baltic-sea dark:text-mercury-pinkish',
           'placeholder:text-cement-feet placeholder:dark:text-mercury-mist',
-          'break-all',
           ...inputStates,
           resize && getResizeClass(resize),
           label && 'relative',
           className,
         ])}
+        placeholder={placeholder}
         onChange={handleChange}
         rows={rows}
         spellCheck={spellCheck}

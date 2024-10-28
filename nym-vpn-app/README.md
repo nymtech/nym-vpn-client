@@ -59,7 +59,7 @@ before running it.
 
 Download the installer from the [releases](https://github.com/nymtech/nym-vpn-client/releases).\
 Look for the latest release `nym-vpn-app-v*`, download
-`nym-vpn-setup.exe` and launch it.
+`NymVPN-setup.exe` and launch it.
 
 ---
 

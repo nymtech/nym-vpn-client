@@ -3,16 +3,17 @@
 
 mod config;
 mod error;
-mod exit_listener;
-mod start;
-mod status_listener;
 mod vpn_service;
 
-pub(crate) use config::{default_log_dir, DEFAULT_LOG_FILE};
-pub(crate) use error::{AccountError, ConnectionFailedError, ImportCredentialError};
-pub(crate) use start::start_vpn_service;
+pub(crate) use config::{
+    config_dir, create_config_file, log_dir, read_config_file, write_config_file,
+    DEFAULT_GLOBAL_CONFIG_FILE, DEFAULT_LOG_FILE,
+};
+pub(crate) use error::{
+    AccountError, ConnectionFailedError, SetNetworkError, VpnServiceConnectError,
+    VpnServiceDisconnectError,
+};
 pub(crate) use vpn_service::{
-    ConnectArgs, ConnectOptions, ConnectedStateDetails, VpnServiceCommand, VpnServiceConnectResult,
-    VpnServiceDisconnectResult, VpnServiceInfoResult, VpnServiceStateChange,
-    VpnServiceStatusResult,
+    ConnectArgs, ConnectOptions, ConnectedStateDetails, NymVpnService, VpnServiceCommand,
+    VpnServiceInfo, VpnServiceStateChange, VpnServiceStatus,
 };

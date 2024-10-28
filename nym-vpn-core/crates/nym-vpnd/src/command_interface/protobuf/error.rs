@@ -2,59 +2,52 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use maplit::hashmap;
-use nym_vpn_proto::{
-    account_error::AccountErrorType, error::ErrorType, import_error::ImportErrorType,
-    Error as ProtoError, ImportError as ProtoImportError,
-};
+use nym_vpn_account_controller::ReadyToConnect;
+use nym_vpn_proto::{error::ErrorType, Error as ProtoError};
 
-use crate::service::{AccountError, ConnectionFailedError, ImportCredentialError};
+use crate::service::{ConnectionFailedError, SetNetworkError, VpnServiceConnectError};
 
-impl From<ImportCredentialError> for ProtoImportError {
-    fn from(err: ImportCredentialError) -> Self {
+impl From<VpnServiceConnectError> for nym_vpn_proto::ConnectRequestError {
+    fn from(err: VpnServiceConnectError) -> Self {
         match err {
-            ImportCredentialError::VpnRunning => ProtoImportError {
-                kind: ImportErrorType::VpnRunning as i32,
-                message: err.to_string(),
-                details: Default::default(),
-            },
-            ImportCredentialError::CredentialAlreadyImported => ProtoImportError {
-                kind: ImportErrorType::CredentialAlreadyImported as i32,
-                message: err.to_string(),
-                details: Default::default(),
-            },
-            ImportCredentialError::StorageError {
-                ref path,
-                ref error,
-            } => ProtoImportError {
-                kind: ImportErrorType::StorageError as i32,
-                message: err.to_string(),
-                details: hashmap! {
-                    "path".to_string() => path.to_string_lossy().to_string(),
-                    "reason".to_string() => error.to_string()
-                },
-            },
-            ImportCredentialError::DeserializationFailure {
-                ref reason,
-                ref location,
-            } => ProtoImportError {
-                kind: ImportErrorType::DeserializationFailure as i32,
-                message: err.to_string(),
-                details: hashmap! {
-                    "location".to_string() => location.to_string_lossy().to_string(),
-                    "reason".to_string() => reason.clone(),
-                },
-            },
-            ImportCredentialError::CredentialExpired {
-                expiration,
-                ref location,
-            } => ProtoImportError {
-                kind: ImportErrorType::CredentialExpired as i32,
-                message: err.to_string(),
-                details: hashmap! {
-                    "location".to_string() => location.to_string_lossy().to_string(),
-                    "expiration".to_string() => expiration.to_string(),
-                },
-            },
+            VpnServiceConnectError::Internal(ref _account_error) => {
+                nym_vpn_proto::ConnectRequestError {
+                    kind: nym_vpn_proto::connect_request_error::ConnectRequestErrorType::Internal
+                        as i32,
+                    message: err.to_string(),
+                }
+            }
+            VpnServiceConnectError::Account(ref not_ready_to_connect) => {
+                nym_vpn_proto::ConnectRequestError {
+                    kind: into_connect_request_error_type(not_ready_to_connect.clone()) as i32,
+                    message: not_ready_to_connect.to_string(),
+                }
+            }
+        }
+    }
+}
+
+fn into_connect_request_error_type(
+    ready: ReadyToConnect,
+) -> nym_vpn_proto::connect_request_error::ConnectRequestErrorType {
+    match ready {
+        ReadyToConnect::Ready => {
+            nym_vpn_proto::connect_request_error::ConnectRequestErrorType::Internal
+        }
+        ReadyToConnect::NoMnemonicStored => {
+            nym_vpn_proto::connect_request_error::ConnectRequestErrorType::NoAccountStored
+        }
+        ReadyToConnect::AccountNotActive => {
+            nym_vpn_proto::connect_request_error::ConnectRequestErrorType::AccountNotActive
+        }
+        ReadyToConnect::NoActiveSubscription => {
+            nym_vpn_proto::connect_request_error::ConnectRequestErrorType::NoActiveSubscription
+        }
+        ReadyToConnect::DeviceNotRegistered => {
+            nym_vpn_proto::connect_request_error::ConnectRequestErrorType::DeviceNotRegistered
+        }
+        ReadyToConnect::DeviceNotActive => {
+            nym_vpn_proto::connect_request_error::ConnectRequestErrorType::DeviceNotActive
         }
     }
 }
@@ -83,17 +76,10 @@ impl From<ConnectionFailedError> for ProtoError {
                     "reason".to_string() => reason.clone(),
                 },
             },
-            ConnectionFailedError::InvalidCredential {
-                reason,
-                location,
-                gateway_id,
-            } => ProtoError {
+            ConnectionFailedError::InvalidCredential => ProtoError {
                 kind: ErrorType::NoValidCredentials as i32,
-                message: reason,
-                details: hashmap! {
-                    "location".to_string() => location,
-                    "gateway_id".to_string() => gateway_id,
-                },
+                message: err.to_string(),
+                details: Default::default(),
             },
             ConnectionFailedError::FailedToSetupMixnetStoragePaths { ref reason } => ProtoError {
                 kind: ErrorType::MixnetStoragePaths as i32,
@@ -460,49 +446,41 @@ impl From<ConnectionFailedError> for ProtoError {
     }
 }
 
-impl From<AccountError> for nym_vpn_proto::AccountError {
-    fn from(err: AccountError) -> Self {
+#[derive(Debug, thiserror::Error)]
+pub(crate) enum VpnCommandSendError {
+    #[error("failed to send command to VPN service task")]
+    Send,
+
+    #[error("failed to receive response from VPN service task")]
+    Receive,
+}
+
+impl From<VpnCommandSendError> for tonic::Status {
+    fn from(err: VpnCommandSendError) -> Self {
         match err {
-            AccountError::InvalidMnemonic { source } => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::InvalidMnemonic as i32,
+            VpnCommandSendError::Send | VpnCommandSendError::Receive => {
+                tonic::Status::internal(err.to_string())
+            }
+        }
+    }
+}
+
+impl From<SetNetworkError> for nym_vpn_proto::SetNetworkRequestError {
+    fn from(err: SetNetworkError) -> Self {
+        match err {
+            SetNetworkError::NetworkNotFound(ref err) => nym_vpn_proto::SetNetworkRequestError {
+                kind: nym_vpn_proto::set_network_request_error::SetNetworkRequestErrorType::InvalidNetworkName as i32,
                 message: err.to_string(),
-                details: hashmap! {
-                    "reason".to_string() => source.to_string(),
-                },
             },
-            AccountError::FailedToStoreAccount { ref source } => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
+            SetNetworkError::ReadConfig { .. } => nym_vpn_proto::SetNetworkRequestError {
+                kind: nym_vpn_proto::set_network_request_error::SetNetworkRequestErrorType::Internal
+                    as i32,
                 message: err.to_string(),
-                details: hashmap! {
-                    "reason".to_string() => source.to_string(),
-                },
             },
-            AccountError::FailedToLoadAccount { ref source } => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
+            SetNetworkError::WriteConfig { .. } => nym_vpn_proto::SetNetworkRequestError {
+                kind: nym_vpn_proto::set_network_request_error::SetNetworkRequestErrorType::Internal
+                    as i32,
                 message: err.to_string(),
-                details: hashmap! {
-                    "reason".to_string() => source.to_string(),
-                },
-            },
-            AccountError::MissingApiUrl => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
-                message: err.to_string(),
-                details: hashmap! {},
-            },
-            AccountError::InvalidApiUrl => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
-                message: err.to_string(),
-                details: hashmap! {},
-            },
-            AccountError::VpnApiClientError(_) => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
-                message: err.to_string(),
-                details: hashmap! {},
-            },
-            AccountError::FailedToLoadKeys { .. } => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
-                message: err.to_string(),
-                details: hashmap! {},
             },
         }
     }

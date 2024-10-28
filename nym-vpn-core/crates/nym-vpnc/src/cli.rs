@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: GPL-3.0-only
 
-use std::{net::IpAddr, path::PathBuf};
+use std::net::IpAddr;
 
 use anyhow::{anyhow, Result};
 use clap::{Args, Parser, Subcommand};
@@ -24,8 +24,14 @@ pub(crate) enum Command {
     Disconnect,
     Status,
     Info,
-    ImportCredential(ImportCredentialArgs),
+    SetNetwork(SetNetworkArgs),
     StoreAccount(StoreAccountArgs),
+    IsAccountStored,
+    RemoveAccount,
+    GetAccountId,
+    GetAccountState,
+    RefreshAccountState,
+    IsReadyToConnect,
     ListenToStatus,
     ListenToStateChanges,
     ListEntryGateways(ListGatewaysArgs),
@@ -34,6 +40,13 @@ pub(crate) enum Command {
     ListEntryCountries(ListCountriesArgs),
     ListExitCountries(ListCountriesArgs),
     ListVpnCountries(ListCountriesArgs),
+    ResetDeviceIdentity(ResetDeviceIdentityArgs),
+    GetDeviceId,
+    RegisterDevice,
+    RequestZkNym,
+    GetDeviceZkNym,
+    FetchRawAccountSummary,
+    FetchRawDevices,
 }
 
 #[derive(Args)]
@@ -59,12 +72,12 @@ pub(crate) struct ConnectArgs {
     #[arg(long)]
     pub(crate) enable_two_hop: bool,
 
-    /// Enable Poisson process rate limiting of outbound traffic.
-    #[arg(long)]
-    pub(crate) enable_poisson_rate: bool,
+    /// Disable Poisson process rate limiting of outbound traffic.
+    #[arg(long, hide = true)]
+    pub(crate) disable_poisson_rate: bool,
 
     /// Disable constant rate background loop cover traffic.
-    #[arg(long)]
+    #[arg(long, hide = true)]
     pub(crate) disable_background_cover_traffic: bool,
 
     /// Enable credentials mode.
@@ -128,41 +141,9 @@ pub(crate) struct CliExit {
 }
 
 #[derive(Args)]
-pub(crate) struct ImportCredentialArgs {
-    #[command(flatten)]
-    pub(crate) credential_type: ImportCredentialType,
-
-    // currently hidden as there exists only a single serialization standard
-    #[arg(long, hide = true)]
-    pub(crate) version: Option<u8>,
-}
-
-#[derive(Args, Clone)]
-#[group(required = true, multiple = false)]
-pub(crate) struct ImportCredentialType {
-    /// Credential encoded using base58.
-    #[arg(long)]
-    pub(crate) credential_data: Option<String>,
-
-    /// Path to the credential file.
-    #[arg(long)]
-    pub(crate) credential_path: Option<PathBuf>,
-}
-
-// Workaround until clap supports enums for ArgGroups
-pub(crate) enum ImportCredentialTypeEnum {
-    Path(PathBuf),
-    Data(String),
-}
-
-impl From<ImportCredentialType> for ImportCredentialTypeEnum {
-    fn from(ict: ImportCredentialType) -> Self {
-        match (ict.credential_data, ict.credential_path) {
-            (Some(data), None) => ImportCredentialTypeEnum::Data(data),
-            (None, Some(path)) => ImportCredentialTypeEnum::Path(path),
-            _ => unreachable!(),
-        }
-    }
+pub(crate) struct SetNetworkArgs {
+    /// The network to be set.
+    pub(crate) network: String,
 }
 
 #[derive(Args)]
@@ -170,6 +151,12 @@ pub(crate) struct StoreAccountArgs {
     /// The account mnemonic to be stored.
     #[arg(long)]
     pub(crate) mnemonic: String,
+}
+
+#[derive(Args)]
+pub(crate) struct ApplyFreepassArgs {
+    /// The freepass code to be applied.
+    pub(crate) code: String,
 }
 
 #[derive(Args)]
@@ -200,6 +187,13 @@ pub(crate) struct ListCountriesArgs {
     /// consider a gateway for routing traffic.
     #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
     pub(crate) min_vpn_performance: Option<u8>,
+}
+
+#[derive(Args)]
+pub(crate) struct ResetDeviceIdentityArgs {
+    /// Reset the device identity using the given seed.
+    #[arg(long)]
+    pub(crate) seed: Option<String>,
 }
 
 pub(crate) fn parse_entry_point(args: &ConnectArgs) -> Result<Option<EntryPoint>> {

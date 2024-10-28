@@ -174,10 +174,6 @@ fun AnalyticsScreen(appViewModel: AppViewModel, navController: NavController, ap
 							ScaledSwitch(
 								appUiState.settings.errorReportingEnabled,
 								onClick = { appViewModel.onErrorReportingSelected() },
-								modifier =
-								Modifier
-									.height(32.dp.scaledHeight())
-									.width(52.dp.scaledWidth()),
 							)
 						},
 					),

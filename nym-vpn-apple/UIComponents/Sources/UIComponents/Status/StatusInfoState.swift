@@ -7,6 +7,7 @@ public enum StatusInfoState: Equatable {
     case connectionTime
     case error(message: String)
     case unknown
+    case installingDaemon
 
     public init(tunnelStatus: TunnelStatus) {
         switch tunnelStatus {
@@ -32,6 +33,8 @@ public enum StatusInfoState: Equatable {
         case .unknown:
             // Empty string hides the view. To not mess up UX spacing - need 'space' to still show it.
             " "
+        case .installingDaemon:
+            "home.installDaemon".localizedString
         }
     }
 

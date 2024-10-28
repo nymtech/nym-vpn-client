@@ -52,6 +52,10 @@ impl KeyStore for VpnClientOnDiskStorage {
     async fn init_keys(&self, seed: Option<[u8; 32]>) -> Result<(), Self::StorageError> {
         self.key_store.init_keys(seed).await
     }
+
+    async fn reset_keys(&self, seed: Option<[u8; 32]>) -> Result<(), Self::StorageError> {
+        self.key_store.reset_keys(seed).await
+    }
 }
 
 impl MnemonicStorage for VpnClientOnDiskStorage {
@@ -63,5 +67,9 @@ impl MnemonicStorage for VpnClientOnDiskStorage {
 
     async fn store_mnemonic(&self, mnemonic: Mnemonic) -> Result<(), Self::StorageError> {
         self.mnemonic_storage.store_mnemonic(mnemonic).await
+    }
+
+    async fn remove_mnemonic(&self) -> Result<(), Self::StorageError> {
+        self.mnemonic_storage.remove_mnemonic().await
     }
 }

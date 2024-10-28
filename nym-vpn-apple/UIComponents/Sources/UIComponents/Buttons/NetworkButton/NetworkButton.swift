@@ -18,7 +18,7 @@ public struct NetworkButton: View {
                 VStack(alignment: .leading) {
                     Text(viewModel.title)
                         .foregroundStyle(NymColor.sysOnSurface)
-                        .textStyle(.Body.Large.primary)
+                        .textStyle(.Body.Large.semibold)
                     Text(viewModel.subtitle)
                         .foregroundStyle(NymColor.sysOutline)
                         .textStyle(viewModel.isSmallScreen ? .Body.Small.primary : .Body.Medium.regular)

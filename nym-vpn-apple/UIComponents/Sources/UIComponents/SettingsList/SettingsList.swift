@@ -1,4 +1,5 @@
 import SwiftUI
+import Device
 import Theme
 
 public struct SettingsList: View {
@@ -19,6 +20,9 @@ public struct SettingsList: View {
                 .frame(height: 24)
         }
         appVersionText()
+            .contextMenu {
+                environmentsMenu()
+            }
     }
 }
 
@@ -30,16 +34,13 @@ private extension SettingsList {
                 .foregroundStyle(NymColor.settingsVersion)
                 .textStyle(.Body.Medium.regular)
                 .padding(EdgeInsets(top: 0, leading: 16, bottom: 16, trailing: 0))
-                .contextMenu {
-                    environmentsMenu()
-                }
             Spacer()
         }
     }
 
     @ViewBuilder
     func environmentsMenu() -> some View {
-        if viewModel.isTestFlight {
+        if viewModel.isTestFlight || Device.isMacOS {
             ForEach(viewModel.envs, id: \.self) { env in
                 Button(env.rawValue) {
                     viewModel.changeEnvironment(to: env)

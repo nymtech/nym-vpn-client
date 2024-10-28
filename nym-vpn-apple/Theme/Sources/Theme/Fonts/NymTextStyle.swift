@@ -67,7 +67,7 @@ extension NymTextStyle {
     // MARK: - Body -
     public struct Body {
         public struct Large {
-            public static var primary: NymTextStyle {
+            public static var semibold: NymTextStyle {
                 NymTextStyle(nymFont: .lato(size: 16, weight: .semibold), kerning: 0.5)
             }
 

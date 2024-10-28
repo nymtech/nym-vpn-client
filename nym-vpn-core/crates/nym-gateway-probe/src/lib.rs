@@ -1,5 +1,5 @@
 use std::{
-    net::{Ipv4Addr, Ipv6Addr},
+    net::{IpAddr, Ipv4Addr, Ipv6Addr},
     sync::Arc,
     time::Duration,
 };
@@ -11,8 +11,8 @@ use dns_lookup::lookup_host;
 use futures::StreamExt;
 use netstack::{NetstackCall as _, NetstackCallImpl};
 use nym_authenticator_client::ClientMessage;
-use nym_authenticator_requests::v1::{
-    registration::{GatewayClient, InitMessage, RegistrationData},
+use nym_authenticator_requests::v3::{
+    registration::{FinalMessage, GatewayClient, InitMessage, RegistrationData},
     response::{AuthenticatorResponseData, PendingRegistrationResponse, RegisteredResponse},
 };
 use nym_config::defaults::NymNetworkDetails;
@@ -183,12 +183,15 @@ async fn wg_probe(
                 debug!("Verifying data");
                 gateway_data.verify(&private_key, nonce)?;
 
-                let finalized_message = ClientMessage::Final(GatewayClient::new(
-                    &private_key,
-                    gateway_data.pub_key().inner(),
-                    gateway_data.private_ip,
-                    nonce,
-                ));
+                let finalized_message = ClientMessage::Final(Box::new(FinalMessage {
+                    gateway_client: GatewayClient::new(
+                        &private_key,
+                        gateway_data.pub_key().inner(),
+                        gateway_data.private_ip,
+                        nonce,
+                    ),
+                    credential: None,
+                }));
                 let response = auth_client
                     .send(finalized_message, authenticator_address)
                     .await?;
@@ -225,7 +228,10 @@ async fn wg_probe(
                 .first()
                 .map(|ip| ip.to_string())
                 .unwrap_or_default(),
-            nym_topology::NetworkAddress::IpAddr(ip) => ip.to_string(),
+            nym_topology::NetworkAddress::IpAddr(ip) => match ip {
+                IpAddr::V4(ip) => ip.to_string(),
+                IpAddr::V6(ip) => format!("[{}]", ip),
+            },
         };
 
         let wg_endpoint = format!("{}:{}", gateway_ip, registered_data.wg_port);

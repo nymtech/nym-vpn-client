@@ -18,6 +18,9 @@ pub(crate) struct CliArgs {
     #[arg(short, long, value_parser = check_path)]
     pub(crate) config_env_file: Option<PathBuf>,
 
+    #[arg(short, long, hide = true)]
+    pub(crate) network: Option<String>,
+
     #[arg(long)]
     pub(crate) enable_http_listener: bool,
 

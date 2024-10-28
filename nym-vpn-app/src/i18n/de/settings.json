@@ -3,10 +3,7 @@
     "title": "Logs",
     "desc": "Kopier oder lösch die Logfiles"
   },
-  "add-credential-button": "Zum Verbinden Zugangsdaten hinzufügen",
-  "credential": {
-    "title": "Zugangsdaten"
-  },
+  "login-button": "Zum Verbinden Zugangsdaten hinzufügen",
   "auto-connect": {
     "title": "Automatisch verbinden",
     "desc": "Beim Start der App automatisch verbinden"

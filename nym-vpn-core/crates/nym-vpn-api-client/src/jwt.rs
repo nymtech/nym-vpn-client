@@ -3,7 +3,7 @@
 
 use std::fmt;
 
-use nym_crypto::asymmetric::ed25519::KeyPair;
+use nym_crypto::asymmetric::ed25519;
 use nym_validator_client::{signing::signer::OfflineSigner, DirectSecp256k1HdWallet};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -90,12 +90,12 @@ impl Jwt {
         }
     }
 
-    pub fn new_ecdsa(key_pair: &KeyPair) -> Jwt {
+    pub fn new_ecdsa(key_pair: &ed25519::KeyPair) -> Jwt {
         let timestamp = std::time::UNIX_EPOCH.elapsed().unwrap().as_secs() as u128;
         Jwt::new_ecdsa_with_now(key_pair, timestamp)
     }
 
-    pub fn new_ecdsa_with_now(key_pair: &KeyPair, now: u128) -> Jwt {
+    pub fn new_ecdsa_with_now(key_pair: &ed25519::KeyPair, now: u128) -> Jwt {
         let header = JwtHeader {
             typ: "JWT".to_string(),
             alg: "ECDSA".to_string(),
@@ -136,7 +136,7 @@ impl fmt::Display for Jwt {
 
 #[cfg(test)]
 mod tests {
-    use nym_crypto::asymmetric::ed25519::KeyPair;
+    use nym_crypto::asymmetric::ed25519;
     use nym_validator_client::DirectSecp256k1HdWallet;
 
     use super::*;
@@ -185,7 +185,7 @@ mod tests {
         assert_eq!(jwt_expected_from_js_snapshot, jwt_str); // whole JWT strings
     }
 
-    fn get_ed25519_keypair() -> KeyPair {
+    fn get_ed25519_keypair() -> ed25519::KeyPair {
         // let mnemonic = "kiwi ketchup mix canvas curve ribbon congress method feel frozen act annual aunt comfort side joy mesh palace tennis cannon orange name tortoise piece";
         let private_key_base58 = "9JqXnPvTrWkq1Yq66d8GbXrcz5eryAhPZvZ46cEsBPUY";
         let public_key_base58 = "4SPdxfBYsuARBw6REQQa5vFiKcvmYiet9sSWqb751i3Z";
@@ -193,7 +193,7 @@ mod tests {
         let private_key = bs58::decode(private_key_base58).into_vec().unwrap();
         let public_key = bs58::decode(public_key_base58).into_vec().unwrap();
 
-        KeyPair::from_bytes(&private_key, &public_key).unwrap()
+        ed25519::KeyPair::from_bytes(&private_key, &public_key).unwrap()
     }
 
     #[test]

@@ -23,6 +23,7 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
+import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.navigation.NavIcon
 import net.nymtech.nymvpn.ui.common.navigation.NavTitle
@@ -33,6 +34,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 @Composable
 fun FeedbackScreen(appViewModel: AppViewModel) {
 	val context = LocalContext.current
+	val navController = LocalNavController.current
 
 	LaunchedEffect(Unit) {
 		appViewModel.onNavBarStateChange(
@@ -40,7 +42,7 @@ fun FeedbackScreen(appViewModel: AppViewModel) {
 				title = { NavTitle(stringResource(R.string.feedback)) },
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
-						appViewModel.navController.popBackStack()
+						navController.popBackStack()
 					}
 				},
 			),

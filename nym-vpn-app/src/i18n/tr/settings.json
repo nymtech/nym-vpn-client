@@ -1,6 +1,6 @@
 {
   "display-theme": "Ekran modu",
-  "add-credential-button": "Bağlanmak için anahtar ekleyin",
+  "login-button": "Giriş yapın",
   "auto-connect": {
     "title": "Otomatik bağlan",
     "desc": "Uygulama başlangıcında otomatik bağlan"
@@ -37,9 +37,6 @@
   "monitoring-alert": "Değişikliğin etkili olması için uygulamayı yeniden başlatmalısınız.",
   "faq": "SSS",
   "quit": "NymVPN'yi kapat",
-  "credential": {
-    "title": "Anahtar"
-  },
   "notifications": {
     "title": "Bilgisayar masaüstü bildirimleri"
   },

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+    <id>net.nymtech.NymVPN</id>
+    <name>NymVPN</name>
+    <url type="homepage">https://nymtech.net/</url>
+    <developer id="net.nymtech">
+        <name>PierreD</name>
+        <name>Nym</name>
+    </developer>
+    <summary>Decentralized, mixnet, and zero-knowledge VPN</summary>
+    <metadata_license>MIT</metadata_license>
+    <project_license>GPL-3.0-only</project_license>
+    <description>
+        <p>Desktop application for NymVPN.</p>
+        <p>
+            NymVPN is a decentralized, mixnet and zero-knowledge VPN.
+            Features:
+        </p>
+        <ul>
+            <li>5-hop <em>Anonymous</em> mode (using the Nym Mixnet)</li>
+            <li>2-hop <em>Fast</em> mode (using WireGuard)</li>
+            <li>No centralized logs</li>
+            <li>Hide your public IP</li>
+            <li>Entry and exit hop location</li>
+        </ul>
+        <p>
+            NOTE: This package only provides the <em>client</em> application.
+            For the VPN to work, the daemon aka <code>nym-vpnd</code>,
+            must be installed and running.
+            You can install it from these separate packages:
+        </p>
+        <ul>
+            <li>deb package (requires to setup the Nym deb repository): <code>nym-vpnd</code></li>
+            <li>AUR packages: <code>nym-vpnd</code> and <code>nym-vpnd-bin</code></li>
+        </ul>
+        <p>For more details, please check https://nymvpn.com/en/download/linux</p>
+        <p>
+            Alternatively you can get the binary directly from the GitHub releases:
+        </p>
+        <ol>
+            <li>Go to https://github.com/nymtech/nym-vpn-client/releases</li>
+            <li>Find the latest release with tag <code>nym-vpn-core-v1.2.3</code></li>
+            <li>Download the linux archive <code>nym-vpn-core-v1.2.3_linux_x86_64.tar.gz</code>
+                and extract the binary (make it executable)</li>
+            <li>From a terminal, run <code>sudo nym-vpnd</code></li>
+        </ol>
+        <p>
+            NOTE: The daemon requires root privileges to work.
+        </p>
+    </description>
+    <releases>
+        <release version="0.2.3" date="2024-10-11">
+            <url type="details">
+                https://github.com/nymtech/nym-vpn-client/releases/tag/nym-vpn-app-v0.2.3
+            </url>
+        </release>
+    </releases>
+    <launchable type="desktop-id">net.nymtech.NymVPN.desktop</launchable>
+    <screenshots>
+        <screenshot type="default">
+            <image>
+                https://raw.githubusercontent.com/nymtech/nym-vpn-client/09c9a18/nym-vpn-app/.pkg/screenshots/home-light.png
+            </image>
+            <caption>NymVPN app screenshot, home screen</caption>
+        </screenshot>
+        <screenshot>
+            <image>
+                https://raw.githubusercontent.com/nymtech/nym-vpn-client/09c9a18/nym-vpn-app/.pkg/screenshots/home-connected-light.png
+            </image>
+            <caption>NymVPN app screenshot, home screen connected</caption>
+        </screenshot>
+        <screenshot>
+            <image>
+                https://raw.githubusercontent.com/nymtech/nym-vpn-client/09c9a18/nym-vpn-app/.pkg/screenshots/home-countries-light.png
+            </image>
+            <caption>NymVPN app screenshot, countries selection screen</caption>
+        </screenshot>
+        <screenshot>
+            <image>
+                https://raw.githubusercontent.com/nymtech/nym-vpn-client/09c9a18/nym-vpn-app/.pkg/screenshots/home-dark.png
+            </image>
+            <caption>NymVPN app screenshot, home screen (Dark mode)</caption>
+        </screenshot>
+        <screenshot>
+            <image>
+                https://raw.githubusercontent.com/nymtech/nym-vpn-client/09c9a18/nym-vpn-app/.pkg/screenshots/home-connected-dark.png
+            </image>
+            <caption>NymVPN app screenshot, home screen connected (Dark mode)
+            </caption>
+        </screenshot>
+    </screenshots>
+    <content_rating type="oars-1.1"/>
+</component>

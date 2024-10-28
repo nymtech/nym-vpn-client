@@ -6,7 +6,9 @@ public struct AppearanceUpdate: ViewModifier {
 
     public func body(content: Content) -> some View {
         content
+#if os(macOS)
             .preferredColorScheme(appSettings.currentAppearance.colorScheme)
+#endif
     }
 }
 

@@ -55,12 +55,15 @@ function is_amnezia_build {
     return 1
 }
 
-function win_deduce_lib_executable_path {
-    msbuild_path="$(which msbuild.exe)"
-    msbuild_dir=$(dirname "$msbuild_path")
-    find "$msbuild_dir/../../../../" -name "lib.exe" | \
-        grep -i "hostx64/x64" | \
-        head -n1
+function is_win_arm64 {
+    for arg in "$@"
+    do
+        case "$arg" in
+            "--arm64")
+                return 0
+        esac
+    done
+    return 1
 }
 
 function win_gather_export_symbols {
@@ -75,22 +78,42 @@ function win_create_lib_file {
         printf "\t%s\n" "$symbol" >> exports.def
     done
 
-    lib_path="$(win_deduce_lib_executable_path)"
+    if is_win_arm64 $@; then
+        local arch="ARM64"
+    else
+        local arch="X64"
+    fi
 
-    "$lib_path" \
+    echo "Creating lib for $arch"
+
+    lib.exe \
         "/def:exports.def" \
         "/out:libwg.lib" \
-        "/machine:X64"
+        "/machine:$arch"
 }
 
 function build_windows {
-    echo "Building wireguard-go for Windows"
-    pushd $LIB_DIR
-        export CGO_ENABLED=1
-        go build -trimpath -v -o libwg.dll -buildmode c-shared
-        win_create_lib_file
+    export CGO_ENABLED=1
+    export GOOS=windows
 
-        target_dir=../../build/lib/x86_64-pc-windows-msvc/
+    if is_win_arm64 $@; then
+        local arch="aarch64"
+        export GOARCH=arm64
+        export CC="/clangarm64/bin/aarch64-w64-mingw32-cc"
+    else
+        local arch="x86_64"
+        export GOARCH=amd64
+        export CC="/mingw64/bin/x86_64-w64-mingw32-cc"
+    fi
+    
+    echo "Building wireguard-go for Windows ($arch)"
+
+    pushd $LIB_DIR
+        go build -trimpath -v -o libwg.dll -buildmode c-shared
+        win_create_lib_file $@
+
+        local target_dir="../../build/lib/$arch-pc-windows-msvc/"
+        echo "Copying files to $(realpath "$target_dir")"
         mkdir -p $target_dir
         mv libwg.dll libwg.lib $target_dir
     popd
@@ -260,7 +283,7 @@ function build_wireguard_go {
     case  "$platform" in
         Darwin*) build_macos_universal;;
         Linux*) build_unix ${1:-$(unix_target_triple)};;
-        MINGW*|MSYS_NT*) build_windows;;
+        MINGW*|MSYS_NT*) build_windows $@;;
     esac
 }
 

@@ -3,24 +3,18 @@
 
 uniffi::setup_scaffolding!();
 
-pub mod credentials;
 pub mod storage;
 pub mod util;
 
 mod bandwidth_controller;
 mod error;
-mod event;
 mod mixnet;
-#[cfg(any(target_os = "ios", target_os = "android"))]
-mod mobile;
 mod platform;
-mod routing;
-mod tunnel;
-mod tunnel_setup;
+#[cfg(any(target_os = "ios", target_os = "android"))]
+pub mod tunnel_provider;
+pub mod tunnel_state_machine;
 mod uniffi_custom_impls;
-mod vpn;
-mod wireguard_config;
-mod wireguard_setup;
+mod wg_config;
 
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
@@ -28,9 +22,7 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 pub use nym_authenticator_client::Error as AuthenticatorClientError;
 pub use nym_config;
 pub use nym_connection_monitor as connection_monitor;
-pub use nym_credential_storage_pre_ecash::error::StorageError as CredentialStorageError;
 pub use nym_gateway_directory as gateway_directory;
-pub use nym_id_pre_ecash::error::NymIdError;
 pub use nym_ip_packet_requests::IpPair;
 pub use nym_sdk::{
     mixnet::{NodeIdentity, Recipient, StoragePaths},
@@ -45,14 +37,8 @@ pub use nym_wg_gateway_client as wg_gateway_client;
 #[cfg(any(target_os = "ios", target_os = "macos"))]
 pub use crate::platform::swift;
 pub use crate::{
-    error::{Error, GatewayDirectoryError, SetupMixTunnelError, SetupWgTunnelError},
-    event::WgTunnelErrorEvent,
+    error::{Error, GatewayDirectoryError},
     mixnet::MixnetError,
-    vpn::{
-        spawn_nym_vpn, spawn_nym_vpn_with_new_runtime, GenericNymVpnConfig, MixnetClientConfig,
-        NymVpn, NymVpnCtrlMessage, NymVpnExitStatusMessage, NymVpnHandle, NymVpnStatusMessage,
-        SpecificVpn,
-    },
 };
 
 pub const DEFAULT_DNS_SERVERS: [IpAddr; 4] = [
@@ -61,3 +47,31 @@ pub const DEFAULT_DNS_SERVERS: [IpAddr; 4] = [
     IpAddr::V6(Ipv6Addr::new(0x2606, 0x4700, 0x4700, 0, 0, 0, 0, 0x1111)),
     IpAddr::V6(Ipv6Addr::new(0x2606, 0x4700, 0x4700, 0, 0, 0, 0, 0x1001)),
 ];
+
+#[derive(Clone, Default, Debug, Eq, PartialEq)]
+pub struct MixnetClientConfig {
+    /// Disable Poission process rate limiting of outbound traffic.
+    pub disable_poisson_rate: bool,
+
+    /// Disable constant rate background loop cover traffic
+    pub disable_background_cover_traffic: bool,
+
+    /// The minimum performance of mixnodes to use.
+    pub min_mixnode_performance: Option<u8>,
+
+    /// The minimum performance of gateways to use.
+    pub min_gateway_performance: Option<u8>,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct MixnetConnectionInfo {
+    pub nym_address: Recipient,
+    pub entry_gateway: NodeIdentity,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct MixnetExitConnectionInfo {
+    pub exit_gateway: NodeIdentity,
+    pub exit_ipr: Recipient,
+    pub ips: IpPair,
+}

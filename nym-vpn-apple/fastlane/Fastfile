@@ -45,4 +45,24 @@ platform :mac do
 
     project.save()
   end
+  
+  desc "Bump build"
+  lane :bump_build do
+    project_path = '../NymVPN.xcodeproj'
+    project = Xcodeproj::Project.open(project_path)
+
+    allowTargets = ["NymVPN", "NymMixnetTunnel", "NymVPNDaemon"]
+    
+    project.targets.each do |projectTarget|
+      if allowTargets.include?(projectTarget.name)
+        projectTarget.build_configurations.each do |configuration|
+          # Increment CURRENT_PROJECT_VERSION
+          newBundleVersion = (configuration.build_settings["CURRENT_PROJECT_VERSION"].to_i + 1).to_s
+          configuration.build_settings["CURRENT_PROJECT_VERSION"] = newBundleVersion
+        end
+      end
+    end
+
+    project.save()
+  end
 end

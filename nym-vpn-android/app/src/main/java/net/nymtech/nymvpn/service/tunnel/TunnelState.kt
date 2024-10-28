@@ -8,4 +8,5 @@ data class TunnelState(
 	val state: Tunnel.State = Tunnel.State.Down,
 	val statistics: Statistics = Statistics(),
 	val backendMessage: BackendMessage = BackendMessage.None,
+	val isMnemonicStored: Boolean = false,
 )

@@ -8,6 +8,7 @@ pub(crate) const SUMMARY: &str = "summary";
 pub(crate) const DEVICE: &str = "device";
 pub(crate) const ACTIVE: &str = "active";
 pub(crate) const ZKNYM: &str = "zknym";
+pub(crate) const FREEPASS: &str = "freepass";
 pub(crate) const SUBSCRIPTION: &str = "subscription";
 pub(crate) const DIRECTORY: &str = "directory";
 pub(crate) const GATEWAYS: &str = "gateways";

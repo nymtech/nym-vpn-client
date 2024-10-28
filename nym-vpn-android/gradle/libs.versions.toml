@@ -1,11 +1,12 @@
 [versions]
 accompanist = "0.36.0"
-agp = "8.7.0"
+agp = "8.7.1"
 coreSplashscreen = "1.0.1"
 detektRulesCompose = "1.4.0"
+ipaddress = "5.5.1"
 jna = "5.15.0"
-kotlin = "2.0.20"
-ksp = "2.0.20-1.0.25"
+kotlin = "2.0.21"
+ksp = "2.0.21-1.0.25"
 coreKtx = "1.13.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -19,7 +20,7 @@ composeBom = "2024.09.03"
 datastorePreferences = "1.1.1"
 relinker = "1.4.5"
 securityCrypto = "1.1.0-alpha06"
-sentryOpentelemetryCoreVersion = "7.14.0"
+sentryOpentelemetryCoreVersion = "7.15.0"
 timber = "5.0.1"
 hiltAndroid = "2.52"
 kotlinx-serialization-json = "1.7.3"
@@ -34,15 +35,13 @@ moshiKotlinCodegen = "1.15.1"
 converterMoshi = "2.11.0"
 zxingAndroidEmbedded = "4.3.0"
 
-gradlePlugins-kotlinxSerialization = "2.0.20"
 gradlePlugins-licensee = "1.11.0"
 gradlePlugins-detekt = "1.23.7"
 gradlePlugins-gross = "0.4.2"
 gradlePlugins-sentry = "4.11.0"
-appcompat = "1.7.0"
 material = "1.12.0"
 gradlePlugins-ktlint="12.1.1"
-gradlePlugins-grgit="5.2.2"
+gradlePlugins-grgit="5.3.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -52,6 +51,7 @@ androidx-security-crypto = { module = "androidx.security:security-crypto", versi
 androidx-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "uiautomator" }
 androidx-window = { module = "androidx.window:window", version.ref = "window" }
 detekt-rules-compose = { module = "ru.kode:detekt-rules-compose", version.ref = "detektRulesCompose" }
+ipaddress = { module = "com.github.seancfoley:ipaddress", version.ref = "ipaddress" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
 
 
@@ -104,7 +104,6 @@ hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", ve
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-window-core-android = { group = "androidx.window", name = "window-core-android", version.ref = "windowCoreAndroid" }
-androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "lifecycle-compose" }
 
@@ -117,9 +116,8 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 licensee = { id = "app.cash.licensee", version.ref = "gradlePlugins-licensee" }
 gross = { id = "se.premex.gross", version.ref = "gradlePlugins-gross" }
-kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "gradlePlugins-kotlinxSerialization" }
+kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "gradlePlugins-detekt" }
 sentry = { id = "io.sentry.android.gradle", version.ref = "gradlePlugins-sentry" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "gradlePlugins-ktlint" }
 grgit = { id = "org.ajoberstar.grgit.service", version.ref = "gradlePlugins-grgit" }
-

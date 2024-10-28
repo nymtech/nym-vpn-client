@@ -1,5 +1,7 @@
 import SwiftUI
+import AppSettings
 import CredentialsManager
+import Device
 #if os(iOS)
 import ExternalLinkManager
 import KeyboardManager
@@ -31,7 +33,9 @@ struct AddCredentialsView: View {
                 scrollViewContent(geometry: geometry)
 #endif
             }
+            .frame(maxWidth: Device.type == .ipad ? 358 : .infinity)
         }
+        .preferredColorScheme(AppSettings.shared.currentAppearance.colorScheme)
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(edges: [.bottom])
@@ -102,12 +106,15 @@ private extension AddCredentialsView {
             .frame(height: 8)
 
         HStack {
-            addCredentialButton()
+            loginButton()
 #if os(iOS)
             qrScannerButton()
                 .padding(.trailing, 16)
 #endif
         }
+        .padding(.vertical, 16)
+
+        createAccount()
 
         Spacer()
             .frame(height: viewModel.appSettings.isSmallScreen ? 24 : 40)
@@ -144,6 +151,8 @@ private extension AddCredentialsView {
         Text(viewModel.getStartedTitle)
             .textStyle(.Body.Large.regular)
             .foregroundStyle(NymColor.credetnialsTitle)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 16)
     }
 
     @ViewBuilder
@@ -200,8 +209,8 @@ private extension AddCredentialsView {
     }
 
     @ViewBuilder
-    func addCredentialButton() -> some View {
-        GenericButton(title: viewModel.addCredentialButtonTitle)
+    func loginButton() -> some View {
+        GenericButton(title: viewModel.loginButtonTitle)
             .padding(.horizontal, 16)
             .onTapGesture {
                 viewModel.importCredentials()
@@ -221,5 +230,15 @@ private extension AddCredentialsView {
                     viewModel.isScannerDisplayed.toggle()
                 }
             }
+    }
+
+    @ViewBuilder
+    func createAccount() -> some View {
+        Text("\(viewModel.newToNymVPNTitle) [\(viewModel.createAccountTitle)](https://nymvpn.com/en/account/create)")
+            .tint(NymColor.primaryOrange)
+            .foregroundStyle(NymColor.sysOnSurface)
+            .textStyle(.Body.Large.regular)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 16)
     }
 }

@@ -3,8 +3,6 @@ import clsx from 'clsx';
 import { Button as HuButton } from '@headlessui/react';
 import { type } from '@tauri-apps/plugin-os';
 
-const os = type();
-
 type ButtonProps = {
   children: ReactNode;
   onClick: () => void;
@@ -15,6 +13,8 @@ type ButtonProps = {
 };
 
 function Spinner() {
+  const os = type();
+
   return (
     <span
       className={clsx([

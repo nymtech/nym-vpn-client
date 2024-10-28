@@ -6,7 +6,9 @@
   "windows": ["error"],
   "permissions": [
     "core:default",
+    "core:window:allow-create",
     "core:window:allow-set-size",
+    "core:window:allow-show",
     "os:allow-os-type",
     "process:allow-exit",
     "os:default"

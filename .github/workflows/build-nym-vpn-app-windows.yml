@@ -2,6 +2,12 @@ name: build-nym-vpn-app-windows
 on:
   workflow_dispatch:
   workflow_call:
+    inputs:
+      # set to true when it is a 'dev' build
+      dev_mode:
+        required: true
+        type: boolean
+        default: false
     secrets:
       WINDOWS_SIGNING_PFX_BASE64:
         required: true
@@ -198,6 +204,7 @@ jobs:
           RUSTFLAGS: "-L ${{ env.TAURI_SRC }}/x86_64-pc-windows-msvc -L ${{ env.TAURI_SRC }} -Clink-args=/LIBPATH:${{ env.TAURI_SRC }}/x64-${{ env.CPP_BUILD_MODES }}"
           WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
+          NETWORK_ENV_SELECT: ${{ inputs.dev_mode == true }}
         run: |
           if [ "${{ env.CARGO_TARGET }}" = "release" ]; then
             npm run tauri build
@@ -211,14 +218,14 @@ jobs:
       - name: Move things around to prepare for upload
         shell: bash
         env:
-          WINDOWS_BUILT_NAME: ${{ env.TAURI_SRC }}/target/release/bundle/nsis/nym-vpn_${{ steps.package-version.outputs.metadata }}_x64-setup.nsis.zip
+          WINDOWS_BUILT_NAME: ${{ env.TAURI_SRC }}/target/release/bundle/nsis/NymVPN_${{ steps.package-version.outputs.metadata }}_x64-setup.nsis.zip
           WINDOWS_UPDATER_NAME: updater_windows_x64.nsis.zip
-          BINARY: ${{ env.TAURI_SRC }}/target/release/bundle/nsis/nym-vpn_${{ steps.package-version.outputs.metadata }}_x64-setup.exe
+          SETUP_EXE: ${{ env.TAURI_SRC }}/target/release/bundle/nsis/NymVPN_${{ steps.package-version.outputs.metadata }}_x64-setup.exe
         run: |
           echo "moving binaries into ${{ env.UPLOAD_DIR_WINDOWS }}"
           rm -rf ${{ env.UPLOAD_DIR_WINDOWS }} || true
           mkdir ${{ env.UPLOAD_DIR_WINDOWS }}
-          cp -vpr '${{ env.BINARY }}' ${{ env.UPLOAD_DIR_WINDOWS }}/
+          cp -vpr '${{ env.SETUP_EXE }}' ${{ env.UPLOAD_DIR_WINDOWS }}/
           #cp -vpr '${{ env.WINDOWS_BUILT_NAME }}'     ${{ env.UPLOAD_DIR_WINDOWS }}/${WINDOWS_UPDATER_NAME}
           #cp -vpr '${{ env.WINDOWS_BUILT_NAME }}.sig' ${{ env.UPLOAD_DIR_WINDOWS }}/${WINDOWS_UPDATER_NAME}.sig
 

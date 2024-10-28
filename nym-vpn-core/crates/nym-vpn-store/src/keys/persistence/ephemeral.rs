@@ -38,7 +38,10 @@ impl KeyStore for InMemEphemeralKeys {
         if self.load_keys().await.is_ok() {
             return Ok(());
         }
+        self.reset_keys(seed).await
+    }
 
+    async fn reset_keys(&self, seed: Option<[u8; 32]>) -> Result<(), Self::StorageError> {
         let device_keys = if let Some(seed) = seed {
             let mut rng = rand_chacha::ChaCha20Rng::from_seed(seed);
             DeviceKeys::generate_new(&mut rng)
@@ -46,7 +49,6 @@ impl KeyStore for InMemEphemeralKeys {
             let mut rng = rand::rngs::OsRng;
             DeviceKeys::generate_new(&mut rng)
         };
-
         self.store_keys(&device_keys).await
     }
 }

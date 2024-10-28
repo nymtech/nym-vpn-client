@@ -1,14 +1,18 @@
 package net.nymtech.nymvpn.ui.screens.permission
 
+import android.net.VpnService
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
@@ -33,9 +37,11 @@ import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.labels.PermissionLabel
+import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.navigation.NavIcon
 import net.nymtech.nymvpn.ui.common.navigation.NavTitle
+import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.extensions.launchVpnSettings
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
@@ -45,6 +51,8 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 @Composable
 fun PermissionScreen(appViewModel: AppViewModel, permission: Permission) {
 	val context = LocalContext.current
+	val navController = LocalNavController.current
+	val snackbar = SnackbarController.current
 
 	LaunchedEffect(Unit) {
 		appViewModel.onNavBarStateChange(
@@ -52,7 +60,7 @@ fun PermissionScreen(appViewModel: AppViewModel, permission: Permission) {
 				title = { NavTitle(stringResource(R.string.permission_required)) },
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
-						appViewModel.navController.popBackStack()
+						navController.popBackStack()
 					}
 				},
 			),
@@ -63,7 +71,7 @@ fun PermissionScreen(appViewModel: AppViewModel, permission: Permission) {
 		modifier = Modifier
 			.fillMaxSize()
 			.padding(horizontal = 16.dp.scaledWidth())
-			.padding(vertical = 24.dp),
+			.padding(vertical = 24.dp).windowInsetsPadding(WindowInsets.navigationBars),
 		horizontalAlignment = Alignment.CenterHorizontally,
 		verticalArrangement = Arrangement.SpaceBetween,
 	) {
@@ -134,7 +142,11 @@ fun PermissionScreen(appViewModel: AppViewModel, permission: Permission) {
 				Column(verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Bottom)) {
 					MainStyledButton(
 						onClick = {
-							appViewModel.navController.navigateAndForget(Route.Main(true))
+							if (VpnService.prepare(context) == null) {
+								navController.navigateAndForget(Route.Main(true))
+							} else {
+								snackbar.showMessage(context.getString(R.string.permission_required))
+							}
 						},
 						content = { Text(stringResource(R.string.try_reconnecting), style = CustomTypography.labelHuge) },
 					)

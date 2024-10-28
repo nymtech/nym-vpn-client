@@ -1,6 +1,6 @@
 [package]
 name = "nym-vpn-app"
-version = "0.2.2-dev"
+version = "0.2.4-dev"
 description = "NymVPN desktop client"
 authors = [
     "Nym Technologies SA",
@@ -47,7 +47,6 @@ rust_iso3166 = "0.1"
 dirs = "5.0.1"
 
 # nym deps
-nym-config = { git = "https://github.com/nymtech/nym", rev = "fabd48b" }
 nym-vpn-proto = { path = "../../nym-vpn-core/crates/nym-vpn-proto" }
 
 # tauri deps
@@ -58,6 +57,8 @@ tauri-plugin-dialog = "2.0.1"
 tauri-plugin-process = "2.0.1"
 tauri-plugin-clipboard-manager = "2.0.1"
 tauri-plugin-updater = "2.0.1"
+tauri-plugin-single-instance = "2.0.1"
+tauri-plugin-window-state = "2.0.1"
 
 [target."cfg(windows)".dependencies]
 windows = { version = "0.58.0", features = [

@@ -2,7 +2,7 @@ import { Dispatch } from 'react';
 import { Dayjs } from 'dayjs';
 import { StateAction } from '../state';
 import { Country, NodeLocation, ThemeMode, UiTheme } from './common';
-import { BackendError, ErrorKey } from './tauri-ipc';
+import { BackendError, ErrorKey, NetworkEnv } from './tauri-ipc';
 
 export type ConnectionState =
   | 'Connected'
@@ -22,18 +22,6 @@ export type CodeDependency = {
   copyright?: string;
 };
 
-export type WindowSize = {
-  type: 'Physical' | 'Logical';
-  width: number;
-  height: number;
-};
-
-export type WindowPosition = {
-  type: 'Physical' | 'Logical';
-  x: number;
-  y: number;
-};
-
 export type DaemonStatus = 'Ok' | 'NotOk';
 
 export type AppState = {
@@ -41,6 +29,8 @@ export type AppState = {
   initialized: boolean;
   state: ConnectionState;
   daemonStatus: DaemonStatus;
+  daemonVersion?: string;
+  networkEnv?: NetworkEnv;
   version: string | null;
   loading: boolean;
   error?: AppError | null;
@@ -68,9 +58,8 @@ export type AppState = {
   rootFontSize: number;
   codeDepsJs: CodeDependency[];
   codeDepsRust: CodeDependency[];
-  windowSize?: WindowSize | null;
-  windowPosition?: WindowPosition | null;
-  credentialExpiry?: Dayjs | null;
+  // TODO just a boolean for now to indicate if the user has added an account
+  account: boolean;
   fetchMxEntryCountries: FetchMxCountriesFn;
   fetchMxExitCountries: FetchMxCountriesFn;
   fetchWgCountries: FetchWgCountriesFn;

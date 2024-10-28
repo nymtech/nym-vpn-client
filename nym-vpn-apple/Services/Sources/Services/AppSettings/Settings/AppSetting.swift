@@ -16,9 +16,23 @@ public struct AppSetting {
                 return .dark
             #if os(iOS)
             case .automatic:
-                return ColorScheme(.unspecified)
+                return nil
             #endif
             }
         }
+#if os(iOS)
+        public var userInterfaceStyle: UIUserInterfaceStyle {
+            switch self {
+
+            case .automatic:
+                return .unspecified
+
+            case .light:
+                return .light
+            case .dark:
+                return .dark
+            }
+        }
+#endif
     }
 }

@@ -24,24 +24,14 @@ public final class CredentialsManager {
     public static let shared = CredentialsManager()
 
     public var isValidCredentialImported: Bool {
-        guard let expiryDate = appSettings.credentialExpiryDate, appSettings.isCredentialImported else { return false }
-        let isValid = Date() < expiryDate
-        return appSettings.isCredentialImported && isValid
-    }
-
-    public var expiryDate: Date? {
-        appSettings.credentialExpiryDate
-    }
-
-    public var startDate: Date? {
-        appSettings.credentialStartDate
+        appSettings.isCredentialImported
     }
 
     private init() {
         setup()
     }
 
-    public func add(credential: String) throws {
+    public func add(credential: String) async throws {
         let trimmedCredential = credential.trimmingCharacters(in: .whitespacesAndNewlines)
         do {
 #if os(iOS)
@@ -50,19 +40,15 @@ public final class CredentialsManager {
             if !FileManager.default.fileExists(atPath: dataFolderURL.path()) {
                 try FileManager.default.createDirectory(at: dataFolderURL, withIntermediateDirectories: true)
             }
-            let expiryDate = try importCredential(credential: trimmedCredential, path: dataFolderURL.path())
-            guard let expiryDate
-            else {
-                throw CredentialsManagerError.noExpiryDate
-            }
+            try storeAccountMnemonic(mnemonic: trimmedCredential, path: dataFolderURL.path())
 #endif
 #if os(macOS)
-            guard helperManager.isHelperAuthorizedAndRunning() else { return }
-            let expiryDate = try grpcManager.importCredential(credential: trimmedCredential)
+            _ = try await helperManager.installHelperIfNeeded()
+            try grpcManager.storeAccount(with: trimmedCredential)
 #endif
-            appSettings.isCredentialImported = true
-            appSettings.credentialExpiryDate = expiryDate
-            appSettings.credentialStartDate = Date()
+            Task { @MainActor in
+                appSettings.isCredentialImported = true
+            }
         } catch let error {
             throw error
         }
@@ -90,7 +76,7 @@ extension CredentialsManager {
 #if os(macOS)
         grpcManager.$lastError.sink { [weak self] error in
             guard let self,
-                  error == GeneralNymError.invalidCredential
+                  error == GeneralNymError.noMnemonicStored
             else {
                 return
             }

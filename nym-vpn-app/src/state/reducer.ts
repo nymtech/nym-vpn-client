@@ -1,4 +1,4 @@
-import dayjs, { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import {
   DefaultNodeCountry,
   DefaultRootFontSize,
@@ -12,20 +12,20 @@ import {
   ConnectProgressMsg,
   ConnectionState,
   Country,
+  DaemonInfo,
   DaemonStatus,
   NodeHop,
   NodeLocation,
   ThemeMode,
   UiTheme,
   VpnMode,
-  WindowPosition,
-  WindowSize,
 } from '../types';
 
 export type StateAction =
   | { type: 'init-done' }
   | { type: 'change-connection-state'; state: ConnectionState }
   | { type: 'set-daemon-status'; status: DaemonStatus }
+  | { type: 'set-daemon-info'; info: DaemonInfo }
   | { type: 'set-vpn-mode'; mode: VpnMode }
   | { type: 'set-entry-selector'; entrySelector: boolean }
   | { type: 'set-error'; error: AppError }
@@ -64,9 +64,7 @@ export type StateAction =
   | { type: 'set-root-font-size'; size: number }
   | { type: 'set-code-deps-js'; dependencies: CodeDependency[] }
   | { type: 'set-code-deps-rust'; dependencies: CodeDependency[] }
-  | { type: 'set-window-size'; size: WindowSize }
-  | { type: 'set-window-position'; position: WindowPosition }
-  | { type: 'set-credential-expiry'; expiry: Dayjs | null }
+  | { type: 'set-account'; stored: boolean }
   | { type: 'set-entry-countries-error'; payload: AppError | null }
   | { type: 'set-exit-countries-error'; payload: AppError | null };
 
@@ -96,7 +94,7 @@ export const initialState: AppState = {
   rootFontSize: DefaultRootFontSize,
   codeDepsRust: [],
   codeDepsJs: [],
-  credentialExpiry: null,
+  account: false,
   fetchMxEntryCountries: async () => {
     /*  SCARECROW */
   },
@@ -119,6 +117,12 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         daemonStatus: action.status,
+      };
+    case 'set-daemon-info':
+      return {
+        ...state,
+        daemonVersion: action.info.version,
+        networkEnv: action.info.network,
       };
     case 'set-node-location':
       if (action.payload.hop === 'entry') {
@@ -224,12 +228,8 @@ export function reducer(state: AppState, action: StateAction): AppState {
         sessionStartDate: null,
       };
     }
-    case 'set-credential-expiry': {
-      return {
-        ...state,
-        credentialExpiry: action.expiry,
-      };
-    }
+    case 'set-account':
+      return { ...state, account: action.stored };
     case 'set-connection-start-time':
       return {
         ...state,
@@ -282,16 +282,6 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         codeDepsRust: action.dependencies,
-      };
-    case 'set-window-size':
-      return {
-        ...state,
-        windowSize: action.size,
-      };
-    case 'set-window-position':
-      return {
-        ...state,
-        windowPosition: action.position,
       };
     case 'set-entry-countries-error':
       return {

@@ -19,8 +19,10 @@ extension TunnelsManager {
         tunnelProviderManager.setTunnelConfiguration(tunnelConfiguration)
         tunnelProviderManager.isEnabled = true
 
-        // TODO: add on demand rules support
-        // onDemandOption.apply(on: tunnelProviderManager)
+        let alwaysOnRule = NEOnDemandRuleConnect()
+        alwaysOnRule.interfaceTypeMatch = .any
+        tunnelProviderManager.onDemandRules = [alwaysOnRule]
+        tunnelProviderManager.isOnDemandEnabled = true
 
         let activeTunnel = tunnels.first { $0.status == .connected || $0.status == .connecting }
 

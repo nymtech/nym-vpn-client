@@ -1,7 +1,4 @@
 {
-  "credential": {
-    "title": "Credencial"
-  },
   "auto-connect": {
     "title": "Conexão automática",
     "desc": "Conexão automática na inicialização do aplicativo"
@@ -32,7 +29,7 @@
     "emptyData": "Não há dados de licença disponíveis"
   },
   "display-theme": "Modo de visualização",
-  "add-credential-button": "adicionar credencial para conectar",
+  "login-button": "adicionar credencial para conectar",
   "entry-selector": {
     "title": "Seletor de local de entrada",
     "desc": "Selecione manualmente seu salto de entrada"

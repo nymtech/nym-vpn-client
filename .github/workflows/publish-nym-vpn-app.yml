@@ -15,9 +15,13 @@ on:
 jobs:
   build-nym-vpn-app-linux:
     uses: ./.github/workflows/build-nym-vpn-app-linux.yml
+    with:
+      dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || contains(inputs.tag_name, 'dev') || contains(inputs.tag_name, 'nightly') }}
     secrets: inherit
   build-nym-vpn-app-windows:
     uses: ./.github/workflows/build-nym-vpn-app-windows.yml
+    with:
+      dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || contains(inputs.tag_name, 'dev') || contains(inputs.tag_name, 'nightly') }}
     secrets: inherit
 
   generate-build-info-nym-vpn-app:
@@ -115,17 +119,6 @@ jobs:
           cat ${{ env.UPLOAD_DIR_UBUNTU_22 }}/*.sha256sum >> $GITHUB_ENV
           cat ${{ env.UPLOAD_DIR_WINDOWS }}/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
-
-      # - name: AppImage installer bump version
-      #   env:
-      #     appimg_installer: nym-vpn-app/scripts/appimage.sh
-      #   run: |
-      #     echo "tag: $TAG_NAME"
-      #     echo "version: $PKG_VERSION"
-      #     sed -i "s/^tag=.*$/tag=$TAG_NAME/" $appimg_installer
-      #     sed -i "s/^version=.*$/version=$PKG_VERSION/" $appimg_installer
-      #     mkdir installer
-      #     cp -v $appimg_installer installer
 
       - name: Build info
         run: |

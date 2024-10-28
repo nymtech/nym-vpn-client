@@ -1,12 +1,4 @@
 {
-  "credential": {
-    "invalid": "无效凭证",
-    "expired": "凭证过期",
-    "no-duplicate": "该凭证已被导入",
-    "storage": "由于内部错误，导入凭证失败",
-    "deserialize": "反序列化凭证失败",
-    "vpn-running": "连接 VPN 时不能导入凭证"
-  },
   "unknown": "未知错误",
   "internal": "内部错误",
   "daemon": {
@@ -85,5 +77,8 @@
   "exit-node": {
     "routing": "出口节点未路由{{protocol}} 流量",
     "ping": "{{protocol}} 流量的出口节点 ping 失败"
+  },
+  "account": {
+    "invalid-recovery-phrase": "恢复短语无效"
   }
 }

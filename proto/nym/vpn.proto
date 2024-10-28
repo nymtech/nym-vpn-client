@@ -111,8 +111,64 @@ message InfoResponse {
   Url nym_vpn_api_url = 7;
 }
 
+message SetNetworkRequest {
+  string network = 1;
+}
+
+message SetNetworkResponse {
+  SetNetworkRequestError error = 1;
+}
+
+message SetNetworkRequestError {
+  enum SetNetworkRequestErrorType {
+    SET_NETWORK_REQUEST_ERROR_TYPE_UNSPECIFIED = 0;
+
+    // Unspecified internal error
+    INTERNAL = 1;
+
+    // The network name provided is not valid
+    INVALID_NETWORK_NAME = 2;
+  }
+
+  SetNetworkRequestErrorType kind = 1;
+
+  // Internal message for logging and debugging
+  string message = 2;
+}
+
 message Threshold {
   uint32 min_performance = 1;
+}
+
+message ConnectRequestError {
+  enum ConnectRequestErrorType {
+    CONNECT_REQUEST_ERROR_TYPE_UNSPECIFIED = 0;
+
+    // Unspecified internal error
+    INTERNAL = 1;
+
+    // No account recovery phrase stored
+    NO_ACCOUNT_STORED = 2;
+
+    // The account is not active
+    ACCOUNT_NOT_ACTIVE = 3;
+
+    // The account does not have an active subscription
+    NO_ACTIVE_SUBSCRIPTION = 4;
+
+    // The device is not registered
+    DEVICE_NOT_REGISTERED = 5;
+
+    // The device is not active
+    // NOTE: in the future we will try to re-active an inactive device on
+    // connect
+    DEVICE_NOT_ACTIVE = 6;
+  }
+
+  ConnectRequestErrorType kind = 1;
+
+  // Internal message for logging and debugging
+  string message = 2;
 }
 
 message ConnectRequest {
@@ -121,7 +177,7 @@ message ConnectRequest {
   Dns dns = 3;
   bool disable_routing = 4;
   bool enable_two_hop = 5;
-  bool enable_poisson_rate = 6;
+  bool disable_poisson_rate = 6;
   bool disable_background_cover_traffic = 7;
   bool enable_credentials_mode = 8;
   UserAgent user_agent = 12;
@@ -132,7 +188,9 @@ message ConnectRequest {
 }
 
 message ConnectResponse {
+  // TODO: consider simplifying by removing the bool
   bool success = 1;
+  ConnectRequestError error = 2;
 }
 
 message DisconnectRequest {}
@@ -230,6 +288,8 @@ message ConnectionStatusUpdate {
   map<string, string> details = 3;
 }
 
+// TODO: consider rename this to something like `ConnectionError`, to
+// distinguish from all other types of errors.
 message Error {
   enum ErrorType {
     ERROR_TYPE_UNSPECIFIED = 0;
@@ -395,47 +455,6 @@ message Error {
   map<string, string> details = 3;
 }
 
-message ImportUserCredentialRequest {
-  bytes credential = 1;
-}
-
-message ImportUserCredentialResponse {
-  bool success = 1;
-  ImportError error = 2;
-  google.protobuf.Timestamp expiry = 3;
-}
-
-message ImportError {
-  enum ImportErrorType {
-    IMPORT_ERROR_TYPE_UNSPECIFIED = 0;
-
-    // Credential import is not supported while the vpn is already connected
-    VPN_RUNNING = 1;
-
-    // Importing the same credential twice will return an error
-    CREDENTIAL_ALREADY_IMPORTED = 2;
-
-    // If the credential storage fails in some way. It's very likely due to a
-    // permission error.
-    STORAGE_ERROR = 3;
-
-    // If the provided credential fails to deserialize. This is probably due to
-    // incorrect credential, but it could also be due to other internal reasons
-    DESERIALIZATION_FAILURE = 4;
-
-    // Credentials have a date when they expire
-    CREDENTIAL_EXPIRED = 5;
-  }
-
-  ImportErrorType kind = 1;
-
-  // Detailed error message for logging and debugging
-  string message = 2;
-
-  // Optional additional details
-  map<string, string> details = 3;
-}
-
 message AsEntry {
   bool can_connect = 1;
   bool can_route = 2;
@@ -515,11 +534,112 @@ message StoreAccountResponse {
   AccountError error = 2;
 }
 
-message GetAccountSummaryRequest {}
+message IsAccountStoredRequest {}
 
-message GetAccountSummaryResponse {
+message IsAccountStoredResponse {
+  oneof resp {
+    bool is_stored = 1;
+    AccountError error = 2;
+  }
+}
+
+message RemoveAccountRequest {}
+
+message RemoveAccountResponse {
+  bool success = 1;
+  AccountError error = 2;
+}
+
+message GetAccountIdentityRequest {}
+
+message GetAccountIdentityResponse {
+  oneof id {
+    string account_identity = 1;
+    AccountError error = 2;
+  }
+}
+
+enum MnemonicState {
+  MNEMONIC_STATE_UNSPECIFIED = 0;
+  MNEMONIC_STATE_NOT_STORED = 1;
+  MNEMONIC_STATE_STORED = 2;
+}
+
+enum AccountState {
+  ACCOUNT_STATE_UNSPECIFIED = 0;
+  ACCOUNT_STATE_NOT_REGISTERED = 1;
+  ACCOUNT_STATE_INACTIVE = 2;
+  ACCOUNT_STATE_ACTIVE = 3;
+  ACCOUNT_STATE_DELETE_ME = 4;
+}
+
+enum SubscriptionState {
+  SUBSCRIPTION_STATE_UNSPECIFIED = 0;
+  SUBSCRIPTION_STATE_NOT_REGISTERED = 1;
+  SUBSCRIPTION_STATE_PENDING = 2;
+  SUBSCRIPTION_STATE_ACTIVE = 3;
+  SUBSCRIPTION_STATE_COMPLETE = 4;
+}
+
+enum DeviceState {
+  DEVICE_STATE_UNSPECIFIED = 0;
+  DEVICE_STATE_NOT_REGISTERED = 1;
+  DEVICE_STATE_INACTIVE = 2;
+  DEVICE_STATE_ACTIVE = 3;
+  DEVICE_STATE_DELETE_ME = 4;
+}
+
+message AccountSummary {
+  optional MnemonicState mnemonic = 1;
+  optional AccountState account = 2;
+  optional SubscriptionState subscription = 3;
+  optional DeviceState device = 4;
+  bool pending_zk_nym = 5;
+}
+
+message GetAccountStateRequest {}
+
+message GetAccountStateResponse {
+  oneof result {
+    AccountSummary account_summary = 1;
+    AccountError error = 2;
+  }
+}
+
+message RefreshAccountStateRequest {}
+message RefreshAccountStateResponse {}
+
+message FetchRawAccountSummaryRequest {}
+
+message FetchRawAccountSummaryResponse {
   string json = 1;
   AccountError error = 2;
+}
+
+message FetchRawDevicesRequest {}
+
+message FetchRawDevicesResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
+message ResetDeviceIdentityRequest {
+  // 32 byte seed, [u8; 32]
+  optional bytes seed = 1;
+}
+
+message ResetDeviceIdentityResponse {
+  bool success = 1;
+  AccountError error = 2;
+}
+
+message GetDeviceIdentityRequest {}
+
+message GetDeviceIdentityResponse {
+  oneof id {
+    string device_identity = 1;
+    AccountError error = 2;
+  }
 }
 
 message RegisterDeviceRequest {}
@@ -543,6 +663,36 @@ message GetDeviceZkNymsResponse {
   AccountError error = 2;
 }
 
+message IsReadyToConnectRequest {}
+
+message IsReadyToConnectResponse {
+  enum IsReadyToConnectResponseType {
+    IS_READY_TO_CONNECT_RESPONSE_TYPE_UNSPECIFIED = 0;
+
+    // We are ready to attempt to connect
+    READY = 1;
+
+    // No account recovery phrase stored
+    NO_ACCOUNT_STORED = 2;
+
+    // The account is not active
+    ACCOUNT_NOT_ACTIVE = 3;
+
+    // The account does not have an active subscripion
+    NO_ACTIVE_SUBSCRIPTION = 4;
+
+    // The device is not registered
+    DEVICE_NOT_REGISTERED = 5;
+
+    // The device is not active
+    // NOTE: in the future we will try to re-active an inactive device on
+    // connect
+    DEVICE_NOT_ACTIVE = 6;
+  }
+
+  IsReadyToConnectResponseType kind = 1;
+}
+
 message AccountError {
   enum AccountErrorType {
     STORE_ACCOUNT_ERROR_UNSPECIFIED = 0;
@@ -564,22 +714,71 @@ message AccountError {
 }
 
 service NymVpnd {
+  // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info (InfoRequest) returns (InfoResponse) {}
+
+  // Set the network. This requires a restart to take effect
+  rpc SetNetwork (SetNetworkRequest) returns (SetNetworkResponse) {}
+
+  // Start the tunnel and connect
   rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
+
+  // Disconnect and stop the tunnel
   rpc VpnDisconnect (DisconnectRequest) returns (DisconnectResponse) {}
+
+  // Get the current tunnel and connection status
   rpc VpnStatus (StatusRequest) returns (StatusResponse) {}
-  rpc ImportUserCredential (ImportUserCredentialRequest) returns (ImportUserCredentialResponse) {}
+
+  // Listen for events that indicate that the connection state changes, such as
+  // from Connecting -> Connected
   rpc ListenToConnectionStateChanges (Empty) returns (stream ConnectionStateChange) {}
+
+  // Listen for general status evens emitted by nym-vpnd, which in turn might
+  // originate from elsewhere such as remote gateways.
   rpc ListenToConnectionStatus (Empty) returns (stream ConnectionStatusUpdate) {}
 
+  // List the available gateways for the selected mode
   rpc ListGateways (ListGatewaysRequest) returns (ListGatewaysResponse) {}
+
+  // List the avaiable countries for the selected mode
   rpc ListCountries (ListCountriesRequest) returns (ListCountriesResponse) {}
 
-  // Unstable
+  // -- Unstable --
+  // These below are considered unstable, in the sense that their definitions
+  // are still being interated upon and their meaning might change
+
+  // Handle the stored recovery phrase, which is also the account identity and authentication
   rpc StoreAccount (StoreAccountRequest) returns (StoreAccountResponse) {}
-  rpc GetAccountSummary (GetAccountSummaryRequest) returns (GetAccountSummaryResponse) {}
+  rpc IsAccountStored (IsAccountStoredRequest) returns (IsAccountStoredResponse) {}
+  rpc RemoveAccount (RemoveAccountRequest) returns (RemoveAccountResponse) {}
+  rpc GetAccountIdentity (GetAccountIdentityRequest) returns (GetAccountIdentityResponse) {}
+
+  // Query the account state, which refers to the server side account, as it is
+  // known and interpreted by nym-vpnd
+  rpc GetAccountState (GetAccountStateRequest) returns (GetAccountStateResponse) {}
+  rpc RefreshAccountState (RefreshAccountStateRequest) returns (RefreshAccountStateResponse) {}
+  rpc IsReadyToConnect (IsReadyToConnectRequest) returns (IsReadyToConnectResponse) {}
+
+  // Reset the device identity
+  rpc ResetDeviceIdentity (ResetDeviceIdentityRequest) returns (ResetDeviceIdentityResponse) {}
+  rpc GetDeviceIdentity (GetDeviceIdentityRequest) returns (GetDeviceIdentityResponse) {}
+
+  // Try to register the local device with the nym-vpn-api
   rpc RegisterDevice (RegisterDeviceRequest) returns (RegisterDeviceResponse) {}
+
+  // Request new zk-nyms (ticketbooks) from the nym-vpn-api
   rpc RequestZkNym (RequestZkNymRequest) returns (RequestZkNymResponse) {}
+
+  // List the zk-nyms associated with this device from the nym-vpn-api
   rpc GetDeviceZkNyms (GetDeviceZkNymsRequest) returns (GetDeviceZkNymsResponse) {}
+
+  // -- Delegated remote calls --
+  // These query the remote nym-vpn-api state directly
+
+  // Get the server side account summary directly from the nym-vpn-api
+  rpc FetchRawAccountSummary (FetchRawAccountSummaryRequest) returns (FetchRawAccountSummaryResponse) {}
+
+  // Get the list of devices directly from the nym-vpn-api
+  rpc FetchRawDevices (FetchRawDevicesRequest) returns (FetchRawDevicesResponse) {}
 }
 

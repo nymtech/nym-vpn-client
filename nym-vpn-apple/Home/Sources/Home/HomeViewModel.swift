@@ -10,10 +10,12 @@ import TunnelMixnet
 import TunnelStatus
 import Tunnels
 import UIComponents
+#if os(iOS)
+import ImpactGenerator
+#endif
 #if os(macOS)
 import GRPCManager
 import HelperManager
-import Migrations
 #endif
 
 public class HomeViewModel: HomeFlowState {
@@ -34,11 +36,12 @@ public class HomeViewModel: HomeFlowState {
     let countriesManager: CountriesManager
     let credentialsManager: CredentialsManager
     let externalLinkManager: ExternalLinkManager
-
+#if os(iOS)
+    let impactGenerator: ImpactGenerator
+#endif
 #if os(macOS)
     let grpcManager: GRPCManager
     let helperManager: HelperManager
-    let migrations: Migrations
 #endif
     let entryHopButtonViewModel = HopButtonViewModel(hopType: .entry)
     let exitHopButtonViewModel = HopButtonViewModel(hopType: .exit)
@@ -60,19 +63,22 @@ public class HomeViewModel: HomeFlowState {
         connectionManager: ConnectionManager = ConnectionManager.shared,
         countriesManager: CountriesManager = CountriesManager.shared,
         credentialsManager: CredentialsManager = CredentialsManager.shared,
-        externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared
+        externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared,
+        impactGenerator: ImpactGenerator = ImpactGenerator.shared
     ) {
         self.appSettings = appSettings
         self.connectionManager = connectionManager
         self.countriesManager = countriesManager
-        self.externalLinkManager = externalLinkManager
         self.credentialsManager = credentialsManager
+        self.externalLinkManager = externalLinkManager
+        self.impactGenerator = impactGenerator
 
         super.init()
 
         setup()
     }
 #endif
+
 #if os(macOS)
     public init(
         appSettings: AppSettings = AppSettings.shared,
@@ -81,8 +87,7 @@ public class HomeViewModel: HomeFlowState {
         credentialsManager: CredentialsManager = CredentialsManager.shared,
         grpcManager: GRPCManager = GRPCManager.shared,
         helperManager: HelperManager = HelperManager.shared,
-        externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared,
-        migrations: Migrations = Migrations.shared
+        externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared
     ) {
         self.appSettings = appSettings
         self.connectionManager = connectionManager
@@ -91,7 +96,6 @@ public class HomeViewModel: HomeFlowState {
         self.grpcManager = grpcManager
         self.helperManager = helperManager
         self.externalLinkManager = externalLinkManager
-        self.migrations = migrations
         super.init()
 
         setup()
@@ -130,7 +134,12 @@ public extension HomeViewModel {
 
 public extension HomeViewModel {
     func shouldShowEntryHop() -> Bool {
-        appSettings.isEntryLocationSelectionOn && !countriesManager.entryCountries.isEmpty
+        switch connectionManager.connectionType {
+        case .mixnet5hop:
+            appSettings.isEntryLocationSelectionOn && !countriesManager.entryCountries.isEmpty
+        case .wireguard:
+            appSettings.isEntryLocationSelectionOn && !countriesManager.vpnCountries.isEmpty
+        }
     }
 
     func configureConnectedTimeTimer() {
@@ -147,6 +156,10 @@ public extension HomeViewModel {
 // MARK: - Connection -
 public extension HomeViewModel {
     func connectDisconnect() {
+        guard connectionManager.currentTunnelStatus != .disconnecting else { return }
+#if os(iOS)
+        impactGenerator.impact()
+#endif
         Task {
             lastError = nil
             resetStatusInfoState()
@@ -161,13 +174,14 @@ public extension HomeViewModel {
                 return
             }
 
-            resetStatusInfoState()
-
             Task { @MainActor in
                 do {
                     try await connectionManager.connectDisconnect()
                 } catch let error {
                     statusInfoState = .error(message: error.localizedDescription)
+#if os(iOS)
+                    impactGenerator.error()
+#endif
                 }
             }
         }
@@ -199,8 +213,11 @@ private extension HomeViewModel {
     func setup() {
         setupDateFormatter()
         setupTunnelManagerObservers()
+        setupConnectionErrorObservers()
+
 #if os(macOS)
         setupGRPCManagerObservers()
+        updateInitialTunnelStatus()
 #endif
         setupCountriesManagerObservers()
     }
@@ -239,6 +256,24 @@ private extension HomeViewModel {
         .store(in: &cancellables)
     }
 
+    func setupConnectionErrorObservers() {
+#if os(iOS)
+        connectionManager.$lastError.sink { [weak self] error in
+            self?.lastError = error
+            if let error {
+                self?.updateStatusInfoState(with: .error(message: error.localizedDescription))
+            }
+        }
+        .store(in: &cancellables)
+#endif
+
+#if os(macOS)
+        grpcManager.$lastError.sink { [weak self] error in
+            self?.lastError = error
+        }
+        .store(in: &cancellables)
+#endif
+    }
 #if os(iOS)
     func configureTunnelStatusObservation(with tunnel: Tunnel) {
         tunnelStatusUpdateCancellable = tunnel.$status
@@ -263,7 +298,11 @@ private extension HomeViewModel {
         } else {
             newStatus = status
         }
-
+#if os(iOS)
+        if status == .connected && !connectionManager.isDisconnecting {
+            impactGenerator.success()
+        }
+#endif
         Task { @MainActor in
             statusButtonConfig = StatusButtonConfig(tunnelStatus: newStatus)
             connectButtonState = ConnectButtonState(tunnelStatus: newStatus)
@@ -308,11 +347,6 @@ private extension HomeViewModel {
 #if os(macOS)
 private extension HomeViewModel {
     func setupGRPCManagerObservers() {
-        grpcManager.$lastError.sink { [weak self] error in
-            self?.lastError = error
-        }
-        .store(in: &cancellables)
-
         grpcManager.$tunnelStatus
             .debounce(for: .seconds(0.15), scheduler: DispatchQueue.global(qos: .background))
             .receive(on: RunLoop.main)
@@ -329,8 +363,8 @@ private extension HomeViewModel {
         guard isInstalledAndRunning && !needsUpdate
         else {
             do {
-                updateStatusInfoState(with: .error(message: "home.installDaemon".localizedString))
-                isInstalledAndRunning = try helperManager.authorizeAndInstallHelper()
+                updateStatusInfoState(with: .installingDaemon)
+                isInstalledAndRunning = try await helperManager.installHelperIfNeeded()
                 resetStatusInfoState()
             } catch let error {
                 updateStatusInfoState(with: .error(message: error.localizedDescription))
@@ -368,18 +402,22 @@ private extension HomeViewModel {
             timeConnected = dateFormatter.string(from: connectedDate, to: Date()) ?? emptyTimeText
         }
     }
+
+    func updateInitialTunnelStatus() {
+        guard helperManager.isHelperAuthorizedAndRunning() else { return }
+        grpcManager.status()
+    }
 }
 #endif
 
 private extension HomeViewModel {
     func resetStatusInfoState() {
-        Task { @MainActor in
-            statusInfoState = .unknown
-        }
+        updateStatusInfoState(with: .unknown)
     }
 
     func updateStatusInfoState(with newState: StatusInfoState) {
         Task { @MainActor in
+            guard newState != statusInfoState else { return }
             statusInfoState = newState
         }
     }

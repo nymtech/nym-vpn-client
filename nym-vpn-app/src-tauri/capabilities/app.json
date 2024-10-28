@@ -6,7 +6,9 @@
   "windows": ["main"],
   "permissions": [
     "core:default",
+    "core:window:allow-create",
     "core:window:allow-set-size",
+    "core:window:allow-show",
     "shell:allow-open",
     "dialog:allow-open",
     "notification:default",
