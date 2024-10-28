@@ -51,7 +51,7 @@ jobs:
       - name: Setup msys2
         uses: msys2/setup-msys2@v2
         with:
-          update: true
+          update: false
           msystem: MINGW64
           install: mingw-w64-x86_64-clang
 
