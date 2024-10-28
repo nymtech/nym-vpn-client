@@ -11,6 +11,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
+  MSYS2_PATH_TYPE: inherit
 
 jobs:
   build:
