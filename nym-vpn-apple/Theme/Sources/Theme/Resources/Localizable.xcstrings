@@ -474,6 +474,105 @@
         }
       }
     },
+    "errorReason.dns" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to configure DNS"
+          }
+        }
+      }
+    },
+    "errorReason.establishMixnetConnection" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to establish mixnet connection"
+          }
+        }
+      }
+    },
+    "errorReason.establishWireguardConnection" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to establish wireguard connection"
+          }
+        }
+      }
+    },
+    "errorReason.firewall" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to configure firewall"
+          }
+        }
+      }
+    },
+    "errorReason.internalUnknown" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Internal unknown tunnel failure"
+          }
+        }
+      }
+    },
+    "errorReason.routing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to configure routing"
+          }
+        }
+      }
+    },
+    "errorReason.tunDevice" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to configure tunnel device"
+          }
+        }
+      }
+    },
+    "errorReason.tunnelDown" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tunnel failed at runtime"
+          }
+        }
+      }
+    },
+    "errorReason.tunnelProvider" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to configure packet tunnel provider"
+          }
+        }
+      }
+    },
     "establishingConnection" : {
       "extractionState" : "manual",
       "localizations" : {

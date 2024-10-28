@@ -213,6 +213,8 @@ private extension HomeViewModel {
     func setup() {
         setupDateFormatter()
         setupTunnelManagerObservers()
+        setupConnectionErrorObservers()
+
 #if os(macOS)
         setupGRPCManagerObservers()
         updateInitialTunnelStatus()
@@ -254,6 +256,24 @@ private extension HomeViewModel {
         .store(in: &cancellables)
     }
 
+    func setupConnectionErrorObservers() {
+#if os(iOS)
+        connectionManager.$lastError.sink { [weak self] error in
+            self?.lastError = error
+            if let error {
+                self?.updateStatusInfoState(with: .error(message: error.localizedDescription))
+            }
+        }
+        .store(in: &cancellables)
+#endif
+
+#if os(macOS)
+        grpcManager.$lastError.sink { [weak self] error in
+            self?.lastError = error
+        }
+        .store(in: &cancellables)
+#endif
+    }
 #if os(iOS)
     func configureTunnelStatusObservation(with tunnel: Tunnel) {
         tunnelStatusUpdateCancellable = tunnel.$status
@@ -327,11 +347,6 @@ private extension HomeViewModel {
 #if os(macOS)
 private extension HomeViewModel {
     func setupGRPCManagerObservers() {
-        grpcManager.$lastError.sink { [weak self] error in
-            self?.lastError = error
-        }
-        .store(in: &cancellables)
-
         grpcManager.$tunnelStatus
             .debounce(for: .seconds(0.15), scheduler: DispatchQueue.global(qos: .background))
             .receive(on: RunLoop.main)
