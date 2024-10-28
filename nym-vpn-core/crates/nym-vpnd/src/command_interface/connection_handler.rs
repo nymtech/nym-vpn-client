@@ -139,6 +139,13 @@ impl CommandInterfaceConnectionHandler {
             .await
     }
 
+    pub(crate) async fn handle_get_account_identity(
+        &self,
+    ) -> Result<Result<String, AccountError>, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::GetAccountIdentity, ())
+            .await
+    }
+
     pub(crate) async fn handle_get_account_state(
         &self,
     ) -> Result<Result<AccountStateSummary, AccountError>, VpnCommandSendError> {
@@ -165,6 +172,13 @@ impl CommandInterfaceConnectionHandler {
         seed: Option<[u8; 32]>,
     ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::ResetDeviceIdentity, seed)
+            .await
+    }
+
+    pub(crate) async fn handle_get_device_identity(
+        &self,
+    ) -> Result<Result<String, AccountError>, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::GetDeviceIdentity, ())
             .await
     }
 

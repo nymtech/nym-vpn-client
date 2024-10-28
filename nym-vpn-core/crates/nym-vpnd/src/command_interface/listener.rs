@@ -16,9 +16,10 @@ use nym_vpn_proto::{
     nym_vpnd_server::NymVpnd, AccountError, ConnectRequest, ConnectResponse, ConnectionStateChange,
     ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
     FetchRawAccountSummaryRequest, FetchRawAccountSummaryResponse, FetchRawDevicesRequest,
-    FetchRawDevicesResponse, GetAccountStateRequest, GetAccountStateResponse,
-    GetDeviceZkNymsRequest, GetDeviceZkNymsResponse, InfoRequest, InfoResponse,
-    IsAccountStoredRequest, IsAccountStoredResponse, IsReadyToConnectRequest,
+    FetchRawDevicesResponse, GetAccountIdentityRequest, GetAccountIdentityResponse,
+    GetAccountStateRequest, GetAccountStateResponse, GetDeviceIdentityRequest,
+    GetDeviceIdentityResponse, GetDeviceZkNymsRequest, GetDeviceZkNymsResponse, InfoRequest,
+    InfoResponse, IsAccountStoredRequest, IsAccountStoredResponse, IsReadyToConnectRequest,
     IsReadyToConnectResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
     ListGatewaysResponse, RefreshAccountStateRequest, RefreshAccountStateResponse,
     RegisterDeviceRequest, RegisterDeviceResponse, RemoveAccountRequest, RemoveAccountResponse,
@@ -446,6 +447,34 @@ impl NymVpnd for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
+    async fn get_account_identity(
+        &self,
+        _request: tonic::Request<GetAccountIdentityRequest>,
+    ) -> Result<tonic::Response<GetAccountIdentityResponse>, tonic::Status> {
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_get_account_identity()
+            .await
+            .map_err(|err| {
+                tracing::error!("Failed to get account identity: {:?}", err);
+                tonic::Status::internal("Failed to get account identity")
+            })?;
+
+        let response = match result {
+            Ok(identity) => GetAccountIdentityResponse {
+                id: Some(
+                    nym_vpn_proto::get_account_identity_response::Id::AccountIdentity(identity),
+                ),
+            },
+            Err(err) => GetAccountIdentityResponse {
+                id: Some(nym_vpn_proto::get_account_identity_response::Id::Error(
+                    nym_vpn_proto::AccountError::from(err),
+                )),
+            },
+        };
+
+        Ok(tonic::Response::new(response))
+    }
+
     async fn get_account_state(
         &self,
         _request: tonic::Request<GetAccountStateRequest>,
@@ -515,20 +544,45 @@ impl NymVpnd for CommandInterface {
         &self,
         request: tonic::Request<ResetDeviceIdentityRequest>,
     ) -> Result<tonic::Response<ResetDeviceIdentityResponse>, tonic::Status> {
-        let seed: [u8; 32] = request
+        let seed: Option<[u8; 32]> = request
             .into_inner()
             .seed
-            .as_slice()
-            .try_into()
-            .map_err(|_| tonic::Status::invalid_argument("Seed must be 32 bytes long"))?;
+            .map(|seed| {
+                seed.as_slice()
+                    .try_into()
+                    .map_err(|_| tonic::Status::invalid_argument("Seed must be 32 bytes long"))
+            })
+            .transpose()?;
 
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_reset_device_identity(Some(seed))
+            .handle_reset_device_identity(seed)
             .await?;
 
         let response = ResetDeviceIdentityResponse {
             success: result.is_ok(),
             error: result.err().map(AccountError::from),
+        };
+
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn get_device_identity(
+        &self,
+        _request: tonic::Request<GetDeviceIdentityRequest>,
+    ) -> Result<tonic::Response<GetDeviceIdentityResponse>, tonic::Status> {
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_get_device_identity()
+            .await?;
+
+        let response = match result {
+            Ok(identity) => GetDeviceIdentityResponse {
+                id: Some(nym_vpn_proto::get_device_identity_response::Id::DeviceIdentity(identity)),
+            },
+            Err(err) => GetDeviceIdentityResponse {
+                id: Some(nym_vpn_proto::get_device_identity_response::Id::Error(
+                    nym_vpn_proto::AccountError::from(err),
+                )),
+            },
         };
 
         Ok(tonic::Response::new(response))

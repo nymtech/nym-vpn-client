@@ -102,6 +102,7 @@ pub enum VpnServiceCommand {
     StoreAccount(oneshot::Sender<Result<(), AccountError>>, String),
     IsAccountStored(oneshot::Sender<Result<bool, AccountError>>, ()),
     RemoveAccount(oneshot::Sender<Result<(), AccountError>>, ()),
+    GetAccountIdentity(oneshot::Sender<Result<String, AccountError>>, ()),
     GetAccountState(
         oneshot::Sender<Result<AccountStateSummary, AccountError>>,
         (),
@@ -109,6 +110,7 @@ pub enum VpnServiceCommand {
     RefreshAccountState(oneshot::Sender<Result<(), AccountError>>, ()),
     IsReadyToConnect(oneshot::Sender<Result<ReadyToConnect, AccountError>>, ()),
     ResetDeviceIdentity(oneshot::Sender<Result<(), AccountError>>, Option<Seed>),
+    GetDeviceIdentity(oneshot::Sender<Result<String, AccountError>>, ()),
     RegisterDevice(oneshot::Sender<Result<(), AccountError>>, ()),
     RequestZkNym(oneshot::Sender<Result<(), AccountError>>, ()),
     GetDeviceZkNyms(oneshot::Sender<Result<(), AccountError>>, ()),
@@ -135,10 +137,12 @@ impl fmt::Display for VpnServiceCommand {
             VpnServiceCommand::StoreAccount(..) => write!(f, "StoreAccount"),
             VpnServiceCommand::IsAccountStored(..) => write!(f, "IsAccountStored"),
             VpnServiceCommand::RemoveAccount(..) => write!(f, "RemoveAccount"),
+            VpnServiceCommand::GetAccountIdentity(..) => write!(f, "GetAccountIdentity"),
             VpnServiceCommand::GetAccountState(..) => write!(f, "GetAccountState"),
             VpnServiceCommand::RefreshAccountState(..) => write!(f, "RefreshAccountState"),
             VpnServiceCommand::IsReadyToConnect(..) => write!(f, "IsReadyToConnect"),
             VpnServiceCommand::ResetDeviceIdentity(..) => write!(f, "ResetDeviceIdentity"),
+            VpnServiceCommand::GetDeviceIdentity(..) => write!(f, "GetDeviceIdentity"),
             VpnServiceCommand::RegisterDevice(..) => write!(f, "RegisterDevice"),
             VpnServiceCommand::RequestZkNym(..) => write!(f, "RequestZkNym"),
             VpnServiceCommand::GetDeviceZkNyms(..) => write!(f, "GetDeviceZkNyms"),
@@ -564,6 +568,10 @@ where
                 let result = self.handle_remove_account().await;
                 let _ = tx.send(result);
             }
+            VpnServiceCommand::GetAccountIdentity(tx, ()) => {
+                let result = self.handle_get_account_identity().await;
+                let _ = tx.send(result);
+            }
             VpnServiceCommand::GetAccountState(tx, ()) => {
                 let result = self.handle_get_account_state().await;
                 let _ = tx.send(result);
@@ -578,6 +586,10 @@ where
             }
             VpnServiceCommand::ResetDeviceIdentity(tx, seed) => {
                 let result = self.handle_reset_device_identity(seed).await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::GetDeviceIdentity(tx, ()) => {
+                let result = self.handle_get_device_identity().await;
                 let _ = tx.send(result);
             }
             VpnServiceCommand::RegisterDevice(tx, ()) => {
@@ -844,6 +856,10 @@ where
         Ok(())
     }
 
+    async fn handle_get_account_identity(&self) -> Result<String, AccountError> {
+        self.load_account().await.map(|account| account.id())
+    }
+
     async fn handle_get_account_state(&self) -> Result<AccountStateSummary, AccountError> {
         Ok(self.shared_account_state.lock().await.clone())
     }
@@ -873,7 +889,6 @@ where
             .inspect(|account| tracing::info!("Loading account id: {}", account.id()))
     }
 
-    #[allow(unused)]
     async fn load_device_keys(&self) -> Result<nym_vpn_store::keys::DeviceKeys, AccountError> {
         self.storage
             .lock()
@@ -900,7 +915,21 @@ where
             .await
             .map_err(|err| AccountError::FailedToResetKeys {
                 source: Box::new(err),
-            })
+            })?;
+
+        self.account_command_tx
+            .send(AccountCommand::UpdateSharedAccountState)
+            .map_err(|err| AccountError::SendCommand {
+                source: Box::new(err),
+            })?;
+
+        Ok(())
+    }
+
+    async fn handle_get_device_identity(&self) -> Result<String, AccountError> {
+        self.load_device_keys()
+            .await
+            .map(|keys| keys.device_keypair().public_key().to_string())
     }
 
     async fn handle_register_device(&self) -> Result<(), AccountError> {

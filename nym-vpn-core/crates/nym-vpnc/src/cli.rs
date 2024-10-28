@@ -28,6 +28,7 @@ pub(crate) enum Command {
     StoreAccount(StoreAccountArgs),
     IsAccountStored,
     RemoveAccount,
+    GetAccountId,
     GetAccountState,
     RefreshAccountState,
     IsReadyToConnect,
@@ -39,6 +40,8 @@ pub(crate) enum Command {
     ListEntryCountries(ListCountriesArgs),
     ListExitCountries(ListCountriesArgs),
     ListVpnCountries(ListCountriesArgs),
+    ResetDeviceIdentity(ResetDeviceIdentityArgs),
+    GetDeviceId,
     RegisterDevice,
     RequestZkNym,
     GetDeviceZkNym,
@@ -184,6 +187,13 @@ pub(crate) struct ListCountriesArgs {
     /// consider a gateway for routing traffic.
     #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
     pub(crate) min_vpn_performance: Option<u8>,
+}
+
+#[derive(Args)]
+pub(crate) struct ResetDeviceIdentityArgs {
+    /// Reset the device identity using the given seed.
+    #[arg(long)]
+    pub(crate) seed: Option<String>,
 }
 
 pub(crate) fn parse_entry_point(args: &ConnectArgs) -> Result<Option<EntryPoint>> {

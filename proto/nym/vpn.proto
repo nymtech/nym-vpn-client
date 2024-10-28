@@ -550,6 +550,15 @@ message RemoveAccountResponse {
   AccountError error = 2;
 }
 
+message GetAccountIdentityRequest {}
+
+message GetAccountIdentityResponse {
+  oneof id {
+    string account_identity = 1;
+    AccountError error = 2;
+  }
+}
+
 enum MnemonicState {
   MNEMONIC_STATE_UNSPECIFIED = 0;
   MNEMONIC_STATE_NOT_STORED = 1;
@@ -616,12 +625,21 @@ message FetchRawDevicesResponse {
 
 message ResetDeviceIdentityRequest {
   // 32 byte seed, [u8; 32]
-  bytes seed = 1;
+  optional bytes seed = 1;
 }
 
 message ResetDeviceIdentityResponse {
   bool success = 1;
   AccountError error = 2;
+}
+
+message GetDeviceIdentityRequest {}
+
+message GetDeviceIdentityResponse {
+  oneof id {
+    string device_identity = 1;
+    AccountError error = 2;
+  }
 }
 
 message RegisterDeviceRequest {}
@@ -733,6 +751,7 @@ service NymVpnd {
   rpc StoreAccount (StoreAccountRequest) returns (StoreAccountResponse) {}
   rpc IsAccountStored (IsAccountStoredRequest) returns (IsAccountStoredResponse) {}
   rpc RemoveAccount (RemoveAccountRequest) returns (RemoveAccountResponse) {}
+  rpc GetAccountIdentity (GetAccountIdentityRequest) returns (GetAccountIdentityResponse) {}
 
   // Query the account state, which refers to the server side account, as it is
   // known and interpreted by nym-vpnd
@@ -742,6 +761,7 @@ service NymVpnd {
 
   // Reset the device identity
   rpc ResetDeviceIdentity (ResetDeviceIdentityRequest) returns (ResetDeviceIdentityResponse) {}
+  rpc GetDeviceIdentity (GetDeviceIdentityRequest) returns (GetDeviceIdentityResponse) {}
 
   // Try to register the local device with the nym-vpn-api
   rpc RegisterDevice (RegisterDeviceRequest) returns (RegisterDeviceResponse) {}
