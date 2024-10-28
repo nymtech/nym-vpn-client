@@ -135,7 +135,7 @@ jobs:
           Add-Content $env:GITHUB_PATH "$msbuildpath"
 
           $msvctoolspath = "$buildtoolspath/VC/Tools/MSVC"
-          $contents = Get-ChildItem $buildtoolspath | Select-Object -First 1
+          $contents = Get-ChildItem $msvctoolspath | Select-Object -First 1
           $subdir = $contents[0].Name
           $vctoolsdir = "$msvctoolspath/$subdir/bin/Hostx64/x64"
           echo "Add vctools dir to path: $vctoolsdir"
