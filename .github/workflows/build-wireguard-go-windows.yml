@@ -36,7 +36,7 @@ jobs:
           winget install --disable-interactivity --id=Microsoft.VisualStudio.2022.BuildTools --override "--wait --passive --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended"
 
       - name: Update path with vctools
-        shell: powershell
+        shell: pwsh
         run: |
           $path = "$Env:ProgramFiles (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC"
           $contents = Get-ChildItem $path | Select-Object -First 1
