@@ -61,6 +61,12 @@ jobs:
         with:
           node-version: 20
 
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          version: "21.12" # version on ubuntu 24.04
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Get package version
         id: package-version
         uses: nicolaiunrein/cargo-get@master
