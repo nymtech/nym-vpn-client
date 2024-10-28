@@ -2,6 +2,7 @@ package net.nymtech.nymvpn.service.tunnel
 
 import android.content.Context
 import android.net.VpnService
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,10 +10,13 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
+import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
@@ -33,6 +37,7 @@ class NymTunnelManager @Inject constructor(
 	private val backend: Provider<Backend>,
 	private val context: Context,
 	@ApplicationScope private val applicationScope: CoroutineScope,
+	@IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : TunnelManager {
 
 	private val _state = MutableStateFlow(TunnelState())
@@ -40,7 +45,7 @@ class NymTunnelManager @Inject constructor(
 		_state.update {
 			it.copy(isMnemonicStored = isMnemonicStored())
 		}
-	}.stateIn(applicationScope, SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT), TunnelState())
+	}.stateIn(applicationScope.plus(ioDispatcher), SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT), TunnelState())
 
 	@get:Synchronized @set:Synchronized
 	private var running: Boolean = false
@@ -101,6 +106,13 @@ class NymTunnelManager @Inject constructor(
 	private fun onBackendMessage(backendMessage: BackendMessage) {
 		launchBackendNotification(backendMessage)
 		emitMessage(backendMessage)
+		// TODO For now, we'll stop tunnel on errors
+		if (backendMessage is BackendMessage.Failure) {
+			Timber.d("Shutting tunnel down on fatal error")
+			applicationScope.launch(ioDispatcher) {
+				backend.get().stop()
+			}
+		}
 	}
 
 	private fun emitMessage(backendMessage: BackendMessage) {

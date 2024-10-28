@@ -64,6 +64,12 @@ interface Tunnel {
 	 * Enum class to represent all possible environments of a [Tunnel].
 	 */
 	enum class Environment {
+		CANARY {
+			override val nymVpnApiUrl: URL?
+				get() = null
+			override val apiUrl: URL
+				get() = URL("https://canary-api.performance.nymte.ch/api")
+		},
 		MAINNET {
 			override val nymVpnApiUrl: URL
 				get() = URL("https://nymvpn.com/api")
@@ -75,12 +81,6 @@ interface Tunnel {
 				get() = null
 			override val apiUrl: URL
 				get() = URL("https://sandbox-nym-api1.nymtech.net/api")
-		},
-		CANARY {
-			override val nymVpnApiUrl: URL?
-				get() = null
-			override val apiUrl: URL
-				get() = URL("https://canary-api.performance.nymte.ch/api")
 		},
 		QA {
 			override val nymVpnApiUrl: URL?

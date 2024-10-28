@@ -26,8 +26,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -35,6 +38,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import net.nymtech.localizationutil.LocaleStorage
 import net.nymtech.localizationutil.LocaleUtil
 import net.nymtech.nymvpn.NymVpn
@@ -62,6 +66,7 @@ import net.nymtech.nymvpn.ui.screens.settings.legal.LegalScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.licenses.LicensesScreen
 import net.nymtech.nymvpn.ui.screens.settings.logs.LogsScreen
 import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
+import net.nymtech.nymvpn.ui.screens.splash.SplashScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.Constants
@@ -91,11 +96,16 @@ class MainActivity : ComponentActivity() {
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
+
 		appViewModel = ViewModelProvider(this)[AppViewModel::class.java]
+
 		this.resetTile()
 
-		val isAnalyticsShown = intent.extras?.getBoolean(SplashActivity.IS_ANALYTICS_SHOWN_INTENT_KEY)
-		val theme = intent.extras?.getString(SplashActivity.THEME)
+		lifecycleScope.launch {
+			repeatOnLifecycle(Lifecycle.State.CREATED) {
+				appViewModel.onAppStartup()
+			}
+		}
 
 		setContent {
 			val appState by appViewModel.uiState.collectAsStateWithLifecycle(lifecycle = this.lifecycle)
@@ -148,13 +158,9 @@ class MainActivity : ComponentActivity() {
 				}
 			}
 
-			fun getTheme(): Theme {
-				return appState.settings.theme ?: theme?.let { Theme.valueOf(it) } ?: Theme.default()
-			}
-
 			CompositionLocalProvider(LocalNavController provides navController) {
 				SnackbarControllerProvider { host ->
-					NymVPNTheme(theme = getTheme()) {
+					NymVPNTheme(theme = appState.settings.theme ?: Theme.default()) {
 						Scaffold(
 							contentWindowInsets = WindowInsets(0.dp),
 							modifier = Modifier.semantics {
@@ -181,7 +187,7 @@ class MainActivity : ComponentActivity() {
 						) { padding ->
 							NavHost(
 								navController,
-								startDestination = if (isAnalyticsShown == true) Route.Main() else Route.Analytics,
+								startDestination = Route.Splash,
 								modifier =
 								Modifier
 									.fillMaxSize()
@@ -191,6 +197,9 @@ class MainActivity : ComponentActivity() {
 								popEnterTransition = { fadeIn(tween(200)) },
 								popExitTransition = { fadeOut(tween(200)) },
 							) {
+								composable<Route.Splash> {
+									SplashScreen(appViewModel, appState)
+								}
 								composable<Route.Main> {
 									val args = it.toRoute<Route.Main>()
 									MainScreen(appViewModel, appState, args.autoStart)

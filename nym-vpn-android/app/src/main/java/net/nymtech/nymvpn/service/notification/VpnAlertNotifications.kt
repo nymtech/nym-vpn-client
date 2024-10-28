@@ -13,7 +13,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.SplashActivity
+import net.nymtech.nymvpn.ui.MainActivity
 import javax.inject.Inject
 
 class VpnAlertNotifications
@@ -66,7 +66,7 @@ constructor(
 			Unit
 		}
 		val pendingIntent: PendingIntent =
-			Intent(context, SplashActivity::class.java).let { notificationIntent ->
+			Intent(context, MainActivity::class.java).let { notificationIntent ->
 				PendingIntent.getActivity(
 					context,
 					0,

@@ -223,9 +223,6 @@ dependencies {
 	implementation(libs.androidx.datastore.preferences)
 	implementation(libs.androidx.security.crypto)
 
-	// splash
-	implementation(libs.androidx.core.splashscreen)
-
 	detektPlugins(libs.detekt.rules.compose)
 
 	// moshi/retrofit
@@ -238,6 +235,9 @@ dependencies {
 
 	// barcode scanning
 	implementation(libs.zxing.android.embedded)
+
+	// animations
+	implementation(libs.lottie.compose)
 }
 
 fun determineVersionCode(): Int {
