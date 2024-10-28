@@ -76,11 +76,11 @@ fn run() -> anyhow::Result<()> {
     let _network_env = if let Some(ref env) = args.config_env_file {
         nym_vpn_lib::nym_config::defaults::setup_env(Some(env));
         let network_details = NymNetworkDetails::new_from_env();
-        discovery::manual_env(&network_details)?;
+        discovery::manual_env(&network_details)?
     } else {
         let network_name = global_config_file.network_name.clone();
         tracing::info!("Setting up environment from discovery file: {network_name}");
-        discovery::discover_env(&network_name)?;
+        discovery::discover_env(&network_name)?
     };
 
     if args.command.is_any() {
