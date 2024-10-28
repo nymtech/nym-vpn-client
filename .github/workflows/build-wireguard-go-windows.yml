@@ -9,6 +9,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
+  MSYS2_PATH_TYPE: inherit
 
 jobs:
   build:
@@ -29,8 +30,10 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup MSBuild.exe
-        uses: microsoft/setup-msbuild@v2
+      - name: Install build tools
+        shell: cmd
+        run: |
+          winget install --id=Microsoft.VisualStudio.2022.BuildTools --override "--wait --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended"
 
       - name: Setup msys2
         uses: msys2/setup-msys2@v2
