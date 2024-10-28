@@ -35,8 +35,7 @@ jobs:
           touch build-info.txt
           echo "App name:      $(yq -oy '.productName' nym-vpn-app/src-tauri/tauri.conf.json)" >> build-info.txt
           echo "Version:       $(yq -oy '.package.version' nym-vpn-app/src-tauri/Cargo.toml)" >> build-info.txt
-          # TODO: extract this from the lock file instead
-          echo "Tauri version: $(yq -oy '.dependencies.tauri.version' nym-vpn-app/src-tauri/Cargo.toml)" >> build-info.txt
+          echo "Tauri version: $(yq -ptoml -oy '.package[] | select(.name == "tauri") | .version' nym-vpn-app/src-tauri/Cargo.lock)" >> build-info.txt
           echo "Rustc version: ${{ inputs.rust-version}}" >> build-info.txt
           echo "Build profile: ${{ inputs.build-profile}}" >> build-info.txt
           echo "Date:          ${{ steps.date.outputs.date }}" >> build-info.txt

@@ -120,17 +120,6 @@ jobs:
           cat ${{ env.UPLOAD_DIR_WINDOWS }}/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
-      # - name: AppImage installer bump version
-      #   env:
-      #     appimg_installer: nym-vpn-app/scripts/appimage.sh
-      #   run: |
-      #     echo "tag: $TAG_NAME"
-      #     echo "version: $PKG_VERSION"
-      #     sed -i "s/^tag=.*$/tag=$TAG_NAME/" $appimg_installer
-      #     sed -i "s/^version=.*$/version=$PKG_VERSION/" $appimg_installer
-      #     mkdir installer
-      #     cp -v $appimg_installer installer
-
       - name: Build info
         run: |
           echo 'BUILD_INFO<<EOF' >> $GITHUB_ENV
