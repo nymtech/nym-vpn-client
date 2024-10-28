@@ -30,6 +30,8 @@ public final class ConnectionManager: ObservableObject {
 
     public static let shared = ConnectionManager()
 
+    @Published public var lastError: Error?
+
     @Published public var connectionType: ConnectionType {
         didSet {
             appSettings.connectionType = connectionType.rawValue
@@ -190,15 +192,24 @@ public final class ConnectionManager: ObservableObject {
 }
 
 // MARK: - Setup -
-#if os(iOS)
 private extension ConnectionManager {
     func setup() {
+#if os(iOS)
         setupTunnelManagerObservers()
+#endif
+
+#if os(macOS)
+        setupGRPCManagerObservers()
+#endif
         setupCountriesManagerObserver()
         setupAppSettingsObservers()
         setupConnectionChangeObserver()
+        setupConnectionErrorObserver()
     }
+}
 
+#if os(iOS)
+private extension ConnectionManager {
     func setupTunnelManagerObservers() {
         tunnelsManager.$isLoaded.sink { [weak self] isLoaded in
             self?.isTunnelManagerLoaded = isLoaded
@@ -221,13 +232,6 @@ private extension ConnectionManager {
 
 #if os(macOS)
 private extension ConnectionManager {
-    func setup() {
-        setupGRPCManagerObservers()
-        setupCountriesManagerObserver()
-        setupAppSettingsObservers()
-        setupConnectionChangeObserver()
-    }
-
     func setupGRPCManagerObservers() {
         grpcManager.$tunnelStatus.sink { [weak self] status in
             self?.currentTunnelStatus = status
@@ -386,6 +390,22 @@ private extension ConnectionManager {
             self?.updateCountries()
         }
         .store(in: &cancellables)
+    }
+
+    func setupConnectionErrorObserver() {
+#if os(iOS)
+        tunnelsManager.$lastError.sink { [weak self] newError in
+            self?.lastError = newError
+        }
+        .store(in: &cancellables)
+#endif
+
+#if os(macOS)
+        grpcManager.$lastError.sink { [weak self] newError in
+            self?.lastError = newError
+        }
+        .store(in: &cancellables)
+#endif
     }
 
     func updateCountries() {
