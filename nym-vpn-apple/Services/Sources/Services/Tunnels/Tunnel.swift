@@ -9,6 +9,7 @@ public final class Tunnel: NSObject, ObservableObject {
     @Published public var status: TunnelStatus
 
     private var logger: Logger
+    private var pollTimer: Timer?
 
     public var onDemandEnabled: Bool {
         tunnel.isEnabled && tunnel.isOnDemandEnabled
@@ -82,7 +83,7 @@ public final class Tunnel: NSObject, ObservableObject {
                     status = .disconnected
                 }
                 logger.log(level: .info, "Connecting - reconnecting")
-                try? await connect(recursionCount: recursionCount + 1, lastError: systemError)
+                try await connect(recursionCount: recursionCount + 1, lastError: systemError)
             } else {
                 throw error
             }
@@ -96,5 +97,10 @@ public final class Tunnel: NSObject, ObservableObject {
 
     func updateStatus() {
         status = TunnelStatus(from: tunnel.connection.status)
+    }
+
+    func sendProviderMessage(_ messageData: Data, responseHandler: ((Data?) -> Void)?) throws {
+        let session = tunnel.connection as? NETunnelProviderSession
+        try session?.sendProviderMessage(messageData, responseHandler: responseHandler)
     }
 }

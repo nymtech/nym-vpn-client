@@ -4,19 +4,26 @@ import Logging
 import Keychain
 
 public final class TunnelsManager: ObservableObject {
+    private let secondInNanoseconds: UInt64 = 1000000000
     public static let shared = TunnelsManager()
+
+    private var cancellables = Set<AnyCancellable>()
+    private var work: Task<Void, Never>?
+    private var isPolling = false
 
     @Published public var isLoaded: Result<Void, Error>?
     @Published public var activeTunnel: Tunnel?
+    @Published public var lastError: Error?
     public var tunnels = [Tunnel]()
     public var logger = Logger(label: "TunnelsManager")
-
-    private var cancellables = Set<AnyCancellable>()
 
     init() {
         Task {
             try? await loadTunnels()
             observeTunnelStatuses()
+#if os(iOS)
+            startPolling()
+#endif
         }
     }
 }
@@ -37,57 +44,73 @@ extension TunnelsManager {
     }
 }
 
+// MARK: - Polling -
+#if os(iOS)
+private extension TunnelsManager {
+    func startPolling() {
+        isPolling = true
+        work = Task {
+            await pollLoop()
+        }
+    }
+
+    func pollLoop() async {
+        while isPolling {
+            await pollTunnelLastError()
+            try? await Task.sleep(nanoseconds: secondInNanoseconds)
+        }
+    }
+
+    func pollTunnelLastError() async {
+        guard let activeTunnel,
+            let session = activeTunnel.tunnel.connection as? NETunnelProviderSession
+        else {
+            logger.log(level: .error, "Failed to access NETunnelProviderSession from the active tunnel.")
+            return
+        }
+
+        do {
+            let message = try TunnelProviderMessage.lastErrorReason.encode()
+            let response = try await session.sendProviderMessageAsync(message)
+            if let response, let decodedReason = try? ErrorReason(from: response) {
+                lastError = decodedReason
+                logger.info("Last tunnel error: \(decodedReason)")
+            } else {
+                logger.error("No response received or an error occurred during polling.")
+            }
+        } catch {
+            logger.error("Failed to send polling message with error: \(error)")
+        }
+    }
+}
+#endif
+
 // MARK: - Connection -
 extension TunnelsManager {
     public func connect(tunnel: Tunnel) async throws {
-        guard tunnels.contains(tunnel), tunnel.status == .disconnected  else { return } // Ensure it's not deleted
-
-        //        if let alreadyWaitingTunnel = tunnels.first(where: { $0.status == .waiting }) {
-        //            alreadyWaitingTunnel.status = .disconnected
-        //        }
-
-        //        if let tunnelInOperation = tunnels.first(where: { $0.status != .disconnected }) {
-        //            wg_log(.info, message: "Tunnel '\(tunnel.name)' waiting for deactivation of '\(tunnelInOperation.name)'")
-        //            tunnel.status = .waiting
-        //            activateWaitingTunnelOnDeactivation(of: tunnelInOperation)
-        //            if tunnelInOperation.status != .deactivating {
-        //                if tunnelInOperation.isActivateOnDemandEnabled {
-        //                    setOnDemandEnabled(false, on: tunnelInOperation) { [weak self] error in
-        //                        guard error == nil else {
-        //                            wg_log(.error, message: "Unable to activate tunnel '\(tunnel.name)' because on-demand could not be disabled on active tunnel '\(tunnel.name)'")
-        //                            return
-        //                        }
-        //                        self?.startDeactivation(of: tunnelInOperation)
-        //                    }
-        //                } else {
-        //                    startDeactivation(of: tunnelInOperation)
-        //                }
-        //            }
-        //            return
-        //        }
-
-        #if targetEnvironment(simulator)
-            tunnel.status = .connected
-        #else
+        guard tunnels.contains(tunnel), tunnel.status == .disconnected  else { return }
+#if targetEnvironment(simulator)
+        tunnel.status = .connected
+#else
         do {
             try await tunnel.connect()
         } catch {
             throw error
         }
-        #endif
+#endif
     }
 
     public func disconnect(tunnel: Tunnel) {
-        // tunnel.isAttemptingActivation = false
         guard tunnel.status != .disconnected && tunnel.status != .disconnecting else { return }
-        #if targetEnvironment(simulator)
-            tunnel.status = .disconnected
-        #else
-            tunnel.disconnect()
-        #endif
+#if targetEnvironment(simulator)
+        tunnel.status = .disconnected
+#else
+        tunnel.disconnect()
+#endif
     }
 }
 
+// MARK: - Load All Tunnel Managers -
 private extension TunnelsManager {
     func loadAllTunnelManagers() async throws -> [Tunnel] {
         do {

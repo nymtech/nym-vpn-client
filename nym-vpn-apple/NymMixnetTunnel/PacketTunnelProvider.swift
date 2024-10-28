@@ -1,5 +1,4 @@
 import NetworkExtension
-import UserNotifications
 import Logging
 import ConfigurationManager
 import NymLogger
@@ -8,17 +7,22 @@ import TunnelMixnet
 import Tunnels
 
 class PacketTunnelProvider: NEPacketTunnelProvider {
+    private let secondInNanoseconds: UInt64 = 1000000000
     private let eventStream: AsyncStream<TunnelEvent>
-    private let eventContinuation: AsyncStream<TunnelEvent>.Continuation
     private let stateLock = NSLock()
+
+    let eventContinuation: AsyncStream<TunnelEvent>.Continuation
 
     private static var defaultPathObserverContext = 0
 
-    private lazy var logger = Logger(label: "MixnetTunnel")
+    lazy var logger = Logger(label: "MixnetTunnel")
 
     private var defaultPathObserver: (any OsDefaultPathObserver)?
     private var installedDefaultPathObserver = false
-    private var connectionStartDate: Date?
+
+    var connectionStartDate: Date?
+    var didSendError = false
+    var lastErrorStateReason: ErrorStateReason?
 
     override init() {
         LoggingSystem.bootstrap { label in
@@ -64,24 +68,42 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         } catch {
             throw PacketTunnelProviderError.backendStartFailure
         }
-        logger.info("Backend is up an running...")
+        logger.info("Backend is up and running...")
         connectionStartDate = Date()
 
-        for await event in eventStream {
-            switch event {
-            case .statusUpdate(.up):
-                logger.debug("Tunnel is up.")
-                // Stop blocking startTunnel() to avoid being terminated due to system 60s timeout
-                return
-            case .statusUpdate(.establishingConnection):
-                logger.debug("Tunnel is establishing connection.")
-            case .statusUpdate(.down):
-                logger.error("Failed to start backend")
-                throw PacketTunnelProviderError.backendStartFailure
-            case .statusUpdate(.initializingClient):
-                logger.debug("Initializing the client")
-            case .statusUpdate(.disconnecting):
-                logger.debug("Disconnecting?")
+        // Monitor for didSendError changes concurrently
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            Task {
+                await monitorDidSendError { errorOccurred in
+                    if errorOccurred {
+                        continuation.resume(throwing: PacketTunnelProviderError.backendStartFailure)
+                    } else {
+                        continuation.resume(returning: ())
+                    }
+                }
+            }
+
+            Task {
+                for await event in eventStream {
+                    switch event {
+                    case .statusUpdate(.up):
+                        logger.debug("Tunnel is up.")
+                        continuation.resume(returning: ())
+                        return
+                    case .statusUpdate(.establishingConnection):
+                        logger.debug("Tunnel is establishing connection.")
+                    case .statusUpdate(.down):
+                        logger.error("Failed to start backend")
+                        if didSendError {
+                            continuation.resume(throwing: PacketTunnelProviderError.backendStartFailure)
+                            break
+                        }
+                    case .statusUpdate(.initializingClient):
+                        logger.debug("Initializing the client")
+                    case .statusUpdate(.disconnecting):
+                        logger.debug("Disconnecting?")
+                    }
+                }
             }
         }
     }
@@ -141,46 +163,6 @@ extension PacketTunnelProvider {
     }
 }
 
-extension PacketTunnelProvider: TunnelStatusListener {
-    func onEvent(event: MixnetLibrary.TunnelEvent) {
-        // todo: implement
-    }
-
-    func onBandwidthStatusChange(status: BandwidthStatus) {
-        // todo: implement
-    }
-
-    func onConnectionStatusChange(status: ConnectionStatus) {
-        // todo: implement
-    }
-
-    func onNymVpnStatusChange(status: NymVpnStatus) {
-        // todo: implement
-    }
-
-    func onExitStatusChange(status: ExitStatus) {
-        var durationString = ""
-        if let connectionStartDate {
-            let dateFormatter = DateComponentsFormatter()
-            dateFormatter.allowedUnits = [.hour, .minute, .second]
-            dateFormatter.zeroFormattingBehavior = .pad
-            durationString = dateFormatter.string(from: connectionStartDate, to: Date()) ?? ""
-        }
-
-        switch status {
-        case .failure(let error):
-            logger.error("onExitStatus: \(error.localizedDescription) after: \(durationString)")
-            scheduleDisconnectNotification()
-        case .stopped:
-            logger.info("onExitStatus: Tunnel stopped after: \(durationString)")
-        }
-    }
-
-    func onTunStatusChange(status: TunStatus) {
-        eventContinuation.yield(.statusUpdate(status))
-    }
-}
-
 extension PacketTunnelProvider: OsTunProvider {
     func setDefaultPathObserver(observer: (any OsDefaultPathObserver)?) throws {
         stateLock.withLock {
@@ -200,24 +182,15 @@ extension PacketTunnelProvider: OsTunProvider {
     }
 }
 
-// MARK: - Notifications -
-extension PacketTunnelProvider {
-    func scheduleDisconnectNotification() {
-        // TODO: localize the notification content.
-        // TODO: move localizations to separate package
-        let content = UNMutableNotificationContent()
-        content.title = "The NymVPN connection has failed."
-        content.body = "Please try reconnecting."
-        content.sound = UNNotificationSound.default
-
-        let request = UNNotificationRequest(identifier: "disconnectNotification", content: content, trigger: nil)
-
-        UNUserNotificationCenter.current().add(request) { [weak self] error in
-            if let error = error {
-                print("Error scheduling notification: \(error.localizedDescription)")
-            } else {
-                self?.logger.info("🚀 Notification scheduled successfully")
+private extension PacketTunnelProvider {
+    func monitorDidSendError(onError: @escaping (Bool) -> Void) async {
+        while true {
+            logger.info("monitorDidSendError: \(didSendError)")
+            if didSendError {
+                onError(true)
+                break
             }
+            try? await Task.sleep(nanoseconds: secondInNanoseconds)
         }
     }
 }
