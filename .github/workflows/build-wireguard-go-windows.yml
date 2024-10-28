@@ -31,7 +31,9 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install build tools
-        uses: seanmiddleditch/gha-setup-vsdevenv@v4
+        shell: cmd
+        run: |
+          winget install --disable-interactivity --id=Microsoft.VisualStudio.2022.BuildTools --override "--wait --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended"
 
       - name: Setup msys2
         uses: msys2/setup-msys2@v2
