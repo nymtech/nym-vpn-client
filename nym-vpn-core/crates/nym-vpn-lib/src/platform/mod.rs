@@ -14,7 +14,7 @@ use lazy_static::lazy_static;
 use log::*;
 use tokio::{
     runtime::Runtime,
-    sync::{mpsc, Mutex},
+    sync::{mpsc, Mutex, MutexGuard},
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
@@ -173,34 +173,21 @@ pub fn getAccountSummary(
     RUNTIME.block_on(get_account_summary(path, nym_vpn_api_url, user_agent))
 }
 
-#[allow(dead_code)]
 async fn get_account_summary(
     path: String,
     nym_vpn_api_url: Url,
     user_agent: UserAgent,
 ) -> Result<String, VpnError> {
-    let storage = setup_account_storage(&path)?;
-    let account = storage
-        .load_mnemonic()
-        .await
-        .map(VpnApiAccount::from)
-        .map_err(|err| VpnError::InternalError {
-            details: err.to_string(),
-        })?;
+    let guard = STATE_MACHINE_HANDLE.lock().await;
 
-    let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent.into())?;
-
-    api_client
-        .get_account_summary(&account)
-        .await
-        .map_err(|err| VpnError::InternalError {
-            details: err.to_string(),
-        })
-        .and_then(|summary| {
-            serde_json::to_string(&summary).map_err(|err| VpnError::InternalError {
-                details: err.to_string(),
-            })
-        })
+    if let Some(guard) = &*guard {
+        let shared_account_state = guard.account_shared_state.lock().await.clone();
+        return Ok(shared_account_state.to_string());
+    } else {
+        return Err(VpnError::InvalidStateError {
+            details: "State machine is not running.".to_owned(),
+        });
+    }
 }
 
 #[allow(non_snake_case)]
@@ -308,6 +295,9 @@ struct StateMachineHandle {
     state_machine_handle: JoinHandle<()>,
     event_broadcaster_handler: JoinHandle<()>,
     command_sender: mpsc::UnboundedSender<TunnelCommand>,
+    account_command_sender: mpsc::UnboundedSender<nym_vpn_account_controller::AccountCommand>,
+    account_shared_state: nym_vpn_account_controller::SharedAccountState,
+    account_controller_handle: JoinHandle<()>,
     shutdown_token: CancellationToken,
 }
 
@@ -347,8 +337,12 @@ async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, Vp
         ..Default::default()
     };
 
+    // TODO: remove unwrap
+    let data_dir = config.credential_data_path.clone().unwrap();
+
     let nym_config = NymConfig {
-        data_path: config.credential_data_path,
+        // data_path: config.credential_data_path,
+        data_path: Some(data_dir.clone()),
         gateway_config,
     };
 
@@ -363,6 +357,25 @@ async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, Vp
         dns: DnsOptions::default(),
     };
 
+    let shutdown_token = CancellationToken::new();
+
+    // let data_path = config.credential_data_path.clone().unwrap();
+    let storage = Arc::new(tokio::sync::Mutex::new(
+        crate::storage::VpnClientOnDiskStorage::new(data_dir.clone()),
+    ));
+    // TODO: pass in as argument
+    let user_agent = crate::util::construct_user_agent();
+    let account_controller = nym_vpn_account_controller::AccountController::new(
+        Arc::clone(&storage),
+        data_dir.clone(),
+        user_agent,
+        shutdown_token.child_token(),
+    )
+    .await;
+    let shared_account_state = account_controller.shared_state();
+    let account_command_tx = account_controller.command_tx();
+    let account_controller_handle = tokio::spawn(account_controller.run());
+
     let (command_sender, command_receiver) = mpsc::unbounded_channel();
     let (event_sender, mut event_receiver) = mpsc::unbounded_channel();
 
@@ -375,7 +388,6 @@ async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, Vp
         }
     });
 
-    let shutdown_token = CancellationToken::new();
     let state_machine_handle = TunnelStateMachine::spawn(
         command_receiver,
         event_sender,
@@ -391,6 +403,11 @@ async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, Vp
         state_machine_handle,
         event_broadcaster_handler,
         command_sender,
+
+        account_command_sender: account_command_tx,
+        account_shared_state: shared_account_state,
+        account_controller_handle,
+
         shutdown_token,
     })
 }

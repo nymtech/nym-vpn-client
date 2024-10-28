@@ -4524,6 +4524,7 @@ dependencies = [
  "nym-task",
  "nym-topology",
  "nym-validator-client",
+ "nym-vpn-account-controller",
  "nym-vpn-api-client",
  "nym-vpn-store",
  "nym-wg-gateway-client",
