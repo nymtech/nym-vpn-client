@@ -23,7 +23,7 @@ pub async fn select_gateways(
     let (mut entry_gateways, exit_gateways) = match tunnel_type {
         TunnelType::Wireguard => {
             let all_gateways = gateway_directory_client
-                .lookup_gateways_from_nym_api(GatewayType::Wg)
+                .lookup_gateways(GatewayType::Wg)
                 .await
                 .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
             (all_gateways.clone(), all_gateways)
@@ -31,12 +31,12 @@ pub async fn select_gateways(
         TunnelType::Mixnet => {
             // Setup the gateway that we will use as the exit point
             let exit_gateways = gateway_directory_client
-                .lookup_gateways_from_nym_api(GatewayType::MixnetExit)
+                .lookup_gateways(GatewayType::MixnetExit)
                 .await
                 .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
             // Setup the gateway that we will use as the entry point
             let entry_gateways = gateway_directory_client
-                .lookup_gateways_from_nym_api(GatewayType::MixnetEntry)
+                .lookup_gateways(GatewayType::MixnetEntry)
                 .await
                 .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
             (entry_gateways, exit_gateways)
