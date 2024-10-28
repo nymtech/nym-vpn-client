@@ -129,10 +129,15 @@ jobs:
         if: contains(matrix.os, 'windows')
         shell: pwsh
         run: |
-          $path = "$Env:ProgramFiles (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC"
-          $contents = Get-ChildItem $path | Select-Object -First 1
+          $buildtoolspath = "$Env:ProgramFiles (x86)/Microsoft Visual Studio/2022/BuildTools"
+          $msbuildpath = "$buildtoolspath/MSBuild/Current/Bin"
+          echo "Add msbuild dir to path: $msbuildpath"
+          Add-Content $env:GITHUB_PATH "$msbuildpath"
+
+          $msvctoolspath = "$buildtoolspath/VC/Tools/MSVC"
+          $contents = Get-ChildItem $buildtoolspath | Select-Object -First 1
           $subdir = $contents[0].Name
-          $vctoolsdir = "$path/$subdir/bin/Hostx64/x64"
+          $vctoolsdir = "$msvctoolspath/$subdir/bin/Hostx64/x64"
           echo "Add vctools dir to path: $vctoolsdir"
           Add-Content $env:GITHUB_PATH "$vctoolsdir"
 
