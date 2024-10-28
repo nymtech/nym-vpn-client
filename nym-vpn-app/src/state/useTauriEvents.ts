@@ -1,10 +1,12 @@
 import { useCallback, useEffect } from 'react';
 import { listen } from '@tauri-apps/api/event';
+import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import dayjs from 'dayjs';
 import {
   BackendError,
   ConnectionEvent as ConnectionEventData,
+  DaemonInfo,
   DaemonStatus,
   ProgressEventPayload,
   StateDispatch,
@@ -29,12 +31,22 @@ function handleError(dispatch: StateDispatch, error?: BackendError | null) {
 
 export function useTauriEvents(dispatch: StateDispatch) {
   const registerDaemonListener = useCallback(() => {
-    return listen<DaemonStatus>(DaemonEvent, (event) => {
-      console.log(`received event [${event.event}], status: ${event.payload}`);
+    return listen<DaemonStatus>(DaemonEvent, async (event) => {
+      console.info(`received event [${event.event}], status: ${event.payload}`);
       dispatch({
         type: 'set-daemon-status',
         status: event.payload,
       });
+
+      // refresh daemon info and network env
+      if (event.payload === 'Ok') {
+        try {
+          const info = await invoke<DaemonInfo>('daemon_info');
+          dispatch({ type: 'set-daemon-info', info });
+        } catch (e: unknown) {
+          console.error('failed to get daemon info', e);
+        }
+      }
     });
   }, [dispatch]);
 

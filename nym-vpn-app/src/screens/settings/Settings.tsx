@@ -12,8 +12,7 @@ import { StateDispatch } from '../../types';
 import { Button, MsIcon, PageAnim, SettingsMenuCard, Switch } from '../../ui';
 import { InfoData } from './info-data';
 import SettingsGroup from './SettingsGroup';
-import { capFirst } from '../../helpers';
-import { AccountUrl } from '../../constants';
+import { capFirst, getLoginAccountUrl } from '../../helpers';
 
 const ThrottleDelay = 10000; // ms
 
@@ -25,6 +24,7 @@ function Settings() {
     daemonStatus,
     account,
     desktopNotifications,
+    networkEnv,
   } = useMainState();
 
   const navigate = useNavigate();
@@ -33,6 +33,7 @@ function Settings() {
   const { exit } = useExit();
   const { push } = useInAppNotify();
   const toggleDNotifications = useDesktopNotifications();
+  const accountLoginUrl = networkEnv && getLoginAccountUrl(networkEnv);
 
   useEffect(() => {
     const checkAccount = async () => {
@@ -57,6 +58,12 @@ function Settings() {
     const isChecked = !autoConnect;
     dispatch({ type: 'set-auto-connect', autoConnect: isChecked });
     kvSet('Autoconnect', isChecked);
+  };
+
+  const handleGoToAccount = () => {
+    if (accountLoginUrl) {
+      open(accountLoginUrl);
+    }
   };
 
   // notify the user at most once per every 10s when he toggles monitoring
@@ -101,11 +108,10 @@ function Settings() {
       {account && (
         <SettingsMenuCard
           title={capFirst(t('account', { ns: 'glossary' }))}
-          onClick={() => {
-            open(AccountUrl);
-          }}
+          onClick={handleGoToAccount}
           leadingIcon="person"
           trailingIcon="open_in_new"
+          disabled={!accountLoginUrl}
         />
       )}
       <SettingsGroup

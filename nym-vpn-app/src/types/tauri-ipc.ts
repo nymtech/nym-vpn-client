@@ -105,4 +105,4 @@ export type ConnectionStateResponse = {
   error?: BackendError | null;
 };
 
-export type DaemonInfo = { version: string; network: string };
+export type DaemonInfo = { version: string; network: NetworkEnv };
