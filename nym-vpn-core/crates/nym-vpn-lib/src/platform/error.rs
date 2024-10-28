@@ -20,6 +20,9 @@ pub enum VpnError {
 
     #[error("{details}")]
     InvalidStateError { details: String },
+
+    #[error("{details}")]
+    Account { details: String },
 }
 
 impl From<crate::Error> for VpnError {

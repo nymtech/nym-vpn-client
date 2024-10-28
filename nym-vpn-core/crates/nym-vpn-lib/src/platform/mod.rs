@@ -12,6 +12,7 @@ use std::{env, path::PathBuf, str::FromStr, sync::Arc};
 
 use lazy_static::lazy_static;
 use log::*;
+use nym_vpn_account_controller::ReadyToConnect;
 use tokio::{
     runtime::Runtime,
     sync::{mpsc, Mutex},
@@ -54,6 +55,28 @@ pub fn startVPN(config: VPNConfig) -> Result<(), VpnError> {
 }
 
 async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
+    let shared_account_state = {
+        let ac_guard = ACCOUNT_CONTROLLER_HANDLE.lock().await;
+
+        if let Some(ac_guard) = &*ac_guard {
+            ac_guard.shared_state.clone()
+        } else {
+            return Err(VpnError::InvalidStateError {
+                details: "Account controller is not running.".to_owned(),
+            });
+        }
+    };
+
+    match shared_account_state.is_ready_to_connect().await {
+        ReadyToConnect::Ready => {}
+        not_ready_to_connect => {
+            tracing::info!("Not ready to connect: {:?}", not_ready_to_connect);
+            return Err(VpnError::Account {
+                details: not_ready_to_connect.to_string(),
+            });
+        }
+    }
+
     let mut guard = STATE_MACHINE_HANDLE.lock().await;
 
     if guard.is_none() {
@@ -79,6 +102,7 @@ async fn stop_vpn_inner() -> Result<(), VpnError> {
 
     match guard.take() {
         Some(state_machine_handle) => {
+            // TODO: add timeout
             state_machine_handle.shutdown_and_wait().await;
             Ok(())
         }
@@ -204,20 +228,12 @@ async fn remove_account_mnemonic(path: &str) -> Result<bool, VpnError> {
         })
 }
 
-#[allow(non_snake_case, dead_code)]
-pub fn getAccountSummary(
-    path: String,
-    nym_vpn_api_url: Url,
-    user_agent: UserAgent,
-) -> Result<String, VpnError> {
+#[allow(non_snake_case)]
+pub fn getAccountSummary() -> Result<String, VpnError> {
     RUNTIME.block_on(get_account_summary(path, nym_vpn_api_url, user_agent))
 }
 
-async fn get_account_summary(
-    _path: String,
-    _nym_vpn_api_url: Url,
-    _user_agent: UserAgent,
-) -> Result<String, VpnError> {
+async fn get_account_summary() -> Result<String, VpnError> {
     let guard = ACCOUNT_CONTROLLER_HANDLE.lock().await;
 
     if let Some(guard) = &*guard {
@@ -355,7 +371,6 @@ impl AccountControllerHandle {
 }
 
 async fn start_account_controller(data_dir: PathBuf) -> Result<AccountControllerHandle, VpnError> {
-    // let data_path = config.credential_data_path.clone().unwrap();
     let storage = Arc::new(tokio::sync::Mutex::new(
         crate::storage::VpnClientOnDiskStorage::new(data_dir.clone()),
     ));
@@ -425,12 +440,8 @@ async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, Vp
         ..Default::default()
     };
 
-    // TODO: remove unwrap
-    let data_dir = config.credential_data_path.clone().unwrap();
-
     let nym_config = NymConfig {
-        // data_path: config.credential_data_path,
-        data_path: Some(data_dir.clone()),
+        data_path: config.credential_data_path,
         gateway_config,
     };
 
@@ -445,25 +456,6 @@ async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, Vp
         dns: DnsOptions::default(),
     };
 
-    let shutdown_token = CancellationToken::new();
-
-    // let data_path = config.credential_data_path.clone().unwrap();
-    //let storage = Arc::new(tokio::sync::Mutex::new(
-    //    crate::storage::VpnClientOnDiskStorage::new(data_dir.clone()),
-    //));
-    //// TODO: pass in as argument
-    //let user_agent = crate::util::construct_user_agent();
-    //let account_controller = nym_vpn_account_controller::AccountController::new(
-    //    Arc::clone(&storage),
-    //    data_dir.clone(),
-    //    user_agent,
-    //    shutdown_token.child_token(),
-    //)
-    //.await;
-    //let shared_account_state = account_controller.shared_state();
-    //let account_command_tx = account_controller.command_tx();
-    //let account_controller_handle = tokio::spawn(account_controller.run());
-
     let (command_sender, command_receiver) = mpsc::unbounded_channel();
     let (event_sender, mut event_receiver) = mpsc::unbounded_channel();
 
@@ -476,6 +468,7 @@ async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, Vp
         }
     });
 
+    let shutdown_token = CancellationToken::new();
     let state_machine_handle = TunnelStateMachine::spawn(
         command_receiver,
         event_sender,
@@ -491,10 +484,6 @@ async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, Vp
         state_machine_handle,
         event_broadcaster_handler,
         command_sender,
-
-        // account_command_sender: account_command_tx,
-        // account_shared_state: shared_account_state,
-        // account_controller_handle,
         shutdown_token,
     })
 }
