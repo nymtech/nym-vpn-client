@@ -39,7 +39,12 @@ fn set_global_network_details(network_details: NymNetworkDetails) -> anyhow::Res
 #[cfg(unix)]
 fn run() -> anyhow::Result<()> {
     let args = CliArgs::parse();
-    let global_config_file = discovery::GlobalConfigFile::read_from_file()?;
+    let mut global_config_file = discovery::GlobalConfigFile::read_from_file()?;
+
+    if let Some(ref network) = args.network {
+        global_config_file.network_name = network.to_owned();
+        global_config_file.write_to_file()?;
+    }
 
     logging::setup_logging(args.command.run_as_service);
 
@@ -61,7 +66,12 @@ fn run() -> anyhow::Result<()> {
 #[cfg(windows)]
 fn run() -> anyhow::Result<()> {
     let args = CliArgs::parse();
-    let global_config_file = discovery::GlobalConfigFile::read_from_file()?;
+    let mut global_config_file = discovery::GlobalConfigFile::read_from_file()?;
+
+    if let Some(ref network) = args.network {
+        global_config_file.network_name = network.to_owned();
+        global_config_file.write_to_file()?;
+    }
 
     let _network_env = if let Some(ref env) = args.config_env_file {
         nym_vpn_lib::nym_config::defaults::setup_env(Some(env));
