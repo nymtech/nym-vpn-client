@@ -40,7 +40,7 @@ jobs:
           install: mingw-w64-x86_64-clang
 
       - name: Build wireguard
-        shell: bash
+        shell: msys2 {0}
         run: |
           ./wireguard/build-wireguard-go.sh
 
