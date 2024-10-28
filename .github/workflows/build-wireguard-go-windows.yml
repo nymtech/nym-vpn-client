@@ -32,6 +32,13 @@ jobs:
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v2
 
+      - name: Setup msys2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          msystem: mingw64
+          install: mingw-w64-x86_64-clang
+
       - name: Build wireguard
         shell: bash
         run: |
