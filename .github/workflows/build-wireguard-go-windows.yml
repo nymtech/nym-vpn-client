@@ -35,6 +35,16 @@ jobs:
         run: |
           winget install --disable-interactivity --id=Microsoft.VisualStudio.2022.BuildTools --override "--wait --passive --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended"
 
+      - name: Update path with vctools
+        shell: powershell
+        run: |
+          $path = "$Env:ProgramFiles (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC"
+          $contents = Get-ChildItem $path | Select-Object -First 1
+          $subdir = $contents[0].Name
+          $vctoolsdir = "$path/$subdir/bin/Hostx64/x64"
+          echo "Add vctools dir to path: $vctoolsdir"
+          Add-Content $env:GITHUB_PATH "$vctoolsdir"
+
       - name: Setup msys2
         uses: msys2/setup-msys2@v2
         with:
