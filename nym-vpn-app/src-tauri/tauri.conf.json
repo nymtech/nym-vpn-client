@@ -1,5 +1,5 @@
 {
-  "productName": "nym-vpn",
+  "productName": "NymVPN",
   "identifier": "net.nymtech.vpn",
   "build": {
     "beforeDevCommand": "npm run dev",

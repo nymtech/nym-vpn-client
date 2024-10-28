@@ -16,7 +16,7 @@ fi
 
 # Extract the package name and version from the filename
 filename=$(basename "$deb_file")
-version=$(echo "$filename" | sed -n 's/nym-vpn_\([0-9a-zA-Z.-]*\)_.*\.deb/\1/p')
+version=$(echo "$filename" | sed -n 's/NymVPN_\([0-9a-zA-Z.-]*\)_.*\.deb/\1/p')
 
 if [ -z "$version" ]; then
     echo "Could not extract version from filename"
