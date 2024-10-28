@@ -76,6 +76,6 @@ pub async fn set_network(
             e.into()
         })
         .inspect(|_| {
-            info!("vpnd network set to {}, ⚠ restart vpnd!", network.as_ref());
+            info!("vpnd network set to {} ⚠ restart vpnd!", network.as_ref());
         })
 }
