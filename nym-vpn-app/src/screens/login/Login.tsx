@@ -10,7 +10,7 @@ import { useI18nError } from '../../hooks';
 import { routes } from '../../router';
 import { BackendError, StateDispatch } from '../../types';
 import { Button, Link, PageAnim, TextArea } from '../../ui';
-import { CreateAccountUrl } from '../../constants';
+import { getCreateAccountUrl } from '../../helpers';
 
 type AddError = {
   error: string;
@@ -18,7 +18,7 @@ type AddError = {
 };
 
 function Login() {
-  const { uiTheme, daemonStatus } = useMainState();
+  const { uiTheme, daemonStatus, networkEnv } = useMainState();
   const [phrase, setPhrase] = useState('');
   const [error, setError] = useState<AddError | null>(null);
 
@@ -27,6 +27,8 @@ function Login() {
   const { t } = useTranslation('addCredential');
   const { tE } = useI18nError();
   const dispatch = useMainDispatch() as StateDispatch;
+
+  const createAccountUrl = networkEnv && getCreateAccountUrl(networkEnv);
 
   const onChange = (phrase: string) => {
     setPhrase(phrase);
@@ -114,12 +116,14 @@ function Login() {
         >
           {t('login-button')}
         </Button>
-        <div className="flex flex-row justify-center items-center gap-2">
-          <span className="dark:text-mercury-pinkish">
-            {t('create-account.text')}
-          </span>
-          <Link text={t('create-account.link')} url={CreateAccountUrl} />
-        </div>
+        {createAccountUrl && (
+          <div className="flex flex-row justify-center items-center gap-2">
+            <span className="dark:text-mercury-pinkish">
+              {t('create-account.text')}
+            </span>
+            <Link text={t('create-account.link')} url={createAccountUrl} />
+          </div>
+        )}
       </div>
     </PageAnim>
   );

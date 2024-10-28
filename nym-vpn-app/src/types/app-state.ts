@@ -2,7 +2,7 @@ import { Dispatch } from 'react';
 import { Dayjs } from 'dayjs';
 import { StateAction } from '../state';
 import { Country, NodeLocation, ThemeMode, UiTheme } from './common';
-import { BackendError, ErrorKey } from './tauri-ipc';
+import { BackendError, ErrorKey, NetworkEnv } from './tauri-ipc';
 
 export type ConnectionState =
   | 'Connected'
@@ -29,6 +29,8 @@ export type AppState = {
   initialized: boolean;
   state: ConnectionState;
   daemonStatus: DaemonStatus;
+  daemonVersion?: string;
+  networkEnv?: NetworkEnv;
   version: string | null;
   loading: boolean;
   error?: AppError | null;

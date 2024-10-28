@@ -126,7 +126,7 @@ export function mockTauriIPC() {
     if (cmd === 'daemon_info') {
       return new Promise<DaemonInfo>((resolve) =>
         resolve({
-          network: 'Mainnet',
+          network: 'mainnet',
           version: '0.1.0',
         }),
       );
