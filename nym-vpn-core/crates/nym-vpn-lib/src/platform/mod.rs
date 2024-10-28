@@ -317,25 +317,21 @@ pub fn getLowLatencyEntryCountry(
     RUNTIME.block_on(get_low_latency_entry_country(
         api_url,
         vpn_api_url,
-        Some(user_agent),
+        user_agent,
     ))
 }
 
 async fn get_low_latency_entry_country(
     api_url: Url,
     vpn_api_url: Option<Url>,
-    user_agent: Option<UserAgent>,
+    user_agent: UserAgent,
 ) -> Result<Location, VpnError> {
     let config = nym_gateway_directory::Config {
         api_url,
         nym_vpn_api_url: vpn_api_url,
         min_gateway_performance: None,
     };
-    let user_agent = user_agent
-        .map(nym_sdk::UserAgent::from)
-        .unwrap_or_else(crate::util::construct_user_agent);
-
-    GatewayClient::new(config, user_agent)?
+    GatewayClient::new(config, user_agent.into())?
         .lookup_low_latency_entry_gateway()
         .await
         .map_err(VpnError::from)
