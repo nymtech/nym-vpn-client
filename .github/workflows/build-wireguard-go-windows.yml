@@ -34,6 +34,9 @@ jobs:
         shell: cmd
         run: |
           winget install --disable-interactivity --id=Microsoft.VisualStudio.2022.BuildTools --override "--wait --passive --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended"
+          if %ERRORLEVEL% EQU -1978335189 (
+            exit /b 0
+          )
 
       - name: Update path with vctools
         shell: pwsh
