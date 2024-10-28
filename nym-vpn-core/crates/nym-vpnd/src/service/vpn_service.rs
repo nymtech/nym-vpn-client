@@ -900,7 +900,15 @@ where
             .await
             .map_err(|err| AccountError::FailedToResetKeys {
                 source: Box::new(err),
-            })
+            })?;
+
+        self.account_command_tx
+            .send(AccountCommand::UpdateSharedAccountState)
+            .map_err(|err| AccountError::SendCommand {
+                source: Box::new(err),
+            })?;
+
+        Ok(())
     }
 
     async fn handle_register_device(&self) -> Result<(), AccountError> {

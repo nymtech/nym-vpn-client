@@ -9,7 +9,8 @@ use nym_vpn_proto::{
     FetchRawDevicesRequest, GetAccountStateRequest, GetDeviceZkNymsRequest, InfoRequest,
     InfoResponse, IsAccountStoredRequest, IsReadyToConnectRequest, ListCountriesRequest,
     ListGatewaysRequest, RefreshAccountStateRequest, RegisterDeviceRequest, RemoveAccountRequest,
-    RequestZkNymRequest, SetNetworkRequest, StatusRequest, StoreAccountRequest, UserAgent,
+    RequestZkNymRequest, ResetDeviceIdentityRequest, SetNetworkRequest, StatusRequest,
+    StoreAccountRequest, UserAgent,
 };
 use protobuf_conversion::{into_gateway_type, into_threshold};
 use sysinfo::System;
@@ -67,6 +68,7 @@ async fn main() -> Result<()> {
         Command::ListVpnCountries(ref list_args) => {
             list_countries(client_type, list_args, GatewayType::Wg).await?
         }
+        Command::ResetDeviceIdentity(ref args) => reset_device_identity(client_type, args).await?,
         Command::RegisterDevice => register_device(client_type).await?,
         Command::RequestZkNym => request_zk_nym(client_type).await?,
         Command::GetDeviceZkNym => get_device_zk_nym(client_type).await?,
@@ -244,6 +246,19 @@ async fn fetch_raw_devices(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(FetchRawDevicesRequest {});
     let response = client.fetch_raw_devices(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn reset_device_identity(
+    client_type: ClientType,
+    args: &cli::ResetDeviceIdentityArgs,
+) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(ResetDeviceIdentityRequest {
+        seed: args.seed.as_ref().map(|seed| seed.clone().into_bytes()),
+    });
+    let response = client.reset_device_identity(request).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }

@@ -616,7 +616,7 @@ message FetchRawDevicesResponse {
 
 message ResetDeviceIdentityRequest {
   // 32 byte seed, [u8; 32]
-  bytes seed = 1;
+  optional bytes seed = 1;
 }
 
 message ResetDeviceIdentityResponse {

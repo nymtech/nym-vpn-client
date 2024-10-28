@@ -515,15 +515,18 @@ impl NymVpnd for CommandInterface {
         &self,
         request: tonic::Request<ResetDeviceIdentityRequest>,
     ) -> Result<tonic::Response<ResetDeviceIdentityResponse>, tonic::Status> {
-        let seed: [u8; 32] = request
+        let seed: Option<[u8; 32]> = request
             .into_inner()
             .seed
-            .as_slice()
-            .try_into()
-            .map_err(|_| tonic::Status::invalid_argument("Seed must be 32 bytes long"))?;
+            .map(|seed| {
+                seed.as_slice()
+                    .try_into()
+                    .map_err(|_| tonic::Status::invalid_argument("Seed must be 32 bytes long"))
+            })
+            .transpose()?;
 
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_reset_device_identity(Some(seed))
+            .handle_reset_device_identity(seed)
             .await?;
 
         let response = ResetDeviceIdentityResponse {
