@@ -1,15 +1,13 @@
 import globals from 'globals';
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
-import pluginReactConfig from 'eslint-plugin-react/configs/recommended.js';
-import { fixupConfigRules, fixupPluginRules } from '@eslint/compat';
-import prettierConfig from 'eslint-config-prettier';
+import reactPlugin from 'eslint-plugin-react';
 import hooksPlugin from 'eslint-plugin-react-hooks';
+import prettierConfig from 'eslint-config-prettier';
 
 // TODO add these plugins once support for ESLint 9 is added
 // - react-plugin-import https://github.com/import-js/eslint-plugin-import/pull/3018
 // - eslint-plugin-deprecation https://github.com/gund/eslint-plugin-deprecation/pull/79
-// also eslint-plugin-react-hooks has been tagged -> https://github.com/facebook/react/pull/28773
 
 export default [
   {
@@ -31,7 +29,7 @@ export default [
     files: ['**/*.js'],
     ...tseslint.configs.disableTypeChecked,
   },
-  ...fixupConfigRules(pluginReactConfig),
+  reactPlugin.configs.flat.recommended,
   {
     languageOptions: {
       parserOptions: {
@@ -41,8 +39,7 @@ export default [
       globals: globals.browser,
     },
     plugins: {
-      // https://github.com/facebook/react/issues/28313#issuecomment-2110536419
-      'react-hooks': fixupPluginRules(hooksPlugin),
+      'react-hooks': hooksPlugin,
     },
     settings: {
       react: {

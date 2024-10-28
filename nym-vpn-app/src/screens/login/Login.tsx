@@ -10,18 +10,25 @@ import { useI18nError } from '../../hooks';
 import { routes } from '../../router';
 import { BackendError, StateDispatch } from '../../types';
 import { Button, Link, PageAnim, TextArea } from '../../ui';
-import { CreateAccountUrl } from '../../constants';
+import { getCreateAccountUrl } from '../../helpers';
+
+type AddError = {
+  error: string;
+  details?: string;
+};
 
 function Login() {
-  const { uiTheme, daemonStatus } = useMainState();
+  const { uiTheme, daemonStatus, networkEnv } = useMainState();
   const [phrase, setPhrase] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<AddError | null>(null);
 
   const { push } = useInAppNotify();
   const navigate = useNavigate();
   const { t } = useTranslation('addCredential');
   const { tE } = useI18nError();
   const dispatch = useMainDispatch() as StateDispatch;
+
+  const createAccountUrl = networkEnv && getCreateAccountUrl(networkEnv);
 
   const onChange = (phrase: string) => {
     setPhrase(phrase);
@@ -46,8 +53,11 @@ function Login() {
       })
       .catch((e: unknown) => {
         const eT = e as BackendError;
-        console.log('backend error:', e);
-        setError(tE(eT.key));
+        console.info('backend error:', e);
+        setError({
+          error: tE(eT.key),
+          details: eT.data?.reason,
+        });
       });
   };
 
@@ -83,12 +93,16 @@ function Login() {
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.15, ease: 'easeInOut' }}
-            className="text-teaberry h-3"
+            className={clsx([
+              'text-teaberry overflow-y-scroll max-h-16 mt-3 break-words',
+              'select-text',
+            ])}
           >
-            {error}
+            {error.error}
+            {error.details && `: ${error.details}`}
           </motion.div>
         ) : (
-          <div className="h-3"></div>
+          <div className="h-4"></div>
         )}
       </div>
       <div className="w-full flex flex-col justify-center items-center gap-6 mb-2">
@@ -102,12 +116,14 @@ function Login() {
         >
           {t('login-button')}
         </Button>
-        <div className="flex flex-row justify-center items-center gap-2">
-          <span className="dark:text-mercury-pinkish">
-            {t('create-account.text')}
-          </span>
-          <Link text={t('create-account.link')} url={CreateAccountUrl} />
-        </div>
+        {createAccountUrl && (
+          <div className="flex flex-row justify-center items-center gap-2">
+            <span className="dark:text-mercury-pinkish">
+              {t('create-account.text')}
+            </span>
+            <Link text={t('create-account.link')} url={createAccountUrl} />
+          </div>
+        )}
       </div>
     </PageAnim>
   );

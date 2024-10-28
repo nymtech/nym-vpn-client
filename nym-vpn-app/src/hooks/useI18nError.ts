@@ -113,6 +113,16 @@ function useI18nError() {
           return t('account.invalid-recovery-phrase');
         case 'AccountStorage':
           return t('account.storage');
+        case 'NoAccountStored':
+          return t('account.no-account-stored');
+        case 'AccountNotActive':
+          return t('account.not-active');
+        case 'NoActiveSubscription':
+          return t('account.no-active-subscription');
+        case 'DeviceNotRegistered':
+          return t('account.device.not-registered');
+        case 'DeviceNotActive':
+          return t('account.device.not-active');
         case 'EntryGatewayNotRouting':
           return t('entry-node-routing');
         case 'ExitRouterPingIpv4':
@@ -133,6 +143,8 @@ function useI18nError() {
           return t('countries-request.exit');
         case 'GetWgCountriesQuery':
           return t('countries-request.fast-mode');
+        case 'InvalidNetworkName':
+          return t('daemon.invalid-network');
         case 'UnknownError':
           return t('unknown');
 

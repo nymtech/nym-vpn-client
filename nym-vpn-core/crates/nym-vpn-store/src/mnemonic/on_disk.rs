@@ -1,7 +1,12 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{fs::File, path::PathBuf};
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
+use std::{
+    fs::{self, File},
+    path::PathBuf,
+};
 
 use super::{MnemonicStorage, MnemonicStorageError, StoredMnemonic};
 
@@ -17,16 +22,16 @@ pub enum OnDiskMnemonicStorageError {
     },
 
     #[error("failed to open file")]
-    FileOpenError(std::io::Error),
+    FileOpenError(#[source] std::io::Error),
 
     #[error("failed to read mnemonic from file")]
-    ReadError(serde_json::Error),
+    ReadError(#[source] serde_json::Error),
 
     #[error("failed to write mnemonic to file")]
-    WriteError(serde_json::Error),
+    WriteError(#[source] serde_json::Error),
 
     #[error("failed to remove mnemonic file")]
-    RemoveError(std::io::Error),
+    RemoveError(#[source] std::io::Error),
 }
 
 impl MnemonicStorageError for OnDiskMnemonicStorageError {
@@ -79,12 +84,62 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
                 path: self.path.clone(),
                 source: err,
             })?;
+
+        // Create parent directories
+        if let Some(parent) = self.path.parent() {
+            fs::create_dir_all(parent).map_err(|err| {
+                OnDiskMnemonicStorageError::FileCreateError {
+                    path: parent.to_path_buf(),
+                    source: err,
+                }
+            })?;
+
+            #[cfg(unix)]
+            {
+                // Set directory permissions to 700 (rwx------)
+                let permissions = fs::Permissions::from_mode(0o700);
+                fs::set_permissions(parent, permissions).map_err(|source| {
+                    OnDiskMnemonicStorageError::FileCreateError {
+                        path: parent.to_path_buf(),
+                        source,
+                    }
+                })?;
+            }
+
+            // TODO: same for windows
+        }
+
         serde_json::to_writer(file, &stored_mnemonic)
-            .map_err(OnDiskMnemonicStorageError::WriteError)
+            .map_err(OnDiskMnemonicStorageError::WriteError)?;
+
+        #[cfg(unix)]
+        {
+            // Set directory permissions to 600 (rw------)
+            let permissions = fs::Permissions::from_mode(0o600);
+            fs::set_permissions(self.path.clone(), permissions).map_err(|source| {
+                OnDiskMnemonicStorageError::FileCreateError {
+                    path: self.path.clone(),
+                    source,
+                }
+            })?;
+        }
+
+        // TODO: same for windows
+
+        Ok(())
     }
 
     async fn load_mnemonic(&self) -> Result<bip39::Mnemonic, OnDiskMnemonicStorageError> {
         tracing::debug!("Opening: {}", self.path.display());
+
+        // Make sure that the file has permissions set to 600 (rw------)
+        #[cfg(unix)]
+        {
+            let permissions = fs::Permissions::from_mode(0o600);
+            fs::set_permissions(&self.path, permissions)
+                .map_err(OnDiskMnemonicStorageError::FileOpenError)?;
+        }
+
         let file = File::open(&self.path).map_err(OnDiskMnemonicStorageError::FileOpenError)?;
         serde_json::from_reader(file)
             .map_err(OnDiskMnemonicStorageError::ReadError)

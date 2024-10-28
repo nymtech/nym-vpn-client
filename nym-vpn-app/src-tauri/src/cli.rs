@@ -44,10 +44,6 @@ pub struct Cli {
     #[arg(short, long)]
     pub build_info: bool,
 
-    /// Path to an env file to load a custom network environment
-    #[arg(short = 'n', long)]
-    pub network_env: Option<PathBuf>,
-
     /// Unix socket path of gRPC endpoint in IPC mode
     #[arg(short, long)]
     pub grpc_socket_endpoint: Option<PathBuf>,

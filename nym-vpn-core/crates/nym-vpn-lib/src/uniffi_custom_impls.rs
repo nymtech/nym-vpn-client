@@ -1,5 +1,5 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
@@ -13,37 +13,48 @@ use nym_connection_monitor::ConnectionMonitorStatus;
 use nym_gateway_directory::{EntryPoint as GwEntryPoint, ExitPoint as GwExitPoint};
 use nym_ip_packet_requests::IpPair;
 use nym_sdk::UserAgent as NymUserAgent;
-use talpid_types::net::wireguard::{PresharedKey, PrivateKey, PublicKey};
+use nym_wg_go::PublicKey;
+use time::OffsetDateTime;
 use url::Url;
 
-#[cfg(any(target_os = "ios", target_os = "android"))]
-use super::mobile::runner::Error as MobileError;
-use crate::{
-    platform::error::VpnError,
-    vpn::{MixnetConnectionInfo, MixnetExitConnectionInfo, NymVpnStatusMessage},
-    NodeIdentity, Recipient, UniffiCustomTypeConverter,
-};
+use crate::{platform::error::VpnError, NodeIdentity, Recipient, UniffiCustomTypeConverter};
 
 uniffi::custom_type!(Ipv4Addr, String);
 uniffi::custom_type!(Ipv6Addr, String);
 uniffi::custom_type!(IpAddr, String);
-uniffi::custom_type!(PrivateKey, String);
 uniffi::custom_type!(PublicKey, String);
 uniffi::custom_type!(IpNetwork, String);
 uniffi::custom_type!(Ipv4Network, String);
 uniffi::custom_type!(Ipv6Network, String);
 uniffi::custom_type!(SocketAddr, String);
-uniffi::custom_type!(PresharedKey, String);
 uniffi::custom_type!(Url, String);
 uniffi::custom_type!(NodeIdentity, String);
 uniffi::custom_type!(Recipient, String);
 uniffi::custom_type!(PathBuf, String);
+uniffi::custom_type!(OffsetDateTime, i64);
+
+pub type BoxedRecepient = Box<Recipient>;
+pub type BoxedNodeIdentity = Box<NodeIdentity>;
+uniffi::custom_type!(BoxedRecepient, String);
+uniffi::custom_type!(BoxedNodeIdentity, String);
 
 impl UniffiCustomTypeConverter for NodeIdentity {
     type Builtin = String;
 
     fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
         Ok(NodeIdentity::from_base58_string(val)?)
+    }
+
+    fn from_custom(obj: Self) -> Self::Builtin {
+        obj.to_base58_string()
+    }
+}
+
+impl UniffiCustomTypeConverter for BoxedNodeIdentity {
+    type Builtin = String;
+
+    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
+        Ok(Box::new(NodeIdentity::from_base58_string(val)?))
     }
 
     fn from_custom(obj: Self) -> Self::Builtin {
@@ -63,6 +74,18 @@ impl UniffiCustomTypeConverter for Recipient {
     }
 }
 
+impl crate::UniffiCustomTypeConverter for BoxedRecepient {
+    type Builtin = String;
+
+    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
+        Ok(Box::new(Recipient::try_from_base58_string(val)?))
+    }
+
+    fn from_custom(obj: Self) -> Self::Builtin {
+        obj.to_string()
+    }
+}
+
 impl UniffiCustomTypeConverter for Url {
     type Builtin = String;
 
@@ -75,31 +98,13 @@ impl UniffiCustomTypeConverter for Url {
     }
 }
 
-impl UniffiCustomTypeConverter for PrivateKey {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(PrivateKey::from(
-            *PublicKey::from_base64(&val)
-                .map_err(|_| VpnError::InternalError {
-                    details: "Invalid public key".to_string(),
-                })?
-                .as_bytes(),
-        ))
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.to_base64()
-    }
-}
-
 impl UniffiCustomTypeConverter for PublicKey {
     type Builtin = String;
 
     fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
         Ok(
-            PublicKey::from_base64(&val).map_err(|_| VpnError::InternalError {
-                details: "Invalid public key".to_string(),
+            PublicKey::from_base64(&val).ok_or_else(|| VpnError::InternalError {
+                details: "Invalid public key".to_owned(),
             })?,
         )
     }
@@ -210,17 +215,15 @@ impl UniffiCustomTypeConverter for SocketAddr {
     }
 }
 
-impl UniffiCustomTypeConverter for PresharedKey {
-    type Builtin = String;
+impl UniffiCustomTypeConverter for OffsetDateTime {
+    type Builtin = i64;
 
     fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(PresharedKey::from(Box::new(
-            PrivateKey::into_custom(val)?.to_bytes(),
-        )))
+        Ok(OffsetDateTime::from_unix_timestamp(val)?)
     }
 
     fn from_custom(obj: Self) -> Self::Builtin {
-        PrivateKey::from_custom(PrivateKey::from(*obj.as_bytes()))
+        obj.unix_timestamp()
     }
 }
 
@@ -333,15 +336,6 @@ pub struct MixConnectionInfo {
     pub entry_gateway: NodeIdentity,
 }
 
-impl From<MixnetConnectionInfo> for MixConnectionInfo {
-    fn from(value: MixnetConnectionInfo) -> Self {
-        MixConnectionInfo {
-            nym_address: value.nym_address,
-            entry_gateway: value.entry_gateway,
-        }
-    }
-}
-
 #[derive(Debug, PartialEq, uniffi::Record, Clone)]
 pub struct MixExitConnectionInfo {
     pub exit_gateway: NodeIdentity,
@@ -349,31 +343,11 @@ pub struct MixExitConnectionInfo {
     pub ips: IpPair,
 }
 
-impl From<MixnetExitConnectionInfo> for MixExitConnectionInfo {
-    fn from(value: MixnetExitConnectionInfo) -> Self {
-        MixExitConnectionInfo {
-            exit_gateway: value.exit_gateway,
-            exit_ipr: value.exit_ipr,
-            ips: value.ips,
-        }
-    }
-}
-
 #[derive(uniffi::Record, Clone, Debug, PartialEq)]
 pub struct WireguardConnectionInfo {
     pub gateway_id: NodeIdentity,
     pub public_key: String,
     pub private_ipv4: Ipv4Addr,
-}
-
-impl From<crate::vpn::WireguardConnectionInfo> for WireguardConnectionInfo {
-    fn from(value: crate::vpn::WireguardConnectionInfo) -> Self {
-        WireguardConnectionInfo {
-            gateway_id: value.gateway_id,
-            public_key: value.public_key,
-            private_ipv4: value.private_ipv4,
-        }
-    }
 }
 
 #[derive(uniffi::Enum)]
@@ -413,60 +387,13 @@ impl From<ExitPoint> for GwExitPoint {
     }
 }
 
-#[derive(PartialEq)]
-#[allow(clippy::large_enum_variant)]
-pub enum StatusEvent {
-    Tun(TunStatus),
-    Bandwidth(BandwidthStatus),
-    Connection(ConnectionStatus),
-    NymVpn(NymVpnStatus),
-    Exit(ExitStatus),
-}
-
 #[derive(uniffi::Enum, Clone, PartialEq)]
-#[allow(clippy::large_enum_variant)]
 pub enum ExitStatus {
     Failure { error: VpnError },
     Stopped,
 }
 
-#[cfg(any(target_os = "ios", target_os = "android"))]
-impl From<MobileError> for VpnError {
-    fn from(value: MobileError) -> Self {
-        match value {
-            MobileError::StartMixnetTimeout => VpnError::NetworkConnectionError {
-                details: value.to_string(),
-            },
-            MobileError::StartMixnetClient(e) => VpnError::NetworkConnectionError {
-                details: e.to_string(),
-            },
-            MobileError::GatewayDirectory(e) => VpnError::NetworkConnectionError {
-                details: e.to_string(),
-            },
-            MobileError::AuthenticatorAddressNotFound => VpnError::GatewayError {
-                details: value.to_string(),
-            },
-            MobileError::NotEnoughBandwidth => VpnError::OutOfBandwidth,
-            MobileError::AuthenticationNotPossible(message) => {
-                VpnError::GatewayError { details: message }
-            }
-            MobileError::WgGatewayClientFailure(e) => VpnError::GatewayError {
-                details: e.to_string(),
-            },
-            MobileError::Tunnel(e) => VpnError::InternalError {
-                details: e.to_string(),
-            },
-            MobileError::FailedToLookupGatewayIp { gateway_id, source } => {
-                VpnError::NetworkConnectionError {
-                    details: format!("failed to lookup gateway ip: {gateway_id}: {source}"),
-                }
-            }
-        }
-    }
-}
-
 #[derive(uniffi::Enum, Clone, PartialEq)]
-#[allow(clippy::large_enum_variant)]
 pub enum TunStatus {
     Up,
     Down,
@@ -488,29 +415,7 @@ pub enum NymVpnStatus {
     },
 }
 
-impl From<NymVpnStatusMessage> for NymVpnStatus {
-    fn from(value: NymVpnStatusMessage) -> Self {
-        match value {
-            NymVpnStatusMessage::MixConnectionInfo {
-                mixnet_connection_info,
-                mixnet_exit_connection_info,
-            } => NymVpnStatus::MixConnectInfo {
-                mix_connection_info: mixnet_connection_info.into(),
-                mix_exit_connection_info: (*mixnet_exit_connection_info).into(),
-            },
-            NymVpnStatusMessage::WgConnectionInfo {
-                entry_connection_info,
-                exit_connection_info,
-            } => NymVpnStatus::WgConnectInfo {
-                entry_connection_info: entry_connection_info.into(),
-                exit_connection_info: exit_connection_info.into(),
-            },
-        }
-    }
-}
-
 #[derive(uniffi::Enum, Clone, PartialEq)]
-#[allow(clippy::large_enum_variant)]
 pub enum BandwidthStatus {
     NoBandwidth,
     RemainingBandwidth { bandwidth: i64 },
@@ -530,7 +435,6 @@ impl From<&BandwidthStatusMessage> for BandwidthStatus {
 }
 
 #[derive(uniffi::Enum, Clone, PartialEq)]
-#[allow(clippy::large_enum_variant)]
 pub enum ConnectionStatus {
     EntryGatewayDown,
     ExitGatewayDownIpv4,

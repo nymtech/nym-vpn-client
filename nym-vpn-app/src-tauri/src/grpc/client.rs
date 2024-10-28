@@ -7,9 +7,9 @@ use nym_vpn_proto::{
     health_check_response::ServingStatus, health_client::HealthClient,
     is_account_stored_response::Resp as IsAccountStoredResp, nym_vpnd_client::NymVpndClient,
     ConnectRequest, ConnectionStatus, DisconnectRequest, Dns, Empty, EntryNode, ExitNode,
-    GatewayType, GetAccountSummaryRequest, GetAccountSummaryResponse, HealthCheckRequest,
-    InfoRequest, InfoResponse, IsAccountStoredRequest, ListCountriesRequest, Location,
-    StatusRequest, StatusResponse, StoreAccountRequest, StoreAccountResponse, UserAgent,
+    FetchRawAccountSummaryRequest, GatewayType, HealthCheckRequest, InfoRequest, InfoResponse,
+    IsAccountStoredRequest, ListCountriesRequest, Location, SetNetworkRequest, StatusRequest,
+    StatusResponse, StoreAccountRequest, UserAgent,
 };
 use parity_tokio_ipc::Endpoint as IpcEndpoint;
 use serde::{Deserialize, Serialize};
@@ -58,6 +58,8 @@ pub enum VpndError {
     FailedToConnectHttp(#[from] tonic::transport::Error),
     #[error("failed to connect to daemon using IPC transport")]
     FailedToConnectIpc(#[from] anyhow::Error),
+    #[error("call response error {0}")]
+    Response(#[from] BackendError),
 }
 
 #[derive(Debug, Default, Clone)]
@@ -190,6 +192,7 @@ impl GrpcClient {
         let d_info = self.vpnd_info().await?;
         self.user_agent = GrpcClient::user_agent(pkg, Some(&d_info));
         info!("vpnd version: {}", d_info.version);
+        info!("network env: {}", d_info.network_name);
         info!("updated user agent: {:?}", self.user_agent);
         Ok(())
     }
@@ -335,7 +338,7 @@ impl GrpcClient {
         exit_node: ExitNode,
         two_hop_mod: bool,
         dns: Option<Dns>,
-    ) -> Result<bool, VpndError> {
+    ) -> Result<(), VpndError> {
         debug!("vpn_connect");
         let mut vpnd = self.vpnd().await?;
 
@@ -344,7 +347,7 @@ impl GrpcClient {
             exit: Some(exit_node),
             disable_routing: false,
             enable_two_hop: two_hop_mod,
-            enable_poisson_rate: false,
+            disable_poisson_rate: false,
             disable_background_cover_traffic: false,
             enable_credentials_mode: false,
             dns,
@@ -353,13 +356,30 @@ impl GrpcClient {
             min_gateway_mixnet_performance: None,
             min_gateway_vpn_performance: None,
         });
-        let response = vpnd.vpn_connect(request).await.map_err(|e| {
-            error!("grpc vpn_connect: {}", e);
-            VpndError::GrpcError(e)
-        })?;
+        let response = vpnd
+            .vpn_connect(request)
+            .await
+            .map_err(|e| {
+                error!("grpc vpn_connect: {}", e);
+                VpndError::GrpcError(e)
+            })?
+            .into_inner();
         debug!("grpc response: {:?}", response);
-
-        Ok(response.into_inner().success)
+        if response.success {
+            return Ok(());
+        }
+        Err(VpndError::Response(
+            response
+                .error
+                .inspect(|e| error!("vpn connect error: {:?}", e))
+                .map(BackendError::from)
+                .ok_or_else(|| {
+                    error!("connect bad response: no ConnectRequestError");
+                    VpndError::GrpcError(tonic::Status::internal(
+                        "connect bad response: no ConnectRequestError".to_string(),
+                    ))
+                })?,
+        ))
     }
 
     /// Disconnect from the VPN
@@ -380,7 +400,7 @@ impl GrpcClient {
 
     /// Store an account
     #[instrument(skip_all)]
-    pub async fn store_account(&self, mnemonic: String) -> Result<StoreAccountResponse, VpndError> {
+    pub async fn store_account(&self, mnemonic: String) -> Result<(), VpndError> {
         debug!("store_account");
         let mut vpnd = self.vpnd().await?;
 
@@ -390,13 +410,27 @@ impl GrpcClient {
             VpndError::GrpcError(e)
         })?;
         debug!("grpc response: {:?}", response);
-
-        Ok(response.into_inner())
+        let response = response.into_inner();
+        if response.success {
+            return Ok(());
+        }
+        Err(VpndError::Response(
+            response
+                .error
+                .inspect(|e| warn!("store account error: {:?}", e))
+                .map(BackendError::from)
+                .ok_or_else(|| {
+                    error!("store account bad response: no AccountError");
+                    VpndError::GrpcError(tonic::Status::internal(
+                        "store account bad response: no AccountError".to_string(),
+                    ))
+                })?,
+        ))
     }
 
     /// Check if an account is stored
     #[instrument(skip_all)]
-    pub async fn is_account_stored(&self) -> Result<IsAccountStoredResp, VpndError> {
+    pub async fn is_account_stored(&self) -> Result<bool, VpndError> {
         debug!("is_account_stored");
         let mut vpnd = self.vpnd().await?;
 
@@ -406,29 +440,41 @@ impl GrpcClient {
             VpndError::GrpcError(e)
         })?;
         debug!("grpc response: {:?}", response);
-        response.into_inner().resp.ok_or_else(|| {
+        let response = response.into_inner();
+        match response.resp.ok_or_else(|| {
             error!("failed to get stored account: invalid response");
             VpndError::GrpcError(tonic::Status::internal(
                 "failed to get stored account: invalid response",
             ))
-        })
+        })? {
+            IsAccountStoredResp::IsStored(v) => Ok(v),
+            IsAccountStoredResp::Error(e) => Err(VpndError::Response(e.into())),
+        }
     }
 
     /// Get account info
     /// Note: if no account is stored yet, the call will fail
     #[instrument(skip_all)]
-    pub async fn get_account_summary(&self) -> Result<GetAccountSummaryResponse, VpndError> {
+    pub async fn get_account_summary(&self) -> Result<String, VpndError> {
         debug!("get_account_summary");
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(GetAccountSummaryRequest {});
-        let response = vpnd.get_account_summary(request).await.map_err(|e| {
-            error!("grpc get_account_summary: {}", e);
-            VpndError::GrpcError(e)
-        })?;
+        let request = Request::new(FetchRawAccountSummaryRequest {});
+        let response = vpnd
+            .fetch_raw_account_summary(request)
+            .await
+            .map_err(|e| {
+                error!("grpc get_account_summary: {}", e);
+                VpndError::GrpcError(e)
+            })?
+            .into_inner();
         debug!("grpc response: {:?}", response);
+        if let Some(error) = response.error {
+            error!("get account summary error: {:?}", error);
+            return Err(VpndError::Response(error.into()));
+        }
 
-        Ok(response.into_inner())
+        Ok(response.json)
     }
 
     /// Get the list of available countries for entry gateways
@@ -505,6 +551,32 @@ impl GrpcClient {
             state.vpnd_status = status.into();
         }
 
+        Ok(())
+    }
+
+    /// Set the network environment of the daemon.
+    /// ⚠ This requires to restart the daemon to take effect.
+    #[instrument(skip(self))]
+    pub async fn set_network(&self, network: &str) -> Result<(), VpndError> {
+        debug!("set_network");
+        let mut vpnd = self.vpnd().await?;
+
+        let request = Request::new(SetNetworkRequest {
+            network: network.to_owned(),
+        });
+        let response = vpnd
+            .set_network(request)
+            .await
+            .map_err(|e| {
+                error!("grpc set_network: {}", e);
+                VpndError::GrpcError(e)
+            })?
+            .into_inner();
+        debug!("grpc response: {:?}", response);
+        if let Some(e) = response.error {
+            error!("set network env error: {:?}", e);
+            return Err(VpndError::Response(e.into()));
+        }
         Ok(())
     }
 }

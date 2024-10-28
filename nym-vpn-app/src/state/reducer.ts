@@ -12,6 +12,7 @@ import {
   ConnectProgressMsg,
   ConnectionState,
   Country,
+  DaemonInfo,
   DaemonStatus,
   NodeHop,
   NodeLocation,
@@ -24,6 +25,7 @@ export type StateAction =
   | { type: 'init-done' }
   | { type: 'change-connection-state'; state: ConnectionState }
   | { type: 'set-daemon-status'; status: DaemonStatus }
+  | { type: 'set-daemon-info'; info: DaemonInfo }
   | { type: 'set-vpn-mode'; mode: VpnMode }
   | { type: 'set-entry-selector'; entrySelector: boolean }
   | { type: 'set-error'; error: AppError }
@@ -115,6 +117,12 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         daemonStatus: action.status,
+      };
+    case 'set-daemon-info':
+      return {
+        ...state,
+        daemonVersion: action.info.version,
+        networkEnv: action.info.network,
       };
     case 'set-node-location':
       if (action.payload.hop === 'entry') {

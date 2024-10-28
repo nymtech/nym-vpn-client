@@ -6,11 +6,11 @@ use std::{path::PathBuf, result::Result};
 use nym_config::defaults::NymNetworkDetails;
 use nym_sdk::mixnet::{MixnetClientBuilder, NodeIdentity, StoragePaths};
 use nym_vpn_store::mnemonic::MnemonicStorage as _;
-use tracing::{debug, info};
 
 use super::{MixnetError, SharedMixnetClient};
-use crate::{storage::VpnClientOnDiskStorage, vpn::MixnetClientConfig};
+use crate::{storage::VpnClientOnDiskStorage, MixnetClientConfig};
 
+#[allow(unused)]
 fn true_to_enabled(val: bool) -> &'static str {
     if val {
         "enabled"
@@ -32,23 +32,21 @@ fn apply_mixnet_client_config(
     debug_config: &mut nym_client_core::config::DebugConfig,
 ) {
     let MixnetClientConfig {
-        enable_poisson_rate,
+        disable_poisson_rate,
         disable_background_cover_traffic,
-        enable_credentials_mode: _enable_credentials_mode,
         min_mixnode_performance,
         min_gateway_performance,
     } = mixnet_client_config;
 
-    // Disable Poisson rate limiter by default
-    info!(
+    tracing::info!(
         "mixnet client poisson rate limiting: {}",
-        true_to_enabled(*enable_poisson_rate)
+        true_to_disabled(*disable_poisson_rate)
     );
     debug_config
         .traffic
-        .disable_main_poisson_packet_distribution = !enable_poisson_rate;
+        .disable_main_poisson_packet_distribution = *disable_poisson_rate;
 
-    info!(
+    tracing::info!(
         "mixnet client background loop cover traffic stream: {}",
         true_to_disabled(*disable_background_cover_traffic)
     );
@@ -58,7 +56,7 @@ fn apply_mixnet_client_config(
     if let Some(min_mixnode_performance) = min_mixnode_performance {
         debug_config.topology.minimum_mixnode_performance = *min_mixnode_performance;
     }
-    info!(
+    tracing::info!(
         "mixnet client minimum mixnode performance: {}",
         debug_config.topology.minimum_mixnode_performance,
     );
@@ -66,7 +64,7 @@ fn apply_mixnet_client_config(
     if let Some(min_gateway_performance) = min_gateway_performance {
         debug_config.topology.minimum_gateway_performance = *min_gateway_performance;
     }
-    info!(
+    tracing::info!(
         "mixnet client minimum gateway performance: {}",
         debug_config.topology.minimum_gateway_performance,
     );
@@ -77,6 +75,7 @@ pub(crate) async fn setup_mixnet_client(
     mixnet_client_key_storage_path: &Option<PathBuf>,
     mut task_client: nym_task::TaskClient,
     mixnet_client_config: MixnetClientConfig,
+    enable_credentials_mode: bool,
 ) -> Result<SharedMixnetClient, MixnetError> {
     let mut debug_config = nym_client_core::config::DebugConfig::default();
     apply_mixnet_client_config(&mixnet_client_config, &mut debug_config);
@@ -84,12 +83,12 @@ pub(crate) async fn setup_mixnet_client(
     let user_agent = nym_bin_common::bin_info_owned!().into();
 
     let mixnet_client = if let Some(path) = mixnet_client_key_storage_path {
-        debug!("Using custom key storage path: {:?}", path);
+        tracing::debug!("Using custom key storage path: {:?}", path);
 
         let storage = VpnClientOnDiskStorage::new(path.clone());
         match storage.is_mnemonic_stored().await {
             Ok(is_stored) if !is_stored => {
-                tracing::error!("No credential stored");
+                tracing::error!("No account stored");
                 task_client.disarm();
                 return Err(MixnetError::InvalidCredential);
             }
@@ -111,21 +110,21 @@ pub(crate) async fn setup_mixnet_client(
             .network_details(NymNetworkDetails::new_from_env())
             .debug_config(debug_config)
             .custom_shutdown(task_client)
-            .credentials_mode(mixnet_client_config.enable_credentials_mode)
+            .credentials_mode(enable_credentials_mode)
             .build()
             .map_err(MixnetError::FailedToBuildMixnetClient)?
             .connect_to_mixnet()
             .await
             .map_err(map_mixnet_connect_error)?
     } else {
-        debug!("Using ephemeral key storage");
+        tracing::debug!("Using ephemeral key storage");
         MixnetClientBuilder::new_ephemeral()
             .with_user_agent(user_agent)
             .request_gateway(mixnet_entry_gateway.to_string())
             .network_details(NymNetworkDetails::new_from_env())
             .debug_config(debug_config)
             .custom_shutdown(task_client)
-            .credentials_mode(mixnet_client_config.enable_credentials_mode)
+            .credentials_mode(enable_credentials_mode)
             .build()
             .map_err(MixnetError::FailedToBuildMixnetClient)?
             .connect_to_mixnet()

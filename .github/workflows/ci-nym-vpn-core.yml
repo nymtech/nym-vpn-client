@@ -17,7 +17,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [arc-ubuntu-22.04, custom-runner-mac-m1, custom-windows-11]
+        # os: [arc-ubuntu-22.04, custom-runner-mac-m1, custom-windows-11]
+        os: [arc-ubuntu-22.04, custom-runner-mac-m1]
         target: [native]
         include:
           - os: arc-ubuntu-22.04
@@ -116,8 +117,8 @@ jobs:
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
-        if: ${{ !contains(matrix.os, 'ubuntu') }}
         with:
+          version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup MSBuild.exe

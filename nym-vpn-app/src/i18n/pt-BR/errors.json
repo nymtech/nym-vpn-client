@@ -1,12 +1,4 @@
 {
-  "credential": {
-    "invalid": "Credencial inválida",
-    "expired": "Credencial expirada",
-    "no-duplicate": "Essa credencial já foi importada",
-    "storage": "Falha ao importar a credencial devido a um erro interno",
-    "deserialize": "Falha ao desserializar a credencial",
-    "vpn-running": "Não é possível importar uma credencial enquanto estiver conectado à VPN"
-  },
   "unknown": "Erro desconhecido",
   "internal": "Erro interno",
   "daemon": {
@@ -85,5 +77,8 @@
     "ping": "Falha no ping do nó de saída para o tráfego {{protocol}}"
   },
   "out-of-bandwidth": "Fora da largura de banda alocada",
-  "entry-node-routing": "O nó de entrada não está roteando o tráfego (a conexão com a Internet caiu?)"
+  "entry-node-routing": "O nó de entrada não está roteando o tráfego (a conexão com a Internet caiu?)",
+  "account": {
+    "invalid-recovery-phrase": "Frase de recuperação inválida"
+  }
 }

@@ -1,12 +1,4 @@
 {
-  "credential": {
-    "invalid": "Credencial inválida",
-    "expired": "Credencial caducada",
-    "no-duplicate": "Ya se ha importado esta credencial",
-    "storage": "Fallo al importar credencial debido a un error interno",
-    "deserialize": "Fallo al deserializar la credencial",
-    "vpn-running": "No se puede importar credencial mientras se está conectado a la VPN"
-  },
   "countries-request": {
     "entry": "Fallo al obtener los países disponibles del gateway de entrada",
     "exit": "Fallo al obtener los países disponibles del gateway de salida",
@@ -85,5 +77,8 @@
     "ping": "Falló el ping del nodo de salida para el tráfico {{protocolo}}",
     "routing": "El nodo de salida no está enrutando tráfico {{protocolo}}"
   },
-  "entry-node-routing": "El nodo de entrada no enruta el tráfico (¿se ha caído la conexión a Internet?)"
+  "entry-node-routing": "El nodo de entrada no enruta el tráfico (¿se ha caído la conexión a Internet?)",
+  "account": {
+    "invalid-recovery-phrase": "Frase de recuperación inválida"
+  }
 }

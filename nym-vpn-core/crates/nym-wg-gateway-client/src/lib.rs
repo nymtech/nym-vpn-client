@@ -11,20 +11,21 @@ use std::{
 
 pub use error::{Error, ErrorMessage};
 use nym_authenticator_client::{AuthClient, ClientMessage};
-use nym_authenticator_requests::v2::{
+use nym_authenticator_requests::v3::{
     registration::{FinalMessage, GatewayClient, InitMessage, RegistrationData},
     response::{
         AuthenticatorResponseData, PendingRegistrationResponse, RegisteredResponse,
-        RemainingBandwidthResponse,
+        RemainingBandwidthResponse, TopUpBandwidthResponse,
     },
+    topup::TopUpMessage,
 };
 use nym_credentials_interface::CredentialSpendingData;
 use nym_crypto::asymmetric::{encryption, x25519::KeyPair};
 use nym_gateway_directory::Recipient;
 use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::PeerPublicKey;
 use nym_pemstore::KeyPairPath;
+use nym_wg_go::PublicKey;
 use rand::{rngs::OsRng, CryptoRng, RngCore};
-use talpid_types::net::wireguard::PublicKey; // TODO: this is a type we should provide instead
 use tracing::{debug, error, info, warn};
 
 use crate::error::Result;
@@ -93,6 +94,26 @@ impl WgGatewayLightClient {
 
     pub async fn suspended(&mut self) -> Result<bool> {
         Ok(self.query_bandwidth().await?.is_none())
+    }
+
+    pub async fn top_up(&mut self, credential: CredentialSpendingData) -> Result<i64> {
+        let init_message = ClientMessage::TopUp(Box::new(TopUpMessage {
+            pub_key: PeerPublicKey::new(self.public_key.to_bytes().into()),
+            credential,
+        }));
+        let response = self
+            .auth_client
+            .send(init_message, self.auth_recipient)
+            .await?;
+
+        let remaining_bandwidth = match response.data {
+            AuthenticatorResponseData::TopUpBandwidth(TopUpBandwidthResponse { reply, .. }) => {
+                reply.available_bandwidth
+            }
+            _ => return Err(Error::InvalidGatewayAuthResponse),
+        };
+
+        Ok(remaining_bandwidth)
     }
 }
 
@@ -188,7 +209,7 @@ impl WgGatewayClient {
             .auth_client
             .send(init_message, self.auth_recipient)
             .await?;
-        let registred_data = match response.data {
+        let registered_data = match response.data {
             AuthenticatorResponseData::PendingRegistration(PendingRegistrationResponse {
                 reply:
                     RegistrationData {
@@ -204,7 +225,7 @@ impl WgGatewayClient {
                     .verify(self.keypair.private_key(), nonce)
                     .map_err(Error::VerificationFailed)?;
 
-                let finalized_message = ClientMessage::Final(FinalMessage {
+                let finalized_message = ClientMessage::Final(Box::new(FinalMessage {
                     gateway_client: GatewayClient::new(
                         self.keypair.private_key(),
                         gateway_data.pub_key().inner(),
@@ -212,7 +233,7 @@ impl WgGatewayClient {
                         nonce,
                     ),
                     credential,
-                });
+                }));
                 let response = self
                     .auth_client
                     .send(finalized_message, self.auth_recipient)
@@ -228,13 +249,16 @@ impl WgGatewayClient {
             _ => return Err(Error::InvalidGatewayAuthResponse),
         };
 
-        let IpAddr::V4(private_ipv4) = registred_data.private_ip else {
+        let IpAddr::V4(private_ipv4) = registered_data.private_ip else {
             return Err(Error::InvalidGatewayAuthResponse);
         };
         let gateway_data = GatewayData {
-            public_key: PublicKey::from(registred_data.pub_key.to_bytes()),
-            endpoint: SocketAddr::from_str(&format!("{}:{}", gateway_host, registred_data.wg_port))
-                .map_err(Error::FailedToParseEntryGatewaySocketAddr)?,
+            public_key: PublicKey::from(registered_data.pub_key.to_bytes()),
+            endpoint: SocketAddr::from_str(&format!(
+                "{}:{}",
+                gateway_host, registered_data.wg_port
+            ))
+            .map_err(Error::FailedToParseEntryGatewaySocketAddr)?,
             private_ipv4,
         };
 

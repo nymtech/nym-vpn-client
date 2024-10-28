@@ -18,7 +18,7 @@ public struct HopButton: View {
                 if let countryName = viewModel.countryName {
                     Text(countryName)
                         .foregroundStyle(NymColor.sysOnSurface)
-                        .textStyle(.Body.Large.primary)
+                        .textStyle(.Body.Large.semibold)
                 }
 
                 Spacer()

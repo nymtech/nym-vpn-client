@@ -7,6 +7,10 @@ public final class ConnectionStorage {
     private let appSettings: AppSettings
     private let countriesManager: CountriesManager
 
+    private var countryType: CountryType {
+        connectionType() == .wireguard ? .vpn : .entry
+    }
+
     public init(
         appSettings: AppSettings = AppSettings.shared,
         countriesManager: CountriesManager = CountriesManager.shared
@@ -30,25 +34,17 @@ public final class ConnectionStorage {
         }
 
         if !appSettings.entryCountryCode.isEmpty {
-            return .country(code: existingCountryCode(with: appSettings.entryCountryCode, isEntryHop: true))
+            return .country(code: existingCountryCode(with: appSettings.entryCountryCode, countryType: .entry))
         } else {
-            guard let entryCountry = self.countriesManager.entryCountries.first
-            else {
-                return .country(code: "CH")
-            }
-            return .country(code: entryCountry.code)
+            return .country(code: fallbackCountryCode(countryType: countryType))
         }
     }
 
     func exitRouter() -> ExitRouter {
         if !appSettings.exitCountryCode.isEmpty {
-            return .country(code: existingCountryCode(with: appSettings.exitCountryCode, isEntryHop: false))
+            return .country(code: existingCountryCode(with: appSettings.exitCountryCode, countryType: countryType))
         } else {
-            guard let exitCountry = self.countriesManager.exitCountries.first
-            else {
-                return .country(code: "CH")
-            }
-            return .country(code: exitCountry.code)
+            return .country(code: fallbackCountryCode(countryType: countryType))
         }
     }
 }
@@ -58,15 +54,36 @@ private extension ConnectionStorage {
     /// - Parameter countryCode: String
     /// - Parameter isEntryHop: Bool. Determines from which country array(entry/exit) to return the country from
     /// - Returns: String with countryCode
-    func existingCountryCode(with countryCode: String, isEntryHop: Bool) -> String {
-        let country = countriesManager.country(with: countryCode, isEntryHop: isEntryHop)
+    func existingCountryCode(with countryCode: String, countryType: CountryType) -> String {
+        let country = countriesManager.country(with: countryCode, countryType: countryType)
 
         if let country {
             return country.code
-        } else if let country = countriesManager.entryCountries.first {
-            return country.code
         } else {
-            return "CH"
+            return fallbackCountryCode(countryType: countryType)
+        }
+    }
+
+    func fallbackCountryCode(countryType: CountryType) -> String {
+        switch countryType {
+        case .entry:
+            if let country = countriesManager.entryCountries.first {
+                return country.code
+            } else {
+                return "CH"
+            }
+        case .exit:
+            if let country = countriesManager.exitCountries.first {
+                return country.code
+            } else {
+                return "CH"
+            }
+        case .vpn:
+            if let country = countriesManager.vpnCountries.first {
+                return country.code
+            } else {
+                return "CH"
+            }
         }
     }
 }

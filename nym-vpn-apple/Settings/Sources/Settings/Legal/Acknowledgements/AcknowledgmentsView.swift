@@ -1,4 +1,5 @@
 import SwiftUI
+import Device
 import Modifiers
 import Theme
 import UIComponents
@@ -14,6 +15,7 @@ struct AcknowledgmentsView: View {
         VStack(spacing: 0) {
             navbar()
             section()
+                .frame(maxWidth: Device.type == .ipad ? 358 : .infinity)
             Spacer()
         }
         .navigationBarBackButtonHidden(true)

@@ -30,6 +30,8 @@ public final class ConnectionManager: ObservableObject {
 
     public static let shared = ConnectionManager()
 
+    @Published public var lastError: Error?
+
     @Published public var connectionType: ConnectionType {
         didSet {
             appSettings.connectionType = connectionType.rawValue
@@ -91,6 +93,7 @@ public final class ConnectionManager: ObservableObject {
         setup()
     }
 #endif
+
 #if os(macOS)
     public init(
         appSettings: AppSettings = AppSettings.shared,
@@ -177,7 +180,7 @@ public final class ConnectionManager: ObservableObject {
                 Task { @MainActor in
                     appSettings.lastConnectionIntent = config.toJson()
                 }
-                grpcManager.connect(
+                try await grpcManager.connect(
                     entryGatewayCountryCode: config.entryGateway?.countryCode,
                     exitRouterCountryCode: config.exitRouter.countryCode,
                     isTwoHopEnabled: config.isTwoHopEnabled
@@ -189,13 +192,24 @@ public final class ConnectionManager: ObservableObject {
 }
 
 // MARK: - Setup -
-#if os(iOS)
 private extension ConnectionManager {
     func setup() {
+#if os(iOS)
         setupTunnelManagerObservers()
-        setupCountriesManagerObserver()
-    }
+#endif
 
+#if os(macOS)
+        setupGRPCManagerObservers()
+#endif
+        setupCountriesManagerObserver()
+        setupAppSettingsObservers()
+        setupConnectionChangeObserver()
+        setupConnectionErrorObserver()
+    }
+}
+
+#if os(iOS)
+private extension ConnectionManager {
     func setupTunnelManagerObservers() {
         tunnelsManager.$isLoaded.sink { [weak self] isLoaded in
             self?.isTunnelManagerLoaded = isLoaded
@@ -218,11 +232,6 @@ private extension ConnectionManager {
 
 #if os(macOS)
 private extension ConnectionManager {
-    func setup() {
-        setupGRPCManagerObservers()
-        setupCountriesManagerObserver()
-    }
-
     func setupGRPCManagerObservers() {
         grpcManager.$tunnelStatus.sink { [weak self] status in
             self?.currentTunnelStatus = status
@@ -362,6 +371,41 @@ private extension ConnectionManager {
             self?.updateCountries()
         }
         .store(in: &cancellables)
+
+        countriesManager.$vpnCountries.sink { [weak self] _ in
+            self?.updateCountries()
+        }
+        .store(in: &cancellables)
+    }
+
+    func setupAppSettingsObservers() {
+        appSettings.$isEntryLocationSelectionOnPublisher.sink { [weak self] _ in
+            self?.updateCountries()
+        }
+        .store(in: &cancellables)
+    }
+
+    func setupConnectionChangeObserver() {
+        $connectionType.sink { [weak self] _ in
+            self?.updateCountries()
+        }
+        .store(in: &cancellables)
+    }
+
+    func setupConnectionErrorObserver() {
+#if os(iOS)
+        tunnelsManager.$lastError.sink { [weak self] newError in
+            self?.lastError = newError
+        }
+        .store(in: &cancellables)
+#endif
+
+#if os(macOS)
+        grpcManager.$lastError.sink { [weak self] newError in
+            self?.lastError = newError
+        }
+        .store(in: &cancellables)
+#endif
     }
 
     func updateCountries() {

@@ -12,6 +12,7 @@ import {
   CodeDependency,
   ConnectionStateResponse,
   Country,
+  DaemonInfo,
   DaemonStatus,
   NodeLocation,
   StateDispatch,
@@ -29,6 +30,10 @@ const getInitialConnectionState = async () => {
 
 const getDaemonStatus = async () => {
   return await invoke<DaemonStatus>('daemon_status');
+};
+
+const getDaemonInfo = async () => {
+  return await invoke<DaemonInfo>('daemon_info');
 };
 
 // initialize session start time
@@ -76,6 +81,14 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     request: () => getDaemonStatus(),
     onFulfilled: (status) => {
       dispatch({ type: 'set-daemon-status', status });
+    },
+  };
+
+  const initDaemonInfoRq: TauriReq<() => Promise<DaemonInfo>> = {
+    name: 'daemon_status',
+    request: () => getDaemonInfo(),
+    onFulfilled: (info) => {
+      dispatch({ type: 'set-daemon-info', info });
     },
   };
 
@@ -234,6 +247,7 @@ export async function initFirstBatch(dispatch: StateDispatch) {
   await fireRequests([
     initStateRq,
     initDaemonStatusRq,
+    initDaemonInfoRq,
     getVpnModeRq,
     syncConTimeRq,
     getEntryLocationRq,

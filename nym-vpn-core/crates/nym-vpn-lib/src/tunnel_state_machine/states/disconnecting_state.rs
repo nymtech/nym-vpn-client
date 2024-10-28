@@ -9,8 +9,10 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 use tun::AsyncDevice;
 
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+use crate::tunnel_state_machine::dns_handler::DnsHandler;
+
 use crate::tunnel_state_machine::{
-    dns_handler::DnsHandler,
     states::{ConnectingState, DisconnectedState, ErrorState},
     tunnel::any_tunnel_handle::AnyTunnelHandle,
     ActionAfterDisconnect, NextTunnelState, SharedState, TunnelCommand, TunnelState,
@@ -28,10 +30,15 @@ impl DisconnectingState {
     pub fn enter(
         after_disconnect: ActionAfterDisconnect,
         mut tunnel_handle: Option<AnyTunnelHandle>,
-        _shared_state: &mut SharedState,
+        shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, TunnelState) {
         if let Some(tunnel_handle) = tunnel_handle.as_mut() {
             tunnel_handle.cancel();
+        }
+
+        // It's safe to abort status listener as it's stateless.
+        if let Some(status_listener_handle) = shared_state.status_listener_handle.take() {
+            status_listener_handle.abort();
         }
 
         let wait_handle = tokio::spawn(async move {
@@ -55,54 +62,43 @@ impl DisconnectingState {
     }
 
     async fn on_tunnel_exit(
-        &self,
         result: Result<Option<Vec<AsyncDevice>>, JoinError>,
-        shared_state: &mut SharedState,
-    ) -> NextTunnelState {
-        shared_state.route_handler.remove_routes().await;
+        _shared_state: &mut SharedState,
+    ) {
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        _shared_state.route_handler.remove_routes().await;
 
         match result {
             Ok(Some(tun_devices)) => {
-                if let Err(e) = shared_state.dns_handler.reset_before_interface_removal() {
+                #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+                if let Err(e) = _shared_state.dns_handler.reset_before_interface_removal() {
                     tracing::error!("Failed to reset dns before interface removal: {}", e);
                 }
                 tracing::debug!("Closing tunnel {} device(s).", tun_devices.len());
                 let _ = tun_devices;
             }
             Ok(None) => {
-                Self::reset_dns(&mut shared_state.dns_handler);
+                #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+                Self::reset_dns(&mut _shared_state.dns_handler);
                 tracing::debug!("Tunnel device has already been closed.");
             }
             Err(e) => {
-                Self::reset_dns(&mut shared_state.dns_handler);
+                #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+                Self::reset_dns(&mut _shared_state.dns_handler);
                 tracing::error!("Failed to join on tunnel handle: {}", e);
             }
         }
 
-        shared_state.route_handler.remove_routes().await;
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        _shared_state.route_handler.remove_routes().await;
         // todo: reset firewall
-
-        match self.after_disconnect {
-            ActionAfterDisconnect::Nothing => NextTunnelState::NewState(DisconnectedState::enter()),
-            ActionAfterDisconnect::Error(reason) => {
-                NextTunnelState::NewState(ErrorState::enter(reason))
-            }
-            ActionAfterDisconnect::Reconnect => {
-                NextTunnelState::NewState(ConnectingState::enter(shared_state))
-            }
-        }
     }
 
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     fn reset_dns(dns_handler: &mut DnsHandler) {
         if let Err(e) = dns_handler.reset() {
             tracing::error!("Failed to reset dns: {}", e);
         }
-    }
-
-    async fn reset_on_cancel(shared_state: &mut SharedState) {
-        Self::reset_dns(&mut shared_state.dns_handler);
-        shared_state.route_handler.remove_routes().await;
-        // todo: reset firewall
     }
 }
 
@@ -116,11 +112,24 @@ impl TunnelStateHandler for DisconnectingState {
     ) -> NextTunnelState {
         tokio::select! {
             _ = shutdown_token.cancelled() => {
-                Self::reset_on_cancel(shared_state).await;
+                // Wait for tunnel to exit anyway because it's unsafe to drop the task manager.
+                let result = self.wait_handle.await;
+                Self::on_tunnel_exit(result, shared_state).await;
+
                 NextTunnelState::NewState(DisconnectedState::enter())
             }
             result = (&mut self.wait_handle) => {
-                self.on_tunnel_exit(result, shared_state).await
+                Self::on_tunnel_exit(result, shared_state).await;
+
+                match self.after_disconnect {
+                    ActionAfterDisconnect::Nothing => NextTunnelState::NewState(DisconnectedState::enter()),
+                    ActionAfterDisconnect::Error(reason) => {
+                        NextTunnelState::NewState(ErrorState::enter(reason))
+                    }
+                    ActionAfterDisconnect::Reconnect => {
+                        NextTunnelState::NewState(ConnectingState::enter(shared_state))
+                    }
+                }
             }
             Some(command) = command_rx.recv() => {
                 match command {
@@ -129,6 +138,9 @@ impl TunnelStateHandler for DisconnectingState {
                     },
                     TunnelCommand::Disconnect => {
                         self.after_disconnect = ActionAfterDisconnect::Nothing;
+                    }
+                    TunnelCommand::SetTunnelSettings(tunnel_settings) => {
+                        shared_state.tunnel_settings = tunnel_settings;
                     }
                 }
                 NextTunnelState::SameState(self)

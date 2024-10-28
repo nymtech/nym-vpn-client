@@ -1,13 +1,12 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{error::Error as StdError, net::IpAddr};
+use std::error::Error as StdError;
 
 use nym_connection_monitor::ConnectionMonitorTask;
 use tokio::task::{JoinError, JoinHandle};
 use tun::AsyncDevice;
 
-use nym_ip_packet_requests::IpPair;
 use nym_task::TaskManager;
 
 use super::connector::AssignedAddresses;
@@ -32,12 +31,9 @@ impl ConnectedTunnel {
             assigned_addresses,
         }
     }
-    pub fn interface_addresses(&self) -> IpPair {
-        self.assigned_addresses.interface_addresses
-    }
 
-    pub fn entry_mixnet_gateway_ip(&self) -> IpAddr {
-        self.assigned_addresses.entry_mixnet_gateway_ip
+    pub fn assigned_addresses(&self) -> &AssignedAddresses {
+        &self.assigned_addresses
     }
 
     pub async fn run(self, tun_device: AsyncDevice) -> TunnelHandle {
@@ -83,7 +79,7 @@ impl TunnelHandle {
     /// Cancel tunnel execution.
     pub fn cancel(&self) {
         if let Err(e) = self.task_manager.signal_shutdown() {
-            tracing::error!("Failed to signal shutdown: {}", e);
+            tracing::error!("Failed to signal task manager shutdown: {}", e);
         }
     }
 

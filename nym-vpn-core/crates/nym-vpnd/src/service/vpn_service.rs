@@ -9,63 +9,41 @@ use std::{
 };
 
 use bip39::Mnemonic;
-use futures::{
-    channel::{mpsc::UnboundedSender, oneshot::Receiver as OneshotReceiver},
-    SinkExt,
+use serde::{Deserialize, Serialize};
+use time::format_description::well_known::Rfc3339;
+use tokio::{
+    sync::{broadcast, mpsc, oneshot},
+    task::JoinHandle,
+};
+use tokio_util::sync::CancellationToken;
+use url::Url;
+
+use nym_vpn_account_controller::{
+    AccountCommand, AccountController, AccountStateSummary, ReadyToConnect, SharedAccountState,
 };
 use nym_vpn_api_client::{
-    response::{
-        NymVpnAccountSummaryResponse, NymVpnDevicesResponse, NymVpnSubscription,
-        NymVpnSubscriptionsResponse,
-    },
-    types::{GatewayMinPerformance, Percent, VpnApiAccount},
+    response::{NymVpnAccountSummaryResponse, NymVpnDevicesResponse},
+    types::{Percent, VpnApiAccount},
 };
 use nym_vpn_lib::{
     gateway_directory::{self, EntryPoint, ExitPoint},
     nym_config::defaults::NymNetworkDetails,
-    GenericNymVpnConfig, MixnetClientConfig, NodeIdentity, Recipient,
+    tunnel_state_machine::{
+        ConnectionData, DnsOptions, GatewayPerformanceOptions, MixnetEvent, MixnetTunnelOptions,
+        NymConfig, TunnelCommand, TunnelConnectionData, TunnelEvent, TunnelSettings, TunnelState,
+        TunnelStateMachine, TunnelType,
+    },
+    MixnetClientConfig, NodeIdentity, Recipient,
 };
 use nym_vpn_store::keys::KeyStore as _;
-use serde::{Deserialize, Serialize};
-use time::format_description::well_known::Rfc3339;
-use tokio::sync::{broadcast, mpsc::UnboundedReceiver, oneshot};
-use tokio_util::sync::CancellationToken;
-use tracing::{debug, error, info};
-use url::Url;
 
-use nym_vpn_account_controller::{AccountCommand, AccountController, SharedAccountState};
+use crate::GLOBAL_NETWORK_DETAILS;
 
 use super::{
-    config::{
-        self, create_config_file, create_data_dir, read_config_file, write_config_file,
-        ConfigSetupError, NymVpnServiceConfig, DEFAULT_CONFIG_FILE,
-    },
-    error::{AccountError, ConnectionFailedError},
-    exit_listener::VpnServiceExitListener,
-    status_listener::VpnServiceStatusListener,
+    config::{ConfigSetupError, NetworkEnvironments, NymVpnServiceConfig, DEFAULT_CONFIG_FILE},
+    error::{AccountError, ConnectionFailedError, Error, Result, SetNetworkError},
+    VpnServiceConnectError, VpnServiceDisconnectError,
 };
-
-// The current state of the VPN service
-#[derive(Debug, Clone)]
-pub enum VpnState {
-    NotConnected,
-    Connecting,
-    Connected(Box<VpnConnectedStateDetails>),
-    Disconnecting,
-    ConnectionFailed(ConnectionFailedError),
-}
-
-impl fmt::Display for VpnState {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            VpnState::NotConnected => write!(f, "NotConnected"),
-            VpnState::Connecting => write!(f, "Connecting"),
-            VpnState::Connected(details) => write!(f, "Connected({})", details),
-            VpnState::Disconnecting => write!(f, "Disconnecting"),
-            VpnState::ConnectionFailed(reason) => write!(f, "ConnectionFailed({})", reason),
-        }
-    }
-}
 
 #[derive(Debug, Clone)]
 pub struct MixConnectedStateDetails {
@@ -108,72 +86,68 @@ impl fmt::Display for ConnectedStateDetails {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct VpnConnectedStateDetails {
-    pub entry_gateway: NodeIdentity,
-    pub exit_gateway: NodeIdentity,
-    pub specific_details: ConnectedStateDetails,
-    pub since: time::OffsetDateTime,
-}
-
-impl fmt::Display for VpnConnectedStateDetails {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "entry_gateway: {}, exit_gateway: {}, specific_details: {}, since: {}",
-            self.entry_gateway, self.exit_gateway, self.specific_details, self.since
-        )
-    }
-}
+// Seed used to generate device identity keys
+type Seed = [u8; 32];
 
 #[allow(clippy::large_enum_variant)]
 pub enum VpnServiceCommand {
     Connect(
-        oneshot::Sender<VpnServiceConnectResult>,
-        ConnectArgs,
-        nym_vpn_lib::UserAgent,
+        oneshot::Sender<Result<(), VpnServiceConnectError>>,
+        (ConnectArgs, nym_vpn_lib::UserAgent),
     ),
-    Disconnect(oneshot::Sender<VpnServiceDisconnectResult>),
-    Status(oneshot::Sender<VpnServiceStatusResult>),
-    Info(oneshot::Sender<VpnServiceInfoResult>),
+    Disconnect(oneshot::Sender<Result<(), VpnServiceDisconnectError>>, ()),
+    Status(oneshot::Sender<VpnServiceStatus>, ()),
+    Info(oneshot::Sender<VpnServiceInfo>, ()),
+    SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     StoreAccount(oneshot::Sender<Result<(), AccountError>>, String),
-    IsAccountStored(oneshot::Sender<Result<bool, AccountError>>),
-    RemoveAccount(oneshot::Sender<Result<(), AccountError>>),
-    GetAccountSummary(oneshot::Sender<Result<NymVpnAccountSummaryResponse, AccountError>>),
-    GetDevices(oneshot::Sender<Result<NymVpnDevicesResponse, AccountError>>),
-    RegisterDevice(oneshot::Sender<Result<(), AccountError>>),
-    RequestZkNym(oneshot::Sender<Result<(), AccountError>>),
-    GetDeviceZkNyms(oneshot::Sender<Result<(), AccountError>>),
-    GetFreePasses(oneshot::Sender<Result<NymVpnSubscriptionsResponse, AccountError>>),
-    ApplyFreepass(
-        oneshot::Sender<Result<NymVpnSubscription, AccountError>>,
-        String,
+    IsAccountStored(oneshot::Sender<Result<bool, AccountError>>, ()),
+    RemoveAccount(oneshot::Sender<Result<(), AccountError>>, ()),
+    GetAccountIdentity(oneshot::Sender<Result<String, AccountError>>, ()),
+    GetAccountState(
+        oneshot::Sender<Result<AccountStateSummary, AccountError>>,
+        (),
     ),
-    IsReadyToConnect(oneshot::Sender<Result<bool, AccountError>>),
-    Shutdown,
+    RefreshAccountState(oneshot::Sender<Result<(), AccountError>>, ()),
+    IsReadyToConnect(oneshot::Sender<Result<ReadyToConnect, AccountError>>, ()),
+    ResetDeviceIdentity(oneshot::Sender<Result<(), AccountError>>, Option<Seed>),
+    GetDeviceIdentity(oneshot::Sender<Result<String, AccountError>>, ()),
+    RegisterDevice(oneshot::Sender<Result<(), AccountError>>, ()),
+    RequestZkNym(oneshot::Sender<Result<(), AccountError>>, ()),
+    GetDeviceZkNyms(oneshot::Sender<Result<(), AccountError>>, ()),
+    FetchRawAccountSummary(
+        oneshot::Sender<Result<NymVpnAccountSummaryResponse, AccountError>>,
+        (),
+    ),
+    FetchRawDevices(
+        oneshot::Sender<Result<NymVpnDevicesResponse, AccountError>>,
+        (),
+    ),
 }
 
 impl fmt::Display for VpnServiceCommand {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            VpnServiceCommand::Connect(_, args, user_agent) => {
+            VpnServiceCommand::Connect(_, (args, user_agent)) => {
                 write!(f, "Connect {{ {args:?}, {user_agent:?} }}")
             }
-            VpnServiceCommand::Disconnect(_) => write!(f, "Disconnect"),
-            VpnServiceCommand::Status(_) => write!(f, "Status"),
-            VpnServiceCommand::Info(_) => write!(f, "Info"),
-            VpnServiceCommand::StoreAccount(_, _) => write!(f, "StoreAccount"),
-            VpnServiceCommand::IsAccountStored(_) => write!(f, "IsAccountStored"),
-            VpnServiceCommand::RemoveAccount(_) => write!(f, "RemoveAccount"),
-            VpnServiceCommand::GetAccountSummary(_) => write!(f, "GetAccountSummery"),
-            VpnServiceCommand::GetDevices(_) => write!(f, "GetDevices"),
-            VpnServiceCommand::RegisterDevice(_) => write!(f, "RegisterDevice"),
-            VpnServiceCommand::RequestZkNym(_) => write!(f, "RequestZkNym"),
-            VpnServiceCommand::GetDeviceZkNyms(_) => write!(f, "GetDeviceZkNyms"),
-            VpnServiceCommand::GetFreePasses(_) => write!(f, "GetFreePasses"),
-            VpnServiceCommand::ApplyFreepass(_, _) => write!(f, "ApplyFreepass"),
-            VpnServiceCommand::IsReadyToConnect(_) => write!(f, "IsReadyToConnect"),
-            VpnServiceCommand::Shutdown => write!(f, "Shutdown"),
+            VpnServiceCommand::Disconnect(..) => write!(f, "Disconnect"),
+            VpnServiceCommand::Status(..) => write!(f, "Status"),
+            VpnServiceCommand::Info(..) => write!(f, "Info"),
+            VpnServiceCommand::SetNetwork(..) => write!(f, "SetNetwork"),
+            VpnServiceCommand::StoreAccount(..) => write!(f, "StoreAccount"),
+            VpnServiceCommand::IsAccountStored(..) => write!(f, "IsAccountStored"),
+            VpnServiceCommand::RemoveAccount(..) => write!(f, "RemoveAccount"),
+            VpnServiceCommand::GetAccountIdentity(..) => write!(f, "GetAccountIdentity"),
+            VpnServiceCommand::GetAccountState(..) => write!(f, "GetAccountState"),
+            VpnServiceCommand::RefreshAccountState(..) => write!(f, "RefreshAccountState"),
+            VpnServiceCommand::IsReadyToConnect(..) => write!(f, "IsReadyToConnect"),
+            VpnServiceCommand::ResetDeviceIdentity(..) => write!(f, "ResetDeviceIdentity"),
+            VpnServiceCommand::GetDeviceIdentity(..) => write!(f, "GetDeviceIdentity"),
+            VpnServiceCommand::RegisterDevice(..) => write!(f, "RegisterDevice"),
+            VpnServiceCommand::RequestZkNym(..) => write!(f, "RequestZkNym"),
+            VpnServiceCommand::GetDeviceZkNyms(..) => write!(f, "GetDeviceZkNyms"),
+            VpnServiceCommand::FetchRawAccountSummary(..) => write!(f, "FetchRawAccountSummery"),
+            VpnServiceCommand::FetchRawDevices(..) => write!(f, "FetchRawDevices"),
         }
     }
 }
@@ -190,7 +164,7 @@ pub(crate) struct ConnectOptions {
     pub(crate) dns: Option<IpAddr>,
     pub(crate) disable_routing: bool,
     pub(crate) enable_two_hop: bool,
-    pub(crate) enable_poisson_rate: bool,
+    pub(crate) disable_poisson_rate: bool,
     pub(crate) disable_background_cover_traffic: bool,
     pub(crate) enable_credentials_mode: bool,
     pub(crate) min_mixnode_performance: Option<Percent>,
@@ -200,43 +174,10 @@ pub(crate) struct ConnectOptions {
     // pub(crate) user_agent: Option<nym_vpn_lib::UserAgent>,
 }
 
-#[derive(Debug)]
-pub enum VpnServiceConnectResult {
-    Success(VpnServiceConnectHandle),
-    Fail(String),
-}
-
-impl VpnServiceConnectResult {
-    pub fn is_success(&self) -> bool {
-        matches!(self, VpnServiceConnectResult::Success(_))
-    }
-}
-
-#[derive(Debug)]
-pub struct VpnServiceConnectHandle {
-    pub listener_vpn_status_rx: nym_vpn_lib::StatusReceiver,
-    #[allow(unused)]
-    pub listener_vpn_exit_rx: OneshotReceiver<nym_vpn_lib::NymVpnExitStatusMessage>,
-}
-
-#[derive(Debug)]
-pub enum VpnServiceDisconnectResult {
-    Success,
-    NotRunning,
-    #[allow(unused)]
-    Fail(String),
-}
-
-impl VpnServiceDisconnectResult {
-    pub fn is_success(&self) -> bool {
-        matches!(self, VpnServiceDisconnectResult::Success)
-    }
-}
-
 // Respond with the current state of the VPN service. This is currently almost the same as VpnState,
 // but it's conceptually not the same thing, so we keep them separate.
 #[derive(Clone, Debug)]
-pub enum VpnServiceStatusResult {
+pub enum VpnServiceStatus {
     NotConnected,
     Connecting,
     Connected(Box<ConnectedResultDetails>),
@@ -244,8 +185,68 @@ pub enum VpnServiceStatusResult {
     ConnectionFailed(ConnectionFailedError),
 }
 
+impl From<ConnectionData> for ConnectedResultDetails {
+    fn from(value: ConnectionData) -> Self {
+        ConnectedResultDetails {
+            entry_gateway: *value.entry_gateway,
+            exit_gateway: *value.exit_gateway,
+            specific_details: ConnectedStateDetails::from(value.tunnel),
+            since: value.connected_at,
+        }
+    }
+}
+
+impl From<TunnelConnectionData> for ConnectedStateDetails {
+    fn from(value: TunnelConnectionData) -> Self {
+        match value {
+            TunnelConnectionData::Mixnet(data) => {
+                ConnectedStateDetails::Mix(Box::new(MixConnectedStateDetails {
+                    nym_address: *data.nym_address,
+                    exit_ipr: *data.exit_ipr,
+                    ipv4: data.ipv4,
+                    ipv6: data.ipv6,
+                }))
+            }
+            TunnelConnectionData::Wireguard(data) => {
+                // FIXME: we must accept ipv6 too in the future!
+                ConnectedStateDetails::Wg(WgConnectedStateDetails {
+                    entry_ipv4: match data.entry.endpoint.ip() {
+                        IpAddr::V4(addr) => addr,
+                        IpAddr::V6(_) => Ipv4Addr::LOCALHOST,
+                    },
+                    exit_ipv4: match data.exit.endpoint.ip() {
+                        IpAddr::V4(addr) => addr,
+                        IpAddr::V6(_) => Ipv4Addr::LOCALHOST,
+                    },
+                })
+            }
+        }
+    }
+}
+
+impl From<TunnelState> for VpnServiceStatus {
+    fn from(value: TunnelState) -> Self {
+        match value {
+            TunnelState::Connected { connection_data } => {
+                Self::Connected(Box::new(ConnectedResultDetails {
+                    entry_gateway: *connection_data.entry_gateway,
+                    exit_gateway: *connection_data.exit_gateway,
+                    specific_details: ConnectedStateDetails::from(connection_data.tunnel),
+                    since: connection_data.connected_at,
+                }))
+            }
+            TunnelState::Connecting => Self::Connecting,
+            TunnelState::Disconnected => Self::NotConnected,
+            TunnelState::Disconnecting { .. } => Self::Disconnecting,
+            TunnelState::Error(e) => Self::ConnectionFailed(ConnectionFailedError::InternalError(
+                format!("Error state: {:?}", e),
+            )),
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
-pub struct VpnServiceInfoResult {
+pub struct VpnServiceInfo {
     pub version: String,
     pub build_timestamp: Option<time::OffsetDateTime>,
     pub triple: String,
@@ -256,14 +257,14 @@ pub struct VpnServiceInfoResult {
     pub nym_vpn_api_url: Option<String>,
 }
 
-impl fmt::Display for VpnServiceStatusResult {
+impl fmt::Display for VpnServiceStatus {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            VpnServiceStatusResult::NotConnected => write!(f, "NotConnected"),
-            VpnServiceStatusResult::Connecting => write!(f, "Connecting"),
-            VpnServiceStatusResult::Connected(details) => write!(f, "Connected({})", details),
-            VpnServiceStatusResult::Disconnecting => write!(f, "Disconnecting"),
-            VpnServiceStatusResult::ConnectionFailed(reason) => {
+            VpnServiceStatus::NotConnected => write!(f, "NotConnected"),
+            VpnServiceStatus::Connecting => write!(f, "Connecting"),
+            VpnServiceStatus::Connected(details) => write!(f, "Connected({})", details),
+            VpnServiceStatus::Disconnecting => write!(f, "Disconnecting"),
+            VpnServiceStatus::ConnectionFailed(reason) => {
                 write!(f, "ConnectionFailed({})", reason)
             }
         }
@@ -288,40 +289,11 @@ impl fmt::Display for ConnectedResultDetails {
     }
 }
 
-impl From<VpnConnectedStateDetails> for ConnectedResultDetails {
-    fn from(details: VpnConnectedStateDetails) -> Self {
-        ConnectedResultDetails {
-            entry_gateway: details.entry_gateway,
-            exit_gateway: details.exit_gateway,
-            specific_details: details.specific_details,
-            since: details.since,
-        }
-    }
-}
-
-impl From<Box<VpnConnectedStateDetails>> for Box<ConnectedResultDetails> {
-    fn from(details: Box<VpnConnectedStateDetails>) -> Self {
-        Box::new((*details).into())
-    }
-}
-
-impl VpnServiceStatusResult {
+impl VpnServiceStatus {
     pub fn error(&self) -> Option<ConnectionFailedError> {
         match self {
-            VpnServiceStatusResult::ConnectionFailed(reason) => Some(reason.clone()),
+            VpnServiceStatus::ConnectionFailed(reason) => Some(reason.clone()),
             _ => None,
-        }
-    }
-}
-
-impl From<VpnState> for VpnServiceStatusResult {
-    fn from(state: VpnState) -> Self {
-        match state {
-            VpnState::NotConnected => VpnServiceStatusResult::NotConnected,
-            VpnState::Connecting => VpnServiceStatusResult::Connecting,
-            VpnState::Connected(details) => VpnServiceStatusResult::Connected(details.into()),
-            VpnState::Disconnecting => VpnServiceStatusResult::Disconnecting,
-            VpnState::ConnectionFailed(reason) => VpnServiceStatusResult::ConnectionFailed(reason),
         }
     }
 }
@@ -335,6 +307,20 @@ pub enum VpnServiceStateChange {
     ConnectionFailed(ConnectionFailedError),
 }
 
+impl From<TunnelState> for VpnServiceStateChange {
+    fn from(value: TunnelState) -> Self {
+        match value {
+            TunnelState::Connecting => Self::Connecting,
+            TunnelState::Connected { .. } => Self::Connected,
+            TunnelState::Disconnected => Self::NotConnected,
+            TunnelState::Disconnecting { .. } => Self::Disconnecting,
+            TunnelState::Error(reason) => Self::ConnectionFailed(
+                ConnectionFailedError::InternalError(format!("Error state: {:?}", reason)),
+            ),
+        }
+    }
+}
+
 impl VpnServiceStateChange {
     pub fn error(&self) -> Option<ConnectionFailedError> {
         match self {
@@ -344,89 +330,110 @@ impl VpnServiceStateChange {
     }
 }
 
-impl From<VpnState> for VpnServiceStateChange {
-    fn from(state: VpnState) -> Self {
-        match state {
-            VpnState::NotConnected => VpnServiceStateChange::NotConnected,
-            VpnState::Connecting => VpnServiceStateChange::Connecting,
-            VpnState::Connected { .. } => VpnServiceStateChange::Connected,
-            VpnState::Disconnecting => VpnServiceStateChange::Disconnecting,
-            VpnState::ConnectionFailed(reason) => VpnServiceStateChange::ConnectionFailed(reason),
-        }
-    }
-}
-
-#[derive(Clone)]
-pub(super) struct SharedVpnState {
-    shared_vpn_state: Arc<std::sync::Mutex<VpnState>>,
-    vpn_state_changes_tx: broadcast::Sender<VpnServiceStateChange>,
-}
-
-impl SharedVpnState {
-    fn new(vpn_state_changes_tx: broadcast::Sender<VpnServiceStateChange>) -> Self {
-        Self {
-            shared_vpn_state: Arc::new(std::sync::Mutex::new(VpnState::NotConnected)),
-            vpn_state_changes_tx,
-        }
-    }
-
-    pub(super) fn set(&self, state: VpnState) {
-        info!("VPN: Setting shared state to {}", state);
-        *self.shared_vpn_state.lock().unwrap() = state.clone();
-        self.vpn_state_changes_tx.send(state.into()).ok();
-    }
-
-    fn get(&self) -> VpnState {
-        self.shared_vpn_state.lock().unwrap().clone()
-    }
-}
-
 pub(crate) struct NymVpnService<S>
 where
     S: nym_vpn_store::VpnStorage,
 {
-    // The current state of the VPN service
-    shared_vpn_state: SharedVpnState,
-
     // The account state, updated by the account controller
     shared_account_state: SharedAccountState,
 
     // Listen for commands from the command interface, like the grpc listener that listens user
     // commands.
-    vpn_command_rx: UnboundedReceiver<VpnServiceCommand>,
+    vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
 
-    // Send commands to the actual vpn service task
-    vpn_ctrl_sender: Option<UnboundedSender<nym_vpn_lib::NymVpnCtrlMessage>>,
+    vpn_state_changes_tx: broadcast::Sender<VpnServiceStateChange>,
+    status_tx: broadcast::Sender<MixnetEvent>,
 
-    #[allow(unused)]
     // Send commands to the account controller
-    account_command_tx: tokio::sync::mpsc::UnboundedSender<AccountCommand>,
+    account_command_tx: mpsc::UnboundedSender<AccountCommand>,
 
     config_file: PathBuf,
 
-    data_dir: PathBuf,
-
     // Storage backend
     storage: Arc<tokio::sync::Mutex<S>>,
+
+    // Last known tunnel state.
+    tunnel_state: TunnelState,
+
+    // Tunnel state machine handle.
+    state_machine_handle: JoinHandle<()>,
+
+    // Command channel for state machine
+    command_sender: mpsc::UnboundedSender<TunnelCommand>,
+
+    // Event channel for receiving events from state machine
+    event_receiver: mpsc::UnboundedReceiver<TunnelEvent>,
+
+    // Service shutdown token.
+    shutdown_token: CancellationToken,
 }
 
 impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
+    pub(crate) fn spawn(
+        vpn_state_changes_tx: broadcast::Sender<VpnServiceStateChange>,
+        vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
+        status_tx: broadcast::Sender<MixnetEvent>,
+        shutdown_token: CancellationToken,
+    ) -> JoinHandle<()> {
+        tracing::info!("Starting VPN service");
+        tokio::spawn(async {
+            match NymVpnService::new(
+                vpn_state_changes_tx,
+                vpn_command_rx,
+                status_tx,
+                shutdown_token,
+            )
+            .await
+            {
+                Ok(service) => {
+                    tracing::info!("VPN service initialized successfully");
+
+                    match service.run().await {
+                        Ok(_) => {
+                            tracing::info!("VPN service has successfully exited");
+                        }
+                        Err(e) => {
+                            tracing::error!("VPN service has exited with error: {:?}", e);
+                        }
+                    }
+                }
+                Err(err) => {
+                    tracing::error!("Failed to initialize VPN service: {:?}", err);
+                }
+            }
+        })
+    }
+
     pub(crate) async fn new(
         vpn_state_changes_tx: broadcast::Sender<VpnServiceStateChange>,
-        vpn_command_rx: UnboundedReceiver<VpnServiceCommand>,
-        cancel_token: CancellationToken,
-    ) -> Self {
-        let config_dir = std::env::var("NYM_VPND_CONFIG_DIR")
-            .map(PathBuf::from)
-            .unwrap_or_else(|_| config::default_config_dir());
+        vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
+        status_tx: broadcast::Sender<MixnetEvent>,
+        shutdown_token: CancellationToken,
+    ) -> Result<Self> {
+        let network_details = GLOBAL_NETWORK_DETAILS
+            .get()
+            .ok_or(Error::ConfigSetup(ConfigSetupError::GlobalNetworkNotSet))?
+            .clone();
+        let network_name = network_details.network_name.clone();
+
+        let config_dir = super::config::config_dir().join(&network_name);
         let config_file = config_dir.join(DEFAULT_CONFIG_FILE);
-        let data_dir = std::env::var("NYM_VPND_DATA_DIR")
-            .map(PathBuf::from)
-            .unwrap_or_else(|_| config::default_data_dir());
+        let data_dir = super::config::data_dir().join(&network_name);
 
         let storage = Arc::new(tokio::sync::Mutex::new(
             nym_vpn_lib::storage::VpnClientOnDiskStorage::new(data_dir.clone()),
         ));
+
+        // Make sure the data dir exists
+        super::config::create_data_dir(&data_dir).map_err(Error::ConfigSetup)?;
+
+        // Generate the device keys if we don't already have them
+        storage
+            .lock()
+            .await
+            .init_keys(None)
+            .await
+            .map_err(|source| Error::ConfigSetup(ConfigSetupError::FailedToInitKeys { source }))?;
 
         // We need to create the user agent here and not in the controller so that we correctly
         // pick up build time constants.
@@ -434,40 +441,48 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         let account_controller = AccountController::new(
             Arc::clone(&storage),
             data_dir.clone(),
-            user_agent,
-            cancel_token,
+            user_agent.clone(),
+            shutdown_token.child_token(),
         )
         .await;
+
         let shared_account_state = account_controller.shared_state();
         let account_command_tx = account_controller.command_tx();
         let _account_controller_handle = tokio::task::spawn(account_controller.run());
 
-        Self {
-            shared_vpn_state: SharedVpnState::new(vpn_state_changes_tx),
+        let (command_sender, command_receiver) = mpsc::unbounded_channel();
+        let (event_sender, event_receiver) = mpsc::unbounded_channel();
+
+        let tunnel_settings = TunnelSettings::default();
+        let nym_config = NymConfig {
+            data_path: Some(data_dir.clone()),
+            gateway_config: gateway_directory::Config::new_from_env(),
+        };
+
+        let state_machine_handle = TunnelStateMachine::spawn(
+            command_receiver,
+            event_sender,
+            nym_config,
+            tunnel_settings,
+            shutdown_token.child_token(),
+        )
+        .await
+        .map_err(Error::StateMachine)?;
+
+        Ok(Self {
             shared_account_state,
             vpn_command_rx,
-            vpn_ctrl_sender: None,
+            vpn_state_changes_tx,
+            status_tx,
             account_command_tx,
             config_file,
-            data_dir,
             storage,
-        }
-    }
-
-    pub(crate) async fn init_storage(&self) -> Result<(), ConfigSetupError> {
-        // Make sure the data dir exists
-        if let Err(err) = create_data_dir(&self.data_dir) {
-            self.shared_vpn_state.set(VpnState::NotConnected);
-            return Err(err);
-        }
-
-        // Generate the device keys if we don't already have them
-        if let Err(err) = self.storage.lock().await.init_keys(None).await {
-            self.shared_vpn_state.set(VpnState::NotConnected);
-            return Err(ConfigSetupError::FailedToInitKeys { source: err });
-        }
-
-        Ok(())
+            tunnel_state: TunnelState::Disconnected,
+            state_machine_handle,
+            command_sender,
+            event_receiver,
+            shutdown_token,
+        })
     }
 }
 
@@ -475,31 +490,159 @@ impl<S> NymVpnService<S>
 where
     S: nym_vpn_store::VpnStorage,
 {
+    pub(crate) async fn run(mut self) -> anyhow::Result<()> {
+        loop {
+            tokio::select! {
+                Some(command) = self.vpn_command_rx.recv() => {
+                    tracing::debug!("VPN: Received command: {command}");
+                    self.handle_service_command(command).await;
+                }
+                Some(event) = self.event_receiver.recv() => {
+                    tracing::info!("Tunnel event: {:?}", event);
+                    match event {
+                        TunnelEvent::NewState(new_state) => {
+                            self.tunnel_state = new_state.clone();
+                            let vpn_state_change = VpnServiceStateChange::from(new_state);
+                            if let Err(e) = self.vpn_state_changes_tx.send(vpn_state_change) {
+                                tracing::error!("Failed to send vpn state change: {}", e);
+                            }
+                        }
+                        TunnelEvent::MixnetState(event) => {
+                            if let Err(e) = self.status_tx.send(event) {
+                                tracing::error!("Failed to send mixnet event: {}", e);
+                            }
+                        }
+                    }
+                }
+                _ = self.shutdown_token.cancelled() => {
+                    tracing::info!("Received shutdown signal");
+                    break;
+                }
+                else => {
+                    tracing::warn!("Event loop is interrupted");
+                    break;
+                }
+            }
+        }
+
+        tracing::info!("Exiting vpn service run loop");
+
+        if let Err(e) = self.state_machine_handle.await {
+            tracing::error!("Failed to join on state machine handle: {}", e);
+        }
+
+        Ok(())
+    }
+
+    async fn handle_service_command(&mut self, command: VpnServiceCommand) {
+        match command {
+            VpnServiceCommand::Connect(tx, (connect_args, user_agent)) => {
+                let result = self.handle_connect(connect_args, user_agent).await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::Disconnect(tx, ()) => {
+                let result = self.handle_disconnect().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::Status(tx, ()) => {
+                let result = self.handle_status().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::Info(tx, ()) => {
+                let result = self.handle_info().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::SetNetwork(tx, network) => {
+                let result = self.handle_set_network(network).await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::StoreAccount(tx, account) => {
+                let result = self.handle_store_account(account).await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::IsAccountStored(tx, ()) => {
+                let result = self.handle_is_account_stored().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::RemoveAccount(tx, ()) => {
+                let result = self.handle_remove_account().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::GetAccountIdentity(tx, ()) => {
+                let result = self.handle_get_account_identity().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::GetAccountState(tx, ()) => {
+                let result = self.handle_get_account_state().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::RefreshAccountState(tx, ()) => {
+                let result = self.handle_refresh_account_state().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::IsReadyToConnect(tx, ()) => {
+                let result = Ok(self.handle_is_ready_to_connect().await);
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::ResetDeviceIdentity(tx, seed) => {
+                let result = self.handle_reset_device_identity(seed).await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::GetDeviceIdentity(tx, ()) => {
+                let result = self.handle_get_device_identity().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::RegisterDevice(tx, ()) => {
+                let result = self.handle_register_device().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::RequestZkNym(tx, ()) => {
+                let result = self.handle_request_zk_nym().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::GetDeviceZkNyms(tx, ()) => {
+                let result = self.handle_get_device_zk_nyms().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::FetchRawAccountSummary(tx, ()) => {
+                let result = self.handle_fetch_raw_account_summary().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::FetchRawDevices(tx, ()) => {
+                let result = self.handle_fetch_raw_devices().await;
+                let _ = tx.send(result);
+            }
+        }
+    }
+
     fn try_setup_config(
         &self,
         entry: Option<gateway_directory::EntryPoint>,
         exit: Option<gateway_directory::ExitPoint>,
-    ) -> std::result::Result<NymVpnServiceConfig, ConfigSetupError> {
+    ) -> Result<NymVpnServiceConfig> {
         // If the config file does not exit, create it
         let config = if self.config_file.exists() {
-            let mut read_config = read_config_file(&self.config_file)
-                .map_err(|err| {
-                    error!(
-                        "Failed to read config file, resetting to defaults: {:?}",
-                        err
-                    );
-                })
-                .unwrap_or_default();
+            let mut read_config: NymVpnServiceConfig =
+                super::config::read_config_file(&self.config_file)
+                    .map_err(|err| {
+                        tracing::error!(
+                            "Failed to read config file, resetting to defaults: {:?}",
+                            err
+                        );
+                    })
+                    .unwrap_or_default();
             read_config.entry_point = entry.unwrap_or(read_config.entry_point);
             read_config.exit_point = exit.unwrap_or(read_config.exit_point);
-            write_config_file(&self.config_file, &read_config)?;
+            super::config::write_config_file(&self.config_file, &read_config)
+                .map_err(Error::ConfigSetup)?;
             read_config
         } else {
             let config = NymVpnServiceConfig {
                 entry_point: entry.unwrap_or(EntryPoint::Random),
                 exit_point: exit.unwrap_or(ExitPoint::Random),
             };
-            create_config_file(&self.config_file, config)?
+            super::config::create_config_file(&self.config_file, config)
+                .map_err(Error::ConfigSetup)?
         };
         Ok(config)
     }
@@ -507,9 +650,15 @@ where
     async fn handle_connect(
         &mut self,
         connect_args: ConnectArgs,
-        user_agent: nym_vpn_lib::UserAgent,
-    ) -> VpnServiceConnectResult {
-        self.shared_vpn_state.set(VpnState::Connecting);
+        _user_agent: nym_vpn_lib::UserAgent, // todo: use user-agent!
+    ) -> Result<(), VpnServiceConnectError> {
+        match self.shared_account_state.is_ready_to_connect().await {
+            ReadyToConnect::Ready => {}
+            not_ready_to_connect => {
+                tracing::info!("Not ready to connect: {:?}", not_ready_to_connect);
+                return Err(VpnServiceConnectError::Account(not_ready_to_connect));
+            }
+        }
 
         let ConnectArgs {
             entry,
@@ -517,139 +666,107 @@ where
             options,
         } = connect_args;
 
-        info!(
+        tracing::info!(
             "Using entry point: {}",
             entry
                 .clone()
                 .map(|e| e.to_string())
                 .unwrap_or("None".to_string())
         );
-        info!(
+        tracing::info!(
             "Using exit point: {}",
             exit.clone()
                 .map(|e| e.to_string())
                 .unwrap_or("None".to_string())
         );
-        info!("Using options: {:?}", options);
+        tracing::info!("Using options: {:?}", options);
 
-        let config = match self.try_setup_config(entry, exit) {
-            Ok(config) => config,
-            Err(err) => {
-                self.shared_vpn_state.set(VpnState::NotConnected);
-                return VpnServiceConnectResult::Fail(err.to_string());
+        let config = self
+            .try_setup_config(entry, exit)
+            .map_err(|err| VpnServiceConnectError::Internal(err.to_string()))?;
+        tracing::info!("Using config: {}", config);
+
+        let gateway_options = GatewayPerformanceOptions {
+            mixnet_min_performance: options
+                .min_gateway_mixnet_performance
+                .map(|x| x.round_to_integer()),
+            vpn_min_performance: options
+                .min_gateway_vpn_performance
+                .map(|x| x.round_to_integer()),
+        };
+
+        let mixnet_client_config = MixnetClientConfig {
+            disable_poisson_rate: options.disable_poisson_rate,
+            disable_background_cover_traffic: options.disable_background_cover_traffic,
+            min_mixnode_performance: options
+                .min_mixnode_performance
+                .map(|p| p.round_to_integer()),
+            min_gateway_performance: options
+                .min_gateway_mixnet_performance
+                .map(|p| p.round_to_integer()),
+        };
+
+        let tunnel_type = if options.enable_two_hop {
+            TunnelType::Wireguard
+        } else {
+            TunnelType::Mixnet
+        };
+
+        let dns = options
+            .dns
+            .map(|addr| DnsOptions::Custom(vec![addr]))
+            .unwrap_or(DnsOptions::default());
+
+        let tunnel_settings = TunnelSettings {
+            tunnel_type,
+            enable_credentials_mode: options.enable_credentials_mode,
+            mixnet_tunnel_options: MixnetTunnelOptions::default(),
+            gateway_performance_options: gateway_options,
+            mixnet_client_config: Some(mixnet_client_config),
+            entry_point: Box::new(config.entry_point),
+            exit_point: Box::new(config.exit_point),
+            dns,
+        };
+
+        match self
+            .command_sender
+            .send(TunnelCommand::SetTunnelSettings(tunnel_settings))
+        {
+            Ok(()) => self
+                .command_sender
+                .send(TunnelCommand::Connect)
+                .map_err(|e| {
+                    tracing::error!("Failed to send command to connect: {}", e);
+                    VpnServiceConnectError::Internal("failed to send tunnel command".to_owned())
+                }),
+            Err(e) => {
+                tracing::error!("Failed to send command to set tunnel options: {}", e);
+                Err(VpnServiceConnectError::Internal(
+                    "failed to send command to set tunnel options".to_owned(),
+                ))
             }
-        };
-
-        info!("Using config: {}", config);
-
-        let min_gateway_performance = GatewayMinPerformance {
-            mixnet_min_performance: options.min_gateway_mixnet_performance,
-            vpn_min_performance: options.min_gateway_vpn_performance,
-        };
-
-        let gateway_config = gateway_directory::Config::new_from_env()
-            .with_min_gateway_performance(min_gateway_performance);
-
-        let generic_config = GenericNymVpnConfig {
-            mixnet_client_config: MixnetClientConfig {
-                enable_poisson_rate: options.enable_poisson_rate,
-                disable_background_cover_traffic: options.disable_background_cover_traffic,
-                enable_credentials_mode: options.enable_credentials_mode,
-                min_mixnode_performance: options
-                    .min_mixnode_performance
-                    .map(|p| p.round_to_integer()),
-                min_gateway_performance: options
-                    .min_gateway_mixnet_performance
-                    .map(|p| p.round_to_integer()),
-            },
-            data_path: Some(self.data_dir.clone()),
-            gateway_config,
-            entry_point: config.entry_point.clone(),
-            exit_point: config.exit_point.clone(),
-            nym_ips: None,
-            nym_mtu: None,
-            dns: options.dns,
-            disable_routing: options.disable_routing,
-            user_agent: Some(user_agent),
-        };
-
-        let nym_vpn = if options.enable_two_hop {
-            let mut nym_vpn =
-                nym_vpn_lib::NymVpn::new_wireguard_vpn(config.entry_point, config.exit_point);
-            nym_vpn.generic_config = generic_config;
-            nym_vpn.into()
-        } else {
-            let mut nym_vpn =
-                nym_vpn_lib::NymVpn::new_mixnet_vpn(config.entry_point, config.exit_point);
-            nym_vpn.generic_config = generic_config;
-            nym_vpn.into()
-        };
-
-        let handle = nym_vpn_lib::spawn_nym_vpn_with_new_runtime(nym_vpn).unwrap();
-
-        let nym_vpn_lib::NymVpnHandle {
-            vpn_ctrl_tx,
-            vpn_status_rx,
-            vpn_exit_rx,
-        } = handle;
-
-        self.vpn_ctrl_sender = Some(vpn_ctrl_tx);
-
-        let (listener_vpn_status_tx, listener_vpn_status_rx) = futures::channel::mpsc::channel(16);
-        let (listener_vpn_exit_tx, listener_vpn_exit_rx) = futures::channel::oneshot::channel();
-
-        VpnServiceStatusListener::new(self.shared_vpn_state.clone())
-            .start(vpn_status_rx, listener_vpn_status_tx)
-            .await;
-
-        VpnServiceExitListener::new(self.shared_vpn_state.clone())
-            .start(vpn_exit_rx, listener_vpn_exit_tx)
-            .await;
-
-        let connect_handle = VpnServiceConnectHandle {
-            listener_vpn_status_rx,
-            listener_vpn_exit_rx,
-        };
-
-        VpnServiceConnectResult::Success(connect_handle)
-    }
-
-    fn is_running(&self) -> bool {
-        self.vpn_ctrl_sender
-            .as_ref()
-            .map(|s| !s.is_closed())
-            .unwrap_or(false)
-    }
-
-    async fn handle_disconnect(&mut self) -> VpnServiceDisconnectResult {
-        // To handle the mutable borrow we set the state separate from the sending the stop message
-        if self.is_running() {
-            self.shared_vpn_state.set(VpnState::Disconnecting);
-        } else {
-            return VpnServiceDisconnectResult::NotRunning;
-        }
-
-        if let Some(ref mut vpn_ctrl_sender) = self.vpn_ctrl_sender {
-            vpn_ctrl_sender
-                .send(nym_vpn_lib::NymVpnCtrlMessage::Stop)
-                .await
-                .ok();
-            VpnServiceDisconnectResult::Success
-        } else {
-            VpnServiceDisconnectResult::NotRunning
         }
     }
 
-    async fn handle_status(&self) -> VpnServiceStatusResult {
-        self.shared_vpn_state.get().into()
+    async fn handle_disconnect(&mut self) -> Result<(), VpnServiceDisconnectError> {
+        self.command_sender
+            .send(TunnelCommand::Disconnect)
+            .map_err(|e| {
+                tracing::error!("Failed to send command to disconnect: {}", e);
+                VpnServiceDisconnectError::Internal("failed to send dicsonnect command".to_owned())
+            })
     }
 
-    async fn handle_info(&self) -> VpnServiceInfoResult {
+    async fn handle_status(&self) -> VpnServiceStatus {
+        VpnServiceStatus::from(self.tunnel_state.clone())
+    }
+
+    async fn handle_info(&self) -> VpnServiceInfo {
         let network = NymNetworkDetails::new_from_env();
         let bin_info = nym_bin_common::bin_info_local_vergen!();
         let user_agent = crate::util::construct_user_agent();
 
-        VpnServiceInfoResult {
+        VpnServiceInfo {
             version: bin_info.build_version.to_string(),
             build_timestamp: time::OffsetDateTime::parse(bin_info.build_timestamp, &Rfc3339).ok(),
             triple: bin_info.cargo_triple.to_string(),
@@ -659,6 +776,35 @@ where
             endpoints: network.endpoints,
             nym_vpn_api_url: network.nym_vpn_api_url,
         }
+    }
+
+    async fn handle_set_network(&self, network: String) -> Result<(), SetNetworkError> {
+        // let mut global_config = crate::discovery::read_global_config_file().map_err(|source| {
+        let mut global_config =
+            crate::discovery::GlobalConfigFile::read_from_file().map_err(|source| {
+                SetNetworkError::ReadConfig {
+                    source: source.into(),
+                }
+            })?;
+
+        // Manually restrict the set of possible network, until we handle this automatically
+        let network_selected = NetworkEnvironments::try_from(network.as_str())
+            .map_err(|_err| SetNetworkError::NetworkNotFound(network.to_owned()))?;
+        global_config.network_name = network_selected.to_string();
+
+        // crate::discovery::write_global_config_file(global_config).map_err(|source| {
+        global_config
+            .write_to_file()
+            .map_err(|source| SetNetworkError::WriteConfig {
+                source: source.into(),
+            })?;
+
+        tracing::info!(
+            "Network updated to: {} (SERVICE RESTART REQUIRED!)",
+            network_selected
+        );
+
+        Ok(())
     }
 
     async fn handle_store_account(&mut self, account: String) -> Result<(), AccountError> {
@@ -710,6 +856,26 @@ where
         Ok(())
     }
 
+    async fn handle_get_account_identity(&self) -> Result<String, AccountError> {
+        self.load_account().await.map(|account| account.id())
+    }
+
+    async fn handle_get_account_state(&self) -> Result<AccountStateSummary, AccountError> {
+        Ok(self.shared_account_state.lock().await.clone())
+    }
+
+    async fn handle_refresh_account_state(&self) -> Result<(), AccountError> {
+        self.account_command_tx
+            .send(AccountCommand::UpdateSharedAccountState)
+            .map_err(|err| AccountError::SendCommand {
+                source: Box::new(err),
+            })
+    }
+
+    async fn handle_is_ready_to_connect(&self) -> ReadyToConnect {
+        self.shared_account_state.is_ready_to_connect().await
+    }
+
     async fn load_account(&self) -> Result<VpnApiAccount, AccountError> {
         self.storage
             .lock()
@@ -723,7 +889,6 @@ where
             .inspect(|account| tracing::info!("Loading account id: {}", account.id()))
     }
 
-    #[allow(unused)]
     async fn load_device_keys(&self) -> Result<nym_vpn_store::keys::DeviceKeys, AccountError> {
         self.storage
             .lock()
@@ -739,33 +904,32 @@ where
             })
     }
 
-    async fn handle_get_account_summary(
+    async fn handle_reset_device_identity(
         &self,
-    ) -> Result<NymVpnAccountSummaryResponse, AccountError> {
-        // Get account
-        let account = self.load_account().await?;
-
-        // Setup client
-        let nym_vpn_api_url = get_nym_vpn_api_url()?;
-        let user_agent = crate::util::construct_user_agent();
-        let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent)?;
-
-        api_client
-            .get_account_summary(&account)
+        seed: Option<[u8; 32]>,
+    ) -> Result<(), AccountError> {
+        self.storage
+            .lock()
             .await
-            .map_err(Into::into)
+            .reset_keys(seed)
+            .await
+            .map_err(|err| AccountError::FailedToResetKeys {
+                source: Box::new(err),
+            })?;
+
+        self.account_command_tx
+            .send(AccountCommand::UpdateSharedAccountState)
+            .map_err(|err| AccountError::SendCommand {
+                source: Box::new(err),
+            })?;
+
+        Ok(())
     }
 
-    async fn handle_get_devices(&self) -> Result<NymVpnDevicesResponse, AccountError> {
-        // Get account
-        let account = self.load_account().await?;
-
-        // Setup client
-        let nym_vpn_api_url = get_nym_vpn_api_url()?;
-        let user_agent = crate::util::construct_user_agent();
-        let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent)?;
-
-        api_client.get_devices(&account).await.map_err(Into::into)
+    async fn handle_get_device_identity(&self) -> Result<String, AccountError> {
+        self.load_device_keys()
+            .await
+            .map(|keys| keys.device_keypair().public_key().to_string())
     }
 
     async fn handle_register_device(&self) -> Result<(), AccountError> {
@@ -774,39 +938,6 @@ where
             .map_err(|err| AccountError::SendCommand {
                 source: Box::new(err),
             })
-    }
-
-    async fn handle_get_free_passes(&self) -> Result<NymVpnSubscriptionsResponse, AccountError> {
-        // Get account
-        let account = self.load_account().await?;
-
-        // Setup client
-        let nym_vpn_api_url = get_nym_vpn_api_url()?;
-        let user_agent = crate::util::construct_user_agent();
-        let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent)?;
-
-        api_client
-            .get_free_passes(&account)
-            .await
-            .map_err(Into::into)
-    }
-
-    async fn handle_apply_freepass(
-        &self,
-        code: String,
-    ) -> Result<NymVpnSubscription, AccountError> {
-        // Get account
-        let account = self.load_account().await?;
-
-        // Setup client
-        let nym_vpn_api_url = get_nym_vpn_api_url()?;
-        let user_agent = crate::util::construct_user_agent();
-        let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent)?;
-
-        api_client
-            .apply_freepass(&account, code)
-            .await
-            .map_err(Into::into)
     }
 
     async fn handle_request_zk_nym(&self) -> Result<(), AccountError> {
@@ -825,89 +956,41 @@ where
             })
     }
 
-    async fn handle_is_ready_to_connect(&self) -> bool {
-        self.shared_account_state.is_ready_to_connect().await
+    async fn handle_fetch_raw_account_summary(
+        &self,
+    ) -> Result<NymVpnAccountSummaryResponse, AccountError> {
+        if !self.handle_is_account_stored().await? {
+            return Err(AccountError::NoAccountStored);
+        }
+
+        // Get account
+        let account = self.load_account().await?;
+
+        // Setup client
+        let nym_vpn_api_url = get_nym_vpn_api_url()?;
+        let user_agent = crate::util::construct_user_agent();
+        let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent)?;
+
+        api_client
+            .get_account_summary(&account)
+            .await
+            .map_err(Into::into)
     }
 
-    pub(crate) async fn run(mut self) -> anyhow::Result<()> {
-        // Start by refreshing the account state
-        self.account_command_tx
-            .send(AccountCommand::UpdateSharedAccountState)?;
-
-        while let Some(command) = self.vpn_command_rx.recv().await {
-            debug!("VPN: Received command: {command}");
-            match command {
-                VpnServiceCommand::Connect(tx, connect_args, user_agent) => {
-                    let result = self.handle_connect(connect_args, user_agent).await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::Disconnect(tx) => {
-                    let result = self.handle_disconnect().await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::Status(tx) => {
-                    let result = self.handle_status().await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::Info(tx) => {
-                    let result = self.handle_info().await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::StoreAccount(tx, account) => {
-                    let result = self.handle_store_account(account).await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::IsAccountStored(tx) => {
-                    let result = self.handle_is_account_stored().await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::RemoveAccount(tx) => {
-                    let result = self.handle_remove_account().await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::GetAccountSummary(tx) => {
-                    let result = self.handle_get_account_summary().await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::GetDevices(tx) => {
-                    let result = self.handle_get_devices().await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::RegisterDevice(tx) => {
-                    let result = self.handle_register_device().await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::RequestZkNym(tx) => {
-                    let result = self.handle_request_zk_nym().await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::GetDeviceZkNyms(tx) => {
-                    let result = self.handle_get_device_zk_nyms().await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::GetFreePasses(tx) => {
-                    let result = self.handle_get_free_passes().await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::ApplyFreepass(tx, code) => {
-                    let result = self.handle_apply_freepass(code).await;
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::IsReadyToConnect(tx) => {
-                    let result = Ok(self.handle_is_ready_to_connect().await);
-                    tx.send(result).unwrap();
-                }
-                VpnServiceCommand::Shutdown => {
-                    let result = self.handle_disconnect().await;
-                    info!("VPN: Shutting down: {:?}", result);
-                    while self.is_running() {
-                        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-                    }
-                    break;
-                }
-            }
+    async fn handle_fetch_raw_devices(&self) -> Result<NymVpnDevicesResponse, AccountError> {
+        if !self.handle_is_account_stored().await? {
+            return Err(AccountError::NoAccountStored);
         }
-        Ok(())
+
+        // Get account
+        let account = self.load_account().await?;
+
+        // Setup client
+        let nym_vpn_api_url = get_nym_vpn_api_url()?;
+        let user_agent = crate::util::construct_user_agent();
+        let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent)?;
+
+        api_client.get_devices(&account).await.map_err(Into::into)
     }
 }
 

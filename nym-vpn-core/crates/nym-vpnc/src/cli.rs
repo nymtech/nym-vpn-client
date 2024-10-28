@@ -1,5 +1,5 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: GPL-3.0-only
 
 use std::net::IpAddr;
 
@@ -24,7 +24,14 @@ pub(crate) enum Command {
     Disconnect,
     Status,
     Info,
+    SetNetwork(SetNetworkArgs),
     StoreAccount(StoreAccountArgs),
+    IsAccountStored,
+    RemoveAccount,
+    GetAccountId,
+    GetAccountState,
+    RefreshAccountState,
+    IsReadyToConnect,
     ListenToStatus,
     ListenToStateChanges,
     ListEntryGateways(ListGatewaysArgs),
@@ -33,13 +40,13 @@ pub(crate) enum Command {
     ListEntryCountries(ListCountriesArgs),
     ListExitCountries(ListCountriesArgs),
     ListVpnCountries(ListCountriesArgs),
-    GetAccountSummary,
-    GetDevices,
+    ResetDeviceIdentity(ResetDeviceIdentityArgs),
+    GetDeviceId,
     RegisterDevice,
     RequestZkNym,
     GetDeviceZkNym,
-    GetFreePasses,
-    ApplyFreepass(ApplyFreepassArgs),
+    FetchRawAccountSummary,
+    FetchRawDevices,
 }
 
 #[derive(Args)]
@@ -65,12 +72,12 @@ pub(crate) struct ConnectArgs {
     #[arg(long)]
     pub(crate) enable_two_hop: bool,
 
-    /// Enable Poisson process rate limiting of outbound traffic.
-    #[arg(long)]
-    pub(crate) enable_poisson_rate: bool,
+    /// Disable Poisson process rate limiting of outbound traffic.
+    #[arg(long, hide = true)]
+    pub(crate) disable_poisson_rate: bool,
 
     /// Disable constant rate background loop cover traffic.
-    #[arg(long)]
+    #[arg(long, hide = true)]
     pub(crate) disable_background_cover_traffic: bool,
 
     /// Enable credentials mode.
@@ -134,6 +141,12 @@ pub(crate) struct CliExit {
 }
 
 #[derive(Args)]
+pub(crate) struct SetNetworkArgs {
+    /// The network to be set.
+    pub(crate) network: String,
+}
+
+#[derive(Args)]
 pub(crate) struct StoreAccountArgs {
     /// The account mnemonic to be stored.
     #[arg(long)]
@@ -174,6 +187,13 @@ pub(crate) struct ListCountriesArgs {
     /// consider a gateway for routing traffic.
     #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
     pub(crate) min_vpn_performance: Option<u8>,
+}
+
+#[derive(Args)]
+pub(crate) struct ResetDeviceIdentityArgs {
+    /// Reset the device identity using the given seed.
+    #[arg(long)]
+    pub(crate) seed: Option<String>,
 }
 
 pub(crate) fn parse_entry_point(args: &ConnectArgs) -> Result<Option<EntryPoint>> {

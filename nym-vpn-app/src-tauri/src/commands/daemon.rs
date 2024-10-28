@@ -1,9 +1,10 @@
+use crate::env::NETWORK_ENV_SELECT;
 use crate::error::BackendError;
 use crate::grpc::client::{GrpcClient, VpndStatus};
 use crate::states::SharedAppState;
 use serde::{Deserialize, Serialize};
 use tauri::State;
-use tracing::{debug, instrument, warn};
+use tracing::{debug, info, instrument, warn};
 use ts_rs::TS;
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
@@ -11,6 +12,17 @@ use ts_rs::TS;
 pub struct DaemonInfo {
     version: String,
     network: String,
+}
+
+#[derive(strum::AsRefStr, Serialize, Deserialize, Debug, Clone, TS)]
+#[serde(rename_all = "lowercase")]
+#[strum(serialize_all = "lowercase")]
+#[ts(export)]
+pub enum NetworkEnv {
+    Mainnet,
+    Canary,
+    QA,
+    Sandbox,
 }
 
 #[instrument(skip_all)]
@@ -43,4 +55,27 @@ pub async fn daemon_info(grpc_client: State<'_, GrpcClient>) -> Result<DaemonInf
         version: res.version,
         network: res.network_name,
     })
+}
+
+#[instrument(skip(grpc_client))]
+#[tauri::command]
+pub async fn set_network(
+    grpc_client: State<'_, GrpcClient>,
+    network: NetworkEnv,
+) -> Result<(), BackendError> {
+    debug!("set_network");
+    if !*NETWORK_ENV_SELECT {
+        warn!("network env selector is disabled");
+        return Err(BackendError::new_internal("nope", None));
+    }
+    grpc_client
+        .set_network(network.as_ref())
+        .await
+        .map_err(|e| {
+            warn!("failed to set network {}: {:?}", network.as_ref(), e);
+            e.into()
+        })
+        .inspect(|_| {
+            info!("vpnd network set to {} ⚠ restart vpnd!", network.as_ref());
+        })
 }

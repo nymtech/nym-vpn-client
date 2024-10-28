@@ -58,11 +58,7 @@ impl AnyTunnelHandle {
                     Ok(vec![])
                 }
             },
-            Self::Wireguard(handle) => {
-                let wait_result = handle.wait().await;
-
-                Ok(vec![wait_result.entry_tun, wait_result.exit_tun])
-            }
+            Self::Wireguard(handle) => Ok(handle.wait().await),
         }
     }
 }

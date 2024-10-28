@@ -1,8 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+pub use nym_http_api_client::HttpClientError;
+
 use nym_contracts_common::ContractsCommonError;
-use nym_http_api_client::HttpClientError;
 
 use crate::response::{ErrorMessage, NymErrorResponse, UnexpectedError};
 
@@ -82,6 +83,9 @@ pub enum VpnApiClientError {
 
     #[error("invalud percent value")]
     InvalidPercentValue(#[source] ContractsCommonError),
+
+    #[error("failed to derive from path")]
+    CosmosDeriveFromPath(#[source] nym_validator_client::nyxd::bip32::Error),
 }
 
 pub type Result<T> = std::result::Result<T, VpnApiClientError>;

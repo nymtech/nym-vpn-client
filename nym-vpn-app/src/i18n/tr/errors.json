@@ -1,12 +1,4 @@
 {
-  "credential": {
-    "invalid": "Geçersiz anahtar",
-    "vpn-running": "VPN bağlantısı sırasında anahtarı içe aktaramazsınız",
-    "expired": "Anahtarın süresi dolmuş",
-    "no-duplicate": "Bu anahtar zaten içe aktarılmış",
-    "storage": "Dahili hata nedeniyle anahtar içe aktarılamadı",
-    "deserialize": "Anahtar ayrıştırılamadı"
-  },
   "daemon": {
     "not-connected": "Daemon'a bağlı değil",
     "internal": "Daemon dahili hata"
@@ -85,5 +77,9 @@
     "routing": "Çıkış nodeu {{protocol}} trafiğini iletmiyor",
     "ping": "Çıkış nodeu {{protocol}} trafiği için ping başarısız oldu"
   },
-  "entry-node-routing": "Giriş nodeu trafiği iletmiyor (internet bağlantısı mı kesik?)"
+  "entry-node-routing": "Giriş nodeu trafiği iletmiyor (internet bağlantısı mı kesik?)",
+  "account": {
+    "invalid-recovery-phrase": "Geçersiz kurtarma ifadesi",
+    "storage": "Depolama arka ucu hatası"
+  }
 }

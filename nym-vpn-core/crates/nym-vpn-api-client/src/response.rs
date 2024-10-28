@@ -3,6 +3,7 @@
 
 use std::fmt;
 
+use itertools::Itertools;
 use nym_contracts_common::Percent;
 use serde::{Deserialize, Serialize};
 
@@ -79,6 +80,18 @@ pub struct NymVpnDevicesResponse {
     pub page: u64,
     pub page_size: u64,
     pub items: Vec<NymVpnDevice>,
+}
+
+impl fmt::Display for NymVpnDevicesResponse {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            self.items
+                .iter()
+                .format_with(", ", |item, f| f(&format_args!("{:?}", item)))
+        )
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -172,6 +185,7 @@ pub enum NymVpnSubscriptionKind {
     OneMonth,
     OneYear,
     TwoYears,
+    Freepass,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]

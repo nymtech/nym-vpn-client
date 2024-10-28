@@ -1,14 +1,16 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::Result;
 use clap::Parser;
 use nym_gateway_directory::GatewayType;
 use nym_vpn_proto::{
-    ApplyFreepassRequest, ConnectRequest, DisconnectRequest, Empty, GetAccountSummaryRequest,
-    GetDeviceZkNymsRequest, GetDevicesRequest, GetFreePassesRequest, InfoRequest, InfoResponse,
-    ListCountriesRequest, ListGatewaysRequest, RegisterDeviceRequest, RequestZkNymRequest,
-    StatusRequest, StoreAccountRequest, UserAgent,
+    ConnectRequest, DisconnectRequest, Empty, FetchRawAccountSummaryRequest,
+    FetchRawDevicesRequest, GetAccountIdentityRequest, GetAccountStateRequest,
+    GetDeviceIdentityRequest, GetDeviceZkNymsRequest, InfoRequest, InfoResponse,
+    IsAccountStoredRequest, IsReadyToConnectRequest, ListCountriesRequest, ListGatewaysRequest,
+    RefreshAccountStateRequest, RegisterDeviceRequest, RemoveAccountRequest, RequestZkNymRequest,
+    ResetDeviceIdentityRequest, SetNetworkRequest, StatusRequest, StoreAccountRequest, UserAgent,
 };
 use protobuf_conversion::{into_gateway_type, into_threshold};
 use sysinfo::System;
@@ -39,7 +41,14 @@ async fn main() -> Result<()> {
         Command::Disconnect => disconnect(client_type).await?,
         Command::Status => status(client_type).await?,
         Command::Info => info(client_type).await?,
+        Command::SetNetwork(ref args) => set_network(client_type, args).await?,
         Command::StoreAccount(ref store_args) => store_account(client_type, store_args).await?,
+        Command::RefreshAccountState => refresh_account_state(client_type).await?,
+        Command::IsAccountStored => is_account_stored(client_type).await?,
+        Command::RemoveAccount => remove_account(client_type).await?,
+        Command::GetAccountId => get_account_id(client_type).await?,
+        Command::GetAccountState => get_account_state(client_type).await?,
+        Command::IsReadyToConnect => is_ready_to_connect(client_type).await?,
         Command::ListenToStatus => listen_to_status(client_type).await?,
         Command::ListenToStateChanges => listen_to_state_changes(client_type).await?,
         Command::ListEntryGateways(ref list_args) => {
@@ -60,13 +69,13 @@ async fn main() -> Result<()> {
         Command::ListVpnCountries(ref list_args) => {
             list_countries(client_type, list_args, GatewayType::Wg).await?
         }
-        Command::GetAccountSummary => get_account_summary(client_type).await?,
-        Command::GetDevices => get_devices(client_type).await?,
+        Command::ResetDeviceIdentity(ref args) => reset_device_identity(client_type, args).await?,
+        Command::GetDeviceId => get_device_id(client_type).await?,
         Command::RegisterDevice => register_device(client_type).await?,
         Command::RequestZkNym => request_zk_nym(client_type).await?,
         Command::GetDeviceZkNym => get_device_zk_nym(client_type).await?,
-        Command::GetFreePasses => get_free_passes(client_type).await?,
-        Command::ApplyFreepass(ref args) => apply_freepass(client_type, args).await?,
+        Command::FetchRawAccountSummary => fetch_raw_account_summary(client_type).await?,
+        Command::FetchRawDevices => fetch_raw_devices(client_type).await?,
     }
     Ok(())
 }
@@ -105,7 +114,7 @@ async fn connect(client_type: ClientType, connect_args: &cli::ConnectArgs) -> Re
         dns: connect_args.dns.map(ipaddr_into_string),
         disable_routing: connect_args.disable_routing,
         enable_two_hop: connect_args.enable_two_hop,
-        enable_poisson_rate: connect_args.enable_poisson_rate,
+        disable_poisson_rate: connect_args.disable_poisson_rate,
         disable_background_cover_traffic: connect_args.disable_background_cover_traffic,
         enable_credentials_mode: connect_args.enable_credentials_mode,
         user_agent: Some(user_agent),
@@ -163,6 +172,16 @@ async fn info(client_type: ClientType) -> Result<()> {
     Ok(())
 }
 
+async fn set_network(client_type: ClientType, args: &cli::SetNetworkArgs) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(SetNetworkRequest {
+        network: args.network.clone(),
+    });
+    let response = client.set_network(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
 async fn store_account(client_type: ClientType, store_args: &cli::StoreAccountArgs) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(StoreAccountRequest {
@@ -174,18 +193,90 @@ async fn store_account(client_type: ClientType, store_args: &cli::StoreAccountAr
     Ok(())
 }
 
-async fn get_account_summary(client_type: ClientType) -> Result<()> {
+async fn refresh_account_state(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
-    let request = tonic::Request::new(GetAccountSummaryRequest {});
-    let response = client.get_account_summary(request).await?.into_inner();
+    let request = tonic::Request::new(RefreshAccountStateRequest {});
+    let response = client.refresh_account_state(request).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
-async fn get_devices(client_type: ClientType) -> Result<()> {
+async fn is_account_stored(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
-    let request = tonic::Request::new(GetDevicesRequest {});
-    let response = client.get_devices(request).await?.into_inner();
+    let request = tonic::Request::new(IsAccountStoredRequest {});
+    let response = client.is_account_stored(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn remove_account(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(RemoveAccountRequest {});
+    let response = client.remove_account(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn get_account_id(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(GetAccountIdentityRequest {});
+    let response = client.get_account_identity(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn get_account_state(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(GetAccountStateRequest {});
+    let response = client.get_account_state(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn is_ready_to_connect(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(IsReadyToConnectRequest {});
+    let response = client.is_ready_to_connect(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn fetch_raw_account_summary(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(FetchRawAccountSummaryRequest {});
+    let response = client
+        .fetch_raw_account_summary(request)
+        .await?
+        .into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn fetch_raw_devices(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(FetchRawDevicesRequest {});
+    let response = client.fetch_raw_devices(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn reset_device_identity(
+    client_type: ClientType,
+    args: &cli::ResetDeviceIdentityArgs,
+) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(ResetDeviceIdentityRequest {
+        seed: args.seed.as_ref().map(|seed| seed.clone().into_bytes()),
+    });
+    let response = client.reset_device_identity(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn get_device_id(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(GetDeviceIdentityRequest {});
+    let response = client.get_device_identity(request).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
@@ -210,24 +301,6 @@ async fn get_device_zk_nym(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(GetDeviceZkNymsRequest {});
     let response = client.get_device_zk_nyms(request).await?.into_inner();
-    println!("{:#?}", response);
-    Ok(())
-}
-
-async fn get_free_passes(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(client_type).await?;
-    let request = tonic::Request::new(GetFreePassesRequest {});
-    let response = client.get_free_passes(request).await?.into_inner();
-    println!("{:#?}", response);
-    Ok(())
-}
-
-async fn apply_freepass(client_type: ClientType, args: &cli::ApplyFreepassArgs) -> Result<()> {
-    let mut client = vpnd_client::get_client(client_type).await?;
-    let request = tonic::Request::new(ApplyFreepassRequest {
-        code: args.code.clone(),
-    });
-    let response = client.apply_freepass(request).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }

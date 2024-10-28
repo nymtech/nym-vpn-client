@@ -2,8 +2,8 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-BASE_URL="https://raw.githubusercontent.com/nymtech/nym/release/2024.10-caramello/envs"
-FILES=("canary.env" "mainnet.env" "sandbox.env")
+BASE_URL="https://raw.githubusercontent.com/nymtech/nym/refs/heads/develop/envs"
+FILES=("canary.env" "mainnet.env" "sandbox.env" "qa.env")
 DEST_DIR=$(realpath "$SCRIPT_DIR/../Envs")
 
 for FILE in "${FILES[@]}"; do

@@ -21,8 +21,8 @@ import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.BackendMessage
 import net.nymtech.vpn.model.Statistics
-import nym_vpn_lib.BandwidthStatus
-import nym_vpn_lib.VpnException
+import nym_vpn_lib.BandwidthEvent
+import nym_vpn_lib.BandwidthStatus.NoBandwidth
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Provider
@@ -128,7 +128,8 @@ class NymTunnelManager @Inject constructor(
 	private fun onMissingMnemonic() {
 		val message = context.getString(R.string.missing_mnemonic)
 		if (NymVpn.isForeground()) {
-			emitMessage(BackendMessage.Failure(VpnException.InvalidCredential(details = message)))
+			// TODO add message for mnemonic
+			// emitMessage(BackendMessage.Failure(VpnException.InvalidCredential(details = message)))
 		} else {
 			launchMnemonicNotification(message)
 		}
@@ -161,32 +162,22 @@ class NymTunnelManager @Inject constructor(
 	private fun launchBackendNotification(backendMessage: BackendMessage) {
 		when (backendMessage) {
 			is BackendMessage.Failure -> {
-				val launchNotification = when (backendMessage.exception) {
-					is VpnException.InvalidCredential -> !NymVpn.isForeground()
-					else -> true
-				}
-				if (launchNotification) {
-					notificationService.showNotification(
-						title = context.getString(R.string.connection_failed),
-						description = backendMessage.exception.toUserMessage(context),
-					)
-				}
+				// TODO if credential error we might need to handle differently if app is in foreground
+				notificationService.showNotification(
+					title = context.getString(R.string.connection_failed),
+					description = backendMessage.reason.toUserMessage(context),
+				)
 			}
 			is BackendMessage.BandwidthAlert -> {
 				when (val alert = backendMessage.status) {
-					BandwidthStatus.NoBandwidth -> {
-						notificationService.showNotification(
-							title = context.getString(R.string.bandwidth_alert),
-							description = context.getString(R.string.no_bandwidth),
-						)
-					}
-
-					is BandwidthStatus.RemainingBandwidth -> {
-						notificationService.showNotification(
-							title = context.getString(R.string.bandwidth_alert),
-							description = context.getString(R.string.low_bandwidth) + " ${alert.bandwidth}",
-						)
-					}
+					BandwidthEvent.NoBandwidth -> notificationService.showNotification(
+						title = context.getString(R.string.bandwidth_alert),
+						description = context.getString(R.string.no_bandwidth),
+					)
+					is BandwidthEvent.RemainingBandwidth -> notificationService.showNotification(
+						title = context.getString(R.string.bandwidth_alert),
+						description = context.getString(R.string.low_bandwidth) + " ${alert.v1}",
+					)
 				}
 			}
 			BackendMessage.None -> Unit

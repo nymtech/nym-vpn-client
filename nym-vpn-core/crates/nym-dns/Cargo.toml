@@ -1,0 +1,51 @@
+[package]
+name = "nym-dns"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["cdylib", "lib", "staticlib"]
+
+[dependencies]
+thiserror.workspace = true
+log.workspace = true
+parking_lot.workspace = true
+tokio.workspace = true
+futures.workspace = true
+triggered = "0.1.1"
+
+nym-routing = { path = "../nym-routing" }
+nym-dbus = { path = "../nym-dbus" }
+nym-common = { path = "../nym-common" }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+system-configuration.workspace = true
+duct.workspace = true
+
+[target.'cfg(target_os = "linux")'.dependencies]
+which = { version = "4.0", default-features = false }
+inotify = "0.10"
+resolv-conf = "0.7"
+duct.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+once_cell = "1.16"
+winreg = { version = "0.51", features = ["transactions"] }
+
+nym-windows = { path = "../nym-windows" }
+nym-common = { path = "../nym-common" }
+
+[target.'cfg(windows)'.dependencies.windows-sys]
+workspace = true
+features = [
+    "Win32_Foundation",
+    "Win32_System_Rpc",
+    "Win32_System_LibraryLoader",
+    "Win32_System_SystemInformation",
+    "Win32_System_Com",
+]

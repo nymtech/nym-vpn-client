@@ -3,6 +3,7 @@ import SwiftUI
 import AppSettings
 import AppVersionProvider
 import ConfigurationManager
+import CountriesManagerTypes
 #if os(macOS)
 import GRPCManager
 import HelperManager
@@ -85,7 +86,11 @@ public final class CountriesManager: ObservableObject {
     @objc public func fetchCountries() {
         guard !isLoading, needsReload()
         else {
-            loadTemporaryCountries(shouldFetchEntryCountries: appSettings.isEntryLocationSelectionOn)
+            if entryCountries.isEmpty
+                || exitCountries.isEmpty
+                || vpnCountries.isEmpty {
+                loadCountriesFromCountryStore()
+            }
             return
         }
         isLoading = true
@@ -95,11 +100,14 @@ public final class CountriesManager: ObservableObject {
         }
     }
 
-    public func country(with code: String, isEntryHop: Bool) -> Country? {
-        if isEntryHop {
+    public func country(with code: String, countryType: CountryType) -> Country? {
+        switch countryType {
+        case .entry:
             return entryCountries.first(where: { $0.code == code })
-        } else {
+        case .exit:
             return exitCountries.first(where: { $0.code == code })
+        case .vpn:
+            return vpnCountries.first(where: { $0.code == code })
         }
     }
 }
@@ -107,9 +115,11 @@ public final class CountriesManager: ObservableObject {
 // MARK: - Setup -
 private extension CountriesManager {
     func setup() {
-        loadPrebundledCountries()
+        loadCountryStore()
+        loadPrebundledCountriesIfNecessary()
         setupAppSettingsObservers()
         setupAutoUpdates()
+        configureEnvironmentChange()
         fetchCountries()
 #if os(macOS)
         updateDaemonVersionIfNecessary()
@@ -120,13 +130,6 @@ private extension CountriesManager {
         appSettings.$isEntryLocationSelectionOnPublisher.sink { [weak self] _ in
             self?.fetchCountries()
         }
-        .store(in: &cancellables)
-
-        appSettings.$envSelectorPublisher.sink { [weak self] _ in
-            self?.countryStore.lastFetchDate = nil
-            self?.fetchCountries()
-        }
-
         .store(in: &cancellables)
     }
 
@@ -139,11 +142,31 @@ private extension CountriesManager {
             repeats: true
         )
     }
+
+    func configureEnvironmentChange() {
+        configurationManager.environmentDidChange = { [weak self] in
+            self?.countryStore.lastFetchDate = nil
+            self?.fetchCountries()
+        }
+    }
 }
 
 // MARK: - Pre bundled countries -
 private extension CountriesManager {
-    func loadPrebundledCountries() {
+    func loadCountryStore() {
+        guard let countryStoreString = appSettings.countryStore,
+              let loadedCountryStore = CountryStore(rawValue: countryStoreString)
+        else {
+            return
+        }
+        countryStore = loadedCountryStore
+        entryCountries = loadedCountryStore.entryCountries
+        exitCountries = loadedCountryStore.exitCountries
+        vpnCountries = loadedCountryStore.vpnCountries
+    }
+
+    func loadPrebundledCountriesIfNecessary() {
+        guard entryCountries.isEmpty || exitCountries.isEmpty || vpnCountries.isEmpty else { return }
         guard let entryCountriesURL = Bundle.main.url(forResource: "gatewaysEntryCountries", withExtension: "json"),
               let exitCountriesURL = Bundle.main.url(forResource: "gatewaysExitCountries", withExtension: "json"),
               let vpnCountriesURL = Bundle.main.url(forResource: "vpnCountries", withExtension: "json")
@@ -164,6 +187,11 @@ private extension CountriesManager {
             entryCountries = prebundledEntryCountries
             exitCountries = prebundledExitCountries
             vpnCountries = prebundledVPNCountries
+
+            logger.info("Loading prebundled countries")
+            logger.info("entry: \(countryStore.entryCountries.count)")
+            logger.info("exit: \(countryStore.exitCountries.count)")
+            logger.info("vpn: \(countryStore.vpnCountries.count)")
         } catch let error {
             updateError(with: error)
             return
@@ -267,6 +295,7 @@ private extension CountriesManager {
     func fetchEntryExitCountries() {
         guard let apiURL = configurationManager.apiURL
         else {
+            logger.error("Cannot fetch countries. No API URL.")
             updateError(with: GeneralNymError.cannotFetchCountries)
             return
         }
@@ -278,14 +307,15 @@ private extension CountriesManager {
                 platform: AppVersionProvider.platform,
                 gitCommit: ""
             )
-            let entryExitLocations = try getGatewayCountries(
+            let entryLocations = try getGatewayCountries(
                 apiUrl: apiURL,
                 nymVpnApiUrl: configurationManager.nymVpnApiURL,
                 gwType: .mixnetEntry,
                 userAgent: userAgent,
                 minGatewayPerformance: nil
             )
-            let newEntryCountries = entryExitLocations.compactMap {
+            logger.info("Fetched \(entryLocations.count) entry countries")
+            let newEntryCountries = entryLocations.compactMap {
                 country(with: $0.twoLetterIsoCountryCode)
             }
             .sorted(by: { $0.name < $1.name })
@@ -297,6 +327,7 @@ private extension CountriesManager {
                 userAgent: userAgent,
                 minGatewayPerformance: nil
             )
+            logger.info("Fetched \(exitLocations.count) exit countries")
             let newExitCountries = exitLocations.compactMap {
                 country(with: $0.twoLetterIsoCountryCode)
             }
@@ -309,18 +340,22 @@ private extension CountriesManager {
                 userAgent: userAgent,
                 minGatewayPerformance: nil
             )
+            logger.info("Fetched \(newVpnLocations.count) vpn countries")
             let newVpnCountries = newVpnLocations.compactMap {
                 country(with: $0.twoLetterIsoCountryCode)
             }
             .sorted(by: { $0.name < $1.name })
 
-            countryStore.entryCountries = entryCountries
-            countryStore.exitCountries = exitCountries
-            countryStore.vpnCountries = vpnCountries
+            countryStore.entryCountries = newEntryCountries
+            countryStore.exitCountries = newExitCountries
+            countryStore.vpnCountries = newVpnCountries
             countryStore.lastFetchDate = Date()
+
             entryCountries = newEntryCountries
             exitCountries = newExitCountries
             vpnCountries = newVpnCountries
+
+            storeCountryStore()
 
             isLoading = false
         } catch {
@@ -355,10 +390,18 @@ private extension CountriesManager {
         return difference > 600 ? true : false
     }
 
-    func loadTemporaryCountries(shouldFetchEntryCountries: Bool) {
+    func loadCountriesFromCountryStore() {
+        logger.info("Reloading temporary countries")
         Task { @MainActor in
             exitCountries = countryStore.exitCountries
             entryCountries = countryStore.entryCountries
+            vpnCountries = countryStore.vpnCountries
+        }
+    }
+
+    func storeCountryStore() {
+        Task { @MainActor in
+            appSettings.countryStore = countryStore.rawValue
         }
     }
 }

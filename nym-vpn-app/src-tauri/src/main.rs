@@ -1,7 +1,6 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::path::PathBuf;
 use std::time::Duration;
 
 use crate::cli::{db_command, Commands};
@@ -20,13 +19,13 @@ use clap::Parser;
 use commands::country as cmd_country;
 use commands::daemon as cmd_daemon;
 use commands::db as cmd_db;
+use commands::env as cmd_env;
 use commands::fs as cmd_fs;
 use commands::log as cmd_log;
 use commands::window as cmd_window;
 use commands::*;
 #[cfg(windows)]
 use db::Key;
-use nym_config::defaults;
 use states::app::AppState;
 #[cfg(windows)]
 use states::app::VpnMode;
@@ -40,6 +39,7 @@ mod cli;
 mod commands;
 mod country;
 mod db;
+mod env;
 mod envi;
 mod error;
 mod events;
@@ -157,18 +157,6 @@ async fn main() -> Result<()> {
             };
             debug!("app_config: {app_config:?}");
 
-            if let Some(env_file) = cli
-                .network_env
-                .as_ref()
-                .or(app_config.network_env_file.as_ref())
-            {
-                info!("network environment: custom: {}", env_file.display());
-                defaults::setup_env(Some(env_file.clone()));
-            } else {
-                info!("network environment: mainnet");
-                defaults::setup_env::<PathBuf>(None);
-            }
-
             let app_state = AppState::new(&db, &app_config, &cli);
             app.manage(Mutex::new(app_state));
 
@@ -250,8 +238,10 @@ async fn main() -> Result<()> {
             account::get_account_info,
             cmd_daemon::daemon_status,
             cmd_daemon::daemon_info,
+            cmd_daemon::set_network,
             cmd_fs::log_dir,
             startup::startup_error,
+            cmd_env::env,
         ])
         // keep the app running in the background on window close request
         .on_window_event(|win, event| {

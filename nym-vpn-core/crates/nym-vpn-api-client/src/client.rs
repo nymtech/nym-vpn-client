@@ -28,6 +28,7 @@ pub(crate) const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";
 // GET requests can unfortunately take a long time over the mixnet
 pub(crate) const NYM_VPN_API_TIMEOUT: Duration = Duration::from_secs(60);
 
+#[derive(Clone)]
 pub struct VpnApiClient {
     inner: nym_http_api_client::Client,
 }
@@ -43,6 +44,10 @@ impl VpnApiClient {
             .and_then(|builder| builder.build())
             .map(|c| Self { inner: c })
             .map_err(VpnApiClientError::FailedToCreateVpnApiClient)
+    }
+
+    pub fn current_url(&self) -> &Url {
+        self.inner.current_url()
     }
 
     async fn get_authorized<T, E>(

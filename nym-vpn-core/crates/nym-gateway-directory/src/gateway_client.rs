@@ -4,7 +4,7 @@
 use std::{fmt, net::IpAddr};
 
 use nym_sdk::UserAgent;
-use nym_validator_client::{models::DescribedGateway, nym_nodes::SkimmedNode, NymApiClient};
+use nym_validator_client::{models::NymNodeDescription, nym_nodes::SkimmedNode, NymApiClient};
 use nym_vpn_api_client::types::{GatewayMinPerformance, Percent};
 use tracing::{debug, error, info};
 use url::Url;
@@ -150,10 +150,10 @@ impl GatewayClient {
             .and_then(|min_performance| min_performance.vpn_min_performance)
     }
 
-    async fn lookup_described_gateways(&self) -> Result<Vec<DescribedGateway>> {
+    async fn lookup_described_gateways(&self) -> Result<Vec<NymNodeDescription>> {
         info!("Fetching described gateways from nym-api...");
         self.api_client
-            .get_cached_described_gateways()
+            .get_all_described_nodes()
             .await
             .map_err(Error::FailedToLookupDescribedGateways)
     }
@@ -161,7 +161,7 @@ impl GatewayClient {
     async fn lookup_skimmed_gateways(&self) -> Result<Vec<SkimmedNode>> {
         info!("Fetching skimmed gateways from nym-api...");
         self.api_client
-            .get_basic_gateways(None)
+            .get_all_basic_entry_assigned_nodes(None)
             .await
             .map_err(Error::FailedToLookupSkimmedGateways)
     }
@@ -306,7 +306,7 @@ fn append_performance(
     for gateway in gateways.iter_mut() {
         if let Some(basic_gw) = basic_gw
             .iter()
-            .find(|bgw| bgw.ed25519_identity_pubkey == gateway.identity().to_base58_string())
+            .find(|bgw| bgw.ed25519_identity_pubkey == *gateway.identity())
         {
             gateway.mixnet_performance = Some(basic_gw.performance);
         } else {
@@ -346,6 +346,8 @@ mod test {
         }
     }
 
+    // TODO: Remove ignore when magura hits mainnet
+    #[ignore]
     #[tokio::test]
     async fn lookup_described_gateways() {
         let config = Config::new_mainnet();

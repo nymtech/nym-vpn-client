@@ -4,8 +4,13 @@ use std::{
 };
 
 use nym_vpn_proto::account_error::AccountErrorType;
+use nym_vpn_proto::connect_request_error::ConnectRequestErrorType;
 use nym_vpn_proto::connection_status_update::StatusType;
-use nym_vpn_proto::{error::ErrorType as DError, AccountError, GatewayType};
+use nym_vpn_proto::set_network_request_error::SetNetworkRequestErrorType;
+use nym_vpn_proto::{
+    error::ErrorType as DError, AccountError, ConnectRequestError, GatewayType,
+    SetNetworkRequestError,
+};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use ts_rs::TS;
@@ -108,6 +113,7 @@ impl From<VpndError> for BackendError {
                     ErrorKey::NotConnectedToDaemon,
                 )
             }
+            VpndError::Response(e) => e,
         }
     }
 }
@@ -133,7 +139,7 @@ pub enum ErrorKey {
     /// to the application layer
     /// Extra data should be passed along to help specialize the problem
     InternalError,
-    /// gRPC bare layer error, when a RPC call fails (aka `Tonic::Status`)
+    /// gRPC bare layer error, when an RPC call fails (aka `tonic::Status`)
     /// That is, the error does not come from the application layer
     GrpcError,
     /// Happens when the app is not connected to a running daemon
@@ -188,6 +194,12 @@ pub enum ErrorKey {
     // Forwarded from proto `account_error::AccountErrorType`
     AccountInvalidMnemonic,
     AccountStorage,
+    // Other account related errors, forwarded from `connect_request_error::ConnectRequestErrorType`
+    NoAccountStored,
+    AccountNotActive,
+    NoActiveSubscription,
+    DeviceNotRegistered,
+    DeviceNotActive,
     // Forwarded from proto `connection_status_update::StatusType`
     EntryGatewayNotRouting,
     ExitRouterPingIpv4,
@@ -200,6 +212,8 @@ pub enum ErrorKey {
     GetMixnetEntryCountriesQuery,
     GetMixnetExitCountriesQuery,
     GetWgCountriesQuery,
+    // Forwarded from proto `set_network_request_error::SetNetworkRequestErrorType`
+    InvalidNetworkName,
 }
 
 impl From<DError> for ErrorKey {
@@ -284,6 +298,28 @@ impl From<AccountError> for BackendError {
     }
 }
 
+impl From<ConnectRequestErrorType> for ErrorKey {
+    fn from(error: ConnectRequestErrorType) -> Self {
+        match error {
+            ConnectRequestErrorType::Internal | ConnectRequestErrorType::Unspecified => {
+                ErrorKey::InternalError
+            }
+            ConnectRequestErrorType::NoAccountStored => ErrorKey::NoAccountStored,
+            ConnectRequestErrorType::AccountNotActive => ErrorKey::AccountNotActive,
+            ConnectRequestErrorType::NoActiveSubscription => ErrorKey::NoActiveSubscription,
+            ConnectRequestErrorType::DeviceNotRegistered => ErrorKey::DeviceNotRegistered,
+            ConnectRequestErrorType::DeviceNotActive => ErrorKey::DeviceNotActive,
+        }
+    }
+}
+
+impl From<ConnectRequestError> for BackendError {
+    fn from(error: ConnectRequestError) -> Self {
+        let message = error.message.clone();
+        BackendError::new(&message, ErrorKey::from(error.kind()))
+    }
+}
+
 impl From<StatusType> for ErrorKey {
     fn from(value: StatusType) -> Self {
         match value {
@@ -307,5 +343,22 @@ impl From<GatewayType> for ErrorKey {
             GatewayType::Wg => ErrorKey::GetWgCountriesQuery,
             _ => ErrorKey::UnknownError, // & `Unspecified`
         }
+    }
+}
+
+impl From<SetNetworkRequestErrorType> for ErrorKey {
+    fn from(error: SetNetworkRequestErrorType) -> Self {
+        match error {
+            SetNetworkRequestErrorType::Internal => ErrorKey::InternalError,
+            SetNetworkRequestErrorType::InvalidNetworkName => ErrorKey::InvalidNetworkName,
+            SetNetworkRequestErrorType::Unspecified => ErrorKey::UnknownError,
+        }
+    }
+}
+
+impl From<SetNetworkRequestError> for BackendError {
+    fn from(error: SetNetworkRequestError) -> Self {
+        let message = error.message.clone();
+        BackendError::new(&message, ErrorKey::from(error.kind()))
     }
 }

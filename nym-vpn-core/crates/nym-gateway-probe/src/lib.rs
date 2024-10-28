@@ -11,7 +11,7 @@ use dns_lookup::lookup_host;
 use futures::StreamExt;
 use netstack::{NetstackCall as _, NetstackCallImpl};
 use nym_authenticator_client::ClientMessage;
-use nym_authenticator_requests::v2::{
+use nym_authenticator_requests::v3::{
     registration::{FinalMessage, GatewayClient, InitMessage, RegistrationData},
     response::{AuthenticatorResponseData, PendingRegistrationResponse, RegisteredResponse},
 };
@@ -161,7 +161,7 @@ async fn wg_probe(
                 debug!("Verifying data");
                 gateway_data.verify(&private_key, nonce)?;
 
-                let finalized_message = ClientMessage::Final(FinalMessage {
+                let finalized_message = ClientMessage::Final(Box::new(FinalMessage {
                     gateway_client: GatewayClient::new(
                         &private_key,
                         gateway_data.pub_key().inner(),
@@ -169,7 +169,7 @@ async fn wg_probe(
                         nonce,
                     ),
                     credential: None,
-                });
+                }));
                 let response = auth_client
                     .send(finalized_message, authenticator_address)
                     .await?;

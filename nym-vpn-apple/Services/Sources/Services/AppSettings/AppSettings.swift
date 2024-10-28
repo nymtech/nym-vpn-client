@@ -1,5 +1,6 @@
 import SwiftUI
 import Constants
+import CountriesManagerTypes
 
 public final class AppSettings: ObservableObject {
     public static let shared = AppSettings()
@@ -32,10 +33,6 @@ public final class AppSettings: ObservableObject {
     }
     @AppStorage(AppSettingKey.credenitalExists.rawValue)
     public var isCredentialImported = false
-    @AppStorage(AppSettingKey.credentialExpiryDate.rawValue)
-    public var credentialExpiryDate: Date?
-    @AppStorage(AppSettingKey.credentialStartDate.rawValue)
-    public var credentialStartDate: Date?
     @AppStorage(AppSettingKey.smallScreen.rawValue)
     public var isSmallScreen = false
     @AppStorage(AppSettingKey.welcomeScreenDidDisplay.rawValue)
@@ -48,31 +45,18 @@ public final class AppSettings: ObservableObject {
     public var connectionType: Int?
     @AppStorage(AppSettingKey.lastConnectionIntent.rawValue)
     public var lastConnectionIntent: String?
+    @AppStorage(AppSettingKey.countryStore.rawValue)
+    public var countryStore: String?
 
     @AppStorage(
         AppSettingKey.currentEnv.rawValue,
         store: UserDefaults(suiteName: Constants.groupID.rawValue)
     )
-    public var currentEnv: String = "mainnet" {
-        didSet {
-            guard currentEnv != envSelectorPublisher else { return }
-            envSelectorPublisher = currentEnv
-        }
-    }
-    @Published public var envSelectorPublisher = ""
+    public var currentEnv: String = "mainnet"
 
     // Observed values for view models
     @Published public var isEntryLocationSelectionOnPublisher = false
     @Published public var isErrorReportingOnPublisher = false
-
-    // Computed properties
-    public var isMacOS: Bool {
-#if os(macOS)
-        return true
-#else
-        return false
-#endif
-    }
 }
 
 #if os(iOS)
@@ -95,8 +79,6 @@ enum AppSettingKey: String {
     case entryLocation
     case errorReporting
     case credenitalExists
-    case credentialExpiryDate
-    case credentialStartDate
     case smallScreen
     case welcomeScreenDidDisplay
     case entryCountry
@@ -104,4 +86,5 @@ enum AppSettingKey: String {
     case connectionType
     case lastConnectionIntent
     case currentEnv
+    case countryStore
 }

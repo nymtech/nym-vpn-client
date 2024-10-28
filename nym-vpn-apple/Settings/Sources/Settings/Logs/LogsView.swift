@@ -1,4 +1,5 @@
 import SwiftUI
+import AppSettings
 import Constants
 import Theme
 import UIComponents
@@ -11,10 +12,10 @@ public struct LogsView: View {
     }
 
     public var body: some View {
-        VStack {
+        VStack(spacing: .zero) {
             navbar()
 
-            VStack {
+            VStack(spacing: .zero) {
                 if !viewModel.logs.isEmpty {
                     ScrollViewReader { proxy in
                         ScrollView(.vertical) {
@@ -37,6 +38,7 @@ public struct LogsView: View {
                 }
                 logTypePicker()
             }
+            .preferredColorScheme(AppSettings.shared.currentAppearance.colorScheme)
             .frame(maxWidth: .infinity)
             .background {
                 NymColor.background

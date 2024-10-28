@@ -22,12 +22,19 @@ impl DefaultInterface {
     }
 
     pub fn gateway_ip(&self) -> Option<IpAddr> {
-        if let Some(addr) = self.inner.gateway.as_ref()?.ipv4.first() {
-            Some(IpAddr::from(*addr))
-        } else if let Some(addr) = self.inner.gateway.as_ref()?.ipv6.first() {
-            Some(IpAddr::from(*addr))
-        } else {
-            None
-        }
+        self.inner
+            .gateway
+            .as_ref()?
+            .ipv4
+            .first()
+            .map(|addr| IpAddr::from(*addr))
+            .or_else(|| {
+                self.inner
+                    .gateway
+                    .as_ref()?
+                    .ipv6
+                    .first()
+                    .map(|addr| IpAddr::from(*addr))
+            })
     }
 }

@@ -12,6 +12,8 @@ export type Cli = {
   nosplash: boolean;
 };
 
+export type NetworkEnv = 'mainnet' | 'canary' | 'qa' | 'sandbox';
+
 export type DbKey =
   | 'Monitoring'
   | 'Autoconnect'
@@ -79,6 +81,11 @@ export type ErrorKey =
   | 'CSMixnetConnectionMonitor'
   | 'AccountInvalidMnemonic'
   | 'AccountStorage'
+  | 'NoAccountStored'
+  | 'AccountNotActive'
+  | 'NoActiveSubscription'
+  | 'DeviceNotRegistered'
+  | 'DeviceNotActive'
   | 'EntryGatewayNotRouting'
   | 'ExitRouterPingIpv4'
   | 'ExitRouterPingIpv6'
@@ -88,7 +95,8 @@ export type ErrorKey =
   | 'WgTunnelError'
   | 'GetMixnetEntryCountriesQuery'
   | 'GetMixnetExitCountriesQuery'
-  | 'GetWgCountriesQuery';
+  | 'GetWgCountriesQuery'
+  | 'InvalidNetworkName';
 
 export type StartupErrorKey = 'StartupOpenDb' | 'StartupOpenDbLocked';
 
@@ -97,4 +105,4 @@ export type ConnectionStateResponse = {
   error?: BackendError | null;
 };
 
-export type DaemonInfo = { version: string; network: string };
+export type DaemonInfo = { version: string; network: NetworkEnv };

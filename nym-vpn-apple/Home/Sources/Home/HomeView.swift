@@ -1,5 +1,6 @@
 import SwiftUI
 import AppSettings
+import Device
 import Modifiers
 import Theme
 import TunnelStatus
@@ -25,12 +26,15 @@ private extension HomeView {
     func content() -> some View {
         VStack {
             navbar()
-            Spacer()
-            statusAreaSection()
-            Spacer()
-            networkModeSection()
-            countryHopSection()
-            connectButton()
+            VStack {
+                Spacer()
+                statusAreaSection()
+                Spacer()
+                networkModeSection()
+                countryHopSection()
+                connectButton()
+            }
+            .frame(maxWidth: Device.type == .ipad ? 358 : .infinity)
         }
         .appearanceUpdate()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -171,6 +175,6 @@ private extension HomeView {
                 viewModel.connectDisconnect()
             }
             Spacer()
-            .frame(height: viewModel.appSettings.isSmallScreen || viewModel.appSettings.isMacOS ? 24 : 8)
+            .frame(height: viewModel.appSettings.isSmallScreen || Device.isMacOS ? 24 : 8)
     }
 }
