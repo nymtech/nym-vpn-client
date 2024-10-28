@@ -2,7 +2,6 @@
 <resources>
 	<string name="app_name">NymVPN</string>
 	<string name="provider" translatable="false">net.nymtech.nymvpn.provider</string>
-	<string name="create_account_link_qa" translatable="false">https://nym-dot-com-git-deploy-canary-nyx-network-staging.vercel.app/en/prototype/account/signup</string>
 	<string name="settings">Settings</string>
 	<string name="connected">Connected</string>
 	<string name="disconnected">Disconnected</string>
@@ -184,11 +183,8 @@
 	<string name="log_in">Log in</string>
 	<string name="log_out">Log out</string>
 	<string name="new_to_nym">New to NymVPN?</string>
-	<string name="create_account_link" translatable="false" >https://nymvpn.com/account/create</string>
 	<string name="create_account">Create an account</string>
 	<string name="account">Account</string>
-	<string name="account_url" translatable="false">https://nymvpn.com/account/login</string>
-	<string name="account_url_qa" translatable="false">https://nym-dot-com-git-deploy-canary-nyx-network-staging.vercel.app/en/prototype/account/signin</string>
 	<string name="mnemonic_example">e.g. smoke artefact velvet skull pop palace tortoise damage rough...</string>
 	<string name="recovery_phrase_message">Enter your 24-word secret recovery phrase below to log in to your account</string>
 	<string name="recovery_phrase_disclaimer">You can only use the recovery phrase created in NymVPN, not the Nym Wallet.</string>

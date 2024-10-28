@@ -56,7 +56,6 @@ import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
-import net.nymtech.vpn.backend.Tunnel
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -223,12 +222,7 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 						append(" ")
 						pushStringAnnotation(
 							tag = "create",
-							annotation = when (appUiState.settings.environment) {
-								Tunnel.Environment.MAINNET -> stringResource(
-									id = R.string.create_account_link,
-								)
-								else -> stringResource(R.string.create_account_link_qa)
-							},
+							annotation = appUiState.settings.environment.createAccountUrl.toString(),
 						)
 						withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
 							append(stringResource(id = R.string.create_account))
