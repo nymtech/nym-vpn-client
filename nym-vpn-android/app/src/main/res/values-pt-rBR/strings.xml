@@ -177,4 +177,6 @@
     <string name="mnemonic_example">Por exemplo, smoke artefact velvet skull pop palace tortoise damage rough...</string>
     <string name="recovery_phrase_disclaimer">Você só pode usar a frase de recuperação criada no NymVPN, e não a Nym Wallet.</string>
     <string name="recovery_phrase_message">Digite sua frase secreta de recuperação de 24 palavras abaixo para fazer login em sua conta</string>
+    <string name="dynamic">Dinâmico</string>
+    <string name="system_wallpaper">Tema do papel de parede do sistema</string>
 </resources>
