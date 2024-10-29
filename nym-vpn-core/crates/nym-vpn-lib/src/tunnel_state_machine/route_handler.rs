@@ -18,14 +18,12 @@ pub const TUNNEL_FWMARK: u32 = 0x14d;
 
 pub enum RoutingConfig {
     Mixnet {
-        enable_ipv6: bool,
         tun_name: String,
         entry_gateway_address: IpAddr,
         #[cfg(target_os = "linux")]
         physical_interface: DefaultInterface,
     },
     Wireguard {
-        enable_ipv6: bool,
         entry_tun_name: String,
         exit_tun_name: String,
         entry_gateway_address: IpAddr,
@@ -33,16 +31,6 @@ pub enum RoutingConfig {
         #[cfg(target_os = "linux")]
         physical_interface: DefaultInterface,
     },
-}
-
-impl RoutingConfig {
-    #[cfg(target_os = "linux")]
-    pub fn enable_ipv6(&self) -> bool {
-        match self {
-            Self::Mixnet { enable_ipv6, .. } => *enable_ipv6,
-            Self::Wireguard { enable_ipv6, .. } => *enable_ipv6,
-        }
-    }
 }
 
 pub struct RouteHandler {
@@ -62,12 +50,10 @@ impl RouteHandler {
     }
 
     pub async fn add_routes(&mut self, routing_config: RoutingConfig) -> Result<()> {
-        #[cfg(target_os = "linux")]
-        let enable_ipv6 = routing_config.enable_ipv6();
         let routes = Self::get_routes(routing_config);
 
         #[cfg(target_os = "linux")]
-        self.route_manager.create_routing_rules(enable_ipv6).await?;
+        self.route_manager.create_routing_rules(true).await?;
 
         self.route_manager.add_routes(routes).await?;
 
@@ -101,7 +87,6 @@ impl RouteHandler {
 
         match routing_config {
             RoutingConfig::Mixnet {
-                enable_ipv6,
                 tun_name,
                 entry_gateway_address,
                 #[cfg(target_os = "linux")]
@@ -124,15 +109,12 @@ impl RouteHandler {
                     Node::device(tun_name.to_owned()),
                 ));
 
-                if enable_ipv6 {
-                    routes.insert(RequiredRoute::new(
-                        "::0/0".parse().unwrap(),
-                        Node::device(tun_name.to_owned()),
-                    ));
-                }
+                routes.insert(RequiredRoute::new(
+                    "::0/0".parse().unwrap(),
+                    Node::device(tun_name.to_owned()),
+                ));
             }
             RoutingConfig::Wireguard {
-                enable_ipv6,
                 entry_tun_name,
                 exit_tun_name,
                 entry_gateway_address,
@@ -162,12 +144,10 @@ impl RouteHandler {
                     Node::device(exit_tun_name.to_owned()),
                 ));
 
-                if enable_ipv6 {
-                    routes.insert(RequiredRoute::new(
-                        "::0/0".parse().unwrap(),
-                        Node::device(exit_tun_name.to_owned()),
-                    ));
-                }
+                routes.insert(RequiredRoute::new(
+                    "::0/0".parse().unwrap(),
+                    Node::device(exit_tun_name.to_owned()),
+                ));
             }
         }
 

@@ -256,7 +256,6 @@ impl ConnectingState {
             tracing::debug!("Created tun device: {}", tun_name);
 
             let routing_config = RoutingConfig::Mixnet {
-                enable_ipv6: true,
                 tun_name: tun_name.clone(),
                 entry_gateway_address: assigned_addresses.entry_mixnet_gateway_ip,
                 #[cfg(target_os = "linux")]
@@ -327,7 +326,6 @@ impl ConnectingState {
         let exit_tun_name = "nym1".to_owned();
 
         let routing_config = RoutingConfig::Wireguard {
-            enable_ipv6: true,
             #[cfg(unix)]
             entry_tun_name,
             #[cfg(unix)]
