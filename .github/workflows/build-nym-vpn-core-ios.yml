@@ -33,13 +33,7 @@ jobs:
         with:
           toolchain: stable
           components: rustfmt, clippy
-
-      - name: Install extra arch apple
-        run: |
-          rustup target add x86_64-apple-darwin
-          rustup target add aarch64-apple-ios
-          rustup target add x86_64-apple-ios
-          rustup target add aarch64-apple-ios-sim
+          targets: x86_64-apple-darwin aarch64-apple-ios x86_64-apple-ios aarch64-apple-ios-sim
 
       - name: Setup cargo swift
         run: |

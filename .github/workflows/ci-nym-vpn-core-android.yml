@@ -1,0 +1,103 @@
+name: ci-nym-vpn-core-android
+
+on:
+  # push:
+  pull_request:
+    paths:
+      - "nym-vpn-core/**"
+      - ".github/workflows/ci-nym-vpn-core-android.yml"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
+
+jobs:
+  build:
+    runs-on: arc-ubuntu-22.04
+
+    steps:
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install rust toolchain
+        uses: brndnmtthws/rust-action-rustup@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+          targets: aarch64-linux-android
+
+      - name: Install cargo ndk
+        run: cargo install cargo-ndk
+
+      - name: Setup NDK
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r25c
+          add-to-path: false
+
+      - name: Set env
+        shell: bash
+        run: |
+          echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
+          echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_ENV
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "stable"
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build wireguard
+        run: ./wireguard/libwg/build-android.sh
+
+      - name: rustfmt check
+        working-directory: nym-vpn-core
+        run: |
+          cargo fmt --check
+
+      - name: Build
+        working-directory: nym-vpn-core
+        run: |
+          cargo ndk  -t aarch64-linux-android -o ./build build -p nym-vpn-lib
+
+      - name: Generate uniffi
+        working-directory: nym-vpn-core
+        run: |
+          cargo run --bin uniffi-bindgen generate \
+            --library target/aarch64-linux-android/debug/libnym_vpn_lib.so \
+            --config crates/nym-vpn-lib/uniffi.toml \
+            --language kotlin --out-dir build -n
+
+      - name: Uniffi diff check
+        working-directory: nym-vpn-core
+        run: |
+          diff -B build/nym_vpn_lib/nym_vpn_lib.kt crates/nym-vpn-lib/uniffi/nym_vpn_lib.kt
+        continue-on-error: true
+        id: diff_android
+
+      - name: Upload generated uniffi file
+        if: steps.diff_android.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: updated-uniffi-android
+          path: nym-vpn-core/build/nym_vpn_lib/nym_vpn_lib.kt
+          retention-days: 1
+
+      - name: Fail workflow for uniffi
+        if: steps.diff_android.outcome == 'failure'
+        run: exit 1
+
+      - name: Clippy
+        working-directory: nym-vpn-core
+        run: |
+          cargo ndk -t aarch64-linux-android clippy -p nym-vpn-lib -- -Dwarning

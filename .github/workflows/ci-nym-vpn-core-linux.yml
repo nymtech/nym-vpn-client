@@ -1,0 +1,67 @@
+name: ci-nym-vpn-core-linux
+
+on:
+  # push:
+  pull_request:
+    paths:
+      - "nym-vpn-core/**"
+      - ".github/workflows/ci-nym-vpn-core-linux.yml"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
+
+jobs:
+  build:
+    runs-on: arc-ubuntu-22.04
+
+    steps:
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install rust toolchain
+        uses: brndnmtthws/rust-action-rustup@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "stable"
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build wireguard
+        shell: bash
+        run: |
+          ./wireguard/build-wireguard-go.sh
+
+      - name: rustfmt check
+        working-directory: nym-vpn-core
+        run: |
+          cargo fmt --check
+
+      - name: Build
+        working-directory: nym-vpn-core
+        run: |
+          cargo build --verbose
+
+      - name: Run tests
+        working-directory: nym-vpn-core
+        run: |
+          cargo test --verbose
+
+      - name: Clippy
+        working-directory: nym-vpn-core
+        run: |
+          cargo clippy -- -Dwarnings
+

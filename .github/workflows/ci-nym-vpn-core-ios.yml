@@ -1,0 +1,94 @@
+name: ci-nym-vpn-core-ios
+
+on:
+  # push:
+  pull_request:
+    paths:
+      - "nym-vpn-core/**"
+      - ".github/workflows/ci-nym-vpn-core-ios.yml"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
+
+jobs:
+  build:
+    runs-on: custom-runner-mac-m1
+
+    steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install rust toolchain
+        uses: brndnmtthws/rust-action-rustup@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+          targets: aarch64-apple-ios
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "stable"
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build wireguard
+        shell: bash
+        run: |
+          ./wireguard/build-wireguard-go.sh --ios
+
+      - name: rustfmt check
+        working-directory: nym-vpn-core
+        run: |
+          cargo fmt --check
+
+      - name: Build
+        working-directory: nym-vpn-core
+        run: |
+          cargo build --verbose --target aarch64-apple-ios -p nym-vpn-lib
+
+      - name: Generate uniffi
+        working-directory: nym-vpn-core
+        run: |
+          cargo run --bin uniffi-bindgen generate \
+            --library target/aarch64-apple-ios/debug/libnym_vpn_lib.a  \
+            --config crates/nym-vpn-lib/uniffi.toml \
+            --language swift --out-dir build -n
+
+      - name: Uniffi diff check
+        working-directory: nym-vpn-core
+        run: |
+          diff -B build/nym_vpn_lib.swift crates/nym-vpn-lib/uniffi/nym_vpn_lib.swift
+        continue-on-error: true
+        id: diff_ios
+
+      - name: Upload generated uniffi file
+        if: steps.diff_ios.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: updated-uniffi-ios
+          path: nym-vpn-core/build/nym_vpn_lib.swift
+          retention-days: 1
+
+      - name: Fail workflow for uniffi
+        if: steps.diff_ios.outcome == 'failure'
+        run: exit 1
+
+      - name: Clippy
+        working-directory: nym-vpn-core
+        run: |
+          cargo clippy --target aarch64-apple-ios -p nym-vpn-lib -- -Dwarnings
