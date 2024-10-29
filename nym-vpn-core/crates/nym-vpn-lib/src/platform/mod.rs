@@ -38,7 +38,7 @@ use crate::{
     },
     uniffi_custom_impls::{
         BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, GatewayMinPerformance,
-        GatewayType, Location, TunStatus, UserAgent,
+        GatewayType, Location, NetworkEnvironment, TunStatus, UserAgent,
     },
 };
 
@@ -99,18 +99,20 @@ pub fn initLogger() {
     android::init_logs(log_level);
 }
 
+// Fetch the network environment details from the network name.
+// TODO: also add the ability to catch this information for subsequent use.
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn discoverEnvironment(network_name: &str) -> Result<(), VpnError> {
-    RUNTIME.block_on(discover_environment(network_name))
+pub fn fetchEnvironment(network_name: &str) -> Result<NetworkEnvironment, VpnError> {
+    RUNTIME.block_on(fetch_environment(network_name))
 }
 
-async fn discover_environment(network_name: &str) -> Result<(), VpnError> {
-    let network =
-        nym_vpn_discover::Network::fetch(network_name).map_err(|err| VpnError::InternalError {
+async fn fetch_environment(network_name: &str) -> Result<NetworkEnvironment, VpnError> {
+    nym_vpn_discover::Network::fetch(network_name)
+        .map(NetworkEnvironment::from)
+        .map_err(|err| VpnError::InternalError {
             details: err.to_string(),
-        })?;
-    Ok(())
+        })
 }
 
 fn setup_account_storage(path: &str) -> Result<crate::storage::VpnClientOnDiskStorage, VpnError> {

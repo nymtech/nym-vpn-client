@@ -10,7 +10,7 @@ use super::bootstrap::Discovery;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct NymVpnNetwork {
-    pub(super) nym_vpn_api_url: Url,
+    pub nym_vpn_api_url: Url,
 }
 
 impl NymVpnNetwork {

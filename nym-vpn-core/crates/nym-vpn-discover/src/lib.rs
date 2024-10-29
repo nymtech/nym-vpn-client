@@ -7,10 +7,11 @@ mod nym_vpn_network;
 mod refresh;
 mod util;
 
+pub use nym_network::NymNetwork;
+pub use nym_vpn_network::NymVpnNetwork;
+
 use bootstrap::Discovery;
 use nym_config::defaults::NymNetworkDetails;
-use nym_network::NymNetwork;
-use nym_vpn_network::NymVpnNetwork;
 
 use std::{path::Path, time::Duration};
 
