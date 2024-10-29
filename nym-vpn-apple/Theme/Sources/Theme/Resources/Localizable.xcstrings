@@ -1041,7 +1041,8 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Experience maximum speed with  2-server connectivity. Perfect for fast browsing, streaming, and file sharing."
+            "value" : "Experience maximum speed with 
+2-server connectivity. Perfect for fast browsing, streaming, and file sharing."
           }
         }
       }
@@ -1196,6 +1197,50 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Appearance"
+          }
+        }
+      }
+    },
+    "settings.logIn" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log in"
+          }
+        }
+      }
+    },
+    "settings.resetVpnProfileSubtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NymVPN profile will be deleted from your device.\n\nIf connected: deleting VPN profile will disconnect you from VPN."
+          }
+        }
+      }
+    },
+    "settings.resetVpnProfileTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset VPN profile?"
+          }
+        }
+      }
+    },
+    "settings.support.resetVpnProfile" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset VPN profile"
           }
         }
       }

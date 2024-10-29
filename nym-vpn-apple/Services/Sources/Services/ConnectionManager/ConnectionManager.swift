@@ -241,6 +241,13 @@ private extension ConnectionManager {
 }
 #endif
 
+// MARK: - Reset VPN profile -
+public extension ConnectionManager {
+    func resetVpnProfile() {
+        tunnelsManager.resetVpnProfile()
+    }
+}
+
 // MARK: - Connection -
 #if os(iOS)
 private extension ConnectionManager {
@@ -410,20 +417,11 @@ private extension ConnectionManager {
 
     func updateCountries() {
         Task { @MainActor in
-            if appSettings.isEntryLocationSelectionOn {
-                updateCountriesEntryExit()
-            } else {
-                updateCountriesExitOnly()
-            }
+            updateConnectionHops()
         }
     }
 
-    func updateCountriesEntryExit() {
-        entryGateway = connectionStorage.entryGateway()
-        exitRouter = connectionStorage.exitRouter()
-    }
-
-    func updateCountriesExitOnly() {
+    func updateConnectionHops() {
         entryGateway = connectionStorage.entryGateway()
         exitRouter = connectionStorage.exitRouter()
     }
