@@ -1819,6 +1819,35 @@ public func FfiConverterTypeMixnetConnectionData_lower(_ value: MixnetConnection
 }
 
 
+/**
+ * Represents the nym network environment together with the environment specific to nym-vpn. These
+ * need to be exported to the environment (for now, until it's refactored internally in the nym
+ * crates) so that the client can have access to the necessary information.
+ *
+ * The list is as of today:
+ *
+ * NETWORK_NAME = nym_network::network_name
+ *
+ * BECH32_PREFIX = nym_network::chain_details::bech32_account_prefix
+ * MIX_DENOM = nym_network::chain_details::mix_denom::base
+ * MIX_DENOM_DISPLAY = nym_network::chain_details::mix_denom::display
+ * STAKE_DENOM = nym_network::chain_details::stake_denom::base
+ * STAKE_DENOM_DISPLAY = nym_network::chain_details::stake_denom::display
+ * DENOMS_EXPONENT = nym_network::chain_details::mix_denom::display_exponent
+ *
+ * MIXNET_CONTRACT_ADDRESS = nym_network::contracts::mixnet_contract_address
+ * VESTING_CONTRACT_ADDRESS = nym_network::contracts::vesting_contract_address
+ * GROUP_CONTRACT_ADDRESS = nym_network::contracts::group_contract_address
+ * ECASH_CONTRACT_ADDRESS = nym_network::contracts::ecash_contract_address
+ * MULTISIG_CONTRACT_ADDRESS = nym_network::contracts::multisig_contract_address
+ * COCONUT_DKG_CONTRACT_ADDRESS = nym_network::contracts::coconut_dkg_contract_address
+ *
+ * NYXD = nym_network::endpoints[0]::nyxd_url
+ * NYM_API = nym_network::endpoints[0]::api_url
+ * NYXD_WS = nym_network::endpoints[0]::websocket_url
+ *
+ * NYM_VPN_API = nym_vpn_network::nym_vpn_api_url
+ */
 public struct NetworkEnvironment {
     public var nymNetwork: NymNetworkDetails
     public var nymVpnNetwork: NymVpnNetwork
