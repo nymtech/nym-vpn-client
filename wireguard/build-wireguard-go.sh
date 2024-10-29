@@ -2,39 +2,70 @@
 
 # This script is used to build wireguard-go libraries for all the platforms.
 
-set -eu
+function stringContain {
+    case $2 in *$1* ) return 0;; *) return 1;; esac;
+}
+
+ANDROID_BUILD=false
+IOS_BUILD=false
+DOCKER_BUILD=true
+
+function parseArgs {
+    if stringContain "Darwin" "$(uname -s)"; then
+        # Mac builds require gnu-getopt because regular macos getopt doesn't allow long args. -_-
+        # This could be avoided using something like `getopts` instead, but then we don't
+        # have the ability to use long options which pre-date this script change.
+        # > brew install gnu-getopt
+        echo "using gnu-getopt"
+        export PATH="/opt/homebrew/opt/gnu-getopt/bin:$PATH"
+    fi
+
+    which getopt
+    TEMP=$(getopt -o ai --long android,no-docker,ios \
+                  -n 'build-wireguard-go.sh' -- "$@")
+
+    if [ $? != 0 ]; then
+        echo "encountered an error parsing args"
+        exit 2
+    fi
+
+    # Note the quotes around '$TEMP': they are essential!
+    eval set -- "$TEMP"
+
+    while true; do
+      case "$1" in
+        "-a" | "--android" ) ANDROID_BUILD=true; shift ;;
+        "-i" | "--ios" ) IOS_BUILD=true; shift ;;
+        "--no-docker" ) DOCKER_BUILD=false; shift ;;
+        -- ) shift; break ;;
+        * ) break ;;
+      esac
+    done
+
+    echo "android:$ANDROID_BUILD ios:$IOS_BUILD docker:$DOCKER_BUILD"
+
+    set -eu
+}
 
 function is_android_build {
-    for arg in "$@"
-    do
-        case "$arg" in
-            "--android")
-                return 0
-        esac
-    done
+    if [ "$ANDROID_BUILD" = true ]; then
+        return 0
+    fi
     return 1
 }
 
 function is_ios_build {
-    for arg in "$@"
-    do
-        case "$arg" in
-            "--ios")
-                return 0
-        esac
-    done
+    if [ "$IOS_BUILD" = true ]; then
+        return 0
+    fi
     return 1
 }
 
 function is_docker_build {
-    for arg in "$@"
-    do
-        case "$arg" in
-            "--no-docker")
-                return 1
-        esac
-    done
-    return 0
+    if [ "$DOCKER_BUILD" = true ]; then
+        return 0
+    fi
+    return 1
 }
 
 function is_win_arm64 {
@@ -87,10 +118,10 @@ function build_windows {
         export GOARCH=amd64
         export CC="x86_64-w64-mingw32-cc"
     fi
-    
+
     echo "Building wireguard-go for Windows ($arch)"
 
-    pushd libwg
+    pushd $LIB_DIR
         go build -trimpath -v -o libwg.dll -buildmode c-shared
         win_create_lib_file $@
 
@@ -132,7 +163,7 @@ function build_unix {
         fi
     fi
 
-    pushd libwg
+    pushd $LIB_DIR
         create_folder_and_build $1
     popd
 }
@@ -141,14 +172,14 @@ function build_android {
     echo "Building for android"
     local docker_image_hash="992c4d5c7dcd00eacf6f3e3667ce86b8e185f011352bdd9f79e467fef3e27abd"
 
-    if is_docker_build $@; then
+    if is_docker_build; then
         docker run --rm \
             -v "$(pwd)/../":/workspace \
-            --entrypoint "/workspace/wireguard/libwg/build-android.sh" \
+            --entrypoint "/workspace/wireguard/$LIB_DIR/build-android.sh" \
             --env ANDROID_NDK_HOME="/opt/android/android-ndk-r20b" \
             docker.io/pronebird1337/nymtech-android-app@sha256:$docker_image_hash
     else
-        ./libwg/build-android.sh
+        ./$LIB_DIR/build-android.sh
     fi
 }
 
@@ -166,7 +197,7 @@ function build_macos_universal {
     export MACOSX_DEPLOYMENT_TARGET=10.13
 
     echo "🍎 Building for aarch64"
-    pushd libwg
+    pushd $LIB_DIR
     export GOOS=darwin
     export GOARCH=arm64
     create_folder_and_build "aarch64-apple-darwin"
@@ -189,7 +220,7 @@ function build_ios {
     export CGO_ENABLED=1
     export IPHONEOS_DEPLOYMENT_TARGET=16.0
 
-    pushd libwg
+    pushd $LIB_DIR
 
     echo "🍎 Building for ios/aarch64"
     export GOARCH=arm64
@@ -240,17 +271,19 @@ function patch_darwin_goruntime {
     REAL_GOROOT=$(go env GOROOT 2>/dev/null)
     export GOROOT="$BUILDDIR/goroot"
     mkdir -p "$GOROOT"
-	rsync -a --delete --exclude=pkg/obj/go-build "$REAL_GOROOT/" "$GOROOT/"
-	cat libwg/goruntime-boottime-over-monotonic-darwin.diff | patch -p1 -f -N -r- -d "$GOROOT"
+    rsync -a --delete --exclude=pkg/obj/go-build "$REAL_GOROOT/" "$GOROOT/"
+    cat $LIB_DIR/goruntime-boottime-over-monotonic-darwin.diff | patch -p1 -f -N -r- -d "$GOROOT"
 }
 
 function build_wireguard_go {
-    if is_android_build $@; then
+    parseArgs $@
+
+    if is_android_build ; then
         build_android $@
         return
     fi
 
-    if is_ios_build $@; then
+    if is_ios_build ; then
         build_ios $@
         return
     fi
@@ -262,6 +295,8 @@ function build_wireguard_go {
         MINGW*|MSYS_NT*) build_windows $@;;
     esac
 }
+
+LIB_DIR="libwg"
 
 # Ensure we are in the correct directory for the execution of this script
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
