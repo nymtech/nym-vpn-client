@@ -57,26 +57,23 @@ pub struct ConnectingState {
 }
 
 impl ConnectingState {
-    pub fn enter(shared_state: &mut SharedState) -> (Box<dyn TunnelStateHandler>, TunnelState) {
-        return DisconnectingState::enter(
-            ActionAfterDisconnect::Error(ErrorStateReason::Account),
-            None,
-            shared_state,
-        );
-
-        //if let Some(account_state) = shared_state.shared_account_state {
-        //    match account_state.is_ready_to_connect().await {
-        //        nym_vpn_account_controller::ReadyToConnect::Ready => {}
-        //        not_ready_to_connect => {
-        //            tracing::info!("Not ready to connect: {:?}", not_ready_to_connect);
-        //            // return Err(VpnServiceConnectError::Account(not_ready_to_connect));
-        //            (
-        //                ,
-        //                TunnelState::Error(crate::tunnel_state_machine::ErrorStateReason::Account),
-        //            )
-        //        }
-        //    }
-        //}
+    pub async fn enter(
+        shared_state: &mut SharedState,
+    ) -> (Box<dyn TunnelStateHandler>, TunnelState) {
+        // Start by checking the account state
+        if let Some(ref account_state) = shared_state.shared_account_state {
+            match account_state.is_ready_to_connect().await {
+                nym_vpn_account_controller::ReadyToConnect::Ready => {}
+                not_ready_to_connect => {
+                    tracing::info!("Not ready to connect: {:?}", not_ready_to_connect);
+                    return DisconnectingState::enter(
+                        ActionAfterDisconnect::Error(ErrorStateReason::Account),
+                        None,
+                        shared_state,
+                    );
+                }
+            }
+        }
 
         let gateway_performance_options = shared_state.tunnel_settings.gateway_performance_options;
 

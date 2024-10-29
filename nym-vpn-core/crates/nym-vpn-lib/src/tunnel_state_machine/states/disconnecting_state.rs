@@ -127,7 +127,7 @@ impl TunnelStateHandler for DisconnectingState {
                         NextTunnelState::NewState(ErrorState::enter(reason))
                     }
                     ActionAfterDisconnect::Reconnect => {
-                        NextTunnelState::NewState(ConnectingState::enter(shared_state))
+                        NextTunnelState::NewState(ConnectingState::enter(shared_state).await)
                     }
                 }
             }

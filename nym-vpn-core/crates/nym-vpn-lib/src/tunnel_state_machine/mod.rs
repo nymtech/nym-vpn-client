@@ -254,7 +254,7 @@ pub enum ErrorStateReason {
     /// Program errors that must not happen.
     Internal,
 
-    /// Unable to account due to an account reason.
+    /// Unable to connect due to an account reason.
     Account,
 }
 

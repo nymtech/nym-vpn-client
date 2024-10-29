@@ -315,6 +315,7 @@ impl From<TunnelState> for VpnServiceStateChange {
             TunnelState::Disconnected => Self::NotConnected,
             TunnelState::Disconnecting { .. } => Self::Disconnecting,
             TunnelState::Error(reason) => Self::ConnectionFailed(
+                // TODO: need to map the account error
                 ConnectionFailedError::InternalError(format!("Error state: {:?}", reason)),
             ),
         }
@@ -653,13 +654,13 @@ where
         connect_args: ConnectArgs,
         _user_agent: nym_vpn_lib::UserAgent, // todo: use user-agent!
     ) -> Result<(), VpnServiceConnectError> {
-        match self.shared_account_state.is_ready_to_connect().await {
-            ReadyToConnect::Ready => {}
-            not_ready_to_connect => {
-                tracing::info!("Not ready to connect: {:?}", not_ready_to_connect);
-                return Err(VpnServiceConnectError::Account(not_ready_to_connect));
-            }
-        }
+        //match self.shared_account_state.is_ready_to_connect().await {
+        //    ReadyToConnect::Ready => {}
+        //    not_ready_to_connect => {
+        //        tracing::info!("Not ready to connect: {:?}", not_ready_to_connect);
+        //        return Err(VpnServiceConnectError::Account(not_ready_to_connect));
+        //    }
+        //}
 
         let ConnectArgs {
             entry,
