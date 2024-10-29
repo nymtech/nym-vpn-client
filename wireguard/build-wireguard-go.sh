@@ -81,11 +81,11 @@ function build_windows {
     if is_win_arm64 $@; then
         local arch="aarch64"
         export GOARCH=arm64
-        export CC="/clangarm64/bin/aarch64-w64-mingw32-cc"
+        export CC="aarch64-w64-mingw32-cc"
     else
         local arch="x86_64"
         export GOARCH=amd64
-        export CC="/mingw64/bin/x86_64-w64-mingw32-cc"
+        export CC="x86_64-w64-mingw32-cc"
     fi
     
     echo "Building wireguard-go for Windows ($arch)"

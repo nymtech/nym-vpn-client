@@ -1,0 +1,148 @@
+name: ci-nym-vpn-core-windows
+
+on:
+  # push:
+  pull_request:
+    paths:
+      - "nym-vpn-core/**"
+      - ".github/workflows/ci-nym-vpn-core-windows.yml"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
+
+jobs:
+  build:
+    runs-on: custom-windows-11
+
+    steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
+      - name: Support longpaths on windows
+        run: git config --system core.longpaths true
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install rust toolchain
+        uses: brndnmtthws/rust-action-rustup@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Set env
+        shell: bash
+        run: |
+          triplet=x86_64-pc-windows-msvc
+          echo "TRIPLET=$triplet" >> $GITHUB_ENV
+          echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib -Clink-args=/LIBPATH:${GITHUB_WORKSPACE}/build/lib/x64-Debug" >> $GITHUB_ENV
+          mkdir -p ${GITHUB_WORKSPACE}/build/lib/
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "stable"
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install build tools
+        shell: cmd
+        run: |
+          winget install --disable-interactivity --id=Microsoft.VisualStudio.2022.BuildTools --override "--wait --passive --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended"
+          if %ERRORLEVEL% EQU -1978335189 (
+            exit /b 0
+          )
+
+      - name: Update path with vctools
+        shell: pwsh
+        run: |
+          $buildtoolspath = "$Env:ProgramFiles (x86)/Microsoft Visual Studio/2022/BuildTools"
+          $msbuildpath = "$buildtoolspath/MSBuild/Current/Bin"
+          echo "Add msbuild dir to path: $msbuildpath"
+          Add-Content $env:GITHUB_PATH "$msbuildpath"
+
+          $msvctoolspath = "$buildtoolspath/VC/Tools/MSVC"
+          $contents = Get-ChildItem $msvctoolspath | Select-Object -First 1
+          $subdir = $contents[0].Name
+          $vctoolsdir = "$msvctoolspath/$subdir/bin/Hostx64/x64"
+          echo "Add vctools dir to path: $vctoolsdir"
+          Add-Content $env:GITHUB_PATH "$vctoolsdir"
+
+      - name: Setup msys2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: false
+          msystem: MINGW64
+          install: mingw-w64-x86_64-clang
+
+      - name: Build wireguard
+        shell: msys2 {0}
+        env:
+          MSYS2_PATH_TYPE: inherit
+        run: |
+          ./wireguard/build-wireguard-go.sh
+
+      - name: Download wintun.zip
+        shell: bash
+        run: |
+          curl --output ${GITHUB_WORKSPACE}/wintun.zip https://www.wintun.net/builds/wintun-0.14.1.zip
+
+      - name: Unzip wintun.zip
+        shell: bash
+        run: |
+          unzip ${GITHUB_WORKSPACE}/wintun.zip
+
+      - name: Move wintun.dll and packet.lib to build directory
+        shell: bash
+        run: |
+          mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll ${GITHUB_WORKSPACE}/build/lib/
+
+      - name: Checkout mullvad libs for Windows
+        uses: actions/checkout@v4
+        with:
+          repository: nymtech/nym-vpn-mullvad-libs
+          ref: main
+          path: "nym-vpn-mullvad-libs"
+          submodules: true
+
+      - name: Build winfw.dll from mullvad
+        shell: bash
+        run: |
+          cd ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs
+          ./build-windows-modules.sh
+
+      - name: Move winfw.dll to build directory
+        shell: bash
+        run: |
+          mv ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Debug ${GITHUB_WORKSPACE}/build/lib/
+
+      - name: rustfmt check
+        working-directory: nym-vpn-core
+        run: |
+          cargo fmt --check
+
+      - name: Build (excluding gateway probe)
+        working-directory: nym-vpn-core
+        run: |
+          cargo build --verbose --workspace --exclude nym-gateway-probe
+
+      - name: Run tests (excluding gateway probe)
+        working-directory: nym-vpn-core
+        run: |
+          cargo test --verbose --workspace --exclude nym-gateway-probe
+
+      - name: Clippy
+        working-directory: nym-vpn-core
+        run: |
+          cargo clippy -- -Dwarnings

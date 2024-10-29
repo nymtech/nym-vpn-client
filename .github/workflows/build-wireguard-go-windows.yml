@@ -29,11 +29,35 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup MSBuild.exe
-        uses: microsoft/setup-msbuild@v2
+      - name: Install build tools
+        shell: cmd
+        run: |
+          winget install --disable-interactivity --id=Microsoft.VisualStudio.2022.BuildTools --override "--wait --passive --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended"
+          if %ERRORLEVEL% EQU -1978335189 (
+            exit /b 0
+          )
+
+      - name: Update path with vctools
+        shell: pwsh
+        run: |
+          $path = "$Env:ProgramFiles (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC"
+          $contents = Get-ChildItem $path | Select-Object -First 1
+          $subdir = $contents[0].Name
+          $vctoolsdir = "$path/$subdir/bin/Hostx64/x64"
+          echo "Add vctools dir to path: $vctoolsdir"
+          Add-Content $env:GITHUB_PATH "$vctoolsdir"
+
+      - name: Setup msys2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: false
+          msystem: MINGW64
+          install: mingw-w64-x86_64-clang
 
       - name: Build wireguard
-        shell: bash
+        shell: msys2 {0}
+        env:
+          MSYS2_PATH_TYPE: inherit
         run: |
           ./wireguard/build-wireguard-go.sh
 
