@@ -4484,6 +4484,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-vpn-discover"
+version = "1.0.0-dev"
+dependencies = [
+ "anyhow",
+ "nym-config",
+ "reqwest 0.11.27",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "url",
+]
+
+[[package]]
 name = "nym-vpn-lib"
 version = "1.0.0-dev"
 dependencies = [
@@ -4619,6 +4634,7 @@ dependencies = [
  "nym-validator-client",
  "nym-vpn-account-controller",
  "nym-vpn-api-client",
+ "nym-vpn-discover",
  "nym-vpn-lib",
  "nym-vpn-proto",
  "nym-vpn-store",

@@ -3,13 +3,13 @@
 
 use std::env;
 
-use nym_vpn_lib::nym_config::defaults::{var_names, NymNetworkDetails};
+use nym_config::defaults::{var_names, NymNetworkDetails};
 use url::Url;
 
 use super::bootstrap::Discovery;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
-pub(crate) struct NymVpnNetwork {
+pub struct NymVpnNetwork {
     pub(super) nym_vpn_api_url: Url,
 }
 

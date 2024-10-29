@@ -1,44 +1,47 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{env, path::PathBuf};
+use std::{
+    env,
+    path::{Path, PathBuf},
+};
 
 use anyhow::Context;
-use nym_vpn_lib::nym_config::defaults::{var_names, NymNetworkDetails};
+use nym_config::defaults::{var_names, NymNetworkDetails};
 
 use super::{bootstrap::Discovery, MAX_FILE_AGE, NETWORKS_SUBDIR};
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
-pub(crate) struct NymNetwork {
-    pub(crate) network: NymNetworkDetails,
+pub struct NymNetwork {
+    pub network: NymNetworkDetails,
 }
 
 impl NymNetwork {
-    fn path(network_name: &str) -> PathBuf {
-        crate::service::config_dir()
+    fn path(config_dir: &Path, network_name: &str) -> PathBuf {
+        config_dir
             .join(NETWORKS_SUBDIR)
             .join(format!("{}.json", network_name))
     }
 
-    fn path_is_stale(network_name: &str) -> anyhow::Result<bool> {
-        if let Some(age) = crate::util::get_age_of_file(&Self::path(network_name))? {
+    fn path_is_stale(config_dir: &Path, network_name: &str) -> anyhow::Result<bool> {
+        if let Some(age) = crate::util::get_age_of_file(&Self::path(config_dir, network_name))? {
             Ok(age > MAX_FILE_AGE)
         } else {
             Ok(true)
         }
     }
 
-    pub(super) fn read_from_file(network_name: &str) -> anyhow::Result<Self> {
-        let path = Self::path(network_name);
+    pub(super) fn read_from_file(config_dir: &Path, network_name: &str) -> anyhow::Result<Self> {
+        let path = Self::path(config_dir, network_name);
         tracing::info!("Reading network details from: {}", path.display());
         let file_str = std::fs::read_to_string(path)?;
         let network: NymNetworkDetails = serde_json::from_str(&file_str)?;
         Ok(Self { network })
     }
 
-    pub(super) fn write_to_file(&self) -> anyhow::Result<()> {
+    pub(super) fn write_to_file(&self, config_dir: &Path) -> anyhow::Result<()> {
         let network = &self.network;
-        let path = Self::path(&network.network_name);
+        let path = Self::path(config_dir, &network.network_name);
 
         // Create parent directories if they don't exist
         if let Some(parent) = path.parent() {
@@ -59,11 +62,13 @@ impl NymNetwork {
         Ok(())
     }
 
-    pub(super) fn ensure_exists(discovery: &Discovery) -> anyhow::Result<Self> {
-        if Self::path_is_stale(&discovery.network_name)? {
-            discovery.fetch_nym_network_details()?.write_to_file()?;
+    pub(super) fn ensure_exists(config_dir: &Path, discovery: &Discovery) -> anyhow::Result<Self> {
+        if Self::path_is_stale(config_dir, &discovery.network_name)? {
+            discovery
+                .fetch_nym_network_details()?
+                .write_to_file(config_dir)?;
         }
-        Self::read_from_file(&discovery.network_name)
+        Self::read_from_file(config_dir, &discovery.network_name)
     }
 
     pub(super) fn export_to_env(&self) {

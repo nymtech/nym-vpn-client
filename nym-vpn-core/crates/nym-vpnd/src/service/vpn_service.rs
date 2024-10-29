@@ -37,7 +37,7 @@ use nym_vpn_lib::{
 };
 use nym_vpn_store::keys::KeyStore as _;
 
-use crate::GLOBAL_NETWORK_DETAILS;
+use crate::{config::GlobalConfigFile, GLOBAL_NETWORK_DETAILS};
 
 use super::{
     config::{ConfigSetupError, NetworkEnvironments, NymVpnServiceConfig, DEFAULT_CONFIG_FILE},
@@ -779,12 +779,9 @@ where
     }
 
     async fn handle_set_network(&self, network: String) -> Result<(), SetNetworkError> {
-        // let mut global_config = crate::discovery::read_global_config_file().map_err(|source| {
         let mut global_config =
-            crate::discovery::GlobalConfigFile::read_from_file().map_err(|source| {
-                SetNetworkError::ReadConfig {
-                    source: source.into(),
-                }
+            GlobalConfigFile::read_from_file().map_err(|source| SetNetworkError::ReadConfig {
+                source: source.into(),
             })?;
 
         // Manually restrict the set of possible network, until we handle this automatically
@@ -792,7 +789,6 @@ where
             .map_err(|_err| SetNetworkError::NetworkNotFound(network.to_owned()))?;
         global_config.network_name = network_selected.to_string();
 
-        // crate::discovery::write_global_config_file(global_config).map_err(|source| {
         global_config
             .write_to_file()
             .map_err(|source| SetNetworkError::WriteConfig {

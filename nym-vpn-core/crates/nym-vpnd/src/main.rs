@@ -3,7 +3,8 @@
 
 mod cli;
 mod command_interface;
-mod discovery;
+mod config;
+mod environment;
 mod logging;
 mod runtime;
 mod service;
@@ -21,7 +22,7 @@ use service::NymVpnService;
 use tokio::sync::broadcast;
 use tokio_util::sync::CancellationToken;
 
-use crate::{cli::CliArgs, command_interface::CommandInterfaceOptions};
+use crate::{cli::CliArgs, command_interface::CommandInterfaceOptions, config::GlobalConfigFile};
 
 // Lazy initialized global NymNetworkDetails
 static GLOBAL_NETWORK_DETAILS: OnceLock<NymNetworkDetails> = OnceLock::new();
@@ -30,16 +31,10 @@ fn main() -> anyhow::Result<()> {
     run()
 }
 
-fn set_global_network_details(network_details: NymNetworkDetails) -> anyhow::Result<()> {
-    GLOBAL_NETWORK_DETAILS
-        .set(network_details)
-        .map_err(|_| anyhow::anyhow!("Failed to set network details"))
-}
-
 #[cfg(unix)]
 fn run() -> anyhow::Result<()> {
     let args = CliArgs::parse();
-    let mut global_config_file = discovery::GlobalConfigFile::read_from_file()?;
+    let mut global_config_file = GlobalConfigFile::read_from_file()?;
 
     if let Some(ref network) = args.network {
         global_config_file.network_name = network.to_owned();
@@ -48,17 +43,7 @@ fn run() -> anyhow::Result<()> {
 
     logging::setup_logging(args.command.run_as_service);
 
-    let _network_env = if let Some(ref env) = args.config_env_file {
-        nym_vpn_lib::nym_config::defaults::setup_env(Some(env));
-        let network_details = NymNetworkDetails::new_from_env();
-        discovery::manual_env(&network_details)?
-    } else {
-        let network_name = global_config_file.network_name.clone();
-        tracing::info!("Setting up environment by discovering the network: {network_name}");
-        discovery::discover_env(&network_name)?
-    };
-
-    // TODO: pass network_env explicitly instead of relying on being exported to env
+    environment::setup_environment(&global_config_file, &args)?;
 
     run_inner(args)
 }
@@ -66,22 +51,14 @@ fn run() -> anyhow::Result<()> {
 #[cfg(windows)]
 fn run() -> anyhow::Result<()> {
     let args = CliArgs::parse();
-    let mut global_config_file = discovery::GlobalConfigFile::read_from_file()?;
+    let mut global_config_file = GlobalConfigFile::read_from_file()?;
 
     if let Some(ref network) = args.network {
         global_config_file.network_name = network.to_owned();
         global_config_file.write_to_file()?;
     }
 
-    let _network_env = if let Some(ref env) = args.config_env_file {
-        nym_vpn_lib::nym_config::defaults::setup_env(Some(env));
-        let network_details = NymNetworkDetails::new_from_env();
-        discovery::manual_env(&network_details)?
-    } else {
-        let network_name = global_config_file.network_name.clone();
-        tracing::info!("Setting up environment from discovery file: {network_name}");
-        discovery::discover_env(&network_name)?
-    };
+    environment::setup_environment(&global_config_file, &args)?;
 
     if args.command.is_any() {
         Ok(windows_service::start(args)?)
