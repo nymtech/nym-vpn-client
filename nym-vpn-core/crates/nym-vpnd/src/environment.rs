@@ -1,11 +1,12 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_vpn_discover::Network;
 use nym_vpn_lib::nym_config::defaults::NymNetworkDetails;
 
 use crate::{cli::CliArgs, config::GlobalConfigFile, GLOBAL_NETWORK_DETAILS};
 
-fn set_global_network_details(network_details: NymNetworkDetails) -> anyhow::Result<()> {
+fn set_global_network_details(network_details: Network) -> anyhow::Result<()> {
     GLOBAL_NETWORK_DETAILS
         .set(network_details)
         .map_err(|_| anyhow::anyhow!("Failed to set network details"))
@@ -14,7 +15,7 @@ fn set_global_network_details(network_details: NymNetworkDetails) -> anyhow::Res
 pub(crate) fn setup_environment(
     global_config_file: &GlobalConfigFile,
     args: &CliArgs,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<Network> {
     let network_env = if let Some(ref env) = args.config_env_file {
         nym_vpn_lib::nym_config::defaults::setup_env(Some(env));
         let network_details = NymNetworkDetails::new_from_env();
@@ -28,6 +29,6 @@ pub(crate) fn setup_environment(
 
     // TODO: pass network_env explicitly instead of relying on being exported to env
     network_env.export_to_env();
-    set_global_network_details(network_env.nym_network_details().clone())?;
-    Ok(())
+    set_global_network_details(network_env.clone())?;
+    Ok(network_env)
 }

@@ -17,7 +17,7 @@ mod windows_service;
 use std::sync::OnceLock;
 
 use clap::Parser;
-use nym_vpn_lib::nym_config::defaults::NymNetworkDetails;
+use nym_vpn_discover::Network;
 use service::NymVpnService;
 use tokio::sync::broadcast;
 use tokio_util::sync::CancellationToken;
@@ -25,7 +25,7 @@ use tokio_util::sync::CancellationToken;
 use crate::{cli::CliArgs, command_interface::CommandInterfaceOptions, config::GlobalConfigFile};
 
 // Lazy initialized global NymNetworkDetails
-static GLOBAL_NETWORK_DETAILS: OnceLock<NymNetworkDetails> = OnceLock::new();
+static GLOBAL_NETWORK_DETAILS: OnceLock<Network> = OnceLock::new();
 
 fn main() -> anyhow::Result<()> {
     run()
@@ -43,7 +43,7 @@ fn run() -> anyhow::Result<()> {
 
     logging::setup_logging(args.command.run_as_service);
 
-    environment::setup_environment(&global_config_file, &args)?;
+    let _ = environment::setup_environment(&global_config_file, &args)?;
 
     run_inner(args)
 }
@@ -58,7 +58,7 @@ fn run() -> anyhow::Result<()> {
         global_config_file.write_to_file()?;
     }
 
-    environment::setup_environment(&global_config_file, &args)?;
+    let _ = environment::setup_environment(&global_config_file, &args)?;
 
     if args.command.is_any() {
         Ok(windows_service::start(args)?)
