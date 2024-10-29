@@ -8,7 +8,8 @@
   "internal": "Error interno",
   "daemon": {
     "not-connected": "No conectado al demonio",
-    "internal": "Error interno del demonio"
+    "internal": "Error interno del demonio",
+    "invalid-network": "Red inválida"
   },
   "grpc": "Error interno gRPC",
   "connection": {
@@ -75,10 +76,18 @@
   "out-of-bandwidth": "Fuera del ancho de banda asignado",
   "exit-node": {
     "ping": "Falló el ping del nodo de salida para el tráfico {{protocolo}}",
-    "routing": "El nodo de salida no está enrutando tráfico {{protocolo}}"
+    "routing": "El nodo de salida no está enrutando tráfico de {{protocolo}}"
   },
   "entry-node-routing": "El nodo de entrada no enruta el tráfico (¿se ha caído la conexión a Internet?)",
   "account": {
-    "invalid-recovery-phrase": "Frase de recuperación inválida"
+    "invalid-recovery-phrase": "Frase de recuperación inválida",
+    "storage": "Error de backend de almacenamiento",
+    "device": {
+      "not-registered": "El dispositivo no está registrado",
+      "not-active": "El dispositivo no está activo"
+    },
+    "no-account-stored": "No se almacena ninguna frase de recuperación de cuenta",
+    "not-active": "La cuenta no está activa",
+    "no-active-subscription": "La cuenta no tiene una suscripción activa"
   }
 }
