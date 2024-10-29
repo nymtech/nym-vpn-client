@@ -47,13 +47,13 @@ impl ConnectedTunnel {
     }
 
     pub fn entry_mtu(&self) -> u16 {
-        // 1500 - 60 (ipv4+wg header)
-        1440
+        // 1500 - 80 (ipv6+wg header)
+        1420
     }
 
     pub fn exit_mtu(&self) -> u16 {
         // 1440 - 80 (ipv6+wg header)
-        1360
+        1340
     }
 
     pub fn run(
