@@ -52,7 +52,7 @@ impl ConnectedTunnel {
     }
 
     pub fn exit_mtu(&self) -> u16 {
-        // 1440 - 80 (ipv6+wg header)
+        // 1420 - 80 (ipv6+wg header)
         1340
     }
 
