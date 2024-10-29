@@ -38,13 +38,15 @@ export function useTauriEvents(dispatch: StateDispatch) {
         status: event.payload,
       });
 
-      // refresh daemon info and network env
+      // refresh daemon info, network env and account status
       if (event.payload === 'Ok') {
         try {
           const info = await invoke<DaemonInfo>('daemon_info');
           dispatch({ type: 'set-daemon-info', info });
+          const stored = await invoke<boolean | undefined>('is_account_stored');
+          dispatch({ type: 'set-account', stored: stored || false });
         } catch (e: unknown) {
-          console.error('failed to get daemon info', e);
+          console.error('failed to refresh daemon info', e);
         }
       }
     });
