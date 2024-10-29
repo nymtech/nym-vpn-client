@@ -3,7 +3,8 @@
   "internal": "Erro interno",
   "daemon": {
     "not-connected": "Não está ligado ao daemon",
-    "internal": "Erro interno do daemon"
+    "internal": "Erro interno do daemon",
+    "invalid-network": "Rede inválida"
   },
   "grpc": "Erro interno do gRPC",
   "connection": {
@@ -79,6 +80,14 @@
     "ping": "O ping do nó de saída falhou para o {{protocol}}tráfego"
   },
   "account": {
-    "invalid-recovery-phrase": "Frase de recuperação inválida"
+    "invalid-recovery-phrase": "Frase de recuperação inválida",
+    "no-active-subscription": "A conta não tem uma assinatura ativa",
+    "device": {
+      "not-registered": "O dispositivo não está registado",
+      "not-active": "O dispositivo não está ativo"
+    },
+    "storage": "Erro de backend de armazenamento",
+    "no-account-stored": "Nenhuma frase de recuperação de conta armazenada",
+    "not-active": "A conta não está ativa"
   }
 }
