@@ -35,11 +35,6 @@ jobs:
           components: rustfmt, clippy
           targets: aarch64-apple-ios
 
-      - name: Set env
-        shell: bash
-        run: |
-            echo "TRIPLET=aarch64-apple-ios" >> $GITHUB_ENV
-
       - name: Install Go
         uses: actions/setup-go@v5
         with:

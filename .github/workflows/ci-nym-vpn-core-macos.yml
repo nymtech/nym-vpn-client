@@ -34,11 +34,6 @@ jobs:
           toolchain: stable
           components: rustfmt, clippy
 
-      - name: Set env
-        shell: bash
-        run: |
-            echo "TRIPLET=universal-apple-darwin" >> $GITHUB_ENV
-
       - name: Install Go
         uses: actions/setup-go@v5
         with:
