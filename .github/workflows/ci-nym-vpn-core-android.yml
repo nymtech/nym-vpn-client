@@ -1,11 +1,11 @@
-name: ci-nym-vpn-core
+name: ci-nym-vpn-core-android
 
 on:
   # push:
   pull_request:
     paths:
       - "nym-vpn-core/**"
-      - ".github/workflows/ci-nym-vpn-core.yml"
+      - ".github/workflows/ci-nym-vpn-core-android.yml"
   workflow_dispatch:
 
 env:
@@ -14,23 +14,9 @@ env:
 
 jobs:
   build:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [arc-ubuntu-22.04]
-        target: [native, android]
-    runs-on: ${{ matrix.os }}
+    runs-on: arc-ubuntu-22.04
 
     steps:
-      - name: "Cleanup working directory"
-        if: contains(matrix.os, 'custom')
-        shell: bash
-        run: |
-          ls -la ./
-          rm -rf ./* || true
-          rm -rf ./.??* || true
-          ls -la ./
-
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip
 
@@ -42,38 +28,27 @@ jobs:
         with:
           toolchain: stable
           components: rustfmt, clippy
+          targets: aarch64-linux-android
 
       - name: Install cargo ndk
-        if: matrix.target == 'android'
         run: cargo install cargo-ndk
 
       - name: Setup NDK
         uses: nttld/setup-ndk@v1
         id: setup-ndk
-        if: matrix.target == 'android'
         with:
           ndk-version: r25c
           add-to-path: false
 
-      - name: Add Android target
-        if: matrix.target == 'android'
-        run: rustup target add aarch64-linux-android
-
       - name: Set env
         shell: bash
         run: |
-          if ${{ matrix.target == 'android' }}; then
             triplet=aarch64-linux-android
             echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
             echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_ENV
             echo "TRIPLET=$triplet" >> $GITHUB_ENV
-          else
-            triplet=x86_64-unknown-linux-gnu
-            echo "TRIPLET=$triplet" >> $GITHUB_ENV
-          fi
 
       - name: Install Go
-        if: ${{ !contains(matrix.os, 'ubuntu') }}
         uses: actions/setup-go@v5
         with:
           go-version: "stable"
@@ -85,13 +60,6 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build wireguard
-        if: matrix.target != 'android'
-        shell: bash
-        run: |
-          ./wireguard/build-wireguard-go.sh
-
-      - name: Build wireguard (Android)
-        if: matrix.target == 'android'
         run: ./wireguard/libwg/build-android.sh
 
       - name: rustfmt check
@@ -100,19 +68,11 @@ jobs:
           cargo fmt --check
 
       - name: Build
-        if: matrix.target != 'android'
-        working-directory: nym-vpn-core
-        run: |
-          cargo build --verbose
-
-      - name: Build (Android)
-        if: matrix.target == 'android'
         working-directory: nym-vpn-core
         run: |
           cargo ndk  -t aarch64-linux-android -o ./build build -p nym-vpn-lib
 
-      - name: Generate uniffi (Android)
-        if: matrix.target == 'android'
+      - name: Generate uniffi
         working-directory: nym-vpn-core
         run: |
           cargo run --bin uniffi-bindgen generate \
@@ -120,39 +80,26 @@ jobs:
             --config crates/nym-vpn-lib/uniffi.toml \
             --language kotlin --out-dir build -n
 
-      - name: Uniffi diff check (Android)
-        if: matrix.target == 'android'
+      - name: Uniffi diff check
         working-directory: nym-vpn-core
         run: |
           diff -B build/nym_vpn_lib/nym_vpn_lib.kt crates/nym-vpn-lib/uniffi/nym_vpn_lib.kt
         continue-on-error: true
         id: diff_android
 
-      - name: Upload generated uniffi file (Android)
-        if: steps.diff_android.outcome == 'failure' && matrix.target == 'android'
+      - name: Upload generated uniffi file
+        if: steps.diff_android.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: updated-uniffi-android
           path: nym-vpn-core/build/nym_vpn_lib/nym_vpn_lib.kt
           retention-days: 1
 
-      - name: Fail workflow for uniffi (Android)
-        if: steps.diff_android.outcome == 'failure' && matrix.target == 'android'
+      - name: Fail workflow for uniffi
+        if: steps.diff_android.outcome == 'failure'
         run: exit 1
 
-      - name: Run tests (Linux)
-        if: matrix.target != 'android'
-        working-directory: nym-vpn-core
-        run: |
-          cargo test --verbose
-
       - name: Clippy
-        working-directory: nym-vpn-core
-        run: |
-          cargo clippy -- -Dwarnings
-
-      - name: Clippy (Android)
-        if: matrix.target == 'android'
         working-directory: nym-vpn-core
         run: |
           cargo ndk -t aarch64-linux-android clippy -p nym-vpn-lib -- -Dwarning
