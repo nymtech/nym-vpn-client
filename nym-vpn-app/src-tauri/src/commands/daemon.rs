@@ -1,5 +1,5 @@
 use crate::env::NETWORK_ENV_SELECT;
-use crate::error::{BackendError, ErrorKey};
+use crate::error::BackendError;
 use crate::grpc::client::{GrpcClient, VpndStatus};
 use crate::states::SharedAppState;
 use serde::{Deserialize, Serialize};
@@ -54,8 +54,8 @@ pub async fn daemon_info(grpc_client: State<'_, GrpcClient>) -> Result<DaemonInf
     let network = res
         .nym_network
         .map(|network| network.network_name)
-        .ok_or_else(|| BackendError::new("missing network details", ErrorKey::InternalError))
-        .inspect(|e| {
+        .ok_or_else(|| BackendError::new_internal("missing network details", None))
+        .inspect_err(|e| {
             warn!("daemon info response missing network details: {:?}", e);
         })?;
 
