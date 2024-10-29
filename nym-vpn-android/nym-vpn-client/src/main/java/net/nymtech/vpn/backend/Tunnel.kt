@@ -64,29 +64,45 @@ interface Tunnel {
 	 * Enum class to represent all possible environments of a [Tunnel].
 	 */
 	enum class Environment {
+		CANARY {
+			override val nymVpnApiUrl: URL?
+				get() = null
+			override val apiUrl: URL
+				get() = URL("https://canary-api.performance.nymte.ch/api")
+			override val accountUrl: URL
+				get() = URL("https://nym-dot-com-git-deploy-canary-nyx-network-staging.vercel.app/")
+			override val createAccountUrl: URL
+				get() = URL("https://nym-dot-com-git-deploy-canary-nyx-network-staging.vercel.app/account/login")
+		},
 		MAINNET {
 			override val nymVpnApiUrl: URL
 				get() = URL("https://nymvpn.com/api")
 			override val apiUrl: URL
 				get() = URL("https://validator.nymtech.net/api/")
+			override val accountUrl: URL
+				get() = URL("https://nymvpn.com/account/login")
+			override val createAccountUrl: URL
+				get() = URL("https://nymvpn.com/account/create")
 		},
 		SANDBOX {
 			override val nymVpnApiUrl: URL?
 				get() = null
 			override val apiUrl: URL
 				get() = URL("https://sandbox-nym-api1.nymtech.net/api")
-		},
-		CANARY {
-			override val nymVpnApiUrl: URL?
-				get() = null
-			override val apiUrl: URL
-				get() = URL("https://canary-api.performance.nymte.ch/api")
+			override val accountUrl: URL
+				get() = URL("https://nym-dot-com-git-deploy-canary-nyx-network-staging.vercel.app/")
+			override val createAccountUrl: URL
+				get() = URL("https://nym-dot-com-git-deploy-canary-nyx-network-staging.vercel.app/account/login")
 		},
 		QA {
 			override val nymVpnApiUrl: URL?
 				get() = null
 			override val apiUrl: URL
 				get() = URL("https://qa-nym-api.qa.nymte.ch/api")
+			override val accountUrl: URL
+				get() = URL("https://nym-dot-com-git-deploy-qa-nyx-network-staging.vercel.app/en/account/login")
+			override val createAccountUrl: URL
+				get() = URL("https://nym-dot-com-git-deploy-qa-nyx-network-staging.vercel.app/en")
 		}, ;
 
 		/**
@@ -114,5 +130,7 @@ interface Tunnel {
 
 		abstract val nymVpnApiUrl: URL?
 		abstract val apiUrl: URL
+		abstract val accountUrl: URL
+		abstract val createAccountUrl: URL
 	}
 }

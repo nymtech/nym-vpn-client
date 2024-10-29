@@ -12,6 +12,10 @@ android {
 
 	project.tasks.preBuild.dependsOn(Constants.BUILD_LIB_TASK)
 
+	lint {
+		disable.add("UnsafeOptInUsageError")
+	}
+
 	namespace = "${Constants.NAMESPACE}.${Constants.VPN_LIB_NAME}"
 	compileSdk = Constants.COMPILE_SDK
 

@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.settings.appearance.display
 
+import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -51,23 +52,29 @@ fun DisplayScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewModel:
 			.padding(top = 24.dp.scaledHeight())
 			.padding(horizontal = 24.dp.scaledWidth()),
 	) {
-		IconSurfaceButton(
-			title = stringResource(R.string.automatic),
-			description = stringResource(R.string.device_theme),
-			onClick = {
-				viewModel.onThemeChange(Theme.AUTOMATIC)
-			},
-			selected = appUiState.settings.theme == Theme.AUTOMATIC,
-		)
-		IconSurfaceButton(
-			title = stringResource(R.string.light_theme),
-			onClick = { viewModel.onThemeChange(Theme.LIGHT_MODE) },
-			selected = appUiState.settings.theme == Theme.LIGHT_MODE,
-		)
-		IconSurfaceButton(
-			title = stringResource(R.string.dark_theme),
-			onClick = { viewModel.onThemeChange(Theme.DARK_MODE) },
-			selected = appUiState.settings.theme == Theme.DARK_MODE,
-		)
+		enumValues<Theme>().forEach {
+			val title = when (it) {
+				Theme.DARK_MODE -> stringResource(R.string.dark_theme)
+				Theme.LIGHT_MODE -> stringResource(R.string.light_theme)
+				Theme.AUTOMATIC -> stringResource(R.string.automatic)
+				Theme.DYNAMIC -> stringResource(R.string.dynamic)
+			}
+			val description = when (it) {
+				Theme.AUTOMATIC -> stringResource(R.string.device_theme)
+				Theme.DYNAMIC -> stringResource(R.string.system_wallpaper)
+				else -> null
+			}
+			if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S && it == Theme.DYNAMIC) {
+				return@Column
+			}
+			IconSurfaceButton(
+				title = title,
+				description = description,
+				onClick = {
+					viewModel.onThemeChange(it)
+				},
+				selected = appUiState.settings.theme == it,
+			)
+		}
 	}
 }

@@ -17,9 +17,10 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 enum class Theme {
-	DARK_MODE,
-	LIGHT_MODE,
 	AUTOMATIC,
+	DARK_MODE,
+	DYNAMIC,
+	LIGHT_MODE,
 	;
 
 	companion object {
@@ -58,32 +59,25 @@ private val LightColorScheme =
 	)
 
 @Composable
-fun NymVPNTheme(
-	theme: Theme,
-	// Dynamic color is available on Android 12+
-	// disable for now..
-	dynamicColor: Boolean = false,
-	content: @Composable () -> Unit,
-) {
+fun NymVPNTheme(theme: Theme, content: @Composable () -> Unit) {
 	val context = LocalContext.current
-
-	val darkTheme =
-		when (theme) {
-			Theme.AUTOMATIC -> isSystemInDarkTheme()
-			Theme.DARK_MODE -> true
-			Theme.LIGHT_MODE -> false
-		}
+	val isDark = isSystemInDarkTheme()
 
 	val colorScheme =
-		when {
-			dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-				if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+		when (theme) {
+			Theme.AUTOMATIC -> {
+				if (isDark) DarkColorScheme else LightColorScheme
 			}
-
-			darkTheme -> DarkColorScheme
-			else -> LightColorScheme
+			Theme.DARK_MODE -> DarkColorScheme
+			Theme.LIGHT_MODE -> LightColorScheme
+			Theme.DYNAMIC -> {
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+					if (isDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+				} else {
+					if (isDark) DarkColorScheme else LightColorScheme
+				}
+			}
 		}
-
 	val view = LocalView.current
 	if (!view.isInEditMode) {
 		SideEffect {
@@ -92,7 +86,7 @@ fun NymVPNTheme(
 			window.statusBarColor = Color.Transparent.toArgb()
 			window.navigationBarColor = Color.Transparent.toArgb()
 			WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars =
-				!darkTheme
+				!isDark
 		}
 	}
 

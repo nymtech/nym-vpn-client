@@ -10,6 +10,9 @@ sealed class Route {
 	) : Route()
 
 	@Serializable
+	data object Splash : Route()
+
+	@Serializable
 	data object Analytics : Route()
 
 	@Serializable
