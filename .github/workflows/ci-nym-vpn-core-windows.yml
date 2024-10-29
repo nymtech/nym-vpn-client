@@ -124,15 +124,15 @@ jobs:
         run: |
           cargo fmt --check
 
-      - name: Build (excluding gateway probe)
+      - name: Build
         working-directory: nym-vpn-core
         run: |
-          cargo build --verbose --workspace --exclude nym-gateway-probe
+          cargo build --verbose
 
-      - name: Run tests (excluding gateway probe)
+      - name: Run tests
         working-directory: nym-vpn-core
         run: |
-          cargo test --verbose --workspace --exclude nym-gateway-probe
+          cargo test --verbose
 
       - name: Clippy
         working-directory: nym-vpn-core
