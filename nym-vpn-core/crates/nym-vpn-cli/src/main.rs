@@ -5,7 +5,7 @@ mod commands;
 mod error;
 mod shutdown_handler;
 
-use std::path::PathBuf;
+use std::{path::PathBuf, sync::Arc};
 
 use anyhow::Context;
 use clap::Parser;
@@ -228,6 +228,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> anyhow:
         event_tx,
         nym_config,
         tunnel_settings,
+        None,
         shutdown_token.child_token(),
     )
     .await

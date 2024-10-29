@@ -12,7 +12,7 @@ use std::{env, path::PathBuf, str::FromStr, sync::Arc};
 
 use lazy_static::lazy_static;
 use log::*;
-use nym_vpn_account_controller::ReadyToConnect;
+use nym_vpn_account_controller::{ReadyToConnect, SharedAccountState};
 use tokio::{
     runtime::Runtime,
     sync::{mpsc, Mutex},
@@ -84,7 +84,7 @@ async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
     let mut guard = STATE_MACHINE_HANDLE.lock().await;
 
     if guard.is_none() {
-        let state_machine_handle = start_state_machine(config).await?;
+        let state_machine_handle = start_state_machine(config, shared_account_state).await?;
         state_machine_handle.send_command(TunnelCommand::Connect);
         *guard = Some(state_machine_handle);
         Ok(())
@@ -424,7 +424,10 @@ impl StateMachineHandle {
     }
 }
 
-async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, VpnError> {
+async fn start_state_machine(
+    config: VPNConfig,
+    shared_account_state: SharedAccountState,
+) -> Result<StateMachineHandle, VpnError> {
     let tunnel_type = if config.enable_two_hop {
         TunnelType::Wireguard
     } else {
@@ -476,6 +479,7 @@ async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, Vp
         tunnel_settings,
         #[cfg(any(target_os = "ios", target_os = "android"))]
         config.tun_provider,
+        Some(shared_account_state),
         shutdown_token.child_token(),
     )
     .await?;

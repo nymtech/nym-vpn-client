@@ -34,9 +34,9 @@ use crate::tunnel_state_machine::{route_handler::RoutingConfig, tun_ipv6};
 use crate::tunnel_state_machine::{
     states::{ConnectedState, DisconnectingState},
     tunnel::{self, any_tunnel_handle::AnyTunnelHandle, ConnectedMixnet, MixnetConnectOptions},
-    ActionAfterDisconnect, ConnectionData, Error, MixnetConnectionData, NextTunnelState, Result,
-    SharedState, TunnelCommand, TunnelConnectionData, TunnelState, TunnelStateHandler, TunnelType,
-    WireguardConnectionData, WireguardNode,
+    ActionAfterDisconnect, ConnectionData, Error, ErrorStateReason, MixnetConnectionData,
+    NextTunnelState, Result, SharedState, TunnelCommand, TunnelConnectionData, TunnelState,
+    TunnelStateHandler, TunnelType, WireguardConnectionData, WireguardNode,
 };
 
 /// Default MTU for mixnet tun device.
@@ -58,6 +58,26 @@ pub struct ConnectingState {
 
 impl ConnectingState {
     pub fn enter(shared_state: &mut SharedState) -> (Box<dyn TunnelStateHandler>, TunnelState) {
+        return DisconnectingState::enter(
+            ActionAfterDisconnect::Error(ErrorStateReason::Account),
+            None,
+            shared_state,
+        );
+
+        //if let Some(account_state) = shared_state.shared_account_state {
+        //    match account_state.is_ready_to_connect().await {
+        //        nym_vpn_account_controller::ReadyToConnect::Ready => {}
+        //        not_ready_to_connect => {
+        //            tracing::info!("Not ready to connect: {:?}", not_ready_to_connect);
+        //            // return Err(VpnServiceConnectError::Account(not_ready_to_connect));
+        //            (
+        //                ,
+        //                TunnelState::Error(crate::tunnel_state_machine::ErrorStateReason::Account),
+        //            )
+        //        }
+        //    }
+        //}
+
         let gateway_performance_options = shared_state.tunnel_settings.gateway_performance_options;
 
         let gateway_min_performance = GatewayMinPerformance::from_percentage_values(

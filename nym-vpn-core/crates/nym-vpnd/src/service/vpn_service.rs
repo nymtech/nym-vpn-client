@@ -464,6 +464,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             event_sender,
             nym_config,
             tunnel_settings,
+            Some(shared_account_state.clone()),
             shutdown_token.child_token(),
         )
         .await

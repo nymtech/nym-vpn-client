@@ -21,6 +21,7 @@ use std::{
     path::PathBuf,
 };
 
+use nym_vpn_account_controller::SharedAccountState;
 use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
@@ -252,6 +253,9 @@ pub enum ErrorStateReason {
 
     /// Program errors that must not happen.
     Internal,
+
+    /// Unable to account due to an account reason.
+    Account,
 }
 
 #[derive(Debug, uniffi::Enum)]
@@ -297,6 +301,7 @@ pub struct SharedState {
     tun_provider: Arc<dyn OSTunProvider>,
     #[cfg(target_os = "android")]
     tun_provider: Arc<dyn AndroidTunProvider>,
+    shared_account_state: Option<SharedAccountState>,
 }
 
 #[derive(Debug, Clone)]
@@ -322,6 +327,7 @@ impl TunnelStateMachine {
         tunnel_settings: TunnelSettings,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
+        shared_account_state: Option<SharedAccountState>,
         shutdown_token: CancellationToken,
     ) -> Result<JoinHandle<()>> {
         let (current_state_handler, _) = DisconnectedState::enter();
@@ -353,6 +359,7 @@ impl TunnelStateMachine {
             status_listener_handle: None,
             #[cfg(any(target_os = "ios", target_os = "android"))]
             tun_provider,
+            shared_account_state,
         };
 
         let tunnel_state_machine = Self {
