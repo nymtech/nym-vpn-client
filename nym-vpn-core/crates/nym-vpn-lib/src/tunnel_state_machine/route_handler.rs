@@ -53,7 +53,7 @@ impl RouteHandler {
         let routes = Self::get_routes(routing_config);
 
         #[cfg(target_os = "linux")]
-        self.route_manager.create_routing_rules(true).await?;
+        self.route_manager.create_routing_rules().await?;
 
         self.route_manager.add_routes(routes).await?;
 
