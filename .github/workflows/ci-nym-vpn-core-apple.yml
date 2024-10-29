@@ -17,8 +17,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [arc-ubuntu-22.04]
-        target: [native, android]
+        os: [custom-runner-mac-m1]
+        target: [native, ios]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -43,37 +43,22 @@ jobs:
           toolchain: stable
           components: rustfmt, clippy
 
-      - name: Install cargo ndk
-        if: matrix.target == 'android'
-        run: cargo install cargo-ndk
-
-      - name: Setup NDK
-        uses: nttld/setup-ndk@v1
-        id: setup-ndk
-        if: matrix.target == 'android'
-        with:
-          ndk-version: r25c
-          add-to-path: false
-
-      - name: Add Android target
-        if: matrix.target == 'android'
-        run: rustup target add aarch64-linux-android
+      - name: Add rust target (iOS)
+        if: matrix.target == 'ios'
+        run: rustup target add aarch64-apple-ios
 
       - name: Set env
         shell: bash
         run: |
-          if ${{ matrix.target == 'android' }}; then
-            triplet=aarch64-linux-android
-            echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
-            echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_ENV
+          if ${{ matrix.target == 'ios' }}; then
+            triplet=aarch64-apple-ios
             echo "TRIPLET=$triplet" >> $GITHUB_ENV
           else
-            triplet=x86_64-unknown-linux-gnu
+            triplet=universal-apple-darwin
             echo "TRIPLET=$triplet" >> $GITHUB_ENV
           fi
 
       - name: Install Go
-        if: ${{ !contains(matrix.os, 'ubuntu') }}
         uses: actions/setup-go@v5
         with:
           go-version: "stable"
@@ -85,14 +70,16 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build wireguard
-        if: matrix.target != 'android'
+        if: matrix.target != 'ios'
         shell: bash
         run: |
           ./wireguard/build-wireguard-go.sh
 
-      - name: Build wireguard (Android)
-        if: matrix.target == 'android'
-        run: ./wireguard/libwg/build-android.sh
+      - name: Build wireguard (iOS)
+        if: matrix.target == 'ios'
+        shell: bash
+        run: |
+          ./wireguard/build-wireguard-go.sh --ios
 
       - name: rustfmt check
         working-directory: nym-vpn-core
@@ -100,48 +87,48 @@ jobs:
           cargo fmt --check
 
       - name: Build
-        if: matrix.target != 'android'
+        if: matrix.target != 'ios'
         working-directory: nym-vpn-core
         run: |
           cargo build --verbose
 
-      - name: Build (Android)
-        if: matrix.target == 'android'
+      - name: Build (iOS)
+        if: matrix.target == 'ios'
         working-directory: nym-vpn-core
         run: |
-          cargo ndk  -t aarch64-linux-android -o ./build build -p nym-vpn-lib
+          cargo build --verbose --target aarch64-apple-ios -p nym-vpn-lib
 
-      - name: Generate uniffi (Android)
-        if: matrix.target == 'android'
+      - name: Generate uniffi (iOS)
+        if: matrix.target == 'ios'
         working-directory: nym-vpn-core
         run: |
           cargo run --bin uniffi-bindgen generate \
-            --library target/aarch64-linux-android/debug/libnym_vpn_lib.so \
+            --library target/aarch64-apple-ios/debug/libnym_vpn_lib.a  \
             --config crates/nym-vpn-lib/uniffi.toml \
-            --language kotlin --out-dir build -n
+            --language swift --out-dir build -n
 
-      - name: Uniffi diff check (Android)
-        if: matrix.target == 'android'
+      - name: Uniffi diff check (iOS)
+        if: matrix.target == 'ios'
         working-directory: nym-vpn-core
         run: |
-          diff -B build/nym_vpn_lib/nym_vpn_lib.kt crates/nym-vpn-lib/uniffi/nym_vpn_lib.kt
+          diff -B build/nym_vpn_lib.swift crates/nym-vpn-lib/uniffi/nym_vpn_lib.swift
         continue-on-error: true
-        id: diff_android
+        id: diff_ios
 
-      - name: Upload generated uniffi file (Android)
-        if: steps.diff_android.outcome == 'failure' && matrix.target == 'android'
+      - name: Upload generated uniffi file (iOS)
+        if: steps.diff_ios.outcome == 'failure' && matrix.target == 'ios'
         uses: actions/upload-artifact@v4
         with:
-          name: updated-uniffi-android
-          path: nym-vpn-core/build/nym_vpn_lib/nym_vpn_lib.kt
+          name: updated-uniffi-ios
+          path: nym-vpn-core/build/nym_vpn_lib.swift
           retention-days: 1
 
-      - name: Fail workflow for uniffi (Android)
-        if: steps.diff_android.outcome == 'failure' && matrix.target == 'android'
+      - name: Fail workflow for uniffi (iOS)
+        if: steps.diff_ios.outcome == 'failure' && matrix.target == 'ios'
         run: exit 1
 
-      - name: Run tests (Linux)
-        if: matrix.target != 'android'
+      - name: Run tests (macOS)
+        if: matrix.target != 'ios'
         working-directory: nym-vpn-core
         run: |
           cargo test --verbose
@@ -151,8 +138,8 @@ jobs:
         run: |
           cargo clippy -- -Dwarnings
 
-      - name: Clippy (Android)
-        if: matrix.target == 'android'
+      - name: Clippy (iOS)
+        if: matrix.target == 'ios'
         working-directory: nym-vpn-core
         run: |
-          cargo ndk -t aarch64-linux-android clippy -p nym-vpn-lib -- -Dwarning
+          cargo clippy --target aarch64-apple-ios -p nym-vpn-lib -- -Dwarnings
