@@ -1,4 +1,4 @@
-name: ci-nym-vpn-core
+name: ci-nym-vpn-core-windows
 
 on:
   # push:
