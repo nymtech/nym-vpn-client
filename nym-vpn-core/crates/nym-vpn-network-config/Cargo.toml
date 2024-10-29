@@ -1,5 +1,5 @@
 [package]
-name = "nym-vpn-discover"
+name = "nym-vpn-network-config"
 version.workspace = true
 authors.workspace = true
 repository.workspace = true

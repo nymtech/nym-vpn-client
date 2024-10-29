@@ -69,7 +69,7 @@ nym-connection-monitor = { path = "../nym-connection-monitor" }
 nym-gateway-directory = { path = "../nym-gateway-directory" }
 nym-ip-packet-client = { path = "../nym-ip-packet-client" }
 nym-vpn-api-client = { path = "../nym-vpn-api-client" }
-nym-vpn-discover = { path = "../nym-vpn-discover" }
+nym-vpn-network-config = { path = "../nym-vpn-network-config" }
 nym-vpn-store = { path = "../nym-vpn-store" }
 nym-wg-gateway-client = { path = "../nym-wg-gateway-client" }
 nym-wg-go = { path = "../nym-wg-go" }
