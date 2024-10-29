@@ -135,7 +135,7 @@ jobs:
         run: |
           cargo fmt --check
 
-      - name: Build
+      - name: Build (excluding gateway probe)
         working-directory: nym-vpn-core
         run: |
           cargo build --verbose --workspace --exclude nym-gateway-probe
