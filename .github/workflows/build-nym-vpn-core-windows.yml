@@ -84,7 +84,7 @@ jobs:
       - name: Build nym-vpn-core
         working-directory: nym-vpn-core
         run: |
-          cargo build --${{ env.CARGO_TARGET }}
+          cargo build --${{ env.CARGO_TARGET }} --workspace --exclude nym-gateway-probe
 
       - name: Get rust version used for build
         id: rust-version
