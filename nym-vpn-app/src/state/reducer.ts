@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import {
-  DefaultNodeCountry,
+  DefaultCountry,
   DefaultRootFontSize,
   DefaultThemeMode,
   DefaultVpnMode,
@@ -83,10 +83,10 @@ export const initialState: AppState = {
   monitoring: false,
   desktopNotifications: true,
   // TODO ⚠ these should be set to 'Fastest' when the backend is ready
-  entryNodeLocation: DefaultNodeCountry,
+  entryNodeLocation: DefaultCountry,
   // TODO ⚠ these should be set to 'Fastest' when the backend is ready
-  exitNodeLocation: DefaultNodeCountry,
-  fastestNodeLocation: DefaultNodeCountry,
+  exitNodeLocation: DefaultCountry,
+  fastestNodeLocation: DefaultCountry,
   entryCountryList: [],
   exitCountryList: [],
   entryCountriesLoading: true,
