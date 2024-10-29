@@ -99,6 +99,20 @@ pub fn initLogger() {
     android::init_logs(log_level);
 }
 
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn discoverEnvironment(network_name: &str) -> Result<(), VpnError> {
+    RUNTIME.block_on(discover_environment(network_name))
+}
+
+async fn discover_environment(network_name: &str) -> Result<(), VpnError> {
+    let network =
+        nym_vpn_discover::Network::fetch(network_name).map_err(|err| VpnError::InternalError {
+            details: err.to_string(),
+        })?;
+    Ok(())
+}
+
 fn setup_account_storage(path: &str) -> Result<crate::storage::VpnClientOnDiskStorage, VpnError> {
     let path = PathBuf::from_str(path).map_err(|err| VpnError::InternalError {
         details: err.to_string(),

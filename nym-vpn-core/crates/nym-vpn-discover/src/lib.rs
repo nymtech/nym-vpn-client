@@ -34,6 +34,17 @@ impl Network {
         self.nym_network.export_to_env();
         self.nym_vpn_network.export_to_env();
     }
+
+    pub fn fetch(network_name: &str) -> anyhow::Result<Self> {
+        let discovery = Discovery::fetch(network_name)?;
+        let nym_network = discovery.fetch_nym_network_details()?;
+        let nym_vpn_network = NymVpnNetwork::from(discovery);
+
+        Ok(Network {
+            nym_network,
+            nym_vpn_network,
+        })
+    }
 }
 
 pub fn discover_env(config_path: &Path, network_name: &str) -> anyhow::Result<Network> {

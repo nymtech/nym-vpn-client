@@ -4540,6 +4540,7 @@ dependencies = [
  "nym-topology",
  "nym-validator-client",
  "nym-vpn-api-client",
+ "nym-vpn-discover",
  "nym-vpn-store",
  "nym-wg-gateway-client",
  "nym-wg-go",

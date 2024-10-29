@@ -15,7 +15,7 @@ const DISCOVERY_FILE: &str = "discovery.json";
 const DISCOVERY_WELLKNOWN: &str = "https://nymvpn.com/api/public/v1/.wellknown";
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
-pub(super) struct Discovery {
+pub struct Discovery {
     pub(super) network_name: String,
     pub(super) nym_api_url: Url,
     pub(super) nym_vpn_api_url: Url,
@@ -45,7 +45,7 @@ impl Discovery {
         .map_err(Into::into)
     }
 
-    pub(super) fn fetch(network_name: &str) -> anyhow::Result<Self> {
+    pub fn fetch(network_name: &str) -> anyhow::Result<Self> {
         let discovery: DiscoveryResponse = {
             let url = Self::endpoint(network_name)?;
             tracing::info!("Fetching nym network discovery from: {}", url);
@@ -103,7 +103,7 @@ impl Discovery {
         Self::read_from_file(config_dir, network_name)
     }
 
-    pub(crate) fn fetch_nym_network_details(&self) -> anyhow::Result<NymNetwork> {
+    pub fn fetch_nym_network_details(&self) -> anyhow::Result<NymNetwork> {
         let url = format!("{}/v1/network/details", self.nym_api_url);
         tracing::info!("Fetching nym network details from: {}", url);
         let network_details: NymNetworkDetailsResponse = reqwest::blocking::get(&url)
