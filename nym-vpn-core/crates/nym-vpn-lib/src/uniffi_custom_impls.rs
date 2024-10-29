@@ -227,6 +227,154 @@ impl UniffiCustomTypeConverter for OffsetDateTime {
     }
 }
 
+/// Represents the nym network environment together with the environment specific to nym-vpn. These
+/// need to be exported to the environment (for now, until it's refactored internally in the nym
+/// crates) so that the client can have access to the necessary information.
+///
+/// The list is as of today:
+///
+/// NETWORK_NAME = nym_network::network_name
+///
+/// BECH32_PREFIX = nym_network::chain_details::bech32_account_prefix
+/// MIX_DENOM = nym_network::chain_details::mix_denom::base
+/// MIX_DENOM_DISPLAY = nym_network::chain_details::mix_denom::display
+/// STAKE_DENOM = nym_network::chain_details::stake_denom::base
+/// STAKE_DENOM_DISPLAY = nym_network::chain_details::stake_denom::display
+/// DENOMS_EXPONENT = nym_network::chain_details::mix_denom::display_exponent
+///
+/// MIXNET_CONTRACT_ADDRESS = nym_network::contracts::mixnet_contract_address
+/// VESTING_CONTRACT_ADDRESS = nym_network::contracts::vesting_contract_address
+/// GROUP_CONTRACT_ADDRESS = nym_network::contracts::group_contract_address
+/// ECASH_CONTRACT_ADDRESS = nym_network::contracts::ecash_contract_address
+/// MULTISIG_CONTRACT_ADDRESS = nym_network::contracts::multisig_contract_address
+/// COCONUT_DKG_CONTRACT_ADDRESS = nym_network::contracts::coconut_dkg_contract_address
+///
+/// NYXD = nym_network::endpoints[0]::nyxd_url
+/// NYM_API = nym_network::endpoints[0]::api_url
+/// NYXD_WS = nym_network::endpoints[0]::websocket_url
+///
+/// NYM_VPN_API = nym_vpn_network::nym_vpn_api_url
+#[derive(uniffi::Record)]
+pub struct NetworkEnvironment {
+    pub nym_network: NymNetworkDetails,
+    pub nym_vpn_network: NymVpnNetwork,
+}
+
+impl From<nym_vpn_network_config::Network> for NetworkEnvironment {
+    fn from(network: nym_vpn_network_config::Network) -> Self {
+        NetworkEnvironment {
+            nym_network: network.nym_network.network.into(),
+            nym_vpn_network: network.nym_vpn_network.into(),
+        }
+    }
+}
+
+#[derive(uniffi::Record)]
+pub struct NymNetworkDetails {
+    pub network_name: String,
+    pub chain_details: ChainDetails,
+    pub endpoints: Vec<ValidatorDetails>,
+    pub contracts: NymContracts,
+}
+
+impl From<crate::nym_config::defaults::NymNetworkDetails> for NymNetworkDetails {
+    fn from(value: crate::nym_config::defaults::NymNetworkDetails) -> Self {
+        NymNetworkDetails {
+            network_name: value.network_name,
+            chain_details: value.chain_details.into(),
+            endpoints: value.endpoints.into_iter().map(|e| e.into()).collect(),
+            contracts: value.contracts.into(),
+        }
+    }
+}
+
+#[derive(uniffi::Record)]
+pub struct ChainDetails {
+    pub bech32_account_prefix: String,
+    pub mix_denom: DenomDetails,
+    pub stake_denom: DenomDetails,
+}
+
+impl From<crate::nym_config::defaults::ChainDetails> for ChainDetails {
+    fn from(value: crate::nym_config::defaults::ChainDetails) -> Self {
+        ChainDetails {
+            bech32_account_prefix: value.bech32_account_prefix,
+            mix_denom: value.mix_denom.into(),
+            stake_denom: value.stake_denom.into(),
+        }
+    }
+}
+
+#[derive(uniffi::Record)]
+pub struct DenomDetails {
+    pub base: String,
+    pub display: String,
+    pub display_exponent: u32,
+}
+
+impl From<crate::nym_config::defaults::DenomDetailsOwned> for DenomDetails {
+    fn from(value: crate::nym_config::defaults::DenomDetailsOwned) -> Self {
+        DenomDetails {
+            base: value.base,
+            display: value.display,
+            display_exponent: value.display_exponent,
+        }
+    }
+}
+
+#[derive(uniffi::Record)]
+pub struct ValidatorDetails {
+    pub nyxd_url: String,
+    pub websocket_url: Option<String>,
+    pub api_url: Option<String>,
+}
+
+impl From<crate::nym_config::defaults::ValidatorDetails> for ValidatorDetails {
+    fn from(value: crate::nym_config::defaults::ValidatorDetails) -> Self {
+        ValidatorDetails {
+            nyxd_url: value.nyxd_url,
+            websocket_url: value.websocket_url,
+            api_url: value.api_url,
+        }
+    }
+}
+
+#[derive(uniffi::Record)]
+pub struct NymContracts {
+    pub mixnet_contract_address: Option<String>,
+    pub vesting_contract_address: Option<String>,
+    pub ecash_contract_address: Option<String>,
+    pub group_contract_address: Option<String>,
+    pub multisig_contract_address: Option<String>,
+    pub coconut_dkg_contract_address: Option<String>,
+}
+
+impl From<crate::nym_config::defaults::NymContracts> for NymContracts {
+    fn from(value: crate::nym_config::defaults::NymContracts) -> Self {
+        NymContracts {
+            mixnet_contract_address: value.mixnet_contract_address,
+            vesting_contract_address: value.vesting_contract_address,
+            ecash_contract_address: value.ecash_contract_address,
+            group_contract_address: value.group_contract_address,
+            multisig_contract_address: value.multisig_contract_address,
+            coconut_dkg_contract_address: value.coconut_dkg_contract_address,
+        }
+    }
+}
+
+#[derive(uniffi::Record)]
+pub struct NymVpnNetwork {
+    pub nym_vpn_api_url: String,
+}
+
+impl From<nym_vpn_network_config::NymVpnNetwork> for NymVpnNetwork {
+    fn from(value: nym_vpn_network_config::NymVpnNetwork) -> Self {
+        NymVpnNetwork {
+            nym_vpn_api_url: value.nym_vpn_api_url.to_string(),
+        }
+    }
+}
+
 #[derive(uniffi::Record)]
 pub struct Location {
     pub two_letter_iso_country_code: String,

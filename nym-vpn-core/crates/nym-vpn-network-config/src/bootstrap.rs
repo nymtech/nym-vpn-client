@@ -1,10 +1,10 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::Context;
-use nym_vpn_lib::nym_config::defaults::NymNetworkDetails;
+use nym_config::defaults::NymNetworkDetails;
 use url::Url;
 
 use super::{nym_network::NymNetwork, MAX_FILE_AGE, NETWORKS_SUBDIR};
@@ -15,21 +15,21 @@ const DISCOVERY_FILE: &str = "discovery.json";
 const DISCOVERY_WELLKNOWN: &str = "https://nymvpn.com/api/public/v1/.wellknown";
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
-pub(super) struct Discovery {
+pub struct Discovery {
     pub(super) network_name: String,
     pub(super) nym_api_url: Url,
     pub(super) nym_vpn_api_url: Url,
 }
 
 impl Discovery {
-    fn path(network_name: &str) -> PathBuf {
-        crate::service::config_dir()
+    fn path(config_dir: &Path, network_name: &str) -> PathBuf {
+        config_dir
             .join(NETWORKS_SUBDIR)
             .join(format!("{}_{}", network_name, DISCOVERY_FILE))
     }
 
-    pub(super) fn path_is_stale(network_name: &str) -> anyhow::Result<bool> {
-        if let Some(age) = crate::util::get_age_of_file(&Self::path(network_name))? {
+    pub(super) fn path_is_stale(config_dir: &Path, network_name: &str) -> anyhow::Result<bool> {
+        if let Some(age) = crate::util::get_age_of_file(&Self::path(config_dir, network_name))? {
             Ok(age > MAX_FILE_AGE)
         } else {
             Ok(true)
@@ -45,7 +45,7 @@ impl Discovery {
         .map_err(Into::into)
     }
 
-    pub(super) fn fetch(network_name: &str) -> anyhow::Result<Self> {
+    pub fn fetch(network_name: &str) -> anyhow::Result<Self> {
         let discovery: DiscoveryResponse = {
             let url = Self::endpoint(network_name)?;
             tracing::info!("Fetching nym network discovery from: {}", url);
@@ -60,8 +60,8 @@ impl Discovery {
         discovery.try_into()
     }
 
-    pub(super) fn read_from_file(network_name: &str) -> anyhow::Result<Self> {
-        let path = Self::path(network_name);
+    pub(super) fn read_from_file(config_dir: &Path, network_name: &str) -> anyhow::Result<Self> {
+        let path = Self::path(config_dir, network_name);
         tracing::info!("Reading discovery file from: {}", path.display());
 
         let file_str = std::fs::read_to_string(path)?;
@@ -69,8 +69,8 @@ impl Discovery {
         Ok(network)
     }
 
-    pub(super) fn write_to_file(&self) -> anyhow::Result<()> {
-        let path = Self::path(&self.network_name);
+    pub(super) fn write_to_file(&self, config_dir: &Path) -> anyhow::Result<()> {
+        let path = Self::path(config_dir, &self.network_name);
         tracing::info!("Writing discovery file to: {}", path.display());
 
         // Create parent directories if they don't exist
@@ -92,18 +92,18 @@ impl Discovery {
         Ok(())
     }
 
-    pub(super) fn ensure_exists(network_name: &str) -> anyhow::Result<Self> {
+    pub(super) fn ensure_exists(config_dir: &Path, network_name: &str) -> anyhow::Result<Self> {
         // Download the file if it doesn't exists, or if the file is too old, refresh it.
         // TODO: in the future, we should only refresh the discovery file when the tunnel is up.
         // Probably in a background task.
-        if Self::path_is_stale(network_name)? {
-            Self::fetch(network_name)?.write_to_file()?;
+        if Self::path_is_stale(config_dir, network_name)? {
+            Self::fetch(network_name)?.write_to_file(config_dir)?;
         }
 
-        Self::read_from_file(network_name)
+        Self::read_from_file(config_dir, network_name)
     }
 
-    pub(crate) fn fetch_nym_network_details(&self) -> anyhow::Result<NymNetwork> {
+    pub fn fetch_nym_network_details(&self) -> anyhow::Result<NymNetwork> {
         let url = format!("{}/v1/network/details", self.nym_api_url);
         tracing::info!("Fetching nym network details from: {}", url);
         let network_details: NymNetworkDetailsResponse = reqwest::blocking::get(&url)

@@ -9,6 +9,7 @@ use std::{
 };
 
 use bip39::Mnemonic;
+use nym_vpn_network_config::{NymNetwork, NymVpnNetwork};
 use serde::{Deserialize, Serialize};
 use time::format_description::well_known::Rfc3339;
 use tokio::{
@@ -37,7 +38,7 @@ use nym_vpn_lib::{
 };
 use nym_vpn_store::keys::KeyStore as _;
 
-use crate::GLOBAL_NETWORK_DETAILS;
+use crate::{config::GlobalConfigFile, GLOBAL_NETWORK_DETAILS};
 
 use super::{
     config::{ConfigSetupError, NetworkEnvironments, NymVpnServiceConfig, DEFAULT_CONFIG_FILE},
@@ -252,9 +253,8 @@ pub struct VpnServiceInfo {
     pub triple: String,
     pub platform: String,
     pub git_commit: String,
-    pub network_name: String,
-    pub endpoints: Vec<nym_vpn_lib::nym_config::defaults::ValidatorDetails>,
-    pub nym_vpn_api_url: Option<String>,
+    pub nym_network: NymNetwork,
+    pub nym_vpn_network: NymVpnNetwork,
 }
 
 impl fmt::Display for VpnServiceStatus {
@@ -414,7 +414,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             .get()
             .ok_or(Error::ConfigSetup(ConfigSetupError::GlobalNetworkNotSet))?
             .clone();
-        let network_name = network_details.network_name.clone();
+        let network_name = network_details.nym_network_details().network_name.clone();
 
         let config_dir = super::config::config_dir().join(&network_name);
         let config_file = config_dir.join(DEFAULT_CONFIG_FILE);
@@ -762,7 +762,11 @@ where
     }
 
     async fn handle_info(&self) -> VpnServiceInfo {
-        let network = NymNetworkDetails::new_from_env();
+        // TODO: remove expect
+        let network = GLOBAL_NETWORK_DETAILS
+            .get()
+            .expect("Incorrect environment setup")
+            .clone();
         let bin_info = nym_bin_common::bin_info_local_vergen!();
         let user_agent = crate::util::construct_user_agent();
 
@@ -772,19 +776,15 @@ where
             triple: bin_info.cargo_triple.to_string(),
             platform: user_agent.platform,
             git_commit: bin_info.commit_sha.to_string(),
-            network_name: network.network_name,
-            endpoints: network.endpoints,
-            nym_vpn_api_url: network.nym_vpn_api_url,
+            nym_network: network.nym_network.clone(),
+            nym_vpn_network: network.nym_vpn_network.clone(),
         }
     }
 
     async fn handle_set_network(&self, network: String) -> Result<(), SetNetworkError> {
-        // let mut global_config = crate::discovery::read_global_config_file().map_err(|source| {
         let mut global_config =
-            crate::discovery::GlobalConfigFile::read_from_file().map_err(|source| {
-                SetNetworkError::ReadConfig {
-                    source: source.into(),
-                }
+            GlobalConfigFile::read_from_file().map_err(|source| SetNetworkError::ReadConfig {
+                source: source.into(),
             })?;
 
         // Manually restrict the set of possible network, until we handle this automatically
@@ -792,7 +792,6 @@ where
             .map_err(|_err| SetNetworkError::NetworkNotFound(network.to_owned()))?;
         global_config.network_name = network_selected.to_string();
 
-        // crate::discovery::write_global_config_file(global_config).map_err(|source| {
         global_config
             .write_to_file()
             .map_err(|source| SetNetworkError::WriteConfig {

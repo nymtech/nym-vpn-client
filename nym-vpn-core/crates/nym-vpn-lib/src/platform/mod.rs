@@ -38,7 +38,7 @@ use crate::{
     },
     uniffi_custom_impls::{
         BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, GatewayMinPerformance,
-        GatewayType, Location, TunStatus, UserAgent,
+        GatewayType, Location, NetworkEnvironment, TunStatus, UserAgent,
     },
 };
 
@@ -97,6 +97,22 @@ pub fn initLogger() {
     swift::init_logs(log_level);
     #[cfg(target_os = "android")]
     android::init_logs(log_level);
+}
+
+// Fetch the network environment details from the network name.
+// TODO: also add the ability to catch this information for subsequent use.
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn fetchEnvironment(network_name: &str) -> Result<NetworkEnvironment, VpnError> {
+    RUNTIME.block_on(fetch_environment(network_name))
+}
+
+async fn fetch_environment(network_name: &str) -> Result<NetworkEnvironment, VpnError> {
+    nym_vpn_network_config::Network::fetch(network_name)
+        .map(NetworkEnvironment::from)
+        .map_err(|err| VpnError::InternalError {
+            details: err.to_string(),
+        })
 }
 
 fn setup_account_storage(path: &str) -> Result<crate::storage::VpnClientOnDiskStorage, VpnError> {
