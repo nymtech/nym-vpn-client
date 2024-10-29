@@ -1,6 +1,8 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+use std::net::Ipv4Addr;
 #[cfg(any(
     target_os = "linux",
     target_os = "macos",
@@ -8,8 +10,6 @@
     target_os = "android"
 ))]
 use std::net::Ipv6Addr;
-#[cfg(any(target_os = "linux", target_os = "macos"))]
-use std::net::{Ipv4Addr, Ipv6Addr};
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use std::os::fd::{AsRawFd, IntoRawFd};
 #[cfg(target_os = "android")]
