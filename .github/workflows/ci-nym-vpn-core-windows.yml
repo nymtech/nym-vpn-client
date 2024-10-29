@@ -93,17 +93,15 @@ jobs:
         run: |
           ./wireguard/build-wireguard-go.sh
 
-      - name: Download wintun.zip and winpcap.zip
+      - name: Download wintun.zip
         shell: bash
         run: |
           curl --output ${GITHUB_WORKSPACE}/wintun.zip https://www.wintun.net/builds/wintun-0.14.1.zip
-          curl --output ${GITHUB_WORKSPACE}/winpcap.zip https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip
 
-      - name: Unzip wintun.zip and winpcap.zip
+      - name: Unzip wintun.zip
         shell: bash
         run: |
           unzip ${GITHUB_WORKSPACE}/wintun.zip
-          unzip ${GITHUB_WORKSPACE}/winpcap.zip
 
       - name: Move wintun.dll and packet.lib to build directory
         shell: bash
