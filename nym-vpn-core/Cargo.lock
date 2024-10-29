@@ -4484,21 +4484,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "nym-vpn-discover"
-version = "1.0.0-dev"
-dependencies = [
- "anyhow",
- "nym-config",
- "reqwest 0.11.27",
- "serde",
- "serde_json",
- "tokio",
- "tokio-util",
- "tracing",
- "url",
-]
-
-[[package]]
 name = "nym-vpn-lib"
 version = "1.0.0-dev"
 dependencies = [
@@ -4540,7 +4525,7 @@ dependencies = [
  "nym-topology",
  "nym-validator-client",
  "nym-vpn-api-client",
- "nym-vpn-discover",
+ "nym-vpn-network-config",
  "nym-vpn-store",
  "nym-wg-gateway-client",
  "nym-wg-go",
@@ -4564,6 +4549,21 @@ dependencies = [
  "uniffi",
  "url",
  "vergen",
+]
+
+[[package]]
+name = "nym-vpn-network-config"
+version = "1.0.0-dev"
+dependencies = [
+ "anyhow",
+ "nym-config",
+ "reqwest 0.11.27",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "url",
 ]
 
 [[package]]
@@ -4635,8 +4635,8 @@ dependencies = [
  "nym-validator-client",
  "nym-vpn-account-controller",
  "nym-vpn-api-client",
- "nym-vpn-discover",
  "nym-vpn-lib",
+ "nym-vpn-network-config",
  "nym-vpn-proto",
  "nym-vpn-store",
  "parity-tokio-ipc",

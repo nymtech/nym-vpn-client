@@ -17,7 +17,7 @@ mod windows_service;
 use std::sync::OnceLock;
 
 use clap::Parser;
-use nym_vpn_discover::Network;
+use nym_vpn_network_config::Network;
 use service::NymVpnService;
 use tokio::sync::broadcast;
 use tokio_util::sync::CancellationToken;

@@ -25,7 +25,7 @@ impl From<VpnServiceInfo> for InfoResponse {
 }
 
 fn to_nym_network_details(
-    nym_network: nym_vpn_discover::NymNetwork,
+    nym_network: nym_vpn_network_config::NymNetwork,
 ) -> nym_vpn_proto::NymNetworkDetails {
     nym_vpn_proto::NymNetworkDetails {
         network_name: nym_network.network.network_name,
@@ -74,7 +74,7 @@ fn to_nym_contracts(
 }
 
 fn to_nym_vpn_network_details(
-    nym_vpn_network: nym_vpn_discover::NymVpnNetwork,
+    nym_vpn_network: nym_vpn_network_config::NymVpnNetwork,
 ) -> nym_vpn_proto::NymVpnNetworkDetails {
     nym_vpn_proto::NymVpnNetworkDetails {
         nym_vpn_api_url: Some(string_to_url(nym_vpn_network.nym_vpn_api_url.to_string())),

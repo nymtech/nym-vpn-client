@@ -1,8 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_discover::Network;
 use nym_vpn_lib::nym_config::defaults::NymNetworkDetails;
+use nym_vpn_network_config::Network;
 
 use crate::{cli::CliArgs, config::GlobalConfigFile, GLOBAL_NETWORK_DETAILS};
 
@@ -19,12 +19,12 @@ pub(crate) fn setup_environment(
     let network_env = if let Some(ref env) = args.config_env_file {
         nym_vpn_lib::nym_config::defaults::setup_env(Some(env));
         let network_details = NymNetworkDetails::new_from_env();
-        nym_vpn_discover::manual_env(&network_details)?
+        nym_vpn_network_config::manual_env(&network_details)?
     } else {
         let network_name = global_config_file.network_name.clone();
         let config_path = crate::service::config_dir();
         tracing::info!("Setting up environment by discovering the network: {network_name}");
-        nym_vpn_discover::discover_env(&config_path, &network_name)?
+        nym_vpn_network_config::discover_env(&config_path, &network_name)?
     };
 
     // TODO: pass network_env explicitly instead of relying on being exported to env

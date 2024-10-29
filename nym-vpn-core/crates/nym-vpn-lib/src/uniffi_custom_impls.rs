@@ -233,8 +233,8 @@ pub struct NetworkEnvironment {
     pub nym_vpn_network: NymVpnNetwork,
 }
 
-impl From<nym_vpn_discover::Network> for NetworkEnvironment {
-    fn from(network: nym_vpn_discover::Network) -> Self {
+impl From<nym_vpn_network_config::Network> for NetworkEnvironment {
+    fn from(network: nym_vpn_network_config::Network) -> Self {
         NetworkEnvironment {
             nym_network: network.nym_network.network.into(),
             nym_vpn_network: network.nym_vpn_network.into(),
@@ -340,8 +340,8 @@ pub struct NymVpnNetwork {
     pub nym_vpn_api_url: String,
 }
 
-impl From<nym_vpn_discover::NymVpnNetwork> for NymVpnNetwork {
-    fn from(value: nym_vpn_discover::NymVpnNetwork) -> Self {
+impl From<nym_vpn_network_config::NymVpnNetwork> for NymVpnNetwork {
+    fn from(value: nym_vpn_network_config::NymVpnNetwork) -> Self {
         NymVpnNetwork {
             nym_vpn_api_url: value.nym_vpn_api_url.to_string(),
         }

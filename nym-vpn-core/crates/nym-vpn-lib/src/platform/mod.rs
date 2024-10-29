@@ -108,7 +108,7 @@ pub fn fetchEnvironment(network_name: &str) -> Result<NetworkEnvironment, VpnErr
 }
 
 async fn fetch_environment(network_name: &str) -> Result<NetworkEnvironment, VpnError> {
-    nym_vpn_discover::Network::fetch(network_name)
+    nym_vpn_network_config::Network::fetch(network_name)
         .map(NetworkEnvironment::from)
         .map_err(|err| VpnError::InternalError {
             details: err.to_string(),

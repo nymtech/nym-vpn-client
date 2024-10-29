@@ -9,7 +9,7 @@ use std::{
 };
 
 use bip39::Mnemonic;
-use nym_vpn_discover::{NymNetwork, NymVpnNetwork};
+use nym_vpn_network_config::{NymNetwork, NymVpnNetwork};
 use serde::{Deserialize, Serialize};
 use time::format_description::well_known::Rfc3339;
 use tokio::{
