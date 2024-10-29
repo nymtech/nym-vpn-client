@@ -1,30 +1,50 @@
 import SwiftUI
 import Constants
+import ConnectionManager
 import ExternalLinkManager
 import UIComponents
 
-struct SupportViewModel {
+final class SupportViewModel: ObservableObject {
     private let externalLinkManager: ExternalLinkManager
     private let faqLink = Constants.supportURL.rawValue
     private let emailLink = Constants.emailLink.rawValue
     private let matrixLink = "https://matrix.to/#/%23NymVPN:nymtech.chat"
     private let discordLink = Constants.discordLink.rawValue
+    private let connectionManager: ConnectionManager
 
     let title = "support".localizedString
 
     @Binding var path: NavigationPath
+    @Published var isResetVPNProfileDisplayed = false
+
     var sections: [SettingsListItemViewModel] {
-        [
+        var newSections = [
             faqSectionViewModel(),
             emailSectionViewModel(),
             matrixSectionViewModel(),
             discordSectionViewModel()
         ]
+#if os(iOS)
+        newSections.append(resetVPNProfileSectionViewModel())
+#endif
+        return newSections
     }
 
-    init(path: Binding<NavigationPath>, externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared) {
+    init(
+        path: Binding<NavigationPath>,
+        connectionManager: ConnectionManager = ConnectionManager.shared,
+        externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared
+    ) {
         _path = path
+        self.connectionManager = connectionManager
         self.externalLinkManager = externalLinkManager
+    }
+}
+
+// MARK: - Actions -
+extension SupportViewModel {
+    func resetVPNProfile() {
+        connectionManager.resetVpnProfile()
     }
 }
 
@@ -37,6 +57,10 @@ extension SupportViewModel {
     func openExternalURL(urlString: String?) {
         try? externalLinkManager.openExternalURL(urlString: urlString)
     }
+
+    func  displayResetVPNProfileDialog() {
+        isResetVPNProfileDisplayed = true
+    }
 }
 
 // MARK: - Sections -
@@ -48,8 +72,8 @@ private extension SupportViewModel {
             title: "checkFAQ".localizedString,
             imageName: "faq",
             position: SettingsListItemPosition(isFirst: true, isLast: true),
-            action: {
-                openExternalURL(urlString: faqLink)
+            action: { [weak self] in
+                self?.openExternalURL(urlString: self?.faqLink)
             }
         )
     }
@@ -60,8 +84,8 @@ private extension SupportViewModel {
             title: "sendEmail".localizedString,
             imageName: "email",
             position: SettingsListItemPosition(isFirst: true, isLast: true),
-            action: {
-                openExternalURL(urlString: emailLink)
+            action: { [weak self] in
+                self?.openExternalURL(urlString: self?.emailLink)
             }
         )
     }
@@ -72,8 +96,8 @@ private extension SupportViewModel {
             title: "joinMatrix".localizedString,
             imageName: "matrix",
             position: SettingsListItemPosition(isFirst: true, isLast: true),
-            action: {
-                openExternalURL(urlString: matrixLink)
+            action: { [weak self] in
+                self?.openExternalURL(urlString: self?.matrixLink)
             }
         )
     }
@@ -84,8 +108,19 @@ private extension SupportViewModel {
             title: "joinDiscord".localizedString,
             imageName: "discord",
             position: SettingsListItemPosition(isFirst: true, isLast: true),
-            action: {
-                openExternalURL(urlString: discordLink)
+            action: { [weak self] in
+                self?.openExternalURL(urlString: self?.discordLink)
+            }
+        )
+    }
+
+    func resetVPNProfileSectionViewModel() -> SettingsListItemViewModel {
+        SettingsListItemViewModel(
+            accessory: .empty,
+            title: "settings.support.resetVpnProfile".localizedString,
+            position: SettingsListItemPosition(isFirst: true, isLast: true),
+            action: { [weak self] in
+                self?.displayResetVPNProfileDialog()
             }
         )
     }

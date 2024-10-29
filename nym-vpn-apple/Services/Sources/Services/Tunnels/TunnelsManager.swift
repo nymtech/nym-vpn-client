@@ -42,6 +42,28 @@ extension TunnelsManager {
             throw error
         }
     }
+
+    public func resetVpnProfile() {
+        Task {
+            do {
+                var tunnelManagers = try await NETunnelProviderManager.loadAllFromPreferences()
+                for (index, tunnelManager) in tunnelManagers.enumerated().reversed() {
+                    tunnelManager.removeFromPreferences { [weak self] error in
+                        if let error = error {
+                            self?.logger.error("Failed to remove VPN profile: \(error.localizedDescription)")
+                        } else {
+                            self?.logger.info("VPN profile removed successfully.")
+                        }
+                    }
+                    tunnelManagers.remove(at: index)
+                }
+                Keychain.deleteReferences(except: [])
+                try await loadTunnels()
+            } catch {
+                logger.error("Failed to reset VPN profile: \(error.localizedDescription)")
+            }
+        }
+    }
 }
 
 // MARK: - Polling -
@@ -62,8 +84,8 @@ private extension TunnelsManager {
     }
 
     func pollTunnelLastError() async {
-        guard let activeTunnel,
-            let session = activeTunnel.tunnel.connection as? NETunnelProviderSession
+        guard let tunnel = tunnels.first(where: { $0.tunnel.isEnabled }),
+              let session = tunnel.tunnel.connection as? NETunnelProviderSession
         else {
             logger.log(level: .error, "Failed to access NETunnelProviderSession from the active tunnel.")
             return
