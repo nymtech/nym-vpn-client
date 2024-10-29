@@ -43,10 +43,8 @@ jobs:
       - name: Set env
         shell: bash
         run: |
-            triplet=aarch64-linux-android
             echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
             echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_ENV
-            echo "TRIPLET=$triplet" >> $GITHUB_ENV
 
       - name: Install Go
         uses: actions/setup-go@v5

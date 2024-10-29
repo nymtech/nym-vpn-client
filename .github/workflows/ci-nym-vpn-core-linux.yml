@@ -28,12 +28,6 @@ jobs:
         with:
           toolchain: stable
           components: rustfmt, clippy
-      
-      - name: Set env
-        shell: bash
-        run: |
-          triplet=x86_64-unknown-linux-gnu
-          echo "TRIPLET=$triplet" >> $GITHUB_ENV
 
       - name: Install Go
         uses: actions/setup-go@v5
