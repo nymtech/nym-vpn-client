@@ -132,7 +132,7 @@ jobs:
         working-directory: nym-vpn-core
         run: |
           cargo build --verbose
-      
+
       - name: Build (Android)
         if: matrix.target == 'android'
         working-directory: nym-vpn-core
