@@ -97,15 +97,7 @@ jobs:
         shell: bash
         run: |
           curl --output ${GITHUB_WORKSPACE}/wintun.zip https://www.wintun.net/builds/wintun-0.14.1.zip
-
-      - name: Unzip wintun.zip
-        shell: bash
-        run: |
           unzip ${GITHUB_WORKSPACE}/wintun.zip
-
-      - name: Move wintun.dll and packet.lib to build directory
-        shell: bash
-        run: |
           mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll ${GITHUB_WORKSPACE}/build/lib/
 
       - name: Checkout mullvad libs for Windows
@@ -132,15 +124,15 @@ jobs:
         run: |
           cargo fmt --check
 
-      - name: Build (excluding gateway probe)
+      - name: Build
         working-directory: nym-vpn-core
         run: |
-          cargo build --verbose --workspace --exclude nym-gateway-probe
+          cargo build --verbose
 
-      - name: Run tests (excluding gateway probe)
+      - name: Run tests
         working-directory: nym-vpn-core
         run: |
-          cargo test --verbose --workspace --exclude nym-gateway-probe
+          cargo test --verbose
 
       - name: Clippy
         working-directory: nym-vpn-core
