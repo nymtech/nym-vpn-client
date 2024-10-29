@@ -2,6 +2,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { getVersion } from '@tauri-apps/api/app';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import {
+  DefaultCountry,
   DefaultRootFontSize,
   DefaultThemeMode,
   DefaultVpnMode,
@@ -113,6 +114,8 @@ export async function initFirstBatch(dispatch: StateDispatch) {
               location: location === 'Fastest' ? 'Fastest' : location,
             },
           });
+        } else {
+          console.info('no entry country saved, using default', DefaultCountry);
         }
       },
     };
@@ -129,6 +132,8 @@ export async function initFirstBatch(dispatch: StateDispatch) {
             location: location === 'Fastest' ? 'Fastest' : location,
           },
         });
+      } else {
+        console.info('no exit country saved, using default', DefaultCountry);
       }
     },
   };

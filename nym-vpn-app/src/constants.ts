@@ -11,9 +11,12 @@ export const DaemonEvent = 'vpnd-status';
 export const StatusUpdateEvent = 'status-update';
 // ⚠ keep this value in sync with the one declared in `index.html`
 export const DefaultRootFontSize = 14; // in px
-export const DefaultNodeCountry: Country = {
-  name: 'France',
-  code: 'FR',
+// NOTE: when fresh country data is get from daemon, the selected countries
+// are checked against it and if needed it is automatically switched to
+// available ones
+export const DefaultCountry: Country = {
+  name: 'Switzerland',
+  code: 'CH',
 };
 // TODO disabled Fastest location until the backend is ready
 export const FastestFeatureEnabled = false;

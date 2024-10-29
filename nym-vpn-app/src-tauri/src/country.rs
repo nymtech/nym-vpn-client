@@ -8,14 +8,6 @@ pub static FASTEST_NODE_LOCATION: Lazy<Country> = Lazy::new(|| Country {
     name: String::from("Germany"),
 });
 
-// When the app receives the countries data, the selected countries
-// are checked against the available countries, and if needed changed to
-// available ones (logic handled by the frontend)
-pub static DEFAULT_ENTRY_COUNTRY: Lazy<Country> = Lazy::new(|| Country {
-    code: String::from("CH"),
-    name: String::from("Switzerland"),
-});
-
 #[derive(Serialize, Deserialize, Debug, Clone, TS, Eq, PartialEq, Hash)]
 #[ts(export)]
 pub struct Country {
@@ -26,12 +18,6 @@ pub struct Country {
 impl fmt::Display for Country {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Country: [{}] {}", self.code, self.name)
-    }
-}
-
-impl Default for Country {
-    fn default() -> Self {
-        DEFAULT_ENTRY_COUNTRY.clone()
     }
 }
 
