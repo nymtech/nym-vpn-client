@@ -5,10 +5,10 @@ import Theme
 import UIComponents
 
 struct SupportView: View {
-    @State private var viewModel: SupportViewModel
+    @StateObject private var viewModel: SupportViewModel
 
     init(viewModel: SupportViewModel) {
-        _viewModel = State(initialValue: viewModel)
+        _viewModel = StateObject(wrappedValue: viewModel)
     }
 
     var body: some View {
@@ -23,6 +23,18 @@ struct SupportView: View {
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(edges: [.bottom])
+        .overlay {
+            if viewModel.isResetVPNProfileDisplayed {
+                ResetVPNProfileDialog(
+                    viewModel: ResetVPNProfileDialogViewModel(
+                        isDisplayed: $viewModel.isResetVPNProfileDisplayed,
+                        action: {
+                            viewModel.resetVPNProfile()
+                        }
+                    )
+                )
+            }
+        }
         .background {
             NymColor.background
                 .ignoresSafeArea()

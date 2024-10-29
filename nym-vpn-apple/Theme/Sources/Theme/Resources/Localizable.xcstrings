@@ -1233,6 +1233,39 @@
         }
       }
     },
+    "settings.resetVpnProfileSubtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NymVPN profile will be deleted from your device.\n\nIf connected: deleting VPN profile will disconnect you from VPN."
+          }
+        }
+      }
+    },
+    "settings.resetVpnProfileTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset VPN profile?"
+          }
+        }
+      }
+    },
+    "settings.support.resetVpnProfile" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset VPN profile"
+          }
+        }
+      }
+    },
     "stop" : {
       "extractionState" : "manual",
       "localizations" : {

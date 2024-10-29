@@ -42,6 +42,12 @@ private extension HopButtonViewModel {
             self?.updateData()
         }
         .store(in: &cancellables)
+
+        connectionManager.$connectionType.sink { [weak self] _ in
+            guard self?.hopType == .exit else { return }
+            self?.updateData()
+        }
+        .store(in: &cancellables)
     }
 }
 

@@ -23,15 +23,7 @@ extension PacketTunnelProvider: TunnelStatusListener {
         // todo: implement
     }
 
-    func onExitStatusChange(status: ExitStatus) {
-        switch status {
-        case .failure(let error):
-            logger.error("onExitStatus: \(error.localizedDescription) after: \(connectionDuration())")
-            scheduleDisconnectNotification()
-        case .stopped:
-            logger.info("onExitStatus: Tunnel stopped after: \(connectionDuration())")
-        }
-    }
+    func onExitStatusChange(status: ExitStatus) {}
 
     func onTunStatusChange(status: TunStatus) {
         eventContinuation.yield(.statusUpdate(status))
@@ -53,6 +45,7 @@ private extension PacketTunnelProvider {
     func updateTunnelState(with tunnelState: TunnelState) {
         switch tunnelState {
         case let .error(errorStateReason):
+            scheduleDisconnectNotification()
             updateLastError(with: errorStateReason)
         default:
             break
