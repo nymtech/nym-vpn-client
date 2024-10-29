@@ -62,7 +62,6 @@ jobs:
           cargo build --verbose --target aarch64-apple-ios -p nym-vpn-lib
 
       - name: Generate uniffi
-        if: matrix.target == 'ios'
         working-directory: nym-vpn-core
         run: |
           cargo run --bin uniffi-bindgen generate \
