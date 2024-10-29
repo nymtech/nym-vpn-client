@@ -9,7 +9,6 @@ on:
 env:
   CARGO_TERM_COLOR: always
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
-  MSYS2_PATH_TYPE: inherit
 
 jobs:
   build:
@@ -57,6 +56,8 @@ jobs:
 
       - name: Build wireguard
         shell: msys2 {0}
+        env:
+          MSYS2_PATH_TYPE: inherit
         run: |
           ./wireguard/build-wireguard-go.sh
 

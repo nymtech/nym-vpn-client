@@ -88,6 +88,8 @@ jobs:
 
       - name: Build wireguard
         shell: msys2 {0}
+        env:
+          MSYS2_PATH_TYPE: inherit
         run: |
           ./wireguard/build-wireguard-go.sh
 
