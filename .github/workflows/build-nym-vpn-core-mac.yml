@@ -26,10 +26,7 @@ jobs:
         with:
           toolchain: stable
           components: rustfmt, clippy
-
-      - name: Install extra arch apple
-        run: |
-          rustup target add x86_64-apple-darwin
+          targets: x86_64-apple-darwin aarch64-apple-darwin
 
       - name: Install Go toochain
         uses: actions/setup-go@v5
