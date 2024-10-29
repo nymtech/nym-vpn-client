@@ -271,13 +271,10 @@ impl RouteManagerHandle {
 
     /// Ensure that packets are routed using the correct tables.
     #[cfg(target_os = "linux")]
-    pub async fn create_routing_rules(&self, enable_ipv6: bool) -> Result<(), Error> {
+    pub async fn create_routing_rules(&self) -> Result<(), Error> {
         let (response_tx, response_rx) = oneshot::channel();
         self.tx
-            .unbounded_send(RouteManagerCommand::CreateRoutingRules(
-                enable_ipv6,
-                response_tx,
-            ))
+            .unbounded_send(RouteManagerCommand::CreateRoutingRules(true, response_tx))
             .map_err(|_| Error::RouteManagerDown)?;
         response_rx
             .await

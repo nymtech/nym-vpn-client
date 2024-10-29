@@ -3,6 +3,13 @@
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use std::net::Ipv4Addr;
+#[cfg(any(
+    target_os = "linux",
+    target_os = "macos",
+    target_os = "ios",
+    target_os = "android"
+))]
+use std::net::Ipv6Addr;
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use std::os::fd::{AsRawFd, IntoRawFd};
 #[cfg(target_os = "android")]
@@ -45,6 +52,22 @@ const DEFAULT_TUN_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android
 } else {
     1500
 };
+#[cfg(any(
+    target_os = "linux",
+    target_os = "macos",
+    target_os = "android",
+    target_os = "ios"
+))]
+/// Entry IPv6 address (ULA) used by WireGuard, currently not routable.
+const WG_ENTRY_IPV6_ADDR: Ipv6Addr = Ipv6Addr::new(
+    0xfdcc, 0x9fc0, 0xe75a, 0x53c3, 0xfa25, 0x241f, 0x21c0, 0x70d0,
+);
+
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+/// Exit IPv6 address (ULA) used by WireGuard, currently not routable.
+const WG_EXIT_IPV6_ADDR: Ipv6Addr = Ipv6Addr::new(
+    0xfdcc, 0x9fc0, 0xe75a, 0x53c3, 0x72a5, 0xf352, 0x5475, 0x4160,
+);
 
 type ConnectFut = BoxFuture<'static, tunnel::Result<ConnectedMixnet>>;
 
@@ -202,8 +225,6 @@ impl ConnectingState {
             .map_err(Error::ConnectMixnetTunnel)?;
         let assigned_addresses = connected_tunnel.assigned_addresses();
 
-        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-        let enable_ipv6 = true;
         let mtu: u16 = shared_state
             .tunnel_settings
             .mixnet_tunnel_options
@@ -211,8 +232,7 @@ impl ConnectingState {
             .unwrap_or(DEFAULT_TUN_MTU);
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-        let tun_device =
-            Self::create_mixnet_device(assigned_addresses.interface_addresses, mtu, enable_ipv6)?;
+        let tun_device = Self::create_mixnet_device(assigned_addresses.interface_addresses, mtu)?;
 
         #[cfg(any(target_os = "ios", target_os = "android"))]
         let tun_device = {
@@ -247,7 +267,6 @@ impl ConnectingState {
             tracing::debug!("Created tun device: {}", tun_name);
 
             let routing_config = RoutingConfig::Mixnet {
-                enable_ipv6,
                 tun_name: tun_name.clone(),
                 entry_gateway_address: assigned_addresses.entry_mixnet_gateway_ip,
                 #[cfg(target_os = "linux")]
@@ -279,13 +298,14 @@ impl ConnectingState {
             .connect_wireguard_tunnel(shared_state.tunnel_settings.enable_credentials_mode)
             .await
             .map_err(Error::ConnectWireguardTunnel)?;
-
-        let enable_ipv6 = false;
         let conn_data = connected_tunnel.connection_data();
 
         #[cfg(unix)]
         let entry_tun = Self::create_wireguard_device(
-            conn_data.entry.private_ipv4,
+            IpPair {
+                ipv4: conn_data.entry.private_ipv4,
+                ipv6: WG_ENTRY_IPV6_ADDR,
+            },
             None,
             connected_tunnel.entry_mtu(),
         )?;
@@ -299,7 +319,10 @@ impl ConnectingState {
 
         #[cfg(unix)]
         let exit_tun = Self::create_wireguard_device(
-            conn_data.exit.private_ipv4,
+            IpPair {
+                ipv4: conn_data.exit.private_ipv4,
+                ipv6: WG_EXIT_IPV6_ADDR,
+            },
             Some(conn_data.entry.private_ipv4),
             connected_tunnel.exit_mtu(),
         )?;
@@ -314,7 +337,6 @@ impl ConnectingState {
         let exit_tun_name = "nym1".to_owned();
 
         let routing_config = RoutingConfig::Wireguard {
-            enable_ipv6,
             #[cfg(unix)]
             entry_tun_name,
             #[cfg(unix)]
@@ -370,9 +392,15 @@ impl ConnectingState {
 
         let packet_tunnel_settings = tunnel_provider::tunnel_settings::TunnelSettings {
             dns_servers: shared_state.tunnel_settings.dns.ip_addresses().to_vec(),
-            interface_addresses: vec![IpNetwork::V4(
-                Ipv4Network::new(conn_data.entry.private_ipv4, 32).expect("ipv4 to ipnetwork/32"),
-            )],
+            interface_addresses: vec![
+                IpNetwork::V4(
+                    Ipv4Network::new(conn_data.entry.private_ipv4, 32)
+                        .expect("ipv4 to ipnetwork/32"),
+                ),
+                IpNetwork::V6(
+                    Ipv6Network::new(WG_ENTRY_IPV6_ADDR, 128).expect("ipv6 to ipnetwork/128"),
+                ),
+            ],
             remote_addresses: vec![conn_data.entry.endpoint.ip()],
             mtu: connected_tunnel.exit_mtu(),
         };
@@ -426,11 +454,7 @@ impl ConnectingState {
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-    fn create_mixnet_device(
-        interface_addresses: IpPair,
-        mtu: u16,
-        enable_ipv6: bool,
-    ) -> Result<AsyncDevice> {
+    fn create_mixnet_device(interface_addresses: IpPair, mtu: u16) -> Result<AsyncDevice> {
         let mut tun_config = tun::Configuration::default();
 
         tun_config
@@ -445,29 +469,27 @@ impl ConnectingState {
 
         let tun_device = tun::create_as_async(&tun_config).map_err(Error::CreateTunDevice)?;
 
-        if enable_ipv6 {
-            let tun_name = tun_device
-                .get_ref()
-                .name()
-                .map_err(Error::GetTunDeviceName)?;
+        let tun_name = tun_device
+            .get_ref()
+            .name()
+            .map_err(Error::GetTunDeviceName)?;
 
-            tun_ipv6::set_ipv6_addr(&tun_name, interface_addresses.ipv6)
-                .map_err(Error::SetTunDeviceIpv6Addr)?;
-        }
+        tun_ipv6::set_ipv6_addr(&tun_name, interface_addresses.ipv6)
+            .map_err(Error::SetTunDeviceIpv6Addr)?;
 
         Ok(tun_device)
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     fn create_wireguard_device(
-        interface_addr: Ipv4Addr,
+        interface_addresses: IpPair,
         destination: Option<Ipv4Addr>,
         mtu: u16,
     ) -> Result<AsyncDevice> {
         let mut tun_config = tun::Configuration::default();
 
         tun_config
-            .address(interface_addr)
+            .address(interface_addresses.ipv4)
             .netmask(Ipv4Addr::BROADCAST)
             .mtu(i32::from(mtu))
             .up();
@@ -481,7 +503,17 @@ impl ConnectingState {
             platform_config.packet_information(false);
         });
 
-        tun::create_as_async(&tun_config).map_err(Error::CreateTunDevice)
+        let tun_device = tun::create_as_async(&tun_config).map_err(Error::CreateTunDevice)?;
+
+        let tun_name = tun_device
+            .get_ref()
+            .name()
+            .map_err(Error::GetTunDeviceName)?;
+
+        tun_ipv6::set_ipv6_addr(&tun_name, interface_addresses.ipv6)
+            .map_err(Error::SetTunDeviceIpv6Addr)?;
+
+        Ok(tun_device)
     }
 
     #[cfg(any(target_os = "ios", target_os = "android"))]
