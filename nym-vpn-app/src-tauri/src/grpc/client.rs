@@ -192,7 +192,13 @@ impl GrpcClient {
         let d_info = self.vpnd_info().await?;
         self.user_agent = GrpcClient::user_agent(pkg, Some(&d_info));
         info!("vpnd version: {}", d_info.version);
-        info!("network env: {}", d_info.network_name);
+        info!(
+            "network env: {}",
+            d_info
+                .nym_network
+                .map(|n| n.network_name)
+                .unwrap_or_else(|| "unknown".to_string())
+        );
         info!("updated user agent: {:?}", self.user_agent);
         Ok(())
     }
