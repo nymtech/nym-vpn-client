@@ -277,6 +277,7 @@ impl VpnApiClient {
         ecash_pubkey: String,
         ticketbook_type: String,
     ) -> Result<NymVpnZkNym> {
+        tracing::info!("Requesting zk-nym for type: {}", ticketbook_type);
         let body = RequestZkNymRequestBody {
             withdrawal_request,
             ecash_pubkey,

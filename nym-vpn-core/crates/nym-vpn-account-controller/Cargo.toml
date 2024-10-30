@@ -31,3 +31,5 @@ tokio-util.workspace = true
 tokio.workspace = true
 tracing.workspace = true
 url.workspace = true
+uuid = "1.11"
+futures.workspace = true

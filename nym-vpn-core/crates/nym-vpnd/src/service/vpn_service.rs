@@ -450,7 +450,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         let account_controller = AccountController::new(
             Arc::clone(&storage),
             data_dir.clone(),
-            user_agent.clone(),
+            user_agent,
             shutdown_token.child_token(),
         )
         .await
@@ -869,7 +869,7 @@ where
             })?;
 
         self.account_command_tx
-            .send(AccountCommand::UpdateSharedAccountState)
+            .send(AccountCommand::UpdateAccountState)
             .map_err(|err| AccountError::SendCommand {
                 source: Box::new(err),
             })?;
@@ -899,7 +899,7 @@ where
             })?;
 
         self.account_command_tx
-            .send(AccountCommand::UpdateSharedAccountState)
+            .send(AccountCommand::UpdateAccountState)
             .map_err(|err| AccountError::SendCommand {
                 source: Box::new(err),
             })?;
@@ -936,7 +936,7 @@ where
 
     async fn handle_refresh_account_state(&self) -> Result<(), AccountError> {
         self.account_command_tx
-            .send(AccountCommand::UpdateSharedAccountState)
+            .send(AccountCommand::UpdateAccountState)
             .map_err(|err| AccountError::SendCommand {
                 source: Box::new(err),
             })
@@ -988,7 +988,7 @@ where
             })?;
 
         self.account_command_tx
-            .send(AccountCommand::UpdateSharedAccountState)
+            .send(AccountCommand::UpdateAccountState)
             .map_err(|err| AccountError::SendCommand {
                 source: Box::new(err),
             })?;

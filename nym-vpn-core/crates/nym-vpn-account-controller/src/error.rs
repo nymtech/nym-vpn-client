@@ -4,7 +4,7 @@
 use tokio::sync::mpsc::error::SendError;
 use url::Url;
 
-use crate::AccountCommand;
+use crate::commands::AccountCommand;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -68,4 +68,16 @@ pub enum Error {
 
     #[error("failed to create ecash key pair")]
     CreateEcashKeyPair(#[source] nym_vpn_api_client::VpnApiClientError),
+
+    #[error("internal error: {0}")]
+    Internal(String),
+
+    #[error(transparent)]
+    NymSdk(#[from] nym_sdk::Error),
+}
+
+impl Error {
+    pub fn internal(msg: impl ToString) -> Self {
+        Error::Internal(msg.to_string())
+    }
 }

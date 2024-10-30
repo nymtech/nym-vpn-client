@@ -408,6 +408,11 @@ pub enum AccountError {
 
     #[error("failed to parse account links")]
     FailedToParseAccountLinks,
+
+    #[error("failed to initialize")]
+    Initialization {
+        source: Box<dyn std::error::Error + Send + Sync>,
+    },
 }
 
 #[derive(Debug, thiserror::Error)]
