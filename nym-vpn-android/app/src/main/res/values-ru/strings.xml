@@ -177,4 +177,5 @@
     <string name="recovery_phrase_message">Чтобы войти, введите фразу восстановления состоящую из 24 слов</string>
     <string name="mnemonic_example">например, smoke artefact velvet skull pop palace tortoise damage rough...</string>
     <string name="recovery_phrase_disclaimer">Используйте только фразу восстановления созданную в NymVPN, а не в кошельке Nym.</string>
+    <string name="system_wallpaper">Тема системных обоев</string>
 </resources>
