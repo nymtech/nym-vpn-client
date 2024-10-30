@@ -177,4 +177,6 @@
     <string name="recovery_phrase_message">在下面输入您的 24 个字符的助记词，登录您的帐户</string>
     <string name="recovery_phrase_disclaimer">您只能使用在 NymVPN 中创建的助记词，而不能使用 Nym 钱包。</string>
     <string name="mnemonic_example">例如：smoke artefact velvet skull pop palace tortoise damage rough...</string>
+    <string name="dynamic">动态</string>
+    <string name="system_wallpaper">系统壁纸主题</string>
 </resources>
