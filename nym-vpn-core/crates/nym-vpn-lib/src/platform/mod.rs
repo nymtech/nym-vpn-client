@@ -291,6 +291,7 @@ async fn remove_account_mnemonic(path: &str) -> Result<bool, VpnError> {
 }
 
 #[allow(non_snake_case)]
+#[uniffi::export]
 pub fn getAccountSummary() -> Result<AccountStateSummary, VpnError> {
     RUNTIME.block_on(get_account_summary())
 }
