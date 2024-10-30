@@ -151,7 +151,7 @@ impl GatewayClient {
     }
 
     async fn lookup_described_gateways(&self) -> Result<Vec<NymNodeDescription>> {
-        info!("Fetching described gateways from nym-api...");
+        info!("Fetching all described nodes from nym-api...");
         self.api_client
             .get_all_described_nodes()
             .await
@@ -159,7 +159,7 @@ impl GatewayClient {
     }
 
     async fn lookup_skimmed_gateways(&self) -> Result<Vec<SkimmedNode>> {
-        info!("Fetching skimmed gateways from nym-api...");
+        info!("Fetching skimmed entry assigned nodes from nym-api...");
         self.api_client
             .get_all_basic_entry_assigned_nodes(None)
             .await
@@ -303,6 +303,7 @@ fn append_performance(
     gateways: &mut [Gateway],
     basic_gw: Vec<nym_validator_client::nym_nodes::SkimmedNode>,
 ) {
+    info!("Appending mixnet_performance to gateways");
     for gateway in gateways.iter_mut() {
         if let Some(basic_gw) = basic_gw
             .iter()
@@ -310,8 +311,8 @@ fn append_performance(
         {
             gateway.mixnet_performance = Some(basic_gw.performance);
         } else {
-            error!(
-                "Failed to find skimmed node for gateway with identity {}",
+            tracing::warn!(
+                "Failed to append mixnet_performance, node {} not found among the skimmed nodes",
                 gateway.identity()
             );
         }
@@ -324,6 +325,10 @@ fn filter_on_mixnet_min_performance(
 ) {
     if let Some(min_performance) = min_gateway_performance {
         if let Some(mixnet_min_performance) = min_performance.mixnet_min_performance {
+            tracing::info!(
+                "Filtering gateways based on mixnet_min_performance: {:?}",
+                min_performance
+            );
             gateways.retain(|gateway| {
                 gateway.mixnet_performance.unwrap_or_default() >= mixnet_min_performance
             });

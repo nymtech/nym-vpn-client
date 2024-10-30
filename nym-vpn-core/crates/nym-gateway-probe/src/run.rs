@@ -58,6 +58,7 @@ pub(crate) async fn run() -> anyhow::Result<ProbeResult> {
 async fn fetch_random_gateway_with_ipr() -> anyhow::Result<EntryPoint> {
     // We're fetching gateways with IPR, since they are more interesting to ping, but we can probe
     // gateways without an IPR as well
+    tracing::info!("Selecting random gateway with IPR enabled");
     let gateways = nym_gateway_probe::fetch_gateways_with_ipr().await?;
     let gateway = gateways
         .random_gateway()
