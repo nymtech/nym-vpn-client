@@ -177,4 +177,6 @@
     <string name="missing_mnemonic">Eksik kurtarma ifadesi</string>
     <string name="log_out">Çıkış yap</string>
     <string name="mnemonic_example">örneğin: smoke artefact velvet skull pop palace tortoise damage rough...</string>
+    <string name="system_wallpaper">Sistem duvar kağıdı teması</string>
+    <string name="dynamic">Dinamik</string>
 </resources>
