@@ -18,7 +18,6 @@ const ThrottleDelay = 10000; // ms
 
 function Settings() {
   const {
-    entrySelector,
     autoConnect,
     monitoring,
     daemonStatus,
@@ -47,12 +46,6 @@ function Settings() {
 
     checkAccount();
   }, [dispatch]);
-
-  const handleEntrySelectorChange = () => {
-    const isChecked = !entrySelector;
-    dispatch({ type: 'set-entry-selector', entrySelector: isChecked });
-    kvSet('UiShowEntrySelect', isChecked);
-  };
 
   const handleAutoConnectChanged = () => {
     const isChecked = !autoConnect;
@@ -127,17 +120,6 @@ function Settings() {
                 checked={autoConnect}
                 onChange={handleAutoConnectChanged}
                 disabled
-              />
-            ),
-          },
-          {
-            title: t('entry-selector.title'),
-            leadingIcon: 'looks_two',
-            onClick: handleEntrySelectorChange,
-            trailing: (
-              <Switch
-                checked={entrySelector}
-                onChange={handleEntrySelectorChange}
               />
             ),
           },

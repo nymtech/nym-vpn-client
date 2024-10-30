@@ -210,14 +210,6 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     },
   };
 
-  const getEntrySelectorRq: TauriReq<() => Promise<boolean | undefined>> = {
-    name: 'getEntrySelector',
-    request: () => kvGet<boolean>('UiShowEntrySelect'),
-    onFulfilled: (enabled) => {
-      dispatch({ type: 'set-entry-selector', entrySelector: enabled || false });
-    },
-  };
-
   const getMonitoringRq: TauriReq<() => Promise<boolean | undefined>> = {
     name: 'getMonitoring',
     request: () => kvGet<boolean>('Monitoring'),
@@ -261,7 +253,6 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     getThemeRq,
     getStoredAccountRq,
     getRootFontSizeRq,
-    getEntrySelectorRq,
     getMonitoringRq,
     getDepsRustRq,
     getDepsJsRq,

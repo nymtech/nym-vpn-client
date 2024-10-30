@@ -3,10 +3,6 @@
     "title": "Ligação Automática",
     "desc": "Ligação automática ao iniciar a aplicação"
   },
-  "entry-selector": {
-    "title": "Seletor de local de entrada",
-    "desc": "Selecionar manualmente o seu salto de entrada"
-  },
   "feedback": {
     "title": "Feedback",
     "github": "Abra uma issue no GitHub",

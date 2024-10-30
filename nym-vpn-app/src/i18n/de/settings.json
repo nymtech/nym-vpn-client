@@ -8,10 +8,6 @@
     "title": "Automatisch verbinden",
     "desc": "Beim Start der App automatisch verbinden"
   },
-  "entry-selector": {
-    "title": "Auswahl der Eintrittsregion",
-    "desc": "Wähle deine Eintrittsregion"
-  },
   "error-monitoring": {
     "title": "Anonymisierte Fehlerprotokolle",
     "desc": "aktiviert nach Neustart der App"

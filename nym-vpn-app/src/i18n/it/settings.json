@@ -23,9 +23,6 @@
   "logs": {
     "title": "Logs"
   },
-  "entry-selector": {
-    "title": "Selettore della località d'entrata"
-  },
   "error-monitoring": {
     "title": "Report degli errori anonimo"
   }
