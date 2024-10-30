@@ -27,8 +27,6 @@ pub enum Key {
     Monitoring,
     #[strum(serialize = "autoconnect")]
     Autoconnect,
-    #[strum(serialize = "ui_show_entry_select")]
-    UiShowEntrySelect,
     #[strum(serialize = "ui_theme")]
     UiTheme,
     #[strum(serialize = "ui_root_font_size")]

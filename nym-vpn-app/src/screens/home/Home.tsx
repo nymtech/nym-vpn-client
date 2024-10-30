@@ -19,7 +19,6 @@ function Home() {
     loading,
     entryNodeLocation,
     exitNodeLocation,
-    entrySelector,
     daemonStatus,
     account,
   } = useMainState();
@@ -109,16 +108,12 @@ function Home() {
               {t('select-node-title')}
             </div>
             <div className="flex flex-col gap-5">
-              {entrySelector && (
-                <HopSelect
-                  nodeLocation={entryNodeLocation}
-                  onClick={() => navigate(routes.entryNodeLocation)}
-                  nodeHop="entry"
-                  disabled={
-                    daemonStatus === 'NotOk' || state !== 'Disconnected'
-                  }
-                />
-              )}
+              <HopSelect
+                nodeLocation={entryNodeLocation}
+                onClick={() => navigate(routes.entryNodeLocation)}
+                nodeHop="entry"
+                disabled={daemonStatus === 'NotOk' || state !== 'Disconnected'}
+              />
               <HopSelect
                 nodeLocation={exitNodeLocation}
                 onClick={() => navigate(routes.exitNodeLocation)}

@@ -3,10 +3,6 @@
     "title": "Auto-connect",
     "desc": "Auto connect at app startup"
   },
-  "entry-selector": {
-    "title": "Entry location selector",
-    "desc": "Manually select your entry hop"
-  },
   "error-monitoring": {
     "title": "Anonymous error reports",
     "desc": "applies on app restart"

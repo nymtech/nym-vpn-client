@@ -30,10 +30,6 @@
   },
   "display-theme": "Tema",
   "login-button": "Iniciar sesión",
-  "entry-selector": {
-    "desc": "Seleccione manualmente el salto de entrada",
-    "title": "Selector de ubicación de entrada"
-  },
   "monitoring-alert": "Debes reiniciar la aplicación para que el cambio surta efecto.",
   "faq": "FAQ",
   "quit": "Cerrar NymVPN",

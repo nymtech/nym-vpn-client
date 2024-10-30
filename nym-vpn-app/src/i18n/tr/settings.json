@@ -30,10 +30,6 @@
     "licenses-js": "Lisanslar (JS)",
     "emptyData": "Lisans verisi bulunmamaktadır"
   },
-  "entry-selector": {
-    "title": "Entry konumu seçici",
-    "desc": "Entry'i hop'unu manuel olarak seçin"
-  },
   "monitoring-alert": "Değişikliğin etkili olması için uygulamayı yeniden başlatmalısınız.",
   "faq": "SSS",
   "quit": "NymVPN'yi kapat",
