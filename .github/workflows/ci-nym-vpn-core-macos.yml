@@ -24,7 +24,7 @@ jobs:
           rm -rf ./* || true
           rm -rf ./.??* || true
           ls -la ./
-      
+
       - name: Checkout repo
         uses: actions/checkout@v4
 
@@ -44,6 +44,9 @@ jobs:
         with:
           version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install script dependencies
+        run: brew install gnu-getopt
 
       - name: Build wireguard
         shell: bash
