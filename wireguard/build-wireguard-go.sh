@@ -113,16 +113,8 @@ function win_create_lib_file {
 }
 
 function build_windows {
-<<<<<<< HEAD
     export CGO_ENABLED=1
     export GOOS=windows
-=======
-    echo "Building wireguard-go for Windows"
-    pushd $LIB_DIR
-        export CGO_ENABLED=1
-        go build -trimpath -v -o libwg.dll -buildmode c-shared
-        win_create_lib_file
->>>>>>> c0b0f37b (initial compiling amnezia lib exchanged for wireguard-go)
 
     if is_win_arm64 $@; then
         local arch="aarch64"
