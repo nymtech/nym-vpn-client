@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # This script is used to build wireguard-go libraries for all the platforms.
 
-function stringContain { 
+function stringContain {
     case $2 in *$1* ) return 0;; *) return 1;; esac;
 }
 
@@ -13,9 +13,9 @@ AMNEZIA_BUILD=false
 
 function parseArgs {
     if stringContain "Darwin" "$(uname -s)"; then
-        # Mac builds require gnu-getopt because regular macos getopt doesn't allow long args -_-
-        # This could be avoided using something like `getopts` instead, but then we don't 
-        # have the ability to use long options.
+        # Mac builds require gnu-getopt because regular macos getopt doesn't allow long args. -_-
+        # This could be avoided using something like `getopts` instead, but then we don't
+        # have the ability to use long options which pre-date this script change.
         # > brew install gnu-getopt
         # Installed for CI in `.github/workflows/ci-nym-vpn-core.yml`
         echo "using gnu-getopt"
@@ -221,7 +221,6 @@ function build_macos_universal {
         mkdir -p "../../build/lib/universal-apple-darwin/"
         lipo -create -output "../../build/lib/universal-apple-darwin/libwg.a"  "../../build/lib/x86_64-apple-darwin/libwg.a" "../../build/lib/aarch64-apple-darwin/libwg.a"
         cp "../../build/lib/aarch64-apple-darwin/libwg.h" "../../build/lib/universal-apple-darwin/libwg.h"
-
     popd
 }
 
@@ -283,7 +282,7 @@ function patch_darwin_goruntime {
     export GOROOT="$BUILDDIR/goroot"
     mkdir -p "$GOROOT"
     rsync -a --delete --exclude=pkg/obj/go-build "$REAL_GOROOT/" "$GOROOT/"
-    cat libwg/goruntime-boottime-over-monotonic-darwin.diff | patch -p1 -f -N -r- -d "$GOROOT"
+    cat $LIB_DIR/goruntime-boottime-over-monotonic-darwin.diff | patch -p1 -f -N -r- -d "$GOROOT"
 }
 
 function build_wireguard_go {
