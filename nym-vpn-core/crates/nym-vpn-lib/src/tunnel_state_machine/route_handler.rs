@@ -33,6 +33,7 @@ pub enum RoutingConfig {
     },
 }
 
+#[derive(Debug, Clone)]
 pub struct RouteHandler {
     route_manager: RouteManagerHandle,
 }

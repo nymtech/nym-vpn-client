@@ -18,12 +18,12 @@ use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::{
     tunnel_provider::ios::{default_path_observer::DefaultPathObserver, OSTunProvider},
-    tunnel_state_machine::tunnel::wireguard::dns64::Dns64Resolution,
+    tunnel_state_machine::tunnel::{wireguard::dns64::Dns64Resolution, Error},
 };
 use crate::{
     tunnel_state_machine::tunnel::{
         wireguard::{connector::ConnectionData, two_hop_config::TwoHopConfig},
-        Error, Result,
+        Result,
     },
     wg_config::WgNodeConfig,
 };
@@ -97,14 +97,10 @@ impl ConnectedTunnel {
 
         // iOS does not perform dns64 resolution by default. Do that manually.
         #[cfg(target_os = "ios")]
-        two_hop_config
-            .entry
-            .peer
-            .resolve_in_place()
-            .map_err(Error::ResolveDns64)?;
+        two_hop_config.entry.peer.resolve_in_place()?;
 
-        let mut entry_tunnel = netstack::Tunnel::start(two_hop_config.entry.into_netstack_config())
-            .map_err(Error::StartWireguard)?;
+        let mut entry_tunnel =
+            netstack::Tunnel::start(two_hop_config.entry.into_netstack_config())?;
 
         // Configure tunnel sockets to bypass the tunnel interface.
         #[cfg(target_os = "android")]
@@ -120,20 +116,17 @@ impl ConnectedTunnel {
         }
 
         // Open connection to the exit node via entry node.
-        let exit_connection = entry_tunnel
-            .open_connection(
-                two_hop_config.forwarder.listen_endpoint.port(),
-                two_hop_config.forwarder.client_port,
-                two_hop_config.forwarder.exit_endpoint,
-            )
-            .map_err(Error::OpenExitConnection)?;
+        let exit_connection = entry_tunnel.open_connection(
+            two_hop_config.forwarder.listen_endpoint.port(),
+            two_hop_config.forwarder.client_port,
+            two_hop_config.forwarder.exit_endpoint,
+        )?;
 
         #[allow(unused_mut)]
         let mut exit_tunnel = wireguard_go::Tunnel::start(
             two_hop_config.exit.into_wireguard_config(),
             tun_device.get_ref().as_raw_fd(),
-        )
-        .map_err(Error::StartWireguard)?;
+        )?;
 
         let shutdown_token = CancellationToken::new();
         let cloned_shutdown_token = shutdown_token.child_token();

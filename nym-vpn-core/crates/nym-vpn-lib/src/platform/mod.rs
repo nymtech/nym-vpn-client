@@ -354,7 +354,7 @@ impl From<&TunnelState> for TunStatus {
     fn from(value: &TunnelState) -> Self {
         // TODO: this cannot be accurate so we must switch frontends to use TunnelState instead! But for now that will do.
         match value {
-            TunnelState::Connecting => Self::EstablishingConnection,
+            TunnelState::Connecting { .. } => Self::EstablishingConnection,
             TunnelState::Connected { .. } => Self::Up,
             TunnelState::Disconnecting { .. } => Self::Disconnecting,
             TunnelState::Disconnected => Self::Down,
