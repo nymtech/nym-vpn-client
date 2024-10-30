@@ -40,6 +40,33 @@ pub(super) async fn stop_account_controller_inner() -> Result<(), VpnError> {
     }
 }
 
+async fn start_account_controller(data_dir: PathBuf) -> Result<AccountControllerHandle, VpnError> {
+    let storage = Arc::new(tokio::sync::Mutex::new(
+        crate::storage::VpnClientOnDiskStorage::new(data_dir.clone()),
+    ));
+    // TODO: pass in as argument
+    let user_agent = crate::util::construct_user_agent();
+    let shutdown_token = CancellationToken::new();
+    let account_controller = nym_vpn_account_controller::AccountController::new(
+        Arc::clone(&storage),
+        data_dir.clone(),
+        user_agent,
+        shutdown_token.child_token(),
+    )
+    .await;
+
+    let shared_account_state = account_controller.shared_state();
+    let account_command_tx = account_controller.command_tx();
+    let account_controller_handle = tokio::spawn(account_controller.run());
+
+    Ok(AccountControllerHandle {
+        command_sender: account_command_tx,
+        shared_state: shared_account_state,
+        handle: account_controller_handle,
+        shutdown_token,
+    })
+}
+
 pub(super) struct AccountControllerHandle {
     command_sender: UnboundedSender<AccountCommand>,
     shared_state: nym_vpn_account_controller::SharedAccountState,
@@ -52,6 +79,10 @@ impl AccountControllerHandle {
         if let Err(e) = self.command_sender.send(command) {
             tracing::error!("Failed to send comamnd: {}", e);
         }
+    }
+
+    async fn is_ready_to_connect(&self) -> ReadyToConnect {
+        self.shared_state.is_ready_to_connect().await
     }
 
     async fn shutdown_and_wait(self) {
@@ -85,10 +116,13 @@ async fn get_shared_account_state() -> Result<SharedAccountState, VpnError> {
 }
 
 async fn is_account_ready_to_connect() -> Result<ReadyToConnect, VpnError> {
-    Ok(get_shared_account_state()
-        .await?
-        .is_ready_to_connect()
-        .await)
+    if let Some(guard) = &*ACCOUNT_CONTROLLER_HANDLE.lock().await {
+        Ok(guard.is_ready_to_connect().await)
+    } else {
+        Err(VpnError::InvalidStateError {
+            details: "Account controller is not running.".to_owned(),
+        })
+    }
 }
 
 pub(super) async fn assert_account_ready_to_connect() -> Result<(), VpnError> {
@@ -99,33 +133,6 @@ pub(super) async fn assert_account_ready_to_connect() -> Result<(), VpnError> {
             Err(VpnError::Account(not_ready_to_connect.into()))
         }
     }
-}
-
-async fn start_account_controller(data_dir: PathBuf) -> Result<AccountControllerHandle, VpnError> {
-    let storage = Arc::new(tokio::sync::Mutex::new(
-        crate::storage::VpnClientOnDiskStorage::new(data_dir.clone()),
-    ));
-    // TODO: pass in as argument
-    let user_agent = crate::util::construct_user_agent();
-    let shutdown_token = CancellationToken::new();
-    let account_controller = nym_vpn_account_controller::AccountController::new(
-        Arc::clone(&storage),
-        data_dir.clone(),
-        user_agent,
-        shutdown_token.child_token(),
-    )
-    .await;
-
-    let shared_account_state = account_controller.shared_state();
-    let account_command_tx = account_controller.command_tx();
-    let account_controller_handle = tokio::spawn(account_controller.run());
-
-    Ok(AccountControllerHandle {
-        command_sender: account_command_tx,
-        shared_state: shared_account_state,
-        handle: account_controller_handle,
-        shutdown_token,
-    })
 }
 
 fn setup_account_storage(path: &str) -> Result<crate::storage::VpnClientOnDiskStorage, VpnError> {
