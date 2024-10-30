@@ -177,4 +177,6 @@
     <string name="create_account">アカウントの作成</string>
     <string name="recovery_phrase_message">アカウントにログインするには、以下に24単語のシークレットリカバリーフレーズを入力してください</string>
     <string name="mnemonic_example">例: smoke artefact velvet skull pop palace tortoise damage rough...</string>
+    <string name="system_wallpaper">システム壁紙設定</string>
+    <string name="dynamic">ダイナミック</string>
 </resources>
