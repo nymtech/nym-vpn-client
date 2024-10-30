@@ -44,7 +44,7 @@ fn setup_logging() {
         .init();
 }
 
-async fn run() -> anyhow::Result<ProbeResult> {
+pub(crate) async fn run() -> anyhow::Result<ProbeResult> {
     let args = CliArgs::parse();
     if !args.no_log {
         setup_logging();
