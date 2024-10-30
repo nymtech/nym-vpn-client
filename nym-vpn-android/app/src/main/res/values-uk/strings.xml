@@ -177,4 +177,6 @@
     <string name="mnemonic_example">наприклад, дим артефакт оксамитовий череп поп палац черепаха пошкодження грубий...</string>
     <string name="recovery_phrase_message">Введіть секретну фразу відновлення з 24 слів нижче, щоб увійти до свого облікового запису</string>
     <string name="recovery_phrase_disclaimer">Ви можете використовувати тільки фразу відновлення, створену в NymVPN, а не в гаманці Nym.</string>
+    <string name="dynamic">Динамічний</string>
+    <string name="system_wallpaper">Тема системних шпалер</string>
 </resources>
