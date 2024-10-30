@@ -771,6 +771,8 @@ internal open class UniffiVTableCallbackInterfaceTunnelStatusListener(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -811,6 +813,8 @@ internal interface UniffiLib : Library {
     fun uniffi_nym_vpn_lib_fn_method_tunnelstatuslistener_on_event(`ptr`: Pointer,`event`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_nym_vpn_lib_fn_func_fetchenvironment(`networkName`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_nym_vpn_lib_fn_func_getaccountsummary(uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_nym_vpn_lib_fn_func_getgatewaycountries(`apiUrl`: RustBuffer.ByValue,`nymVpnApiUrl`: RustBuffer.ByValue,`gwType`: RustBuffer.ByValue,`userAgent`: RustBuffer.ByValue,`minGatewayPerformance`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -946,6 +950,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_nym_vpn_lib_checksum_func_fetchenvironment(
     ): Short
+    fun uniffi_nym_vpn_lib_checksum_func_getaccountsummary(
+    ): Short
     fun uniffi_nym_vpn_lib_checksum_func_getgatewaycountries(
     ): Short
     fun uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry(
@@ -990,6 +996,9 @@ private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_nym_vpn_lib_checksum_func_fetchenvironment() != 34561.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_nym_vpn_lib_checksum_func_getaccountsummary() != 13465.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 41607.toShort()) {
@@ -5335,6 +5344,16 @@ public object FfiConverterTypeUrl: FfiConverter<Url, RustBuffer.ByValue> {
     uniffiRustCallWithError(VpnException) { _status ->
     UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_fetchenvironment(
         FfiConverterString.lower(`networkName`),_status)
+}
+    )
+    }
+    
+
+    @Throws(VpnException::class) fun `getAccountSummary`(): AccountStateSummary {
+            return FfiConverterTypeAccountStateSummary.lift(
+    uniffiRustCallWithError(VpnException) { _status ->
+    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_getaccountsummary(
+        _status)
 }
     )
     }

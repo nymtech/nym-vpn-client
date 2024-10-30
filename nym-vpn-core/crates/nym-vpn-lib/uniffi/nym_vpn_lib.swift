@@ -5915,6 +5915,12 @@ public func fetchEnvironment(networkName: String)throws  -> NetworkEnvironment {
     )
 })
 }
+public func getAccountSummary()throws  -> AccountStateSummary {
+    return try  FfiConverterTypeAccountStateSummary.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_getaccountsummary($0
+    )
+})
+}
 public func getGatewayCountries(apiUrl: Url, nymVpnApiUrl: Url?, gwType: GatewayType, userAgent: UserAgent?, minGatewayPerformance: GatewayMinPerformance?)throws  -> [Location] {
     return try  FfiConverterSequenceTypeLocation.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_getgatewaycountries(
@@ -6000,6 +6006,9 @@ private var initializationResult: InitializationResult {
         return InitializationResult.contractVersionMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_fetchenvironment() != 34561) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_getaccountsummary() != 13465) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 41607) {
