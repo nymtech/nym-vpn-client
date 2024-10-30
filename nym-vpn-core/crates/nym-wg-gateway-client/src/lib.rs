@@ -4,14 +4,14 @@
 mod error;
 
 use std::{
-    net::{IpAddr, Ipv4Addr, SocketAddr},
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     path::PathBuf,
     str::FromStr,
 };
 
 pub use error::{Error, ErrorMessage};
 use nym_authenticator_client::{AuthClient, ClientMessage};
-use nym_authenticator_requests::v3::{
+use nym_authenticator_requests::v4::{
     registration::{FinalMessage, GatewayClient, InitMessage, RegistrationData},
     response::{
         AuthenticatorResponseData, PendingRegistrationResponse, RegisteredResponse,
@@ -40,6 +40,7 @@ pub struct GatewayData {
     pub public_key: PublicKey,
     pub endpoint: SocketAddr,
     pub private_ipv4: Ipv4Addr,
+    pub private_ipv6: Ipv6Addr,
 }
 #[derive(Clone)]
 pub struct WgGatewayLightClient {
@@ -229,7 +230,7 @@ impl WgGatewayClient {
                     gateway_client: GatewayClient::new(
                         self.keypair.private_key(),
                         gateway_data.pub_key().inner(),
-                        gateway_data.private_ip,
+                        gateway_data.private_ips,
                         nonce,
                     ),
                     credential,
@@ -249,9 +250,6 @@ impl WgGatewayClient {
             _ => return Err(Error::InvalidGatewayAuthResponse),
         };
 
-        let IpAddr::V4(private_ipv4) = registered_data.private_ip else {
-            return Err(Error::InvalidGatewayAuthResponse);
-        };
         let gateway_data = GatewayData {
             public_key: PublicKey::from(registered_data.pub_key.to_bytes()),
             endpoint: SocketAddr::from_str(&format!(
@@ -259,7 +257,8 @@ impl WgGatewayClient {
                 gateway_host, registered_data.wg_port
             ))
             .map_err(Error::FailedToParseEntryGatewaySocketAddr)?,
-            private_ipv4,
+            private_ipv4: registered_data.private_ips.ipv4,
+            private_ipv6: registered_data.private_ips.ipv6,
         };
 
         Ok(gateway_data)

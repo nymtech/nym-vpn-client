@@ -18,10 +18,16 @@ pub struct ProbeOutcome {
 #[serde(rename = "wg")]
 pub struct WgProbeResults {
     pub can_register: bool,
-    pub can_handshake: bool,
-    pub can_resolve_dns: bool,
-    pub ping_hosts_performance: f32,
-    pub ping_ips_performance: f32,
+
+    pub can_handshake_v4: bool,
+    pub can_resolve_dns_v4: bool,
+    pub ping_hosts_performance_v4: f32,
+    pub ping_ips_performance_v4: f32,
+
+    pub can_handshake_v6: bool,
+    pub can_resolve_dns_v6: bool,
+    pub ping_hosts_performance_v6: f32,
+    pub ping_ips_performance_v6: f32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
