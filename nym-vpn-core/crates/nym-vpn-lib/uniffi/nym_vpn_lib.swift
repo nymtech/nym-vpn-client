@@ -408,6 +408,19 @@ fileprivate struct FfiConverterUInt16: FfiConverterPrimitive {
     }
 }
 
+fileprivate struct FfiConverterUInt32: FfiConverterPrimitive {
+    typealias FfiType = UInt32
+    typealias SwiftType = UInt32
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> UInt32 {
+        return try lift(readInt(&buf))
+    }
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
 fileprivate struct FfiConverterUInt64: FfiConverterPrimitive {
     typealias FfiType = UInt64
     typealias SwiftType = UInt64
@@ -1110,6 +1123,71 @@ public func FfiConverterTypeAccountStateSummary_lower(_ value: AccountStateSumma
 }
 
 
+public struct ChainDetails {
+    public var bech32AccountPrefix: String
+    public var mixDenom: DenomDetails
+    public var stakeDenom: DenomDetails
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(bech32AccountPrefix: String, mixDenom: DenomDetails, stakeDenom: DenomDetails) {
+        self.bech32AccountPrefix = bech32AccountPrefix
+        self.mixDenom = mixDenom
+        self.stakeDenom = stakeDenom
+    }
+}
+
+
+
+extension ChainDetails: Equatable, Hashable {
+    public static func ==(lhs: ChainDetails, rhs: ChainDetails) -> Bool {
+        if lhs.bech32AccountPrefix != rhs.bech32AccountPrefix {
+            return false
+        }
+        if lhs.mixDenom != rhs.mixDenom {
+            return false
+        }
+        if lhs.stakeDenom != rhs.stakeDenom {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(bech32AccountPrefix)
+        hasher.combine(mixDenom)
+        hasher.combine(stakeDenom)
+    }
+}
+
+
+public struct FfiConverterTypeChainDetails: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> ChainDetails {
+        return
+            try ChainDetails(
+                bech32AccountPrefix: FfiConverterString.read(from: &buf), 
+                mixDenom: FfiConverterTypeDenomDetails.read(from: &buf), 
+                stakeDenom: FfiConverterTypeDenomDetails.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: ChainDetails, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.bech32AccountPrefix, into: &buf)
+        FfiConverterTypeDenomDetails.write(value.mixDenom, into: &buf)
+        FfiConverterTypeDenomDetails.write(value.stakeDenom, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeChainDetails_lift(_ buf: RustBuffer) throws -> ChainDetails {
+    return try FfiConverterTypeChainDetails.lift(buf)
+}
+
+public func FfiConverterTypeChainDetails_lower(_ value: ChainDetails) -> RustBuffer {
+    return FfiConverterTypeChainDetails.lower(value)
+}
+
+
 public struct ConnectionData {
     /**
      * Mixnet entry gateway
@@ -1204,6 +1282,71 @@ public func FfiConverterTypeConnectionData_lift(_ buf: RustBuffer) throws -> Con
 
 public func FfiConverterTypeConnectionData_lower(_ value: ConnectionData) -> RustBuffer {
     return FfiConverterTypeConnectionData.lower(value)
+}
+
+
+public struct DenomDetails {
+    public var base: String
+    public var display: String
+    public var displayExponent: UInt32
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(base: String, display: String, displayExponent: UInt32) {
+        self.base = base
+        self.display = display
+        self.displayExponent = displayExponent
+    }
+}
+
+
+
+extension DenomDetails: Equatable, Hashable {
+    public static func ==(lhs: DenomDetails, rhs: DenomDetails) -> Bool {
+        if lhs.base != rhs.base {
+            return false
+        }
+        if lhs.display != rhs.display {
+            return false
+        }
+        if lhs.displayExponent != rhs.displayExponent {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(base)
+        hasher.combine(display)
+        hasher.combine(displayExponent)
+    }
+}
+
+
+public struct FfiConverterTypeDenomDetails: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> DenomDetails {
+        return
+            try DenomDetails(
+                base: FfiConverterString.read(from: &buf), 
+                display: FfiConverterString.read(from: &buf), 
+                displayExponent: FfiConverterUInt32.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: DenomDetails, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.base, into: &buf)
+        FfiConverterString.write(value.display, into: &buf)
+        FfiConverterUInt32.write(value.displayExponent, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeDenomDetails_lift(_ buf: RustBuffer) throws -> DenomDetails {
+    return try FfiConverterTypeDenomDetails.lift(buf)
+}
+
+public func FfiConverterTypeDenomDetails_lower(_ value: DenomDetails) -> RustBuffer {
+    return FfiConverterTypeDenomDetails.lower(value)
 }
 
 
@@ -1758,6 +1901,303 @@ public func FfiConverterTypeMixnetConnectionData_lower(_ value: MixnetConnection
 
 
 /**
+ * Represents the nym network environment together with the environment specific to nym-vpn. These
+ * need to be exported to the environment (for now, until it's refactored internally in the nym
+ * crates) so that the client can have access to the necessary information.
+ *
+ * The list is as of today:
+ *
+ * NETWORK_NAME = nym_network::network_name
+ *
+ * BECH32_PREFIX = nym_network::chain_details::bech32_account_prefix
+ * MIX_DENOM = nym_network::chain_details::mix_denom::base
+ * MIX_DENOM_DISPLAY = nym_network::chain_details::mix_denom::display
+ * STAKE_DENOM = nym_network::chain_details::stake_denom::base
+ * STAKE_DENOM_DISPLAY = nym_network::chain_details::stake_denom::display
+ * DENOMS_EXPONENT = nym_network::chain_details::mix_denom::display_exponent
+ *
+ * MIXNET_CONTRACT_ADDRESS = nym_network::contracts::mixnet_contract_address
+ * VESTING_CONTRACT_ADDRESS = nym_network::contracts::vesting_contract_address
+ * GROUP_CONTRACT_ADDRESS = nym_network::contracts::group_contract_address
+ * ECASH_CONTRACT_ADDRESS = nym_network::contracts::ecash_contract_address
+ * MULTISIG_CONTRACT_ADDRESS = nym_network::contracts::multisig_contract_address
+ * COCONUT_DKG_CONTRACT_ADDRESS = nym_network::contracts::coconut_dkg_contract_address
+ *
+ * NYXD = nym_network::endpoints[0]::nyxd_url
+ * NYM_API = nym_network::endpoints[0]::api_url
+ * NYXD_WS = nym_network::endpoints[0]::websocket_url
+ *
+ * NYM_VPN_API = nym_vpn_network::nym_vpn_api_url
+ */
+public struct NetworkEnvironment {
+    public var nymNetwork: NymNetworkDetails
+    public var nymVpnNetwork: NymVpnNetwork
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(nymNetwork: NymNetworkDetails, nymVpnNetwork: NymVpnNetwork) {
+        self.nymNetwork = nymNetwork
+        self.nymVpnNetwork = nymVpnNetwork
+    }
+}
+
+
+
+extension NetworkEnvironment: Equatable, Hashable {
+    public static func ==(lhs: NetworkEnvironment, rhs: NetworkEnvironment) -> Bool {
+        if lhs.nymNetwork != rhs.nymNetwork {
+            return false
+        }
+        if lhs.nymVpnNetwork != rhs.nymVpnNetwork {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(nymNetwork)
+        hasher.combine(nymVpnNetwork)
+    }
+}
+
+
+public struct FfiConverterTypeNetworkEnvironment: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NetworkEnvironment {
+        return
+            try NetworkEnvironment(
+                nymNetwork: FfiConverterTypeNymNetworkDetails.read(from: &buf), 
+                nymVpnNetwork: FfiConverterTypeNymVpnNetwork.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: NetworkEnvironment, into buf: inout [UInt8]) {
+        FfiConverterTypeNymNetworkDetails.write(value.nymNetwork, into: &buf)
+        FfiConverterTypeNymVpnNetwork.write(value.nymVpnNetwork, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeNetworkEnvironment_lift(_ buf: RustBuffer) throws -> NetworkEnvironment {
+    return try FfiConverterTypeNetworkEnvironment.lift(buf)
+}
+
+public func FfiConverterTypeNetworkEnvironment_lower(_ value: NetworkEnvironment) -> RustBuffer {
+    return FfiConverterTypeNetworkEnvironment.lower(value)
+}
+
+
+public struct NymContracts {
+    public var mixnetContractAddress: String?
+    public var vestingContractAddress: String?
+    public var ecashContractAddress: String?
+    public var groupContractAddress: String?
+    public var multisigContractAddress: String?
+    public var coconutDkgContractAddress: String?
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(mixnetContractAddress: String?, vestingContractAddress: String?, ecashContractAddress: String?, groupContractAddress: String?, multisigContractAddress: String?, coconutDkgContractAddress: String?) {
+        self.mixnetContractAddress = mixnetContractAddress
+        self.vestingContractAddress = vestingContractAddress
+        self.ecashContractAddress = ecashContractAddress
+        self.groupContractAddress = groupContractAddress
+        self.multisigContractAddress = multisigContractAddress
+        self.coconutDkgContractAddress = coconutDkgContractAddress
+    }
+}
+
+
+
+extension NymContracts: Equatable, Hashable {
+    public static func ==(lhs: NymContracts, rhs: NymContracts) -> Bool {
+        if lhs.mixnetContractAddress != rhs.mixnetContractAddress {
+            return false
+        }
+        if lhs.vestingContractAddress != rhs.vestingContractAddress {
+            return false
+        }
+        if lhs.ecashContractAddress != rhs.ecashContractAddress {
+            return false
+        }
+        if lhs.groupContractAddress != rhs.groupContractAddress {
+            return false
+        }
+        if lhs.multisigContractAddress != rhs.multisigContractAddress {
+            return false
+        }
+        if lhs.coconutDkgContractAddress != rhs.coconutDkgContractAddress {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(mixnetContractAddress)
+        hasher.combine(vestingContractAddress)
+        hasher.combine(ecashContractAddress)
+        hasher.combine(groupContractAddress)
+        hasher.combine(multisigContractAddress)
+        hasher.combine(coconutDkgContractAddress)
+    }
+}
+
+
+public struct FfiConverterTypeNymContracts: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NymContracts {
+        return
+            try NymContracts(
+                mixnetContractAddress: FfiConverterOptionString.read(from: &buf), 
+                vestingContractAddress: FfiConverterOptionString.read(from: &buf), 
+                ecashContractAddress: FfiConverterOptionString.read(from: &buf), 
+                groupContractAddress: FfiConverterOptionString.read(from: &buf), 
+                multisigContractAddress: FfiConverterOptionString.read(from: &buf), 
+                coconutDkgContractAddress: FfiConverterOptionString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: NymContracts, into buf: inout [UInt8]) {
+        FfiConverterOptionString.write(value.mixnetContractAddress, into: &buf)
+        FfiConverterOptionString.write(value.vestingContractAddress, into: &buf)
+        FfiConverterOptionString.write(value.ecashContractAddress, into: &buf)
+        FfiConverterOptionString.write(value.groupContractAddress, into: &buf)
+        FfiConverterOptionString.write(value.multisigContractAddress, into: &buf)
+        FfiConverterOptionString.write(value.coconutDkgContractAddress, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeNymContracts_lift(_ buf: RustBuffer) throws -> NymContracts {
+    return try FfiConverterTypeNymContracts.lift(buf)
+}
+
+public func FfiConverterTypeNymContracts_lower(_ value: NymContracts) -> RustBuffer {
+    return FfiConverterTypeNymContracts.lower(value)
+}
+
+
+public struct NymNetworkDetails {
+    public var networkName: String
+    public var chainDetails: ChainDetails
+    public var endpoints: [ValidatorDetails]
+    public var contracts: NymContracts
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(networkName: String, chainDetails: ChainDetails, endpoints: [ValidatorDetails], contracts: NymContracts) {
+        self.networkName = networkName
+        self.chainDetails = chainDetails
+        self.endpoints = endpoints
+        self.contracts = contracts
+    }
+}
+
+
+
+extension NymNetworkDetails: Equatable, Hashable {
+    public static func ==(lhs: NymNetworkDetails, rhs: NymNetworkDetails) -> Bool {
+        if lhs.networkName != rhs.networkName {
+            return false
+        }
+        if lhs.chainDetails != rhs.chainDetails {
+            return false
+        }
+        if lhs.endpoints != rhs.endpoints {
+            return false
+        }
+        if lhs.contracts != rhs.contracts {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(networkName)
+        hasher.combine(chainDetails)
+        hasher.combine(endpoints)
+        hasher.combine(contracts)
+    }
+}
+
+
+public struct FfiConverterTypeNymNetworkDetails: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NymNetworkDetails {
+        return
+            try NymNetworkDetails(
+                networkName: FfiConverterString.read(from: &buf), 
+                chainDetails: FfiConverterTypeChainDetails.read(from: &buf), 
+                endpoints: FfiConverterSequenceTypeValidatorDetails.read(from: &buf), 
+                contracts: FfiConverterTypeNymContracts.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: NymNetworkDetails, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.networkName, into: &buf)
+        FfiConverterTypeChainDetails.write(value.chainDetails, into: &buf)
+        FfiConverterSequenceTypeValidatorDetails.write(value.endpoints, into: &buf)
+        FfiConverterTypeNymContracts.write(value.contracts, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeNymNetworkDetails_lift(_ buf: RustBuffer) throws -> NymNetworkDetails {
+    return try FfiConverterTypeNymNetworkDetails.lift(buf)
+}
+
+public func FfiConverterTypeNymNetworkDetails_lower(_ value: NymNetworkDetails) -> RustBuffer {
+    return FfiConverterTypeNymNetworkDetails.lower(value)
+}
+
+
+public struct NymVpnNetwork {
+    public var nymVpnApiUrl: String
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(nymVpnApiUrl: String) {
+        self.nymVpnApiUrl = nymVpnApiUrl
+    }
+}
+
+
+
+extension NymVpnNetwork: Equatable, Hashable {
+    public static func ==(lhs: NymVpnNetwork, rhs: NymVpnNetwork) -> Bool {
+        if lhs.nymVpnApiUrl != rhs.nymVpnApiUrl {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(nymVpnApiUrl)
+    }
+}
+
+
+public struct FfiConverterTypeNymVpnNetwork: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NymVpnNetwork {
+        return
+            try NymVpnNetwork(
+                nymVpnApiUrl: FfiConverterString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: NymVpnNetwork, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.nymVpnApiUrl, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeNymVpnNetwork_lift(_ buf: RustBuffer) throws -> NymVpnNetwork {
+    return try FfiConverterTypeNymVpnNetwork.lift(buf)
+}
+
+public func FfiConverterTypeNymVpnNetwork_lower(_ value: NymVpnNetwork) -> RustBuffer {
+    return FfiConverterTypeNymVpnNetwork.lower(value)
+}
+
+
+/**
  * Represents a default network route used by the system.
  */
 public struct OsDefaultPath {
@@ -2093,6 +2533,71 @@ public func FfiConverterTypeVPNConfig_lower(_ value: VpnConfig) -> RustBuffer {
 }
 
 
+public struct ValidatorDetails {
+    public var nyxdUrl: String
+    public var websocketUrl: String?
+    public var apiUrl: String?
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(nyxdUrl: String, websocketUrl: String?, apiUrl: String?) {
+        self.nyxdUrl = nyxdUrl
+        self.websocketUrl = websocketUrl
+        self.apiUrl = apiUrl
+    }
+}
+
+
+
+extension ValidatorDetails: Equatable, Hashable {
+    public static func ==(lhs: ValidatorDetails, rhs: ValidatorDetails) -> Bool {
+        if lhs.nyxdUrl != rhs.nyxdUrl {
+            return false
+        }
+        if lhs.websocketUrl != rhs.websocketUrl {
+            return false
+        }
+        if lhs.apiUrl != rhs.apiUrl {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(nyxdUrl)
+        hasher.combine(websocketUrl)
+        hasher.combine(apiUrl)
+    }
+}
+
+
+public struct FfiConverterTypeValidatorDetails: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> ValidatorDetails {
+        return
+            try ValidatorDetails(
+                nyxdUrl: FfiConverterString.read(from: &buf), 
+                websocketUrl: FfiConverterOptionString.read(from: &buf), 
+                apiUrl: FfiConverterOptionString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: ValidatorDetails, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.nyxdUrl, into: &buf)
+        FfiConverterOptionString.write(value.websocketUrl, into: &buf)
+        FfiConverterOptionString.write(value.apiUrl, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeValidatorDetails_lift(_ buf: RustBuffer) throws -> ValidatorDetails {
+    return try FfiConverterTypeValidatorDetails.lift(buf)
+}
+
+public func FfiConverterTypeValidatorDetails_lower(_ value: ValidatorDetails) -> RustBuffer {
+    return FfiConverterTypeValidatorDetails.lower(value)
+}
+
+
 public struct WireguardConnectionData {
     public var entry: WireguardNode
     public var exit: WireguardNode
@@ -2278,6 +2783,89 @@ public func FfiConverterTypeWireguardNode_lift(_ buf: RustBuffer) throws -> Wire
 public func FfiConverterTypeWireguardNode_lower(_ value: WireguardNode) -> RustBuffer {
     return FfiConverterTypeWireguardNode.lower(value)
 }
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
+public enum AccountError {
+    
+    case ready
+    case noAccountStored
+    case accountNotActive
+    case noActiveSubscription
+    case deviceNotRegistered
+    case deviceNotActive
+}
+
+
+public struct FfiConverterTypeAccountError: FfiConverterRustBuffer {
+    typealias SwiftType = AccountError
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AccountError {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .ready
+        
+        case 2: return .noAccountStored
+        
+        case 3: return .accountNotActive
+        
+        case 4: return .noActiveSubscription
+        
+        case 5: return .deviceNotRegistered
+        
+        case 6: return .deviceNotActive
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: AccountError, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .ready:
+            writeInt(&buf, Int32(1))
+        
+        
+        case .noAccountStored:
+            writeInt(&buf, Int32(2))
+        
+        
+        case .accountNotActive:
+            writeInt(&buf, Int32(3))
+        
+        
+        case .noActiveSubscription:
+            writeInt(&buf, Int32(4))
+        
+        
+        case .deviceNotRegistered:
+            writeInt(&buf, Int32(5))
+        
+        
+        case .deviceNotActive:
+            writeInt(&buf, Int32(6))
+        
+        }
+    }
+}
+
+
+public func FfiConverterTypeAccountError_lift(_ buf: RustBuffer) throws -> AccountError {
+    return try FfiConverterTypeAccountError.lift(buf)
+}
+
+public func FfiConverterTypeAccountError_lower(_ value: AccountError) -> RustBuffer {
+    return FfiConverterTypeAccountError.lower(value)
+}
+
+
+
+extension AccountError: Equatable, Hashable {}
+
+
 
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
@@ -4006,7 +4594,7 @@ public enum VpnError {
     case OutOfBandwidth
     case InvalidStateError(details: String
     )
-    case Account(details: String
+    case Account(AccountError
     )
 }
 
@@ -4038,7 +4626,7 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
             details: try FfiConverterString.read(from: &buf)
             )
         case 7: return .Account(
-            details: try FfiConverterString.read(from: &buf)
+            : try FfiConverterTypeAccountError.read(from: &buf)
             )
 
          default: throw UniffiInternalError.unexpectedEnumCase
@@ -4081,9 +4669,9 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
             FfiConverterString.write(details, into: &buf)
             
         
-        case let .Account(details):
+        case let .Account():
             writeInt(&buf, Int32(7))
-            FfiConverterString.write(details, into: &buf)
+            FfiConverterTypeAccountError.write(, into: &buf)
             
         }
     }
@@ -4110,6 +4698,27 @@ fileprivate struct FfiConverterOptionUInt64: FfiConverterRustBuffer {
         switch try readInt(&buf) as Int8 {
         case 0: return nil
         case 1: return try FfiConverterUInt64.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionString: FfiConverterRustBuffer {
+    typealias SwiftType = String?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterString.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterString.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }
@@ -4532,6 +5141,28 @@ fileprivate struct FfiConverterSequenceTypeLocation: FfiConverterRustBuffer {
         seq.reserveCapacity(Int(len))
         for _ in 0 ..< len {
             seq.append(try FfiConverterTypeLocation.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+fileprivate struct FfiConverterSequenceTypeValidatorDetails: FfiConverterRustBuffer {
+    typealias SwiftType = [ValidatorDetails]
+
+    public static func write(_ value: [ValidatorDetails], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeValidatorDetails.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [ValidatorDetails] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [ValidatorDetails]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeValidatorDetails.read(from: &buf))
         }
         return seq
     }
@@ -5277,6 +5908,13 @@ private func uniffiForeignFutureFree(handle: UInt64) {
 public func uniffiForeignFutureHandleCountNymVpnLib() -> Int {
     UNIFFI_FOREIGN_FUTURE_HANDLE_MAP.count
 }
+public func fetchEnvironment(networkName: String)throws  -> NetworkEnvironment {
+    return try  FfiConverterTypeNetworkEnvironment.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_fetchenvironment(
+        FfiConverterString.lower(networkName),$0
+    )
+})
+}
 public func getGatewayCountries(apiUrl: Url, nymVpnApiUrl: Url?, gwType: GatewayType, userAgent: UserAgent?, minGatewayPerformance: GatewayMinPerformance?)throws  -> [Location] {
     return try  FfiConverterSequenceTypeLocation.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_getgatewaycountries(
@@ -5360,6 +5998,9 @@ private var initializationResult: InitializationResult {
     let scaffolding_contract_version = ffi_nym_vpn_lib_uniffi_contract_version()
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_fetchenvironment() != 34561) {
+        return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 41607) {
         return InitializationResult.apiChecksumMismatch

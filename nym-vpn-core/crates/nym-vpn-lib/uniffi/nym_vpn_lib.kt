@@ -769,6 +769,8 @@ internal open class UniffiVTableCallbackInterfaceTunnelStatusListener(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -808,6 +810,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_nym_vpn_lib_fn_method_tunnelstatuslistener_on_event(`ptr`: Pointer,`event`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_nym_vpn_lib_fn_func_fetchenvironment(`networkName`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_nym_vpn_lib_fn_func_getgatewaycountries(`apiUrl`: RustBuffer.ByValue,`nymVpnApiUrl`: RustBuffer.ByValue,`gwType`: RustBuffer.ByValue,`userAgent`: RustBuffer.ByValue,`minGatewayPerformance`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(`apiUrl`: RustBuffer.ByValue,`vpnApiUrl`: RustBuffer.ByValue,`userAgent`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -940,6 +944,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun ffi_nym_vpn_lib_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_nym_vpn_lib_checksum_func_fetchenvironment(
+    ): Short
     fun uniffi_nym_vpn_lib_checksum_func_getgatewaycountries(
     ): Short
     fun uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry(
@@ -983,6 +989,9 @@ private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: UniffiLib) {
+    if (lib.uniffi_nym_vpn_lib_checksum_func_fetchenvironment() != 34561.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 41607.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1099,6 +1108,26 @@ public object FfiConverterUShort: FfiConverter<UShort, Short> {
 
     override fun write(value: UShort, buf: ByteBuffer) {
         buf.putShort(value.toShort())
+    }
+}
+
+public object FfiConverterUInt: FfiConverter<UInt, Int> {
+    override fun lift(value: Int): UInt {
+        return value.toUInt()
+    }
+
+    override fun read(buf: ByteBuffer): UInt {
+        return lift(buf.getInt())
+    }
+
+    override fun lower(value: UInt): Int {
+        return value.toInt()
+    }
+
+    override fun allocationSize(value: UInt) = 4UL
+
+    override fun write(value: UInt, buf: ByteBuffer) {
+        buf.putInt(value.toInt())
     }
 }
 
@@ -1931,6 +1960,39 @@ public object FfiConverterTypeAccountStateSummary: FfiConverterRustBuffer<Accoun
 
 
 
+data class ChainDetails (
+    var `bech32AccountPrefix`: kotlin.String, 
+    var `mixDenom`: DenomDetails, 
+    var `stakeDenom`: DenomDetails
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeChainDetails: FfiConverterRustBuffer<ChainDetails> {
+    override fun read(buf: ByteBuffer): ChainDetails {
+        return ChainDetails(
+            FfiConverterString.read(buf),
+            FfiConverterTypeDenomDetails.read(buf),
+            FfiConverterTypeDenomDetails.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: ChainDetails) = (
+            FfiConverterString.allocationSize(value.`bech32AccountPrefix`) +
+            FfiConverterTypeDenomDetails.allocationSize(value.`mixDenom`) +
+            FfiConverterTypeDenomDetails.allocationSize(value.`stakeDenom`)
+    )
+
+    override fun write(value: ChainDetails, buf: ByteBuffer) {
+            FfiConverterString.write(value.`bech32AccountPrefix`, buf)
+            FfiConverterTypeDenomDetails.write(value.`mixDenom`, buf)
+            FfiConverterTypeDenomDetails.write(value.`stakeDenom`, buf)
+    }
+}
+
+
+
 data class ConnectionData (
     /**
      * Mixnet entry gateway
@@ -1975,6 +2037,39 @@ public object FfiConverterTypeConnectionData: FfiConverterRustBuffer<ConnectionD
             FfiConverterTypeBoxedNodeIdentity.write(value.`exitGateway`, buf)
             FfiConverterTypeOffsetDateTime.write(value.`connectedAt`, buf)
             FfiConverterTypeTunnelConnectionData.write(value.`tunnel`, buf)
+    }
+}
+
+
+
+data class DenomDetails (
+    var `base`: kotlin.String, 
+    var `display`: kotlin.String, 
+    var `displayExponent`: kotlin.UInt
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeDenomDetails: FfiConverterRustBuffer<DenomDetails> {
+    override fun read(buf: ByteBuffer): DenomDetails {
+        return DenomDetails(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterUInt.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: DenomDetails) = (
+            FfiConverterString.allocationSize(value.`base`) +
+            FfiConverterString.allocationSize(value.`display`) +
+            FfiConverterUInt.allocationSize(value.`displayExponent`)
+    )
+
+    override fun write(value: DenomDetails, buf: ByteBuffer) {
+            FfiConverterString.write(value.`base`, buf)
+            FfiConverterString.write(value.`display`, buf)
+            FfiConverterUInt.write(value.`displayExponent`, buf)
     }
 }
 
@@ -2260,6 +2355,171 @@ public object FfiConverterTypeMixnetConnectionData: FfiConverterRustBuffer<Mixne
 
 
 /**
+ * Represents the nym network environment together with the environment specific to nym-vpn. These
+ * need to be exported to the environment (for now, until it's refactored internally in the nym
+ * crates) so that the client can have access to the necessary information.
+ *
+ * The list is as of today:
+ *
+ * NETWORK_NAME = nym_network::network_name
+ *
+ * BECH32_PREFIX = nym_network::chain_details::bech32_account_prefix
+ * MIX_DENOM = nym_network::chain_details::mix_denom::base
+ * MIX_DENOM_DISPLAY = nym_network::chain_details::mix_denom::display
+ * STAKE_DENOM = nym_network::chain_details::stake_denom::base
+ * STAKE_DENOM_DISPLAY = nym_network::chain_details::stake_denom::display
+ * DENOMS_EXPONENT = nym_network::chain_details::mix_denom::display_exponent
+ *
+ * MIXNET_CONTRACT_ADDRESS = nym_network::contracts::mixnet_contract_address
+ * VESTING_CONTRACT_ADDRESS = nym_network::contracts::vesting_contract_address
+ * GROUP_CONTRACT_ADDRESS = nym_network::contracts::group_contract_address
+ * ECASH_CONTRACT_ADDRESS = nym_network::contracts::ecash_contract_address
+ * MULTISIG_CONTRACT_ADDRESS = nym_network::contracts::multisig_contract_address
+ * COCONUT_DKG_CONTRACT_ADDRESS = nym_network::contracts::coconut_dkg_contract_address
+ *
+ * NYXD = nym_network::endpoints[0]::nyxd_url
+ * NYM_API = nym_network::endpoints[0]::api_url
+ * NYXD_WS = nym_network::endpoints[0]::websocket_url
+ *
+ * NYM_VPN_API = nym_vpn_network::nym_vpn_api_url
+ */
+data class NetworkEnvironment (
+    var `nymNetwork`: NymNetworkDetails, 
+    var `nymVpnNetwork`: NymVpnNetwork
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeNetworkEnvironment: FfiConverterRustBuffer<NetworkEnvironment> {
+    override fun read(buf: ByteBuffer): NetworkEnvironment {
+        return NetworkEnvironment(
+            FfiConverterTypeNymNetworkDetails.read(buf),
+            FfiConverterTypeNymVpnNetwork.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: NetworkEnvironment) = (
+            FfiConverterTypeNymNetworkDetails.allocationSize(value.`nymNetwork`) +
+            FfiConverterTypeNymVpnNetwork.allocationSize(value.`nymVpnNetwork`)
+    )
+
+    override fun write(value: NetworkEnvironment, buf: ByteBuffer) {
+            FfiConverterTypeNymNetworkDetails.write(value.`nymNetwork`, buf)
+            FfiConverterTypeNymVpnNetwork.write(value.`nymVpnNetwork`, buf)
+    }
+}
+
+
+
+data class NymContracts (
+    var `mixnetContractAddress`: kotlin.String?, 
+    var `vestingContractAddress`: kotlin.String?, 
+    var `ecashContractAddress`: kotlin.String?, 
+    var `groupContractAddress`: kotlin.String?, 
+    var `multisigContractAddress`: kotlin.String?, 
+    var `coconutDkgContractAddress`: kotlin.String?
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeNymContracts: FfiConverterRustBuffer<NymContracts> {
+    override fun read(buf: ByteBuffer): NymContracts {
+        return NymContracts(
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: NymContracts) = (
+            FfiConverterOptionalString.allocationSize(value.`mixnetContractAddress`) +
+            FfiConverterOptionalString.allocationSize(value.`vestingContractAddress`) +
+            FfiConverterOptionalString.allocationSize(value.`ecashContractAddress`) +
+            FfiConverterOptionalString.allocationSize(value.`groupContractAddress`) +
+            FfiConverterOptionalString.allocationSize(value.`multisigContractAddress`) +
+            FfiConverterOptionalString.allocationSize(value.`coconutDkgContractAddress`)
+    )
+
+    override fun write(value: NymContracts, buf: ByteBuffer) {
+            FfiConverterOptionalString.write(value.`mixnetContractAddress`, buf)
+            FfiConverterOptionalString.write(value.`vestingContractAddress`, buf)
+            FfiConverterOptionalString.write(value.`ecashContractAddress`, buf)
+            FfiConverterOptionalString.write(value.`groupContractAddress`, buf)
+            FfiConverterOptionalString.write(value.`multisigContractAddress`, buf)
+            FfiConverterOptionalString.write(value.`coconutDkgContractAddress`, buf)
+    }
+}
+
+
+
+data class NymNetworkDetails (
+    var `networkName`: kotlin.String, 
+    var `chainDetails`: ChainDetails, 
+    var `endpoints`: List<ValidatorDetails>, 
+    var `contracts`: NymContracts
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeNymNetworkDetails: FfiConverterRustBuffer<NymNetworkDetails> {
+    override fun read(buf: ByteBuffer): NymNetworkDetails {
+        return NymNetworkDetails(
+            FfiConverterString.read(buf),
+            FfiConverterTypeChainDetails.read(buf),
+            FfiConverterSequenceTypeValidatorDetails.read(buf),
+            FfiConverterTypeNymContracts.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: NymNetworkDetails) = (
+            FfiConverterString.allocationSize(value.`networkName`) +
+            FfiConverterTypeChainDetails.allocationSize(value.`chainDetails`) +
+            FfiConverterSequenceTypeValidatorDetails.allocationSize(value.`endpoints`) +
+            FfiConverterTypeNymContracts.allocationSize(value.`contracts`)
+    )
+
+    override fun write(value: NymNetworkDetails, buf: ByteBuffer) {
+            FfiConverterString.write(value.`networkName`, buf)
+            FfiConverterTypeChainDetails.write(value.`chainDetails`, buf)
+            FfiConverterSequenceTypeValidatorDetails.write(value.`endpoints`, buf)
+            FfiConverterTypeNymContracts.write(value.`contracts`, buf)
+    }
+}
+
+
+
+data class NymVpnNetwork (
+    var `nymVpnApiUrl`: kotlin.String
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeNymVpnNetwork: FfiConverterRustBuffer<NymVpnNetwork> {
+    override fun read(buf: ByteBuffer): NymVpnNetwork {
+        return NymVpnNetwork(
+            FfiConverterString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: NymVpnNetwork) = (
+            FfiConverterString.allocationSize(value.`nymVpnApiUrl`)
+    )
+
+    override fun write(value: NymVpnNetwork, buf: ByteBuffer) {
+            FfiConverterString.write(value.`nymVpnApiUrl`, buf)
+    }
+}
+
+
+
+/**
  * Tunnel + network settings
  */
 data class TunnelNetworkSettings (
@@ -2422,6 +2682,39 @@ public object FfiConverterTypeVPNConfig: FfiConverterRustBuffer<VpnConfig> {
 
 
 
+data class ValidatorDetails (
+    var `nyxdUrl`: kotlin.String, 
+    var `websocketUrl`: kotlin.String?, 
+    var `apiUrl`: kotlin.String?
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeValidatorDetails: FfiConverterRustBuffer<ValidatorDetails> {
+    override fun read(buf: ByteBuffer): ValidatorDetails {
+        return ValidatorDetails(
+            FfiConverterString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: ValidatorDetails) = (
+            FfiConverterString.allocationSize(value.`nyxdUrl`) +
+            FfiConverterOptionalString.allocationSize(value.`websocketUrl`) +
+            FfiConverterOptionalString.allocationSize(value.`apiUrl`)
+    )
+
+    override fun write(value: ValidatorDetails, buf: ByteBuffer) {
+            FfiConverterString.write(value.`nyxdUrl`, buf)
+            FfiConverterOptionalString.write(value.`websocketUrl`, buf)
+            FfiConverterOptionalString.write(value.`apiUrl`, buf)
+    }
+}
+
+
+
 data class WireguardConnectionData (
     var `entry`: WireguardNode, 
     var `exit`: WireguardNode
@@ -2514,6 +2807,117 @@ public object FfiConverterTypeWireguardNode: FfiConverterRustBuffer<WireguardNod
             FfiConverterTypeIpv4Addr.write(value.`privateIpv4`, buf)
     }
 }
+
+
+
+sealed class AccountError {
+    
+    object Ready : AccountError()
+    
+    
+    object NoAccountStored : AccountError()
+    
+    
+    object AccountNotActive : AccountError()
+    
+    
+    object NoActiveSubscription : AccountError()
+    
+    
+    object DeviceNotRegistered : AccountError()
+    
+    
+    object DeviceNotActive : AccountError()
+    
+    
+
+    
+    companion object
+}
+
+public object FfiConverterTypeAccountError : FfiConverterRustBuffer<AccountError>{
+    override fun read(buf: ByteBuffer): AccountError {
+        return when(buf.getInt()) {
+            1 -> AccountError.Ready
+            2 -> AccountError.NoAccountStored
+            3 -> AccountError.AccountNotActive
+            4 -> AccountError.NoActiveSubscription
+            5 -> AccountError.DeviceNotRegistered
+            6 -> AccountError.DeviceNotActive
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: AccountError) = when(value) {
+        is AccountError.Ready -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is AccountError.NoAccountStored -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is AccountError.AccountNotActive -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is AccountError.NoActiveSubscription -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is AccountError.DeviceNotRegistered -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is AccountError.DeviceNotActive -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+    }
+
+    override fun write(value: AccountError, buf: ByteBuffer) {
+        when(value) {
+            is AccountError.Ready -> {
+                buf.putInt(1)
+                Unit
+            }
+            is AccountError.NoAccountStored -> {
+                buf.putInt(2)
+                Unit
+            }
+            is AccountError.AccountNotActive -> {
+                buf.putInt(3)
+                Unit
+            }
+            is AccountError.NoActiveSubscription -> {
+                buf.putInt(4)
+                Unit
+            }
+            is AccountError.DeviceNotRegistered -> {
+                buf.putInt(5)
+                Unit
+            }
+            is AccountError.DeviceNotActive -> {
+                buf.putInt(6)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
 
 
 
@@ -3874,10 +4278,10 @@ sealed class VpnException: Exception() {
     
     class Account(
         
-        val `details`: kotlin.String
+        val ``: AccountError
         ) : VpnException() {
         override val message
-            get() = "details=${ `details` }"
+            get() = "=${ `` }"
     }
     
 
@@ -3910,7 +4314,7 @@ public object FfiConverterTypeVpnError : FfiConverterRustBuffer<VpnException> {
                 FfiConverterString.read(buf),
                 )
             7 -> VpnException.Account(
-                FfiConverterString.read(buf),
+                FfiConverterTypeAccountError.read(buf),
                 )
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
@@ -3950,7 +4354,7 @@ public object FfiConverterTypeVpnError : FfiConverterRustBuffer<VpnException> {
             is VpnException.Account -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4UL
-                + FfiConverterString.allocationSize(value.`details`)
+                + FfiConverterTypeAccountError.allocationSize(value.``)
             )
         }
     }
@@ -3988,7 +4392,7 @@ public object FfiConverterTypeVpnError : FfiConverterRustBuffer<VpnException> {
             }
             is VpnException.Account -> {
                 buf.putInt(7)
-                FfiConverterString.write(value.`details`, buf)
+                FfiConverterTypeAccountError.write(value.``, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -4021,6 +4425,35 @@ public object FfiConverterOptionalULong: FfiConverterRustBuffer<kotlin.ULong?> {
         } else {
             buf.put(1)
             FfiConverterULong.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalString: FfiConverterRustBuffer<kotlin.String?> {
+    override fun read(buf: ByteBuffer): kotlin.String? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterString.read(buf)
+    }
+
+    override fun allocationSize(value: kotlin.String?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterString.allocationSize(value)
+        }
+    }
+
+    override fun write(value: kotlin.String?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterString.write(value, buf)
         }
     }
 }
@@ -4571,6 +5004,31 @@ public object FfiConverterSequenceTypeLocation: FfiConverterRustBuffer<List<Loca
 
 
 
+public object FfiConverterSequenceTypeValidatorDetails: FfiConverterRustBuffer<List<ValidatorDetails>> {
+    override fun read(buf: ByteBuffer): List<ValidatorDetails> {
+        val len = buf.getInt()
+        return List<ValidatorDetails>(len) {
+            FfiConverterTypeValidatorDetails.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<ValidatorDetails>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeValidatorDetails.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<ValidatorDetails>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeValidatorDetails.write(it, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterSequenceTypeIpv4Route: FfiConverterRustBuffer<List<Ipv4Route>> {
     override fun read(buf: ByteBuffer): List<Ipv4Route> {
         val len = buf.getInt()
@@ -4872,6 +5330,16 @@ public object FfiConverterTypeUrl: FfiConverter<Url, RustBuffer.ByValue> {
         FfiConverterString.write(builtinValue, buf)
     }
 }
+    @Throws(VpnException::class) fun `fetchEnvironment`(`networkName`: kotlin.String): NetworkEnvironment {
+            return FfiConverterTypeNetworkEnvironment.lift(
+    uniffiRustCallWithError(VpnException) { _status ->
+    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_fetchenvironment(
+        FfiConverterString.lower(`networkName`),_status)
+}
+    )
+    }
+    
+
     @Throws(VpnException::class) fun `getGatewayCountries`(`apiUrl`: Url, `nymVpnApiUrl`: Url?, `gwType`: GatewayType, `userAgent`: UserAgent?, `minGatewayPerformance`: GatewayMinPerformance?): List<Location> {
             return FfiConverterSequenceTypeLocation.lift(
     uniffiRustCallWithError(VpnException) { _status ->
