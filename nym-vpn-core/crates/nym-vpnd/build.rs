@@ -5,14 +5,6 @@ use std::{env, path::PathBuf};
 use vergen::EmitBuilder;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    EmitBuilder::builder()
-        .all_build()
-        .all_git()
-        .all_rustc()
-        .all_cargo()
-        .emit()
-        .expect("failed to extract build metadata");
-
     let manifest_path = env::var_os("CARGO_MANIFEST_DIR").expect("manifest dir is not set");
     let target = env::var("TARGET").expect("target is not set");
     let target_os = env::var("CARGO_CFG_TARGET_OS").expect("target os is not set");
@@ -46,5 +38,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     println!("cargo:rustc-link-lib{}=wg", link_type);
 
+    EmitBuilder::builder()
+        .all_build()
+        .all_git()
+        .all_rustc()
+        .all_cargo()
+        .emit()
+        .expect("failed to extract build metadata");
     Ok(())
 }

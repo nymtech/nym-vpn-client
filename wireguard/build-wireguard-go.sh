@@ -2,30 +2,53 @@
 
 # This script is used to build wireguard-go libraries for all the platforms.
 
-TEMP=$(getopt -o aiz --long android,docker,ios,amnezia \
-              -n 'build-wireguard-go.sh' -- "$@")
-
-if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
-
-# Note the quotes around '$TEMP': they are essential!
-eval set -- "$TEMP"
+function stringContain {
+    case $2 in *$1* ) return 0;; *) return 1;; esac;
+}
 
 ANDROID_BUILD=false
 IOS_BUILD=false
 DOCKER_BUILD=true
 AMNEZIA_BUILD=false
-while true; do
-  case "$1" in
-    "-a" | "--android" ) ANDROID_BUILD=true; shift ;;
-    "-i" | "--ios" ) IOS_BUILD=true; shift ;;
-    "-z" | "--amnezia" ) AMNEZIA_BUILD=true; shift ;;
-    "--no-docker" ) DOCKER_BUILD=false; shift ;;
-    -- ) shift; break ;;
-    * ) break ;;
-  esac
-done
 
-set -eu
+function parseArgs {
+    if stringContain "Darwin" "$(uname -s)"; then
+        # Mac builds require gnu-getopt because regular macos getopt doesn't allow long args. -_-
+        # This could be avoided using something like `getopts` instead, but then we don't
+        # have the ability to use long options which pre-date this script change.
+        # > brew install gnu-getopt
+        # Installed for CI in `.github/workflows/ci-nym-vpn-core.yml`
+        echo "using gnu-getopt"
+        export PATH="/opt/homebrew/opt/gnu-getopt/bin:$PATH"
+    fi
+
+    which getopt
+    TEMP=$(getopt -o aiz --long android,docker,ios,amnezia \
+                  -n 'build-wireguard-go.sh' -- "$@")
+
+    if [ $? != 0 ]; then
+        echo "encountered an error parsing args"
+        exit 2
+    fi
+
+    # Note the quotes around '$TEMP': they are essential!
+    eval set -- "$TEMP"
+
+    while true; do
+      case "$1" in
+        "-a" | "--android" ) ANDROID_BUILD=true; shift ;;
+        "-i" | "--ios" ) IOS_BUILD=true; shift ;;
+        "-z" | "--amnezia" ) AMNEZIA_BUILD=true; shift ;;
+        "--no-docker" ) DOCKER_BUILD=false; shift ;;
+        -- ) shift; break ;;
+        * ) break ;;
+      esac
+    done
+
+    echo "android:$ANDROID_BUILD ios:$IOS_BUILD docker:$DOCKER_BUILD amnezia:$AMNEZIA_BUILD"
+
+    set -eu
+}
 
 function is_android_build {
     if [ "$ANDROID_BUILD" = true ]; then
@@ -110,7 +133,7 @@ function build_windows {
         export GOARCH=amd64
         export CC="x86_64-w64-mingw32-cc"
     fi
-    
+
     echo "Building wireguard-go for Windows ($arch)"
 
     pushd libwg
@@ -268,6 +291,7 @@ function patch_darwin_goruntime {
 }
 
 function build_wireguard_go {
+    parseArgs $@
 
     if is_amnezia_build ; then
         LIB_DIR=$AMNEZIA_DIR
