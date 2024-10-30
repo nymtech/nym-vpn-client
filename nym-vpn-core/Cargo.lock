@@ -5044,6 +5044,7 @@ dependencies = [
  "base64 0.22.1",
  "hex",
  "ipnetwork",
+ "rand 0.8.5",
  "thiserror",
  "tracing",
  "x25519-dalek",

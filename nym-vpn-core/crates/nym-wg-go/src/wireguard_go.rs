@@ -12,6 +12,8 @@ use super::{
     uapi::UapiConfigBuilder, Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, PrivateKey,
     Result,
 };
+#[cfg(feature = "amnezia")]
+use crate::amnezia::AmneziaConfig;
 
 /// Classic WireGuard interface configuration.
 pub struct InterfaceConfig {
@@ -21,6 +23,7 @@ pub struct InterfaceConfig {
     #[cfg(target_os = "linux")]
     pub fwmark: Option<u32>,
     #[cfg(feature = "amnezia")]
+    /// Amnezia wireguard configuration disabled by default
     pub azwg_config: Option<AmneziaConfig>,
 }
 
@@ -33,47 +36,6 @@ impl fmt::Debug for InterfaceConfig {
         #[cfg(target_os = "linux")]
         d.field("fwmark", &self.fwmark);
         d.finish()
-    }
-}
-/// Hold Amnezia-wireguard configuration parameters.
-///
-/// All parameters should be the same between Client and Server, except Jc - it can vary.
-///
-/// - Jc — 1 ≤ Jc ≤ 128; recommended range is from 3 to 10 inclusive
-/// - Jmin — Jmin < Jmax; recommended value is 50
-/// - Jmax — Jmin < Jmax ≤ 1280; recommended value is 1000
-/// - S1 — S1 < 1280; S1 + 56 ≠ S2; recommended range is from 15 to 150 inclusive
-/// - S2 — S2 < 1280; recommended range is from 15 to 150 inclusive
-/// - H1/H2/H3/H4 — must be unique among each other;
-///     recommended range is from 5 to 2_147_483_647  (2^31 - 1   i.e. signed 32 bit int) inclusive
-#[cfg(feature = "amnezia")]
-#[derive(Debug)]
-pub struct AmneziaConfig {
-    pub junk_packet_count: i32,              // Jc
-    pub junk_packet_min_size: i32,           // Jmin
-    pub junk_packet_max_size: i32,           // Jmax
-    pub init_packet_junk_size: i32,          // S0
-    pub response_packet_junk_size: i32,      // S1
-    pub init_packet_magic_header: u32,       // H1
-    pub response_packet_magic_header: u32,   // H2
-    pub under_load_packet_magic_header: u32, // H3
-    pub transport_packet_magic_header: u32,  // H4
-}
-
-#[cfg(feature = "amnezia")]
-impl Default for AmneziaConfig {
-    fn default() -> Self {
-        Self {
-            junk_packet_count: 4_i32,
-            junk_packet_min_size: 40_i32,
-            junk_packet_max_size: 70_i32,
-            init_packet_junk_size: 0_i32,
-            response_packet_junk_size: 0_i32,
-            init_packet_magic_header: 1_u32,
-            response_packet_magic_header: 2_u32,
-            under_load_packet_magic_header: 3_u32,
-            transport_packet_magic_header: 4_u32,
-        }
     }
 }
 
@@ -99,6 +61,11 @@ impl Config {
         #[cfg(target_os = "linux")]
         if let Some(fwmark) = self.interface.fwmark {
             config_builder.add("fwmark", fwmark.to_string().as_str());
+        }
+
+        #[cfg(feature = "amnezia")]
+        if let Some(azwg_config) = &self.interface.azwg_config {
+            azwg_config.append_to(&mut config_builder);
         }
 
         if !self.peers.is_empty() {

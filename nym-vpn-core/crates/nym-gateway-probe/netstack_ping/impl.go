@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/amnezia-vpn/amneziawg-go/conn"
+	"github.com/amnezia-vpn/amneziawg-go/device"
+	"github.com/amnezia-vpn/amneziawg-go/tun/netstack"
 	"golang.org/x/net/icmp"
 	"golang.org/x/net/ipv4"
-	"golang.zx2c4.com/wireguard/conn"
-	"golang.zx2c4.com/wireguard/device"
-	"golang.zx2c4.com/wireguard/tun/netstack"
 )
 
 type Netstack struct{}
@@ -36,6 +36,10 @@ func (Netstack) ping(req NetstackRequest) NetstackResponse {
 
 	ipc.WriteString("private_key=")
 	ipc.WriteString(req.private_key)
+	if req.awg_args != "" {
+		awg := strings.ReplaceAll(req.awg_args, "\\n", "\n")
+		ipc.WriteString(fmt.Sprintf("\n%s", awg))
+	}
 	ipc.WriteString("\npublic_key=")
 	ipc.WriteString(req.public_key)
 	ipc.WriteString("\nendpoint=")
@@ -45,6 +49,13 @@ func (Netstack) ping(req NetstackRequest) NetstackResponse {
 	response := NetstackResponse{false, 0, 0, 0, 0, false}
 
 	dev.IpcSet(ipc.String())
+
+	config, err := dev.IpcGet()
+	if err != nil {
+		log.Panic(err)
+	}
+	log.Printf("%s", config)
+
 	err = dev.Up()
 	if err != nil {
 		log.Panic(err)
@@ -69,15 +80,18 @@ func (Netstack) ping(req NetstackRequest) NetstackResponse {
 
 	for _, ip := range req.ping_ips {
 		for i := uint8(0); i < req.num_ping; i++ {
-			log.Printf("Pinging %s seq=%d", ip, i)
-			response.sent_ips += 1
-			rt, err := sendPing(ip, i, req.send_timeout_sec, req.recv_timeout_sec, tnet)
-			if err != nil {
-				log.Printf("Failed to send ping: %v\n", err)
-				continue
-			}
-			response.received_ips += 1
-			log.Printf("Ping latency: %v\n", rt)
+			func() {
+				defer time.Sleep(5 * time.Second)
+				log.Printf("Pinging %s seq=%d", ip, i)
+				response.sent_ips += 1
+				rt, err := sendPing(ip, i, req.send_timeout_sec, req.recv_timeout_sec, tnet)
+				if err != nil {
+					log.Printf("Failed to send ping: %v\n", err)
+					return
+				}
+				response.received_ips += 1
+				log.Printf("Ping latency: %v\n", rt)
+			}()
 		}
 	}
 

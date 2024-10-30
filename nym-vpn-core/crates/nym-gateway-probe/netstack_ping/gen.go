@@ -38,6 +38,7 @@ typedef struct NetstackRequestRef {
   uint8_t num_ping;
   uint64_t send_timeout_sec;
   uint64_t recv_timeout_sec;
+  struct StringRef awg_args;
 } NetstackRequestRef;
 
 // hack from: https://stackoverflow.com/a/69904977
@@ -225,6 +226,7 @@ type NetstackRequest struct {
 	num_ping         uint8
 	send_timeout_sec uint64
 	recv_timeout_sec uint64
+	awg_args         string
 }
 
 func newNetstackRequest(p C.NetstackRequestRef) NetstackRequest {
@@ -239,6 +241,7 @@ func newNetstackRequest(p C.NetstackRequestRef) NetstackRequest {
 		num_ping:         newC_uint8_t(p.num_ping),
 		send_timeout_sec: newC_uint64_t(p.send_timeout_sec),
 		recv_timeout_sec: newC_uint64_t(p.recv_timeout_sec),
+		awg_args:         newString(p.awg_args),
 	}
 }
 func cntNetstackRequest(s *NetstackRequest, cnt *uint) [0]C.NetstackRequestRef {
@@ -258,6 +261,7 @@ func refNetstackRequest(p *NetstackRequest, buffer *[]byte) C.NetstackRequestRef
 		num_ping:         refC_uint8_t(&p.num_ping, buffer),
 		send_timeout_sec: refC_uint64_t(&p.send_timeout_sec, buffer),
 		recv_timeout_sec: refC_uint64_t(&p.recv_timeout_sec, buffer),
+		awg_args:         refString(&p.awg_args, buffer),
 	}
 }
 

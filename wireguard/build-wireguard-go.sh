@@ -9,7 +9,7 @@ IS_ANDROID_BUILD=false
 IS_IOS_BUILD=false
 IS_DOCKER_BUILD=true
 IS_WIN_ARM64=false
-IS_AMNEXIA_BUILD=false
+IS_AMNEZIA_BUILD=false
 
 function parseArgs {
     for arg in "$@"; do
@@ -251,7 +251,7 @@ function patch_darwin_goruntime {
 function build_wireguard_go {
     parseArgs $@
 
-    if $IS_AMNEXIA_BUILD ; then
+    if $IS_AMNEZIA_BUILD ; then
         LIB_DIR=$AMNEZIA_DIR
         echo "amnezia wireguard build enabled"
     fi
