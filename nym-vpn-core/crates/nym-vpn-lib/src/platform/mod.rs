@@ -1,6 +1,6 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
-#![cfg_attr(not(target_os = "macos"), allow(dead_code))]
+// #![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 
 #[cfg(target_os = "android")]
 pub mod android;
@@ -52,52 +52,6 @@ lazy_static! {
 #[uniffi::export]
 pub fn startVPN(config: VPNConfig) -> Result<(), VpnError> {
     RUNTIME.block_on(start_vpn_inner(config))
-}
-
-async fn get_account_command_sender() -> Result<mpsc::UnboundedSender<AccountCommand>, VpnError> {
-    if let Some(guard) = &*ACCOUNT_CONTROLLER_HANDLE.lock().await {
-        Ok(guard.command_sender.clone())
-    } else {
-        Err(VpnError::InvalidStateError {
-            details: "Account controller is not running.".to_owned(),
-        })
-    }
-}
-
-async fn send_account_command(command: AccountCommand) -> Result<(), VpnError> {
-    get_account_command_sender()
-        .await?
-        .send(command)
-        .map_err(|err| VpnError::InternalError {
-            details: err.to_string(),
-        })
-}
-
-async fn get_shared_account_state() -> Result<SharedAccountState, VpnError> {
-    if let Some(guard) = &*ACCOUNT_CONTROLLER_HANDLE.lock().await {
-        Ok(guard.shared_state.clone())
-    } else {
-        Err(VpnError::InvalidStateError {
-            details: "Account controller is not running.".to_owned(),
-        })
-    }
-}
-
-async fn is_account_ready_to_connect() -> Result<ReadyToConnect, VpnError> {
-    Ok(get_shared_account_state()
-        .await?
-        .is_ready_to_connect()
-        .await)
-}
-
-async fn assert_account_ready_to_connect() -> Result<(), VpnError> {
-    match is_account_ready_to_connect().await? {
-        ReadyToConnect::Ready => Ok(()),
-        not_ready_to_connect => {
-            tracing::warn!("Not ready to connect: {:?}", not_ready_to_connect);
-            Err(VpnError::Account(not_ready_to_connect.into()))
-        }
-    }
 }
 
 async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
@@ -447,6 +401,44 @@ async fn start_account_controller(data_dir: PathBuf) -> Result<AccountController
         handle: account_controller_handle,
         shutdown_token,
     })
+}
+
+async fn send_account_command(command: AccountCommand) -> Result<(), VpnError> {
+    if let Some(guard) = &*ACCOUNT_CONTROLLER_HANDLE.lock().await {
+        guard.send_command(command);
+        Ok(())
+    } else {
+        Err(VpnError::InvalidStateError {
+            details: "Account controller is not running.".to_owned(),
+        })
+    }
+}
+
+async fn get_shared_account_state() -> Result<SharedAccountState, VpnError> {
+    if let Some(guard) = &*ACCOUNT_CONTROLLER_HANDLE.lock().await {
+        Ok(guard.shared_state.clone())
+    } else {
+        Err(VpnError::InvalidStateError {
+            details: "Account controller is not running.".to_owned(),
+        })
+    }
+}
+
+async fn is_account_ready_to_connect() -> Result<ReadyToConnect, VpnError> {
+    Ok(get_shared_account_state()
+        .await?
+        .is_ready_to_connect()
+        .await)
+}
+
+async fn assert_account_ready_to_connect() -> Result<(), VpnError> {
+    match is_account_ready_to_connect().await? {
+        ReadyToConnect::Ready => Ok(()),
+        not_ready_to_connect => {
+            tracing::warn!("Not ready to connect: {:?}", not_ready_to_connect);
+            Err(VpnError::Account(not_ready_to_connect.into()))
+        }
+    }
 }
 
 struct StateMachineHandle {
