@@ -21,27 +21,18 @@ pub type JsonValue = Value;
 
 #[allow(dead_code)]
 #[derive(Deserialize, Serialize, AsRefStr, EnumString, EnumIter, Debug, Clone, Copy, TS)]
+#[strum(serialize_all = "snake_case")]
 #[ts(export)]
 pub enum Key {
-    #[strum(serialize = "monitoring")]
     Monitoring,
-    #[strum(serialize = "autoconnect")]
     Autoconnect,
-    #[strum(serialize = "ui_theme")]
     UiTheme,
-    #[strum(serialize = "ui_root_font_size")]
     UiRootFontSize,
-    #[strum(serialize = "ui_language")]
     UiLanguage,
-    #[strum(serialize = "vpn_mode")]
     VpnMode,
-    #[strum(serialize = "entry_node_location")]
     EntryNodeLocation,
-    #[strum(serialize = "exit_node_location")]
     ExitNodeLocation,
-    #[strum(serialize = "welcome_screen_seen")]
     WelcomeScreenSeen,
-    #[strum(serialize = "desktop_notifications")]
     DesktopNotifications,
 }
 
