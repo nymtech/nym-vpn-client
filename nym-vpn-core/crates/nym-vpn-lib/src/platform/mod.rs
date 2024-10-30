@@ -12,7 +12,7 @@ use std::{env, path::PathBuf, str::FromStr, sync::Arc};
 
 use lazy_static::lazy_static;
 use log::*;
-use nym_vpn_account_controller::{ReadyToConnect, SharedAccountState};
+use nym_vpn_account_controller::{AccountCommand, ReadyToConnect, SharedAccountState};
 use tokio::{
     runtime::Runtime,
     sync::{mpsc, Mutex},
@@ -54,6 +54,25 @@ pub fn startVPN(config: VPNConfig) -> Result<(), VpnError> {
     RUNTIME.block_on(start_vpn_inner(config))
 }
 
+async fn get_account_command_sender() -> Result<mpsc::UnboundedSender<AccountCommand>, VpnError> {
+    if let Some(guard) = &*ACCOUNT_CONTROLLER_HANDLE.lock().await {
+        Ok(guard.command_sender.clone())
+    } else {
+        Err(VpnError::InvalidStateError {
+            details: "Account controller is not running.".to_owned(),
+        })
+    }
+}
+
+async fn send_account_command(command: AccountCommand) -> Result<(), VpnError> {
+    get_account_command_sender()
+        .await?
+        .send(command)
+        .map_err(|err| VpnError::InternalError {
+            details: err.to_string(),
+        })
+}
+
 async fn get_shared_account_state() -> Result<SharedAccountState, VpnError> {
     if let Some(guard) = &*ACCOUNT_CONTROLLER_HANDLE.lock().await {
         Ok(guard.shared_state.clone())
@@ -71,7 +90,7 @@ async fn is_account_ready_to_connect() -> Result<ReadyToConnect, VpnError> {
         .await)
 }
 
-async fn check_account_ready_to_connect() -> Result<(), VpnError> {
+async fn assert_account_ready_to_connect() -> Result<(), VpnError> {
     match is_account_ready_to_connect().await? {
         ReadyToConnect::Ready => Ok(()),
         not_ready_to_connect => {
@@ -86,7 +105,7 @@ async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
     // We want to move this check into the state machine so that it happens during the connecting
     // state instead. This would allow us more flexibility in waiting for the account to be ready
     // and handle errors in a unified manner.
-    check_account_ready_to_connect().await?;
+    assert_account_ready_to_connect().await?;
 
     let mut guard = STATE_MACHINE_HANDLE.lock().await;
 
@@ -204,6 +223,9 @@ pub fn storeAccountMnemonic(mnemonic: String, path: String) -> Result<(), VpnErr
 }
 
 async fn store_account_mnemonic(mnemonic: &str, path: &str) -> Result<(), VpnError> {
+    // TODO: store the mnemonic by sending a command to the account controller instead of directly
+    // interacting with the storage.
+
     let storage = setup_account_storage(path)?;
 
     let mnemonic = nym_vpn_store::mnemonic::Mnemonic::parse(mnemonic).map_err(|err| {
@@ -219,6 +241,8 @@ async fn store_account_mnemonic(mnemonic: &str, path: &str) -> Result<(), VpnErr
             details: err.to_string(),
         })?;
 
+    send_account_command(AccountCommand::UpdateSharedAccountState).await?;
+
     Ok(())
 }
 
@@ -229,6 +253,9 @@ pub fn isAccountMnemonicStored(path: String) -> Result<bool, VpnError> {
 }
 
 async fn is_account_mnemonic_stored(path: &str) -> Result<bool, VpnError> {
+    // TODO: query the mnemonic by sending a command to the account controller instead of directly
+    // interacting with the storage.
+
     let storage = setup_account_storage(path)?;
     storage
         .is_mnemonic_stored()
@@ -245,14 +272,22 @@ pub fn removeAccountMnemonic(path: String) -> Result<bool, VpnError> {
 }
 
 async fn remove_account_mnemonic(path: &str) -> Result<bool, VpnError> {
+    // TODO: remove the mnemonic by sending a command to the account controller instead of directly
+    // interacting with the storage.
+
     let storage = setup_account_storage(path)?;
-    storage
-        .remove_mnemonic()
-        .await
-        .map(|_| true)
-        .map_err(|err| VpnError::InternalError {
-            details: err.to_string(),
-        })
+    let is_account_removed_success =
+        storage
+            .remove_mnemonic()
+            .await
+            .map(|_| true)
+            .map_err(|err| VpnError::InternalError {
+                details: err.to_string(),
+            })?;
+
+    send_account_command(AccountCommand::UpdateSharedAccountState).await?;
+
+    Ok(is_account_removed_success)
 }
 
 #[allow(non_snake_case)]
@@ -261,16 +296,9 @@ pub fn getAccountSummary() -> Result<AccountStateSummary, VpnError> {
 }
 
 async fn get_account_summary() -> Result<AccountStateSummary, VpnError> {
-    let guard = ACCOUNT_CONTROLLER_HANDLE.lock().await;
-
-    if let Some(guard) = &*guard {
-        let shared_account_state = guard.shared_state.lock().await.clone();
-        Ok(AccountStateSummary::from(shared_account_state))
-    } else {
-        Err(VpnError::InvalidStateError {
-            details: "Account controller is not running.".to_owned(),
-        })
-    }
+    let shared_account_state = get_shared_account_state().await?;
+    let account_state_summary = shared_account_state.lock().await.clone();
+    Ok(AccountStateSummary::from(account_state_summary))
 }
 
 #[allow(non_snake_case)]
@@ -371,14 +399,14 @@ pub trait TunnelStatusListener: Send + Sync {
 }
 
 struct AccountControllerHandle {
-    command_sender: mpsc::UnboundedSender<nym_vpn_account_controller::AccountCommand>,
+    command_sender: mpsc::UnboundedSender<AccountCommand>,
     shared_state: nym_vpn_account_controller::SharedAccountState,
     handle: JoinHandle<()>,
     shutdown_token: CancellationToken,
 }
 
 impl AccountControllerHandle {
-    fn send_command(&self, command: nym_vpn_account_controller::AccountCommand) {
+    fn send_command(&self, command: AccountCommand) {
         if let Err(e) = self.command_sender.send(command) {
             tracing::error!("Failed to send comamnd: {}", e);
         }
