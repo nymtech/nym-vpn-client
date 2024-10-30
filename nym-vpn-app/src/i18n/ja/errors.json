@@ -75,10 +75,19 @@
   },
   "daemon": {
     "not-connected": "デーモンに接続されていません",
-    "internal": "デーモン内部エラー"
+    "internal": "デーモン内部エラー",
+    "invalid-network": "無効なネットワーク"
   },
   "entry-node-routing": "エントリーノードがトラフィックをルーティングしていません（インターネット接続がダウンしている可能性があります）",
   "account": {
-    "invalid-recovery-phrase": "無効なリカバリーフレーズ"
+    "invalid-recovery-phrase": "無効なリカバリーフレーズ",
+    "not-active": "アカウントはアクティブではありません",
+    "no-active-subscription": "アカウントにはアクティブなサブスクリプションがありません",
+    "device": {
+      "not-active": "デバイスはアクティブではありません",
+      "not-registered": "デバイスが登録されていません"
+    },
+    "storage": "ストレージバックエンドエラー",
+    "no-account-stored": "アカウントのリカバリーフレーズが保存されていません"
   }
 }
