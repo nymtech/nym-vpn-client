@@ -10,54 +10,56 @@ use tokio_util::sync::CancellationToken;
 use tun::AsyncDevice;
 
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-use crate::tunnel_state_machine::dns_handler::DnsHandler;
+use crate::tunnel_state_machine::dns_handler::DnsHandlerHandle;
 
 use crate::tunnel_state_machine::{
     states::{ConnectingState, DisconnectedState, ErrorState},
-    tunnel::any_tunnel_handle::AnyTunnelHandle,
-    ActionAfterDisconnect, NextTunnelState, SharedState, TunnelCommand, TunnelState,
+    tunnel_monitor::TunnelMonitorHandle,
+    NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState, TunnelCommand,
     TunnelStateHandler,
 };
 
 type WaitHandle = JoinHandle<Option<Vec<AsyncDevice>>>;
 
 pub struct DisconnectingState {
-    after_disconnect: ActionAfterDisconnect,
+    after_disconnect: PrivateActionAfterDisconnect,
+    retry_attempt: u32,
     wait_handle: Fuse<WaitHandle>,
 }
 
 impl DisconnectingState {
     pub fn enter(
-        after_disconnect: ActionAfterDisconnect,
-        mut tunnel_handle: Option<AnyTunnelHandle>,
+        after_disconnect: PrivateActionAfterDisconnect,
+        monitor_handle: TunnelMonitorHandle,
         shared_state: &mut SharedState,
-    ) -> (Box<dyn TunnelStateHandler>, TunnelState) {
-        if let Some(tunnel_handle) = tunnel_handle.as_mut() {
-            tunnel_handle.cancel();
-        }
-
+    ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         // It's safe to abort status listener as it's stateless.
         if let Some(status_listener_handle) = shared_state.status_listener_handle.take() {
             status_listener_handle.abort();
         }
 
         let wait_handle = tokio::spawn(async move {
-            tunnel_handle?
-                .wait()
-                .await
-                .inspect_err(|e| {
-                    tracing::error!("Tunnel exited with error: {}", e);
-                })
-                .ok()
+            monitor_handle.cancel();
+            monitor_handle.wait().await;
+            // TODO: return async devices?
+            Some(vec![])
         })
         .fuse();
 
+        let retry_attempt =
+            if let PrivateActionAfterDisconnect::Reconnect { retry_attempt } = &after_disconnect {
+                *retry_attempt
+            } else {
+                0
+            };
+
         (
             Box::new(Self {
-                after_disconnect,
+                after_disconnect: after_disconnect.clone(),
+                retry_attempt,
                 wait_handle,
             }),
-            TunnelState::Disconnecting { after_disconnect },
+            PrivateTunnelState::Disconnecting { after_disconnect },
         )
     }
 
@@ -71,7 +73,11 @@ impl DisconnectingState {
         match result {
             Ok(Some(tun_devices)) => {
                 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-                if let Err(e) = _shared_state.dns_handler.reset_before_interface_removal() {
+                if let Err(e) = _shared_state
+                    .dns_handler
+                    .reset_before_interface_removal()
+                    .await
+                {
                     tracing::error!("Failed to reset dns before interface removal: {}", e);
                 }
                 tracing::debug!("Closing tunnel {} device(s).", tun_devices.len());
@@ -79,12 +85,12 @@ impl DisconnectingState {
             }
             Ok(None) => {
                 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-                Self::reset_dns(&mut _shared_state.dns_handler);
+                Self::reset_dns(&mut _shared_state.dns_handler).await;
                 tracing::debug!("Tunnel device has already been closed.");
             }
             Err(e) => {
                 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-                Self::reset_dns(&mut _shared_state.dns_handler);
+                Self::reset_dns(&mut _shared_state.dns_handler).await;
                 tracing::error!("Failed to join on tunnel handle: {}", e);
             }
         }
@@ -95,8 +101,8 @@ impl DisconnectingState {
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-    fn reset_dns(dns_handler: &mut DnsHandler) {
-        if let Err(e) = dns_handler.reset() {
+    async fn reset_dns(dns_handler: &mut DnsHandlerHandle) {
+        if let Err(e) = dns_handler.reset().await {
             tracing::error!("Failed to reset dns: {}", e);
         }
     }
@@ -122,22 +128,22 @@ impl TunnelStateHandler for DisconnectingState {
                 Self::on_tunnel_exit(result, shared_state).await;
 
                 match self.after_disconnect {
-                    ActionAfterDisconnect::Nothing => NextTunnelState::NewState(DisconnectedState::enter()),
-                    ActionAfterDisconnect::Error(reason) => {
+                    PrivateActionAfterDisconnect::Nothing => NextTunnelState::NewState(DisconnectedState::enter()),
+                    PrivateActionAfterDisconnect::Error(reason) => {
                         NextTunnelState::NewState(ErrorState::enter(reason))
-                    }
-                    ActionAfterDisconnect::Reconnect => {
-                        NextTunnelState::NewState(ConnectingState::enter(shared_state))
+                    },
+                    PrivateActionAfterDisconnect::Reconnect { retry_attempt } => {
+                        NextTunnelState::NewState(ConnectingState::enter(retry_attempt, None, shared_state))
                     }
                 }
             }
             Some(command) = command_rx.recv() => {
                 match command {
                     TunnelCommand::Connect => {
-                        self.after_disconnect = ActionAfterDisconnect::Reconnect;
+                        self.after_disconnect = PrivateActionAfterDisconnect::Reconnect { retry_attempt: self.retry_attempt };
                     },
                     TunnelCommand::Disconnect => {
-                        self.after_disconnect = ActionAfterDisconnect::Nothing;
+                        self.after_disconnect = PrivateActionAfterDisconnect::Nothing;
                     }
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
                         shared_state.tunnel_settings = tunnel_settings;

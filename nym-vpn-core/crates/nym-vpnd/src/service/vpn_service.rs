@@ -11,7 +11,7 @@ use std::{
 use bip39::Mnemonic;
 use nym_vpn_network_config::{NymNetwork, NymVpnNetwork};
 use serde::{Deserialize, Serialize};
-use time::format_description::well_known::Rfc3339;
+use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use tokio::{
     sync::{broadcast, mpsc, oneshot},
     task::JoinHandle,
@@ -191,7 +191,8 @@ impl From<ConnectionData> for ConnectedResultDetails {
             entry_gateway: *value.entry_gateway,
             exit_gateway: *value.exit_gateway,
             specific_details: ConnectedStateDetails::from(value.tunnel),
-            since: value.connected_at,
+            // FIXME: this cannot be mapped correctly
+            since: value.connected_at.unwrap_or(OffsetDateTime::now_utc()),
         }
     }
 }
@@ -232,10 +233,13 @@ impl From<TunnelState> for VpnServiceStatus {
                     entry_gateway: *connection_data.entry_gateway,
                     exit_gateway: *connection_data.exit_gateway,
                     specific_details: ConnectedStateDetails::from(connection_data.tunnel),
-                    since: connection_data.connected_at,
+                    // FIXME: impossible to map this correctly
+                    since: connection_data
+                        .connected_at
+                        .unwrap_or(OffsetDateTime::now_utc()),
                 }))
             }
-            TunnelState::Connecting => Self::Connecting,
+            TunnelState::Connecting { .. } => Self::Connecting,
             TunnelState::Disconnected => Self::NotConnected,
             TunnelState::Disconnecting { .. } => Self::Disconnecting,
             TunnelState::Error(e) => Self::ConnectionFailed(ConnectionFailedError::InternalError(
@@ -309,7 +313,7 @@ pub enum VpnServiceStateChange {
 impl From<TunnelState> for VpnServiceStateChange {
     fn from(value: TunnelState) -> Self {
         match value {
-            TunnelState::Connecting => Self::Connecting,
+            TunnelState::Connecting { .. } => Self::Connecting,
             TunnelState::Connected { .. } => Self::Connected,
             TunnelState::Disconnected => Self::NotConnected,
             TunnelState::Disconnecting { .. } => Self::Disconnecting,

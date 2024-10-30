@@ -1,19 +1,23 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{fmt, net::IpAddr};
+use std::net::IpAddr;
 
 use nym_dns::{DnsConfig, DnsMonitor};
+use tokio::{
+    sync::{mpsc, oneshot},
+    task::JoinHandle,
+};
 
 #[cfg(target_os = "linux")]
 use super::route_handler::RouteHandler;
 
-pub struct DnsHandler {
+struct DnsHandler {
     inner: DnsMonitor,
 }
 
 impl DnsHandler {
-    pub async fn new(#[cfg(target_os = "linux")] route_handler: &RouteHandler) -> Result<Self> {
+    fn new(#[cfg(target_os = "linux")] route_handler: &RouteHandler) -> Result<Self> {
         Ok(Self {
             inner: DnsMonitor::new(
                 #[cfg(target_os = "linux")]
@@ -24,7 +28,7 @@ impl DnsHandler {
         })
     }
 
-    pub fn set(&mut self, interface: &str, servers: &[IpAddr]) -> Result<()> {
+    pub fn set(&mut self, interface: &str, servers: &[IpAddr]) -> Result<(), nym_dns::Error> {
         Ok(tokio::task::block_in_place(|| {
             let dns_config = DnsConfig::default().resolve(servers);
 
@@ -32,43 +36,121 @@ impl DnsHandler {
         })?)
     }
 
-    pub fn reset(&mut self) -> Result<()> {
+    pub fn reset(&mut self) -> Result<(), nym_dns::Error> {
         Ok(tokio::task::block_in_place(|| self.inner.reset())?)
     }
 
-    pub fn reset_before_interface_removal(&mut self) -> Result<()> {
+    pub fn reset_before_interface_removal(&mut self) -> Result<(), nym_dns::Error> {
         Ok(tokio::task::block_in_place(|| {
             self.inner.reset_before_interface_removal()
         })?)
     }
 }
 
-#[derive(Debug)]
-pub struct Error {
-    inner: Box<dyn std::error::Error + 'static>,
+enum DnsHandlerCommand {
+    Set {
+        interface: String,
+        servers: Vec<IpAddr>,
+        reply_tx: oneshot::Sender<Result<(), nym_dns::Error>>,
+    },
+    Reset {
+        reply_tx: oneshot::Sender<Result<(), nym_dns::Error>>,
+    },
+    ResetBeforeInterfaceRemoval {
+        reply_tx: oneshot::Sender<Result<(), nym_dns::Error>>,
+    },
 }
 
-unsafe impl Send for Error {}
-unsafe impl Sync for Error {}
+#[derive(Debug, Clone)]
+pub struct DnsHandlerHandle {
+    tx: mpsc::UnboundedSender<DnsHandlerCommand>,
+}
 
-impl std::error::Error for Error {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(self.inner.as_ref())
+impl DnsHandlerHandle {
+    pub fn spawn(
+        #[cfg(target_os = "linux")] route_handler: &RouteHandler,
+    ) -> Result<(Self, JoinHandle<()>)> {
+        let mut dns_handler = DnsHandler::new(
+            #[cfg(target_os = "linux")]
+            route_handler,
+        )?;
+
+        let (tx, mut rx) = mpsc::unbounded_channel();
+        let join_handle = tokio::spawn(async move {
+            while let Some(command) = rx.recv().await {
+                tokio::task::block_in_place(|| match command {
+                    DnsHandlerCommand::Set {
+                        interface,
+                        servers,
+                        reply_tx,
+                    } => {
+                        _ = reply_tx.send(dns_handler.set(&interface, &servers));
+                    }
+                    DnsHandlerCommand::Reset { reply_tx } => {
+                        _ = reply_tx.send(dns_handler.reset());
+                    }
+                    DnsHandlerCommand::ResetBeforeInterfaceRemoval { reply_tx } => {
+                        _ = reply_tx.send(dns_handler.reset_before_interface_removal());
+                    }
+                })
+            }
+        });
+
+        Ok((Self { tx }, join_handle))
+    }
+
+    pub async fn set(&mut self, interface: String, servers: Vec<IpAddr>) -> Result<()> {
+        let (reply_tx, reply_rx) = oneshot::channel();
+
+        self.send_and_wait(
+            DnsHandlerCommand::Set {
+                interface,
+                servers,
+                reply_tx,
+            },
+            reply_rx,
+        )
+        .await
+    }
+
+    pub async fn reset(&mut self) -> Result<()> {
+        let (reply_tx, reply_rx) = oneshot::channel();
+
+        self.send_and_wait(DnsHandlerCommand::Reset { reply_tx }, reply_rx)
+            .await
+    }
+
+    pub async fn reset_before_interface_removal(&mut self) -> Result<()> {
+        let (reply_tx, reply_rx) = oneshot::channel();
+
+        self.send_and_wait(
+            DnsHandlerCommand::ResetBeforeInterfaceRemoval { reply_tx },
+            reply_rx,
+        )
+        .await
+    }
+
+    async fn send_and_wait<T>(
+        &self,
+        command: DnsHandlerCommand,
+        reply_rx: oneshot::Receiver<Result<T, nym_dns::Error>>,
+    ) -> Result<T> {
+        _ = self.tx.send(command).map_err(|_| Error::ChannelClosed)?;
+
+        reply_rx
+            .await
+            .map_err(|_| Error::ChannelClosed)?
+            .map_err(Error::DnsMonitor)
     }
 }
 
-impl From<nym_dns::Error> for Error {
-    fn from(value: nym_dns::Error) -> Self {
-        Self {
-            inner: Box::new(value),
-        }
-    }
-}
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[error("Dns monitor error: {_0}")]
+    DnsMonitor(#[from] nym_dns::Error),
 
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "DNS error")
-    }
+    #[error("Dns monitor is already down")]
+    ChannelClosed,
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
