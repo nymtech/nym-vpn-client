@@ -12,7 +12,7 @@ use std::{env, path::PathBuf, str::FromStr, sync::Arc};
 
 use lazy_static::lazy_static;
 use log::*;
-use nym_vpn_account_controller::ReadyToConnect;
+use nym_vpn_account_controller::{ReadyToConnect, SharedAccountState};
 use tokio::{
     runtime::Runtime,
     sync::{mpsc, Mutex},
@@ -54,30 +54,39 @@ pub fn startVPN(config: VPNConfig) -> Result<(), VpnError> {
     RUNTIME.block_on(start_vpn_inner(config))
 }
 
-async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
-    let shared_account_state = {
-        let ac_guard = ACCOUNT_CONTROLLER_HANDLE.lock().await;
+async fn get_shared_account_state() -> Result<SharedAccountState, VpnError> {
+    if let Some(guard) = &*ACCOUNT_CONTROLLER_HANDLE.lock().await {
+        Ok(guard.shared_state.clone())
+    } else {
+        Err(VpnError::InvalidStateError {
+            details: "Account controller is not running.".to_owned(),
+        })
+    }
+}
 
-        if let Some(ac_guard) = &*ac_guard {
-            ac_guard.shared_state.clone()
-        } else {
-            return Err(VpnError::InvalidStateError {
-                details: "Account controller is not running.".to_owned(),
-            });
+async fn is_account_ready_to_connect() -> Result<ReadyToConnect, VpnError> {
+    Ok(get_shared_account_state()
+        .await?
+        .is_ready_to_connect()
+        .await)
+}
+
+async fn check_account_ready_to_connect() -> Result<(), VpnError> {
+    match is_account_ready_to_connect().await? {
+        ReadyToConnect::Ready => Ok(()),
+        not_ready_to_connect => {
+            tracing::warn!("Not ready to connect: {:?}", not_ready_to_connect);
+            Err(VpnError::Account(not_ready_to_connect.into()))
         }
-    };
+    }
+}
 
+async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
     // TODO: we do a pre-connect check here. This mirrors the logic in the daemon.
     // We want to move this check into the state machine so that it happens during the connecting
     // state instead. This would allow us more flexibility in waiting for the account to be ready
     // and handle errors in a unified manner.
-    match shared_account_state.is_ready_to_connect().await {
-        ReadyToConnect::Ready => {}
-        not_ready_to_connect => {
-            tracing::warn!("Not ready to connect: {:?}", not_ready_to_connect);
-            return Err(VpnError::Account(not_ready_to_connect.into()));
-        }
-    }
+    check_account_ready_to_connect().await?;
 
     let mut guard = STATE_MACHINE_HANDLE.lock().await;
 
