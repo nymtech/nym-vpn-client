@@ -68,6 +68,7 @@ nym-authenticator-client = { path = "../nym-authenticator-client" }
 nym-connection-monitor = { path = "../nym-connection-monitor" }
 nym-gateway-directory = { path = "../nym-gateway-directory" }
 nym-ip-packet-client = { path = "../nym-ip-packet-client" }
+nym-vpn-account-controller = { path = "../nym-vpn-account-controller" }
 nym-vpn-api-client = { path = "../nym-vpn-api-client" }
 nym-vpn-network-config = { path = "../nym-vpn-network-config" }
 nym-vpn-store = { path = "../nym-vpn-store" }

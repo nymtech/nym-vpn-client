@@ -1042,6 +1042,87 @@ public func FfiConverterTypeTunnelStatusListener_lower(_ value: TunnelStatusList
 }
 
 
+public struct AccountStateSummary {
+    public var mnemonic: MnemonicState?
+    public var account: AccountState?
+    public var subscription: SubscriptionState?
+    public var device: DeviceState?
+    public var pendingZkNym: Bool
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(mnemonic: MnemonicState?, account: AccountState?, subscription: SubscriptionState?, device: DeviceState?, pendingZkNym: Bool) {
+        self.mnemonic = mnemonic
+        self.account = account
+        self.subscription = subscription
+        self.device = device
+        self.pendingZkNym = pendingZkNym
+    }
+}
+
+
+
+extension AccountStateSummary: Equatable, Hashable {
+    public static func ==(lhs: AccountStateSummary, rhs: AccountStateSummary) -> Bool {
+        if lhs.mnemonic != rhs.mnemonic {
+            return false
+        }
+        if lhs.account != rhs.account {
+            return false
+        }
+        if lhs.subscription != rhs.subscription {
+            return false
+        }
+        if lhs.device != rhs.device {
+            return false
+        }
+        if lhs.pendingZkNym != rhs.pendingZkNym {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(mnemonic)
+        hasher.combine(account)
+        hasher.combine(subscription)
+        hasher.combine(device)
+        hasher.combine(pendingZkNym)
+    }
+}
+
+
+public struct FfiConverterTypeAccountStateSummary: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AccountStateSummary {
+        return
+            try AccountStateSummary(
+                mnemonic: FfiConverterOptionTypeMnemonicState.read(from: &buf), 
+                account: FfiConverterOptionTypeAccountState.read(from: &buf), 
+                subscription: FfiConverterOptionTypeSubscriptionState.read(from: &buf), 
+                device: FfiConverterOptionTypeDeviceState.read(from: &buf), 
+                pendingZkNym: FfiConverterBool.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: AccountStateSummary, into buf: inout [UInt8]) {
+        FfiConverterOptionTypeMnemonicState.write(value.mnemonic, into: &buf)
+        FfiConverterOptionTypeAccountState.write(value.account, into: &buf)
+        FfiConverterOptionTypeSubscriptionState.write(value.subscription, into: &buf)
+        FfiConverterOptionTypeDeviceState.write(value.device, into: &buf)
+        FfiConverterBool.write(value.pendingZkNym, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeAccountStateSummary_lift(_ buf: RustBuffer) throws -> AccountStateSummary {
+    return try FfiConverterTypeAccountStateSummary.lift(buf)
+}
+
+public func FfiConverterTypeAccountStateSummary_lower(_ value: AccountStateSummary) -> RustBuffer {
+    return FfiConverterTypeAccountStateSummary.lower(value)
+}
+
+
 public struct ChainDetails {
     public var bech32AccountPrefix: String
     public var mixDenom: DenomDetails
@@ -2706,6 +2787,158 @@ public func FfiConverterTypeWireguardNode_lower(_ value: WireguardNode) -> RustB
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
+public enum AccountError {
+    
+    case ready
+    case noAccountStored
+    case accountNotActive
+    case noActiveSubscription
+    case deviceNotRegistered
+    case deviceNotActive
+}
+
+
+public struct FfiConverterTypeAccountError: FfiConverterRustBuffer {
+    typealias SwiftType = AccountError
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AccountError {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .ready
+        
+        case 2: return .noAccountStored
+        
+        case 3: return .accountNotActive
+        
+        case 4: return .noActiveSubscription
+        
+        case 5: return .deviceNotRegistered
+        
+        case 6: return .deviceNotActive
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: AccountError, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .ready:
+            writeInt(&buf, Int32(1))
+        
+        
+        case .noAccountStored:
+            writeInt(&buf, Int32(2))
+        
+        
+        case .accountNotActive:
+            writeInt(&buf, Int32(3))
+        
+        
+        case .noActiveSubscription:
+            writeInt(&buf, Int32(4))
+        
+        
+        case .deviceNotRegistered:
+            writeInt(&buf, Int32(5))
+        
+        
+        case .deviceNotActive:
+            writeInt(&buf, Int32(6))
+        
+        }
+    }
+}
+
+
+public func FfiConverterTypeAccountError_lift(_ buf: RustBuffer) throws -> AccountError {
+    return try FfiConverterTypeAccountError.lift(buf)
+}
+
+public func FfiConverterTypeAccountError_lower(_ value: AccountError) -> RustBuffer {
+    return FfiConverterTypeAccountError.lower(value)
+}
+
+
+
+extension AccountError: Equatable, Hashable {}
+
+
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
+public enum AccountState {
+    
+    case notRegistered
+    case inactive
+    case active
+    case deleteMe
+}
+
+
+public struct FfiConverterTypeAccountState: FfiConverterRustBuffer {
+    typealias SwiftType = AccountState
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AccountState {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .notRegistered
+        
+        case 2: return .inactive
+        
+        case 3: return .active
+        
+        case 4: return .deleteMe
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: AccountState, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .notRegistered:
+            writeInt(&buf, Int32(1))
+        
+        
+        case .inactive:
+            writeInt(&buf, Int32(2))
+        
+        
+        case .active:
+            writeInt(&buf, Int32(3))
+        
+        
+        case .deleteMe:
+            writeInt(&buf, Int32(4))
+        
+        }
+    }
+}
+
+
+public func FfiConverterTypeAccountState_lift(_ buf: RustBuffer) throws -> AccountState {
+    return try FfiConverterTypeAccountState.lift(buf)
+}
+
+public func FfiConverterTypeAccountState_lower(_ value: AccountState) -> RustBuffer {
+    return FfiConverterTypeAccountState.lower(value)
+}
+
+
+
+extension AccountState: Equatable, Hashable {}
+
+
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
 public enum ActionAfterDisconnect {
     
     case nothing
@@ -3061,6 +3294,75 @@ public func FfiConverterTypeConnectionStatus_lower(_ value: ConnectionStatus) ->
 
 
 extension ConnectionStatus: Equatable, Hashable {}
+
+
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
+public enum DeviceState {
+    
+    case notRegistered
+    case inactive
+    case active
+    case deleteMe
+}
+
+
+public struct FfiConverterTypeDeviceState: FfiConverterRustBuffer {
+    typealias SwiftType = DeviceState
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> DeviceState {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .notRegistered
+        
+        case 2: return .inactive
+        
+        case 3: return .active
+        
+        case 4: return .deleteMe
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: DeviceState, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .notRegistered:
+            writeInt(&buf, Int32(1))
+        
+        
+        case .inactive:
+            writeInt(&buf, Int32(2))
+        
+        
+        case .active:
+            writeInt(&buf, Int32(3))
+        
+        
+        case .deleteMe:
+            writeInt(&buf, Int32(4))
+        
+        }
+    }
+}
+
+
+public func FfiConverterTypeDeviceState_lift(_ buf: RustBuffer) throws -> DeviceState {
+    return try FfiConverterTypeDeviceState.lift(buf)
+}
+
+public func FfiConverterTypeDeviceState_lower(_ value: DeviceState) -> RustBuffer {
+    return FfiConverterTypeDeviceState.lower(value)
+}
+
+
+
+extension DeviceState: Equatable, Hashable {}
 
 
 
@@ -3657,6 +3959,61 @@ extension MixnetEvent: Equatable, Hashable {}
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
+public enum MnemonicState {
+    
+    case notStored
+    case stored
+}
+
+
+public struct FfiConverterTypeMnemonicState: FfiConverterRustBuffer {
+    typealias SwiftType = MnemonicState
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> MnemonicState {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .notStored
+        
+        case 2: return .stored
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: MnemonicState, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .notStored:
+            writeInt(&buf, Int32(1))
+        
+        
+        case .stored:
+            writeInt(&buf, Int32(2))
+        
+        }
+    }
+}
+
+
+public func FfiConverterTypeMnemonicState_lift(_ buf: RustBuffer) throws -> MnemonicState {
+    return try FfiConverterTypeMnemonicState.lift(buf)
+}
+
+public func FfiConverterTypeMnemonicState_lower(_ value: MnemonicState) -> RustBuffer {
+    return FfiConverterTypeMnemonicState.lower(value)
+}
+
+
+
+extension MnemonicState: Equatable, Hashable {}
+
+
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
 public enum NymVpnStatus {
     
     case mixConnectInfo(mixConnectionInfo: MixConnectionInfo, mixExitConnectionInfo: MixExitConnectionInfo
@@ -3811,6 +4168,75 @@ public func FfiConverterTypeOSPathStatus_lower(_ value: OsPathStatus) -> RustBuf
 
 
 extension OsPathStatus: Equatable, Hashable {}
+
+
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
+public enum SubscriptionState {
+    
+    case notActive
+    case pending
+    case complete
+    case active
+}
+
+
+public struct FfiConverterTypeSubscriptionState: FfiConverterRustBuffer {
+    typealias SwiftType = SubscriptionState
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SubscriptionState {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .notActive
+        
+        case 2: return .pending
+        
+        case 3: return .complete
+        
+        case 4: return .active
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: SubscriptionState, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .notActive:
+            writeInt(&buf, Int32(1))
+        
+        
+        case .pending:
+            writeInt(&buf, Int32(2))
+        
+        
+        case .complete:
+            writeInt(&buf, Int32(3))
+        
+        
+        case .active:
+            writeInt(&buf, Int32(4))
+        
+        }
+    }
+}
+
+
+public func FfiConverterTypeSubscriptionState_lift(_ buf: RustBuffer) throws -> SubscriptionState {
+    return try FfiConverterTypeSubscriptionState.lift(buf)
+}
+
+public func FfiConverterTypeSubscriptionState_lower(_ value: SubscriptionState) -> RustBuffer {
+    return FfiConverterTypeSubscriptionState.lower(value)
+}
+
+
+
+extension SubscriptionState: Equatable, Hashable {}
 
 
 
@@ -4168,6 +4594,8 @@ public enum VpnError {
     case OutOfBandwidth
     case InvalidStateError(details: String
     )
+    case Account(AccountError
+    )
 }
 
 
@@ -4196,6 +4624,9 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
         case 5: return .OutOfBandwidth
         case 6: return .InvalidStateError(
             details: try FfiConverterString.read(from: &buf)
+            )
+        case 7: return .Account(
+            : try FfiConverterTypeAccountError.read(from: &buf)
             )
 
          default: throw UniffiInternalError.unexpectedEnumCase
@@ -4236,6 +4667,11 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
         case let .InvalidStateError(details):
             writeInt(&buf, Int32(6))
             FfiConverterString.write(details, into: &buf)
+            
+        
+        case let .Account():
+            writeInt(&buf, Int32(7))
+            FfiConverterTypeAccountError.write(, into: &buf)
             
         }
     }
@@ -4430,6 +4866,90 @@ fileprivate struct FfiConverterOptionTypeUserAgent: FfiConverterRustBuffer {
         switch try readInt(&buf) as Int8 {
         case 0: return nil
         case 1: return try FfiConverterTypeUserAgent.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionTypeAccountState: FfiConverterRustBuffer {
+    typealias SwiftType = AccountState?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeAccountState.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeAccountState.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionTypeDeviceState: FfiConverterRustBuffer {
+    typealias SwiftType = DeviceState?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeDeviceState.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeDeviceState.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionTypeMnemonicState: FfiConverterRustBuffer {
+    typealias SwiftType = MnemonicState?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeMnemonicState.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeMnemonicState.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionTypeSubscriptionState: FfiConverterRustBuffer {
+    typealias SwiftType = SubscriptionState?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeSubscriptionState.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeSubscriptionState.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }
@@ -5395,6 +5915,12 @@ public func fetchEnvironment(networkName: String)throws  -> NetworkEnvironment {
     )
 })
 }
+public func getAccountSummary()throws  -> AccountStateSummary {
+    return try  FfiConverterTypeAccountStateSummary.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_getaccountsummary($0
+    )
+})
+}
 public func getGatewayCountries(apiUrl: Url, nymVpnApiUrl: Url?, gwType: GatewayType, userAgent: UserAgent?, minGatewayPerformance: GatewayMinPerformance?)throws  -> [Location] {
     return try  FfiConverterSequenceTypeLocation.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_getgatewaycountries(
@@ -5434,9 +5960,20 @@ public func removeAccountMnemonic(path: String)throws  -> Bool {
     )
 })
 }
+public func startAccountController(dataDir: String)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_startaccountcontroller(
+        FfiConverterString.lower(dataDir),$0
+    )
+}
+}
 public func startVpn(config: VpnConfig)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_startvpn(
         FfiConverterTypeVPNConfig.lower(config),$0
+    )
+}
+}
+public func stopAccountController()throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_stopaccountcontroller($0
     )
 }
 }
@@ -5471,6 +6008,9 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_func_fetchenvironment() != 34561) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_nym_vpn_lib_checksum_func_getaccountsummary() != 13465) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 41607) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -5486,7 +6026,13 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_func_removeaccountmnemonic() != 51019) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_nym_vpn_lib_checksum_func_startaccountcontroller() != 34257) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_nym_vpn_lib_checksum_func_startvpn() != 55890) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_stopaccountcontroller() != 64683) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_stopvpn() != 59823) {
