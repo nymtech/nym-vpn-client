@@ -80,16 +80,6 @@ private extension SettingsViewModel {
 //                    action: {}
 //                ),
                 SettingsListItemViewModel(
-                    accessory: .toggle(
-                        viewModel: ToggleViewModel(isOn: appSettings.isEntryLocationSelectionOn) { [weak self] isOn in
-                            self?.appSettings.isEntryLocationSelectionOn = isOn
-                        }
-                    ),
-                    title: "entryLocationTitle".localizedString,
-                    imageName: "entryHop",
-                    action: {}
-                ),
-                SettingsListItemViewModel(
                     accessory: .arrow,
                     title: "logs".localizedString,
                     imageName: "logs",
