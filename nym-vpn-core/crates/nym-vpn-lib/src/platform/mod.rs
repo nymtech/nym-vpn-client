@@ -74,10 +74,8 @@ async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
     match shared_account_state.is_ready_to_connect().await {
         ReadyToConnect::Ready => {}
         not_ready_to_connect => {
-            tracing::info!("Not ready to connect: {:?}", not_ready_to_connect);
-            return Err(VpnError::Account {
-                details: not_ready_to_connect.to_string(),
-            });
+            tracing::warn!("Not ready to connect: {:?}", not_ready_to_connect);
+            return Err(VpnError::Account(not_ready_to_connect.into()));
         }
     }
 
