@@ -10,34 +10,24 @@ IS_IOS_BUILD=false
 IS_DOCKER_BUILD=true
 
 function parseArgs {
-    if stringContain "Darwin" "$(uname -s)"; then
-        # Mac builds require gnu-getopt because regular macos getopt doesn't allow long args. -_-
-        # This could be avoided using something like `getopts` instead, but then we don't
-        # have the ability to use long options which pre-date this script change.
-        # > brew install gnu-getopt
-        echo "using gnu-getopt"
-        export PATH="/opt/homebrew/opt/gnu-getopt/bin:$PATH"
-    fi
-
-    which getopt
-    TEMP=$(getopt -o --long android,no-docker,ios \
-                  -n 'build-wireguard-go.sh' -- "$@")
-
-    if [ $? != 0 ]; then
-        echo "encountered an error parsing args"
-        exit 2
-    fi
-
-    # Note the quotes around '$TEMP': they are essential!
-    eval set -- "$TEMP"
-
-    while true; do
-      case "$1" in
-        "--android" ) IS_ANDROID_BUILD=true; shift ;;
-        "--ios" ) IS_IOS_BUILD=true; shift ;;
-        "--no-docker" ) IS_DOCKER_BUILD=false; shift ;;
+    for arg in "$@"; do
+      case "$arg" in
+        # handle --android option
+        "--android" )
+            IS_ANDROID_BUILD=true;
+            shift ;;
+        # handle --ios option
+        "--ios" )
+            IS_IOS_BUILD=true;
+            shift ;;
+        # handle --no-docker option
+        "--no-docker" )
+            IS_DOCKER_BUILD=false;
+            shift ;;
+        # if we receive "--" consider everything after to be inner arguments
         -- ) shift; break ;;
-        * ) break ;;
+        # any other args before "--" are improper
+        *) echo "Unsupported argument: $arg" && exit 2 ;;
       esac
     done
 
