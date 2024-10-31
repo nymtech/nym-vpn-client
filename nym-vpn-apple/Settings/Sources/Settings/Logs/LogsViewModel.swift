@@ -16,7 +16,7 @@ public final class LogsViewModel: ObservableObject {
     let deleteLocalizedString = "logs.delete".localizedString
     let noLogsLocalizedString = "logs.noLogs".localizedString
 
-    @Published var logs: String = ""
+    @Published var logLines: [String] = []
     @Published var isFileExporterPresented = false
     @Published var isDeleteDialogDisplayed = false
     @Published var currentLogFileType: LogFileType = .app {
@@ -29,6 +29,10 @@ public final class LogsViewModel: ObservableObject {
 
     var logFileTypes: [LogFileType] {
         LogFileType.allCases
+    }
+
+    var lastLogIndex: Int {
+        logLines.count - 1
     }
 
 #if os(iOS)
@@ -57,11 +61,11 @@ public final class LogsViewModel: ObservableObject {
 
     func deleteLogs() {
         logFileManager.deleteLogs()
-        logs = ""
+        logLines = []
     }
 
     func logFileURL() -> URL? {
-        logFileManager.logFileURL(logFileType: .tunnel)
+        logFileManager.logFileURL(logFileType: currentLogFileType)
     }
 }
 
@@ -72,13 +76,14 @@ private extension LogsViewModel {
                   let logData = try? Data(contentsOf: logFileURL),
                   let appLogs = String(data: logData, encoding: .utf8)
             else {
-                Task { @MainActor in
-                    logs = ""
+                await MainActor.run {
+                    logLines = []
                 }
                 return
             }
-            Task { @MainActor in
-                logs = appLogs
+            let logLinesArray = appLogs.split(separator: "\n").map { String($0) }
+            await MainActor.run {
+                logLines.replaceSubrange(0..<logLines.count, with: logLinesArray)
             }
         }
     }

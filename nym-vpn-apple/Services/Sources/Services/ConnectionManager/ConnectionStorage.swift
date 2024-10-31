@@ -24,17 +24,13 @@ public final class ConnectionStorage {
            let connectionType = ConnectionType(rawValue: typeValue) {
             return connectionType
         } else {
-            return ConnectionType.mixnet5hop
+            return ConnectionType.wireguard
         }
     }
 
     func entryGateway() -> EntryGateway {
-        if !appSettings.isEntryLocationSelectionOn {
-            return .random
-        }
-
         if !appSettings.entryCountryCode.isEmpty {
-            return .country(code: existingCountryCode(with: appSettings.entryCountryCode, countryType: .entry))
+            return .country(code: existingCountryCode(with: appSettings.entryCountryCode, countryType: countryType))
         } else {
             return .country(code: fallbackCountryCode(countryType: countryType))
         }
@@ -67,23 +63,24 @@ private extension ConnectionStorage {
     func fallbackCountryCode(countryType: CountryType) -> String {
         switch countryType {
         case .entry:
-            if let country = countriesManager.entryCountries.first {
-                return country.code
-            } else {
+            if countriesManager.entryCountries.contains(where: { $0.code == "CH" }) {
                 return "CH"
+            } else if let country = countriesManager.entryCountries.first {
+                return country.code
             }
         case .exit:
-            if let country = countriesManager.exitCountries.first {
-                return country.code
-            } else {
+            if countriesManager.exitCountries.contains(where: { $0.code == "CH" }) {
                 return "CH"
+            } else if let country = countriesManager.entryCountries.first {
+                return country.code
             }
         case .vpn:
-            if let country = countriesManager.vpnCountries.first {
-                return country.code
-            } else {
+            if countriesManager.vpnCountries.contains(where: { $0.code == "CH" }) {
                 return "CH"
+            } else if let country = countriesManager.entryCountries.first {
+                return country.code
             }
         }
+        return "CH"
     }
 }
