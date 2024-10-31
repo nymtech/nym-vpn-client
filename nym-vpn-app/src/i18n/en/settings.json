@@ -38,6 +38,10 @@
   },
   "faq": "FAQ",
   "display-theme": "Display mode",
+  "logout-confirmation": {
+    "title": "Are you sure?",
+    "description": "You will need your recovery phrase to log in again."
+  },
   "quit": "Quit NymVPN",
   "login-button": "Log in",
   "info": {

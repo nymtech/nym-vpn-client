@@ -12,6 +12,7 @@ import { StateDispatch } from '../../types';
 import { Button, MsIcon, PageAnim, SettingsMenuCard, Switch } from '../../ui';
 import { InfoData } from './info-data';
 import SettingsGroup from './SettingsGroup';
+import Logout from './Logout';
 import { capFirst, getLoginAccountUrl } from '../../helpers';
 
 const ThrottleDelay = 10000; // ms
@@ -211,6 +212,7 @@ function Settings() {
         onClick={() => navigate(routes.legal)}
         trailingIcon="arrow_right"
       />
+      <Logout />
       <SettingsMenuCard title={t('quit')} onClick={exit} />
       <InfoData />
     </PageAnim>
