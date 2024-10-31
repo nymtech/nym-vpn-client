@@ -122,7 +122,7 @@ private extension LogsView {
 #if os(macOS)
             button(systemImageName: "square.and.arrow.up", title: viewModel.exportLocalizedString)
                 .onTapGesture {
-                    guard !viewModel.logs.isEmpty else { return }
+                    guard !viewModel.logLines.isEmpty else { return }
                     viewModel.isFileExporterPresented.toggle()
                 }
 #endif

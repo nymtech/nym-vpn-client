@@ -24,7 +24,7 @@ public final class ConnectionStorage {
            let connectionType = ConnectionType(rawValue: typeValue) {
             return connectionType
         } else {
-            return ConnectionType.mixnet5hop
+            return ConnectionType.wireguard
         }
     }
 
