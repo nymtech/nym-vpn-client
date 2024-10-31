@@ -28,12 +28,7 @@ function Dialog({ open, onClose, children }: DialogProps) {
       open={open}
       onClose={onClose}
     >
-      <DialogBackdrop
-        className={clsx([
-          'fixed inset-0 bg-black/30',
-          'duration-150 ease-in-out data-[closed]:opacity-0',
-        ])}
-      />
+      <DialogBackdrop className={clsx(['fixed inset-0 bg-black/30'])} />
       <div className="fixed inset-0 z-50 w-screen overflow-y-auto">
         <div className="flex min-h-full items-center justify-center p-4 mx-4">
           <DialogPanel
@@ -42,7 +37,7 @@ function Dialog({ open, onClose, children }: DialogProps) {
               'text-base min-w-80 overflow-x-hidden',
               'max-w-md rounded-xl bg-white dark:bg-oil p-6',
               'flex flex-col items-center gap-6',
-              'duration-150 ease-in-out data-[closed]:ease-out data-[closed]:scale-95 data-[closed]:opacity-0',
+              'duration-150 ease-out data-[closed]:ease-out data-[closed]:opacity-0',
             ])}
           >
             {children}
