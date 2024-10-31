@@ -25,6 +25,7 @@ import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.BackendMessage
 import net.nymtech.vpn.model.Statistics
+import nym_vpn_lib.AccountStateSummary
 import nym_vpn_lib.BandwidthEvent
 import nym_vpn_lib.BandwidthStatus.NoBandwidth
 import timber.log.Timber
@@ -95,6 +96,10 @@ class NymTunnelManager @Inject constructor(
 	override suspend fun removeMnemonic() {
 		backend.get().removeMnemonic()
 		emitMnemonicStored(false)
+	}
+
+	override suspend fun getAccountSummary(): AccountStateSummary {
+		return backend.get().getAccountSummary()
 	}
 
 	private fun emitMnemonicStored(stored: Boolean) {
