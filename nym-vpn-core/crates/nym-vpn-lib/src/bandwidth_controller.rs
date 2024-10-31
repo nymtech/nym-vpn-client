@@ -14,7 +14,6 @@ use nym_validator_client::{
     QueryHttpRpcNyxdClient,
 };
 use nym_wg_gateway_client::{ErrorMessage, GatewayData, WgGatewayClient, WgGatewayLightClient};
-use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
 
 const DEFAULT_BANDWIDTH_CHECK: Duration = Duration::from_secs(10); // 10 seconds
 const ASSUMED_BANDWIDTH_DEPLETION_RATE: u64 = 10 * 1024 * 1024; // 10 MB/s
@@ -89,17 +88,12 @@ fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient> {
 
 fn update_dynamic_check_interval(remaining_bandwidth: u64) -> Option<Duration> {
     let estimated_depletion_secs = remaining_bandwidth / ASSUMED_BANDWIDTH_DEPLETION_RATE;
-    // try and have 20 logs before depletion...
-    let next_timeout_secs = estimated_depletion_secs / 20;
+    // try and have 30 logs before depletion
+    let next_timeout_secs = estimated_depletion_secs / 30;
     if next_timeout_secs == 0 {
         return None;
     }
-    // ... but not faster then the gateway bandwidth refresh
-    if next_timeout_secs > DEFAULT_PEER_TIMEOUT_CHECK.as_secs() {
-        Some(Duration::from_secs(next_timeout_secs))
-    } else {
-        Some(DEFAULT_PEER_TIMEOUT_CHECK)
-    }
+    Some(Duration::from_secs(next_timeout_secs))
 }
 
 pub(crate) struct BandwidthController<St> {
