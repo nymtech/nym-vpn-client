@@ -150,7 +150,7 @@ impl GatewayClient {
             .and_then(|min_performance| min_performance.vpn_min_performance)
     }
 
-    async fn lookup_described_gateways(&self) -> Result<Vec<NymNodeDescription>> {
+    async fn lookup_described_nodes(&self) -> Result<Vec<NymNodeDescription>> {
         info!("Fetching all described nodes from nym-api...");
         self.api_client
             .get_all_described_nodes()
@@ -202,9 +202,10 @@ impl GatewayClient {
 
     pub async fn lookup_all_gateways_from_nym_api(&self) -> Result<GatewayList> {
         let mut gateways = self
-            .lookup_described_gateways()
+            .lookup_described_nodes()
             .await?
             .into_iter()
+            .filter(|node| node.description.declared_role.entry)
             .filter_map(|gw| {
                 Gateway::try_from(gw)
                     .inspect_err(|err| error!("Failed to parse gateway: {err}"))
@@ -357,7 +358,7 @@ mod test {
     async fn lookup_described_gateways() {
         let config = Config::new_mainnet();
         let client = GatewayClient::new(config, user_agent()).unwrap();
-        let gateways = client.lookup_described_gateways().await.unwrap();
+        let gateways = client.lookup_described_nodes().await.unwrap();
         assert!(!gateways.is_empty());
     }
 
