@@ -71,7 +71,7 @@ public final class GRPCManager: ObservableObject {
                 switch result {
                 case .success(let response):
                     self?.daemonVersion = response.version
-                    self?.logger.info("🛜 \(response.networkName)")
+                    self?.logger.info("🛜 \(response.nymNetwork.networkName)")
 
                     continuation.resume(returning: response.version)
                 case .failure(let error):

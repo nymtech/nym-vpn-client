@@ -92,7 +92,39 @@ message UserAgent {
   string git_commit = 4;
 }
 
-message Endpoints {
+message DenomDetails {
+  string base = 1;
+  string display = 2;
+  uint32 display_exponent = 3;
+}
+
+message ChainDetails {
+  string bech32_account_prefix = 1;
+  DenomDetails mix_denom = 2;
+  DenomDetails stake_denom = 3;
+}
+
+message NymContracts {
+  optional string mixnet_contract_address = 1;
+  optional string vesting_contract_address = 2;
+  optional string ecash_contract_address = 3;
+  optional string group_contract_address = 4;
+  optional string multisig_contract_address = 5;
+  optional string coconut_dkg_contract_address = 6;
+}
+
+message NymNetworkDetails {
+  string network_name = 1;
+  ChainDetails chain_details = 2;
+  repeated ValidatorDetails endpoints = 3;
+  NymContracts contracts = 4;
+}
+
+message NymVpnNetworkDetails {
+  Url nym_vpn_api_url = 1;
+}
+
+message ValidatorDetails {
   Url nyxd_url = 1;
   Url websocket_url = 2;
   Url api_url = 3;
@@ -104,11 +136,10 @@ message InfoResponse {
   string version = 1;
   google.protobuf.Timestamp build_timestamp = 2;
   string triple = 3;
-  string platform = 8;
-  string git_commit = 4;
-  string network_name = 5;
-  repeated Endpoints endpoints = 6;
-  Url nym_vpn_api_url = 7;
+  string platform = 4;
+  string git_commit = 5;
+  NymNetworkDetails nym_network = 6;
+  NymVpnNetworkDetails nym_vpn_network = 7;
 }
 
 message SetNetworkRequest {
@@ -550,6 +581,15 @@ message RemoveAccountResponse {
   AccountError error = 2;
 }
 
+message GetAccountIdentityRequest {}
+
+message GetAccountIdentityResponse {
+  oneof id {
+    string account_identity = 1;
+    AccountError error = 2;
+  }
+}
+
 enum MnemonicState {
   MNEMONIC_STATE_UNSPECIFIED = 0;
   MNEMONIC_STATE_NOT_STORED = 1;
@@ -597,6 +637,9 @@ message GetAccountStateResponse {
   }
 }
 
+message RefreshAccountStateRequest {}
+message RefreshAccountStateResponse {}
+
 message FetchRawAccountSummaryRequest {}
 
 message FetchRawAccountSummaryResponse {
@@ -609,6 +652,25 @@ message FetchRawDevicesRequest {}
 message FetchRawDevicesResponse {
   string json = 1;
   AccountError error = 2;
+}
+
+message ResetDeviceIdentityRequest {
+  // 32 byte seed, [u8; 32]
+  optional bytes seed = 1;
+}
+
+message ResetDeviceIdentityResponse {
+  bool success = 1;
+  AccountError error = 2;
+}
+
+message GetDeviceIdentityRequest {}
+
+message GetDeviceIdentityResponse {
+  oneof id {
+    string device_identity = 1;
+    AccountError error = 2;
+  }
 }
 
 message RegisterDeviceRequest {}
@@ -720,11 +782,17 @@ service NymVpnd {
   rpc StoreAccount (StoreAccountRequest) returns (StoreAccountResponse) {}
   rpc IsAccountStored (IsAccountStoredRequest) returns (IsAccountStoredResponse) {}
   rpc RemoveAccount (RemoveAccountRequest) returns (RemoveAccountResponse) {}
+  rpc GetAccountIdentity (GetAccountIdentityRequest) returns (GetAccountIdentityResponse) {}
 
   // Query the account state, which refers to the server side account, as it is
   // known and interpreted by nym-vpnd
   rpc GetAccountState (GetAccountStateRequest) returns (GetAccountStateResponse) {}
+  rpc RefreshAccountState (RefreshAccountStateRequest) returns (RefreshAccountStateResponse) {}
   rpc IsReadyToConnect (IsReadyToConnectRequest) returns (IsReadyToConnectResponse) {}
+
+  // Reset the device identity
+  rpc ResetDeviceIdentity (ResetDeviceIdentityRequest) returns (ResetDeviceIdentityResponse) {}
+  rpc GetDeviceIdentity (GetDeviceIdentityRequest) returns (GetDeviceIdentityResponse) {}
 
   // Try to register the local device with the nym-vpn-api
   rpc RegisterDevice (RegisterDeviceRequest) returns (RegisterDeviceResponse) {}
