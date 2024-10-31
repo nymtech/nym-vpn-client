@@ -496,6 +496,7 @@ pub struct WireguardConnectionInfo {
     pub gateway_id: NodeIdentity,
     pub public_key: String,
     pub private_ipv4: Ipv4Addr,
+    pub private_ipv6: Ipv6Addr,
 }
 
 #[derive(uniffi::Enum)]
