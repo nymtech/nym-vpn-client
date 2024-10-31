@@ -4511,8 +4511,12 @@ public enum VpnError {
     case OutOfBandwidth
     case InvalidStateError(details: String
     )
-    case Account(details: String
-    )
+    case AccountReady
+    case NoAccountStored
+    case AccountNotActive
+    case NoActiveSubscription
+    case AccountDeviceNotRegistered
+    case AccountDeviceNotActive
 }
 
 
@@ -4542,9 +4546,12 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
         case 6: return .InvalidStateError(
             details: try FfiConverterString.read(from: &buf)
             )
-        case 7: return .Account(
-            details: try FfiConverterString.read(from: &buf)
-            )
+        case 7: return .AccountReady
+        case 8: return .NoAccountStored
+        case 9: return .AccountNotActive
+        case 10: return .NoActiveSubscription
+        case 11: return .AccountDeviceNotRegistered
+        case 12: return .AccountDeviceNotActive
 
          default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -4586,10 +4593,29 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
             FfiConverterString.write(details, into: &buf)
             
         
-        case let .Account(details):
+        case .AccountReady:
             writeInt(&buf, Int32(7))
-            FfiConverterString.write(details, into: &buf)
-            
+        
+        
+        case .NoAccountStored:
+            writeInt(&buf, Int32(8))
+        
+        
+        case .AccountNotActive:
+            writeInt(&buf, Int32(9))
+        
+        
+        case .NoActiveSubscription:
+            writeInt(&buf, Int32(10))
+        
+        
+        case .AccountDeviceNotRegistered:
+            writeInt(&buf, Int32(11))
+        
+        
+        case .AccountDeviceNotActive:
+            writeInt(&buf, Int32(12))
+        
         }
     }
 }
