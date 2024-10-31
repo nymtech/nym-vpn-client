@@ -117,20 +117,12 @@ private extension CountriesManager {
     func setup() {
         loadCountryStore()
         loadPrebundledCountriesIfNecessary()
-        setupAppSettingsObservers()
         setupAutoUpdates()
         configureEnvironmentChange()
         fetchCountries()
 #if os(macOS)
         updateDaemonVersionIfNecessary()
 #endif
-    }
-
-    func setupAppSettingsObservers() {
-        appSettings.$isEntryLocationSelectionOnPublisher.sink { [weak self] _ in
-            self?.fetchCountries()
-        }
-        .store(in: &cancellables)
     }
 
     func setupAutoUpdates() {

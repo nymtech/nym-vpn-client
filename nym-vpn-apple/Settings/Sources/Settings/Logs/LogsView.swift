@@ -15,16 +15,25 @@ public struct LogsView: View {
             navbar()
 
             VStack(spacing: .zero) {
-                if !viewModel.logs.isEmpty {
+                if !viewModel.logLines.isEmpty {
                     ScrollViewReader { proxy in
                         ScrollView(.vertical) {
-                            Text(viewModel.logs)
-                                .id("log")
-                                .padding()
+                            LazyVStack(alignment: .leading) {
+                                ForEach(viewModel.logLines.indices, id: \.self) { index in
+                                    Text(viewModel.logLines[index])
+                                        .id(index)
+                                }
+                            }
+                            .padding()
                         }
                         .onAppear {
                             withAnimation {
-                                proxy.scrollTo("log", anchor: .bottom)
+                                proxy.scrollTo(viewModel.lastLogIndex, anchor: .bottom)
+                            }
+                        }
+                        .onChange(of: viewModel.logLines) { _ in
+                            withAnimation {
+                                proxy.scrollTo(viewModel.lastLogIndex, anchor: .bottom)
                             }
                         }
                     }
@@ -64,7 +73,7 @@ public struct LogsView: View {
         }
         .fileExporter(
             isPresented: $viewModel.isFileExporterPresented,
-            document: TextFile(initialText: viewModel.logs),
+            document: TextFile(lineArrray: viewModel.logLines),
             contentType: .plainText,
             defaultFilename: Constants.logFileName.rawValue
         ) { _ in }
@@ -103,7 +112,7 @@ private extension LogsView {
                 ShareLink(item: url) {
                     button(systemImageName: "square.and.arrow.up", title: viewModel.exportLocalizedString)
                 }
-                .disabled(viewModel.logs.isEmpty)
+                .disabled(viewModel.logLines.isEmpty)
                 .simultaneousGesture(
                     TapGesture().onEnded { viewModel.impactGenerator.impact() }
                 )
@@ -111,7 +120,7 @@ private extension LogsView {
 #if os(macOS)
             button(systemImageName: "square.and.arrow.up", title: viewModel.exportLocalizedString)
                 .onTapGesture {
-                    guard !viewModel.logs.isEmpty else { return }
+                    guard !viewModel.logLines.isEmpty else { return }
                     viewModel.isFileExporterPresented.toggle()
                 }
 #endif
@@ -121,12 +130,12 @@ private extension LogsView {
     @ViewBuilder
     func deleteButton() -> some View {
         button(systemImageName: "trash", title: viewModel.deleteLocalizedString)
-            .disabled(viewModel.logs.isEmpty)
+            .disabled(viewModel.logLines.isEmpty)
             .onTapGesture {
 #if os(iOS)
                 viewModel.impactGenerator.impact()
 #endif
-                if !viewModel.logs.isEmpty {
+                if !viewModel.logLines.isEmpty {
                     viewModel.isDeleteDialogDisplayed.toggle()
                 }
             }
