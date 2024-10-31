@@ -33,6 +33,8 @@ pub(crate) enum AccountCommandResult {
 
 pub(crate) struct CommandHandler {
     id: uuid::Uuid,
+    command: AccountCommand,
+
     account: VpnApiAccount,
     device: Device,
     pending_command: PendingCommands,
@@ -44,7 +46,9 @@ pub(crate) struct CommandHandler {
 }
 
 impl CommandHandler {
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn new(
+        command: AccountCommand,
         account: VpnApiAccount,
         device: Device,
         pending_command: PendingCommands,
@@ -56,7 +60,7 @@ impl CommandHandler {
         let id = uuid::Uuid::new_v4();
         pending_command
             .lock()
-            .map(|mut guard| guard.insert(id, AccountCommand::UpdateAccountState))
+            .map(|mut guard| guard.insert(id, command.clone()))
             .map_err(|err| {
                 tracing::error!(
                     "Failed to insert command {} into pending commands: {:?}",
@@ -68,6 +72,7 @@ impl CommandHandler {
         tracing::debug!("Created command handler with id: {}", id);
         CommandHandler {
             id,
+            command,
             account,
             device,
             pending_command,
@@ -104,9 +109,9 @@ impl CommandHandler {
         .map(AccountCommandResult::RegisteredDevice)
     }
 
-    pub(crate) async fn run(self, command: AccountCommand) -> Result<AccountCommandResult, Error> {
-        tracing::debug!("Running command {:?} with id {}", command, self.id);
-        match command {
+    pub(crate) async fn run(self) -> Result<AccountCommandResult, Error> {
+        tracing::debug!("Running command {:?} with id {}", self.command, self.id);
+        match self.command {
             AccountCommand::UpdateAccountState => self.update_shared_account_state().await,
             AccountCommand::RegisterDevice => self.register_device().await,
             AccountCommand::RequestZkNym => {
@@ -117,17 +122,17 @@ impl CommandHandler {
             }
         }
         .inspect(|_result| {
-            tracing::info!("Command {:?} with id {} completed", command, self.id);
+            tracing::info!("Command {:?} with id {} completed", self.command, self.id);
         })
         .inspect_err(|err| {
             tracing::warn!(
                 "Command {:?} with id {} completed with error",
-                command,
+                self.command,
                 self.id
             );
             tracing::debug!(
                 "Command {:?} with id {} failed with error: {:?}",
-                command,
+                self.command,
                 self.id,
                 err
             );

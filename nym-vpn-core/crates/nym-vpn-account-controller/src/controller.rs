@@ -153,8 +153,9 @@ where
         self.command_tx.clone()
     }
 
-    async fn new_command_handler(&self) -> Result<CommandHandler, Error> {
+    async fn new_command_handler(&self, command: AccountCommand) -> Result<CommandHandler, Error> {
         Ok(CommandHandler::new(
+            command,
             self.account_storage.load_account().await?,
             self.account_storage.load_device_keys().await?,
             self.pending_commands.clone(),
@@ -167,8 +168,8 @@ where
 
     async fn spawn_command_task(&mut self, command: AccountCommand) -> Result<(), Error> {
         tracing::debug!("Spawning command: {:?}", command);
-        let command_handler = self.new_command_handler().await?;
-        self.command_tasks.spawn(command_handler.run(command));
+        let command_handler = self.new_command_handler(command).await?;
+        self.command_tasks.spawn(command_handler.run());
         Ok(())
     }
 
