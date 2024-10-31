@@ -4174,12 +4174,40 @@ sealed class VpnException: Exception() {
             get() = "details=${ `details` }"
     }
     
-    class Account(
-        
-        val `details`: kotlin.String
+    class AccountReady(
         ) : VpnException() {
         override val message
-            get() = "details=${ `details` }"
+            get() = ""
+    }
+    
+    class NoAccountStored(
+        ) : VpnException() {
+        override val message
+            get() = ""
+    }
+    
+    class AccountNotActive(
+        ) : VpnException() {
+        override val message
+            get() = ""
+    }
+    
+    class NoActiveSubscription(
+        ) : VpnException() {
+        override val message
+            get() = ""
+    }
+    
+    class AccountDeviceNotRegistered(
+        ) : VpnException() {
+        override val message
+            get() = ""
+    }
+    
+    class AccountDeviceNotActive(
+        ) : VpnException() {
+        override val message
+            get() = ""
     }
     
 
@@ -4211,9 +4239,12 @@ public object FfiConverterTypeVpnError : FfiConverterRustBuffer<VpnException> {
             6 -> VpnException.InvalidStateException(
                 FfiConverterString.read(buf),
                 )
-            7 -> VpnException.Account(
-                FfiConverterString.read(buf),
-                )
+            7 -> VpnException.AccountReady()
+            8 -> VpnException.NoAccountStored()
+            9 -> VpnException.AccountNotActive()
+            10 -> VpnException.NoActiveSubscription()
+            11 -> VpnException.AccountDeviceNotRegistered()
+            12 -> VpnException.AccountDeviceNotActive()
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
     }
@@ -4249,10 +4280,29 @@ public object FfiConverterTypeVpnError : FfiConverterRustBuffer<VpnException> {
                 4UL
                 + FfiConverterString.allocationSize(value.`details`)
             )
-            is VpnException.Account -> (
+            is VpnException.AccountReady -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4UL
-                + FfiConverterString.allocationSize(value.`details`)
+            )
+            is VpnException.NoAccountStored -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is VpnException.AccountNotActive -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is VpnException.NoActiveSubscription -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is VpnException.AccountDeviceNotRegistered -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is VpnException.AccountDeviceNotActive -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
             )
         }
     }
@@ -4288,9 +4338,28 @@ public object FfiConverterTypeVpnError : FfiConverterRustBuffer<VpnException> {
                 FfiConverterString.write(value.`details`, buf)
                 Unit
             }
-            is VpnException.Account -> {
+            is VpnException.AccountReady -> {
                 buf.putInt(7)
-                FfiConverterString.write(value.`details`, buf)
+                Unit
+            }
+            is VpnException.NoAccountStored -> {
+                buf.putInt(8)
+                Unit
+            }
+            is VpnException.AccountNotActive -> {
+                buf.putInt(9)
+                Unit
+            }
+            is VpnException.NoActiveSubscription -> {
+                buf.putInt(10)
+                Unit
+            }
+            is VpnException.AccountDeviceNotRegistered -> {
+                buf.putInt(11)
+                Unit
+            }
+            is VpnException.AccountDeviceNotActive -> {
+                buf.putInt(12)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
