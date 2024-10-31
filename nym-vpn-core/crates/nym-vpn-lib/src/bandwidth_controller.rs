@@ -89,8 +89,8 @@ fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient> {
 
 fn update_dynamic_check_interval(remaining_bandwidth: u64) -> Option<Duration> {
     let estimated_depletion_secs = remaining_bandwidth / ASSUMED_BANDWIDTH_DEPLETION_RATE;
-    // try and have 10 logs before depletion...
-    let next_timeout_secs = estimated_depletion_secs / 10;
+    // try and have 20 logs before depletion...
+    let next_timeout_secs = estimated_depletion_secs / 20;
     if next_timeout_secs == 0 {
         return None;
     }
