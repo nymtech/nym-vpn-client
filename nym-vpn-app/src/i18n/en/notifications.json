@@ -3,5 +3,9 @@
     "connected": "VPN tunnel connected",
     "disconnected": "NymVPN has disconnected. To safeguard your privacy, please reconnect.",
     "failed": "VPN tunnel connection failed!"
+  },
+  "logout": {
+    "success": "Logout successfull",
+    "error": "An error occurred while logging out. Please try again."
   }
 }
