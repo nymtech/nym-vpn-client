@@ -11,6 +11,8 @@ use tracing::debug;
 
 use crate::{error::Result, Error};
 
+// I've explicitly left this unused code as it might become relevant later
+#[allow(unused)]
 pub(crate) async fn try_resolve_hostname(hostname: &str) -> Result<IpAddr> {
     debug!("Trying to resolve hostname: {hostname}");
     let resolver = TokioAsyncResolver::tokio(ResolverConfig::default(), ResolverOpts::default());

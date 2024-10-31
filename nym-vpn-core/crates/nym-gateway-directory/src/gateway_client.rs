@@ -17,7 +17,6 @@ use crate::{
         gateway::{Gateway, GatewayList, GatewayType},
     },
     error::Result,
-    helpers::try_resolve_hostname,
     Error,
 };
 
