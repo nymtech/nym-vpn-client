@@ -277,6 +277,7 @@ impl GatewayClient {
                 .collect();
             Ok(GatewayList::new(gateways))
         } else {
+            warn!("OPERATING IN FALLBACK MODE WITHOUT NYM-VPN-API!");
             self.lookup_all_gateways_from_nym_api().await
         }
     }
@@ -296,6 +297,7 @@ impl GatewayClient {
                 .collect();
             Ok(GatewayList::new(gateways))
         } else {
+            warn!("OPERATING IN FALLBACK MODE WITHOUT NYM-VPN-API!");
             self.lookup_gateways_from_nym_api(gw_type).await
         }
     }
@@ -310,6 +312,7 @@ impl GatewayClient {
                 .map(Country::from)
                 .collect())
         } else {
+            warn!("OPERATING IN FALLBACK MODE WITHOUT NYM-VPN-API!");
             self.lookup_gateways_from_nym_api(gw_type)
                 .await
                 .map(GatewayList::into_countries)
