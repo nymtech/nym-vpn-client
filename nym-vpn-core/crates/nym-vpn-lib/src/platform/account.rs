@@ -130,7 +130,7 @@ pub(super) async fn assert_account_ready_to_connect() -> Result<(), VpnError> {
         ReadyToConnect::Ready => Ok(()),
         not_ready_to_connect => {
             tracing::warn!("Not ready to connect: {:?}", not_ready_to_connect);
-            Err(VpnError::Account(not_ready_to_connect.into()))
+            Err(not_ready_to_connect.into())
         }
     }
 }

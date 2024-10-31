@@ -2787,89 +2787,6 @@ public func FfiConverterTypeWireguardNode_lower(_ value: WireguardNode) -> RustB
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
-public enum AccountError {
-    
-    case ready
-    case noAccountStored
-    case accountNotActive
-    case noActiveSubscription
-    case deviceNotRegistered
-    case deviceNotActive
-}
-
-
-public struct FfiConverterTypeAccountError: FfiConverterRustBuffer {
-    typealias SwiftType = AccountError
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AccountError {
-        let variant: Int32 = try readInt(&buf)
-        switch variant {
-        
-        case 1: return .ready
-        
-        case 2: return .noAccountStored
-        
-        case 3: return .accountNotActive
-        
-        case 4: return .noActiveSubscription
-        
-        case 5: return .deviceNotRegistered
-        
-        case 6: return .deviceNotActive
-        
-        default: throw UniffiInternalError.unexpectedEnumCase
-        }
-    }
-
-    public static func write(_ value: AccountError, into buf: inout [UInt8]) {
-        switch value {
-        
-        
-        case .ready:
-            writeInt(&buf, Int32(1))
-        
-        
-        case .noAccountStored:
-            writeInt(&buf, Int32(2))
-        
-        
-        case .accountNotActive:
-            writeInt(&buf, Int32(3))
-        
-        
-        case .noActiveSubscription:
-            writeInt(&buf, Int32(4))
-        
-        
-        case .deviceNotRegistered:
-            writeInt(&buf, Int32(5))
-        
-        
-        case .deviceNotActive:
-            writeInt(&buf, Int32(6))
-        
-        }
-    }
-}
-
-
-public func FfiConverterTypeAccountError_lift(_ buf: RustBuffer) throws -> AccountError {
-    return try FfiConverterTypeAccountError.lift(buf)
-}
-
-public func FfiConverterTypeAccountError_lower(_ value: AccountError) -> RustBuffer {
-    return FfiConverterTypeAccountError.lower(value)
-}
-
-
-
-extension AccountError: Equatable, Hashable {}
-
-
-
-// Note that we don't yet support `indirect` for enums.
-// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
-
 public enum AccountState {
     
     case notRegistered
@@ -4594,8 +4511,12 @@ public enum VpnError {
     case OutOfBandwidth
     case InvalidStateError(details: String
     )
-    case Account(AccountError
-    )
+    case AccountReady
+    case NoAccountStored
+    case AccountNotActive
+    case NoActiveSubscription
+    case AccountDeviceNotRegistered
+    case AccountDeviceNotActive
 }
 
 
@@ -4625,9 +4546,12 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
         case 6: return .InvalidStateError(
             details: try FfiConverterString.read(from: &buf)
             )
-        case 7: return .Account(
-            : try FfiConverterTypeAccountError.read(from: &buf)
-            )
+        case 7: return .AccountReady
+        case 8: return .NoAccountStored
+        case 9: return .AccountNotActive
+        case 10: return .NoActiveSubscription
+        case 11: return .AccountDeviceNotRegistered
+        case 12: return .AccountDeviceNotActive
 
          default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -4669,10 +4593,29 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
             FfiConverterString.write(details, into: &buf)
             
         
-        case let .Account():
+        case .AccountReady:
             writeInt(&buf, Int32(7))
-            FfiConverterTypeAccountError.write(, into: &buf)
-            
+        
+        
+        case .NoAccountStored:
+            writeInt(&buf, Int32(8))
+        
+        
+        case .AccountNotActive:
+            writeInt(&buf, Int32(9))
+        
+        
+        case .NoActiveSubscription:
+            writeInt(&buf, Int32(10))
+        
+        
+        case .AccountDeviceNotRegistered:
+            writeInt(&buf, Int32(11))
+        
+        
+        case .AccountDeviceNotActive:
+            writeInt(&buf, Int32(12))
+        
         }
     }
 }
