@@ -59,7 +59,7 @@ impl Connector {
         let mut wg_entry_gateway_client =
             WgGatewayClient::new_entry(&data_path, auth_client.clone(), entry_auth_recipient);
         let mut wg_exit_gateway_client =
-            WgGatewayClient::new_entry(&data_path, auth_client.clone(), exit_auth_recipient);
+            WgGatewayClient::new_exit(&data_path, auth_client.clone(), exit_auth_recipient);
 
         let shutdown = self.task_manager.subscribe_named("bandwidth controller");
         let (connection_data, bandwidth_controller_handle) = if let Some(data_path) =
