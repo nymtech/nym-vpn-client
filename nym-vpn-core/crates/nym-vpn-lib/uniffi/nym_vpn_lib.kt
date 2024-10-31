@@ -2819,117 +2819,6 @@ public object FfiConverterTypeWireguardNode: FfiConverterRustBuffer<WireguardNod
 
 
 
-sealed class AccountError {
-    
-    object Ready : AccountError()
-    
-    
-    object NoAccountStored : AccountError()
-    
-    
-    object AccountNotActive : AccountError()
-    
-    
-    object NoActiveSubscription : AccountError()
-    
-    
-    object DeviceNotRegistered : AccountError()
-    
-    
-    object DeviceNotActive : AccountError()
-    
-    
-
-    
-    companion object
-}
-
-public object FfiConverterTypeAccountError : FfiConverterRustBuffer<AccountError>{
-    override fun read(buf: ByteBuffer): AccountError {
-        return when(buf.getInt()) {
-            1 -> AccountError.Ready
-            2 -> AccountError.NoAccountStored
-            3 -> AccountError.AccountNotActive
-            4 -> AccountError.NoActiveSubscription
-            5 -> AccountError.DeviceNotRegistered
-            6 -> AccountError.DeviceNotActive
-            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
-        }
-    }
-
-    override fun allocationSize(value: AccountError) = when(value) {
-        is AccountError.Ready -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is AccountError.NoAccountStored -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is AccountError.AccountNotActive -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is AccountError.NoActiveSubscription -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is AccountError.DeviceNotRegistered -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is AccountError.DeviceNotActive -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-    }
-
-    override fun write(value: AccountError, buf: ByteBuffer) {
-        when(value) {
-            is AccountError.Ready -> {
-                buf.putInt(1)
-                Unit
-            }
-            is AccountError.NoAccountStored -> {
-                buf.putInt(2)
-                Unit
-            }
-            is AccountError.AccountNotActive -> {
-                buf.putInt(3)
-                Unit
-            }
-            is AccountError.NoActiveSubscription -> {
-                buf.putInt(4)
-                Unit
-            }
-            is AccountError.DeviceNotRegistered -> {
-                buf.putInt(5)
-                Unit
-            }
-            is AccountError.DeviceNotActive -> {
-                buf.putInt(6)
-                Unit
-            }
-        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
-    }
-}
-
-
-
-
-
 
 enum class AccountState {
     
@@ -4287,10 +4176,10 @@ sealed class VpnException: Exception() {
     
     class Account(
         
-        val ``: AccountError
+        val `details`: kotlin.String
         ) : VpnException() {
         override val message
-            get() = "=${ `` }"
+            get() = "details=${ `details` }"
     }
     
 
@@ -4323,7 +4212,7 @@ public object FfiConverterTypeVpnError : FfiConverterRustBuffer<VpnException> {
                 FfiConverterString.read(buf),
                 )
             7 -> VpnException.Account(
-                FfiConverterTypeAccountError.read(buf),
+                FfiConverterString.read(buf),
                 )
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
@@ -4363,7 +4252,7 @@ public object FfiConverterTypeVpnError : FfiConverterRustBuffer<VpnException> {
             is VpnException.Account -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4UL
-                + FfiConverterTypeAccountError.allocationSize(value.``)
+                + FfiConverterString.allocationSize(value.`details`)
             )
         }
     }
@@ -4401,7 +4290,7 @@ public object FfiConverterTypeVpnError : FfiConverterRustBuffer<VpnException> {
             }
             is VpnException.Account -> {
                 buf.putInt(7)
-                FfiConverterTypeAccountError.write(value.``, buf)
+                FfiConverterString.write(value.`details`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
