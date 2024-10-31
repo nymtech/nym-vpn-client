@@ -6,7 +6,9 @@ use std::{fmt, net::IpAddr};
 use nym_sdk::UserAgent;
 use nym_validator_client::{models::NymNodeDescription, nym_nodes::SkimmedNode, NymApiClient};
 use nym_vpn_api_client::types::{GatewayMinPerformance, Percent};
-use tracing::{debug, error, info};
+use rand::prelude::SliceRandom;
+use rand::thread_rng;
+use tracing::{debug, error, info, warn};
 use url::Url;
 
 use crate::{
@@ -173,14 +175,21 @@ impl GatewayClient {
     }
 
     pub async fn lookup_gateway_ip(&self, gateway_identity: &str) -> Result<IpAddr> {
-        let ip_or_hostname = self
+        let mut ips = self
             .api_client
-            .get_cached_gateways()
+            .get_all_described_nodes()
             .await?
             .iter()
-            .find_map(|gateway_bond| {
-                if gateway_bond.identity() == gateway_identity {
-                    Some(gateway_bond.gateway().host.clone())
+            .find_map(|node| {
+                if node
+                    .description
+                    .host_information
+                    .keys
+                    .ed25519
+                    .to_base58_string()
+                    == gateway_identity
+                {
+                    Some(node.description.host_information.ip_address.clone())
                 } else {
                     None
                 }
@@ -189,15 +198,26 @@ impl GatewayClient {
                 gateway_identity.to_string(),
             ))?;
 
-        // If it's a plain IP
-        if let Ok(ip) = ip_or_hostname.parse::<IpAddr>() {
-            return Ok(ip);
+        if ips.is_empty() {
+            // nym-api should forbid this from ever happening, but we don't want to accidentally panic
+            // if this assumption fails
+            warn!("somehow {gateway_identity} hasn't provided any ip addresses!");
+            return Err(Error::RequestedGatewayIdNotFound(
+                gateway_identity.to_string(),
+            ));
         }
 
-        // If it's not an IP, try to resolve it as a hostname
-        let ip = try_resolve_hostname(&ip_or_hostname).await?;
-        info!("Resolved {ip_or_hostname} to {ip}");
-        Ok(ip)
+        info!("found the following ips for {gateway_identity}: {ips:?}");
+        if ips.len() == 1 {
+            // SAFETY: the vector is not empty, so unwrap is fine
+            Ok(ips.pop().unwrap())
+        } else {
+            // chose a random one if there's more than one
+            // SAFETY: the vector is not empty, so unwrap is fine
+            let mut rng = thread_rng();
+            let ip = ips.choose(&mut rng).unwrap();
+            Ok(*ip)
+        }
     }
 
     pub async fn lookup_all_gateways_from_nym_api(&self) -> Result<GatewayList> {
