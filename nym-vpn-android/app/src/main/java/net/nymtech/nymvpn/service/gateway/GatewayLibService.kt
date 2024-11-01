@@ -19,7 +19,8 @@ class GatewayLibService @Inject constructor(
 	override suspend fun getLowLatencyCountry(): Result<Country> {
 		return runCatching {
 			withContext(ioDispatcher) {
-				nymApi.getLowLatencyEntryCountry()
+				val env = settingsRepository.getEnvironment()
+				nymApi.getLowLatencyEntryCountry(env)
 			}
 		}
 	}

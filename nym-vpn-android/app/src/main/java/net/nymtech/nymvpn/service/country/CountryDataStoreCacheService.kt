@@ -37,13 +37,4 @@ class CountryDataStoreCacheService @Inject constructor(
 			}
 		}
 	}
-
-	override suspend fun updateLowLatencyEntryCountryCache(): Result<Unit> {
-		return runCatching {
-			gatewayService.getLowLatencyCountry().onSuccess {
-				Timber.d("Updating low latency country cache: $it")
-				gatewayRepository.setLowLatencyEntryCountry(it)
-			}
-		}
-	}
 }

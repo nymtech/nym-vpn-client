@@ -37,9 +37,6 @@ interface SettingsRepository {
 	suspend fun setAnalytics(enabled: Boolean)
 
 	suspend fun isAnalyticsEnabled(): Boolean
-	suspend fun isFirstHopSelectionEnabled(): Boolean
-
-	suspend fun setFirstHopSelection(enabled: Boolean)
 
 	suspend fun isAnalyticsShown(): Boolean
 

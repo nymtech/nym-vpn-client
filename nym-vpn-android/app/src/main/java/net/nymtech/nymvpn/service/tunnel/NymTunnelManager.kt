@@ -48,9 +48,6 @@ class NymTunnelManager @Inject constructor(
 		}
 	}.stateIn(applicationScope.plus(ioDispatcher), SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT), TunnelState())
 
-	@get:Synchronized @set:Synchronized
-	private var running: Boolean = false
-
 	override fun getState(): Tunnel.State {
 		return backend.get().getState()
 	}
@@ -58,13 +55,11 @@ class NymTunnelManager @Inject constructor(
 	override suspend fun stop() {
 		runCatching {
 			backend.get().stop()
-			running = false
 		}
 	}
 
 	override suspend fun start(fromBackground: Boolean) {
 		runCatching {
-			if (running) return Timber.w("Vpn already running")
 			if (!isMnemonicStored()) return onMissingMnemonic()
 			val intent = VpnService.prepare(context)
 			if (intent != null) return launchVpnPermissionNotification()
@@ -80,7 +75,6 @@ class NymTunnelManager @Inject constructor(
 				backendMessage = ::onBackendMessage,
 			)
 			backend.get().start(tunnel, fromBackground)
-			running = true
 		}
 	}
 
@@ -137,7 +131,6 @@ class NymTunnelManager @Inject constructor(
 	}
 
 	private fun onStateChange(state: Tunnel.State) {
-		if (state == Tunnel.State.Down) running = false
 		context.requestTileServiceStateUpdate()
 		emitState(state)
 	}

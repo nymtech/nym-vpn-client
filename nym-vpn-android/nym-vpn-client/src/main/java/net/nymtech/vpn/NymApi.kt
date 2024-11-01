@@ -20,8 +20,9 @@ class NymApi(
 		}
 	}
 
-	suspend fun getLowLatencyEntryCountry(): Country {
-		// TODO
-		return Country()
+	suspend fun getLowLatencyEntryCountry(environment: Tunnel.Environment): Country {
+		return withContext(ioDispatcher) {
+			Country(isoCode = nym_vpn_lib.getLowLatencyEntryCountry(environment.apiUrl, environment.nymVpnApiUrl, userAgent).twoLetterIsoCountryCode)
+		}
 	}
 }

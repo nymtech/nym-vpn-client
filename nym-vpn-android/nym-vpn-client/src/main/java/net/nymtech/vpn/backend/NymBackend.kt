@@ -54,6 +54,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 				override fun success() {
 					Timber.i("Successfully loaded native nym library")
 					initLogger()
+					startAccountController(storagePath)
 				}
 				override fun failure(t: Throwable) {
 					Timber.e(t)

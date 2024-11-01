@@ -56,12 +56,14 @@ import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.iconSize
+import net.nymtech.nymvpn.util.extensions.buildCountryNameString
 import net.nymtech.nymvpn.util.extensions.getFlagImageVectorByName
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
+import net.nymtech.vpn.model.Country
 import nym_vpn_lib.GatewayType
 import java.text.Collator
 
@@ -118,8 +120,8 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 	}
 
 	val selectedCountry = when (gatewayLocation) {
-		GatewayLocation.EXIT -> appUiState.settings.lastHopCountry
-		GatewayLocation.ENTRY -> appUiState.settings.firstHopCountry
+		GatewayLocation.EXIT -> appUiState.exitCountry
+		GatewayLocation.ENTRY -> appUiState.entryCountry
 	}
 
 	val queriedCountries =
@@ -214,41 +216,37 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 		}
 		item {
 			if (countries.isNotEmpty()) {
-				// TODO disable for now
-// 				val lowLatencyCountry = uiState.lowLatencyCountry
-// 				if (lowLatencyCountry != null) {
-// 					val name = StringUtils.buildCountryNameString(lowLatencyCountry, context)
-// 					val icon = ImageVector.vectorResource(R.drawable.bolt)
-// 					SelectionItemButton(
-// 						{
-// 							Icon(
-// 								icon,
-// 								icon.name,
-// 								modifier =
-// 								Modifier
-// 									.padding(
-// 										horizontal = 24.dp.scaledWidth(),
-// 										vertical = 16.dp.scaledHeight(),
-// 									)
-// 									.size(
-// 										iconSize,
-// 									),
-// 								tint = MaterialTheme.colorScheme.onSurface,
-// 							)
-// 						},
-// 						name,
-// 						onClick = {
-// 							viewModel.onSelected(lowLatencyCountry)
-// 							navController.go(NavItem.Main.route)
-// 						},
-// 						trailingText =
-// 						if (lowLatencyCountry == uiState.selected) {
-// 							stringResource(id = R.string.is_selected)
-// 						} else {
-// 							null
-// 						},
-// 					)
-// 				}
+				if(gatewayLocation == GatewayLocation.ENTRY) {
+					val icon = ImageVector.vectorResource(R.drawable.bolt)
+					SelectionItemButton(
+						{
+							Icon(
+								icon,
+								icon.name,
+								modifier =
+								Modifier
+									.padding(
+										horizontal = 24.dp.scaledWidth(),
+										vertical = 16.dp.scaledHeight(),
+									)
+									.size(
+										iconSize,
+									),
+								tint = MaterialTheme.colorScheme.onSurface,
+							)
+						},
+						stringResource(R.string.automatic),
+						onClick = {
+							viewModel.onSelected(Country(isLowLatency = true), gatewayLocation)
+							navController.navigateAndForget(Route.Main())
+						},
+						trailing = {
+							if (selectedCountry.isLowLatency == true) {
+								SelectedLabel()
+							}
+						}
+					)
+				}
 			} else {
 				Text(
 					stringResource(id = R.string.country_load_failure),
@@ -285,7 +283,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 					navController.navigateAndForget(Route.Main())
 				},
 				trailing = {
-					if (it.isoCode == selectedCountry.isoCode) {
+					if (it.isoCode == selectedCountry.isoCode && !selectedCountry.isLowLatency) {
 						SelectedLabel()
 					}
 				},
