@@ -36,7 +36,6 @@ use nym_vpn_lib::{
     },
     MixnetClientConfig, NodeIdentity, Recipient,
 };
-use nym_vpn_store::keys::KeyStore as _;
 
 use crate::{config::GlobalConfigFile, GLOBAL_NETWORK_DETAILS};
 
@@ -427,14 +426,6 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         // Make sure the data dir exists
         super::config::create_data_dir(&data_dir).map_err(Error::ConfigSetup)?;
 
-        // Generate the device keys if we don't already have them
-        storage
-            .lock()
-            .await
-            .init_keys(None)
-            .await
-            .map_err(|source| Error::ConfigSetup(ConfigSetupError::FailedToInitKeys { source }))?;
-
         // We need to create the user agent here and not in the controller so that we correctly
         // pick up build time constants.
         let user_agent = crate::util::construct_user_agent();
@@ -444,7 +435,8 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             user_agent.clone(),
             shutdown_token.child_token(),
         )
-        .await;
+        .await
+        .map_err(|source| Error::Account(AccountError::AccountControllerError { source }))?;
 
         let shared_account_state = account_controller.shared_state();
         let account_command_tx = account_controller.command_tx();

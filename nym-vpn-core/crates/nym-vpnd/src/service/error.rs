@@ -356,6 +356,11 @@ pub enum AccountError {
     FailedToResetKeys {
         source: Box<dyn std::error::Error + Send + Sync>,
     },
+
+    #[error(transparent)]
+    AccountControllerError {
+        source: nym_vpn_account_controller::Error,
+    },
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -376,8 +381,6 @@ pub enum SetNetworkError {
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    // FIXME: this variant should be constructed
-    #[allow(unused)]
     #[error("account error: {0}")]
     Account(#[source] AccountError),
 

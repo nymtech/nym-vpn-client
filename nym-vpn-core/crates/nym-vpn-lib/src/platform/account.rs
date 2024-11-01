@@ -53,7 +53,10 @@ async fn start_account_controller(data_dir: PathBuf) -> Result<AccountController
         user_agent,
         shutdown_token.child_token(),
     )
-    .await;
+    .await
+    .map_err(|err| VpnError::InternalError {
+        details: err.to_string(),
+    })?;
 
     let shared_account_state = account_controller.shared_state();
     let account_command_tx = account_controller.command_tx();
