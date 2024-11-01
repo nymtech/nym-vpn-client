@@ -10,7 +10,6 @@ pub mod shared_state;
 
 mod commands;
 mod controller;
-mod ecash_client;
 mod error;
 mod models;
 mod storage;

@@ -139,6 +139,7 @@ pub struct NymVpnZkNym {
     pub issued_bandwidth_in_gb: f64,
     pub blinded_shares: Vec<String>,
     pub status: NymVpnZkNymStatus,
+    pub epoch: Option<u64>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]

@@ -4,11 +4,8 @@
 use std::{collections::HashMap, path::PathBuf, sync::Arc, time::Duration};
 
 use futures::StreamExt;
-use nym_compact_ecash::{Base58 as _, BlindedSignature, VerificationKeyAuth};
 use nym_config::defaults::NymNetworkDetails;
-use nym_credentials::IssuedTicketBook;
 use nym_credentials_interface::{RequestInfo, TicketType};
-use nym_ecash_time::EcashTime;
 use nym_http_api_client::UserAgent;
 use nym_vpn_api_client::{
     response::{
@@ -17,7 +14,6 @@ use nym_vpn_api_client::{
     types::{Device, VpnApiAccount},
 };
 use nym_vpn_store::VpnStorage;
-use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use tokio::{
     sync::mpsc::{UnboundedReceiver, UnboundedSender},
     task::{JoinError, JoinSet},
@@ -27,15 +23,14 @@ use url::Url;
 
 use crate::{
     commands::{
+        self,
         zknym::{
             construct_zk_nym_request_data, poll_zk_nym, request_zk_nym, PollingResult,
             ZkNymRequestData,
         },
         AccountCommand, AccountCommandResult, CommandHandler,
     },
-    ecash_client::VpnEcashApiClient,
     error::Error,
-    models::WalletShare,
     shared_state::{MnemonicState, ReadyToRegisterDevice, SharedAccountState},
     storage::{AccountStorage, VpnCredentialStorage},
 };
@@ -63,10 +58,6 @@ where
     // The API client used to interact with the nym-vpn-api
     vpn_api_client: nym_vpn_api_client::VpnApiClient,
 
-    // The API client used to interact with cash endpoints
-    // NOTE: this is a temporary solution until the data is available on the vpn-api
-    vpn_ecash_api_client: VpnEcashApiClient,
-
     // The current state of the account
     account_state: SharedAccountState,
 
@@ -77,9 +68,6 @@ where
     // The last devices we received from the API. We use this to check if the device state has
     // changed.
     last_devices: DevicesResponse,
-
-    // Keep track of the current ecash epoch
-    current_epoch: Option<u64>,
 
     // Tasks used to poll the status of zk-nyms
     polling_tasks: JoinSet<PollingResult>,
@@ -131,11 +119,9 @@ where
             account_storage,
             credential_storage,
             vpn_api_client: create_api_client(user_agent),
-            vpn_ecash_api_client: create_ecash_api_client(),
             account_state: SharedAccountState::new(),
             last_account_summary: Arc::new(tokio::sync::Mutex::new(None)),
             last_devices: Arc::new(tokio::sync::Mutex::new(None)),
-            current_epoch: None,
             polling_tasks: JoinSet::new(),
             command_rx,
             command_tx,
@@ -203,60 +189,24 @@ where
         request_info: RequestInfo,
     ) -> Result<(), Error> {
         let account = self.account_storage.load_account().await?;
-        let ecash_keypair = account
-            .create_ecash_keypair()
-            .map_err(Error::CreateEcashKeyPair)?;
-        // TODO: use explicit epoch id, that we include together with the request_info
-        let current_epoch = self.current_epoch.ok_or(Error::NoEpoch)?;
-        // TODO: remove unwrap
-        let vk_auth = self.get_current_verification_key().await?.unwrap();
+        let master_verification_key = self
+            .credential_storage
+            .get_master_verification_key(response.epoch.unwrap())
+            .await?
+            .unwrap();
 
-        let mut partial_wallets = Vec::new();
-        for blinded_share in response.blinded_shares {
-            // TODO: remove unwrap
-            let blinded_share: WalletShare = serde_json::from_str(&blinded_share).unwrap();
-
-            // TODO: remove unwrap
-            let blinded_sig =
-                BlindedSignature::try_from_bs58(&blinded_share.bs58_encoded_share).unwrap();
-
-            match nym_compact_ecash::issue_verify(
-                &vk_auth,
-                ecash_keypair.secret_key(),
-                &blinded_sig,
-                &request_info,
-                blinded_share.node_index,
-            ) {
-                Ok(partial_wallet) => partial_wallets.push(partial_wallet),
-                Err(err) => {
-                    tracing::error!("Failed to issue verify: {:#?}", err);
-                    return Err(Error::ImportZkNym(err));
-                }
-            }
-        }
-
-        // TODO: remove unwrap
-        let aggregated_wallets = nym_compact_ecash::aggregate_wallets(
-            &vk_auth,
-            ecash_keypair.secret_key(),
-            &partial_wallets,
-            &request_info,
+        let issued_ticketbook = commands::zknym::unblind_and_aggregate(
+            response,
+            ticketbook_type,
+            request_info,
+            account,
+            master_verification_key,
         )
+        .await
         .unwrap();
 
-        // TODO: remove unwrap
-        let expiration_date = OffsetDateTime::parse(&response.valid_until_utc, &Rfc3339).unwrap();
-
-        let ticketbook = IssuedTicketBook::new(
-            aggregated_wallets.into_wallet_signatures(),
-            current_epoch,
-            ecash_keypair.into(),
-            ticketbook_type,
-            expiration_date.ecash_date(),
-        );
-
         self.credential_storage
-            .insert_issued_ticketbook(&ticketbook)
+            .insert_issued_ticketbook(&issued_ticketbook)
             .await?;
 
         Ok(())
@@ -283,6 +233,9 @@ where
             .filter(|(_, remaining)| *remaining < TICKET_THRESHOLD)
             .map(|(ticket_type, _)| ticket_type)
             .collect::<Vec<_>>();
+
+        // For testing: uncomment to only request zk-nyms for a specific ticket type
+        //let ticket_types_needed_to_request = vec![TicketType::V1MixnetEntry];
 
         // Request zk-nyms for each ticket type that we need
         let responses = futures::stream::iter(ticket_types_needed_to_request)
@@ -314,57 +267,6 @@ where
         }
 
         Ok(())
-    }
-
-    #[allow(unused)]
-    async fn update_ecash_epoch(&mut self) -> Result<(), Error> {
-        self.current_epoch = self
-            .vpn_ecash_api_client
-            .get_aggregated_coin_indices_signatures()
-            .await
-            .ok()
-            .map(|response| response.epoch_id);
-        Ok(())
-    }
-
-    async fn update_verification_key(&mut self) -> Result<(), Error> {
-        tracing::debug!("Updating verification key");
-        let verification_key = self
-            .vpn_ecash_api_client
-            .get_master_verification_key()
-            .await?;
-        self.credential_storage
-            .insert_master_verification_key(&verification_key)
-            .await
-    }
-
-    async fn get_current_verification_key(&self) -> Result<Option<VerificationKeyAuth>, Error> {
-        let current_epoch = self.current_epoch.ok_or(Error::NoEpoch)?;
-        self.credential_storage
-            .get_master_verification_key(current_epoch)
-            .await
-    }
-
-    async fn update_coin_indices_signatures(&mut self) -> Result<(), Error> {
-        tracing::debug!("Updating coin indices signatures");
-        let coin_indices_signatures = self
-            .vpn_ecash_api_client
-            .get_aggregated_coin_indices_signatures()
-            .await?;
-        self.credential_storage
-            .insert_coin_index_signatures(&coin_indices_signatures)
-            .await
-    }
-
-    async fn update_expiration_date_signatures(&mut self) -> Result<(), Error> {
-        tracing::debug!("Updating expiration date signatures");
-        let expiration_date_signatures = self
-            .vpn_ecash_api_client
-            .get_aggregated_expiration_data_signatures()
-            .await?;
-        self.credential_storage
-            .insert_expiration_date_signatures(&expiration_date_signatures)
-            .await
     }
 
     async fn update_mnemonic_state(&self) -> Option<VpnApiAccount> {
@@ -588,25 +490,6 @@ where
     pub async fn run(mut self) {
         self.print_info().await;
 
-        self.update_verification_key()
-            .await
-            .inspect_err(|err| {
-                tracing::debug!("Failed to update master verification key: {:?}", err)
-            })
-            .ok();
-        self.update_coin_indices_signatures()
-            .await
-            .inspect_err(|err| {
-                tracing::debug!("Failed to update coin indices signatures: {:?}", err)
-            })
-            .ok();
-        self.update_expiration_date_signatures()
-            .await
-            .inspect_err(|err| {
-                tracing::debug!("Failed to update expiration date signatures: {:?}", err)
-            })
-            .ok();
-
         // Timer to check if any command tasks have finished
         let mut command_finish_timer = tokio::time::interval(Duration::from_millis(500));
 
@@ -658,17 +541,6 @@ where
     }
 }
 
-fn get_api_url() -> Result<Url, Error> {
-    // TODO: remove unwrap
-    NymNetworkDetails::new_from_env()
-        .endpoints
-        .first()
-        .unwrap()
-        .api_url()
-        .ok_or(Error::MissingApiUrl)
-        .inspect(|url| tracing::info!("Using nym-api url: {}", url))
-}
-
 fn get_nym_vpn_api_url() -> Result<Url, Error> {
     NymNetworkDetails::new_from_env()
         .nym_vpn_api_url()
@@ -681,11 +553,4 @@ fn create_api_client(user_agent: UserAgent) -> nym_vpn_api_client::VpnApiClient 
     let nym_vpn_api_url = get_nym_vpn_api_url().unwrap();
     // TODO: remove unwrap
     nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent).unwrap()
-}
-
-fn create_ecash_api_client() -> VpnEcashApiClient {
-    // TODO: remove unwrap
-    let base_url = get_api_url().unwrap();
-    // TODO: remove unwrap
-    VpnEcashApiClient::new(base_url).unwrap()
 }

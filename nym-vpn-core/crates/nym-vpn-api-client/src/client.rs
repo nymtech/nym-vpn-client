@@ -275,14 +275,18 @@ impl VpnApiClient {
         device: &Device,
         withdrawal_request: String,
         ecash_pubkey: String,
+        expiration_date: String,
         ticketbook_type: String,
     ) -> Result<NymVpnZkNym> {
         tracing::info!("Requesting zk-nym for type: {}", ticketbook_type);
         let body = RequestZkNymRequestBody {
             withdrawal_request,
             ecash_pubkey,
+            expiration_date,
             ticketbook_type,
         };
+        tracing::info!("Request body: {:#?}", body);
+
         self.post_authorized(
             &[
                 routes::PUBLIC,

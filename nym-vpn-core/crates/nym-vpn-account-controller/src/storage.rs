@@ -124,6 +124,7 @@ impl VpnCredentialStorage {
             .map_err(Error::from)
     }
 
+    #[allow(unused)]
     pub(crate) async fn insert_master_verification_key(
         &self,
         key: &EpochVerificationKey,
@@ -144,6 +145,7 @@ impl VpnCredentialStorage {
             .map_err(Error::from)
     }
 
+    #[allow(unused)]
     pub(crate) async fn insert_coin_index_signatures(
         &self,
         signatures: &AggregatedCoinIndicesSignatures,
@@ -154,6 +156,7 @@ impl VpnCredentialStorage {
             .map_err(Error::from)
     }
 
+    #[allow(unused)]
     pub(crate) async fn insert_expiration_date_signatures(
         &self,
         signatures: &AggregatedExpirationDateSignatures,
