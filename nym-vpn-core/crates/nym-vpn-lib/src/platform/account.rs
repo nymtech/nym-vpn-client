@@ -4,7 +4,7 @@
 use std::{path::PathBuf, str::FromStr, sync::Arc};
 
 use nym_vpn_account_controller::{AccountCommand, ReadyToConnect, SharedAccountState};
-use nym_vpn_store::mnemonic::MnemonicStorage;
+use nym_vpn_store::{keys::KeyStore, mnemonic::MnemonicStorage};
 use tokio::{sync::mpsc::UnboundedSender, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
@@ -199,6 +199,16 @@ pub(super) async fn remove_account_mnemonic(path: &str) -> Result<bool, VpnError
     send_account_command(AccountCommand::UpdateSharedAccountState).await?;
 
     Ok(is_account_removed_success)
+}
+
+pub(super) async fn reset_device_identity(path: &str) -> Result<(), VpnError> {
+    let storage = setup_account_storage(path)?;
+    storage
+        .reset_keys(None)
+        .await
+        .map_err(|err| VpnError::InternalError {
+            details: err.to_string(),
+        })
 }
 
 pub(super) async fn get_account_summary() -> Result<AccountStateSummary, VpnError> {

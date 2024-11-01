@@ -158,6 +158,12 @@ pub fn removeAccountMnemonic(path: String) -> Result<bool, VpnError> {
 
 #[allow(non_snake_case)]
 #[uniffi::export]
+pub fn resetDeviceIdentity(path: String) -> Result<(), VpnError> {
+    RUNTIME.block_on(account::reset_device_identity(&path))
+}
+
+#[allow(non_snake_case)]
+#[uniffi::export]
 pub fn getAccountSummary() -> Result<AccountStateSummary, VpnError> {
     RUNTIME.block_on(account::get_account_summary())
 }
