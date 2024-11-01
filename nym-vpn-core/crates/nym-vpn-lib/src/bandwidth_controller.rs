@@ -15,8 +15,8 @@ use nym_validator_client::{
 };
 use nym_wg_gateway_client::{ErrorMessage, GatewayData, WgGatewayClient, WgGatewayLightClient};
 
-const DEFAULT_BANDWIDTH_CHECK: Duration = Duration::from_secs(10); // 10 seconds
-const ASSUMED_BANDWIDTH_DEPLETION_RATE: u64 = 10 * 1024 * 1024; // 10 MB/s
+const DEFAULT_BANDWIDTH_CHECK: Duration = Duration::from_secs(5); // 5 seconds
+const ASSUMED_BANDWIDTH_DEPLETION_RATE: u64 = 100 * 1024 * 1024; // 100 MB/s
 const TICKETS_TO_SPEND: u32 = 1;
 
 #[derive(thiserror::Error, Debug)]
@@ -88,8 +88,8 @@ fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient> {
 
 fn update_dynamic_check_interval(remaining_bandwidth: u64) -> Option<Duration> {
     let estimated_depletion_secs = remaining_bandwidth / ASSUMED_BANDWIDTH_DEPLETION_RATE;
-    // try and have 30 logs before depletion
-    let next_timeout_secs = estimated_depletion_secs / 30;
+    // try and have 10 logs before depletion
+    let next_timeout_secs = estimated_depletion_secs / 10;
     if next_timeout_secs == 0 {
         return None;
     }
