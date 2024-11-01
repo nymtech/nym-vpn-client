@@ -4627,6 +4627,7 @@ dependencies = [
  "nym-compact-ecash",
  "nym-config",
  "nym-contracts-common",
+ "nym-credential-proxy-requests",
  "nym-credentials-interface",
  "nym-crypto",
  "nym-ecash-time",

@@ -15,9 +15,7 @@ use crate::{
         RegisterDeviceRequestBody, RequestZkNymRequestBody,
     },
     response::{
-        NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymVpnAccountResponse,
-        NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnSubscription,
-        NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse, NymVpnZkNym, NymVpnZkNymResponse,
+        NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymVpnAccountResponse, NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnSubscription, NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse, NymVpnZkNym, NymVpnZkNym2, NymVpnZkNymResponse
     },
     routes,
     types::{Device, GatewayMinPerformance, GatewayType, VpnApiAccount},
@@ -78,6 +76,37 @@ impl VpnApiClient {
         nym_http_api_client::parse_response(response, false).await
     }
 
+    async fn get_authorized_debug<T, E>(
+        &self,
+        path: PathSegments<'_>,
+        account: &VpnApiAccount,
+        device: Option<&Device>,
+    ) -> std::result::Result<T, HttpClientError<E>>
+    where
+        T: DeserializeOwned,
+        E: fmt::Display + DeserializeOwned,
+    {
+        let request = self
+            .inner
+            .create_get_request(path, NO_PARAMS)
+            .bearer_auth(account.jwt().to_string());
+
+        let request = match device {
+            Some(device) => request.header(
+                DEVICE_AUTHORIZATION_HEADER,
+                format!("Bearer {}", device.jwt()),
+            ),
+            None => request,
+        };
+
+        let response = request.send().await?;
+        let r = response.text().await;
+        tracing::info!("Response: {:#?}", r);
+        todo!();
+
+        nym_http_api_client::parse_response(response, false).await
+    }
+
     async fn get_json_with_retry<T, K, V, E>(
         &self,
         path: PathSegments<'_>,
@@ -125,6 +154,9 @@ impl VpnApiClient {
         };
 
         let response = request.send().await?;
+        // let r = response.text().await;
+        // tracing::info!("Response: {:#?}", r);
+        // todo!();
 
         nym_http_api_client::parse_response(response, false).await
     }
@@ -305,11 +337,11 @@ impl VpnApiClient {
         .map_err(VpnApiClientError::FailedToRequestZkNym)
     }
 
-    pub async fn get_active_zk_nym(
+    pub async fn get_zk_nyms_available_for_download(
         &self,
         account: &VpnApiAccount,
         device: &Device,
-    ) -> Result<NymVpnZkNym> {
+    ) -> Result<NymVpnZkNymResponse> {
         self.get_authorized(
             &[
                 routes::PUBLIC,
@@ -319,21 +351,44 @@ impl VpnApiClient {
                 routes::DEVICE,
                 &device.identity_key().to_string(),
                 routes::ZKNYM,
-                routes::ACTIVE,
+                routes::AVAILABLE,
             ],
             account,
             Some(device),
         )
         .await
-        .map_err(VpnApiClientError::FailedToGetActiveZkNym)
+        .map_err(VpnApiClientError::FailedToGetDeviceZkNyms)
     }
+
+    //pub async fn get_active_zk_nym(
+    //    &self,
+    //    account: &VpnApiAccount,
+    //    device: &Device,
+    //) -> Result<NymVpnZkNym> {
+    //    self.get_authorized(
+    //        &[
+    //            routes::PUBLIC,
+    //            routes::V1,
+    //            routes::ACCOUNT,
+    //            &account.id(),
+    //            routes::DEVICE,
+    //            &device.identity_key().to_string(),
+    //            routes::ZKNYM,
+    //            routes::ACTIVE,
+    //        ],
+    //        account,
+    //        Some(device),
+    //    )
+    //    .await
+    //    .map_err(VpnApiClientError::FailedToGetActiveZkNym)
+    //}
 
     pub async fn get_zk_nym_by_id(
         &self,
         account: &VpnApiAccount,
         device: &Device,
         id: &str,
-    ) -> Result<NymVpnZkNym> {
+    ) -> Result<NymVpnZkNym2> {
         self.get_authorized(
             &[
                 routes::PUBLIC,

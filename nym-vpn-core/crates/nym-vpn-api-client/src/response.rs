@@ -5,6 +5,7 @@ use std::fmt;
 
 use itertools::Itertools;
 use nym_contracts_common::Percent;
+use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;
 use serde::{Deserialize, Serialize};
 
 const MAX_PROBE_RESULT_AGE_MINUTES: i64 = 60;
@@ -129,18 +130,49 @@ pub enum NymVpnRefundUserReason {
     Other,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct NymVpnZkNym {
     pub created_on_utc: String,
     pub last_updated_utc: String,
     pub id: String,
+    pub ticketbook_type: String,
     pub valid_until_utc: String,
     pub valid_from_utc: String,
     pub issued_bandwidth_in_gb: f64,
-    pub blinded_shares: Vec<String>,
+    pub blinded_shares: Option<Vec<Option<TicketbookWalletSharesResponse>>>,
     pub status: NymVpnZkNymStatus,
-    pub epoch: Option<u64>,
 }
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct NymVpnZkNym2 {
+    pub created_on_utc: String,
+    pub last_updated_utc: String,
+    pub id: String,
+    pub ticketbook_type: String,
+    pub valid_until_utc: String,
+    pub valid_from_utc: String,
+    pub issued_bandwidth_in_gb: f64,
+    pub blinded_shares: Option<TicketbookWalletSharesResponse>,
+    pub status: NymVpnZkNymStatus,
+}
+
+//"{
+//    \"totalItems\":1,
+//    \"page\":1,
+//    \"pageSize\":100,
+//    \"items\":[
+//        {
+//            \"id\":\"k09ww30bcaqv2j5\",
+//            \"status\":\"active\",
+//            \"last_updated_utc\":\"2024-11-01 21:27:29.205Z\",
+//            \"created_on_utc\":\"2024-11-01 21:27:22.842Z\",
+//            \"valid_until_utc\":\"2024-12-01 21:26:07.909Z\",
+//            \"valid_from_utc\":\"2024-11-01 21:27:22.503Z\",
+//            \"issued_bandwidth_in_gb\":25
+//        }
+//    ]
+//}",
+
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -152,7 +184,7 @@ pub enum NymVpnZkNymStatus {
     Error,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NymVpnZkNymResponse {
     pub total_items: u64,

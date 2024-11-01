@@ -4,12 +4,15 @@
 use std::{collections::HashMap, path::PathBuf, sync::Arc, time::Duration};
 
 use futures::StreamExt;
+use nym_compact_ecash::Base58;
 use nym_config::defaults::NymNetworkDetails;
-use nym_credentials_interface::{RequestInfo, TicketType};
+use nym_credentials::EpochVerificationKey;
+use nym_credentials_interface::{RequestInfo, TicketType, VerificationKeyAuth};
 use nym_http_api_client::UserAgent;
 use nym_vpn_api_client::{
     response::{
-        NymVpnAccountSummaryResponse, NymVpnDevicesResponse, NymVpnZkNym, NymVpnZkNymStatus,
+        NymVpnAccountSummaryResponse, NymVpnDevicesResponse, NymVpnZkNym, NymVpnZkNym2,
+        NymVpnZkNymStatus,
     },
     types::{Device, VpnApiAccount},
 };
@@ -23,7 +26,6 @@ use url::Url;
 
 use crate::{
     commands::{
-        self,
         zknym::{
             construct_zk_nym_request_data, poll_zk_nym, request_zk_nym, PollingResult,
             ZkNymRequestData,
@@ -184,18 +186,44 @@ where
 
     async fn import_zk_nym(
         &mut self,
-        response: NymVpnZkNym,
+        response: NymVpnZkNym2,
         ticketbook_type: TicketType,
         request_info: RequestInfo,
     ) -> Result<(), Error> {
-        let account = self.account_storage.load_account().await?;
-        let master_verification_key = self
-            .credential_storage
-            .get_master_verification_key(response.epoch.unwrap())
-            .await?
-            .unwrap();
+        tracing::info!("Importing zk-nym: {:#?}", response);
 
-        let issued_ticketbook = commands::zknym::unblind_and_aggregate(
+        let account = self.account_storage.load_account().await?;
+
+        let Some(ref blinded_shares) = response.blinded_shares else {
+            return Err(Error::MissingBlindedShares);
+        };
+
+        let master_verification_key = match self
+            .credential_storage
+            .get_master_verification_key(blinded_shares.epoch_id)
+            .await?
+        {
+            Some(master_verification_key) => master_verification_key.clone(),
+            None => {
+                let vk_bs58 = blinded_shares
+                    .master_verification_key
+                    .as_ref()
+                    .unwrap()
+                    .bs58_encoded_key
+                    .clone();
+                let vk = VerificationKeyAuth::try_from_bs58(&vk_bs58).unwrap();
+                let epoch_verification_key = EpochVerificationKey {
+                    epoch_id: blinded_shares.epoch_id,
+                    key: vk.clone(),
+                };
+                self.credential_storage
+                    .insert_master_verification_key(&epoch_verification_key)
+                    .await?;
+                vk
+            }
+        };
+
+        let issued_ticketbook = crate::commands::zknym::unblind_and_aggregate(
             response,
             ticketbook_type,
             request_info,
@@ -235,7 +263,7 @@ where
             .collect::<Vec<_>>();
 
         // For testing: uncomment to only request zk-nyms for a specific ticket type
-        //let ticket_types_needed_to_request = vec![TicketType::V1MixnetEntry];
+        let ticket_types_needed_to_request = vec![TicketType::V1MixnetEntry];
 
         // Request zk-nyms for each ticket type that we need
         let responses = futures::stream::iter(ticket_types_needed_to_request)
@@ -347,6 +375,26 @@ where
         Ok(())
     }
 
+    async fn handle_get_zk_nyms_available_for_download(&self) -> Result<(), Error> {
+        tracing::info!("Getting zk-nyms available for download from API");
+
+        let account = self.account_storage.load_account().await?;
+        let device = self.account_storage.load_device_keys().await?;
+
+        let reported_device_zk_nyms = self
+            .vpn_api_client
+            .get_zk_nyms_available_for_download(&account, &device)
+            .await
+            .map_err(Error::GetZkNyms)?;
+
+        tracing::info!("The device as the following zk-nyms available to download:");
+        // TODO: pagination
+        for zk_nym in &reported_device_zk_nyms.items {
+            tracing::info!("{:?}", zk_nym);
+        }
+        Ok(())
+    }
+
     // Once we finish polling the result of the zk-nym request, we now import the zk-nym into the
     // local credential store
     async fn handle_polling_result(&mut self, result: Result<PollingResult, JoinError>) {
@@ -411,7 +459,10 @@ where
             AccountCommand::UpdateAccountState => self.handle_update_account_state().await,
             AccountCommand::RegisterDevice => self.handle_register_device().await,
             AccountCommand::RequestZkNym => self.handle_request_zk_nym().await,
-            AccountCommand::GetDeviceZkNym => self.handle_get_device_zk_nym().await,
+            // AccountCommand::GetDeviceZkNym => self.handle_get_device_zk_nym().await,
+            AccountCommand::GetDeviceZkNym => {
+                self.handle_get_zk_nyms_available_for_download().await
+            }
         }
     }
 

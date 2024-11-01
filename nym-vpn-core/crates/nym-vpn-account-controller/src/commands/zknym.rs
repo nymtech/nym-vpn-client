@@ -8,7 +8,7 @@ use nym_credentials::IssuedTicketBook;
 use nym_credentials_interface::{PublicKeyUser, RequestInfo, TicketType};
 use nym_ecash_time::EcashTime;
 use nym_vpn_api_client::{
-    response::{NymVpnZkNym, NymVpnZkNymStatus},
+    response::{NymVpnZkNym, NymVpnZkNym2, NymVpnZkNymStatus},
     types::{Device, VpnApiAccount},
     VpnApiClientError,
 };
@@ -81,6 +81,7 @@ pub(crate) async fn poll_zk_nym(
     api_client: nym_vpn_api_client::VpnApiClient,
 ) -> PollingResult {
     tracing::info!("Starting zk-nym polling task for {}", response.id);
+    tracing::info!("which had response : {:#?}", response);
     let start_time = Instant::now();
     loop {
         tokio::time::sleep(std::time::Duration::from_secs(5)).await;
@@ -90,7 +91,7 @@ pub(crate) async fn poll_zk_nym(
             .get_zk_nym_by_id(&account, &device, &response.id)
             .await
         {
-            Ok(poll_response) if response.status != NymVpnZkNymStatus::Pending => {
+            Ok(poll_response) if poll_response.status != NymVpnZkNymStatus::Pending => {
                 tracing::info!("zk-nym polling finished: {:#?}", poll_response);
                 return PollingResult::Finished(
                     poll_response,
@@ -121,7 +122,7 @@ pub(crate) async fn poll_zk_nym(
 }
 
 pub(crate) async fn unblind_and_aggregate(
-    response: NymVpnZkNym,
+    response: NymVpnZkNym2,
     ticketbook_type: TicketType,
     request_info: RequestInfo,
     account: VpnApiAccount,
@@ -132,20 +133,21 @@ pub(crate) async fn unblind_and_aggregate(
         .map_err(Error::CreateEcashKeyPair)?;
 
     let mut partial_wallets = Vec::new();
-    for blinded_share in response.blinded_shares {
+    let blinded_shares = response.blinded_shares.unwrap();
+    for share in blinded_shares.shares {
         // TODO: remove unwrap
-        let blinded_share: WalletShare = serde_json::from_str(&blinded_share).unwrap();
+        // let blinded_share: WalletShare = serde_json::from_str(&share).unwrap();
 
         // TODO: remove unwrap
         let blinded_sig =
-            BlindedSignature::try_from_bs58(&blinded_share.bs58_encoded_share).unwrap();
+            BlindedSignature::try_from_bs58(&share.bs58_encoded_share).unwrap();
 
         match nym_compact_ecash::issue_verify(
             &vk_auth,
             ecash_keypair.secret_key(),
             &blinded_sig,
             &request_info,
-            blinded_share.node_index,
+            share.node_index,
         ) {
             Ok(partial_wallet) => partial_wallets.push(partial_wallet),
             Err(err) => {
@@ -169,7 +171,7 @@ pub(crate) async fn unblind_and_aggregate(
 
     let ticketbook = IssuedTicketBook::new(
         aggregated_wallets.into_wallet_signatures(),
-        response.epoch.unwrap(),
+        blinded_shares.epoch_id,
         ecash_keypair.into(),
         ticketbook_type,
         expiration_date.ecash_date(),
@@ -180,8 +182,8 @@ pub(crate) async fn unblind_and_aggregate(
 
 #[derive(Debug)]
 pub(crate) enum PollingResult {
-    Finished(NymVpnZkNym, TicketType, Box<RequestInfo>),
-    Timeout(NymVpnZkNym),
+    Finished(NymVpnZkNym2, TicketType, Box<RequestInfo>),
+    Timeout(NymVpnZkNym2),
     Error(PollingError),
 }
 

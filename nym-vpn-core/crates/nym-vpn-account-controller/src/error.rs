@@ -74,6 +74,9 @@ pub enum Error {
 
     #[error(transparent)]
     NymSdk(#[from] nym_sdk::Error),
+
+    #[error("succesfull zknym response is missing blinded shares")]
+    MissingBlindedShares,
 }
 
 impl Error {
