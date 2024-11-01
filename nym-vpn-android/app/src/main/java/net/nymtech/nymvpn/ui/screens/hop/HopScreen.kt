@@ -56,7 +56,6 @@ import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.iconSize
-import net.nymtech.nymvpn.util.extensions.buildCountryNameString
 import net.nymtech.nymvpn.util.extensions.getFlagImageVectorByName
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.openWebUrl
@@ -216,7 +215,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 		}
 		item {
 			if (countries.isNotEmpty()) {
-				if(gatewayLocation == GatewayLocation.ENTRY) {
+				if (gatewayLocation == GatewayLocation.ENTRY) {
 					val icon = ImageVector.vectorResource(R.drawable.bolt)
 					SelectionItemButton(
 						{
@@ -244,7 +243,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 							if (selectedCountry.isLowLatency == true) {
 								SelectedLabel()
 							}
-						}
+						},
 					)
 				}
 			} else {

@@ -58,7 +58,7 @@ constructor(
 				manager.backendMessage,
 				isMnemonicStored = manager.isMnemonicStored,
 				entryCountry = settings.firstHopCountry ?: Country(isLowLatency = true),
-				exitCountry = settings.lastHopCountry ?: Country(isDefault = true)
+				exitCountry = settings.lastHopCountry ?: Country(isDefault = true),
 			)
 		}.stateIn(
 			viewModelScope,

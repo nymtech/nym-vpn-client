@@ -25,8 +25,11 @@ data class Country(
 	}
 
 	fun toEntryPoint(): EntryPoint {
-		return if(isLowLatency) EntryPoint.RandomLowLatency
-		else EntryPoint.Location(isoCode)
+		return if (isLowLatency) {
+			EntryPoint.RandomLowLatency
+		} else {
+			EntryPoint.Location(isoCode)
+		}
 	}
 
 	fun toExitPoint(): ExitPoint {

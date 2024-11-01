@@ -13,5 +13,5 @@ data class AppUiState(
 	val backendMessage: BackendMessage = BackendMessage.None,
 	val isMnemonicStored: Boolean = false,
 	val entryCountry: Country = Country(isLowLatency = true),
-	val exitCountry: Country = Country(isDefault = true)
+	val exitCountry: Country = Country(isDefault = true),
 )
