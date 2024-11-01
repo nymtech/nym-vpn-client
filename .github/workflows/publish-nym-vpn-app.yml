@@ -8,6 +8,11 @@ on:
         description: "Tag name for release"
         required: false
         default: nym-vpn-app-nightly
+      dev_mode:
+        description: "dev build"
+        required: true
+        type: boolean
+        default: false
   push:
     tags:
       - nym-vpn-app-v[0-9]+.[0-9]+.[0-9]+*
@@ -16,12 +21,12 @@ jobs:
   build-nym-vpn-app-linux:
     uses: ./.github/workflows/build-nym-vpn-app-linux.yml
     with:
-      dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || contains(inputs.tag_name, 'dev') || contains(inputs.tag_name, 'nightly') }}
+      dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true }}
     secrets: inherit
   build-nym-vpn-app-windows:
     uses: ./.github/workflows/build-nym-vpn-app-windows.yml
     with:
-      dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || contains(inputs.tag_name, 'dev') || contains(inputs.tag_name, 'nightly') }}
+      dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true  }}
     secrets: inherit
 
   generate-build-info-nym-vpn-app:
