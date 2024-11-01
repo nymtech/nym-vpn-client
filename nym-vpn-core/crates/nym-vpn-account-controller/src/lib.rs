@@ -14,4 +14,5 @@ mod error;
 mod storage;
 
 pub use controller::{AccountCommand, AccountController};
+pub use error::Error;
 pub use shared_state::{AccountStateSummary, ReadyToConnect, SharedAccountState};

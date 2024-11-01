@@ -30,6 +30,17 @@ where
         Self { storage }
     }
 
+    pub(crate) async fn init_keys(&self) -> Result<(), Error> {
+        self.storage
+            .lock()
+            .await
+            .init_keys(None)
+            .await
+            .map_err(|err| Error::KeyStore {
+                source: Box::new(err),
+            })
+    }
+
     // Load account and keep the error type
     pub(crate) async fn load_account_from_storage(
         &self,
