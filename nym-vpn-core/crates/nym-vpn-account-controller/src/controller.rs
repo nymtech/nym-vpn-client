@@ -121,10 +121,13 @@ where
         // Generate the device keys if we don't already have them
         account_storage.init_keys().await?;
 
-        // TODO: remove unwraps.
-        let storage_paths = nym_sdk::mixnet::StoragePaths::new_from_dir(data_dir).unwrap();
+        let storage_paths =
+            nym_sdk::mixnet::StoragePaths::new_from_dir(data_dir).map_err(Error::StoragePaths)?;
         let credential_storage = VpnCredentialStorage {
-            storage: storage_paths.persistent_credential_storage().await.unwrap(),
+            storage: storage_paths
+                .persistent_credential_storage()
+                .await
+                .map_err(Error::SetupCredentialStorage)?,
         };
 
         let (command_tx, command_rx) = tokio::sync::mpsc::unbounded_channel();
