@@ -277,6 +277,7 @@ private extension CountriesManager {
 
         Task { @MainActor in
             countryStore.vpnCountries = countries
+            vpnCountries = countries
         }
     }
 }
