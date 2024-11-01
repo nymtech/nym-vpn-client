@@ -3,7 +3,8 @@
   "internal": "内部错误",
   "daemon": {
     "not-connected": "未连接到进程",
-    "internal": "守护进程内部错误"
+    "internal": "守护进程内部错误",
+    "invalid-network": "无效网络"
   },
   "grpc": "gRPC内部错误",
   "connection": {
@@ -79,6 +80,14 @@
     "ping": "{{protocol}} 流量的出口节点 ping 失败"
   },
   "account": {
-    "invalid-recovery-phrase": "恢复短语无效"
+    "invalid-recovery-phrase": "恢复短语无效",
+    "storage": "存储后端错误",
+    "no-account-stored": "未存储帐户恢复短语",
+    "not-active": "账户未激活",
+    "no-active-subscription": "账户没有激活订阅",
+    "device": {
+      "not-registered": "设备未注册",
+      "not-active": "设备未激活"
+    }
   }
 }
