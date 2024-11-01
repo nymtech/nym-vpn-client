@@ -729,6 +729,9 @@ mod tests {
     mod gateway_directory {
         use super::*;
 
+        // These tests are disabled until mainnet is updated
+
+        #[ignore]
         #[tokio::test]
         async fn get_gateways() {
             let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
@@ -739,6 +742,7 @@ mod tests {
             assert!(!response.into_inner().is_empty());
         }
 
+        #[ignore]
         #[tokio::test]
         async fn get_entry_gateways() {
             let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
@@ -746,6 +750,7 @@ mod tests {
             assert!(!response.into_inner().is_empty());
         }
 
+        #[ignore]
         #[tokio::test]
         async fn get_exit_gateways() {
             let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
@@ -753,6 +758,7 @@ mod tests {
             assert!(!response.into_inner().is_empty());
         }
 
+        #[ignore]
         #[tokio::test]
         async fn get_gateway_countries() {
             let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
@@ -760,6 +766,7 @@ mod tests {
             assert!(!response.into_inner().is_empty());
         }
 
+        #[ignore]
         #[tokio::test]
         async fn get_entry_gateway_countries() {
             let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
@@ -767,6 +774,7 @@ mod tests {
             assert!(!response.into_inner().is_empty());
         }
 
+        #[ignore]
         #[tokio::test]
         async fn get_exit_gateway_countries() {
             let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
