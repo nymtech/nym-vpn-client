@@ -494,7 +494,7 @@ pub enum Error {
 
     #[cfg(target_os = "ios")]
     #[error("failed to locate tun device")]
-    LocateTunDevice(std::io::Error),
+    LocateTunDevice(#[source] std::io::Error),
 
     #[cfg(any(target_os = "ios", target_os = "android"))]
     #[error("failed to configure tunnel provider: {}", _0)]
