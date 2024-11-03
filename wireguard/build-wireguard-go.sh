@@ -36,7 +36,7 @@ function parseArgs {
       esac
     done
 
-    echo "android:$IS_ANDROID_BUILD ios:$IS_IOS_BUILD docker:$IS_DOCKER_BUILD"
+    echo "android:$IS_ANDROID_BUILD ios:$IS_IOS_BUILD docker:$IS_DOCKER_BUILD win_arm64:$IS_WIN_ARM64"
 }
 
 function win_gather_export_symbols {
