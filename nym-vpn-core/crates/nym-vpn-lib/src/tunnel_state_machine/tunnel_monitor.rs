@@ -634,12 +634,9 @@ impl TunnelMonitor {
         let mut tun_config = tun::Configuration::default();
         tun_config.raw_fd(owned_tun_fd.as_raw_fd());
         #[cfg(target_os = "android")]
-        {
-            #[cfg(target_os = "linux")]
-            tun_config.platform(|platform_config| {
-                platform_config.packet_information(false);
-            });
-        }
+        tun_config.platform(|platform_config| {
+            platform_config.packet_information(false);
+        });
 
         #[cfg(target_os = "ios")]
         {
