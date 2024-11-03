@@ -48,11 +48,20 @@ impl Discovery {
     pub fn fetch(network_name: &str) -> anyhow::Result<Self> {
         let discovery: DiscoveryResponse = {
             let url = Self::endpoint(network_name)?;
+
             tracing::info!("Fetching nym network discovery from: {}", url);
-            reqwest::blocking::get(url.clone())
+            let response = reqwest::blocking::get(url.clone())
                 .with_context(|| format!("Failed to fetch discovery from {}", url))?
-                .json()
-                .with_context(|| "Failed to parse discovery")
+                .error_for_status()
+                .with_context(|| "Discovery endpoint returned error response".to_owned())?;
+
+            let text_response = response
+                .text()
+                .with_context(|| "Failed to read response text")?;
+            tracing::debug!("Discovery response: {:#?}", text_response);
+
+            serde_json::from_str(&text_response)
+                .with_context(|| "Failed to parse discovery response")
         }?;
         if discovery.network_name != network_name {
             anyhow::bail!("Network name mismatch between requested and fetched discovery")
