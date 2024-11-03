@@ -8,6 +8,7 @@ LIB_DIR="libwg"
 IS_ANDROID_BUILD=false
 IS_IOS_BUILD=false
 IS_DOCKER_BUILD=true
+IS_WIN_ARM64=false
 
 function parseArgs {
     for arg in "$@"; do
@@ -24,6 +25,10 @@ function parseArgs {
         "--no-docker" )
             IS_DOCKER_BUILD=false;
             shift ;;
+        # handle --arm64 option
+        "--arm64" )
+            IS_WIN_ARM64=false;
+            shift ;;
         # if we receive "--" consider everything after to be inner arguments
         -- ) shift; break ;;
         # any other args before "--" are improper
@@ -31,22 +36,7 @@ function parseArgs {
       esac
     done
 
-    echo "android:$IS_ANDROID_BUILD ios:$IS_IOS_BUILD docker:$IS_DOCKER_BUILD"
-}
-
-function stringContain {
-    case $2 in *$1* ) return 0;; *) return 1;; esac;
-}
-
-function is_win_arm64 {
-    for arg in "$@"
-    do
-        case "$arg" in
-            "--arm64")
-                return 0
-        esac
-    done
-    return 1
+    echo "android:$IS_ANDROID_BUILD ios:$IS_IOS_BUILD docker:$IS_DOCKER_BUILD win_arm64:$IS_WIN_ARM64"
 }
 
 function win_gather_export_symbols {
@@ -61,7 +51,7 @@ function win_create_lib_file {
         printf "\t%s\n" "$symbol" >> exports.def
     done
 
-    if is_win_arm64 $@; then
+    if $IS_WIN_ARM64; then
         local arch="ARM64"
     else
         local arch="X64"
@@ -79,7 +69,7 @@ function build_windows {
     export CGO_ENABLED=1
     export GOOS=windows
 
-    if is_win_arm64 $@; then
+    if $IS_WIN_ARM64; then
         local arch="aarch64"
         export GOARCH=arm64
         export CC="aarch64-w64-mingw32-cc"
@@ -93,7 +83,7 @@ function build_windows {
 
     pushd $LIB_DIR
         go build -trimpath -v -o libwg.dll -buildmode c-shared
-        win_create_lib_file $@
+        win_create_lib_file
 
         local target_dir="../../build/lib/$arch-pc-windows-msvc/"
         echo "Copying files to $(realpath "$target_dir")"
@@ -262,7 +252,7 @@ function build_wireguard_go {
     case  "$platform" in
         Darwin*) build_macos_universal;;
         Linux*) build_unix ${1:-$(unix_target_triple)};;
-        MINGW*|MSYS_NT*) build_windows $@;;
+        MINGW*|MSYS_NT*) build_windows;;
     esac
 }
 
