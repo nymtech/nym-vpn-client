@@ -14,12 +14,15 @@ use super::{nym_network::NymNetwork, MAX_FILE_AGE, NETWORKS_SUBDIR};
 const DISCOVERY_FILE: &str = "discovery.json";
 const DISCOVERY_WELLKNOWN: &str = "https://nymvpn.com/api/public/v1/.wellknown";
 
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
 pub struct Discovery {
     pub(super) network_name: String,
     pub(super) nym_api_url: Url,
     pub(super) nym_vpn_api_url: Url,
 }
+
+// Include the generated Default implementation
+include!(concat!(env!("OUT_DIR"), "/default_discovery.rs"));
 
 impl Discovery {
     fn path(config_dir: &Path, network_name: &str) -> PathBuf {
@@ -147,27 +150,6 @@ impl Discovery {
     }
 }
 
-impl Default for Discovery {
-    fn default() -> Self {
-        let default_network_details = NymNetworkDetails::default();
-        Self {
-            network_name: default_network_details.network_name,
-            nym_api_url: default_network_details
-                .endpoints
-                .first()
-                .and_then(|e| e.api_url().clone())
-                .expect("default network details not setup correctly"),
-            nym_vpn_api_url: default_network_details
-                .nym_vpn_api_url
-                .map(|url| {
-                    url.parse()
-                        .expect("default network details not setup correctly")
-                })
-                .expect("default network details not setup correctly"),
-        }
-    }
-}
-
 // The response type we fetch from the discovery endpoint
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 struct DiscoveryResponse {
@@ -192,5 +174,36 @@ impl TryFrom<DiscoveryResponse> for Discovery {
             nym_api_url: discovery.nym_api_url.parse()?,
             nym_vpn_api_url: discovery.nym_vpn_api_url.parse()?,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_discovery_endpoint() {
+        let network_name = "mainnet";
+        let url = Discovery::endpoint(network_name).unwrap();
+        assert_eq!(
+            url,
+            "https://nymvpn.com/api/public/v1/.wellknown/mainnet/discovery.json"
+                .parse()
+                .unwrap()
+        );
+    }
+
+    #[test]
+    fn test_discovery_fetch() {
+        let network_name = "mainnet";
+        let discovery = Discovery::fetch(network_name).unwrap();
+        assert_eq!(discovery.network_name, network_name);
+    }
+
+    #[test]
+    fn test_discovery_default_same_as_fetched() {
+        let default_discovery = Discovery::default();
+        let fetched_discovery = Discovery::fetch(&default_discovery.network_name).unwrap();
+        assert_eq!(default_discovery, fetched_discovery);
     }
 }

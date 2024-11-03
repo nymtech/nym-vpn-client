@@ -169,3 +169,16 @@ fn export_nym_network_details_to_env(network_details: NymNetworkDetails) {
     set_optional_var(var_names::EXPLORER_API, network_details.explorer_api);
     set_optional_var(var_names::NYM_VPN_API, network_details.nym_vpn_api_url);
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_nym_network_path() {
+        let config_dir = Path::new("/tmp");
+        let network_name = "mainnet";
+        let path = NymNetwork::path(config_dir, network_name);
+        assert_eq!(path, Path::new("/tmp/networks/mainnet.json"));
+    }
+}
