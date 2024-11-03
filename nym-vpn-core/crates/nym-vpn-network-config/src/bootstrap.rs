@@ -51,12 +51,15 @@ impl Discovery {
 
             tracing::info!("Fetching nym network discovery from: {}", url);
             let response = reqwest::blocking::get(url.clone())
+                .inspect_err(|err| tracing::warn!("{}", err))
                 .with_context(|| format!("Failed to fetch discovery from {}", url))?
                 .error_for_status()
+                .inspect_err(|err| tracing::warn!("{}", err))
                 .with_context(|| "Discovery endpoint returned error response".to_owned())?;
 
             let text_response = response
                 .text()
+                .inspect_err(|err| tracing::warn!("{}", err))
                 .with_context(|| "Failed to read response text")?;
             tracing::debug!("Discovery response: {:#?}", text_response);
 
@@ -101,13 +104,29 @@ impl Discovery {
         Ok(())
     }
 
-    pub(super) fn ensure_exists(config_dir: &Path, network_name: &str) -> anyhow::Result<Self> {
-        // Download the file if it doesn't exists, or if the file is too old, refresh it.
-        // TODO: in the future, we should only refresh the discovery file when the tunnel is up.
-        // Probably in a background task.
+    fn try_update_file(config_dir: &Path, network_name: &str) -> anyhow::Result<()> {
         if Self::path_is_stale(config_dir, network_name)? {
             Self::fetch(network_name)?.write_to_file(config_dir)?;
         }
+        Ok(())
+    }
+
+    pub(super) fn ensure_exists(config_dir: &Path, network_name: &str) -> anyhow::Result<Self> {
+        if !Self::path(config_dir, network_name).exists() && network_name == "mainnet" {
+            // Write the default discovery file
+            //todo!();
+        }
+
+        // Download the file if it doesn't exists, or if the file is too old, refresh it.
+        // TODO: in the future, we should only refresh the discovery file when the tunnel is up.
+        // Probably in a background task.
+
+        Self::try_update_file(config_dir, network_name)
+            .inspect_err(|err| {
+                tracing::warn!("Failed to refresh discovery file: {err}");
+                tracing::warn!("Attempting to use existing discovery file");
+            })
+            .ok();
 
         Self::read_from_file(config_dir, network_name)
     }

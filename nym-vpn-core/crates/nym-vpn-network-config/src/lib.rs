@@ -49,6 +49,12 @@ impl Network {
 }
 
 pub fn discover_env(config_path: &Path, network_name: &str) -> anyhow::Result<Network> {
+    tracing::trace!(
+        "Discovering network details: config_path={:?}, network_name={}",
+        config_path,
+        network_name
+    );
+
     // Lookup network discovery to bootstrap
     let discovery = Discovery::ensure_exists(config_path, network_name)?;
 
