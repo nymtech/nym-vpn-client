@@ -529,11 +529,11 @@ where
             }
         }
 
-        tracing::info!("Exiting vpn service run loop");
-
         if let Err(e) = self.state_machine_handle.await {
             tracing::error!("Failed to join on state machine handle: {}", e);
         }
+
+        tracing::info!("Exiting vpn service run loop");
 
         Ok(())
     }

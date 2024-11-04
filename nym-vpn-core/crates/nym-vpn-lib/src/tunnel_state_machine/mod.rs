@@ -409,6 +409,7 @@ impl TunnelStateMachine {
         let (dns_handler, dns_handler_task) = DnsHandlerHandle::spawn(
             #[cfg(target_os = "linux")]
             &route_handler,
+            shutdown_token.child_token(),
         )
         .map_err(Error::CreateDnsHandler)?;
         //let firewall_handler = FirewallHandler::new().map_err(Error::CreateFirewallHandler)?;
