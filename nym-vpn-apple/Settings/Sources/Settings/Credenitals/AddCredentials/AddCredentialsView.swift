@@ -173,6 +173,7 @@ private extension AddCredentialsView {
                 .lineLimit(8, reservesSpace: true)
                 .focused($isFocused)
                 .textFieldStyle(PlainTextFieldStyle())
+                .autocorrectionDisabled()
             Spacer()
         }
         .contentShape(
@@ -202,6 +203,7 @@ private extension AddCredentialsView {
         HStack {
             Text(title)
                 .foregroundStyle(NymColor.sysError)
+                .lineLimit(nil)
                 .textStyle(NymTextStyle.Body.Small.primary)
             Spacer()
         }

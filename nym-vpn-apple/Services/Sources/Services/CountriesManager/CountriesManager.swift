@@ -408,8 +408,10 @@ extension CountriesManager {
     }
 
     func fetchCountriesAfterDelay() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 15) { [weak self] in
-            self?.fetchEntryExitCountries()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 60) { [weak self] in
+            Task {
+                self?.fetchEntryExitCountries()
+            }
         }
     }
 }

@@ -97,8 +97,6 @@ private extension TunnelsManager {
             if let response, let decodedReason = try? ErrorReason(from: response) {
                 lastError = decodedReason
                 logger.info("Last tunnel error: \(decodedReason)")
-            } else {
-                logger.error("No response received or an error occurred during polling.")
             }
         } catch {
             logger.error("Failed to send polling message with error: \(error)")
