@@ -1,16 +1,10 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::future::{Fuse, FutureExt};
-use tokio::{
-    sync::mpsc,
-    task::{JoinError, JoinHandle},
-};
+use futures::future::{BoxFuture, Fuse, FutureExt};
+use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 use tun::AsyncDevice;
-
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-use crate::tunnel_state_machine::dns_handler::DnsHandlerHandle;
 
 use crate::tunnel_state_machine::{
     states::{ConnectingState, DisconnectedState, ErrorState},
@@ -19,7 +13,7 @@ use crate::tunnel_state_machine::{
     TunnelStateHandler,
 };
 
-type WaitHandle = JoinHandle<Vec<AsyncDevice>>;
+type WaitHandle = BoxFuture<'static, Vec<AsyncDevice>>;
 
 pub struct DisconnectingState {
     after_disconnect: PrivateActionAfterDisconnect,
@@ -37,12 +31,7 @@ impl DisconnectingState {
         if let Some(status_listener_handle) = shared_state.status_listener_handle.take() {
             status_listener_handle.abort();
         }
-
-        let wait_handle = tokio::spawn(async move {
-            monitor_handle.cancel();
-            monitor_handle.wait().await
-        })
-        .fuse();
+        monitor_handle.cancel();
 
         let retry_attempt =
             if let PrivateActionAfterDisconnect::Reconnect { retry_attempt } = &after_disconnect {
@@ -55,48 +44,37 @@ impl DisconnectingState {
             Box::new(Self {
                 after_disconnect: after_disconnect.clone(),
                 retry_attempt,
-                wait_handle,
+                wait_handle: monitor_handle.wait().boxed().fuse(),
             }),
             PrivateTunnelState::Disconnecting { after_disconnect },
         )
     }
 
-    async fn on_tunnel_exit(
-        result: Result<Vec<AsyncDevice>, JoinError>,
-        _shared_state: &mut SharedState,
-    ) {
+    async fn on_tunnel_exit(mut tun_devices: Vec<AsyncDevice>, _shared_state: &mut SharedState) {
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         _shared_state.route_handler.remove_routes().await;
 
-        match result {
-            Ok(tun_devices) => {
-                #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-                if let Err(e) = _shared_state
-                    .dns_handler
-                    .reset_before_interface_removal()
-                    .await
-                {
-                    tracing::error!("Failed to reset dns before interface removal: {}", e);
-                }
-                tracing::debug!("Closing tunnel {} device(s).", tun_devices.len());
-            }
-            Err(e) => {
-                #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-                Self::reset_dns(&mut _shared_state.dns_handler).await;
-                tracing::error!("Failed to join on tunnel handle: {}", e);
-            }
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        if let Err(e) = _shared_state
+            .dns_handler
+            .reset_before_interface_removal()
+            .await
+        {
+            tracing::error!("Failed to reset dns before interface removal: {}", e);
         }
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         _shared_state.route_handler.remove_routes().await;
-        // todo: reset firewall
-    }
 
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-    async fn reset_dns(dns_handler: &mut DnsHandlerHandle) {
-        if let Err(e) = dns_handler.reset().await {
+        tracing::debug!("Closing tunnel {} device(s).", tun_devices.len());
+        tun_devices.clear();
+
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        if let Err(e) = _shared_state.dns_handler.reset().await {
             tracing::error!("Failed to reset dns: {}", e);
         }
+
+        // todo: reset firewall
     }
 }
 
