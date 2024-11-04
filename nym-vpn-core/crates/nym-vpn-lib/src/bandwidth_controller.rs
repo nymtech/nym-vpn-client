@@ -17,7 +17,7 @@ use nym_validator_client::{
 use nym_wg_gateway_client::{ErrorMessage, GatewayData, WgGatewayClient, WgGatewayLightClient};
 
 const DEFAULT_BANDWIDTH_CHECK: Duration = Duration::from_secs(5); // 5 seconds
-const DEFAULT_BANDWIDTH_DEPLETION_RATE: u64 = 100 * 1024 * 1024; // 100 MB/s
+const DEFAULT_BANDWIDTH_DEPLETION_RATE: u64 = 1024 * 1024; // 1 MB/s
 const TICKETS_TO_SPEND: u32 = 1;
 
 #[derive(thiserror::Error, Debug)]
@@ -55,6 +55,9 @@ pub enum Error {
 
     #[error("nyxd client error: {0}")]
     Nyxd(#[from] CredentialNyxdClientError),
+
+    #[error("internal error: {reason}")]
+    Internal { reason: String },
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
@@ -96,7 +99,7 @@ impl Default for DepletionRate {
     fn default() -> Self {
         Self {
             current_depletion_rate: DEFAULT_BANDWIDTH_DEPLETION_RATE,
-            available_bandwidth: 0,
+            available_bandwidth: u64::MAX,
         }
     }
 }
@@ -106,24 +109,43 @@ impl DepletionRate {
         &mut self,
         current_period: Duration,
         remaining_bandwidth: u64,
-    ) -> Option<Duration> {
-        let new_depletion_rate =
-            remaining_bandwidth.saturating_sub(self.available_bandwidth) / current_period.as_secs();
+    ) -> Result<Option<Duration>> {
+        let Some(new_depletion_rate) = remaining_bandwidth
+            .saturating_sub(self.available_bandwidth)
+            .checked_div(current_period.as_secs())
+        else {
+            return Err(Error::Internal {
+                reason: "check interval shouldn't be 0".to_string(),
+            });
+        };
+        self.available_bandwidth = remaining_bandwidth;
         // if nothing was consumed since last time, we prefer to stick to the old deplation rate
         if new_depletion_rate != 0 {
             self.current_depletion_rate = new_depletion_rate;
         }
-        let estimated_depletion_secs = remaining_bandwidth / self.current_depletion_rate;
+        log::info!("Current deplateion rate {}", self.current_depletion_rate);
+        log::info!(
+            "Estimated depletion in {}/{}",
+            remaining_bandwidth,
+            self.current_depletion_rate
+        );
+        let Some(estimated_depletion_secs) =
+            remaining_bandwidth.checked_div(self.current_depletion_rate)
+        else {
+            return Err(Error::Internal {
+                reason: "depletion rate shouldn't be 0".to_string(),
+            });
+        };
         // try and have 10 logs before depletion
         let next_timeout_secs = estimated_depletion_secs / 10;
         if next_timeout_secs == 0 {
-            return None;
+            return Ok(None);
         }
         // ... but not faster then the gateway bandwidth refresh, as that won't produce any change
         if next_timeout_secs > DEFAULT_PEER_TIMEOUT_CHECK.as_secs() {
-            Some(Duration::from_secs(next_timeout_secs))
+            Ok(Some(Duration::from_secs(next_timeout_secs)))
         } else {
-            Some(DEFAULT_PEER_TIMEOUT_CHECK)
+            Ok(Some(DEFAULT_PEER_TIMEOUT_CHECK))
         }
     }
 }
@@ -277,10 +299,11 @@ impl<St: Storage> BandwidthController<St> {
                 match current_depletion_rate
                     .update_dynamic_check_interval(current_period, remaining_bandwidth as u64)
                 {
-                    Some(new_duration) => {
+                    Err(e) => tracing::warn!("Error while updating query coefficients: {:?}", e),
+                    Ok(Some(new_duration)) => {
                         return Some(new_duration);
                     }
-                    None => {
+                    Ok(None) => {
                         let ticketbook_type = if entry {
                             TicketType::V1WireguardEntry
                         } else {
