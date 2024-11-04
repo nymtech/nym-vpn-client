@@ -19,7 +19,7 @@ use crate::tunnel_state_machine::{
     TunnelStateHandler,
 };
 
-type WaitHandle = JoinHandle<Option<Vec<AsyncDevice>>>;
+type WaitHandle = JoinHandle<Vec<AsyncDevice>>;
 
 pub struct DisconnectingState {
     after_disconnect: PrivateActionAfterDisconnect,
@@ -40,9 +40,7 @@ impl DisconnectingState {
 
         let wait_handle = tokio::spawn(async move {
             monitor_handle.cancel();
-            monitor_handle.wait().await;
-            // TODO: return async devices?
-            Some(vec![])
+            monitor_handle.wait().await
         })
         .fuse();
 
@@ -64,14 +62,14 @@ impl DisconnectingState {
     }
 
     async fn on_tunnel_exit(
-        result: Result<Option<Vec<AsyncDevice>>, JoinError>,
+        result: Result<Vec<AsyncDevice>, JoinError>,
         _shared_state: &mut SharedState,
     ) {
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         _shared_state.route_handler.remove_routes().await;
 
         match result {
-            Ok(Some(tun_devices)) => {
+            Ok(tun_devices) => {
                 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
                 if let Err(e) = _shared_state
                     .dns_handler
@@ -81,12 +79,6 @@ impl DisconnectingState {
                     tracing::error!("Failed to reset dns before interface removal: {}", e);
                 }
                 tracing::debug!("Closing tunnel {} device(s).", tun_devices.len());
-                let _ = tun_devices;
-            }
-            Ok(None) => {
-                #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-                Self::reset_dns(&mut _shared_state.dns_handler).await;
-                tracing::debug!("Tunnel device has already been closed.");
             }
             Err(e) => {
                 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
