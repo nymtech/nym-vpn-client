@@ -773,6 +773,8 @@ internal open class UniffiVTableCallbackInterfaceTunnelStatusListener(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -826,6 +828,8 @@ internal interface UniffiLib : Library {
     ): Byte
     fun uniffi_nym_vpn_lib_fn_func_removeaccountmnemonic(`path`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
+    fun uniffi_nym_vpn_lib_fn_func_resetdeviceidentity(`path`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
     fun uniffi_nym_vpn_lib_fn_func_startaccountcontroller(`dataDir`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_nym_vpn_lib_fn_func_startvpn(`config`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -962,6 +966,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_nym_vpn_lib_checksum_func_removeaccountmnemonic(
     ): Short
+    fun uniffi_nym_vpn_lib_checksum_func_resetdeviceidentity(
+    ): Short
     fun uniffi_nym_vpn_lib_checksum_func_startaccountcontroller(
     ): Short
     fun uniffi_nym_vpn_lib_checksum_func_startvpn(
@@ -1014,6 +1020,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_nym_vpn_lib_checksum_func_removeaccountmnemonic() != 51019.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_nym_vpn_lib_checksum_func_resetdeviceidentity() != 48847.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_nym_vpn_lib_checksum_func_startaccountcontroller() != 34257.toShort()) {
@@ -5363,6 +5372,15 @@ public object FfiConverterTypeUrl: FfiConverter<Url, RustBuffer.ByValue> {
 }
     )
     }
+    
+
+    @Throws(VpnException::class) fun `resetDeviceIdentity`(`path`: kotlin.String)
+        = 
+    uniffiRustCallWithError(VpnException) { _status ->
+    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_resetdeviceidentity(
+        FfiConverterString.lower(`path`),_status)
+}
+    
     
 
     @Throws(VpnException::class) fun `startAccountController`(`dataDir`: kotlin.String)

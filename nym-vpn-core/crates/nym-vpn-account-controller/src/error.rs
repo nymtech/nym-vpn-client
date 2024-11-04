@@ -27,8 +27,14 @@ pub enum Error {
         source: Box<dyn std::error::Error + Send + Sync>,
     },
 
+    #[error("failed to setup account storage paths")]
+    StoragePaths(#[source] nym_sdk::Error),
+
     #[error(transparent)]
     CredentialStorage(#[from] nym_credential_storage::error::StorageError),
+
+    #[error("failed to setup credential storage")]
+    SetupCredentialStorage(#[source] nym_sdk::Error),
 
     #[error("failed to register device")]
     RegisterDevice(#[source] nym_vpn_api_client::VpnApiClientError),
