@@ -6,7 +6,9 @@ use std::{collections::HashMap, path::PathBuf, sync::Arc, time::Duration};
 use futures::StreamExt;
 use nym_compact_ecash::Base58;
 use nym_config::defaults::NymNetworkDetails;
+use nym_credentials::EpochVerificationKey;
 use nym_credentials_interface::{RequestInfo, TicketType, VerificationKeyAuth};
+use nym_ecash_time::EcashTime;
 use nym_http_api_client::UserAgent;
 use nym_vpn_api_client::{
     response::{
@@ -16,6 +18,7 @@ use nym_vpn_api_client::{
     types::{Device, VpnApiAccount},
 };
 use nym_vpn_store::VpnStorage;
+use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use tokio::{
     sync::mpsc::{UnboundedReceiver, UnboundedSender},
     task::{JoinError, JoinSet},
@@ -190,35 +193,90 @@ where
         request_info: RequestInfo,
     ) -> Result<(), Error> {
         tracing::info!("Importing zk-nym: {}", response.id);
-        // tracing::debug!("Importing zk-nym: {:#?}", response);
 
         let account = self.account_storage.load_account().await?;
 
-        let Some(ref blinded_shares) = response.blinded_shares else {
+        let Some(ref shares) = response.blinded_shares else {
             return Err(Error::MissingBlindedShares);
         };
 
-        tracing::info!(
-            "Getting master verification key for epoch: {}",
-            blinded_shares.epoch_id
-        );
+        let issuers = self
+            .vpn_api_client
+            .get_directory_zk_nyms_ticketbookt_partial_verification_keys()
+            .await
+            .map_err(Error::GetZkNyms)?;
 
-        let vk_bs58 = blinded_shares
+        if shares.epoch_id != issuers.epoch_id {
+            return Err(Error::InconsistentEpochId);
+        }
+
+        tracing::info!("epoch_id: {}", shares.epoch_id);
+
+        let master_vk_bs58 = shares
             .master_verification_key
-            .as_ref()
-            .unwrap()
-            .bs58_encoded_key
-            .clone();
-        let master_verification_key = VerificationKeyAuth::try_from_bs58(&vk_bs58).unwrap();
+            .clone()
+            .ok_or(Error::MissingMasterVerificationKey)?
+            .bs58_encoded_key;
+
+        let master_vk = VerificationKeyAuth::try_from_bs58(&master_vk_bs58)
+            .map_err(Error::InvalidMasterVerificationKey)?;
+
+        let expiration_date = OffsetDateTime::parse(&response.valid_until_utc, &Rfc3339)
+            .map_err(Error::InvalidExpirationDate)?;
 
         let issued_ticketbook = crate::commands::zknym::unblind_and_aggregate(
-            response,
+            shares.clone(),
+            issuers,
+            master_vk.clone(),
             ticketbook_type,
+            expiration_date.ecash_date(),
             request_info,
             account,
-            master_verification_key,
         )
         .await?;
+
+        // Insert master verification key
+        let epoch_vk = EpochVerificationKey {
+            epoch_id: shares.epoch_id,
+            key: master_vk,
+        };
+        self.credential_storage
+            .insert_master_verification_key(&epoch_vk)
+            .await
+            .inspect_err(|err| {
+                tracing::error!("Failed to insert master verification key: {:#?}", err);
+            })
+            .ok();
+
+        // Insert aggregated coin index signatures
+        self.credential_storage
+            .insert_coin_index_signatures(
+                &shares
+                    .aggregated_coin_index_signatures
+                    .clone()
+                    .unwrap()
+                    .signatures,
+            )
+            .await
+            .inspect_err(|err| {
+                tracing::error!("Failed to insert coin index signatures: {:#?}", err);
+            })
+            .ok();
+
+        // Insert aggregated expiration date signatures
+        self.credential_storage
+            .insert_expiration_date_signatures(
+                &shares
+                    .aggregated_expiration_date_signatures
+                    .clone()
+                    .unwrap()
+                    .signatures,
+            )
+            .await
+            .inspect_err(|err| {
+                tracing::error!("Failed to insert expiration date signatures: {:#?}", err);
+            })
+            .ok();
 
         self.credential_storage
             .insert_issued_ticketbook(&issued_ticketbook)

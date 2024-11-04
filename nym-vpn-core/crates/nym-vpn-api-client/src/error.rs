@@ -86,6 +86,11 @@ pub enum VpnApiClientError {
 
     #[error("failed to derive from path")]
     CosmosDeriveFromPath(#[source] nym_validator_client::nyxd::bip32::Error),
+
+    #[error("failed to get directory zk-nym ticketbook partial verification keys")]
+    FailedToGetDirectoryZkNymsTicketbookPartialVerificationKeys(
+        #[source] HttpClientError<ErrorMessage>,
+    ),
 }
 
 pub type Result<T> = std::result::Result<T, VpnApiClientError>;

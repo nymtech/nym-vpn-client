@@ -4,6 +4,7 @@
 use std::{fmt, time::Duration};
 
 use backon::Retryable;
+use nym_credential_proxy_requests::api::v1::ticketbook::models::PartialVerificationKeysResponse;
 use nym_http_api_client::{HttpClientError, Params, PathSegments, UserAgent, NO_PARAMS};
 use reqwest::Url;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -756,6 +757,26 @@ impl VpnApiClient {
         )
         .await
         .map_err(VpnApiClientError::FailedToGetExitGatewayCountries)
+    }
+
+    // DIRECTORY ZK-NYM
+
+    pub async fn get_directory_zk_nyms_ticketbookt_partial_verification_keys(
+        &self,
+    ) -> Result<PartialVerificationKeysResponse> {
+        self.get_json_with_retry(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::DIRECTORY,
+                "zk-nyms",
+                "ticketbook",
+                "partial-verification-keys",
+            ],
+            NO_PARAMS,
+        )
+        .await
+        .map_err(VpnApiClientError::FailedToGetDirectoryZkNymsTicketbookPartialVerificationKeys)
     }
 }
 

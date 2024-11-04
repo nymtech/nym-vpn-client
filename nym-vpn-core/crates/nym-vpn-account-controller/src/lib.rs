@@ -11,7 +11,6 @@ pub mod shared_state;
 mod commands;
 mod controller;
 mod error;
-mod models;
 mod storage;
 
 pub use commands::AccountCommand;

@@ -77,6 +77,21 @@ pub enum Error {
 
     #[error("succesfull zknym response is missing blinded shares")]
     MissingBlindedShares,
+
+    #[error("missing master verification key")]
+    MissingMasterVerificationKey,
+
+    #[error("invalid master verification key: {0}")]
+    InvalidMasterVerificationKey(#[source] nym_compact_ecash::CompactEcashError),
+
+    #[error("failed to deserialize blinded signature")]
+    DeserializeBlindedSignature(nym_compact_ecash::CompactEcashError),
+
+    #[error("inconsistent epoch id")]
+    InconsistentEpochId,
+
+    #[error("invalid expiration date")]
+    InvalidExpirationDate(#[source] time::error::Parse),
 }
 
 impl Error {
