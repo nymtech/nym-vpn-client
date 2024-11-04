@@ -102,6 +102,7 @@ impl DnsHandlerHandle {
                     else => break
                 }
             }
+            tracing::debug!("Exiting dns handler loop");
         });
 
         Ok((Self { tx }, join_handle))
