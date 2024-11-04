@@ -136,16 +136,21 @@ impl DepletionRate {
                 reason: "depletion rate shouldn't be 0".to_string(),
             });
         };
-        // try and have 10 logs before depletion
+        // try and have at least 10 logs before depletion..
         let next_timeout_secs = estimated_depletion_secs / 10;
         if next_timeout_secs == 0 {
             return Ok(None);
         }
-        // ... but not faster then the gateway bandwidth refresh, as that won't produce any change
-        if next_timeout_secs > DEFAULT_PEER_TIMEOUT_CHECK.as_secs() {
-            Ok(Some(Duration::from_secs(next_timeout_secs)))
-        } else {
+        if next_timeout_secs > 6 * DEFAULT_PEER_TIMEOUT_CHECK.as_secs() {
+            // ... but not too slow, in case bursts come in
+            Ok(Some(Duration::from_secs(
+                6 * DEFAULT_PEER_TIMEOUT_CHECK.as_secs(),
+            )))
+        } else if next_timeout_secs < DEFAULT_PEER_TIMEOUT_CHECK.as_secs() {
+            // ... and not faster then the gateway bandwidth refresh, as that won't produce any change
             Ok(Some(DEFAULT_PEER_TIMEOUT_CHECK))
+        } else {
+            Ok(Some(Duration::from_secs(next_timeout_secs)))
         }
     }
 }
