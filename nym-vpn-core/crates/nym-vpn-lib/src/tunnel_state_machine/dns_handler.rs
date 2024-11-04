@@ -17,7 +17,9 @@ struct DnsHandler {
 }
 
 impl DnsHandler {
-    fn new(#[cfg(target_os = "linux")] route_handler: &RouteHandler) -> Result<Self> {
+    fn new(
+        #[cfg(target_os = "linux")] route_handler: &RouteHandler,
+    ) -> Result<Self, nym_dns::Error> {
         Ok(Self {
             inner: DnsMonitor::new(
                 #[cfg(target_os = "linux")]
@@ -29,21 +31,19 @@ impl DnsHandler {
     }
 
     pub fn set(&mut self, interface: &str, servers: &[IpAddr]) -> Result<(), nym_dns::Error> {
-        Ok(tokio::task::block_in_place(|| {
+        tokio::task::block_in_place(|| {
             let dns_config = DnsConfig::default().resolve(servers);
 
             self.inner.set(interface, dns_config)
-        })?)
+        })
     }
 
     pub fn reset(&mut self) -> Result<(), nym_dns::Error> {
-        Ok(tokio::task::block_in_place(|| self.inner.reset())?)
+        tokio::task::block_in_place(|| self.inner.reset())
     }
 
     pub fn reset_before_interface_removal(&mut self) -> Result<(), nym_dns::Error> {
-        Ok(tokio::task::block_in_place(|| {
-            self.inner.reset_before_interface_removal()
-        })?)
+        tokio::task::block_in_place(|| self.inner.reset_before_interface_removal())
     }
 }
 
@@ -78,7 +78,7 @@ impl DnsHandlerHandle {
         let (tx, mut rx) = mpsc::unbounded_channel();
         let join_handle = tokio::spawn(async move {
             while let Some(command) = rx.recv().await {
-                tokio::task::block_in_place(|| match command {
+                match command {
                     DnsHandlerCommand::Set {
                         interface,
                         servers,
@@ -92,7 +92,7 @@ impl DnsHandlerHandle {
                     DnsHandlerCommand::ResetBeforeInterfaceRemoval { reply_tx } => {
                         _ = reply_tx.send(dns_handler.reset_before_interface_removal());
                     }
-                })
+                }
             }
         });
 
@@ -135,7 +135,7 @@ impl DnsHandlerHandle {
         command: DnsHandlerCommand,
         reply_rx: oneshot::Receiver<Result<T, nym_dns::Error>>,
     ) -> Result<T> {
-        _ = self.tx.send(command).map_err(|_| Error::ChannelClosed)?;
+        self.tx.send(command).map_err(|_| Error::ChannelClosed)?;
 
         reply_rx
             .await

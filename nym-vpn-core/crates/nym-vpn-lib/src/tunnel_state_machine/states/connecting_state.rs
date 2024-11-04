@@ -79,10 +79,10 @@ impl TunnelStateHandler for ConnectingState {
                     NextTunnelState::SameState(self)
                 }
                 TunnelMonitorEvent::EstablishingTunnel(conn_data) => {
-                    NextTunnelState::NewState((self, PrivateTunnelState::Connecting { connection_data: Some(conn_data) }))
+                    NextTunnelState::NewState((self, PrivateTunnelState::Connecting { connection_data: Some(*conn_data) }))
                 }
                 TunnelMonitorEvent::SelectedGateways(new_gateways) => {
-                    self.selected_gateways = Some(new_gateways);
+                    self.selected_gateways = Some(*new_gateways);
                     NextTunnelState::SameState(self)
                 }
                 TunnelMonitorEvent::Up(conn_data) => {
