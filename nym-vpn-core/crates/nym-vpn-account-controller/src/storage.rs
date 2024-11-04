@@ -135,6 +135,7 @@ impl VpnCredentialStorage {
             .map_err(Error::from)
     }
 
+    #[allow(unused)]
     pub(crate) async fn get_master_verification_key(
         &self,
         epoch_id: u64,

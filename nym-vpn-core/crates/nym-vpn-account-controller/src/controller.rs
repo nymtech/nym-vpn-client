@@ -6,7 +6,6 @@ use std::{collections::HashMap, path::PathBuf, sync::Arc, time::Duration};
 use futures::StreamExt;
 use nym_compact_ecash::Base58;
 use nym_config::defaults::NymNetworkDetails;
-use nym_credentials::EpochVerificationKey;
 use nym_credentials_interface::{RequestInfo, TicketType, VerificationKeyAuth};
 use nym_http_api_client::UserAgent;
 use nym_vpn_api_client::{
@@ -204,36 +203,6 @@ where
             blinded_shares.epoch_id
         );
 
-        //let master_verification_key = match self
-        //    .credential_storage
-        //    .get_master_verification_key(blinded_shares.epoch_id)
-        //    .await?
-        //{
-        //    Some(master_verification_key) => {
-        //        tracing::info!("Master verification key found in local storage");
-        //        master_verification_key.clone()
-        //    }
-        //    None => {
-        //        tracing::info!("Master verification key not found in local storage, importing");
-        //        let vk_bs58 = blinded_shares
-        //            .master_verification_key
-        //            .as_ref()
-        //            .unwrap()
-        //            .bs58_encoded_key
-        //            .clone();
-        //        let vk = VerificationKeyAuth::try_from_bs58(&vk_bs58).unwrap();
-        //        let epoch_verification_key = EpochVerificationKey {
-        //            epoch_id: blinded_shares.epoch_id,
-        //            key: vk.clone(),
-        //        };
-        //        tracing::info!("Inserting master verification key into local storage");
-        //        self.credential_storage
-        //            .insert_master_verification_key(&epoch_verification_key)
-        //            .await?;
-        //        vk
-        //    }
-        //};
-
         let vk_bs58 = blinded_shares
             .master_verification_key
             .as_ref()
@@ -274,7 +243,7 @@ where
         }
 
         // Get the ticket types that are below the threshold
-        let ticket_types_needed_to_request = local_remaining_tickets
+        let _ticket_types_needed_to_request = local_remaining_tickets
             .into_iter()
             .filter(|(_, remaining)| *remaining < TICKET_THRESHOLD)
             .map(|(ticket_type, _)| ticket_type)

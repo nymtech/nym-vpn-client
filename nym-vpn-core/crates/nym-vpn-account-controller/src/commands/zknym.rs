@@ -14,7 +14,7 @@ use nym_vpn_api_client::{
 };
 use time::{format_description::well_known::Rfc3339, Date, OffsetDateTime};
 
-use crate::{error::Error, models::WalletShare};
+use crate::error::Error;
 
 pub(crate) struct ZkNymRequestData {
     withdrawal_request: WithdrawalRequest,
@@ -138,9 +138,6 @@ pub(crate) async fn unblind_and_aggregate(
     let mut partial_wallets = Vec::new();
     let blinded_shares = response.blinded_shares.unwrap();
     for share in blinded_shares.shares {
-        // TODO: remove unwrap
-        // let blinded_share: WalletShare = serde_json::from_str(&share).unwrap();
-
         // TODO: remove unwrap
         tracing::info!("Creating BlindedSignature");
         let blinded_sig = BlindedSignature::try_from_bs58(&share.bs58_encoded_share).unwrap();

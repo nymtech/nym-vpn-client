@@ -156,23 +156,6 @@ pub struct NymVpnZkNym2 {
     pub status: NymVpnZkNymStatus,
 }
 
-//"{
-//    \"totalItems\":1,
-//    \"page\":1,
-//    \"pageSize\":100,
-//    \"items\":[
-//        {
-//            \"id\":\"k09ww30bcaqv2j5\",
-//            \"status\":\"active\",
-//            \"last_updated_utc\":\"2024-11-01 21:27:29.205Z\",
-//            \"created_on_utc\":\"2024-11-01 21:27:22.842Z\",
-//            \"valid_until_utc\":\"2024-12-01 21:26:07.909Z\",
-//            \"valid_from_utc\":\"2024-11-01 21:27:22.503Z\",
-//            \"issued_bandwidth_in_gb\":25
-//        }
-//    ]
-//}",
-
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum NymVpnZkNymStatus {
