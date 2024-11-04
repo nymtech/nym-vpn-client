@@ -217,6 +217,7 @@ pub struct WireguardConnectionData {
     pub exit: WireguardNode,
 }
 
+/// Public enum describing the tunnel state
 #[derive(Debug, Clone, Eq, PartialEq, uniffi::Enum)]
 pub enum TunnelState {
     Disconnected,
@@ -250,6 +251,7 @@ impl From<PrivateTunnelState> for TunnelState {
     }
 }
 
+/// Private enum describing the tunnel state
 #[derive(Debug, Clone)]
 enum PrivateTunnelState {
     Disconnected,
@@ -265,27 +267,39 @@ enum PrivateTunnelState {
     Error(ErrorStateReason),
 }
 
+/// Public enum describing action to perform after disconnect
 #[derive(Debug, Clone, Copy, Eq, PartialEq, uniffi::Enum)]
 pub enum ActionAfterDisconnect {
+    /// Do nothing after disconnect
     Nothing,
+
+    /// Reconnect after disconnect
     Reconnect,
-    Error(ErrorStateReason),
+
+    /// Enter error state
+    Error,
 }
 
 impl From<PrivateActionAfterDisconnect> for ActionAfterDisconnect {
     fn from(value: PrivateActionAfterDisconnect) -> Self {
         match value {
-            PrivateActionAfterDisconnect::Error(reason) => Self::Error(reason),
+            PrivateActionAfterDisconnect::Error(_) => Self::Error,
             PrivateActionAfterDisconnect::Nothing => Self::Nothing,
             PrivateActionAfterDisconnect::Reconnect { .. } => Self::Reconnect,
         }
     }
 }
 
+/// Private enum describing action to perform after disconnect
 #[derive(Debug, Clone)]
 enum PrivateActionAfterDisconnect {
+    /// Do nothing after disconnect
     Nothing,
+
+    /// Reconnect after disconnect, providing the retry attempt counter
     Reconnect { retry_attempt: u32 },
+
+    /// Enter error state
     Error(ErrorStateReason),
 }
 
@@ -617,7 +631,7 @@ impl fmt::Display for TunnelState {
             Self::Disconnecting { after_disconnect } => match after_disconnect {
                 ActionAfterDisconnect::Nothing => f.write_str("Disconnecting"),
                 ActionAfterDisconnect::Reconnect => f.write_str("Disconnecting to reconnect"),
-                ActionAfterDisconnect::Error(_) => f.write_str("Disconnecting because of an error"),
+                ActionAfterDisconnect::Error => f.write_str("Disconnecting because of an error"),
             },
             Self::Error(reason) => {
                 write!(f, "Error state: {:?}", reason)
