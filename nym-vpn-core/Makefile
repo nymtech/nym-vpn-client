@@ -47,10 +47,17 @@ build-vpn-lib-swift: ## Rust cargo swift
 	cd crates/nym-vpn-lib; \
 	cargo swift package --platforms ios --name NymVpnLib --release
 
-generate-uniffi-swift: ## Generate uniffi for swift
+generate-uniffi-ios: ## Generate uniffi for ios
 	cargo run --bin uniffi-bindgen generate \
 		--library $(CURDIR)/target/aarch64-apple-ios/release/libnym_vpn_lib.a \
-		--language swift --out-dir uniffi -n
+		--language swift --out-dir crates/nym-vpn-lib/uniffi -n
+
+generate-uniffi-android: ## Generate uniffi for android
+	cargo run --bin uniffi-bindgen generate \
+		--library $(CURDIR)/target/armv7-linux-androideabi/release/libnym_vpn_lib.so \
+		--language kotlin --out-dir crates/nym-vpn-lib/uniffi -n
+	mv crates/nym-vpn-lib/uniffi/nym_vpn_lib/nym_vpn_lib.kt crates/nym-vpn-lib/uniffi
+	rm -rf crates/nym-vpn-lib/uniffi/nym_vpn_lib/
 
 print-info: ## Print detected architecture
 
