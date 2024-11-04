@@ -15,7 +15,10 @@ use crate::{
         RegisterDeviceRequestBody, RequestZkNymRequestBody,
     },
     response::{
-        NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymVpnAccountResponse, NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnSubscription, NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse, NymVpnZkNym, NymVpnZkNym2, NymVpnZkNymResponse
+        NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymVpnAccountResponse,
+        NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnSubscription,
+        NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse, NymVpnZkNym, NymVpnZkNym2,
+        NymVpnZkNymResponse,
     },
     routes,
     types::{Device, GatewayMinPerformance, GatewayType, VpnApiAccount},
@@ -159,6 +162,48 @@ impl VpnApiClient {
         // todo!();
 
         nym_http_api_client::parse_response(response, false).await
+    }
+
+    fn create_delete_request(
+        &self,
+        path: PathSegments<'_>,
+        params: Params<'_, &str, &str>,
+    ) -> reqwest::RequestBuilder {
+        let base_url = self.inner.current_url().clone();
+        let url = nym_http_api_client::sanitize_url(&base_url, path, params);
+        let client = reqwest::ClientBuilder::new().build().unwrap();
+        client.delete(url)
+    }
+
+    async fn delete_authorized<T, E>(
+        &self,
+        path: PathSegments<'_>,
+        account: &VpnApiAccount,
+        device: Option<&Device>,
+    ) -> std::result::Result<T, HttpClientError<E>>
+    where
+        T: DeserializeOwned,
+        E: fmt::Display + DeserializeOwned,
+    {
+        let request = self
+            .create_delete_request(path, NO_PARAMS)
+            .bearer_auth(account.jwt().to_string());
+
+        let request = match device {
+            Some(device) => request.header(
+                DEVICE_AUTHORIZATION_HEADER,
+                format!("Bearer {}", device.jwt()),
+            ),
+            None => request,
+        };
+
+        let response = request.send().await.unwrap();
+
+        // nym_http_api_client::parse_response(response, false).await
+        let response_text = response.text().await.unwrap();
+
+        let response_json = serde_json::from_str(&response_text).unwrap();
+        Ok(response_json)
     }
 
     // ACCOUNT
@@ -390,6 +435,30 @@ impl VpnApiClient {
         id: &str,
     ) -> Result<NymVpnZkNym2> {
         self.get_authorized(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::ACCOUNT,
+                &account.id(),
+                routes::DEVICE,
+                &device.identity_key().to_string(),
+                routes::ZKNYM,
+                id,
+            ],
+            account,
+            Some(device),
+        )
+        .await
+        .map_err(VpnApiClientError::FailedToGetZkNymById)
+    }
+
+    pub async fn confirm_zk_nym_download_by_id(
+        &self,
+        account: &VpnApiAccount,
+        device: &Device,
+        id: &str,
+    ) -> Result<NymVpnZkNym2> {
+        self.delete_authorized(
             &[
                 routes::PUBLIC,
                 routes::V1,
