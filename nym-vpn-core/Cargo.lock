@@ -4573,6 +4573,7 @@ name = "nym-vpn-network-config"
 version = "1.0.0-dev"
 dependencies = [
  "anyhow",
+ "itertools 0.13.0",
  "nym-config",
  "reqwest 0.11.27",
  "serde",

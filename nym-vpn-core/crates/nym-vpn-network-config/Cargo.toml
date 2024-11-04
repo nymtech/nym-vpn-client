@@ -10,6 +10,7 @@ license.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+itertools.workspace = true
 reqwest = { workspace = true, default-features = false, features = [
     "blocking",
     "rustls-tls",

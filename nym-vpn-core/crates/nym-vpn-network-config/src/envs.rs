@@ -3,10 +3,12 @@
 
 use std::{
     collections::HashSet,
+    fmt,
     path::{Path, PathBuf},
 };
 
 use anyhow::Context;
+use itertools::Itertools;
 
 use super::{MAX_FILE_AGE, NETWORKS_SUBDIR};
 
@@ -39,6 +41,12 @@ impl serde::ser::Serialize for RegisteredNetworks {
         S: serde::ser::Serializer,
     {
         self.inner.serialize(serializer)
+    }
+}
+
+impl fmt::Display for RegisteredNetworks {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.inner.iter().format(", "))
     }
 }
 
