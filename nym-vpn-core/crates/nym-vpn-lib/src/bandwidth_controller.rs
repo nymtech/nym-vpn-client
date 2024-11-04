@@ -3,6 +3,7 @@
 
 use std::time::Duration;
 
+use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
 use tokio_stream::{wrappers::IntervalStream, StreamExt};
 
 use nym_bandwidth_controller::PreparedCredential;
@@ -16,7 +17,7 @@ use nym_validator_client::{
 use nym_wg_gateway_client::{ErrorMessage, GatewayData, WgGatewayClient, WgGatewayLightClient};
 
 const DEFAULT_BANDWIDTH_CHECK: Duration = Duration::from_secs(5); // 5 seconds
-const ASSUMED_BANDWIDTH_DEPLETION_RATE: u64 = 100 * 1024 * 1024; // 100 MB/s
+const DEFAULT_BANDWIDTH_DEPLETION_RATE: u64 = 100 * 1024 * 1024; // 100 MB/s
 const TICKETS_TO_SPEND: u32 = 1;
 
 #[derive(thiserror::Error, Debug)]
@@ -86,20 +87,54 @@ fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient> {
         .map_err(CredentialNyxdClientError::FailedToConnectUsingNyxdClient)?)
 }
 
-fn update_dynamic_check_interval(remaining_bandwidth: u64) -> Option<Duration> {
-    let estimated_depletion_secs = remaining_bandwidth / ASSUMED_BANDWIDTH_DEPLETION_RATE;
-    // try and have 10 logs before depletion
-    let next_timeout_secs = estimated_depletion_secs / 10;
-    if next_timeout_secs == 0 {
-        return None;
+pub(crate) struct DepletionRate {
+    current_depletion_rate: u64,
+    available_bandwidth: u64,
+}
+
+impl Default for DepletionRate {
+    fn default() -> Self {
+        Self {
+            current_depletion_rate: DEFAULT_BANDWIDTH_DEPLETION_RATE,
+            available_bandwidth: 0,
+        }
     }
-    Some(Duration::from_secs(next_timeout_secs))
+}
+
+impl DepletionRate {
+    fn update_dynamic_check_interval(
+        &mut self,
+        current_period: Duration,
+        remaining_bandwidth: u64,
+    ) -> Option<Duration> {
+        let new_depletion_rate =
+            remaining_bandwidth.saturating_sub(self.available_bandwidth) / current_period.as_secs();
+        // if nothing was consumed since last time, we prefer to stick to the old deplation rate
+        if new_depletion_rate != 0 {
+            self.current_depletion_rate = new_depletion_rate;
+        }
+        let estimated_depletion_secs = remaining_bandwidth / self.current_depletion_rate;
+        // try and have 10 logs before depletion
+        let next_timeout_secs = estimated_depletion_secs / 10;
+        if next_timeout_secs == 0 {
+            return None;
+        }
+        // ... but not faster then the gateway bandwidth refresh, as that won't produce any change
+        if next_timeout_secs > DEFAULT_PEER_TIMEOUT_CHECK.as_secs() {
+            Some(Duration::from_secs(next_timeout_secs))
+        } else {
+            Some(DEFAULT_PEER_TIMEOUT_CHECK)
+        }
+    }
 }
 
 pub(crate) struct BandwidthController<St> {
     inner: nym_bandwidth_controller::BandwidthController<QueryHttpRpcNyxdClient, St>,
     wg_entry_gateway_client: WgGatewayLightClient,
     wg_exit_gateway_client: WgGatewayLightClient,
+    timeout_check_interval: IntervalStream,
+    entry_depletion_rate: DepletionRate,
+    exit_depletion_rate: DepletionRate,
     shutdown: TaskClient,
 }
 
@@ -112,11 +147,16 @@ impl<St: Storage> BandwidthController<St> {
     ) -> Result<Self> {
         let client = get_nyxd_client()?;
         let inner = nym_bandwidth_controller::BandwidthController::new(storage, client);
+        let timeout_check_interval =
+            IntervalStream::new(tokio::time::interval(DEFAULT_BANDWIDTH_CHECK));
 
         Ok(BandwidthController {
             inner,
             wg_entry_gateway_client,
             wg_exit_gateway_client,
+            timeout_check_interval,
+            entry_depletion_rate: Default::default(),
+            exit_depletion_rate: Default::default(),
             shutdown,
         })
     }
@@ -216,19 +256,27 @@ impl<St: Storage> BandwidthController<St> {
         Ok(credential)
     }
 
-    async fn check_bandwidth(&mut self, entry: bool) -> Option<Duration>
+    async fn check_bandwidth(&mut self, entry: bool, current_period: Duration) -> Option<Duration>
     where
         <St as Storage>::StorageError: Send + Sync + 'static,
     {
-        let mut wg_gateway_client = if entry {
-            self.wg_entry_gateway_client.clone()
+        let (mut wg_gateway_client, current_depletion_rate) = if entry {
+            (
+                self.wg_entry_gateway_client.clone(),
+                &mut self.entry_depletion_rate,
+            )
         } else {
-            self.wg_exit_gateway_client.clone()
+            (
+                self.wg_exit_gateway_client.clone(),
+                &mut self.exit_depletion_rate,
+            )
         };
         match wg_gateway_client.query_bandwidth().await {
             Err(e) => tracing::warn!("Error querying remaining bandwidth {:?}", e),
             Ok(Some(remaining_bandwidth)) => {
-                match update_dynamic_check_interval(remaining_bandwidth as u64) {
+                match current_depletion_rate
+                    .update_dynamic_check_interval(current_period, remaining_bandwidth as u64)
+                {
                     Some(new_duration) => {
                         return Some(new_duration);
                     }
@@ -266,18 +314,17 @@ impl<St: Storage> BandwidthController<St> {
     where
         <St as Storage>::StorageError: Send + Sync + 'static,
     {
-        let mut timeout_check_interval =
-            IntervalStream::new(tokio::time::interval(DEFAULT_BANDWIDTH_CHECK));
         // Skip the first, immediate tick
-        timeout_check_interval.next().await;
+        self.timeout_check_interval.next().await;
         while !self.shutdown.is_shutdown() {
             tokio::select! {
                 _ = self.shutdown.recv() => {
                     tracing::trace!("BandwidthController: Received shutdown");
                 }
-                _ = timeout_check_interval.next() => {
-                    let entry_duration = self.check_bandwidth(true).await;
-                    let exit_duration = self.check_bandwidth(false).await;
+                _ = self.timeout_check_interval.next() => {
+                    let current_period = self.timeout_check_interval.as_ref().period();
+                    let entry_duration = self.check_bandwidth(true, current_period).await;
+                    let exit_duration = self.check_bandwidth(false, current_period).await;
                     if let Some(minimal_duration) = match (entry_duration, exit_duration) {
                         (Some(d1), Some(d2)) => {
                             if d1 < d2 {
@@ -290,9 +337,9 @@ impl<St: Storage> BandwidthController<St> {
                         (None, Some(d)) => Some(d),
                         _ => None,
                     } {
-                        timeout_check_interval = IntervalStream::new(tokio::time::interval(minimal_duration));
+                        self.timeout_check_interval = IntervalStream::new(tokio::time::interval(minimal_duration));
                         // Skip the first, immediate tick
-                        timeout_check_interval.next().await;
+                        self.timeout_check_interval.next().await;
                     }
                 }
             }
