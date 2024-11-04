@@ -190,7 +190,8 @@ where
         ticketbook_type: TicketType,
         request_info: RequestInfo,
     ) -> Result<(), Error> {
-        tracing::info!("Importing zk-nym: {:#?}", response);
+        tracing::info!("Importing zk-nym: {}", response.id);
+        // tracing::debug!("Importing zk-nym: {:#?}", response);
 
         let account = self.account_storage.load_account().await?;
 
@@ -198,30 +199,48 @@ where
             return Err(Error::MissingBlindedShares);
         };
 
-        let master_verification_key = match self
-            .credential_storage
-            .get_master_verification_key(blinded_shares.epoch_id)
-            .await?
-        {
-            Some(master_verification_key) => master_verification_key.clone(),
-            None => {
-                let vk_bs58 = blinded_shares
-                    .master_verification_key
-                    .as_ref()
-                    .unwrap()
-                    .bs58_encoded_key
-                    .clone();
-                let vk = VerificationKeyAuth::try_from_bs58(&vk_bs58).unwrap();
-                let epoch_verification_key = EpochVerificationKey {
-                    epoch_id: blinded_shares.epoch_id,
-                    key: vk.clone(),
-                };
-                self.credential_storage
-                    .insert_master_verification_key(&epoch_verification_key)
-                    .await?;
-                vk
-            }
-        };
+        tracing::info!(
+            "Getting master verification key for epoch: {}",
+            blinded_shares.epoch_id
+        );
+
+        //let master_verification_key = match self
+        //    .credential_storage
+        //    .get_master_verification_key(blinded_shares.epoch_id)
+        //    .await?
+        //{
+        //    Some(master_verification_key) => {
+        //        tracing::info!("Master verification key found in local storage");
+        //        master_verification_key.clone()
+        //    }
+        //    None => {
+        //        tracing::info!("Master verification key not found in local storage, importing");
+        //        let vk_bs58 = blinded_shares
+        //            .master_verification_key
+        //            .as_ref()
+        //            .unwrap()
+        //            .bs58_encoded_key
+        //            .clone();
+        //        let vk = VerificationKeyAuth::try_from_bs58(&vk_bs58).unwrap();
+        //        let epoch_verification_key = EpochVerificationKey {
+        //            epoch_id: blinded_shares.epoch_id,
+        //            key: vk.clone(),
+        //        };
+        //        tracing::info!("Inserting master verification key into local storage");
+        //        self.credential_storage
+        //            .insert_master_verification_key(&epoch_verification_key)
+        //            .await?;
+        //        vk
+        //    }
+        //};
+
+        let vk_bs58 = blinded_shares
+            .master_verification_key
+            .as_ref()
+            .unwrap()
+            .bs58_encoded_key
+            .clone();
+        let master_verification_key = VerificationKeyAuth::try_from_bs58(&vk_bs58).unwrap();
 
         let issued_ticketbook = crate::commands::zknym::unblind_and_aggregate(
             response,
@@ -230,8 +249,7 @@ where
             account,
             master_verification_key,
         )
-        .await
-        .unwrap();
+        .await?;
 
         self.credential_storage
             .insert_issued_ticketbook(&issued_ticketbook)
@@ -392,7 +410,25 @@ where
         for zk_nym in &reported_device_zk_nyms.items {
             tracing::info!("{:?}", zk_nym);
         }
+
         Ok(())
+    }
+
+    async fn handle_import_zk_nym(&mut self, id: String) -> Result<(), Error> {
+        tracing::info!("Importing zk-nym with id: {}", id);
+
+        let account = self.account_storage.load_account().await?;
+        let device = self.account_storage.load_device_keys().await?;
+
+        todo!();
+        //let response = self
+        //    .vpn_api_client
+        //    .get_zk_nym_by_id(&account, &device, &id)
+        //    .await
+        //    .map_err(Error::GetZkNym)?;
+
+        // self.import_zk_nym(response, TicketType::V1MixnetEntry, RequestInfo::default())
+        // .await
     }
 
     // Once we finish polling the result of the zk-nym request, we now import the zk-nym into the
@@ -463,6 +499,7 @@ where
             AccountCommand::GetDeviceZkNym => {
                 self.handle_get_zk_nyms_available_for_download().await
             }
+            AccountCommand::ImportZkNym(id) => self.handle_import_zk_nym(id).await,
         }
     }
 

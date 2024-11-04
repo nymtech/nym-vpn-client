@@ -92,7 +92,8 @@ pub(crate) async fn poll_zk_nym(
             .await
         {
             Ok(poll_response) if poll_response.status != NymVpnZkNymStatus::Pending => {
-                tracing::info!("zk-nym polling finished: {:#?}", poll_response);
+                tracing::info!("zk-nym polling finished: {}", poll_response.id);
+                tracing::debug!("zk-nym polling finished: {:#?}", poll_response);
                 return PollingResult::Finished(
                     poll_response,
                     request.ticketbook_type,
@@ -132,6 +133,8 @@ pub(crate) async fn unblind_and_aggregate(
         .create_ecash_keypair()
         .map_err(Error::CreateEcashKeyPair)?;
 
+    tracing::info!("Verifying zk-nym shares");
+
     let mut partial_wallets = Vec::new();
     let blinded_shares = response.blinded_shares.unwrap();
     for share in blinded_shares.shares {
@@ -139,9 +142,11 @@ pub(crate) async fn unblind_and_aggregate(
         // let blinded_share: WalletShare = serde_json::from_str(&share).unwrap();
 
         // TODO: remove unwrap
+        tracing::info!("Creating BlindedSignature");
         let blinded_sig =
             BlindedSignature::try_from_bs58(&share.bs58_encoded_share).unwrap();
 
+        tracing::info!("Calling issue_verify");
         match nym_compact_ecash::issue_verify(
             &vk_auth,
             ecash_keypair.secret_key(),
@@ -149,13 +154,18 @@ pub(crate) async fn unblind_and_aggregate(
             &request_info,
             share.node_index,
         ) {
-            Ok(partial_wallet) => partial_wallets.push(partial_wallet),
+            Ok(partial_wallet) => {
+                tracing::info!("Partial wallet created and appended");
+                partial_wallets.push(partial_wallet)
+            },
             Err(err) => {
                 tracing::error!("Failed to issue verify: {:#?}", err);
                 return Err(Error::ImportZkNym(err));
             }
         }
     }
+
+    tracing::info!("Aggregating wallets");
 
     // TODO: remove unwrap
     let aggregated_wallets = nym_compact_ecash::aggregate_wallets(

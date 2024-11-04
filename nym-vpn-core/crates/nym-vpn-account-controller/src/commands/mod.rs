@@ -23,6 +23,7 @@ pub enum AccountCommand {
     RegisterDevice,
     RequestZkNym,
     GetDeviceZkNym,
+    ImportZkNym(String),
 }
 
 #[derive(Clone, Debug)]
@@ -118,6 +119,9 @@ impl CommandHandler {
                 todo!()
             }
             AccountCommand::GetDeviceZkNym => {
+                todo!()
+            }
+            AccountCommand::ImportZkNym(_) => {
                 todo!()
             }
         }
