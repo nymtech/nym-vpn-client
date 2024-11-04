@@ -12,6 +12,6 @@ data class AppUiState(
 	val state: Tunnel.State = Tunnel.State.Down,
 	val backendMessage: BackendMessage = BackendMessage.None,
 	val isMnemonicStored: Boolean = false,
-	val entryCountry: Country = Country(isLowLatency = true),
+	val entryCountry: Country = Country(isDefault = true),
 	val exitCountry: Country = Country(isDefault = true),
 )

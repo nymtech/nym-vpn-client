@@ -62,7 +62,6 @@ import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
-import net.nymtech.vpn.model.Country
 import nym_vpn_lib.GatewayType
 import java.text.Collator
 
@@ -215,37 +214,37 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 		}
 		item {
 			if (countries.isNotEmpty()) {
-				if (gatewayLocation == GatewayLocation.ENTRY) {
-					val icon = ImageVector.vectorResource(R.drawable.bolt)
-					SelectionItemButton(
-						{
-							Icon(
-								icon,
-								icon.name,
-								modifier =
-								Modifier
-									.padding(
-										horizontal = 24.dp.scaledWidth(),
-										vertical = 16.dp.scaledHeight(),
-									)
-									.size(
-										iconSize,
-									),
-								tint = MaterialTheme.colorScheme.onSurface,
-							)
-						},
-						stringResource(R.string.automatic),
-						onClick = {
-							viewModel.onSelected(Country(isLowLatency = true), gatewayLocation)
-							navController.navigateAndForget(Route.Main())
-						},
-						trailing = {
-							if (selectedCountry.isLowLatency == true) {
-								SelectedLabel()
-							}
-						},
-					)
-				}
+// 				if (gatewayLocation == GatewayLocation.ENTRY) {
+// 					val icon = ImageVector.vectorResource(R.drawable.bolt)
+// 					SelectionItemButton(
+// 						{
+// 							Icon(
+// 								icon,
+// 								icon.name,
+// 								modifier =
+// 								Modifier
+// 									.padding(
+// 										horizontal = 24.dp.scaledWidth(),
+// 										vertical = 16.dp.scaledHeight(),
+// 									)
+// 									.size(
+// 										iconSize,
+// 									),
+// 								tint = MaterialTheme.colorScheme.onSurface,
+// 							)
+// 						},
+// 						stringResource(R.string.automatic),
+// 						onClick = {
+// 							viewModel.onSelected(Country(isLowLatency = true), gatewayLocation)
+// 							navController.navigateAndForget(Route.Main())
+// 						},
+// 						trailing = {
+// 							if (selectedCountry.isLowLatency == true) {
+// 								SelectedLabel()
+// 							}
+// 						},
+// 					)
+// 				}
 			} else {
 				Text(
 					stringResource(id = R.string.country_load_failure),
