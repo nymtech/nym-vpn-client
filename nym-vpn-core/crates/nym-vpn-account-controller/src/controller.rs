@@ -302,6 +302,22 @@ where
             .insert_issued_ticketbook(&issued_ticketbook)
             .await?;
 
+        self.confirm_zk_nym_downloaded(&response.id).await?;
+
+        Ok(())
+    }
+
+    async fn confirm_zk_nym_downloaded(&self, id: &str) -> Result<(), Error> {
+        let account = self.account_storage.load_account().await?;
+        let device = self.account_storage.load_device_keys().await?;
+
+        let response = self
+            .vpn_api_client
+            .confirm_zk_nym_download_by_id(&account, &device, id)
+            .await
+            .map_err(Error::ConfirmZkNymDownloaded)?;
+
+        tracing::info!("Confirmed zk-nym downloaded: {:#?}", response);
         Ok(())
     }
 

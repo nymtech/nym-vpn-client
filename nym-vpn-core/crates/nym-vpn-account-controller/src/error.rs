@@ -90,8 +90,11 @@ pub enum Error {
     #[error("inconsistent epoch id")]
     InconsistentEpochId,
 
-    #[error("invalid expiration date")]
+    #[error("invalid expiration date: {0}")]
     InvalidExpirationDate(#[source] time::error::Parse),
+
+    #[error("failed to confirm zk-nym downloaded: {0}")]
+    ConfirmZkNymDownloaded(#[source] nym_vpn_api_client::VpnApiClientError),
 }
 
 impl Error {
