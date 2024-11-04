@@ -14,8 +14,8 @@ use nym_authenticator_client::{AuthClient, ClientMessage};
 use nym_authenticator_requests::v3::{
     registration::{FinalMessage, GatewayClient, InitMessage, RegistrationData},
     response::{
-        AuthenticatorResponseData, PendingRegistrationResponse, RegisteredResponse,
-        RemainingBandwidthResponse, TopUpBandwidthResponse,
+        AuthenticatorResponse, AuthenticatorResponseData, PendingRegistrationResponse,
+        RegisteredResponse, RemainingBandwidthResponse, TopUpBandwidthResponse,
     },
     topup::TopUpMessage,
 };
@@ -96,15 +96,29 @@ impl WgGatewayLightClient {
         Ok(self.query_bandwidth().await?.is_none())
     }
 
+    async fn send_with_retries(&mut self, msg: ClientMessage) -> Result<AuthenticatorResponse> {
+        for _ in [0; 5] {
+            match self
+                .auth_client
+                .send(msg.clone(), self.auth_recipient)
+                .await
+            {
+                Ok(response) => return Ok(response),
+                Err(nym_authenticator_client::Error::TimeoutWaitingForConnectResponse) => continue,
+                Err(e) => return Err(Error::from(e)),
+            }
+        }
+        Err(Error::AuthenticatorClientError(
+            nym_authenticator_client::Error::TimeoutWaitingForConnectResponse,
+        ))
+    }
+
     pub async fn top_up(&mut self, credential: CredentialSpendingData) -> Result<i64> {
-        let init_message = ClientMessage::TopUp(Box::new(TopUpMessage {
+        let top_up_message = ClientMessage::TopUp(Box::new(TopUpMessage {
             pub_key: PeerPublicKey::new(self.public_key.to_bytes().into()),
             credential,
         }));
-        let response = self
-            .auth_client
-            .send(init_message, self.auth_recipient)
-            .await?;
+        let response = self.send_with_retries(top_up_message).await?;
 
         let remaining_bandwidth = match response.data {
             AuthenticatorResponseData::TopUpBandwidth(TopUpBandwidthResponse { reply, .. }) => {
