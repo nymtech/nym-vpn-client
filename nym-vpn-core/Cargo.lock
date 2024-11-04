@@ -3623,11 +3623,11 @@ name = "nym-explorer-client"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=release%2F2024.13-magura#d18ddcdc114e73a6f80b1d580f7b658d0fbb2ec9"
 dependencies = [
+ "log",
  "nym-explorer-api-requests",
  "reqwest 0.12.4",
  "serde",
  "thiserror",
- "tracing",
  "url",
 ]
 
@@ -4377,6 +4377,7 @@ dependencies = [
  "flate2",
  "futures",
  "itertools 0.13.0",
+ "log",
  "nym-api-requests",
  "nym-coconut-bandwidth-contract-common",
  "nym-coconut-dkg-common",
@@ -4400,7 +4401,6 @@ dependencies = [
  "thiserror",
  "time",
  "tokio",
- "tracing",
  "url",
  "wasmtimer",
  "zeroize",
