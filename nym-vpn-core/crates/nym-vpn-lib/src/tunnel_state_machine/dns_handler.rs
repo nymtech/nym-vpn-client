@@ -8,6 +8,7 @@ use tokio::{
     sync::{mpsc, oneshot},
     task::JoinHandle,
 };
+use tokio_util::sync::CancellationToken;
 
 #[cfg(target_os = "linux")]
 use super::route_handler::RouteHandler;
@@ -69,6 +70,7 @@ pub struct DnsHandlerHandle {
 impl DnsHandlerHandle {
     pub fn spawn(
         #[cfg(target_os = "linux")] route_handler: &RouteHandler,
+        shutdown_token: CancellationToken,
     ) -> Result<(Self, JoinHandle<()>)> {
         let mut dns_handler = DnsHandler::new(
             #[cfg(target_os = "linux")]
@@ -77,21 +79,27 @@ impl DnsHandlerHandle {
 
         let (tx, mut rx) = mpsc::unbounded_channel();
         let join_handle = tokio::spawn(async move {
-            while let Some(command) = rx.recv().await {
-                match command {
-                    DnsHandlerCommand::Set {
-                        interface,
-                        servers,
-                        reply_tx,
-                    } => {
-                        _ = reply_tx.send(dns_handler.set(&interface, &servers));
+            loop {
+                tokio::select! {
+                    Some(command) = rx.recv() => {
+                        match command {
+                            DnsHandlerCommand::Set {
+                                interface,
+                                servers,
+                                reply_tx,
+                            } => {
+                                _ = reply_tx.send(dns_handler.set(&interface, &servers));
+                            }
+                            DnsHandlerCommand::Reset { reply_tx } => {
+                                _ = reply_tx.send(dns_handler.reset());
+                            }
+                            DnsHandlerCommand::ResetBeforeInterfaceRemoval { reply_tx } => {
+                                _ = reply_tx.send(dns_handler.reset_before_interface_removal());
+                            }
+                        }
                     }
-                    DnsHandlerCommand::Reset { reply_tx } => {
-                        _ = reply_tx.send(dns_handler.reset());
-                    }
-                    DnsHandlerCommand::ResetBeforeInterfaceRemoval { reply_tx } => {
-                        _ = reply_tx.send(dns_handler.reset_before_interface_removal());
-                    }
+                    _ = shutdown_token.cancelled() =>  break,
+                    else => break
                 }
             }
         });
