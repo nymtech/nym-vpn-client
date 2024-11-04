@@ -181,16 +181,17 @@ impl TunnelMonitor {
         retry_attempt: u32,
         selected_gateways: Option<SelectedGateways>,
     ) -> Vec<AsyncDevice> {
-        let result = self.run_inner(retry_attempt, selected_gateways).await;
-        let reason = result.as_ref().err().and_then(|e| e.error_state_reason());
-
-        if let Err(e) = result.as_ref() {
-            tracing::error!("Tunnel monitor exited with error: {}", e);
-        }
+        let (devices, reason) = match self.run_inner(retry_attempt, selected_gateways).await {
+            Ok(devices) => (devices, None),
+            Err(e) => {
+                tracing::error!("Tunnel monitor exited with error: {}", e);
+                (vec![], e.error_state_reason())
+            }
+        };
 
         self.send_event(TunnelMonitorEvent::Down(reason));
 
-        result.ok().unwrap_or_default()
+        devices
     }
 
     async fn run_inner(
@@ -201,14 +202,11 @@ impl TunnelMonitor {
         if retry_attempt > 0 {
             let delay = wait_delay(retry_attempt);
             tracing::debug!("Waiting for {}s before connecting.", delay.as_secs());
-            if self
-                .cancel_token
+
+            self.cancel_token
                 .run_until_cancelled(tokio::time::sleep(delay))
                 .await
-                .is_none()
-            {
-                return Ok(vec![]);
-            }
+                .ok_or(Error::Tunnel(tunnel::Error::Cancelled))?;
         }
 
         self.send_event(TunnelMonitorEvent::InitializingClient);
@@ -297,16 +295,13 @@ impl TunnelMonitor {
         };
         self.send_event(TunnelMonitorEvent::Up(conn_data));
 
-        loop {
-            tokio::select! {
-                _ = self.cancel_token.cancelled() => {
-                    break;
-                }
-                e = tunnel_handle.recv_error() => {
-                    tracing::error!("Received mixnet client error: {:?}", e);
-                    // todo: handle error
-                }
-            }
+        let task_error = self
+            .cancel_token
+            .run_until_cancelled(tunnel_handle.recv_error())
+            .await;
+
+        if let Some(Some(task_error)) = task_error {
+            tracing::error!("Task manager quit with error: {}", task_error);
         }
 
         tracing::debug!("Wait for tunnel to exit");
