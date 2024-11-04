@@ -181,12 +181,16 @@ impl TunnelMonitor {
         retry_attempt: u32,
         selected_gateways: Option<SelectedGateways>,
     ) -> Vec<AsyncDevice> {
-        self.run_inner(retry_attempt, selected_gateways)
-            .await
-            .inspect_err(|e| {
-                self.send_event(TunnelMonitorEvent::Down(e.error_state_reason()));
-            })
-            .unwrap_or_default()
+        let result = self.run_inner(retry_attempt, selected_gateways).await;
+        let reason = result.as_ref().err().and_then(|e| e.error_state_reason());
+
+        if let Err(e) = result.as_ref() {
+            tracing::error!("Tunnel monitor exited with error: {}", e);
+        }
+
+        self.send_event(TunnelMonitorEvent::Down(reason));
+
+        result.ok().unwrap_or_default()
     }
 
     async fn run_inner(

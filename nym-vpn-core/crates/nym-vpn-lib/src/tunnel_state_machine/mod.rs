@@ -323,6 +323,12 @@ pub enum ErrorStateReason {
     /// Same entry and exit gateway are unsupported.
     SameEntryAndExitGateway,
 
+    /// Invalid country set for entry gateway
+    InvalidEntryGatewayCountry,
+
+    /// Invalid country set for exit gateway
+    InvalidExitGatewayCountry,
+
     /// Program errors that must not happen.
     Internal,
 }
@@ -587,9 +593,21 @@ impl Error {
 impl tunnel::Error {
     fn error_state_reason(&self) -> Option<ErrorStateReason> {
         match self {
-            Self::SelectGateways(GatewayDirectoryError::SameEntryAndExitGatewayFromCountry {
-                ..
-            }) => Some(ErrorStateReason::SameEntryAndExitGateway),
+            Self::SelectGateways(e) => match e {
+                GatewayDirectoryError::SameEntryAndExitGatewayFromCountry { .. } => {
+                    Some(ErrorStateReason::SameEntryAndExitGateway)
+                }
+
+                GatewayDirectoryError::FailedToSelectEntryGateway {
+                    source: nym_gateway_directory::Error::NoMatchingEntryGatewayForLocation { .. },
+                } => Some(ErrorStateReason::InvalidEntryGatewayCountry),
+
+                GatewayDirectoryError::FailedToSelectExitGateway {
+                    source: nym_gateway_directory::Error::NoMatchingExitGatewayForLocation { .. },
+                } => Some(ErrorStateReason::InvalidExitGatewayCountry),
+
+                _ => None,
+            },
             _ => None,
         }
     }
