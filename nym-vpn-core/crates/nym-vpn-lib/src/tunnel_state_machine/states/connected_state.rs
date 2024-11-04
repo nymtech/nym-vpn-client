@@ -64,7 +64,7 @@ impl TunnelStateHandler for ConnectedState {
             Some(monitor_event) = self.monitor_event_receiver.recv() => {
                 match monitor_event {
                     TunnelMonitorEvent::Down(reason) => {
-                        let after_disconnect = reason.map(PrivateActionAfterDisconnect::Error).unwrap_or(PrivateActionAfterDisconnect::Nothing);
+                        let after_disconnect = reason.map(PrivateActionAfterDisconnect::Error).unwrap_or(PrivateActionAfterDisconnect::Reconnect { retry_attempt: 0 });
 
                         NextTunnelState::NewState(DisconnectingState::enter(after_disconnect, self.monitor_handle, shared_state))
                     }
