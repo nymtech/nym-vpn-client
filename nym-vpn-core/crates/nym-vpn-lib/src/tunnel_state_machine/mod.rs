@@ -333,6 +333,15 @@ pub enum TunnelEvent {
     MixnetState(MixnetEvent),
 }
 
+impl fmt::Display for TunnelEvent {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::NewState(new_state) => new_state.fmt(f),
+            Self::MixnetState(event) => event.fmt(f),
+        }
+    }
+}
+
 #[derive(Debug, Copy, Clone, uniffi::Enum)]
 pub enum MixnetEvent {
     Bandwidth(BandwidthEvent),
