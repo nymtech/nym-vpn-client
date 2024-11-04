@@ -191,6 +191,7 @@ where
         response: NymVpnZkNym2,
         ticketbook_type: TicketType,
         request_info: RequestInfo,
+        request: ZkNymRequestData,
     ) -> Result<(), Error> {
         tracing::info!("Importing zk-nym: {}", response.id);
 
@@ -221,8 +222,23 @@ where
         let master_vk = VerificationKeyAuth::try_from_bs58(&master_vk_bs58)
             .map_err(Error::InvalidMasterVerificationKey)?;
 
-        let expiration_date = OffsetDateTime::parse(&response.valid_until_utc, &Rfc3339)
-            .map_err(Error::InvalidExpirationDate)?;
+        // dbg!(&response.valid_until_utc);
+        //let format = "[year]-[month]-[day] [hour]:[minute]:[second].[subsecond]Z";
+        //let expiration_date = OffsetDateTime::parse(
+        //    &response.valid_until_utc,
+        //    &time::format_description::parse(format).unwrap(),
+        //)
+        //.map_err(Error::InvalidExpirationDate)?;
+        //let expiration_date = OffsetDateTime::parse(&response.valid_until_utc, &Rfc3339)
+        //    .map_err(Error::InvalidExpirationDate)?;
+        //let expiration_date = time::Date::parse(&response.valid_until_utc, &Rfc3339)
+        //    .map_err(Error::InvalidExpirationDate)?;
+        //let format = time::format_description::parse(
+        //    "[year]-[month]-[day] [hour]:[minute]:[second].[subsecond]Z",
+        //)
+        //.unwrap();
+        //let expiration_date = time::Date::parse(&response.valid_until_utc, &format).unwrap();
+        let expiration_date = request.expiration_date;
 
         let issued_ticketbook = crate::commands::zknym::unblind_and_aggregate(
             shares.clone(),
@@ -236,6 +252,7 @@ where
         .await?;
 
         // Insert master verification key
+        tracing::info!("Inserting master verification key");
         let epoch_vk = EpochVerificationKey {
             epoch_id: shares.epoch_id,
             key: master_vk,
@@ -249,6 +266,7 @@ where
             .ok();
 
         // Insert aggregated coin index signatures
+        tracing::info!("Inserting coin index signatures");
         self.credential_storage
             .insert_coin_index_signatures(
                 &shares
@@ -264,6 +282,7 @@ where
             .ok();
 
         // Insert aggregated expiration date signatures
+        tracing::info!("Inserting expiration date signatures");
         self.credential_storage
             .insert_expiration_date_signatures(
                 &shares
@@ -278,6 +297,7 @@ where
             })
             .ok();
 
+        tracing::info!("Inserting issued ticketbook");
         self.credential_storage
             .insert_issued_ticketbook(&issued_ticketbook)
             .await?;
@@ -470,18 +490,18 @@ where
         };
 
         match result {
-            PollingResult::Finished(response, ticketbook_type, request_info)
+            PollingResult::Finished(response, ticketbook_type, request_info, request)
                 if response.status == NymVpnZkNymStatus::Active =>
             {
                 tracing::info!("Polling finished succesfully, importing ticketbook");
-                self.import_zk_nym(response, ticketbook_type, *request_info)
+                self.import_zk_nym(response, ticketbook_type, *request_info, request)
                     .await
                     .inspect_err(|err| {
                         tracing::error!("Failed to import zk-nym: {:#?}", err);
                     })
                     .ok();
             }
-            PollingResult::Finished(response, _, _) => {
+            PollingResult::Finished(response, _, _, _) => {
                 tracing::warn!(
                     "Polling finished with status: {:?}, not importing!",
                     response.status
@@ -617,6 +637,7 @@ where
         // Timer to periodically refresh the remote account state
         let mut update_account_state_timer = tokio::time::interval(Duration::from_secs(5 * 60));
 
+        tracing::info!("Account controller starting loop");
         loop {
             tokio::select! {
                 // Handle incoming commands
@@ -641,8 +662,7 @@ where
                 }
                 // On a timer we want to refresh the account state
                 _ = update_account_state_timer.tick() => {
-                    // WIP(JON): disable timer during dev work
-                    //self.queue_command(AccountCommand::UpdateAccountState);
+                    self.queue_command(AccountCommand::UpdateAccountState);
                 }
                 _ = self.cancel_token.cancelled() => {
                     tracing::trace!("Received cancellation signal");

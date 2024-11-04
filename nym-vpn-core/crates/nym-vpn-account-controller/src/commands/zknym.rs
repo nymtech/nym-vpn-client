@@ -22,10 +22,11 @@ use time::Date;
 
 use crate::error::Error;
 
+#[derive(Debug, Clone)]
 pub(crate) struct ZkNymRequestData {
     withdrawal_request: WithdrawalRequest,
     ecash_pubkey: PublicKeyUser,
-    expiration_date: Date,
+    pub(crate) expiration_date: Date,
     ticketbook_type: TicketType,
     request_info: RequestInfo,
 }
@@ -103,7 +104,8 @@ pub(crate) async fn poll_zk_nym(
                 return PollingResult::Finished(
                     poll_response,
                     request.ticketbook_type,
-                    Box::new(request.request_info),
+                    Box::new(request.request_info.clone()),
+                    request,
                 );
             }
             Ok(poll_response) => {
@@ -194,12 +196,15 @@ pub(crate) async fn unblind_and_aggregate(
     )
     .unwrap();
 
+    tracing::info!("Creating ticketbook");
+
     let ticketbook = IssuedTicketBook::new(
         aggregated_wallets.into_wallet_signatures(),
         shares.epoch_id,
         ecash_keypair.into(),
         ticketbook_type,
-        expiration_date.ecash_date(),
+        // expiration_date.ecash_date(),
+        expiration_date,
     );
 
     Ok(ticketbook)
@@ -207,7 +212,7 @@ pub(crate) async fn unblind_and_aggregate(
 
 #[derive(Debug)]
 pub(crate) enum PollingResult {
-    Finished(NymVpnZkNym2, TicketType, Box<RequestInfo>),
+    Finished(NymVpnZkNym2, TicketType, Box<RequestInfo>, ZkNymRequestData),
     Timeout(NymVpnZkNym2),
     Error(PollingError),
 }
