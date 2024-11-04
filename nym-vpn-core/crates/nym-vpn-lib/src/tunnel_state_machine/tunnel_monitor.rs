@@ -11,7 +11,9 @@ use std::net::Ipv6Addr;
 use std::os::fd::{AsRawFd, IntoRawFd};
 #[cfg(target_os = "android")]
 use std::os::fd::{FromRawFd, OwnedFd};
-use std::{cmp, sync::Arc, time::Duration};
+#[cfg(any(target_os = "android", target_os = "ios"))]
+use std::sync::Arc;
+use std::{cmp, time::Duration};
 
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
@@ -87,10 +89,10 @@ pub enum TunnelMonitorEvent {
     InitializingClient,
 
     /// Selected gateways
-    SelectedGateways(SelectedGateways),
+    SelectedGateways(Box<SelectedGateways>),
 
     /// Establishing tunnel connection
-    EstablishingTunnel(ConnectionData),
+    EstablishingTunnel(Box<ConnectionData>),
 
     /// Tunnel is up
     Up(ConnectionData),
@@ -136,6 +138,8 @@ pub struct TunnelMonitor {
 }
 
 impl TunnelMonitor {
+    // todo: fix too many arguments
+    #[allow(clippy::too_many_arguments)]
     pub fn start(
         retry_attempt: u32,
         selected_gateways: Option<SelectedGateways>,
@@ -241,7 +245,9 @@ impl TunnelMonitor {
             )
             .await?;
 
-            self.send_event(TunnelMonitorEvent::SelectedGateways(new_gateways.clone()));
+            self.send_event(TunnelMonitorEvent::SelectedGateways(Box::new(
+                new_gateways.clone(),
+            )));
 
             new_gateways
         };
@@ -275,7 +281,9 @@ impl TunnelMonitor {
             connected_at: None,
             tunnel: tunnel_conn_data,
         };
-        self.send_event(TunnelMonitorEvent::EstablishingTunnel(conn_data.clone()));
+        self.send_event(TunnelMonitorEvent::EstablishingTunnel(Box::new(
+            conn_data.clone(),
+        )));
 
         // todo: do initial ping
 
