@@ -502,7 +502,7 @@ where
                     self.handle_service_command(command).await;
                 }
                 Some(event) = self.event_receiver.recv() => {
-                    tracing::info!("Tunnel event: {:?}", event);
+                    tracing::info!("Tunnel event: {}", event);
                     match event {
                         TunnelEvent::NewState(new_state) => {
                             self.tunnel_state = new_state.clone();
