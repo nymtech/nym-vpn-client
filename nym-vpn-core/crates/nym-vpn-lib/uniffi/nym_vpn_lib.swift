@@ -5903,6 +5903,12 @@ public func removeAccountMnemonic(path: String)throws  -> Bool {
     )
 })
 }
+public func resetDeviceIdentity(path: String)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_resetdeviceidentity(
+        FfiConverterString.lower(path),$0
+    )
+}
+}
 public func startAccountController(dataDir: String)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_startaccountcontroller(
         FfiConverterString.lower(dataDir),$0
@@ -5967,6 +5973,9 @@ private var initializationResult: InitializationResult {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_removeaccountmnemonic() != 51019) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_resetdeviceidentity() != 48847) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_startaccountcontroller() != 34257) {
