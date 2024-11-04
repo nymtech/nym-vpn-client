@@ -173,7 +173,6 @@ pub struct NymVpnZkNym2 {
 //    ]
 //}",
 
-
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum NymVpnZkNymStatus {

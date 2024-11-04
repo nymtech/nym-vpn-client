@@ -143,8 +143,7 @@ pub(crate) async fn unblind_and_aggregate(
 
         // TODO: remove unwrap
         tracing::info!("Creating BlindedSignature");
-        let blinded_sig =
-            BlindedSignature::try_from_bs58(&share.bs58_encoded_share).unwrap();
+        let blinded_sig = BlindedSignature::try_from_bs58(&share.bs58_encoded_share).unwrap();
 
         tracing::info!("Calling issue_verify");
         match nym_compact_ecash::issue_verify(
@@ -157,7 +156,7 @@ pub(crate) async fn unblind_and_aggregate(
             Ok(partial_wallet) => {
                 tracing::info!("Partial wallet created and appended");
                 partial_wallets.push(partial_wallet)
-            },
+            }
             Err(err) => {
                 tracing::error!("Failed to issue verify: {:#?}", err);
                 return Err(Error::ImportZkNym(err));

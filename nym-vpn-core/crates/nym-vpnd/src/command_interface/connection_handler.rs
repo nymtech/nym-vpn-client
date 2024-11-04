@@ -226,6 +226,21 @@ impl CommandInterfaceConnectionHandler {
             .await
     }
 
+    pub(crate) async fn handle_get_zk_nyms_available_for_download(
+        &self,
+    ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::GetZkNymsAvailableForDownload, ())
+            .await
+    }
+
+    pub(crate) async fn handle_get_zk_nym_by_id(
+        &self,
+        id: String,
+    ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::GetZkNymById, id)
+            .await
+    }
+
     pub(crate) async fn handle_fetch_raw_account_summary(
         &self,
     ) -> Result<Result<NymVpnAccountSummaryResponse, AccountError>, VpnCommandSendError> {

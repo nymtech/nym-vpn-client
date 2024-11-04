@@ -414,21 +414,24 @@ where
         Ok(())
     }
 
-    async fn handle_import_zk_nym(&mut self, id: String) -> Result<(), Error> {
-        tracing::info!("Importing zk-nym with id: {}", id);
+    async fn handle_get_zk_nym_by_id(&self, id: &str) -> Result<(), Error> {
+        tracing::info!("Getting zk-nym by id from API");
 
         let account = self.account_storage.load_account().await?;
         let device = self.account_storage.load_device_keys().await?;
 
-        todo!();
-        //let response = self
-        //    .vpn_api_client
-        //    .get_zk_nym_by_id(&account, &device, &id)
-        //    .await
-        //    .map_err(Error::GetZkNym)?;
+        let reported_device_zk_nyms = self
+            .vpn_api_client
+            .get_zk_nym_by_id(&account, &device, id)
+            .await
+            .map_err(Error::GetZkNyms)?;
 
-        // self.import_zk_nym(response, TicketType::V1MixnetEntry, RequestInfo::default())
-        // .await
+        tracing::info!(
+            "The device as the following zk-nym available to download: {:#?}",
+            reported_device_zk_nyms
+        );
+
+        Ok(())
     }
 
     // Once we finish polling the result of the zk-nym request, we now import the zk-nym into the
@@ -495,11 +498,11 @@ where
             AccountCommand::UpdateAccountState => self.handle_update_account_state().await,
             AccountCommand::RegisterDevice => self.handle_register_device().await,
             AccountCommand::RequestZkNym => self.handle_request_zk_nym().await,
-            // AccountCommand::GetDeviceZkNym => self.handle_get_device_zk_nym().await,
-            AccountCommand::GetDeviceZkNym => {
+            AccountCommand::GetDeviceZkNym => self.handle_get_device_zk_nym().await,
+            AccountCommand::GetZkNymsAvailableForDownload => {
                 self.handle_get_zk_nyms_available_for_download().await
             }
-            AccountCommand::ImportZkNym(id) => self.handle_import_zk_nym(id).await,
+            AccountCommand::GetZkNymById(id) => self.handle_get_zk_nym_by_id(&id).await,
         }
     }
 
@@ -611,7 +614,8 @@ where
                 }
                 // On a timer we want to refresh the account state
                 _ = update_account_state_timer.tick() => {
-                    self.queue_command(AccountCommand::UpdateAccountState);
+                    // WIP(JON): disable timer during dev work
+                    //self.queue_command(AccountCommand::UpdateAccountState);
                 }
                 _ = self.cancel_token.cancelled() => {
                     tracing::trace!("Received cancellation signal");

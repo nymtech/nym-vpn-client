@@ -123,6 +123,8 @@ pub enum VpnServiceCommand {
     RegisterDevice(oneshot::Sender<Result<(), AccountError>>, ()),
     RequestZkNym(oneshot::Sender<Result<(), AccountError>>, ()),
     GetDeviceZkNyms(oneshot::Sender<Result<(), AccountError>>, ()),
+    GetZkNymsAvailableForDownload(oneshot::Sender<Result<(), AccountError>>, ()),
+    GetZkNymById(oneshot::Sender<Result<(), AccountError>>, String),
     FetchRawAccountSummary(
         oneshot::Sender<Result<NymVpnAccountSummaryResponse, AccountError>>,
         (),
@@ -158,6 +160,10 @@ impl fmt::Display for VpnServiceCommand {
             VpnServiceCommand::RegisterDevice(..) => write!(f, "RegisterDevice"),
             VpnServiceCommand::RequestZkNym(..) => write!(f, "RequestZkNym"),
             VpnServiceCommand::GetDeviceZkNyms(..) => write!(f, "GetDeviceZkNyms"),
+            VpnServiceCommand::GetZkNymsAvailableForDownload(..) => {
+                write!(f, "GetZkNymsAvailableForDownload")
+            }
+            VpnServiceCommand::GetZkNymById(..) => write!(f, "GetZkNymById"),
             VpnServiceCommand::FetchRawAccountSummary(..) => write!(f, "FetchRawAccountSummery"),
             VpnServiceCommand::FetchRawDevices(..) => write!(f, "FetchRawDevices"),
         }
@@ -635,6 +641,14 @@ where
                 let result = self.handle_get_device_zk_nyms().await;
                 let _ = tx.send(result);
             }
+            VpnServiceCommand::GetZkNymsAvailableForDownload(tx, ()) => {
+                let result = self.handle_get_zk_nyms_available_for_download().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::GetZkNymById(tx, id) => {
+                let result = self.handle_get_zk_nym_by_id(id).await;
+                let _ = tx.send(result);
+            }
             VpnServiceCommand::FetchRawAccountSummary(tx, ()) => {
                 let result = self.handle_fetch_raw_account_summary().await;
                 let _ = tx.send(result);
@@ -1021,6 +1035,22 @@ where
     async fn handle_get_device_zk_nyms(&self) -> Result<(), AccountError> {
         self.account_command_tx
             .send(AccountCommand::GetDeviceZkNym)
+            .map_err(|err| AccountError::SendCommand {
+                source: Box::new(err),
+            })
+    }
+
+    async fn handle_get_zk_nyms_available_for_download(&self) -> Result<(), AccountError> {
+        self.account_command_tx
+            .send(AccountCommand::GetZkNymsAvailableForDownload)
+            .map_err(|err| AccountError::SendCommand {
+                source: Box::new(err),
+            })
+    }
+
+    async fn handle_get_zk_nym_by_id(&self, id: String) -> Result<(), AccountError> {
+        self.account_command_tx
+            .send(AccountCommand::GetZkNymById(id))
             .map_err(|err| AccountError::SendCommand {
                 source: Box::new(err),
             })

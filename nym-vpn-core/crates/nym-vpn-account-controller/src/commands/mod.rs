@@ -23,7 +23,8 @@ pub enum AccountCommand {
     RegisterDevice,
     RequestZkNym,
     GetDeviceZkNym,
-    ImportZkNym(String),
+    GetZkNymsAvailableForDownload,
+    GetZkNymById(String),
 }
 
 #[derive(Clone, Debug)]
@@ -115,15 +116,10 @@ impl CommandHandler {
         match self.command {
             AccountCommand::UpdateAccountState => self.update_shared_account_state().await,
             AccountCommand::RegisterDevice => self.register_device().await,
-            AccountCommand::RequestZkNym => {
-                todo!()
-            }
-            AccountCommand::GetDeviceZkNym => {
-                todo!()
-            }
-            AccountCommand::ImportZkNym(_) => {
-                todo!()
-            }
+            AccountCommand::RequestZkNym => todo!(),
+            AccountCommand::GetDeviceZkNym => todo!(),
+            AccountCommand::GetZkNymsAvailableForDownload => todo!(),
+            AccountCommand::GetZkNymById(_) => todo!(),
         }
         .inspect(|_result| {
             tracing::info!("Command {:?} with id {} completed", self.command, self.id);
