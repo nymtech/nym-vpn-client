@@ -15,7 +15,7 @@ use super::{MAX_FILE_AGE, NETWORKS_SUBDIR};
 const ENVS_FILE: &str = "envs.json";
 const ENVS_WELLKNOWN: &str = "https://nymvpn.com/api/public/v1/.wellknown/envs.json";
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RegisteredNetworks {
     inner: HashSet<String>,
 }
@@ -141,5 +141,61 @@ impl RegisteredNetworks {
             .ok();
 
         Self::read_from_file(config_dir)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_registered_networks_endpoint() {
+        let endpoint = RegisteredNetworks::endpoint().unwrap();
+        assert_eq!(endpoint, ENVS_WELLKNOWN);
+    }
+
+    #[test]
+    fn test_registered_networks_serialization() {
+        let registered_networks = RegisteredNetworks {
+            inner: vec!["mainnet".to_string(), "testnet".to_string()]
+                .into_iter()
+                .collect(),
+        };
+
+        let serialized = serde_json::to_string(&registered_networks).unwrap();
+        let deserialized: RegisteredNetworks = serde_json::from_str(&serialized).unwrap();
+
+        assert_eq!(registered_networks, deserialized);
+    }
+
+    #[test]
+    fn test_registered_networks_default() {
+        let registered_networks = RegisteredNetworks::default();
+        assert!(registered_networks.inner.contains("mainnet"));
+    }
+
+    #[test]
+    fn test_registered_networks_fetch() {
+        let registered_networks = RegisteredNetworks::fetch().unwrap();
+        assert!(registered_networks.inner.contains("mainnet"));
+    }
+
+    #[test]
+    fn test_registered_networks_write_to_file() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let config_dir = temp_dir.path();
+
+        let registered_networks = RegisteredNetworks::default();
+        registered_networks.write_to_file(config_dir).unwrap();
+
+        let read_registered_networks = RegisteredNetworks::read_from_file(config_dir).unwrap();
+        assert_eq!(registered_networks, read_registered_networks);
+    }
+
+    #[test]
+    fn test_envs_default_same_as_fetched() {
+        let default_envs = RegisteredNetworks::default();
+        let fetched_envs = RegisteredNetworks::fetch().unwrap();
+        assert_eq!(default_envs, fetched_envs);
     }
 }

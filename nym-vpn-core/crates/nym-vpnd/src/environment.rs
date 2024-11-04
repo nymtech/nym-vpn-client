@@ -23,9 +23,15 @@ pub(crate) fn setup_environment(
     } else {
         let network_name = global_config_file.network_name.clone();
         let config_path = crate::service::config_dir();
+
+        tracing::info!("Setting up registered networks");
+        let networks = nym_vpn_network_config::discover_networks(&config_path)?;
+        tracing::info!("Registered networks: {:?}", networks);
+
         tracing::info!("Setting up environment by discovering the network: {network_name}");
         nym_vpn_network_config::discover_env(&config_path, &network_name)?
     };
+
 
     // TODO: pass network_env explicitly instead of relying on being exported to env
     network_env.export_to_env();
