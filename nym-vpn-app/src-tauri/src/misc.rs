@@ -1,3 +1,4 @@
+#[cfg(unix)]
 use tracing::{info, warn};
 
 // under X11 with nvidia gpu, there is an upstream issue with
