@@ -1,13 +1,13 @@
 # nym-vpn-app
 
 Desktop client application for [NymVPN](https://nymvpn.com/en), built with
-[tauri](https://v2.tauri.app/).
+[tauri](https://v2.tauri.app/). Supports Linux and Windows.
 
-For more information about NymVPN, its features, latest announcements, Help Center, or to download the latest stable release, visit [nymvpn.com](https://nymvpn.com/en).
+For more information about NymVPN, its features, latest announcements,
+Help Center, or to download the latest stable release, visit
+[nymvpn.com](https://nymvpn.com/en).
 
 ## Installation
-
-### Linux
 
 The following install methods are available:
 
@@ -39,26 +39,25 @@ sudo dpkg -i /tmp/nym-repo-setup_1.0.1_amd64.deb
 sudo apt install nym-vpn
 ```
 
-### Other Linux
+### Flatpak (client app only)
 
-For most Linux distributions, you can install both the client
-application and the daemon (`vpnd`) via the installer script:
+The app is available on [Flathub](https://flathub.org/apps/net.nymtech.NymVPN)
 
 ```shell
-curl -fsSL https://nymtech.net/go/github/nym-vpn-client/raw/main/.pkg/linux/install | bash
+flatpak install flathub net.nymtech.NymVPN
 ```
 
-It will install from the latest releases the client as AppImage
-and the daemon as a systemd service.
+### AppImage (client app only)
 
-note: it's a good practice to check the
-[script](https://github.com/nymtech/nym-vpn-client/blob/main/.pkg/linux/install)
-before running it.
+The _AppImage_ is available in the
+[releases](https://github.com/nymtech/nym-vpn-client/releases),
+look for release tag `nym-vpn-app-v*` and download `NymVPN.AppImage`.
 
 ### Windows
 
-Download the installer from the [releases](https://github.com/nymtech/nym-vpn-client/releases).\
-Look for the latest release `nym-vpn-app-v*`, download
+The installer is available in the
+[releases](https://github.com/nymtech/nym-vpn-client/releases).\
+Look for release tag `nym-vpn-app-v*`, download
 `NymVPN-setup.exe` and launch it.
 
 ---
