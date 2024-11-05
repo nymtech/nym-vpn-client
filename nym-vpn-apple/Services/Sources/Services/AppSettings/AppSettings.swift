@@ -26,7 +26,11 @@ public final class AppSettings: ObservableObject {
         }
     }
     @AppStorage(AppSettingKey.credenitalExists.rawValue)
-    public var isCredentialImported = false
+    public var isCredentialImported = false {
+        didSet {
+            isCredentialImportedPublisher = isCredentialImported
+        }
+    }
     @AppStorage(AppSettingKey.smallScreen.rawValue)
     public var isSmallScreen = false
     @AppStorage(AppSettingKey.welcomeScreenDidDisplay.rawValue)
@@ -50,6 +54,7 @@ public final class AppSettings: ObservableObject {
 
     // Observed values for view models
     @Published public var isErrorReportingOnPublisher = false
+    @Published public var isCredentialImportedPublisher = false
 }
 
 #if os(iOS)

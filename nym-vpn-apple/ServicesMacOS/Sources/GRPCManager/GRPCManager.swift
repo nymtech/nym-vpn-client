@@ -161,7 +161,7 @@ public final class GRPCManager: ObservableObject {
             request.disableRouting = false
             request.enableTwoHop = isTwoHopEnabled
             request.disableBackgroundCoverTraffic = false
-            request.enableCredentialsMode = true
+            request.enableCredentialsMode = false
 
             let call = client.vpnConnect(request, callOptions: nil)
 
