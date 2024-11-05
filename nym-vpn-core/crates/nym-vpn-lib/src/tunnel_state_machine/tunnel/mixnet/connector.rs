@@ -51,7 +51,8 @@ impl Connector {
         let gateway_used = mixnet_client_address.gateway().to_base58_string();
         let entry_mixnet_gateway_ip: IpAddr = self
             .gateway_directory_client
-            .lookup_gateway_ip(&gateway_used)
+            // .lookup_gateway_ip(&gateway_used)
+            .lookup_gateway_ip_legacy(&gateway_used)
             .await
             .map_err(|source| Error::LookupGatewayIp {
                 gateway_id: gateway_used,

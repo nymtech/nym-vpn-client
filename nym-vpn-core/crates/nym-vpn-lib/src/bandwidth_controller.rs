@@ -215,7 +215,8 @@ impl<St: Storage> BandwidthController<St> {
         let authenticator_address = wg_gateway_client.auth_recipient();
         let gateway_id = *wg_gateway_client.auth_recipient().gateway();
         let gateway_host = gateway_client
-            .lookup_gateway_ip(&gateway_id.to_base58_string())
+            // .lookup_gateway_ip(&gateway_id.to_base58_string())
+            .lookup_gateway_ip_legacy(&gateway_id.to_base58_string())
             .await
             .map_err(|source| Error::LookupGatewayIp {
                 gateway_id: gateway_id.to_base58_string(),

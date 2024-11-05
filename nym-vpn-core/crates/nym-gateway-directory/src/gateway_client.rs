@@ -219,6 +219,34 @@ impl GatewayClient {
         }
     }
 
+    pub async fn lookup_gateway_ip_legacy(&self, gateway_identity: &str) -> Result<IpAddr> {
+        let ip_or_hostname = self
+            .api_client
+            .get_cached_gateways()
+            .await?
+            .iter()
+            .find_map(|gateway_bond| {
+                if gateway_bond.identity() == gateway_identity {
+                    Some(gateway_bond.gateway().host.clone())
+                } else {
+                    None
+                }
+            })
+            .ok_or(Error::RequestedGatewayIdNotFound(
+                gateway_identity.to_string(),
+            ))?;
+
+        // If it's a plain IP
+        if let Ok(ip) = ip_or_hostname.parse::<IpAddr>() {
+            return Ok(ip);
+        }
+
+        // If it's not an IP, try to resolve it as a hostname
+        let ip = crate::helpers::try_resolve_hostname(&ip_or_hostname).await?;
+        info!("Resolved {ip_or_hostname} to {ip}");
+        Ok(ip)
+    }
+
     pub async fn lookup_all_gateways_from_nym_api(&self) -> Result<GatewayList> {
         let mut gateways = self
             .lookup_described_nodes()
