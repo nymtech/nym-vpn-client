@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{str::FromStr, sync::Arc};
+use std::{fmt, str::FromStr, sync::Arc};
 
 use nym_compact_ecash::VerificationKeyAuth;
 use nym_config::defaults::TicketTypeRepr;
@@ -173,28 +173,8 @@ impl VpnCredentialStorage {
         let ticketbooks_info = self.storage.get_ticketbooks_info().await?;
         tracing::info!("Ticketbooks stored: {}", ticketbooks_info.len());
         for ticketbook in ticketbooks_info {
-            tracing::info!("Ticketbook id: {}", ticketbook.id);
-            tracing::info!("Ticketbook total_tickets: {:#?}", ticketbook.total_tickets);
-            tracing::info!("Ticketbook used_tickets: {:#?}", ticketbook.used_tickets);
-            tracing::info!(
-                "Ticketbook ticketbook_type: {:#?}",
-                ticketbook.ticketbook_type
-            );
-            tracing::info!(
-                "Ticketbook expiration_date: {:#?}",
-                ticketbook.expiration_date
-            );
-            tracing::info!("Ticketbook epoch_id: {:#?}", ticketbook.epoch_id);
-
-            let tickets_left = ticketbook.total_tickets - ticketbook.used_tickets;
-            let ticketbook_type = TicketType::from_str(&ticketbook.ticketbook_type).unwrap();
-            dbg!(&ticketbook_type);
-            let ticketbook_type = ticketbook_type.to_repr();
-            let bandwidth_left = u64::from(tickets_left) * ticketbook_type.bandwidth_value();
-            tracing::info!("bandwidth_left: {:#?}", bandwidth_left);
-
             let avail_ticketbook = AvailableTicketbook::try_from(ticketbook).unwrap();
-            avail_ticketbook.print();
+            tracing::info!("{avail_ticketbook}");
         }
 
         let pending_ticketbooks = self.storage.get_pending_ticketbooks().await?;
@@ -231,8 +211,8 @@ impl TryFrom<BasicTicketbookInformation> for AvailableTicketbook {
     }
 }
 
-impl AvailableTicketbook {
-    fn print(&self) {
+impl fmt::Display for AvailableTicketbook {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let ecash_today = nym_ecash_time::ecash_today().date();
 
         let issued = self.issued_tickets;
@@ -252,7 +232,8 @@ impl AvailableTicketbook {
             self.expiration.to_string()
         };
 
-        tracing::info!(
+        write!(
+            f,
             "Ticketbook id: {} - Type: {} - Size: {} - Issued: {} - Claimed: {} - Remaining: {} - Expiration: {}",
             self.id,
             self.typ,
@@ -261,9 +242,10 @@ impl AvailableTicketbook {
             si_claimed,
             si_remaining,
             expiration
-        );
+        )
     }
 }
+
 // TODO: add #[derive(EnumIter)] to TicketType so we can iterate over it directly.
 fn ticketbook_types() -> [TicketType; 4] {
     [
