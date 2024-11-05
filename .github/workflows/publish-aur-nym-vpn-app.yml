@@ -65,6 +65,12 @@ jobs:
         if: matrix.pkgtype == 'bin'
         run: |
           curl -LfsSo $LINUX_BIN "https://github.com/$REPOSITORY/releases/download/$RELEASE_TAG/nym-vpn_${{ steps.app-version.outputs.metadata }}_linux_x64"
+      - name: Prepare for PKGBUILD update
+        working-directory: nym-vpn-app/.pkg
+        run: |
+          cp -v app.desktop aur/nym-vpn.desktop
+          cp -v icon.svg aur/nym-vpn.svg
+          ls -la aur
       - name: Update PKGBUILD
         env:
           PKGBUILD: ${{ env.PKGBUILD }}
@@ -74,7 +80,6 @@ jobs:
           #   the sources array declared in PKGBUILD
           SOURCES: |
             ${{ matrix.pkgtype == 'bfs' && env.TARBALL || env.LINUX_BIN }}
-            nym-vpn-app/.pkg/aur/nym-vpn-wrapper.sh
             nym-vpn-app/.pkg/aur/nym-vpn.desktop
             nym-vpn-app/.pkg/aur/nym-vpn.svg
         run: ./.pkg/aur_update.sh
@@ -97,6 +102,5 @@ jobs:
           ssh_private_key: ${{ secrets.AUR_SSH_KEY }}
           commit_message: ${{ inputs.commit_msg || format('v{0}', steps.app-version.outputs.metadata) }}
           assets: |
-            nym-vpn-app/.pkg/aur/nym-vpn-wrapper.sh
             nym-vpn-app/.pkg/aur/nym-vpn.desktop
             nym-vpn-app/.pkg/aur/nym-vpn.svg

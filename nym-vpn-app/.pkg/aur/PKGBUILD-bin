@@ -18,15 +18,14 @@ provides=('nym-vpn-app')
 conflicts=('nymvpn-x' 'nym-vpn-app')
 options=(!debug)
 source=("$url/releases/download/$_release_tag/nym-vpn_${_pkgver}_linux_x64"
-    'nym-vpn-wrapper.sh'
     'nym-vpn.desktop'
     'nym-vpn.svg')
 sha256sums=()
 
 package() {
   install -Dm755 "nym-vpn_${_pkgver}_linux_x64" "$pkgdir/usr/bin/nym-vpn-app"
-  install -Dm755 "nym-vpn-wrapper.sh" "$pkgdir/usr/bin/nym-vpn-wrapper.sh"
-  install -Dm644 "nym-vpn.desktop"    "$pkgdir/usr/share/applications/nym-vpn.desktop"
-  install -Dm644 "nym-vpn.svg"        "$pkgdir/usr/share/icons/nym-vpn.svg"
+  install -Dm644 "nym-vpn.desktop" "$pkgdir/usr/share/applications/nym-vpn.desktop"
+  install -Dm644 "nym-vpn.svg" "$pkgdir/usr/share/icons/hicolor/scalable/apps/nym-vpn.svg"
 }
+
 

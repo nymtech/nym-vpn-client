@@ -46,6 +46,7 @@ mod events;
 mod fs;
 mod grpc;
 mod log;
+mod misc;
 mod startup_error;
 mod states;
 mod tray;
@@ -74,6 +75,9 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
     let _guard = log::setup_tracing(&cli).await?;
     trace!("cli args: {:#?}", cli);
+
+    #[cfg(unix)]
+    misc::nvidia_check();
 
     #[cfg(windows)]
     if cli.console {

@@ -3,7 +3,7 @@ Name=NymVPN
 Type=Application
 Version=1.0
 Comment=Decentralized, mixnet, and zero-knowledge VPN
-Exec=run.sh %U
+Exec=env LOG_FILE=1 RUST_LOG=info,nym_vpn_app=debug nym-vpn-app %U
 Icon=nym-vpn
 Terminal=false
 Categories=Network;
