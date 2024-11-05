@@ -55,9 +55,9 @@ impl Connector {
             return Err(Error::AuthenticationNotPossible(auth_addresses.to_string()));
         };
         let version = if enable_credentials_mode {
-            nym_authenticator_requests::v2::VERSION
-        } else {
             nym_authenticator_requests::v3::VERSION
+        } else {
+            nym_authenticator_requests::v2::VERSION
         };
         let auth_client = AuthClient::new_from_inner(self.mixnet_client.inner(), version).await;
 
