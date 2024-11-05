@@ -35,6 +35,7 @@ function NetworkModeSelect() {
       try {
         await invoke<void>('set_vpn_mode', { mode: value });
         dispatch({ type: 'set-vpn-mode', mode: value });
+        console.info('vpn mode set to', value);
       } catch (e) {
         console.warn(e);
       } finally {
