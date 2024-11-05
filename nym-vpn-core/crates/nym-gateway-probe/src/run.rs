@@ -22,6 +22,9 @@ struct CliArgs {
 
     #[arg(long, short)]
     no_log: bool,
+
+    #[arg(long, short)]
+    auth_version: u8,
 }
 
 fn setup_logging() {
@@ -43,6 +46,15 @@ pub(crate) async fn run() -> anyhow::Result<ProbeResult> {
     if !args.no_log {
         setup_logging();
     }
+    if args.auth_version != nym_authenticator_requests::v2::VERSION
+        && args.auth_version != nym_authenticator_requests::v3::VERSION
+    {
+        return Err(anyhow!(
+            "Wrong authenticator version. It needs to be {} or {}",
+            nym_authenticator_requests::v2::VERSION,
+            nym_authenticator_requests::v3::VERSION
+        ));
+    }
     debug!("{:?}", nym_bin_common::bin_info_local_vergen!());
     setup_env(args.config_env_file.as_ref());
 
@@ -52,7 +64,7 @@ pub(crate) async fn run() -> anyhow::Result<ProbeResult> {
         fetch_random_gateway_with_ipr().await?
     };
 
-    nym_gateway_probe::probe(gateway).await
+    nym_gateway_probe::probe(gateway, args.auth_version).await
 }
 
 async fn fetch_random_gateway_with_ipr() -> anyhow::Result<EntryPoint> {

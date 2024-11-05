@@ -54,7 +54,12 @@ impl Connector {
         else {
             return Err(Error::AuthenticationNotPossible(auth_addresses.to_string()));
         };
-        let auth_client = AuthClient::new_from_inner(self.mixnet_client.inner()).await;
+        let version = if enable_credentials_mode {
+            nym_authenticator_requests::v2::VERSION
+        } else {
+            nym_authenticator_requests::v3::VERSION
+        };
+        let auth_client = AuthClient::new_from_inner(self.mixnet_client.inner(), version).await;
 
         let mut wg_entry_gateway_client =
             WgGatewayClient::new_entry(&data_path, auth_client.clone(), entry_auth_recipient);
