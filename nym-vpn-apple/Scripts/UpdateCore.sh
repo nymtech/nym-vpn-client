@@ -24,12 +24,17 @@ if [[ -z "${1:-}" ]]; then
     exit 1
 fi
 
-VERSION="$1"  # Version passed as an argument (e.g., 0.2.1)
-RELEASE_URL="https://github.com/nymtech/nym-vpn-client/releases/tag/nym-vpn-core-v${VERSION}"  # Construct release URL
+VERSION="$1"  # Version passed as an argument (e.g., 1.0.0-dev-apple)
+
+# Extract the base version by removing any suffix after "dev" if it exists
+BASE_VERSION=$(echo "$VERSION" | sed -E 's/(.*dev)[^ ]*/\1/')
+
+# Construct the release URL
+RELEASE_URL="https://github.com/nymtech/nym-vpn-client/releases/tag/nym-vpn-core-v${VERSION}"  # Release URL using original version
 PACKAGE_FILE_PATH="../MixnetLibrary/Package.swift"  # Path to Package.swift
 
-# Construct the download link using the provided version for the _ios_universal.zip file
-ios_download_link="https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-core-v${VERSION}/nym-vpn-core-v${VERSION}_ios_universal.zip"
+# Construct the iOS download link using the provided version
+ios_download_link="https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-core-v${VERSION}/nym-vpn-core-v${BASE_VERSION}_ios_universal.zip"
 
 # Fetch the release page content
 release_page_content=$(curl -s "$RELEASE_URL")
@@ -70,8 +75,8 @@ else
     exit 1
 fi
 
-# Find and download the _macos_universal.tar.gz file
-macos_download_link="https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-core-v${VERSION}/nym-vpn-core-v${VERSION}_macos_universal.tar.gz"
+# Construct the macOS download link using the extracted base version
+macos_download_link="https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-core-v${VERSION}/nym-vpn-core-v${BASE_VERSION}_macos_universal.tar.gz"
 
 echo "macOS Download link: $macos_download_link"
 
@@ -90,14 +95,14 @@ if [[ -f "../Daemon/net.nymtech.vpn.helper" ]]; then
 fi
 
 # Copy nym-vpnd to ../Daemon folder and rename it to net.nymtech.vpn.helper
-if [[ -f "nym-vpn-core-v${VERSION}_macos_universal/nym-vpnd" ]]; then
-    cp "nym-vpn-core-v${VERSION}_macos_universal/nym-vpnd" "../Daemon/net.nymtech.vpn.helper"
+if [[ -f "nym-vpn-core-v${BASE_VERSION}_macos_universal/nym-vpnd" ]]; then
+    cp "nym-vpn-core-v${BASE_VERSION}_macos_universal/nym-vpnd" "../Daemon/net.nymtech.vpn.helper"
     echo "nym-vpnd copied and renamed to net.nymtech.vpn.helper successfully."
 fi
 
 # Remove the downloaded tar.gz file and untarred folder
 rm -f "$(basename "$macos_download_link")"
-rm -rf "nym-vpn-core-v${VERSION}_macos_universal"
+rm -rf "nym-vpn-core-v${BASE_VERSION}_macos_universal"
 echo "Cleaned up downloaded and extracted files."
 
 # Download the source zip file
