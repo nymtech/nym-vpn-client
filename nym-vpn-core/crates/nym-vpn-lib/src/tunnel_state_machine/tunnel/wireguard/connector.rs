@@ -54,12 +54,23 @@ impl Connector {
         else {
             return Err(Error::AuthenticationNotPossible(auth_addresses.to_string()));
         };
-        let auth_client = AuthClient::new_from_inner(self.mixnet_client.inner()).await;
+        let version = if enable_credentials_mode {
+            nym_authenticator_requests::v3::VERSION
+        } else {
+            nym_authenticator_requests::v2::VERSION
+        };
+        let auth_client = AuthClient::new_from_inner(self.mixnet_client.inner(), version).await;
 
-        let mut wg_entry_gateway_client =
-            WgGatewayClient::new_entry(&data_path, auth_client.clone(), entry_auth_recipient);
-        let mut wg_exit_gateway_client =
-            WgGatewayClient::new_exit(&data_path, auth_client.clone(), exit_auth_recipient);
+        let mut wg_entry_gateway_client = if enable_credentials_mode {
+            WgGatewayClient::new_free_entry(&data_path, auth_client.clone(), entry_auth_recipient)
+        } else {
+            WgGatewayClient::new_entry(&data_path, auth_client.clone(), entry_auth_recipient)
+        };
+        let mut wg_exit_gateway_client = if enable_credentials_mode {
+            WgGatewayClient::new_free_exit(&data_path, auth_client.clone(), exit_auth_recipient)
+        } else {
+            WgGatewayClient::new_exit(&data_path, auth_client.clone(), exit_auth_recipient)
+        };
 
         let shutdown = self.task_manager.subscribe_named("bandwidth controller");
         let (connection_data, bandwidth_controller_handle) = if let Some(data_path) =

@@ -2,12 +2,12 @@ use std::{cmp::Ordering, sync::Arc, time::Duration};
 
 use nym_authenticator_requests::{
     latest::VERSION as LATEST_VERSION,
+    v2::VERSION as USED_VERSION,
     v3::{
         registration::{FinalMessage, InitMessage},
         request::AuthenticatorRequest,
         response::AuthenticatorResponse,
         topup::TopUpMessage,
-        VERSION as USED_VERSION,
     },
 };
 
@@ -79,10 +79,11 @@ pub struct AuthClient {
     mixnet_client: SharedMixnetClient,
     mixnet_sender: MixnetClientSender,
     nym_address: Recipient,
+    version: u8,
 }
 
 impl AuthClient {
-    pub async fn new(mixnet_client: SharedMixnetClient) -> Self {
+    pub async fn new(mixnet_client: SharedMixnetClient, version: u8) -> Self {
         let mixnet_sender = mixnet_client.lock().await.as_ref().unwrap().split_sender();
         let nym_address = *mixnet_client
             .inner()
@@ -95,15 +96,17 @@ impl AuthClient {
             mixnet_client,
             mixnet_sender,
             nym_address,
+            version,
         }
     }
 
     // A workaround until we can extract SharedMixnetClient to a common crate
     pub async fn new_from_inner(
         mixnet_client: Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
+        version: u8,
     ) -> Self {
         let mixnet_client = SharedMixnetClient(mixnet_client);
-        Self::new(mixnet_client).await
+        Self::new(mixnet_client, version).await
     }
 
     pub async fn send(
@@ -141,26 +144,46 @@ impl AuthClient {
         message: ClientMessage,
         authenticator_address: Recipient,
     ) -> Result<u64> {
-        let (request, request_id) = match message {
-            ClientMessage::Initial(init_message) => {
-                AuthenticatorRequest::new_initial_request(init_message, self.nym_address)
-            }
-            ClientMessage::Final(final_message) => {
-                AuthenticatorRequest::new_final_request(*final_message, self.nym_address)
-            }
-            ClientMessage::Query(peer_public_key) => {
-                AuthenticatorRequest::new_query_request(peer_public_key, self.nym_address)
-            }
-            ClientMessage::TopUp(top_up_message) => {
-                AuthenticatorRequest::new_topup_request(*top_up_message, self.nym_address)
-            }
+        let (data, request_id) = if self.version == nym_authenticator_requests::v3::VERSION {
+            let (request, request_id) = match message {
+                ClientMessage::Initial(init_message) => {
+                    AuthenticatorRequest::new_initial_request(init_message, self.nym_address)
+                }
+                ClientMessage::Final(final_message) => {
+                    AuthenticatorRequest::new_final_request(*final_message, self.nym_address)
+                }
+                ClientMessage::Query(peer_public_key) => {
+                    AuthenticatorRequest::new_query_request(peer_public_key, self.nym_address)
+                }
+                ClientMessage::TopUp(top_up_message) => {
+                    AuthenticatorRequest::new_topup_request(*top_up_message, self.nym_address)
+                }
+            };
+            debug!("Sending connect request {:?}", request);
+            (request.to_bytes().unwrap(), request_id)
+        } else {
+            let (request, request_id) = match message {
+                ClientMessage::Initial(init_message) => {
+                    nym_authenticator_requests::v2::request::AuthenticatorRequest::new_initial_request(nym_authenticator_requests::v2::registration::InitMessage{ pub_key: init_message.pub_key }, self.nym_address)
+                }
+                ClientMessage::Final(final_message) => {
+                    nym_authenticator_requests::v2::request::AuthenticatorRequest::new_final_request(nym_authenticator_requests::v2::registration::FinalMessage{ gateway_client: final_message.gateway_client.into(), credential: None },  self.nym_address)
+                }
+                ClientMessage::Query(peer_public_key) => {
+                    nym_authenticator_requests::v2::request::AuthenticatorRequest::new_query_request(peer_public_key, self.nym_address)
+                }
+                ClientMessage::TopUp(_) => {
+                    return Ok(0);
+                }
+            };
+            debug!("Sending connect request {:?}", request);
+            (request.to_bytes().unwrap(), request_id)
         };
-        debug!("Sent connect request {:?}", request);
 
         self.mixnet_sender
             .send(nym_sdk::mixnet::InputMessage::new_regular(
                 authenticator_address,
-                request.to_bytes().unwrap(),
+                data,
                 TransmissionLane::General,
                 None,
             ))
@@ -199,8 +222,8 @@ impl AuthClient {
 
                             // Then we deserialize the message
                             debug!("AuthClient: got message while waiting for connect response with version {version}");
-                            let ret = if version == USED_VERSION + 1 {
-                                nym_authenticator_requests::latest::response::AuthenticatorResponse::from_reconstructed_message(&msg).map(Into::into)
+                            let ret = if version == nym_authenticator_requests::v2::VERSION {
+                                nym_authenticator_requests::v2::response::AuthenticatorResponse::from_reconstructed_message(&msg).map(Into::into)
                             } else {
                                 AuthenticatorResponse::from_reconstructed_message(&msg)
                             };

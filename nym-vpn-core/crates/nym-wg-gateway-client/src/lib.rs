@@ -35,6 +35,11 @@ const DEFAULT_PUBLIC_ENTRY_WIREGUARD_KEY_FILENAME: &str = "public_entry_wireguar
 const DEFAULT_PRIVATE_EXIT_WIREGUARD_KEY_FILENAME: &str = "private_exit_wireguard.pem";
 const DEFAULT_PUBLIC_EXIT_WIREGUARD_KEY_FILENAME: &str = "public_exit_wireguard.pem";
 
+const DEFAULT_FREE_PRIVATE_ENTRY_WIREGUARD_KEY_FILENAME: &str = "free_private_entry_wireguard.pem";
+const DEFAULT_FREE_PUBLIC_ENTRY_WIREGUARD_KEY_FILENAME: &str = "free_public_entry_wireguard.pem";
+const DEFAULT_FREE_PRIVATE_EXIT_WIREGUARD_KEY_FILENAME: &str = "free_private_exit_wireguard.pem";
+const DEFAULT_FREE_PUBLIC_EXIT_WIREGUARD_KEY_FILENAME: &str = "free_public_exit_wireguard.pem";
+
 #[derive(Clone, Debug)]
 pub struct GatewayData {
     pub public_key: PublicKey,
@@ -172,6 +177,34 @@ impl WgGatewayClient {
                 auth_recipient,
             }
         }
+    }
+
+    pub fn new_free_entry(
+        data_path: &Option<PathBuf>,
+        auth_client: AuthClient,
+        auth_recipient: Recipient,
+    ) -> Self {
+        Self::new_type(
+            data_path,
+            auth_client,
+            auth_recipient,
+            DEFAULT_FREE_PRIVATE_ENTRY_WIREGUARD_KEY_FILENAME,
+            DEFAULT_FREE_PUBLIC_ENTRY_WIREGUARD_KEY_FILENAME,
+        )
+    }
+
+    pub fn new_free_exit(
+        data_path: &Option<PathBuf>,
+        auth_client: AuthClient,
+        auth_recipient: Recipient,
+    ) -> Self {
+        Self::new_type(
+            data_path,
+            auth_client,
+            auth_recipient,
+            DEFAULT_FREE_PRIVATE_EXIT_WIREGUARD_KEY_FILENAME,
+            DEFAULT_FREE_PUBLIC_EXIT_WIREGUARD_KEY_FILENAME,
+        )
     }
 
     pub fn new_entry(
