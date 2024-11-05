@@ -10,15 +10,8 @@ import javax.inject.Inject
 
 class GatewayApiService @Inject constructor(
 	private val gatewayApi: GatewayApi,
-	private val gatewayLibService: GatewayLibService,
 	@IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : GatewayService {
-
-	override suspend fun getLowLatencyCountry(): Result<Country> {
-		return withContext(ioDispatcher) {
-			gatewayLibService.getLowLatencyCountry()
-		}
-	}
 
 	override suspend fun getCountries(type: GatewayType): Result<Set<Country>> {
 		Timber.d("Getting countries from nym api")

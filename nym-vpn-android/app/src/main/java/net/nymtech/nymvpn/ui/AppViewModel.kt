@@ -37,7 +37,6 @@ constructor(
 	private val settingsRepository: SettingsRepository,
 	gatewayRepository: GatewayRepository,
 	private val countryCacheService: CountryCacheService,
-	@Native private val gatewayService: GatewayService,
 	private val tunnelManager: TunnelManager,
 	@IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
@@ -68,16 +67,6 @@ constructor(
 
 	fun setAnalyticsShown() = viewModelScope.launch {
 		settingsRepository.setAnalyticsShown(true)
-	}
-
-	private suspend fun setFirstHopToLowLatencyFromApi() {
-		Timber.d("Updating low latency entry gateway")
-		gatewayService.getLowLatencyCountry().onSuccess {
-			Timber.d("New low latency gateway: $it")
-			settingsRepository.setFirstHopCountry(it.copy(isLowLatency = true))
-		}.onFailure {
-			Timber.w(it)
-		}
 	}
 
 	fun logout() = viewModelScope.launch {

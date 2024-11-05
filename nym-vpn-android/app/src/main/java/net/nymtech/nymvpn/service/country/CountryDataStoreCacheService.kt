@@ -14,6 +14,7 @@ class CountryDataStoreCacheService @Inject constructor(
 	override suspend fun updateExitCountriesCache(): Result<Unit> {
 		return runCatching {
 			gatewayService.getCountries(GatewayType.MIXNET_EXIT).onSuccess {
+				Timber.d("Exit: $it")
 				gatewayRepository.setExitCountries(it)
 				Timber.d("Updated mixnet exit countries cache")
 			}
@@ -23,6 +24,7 @@ class CountryDataStoreCacheService @Inject constructor(
 	override suspend fun updateEntryCountriesCache(): Result<Unit> {
 		return runCatching {
 			gatewayService.getCountries(GatewayType.MIXNET_ENTRY).onSuccess {
+				Timber.d("Entry: $it")
 				gatewayRepository.setEntryCountries(it)
 				Timber.d("Updated mixnet entry countries cache")
 			}

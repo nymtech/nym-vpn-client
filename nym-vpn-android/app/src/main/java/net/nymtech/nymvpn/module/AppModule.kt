@@ -121,10 +121,9 @@ object AppModule {
 	@Android
 	fun provideGatewayApiService(
 		gatewayApi: GatewayApi,
-		gatewayLibService: GatewayLibService,
 		@IoDispatcher ioDispatcher: CoroutineDispatcher,
 	): GatewayService {
-		return GatewayApiService(gatewayApi, gatewayLibService, ioDispatcher)
+		return GatewayApiService(gatewayApi, ioDispatcher)
 	}
 
 	@Singleton
