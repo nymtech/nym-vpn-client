@@ -2022,8 +2022,9 @@ data class ConnectionData (
     var `exitGateway`: BoxedNodeIdentity, 
     /**
      * When the tunnel was last established.
+     * Set once the tunnel is connected.
      */
-    var `connectedAt`: OffsetDateTime, 
+    var `connectedAt`: OffsetDateTime?, 
     /**
      * Tunnel connection data.
      */
@@ -2038,7 +2039,7 @@ public object FfiConverterTypeConnectionData: FfiConverterRustBuffer<ConnectionD
         return ConnectionData(
             FfiConverterTypeBoxedNodeIdentity.read(buf),
             FfiConverterTypeBoxedNodeIdentity.read(buf),
-            FfiConverterTypeOffsetDateTime.read(buf),
+            FfiConverterOptionalTypeOffsetDateTime.read(buf),
             FfiConverterTypeTunnelConnectionData.read(buf),
         )
     }
@@ -2046,14 +2047,14 @@ public object FfiConverterTypeConnectionData: FfiConverterRustBuffer<ConnectionD
     override fun allocationSize(value: ConnectionData) = (
             FfiConverterTypeBoxedNodeIdentity.allocationSize(value.`entryGateway`) +
             FfiConverterTypeBoxedNodeIdentity.allocationSize(value.`exitGateway`) +
-            FfiConverterTypeOffsetDateTime.allocationSize(value.`connectedAt`) +
+            FfiConverterOptionalTypeOffsetDateTime.allocationSize(value.`connectedAt`) +
             FfiConverterTypeTunnelConnectionData.allocationSize(value.`tunnel`)
     )
 
     override fun write(value: ConnectionData, buf: ByteBuffer) {
             FfiConverterTypeBoxedNodeIdentity.write(value.`entryGateway`, buf)
             FfiConverterTypeBoxedNodeIdentity.write(value.`exitGateway`, buf)
-            FfiConverterTypeOffsetDateTime.write(value.`connectedAt`, buf)
+            FfiConverterOptionalTypeOffsetDateTime.write(value.`connectedAt`, buf)
             FfiConverterTypeTunnelConnectionData.write(value.`tunnel`, buf)
     }
 }
@@ -2857,74 +2858,39 @@ public object FfiConverterTypeAccountState: FfiConverterRustBuffer<AccountState>
 
 
 
-sealed class ActionAfterDisconnect {
-    
-    object Nothing : ActionAfterDisconnect()
-    
-    
-    object Reconnect : ActionAfterDisconnect()
-    
-    
-    data class Error(
-        val v1: ErrorStateReason) : ActionAfterDisconnect() {
-        companion object
-    }
-    
+/**
+ * Public enum describing action to perform after disconnect
+ */
 
+enum class ActionAfterDisconnect {
     
+    /**
+     * Do nothing after disconnect
+     */
+    NOTHING,
+    /**
+     * Reconnect after disconnect
+     */
+    RECONNECT,
+    /**
+     * Enter error state
+     */
+    ERROR;
     companion object
 }
 
-public object FfiConverterTypeActionAfterDisconnect : FfiConverterRustBuffer<ActionAfterDisconnect>{
-    override fun read(buf: ByteBuffer): ActionAfterDisconnect {
-        return when(buf.getInt()) {
-            1 -> ActionAfterDisconnect.Nothing
-            2 -> ActionAfterDisconnect.Reconnect
-            3 -> ActionAfterDisconnect.Error(
-                FfiConverterTypeErrorStateReason.read(buf),
-                )
-            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
-        }
+
+public object FfiConverterTypeActionAfterDisconnect: FfiConverterRustBuffer<ActionAfterDisconnect> {
+    override fun read(buf: ByteBuffer) = try {
+        ActionAfterDisconnect.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
     }
 
-    override fun allocationSize(value: ActionAfterDisconnect) = when(value) {
-        is ActionAfterDisconnect.Nothing -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is ActionAfterDisconnect.Reconnect -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is ActionAfterDisconnect.Error -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-                + FfiConverterTypeErrorStateReason.allocationSize(value.v1)
-            )
-        }
-    }
+    override fun allocationSize(value: ActionAfterDisconnect) = 4UL
 
     override fun write(value: ActionAfterDisconnect, buf: ByteBuffer) {
-        when(value) {
-            is ActionAfterDisconnect.Nothing -> {
-                buf.putInt(1)
-                Unit
-            }
-            is ActionAfterDisconnect.Reconnect -> {
-                buf.putInt(2)
-                Unit
-            }
-            is ActionAfterDisconnect.Error -> {
-                buf.putInt(3)
-                FfiConverterTypeErrorStateReason.write(value.v1, buf)
-                Unit
-            }
-        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+        buf.putInt(value.ordinal + 1)
     }
 }
 
@@ -3266,17 +3232,9 @@ enum class ErrorStateReason {
      */
     TUNNEL_PROVIDER,
     /**
-     * Failure to establish mixnet connection.
+     * Same entry and exit gateway are unsupported.
      */
-    ESTABLISH_MIXNET_CONNECTION,
-    /**
-     * Failure to establish wireguard connection.
-     */
-    ESTABLISH_WIREGUARD_CONNECTION,
-    /**
-     * Tunnel went down at runtime.
-     */
-    TUNNEL_DOWN,
+    SAME_ENTRY_AND_EXIT_GATEWAY,
     /**
      * Program errors that must not happen.
      */
@@ -3991,13 +3949,18 @@ public object FfiConverterTypeTunnelEvent : FfiConverterRustBuffer<TunnelEvent>{
 
 
 
+/**
+ * Public enum describing the tunnel state
+ */
 sealed class TunnelState {
     
     object Disconnected : TunnelState()
     
     
-    object Connecting : TunnelState()
-    
+    data class Connecting(
+        val `connectionData`: ConnectionData?) : TunnelState() {
+        companion object
+    }
     
     data class Connected(
         val `connectionData`: ConnectionData) : TunnelState() {
@@ -4023,7 +3986,9 @@ public object FfiConverterTypeTunnelState : FfiConverterRustBuffer<TunnelState>{
     override fun read(buf: ByteBuffer): TunnelState {
         return when(buf.getInt()) {
             1 -> TunnelState.Disconnected
-            2 -> TunnelState.Connecting
+            2 -> TunnelState.Connecting(
+                FfiConverterOptionalTypeConnectionData.read(buf),
+                )
             3 -> TunnelState.Connected(
                 FfiConverterTypeConnectionData.read(buf),
                 )
@@ -4048,6 +4013,7 @@ public object FfiConverterTypeTunnelState : FfiConverterRustBuffer<TunnelState>{
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
+                + FfiConverterOptionalTypeConnectionData.allocationSize(value.`connectionData`)
             )
         }
         is TunnelState.Connected -> {
@@ -4081,6 +4047,7 @@ public object FfiConverterTypeTunnelState : FfiConverterRustBuffer<TunnelState>{
             }
             is TunnelState.Connecting -> {
                 buf.putInt(2)
+                FfiConverterOptionalTypeConnectionData.write(value.`connectionData`, buf)
                 Unit
             }
             is TunnelState.Connected -> {
@@ -4459,6 +4426,35 @@ public object FfiConverterOptionalTypeTunnelStatusListener: FfiConverterRustBuff
         } else {
             buf.put(1)
             FfiConverterTypeTunnelStatusListener.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeConnectionData: FfiConverterRustBuffer<ConnectionData?> {
+    override fun read(buf: ByteBuffer): ConnectionData? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeConnectionData.read(buf)
+    }
+
+    override fun allocationSize(value: ConnectionData?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeConnectionData.allocationSize(value)
+        }
+    }
+
+    override fun write(value: ConnectionData?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeConnectionData.write(value, buf)
         }
     }
 }
@@ -4865,6 +4861,35 @@ public object FfiConverterOptionalTypeIpv6Addr: FfiConverterRustBuffer<Ipv6Addr?
         } else {
             buf.put(1)
             FfiConverterTypeIpv6Addr.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeOffsetDateTime: FfiConverterRustBuffer<OffsetDateTime?> {
+    override fun read(buf: ByteBuffer): OffsetDateTime? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeOffsetDateTime.read(buf)
+    }
+
+    override fun allocationSize(value: OffsetDateTime?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeOffsetDateTime.allocationSize(value)
+        }
+    }
+
+    override fun write(value: OffsetDateTime?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeOffsetDateTime.write(value, buf)
         }
     }
 }
