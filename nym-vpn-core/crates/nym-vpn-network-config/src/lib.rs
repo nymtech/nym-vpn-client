@@ -2,11 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 mod bootstrap;
+mod envs;
 mod nym_network;
 mod nym_vpn_network;
 mod refresh;
 mod util;
 
+use envs::RegisteredNetworks;
 pub use nym_network::NymNetwork;
 pub use nym_vpn_network::NymVpnNetwork;
 
@@ -48,7 +50,17 @@ impl Network {
     }
 }
 
+pub fn discover_networks(config_path: &Path) -> anyhow::Result<RegisteredNetworks> {
+    RegisteredNetworks::ensure_exists(config_path)
+}
+
 pub fn discover_env(config_path: &Path, network_name: &str) -> anyhow::Result<Network> {
+    tracing::trace!(
+        "Discovering network details: config_path={:?}, network_name={}",
+        config_path,
+        network_name
+    );
+
     // Lookup network discovery to bootstrap
     let discovery = Discovery::ensure_exists(config_path, network_name)?;
 
