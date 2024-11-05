@@ -73,6 +73,9 @@ pub enum Error {
 
     #[error("gateway {0} doesn't have a description available")]
     NoGatewayDescriptionAvailable(String),
+
+    #[error("failed to lookup gateway ip for gateway {0}")]
+    FailedToLookupIp(String),
 }
 
 // Result type based on our error type

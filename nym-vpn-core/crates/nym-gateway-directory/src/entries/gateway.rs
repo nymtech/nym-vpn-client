@@ -64,6 +64,19 @@ impl Gateway {
         self.authenticator_address.is_some()
     }
 
+    pub fn host(&self) -> Option<&nym_topology::NetworkAddress> {
+        self.host.as_ref()
+    }
+
+    pub async fn lookup_ip(&self) -> Option<IpAddr> {
+        match self.host.clone()? {
+            nym_topology::NetworkAddress::IpAddr(ip) => Some(ip),
+            nym_topology::NetworkAddress::Hostname(hostname) => {
+                crate::helpers::try_resolve_hostname(&hostname).await.ok()
+            }
+        }
+    }
+
     pub fn clients_address_no_tls(&self) -> Option<String> {
         match (&self.host, &self.clients_ws_port) {
             (Some(host), Some(port)) => Some(format!("ws://{}:{}", host, port)),
