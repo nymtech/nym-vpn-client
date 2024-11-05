@@ -194,8 +194,7 @@ impl VpnCredentialStorage {
             tracing::info!("bandwidth_left: {:#?}", bandwidth_left);
 
             let avail_ticketbook = AvailableTicketbook::try_from(ticketbook).unwrap();
-            // tracing::info!("Basic ticketbook: {:#?}", avail_ticketbook);
-            tracing::info!("Basic ticketbook: {}", avail_ticketbook);
+            avail_ticketbook.print();
         }
 
         let pending_ticketbooks = self.storage.get_pending_ticketbooks().await?;
