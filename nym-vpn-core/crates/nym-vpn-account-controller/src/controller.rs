@@ -222,22 +222,6 @@ where
         let master_vk = VerificationKeyAuth::try_from_bs58(&master_vk_bs58)
             .map_err(Error::InvalidMasterVerificationKey)?;
 
-        // dbg!(&response.valid_until_utc);
-        //let format = "[year]-[month]-[day] [hour]:[minute]:[second].[subsecond]Z";
-        //let expiration_date = OffsetDateTime::parse(
-        //    &response.valid_until_utc,
-        //    &time::format_description::parse(format).unwrap(),
-        //)
-        //.map_err(Error::InvalidExpirationDate)?;
-        //let expiration_date = OffsetDateTime::parse(&response.valid_until_utc, &Rfc3339)
-        //    .map_err(Error::InvalidExpirationDate)?;
-        //let expiration_date = time::Date::parse(&response.valid_until_utc, &Rfc3339)
-        //    .map_err(Error::InvalidExpirationDate)?;
-        //let format = time::format_description::parse(
-        //    "[year]-[month]-[day] [hour]:[minute]:[second].[subsecond]Z",
-        //)
-        //.unwrap();
-        //let expiration_date = time::Date::parse(&response.valid_until_utc, &format).unwrap();
         let expiration_date = request.expiration_date;
 
         let issued_ticketbook = crate::commands::zknym::unblind_and_aggregate(
@@ -302,7 +286,7 @@ where
             .insert_issued_ticketbook(&issued_ticketbook)
             .await?;
 
-        self.confirm_zk_nym_downloaded(&response.id).await?;
+        //self.confirm_zk_nym_downloaded(&response.id).await?;
 
         Ok(())
     }
@@ -497,6 +481,14 @@ where
         Ok(())
     }
 
+    async fn handle_get_available_tickets(&self) -> Result<(), Error> {
+        tracing::info!("Getting available tickets from API");
+
+        self.credential_storage.print_info().await?;
+
+        Ok(())
+    }
+
     // Once we finish polling the result of the zk-nym request, we now import the zk-nym into the
     // local credential store
     async fn handle_polling_result(&mut self, result: Result<PollingResult, JoinError>) {
@@ -566,6 +558,7 @@ where
                 self.handle_get_zk_nyms_available_for_download().await
             }
             AccountCommand::GetZkNymById(id) => self.handle_get_zk_nym_by_id(&id).await,
+            AccountCommand::GetAvailableTickets => self.handle_get_available_tickets().await,
         }
     }
 

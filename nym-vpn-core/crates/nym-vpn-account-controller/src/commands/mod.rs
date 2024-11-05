@@ -25,6 +25,7 @@ pub enum AccountCommand {
     GetDeviceZkNym,
     GetZkNymsAvailableForDownload,
     GetZkNymById(String),
+    GetAvailableTickets,
 }
 
 #[derive(Clone, Debug)]
@@ -120,6 +121,7 @@ impl CommandHandler {
             AccountCommand::GetDeviceZkNym => todo!(),
             AccountCommand::GetZkNymsAvailableForDownload => todo!(),
             AccountCommand::GetZkNymById(_) => todo!(),
+            AccountCommand::GetAvailableTickets => todo!(),
         }
         .inspect(|_result| {
             tracing::info!("Command {:?} with id {} completed", self.command, self.id);
