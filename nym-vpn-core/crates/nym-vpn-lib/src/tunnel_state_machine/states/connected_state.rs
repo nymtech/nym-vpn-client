@@ -5,24 +5,30 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 use crate::tunnel_state_machine::{
-    states::DisconnectingState, tunnel::any_tunnel_handle::AnyTunnelHandle, ActionAfterDisconnect,
-    ConnectionData, ErrorStateReason, NextTunnelState, SharedState, TunnelCommand, TunnelState,
-    TunnelStateHandler,
+    states::DisconnectingState,
+    tunnel_monitor::{TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorHandle},
+    ConnectionData, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState,
+    TunnelCommand, TunnelStateHandler,
 };
 
 pub struct ConnectedState {
-    tunnel_handle: AnyTunnelHandle,
+    monitor_handle: TunnelMonitorHandle,
+    monitor_event_receiver: TunnelMonitorEventReceiver,
 }
 
 impl ConnectedState {
     pub fn enter(
         connection_data: ConnectionData,
-        tunnel_handle: AnyTunnelHandle,
+        monitor_handle: TunnelMonitorHandle,
+        monitor_event_receiver: TunnelMonitorEventReceiver,
         _shared_state: &mut SharedState,
-    ) -> (Box<dyn TunnelStateHandler>, TunnelState) {
+    ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         (
-            Box::new(Self { tunnel_handle }),
-            TunnelState::Connected { connection_data },
+            Box::new(Self {
+                monitor_handle,
+                monitor_event_receiver,
+            }),
+            PrivateTunnelState::Connected { connection_data },
         )
     }
 }
@@ -37,34 +43,33 @@ impl TunnelStateHandler for ConnectedState {
     ) -> NextTunnelState {
         tokio::select! {
             _ = shutdown_token.cancelled() => {
-                NextTunnelState::NewState(DisconnectingState::enter(ActionAfterDisconnect::Nothing, Some(self.tunnel_handle), shared_state))
+                NextTunnelState::NewState(DisconnectingState::enter(PrivateActionAfterDisconnect::Nothing, self.monitor_handle, shared_state))
             }
             Some(command) = command_rx.recv() => {
                 match command {
                     TunnelCommand::Connect => NextTunnelState::SameState(self),
                     TunnelCommand::Disconnect => {
-                        NextTunnelState::NewState(DisconnectingState::enter(ActionAfterDisconnect::Nothing, Some(self.tunnel_handle) , shared_state))
+                        NextTunnelState::NewState(DisconnectingState::enter(PrivateActionAfterDisconnect::Nothing, self.monitor_handle , shared_state))
                     },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
                         if shared_state.tunnel_settings == tunnel_settings {
                             NextTunnelState::SameState(self)
                         } else {
                             shared_state.tunnel_settings = tunnel_settings;
-                            NextTunnelState::NewState(DisconnectingState::enter(ActionAfterDisconnect::Reconnect, Some(self.tunnel_handle), shared_state))
+                            NextTunnelState::NewState(DisconnectingState::enter(PrivateActionAfterDisconnect::Reconnect { retry_attempt: 0 }, self.monitor_handle, shared_state))
                         }
                     }
                 }
             }
-            maybe_error = self.tunnel_handle.recv_error() => {
-                match maybe_error {
-                    Some(error) => {
-                        tracing::error!("Tunnel error: {}", error);
-                        // todo: handle error
-                        NextTunnelState::SameState(self)
+            Some(monitor_event) = self.monitor_event_receiver.recv() => {
+                match monitor_event {
+                    TunnelMonitorEvent::Down(reason) => {
+                        let after_disconnect = reason.map(PrivateActionAfterDisconnect::Error).unwrap_or(PrivateActionAfterDisconnect::Reconnect { retry_attempt: 0 });
+
+                        NextTunnelState::NewState(DisconnectingState::enter(after_disconnect, self.monitor_handle, shared_state))
                     }
-                    None => {
-                        tracing::info!("Tunnel went down unexpectedly.");
-                        NextTunnelState::NewState(DisconnectingState::enter(ActionAfterDisconnect::Error(ErrorStateReason::TunnelDown), Some(self.tunnel_handle), shared_state))
+                    _ => {
+                        NextTunnelState::SameState(self)
                     }
                 }
             }

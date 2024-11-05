@@ -96,9 +96,34 @@ pub struct MixnetConnectOptions {
     pub mixnet_client_config: Option<MixnetClientConfig>,
     pub tunnel_type: TunnelType,
     pub enable_credentials_mode: bool,
-    pub entry_point: Box<EntryPoint>,
-    pub exit_point: Box<ExitPoint>,
+    pub selected_gateways: SelectedGateways,
     pub user_agent: Option<UserAgent>,
+}
+
+pub async fn select_gateways(
+    gateway_config: nym_gateway_directory::Config,
+    tunnel_type: TunnelType,
+    entry_point: Box<EntryPoint>,
+    exit_point: Box<ExitPoint>,
+    user_agent: Option<UserAgent>,
+    cancel_token: CancellationToken,
+) -> Result<SelectedGateways> {
+    let user_agent =
+        user_agent.unwrap_or(UserAgent::from(nym_bin_common::bin_info_local_vergen!()));
+    let gateway_directory_client =
+        GatewayClient::new(gateway_config, user_agent).map_err(Error::CreateGatewayClient)?;
+
+    let select_gateways_fut = gateway_selector::select_gateways(
+        &gateway_directory_client,
+        tunnel_type,
+        entry_point,
+        exit_point,
+    );
+    cancel_token
+        .run_until_cancelled(select_gateways_fut)
+        .await
+        .ok_or(Error::Cancelled)?
+        .map_err(Error::SelectGateways)
 }
 
 pub async fn connect_mixnet(
@@ -108,22 +133,8 @@ pub async fn connect_mixnet(
     let user_agent = options
         .user_agent
         .unwrap_or(UserAgent::from(nym_bin_common::bin_info_local_vergen!()));
-
-    // Select gateways
     let gateway_directory_client = GatewayClient::new(options.gateway_config, user_agent)
         .map_err(Error::CreateGatewayClient)?;
-
-    let select_gateways_fut = gateway_selector::select_gateways(
-        &gateway_directory_client,
-        options.tunnel_type,
-        options.entry_point,
-        options.exit_point,
-    );
-    let selected_gateways = cancel_token
-        .run_until_cancelled(select_gateways_fut)
-        .await
-        .ok_or(Error::MixnetClientCancelled)?
-        .map_err(Error::SelectGateways)?;
 
     let mut mixnet_client_config = options.mixnet_client_config.unwrap_or_default();
     match options.tunnel_type {
@@ -140,7 +151,7 @@ pub async fn connect_mixnet(
     let connect_fut = tokio::time::timeout(
         MIXNET_CLIENT_STARTUP_TIMEOUT,
         crate::mixnet::setup_mixnet_client(
-            selected_gateways.entry.identity(),
+            options.selected_gateways.entry.identity(),
             &options.data_path,
             task_manager.subscribe_named("mixnet_client_main"),
             mixnet_client_config,
@@ -151,7 +162,7 @@ pub async fn connect_mixnet(
     let res = cancel_token
         .run_until_cancelled(connect_fut)
         .await
-        .ok_or(Error::MixnetClientCancelled)
+        .ok_or(Error::Cancelled)
         .and_then(|res| {
             res.map_err(|_| Error::StartMixnetClientTimeout)
                 .and_then(|x| x.map_err(Error::MixnetClient))
@@ -160,7 +171,7 @@ pub async fn connect_mixnet(
     match res {
         Ok(mixnet_client) => Ok(ConnectedMixnet {
             task_manager,
-            selected_gateways,
+            selected_gateways: options.selected_gateways,
             data_path: options.data_path,
             gateway_directory_client,
             mixnet_client,
@@ -193,9 +204,6 @@ pub enum Error {
     #[error("start mixnet client timeout")]
     StartMixnetClientTimeout,
 
-    #[error("mixnet client connection is cancelled")]
-    MixnetClientCancelled,
-
     #[error("mixnet tunnel has failed: {}", _0)]
     MixnetClient(#[from] MixnetError),
 
@@ -215,9 +223,6 @@ pub enum Error {
     #[error("failed to find authenticator address")]
     AuthenticatorAddressNotFound,
 
-    #[error("failed to start wireguard: {}", _0)]
-    StartWireguard(#[source] nym_wg_go::Error),
-
     #[error("failed to setup storage paths: {0}")]
     SetupStoragePaths(#[source] nym_sdk::Error),
 
@@ -226,14 +231,17 @@ pub enum Error {
 
     #[cfg(target_os = "ios")]
     #[error("failed to resolve using dns64")]
-    ResolveDns64(#[source] wireguard::dns64::Error),
+    ResolveDns64(#[from] wireguard::dns64::Error),
 
-    #[error("failed to open exit connection through the entry tunnel: {0}")]
-    OpenExitConnection(#[source] nym_wg_go::Error),
+    #[error("WireGuard error: {0}")]
+    Wireguard(#[from] nym_wg_go::Error),
 
     #[cfg(target_os = "ios")]
     #[error("failed to set default path observer: {0}")]
     SetDefaultPathObserver(String),
+
+    #[error("connection cancelled")]
+    Cancelled,
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

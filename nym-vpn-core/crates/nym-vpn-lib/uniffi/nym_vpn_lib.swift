@@ -1199,8 +1199,9 @@ public struct ConnectionData {
     public var exitGateway: BoxedNodeIdentity
     /**
      * When the tunnel was last established.
+     * Set once the tunnel is connected.
      */
-    public var connectedAt: OffsetDateTime
+    public var connectedAt: OffsetDateTime?
     /**
      * Tunnel connection data.
      */
@@ -1217,7 +1218,8 @@ public struct ConnectionData {
          */exitGateway: BoxedNodeIdentity, 
         /**
          * When the tunnel was last established.
-         */connectedAt: OffsetDateTime, 
+         * Set once the tunnel is connected.
+         */connectedAt: OffsetDateTime?, 
         /**
          * Tunnel connection data.
          */tunnel: TunnelConnectionData) {
@@ -1262,7 +1264,7 @@ public struct FfiConverterTypeConnectionData: FfiConverterRustBuffer {
             try ConnectionData(
                 entryGateway: FfiConverterTypeBoxedNodeIdentity.read(from: &buf), 
                 exitGateway: FfiConverterTypeBoxedNodeIdentity.read(from: &buf), 
-                connectedAt: FfiConverterTypeOffsetDateTime.read(from: &buf), 
+                connectedAt: FfiConverterOptionTypeOffsetDateTime.read(from: &buf), 
                 tunnel: FfiConverterTypeTunnelConnectionData.read(from: &buf)
         )
     }
@@ -1270,7 +1272,7 @@ public struct FfiConverterTypeConnectionData: FfiConverterRustBuffer {
     public static func write(_ value: ConnectionData, into buf: inout [UInt8]) {
         FfiConverterTypeBoxedNodeIdentity.write(value.entryGateway, into: &buf)
         FfiConverterTypeBoxedNodeIdentity.write(value.exitGateway, into: &buf)
-        FfiConverterTypeOffsetDateTime.write(value.connectedAt, into: &buf)
+        FfiConverterOptionTypeOffsetDateTime.write(value.connectedAt, into: &buf)
         FfiConverterTypeTunnelConnectionData.write(value.tunnel, into: &buf)
     }
 }
@@ -3384,17 +3386,9 @@ public enum ErrorStateReason {
      */
     case tunnelProvider
     /**
-     * Failure to establish mixnet connection.
+     * Same entry and exit gateway are unsupported.
      */
-    case establishMixnetConnection
-    /**
-     * Failure to establish wireguard connection.
-     */
-    case establishWireguardConnection
-    /**
-     * Tunnel went down at runtime.
-     */
-    case tunnelDown
+    case sameEntryAndExitGateway
     /**
      * Program errors that must not happen.
      */
@@ -3419,13 +3413,9 @@ public struct FfiConverterTypeErrorStateReason: FfiConverterRustBuffer {
         
         case 5: return .tunnelProvider
         
-        case 6: return .establishMixnetConnection
+        case 6: return .sameEntryAndExitGateway
         
-        case 7: return .establishWireguardConnection
-        
-        case 8: return .tunnelDown
-        
-        case 9: return .`internal`
+        case 7: return .`internal`
         
         default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -3455,20 +3445,12 @@ public struct FfiConverterTypeErrorStateReason: FfiConverterRustBuffer {
             writeInt(&buf, Int32(5))
         
         
-        case .establishMixnetConnection:
+        case .sameEntryAndExitGateway:
             writeInt(&buf, Int32(6))
         
         
-        case .establishWireguardConnection:
-            writeInt(&buf, Int32(7))
-        
-        
-        case .tunnelDown:
-            writeInt(&buf, Int32(8))
-        
-        
         case .`internal`:
-            writeInt(&buf, Int32(9))
+            writeInt(&buf, Int32(7))
         
         }
     }
@@ -4361,7 +4343,8 @@ extension TunnelEvent: Equatable, Hashable {}
 public enum TunnelState {
     
     case disconnected
-    case connecting
+    case connecting(connectionData: ConnectionData?
+    )
     case connected(connectionData: ConnectionData
     )
     case disconnecting(afterDisconnect: ActionAfterDisconnect
@@ -4380,7 +4363,8 @@ public struct FfiConverterTypeTunnelState: FfiConverterRustBuffer {
         
         case 1: return .disconnected
         
-        case 2: return .connecting
+        case 2: return .connecting(connectionData: try FfiConverterOptionTypeConnectionData.read(from: &buf)
+        )
         
         case 3: return .connected(connectionData: try FfiConverterTypeConnectionData.read(from: &buf)
         )
@@ -4403,9 +4387,10 @@ public struct FfiConverterTypeTunnelState: FfiConverterRustBuffer {
             writeInt(&buf, Int32(1))
         
         
-        case .connecting:
+        case let .connecting(connectionData):
             writeInt(&buf, Int32(2))
-        
+            FfiConverterOptionTypeConnectionData.write(connectionData, into: &buf)
+            
         
         case let .connected(connectionData):
             writeInt(&buf, Int32(3))
@@ -4709,6 +4694,27 @@ fileprivate struct FfiConverterOptionTypeTunnelStatusListener: FfiConverterRustB
     }
 }
 
+fileprivate struct FfiConverterOptionTypeConnectionData: FfiConverterRustBuffer {
+    typealias SwiftType = ConnectionData?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeConnectionData.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeConnectionData.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
 fileprivate struct FfiConverterOptionTypeDnsSettings: FfiConverterRustBuffer {
     typealias SwiftType = DnsSettings?
 
@@ -4998,6 +5004,27 @@ fileprivate struct FfiConverterOptionTypeIpv6Addr: FfiConverterRustBuffer {
         switch try readInt(&buf) as Int8 {
         case 0: return nil
         case 1: return try FfiConverterTypeIpv6Addr.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionTypeOffsetDateTime: FfiConverterRustBuffer {
+    typealias SwiftType = OffsetDateTime?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeOffsetDateTime.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeOffsetDateTime.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }
