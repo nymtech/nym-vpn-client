@@ -2,15 +2,6 @@ import Foundation
 import MixnetLibrary
 
 extension PacketTunnelProvider: TunnelStatusListener {
-    func onEvent(event: MixnetLibrary.TunnelEvent) {
-        switch event {
-        case let .newState(tunnelState):
-            updateTunnelState(with: tunnelState)
-        default:
-            break
-        }
-    }
-
     func onBandwidthStatusChange(status: BandwidthStatus) {
         // todo: implement
     }
@@ -40,20 +31,5 @@ private extension PacketTunnelProvider {
             durationString = dateFormatter.string(from: connectionStartDate, to: Date()) ?? ""
         }
         return durationString
-    }
-
-    func updateTunnelState(with tunnelState: TunnelState) {
-        switch tunnelState {
-        case let .error(errorStateReason):
-            scheduleDisconnectNotification()
-            updateLastError(with: errorStateReason)
-        default:
-            break
-        }
-    }
-
-    func updateLastError(with errorStateReason: ErrorStateReason) {
-        logger.error("onEvent: \(errorStateReason)")
-        lastErrorStateReason = errorStateReason
     }
 }

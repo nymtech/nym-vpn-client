@@ -205,7 +205,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "To generate a new credential, please use the link\nprovided in the beta phase invitation email."
+            "value" : "To generate a new credential, please use the link\nprovided in the invitation email."
           }
         }
       }
@@ -470,105 +470,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Something went wrong. Unrecognized error"
-          }
-        }
-      }
-    },
-    "errorReason.dns" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to configure DNS"
-          }
-        }
-      }
-    },
-    "errorReason.establishMixnetConnection" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to establish mixnet connection"
-          }
-        }
-      }
-    },
-    "errorReason.establishWireguardConnection" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to establish wireguard connection"
-          }
-        }
-      }
-    },
-    "errorReason.firewall" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to configure firewall"
-          }
-        }
-      }
-    },
-    "errorReason.internalUnknown" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Internal unknown tunnel failure"
-          }
-        }
-      }
-    },
-    "errorReason.routing" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to configure routing"
-          }
-        }
-      }
-    },
-    "errorReason.tunDevice" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to configure tunnel device"
-          }
-        }
-      }
-    },
-    "errorReason.tunnelDown" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tunnel failed at runtime"
-          }
-        }
-      }
-    },
-    "errorReason.tunnelProvider" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to configure packet tunnel provider"
           }
         }
       }
@@ -1041,8 +942,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Experience maximum speed with 
-2-server connectivity. Perfect for fast browsing, streaming, and file sharing."
+            "value" : "Experience maximum speed with  2-server connectivity. Perfect for fast browsing, streaming, and file sharing."
           }
         }
       }
@@ -1201,17 +1101,6 @@
         }
       }
     },
-    "settings.logIn" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Log in"
-          }
-        }
-      }
-    },
     "settings.resetVpnProfileSubtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1339,7 +1228,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Help us refine our app during the beta phase! Your feedback is crucial for identifying and resolving issues. Opt-in for anonymous error monitoring (via"
+            "value" : "Help us improve our app! Your feedback is crucial for identifying and resolving issues. Opt-in for anonymous error monitoring (via"
           }
         }
       }
@@ -1361,7 +1250,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Welcome\nto NymVPN beta"
+            "value" : "Welcome\nto NymVPN"
           }
         }
       }

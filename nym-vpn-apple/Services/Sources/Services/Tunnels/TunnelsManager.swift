@@ -21,9 +21,6 @@ public final class TunnelsManager: ObservableObject {
         Task {
             try? await loadTunnels()
             observeTunnelStatuses()
-#if os(iOS)
-            startPolling()
-#endif
         }
     }
 }
@@ -65,47 +62,6 @@ extension TunnelsManager {
         }
     }
 }
-
-// MARK: - Polling -
-#if os(iOS)
-private extension TunnelsManager {
-    func startPolling() {
-        isPolling = true
-        work = Task {
-            await pollLoop()
-        }
-    }
-
-    func pollLoop() async {
-        while isPolling {
-            await pollTunnelLastError()
-            try? await Task.sleep(nanoseconds: secondInNanoseconds)
-        }
-    }
-
-    func pollTunnelLastError() async {
-        guard let tunnel = tunnels.first(where: { $0.tunnel.isEnabled }),
-              let session = tunnel.tunnel.connection as? NETunnelProviderSession
-        else {
-            logger.log(level: .error, "Failed to access NETunnelProviderSession from the active tunnel.")
-            return
-        }
-
-        do {
-            let message = try TunnelProviderMessage.lastErrorReason.encode()
-            let response = try await session.sendProviderMessageAsync(message)
-            if let response, let decodedReason = try? ErrorReason(from: response) {
-                lastError = decodedReason
-                logger.info("Last tunnel error: \(decodedReason)")
-            } else {
-                logger.error("No response received or an error occurred during polling.")
-            }
-        } catch {
-            logger.error("Failed to send polling message with error: \(error)")
-        }
-    }
-}
-#endif
 
 // MARK: - Connection -
 extension TunnelsManager {

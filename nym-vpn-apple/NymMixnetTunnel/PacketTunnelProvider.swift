@@ -21,8 +21,6 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     private var installedDefaultPathObserver = false
 
     var connectionStartDate: Date?
-    var didSendError = false
-    var lastErrorStateReason: ErrorStateReason?
 
     override init() {
         LoggingSystem.bootstrap { label in
@@ -71,18 +69,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         logger.info("Backend is up and running...")
         connectionStartDate = Date()
 
-        // Monitor for didSendError changes concurrently
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            Task {
-                await monitorDidSendError { errorOccurred in
-                    if errorOccurred {
-                        continuation.resume(throwing: PacketTunnelProviderError.backendStartFailure)
-                    } else {
-                        continuation.resume(returning: ())
-                    }
-                }
-            }
-
             Task {
                 for await event in eventStream {
                     switch event {
@@ -94,10 +81,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                         logger.debug("Tunnel is establishing connection.")
                     case .statusUpdate(.down):
                         logger.error("Failed to start backend")
-                        if didSendError {
-                            continuation.resume(throwing: PacketTunnelProviderError.backendStartFailure)
-                            break
-                        }
+                        continuation.resume(throwing: PacketTunnelProviderError.backendStartFailure)
                     case .statusUpdate(.initializingClient):
                         logger.debug("Initializing the client")
                     case .statusUpdate(.disconnecting):
@@ -178,19 +162,6 @@ extension PacketTunnelProvider: OsTunProvider {
         } catch {
             logger.error("Failed to set tunnel network settings: \(error)")
             throw error
-        }
-    }
-}
-
-private extension PacketTunnelProvider {
-    func monitorDidSendError(onError: @escaping (Bool) -> Void) async {
-        while true {
-            logger.info("monitorDidSendError: \(didSendError)")
-            if didSendError {
-                onError(true)
-                break
-            }
-            try? await Task.sleep(nanoseconds: secondInNanoseconds)
         }
     }
 }
