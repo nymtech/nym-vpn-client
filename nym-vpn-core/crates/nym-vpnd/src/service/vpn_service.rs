@@ -42,7 +42,7 @@ use crate::{config::GlobalConfigFile, GLOBAL_NETWORK_DETAILS};
 
 use super::{
     config::{ConfigSetupError, NetworkEnvironments, NymVpnServiceConfig, DEFAULT_CONFIG_FILE},
-    error::{AccountError, ConnectionFailedError, Error, Result, SetNetworkError},
+    error::{AccountError, AccountNotReady, ConnectionFailedError, Error, Result, SetNetworkError},
     VpnServiceConnectError, VpnServiceDisconnectError,
 };
 
@@ -644,17 +644,20 @@ where
         Ok(config)
     }
 
-    async fn wait_for_ready_to_connect(&self) -> Result<ReadyToConnect, VpnServiceConnectError> {
+    async fn wait_for_ready_to_connect(&self) -> Result<(), VpnServiceConnectError> {
         match self
             .shared_account_state
             .wait_for_ready_to_connect(Duration::from_secs(10))
             .await
         {
             Some(is_ready) => match is_ready {
-                ReadyToConnect::Ready => Ok(ReadyToConnect::Ready),
-                not_ready_to_connect => {
-                    tracing::info!("Not ready to connect: {:?}", not_ready_to_connect);
-                    Err(VpnServiceConnectError::Account(not_ready_to_connect))
+                ReadyToConnect::Ready => Ok(()),
+                not_ready => {
+                    tracing::info!("Not ready to connect: {:?}", not_ready);
+                    Err(VpnServiceConnectError::Account(
+                        AccountNotReady::try_from(not_ready)
+                            .map_err(|err| VpnServiceConnectError::Internal(err.to_string()))?,
+                    ))
                 }
             },
             None => Err(VpnServiceConnectError::Internal("timeout".to_owned())),
@@ -670,7 +673,7 @@ where
         self.shutdown_token
             .run_until_cancelled(wait_for_ready_to_connect_fut)
             .await
-            .ok_or(VpnServiceConnectError::Internal("cancelled".to_owned()))??;
+            .ok_or(VpnServiceConnectError::Cancel)??;
 
         let ConnectArgs {
             entry,
