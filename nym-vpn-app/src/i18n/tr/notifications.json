@@ -3,5 +3,9 @@
     "connected": "VPN tüneli bağlandı",
     "disconnected": "NymVPN bağlantısı kesildi. Gizliliğinizi korumak için lütfen yeniden bağlanın.",
     "failed": "VPN tünel bağlantısı başarısız oldu!"
+  },
+  "logout": {
+    "success": "Oturum kapatma başarılı",
+    "error": "Oturumu kaparken bir hata oluştu. Lütfen tekrar deneyin."
   }
 }

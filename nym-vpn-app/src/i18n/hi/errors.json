@@ -73,12 +73,21 @@
   "internal": "अंदरूनी त्रुटि",
   "daemon": {
     "not-connected": "Daemon से कनेक्ट नहीं है",
-    "internal": "Daemon अंदरूनी त्रुटि"
+    "internal": "Daemon अंदरूनी त्रुटि",
+    "invalid-network": "अमान्य नेटवर्क"
   },
   "grpc": "अंदरूनी gRPC त्रुटि",
   "entry-node-routing": "प्रवेश नोड ट्रैफ़िक को रूट नहीं कर रहा है (क्या इंटरनेट कनेक्शन बंद है?)",
   "out-of-bandwidth": "निर्धारित बैंडविड्थ समाप्त",
   "account": {
-    "invalid-recovery-phrase": "अमान्य रिकवरी फ्रेज़"
+    "invalid-recovery-phrase": "अमान्य रिकवरी फ्रेज़",
+    "no-account-stored": "कोई खाता रिकवरी वाक्यांश संग्रहीत नहीं है",
+    "not-active": "यह खाता सक्रिय नहीं है",
+    "device": {
+      "not-registered": "यह डिवाइस पंजीकृत नहीं है",
+      "not-active": "यह डिवाइस सक्रिय नहीं है"
+    },
+    "storage": "स्टोरेज बैकएंड एरर",
+    "no-active-subscription": "खाते में सक्रिय सब्सक्रिप्शन नहीं है"
   }
 }

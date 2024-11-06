@@ -44,5 +44,9 @@
     "daemon-version": "Версія Daemon",
     "network-name": "Мережа",
     "client-version": "Версія клієнту"
+  },
+  "logout-confirmation": {
+    "description": "Для повторного входу вам знадобиться фраза відновлення.",
+    "title": "Ти впевнений?"
   }
 }

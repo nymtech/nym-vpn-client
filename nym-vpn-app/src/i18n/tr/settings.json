@@ -44,5 +44,9 @@
     "daemon-version": "Daemon sürümü",
     "client-version": "İstemci sürümü",
     "network-name": "Ağ"
+  },
+  "logout-confirmation": {
+    "title": "Emin misiniz?",
+    "description": "Tekrar giriş yapmak için kurtarma ifadenize ihtiyacınız olacak."
   }
 }
