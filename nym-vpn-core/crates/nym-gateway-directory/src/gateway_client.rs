@@ -173,7 +173,8 @@ impl GatewayClient {
         gateways.random_low_latency_gateway().await
     }
 
-    pub async fn lookup_gateway_ip(&self, gateway_identity: &str) -> Result<IpAddr> {
+    pub async fn lookup_gateway_ip_from_nym_api(&self, gateway_identity: &str) -> Result<IpAddr> {
+        info!("Fetching gateway ip from nym-api...");
         let mut ips = self
             .api_client
             .get_all_described_nodes()
@@ -248,34 +249,6 @@ impl GatewayClient {
         Ok(ip)
     }
 
-    // TODO: check that this gives the same IP, before switching to this as the main one
-    pub async fn lookup_gateway_ip_from_vpn_api(&self, gateway_identity: &str) -> Result<IpAddr> {
-        if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
-            info!("Fetching gateway ip from nym-vpn-api...");
-            let gateway = nym_vpn_api_client
-                .get_gateways(None)
-                .await?
-                .into_iter()
-                .find_map(|gw| {
-                    if gw.identity_key != gateway_identity {
-                        None
-                    } else {
-                        Gateway::try_from(gw)
-                            .inspect_err(|err| error!("Failed to parse gateway: {err}"))
-                            .ok()
-                    }
-                })
-                .ok_or_else(|| Error::RequestedGatewayIdNotFound(gateway_identity.to_string()))?;
-            gateway
-                .lookup_ip()
-                .await
-                .ok_or(Error::FailedToLookupIp(gateway_identity.to_string()))
-        } else {
-            warn!("OPERATING IN FALLBACK MODE WITHOUT NYM-VPN-API!");
-            self.lookup_gateway_ip(gateway_identity).await
-        }
-    }
-
     pub async fn lookup_all_gateways_from_nym_api(&self) -> Result<GatewayList> {
         let mut gateways = self
             .lookup_described_nodes()
@@ -317,6 +290,33 @@ impl GatewayClient {
         self.lookup_all_gateways_from_nym_api()
             .await
             .map(GatewayList::into_vpn_gateways)
+    }
+
+    pub async fn lookup_gateway_ip(&self, gateway_identity: &str) -> Result<IpAddr> {
+        if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
+            info!("Fetching gateway ip from nym-vpn-api...");
+            let gateway = nym_vpn_api_client
+                .get_gateways(None)
+                .await?
+                .into_iter()
+                .find_map(|gw| {
+                    if gw.identity_key != gateway_identity {
+                        None
+                    } else {
+                        Gateway::try_from(gw)
+                            .inspect_err(|err| error!("Failed to parse gateway: {err}"))
+                            .ok()
+                    }
+                })
+                .ok_or_else(|| Error::RequestedGatewayIdNotFound(gateway_identity.to_string()))?;
+            gateway
+                .lookup_ip()
+                .await
+                .ok_or(Error::FailedToLookupIp(gateway_identity.to_string()))
+        } else {
+            warn!("OPERATING IN FALLBACK MODE WITHOUT NYM-VPN-API!");
+            self.lookup_gateway_ip_from_nym_api(gateway_identity).await
+        }
     }
 
     pub async fn lookup_all_gateways(&self) -> Result<GatewayList> {
