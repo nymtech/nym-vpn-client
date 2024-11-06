@@ -64,18 +64,9 @@ public final class ConfigurationManager {
 #endif
 
     public func setup() throws {
-        guard let env = Env(rawValue: appSettings.currentEnv)
-        else {
-            logger.error("Cannot load current env var from: \(appSettings.currentEnv)")
-            currentEnv = fallbackEnv
-            return
-        }
-        currentEnv = env
 #if os(iOS)
         try setEnvVariables(for: currentEnv)
-#endif
-
-#if os(macOS)
+#elseif os(macOS)
         try setDaemonEnvironmentVariables()
 #endif
     }
