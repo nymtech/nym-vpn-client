@@ -51,6 +51,7 @@ pub(crate) struct Jwt {
 impl Jwt {
     pub fn new_secp256k1(wallet: &DirectSecp256k1HdWallet) -> Jwt {
         let timestamp = std::time::UNIX_EPOCH.elapsed().unwrap().as_secs() as u128;
+        tracing::info!("timestamp: {}", timestamp);
         Jwt::new_secp256k1_with_now(wallet, timestamp)
     }
 

@@ -29,10 +29,6 @@ import javax.inject.Provider
 @HiltAndroidApp
 class NymVpn : Application() {
 
-	val localeStorage: LocaleStorage by lazy {
-		LocaleStorage(this)
-	}
-
 	@Inject
 	@ApplicationScope
 	lateinit var applicationScope: CoroutineScope
@@ -77,9 +73,9 @@ class NymVpn : Application() {
 		requestTileServiceStateUpdate()
 	}
 
-	override fun attachBaseContext(base: Context) {
-		super.attachBaseContext(LocaleUtil.getLocalizedContext(base, LocaleStorage(base).getPreferredLocale()))
-	}
+//	override fun attachBaseContext(base: Context) {
+//		super.attachBaseContext(LocaleUtil.getLocalizedContext(base, LocaleStorage(base).getPreferredLocale()))
+//	}
 
 	class AppLifecycleObserver : DefaultLifecycleObserver {
 

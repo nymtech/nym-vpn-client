@@ -3,6 +3,7 @@ package net.nymtech.vpn.backend
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.system.Os
 import com.getkeepsafe.relinker.ReLinker
 import com.getkeepsafe.relinker.ReLinker.LoadListener
 import kotlinx.coroutines.CompletableDeferred
@@ -18,6 +19,7 @@ import net.nymtech.vpn.model.BackendMessage
 import net.nymtech.vpn.model.Statistics
 import net.nymtech.vpn.util.Action
 import net.nymtech.vpn.util.Constants
+import net.nymtech.vpn.util.Constants.LOG_LEVEL
 import net.nymtech.vpn.util.LifecycleVpnService
 import net.nymtech.vpn.util.NotificationManager
 import net.nymtech.vpn.util.SingletonHolder
@@ -86,6 +88,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	override suspend fun init(environment: Tunnel.Environment): Boolean {
 		return withContext(ioDispatcher) {
 			runCatching {
+				Os.setenv("RUST_LOG", LOG_LEVEL, true)
 				initLogger()
 				getEnvironment(environment).export()
 				startAccountController(storagePath)

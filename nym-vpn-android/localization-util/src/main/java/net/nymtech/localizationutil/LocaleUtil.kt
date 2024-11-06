@@ -5,7 +5,9 @@ import android.content.res.Configuration
 import android.content.res.Resources
 import android.os.Build
 import android.os.LocaleList
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.ConfigurationCompat
+import androidx.core.os.LocaleListCompat
 import java.util.Locale
 
 object LocaleUtil {
@@ -30,11 +32,6 @@ object LocaleUtil {
 			}
 		}
 		return Locale.forLanguageTag(localeCode)
-	}
-
-	fun getLocalizedConfiguration(prefLocaleCode: String): Configuration {
-		val locale = getLocaleFromPrefCode(prefLocaleCode)
-		return getLocalizedConfiguration(locale)
 	}
 
 	private fun getLocalizedConfiguration(locale: Locale): Configuration {
@@ -66,16 +63,6 @@ object LocaleUtil {
 		}
 	}
 
-	fun applyLocalizedContext(baseContext: Context, prefLocaleCode: String) {
-		val currentLocale = getLocaleFromPrefCode(prefLocaleCode)
-		val baseLocale = getLocaleFromConfiguration(baseContext.resources.configuration)
-		Locale.setDefault(currentLocale)
-		if (!baseLocale.toString().equals(currentLocale.toString(), ignoreCase = true)) {
-			val config = getLocalizedConfiguration(currentLocale)
-			baseContext.resources.updateConfiguration(config, baseContext.resources.displayMetrics)
-		}
-	}
-
 	@Suppress("DEPRECATION")
 	private fun getLocaleFromConfiguration(configuration: Configuration): Locale {
 		return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -85,15 +72,4 @@ object LocaleUtil {
 		}
 	}
 
-	fun getLocalizedResources(resources: Resources, prefLocaleCode: String): Resources {
-		val locale = getLocaleFromPrefCode(prefLocaleCode)
-		val config = resources.configuration
-		@Suppress("DEPRECATION")
-		config.locale = locale
-		config.setLayoutDirection(locale)
-
-		@Suppress("DEPRECATION")
-		resources.updateConfiguration(config, resources.displayMetrics)
-		return resources
-	}
 }
