@@ -6,9 +6,6 @@ all: build-wireguard build-nym-vpn-core
 build-wireguard:
 	./wireguard/build-wireguard-go.sh
 
-build-amnezia-wg:
-	./wireguard/build-wireguard-go.sh --amnezia
-
 build-wireguard-ios:
 	./wireguard/build-wireguard-go.sh --ios
 

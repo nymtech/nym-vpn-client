@@ -41,7 +41,7 @@ function parseArgs {
       esac
     done
 
-    echo "android:$IS_ANDROID_BUILD ios:$IS_IOS_BUILD docker:$IS_DOCKER_BUILD win_arm64:$IS_WIN_ARM64"
+    echo "android:$IS_ANDROID_BUILD ios:$IS_IOS_BUILD docker:$IS_DOCKER_BUILD win_arm64:$IS_WIN_ARM64 amnezia:$IS_AMNEZIA_BUILD"
 }
 
 function win_deduce_lib_executable_path {
@@ -273,9 +273,6 @@ function build_wireguard_go {
         MINGW*|MSYS_NT*) build_windows;;
     esac
 }
-
-AMNEZIA_DIR="libamnezia"
-LIB_DIR="libwg"
 
 # Ensure we are in the correct directory for the execution of this script
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"

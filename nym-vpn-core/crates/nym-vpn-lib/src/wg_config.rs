@@ -39,6 +39,10 @@ pub struct WgInterface {
     /// Mark used for mark-based routing.
     #[cfg(target_os = "linux")]
     pub fwmark: Option<u32>,
+
+    /// Amnezia Configuration
+    #[cfg(feature = "amnezia")]
+    pub azwg_config: Option<nym_wg_go::amnezia::AmneziaConfig>,
 }
 
 impl fmt::Debug for WgInterface {
@@ -88,6 +92,8 @@ impl WgNodeConfig {
                     .collect(),
                 dns_addrs: self.interface.dns,
                 mtu: self.interface.mtu,
+                #[cfg(feature = "amnezia")]
+                azwg_config: self.interface.azwg_config,
             },
             peers: vec![PeerConfig {
                 public_key: self.peer.public_key,
@@ -108,6 +114,8 @@ impl WgNodeConfig {
                 mtu: self.interface.mtu,
                 #[cfg(target_os = "linux")]
                 fwmark: self.interface.fwmark,
+                #[cfg(feature = "amnezia")]
+                azwg_config: self.interface.azwg_config,
             },
             peers: vec![PeerConfig {
                 public_key: self.peer.public_key,
@@ -155,6 +163,8 @@ impl WgNodeConfig {
                 mtu,
                 #[cfg(target_os = "linux")]
                 fwmark: None,
+                #[cfg(feature = "amnezia")]
+                azwg_config: None,
             },
             peer: WgPeer {
                 public_key: PublicKey::from(*gateway_data.public_key.as_bytes()),
