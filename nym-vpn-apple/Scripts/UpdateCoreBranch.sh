@@ -24,7 +24,7 @@ START_TIME=$(date +%s)
 cd .. 
 # nym-vpn-client
 cd ..
-make build-wireguard 
+make build-wireguard-ios
 cd nym-vpn-core
 
 make build-vpn-lib-swift
