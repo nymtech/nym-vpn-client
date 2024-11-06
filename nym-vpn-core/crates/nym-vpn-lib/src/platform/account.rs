@@ -168,8 +168,6 @@ pub(super) async fn store_account_mnemonic(mnemonic: &str, path: &str) -> Result
             details: err.to_string(),
         })?;
 
-    send_account_command(AccountCommand::UpdateSharedAccountState).await?;
-
     Ok(())
 }
 
@@ -200,8 +198,6 @@ pub(super) async fn remove_account_mnemonic(path: &str) -> Result<bool, VpnError
                 details: err.to_string(),
             })?;
 
-    send_account_command(AccountCommand::UpdateSharedAccountState).await?;
-
     Ok(is_account_removed_success)
 }
 
@@ -215,7 +211,11 @@ pub(super) async fn reset_device_identity(path: &str) -> Result<(), VpnError> {
         })
 }
 
-pub(super) async fn get_account_summary() -> Result<AccountStateSummary, VpnError> {
+pub(super) async fn update_account_state() -> Result<(), VpnError> {
+    send_account_command(AccountCommand::UpdateSharedAccountState).await
+}
+
+pub(super) async fn get_account_state() -> Result<AccountStateSummary, VpnError> {
     let shared_account_state = get_shared_account_state().await?;
     let account_state_summary = shared_account_state.lock().await.clone();
     Ok(AccountStateSummary::from(account_state_summary))
