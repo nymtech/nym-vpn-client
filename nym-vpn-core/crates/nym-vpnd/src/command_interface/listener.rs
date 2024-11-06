@@ -17,25 +17,29 @@ use nym_vpn_proto::{
     ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
     FetchRawAccountSummaryRequest, FetchRawAccountSummaryResponse, FetchRawDevicesRequest,
     FetchRawDevicesResponse, GetAccountIdentityRequest, GetAccountIdentityResponse,
-    GetAccountStateRequest, GetAccountStateResponse, GetDeviceIdentityRequest,
-    GetDeviceIdentityResponse, GetDeviceZkNymsRequest, GetDeviceZkNymsResponse, InfoRequest,
-    InfoResponse, IsAccountStoredRequest, IsAccountStoredResponse, IsReadyToConnectRequest,
-    IsReadyToConnectResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
-    ListGatewaysResponse, RefreshAccountStateRequest, RefreshAccountStateResponse,
-    RegisterDeviceRequest, RegisterDeviceResponse, RemoveAccountRequest, RemoveAccountResponse,
-    RequestZkNymRequest, RequestZkNymResponse, ResetDeviceIdentityRequest,
-    ResetDeviceIdentityResponse, SetNetworkRequest, SetNetworkResponse, StatusRequest,
-    StatusResponse, StoreAccountRequest, StoreAccountResponse,
+    GetAccountLinksRequest, GetAccountLinksResponse, GetAccountStateRequest,
+    GetAccountStateResponse, GetDeviceIdentityRequest, GetDeviceIdentityResponse,
+    GetDeviceZkNymsRequest, GetDeviceZkNymsResponse, GetSystemMessagesRequest,
+    GetSystemMessagesResponse, InfoRequest, InfoResponse, IsAccountStoredRequest,
+    IsAccountStoredResponse, IsReadyToConnectRequest, IsReadyToConnectResponse,
+    ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest, ListGatewaysResponse,
+    RefreshAccountStateRequest, RefreshAccountStateResponse, RegisterDeviceRequest,
+    RegisterDeviceResponse, RemoveAccountRequest, RemoveAccountResponse, RequestZkNymRequest,
+    RequestZkNymResponse, ResetDeviceIdentityRequest, ResetDeviceIdentityResponse,
+    SetNetworkRequest, SetNetworkResponse, StatusRequest, StatusResponse, StoreAccountRequest,
+    StoreAccountResponse,
 };
 
 use super::{
     connection_handler::CommandInterfaceConnectionHandler,
     error::CommandInterfaceError,
     helpers::{parse_entry_point, parse_exit_point, threshold_into_percent},
+    protobuf::info_response::into_account_management_links,
 };
 use crate::{
     command_interface::protobuf::{
         connection_state::into_is_ready_to_connect_response_type, gateway::into_user_agent,
+        info_response::into_system_message,
     },
     service::{ConnectOptions, VpnServiceCommand, VpnServiceStateChange},
 };
@@ -374,6 +378,25 @@ impl NymVpnd for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
+    async fn get_system_messages(
+        &self,
+        _request: tonic::Request<GetSystemMessagesRequest>,
+    ) -> Result<tonic::Response<GetSystemMessagesResponse>, tonic::Status> {
+        tracing::debug!("Got get system messages request");
+
+        let messages = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_get_system_messages()
+            .await?;
+
+        let messages = messages
+            .into_current_messages()
+            .map(into_system_message)
+            .collect();
+        let response = GetSystemMessagesResponse { messages };
+
+        Ok(tonic::Response::new(response))
+    }
+
     async fn store_account(
         &self,
         request: tonic::Request<StoreAccountRequest>,
@@ -470,6 +493,35 @@ impl NymVpnd for CommandInterface {
                     nym_vpn_proto::AccountError::from(err),
                 )),
             },
+        };
+
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn get_account_links(
+        &self,
+        request: tonic::Request<GetAccountLinksRequest>,
+    ) -> Result<tonic::Response<GetAccountLinksResponse>, tonic::Status> {
+        let locale = request.into_inner().locale;
+
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_get_account_links(locale)
+            .await?;
+
+        let response = match result {
+            Ok(account_links) => GetAccountLinksResponse {
+                res: Some(nym_vpn_proto::get_account_links_response::Res::Links(
+                    into_account_management_links(account_links),
+                )),
+            },
+            Err(err) => {
+                tracing::error!("Failed to get account links: {:?}", err);
+                GetAccountLinksResponse {
+                    res: Some(nym_vpn_proto::get_account_links_response::Res::Error(
+                        nym_vpn_proto::AccountError::from(err),
+                    )),
+                }
+            }
         };
 
         Ok(tonic::Response::new(response))

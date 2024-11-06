@@ -402,6 +402,12 @@ pub enum AccountError {
     AccountControllerError {
         source: nym_vpn_account_controller::Error,
     },
+
+    #[error("account not configured")]
+    AccountManagementNotConfigured,
+
+    #[error("failed to parse account links")]
+    FailedToParseAccountLinks,
 }
 
 #[derive(Debug, thiserror::Error)]

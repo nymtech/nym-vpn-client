@@ -9,7 +9,7 @@ use std::{
 use anyhow::Context;
 use nym_config::defaults::{var_names, NymNetworkDetails};
 
-use super::{bootstrap::Discovery, MAX_FILE_AGE, NETWORKS_SUBDIR};
+use super::{discovery::Discovery, MAX_FILE_AGE, NETWORKS_SUBDIR};
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct NymNetwork {

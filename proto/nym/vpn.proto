@@ -124,6 +124,12 @@ message NymVpnNetworkDetails {
   Url nym_vpn_api_url = 1;
 }
 
+message AccountManagement {
+  Url sign_up = 1;
+  Url sign_in = 2;
+  Url account = 3;
+}
+
 message ValidatorDetails {
   Url nyxd_url = 1;
   Url websocket_url = 2;
@@ -559,6 +565,18 @@ message ListCountriesResponse {
   repeated Location countries = 1;
 }
 
+message SystemMessage {
+  string name = 1;
+  string message = 2;
+  string properties = 3;
+}
+
+message GetSystemMessagesRequest {}
+
+message GetSystemMessagesResponse {
+  repeated SystemMessage messages = 1;
+}
+
 message StoreAccountRequest {
   string mnemonic = 1;
   uint32 nonce = 2;
@@ -590,6 +608,17 @@ message GetAccountIdentityRequest {}
 message GetAccountIdentityResponse {
   oneof id {
     string account_identity = 1;
+    AccountError error = 2;
+  }
+}
+
+message GetAccountLinksRequest {
+  string locale = 1;
+}
+
+message GetAccountLinksResponse {
+  oneof res {
+    AccountManagement links = 1;
     AccountError error = 2;
   }
 }
@@ -778,6 +807,9 @@ service NymVpnd {
   // List the avaiable countries for the selected mode
   rpc ListCountries (ListCountriesRequest) returns (ListCountriesResponse) {}
 
+  // List messages fetched from nym-vpn-api
+  rpc GetSystemMessages (GetSystemMessagesRequest) returns (GetSystemMessagesResponse) {}
+
   // -- Unstable --
   // These below are considered unstable, in the sense that their definitions
   // are still being interated upon and their meaning might change
@@ -787,6 +819,7 @@ service NymVpnd {
   rpc IsAccountStored (IsAccountStoredRequest) returns (IsAccountStoredResponse) {}
   rpc RemoveAccount (RemoveAccountRequest) returns (RemoveAccountResponse) {}
   rpc GetAccountIdentity (GetAccountIdentityRequest) returns (GetAccountIdentityResponse) {}
+  rpc GetAccountLinks (GetAccountLinksRequest) returns (GetAccountLinksResponse) {}
 
   // Query the account state, which refers to the server side account, as it is
   // known and interpreted by nym-vpnd

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_account_controller::{AccountStateSummary, ReadyToConnect};
+use nym_vpn_network_config::{ParsedAccountLinks, SystemMessages};
 use tokio::sync::{mpsc::UnboundedSender, oneshot};
 
 use nym_vpn_api_client::{
@@ -117,6 +118,13 @@ impl CommandInterfaceConnectionHandler {
         Ok(gateways.into_iter().map(gateway::Country::from).collect())
     }
 
+    pub(crate) async fn handle_get_system_messages(
+        &self,
+    ) -> Result<SystemMessages, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::GetSystemMessages, ())
+            .await
+    }
+
     pub(crate) async fn handle_store_account(
         &self,
         account: String,
@@ -143,6 +151,14 @@ impl CommandInterfaceConnectionHandler {
         &self,
     ) -> Result<Result<String, AccountError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::GetAccountIdentity, ())
+            .await
+    }
+
+    pub(crate) async fn handle_get_account_links(
+        &self,
+        locale: String,
+    ) -> Result<Result<ParsedAccountLinks, AccountError>, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::GetAccountLinks, locale)
             .await
     }
 

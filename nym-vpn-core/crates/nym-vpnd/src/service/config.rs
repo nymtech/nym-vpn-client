@@ -130,8 +130,8 @@ pub enum ConfigSetupError {
     #[error("failed to set permissions for directory {dir}: {error}")]
     SetPermissions { dir: PathBuf, error: std::io::Error },
 
-    #[error("global network details not set")]
-    GlobalNetworkNotSet,
+    #[error("missing nym-api URL")]
+    MissingApiUrl,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]

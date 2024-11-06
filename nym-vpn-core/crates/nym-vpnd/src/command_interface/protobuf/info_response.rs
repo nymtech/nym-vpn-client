@@ -73,6 +73,38 @@ fn to_nym_contracts(
     }
 }
 
+//fn to_nym_vpn_network_details(
+//    nym_vpn_network: nym_vpn_network_config::NymVpnNetwork,
+//    account_id: Option<String>,
+//) -> nym_vpn_proto::NymVpnNetworkDetails {
+//    let locale = "en".to_string();
+//    let account_management = if let Some(account_id) = account_id {
+//        nym_vpn_network
+//            .account_management
+//            .map(|ac| nym_vpn_proto::AccountManagement {
+//                sign_up: ac
+//                    .sign_up_url(&locale)
+//                    .map(|url| url.to_string())
+//                    .map(string_to_url),
+//                sign_in: ac
+//                    .sign_in_url(&locale)
+//                    .map(|url| url.to_string())
+//                    .map(string_to_url),
+//                account: ac
+//                    .account_url(&locale, &account_id)
+//                    .map(|url| url.to_string())
+//                    .map(string_to_url),
+//            })
+//    } else {
+//        None
+//    };
+//
+//    nym_vpn_proto::NymVpnNetworkDetails {
+//        nym_vpn_api_url: Some(string_to_url(nym_vpn_network.nym_vpn_api_url.to_string())),
+//        account_management,
+//    }
+//}
+
 fn to_nym_vpn_network_details(
     nym_vpn_network: nym_vpn_network_config::NymVpnNetwork,
 ) -> nym_vpn_proto::NymVpnNetworkDetails {
@@ -98,6 +130,32 @@ fn validator_details_to_endpoints(
     }
 }
 
-fn string_to_url(url: String) -> nym_vpn_proto::Url {
+pub(crate) fn string_to_url(url: String) -> nym_vpn_proto::Url {
     nym_vpn_proto::Url { url }
+}
+
+fn url_to_proto_url(url: url::Url) -> nym_vpn_proto::Url {
+    nym_vpn_proto::Url {
+        url: url.to_string(),
+    }
+}
+
+pub(crate) fn into_system_message(
+    system_message: nym_vpn_network_config::SystemMessage,
+) -> nym_vpn_proto::SystemMessage {
+    nym_vpn_proto::SystemMessage {
+        name: system_message.name,
+        message: system_message.message,
+        properties: serde_json::to_string(&system_message.properties).unwrap_or_default(),
+    }
+}
+
+pub(crate) fn into_account_management_links(
+    account_links: nym_vpn_network_config::ParsedAccountLinks,
+) -> nym_vpn_proto::AccountManagement {
+    nym_vpn_proto::AccountManagement {
+        sign_up: Some(url_to_proto_url(account_links.sign_up)),
+        sign_in: Some(url_to_proto_url(account_links.sign_in)),
+        account: Some(url_to_proto_url(account_links.account)),
+    }
 }

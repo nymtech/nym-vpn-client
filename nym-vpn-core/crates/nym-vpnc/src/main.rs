@@ -6,11 +6,12 @@ use clap::Parser;
 use nym_gateway_directory::GatewayType;
 use nym_vpn_proto::{
     ConnectRequest, DisconnectRequest, Empty, FetchRawAccountSummaryRequest,
-    FetchRawDevicesRequest, GetAccountIdentityRequest, GetAccountStateRequest,
-    GetDeviceIdentityRequest, GetDeviceZkNymsRequest, InfoRequest, InfoResponse,
-    IsAccountStoredRequest, IsReadyToConnectRequest, ListCountriesRequest, ListGatewaysRequest,
-    RefreshAccountStateRequest, RegisterDeviceRequest, RemoveAccountRequest, RequestZkNymRequest,
-    ResetDeviceIdentityRequest, SetNetworkRequest, StatusRequest, StoreAccountRequest, UserAgent,
+    FetchRawDevicesRequest, GetAccountIdentityRequest, GetAccountLinksRequest,
+    GetAccountStateRequest, GetDeviceIdentityRequest, GetDeviceZkNymsRequest,
+    GetSystemMessagesRequest, InfoRequest, InfoResponse, IsAccountStoredRequest,
+    IsReadyToConnectRequest, ListCountriesRequest, ListGatewaysRequest, RefreshAccountStateRequest,
+    RegisterDeviceRequest, RemoveAccountRequest, RequestZkNymRequest, ResetDeviceIdentityRequest,
+    SetNetworkRequest, StatusRequest, StoreAccountRequest, UserAgent,
 };
 use protobuf_conversion::{into_gateway_type, into_threshold};
 use sysinfo::System;
@@ -42,11 +43,13 @@ async fn main() -> Result<()> {
         Command::Status => status(client_type).await?,
         Command::Info => info(client_type).await?,
         Command::SetNetwork(ref args) => set_network(client_type, args).await?,
+        Command::GetSystemMessages => get_system_messages(client_type).await?,
         Command::StoreAccount(ref store_args) => store_account(client_type, store_args).await?,
         Command::RefreshAccountState => refresh_account_state(client_type).await?,
         Command::IsAccountStored => is_account_stored(client_type).await?,
         Command::RemoveAccount => remove_account(client_type).await?,
         Command::GetAccountId => get_account_id(client_type).await?,
+        Command::GetAccountLinks(ref args) => get_account_links(client_type, args).await?,
         Command::GetAccountState => get_account_state(client_type).await?,
         Command::IsReadyToConnect => is_ready_to_connect(client_type).await?,
         Command::ListenToStatus => listen_to_status(client_type).await?,
@@ -182,6 +185,14 @@ async fn set_network(client_type: ClientType, args: &cli::SetNetworkArgs) -> Res
     Ok(())
 }
 
+async fn get_system_messages(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(GetSystemMessagesRequest {});
+    let response = client.get_system_messages(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
 async fn store_account(client_type: ClientType, store_args: &cli::StoreAccountArgs) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(StoreAccountRequest {
@@ -221,6 +232,16 @@ async fn get_account_id(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(GetAccountIdentityRequest {});
     let response = client.get_account_identity(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn get_account_links(client_type: ClientType, args: &cli::GetAccountLinksArgs) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(GetAccountLinksRequest {
+        locale: args.locale.clone(),
+    });
+    let response = client.get_account_links(request).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }

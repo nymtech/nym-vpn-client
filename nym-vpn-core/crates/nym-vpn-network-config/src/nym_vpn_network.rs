@@ -6,11 +6,15 @@ use std::env;
 use nym_config::defaults::{var_names, NymNetworkDetails};
 use url::Url;
 
-use super::bootstrap::Discovery;
+use crate::{AccountManagement, SystemMessages};
+
+use super::discovery::Discovery;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct NymVpnNetwork {
     pub nym_vpn_api_url: Url,
+    pub account_management: Option<AccountManagement>,
+    pub system_messages: SystemMessages,
 }
 
 impl NymVpnNetwork {
@@ -23,6 +27,8 @@ impl From<Discovery> for NymVpnNetwork {
     fn from(discovery: Discovery) -> Self {
         Self {
             nym_vpn_api_url: discovery.nym_vpn_api_url,
+            account_management: discovery.account_management,
+            system_messages: discovery.system_messages,
         }
     }
 }
@@ -37,6 +43,10 @@ impl TryFrom<&NymNetworkDetails> for NymVpnNetwork {
             .ok_or_else(|| anyhow::anyhow!("Failed to find NYM_VPN_API_URL in the environment"))?
             .parse()?;
 
-        Ok(Self { nym_vpn_api_url })
+        Ok(Self {
+            nym_vpn_api_url,
+            account_management: None,
+            system_messages: SystemMessages::default(),
+        })
     }
 }
