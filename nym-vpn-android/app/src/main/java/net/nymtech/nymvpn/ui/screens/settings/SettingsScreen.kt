@@ -163,13 +163,13 @@ fun SettingsScreen(
 						)
 					},
 				),
-				SelectionItem(
-					Icons.Outlined.AdminPanelSettings,
-					title = { Text(stringResource(R.string.kill_switch), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = {
-						context.launchVpnSettings()
-					},
-				),
+//				SelectionItem(
+//					Icons.Outlined.AdminPanelSettings,
+//					title = { Text(stringResource(R.string.kill_switch), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+//					onClick = {
+//						context.launchVpnSettings()
+//					},
+//				),
 				SelectionItem(
 					ImageVector.vectorResource(R.drawable.two),
 					{
