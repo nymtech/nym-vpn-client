@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 import AppSettings
 import AppVersionProvider
@@ -8,19 +9,30 @@ public class SettingsViewModel: SettingsFlowState {
     private let appSettings: AppSettings
     private let credentialsManager: CredentialsManager
 
+    private var cancellables = Set<AnyCancellable>()
+
     let settingsTitle = "settings".localizedString
 
-    var sections: [SettingsSection] {
-        [
-            connectionSection(),
-            themeSection(),
-            feedbackSection(),
-            legalSection()
-        ]
-    }
+    @Published var isLogoutConfirmationDisplayed = false
+
+    @Published var sections: [SettingsSection] = []
 
     var isValidCredentialImported: Bool {
         credentialsManager.isValidCredentialImported
+    }
+
+    var logoutDialogConfiguration: ActionDialogConfiguration {
+        ActionDialogConfiguration(
+            titleLocalizedString: "settings.logout".localizedString,
+            subtitleLocalizedString: "settings.logoutSubtitle".localizedString,
+            yesLocalizedString: "cancel".localizedString,
+            noLocalizedString: "settings.logout".localizedString,
+            noAction: { [weak self] in
+                Task {
+                    await self?.logout()
+                }
+            }
+        )
     }
 
     public init(
@@ -31,6 +43,7 @@ public class SettingsViewModel: SettingsFlowState {
         self.appSettings = appSettings
         self.credentialsManager = credentialsManager
         super.init(path: path)
+        setup()
     }
 
     func navigateHome() {
@@ -68,6 +81,43 @@ private extension SettingsViewModel {
     }
 }
 
+// MARK: - Setup -
+private extension SettingsViewModel {
+    func setup() {
+        setupAppSettingsObservers()
+        configureSections()
+    }
+
+    func setupAppSettingsObservers() {
+        appSettings.$isCredentialImportedPublisher.sink { [weak self] _ in
+            self?.configureSections()
+        }
+        .store(in: &cancellables)
+    }
+
+    func configureSections() {
+        var newSections = [
+            connectionSection(),
+            themeSection(),
+            feedbackSection(),
+            legalSection()
+        ]
+        if appSettings.isCredentialImported {
+            newSections.append(logoutSection())
+        }
+        sections = newSections
+    }
+}
+
+// MARK: - Actions -
+private extension SettingsViewModel {
+    func logout() async {
+        try? await credentialsManager.removeCredential()
+        // TODO: check if can login/logout
+    }
+}
+
+// MARK: - Sections -
 private extension SettingsViewModel {
     func connectionSection() -> SettingsSection {
         .connection(
@@ -79,16 +129,6 @@ private extension SettingsViewModel {
 //                    imageName: "autoConnect",
 //                    action: {}
 //                ),
-                SettingsListItemViewModel(
-                    accessory: .toggle(
-                        viewModel: ToggleViewModel(isOn: appSettings.isEntryLocationSelectionOn) { [weak self] isOn in
-                            self?.appSettings.isEntryLocationSelectionOn = isOn
-                        }
-                    ),
-                    title: "entryLocationTitle".localizedString,
-                    imageName: "entryHop",
-                    action: {}
-                ),
                 SettingsListItemViewModel(
                     accessory: .arrow,
                     title: "logs".localizedString,
@@ -161,6 +201,20 @@ private extension SettingsViewModel {
                     title: "legal".localizedString,
                     action: { [weak self] in
                         self?.navigateToLegal()
+                    }
+                )
+            ]
+        )
+    }
+
+    func logoutSection() -> SettingsSection {
+        .logout(
+            viewModels: [
+                SettingsListItemViewModel(
+                    accessory: .empty,
+                    title: "settings.logout".localizedString,
+                    action: { [weak self] in
+                        self?.isLogoutConfirmationDisplayed = true
                     }
                 )
             ]

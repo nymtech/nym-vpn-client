@@ -202,7 +202,6 @@ private extension ConnectionManager {
         setupGRPCManagerObservers()
 #endif
         setupCountriesManagerObserver()
-        setupAppSettingsObservers()
         setupConnectionChangeObserver()
         setupConnectionErrorObserver()
     }
@@ -380,13 +379,6 @@ private extension ConnectionManager {
         .store(in: &cancellables)
 
         countriesManager.$vpnCountries.sink { [weak self] _ in
-            self?.updateCountries()
-        }
-        .store(in: &cancellables)
-    }
-
-    func setupAppSettingsObservers() {
-        appSettings.$isEntryLocationSelectionOnPublisher.sink { [weak self] _ in
             self?.updateCountries()
         }
         .store(in: &cancellables)

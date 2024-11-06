@@ -3,5 +3,9 @@
     "connected": "Túnel VPN conectado",
     "disconnected": "A NymVPN foi desconectada. Para proteger sua privacidade, reconecte-se.",
     "failed": "A conexão do túnel VPN falhou!"
+  },
+  "logout": {
+    "success": "Logout bem-sucedido",
+    "error": "Ocorreu um erro ao fazer o logout. Tente novamente."
   }
 }

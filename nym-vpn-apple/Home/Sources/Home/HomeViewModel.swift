@@ -133,15 +133,6 @@ public extension HomeViewModel {
 // MARK: - Helpers -
 
 public extension HomeViewModel {
-    func shouldShowEntryHop() -> Bool {
-        switch connectionManager.connectionType {
-        case .mixnet5hop:
-            appSettings.isEntryLocationSelectionOn && !countriesManager.entryCountries.isEmpty
-        case .wireguard:
-            appSettings.isEntryLocationSelectionOn && !countriesManager.vpnCountries.isEmpty
-        }
-    }
-
     func configureConnectedTimeTimer() {
         timer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { [weak self] _ in
             self?.updateTimeConnected()

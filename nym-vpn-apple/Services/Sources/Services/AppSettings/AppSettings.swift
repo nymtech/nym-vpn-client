@@ -17,12 +17,6 @@ public final class AppSettings: ObservableObject {
     @AppStorage(AppSettingKey.currentAppearance.rawValue)
     public var currentAppearance: AppSetting.Appearance = .light
     #endif
-    @AppStorage(AppSettingKey.entryLocation.rawValue)
-    public var isEntryLocationSelectionOn = false {
-        didSet {
-            isEntryLocationSelectionOnPublisher = isEntryLocationSelectionOn
-        }
-    }
     @AppStorage(AppSettingKey.errorReporting.rawValue)
     public var isErrorReportingOn = false {
         didSet {
@@ -32,7 +26,11 @@ public final class AppSettings: ObservableObject {
         }
     }
     @AppStorage(AppSettingKey.credenitalExists.rawValue)
-    public var isCredentialImported = false
+    public var isCredentialImported = false {
+        didSet {
+            isCredentialImportedPublisher = isCredentialImported
+        }
+    }
     @AppStorage(AppSettingKey.smallScreen.rawValue)
     public var isSmallScreen = false
     @AppStorage(AppSettingKey.welcomeScreenDidDisplay.rawValue)
@@ -55,8 +53,8 @@ public final class AppSettings: ObservableObject {
     public var currentEnv: String = "mainnet"
 
     // Observed values for view models
-    @Published public var isEntryLocationSelectionOnPublisher = false
     @Published public var isErrorReportingOnPublisher = false
+    @Published public var isCredentialImportedPublisher = false
 }
 
 #if os(iOS)

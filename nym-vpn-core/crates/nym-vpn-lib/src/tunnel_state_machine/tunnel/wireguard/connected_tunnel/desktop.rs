@@ -85,7 +85,7 @@ impl ConnectedTunnel {
             #[cfg(windows)]
             entry_tun_name,
         )
-        .map_err(Error::StartWireguard)?;
+        .map_err(Error::Wireguard)?;
 
         let exit_tunnel = wireguard_go::Tunnel::start(
             wg_exit_config.into_wireguard_config(),
@@ -94,7 +94,7 @@ impl ConnectedTunnel {
             #[cfg(windows)]
             exit_tun_name,
         )
-        .map_err(Error::StartWireguard)?;
+        .map_err(Error::Wireguard)?;
 
         Ok(TunnelHandle {
             task_manager: self.task_manager,

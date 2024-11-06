@@ -130,11 +130,6 @@ pub enum ConfigSetupError {
     #[error("failed to set permissions for directory {dir}: {error}")]
     SetPermissions { dir: PathBuf, error: std::io::Error },
 
-    #[error("failed to init keys")]
-    FailedToInitKeys {
-        source: nym_vpn_store::keys::persistence::OnDiskKeysError,
-    },
-
     #[error("global network details not set")]
     GlobalNetworkNotSet,
 }

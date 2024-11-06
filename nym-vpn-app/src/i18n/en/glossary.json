@@ -1,6 +1,9 @@
 {
   "account": "account",
+  "cancel": "cancel",
   "left": "left",
+  "login": "login",
+  "logout": "logout",
   "ok": "ok",
   "selected": "selected",
   "via": "via"

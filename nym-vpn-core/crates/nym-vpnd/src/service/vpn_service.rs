@@ -11,7 +11,7 @@ use std::{
 use bip39::Mnemonic;
 use nym_vpn_network_config::{NymNetwork, NymVpnNetwork};
 use serde::{Deserialize, Serialize};
-use time::format_description::well_known::Rfc3339;
+use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use tokio::{
     sync::{broadcast, mpsc, oneshot},
     task::JoinHandle,
@@ -36,7 +36,6 @@ use nym_vpn_lib::{
     },
     MixnetClientConfig, NodeIdentity, Recipient,
 };
-use nym_vpn_store::keys::KeyStore as _;
 
 use crate::{config::GlobalConfigFile, GLOBAL_NETWORK_DETAILS};
 
@@ -192,7 +191,8 @@ impl From<ConnectionData> for ConnectedResultDetails {
             entry_gateway: *value.entry_gateway,
             exit_gateway: *value.exit_gateway,
             specific_details: ConnectedStateDetails::from(value.tunnel),
-            since: value.connected_at,
+            // FIXME: this cannot be mapped correctly
+            since: value.connected_at.unwrap_or(OffsetDateTime::now_utc()),
         }
     }
 }
@@ -233,10 +233,13 @@ impl From<TunnelState> for VpnServiceStatus {
                     entry_gateway: *connection_data.entry_gateway,
                     exit_gateway: *connection_data.exit_gateway,
                     specific_details: ConnectedStateDetails::from(connection_data.tunnel),
-                    since: connection_data.connected_at,
+                    // FIXME: impossible to map this correctly
+                    since: connection_data
+                        .connected_at
+                        .unwrap_or(OffsetDateTime::now_utc()),
                 }))
             }
-            TunnelState::Connecting => Self::Connecting,
+            TunnelState::Connecting { .. } => Self::Connecting,
             TunnelState::Disconnected => Self::NotConnected,
             TunnelState::Disconnecting { .. } => Self::Disconnecting,
             TunnelState::Error(e) => Self::ConnectionFailed(ConnectionFailedError::InternalError(
@@ -310,7 +313,7 @@ pub enum VpnServiceStateChange {
 impl From<TunnelState> for VpnServiceStateChange {
     fn from(value: TunnelState) -> Self {
         match value {
-            TunnelState::Connecting => Self::Connecting,
+            TunnelState::Connecting { .. } => Self::Connecting,
             TunnelState::Connected { .. } => Self::Connected,
             TunnelState::Disconnected => Self::NotConnected,
             TunnelState::Disconnecting { .. } => Self::Disconnecting,
@@ -427,14 +430,6 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         // Make sure the data dir exists
         super::config::create_data_dir(&data_dir).map_err(Error::ConfigSetup)?;
 
-        // Generate the device keys if we don't already have them
-        storage
-            .lock()
-            .await
-            .init_keys(None)
-            .await
-            .map_err(|source| Error::ConfigSetup(ConfigSetupError::FailedToInitKeys { source }))?;
-
         // We need to create the user agent here and not in the controller so that we correctly
         // pick up build time constants.
         let user_agent = crate::util::construct_user_agent();
@@ -444,7 +439,8 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             user_agent.clone(),
             shutdown_token.child_token(),
         )
-        .await;
+        .await
+        .map_err(|source| Error::Account(AccountError::AccountControllerError { source }))?;
 
         let shared_account_state = account_controller.shared_state();
         let account_command_tx = account_controller.command_tx();
@@ -498,7 +494,7 @@ where
                     self.handle_service_command(command).await;
                 }
                 Some(event) = self.event_receiver.recv() => {
-                    tracing::info!("Tunnel event: {:?}", event);
+                    tracing::info!("Tunnel event: {}", event);
                     match event {
                         TunnelEvent::NewState(new_state) => {
                             self.tunnel_state = new_state.clone();
@@ -525,11 +521,11 @@ where
             }
         }
 
-        tracing::info!("Exiting vpn service run loop");
-
         if let Err(e) = self.state_machine_handle.await {
             tracing::error!("Failed to join on state machine handle: {}", e);
         }
+
+        tracing::info!("Exiting vpn service run loop");
 
         Ok(())
     }

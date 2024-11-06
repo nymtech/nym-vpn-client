@@ -773,6 +773,8 @@ internal open class UniffiVTableCallbackInterfaceTunnelStatusListener(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -826,6 +828,8 @@ internal interface UniffiLib : Library {
     ): Byte
     fun uniffi_nym_vpn_lib_fn_func_removeaccountmnemonic(`path`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
+    fun uniffi_nym_vpn_lib_fn_func_resetdeviceidentity(`path`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
     fun uniffi_nym_vpn_lib_fn_func_startaccountcontroller(`dataDir`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_nym_vpn_lib_fn_func_startvpn(`config`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -962,6 +966,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_nym_vpn_lib_checksum_func_removeaccountmnemonic(
     ): Short
+    fun uniffi_nym_vpn_lib_checksum_func_resetdeviceidentity(
+    ): Short
     fun uniffi_nym_vpn_lib_checksum_func_startaccountcontroller(
     ): Short
     fun uniffi_nym_vpn_lib_checksum_func_startvpn(
@@ -1014,6 +1020,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_nym_vpn_lib_checksum_func_removeaccountmnemonic() != 51019.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_nym_vpn_lib_checksum_func_resetdeviceidentity() != 48847.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_nym_vpn_lib_checksum_func_startaccountcontroller() != 34257.toShort()) {
@@ -2013,8 +2022,9 @@ data class ConnectionData (
     var `exitGateway`: BoxedNodeIdentity, 
     /**
      * When the tunnel was last established.
+     * Set once the tunnel is connected.
      */
-    var `connectedAt`: OffsetDateTime, 
+    var `connectedAt`: OffsetDateTime?, 
     /**
      * Tunnel connection data.
      */
@@ -2029,7 +2039,7 @@ public object FfiConverterTypeConnectionData: FfiConverterRustBuffer<ConnectionD
         return ConnectionData(
             FfiConverterTypeBoxedNodeIdentity.read(buf),
             FfiConverterTypeBoxedNodeIdentity.read(buf),
-            FfiConverterTypeOffsetDateTime.read(buf),
+            FfiConverterOptionalTypeOffsetDateTime.read(buf),
             FfiConverterTypeTunnelConnectionData.read(buf),
         )
     }
@@ -2037,14 +2047,14 @@ public object FfiConverterTypeConnectionData: FfiConverterRustBuffer<ConnectionD
     override fun allocationSize(value: ConnectionData) = (
             FfiConverterTypeBoxedNodeIdentity.allocationSize(value.`entryGateway`) +
             FfiConverterTypeBoxedNodeIdentity.allocationSize(value.`exitGateway`) +
-            FfiConverterTypeOffsetDateTime.allocationSize(value.`connectedAt`) +
+            FfiConverterOptionalTypeOffsetDateTime.allocationSize(value.`connectedAt`) +
             FfiConverterTypeTunnelConnectionData.allocationSize(value.`tunnel`)
     )
 
     override fun write(value: ConnectionData, buf: ByteBuffer) {
             FfiConverterTypeBoxedNodeIdentity.write(value.`entryGateway`, buf)
             FfiConverterTypeBoxedNodeIdentity.write(value.`exitGateway`, buf)
-            FfiConverterTypeOffsetDateTime.write(value.`connectedAt`, buf)
+            FfiConverterOptionalTypeOffsetDateTime.write(value.`connectedAt`, buf)
             FfiConverterTypeTunnelConnectionData.write(value.`tunnel`, buf)
     }
 }
@@ -2819,117 +2829,6 @@ public object FfiConverterTypeWireguardNode: FfiConverterRustBuffer<WireguardNod
 
 
 
-sealed class AccountError {
-    
-    object Ready : AccountError()
-    
-    
-    object NoAccountStored : AccountError()
-    
-    
-    object AccountNotActive : AccountError()
-    
-    
-    object NoActiveSubscription : AccountError()
-    
-    
-    object DeviceNotRegistered : AccountError()
-    
-    
-    object DeviceNotActive : AccountError()
-    
-    
-
-    
-    companion object
-}
-
-public object FfiConverterTypeAccountError : FfiConverterRustBuffer<AccountError>{
-    override fun read(buf: ByteBuffer): AccountError {
-        return when(buf.getInt()) {
-            1 -> AccountError.Ready
-            2 -> AccountError.NoAccountStored
-            3 -> AccountError.AccountNotActive
-            4 -> AccountError.NoActiveSubscription
-            5 -> AccountError.DeviceNotRegistered
-            6 -> AccountError.DeviceNotActive
-            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
-        }
-    }
-
-    override fun allocationSize(value: AccountError) = when(value) {
-        is AccountError.Ready -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is AccountError.NoAccountStored -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is AccountError.AccountNotActive -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is AccountError.NoActiveSubscription -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is AccountError.DeviceNotRegistered -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is AccountError.DeviceNotActive -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-    }
-
-    override fun write(value: AccountError, buf: ByteBuffer) {
-        when(value) {
-            is AccountError.Ready -> {
-                buf.putInt(1)
-                Unit
-            }
-            is AccountError.NoAccountStored -> {
-                buf.putInt(2)
-                Unit
-            }
-            is AccountError.AccountNotActive -> {
-                buf.putInt(3)
-                Unit
-            }
-            is AccountError.NoActiveSubscription -> {
-                buf.putInt(4)
-                Unit
-            }
-            is AccountError.DeviceNotRegistered -> {
-                buf.putInt(5)
-                Unit
-            }
-            is AccountError.DeviceNotActive -> {
-                buf.putInt(6)
-                Unit
-            }
-        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
-    }
-}
-
-
-
-
-
 
 enum class AccountState {
     
@@ -2959,74 +2858,39 @@ public object FfiConverterTypeAccountState: FfiConverterRustBuffer<AccountState>
 
 
 
-sealed class ActionAfterDisconnect {
-    
-    object Nothing : ActionAfterDisconnect()
-    
-    
-    object Reconnect : ActionAfterDisconnect()
-    
-    
-    data class Error(
-        val v1: ErrorStateReason) : ActionAfterDisconnect() {
-        companion object
-    }
-    
+/**
+ * Public enum describing action to perform after disconnect
+ */
 
+enum class ActionAfterDisconnect {
     
+    /**
+     * Do nothing after disconnect
+     */
+    NOTHING,
+    /**
+     * Reconnect after disconnect
+     */
+    RECONNECT,
+    /**
+     * Enter error state
+     */
+    ERROR;
     companion object
 }
 
-public object FfiConverterTypeActionAfterDisconnect : FfiConverterRustBuffer<ActionAfterDisconnect>{
-    override fun read(buf: ByteBuffer): ActionAfterDisconnect {
-        return when(buf.getInt()) {
-            1 -> ActionAfterDisconnect.Nothing
-            2 -> ActionAfterDisconnect.Reconnect
-            3 -> ActionAfterDisconnect.Error(
-                FfiConverterTypeErrorStateReason.read(buf),
-                )
-            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
-        }
+
+public object FfiConverterTypeActionAfterDisconnect: FfiConverterRustBuffer<ActionAfterDisconnect> {
+    override fun read(buf: ByteBuffer) = try {
+        ActionAfterDisconnect.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
     }
 
-    override fun allocationSize(value: ActionAfterDisconnect) = when(value) {
-        is ActionAfterDisconnect.Nothing -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is ActionAfterDisconnect.Reconnect -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is ActionAfterDisconnect.Error -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-                + FfiConverterTypeErrorStateReason.allocationSize(value.v1)
-            )
-        }
-    }
+    override fun allocationSize(value: ActionAfterDisconnect) = 4UL
 
     override fun write(value: ActionAfterDisconnect, buf: ByteBuffer) {
-        when(value) {
-            is ActionAfterDisconnect.Nothing -> {
-                buf.putInt(1)
-                Unit
-            }
-            is ActionAfterDisconnect.Reconnect -> {
-                buf.putInt(2)
-                Unit
-            }
-            is ActionAfterDisconnect.Error -> {
-                buf.putInt(3)
-                FfiConverterTypeErrorStateReason.write(value.v1, buf)
-                Unit
-            }
-        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+        buf.putInt(value.ordinal + 1)
     }
 }
 
@@ -3368,17 +3232,9 @@ enum class ErrorStateReason {
      */
     TUNNEL_PROVIDER,
     /**
-     * Failure to establish mixnet connection.
+     * Same entry and exit gateway are unsupported.
      */
-    ESTABLISH_MIXNET_CONNECTION,
-    /**
-     * Failure to establish wireguard connection.
-     */
-    ESTABLISH_WIREGUARD_CONNECTION,
-    /**
-     * Tunnel went down at runtime.
-     */
-    TUNNEL_DOWN,
+    SAME_ENTRY_AND_EXIT_GATEWAY,
     /**
      * Program errors that must not happen.
      */
@@ -4093,13 +3949,18 @@ public object FfiConverterTypeTunnelEvent : FfiConverterRustBuffer<TunnelEvent>{
 
 
 
+/**
+ * Public enum describing the tunnel state
+ */
 sealed class TunnelState {
     
     object Disconnected : TunnelState()
     
     
-    object Connecting : TunnelState()
-    
+    data class Connecting(
+        val `connectionData`: ConnectionData?) : TunnelState() {
+        companion object
+    }
     
     data class Connected(
         val `connectionData`: ConnectionData) : TunnelState() {
@@ -4125,7 +3986,9 @@ public object FfiConverterTypeTunnelState : FfiConverterRustBuffer<TunnelState>{
     override fun read(buf: ByteBuffer): TunnelState {
         return when(buf.getInt()) {
             1 -> TunnelState.Disconnected
-            2 -> TunnelState.Connecting
+            2 -> TunnelState.Connecting(
+                FfiConverterOptionalTypeConnectionData.read(buf),
+                )
             3 -> TunnelState.Connected(
                 FfiConverterTypeConnectionData.read(buf),
                 )
@@ -4150,6 +4013,7 @@ public object FfiConverterTypeTunnelState : FfiConverterRustBuffer<TunnelState>{
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
+                + FfiConverterOptionalTypeConnectionData.allocationSize(value.`connectionData`)
             )
         }
         is TunnelState.Connected -> {
@@ -4183,6 +4047,7 @@ public object FfiConverterTypeTunnelState : FfiConverterRustBuffer<TunnelState>{
             }
             is TunnelState.Connecting -> {
                 buf.putInt(2)
+                FfiConverterOptionalTypeConnectionData.write(value.`connectionData`, buf)
                 Unit
             }
             is TunnelState.Connected -> {
@@ -4285,12 +4150,40 @@ sealed class VpnException: Exception() {
             get() = "details=${ `details` }"
     }
     
-    class Account(
-        
-        val ``: AccountError
+    class AccountReady(
         ) : VpnException() {
         override val message
-            get() = "=${ `` }"
+            get() = ""
+    }
+    
+    class NoAccountStored(
+        ) : VpnException() {
+        override val message
+            get() = ""
+    }
+    
+    class AccountNotActive(
+        ) : VpnException() {
+        override val message
+            get() = ""
+    }
+    
+    class NoActiveSubscription(
+        ) : VpnException() {
+        override val message
+            get() = ""
+    }
+    
+    class AccountDeviceNotRegistered(
+        ) : VpnException() {
+        override val message
+            get() = ""
+    }
+    
+    class AccountDeviceNotActive(
+        ) : VpnException() {
+        override val message
+            get() = ""
     }
     
 
@@ -4322,9 +4215,12 @@ public object FfiConverterTypeVpnError : FfiConverterRustBuffer<VpnException> {
             6 -> VpnException.InvalidStateException(
                 FfiConverterString.read(buf),
                 )
-            7 -> VpnException.Account(
-                FfiConverterTypeAccountError.read(buf),
-                )
+            7 -> VpnException.AccountReady()
+            8 -> VpnException.NoAccountStored()
+            9 -> VpnException.AccountNotActive()
+            10 -> VpnException.NoActiveSubscription()
+            11 -> VpnException.AccountDeviceNotRegistered()
+            12 -> VpnException.AccountDeviceNotActive()
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
     }
@@ -4360,10 +4256,29 @@ public object FfiConverterTypeVpnError : FfiConverterRustBuffer<VpnException> {
                 4UL
                 + FfiConverterString.allocationSize(value.`details`)
             )
-            is VpnException.Account -> (
+            is VpnException.AccountReady -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4UL
-                + FfiConverterTypeAccountError.allocationSize(value.``)
+            )
+            is VpnException.NoAccountStored -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is VpnException.AccountNotActive -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is VpnException.NoActiveSubscription -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is VpnException.AccountDeviceNotRegistered -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is VpnException.AccountDeviceNotActive -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
             )
         }
     }
@@ -4399,9 +4314,28 @@ public object FfiConverterTypeVpnError : FfiConverterRustBuffer<VpnException> {
                 FfiConverterString.write(value.`details`, buf)
                 Unit
             }
-            is VpnException.Account -> {
+            is VpnException.AccountReady -> {
                 buf.putInt(7)
-                FfiConverterTypeAccountError.write(value.``, buf)
+                Unit
+            }
+            is VpnException.NoAccountStored -> {
+                buf.putInt(8)
+                Unit
+            }
+            is VpnException.AccountNotActive -> {
+                buf.putInt(9)
+                Unit
+            }
+            is VpnException.NoActiveSubscription -> {
+                buf.putInt(10)
+                Unit
+            }
+            is VpnException.AccountDeviceNotRegistered -> {
+                buf.putInt(11)
+                Unit
+            }
+            is VpnException.AccountDeviceNotActive -> {
+                buf.putInt(12)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -4492,6 +4426,35 @@ public object FfiConverterOptionalTypeTunnelStatusListener: FfiConverterRustBuff
         } else {
             buf.put(1)
             FfiConverterTypeTunnelStatusListener.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeConnectionData: FfiConverterRustBuffer<ConnectionData?> {
+    override fun read(buf: ByteBuffer): ConnectionData? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeConnectionData.read(buf)
+    }
+
+    override fun allocationSize(value: ConnectionData?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeConnectionData.allocationSize(value)
+        }
+    }
+
+    override fun write(value: ConnectionData?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeConnectionData.write(value, buf)
         }
     }
 }
@@ -4898,6 +4861,35 @@ public object FfiConverterOptionalTypeIpv6Addr: FfiConverterRustBuffer<Ipv6Addr?
         } else {
             buf.put(1)
             FfiConverterTypeIpv6Addr.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeOffsetDateTime: FfiConverterRustBuffer<OffsetDateTime?> {
+    override fun read(buf: ByteBuffer): OffsetDateTime? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeOffsetDateTime.read(buf)
+    }
+
+    override fun allocationSize(value: OffsetDateTime?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeOffsetDateTime.allocationSize(value)
+        }
+    }
+
+    override fun write(value: OffsetDateTime?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeOffsetDateTime.write(value, buf)
         }
     }
 }
@@ -5405,6 +5397,15 @@ public object FfiConverterTypeUrl: FfiConverter<Url, RustBuffer.ByValue> {
 }
     )
     }
+    
+
+    @Throws(VpnException::class) fun `resetDeviceIdentity`(`path`: kotlin.String)
+        = 
+    uniffiRustCallWithError(VpnException) { _status ->
+    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_resetdeviceidentity(
+        FfiConverterString.lower(`path`),_status)
+}
+    
     
 
     @Throws(VpnException::class) fun `startAccountController`(`dataDir`: kotlin.String)

@@ -5,15 +5,15 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 use crate::tunnel_state_machine::{
-    states::ConnectingState, NextTunnelState, SharedState, TunnelCommand, TunnelState,
+    states::ConnectingState, NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand,
     TunnelStateHandler,
 };
 
 pub struct DisconnectedState;
 
 impl DisconnectedState {
-    pub fn enter() -> (Box<dyn TunnelStateHandler>, TunnelState) {
-        (Box::new(Self), TunnelState::Disconnected)
+    pub fn enter() -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
+        (Box::new(Self), PrivateTunnelState::Disconnected)
     }
 }
 
@@ -32,7 +32,7 @@ impl TunnelStateHandler for DisconnectedState {
             Some(command) = command_rx.recv() => {
                 match command {
                     TunnelCommand::Connect => {
-                        NextTunnelState::NewState(ConnectingState::enter(shared_state))
+                        NextTunnelState::NewState(ConnectingState::enter(0, None, shared_state))
                     },
                     TunnelCommand::Disconnect => NextTunnelState::SameState(self),
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {

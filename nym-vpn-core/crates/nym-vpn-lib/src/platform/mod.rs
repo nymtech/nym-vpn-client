@@ -158,6 +158,12 @@ pub fn removeAccountMnemonic(path: String) -> Result<bool, VpnError> {
 
 #[allow(non_snake_case)]
 #[uniffi::export]
+pub fn resetDeviceIdentity(path: String) -> Result<(), VpnError> {
+    RUNTIME.block_on(account::reset_device_identity(&path))
+}
+
+#[allow(non_snake_case)]
+#[uniffi::export]
 pub fn getAccountSummary() -> Result<AccountStateSummary, VpnError> {
     RUNTIME.block_on(account::get_account_summary())
 }
@@ -354,7 +360,7 @@ impl From<&TunnelState> for TunStatus {
     fn from(value: &TunnelState) -> Self {
         // TODO: this cannot be accurate so we must switch frontends to use TunnelState instead! But for now that will do.
         match value {
-            TunnelState::Connecting => Self::EstablishingConnection,
+            TunnelState::Connecting { .. } => Self::EstablishingConnection,
             TunnelState::Connected { .. } => Self::Up,
             TunnelState::Disconnecting { .. } => Self::Disconnecting,
             TunnelState::Disconnected => Self::Down,

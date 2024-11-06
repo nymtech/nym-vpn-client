@@ -2,79 +2,42 @@
 
 # This script is used to build wireguard-go libraries for all the platforms.
 
-function stringContain {
-    case $2 in *$1* ) return 0;; *) return 1;; esac;
-}
+set -eu
 
-ANDROID_BUILD=false
-IOS_BUILD=false
-DOCKER_BUILD=true
+LIB_DIR="libwg"
+
+IS_ANDROID_BUILD=false
+IS_IOS_BUILD=false
+IS_DOCKER_BUILD=true
+IS_WIN_ARM64=false
 
 function parseArgs {
-    if stringContain "Darwin" "$(uname -s)"; then
-        # Mac builds require gnu-getopt because regular macos getopt doesn't allow long args. -_-
-        # This could be avoided using something like `getopts` instead, but then we don't
-        # have the ability to use long options which pre-date this script change.
-        # > brew install gnu-getopt
-        # Installed for CI in `.github/workflows/ci-nym-vpn-core.yml`
-        echo "using gnu-getopt"
-        export PATH="/opt/homebrew/opt/gnu-getopt/bin:$PATH"
-    fi
-
-    which getopt
-    TEMP=$(getopt -o ai --long android,docker,ios \
-                  -n 'build-wireguard-go.sh' -- "$@")
-
-    if [ $? != 0 ]; then
-        echo "encountered an error parsing args"
-        exit 2
-    fi
-
-    # Note the quotes around '$TEMP': they are essential!
-    eval set -- "$TEMP"
-
-    while true; do
-      case "$1" in
-        "-a" | "--android" ) ANDROID_BUILD=true; shift ;;
-        "-i" | "--ios" ) IOS_BUILD=true; shift ;;
-        "--no-docker" ) DOCKER_BUILD=false; shift ;;
+    for arg in "$@"; do
+      case "$arg" in
+        # handle --android option
+        "--android" )
+            IS_ANDROID_BUILD=true;
+            shift ;;
+        # handle --ios option
+        "--ios" )
+            IS_IOS_BUILD=true;
+            shift ;;
+        # handle --no-docker option
+        "--no-docker" )
+            IS_DOCKER_BUILD=false;
+            shift ;;
+        # handle --arm64 option
+        "--arm64" )
+            IS_WIN_ARM64=false;
+            shift ;;
+        # if we receive "--" consider everything after to be inner arguments
         -- ) shift; break ;;
-        * ) break ;;
+        # any other args before "--" are improper
+        *) echo "Unsupported argument: $arg" && exit 2 ;;
       esac
     done
 
-    echo "android:$ANDROID_BUILD ios:$IOS_BUILD docker:$DOCKER_BUILD"
-
-    set -eu
-}
-
-function is_android_build {
-    if [ "$ANDROID_BUILD" = true ]; then
-        return 0
-    fi
-    return 1
-}
-
-function is_ios_build {
-    if [ "$IOS_BUILD" = true ]; then
-        return 0
-    fi
-    return 1
-}
-
-function is_docker_build {
-    if [ "$DOCKER_BUILD" = true ]; then
-        return 0
-    fi
-    return 1
-}
-
-function win_deduce_lib_executable_path {
-    msbuild_path="$(which msbuild.exe)"
-    msbuild_dir=$(dirname "$msbuild_path")
-    find "$msbuild_dir/../../../../" -name "lib.exe" | \
-        grep -i "hostx64/x64" | \
-        head -n1
+    echo "android:$IS_ANDROID_BUILD ios:$IS_IOS_BUILD docker:$IS_DOCKER_BUILD win_arm64:$IS_WIN_ARM64"
 }
 
 function win_gather_export_symbols {
@@ -89,7 +52,7 @@ function win_create_lib_file {
         printf "\t%s\n" "$symbol" >> exports.def
     done
 
-    if is_win_arm64 $@; then
+    if $IS_WIN_ARM64; then
         local arch="ARM64"
     else
         local arch="X64"
@@ -107,7 +70,7 @@ function build_windows {
     export CGO_ENABLED=1
     export GOOS=windows
 
-    if is_win_arm64 $@; then
+    if $IS_WIN_ARM64; then
         local arch="aarch64"
         export GOARCH=arm64
         export CC="aarch64-w64-mingw32-cc"
@@ -119,9 +82,9 @@ function build_windows {
 
     echo "Building wireguard-go for Windows ($arch)"
 
-    pushd libwg
+    pushd $LIB_DIR
         go build -trimpath -v -o libwg.dll -buildmode c-shared
-        win_create_lib_file $@
+        win_create_lib_file
 
         local target_dir="../../build/lib/$arch-pc-windows-msvc/"
         echo "Copying files to $(realpath "$target_dir")"
@@ -170,7 +133,8 @@ function build_android {
     echo "Building for android"
     local docker_image_hash="992c4d5c7dcd00eacf6f3e3667ce86b8e185f011352bdd9f79e467fef3e27abd"
 
-    if is_docker_build; then
+
+    if $IS_DOCKER_BUILD; then
         docker run --rm \
             -v "$(pwd)/../":/workspace \
             --entrypoint "/workspace/wireguard/$LIB_DIR/build-android.sh" \
@@ -276,17 +240,13 @@ function patch_darwin_goruntime {
 function build_wireguard_go {
     parseArgs $@
 
-    if is_amnezia_build ; then
-        LIB_DIR=$AMNEZIA_DIR
-        echo "amnezia wireguard build enabled"
-    fi
 
-    if is_android_build ; then
+    if $IS_ANDROID_BUILD ; then
         build_android $@
         return
     fi
 
-    if is_ios_build ; then
+    if $IS_IOS_BUILD ; then
         build_ios $@
         return
     fi
@@ -295,7 +255,7 @@ function build_wireguard_go {
     case  "$platform" in
         Darwin*) build_macos_universal;;
         Linux*) build_unix ${1:-$(unix_target_triple)};;
-        MINGW*|MSYS_NT*) build_windows $@;;
+        MINGW*|MSYS_NT*) build_windows;;
     esac
 }
 
