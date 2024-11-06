@@ -77,23 +77,7 @@ impl SharedAccountState {
     }
 
     pub async fn is_ready_to_connect(&self) -> ReadyToConnect {
-        let state = self.lock().await.clone();
-        if state.mnemonic != Some(MnemonicState::Stored) {
-            return ReadyToConnect::NoMnemonicStored;
-        }
-        if state.account != Some(AccountState::Active) {
-            return ReadyToConnect::AccountNotActive;
-        }
-        if state.subscription != Some(SubscriptionState::Active) {
-            return ReadyToConnect::NoActiveSubscription;
-        }
-        match state.device {
-            None => return ReadyToConnect::DeviceNotRegistered,
-            Some(DeviceState::NotRegistered) => return ReadyToConnect::DeviceNotRegistered,
-            Some(DeviceState::Inactive) => return ReadyToConnect::DeviceNotActive,
-            _ => {}
-        }
-        ReadyToConnect::Ready
+        self.lock().await.is_ready_now()
     }
 
     // Wait until the account status has been fetched from the API.
@@ -255,6 +239,29 @@ pub enum DeviceState {
 }
 
 impl AccountStateSummary {
+    // If we are ready right right now.
+    fn is_ready_now(&self) -> ReadyToConnect {
+        if self.mnemonic != Some(MnemonicState::Stored) {
+            return ReadyToConnect::NoMnemonicStored;
+        }
+        if self.account != Some(AccountState::Active) {
+            return ReadyToConnect::AccountNotActive;
+        }
+        if self.subscription != Some(SubscriptionState::Active) {
+            return ReadyToConnect::NoActiveSubscription;
+        }
+        match self.device {
+            None => return ReadyToConnect::DeviceNotRegistered,
+            Some(DeviceState::NotRegistered) => return ReadyToConnect::DeviceNotRegistered,
+            Some(DeviceState::Inactive) => return ReadyToConnect::DeviceNotActive,
+            _ => {}
+        }
+        ReadyToConnect::Ready
+    }
+
+    // If we know if we are ready
+    // - Some: we know if we are ready
+    // - None: we don't yet know if we are ready
     fn is_ready(&self) -> Option<ReadyToConnect> {
         match self.mnemonic {
             Some(MnemonicState::NotStored) => return Some(ReadyToConnect::NoMnemonicStored),

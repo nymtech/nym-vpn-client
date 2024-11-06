@@ -10,7 +10,7 @@ pub mod swift;
 
 mod account;
 
-use std::{env, path::PathBuf, sync::Arc};
+use std::{env, path::PathBuf, sync::Arc, time::Duration};
 
 use account::AccountControllerHandle;
 use lazy_static::lazy_static;
@@ -60,7 +60,8 @@ async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
     // We want to move this check into the state machine so that it happens during the connecting
     // state instead. This would allow us more flexibility in waiting for the account to be ready
     // and handle errors in a unified manner.
-    account::assert_account_ready_to_connect().await?;
+    let timeout = Duration::from_secs(5);
+    account::assert_account_ready_to_connect(timeout).await?;
 
     let mut guard = STATE_MACHINE_HANDLE.lock().await;
 
