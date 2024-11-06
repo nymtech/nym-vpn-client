@@ -27,9 +27,7 @@ type NavLocation = {
   noBackground?: boolean;
 };
 
-type NavBarData = {
-  [key in Routes]: NavLocation;
-};
+type NavBarData = Record<Routes, NavLocation>;
 
 export default function TopBar() {
   const location = useLocation();
