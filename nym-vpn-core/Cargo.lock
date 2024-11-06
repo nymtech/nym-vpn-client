@@ -3725,7 +3725,7 @@ dependencies = [
 
 [[package]]
 name = "nym-authenticator-client"
-version = "0.1.0"
+version = "0.2.4-dev"
 dependencies = [
  "futures",
  "nym-authenticator-requests",
@@ -4060,7 +4060,7 @@ dependencies = [
 
 [[package]]
 name = "nym-connection-monitor"
-version = "0.1.0"
+version = "0.2.4-dev"
 dependencies = [
  "bincode",
  "bytes",
@@ -4416,7 +4416,7 @@ dependencies = [
 
 [[package]]
 name = "nym-gateway-directory"
-version = "0.1.0"
+version = "0.2.4-dev"
 dependencies = [
  "async-trait",
  "chrono",
@@ -4534,7 +4534,7 @@ dependencies = [
 
 [[package]]
 name = "nym-harbour-master-client"
-version = "0.1.0"
+version = "0.2.4-dev"
 dependencies = [
  "chrono",
  "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?rev=fabd48b)",
@@ -4607,7 +4607,7 @@ dependencies = [
 
 [[package]]
 name = "nym-ip-packet-client"
-version = "0.1.0"
+version = "0.2.4-dev"
 dependencies = [
  "bytes",
  "futures",
@@ -5327,7 +5327,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-api-client"
-version = "0.1.0"
+version = "0.2.4-dev"
 dependencies = [
  "backon",
  "base64-url",
@@ -5448,7 +5448,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-proto"
-version = "0.1.0"
+version = "0.2.4-dev"
 dependencies = [
  "prost 0.12.6",
  "prost-types 0.12.6",
@@ -5459,7 +5459,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-store"
-version = "0.1.0"
+version = "0.2.4-dev"
 dependencies = [
  "bip39",
  "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?rev=fabd48b)",
