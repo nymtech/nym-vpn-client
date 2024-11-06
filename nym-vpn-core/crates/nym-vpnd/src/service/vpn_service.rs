@@ -6,6 +6,7 @@ use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     path::PathBuf,
     sync::Arc,
+    time::Duration,
 };
 
 use bip39::Mnemonic;
@@ -643,18 +644,33 @@ where
         Ok(config)
     }
 
+    async fn wait_for_ready_to_connect(&self) -> Result<ReadyToConnect, VpnServiceConnectError> {
+        match self
+            .shared_account_state
+            .wait_for_ready_to_connect(Duration::from_secs(10))
+            .await
+        {
+            Some(is_ready) => match is_ready {
+                ReadyToConnect::Ready => Ok(ReadyToConnect::Ready),
+                not_ready_to_connect => {
+                    tracing::info!("Not ready to connect: {:?}", not_ready_to_connect);
+                    Err(VpnServiceConnectError::Account(not_ready_to_connect))
+                }
+            },
+            None => Err(VpnServiceConnectError::Internal("timeout".to_owned())),
+        }
+    }
+
     async fn handle_connect(
         &mut self,
         connect_args: ConnectArgs,
         _user_agent: nym_vpn_lib::UserAgent, // todo: use user-agent!
     ) -> Result<(), VpnServiceConnectError> {
-        match self.shared_account_state.is_ready_to_connect().await {
-            ReadyToConnect::Ready => {}
-            not_ready_to_connect => {
-                tracing::info!("Not ready to connect: {:?}", not_ready_to_connect);
-                return Err(VpnServiceConnectError::Account(not_ready_to_connect));
-            }
-        }
+        let wait_for_ready_to_connect_fut = self.wait_for_ready_to_connect();
+        self.shutdown_token
+            .run_until_cancelled(wait_for_ready_to_connect_fut)
+            .await
+            .ok_or(VpnServiceConnectError::Internal("cancelled".to_owned()))??;
 
         let ConnectArgs {
             entry,
