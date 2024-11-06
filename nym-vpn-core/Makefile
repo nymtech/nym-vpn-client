@@ -19,7 +19,7 @@ build-release: ## Build the Rust workspace in release mode
 	cargo build --release
 
 build-mac: ## Build the Rust workspace suitable for running the daemon
-	RUSTFLAGS="-L $(CURDIR)/../build/lib/universal-apple-darwin -C link-arg=-all_load -C link-arg=-ObjC -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__info_plist -C link-arg=$(CURDIR)/../nym-vpn-apple/Daemon/Info.plist -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__launchd_plist -C link-arg=$(CURDIR)/../nym-vpn-apple/Daemon/Launchd.plist" cargo build --release
+	RUSTFLAGS="-C link-arg=-all_load -C link-arg=-ObjC -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__info_plist -C link-arg=$(CURDIR)/../nym-vpn-apple/Daemon/Info.plist -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__launchd_plist -C link-arg=$(CURDIR)/../nym-vpn-apple/Daemon/Launchd.plist" cargo build --release --workspace --exclude nym-gateway-probe
 
 deb: build-deb-vpn-cli build-deb-vpnd build-deb-vpnc ## Build debian packages
 

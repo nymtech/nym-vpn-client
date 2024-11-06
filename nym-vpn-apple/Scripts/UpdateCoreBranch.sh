@@ -30,31 +30,6 @@ cd nym-vpn-core
 make build-vpn-lib-swift
 make generate-uniffi-ios
 
-# Comment out gateway probe
-CARGO_TOML_PATH="Cargo.toml"
-
-if grep -q 'crates/nym-gateway-probe' "$CARGO_TOML_PATH"; then
-    # Attempt to comment out the line containing crates/nym-gateway-probe
-    sed -i '' -e '/crates\/nym-gateway-probe/ s|^|# |' "$CARGO_TOML_PATH"
-
-    # Verify if the line is now commented out
-    if grep -q '^#.*crates/nym-gateway-probe' "$CARGO_TOML_PATH"; then
-        echo "🚜 Line with 'crates/nym-gateway-probe' has been successfully commented out in $CARGO_TOML_PATH"
-    else
-        echo "❌ Error: Sed command executed but failed to comment out 'crates/nym-gateway-probe' in $CARGO_TOML_PATH" >&2
-        exit 1
-    fi
-else
-    echo "⚠️ Warning: 'crates/nym-gateway-probe' not found in $CARGO_TOML_PATH. No changes made." >&2
-    exit 1
-fi
-
-make build-mac
-
-# Uncomment  gateway probe
-sed -i '' 's|^# \(.*"crates/nym-gateway-probe".*\)$|\1|' "$CARGO_TOML_PATH"
-echo "🚜 Successfully uncommented out 'crates/nym-gateway-probe' in $CARGO_TOML_PATH"
-
 # nym-vpn-client
 cd ..
 
