@@ -12,6 +12,7 @@ public enum ErrorReason: String, Codable, Error {
     case establishWireguardConnection
     case tunnelDown
     case internalUnknown
+    case sameEntryAndExitGateway
 
     public init(with errorStateReason: ErrorStateReason) {
         switch errorStateReason {
@@ -25,14 +26,10 @@ public enum ErrorReason: String, Codable, Error {
             self = .tunDevice
         case .tunnelProvider:
             self = .tunnelProvider
-        case .establishMixnetConnection:
-            self = .establishMixnetConnection
-        case .establishWireguardConnection:
-            self = .establishWireguardConnection
-        case .tunnelDown:
-            self = .tunnelDown
         case .internal:
             self = .internalUnknown
+        case .sameEntryAndExitGateway:
+            self = .sameEntryAndExitGateway
         }
     }
 
@@ -66,6 +63,8 @@ extension ErrorReason: LocalizedError {
             "errorReason.tunnelDown".localizedString
         case .internalUnknown:
             "errorReason.internalUnknown".localizedString
+        case .sameEntryAndExitGateway:
+            ""
         }
     }
 }
