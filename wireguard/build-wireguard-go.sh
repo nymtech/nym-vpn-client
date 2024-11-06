@@ -9,7 +9,6 @@ function stringContain {
 ANDROID_BUILD=false
 IOS_BUILD=false
 DOCKER_BUILD=true
-AMNEZIA_BUILD=false
 
 function parseArgs {
     if stringContain "Darwin" "$(uname -s)"; then
@@ -23,7 +22,7 @@ function parseArgs {
     fi
 
     which getopt
-    TEMP=$(getopt -o aiz --long android,docker,ios,amnezia \
+    TEMP=$(getopt -o ai --long android,docker,ios \
                   -n 'build-wireguard-go.sh' -- "$@")
 
     if [ $? != 0 ]; then
@@ -38,14 +37,13 @@ function parseArgs {
       case "$1" in
         "-a" | "--android" ) ANDROID_BUILD=true; shift ;;
         "-i" | "--ios" ) IOS_BUILD=true; shift ;;
-        "-z" | "--amnezia" ) AMNEZIA_BUILD=true; shift ;;
         "--no-docker" ) DOCKER_BUILD=false; shift ;;
         -- ) shift; break ;;
         * ) break ;;
       esac
     done
 
-    echo "android:$ANDROID_BUILD ios:$IOS_BUILD docker:$DOCKER_BUILD amnezia:$AMNEZIA_BUILD"
+    echo "android:$ANDROID_BUILD ios:$IOS_BUILD docker:$DOCKER_BUILD"
 
     set -eu
 }
@@ -66,13 +64,6 @@ function is_ios_build {
 
 function is_docker_build {
     if [ "$DOCKER_BUILD" = true ]; then
-        return 0
-    fi
-    return 1
-}
-
-function is_amnezia_build {
-    if [ "$AMNEZIA_BUILD" = true ]; then
         return 0
     fi
     return 1
@@ -308,7 +299,6 @@ function build_wireguard_go {
     esac
 }
 
-AMNEZIA_DIR="libamnezia"
 LIB_DIR="libwg"
 
 # Ensure we are in the correct directory for the execution of this script
