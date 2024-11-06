@@ -60,7 +60,7 @@ async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
     // We want to move this check into the state machine so that it happens during the connecting
     // state instead. This would allow us more flexibility in waiting for the account to be ready
     // and handle errors in a unified manner.
-    let timeout = Duration::from_secs(5);
+    let timeout = Duration::from_secs(10);
     account::assert_account_ready_to_connect(timeout).await?;
 
     let mut guard = STATE_MACHINE_HANDLE.lock().await;
