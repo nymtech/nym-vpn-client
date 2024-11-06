@@ -194,6 +194,10 @@ message ConnectRequestError {
     // NOTE: in the future we will try to re-active an inactive device on
     // connect
     DEVICE_NOT_ACTIVE = 6;
+
+    // It was not yet possible to determine if we are ready to connect during
+    // the check
+    PENDING = 7;
   }
 
   ConnectRequestErrorType kind = 1;

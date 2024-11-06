@@ -123,6 +123,8 @@ function useI18nError() {
           return t('account.device.not-registered');
         case 'DeviceNotActive':
           return t('account.device.not-active');
+        case 'ReadyToConnectPending':
+          return t('connection.ready-to-connect');
         case 'EntryGatewayNotRouting':
           return t('entry-node-routing');
         case 'ExitRouterPingIpv4':

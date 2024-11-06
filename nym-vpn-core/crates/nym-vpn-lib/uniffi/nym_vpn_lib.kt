@@ -775,6 +775,8 @@ internal open class UniffiVTableCallbackInterfaceTunnelStatusListener(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -816,7 +818,7 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_nym_vpn_lib_fn_func_fetchenvironment(`networkName`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_nym_vpn_lib_fn_func_getaccountsummary(uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_nym_vpn_lib_fn_func_getaccountstate(uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_nym_vpn_lib_fn_func_getgatewaycountries(`apiUrl`: RustBuffer.ByValue,`nymVpnApiUrl`: RustBuffer.ByValue,`gwType`: RustBuffer.ByValue,`userAgent`: RustBuffer.ByValue,`minGatewayPerformance`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -839,6 +841,8 @@ internal interface UniffiLib : Library {
     fun uniffi_nym_vpn_lib_fn_func_stopvpn(uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_nym_vpn_lib_fn_func_storeaccountmnemonic(`mnemonic`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_nym_vpn_lib_fn_func_updateaccountstate(uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun ffi_nym_vpn_lib_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -954,7 +958,7 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_nym_vpn_lib_checksum_func_fetchenvironment(
     ): Short
-    fun uniffi_nym_vpn_lib_checksum_func_getaccountsummary(
+    fun uniffi_nym_vpn_lib_checksum_func_getaccountstate(
     ): Short
     fun uniffi_nym_vpn_lib_checksum_func_getgatewaycountries(
     ): Short
@@ -977,6 +981,8 @@ internal interface UniffiLib : Library {
     fun uniffi_nym_vpn_lib_checksum_func_stopvpn(
     ): Short
     fun uniffi_nym_vpn_lib_checksum_func_storeaccountmnemonic(
+    ): Short
+    fun uniffi_nym_vpn_lib_checksum_func_updateaccountstate(
     ): Short
     fun uniffi_nym_vpn_lib_checksum_method_androidtunprovider_bypass(
     ): Short
@@ -1004,7 +1010,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_nym_vpn_lib_checksum_func_fetchenvironment() != 34561.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_nym_vpn_lib_checksum_func_getaccountsummary() != 13465.toShort()) {
+    if (lib.uniffi_nym_vpn_lib_checksum_func_getaccountstate() != 12813.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 41607.toShort()) {
@@ -1038,6 +1044,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_nym_vpn_lib_checksum_func_storeaccountmnemonic() != 55674.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_nym_vpn_lib_checksum_func_updateaccountstate() != 33999.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_nym_vpn_lib_checksum_method_androidtunprovider_bypass() != 2706.toShort()) {
@@ -3236,6 +3245,14 @@ enum class ErrorStateReason {
      */
     SAME_ENTRY_AND_EXIT_GATEWAY,
     /**
+     * Invalid country set for entry gateway
+     */
+    INVALID_ENTRY_GATEWAY_COUNTRY,
+    /**
+     * Invalid country set for exit gateway
+     */
+    INVALID_EXIT_GATEWAY_COUNTRY,
+    /**
      * Program errors that must not happen.
      */
     INTERNAL;
@@ -4186,6 +4203,12 @@ sealed class VpnException: Exception() {
             get() = ""
     }
     
+    class AccountStatusUnknown(
+        ) : VpnException() {
+        override val message
+            get() = ""
+    }
+    
 
     companion object ErrorHandler : UniffiRustCallStatusErrorHandler<VpnException> {
         override fun lift(error_buf: RustBuffer.ByValue): VpnException = FfiConverterTypeVpnError.lift(error_buf)
@@ -4221,6 +4244,7 @@ public object FfiConverterTypeVpnError : FfiConverterRustBuffer<VpnException> {
             10 -> VpnException.NoActiveSubscription()
             11 -> VpnException.AccountDeviceNotRegistered()
             12 -> VpnException.AccountDeviceNotActive()
+            13 -> VpnException.AccountStatusUnknown()
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
     }
@@ -4280,6 +4304,10 @@ public object FfiConverterTypeVpnError : FfiConverterRustBuffer<VpnException> {
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4UL
             )
+            is VpnException.AccountStatusUnknown -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
         }
     }
 
@@ -4336,6 +4364,10 @@ public object FfiConverterTypeVpnError : FfiConverterRustBuffer<VpnException> {
             }
             is VpnException.AccountDeviceNotActive -> {
                 buf.putInt(12)
+                Unit
+            }
+            is VpnException.AccountStatusUnknown -> {
+                buf.putInt(13)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -5341,10 +5373,10 @@ public object FfiConverterTypeUrl: FfiConverter<Url, RustBuffer.ByValue> {
     }
     
 
-    @Throws(VpnException::class) fun `getAccountSummary`(): AccountStateSummary {
+    @Throws(VpnException::class) fun `getAccountState`(): AccountStateSummary {
             return FfiConverterTypeAccountStateSummary.lift(
     uniffiRustCallWithError(VpnException) { _status ->
-    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_getaccountsummary(
+    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_getaccountstate(
         _status)
 }
     )
@@ -5449,6 +5481,15 @@ public object FfiConverterTypeUrl: FfiConverter<Url, RustBuffer.ByValue> {
     uniffiRustCallWithError(VpnException) { _status ->
     UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_storeaccountmnemonic(
         FfiConverterString.lower(`mnemonic`),FfiConverterString.lower(`path`),_status)
+}
+    
+    
+
+    @Throws(VpnException::class) fun `updateAccountState`()
+        = 
+    uniffiRustCallWithError(VpnException) { _status ->
+    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_updateaccountstate(
+        _status)
 }
     
     

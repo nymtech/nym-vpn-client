@@ -66,7 +66,8 @@
     },
     "add-ipv6-route": "Failed to add ipv6 default route to capture ipv6 traffic",
     "tun-device": "Tun device failed",
-    "routing": "Routing failed"
+    "routing": "Routing failed",
+    "ready-to-connect": "It was not yet possible to determine if we are ready to connect during the check"
   },
   "account": {
     "invalid-recovery-phrase": "Invalid recovery phrase",
