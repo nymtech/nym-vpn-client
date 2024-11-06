@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{fmt, sync::Arc};
+use std::{fmt, sync::Arc, time::Duration};
 
 use nym_vpn_api_client::response::{
     NymVpnAccountStatusResponse, NymVpnAccountSummarySubscription, NymVpnDeviceStatus,
@@ -77,23 +77,28 @@ impl SharedAccountState {
     }
 
     pub async fn is_ready_to_connect(&self) -> ReadyToConnect {
-        let state = self.lock().await.clone();
-        if state.mnemonic != Some(MnemonicState::Stored) {
-            return ReadyToConnect::NoMnemonicStored;
+        self.lock().await.is_ready_now()
+    }
+
+    // Wait until the account status has been fetched from the API.
+    // Returns:
+    //  - Some: is the readyness status,
+    //  - None: timeout waiting for the status from the API.
+    pub async fn wait_for_ready_to_connect(&self, timeout: Duration) -> Option<ReadyToConnect> {
+        tracing::info!("Waiting for account state to be ready to connect");
+        let start = tokio::time::Instant::now();
+        let mut interval = tokio::time::interval(Duration::from_secs(1));
+        loop {
+            interval.tick().await;
+            if start.elapsed() > timeout {
+                tracing::error!("Timed out waiting for account state to be ready to connect");
+                return None;
+            }
+            if let Some(ready_to_connect) = self.lock().await.is_ready() {
+                tracing::info!("Account readyness status: {}", ready_to_connect);
+                return Some(ready_to_connect);
+            }
         }
-        if state.account != Some(AccountState::Active) {
-            return ReadyToConnect::AccountNotActive;
-        }
-        if state.subscription != Some(SubscriptionState::Active) {
-            return ReadyToConnect::NoActiveSubscription;
-        }
-        match state.device {
-            None => return ReadyToConnect::DeviceNotRegistered,
-            Some(DeviceState::NotRegistered) => return ReadyToConnect::DeviceNotRegistered,
-            Some(DeviceState::Inactive) => return ReadyToConnect::DeviceNotActive,
-            _ => {}
-        }
-        ReadyToConnect::Ready
     }
 
     pub(crate) async fn is_ready_to_register_device(&self) -> ReadyToRegisterDevice {
@@ -231,6 +236,66 @@ pub enum DeviceState {
 
     // The device is marked for deletion
     DeleteMe,
+}
+
+impl AccountStateSummary {
+    // If we are ready right right now.
+    fn is_ready_now(&self) -> ReadyToConnect {
+        if self.mnemonic != Some(MnemonicState::Stored) {
+            return ReadyToConnect::NoMnemonicStored;
+        }
+        if self.account != Some(AccountState::Active) {
+            return ReadyToConnect::AccountNotActive;
+        }
+        if self.subscription != Some(SubscriptionState::Active) {
+            return ReadyToConnect::NoActiveSubscription;
+        }
+        match self.device {
+            None => return ReadyToConnect::DeviceNotRegistered,
+            Some(DeviceState::NotRegistered) => return ReadyToConnect::DeviceNotRegistered,
+            Some(DeviceState::Inactive) => return ReadyToConnect::DeviceNotActive,
+            _ => {}
+        }
+        ReadyToConnect::Ready
+    }
+
+    // If we know if we are ready
+    // - Some: we know if we are ready
+    // - None: we don't yet know if we are ready
+    fn is_ready(&self) -> Option<ReadyToConnect> {
+        match self.mnemonic {
+            Some(MnemonicState::NotStored) => return Some(ReadyToConnect::NoMnemonicStored),
+            Some(MnemonicState::Stored) => {}
+            None => return None,
+        }
+        match self.account {
+            Some(AccountState::NotRegistered) => return Some(ReadyToConnect::AccountNotActive),
+            Some(AccountState::Inactive) => return Some(ReadyToConnect::AccountNotActive),
+            Some(AccountState::DeleteMe) => return Some(ReadyToConnect::AccountNotActive),
+            Some(AccountState::Active) => {}
+            None => return None,
+        }
+        match self.subscription {
+            Some(SubscriptionState::NotActive) => {
+                return Some(ReadyToConnect::NoActiveSubscription)
+            }
+            Some(SubscriptionState::Pending) => return Some(ReadyToConnect::NoActiveSubscription),
+            Some(SubscriptionState::Complete) => return Some(ReadyToConnect::NoActiveSubscription),
+            Some(SubscriptionState::Active) => {}
+            None => return None,
+        }
+        match self.device {
+            Some(DeviceState::NotRegistered) => return Some(ReadyToConnect::DeviceNotRegistered),
+            Some(DeviceState::Inactive) => return Some(ReadyToConnect::DeviceNotActive),
+            Some(DeviceState::DeleteMe) => return Some(ReadyToConnect::DeviceNotActive),
+            Some(DeviceState::Active) => {}
+            None => return None,
+        }
+        if self.pending_zk_nym {
+            return None;
+        }
+        Some(ReadyToConnect::Ready)
+    }
 }
 
 impl fmt::Display for AccountStateSummary {

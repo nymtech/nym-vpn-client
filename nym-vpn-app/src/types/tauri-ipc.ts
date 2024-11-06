@@ -85,6 +85,7 @@ export type ErrorKey =
   | 'NoActiveSubscription'
   | 'DeviceNotRegistered'
   | 'DeviceNotActive'
+  | 'ReadyToConnectPending'
   | 'EntryGatewayNotRouting'
   | 'ExitRouterPingIpv4'
   | 'ExitRouterPingIpv6'

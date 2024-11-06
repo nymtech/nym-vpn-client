@@ -10,6 +10,7 @@ license.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+itertools.workspace = true
 reqwest = { workspace = true, default-features = false, features = [
     "blocking",
     "rustls-tls",
@@ -18,7 +19,11 @@ reqwest = { workspace = true, default-features = false, features = [
 nym-config.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+tempfile.workspace = true
 tokio = { workspace = true, features = ["time", "macros"] }
 tokio-util.workspace = true
 tracing.workspace = true
 url = { workspace = true, features = ["serde"] }
+
+[build-dependencies]
+serde_json.workspace = true

@@ -14,12 +14,15 @@ use super::{nym_network::NymNetwork, MAX_FILE_AGE, NETWORKS_SUBDIR};
 const DISCOVERY_FILE: &str = "discovery.json";
 const DISCOVERY_WELLKNOWN: &str = "https://nymvpn.com/api/public/v1/.wellknown";
 
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
 pub struct Discovery {
     pub(super) network_name: String,
     pub(super) nym_api_url: Url,
     pub(super) nym_vpn_api_url: Url,
 }
+
+// Include the generated Default implementation
+include!(concat!(env!("OUT_DIR"), "/default_discovery.rs"));
 
 impl Discovery {
     fn path(config_dir: &Path, network_name: &str) -> PathBuf {
@@ -48,11 +51,23 @@ impl Discovery {
     pub fn fetch(network_name: &str) -> anyhow::Result<Self> {
         let discovery: DiscoveryResponse = {
             let url = Self::endpoint(network_name)?;
+
             tracing::info!("Fetching nym network discovery from: {}", url);
-            reqwest::blocking::get(url.clone())
+            let response = reqwest::blocking::get(url.clone())
+                .inspect_err(|err| tracing::warn!("{}", err))
                 .with_context(|| format!("Failed to fetch discovery from {}", url))?
-                .json()
-                .with_context(|| "Failed to parse discovery")
+                .error_for_status()
+                .inspect_err(|err| tracing::warn!("{}", err))
+                .with_context(|| "Discovery endpoint returned error response".to_owned())?;
+
+            let text_response = response
+                .text()
+                .inspect_err(|err| tracing::warn!("{}", err))
+                .with_context(|| "Failed to read response text")?;
+            tracing::debug!("Discovery response: {:#?}", text_response);
+
+            serde_json::from_str(&text_response)
+                .with_context(|| "Failed to parse discovery response")
         }?;
         if discovery.network_name != network_name {
             anyhow::bail!("Network name mismatch between requested and fetched discovery")
@@ -92,13 +107,32 @@ impl Discovery {
         Ok(())
     }
 
-    pub(super) fn ensure_exists(config_dir: &Path, network_name: &str) -> anyhow::Result<Self> {
-        // Download the file if it doesn't exists, or if the file is too old, refresh it.
-        // TODO: in the future, we should only refresh the discovery file when the tunnel is up.
-        // Probably in a background task.
+    fn try_update_file(config_dir: &Path, network_name: &str) -> anyhow::Result<()> {
         if Self::path_is_stale(config_dir, network_name)? {
             Self::fetch(network_name)?.write_to_file(config_dir)?;
         }
+        Ok(())
+    }
+
+    pub(super) fn ensure_exists(config_dir: &Path, network_name: &str) -> anyhow::Result<Self> {
+        if !Self::path(config_dir, network_name).exists() && network_name == "mainnet" {
+            tracing::info!("No discovery file found, writing default discovery file");
+            Self::default()
+                .write_to_file(config_dir)
+                .inspect_err(|err| tracing::warn!("Failed to write default discovery file: {err}"))
+                .ok();
+        }
+
+        // Download the file if it doesn't exists, or if the file is too old, refresh it.
+        // TODO: in the future, we should only refresh the discovery file when the tunnel is up.
+        // Probably in a background task.
+
+        Self::try_update_file(config_dir, network_name)
+            .inspect_err(|err| {
+                tracing::warn!("Failed to refresh discovery file: {err}");
+                tracing::warn!("Attempting to use existing discovery file");
+            })
+            .ok();
 
         Self::read_from_file(config_dir, network_name)
     }
@@ -116,27 +150,6 @@ impl Discovery {
         Ok(NymNetwork {
             network: network_details.network,
         })
-    }
-}
-
-impl Default for Discovery {
-    fn default() -> Self {
-        let default_network_details = NymNetworkDetails::default();
-        Self {
-            network_name: default_network_details.network_name,
-            nym_api_url: default_network_details
-                .endpoints
-                .first()
-                .and_then(|e| e.api_url().clone())
-                .expect("default network details not setup correctly"),
-            nym_vpn_api_url: default_network_details
-                .nym_vpn_api_url
-                .map(|url| {
-                    url.parse()
-                        .expect("default network details not setup correctly")
-                })
-                .expect("default network details not setup correctly"),
-        }
     }
 }
 
@@ -164,5 +177,36 @@ impl TryFrom<DiscoveryResponse> for Discovery {
             nym_api_url: discovery.nym_api_url.parse()?,
             nym_vpn_api_url: discovery.nym_vpn_api_url.parse()?,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_discovery_endpoint() {
+        let network_name = "mainnet";
+        let url = Discovery::endpoint(network_name).unwrap();
+        assert_eq!(
+            url,
+            "https://nymvpn.com/api/public/v1/.wellknown/mainnet/discovery.json"
+                .parse()
+                .unwrap()
+        );
+    }
+
+    #[test]
+    fn test_discovery_fetch() {
+        let network_name = "mainnet";
+        let discovery = Discovery::fetch(network_name).unwrap();
+        assert_eq!(discovery.network_name, network_name);
+    }
+
+    #[test]
+    fn test_discovery_default_same_as_fetched() {
+        let default_discovery = Discovery::default();
+        let fetched_discovery = Discovery::fetch(&default_discovery.network_name).unwrap();
+        assert_eq!(default_discovery, fetched_discovery);
     }
 }
