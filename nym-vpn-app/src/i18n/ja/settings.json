@@ -44,5 +44,9 @@
     "client-version": "クライアントバージョン",
     "daemon-version": "デーモンバージョン",
     "network-name": "ネットワーク"
+  },
+  "logout-confirmation": {
+    "title": "実行しますか？",
+    "description": "再ログインするにはリカバリーフレーズが必要です。"
   }
 }
