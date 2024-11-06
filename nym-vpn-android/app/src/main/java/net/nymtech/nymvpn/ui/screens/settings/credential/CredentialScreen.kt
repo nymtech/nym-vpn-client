@@ -20,10 +20,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Launch
 import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -54,6 +56,7 @@ import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
+import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
@@ -147,6 +150,16 @@ fun CredentialScreen(appViewModel: AppViewModel, viewModel: CredentialViewModel 
 				color = MaterialTheme.colorScheme.onSurfaceVariant,
 				textAlign = TextAlign.Center,
 			)
+			TextButton(onClick = { context.openWebUrl("https://nymvpn.com/") }) {
+				Row(
+					horizontalArrangement = Arrangement.spacedBy(5.dp.scaledWidth())
+				){
+					Text("Get credential", textAlign = TextAlign.Center)
+					val icon = Icons.AutoMirrored.Outlined.Launch
+					Icon(icon, icon.name, Modifier.size(20.dp.scaledHeight()))
+				}
+
+			}
 		}
 		Column(
 			horizontalAlignment = Alignment.CenterHorizontally,
