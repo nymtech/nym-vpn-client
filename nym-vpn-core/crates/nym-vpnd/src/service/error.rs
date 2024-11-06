@@ -6,6 +6,7 @@ use nym_vpn_lib::{
     gateway_directory::Error as DirError, tunnel_state_machine, GatewayDirectoryError,
     NodeIdentity, Recipient,
 };
+use serde::Serialize;
 use tokio::sync::mpsc::error::SendError;
 use tracing::error;
 
@@ -18,7 +19,47 @@ pub enum VpnServiceConnectError {
     Internal(String),
 
     #[error("failed to connect: {0}")]
-    Account(ReadyToConnect),
+    Account(AccountNotReady),
+
+    #[error("connection attempt cancelled")]
+    Cancel,
+}
+
+#[derive(Debug, thiserror::Error, Clone, PartialEq, Eq, Serialize)]
+pub enum AccountNotReady {
+    #[error("account status pending")]
+    Pending,
+    #[error("no recovery phrase stored")]
+    NoMnemonicStored,
+    #[error("account is not active")]
+    AccountNotActive,
+    #[error("no active subscription")]
+    NoActiveSubscription,
+    #[error("device is not registered")]
+    DeviceNotRegistered,
+    #[error("device is not active")]
+    DeviceNotActive,
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum AcountNotReadyConversion {
+    #[error("invalid conversion")]
+    InvalidConversion,
+}
+
+impl TryFrom<ReadyToConnect> for AccountNotReady {
+    type Error = AcountNotReadyConversion;
+
+    fn try_from(err: ReadyToConnect) -> Result<Self, Self::Error> {
+        match err {
+            ReadyToConnect::Ready => Err(AcountNotReadyConversion::InvalidConversion),
+            ReadyToConnect::NoMnemonicStored => Ok(AccountNotReady::NoMnemonicStored),
+            ReadyToConnect::AccountNotActive => Ok(AccountNotReady::AccountNotActive),
+            ReadyToConnect::NoActiveSubscription => Ok(AccountNotReady::NoActiveSubscription),
+            ReadyToConnect::DeviceNotRegistered => Ok(AccountNotReady::DeviceNotRegistered),
+            ReadyToConnect::DeviceNotActive => Ok(AccountNotReady::DeviceNotActive),
+        }
+    }
 }
 
 // Failure to initiate the disconnect

@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{path::PathBuf, str::FromStr, sync::Arc};
+use std::{path::PathBuf, str::FromStr, sync::Arc, time::Duration};
 
 use nym_vpn_account_controller::{AccountCommand, ReadyToConnect, SharedAccountState};
 use nym_vpn_store::{keys::KeyStore, mnemonic::MnemonicStorage};
@@ -84,8 +84,8 @@ impl AccountControllerHandle {
         }
     }
 
-    async fn is_ready_to_connect(&self) -> ReadyToConnect {
-        self.shared_state.is_ready_to_connect().await
+    async fn wait_for_ready_to_connect(&self, timeout: Duration) -> Option<ReadyToConnect> {
+        self.shared_state.wait_for_ready_to_connect(timeout).await
     }
 
     async fn shutdown_and_wait(self) {
@@ -118,9 +118,12 @@ async fn get_shared_account_state() -> Result<SharedAccountState, VpnError> {
     }
 }
 
-async fn is_account_ready_to_connect() -> Result<ReadyToConnect, VpnError> {
+async fn wait_for_account_ready_to_connect(timeout: Duration) -> Result<ReadyToConnect, VpnError> {
     if let Some(guard) = &*ACCOUNT_CONTROLLER_HANDLE.lock().await {
-        Ok(guard.is_ready_to_connect().await)
+        guard
+            .wait_for_ready_to_connect(timeout)
+            .await
+            .ok_or(VpnError::AccountStatusUnknown)
     } else {
         Err(VpnError::InvalidStateError {
             details: "Account controller is not running.".to_owned(),
@@ -128,13 +131,14 @@ async fn is_account_ready_to_connect() -> Result<ReadyToConnect, VpnError> {
     }
 }
 
-pub(super) async fn assert_account_ready_to_connect() -> Result<(), VpnError> {
-    match is_account_ready_to_connect().await? {
+pub(super) async fn assert_account_ready_to_connect(timeout: Duration) -> Result<(), VpnError> {
+    match wait_for_account_ready_to_connect(timeout).await? {
         ReadyToConnect::Ready => Ok(()),
-        not_ready_to_connect => {
-            tracing::warn!("Not ready to connect: {:?}", not_ready_to_connect);
-            Err(not_ready_to_connect.into())
-        }
+        ReadyToConnect::NoMnemonicStored => Err(VpnError::NoAccountStored),
+        ReadyToConnect::AccountNotActive => Err(VpnError::AccountNotActive),
+        ReadyToConnect::NoActiveSubscription => Err(VpnError::NoActiveSubscription),
+        ReadyToConnect::DeviceNotRegistered => Err(VpnError::AccountDeviceNotRegistered),
+        ReadyToConnect::DeviceNotActive => Err(VpnError::AccountDeviceNotActive),
     }
 }
 
@@ -163,8 +167,6 @@ pub(super) async fn store_account_mnemonic(mnemonic: &str, path: &str) -> Result
         .map_err(|err| VpnError::InternalError {
             details: err.to_string(),
         })?;
-
-    send_account_command(AccountCommand::UpdateSharedAccountState).await?;
 
     Ok(())
 }
@@ -196,8 +198,6 @@ pub(super) async fn remove_account_mnemonic(path: &str) -> Result<bool, VpnError
                 details: err.to_string(),
             })?;
 
-    send_account_command(AccountCommand::UpdateSharedAccountState).await?;
-
     Ok(is_account_removed_success)
 }
 
@@ -211,7 +211,11 @@ pub(super) async fn reset_device_identity(path: &str) -> Result<(), VpnError> {
         })
 }
 
-pub(super) async fn get_account_summary() -> Result<AccountStateSummary, VpnError> {
+pub(super) async fn update_account_state() -> Result<(), VpnError> {
+    send_account_command(AccountCommand::UpdateSharedAccountState).await
+}
+
+pub(super) async fn get_account_state() -> Result<AccountStateSummary, VpnError> {
     let shared_account_state = get_shared_account_state().await?;
     let account_state_summary = shared_account_state.lock().await.clone();
     Ok(AccountStateSummary::from(account_state_summary))

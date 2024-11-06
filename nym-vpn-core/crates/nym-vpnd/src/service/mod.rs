@@ -10,7 +10,7 @@ pub(crate) use config::{
     DEFAULT_GLOBAL_CONFIG_FILE, DEFAULT_LOG_FILE,
 };
 pub(crate) use error::{
-    AccountError, ConnectionFailedError, SetNetworkError, VpnServiceConnectError,
+    AccountError, AccountNotReady, ConnectionFailedError, SetNetworkError, VpnServiceConnectError,
     VpnServiceDisconnectError,
 };
 pub(crate) use vpn_service::{

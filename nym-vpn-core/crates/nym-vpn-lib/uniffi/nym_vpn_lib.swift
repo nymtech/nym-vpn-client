@@ -2857,13 +2857,24 @@ extension AccountState: Equatable, Hashable {}
 
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+/**
+ * Public enum describing action to perform after disconnect
+ */
 
 public enum ActionAfterDisconnect {
     
+    /**
+     * Do nothing after disconnect
+     */
     case nothing
+    /**
+     * Reconnect after disconnect
+     */
     case reconnect
-    case error(ErrorStateReason
-    )
+    /**
+     * Enter error state
+     */
+    case error
 }
 
 
@@ -2878,8 +2889,7 @@ public struct FfiConverterTypeActionAfterDisconnect: FfiConverterRustBuffer {
         
         case 2: return .reconnect
         
-        case 3: return .error(try FfiConverterTypeErrorStateReason.read(from: &buf)
-        )
+        case 3: return .error
         
         default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -2897,10 +2907,9 @@ public struct FfiConverterTypeActionAfterDisconnect: FfiConverterRustBuffer {
             writeInt(&buf, Int32(2))
         
         
-        case let .error(v1):
+        case .error:
             writeInt(&buf, Int32(3))
-            FfiConverterTypeErrorStateReason.write(v1, into: &buf)
-            
+        
         }
     }
 }
@@ -3390,6 +3399,14 @@ public enum ErrorStateReason {
      */
     case sameEntryAndExitGateway
     /**
+     * Invalid country set for entry gateway
+     */
+    case invalidEntryGatewayCountry
+    /**
+     * Invalid country set for exit gateway
+     */
+    case invalidExitGatewayCountry
+    /**
      * Program errors that must not happen.
      */
     case `internal`
@@ -3415,7 +3432,11 @@ public struct FfiConverterTypeErrorStateReason: FfiConverterRustBuffer {
         
         case 6: return .sameEntryAndExitGateway
         
-        case 7: return .`internal`
+        case 7: return .invalidEntryGatewayCountry
+        
+        case 8: return .invalidExitGatewayCountry
+        
+        case 9: return .`internal`
         
         default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -3449,8 +3470,16 @@ public struct FfiConverterTypeErrorStateReason: FfiConverterRustBuffer {
             writeInt(&buf, Int32(6))
         
         
-        case .`internal`:
+        case .invalidEntryGatewayCountry:
             writeInt(&buf, Int32(7))
+        
+        
+        case .invalidExitGatewayCountry:
+            writeInt(&buf, Int32(8))
+        
+        
+        case .`internal`:
+            writeInt(&buf, Int32(9))
         
         }
     }
@@ -4339,6 +4368,9 @@ extension TunnelEvent: Equatable, Hashable {}
 
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+/**
+ * Public enum describing the tunnel state
+ */
 
 public enum TunnelState {
     
@@ -4502,6 +4534,7 @@ public enum VpnError {
     case NoActiveSubscription
     case AccountDeviceNotRegistered
     case AccountDeviceNotActive
+    case AccountStatusUnknown
 }
 
 
@@ -4537,6 +4570,7 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
         case 10: return .NoActiveSubscription
         case 11: return .AccountDeviceNotRegistered
         case 12: return .AccountDeviceNotActive
+        case 13: return .AccountStatusUnknown
 
          default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -4600,6 +4634,10 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
         
         case .AccountDeviceNotActive:
             writeInt(&buf, Int32(12))
+        
+        
+        case .AccountStatusUnknown:
+            writeInt(&buf, Int32(13))
         
         }
     }
@@ -5885,9 +5923,9 @@ public func fetchEnvironment(networkName: String)throws  -> NetworkEnvironment {
     )
 })
 }
-public func getAccountSummary()throws  -> AccountStateSummary {
+public func getAccountState()throws  -> AccountStateSummary {
     return try  FfiConverterTypeAccountStateSummary.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
-    uniffi_nym_vpn_lib_fn_func_getaccountsummary($0
+    uniffi_nym_vpn_lib_fn_func_getaccountstate($0
     )
 })
 }
@@ -5965,6 +6003,11 @@ public func storeAccountMnemonic(mnemonic: String, path: String)throws  {try rus
     )
 }
 }
+public func updateAccountState()throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_updateaccountstate($0
+    )
+}
+}
 
 private enum InitializationResult {
     case ok
@@ -5984,7 +6027,7 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_func_fetchenvironment() != 34561) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_getaccountsummary() != 13465) {
+    if (uniffi_nym_vpn_lib_checksum_func_getaccountstate() != 12813) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 41607) {
@@ -6018,6 +6061,9 @@ private var initializationResult: InitializationResult {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_storeaccountmnemonic() != 55674) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_updateaccountstate() != 33999) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_method_osdefaultpathobserver_on_default_path_change() != 43452) {

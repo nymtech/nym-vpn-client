@@ -200,6 +200,7 @@ pub enum ErrorKey {
     NoActiveSubscription,
     DeviceNotRegistered,
     DeviceNotActive,
+    ReadyToConnectPending,
     // Forwarded from proto `connection_status_update::StatusType`
     EntryGatewayNotRouting,
     ExitRouterPingIpv4,
@@ -309,6 +310,7 @@ impl From<ConnectRequestErrorType> for ErrorKey {
             ConnectRequestErrorType::NoActiveSubscription => ErrorKey::NoActiveSubscription,
             ConnectRequestErrorType::DeviceNotRegistered => ErrorKey::DeviceNotRegistered,
             ConnectRequestErrorType::DeviceNotActive => ErrorKey::DeviceNotActive,
+            ConnectRequestErrorType::Pending => ErrorKey::ReadyToConnectPending,
         }
     }
 }
