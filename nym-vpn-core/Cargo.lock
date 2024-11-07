@@ -4573,10 +4573,12 @@ name = "nym-vpn-network-config"
 version = "1.1.0-dev"
 dependencies = [
  "anyhow",
+ "itertools 0.13.0",
  "nym-config",
  "reqwest 0.11.27",
  "serde",
  "serde_json",
+ "tempfile",
  "tokio",
  "tokio-util",
  "tracing",
@@ -4689,12 +4691,14 @@ version = "1.1.0-dev"
 dependencies = [
  "nym-authenticator-client",
  "nym-authenticator-requests",
+ "nym-bandwidth-controller",
  "nym-credentials-interface",
  "nym-crypto",
  "nym-gateway-directory",
  "nym-node-requests",
  "nym-pemstore",
  "nym-sdk",
+ "nym-validator-client",
  "nym-wg-go",
  "nym-wireguard-types",
  "rand 0.8.5",
