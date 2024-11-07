@@ -71,7 +71,7 @@ func wgNetTurnOn(localAddresses *C.char, dnsAddresses *C.char, mtu int, settings
 
 	logger.Verbosef("Net device started")
 
-	i, err := netTunnelHandles.Insert(netTunnelHandle{dev, tnet, logger})
+	i, err := netTunnelHandles.Insert(NetTunnelHandle{dev, tnet, logger})
 	if err != nil {
 		logger.Errorf("Failed to store tunnel: %v", err)
 		dev.Close()
