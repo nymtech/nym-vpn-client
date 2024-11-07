@@ -12,6 +12,12 @@ pub enum Error {
     #[error(transparent)]
     AuthenticatorClientError(#[from] nym_authenticator_client::Error),
 
+    #[error("error that should stop auto retrying: {source}")]
+    NoRetry {
+        #[source]
+        source: nym_authenticator_client::Error,
+    },
+
     #[error("verification failed: {0}")]
     VerificationFailed(#[source] nym_authenticator_requests::Error),
 

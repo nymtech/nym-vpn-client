@@ -30,7 +30,7 @@ use nym_gateway_directory::{
     Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, NodeIdentity, Recipient,
 };
 use nym_ip_packet_requests::IpPair;
-use nym_wg_gateway_client::GatewayData;
+use nym_wg_gateway_client::{Error as WgGatewayClientError, GatewayData};
 use nym_wg_go::PublicKey;
 
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -40,7 +40,10 @@ use dns_handler::DnsHandlerHandle;
 use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::ios::OSTunProvider;
-use crate::{GatewayDirectoryError, MixnetClientConfig};
+use crate::{
+    bandwidth_controller::Error as BandwidthControllerError, GatewayDirectoryError,
+    MixnetClientConfig,
+};
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use route_handler::RouteHandler;
 use states::DisconnectedState;
@@ -331,6 +334,10 @@ pub enum ErrorStateReason {
     /// Invalid country set for exit gateway
     InvalidExitGatewayCountry,
 
+    /// Gateway is not responding or responding badly to a bandwidth
+    /// increase request, causing credential waste
+    BadBandwidthIncrease,
+
     /// Program errors that must not happen.
     Internal,
 }
@@ -608,6 +615,16 @@ impl tunnel::Error {
                     source: nym_gateway_directory::Error::NoMatchingExitGatewayForLocation { .. },
                 } => Some(ErrorStateReason::InvalidExitGatewayCountry),
 
+                _ => None,
+            },
+            Self::BandwidthController(e) => match e {
+                BandwidthControllerError::RegisterWireguard { source, .. }
+                | BandwidthControllerError::TopUpWireguard { source, .. } => match source {
+                    WgGatewayClientError::NoRetry { .. } => {
+                        Some(ErrorStateReason::BadBandwidthIncrease)
+                    }
+                    _ => None,
+                },
                 _ => None,
             },
             _ => None,
