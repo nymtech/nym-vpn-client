@@ -123,12 +123,6 @@ impl DepletionRate {
         if new_depletion_rate != 0 {
             self.current_depletion_rate = new_depletion_rate;
         }
-        log::info!("Current deplateion rate {}", self.current_depletion_rate);
-        log::info!(
-            "Estimated depletion in {}/{}",
-            remaining_bandwidth,
-            self.current_depletion_rate
-        );
         let Some(estimated_depletion_secs) =
             remaining_bandwidth.checked_div(self.current_depletion_rate)
         else {
