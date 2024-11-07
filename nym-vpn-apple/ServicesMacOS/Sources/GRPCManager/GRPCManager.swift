@@ -153,60 +153,46 @@ public final class GRPCManager: ObservableObject {
         guard helperManager.isHelperAuthorizedAndRunning() else { return }
 
         logger.log(level: .info, "Connecting")
+        var request = Nym_Vpn_ConnectRequest()
+        request.userAgent = userAgent
 
-        return try await withCheckedThrowingContinuation { continuation in
-            var request = Nym_Vpn_ConnectRequest()
-            request.userAgent = userAgent
+        var entryNode = Nym_Vpn_EntryNode()
+        if let entryGatewayCountryCode {
+            var location = Nym_Vpn_Location()
+            location.twoLetterIsoCountryCode = entryGatewayCountryCode
+            entryNode.location = location
+        } else {
+            // TODO: use it when functionality becomes available
+            //            entryNode.randomLowLatency = Nym_Vpn_Empty()
+            entryNode.random = Nym_Vpn_Empty()
+        }
 
-            var entryNode = Nym_Vpn_EntryNode()
-            if let entryGatewayCountryCode {
-                var location = Nym_Vpn_Location()
-                location.twoLetterIsoCountryCode = entryGatewayCountryCode
-                entryNode.location = location
-            } else {
-                // TODO: use it when functionality becomes available
-                //            entryNode.randomLowLatency = Nym_Vpn_Empty()
-                entryNode.random = Nym_Vpn_Empty()
-            }
+        var exitNode = Nym_Vpn_ExitNode()
+        if let exitRouterCountryCode {
+            var location = Nym_Vpn_Location()
+            location.twoLetterIsoCountryCode = exitRouterCountryCode
+            exitNode.location = location
+        } else {
+            exitNode.random = Nym_Vpn_Empty()
+        }
 
-            var exitNode = Nym_Vpn_ExitNode()
-            if let exitRouterCountryCode {
-                var location = Nym_Vpn_Location()
-                location.twoLetterIsoCountryCode = exitRouterCountryCode
-                exitNode.location = location
-            } else {
-                exitNode.random = Nym_Vpn_Empty()
-            }
+        request.entry = entryNode
+        request.exit = exitNode
 
-            request.entry = entryNode
-            request.exit = exitNode
+        request.disableRouting = false
+        request.enableTwoHop = isTwoHopEnabled
+        request.enablePoissonRate = false
+        request.disableBackgroundCoverTraffic = false
+        request.enableCredentialsMode = false
 
-            request.disableRouting = false
-            request.enableTwoHop = isTwoHopEnabled
-            request.disableBackgroundCoverTraffic = false
-            request.enableCredentialsMode = true
+        let call = client.vpnConnect(request, callOptions: nil)
 
-            let call = client.vpnConnect(request, callOptions: nil)
-
-            call.response.whenComplete { [weak self] result in
-                switch result {
-                case .success(let response):
-                    print(response)
-                    self?.logger.log(level: .info, "\(response)")
-
-                    if response.hasError {
-                        if response.error.kind == .noAccountStored {
-                            self?.lastError = GeneralNymError.noMnemonicStored
-                            continuation.resume(throwing: GeneralNymError.noMnemonicStored)
-                        } else {
-                            continuation.resume(throwing: GeneralNymError.library(message: response.error.message))
-                        }
-                    } else {
-                        continuation.resume()
-                    }
-                case .failure(let error):
-                    self?.logger.log(level: .info, "Failed to connect to VPN: \(error)")
-                }
+        call.response.whenComplete { [weak self] result in
+            switch result {
+            case .success:
+                self?.logger.log(level: .info, "Connected to VPN")
+            case .failure(let error):
+                self?.logger.log(level: .info, "Failed to connect to VPN: \(error)")
             }
         }
 
