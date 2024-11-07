@@ -40,8 +40,8 @@
     <string name="required_app_restart">prend effet au redémarrage</string>
     <string name="legal">Juridique</string>
     <string name="privacy_link" translatable="false">https://nymvpn.com/en/privacy?type=apps</string>
-    <string name="terms_of_use">Conditions d\'utilisation</string>
-    <string name="privacy_policy">Déclaration de confidentialité</string>
+    <string name="terms_of_use">Conditions Générales d\'Utilisation</string>
+    <string name="privacy_policy">Politique de confidentialité</string>
     <string name="licenses">Licences</string>
     <string name="open_github">Créer un ticket GitHub</string>
     <string name="send_feedback">Envoyer un commentaire</string>
@@ -93,11 +93,11 @@
     <string name="opt_in_message_first">Activer les rapports d\'erreur anonymes</string>
     <string name="opt_in_message_second">et les rapports d\'usage que vous pouvez désactiver à tout moment.</string>
     <string name="thanks_for_support">Merci de votre soutien !</string>
-    <string name="to_alpha">vers NymVPN alpha</string>
+    <string name="to_alpha">au bêta-test NymVPN</string>
     <string name="welcome">Bienvenue</string>
     <string name="cont">Continuer</string>
-    <string name="continue_agree">En continuant, vous acceptez les conditions d\'utilisation de NymVPN</string>
-    <string name="and_acknowledge">et reconnaissent le droit de NymVPN à l\'accès à l\'information</string>
+    <string name="continue_agree">En continuant, vous acceptez les</string>
+    <string name="and_acknowledge">de NymVPN et reconnaissez avoir pris connaissances de la</string>
     <string name="share_anonymous_analytics">Partager les rapports d\'analyses anonymes</string>
     <string name="anonymous_error_reports">Rapports d\'erreur anonymes</string>
     <string name="gateways_error">Échec de la récupération des passerelles (gateways)</string>
@@ -107,7 +107,7 @@
     <string name="app_shortcuts">Raccourcis d\'application</string>
     <string name="enable_shortcuts">Activer les raccourcis</string>
     <string name="disabled_while_connected">Désactivé lors de la connexion au VPN</string>
-    <string name="experimental_software_disclaimer">Il s\'agit d\'un logiciel expérimental : ne l\'utilisez pas pour garantir un anonymat total (pour l\'instant).</string>
+    <string name="experimental_software_disclaimer">NymVPN est en phase de tests. L\'application ne garantit pas (encore) une protection avancée.</string>
     <string name="permission_required">Permission requise</string>
     <string name="exception_cred_missing">Aucun identifiant importé n\'a été trouvé.</string>
     <string name="exception_permission_not_granted">L\'autorisation requise n\'a pas été accordée.</string>
@@ -138,7 +138,7 @@
     <string name="language">Langue</string>
     <string name="gateway_modal_description">Nous déduisons l\'emplacement des serveurs sur la base de leurs adresses IP, mais l\'emplacement réel peut varier légèrement.</string>
     <string name="gateway_locations_title">Détails sur l\'emplacement des serveurs</string>
-    <string name="entry_location_selector">Nœud d\'entrée manuel</string>
+    <string name="entry_location_selector">Choix du nœud d\'entrée</string>
     <string name="appearance">Apparence</string>
     <string name="always_on_message">Cela ne fonctionne pas ? Assurez-vous que l\'option Always-on VPN est désactivée pour les autres applications dans la rubrique</string>
     <string name="vpn_permission_missing">L\'autorisation Vpn n\'a pas été acceptée ou est utilisée par une autre application.</string>
