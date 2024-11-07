@@ -100,21 +100,14 @@ async fn stop_vpn_inner() -> Result<(), VpnError> {
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn startAccountController(data_dir: String) -> Result<(), VpnError> {
+pub fn init(data_dir: String) -> Result<(), VpnError> {
+    init_logger();
     RUNTIME.block_on(account::start_account_controller_inner(PathBuf::from(
         data_dir,
     )))
 }
 
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn stopAccountController() -> Result<(), VpnError> {
-    RUNTIME.block_on(account::stop_account_controller_inner())
-}
-
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn initLogger() {
+pub fn init_logger() {
     let log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
     info!("Setting log level: {}", log_level);
     #[cfg(target_os = "ios")]
@@ -301,7 +294,7 @@ impl StateMachineHandle {
 fn get_api_url() -> Url {
     let default_config = GatewayDirectoryConfig::default();
     match env::var("NYM_API") {
-        Ok(url) => Url::parse(&url).unwrap_or_else(|_| default_config.api_url),
+        Ok(url) => Url::parse(&url).unwrap_or(default_config.api_url),
         Err(_) => default_config.api_url,
     }
 }

@@ -38,12 +38,9 @@ import nym_vpn_lib.TunnelStatusListener
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.VpnException
 import nym_vpn_lib.fetchEnvironment
-import nym_vpn_lib.initLogger
 import nym_vpn_lib.isAccountMnemonicStored
 import nym_vpn_lib.removeAccountMnemonic
-import nym_vpn_lib.startAccountController
 import nym_vpn_lib.startVpn
-import nym_vpn_lib.stopAccountController
 import nym_vpn_lib.stopVpn
 import nym_vpn_lib.storeAccountMnemonic
 import timber.log.Timber
@@ -90,9 +87,8 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		return withContext(ioDispatcher) {
 			runCatching {
 				Os.setenv("RUST_LOG", LOG_LEVEL, true)
-				initLogger()
 				getEnvironment(environment).export()
-				startAccountController(storagePath)
+				nym_vpn_lib.init(storagePath)
 			}.onFailure {
 				Timber.e(it)
 			}.isSuccess
@@ -111,12 +107,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	@Throws(VpnException::class)
 	override suspend fun getAccountSummary(): AccountStateSummary {
-		startAccountController(storagePath)
-		return try {
-			nym_vpn_lib.getAccountState()
-		} finally {
-			stopAccountController()
-		}
+		return nym_vpn_lib.getAccountState()
 	}
 
 	@Throws(VpnException::class)
