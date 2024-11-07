@@ -86,7 +86,7 @@ impl ConnectedTunnel {
             #[cfg(unix)]
             options.entry_tun.get_ref().as_raw_fd(),
             #[cfg(windows)]
-            entry_tun_name,
+            &options.entry_tun_name,
         )
         .map_err(Error::Wireguard)?;
 
@@ -95,7 +95,7 @@ impl ConnectedTunnel {
             #[cfg(unix)]
             options.exit_tun.get_ref().as_raw_fd(),
             #[cfg(windows)]
-            exit_tun_name,
+            &options.exit_tun_name,
         )
         .map_err(Error::Wireguard)?;
 
@@ -152,12 +152,16 @@ impl ConnectedTunnel {
         #[allow(unused_mut)]
         let mut exit_tunnel = wireguard_go::Tunnel::start(
             two_hop_config.exit.into_wireguard_config(),
+            #[cfg(unix)]
             options.exit_tun.get_ref().as_raw_fd(),
+            #[cfg(windows)]
+            &options.exit_tun_name,
         )?;
 
         Ok(TunnelHandle {
             task_manager: self.task_manager,
             internal_handle: InternalTunnelHandle::Netstack {
+                #[cfg(unix)]
                 exit_tun: options.exit_tun,
                 entry_wg_tunnel: Some(entry_tunnel),
                 exit_wg_tunnel: Some(exit_tunnel),
