@@ -312,11 +312,12 @@ fn get_nym_urls() -> (Url, Option<Url>) {
     let api_url_env = get_api_url();
     let nym_vpn_api_url_env = get_nym_api_url();
 
-    if api_url_env.is_none() || nym_vpn_api_url_env.is_none() {
-        let default = GatewayDirectoryConfig::default();
-        (default.api_url, default.nym_vpn_api_url)
-    } else {
-        (api_url_env.unwrap(), nym_vpn_api_url_env)
+    match (api_url_env, nym_vpn_api_url_env) {
+        (Some(api_url), Some(nym_vpn_api_url)) => (api_url, Some(nym_vpn_api_url)),
+        _ => {
+            let default = GatewayDirectoryConfig::default();
+            (default.api_url, default.nym_vpn_api_url)
+        }
     }
 }
 
