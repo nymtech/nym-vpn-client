@@ -3141,7 +3141,7 @@ dependencies = [
 
 [[package]]
 name = "nym-authenticator-client"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "futures",
  "nym-authenticator-requests",
@@ -3347,7 +3347,7 @@ dependencies = [
 
 [[package]]
 name = "nym-common"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "libc",
  "log",
@@ -3394,7 +3394,7 @@ dependencies = [
 
 [[package]]
 name = "nym-connection-monitor"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "bincode",
  "bytes",
@@ -3549,7 +3549,7 @@ dependencies = [
 
 [[package]]
 name = "nym-dns"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "duct",
  "futures",
@@ -3670,7 +3670,7 @@ dependencies = [
 
 [[package]]
 name = "nym-gateway-directory"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "async-trait",
  "chrono",
@@ -3695,7 +3695,7 @@ dependencies = [
 
 [[package]]
 name = "nym-gateway-probe"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -3776,7 +3776,7 @@ dependencies = [
 
 [[package]]
 name = "nym-harbour-master-client"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "chrono",
  "nym-http-api-client",
@@ -3819,7 +3819,7 @@ dependencies = [
 
 [[package]]
 name = "nym-ip-packet-client"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "bytes",
  "futures",
@@ -3983,7 +3983,7 @@ dependencies = [
 
 [[package]]
 name = "nym-routing"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "bitflags 2.6.0",
  "futures",
@@ -4421,7 +4421,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-account-controller"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "nym-compact-ecash",
  "nym-config",
@@ -4449,7 +4449,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-api-client"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "backon",
  "base64-url",
@@ -4476,7 +4476,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-cli"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "anyhow",
  "bs58",
@@ -4501,7 +4501,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "android_logger",
  "anyhow",
@@ -4570,7 +4570,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-network-config"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "anyhow",
  "itertools 0.13.0",
@@ -4587,7 +4587,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-proto"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "prost",
  "prost-types",
@@ -4598,7 +4598,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-store"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "bip39",
  "nym-crypto",
@@ -4617,7 +4617,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpnc"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "anyhow",
  "bs58",
@@ -4638,7 +4638,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpnd"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "anyhow",
  "bip39",
@@ -4687,7 +4687,7 @@ dependencies = [
 
 [[package]]
 name = "nym-wg-gateway-client"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "nym-authenticator-client",
  "nym-authenticator-requests",
@@ -4708,7 +4708,7 @@ dependencies = [
 
 [[package]]
 name = "nym-wg-go"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "base64 0.22.1",
  "hex",
@@ -7330,7 +7330,7 @@ dependencies = [
 
 [[package]]
 name = "uniffi-bindgen"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "uniffi",
 ]
