@@ -295,24 +295,20 @@ impl StateMachineHandle {
     }
 }
 
-fn get_api_url() -> Url {
-    let default_config = GatewayDirectoryConfig::default();
+fn get_api_url() -> Option<Url> {
     match env::var("NYM_API") {
-        Ok(url) => Url::parse(&url).unwrap_or(default_config.api_url),
-        Err(_) => default_config.api_url,
+        Ok(url) => Url::parse(&url).ok(),
+        Err(_) => None,
     }
 }
 
 fn get_nym_api_url() -> Option<Url> {
-    let default_config = GatewayDirectoryConfig::default();
     match env::var("NYM_VPN_API") {
-        Ok(url) => match Url::parse(&url) {
-            Ok(url) => Some(url),
-            Err(_) => default_config.nym_vpn_api_url,
-        },
-        Err(_) => default_config.nym_vpn_api_url,
+        Ok(url) => Url::parse(&url).ok(),
+        Err(_) => None,
     }
 }
+
 async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, VpnError> {
     let tunnel_type = if config.enable_two_hop {
         TunnelType::Wireguard
@@ -323,8 +319,15 @@ async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, Vp
     let entry_point = nym_gateway_directory::EntryPoint::from(config.entry_gateway);
     let exit_point = nym_gateway_directory::ExitPoint::from(config.exit_router);
 
-    let api_url = get_api_url();
-    let nym_vpn_api_url = get_nym_api_url();
+    let api_url_env = get_api_url();
+    let nym_vpn_api_url_env = get_nym_api_url();
+
+    let (api_url, nym_vpn_api_url) = if api_url_env.is_none() || nym_vpn_api_url_env.is_none() {
+        let default = GatewayDirectoryConfig::default();
+        (default.api_url, default.nym_vpn_api_url)
+    } else {
+        (api_url_env.unwrap(), nym_vpn_api_url_env)
+    };
 
     let gateway_config = GatewayDirectoryConfig {
         api_url,
