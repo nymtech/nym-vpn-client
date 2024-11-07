@@ -21,6 +21,7 @@ import net.nymtech.nymvpn.service.android.tile.VpnQuickTile
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.vpn.model.Country
 import timber.log.Timber
+import java.util.Locale
 
 private const val BASELINE_HEIGHT = 2201
 private const val BASELINE_WIDTH = 1080
@@ -38,6 +39,14 @@ fun Context.buildCountryNameString(country: Country): String {
 			append(country.name)
 		}
 	}.text
+}
+
+fun Context.setAppLocale(locale: Locale): Context {
+	Locale.setDefault(locale)
+	val config = resources.configuration
+	config.setLocale(locale)
+	config.setLayoutDirection(locale)
+	return createConfigurationContext(config)
 }
 
 fun Context.openWebUrl(url: String): Result<Unit> {

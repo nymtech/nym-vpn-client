@@ -1,13 +1,9 @@
 package net.nymtech.localizationutil
 
 import android.content.Context
-import android.content.res.Configuration
+import android.content.ContextWrapper
 import android.content.res.Resources
-import android.os.Build
-import android.os.LocaleList
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.ConfigurationCompat
-import androidx.core.os.LocaleListCompat
 import java.util.Locale
 
 object LocaleUtil {
@@ -15,11 +11,6 @@ object LocaleUtil {
 	val supportedLocales: Array<String> = BuildConfig.LANGUAGES
 	const val OPTION_PHONE_LANGUAGE = "sys_def"
 
-	/**
-	 * returns the locale to use depending on the preference value
-	 * when preference value = "sys_def" returns the locale of current system
-	 * else it returns the locale code e.g. "en", "bn" etc.
-	 */
 	fun getLocaleFromPrefCode(prefCode: String): Locale {
 		val localeCode = if (prefCode != OPTION_PHONE_LANGUAGE) {
 			prefCode
@@ -34,42 +25,14 @@ object LocaleUtil {
 		return Locale.forLanguageTag(localeCode)
 	}
 
-	private fun getLocalizedConfiguration(locale: Locale): Configuration {
-		val config = Configuration()
-		return config.apply {
-			config.setLayoutDirection(locale)
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-				config.setLocale(locale)
-				val localeList = LocaleList(locale)
-				LocaleList.setDefault(localeList)
-				config.setLocales(localeList)
-			} else {
-				config.setLocale(locale)
-			}
-		}
+	// Update locale on the fly (will not work for things with built-in translations like locale names which require activity restart)
+	fun updateLocale(context: Context, lang: String): ContextWrapper {
+		val locale = getLocaleFromPrefCode(lang)
+		Locale.setDefault(locale)
+		val resources = context.resources
+		val configuration = resources.configuration
+		configuration.setLocale(locale)
+		configuration.setLayoutDirection(locale)
+		return ContextWrapper(context.createConfigurationContext(configuration))
 	}
-
-	fun getLocalizedContext(baseContext: Context, prefLocaleCode: String?): Context {
-		if (prefLocaleCode == null) return baseContext
-		val currentLocale = getLocaleFromPrefCode(prefLocaleCode)
-		val baseLocale = getLocaleFromConfiguration(baseContext.resources.configuration)
-		Locale.setDefault(currentLocale)
-		return if (!baseLocale.toString().equals(currentLocale.toString(), ignoreCase = true)) {
-			val config = getLocalizedConfiguration(currentLocale)
-			baseContext.createConfigurationContext(config)
-			baseContext
-		} else {
-			baseContext
-		}
-	}
-
-	@Suppress("DEPRECATION")
-	private fun getLocaleFromConfiguration(configuration: Configuration): Locale {
-		return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-			configuration.locales.get(0)
-		} else {
-			configuration.locale
-		}
-	}
-
 }

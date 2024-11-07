@@ -39,11 +39,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.nymtech.localizationutil.LocaleStorage
 import net.nymtech.localizationutil.LocaleUtil
-import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.manager.shortcut.ShortcutManager
 import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
@@ -71,14 +69,10 @@ import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.screens.splash.SplashScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.isCurrentRoute
-import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.resetTile
-import net.nymtech.vpn.model.BackendMessage
-import timber.log.Timber
-import java.util.Locale
+import net.nymtech.nymvpn.util.extensions.setAppLocale
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -121,9 +115,12 @@ class MainActivity : ComponentActivity() {
 			LaunchedEffect(navBackStackEntry) {
 				if (navBackStackEntry.isCurrentRoute(Route.Main::class)) {
 					val args = navBackStackEntry?.toRoute<Route.Main>()
-					if(args?.changeLanguage == true) {
-						val lang = localeStorage.getPreferredLocale()
-						setLocale(lang)
+					if (args?.changeLanguage == true) {
+						// Restart activity for built-in translation of country names
+						Intent(this@MainActivity, MainActivity::class.java).also {
+							finish()
+							startActivity(it)
+						}
 					}
 				}
 			}
@@ -135,26 +132,6 @@ class MainActivity : ComponentActivity() {
 				LaunchedEffect(isShortcutsEnabled) {
 					if (!isShortcutsEnabled) return@LaunchedEffect shortcutManager.removeShortcuts()
 					shortcutManager.addShortcuts()
-				}
-			}
-
-			LaunchedEffect(appState.backendMessage) {
-				when (val message = appState.backendMessage) {
-					is BackendMessage.Failure -> {
-						// TODO invalid credential errors?
-// 						when (message.exception) {
-// 							is VpnException.InvalidCredential -> {
-// 								if (NymVpn.isForeground()) {
-// 									SnackbarController.showMessage(StringValue.StringResource(R.string.exception_cred_invalid))
-// 									navController.goFromRoot(Route.Credential)
-// 								}
-// 							}
-//
-// 							else -> Unit
-// 						}
-					}
-
-					else -> Unit
 				}
 			}
 
@@ -267,28 +244,7 @@ class MainActivity : ComponentActivity() {
 
 	override fun attachBaseContext(newBase: Context) {
 		val lang = LocaleStorage(newBase).getPreferredLocale()
-		val context = updateLocale(newBase, lang)
-		super.attachBaseContext(context)
-	}
-
-	fun updateLocale(context: Context, lang: String): ContextWrapper {
 		val locale = LocaleUtil.getLocaleFromPrefCode(lang)
-		Locale.setDefault(locale)
-		val resources = context.resources
-		val configuration = resources.configuration
-		configuration.setLocale(locale)
-		configuration.setLayoutDirection(locale)
-		return ContextWrapper(context.createConfigurationContext(configuration))
-	}
-
-	private fun setLocale(localeName: String) {
-		val locale = Locale(localeName)
-		Locale.setDefault(locale)
-		resources.updateConfiguration(resources.configuration, resources.displayMetrics)
-
-		// Restart activity to apply the new locale
-		val refresh = Intent(this, MainActivity::class.java)
-		finish()
-		startActivity(refresh)
+		super.attachBaseContext(ContextWrapper(newBase.setAppLocale(locale)))
 	}
 }

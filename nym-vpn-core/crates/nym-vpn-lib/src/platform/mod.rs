@@ -178,12 +178,13 @@ pub fn getAccountState() -> Result<AccountStateSummary, VpnError> {
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn getGatewayCountries(
-    api_url: Url,
-    nym_vpn_api_url: Option<Url>,
     gw_type: GatewayType,
     user_agent: Option<UserAgent>,
     min_gateway_performance: Option<GatewayMinPerformance>,
 ) -> Result<Vec<Location>, VpnError> {
+    let api_url = get_api_url();
+    let nym_vpn_api_url = get_nym_api_url();
+
     RUNTIME.block_on(get_gateway_countries(
         api_url,
         nym_vpn_api_url,
@@ -254,8 +255,6 @@ async fn get_low_latency_entry_country(
 
 #[derive(uniffi::Record)]
 pub struct VPNConfig {
-    pub api_url: Url,
-    pub vpn_api_url: Option<Url>,
     pub entry_gateway: EntryPoint,
     pub exit_router: ExitPoint,
     pub enable_two_hop: bool,
@@ -299,6 +298,24 @@ impl StateMachineHandle {
     }
 }
 
+fn get_api_url() -> Url {
+    let default_config = GatewayDirectoryConfig::default();
+    match env::var("NYM_API") {
+        Ok(url) => Url::parse(&url).unwrap_or_else(|_| default_config.api_url),
+        Err(_) => default_config.api_url,
+    }
+}
+
+fn get_nym_api_url() -> Option<Url> {
+    let default_config = GatewayDirectoryConfig::default();
+    match env::var("NYM_VPN_API") {
+        Ok(url) => match Url::parse(&url) {
+            Ok(url) => Some(url),
+            Err(_) => default_config.nym_vpn_api_url,
+        },
+        Err(_) => default_config.nym_vpn_api_url,
+    }
+}
 async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, VpnError> {
     let tunnel_type = if config.enable_two_hop {
         TunnelType::Wireguard
@@ -309,9 +326,12 @@ async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, Vp
     let entry_point = nym_gateway_directory::EntryPoint::from(config.entry_gateway);
     let exit_point = nym_gateway_directory::ExitPoint::from(config.exit_router);
 
+    let api_url = get_api_url();
+    let nym_vpn_api_url = get_nym_api_url();
+
     let gateway_config = GatewayDirectoryConfig {
-        api_url: config.api_url,
-        nym_vpn_api_url: config.vpn_api_url,
+        api_url,
+        nym_vpn_api_url,
         ..Default::default()
     };
 

@@ -15,7 +15,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.nymtech.ipcalculator.AllowedIpCalculator
-import net.nymtech.vpn.model.BackendMessage
+import net.nymtech.vpn.model.BackendMessage.*
 import net.nymtech.vpn.model.Statistics
 import net.nymtech.vpn.util.Action
 import net.nymtech.vpn.util.Constants
@@ -25,6 +25,7 @@ import net.nymtech.vpn.util.NotificationManager
 import net.nymtech.vpn.util.SingletonHolder
 import net.nymtech.vpn.util.extensions.addRoutes
 import net.nymtech.vpn.util.extensions.export
+import net.nymtech.vpn.util.extensions.startVpnService
 import nym_vpn_lib.AccountStateSummary
 import nym_vpn_lib.AndroidTunProvider
 import nym_vpn_lib.BandwidthEvent
@@ -46,8 +47,8 @@ import nym_vpn_lib.stopAccountController
 import nym_vpn_lib.stopVpn
 import nym_vpn_lib.storeAccountMnemonic
 import timber.log.Timber
-import java.net.URL
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.also
 import kotlin.properties.Delegates
 
 class NymBackend private constructor(val context: Context) : Backend, TunnelStatusListener {
@@ -99,7 +100,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	}
 
 	@Throws(VpnException::class)
-	private suspend fun getEnvironment(environment: Tunnel.Environment) : NetworkEnvironment {
+	private suspend fun getEnvironment(environment: Tunnel.Environment): NetworkEnvironment {
 		return withContext(ioDispatcher) {
 			fetchEnvironment(environment.name.lowercase()).also {
 				Timber.d("API URL:  ${it.nymNetwork.endpoints.first().apiUrl}")
@@ -112,7 +113,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	override suspend fun getAccountSummary(): AccountStateSummary {
 		startAccountController(storagePath)
 		return try {
-			nym_vpn_lib.getAccountSummary()
+			nym_vpn_lib.getAccountState()
 		} finally {
 			stopAccountController()
 		}
@@ -137,37 +138,23 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		val state = getState()
 		if (tunnel == this.tunnel && state != Tunnel.State.Down) return
 		this.tunnel = tunnel
-		val environment = getEnvironment(tunnel.environment)
-		environment.export()
-		if (!vpnService.isCompleted) {
-			kotlin.runCatching {
-				if (background && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-					context.startForegroundService(
-						Intent(context, VpnService::class.java).apply {
-							action = Action.START_FOREGROUND.name
-						},
-					)
-				} else {
-					context.startService(Intent(context, VpnService::class.java))
-				}
-			}.onFailure { Timber.w("Ignoring not started in time exception") }
-		}
 		// reset any error state
-		tunnel.onBackendMessage(BackendMessage.None)
+		tunnel.onBackendMessage(None)
+		tunnel.onStateChange(Tunnel.State.Connecting.InitializingClient)
+		if (!vpnService.isCompleted) context.startVpnService(background)
 		withContext(ioDispatcher) {
 			val service = vpnService.await()
-			service.setOwner(this@NymBackend)
+			val backend = this@NymBackend
+			service.setOwner(backend)
 			runCatching {
 				startVpn(
 					VpnConfig(
-						URL(environment.nymNetwork.endpoints.first().apiUrl!!),
-						URL(environment.nymVpnNetwork.nymVpnApiUrl),
 						tunnel.entryPoint,
 						tunnel.exitPoint,
 						isTwoHop(tunnel.mode),
 						service,
 						storagePath,
-						this@NymBackend,
+						backend,
 					),
 				)
 			}
@@ -230,7 +217,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			is TunnelEvent.MixnetState -> {
 				when (event.v1) {
 					is MixnetEvent.Bandwidth -> {
-						tunnel?.onBackendMessage(BackendMessage.BandwidthAlert(event.v1.v1))
+						tunnel?.onBackendMessage(BandwidthAlert(event.v1.v1))
 						if (event.v1.v1 is BandwidthEvent.NoBandwidth) onVpnShutdown()
 					}
 					is MixnetEvent.Connection -> {
@@ -242,13 +229,13 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			is TunnelEvent.NewState -> {
 				state = when (event.v1) {
 					is TunnelState.Connected -> Tunnel.State.Up.also { statsJob = onConnect() }
-					TunnelState.Connecting -> Tunnel.State.Connecting.EstablishingConnection
 					TunnelState.Disconnected -> Tunnel.State.Down
 					is TunnelState.Disconnecting -> Tunnel.State.Disconnecting.also { onDisconnect() }
 					is TunnelState.Error -> Tunnel.State.Down.also {
-						tunnel?.onBackendMessage(BackendMessage.Failure(event.v1.v1))
+						tunnel?.onBackendMessage(Failure(event.v1.v1))
 						onVpnShutdown()
 					}
+					is TunnelState.Connecting -> Tunnel.State.Connecting.EstablishingConnection
 				}
 				tunnel?.onStateChange(state)
 			}

@@ -3,7 +3,6 @@ package net.nymtech.vpn.util.extensions
 import android.system.Os
 import nym_vpn_lib.NetworkEnvironment
 
-
 fun NetworkEnvironment.export() {
 	Os.setenv("NETWORK_NAME", nymNetwork.networkName, true)
 
