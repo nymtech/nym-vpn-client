@@ -197,16 +197,18 @@ pub struct MixnetConnectionData {
 #[derive(Debug, Clone, Eq, PartialEq, uniffi::Record)]
 pub struct WireguardNode {
     pub endpoint: SocketAddr,
-    pub public_key: PublicKey,
+    pub public_key: Box<PublicKey>,
     pub private_ipv4: Ipv4Addr,
+    pub private_ipv6: Ipv6Addr,
 }
 
 impl From<GatewayData> for WireguardNode {
     fn from(value: GatewayData) -> Self {
         Self {
             endpoint: value.endpoint,
-            public_key: value.public_key,
+            public_key: Box::new(value.public_key),
             private_ipv4: value.private_ipv4,
+            private_ipv6: value.private_ipv6,
         }
     }
 }

@@ -3,7 +3,7 @@ use std::{
     net::{IpAddr, SocketAddr},
 };
 
-use ipnetwork::{IpNetwork, Ipv4Network};
+use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use nym_wg_gateway_client::GatewayData;
 #[cfg(target_os = "ios")]
 use nym_wg_go::PeerEndpointUpdate;
@@ -130,10 +130,16 @@ impl WgNodeConfig {
             interface: WgInterface {
                 listen_port: None,
                 private_key: PrivateKey::from(private_key.to_bytes()),
-                addresses: vec![IpNetwork::V4(
-                    Ipv4Network::new(gateway_data.private_ipv4, 32)
-                        .expect("private_ipv4/32 to ipnetwork"),
-                )],
+                addresses: vec![
+                    IpNetwork::V4(
+                        Ipv4Network::new(gateway_data.private_ipv4, 32)
+                            .expect("private_ipv4/32 to ipnetwork"),
+                    ),
+                    IpNetwork::V6(
+                        Ipv6Network::new(gateway_data.private_ipv6, 128)
+                            .expect("private_ipv6/128 to ipnetwork"),
+                    ),
+                ],
                 dns,
                 mtu,
                 #[cfg(target_os = "linux")]

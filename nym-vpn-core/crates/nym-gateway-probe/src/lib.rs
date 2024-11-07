@@ -14,7 +14,7 @@ use dns_lookup::lookup_host;
 use futures::StreamExt;
 use netstack::{NetstackCall as _, NetstackCallImpl};
 use nym_authenticator_client::ClientMessage;
-use nym_authenticator_requests::v3::{
+use nym_authenticator_requests::v4::{
     registration::{FinalMessage, GatewayClient, InitMessage, RegistrationData},
     response::{AuthenticatorResponseData, PendingRegistrationResponse, RegisteredResponse},
 };
@@ -168,7 +168,7 @@ async fn wg_probe(
                     gateway_client: GatewayClient::new(
                         &private_key,
                         gateway_data.pub_key().inner(),
-                        gateway_data.private_ip,
+                        gateway_data.private_ips,
                         nonce,
                     ),
                     credential: None,
@@ -200,8 +200,10 @@ async fn wg_probe(
         // info!("Our private key: {}", private_key_bs64);
         info!("Peer public key: {}", public_key_bs64);
         info!(
-            "ip {}, port {}",
-            registered_data.private_ip, registered_data.wg_port,
+            "ips {}(v4) {}(v6), port {}",
+            registered_data.private_ips.ipv4,
+            registered_data.private_ips.ipv6,
+            registered_data.wg_port,
         );
 
         let gateway_ip = match gateway_host {
@@ -223,7 +225,25 @@ async fn wg_probe(
 
         if wg_outcome.can_register {
             let netstack_request = netstack::NetstackRequest {
-                wg_ip: registered_data.private_ip.to_string(),
+                wg_ip: registered_data.private_ips.ipv4.to_string(),
+                private_key: private_key_hex.clone(),
+                public_key: public_key_hex.clone(),
+                endpoint: wg_endpoint.clone(),
+                ..Default::default()
+            };
+
+            let netstack_response = NetstackCallImpl::ping(&netstack_request);
+
+            info!("Wireguard probe response for IPv4: {:?}", netstack_response);
+            wg_outcome.can_handshake_v4 = netstack_response.can_handshake;
+            wg_outcome.can_resolve_dns_v4 = netstack_response.can_resolve_dns;
+            wg_outcome.ping_hosts_performance_v4 =
+                netstack_response.received_hosts as f32 / netstack_response.sent_hosts as f32;
+            wg_outcome.ping_ips_performance_v4 =
+                netstack_response.received_ips as f32 / netstack_response.sent_ips as f32;
+
+            let netstack_request = netstack::NetstackRequest {
+                wg_ip: registered_data.private_ips.ipv6.to_string(),
                 private_key: private_key_hex,
                 public_key: public_key_hex,
                 endpoint: wg_endpoint.clone(),
@@ -232,12 +252,12 @@ async fn wg_probe(
 
             let netstack_response = NetstackCallImpl::ping(&netstack_request);
 
-            info!("Wireguard probe response: {:?}", netstack_response);
-            wg_outcome.can_handshake = netstack_response.can_handshake;
-            wg_outcome.can_resolve_dns = netstack_response.can_resolve_dns;
-            wg_outcome.ping_hosts_performance =
+            info!("Wireguard probe response for IPv6: {:?}", netstack_response);
+            wg_outcome.can_handshake_v6 = netstack_response.can_handshake;
+            wg_outcome.can_resolve_dns_v6 = netstack_response.can_resolve_dns;
+            wg_outcome.ping_hosts_performance_v6 =
                 netstack_response.received_hosts as f32 / netstack_response.sent_hosts as f32;
-            wg_outcome.ping_ips_performance =
+            wg_outcome.ping_ips_performance_v6 =
                 netstack_response.received_ips as f32 / netstack_response.sent_ips as f32;
         }
     }
