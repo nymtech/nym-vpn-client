@@ -30,7 +30,6 @@ impl StatusListener {
                 tracing::info!("VPN connection monitor status: {msg}");
                 self.send_event(MixnetEvent::Connection(ConnectionEvent::from(msg)));
             } else if let Some(msg) = msg.as_any().downcast_ref::<BandwidthStatusMessage>() {
-                tracing::info!("VPN bandwidth status: {msg}");
                 self.send_event(MixnetEvent::Bandwidth(BandwidthEvent::from(msg)));
             } else {
                 tracing::warn!("VPN status: unknown: {msg}");

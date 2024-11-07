@@ -74,19 +74,22 @@ impl WgGatewayLightClient {
             _ => return Err(Error::InvalidGatewayAuthResponse),
         };
 
-        let remaining_pretty = if remaining_bandwidth_data.available_bandwidth > 1024 * 1024 {
-            format!(
-                "{:.2} MB",
-                remaining_bandwidth_data.available_bandwidth as f64 / 1024.0 / 1024.0
-            )
+        if remaining_bandwidth_data.available_bandwidth > 0 {
+            let remaining_bi2 =
+                si_scale::helpers::bibytes2(remaining_bandwidth_data.available_bandwidth as f64);
+
+            info!(
+                "Remaining wireguard bandwidth with gateway {} for today: {}",
+                self.auth_recipient.gateway(),
+                remaining_bi2
+            );
         } else {
-            format!("{} KB", remaining_bandwidth_data.available_bandwidth / 1024)
-        };
-        info!(
-            "Remaining wireguard bandwidth with gateway {} for today: {}",
-            self.auth_recipient.gateway(),
-            remaining_pretty
-        );
+            info!(
+                "Out of bandwidth with gateway {} for today",
+                self.auth_recipient.gateway(),
+            );
+        }
+
         if remaining_bandwidth_data.available_bandwidth < 1024 * 1024 {
             warn!("Remaining bandwidth is under 1 MB. The wireguard mode will get suspended after that until tomorrow, UTC time. The client might shutdown with timeout soon");
         }
