@@ -26,6 +26,7 @@ pub(super) async fn start_account_controller_inner(data_dir: PathBuf) -> Result<
     }
 }
 
+#[allow(dead_code)]
 pub(super) async fn stop_account_controller_inner() -> Result<(), VpnError> {
     let mut guard = ACCOUNT_CONTROLLER_HANDLE.lock().await;
 
