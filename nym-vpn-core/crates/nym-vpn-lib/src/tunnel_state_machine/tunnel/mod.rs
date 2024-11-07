@@ -13,7 +13,7 @@ pub use gateway_selector::SelectedGateways;
 use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayClient};
 use nym_ip_packet_requests::IpPair;
 use nym_sdk::UserAgent;
-use nym_task::{manager::TaskStatus, TaskManager};
+use nym_task::{TaskManager, TaskStatus};
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 

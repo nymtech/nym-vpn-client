@@ -29,7 +29,7 @@ pub use nym_sdk::{
     UserAgent,
 };
 pub use nym_task::{
-    manager::{SentStatus, TaskStatus},
+    event::{SentStatus, TaskStatus},
     StatusReceiver,
 };
 pub use nym_wg_gateway_client as wg_gateway_client;
