@@ -177,4 +177,6 @@
     <string name="mnemonic_example">مثال: smoke artefact velvet skull pop palace tortoise damage rough...</string>
     <string name="recovery_phrase_message">عبارت بازیابی ۲۴ کلمه‌ای خود را در زیر وارد کنید تا به حساب خود وارد شوید</string>
     <string name="recovery_phrase_disclaimer">فقط می‌توانید از عبارت بازیابی ایجاد شده در NymVPN استفاده کنید، نه Nym Wallet.</string>
+    <string name="dynamic">دینامیک</string>
+    <string name="system_wallpaper">طرح پس‌زمینه سیستم</string>
 </resources>
