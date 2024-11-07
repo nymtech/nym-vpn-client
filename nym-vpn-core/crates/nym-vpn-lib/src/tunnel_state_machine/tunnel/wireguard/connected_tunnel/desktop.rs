@@ -128,16 +128,7 @@ impl ConnectedTunnel {
             self.exit_mtu(),
         );
 
-        // Save entry peer so that we can re-resolve it and update wg config on network changes.
-        #[cfg(target_os = "ios")]
-        let orig_entry_peer = wg_entry_config.peer.clone();
-
-        #[allow(unused_mut)]
-        let mut two_hop_config = TwoHopConfig::new(wg_entry_config, wg_exit_config);
-
-        // iOS does not perform dns64 resolution by default. Do that manually.
-        #[cfg(target_os = "ios")]
-        two_hop_config.entry.peer.resolve_in_place()?;
+        let two_hop_config = TwoHopConfig::new(wg_entry_config, wg_exit_config);
 
         let mut entry_tunnel =
             netstack::Tunnel::start(two_hop_config.entry.into_netstack_config())?;
