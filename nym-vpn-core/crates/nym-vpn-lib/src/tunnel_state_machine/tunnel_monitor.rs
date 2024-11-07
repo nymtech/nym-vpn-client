@@ -41,12 +41,18 @@ use super::{
     ConnectionData, Error, ErrorStateReason, MixnetConnectionData, MixnetEvent, NymConfig, Result,
     TunnelConnectionData, TunnelSettings, TunnelType, WireguardConnectionData, WireguardNode,
 };
+
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+use super::tunnel::wireguard::connected_tunnel::{
+    NetstackTunnelOptions, TunTunTunnelOptions, TunnelOptions,
+};
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use crate::tunnel_provider;
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::ios::OSTunProvider;
+use crate::tunnel_state_machine::WireguardMultihopMode;
 
 /// Default MTU for mixnet tun device.
 const DEFAULT_TUN_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android")) {
@@ -257,7 +263,18 @@ impl TunnelMonitor {
         let selected_gateways = connected_mixnet.selected_gateways().clone();
         let (tunnel_conn_data, mut tunnel_handle) = match self.tunnel_settings.tunnel_type {
             TunnelType::Mixnet => self.start_mixnet_tunnel(connected_mixnet).await?,
-            TunnelType::Wireguard => self.start_wireguard_tunnel(connected_mixnet).await?,
+            TunnelType::Wireguard => {
+                match self.tunnel_settings.wireguard_tunnel_options.multihop_mode {
+                    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+                    WireguardMultihopMode::TunTun => {
+                        self.start_wireguard_tunnel(connected_mixnet).await?
+                    }
+                    WireguardMultihopMode::Netstack => {
+                        self.start_wireguard_netstack_tunnel(connected_mixnet)
+                            .await?
+                    }
+                }
+            }
         };
 
         let conn_data = ConnectionData {
@@ -388,6 +405,63 @@ impl TunnelMonitor {
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    async fn start_wireguard_netstack_tunnel(
+        &mut self,
+        connected_mixnet: ConnectedMixnet,
+    ) -> Result<(TunnelConnectionData, AnyTunnelHandle)> {
+        let connected_tunnel = connected_mixnet
+            .connect_wireguard_tunnel(self.tunnel_settings.enable_credentials_mode)
+            .await?;
+        let conn_data = connected_tunnel.connection_data();
+
+        #[cfg(unix)]
+        let exit_tun = Self::create_wireguard_device(
+            IpPair {
+                ipv4: conn_data.exit.private_ipv4,
+                ipv6: conn_data.exit.private_ipv6,
+            },
+            Some(conn_data.entry.private_ipv4),
+            connected_tunnel.exit_mtu(),
+        )?;
+        #[cfg(unix)]
+        let exit_tun_name = exit_tun.get_ref().name().map_err(Error::GetTunDeviceName)?;
+        #[cfg(unix)]
+        tracing::info!("Created exit tun device: {}", exit_tun_name);
+
+        #[cfg(windows)]
+        let exit_tun_name = "nym0".to_owned();
+
+        let routing_config = RoutingConfig::WireguardNetstack {
+            exit_tun_name: exit_tun_name.clone(),
+            entry_gateway_address: conn_data.entry.endpoint.ip(),
+            #[cfg(target_os = "linux")]
+            physical_interface: DefaultInterface::current()?,
+        };
+
+        self.set_routes(routing_config).await?;
+        self.set_dns(&exit_tun_name).await?;
+
+        let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
+            entry: WireguardNode::from(conn_data.entry.clone()),
+            exit: WireguardNode::from(conn_data.exit.clone()),
+        });
+
+        let tunnel_options = TunnelOptions::Netstack(NetstackTunnelOptions {
+            #[cfg(unix)]
+            exit_tun,
+            #[cfg(windows)]
+            exit_tun_name,
+            dns: self.tunnel_settings.dns.ip_addresses().to_vec(),
+        });
+
+        let tunnel_handle = connected_tunnel.run(tunnel_options)?;
+
+        let any_tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
+
+        Ok((tunnel_conn_data, any_tunnel_handle))
+    }
+
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     async fn start_wireguard_tunnel(
         &mut self,
         connected_mixnet: ConnectedMixnet,
@@ -456,17 +530,19 @@ impl TunnelMonitor {
             exit: WireguardNode::from(conn_data.exit.clone()),
         });
 
-        let tunnel_handle = connected_tunnel.run(
+        let tunnel_options = TunnelOptions::TunTun(TunTunTunnelOptions {
             #[cfg(unix)]
             entry_tun,
             #[cfg(unix)]
             exit_tun,
             #[cfg(windows)]
-            &entry_tun_name,
+            entry_tun_name,
             #[cfg(windows)]
-            &exit_tun_name,
-            self.tunnel_settings.dns.ip_addresses().to_vec(),
-        )?;
+            exit_tun_name,
+            dns: self.tunnel_settings.dns.ip_addresses().to_vec(),
+        });
+
+        let tunnel_handle = connected_tunnel.run(tunnel_options)?;
 
         let any_tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
 

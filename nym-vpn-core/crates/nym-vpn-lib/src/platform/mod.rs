@@ -35,7 +35,7 @@ use crate::{
     tunnel_state_machine::{
         BandwidthEvent, ConnectionEvent, DnsOptions, GatewayPerformanceOptions,
         MixnetTunnelOptions, NymConfig, TunnelCommand, TunnelEvent, TunnelSettings, TunnelState,
-        TunnelStateMachine, TunnelType,
+        TunnelStateMachine, TunnelType, WireguardTunnelOptions,
     },
     uniffi_custom_impls::{
         AccountStateSummary, BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint,
@@ -324,6 +324,7 @@ async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, Vp
         tunnel_type,
         enable_credentials_mode: false,
         mixnet_tunnel_options: MixnetTunnelOptions::default(),
+        wireguard_tunnel_options: WireguardTunnelOptions::default(),
         gateway_performance_options: GatewayPerformanceOptions::default(),
         mixnet_client_config: None,
         entry_point: Box::new(entry_point),

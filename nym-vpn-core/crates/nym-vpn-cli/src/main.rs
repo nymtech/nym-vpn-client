@@ -18,7 +18,8 @@ use nym_vpn_lib::{
     nym_config::defaults::{setup_env, var_names},
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
-        TunnelEvent, TunnelSettings, TunnelStateMachine, TunnelType,
+        TunnelEvent, TunnelSettings, TunnelStateMachine, TunnelType, WireguardMultihopMode,
+        WireguardTunnelOptions,
     },
     IpPair, MixnetClientConfig, NodeIdentity, Recipient,
 };
@@ -212,12 +213,21 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> anyhow:
         gateway_config,
     };
 
+    let wireguard_tunnel_options = WireguardTunnelOptions {
+        multihop_mode: if args.netstack {
+            WireguardMultihopMode::Netstack
+        } else {
+            WireguardMultihopMode::TunTun
+        },
+    };
+
     let tunnel_settings = TunnelSettings {
         tunnel_type,
         enable_credentials_mode: args.enable_credentials_mode,
         mixnet_client_config: Some(mixnet_client_config),
         gateway_performance_options: GatewayPerformanceOptions::default(),
         mixnet_tunnel_options,
+        wireguard_tunnel_options,
         entry_point: Box::new(entry_point),
         exit_point: Box::new(exit_point),
         dns,

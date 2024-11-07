@@ -9,7 +9,6 @@ use nym_wg_gateway_client::GatewayData;
 use nym_wg_go::PeerEndpointUpdate;
 use nym_wg_go::{wireguard_go, PeerConfig, PrivateKey, PublicKey};
 
-#[cfg(any(target_os = "ios", target_os = "android"))]
 use nym_wg_go::netstack;
 
 #[derive(Debug)]
@@ -76,7 +75,6 @@ impl WgPeer {
 }
 
 impl WgNodeConfig {
-    #[cfg(any(target_os = "ios", target_os = "android"))]
     pub fn into_netstack_config(self) -> netstack::Config {
         netstack::Config {
             interface: netstack::InterfaceConfig {

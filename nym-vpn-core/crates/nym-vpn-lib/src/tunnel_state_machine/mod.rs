@@ -78,6 +78,9 @@ pub struct TunnelSettings {
     /// Mixnet tunnel options.
     pub mixnet_tunnel_options: MixnetTunnelOptions,
 
+    /// WireGuard tunnel options.
+    pub wireguard_tunnel_options: WireguardTunnelOptions,
+
     /// Overrides gateway config.
     pub gateway_performance_options: GatewayPerformanceOptions,
 
@@ -110,6 +113,35 @@ pub struct MixnetTunnelOptions {
     pub mtu: Option<u16>,
 }
 
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub enum WireguardMultihopMode {
+    /// Multihop using two tun devices to nest tunnels.
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    TunTun,
+
+    /// Netstack based multihop.
+    Netstack,
+}
+
+impl Default for WireguardMultihopMode {
+    fn default() -> Self {
+        #[cfg(any(target_os = "ios", target_os = "android"))]
+        {
+            Self::Netstack
+        }
+
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        {
+            Self::TunTun
+        }
+    }
+}
+
+#[derive(Debug, Default, Clone, Eq, PartialEq)]
+pub struct WireguardTunnelOptions {
+    pub multihop_mode: WireguardMultihopMode,
+}
+
 #[derive(Debug, Default, Clone, Eq, PartialEq)]
 pub enum DnsOptions {
     #[default]
@@ -133,6 +165,7 @@ impl Default for TunnelSettings {
             enable_credentials_mode: false,
             mixnet_tunnel_options: MixnetTunnelOptions::default(),
             mixnet_client_config: None,
+            wireguard_tunnel_options: WireguardTunnelOptions::default(),
             gateway_performance_options: GatewayPerformanceOptions::default(),
             entry_point: Box::new(EntryPoint::Random),
             exit_point: Box::new(ExitPoint::Random),

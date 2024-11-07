@@ -343,6 +343,7 @@ impl GrpcClient {
         entry_node: EntryNode,
         exit_node: ExitNode,
         two_hop_mod: bool,
+        netstack: bool,
         dns: Option<Dns>,
     ) -> Result<(), VpndError> {
         debug!("vpn_connect");
@@ -353,6 +354,7 @@ impl GrpcClient {
             exit: Some(exit_node),
             disable_routing: false,
             enable_two_hop: two_hop_mod,
+            netstack,
             disable_poisson_rate: false,
             disable_background_cover_traffic: false,
             enable_credentials_mode: false,
