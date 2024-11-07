@@ -30,10 +30,6 @@
   },
   "display-theme": "Modo de visualização",
   "login-button": "Entrar",
-  "entry-selector": {
-    "title": "Seletor de local de entrada",
-    "desc": "Selecione manualmente seu salto de entrada"
-  },
   "monitoring-alert": "Você deve reiniciar o aplicativo para que a alteração tenha efeito.",
   "faq": "Perguntas frequentes",
   "quit": "Sair da NymVPN",
@@ -48,5 +44,9 @@
     "daemon-version": "Versão do Daemon",
     "network-name": "Rede",
     "client-version": "Versão do cliente"
+  },
+  "logout-confirmation": {
+    "description": "Você precisará da frase de recuperação para fazer login novamente.",
+    "title": "Você tem certeza?"
   }
 }

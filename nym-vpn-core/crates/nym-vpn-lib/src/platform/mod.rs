@@ -1,6 +1,6 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
-#![cfg_attr(not(target_os = "macos"), allow(dead_code))]
+// #![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 
 #[cfg(target_os = "android")]
 pub mod android;
@@ -8,8 +8,11 @@ pub(crate) mod error;
 #[cfg(any(target_os = "ios", target_os = "macos"))]
 pub mod swift;
 
-use std::{env, path::PathBuf, str::FromStr, sync::Arc};
+mod account;
 
+use std::{env, path::PathBuf, sync::Arc, time::Duration};
+
+use account::AccountControllerHandle;
 use lazy_static::lazy_static;
 use log::*;
 use tokio::{
@@ -21,8 +24,6 @@ use tokio_util::sync::CancellationToken;
 use url::Url;
 
 use nym_gateway_directory::Config as GatewayDirectoryConfig;
-use nym_vpn_api_client::types::VpnApiAccount;
-use nym_vpn_store::mnemonic::MnemonicStorage as _;
 
 use self::error::VpnError;
 #[cfg(target_os = "android")]
@@ -37,14 +38,15 @@ use crate::{
         TunnelStateMachine, TunnelType,
     },
     uniffi_custom_impls::{
-        BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, GatewayMinPerformance,
-        GatewayType, Location, NetworkEnvironment, TunStatus, UserAgent,
+        AccountStateSummary, BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint,
+        GatewayMinPerformance, GatewayType, Location, NetworkEnvironment, TunStatus, UserAgent,
     },
 };
 
 lazy_static! {
     static ref RUNTIME: Runtime = Runtime::new().unwrap();
     static ref STATE_MACHINE_HANDLE: Mutex<Option<StateMachineHandle>> = Mutex::new(None);
+    static ref ACCOUNT_CONTROLLER_HANDLE: Mutex<Option<AccountControllerHandle>> = Mutex::new(None);
 }
 
 #[allow(non_snake_case)]
@@ -54,6 +56,13 @@ pub fn startVPN(config: VPNConfig) -> Result<(), VpnError> {
 }
 
 async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
+    // TODO: we do a pre-connect check here. This mirrors the logic in the daemon.
+    // We want to move this check into the state machine so that it happens during the connecting
+    // state instead. This would allow us more flexibility in waiting for the account to be ready
+    // and handle errors in a unified manner.
+    let timeout = Duration::from_secs(10);
+    account::assert_account_ready_to_connect(timeout).await?;
+
     let mut guard = STATE_MACHINE_HANDLE.lock().await;
 
     if guard.is_none() {
@@ -79,6 +88,7 @@ async fn stop_vpn_inner() -> Result<(), VpnError> {
 
     match guard.take() {
         Some(state_machine_handle) => {
+            // TODO: add timeout
             state_machine_handle.shutdown_and_wait().await;
             Ok(())
         }
@@ -86,6 +96,20 @@ async fn stop_vpn_inner() -> Result<(), VpnError> {
             details: "State machine is not running.".to_owned(),
         }),
     }
+}
+
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn startAccountController(data_dir: String) -> Result<(), VpnError> {
+    RUNTIME.block_on(account::start_account_controller_inner(PathBuf::from(
+        data_dir,
+    )))
+}
+
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn stopAccountController() -> Result<(), VpnError> {
+    RUNTIME.block_on(account::stop_account_controller_inner())
 }
 
 #[allow(non_snake_case)]
@@ -115,108 +139,40 @@ async fn fetch_environment(network_name: &str) -> Result<NetworkEnvironment, Vpn
         })
 }
 
-fn setup_account_storage(path: &str) -> Result<crate::storage::VpnClientOnDiskStorage, VpnError> {
-    let path = PathBuf::from_str(path).map_err(|err| VpnError::InternalError {
-        details: err.to_string(),
-    })?;
-    Ok(crate::storage::VpnClientOnDiskStorage::new(path))
-}
-
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn storeAccountMnemonic(mnemonic: String, path: String) -> Result<(), VpnError> {
-    RUNTIME.block_on(store_account_mnemonic(&mnemonic, &path))
-}
-
-async fn store_account_mnemonic(mnemonic: &str, path: &str) -> Result<(), VpnError> {
-    let storage = setup_account_storage(path)?;
-
-    let mnemonic = nym_vpn_store::mnemonic::Mnemonic::parse(mnemonic).map_err(|err| {
-        VpnError::InternalError {
-            details: err.to_string(),
-        }
-    })?;
-
-    storage
-        .store_mnemonic(mnemonic)
-        .await
-        .map_err(|err| VpnError::InternalError {
-            details: err.to_string(),
-        })?;
-
-    Ok(())
+    RUNTIME.block_on(account::store_account_mnemonic(&mnemonic, &path))
 }
 
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn isAccountMnemonicStored(path: String) -> Result<bool, VpnError> {
-    RUNTIME.block_on(is_account_mnemonic_stored(&path))
-}
-
-async fn is_account_mnemonic_stored(path: &str) -> Result<bool, VpnError> {
-    let storage = setup_account_storage(path)?;
-    storage
-        .is_mnemonic_stored()
-        .await
-        .map_err(|err| VpnError::InternalError {
-            details: err.to_string(),
-        })
+    RUNTIME.block_on(account::is_account_mnemonic_stored(&path))
 }
 
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn removeAccountMnemonic(path: String) -> Result<bool, VpnError> {
-    RUNTIME.block_on(remove_account_mnemonic(&path))
+    RUNTIME.block_on(account::remove_account_mnemonic(&path))
 }
 
-async fn remove_account_mnemonic(path: &str) -> Result<bool, VpnError> {
-    let storage = setup_account_storage(path)?;
-    storage
-        .remove_mnemonic()
-        .await
-        .map(|_| true)
-        .map_err(|err| VpnError::InternalError {
-            details: err.to_string(),
-        })
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn resetDeviceIdentity(path: String) -> Result<(), VpnError> {
+    RUNTIME.block_on(account::reset_device_identity(&path))
 }
 
-#[allow(non_snake_case, dead_code)]
-pub fn getAccountSummary(
-    path: String,
-    nym_vpn_api_url: Url,
-    user_agent: UserAgent,
-) -> Result<String, VpnError> {
-    RUNTIME.block_on(get_account_summary(path, nym_vpn_api_url, user_agent))
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn updateAccountState() -> Result<(), VpnError> {
+    RUNTIME.block_on(account::update_account_state())
 }
 
-#[allow(dead_code)]
-async fn get_account_summary(
-    path: String,
-    nym_vpn_api_url: Url,
-    user_agent: UserAgent,
-) -> Result<String, VpnError> {
-    let storage = setup_account_storage(&path)?;
-    let account = storage
-        .load_mnemonic()
-        .await
-        .map(VpnApiAccount::from)
-        .map_err(|err| VpnError::InternalError {
-            details: err.to_string(),
-        })?;
-
-    let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent.into())?;
-
-    api_client
-        .get_account_summary(&account)
-        .await
-        .map_err(|err| VpnError::InternalError {
-            details: err.to_string(),
-        })
-        .and_then(|summary| {
-            serde_json::to_string(&summary).map_err(|err| VpnError::InternalError {
-                details: err.to_string(),
-            })
-        })
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn getAccountState() -> Result<AccountStateSummary, VpnError> {
+    RUNTIME.block_on(account::get_account_state())
 }
 
 #[allow(non_snake_case)]
@@ -270,25 +226,21 @@ pub fn getLowLatencyEntryCountry(
     RUNTIME.block_on(get_low_latency_entry_country(
         api_url,
         vpn_api_url,
-        Some(user_agent),
+        user_agent,
     ))
 }
 
 async fn get_low_latency_entry_country(
     api_url: Url,
     vpn_api_url: Option<Url>,
-    user_agent: Option<UserAgent>,
+    user_agent: UserAgent,
 ) -> Result<Location, VpnError> {
     let config = nym_gateway_directory::Config {
         api_url,
         nym_vpn_api_url: vpn_api_url,
         min_gateway_performance: None,
     };
-    let user_agent = user_agent
-        .map(nym_sdk::UserAgent::from)
-        .unwrap_or_else(crate::util::construct_user_agent);
-
-    GatewayClient::new(config, user_agent)?
+    GatewayClient::new(config, user_agent.into())?
         .lookup_low_latency_entry_gateway()
         .await
         .map_err(VpnError::from)
@@ -415,7 +367,7 @@ impl From<&TunnelState> for TunStatus {
     fn from(value: &TunnelState) -> Self {
         // TODO: this cannot be accurate so we must switch frontends to use TunnelState instead! But for now that will do.
         match value {
-            TunnelState::Connecting => Self::EstablishingConnection,
+            TunnelState::Connecting { .. } => Self::EstablishingConnection,
             TunnelState::Connected { .. } => Self::Up,
             TunnelState::Disconnecting { .. } => Self::Disconnecting,
             TunnelState::Disconnected => Self::Down,

@@ -115,18 +115,24 @@ where
         data_dir: PathBuf,
         user_agent: UserAgent,
         cancel_token: CancellationToken,
-    ) -> Self {
+    ) -> Result<Self, Error> {
         let account_storage = AccountStorage::from(storage);
 
-        // TODO: remove unwraps.
-        let storage_paths = nym_sdk::mixnet::StoragePaths::new_from_dir(data_dir).unwrap();
+        // Generate the device keys if we don't already have them
+        account_storage.init_keys().await?;
+
+        let storage_paths =
+            nym_sdk::mixnet::StoragePaths::new_from_dir(data_dir).map_err(Error::StoragePaths)?;
         let credential_storage = VpnCredentialStorage {
-            storage: storage_paths.persistent_credential_storage().await.unwrap(),
+            storage: storage_paths
+                .persistent_credential_storage()
+                .await
+                .map_err(Error::SetupCredentialStorage)?,
         };
 
         let (command_tx, command_rx) = tokio::sync::mpsc::unbounded_channel();
 
-        AccountController {
+        Ok(AccountController {
             account_storage,
             credential_storage,
             vpn_api_client: create_api_client(user_agent),
@@ -140,7 +146,7 @@ where
             command_rx,
             command_tx,
             cancel_token,
-        }
+        })
     }
 
     async fn register_device(&self) -> Result<(), Error> {

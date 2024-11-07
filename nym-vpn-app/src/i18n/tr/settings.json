@@ -30,10 +30,6 @@
     "licenses-js": "Lisanslar (JS)",
     "emptyData": "Lisans verisi bulunmamaktadır"
   },
-  "entry-selector": {
-    "title": "Entry konumu seçici",
-    "desc": "Entry'i hop'unu manuel olarak seçin"
-  },
   "monitoring-alert": "Değişikliğin etkili olması için uygulamayı yeniden başlatmalısınız.",
   "faq": "SSS",
   "quit": "NymVPN'yi kapat",
@@ -48,5 +44,9 @@
     "daemon-version": "Daemon sürümü",
     "client-version": "İstemci sürümü",
     "network-name": "Ağ"
+  },
+  "logout-confirmation": {
+    "title": "Emin misiniz?",
+    "description": "Tekrar giriş yapmak için kurtarma ifadenize ihtiyacınız olacak."
   }
 }

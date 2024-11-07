@@ -30,10 +30,6 @@
   },
   "display-theme": "Apparence",
   "login-button": "Ajoutez un identifiant pour vous connecter",
-  "entry-selector": {
-    "title": "Sélecteur d'emplacement d'entrée",
-    "desc": "Choix manuel du nœud d'entrée"
-  },
   "monitoring-alert": "Redémarrez l'application pour que le changement s'applique.",
   "faq": "F.A.Q.",
   "quit": "Quitter NymVPN",

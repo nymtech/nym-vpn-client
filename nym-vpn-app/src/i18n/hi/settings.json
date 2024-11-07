@@ -33,10 +33,6 @@
     "title": "लॉग्स",
     "desc": "लॉग्स कॉपी करें या मिटाएं"
   },
-  "entry-selector": {
-    "title": "प्रवेश स्थान चयनकर्ता",
-    "desc": "प्रवेश स्थान का चयन ख़ुद करें"
-  },
   "info": {
     "client-version": "क्लाइंट वर्शन",
     "daemon-version": "Daemon वर्शन",

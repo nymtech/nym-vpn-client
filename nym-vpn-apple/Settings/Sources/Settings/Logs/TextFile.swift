@@ -6,8 +6,8 @@ struct TextFile: FileDocument {
 
     var text = ""
 
-    init(initialText: String = "") {
-        text = initialText
+    init(lineArrray: [String]) {
+        text = lineArrray.joined(separator: "\n")
     }
 
     init(configuration: ReadConfiguration) throws {

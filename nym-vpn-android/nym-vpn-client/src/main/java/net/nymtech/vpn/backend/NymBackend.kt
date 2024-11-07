@@ -22,6 +22,7 @@ import net.nymtech.vpn.util.LifecycleVpnService
 import net.nymtech.vpn.util.NotificationManager
 import net.nymtech.vpn.util.SingletonHolder
 import net.nymtech.vpn.util.addRoutes
+import nym_vpn_lib.AccountStateSummary
 import nym_vpn_lib.AndroidTunProvider
 import nym_vpn_lib.BandwidthEvent
 import nym_vpn_lib.MixnetEvent
@@ -34,7 +35,9 @@ import nym_vpn_lib.VpnException
 import nym_vpn_lib.initLogger
 import nym_vpn_lib.isAccountMnemonicStored
 import nym_vpn_lib.removeAccountMnemonic
+import nym_vpn_lib.startAccountController
 import nym_vpn_lib.startVpn
+import nym_vpn_lib.stopAccountController
 import nym_vpn_lib.stopVpn
 import nym_vpn_lib.storeAccountMnemonic
 import timber.log.Timber
@@ -76,6 +79,16 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	@get:Synchronized @set:Synchronized
 	private var state: Tunnel.State = Tunnel.State.Down
+
+	@Throws(VpnException::class)
+	override suspend fun getAccountSummary(): AccountStateSummary {
+		startAccountController(storagePath)
+		return try {
+			nym_vpn_lib.getAccountSummary()
+		} finally {
+			stopAccountController()
+		}
+	}
 
 	@Throws(VpnException::class)
 	override suspend fun storeMnemonic(mnemonic: String) {

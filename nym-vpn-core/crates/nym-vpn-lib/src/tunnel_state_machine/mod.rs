@@ -12,6 +12,7 @@ mod states;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 mod tun_ipv6;
 pub mod tunnel;
+mod tunnel_monitor;
 
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use std::sync::Arc;
@@ -33,13 +34,13 @@ use nym_wg_gateway_client::GatewayData;
 use nym_wg_go::PublicKey;
 
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-use dns_handler::DnsHandler;
+use dns_handler::DnsHandlerHandle;
 //use firewall_handler::FirewallHandler;
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::ios::OSTunProvider;
-use crate::MixnetClientConfig;
+use crate::{GatewayDirectoryError, MixnetClientConfig};
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use route_handler::RouteHandler;
 use states::DisconnectedState;
@@ -55,7 +56,7 @@ trait TunnelStateHandler: Send {
 }
 
 enum NextTunnelState {
-    NewState((Box<dyn TunnelStateHandler>, TunnelState)),
+    NewState((Box<dyn TunnelStateHandler>, PrivateTunnelState)),
     SameState(Box<dyn TunnelStateHandler>),
     Finished,
 }
@@ -152,7 +153,7 @@ pub enum TunnelCommand {
     SetTunnelSettings(TunnelSettings),
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, uniffi::Record)]
+#[derive(Clone, Eq, PartialEq, uniffi::Record)]
 pub struct ConnectionData {
     /// Mixnet entry gateway
     pub entry_gateway: Box<NodeIdentity>,
@@ -161,10 +162,22 @@ pub struct ConnectionData {
     pub exit_gateway: Box<NodeIdentity>,
 
     /// When the tunnel was last established.
-    pub connected_at: OffsetDateTime,
+    /// Set once the tunnel is connected.
+    pub connected_at: Option<OffsetDateTime>,
 
     /// Tunnel connection data.
     pub tunnel: TunnelConnectionData,
+}
+
+impl fmt::Debug for ConnectionData {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ConnectionData")
+            .field("entry_gateway", &self.entry_gateway.to_base58_string())
+            .field("exit_gateway", &self.exit_gateway.to_base58_string())
+            .field("connected_at", &self.connected_at)
+            .field("tunnel", &self.tunnel)
+            .finish()
+    }
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, uniffi::Enum)]
@@ -206,10 +219,13 @@ pub struct WireguardConnectionData {
     pub exit: WireguardNode,
 }
 
+/// Public enum describing the tunnel state
 #[derive(Debug, Clone, Eq, PartialEq, uniffi::Enum)]
 pub enum TunnelState {
     Disconnected,
-    Connecting,
+    Connecting {
+        connection_data: Option<ConnectionData>,
+    },
     Connected {
         connection_data: ConnectionData,
     },
@@ -219,10 +235,73 @@ pub enum TunnelState {
     Error(ErrorStateReason),
 }
 
+impl From<PrivateTunnelState> for TunnelState {
+    fn from(value: PrivateTunnelState) -> Self {
+        match value {
+            PrivateTunnelState::Disconnected => Self::Disconnected,
+            PrivateTunnelState::Connected { connection_data } => {
+                Self::Connected { connection_data }
+            }
+            PrivateTunnelState::Connecting { connection_data } => {
+                Self::Connecting { connection_data }
+            }
+            PrivateTunnelState::Disconnecting { after_disconnect } => Self::Disconnecting {
+                after_disconnect: ActionAfterDisconnect::from(after_disconnect),
+            },
+            PrivateTunnelState::Error(reason) => Self::Error(reason),
+        }
+    }
+}
+
+/// Private enum describing the tunnel state
+#[derive(Debug, Clone)]
+enum PrivateTunnelState {
+    Disconnected,
+    Connecting {
+        connection_data: Option<ConnectionData>,
+    },
+    Connected {
+        connection_data: ConnectionData,
+    },
+    Disconnecting {
+        after_disconnect: PrivateActionAfterDisconnect,
+    },
+    Error(ErrorStateReason),
+}
+
+/// Public enum describing action to perform after disconnect
 #[derive(Debug, Clone, Copy, Eq, PartialEq, uniffi::Enum)]
 pub enum ActionAfterDisconnect {
+    /// Do nothing after disconnect
     Nothing,
+
+    /// Reconnect after disconnect
     Reconnect,
+
+    /// Enter error state
+    Error,
+}
+
+impl From<PrivateActionAfterDisconnect> for ActionAfterDisconnect {
+    fn from(value: PrivateActionAfterDisconnect) -> Self {
+        match value {
+            PrivateActionAfterDisconnect::Error(_) => Self::Error,
+            PrivateActionAfterDisconnect::Nothing => Self::Nothing,
+            PrivateActionAfterDisconnect::Reconnect { .. } => Self::Reconnect,
+        }
+    }
+}
+
+/// Private enum describing action to perform after disconnect
+#[derive(Debug, Clone)]
+enum PrivateActionAfterDisconnect {
+    /// Do nothing after disconnect
+    Nothing,
+
+    /// Reconnect after disconnect, providing the retry attempt counter
+    Reconnect { retry_attempt: u32 },
+
+    /// Enter error state
     Error(ErrorStateReason),
 }
 
@@ -243,14 +322,14 @@ pub enum ErrorStateReason {
     /// Failure to configure packet tunnel provider.
     TunnelProvider,
 
-    /// Failure to establish mixnet connection.
-    EstablishMixnetConnection,
+    /// Same entry and exit gateway are unsupported.
+    SameEntryAndExitGateway,
 
-    /// Failure to establish wireguard connection.
-    EstablishWireguardConnection,
+    /// Invalid country set for entry gateway
+    InvalidEntryGatewayCountry,
 
-    /// Tunnel went down at runtime.
-    TunnelDown,
+    /// Invalid country set for exit gateway
+    InvalidExitGatewayCountry,
 
     /// Program errors that must not happen.
     Internal,
@@ -260,6 +339,15 @@ pub enum ErrorStateReason {
 pub enum TunnelEvent {
     NewState(TunnelState),
     MixnetState(MixnetEvent),
+}
+
+impl fmt::Display for TunnelEvent {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::NewState(new_state) => new_state.fmt(f),
+            Self::MixnetState(event) => event.fmt(f),
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone, uniffi::Enum)]
@@ -291,7 +379,7 @@ pub struct SharedState {
     route_handler: RouteHandler,
     //firewall_handler: FirewallHandler,
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-    dns_handler: DnsHandler,
+    dns_handler: DnsHandlerHandle,
     nym_config: NymConfig,
     tunnel_settings: TunnelSettings,
     status_listener_handle: Option<JoinHandle<()>>,
@@ -313,6 +401,8 @@ pub struct TunnelStateMachine {
     command_receiver: mpsc::UnboundedReceiver<TunnelCommand>,
     event_sender: mpsc::UnboundedSender<TunnelEvent>,
     mixnet_event_receiver: mpsc::UnboundedReceiver<MixnetEvent>,
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    dns_handler_task: JoinHandle<()>,
     shutdown_token: CancellationToken,
 }
 
@@ -333,11 +423,11 @@ impl TunnelStateMachine {
             .await
             .map_err(Error::CreateRouteHandler)?;
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-        let dns_handler = DnsHandler::new(
+        let (dns_handler, dns_handler_task) = DnsHandlerHandle::spawn(
             #[cfg(target_os = "linux")]
             &route_handler,
+            shutdown_token.child_token(),
         )
-        .await
         .map_err(Error::CreateDnsHandler)?;
         //let firewall_handler = FirewallHandler::new().map_err(Error::CreateFirewallHandler)?;
 
@@ -363,6 +453,8 @@ impl TunnelStateMachine {
             command_receiver,
             event_sender,
             mixnet_event_receiver,
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+            dns_handler_task,
             shutdown_token,
         };
 
@@ -394,8 +486,9 @@ impl TunnelStateMachine {
                 NextTunnelState::NewState((new_state_handler, new_state)) => {
                     self.current_state_handler = new_state_handler;
 
-                    tracing::debug!("New tunnel state: {}", new_state);
-                    let _ = self.event_sender.send(TunnelEvent::NewState(new_state));
+                    let state = TunnelState::from(new_state);
+                    tracing::debug!("New tunnel state: {}", state);
+                    let _ = self.event_sender.send(TunnelEvent::NewState(state));
                 }
                 NextTunnelState::SameState(same_state) => {
                     self.current_state_handler = same_state;
@@ -405,6 +498,11 @@ impl TunnelStateMachine {
         }
 
         tracing::debug!("Tunnel state machine is exiting...");
+
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        if let Err(e) = self.dns_handler_task.await {
+            tracing::error!("Failed to join on dns handler task: {}", e)
+        }
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         self.shared_state.route_handler.stop().await;
@@ -428,7 +526,7 @@ pub enum Error {
 
     #[cfg(target_os = "ios")]
     #[error("failed to locate tun device")]
-    LocateTunDevice(std::io::Error),
+    LocateTunDevice(#[source] std::io::Error),
 
     #[cfg(any(target_os = "ios", target_os = "android"))]
     #[error("failed to configure tunnel provider: {}", _0)]
@@ -458,22 +556,13 @@ pub enum Error {
     #[error("failed to set dns: {}", _0)]
     SetDns(#[source] dns_handler::Error),
 
-    #[error("failed to connect mixnet client: {}", _0)]
-    ConnectMixnetClient(#[source] tunnel::Error),
-
-    #[error("failed to connect mixnet tunnel: {}", _0)]
-    ConnectMixnetTunnel(#[source] tunnel::Error),
-
-    #[error("failed to connect wireguard tunnel: {}", _0)]
-    ConnectWireguardTunnel(#[source] tunnel::Error),
-
-    #[error("failed to run wireguard tunnel: {}", _0)]
-    RunWireguardTunnel(#[source] tunnel::Error),
+    #[error("tunnel error: {}", _0)]
+    Tunnel(#[from] tunnel::Error),
 }
 
 impl Error {
-    fn error_state_reason(&self) -> ErrorStateReason {
-        match self {
+    fn error_state_reason(&self) -> Option<ErrorStateReason> {
+        Some(match self {
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::CreateRouteHandler(_) | Self::AddRoutes(_) => ErrorStateReason::Routing,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -486,24 +575,42 @@ impl Error {
                 ErrorStateReason::TunDevice
             }
 
+            Self::Tunnel(e) => e.error_state_reason()?,
+
             #[cfg(any(target_os = "ios", target_os = "android"))]
             Self::ConfigureTunnelProvider(_) => ErrorStateReason::TunnelProvider,
 
             #[cfg(target_os = "ios")]
             Self::LocateTunDevice(_) => ErrorStateReason::TunDevice,
 
-            Self::ConnectWireguardTunnel(_) | Self::RunWireguardTunnel(_) => {
-                // todo: add detail
-                ErrorStateReason::EstablishWireguardConnection
-            }
-            Self::ConnectMixnetTunnel(_) | Self::ConnectMixnetClient(_) => {
-                // todo: add detail
-                ErrorStateReason::EstablishMixnetConnection
-            }
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::GetRouteHandle(_) => ErrorStateReason::Internal,
+
             #[cfg(target_os = "linux")]
             Self::GetDefaultInterface(_) => ErrorStateReason::Internal,
+        })
+    }
+}
+
+impl tunnel::Error {
+    fn error_state_reason(&self) -> Option<ErrorStateReason> {
+        match self {
+            Self::SelectGateways(e) => match e {
+                GatewayDirectoryError::SameEntryAndExitGatewayFromCountry { .. } => {
+                    Some(ErrorStateReason::SameEntryAndExitGateway)
+                }
+
+                GatewayDirectoryError::FailedToSelectEntryGateway {
+                    source: nym_gateway_directory::Error::NoMatchingEntryGatewayForLocation { .. },
+                } => Some(ErrorStateReason::InvalidEntryGatewayCountry),
+
+                GatewayDirectoryError::FailedToSelectExitGateway {
+                    source: nym_gateway_directory::Error::NoMatchingExitGatewayForLocation { .. },
+                } => Some(ErrorStateReason::InvalidExitGatewayCountry),
+
+                _ => None,
+            },
+            _ => None,
         }
     }
 }
@@ -514,7 +621,26 @@ impl fmt::Display for TunnelState {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Disconnected => f.write_str("Disconnected"),
-            Self::Connecting => f.write_str("Connecting"),
+            Self::Connecting { connection_data } => match connection_data {
+                Some(data) => match data.tunnel {
+                    TunnelConnectionData::Mixnet(ref data) => {
+                        write!(
+                            f,
+                            "Connecting Mixnet tunnel with entry {} and exit {}",
+                            data.nym_address.gateway().to_base58_string(),
+                            data.exit_ipr.gateway().to_base58_string(),
+                        )
+                    }
+                    TunnelConnectionData::Wireguard(ref data) => {
+                        write!(
+                            f,
+                            "Connecting WireGuard tunnel with entry {} and exit {}",
+                            data.entry.endpoint, data.exit.endpoint
+                        )
+                    }
+                },
+                None => f.write_str("Connecting"),
+            },
             Self::Connected { connection_data } => match connection_data.tunnel {
                 TunnelConnectionData::Mixnet(ref data) => {
                     write!(
@@ -535,7 +661,7 @@ impl fmt::Display for TunnelState {
             Self::Disconnecting { after_disconnect } => match after_disconnect {
                 ActionAfterDisconnect::Nothing => f.write_str("Disconnecting"),
                 ActionAfterDisconnect::Reconnect => f.write_str("Disconnecting to reconnect"),
-                ActionAfterDisconnect::Error(_) => f.write_str("Disconnecting because of an error"),
+                ActionAfterDisconnect::Error => f.write_str("Disconnecting because of an error"),
             },
             Self::Error(reason) => {
                 write!(f, "Error state: {:?}", reason)

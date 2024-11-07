@@ -24,6 +24,21 @@ pub async fn add_account(
 
 #[instrument(skip_all)]
 #[tauri::command]
+pub async fn delete_account(grpc: State<'_, GrpcClient>) -> Result<(), BackendError> {
+    debug!("delete_account");
+    grpc.remove_account()
+        .await
+        .map_err(|e| {
+            error!("failed to remove account: {}", e);
+            e.into()
+        })
+        .inspect(|_| {
+            info!("account removed successfully");
+        })
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
 pub async fn is_account_stored(grpc: State<'_, GrpcClient>) -> Result<bool, BackendError> {
     debug!("is_account_stored");
 

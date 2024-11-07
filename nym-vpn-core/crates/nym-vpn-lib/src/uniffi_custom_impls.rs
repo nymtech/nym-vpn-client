@@ -623,3 +623,120 @@ impl UniffiCustomTypeConverter for PathBuf {
         obj.display().to_string()
     }
 }
+
+#[derive(uniffi::Record, Clone, Default, PartialEq)]
+pub struct AccountStateSummary {
+    pub mnemonic: Option<MnemonicState>,
+    pub account: Option<AccountState>,
+    pub subscription: Option<SubscriptionState>,
+    pub device: Option<DeviceState>,
+    pub pending_zk_nym: bool,
+}
+
+impl From<nym_vpn_account_controller::AccountStateSummary> for AccountStateSummary {
+    fn from(value: nym_vpn_account_controller::AccountStateSummary) -> Self {
+        AccountStateSummary {
+            mnemonic: value.mnemonic.map(|m| m.into()),
+            account: value.account.map(|a| a.into()),
+            subscription: value.subscription.map(|s| s.into()),
+            device: value.device.map(|d| d.into()),
+            pending_zk_nym: value.pending_zk_nym,
+        }
+    }
+}
+
+#[derive(uniffi::Enum, Debug, Clone, PartialEq)]
+pub enum MnemonicState {
+    NotStored,
+    Stored,
+}
+
+impl From<nym_vpn_account_controller::shared_state::MnemonicState> for MnemonicState {
+    fn from(value: nym_vpn_account_controller::shared_state::MnemonicState) -> Self {
+        match value {
+            nym_vpn_account_controller::shared_state::MnemonicState::NotStored => {
+                MnemonicState::NotStored
+            }
+            nym_vpn_account_controller::shared_state::MnemonicState::Stored => {
+                MnemonicState::Stored
+            }
+        }
+    }
+}
+
+#[derive(uniffi::Enum, Debug, Clone, PartialEq)]
+pub enum AccountState {
+    NotRegistered,
+    Inactive,
+    Active,
+    DeleteMe,
+}
+
+impl From<nym_vpn_account_controller::shared_state::AccountState> for AccountState {
+    fn from(value: nym_vpn_account_controller::shared_state::AccountState) -> Self {
+        match value {
+            nym_vpn_account_controller::shared_state::AccountState::NotRegistered => {
+                AccountState::NotRegistered
+            }
+            nym_vpn_account_controller::shared_state::AccountState::Inactive => {
+                AccountState::Inactive
+            }
+            nym_vpn_account_controller::shared_state::AccountState::Active => AccountState::Active,
+            nym_vpn_account_controller::shared_state::AccountState::DeleteMe => {
+                AccountState::DeleteMe
+            }
+        }
+    }
+}
+
+#[derive(uniffi::Enum, Debug, Clone, PartialEq)]
+pub enum SubscriptionState {
+    NotActive,
+    Pending,
+    Complete,
+    Active,
+}
+
+impl From<nym_vpn_account_controller::shared_state::SubscriptionState> for SubscriptionState {
+    fn from(value: nym_vpn_account_controller::shared_state::SubscriptionState) -> Self {
+        match value {
+            nym_vpn_account_controller::shared_state::SubscriptionState::NotActive => {
+                SubscriptionState::NotActive
+            }
+            nym_vpn_account_controller::shared_state::SubscriptionState::Pending => {
+                SubscriptionState::Pending
+            }
+            nym_vpn_account_controller::shared_state::SubscriptionState::Complete => {
+                SubscriptionState::Complete
+            }
+            nym_vpn_account_controller::shared_state::SubscriptionState::Active => {
+                SubscriptionState::Active
+            }
+        }
+    }
+}
+
+#[derive(uniffi::Enum, Debug, Clone, PartialEq)]
+pub enum DeviceState {
+    NotRegistered,
+    Inactive,
+    Active,
+    DeleteMe,
+}
+
+impl From<nym_vpn_account_controller::shared_state::DeviceState> for DeviceState {
+    fn from(value: nym_vpn_account_controller::shared_state::DeviceState) -> Self {
+        match value {
+            nym_vpn_account_controller::shared_state::DeviceState::NotRegistered => {
+                DeviceState::NotRegistered
+            }
+            nym_vpn_account_controller::shared_state::DeviceState::Inactive => {
+                DeviceState::Inactive
+            }
+            nym_vpn_account_controller::shared_state::DeviceState::Active => DeviceState::Active,
+            nym_vpn_account_controller::shared_state::DeviceState::DeleteMe => {
+                DeviceState::DeleteMe
+            }
+        }
+    }
+}

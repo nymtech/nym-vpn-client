@@ -1,6 +1,12 @@
 name: build-nym-vpn-app-linux
 on:
   workflow_dispatch:
+    inputs:
+      dev_mode:
+        description: "dev build"
+        required: true
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       # set to true when it is a 'dev' build

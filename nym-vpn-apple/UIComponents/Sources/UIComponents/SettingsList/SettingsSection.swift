@@ -6,6 +6,7 @@ public enum SettingsSection: Hashable {
     case logs(viewModels: [SettingsListItemViewModel])
     case feedback(viewModels: [SettingsListItemViewModel])
     case legal(viewModels: [SettingsListItemViewModel])
+    case logout(viewModels: [SettingsListItemViewModel])
 
     var settingsViewModels: [SettingsListItemViewModel] {
         switch self {
@@ -13,7 +14,8 @@ public enum SettingsSection: Hashable {
             let .theme(viewModels),
             let .logs(viewModels),
             let .feedback(viewModels),
-            let .legal(viewModels):
+            let .legal(viewModels),
+            let .logout(viewModels):
             return viewModels
         }
     }

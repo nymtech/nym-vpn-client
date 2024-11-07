@@ -48,7 +48,6 @@ pub(crate) struct Jwt {
     jwt: String,
 }
 
-#[allow(unused)]
 impl Jwt {
     pub fn new_secp256k1(wallet: &DirectSecp256k1HdWallet) -> Jwt {
         let timestamp = std::time::UNIX_EPOCH.elapsed().unwrap().as_secs() as u128;

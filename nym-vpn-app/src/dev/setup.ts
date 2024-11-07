@@ -98,9 +98,6 @@ export function mockTauriIPC() {
         case 'WelcomeScreenSeen':
           res = true;
           break;
-        case 'UiShowEntrySelect':
-          res = true;
-          break;
         default:
           return null;
       }
@@ -116,11 +113,15 @@ export function mockTauriIPC() {
     }
 
     if (cmd === 'is_account_stored') {
-      return new Promise<boolean>((resolve) => resolve(false));
+      return new Promise<boolean>((resolve) => resolve(true));
     }
 
     // if (cmd === 'add_account') {
     //   return new Promise<boolean>((_, reject) => reject(new Error('nope')));
+    // }
+
+    // if (cmd === 'delete_account') {
+    //   return new Promise<boolean>((_, reject) => reject(new Error('oupsy')));
     // }
 
     if (cmd === 'daemon_info') {

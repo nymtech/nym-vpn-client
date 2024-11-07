@@ -31,25 +31,58 @@ public final class CredentialsManager {
         setup()
     }
 
-    public func add(credential: String) async throws {
-        let trimmedCredential = credential.trimmingCharacters(in: .whitespacesAndNewlines)
+    deinit {
+#if os(iOS)
         do {
+            try stopAccountController()
+        } catch {
+            print("Error stopping account controller: \(error)")
+        }
+#endif
+    }
+
+    public func add(credential: String) async throws {
+        Task {
+            let trimmedCredential = credential.trimmingCharacters(in: .whitespacesAndNewlines)
+            do {
+#if os(iOS)
+                let dataFolderURL = try dataFolderURL()
+
+                if !FileManager.default.fileExists(atPath: dataFolderURL.path()) {
+                    try FileManager.default.createDirectory(at: dataFolderURL, withIntermediateDirectories: true)
+                }
+                try storeAccountMnemonic(mnemonic: trimmedCredential, path: dataFolderURL.path())
+#endif
+
+#if os(macOS)
+                _ = try await helperManager.installHelperIfNeeded()
+                try grpcManager.storeAccount(with: trimmedCredential)
+#endif
+                checkCredentialImport()
+            } catch let error {
+                print("add credential : \(error)")
+                throw error
+            }
+        }
+    }
+
+    public func removeCredential() async throws {
+        do {
+            let removalResult: Bool
 #if os(iOS)
             let dataFolderURL = try dataFolderURL()
-
-            if !FileManager.default.fileExists(atPath: dataFolderURL.path()) {
-                try FileManager.default.createDirectory(at: dataFolderURL, withIntermediateDirectories: true)
-            }
-            try storeAccountMnemonic(mnemonic: trimmedCredential, path: dataFolderURL.path())
+            removalResult = try removeAccountMnemonic(path: dataFolderURL.path())
+            // TODO: remove tunnel as well
 #endif
+
 #if os(macOS)
             _ = try await helperManager.installHelperIfNeeded()
-            try grpcManager.storeAccount(with: trimmedCredential)
+            removalResult = try await grpcManager.removeAccount()
 #endif
-            Task { @MainActor in
-                appSettings.isCredentialImported = true
-            }
-        } catch let error {
+            checkCredentialImport()
+        } catch {
+            // TODO: need modal for alerts
+            print(" remove credential : \(error)")
             throw error
         }
     }
@@ -67,9 +100,11 @@ public final class CredentialsManager {
     }
 }
 
-extension CredentialsManager {
+private extension CredentialsManager {
     func setup() {
         setupGRPCManagerObservers()
+        setupAccountController()
+        checkCredentialImport()
     }
 
     func setupGRPCManagerObservers() {
@@ -86,5 +121,46 @@ extension CredentialsManager {
         }
         .store(in: &cancellables)
 #endif
+    }
+
+    func setupAccountController() {
+        Task {
+#if os(iOS)
+            do {
+                let dataFolderURL = try dataFolderURL()
+                try startAccountController(dataDir: dataFolderURL.path())
+            } catch {
+                print("Error starting account controller: \(error)")
+            }
+#endif
+        }
+    }
+}
+
+private extension CredentialsManager {
+    func checkCredentialImport() {
+        Task {
+            do {
+                let isImported: Bool
+#if os(iOS)
+                let dataFolderURL = try dataFolderURL()
+                isImported = try isAccountMnemonicStored(path: dataFolderURL.path())
+#endif
+
+#if os(macOS)
+                isImported = try await grpcManager.isAccountStored()
+#endif
+                updateIsCredentialImported(with: isImported)
+            } catch {
+                print("checkCredentialImport error: \(error)")
+                updateIsCredentialImported(with: false)
+            }
+        }
+    }
+
+    func updateIsCredentialImported(with value: Bool) {
+        Task { @MainActor in
+            appSettings.isCredentialImported = value
+        }
     }
 }

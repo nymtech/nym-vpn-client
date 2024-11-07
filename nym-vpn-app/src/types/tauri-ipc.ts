@@ -17,7 +17,6 @@ export type NetworkEnv = 'mainnet' | 'canary' | 'qa' | 'sandbox';
 export type DbKey =
   | 'Monitoring'
   | 'Autoconnect'
-  | 'UiShowEntrySelect'
   | 'UiTheme'
   | 'UiRootFontSize'
   | 'UiLanguage'
@@ -86,6 +85,7 @@ export type ErrorKey =
   | 'NoActiveSubscription'
   | 'DeviceNotRegistered'
   | 'DeviceNotActive'
+  | 'ReadyToConnectPending'
   | 'EntryGatewayNotRouting'
   | 'ExitRouterPingIpv4'
   | 'ExitRouterPingIpv6'

@@ -3,10 +3,6 @@
     "desc": "应用程序启动时自动连接",
     "title": "自动连接"
   },
-  "entry-selector": {
-    "title": "输入位置选择器",
-    "desc": "手动选择进入跳数"
-  },
   "error-monitoring": {
     "desc": "适用于应用程序重启",
     "title": "匿名错误报告"
@@ -36,7 +32,7 @@
     "discord": "加入Discord"
   },
   "display-theme": "显示模式",
-  "login-button": "添加凭证以连接",
+  "login-button": "登录",
   "notifications": {
     "title": "桌面通知"
   },

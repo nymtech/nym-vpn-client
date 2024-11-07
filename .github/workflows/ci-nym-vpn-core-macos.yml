@@ -24,7 +24,7 @@ jobs:
           rm -rf ./* || true
           rm -rf ./.??* || true
           ls -la ./
-      
+
       - name: Checkout repo
         uses: actions/checkout@v4
 

@@ -117,20 +117,12 @@ private extension CountriesManager {
     func setup() {
         loadCountryStore()
         loadPrebundledCountriesIfNecessary()
-        setupAppSettingsObservers()
         setupAutoUpdates()
         configureEnvironmentChange()
         fetchCountries()
 #if os(macOS)
         updateDaemonVersionIfNecessary()
 #endif
-    }
-
-    func setupAppSettingsObservers() {
-        appSettings.$isEntryLocationSelectionOnPublisher.sink { [weak self] _ in
-            self?.fetchCountries()
-        }
-        .store(in: &cancellables)
     }
 
     func setupAutoUpdates() {
@@ -285,6 +277,7 @@ private extension CountriesManager {
 
         Task { @MainActor in
             countryStore.vpnCountries = countries
+            vpnCountries = countries
         }
     }
 }
@@ -415,8 +408,10 @@ extension CountriesManager {
     }
 
     func fetchCountriesAfterDelay() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 15) { [weak self] in
-            self?.fetchEntryExitCountries()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 60) { [weak self] in
+            Task {
+                self?.fetchEntryExitCountries()
+            }
         }
     }
 }

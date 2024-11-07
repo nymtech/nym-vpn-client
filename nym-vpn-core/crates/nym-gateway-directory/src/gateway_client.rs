@@ -6,7 +6,9 @@ use std::{fmt, net::IpAddr};
 use nym_sdk::UserAgent;
 use nym_validator_client::{models::NymNodeDescription, nym_nodes::SkimmedNode, NymApiClient};
 use nym_vpn_api_client::types::{GatewayMinPerformance, Percent};
-use tracing::{debug, error, info};
+use rand::prelude::SliceRandom;
+use rand::thread_rng;
+use tracing::{debug, error, info, warn};
 use url::Url;
 
 use crate::{
@@ -15,7 +17,6 @@ use crate::{
         gateway::{Gateway, GatewayList, GatewayType},
     },
     error::Result,
-    helpers::try_resolve_hostname,
     Error,
 };
 
@@ -150,7 +151,7 @@ impl GatewayClient {
             .and_then(|min_performance| min_performance.vpn_min_performance)
     }
 
-    async fn lookup_described_gateways(&self) -> Result<Vec<NymNodeDescription>> {
+    async fn lookup_described_nodes(&self) -> Result<Vec<NymNodeDescription>> {
         info!("Fetching all described nodes from nym-api...");
         self.api_client
             .get_all_described_nodes()
@@ -172,15 +173,23 @@ impl GatewayClient {
         gateways.random_low_latency_gateway().await
     }
 
-    pub async fn lookup_gateway_ip(&self, gateway_identity: &str) -> Result<IpAddr> {
-        let ip_or_hostname = self
+    pub async fn lookup_gateway_ip_from_nym_api(&self, gateway_identity: &str) -> Result<IpAddr> {
+        info!("Fetching gateway ip from nym-api...");
+        let mut ips = self
             .api_client
-            .get_cached_gateways()
+            .get_all_described_nodes()
             .await?
             .iter()
-            .find_map(|gateway_bond| {
-                if gateway_bond.identity() == gateway_identity {
-                    Some(gateway_bond.gateway().host.clone())
+            .find_map(|node| {
+                if node
+                    .description
+                    .host_information
+                    .keys
+                    .ed25519
+                    .to_base58_string()
+                    == gateway_identity
+                {
+                    Some(node.description.host_information.ip_address.clone())
                 } else {
                     None
                 }
@@ -189,22 +198,34 @@ impl GatewayClient {
                 gateway_identity.to_string(),
             ))?;
 
-        // If it's a plain IP
-        if let Ok(ip) = ip_or_hostname.parse::<IpAddr>() {
-            return Ok(ip);
+        if ips.is_empty() {
+            // nym-api should forbid this from ever happening, but we don't want to accidentally panic
+            // if this assumption fails
+            warn!("somehow {gateway_identity} hasn't provided any ip addresses!");
+            return Err(Error::RequestedGatewayIdNotFound(
+                gateway_identity.to_string(),
+            ));
         }
 
-        // If it's not an IP, try to resolve it as a hostname
-        let ip = try_resolve_hostname(&ip_or_hostname).await?;
-        info!("Resolved {ip_or_hostname} to {ip}");
-        Ok(ip)
+        info!("found the following ips for {gateway_identity}: {ips:?}");
+        if ips.len() == 1 {
+            // SAFETY: the vector is not empty, so unwrap is fine
+            Ok(ips.pop().unwrap())
+        } else {
+            // chose a random one if there's more than one
+            // SAFETY: the vector is not empty, so unwrap is fine
+            let mut rng = thread_rng();
+            let ip = ips.choose(&mut rng).unwrap();
+            Ok(*ip)
+        }
     }
 
     pub async fn lookup_all_gateways_from_nym_api(&self) -> Result<GatewayList> {
         let mut gateways = self
-            .lookup_described_gateways()
+            .lookup_described_nodes()
             .await?
             .into_iter()
+            .filter(|node| node.description.declared_role.entry)
             .filter_map(|gw| {
                 Gateway::try_from(gw)
                     .inspect_err(|err| error!("Failed to parse gateway: {err}"))
@@ -242,6 +263,33 @@ impl GatewayClient {
             .map(GatewayList::into_vpn_gateways)
     }
 
+    pub async fn lookup_gateway_ip(&self, gateway_identity: &str) -> Result<IpAddr> {
+        if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
+            info!("Fetching gateway ip from nym-vpn-api...");
+            let gateway = nym_vpn_api_client
+                .get_gateways(None)
+                .await?
+                .into_iter()
+                .find_map(|gw| {
+                    if gw.identity_key != gateway_identity {
+                        None
+                    } else {
+                        Gateway::try_from(gw)
+                            .inspect_err(|err| error!("Failed to parse gateway: {err}"))
+                            .ok()
+                    }
+                })
+                .ok_or_else(|| Error::RequestedGatewayIdNotFound(gateway_identity.to_string()))?;
+            gateway
+                .lookup_ip()
+                .await
+                .ok_or(Error::FailedToLookupIp(gateway_identity.to_string()))
+        } else {
+            warn!("OPERATING IN FALLBACK MODE WITHOUT NYM-VPN-API!");
+            self.lookup_gateway_ip_from_nym_api(gateway_identity).await
+        }
+    }
+
     pub async fn lookup_all_gateways(&self) -> Result<GatewayList> {
         if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
             info!("Fetching all gateways from nym-vpn-api...");
@@ -257,6 +305,7 @@ impl GatewayClient {
                 .collect();
             Ok(GatewayList::new(gateways))
         } else {
+            warn!("OPERATING IN FALLBACK MODE WITHOUT NYM-VPN-API!");
             self.lookup_all_gateways_from_nym_api().await
         }
     }
@@ -276,6 +325,7 @@ impl GatewayClient {
                 .collect();
             Ok(GatewayList::new(gateways))
         } else {
+            warn!("OPERATING IN FALLBACK MODE WITHOUT NYM-VPN-API!");
             self.lookup_gateways_from_nym_api(gw_type).await
         }
     }
@@ -290,6 +340,7 @@ impl GatewayClient {
                 .map(Country::from)
                 .collect())
         } else {
+            warn!("OPERATING IN FALLBACK MODE WITHOUT NYM-VPN-API!");
             self.lookup_gateways_from_nym_api(gw_type)
                 .await
                 .map(GatewayList::into_countries)
@@ -357,10 +408,12 @@ mod test {
     async fn lookup_described_gateways() {
         let config = Config::new_mainnet();
         let client = GatewayClient::new(config, user_agent()).unwrap();
-        let gateways = client.lookup_described_gateways().await.unwrap();
+        let gateways = client.lookup_described_nodes().await.unwrap();
         assert!(!gateways.is_empty());
     }
 
+    // TODO: Remove ignore when magura hits mainnet
+    #[ignore]
     #[tokio::test]
     async fn lookup_gateways_in_nym_vpn_api() {
         let config = Config::new_mainnet();

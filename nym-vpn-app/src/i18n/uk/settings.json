@@ -30,10 +30,6 @@
   },
   "display-theme": "Тема",
   "login-button": "Увійдіть в систему",
-  "entry-selector": {
-    "title": "Вибір країни входу",
-    "desc": "Ручний вибір країни входу"
-  },
   "monitoring-alert": "Щоб зміни набули чинності, потрібно перезапустити програму.",
   "faq": "ЧаПи",
   "quit": "Вийти з NymVPN",
@@ -48,5 +44,9 @@
     "daemon-version": "Версія Daemon",
     "network-name": "Мережа",
     "client-version": "Версія клієнту"
+  },
+  "logout-confirmation": {
+    "description": "Для повторного входу вам знадобиться фраза відновлення.",
+    "title": "Ти впевнений?"
   }
 }

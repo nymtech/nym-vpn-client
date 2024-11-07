@@ -3,10 +3,6 @@
     "title": "自動接続",
     "desc": "アプリ起動時に自動で接続"
   },
-  "entry-selector": {
-    "title": "エントリーロケーションの選択",
-    "desc": "エントリーホップを手動で選択"
-  },
   "error-monitoring": {
     "title": "匿名のエラーレポート",
     "desc": "アプリ再起動時に適用されます"
@@ -48,5 +44,9 @@
     "client-version": "クライアントバージョン",
     "daemon-version": "デーモンバージョン",
     "network-name": "ネットワーク"
+  },
+  "logout-confirmation": {
+    "title": "実行しますか？",
+    "description": "再ログインするにはリカバリーフレーズが必要です。"
   }
 }

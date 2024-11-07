@@ -1,6 +1,12 @@
 name: build-nym-vpn-app-windows
 on:
   workflow_dispatch:
+    inputs:
+      dev_mode:
+        description: "dev build"
+        required: true
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       # set to true when it is a 'dev' build
@@ -117,20 +123,36 @@ jobs:
       #     mv '${{ env.LIBS_PATH }}/libwg.dll' '${{ env.TAURI_SRC }}'
       #     mv '${{ env.LIBS_PATH }}/libwg.lib' '${{ env.TAURI_SRC }}'
 
-      - name: Get nym-vpn-core release info
-        id: get_release
+      - name: Install yq
         run: |
-          $releases = Invoke-RestMethod -Uri https://api.github.com/repos/nymtech/nym-vpn-client/releases
-          $release = $releases | Where-Object { $_.tag_name -match '^nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+$' } | Sort-Object { [version]($_.tag_name -replace 'nym-vpn-core-v', '0.') } | Select-Object -Last 1
-          $asset = $release.assets | Where-Object { $_.name -match 'windows_x86_64.zip$' }
-          Write-Output "Release Tag: $($release.tag_name)"
-          Write-Output "Asset URL: $($asset.browser_download_url)"
-          echo "::set-output name=release_tag::$($release.tag_name)"
-          echo "::set-output name=asset_url::$($asset.browser_download_url)"
+          winget list MikeFarah.yq || winget install --disable-interactivity --id MikeFarah.yq
+
+      - name: Get nym-vpn-core release tag
+        if: inputs.dev_mode == false
+        run: |
+          $release_tag = curl -sSL -H "Accept: application/vnd.github+json" `
+            https://api.github.com/repos/nymtech/nym-vpn-client/releases |
+            yq '[.[] | select(.tag_name | test("nym-vpn-core-v\d+\.\d+\.\d+$")) | .tag_name] | sort | reverse | .[0]'
+          echo "core_release_tag: $release_tag"
+          "core_release_tag=$release_tag" >> $env:GITHUB_ENV
+
+      - name: Get nym-vpn-core release tag (dev)
+        if: inputs.dev_mode == true
+        run: |
+          echo "core_release_tag: nym-vpn-core-nightly"
+          "core_release_tag=nym-vpn-core-nightly" >> $env:GITHUB_ENV
+
+      - name: Get nym-vpn-core asset url
+        run: |
+          $asset_url = curl -sSL -H "Accept: application/vnd.github+json" `
+            https://api.github.com/repos/nymtech/nym-vpn-client/releases/tags/${{ env.core_release_tag }} |
+            yq '.assets.[] | select(.name | test("^nym-vpn-core-v.+_windows_x86_64\.zip$")) | .browser_download_url'
+          echo "core_asset_url: $asset_url"
+          "core_asset_url=$asset_url" >> $env:GITHUB_ENV
 
       - name: Download nym-vpn-core artifact
         run: |
-          $url = '${{ steps.get_release.outputs.asset_url }}'
+          $url = '${{ env.core_asset_url }}'
           $output = 'nym-vpn-core.zip'
           Invoke-WebRequest -Uri $url -OutFile $output
 

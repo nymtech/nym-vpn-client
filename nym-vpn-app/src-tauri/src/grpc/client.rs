@@ -8,8 +8,8 @@ use nym_vpn_proto::{
     is_account_stored_response::Resp as IsAccountStoredResp, nym_vpnd_client::NymVpndClient,
     ConnectRequest, ConnectionStatus, DisconnectRequest, Dns, Empty, EntryNode, ExitNode,
     FetchRawAccountSummaryRequest, GatewayType, HealthCheckRequest, InfoRequest, InfoResponse,
-    IsAccountStoredRequest, ListCountriesRequest, Location, SetNetworkRequest, StatusRequest,
-    StatusResponse, StoreAccountRequest, UserAgent,
+    IsAccountStoredRequest, ListCountriesRequest, Location, RemoveAccountRequest,
+    SetNetworkRequest, StatusRequest, StatusResponse, StoreAccountRequest, UserAgent,
 };
 use parity_tokio_ipc::Endpoint as IpcEndpoint;
 use serde::{Deserialize, Serialize};
@@ -429,6 +429,36 @@ impl GrpcClient {
                     error!("store account bad response: no AccountError");
                     VpndError::GrpcError(tonic::Status::internal(
                         "store account bad response: no AccountError".to_string(),
+                    ))
+                })?,
+        ))
+    }
+
+    /// Remove the stored account
+    #[instrument(skip_all)]
+    pub async fn remove_account(&self) -> Result<(), VpndError> {
+        debug!("remove_account");
+        let mut vpnd = self.vpnd().await?;
+
+        let request = Request::new(RemoveAccountRequest {});
+        let response = vpnd.remove_account(request).await.map_err(|e| {
+            error!("grpc remove_account: {}", e);
+            VpndError::GrpcError(e)
+        })?;
+        debug!("grpc response: {:?}", response);
+        let response = response.into_inner();
+        if response.success {
+            return Ok(());
+        }
+        Err(VpndError::Response(
+            response
+                .error
+                .inspect(|e| warn!("remove account error: {:?}", e))
+                .map(BackendError::from)
+                .ok_or_else(|| {
+                    error!("remove account bad response: no AccountError");
+                    VpndError::GrpcError(tonic::Status::internal(
+                        "remove account bad response: no AccountError".to_string(),
                     ))
                 })?,
         ))

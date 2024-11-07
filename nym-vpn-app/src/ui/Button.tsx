@@ -8,6 +8,7 @@ type ButtonProps = {
   onClick: () => void;
   disabled?: boolean;
   color?: 'melon' | 'cornflower' | 'grey';
+  outline?: boolean;
   className?: string;
   loading?: boolean;
 };
@@ -31,13 +32,18 @@ function Button({
   children,
   disabled,
   color = 'melon',
+  outline,
   className,
   loading,
 }: ButtonProps) {
   const getColorStyle = () => {
     switch (color) {
       case 'melon':
-        return 'bg-melon';
+        if (outline) {
+          return 'border border-melon outline-melon';
+        } else {
+          return 'bg-melon';
+        }
       case 'grey':
         return 'bg-dim-gray dark:bg-dusty-grey';
       case 'cornflower':
@@ -52,7 +58,10 @@ function Button({
         'rounded-lg text-lg font-bold py-3 px-6',
         'text-white dark:text-baltic-sea',
         'focus:outline-none data-[focus]:ring-2 data-[focus]:ring-black data-[focus]:dark:ring-white',
-        'transition data-[hover]:opacity-80 data-[disabled]:opacity-60 data-[active]:ring-0',
+        'transition data-[disabled]:opacity-60 data-[active]:ring-0',
+        outline
+          ? 'data-[hover]:ring-1 data-[hover]:ring-melon'
+          : 'data-[hover]:opacity-80',
         'shadow tracking-normal cursor-default',
         getColorStyle(),
         className && className,
@@ -60,7 +69,13 @@ function Button({
       onClick={onClick}
       disabled={disabled}
     >
-      {loading ? Spinner() : children}
+      {loading ? (
+        Spinner()
+      ) : (
+        <div className={clsx(outline && `text-${color}`, 'truncate')}>
+          {children}
+        </div>
+      )}
     </HuButton>
   );
 }

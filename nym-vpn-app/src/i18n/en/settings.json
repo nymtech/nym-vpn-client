@@ -3,10 +3,6 @@
     "title": "Auto-connect",
     "desc": "Auto connect at app startup"
   },
-  "entry-selector": {
-    "title": "Entry location selector",
-    "desc": "Manually select your entry hop"
-  },
   "error-monitoring": {
     "title": "Anonymous error reports",
     "desc": "applies on app restart"
@@ -42,6 +38,10 @@
   },
   "faq": "FAQ",
   "display-theme": "Display mode",
+  "logout-confirmation": {
+    "title": "Are you sure?",
+    "description": "You will need your recovery phrase to log in again."
+  },
   "quit": "Quit NymVPN",
   "login-button": "Log in",
   "info": {

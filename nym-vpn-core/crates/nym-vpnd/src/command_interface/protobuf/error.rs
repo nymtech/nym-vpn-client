@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use maplit::hashmap;
-use nym_vpn_account_controller::ReadyToConnect;
 use nym_vpn_proto::{error::ErrorType, Error as ProtoError};
 
-use crate::service::{ConnectionFailedError, SetNetworkError, VpnServiceConnectError};
+use crate::service::{
+    AccountNotReady, ConnectionFailedError, SetNetworkError, VpnServiceConnectError,
+};
 
 impl From<VpnServiceConnectError> for nym_vpn_proto::ConnectRequestError {
     fn from(err: VpnServiceConnectError) -> Self {
@@ -19,35 +20,42 @@ impl From<VpnServiceConnectError> for nym_vpn_proto::ConnectRequestError {
             }
             VpnServiceConnectError::Account(ref not_ready_to_connect) => {
                 nym_vpn_proto::ConnectRequestError {
-                    kind: into_connect_request_error_type(not_ready_to_connect.clone()) as i32,
+                    kind: nym_vpn_proto::connect_request_error::ConnectRequestErrorType::from(
+                        not_ready_to_connect,
+                    ) as i32,
                     message: not_ready_to_connect.to_string(),
                 }
             }
+            VpnServiceConnectError::Cancel => nym_vpn_proto::ConnectRequestError {
+                kind: nym_vpn_proto::connect_request_error::ConnectRequestErrorType::Internal
+                    as i32,
+                message: err.to_string(),
+            },
         }
     }
 }
 
-fn into_connect_request_error_type(
-    ready: ReadyToConnect,
-) -> nym_vpn_proto::connect_request_error::ConnectRequestErrorType {
-    match ready {
-        ReadyToConnect::Ready => {
-            nym_vpn_proto::connect_request_error::ConnectRequestErrorType::Internal
-        }
-        ReadyToConnect::NoMnemonicStored => {
-            nym_vpn_proto::connect_request_error::ConnectRequestErrorType::NoAccountStored
-        }
-        ReadyToConnect::AccountNotActive => {
-            nym_vpn_proto::connect_request_error::ConnectRequestErrorType::AccountNotActive
-        }
-        ReadyToConnect::NoActiveSubscription => {
-            nym_vpn_proto::connect_request_error::ConnectRequestErrorType::NoActiveSubscription
-        }
-        ReadyToConnect::DeviceNotRegistered => {
-            nym_vpn_proto::connect_request_error::ConnectRequestErrorType::DeviceNotRegistered
-        }
-        ReadyToConnect::DeviceNotActive => {
-            nym_vpn_proto::connect_request_error::ConnectRequestErrorType::DeviceNotActive
+impl From<&AccountNotReady> for nym_vpn_proto::connect_request_error::ConnectRequestErrorType {
+    fn from(not_ready: &AccountNotReady) -> Self {
+        match not_ready {
+            AccountNotReady::Pending => {
+                nym_vpn_proto::connect_request_error::ConnectRequestErrorType::Pending
+            }
+            AccountNotReady::NoMnemonicStored => {
+                nym_vpn_proto::connect_request_error::ConnectRequestErrorType::NoAccountStored
+            }
+            AccountNotReady::AccountNotActive => {
+                nym_vpn_proto::connect_request_error::ConnectRequestErrorType::AccountNotActive
+            }
+            AccountNotReady::NoActiveSubscription => {
+                nym_vpn_proto::connect_request_error::ConnectRequestErrorType::NoActiveSubscription
+            }
+            AccountNotReady::DeviceNotRegistered => {
+                nym_vpn_proto::connect_request_error::ConnectRequestErrorType::DeviceNotRegistered
+            }
+            AccountNotReady::DeviceNotActive => {
+                nym_vpn_proto::connect_request_error::ConnectRequestErrorType::DeviceNotActive
+            }
         }
     }
 }

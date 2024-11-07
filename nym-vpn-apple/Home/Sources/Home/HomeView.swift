@@ -147,15 +147,13 @@ private extension HomeView {
 
     @ViewBuilder
     func entryHop() -> some View {
-        if viewModel.shouldShowEntryHop() {
-            HopButton(viewModel: viewModel.entryHopButtonViewModel)
-                .animation(.default, value: viewModel.connectionManager.entryGateway)
-                .onTapGesture {
-                    viewModel.navigateToFirstHopSelection()
-                }
-            Spacer()
-                .frame(height: 20)
-        }
+        HopButton(viewModel: viewModel.entryHopButtonViewModel)
+            .animation(.default, value: viewModel.connectionManager.entryGateway)
+            .onTapGesture {
+                viewModel.navigateToFirstHopSelection()
+            }
+        Spacer()
+            .frame(height: 20)
     }
 
     @ViewBuilder

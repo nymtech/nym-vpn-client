@@ -27,7 +27,6 @@ export type StateAction =
   | { type: 'set-daemon-status'; status: DaemonStatus }
   | { type: 'set-daemon-info'; info: DaemonInfo }
   | { type: 'set-vpn-mode'; mode: VpnMode }
-  | { type: 'set-entry-selector'; entrySelector: boolean }
   | { type: 'set-error'; error: AppError }
   | { type: 'reset-error' }
   | { type: 'new-progress-message'; message: ConnectProgressMsg }
@@ -75,7 +74,6 @@ export const initialState: AppState = {
   version: null,
   loading: false,
   vpnMode: DefaultVpnMode,
-  entrySelector: false,
   uiTheme: 'Light',
   themeMode: DefaultThemeMode,
   progressMessages: [],
@@ -139,11 +137,6 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         vpnMode: action.mode,
-      };
-    case 'set-entry-selector':
-      return {
-        ...state,
-        entrySelector: action.entrySelector,
       };
     case 'set-auto-connect':
       return {

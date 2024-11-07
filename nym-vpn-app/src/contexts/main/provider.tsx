@@ -179,11 +179,11 @@ function MainStateProvider({ children }: Props) {
         isCountry(selected) &&
         !countries.some((c) => c.code === selected.code)
       ) {
-        console.info(
-          `selected ${hop} country [${selected.name}] not in the list, picking a random one`,
-        );
         const location =
           countries[Math.floor(Math.random() * countries.length)];
+        console.info(
+          `selected ${hop} country [${selected.code}] not available, switching to [${location.code}]`,
+        );
         try {
           await kvSet<NodeLocation>(
             hop === 'entry' ? 'EntryNodeLocation' : 'ExitNodeLocation',

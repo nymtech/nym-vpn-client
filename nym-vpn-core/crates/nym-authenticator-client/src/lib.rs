@@ -155,10 +155,7 @@ impl AuthClient {
                 AuthenticatorRequest::new_topup_request(*top_up_message, self.nym_address)
             }
         };
-        debug!(
-            "Sent connect request with version v{}",
-            request.protocol.version
-        );
+        debug!("Sent connect request {:?}", request);
 
         self.mixnet_sender
             .send(nym_sdk::mixnet::InputMessage::new_regular(

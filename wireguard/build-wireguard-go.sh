@@ -1,51 +1,42 @@
 #!/usr/bin/env bash
 
 # This script is used to build wireguard-go libraries for all the platforms.
-
 set -eu
 
-function is_android_build {
-    for arg in "$@"
-    do
-        case "$arg" in
-            "--android")
-                return 0
-        esac
-    done
-    return 1
-}
+LIB_DIR="libwg"
 
-function is_ios_build {
-    for arg in "$@"
-    do
-        case "$arg" in
-            "--ios")
-                return 0
-        esac
-    done
-    return 1
-}
+IS_ANDROID_BUILD=false
+IS_IOS_BUILD=false
+IS_DOCKER_BUILD=true
+IS_WIN_ARM64=false
 
-function is_docker_build {
-    for arg in "$@"
-    do
-        case "$arg" in
-            "--no-docker")
-                return 1
-        esac
+function parseArgs {
+    for arg in "$@"; do
+      case "$arg" in
+        # handle --android option
+        "--android" )
+            IS_ANDROID_BUILD=true;
+            shift ;;
+        # handle --ios option
+        "--ios" )
+            IS_IOS_BUILD=true;
+            shift ;;
+        # handle --no-docker option
+        "--no-docker" )
+            IS_DOCKER_BUILD=false;
+            shift ;;
+        # handle --arm64 option
+        "--arm64" )
+            IS_WIN_ARM64=false;
+            shift ;;
+        # if we receive "--" consider everything after to be inner arguments
+        -- ) shift; break ;;
+        # any other args before "--" are improper
+        *) echo "Unsupported argument: $arg" && exit 2 ;;
+      esac
     done
-    return 0
-}
 
-function is_win_arm64 {
-    for arg in "$@"
-    do
-        case "$arg" in
-            "--arm64")
-                return 0
-        esac
-    done
-    return 1
+    echo "android:$IS_ANDROID_BUILD ios:$IS_IOS_BUILD docker:$IS_DOCKER_BUILD win_arm64:$IS_WIN_ARM64"
 }
 
 function win_gather_export_symbols {
@@ -60,7 +51,7 @@ function win_create_lib_file {
         printf "\t%s\n" "$symbol" >> exports.def
     done
 
-    if is_win_arm64 $@; then
+    if $IS_WIN_ARM64; then
         local arch="ARM64"
     else
         local arch="X64"
@@ -78,7 +69,7 @@ function build_windows {
     export CGO_ENABLED=1
     export GOOS=windows
 
-    if is_win_arm64 $@; then
+    if $IS_WIN_ARM64; then
         local arch="aarch64"
         export GOARCH=arm64
         export CC="aarch64-w64-mingw32-cc"
@@ -87,12 +78,12 @@ function build_windows {
         export GOARCH=amd64
         export CC="x86_64-w64-mingw32-cc"
     fi
-    
+
     echo "Building wireguard-go for Windows ($arch)"
 
-    pushd libwg
+    pushd $LIB_DIR
         go build -trimpath -v -o libwg.dll -buildmode c-shared
-        win_create_lib_file $@
+        win_create_lib_file
 
         local target_dir="../../build/lib/$arch-pc-windows-msvc/"
         echo "Copying files to $(realpath "$target_dir")"
@@ -132,7 +123,7 @@ function build_unix {
         fi
     fi
 
-    pushd libwg
+    pushd $LIB_DIR
         create_folder_and_build $1
     popd
 }
@@ -141,14 +132,14 @@ function build_android {
     echo "Building for android"
     local docker_image_hash="992c4d5c7dcd00eacf6f3e3667ce86b8e185f011352bdd9f79e467fef3e27abd"
 
-    if is_docker_build $@; then
+    if $IS_DOCKER_BUILD; then
         docker run --rm \
             -v "$(pwd)/../":/workspace \
-            --entrypoint "/workspace/wireguard/libwg/build-android.sh" \
+            --entrypoint "/workspace/wireguard/$LIB_DIR/build-android.sh" \
             --env ANDROID_NDK_HOME="/opt/android/android-ndk-r20b" \
             docker.io/pronebird1337/nymtech-android-app@sha256:$docker_image_hash
     else
-        ./libwg/build-android.sh
+        ./$LIB_DIR/build-android.sh
     fi
 }
 
@@ -166,7 +157,7 @@ function build_macos_universal {
     export MACOSX_DEPLOYMENT_TARGET=10.13
 
     echo "🍎 Building for aarch64"
-    pushd libwg
+    pushd $LIB_DIR
     export GOOS=darwin
     export GOARCH=arm64
     create_folder_and_build "aarch64-apple-darwin"
@@ -189,7 +180,7 @@ function build_ios {
     export CGO_ENABLED=1
     export IPHONEOS_DEPLOYMENT_TARGET=16.0
 
-    pushd libwg
+    pushd $LIB_DIR
 
     echo "🍎 Building for ios/aarch64"
     export GOARCH=arm64
@@ -240,17 +231,19 @@ function patch_darwin_goruntime {
     REAL_GOROOT=$(go env GOROOT 2>/dev/null)
     export GOROOT="$BUILDDIR/goroot"
     mkdir -p "$GOROOT"
-	rsync -a --delete --exclude=pkg/obj/go-build "$REAL_GOROOT/" "$GOROOT/"
-	cat libwg/goruntime-boottime-over-monotonic-darwin.diff | patch -p1 -f -N -r- -d "$GOROOT"
+    rsync -a --delete --exclude=pkg/obj/go-build "$REAL_GOROOT/" "$GOROOT/"
+    cat $LIB_DIR/goruntime-boottime-over-monotonic-darwin.diff | patch -p1 -f -N -r- -d "$GOROOT"
 }
 
 function build_wireguard_go {
-    if is_android_build $@; then
+    parseArgs $@
+
+    if $IS_ANDROID_BUILD ; then
         build_android $@
         return
     fi
 
-    if is_ios_build $@; then
+    if $IS_IOS_BUILD ; then
         build_ios $@
         return
     fi
@@ -259,7 +252,7 @@ function build_wireguard_go {
     case  "$platform" in
         Darwin*) build_macos_universal;;
         Linux*) build_unix ${1:-$(unix_target_triple)};;
-        MINGW*|MSYS_NT*) build_windows $@;;
+        MINGW*|MSYS_NT*) build_windows;;
     esac
 }
 
