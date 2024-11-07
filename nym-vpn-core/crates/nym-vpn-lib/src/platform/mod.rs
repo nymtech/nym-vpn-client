@@ -102,6 +102,10 @@ async fn stop_vpn_inner() -> Result<(), VpnError> {
 #[uniffi::export]
 pub fn init(data_dir: String) -> Result<(), VpnError> {
     init_logger();
+    start_account_controller(data_dir)
+}
+
+fn start_account_controller(data_dir: String) -> Result<(), VpnError> {
     RUNTIME.block_on(account::start_account_controller_inner(PathBuf::from(
         data_dir,
     )))
