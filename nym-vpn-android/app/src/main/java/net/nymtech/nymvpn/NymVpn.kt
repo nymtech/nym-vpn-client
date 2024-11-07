@@ -20,16 +20,14 @@ import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.timber.DebugTree
 import net.nymtech.nymvpn.util.timber.ReleaseTree
+import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.backend.Tunnel
 import timber.log.Timber
 import javax.inject.Inject
+import javax.inject.Provider
 
 @HiltAndroidApp
 class NymVpn : Application() {
-
-	val localeStorage: LocaleStorage by lazy {
-		LocaleStorage(this)
-	}
 
 	@Inject
 	@ApplicationScope
@@ -41,6 +39,9 @@ class NymVpn : Application() {
 
 	@Inject
 	lateinit var settingsRepository: SettingsRepository
+
+	@Inject
+	lateinit var backend: Provider<Backend>
 
 	@Inject
 	lateinit var logCollect: LogCollect
@@ -66,16 +67,15 @@ class NymVpn : Application() {
 		}
 		applicationScope.launch(ioDispatcher) {
 			val env = settingsRepository.getEnvironment()
-			Timber.d("Configuring for env ${env.name}")
-			env.setup()
+			backend.get().init(env)
 			logCollect.start()
 		}
 		requestTileServiceStateUpdate()
 	}
 
-	override fun attachBaseContext(base: Context) {
-		super.attachBaseContext(LocaleUtil.getLocalizedContext(base, LocaleStorage(base).getPreferredLocale()))
-	}
+//	override fun attachBaseContext(base: Context) {
+//		super.attachBaseContext(LocaleUtil.getLocalizedContext(base, LocaleStorage(base).getPreferredLocale()))
+//	}
 
 	class AppLifecycleObserver : DefaultLifecycleObserver {
 
@@ -98,8 +98,6 @@ class NymVpn : Application() {
 
 		lateinit var instance: NymVpn
 			private set
-
-		val environment = Tunnel.Environment.from(BuildConfig.FLAVOR)
 
 		fun getCPUArchitecture(): String {
 			return when (Build.SUPPORTED_ABIS.firstOrNull()) {

@@ -33,10 +33,7 @@ val Context.actionBarSize
 fun Context.buildCountryNameString(country: Country): String {
 	return buildAnnotatedString {
 		if (country.isLowLatency) {
-			append(getString(R.string.fastest))
-			append(" (")
-			append(country.name)
-			append(")")
+			append(getString(R.string.automatic))
 		} else {
 			append(country.name)
 		}

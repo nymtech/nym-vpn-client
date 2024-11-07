@@ -35,9 +35,8 @@ class AppViewModel
 @Inject
 constructor(
 	private val settingsRepository: SettingsRepository,
-	private val gatewayRepository: GatewayRepository,
+	gatewayRepository: GatewayRepository,
 	private val countryCacheService: CountryCacheService,
-	@Native private val gatewayService: GatewayService,
 	private val tunnelManager: TunnelManager,
 	@IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
@@ -57,6 +56,8 @@ constructor(
 				manager.state,
 				manager.backendMessage,
 				isMnemonicStored = manager.isMnemonicStored,
+				entryCountry = settings.firstHopCountry ?: Country(isLowLatency = true),
+				exitCountry = settings.lastHopCountry ?: Country(isDefault = true),
 			)
 		}.stateIn(
 			viewModelScope,
@@ -66,27 +67,6 @@ constructor(
 
 	fun setAnalyticsShown() = viewModelScope.launch {
 		settingsRepository.setAnalyticsShown(true)
-	}
-
-	fun onEntryLocationSelected(selected: Boolean) = viewModelScope.launch {
-		settingsRepository.setFirstHopSelection(selected)
-		settingsRepository.setFirstHopCountry(Country(isDefault = true))
-// 		launch {
-// 			setFirstHopToLowLatencyFromApi()
-// 		}
-// 		launch {
-// 			setFirstHopToLowLatencyFromCache()
-// 		}
-	}
-
-	private suspend fun setFirstHopToLowLatencyFromApi() {
-		Timber.d("Updating low latency entry gateway")
-		gatewayService.getLowLatencyCountry().onSuccess {
-			Timber.d("New low latency gateway: $it")
-			settingsRepository.setFirstHopCountry(it.copy(isLowLatency = true))
-		}.onFailure {
-			Timber.w(it)
-		}
 	}
 
 	fun logout() = viewModelScope.launch {
@@ -99,16 +79,6 @@ constructor(
 
 	fun onAnalyticsReportingSelected() = viewModelScope.launch {
 		settingsRepository.setAnalytics(!uiState.value.settings.analyticsEnabled)
-	}
-
-	private suspend fun setFirstHopToLowLatencyFromCache() {
-		runCatching {
-			gatewayRepository.getLowLatencyEntryCountry()
-		}.onFailure {
-			Timber.e(it)
-		}.onSuccess {
-			settingsRepository.setFirstHopCountry(it ?: Country(isDefault = true))
-		}
 	}
 
 	fun onNavBarStateChange(navBarState: NavBarState) {

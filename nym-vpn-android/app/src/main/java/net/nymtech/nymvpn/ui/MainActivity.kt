@@ -1,6 +1,8 @@
 package net.nymtech.nymvpn.ui
 
 import android.content.Context
+import android.content.ContextWrapper
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -71,20 +73,20 @@ import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.isCurrentRoute
+import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.resetTile
 import net.nymtech.vpn.model.BackendMessage
+import timber.log.Timber
 import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-	private val localeStorage: LocaleStorage by lazy {
-		(application as NymVpn).localeStorage
+	val localeStorage: LocaleStorage by lazy {
+		LocaleStorage(this)
 	}
-
-	private lateinit var oldPrefLocaleCode: String
 
 	@Inject
 	lateinit var notificationService: NotificationService
@@ -117,13 +119,11 @@ class MainActivity : ComponentActivity() {
 			val density = LocalDensity.current
 
 			LaunchedEffect(navBackStackEntry) {
-				if (navBackStackEntry.isCurrentRoute(Route.Main(changeLanguage = true)::class)) {
-					val locale = LocaleUtil.getLocaleFromPrefCode(localeStorage.getPreferredLocale())
-					val currentLocale = Locale.getDefault()
-					if (locale != currentLocale) {
-						delay(Constants.LANGUAGE_SWITCH_DELAY)
-						navController.clearBackStack<Route.Main>()
-						recreate()
+				if (navBackStackEntry.isCurrentRoute(Route.Main::class)) {
+					val args = navBackStackEntry?.toRoute<Route.Main>()
+					if(args?.changeLanguage == true) {
+						val lang = localeStorage.getPreferredLocale()
+						setLocale(lang)
 					}
 				}
 			}
@@ -266,17 +266,29 @@ class MainActivity : ComponentActivity() {
 	}
 
 	override fun attachBaseContext(newBase: Context) {
-		oldPrefLocaleCode = LocaleStorage(newBase).getPreferredLocale()
-		applyOverrideConfiguration(LocaleUtil.getLocalizedConfiguration(oldPrefLocaleCode))
-		super.attachBaseContext(newBase)
+		val lang = LocaleStorage(newBase).getPreferredLocale()
+		val context = updateLocale(newBase, lang)
+		super.attachBaseContext(context)
 	}
 
-	override fun onResume() {
-		val currentLocaleCode = LocaleStorage(this).getPreferredLocale()
-		if (oldPrefLocaleCode != currentLocaleCode) {
-			recreate() // locale is changed, restart the activity to update
-			oldPrefLocaleCode = currentLocaleCode
-		}
-		super.onResume()
+	fun updateLocale(context: Context, lang: String): ContextWrapper {
+		val locale = LocaleUtil.getLocaleFromPrefCode(lang)
+		Locale.setDefault(locale)
+		val resources = context.resources
+		val configuration = resources.configuration
+		configuration.setLocale(locale)
+		configuration.setLayoutDirection(locale)
+		return ContextWrapper(context.createConfigurationContext(configuration))
+	}
+
+	private fun setLocale(localeName: String) {
+		val locale = Locale(localeName)
+		Locale.setDefault(locale)
+		resources.updateConfiguration(resources.configuration, resources.displayMetrics)
+
+		// Restart activity to apply the new locale
+		val refresh = Intent(this, MainActivity::class.java)
+		finish()
+		startActivity(refresh)
 	}
 }

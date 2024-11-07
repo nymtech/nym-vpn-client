@@ -1,11 +1,13 @@
-package net.nymtech.vpn.util
+package net.nymtech.vpn.util.extensions
+import android.net.VpnService
 import net.nymtech.ipcalculator.IpCalculator
+import net.nymtech.vpn.util.NetworkUtils
 import nym_vpn_lib.Ipv4Route
 import nym_vpn_lib.Ipv6Route
 import nym_vpn_lib.TunnelNetworkSettings
 import timber.log.Timber
 
-fun android.net.VpnService.Builder.addRoutes(config: TunnelNetworkSettings, calculator: IpCalculator) {
+fun VpnService.Builder.addRoutes(config: TunnelNetworkSettings, calculator: IpCalculator) {
 	val includedRoutes = mutableListOf<String>()
 	val excludedRoutes = mutableListOf<String>()
 	with(config.ipv4Settings) {

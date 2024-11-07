@@ -6,10 +6,6 @@ import net.nymtech.vpn.model.Country
 
 interface GatewayRepository {
 
-	suspend fun getLowLatencyEntryCountry(): Country?
-
-	suspend fun setLowLatencyEntryCountry(country: Country)
-
 	suspend fun setEntryCountries(countries: Set<Country>)
 
 	suspend fun getEntryCountries(): Set<Country>

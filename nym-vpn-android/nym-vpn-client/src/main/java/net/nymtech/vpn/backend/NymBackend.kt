@@ -3,6 +3,7 @@ package net.nymtech.vpn.backend
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.system.Os
 import com.getkeepsafe.relinker.ReLinker
 import com.getkeepsafe.relinker.ReLinker.LoadListener
 import kotlinx.coroutines.CompletableDeferred
@@ -18,20 +19,24 @@ import net.nymtech.vpn.model.BackendMessage
 import net.nymtech.vpn.model.Statistics
 import net.nymtech.vpn.util.Action
 import net.nymtech.vpn.util.Constants
+import net.nymtech.vpn.util.Constants.LOG_LEVEL
 import net.nymtech.vpn.util.LifecycleVpnService
 import net.nymtech.vpn.util.NotificationManager
 import net.nymtech.vpn.util.SingletonHolder
-import net.nymtech.vpn.util.addRoutes
+import net.nymtech.vpn.util.extensions.addRoutes
+import net.nymtech.vpn.util.extensions.export
 import nym_vpn_lib.AccountStateSummary
 import nym_vpn_lib.AndroidTunProvider
 import nym_vpn_lib.BandwidthEvent
 import nym_vpn_lib.MixnetEvent
+import nym_vpn_lib.NetworkEnvironment
 import nym_vpn_lib.TunnelEvent
 import nym_vpn_lib.TunnelNetworkSettings
 import nym_vpn_lib.TunnelState
 import nym_vpn_lib.TunnelStatusListener
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.VpnException
+import nym_vpn_lib.fetchEnvironment
 import nym_vpn_lib.initLogger
 import nym_vpn_lib.isAccountMnemonicStored
 import nym_vpn_lib.removeAccountMnemonic
@@ -41,6 +46,7 @@ import nym_vpn_lib.stopAccountController
 import nym_vpn_lib.stopVpn
 import nym_vpn_lib.storeAccountMnemonic
 import timber.log.Timber
+import java.net.URL
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.properties.Delegates
 
@@ -53,7 +59,6 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			object : LoadListener {
 				override fun success() {
 					Timber.i("Successfully loaded native nym library")
-					initLogger()
 				}
 				override fun failure(t: Throwable) {
 					Timber.e(t)
@@ -79,6 +84,29 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	@get:Synchronized @set:Synchronized
 	private var state: Tunnel.State = Tunnel.State.Down
+
+	override suspend fun init(environment: Tunnel.Environment): Boolean {
+		return withContext(ioDispatcher) {
+			runCatching {
+				Os.setenv("RUST_LOG", LOG_LEVEL, true)
+				initLogger()
+				getEnvironment(environment).export()
+				startAccountController(storagePath)
+			}.onFailure {
+				Timber.e(it)
+			}.isSuccess
+		}
+	}
+
+	@Throws(VpnException::class)
+	private suspend fun getEnvironment(environment: Tunnel.Environment) : NetworkEnvironment {
+		return withContext(ioDispatcher) {
+			fetchEnvironment(environment.name.lowercase()).also {
+				Timber.d("API URL:  ${it.nymNetwork.endpoints.first().apiUrl}")
+				Timber.d("VPM API URL:  ${it.nymVpnNetwork.nymVpnApiUrl}")
+			}
+		}
+	}
 
 	@Throws(VpnException::class)
 	override suspend fun getAccountSummary(): AccountStateSummary {
@@ -109,7 +137,8 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		val state = getState()
 		if (tunnel == this.tunnel && state != Tunnel.State.Down) return
 		this.tunnel = tunnel
-		tunnel.environment.setup()
+		val environment = getEnvironment(tunnel.environment)
+		environment.export()
 		if (!vpnService.isCompleted) {
 			kotlin.runCatching {
 				if (background && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -131,8 +160,8 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			runCatching {
 				startVpn(
 					VpnConfig(
-						tunnel.environment.apiUrl,
-						tunnel.environment.nymVpnApiUrl,
+						URL(environment.nymNetwork.endpoints.first().apiUrl!!),
+						URL(environment.nymVpnNetwork.nymVpnApiUrl),
 						tunnel.entryPoint,
 						tunnel.exitPoint,
 						isTwoHop(tunnel.mode),
