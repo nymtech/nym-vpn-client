@@ -14,12 +14,15 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import net.nymtech.vpn.R
 
-internal object NotificationManager {
+internal class NotificationManager private constructor(val context: Context) {
 
-	private const val VPN_NOTIFICATION_ID = 222
-	private const val VPN_CHANNEL_ID = "VpnForegroundChannel"
+	companion object : SingletonHolder<net.nymtech.vpn.util.NotificationManager, Context>(::NotificationManager) {
+		private const val VPN_CHANNEL_ID = "VpnForegroundChannel"
+	}
 
-	fun createNotificationChannel(context: Context) {
+	private val notificationManager = context.getSystemService(VpnService.NOTIFICATION_SERVICE) as NotificationManager
+
+	fun createNotificationChannel() {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			// Create the NotificationChannel.
 			val name = context.getString(R.string.channel_name)
@@ -32,12 +35,11 @@ internal object NotificationManager {
 			mChannel.description = descriptionText
 			// Register the channel with the system. You can't change the importance
 			// or other notification behaviors after this.
-			val notificationManager = context.getSystemService(VpnService.NOTIFICATION_SERVICE) as NotificationManager
 			notificationManager.createNotificationChannel(mChannel)
 		}
 	}
 
-	fun createVpnRunningNotification(context: Context): Notification {
+	fun createVpnRunningNotification(): Notification {
 		val notificationBuilder = NotificationCompat.Builder(context, VPN_CHANNEL_ID)
 		return notificationBuilder.setOngoing(true)
 			.setContentTitle(context.getString(R.string.vpn_notification_title))
@@ -47,15 +49,19 @@ internal object NotificationManager {
 			.build()
 	}
 
-	fun notify(context: Context, notification: Notification) {
+	fun notify(notification: Notification, id: Int) {
 		with(NotificationManagerCompat.from(context)) {
 			if (ActivityCompat.checkSelfPermission(
 					context,
 					Manifest.permission.POST_NOTIFICATIONS,
 				) == PackageManager.PERMISSION_GRANTED
 			) {
-				notify(VPN_NOTIFICATION_ID, notification)
+				notify(id, notification)
 			}
 		}
+	}
+
+	fun cancel(id: Int) {
+		notificationManager.cancel(id)
 	}
 }

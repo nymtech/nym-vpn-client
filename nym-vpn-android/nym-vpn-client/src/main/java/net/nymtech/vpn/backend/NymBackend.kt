@@ -66,7 +66,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 				}
 			},
 		)
-		NotificationManager.createNotificationChannel(context)
+		NotificationManager.getInstance(context).createNotificationChannel()
 	}
 
 	companion object : SingletonHolder<NymBackend, Context>(::NymBackend) {
@@ -246,6 +246,11 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		private var owner: NymBackend? = null
 		private var startId by Delegates.notNull<Int>()
 		private val calculator = AllowedIpCalculator()
+		private val notificationManager = NotificationManager.getInstance(this)
+
+		companion object {
+			private const val VPN_NOTIFICATION_ID = 222
+		}
 
 		private val builder: Builder
 			get() = Builder()
@@ -260,6 +265,8 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			Timber.d("Vpn service destroyed")
 			currentTunnelHandle.getAndSet(-1)
 			vpnService = CompletableDeferred()
+			stopForeground(STOP_FOREGROUND_REMOVE)
+			notificationManager.cancel(VPN_NOTIFICATION_ID)
 			super.onDestroy()
 		}
 
@@ -267,7 +274,11 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			this.startId = startId
 			vpnService.complete(this)
 			intent?.let {
-				if (it.action == Action.START_FOREGROUND.name) startForeground(startId, NotificationManager.createVpnRunningNotification(this))
+				if (it.action == Action.START_FOREGROUND.name) {
+					startForeground(startId, notificationManager.createVpnRunningNotification())
+				} else {
+					notificationManager.notify(notificationManager.createVpnRunningNotification(), VPN_NOTIFICATION_ID)
+				}
 			}
 			return super.onStartCommand(intent, flags, startId)
 		}
