@@ -120,6 +120,12 @@ pub fn init_logger() {
     android::init_logs(log_level);
 }
 
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn initLogger() {
+    init_logger();
+}
+
 // Fetch the network environment details from the network name.
 // TODO: also add the ability to catch this information for subsequent use.
 #[allow(non_snake_case)]
