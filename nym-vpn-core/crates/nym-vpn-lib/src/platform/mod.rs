@@ -179,8 +179,8 @@ pub fn getGatewayCountries(
     user_agent: Option<UserAgent>,
     min_gateway_performance: Option<GatewayMinPerformance>,
 ) -> Result<Vec<Location>, VpnError> {
-    let api_url = get_api_url();
-    let nym_vpn_api_url = get_nym_api_url();
+    
+    let (api_url, nym_vpn_api_url) = get_nym_urls();
 
     RUNTIME.block_on(get_gateway_countries(
         api_url,
@@ -309,6 +309,18 @@ fn get_nym_api_url() -> Option<Url> {
     }
 }
 
+fn get_nym_urls() -> (Url, Option<Url>) {
+    let api_url_env = get_api_url();
+    let nym_vpn_api_url_env = get_nym_api_url();
+
+    if api_url_env.is_none() || nym_vpn_api_url_env.is_none() {
+        let default = GatewayDirectoryConfig::default();
+        (default.api_url, default.nym_vpn_api_url)
+    } else {
+        (api_url_env.unwrap(), nym_vpn_api_url_env)
+    }
+}
+
 async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, VpnError> {
     let tunnel_type = if config.enable_two_hop {
         TunnelType::Wireguard
@@ -319,15 +331,7 @@ async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, Vp
     let entry_point = nym_gateway_directory::EntryPoint::from(config.entry_gateway);
     let exit_point = nym_gateway_directory::ExitPoint::from(config.exit_router);
 
-    let api_url_env = get_api_url();
-    let nym_vpn_api_url_env = get_nym_api_url();
-
-    let (api_url, nym_vpn_api_url) = if api_url_env.is_none() || nym_vpn_api_url_env.is_none() {
-        let default = GatewayDirectoryConfig::default();
-        (default.api_url, default.nym_vpn_api_url)
-    } else {
-        (api_url_env.unwrap(), nym_vpn_api_url_env)
-    };
+    let (api_url, nym_vpn_api_url) = get_nym_urls();
 
     let gateway_config = GatewayDirectoryConfig {
         api_url,
