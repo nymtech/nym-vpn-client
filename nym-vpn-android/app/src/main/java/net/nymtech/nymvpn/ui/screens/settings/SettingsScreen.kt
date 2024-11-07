@@ -170,26 +170,26 @@ fun SettingsScreen(
 //						context.launchVpnSettings()
 //					},
 //				),
-				SelectionItem(
-					ImageVector.vectorResource(R.drawable.two),
-					{
-						ScaledSwitch(
-							appUiState.settings.firstHopSelectionEnabled,
-							onClick = { appViewModel.onEntryLocationSelected(it) },
-							modifier =
-							Modifier
-								.height(32.dp.scaledHeight())
-								.width(52.dp.scaledWidth()),
-							enabled = (appUiState.state is Tunnel.State.Down),
-						)
-					},
-					title = {
-						Text(
-							stringResource(R.string.entry_location_selector),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-						)
-					},
-				),
+//				SelectionItem(
+//					ImageVector.vectorResource(R.drawable.two),
+//					{
+//						ScaledSwitch(
+//							appUiState.settings.firstHopSelectionEnabled,
+//							onClick = { appViewModel.onEntryLocationSelected(it) },
+//							modifier =
+//							Modifier
+//								.height(32.dp.scaledHeight())
+//								.width(52.dp.scaledWidth()),
+//							enabled = (appUiState.state is Tunnel.State.Down),
+//						)
+//					},
+//					title = {
+//						Text(
+//							stringResource(R.string.entry_location_selector),
+//							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+//						)
+//					},
+//				),
 			),
 		)
 		SurfaceSelectionGroupButton(

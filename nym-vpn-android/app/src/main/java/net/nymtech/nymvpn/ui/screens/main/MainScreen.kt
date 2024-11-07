@@ -250,40 +250,38 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 				GroupLabel(title = stringResource(R.string.connect_to))
 				val trailingIcon = ImageVector.vectorResource(R.drawable.link_arrow_right)
 				val selectionEnabled = uiState.connectionState is ConnectionState.Disconnected
-				if (appUiState.settings.firstHopSelectionEnabled) {
-					CustomTextField(
-						value = firstHopName,
-						readOnly = true,
-						enabled = false,
-						label = {
-							Text(
-								stringResource(R.string.first_hop),
-								style = MaterialTheme.typography.bodySmall,
-							)
+				CustomTextField(
+					value = firstHopName,
+					readOnly = true,
+					enabled = false,
+					label = {
+						Text(
+							stringResource(R.string.first_hop),
+							style = MaterialTheme.typography.bodySmall,
+						)
+					},
+					leading = firstHopIcon,
+					trailing = {
+						Icon(trailingIcon, trailingIcon.name, tint = MaterialTheme.colorScheme.onSurface)
+					},
+					singleLine = true,
+					modifier = Modifier
+						.fillMaxWidth()
+						.height(60.dp.scaledHeight())
+						.defaultMinSize(minHeight = 1.dp, minWidth = 1.dp)
+						.clickable(
+							remember { MutableInteractionSource() },
+							indication = if (selectionEnabled) ripple() else null,
+						) {
+							if (selectionEnabled) {
+								navController.goFromRoot(
+									Route.EntryLocation,
+								)
+							} else {
+								snackbar.showMessage(context.getString(R.string.disabled_while_connected))
+							}
 						},
-						leading = firstHopIcon,
-						trailing = {
-							Icon(trailingIcon, trailingIcon.name, tint = MaterialTheme.colorScheme.onSurface)
-						},
-						singleLine = true,
-						modifier = Modifier
-							.fillMaxWidth()
-							.height(60.dp.scaledHeight())
-							.defaultMinSize(minHeight = 1.dp, minWidth = 1.dp)
-							.clickable(
-								remember { MutableInteractionSource() },
-								indication = if (selectionEnabled) ripple() else null,
-							) {
-								if (selectionEnabled) {
-									navController.goFromRoot(
-										Route.EntryLocation,
-									)
-								} else {
-									snackbar.showMessage(context.getString(R.string.disabled_while_connected))
-								}
-							},
-					)
-				}
+				)
 				CustomTextField(
 					value = lastHopName,
 					readOnly = true,
