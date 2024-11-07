@@ -105,6 +105,12 @@ pub fn init(data_dir: String) -> Result<(), VpnError> {
     start_account_controller(data_dir)
 }
 
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn shutdown() -> Result<(), VpnError> {
+    RUNTIME.block_on(account::stop_account_controller_inner())
+}
+
 fn start_account_controller(data_dir: String) -> Result<(), VpnError> {
     RUNTIME.block_on(account::start_account_controller_inner(PathBuf::from(
         data_dir,
