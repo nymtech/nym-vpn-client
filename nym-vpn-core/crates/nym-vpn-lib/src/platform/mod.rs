@@ -179,7 +179,6 @@ pub fn getGatewayCountries(
     user_agent: Option<UserAgent>,
     min_gateway_performance: Option<GatewayMinPerformance>,
 ) -> Result<Vec<Location>, VpnError> {
-    
     let (api_url, nym_vpn_api_url) = get_nym_urls();
 
     RUNTIME.block_on(get_gateway_countries(
