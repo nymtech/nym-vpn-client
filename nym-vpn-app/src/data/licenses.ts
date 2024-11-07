@@ -11,7 +11,9 @@ export async function getRustLicenses(): Promise<CodeDependency[] | undefined> {
     const response = await fetch(LicensesRust);
     json = (await response.json()) as RustLicensesJson;
   } catch (e) {
-    console.warn('Failed to fetch Rust licenses data', e);
+    if (import.meta.env.MODE === 'production') {
+      console.warn('Failed to fetch Rust licenses data', e);
+    }
     return;
   }
 
@@ -38,7 +40,9 @@ export async function getJsLicenses(): Promise<CodeDependency[] | undefined> {
     const response = await fetch(LicensesJs);
     json = (await response.json()) as JsLicensesJson;
   } catch (e) {
-    console.warn('Failed to fetch Js licenses data', e);
+    if (import.meta.env.MODE === 'production') {
+      console.warn('Failed to fetch Js licenses data', e);
+    }
     return;
   }
 
