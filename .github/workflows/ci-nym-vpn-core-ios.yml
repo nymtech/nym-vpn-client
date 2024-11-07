@@ -61,33 +61,6 @@ jobs:
         run: |
           cargo build --verbose --target aarch64-apple-ios -p nym-vpn-lib
 
-      - name: Generate uniffi
-        working-directory: nym-vpn-core
-        run: |
-          cargo run --bin uniffi-bindgen generate \
-            --library target/aarch64-apple-ios/debug/libnym_vpn_lib.a  \
-            --config crates/nym-vpn-lib/uniffi.toml \
-            --language swift --out-dir build -n
-
-      - name: Uniffi diff check
-        working-directory: nym-vpn-core
-        run: |
-          diff -B build/nym_vpn_lib.swift crates/nym-vpn-lib/uniffi/nym_vpn_lib.swift
-        continue-on-error: true
-        id: diff_ios
-
-      - name: Upload generated uniffi file
-        if: steps.diff_ios.outcome == 'failure'
-        uses: actions/upload-artifact@v4
-        with:
-          name: updated-uniffi-ios
-          path: nym-vpn-core/build/nym_vpn_lib.swift
-          retention-days: 1
-
-      - name: Fail workflow for uniffi
-        if: steps.diff_ios.outcome == 'failure'
-        run: exit 1
-
       - name: Clippy
         working-directory: nym-vpn-core
         run: |

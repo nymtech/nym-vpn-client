@@ -8,14 +8,6 @@
   - pronebird
   - octol
 
-# uniffi changes
-"nym-vpn-core/crates/nym-vpn-lib/uniffi/*":
-  - zaneschepke
-  - rokas-ambrazevicius
-  - neacsu
-  - pronebird
-  - octol
-
 # client app changes
 "nym-vpn-app/*":
   - doums
