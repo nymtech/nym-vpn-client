@@ -35,8 +35,10 @@ uniffi::custom_type!(OffsetDateTime, i64);
 
 pub type BoxedRecepient = Box<Recipient>;
 pub type BoxedNodeIdentity = Box<NodeIdentity>;
+pub type BoxedPublicKey = Box<PublicKey>;
 uniffi::custom_type!(BoxedRecepient, String);
 uniffi::custom_type!(BoxedNodeIdentity, String);
+uniffi::custom_type!(BoxedPublicKey, String);
 
 impl UniffiCustomTypeConverter for NodeIdentity {
     type Builtin = String;
@@ -107,6 +109,22 @@ impl UniffiCustomTypeConverter for PublicKey {
                 details: "Invalid public key".to_owned(),
             })?,
         )
+    }
+
+    fn from_custom(obj: Self) -> Self::Builtin {
+        obj.to_base64()
+    }
+}
+
+impl UniffiCustomTypeConverter for BoxedPublicKey {
+    type Builtin = String;
+
+    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
+        Ok(Box::new(PublicKey::from_base64(&val).ok_or_else(|| {
+            VpnError::InternalError {
+                details: "Invalid public key".to_owned(),
+            }
+        })?))
     }
 
     fn from_custom(obj: Self) -> Self::Builtin {
