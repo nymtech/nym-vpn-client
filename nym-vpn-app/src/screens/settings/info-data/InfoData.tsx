@@ -2,7 +2,7 @@ import { useState } from 'react';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { useMainState } from '../../../contexts';
-import NetworkEnvSelect from './NetworkEnvSelect.tsx';
+import NetworkEnvSelect from './NetworkEnvSelect';
 import { S_STATE } from '../../../static';
 
 function InfoData() {

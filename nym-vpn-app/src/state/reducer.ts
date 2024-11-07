@@ -93,11 +93,8 @@ export const initialState: AppState = {
   codeDepsRust: [],
   codeDepsJs: [],
   account: false,
-  fetchMxEntryCountries: async () => {
+  fetchMnCountries: async () => {
     /*  SCARECROW */
-  },
-  fetchMxExitCountries: async () => {
-    /* SCARECROW */
   },
   fetchWgCountries: async () => {
     /* SCARECROW */

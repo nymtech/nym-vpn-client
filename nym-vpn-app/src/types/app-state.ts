@@ -1,7 +1,7 @@
 import { Dispatch } from 'react';
 import { Dayjs } from 'dayjs';
 import { StateAction } from '../state';
-import { Country, NodeLocation, ThemeMode, UiTheme } from './common';
+import { Country, NodeHop, NodeLocation, ThemeMode, UiTheme } from './common';
 import { BackendError, ErrorKey, NetworkEnv } from './tauri-ipc';
 
 export type ConnectionState =
@@ -59,8 +59,7 @@ export type AppState = {
   codeDepsRust: CodeDependency[];
   // TODO just a boolean for now to indicate if the user has added an account
   account: boolean;
-  fetchMxEntryCountries: FetchMxCountriesFn;
-  fetchMxExitCountries: FetchMxCountriesFn;
+  fetchMnCountries: FetchMnCountriesFn;
   fetchWgCountries: FetchWgCountriesFn;
 };
 
@@ -82,7 +81,7 @@ export type ProgressEventPayload = {
 
 export type StateDispatch = Dispatch<StateAction>;
 
-export type FetchMxCountriesFn = () => Promise<void> | undefined;
+export type FetchMnCountriesFn = (node: NodeHop) => Promise<void> | undefined;
 export type FetchWgCountriesFn = () => Promise<void> | undefined;
 
 export type AppError = {

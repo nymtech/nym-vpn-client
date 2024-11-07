@@ -2,5 +2,6 @@
 export const S_STATE = {
   // Either the vpn mode has been initialized or not
   vpnModeInit: false,
+  networkEnvInit: false,
   networkEnvSelect: false,
 };

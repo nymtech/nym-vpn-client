@@ -19,6 +19,7 @@ import {
   ProgressEvent,
   StatusUpdateEvent,
 } from '../constants';
+import { S_STATE } from '../static';
 
 function handleError(dispatch: StateDispatch, error?: BackendError | null) {
   if (!error) {
@@ -43,6 +44,9 @@ export function useTauriEvents(dispatch: StateDispatch) {
         try {
           const info = await invoke<DaemonInfo>('daemon_info');
           dispatch({ type: 'set-daemon-info', info });
+          if (info.network) {
+            S_STATE.networkEnvInit = true;
+          }
           const stored = await invoke<boolean | undefined>('is_account_stored');
           dispatch({ type: 'set-account', stored: stored || false });
         } catch (e: unknown) {

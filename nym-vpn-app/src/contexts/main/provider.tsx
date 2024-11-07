@@ -8,7 +8,6 @@ import {
   useInAppNotify,
 } from '../index';
 import { sleep } from '../../helpers';
-import { useThrottle } from '../../hooks';
 import { kvSet } from '../../kvStore';
 import {
   BackendError,
@@ -16,12 +15,14 @@ import {
   Country,
   NodeHop,
   NodeLocation,
+  VpnMode,
   isCountry,
 } from '../../types';
 import { initFirstBatch, initSecondBatch } from '../../state/init';
 import { initialState, reducer } from '../../state';
 import { useTauriEvents } from '../../state/useTauriEvents';
 import { S_STATE } from '../../static';
+import { MCache } from '../../cache';
 
 let initialized = false;
 
@@ -37,6 +38,7 @@ function MainStateProvider({ children }: Props) {
     entryNodeLocation,
     exitNodeLocation,
     vpnMode,
+    networkEnv,
   } = state;
 
   useTauriEvents(dispatch);
@@ -86,78 +88,48 @@ function MainStateProvider({ children }: Props) {
     });
   }, []);
 
+  // whenever the vpn mode changes, refresh the countries or use cached ones
   useEffect(() => {
     if (!S_STATE.vpnModeInit) {
       return;
     }
     if (vpnMode === 'Mixnet') {
-      fetchCountries('entry');
-      fetchCountries('exit');
+      fetchCountries(vpnMode, 'entry');
+      fetchCountries(vpnMode, 'exit');
     } else {
-      fetchCountries('entry');
+      fetchCountries(vpnMode, 'entry');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vpnMode]);
 
-  const fetchMxEntryCountries = useThrottle(
-    async () => fetchCountries('entry'),
-    CountryCacheDuration,
-    [vpnMode],
-  );
+  // whenever the network environment changes (e.i. daemon has been reconfigured),
+  // clear cache
+  useEffect(() => {
+    if (!S_STATE.networkEnvInit) {
+      return;
+    }
+    console.info(`network env changed ${networkEnv}, clearing cache`);
+    MCache.clear();
+  }, [networkEnv]);
 
-  const fetchMxExitCountries = useThrottle(
-    async () => fetchCountries('exit'),
-    CountryCacheDuration,
-    [vpnMode],
-  );
-
-  const fetchWgCountries = useThrottle(
-    // does not matter if entry or exit, the list is the same
-    async () => fetchCountries('entry'),
-    CountryCacheDuration,
-    [vpnMode],
-  );
-
-  const fetchCountries = useCallback(
-    async (node: NodeHop) => {
+  // use cached values if any, otherwise query from daemon
+  const fetchCountries = async (vpnMode: VpnMode, node: NodeHop) => {
+    // first try to load from cache
+    let countries = MCache.get<Country[]>(
+      vpnMode === 'Mixnet' ? `mn-${node}-countries` : 'wg-countries',
+    );
+    // fallback to daemon query
+    if (!countries) {
+      console.info(`fetching countries for ${vpnMode} ${node}`);
       try {
-        const countries = await invoke<Country[]>('get_countries', {
+        countries = await invoke<Country[]>('get_countries', {
           vpnMode,
           nodeType: node === 'entry' ? 'Entry' : 'Exit',
         });
-        if (vpnMode === 'Mixnet') {
-          dispatch({
-            type: 'set-country-list',
-            payload: {
-              hop: node,
-              countries,
-            },
-          });
-          // reset any previous error
-          dispatch({
-            type:
-              node === 'entry'
-                ? 'set-entry-countries-error'
-                : 'set-exit-countries-error',
-            payload: null,
-          });
-        } else {
-          // in 2hop mode, the country list is the same for both entry and exit
-          dispatch({
-            type: 'set-fast-country-list',
-            payload: {
-              countries,
-            },
-          });
-          dispatch({
-            type: 'set-entry-countries-error',
-            payload: null,
-          });
-          dispatch({
-            type: 'set-exit-countries-error',
-            payload: null,
-          });
-        }
+        MCache.set(
+          vpnMode === 'Mixnet' ? `mn-${node}-countries` : 'wg-countries',
+          countries,
+          CountryCacheDuration,
+        );
       } catch (e) {
         console.warn(`Failed to fetch ${node} countries:`, e);
         dispatch({
@@ -167,10 +139,56 @@ function MainStateProvider({ children }: Props) {
               : 'set-exit-countries-error',
           payload: e as BackendError,
         });
+        if (vpnMode === 'TwoHop') {
+          // in 2hop mode, the error must be set for both entry and exit
+          dispatch({
+            type:
+              node === 'entry'
+                ? 'set-exit-countries-error'
+                : 'set-entry-countries-error',
+            payload: e as BackendError,
+          });
+        }
       }
-    },
-    [vpnMode],
-  );
+    }
+    if (!countries) {
+      console.warn('no countries found');
+      return;
+    }
+    if (vpnMode === 'Mixnet') {
+      dispatch({
+        type: 'set-country-list',
+        payload: {
+          hop: node,
+          countries,
+        },
+      });
+      // reset any previous error
+      dispatch({
+        type:
+          node === 'entry'
+            ? 'set-entry-countries-error'
+            : 'set-exit-countries-error',
+        payload: null,
+      });
+    } else {
+      // in 2hop mode, the country list is the same for both entry and exit
+      dispatch({
+        type: 'set-fast-country-list',
+        payload: {
+          countries,
+        },
+      });
+      dispatch({
+        type: 'set-entry-countries-error',
+        payload: null,
+      });
+      dispatch({
+        type: 'set-exit-countries-error',
+        payload: null,
+      });
+    }
+  };
 
   const checkSelectedCountry = useCallback(
     async (hop: NodeHop, countries: Country[], selected: NodeLocation) => {
@@ -231,12 +249,21 @@ function MainStateProvider({ children }: Props) {
     exitCountryList,
   ]);
 
+  const fetchMnCountries = useCallback(
+    async (node: NodeHop) => fetchCountries(vpnMode, node),
+    [vpnMode],
+  );
+
+  const fetchWgCountries = useCallback(
+    async () => fetchCountries(vpnMode, 'entry'),
+    [vpnMode],
+  );
+
   return (
     <MainStateContext.Provider
       value={{
         ...state,
-        fetchMxEntryCountries,
-        fetchMxExitCountries,
+        fetchMnCountries,
         fetchWgCountries,
       }}
     >

@@ -42,5 +42,5 @@ export const NymDotComCanaryUrl =
   'https://nym-dot-com-git-deploy-canary-nyx-network-staging.vercel.app';
 export const NymDotComQAUrl =
   'https://nym-dot-com-git-deploy-qa-nyx-network-staging.vercel.app';
-export const CountryCacheDuration = 120000; // 2 minutes
+export const CountryCacheDuration = 120; // seconds
 export const HomeThrottleDelay = 6000;
