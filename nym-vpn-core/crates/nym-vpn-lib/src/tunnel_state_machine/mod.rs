@@ -617,16 +617,14 @@ impl tunnel::Error {
 
                 _ => None,
             },
-            Self::BandwidthController(e) => match e {
-                BandwidthControllerError::RegisterWireguard { source, .. }
-                | BandwidthControllerError::TopUpWireguard { source, .. } => match source {
-                    WgGatewayClientError::NoRetry { .. } => {
-                        Some(ErrorStateReason::BadBandwidthIncrease)
-                    }
-                    _ => None,
-                },
-                _ => None,
-            },
+            Self::BandwidthController(BandwidthControllerError::RegisterWireguard {
+                source: WgGatewayClientError::NoRetry { .. },
+                ..
+            })
+            | Self::BandwidthController(BandwidthControllerError::TopUpWireguard {
+                source: WgGatewayClientError::NoRetry { .. },
+                ..
+            }) => Some(ErrorStateReason::BadBandwidthIncrease),
             _ => None,
         }
     }
