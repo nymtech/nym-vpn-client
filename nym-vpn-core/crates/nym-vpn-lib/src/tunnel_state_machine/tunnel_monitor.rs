@@ -505,11 +505,11 @@ impl TunnelMonitor {
             dns_servers: self.tunnel_settings.dns.ip_addresses().to_vec(),
             interface_addresses: vec![
                 IpNetwork::V4(
-                    Ipv4Network::new(conn_data.entry.private_ipv4, 32)
+                    Ipv4Network::new(conn_data.exit.private_ipv4, 32)
                         .expect("ipv4 to ipnetwork/32"),
                 ),
                 IpNetwork::V6(
-                    Ipv6Network::new(WG_ENTRY_IPV6_ADDR, 128).expect("ipv6 to ipnetwork/128"),
+                    Ipv6Network::new(WG_EXIT_IPV6_ADDR, 128).expect("ipv6 to ipnetwork/128"),
                 ),
             ],
             remote_addresses: vec![conn_data.entry.endpoint.ip()],
