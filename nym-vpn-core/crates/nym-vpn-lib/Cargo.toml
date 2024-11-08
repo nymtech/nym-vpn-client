@@ -28,6 +28,7 @@ pnet_packet.workspace = true
 rand.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+si-scale.workspace = true
 signature.workspace = true
 sysinfo.workspace = true
 tap.workspace = true

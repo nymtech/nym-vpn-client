@@ -312,6 +312,11 @@ message ConnectionStatusUpdate {
     // Wireguard tunnel errors sent through the status channel. This error case
     // will go away in the future.
     WG_TUNNEL_ERROR = 14;
+
+    // Event containing the statistics for the current mixnet connection.
+    // Includes real and cover packets send and received, retransmissions, acks
+    // received.
+    MIXNET_BANDWIDTH_RATE = 15;
   }
 
   StatusType kind = 1;

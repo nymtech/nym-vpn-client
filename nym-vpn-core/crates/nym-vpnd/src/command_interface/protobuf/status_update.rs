@@ -3,7 +3,9 @@
 
 use nym_vpn_lib::{
     connection_monitor::ConnectionMonitorStatus,
-    tunnel_state_machine::{BandwidthEvent, ConnectionEvent, MixnetEvent},
+    tunnel_state_machine::{
+        BandwidthEvent, ConnectionEvent, ConnectionStatisticsEvent, MixnetEvent,
+    },
 };
 use nym_vpn_proto::{connection_status_update::StatusType, ConnectionStatusUpdate};
 
@@ -11,6 +13,9 @@ pub fn status_update_from_event(event: MixnetEvent) -> ConnectionStatusUpdate {
     match event {
         MixnetEvent::Bandwidth(sub_event) => convert_bandwidth_event(sub_event),
         MixnetEvent::Connection(sub_event) => convert_connection_event(sub_event),
+        MixnetEvent::ConnectionStatistics(sub_event) => {
+            convert_connection_statistics_event(sub_event)
+        }
     }
 }
 
@@ -68,6 +73,20 @@ fn convert_bandwidth_event(event: BandwidthEvent) -> ConnectionStatusUpdate {
             kind: StatusType::NoBandwidth as i32,
             message: "no bandwidth left".to_owned(),
             details: Default::default(),
+        },
+    }
+}
+
+fn convert_connection_statistics_event(event: ConnectionStatisticsEvent) -> ConnectionStatusUpdate {
+    ConnectionStatusUpdate {
+        kind: StatusType::MixnetBandwidthRate as i32,
+        message: event.to_string(),
+        details: maplit::hashmap! {
+            "packet_rates".to_string() => event.rates.summary(),
+            "real_received".to_string() => event.rates.real_received(),
+            "real_sent".to_string() => event.rates.real_sent(),
+            "cover_received".to_string() => event.rates.cover_received(),
+            "cover_sent".to_string() => event.rates.cover_sent(),
         },
     }
 }
