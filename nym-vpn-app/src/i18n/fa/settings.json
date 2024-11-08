@@ -44,5 +44,9 @@
     "client-version": "نسخه مشترک",
     "daemon-version": "نسخه Daemon",
     "network-name": "شبکه"
+  },
+  "logout-confirmation": {
+    "title": "مطمئن هستید؟",
+    "description": "برای ورود مجدد به عبارت بازیابی خود نیاز خواهید داشت."
   }
 }
