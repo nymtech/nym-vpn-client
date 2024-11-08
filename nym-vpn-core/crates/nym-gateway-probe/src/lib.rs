@@ -13,6 +13,7 @@ use bytes::BytesMut;
 use dns_lookup::lookup_host;
 use futures::StreamExt;
 use netstack::{NetstackCall as _, NetstackCallImpl};
+use crate::netstack::NetstackRequest;
 use nym_authenticator_client::ClientMessage;
 use nym_authenticator_requests::v4::{
     registration::{FinalMessage, GatewayClient, InitMessage, RegistrationData},
