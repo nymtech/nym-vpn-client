@@ -701,7 +701,13 @@ impl fmt::Display for BandwidthEvent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::NoBandwidth => f.write_str("No bandwidth"),
-            Self::RemainingBandwidth(value) => write!(f, "Remaining bandwidth: {}", value),
+            Self::RemainingBandwidth(value) => {
+                write!(
+                    f,
+                    "Remaining bandwidth: {}",
+                    si_scale::helpers::bibytes2(*value as f64)
+                )
+            }
         }
     }
 }

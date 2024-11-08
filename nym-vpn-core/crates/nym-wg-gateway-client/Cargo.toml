@@ -26,6 +26,7 @@ tokio = { workspace = true, features = [
 ] }
 tokio-stream.workspace = true
 tracing.workspace = true
+si-scale.workspace = true
 
 nym-authenticator-client = { path = "../nym-authenticator-client" }
 nym-gateway-directory = { path = "../nym-gateway-directory" }
