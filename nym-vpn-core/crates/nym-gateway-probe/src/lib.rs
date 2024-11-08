@@ -189,15 +189,11 @@ async fn wg_probe(
 
         let peer_public = registered_data.pub_key.inner();
         let static_private = x25519_dalek::StaticSecret::from(private_key.to_bytes());
-
-        // let private_key_bs64 = general_purpose::STANDARD.encode(static_private.as_bytes());
         let public_key_bs64 = general_purpose::STANDARD.encode(peer_public.as_bytes());
-
         let private_key_hex = hex::encode(static_private.to_bytes());
         let public_key_hex = hex::encode(peer_public.as_bytes());
 
         info!("WG connection details");
-        // info!("Our private key: {}", private_key_bs64);
         info!("Peer public key: {}", public_key_bs64);
         info!(
             "ips {}(v4) {}(v6), port {}",
@@ -224,41 +220,41 @@ async fn wg_probe(
         wg_outcome.can_register = true;
 
         if wg_outcome.can_register {
-            let netstack_request = netstack::NetstackRequest {
+            // Perform IPv4 ping test
+            let ipv4_request = netstack::NetstackRequest {
                 wg_ip: registered_data.private_ips.ipv4.to_string(),
                 private_key: private_key_hex.clone(),
                 public_key: public_key_hex.clone(),
                 endpoint: wg_endpoint.clone(),
-                ..Default::default()
+                ..NetstackRequest::with_ipv4_defaults()
             };
 
-            let netstack_response = NetstackCallImpl::ping(&netstack_request);
-
-            info!("Wireguard probe response for IPv4: {:?}", netstack_response);
-            wg_outcome.can_handshake_v4 = netstack_response.can_handshake;
-            wg_outcome.can_resolve_dns_v4 = netstack_response.can_resolve_dns;
+            let netstack_response_v4 = NetstackCallImpl::ping(&ipv4_request);
+            info!("Wireguard probe response for IPv4: {:?}", netstack_response_v4);
+            wg_outcome.can_handshake_v4 = netstack_response_v4.can_handshake;
+            wg_outcome.can_resolve_dns_v4 = netstack_response_v4.can_resolve_dns;
             wg_outcome.ping_hosts_performance_v4 =
-                netstack_response.received_hosts as f32 / netstack_response.sent_hosts as f32;
+                netstack_response_v4.received_hosts as f32 / netstack_response_v4.sent_hosts as f32;
             wg_outcome.ping_ips_performance_v4 =
-                netstack_response.received_ips as f32 / netstack_response.sent_ips as f32;
+                netstack_response_v4.received_ips as f32 / netstack_response_v4.sent_ips as f32;
 
-            let netstack_request = netstack::NetstackRequest {
+            // Perform IPv6 ping test
+            let ipv6_request = netstack::NetstackRequest {
                 wg_ip: registered_data.private_ips.ipv6.to_string(),
                 private_key: private_key_hex,
                 public_key: public_key_hex,
                 endpoint: wg_endpoint.clone(),
-                ..Default::default()
+                ..NetstackRequest::with_ipv6_defaults()
             };
 
-            let netstack_response = NetstackCallImpl::ping(&netstack_request);
-
-            info!("Wireguard probe response for IPv6: {:?}", netstack_response);
-            wg_outcome.can_handshake_v6 = netstack_response.can_handshake;
-            wg_outcome.can_resolve_dns_v6 = netstack_response.can_resolve_dns;
+            let netstack_response_v6 = NetstackCallImpl::ping(&ipv6_request);
+            info!("Wireguard probe response for IPv6: {:?}", netstack_response_v6);
+            wg_outcome.can_handshake_v6 = netstack_response_v6.can_handshake;
+            wg_outcome.can_resolve_dns_v6 = netstack_response_v6.can_resolve_dns;
             wg_outcome.ping_hosts_performance_v6 =
-                netstack_response.received_hosts as f32 / netstack_response.sent_hosts as f32;
+                netstack_response_v6.received_hosts as f32 / netstack_response_v6.sent_hosts as f32;
             wg_outcome.ping_ips_performance_v6 =
-                netstack_response.received_ips as f32 / netstack_response.sent_ips as f32;
+                netstack_response_v6.received_ips as f32 / netstack_response_v6.sent_ips as f32;
         }
     }
 
