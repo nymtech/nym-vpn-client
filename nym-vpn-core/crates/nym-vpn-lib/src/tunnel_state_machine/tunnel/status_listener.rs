@@ -3,7 +3,7 @@ use tokio::{sync::mpsc, task::JoinHandle};
 
 use nym_bandwidth_controller::BandwidthStatusMessage;
 use nym_connection_monitor::ConnectionMonitorStatus;
-use nym_task::{manager::TaskStatus, StatusReceiver};
+use nym_task::{StatusReceiver, TaskStatus};
 
 use crate::tunnel_state_machine::{BandwidthEvent, ConnectionEvent, MixnetEvent};
 
@@ -24,17 +24,17 @@ impl StatusListener {
         tracing::debug!("Starting status listener loop");
 
         while let Some(msg) = self.rx.next().await {
-            if let Some(msg) = msg.downcast_ref::<TaskStatus>() {
+            if let Some(msg) = msg.as_any().downcast_ref::<TaskStatus>() {
                 tracing::info!("Received ignored TaskStatus message: {msg}");
-            } else if let Some(msg) = msg.downcast_ref::<ConnectionMonitorStatus>() {
+            } else if let Some(msg) = msg.as_any().downcast_ref::<ConnectionMonitorStatus>() {
                 tracing::info!("VPN connection monitor status: {msg}");
                 self.send_event(MixnetEvent::Connection(ConnectionEvent::from(msg)));
-            } else if let Some(msg) = msg.downcast_ref::<BandwidthStatusMessage>() {
+            } else if let Some(msg) = msg.as_any().downcast_ref::<BandwidthStatusMessage>() {
                 tracing::info!("VPN bandwidth status: {msg}");
                 self.send_event(MixnetEvent::Bandwidth(BandwidthEvent::from(msg)));
             } else {
                 tracing::warn!("VPN status: unknown: {msg}");
-                tracing::debug!("Unknown status message received: {msg:#?}");
+                tracing::debug!("Unknown status message received: {msg}");
             }
         }
 

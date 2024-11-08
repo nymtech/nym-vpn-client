@@ -1,7 +1,10 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::time::{Duration, Instant};
+use std::{
+    fmt,
+    time::{Duration, Instant},
+};
 
 use futures::{channel::mpsc, StreamExt};
 use nym_sdk::TaskClient;
@@ -224,32 +227,58 @@ fn report_connectivity(connectivity: &ConnectivityState, task_client: &mut TaskC
     }
 }
 
-// Events that are emitted by the connection monitor to other components of the system.
-// Just like in nym_task::TaskManager and TaskStatus, strictly speaking this is not an error, but a
-// status message. We're just piggybacking on the error trait for now. In the future, we might want
-// to create a separate trait in nym_task::TaskManager
-#[derive(Clone, thiserror::Error, Debug)]
+#[derive(Clone, Debug)]
 pub enum ConnectionMonitorStatus {
-    #[error("entry gateway appears down - it's not routing our mixnet traffic")]
     EntryGatewayDown,
-
-    #[error("exit gateway (or ipr) appears down - it's not responding to IPv4 traffic")]
     ExitGatewayDownIpv4,
-
-    #[error("exit gateway (or ipr) appears down - it's not responding to IPv6 traffic")]
     ExitGatewayDownIpv6,
-
-    #[error("exit gateway (or ipr) appears to be having issues routing and forwarding our external IPv4 traffic")]
     ExitGatewayRoutingErrorIpv4,
-
-    #[error("exit gateway (or ipr) appears to be having issues routing and forwarding our external IPv6 traffic")]
     ExitGatewayRoutingErrorIpv6,
-
-    #[error("connected with ipv4")]
     ConnectedIpv4,
-
-    #[error("connected with ipv6")]
     ConnectedIpv6,
+}
+
+impl fmt::Display for ConnectionMonitorStatus {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ConnectionMonitorStatus::EntryGatewayDown => {
+                write!(
+                    f,
+                    "entry gateway appears down - it's not routing our mixnet traffic"
+                )
+            }
+            ConnectionMonitorStatus::ExitGatewayDownIpv4 => {
+                write!(
+                    f,
+                    "exit gateway (or ipr) appears down - it's not responding to IPv4 traffic"
+                )
+            }
+            ConnectionMonitorStatus::ExitGatewayDownIpv6 => {
+                write!(
+                    f,
+                    "exit gateway (or ipr) appears down - it's not responding to IPv6 traffic"
+                )
+            }
+            ConnectionMonitorStatus::ExitGatewayRoutingErrorIpv4 => {
+                write!(f, "exit gateway (or ipr) appears to be having issues routing and forwarding our external IPv4 traffic")
+            }
+            ConnectionMonitorStatus::ExitGatewayRoutingErrorIpv6 => {
+                write!(f, "exit gateway (or ipr) appears to be having issues routing and forwarding our external IPv6 traffic")
+            }
+            ConnectionMonitorStatus::ConnectedIpv4 => {
+                write!(f, "connected with ipv4")
+            }
+            ConnectionMonitorStatus::ConnectedIpv6 => {
+                write!(f, "connected with ipv6")
+            }
+        }
+    }
+}
+
+impl nym_task::TaskStatusEvent for ConnectionMonitorStatus {
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
 }
 
 pub fn start_connection_monitor(
