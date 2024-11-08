@@ -144,7 +144,13 @@ pub async fn connect(
 
     app.emit_connection_progress(ConnectProgressMsg::InitDone);
     match grpc
-        .vpn_connect(entry_node, exit_node, two_hop_mod, use_netstack_wireguard, dns)
+        .vpn_connect(
+            entry_node,
+            exit_node,
+            two_hop_mod,
+            use_netstack_wireguard,
+            dns,
+        )
         .await
     {
         Ok(_) => Ok(ConnectionState::Connecting),
