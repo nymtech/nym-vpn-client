@@ -33,7 +33,7 @@ use nym_vpn_lib::{
     tunnel_state_machine::{
         ConnectionData, DnsOptions, GatewayPerformanceOptions, MixnetEvent, MixnetTunnelOptions,
         NymConfig, TunnelCommand, TunnelConnectionData, TunnelEvent, TunnelSettings, TunnelState,
-        TunnelStateMachine, TunnelType,
+        TunnelStateMachine, TunnelType, WireguardMultihopMode, WireguardTunnelOptions,
     },
     MixnetClientConfig, NodeIdentity, Recipient,
 };
@@ -165,6 +165,7 @@ pub(crate) struct ConnectOptions {
     pub(crate) dns: Option<IpAddr>,
     pub(crate) disable_routing: bool,
     pub(crate) enable_two_hop: bool,
+    pub(crate) netstack: bool,
     pub(crate) disable_poisson_rate: bool,
     pub(crate) disable_background_cover_traffic: bool,
     pub(crate) enable_credentials_mode: bool,
@@ -736,6 +737,13 @@ where
             tunnel_type,
             enable_credentials_mode: options.enable_credentials_mode,
             mixnet_tunnel_options: MixnetTunnelOptions::default(),
+            wireguard_tunnel_options: WireguardTunnelOptions {
+                multihop_mode: if options.netstack {
+                    WireguardMultihopMode::Netstack
+                } else {
+                    WireguardMultihopMode::TunTun
+                },
+            },
             gateway_performance_options: gateway_options,
             mixnet_client_config: Some(mixnet_client_config),
             entry_point: Box::new(config.entry_point),
@@ -752,7 +760,7 @@ where
                 .send(TunnelCommand::Connect)
                 .map_err(|e| {
                     tracing::error!("Failed to send command to connect: {}", e);
-                    VpnServiceConnectError::Internal("failed to send tunnel command".to_owned())
+                    VpnServiceConnectError::Internal("failed to send command to connect".to_owned())
                 }),
             Err(e) => {
                 tracing::error!("Failed to send command to set tunnel options: {}", e);

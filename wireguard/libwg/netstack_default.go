@@ -1,4 +1,4 @@
-//go:build ios || android
+//go:build (darwin || linux || windows) && !android && !ios
 
 /* SPDX-License-Identifier: MIT
  *
@@ -61,7 +61,6 @@ func wgNetTurnOn(localAddresses *C.char, dnsAddresses *C.char, mtu int, settings
 		return ERROR_GENERAL_FAILURE
 	}
 
-	dev.DisableSomeRoamingForBrokenMobileSemantics()
 	err = dev.Up()
 	if err != nil {
 		logger.Errorf("Failed to set device state to Up: %v", err)

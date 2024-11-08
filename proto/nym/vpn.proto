@@ -212,6 +212,7 @@ message ConnectRequest {
   Dns dns = 3;
   bool disable_routing = 4;
   bool enable_two_hop = 5;
+  bool netstack = 13;
   bool disable_poisson_rate = 6;
   bool disable_background_cover_traffic = 7;
   bool enable_credentials_mode = 8;

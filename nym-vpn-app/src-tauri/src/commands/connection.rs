@@ -140,10 +140,17 @@ pub async fn connect(
         info!("5-hop mode enabled");
         false
     };
+    let use_netstack_wireguard = false;
 
     app.emit_connection_progress(ConnectProgressMsg::InitDone);
     match grpc
-        .vpn_connect(entry_node, exit_node, two_hop_mod, dns)
+        .vpn_connect(
+            entry_node,
+            exit_node,
+            two_hop_mod,
+            use_netstack_wireguard,
+            dns,
+        )
         .await
     {
         Ok(_) => Ok(ConnectionState::Connecting),

@@ -27,7 +27,7 @@ function parseArgs {
             shift ;;
         # handle --arm64 option
         "--arm64" )
-            IS_WIN_ARM64=false;
+            IS_WIN_ARM64=true;
             shift ;;
         # if we receive "--" consider everything after to be inner arguments
         -- ) shift; break ;;
@@ -40,7 +40,7 @@ function parseArgs {
 }
 
 function win_gather_export_symbols {
-   grep -Eo "\/\/export \w+" libwg.go libwg_windows.go | cut -d' ' -f2
+   grep -Eo "\/\/export \w+" libwg.go libwg_windows.go netstack.go netstack_default.go | cut -d' ' -f2
 }
 
 function win_create_lib_file {

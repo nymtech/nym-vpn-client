@@ -114,6 +114,7 @@ async fn connect(client_type: ClientType, connect_args: &cli::ConnectArgs) -> Re
         dns: connect_args.dns.map(ipaddr_into_string),
         disable_routing: connect_args.disable_routing,
         enable_two_hop: connect_args.enable_two_hop,
+        netstack: connect_args.netstack,
         disable_poisson_rate: connect_args.disable_poisson_rate,
         disable_background_cover_traffic: connect_args.disable_background_cover_traffic,
         enable_credentials_mode: connect_args.enable_credentials_mode,
