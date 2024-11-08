@@ -7,6 +7,7 @@ use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     path::PathBuf,
     str::FromStr,
+    time::Duration,
 };
 
 pub use error::{Error, ErrorMessage};
@@ -39,6 +40,7 @@ const DEFAULT_PRIVATE_EXIT_WIREGUARD_KEY_FILENAME: &str = "private_exit_wireguar
 const DEFAULT_PUBLIC_EXIT_WIREGUARD_KEY_FILENAME: &str = "public_exit_wireguard.pem";
 
 pub const TICKETS_TO_SPEND: u32 = 1;
+const RETRY_PERIOD: Duration = Duration::from_secs(30);
 
 #[derive(Clone, Debug)]
 pub struct GatewayData {
@@ -102,21 +104,31 @@ impl WgGatewayLightClient {
         Ok(self.query_bandwidth().await?.is_none())
     }
 
-    async fn send_with_retries(&mut self, msg: ClientMessage) -> Result<AuthenticatorResponse> {
-        for _ in [0; 5] {
-            match self
+    async fn send(&mut self, msg: ClientMessage) -> Result<AuthenticatorResponse> {
+        if msg.is_wasteful() {
+            let now = std::time::Instant::now();
+            while now.elapsed() < RETRY_PERIOD {
+                match self
+                    .auth_client
+                    .send(msg.clone(), self.auth_recipient)
+                    .await
+                {
+                    Ok(response) => return Ok(response),
+                    Err(nym_authenticator_client::Error::TimeoutWaitingForConnectResponse) => {
+                        continue
+                    }
+                    Err(source) => return Err(Error::NoRetry { source }),
+                }
+            }
+            Err(Error::NoRetry {
+                source: nym_authenticator_client::Error::TimeoutWaitingForConnectResponse,
+            })
+        } else {
+            Ok(self
                 .auth_client
                 .send(msg.clone(), self.auth_recipient)
-                .await
-            {
-                Ok(response) => return Ok(response),
-                Err(nym_authenticator_client::Error::TimeoutWaitingForConnectResponse) => continue,
-                Err(source) => return Err(Error::NoRetry { source }),
-            }
+                .await?)
         }
-        Err(Error::NoRetry {
-            source: nym_authenticator_client::Error::TimeoutWaitingForConnectResponse,
-        })
     }
 
     pub async fn top_up(&mut self, credential: CredentialSpendingData) -> Result<i64> {
@@ -124,7 +136,7 @@ impl WgGatewayLightClient {
             pub_key: PeerPublicKey::new(self.public_key.to_bytes().into()),
             credential,
         }));
-        let response = self.send_with_retries(top_up_message).await?;
+        let response = self.send(top_up_message).await?;
 
         let remaining_bandwidth = match response.data {
             AuthenticatorResponseData::TopUpBandwidth(TopUpBandwidthResponse { reply, .. }) => {
@@ -293,10 +305,7 @@ impl WgGatewayClient {
                     ),
                     credential,
                 }));
-                let response = self
-                    .light_client()
-                    .send_with_retries(finalized_message)
-                    .await?;
+                let response = self.light_client().send(finalized_message).await?;
                 let AuthenticatorResponseData::Registered(RegisteredResponse { reply, .. }) =
                     response.data
                 else {
