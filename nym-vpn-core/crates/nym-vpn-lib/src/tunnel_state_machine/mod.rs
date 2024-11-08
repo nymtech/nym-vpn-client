@@ -22,6 +22,7 @@ use std::{
     path::PathBuf,
 };
 
+use si_scale::helpers::bibytes2;
 use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
@@ -354,6 +355,7 @@ impl fmt::Display for TunnelEvent {
 pub enum MixnetEvent {
     Bandwidth(BandwidthEvent),
     Connection(ConnectionEvent),
+    ConnectionStatistics(ConnectionStatisticsEvent),
 }
 
 #[derive(Debug, Copy, Clone, uniffi::Enum)]
@@ -371,6 +373,76 @@ pub enum ConnectionEvent {
     ExitGatewayRoutingErrorIpv6,
     ConnectedIpv4,
     ConnectedIpv6,
+}
+
+#[derive(Debug, Copy, Clone, uniffi::Record)]
+pub struct ConnectionStatisticsEvent {
+    pub rates: SphinxPacketRates,
+}
+
+#[derive(Debug, Copy, Clone, uniffi::Record)]
+pub struct SphinxPacketRates {
+    pub real_packets_sent: f64,
+    pub real_packets_sent_size: f64,
+    pub cover_packets_sent: f64,
+    pub cover_packets_sent_size: f64,
+
+    pub real_packets_received: f64,
+    pub real_packets_received_size: f64,
+    pub cover_packets_received: f64,
+    pub cover_packets_received_size: f64,
+
+    pub total_acks_received: f64,
+    pub total_acks_received_size: f64,
+    pub real_acks_received: f64,
+    pub real_acks_received_size: f64,
+    pub cover_acks_received: f64,
+    pub cover_acks_received_size: f64,
+
+    pub real_packets_queued: f64,
+    pub retransmissions_queued: f64,
+    pub reply_surbs_queued: f64,
+    pub additional_reply_surbs_queued: f64,
+}
+
+impl fmt::Display for ConnectionStatisticsEvent {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.rates)
+    }
+}
+
+impl fmt::Display for SphinxPacketRates {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.summary())
+    }
+}
+
+impl SphinxPacketRates {
+    pub fn summary(&self) -> String {
+        format!(
+            "down: {}/s, up: {}/s (cover down: {}/s, cover up: {}/s)",
+            bibytes2(self.real_packets_received_size),
+            bibytes2(self.real_packets_sent_size),
+            bibytes2(self.cover_packets_received_size),
+            bibytes2(self.cover_packets_sent_size),
+        )
+    }
+
+    pub fn real_received(&self) -> String {
+        bibytes2(self.real_packets_received_size)
+    }
+
+    pub fn real_sent(&self) -> String {
+        bibytes2(self.real_packets_sent_size)
+    }
+
+    pub fn cover_received(&self) -> String {
+        bibytes2(self.cover_packets_received_size)
+    }
+
+    pub fn cover_sent(&self) -> String {
+        bibytes2(self.cover_packets_sent_size)
+    }
 }
 
 pub struct SharedState {
@@ -675,6 +747,7 @@ impl fmt::Display for MixnetEvent {
         match self {
             Self::Bandwidth(event) => write!(f, "{}", event),
             Self::Connection(event) => write!(f, "{}", event),
+            Self::ConnectionStatistics(event) => write!(f, "{}", event),
         }
     }
 }
