@@ -55,18 +55,18 @@ const DEFAULT_TUN_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android
 } else {
     1500
 };
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+/// Entry IPv6 address (ULA) used by WireGuard, currently not routable.
+const WG_ENTRY_IPV6_ADDR: Ipv6Addr = Ipv6Addr::new(
+    0xfdcc, 0x9fc0, 0xe75a, 0x53c3, 0xfa25, 0x241f, 0x21c0, 0x70d0,
+);
+
 #[cfg(any(
     target_os = "linux",
     target_os = "macos",
     target_os = "android",
     target_os = "ios"
 ))]
-/// Entry IPv6 address (ULA) used by WireGuard, currently not routable.
-const WG_ENTRY_IPV6_ADDR: Ipv6Addr = Ipv6Addr::new(
-    0xfdcc, 0x9fc0, 0xe75a, 0x53c3, 0xfa25, 0x241f, 0x21c0, 0x70d0,
-);
-
-#[cfg(any(target_os = "linux", target_os = "macos"))]
 /// Exit IPv6 address (ULA) used by WireGuard, currently not routable.
 const WG_EXIT_IPV6_ADDR: Ipv6Addr = Ipv6Addr::new(
     0xfdcc, 0x9fc0, 0xe75a, 0x53c3, 0x72a5, 0xf352, 0x5475, 0x4160,
