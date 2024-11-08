@@ -346,14 +346,18 @@ async fn send_icmp_pings(
     our_ips: IpPair,
     exit_router_address: IpPacketRouterAddress,
 ) -> anyhow::Result<()> {
+    // ipv4 addresses for testing
     let ipr_tun_ip_v4 = Ipv4Addr::new(10, 0, 0, 1);
-    let ipr_tun_ip_v6 = Ipv6Addr::new(0x2001, 0xdb8, 0xa160, 0, 0, 0, 0, 0x1);
     let external_ip_v4 = Ipv4Addr::new(8, 8, 8, 8);
+    
+    // ipv6 addresses for testing
+    let ipr_tun_ip_v6 = Ipv6Addr::new(0x2001, 0xdb8, 0xa160, 0, 0, 0, 0, 0x1);
     let external_ip_v6 = Ipv6Addr::new(0x2001, 0x4860, 0x4860, 0, 0, 0, 0, 0x8888);
-    info!("Sending ICMP echo requests to: {ipr_tun_ip_v4}, {ipr_tun_ip_v6}, {external_ip_v4}, {external_ip_v6}");
+
+    info!("Sending ICMP echo requests for both IPv4 and IPv6");
+
+    // send ipv4 pings
     for ii in 0..10 {
-        // HACK: there is hidden hardcoded assumption about these IPs inside
-        // `check_for_icmp_beacon_reply`
         send_ping_v4(
             shared_mixnet_client.clone(),
             our_ips,
@@ -370,6 +374,10 @@ async fn send_icmp_pings(
             exit_router_address,
         )
         .await?;
+    }
+
+    // send ipv6 pings
+    for ii in 0..10 {
         send_ping_v6(
             shared_mixnet_client.clone(),
             our_ips,
