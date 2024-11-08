@@ -245,7 +245,14 @@ async fn wg_probe(
                 private_key: private_key_hex,
                 public_key: public_key_hex,
                 endpoint: wg_endpoint.clone(),
-                ..NetstackRequest::with_ipv6_defaults()
+                dns: "2606:4700:4700::1111".to_string(),  // cloudflare's IPv6 DNS
+                ping_hosts: vec!["ipv6.google.com".to_string()],
+                ping_ips: vec![
+                    "2001:4860:4860::8888".to_string(), // google DNS
+                    "2606:4700:4700::1111".to_string(),// cloudflare DNS
+                    "2620:fe::fe".to_string() //Quad9 DNS
+                ],
+                ..NetstackRequest::default()
             };
 
             let netstack_response_v6 = NetstackCallImpl::ping(&ipv6_request);
