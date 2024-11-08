@@ -1,14 +1,15 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::fmt;
+use std::{collections::HashMap, fmt};
 
 use anyhow::Context;
+use serde::{Deserialize, Serialize};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
 use crate::response::SystemMessageResponse;
 
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct SystemMessages {
     pub messages: Vec<SystemMessage>,
 }
@@ -34,13 +35,41 @@ impl fmt::Display for SystemMessages {
     }
 }
 
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SystemMessage {
     pub name: String,
     pub display_from: Option<OffsetDateTime>,
     pub display_until: Option<OffsetDateTime>,
     pub message: String,
-    pub properties: serde_json::Value,
+    pub properties: PropertyValue,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(untagged)]
+pub enum PropertyValue {
+    String(String),
+    Map(HashMap<String, PropertyValue>),
+}
+
+impl PropertyValue {
+    fn empty() -> Self {
+        Self::String("".to_string())
+    }
+}
+
+impl fmt::Display for PropertyValue {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            PropertyValue::String(s) => write!(f, "{}", s),
+            PropertyValue::Map(map) => {
+                write!(f, "{{")?;
+                for (key, value) in map {
+                    write!(f, " {}: {},", key, value)?;
+                }
+                write!(f, "}}")
+            }
+        }
+    }
 }
 
 impl fmt::Display for SystemMessage {
@@ -87,12 +116,15 @@ impl TryFrom<SystemMessageResponse> for SystemMessage {
             .with_context(|| format!("Failed to parse display_until: {}", response.display_until))
             .ok();
 
+        let properties =
+            PropertyValue::deserialize(response.properties).unwrap_or(PropertyValue::empty());
+
         Ok(Self {
             name: response.name,
             display_from,
             display_until,
             message: response.message,
-            properties: response.properties,
+            properties,
         })
     }
 }
