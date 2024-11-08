@@ -77,5 +77,8 @@
   "exit-node": {
     "routing": "Le nœud de sortie ne relai pas le trafic {{protocol}}",
     "ping": "Échec du ping sur le nœud de sortie pour le trafic {{protocol}}"
+  },
+  "account": {
+    "invalid-recovery-phrase": "Phrase de récupération invalide"
   }
 }
