@@ -354,7 +354,7 @@ async fn send_icmp_pings(
     let ipr_tun_ip_v6 = Ipv6Addr::new(0x2001, 0xdb8, 0xa160, 0, 0, 0, 0, 0x1);
     let external_ip_v6 = Ipv6Addr::new(0x2001, 0x4860, 0x4860, 0, 0, 0, 0, 0x8888);
 
-    info!("Sending ICMP echo requests for both IPv4 and IPv6");
+    info!("Sending ICMP echo requests to: {ipr_tun_ip_v4}, {ipr_tun_ip_v6}, {external_ip_v4}, {external_ip_v6}");
 
     // send ipv4 pings
     for ii in 0..10 {
