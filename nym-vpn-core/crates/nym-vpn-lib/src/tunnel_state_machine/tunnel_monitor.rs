@@ -550,7 +550,7 @@ impl TunnelMonitor {
     }
 
     #[cfg(any(target_os = "ios", target_os = "android"))]
-    async fn start_wireguard_tunnel(
+    async fn start_wireguard_netstack_tunnel(
         &self,
         connected_mixnet: ConnectedMixnet,
     ) -> Result<(TunnelConnectionData, AnyTunnelHandle)> {
