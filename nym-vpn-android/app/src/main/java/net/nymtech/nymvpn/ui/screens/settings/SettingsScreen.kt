@@ -149,22 +149,6 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 						context.launchVpnSettings()
 					},
 				),
-				SelectionItem(
-					ImageVector.vectorResource(R.drawable.two),
-					{
-						ScaledSwitch(
-							appUiState.settings.firstHopSelectionEnabled,
-							onClick = { appViewModel.onEntryLocationSelected(it) },
-							enabled = (appUiState.state is Tunnel.State.Down),
-						)
-					},
-					title = {
-						Text(
-							stringResource(R.string.entry_location_selector),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-						)
-					},
-				),
 			),
 		)
 		SurfaceSelectionGroupButton(

@@ -233,7 +233,7 @@ interface Tunnel {
 			}
 
 			override val nymVpnApiUrl: URL?
-				get() = null
+				get() = URL("https://nym-vpn-api-git-deploy-qa-nyx-network-staging.vercel.app/api/")
 			override val apiUrl: URL
 				get() = URL("https://qa-nym-api.qa.nymte.ch/api")
 			override val accountUrl: URL

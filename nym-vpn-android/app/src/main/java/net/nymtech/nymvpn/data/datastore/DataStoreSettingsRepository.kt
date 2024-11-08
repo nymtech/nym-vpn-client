@@ -19,7 +19,6 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val lastHopCountry = stringPreferencesKey("LAST_HOP_COUNTRY")
 	private val theme = stringPreferencesKey("THEME")
 	private val vpnMode = stringPreferencesKey("TUNNEL_MODE")
-	private val firstHopSelection = booleanPreferencesKey("FIRST_HOP_SELECTION")
 	private val errorReporting = booleanPreferencesKey("ERROR_REPORTING")
 	private val analytics = booleanPreferencesKey("ANALYTICS")
 	private val autoStart = booleanPreferencesKey("AUTO_START")
@@ -107,15 +106,6 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		return dataStoreManager.getFromStore(analytics) ?: Settings.REPORTING_DEFAULT
 	}
 
-	override suspend fun isFirstHopSelectionEnabled(): Boolean {
-		return dataStoreManager.getFromStore(firstHopSelection)
-			?: Settings.FIRST_HOP_SELECTION_DEFAULT
-	}
-
-	override suspend fun setFirstHopSelection(enabled: Boolean) {
-		dataStoreManager.saveToDataStore(firstHopSelection, enabled)
-	}
-
 	override suspend fun isAnalyticsShown(): Boolean {
 		return dataStoreManager.getFromStore(analyticsShown) ?: Settings.ANALYTICS_SHOWN_DEFAULT
 	}
@@ -161,9 +151,6 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 							?: Settings.REPORTING_DEFAULT,
 						analyticsEnabled = pref[analytics]
 							?: Settings.REPORTING_DEFAULT,
-						firstHopSelectionEnabled =
-						pref[firstHopSelection]
-							?: Settings.FIRST_HOP_SELECTION_DEFAULT,
 						isAnalyticsShown = pref[analyticsShown] ?: Settings.ANALYTICS_SHOWN_DEFAULT,
 						firstHopCountry = Country.from(pref[firstHopCountry]) ?: default,
 						lastHopCountry = Country.from(pref[lastHopCountry]) ?: default,

@@ -1,7 +1,6 @@
 package net.nymtech.nymvpn
 
 import android.app.Application
-import android.content.Context
 import android.os.Build
 import android.os.StrictMode
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -11,8 +10,6 @@ import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import net.nymtech.localizationutil.LocaleStorage
-import net.nymtech.localizationutil.LocaleUtil
 import net.nymtech.logcatutil.LogCollect
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
@@ -20,16 +17,13 @@ import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.timber.DebugTree
 import net.nymtech.nymvpn.util.timber.ReleaseTree
-import net.nymtech.vpn.backend.Tunnel
+import net.nymtech.vpn.backend.Backend
 import timber.log.Timber
 import javax.inject.Inject
+import javax.inject.Provider
 
 @HiltAndroidApp
 class NymVpn : Application() {
-
-	val localeStorage: LocaleStorage by lazy {
-		LocaleStorage(this)
-	}
 
 	@Inject
 	@ApplicationScope
@@ -41,6 +35,9 @@ class NymVpn : Application() {
 
 	@Inject
 	lateinit var settingsRepository: SettingsRepository
+
+	@Inject
+	lateinit var backend: Provider<Backend>
 
 	@Inject
 	lateinit var logCollect: LogCollect
@@ -66,15 +63,10 @@ class NymVpn : Application() {
 		}
 		applicationScope.launch(ioDispatcher) {
 			val env = settingsRepository.getEnvironment()
-			Timber.d("Configuring for env ${env.name}")
-			env.setup()
+			backend.get().init(env)
 			logCollect.start()
 		}
 		requestTileServiceStateUpdate()
-	}
-
-	override fun attachBaseContext(base: Context) {
-		super.attachBaseContext(LocaleUtil.getLocalizedContext(base, LocaleStorage(base).getPreferredLocale()))
 	}
 
 	class AppLifecycleObserver : DefaultLifecycleObserver {
@@ -98,8 +90,6 @@ class NymVpn : Application() {
 
 		lateinit var instance: NymVpn
 			private set
-
-		val environment = Tunnel.Environment.from(BuildConfig.FLAVOR)
 
 		fun getCPUArchitecture(): String {
 			return when (Build.SUPPORTED_ABIS.firstOrNull()) {

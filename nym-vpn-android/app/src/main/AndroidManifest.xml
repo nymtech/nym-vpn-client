@@ -35,7 +35,7 @@
 			tools:replace="screenOrientation" />
 		<activity
 			android:name=".ui.MainActivity"
-			android:configChanges="orientation|keyboardHidden"
+			android:configChanges="orientation|keyboardHidden|locale|layoutDirection"
 			android:exported="true"
 			android:theme="@style/Theme.NymVPN"
 			android:screenOrientation="portrait"

@@ -1,6 +1,8 @@
 package net.nymtech.nymvpn.ui
 
 import android.content.Context
+import android.content.ContextWrapper
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -37,11 +39,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.nymtech.localizationutil.LocaleStorage
 import net.nymtech.localizationutil.LocaleUtil
-import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.manager.shortcut.ShortcutManager
 import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
@@ -69,22 +69,18 @@ import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.screens.splash.SplashScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.isCurrentRoute
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.resetTile
-import net.nymtech.vpn.model.BackendMessage
-import java.util.Locale
+import net.nymtech.nymvpn.util.extensions.setAppLocale
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-	private val localeStorage: LocaleStorage by lazy {
-		(application as NymVpn).localeStorage
+	val localeStorage: LocaleStorage by lazy {
+		LocaleStorage(this)
 	}
-
-	private lateinit var oldPrefLocaleCode: String
 
 	@Inject
 	lateinit var notificationService: NotificationService
@@ -117,13 +113,14 @@ class MainActivity : ComponentActivity() {
 			val density = LocalDensity.current
 
 			LaunchedEffect(navBackStackEntry) {
-				if (navBackStackEntry.isCurrentRoute(Route.Main(changeLanguage = true)::class)) {
-					val locale = LocaleUtil.getLocaleFromPrefCode(localeStorage.getPreferredLocale())
-					val currentLocale = Locale.getDefault()
-					if (locale != currentLocale) {
-						delay(Constants.LANGUAGE_SWITCH_DELAY)
-						navController.clearBackStack<Route.Main>()
-						recreate()
+				if (navBackStackEntry.isCurrentRoute(Route.Main::class)) {
+					val args = navBackStackEntry?.toRoute<Route.Main>()
+					if (args?.changeLanguage == true) {
+						// Restart activity for built-in translation of country names
+						Intent(this@MainActivity, MainActivity::class.java).also {
+							finish()
+							startActivity(it)
+						}
 					}
 				}
 			}
@@ -135,26 +132,6 @@ class MainActivity : ComponentActivity() {
 				LaunchedEffect(isShortcutsEnabled) {
 					if (!isShortcutsEnabled) return@LaunchedEffect shortcutManager.removeShortcuts()
 					shortcutManager.addShortcuts()
-				}
-			}
-
-			LaunchedEffect(appState.backendMessage) {
-				when (val message = appState.backendMessage) {
-					is BackendMessage.Failure -> {
-						// TODO invalid credential errors?
-// 						when (message.exception) {
-// 							is VpnException.InvalidCredential -> {
-// 								if (NymVpn.isForeground()) {
-// 									SnackbarController.showMessage(StringValue.StringResource(R.string.exception_cred_invalid))
-// 									navController.goFromRoot(Route.Credential)
-// 								}
-// 							}
-//
-// 							else -> Unit
-// 						}
-					}
-
-					else -> Unit
 				}
 			}
 
@@ -266,17 +243,8 @@ class MainActivity : ComponentActivity() {
 	}
 
 	override fun attachBaseContext(newBase: Context) {
-		oldPrefLocaleCode = LocaleStorage(newBase).getPreferredLocale()
-		applyOverrideConfiguration(LocaleUtil.getLocalizedConfiguration(oldPrefLocaleCode))
-		super.attachBaseContext(newBase)
-	}
-
-	override fun onResume() {
-		val currentLocaleCode = LocaleStorage(this).getPreferredLocale()
-		if (oldPrefLocaleCode != currentLocaleCode) {
-			recreate() // locale is changed, restart the activity to update
-			oldPrefLocaleCode = currentLocaleCode
-		}
-		super.onResume()
+		val lang = LocaleStorage(newBase).getPreferredLocale()
+		val locale = LocaleUtil.getLocaleFromPrefCode(lang)
+		super.attachBaseContext(ContextWrapper(newBase.setAppLocale(locale)))
 	}
 }
