@@ -173,4 +173,18 @@
     <string name="action_requires_tunnel_down">L\'action nécessite un tunnel down</string>
     <string name="selected_exit_unavailable">Le pays de sortie sélectionné n\'est pas disponible. Veuillez sélectionner un autre pays de sortie.</string>
     <string name="log_in">Ajoutez un identifiant pour vous connecter</string>
+    <string name="environment">Environnement</string>
+    <string name="dynamic">Dynamique</string>
+    <string name="system_wallpaper">Thème de fond d\'écran système</string>
+    <string name="missing_mnemonic">Phrase mnémonique manquante</string>
+    <string name="device_added_success">Appareil ajouté à votre compte avec succès</string>
+    <string name="invalid_recovery_phrase">Phrase de récupération invalide</string>
+    <string name="recovery_phrase">Phrase de récupération</string>
+    <string name="log_out">Se déconnecter</string>
+    <string name="new_to_nym">Nouveau sur NymVPN ?</string>
+    <string name="recovery_phrase_disclaimer">Vous ne pouvez utiliser que la phrase de récupération créée dans NymVPN, pas le portefeuille Nym.</string>
+    <string name="create_account">Créer un compte</string>
+    <string name="account">Compte</string>
+    <string name="mnemonic_example">p.e. smoke artefact velvet skull pop palace tortoise damage rough...</string>
+    <string name="recovery_phrase_message">Entrez votre phrase de récupération secrète à 24 mots ci-dessous pour vous connecter à votre compte</string>
 </resources>
