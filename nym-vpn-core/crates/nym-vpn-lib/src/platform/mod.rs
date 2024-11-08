@@ -191,7 +191,7 @@ pub fn getGatewayCountries(
     user_agent: Option<UserAgent>,
     min_gateway_performance: Option<GatewayMinPerformance>,
 ) -> Result<Vec<Location>, VpnError> {
-    let (api_url, nym_vpn_api_url) = get_nym_urls();
+    let (api_url, nym_vpn_api_url) = get_nym_urls()?;
 
     RUNTIME.block_on(get_gateway_countries(
         api_url,
@@ -204,7 +204,7 @@ pub fn getGatewayCountries(
 
 async fn get_gateway_countries(
     api_url: Url,
-    nym_vpn_api_url: Option<Url>,
+    nym_vpn_api_url: Url,
     gw_type: GatewayType,
     user_agent: Option<UserAgent>,
     min_gateway_performance: Option<GatewayMinPerformance>,
@@ -215,7 +215,7 @@ async fn get_gateway_countries(
     let min_gateway_performance = min_gateway_performance.map(|p| p.try_into()).transpose()?;
     let directory_config = nym_gateway_directory::Config {
         api_url,
-        nym_vpn_api_url,
+        nym_vpn_api_url: Some(nym_vpn_api_url),
         min_gateway_performance,
     };
     GatewayClient::new(directory_config, user_agent)?
@@ -227,11 +227,9 @@ async fn get_gateway_countries(
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn getLowLatencyEntryCountry(
-    api_url: Url,
-    vpn_api_url: Option<Url>,
-    user_agent: UserAgent,
-) -> Result<Location, VpnError> {
+pub fn getLowLatencyEntryCountry(user_agent: UserAgent) -> Result<Location, VpnError> {
+    let (api_url, vpn_api_url) = get_nym_urls()?;
+
     RUNTIME.block_on(get_low_latency_entry_country(
         api_url,
         vpn_api_url,
@@ -241,12 +239,12 @@ pub fn getLowLatencyEntryCountry(
 
 async fn get_low_latency_entry_country(
     api_url: Url,
-    vpn_api_url: Option<Url>,
+    vpn_api_url: Url,
     user_agent: UserAgent,
 ) -> Result<Location, VpnError> {
     let config = nym_gateway_directory::Config {
         api_url,
-        nym_vpn_api_url: vpn_api_url,
+        nym_vpn_api_url: Some(vpn_api_url),
         min_gateway_performance: None,
     };
     GatewayClient::new(config, user_agent.into())?
@@ -320,16 +318,12 @@ fn get_nym_api_url() -> Option<Url> {
     }
 }
 
-fn get_nym_urls() -> (Url, Option<Url>) {
-    let api_url_env = get_api_url();
-    let nym_vpn_api_url_env = get_nym_api_url();
-
-    match (api_url_env, nym_vpn_api_url_env) {
-        (Some(api_url), Some(nym_vpn_api_url)) => (api_url, Some(nym_vpn_api_url)),
-        _ => {
-            let default = GatewayDirectoryConfig::default();
-            (default.api_url, default.nym_vpn_api_url)
-        }
+fn get_nym_urls() -> Result<(Url, Url), VpnError> {
+    match (get_api_url(), get_nym_api_url()) {
+        (Some(api_url), Some(nym_vpn_api_url)) => Ok((api_url, nym_vpn_api_url)),
+        _ => Err(VpnError::InternalError {
+            details: "NYM_API and NYM_VPN_API environment variables must be set".to_string(),
+        }),
     }
 }
 
@@ -343,11 +337,11 @@ async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, Vp
     let entry_point = nym_gateway_directory::EntryPoint::from(config.entry_gateway);
     let exit_point = nym_gateway_directory::ExitPoint::from(config.exit_router);
 
-    let (api_url, nym_vpn_api_url) = get_nym_urls();
+    let (api_url, nym_vpn_api_url) = get_nym_urls()?;
 
     let gateway_config = GatewayDirectoryConfig {
         api_url,
-        nym_vpn_api_url,
+        nym_vpn_api_url: Some(nym_vpn_api_url),
         ..Default::default()
     };
 
