@@ -1,6 +1,7 @@
 {
   "title": {
-    "part1": "Benvenuto/a"
+    "part1": "Benvenuto/a",
+    "part2": "alla beta di NymVPN"
   },
   "continue-button": "Continua",
   "experimental": "Questo prodotto è in fase di sperimentazione. Non affidartici per un'anonimità completa (per ora)."
