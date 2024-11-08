@@ -564,11 +564,11 @@ impl TunnelMonitor {
             dns_servers: self.tunnel_settings.dns.ip_addresses().to_vec(),
             interface_addresses: vec![
                 IpNetwork::V4(
-                    Ipv4Network::new(conn_data.entry.private_ipv4, 32)
+                    Ipv4Network::new(conn_data.exit.private_ipv4, 32)
                         .expect("ipv4 to ipnetwork/32"),
                 ),
                 IpNetwork::V6(
-                    Ipv6Network::new(conn_data.entry.private_ipv6, 128)
+                    Ipv6Network::new(conn_data.exit.private_ipv6, 128)
                         .expect("ipv6 to ipnetwork/128"),
                 ),
             ],
