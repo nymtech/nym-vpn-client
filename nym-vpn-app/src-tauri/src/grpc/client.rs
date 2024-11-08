@@ -31,7 +31,9 @@ use crate::vpn_status;
 use crate::{events::AppHandleEventEmitter, states::SharedAppState};
 
 const VPND_SERVICE: &str = "nym.vpn.NymVpnd";
-#[cfg(not(windows))]
+#[cfg(target_os = "linux")]
+const DEFAULT_SOCKET_PATH: &str = "/run/nym-vpn.sock";
+#[cfg(target_os = "macos")]
 const DEFAULT_SOCKET_PATH: &str = "/var/run/nym-vpn.sock";
 #[cfg(windows)]
 const DEFAULT_SOCKET_PATH: &str = r"\\.\pipe\nym-vpn";
