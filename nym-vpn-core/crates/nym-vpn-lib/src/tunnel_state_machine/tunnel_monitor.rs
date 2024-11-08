@@ -55,18 +55,18 @@ const DEFAULT_TUN_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android
 } else {
     1500
 };
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+/// Entry IPv6 address (ULA) used by WireGuard, currently not routable.
+const WG_ENTRY_IPV6_ADDR: Ipv6Addr = Ipv6Addr::new(
+    0xfdcc, 0x9fc0, 0xe75a, 0x53c3, 0xfa25, 0x241f, 0x21c0, 0x70d0,
+);
+
 #[cfg(any(
     target_os = "linux",
     target_os = "macos",
     target_os = "android",
     target_os = "ios"
 ))]
-/// Entry IPv6 address (ULA) used by WireGuard, currently not routable.
-const WG_ENTRY_IPV6_ADDR: Ipv6Addr = Ipv6Addr::new(
-    0xfdcc, 0x9fc0, 0xe75a, 0x53c3, 0xfa25, 0x241f, 0x21c0, 0x70d0,
-);
-
-#[cfg(any(target_os = "linux", target_os = "macos"))]
 /// Exit IPv6 address (ULA) used by WireGuard, currently not routable.
 const WG_EXIT_IPV6_ADDR: Ipv6Addr = Ipv6Addr::new(
     0xfdcc, 0x9fc0, 0xe75a, 0x53c3, 0x72a5, 0xf352, 0x5475, 0x4160,
@@ -505,11 +505,11 @@ impl TunnelMonitor {
             dns_servers: self.tunnel_settings.dns.ip_addresses().to_vec(),
             interface_addresses: vec![
                 IpNetwork::V4(
-                    Ipv4Network::new(conn_data.entry.private_ipv4, 32)
+                    Ipv4Network::new(conn_data.exit.private_ipv4, 32)
                         .expect("ipv4 to ipnetwork/32"),
                 ),
                 IpNetwork::V6(
-                    Ipv6Network::new(WG_ENTRY_IPV6_ADDR, 128).expect("ipv6 to ipnetwork/128"),
+                    Ipv6Network::new(WG_EXIT_IPV6_ADDR, 128).expect("ipv6 to ipnetwork/128"),
                 ),
             ],
             remote_addresses: vec![conn_data.entry.endpoint.ip()],
