@@ -57,7 +57,7 @@ pub(crate) struct RunArgs {
     pub(crate) wireguard_mode: bool,
 
     /// Use wireguard with nestack for multihop.
-    #[arg(long, default_value_t = false)]
+    #[arg(long, requires = "wireguard_mode", default_value_t = false)]
     pub(crate) netstack: bool,
 
     /// The IPv4 address of the nym TUN device that wraps IP packets in sphinx packets.

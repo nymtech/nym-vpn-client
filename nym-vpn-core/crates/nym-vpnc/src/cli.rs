@@ -73,7 +73,7 @@ pub(crate) struct ConnectArgs {
     pub(crate) enable_two_hop: bool,
 
     /// Use netstack based implementation for two-hop wireguard.
-    #[arg(long)]
+    #[arg(long, requires = "enable_two_hop")]
     pub(crate) netstack: bool,
 
     /// Disable Poisson process rate limiting of outbound traffic.
