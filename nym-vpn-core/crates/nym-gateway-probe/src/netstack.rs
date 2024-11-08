@@ -17,6 +17,28 @@ pub struct NetstackRequest {
     pub recv_timeout_sec: u64,
 }
 
+impl NetstackRequest {
+    // IPv4 defaults
+    pub fn with_ipv4_defaults() -> Self {
+        Self {
+            dns: "1.1.1.1".to_string(),
+            ping_hosts: vec!["nymtech.net".to_string()],
+            ping_ips: vec!["1.1.1.1".to_string()],
+            ..Self::default()
+        }
+    }
+
+    // IPv6 defaults
+    pub fn with_ipv6_defaults() -> Self {
+        Self {
+            dns: "2606:4700:4700::1111".to_string(), //cloudflare
+            ping_hosts: vec!["nymtech.net".to_string()],
+            ping_ips: vec!["2001:4860:4860::8888".to_string()], //google
+            ..Self::default()
+        }
+    }
+}
+
 impl Default for NetstackRequest {
     fn default() -> Self {
         Self {
