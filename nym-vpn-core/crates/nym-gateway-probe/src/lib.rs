@@ -252,6 +252,7 @@ async fn wg_probe(
                     "2606:4700:4700::1111".to_string(),// cloudflare DNS
                     "2620:fe::fe".to_string() //Quad9 DNS
                 ],
+                ip_version: 6,
                 ..NetstackRequest::default()
             };
 

@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"net"
 	"net/netip"
 	"strings"
 	"time"
 
 	"golang.org/x/net/icmp"
 	"golang.org/x/net/ipv4"
+	"golang.org/x/net/ipv6"
 	"golang.zx2c4.com/wireguard/conn"
 	"golang.zx2c4.com/wireguard/device"
 	"golang.zx2c4.com/wireguard/tun/netstack"
@@ -56,7 +58,7 @@ func (Netstack) ping(req NetstackRequest) NetstackResponse {
 		for i := uint8(0); i < req.num_ping; i++ {
 			log.Printf("Pinging %s seq=%d", host, i)
 			response.sent_hosts += 1
-			rt, err := sendPing(host, i, req.send_timeout_sec, req.recv_timeout_sec, tnet)
+			rt, err := sendPing(host, i, req.send_timeout_sec, req.recv_timeout_sec, tnet, req.ip_version)
 			if err != nil {
 				log.Printf("Failed to send ping: %v\n", err)
 				continue
@@ -71,7 +73,7 @@ func (Netstack) ping(req NetstackRequest) NetstackResponse {
 		for i := uint8(0); i < req.num_ping; i++ {
 			log.Printf("Pinging %s seq=%d", ip, i)
 			response.sent_ips += 1
-			rt, err := sendPing(ip, i, req.send_timeout_sec, req.recv_timeout_sec, tnet)
+			rt, err := sendPing(ip, i, req.send_timeout_sec, req.recv_timeout_sec, tnet, req.ip_version)
 			if err != nil {
 				log.Printf("Failed to send ping: %v\n", err)
 				continue
@@ -84,18 +86,33 @@ func (Netstack) ping(req NetstackRequest) NetstackResponse {
 	return response
 }
 
-func sendPing(address string, seq uint8, send_timeout_secs uint64, recieve_timout_secs uint64, tnet *netstack.Net) (time.Duration, error) {
-	socket, err := tnet.Dial("ping4", address)
+func sendPing(address string, seq uint8, send_timeout_secs uint64, recieve_timout_secs uint64, tnet *netstack.Net, ip_version uint8) (time.Duration, error) {
+	var socket net.Conn
+	var err error
+	if ip_version == 4 {
+		socket, err = tnet.Dial("ping4", address)
+	} else {
+		socket, err = tnet.Dial("ping6", address)
+	}
+
 	if err != nil {
 		return 0, err
 	}
+
+	var icmpBytes []byte
 
 	requestPing := icmp.Echo{
 		ID:   1337,
 		Seq:  int(seq),
 		Data: []byte("gopher burrow"),
 	}
-	icmpBytes, _ := (&icmp.Message{Type: ipv4.ICMPTypeEcho, Code: 0, Body: &requestPing}).Marshal(nil)
+
+	if ip_version == 4 {
+		icmpBytes, _ = (&icmp.Message{Type: ipv4.ICMPTypeEcho, Code: 0, Body: &requestPing}).Marshal(nil)
+	} else {
+		icmpBytes, _ = (&icmp.Message{Type: ipv6.ICMPTypeEchoRequest, Code: 0, Body: &requestPing}).Marshal(nil)
+	}
+
 	start := time.Now()
 
 	socket.SetWriteDeadline(time.Now().Add(time.Second * time.Duration(send_timeout_secs)))
@@ -112,7 +129,14 @@ func sendPing(address string, seq uint8, send_timeout_secs uint64, recieve_timou
 			return 0, err
 		}
 
-		replyPacket, err := icmp.ParseMessage(1, icmpBytes[:n])
+		var proto int
+		if ip_version == 4 {
+			proto = 1
+		} else {
+			proto = 58
+		}
+
+		replyPacket, err := icmp.ParseMessage(proto, icmpBytes[:n])
 		if err != nil {
 			return 0, err
 		}

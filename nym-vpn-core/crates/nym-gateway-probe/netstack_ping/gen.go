@@ -38,6 +38,7 @@ typedef struct NetstackRequestRef {
   uint8_t num_ping;
   uint64_t send_timeout_sec;
   uint64_t recv_timeout_sec;
+  uint8_t ip_version;
 } NetstackRequestRef;
 
 // hack from: https://stackoverflow.com/a/69904977
@@ -225,6 +226,7 @@ type NetstackRequest struct {
 	num_ping         uint8
 	send_timeout_sec uint64
 	recv_timeout_sec uint64
+	ip_version       uint8
 }
 
 func newNetstackRequest(p C.NetstackRequestRef) NetstackRequest {
@@ -239,6 +241,7 @@ func newNetstackRequest(p C.NetstackRequestRef) NetstackRequest {
 		num_ping:         newC_uint8_t(p.num_ping),
 		send_timeout_sec: newC_uint64_t(p.send_timeout_sec),
 		recv_timeout_sec: newC_uint64_t(p.recv_timeout_sec),
+		ip_version:       newC_uint8_t(p.ip_version),
 	}
 }
 func cntNetstackRequest(s *NetstackRequest, cnt *uint) [0]C.NetstackRequestRef {
@@ -258,6 +261,7 @@ func refNetstackRequest(p *NetstackRequest, buffer *[]byte) C.NetstackRequestRef
 		num_ping:         refC_uint8_t(&p.num_ping, buffer),
 		send_timeout_sec: refC_uint64_t(&p.send_timeout_sec, buffer),
 		recv_timeout_sec: refC_uint64_t(&p.recv_timeout_sec, buffer),
+		ip_version:       refC_uint8_t(&p.ip_version, buffer),
 	}
 }
 

@@ -15,6 +15,7 @@ pub struct NetstackRequest {
     pub num_ping: u8,
     pub send_timeout_sec: u64,
     pub recv_timeout_sec: u64,
+    pub ip_version: u8,
 }
 
 impl NetstackRequest {
@@ -24,6 +25,7 @@ impl NetstackRequest {
             dns: "1.1.1.1".to_string(),
             ping_hosts: vec!["nymtech.net".to_string()],
             ping_ips: vec!["1.1.1.1".to_string()],
+            ip_version: 4,
             ..Self::default()
         }
     }
@@ -34,6 +36,7 @@ impl NetstackRequest {
             dns: "2606:4700:4700::1111".to_string(), //cloudflare
             ping_hosts: vec!["nymtech.net".to_string()],
             ping_ips: vec!["2001:4860:4860::8888".to_string()], //google
+            ip_version: 6,
             ..Self::default()
         }
     }
@@ -52,6 +55,7 @@ impl Default for NetstackRequest {
             num_ping: 3,
             send_timeout_sec: 1,
             recv_timeout_sec: 2,
+            ip_version: 4,
         }
     }
 }
