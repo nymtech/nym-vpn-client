@@ -41,7 +41,21 @@ pub struct SystemMessage {
     pub display_from: Option<OffsetDateTime>,
     pub display_until: Option<OffsetDateTime>,
     pub message: String,
-    pub properties: PropertyValue,
+    // pub properties: PropertyValue,
+    pub properties: Properties,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
+pub struct Properties(HashMap<String, String>);
+
+impl fmt::Display for Properties {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "properties {{")?;
+        for (key, value) in &self.0 {
+            write!(f, " {}: {},", key, value)?;
+        }
+        write!(f, "}}")
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -117,7 +131,8 @@ impl TryFrom<SystemMessageResponse> for SystemMessage {
             .ok();
 
         let properties =
-            PropertyValue::deserialize(response.properties).unwrap_or(PropertyValue::empty());
+            // PropertyValue::deserialize(response.properties).unwrap_or(PropertyValue::empty());
+            Properties::deserialize(response.properties).unwrap_or(Properties::default());
 
         Ok(Self {
             name: response.name,
