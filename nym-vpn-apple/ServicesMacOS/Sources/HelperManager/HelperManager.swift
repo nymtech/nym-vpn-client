@@ -7,7 +7,7 @@ import Shell
 public final class HelperManager {
     private let secondInNanoseconds: UInt64 = 1000000000
     public static let shared = HelperManager()
-    public let requiredVersion = "1.0.0-alpha.1"
+    public let requiredVersion = "1.0.0-alpha-apple3"
 
     private var helperName = ""
 

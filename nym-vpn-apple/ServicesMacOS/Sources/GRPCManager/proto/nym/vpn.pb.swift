@@ -1126,6 +1126,10 @@ struct Nym_Vpn_ConnectRequestError {
     /// NOTE: in the future we will try to re-active an inactive device on
     /// connect
     case deviceNotActive // = 6
+
+    /// It was not yet possible to determine if we are ready to connect during
+    /// the check
+    case pending // = 7
     case UNRECOGNIZED(Int)
 
     init() {
@@ -1141,6 +1145,7 @@ struct Nym_Vpn_ConnectRequestError {
       case 4: self = .noActiveSubscription
       case 5: self = .deviceNotRegistered
       case 6: self = .deviceNotActive
+      case 7: self = .pending
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -1154,6 +1159,7 @@ struct Nym_Vpn_ConnectRequestError {
       case .noActiveSubscription: return 4
       case .deviceNotRegistered: return 5
       case .deviceNotActive: return 6
+      case .pending: return 7
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -1175,6 +1181,7 @@ extension Nym_Vpn_ConnectRequestError.ConnectRequestErrorType: CaseIterable {
     .noActiveSubscription,
     .deviceNotRegistered,
     .deviceNotActive,
+    .pending,
   ]
 }
 
@@ -4358,6 +4365,7 @@ extension Nym_Vpn_ConnectRequestError.ConnectRequestErrorType: SwiftProtobuf._Pr
     4: .same(proto: "NO_ACTIVE_SUBSCRIPTION"),
     5: .same(proto: "DEVICE_NOT_REGISTERED"),
     6: .same(proto: "DEVICE_NOT_ACTIVE"),
+    7: .same(proto: "PENDING"),
   ]
 }
 

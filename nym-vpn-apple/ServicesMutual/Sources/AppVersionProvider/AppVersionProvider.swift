@@ -1,7 +1,7 @@
 import Foundation
 
 public enum AppVersionProvider {
-    public static let libVersion = "1.0.1-alpha.1"
+    public static let libVersion = "1.0.0-alpha-apple3"
 
     public static var app: String {
         "nym-vpn-app"

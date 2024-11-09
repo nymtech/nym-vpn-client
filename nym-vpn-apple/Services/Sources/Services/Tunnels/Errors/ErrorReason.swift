@@ -8,10 +8,10 @@ public enum ErrorReason: String, Codable, Error {
     case dns
     case tunDevice
     case tunnelProvider
-    case establishMixnetConnection
-    case establishWireguardConnection
-    case tunnelDown
     case internalUnknown
+    case sameEntryAndExitGateway
+    case invalidEntryGatewayCountry
+    case invalidExitGatewayCountry
 
     public init(with errorStateReason: ErrorStateReason) {
         switch errorStateReason {
@@ -25,14 +25,14 @@ public enum ErrorReason: String, Codable, Error {
             self = .tunDevice
         case .tunnelProvider:
             self = .tunnelProvider
-        case .establishMixnetConnection:
-            self = .establishMixnetConnection
-        case .establishWireguardConnection:
-            self = .establishWireguardConnection
-        case .tunnelDown:
-            self = .tunnelDown
         case .internal:
             self = .internalUnknown
+        case .sameEntryAndExitGateway:
+            self = .sameEntryAndExitGateway
+        case .invalidEntryGatewayCountry:
+            self = .invalidEntryGatewayCountry
+        case .invalidExitGatewayCountry:
+            self = .invalidExitGatewayCountry
         }
     }
 
@@ -58,14 +58,14 @@ extension ErrorReason: LocalizedError {
             "errorReason.tunDevice".localizedString
         case .tunnelProvider:
             "errorReason.tunnelProvider".localizedString
-        case .establishMixnetConnection:
-            "errorReason.establishMixnetConnection".localizedString
-        case .establishWireguardConnection:
-            "errorReason.establishWireguardConnection".localizedString
-        case .tunnelDown:
-            "errorReason.tunnelDown".localizedString
         case .internalUnknown:
             "errorReason.internalUnknown".localizedString
+        case .sameEntryAndExitGateway:
+            "errorReason.sameEntryAndExitGateway".localizedString
+        case .invalidEntryGatewayCountry:
+            "errorReason.invalidEntryGatewayCountry".localizedString
+        case .invalidExitGatewayCountry:
+            "errorReason.invalidExitGatewayCountry".localizedString
         }
     }
 }

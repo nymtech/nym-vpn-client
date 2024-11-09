@@ -20,7 +20,7 @@ trap 'error_handler $LINENO' ERR  # Capture errors and call error_handler
 
 # Check if the version is provided as a command-line argument
 if [[ -z "${1:-}" ]]; then
-    echo "Error: No version provided. Usage: sh UpdateCore.sh <version>"
+    echo "❌ Error: No version provided. Usage: sh UpdateCore.sh <version>"
     exit 1
 fi
 
@@ -34,7 +34,7 @@ RELEASE_URL="https://github.com/nymtech/nym-vpn-client/releases/tag/nym-vpn-core
 PACKAGE_FILE_PATH="../MixnetLibrary/Package.swift"  # Path to Package.swift
 
 # Construct the iOS download link using the provided version
-ios_download_link="https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-core-v${VERSION}/nym-vpn-core-v${BASE_VERSION}_ios_universal.zip"
+ios_download_link="https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-core-v${VERSION}/$(curl -s "$RELEASE_URL" | grep 'ios_universal.zip' | awk '{print $2}' | head -n 1)"
 
 # Fetch the release page content
 release_page_content=$(curl -s "$RELEASE_URL")
@@ -61,7 +61,7 @@ if [[ -n "$ios_download_link" && -n "$ios_checksum" ]]; then
         exit 1
     fi
 else
-    echo "Error: Could not construct iOS download link or extract checksum."
+    echo "❌ Error: Could not construct iOS download link or extract checksum."
     exit 1
 fi
 
@@ -71,12 +71,12 @@ if [[ -f "$app_version_file" ]]; then
     sed -i '' "s/public static let libVersion = \".*\"/public static let libVersion = \"$VERSION\"/g" "$app_version_file"
     echo "libVersion updated to $VERSION in $app_version_file."
 else
-    echo "Error: AppVersionProvider.swift file not found at $app_version_file."
+    echo "❌ Error: AppVersionProvider.swift file not found at $app_version_file."
     exit 1
 fi
 
 # Construct the macOS download link using the extracted base version
-macos_download_link="https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-core-v${VERSION}/nym-vpn-core-v${BASE_VERSION}_macos_universal.tar.gz"
+macos_download_link="https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-core-v${VERSION}/$(curl -s "$RELEASE_URL" | grep 'macos_universal.tar.gz' | awk '{print $2}' | head -n 1)"
 
 echo "macOS Download link: $macos_download_link"
 
@@ -85,8 +85,12 @@ curl -LO "$macos_download_link"
 echo "macOS file downloaded successfully: $(basename "$macos_download_link")"
 
 # Untar the macOS tar.gz file
-tar -xzf "$(basename "$macos_download_link")"
-echo "macOS file extracted successfully."
+tar_file_name=$(basename "$macos_download_link")
+tar -xzf "$tar_file_name"
+echo "✅ macOS file extracted successfully. $tar_file_name"
+
+# Determine the extracted folder name
+extracted_folder_name=$(tar -tf "$tar_file_name" | head -n 1 | cut -f1 -d"/")
 
 # Remove the old net.nymtech.vpn.helper file in ../Daemon folder
 if [[ -f "../Daemon/net.nymtech.vpn.helper" ]]; then
@@ -95,36 +99,72 @@ if [[ -f "../Daemon/net.nymtech.vpn.helper" ]]; then
 fi
 
 # Copy nym-vpnd to ../Daemon folder and rename it to net.nymtech.vpn.helper
-if [[ -f "nym-vpn-core-v${BASE_VERSION}_macos_universal/nym-vpnd" ]]; then
-    cp "nym-vpn-core-v${BASE_VERSION}_macos_universal/nym-vpnd" "../Daemon/net.nymtech.vpn.helper"
+if [[ -f "${extracted_folder_name}/nym-vpnd" ]]; then
+    cp "${extracted_folder_name}/nym-vpnd" "../Daemon/net.nymtech.vpn.helper"
     echo "nym-vpnd copied and renamed to net.nymtech.vpn.helper successfully."
+else
+    echo "❌ Error: ${extracted_folder_name}/nym-vpnd not found."
 fi
 
-# Remove the downloaded tar.gz file and untarred folder
-rm -f "$(basename "$macos_download_link")"
-rm -rf "nym-vpn-core-v${BASE_VERSION}_macos_universal"
-echo "Cleaned up downloaded and extracted files."
+# Remove the downloaded tar.gz file
+tar_file_name=$(basename "$macos_download_link")
+
+if [[ -f "$tar_file_name" ]]; then
+    echo "Removing downloaded tar.gz file: $tar_file_name"
+    rm -f "$tar_file_name"
+    echo "Downloaded tar.gz file removed successfully."
+else
+    echo " ❌Downloaded tar.gz file not found: $tar_file_name"
+fi
+
+# Remove the extracted folder
+if [[ -d "$extracted_folder_name" ]]; then
+    echo "Removing extracted folder: $extracted_folder_name"
+    rm -rf "$extracted_folder_name"
+    echo "Extracted folder removed successfully."
+else
+    echo "❌ Extracted folder not found: $extracted_folder_name"
+fi
 
 # Download the source zip file
-source_zip_link="https://github.com/nymtech/nym-vpn-client/archive/refs/tags/nym-vpn-core-v${VERSION}.zip"
+tar_file_url="https://github.com/nymtech/nym-vpn-client/archive/refs/tags/nym-vpn-core-v${VERSION}.tar.gz"
+tar_file_name=$(basename "$tar_file_url")
 
-curl -LO "$source_zip_link"
-echo "Source zip file downloaded successfully: $(basename "$source_zip_link")"
+# Download the tar.gz file using curl
+curl -LO "$tar_file_url"
+echo "Source tar file downloaded successfully: $tar_file_name"
 
-# Extract the source zip file
-unzip "$(basename "$source_zip_link")"
-echo "Source zip file extracted successfully."
+# Extract the source tar.gz file
+tar -xzf "$tar_file_name"
+echo "✅ Source tar file extracted successfully."
 
-# Clean up the downloaded source zip file after extraction
-rm -f "$(basename "$source_zip_link")"
-echo "Cleaned up the source zip file."
+# Determine the extracted folder name
+# Assuming the unzipped directory follows the pattern 'nym-vpn-client-*'
+extracted_folder_name=$(tar -tf "$tar_file_name" | head -n 1 | cut -f1 -d"/")
+
+# Generate uniffy
+
+cd "${extracted_folder_name}" || exit 1
+make build-wireguard-ios
+
+cd "nym-vpn-core" || exit 1
+make build-vpn-lib-swift
+make generate-uniffi-ios
+cd ..
+cd ..
+echo "✅ Makefile executed successfully."
+
+
+# Clean up the downloaded source tar file after extraction
+rm -f "$(basename "$tar_file_name")"
+echo "✅ Cleaned up the source ztar file."
 
 # Copy and replace nym_vpn_lib.swift in nym-vpn-core/crates/nym-vpn-lib/uniffi to ../MixnetLibrary/Sources/MixnetLibrary
 source_swift_file="nym-vpn-client-nym-vpn-core-v${VERSION}/nym-vpn-core/crates/nym-vpn-lib/uniffi/nym_vpn_lib.swift"
 destination_swift_path="../MixnetLibrary/Sources/MixnetLibrary/"
 
 cp "$source_swift_file" "$destination_swift_path"
-echo "nym_vpn_lib.swift copied successfully to $destination_swift_path."
+echo "✅ nym_vpn_lib.swift copied successfully to $destination_swift_path."
 
 # Run protoc commands in the extracted proto/nym folder
 proto_folder="nym-vpn-client-nym-vpn-core-v${VERSION}/proto/nym"
@@ -132,20 +172,20 @@ destination_folder="../ServicesMacOS/Sources/GRPCManager/proto/nym"
 
 # Change directory to the proto/nym folder
 cd "$proto_folder"
-echo "Changed directory to $proto_folder"
+echo "✅ Changed directory to $proto_folder"
 
 # Run protoc commands to generate swift files
 protoc --swift_out=. vpn.proto
-echo "vpn.pb.swift generated successfully."
+echo "✅ vpn.pb.swift generated successfully."
 
 protoc --grpc-swift_out=. vpn.proto
-echo "vpn.grpc.swift generated successfully."
+echo "✅ vpn.grpc.swift generated successfully."
 
 # Copy the generated files and proto file to the correct destination folder
 destination_folder="../../../../ServicesMacOS/Sources/GRPCManager/proto/nym"
 mkdir -p "$destination_folder"
 cp vpn.grpc.swift vpn.pb.swift vpn.proto "$destination_folder"
-echo "Files copied successfully to $destination_folder."
+echo "✅ Files copied successfully to $destination_folder."
 
 # Go back to the previous directory
 cd -
@@ -157,9 +197,9 @@ helper_manager_file="../ServicesMacOS/Sources/HelperManager/HelperManager.swift"
 if [[ -f "$helper_manager_file" ]]; then
     # Use sed to update the requiredVersion line with the new version
     sed -i '' "s/public let requiredVersion = \".*\"/public let requiredVersion = \"$VERSION\"/g" "$helper_manager_file"
-    echo "HelperManager.swift has been successfully updated with the new required version: $VERSION."
+    echo "✅ HelperManager.swift has been successfully updated with the new required version: $VERSION."
 else
-    echo "Error: HelperManager.swift file not found at $helper_manager_file"
+    echo "❌ Error: HelperManager.swift file not found at $helper_manager_file"
     exit 1
 fi
 
@@ -168,5 +208,5 @@ sh UpdateDaemonInfoPlist.sh ${VERSION}
 # Remove the downloaded source zip file and extracted folder
 rm -f "nym-vpn-core-v${VERSION}.zip"
 rm -rf "nym-vpn-client-nym-vpn-core-v${VERSION}"
-echo "Cleaned up downloaded and extracted files."
+echo "✅ Cleaned up downloaded and extracted files."
 echo "✅ Updated successfully"

@@ -10,7 +10,6 @@ import MixnetLibrary
 
 public struct MixnetConfig: Codable, Equatable {
 #if os(iOS)
-    let apiUrl: URL?
     let credentialsDataPath: String
 #endif
     public let entryGateway: EntryGateway?
@@ -24,15 +23,13 @@ public struct MixnetConfig: Codable, Equatable {
         exitRouter: ExitRouter,
         credentialsDataPath: String,
         isTwoHopEnabled: Bool = false,
-        name: String = "NymVPN Mixnet",
-        apiUrl: URL? = ConfigurationManager.shared.apiURL
+        name: String = "NymVPN Mixnet"
     ) {
         self.entryGateway = entryGateway
         self.exitRouter = exitRouter
         self.credentialsDataPath = credentialsDataPath
         self.isTwoHopEnabled = isTwoHopEnabled
         self.name = name
-        self.apiUrl = apiUrl
     }
 #endif
 
@@ -53,12 +50,7 @@ public struct MixnetConfig: Codable, Equatable {
 // MARK: - VpnConfig -
 extension MixnetConfig {
     public func asVpnConfig(tunProvider: OsTunProvider, tunStatusListener: TunnelStatusListener?) throws -> VpnConfig {
-        guard let apiURL = apiUrl else {
-            throw GeneralNymError.invalidUrl
-        }
         return VpnConfig(
-            apiUrl: apiURL,
-            vpnApiUrl: nil,
             entryGateway: entryGateway?.entryPoint ?? .random,
             exitRouter: exitRouter.exitPoint,
             enableTwoHop: isTwoHopEnabled,

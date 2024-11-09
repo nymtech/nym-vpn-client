@@ -44,10 +44,6 @@ public final class ConfigurationManager {
         getenv("NYM_VPN_API").flatMap { URL(string: String(cString: $0)) }
     }
 
-    public var apiURL: URL? {
-        getenv("NYM_API").flatMap { URL(string: String(cString: $0)) }
-    }
-
     public var environmentDidChange: (() -> Void)?
 
 #if os(iOS)
