@@ -4,9 +4,11 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
+use serde::Deserialize;
 use url::Url;
 
 use crate::{
+    feature_flags::Flags,
     response::{DiscoveryResponse, NymNetworkDetailsResponse, NymWellknownDiscoveryItem},
     AccountManagement, FeatureFlags, SystemMessages,
 };
@@ -183,7 +185,11 @@ impl TryFrom<DiscoveryResponse> for Discovery {
                 .ok()
         });
 
-        let feature_flags = discovery.feature_flags.map(FeatureFlags::from);
+        let feature_flags = discovery.feature_flags.and_then(|ff| {
+            FeatureFlags::try_from(ff)
+                .inspect_err(|err| tracing::warn!("Failed to parse feature flags: {err}"))
+                .ok()
+        });
 
         let system_messages = discovery
             .system_messages

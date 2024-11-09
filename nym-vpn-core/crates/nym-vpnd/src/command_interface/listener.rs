@@ -19,15 +19,15 @@ use nym_vpn_proto::{
     FetchRawDevicesResponse, GetAccountIdentityRequest, GetAccountIdentityResponse,
     GetAccountLinksRequest, GetAccountLinksResponse, GetAccountStateRequest,
     GetAccountStateResponse, GetDeviceIdentityRequest, GetDeviceIdentityResponse,
-    GetDeviceZkNymsRequest, GetDeviceZkNymsResponse, GetSystemMessagesRequest,
-    GetSystemMessagesResponse, InfoRequest, InfoResponse, IsAccountStoredRequest,
-    IsAccountStoredResponse, IsReadyToConnectRequest, IsReadyToConnectResponse,
-    ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest, ListGatewaysResponse,
-    RefreshAccountStateRequest, RefreshAccountStateResponse, RegisterDeviceRequest,
-    RegisterDeviceResponse, RemoveAccountRequest, RemoveAccountResponse, RequestZkNymRequest,
-    RequestZkNymResponse, ResetDeviceIdentityRequest, ResetDeviceIdentityResponse,
-    SetNetworkRequest, SetNetworkResponse, StatusRequest, StatusResponse, StoreAccountRequest,
-    StoreAccountResponse,
+    GetDeviceZkNymsRequest, GetDeviceZkNymsResponse, GetFeatureFlagsRequest,
+    GetFeatureFlagsResponse, GetSystemMessagesRequest, GetSystemMessagesResponse, InfoRequest,
+    InfoResponse, IsAccountStoredRequest, IsAccountStoredResponse, IsReadyToConnectRequest,
+    IsReadyToConnectResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
+    ListGatewaysResponse, RefreshAccountStateRequest, RefreshAccountStateResponse,
+    RegisterDeviceRequest, RegisterDeviceResponse, RemoveAccountRequest, RemoveAccountResponse,
+    RequestZkNymRequest, RequestZkNymResponse, ResetDeviceIdentityRequest,
+    ResetDeviceIdentityResponse, SetNetworkRequest, SetNetworkResponse, StatusRequest,
+    StatusResponse, StoreAccountRequest, StoreAccountResponse,
 };
 
 use super::{
@@ -167,6 +167,20 @@ impl NymVpnd for CommandInterface {
         let response = GetSystemMessagesResponse { messages };
 
         Ok(tonic::Response::new(response))
+    }
+
+    async fn get_feature_flags(
+        &self,
+        _request: tonic::Request<GetFeatureFlagsRequest>,
+    ) -> Result<tonic::Response<GetFeatureFlagsResponse>, tonic::Status> {
+        tracing::debug!("Got get feature flags request");
+
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_get_feature_flags()
+            .await?
+            .ok_or(tonic::Status::not_found("Feature flags not found"))?;
+
+        todo!();
     }
 
     async fn vpn_connect(

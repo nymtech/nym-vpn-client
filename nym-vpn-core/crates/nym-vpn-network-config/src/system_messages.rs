@@ -41,7 +41,6 @@ pub struct SystemMessage {
     pub display_from: Option<OffsetDateTime>,
     pub display_until: Option<OffsetDateTime>,
     pub message: String,
-    // pub properties: PropertyValue,
     pub properties: Properties,
 }
 
@@ -63,34 +62,6 @@ impl Properties {
         self.0
     }
 }
-
-//#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-//#[serde(untagged)]
-//pub enum PropertyValue {
-//    String(String),
-//    Map(HashMap<String, PropertyValue>),
-//}
-//
-//impl PropertyValue {
-//    fn empty() -> Self {
-//        Self::String("".to_string())
-//    }
-//}
-//
-//impl fmt::Display for PropertyValue {
-//    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//        match self {
-//            PropertyValue::String(s) => write!(f, "{}", s),
-//            PropertyValue::Map(map) => {
-//                write!(f, "{{")?;
-//                for (key, value) in map {
-//                    write!(f, " {}: {},", key, value)?;
-//                }
-//                write!(f, "}}")
-//            }
-//        }
-//    }
-//}
 
 impl fmt::Display for SystemMessage {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

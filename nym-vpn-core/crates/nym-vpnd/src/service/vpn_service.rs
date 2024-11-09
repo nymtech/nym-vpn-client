@@ -11,7 +11,7 @@ use std::{
 
 use bip39::Mnemonic;
 use nym_vpn_network_config::{
-    Network, NymNetwork, NymVpnNetwork, ParsedAccountLinks, SystemMessages,
+    FeatureFlags, Network, NymNetwork, NymVpnNetwork, ParsedAccountLinks, SystemMessages,
 };
 use serde::{Deserialize, Serialize};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
@@ -97,6 +97,7 @@ pub enum VpnServiceCommand {
     Info(oneshot::Sender<VpnServiceInfo>, ()),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<SystemMessages>, ()),
+    GetFeatureFlags(oneshot::Sender<Option<FeatureFlags>>, ()),
     Connect(
         oneshot::Sender<Result<(), VpnServiceConnectError>>,
         (ConnectArgs, nym_vpn_lib::UserAgent),
@@ -138,6 +139,7 @@ impl fmt::Display for VpnServiceCommand {
             VpnServiceCommand::Info(..) => write!(f, "Info"),
             VpnServiceCommand::SetNetwork(..) => write!(f, "SetNetwork"),
             VpnServiceCommand::GetSystemMessages(..) => write!(f, "GetSystemMessages"),
+            VpnServiceCommand::GetFeatureFlags(..) => write!(f, "GetFeatureFlags"),
             VpnServiceCommand::Connect(_, (args, user_agent)) => {
                 write!(f, "Connect {{ {args:?}, {user_agent:?} }}")
             }
@@ -565,6 +567,10 @@ where
                 let result = self.handle_get_system_messages().await;
                 let _ = tx.send(result);
             }
+            VpnServiceCommand::GetFeatureFlags(tx, ()) => {
+                let result = self.handle_get_feature_flags().await;
+                let _ = tx.send(result);
+            }
             VpnServiceCommand::Connect(tx, (connect_args, user_agent)) => {
                 let result = self.handle_connect(connect_args, user_agent).await;
                 let _ = tx.send(result);
@@ -846,6 +852,10 @@ where
 
     async fn handle_get_system_messages(&self) -> SystemMessages {
         self.network_env.nym_vpn_network.system_messages.clone()
+    }
+
+    async fn handle_get_feature_flags(&self) -> Option<FeatureFlags> {
+        self.network_env.feature_flags.clone()
     }
 
     async fn handle_store_account(&mut self, account: String) -> Result<(), AccountError> {

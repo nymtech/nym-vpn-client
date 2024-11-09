@@ -189,7 +189,11 @@ message GetFeatureFlagsRequest {}
 
 message GetFeatureFlagsResponse {
   map<string, string> flags = 1;
-  map<string, map<string, string>> groups = 2;
+  map<string, FeatureFlagGroup> groups = 2;
+}
+
+message FeatureFlagGroup {
+  map<string, string> map = 1;
 }
 
 message Threshold {
