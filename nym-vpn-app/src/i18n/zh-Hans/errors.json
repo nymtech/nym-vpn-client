@@ -80,7 +80,7 @@
     "ping": "{{protocol}} 流量的出口节点 ping 失败"
   },
   "account": {
-    "invalid-recovery-phrase": "恢复短语无效",
+    "invalid-recovery-phrase": "助记词无效",
     "storage": "存储后端错误",
     "no-account-stored": "未存储帐户恢复短语",
     "not-active": "账户未激活",
