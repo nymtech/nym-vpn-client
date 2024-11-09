@@ -94,15 +94,15 @@ type Locale = String;
 
 #[allow(clippy::large_enum_variant)]
 pub enum VpnServiceCommand {
+    Info(oneshot::Sender<VpnServiceInfo>, ()),
+    SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
+    GetSystemMessages(oneshot::Sender<SystemMessages>, ()),
     Connect(
         oneshot::Sender<Result<(), VpnServiceConnectError>>,
         (ConnectArgs, nym_vpn_lib::UserAgent),
     ),
     Disconnect(oneshot::Sender<Result<(), VpnServiceDisconnectError>>, ()),
     Status(oneshot::Sender<VpnServiceStatus>, ()),
-    Info(oneshot::Sender<VpnServiceInfo>, ()),
-    SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
-    GetSystemMessages(oneshot::Sender<SystemMessages>, ()),
     StoreAccount(oneshot::Sender<Result<(), AccountError>>, String),
     IsAccountStored(oneshot::Sender<Result<bool, AccountError>>, ()),
     RemoveAccount(oneshot::Sender<Result<(), AccountError>>, ()),
@@ -135,14 +135,14 @@ pub enum VpnServiceCommand {
 impl fmt::Display for VpnServiceCommand {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            VpnServiceCommand::Info(..) => write!(f, "Info"),
+            VpnServiceCommand::SetNetwork(..) => write!(f, "SetNetwork"),
+            VpnServiceCommand::GetSystemMessages(..) => write!(f, "GetSystemMessages"),
             VpnServiceCommand::Connect(_, (args, user_agent)) => {
                 write!(f, "Connect {{ {args:?}, {user_agent:?} }}")
             }
             VpnServiceCommand::Disconnect(..) => write!(f, "Disconnect"),
             VpnServiceCommand::Status(..) => write!(f, "Status"),
-            VpnServiceCommand::Info(..) => write!(f, "Info"),
-            VpnServiceCommand::SetNetwork(..) => write!(f, "SetNetwork"),
-            VpnServiceCommand::GetSystemMessages(..) => write!(f, "GetSystemMessages"),
             VpnServiceCommand::StoreAccount(..) => write!(f, "StoreAccount"),
             VpnServiceCommand::IsAccountStored(..) => write!(f, "IsAccountStored"),
             VpnServiceCommand::RemoveAccount(..) => write!(f, "RemoveAccount"),
@@ -553,18 +553,6 @@ where
 
     async fn handle_service_command(&mut self, command: VpnServiceCommand) {
         match command {
-            VpnServiceCommand::Connect(tx, (connect_args, user_agent)) => {
-                let result = self.handle_connect(connect_args, user_agent).await;
-                let _ = tx.send(result);
-            }
-            VpnServiceCommand::Disconnect(tx, ()) => {
-                let result = self.handle_disconnect().await;
-                let _ = tx.send(result);
-            }
-            VpnServiceCommand::Status(tx, ()) => {
-                let result = self.handle_status().await;
-                let _ = tx.send(result);
-            }
             VpnServiceCommand::Info(tx, ()) => {
                 let result = self.handle_info().await;
                 let _ = tx.send(result);
@@ -575,6 +563,18 @@ where
             }
             VpnServiceCommand::GetSystemMessages(tx, ()) => {
                 let result = self.handle_get_system_messages().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::Connect(tx, (connect_args, user_agent)) => {
+                let result = self.handle_connect(connect_args, user_agent).await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::Disconnect(tx, ()) => {
+                let result = self.handle_disconnect().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::Status(tx, ()) => {
+                let result = self.handle_status().await;
                 let _ = tx.send(result);
             }
             VpnServiceCommand::StoreAccount(tx, account) => {

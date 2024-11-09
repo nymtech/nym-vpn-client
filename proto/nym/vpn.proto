@@ -784,6 +784,9 @@ service NymVpnd {
   // Set the network. This requires a restart to take effect
   rpc SetNetwork (SetNetworkRequest) returns (SetNetworkResponse) {}
 
+  // List messages fetched from nym-vpn-api
+  rpc GetSystemMessages (GetSystemMessagesRequest) returns (GetSystemMessagesResponse) {}
+
   // Start the tunnel and connect
   rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
 
@@ -806,9 +809,6 @@ service NymVpnd {
 
   // List the avaiable countries for the selected mode
   rpc ListCountries (ListCountriesRequest) returns (ListCountriesResponse) {}
-
-  // List messages fetched from nym-vpn-api
-  rpc GetSystemMessages (GetSystemMessagesRequest) returns (GetSystemMessagesResponse) {}
 
   // -- Unstable --
   // These below are considered unstable, in the sense that their definitions

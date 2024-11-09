@@ -50,6 +50,25 @@ impl CommandInterfaceConnectionHandler {
         Self { vpn_command_tx }
     }
 
+    pub(crate) async fn handle_info(&self) -> Result<VpnServiceInfo, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::Info, ()).await
+    }
+
+    pub(crate) async fn handle_set_network(
+        &self,
+        network: String,
+    ) -> Result<Result<(), SetNetworkError>, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::SetNetwork, network)
+            .await
+    }
+
+    pub(crate) async fn handle_get_system_messages(
+        &self,
+    ) -> Result<SystemMessages, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::GetSystemMessages, ())
+            .await
+    }
+
     pub(crate) async fn handle_connect(
         &self,
         entry: Option<EntryPoint>,
@@ -72,18 +91,6 @@ impl CommandInterfaceConnectionHandler {
         &self,
     ) -> Result<Result<(), VpnServiceDisconnectError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::Disconnect, ()).await
-    }
-
-    pub(crate) async fn handle_info(&self) -> Result<VpnServiceInfo, VpnCommandSendError> {
-        self.send_and_wait(VpnServiceCommand::Info, ()).await
-    }
-
-    pub(crate) async fn handle_set_network(
-        &self,
-        network: String,
-    ) -> Result<Result<(), SetNetworkError>, VpnCommandSendError> {
-        self.send_and_wait(VpnServiceCommand::SetNetwork, network)
-            .await
     }
 
     pub(crate) async fn handle_status(&self) -> Result<VpnServiceStatus, VpnCommandSendError> {
@@ -116,13 +123,6 @@ impl CommandInterfaceConnectionHandler {
             .map_err(|source| ListGatewayError::GetCountries { gw_type, source })?;
 
         Ok(gateways.into_iter().map(gateway::Country::from).collect())
-    }
-
-    pub(crate) async fn handle_get_system_messages(
-        &self,
-    ) -> Result<SystemMessages, VpnCommandSendError> {
-        self.send_and_wait(VpnServiceCommand::GetSystemMessages, ())
-            .await
     }
 
     pub(crate) async fn handle_store_account(

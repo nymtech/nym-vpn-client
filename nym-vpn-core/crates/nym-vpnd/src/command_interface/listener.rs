@@ -150,6 +150,25 @@ impl NymVpnd for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
+    async fn get_system_messages(
+        &self,
+        _request: tonic::Request<GetSystemMessagesRequest>,
+    ) -> Result<tonic::Response<GetSystemMessagesResponse>, tonic::Status> {
+        tracing::debug!("Got get system messages request");
+
+        let messages = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_get_system_messages()
+            .await?;
+
+        let messages = messages
+            .into_current_messages()
+            .map(into_proto_system_message)
+            .collect();
+        let response = GetSystemMessagesResponse { messages };
+
+        Ok(tonic::Response::new(response))
+    }
+
     async fn vpn_connect(
         &self,
         request: tonic::Request<ConnectRequest>,
@@ -375,25 +394,6 @@ impl NymVpnd for CommandInterface {
             "Returning list countries response: {} countries",
             response.countries.len()
         );
-        Ok(tonic::Response::new(response))
-    }
-
-    async fn get_system_messages(
-        &self,
-        _request: tonic::Request<GetSystemMessagesRequest>,
-    ) -> Result<tonic::Response<GetSystemMessagesResponse>, tonic::Status> {
-        tracing::debug!("Got get system messages request");
-
-        let messages = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_get_system_messages()
-            .await?;
-
-        let messages = messages
-            .into_current_messages()
-            .map(into_proto_system_message)
-            .collect();
-        let response = GetSystemMessagesResponse { messages };
-
         Ok(tonic::Response::new(response))
     }
 
