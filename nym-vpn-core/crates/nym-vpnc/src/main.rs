@@ -8,10 +8,10 @@ use nym_vpn_proto::{
     ConnectRequest, DisconnectRequest, Empty, FetchRawAccountSummaryRequest,
     FetchRawDevicesRequest, GetAccountIdentityRequest, GetAccountLinksRequest,
     GetAccountStateRequest, GetDeviceIdentityRequest, GetDeviceZkNymsRequest,
-    GetSystemMessagesRequest, InfoRequest, InfoResponse, IsAccountStoredRequest,
-    IsReadyToConnectRequest, ListCountriesRequest, ListGatewaysRequest, RefreshAccountStateRequest,
-    RegisterDeviceRequest, RemoveAccountRequest, RequestZkNymRequest, ResetDeviceIdentityRequest,
-    SetNetworkRequest, StatusRequest, StoreAccountRequest, UserAgent,
+    GetFeatureFlagsRequest, GetSystemMessagesRequest, InfoRequest, InfoResponse,
+    IsAccountStoredRequest, IsReadyToConnectRequest, ListCountriesRequest, ListGatewaysRequest,
+    RefreshAccountStateRequest, RegisterDeviceRequest, RemoveAccountRequest, RequestZkNymRequest,
+    ResetDeviceIdentityRequest, SetNetworkRequest, StatusRequest, StoreAccountRequest, UserAgent,
 };
 use protobuf_conversion::{into_gateway_type, into_threshold};
 use sysinfo::System;
@@ -44,6 +44,7 @@ async fn main() -> Result<()> {
         Command::Info => info(client_type).await?,
         Command::SetNetwork(ref args) => set_network(client_type, args).await?,
         Command::GetSystemMessages => get_system_messages(client_type).await?,
+        Command::GetFeatureFlags => get_feature_flags(client_type).await?,
         Command::StoreAccount(ref store_args) => store_account(client_type, store_args).await?,
         Command::RefreshAccountState => refresh_account_state(client_type).await?,
         Command::IsAccountStored => is_account_stored(client_type).await?,
@@ -189,6 +190,14 @@ async fn get_system_messages(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(GetSystemMessagesRequest {});
     let response = client.get_system_messages(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn get_feature_flags(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(GetFeatureFlagsRequest {});
+    let response = client.get_feature_flags(request).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }

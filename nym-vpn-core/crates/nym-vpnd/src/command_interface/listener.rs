@@ -8,13 +8,14 @@ use std::{
 };
 
 use futures::{stream::BoxStream, StreamExt};
+use nym_vpn_network_config::feature_flags::Flags;
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 
 use nym_vpn_api_client::types::GatewayMinPerformance;
 use nym_vpn_lib::tunnel_state_machine::MixnetEvent;
 use nym_vpn_proto::{
     nym_vpnd_server::NymVpnd, AccountError, ConnectRequest, ConnectResponse, ConnectionStateChange,
-    ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
+    ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty, FeatureFlagGroup,
     FetchRawAccountSummaryRequest, FetchRawAccountSummaryResponse, FetchRawDevicesRequest,
     FetchRawDevicesResponse, GetAccountIdentityRequest, GetAccountIdentityResponse,
     GetAccountLinksRequest, GetAccountLinksResponse, GetAccountStateRequest,
@@ -180,7 +181,44 @@ impl NymVpnd for CommandInterface {
             .await?
             .ok_or(tonic::Status::not_found("Feature flags not found"))?;
 
-        todo!();
+        let mut response = GetFeatureFlagsResponse {
+            flags: Default::default(),
+            groups: Default::default(),
+        };
+
+        match result.flags {
+            Flags::String(s) => {
+                // top-level
+                panic!();
+            }
+            Flags::Map(m) => {
+                for (k, v) in m {
+                    match v {
+                        Flags::String(s) => {
+                            response.flags.insert(k, s);
+                        }
+                        Flags::Map(m) => {
+                            let mut group = FeatureFlagGroup {
+                                map: Default::default(),
+                            };
+                            for (k, v) in m {
+                                match v {
+                                    Flags::String(s) => {
+                                        group.map.insert(k, s);
+                                    }
+                                    Flags::Map(_) => {
+                                        panic!();
+                                    }
+                                }
+                            }
+                            response.groups.insert(k, group);
+                        }
+                    }
+                }
+            }
+        };
+
+        Ok(tonic::Response::new(response))
     }
 
     async fn vpn_connect(

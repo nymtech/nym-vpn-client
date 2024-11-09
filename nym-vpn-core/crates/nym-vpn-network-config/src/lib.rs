@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 pub mod system_messages;
+pub mod feature_flags;
 
 pub(crate) mod response;
 
 mod account_management;
 mod discovery;
 mod envs;
-mod feature_flags;
 mod nym_network;
 mod nym_vpn_network;
 mod refresh;
