@@ -568,7 +568,7 @@ message ListCountriesResponse {
 message SystemMessage {
   string name = 1;
   string message = 2;
-  string properties = 3;
+  map<string, string> properties = 3;
 }
 
 message GetSystemMessagesRequest {}

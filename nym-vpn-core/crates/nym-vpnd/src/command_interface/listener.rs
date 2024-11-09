@@ -39,7 +39,7 @@ use super::{
 use crate::{
     command_interface::protobuf::{
         connection_state::into_is_ready_to_connect_response_type, gateway::into_user_agent,
-        info_response::into_system_message,
+        info_response::into_proto_system_message,
     },
     service::{ConnectOptions, VpnServiceCommand, VpnServiceStateChange},
 };
@@ -390,7 +390,7 @@ impl NymVpnd for CommandInterface {
 
         let messages = messages
             .into_current_messages()
-            .map(into_system_message)
+            .map(into_proto_system_message)
             .collect();
         let response = GetSystemMessagesResponse { messages };
 

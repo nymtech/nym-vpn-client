@@ -1,6 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+pub mod system_messages;
+
 pub(crate) mod response;
 
 mod account_management;
@@ -10,7 +12,6 @@ mod feature_flags;
 mod nym_network;
 mod nym_vpn_network;
 mod refresh;
-mod system_messages;
 mod util;
 
 pub use account_management::{AccountManagement, ParsedAccountLinks};

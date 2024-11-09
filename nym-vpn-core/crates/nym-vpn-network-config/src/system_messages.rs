@@ -46,7 +46,7 @@ pub struct SystemMessage {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
-pub struct Properties(HashMap<String, String>);
+pub struct Properties(pub HashMap<String, String>);
 
 impl fmt::Display for Properties {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -58,33 +58,39 @@ impl fmt::Display for Properties {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(untagged)]
-pub enum PropertyValue {
-    String(String),
-    Map(HashMap<String, PropertyValue>),
-}
-
-impl PropertyValue {
-    fn empty() -> Self {
-        Self::String("".to_string())
+impl Properties {
+    pub fn into_inner(self) -> HashMap<String, String> {
+        self.0
     }
 }
 
-impl fmt::Display for PropertyValue {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            PropertyValue::String(s) => write!(f, "{}", s),
-            PropertyValue::Map(map) => {
-                write!(f, "{{")?;
-                for (key, value) in map {
-                    write!(f, " {}: {},", key, value)?;
-                }
-                write!(f, "}}")
-            }
-        }
-    }
-}
+//#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+//#[serde(untagged)]
+//pub enum PropertyValue {
+//    String(String),
+//    Map(HashMap<String, PropertyValue>),
+//}
+//
+//impl PropertyValue {
+//    fn empty() -> Self {
+//        Self::String("".to_string())
+//    }
+//}
+//
+//impl fmt::Display for PropertyValue {
+//    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//        match self {
+//            PropertyValue::String(s) => write!(f, "{}", s),
+//            PropertyValue::Map(map) => {
+//                write!(f, "{{")?;
+//                for (key, value) in map {
+//                    write!(f, " {}: {},", key, value)?;
+//                }
+//                write!(f, "}}")
+//            }
+//        }
+//    }
+//}
 
 impl fmt::Display for SystemMessage {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
