@@ -8,7 +8,7 @@ use std::{
 };
 
 use futures::{stream::BoxStream, StreamExt};
-use nym_vpn_network_config::feature_flags::Flags;
+use nym_vpn_network_config::feature_flags::FlagValue;
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 
 use nym_vpn_api_client::types::GatewayMinPerformance;
@@ -186,37 +186,17 @@ impl NymVpnd for CommandInterface {
             groups: Default::default(),
         };
 
-        match result.flags {
-            Flags::String(s) => {
-                // top-level
-                panic!();
-            }
-            Flags::Map(m) => {
-                for (k, v) in m {
-                    match v {
-                        Flags::String(s) => {
-                            response.flags.insert(k, s);
-                        }
-                        Flags::Map(m) => {
-                            let mut group = FeatureFlagGroup {
-                                map: Default::default(),
-                            };
-                            for (k, v) in m {
-                                match v {
-                                    Flags::String(s) => {
-                                        group.map.insert(k, s);
-                                    }
-                                    Flags::Map(_) => {
-                                        panic!();
-                                    }
-                                }
-                            }
-                            response.groups.insert(k, group);
-                        }
-                    }
+        for (k, v) in result.flags {
+            match v {
+                FlagValue::Value(value) => {
+                    response.flags.insert(k, value);
+                }
+                FlagValue::Group(group) => {
+                    let group = group.into_iter().collect();
+                    response.groups.insert(k, FeatureFlagGroup { map: group });
                 }
             }
-        };
+        }
 
         Ok(tonic::Response::new(response))
     }
