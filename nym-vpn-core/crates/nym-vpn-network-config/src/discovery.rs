@@ -8,7 +8,6 @@ use serde::Deserialize;
 use url::Url;
 
 use crate::{
-    feature_flags::Flags,
     response::{DiscoveryResponse, NymNetworkDetailsResponse, NymWellknownDiscoveryItem},
     AccountManagement, FeatureFlags, SystemMessages,
 };
