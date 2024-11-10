@@ -8,29 +8,29 @@ package main
 #include <stdint.h>
 #include <stdlib.h>
 
-typedef struct StringRef {
-  const uint8_t *ptr;
-  uintptr_t len;
-} StringRef;
-
 typedef struct ListRef {
   const void *ptr;
   uintptr_t len;
 } ListRef;
 
-typedef struct NetstackRequestRef {
+typedef struct StringRef {
+  const uint8_t *ptr;
+  uintptr_t len;
+} StringRef;
+
+typedef struct NetstackRequestGoRef {
   struct StringRef wg_ip;
   struct StringRef private_key;
   struct StringRef public_key;
   struct StringRef endpoint;
   struct StringRef dns;
+  uint8_t ip_version;
   struct ListRef ping_hosts;
   struct ListRef ping_ips;
   uint8_t num_ping;
   uint64_t send_timeout_sec;
   uint64_t recv_timeout_sec;
-  uint8_t ip_version;
-} NetstackRequestRef;
+} NetstackRequestGoRef;
 
 typedef struct NetstackResponseRef {
   bool can_handshake;
@@ -56,12 +56,12 @@ import (
 var NetstackCallImpl NetstackCall
 
 type NetstackCall interface {
-	ping(req NetstackRequest) NetstackResponse
+	ping(req NetstackRequestGo) NetstackResponse
 }
 
 //export CNetstackCall_ping
-func CNetstackCall_ping(req C.NetstackRequestRef, slot *C.void, cb *C.void) {
-	resp := NetstackCallImpl.ping(newNetstackRequest(req))
+func CNetstackCall_ping(req C.NetstackRequestGoRef, slot *C.void, cb *C.void) {
+	resp := NetstackCallImpl.ping(newNetstackRequestGo(req))
 	resp_ref, buffer := cvt_ref(cntNetstackResponse, refNetstackResponse)(&resp)
 	C.NetstackCall_ping_cb(unsafe.Pointer(cb), resp_ref, unsafe.Pointer(slot))
 	runtime.KeepAlive(resp)
@@ -215,53 +215,53 @@ func refC_intptr_t(p *int, _ *[]byte) C.intptr_t    { return C.intptr_t(*p) }
 func refC_float(p *float32, _ *[]byte) C.float      { return C.float(*p) }
 func refC_double(p *float64, _ *[]byte) C.double    { return C.double(*p) }
 
-type NetstackRequest struct {
+type NetstackRequestGo struct {
 	wg_ip            string
 	private_key      string
 	public_key       string
 	endpoint         string
 	dns              string
+	ip_version       uint8
 	ping_hosts       []string
 	ping_ips         []string
 	num_ping         uint8
 	send_timeout_sec uint64
 	recv_timeout_sec uint64
-	ip_version       uint8
 }
 
-func newNetstackRequest(p C.NetstackRequestRef) NetstackRequest {
-	return NetstackRequest{
+func newNetstackRequestGo(p C.NetstackRequestGoRef) NetstackRequestGo {
+	return NetstackRequestGo{
 		wg_ip:            newString(p.wg_ip),
 		private_key:      newString(p.private_key),
 		public_key:       newString(p.public_key),
 		endpoint:         newString(p.endpoint),
 		dns:              newString(p.dns),
+		ip_version:       newC_uint8_t(p.ip_version),
 		ping_hosts:       new_list_mapper(newString)(p.ping_hosts),
 		ping_ips:         new_list_mapper(newString)(p.ping_ips),
 		num_ping:         newC_uint8_t(p.num_ping),
 		send_timeout_sec: newC_uint64_t(p.send_timeout_sec),
 		recv_timeout_sec: newC_uint64_t(p.recv_timeout_sec),
-		ip_version:       newC_uint8_t(p.ip_version),
 	}
 }
-func cntNetstackRequest(s *NetstackRequest, cnt *uint) [0]C.NetstackRequestRef {
+func cntNetstackRequestGo(s *NetstackRequestGo, cnt *uint) [0]C.NetstackRequestGoRef {
 	cnt_list_mapper(cntString)(&s.ping_hosts, cnt)
 	cnt_list_mapper(cntString)(&s.ping_ips, cnt)
-	return [0]C.NetstackRequestRef{}
+	return [0]C.NetstackRequestGoRef{}
 }
-func refNetstackRequest(p *NetstackRequest, buffer *[]byte) C.NetstackRequestRef {
-	return C.NetstackRequestRef{
+func refNetstackRequestGo(p *NetstackRequestGo, buffer *[]byte) C.NetstackRequestGoRef {
+	return C.NetstackRequestGoRef{
 		wg_ip:            refString(&p.wg_ip, buffer),
 		private_key:      refString(&p.private_key, buffer),
 		public_key:       refString(&p.public_key, buffer),
 		endpoint:         refString(&p.endpoint, buffer),
 		dns:              refString(&p.dns, buffer),
+		ip_version:       refC_uint8_t(&p.ip_version, buffer),
 		ping_hosts:       ref_list_mapper(refString)(&p.ping_hosts, buffer),
 		ping_ips:         ref_list_mapper(refString)(&p.ping_ips, buffer),
 		num_ping:         refC_uint8_t(&p.num_ping, buffer),
 		send_timeout_sec: refC_uint64_t(&p.send_timeout_sec, buffer),
 		recv_timeout_sec: refC_uint64_t(&p.recv_timeout_sec, buffer),
-		ip_version:       refC_uint8_t(&p.ip_version, buffer),
 	}
 }
 

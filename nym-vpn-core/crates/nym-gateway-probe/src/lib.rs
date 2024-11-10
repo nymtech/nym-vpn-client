@@ -13,7 +13,8 @@ use base64::{engine::general_purpose, Engine as _};
 use bytes::BytesMut;
 use dns_lookup::lookup_host;
 use futures::StreamExt;
-use netstack::{NetstackCall as _, NetstackCallImpl};
+use netstack::ffi::{NetstackCall as _, NetstackCallImpl, NetstackRequestGo};
+use netstack::{V4_DNS, V6_DNS};
 use nym_authenticator_client::ClientMessage;
 use nym_authenticator_requests::v4::{
     registration::{FinalMessage, GatewayClient, InitMessage, RegistrationData},
@@ -227,21 +228,26 @@ async fn wg_probe(
         wg_outcome.can_register = true;
 
         if wg_outcome.can_register {
+            // Figure out if we're using IPv4 or IPv6 to establish the wireguard tunnel
             let wg_ip = if ip_version == 4 {
                 registered_data.private_ips.ipv4.to_string()
             } else {
                 registered_data.private_ips.ipv6.to_string()
             };
 
+            let dns = if ip_version == 4 { V4_DNS } else { V6_DNS };
+
+            let netstack_request = NetstackRequest::new(
+                &wg_ip,
+                &private_key_hex,
+                &public_key_hex,
+                &wg_endpoint,
+                dns,
+                ip_version,
+            );
+
             // Perform IPv4 ping test
-            let ipv4_request = netstack::NetstackRequest {
-                wg_ip: wg_ip.clone(),
-                private_key: private_key_hex.clone(),
-                public_key: public_key_hex.clone(),
-                endpoint: wg_endpoint.clone(),
-                ip_version: 4,
-                ..NetstackRequest::with_ipv4_defaults()
-            };
+            let ipv4_request = NetstackRequestGo::from_rust_v4(&netstack_request);
 
             let netstack_response_v4 = NetstackCallImpl::ping(&ipv4_request);
             info!(
@@ -256,21 +262,7 @@ async fn wg_probe(
                 netstack_response_v4.received_ips as f32 / netstack_response_v4.sent_ips as f32;
 
             // Perform IPv6 ping test
-            let ipv6_request = netstack::NetstackRequest {
-                wg_ip,
-                private_key: private_key_hex,
-                public_key: public_key_hex,
-                endpoint: wg_endpoint.clone(),
-                dns: "2606:4700:4700::1111".to_string(), // cloudflare's IPv6 DNS
-                ping_hosts: vec!["ipv6.google.com".to_string()],
-                ping_ips: vec![
-                    "2001:4860:4860::8888".to_string(), // google DNS
-                    "2606:4700:4700::1111".to_string(), // cloudflare DNS
-                    "2620:fe::fe".to_string(),          //Quad9 DNS
-                ],
-                ip_version: 6,
-                ..NetstackRequest::default()
-            };
+            let ipv6_request = NetstackRequestGo::from_rust_v6(&netstack_request);
 
             let netstack_response_v6 = NetstackCallImpl::ping(&ipv6_request);
             info!(
