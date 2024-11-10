@@ -66,7 +66,8 @@
     },
     "add-ipv6-route": "添加 ipv6 默认路由捕获 ipv6 流量失败",
     "tun-device": "Tun 设备故障",
-    "routing": "路由选择失败"
+    "routing": "路由选择失败",
+    "ready-to-connect": "在检查过程中还无法确定我们是否已准备好连接"
   },
   "countries-request": {
     "entry": "获取可用条目节点国家失败",
