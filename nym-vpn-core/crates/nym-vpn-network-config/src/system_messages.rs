@@ -15,6 +15,10 @@ pub struct SystemMessages {
 }
 
 impl SystemMessages {
+    pub fn all_messages(&self) -> impl Iterator<Item = &SystemMessage> {
+        self.messages.iter()
+    }
+
     pub fn current_messages(&self) -> impl Iterator<Item = &SystemMessage> {
         self.messages.iter().filter(|msg| msg.is_current())
     }
@@ -45,7 +49,7 @@ pub struct SystemMessage {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
-pub struct Properties(pub HashMap<String, String>);
+pub struct Properties(HashMap<String, String>);
 
 impl fmt::Display for Properties {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -60,6 +64,12 @@ impl fmt::Display for Properties {
 impl Properties {
     pub fn into_inner(self) -> HashMap<String, String> {
         self.0
+    }
+}
+
+impl From<HashMap<String, String>> for Properties {
+    fn from(map: HashMap<String, String>) -> Self {
+        Self(map)
     }
 }
 
@@ -78,6 +88,12 @@ impl SystemMessage {
         let now = OffsetDateTime::now_utc();
         self.display_from.map_or(true, |from| from <= now)
             && self.display_until.map_or(true, |until| until >= now)
+    }
+}
+
+impl From<Vec<SystemMessage>> for SystemMessages {
+    fn from(messages: Vec<SystemMessage>) -> Self {
+        Self { messages }
     }
 }
 

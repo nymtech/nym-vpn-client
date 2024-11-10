@@ -4,7 +4,6 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
-use serde::Deserialize;
 use url::Url;
 
 use crate::{
@@ -236,6 +235,15 @@ pub(crate) async fn fetch_nym_vpn_network_details(
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
+    use time::{format_description::well_known::Rfc3339, OffsetDateTime};
+
+    use crate::{
+        account_management::AccountManagementPaths, feature_flags::FlagValue,
+        system_messages::Properties, SystemMessage,
+    };
+
     use super::*;
 
     #[test]
@@ -262,5 +270,88 @@ mod tests {
         let default_discovery = Discovery::default();
         let fetched_discovery = Discovery::fetch(&default_discovery.network_name).unwrap();
         assert_eq!(default_discovery, fetched_discovery);
+    }
+
+    #[test]
+    fn test_parse_discovery_response() {
+        let json = r#"{
+            "network_name": "qa",
+            "nym_api_url": "https://foo.ch/api/",
+            "nym_vpn_api_url": "https://bar.ch/api/",
+            "account_management": {
+                "url": "https://foobar.ch/",
+                "paths": {
+                    "sign_up": "{locale}/account/create",
+                    "sign_in": "{locale}/account/login",
+                    "account": "{locale}/account/{account_id}"
+                }
+            },
+            "feature_flags": {
+                "website": {
+                    "showAccounts": "true"
+                },
+                "zkNyms": {
+                    "credentialMode": "false"
+                }
+            },
+            "system_messages": [
+                {
+                    "name": "test_message",
+                    "displayFrom": "2024-11-05T12:00:00.000Z",
+                    "displayUntil": "",
+                    "message": "This is a test message, no need to panic!",
+                    "properties": {
+                        "modal": "true"
+                    }
+                }
+            ]
+        }"#;
+        let discovery: DiscoveryResponse = serde_json::from_str(json).unwrap();
+        let network: Discovery = discovery.try_into().unwrap();
+
+        let expected_network = Discovery {
+            network_name: "qa".to_owned(),
+            nym_api_url: "https://foo.ch/api/".parse().unwrap(),
+            nym_vpn_api_url: "https://bar.ch/api/".parse().unwrap(),
+            account_management: Some(AccountManagement {
+                url: "https://foobar.ch/".parse().unwrap(),
+                paths: AccountManagementPaths {
+                    sign_up: "{locale}/account/create".to_owned(),
+                    sign_in: "{locale}/account/login".to_owned(),
+                    account: "{locale}/account/{account_id}".to_owned(),
+                },
+            }),
+            feature_flags: Some(FeatureFlags {
+                flags: HashMap::from([
+                    (
+                        "website".to_owned(),
+                        FlagValue::Group(HashMap::from([(
+                            "showAccounts".to_owned(),
+                            "true".to_owned(),
+                        )])),
+                    ),
+                    (
+                        "zkNyms".to_owned(),
+                        FlagValue::Group(HashMap::from([(
+                            "credentialMode".to_owned(),
+                            "false".to_owned(),
+                        )])),
+                    ),
+                ]),
+            }),
+            system_messages: SystemMessages::from(vec![SystemMessage {
+                name: "test_message".to_owned(),
+                display_from: Some(
+                    OffsetDateTime::parse("2024-11-05T12:00:00.000Z", &Rfc3339).unwrap(),
+                ),
+                display_until: None,
+                message: "This is a test message, no need to panic!".to_owned(),
+                properties: Properties::from(HashMap::from([(
+                    "modal".to_owned(),
+                    "true".to_owned(),
+                )])),
+            }]),
+        };
+        assert_eq!(network, expected_network);
     }
 }

@@ -7,15 +7,15 @@ use crate::response::{AccountManagementPathsResponse, AccountManagementResponse}
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct AccountManagement {
-    url: Url,
-    paths: AccountManagementPaths,
+    pub(crate) url: Url,
+    pub(crate) paths: AccountManagementPaths,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-struct AccountManagementPaths {
-    sign_up: String,
-    sign_in: String,
-    account: String,
+pub(crate) struct AccountManagementPaths {
+    pub(crate) sign_up: String,
+    pub(crate) sign_in: String,
+    pub(crate) account: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -24,15 +24,6 @@ pub struct ParsedAccountLinks {
     pub sign_in: Url,
     pub account: Url,
 }
-
-// AccountManagementResponse {
-//     url: "https://nym-dot-com-git-deploy-qa-nyx-network-staging.vercel.app/",
-//     paths: AccountManagementPathsResponse {
-//         sign_up: "{locale}/account/create",
-//         sign_in: "{locale}/account/login",
-//         account: "{locale}/account/{account_id}",
-//     },
-// },
 
 impl AccountManagement {
     pub fn sign_up_url(&self, locale: &str) -> Option<Url> {

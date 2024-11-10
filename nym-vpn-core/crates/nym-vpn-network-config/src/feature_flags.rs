@@ -17,32 +17,38 @@ pub enum FlagValue {
     Group(HashMap<String, String>),
 }
 
-// Struct used during deserialization to handle the nested structure of the flags
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-struct InnerFlags(HashMap<String, FlagValue>);
-
 impl TryFrom<serde_json::Value> for FeatureFlags {
     type Error = serde_json::Error;
 
     fn try_from(value: serde_json::Value) -> Result<Self, Self::Error> {
-        InnerFlags::deserialize(value).map(|flags| Self { flags: flags.0 })
+        HashMap::<String, FlagValue>::deserialize(value).map(|flags| Self { flags })
     }
 }
 
-//impl fmt::Display for Flags {
-//    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//        match self {
-//            Flags::String(s) => write!(f, "{}", s),
-//            Flags::Map(m) => {
-//                write!(f, "{{")?;
-//                for (key, value) in m {
-//                    write!(f, "{}: {}, ", key, value)?;
-//                }
-//                write!(f, "}}")
-//            }
-//        }
-//    }
-//}
+impl fmt::Display for FeatureFlags {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{{")?;
+        for (key, value) in &self.flags {
+            write!(f, "{}: {}, ", key, value)?;
+        }
+        write!(f, "}}")
+    }
+}
+
+impl fmt::Display for FlagValue {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            FlagValue::Value(value) => write!(f, "{}", value),
+            FlagValue::Group(group) => {
+                write!(f, "{{")?;
+                for (key, value) in group {
+                    write!(f, "{}: {}, ", key, value)?;
+                }
+                write!(f, "}}")
+            }
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -51,32 +57,21 @@ mod tests {
     use super::*;
 
     #[test]
-    fn parse_single_flag() {
-        let json = r#"
-        {
+    fn parse_flat_list() {
+        let json = r#"{
             "showaccounts": "true"
         }"#;
         let parsed: Value = serde_json::from_str(json).unwrap();
-        // let flags = FeatureFlags::deserialize(parsed).unwrap();
         let flags = FeatureFlags::try_from(parsed).unwrap();
-        dbg!(&flags);
+        assert_eq!(
+            flags.flags["showaccounts"],
+            FlagValue::Value("true".to_string())
+        );
     }
 
-    // Example:
-    //
-    // "feature_flags": {
-    //   "website": {
-    //     "showaccounts": "true"
-    //   },
-    //   "zknyms": {
-    //     "credentialmode": "false"
-    //   }
-    // }
-
     #[test]
-    fn parse_flags_with_groups() {
-        let json = r#"
-        {
+    fn parse_nested_list() {
+        let json = r#"{
             "website": {
                 "showaccounts": "true",
                 "foo": "bar"
@@ -87,13 +82,25 @@ mod tests {
         }"#;
         let parsed: Value = serde_json::from_str(json).unwrap();
         let flags = FeatureFlags::try_from(parsed).unwrap();
-        dbg!(&flags);
+        assert_eq!(
+            flags.flags["website"],
+            FlagValue::Group(HashMap::from([
+                ("showaccounts".to_owned(), "true".to_owned()),
+                ("foo".to_owned(), "bar".to_owned())
+            ]))
+        );
+        assert_eq!(
+            flags.flags["zknyms"],
+            FlagValue::Group(HashMap::from([(
+                "credentialmode".to_owned(),
+                "false".to_owned()
+            )]))
+        );
     }
 
     #[test]
-    fn parse_mixed_flags() {
-        let json = r#"
-        {
+    fn parse_mixed_list() {
+        let json = r#"{
             "showaccounts": "true",
             "website": {
                 "showaccounts": "true",
@@ -104,7 +111,24 @@ mod tests {
             }
         }"#;
         let parsed: Value = serde_json::from_str(json).unwrap();
-        // let flags = FeatureFlags::try_from(parsed).unwrap();
-        // dbg!(&flags);
+        let flags = FeatureFlags::try_from(parsed).unwrap();
+        assert_eq!(
+            flags.flags["showaccounts"],
+            FlagValue::Value("true".to_string())
+        );
+        assert_eq!(
+            flags.flags["website"],
+            FlagValue::Group(HashMap::from([
+                ("showaccounts".to_owned(), "true".to_owned()),
+                ("foo".to_owned(), "bar".to_owned())
+            ]))
+        );
+        assert_eq!(
+            flags.flags["zknyms"],
+            FlagValue::Group(HashMap::from([(
+                "credentialmode".to_owned(),
+                "false".to_owned()
+            )]))
+        );
     }
 }
