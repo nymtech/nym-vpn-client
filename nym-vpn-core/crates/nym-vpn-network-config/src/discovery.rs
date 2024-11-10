@@ -16,9 +16,7 @@ use super::{nym_network::NymNetwork, MAX_FILE_AGE, NETWORKS_SUBDIR};
 // TODO: integrate with nym-vpn-api-client
 
 const DISCOVERY_FILE: &str = "discovery.json";
-// const DISCOVERY_WELLKNOWN: &str = "https://nymvpn.com/api/public/v1/.wellknown";
-const DISCOVERY_WELLKNOWN: &str =
-    "https://nym-vpn-api-git-deploy-qa-nyx-network-staging.vercel.app/api/public/v1/.wellknown";
+const DISCOVERY_WELLKNOWN: &str = "https://nymvpn.com/api/public/v1/.wellknown";
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
 pub struct Discovery {

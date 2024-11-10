@@ -32,7 +32,7 @@ const NETWORKS_SUBDIR: &str = "networks";
 
 // Refresh the discovery and network details files periodically
 //const MAX_FILE_AGE: Duration = Duration::from_secs(60 * 60 * 24);
-const MAX_FILE_AGE: Duration = Duration::from_secs(1);
+const MAX_FILE_AGE: Duration = Duration::from_secs(60);
 
 #[derive(Clone, Debug)]
 pub struct Network {

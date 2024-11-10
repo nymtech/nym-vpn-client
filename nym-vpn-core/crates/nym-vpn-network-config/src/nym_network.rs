@@ -33,7 +33,7 @@ impl NymNetwork {
 
     pub(super) fn read_from_file(config_dir: &Path, network_name: &str) -> anyhow::Result<Self> {
         let path = Self::path(config_dir, network_name);
-        tracing::info!("Reading network details from: {}", path.display());
+        tracing::debug!("Reading network details from: {}", path.display());
         let file_str = std::fs::read_to_string(path)?;
         let network: NymNetworkDetails = serde_json::from_str(&file_str)?;
         Ok(Self { network })

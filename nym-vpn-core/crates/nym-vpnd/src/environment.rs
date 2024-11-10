@@ -18,7 +18,7 @@ pub(crate) fn setup_environment(
         let network_name = global_config_file.network_name.clone();
         let config_path = crate::service::config_dir();
 
-        tracing::info!("Setting up registered networks");
+        tracing::debug!("Setting up registered networks");
         let networks = nym_vpn_network_config::discover_networks(&config_path)?;
         tracing::debug!("Registered networks: {}", networks);
 
