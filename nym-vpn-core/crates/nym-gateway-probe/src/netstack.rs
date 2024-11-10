@@ -31,6 +31,7 @@ impl NetstackRequest {
     }
 
     // IPv6 defaults
+    #[allow(dead_code)]
     pub fn with_ipv6_defaults() -> Self {
         Self {
             dns: "2606:4700:4700::1111".to_string(), //cloudflare

@@ -7,13 +7,13 @@ use std::{
     time::Duration,
 };
 
+use crate::netstack::NetstackRequest;
 use anyhow::bail;
 use base64::{engine::general_purpose, Engine as _};
 use bytes::BytesMut;
 use dns_lookup::lookup_host;
 use futures::StreamExt;
 use netstack::{NetstackCall as _, NetstackCallImpl};
-use crate::netstack::NetstackRequest;
 use nym_authenticator_client::ClientMessage;
 use nym_authenticator_requests::v4::{
     registration::{FinalMessage, GatewayClient, InitMessage, RegistrationData},
@@ -66,6 +66,7 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
     let exit_router_address = entry_gateway.ipr_address;
     let authenticator = entry_gateway.authenticator_address;
     let gateway_host = entry_gateway.host.clone().unwrap();
+    println!("gateway_host: {}", gateway_host);
     let entry_gateway_id = entry_gateway.identity();
 
     info!("Probing gateway: {entry_gateway:?}");
@@ -188,6 +189,8 @@ async fn wg_probe(
             _ => bail!("Unexpected response: {response:?}"),
         };
 
+        println!("registered_data: {:?}", registered_data);
+
         let peer_public = registered_data.pub_key.inner();
         let static_private = x25519_dalek::StaticSecret::from(private_key.to_bytes());
         let public_key_bs64 = general_purpose::STANDARD.encode(peer_public.as_bytes());
@@ -203,14 +206,17 @@ async fn wg_probe(
             registered_data.wg_port,
         );
 
-        let gateway_ip = match gateway_host {
+        let (gateway_ip, ip_version) = match gateway_host {
             nym_topology::NetworkAddress::Hostname(host) => lookup_host(host)?
                 .first()
-                .map(|ip| ip.to_string())
+                .map(|ip| match ip {
+                    IpAddr::V4(ip) => (ip.to_string(), 4),
+                    IpAddr::V6(ip) => (format!("[{}]", ip), 6),
+                })
                 .unwrap_or_default(),
             nym_topology::NetworkAddress::IpAddr(ip) => match ip {
-                IpAddr::V4(ip) => ip.to_string(),
-                IpAddr::V6(ip) => format!("[{}]", ip),
+                IpAddr::V4(ip) => (ip.to_string(), 4),
+                IpAddr::V6(ip) => (format!("[{}]", ip), 6),
             },
         };
 
@@ -221,17 +227,27 @@ async fn wg_probe(
         wg_outcome.can_register = true;
 
         if wg_outcome.can_register {
+            let wg_ip = if ip_version == 4 {
+                registered_data.private_ips.ipv4.to_string()
+            } else {
+                registered_data.private_ips.ipv6.to_string()
+            };
+
             // Perform IPv4 ping test
             let ipv4_request = netstack::NetstackRequest {
-                wg_ip: registered_data.private_ips.ipv4.to_string(),
+                wg_ip: wg_ip.clone(),
                 private_key: private_key_hex.clone(),
                 public_key: public_key_hex.clone(),
                 endpoint: wg_endpoint.clone(),
+                ip_version: 4,
                 ..NetstackRequest::with_ipv4_defaults()
             };
 
             let netstack_response_v4 = NetstackCallImpl::ping(&ipv4_request);
-            info!("Wireguard probe response for IPv4: {:?}", netstack_response_v4);
+            info!(
+                "Wireguard probe response for IPv4: {:?}",
+                netstack_response_v4
+            );
             wg_outcome.can_handshake_v4 = netstack_response_v4.can_handshake;
             wg_outcome.can_resolve_dns_v4 = netstack_response_v4.can_resolve_dns;
             wg_outcome.ping_hosts_performance_v4 =
@@ -241,23 +257,26 @@ async fn wg_probe(
 
             // Perform IPv6 ping test
             let ipv6_request = netstack::NetstackRequest {
-                wg_ip: registered_data.private_ips.ipv6.to_string(),
+                wg_ip,
                 private_key: private_key_hex,
                 public_key: public_key_hex,
                 endpoint: wg_endpoint.clone(),
-                dns: "2606:4700:4700::1111".to_string(),  // cloudflare's IPv6 DNS
+                dns: "2606:4700:4700::1111".to_string(), // cloudflare's IPv6 DNS
                 ping_hosts: vec!["ipv6.google.com".to_string()],
                 ping_ips: vec![
                     "2001:4860:4860::8888".to_string(), // google DNS
-                    "2606:4700:4700::1111".to_string(),// cloudflare DNS
-                    "2620:fe::fe".to_string() //Quad9 DNS
+                    "2606:4700:4700::1111".to_string(), // cloudflare DNS
+                    "2620:fe::fe".to_string(),          //Quad9 DNS
                 ],
                 ip_version: 6,
                 ..NetstackRequest::default()
             };
 
             let netstack_response_v6 = NetstackCallImpl::ping(&ipv6_request);
-            info!("Wireguard probe response for IPv6: {:?}", netstack_response_v6);
+            info!(
+                "Wireguard probe response for IPv6: {:?}",
+                netstack_response_v6
+            );
             wg_outcome.can_handshake_v6 = netstack_response_v6.can_handshake;
             wg_outcome.can_resolve_dns_v6 = netstack_response_v6.can_resolve_dns;
             wg_outcome.ping_hosts_performance_v6 =
@@ -354,7 +373,7 @@ async fn send_icmp_pings(
     // ipv4 addresses for testing
     let ipr_tun_ip_v4 = Ipv4Addr::new(10, 0, 0, 1);
     let external_ip_v4 = Ipv4Addr::new(8, 8, 8, 8);
-    
+
     // ipv6 addresses for testing
     let ipr_tun_ip_v6 = Ipv6Addr::new(0x2001, 0xdb8, 0xa160, 0, 0, 0, 0, 0x1);
     let external_ip_v6 = Ipv6Addr::new(0x2001, 0x4860, 0x4860, 0, 0, 0, 0, 0x8888);

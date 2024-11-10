@@ -24,6 +24,11 @@ func init() {
 }
 
 func (Netstack) ping(req NetstackRequest) NetstackResponse {
+
+	fmt.Printf("Endpoint: %s\n", req.endpoint)
+	fmt.Printf("WireGuard IP: %s\n", req.wg_ip)
+	fmt.Printf("IP version: %d\n", req.ip_version)
+
 	tun, tnet, err := netstack.CreateNetTUN(
 		[]netip.Addr{netip.MustParseAddr(req.wg_ip)},
 		[]netip.Addr{netip.MustParseAddr(req.dns)},
@@ -42,7 +47,11 @@ func (Netstack) ping(req NetstackRequest) NetstackResponse {
 	ipc.WriteString(req.public_key)
 	ipc.WriteString("\nendpoint=")
 	ipc.WriteString(req.endpoint)
-	ipc.WriteString("\nallowed_ip=0.0.0.0/0\n")
+	if req.ip_version == 4 {
+		ipc.WriteString("\nallowed_ip=0.0.0.0/0\n")
+	} else {
+		ipc.WriteString("\nallowed_ip=::/0\n")
+	}
 
 	response := NetstackResponse{false, 0, 0, 0, 0, false}
 
@@ -140,6 +149,9 @@ func sendPing(address string, seq uint8, send_timeout_secs uint64, recieve_timou
 		if err != nil {
 			return 0, err
 		}
+
+		var ok bool
+
 		replyPing, ok := replyPacket.Body.(*icmp.Echo)
 
 		if !ok {
