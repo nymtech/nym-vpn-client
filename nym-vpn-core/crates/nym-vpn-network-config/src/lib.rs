@@ -31,7 +31,7 @@ use std::{path::Path, time::Duration};
 const NETWORKS_SUBDIR: &str = "networks";
 
 // Refresh the discovery and network details files periodically
-// const MAX_FILE_AGE: Duration = Duration::from_secs(60 * 60 * 24);
+//const MAX_FILE_AGE: Duration = Duration::from_secs(60 * 60 * 24);
 const MAX_FILE_AGE: Duration = Duration::from_secs(1);
 
 #[derive(Clone, Debug)]
@@ -70,7 +70,7 @@ impl Network {
     // Query the network name for both urls and check that it matches
     // TODO: integrate with validator-client and/or nym-vpn-api-client
     pub async fn check_consistency(&self) -> anyhow::Result<bool> {
-        tracing::info!("Checking network consistency");
+        tracing::debug!("Checking network consistency");
         let nym_api_url = self
             .nym_network
             .network
@@ -89,8 +89,8 @@ impl Network {
         let network_name = network_name?;
         let vpn_network_name = vpn_network_name?;
 
-        tracing::info!("nym network name: {network_name}");
-        tracing::info!("nym-vpn network name: {vpn_network_name}");
+        tracing::debug!("nym network name: {network_name}");
+        tracing::debug!("nym-vpn network name: {vpn_network_name}");
         Ok(network_name == vpn_network_name)
     }
 
@@ -121,14 +121,14 @@ pub fn discover_env(config_path: &Path, network_name: &str) -> anyhow::Result<Ne
     let discovery = Discovery::ensure_exists(config_path, network_name)?;
     tracing::debug!("Discovery: {:#?}", discovery);
 
-    tracing::info!(
-        "{}",
+    tracing::debug!(
+        "System messages: {}",
         discovery.system_messages.clone().into_current_messages()
     );
 
     let feature_flags = discovery.feature_flags.clone();
     if let Some(ref feature_flags) = feature_flags {
-        tracing::info!("Feature flags: {}", feature_flags);
+        tracing::debug!("Feature flags: {}", feature_flags);
     }
 
     // Using discovery, fetch and setup nym network details

@@ -29,7 +29,7 @@ impl fmt::Display for FeatureFlags {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "FeatureFlags {{ {} }}",
+            "{{ {} }}",
             itertools::join(
                 self.flags
                     .iter()

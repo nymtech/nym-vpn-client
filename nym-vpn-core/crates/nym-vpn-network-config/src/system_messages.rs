@@ -15,10 +15,6 @@ pub struct SystemMessages {
 }
 
 impl SystemMessages {
-    pub fn iter(&self) -> impl Iterator<Item = &SystemMessage> {
-        self.messages.iter()
-    }
-
     pub fn current_iter(&self) -> impl Iterator<Item = &SystemMessage> {
         self.messages.iter().filter(|msg| msg.is_current())
     }
@@ -32,19 +28,29 @@ impl SystemMessages {
     }
 }
 
-impl Iterator for SystemMessages {
+impl IntoIterator for SystemMessages {
     type Item = SystemMessage;
+    type IntoIter = std::vec::IntoIter<SystemMessage>;
 
-    fn next(&mut self) -> Option<Self::Item> {
-        self.messages.pop()
+    fn into_iter(self) -> Self::IntoIter {
+        self.messages.into_iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a SystemMessages {
+    type Item = &'a SystemMessage;
+    type IntoIter = std::slice::Iter<'a, SystemMessage>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.messages.iter()
     }
 }
 
 impl fmt::Display for SystemMessages {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "SystemMessages {{[")?;
-        for message in self.iter() {
-            writeln!(f, "   {}", message)?;
+        writeln!(f, "{{[")?;
+        for message in self {
+            writeln!(f, "   {},", message)?;
         }
         write!(f, "]}}")
     }
@@ -88,7 +94,7 @@ impl fmt::Display for SystemMessage {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "SystemMessage {{ name: \"{}\", message: \"{}\", properties: {} }}",
+            "{{ name: \"{}\", message: \"{}\", properties: {} }}",
             self.name, self.message, self.properties
         )
     }
