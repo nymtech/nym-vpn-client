@@ -124,7 +124,6 @@ impl TryFrom<SystemMessageResponse> for SystemMessage {
             .ok();
 
         let properties =
-            // PropertyValue::deserialize(response.properties).unwrap_or(PropertyValue::empty());
             Properties::deserialize(response.properties).unwrap_or(Properties::default());
 
         Ok(Self {
@@ -134,5 +133,89 @@ impl TryFrom<SystemMessageResponse> for SystemMessage {
             message: response.message,
             properties,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_system_message() {
+        let json = r#"{
+            "name": "test_message",
+            "displayFrom": "2024-11-05T12:00:00.000Z",
+            "displayUntil": "",
+            "message": "This is a test message, no need to panic!",
+            "properties": {
+                "modal": "true"
+            }
+        }"#;
+        let parsed: SystemMessageResponse = serde_json::from_str(json).unwrap();
+        let message = SystemMessage::try_from(parsed).unwrap();
+        assert_eq!(
+            message,
+            SystemMessage {
+                name: "test_message".to_string(),
+                display_from: Some(
+                    OffsetDateTime::parse("2024-11-05T12:00:00.000Z", &Rfc3339).unwrap()
+                ),
+                display_until: None,
+                message: "This is a test message, no need to panic!".to_string(),
+                properties: Properties(HashMap::from_iter(vec![(
+                    "modal".to_string(),
+                    "true".to_string()
+                )])),
+            }
+        );
+    }
+
+    #[test]
+    fn check_current_message() {
+        let message = SystemMessage {
+            name: "test_message".to_string(),
+            // Yesterday
+            display_from: Some(OffsetDateTime::now_utc() - time::Duration::days(1)),
+            display_until: None,
+            message: "This is a test message, no need to panic!".to_string(),
+            properties: Properties(HashMap::from_iter(vec![(
+                "modal".to_string(),
+                "true".to_string(),
+            )])),
+        };
+        assert!(message.is_current());
+    }
+
+    #[test]
+    fn check_future_message() {
+        let message = SystemMessage {
+            name: "test_message".to_string(),
+            // Tomorrow
+            display_from: Some(OffsetDateTime::now_utc() + time::Duration::days(1)),
+            display_until: None,
+            message: "This is a test message, no need to panic!".to_string(),
+            properties: Properties(HashMap::from_iter(vec![(
+                "modal".to_string(),
+                "true".to_string(),
+            )])),
+        };
+        assert!(!message.is_current());
+    }
+
+    #[test]
+    fn check_expired_message() {
+        let message = SystemMessage {
+            name: "test_message".to_string(),
+            // Yesterday
+            display_from: Some(OffsetDateTime::now_utc() - time::Duration::days(1)),
+            // Today
+            display_until: Some(OffsetDateTime::now_utc()),
+            message: "This is a test message, no need to panic!".to_string(),
+            properties: Properties(HashMap::from_iter(vec![(
+                "modal".to_string(),
+                "true".to_string(),
+            )])),
+        };
+        assert!(!message.is_current());
     }
 }
