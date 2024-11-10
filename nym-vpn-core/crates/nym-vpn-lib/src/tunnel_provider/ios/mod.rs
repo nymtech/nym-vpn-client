@@ -21,7 +21,7 @@ pub trait OSTunProvider: Send + Sync + std::fmt::Debug {
     ) -> Result<(), VpnError>;
 
     /// Set or unset the default path observer.
-    fn set_default_path_observer(
+    async fn set_default_path_observer(
         &self,
         observer: Option<Arc<dyn OSDefaultPathObserver>>,
     ) -> Result<(), VpnError>;
