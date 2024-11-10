@@ -15,27 +15,38 @@ pub struct SystemMessages {
 }
 
 impl SystemMessages {
-    pub fn all_messages(&self) -> impl Iterator<Item = &SystemMessage> {
+    pub fn iter(&self) -> impl Iterator<Item = &SystemMessage> {
         self.messages.iter()
     }
 
-    pub fn current_messages(&self) -> impl Iterator<Item = &SystemMessage> {
+    pub fn current_iter(&self) -> impl Iterator<Item = &SystemMessage> {
         self.messages.iter().filter(|msg| msg.is_current())
     }
 
-    pub fn into_current_messages(self) -> impl Iterator<Item = SystemMessage> {
+    pub fn into_current_iter(self) -> impl Iterator<Item = SystemMessage> {
         self.messages.into_iter().filter(|msg| msg.is_current())
+    }
+
+    pub fn into_current_messages(self) -> SystemMessages {
+        self.into_current_iter().collect::<Vec<_>>().into()
+    }
+}
+
+impl Iterator for SystemMessages {
+    type Item = SystemMessage;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.messages.pop()
     }
 }
 
 impl fmt::Display for SystemMessages {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "System messages: [")?;
-        for message in self.current_messages() {
+        writeln!(f, "SystemMessages {{[")?;
+        for message in self.iter() {
             writeln!(f, "   {}", message)?;
         }
-        writeln!(f, "]")?;
-        Ok(())
+        write!(f, "]}}")
     }
 }
 
@@ -53,11 +64,11 @@ pub struct Properties(HashMap<String, String>);
 
 impl fmt::Display for Properties {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "properties {{")?;
-        for (key, value) in &self.0 {
-            write!(f, " {}: {},", key, value)?;
-        }
-        write!(f, "}}")
+        write!(
+            f,
+            "{{ {} }}",
+            itertools::join(self.0.iter().map(|(k, v)| format!("{}: {}", k, v)), ", ")
+        )
     }
 }
 
@@ -75,9 +86,9 @@ impl From<HashMap<String, String>> for Properties {
 
 impl fmt::Display for SystemMessage {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(
+        write!(
             f,
-            "SystemMessage(name: {}, message: {}, properties: {}",
+            "SystemMessage {{ name: \"{}\", message: \"{}\", properties: {} }}",
             self.name, self.message, self.properties
         )
     }

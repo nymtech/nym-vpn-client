@@ -84,13 +84,8 @@ impl Discovery {
         if discovery.network_name != network_name {
             anyhow::bail!("Network name mismatch between requested and fetched discovery")
         }
-        tracing::debug!("Fetched nym network discovery: {:#?}", discovery);
-        //tracing::debug!("Fetched nym network discovery: {:?}", discovery);
-        //tracing::debug!(
-        //    "Fetched nym network discovery: {}",
-        //    serde_json::to_string(&discovery).unwrap()
-        //);
 
+        tracing::debug!("Fetched nym network discovery: {:#?}", discovery);
         discovery.try_into()
     }
 

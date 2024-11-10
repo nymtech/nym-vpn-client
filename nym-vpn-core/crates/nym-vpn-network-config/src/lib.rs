@@ -119,13 +119,17 @@ pub fn discover_env(config_path: &Path, network_name: &str) -> anyhow::Result<Ne
 
     // Lookup network discovery to bootstrap
     let discovery = Discovery::ensure_exists(config_path, network_name)?;
+    tracing::debug!("Discovery: {:#?}", discovery);
 
-    tracing::info!("Discovery: {:#?}", discovery);
-
-    tracing::info!("System messages: {}", discovery.system_messages);
+    tracing::info!(
+        "{}",
+        discovery.system_messages.clone().into_current_messages()
+    );
 
     let feature_flags = discovery.feature_flags.clone();
-    tracing::info!("Feature flags: {:#?}", feature_flags);
+    if let Some(ref feature_flags) = feature_flags {
+        tracing::info!("Feature flags: {}", feature_flags);
+    }
 
     // Using discovery, fetch and setup nym network details
     let nym_network = NymNetwork::ensure_exists(config_path, &discovery)?;

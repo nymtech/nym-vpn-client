@@ -162,7 +162,7 @@ impl NymVpnd for CommandInterface {
             .await?;
 
         let messages = messages
-            .into_current_messages()
+            .into_current_iter()
             .map(into_proto_system_message)
             .collect();
         let response = GetSystemMessagesResponse { messages };

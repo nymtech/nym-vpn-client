@@ -27,11 +27,16 @@ impl TryFrom<serde_json::Value> for FeatureFlags {
 
 impl fmt::Display for FeatureFlags {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{{")?;
-        for (key, value) in &self.flags {
-            write!(f, "{}: {}, ", key, value)?;
-        }
-        write!(f, "}}")
+        write!(
+            f,
+            "FeatureFlags {{ {} }}",
+            itertools::join(
+                self.flags
+                    .iter()
+                    .map(|(key, value)| { format!("{}: {}", key, value) }),
+                ", "
+            )
+        )
     }
 }
 
@@ -40,11 +45,16 @@ impl fmt::Display for FlagValue {
         match self {
             FlagValue::Value(value) => write!(f, "{}", value),
             FlagValue::Group(group) => {
-                write!(f, "{{")?;
-                for (key, value) in group {
-                    write!(f, "{}: {}, ", key, value)?;
-                }
-                write!(f, "}}")
+                write!(
+                    f,
+                    "{{ {} }}",
+                    itertools::join(
+                        group
+                            .iter()
+                            .map(|(key, value)| { format!("{}: {}", key, value) }),
+                        ", "
+                    )
+                )
             }
         }
     }
