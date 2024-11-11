@@ -3,7 +3,8 @@
   "internal": "Erreur interne",
   "daemon": {
     "not-connected": "Non connecté au daemon",
-    "internal": "Erreur interne du daemon"
+    "internal": "Erreur interne du daemon",
+    "invalid-network": "Réseau invalide"
   },
   "grpc": "Erreur interne gRPC",
   "connection": {
@@ -65,7 +66,8 @@
     "add-ipv6-route": "Échec de l'ajout d'une route par défaut ipv6 pour capturer le trafic ipv6",
     "tun-device": "Échec du périphérique Tun",
     "routing": "Échec du routage",
-    "unhandled-exit": "Le VPN a échoué à la sortie avec une erreur, probablement à cause d'un bug."
+    "unhandled-exit": "Le VPN a échoué à la sortie avec une erreur, probablement à cause d'un bug.",
+    "ready-to-connect": "Il n'a pas encore été possible de déterminer si nous sommes prêts à nous connecter lors de la vérification"
   },
   "countries-request": {
     "entry": "Échec de la recherche des pays de nœuds d'entrée disponibles",
@@ -79,6 +81,13 @@
     "ping": "Échec du ping sur le nœud de sortie pour le trafic {{protocol}}"
   },
   "account": {
-    "invalid-recovery-phrase": "Phrase de récupération invalide"
+    "invalid-recovery-phrase": "Phrase de récupération invalide",
+    "device": {
+      "not-registered": "L'appareil n'est pas enregistré",
+      "not-active": "L'appareil n'est pas actif"
+    },
+    "no-account-stored": "Aucune phrase de récupération stockée",
+    "not-active": "The compte n'est pas actif",
+    "no-active-subscription": "Le compte n'a pas d'abonnement actif"
   }
 }
