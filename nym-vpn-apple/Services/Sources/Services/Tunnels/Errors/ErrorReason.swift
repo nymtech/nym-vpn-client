@@ -12,6 +12,7 @@ public enum ErrorReason: String, Codable, Error {
     case sameEntryAndExitGateway
     case invalidEntryGatewayCountry
     case invalidExitGatewayCountry
+    case badBandwidthIncrease
 
     public init(with errorStateReason: ErrorStateReason) {
         switch errorStateReason {
@@ -33,6 +34,8 @@ public enum ErrorReason: String, Codable, Error {
             self = .invalidEntryGatewayCountry
         case .invalidExitGatewayCountry:
             self = .invalidExitGatewayCountry
+        case .badBandwidthIncrease:
+            self = .badBandwidthIncrease
         }
     }
 
@@ -66,6 +69,8 @@ extension ErrorReason: LocalizedError {
             "errorReason.invalidEntryGatewayCountry".localizedString
         case .invalidExitGatewayCountry:
             "errorReason.invalidExitGatewayCountry".localizedString
+        case .badBandwidthIncrease:
+            "errorReason.badBandwidthIncrease".localizedString
         }
     }
 }
