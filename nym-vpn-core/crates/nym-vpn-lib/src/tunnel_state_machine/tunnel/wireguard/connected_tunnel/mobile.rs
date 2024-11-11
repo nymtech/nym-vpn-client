@@ -177,6 +177,7 @@ impl ConnectedTunnel {
 
                         // Rebind wireguard-go on tun device.
                         exit_tunnel.bump_sockets();
+                        entry_tunnel.bump_sockets();
                     }
                     else => {
                         tracing::error!("Default path observer has been dropped. Exiting event loop.");
