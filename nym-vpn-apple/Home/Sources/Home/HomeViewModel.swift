@@ -56,6 +56,7 @@ public class HomeViewModel: HomeFlowState {
     @MainActor @Published var statusInfoState = StatusInfoState.initialising
     @MainActor @Published var connectButtonState = ConnectButtonState.connect
     @MainActor @Published var isModeInfoOverlayDisplayed = false
+    var lastTunnelStatus = TunnelStatus.disconnected
 
 #if os(iOS)
     public init(
@@ -101,6 +102,11 @@ public class HomeViewModel: HomeFlowState {
         setup()
     }
 #endif
+
+    deinit {
+        cancellables.forEach { $0.cancel() }
+        timer.invalidate()
+    }
 }
 
 // MARK: - Navigation -
@@ -278,6 +284,8 @@ private extension HomeViewModel {
 #endif
 
     func updateUI(with status: TunnelStatus) {
+        guard status != lastTunnelStatus else { return }
+
         let newStatus: TunnelStatus
         // Fake satus, until we get support from the tunnel
         if connectionManager.isReconnecting &&
@@ -294,7 +302,10 @@ private extension HomeViewModel {
             impactGenerator.success()
         }
 #endif
-        Task { @MainActor in
+        lastTunnelStatus = newStatus
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+
             statusButtonConfig = StatusButtonConfig(tunnelStatus: newStatus)
             connectButtonState = ConnectButtonState(tunnelStatus: newStatus)
 
@@ -325,10 +336,11 @@ private extension HomeViewModel {
                   let connectedDate = activeTunnel.tunnel.connection.connectedDate
             else {
                 guard timeConnected != emptyTimeText else { return }
-                timeConnected = emptyTimeText
+                updateTimeString(with: emptyTimeText)
                 return
             }
-            timeConnected = dateFormatter.string(from: connectedDate, to: Date()) ?? emptyTimeText
+            let timeString = dateFormatter.string(from: connectedDate, to: Date()) ?? emptyTimeText
+            updateTimeString(with: timeString)
         }
     }
 }
@@ -381,16 +393,21 @@ private extension HomeViewModel {
     }
 
     func updateTimeConnected() {
-        Task { @MainActor in
-            let emptyTimeText = " "
-            guard grpcManager.tunnelStatus == .connected,
-                  let connectedDate = grpcManager.connectedDate
-            else {
-                guard timeConnected != emptyTimeText else { return }
-                timeConnected = emptyTimeText
-                return
+        _ = autoreleasepool {
+            Task { [weak self] in
+                guard let self else { return }
+
+                let emptyTimeText = " "
+                guard grpcManager.tunnelStatus == .connected,
+                      let connectedDate = grpcManager.connectedDate
+                else {
+                    guard await timeConnected != emptyTimeText else { return }
+                    updateTimeString(with: emptyTimeText)
+                    return
+                }
+                let timeString = dateFormatter.string(from: connectedDate, to: Date()) ?? emptyTimeText
+                updateTimeString(with: timeString)
             }
-            timeConnected = dateFormatter.string(from: connectedDate, to: Date()) ?? emptyTimeText
         }
     }
 
@@ -402,6 +419,14 @@ private extension HomeViewModel {
 #endif
 
 private extension HomeViewModel {
+    func updateTimeString(with text: String) {
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            guard timeConnected != text else { return }
+            timeConnected = text
+        }
+    }
+
     func resetStatusInfoState() {
         updateStatusInfoState(with: .unknown)
     }

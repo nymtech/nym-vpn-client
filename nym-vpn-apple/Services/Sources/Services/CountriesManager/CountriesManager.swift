@@ -95,8 +95,8 @@ public final class CountriesManager: ObservableObject {
         }
         isLoading = true
 
-        Task {
-            fetchEntryExitCountries()
+        Task { [weak self] in
+            self?.fetchEntryExitCountries()
         }
     }
 
@@ -397,7 +397,7 @@ extension CountriesManager {
 
     func fetchCountriesAfterDelay() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 60) { [weak self] in
-            Task {
+            Task { [weak self] in
                 self?.fetchEntryExitCountries()
             }
         }

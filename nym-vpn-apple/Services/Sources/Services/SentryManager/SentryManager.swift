@@ -48,7 +48,8 @@ extension SentryManager {
     }
 
     func configureSentry() {
-        Task { @MainActor in
+        Task { @MainActor [weak self] in
+            guard let self else { return }
             if appSettings.isErrorReportingOn {
                 SentrySDK.start { options in
                     options.dsn = "https://f860c307259ffe7827fa4ecdfaa8834f@o967446.ingest.us.sentry.io/4507135758237696"

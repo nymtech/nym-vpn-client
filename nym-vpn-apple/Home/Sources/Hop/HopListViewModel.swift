@@ -91,16 +91,19 @@ private extension HopListViewModel {
 // MARK: - Countries -
 private extension HopListViewModel {
     func updateCountries() {
-        Task {
-            let newCountries: [Country]?
-            switch connectionManager.connectionType {
-            case .mixnet5hop:
-                newCountries = countriesMixnet()
-            case .wireguard:
-                newCountries = countriesWireGuard()
-            }
-            await MainActor.run {
-                countries = newCountries
+        _ = autoreleasepool {
+            Task { [weak self] in
+                guard let self else { return }
+                let newCountries: [Country]?
+                switch connectionManager.connectionType {
+                case .mixnet5hop:
+                    newCountries = countriesMixnet()
+                case .wireguard:
+                    newCountries = countriesWireGuard()
+                }
+                await MainActor.run {
+                    self.countries = newCountries
+                }
             }
         }
     }
