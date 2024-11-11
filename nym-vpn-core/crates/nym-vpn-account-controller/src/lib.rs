@@ -8,11 +8,13 @@
 
 pub mod shared_state;
 
+mod commands;
 mod controller;
-mod ecash_client;
 mod error;
 mod storage;
 
-pub use controller::{AccountCommand, AccountController};
+pub use commands::AccountCommand;
+pub use controller::AccountController;
 pub use error::Error;
 pub use shared_state::{AccountStateSummary, ReadyToConnect, SharedAccountState};
+pub use storage::{AvailableTicketbook, AvailableTicketbooks};

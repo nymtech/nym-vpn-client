@@ -22,7 +22,8 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 
 use nym_vpn_account_controller::{
-    AccountCommand, AccountController, AccountStateSummary, ReadyToConnect, SharedAccountState,
+    AccountCommand, AccountController, AccountStateSummary, AvailableTicketbooks, ReadyToConnect,
+    SharedAccountState,
 };
 use nym_vpn_api_client::{
     response::{NymVpnAccountSummaryResponse, NymVpnDevicesResponse},
@@ -123,6 +124,13 @@ pub enum VpnServiceCommand {
     RegisterDevice(oneshot::Sender<Result<(), AccountError>>, ()),
     RequestZkNym(oneshot::Sender<Result<(), AccountError>>, ()),
     GetDeviceZkNyms(oneshot::Sender<Result<(), AccountError>>, ()),
+    GetZkNymsAvailableForDownload(oneshot::Sender<Result<(), AccountError>>, ()),
+    GetZkNymById(oneshot::Sender<Result<(), AccountError>>, String),
+    ConfirmZkNymIdDownloaded(oneshot::Sender<Result<(), AccountError>>, String),
+    GetAvailableTickets(
+        oneshot::Sender<Result<AvailableTicketbooks, AccountError>>,
+        (),
+    ),
     FetchRawAccountSummary(
         oneshot::Sender<Result<NymVpnAccountSummaryResponse, AccountError>>,
         (),
@@ -158,6 +166,14 @@ impl fmt::Display for VpnServiceCommand {
             VpnServiceCommand::RegisterDevice(..) => write!(f, "RegisterDevice"),
             VpnServiceCommand::RequestZkNym(..) => write!(f, "RequestZkNym"),
             VpnServiceCommand::GetDeviceZkNyms(..) => write!(f, "GetDeviceZkNyms"),
+            VpnServiceCommand::GetZkNymsAvailableForDownload(..) => {
+                write!(f, "GetZkNymsAvailableForDownload")
+            }
+            VpnServiceCommand::GetZkNymById(..) => write!(f, "GetZkNymById"),
+            VpnServiceCommand::ConfirmZkNymIdDownloaded(..) => {
+                write!(f, "ConfirmZkNymIdDownloaded")
+            }
+            VpnServiceCommand::GetAvailableTickets(..) => write!(f, "GetAvailableTickets"),
             VpnServiceCommand::FetchRawAccountSummary(..) => write!(f, "FetchRawAccountSummery"),
             VpnServiceCommand::FetchRawDevices(..) => write!(f, "FetchRawDevices"),
         }
@@ -450,7 +466,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         let account_controller = AccountController::new(
             Arc::clone(&storage),
             data_dir.clone(),
-            user_agent.clone(),
+            user_agent,
             shutdown_token.child_token(),
         )
         .await
@@ -633,6 +649,22 @@ where
             }
             VpnServiceCommand::GetDeviceZkNyms(tx, ()) => {
                 let result = self.handle_get_device_zk_nyms().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::GetZkNymsAvailableForDownload(tx, ()) => {
+                let result = self.handle_get_zk_nyms_available_for_download().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::GetZkNymById(tx, id) => {
+                let result = self.handle_get_zk_nym_by_id(id).await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::ConfirmZkNymIdDownloaded(tx, id) => {
+                let result = self.handle_confirm_zk_nym_id_downloaded(id).await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::GetAvailableTickets(tx, ()) => {
+                let result = self.handle_get_available_tickets().await;
                 let _ = tx.send(result);
             }
             VpnServiceCommand::FetchRawAccountSummary(tx, ()) => {
@@ -869,7 +901,7 @@ where
             })?;
 
         self.account_command_tx
-            .send(AccountCommand::UpdateSharedAccountState)
+            .send(AccountCommand::UpdateAccountState)
             .map_err(|err| AccountError::SendCommand {
                 source: Box::new(err),
             })?;
@@ -899,7 +931,7 @@ where
             })?;
 
         self.account_command_tx
-            .send(AccountCommand::UpdateSharedAccountState)
+            .send(AccountCommand::UpdateAccountState)
             .map_err(|err| AccountError::SendCommand {
                 source: Box::new(err),
             })?;
@@ -936,7 +968,7 @@ where
 
     async fn handle_refresh_account_state(&self) -> Result<(), AccountError> {
         self.account_command_tx
-            .send(AccountCommand::UpdateSharedAccountState)
+            .send(AccountCommand::UpdateAccountState)
             .map_err(|err| AccountError::SendCommand {
                 source: Box::new(err),
             })
@@ -988,7 +1020,7 @@ where
             })?;
 
         self.account_command_tx
-            .send(AccountCommand::UpdateSharedAccountState)
+            .send(AccountCommand::UpdateAccountState)
             .map_err(|err| AccountError::SendCommand {
                 source: Box::new(err),
             })?;
@@ -1024,6 +1056,43 @@ where
             .map_err(|err| AccountError::SendCommand {
                 source: Box::new(err),
             })
+    }
+
+    async fn handle_get_zk_nyms_available_for_download(&self) -> Result<(), AccountError> {
+        self.account_command_tx
+            .send(AccountCommand::GetZkNymsAvailableForDownload)
+            .map_err(|err| AccountError::SendCommand {
+                source: Box::new(err),
+            })
+    }
+
+    async fn handle_get_zk_nym_by_id(&self, id: String) -> Result<(), AccountError> {
+        self.account_command_tx
+            .send(AccountCommand::GetZkNymById(id))
+            .map_err(|err| AccountError::SendCommand {
+                source: Box::new(err),
+            })
+    }
+
+    async fn handle_confirm_zk_nym_id_downloaded(&self, id: String) -> Result<(), AccountError> {
+        self.account_command_tx
+            .send(AccountCommand::ConfirmZkNymIdDownloaded(id))
+            .map_err(|err| AccountError::SendCommand {
+                source: Box::new(err),
+            })
+    }
+
+    async fn handle_get_available_tickets(&self) -> Result<AvailableTicketbooks, AccountError> {
+        let (result_tx, result_rx) = oneshot::channel();
+        self.account_command_tx
+            .send(AccountCommand::GetAvailableTickets(result_tx))
+            .map_err(|err| AccountError::SendCommand {
+                source: Box::new(err),
+            })?;
+        let result = result_rx.await.map_err(|err| AccountError::RecvCommand {
+            source: Box::new(err),
+        })?;
+        result.map_err(|err| AccountError::AccountControllerError { source: err })
     }
 
     async fn handle_fetch_raw_account_summary(

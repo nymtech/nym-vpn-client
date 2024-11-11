@@ -13,14 +13,17 @@ use tokio::sync::{broadcast, mpsc::UnboundedSender};
 use nym_vpn_api_client::types::GatewayMinPerformance;
 use nym_vpn_lib::tunnel_state_machine::MixnetEvent;
 use nym_vpn_proto::{
-    nym_vpnd_server::NymVpnd, AccountError, ConnectRequest, ConnectResponse, ConnectionStateChange,
+    nym_vpnd_server::NymVpnd, AccountError, ConfirmZkNymDownloadedRequest,
+    ConfirmZkNymDownloadedResponse, ConnectRequest, ConnectResponse, ConnectionStateChange,
     ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
     FetchRawAccountSummaryRequest, FetchRawAccountSummaryResponse, FetchRawDevicesRequest,
     FetchRawDevicesResponse, GetAccountIdentityRequest, GetAccountIdentityResponse,
     GetAccountLinksRequest, GetAccountLinksResponse, GetAccountStateRequest,
-    GetAccountStateResponse, GetDeviceIdentityRequest, GetDeviceIdentityResponse,
-    GetDeviceZkNymsRequest, GetDeviceZkNymsResponse, GetFeatureFlagsRequest,
-    GetFeatureFlagsResponse, GetSystemMessagesRequest, GetSystemMessagesResponse, InfoRequest,
+    GetAccountStateResponse, GetAvailableTicketsRequest, GetAvailableTicketsResponse,
+    GetDeviceIdentityRequest, GetDeviceIdentityResponse, GetDeviceZkNymsRequest,
+    GetDeviceZkNymsResponse, GetFeatureFlagsRequest, GetFeatureFlagsResponse,
+    GetSystemMessagesRequest, GetSystemMessagesResponse, GetZkNymByIdRequest, GetZkNymByIdResponse,
+    GetZkNymsAvailableForDownloadRequest, GetZkNymsAvailableForDownloadResponse, InfoRequest,
     InfoResponse, IsAccountStoredRequest, IsAccountStoredResponse, IsReadyToConnectRequest,
     IsReadyToConnectResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
     ListGatewaysResponse, RefreshAccountStateRequest, RefreshAccountStateResponse,
@@ -726,6 +729,121 @@ impl NymVpnd for CommandInterface {
         };
 
         tracing::debug!("Returning get device zk nyms response");
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn get_zk_nyms_available_for_download(
+        &self,
+        _request: tonic::Request<GetZkNymsAvailableForDownloadRequest>,
+    ) -> Result<tonic::Response<GetZkNymsAvailableForDownloadResponse>, tonic::Status> {
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_get_zk_nyms_available_for_download()
+            .await?;
+
+        let response = match result {
+            Ok(response) => GetZkNymsAvailableForDownloadResponse {
+                json: serde_json::to_string(&response)
+                    .unwrap_or_else(|_| "failed to serialize".to_owned()),
+                error: None,
+            },
+            Err(err) => GetZkNymsAvailableForDownloadResponse {
+                json: err.to_string(),
+                error: Some(AccountError::from(err)),
+            },
+        };
+
+        tracing::debug!("Returning get zk nyms available to download response");
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn get_zk_nym_by_id(
+        &self,
+        request: tonic::Request<GetZkNymByIdRequest>,
+    ) -> Result<tonic::Response<GetZkNymByIdResponse>, tonic::Status> {
+        let id = request.into_inner().id;
+
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_get_zk_nym_by_id(id)
+            .await?;
+
+        let response = match result {
+            Ok(response) => GetZkNymByIdResponse {
+                json: serde_json::to_string(&response)
+                    .unwrap_or_else(|_| "failed to serialize".to_owned()),
+                error: None,
+            },
+            Err(err) => GetZkNymByIdResponse {
+                json: err.to_string(),
+                error: Some(AccountError::from(err)),
+            },
+        };
+
+        tracing::debug!("Returning get zk nym by id response");
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn confirm_zk_nym_downloaded(
+        &self,
+        request: tonic::Request<ConfirmZkNymDownloadedRequest>,
+    ) -> Result<tonic::Response<ConfirmZkNymDownloadedResponse>, tonic::Status> {
+        let id = request.into_inner().id;
+
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_confirm_zk_nym_downloaded(id)
+            .await?;
+
+        let response = match result {
+            Ok(()) => ConfirmZkNymDownloadedResponse { error: None },
+            Err(err) => ConfirmZkNymDownloadedResponse {
+                error: Some(AccountError::from(err)),
+            },
+        };
+
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn get_available_tickets(
+        &self,
+        _request: tonic::Request<GetAvailableTicketsRequest>,
+    ) -> Result<tonic::Response<GetAvailableTicketsResponse>, tonic::Status> {
+        tracing::debug!("Got get available tickets request");
+
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_get_available_tickets()
+            .await
+            .map_err(|err| {
+                tracing::error!("Failed to get available tickets: {:?}", err);
+                tonic::Status::internal("Failed to get available tickets")
+            })?;
+
+        let response = match result {
+            Ok(tickets) => {
+                let summary = tickets.remaining();
+                let available_tickets = nym_vpn_proto::AvailableTickets {
+                    mixnet_entry: summary.mixnet_entry_amount,
+                    mixnet_exit: summary.mixnet_exit_amount,
+                    vpn_entry: summary.vpn_entry_amount,
+                    vpn_exit: summary.vpn_exit_amount,
+                    mixnet_entry_si: summary.mixnet_entry_amount_si(),
+                    mixnet_exit_si: summary.mixnet_exit_amount_si(),
+                    vpn_entry_si: summary.vpn_entry_amount_si(),
+                    vpn_exit_si: summary.vpn_exit_amount_si(),
+                };
+                GetAvailableTicketsResponse {
+                    resp: Some(
+                        nym_vpn_proto::get_available_tickets_response::Resp::AvailableTickets(
+                            available_tickets,
+                        ),
+                    ),
+                }
+            }
+            Err(err) => GetAvailableTicketsResponse {
+                resp: Some(nym_vpn_proto::get_available_tickets_response::Resp::Error(
+                    nym_vpn_proto::AccountError::from(err),
+                )),
+            },
+        };
+
         Ok(tonic::Response::new(response))
     }
 

@@ -4,7 +4,7 @@
 use tokio::sync::mpsc::error::SendError;
 use url::Url;
 
-use crate::AccountCommand;
+use crate::commands::AccountCommand;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -68,4 +68,37 @@ pub enum Error {
 
     #[error("failed to create ecash key pair")]
     CreateEcashKeyPair(#[source] nym_vpn_api_client::VpnApiClientError),
+
+    #[error("internal error: {0}")]
+    Internal(String),
+
+    #[error(transparent)]
+    NymSdk(#[from] nym_sdk::Error),
+
+    #[error("succesfull zknym response is missing blinded shares")]
+    MissingBlindedShares,
+
+    #[error("missing master verification key")]
+    MissingMasterVerificationKey,
+
+    #[error("invalid master verification key: {0}")]
+    InvalidMasterVerificationKey(#[source] nym_compact_ecash::CompactEcashError),
+
+    #[error("failed to deserialize blinded signature")]
+    DeserializeBlindedSignature(nym_compact_ecash::CompactEcashError),
+
+    #[error("inconsistent epoch id")]
+    InconsistentEpochId,
+
+    #[error("invalid expiration date: {0}")]
+    InvalidExpirationDate(#[source] time::error::Parse),
+
+    #[error("failed to confirm zk-nym downloaded: {0}")]
+    ConfirmZkNymDownloaded(#[source] nym_vpn_api_client::VpnApiClientError),
+}
+
+impl Error {
+    pub fn internal(msg: impl ToString) -> Self {
+        Error::Internal(msg.to_string())
+    }
 }

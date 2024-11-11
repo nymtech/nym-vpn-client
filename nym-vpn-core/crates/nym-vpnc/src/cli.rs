@@ -48,6 +48,10 @@ pub(crate) enum Command {
     RegisterDevice,
     RequestZkNym,
     GetDeviceZkNym,
+    GetZkNymsAvailableForDownload,
+    GetZkNymById(GetZkNymByIdArgs),
+    ConfirmZkNymDownloaded(ConfirmZkNymDownloadedArgs),
+    GetAvailableTickets,
     FetchRawAccountSummary,
     FetchRawDevices,
 }
@@ -198,6 +202,20 @@ pub(crate) struct ResetDeviceIdentityArgs {
     /// Reset the device identity using the given seed.
     #[arg(long)]
     pub(crate) seed: Option<String>,
+}
+
+#[derive(Args)]
+pub(crate) struct GetZkNymByIdArgs {
+    /// The ID of the ZK Nym to fetch.
+    #[arg(short, long)]
+    pub(crate) id: String,
+}
+
+#[derive(Args)]
+pub(crate) struct ConfirmZkNymDownloadedArgs {
+    /// The ID of the ZK Nym to confirm.
+    #[arg(short, long)]
+    pub(crate) id: String,
 }
 
 pub(crate) fn parse_entry_point(args: &ConnectArgs) -> Result<Option<EntryPoint>> {
