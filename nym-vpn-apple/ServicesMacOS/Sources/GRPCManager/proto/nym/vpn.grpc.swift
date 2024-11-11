@@ -26,6 +26,16 @@ internal protocol Nym_Vpn_NymVpndClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<Nym_Vpn_SetNetworkRequest, Nym_Vpn_SetNetworkResponse>
 
+  func getSystemMessages(
+    _ request: Nym_Vpn_GetSystemMessagesRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Nym_Vpn_GetSystemMessagesRequest, Nym_Vpn_GetSystemMessagesResponse>
+
+  func getFeatureFlags(
+    _ request: Nym_Vpn_GetFeatureFlagsRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Nym_Vpn_GetFeatureFlagsRequest, Nym_Vpn_GetFeatureFlagsResponse>
+
   func vpnConnect(
     _ request: Nym_Vpn_ConnectRequest,
     callOptions: CallOptions?
@@ -82,6 +92,11 @@ internal protocol Nym_Vpn_NymVpndClientProtocol: GRPCClient {
     _ request: Nym_Vpn_GetAccountIdentityRequest,
     callOptions: CallOptions?
   ) -> UnaryCall<Nym_Vpn_GetAccountIdentityRequest, Nym_Vpn_GetAccountIdentityResponse>
+
+  func getAccountLinks(
+    _ request: Nym_Vpn_GetAccountLinksRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Nym_Vpn_GetAccountLinksRequest, Nym_Vpn_GetAccountLinksResponse>
 
   func getAccountState(
     _ request: Nym_Vpn_GetAccountStateRequest,
@@ -172,6 +187,42 @@ extension Nym_Vpn_NymVpndClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeSetNetworkInterceptors() ?? []
+    )
+  }
+
+  /// List messages fetched from nym-vpn-api
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to GetSystemMessages.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func getSystemMessages(
+    _ request: Nym_Vpn_GetSystemMessagesRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Nym_Vpn_GetSystemMessagesRequest, Nym_Vpn_GetSystemMessagesResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getSystemMessages.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetSystemMessagesInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to GetFeatureFlags
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to GetFeatureFlags.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func getFeatureFlags(
+    _ request: Nym_Vpn_GetFeatureFlagsRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Nym_Vpn_GetFeatureFlagsRequest, Nym_Vpn_GetFeatureFlagsResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getFeatureFlags.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetFeatureFlagsInterceptors() ?? []
     )
   }
 
@@ -378,6 +429,24 @@ extension Nym_Vpn_NymVpndClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeGetAccountIdentityInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to GetAccountLinks
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to GetAccountLinks.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func getAccountLinks(
+    _ request: Nym_Vpn_GetAccountLinksRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Nym_Vpn_GetAccountLinksRequest, Nym_Vpn_GetAccountLinksResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getAccountLinks.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetAccountLinksInterceptors() ?? []
     )
   }
 
@@ -635,6 +704,16 @@ internal protocol Nym_Vpn_NymVpndAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Nym_Vpn_SetNetworkRequest, Nym_Vpn_SetNetworkResponse>
 
+  func makeGetSystemMessagesCall(
+    _ request: Nym_Vpn_GetSystemMessagesRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetSystemMessagesRequest, Nym_Vpn_GetSystemMessagesResponse>
+
+  func makeGetFeatureFlagsCall(
+    _ request: Nym_Vpn_GetFeatureFlagsRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetFeatureFlagsRequest, Nym_Vpn_GetFeatureFlagsResponse>
+
   func makeVpnConnectCall(
     _ request: Nym_Vpn_ConnectRequest,
     callOptions: CallOptions?
@@ -689,6 +768,11 @@ internal protocol Nym_Vpn_NymVpndAsyncClientProtocol: GRPCClient {
     _ request: Nym_Vpn_GetAccountIdentityRequest,
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetAccountIdentityRequest, Nym_Vpn_GetAccountIdentityResponse>
+
+  func makeGetAccountLinksCall(
+    _ request: Nym_Vpn_GetAccountLinksRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetAccountLinksRequest, Nym_Vpn_GetAccountLinksResponse>
 
   func makeGetAccountStateCall(
     _ request: Nym_Vpn_GetAccountStateRequest,
@@ -772,6 +856,30 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeSetNetworkInterceptors() ?? []
+    )
+  }
+
+  internal func makeGetSystemMessagesCall(
+    _ request: Nym_Vpn_GetSystemMessagesRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetSystemMessagesRequest, Nym_Vpn_GetSystemMessagesResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getSystemMessages.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetSystemMessagesInterceptors() ?? []
+    )
+  }
+
+  internal func makeGetFeatureFlagsCall(
+    _ request: Nym_Vpn_GetFeatureFlagsRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetFeatureFlagsRequest, Nym_Vpn_GetFeatureFlagsResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getFeatureFlags.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetFeatureFlagsInterceptors() ?? []
     )
   }
 
@@ -904,6 +1012,18 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeGetAccountIdentityInterceptors() ?? []
+    )
+  }
+
+  internal func makeGetAccountLinksCall(
+    _ request: Nym_Vpn_GetAccountLinksRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetAccountLinksRequest, Nym_Vpn_GetAccountLinksResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getAccountLinks.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetAccountLinksInterceptors() ?? []
     )
   }
 
@@ -1054,6 +1174,30 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
     )
   }
 
+  internal func getSystemMessages(
+    _ request: Nym_Vpn_GetSystemMessagesRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_GetSystemMessagesResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getSystemMessages.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetSystemMessagesInterceptors() ?? []
+    )
+  }
+
+  internal func getFeatureFlags(
+    _ request: Nym_Vpn_GetFeatureFlagsRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_GetFeatureFlagsResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getFeatureFlags.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetFeatureFlagsInterceptors() ?? []
+    )
+  }
+
   internal func vpnConnect(
     _ request: Nym_Vpn_ConnectRequest,
     callOptions: CallOptions? = nil
@@ -1183,6 +1327,18 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeGetAccountIdentityInterceptors() ?? []
+    )
+  }
+
+  internal func getAccountLinks(
+    _ request: Nym_Vpn_GetAccountLinksRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_GetAccountLinksResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getAccountLinks.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetAccountLinksInterceptors() ?? []
     )
   }
 
@@ -1332,6 +1488,12 @@ internal protocol Nym_Vpn_NymVpndClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'setNetwork'.
   func makeSetNetworkInterceptors() -> [ClientInterceptor<Nym_Vpn_SetNetworkRequest, Nym_Vpn_SetNetworkResponse>]
 
+  /// - Returns: Interceptors to use when invoking 'getSystemMessages'.
+  func makeGetSystemMessagesInterceptors() -> [ClientInterceptor<Nym_Vpn_GetSystemMessagesRequest, Nym_Vpn_GetSystemMessagesResponse>]
+
+  /// - Returns: Interceptors to use when invoking 'getFeatureFlags'.
+  func makeGetFeatureFlagsInterceptors() -> [ClientInterceptor<Nym_Vpn_GetFeatureFlagsRequest, Nym_Vpn_GetFeatureFlagsResponse>]
+
   /// - Returns: Interceptors to use when invoking 'vpnConnect'.
   func makeVpnConnectInterceptors() -> [ClientInterceptor<Nym_Vpn_ConnectRequest, Nym_Vpn_ConnectResponse>]
 
@@ -1364,6 +1526,9 @@ internal protocol Nym_Vpn_NymVpndClientInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when invoking 'getAccountIdentity'.
   func makeGetAccountIdentityInterceptors() -> [ClientInterceptor<Nym_Vpn_GetAccountIdentityRequest, Nym_Vpn_GetAccountIdentityResponse>]
+
+  /// - Returns: Interceptors to use when invoking 'getAccountLinks'.
+  func makeGetAccountLinksInterceptors() -> [ClientInterceptor<Nym_Vpn_GetAccountLinksRequest, Nym_Vpn_GetAccountLinksResponse>]
 
   /// - Returns: Interceptors to use when invoking 'getAccountState'.
   func makeGetAccountStateInterceptors() -> [ClientInterceptor<Nym_Vpn_GetAccountStateRequest, Nym_Vpn_GetAccountStateResponse>]
@@ -1403,6 +1568,8 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
     methods: [
       Nym_Vpn_NymVpndClientMetadata.Methods.info,
       Nym_Vpn_NymVpndClientMetadata.Methods.setNetwork,
+      Nym_Vpn_NymVpndClientMetadata.Methods.getSystemMessages,
+      Nym_Vpn_NymVpndClientMetadata.Methods.getFeatureFlags,
       Nym_Vpn_NymVpndClientMetadata.Methods.vpnConnect,
       Nym_Vpn_NymVpndClientMetadata.Methods.vpnDisconnect,
       Nym_Vpn_NymVpndClientMetadata.Methods.vpnStatus,
@@ -1414,6 +1581,7 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
       Nym_Vpn_NymVpndClientMetadata.Methods.isAccountStored,
       Nym_Vpn_NymVpndClientMetadata.Methods.removeAccount,
       Nym_Vpn_NymVpndClientMetadata.Methods.getAccountIdentity,
+      Nym_Vpn_NymVpndClientMetadata.Methods.getAccountLinks,
       Nym_Vpn_NymVpndClientMetadata.Methods.getAccountState,
       Nym_Vpn_NymVpndClientMetadata.Methods.refreshAccountState,
       Nym_Vpn_NymVpndClientMetadata.Methods.isReadyToConnect,
@@ -1437,6 +1605,18 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
     internal static let setNetwork = GRPCMethodDescriptor(
       name: "SetNetwork",
       path: "/nym.vpn.NymVpnd/SetNetwork",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getSystemMessages = GRPCMethodDescriptor(
+      name: "GetSystemMessages",
+      path: "/nym.vpn.NymVpnd/GetSystemMessages",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getFeatureFlags = GRPCMethodDescriptor(
+      name: "GetFeatureFlags",
+      path: "/nym.vpn.NymVpnd/GetFeatureFlags",
       type: GRPCCallType.unary
     )
 
@@ -1503,6 +1683,12 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
     internal static let getAccountIdentity = GRPCMethodDescriptor(
       name: "GetAccountIdentity",
       path: "/nym.vpn.NymVpnd/GetAccountIdentity",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getAccountLinks = GRPCMethodDescriptor(
+      name: "GetAccountLinks",
+      path: "/nym.vpn.NymVpnd/GetAccountLinks",
       type: GRPCCallType.unary
     )
 
@@ -1578,6 +1764,11 @@ internal protocol Nym_Vpn_NymVpndProvider: CallHandlerProvider {
   /// Set the network. This requires a restart to take effect
   func setNetwork(request: Nym_Vpn_SetNetworkRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_SetNetworkResponse>
 
+  /// List messages fetched from nym-vpn-api
+  func getSystemMessages(request: Nym_Vpn_GetSystemMessagesRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetSystemMessagesResponse>
+
+  func getFeatureFlags(request: Nym_Vpn_GetFeatureFlagsRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetFeatureFlagsResponse>
+
   /// Start the tunnel and connect
   func vpnConnect(request: Nym_Vpn_ConnectRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_ConnectResponse>
 
@@ -1609,6 +1800,8 @@ internal protocol Nym_Vpn_NymVpndProvider: CallHandlerProvider {
   func removeAccount(request: Nym_Vpn_RemoveAccountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_RemoveAccountResponse>
 
   func getAccountIdentity(request: Nym_Vpn_GetAccountIdentityRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetAccountIdentityResponse>
+
+  func getAccountLinks(request: Nym_Vpn_GetAccountLinksRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetAccountLinksResponse>
 
   /// Query the account state, which refers to the server side account, as it is
   /// known and interpreted by nym-vpnd
@@ -1667,6 +1860,24 @@ extension Nym_Vpn_NymVpndProvider {
         responseSerializer: ProtobufSerializer<Nym_Vpn_SetNetworkResponse>(),
         interceptors: self.interceptors?.makeSetNetworkInterceptors() ?? [],
         userFunction: self.setNetwork(request:context:)
+      )
+
+    case "GetSystemMessages":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetSystemMessagesRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetSystemMessagesResponse>(),
+        interceptors: self.interceptors?.makeGetSystemMessagesInterceptors() ?? [],
+        userFunction: self.getSystemMessages(request:context:)
+      )
+
+    case "GetFeatureFlags":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetFeatureFlagsRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetFeatureFlagsResponse>(),
+        interceptors: self.interceptors?.makeGetFeatureFlagsInterceptors() ?? [],
+        userFunction: self.getFeatureFlags(request:context:)
       )
 
     case "VpnConnect":
@@ -1766,6 +1977,15 @@ extension Nym_Vpn_NymVpndProvider {
         responseSerializer: ProtobufSerializer<Nym_Vpn_GetAccountIdentityResponse>(),
         interceptors: self.interceptors?.makeGetAccountIdentityInterceptors() ?? [],
         userFunction: self.getAccountIdentity(request:context:)
+      )
+
+    case "GetAccountLinks":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetAccountLinksRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetAccountLinksResponse>(),
+        interceptors: self.interceptors?.makeGetAccountLinksInterceptors() ?? [],
+        userFunction: self.getAccountLinks(request:context:)
       )
 
     case "GetAccountState":
@@ -1882,6 +2102,17 @@ internal protocol Nym_Vpn_NymVpndAsyncProvider: CallHandlerProvider, Sendable {
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_SetNetworkResponse
 
+  /// List messages fetched from nym-vpn-api
+  func getSystemMessages(
+    request: Nym_Vpn_GetSystemMessagesRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_GetSystemMessagesResponse
+
+  func getFeatureFlags(
+    request: Nym_Vpn_GetFeatureFlagsRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_GetFeatureFlagsResponse
+
   /// Start the tunnel and connect
   func vpnConnect(
     request: Nym_Vpn_ConnectRequest,
@@ -1948,6 +2179,11 @@ internal protocol Nym_Vpn_NymVpndAsyncProvider: CallHandlerProvider, Sendable {
     request: Nym_Vpn_GetAccountIdentityRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_GetAccountIdentityResponse
+
+  func getAccountLinks(
+    request: Nym_Vpn_GetAccountLinksRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_GetAccountLinksResponse
 
   /// Query the account state, which refers to the server side account, as it is
   /// known and interpreted by nym-vpnd
@@ -2043,6 +2279,24 @@ extension Nym_Vpn_NymVpndAsyncProvider {
         responseSerializer: ProtobufSerializer<Nym_Vpn_SetNetworkResponse>(),
         interceptors: self.interceptors?.makeSetNetworkInterceptors() ?? [],
         wrapping: { try await self.setNetwork(request: $0, context: $1) }
+      )
+
+    case "GetSystemMessages":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetSystemMessagesRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetSystemMessagesResponse>(),
+        interceptors: self.interceptors?.makeGetSystemMessagesInterceptors() ?? [],
+        wrapping: { try await self.getSystemMessages(request: $0, context: $1) }
+      )
+
+    case "GetFeatureFlags":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetFeatureFlagsRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetFeatureFlagsResponse>(),
+        interceptors: self.interceptors?.makeGetFeatureFlagsInterceptors() ?? [],
+        wrapping: { try await self.getFeatureFlags(request: $0, context: $1) }
       )
 
     case "VpnConnect":
@@ -2142,6 +2396,15 @@ extension Nym_Vpn_NymVpndAsyncProvider {
         responseSerializer: ProtobufSerializer<Nym_Vpn_GetAccountIdentityResponse>(),
         interceptors: self.interceptors?.makeGetAccountIdentityInterceptors() ?? [],
         wrapping: { try await self.getAccountIdentity(request: $0, context: $1) }
+      )
+
+    case "GetAccountLinks":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetAccountLinksRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetAccountLinksResponse>(),
+        interceptors: self.interceptors?.makeGetAccountLinksInterceptors() ?? [],
+        wrapping: { try await self.getAccountLinks(request: $0, context: $1) }
       )
 
     case "GetAccountState":
@@ -2250,6 +2513,14 @@ internal protocol Nym_Vpn_NymVpndServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeSetNetworkInterceptors() -> [ServerInterceptor<Nym_Vpn_SetNetworkRequest, Nym_Vpn_SetNetworkResponse>]
 
+  /// - Returns: Interceptors to use when handling 'getSystemMessages'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetSystemMessagesInterceptors() -> [ServerInterceptor<Nym_Vpn_GetSystemMessagesRequest, Nym_Vpn_GetSystemMessagesResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getFeatureFlags'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetFeatureFlagsInterceptors() -> [ServerInterceptor<Nym_Vpn_GetFeatureFlagsRequest, Nym_Vpn_GetFeatureFlagsResponse>]
+
   /// - Returns: Interceptors to use when handling 'vpnConnect'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeVpnConnectInterceptors() -> [ServerInterceptor<Nym_Vpn_ConnectRequest, Nym_Vpn_ConnectResponse>]
@@ -2293,6 +2564,10 @@ internal protocol Nym_Vpn_NymVpndServerInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when handling 'getAccountIdentity'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeGetAccountIdentityInterceptors() -> [ServerInterceptor<Nym_Vpn_GetAccountIdentityRequest, Nym_Vpn_GetAccountIdentityResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getAccountLinks'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetAccountLinksInterceptors() -> [ServerInterceptor<Nym_Vpn_GetAccountLinksRequest, Nym_Vpn_GetAccountLinksResponse>]
 
   /// - Returns: Interceptors to use when handling 'getAccountState'.
   ///   Defaults to calling `self.makeInterceptors()`.
@@ -2342,6 +2617,8 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
     methods: [
       Nym_Vpn_NymVpndServerMetadata.Methods.info,
       Nym_Vpn_NymVpndServerMetadata.Methods.setNetwork,
+      Nym_Vpn_NymVpndServerMetadata.Methods.getSystemMessages,
+      Nym_Vpn_NymVpndServerMetadata.Methods.getFeatureFlags,
       Nym_Vpn_NymVpndServerMetadata.Methods.vpnConnect,
       Nym_Vpn_NymVpndServerMetadata.Methods.vpnDisconnect,
       Nym_Vpn_NymVpndServerMetadata.Methods.vpnStatus,
@@ -2353,6 +2630,7 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
       Nym_Vpn_NymVpndServerMetadata.Methods.isAccountStored,
       Nym_Vpn_NymVpndServerMetadata.Methods.removeAccount,
       Nym_Vpn_NymVpndServerMetadata.Methods.getAccountIdentity,
+      Nym_Vpn_NymVpndServerMetadata.Methods.getAccountLinks,
       Nym_Vpn_NymVpndServerMetadata.Methods.getAccountState,
       Nym_Vpn_NymVpndServerMetadata.Methods.refreshAccountState,
       Nym_Vpn_NymVpndServerMetadata.Methods.isReadyToConnect,
@@ -2376,6 +2654,18 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
     internal static let setNetwork = GRPCMethodDescriptor(
       name: "SetNetwork",
       path: "/nym.vpn.NymVpnd/SetNetwork",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getSystemMessages = GRPCMethodDescriptor(
+      name: "GetSystemMessages",
+      path: "/nym.vpn.NymVpnd/GetSystemMessages",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getFeatureFlags = GRPCMethodDescriptor(
+      name: "GetFeatureFlags",
+      path: "/nym.vpn.NymVpnd/GetFeatureFlags",
       type: GRPCCallType.unary
     )
 
@@ -2442,6 +2732,12 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
     internal static let getAccountIdentity = GRPCMethodDescriptor(
       name: "GetAccountIdentity",
       path: "/nym.vpn.NymVpnd/GetAccountIdentity",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getAccountLinks = GRPCMethodDescriptor(
+      name: "GetAccountLinks",
+      path: "/nym.vpn.NymVpnd/GetAccountLinks",
       type: GRPCCallType.unary
     )
 
