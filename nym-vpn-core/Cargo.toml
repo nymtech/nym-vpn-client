@@ -131,25 +131,25 @@ windows-sys = "0.52"
 x25519-dalek = "2.0"
 zeroize = "1.6.0"
 
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
-nym-client-core = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
-nym-config = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
-nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
-nym-credentials = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
-nym-crypto = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
-nym-sdk = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
-nym-task = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
-nym-topology = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
+nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "jon/credential-proxy-requests-rustls" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "jon/credential-proxy-requests-rustls" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "jon/credential-proxy-requests-rustls" }
+nym-client-core = { git = "https://github.com/nymtech/nym", branch = "jon/credential-proxy-requests-rustls" }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "jon/credential-proxy-requests-rustls" }
+nym-config = { git = "https://github.com/nymtech/nym", branch = "jon/credential-proxy-requests-rustls" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "jon/credential-proxy-requests-rustls" }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "jon/credential-proxy-requests-rustls" }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "jon/credential-proxy-requests-rustls" }
+nym-credentials = { git = "https://github.com/nymtech/nym", branch = "jon/credential-proxy-requests-rustls" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "jon/credential-proxy-requests-rustls" }
+nym-crypto = { git = "https://github.com/nymtech/nym", branch = "jon/credential-proxy-requests-rustls" }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "jon/credential-proxy-requests-rustls" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "jon/credential-proxy-requests-rustls" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "jon/credential-proxy-requests-rustls" }
+nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "jon/credential-proxy-requests-rustls" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "jon/credential-proxy-requests-rustls" }
+nym-sdk = { git = "https://github.com/nymtech/nym", branch = "jon/credential-proxy-requests-rustls" }
+nym-task = { git = "https://github.com/nymtech/nym", branch = "jon/credential-proxy-requests-rustls" }
+nym-topology = { git = "https://github.com/nymtech/nym", branch = "jon/credential-proxy-requests-rustls" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "jon/credential-proxy-requests-rustls" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "jon/credential-proxy-requests-rustls" }
