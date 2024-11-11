@@ -32,11 +32,12 @@ use crate::{
             construct_zk_nym_request_data, poll_zk_nym, request_zk_nym, PollingResult,
             ZkNymRequestData,
         },
-        AccountCommand, AccountCommandResult, CommandHandler,
+        AccountCommand, AccountCommandError, AccountCommandResult, CommandHandler,
     },
     error::Error,
     shared_state::{MnemonicState, ReadyToRegisterDevice, SharedAccountState},
-    storage::{AccountStorage, VpnCredentialStorage},
+    storage::{AccountStorage, AvailableTicketbook, VpnCredentialStorage},
+    AvailableTicketbooks,
 };
 
 // If we go below this threshold, we should request more tickets
@@ -44,7 +45,7 @@ use crate::{
 // data/bandwidth.
 const TICKET_THRESHOLD: u32 = 10;
 
-pub(crate) type PendingCommands = Arc<std::sync::Mutex<HashMap<uuid::Uuid, AccountCommand>>>;
+pub(crate) type PendingCommands = Arc<std::sync::Mutex<HashMap<uuid::Uuid, String>>>;
 pub(crate) type DevicesResponse = Arc<tokio::sync::Mutex<Option<NymVpnDevicesResponse>>>;
 pub(crate) type AccountSummaryResponse =
     Arc<tokio::sync::Mutex<Option<NymVpnAccountSummaryResponse>>>;
@@ -481,12 +482,11 @@ where
         Ok(())
     }
 
-    async fn handle_get_available_tickets(&self) -> Result<(), Error> {
+    async fn handle_get_available_tickets(&self) -> Result<AvailableTicketbooks, Error> {
         tracing::info!("Getting available tickets from API");
 
         self.credential_storage.print_info().await?;
-
-        Ok(())
+        self.credential_storage.get_available_ticketbooks().await
     }
 
     // Once we finish polling the result of the zk-nym request, we now import the zk-nym into the
@@ -530,7 +530,7 @@ where
             .map(|guard| {
                 guard
                     .values()
-                    .any(|running_command| running_command == command)
+                    .any(|running_command| matches!(running_command, command))
             })
             .map_err(Error::internal)
     }
@@ -558,7 +558,16 @@ where
                 self.handle_get_zk_nyms_available_for_download().await
             }
             AccountCommand::GetZkNymById(id) => self.handle_get_zk_nym_by_id(&id).await,
-            AccountCommand::GetAvailableTickets => self.handle_get_available_tickets().await,
+            AccountCommand::GetAvailableTickets(result_tx) => {
+                let result = self.handle_get_available_tickets().await;
+                result_tx
+                    .send(result)
+                    .inspect_err(|err| {
+                        tracing::error!("Failed to send available tickets response: {:#?}", err);
+                    })
+                    .ok();
+                Ok(())
+            }
         }
     }
 

@@ -22,7 +22,8 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 
 use nym_vpn_account_controller::{
-    AccountCommand, AccountController, AccountStateSummary, ReadyToConnect, SharedAccountState,
+    AccountCommand, AccountController, AccountStateSummary, AvailableTicketbooks, ReadyToConnect,
+    SharedAccountState,
 };
 use nym_vpn_api_client::{
     response::{NymVpnAccountSummaryResponse, NymVpnDevicesResponse},
@@ -125,6 +126,10 @@ pub enum VpnServiceCommand {
     GetDeviceZkNyms(oneshot::Sender<Result<(), AccountError>>, ()),
     GetZkNymsAvailableForDownload(oneshot::Sender<Result<(), AccountError>>, ()),
     GetZkNymById(oneshot::Sender<Result<(), AccountError>>, String),
+    GetAvailableTickets(
+        oneshot::Sender<Result<AvailableTicketbooks, AccountError>>,
+        (),
+    ),
     FetchRawAccountSummary(
         oneshot::Sender<Result<NymVpnAccountSummaryResponse, AccountError>>,
         (),
@@ -164,6 +169,7 @@ impl fmt::Display for VpnServiceCommand {
                 write!(f, "GetZkNymsAvailableForDownload")
             }
             VpnServiceCommand::GetZkNymById(..) => write!(f, "GetZkNymById"),
+            VpnServiceCommand::GetAvailableTickets(..) => write!(f, "GetAvailableTickets"),
             VpnServiceCommand::FetchRawAccountSummary(..) => write!(f, "FetchRawAccountSummery"),
             VpnServiceCommand::FetchRawDevices(..) => write!(f, "FetchRawDevices"),
         }
@@ -649,6 +655,10 @@ where
                 let result = self.handle_get_zk_nym_by_id(id).await;
                 let _ = tx.send(result);
             }
+            VpnServiceCommand::GetAvailableTickets(tx, ()) => {
+                let result = self.handle_get_available_tickets().await;
+                let _ = tx.send(result);
+            }
             VpnServiceCommand::FetchRawAccountSummary(tx, ()) => {
                 let result = self.handle_fetch_raw_account_summary().await;
                 let _ = tx.send(result);
@@ -1054,6 +1064,19 @@ where
             .map_err(|err| AccountError::SendCommand {
                 source: Box::new(err),
             })
+    }
+
+    async fn handle_get_available_tickets(&self) -> Result<AvailableTicketbooks, AccountError> {
+        let (result_tx, result_rx) = oneshot::channel();
+        self.account_command_tx
+            .send(AccountCommand::GetAvailableTickets(result_tx))
+            .map_err(|err| AccountError::SendCommand {
+                source: Box::new(err),
+            })?;
+        let result = result_rx.await.map_err(|err| AccountError::RecvCommand {
+            source: Box::new(err),
+        })?;
+        result.map_err(|err| AccountError::AccountControllerError { source: err })
     }
 
     async fn handle_fetch_raw_account_summary(

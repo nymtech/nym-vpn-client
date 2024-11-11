@@ -7,8 +7,8 @@ use nym_gateway_directory::GatewayType;
 use nym_vpn_proto::{
     ConnectRequest, DisconnectRequest, Empty, FetchRawAccountSummaryRequest,
     FetchRawDevicesRequest, GetAccountIdentityRequest, GetAccountLinksRequest,
-    GetAccountStateRequest, GetDeviceIdentityRequest, GetDeviceZkNymsRequest,
-    GetFeatureFlagsRequest, GetSystemMessagesRequest, GetZkNymByIdRequest,
+    GetAccountStateRequest, GetAvailableTicketsRequest, GetDeviceIdentityRequest,
+    GetDeviceZkNymsRequest, GetFeatureFlagsRequest, GetSystemMessagesRequest, GetZkNymByIdRequest,
     GetZkNymsAvailableForDownloadRequest, InfoRequest, InfoResponse, IsAccountStoredRequest,
     IsReadyToConnectRequest, ListCountriesRequest, ListGatewaysRequest, RefreshAccountStateRequest,
     RegisterDeviceRequest, RemoveAccountRequest, RequestZkNymRequest, ResetDeviceIdentityRequest,
@@ -83,6 +83,7 @@ async fn main() -> Result<()> {
             get_zk_nyms_available_for_download(client_type).await?
         }
         Command::GetZkNymById(args) => get_zk_nym_by_id(client_type, args).await?,
+        Command::GetAvailableTickets => get_available_tickets(client_type).await?,
         Command::FetchRawAccountSummary => fetch_raw_account_summary(client_type).await?,
         Command::FetchRawDevices => fetch_raw_devices(client_type).await?,
     }
@@ -357,6 +358,14 @@ async fn get_zk_nym_by_id(client_type: ClientType, args: cli::GetZkNymByIdArgs) 
         id: args.id.clone(),
     });
     let response = client.get_zk_nym_by_id(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn get_available_tickets(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(GetAvailableTicketsRequest {});
+    let response = client.get_available_tickets(request).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }

@@ -18,18 +18,18 @@ use nym_vpn_proto::{
     FetchRawAccountSummaryRequest, FetchRawAccountSummaryResponse, FetchRawDevicesRequest,
     FetchRawDevicesResponse, GetAccountIdentityRequest, GetAccountIdentityResponse,
     GetAccountLinksRequest, GetAccountLinksResponse, GetAccountStateRequest,
-    GetAccountStateResponse, GetDeviceIdentityRequest, GetDeviceIdentityResponse,
-    GetDeviceZkNymsRequest, GetDeviceZkNymsResponse, GetFeatureFlagsRequest,
-    GetFeatureFlagsResponse, GetSystemMessagesRequest, GetSystemMessagesResponse,
-    GetZkNymByIdRequest, GetZkNymByIdResponse, GetZkNymsAvailableForDownloadRequest,
-    GetZkNymsAvailableForDownloadResponse, InfoRequest, InfoResponse, IsAccountStoredRequest,
-    IsAccountStoredResponse, IsReadyToConnectRequest, IsReadyToConnectResponse,
-    ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest, ListGatewaysResponse,
-    RefreshAccountStateRequest, RefreshAccountStateResponse, RegisterDeviceRequest,
-    RegisterDeviceResponse, RemoveAccountRequest, RemoveAccountResponse, RequestZkNymRequest,
-    RequestZkNymResponse, ResetDeviceIdentityRequest, ResetDeviceIdentityResponse,
-    SetNetworkRequest, SetNetworkResponse, StatusRequest, StatusResponse, StoreAccountRequest,
-    StoreAccountResponse,
+    GetAccountStateResponse, GetAvailableTicketsRequest, GetAvailableTicketsResponse,
+    GetDeviceIdentityRequest, GetDeviceIdentityResponse, GetDeviceZkNymsRequest,
+    GetDeviceZkNymsResponse, GetFeatureFlagsRequest, GetFeatureFlagsResponse,
+    GetSystemMessagesRequest, GetSystemMessagesResponse, GetZkNymByIdRequest, GetZkNymByIdResponse,
+    GetZkNymsAvailableForDownloadRequest, GetZkNymsAvailableForDownloadResponse, InfoRequest,
+    InfoResponse, IsAccountStoredRequest, IsAccountStoredResponse, IsReadyToConnectRequest,
+    IsReadyToConnectResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
+    ListGatewaysResponse, RefreshAccountStateRequest, RefreshAccountStateResponse,
+    RegisterDeviceRequest, RegisterDeviceResponse, RemoveAccountRequest, RemoveAccountResponse,
+    RequestZkNymRequest, RequestZkNymResponse, ResetDeviceIdentityRequest,
+    ResetDeviceIdentityResponse, SetNetworkRequest, SetNetworkResponse, StatusRequest,
+    StatusResponse, StoreAccountRequest, StoreAccountResponse,
 };
 
 use super::{
@@ -778,6 +778,49 @@ impl NymVpnd for CommandInterface {
         };
 
         tracing::debug!("Returning get zk nym by id response");
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn get_available_tickets(
+        &self,
+        _request: tonic::Request<GetAvailableTicketsRequest>,
+    ) -> Result<tonic::Response<GetAvailableTicketsResponse>, tonic::Status> {
+        tracing::debug!("Got get available tickets request");
+
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_get_available_tickets()
+            .await
+            .map_err(|err| {
+                tracing::error!("Failed to get available tickets: {:?}", err);
+                tonic::Status::internal("Failed to get available tickets")
+            })?;
+
+        let response = match result {
+            Ok(tickets) => {
+                dbg!(&tickets);
+                let summary = tickets.remaining();
+                dbg!(&summary);
+                let available_tickets = nym_vpn_proto::AvailableTickets {
+                    mixnet_entry: summary.mixnet_entry_amount,
+                    mixnet_exit: summary.mixnet_exit_amount,
+                    vpn_entry: summary.vpn_entry_amount,
+                    vpn_exit: summary.vpn_exit_amount,
+                };
+                GetAvailableTicketsResponse {
+                    resp: Some(
+                        nym_vpn_proto::get_available_tickets_response::Resp::AvailableTickets(
+                            available_tickets,
+                        ),
+                    ),
+                }
+            }
+            Err(err) => GetAvailableTicketsResponse {
+                resp: Some(nym_vpn_proto::get_available_tickets_response::Resp::Error(
+                    nym_vpn_proto::AccountError::from(err),
+                )),
+            },
+        };
+
         Ok(tonic::Response::new(response))
     }
 

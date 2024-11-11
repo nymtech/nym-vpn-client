@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_account_controller::{AccountStateSummary, ReadyToConnect};
+use nym_vpn_account_controller::{AccountStateSummary, AvailableTicketbooks, ReadyToConnect};
 use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
 use tokio::sync::{mpsc::UnboundedSender, oneshot};
 
@@ -238,6 +238,13 @@ impl CommandInterfaceConnectionHandler {
         id: String,
     ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::GetZkNymById, id)
+            .await
+    }
+
+    pub(crate) async fn handle_get_available_tickets(
+        &self,
+    ) -> Result<Result<AvailableTicketbooks, AccountError>, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::GetAvailableTickets, ())
             .await
     }
 

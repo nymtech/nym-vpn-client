@@ -50,6 +50,7 @@ pub(crate) enum Command {
     GetDeviceZkNym,
     GetZkNymsAvailableForDownload,
     GetZkNymById(GetZkNymByIdArgs),
+    GetAvailableTickets,
     FetchRawAccountSummary,
     FetchRawDevices,
 }

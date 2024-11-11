@@ -6,18 +6,19 @@ use nym_vpn_api_client::{
     types::{Device, VpnApiAccount},
     VpnApiClient,
 };
+use tokio::sync::oneshot;
 
 use crate::{
     controller::{AccountSummaryResponse, DevicesResponse, PendingCommands},
     error::Error,
-    SharedAccountState,
+    AvailableTicketbooks, SharedAccountState,
 };
 
 pub(crate) mod register_device;
 pub(crate) mod update_state;
 pub(crate) mod zknym;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Debug)]
 pub enum AccountCommand {
     UpdateAccountState,
     RegisterDevice,
@@ -25,7 +26,28 @@ pub enum AccountCommand {
     GetDeviceZkNym,
     GetZkNymsAvailableForDownload,
     GetZkNymById(String),
-    GetAvailableTickets,
+    GetAvailableTickets(oneshot::Sender<Result<AvailableTicketbooks, Error>>),
+}
+
+impl AccountCommand {
+    // TODO: use strum crate
+    fn kind(&self) -> &'static str {
+        match self {
+            AccountCommand::UpdateAccountState => "update_account_state",
+            AccountCommand::RegisterDevice => "register_device",
+            AccountCommand::RequestZkNym => "request_zk_nym",
+            AccountCommand::GetDeviceZkNym => "get_device_zk_nym",
+            AccountCommand::GetZkNymsAvailableForDownload => "get_zk_nyms_available_for_download",
+            AccountCommand::GetZkNymById(_) => "get_zk_nym_by_id",
+            AccountCommand::GetAvailableTickets(_) => "get_available_tickets",
+        }
+    }
+}
+
+#[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
+pub(crate) enum AccountCommandError {
+    #[error("failed to get available tickets: {0}")]
+    GetAvailableTickets(String),
 }
 
 #[derive(Clone, Debug)]
@@ -63,7 +85,7 @@ impl CommandHandler {
         let id = uuid::Uuid::new_v4();
         pending_command
             .lock()
-            .map(|mut guard| guard.insert(id, command.clone()))
+            .map(|mut guard| guard.insert(id, command.kind().to_owned()))
             .map_err(|err| {
                 tracing::error!(
                     "Failed to insert command {} into pending commands: {:?}",
@@ -121,7 +143,7 @@ impl CommandHandler {
             AccountCommand::GetDeviceZkNym => todo!(),
             AccountCommand::GetZkNymsAvailableForDownload => todo!(),
             AccountCommand::GetZkNymById(_) => todo!(),
-            AccountCommand::GetAvailableTickets => todo!(),
+            AccountCommand::GetAvailableTickets(_) => todo!(),
         }
         .inspect(|_result| {
             tracing::info!("Command {:?} with id {} completed", self.command, self.id);

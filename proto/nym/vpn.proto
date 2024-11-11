@@ -754,6 +754,22 @@ message GetZkNymByIdResponse {
   AccountError error = 2;
 }
 
+message AvailableTickets {
+  uint64 mixnet_entry = 1;
+  uint64 mixnet_exit = 2;
+  uint64 vpn_entry = 3;
+  uint64 vpn_exit = 4;
+}
+
+message GetAvailableTicketsRequest {}
+
+message GetAvailableTicketsResponse {
+  oneof resp {
+    AvailableTickets available_tickets = 1;
+    AccountError error = 2;
+  }
+}
+
 message IsReadyToConnectRequest {}
 
 message IsReadyToConnectResponse {
@@ -872,6 +888,8 @@ service NymVpnd {
   rpc GetZkNymsAvailableForDownload (GetZkNymsAvailableForDownloadRequest) returns (GetZkNymsAvailableForDownloadResponse) {}
 
   rpc GetZkNymById (GetZkNymByIdRequest) returns (GetZkNymByIdResponse) {}
+
+  rpc GetAvailableTickets (GetAvailableTicketsRequest) returns (GetAvailableTicketsResponse) {}
 
   // -- Delegated remote calls --
   // These query the remote nym-vpn-api state directly
