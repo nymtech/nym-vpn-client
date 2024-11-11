@@ -39,6 +39,18 @@ fn service_main(arguments: Vec<OsString>) {
 async fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
     tracing::info!("Setting up event handler");
 
+    // TODO: network selection is not yet implemented/supported
+    let network_name = "mainnet";
+    let network_env =
+        if let Some(network_env) = nym_vpn_network_config::Network::fetch(network_name) {
+            network_env.export_to_env();
+            network_env
+        } else {
+            tracing::error!("Failed to fetch network environment for '{}'", network_name);
+            // TODO: just picking something here to make it compile
+            return Err(windows_service::Error::LaunchArgumentsNotSupported);
+        };
+
     let shutdown_token = CancellationToken::new();
     let cloned_shutdown_token = shutdown_token.clone();
     let event_handler = move |control_event| -> ServiceControlHandlerResult {
@@ -89,6 +101,7 @@ async fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
         vpn_command_rx,
         status_tx,
         shutdown_token.child_token(),
+        network_env,
     );
 
     tracing::info!("Service has started");
