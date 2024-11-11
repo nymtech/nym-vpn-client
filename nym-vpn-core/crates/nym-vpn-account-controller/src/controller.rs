@@ -501,7 +501,7 @@ where
                 if response.status == NymVpnZkNymStatus::Active =>
             {
                 tracing::info!("Polling finished succesfully, importing ticketbook");
-                self.import_zk_nym(response, ticketbook_type, *request_info, request)
+                self.import_zk_nym(response, ticketbook_type, *request_info, *request)
                     .await
                     .inspect_err(|err| {
                         tracing::error!("Failed to import zk-nym: {:#?}", err);

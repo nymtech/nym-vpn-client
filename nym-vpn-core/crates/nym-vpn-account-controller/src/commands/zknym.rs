@@ -105,7 +105,7 @@ pub(crate) async fn poll_zk_nym(
                     poll_response,
                     request.ticketbook_type,
                     Box::new(request.request_info.clone()),
-                    request,
+                    Box::new(request),
                 );
             }
             Ok(poll_response) => {
@@ -212,7 +212,12 @@ pub(crate) async fn unblind_and_aggregate(
 
 #[derive(Debug)]
 pub(crate) enum PollingResult {
-    Finished(NymVpnZkNym, TicketType, Box<RequestInfo>, ZkNymRequestData),
+    Finished(
+        NymVpnZkNym,
+        TicketType,
+        Box<RequestInfo>,
+        Box<ZkNymRequestData>,
+    ),
     Timeout(NymVpnZkNym),
     Error(PollingError),
 }
