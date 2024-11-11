@@ -321,6 +321,7 @@ where
         }
 
         // Get the ticket types that are below the threshold
+        // TODO: only count ticketbooks not expired
         let ticket_types_needed_to_request = local_remaining_tickets
             .into_iter()
             .filter(|(_, remaining)| *remaining < TICKET_THRESHOLD)
