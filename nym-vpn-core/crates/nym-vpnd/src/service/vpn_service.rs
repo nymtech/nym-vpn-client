@@ -750,11 +750,9 @@ where
         // Get feature flag
         let enable_credentials_mode = self
             .network_env
-            .feature_flags
-            .as_ref()
-            .and_then(|ff| ff.credential_mode())
+            .get_feature_flag::<bool>("zkNym", "credentialMode")
             .unwrap_or(false);
-        tracing::debug!("feature flag: credentials mode: {enable_credentials_mode}");
+        tracing::debug!("feature flag: credential mode: {enable_credentials_mode}");
 
         options.enable_credentials_mode =
             options.enable_credentials_mode || enable_credentials_mode;

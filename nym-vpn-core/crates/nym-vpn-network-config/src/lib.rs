@@ -16,6 +16,7 @@ mod util;
 
 pub use account_management::{AccountManagement, ParsedAccountLinks};
 pub use feature_flags::FeatureFlags;
+use feature_flags::FlagValue;
 use futures_util::FutureExt;
 pub use nym_network::NymNetwork;
 pub use nym_vpn_network::NymVpnNetwork;
@@ -103,6 +104,32 @@ impl Network {
 
     pub fn vpn_api_url(&self) -> url::Url {
         self.nym_vpn_network.nym_vpn_api_url.clone()
+    }
+
+    pub fn get_feature_flag<T>(&self, group: &str, flag: &str) -> Option<T>
+    where
+        T: std::str::FromStr,
+    {
+        self.feature_flags
+            .as_ref()
+            .and_then(|ff| ff.flags.get(group))
+            .and_then(|value| match value {
+                FlagValue::Group(group) => group.get(flag).and_then(|v| v.parse::<T>().ok()),
+                _ => None,
+            })
+    }
+
+    pub fn get_simple_feature_flag<T>(&self, flag: &str) -> Option<T>
+    where
+        T: std::str::FromStr,
+    {
+        self.feature_flags
+            .as_ref()
+            .and_then(|ff| ff.flags.get(flag))
+            .and_then(|value| match value {
+                FlagValue::Value(value) => value.parse::<T>().ok(),
+                _ => None,
+            })
     }
 }
 
