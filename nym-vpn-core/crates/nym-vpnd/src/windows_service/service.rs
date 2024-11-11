@@ -47,7 +47,11 @@ async fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
             network_env
         }
         Err(err) => {
-            tracing::error!("Failed to fetch network environment for '{}'", network_name);
+            tracing::error!(
+                "Failed to fetch network environment for '{}': {}",
+                network_name,
+                err
+            );
             // TODO: just picking something here to make it compile
             return Err(windows_service::Error::LaunchArgumentsNotSupported);
         }
