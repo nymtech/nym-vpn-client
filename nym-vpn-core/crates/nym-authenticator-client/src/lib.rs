@@ -38,6 +38,16 @@ pub enum ClientMessage {
     TopUp(Box<TopUpMessage>),
 }
 
+impl ClientMessage {
+    // check if message is wasteful e.g. contains a credential
+    pub fn is_wasteful(&self) -> bool {
+        match self {
+            Self::Final(_) | Self::TopUp(_) => true,
+            Self::Initial(_) | Self::Query(_) => false,
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct SharedMixnetClient(Arc<tokio::sync::Mutex<Option<MixnetClient>>>);
 
