@@ -6,7 +6,7 @@ use std::env;
 use nym_config::defaults::{var_names, NymNetworkDetails};
 use url::Url;
 
-use crate::{AccountManagement, SystemMessages};
+use crate::{AccountManagement, ParsedAccountLinks, SystemMessages};
 
 use super::discovery::Discovery;
 
@@ -20,6 +20,16 @@ pub struct NymVpnNetwork {
 impl NymVpnNetwork {
     pub(super) fn export_to_env(&self) {
         env::set_var(var_names::NYM_VPN_API, self.nym_vpn_api_url.to_string());
+    }
+
+    pub fn try_into_parsed_links(
+        self,
+        locale: &str,
+        account_id: &str,
+    ) -> Result<ParsedAccountLinks, anyhow::Error> {
+        self.account_management
+            .ok_or_else(|| anyhow::anyhow!("Account management is not available for this network"))?
+            .try_into_parsed_links(locale, account_id)
     }
 }
 

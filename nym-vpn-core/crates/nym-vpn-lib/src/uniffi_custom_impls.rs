@@ -774,3 +774,37 @@ impl From<nym_vpn_account_controller::shared_state::DeviceState> for DeviceState
         }
     }
 }
+
+#[derive(uniffi::Record, Clone, PartialEq)]
+pub struct SystemMessage {
+    pub name: String,
+    pub message: String,
+    pub properties: HashMap<String, String>,
+}
+
+impl From<nym_vpn_network_config::SystemMessage> for SystemMessage {
+    fn from(value: nym_vpn_network_config::SystemMessage) -> Self {
+        SystemMessage {
+            name: value.name,
+            message: value.message,
+            properties: value.properties.into_inner(),
+        }
+    }
+}
+
+#[derive(uniffi::Record, Clone, PartialEq)]
+pub struct AccountLinks {
+    pub sign_up: String,
+    pub sign_in: String,
+    pub account: String,
+}
+
+impl From<nym_vpn_network_config::ParsedAccountLinks> for AccountLinks {
+    fn from(value: nym_vpn_network_config::ParsedAccountLinks) -> Self {
+        AccountLinks {
+            sign_up: value.sign_up.to_string(),
+            sign_in: value.sign_in.to_string(),
+            account: value.account.to_string(),
+        }
+    }
+}
