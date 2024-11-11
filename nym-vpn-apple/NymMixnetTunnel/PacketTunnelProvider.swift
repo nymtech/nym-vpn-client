@@ -10,7 +10,6 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     let tunnelActor: TunnelActor
 
     lazy var logger = Logger(label: "MixnetTunnel")
-    var lastVpnErrorReason: VPNErrorReason?
 
     override init() {
         LoggingSystem.bootstrap { label in
@@ -58,11 +57,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         } catch {
             logger.error("Failed to start vpn: \(error)")
             if let lastVPNError = error as? VpnError {
-                logger.error("success converting")
-                lastVpnErrorReason = VPNErrorReason(with: lastVPNError)
+                throw VPNErrorReason(with: lastVPNError).nsError
+            } else {
+                throw error
             }
-
-            throw PacketTunnelProviderError.backendStartFailure
         }
 
         logger.info("Backend is up and running...")
@@ -84,11 +82,11 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             logger.error("Failed to stop the tunnel: \(error)")
         }
 
-        //            do {
-        //                try stopAccountController()
-        //            } catch {
-        //                logger.error("Failed to stop account controller: \(error)")
-        //            }
+        do {
+            try shutdown()
+        } catch {
+            logger.error("Failed to stop account controller: \(error)")
+        }
 
         await tunnelActor.setTunnelProvider(nil)
     }

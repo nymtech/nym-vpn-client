@@ -189,15 +189,23 @@ private extension TunnelsManager {
                     level: .debug,
                     "Tunnel '\(tunnel.name)' connection status changed to '\(tunnel.tunnel.connection.status)'"
                 )
-
-                if tunnel.status == .restarting && session.status == .disconnected {
-                    Task {
-                        try? await tunnel.connect()
-                    }
-                    return
+#if os(iOS)
+                Task { [weak self] in
+                    await self?.updateLastTunnelError()
                 }
+#endif
                 tunnel.updateStatus()
             }
             .store(in: &cancellables)
     }
+
+#if os(iOS)
+    func updateLastTunnelError() async {
+        guard activeTunnel?.status == .disconnecting else { return }
+        activeTunnel?.tunnel.connection.fetchLastDisconnectError { [weak self] error in
+            guard let nsError = error as? NSError, nsError.domain == VPNErrorReason.domain else { return }
+            self?.lastError = VPNErrorReason(nsError: nsError)
+        }
+    }
+#endif
 }
