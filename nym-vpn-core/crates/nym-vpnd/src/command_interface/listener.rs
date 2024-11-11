@@ -805,6 +805,10 @@ impl NymVpnd for CommandInterface {
                     mixnet_exit: summary.mixnet_exit_amount,
                     vpn_entry: summary.vpn_entry_amount,
                     vpn_exit: summary.vpn_exit_amount,
+                    mixnet_entry_si: summary.mixnet_entry_amount_si(),
+                    mixnet_exit_si: summary.mixnet_exit_amount_si(),
+                    vpn_entry_si: summary.vpn_entry_amount_si(),
+                    vpn_exit_si: summary.vpn_exit_amount_si(),
                 };
                 GetAvailableTicketsResponse {
                     resp: Some(

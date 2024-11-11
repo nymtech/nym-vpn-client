@@ -759,6 +759,10 @@ message AvailableTickets {
   uint64 mixnet_exit = 2;
   uint64 vpn_entry = 3;
   uint64 vpn_exit = 4;
+  string mixnet_entry_si = 5;
+  string mixnet_exit_si = 6;
+  string vpn_entry_si = 7;
+  string vpn_exit_si = 8;
 }
 
 message GetAvailableTicketsRequest {}

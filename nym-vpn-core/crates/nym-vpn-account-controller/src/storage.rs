@@ -255,17 +255,33 @@ pub struct TicketbookAmountSummary {
     pub vpn_exit_amount: u64,
 }
 
+impl TicketbookAmountSummary {
+    pub fn mixnet_entry_amount_si(&self) -> String {
+        si_scale::helpers::bibytes2(self.mixnet_entry_amount as f64)
+    }
+
+    pub fn mixnet_exit_amount_si(&self) -> String {
+        si_scale::helpers::bibytes2(self.mixnet_exit_amount as f64)
+    }
+
+    pub fn vpn_entry_amount_si(&self) -> String {
+        si_scale::helpers::bibytes2(self.vpn_entry_amount as f64)
+    }
+
+    pub fn vpn_exit_amount_si(&self) -> String {
+        si_scale::helpers::bibytes2(self.vpn_exit_amount as f64)
+    }
+}
+
 impl fmt::Display for TicketbookAmountSummary {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let si_mixnet_entry = si_scale::helpers::bibytes2(self.mixnet_entry_amount as f64);
-        let si_mixnet_exit = si_scale::helpers::bibytes2(self.mixnet_exit_amount as f64);
-        let si_vpn_entry = si_scale::helpers::bibytes2(self.vpn_entry_amount as f64);
-        let si_vpn_exit = si_scale::helpers::bibytes2(self.vpn_exit_amount as f64);
-
         write!(
             f,
             "Mixnet Entry: {} - Mixnet Exit: {} - VPN Entry: {} - VPN Exit: {}",
-            si_mixnet_entry, si_mixnet_exit, si_vpn_entry, si_vpn_exit
+            self.mixnet_exit_amount_si(),
+            self.mixnet_exit_amount_si(),
+            self.vpn_entry_amount_si(),
+            self.vpn_exit_amount_si(),
         )
     }
 }
