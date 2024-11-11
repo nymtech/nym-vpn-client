@@ -41,15 +41,17 @@ async fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
 
     // TODO: network selection is not yet implemented/supported
     let network_name = "mainnet";
-    let network_env =
-        if let Some(network_env) = nym_vpn_network_config::Network::fetch(network_name) {
+    let network_env = match nym_vpn_network_config::Network::fetch(network_name) {
+        Ok(network_env) => {
             network_env.export_to_env();
             network_env
-        } else {
+        }
+        Err(err) => {
             tracing::error!("Failed to fetch network environment for '{}'", network_name);
             // TODO: just picking something here to make it compile
             return Err(windows_service::Error::LaunchArgumentsNotSupported);
-        };
+        }
+    };
 
     let shutdown_token = CancellationToken::new();
     let cloned_shutdown_token = shutdown_token.clone();
