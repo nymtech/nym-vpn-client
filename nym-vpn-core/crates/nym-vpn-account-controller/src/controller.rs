@@ -286,7 +286,7 @@ where
             .insert_issued_ticketbook(&issued_ticketbook)
             .await?;
 
-        //self.confirm_zk_nym_downloaded(&response.id).await?;
+        self.confirm_zk_nym_downloaded(&response.id).await?;
 
         Ok(())
     }
@@ -321,14 +321,14 @@ where
         }
 
         // Get the ticket types that are below the threshold
-        let _ticket_types_needed_to_request = local_remaining_tickets
+        let ticket_types_needed_to_request = local_remaining_tickets
             .into_iter()
             .filter(|(_, remaining)| *remaining < TICKET_THRESHOLD)
             .map(|(ticket_type, _)| ticket_type)
             .collect::<Vec<_>>();
 
         // For testing: uncomment to only request zk-nyms for a specific ticket type
-        let ticket_types_needed_to_request = vec![TicketType::V1MixnetEntry];
+        //let ticket_types_needed_to_request = vec![TicketType::V1MixnetEntry];
 
         // Request zk-nyms for each ticket type that we need
         let responses = futures::stream::iter(ticket_types_needed_to_request)
