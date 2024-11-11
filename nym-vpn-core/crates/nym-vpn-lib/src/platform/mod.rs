@@ -38,8 +38,9 @@ use crate::{
         TunnelStateMachine, TunnelType,
     },
     uniffi_custom_impls::{
-        AccountStateSummary, BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint,
-        GatewayMinPerformance, GatewayType, Location, NetworkEnvironment, TunStatus, UserAgent,
+        AccountLinks, AccountStateSummary, BandwidthStatus, ConnectionStatus, EntryPoint,
+        ExitPoint, GatewayMinPerformance, GatewayType, Location, NetworkEnvironment, SystemMessage,
+        TunStatus, UserAgent,
     },
 };
 
@@ -143,6 +144,59 @@ pub fn fetchEnvironment(network_name: &str) -> Result<NetworkEnvironment, VpnErr
 async fn fetch_environment(network_name: &str) -> Result<NetworkEnvironment, VpnError> {
     nym_vpn_network_config::Network::fetch(network_name)
         .map(NetworkEnvironment::from)
+        .map_err(|err| VpnError::InternalError {
+            details: err.to_string(),
+        })
+}
+
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn fetchSystemMessages(network_name: &str) -> Result<Vec<SystemMessage>, VpnError> {
+    RUNTIME.block_on(fetch_system_messages(network_name))
+}
+
+async fn fetch_system_messages(network_name: &str) -> Result<Vec<SystemMessage>, VpnError> {
+    nym_vpn_network_config::Network::fetch(network_name)
+        .map(|network| {
+            network
+                .nym_vpn_network
+                .system_messages
+                .into_current_iter()
+                .map(SystemMessage::from)
+                .collect()
+        })
+        .map_err(|err| VpnError::InternalError {
+            details: err.to_string(),
+        })
+}
+
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn fetchAccountLinks(
+    account_store_path: &str,
+    network_name: &str,
+    locale: &str,
+) -> Result<AccountLinks, VpnError> {
+    RUNTIME.block_on(fetch_account_links(
+        account_store_path,
+        network_name,
+        locale,
+    ))
+}
+
+async fn fetch_account_links(
+    path: &str,
+    network_name: &str,
+    locale: &str,
+) -> Result<AccountLinks, VpnError> {
+    let account_id = account::get_account_id(path).await?;
+    nym_vpn_network_config::Network::fetch(network_name)
+        .and_then(|network| {
+            network
+                .nym_vpn_network
+                .try_into_parsed_links(locale, &account_id)
+        })
+        .map(AccountLinks::from)
         .map_err(|err| VpnError::InternalError {
             details: err.to_string(),
         })

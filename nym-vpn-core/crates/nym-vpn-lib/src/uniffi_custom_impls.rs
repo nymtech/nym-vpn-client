@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
+    collections::HashMap,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     path::PathBuf,
     str::FromStr,
@@ -258,6 +259,7 @@ impl UniffiCustomTypeConverter for OffsetDateTime {
 pub struct NetworkEnvironment {
     pub nym_network: NymNetworkDetails,
     pub nym_vpn_network: NymVpnNetwork,
+    pub feature_flags: Option<FeatureFlags>,
 }
 
 impl From<nym_vpn_network_config::Network> for NetworkEnvironment {
@@ -265,6 +267,7 @@ impl From<nym_vpn_network_config::Network> for NetworkEnvironment {
         NetworkEnvironment {
             nym_network: network.nym_network.network.into(),
             nym_vpn_network: network.nym_vpn_network.into(),
+            feature_flags: network.feature_flags.map(FeatureFlags::from),
         }
     }
 }
@@ -371,6 +374,38 @@ impl From<nym_vpn_network_config::NymVpnNetwork> for NymVpnNetwork {
     fn from(value: nym_vpn_network_config::NymVpnNetwork) -> Self {
         NymVpnNetwork {
             nym_vpn_api_url: value.nym_vpn_api_url.to_string(),
+        }
+    }
+}
+
+#[derive(uniffi::Record)]
+pub struct FeatureFlags {
+    pub flags: HashMap<String, FlagValue>,
+}
+
+#[derive(uniffi::Enum)]
+pub enum FlagValue {
+    Value(String),
+    Group(HashMap<String, String>),
+}
+
+impl From<nym_vpn_network_config::FeatureFlags> for FeatureFlags {
+    fn from(value: nym_vpn_network_config::FeatureFlags) -> Self {
+        FeatureFlags {
+            flags: value
+                .flags
+                .into_iter()
+                .map(|(k, v)| (k, v.into()))
+                .collect(),
+        }
+    }
+}
+
+impl From<nym_vpn_network_config::feature_flags::FlagValue> for FlagValue {
+    fn from(value: nym_vpn_network_config::feature_flags::FlagValue) -> Self {
+        match value {
+            nym_vpn_network_config::feature_flags::FlagValue::Value(v) => FlagValue::Value(v),
+            nym_vpn_network_config::feature_flags::FlagValue::Group(g) => FlagValue::Group(g),
         }
     }
 }
@@ -656,7 +691,7 @@ impl From<nym_vpn_account_controller::shared_state::MnemonicState> for MnemonicS
             nym_vpn_account_controller::shared_state::MnemonicState::NotStored => {
                 MnemonicState::NotStored
             }
-            nym_vpn_account_controller::shared_state::MnemonicState::Stored => {
+            nym_vpn_account_controller::shared_state::MnemonicState::Stored { .. } => {
                 MnemonicState::Stored
             }
         }
@@ -677,11 +712,13 @@ impl From<nym_vpn_account_controller::shared_state::AccountState> for AccountSta
             nym_vpn_account_controller::shared_state::AccountState::NotRegistered => {
                 AccountState::NotRegistered
             }
-            nym_vpn_account_controller::shared_state::AccountState::Inactive => {
+            nym_vpn_account_controller::shared_state::AccountState::Inactive { .. } => {
                 AccountState::Inactive
             }
-            nym_vpn_account_controller::shared_state::AccountState::Active => AccountState::Active,
-            nym_vpn_account_controller::shared_state::AccountState::DeleteMe => {
+            nym_vpn_account_controller::shared_state::AccountState::Active { .. } => {
+                AccountState::Active
+            }
+            nym_vpn_account_controller::shared_state::AccountState::DeleteMe { .. } => {
                 AccountState::DeleteMe
             }
         }
@@ -736,6 +773,40 @@ impl From<nym_vpn_account_controller::shared_state::DeviceState> for DeviceState
             nym_vpn_account_controller::shared_state::DeviceState::DeleteMe => {
                 DeviceState::DeleteMe
             }
+        }
+    }
+}
+
+#[derive(uniffi::Record, Clone, PartialEq)]
+pub struct SystemMessage {
+    pub name: String,
+    pub message: String,
+    pub properties: HashMap<String, String>,
+}
+
+impl From<nym_vpn_network_config::SystemMessage> for SystemMessage {
+    fn from(value: nym_vpn_network_config::SystemMessage) -> Self {
+        SystemMessage {
+            name: value.name,
+            message: value.message,
+            properties: value.properties.into_inner(),
+        }
+    }
+}
+
+#[derive(uniffi::Record, Clone, PartialEq)]
+pub struct AccountLinks {
+    pub sign_up: String,
+    pub sign_in: String,
+    pub account: String,
+}
+
+impl From<nym_vpn_network_config::ParsedAccountLinks> for AccountLinks {
+    fn from(value: nym_vpn_network_config::ParsedAccountLinks) -> Self {
+        AccountLinks {
+            sign_up: value.sign_up.to_string(),
+            sign_in: value.sign_in.to_string(),
+            account: value.account.to_string(),
         }
     }
 }

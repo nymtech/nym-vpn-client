@@ -9,7 +9,7 @@ use std::{
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
-use super::bootstrap::Discovery;
+use super::discovery::Discovery;
 
 fn refresh_discovery_file(config_dir: &Path, network_name: &str) -> anyhow::Result<()> {
     if !Discovery::path_is_stale(config_dir, network_name)? {

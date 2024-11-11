@@ -389,7 +389,9 @@ where
         match self.account_storage.load_account().await {
             Ok(account) => {
                 tracing::debug!("Our account id: {}", account.id());
-                self.account_state.set_mnemonic(MnemonicState::Stored).await;
+                self.account_state
+                    .set_mnemonic(MnemonicState::Stored { id: account.id() })
+                    .await;
                 Some(account)
             }
             Err(err) => {
@@ -428,7 +430,7 @@ where
         }
 
         self.account_state
-            .set_account(AccountState::from(account_summary.account.status))
+            .set_account(AccountState::from(account_summary.account))
             .await;
 
         self.account_state

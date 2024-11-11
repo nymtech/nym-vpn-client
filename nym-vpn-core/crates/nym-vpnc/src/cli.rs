@@ -25,11 +25,14 @@ pub(crate) enum Command {
     Status,
     Info,
     SetNetwork(SetNetworkArgs),
+    GetSystemMessages,
+    GetFeatureFlags,
     StoreAccount(StoreAccountArgs),
     IsAccountStored,
     RemoveAccount,
     GetAccountId,
     GetAccountState,
+    GetAccountLinks(GetAccountLinksArgs),
     RefreshAccountState,
     IsReadyToConnect,
     ListenToStatus,
@@ -154,9 +157,10 @@ pub(crate) struct StoreAccountArgs {
 }
 
 #[derive(Args)]
-pub(crate) struct ApplyFreepassArgs {
-    /// The freepass code to be applied.
-    pub(crate) code: String,
+pub(crate) struct GetAccountLinksArgs {
+    /// The locale to be used.
+    #[arg(long)]
+    pub(crate) locale: String,
 }
 
 #[derive(Args)]

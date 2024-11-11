@@ -4573,12 +4573,14 @@ name = "nym-vpn-network-config"
 version = "1.0.0-alpha.2"
 dependencies = [
  "anyhow",
+ "futures-util",
  "itertools 0.13.0",
  "nym-config",
  "reqwest 0.11.27",
  "serde",
  "serde_json",
  "tempfile",
+ "time",
  "tokio",
  "tokio-util",
  "tracing",

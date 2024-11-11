@@ -10,7 +10,9 @@ use std::{
 };
 
 use bip39::Mnemonic;
-use nym_vpn_network_config::{NymNetwork, NymVpnNetwork};
+use nym_vpn_network_config::{
+    FeatureFlags, Network, NymNetwork, NymVpnNetwork, ParsedAccountLinks, SystemMessages,
+};
 use serde::{Deserialize, Serialize};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use tokio::{
@@ -18,7 +20,6 @@ use tokio::{
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
-use url::Url;
 
 use nym_vpn_account_controller::{
     AccountCommand, AccountController, AccountStateSummary, ReadyToConnect, SharedAccountState,
@@ -29,7 +30,6 @@ use nym_vpn_api_client::{
 };
 use nym_vpn_lib::{
     gateway_directory::{self, EntryPoint, ExitPoint},
-    nym_config::defaults::NymNetworkDetails,
     tunnel_state_machine::{
         ConnectionData, DnsOptions, GatewayPerformanceOptions, MixnetEvent, MixnetTunnelOptions,
         NymConfig, TunnelCommand, TunnelConnectionData, TunnelEvent, TunnelSettings, TunnelState,
@@ -38,7 +38,7 @@ use nym_vpn_lib::{
     MixnetClientConfig, NodeIdentity, Recipient,
 };
 
-use crate::{config::GlobalConfigFile, GLOBAL_NETWORK_DETAILS};
+use crate::config::GlobalConfigFile;
 
 use super::{
     config::{ConfigSetupError, NetworkEnvironments, NymVpnServiceConfig, DEFAULT_CONFIG_FILE},
@@ -90,20 +90,28 @@ impl fmt::Display for ConnectedStateDetails {
 // Seed used to generate device identity keys
 type Seed = [u8; 32];
 
+type Locale = String;
+
 #[allow(clippy::large_enum_variant)]
 pub enum VpnServiceCommand {
+    Info(oneshot::Sender<VpnServiceInfo>, ()),
+    SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
+    GetSystemMessages(oneshot::Sender<SystemMessages>, ()),
+    GetFeatureFlags(oneshot::Sender<Option<FeatureFlags>>, ()),
     Connect(
         oneshot::Sender<Result<(), VpnServiceConnectError>>,
         (ConnectArgs, nym_vpn_lib::UserAgent),
     ),
     Disconnect(oneshot::Sender<Result<(), VpnServiceDisconnectError>>, ()),
     Status(oneshot::Sender<VpnServiceStatus>, ()),
-    Info(oneshot::Sender<VpnServiceInfo>, ()),
-    SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     StoreAccount(oneshot::Sender<Result<(), AccountError>>, String),
     IsAccountStored(oneshot::Sender<Result<bool, AccountError>>, ()),
     RemoveAccount(oneshot::Sender<Result<(), AccountError>>, ()),
     GetAccountIdentity(oneshot::Sender<Result<String, AccountError>>, ()),
+    GetAccountLinks(
+        oneshot::Sender<Result<ParsedAccountLinks, AccountError>>,
+        Locale,
+    ),
     GetAccountState(
         oneshot::Sender<Result<AccountStateSummary, AccountError>>,
         (),
@@ -128,17 +136,20 @@ pub enum VpnServiceCommand {
 impl fmt::Display for VpnServiceCommand {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            VpnServiceCommand::Info(..) => write!(f, "Info"),
+            VpnServiceCommand::SetNetwork(..) => write!(f, "SetNetwork"),
+            VpnServiceCommand::GetSystemMessages(..) => write!(f, "GetSystemMessages"),
+            VpnServiceCommand::GetFeatureFlags(..) => write!(f, "GetFeatureFlags"),
             VpnServiceCommand::Connect(_, (args, user_agent)) => {
                 write!(f, "Connect {{ {args:?}, {user_agent:?} }}")
             }
             VpnServiceCommand::Disconnect(..) => write!(f, "Disconnect"),
             VpnServiceCommand::Status(..) => write!(f, "Status"),
-            VpnServiceCommand::Info(..) => write!(f, "Info"),
-            VpnServiceCommand::SetNetwork(..) => write!(f, "SetNetwork"),
             VpnServiceCommand::StoreAccount(..) => write!(f, "StoreAccount"),
             VpnServiceCommand::IsAccountStored(..) => write!(f, "IsAccountStored"),
             VpnServiceCommand::RemoveAccount(..) => write!(f, "RemoveAccount"),
             VpnServiceCommand::GetAccountIdentity(..) => write!(f, "GetAccountIdentity"),
+            VpnServiceCommand::GetAccountLinks(..) => write!(f, "GetAccountLinks"),
             VpnServiceCommand::GetAccountState(..) => write!(f, "GetAccountState"),
             VpnServiceCommand::RefreshAccountState(..) => write!(f, "RefreshAccountState"),
             VpnServiceCommand::IsReadyToConnect(..) => write!(f, "IsReadyToConnect"),
@@ -338,6 +349,9 @@ pub(crate) struct NymVpnService<S>
 where
     S: nym_vpn_store::VpnStorage,
 {
+    // The network environment
+    network_env: Network,
+
     // The account state, updated by the account controller
     shared_account_state: SharedAccountState,
 
@@ -378,6 +392,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
         status_tx: broadcast::Sender<MixnetEvent>,
         shutdown_token: CancellationToken,
+        network_env: Network,
     ) -> JoinHandle<()> {
         tracing::info!("Starting VPN service");
         tokio::spawn(async {
@@ -386,6 +401,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
                 vpn_command_rx,
                 status_tx,
                 shutdown_token,
+                network_env,
             )
             .await
             {
@@ -413,12 +429,9 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
         status_tx: broadcast::Sender<MixnetEvent>,
         shutdown_token: CancellationToken,
+        network_env: Network,
     ) -> Result<Self> {
-        let network_details = GLOBAL_NETWORK_DETAILS
-            .get()
-            .ok_or(Error::ConfigSetup(ConfigSetupError::GlobalNetworkNotSet))?
-            .clone();
-        let network_name = network_details.nym_network_details().network_name.clone();
+        let network_name = network_env.nym_network_details().network_name.clone();
 
         let config_dir = super::config::config_dir().join(&network_name);
         let config_file = config_dir.join(DEFAULT_CONFIG_FILE);
@@ -451,9 +464,17 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         let (event_sender, event_receiver) = mpsc::unbounded_channel();
 
         let tunnel_settings = TunnelSettings::default();
+        let api_url = network_env
+            .api_url()
+            .ok_or(Error::ConfigSetup(ConfigSetupError::MissingApiUrl))?;
+        let gateway_config = gateway_directory::Config {
+            api_url,
+            nym_vpn_api_url: Some(network_env.vpn_api_url()),
+            min_gateway_performance: None,
+        };
         let nym_config = NymConfig {
             data_path: Some(data_dir.clone()),
-            gateway_config: gateway_directory::Config::new_from_env(),
+            gateway_config,
         };
 
         let state_machine_handle = TunnelStateMachine::spawn(
@@ -467,6 +488,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         .map_err(Error::StateMachine)?;
 
         Ok(Self {
+            network_env,
             shared_account_state,
             vpn_command_rx,
             vpn_state_changes_tx,
@@ -533,6 +555,22 @@ where
 
     async fn handle_service_command(&mut self, command: VpnServiceCommand) {
         match command {
+            VpnServiceCommand::Info(tx, ()) => {
+                let result = self.handle_info().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::SetNetwork(tx, network) => {
+                let result = self.handle_set_network(network).await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::GetSystemMessages(tx, ()) => {
+                let result = self.handle_get_system_messages().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::GetFeatureFlags(tx, ()) => {
+                let result = self.handle_get_feature_flags().await;
+                let _ = tx.send(result);
+            }
             VpnServiceCommand::Connect(tx, (connect_args, user_agent)) => {
                 let result = self.handle_connect(connect_args, user_agent).await;
                 let _ = tx.send(result);
@@ -543,14 +581,6 @@ where
             }
             VpnServiceCommand::Status(tx, ()) => {
                 let result = self.handle_status().await;
-                let _ = tx.send(result);
-            }
-            VpnServiceCommand::Info(tx, ()) => {
-                let result = self.handle_info().await;
-                let _ = tx.send(result);
-            }
-            VpnServiceCommand::SetNetwork(tx, network) => {
-                let result = self.handle_set_network(network).await;
                 let _ = tx.send(result);
             }
             VpnServiceCommand::StoreAccount(tx, account) => {
@@ -567,6 +597,10 @@ where
             }
             VpnServiceCommand::GetAccountIdentity(tx, ()) => {
                 let result = self.handle_get_account_identity().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::GetAccountLinks(tx, locale) => {
+                let result = self.handle_get_account_links(locale).await;
                 let _ = tx.send(result);
             }
             VpnServiceCommand::GetAccountState(tx, ()) => {
@@ -777,11 +811,6 @@ where
     }
 
     async fn handle_info(&self) -> VpnServiceInfo {
-        // TODO: remove expect
-        let network = GLOBAL_NETWORK_DETAILS
-            .get()
-            .expect("Incorrect environment setup")
-            .clone();
         let bin_info = nym_bin_common::bin_info_local_vergen!();
         let user_agent = crate::util::construct_user_agent();
 
@@ -791,8 +820,8 @@ where
             triple: bin_info.cargo_triple.to_string(),
             platform: user_agent.platform,
             git_commit: bin_info.commit_sha.to_string(),
-            nym_network: network.nym_network.clone(),
-            nym_vpn_network: network.nym_vpn_network.clone(),
+            nym_network: self.network_env.nym_network.clone(),
+            nym_vpn_network: self.network_env.nym_vpn_network.clone(),
         }
     }
 
@@ -819,6 +848,14 @@ where
         );
 
         Ok(())
+    }
+
+    async fn handle_get_system_messages(&self) -> SystemMessages {
+        self.network_env.nym_vpn_network.system_messages.clone()
+    }
+
+    async fn handle_get_feature_flags(&self) -> Option<FeatureFlags> {
+        self.network_env.feature_flags.clone()
     }
 
     async fn handle_store_account(&mut self, account: String) -> Result<(), AccountError> {
@@ -872,6 +909,25 @@ where
 
     async fn handle_get_account_identity(&self) -> Result<String, AccountError> {
         self.load_account().await.map(|account| account.id())
+    }
+
+    async fn handle_get_account_links(
+        &self,
+        locale: String,
+    ) -> Result<ParsedAccountLinks, AccountError> {
+        let account = self.load_account().await?;
+        let account_id = account.id();
+
+        self.network_env
+            .nym_vpn_network
+            .account_management
+            .clone()
+            .ok_or(AccountError::AccountManagementNotConfigured)?
+            .try_into_parsed_links(&locale, &account_id)
+            .map_err(|err| {
+                tracing::error!("Failed to parse account links: {:?}", err);
+                AccountError::FailedToParseAccountLinks
+            })
     }
 
     async fn handle_get_account_state(&self) -> Result<AccountStateSummary, AccountError> {
@@ -981,7 +1037,7 @@ where
         let account = self.load_account().await?;
 
         // Setup client
-        let nym_vpn_api_url = get_nym_vpn_api_url()?;
+        let nym_vpn_api_url = self.network_env.vpn_api_url();
         let user_agent = crate::util::construct_user_agent();
         let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent)?;
 
@@ -1000,19 +1056,10 @@ where
         let account = self.load_account().await?;
 
         // Setup client
-        let nym_vpn_api_url = get_nym_vpn_api_url()?;
+        let nym_vpn_api_url = self.network_env.vpn_api_url();
         let user_agent = crate::util::construct_user_agent();
         let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent)?;
 
         api_client.get_devices(&account).await.map_err(Into::into)
     }
-}
-
-fn get_nym_vpn_api_url() -> Result<Url, AccountError> {
-    NymNetworkDetails::new_from_env()
-        .nym_vpn_api_url
-        .ok_or(AccountError::MissingApiUrl)?
-        .parse()
-        .map_err(|_| AccountError::InvalidApiUrl)
-        .inspect(|url| tracing::info!("Using nym-vpn-api url: {}", url))
 }
