@@ -4,5 +4,14 @@
     "part2": "alla beta di NymVPN"
   },
   "continue-button": "Continua",
-  "experimental": "Questo prodotto è in fase di sperimentazione. Non affidartici per un'anonimità completa (per ora)."
+  "experimental": "Questo prodotto è in fase di sperimentazione. Non affidartici per un'anonimità completa (per ora).",
+  "description": {
+    "part2": "Il tuo feedback è fondamentale",
+    "part3": "per identificare e risolvere i problemi. Abilita il monitoraggio anonimo degli errori",
+    "part4": "e l'analisi, puoi disattivarlo in qualsiasi momento. Grazie per il tuo supporto!",
+    "part1": "Aiutaci a migliorare la nostra app durante la fase beta!"
+  },
+  "tos": {
+    "part3": "."
+  }
 }
