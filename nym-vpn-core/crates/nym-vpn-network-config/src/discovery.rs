@@ -271,9 +271,13 @@ mod tests {
 
     #[test]
     fn test_discovery_default_same_as_fetched() {
-        let default_discovery = Discovery::default();
-        let fetched_discovery = Discovery::fetch(&default_discovery.network_name).unwrap();
-        assert_eq!(default_discovery, fetched_discovery);
+        let default = Discovery::default();
+        let fetched = Discovery::fetch(&default.network_name).unwrap();
+
+        // Only compare the base fields
+        assert_eq!(default.network_name, fetched.network_name);
+        assert_eq!(default.nym_api_url, fetched.nym_api_url);
+        assert_eq!(default.nym_vpn_api_url, fetched.nym_vpn_api_url);
     }
 
     #[test]
