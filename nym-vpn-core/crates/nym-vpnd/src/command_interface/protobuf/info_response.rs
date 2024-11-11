@@ -129,3 +129,28 @@ pub(crate) fn into_account_management_links(
         account: Some(into_proto_url(account_links.account)),
     }
 }
+
+pub(crate) fn into_proto_feature_flags(
+    feature_flags: nym_vpn_network_config::FeatureFlags,
+) -> nym_vpn_proto::GetFeatureFlagsResponse {
+    let mut response = nym_vpn_proto::GetFeatureFlagsResponse {
+        flags: Default::default(),
+        groups: Default::default(),
+    };
+
+    for (k, v) in feature_flags.flags {
+        match v {
+            nym_vpn_network_config::feature_flags::FlagValue::Value(value) => {
+                response.flags.insert(k, value);
+            }
+            nym_vpn_network_config::feature_flags::FlagValue::Group(group) => {
+                let group = group.into_iter().collect();
+                response
+                    .groups
+                    .insert(k, nym_vpn_proto::FeatureFlagGroup { map: group });
+            }
+        }
+    }
+
+    response
+}

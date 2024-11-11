@@ -8,14 +8,13 @@ use std::{
 };
 
 use futures::{stream::BoxStream, StreamExt};
-use nym_vpn_network_config::feature_flags::FlagValue;
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 
 use nym_vpn_api_client::types::GatewayMinPerformance;
 use nym_vpn_lib::tunnel_state_machine::MixnetEvent;
 use nym_vpn_proto::{
     nym_vpnd_server::NymVpnd, AccountError, ConnectRequest, ConnectResponse, ConnectionStateChange,
-    ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty, FeatureFlagGroup,
+    ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
     FetchRawAccountSummaryRequest, FetchRawAccountSummaryResponse, FetchRawDevicesRequest,
     FetchRawDevicesResponse, GetAccountIdentityRequest, GetAccountIdentityResponse,
     GetAccountLinksRequest, GetAccountLinksResponse, GetAccountStateRequest,
@@ -39,8 +38,9 @@ use super::{
 };
 use crate::{
     command_interface::protobuf::{
-        connection_state::into_is_ready_to_connect_response_type, gateway::into_user_agent,
-        info_response::into_proto_system_message,
+        connection_state::into_is_ready_to_connect_response_type,
+        gateway::into_user_agent,
+        info_response::{into_proto_feature_flags, into_proto_system_message},
     },
     service::{ConnectOptions, VpnServiceCommand, VpnServiceStateChange},
 };
@@ -176,29 +176,14 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<GetFeatureFlagsResponse>, tonic::Status> {
         tracing::debug!("Got get feature flags request");
 
-        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+        let feature_flags = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_feature_flags()
             .await?
             .ok_or(tonic::Status::not_found("Feature flags not found"))?;
 
-        let mut response = GetFeatureFlagsResponse {
-            flags: Default::default(),
-            groups: Default::default(),
-        };
-
-        for (k, v) in result.flags {
-            match v {
-                FlagValue::Value(value) => {
-                    response.flags.insert(k, value);
-                }
-                FlagValue::Group(group) => {
-                    let group = group.into_iter().collect();
-                    response.groups.insert(k, FeatureFlagGroup { map: group });
-                }
-            }
-        }
-
-        Ok(tonic::Response::new(response))
+        Ok(tonic::Response::new(into_proto_feature_flags(
+            feature_flags,
+        )))
     }
 
     async fn vpn_connect(
