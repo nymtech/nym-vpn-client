@@ -529,17 +529,6 @@
         }
       }
     },
-    "errorReason.establishMixnetConnection" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to establish mixnet connection"
-          }
-        }
-      }
-    },
     "errorReason.establishWireguardConnection" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -573,6 +562,28 @@
         }
       }
     },
+    "errorReason.invalidEntryGatewayCountry" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid entry gateway country"
+          }
+        }
+      }
+    },
+    "errorReason.invalidExitGatewayCountry" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid exit router country"
+          }
+        }
+      }
+    },
     "errorReason.routing" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -584,6 +595,17 @@
         }
       }
     },
+    "errorReason.sameEntryAndExitGateway" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failure: entry gateway cannot be same as exit router"
+          }
+        }
+      }
+    },
     "errorReason.tunDevice" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -591,17 +613,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Failed to configure tunnel device"
-          }
-        }
-      }
-    },
-    "errorReason.tunnelDown" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tunnel failed at runtime"
           }
         }
       }

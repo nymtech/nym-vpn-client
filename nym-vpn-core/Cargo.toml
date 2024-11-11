@@ -35,6 +35,7 @@ members = [
 # nym-compact-ecash = { path = "../../nym/common/nym_offline_compact_ecash" }
 # nym-config = { path = "../../nym/common/config" }
 # nym-contracts-common = { path = "../../nym/common/cosmwasm-smart-contracts/contracts-common" }
+# nym-credential-proxy-requests = { path = "../../nym/nym-credential-proxy/nym-credential-proxy-requests" }
 # nym-credential-storage = { path = "../../nym/common/credential-storage" }
 # nym-credentials = { path = "../../nym/common/credentials" }
 # nym-credentials-interface = { path = "../../nym/common/credentials-interface" }
@@ -98,6 +99,7 @@ rust2go = "0.3.16"
 serde = "1.0"
 serde_json = "1.0"
 sha2 = "0.10"
+si-scale = "0.2.3"
 signature = "2.2.0"
 strum = "0.26"
 strum_macros = "0.26"
@@ -123,6 +125,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tun = { version = "0.6.1", features = ["async"] }
 uniffi = { version = "0.27.3", features = ["cli"] }
 url = "2.5"
+uuid = "1.11"
 vergen = { version = "8.3.1", default-features = false }
 windows-sys = "0.52"
 x25519-dalek = "2.0"
@@ -135,6 +138,7 @@ nym-client-core = { git = "https://github.com/nymtech/nym", branch = "release/20
 nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
 nym-config = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
 nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
 nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
 nym-credentials = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }
 nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "release/2024.13-magura" }

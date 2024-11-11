@@ -225,7 +225,7 @@ pub(super) async fn reset_device_identity(path: &str) -> Result<(), VpnError> {
 }
 
 pub(super) async fn update_account_state() -> Result<(), VpnError> {
-    send_account_command(AccountCommand::UpdateSharedAccountState).await
+    send_account_command(AccountCommand::UpdateAccountState).await
 }
 
 pub(super) async fn get_account_state() -> Result<AccountStateSummary, VpnError> {

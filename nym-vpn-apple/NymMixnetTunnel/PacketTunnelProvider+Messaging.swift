@@ -8,15 +8,16 @@ extension PacketTunnelProvider {
 
         switch message {
         case .lastErrorReason:
-            guard let lastErrorStateReason else { return nil }
-            do {
-                let reason = try ErrorReason(with: lastErrorStateReason).encode()
-                didSendError = true
-                return reason
-            } catch {
-                logger.error("Failed to encode error reason: \(error)")
-                return nil
+            if case let .error(reason) = await tunnelActor.tunnelState {
+                do {
+                    await tunnelActor.setDidSendLastError(with: true)
+                    return try ErrorReason(with: reason).encode()
+                } catch {
+                    logger.error("Failed to encode error reason: \(error)")
+                    return nil
+                }
             }
         }
+        return nil
     }
 }

@@ -5,13 +5,15 @@ use anyhow::Result;
 use clap::Parser;
 use nym_gateway_directory::GatewayType;
 use nym_vpn_proto::{
-    ConnectRequest, DisconnectRequest, Empty, FetchRawAccountSummaryRequest,
-    FetchRawDevicesRequest, GetAccountIdentityRequest, GetAccountLinksRequest,
-    GetAccountStateRequest, GetDeviceIdentityRequest, GetDeviceZkNymsRequest,
-    GetFeatureFlagsRequest, GetSystemMessagesRequest, InfoRequest, InfoResponse,
-    IsAccountStoredRequest, IsReadyToConnectRequest, ListCountriesRequest, ListGatewaysRequest,
-    RefreshAccountStateRequest, RegisterDeviceRequest, RemoveAccountRequest, RequestZkNymRequest,
-    ResetDeviceIdentityRequest, SetNetworkRequest, StatusRequest, StoreAccountRequest, UserAgent,
+    ConfirmZkNymDownloadedRequest, ConnectRequest, DisconnectRequest, Empty,
+    FetchRawAccountSummaryRequest, FetchRawDevicesRequest, GetAccountIdentityRequest,
+    GetAccountLinksRequest, GetAccountStateRequest, GetAvailableTicketsRequest,
+    GetDeviceIdentityRequest, GetDeviceZkNymsRequest, GetFeatureFlagsRequest,
+    GetSystemMessagesRequest, GetZkNymByIdRequest, GetZkNymsAvailableForDownloadRequest,
+    InfoRequest, InfoResponse, IsAccountStoredRequest, IsReadyToConnectRequest,
+    ListCountriesRequest, ListGatewaysRequest, RefreshAccountStateRequest, RegisterDeviceRequest,
+    RemoveAccountRequest, RequestZkNymRequest, ResetDeviceIdentityRequest, SetNetworkRequest,
+    StatusRequest, StoreAccountRequest, UserAgent,
 };
 use protobuf_conversion::{into_gateway_type, into_threshold};
 use sysinfo::System;
@@ -78,6 +80,14 @@ async fn main() -> Result<()> {
         Command::RegisterDevice => register_device(client_type).await?,
         Command::RequestZkNym => request_zk_nym(client_type).await?,
         Command::GetDeviceZkNym => get_device_zk_nym(client_type).await?,
+        Command::GetZkNymsAvailableForDownload => {
+            get_zk_nyms_available_for_download(client_type).await?
+        }
+        Command::GetZkNymById(args) => get_zk_nym_by_id(client_type, args).await?,
+        Command::ConfirmZkNymDownloaded(args) => {
+            confirm_zk_nym_downloaded(client_type, args).await?
+        }
+        Command::GetAvailableTickets => get_available_tickets(client_type).await?,
         Command::FetchRawAccountSummary => fetch_raw_account_summary(client_type).await?,
         Command::FetchRawDevices => fetch_raw_devices(client_type).await?,
     }
@@ -331,6 +341,51 @@ async fn get_device_zk_nym(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(GetDeviceZkNymsRequest {});
     let response = client.get_device_zk_nyms(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn get_zk_nyms_available_for_download(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(GetZkNymsAvailableForDownloadRequest {});
+    let response = client
+        .get_zk_nyms_available_for_download(request)
+        .await?
+        .into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn get_zk_nym_by_id(client_type: ClientType, args: cli::GetZkNymByIdArgs) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(GetZkNymByIdRequest {
+        id: args.id.clone(),
+    });
+    let response = client.get_zk_nym_by_id(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn confirm_zk_nym_downloaded(
+    client_type: ClientType,
+    args: cli::ConfirmZkNymDownloadedArgs,
+) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(ConfirmZkNymDownloadedRequest {
+        id: args.id.clone(),
+    });
+    let response = client
+        .confirm_zk_nym_downloaded(request)
+        .await?
+        .into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn get_available_tickets(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(GetAvailableTicketsRequest {});
+    let response = client.get_available_tickets(request).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }

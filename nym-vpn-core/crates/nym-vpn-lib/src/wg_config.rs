@@ -78,6 +78,7 @@ impl WgPeer {
 impl WgNodeConfig {
     #[cfg(any(target_os = "ios", target_os = "android"))]
     pub fn into_netstack_config(self) -> netstack::Config {
+        let allowed_ips = self.allowed_ips();
         netstack::Config {
             interface: netstack::InterfaceConfig {
                 private_key: self.interface.private_key,
@@ -91,16 +92,17 @@ impl WgNodeConfig {
                 mtu: self.interface.mtu,
             },
             peers: vec![PeerConfig {
-                // todo: limit to loopback?
-                allowed_ips: vec!["0.0.0.0/0".parse().unwrap(), "::/0".parse().unwrap()],
                 public_key: self.peer.public_key,
                 preshared_key: None,
                 endpoint: self.peer.endpoint,
+                // todo: limit to loopback?
+                allowed_ips,
             }],
         }
     }
 
     pub fn into_wireguard_config(self) -> wireguard_go::Config {
+        let allowed_ips = self.allowed_ips();
         wireguard_go::Config {
             interface: wireguard_go::InterfaceConfig {
                 listen_port: self.interface.listen_port,
@@ -113,9 +115,20 @@ impl WgNodeConfig {
                 public_key: self.peer.public_key,
                 preshared_key: None,
                 endpoint: self.peer.endpoint,
-                allowed_ips: vec!["0.0.0.0/0".parse().unwrap(), "::/0".parse().unwrap()],
+                allowed_ips,
             }],
         }
+    }
+
+    fn allowed_ips(&self) -> Vec<IpNetwork> {
+        let mut allowed_ips = vec![];
+        if self.interface.addresses.iter().any(|x| x.ip().is_ipv4()) {
+            allowed_ips.push("0.0.0.0/0".parse().unwrap());
+        }
+        if self.interface.addresses.iter().any(|x| x.ip().is_ipv6()) {
+            allowed_ips.push("::/0".parse().unwrap());
+        }
+        allowed_ips
     }
 }
 
