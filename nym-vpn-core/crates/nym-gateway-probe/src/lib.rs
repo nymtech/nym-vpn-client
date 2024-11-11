@@ -14,7 +14,6 @@ use bytes::BytesMut;
 use dns_lookup::lookup_host;
 use futures::StreamExt;
 use netstack::ffi::{NetstackCall as _, NetstackCallImpl, NetstackRequestGo};
-use netstack::{V4_DNS, V6_DNS};
 use nym_authenticator_client::ClientMessage;
 use nym_authenticator_requests::v4::{
     registration::{FinalMessage, GatewayClient, InitMessage, RegistrationData},
@@ -207,17 +206,17 @@ async fn wg_probe(
             registered_data.wg_port,
         );
 
-        let (gateway_ip, ip_version) = match gateway_host {
+        let gateway_ip = match gateway_host {
             nym_topology::NetworkAddress::Hostname(host) => lookup_host(host)?
                 .first()
                 .map(|ip| match ip {
-                    IpAddr::V4(ip) => (ip.to_string(), 4),
-                    IpAddr::V6(ip) => (format!("[{}]", ip), 6),
+                    IpAddr::V4(ip) => ip.to_string(),
+                    IpAddr::V6(ip) => format!("[{}]", ip),
                 })
                 .unwrap_or_default(),
             nym_topology::NetworkAddress::IpAddr(ip) => match ip {
-                IpAddr::V4(ip) => (ip.to_string(), 4),
-                IpAddr::V6(ip) => (format!("[{}]", ip), 6),
+                IpAddr::V4(ip) => ip.to_string(),
+                IpAddr::V6(ip) => format!("[{}]", ip),
             },
         };
 
@@ -228,22 +227,14 @@ async fn wg_probe(
         wg_outcome.can_register = true;
 
         if wg_outcome.can_register {
-            // Figure out if we're using IPv4 or IPv6 to establish the wireguard tunnel
-            let wg_ip = if ip_version == 4 {
-                registered_data.private_ips.ipv4.to_string()
-            } else {
-                registered_data.private_ips.ipv6.to_string()
-            };
-
-            let dns = if ip_version == 4 { V4_DNS } else { V6_DNS };
-
             let netstack_request = NetstackRequest::new(
-                &wg_ip,
+                &registered_data.private_ips.ipv4.to_string(),
+                &registered_data.private_ips.ipv6.to_string(),
                 &private_key_hex,
                 &public_key_hex,
                 &wg_endpoint,
-                dns,
-                ip_version,
+                None,
+                None,
             );
 
             // Perform IPv4 ping test

@@ -23,7 +23,7 @@ func init() {
 	NetstackCallImpl = Netstack{}
 }
 
-func (Netstack) ping(req NetstackRequestGo) NetStackResponse {
+func (Netstack) ping(req NetstackRequestGo) NetstackResponse {
 
 	fmt.Printf("Endpoint: %s\n", req.endpoint)
 	fmt.Printf("WireGuard IP: %s\n", req.wg_ip)

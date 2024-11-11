@@ -23,12 +23,12 @@ pub struct NetstackRequestGo {
 impl NetstackRequestGo {
     pub fn from_rust_v4(req: &NetstackRequest) -> Self {
         NetstackRequestGo {
-            wg_ip: req.wg_ip.clone(),
+            wg_ip: req.v4_ping_config.self_ip.clone(),
             private_key: req.private_key.clone(),
             public_key: req.public_key.clone(),
             endpoint: req.endpoint.clone(),
-            dns: req.dns.clone(),
-            ip_version: req.ip_version,
+            dns: req.v4_ping_config.dns.clone(),
+            ip_version: 4,
             ping_hosts: req.v4_ping_config.ping_hosts.clone(),
             ping_ips: req.v4_ping_config.ping_ips.clone(),
             num_ping: req.v4_ping_config.num_ping,
@@ -39,12 +39,12 @@ impl NetstackRequestGo {
 
     pub fn from_rust_v6(req: &NetstackRequest) -> Self {
         NetstackRequestGo {
-            wg_ip: req.wg_ip.clone(),
+            wg_ip: req.v6_ping_config.self_ip.clone(),
             private_key: req.private_key.clone(),
             public_key: req.public_key.clone(),
             endpoint: req.endpoint.clone(),
-            dns: req.dns.clone(),
-            ip_version: req.ip_version,
+            dns: req.v6_ping_config.dns.clone(),
+            ip_version: 6,
             ping_hosts: req.v6_ping_config.ping_hosts.clone(),
             ping_ips: req.v6_ping_config.ping_ips.clone(),
             num_ping: req.v6_ping_config.num_ping,

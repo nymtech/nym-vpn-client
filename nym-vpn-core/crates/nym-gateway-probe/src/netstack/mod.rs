@@ -4,35 +4,38 @@ pub const V4_DNS: &str = "1.1.1.1";
 pub const V6_DNS: &str = "2606:4700:4700::1111";
 
 pub struct NetstackRequest {
-    pub wg_ip: String,
-    pub private_key: String,
-    pub public_key: String,
-    pub endpoint: String,
-    pub dns: String,
-    pub ip_version: u8,
-    pub v4_ping_config: PingConfig,
-    pub v6_ping_config: PingConfig,
+    private_key: String,
+    public_key: String,
+    endpoint: String,
+    v4_ping_config: PingConfig,
+    v6_ping_config: PingConfig,
 }
 
 pub struct PingConfig {
-    pub ping_hosts: Vec<String>,
-    pub ping_ips: Vec<String>,
-    pub num_ping: u8,
-    pub send_timeout_sec: u64,
-    pub recv_timeout_sec: u64,
+    self_ip: String,
+    dns: String,
+    ping_hosts: Vec<String>,
+    ping_ips: Vec<String>,
+    num_ping: u8,
+    send_timeout_sec: u64,
+    recv_timeout_sec: u64,
 }
 
 impl PingConfig {
-    pub fn default_v4() -> Self {
+    pub fn default_v4(self_ip: &str, dns_v4: Option<String>) -> Self {
         Self {
+            self_ip: self_ip.to_string(),
+            dns: dns_v4.unwrap_or(V4_DNS.to_string()),
             ping_hosts: vec!["nymtech.net".to_string()],
             ping_ips: vec!["1.1.1.1".to_string()],
             ..Default::default()
         }
     }
 
-    pub fn default_v6() -> Self {
+    pub fn default_v6(self_ip: &str, dns_v6: Option<String>) -> Self {
         Self {
+            self_ip: self_ip.to_string(),
+            dns: dns_v6.unwrap_or(V6_DNS.to_string()),
             ping_hosts: vec!["ipv6.google.com".to_string()],
             ping_ips: vec![
                 "2001:4860:4860::8888".to_string(), // google DNS
@@ -47,6 +50,8 @@ impl PingConfig {
 impl Default for PingConfig {
     fn default() -> Self {
         Self {
+            self_ip: Default::default(),
+            dns: Default::default(),
             ping_hosts: vec![],
             ping_ips: vec![],
             num_ping: 3,
@@ -58,22 +63,20 @@ impl Default for PingConfig {
 
 impl NetstackRequest {
     pub fn new(
-        wg_ip: &str,
+        wg_ip4: &str,
+        wg_ip6: &str,
         private_key: &str,
         public_key: &str,
         endpoint: &str,
-        dns: &str,
-        ip_version: u8,
+        dns_v4: Option<String>,
+        dns_v6: Option<String>,
     ) -> Self {
         Self {
-            wg_ip: wg_ip.to_string(),
             private_key: private_key.to_string(),
             public_key: public_key.to_string(),
             endpoint: endpoint.to_string(),
-            dns: dns.to_string(),
-            ip_version,
-            v4_ping_config: PingConfig::default_v4(),
-            v6_ping_config: PingConfig::default_v6(),
+            v4_ping_config: PingConfig::default_v4(wg_ip4, dns_v4),
+            v6_ping_config: PingConfig::default_v6(wg_ip6, dns_v6),
         }
     }
 
@@ -91,14 +94,11 @@ impl NetstackRequest {
 impl Default for NetstackRequest {
     fn default() -> Self {
         Self {
-            wg_ip: Default::default(),
             private_key: Default::default(),
             public_key: Default::default(),
             endpoint: Default::default(),
-            dns: V4_DNS.to_string(),
-            ip_version: 4,
-            v4_ping_config: PingConfig::default_v4(),
-            v6_ping_config: PingConfig::default_v6(),
+            v4_ping_config: PingConfig::default_v4(Default::default(), None),
+            v6_ping_config: PingConfig::default_v6(Default::default(), None),
         }
     }
 }

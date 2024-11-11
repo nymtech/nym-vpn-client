@@ -13,6 +13,15 @@ typedef struct ListRef {
   uintptr_t len;
 } ListRef;
 
+typedef struct NetstackResponseRef {
+  bool can_handshake;
+  uint16_t sent_ips;
+  uint16_t received_ips;
+  uint16_t sent_hosts;
+  uint16_t received_hosts;
+  bool can_resolve_dns;
+} NetstackResponseRef;
+
 typedef struct StringRef {
   const uint8_t *ptr;
   uintptr_t len;
@@ -31,15 +40,6 @@ typedef struct NetstackRequestGoRef {
   uint64_t send_timeout_sec;
   uint64_t recv_timeout_sec;
 } NetstackRequestGoRef;
-
-typedef struct NetstackResponseRef {
-  bool can_handshake;
-  uint16_t sent_ips;
-  uint16_t received_ips;
-  uint16_t sent_hosts;
-  uint16_t received_hosts;
-  bool can_resolve_dns;
-} NetstackResponseRef;
 
 // hack from: https://stackoverflow.com/a/69904977
 __attribute__((weak))
