@@ -48,6 +48,8 @@ lazy_static! {
     static ref RUNTIME: Runtime = Runtime::new().unwrap();
     static ref STATE_MACHINE_HANDLE: Mutex<Option<StateMachineHandle>> = Mutex::new(None);
     static ref ACCOUNT_CONTROLLER_HANDLE: Mutex<Option<AccountControllerHandle>> = Mutex::new(None);
+    static ref NETWORK_ENVIRONMENT: Mutex<Option<nym_vpn_network_config::Network>> =
+        Mutex::new(None);
 }
 
 #[allow(non_snake_case)]
@@ -131,6 +133,45 @@ pub fn init_logger() {
 #[uniffi::export]
 pub fn initLogger() {
     init_logger();
+}
+
+/// Fetches the network environment details from the network name and initializes the environment,
+/// including exporting to the environment
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn initEnvironment(network_name: &str) -> Result<(), VpnError> {
+    RUNTIME.block_on(init_environment(network_name))
+}
+
+async fn init_environment(network_name: &str) -> Result<(), VpnError> {
+    let network = nym_vpn_network_config::Network::fetch(network_name).map_err(|err| {
+        VpnError::InternalError {
+            details: err.to_string(),
+        }
+    })?;
+
+    // To bridge with old code, export to environment. New code should now rely on this.
+    network.export_to_env();
+
+    let mut guard = NETWORK_ENVIRONMENT.lock().await;
+    *guard = Some(network);
+
+    Ok(())
+}
+
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn currentEnvironment() -> Result<NetworkEnvironment, VpnError> {
+    RUNTIME.block_on(current_environment())
+}
+
+async fn current_environment() -> Result<NetworkEnvironment, VpnError> {
+    let network = NETWORK_ENVIRONMENT.lock().await.clone();
+    network
+        .map(NetworkEnvironment::from)
+        .ok_or(VpnError::InternalError {
+            details: "No network environment initialized".to_string(),
+        })
 }
 
 // Fetch the network environment details from the network name.
