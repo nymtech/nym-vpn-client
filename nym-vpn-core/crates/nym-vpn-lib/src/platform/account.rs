@@ -220,3 +220,9 @@ pub(super) async fn get_account_state() -> Result<AccountStateSummary, VpnError>
     let account_state_summary = shared_account_state.lock().await.clone();
     Ok(AccountStateSummary::from(account_state_summary))
 }
+
+pub(super) async fn get_account_id() -> Result<String, VpnError> {
+    let shared_account_state = get_shared_account_state().await?;
+    let account_state = shared_account_state.lock().await.clone();
+    account_state.account_id().ok_or(VpnError::NoAccountStored)
+}

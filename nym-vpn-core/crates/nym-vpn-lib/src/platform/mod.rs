@@ -170,6 +170,27 @@ async fn fetch_system_messages(network_name: &str) -> Result<Vec<SystemMessage>,
         })
 }
 
+// NOTE: requires the account controller is running
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn fetchAccountLinks(network_name: &str, locale: &str) -> Result<AccountLinks, VpnError> {
+    RUNTIME.block_on(fetch_account_links(network_name, locale))
+}
+
+async fn fetch_account_links(network_name: &str, locale: &str) -> Result<AccountLinks, VpnError> {
+    let account_id = account::get_account_id().await?;
+    nym_vpn_network_config::Network::fetch(network_name)
+        .and_then(|network| {
+            network
+                .nym_vpn_network
+                .try_into_parsed_links(locale, &account_id)
+        })
+        .map(AccountLinks::from)
+        .map_err(|err| VpnError::InternalError {
+            details: err.to_string(),
+        })
+}
+
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn storeAccountMnemonic(mnemonic: String, path: String) -> Result<(), VpnError> {

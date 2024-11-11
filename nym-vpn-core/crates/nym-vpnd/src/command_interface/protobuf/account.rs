@@ -21,7 +21,7 @@ fn into_mnemonic(
     mnemonic: nym_vpn_account_controller::shared_state::MnemonicState,
 ) -> nym_vpn_proto::MnemonicState {
     match mnemonic {
-        nym_vpn_account_controller::shared_state::MnemonicState::Stored => {
+        nym_vpn_account_controller::shared_state::MnemonicState::Stored { .. } => {
             nym_vpn_proto::MnemonicState::Stored
         }
         nym_vpn_account_controller::shared_state::MnemonicState::NotStored => {

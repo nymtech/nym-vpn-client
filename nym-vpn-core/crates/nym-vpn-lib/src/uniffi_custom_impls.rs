@@ -691,7 +691,7 @@ impl From<nym_vpn_account_controller::shared_state::MnemonicState> for MnemonicS
             nym_vpn_account_controller::shared_state::MnemonicState::NotStored => {
                 MnemonicState::NotStored
             }
-            nym_vpn_account_controller::shared_state::MnemonicState::Stored => {
+            nym_vpn_account_controller::shared_state::MnemonicState::Stored { .. } => {
                 MnemonicState::Stored
             }
         }
@@ -712,11 +712,13 @@ impl From<nym_vpn_account_controller::shared_state::AccountState> for AccountSta
             nym_vpn_account_controller::shared_state::AccountState::NotRegistered => {
                 AccountState::NotRegistered
             }
-            nym_vpn_account_controller::shared_state::AccountState::Inactive => {
+            nym_vpn_account_controller::shared_state::AccountState::Inactive { .. } => {
                 AccountState::Inactive
             }
-            nym_vpn_account_controller::shared_state::AccountState::Active => AccountState::Active,
-            nym_vpn_account_controller::shared_state::AccountState::DeleteMe => {
+            nym_vpn_account_controller::shared_state::AccountState::Active { .. } => {
+                AccountState::Active
+            }
+            nym_vpn_account_controller::shared_state::AccountState::DeleteMe { .. } => {
                 AccountState::DeleteMe
             }
         }
