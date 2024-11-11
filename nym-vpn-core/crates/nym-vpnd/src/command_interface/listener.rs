@@ -797,9 +797,7 @@ impl NymVpnd for CommandInterface {
 
         let response = match result {
             Ok(tickets) => {
-                dbg!(&tickets);
                 let summary = tickets.remaining();
-                dbg!(&summary);
                 let available_tickets = nym_vpn_proto::AvailableTickets {
                     mixnet_entry: summary.mixnet_entry_amount,
                     mixnet_exit: summary.mixnet_exit_amount,
