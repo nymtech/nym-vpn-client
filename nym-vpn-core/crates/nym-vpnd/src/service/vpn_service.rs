@@ -126,6 +126,7 @@ pub enum VpnServiceCommand {
     GetDeviceZkNyms(oneshot::Sender<Result<(), AccountError>>, ()),
     GetZkNymsAvailableForDownload(oneshot::Sender<Result<(), AccountError>>, ()),
     GetZkNymById(oneshot::Sender<Result<(), AccountError>>, String),
+    ConfirmZkNymIdDownloaded(oneshot::Sender<Result<(), AccountError>>, String),
     GetAvailableTickets(
         oneshot::Sender<Result<AvailableTicketbooks, AccountError>>,
         (),
@@ -169,6 +170,9 @@ impl fmt::Display for VpnServiceCommand {
                 write!(f, "GetZkNymsAvailableForDownload")
             }
             VpnServiceCommand::GetZkNymById(..) => write!(f, "GetZkNymById"),
+            VpnServiceCommand::ConfirmZkNymIdDownloaded(..) => {
+                write!(f, "ConfirmZkNymIdDownloaded")
+            }
             VpnServiceCommand::GetAvailableTickets(..) => write!(f, "GetAvailableTickets"),
             VpnServiceCommand::FetchRawAccountSummary(..) => write!(f, "FetchRawAccountSummery"),
             VpnServiceCommand::FetchRawDevices(..) => write!(f, "FetchRawDevices"),
@@ -655,6 +659,10 @@ where
                 let result = self.handle_get_zk_nym_by_id(id).await;
                 let _ = tx.send(result);
             }
+            VpnServiceCommand::ConfirmZkNymIdDownloaded(tx, id) => {
+                let result = self.handle_confirm_zk_nym_id_downloaded(id).await;
+                let _ = tx.send(result);
+            }
             VpnServiceCommand::GetAvailableTickets(tx, ()) => {
                 let result = self.handle_get_available_tickets().await;
                 let _ = tx.send(result);
@@ -1061,6 +1069,14 @@ where
     async fn handle_get_zk_nym_by_id(&self, id: String) -> Result<(), AccountError> {
         self.account_command_tx
             .send(AccountCommand::GetZkNymById(id))
+            .map_err(|err| AccountError::SendCommand {
+                source: Box::new(err),
+            })
+    }
+
+    async fn handle_confirm_zk_nym_id_downloaded(&self, id: String) -> Result<(), AccountError> {
+        self.account_command_tx
+            .send(AccountCommand::ConfirmZkNymIdDownloaded(id))
             .map_err(|err| AccountError::SendCommand {
                 source: Box::new(err),
             })

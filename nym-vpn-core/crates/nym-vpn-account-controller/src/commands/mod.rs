@@ -26,12 +26,13 @@ pub enum AccountCommand {
     GetDeviceZkNym,
     GetZkNymsAvailableForDownload,
     GetZkNymById(String),
+    ConfirmZkNymIdDownloaded(String),
     GetAvailableTickets(oneshot::Sender<Result<AvailableTicketbooks, Error>>),
 }
 
 impl AccountCommand {
     // TODO: use strum crate
-    fn kind(&self) -> &'static str {
+    pub fn kind(&self) -> &'static str {
         match self {
             AccountCommand::UpdateAccountState => "update_account_state",
             AccountCommand::RegisterDevice => "register_device",
@@ -39,15 +40,10 @@ impl AccountCommand {
             AccountCommand::GetDeviceZkNym => "get_device_zk_nym",
             AccountCommand::GetZkNymsAvailableForDownload => "get_zk_nyms_available_for_download",
             AccountCommand::GetZkNymById(_) => "get_zk_nym_by_id",
+            AccountCommand::ConfirmZkNymIdDownloaded(_) => "confirm_zk_nym_id_download",
             AccountCommand::GetAvailableTickets(_) => "get_available_tickets",
         }
     }
-}
-
-#[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
-pub(crate) enum AccountCommandError {
-    #[error("failed to get available tickets: {0}")]
-    GetAvailableTickets(String),
 }
 
 #[derive(Clone, Debug)]
@@ -143,6 +139,7 @@ impl CommandHandler {
             AccountCommand::GetDeviceZkNym => todo!(),
             AccountCommand::GetZkNymsAvailableForDownload => todo!(),
             AccountCommand::GetZkNymById(_) => todo!(),
+            AccountCommand::ConfirmZkNymIdDownloaded(_) => todo!(),
             AccountCommand::GetAvailableTickets(_) => todo!(),
         }
         .inspect(|_result| {

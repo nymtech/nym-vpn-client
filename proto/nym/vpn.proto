@@ -754,6 +754,14 @@ message GetZkNymByIdResponse {
   AccountError error = 2;
 }
 
+message ConfirmZkNymDownloadedRequest {
+  string id = 1;
+}
+
+message ConfirmZkNymDownloadedResponse {
+  AccountError error = 2;
+}
+
 message AvailableTickets {
   uint64 mixnet_entry = 1;
   uint64 mixnet_exit = 2;
@@ -892,6 +900,8 @@ service NymVpnd {
   rpc GetZkNymsAvailableForDownload (GetZkNymsAvailableForDownloadRequest) returns (GetZkNymsAvailableForDownloadResponse) {}
 
   rpc GetZkNymById (GetZkNymByIdRequest) returns (GetZkNymByIdResponse) {}
+
+  rpc ConfirmZkNymDownloaded (ConfirmZkNymDownloadedRequest) returns (ConfirmZkNymDownloadedResponse) {}
 
   rpc GetAvailableTickets (GetAvailableTicketsRequest) returns (GetAvailableTicketsResponse) {}
 

@@ -19,7 +19,7 @@ use crate::{
         NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymVpnAccountResponse,
         NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnSubscription,
         NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse, NymVpnZkNym, NymVpnZkNym2,
-        NymVpnZkNymResponse,
+        NymVpnZkNymResponse, StatusOk,
     },
     routes,
     types::{Device, GatewayMinPerformance, GatewayType, VpnApiAccount},
@@ -189,6 +189,7 @@ impl VpnApiClient {
         nym_http_api_client::parse_response(response, false).await
     }
 
+    // TODO: add support for delete in the upstream crate
     fn create_delete_request(
         &self,
         path: PathSegments<'_>,
@@ -222,13 +223,44 @@ impl VpnApiClient {
             None => request,
         };
 
-        let response = request.send().await.unwrap();
+        let response = request.send().await.map_err(|err| {
+            // TODO: we can't use HttpClientError::RequestFailure here because of reqwest
+            // version mismatch
+            // Once we implement delete in the upstream crate this problem goes away
+            HttpClientError::GenericRequestFailure(err.to_string())
+        })?;
 
-        // nym_http_api_client::parse_response(response, false).await
-        let response_text = response.text().await.unwrap();
+        let status = response.status();
 
-        let response_json = serde_json::from_str(&response_text).unwrap();
-        Ok(response_json)
+        if status.is_success() {
+            let response_text = response
+                .text()
+                .await
+                .map_err(|e| HttpClientError::GenericRequestFailure(e.to_string()))?;
+            tracing::info!("Response: {:#?}", response_text);
+            let response_json = serde_json::from_str(&response_text)
+                .map_err(|e| HttpClientError::GenericRequestFailure(e.to_string()))?;
+            Ok(response_json)
+        //} else if status == reqwest::StatusCode::NOT_FOUND {
+        //    Err(HttpClientError::NotFound)
+        } else {
+            let Ok(response_text) = response.text().await else {
+                return Err(HttpClientError::GenericRequestFailure(format!(
+                    "Request failure: {status}",
+                )));
+            };
+
+            tracing::info!("Response: {:#?}", response_text);
+
+            if let Ok(_request_error) = serde_json::from_str::<T>(&response_text) {
+                Err(HttpClientError::GenericRequestFailure(format!(
+                    "Endpoint failure: status: {}",
+                    status,
+                )))
+            } else {
+                Err(HttpClientError::GenericRequestFailure(response_text))
+            }
+        }
     }
 
     // ACCOUNT
@@ -459,7 +491,7 @@ impl VpnApiClient {
         account: &VpnApiAccount,
         device: &Device,
         id: &str,
-    ) -> Result<NymVpnZkNym2> {
+    ) -> Result<StatusOk> {
         self.delete_authorized(
             &[
                 routes::PUBLIC,
@@ -475,7 +507,7 @@ impl VpnApiClient {
             Some(device),
         )
         .await
-        .map_err(VpnApiClientError::FailedToGetZkNymById)
+        .map_err(VpnApiClientError::FailedToConfirmZkNymDownloadById)
     }
 
     // FREEPASS

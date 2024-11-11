@@ -42,6 +42,9 @@ pub enum VpnApiClientError {
     #[error("failed to get zk-nym by id")]
     FailedToGetZkNymById(#[source] HttpClientError<NymErrorResponse>),
 
+    #[error("failed to confirm zk-nym download")]
+    FailedToConfirmZkNymDownloadById(#[source] HttpClientError<NymErrorResponse>),
+
     #[error("failed to get free passes")]
     FailedToGetFreePasses(#[source] HttpClientError<ErrorMessage>),
 

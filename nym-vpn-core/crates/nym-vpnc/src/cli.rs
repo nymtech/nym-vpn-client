@@ -50,6 +50,7 @@ pub(crate) enum Command {
     GetDeviceZkNym,
     GetZkNymsAvailableForDownload,
     GetZkNymById(GetZkNymByIdArgs),
+    ConfirmZkNymDownloaded(ConfirmZkNymDownloadedArgs),
     GetAvailableTickets,
     FetchRawAccountSummary,
     FetchRawDevices,
@@ -206,6 +207,14 @@ pub(crate) struct ResetDeviceIdentityArgs {
 #[derive(Args)]
 pub(crate) struct GetZkNymByIdArgs {
     /// The ID of the ZK Nym to fetch.
+    #[arg(short, long)]
+    pub(crate) id: String,
+}
+
+#[derive(Args)]
+pub(crate) struct ConfirmZkNymDownloadedArgs {
+    /// The ID of the ZK Nym to confirm.
+    #[arg(short, long)]
     pub(crate) id: String,
 }
 

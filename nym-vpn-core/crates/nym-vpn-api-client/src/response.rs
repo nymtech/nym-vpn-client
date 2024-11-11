@@ -130,6 +130,8 @@ pub enum NymVpnRefundUserReason {
     Other,
 }
 
+// Legacy type, because the blinded_shares response for the POST seems to be different than the GET
+// Remove once it's not needed anymore
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct NymVpnZkNym {
     pub created_on_utc: String,
@@ -460,4 +462,9 @@ impl fmt::Display for UnexpectedError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.message)
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StatusOk {
+    status: String,
 }

@@ -32,7 +32,7 @@ use crate::{
             construct_zk_nym_request_data, poll_zk_nym, request_zk_nym, PollingResult,
             ZkNymRequestData,
         },
-        AccountCommand, AccountCommandError, AccountCommandResult, CommandHandler,
+        AccountCommand, AccountCommandResult, CommandHandler,
     },
     error::Error,
     shared_state::{MnemonicState, ReadyToRegisterDevice, SharedAccountState},
@@ -302,7 +302,7 @@ where
             .await
             .map_err(Error::ConfirmZkNymDownloaded)?;
 
-        tracing::info!("Confirmed zk-nym downloaded: {:#?}", response);
+        tracing::info!("Confirmed zk-nym downloaded: {:?}", response);
         Ok(())
     }
 
@@ -530,7 +530,7 @@ where
             .map(|guard| {
                 guard
                     .values()
-                    .any(|running_command| matches!(running_command, command))
+                    .any(|running_command| running_command == command.kind())
             })
             .map_err(Error::internal)
     }
@@ -558,6 +558,9 @@ where
                 self.handle_get_zk_nyms_available_for_download().await
             }
             AccountCommand::GetZkNymById(id) => self.handle_get_zk_nym_by_id(&id).await,
+            AccountCommand::ConfirmZkNymIdDownloaded(id) => {
+                self.confirm_zk_nym_downloaded(&id).await
+            }
             AccountCommand::GetAvailableTickets(result_tx) => {
                 let result = self.handle_get_available_tickets().await;
                 result_tx

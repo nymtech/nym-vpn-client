@@ -13,7 +13,8 @@ use tokio::sync::{broadcast, mpsc::UnboundedSender};
 use nym_vpn_api_client::types::GatewayMinPerformance;
 use nym_vpn_lib::tunnel_state_machine::MixnetEvent;
 use nym_vpn_proto::{
-    nym_vpnd_server::NymVpnd, AccountError, ConnectRequest, ConnectResponse, ConnectionStateChange,
+    nym_vpnd_server::NymVpnd, AccountError, ConfirmZkNymDownloadedRequest,
+    ConfirmZkNymDownloadedResponse, ConnectRequest, ConnectResponse, ConnectionStateChange,
     ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
     FetchRawAccountSummaryRequest, FetchRawAccountSummaryResponse, FetchRawDevicesRequest,
     FetchRawDevicesResponse, GetAccountIdentityRequest, GetAccountIdentityResponse,
@@ -778,6 +779,26 @@ impl NymVpnd for CommandInterface {
         };
 
         tracing::debug!("Returning get zk nym by id response");
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn confirm_zk_nym_downloaded(
+        &self,
+        request: tonic::Request<ConfirmZkNymDownloadedRequest>,
+    ) -> Result<tonic::Response<ConfirmZkNymDownloadedResponse>, tonic::Status> {
+        let id = request.into_inner().id;
+
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_confirm_zk_nym_downloaded(id)
+            .await?;
+
+        let response = match result {
+            Ok(()) => ConfirmZkNymDownloadedResponse { error: None },
+            Err(err) => ConfirmZkNymDownloadedResponse {
+                error: Some(AccountError::from(err)),
+            },
+        };
+
         Ok(tonic::Response::new(response))
     }
 

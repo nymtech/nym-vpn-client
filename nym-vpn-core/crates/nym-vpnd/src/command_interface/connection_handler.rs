@@ -241,6 +241,14 @@ impl CommandInterfaceConnectionHandler {
             .await
     }
 
+    pub(crate) async fn handle_confirm_zk_nym_downloaded(
+        &self,
+        id: String,
+    ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::ConfirmZkNymIdDownloaded, id)
+            .await
+    }
+
     pub(crate) async fn handle_get_available_tickets(
         &self,
     ) -> Result<Result<AvailableTicketbooks, AccountError>, VpnCommandSendError> {
