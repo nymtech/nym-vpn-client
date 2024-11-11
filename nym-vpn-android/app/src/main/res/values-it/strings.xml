@@ -6,7 +6,7 @@
     <string name="settings">Impostazioni</string>
     <string name="connected">Connesso</string>
     <string name="disconnected">Disconnesso</string>
-    <string name="connecting">Connessione</string>
+    <string name="connecting">Connessione in corso</string>
     <string name="five_hop_mixnet">Anonimo (mixnet)</string>
     <string name="two_hop_mixnet">Veloce (WireGuard)</string>
     <string name="first_hop">Posizione d\'entrata</string>
@@ -166,4 +166,11 @@
     <string name="selected_entry_unavailable">Il paese di ingresso selezionato non è disponibile. Seleziona un altro paese di ingresso.</string>
     <string name="network_error">Si è verificato un problema di connessione di rete. Controlla la tua connessione e riprova.</string>
     <string name="state_error">"Questo non dovrebbe accadere, ma si è verificato un errore di stato. Riavvia l’app e riprova. "</string>
+    <string name="bandwidth_alert">Avviso di banda</string>
+    <string name="no_bandwidth">Banda esaurita.</string>
+    <string name="out_of_bandwidth_error">Limite di banda della credenziale raggiunto.</string>
+    <string name="low_bandwidth">"Banda bassa! Banda rimanente: "</string>
+    <string name="mnemonic_example">es. smoke artefact velvet skull pop palace tortoise damage rough...</string>
+    <string name="log_out">Esci</string>
+    <string name="dynamic">Dinamico</string>
 </resources>
