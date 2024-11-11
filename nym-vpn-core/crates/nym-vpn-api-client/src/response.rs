@@ -133,7 +133,7 @@ pub enum NymVpnRefundUserReason {
 // Legacy type, because the blinded_shares response for the POST seems to be different than the GET
 // Remove once it's not needed anymore
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct NymVpnZkNym {
+pub struct NymVpnZkNymPost {
     pub created_on_utc: String,
     pub last_updated_utc: String,
     pub id: String,
@@ -146,7 +146,7 @@ pub struct NymVpnZkNym {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct NymVpnZkNym2 {
+pub struct NymVpnZkNym {
     pub created_on_utc: String,
     pub last_updated_utc: String,
     pub id: String,
@@ -174,7 +174,7 @@ pub struct NymVpnZkNymResponse {
     pub total_items: u64,
     pub page: u64,
     pub page_size: u64,
-    pub items: Vec<NymVpnZkNym>,
+    pub items: Vec<NymVpnZkNymPost>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]

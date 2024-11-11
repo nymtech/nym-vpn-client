@@ -12,13 +12,12 @@ use nym_ecash_time::EcashTime;
 use nym_http_api_client::UserAgent;
 use nym_vpn_api_client::{
     response::{
-        NymVpnAccountSummaryResponse, NymVpnDevicesResponse, NymVpnZkNym, NymVpnZkNym2,
+        NymVpnAccountSummaryResponse, NymVpnDevicesResponse, NymVpnZkNym, NymVpnZkNymPost,
         NymVpnZkNymStatus,
     },
     types::{Device, VpnApiAccount},
 };
 use nym_vpn_store::VpnStorage;
-use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use tokio::{
     sync::mpsc::{UnboundedReceiver, UnboundedSender},
     task::{JoinError, JoinSet},
@@ -36,7 +35,7 @@ use crate::{
     },
     error::Error,
     shared_state::{MnemonicState, ReadyToRegisterDevice, SharedAccountState},
-    storage::{AccountStorage, AvailableTicketbook, VpnCredentialStorage},
+    storage::{AccountStorage, VpnCredentialStorage},
     AvailableTicketbooks,
 };
 
@@ -177,7 +176,7 @@ where
     async fn spawn_polling_task(
         &mut self,
         request: ZkNymRequestData,
-        response: NymVpnZkNym,
+        response: NymVpnZkNymPost,
         account: VpnApiAccount,
         device: Device,
     ) {
@@ -189,7 +188,7 @@ where
 
     async fn import_zk_nym(
         &mut self,
-        response: NymVpnZkNym2,
+        response: NymVpnZkNym,
         ticketbook_type: TicketType,
         request_info: RequestInfo,
         request: ZkNymRequestData,

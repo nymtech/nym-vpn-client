@@ -14,7 +14,7 @@ use nym_credentials::IssuedTicketBook;
 use nym_credentials_interface::{PublicKeyUser, RequestInfo, TicketType};
 use nym_ecash_time::EcashTime;
 use nym_vpn_api_client::{
-    response::{NymVpnZkNym, NymVpnZkNym2, NymVpnZkNymStatus},
+    response::{NymVpnZkNym, NymVpnZkNymPost, NymVpnZkNymStatus},
     types::{Device, VpnApiAccount},
     VpnApiClientError,
 };
@@ -65,7 +65,7 @@ pub(crate) async fn request_zk_nym(
     account: &VpnApiAccount,
     device: &Device,
     vpn_api_client: &nym_vpn_api_client::VpnApiClient,
-) -> (ZkNymRequestData, Result<NymVpnZkNym, Error>) {
+) -> (ZkNymRequestData, Result<NymVpnZkNymPost, Error>) {
     let response = vpn_api_client
         .request_zk_nym(
             account,
@@ -82,7 +82,7 @@ pub(crate) async fn request_zk_nym(
 
 pub(crate) async fn poll_zk_nym(
     request: ZkNymRequestData,
-    response: NymVpnZkNym,
+    response: NymVpnZkNymPost,
     account: VpnApiAccount,
     device: Device,
     api_client: nym_vpn_api_client::VpnApiClient,
@@ -212,8 +212,8 @@ pub(crate) async fn unblind_and_aggregate(
 
 #[derive(Debug)]
 pub(crate) enum PollingResult {
-    Finished(NymVpnZkNym2, TicketType, Box<RequestInfo>, ZkNymRequestData),
-    Timeout(NymVpnZkNym2),
+    Finished(NymVpnZkNym, TicketType, Box<RequestInfo>, ZkNymRequestData),
+    Timeout(NymVpnZkNym),
     Error(PollingError),
 }
 

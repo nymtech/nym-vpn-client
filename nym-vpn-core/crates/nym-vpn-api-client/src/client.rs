@@ -18,7 +18,7 @@ use crate::{
     response::{
         NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymVpnAccountResponse,
         NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnSubscription,
-        NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse, NymVpnZkNym, NymVpnZkNym2,
+        NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse, NymVpnZkNym, NymVpnZkNymPost,
         NymVpnZkNymResponse, StatusOk,
     },
     routes,
@@ -411,7 +411,7 @@ impl VpnApiClient {
         ecash_pubkey: String,
         expiration_date: String,
         ticketbook_type: String,
-    ) -> Result<NymVpnZkNym> {
+    ) -> Result<NymVpnZkNymPost> {
         tracing::info!("Requesting zk-nym for type: {}", ticketbook_type);
         let body = RequestZkNymRequestBody {
             withdrawal_request,
@@ -467,7 +467,7 @@ impl VpnApiClient {
         account: &VpnApiAccount,
         device: &Device,
         id: &str,
-    ) -> Result<NymVpnZkNym2> {
+    ) -> Result<NymVpnZkNym> {
         self.get_authorized_debug(
             &[
                 routes::PUBLIC,
