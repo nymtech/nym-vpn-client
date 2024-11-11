@@ -67,7 +67,7 @@ impl ConnectedTunnel {
         1280
     }
 
-    pub fn run(
+    pub async fn run(
         self,
         tun_device: AsyncDevice,
         dns: Vec<IpAddr>,
