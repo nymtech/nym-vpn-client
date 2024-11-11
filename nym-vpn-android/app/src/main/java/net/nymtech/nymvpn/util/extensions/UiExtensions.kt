@@ -62,9 +62,9 @@ fun ErrorStateReason.toUserMessage(context: Context): String {
 		ErrorStateReason.DNS -> "A dns issue occurred"
 		ErrorStateReason.TUN_DEVICE -> "A tunnel device issue occurred"
 		ErrorStateReason.TUNNEL_PROVIDER -> "A tunnel provider issue occurred"
-		ErrorStateReason.ESTABLISH_MIXNET_CONNECTION -> "Failed to establish mixnet connection"
-		ErrorStateReason.ESTABLISH_WIREGUARD_CONNECTION -> "Failed to establish wireguard connection"
-		ErrorStateReason.TUNNEL_DOWN -> "Tunnel down error"
 		ErrorStateReason.INTERNAL -> "Internal error"
+		ErrorStateReason.SAME_ENTRY_AND_EXIT_GATEWAY -> "Entry and exit must be different gateways"
+		ErrorStateReason.INVALID_ENTRY_GATEWAY_COUNTRY -> "Entry country not available. Select a different country."
+		ErrorStateReason.INVALID_EXIT_GATEWAY_COUNTRY -> "Exit country not available. Select a different country."
 	}
 }

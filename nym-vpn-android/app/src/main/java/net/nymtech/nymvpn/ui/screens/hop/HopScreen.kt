@@ -118,8 +118,8 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 	}
 
 	val selectedCountry = when (gatewayLocation) {
-		GatewayLocation.EXIT -> appUiState.settings.lastHopCountry
-		GatewayLocation.ENTRY -> appUiState.settings.firstHopCountry
+		GatewayLocation.EXIT -> appUiState.exitCountry
+		GatewayLocation.ENTRY -> appUiState.entryCountry
 	}
 
 	val queriedCountries =
@@ -214,10 +214,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 		}
 		item {
 			if (countries.isNotEmpty()) {
-				// TODO disable for now
-// 				val lowLatencyCountry = uiState.lowLatencyCountry
-// 				if (lowLatencyCountry != null) {
-// 					val name = StringUtils.buildCountryNameString(lowLatencyCountry, context)
+// 				if (gatewayLocation == GatewayLocation.ENTRY) {
 // 					val icon = ImageVector.vectorResource(R.drawable.bolt)
 // 					SelectionItemButton(
 // 						{
@@ -236,16 +233,15 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 // 								tint = MaterialTheme.colorScheme.onSurface,
 // 							)
 // 						},
-// 						name,
+// 						stringResource(R.string.automatic),
 // 						onClick = {
-// 							viewModel.onSelected(lowLatencyCountry)
-// 							navController.go(NavItem.Main.route)
+// 							viewModel.onSelected(Country(isLowLatency = true), gatewayLocation)
+// 							navController.navigateAndForget(Route.Main())
 // 						},
-// 						trailingText =
-// 						if (lowLatencyCountry == uiState.selected) {
-// 							stringResource(id = R.string.is_selected)
-// 						} else {
-// 							null
+// 						trailing = {
+// 							if (selectedCountry.isLowLatency == true) {
+// 								SelectedLabel()
+// 							}
 // 						},
 // 					)
 // 				}
@@ -285,7 +281,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 					navController.navigateAndForget(Route.Main())
 				},
 				trailing = {
-					if (it.isoCode == selectedCountry.isoCode) {
+					if (it.isoCode == selectedCountry.isoCode && !selectedCountry.isLowLatency) {
 						SelectedLabel()
 					}
 				},

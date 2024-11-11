@@ -100,27 +100,36 @@ async fn stop_vpn_inner() -> Result<(), VpnError> {
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn startAccountController(data_dir: String) -> Result<(), VpnError> {
+pub fn init(data_dir: String) -> Result<(), VpnError> {
+    init_logger();
+    start_account_controller(data_dir)
+}
+
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn shutdown() -> Result<(), VpnError> {
+    RUNTIME.block_on(account::stop_account_controller_inner())
+}
+
+fn start_account_controller(data_dir: String) -> Result<(), VpnError> {
     RUNTIME.block_on(account::start_account_controller_inner(PathBuf::from(
         data_dir,
     )))
 }
 
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn stopAccountController() -> Result<(), VpnError> {
-    RUNTIME.block_on(account::stop_account_controller_inner())
-}
-
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn initLogger() {
+pub fn init_logger() {
     let log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
     info!("Setting log level: {}", log_level);
     #[cfg(target_os = "ios")]
     swift::init_logs(log_level);
     #[cfg(target_os = "android")]
     android::init_logs(log_level);
+}
+
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn initLogger() {
+    init_logger();
 }
 
 // Fetch the network environment details from the network name.
@@ -178,12 +187,12 @@ pub fn getAccountState() -> Result<AccountStateSummary, VpnError> {
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn getGatewayCountries(
-    api_url: Url,
-    nym_vpn_api_url: Option<Url>,
     gw_type: GatewayType,
     user_agent: Option<UserAgent>,
     min_gateway_performance: Option<GatewayMinPerformance>,
 ) -> Result<Vec<Location>, VpnError> {
+    let (api_url, nym_vpn_api_url) = get_nym_urls()?;
+
     RUNTIME.block_on(get_gateway_countries(
         api_url,
         nym_vpn_api_url,
@@ -195,7 +204,7 @@ pub fn getGatewayCountries(
 
 async fn get_gateway_countries(
     api_url: Url,
-    nym_vpn_api_url: Option<Url>,
+    nym_vpn_api_url: Url,
     gw_type: GatewayType,
     user_agent: Option<UserAgent>,
     min_gateway_performance: Option<GatewayMinPerformance>,
@@ -206,7 +215,7 @@ async fn get_gateway_countries(
     let min_gateway_performance = min_gateway_performance.map(|p| p.try_into()).transpose()?;
     let directory_config = nym_gateway_directory::Config {
         api_url,
-        nym_vpn_api_url,
+        nym_vpn_api_url: Some(nym_vpn_api_url),
         min_gateway_performance,
     };
     GatewayClient::new(directory_config, user_agent)?
@@ -218,11 +227,9 @@ async fn get_gateway_countries(
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn getLowLatencyEntryCountry(
-    api_url: Url,
-    vpn_api_url: Option<Url>,
-    user_agent: UserAgent,
-) -> Result<Location, VpnError> {
+pub fn getLowLatencyEntryCountry(user_agent: UserAgent) -> Result<Location, VpnError> {
+    let (api_url, vpn_api_url) = get_nym_urls()?;
+
     RUNTIME.block_on(get_low_latency_entry_country(
         api_url,
         vpn_api_url,
@@ -232,12 +239,12 @@ pub fn getLowLatencyEntryCountry(
 
 async fn get_low_latency_entry_country(
     api_url: Url,
-    vpn_api_url: Option<Url>,
+    vpn_api_url: Url,
     user_agent: UserAgent,
 ) -> Result<Location, VpnError> {
     let config = nym_gateway_directory::Config {
         api_url,
-        nym_vpn_api_url: vpn_api_url,
+        nym_vpn_api_url: Some(vpn_api_url),
         min_gateway_performance: None,
     };
     GatewayClient::new(config, user_agent.into())?
@@ -254,8 +261,6 @@ async fn get_low_latency_entry_country(
 
 #[derive(uniffi::Record)]
 pub struct VPNConfig {
-    pub api_url: Url,
-    pub vpn_api_url: Option<Url>,
     pub entry_gateway: EntryPoint,
     pub exit_router: ExitPoint,
     pub enable_two_hop: bool,
@@ -299,6 +304,29 @@ impl StateMachineHandle {
     }
 }
 
+fn get_api_url() -> Option<Url> {
+    match env::var("NYM_API") {
+        Ok(url) => Url::parse(&url).ok(),
+        Err(_) => None,
+    }
+}
+
+fn get_nym_api_url() -> Option<Url> {
+    match env::var("NYM_VPN_API") {
+        Ok(url) => Url::parse(&url).ok(),
+        Err(_) => None,
+    }
+}
+
+fn get_nym_urls() -> Result<(Url, Url), VpnError> {
+    match (get_api_url(), get_nym_api_url()) {
+        (Some(api_url), Some(nym_vpn_api_url)) => Ok((api_url, nym_vpn_api_url)),
+        _ => Err(VpnError::InternalError {
+            details: "NYM_API and NYM_VPN_API environment variables must be set".to_string(),
+        }),
+    }
+}
+
 async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, VpnError> {
     let tunnel_type = if config.enable_two_hop {
         TunnelType::Wireguard
@@ -309,9 +337,11 @@ async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, Vp
     let entry_point = nym_gateway_directory::EntryPoint::from(config.entry_gateway);
     let exit_point = nym_gateway_directory::ExitPoint::from(config.exit_router);
 
+    let (api_url, nym_vpn_api_url) = get_nym_urls()?;
+
     let gateway_config = GatewayDirectoryConfig {
-        api_url: config.api_url,
-        nym_vpn_api_url: config.vpn_api_url,
+        api_url,
+        nym_vpn_api_url: Some(nym_vpn_api_url),
         ..Default::default()
     };
 

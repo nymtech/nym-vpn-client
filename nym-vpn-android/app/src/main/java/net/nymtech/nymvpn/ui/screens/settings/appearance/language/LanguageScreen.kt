@@ -79,7 +79,6 @@ fun LanguageScreen(appViewModel: AppViewModel, localeStorage: LocaleStorage) {
 	fun onChangeLocale(locale: String) {
 		Timber.d("Setting preferred locale: $locale")
 		localeStorage.setPreferredLocale(locale)
-		LocaleUtil.applyLocalizedContext(context, locale)
 		navController.navigateAndForget(Route.Main(changeLanguage = true))
 	}
 
