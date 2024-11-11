@@ -3,10 +3,6 @@ package net.nymtech.nymvpn.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.sentry.Instrumenter
-import io.sentry.android.core.SentryAndroid
-import io.sentry.opentelemetry.OpenTelemetryLinkErrorEventProcessor
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,12 +10,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import net.nymtech.nymvpn.BuildConfig
-import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
-import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.service.country.CountryCacheService
 import net.nymtech.nymvpn.service.tunnel.TunnelManager
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
@@ -36,7 +28,6 @@ constructor(
 	gatewayRepository: GatewayRepository,
 	private val countryCacheService: CountryCacheService,
 	private val tunnelManager: TunnelManager,
-	@IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
 	private val _navBarState = MutableStateFlow(NavBarState())
@@ -103,30 +94,6 @@ constructor(
 			countryCacheService.updateWgCountriesCache().onSuccess {
 				Timber.d("Wg countries updated")
 			}.onFailure { Timber.w("Failed to get wg countries: ${it.message}") }
-		}
-		launch {
-			Timber.d("Configuring sentry")
-			configureSentry()
-		}
-	}
-
-	private suspend fun configureSentry() {
-		withContext(ioDispatcher) {
-			if (settingsRepository.isErrorReportingEnabled()) {
-				SentryAndroid.init(NymVpn.instance) { options ->
-					options.enableAllAutoBreadcrumbs(true)
-					options.isEnableUserInteractionTracing = true
-					options.isEnableUserInteractionBreadcrumbs = true
-					options.dsn = BuildConfig.SENTRY_DSN
-					options.sampleRate = 1.0
-					options.tracesSampleRate = 1.0
-					options.profilesSampleRate = 1.0
-					options.instrumenter = Instrumenter.OTEL
-					options.addEventProcessor(OpenTelemetryLinkErrorEventProcessor())
-					options.environment =
-						if (BuildConfig.DEBUG) Constants.SENTRY_DEV_ENV else Constants.SENTRY_PROD_ENV
-				}
-			}
 		}
 	}
 }
