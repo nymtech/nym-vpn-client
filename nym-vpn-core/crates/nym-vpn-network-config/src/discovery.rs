@@ -18,6 +18,17 @@ use super::{nym_network::NymNetwork, MAX_FILE_AGE, NETWORKS_SUBDIR};
 const DISCOVERY_FILE: &str = "discovery.json";
 const DISCOVERY_WELLKNOWN: &str = "https://nymvpn.com/api/public/v1/.wellknown";
 
+const NYM_NETWORK_DETAILS_PATH: &str = "/v1/network/details";
+const NYM_VP_NETWORK_CURRENT_ENV_PATH: &str = "/public/v1/.wellknown/current-env.json";
+
+fn nym_network_details_endpoint(nym_api_url: &Url) -> String {
+    format!("{}/{}", nym_api_url, NYM_NETWORK_DETAILS_PATH)
+}
+
+fn nym_vpn_network_details_endpoint(nym_vpn_api_url: &Url) -> String {
+    format!("{}/{}", nym_vpn_api_url, NYM_VP_NETWORK_CURRENT_ENV_PATH)
+}
+
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
 pub struct Discovery {
     // Base network setup
@@ -151,7 +162,7 @@ impl Discovery {
 
     pub fn fetch_nym_network_details(&self) -> anyhow::Result<NymNetwork> {
         // TODO: integrate with validator-client and/or nym-vpn-api-client
-        let url = format!("{}/v1/network/details", self.nym_api_url);
+        let url = nym_network_details_endpoint(&self.nym_api_url);
         tracing::debug!("Fetching nym network details from: {}", url);
         let network_details: NymNetworkDetailsResponse = reqwest::blocking::get(url.clone())
             .with_context(|| format!("Failed to fetch network details from {}", url))?
@@ -202,7 +213,7 @@ pub(crate) async fn fetch_nym_network_details(
     nym_api_url: &Url,
 ) -> anyhow::Result<NymNetworkDetailsResponse> {
     // TODO: integrate with validator-client and/or nym-vpn-api-client
-    let url = format!("{}/v1/network/details", nym_api_url);
+    let url = nym_network_details_endpoint(nym_api_url);
     tracing::debug!("Fetching nym network details from: {}", url);
     reqwest::get(&url)
         .await
@@ -216,7 +227,7 @@ pub(crate) async fn fetch_nym_vpn_network_details(
     nym_vpn_api_url: &Url,
 ) -> anyhow::Result<NymWellknownDiscoveryItem> {
     // TODO: integrate with nym-vpn-api-client
-    let url = format!("{}/public/v1/.wellknown/current-env.json", nym_vpn_api_url);
+    let url = nym_vpn_network_details_endpoint(nym_vpn_api_url);
     tracing::debug!("Fetching nym vpn network details from: {}", url);
     reqwest::get(&url)
         .await
