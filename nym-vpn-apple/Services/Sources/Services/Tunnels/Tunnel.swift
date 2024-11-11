@@ -9,13 +9,9 @@ public final class Tunnel: NSObject, ObservableObject {
     @Published public var status: TunnelStatus
 
     private var logger: Logger
-    private var pollTimer: Timer?
 
     public var onDemandEnabled: Bool {
         tunnel.isEnabled && tunnel.isOnDemandEnabled
-    }
-    public var containsOnDemandRules: Bool {
-        !(tunnel.onDemandRules ?? []).isEmpty
     }
 
     public init(tunnel: NETunnelProviderManager) {

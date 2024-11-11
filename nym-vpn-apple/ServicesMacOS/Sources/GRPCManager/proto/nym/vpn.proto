@@ -124,6 +124,12 @@ message NymVpnNetworkDetails {
   Url nym_vpn_api_url = 1;
 }
 
+message AccountManagement {
+  Url sign_up = 1;
+  Url sign_in = 2;
+  Url account = 3;
+}
+
 message ValidatorDetails {
   Url nyxd_url = 1;
   Url websocket_url = 2;
@@ -167,6 +173,29 @@ message SetNetworkRequestError {
   string message = 2;
 }
 
+message SystemMessage {
+  string name = 1;
+  string message = 2;
+  map<string, string> properties = 3;
+}
+
+message GetSystemMessagesRequest {}
+
+message GetSystemMessagesResponse {
+  repeated SystemMessage messages = 1;
+}
+
+message GetFeatureFlagsRequest {}
+
+message GetFeatureFlagsResponse {
+  map<string, string> flags = 1;
+  map<string, FeatureFlagGroup> groups = 2;
+}
+
+message FeatureFlagGroup {
+  map<string, string> map = 1;
+}
+
 message Threshold {
   uint32 min_performance = 1;
 }
@@ -194,6 +223,10 @@ message ConnectRequestError {
     // NOTE: in the future we will try to re-active an inactive device on
     // connect
     DEVICE_NOT_ACTIVE = 6;
+
+    // It was not yet possible to determine if we are ready to connect during
+    // the check
+    PENDING = 7;
   }
 
   ConnectRequestErrorType kind = 1;
@@ -590,6 +623,17 @@ message GetAccountIdentityResponse {
   }
 }
 
+message GetAccountLinksRequest {
+  string locale = 1;
+}
+
+message GetAccountLinksResponse {
+  oneof res {
+    AccountManagement links = 1;
+    AccountError error = 2;
+  }
+}
+
 enum MnemonicState {
   MNEMONIC_STATE_UNSPECIFIED = 0;
   MNEMONIC_STATE_NOT_STORED = 1;
@@ -751,6 +795,11 @@ service NymVpnd {
   // Set the network. This requires a restart to take effect
   rpc SetNetwork (SetNetworkRequest) returns (SetNetworkResponse) {}
 
+  // List messages fetched from nym-vpn-api
+  rpc GetSystemMessages (GetSystemMessagesRequest) returns (GetSystemMessagesResponse) {}
+
+  rpc GetFeatureFlags (GetFeatureFlagsRequest) returns (GetFeatureFlagsResponse) {}
+
   // Start the tunnel and connect
   rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
 
@@ -783,6 +832,7 @@ service NymVpnd {
   rpc IsAccountStored (IsAccountStoredRequest) returns (IsAccountStoredResponse) {}
   rpc RemoveAccount (RemoveAccountRequest) returns (RemoveAccountResponse) {}
   rpc GetAccountIdentity (GetAccountIdentityRequest) returns (GetAccountIdentityResponse) {}
+  rpc GetAccountLinks (GetAccountLinksRequest) returns (GetAccountLinksResponse) {}
 
   // Query the account state, which refers to the server side account, as it is
   // known and interpreted by nym-vpnd
