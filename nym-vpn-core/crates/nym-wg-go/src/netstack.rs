@@ -162,7 +162,7 @@ impl Tunnel {
         }
     }
 
-    /// Re-attach itself to the tun interface.
+    /// Re-attach itself to the new primary interface.
     ///
     /// Typically used on default route change.
     #[cfg(target_os = "ios")]
