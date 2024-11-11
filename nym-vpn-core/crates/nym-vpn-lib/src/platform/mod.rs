@@ -100,7 +100,7 @@ async fn stop_vpn_inner() -> Result<(), VpnError> {
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn init(data_dir: String) -> Result<(), VpnError> {
+pub fn configureLib(data_dir: String) -> Result<(), VpnError> {
     init_logger();
     start_account_controller(data_dir)
 }
