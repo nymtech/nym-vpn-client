@@ -7,7 +7,6 @@ plugins {
 	alias(libs.plugins.licensee)
 	alias(libs.plugins.kotlinxSerialization)
 	alias(libs.plugins.gross)
-	alias(libs.plugins.sentry)
 	alias(libs.plugins.grgit)
 }
 
@@ -146,14 +145,6 @@ android {
 
 	gross { enableAndroidAssetGeneration.set(true) }
 
-	sentry {
-		tracingInstrumentation {
-			org.set("nymtech")
-			projectName.set("nym-vpn-android")
-			autoUploadProguardMapping.set(false)
-		}
-	}
-
 	buildFeatures {
 		compose = true
 		buildConfig = true
@@ -209,7 +200,6 @@ dependencies {
 
 	// logging
 	implementation(libs.timber)
-	implementation(libs.sentry.sentry.opentelemetry.core)
 
 	// navigation
 	implementation(libs.androidx.navigation.compose)

@@ -66,5 +66,6 @@ fun ErrorStateReason.toUserMessage(context: Context): String {
 		ErrorStateReason.SAME_ENTRY_AND_EXIT_GATEWAY -> "Entry and exit must be different gateways"
 		ErrorStateReason.INVALID_ENTRY_GATEWAY_COUNTRY -> "Entry country not available. Select a different country."
 		ErrorStateReason.INVALID_EXIT_GATEWAY_COUNTRY -> "Exit country not available. Select a different country."
+		ErrorStateReason.BAD_BANDWIDTH_INCREASE -> "Bandwidth increase has failed"
 	}
 }

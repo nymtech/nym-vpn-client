@@ -88,7 +88,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			runCatching {
 				Os.setenv("RUST_LOG", LOG_LEVEL, true)
 				getEnvironment(environment).export()
-				nym_vpn_lib.init(storagePath)
+				nym_vpn_lib.configureLib(storagePath)
 			}.onFailure {
 				Timber.e(it)
 			}.isSuccess
