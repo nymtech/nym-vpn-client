@@ -10,6 +10,21 @@ pub struct FeatureFlags {
     pub flags: HashMap<String, FlagValue>,
 }
 
+impl FeatureFlags {
+    pub fn get_flag(&self, flag: &str) -> Option<FlagValue> {
+        self.flags.get(flag).cloned()
+    }
+
+    pub fn credential_mode(&self) -> Option<bool> {
+        self.flags.get("zkNyms").and_then(|flag| match flag {
+            FlagValue::Group(group) => group
+                .get("credentialmode")
+                .and_then(|value| value.parse().ok()),
+            _ => None,
+        })
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum FlagValue {
