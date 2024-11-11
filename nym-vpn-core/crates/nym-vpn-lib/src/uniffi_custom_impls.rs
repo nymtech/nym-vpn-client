@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
+    collections::HashMap,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     path::PathBuf,
     str::FromStr,
@@ -258,6 +259,7 @@ impl UniffiCustomTypeConverter for OffsetDateTime {
 pub struct NetworkEnvironment {
     pub nym_network: NymNetworkDetails,
     pub nym_vpn_network: NymVpnNetwork,
+    pub feature_flags: Option<FeatureFlags>,
 }
 
 impl From<nym_vpn_network_config::Network> for NetworkEnvironment {
@@ -265,6 +267,7 @@ impl From<nym_vpn_network_config::Network> for NetworkEnvironment {
         NetworkEnvironment {
             nym_network: network.nym_network.network.into(),
             nym_vpn_network: network.nym_vpn_network.into(),
+            feature_flags: network.feature_flags.map(FeatureFlags::from),
         }
     }
 }
@@ -371,6 +374,38 @@ impl From<nym_vpn_network_config::NymVpnNetwork> for NymVpnNetwork {
     fn from(value: nym_vpn_network_config::NymVpnNetwork) -> Self {
         NymVpnNetwork {
             nym_vpn_api_url: value.nym_vpn_api_url.to_string(),
+        }
+    }
+}
+
+#[derive(uniffi::Record)]
+pub struct FeatureFlags {
+    pub flags: HashMap<String, FlagValue>,
+}
+
+#[derive(uniffi::Enum)]
+pub enum FlagValue {
+    Value(String),
+    Group(HashMap<String, String>),
+}
+
+impl From<nym_vpn_network_config::FeatureFlags> for FeatureFlags {
+    fn from(value: nym_vpn_network_config::FeatureFlags) -> Self {
+        FeatureFlags {
+            flags: value
+                .flags
+                .into_iter()
+                .map(|(k, v)| (k, v.into()))
+                .collect(),
+        }
+    }
+}
+
+impl From<nym_vpn_network_config::feature_flags::FlagValue> for FlagValue {
+    fn from(value: nym_vpn_network_config::feature_flags::FlagValue) -> Self {
+        match value {
+            nym_vpn_network_config::feature_flags::FlagValue::Value(v) => FlagValue::Value(v),
+            nym_vpn_network_config::feature_flags::FlagValue::Group(g) => FlagValue::Group(g),
         }
     }
 }
