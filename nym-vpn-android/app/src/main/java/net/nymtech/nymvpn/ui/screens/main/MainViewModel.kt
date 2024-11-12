@@ -26,8 +26,8 @@ constructor(
 ) : ViewModel() {
 
 	val uiState = tunnelManager.stateFlow.map { manager ->
-		val connectionTime = manager.statistics.connectionSeconds.convertSecondsToTimeString()
-		val connectionState = ConnectionState.from(manager.state)
+		val connectionTime = manager.tunnelStatistics.connectionSeconds.convertSecondsToTimeString()
+		val connectionState = ConnectionState.from(manager.tunnelState)
 		var stateMessage = connectionState.stateMessage
 		when (manager.backendMessage) {
 			is BackendMessage.Failure -> {

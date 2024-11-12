@@ -63,6 +63,7 @@ import net.nymtech.nymvpn.util.extensions.launchVpnSettings
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
+import timber.log.Timber
 
 @Composable
 fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel: SettingsViewModel = hiltViewModel()) {
@@ -95,7 +96,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 			.padding(top = 24.dp)
 			.padding(horizontal = 24.dp.scaledWidth()).padding(bottom = padding.calculateBottomPadding()),
 	) {
-		if (!appUiState.isMnemonicStored) {
+		if (!appUiState.managerState.isMnemonicStored) {
 			MainStyledButton(
 				onClick = { navController.navigate(Route.Credential) },
 				content = {
@@ -117,8 +118,10 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 						},
 						title = { Text(stringResource(R.string.account), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 						onClick = {
-							val url = appUiState.settings.environment.accountUrl.toString()
-							context.openWebUrl(url)
+							appUiState.managerState.accountLinks?.account?.let{
+								Timber.d("Account url: $it")
+								context.openWebUrl(it)
+							} ?: snackbar.showMessage("Not available")
 						},
 					),
 				),
@@ -275,13 +278,13 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 				),
 			),
 		)
-		if (appUiState.isMnemonicStored) {
+		if (appUiState.managerState.isMnemonicStored) {
 			SurfaceSelectionGroupButton(
 				listOf(
 					SelectionItem(
 						title = { Text(stringResource(R.string.log_out), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 						onClick = {
-							if (appUiState.state == Tunnel.State.Down) {
+							if (appUiState.managerState.tunnelState == Tunnel.State.Down) {
 								appViewModel.logout()
 							} else {
 								snackbar.showMessage(context.getString(R.string.action_requires_tunnel_down))

@@ -42,9 +42,7 @@ constructor(
 			AppUiState(
 				settings,
 				gateways,
-				manager.state,
-				manager.backendMessage,
-				isMnemonicStored = manager.isMnemonicStored,
+				manager,
 				entryCountry = settings.firstHopCountry ?: Country(isLowLatency = true),
 				exitCountry = settings.lastHopCountry ?: Country(isDefault = true),
 			)

@@ -318,7 +318,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 							testTag = Constants.CONNECT_TEST_TAG,
 							onClick = {
 								scope.launch {
-									if (!appUiState.isMnemonicStored
+									if (!appUiState.managerState.isMnemonicStored
 									) {
 										return@launch navController.goFromRoot(Route.Credential)
 									}

@@ -15,6 +15,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.nymtech.ipcalculator.AllowedIpCalculator
+import net.nymtech.vpn.model.BackendMessage
 import net.nymtech.vpn.model.BackendMessage.*
 import net.nymtech.vpn.model.Statistics
 import net.nymtech.vpn.util.Action
@@ -24,14 +25,13 @@ import net.nymtech.vpn.util.LifecycleVpnService
 import net.nymtech.vpn.util.NotificationManager
 import net.nymtech.vpn.util.SingletonHolder
 import net.nymtech.vpn.util.extensions.addRoutes
-import net.nymtech.vpn.util.extensions.export
 import net.nymtech.vpn.util.extensions.startVpnService
 import nym_vpn_lib.AccountLinks
 import nym_vpn_lib.AccountStateSummary
 import nym_vpn_lib.AndroidTunProvider
 import nym_vpn_lib.BandwidthEvent
+import nym_vpn_lib.ErrorStateReason
 import nym_vpn_lib.MixnetEvent
-import nym_vpn_lib.NetworkEnvironment
 import nym_vpn_lib.TunnelEvent
 import nym_vpn_lib.TunnelNetworkSettings
 import nym_vpn_lib.TunnelState
@@ -39,7 +39,7 @@ import nym_vpn_lib.TunnelStatusListener
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.VpnException
 import nym_vpn_lib.fetchAccountLinks
-import nym_vpn_lib.fetchEnvironment
+import nym_vpn_lib.initEnvironment
 import nym_vpn_lib.isAccountMnemonicStored
 import nym_vpn_lib.removeAccountMnemonic
 import nym_vpn_lib.startVpn
@@ -90,7 +90,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		return withContext(ioDispatcher) {
 			runCatching {
 				Os.setenv("RUST_LOG", LOG_LEVEL, true)
-				getEnvironment(environment).export()
+				initEnvironment(environment.networkName())
 				nym_vpn_lib.configureLib(storagePath)
 			}.onFailure {
 				Timber.e(it)
@@ -99,12 +99,9 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	}
 
 	@Throws(VpnException::class)
-	private suspend fun getEnvironment(environment: Tunnel.Environment): NetworkEnvironment {
-		return withContext(ioDispatcher) {
-			fetchEnvironment(environment.name.lowercase()).also {
-				Timber.d("API URL:  ${it.nymNetwork.endpoints.first().apiUrl}")
-				Timber.d("VPM API URL:  ${it.nymVpnNetwork.nymVpnApiUrl}")
-			}
+	private suspend fun setEnvironment(environment: Tunnel.Environment) {
+		withContext(ioDispatcher) {
+			initEnvironment(environment.networkName())
 		}
 	}
 
@@ -166,6 +163,10 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 						backend,
 					),
 				)
+			}.onFailure {
+				Timber.e(it)
+				//TODO show error to user
+				tunnel.onStateChange(Tunnel.State.Down)
 			}
 		}
 	}
