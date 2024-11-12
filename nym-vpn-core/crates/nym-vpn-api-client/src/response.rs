@@ -174,7 +174,7 @@ pub struct NymVpnZkNymResponse {
     pub total_items: u64,
     pub page: u64,
     pub page_size: u64,
-    pub items: Vec<NymVpnZkNymPost>,
+    pub items: Vec<NymVpnZkNym>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]

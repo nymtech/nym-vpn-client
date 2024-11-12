@@ -39,11 +39,6 @@ use crate::{
     AvailableTicketbooks,
 };
 
-// If we go below this threshold, we should request more tickets
-// TODO: I picked a random number, check what is should be. Or if we can express this in terms of
-// data/bandwidth.
-const TICKET_THRESHOLD: u32 = 10;
-
 pub(crate) type PendingCommands = Arc<std::sync::Mutex<HashMap<uuid::Uuid, String>>>;
 pub(crate) type DevicesResponse = Arc<tokio::sync::Mutex<Option<NymVpnDevicesResponse>>>;
 pub(crate) type AccountSummaryResponse =
@@ -305,31 +300,21 @@ where
         Ok(())
     }
 
-    // Check the local credential storage to see if we need to request more zk-nyms, the proceed to
-    // request zk-nyms for each ticket type that we need.
+    // Check the local credential storage to see if we need to request more zk-nyms, the proceed
+    // to request zk-nyms for each ticket type that we need.
     async fn handle_request_zk_nym(&mut self) -> Result<(), Error> {
         let account = self.account_storage.load_account().await?;
         let device = self.account_storage.load_device_keys().await?;
 
-        // Then we check local storage to see what ticket types we already have stored
-        let local_remaining_tickets = self
+        tracing::info!("Checking which ticket types are running low");
+        let ticket_types_needed_to_request = self
             .credential_storage
-            .check_local_remaining_tickets()
-            .await;
-        for (ticket_type, remaining) in &local_remaining_tickets {
-            tracing::info!("{}, remaining: {}", ticket_type, remaining);
-        }
-
-        // Get the ticket types that are below the threshold
-        // TODO: only count ticketbooks not expired
-        let ticket_types_needed_to_request = local_remaining_tickets
-            .into_iter()
-            .filter(|(_, remaining)| *remaining < TICKET_THRESHOLD)
-            .map(|(ticket_type, _)| ticket_type)
-            .collect::<Vec<_>>();
-
-        // For testing: uncomment to only request zk-nyms for a specific ticket type
-        //let ticket_types_needed_to_request = vec![TicketType::V1MixnetEntry];
+            .check_ticket_types_running_low()
+            .await?;
+        tracing::info!(
+            "Ticket types running low: {:?}",
+            ticket_types_needed_to_request
+        );
 
         // Request zk-nyms for each ticket type that we need
         let responses = futures::stream::iter(ticket_types_needed_to_request)
@@ -483,8 +468,7 @@ where
     }
 
     async fn handle_get_available_tickets(&self) -> Result<AvailableTicketbooks, Error> {
-        tracing::info!("Getting available tickets from API");
-
+        tracing::info!("Getting available tickets from local credential storage");
         self.credential_storage.print_info().await?;
         self.credential_storage.get_available_ticketbooks().await
     }
@@ -511,9 +495,11 @@ where
             }
             PollingResult::Finished(response, _, _, _) => {
                 tracing::warn!(
-                    "Polling finished with status: {:?}, not importing!",
-                    response.status
+                    "Polling for {} finished with status: {:?}",
+                    response.id,
+                    response.status,
                 );
+                tracing::warn!("Not importing zk-nym: {}", response.id);
             }
             PollingResult::Timeout(response) => {
                 tracing::info!("Polling task timed out: {:#?}", response);
@@ -530,7 +516,7 @@ where
             .map(|guard| {
                 guard
                     .values()
-                    .any(|running_command| running_command == command.kind())
+                    .any(|running_command| running_command == &command.kind())
             })
             .map_err(Error::internal)
     }
@@ -542,7 +528,7 @@ where
     }
 
     async fn handle_command(&mut self, command: AccountCommand) -> Result<(), Error> {
-        tracing::info!("Received command: {:?}", command);
+        tracing::info!("Received command: {}", command);
 
         if self.is_command_running(&command).await? {
             tracing::info!("Command already running, skipping: {:?}", command);
@@ -625,16 +611,14 @@ where
     async fn print_info(&self) {
         let account_id = self
             .account_storage
-            .load_account()
+            .load_account_id()
             .await
-            .map(|account| account.id())
             .ok()
             .unwrap_or_else(|| "(unset)".to_string());
         let device_id = self
             .account_storage
-            .load_device_keys()
+            .load_device_id()
             .await
-            .map(|device| device.identity_key().to_string())
             .ok()
             .unwrap_or_else(|| "(unset)".to_string());
 
@@ -658,7 +642,6 @@ where
         // Timer to periodically refresh the remote account state
         let mut update_account_state_timer = tokio::time::interval(Duration::from_secs(5 * 60));
 
-        tracing::info!("Account controller starting loop");
         loop {
             tokio::select! {
                 // Handle incoming commands

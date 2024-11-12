@@ -80,6 +80,7 @@ impl VpnApiClient {
         nym_http_api_client::parse_response(response, false).await
     }
 
+    #[allow(unused)]
     async fn get_authorized_debug<T, E>(
         &self,
         path: PathSegments<'_>,
@@ -182,9 +183,6 @@ impl VpnApiClient {
         };
 
         let response = request.send().await?;
-        // let r = response.text().await;
-        // tracing::info!("Response: {:#?}", r);
-        // todo!();
 
         nym_http_api_client::parse_response(response, false).await
     }
@@ -386,7 +384,7 @@ impl VpnApiClient {
         account: &VpnApiAccount,
         device: &Device,
     ) -> Result<NymVpnZkNymResponse> {
-        self.get_authorized_debug(
+        self.get_authorized(
             &[
                 routes::PUBLIC,
                 routes::V1,
@@ -444,7 +442,7 @@ impl VpnApiClient {
         account: &VpnApiAccount,
         device: &Device,
     ) -> Result<NymVpnZkNymResponse> {
-        self.get_authorized_debug(
+        self.get_authorized(
             &[
                 routes::PUBLIC,
                 routes::V1,
@@ -468,7 +466,7 @@ impl VpnApiClient {
         device: &Device,
         id: &str,
     ) -> Result<NymVpnZkNym> {
-        self.get_authorized_debug(
+        self.get_authorized(
             &[
                 routes::PUBLIC,
                 routes::V1,

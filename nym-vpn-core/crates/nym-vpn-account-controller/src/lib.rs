@@ -12,9 +12,10 @@ mod commands;
 mod controller;
 mod error;
 mod storage;
+mod ticketbooks;
 
 pub use commands::AccountCommand;
 pub use controller::AccountController;
 pub use error::Error;
 pub use shared_state::{AccountStateSummary, ReadyToConnect, SharedAccountState};
-pub use storage::{AvailableTicketbook, AvailableTicketbooks};
+pub use ticketbooks::{AvailableTicketbook, AvailableTicketbooks};

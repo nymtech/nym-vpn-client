@@ -18,7 +18,7 @@ pub(crate) mod register_device;
 pub(crate) mod update_state;
 pub(crate) mod zknym;
 
-#[derive(Debug)]
+#[derive(Debug, strum::Display)]
 pub enum AccountCommand {
     UpdateAccountState,
     RegisterDevice,
@@ -31,18 +31,8 @@ pub enum AccountCommand {
 }
 
 impl AccountCommand {
-    // TODO: use strum crate
-    pub fn kind(&self) -> &'static str {
-        match self {
-            AccountCommand::UpdateAccountState => "update_account_state",
-            AccountCommand::RegisterDevice => "register_device",
-            AccountCommand::RequestZkNym => "request_zk_nym",
-            AccountCommand::GetDeviceZkNym => "get_device_zk_nym",
-            AccountCommand::GetZkNymsAvailableForDownload => "get_zk_nyms_available_for_download",
-            AccountCommand::GetZkNymById(_) => "get_zk_nym_by_id",
-            AccountCommand::ConfirmZkNymIdDownloaded(_) => "confirm_zk_nym_id_download",
-            AccountCommand::GetAvailableTickets(_) => "get_available_tickets",
-        }
+    pub fn kind(&self) -> String {
+        self.to_string()
     }
 }
 
@@ -81,7 +71,7 @@ impl CommandHandler {
         let id = uuid::Uuid::new_v4();
         pending_command
             .lock()
-            .map(|mut guard| guard.insert(id, command.kind().to_owned()))
+            .map(|mut guard| guard.insert(id, command.kind()))
             .map_err(|err| {
                 tracing::error!(
                     "Failed to insert command {} into pending commands: {:?}",

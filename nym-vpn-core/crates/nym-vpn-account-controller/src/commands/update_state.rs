@@ -24,7 +24,6 @@ pub(crate) async fn update_state(
 ) -> Result<(), Error> {
     update_account_state(account, account_state, vpn_api_client, last_account_summary).await?;
     update_device_state(account, device, account_state, vpn_api_client, last_devices).await?;
-    get_zk_nym_status(account, device, vpn_api_client).await?;
     Ok(())
 }
 
@@ -106,25 +105,6 @@ async fn update_device_state(
         .set_device(DeviceState::from(found_device.status))
         .await;
 
-    Ok(())
-}
-
-async fn get_zk_nym_status(
-    account: &VpnApiAccount,
-    device: &Device,
-    vpn_api_client: &nym_vpn_api_client::VpnApiClient,
-) -> Result<(), Error> {
-    tracing::debug!("Getting ZK nym status");
-
-    tracing::info!("Checking device zk nyms");
-    let response = vpn_api_client.get_device_zk_nyms(account, device).await;
-    tracing::info!("{:#?}", response);
-
-    tracing::info!("Checking zk nyms available for download");
-    let response = vpn_api_client
-        .get_zk_nyms_available_for_download(account, device)
-        .await;
-    tracing::info!("{:#?}", response);
     Ok(())
 }
 

@@ -1,10 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{fmt, sync::Arc};
+use std::sync::Arc;
 
 use nym_compact_ecash::VerificationKeyAuth;
-use nym_credential_storage::models::BasicTicketbookInformation;
 use nym_credentials::{
     AggregatedCoinIndicesSignatures, AggregatedExpirationDateSignatures, EpochVerificationKey,
     IssuedTicketBook,
@@ -13,10 +12,13 @@ use nym_credentials_interface::TicketType;
 use nym_sdk::mixnet::CredentialStorage;
 use nym_vpn_api_client::types::{Device, VpnApiAccount};
 use nym_vpn_store::{keys::KeyStore, mnemonic::MnemonicStorage, VpnStorage};
-use serde::{Deserialize, Serialize};
-use time::Date;
 
-use crate::error::Error;
+use crate::{error::Error, AvailableTicketbooks};
+
+// If we go below this threshold, we should request more tickets
+// TODO: I picked a random number, check what is should be. Or if we can express this in terms of
+// data/bandwidth.
+const TICKET_NUMBER_THRESHOLD: u64 = 30;
 
 pub(crate) struct AccountStorage<S>
 where
@@ -66,6 +68,10 @@ where
             })
     }
 
+    pub(crate) async fn load_account_id(&self) -> Result<String, Error> {
+        self.load_account().await.map(|account| account.id())
+    }
+
     // Load device keys and keep the error type
     pub(crate) async fn load_device_keys_from_storage(
         &self,
@@ -89,6 +95,12 @@ where
                 source: Box::new(err),
             })
     }
+
+    pub(crate) async fn load_device_id(&self) -> Result<String, Error> {
+        self.load_device_keys()
+            .await
+            .map(|device| device.identity_key().to_string())
+    }
 }
 
 pub(crate) struct VpnCredentialStorage {
@@ -96,27 +108,6 @@ pub(crate) struct VpnCredentialStorage {
 }
 
 impl VpnCredentialStorage {
-    pub(crate) async fn check_local_remaining_tickets(&self) -> Vec<(TicketType, u32)> {
-        // TODO: remove unwrap
-        let ticketbooks_info = self.storage.get_ticketbooks_info().await.unwrap();
-
-        // For each ticketbook type, iterate over and check if we have enough tickets stored
-        // locally
-        let ticketbook_types = ticketbook_types();
-
-        let mut request_zk_nym = Vec::new();
-        for ticketbook_type in ticketbook_types.iter() {
-            let available_tickets: u32 = ticketbooks_info
-                .iter()
-                .filter(|ticketbook| ticketbook.ticketbook_type == ticketbook_type.to_string())
-                .map(|ticketbook| ticketbook.total_tickets - ticketbook.used_tickets)
-                .sum();
-
-            request_zk_nym.push((*ticketbook_type, available_tickets));
-        }
-        request_zk_nym
-    }
-
     pub(crate) async fn insert_issued_ticketbook(
         &self,
         ticketbook: &IssuedTicketBook,
@@ -169,11 +160,10 @@ impl VpnCredentialStorage {
     }
 
     pub(crate) async fn print_info(&self) -> Result<(), Error> {
-        let ticketbooks_info = self.storage.get_ticketbooks_info().await?;
+        let ticketbooks_info = self.get_available_ticketbooks().await?;
         tracing::info!("Ticketbooks stored: {}", ticketbooks_info.len());
         for ticketbook in ticketbooks_info {
-            let avail_ticketbook = AvailableTicketbook::try_from(ticketbook).unwrap();
-            tracing::info!("{avail_ticketbook}");
+            tracing::info!("Ticketbook: {ticketbook}");
         }
 
         let pending_ticketbooks = self.storage.get_pending_ticketbooks().await?;
@@ -185,209 +175,23 @@ impl VpnCredentialStorage {
 
     pub(crate) async fn get_available_ticketbooks(&self) -> Result<AvailableTicketbooks, Error> {
         let ticketbooks_info = self.storage.get_ticketbooks_info().await?;
+        AvailableTicketbooks::try_from(ticketbooks_info)
+    }
 
-        let available_ticketbooks: Vec<_> = ticketbooks_info
+    pub(crate) async fn check_ticket_types_running_low(&self) -> Result<Vec<TicketType>, Error> {
+        let available_ticketbooks = self.get_available_ticketbooks().await?;
+
+        let ticketbook_types_running_low = crate::ticketbooks::ticketbook_types()
             .into_iter()
-            .filter_map(|ticketbook| {
-                AvailableTicketbook::try_from(ticketbook)
-                    .inspect_err(|err| {
-                        tracing::error!("Failed to parse ticketbook: {}", err);
-                    })
-                    .ok()
+            .filter(|ticket_type| {
+                tracing::info!(
+                    "Remaining unexpired tickets for {ticket_type}: {}",
+                    available_ticketbooks.remaining_tickets(*ticket_type)
+                );
+                available_ticketbooks.remaining_tickets(*ticket_type) < TICKET_NUMBER_THRESHOLD
             })
             .collect();
 
-        Ok(AvailableTicketbooks::from(available_ticketbooks))
+        Ok(ticketbook_types_running_low)
     }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct AvailableTicketbook {
-    pub id: i64,
-    pub typ: TicketType,
-    pub expiration: Date,
-    pub issued_tickets: u32,
-    pub claimed_tickets: u32,
-    pub ticket_size: u64,
-}
-
-impl AvailableTicketbook {
-    pub fn remaining(&self) -> TicketbookAmount {
-        TicketbookAmount {
-            typ: self.typ,
-            remaining: self.issued_tickets - self.claimed_tickets,
-            ticket_size: self.ticket_size,
-        }
-    }
-}
-
-pub struct TicketbookAmount {
-    pub typ: TicketType,
-    pub remaining: u32,
-    pub ticket_size: u64,
-}
-
-impl TicketbookAmount {
-    pub fn remaining_size(&self) -> u64 {
-        self.remaining as u64 * self.ticket_size
-    }
-}
-
-impl fmt::Display for TicketbookAmount {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let si_remaining = si_scale::helpers::bibytes2(self.remaining_size() as f64);
-        let si_size = si_scale::helpers::bibytes2(self.ticket_size as f64);
-
-        write!(
-            f,
-            "Type: {} - Size: {} - Remaining: {}",
-            self.typ, si_size, si_remaining,
-        )
-    }
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct TicketbookAmountSummary {
-    pub mixnet_entry_amount: u64,
-    pub mixnet_exit_amount: u64,
-    pub vpn_entry_amount: u64,
-    pub vpn_exit_amount: u64,
-}
-
-impl TicketbookAmountSummary {
-    pub fn mixnet_entry_amount_si(&self) -> String {
-        si_scale::helpers::bibytes2(self.mixnet_entry_amount as f64)
-    }
-
-    pub fn mixnet_exit_amount_si(&self) -> String {
-        si_scale::helpers::bibytes2(self.mixnet_exit_amount as f64)
-    }
-
-    pub fn vpn_entry_amount_si(&self) -> String {
-        si_scale::helpers::bibytes2(self.vpn_entry_amount as f64)
-    }
-
-    pub fn vpn_exit_amount_si(&self) -> String {
-        si_scale::helpers::bibytes2(self.vpn_exit_amount as f64)
-    }
-}
-
-impl fmt::Display for TicketbookAmountSummary {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "Mixnet Entry: {} - Mixnet Exit: {} - VPN Entry: {} - VPN Exit: {}",
-            self.mixnet_exit_amount_si(),
-            self.mixnet_exit_amount_si(),
-            self.vpn_entry_amount_si(),
-            self.vpn_exit_amount_si(),
-        )
-    }
-}
-
-impl TryFrom<BasicTicketbookInformation> for AvailableTicketbook {
-    type Error = Error;
-
-    fn try_from(value: BasicTicketbookInformation) -> Result<Self, Self::Error> {
-        let typ = value.ticketbook_type.parse().map_err(|_| Error::NoEpoch)?;
-        Ok(AvailableTicketbook {
-            id: value.id,
-            typ,
-            expiration: value.expiration_date,
-            issued_tickets: value.total_tickets,
-            claimed_tickets: value.used_tickets,
-            ticket_size: typ.to_repr().bandwidth_value(),
-        })
-    }
-}
-
-impl fmt::Display for AvailableTicketbook {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let ecash_today = nym_ecash_time::ecash_today().date();
-
-        let issued = self.issued_tickets;
-        let si_issued = si_scale::helpers::bibytes2((issued as u64 * self.ticket_size) as f64);
-
-        let claimed = self.claimed_tickets;
-        let si_claimed = si_scale::helpers::bibytes2((claimed as u64 * self.ticket_size) as f64);
-
-        let remaining = issued - claimed;
-        let si_remaining =
-            si_scale::helpers::bibytes2((remaining as u64 * self.ticket_size) as f64);
-        let si_size = si_scale::helpers::bibytes2(self.ticket_size as f64);
-
-        let expiration = if self.expiration <= ecash_today {
-            format!("EXPIRED ON {}", self.expiration)
-        } else {
-            self.expiration.to_string()
-        };
-
-        write!(
-            f,
-            "Ticketbook id: {} - Type: {} - Size: {} - Issued: {} - Claimed: {} - Remaining: {} - Expiration: {}",
-            self.id,
-            self.typ,
-            si_size,
-            si_issued,
-            si_claimed,
-            si_remaining,
-            expiration
-        )
-    }
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct AvailableTicketbooks {
-    pub ticketbooks: Vec<AvailableTicketbook>,
-}
-
-impl AvailableTicketbooks {
-    pub fn remaining(&self) -> TicketbookAmountSummary {
-        let mixnet_entry_amount = self
-            .ticketbooks
-            .iter()
-            .filter(|ticketbook| ticketbook.typ == TicketType::V1MixnetEntry)
-            .map(|ticketbook| ticketbook.remaining().remaining_size())
-            .sum();
-        let mixnet_exit_amount = self
-            .ticketbooks
-            .iter()
-            .filter(|ticketbook| ticketbook.typ == TicketType::V1MixnetExit)
-            .map(|ticketbook| ticketbook.remaining().remaining_size())
-            .sum();
-        let vpn_entry_amount = self
-            .ticketbooks
-            .iter()
-            .filter(|ticketbook| ticketbook.typ == TicketType::V1WireguardEntry)
-            .map(|ticketbook| ticketbook.remaining().remaining_size())
-            .sum();
-        let vpn_exit_amount = self
-            .ticketbooks
-            .iter()
-            .filter(|ticketbook| ticketbook.typ == TicketType::V1WireguardExit)
-            .map(|ticketbook| ticketbook.remaining().remaining_size())
-            .sum();
-        TicketbookAmountSummary {
-            mixnet_entry_amount,
-            mixnet_exit_amount,
-            vpn_entry_amount,
-            vpn_exit_amount,
-        }
-    }
-}
-
-impl From<Vec<AvailableTicketbook>> for AvailableTicketbooks {
-    fn from(ticketbooks: Vec<AvailableTicketbook>) -> Self {
-        Self { ticketbooks }
-    }
-}
-
-// TODO: add #[derive(EnumIter)] to TicketType so we can iterate over it directly.
-fn ticketbook_types() -> [TicketType; 4] {
-    [
-        TicketType::V1MixnetEntry,
-        TicketType::V1MixnetExit,
-        TicketType::V1WireguardEntry,
-        TicketType::V1WireguardExit,
-    ]
 }
