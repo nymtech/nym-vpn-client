@@ -236,6 +236,9 @@ pub enum Error {
     #[error("WireGuard error: {0}")]
     Wireguard(#[from] nym_wg_go::Error),
 
+    #[error("failed to dup tunnel file descriptor: {0}")]
+    DupFd(#[source] std::io::Error),
+
     #[cfg(target_os = "ios")]
     #[error("failed to set default path observer: {0}")]
     SetDefaultPathObserver(String),

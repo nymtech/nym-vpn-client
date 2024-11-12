@@ -1,8 +1,6 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(unix)]
-use std::os::fd::AsRawFd;
 use std::{error::Error as StdError, net::IpAddr};
 
 use tokio::task::JoinHandle;
@@ -12,6 +10,8 @@ use nym_task::TaskManager;
 use nym_wg_gateway_client::WgGatewayClient;
 use nym_wg_go::{netstack, wireguard_go};
 
+#[cfg(unix)]
+use crate::tunnel_state_machine::tunnel::wireguard::fd::DupFd;
 use crate::{
     tunnel_state_machine::tunnel::{
         wireguard::{connector::ConnectionData, two_hop_config::TwoHopConfig},
@@ -84,7 +84,7 @@ impl ConnectedTunnel {
         let entry_tunnel = wireguard_go::Tunnel::start(
             wg_entry_config.into_wireguard_config(),
             #[cfg(unix)]
-            options.entry_tun.get_ref().as_raw_fd(),
+            options.entry_tun.get_ref().dup_fd().map_err(Error::DupFd)?,
             #[cfg(windows)]
             &options.entry_tun_name,
         )
@@ -93,7 +93,7 @@ impl ConnectedTunnel {
         let exit_tunnel = wireguard_go::Tunnel::start(
             wg_exit_config.into_wireguard_config(),
             #[cfg(unix)]
-            options.exit_tun.get_ref().as_raw_fd(),
+            options.exit_tun.get_ref().dup_fd().map_err(Error::DupFd)?,
             #[cfg(windows)]
             &options.exit_tun_name,
         )
@@ -144,7 +144,7 @@ impl ConnectedTunnel {
         let mut exit_tunnel = wireguard_go::Tunnel::start(
             two_hop_config.exit.into_wireguard_config(),
             #[cfg(unix)]
-            options.exit_tun.get_ref().as_raw_fd(),
+            options.exit_tun.get_ref().dup_fd().map_err(Error::DupFd)?,
             #[cfg(windows)]
             &options.exit_tun_name,
         )?;

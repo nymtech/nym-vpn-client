@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #[cfg(unix)]
-use std::os::unix::io::RawFd;
+use std::os::fd::{IntoRawFd, OwnedFd, RawFd};
 use std::{
     ffi::{c_char, c_void, CString},
     fmt,
@@ -79,7 +79,7 @@ impl Tunnel {
     /// Start new WireGuard tunnel
     pub fn start(
         config: Config,
-        #[cfg(not(windows))] tun_fd: RawFd,
+        #[cfg(not(windows))] tun_fd: OwnedFd,
         #[cfg(windows)] interface_name: &str,
     ) -> Result<Self> {
         let settings =
@@ -96,7 +96,7 @@ impl Tunnel {
                 i32::from(config.interface.mtu),
                 settings.as_ptr(),
                 #[cfg(not(windows))]
-                tun_fd,
+                tun_fd.into_raw_fd(),
                 wg_logger_callback,
                 std::ptr::null_mut(),
             )
