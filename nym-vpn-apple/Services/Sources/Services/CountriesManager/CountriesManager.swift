@@ -286,13 +286,6 @@ private extension CountriesManager {
 #if os(iOS)
 private extension CountriesManager {
     func fetchEntryExitCountries() {
-        guard let apiURL = configurationManager.apiURL
-        else {
-            logger.error("Cannot fetch countries. No API URL.")
-            updateError(with: GeneralNymError.cannotFetchCountries)
-            return
-        }
-
         do {
             let userAgent = UserAgent(
                 application: AppVersionProvider.app,
@@ -300,9 +293,8 @@ private extension CountriesManager {
                 platform: AppVersionProvider.platform,
                 gitCommit: ""
             )
+
             let entryLocations = try getGatewayCountries(
-                apiUrl: apiURL,
-                nymVpnApiUrl: configurationManager.nymVpnApiURL,
                 gwType: .mixnetEntry,
                 userAgent: userAgent,
                 minGatewayPerformance: nil
@@ -314,8 +306,6 @@ private extension CountriesManager {
             .sorted(by: { $0.name < $1.name })
 
             let exitLocations = try getGatewayCountries(
-                apiUrl: apiURL,
-                nymVpnApiUrl: configurationManager.nymVpnApiURL,
                 gwType: .mixnetExit,
                 userAgent: userAgent,
                 minGatewayPerformance: nil
@@ -327,8 +317,6 @@ private extension CountriesManager {
             .sorted(by: { $0.name < $1.name })
 
             let newVpnLocations = try getGatewayCountries(
-                apiUrl: apiURL,
-                nymVpnApiUrl: configurationManager.nymVpnApiURL,
                 gwType: .wg,
                 userAgent: userAgent,
                 minGatewayPerformance: nil

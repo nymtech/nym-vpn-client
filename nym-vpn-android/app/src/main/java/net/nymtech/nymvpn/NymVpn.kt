@@ -15,10 +15,10 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
-import net.nymtech.nymvpn.util.timber.DebugTree
 import net.nymtech.nymvpn.util.timber.ReleaseTree
 import net.nymtech.vpn.backend.Backend
 import timber.log.Timber
+import timber.log.Timber.DebugTree
 import javax.inject.Inject
 import javax.inject.Provider
 

@@ -7,7 +7,6 @@ use std::{fmt, fs, path::PathBuf};
 
 use nym_vpn_lib::gateway_directory;
 use serde::{de::DeserializeOwned, Serialize};
-use tracing::info;
 
 #[cfg(not(windows))]
 const DEFAULT_DATA_DIR: &str = "/var/lib/nym-vpnd";
@@ -130,8 +129,8 @@ pub enum ConfigSetupError {
     #[error("failed to set permissions for directory {dir}: {error}")]
     SetPermissions { dir: PathBuf, error: std::io::Error },
 
-    #[error("global network details not set")]
-    GlobalNetworkNotSet,
+    #[error("missing nym-api URL")]
+    MissingApiUrl,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -212,7 +211,7 @@ where
         file: file_path.clone(),
         error,
     })?;
-    info!("Config file updated at {:?}", file_path);
+    tracing::info!("Config file updated at {:?}", file_path);
     Ok(config)
 }
 
@@ -221,7 +220,7 @@ pub(super) fn create_data_dir(data_dir: &PathBuf) -> Result<(), ConfigSetupError
         dir: data_dir.clone(),
         error,
     })?;
-    info!("Making sure data dir exists at {:?}", data_dir);
+    tracing::debug!("Making sure data dir exists at {:?}", data_dir);
 
     #[cfg(unix)]
     {

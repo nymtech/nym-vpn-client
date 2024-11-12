@@ -124,6 +124,12 @@ message NymVpnNetworkDetails {
   Url nym_vpn_api_url = 1;
 }
 
+message AccountManagement {
+  Url sign_up = 1;
+  Url sign_in = 2;
+  Url account = 3;
+}
+
 message ValidatorDetails {
   Url nyxd_url = 1;
   Url websocket_url = 2;
@@ -165,6 +171,29 @@ message SetNetworkRequestError {
 
   // Internal message for logging and debugging
   string message = 2;
+}
+
+message SystemMessage {
+  string name = 1;
+  string message = 2;
+  map<string, string> properties = 3;
+}
+
+message GetSystemMessagesRequest {}
+
+message GetSystemMessagesResponse {
+  repeated SystemMessage messages = 1;
+}
+
+message GetFeatureFlagsRequest {}
+
+message GetFeatureFlagsResponse {
+  map<string, string> flags = 1;
+  map<string, FeatureFlagGroup> groups = 2;
+}
+
+message FeatureFlagGroup {
+  map<string, string> map = 1;
 }
 
 message Threshold {
@@ -600,6 +629,17 @@ message GetAccountIdentityResponse {
   }
 }
 
+message GetAccountLinksRequest {
+  string locale = 1;
+}
+
+message GetAccountLinksResponse {
+  oneof res {
+    AccountManagement links = 1;
+    AccountError error = 2;
+  }
+}
+
 enum MnemonicState {
   MNEMONIC_STATE_UNSPECIFIED = 0;
   MNEMONIC_STATE_NOT_STORED = 1;
@@ -704,6 +744,50 @@ message GetDeviceZkNymsResponse {
   AccountError error = 2;
 }
 
+message GetZkNymsAvailableForDownloadRequest {}
+
+message GetZkNymsAvailableForDownloadResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
+message GetZkNymByIdRequest {
+  string id = 1;
+}
+
+message GetZkNymByIdResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
+message ConfirmZkNymDownloadedRequest {
+  string id = 1;
+}
+
+message ConfirmZkNymDownloadedResponse {
+  AccountError error = 2;
+}
+
+message AvailableTickets {
+  uint64 mixnet_entry = 1;
+  uint64 mixnet_exit = 2;
+  uint64 vpn_entry = 3;
+  uint64 vpn_exit = 4;
+  string mixnet_entry_si = 5;
+  string mixnet_exit_si = 6;
+  string vpn_entry_si = 7;
+  string vpn_exit_si = 8;
+}
+
+message GetAvailableTicketsRequest {}
+
+message GetAvailableTicketsResponse {
+  oneof resp {
+    AvailableTickets available_tickets = 1;
+    AccountError error = 2;
+  }
+}
+
 message IsReadyToConnectRequest {}
 
 message IsReadyToConnectResponse {
@@ -761,6 +845,11 @@ service NymVpnd {
   // Set the network. This requires a restart to take effect
   rpc SetNetwork (SetNetworkRequest) returns (SetNetworkResponse) {}
 
+  // List messages fetched from nym-vpn-api
+  rpc GetSystemMessages (GetSystemMessagesRequest) returns (GetSystemMessagesResponse) {}
+
+  rpc GetFeatureFlags (GetFeatureFlagsRequest) returns (GetFeatureFlagsResponse) {}
+
   // Start the tunnel and connect
   rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
 
@@ -793,6 +882,7 @@ service NymVpnd {
   rpc IsAccountStored (IsAccountStoredRequest) returns (IsAccountStoredResponse) {}
   rpc RemoveAccount (RemoveAccountRequest) returns (RemoveAccountResponse) {}
   rpc GetAccountIdentity (GetAccountIdentityRequest) returns (GetAccountIdentityResponse) {}
+  rpc GetAccountLinks (GetAccountLinksRequest) returns (GetAccountLinksResponse) {}
 
   // Query the account state, which refers to the server side account, as it is
   // known and interpreted by nym-vpnd
@@ -812,6 +902,14 @@ service NymVpnd {
 
   // List the zk-nyms associated with this device from the nym-vpn-api
   rpc GetDeviceZkNyms (GetDeviceZkNymsRequest) returns (GetDeviceZkNymsResponse) {}
+
+  rpc GetZkNymsAvailableForDownload (GetZkNymsAvailableForDownloadRequest) returns (GetZkNymsAvailableForDownloadResponse) {}
+
+  rpc GetZkNymById (GetZkNymByIdRequest) returns (GetZkNymByIdResponse) {}
+
+  rpc ConfirmZkNymDownloaded (ConfirmZkNymDownloadedRequest) returns (ConfirmZkNymDownloadedResponse) {}
+
+  rpc GetAvailableTickets (GetAvailableTicketsRequest) returns (GetAvailableTicketsResponse) {}
 
   // -- Delegated remote calls --
   // These query the remote nym-vpn-api state directly

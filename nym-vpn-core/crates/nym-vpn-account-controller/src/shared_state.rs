@@ -4,8 +4,8 @@
 use std::{fmt, sync::Arc, time::Duration};
 
 use nym_vpn_api_client::response::{
-    NymVpnAccountStatusResponse, NymVpnAccountSummarySubscription, NymVpnDeviceStatus,
-    NymVpnSubscriptionStatus,
+    NymVpnAccountResponse, NymVpnAccountStatusResponse, NymVpnAccountSummarySubscription,
+    NymVpnDeviceStatus, NymVpnSubscriptionStatus,
 };
 use serde::Serialize;
 use tokio::sync::MutexGuard;
@@ -103,10 +103,15 @@ impl SharedAccountState {
 
     pub(crate) async fn is_ready_to_register_device(&self) -> ReadyToRegisterDevice {
         let state = self.lock().await.clone();
-        if state.mnemonic != Some(MnemonicState::Stored) {
+        if !state
+            .mnemonic
+            .map(|m| matches!(m, MnemonicState::Stored { .. }))
+            .unwrap_or(false)
+        {
             return ReadyToRegisterDevice::NoMnemonicStored;
         }
         if state.account != Some(AccountState::Active) {
+            // if state.account.map(|a| !a.is_active()).unwrap_or(false) {
             return ReadyToRegisterDevice::AccountNotActive;
         }
         if state.subscription != Some(SubscriptionState::Active) {
@@ -190,7 +195,7 @@ pub enum MnemonicState {
     NotStored,
 
     // The recovery phrase is stored locally
-    Stored,
+    Stored { id: String },
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -239,9 +244,21 @@ pub enum DeviceState {
 }
 
 impl AccountStateSummary {
+    pub fn account_id(&self) -> Option<String> {
+        match &self.mnemonic {
+            Some(MnemonicState::Stored { id }) => Some(id.clone()),
+            _ => None,
+        }
+    }
+
     // If we are ready right right now.
     fn is_ready_now(&self) -> ReadyToConnect {
-        if self.mnemonic != Some(MnemonicState::Stored) {
+        if !self
+            .mnemonic
+            .as_ref()
+            .map(|m| matches!(m, MnemonicState::Stored { .. }))
+            .unwrap_or(false)
+        {
             return ReadyToConnect::NoMnemonicStored;
         }
         if self.account != Some(AccountState::Active) {
@@ -265,14 +282,14 @@ impl AccountStateSummary {
     fn is_ready(&self) -> Option<ReadyToConnect> {
         match self.mnemonic {
             Some(MnemonicState::NotStored) => return Some(ReadyToConnect::NoMnemonicStored),
-            Some(MnemonicState::Stored) => {}
+            Some(MnemonicState::Stored { .. }) => {}
             None => return None,
         }
         match self.account {
             Some(AccountState::NotRegistered) => return Some(ReadyToConnect::AccountNotActive),
-            Some(AccountState::Inactive) => return Some(ReadyToConnect::AccountNotActive),
-            Some(AccountState::DeleteMe) => return Some(ReadyToConnect::AccountNotActive),
-            Some(AccountState::Active) => {}
+            Some(AccountState::Inactive { .. }) => return Some(ReadyToConnect::AccountNotActive),
+            Some(AccountState::DeleteMe { .. }) => return Some(ReadyToConnect::AccountNotActive),
+            Some(AccountState::Active { .. }) => {}
             None => return None,
         }
         match self.subscription {
@@ -318,9 +335,9 @@ fn debug_or_unknown(state: Option<&impl fmt::Debug>) -> String {
         .unwrap_or_else(|| "Unknown".to_string())
 }
 
-impl From<NymVpnAccountStatusResponse> for AccountState {
-    fn from(status: NymVpnAccountStatusResponse) -> Self {
-        match status {
+impl From<NymVpnAccountResponse> for AccountState {
+    fn from(account: NymVpnAccountResponse) -> Self {
+        match account.status {
             NymVpnAccountStatusResponse::Active => AccountState::Active,
             NymVpnAccountStatusResponse::Inactive => AccountState::Inactive,
             NymVpnAccountStatusResponse::DeleteMe => AccountState::DeleteMe,

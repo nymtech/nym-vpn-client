@@ -21,7 +21,7 @@ fn into_mnemonic(
     mnemonic: nym_vpn_account_controller::shared_state::MnemonicState,
 ) -> nym_vpn_proto::MnemonicState {
     match mnemonic {
-        nym_vpn_account_controller::shared_state::MnemonicState::Stored => {
+        nym_vpn_account_controller::shared_state::MnemonicState::Stored { .. } => {
             nym_vpn_proto::MnemonicState::Stored
         }
         nym_vpn_account_controller::shared_state::MnemonicState::NotStored => {
@@ -162,12 +162,27 @@ impl From<AccountError> for nym_vpn_proto::AccountError {
                 message: err.to_string(),
                 details: hashmap! {},
             },
+            AccountError::RecvCommand { .. } => nym_vpn_proto::AccountError {
+                kind: AccountErrorType::Storage as i32,
+                message: err.to_string(),
+                details: hashmap! {},
+            },
             AccountError::NoAccountStored => nym_vpn_proto::AccountError {
                 kind: AccountErrorType::Storage as i32,
                 message: err.to_string(),
                 details: hashmap! {},
             },
             AccountError::AccountControllerError { .. } => nym_vpn_proto::AccountError {
+                kind: AccountErrorType::Storage as i32,
+                message: err.to_string(),
+                details: hashmap! {},
+            },
+            AccountError::AccountManagementNotConfigured => nym_vpn_proto::AccountError {
+                kind: AccountErrorType::Storage as i32,
+                message: err.to_string(),
+                details: hashmap! {},
+            },
+            AccountError::FailedToParseAccountLinks => nym_vpn_proto::AccountError {
                 kind: AccountErrorType::Storage as i32,
                 message: err.to_string(),
                 details: hashmap! {},

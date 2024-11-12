@@ -67,6 +67,9 @@ fn default_mainnet_discovery() {
                     network_name: "{}".to_string(),
                     nym_api_url: "{}".parse().expect("Failed to parse NYM API URL"),
                     nym_vpn_api_url: "{}".parse().expect("Failed to parse NYM VPN API URL"),
+                    account_management: Default::default(),
+                    feature_flags: Default::default(),
+                    system_messages: Default::default(),
                 }}
             }}
         }}

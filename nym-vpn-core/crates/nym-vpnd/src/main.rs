@@ -14,8 +14,6 @@ mod util;
 #[cfg(windows)]
 mod windows_service;
 
-use std::sync::OnceLock;
-
 use clap::Parser;
 use nym_vpn_network_config::Network;
 use service::NymVpnService;
@@ -23,9 +21,6 @@ use tokio::sync::broadcast;
 use tokio_util::sync::CancellationToken;
 
 use crate::{cli::CliArgs, command_interface::CommandInterfaceOptions, config::GlobalConfigFile};
-
-// Lazy initialized global NymNetworkDetails
-static GLOBAL_NETWORK_DETAILS: OnceLock<Network> = OnceLock::new();
 
 fn main() -> anyhow::Result<()> {
     run()
@@ -43,9 +38,9 @@ fn run() -> anyhow::Result<()> {
 
     logging::setup_logging(args.command.run_as_service);
 
-    let _ = environment::setup_environment(&global_config_file, &args)?;
+    let network_env = environment::setup_environment(&global_config_file, &args)?;
 
-    run_inner(args)
+    run_inner(args, network_env)
 }
 
 #[cfg(windows)]
@@ -58,21 +53,23 @@ fn run() -> anyhow::Result<()> {
         global_config_file.write_to_file()?;
     }
 
-    let _ = environment::setup_environment(&global_config_file, &args)?;
+    let network_env = environment::setup_environment(&global_config_file, &args)?;
 
     if args.command.is_any() {
         Ok(windows_service::start(args)?)
     } else {
         logging::setup_logging(false);
-        run_inner(args)
+        run_inner(args, network_env)
     }
 }
 
-fn run_inner(args: CliArgs) -> anyhow::Result<()> {
-    runtime::new_runtime().block_on(run_inner_async(args))
+fn run_inner(args: CliArgs, network_env: Network) -> anyhow::Result<()> {
+    runtime::new_runtime().block_on(run_inner_async(args, network_env))
 }
 
-async fn run_inner_async(args: CliArgs) -> anyhow::Result<()> {
+async fn run_inner_async(args: CliArgs, network_env: Network) -> anyhow::Result<()> {
+    network_env.check_consistency().await?;
+
     let (state_changes_tx, state_changes_rx) = broadcast::channel(10);
     let (status_tx, status_rx) = broadcast::channel(10);
     let shutdown_token = CancellationToken::new();
@@ -92,6 +89,7 @@ async fn run_inner_async(args: CliArgs) -> anyhow::Result<()> {
         vpn_command_rx,
         status_tx,
         shutdown_token.child_token(),
+        network_env,
     );
 
     let mut shutdown_join_set = shutdown_handler::install(shutdown_token);

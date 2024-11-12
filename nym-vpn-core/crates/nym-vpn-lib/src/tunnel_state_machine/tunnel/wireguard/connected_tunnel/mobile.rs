@@ -69,7 +69,7 @@ impl ConnectedTunnel {
         EXIT_MTU
     }
 
-    pub fn run(
+    pub async fn run(
         self,
         tun_device: AsyncDevice,
         dns: Vec<IpAddr>,
@@ -140,6 +140,7 @@ impl ConnectedTunnel {
 
             tun_provider
                 .set_default_path_observer(Some(default_path_observer))
+                .await
                 .map_err(|e| Error::SetDefaultPathObserver(e.to_string()))?;
 
             default_path_rx
@@ -193,7 +194,7 @@ impl ConnectedTunnel {
 
             // Reset default path observer before exiting the event loop.
             #[cfg(target_os = "ios")]
-            let _ = tun_provider.set_default_path_observer(None);
+            let _ = tun_provider.set_default_path_observer(None).await;
 
             exit_tunnel.stop();
             exit_connection.close();

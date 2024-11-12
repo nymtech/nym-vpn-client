@@ -22,6 +22,7 @@ pub struct RegisterDeviceRequestBody {
 pub struct RequestZkNymRequestBody {
     pub withdrawal_request: String,
     pub ecash_pubkey: String,
+    pub expiration_date: String,
     pub ticketbook_type: String,
 }
 

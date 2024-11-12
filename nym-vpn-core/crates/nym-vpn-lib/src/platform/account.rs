@@ -4,6 +4,7 @@
 use std::{path::PathBuf, str::FromStr, sync::Arc, time::Duration};
 
 use nym_vpn_account_controller::{AccountCommand, ReadyToConnect, SharedAccountState};
+use nym_vpn_api_client::types::VpnApiAccount;
 use nym_vpn_store::{keys::KeyStore, mnemonic::MnemonicStorage};
 use tokio::{sync::mpsc::UnboundedSender, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
@@ -184,6 +185,18 @@ pub(super) async fn is_account_mnemonic_stored(path: &str) -> Result<bool, VpnEr
         })
 }
 
+pub(super) async fn get_account_id(path: &str) -> Result<String, VpnError> {
+    let storage = setup_account_storage(path)?;
+    storage
+        .load_mnemonic()
+        .await
+        .map(VpnApiAccount::from)
+        .map(|account| account.id())
+        .map_err(|err| VpnError::InternalError {
+            details: err.to_string(),
+        })
+}
+
 pub(super) async fn remove_account_mnemonic(path: &str) -> Result<bool, VpnError> {
     // TODO: remove the mnemonic by sending a command to the account controller instead of directly
     // interacting with the storage.
@@ -212,7 +225,7 @@ pub(super) async fn reset_device_identity(path: &str) -> Result<(), VpnError> {
 }
 
 pub(super) async fn update_account_state() -> Result<(), VpnError> {
-    send_account_command(AccountCommand::UpdateSharedAccountState).await
+    send_account_command(AccountCommand::UpdateAccountState).await
 }
 
 pub(super) async fn get_account_state() -> Result<AccountStateSummary, VpnError> {

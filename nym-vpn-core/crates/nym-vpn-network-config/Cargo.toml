@@ -20,10 +20,12 @@ nym-config.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tempfile.workspace = true
+time = { workspace = true, features = ["serde-human-readable"] }
 tokio = { workspace = true, features = ["time", "macros"] }
 tokio-util.workspace = true
 tracing.workspace = true
 url = { workspace = true, features = ["serde"] }
+futures-util = "0.3"
 
 [build-dependencies]
 serde_json.workspace = true
