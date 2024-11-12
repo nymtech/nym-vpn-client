@@ -130,6 +130,9 @@ impl ConnectedTunnel {
             tun_device.get_ref().as_raw_fd(),
         )?;
 
+        #[cfg(target_os = "android")]
+        let _ = std::mem::ManuallyDrop::new(tun_device);
+
         let shutdown_token = CancellationToken::new();
         let cloned_shutdown_token = shutdown_token.child_token();
 
@@ -203,6 +206,7 @@ impl ConnectedTunnel {
 
         Ok(TunnelHandle {
             task_manager: self.task_manager,
+            #[cfg(not(target_os = "android"))]
             tun_device,
             shutdown_token,
             event_loop_handle,
@@ -213,6 +217,7 @@ impl ConnectedTunnel {
 
 pub struct TunnelHandle {
     task_manager: TaskManager,
+    #[cfg(not(target_os = "android"))]
     tun_device: AsyncDevice,
     shutdown_token: CancellationToken,
     event_loop_handle: JoinHandle<()>,
@@ -249,6 +254,14 @@ impl TunnelHandle {
             tracing::error!("Failed to join on bandwidth controller: {}", e);
         }
 
-        vec![self.tun_device]
+        #[cfg(not(target_os = "android"))]
+        {
+            vec![self.tun_device]
+        }
+
+        #[cfg(target_os = "android")]
+        {
+            vec![]
+        }
     }
 }
