@@ -7,7 +7,7 @@ use nym_vpn_lib::{
     NodeIdentity, Recipient,
 };
 use serde::Serialize;
-use tokio::sync::mpsc::error::SendError;
+use tokio::sync::{mpsc::error::SendError, oneshot::error::RecvError};
 use tracing::error;
 
 use super::config::ConfigSetupError;
@@ -390,6 +390,9 @@ pub enum AccountError {
         source: Box<SendError<nym_vpn_account_controller::AccountCommand>>,
     },
 
+    #[error("account controller not ready to handle command")]
+    RecvCommand { source: Box<RecvError> },
+
     #[error("no account stored")]
     NoAccountStored,
 
@@ -402,6 +405,12 @@ pub enum AccountError {
     AccountControllerError {
         source: nym_vpn_account_controller::Error,
     },
+
+    #[error("account not configured")]
+    AccountManagementNotConfigured,
+
+    #[error("failed to parse account links")]
+    FailedToParseAccountLinks,
 }
 
 #[derive(Debug, thiserror::Error)]

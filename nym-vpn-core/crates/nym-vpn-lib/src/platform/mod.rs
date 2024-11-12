@@ -38,8 +38,9 @@ use crate::{
         TunnelStateMachine, TunnelType, WireguardTunnelOptions,
     },
     uniffi_custom_impls::{
-        AccountStateSummary, BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint,
-        GatewayMinPerformance, GatewayType, Location, NetworkEnvironment, TunStatus, UserAgent,
+        AccountLinks, AccountStateSummary, BandwidthStatus, ConnectionStatus, EntryPoint,
+        ExitPoint, GatewayMinPerformance, GatewayType, Location, NetworkEnvironment, SystemMessage,
+        TunStatus, UserAgent,
     },
 };
 
@@ -47,6 +48,8 @@ lazy_static! {
     static ref RUNTIME: Runtime = Runtime::new().unwrap();
     static ref STATE_MACHINE_HANDLE: Mutex<Option<StateMachineHandle>> = Mutex::new(None);
     static ref ACCOUNT_CONTROLLER_HANDLE: Mutex<Option<AccountControllerHandle>> = Mutex::new(None);
+    static ref NETWORK_ENVIRONMENT: Mutex<Option<nym_vpn_network_config::Network>> =
+        Mutex::new(None);
 }
 
 #[allow(non_snake_case)]
@@ -100,7 +103,7 @@ async fn stop_vpn_inner() -> Result<(), VpnError> {
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn init(data_dir: String) -> Result<(), VpnError> {
+pub fn configureLib(data_dir: String) -> Result<(), VpnError> {
     init_logger();
     start_account_controller(data_dir)
 }
@@ -132,6 +135,45 @@ pub fn initLogger() {
     init_logger();
 }
 
+/// Fetches the network environment details from the network name and initializes the environment,
+/// including exporting to the environment
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn initEnvironment(network_name: &str) -> Result<(), VpnError> {
+    RUNTIME.block_on(init_environment(network_name))
+}
+
+async fn init_environment(network_name: &str) -> Result<(), VpnError> {
+    let network = nym_vpn_network_config::Network::fetch(network_name).map_err(|err| {
+        VpnError::InternalError {
+            details: err.to_string(),
+        }
+    })?;
+
+    // To bridge with old code, export to environment. New code should now rely on this.
+    network.export_to_env();
+
+    let mut guard = NETWORK_ENVIRONMENT.lock().await;
+    *guard = Some(network);
+
+    Ok(())
+}
+
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn currentEnvironment() -> Result<NetworkEnvironment, VpnError> {
+    RUNTIME.block_on(current_environment())
+}
+
+async fn current_environment() -> Result<NetworkEnvironment, VpnError> {
+    let network = NETWORK_ENVIRONMENT.lock().await.clone();
+    network
+        .map(NetworkEnvironment::from)
+        .ok_or(VpnError::InternalError {
+            details: "No network environment initialized".to_string(),
+        })
+}
+
 // Fetch the network environment details from the network name.
 // TODO: also add the ability to catch this information for subsequent use.
 #[allow(non_snake_case)]
@@ -143,6 +185,59 @@ pub fn fetchEnvironment(network_name: &str) -> Result<NetworkEnvironment, VpnErr
 async fn fetch_environment(network_name: &str) -> Result<NetworkEnvironment, VpnError> {
     nym_vpn_network_config::Network::fetch(network_name)
         .map(NetworkEnvironment::from)
+        .map_err(|err| VpnError::InternalError {
+            details: err.to_string(),
+        })
+}
+
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn fetchSystemMessages(network_name: &str) -> Result<Vec<SystemMessage>, VpnError> {
+    RUNTIME.block_on(fetch_system_messages(network_name))
+}
+
+async fn fetch_system_messages(network_name: &str) -> Result<Vec<SystemMessage>, VpnError> {
+    nym_vpn_network_config::Network::fetch(network_name)
+        .map(|network| {
+            network
+                .nym_vpn_network
+                .system_messages
+                .into_current_iter()
+                .map(SystemMessage::from)
+                .collect()
+        })
+        .map_err(|err| VpnError::InternalError {
+            details: err.to_string(),
+        })
+}
+
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn fetchAccountLinks(
+    account_store_path: &str,
+    network_name: &str,
+    locale: &str,
+) -> Result<AccountLinks, VpnError> {
+    RUNTIME.block_on(fetch_account_links(
+        account_store_path,
+        network_name,
+        locale,
+    ))
+}
+
+async fn fetch_account_links(
+    path: &str,
+    network_name: &str,
+    locale: &str,
+) -> Result<AccountLinks, VpnError> {
+    let account_id = account::get_account_id(path).await?;
+    nym_vpn_network_config::Network::fetch(network_name)
+        .and_then(|network| {
+            network
+                .nym_vpn_network
+                .try_into_parsed_links(locale, &account_id)
+        })
+        .map(AccountLinks::from)
         .map_err(|err| VpnError::InternalError {
             details: err.to_string(),
         })

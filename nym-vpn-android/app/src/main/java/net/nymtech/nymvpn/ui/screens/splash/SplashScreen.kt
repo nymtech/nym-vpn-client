@@ -63,12 +63,13 @@ fun SplashScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 				progress = { logoAnimationState.progress },
 			)
 			if (logoAnimationState.isAtEnd && logoAnimationState.isPlaying) {
-				val route = if (appUiState.settings.isAnalyticsShown) {
-					Route.Main()
-				} else {
-					Route.Analytics
-				}
-				navController.navigateAndForget(route)
+				// Ignore analytics screen for now
+// 				val route = if (appUiState.settings.isAnalyticsShown) {
+// 					Route.Main()
+// 				} else {
+// 					Route.Analytics
+// 				}
+				navController.navigateAndForget(Route.Main())
 			}
 		}
 	}

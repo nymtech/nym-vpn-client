@@ -585,12 +585,17 @@ impl TunnelMonitor {
             exit: WireguardNode::from(conn_data.exit.clone()),
         });
 
-        let tunnel_handle = connected_tunnel.run(
-            tun_device,
-            self.tunnel_settings.dns.ip_addresses().to_vec(),
-            #[cfg(any(target_os = "ios", target_os = "android"))]
-            self.tun_provider.clone(),
-        )?;
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        let tunnel_handle =
+            connected_tunnel.run(tun_device, self.tunnel_settings.dns.ip_addresses().to_vec())?;
+        #[cfg(any(target_os = "ios", target_os = "android"))]
+        let tunnel_handle = connected_tunnel
+            .run(
+                tun_device,
+                self.tunnel_settings.dns.ip_addresses().to_vec(),
+                self.tun_provider.clone(),
+            )
+            .await?;
 
         let any_tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
 

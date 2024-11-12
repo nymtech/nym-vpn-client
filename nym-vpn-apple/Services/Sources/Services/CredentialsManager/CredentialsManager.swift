@@ -31,16 +31,6 @@ public final class CredentialsManager {
         setup()
     }
 
-    deinit {
-#if os(iOS)
-        do {
-            try stopAccountController()
-        } catch {
-            print("Error stopping account controller: \(error)")
-        }
-#endif
-    }
-
     public func add(credential: String) async throws {
         Task {
             let trimmedCredential = credential.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -103,7 +93,6 @@ public final class CredentialsManager {
 private extension CredentialsManager {
     func setup() {
         setupGRPCManagerObservers()
-        setupAccountController()
         checkCredentialImport()
     }
 
@@ -121,19 +110,6 @@ private extension CredentialsManager {
         }
         .store(in: &cancellables)
 #endif
-    }
-
-    func setupAccountController() {
-        Task {
-#if os(iOS)
-            do {
-                let dataFolderURL = try dataFolderURL()
-                try startAccountController(dataDir: dataFolderURL.path())
-            } catch {
-                print("Error starting account controller: \(error)")
-            }
-#endif
-        }
     }
 }
 

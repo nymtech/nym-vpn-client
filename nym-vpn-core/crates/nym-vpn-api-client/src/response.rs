@@ -5,6 +5,7 @@ use std::fmt;
 
 use itertools::Itertools;
 use nym_contracts_common::Percent;
+use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;
 use serde::{Deserialize, Serialize};
 
 const MAX_PROBE_RESULT_AGE_MINUTES: i64 = 60;
@@ -129,15 +130,31 @@ pub enum NymVpnRefundUserReason {
     Other,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+// Legacy type, because the blinded_shares response for the POST seems to be different than the GET
+// Remove once it's not needed anymore
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct NymVpnZkNymPost {
+    pub created_on_utc: String,
+    pub last_updated_utc: String,
+    pub id: String,
+    pub ticketbook_type: String,
+    pub valid_until_utc: String,
+    pub valid_from_utc: String,
+    pub issued_bandwidth_in_gb: f64,
+    pub blinded_shares: Option<Vec<Option<TicketbookWalletSharesResponse>>>,
+    pub status: NymVpnZkNymStatus,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct NymVpnZkNym {
     pub created_on_utc: String,
     pub last_updated_utc: String,
     pub id: String,
+    pub ticketbook_type: String,
     pub valid_until_utc: String,
     pub valid_from_utc: String,
     pub issued_bandwidth_in_gb: f64,
-    pub blinded_shares: Vec<String>,
+    pub blinded_shares: Option<TicketbookWalletSharesResponse>,
     pub status: NymVpnZkNymStatus,
 }
 
@@ -151,13 +168,13 @@ pub enum NymVpnZkNymStatus {
     Error,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NymVpnZkNymResponse {
     pub total_items: u64,
     pub page: u64,
     pub page_size: u64,
-    pub items: Vec<NymVpnZkNym>,
+    pub items: Vec<NymVpnZkNymPost>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -445,4 +462,9 @@ impl fmt::Display for UnexpectedError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.message)
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StatusOk {
+    status: String,
 }

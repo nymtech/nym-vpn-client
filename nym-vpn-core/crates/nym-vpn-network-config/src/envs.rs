@@ -69,7 +69,7 @@ impl RegisteredNetworks {
 
     fn fetch() -> anyhow::Result<Self> {
         let url = Self::endpoint()?;
-        tracing::info!("Fetching registered networks from: {}", url);
+        tracing::debug!("Fetching registered networks from: {}", url);
 
         let response = reqwest::blocking::get(url.clone())
             .inspect_err(|err| tracing::warn!("{}", err))
@@ -89,7 +89,7 @@ impl RegisteredNetworks {
 
     fn read_from_file(config_dir: &Path) -> anyhow::Result<Self> {
         let path = Self::path(config_dir);
-        tracing::info!(
+        tracing::debug!(
             "Reading registered networks from file: {:?}",
             path.display()
         );
@@ -101,7 +101,7 @@ impl RegisteredNetworks {
 
     fn write_to_file(&self, config_dir: &Path) -> anyhow::Result<()> {
         let path = Self::path(config_dir);
-        tracing::info!("Writing registered networks to file: {:?}", path.display());
+        tracing::debug!("Writing registered networks to file: {:?}", path.display());
 
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent)
