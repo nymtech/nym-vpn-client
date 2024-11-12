@@ -1,7 +1,12 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{collections::HashMap, path::PathBuf, sync::Arc, time::Duration};
+use std::{
+    collections::HashMap,
+    path::PathBuf,
+    sync::Arc,
+    time::{Duration, Instant},
+};
 
 use futures::StreamExt;
 use nym_compact_ecash::Base58;
@@ -68,6 +73,9 @@ where
     // changed.
     last_devices: DevicesResponse,
 
+    // The last time we requested zk-nyms
+    last_time_zk_nym_requested: Option<Instant>,
+
     // Tasks used to poll the status of zk-nyms
     polling_tasks: JoinSet<PollingResult>,
 
@@ -121,6 +129,7 @@ where
             account_state: SharedAccountState::new(),
             last_account_summary: Arc::new(tokio::sync::Mutex::new(None)),
             last_devices: Arc::new(tokio::sync::Mutex::new(None)),
+            last_time_zk_nym_requested: None,
             polling_tasks: JoinSet::new(),
             command_rx,
             command_tx,
@@ -303,18 +312,32 @@ where
     // Check the local credential storage to see if we need to request more zk-nyms, the proceed
     // to request zk-nyms for each ticket type that we need.
     async fn handle_request_zk_nym(&mut self) -> Result<(), Error> {
-        let account = self.account_storage.load_account().await?;
-        let device = self.account_storage.load_device_keys().await?;
+        if let Some(last_time_zk_nym_requested) = self.last_time_zk_nym_requested {
+            if last_time_zk_nym_requested.elapsed() < Duration::from_secs(60 * 5) {
+                tracing::info!("Skipping zk-nym request, last request was less than 5 minutes ago");
+                return Ok(());
+            }
+        }
+        self.last_time_zk_nym_requested = Some(Instant::now());
 
         tracing::info!("Checking which ticket types are running low");
         let ticket_types_needed_to_request = self
             .credential_storage
             .check_ticket_types_running_low()
             .await?;
+
+        if ticket_types_needed_to_request.is_empty() {
+            tracing::info!("No ticket types running low, skipping zk-nym request");
+            return Ok(());
+        }
+
         tracing::info!(
             "Ticket types running low: {:?}",
             ticket_types_needed_to_request
         );
+
+        let account = self.account_storage.load_account().await?;
+        let device = self.account_storage.load_device_keys().await?;
 
         // Request zk-nyms for each ticket type that we need
         let responses = futures::stream::iter(ticket_types_needed_to_request)
@@ -642,6 +665,9 @@ where
         // Timer to periodically refresh the remote account state
         let mut update_account_state_timer = tokio::time::interval(Duration::from_secs(5 * 60));
 
+        // Timer to periodically check if we need to request more zk-nyms
+        let mut update_zk_nym_timer = tokio::time::interval(Duration::from_secs(10 * 60));
+
         loop {
             tokio::select! {
                 // Handle incoming commands
@@ -667,6 +693,10 @@ where
                 // On a timer we want to refresh the account state
                 _ = update_account_state_timer.tick() => {
                     self.queue_command(AccountCommand::UpdateAccountState);
+                }
+                // On a timer to check if we need to request more zk-nyms
+                _ = update_zk_nym_timer.tick() => {
+                    self.queue_command(AccountCommand::RequestZkNym);
                 }
                 _ = self.cancel_token.cancelled() => {
                     tracing::trace!("Received cancellation signal");
