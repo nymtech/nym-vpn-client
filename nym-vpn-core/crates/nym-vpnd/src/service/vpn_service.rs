@@ -744,8 +744,18 @@ where
         let ConnectArgs {
             entry,
             exit,
-            options,
+            mut options,
         } = connect_args;
+
+        // Get feature flag
+        let enable_credentials_mode = self
+            .network_env
+            .get_feature_flag("zkNym", "credentialMode")
+            .unwrap_or(false);
+        tracing::debug!("feature flag: credential mode: {enable_credentials_mode}");
+
+        options.enable_credentials_mode =
+            options.enable_credentials_mode || enable_credentials_mode;
 
         tracing::info!(
             "Using entry point: {}",
