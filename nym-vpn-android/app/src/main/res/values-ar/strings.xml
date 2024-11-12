@@ -177,4 +177,6 @@
     <string name="mnemonic_example">مثال: دخان، قطعة أثرية، مخمل، جمجمة، فرقعة، قصر، سلحفاة، ضرر، خشن...</string>
     <string name="recovery_phrase_message">أدخل العبارة السرية المكونة من 24-كلمة أدناه لتسجيل الدخول إلى حسابك</string>
     <string name="new_to_nym">هل أنت جديد على NymVPN؟</string>
+    <string name="dynamic">ديناميكي</string>
+    <string name="system_wallpaper">تصميم خلفية النظام</string>
 </resources>
