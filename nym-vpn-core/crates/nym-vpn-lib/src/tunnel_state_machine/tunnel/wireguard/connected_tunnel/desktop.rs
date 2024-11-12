@@ -10,9 +10,11 @@ use nym_task::TaskManager;
 use nym_wg_gateway_client::WgGatewayClient;
 use nym_wg_go::{netstack, wireguard_go};
 
+#[cfg(unix)]
+use crate::tunnel_state_machine::tunnel::wireguard::fd::DupFd;
 use crate::{
     tunnel_state_machine::tunnel::{
-        wireguard::{connector::ConnectionData, fd::DupFd, two_hop_config::TwoHopConfig},
+        wireguard::{connector::ConnectionData, two_hop_config::TwoHopConfig},
         Error, Result,
     },
     wg_config::WgNodeConfig,
