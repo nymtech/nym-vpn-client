@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{error::Error as StdError, net::IpAddr, os::fd::AsRawFd, sync::Arc};
+use std::{error::Error as StdError, net::IpAddr, sync::Arc};
 
 #[cfg(target_os = "ios")]
 use tokio::sync::mpsc;
@@ -18,15 +18,16 @@ use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::{
     tunnel_provider::ios::{default_path_observer::DefaultPathObserver, OSTunProvider},
-    tunnel_state_machine::tunnel::{wireguard::dns64::Dns64Resolution, Error},
+    tunnel_state_machine::tunnel::wireguard::dns64::Dns64Resolution,
 };
 use crate::{
     tunnel_state_machine::tunnel::{
         wireguard::{
             connector::ConnectionData,
+            fd::DupFd,
             two_hop_config::{TwoHopConfig, ENTRY_MTU, EXIT_MTU},
         },
-        Result,
+        Error, Result,
     },
     wg_config::WgNodeConfig,
 };
@@ -127,7 +128,7 @@ impl ConnectedTunnel {
         #[allow(unused_mut)]
         let mut exit_tunnel = wireguard_go::Tunnel::start(
             two_hop_config.exit.into_wireguard_config(),
-            tun_device.get_ref().as_raw_fd(),
+            tun_device.get_ref().dup_fd().map_err(Error::DupFd)?,
         )?;
 
         let shutdown_token = CancellationToken::new();

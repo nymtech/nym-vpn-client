@@ -28,22 +28,10 @@ type LogContext = unsafe.Pointer
 func wgTurnOn(settings *C.char, tunFd int32, logSink LogSink, logContext LogContext) int32 {
 	logger := logging.NewLogger(logSink, logContext)
 
-	dupTunFd, err := unix.Dup(int(tunFd))
-	if err != nil {
-		logger.Errorf("Unable to dup tun fd: %v", err)
-		return ERROR_GENERAL_FAILURE
-	}
-
-	err = unix.SetNonblock(dupTunFd, true)
-	if err != nil {
-		logger.Errorf("Unable to set tun fd as non blocking: %v", err)
-		unix.Close(dupTunFd)
-		return ERROR_GENERAL_FAILURE
-	}
-	tun, err := tun.CreateTUNFromFile(os.NewFile(uintptr(dupTunFd), "/dev/tun"), 0)
+	tun, err := tun.CreateTUNFromFile(os.NewFile(uintptr(tunFd), "/dev/tun"), 0)
 	if err != nil {
 		logger.Errorf("Unable to create new tun device from fd: %v", err)
-		unix.Close(dupTunFd)
+		unix.Close(int(tunFd))
 		return ERROR_INTERMITTENT_FAILURE
 	}
 	logger.Verbosef("Attaching to interface")
@@ -52,7 +40,7 @@ func wgTurnOn(settings *C.char, tunFd int32, logSink LogSink, logContext LogCont
 	err = dev.IpcSet(C.GoString(settings))
 	if err != nil {
 		logger.Errorf("Unable to set IPC settings: %v", err)
-		unix.Close(dupTunFd)
+		unix.Close(int(tunFd))
 		return ERROR_GENERAL_FAILURE
 	}
 

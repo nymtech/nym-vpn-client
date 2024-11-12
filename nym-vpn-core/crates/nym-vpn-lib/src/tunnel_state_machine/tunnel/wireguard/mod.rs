@@ -6,4 +6,6 @@ pub mod connector;
 
 #[cfg(target_os = "ios")]
 pub mod dns64;
+#[cfg(unix)]
+pub mod fd;
 pub mod two_hop_config;

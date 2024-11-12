@@ -122,6 +122,7 @@ impl DnsHandlerHandle {
         .await
     }
 
+    #[allow(unused)]
     pub async fn reset(&mut self) -> Result<()> {
         let (reply_tx, reply_rx) = oneshot::channel();
 

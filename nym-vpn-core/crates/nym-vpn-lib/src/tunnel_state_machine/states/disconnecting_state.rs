@@ -66,13 +66,8 @@ impl DisconnectingState {
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         _shared_state.route_handler.remove_routes().await;
 
-        tracing::debug!("Closing tunnel {} device(s).", tun_devices.len());
+        tracing::info!("Closing {} tunnel device(s).", tun_devices.len());
         tun_devices.clear();
-
-        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-        if let Err(e) = _shared_state.dns_handler.reset().await {
-            tracing::error!("Failed to reset dns: {}", e);
-        }
 
         // todo: reset firewall
     }
