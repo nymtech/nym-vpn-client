@@ -450,7 +450,7 @@ impl From<String> for NymDirectoryCountry {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct NymErrorResponse {
     pub message: String,
@@ -504,4 +504,30 @@ impl fmt::Display for UnexpectedError {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct StatusOk {
     status: String,
+}
+
+pub fn extract_error_response<E>(err: &E) -> Option<NymErrorResponse>
+where
+    E: std::error::Error + 'static,
+{
+    let mut source = err.source();
+    while let Some(err) = source {
+        if let Some(status) = err
+            .downcast_ref::<nym_http_api_client::HttpClientError<NymErrorResponse>>()
+            .and_then(extract_error_response_inner)
+        {
+            return Some(status);
+        }
+        source = err.source();
+    }
+    None
+}
+
+fn extract_error_response_inner(
+    err: &nym_http_api_client::HttpClientError<NymErrorResponse>,
+) -> Option<NymErrorResponse> {
+    match err {
+        nym_http_api_client::HttpClientError::EndpointFailure { error, .. } => Some(error.clone()),
+        _ => None,
+    }
 }

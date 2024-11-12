@@ -60,18 +60,19 @@ pub fn startVPN(config: VPNConfig) -> Result<(), VpnError> {
 }
 
 async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
+    // Check any feature flags set by the network
+    let current_environment = NETWORK_ENVIRONMENT.lock().await.clone();
+    let enable_credentials_mode = current_environment
+        .as_ref()
+        .map(get_feature_flag_credential_mode)
+        .unwrap_or(false);
+
     // TODO: we do a pre-connect check here. This mirrors the logic in the daemon.
     // We want to move this check into the state machine so that it happens during the connecting
     // state instead. This would allow us more flexibility in waiting for the account to be ready
     // and handle errors in a unified manner.
     let timeout = Duration::from_secs(10);
-    account::assert_account_ready_to_connect(timeout).await?;
-
-    // Check any feature flags set by the network
-    let current_environment = NETWORK_ENVIRONMENT.lock().await.clone();
-    let enable_credentials_mode = current_environment
-        .and_then(|network| network.get_feature_flag("zkNym", "credentialMode"))
-        .unwrap_or(false);
+    account::wait_for_account_ready_to_connect(enable_credentials_mode, timeout).await?;
 
     let mut guard = STATE_MACHINE_HANDLE.lock().await;
 
@@ -115,10 +116,22 @@ pub fn configureLib(data_dir: String) -> Result<(), VpnError> {
 }
 
 async fn reconfigure_library(data_dir: String) -> Result<(), VpnError> {
+    let current_environment = NETWORK_ENVIRONMENT.lock().await.clone();
+    let enable_credentials_mode = current_environment
+        .as_ref()
+        .map(get_feature_flag_credential_mode)
+        .unwrap_or(false);
+
     // stop if already running
     let _ = account::stop_account_controller_inner().await;
     init_logger();
-    start_account_controller_inner(PathBuf::from(data_dir)).await
+    start_account_controller_inner(PathBuf::from(data_dir), enable_credentials_mode).await
+}
+
+fn get_feature_flag_credential_mode(network: &nym_vpn_network_config::Network) -> bool {
+    network
+        .get_feature_flag("zkNym", "credentialMode")
+        .unwrap_or(false)
 }
 
 #[allow(non_snake_case)]

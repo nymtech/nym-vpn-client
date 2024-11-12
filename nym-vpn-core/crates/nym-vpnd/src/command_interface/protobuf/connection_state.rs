@@ -33,9 +33,14 @@ pub(crate) fn into_is_ready_to_connect_response_type(
     match ready {
         ReadyToConnect::Ready => IsReadyToConnectResponseType::Ready,
         ReadyToConnect::NoMnemonicStored => IsReadyToConnectResponseType::NoAccountStored,
+        ReadyToConnect::AccountNotSynced => IsReadyToConnectResponseType::AccountNotSynced,
+        ReadyToConnect::AccountNotRegistered => IsReadyToConnectResponseType::AccountNotRegistered,
         ReadyToConnect::AccountNotActive => IsReadyToConnectResponseType::AccountNotActive,
         ReadyToConnect::NoActiveSubscription => IsReadyToConnectResponseType::NoActiveSubscription,
         ReadyToConnect::DeviceNotRegistered => IsReadyToConnectResponseType::DeviceNotRegistered,
         ReadyToConnect::DeviceNotActive => IsReadyToConnectResponseType::DeviceNotActive,
+        ReadyToConnect::DeviceRegistrationFailed { .. } => {
+            IsReadyToConnectResponseType::DeviceRegistrationFailed
+        }
     }
 }
