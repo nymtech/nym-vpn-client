@@ -5,7 +5,8 @@
     "connected": "Connesso",
     "disconnected": "Disconnesso",
     "disconnecting": "Disconnessione",
-    "unknown": "Sconosciuto"
+    "unknown": "Sconosciuto",
+    "connecting": "Connessione in corso"
   },
   "last-hop": "Ultimo hop",
   "first-hop": "Primo hop",

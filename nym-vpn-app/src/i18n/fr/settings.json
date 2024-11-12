@@ -29,7 +29,7 @@
     "licenses-js": "Licences (JavaScript)"
   },
   "display-theme": "Apparence",
-  "login-button": "Ajoutez un identifiant pour vous connecter",
+  "login-button": "S'identifier",
   "monitoring-alert": "Redémarrez l'application pour que le changement s'applique.",
   "faq": "F.A.Q.",
   "quit": "Quitter NymVPN",
@@ -44,5 +44,9 @@
     "client-version": "Version du client",
     "daemon-version": "Version du daemon",
     "network-name": "Réseau"
+  },
+  "logout-confirmation": {
+    "title": "Etes-vous sûr ?",
+    "description": "Vous aurez besoin de votre phrase de récupération pour vous reconnecter."
   }
 }
