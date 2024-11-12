@@ -39,10 +39,15 @@ use crate::{
     AvailableTicketbooks,
 };
 
-// If we go below this threshold, we should request more tickets
-// TODO: I picked a random number, check what is should be. Or if we can express this in terms of
-// data/bandwidth.
-const TICKET_THRESHOLD: u32 = 10;
+// The interval at which we automatically request zk-nyms
+const ZK_NYM_AUTOMATIC_REQUEST_INTERVAL: Duration = Duration::from_secs(10 * 60);
+
+// The maximum number of zk-nym requests that can fail in a row before we disable background
+// refresh
+const ZK_NYM_MAX_FAILS: u32 = 10;
+
+// The interval at which we update the account state
+const ACCOUNT_UPDATE_INTERVAL: Duration = Duration::from_secs(5 * 60);
 
 pub(crate) type PendingCommands = Arc<std::sync::Mutex<HashMap<uuid::Uuid, String>>>;
 pub(crate) type DevicesResponse = Arc<tokio::sync::Mutex<Option<NymVpnDevicesResponse>>>;
@@ -72,6 +77,9 @@ where
     // The last devices we received from the API. We use this to check if the device state has
     // changed.
     last_devices: DevicesResponse,
+
+    // If we have multiple fails in a row, disable background refresh
+    zk_nym_fails_in_row: u32,
 
     // Tasks used to poll the status of zk-nyms
     polling_tasks: JoinSet<PollingResult>,
@@ -126,6 +134,7 @@ where
             account_state: SharedAccountState::new(),
             last_account_summary: Arc::new(tokio::sync::Mutex::new(None)),
             last_devices: Arc::new(tokio::sync::Mutex::new(None)),
+            zk_nym_fails_in_row: 0,
             polling_tasks: JoinSet::new(),
             command_rx,
             command_tx,
@@ -305,31 +314,32 @@ where
         Ok(())
     }
 
-    // Check the local credential storage to see if we need to request more zk-nyms, the proceed to
-    // request zk-nyms for each ticket type that we need.
+    // Check the local credential storage to see if we need to request more zk-nyms, the proceed
+    // to request zk-nyms for each ticket type that we need.
     async fn handle_request_zk_nym(&mut self) -> Result<(), Error> {
-        let account = self.account_storage.load_account().await?;
-        let device = self.account_storage.load_device_keys().await?;
-
-        // Then we check local storage to see what ticket types we already have stored
-        let local_remaining_tickets = self
-            .credential_storage
-            .check_local_remaining_tickets()
-            .await;
-        for (ticket_type, remaining) in &local_remaining_tickets {
-            tracing::info!("{}, remaining: {}", ticket_type, remaining);
+        if self.shared_state().lock().await.pending_zk_nym {
+            tracing::info!("zk-nym request already in progress, skipping");
+            return Ok(());
         }
 
-        // Get the ticket types that are below the threshold
-        // TODO: only count ticketbooks not expired
-        let ticket_types_needed_to_request = local_remaining_tickets
-            .into_iter()
-            .filter(|(_, remaining)| *remaining < TICKET_THRESHOLD)
-            .map(|(ticket_type, _)| ticket_type)
-            .collect::<Vec<_>>();
+        tracing::info!("Checking which ticket types are running low");
+        let ticket_types_needed_to_request = self
+            .credential_storage
+            .check_ticket_types_running_low()
+            .await?;
 
-        // For testing: uncomment to only request zk-nyms for a specific ticket type
-        //let ticket_types_needed_to_request = vec![TicketType::V1MixnetEntry];
+        if ticket_types_needed_to_request.is_empty() {
+            tracing::info!("No ticket types running low, skipping zk-nym request");
+            return Ok(());
+        }
+
+        tracing::info!(
+            "Ticket types running low: {:?}",
+            ticket_types_needed_to_request
+        );
+
+        let account = self.account_storage.load_account().await?;
+        let device = self.account_storage.load_device_keys().await?;
 
         // Request zk-nyms for each ticket type that we need
         let responses = futures::stream::iter(ticket_types_needed_to_request)
@@ -483,8 +493,7 @@ where
     }
 
     async fn handle_get_available_tickets(&self) -> Result<AvailableTicketbooks, Error> {
-        tracing::info!("Getting available tickets from API");
-
+        tracing::info!("Getting available tickets from local credential storage");
         self.credential_storage.print_info().await?;
         self.credential_storage.get_available_ticketbooks().await
     }
@@ -501,25 +510,38 @@ where
             PollingResult::Finished(response, ticketbook_type, request_info, request)
                 if response.status == NymVpnZkNymStatus::Active =>
             {
-                tracing::info!("Polling finished succesfully, importing ticketbook");
-                self.import_zk_nym(response, ticketbook_type, *request_info, *request)
+                let id = response.id.clone();
+                tracing::info!("Polling finished succesfully, importing ticketbook: {id}",);
+                match self
+                    .import_zk_nym(response, ticketbook_type, *request_info, *request)
                     .await
-                    .inspect_err(|err| {
+                {
+                    Ok(_) => {
+                        tracing::info!("Successfully imported zk-nym: {}", id);
+                        self.zk_nym_fails_in_row = 0;
+                    }
+                    Err(err) => {
                         tracing::error!("Failed to import zk-nym: {:#?}", err);
-                    })
-                    .ok();
+                        self.zk_nym_fails_in_row += 1;
+                    }
+                };
             }
             PollingResult::Finished(response, _, _, _) => {
                 tracing::warn!(
-                    "Polling finished with status: {:?}, not importing!",
-                    response.status
+                    "Polling for {} finished with status: {:?}",
+                    response.id,
+                    response.status,
                 );
+                tracing::warn!("Not importing zk-nym: {}", response.id);
+                self.zk_nym_fails_in_row += 1;
             }
             PollingResult::Timeout(response) => {
                 tracing::info!("Polling task timed out: {:#?}", response);
+                self.zk_nym_fails_in_row += 1;
             }
             PollingResult::Error(error) => {
                 tracing::error!("Polling task failed for {}: {:#?}", error.id, error.error);
+                self.zk_nym_fails_in_row += 1;
             }
         }
     }
@@ -530,7 +552,7 @@ where
             .map(|guard| {
                 guard
                     .values()
-                    .any(|running_command| running_command == command.kind())
+                    .any(|running_command| running_command == &command.kind())
             })
             .map_err(Error::internal)
     }
@@ -542,7 +564,7 @@ where
     }
 
     async fn handle_command(&mut self, command: AccountCommand) -> Result<(), Error> {
-        tracing::info!("Received command: {:?}", command);
+        tracing::info!("Received command: {}", command);
 
         if self.is_command_running(&command).await? {
             tracing::info!("Command already running, skipping: {:?}", command);
@@ -625,16 +647,14 @@ where
     async fn print_info(&self) {
         let account_id = self
             .account_storage
-            .load_account()
+            .load_account_id()
             .await
-            .map(|account| account.id())
             .ok()
             .unwrap_or_else(|| "(unset)".to_string());
         let device_id = self
             .account_storage
-            .load_device_keys()
+            .load_device_id()
             .await
-            .map(|device| device.identity_key().to_string())
             .ok()
             .unwrap_or_else(|| "(unset)".to_string());
 
@@ -649,16 +669,21 @@ where
     pub async fn run(mut self) {
         self.print_info().await;
 
-        // Timer to check if any command tasks have finished
+        // Timer to check if any command tasks have finished. This just needs to be something small
+        // so that we periodically check the results without interfering with other tasks
         let mut command_finish_timer = tokio::time::interval(Duration::from_millis(500));
 
-        // Timer to check if any zk-nym polling tasks have finished
+        // Timer to check if any zk-nym polling tasks have finished. This just needs to be
+        // something small so that we periodically check the results without interfering with other
+        // tasks
         let mut polling_timer = tokio::time::interval(Duration::from_millis(500));
 
         // Timer to periodically refresh the remote account state
-        let mut update_account_state_timer = tokio::time::interval(Duration::from_secs(5 * 60));
+        let mut update_account_state_timer = tokio::time::interval(ACCOUNT_UPDATE_INTERVAL);
 
-        tracing::info!("Account controller starting loop");
+        // Timer to periodically check if we need to request more zk-nyms
+        let mut update_zk_nym_timer = tokio::time::interval(ZK_NYM_AUTOMATIC_REQUEST_INTERVAL);
+
         loop {
             tokio::select! {
                 // Handle incoming commands
@@ -682,8 +707,12 @@ where
                     self.update_pending_zk_nym_tasks().await;
                 }
                 // On a timer we want to refresh the account state
-                _ = update_account_state_timer.tick() => {
+                _ = update_account_state_timer.tick(), if self.zk_nym_fails_in_row < ZK_NYM_MAX_FAILS => {
                     self.queue_command(AccountCommand::UpdateAccountState);
+                }
+                // On a timer to check if we need to request more zk-nyms
+                _ = update_zk_nym_timer.tick() => {
+                    self.queue_command(AccountCommand::RequestZkNym);
                 }
                 _ = self.cancel_token.cancelled() => {
                     tracing::trace!("Received cancellation signal");

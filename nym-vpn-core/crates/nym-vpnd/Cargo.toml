@@ -41,10 +41,12 @@ tracing-appender.workspace = true
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 tracing.workspace = true
 url.workspace = true
+zeroize.workspace = true
 
 # Nym monorepo
 nym-bandwidth-controller.workspace = true
 nym-bin-common.workspace = true
+nym-credentials-interface.workspace = true
 nym-task.workspace = true
 nym-validator-client.workspace = true
 

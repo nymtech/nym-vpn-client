@@ -66,10 +66,16 @@ async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
     let timeout = Duration::from_secs(10);
     account::assert_account_ready_to_connect(timeout).await?;
 
+    // Check any feature flags set by the network
+    let current_environment = NETWORK_ENVIRONMENT.lock().await.clone();
+    let enable_credentials_mode = current_environment
+        .and_then(|network| network.get_feature_flag("zkNym", "credentialMode"))
+        .unwrap_or(false);
+
     let mut guard = STATE_MACHINE_HANDLE.lock().await;
 
     if guard.is_none() {
-        let state_machine_handle = start_state_machine(config).await?;
+        let state_machine_handle = start_state_machine(config, enable_credentials_mode).await?;
         state_machine_handle.send_command(TunnelCommand::Connect);
         *guard = Some(state_machine_handle);
         Ok(())
@@ -422,7 +428,10 @@ fn get_nym_urls() -> Result<(Url, Url), VpnError> {
     }
 }
 
-async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, VpnError> {
+async fn start_state_machine(
+    config: VPNConfig,
+    enable_credentials_mode: bool,
+) -> Result<StateMachineHandle, VpnError> {
     let tunnel_type = if config.enable_two_hop {
         TunnelType::Wireguard
     } else {
@@ -447,7 +456,7 @@ async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, Vp
 
     let tunnel_settings = TunnelSettings {
         tunnel_type,
-        enable_credentials_mode: false,
+        enable_credentials_mode,
         mixnet_tunnel_options: MixnetTunnelOptions::default(),
         wireguard_tunnel_options: WireguardTunnelOptions::default(),
         gateway_performance_options: GatewayPerformanceOptions::default(),

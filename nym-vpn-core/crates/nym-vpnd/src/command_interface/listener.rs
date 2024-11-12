@@ -32,6 +32,7 @@ use nym_vpn_proto::{
     ResetDeviceIdentityResponse, SetNetworkRequest, SetNetworkResponse, StatusRequest,
     StatusResponse, StoreAccountRequest, StoreAccountResponse,
 };
+use zeroize::Zeroizing;
 
 use super::{
     connection_handler::CommandInterfaceConnectionHandler,
@@ -43,7 +44,9 @@ use crate::{
     command_interface::protobuf::{
         connection_state::into_is_ready_to_connect_response_type,
         gateway::into_user_agent,
-        info_response::{into_proto_feature_flags, into_proto_system_message},
+        info_response::{
+            into_proto_available_tickets, into_proto_feature_flags, into_proto_system_message,
+        },
     },
     service::{ConnectOptions, VpnServiceCommand, VpnServiceStateChange},
 };
@@ -421,7 +424,7 @@ impl NymVpnd for CommandInterface {
         &self,
         request: tonic::Request<StoreAccountRequest>,
     ) -> Result<tonic::Response<StoreAccountResponse>, tonic::Status> {
-        let account = request.into_inner().mnemonic;
+        let account = Zeroizing::new(request.into_inner().mnemonic);
 
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_store_account(account)
@@ -817,26 +820,13 @@ impl NymVpnd for CommandInterface {
             })?;
 
         let response = match result {
-            Ok(tickets) => {
-                let summary = tickets.remaining();
-                let available_tickets = nym_vpn_proto::AvailableTickets {
-                    mixnet_entry: summary.mixnet_entry_amount,
-                    mixnet_exit: summary.mixnet_exit_amount,
-                    vpn_entry: summary.vpn_entry_amount,
-                    vpn_exit: summary.vpn_exit_amount,
-                    mixnet_entry_si: summary.mixnet_entry_amount_si(),
-                    mixnet_exit_si: summary.mixnet_exit_amount_si(),
-                    vpn_entry_si: summary.vpn_entry_amount_si(),
-                    vpn_exit_si: summary.vpn_exit_amount_si(),
-                };
-                GetAvailableTicketsResponse {
-                    resp: Some(
-                        nym_vpn_proto::get_available_tickets_response::Resp::AvailableTickets(
-                            available_tickets,
-                        ),
+            Ok(ticketbooks) => GetAvailableTicketsResponse {
+                resp: Some(
+                    nym_vpn_proto::get_available_tickets_response::Resp::AvailableTickets(
+                        into_proto_available_tickets(ticketbooks),
                     ),
-                }
-            }
+                ),
+            },
             Err(err) => GetAvailableTicketsResponse {
                 resp: Some(nym_vpn_proto::get_available_tickets_response::Resp::Error(
                     nym_vpn_proto::AccountError::from(err),

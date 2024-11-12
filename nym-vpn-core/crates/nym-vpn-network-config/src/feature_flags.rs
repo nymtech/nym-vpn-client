@@ -10,6 +10,12 @@ pub struct FeatureFlags {
     pub flags: HashMap<String, FlagValue>,
 }
 
+impl FeatureFlags {
+    pub fn get_flag(&self, flag: &str) -> Option<FlagValue> {
+        self.flags.get(flag).cloned()
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum FlagValue {

@@ -4780,6 +4780,7 @@ dependencies = [
  "maplit",
  "nym-bandwidth-controller",
  "nym-bin-common",
+ "nym-credentials-interface",
  "nym-task",
  "nym-validator-client",
  "nym-vpn-account-controller",
@@ -4813,6 +4814,7 @@ dependencies = [
  "winapi",
  "windows-service",
  "windows-sys 0.52.0",
+ "zeroize",
 ]
 
 [[package]]
