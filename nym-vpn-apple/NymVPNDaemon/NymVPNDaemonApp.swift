@@ -17,9 +17,11 @@ struct NymVPNDaemonApp: App {
     private let autoUpdater = AutoUpdater.shared
     private let logFileManager = LogFileManager(logFileType: .app)
     private let helperManager = HelperManager.shared
+    private let appSettings = AppSettings.shared
 
-    @ObservedObject private var appSettings = AppSettings.shared
     @StateObject private var homeViewModel = HomeViewModel()
+    @StateObject private var checkForUpdatesViewModel = CheckForUpdatesViewModel(updater: AutoUpdater.shared.updater)
+    @StateObject private var welcomeViewModel = WelcomeViewModel()
     @State private var isDisplayingAlert = false
     @State private var alertTitle = ""
 
@@ -34,7 +36,7 @@ struct NymVPNDaemonApp: App {
                 if !homeViewModel.splashScreenDidDisplay {
                     LaunchView(splashScreenDidDisplay: $homeViewModel.splashScreenDidDisplay)
                 } else if !appSettings.welcomeScreenDidDisplay {
-                    WelcomeView(viewModel: WelcomeViewModel())
+                    WelcomeView(viewModel: welcomeViewModel)
                         .transition(.slide)
                 } else {
                     HomeView(viewModel: homeViewModel)
@@ -52,7 +54,7 @@ struct NymVPNDaemonApp: App {
         .windowResizability(.contentSize)
         .commands {
             CommandGroup(after: .appInfo) {
-                CheckForUpdatesView(viewModel: CheckForUpdatesViewModel(updater: autoUpdater.updater))
+                CheckForUpdatesView(viewModel: checkForUpdatesViewModel)
             }
             CommandGroup(after: .help) {
                 if helperManager.isHelperAuthorizedAndRunning() {

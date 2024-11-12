@@ -518,6 +518,17 @@
         }
       }
     },
+    "errorReason.badBandwidthIncrease" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bad bandwidth increase"
+          }
+        }
+      }
+    },
     "errorReason.dns" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1278,6 +1289,17 @@
       }
     },
     "settings.logoutSubtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You will need your recovery phrase to log in again."
+          }
+        }
+      }
+    },
+    "settings.logoutTitle" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {

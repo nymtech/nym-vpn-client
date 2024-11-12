@@ -20,24 +20,20 @@ public final class HelperManager {
     }
 
     public func installHelperIfNeeded() async throws -> Bool {
-        if isHelperAuthorizedAndRunning() {
-            return true
-        } else {
-            do {
-                _ = try authorizeAndInstallHelper()
-
-                var retryCount = 0
-                while retryCount < 10 {
-                    retryCount += 1
-                    if isHelperAuthorizedAndRunning() {
-                        // Hack: Wait for daemon to start, to avoid connect button unresponsivness
-                        try? await Task.sleep(nanoseconds: secondInNanoseconds * 5)
-                        return true
-                    }
-                    try? await Task.sleep(nanoseconds: secondInNanoseconds)
+        do {
+            _ = try authorizeAndInstallHelper()
+            
+            var retryCount = 0
+            while retryCount < 10 {
+                retryCount += 1
+                if isHelperAuthorizedAndRunning() {
+                    // Hack: Wait for daemon to start, to avoid connect button unresponsivness
+                    try? await Task.sleep(nanoseconds: secondInNanoseconds * 5)
+                    return true
                 }
-                return false
+                try? await Task.sleep(nanoseconds: secondInNanoseconds)
             }
+            return false
         }
     }
 

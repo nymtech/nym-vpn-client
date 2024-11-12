@@ -23,7 +23,8 @@ public class SettingsViewModel: SettingsFlowState {
 
     var logoutDialogConfiguration: ActionDialogConfiguration {
         ActionDialogConfiguration(
-            titleLocalizedString: "settings.logout".localizedString,
+            iconImageName: "exclamationmark.circle",
+            titleLocalizedString: "settings.logoutTitle".localizedString,
             subtitleLocalizedString: "settings.logoutSubtitle".localizedString,
             yesLocalizedString: "cancel".localizedString,
             noLocalizedString: "settings.logout".localizedString,
