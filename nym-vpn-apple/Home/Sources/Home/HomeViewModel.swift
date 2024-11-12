@@ -393,21 +393,19 @@ private extension HomeViewModel {
     }
 
     func updateTimeConnected() {
-        _ = autoreleasepool {
-            Task { [weak self] in
-                guard let self else { return }
+        Task { [weak self] in
+            guard let self else { return }
 
-                let emptyTimeText = " "
-                guard grpcManager.tunnelStatus == .connected,
-                      let connectedDate = grpcManager.connectedDate
-                else {
-                    guard await timeConnected != emptyTimeText else { return }
-                    updateTimeString(with: emptyTimeText)
-                    return
-                }
-                let timeString = dateFormatter.string(from: connectedDate, to: Date()) ?? emptyTimeText
-                updateTimeString(with: timeString)
+            let emptyTimeText = " "
+            guard grpcManager.tunnelStatus == .connected,
+                  let connectedDate = grpcManager.connectedDate
+            else {
+                guard await timeConnected != emptyTimeText else { return }
+                updateTimeString(with: emptyTimeText)
+                return
             }
+            let timeString = dateFormatter.string(from: connectedDate, to: Date()) ?? emptyTimeText
+            updateTimeString(with: timeString)
         }
     }
 
