@@ -15,6 +15,7 @@ import {
   Country,
   NodeHop,
   NodeLocation,
+  SystemMessage,
   VpnMode,
   isCountry,
 } from '../../types';
@@ -110,6 +111,32 @@ function MainStateProvider({ children }: Props) {
     console.info(`network env changed ${networkEnv}, clearing cache`);
     MCache.clear();
   }, [networkEnv]);
+
+  useEffect(() => {
+    if (S_STATE.systemMessageInit) {
+      return;
+    }
+    S_STATE.systemMessageInit = true;
+    const querySystemMessages = async () => {
+      try {
+        const messages = await invoke<SystemMessage[]>('system_messages');
+        if (messages.length > 0) {
+          console.info('system messages', messages);
+          push({
+            text: messages
+              .map(({ name, message }) => `${name}: ${message}`)
+              .join('\n'),
+            position: 'top',
+            closeIcon: true,
+            autoHideDuration: 10000,
+          });
+        }
+      } catch (e) {
+        console.warn('failed to query system messages:', e);
+      }
+    };
+    querySystemMessages();
+  }, [push]);
 
   // use cached values if any, otherwise query from daemon
   const fetchCountries = async (vpnMode: VpnMode, node: NodeHop) => {

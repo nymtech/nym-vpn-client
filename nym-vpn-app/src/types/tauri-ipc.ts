@@ -106,3 +106,9 @@ export type ConnectionStateResponse = {
 };
 
 export type DaemonInfo = { version: string; network: NetworkEnv };
+
+export type SystemMessage = {
+  name: string;
+  message: string;
+  properties: Partial<Record<string, string>>;
+};

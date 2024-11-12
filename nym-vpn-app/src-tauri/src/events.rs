@@ -135,6 +135,7 @@ enum StatusUpdate {
     ConnectionOkIpv4,
     ConnectionOkIpv6,
     RemainingBandwidth,
+    MixnetBandwidthRate,
     NoBandwidth,
     WgTunnelError,
 }
@@ -200,6 +201,7 @@ impl From<ConnectionStatusUpdate> for StatusUpdatePayload {
                 StatusType::RemainingBandwidth => StatusUpdate::RemainingBandwidth,
                 StatusType::NoBandwidth => StatusUpdate::NoBandwidth,
                 StatusType::WgTunnelError => StatusUpdate::WgTunnelError,
+                StatusType::MixnetBandwidthRate => StatusUpdate::MixnetBandwidthRate,
                 _ => StatusUpdate::Unknown, // Unspecified & Unknown
             },
             message: update.message.clone(),
