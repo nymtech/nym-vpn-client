@@ -161,6 +161,14 @@ impl Tunnel {
             self.handle = -1;
         }
     }
+
+    /// Re-attach itself to the new primary interface.
+    ///
+    /// Typically used on default route change.
+    #[cfg(target_os = "ios")]
+    pub fn bump_sockets(&mut self) {
+        unsafe { wgNetBumpSockets(self.handle) }
+    }
 }
 
 impl Drop for Tunnel {
@@ -254,6 +262,8 @@ extern "C" {
     fn wgNetGetSocketV4(net_tunnel_handle: i32) -> i32;
     #[cfg(target_os = "android")]
     fn wgNetGetSocketV6(net_tunnel_handle: i32) -> i32;
+    #[cfg(target_os = "ios")]
+    fn wgNetBumpSockets(handle: i32);
 }
 
 /// Callback used by libwg to pass netstack logs.
