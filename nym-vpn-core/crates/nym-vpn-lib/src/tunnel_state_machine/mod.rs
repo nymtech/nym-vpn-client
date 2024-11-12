@@ -372,6 +372,9 @@ pub enum ErrorStateReason {
     /// increase request, causing credential waste
     BadBandwidthIncrease,
 
+    /// Failure to duplicate tunnel file descriptor.
+    DuplicateTunFd,
+
     /// Program errors that must not happen.
     Internal,
 }
@@ -730,6 +733,7 @@ impl tunnel::Error {
                 source: WgGatewayClientError::NoRetry { .. },
                 ..
             }) => Some(ErrorStateReason::BadBandwidthIncrease),
+            Self::DupFd(_) => Some(ErrorStateReason::DuplicateTunFd),
             _ => None,
         }
     }
