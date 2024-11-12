@@ -5,7 +5,6 @@ import Shell
 // Any changes made to Info.plist & Launchd.plist - are used to create daemon in nym-vpnd.
 
 public final class HelperManager {
-    private let secondInNanoseconds: UInt64 = 1000000000
     public static let shared = HelperManager()
     public let requiredVersion = "1.0.0-alpha.3"
 
@@ -22,16 +21,16 @@ public final class HelperManager {
     public func installHelperIfNeeded() async throws -> Bool {
         do {
             _ = try authorizeAndInstallHelper()
-            
+
             var retryCount = 0
             while retryCount < 10 {
                 retryCount += 1
                 if isHelperAuthorizedAndRunning() {
                     // Hack: Wait for daemon to start, to avoid connect button unresponsivness
-                    try? await Task.sleep(nanoseconds: secondInNanoseconds * 5)
+                    try? await Task.sleep(for: .seconds(5))
                     return true
                 }
-                try? await Task.sleep(nanoseconds: secondInNanoseconds)
+                try? await Task.sleep(for: .seconds(1))
             }
             return false
         }

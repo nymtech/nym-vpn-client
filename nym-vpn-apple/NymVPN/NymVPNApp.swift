@@ -51,7 +51,9 @@ private extension NymVPNApp {
         LoggingSystem.bootstrap { label in
             FileLogHandler(label: label, logFileManager: logFileManager)
         }
-        try? ConfigurationManager.shared.setup()
+        Task {
+            try await ConfigurationManager.shared.setup()
+        }
         NotificationsManager.shared.setup()
         ThemeConfiguration.setup()
         SentryManager.shared.setup()

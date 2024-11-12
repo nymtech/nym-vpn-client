@@ -760,13 +760,13 @@
         }
       }
     },
-    "generalNymError.noEnvFile" : {
+    "generalNymError.noEnv" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Env file cannot be found"
+            "value" : "Failed to fetch environment"
           }
         }
       }

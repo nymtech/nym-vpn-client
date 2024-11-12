@@ -1,7 +1,10 @@
 import Foundation
+import SwiftUI
 import AppSettings
 import Device
-#if os(macOS)
+#if os(iOS)
+import MixnetLibrary
+#elseif os(macOS)
 import GRPCManager
 #endif
 import Constants
@@ -40,10 +43,6 @@ public final class ConfigurationManager {
     public let isTestFlight = Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
     public let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0"
 
-    public var nymVpnApiURL: URL? {
-        getenv("NYM_VPN_API").flatMap { URL(string: String(cString: $0)) }
-    }
-
     public var environmentDidChange: (() -> Void)?
 
 #if os(iOS)
@@ -59,72 +58,76 @@ public final class ConfigurationManager {
     }
 #endif
 
-    public func setup() throws {
+    public func setup() async throws {
+        let result: Bool = await Task(priority: .background) {
+            do {
 #if os(iOS)
-        try setEnvVariables(for: currentEnv)
+                try await setEnvVariables()
+                return true
 #elseif os(macOS)
-        try setDaemonEnvironmentVariables()
+                try setDaemonEnvironmentVariables()
+                return true
 #endif
+            } catch {
+                return false
+            }
+        }.value
     }
 
     public func updateEnv(to env: Env) {
-        guard isTestFlight || Device.isMacOS,
-                env != currentEnv
-        else {
-            return
-        }
-        currentEnv = env
-        try? setup()
-        environmentDidChange?()
-    }
-}
-
-private extension ConfigurationManager {
-    func setEnvVariables(for environment: Env) throws {
-        do {
-            let envString = try contentOfEnvFile(named: environment.rawValue)
-            try setEnvironmentVariables(envString: envString)
-            logger.info("Env vars enabled for \(environment.rawValue)")
-        } catch {
-            logger.error("setEnvVariables failed: \(error.localizedDescription)")
-        }
-    }
-}
-
-private extension ConfigurationManager {
-    func contentOfEnvFile(named: String) throws -> String {
-        guard let filePath = Bundle.main.path(forResource: named, ofType: "env")
-        else {
-            throw GeneralNymError.noEnvFile
-        }
-        return try String(contentsOfFile: filePath, encoding: .utf8)
-    }
-
-    func setEnvironmentVariables(envString: String) throws {
-        let escapeQuote = "\""
-        let lines = envString.split(whereSeparator: { $0.isNewline })
-
-        try lines.forEach { line in
-            guard !line.isEmpty else { return }
-
-            let substrings = line.split(separator: "=", maxSplits: 2)
-            if substrings.count == 2 {
-                let key = substrings[0].trimmingCharacters(in: .whitespaces)
-                var value = substrings[1].trimmingCharacters(in: .whitespaces)
-
-                if value.hasPrefix(escapeQuote) && value.hasSuffix(escapeQuote) {
-                    value.removeFirst()
-                    value.removeLast()
-                }
-
-                setenv(key, value, 1)
-            } else {
-                throw ParseEnvironmentFileError(kind: .invalidValue, source: String(line))
+        Task(priority: .background) {
+            print("change to: \(env.rawValue)")
+            guard isTestFlight || Device.isMacOS,
+                  env != currentEnv
+            else {
+                return
             }
+            Task { @MainActor in
+                currentEnv = env
+                print(currentEnv)
+            }
+
+            do {
+                try await setup()
+            } catch {
+                logger.error("Failed to set env to \(env.rawValue): \(error.localizedDescription)")
+            }
+
+            environmentDidChange?()
+        }
+    }
+}
+
+private extension ConfigurationManager {
+#if os(iOS)
+    func setEnvVariables() async throws {
+        try initEnvironment(networkName: currentEnv.rawValue)
+        logger.info("🔥 Enabling env \(currentEnv.rawValue)")
+
+        let result = try await verifyEnvVariables()
+        if !result {
+            logger.error("Failed verifying env. Current env: \(currentEnv.rawValue)")
+            throw GeneralNymError.noEnv
         }
     }
 
-#if os(macOS)
+    func verifyEnvVariables(retryCount: Int = 0) async throws -> Bool {
+        guard retryCount < 6
+        else {
+            return false
+        }
+        let libEnv = try currentEnvironment()
+
+        guard libEnv.nymNetwork.networkName != currentEnv.rawValue
+        else {
+            try await Task.sleep(for: .seconds(1))
+            return try await verifyEnvVariables(retryCount: retryCount + 1)
+        }
+
+        return true
+    }
+#elseif os(macOS)
+
     func setDaemonEnvironmentVariables() throws {
         try grpcManager.switchEnvironment(to: currentEnv.rawValue)
     }
