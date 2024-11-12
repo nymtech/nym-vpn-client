@@ -95,6 +95,12 @@ pub enum Error {
 
     #[error("failed to confirm zk-nym downloaded: {0}")]
     ConfirmZkNymDownloaded(#[source] nym_vpn_api_client::VpnApiClientError),
+
+    #[error("failed to parse ticket type: {0}")]
+    ParseTicketType(String),
+
+    #[error("empty set of tickets")]
+    NoTickets,
 }
 
 impl Error {

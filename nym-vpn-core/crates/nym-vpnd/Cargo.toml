@@ -45,6 +45,7 @@ url.workspace = true
 # Nym monorepo
 nym-bandwidth-controller.workspace = true
 nym-bin-common.workspace = true
+nym-credentials-interface.workspace = true
 nym-task.workspace = true
 nym-validator-client.workspace = true
 

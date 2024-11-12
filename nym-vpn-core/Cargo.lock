@@ -4775,6 +4775,7 @@ dependencies = [
  "maplit",
  "nym-bandwidth-controller",
  "nym-bin-common",
+ "nym-credentials-interface",
  "nym-task",
  "nym-validator-client",
  "nym-vpn-account-controller",
