@@ -166,8 +166,8 @@ impl ConnectedTunnel {
                                 let peer_update = resolved_peer.into_peer_endpoint_update();
 
                                 // Update wireguard-go configuration with re-resolved peer endpoints.
-                                if let Err(e) = exit_tunnel.update_peers(&[peer_update]) {
-                                    tracing::error!("Failed to update peers on network change: {}", e);
+                                if let Err(e) = entry_tunnel.update_peers(&[peer_update]) {
+                                   tracing::error!("Failed to update peers on network change: {}", e);
                                 }
                             }
                             Err(e) => {
@@ -177,6 +177,7 @@ impl ConnectedTunnel {
 
                         // Rebind wireguard-go on tun device.
                         exit_tunnel.bump_sockets();
+                        entry_tunnel.bump_sockets();
                     }
                     else => {
                         tracing::error!("Default path observer has been dropped. Exiting event loop.");
