@@ -149,6 +149,13 @@ pub fn initEnvironment(network_name: &str) -> Result<(), VpnError> {
     RUNTIME.block_on(init_environment(network_name))
 }
 
+/// Helps iOS synchronise tunnel start
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub async fn initEnvironmentAsync(network_name: &str) -> Result<(), VpnError> {
+    init_environment(network_name).await
+}
+
 async fn init_environment(network_name: &str) -> Result<(), VpnError> {
     let network = nym_vpn_network_config::Network::fetch(network_name).map_err(|err| {
         VpnError::InternalError {
