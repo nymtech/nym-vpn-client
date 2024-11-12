@@ -26,6 +26,7 @@ import net.nymtech.vpn.util.SingletonHolder
 import net.nymtech.vpn.util.extensions.addRoutes
 import net.nymtech.vpn.util.extensions.export
 import net.nymtech.vpn.util.extensions.startVpnService
+import nym_vpn_lib.AccountLinks
 import nym_vpn_lib.AccountStateSummary
 import nym_vpn_lib.AndroidTunProvider
 import nym_vpn_lib.BandwidthEvent
@@ -37,6 +38,7 @@ import nym_vpn_lib.TunnelState
 import nym_vpn_lib.TunnelStatusListener
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.VpnException
+import nym_vpn_lib.fetchAccountLinks
 import nym_vpn_lib.fetchEnvironment
 import nym_vpn_lib.isAccountMnemonicStored
 import nym_vpn_lib.removeAccountMnemonic
@@ -69,6 +71,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	companion object : SingletonHolder<NymBackend, Context>(::NymBackend) {
 		private var vpnService = CompletableDeferred<VpnService>()
 		private var currentTunnelHandle = AtomicInteger(-1)
+		const val DEFAULT_LOCALE = "en"
 	}
 
 	private val ioDispatcher = Dispatchers.IO
@@ -108,6 +111,21 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	@Throws(VpnException::class)
 	override suspend fun getAccountSummary(): AccountStateSummary {
 		return nym_vpn_lib.getAccountState()
+	}
+
+	@Throws(VpnException::class)
+	override suspend fun getAccountLinks(environment: Tunnel.Environment) : AccountLinks {
+		return withContext(ioDispatcher) {
+			fetchAccountLinks(storagePath, environment.networkName(),getCurrentLocaleCountryCode())
+		}
+	}
+
+	private fun getCurrentLocaleCountryCode() : String {
+		return try {
+			context.resources.configuration.locales.get(0).country.lowercase()
+		} catch (_ : Exception) {
+			DEFAULT_LOCALE
+		}
 	}
 
 	@Throws(VpnException::class)

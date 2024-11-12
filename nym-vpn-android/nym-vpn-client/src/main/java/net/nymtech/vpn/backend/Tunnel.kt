@@ -255,6 +255,10 @@ interface Tunnel {
 
 		abstract fun setup()
 
+		fun networkName() : String {
+			return this.name.lowercase()
+		}
+
 		fun setupCommon() {
 			Os.setenv("CONFIGURED", "true", true)
 			Os.setenv("RUST_LOG", LOG_LEVEL, true)
