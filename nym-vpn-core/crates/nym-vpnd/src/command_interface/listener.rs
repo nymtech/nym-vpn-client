@@ -32,6 +32,7 @@ use nym_vpn_proto::{
     ResetDeviceIdentityResponse, SetNetworkRequest, SetNetworkResponse, StatusRequest,
     StatusResponse, StoreAccountRequest, StoreAccountResponse,
 };
+use zeroize::Zeroizing;
 
 use super::{
     connection_handler::CommandInterfaceConnectionHandler,
@@ -423,7 +424,7 @@ impl NymVpnd for CommandInterface {
         &self,
         request: tonic::Request<StoreAccountRequest>,
     ) -> Result<tonic::Response<StoreAccountResponse>, tonic::Status> {
-        let account = request.into_inner().mnemonic;
+        let account = Zeroizing::new(request.into_inner().mnemonic);
 
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_store_account(account)

@@ -38,6 +38,7 @@ use nym_vpn_lib::{
     },
     MixnetClientConfig, NodeIdentity, Recipient,
 };
+use zeroize::Zeroizing;
 
 use crate::config::GlobalConfigFile;
 
@@ -105,7 +106,7 @@ pub enum VpnServiceCommand {
     ),
     Disconnect(oneshot::Sender<Result<(), VpnServiceDisconnectError>>, ()),
     Status(oneshot::Sender<VpnServiceStatus>, ()),
-    StoreAccount(oneshot::Sender<Result<(), AccountError>>, String),
+    StoreAccount(oneshot::Sender<Result<(), AccountError>>, Zeroizing<String>),
     IsAccountStored(oneshot::Sender<Result<bool, AccountError>>, ()),
     RemoveAccount(oneshot::Sender<Result<(), AccountError>>, ()),
     GetAccountIdentity(oneshot::Sender<Result<String, AccountError>>, ()),
@@ -890,11 +891,14 @@ where
         self.network_env.feature_flags.clone()
     }
 
-    async fn handle_store_account(&mut self, account: String) -> Result<(), AccountError> {
+    async fn handle_store_account(
+        &mut self,
+        account: Zeroizing<String>,
+    ) -> Result<(), AccountError> {
         self.storage
             .lock()
             .await
-            .store_mnemonic(Mnemonic::parse(&account)?)
+            .store_mnemonic(Mnemonic::parse::<&str>(account.as_ref())?)
             .await
             .map_err(|err| AccountError::FailedToStoreAccount {
                 source: Box::new(err),

@@ -10,6 +10,7 @@ use nym_vpn_api_client::{
     types::GatewayMinPerformance,
 };
 use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint, GatewayClient, GatewayType};
+use zeroize::Zeroizing;
 
 use crate::{
     service::{
@@ -134,7 +135,7 @@ impl CommandInterfaceConnectionHandler {
 
     pub(crate) async fn handle_store_account(
         &self,
-        account: String,
+        account: Zeroizing<String>,
     ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::StoreAccount, account)
             .await
