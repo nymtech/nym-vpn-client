@@ -74,7 +74,12 @@ function App() {
         <ThemeSetter>
           <DialogProvider>
             <Suspense fallback={<RouteLoading />}>
-              <RouterProvider router={router} />
+              <RouterProvider
+                future={{
+                  v7_startTransition: true,
+                }}
+                router={router}
+              />
             </Suspense>
           </DialogProvider>
         </ThemeSetter>
