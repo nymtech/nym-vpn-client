@@ -10,5 +10,5 @@ data class TunnelManagerState(
 	val tunnelStatistics: Statistics = Statistics(),
 	val backendMessage: BackendMessage = BackendMessage.None,
 	val isMnemonicStored: Boolean = false,
-	val accountLinks: AccountLinks? = null
+	val accountLinks: AccountLinks? = null,
 )

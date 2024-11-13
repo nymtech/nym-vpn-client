@@ -118,7 +118,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 						},
 						title = { Text(stringResource(R.string.account), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 						onClick = {
-							appUiState.managerState.accountLinks?.account?.let{
+							appUiState.managerState.accountLinks?.account?.let {
 								Timber.d("Account url: $it")
 								context.openWebUrl(it)
 							} ?: snackbar.showMessage("Not available")

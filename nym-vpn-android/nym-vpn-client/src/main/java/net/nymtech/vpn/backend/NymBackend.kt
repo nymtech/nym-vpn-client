@@ -15,7 +15,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.nymtech.ipcalculator.AllowedIpCalculator
-import net.nymtech.vpn.model.BackendMessage
 import net.nymtech.vpn.model.BackendMessage.*
 import net.nymtech.vpn.model.Statistics
 import net.nymtech.vpn.util.Action
@@ -30,7 +29,6 @@ import nym_vpn_lib.AccountLinks
 import nym_vpn_lib.AccountStateSummary
 import nym_vpn_lib.AndroidTunProvider
 import nym_vpn_lib.BandwidthEvent
-import nym_vpn_lib.ErrorStateReason
 import nym_vpn_lib.MixnetEvent
 import nym_vpn_lib.TunnelEvent
 import nym_vpn_lib.TunnelNetworkSettings
@@ -99,28 +97,21 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	}
 
 	@Throws(VpnException::class)
-	private suspend fun setEnvironment(environment: Tunnel.Environment) {
-		withContext(ioDispatcher) {
-			initEnvironment(environment.networkName())
-		}
-	}
-
-	@Throws(VpnException::class)
 	override suspend fun getAccountSummary(): AccountStateSummary {
 		return nym_vpn_lib.getAccountState()
 	}
 
 	@Throws(VpnException::class)
-	override suspend fun getAccountLinks(environment: Tunnel.Environment) : AccountLinks {
+	override suspend fun getAccountLinks(environment: Tunnel.Environment): AccountLinks {
 		return withContext(ioDispatcher) {
-			fetchAccountLinks(storagePath, environment.networkName(),getCurrentLocaleCountryCode())
+			fetchAccountLinks(storagePath, environment.networkName(), getCurrentLocaleCountryCode())
 		}
 	}
 
-	private fun getCurrentLocaleCountryCode() : String {
+	private fun getCurrentLocaleCountryCode(): String {
 		return try {
 			context.resources.configuration.locales.get(0).country.lowercase()
-		} catch (_ : Exception) {
+		} catch (_: Exception) {
 			DEFAULT_LOCALE
 		}
 	}
@@ -152,7 +143,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			val service = vpnService.await()
 			val backend = this@NymBackend
 			service.setOwner(backend)
-			runCatching {
+			try {
 				startVpn(
 					VpnConfig(
 						tunnel.entryPoint,
@@ -163,12 +154,17 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 						backend,
 					),
 				)
-			}.onFailure {
-				Timber.e(it)
-				//TODO show error to user
-				tunnel.onStateChange(Tunnel.State.Down)
+			} catch (e: VpnException) {
+				onStartFailure(e)
 			}
 		}
+	}
+
+	private fun onStartFailure(e: VpnException) {
+		Timber.e(e)
+		onDisconnect()
+		tunnel?.onStateChange(Tunnel.State.Down)
+		tunnel?.onBackendMessage(StartFailure(e))
 	}
 
 	override suspend fun stop() {
@@ -177,6 +173,8 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 				Timber.d("Stopping vpn")
 				stopVpn()
 				onVpnShutdown()
+			}.onFailure {
+				Timber.e(it)
 			}
 		}
 	}

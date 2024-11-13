@@ -26,6 +26,7 @@ use url::Url;
 use nym_gateway_directory::Config as GatewayDirectoryConfig;
 
 use self::error::VpnError;
+use crate::platform::account::start_account_controller_inner;
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
@@ -104,20 +105,20 @@ async fn stop_vpn_inner() -> Result<(), VpnError> {
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn configureLib(data_dir: String) -> Result<(), VpnError> {
+    RUNTIME.block_on(reconfigure_library(data_dir))
+}
+
+async fn reconfigure_library(data_dir: String) -> Result<(), VpnError> {
+    // stop if already running
+    let _ = account::stop_account_controller_inner().await;
     init_logger();
-    start_account_controller(data_dir)
+    start_account_controller_inner(PathBuf::from(data_dir)).await
 }
 
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn shutdown() -> Result<(), VpnError> {
     RUNTIME.block_on(account::stop_account_controller_inner())
-}
-
-fn start_account_controller(data_dir: String) -> Result<(), VpnError> {
-    RUNTIME.block_on(account::start_account_controller_inner(PathBuf::from(
-        data_dir,
-    )))
 }
 
 pub fn init_logger() {

@@ -7,14 +7,14 @@ import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.service.country.CountryCacheService
-import net.nymtech.nymvpn.service.gateway.NymApiService
 import net.nymtech.nymvpn.service.tunnel.TunnelManager
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.StringValue
+import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.backend.Tunnel
-import net.nymtech.vpn.util.extensions.export
 import timber.log.Timber
 import javax.inject.Inject
+import javax.inject.Provider
 
 @HiltViewModel
 class EnvironmentViewModel
@@ -22,16 +22,15 @@ class EnvironmentViewModel
 constructor(
 	private val settingsRepository: SettingsRepository,
 	private val tunnelManager: TunnelManager,
+	private val backend: Provider<Backend>,
 	private val cacheService: CountryCacheService,
-	private val nymApiService: NymApiService,
 ) : ViewModel() {
 
 	fun onEnvironmentChange(environment: Tunnel.Environment) = viewModelScope.launch {
 		if (tunnelManager.getState() == Tunnel.State.Down) {
 			settingsRepository.setEnvironment(environment)
 			runCatching {
-				Timber.d("Exporting new env config")
-				nymApiService.getEnvironment(environment).export()
+				backend.get().init(environment)
 			}.onFailure { Timber.e(it) }
 			launch {
 				cacheService.updateExitCountriesCache()

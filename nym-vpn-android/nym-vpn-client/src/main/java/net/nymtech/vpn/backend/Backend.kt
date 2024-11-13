@@ -9,7 +9,7 @@ interface Backend {
 
 	suspend fun getAccountSummary(): AccountStateSummary
 
-	suspend fun getAccountLinks(environment: Tunnel.Environment) : AccountLinks
+	suspend fun getAccountLinks(environment: Tunnel.Environment): AccountLinks
 
 	suspend fun storeMnemonic(credential: String)
 

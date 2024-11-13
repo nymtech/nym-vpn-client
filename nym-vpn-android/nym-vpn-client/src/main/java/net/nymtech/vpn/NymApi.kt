@@ -30,7 +30,7 @@ class NymApi(
 		}
 	}
 
-	suspend fun getSystemMessages(environment: Tunnel.Environment) : List<SystemMessage> {
+	suspend fun getSystemMessages(environment: Tunnel.Environment): List<SystemMessage> {
 		return withContext(ioDispatcher) {
 			fetchSystemMessages(environment.networkName())
 		}

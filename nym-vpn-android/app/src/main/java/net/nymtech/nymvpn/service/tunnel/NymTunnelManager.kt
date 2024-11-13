@@ -45,8 +45,10 @@ class NymTunnelManager @Inject constructor(
 	override val stateFlow: Flow<TunnelManagerState> = _state.onStart {
 		val isMnemonicStored = isMnemonicStored()
 		_state.update {
-			it.copy(isMnemonicStored = isMnemonicStored,
-				accountLinks = if(isMnemonicStored) getAccountLinks() else null)
+			it.copy(
+				isMnemonicStored = isMnemonicStored,
+				accountLinks = if (isMnemonicStored) getAccountLinks() else null,
+			)
 		}
 	}.stateIn(applicationScope.plus(ioDispatcher), SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT), TunnelManagerState())
 
@@ -197,6 +199,10 @@ class NymTunnelManager @Inject constructor(
 				}
 			}
 			BackendMessage.None -> Unit
+			is BackendMessage.StartFailure -> notificationService.showNotification(
+				title = context.getString(R.string.connection_failed),
+				description = backendMessage.exception.toUserMessage(context),
+			)
 		}
 	}
 }

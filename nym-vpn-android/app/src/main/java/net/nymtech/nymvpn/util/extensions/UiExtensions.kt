@@ -12,6 +12,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.ui.Route
 import nym_vpn_lib.ErrorStateReason
+import nym_vpn_lib.VpnException
 import kotlin.reflect.KClass
 
 fun Dp.scaledHeight(): Dp {
@@ -67,5 +68,23 @@ fun ErrorStateReason.toUserMessage(context: Context): String {
 		ErrorStateReason.INVALID_ENTRY_GATEWAY_COUNTRY -> "Entry country not available. Select a different country."
 		ErrorStateReason.INVALID_EXIT_GATEWAY_COUNTRY -> "Exit country not available. Select a different country."
 		ErrorStateReason.BAD_BANDWIDTH_INCREASE -> "Bad bandwidth increase."
+	}
+}
+
+fun VpnException.toUserMessage(context: Context): String {
+	return when (this) {
+		is VpnException.AccountDeviceNotActive -> "Account device not active."
+		is VpnException.AccountDeviceNotRegistered -> "Account device not registered."
+		is VpnException.AccountNotActive -> "Account not active."
+		is VpnException.AccountReady -> "Account ready"
+		is VpnException.AccountStatusUnknown -> "Account status unknown."
+		is VpnException.GatewayException -> "Gateway error"
+		is VpnException.InternalException -> "Internal error"
+		is VpnException.InvalidCredential -> "Invalid credential"
+		is VpnException.InvalidStateException -> "Invalid state exception"
+		is VpnException.NetworkConnectionException -> "Network connection error"
+		is VpnException.NoAccountStored -> "Account missing"
+		is VpnException.NoActiveSubscription -> "No active subscription detected."
+		is VpnException.OutOfBandwidth -> "Out of bandwidth"
 	}
 }

@@ -174,6 +174,13 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 							message = it.reason.toUserMessage(context),
 							textColor = CustomColors.error,
 						)
+
+					is StateMessage.StartError -> {
+						StatusInfoLabel(
+							message = it.exception.toUserMessage(context),
+							textColor = CustomColors.error,
+						)
+					}
 				}
 			}
 			AnimatedVisibility(visible = uiState.connectionState is ConnectionState.Connected) {
