@@ -31,6 +31,7 @@ let package = Package(
         .library(name: "TunnelMixnet", targets: ["TunnelMixnet"])
     ],
     dependencies: [
+        .package(path: "../ServicesIOS"),
         .package(path: "../ServicesMacOS"),
         .package(path: "../ServicesMutual"),
         .package(name: "MixnetLibrary", path: "../MixnetLibrary"),
@@ -100,6 +101,7 @@ let package = Package(
             dependencies: [
                 "AppSettings",
                 "Constants",
+                .product(name: "ErrorHandler", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
@@ -179,6 +181,7 @@ let package = Package(
             dependencies: [
                 "Keychain",
                 "NymLogger",
+                .product(name: "ErrorHandler", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
                 .product(name: "TunnelStatus", package: "ServicesMutual")
             ],
