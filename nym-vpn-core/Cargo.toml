@@ -149,6 +149,7 @@ nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "dev
 nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-sdk = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-task = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-topology = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "develop" }

@@ -1,5 +1,5 @@
 use futures::stream::StreamExt;
-use nym_client_core::client::packet_statistics_control::{
+use nym_statistics_common::clients::packet_statistics::{
     MixnetBandwidthStatisticsEvent, PacketRates,
 };
 use tokio::{sync::mpsc, task::JoinHandle};

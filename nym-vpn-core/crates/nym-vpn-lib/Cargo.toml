@@ -60,6 +60,7 @@ nym-ip-packet-requests.workspace = true
 nym-node-requests.workspace = true
 nym-pemstore.workspace = true
 nym-sdk.workspace = true
+nym-statistics-common.workspace = true
 nym-task.workspace = true
 nym-topology.workspace = true
 nym-validator-client.workspace = true
