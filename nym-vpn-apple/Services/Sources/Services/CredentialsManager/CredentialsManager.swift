@@ -115,7 +115,7 @@ private extension CredentialsManager {
 
 private extension CredentialsManager {
     func checkCredentialImport() {
-        Task {
+        Task(priority: .background) {
             do {
                 let isImported: Bool
 #if os(iOS)

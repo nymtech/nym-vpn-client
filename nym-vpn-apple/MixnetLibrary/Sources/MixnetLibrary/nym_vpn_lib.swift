@@ -6223,6 +6223,12 @@ public func configureLib(dataDir: String)throws  {try rustCallWithError(FfiConve
     )
 }
 }
+public func currentEnvironment()throws  -> NetworkEnvironment {
+    return try  FfiConverterTypeNetworkEnvironment.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_currentenvironment($0
+    )
+})
+}
 public func fetchAccountLinks(accountStorePath: String, networkName: String, locale: String)throws  -> AccountLinks {
     return try  FfiConverterTypeAccountLinks.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_fetchaccountlinks(
@@ -6267,6 +6273,33 @@ public func getLowLatencyEntryCountry(userAgent: UserAgent)throws  -> Location {
         FfiConverterTypeUserAgent.lower(userAgent),$0
     )
 })
+}
+/**
+ * Fetches the network environment details from the network name and initializes the environment,
+ * including exporting to the environment
+ */
+public func initEnvironment(networkName: String)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_initenvironment(
+        FfiConverterString.lower(networkName),$0
+    )
+}
+}
+/**
+ * Helps iOS synchronise tunnel start
+ */
+public func initEnvironmentAsync(networkName: String)async throws  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_nym_vpn_lib_fn_func_initenvironmentasync(FfiConverterString.lower(networkName)
+                )
+            },
+            pollFunc: ffi_nym_vpn_lib_rust_future_poll_void,
+            completeFunc: ffi_nym_vpn_lib_rust_future_complete_void,
+            freeFunc: ffi_nym_vpn_lib_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeVpnError.lift
+        )
 }
 public func initLogger() {try! rustCall() {
     uniffi_nym_vpn_lib_fn_func_initlogger($0
@@ -6340,6 +6373,9 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_func_configurelib() != 38732) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_nym_vpn_lib_checksum_func_currentenvironment() != 63403) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_nym_vpn_lib_checksum_func_fetchaccountlinks() != 52598) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -6356,6 +6392,12 @@ private var initializationResult: InitializationResult {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 10827) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_initenvironment() != 50720) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_initenvironmentasync() != 36435) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_initlogger() != 45606) {
