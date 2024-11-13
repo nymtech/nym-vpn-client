@@ -87,7 +87,7 @@ public final class ConfigurationManager {
 private extension ConfigurationManager {
 #if os(iOS)
     func setEnvVariables() async throws {
-        try await initEnvironment(networkName: currentEnv.rawValue)
+        try await initEnvironmentAsync(networkName: currentEnv.rawValue)
     }
 
 #elseif os(macOS)

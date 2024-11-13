@@ -228,7 +228,7 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
-  /// Unary call to GetFeatureFlags
+  /// List the feature flags fetched from the nym-vpn-api
   ///
   /// - Parameters:
   ///   - request: Request to send to GetFeatureFlags.
@@ -380,7 +380,7 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
-  /// Handle the stored recovery phrase, which is also the account identity and authentication
+  /// Store the recovery phrase, which is also the account identity and authentication
   ///
   /// - Parameters:
   ///   - request: Request to send to StoreAccount.
@@ -398,7 +398,7 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
-  /// Unary call to IsAccountStored
+  /// Check if the recovery phrase is stored
   ///
   /// - Parameters:
   ///   - request: Request to send to IsAccountStored.
@@ -416,7 +416,7 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
-  /// Unary call to RemoveAccount
+  /// Remove the recovery phrase from local storage
   ///
   /// - Parameters:
   ///   - request: Request to send to RemoveAccount.
@@ -434,7 +434,7 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
-  /// Unary call to GetAccountIdentity
+  /// Get the account identity of the locally stored recovery phrase
   ///
   /// - Parameters:
   ///   - request: Request to send to GetAccountIdentity.
@@ -452,7 +452,7 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
-  /// Unary call to GetAccountLinks
+  /// Get the set of account links for the user
   ///
   /// - Parameters:
   ///   - request: Request to send to GetAccountLinks.
@@ -470,8 +470,8 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
-  /// Query the account state, which refers to the server side account, as it is
-  /// known and interpreted by nym-vpnd
+  /// Query the account state, which is synced from the nym-vpn-api account, as it
+  /// is known and interpreted by nym-vpnd
   ///
   /// - Parameters:
   ///   - request: Request to send to GetAccountState.
@@ -489,7 +489,8 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
-  /// Unary call to RefreshAccountState
+  /// The vpn client will periodically refresh the account state in the
+  /// background. This command triggers a manual refresh.
   ///
   /// - Parameters:
   ///   - request: Request to send to RefreshAccountState.
@@ -507,7 +508,7 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
-  /// Unary call to IsReadyToConnect
+  /// Check if the local account state is ready to connect
   ///
   /// - Parameters:
   ///   - request: Request to send to IsReadyToConnect.
@@ -543,7 +544,7 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
-  /// Unary call to GetDeviceIdentity
+  /// Get the device identity
   ///
   /// - Parameters:
   ///   - request: Request to send to GetDeviceIdentity.
@@ -615,7 +616,7 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
-  /// Unary call to GetZkNymsAvailableForDownload
+  /// List the zk-nyms available for download from the nym-vpn-api
   ///
   /// - Parameters:
   ///   - request: Request to send to GetZkNymsAvailableForDownload.
@@ -633,7 +634,7 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
-  /// Unary call to GetZkNymById
+  /// Get a zk-nym by its id from the nym-vpn-api
   ///
   /// - Parameters:
   ///   - request: Request to send to GetZkNymById.
@@ -651,7 +652,7 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
-  /// Unary call to ConfirmZkNymDownloaded
+  /// Confirm that a zk-nym has been downloaded from thje nym-vpn-api
   ///
   /// - Parameters:
   ///   - request: Request to send to ConfirmZkNymDownloaded.
@@ -669,7 +670,7 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
-  /// Unary call to GetAvailableTickets
+  /// Get the available tickets in the local credential store
   ///
   /// - Parameters:
   ///   - request: Request to send to GetAvailableTickets.
@@ -2015,6 +2016,7 @@ internal protocol Nym_Vpn_NymVpndProvider: CallHandlerProvider {
   /// List messages fetched from nym-vpn-api
   func getSystemMessages(request: Nym_Vpn_GetSystemMessagesRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetSystemMessagesResponse>
 
+  /// List the feature flags fetched from the nym-vpn-api
   func getFeatureFlags(request: Nym_Vpn_GetFeatureFlagsRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetFeatureFlagsResponse>
 
   /// Start the tunnel and connect
@@ -2040,28 +2042,36 @@ internal protocol Nym_Vpn_NymVpndProvider: CallHandlerProvider {
   /// List the avaiable countries for the selected mode
   func listCountries(request: Nym_Vpn_ListCountriesRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_ListCountriesResponse>
 
-  /// Handle the stored recovery phrase, which is also the account identity and authentication
+  /// Store the recovery phrase, which is also the account identity and authentication
   func storeAccount(request: Nym_Vpn_StoreAccountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_StoreAccountResponse>
 
+  /// Check if the recovery phrase is stored
   func isAccountStored(request: Nym_Vpn_IsAccountStoredRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_IsAccountStoredResponse>
 
+  /// Remove the recovery phrase from local storage
   func removeAccount(request: Nym_Vpn_RemoveAccountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_RemoveAccountResponse>
 
+  /// Get the account identity of the locally stored recovery phrase
   func getAccountIdentity(request: Nym_Vpn_GetAccountIdentityRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetAccountIdentityResponse>
 
+  /// Get the set of account links for the user
   func getAccountLinks(request: Nym_Vpn_GetAccountLinksRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetAccountLinksResponse>
 
-  /// Query the account state, which refers to the server side account, as it is
-  /// known and interpreted by nym-vpnd
+  /// Query the account state, which is synced from the nym-vpn-api account, as it
+  /// is known and interpreted by nym-vpnd
   func getAccountState(request: Nym_Vpn_GetAccountStateRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetAccountStateResponse>
 
+  /// The vpn client will periodically refresh the account state in the
+  /// background. This command triggers a manual refresh.
   func refreshAccountState(request: Nym_Vpn_RefreshAccountStateRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_RefreshAccountStateResponse>
 
+  /// Check if the local account state is ready to connect
   func isReadyToConnect(request: Nym_Vpn_IsReadyToConnectRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_IsReadyToConnectResponse>
 
   /// Reset the device identity
   func resetDeviceIdentity(request: Nym_Vpn_ResetDeviceIdentityRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_ResetDeviceIdentityResponse>
 
+  /// Get the device identity
   func getDeviceIdentity(request: Nym_Vpn_GetDeviceIdentityRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetDeviceIdentityResponse>
 
   /// Try to register the local device with the nym-vpn-api
@@ -2073,12 +2083,16 @@ internal protocol Nym_Vpn_NymVpndProvider: CallHandlerProvider {
   /// List the zk-nyms associated with this device from the nym-vpn-api
   func getDeviceZkNyms(request: Nym_Vpn_GetDeviceZkNymsRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetDeviceZkNymsResponse>
 
+  /// List the zk-nyms available for download from the nym-vpn-api
   func getZkNymsAvailableForDownload(request: Nym_Vpn_GetZkNymsAvailableForDownloadRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetZkNymsAvailableForDownloadResponse>
 
+  /// Get a zk-nym by its id from the nym-vpn-api
   func getZkNymById(request: Nym_Vpn_GetZkNymByIdRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetZkNymByIdResponse>
 
+  /// Confirm that a zk-nym has been downloaded from thje nym-vpn-api
   func confirmZkNymDownloaded(request: Nym_Vpn_ConfirmZkNymDownloadedRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_ConfirmZkNymDownloadedResponse>
 
+  /// Get the available tickets in the local credential store
   func getAvailableTickets(request: Nym_Vpn_GetAvailableTicketsRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetAvailableTicketsResponse>
 
   /// Get the server side account summary directly from the nym-vpn-api
@@ -2400,6 +2414,7 @@ internal protocol Nym_Vpn_NymVpndAsyncProvider: CallHandlerProvider, Sendable {
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_GetSystemMessagesResponse
 
+  /// List the feature flags fetched from the nym-vpn-api
   func getFeatureFlags(
     request: Nym_Vpn_GetFeatureFlagsRequest,
     context: GRPCAsyncServerCallContext
@@ -2451,44 +2466,51 @@ internal protocol Nym_Vpn_NymVpndAsyncProvider: CallHandlerProvider, Sendable {
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_ListCountriesResponse
 
-  /// Handle the stored recovery phrase, which is also the account identity and authentication
+  /// Store the recovery phrase, which is also the account identity and authentication
   func storeAccount(
     request: Nym_Vpn_StoreAccountRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_StoreAccountResponse
 
+  /// Check if the recovery phrase is stored
   func isAccountStored(
     request: Nym_Vpn_IsAccountStoredRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_IsAccountStoredResponse
 
+  /// Remove the recovery phrase from local storage
   func removeAccount(
     request: Nym_Vpn_RemoveAccountRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_RemoveAccountResponse
 
+  /// Get the account identity of the locally stored recovery phrase
   func getAccountIdentity(
     request: Nym_Vpn_GetAccountIdentityRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_GetAccountIdentityResponse
 
+  /// Get the set of account links for the user
   func getAccountLinks(
     request: Nym_Vpn_GetAccountLinksRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_GetAccountLinksResponse
 
-  /// Query the account state, which refers to the server side account, as it is
-  /// known and interpreted by nym-vpnd
+  /// Query the account state, which is synced from the nym-vpn-api account, as it
+  /// is known and interpreted by nym-vpnd
   func getAccountState(
     request: Nym_Vpn_GetAccountStateRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_GetAccountStateResponse
 
+  /// The vpn client will periodically refresh the account state in the
+  /// background. This command triggers a manual refresh.
   func refreshAccountState(
     request: Nym_Vpn_RefreshAccountStateRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_RefreshAccountStateResponse
 
+  /// Check if the local account state is ready to connect
   func isReadyToConnect(
     request: Nym_Vpn_IsReadyToConnectRequest,
     context: GRPCAsyncServerCallContext
@@ -2500,6 +2522,7 @@ internal protocol Nym_Vpn_NymVpndAsyncProvider: CallHandlerProvider, Sendable {
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_ResetDeviceIdentityResponse
 
+  /// Get the device identity
   func getDeviceIdentity(
     request: Nym_Vpn_GetDeviceIdentityRequest,
     context: GRPCAsyncServerCallContext
@@ -2523,21 +2546,25 @@ internal protocol Nym_Vpn_NymVpndAsyncProvider: CallHandlerProvider, Sendable {
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_GetDeviceZkNymsResponse
 
+  /// List the zk-nyms available for download from the nym-vpn-api
   func getZkNymsAvailableForDownload(
     request: Nym_Vpn_GetZkNymsAvailableForDownloadRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_GetZkNymsAvailableForDownloadResponse
 
+  /// Get a zk-nym by its id from the nym-vpn-api
   func getZkNymById(
     request: Nym_Vpn_GetZkNymByIdRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_GetZkNymByIdResponse
 
+  /// Confirm that a zk-nym has been downloaded from thje nym-vpn-api
   func confirmZkNymDownloaded(
     request: Nym_Vpn_ConfirmZkNymDownloadedRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_ConfirmZkNymDownloadedResponse
 
+  /// Get the available tickets in the local credential store
   func getAvailableTickets(
     request: Nym_Vpn_GetAvailableTicketsRequest,
     context: GRPCAsyncServerCallContext

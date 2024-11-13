@@ -3093,21 +3093,41 @@ struct Nym_Vpn_AvailableTickets {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var mixnetEntry: UInt64 = 0
+  /// Remaining number of mixnet entry tickets
+  var mixnetEntryTickets: UInt64 = 0
 
-  var mixnetExit: UInt64 = 0
+  /// Remaining mixnet entry data in bytes
+  var mixnetEntryData: UInt64 = 0
 
-  var vpnEntry: UInt64 = 0
+  /// Remaining mixnet entry data formatted to a string using SI units
+  var mixnetEntryDataSi: String = String()
 
-  var vpnExit: UInt64 = 0
+  /// Remaining number of mixnet exit tickets
+  var mixnetExitTickets: UInt64 = 0
 
-  var mixnetEntrySi: String = String()
+  /// Remaining mixnet exit data in bytes
+  var mixnetExitData: UInt64 = 0
 
-  var mixnetExitSi: String = String()
+  /// Remaining mixnet exit data formatted to a string using SI units
+  var mixnetExitDataSi: String = String()
 
-  var vpnEntrySi: String = String()
+  /// Remaining number of vpn entry tickets
+  var vpnEntryTickets: UInt64 = 0
 
-  var vpnExitSi: String = String()
+  /// Remaining vpn entry data in bytes
+  var vpnEntryData: UInt64 = 0
+
+  /// Remaining vpn entry data formatted to a string using SI units
+  var vpnEntryDataSi: String = String()
+
+  /// Remaining number of vpn exit tickets
+  var vpnExitTickets: UInt64 = 0
+
+  /// Remaining vpn exit data in bytes
+  var vpnExitData: UInt64 = 0
+
+  /// Remaining vpn exit data formatted to a string using SI units
+  var vpnExitDataSi: String = String()
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -7238,14 +7258,18 @@ extension Nym_Vpn_ConfirmZkNymDownloadedResponse: SwiftProtobuf.Message, SwiftPr
 extension Nym_Vpn_AvailableTickets: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".AvailableTickets"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "mixnet_entry"),
-    2: .standard(proto: "mixnet_exit"),
-    3: .standard(proto: "vpn_entry"),
-    4: .standard(proto: "vpn_exit"),
-    5: .standard(proto: "mixnet_entry_si"),
-    6: .standard(proto: "mixnet_exit_si"),
-    7: .standard(proto: "vpn_entry_si"),
-    8: .standard(proto: "vpn_exit_si"),
+    1: .standard(proto: "mixnet_entry_tickets"),
+    2: .standard(proto: "mixnet_entry_data"),
+    3: .standard(proto: "mixnet_entry_data_si"),
+    4: .standard(proto: "mixnet_exit_tickets"),
+    5: .standard(proto: "mixnet_exit_data"),
+    6: .standard(proto: "mixnet_exit_data_si"),
+    7: .standard(proto: "vpn_entry_tickets"),
+    8: .standard(proto: "vpn_entry_data"),
+    9: .standard(proto: "vpn_entry_data_si"),
+    10: .standard(proto: "vpn_exit_tickets"),
+    11: .standard(proto: "vpn_exit_data"),
+    12: .standard(proto: "vpn_exit_data_si"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -7254,56 +7278,76 @@ extension Nym_Vpn_AvailableTickets: SwiftProtobuf.Message, SwiftProtobuf._Messag
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularUInt64Field(value: &self.mixnetEntry) }()
-      case 2: try { try decoder.decodeSingularUInt64Field(value: &self.mixnetExit) }()
-      case 3: try { try decoder.decodeSingularUInt64Field(value: &self.vpnEntry) }()
-      case 4: try { try decoder.decodeSingularUInt64Field(value: &self.vpnExit) }()
-      case 5: try { try decoder.decodeSingularStringField(value: &self.mixnetEntrySi) }()
-      case 6: try { try decoder.decodeSingularStringField(value: &self.mixnetExitSi) }()
-      case 7: try { try decoder.decodeSingularStringField(value: &self.vpnEntrySi) }()
-      case 8: try { try decoder.decodeSingularStringField(value: &self.vpnExitSi) }()
+      case 1: try { try decoder.decodeSingularUInt64Field(value: &self.mixnetEntryTickets) }()
+      case 2: try { try decoder.decodeSingularUInt64Field(value: &self.mixnetEntryData) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.mixnetEntryDataSi) }()
+      case 4: try { try decoder.decodeSingularUInt64Field(value: &self.mixnetExitTickets) }()
+      case 5: try { try decoder.decodeSingularUInt64Field(value: &self.mixnetExitData) }()
+      case 6: try { try decoder.decodeSingularStringField(value: &self.mixnetExitDataSi) }()
+      case 7: try { try decoder.decodeSingularUInt64Field(value: &self.vpnEntryTickets) }()
+      case 8: try { try decoder.decodeSingularUInt64Field(value: &self.vpnEntryData) }()
+      case 9: try { try decoder.decodeSingularStringField(value: &self.vpnEntryDataSi) }()
+      case 10: try { try decoder.decodeSingularUInt64Field(value: &self.vpnExitTickets) }()
+      case 11: try { try decoder.decodeSingularUInt64Field(value: &self.vpnExitData) }()
+      case 12: try { try decoder.decodeSingularStringField(value: &self.vpnExitDataSi) }()
       default: break
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if self.mixnetEntry != 0 {
-      try visitor.visitSingularUInt64Field(value: self.mixnetEntry, fieldNumber: 1)
+    if self.mixnetEntryTickets != 0 {
+      try visitor.visitSingularUInt64Field(value: self.mixnetEntryTickets, fieldNumber: 1)
     }
-    if self.mixnetExit != 0 {
-      try visitor.visitSingularUInt64Field(value: self.mixnetExit, fieldNumber: 2)
+    if self.mixnetEntryData != 0 {
+      try visitor.visitSingularUInt64Field(value: self.mixnetEntryData, fieldNumber: 2)
     }
-    if self.vpnEntry != 0 {
-      try visitor.visitSingularUInt64Field(value: self.vpnEntry, fieldNumber: 3)
+    if !self.mixnetEntryDataSi.isEmpty {
+      try visitor.visitSingularStringField(value: self.mixnetEntryDataSi, fieldNumber: 3)
     }
-    if self.vpnExit != 0 {
-      try visitor.visitSingularUInt64Field(value: self.vpnExit, fieldNumber: 4)
+    if self.mixnetExitTickets != 0 {
+      try visitor.visitSingularUInt64Field(value: self.mixnetExitTickets, fieldNumber: 4)
     }
-    if !self.mixnetEntrySi.isEmpty {
-      try visitor.visitSingularStringField(value: self.mixnetEntrySi, fieldNumber: 5)
+    if self.mixnetExitData != 0 {
+      try visitor.visitSingularUInt64Field(value: self.mixnetExitData, fieldNumber: 5)
     }
-    if !self.mixnetExitSi.isEmpty {
-      try visitor.visitSingularStringField(value: self.mixnetExitSi, fieldNumber: 6)
+    if !self.mixnetExitDataSi.isEmpty {
+      try visitor.visitSingularStringField(value: self.mixnetExitDataSi, fieldNumber: 6)
     }
-    if !self.vpnEntrySi.isEmpty {
-      try visitor.visitSingularStringField(value: self.vpnEntrySi, fieldNumber: 7)
+    if self.vpnEntryTickets != 0 {
+      try visitor.visitSingularUInt64Field(value: self.vpnEntryTickets, fieldNumber: 7)
     }
-    if !self.vpnExitSi.isEmpty {
-      try visitor.visitSingularStringField(value: self.vpnExitSi, fieldNumber: 8)
+    if self.vpnEntryData != 0 {
+      try visitor.visitSingularUInt64Field(value: self.vpnEntryData, fieldNumber: 8)
+    }
+    if !self.vpnEntryDataSi.isEmpty {
+      try visitor.visitSingularStringField(value: self.vpnEntryDataSi, fieldNumber: 9)
+    }
+    if self.vpnExitTickets != 0 {
+      try visitor.visitSingularUInt64Field(value: self.vpnExitTickets, fieldNumber: 10)
+    }
+    if self.vpnExitData != 0 {
+      try visitor.visitSingularUInt64Field(value: self.vpnExitData, fieldNumber: 11)
+    }
+    if !self.vpnExitDataSi.isEmpty {
+      try visitor.visitSingularStringField(value: self.vpnExitDataSi, fieldNumber: 12)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: Nym_Vpn_AvailableTickets, rhs: Nym_Vpn_AvailableTickets) -> Bool {
-    if lhs.mixnetEntry != rhs.mixnetEntry {return false}
-    if lhs.mixnetExit != rhs.mixnetExit {return false}
-    if lhs.vpnEntry != rhs.vpnEntry {return false}
-    if lhs.vpnExit != rhs.vpnExit {return false}
-    if lhs.mixnetEntrySi != rhs.mixnetEntrySi {return false}
-    if lhs.mixnetExitSi != rhs.mixnetExitSi {return false}
-    if lhs.vpnEntrySi != rhs.vpnEntrySi {return false}
-    if lhs.vpnExitSi != rhs.vpnExitSi {return false}
+    if lhs.mixnetEntryTickets != rhs.mixnetEntryTickets {return false}
+    if lhs.mixnetEntryData != rhs.mixnetEntryData {return false}
+    if lhs.mixnetEntryDataSi != rhs.mixnetEntryDataSi {return false}
+    if lhs.mixnetExitTickets != rhs.mixnetExitTickets {return false}
+    if lhs.mixnetExitData != rhs.mixnetExitData {return false}
+    if lhs.mixnetExitDataSi != rhs.mixnetExitDataSi {return false}
+    if lhs.vpnEntryTickets != rhs.vpnEntryTickets {return false}
+    if lhs.vpnEntryData != rhs.vpnEntryData {return false}
+    if lhs.vpnEntryDataSi != rhs.vpnEntryDataSi {return false}
+    if lhs.vpnExitTickets != rhs.vpnExitTickets {return false}
+    if lhs.vpnExitData != rhs.vpnExitData {return false}
+    if lhs.vpnExitDataSi != rhs.vpnExitDataSi {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
