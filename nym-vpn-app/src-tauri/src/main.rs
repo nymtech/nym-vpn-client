@@ -40,7 +40,6 @@ mod commands;
 mod country;
 mod db;
 mod env;
-mod envi;
 mod error;
 mod events;
 mod fs;
@@ -179,7 +178,7 @@ async fn main() -> Result<()> {
 
             // if splash-screen is disabled, remove it and show
             // the main window without waiting for frontend signal
-            if cli.nosplash || envi::is_truthy(ENV_APP_NOSPLASH) {
+            if cli.nosplash || env::is_truthy(ENV_APP_NOSPLASH) {
                 debug!("splash screen disabled, showing main window");
                 app_win.no_splash();
             }
@@ -245,6 +244,7 @@ async fn main() -> Result<()> {
             cmd_daemon::daemon_info,
             cmd_daemon::set_network,
             cmd_daemon::system_messages,
+            cmd_daemon::feature_flags,
             cmd_fs::log_dir,
             startup::startup_error,
             cmd_env::env,

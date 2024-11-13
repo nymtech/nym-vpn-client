@@ -10,7 +10,6 @@ pub async fn add_account(
     mnemonic: String,
     grpc: State<'_, GrpcClient>,
 ) -> Result<(), BackendError> {
-    debug!("add_account");
     grpc.store_account(mnemonic)
         .await
         .map_err(|e| {
@@ -40,8 +39,6 @@ pub async fn delete_account(grpc: State<'_, GrpcClient>) -> Result<(), BackendEr
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn is_account_stored(grpc: State<'_, GrpcClient>) -> Result<bool, BackendError> {
-    debug!("is_account_stored");
-
     grpc.is_account_stored()
         .await
         .map_err(|e| {
@@ -56,8 +53,6 @@ pub async fn is_account_stored(grpc: State<'_, GrpcClient>) -> Result<bool, Back
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn get_account_info(grpc: State<'_, GrpcClient>) -> Result<JsonValue, BackendError> {
-    debug!("get_account_info");
-
     grpc.get_account_summary()
         .await
         .map_err(|e| {

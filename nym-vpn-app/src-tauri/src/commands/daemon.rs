@@ -1,6 +1,6 @@
 use crate::env::NETWORK_ENV_SELECT;
 use crate::error::BackendError;
-use crate::grpc::client::{GrpcClient, SystemMessage, VpndStatus};
+use crate::grpc::client::{FeatureFlags, GrpcClient, SystemMessage, VpndStatus};
 use crate::states::SharedAppState;
 use serde::{Deserialize, Serialize};
 use tauri::State;
@@ -31,7 +31,6 @@ pub async fn daemon_status(
     app_state: State<'_, SharedAppState>,
     grpc_client: State<'_, GrpcClient>,
 ) -> Result<VpndStatus, BackendError> {
-    debug!("daemon_status");
     let status = grpc_client
         .check(app_state.inner())
         .await
@@ -46,7 +45,6 @@ pub async fn daemon_status(
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn daemon_info(grpc_client: State<'_, GrpcClient>) -> Result<DaemonInfo, BackendError> {
-    debug!("daemon_info");
     let res = grpc_client.vpnd_info().await.inspect_err(|e| {
         warn!("failed to get daemon info: {:?}", e);
     })?;
@@ -71,7 +69,6 @@ pub async fn set_network(
     grpc_client: State<'_, GrpcClient>,
     network: NetworkEnv,
 ) -> Result<(), BackendError> {
-    debug!("set_network");
     if !*NETWORK_ENV_SELECT {
         warn!("network env selector is disabled");
         return Err(BackendError::new_internal("nope", None));
@@ -93,10 +90,25 @@ pub async fn set_network(
 pub async fn system_messages(
     grpc_client: State<'_, GrpcClient>,
 ) -> Result<Vec<SystemMessage>, BackendError> {
-    debug!("system_messages");
-    let res = grpc_client.system_messages().await.inspect_err(|e| {
-        warn!("failed to get system messages: {:?}", e);
-    })?;
+    grpc_client
+        .system_messages()
+        .await
+        .inspect_err(|e| {
+            warn!("failed to get system messages: {:?}", e);
+        })
+        .map_err(|e| e.into())
+}
 
-    Ok(res)
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn feature_flags(
+    grpc_client: State<'_, GrpcClient>,
+) -> Result<FeatureFlags, BackendError> {
+    grpc_client
+        .feature_flags()
+        .await
+        .inspect_err(|e| {
+            warn!("failed to get feature flags: {:?}", e);
+        })
+        .map_err(|e| e.into())
 }
