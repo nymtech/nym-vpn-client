@@ -39,8 +39,8 @@ pub enum VpnError {
     #[error("device not active")]
     AccountDeviceNotActive,
 
-    #[error("account status unknown")]
-    AccountStatusUnknown,
+    #[error("timeout connecting to nym-vpn-api")]
+    VpnApiTimeout,
 }
 
 impl From<nym_vpn_account_controller::ReadyToConnect> for VpnError {

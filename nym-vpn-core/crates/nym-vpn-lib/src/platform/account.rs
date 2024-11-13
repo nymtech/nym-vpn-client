@@ -124,7 +124,7 @@ async fn wait_for_account_ready_to_connect(timeout: Duration) -> Result<ReadyToC
         guard
             .wait_for_ready_to_connect(timeout)
             .await
-            .ok_or(VpnError::AccountStatusUnknown)
+            .ok_or(VpnError::VpnApiTimeout)
     } else {
         Err(VpnError::InvalidStateError {
             details: "Account controller is not running.".to_owned(),
