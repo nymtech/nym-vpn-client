@@ -73,6 +73,10 @@ pub struct Cli {
     #[arg(short = 's', long)]
     pub nosplash: bool,
 
+    /// Enable zknyms credentials mode
+    #[arg(long, hide = true)]
+    pub credentials_mode: bool,
+
     #[command(subcommand)]
     pub command: Option<Commands>,
 }
