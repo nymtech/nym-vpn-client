@@ -1,6 +1,6 @@
 use crate::env::NETWORK_ENV_SELECT;
 use crate::error::BackendError;
-use crate::grpc::client::{GrpcClient, SystemMessage, VpndStatus};
+use crate::grpc::client::{FeatureFlags, GrpcClient, SystemMessage, VpndStatus};
 use crate::states::SharedAppState;
 use serde::{Deserialize, Serialize};
 use tauri::State;
@@ -94,9 +94,26 @@ pub async fn system_messages(
     grpc_client: State<'_, GrpcClient>,
 ) -> Result<Vec<SystemMessage>, BackendError> {
     debug!("system_messages");
-    let res = grpc_client.system_messages().await.inspect_err(|e| {
-        warn!("failed to get system messages: {:?}", e);
-    })?;
+    grpc_client
+        .system_messages()
+        .await
+        .inspect_err(|e| {
+            warn!("failed to get system messages: {:?}", e);
+        })
+        .map_err(|e| e.into())
+}
 
-    Ok(res)
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn feature_flags(
+    grpc_client: State<'_, GrpcClient>,
+) -> Result<FeatureFlags, BackendError> {
+    debug!("feature_flags");
+    grpc_client
+        .feature_flags()
+        .await
+        .inspect_err(|e| {
+            warn!("failed to get feature flags: {:?}", e);
+        })
+        .map_err(|e| e.into())
 }

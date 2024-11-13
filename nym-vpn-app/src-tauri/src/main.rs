@@ -245,6 +245,7 @@ async fn main() -> Result<()> {
             cmd_daemon::daemon_info,
             cmd_daemon::set_network,
             cmd_daemon::system_messages,
+            cmd_daemon::feature_flags,
             cmd_fs::log_dir,
             startup::startup_error,
             cmd_env::env,
