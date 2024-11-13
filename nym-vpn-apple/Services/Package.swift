@@ -179,6 +179,7 @@ let package = Package(
             dependencies: [
                 "Keychain",
                 "NymLogger",
+                .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
                 .product(name: "TunnelStatus", package: "ServicesMutual")
             ],
             path: "Sources/Services/Tunnels"
