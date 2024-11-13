@@ -11,7 +11,7 @@ public enum CredentialsManagerError: Error, Equatable {
         case .noError:
             return nil
         case .generalError(let text):
-            return "\("error".localizedString) \(text)"
+            return "\(text)"
         case .cannotCreateDB:
             return "addCredentials.error.cannotCreateDB".localizedString
         case .noExpiryDate:

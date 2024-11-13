@@ -47,6 +47,7 @@
 		D96B94E12C2AB62D00E98B15 /* gatewaysExitCountries.json in Resources */ = {isa = PBXBuildFile; fileRef = D96B94DD2C2AB62D00E98B15 /* gatewaysExitCountries.json */; };
 		D97065E12B8DD44A00C27A9B /* TunnelStatus in Frameworks */ = {isa = PBXBuildFile; productRef = D97065E02B8DD44A00C27A9B /* TunnelStatus */; };
 		D974C03B2BBED2460011924A /* ConnectionManager in Frameworks */ = {isa = PBXBuildFile; productRef = D974C03A2BBED2460011924A /* ConnectionManager */; };
+		D975F8042CE51097002D42C7 /* ErrorHandler in Frameworks */ = {isa = PBXBuildFile; productRef = D975F8032CE51097002D42C7 /* ErrorHandler */; };
 		D9870CF32BE3A12800551A86 /* Home in Frameworks */ = {isa = PBXBuildFile; productRef = D9870CF22BE3A12800551A86 /* Home */; };
 		D98B32F22C58F682005A15A3 /* Package.resolved in Resources */ = {isa = PBXBuildFile; fileRef = D98B32F12C58F682005A15A3 /* Package.resolved */; };
 		D99820982BB6E8D9000C1FEE /* MixnetLibrary in Frameworks */ = {isa = PBXBuildFile; productRef = D99820972BB6E8D9000C1FEE /* MixnetLibrary */; };
@@ -197,6 +198,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9309AF92BC81B7600C387F4 /* TunnelMixnet in Frameworks */,
+				D975F8042CE51097002D42C7 /* ErrorHandler in Frameworks */,
 				D944053F2BAC4CBD0076EEDB /* SystemConfiguration.framework in Frameworks */,
 				D99820982BB6E8D9000C1FEE /* MixnetLibrary in Frameworks */,
 				D9BB53552BAC4AE500917C97 /* Tunnels in Frameworks */,
@@ -429,6 +431,7 @@
 				D99820972BB6E8D9000C1FEE /* MixnetLibrary */,
 				D9309AF82BC81B7600C387F4 /* TunnelMixnet */,
 				582C5F8D2C7654A800B678AE /* ConfigurationManager */,
+				D975F8032CE51097002D42C7 /* ErrorHandler */,
 			);
 			productName = NymMixnetTunnel;
 			productReference = D954C0B82B51C1CA00C6BAAC /* NymMixnetTunnel.appex */;
@@ -757,7 +760,7 @@
 				CODE_SIGN_ENTITLEMENTS = NymMixnetTunnel/NymMixnetTunnel.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 305;
+				CURRENT_PROJECT_VERSION = 306;
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -771,7 +774,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				MARKETING_VERSION = 1.3.0;
+				MARKETING_VERSION = 1.3.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "net.nymtech.vpn.network-extension";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -792,7 +795,7 @@
 				CODE_SIGN_ENTITLEMENTS = NymMixnetTunnel/NymMixnetTunnel.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 305;
+				CURRENT_PROJECT_VERSION = 306;
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -806,7 +809,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				MARKETING_VERSION = 1.3.0;
+				MARKETING_VERSION = 1.3.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "net.nymtech.vpn.network-extension";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -950,7 +953,7 @@
 				CODE_SIGN_ENTITLEMENTS = NymVPN/NymVPN.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 305;
+				CURRENT_PROJECT_VERSION = 306;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_PREVIEWS = YES;
@@ -965,7 +968,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				MARKETING_VERSION = 1.3.0;
+				MARKETING_VERSION = 1.3.1;
 				PRODUCT_BUNDLE_IDENTIFIER = net.nymtech.vpn;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -990,7 +993,7 @@
 				CODE_SIGN_ENTITLEMENTS = NymVPN/NymVPN.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 305;
+				CURRENT_PROJECT_VERSION = 306;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_PREVIEWS = YES;
@@ -1005,7 +1008,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				MARKETING_VERSION = 1.3.0;
+				MARKETING_VERSION = 1.3.1;
 				PRODUCT_BUNDLE_IDENTIFIER = net.nymtech.vpn;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1029,7 +1032,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 17;
+				CURRENT_PROJECT_VERSION = 18;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"NymVPNDaemon/Preview Content\"";
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
@@ -1045,7 +1048,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.3.0;
+				MARKETING_VERSION = 1.3.1;
 				PRODUCT_BUNDLE_IDENTIFIER = net.nymtech.vpn;
 				PRODUCT_NAME = NymVPN;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1065,7 +1068,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 17;
+				CURRENT_PROJECT_VERSION = 18;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"NymVPNDaemon/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
@@ -1082,7 +1085,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.3.0;
+				MARKETING_VERSION = 1.3.1;
 				PRODUCT_BUNDLE_IDENTIFIER = net.nymtech.vpn;
 				PRODUCT_NAME = NymVPN;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1322,6 +1325,10 @@
 		D974C03A2BBED2460011924A /* ConnectionManager */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = ConnectionManager;
+		};
+		D975F8032CE51097002D42C7 /* ErrorHandler */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ErrorHandler;
 		};
 		D9870CF22BE3A12800551A86 /* Home */ = {
 			isa = XCSwiftPackageProductDependency;

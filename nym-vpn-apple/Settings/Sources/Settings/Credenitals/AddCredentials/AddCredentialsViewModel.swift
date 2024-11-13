@@ -82,7 +82,7 @@ final class AddCredentialsViewModel: ObservableObject {
                 credentialsDidAdd()
             } catch let newError {
                 Task { @MainActor in
-                    error = CredentialsManagerError.generalError(String(describing: newError))
+                    error = CredentialsManagerError.generalError(String(describing: newError.localizedDescription))
                 }
             }
         }

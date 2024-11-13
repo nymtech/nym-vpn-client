@@ -2,6 +2,7 @@ import NetworkExtension
 import Logging
 import ConfigurationManager
 import NymLogger
+import ErrorHandler
 import MixnetLibrary
 import TunnelMixnet
 import Tunnels
