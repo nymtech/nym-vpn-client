@@ -3,9 +3,9 @@ import Logging
 import Foundation
 import AppSettings
 import Constants
-import ErrorHandler
 
 #if os(iOS)
+import ErrorHandler
 import MixnetLibrary
 #endif
 
@@ -52,11 +52,15 @@ public final class CredentialsManager {
 #endif
                 checkCredentialImport()
             } catch {
+#if os(iOS)
                 if let vpnError = error as? VpnError {
                     throw VPNErrorReason(with: vpnError)
                 } else {
                     throw error
                 }
+#elseif os(macOS)
+                throw error
+#endif
             }
         }.value
     }
@@ -77,7 +81,6 @@ public final class CredentialsManager {
             checkCredentialImport()
         } catch {
             // TODO: need modal for alerts
-            print(" remove credential : \(error)")
             throw error
         }
     }

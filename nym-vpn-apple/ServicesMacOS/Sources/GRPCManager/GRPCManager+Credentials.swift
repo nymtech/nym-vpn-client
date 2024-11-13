@@ -17,6 +17,7 @@ extension GRPCManager {
                 switch result {
                 case .success(let response):
                     if response.hasError {
+                        
                         continuation.resume(throwing: GeneralNymError.library(message: response.error.message))
                         break
                     }
