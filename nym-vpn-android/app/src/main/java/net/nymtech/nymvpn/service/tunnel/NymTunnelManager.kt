@@ -25,9 +25,9 @@ import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.BackendMessage
 import net.nymtech.vpn.model.Statistics
+import nym_vpn_lib.AccountLinks
 import nym_vpn_lib.AccountStateSummary
 import nym_vpn_lib.BandwidthEvent
-import nym_vpn_lib.BandwidthStatus.NoBandwidth
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Provider
@@ -41,12 +41,16 @@ class NymTunnelManager @Inject constructor(
 	@IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : TunnelManager {
 
-	private val _state = MutableStateFlow(TunnelState())
-	override val stateFlow: Flow<TunnelState> = _state.onStart {
+	private val _state = MutableStateFlow(TunnelManagerState())
+	override val stateFlow: Flow<TunnelManagerState> = _state.onStart {
+		val isMnemonicStored = isMnemonicStored()
 		_state.update {
-			it.copy(isMnemonicStored = isMnemonicStored())
+			it.copy(
+				isMnemonicStored = isMnemonicStored,
+				accountLinks = if (isMnemonicStored) getAccountLinks() else null,
+			)
 		}
-	}.stateIn(applicationScope.plus(ioDispatcher), SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT), TunnelState())
+	}.stateIn(applicationScope.plus(ioDispatcher), SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT), TunnelManagerState())
 
 	override fun getState(): Tunnel.State {
 		return backend.get().getState()
@@ -96,6 +100,10 @@ class NymTunnelManager @Inject constructor(
 		return backend.get().getAccountSummary()
 	}
 
+	override suspend fun getAccountLinks(): AccountLinks {
+		return backend.get().getAccountLinks(settingsRepository.getEnvironment())
+	}
+
 	private fun emitMnemonicStored(stored: Boolean) {
 		_state.update {
 			it.copy(isMnemonicStored = stored)
@@ -125,7 +133,7 @@ class NymTunnelManager @Inject constructor(
 	private fun emitStats(statistics: Statistics) {
 		_state.update {
 			it.copy(
-				statistics = statistics,
+				tunnelStatistics = statistics,
 			)
 		}
 	}
@@ -148,7 +156,7 @@ class NymTunnelManager @Inject constructor(
 	private fun emitState(state: Tunnel.State) {
 		_state.update {
 			it.copy(
-				state = state,
+				tunnelState = state,
 			)
 		}
 	}
@@ -191,6 +199,10 @@ class NymTunnelManager @Inject constructor(
 				}
 			}
 			BackendMessage.None -> Unit
+			is BackendMessage.StartFailure -> notificationService.showNotification(
+				title = context.getString(R.string.connection_failed),
+				description = backendMessage.exception.toUserMessage(context),
+			)
 		}
 	}
 }

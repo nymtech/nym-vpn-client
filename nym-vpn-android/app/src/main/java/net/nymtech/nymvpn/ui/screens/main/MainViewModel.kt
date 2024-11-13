@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.service.tunnel.TunnelManager
 import net.nymtech.nymvpn.ui.model.ConnectionState
-import net.nymtech.nymvpn.ui.model.StateMessage
+import net.nymtech.nymvpn.ui.model.StateMessage.*
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
 import net.nymtech.vpn.backend.Tunnel
@@ -26,15 +26,18 @@ constructor(
 ) : ViewModel() {
 
 	val uiState = tunnelManager.stateFlow.map { manager ->
-		val connectionTime = manager.statistics.connectionSeconds.convertSecondsToTimeString()
-		val connectionState = ConnectionState.from(manager.state)
+		val connectionTime = manager.tunnelStatistics.connectionSeconds.convertSecondsToTimeString()
+		val connectionState = ConnectionState.from(manager.tunnelState)
 		var stateMessage = connectionState.stateMessage
 		when (manager.backendMessage) {
 			is BackendMessage.Failure -> {
-				stateMessage = StateMessage.Error(manager.backendMessage.reason)
+				stateMessage = Error(manager.backendMessage.reason)
 			}
 			BackendMessage.None -> stateMessage = connectionState.stateMessage
 			is BackendMessage.BandwidthAlert -> Unit
+			is BackendMessage.StartFailure -> {
+				stateMessage = StartError(manager.backendMessage.exception)
+			}
 		}
 		MainUiState(
 			connectionTime = connectionTime,
