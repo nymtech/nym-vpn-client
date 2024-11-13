@@ -54,7 +54,8 @@ let package = Package(
                 "Constants",
                 "Device",
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
-                "NymLogger"
+                "NymLogger",
+                .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS]))
             ],
             path: "Sources/Services/ConfigurationManager"
         ),

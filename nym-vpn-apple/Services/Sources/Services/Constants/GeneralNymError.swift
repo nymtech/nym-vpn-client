@@ -8,7 +8,7 @@ public enum GeneralNymError: Error, Equatable {
     case cannotParseCountries
     case library(message: String)
     case noMnemonicStored
-    case noEnvFile
+    case noEnv
 }
 
 extension GeneralNymError: LocalizedError {
@@ -26,8 +26,8 @@ extension GeneralNymError: LocalizedError {
             return message
         case .noMnemonicStored:
             return "error.noMnemonicStored".localizedString
-        case .noEnvFile:
-            return "generalNymError.noEnvFile".localizedString
+        case .noEnv:
+            return "generalNymError.noEnv".localizedString
         }
     }
 }

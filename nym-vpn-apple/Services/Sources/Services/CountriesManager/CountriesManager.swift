@@ -95,7 +95,7 @@ public final class CountriesManager: ObservableObject {
         }
         isLoading = true
 
-        Task { [weak self] in
+        Task(priority: .background) { [weak self] in
             self?.fetchEntryExitCountries()
         }
     }

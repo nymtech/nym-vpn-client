@@ -738,6 +738,69 @@ message GetDeviceZkNymsResponse {
   AccountError error = 2;
 }
 
+message GetZkNymsAvailableForDownloadRequest {}
+
+message GetZkNymsAvailableForDownloadResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
+message GetZkNymByIdRequest {
+  string id = 1;
+}
+
+message GetZkNymByIdResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
+message ConfirmZkNymDownloadedRequest {
+  string id = 1;
+}
+
+message ConfirmZkNymDownloadedResponse {
+  AccountError error = 2;
+}
+
+message AvailableTickets {
+  // Remaining number of mixnet entry tickets
+  uint64 mixnet_entry_tickets = 1;
+  // Remaining mixnet entry data in bytes
+  uint64 mixnet_entry_data = 2;
+  // Remaining mixnet entry data formatted to a string using SI units
+  string mixnet_entry_data_si = 3;
+
+  // Remaining number of mixnet exit tickets
+  uint64 mixnet_exit_tickets = 4;
+  // Remaining mixnet exit data in bytes
+  uint64 mixnet_exit_data = 5;
+  // Remaining mixnet exit data formatted to a string using SI units
+  string mixnet_exit_data_si = 6;
+
+  // Remaining number of vpn entry tickets
+  uint64 vpn_entry_tickets = 7;
+  // Remaining vpn entry data in bytes
+  uint64 vpn_entry_data = 8;
+  // Remaining vpn entry data formatted to a string using SI units
+  string vpn_entry_data_si = 9;
+
+  // Remaining number of vpn exit tickets
+  uint64 vpn_exit_tickets = 10;
+  // Remaining vpn exit data in bytes
+  uint64 vpn_exit_data = 11;
+  // Remaining vpn exit data formatted to a string using SI units
+  string vpn_exit_data_si = 12;
+}
+
+message GetAvailableTicketsRequest {}
+
+message GetAvailableTicketsResponse {
+  oneof resp {
+    AvailableTickets available_tickets = 1;
+    AccountError error = 2;
+  }
+}
+
 message IsReadyToConnectRequest {}
 
 message IsReadyToConnectResponse {
@@ -798,6 +861,7 @@ service NymVpnd {
   // List messages fetched from nym-vpn-api
   rpc GetSystemMessages (GetSystemMessagesRequest) returns (GetSystemMessagesResponse) {}
 
+  // List the feature flags fetched from the nym-vpn-api
   rpc GetFeatureFlags (GetFeatureFlagsRequest) returns (GetFeatureFlagsResponse) {}
 
   // Start the tunnel and connect
@@ -827,21 +891,36 @@ service NymVpnd {
   // These below are considered unstable, in the sense that their definitions
   // are still being interated upon and their meaning might change
 
-  // Handle the stored recovery phrase, which is also the account identity and authentication
+  // Store the recovery phrase, which is also the account identity and authentication
   rpc StoreAccount (StoreAccountRequest) returns (StoreAccountResponse) {}
+
+  // Check if the recovery phrase is stored
   rpc IsAccountStored (IsAccountStoredRequest) returns (IsAccountStoredResponse) {}
+
+  // Remove the recovery phrase from local storage
   rpc RemoveAccount (RemoveAccountRequest) returns (RemoveAccountResponse) {}
+
+  // Get the account identity of the locally stored recovery phrase
   rpc GetAccountIdentity (GetAccountIdentityRequest) returns (GetAccountIdentityResponse) {}
+
+  // Get the set of account links for the user
   rpc GetAccountLinks (GetAccountLinksRequest) returns (GetAccountLinksResponse) {}
 
-  // Query the account state, which refers to the server side account, as it is
-  // known and interpreted by nym-vpnd
+  // Query the account state, which is synced from the nym-vpn-api account, as it
+  // is known and interpreted by nym-vpnd
   rpc GetAccountState (GetAccountStateRequest) returns (GetAccountStateResponse) {}
+
+  // The vpn client will periodically refresh the account state in the
+  // background. This command triggers a manual refresh.
   rpc RefreshAccountState (RefreshAccountStateRequest) returns (RefreshAccountStateResponse) {}
+
+  // Check if the local account state is ready to connect
   rpc IsReadyToConnect (IsReadyToConnectRequest) returns (IsReadyToConnectResponse) {}
 
   // Reset the device identity
   rpc ResetDeviceIdentity (ResetDeviceIdentityRequest) returns (ResetDeviceIdentityResponse) {}
+
+  // Get the device identity
   rpc GetDeviceIdentity (GetDeviceIdentityRequest) returns (GetDeviceIdentityResponse) {}
 
   // Try to register the local device with the nym-vpn-api
@@ -852,6 +931,18 @@ service NymVpnd {
 
   // List the zk-nyms associated with this device from the nym-vpn-api
   rpc GetDeviceZkNyms (GetDeviceZkNymsRequest) returns (GetDeviceZkNymsResponse) {}
+
+  // List the zk-nyms available for download from the nym-vpn-api
+  rpc GetZkNymsAvailableForDownload (GetZkNymsAvailableForDownloadRequest) returns (GetZkNymsAvailableForDownloadResponse) {}
+
+  // Get a zk-nym by its id from the nym-vpn-api
+  rpc GetZkNymById (GetZkNymByIdRequest) returns (GetZkNymByIdResponse) {}
+
+  // Confirm that a zk-nym has been downloaded from thje nym-vpn-api
+  rpc ConfirmZkNymDownloaded (ConfirmZkNymDownloadedRequest) returns (ConfirmZkNymDownloadedResponse) {}
+
+  // Get the available tickets in the local credential store
+  rpc GetAvailableTickets (GetAvailableTicketsRequest) returns (GetAvailableTicketsResponse) {}
 
   // -- Delegated remote calls --
   // These query the remote nym-vpn-api state directly

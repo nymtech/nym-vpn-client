@@ -78,7 +78,9 @@ private extension NymVPNDaemonApp {
         LoggingSystem.bootstrap { label in
             FileLogHandler(label: label, logFileManager: logFileManager)
         }
-        try? ConfigurationManager.shared.setup()
+        Task {
+            try await ConfigurationManager.shared.setup()
+        }
         ThemeConfiguration.setup()
         SentryManager.shared.setup()
         HelperManager.shared.setup(helperName: Constants.helperName.rawValue)
