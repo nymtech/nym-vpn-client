@@ -4,7 +4,6 @@ import Logging
 import Keychain
 
 public final class TunnelsManager: ObservableObject {
-    private let secondInNanoseconds: UInt64 = 1000000000
     public static let shared = TunnelsManager()
 
     private var cancellables = Set<AnyCancellable>()
@@ -79,7 +78,7 @@ private extension TunnelsManager {
     func pollLoop() async {
         while isPolling {
             await pollTunnelLastError()
-            try? await Task.sleep(nanoseconds: secondInNanoseconds)
+            try? await Task.sleep(for: .seconds(1))
         }
     }
 

@@ -54,7 +54,8 @@ let package = Package(
                 "Constants",
                 "Device",
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
-                "NymLogger"
+                "NymLogger",
+                .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS]))
             ],
             path: "Sources/Services/ConfigurationManager"
         ),
@@ -178,6 +179,7 @@ let package = Package(
             dependencies: [
                 "Keychain",
                 "NymLogger",
+                .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
                 .product(name: "TunnelStatus", package: "ServicesMutual")
             ],
             path: "Sources/Services/Tunnels"

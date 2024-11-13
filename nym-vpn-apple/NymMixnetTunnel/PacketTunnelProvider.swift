@@ -31,7 +31,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     override func startTunnel(options: [String: NSObject]? = nil) async throws {
         logger.info("Start tunnel...")
 
-        setup()
+        await setup()
 
         await tunnelActor.setTunnelProvider(self)
 
@@ -93,9 +93,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 }
 
 extension PacketTunnelProvider {
-    func setup() {
+    func setup() async {
         do {
-            try ConfigurationManager.shared.setup()
+            try await ConfigurationManager.shared.setup()
         } catch {
             self.logger.error("Failed to set environment: \(error)")
         }
