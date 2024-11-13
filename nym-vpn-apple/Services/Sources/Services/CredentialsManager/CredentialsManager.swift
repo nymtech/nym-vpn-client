@@ -1,7 +1,9 @@
 import Combine
+import Logging
 import Foundation
 import AppSettings
 import Constants
+import ErrorHandler
 
 #if os(iOS)
 import MixnetLibrary
@@ -13,6 +15,7 @@ import HelperManager
 #endif
 
 public final class CredentialsManager {
+    private let logger = Logger(label: "CredentialsManager")
 #if os(macOS)
     private let grpcManager = GRPCManager.shared
     private let helperManager = HelperManager.shared
@@ -32,8 +35,8 @@ public final class CredentialsManager {
     }
 
     public func add(credential: String) async throws {
-        Task {
-            let trimmedCredential = credential.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedCredential = credential.trimmingCharacters(in: .whitespacesAndNewlines)
+        try await Task(priority: .background) {
             do {
 #if os(iOS)
                 let dataFolderURL = try dataFolderURL()
@@ -42,18 +45,20 @@ public final class CredentialsManager {
                     try FileManager.default.createDirectory(at: dataFolderURL, withIntermediateDirectories: true)
                 }
                 try storeAccountMnemonic(mnemonic: trimmedCredential, path: dataFolderURL.path())
-#endif
-
-#if os(macOS)
-                _ = try await helperManager.installHelperIfNeeded()
-                try grpcManager.storeAccount(with: trimmedCredential)
+#elseif os(macOS)
+                // TODO: check if daemon is installed and does not need an update
+                _ = await installHelperIfNeeded()
+                try await grpcManager.storeAccount(with: trimmedCredential)
 #endif
                 checkCredentialImport()
-            } catch let error {
-                print("add credential : \(error)")
-                throw error
+            } catch {
+                if let vpnError = error as? VpnError {
+                    throw VPNErrorReason(with: vpnError)
+                } else {
+                    throw error
+                }
             }
-        }
+        }.value
     }
 
     public func removeCredential() async throws {
@@ -66,7 +71,7 @@ public final class CredentialsManager {
 #endif
 
 #if os(macOS)
-            _ = try await helperManager.installHelperIfNeeded()
+            _ = await installHelperIfNeeded()
             removalResult = try await grpcManager.removeAccount()
 #endif
             checkCredentialImport()
@@ -140,3 +145,22 @@ private extension CredentialsManager {
         }
     }
 }
+
+#if os(macOS)
+private extension CredentialsManager {
+    func installHelperIfNeeded() async -> Bool {
+        var isInstalledAndRunning = helperManager.isHelperAuthorizedAndRunning()
+        // TODO: check if possible to split is helper running vs isHelperAuthorized
+        guard isInstalledAndRunning && !grpcManager.requiresUpdate
+        else {
+            do {
+                isInstalledAndRunning = try await helperManager.installHelperIfNeeded()
+            } catch let error {
+                logger.error("Failed to install helper: \(error)")
+            }
+            return isInstalledAndRunning
+        }
+        return isInstalledAndRunning
+    }
+}
+#endif

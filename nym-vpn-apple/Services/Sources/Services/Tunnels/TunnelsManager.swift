@@ -2,6 +2,7 @@ import Combine
 import NetworkExtension
 import Logging
 import Keychain
+import ErrorHandler
 
 public final class TunnelsManager: ObservableObject {
     public static let shared = TunnelsManager()
