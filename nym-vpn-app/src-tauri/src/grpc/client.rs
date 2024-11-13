@@ -4,13 +4,13 @@ use std::path::PathBuf;
 use anyhow::{anyhow, Result};
 use itertools::Itertools;
 use nym_vpn_proto::{
-    health_check_response::ServingStatus, health_client::HealthClient,
+    get_account_links_response, health_check_response::ServingStatus, health_client::HealthClient,
     is_account_stored_response::Resp as IsAccountStoredResp, nym_vpnd_client::NymVpndClient,
     ConnectRequest, ConnectionStatus, DisconnectRequest, Dns, Empty, EntryNode, ExitNode,
-    FetchRawAccountSummaryRequest, GatewayType, GetFeatureFlagsRequest, GetSystemMessagesRequest,
-    HealthCheckRequest, InfoRequest, InfoResponse, IsAccountStoredRequest, ListCountriesRequest,
-    Location, RemoveAccountRequest, SetNetworkRequest, StatusRequest, StatusResponse,
-    StoreAccountRequest, UserAgent,
+    FetchRawAccountSummaryRequest, GatewayType, GetAccountLinksRequest, GetFeatureFlagsRequest,
+    GetSystemMessagesRequest, HealthCheckRequest, InfoRequest, InfoResponse,
+    IsAccountStoredRequest, ListCountriesRequest, Location, RemoveAccountRequest,
+    SetNetworkRequest, StatusRequest, StatusResponse, StoreAccountRequest, UserAgent,
 };
 use parity_tokio_ipc::Endpoint as IpcEndpoint;
 use tauri::{AppHandle, Manager, PackageInfo};
@@ -25,6 +25,7 @@ use crate::cli::Cli;
 use crate::country::Country;
 use crate::error::BackendError;
 use crate::fs::config::AppConfig;
+pub use crate::grpc::account_links::AccountLinks;
 pub use crate::grpc::feature_flags::FeatureFlags;
 pub use crate::grpc::system_message::SystemMessage;
 pub use crate::grpc::vpnd_status::VpndStatus;
@@ -509,6 +510,32 @@ impl GrpcClient {
         }
 
         Ok(response.json)
+    }
+
+    /// Get the account links
+    #[instrument(skip_all)]
+    pub async fn account_links(&self, _locale: &str) -> Result<AccountLinks, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let request = Request::new(GetAccountLinksRequest {
+            // TODO use the locale set at app level once website is i18n ready
+            locale: "en".to_string(),
+        });
+        let response = vpnd.get_account_links(request).await.map_err(|e| {
+            error!("grpc: {}", e);
+            VpndError::GrpcError(e)
+        })?;
+        let response = response.into_inner();
+        debug!("grpc response: {:?}", response.res);
+        match response.res.ok_or_else(|| {
+            error!("failed to get account links: invalid response");
+            VpndError::GrpcError(tonic::Status::internal(
+                "failed to get account links: invalid response",
+            ))
+        })? {
+            get_account_links_response::Res::Links(l) => Ok(l.into()),
+            get_account_links_response::Res::Error(e) => Err(VpndError::Response(e.into())),
+        }
     }
 
     /// Get the list of available countries for entry gateways

@@ -2,6 +2,7 @@ use serde_json::Value as JsonValue;
 use tauri::State;
 use tracing::{debug, error, info, instrument};
 
+use crate::grpc::account_links::AccountLinks;
 use crate::{error::BackendError, grpc::client::GrpcClient};
 
 #[instrument(skip_all)]
@@ -65,4 +66,16 @@ pub async fn get_account_info(grpc: State<'_, GrpcClient>) -> Result<JsonValue, 
                 .inspect_err(|e| error!("failed to parse json value: {e}"))
                 .unwrap_or(JsonValue::Null)
         })
+}
+
+#[instrument(skip(grpc))]
+#[tauri::command]
+pub async fn account_links(
+    grpc: State<'_, GrpcClient>,
+    locale: String,
+) -> Result<AccountLinks, BackendError> {
+    grpc.account_links(&locale).await.map_err(|e| {
+        error!("failed to get account link: {e}");
+        e.into()
+    })
 }

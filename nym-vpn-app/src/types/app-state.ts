@@ -2,7 +2,7 @@ import { Dispatch } from 'react';
 import { Dayjs } from 'dayjs';
 import { StateAction } from '../state';
 import { Country, NodeHop, NodeLocation, ThemeMode, UiTheme } from './common';
-import { BackendError, ErrorKey, NetworkEnv } from './tauri-ipc';
+import { AccountLinks, BackendError, ErrorKey, NetworkEnv } from './tauri-ipc';
 
 export type ConnectionState =
   | 'Connected'
@@ -59,6 +59,7 @@ export type AppState = {
   codeDepsRust: CodeDependency[];
   // TODO just a boolean for now to indicate if the user has added an account
   account: boolean;
+  accountLinks?: AccountLinks | null;
   fetchMnCountries: FetchMnCountriesFn;
   fetchWgCountries: FetchWgCountriesFn;
 };
