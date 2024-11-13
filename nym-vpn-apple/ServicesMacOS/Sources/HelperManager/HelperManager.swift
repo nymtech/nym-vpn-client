@@ -6,7 +6,7 @@ import Shell
 
 public final class HelperManager {
     public static let shared = HelperManager()
-    public let requiredVersion = "1.0.0-alpha.3"
+    public let requiredVersion = "1.0.0-rc.3"
 
     private var helperName = ""
 
