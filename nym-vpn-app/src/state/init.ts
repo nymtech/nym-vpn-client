@@ -1,3 +1,4 @@
+import i18n from 'i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { getVersion } from '@tauri-apps/api/app';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
@@ -11,6 +12,7 @@ import {
 import { getJsLicenses, getRustLicenses } from '../data';
 import { kvGet } from '../kvStore';
 import {
+  AccountLinks,
   CodeDependency,
   ConnectionStateResponse,
   Country,
@@ -314,5 +316,21 @@ export async function initSecondBatch(dispatch: StateDispatch) {
     },
   };
 
-  await fireRequests([getEntryCountriesRq, getExitCountriesRq]);
+  const getAccountLinksRq: TauriReq<() => Promise<AccountLinks | undefined>> = {
+    name: 'getAccountLinksRq',
+    request: () =>
+      invoke<AccountLinks>('account_links', { locale: i18n.language }),
+    onFulfilled: (links) => {
+      dispatch({
+        type: 'set-account-links',
+        links: links as AccountLinks | null,
+      });
+    },
+  };
+
+  await fireRequests([
+    getEntryCountriesRq,
+    getExitCountriesRq,
+    getAccountLinksRq,
+  ]);
 }

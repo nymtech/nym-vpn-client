@@ -240,6 +240,7 @@ async fn main() -> Result<()> {
             account::delete_account,
             account::is_account_stored,
             account::get_account_info,
+            account::account_links,
             cmd_daemon::daemon_status,
             cmd_daemon::daemon_info,
             cmd_daemon::set_network,

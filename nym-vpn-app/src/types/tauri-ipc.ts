@@ -112,3 +112,9 @@ export type SystemMessage = {
   message: string;
   properties: Partial<Record<string, string>>;
 };
+
+export type AccountLinks = {
+  signUp?: string | null;
+  signIn?: string | null;
+  account?: string | null;
+};
