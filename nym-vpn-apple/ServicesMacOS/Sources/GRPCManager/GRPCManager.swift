@@ -36,6 +36,9 @@ public final class GRPCManager: ObservableObject {
     @Published public var tunnelStatus: TunnelStatus = .disconnected
     @Published public var lastError: GeneralNymError?
     @Published public var connectedDate: Date?
+    public var requiresUpdate: Bool {
+        daemonVersion != helperManager.requiredVersion
+    }
 
     private init(helperManager: HelperManager = HelperManager.shared) {
         self.helperManager = helperManager
