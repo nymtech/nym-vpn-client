@@ -32,7 +32,6 @@ pub async fn get_connection_state(
     state: State<'_, SharedAppState>,
     grpc: State<'_, GrpcClient>,
 ) -> Result<ConnectionStateResponse, BackendError> {
-    debug!("get_connection_state");
     let res = grpc.vpn_status().await?;
     let status = ConnectionState::from(res.status());
     let mut app_state = state.lock().await;
@@ -53,7 +52,6 @@ pub async fn connect(
     entry: NodeLocation,
     exit: NodeLocation,
 ) -> Result<ConnectionState, BackendError> {
-    debug!("connect");
     {
         let mut app_state = state.lock().await;
         if app_state.state != ConnectionState::Disconnected {
@@ -183,7 +181,6 @@ pub async fn disconnect(
     state: State<'_, SharedAppState>,
     grpc: State<'_, GrpcClient>,
 ) -> Result<ConnectionState, BackendError> {
-    debug!("disconnect");
     let mut app_state = state.lock().await;
     if !matches!(app_state.state, ConnectionState::Connected) {
         return Err(BackendError::new_internal(
@@ -205,7 +202,6 @@ pub async fn disconnect(
 pub async fn get_connection_start_time(
     state: State<'_, SharedAppState>,
 ) -> Result<Option<i64>, BackendError> {
-    debug!("get_connection_start_time");
     let app_state = state.lock().await;
     Ok(app_state.connection_start_time.map(|t| t.unix_timestamp()))
 }
@@ -217,8 +213,6 @@ pub async fn set_vpn_mode(
     db: State<'_, Db>,
     mode: VpnMode,
 ) -> Result<(), BackendError> {
-    debug!("set_vpn_mode");
-
     #[cfg(windows)]
     if matches!(mode, VpnMode::TwoHop) {
         return Err(BackendError::new_internal(

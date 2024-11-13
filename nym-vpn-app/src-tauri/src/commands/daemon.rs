@@ -31,7 +31,6 @@ pub async fn daemon_status(
     app_state: State<'_, SharedAppState>,
     grpc_client: State<'_, GrpcClient>,
 ) -> Result<VpndStatus, BackendError> {
-    debug!("daemon_status");
     let status = grpc_client
         .check(app_state.inner())
         .await
@@ -46,7 +45,6 @@ pub async fn daemon_status(
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn daemon_info(grpc_client: State<'_, GrpcClient>) -> Result<DaemonInfo, BackendError> {
-    debug!("daemon_info");
     let res = grpc_client.vpnd_info().await.inspect_err(|e| {
         warn!("failed to get daemon info: {:?}", e);
     })?;
@@ -71,7 +69,6 @@ pub async fn set_network(
     grpc_client: State<'_, GrpcClient>,
     network: NetworkEnv,
 ) -> Result<(), BackendError> {
-    debug!("set_network");
     if !*NETWORK_ENV_SELECT {
         warn!("network env selector is disabled");
         return Err(BackendError::new_internal("nope", None));
@@ -93,7 +90,6 @@ pub async fn set_network(
 pub async fn system_messages(
     grpc_client: State<'_, GrpcClient>,
 ) -> Result<Vec<SystemMessage>, BackendError> {
-    debug!("system_messages");
     grpc_client
         .system_messages()
         .await
@@ -108,7 +104,6 @@ pub async fn system_messages(
 pub async fn feature_flags(
     grpc_client: State<'_, GrpcClient>,
 ) -> Result<FeatureFlags, BackendError> {
-    debug!("feature_flags");
     grpc_client
         .feature_flags()
         .await
