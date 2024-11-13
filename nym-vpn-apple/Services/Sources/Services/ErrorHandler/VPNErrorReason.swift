@@ -17,7 +17,7 @@ public enum VPNErrorReason: Codable, Error, LocalizedError {
     case accountDeviceNotActive
     case accountStatusUnknown
 
-    public static let domain = "ErrorHandler.VPNErrorReason"
+    static let domain = "Tunnels.VPNErrorReason"
 
     public init(with vpnError: VpnError) {
         switch vpnError {

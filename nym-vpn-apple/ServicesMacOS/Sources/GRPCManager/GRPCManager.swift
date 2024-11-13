@@ -34,7 +34,9 @@ public final class GRPCManager: ObservableObject {
     @Published public var tunnelStatus: TunnelStatus = .disconnected
     @Published public var lastError: GeneralNymError?
     @Published public var connectedDate: Date?
-    @Published public var isServing = false
+    public var requiresUpdate: Bool {
+        daemonVersion != helperManager.requiredVersion
+    }
 
     public var requiresUpdate: Bool {
         daemonVersion != AppVersionProvider.libVersion

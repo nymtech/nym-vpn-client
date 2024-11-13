@@ -32,6 +32,7 @@ public final class CredentialsManager {
     }
 
     public func add(credential: String) async throws {
+        let trimmedCredential = credential.trimmingCharacters(in: .whitespacesAndNewlines)
         try await Task(priority: .background) {
             do {
 #if os(iOS)
@@ -40,10 +41,11 @@ public final class CredentialsManager {
                 if !FileManager.default.fileExists(atPath: dataFolderURL.path()) {
                     try FileManager.default.createDirectory(at: dataFolderURL, withIntermediateDirectories: true)
                 }
-                try storeAccountMnemonic(mnemonic: credential, path: dataFolderURL.path())
+                try storeAccountMnemonic(mnemonic: trimmedCredential, path: dataFolderURL.path())
 #elseif os(macOS)
-                try? await helperInstallManager.installIfNeeded()
-                try await grpcManager.storeAccount(with: credential)
+                // TODO: check if daemon is installed and does not need an update
+                _ = await installHelperIfNeeded()
+                try await grpcManager.storeAccount(with: trimmedCredential)
 #endif
                 checkCredentialImport()
             } catch {
@@ -68,8 +70,8 @@ public final class CredentialsManager {
 #endif
 
 #if os(macOS)
-            try? await helperInstallManager.installIfNeeded()
-            try await grpcManager.forgetAccount()
+            _ = await installHelperIfNeeded()
+            removalResult = try await grpcManager.removeAccount()
 #endif
             checkCredentialImport()
         } catch {
@@ -145,3 +147,22 @@ private extension CredentialsManager {
         }
     }
 }
+
+#if os(macOS)
+private extension CredentialsManager {
+    func installHelperIfNeeded() async -> Bool {
+        var isInstalledAndRunning = helperManager.isHelperAuthorizedAndRunning()
+        // TODO: check if possible to split is helper running vs isHelperAuthorized
+        guard isInstalledAndRunning && !grpcManager.requiresUpdate
+        else {
+            do {
+                isInstalledAndRunning = try await helperManager.installHelperIfNeeded()
+            } catch let error {
+                logger.error("Failed to install helper: \(error)")
+            }
+            return isInstalledAndRunning
+        }
+        return isInstalledAndRunning
+    }
+}
+#endif

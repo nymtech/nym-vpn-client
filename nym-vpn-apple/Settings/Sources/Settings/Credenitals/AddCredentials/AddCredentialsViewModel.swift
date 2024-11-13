@@ -103,7 +103,6 @@ final class AddCredentialsViewModel: ObservableObject {
                 credentialsDidAdd()
             } catch let newError {
                 Task { @MainActor in
-                    credentialText = trimmedCredential
                     error = CredentialsManagerError.generalError(String(describing: newError.localizedDescription))
                 }
             }

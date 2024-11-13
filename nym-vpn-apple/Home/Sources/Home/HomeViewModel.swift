@@ -364,17 +364,21 @@ private extension HomeViewModel {
             .store(in: &cancellables)
     }
 
-    func setupDaemonStateObserver() {
-        helperInstallManager.$daemonState.sink { [weak self] state in
-            switch state {
-            case .installing:
-                self?.updateStatusInfoState(with: .installingDaemon)
-                self?.updateConnectButtonState(with: .installingDaemon)
-            case .unknown, .running:
-                break
+    func installHelperIfNeeded() async -> Bool {
+        var isInstalledAndRunning = helperManager.isHelperAuthorizedAndRunning()
+        // TODO: check if possible to split is helper running vs isHelperAuthorized
+        guard isInstalledAndRunning && !grpcManager.requiresUpdate
+        else {
+            do {
+                updateStatusInfoState(with: .installingDaemon)
+                isInstalledAndRunning = try await helperManager.installHelperIfNeeded()
+                resetStatusInfoState()
+            } catch let error {
+                updateStatusInfoState(with: .error(message: error.localizedDescription))
             }
+            return isInstalledAndRunning
         }
-        .store(in: &cancellables)
+        return isInstalledAndRunning
     }
 
     func updateConnectedStartDateMacOS(with status: TunnelStatus) {

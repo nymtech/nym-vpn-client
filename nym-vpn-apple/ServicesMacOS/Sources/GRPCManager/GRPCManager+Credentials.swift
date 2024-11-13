@@ -3,6 +3,11 @@ import GRPC
 
 extension GRPCManager {
     public func storeAccount(with mnemonic: String) async throws {
+        guard helperManager.isHelperAuthorizedAndRunning()
+        else {
+            throw GRPCError.daemonNotRunning
+        }
+
         logger.log(level: .info, "Importing credentials")
 
         return try await withCheckedThrowingContinuation { continuation in
@@ -12,6 +17,7 @@ extension GRPCManager {
                 switch result {
                 case .success(let response):
                     if response.hasError {
+                        
                         continuation.resume(throwing: GeneralNymError.library(message: response.error.message))
                         break
                     }
