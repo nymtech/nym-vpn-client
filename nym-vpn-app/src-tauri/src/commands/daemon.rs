@@ -1,6 +1,6 @@
 use crate::env::NETWORK_ENV_SELECT;
 use crate::error::BackendError;
-use crate::grpc::client::{GrpcClient, VpndStatus};
+use crate::grpc::client::{GrpcClient, SystemMessage, VpndStatus};
 use crate::states::SharedAppState;
 use serde::{Deserialize, Serialize};
 use tauri::State;
@@ -86,4 +86,17 @@ pub async fn set_network(
         .inspect(|_| {
             info!("vpnd network set to {} ⚠ restart vpnd!", network.as_ref());
         })
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn system_messages(
+    grpc_client: State<'_, GrpcClient>,
+) -> Result<Vec<SystemMessage>, BackendError> {
+    debug!("system_messages");
+    let res = grpc_client.system_messages().await.inspect_err(|e| {
+        warn!("failed to get system messages: {:?}", e);
+    })?;
+
+    Ok(res)
 }

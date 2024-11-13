@@ -7,12 +7,12 @@ use nym_vpn_proto::{
     health_check_response::ServingStatus, health_client::HealthClient,
     is_account_stored_response::Resp as IsAccountStoredResp, nym_vpnd_client::NymVpndClient,
     ConnectRequest, ConnectionStatus, DisconnectRequest, Dns, Empty, EntryNode, ExitNode,
-    FetchRawAccountSummaryRequest, GatewayType, HealthCheckRequest, InfoRequest, InfoResponse,
-    IsAccountStoredRequest, ListCountriesRequest, Location, RemoveAccountRequest,
-    SetNetworkRequest, StatusRequest, StatusResponse, StoreAccountRequest, UserAgent,
+    FetchRawAccountSummaryRequest, GatewayType, GetSystemMessagesRequest, HealthCheckRequest,
+    InfoRequest, InfoResponse, IsAccountStoredRequest, ListCountriesRequest, Location,
+    RemoveAccountRequest, SetNetworkRequest, StatusRequest, StatusResponse, StoreAccountRequest,
+    UserAgent,
 };
 use parity_tokio_ipc::Endpoint as IpcEndpoint;
-use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager, PackageInfo};
 use thiserror::Error;
 use time::OffsetDateTime;
@@ -20,12 +20,13 @@ use tokio::sync::mpsc;
 use tonic::transport::Endpoint as TonicEndpoint;
 use tonic::{transport::Channel, Request};
 use tracing::{debug, error, info, instrument, warn};
-use ts_rs::TS;
 
 use crate::cli::Cli;
 use crate::country::Country;
 use crate::error::BackendError;
 use crate::fs::config::AppConfig;
+pub use crate::grpc::system_message::SystemMessage;
+pub use crate::grpc::vpnd_status::VpndStatus;
 use crate::states::app::ConnectionState;
 use crate::vpn_status;
 use crate::{events::AppHandleEventEmitter, states::SharedAppState};
@@ -43,13 +44,6 @@ const DEFAULT_HTTP_ENDPOINT: &str = "http://[::1]:53181";
 enum Transport {
     Http(String),
     Ipc(PathBuf),
-}
-
-#[derive(Serialize, Deserialize, Default, Clone, Debug, TS)]
-pub enum VpndStatus {
-    Ok,
-    #[default]
-    NotOk,
 }
 
 #[derive(Error, Debug)]
@@ -619,14 +613,21 @@ impl GrpcClient {
         }
         Ok(())
     }
-}
 
-impl From<ServingStatus> for VpndStatus {
-    fn from(status: ServingStatus) -> Self {
-        match status {
-            ServingStatus::Serving => VpndStatus::Ok,
-            _ => VpndStatus::NotOk,
-        }
+    /// List messages affecting the whole system, fetched from nym-vpn-api
+    #[instrument(skip_all)]
+    pub async fn system_messages(&self) -> Result<Vec<SystemMessage>, VpndError> {
+        debug!("system_messages");
+        let mut vpnd = self.vpnd().await?;
+
+        let request = Request::new(GetSystemMessagesRequest {});
+        let response = vpnd.get_system_messages(request).await.map_err(|e| {
+            error!("grpc system_messages: {}", e);
+            VpndError::GrpcError(e)
+        })?;
+        debug!("grpc response: {:?}", response);
+        let response = response.into_inner();
+        Ok(response.messages.iter().map(Into::into).collect())
     }
 }
 

@@ -103,6 +103,7 @@ export type StatusUpdate =
   | 'ConnectionOkIpv4'
   | 'ConnectionOkIpv6'
   | 'RemainingBandwidth'
+  | 'MixnetBandwidthRate'
   | 'NoBandwidth';
 
 export type StatusUpdatePayload = {
