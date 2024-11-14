@@ -56,10 +56,6 @@ Carthage/Build/
 
 MixnetLibrary/Libs
 
-Envs/canary.env
-Envs/sandbox.env
-Envs/mainnet.env
-
 fastlane/report.xml
 fastlane/README.md
 
