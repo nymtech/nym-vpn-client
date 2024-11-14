@@ -87,12 +87,23 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	override suspend fun init(environment: Tunnel.Environment): Boolean {
 		return withContext(ioDispatcher) {
 			runCatching {
-				Os.setenv("RUST_LOG", LOG_LEVEL, true)
-				initEnvironment(environment.networkName())
+				initEnvironment(environment)
 				nym_vpn_lib.configureLib(storagePath)
 			}.onFailure {
 				Timber.e(it)
 			}.isSuccess
+		}
+	}
+
+	private suspend fun initEnvironment(environment: Tunnel.Environment) {
+		withContext(ioDispatcher) {
+			runCatching {
+				Os.setenv("RUST_LOG", LOG_LEVEL, true)
+				initEnvironment(environment.networkName())
+			}.onFailure {
+				Timber.w("Failed to setup environment, defaulting to bundle mainnet")
+				Tunnel.Environment.setupMainnet()
+			}
 		}
 	}
 
@@ -109,11 +120,13 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	}
 
 	private fun getCurrentLocaleCountryCode(): String {
-		return try {
-			context.resources.configuration.locales.get(0).country.lowercase()
-		} catch (_: Exception) {
-			DEFAULT_LOCALE
-		}
+// disable for now
+// 		return try {
+// 			context.resources.configuration.locales.get(0).country.lowercase()
+// 		} catch (_: Exception) {
+// 			DEFAULT_LOCALE
+// 		}
+		return DEFAULT_LOCALE
 	}
 
 	@Throws(VpnException::class)

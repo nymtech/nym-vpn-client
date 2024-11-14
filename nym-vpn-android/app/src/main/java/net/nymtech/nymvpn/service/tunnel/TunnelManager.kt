@@ -12,7 +12,7 @@ interface TunnelManager {
 	suspend fun isMnemonicStored(): Boolean
 	suspend fun removeMnemonic()
 	suspend fun getAccountSummary(): AccountStateSummary
-	suspend fun getAccountLinks(): AccountLinks
+	suspend fun getAccountLinks(): AccountLinks?
 	val stateFlow: Flow<TunnelManagerState>
 	fun getState(): Tunnel.State
 }

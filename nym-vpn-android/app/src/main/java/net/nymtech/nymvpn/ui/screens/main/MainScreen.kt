@@ -28,6 +28,8 @@ import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
@@ -85,6 +87,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val context = LocalContext.current
 	val snackbar = SnackbarController.current
+	val screenSnackbar = remember { SnackbarHostState() }
 	val scope = rememberCoroutineScope()
 	val padding = WindowInsets.systemBars.asPaddingValues()
 	val navController = LocalNavController.current
@@ -160,6 +163,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			horizontalAlignment = Alignment.CenterHorizontally,
 			modifier = Modifier.padding(top = 68.dp.scaledHeight()),
 		) {
+			SnackbarHost(hostState = screenSnackbar, Modifier)
 			ConnectionStateDisplay(connectionState = uiState.connectionState)
 			uiState.stateMessage.let {
 				when (it) {

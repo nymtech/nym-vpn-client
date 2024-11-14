@@ -100,8 +100,12 @@ class NymTunnelManager @Inject constructor(
 		return backend.get().getAccountSummary()
 	}
 
-	override suspend fun getAccountLinks(): AccountLinks {
-		return backend.get().getAccountLinks(settingsRepository.getEnvironment())
+	override suspend fun getAccountLinks(): AccountLinks? {
+		return try {
+			backend.get().getAccountLinks(settingsRepository.getEnvironment())
+		} catch (_: Exception) {
+			null
+		}
 	}
 
 	private fun emitMnemonicStored(stored: Boolean) {
