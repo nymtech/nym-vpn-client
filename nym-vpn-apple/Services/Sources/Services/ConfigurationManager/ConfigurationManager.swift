@@ -27,7 +27,9 @@ public final class ConfigurationManager {
             Env(rawValue: appSettings.currentEnv) ?? fallbackEnv
         }
         set {
-            appSettings.currentEnv = newValue.rawValue
+            Task { @MainActor in
+                appSettings.currentEnv = newValue.rawValue
+            }
         }
     }
 #if os(iOS)
