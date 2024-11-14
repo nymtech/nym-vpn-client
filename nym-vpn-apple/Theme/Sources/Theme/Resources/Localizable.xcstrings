@@ -1233,6 +1233,17 @@
         }
       }
     },
+    "settings.account" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account"
+          }
+        }
+      }
+    },
     "settings.anonymousErrorReports.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
