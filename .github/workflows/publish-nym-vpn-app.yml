@@ -8,8 +8,13 @@ on:
         description: "Tag name for release"
         required: false
         default: nym-vpn-app-nightly
+      pre_release:
+        description: "Pre-release"
+        required: false
+        type: boolean
+        default: false
       dev_mode:
-        description: "dev build"
+        description: "dev build (enable env selector)"
         required: true
         type: boolean
         default: false
@@ -17,11 +22,6 @@ on:
         description: "nym-vpn-core release tag to use for Windows build (as it bundles the daemon)"
         required: false
         type: string
-      pre_release:
-        description: "Mark the release as a prerelease"
-        required: false
-        type: boolean
-        default: false
   push:
     tags:
       - nym-vpn-app-v[0-9]+.[0-9]+.[0-9]+*
