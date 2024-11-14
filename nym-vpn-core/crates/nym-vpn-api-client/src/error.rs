@@ -94,6 +94,8 @@ pub enum VpnApiClientError {
     FailedToGetDirectoryZkNymsTicketbookPartialVerificationKeys(
         #[source] HttpClientError<ErrorMessage>,
     ),
+    #[error("failed to get health")]
+    FailedToGetHealth(#[source] HttpClientError<UnexpectedError>),
 }
 
 pub type Result<T> = std::result::Result<T, VpnApiClientError>;

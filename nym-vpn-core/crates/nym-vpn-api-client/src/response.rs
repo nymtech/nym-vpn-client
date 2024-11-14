@@ -3,6 +3,7 @@
 
 use std::fmt;
 
+use chrono::{DateTime, Utc};
 use itertools::Itertools;
 use nym_contracts_common::Percent;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;
@@ -56,6 +57,13 @@ pub struct NymVpnAccountSummaryFairUsage {
     pub used_gb: Option<f64>,
     pub limit_gb: Option<f64>,
     pub resets_on_utc: Option<String>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct NymVpnHealthResponse {
+    pub status: String,
+    pub timestamp_utc: DateTime<Utc>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
