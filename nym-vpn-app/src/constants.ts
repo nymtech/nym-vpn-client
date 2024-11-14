@@ -35,12 +35,5 @@ export const PrivacyPolicyUrl = 'https://nymvpn.com/en/privacy?type=apps';
 export const LocationDetailsArticle =
   'https://support.nymvpn.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN';
 export const SentryHomePage = 'https://sentry.io/';
-export const AccountCreateUrlPath = '/account/create';
-export const AccountLoginUrlPath = '/account/login';
-export const NymDotComUrl = 'https://nymvpn.com';
-export const NymDotComCanaryUrl =
-  'https://nym-dot-com-git-deploy-canary-nyx-network-staging.vercel.app';
-export const NymDotComQAUrl =
-  'https://nym-dot-com-git-deploy-qa-nyx-network-staging.vercel.app';
-export const CountryCacheDuration = 120000; // 2 minutes
+export const CountryCacheDuration = 120; // seconds
 export const HomeThrottleDelay = 6000;

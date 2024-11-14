@@ -106,3 +106,15 @@ export type ConnectionStateResponse = {
 };
 
 export type DaemonInfo = { version: string; network: NetworkEnv };
+
+export type SystemMessage = {
+  name: string;
+  message: string;
+  properties: Partial<Record<string, string>>;
+};
+
+export type AccountLinks = {
+  signUp?: string | null;
+  signIn?: string | null;
+  account?: string | null;
+};

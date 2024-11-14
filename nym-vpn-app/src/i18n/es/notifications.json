@@ -3,5 +3,9 @@
     "connected": "Túnel VPN conectado",
     "disconnected": "NymVPN se ha desconectado. Para salvaguardar su privacidad, vuelva a conectarse.",
     "failed": "¡Ha fallado la conexión al túnel VPN!"
+  },
+  "logout": {
+    "success": "A cerrado sesión satisfactoriamente",
+    "error": "A ocurrido un error mientras iniciaba sesión. Por favor intente nuevamente."
   }
 }

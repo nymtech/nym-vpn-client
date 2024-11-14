@@ -32,8 +32,7 @@ function NodeLocation({ node }: { node: NodeHop }) {
     fastestNodeLocation,
     entryCountriesLoading,
     exitCountriesLoading,
-    fetchMxEntryCountries,
-    fetchMxExitCountries,
+    fetchMnCountries,
     fetchWgCountries,
     entryCountriesError,
     exitCountriesError,
@@ -58,22 +57,14 @@ function NodeLocation({ node }: { node: NodeHop }) {
   const dispatch = useMainDispatch() as StateDispatch;
   const navigate = useNavigate();
 
-  // request backend to refresh cache
+  // refresh cache (if stale)
   useEffect(() => {
-    if (vpnMode === 'Mixnet' && node === 'entry') {
-      fetchMxEntryCountries();
-    } else if (vpnMode === 'Mixnet' && node === 'exit') {
-      fetchMxExitCountries();
+    if (vpnMode === 'Mixnet') {
+      fetchMnCountries(node);
     } else {
       fetchWgCountries();
     }
-  }, [
-    node,
-    vpnMode,
-    fetchMxEntryCountries,
-    fetchMxExitCountries,
-    fetchWgCountries,
-  ]);
+  }, [node, vpnMode, fetchWgCountries, fetchMnCountries]);
 
   // update the UI country list whenever the country list or
   // fastest country change (likely from the backend)
@@ -138,7 +129,7 @@ function NodeLocation({ node }: { node: NodeHop }) {
 
   const renderError = (e: AppError) => (
     <div className="w-4/5 h-2/3 overflow-auto break-words text-center">
-      <p className="text-sm text-teaberry font-bold">{`${tE(e.key)}: ${e.data?.details || '-'}`}</p>
+      <p className="text-sm text-teaberry font-bold">{`${tE(e.key)}: ${e.message} ${e.data?.details || '-'}`}</p>
     </div>
   );
 

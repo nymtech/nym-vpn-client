@@ -1,7 +1,9 @@
+import i18n from 'i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { getVersion } from '@tauri-apps/api/app';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import {
+  CountryCacheDuration,
   DefaultCountry,
   DefaultRootFontSize,
   DefaultThemeMode,
@@ -10,6 +12,7 @@ import {
 import { getJsLicenses, getRustLicenses } from '../data';
 import { kvGet } from '../kvStore';
 import {
+  AccountLinks,
   CodeDependency,
   ConnectionStateResponse,
   Country,
@@ -23,6 +26,7 @@ import {
 } from '../types';
 import fireRequests, { TauriReq } from './helper';
 import { S_STATE } from '../static';
+import { MCache } from '../cache';
 
 // initialize connection state
 const getInitialConnectionState = async () => {
@@ -44,18 +48,20 @@ const getSessionStartTime = async () => {
 
 // init country list
 const getEntryCountries = async () => {
-  const mode = await kvGet<VpnMode>('VpnMode');
-  return await invoke<Country[]>('get_countries', {
-    vpnMode: mode || DefaultVpnMode,
+  const mode = (await kvGet<VpnMode>('VpnMode')) || DefaultVpnMode;
+  const countries = await invoke<Country[]>('get_countries', {
+    vpnMode: mode,
     nodeType: 'Entry',
   });
+  return { countries, mode };
 };
 const getExitCountries = async () => {
-  const mode = await kvGet<VpnMode>('VpnMode');
-  return await invoke<Country[]>('get_countries', {
-    vpnMode: mode || DefaultVpnMode,
+  const mode = (await kvGet<VpnMode>('VpnMode')) || DefaultVpnMode;
+  const countries = await invoke<Country[]>('get_countries', {
+    vpnMode: mode,
     nodeType: 'Exit',
   });
+  return { countries, mode };
 };
 
 const getTheme = async () => {
@@ -90,6 +96,9 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     request: () => getDaemonInfo(),
     onFulfilled: (info) => {
       dispatch({ type: 'set-daemon-info', info });
+      if (info.network) {
+        S_STATE.networkEnvInit = true;
+      }
     },
   };
 
@@ -264,7 +273,7 @@ export async function initSecondBatch(dispatch: StateDispatch) {
   const getEntryCountriesRq: TauriReq<typeof getEntryCountries> = {
     name: 'get_countries',
     request: () => getEntryCountries(),
-    onFulfilled: (countries) => {
+    onFulfilled: ({ countries, mode }) => {
       dispatch({
         type: 'set-country-list',
         payload: {
@@ -272,6 +281,11 @@ export async function initSecondBatch(dispatch: StateDispatch) {
           countries,
         },
       });
+      MCache.set(
+        mode === 'Mixnet' ? `mn-entry-countries` : 'wg-countries',
+        countries,
+        CountryCacheDuration,
+      );
       dispatch({
         type: 'set-countries-loading',
         payload: { hop: 'entry', loading: false },
@@ -282,7 +296,7 @@ export async function initSecondBatch(dispatch: StateDispatch) {
   const getExitCountriesRq: TauriReq<typeof getExitCountries> = {
     name: 'get_countries',
     request: () => getExitCountries(),
-    onFulfilled: (countries) => {
+    onFulfilled: ({ countries, mode }) => {
       dispatch({
         type: 'set-country-list',
         payload: {
@@ -290,6 +304,11 @@ export async function initSecondBatch(dispatch: StateDispatch) {
           countries,
         },
       });
+      MCache.set(
+        mode === 'Mixnet' ? `mn-exit-countries` : 'wg-countries',
+        countries,
+        CountryCacheDuration,
+      );
       dispatch({
         type: 'set-countries-loading',
         payload: { hop: 'exit', loading: false },
@@ -297,5 +316,21 @@ export async function initSecondBatch(dispatch: StateDispatch) {
     },
   };
 
-  await fireRequests([getEntryCountriesRq, getExitCountriesRq]);
+  const getAccountLinksRq: TauriReq<() => Promise<AccountLinks | undefined>> = {
+    name: 'getAccountLinksRq',
+    request: () =>
+      invoke<AccountLinks>('account_links', { locale: i18n.language }),
+    onFulfilled: (links) => {
+      dispatch({
+        type: 'set-account-links',
+        links: links as AccountLinks | null,
+      });
+    },
+  };
+
+  await fireRequests([
+    getEntryCountriesRq,
+    getExitCountriesRq,
+    getAccountLinksRq,
+  ]);
 }

@@ -73,6 +73,10 @@ pub struct Cli {
     #[arg(short = 's', long)]
     pub nosplash: bool,
 
+    /// Enable zknyms credentials mode
+    #[arg(long, hide = true)]
+    pub credentials_mode: bool,
+
     #[command(subcommand)]
     pub command: Option<Commands>,
 }
@@ -147,8 +151,11 @@ pub fn db_command(command: &DbCommands) -> Result<()> {
         DbCommands::Del { key: k } => {
             info!("cli db del {k}");
             let key = Key::from_str(k).map_err(|_| anyhow!("invalid key"))?;
-            db.remove(key)?;
-            println!("key removed");
+            if let Some(value) = db.remove(key)? {
+                println!("key removed, previous value {value}");
+            } else {
+                println!("key is not set");
+            }
             Ok(())
         }
     }

@@ -44,5 +44,9 @@
     "client-version": "Версия клиента",
     "daemon-version": "Версия демона",
     "network-name": "Сеть"
+  },
+  "logout-confirmation": {
+    "title": "Вы уверены?",
+    "description": "Чтобы войти снова, вам понадобится фраза восстановления."
   }
 }

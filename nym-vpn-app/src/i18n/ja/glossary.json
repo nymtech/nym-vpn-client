@@ -3,5 +3,8 @@
   "left": "残り時間",
   "ok": "ok",
   "selected": "選択済み",
-  "account": "アカウント"
+  "account": "アカウント",
+  "cancel": "キャンセル",
+  "login": "ログイン",
+  "logout": "ログアウト"
 }

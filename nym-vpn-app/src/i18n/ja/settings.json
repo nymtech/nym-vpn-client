@@ -38,11 +38,15 @@
   "faq": "よくある質問",
   "display-theme": "ディスプレイモード",
   "quit": "NymVPNを終了する",
-  "login-button": "接続するには、認証情報を追加してください",
+  "login-button": "ログイン",
   "monitoring-alert": "変更を反映させるには、アプリを再起動する必要があります。",
   "info": {
     "client-version": "クライアントバージョン",
     "daemon-version": "デーモンバージョン",
     "network-name": "ネットワーク"
+  },
+  "logout-confirmation": {
+    "title": "実行しますか？",
+    "description": "再ログインするにはリカバリーフレーズが必要です。"
   }
 }

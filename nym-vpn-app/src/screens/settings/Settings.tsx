@@ -13,7 +13,7 @@ import { Button, MsIcon, PageAnim, SettingsMenuCard, Switch } from '../../ui';
 import { InfoData } from './info-data';
 import SettingsGroup from './SettingsGroup';
 import Logout from './Logout';
-import { capFirst, getLoginAccountUrl } from '../../helpers';
+import { capFirst } from '../../helpers';
 
 const ThrottleDelay = 10000; // ms
 
@@ -24,7 +24,7 @@ function Settings() {
     daemonStatus,
     account,
     desktopNotifications,
-    networkEnv,
+    accountLinks,
   } = useMainState();
 
   const navigate = useNavigate();
@@ -33,7 +33,7 @@ function Settings() {
   const { exit } = useExit();
   const { push } = useInAppNotify();
   const toggleDNotifications = useDesktopNotifications();
-  const accountLoginUrl = networkEnv && getLoginAccountUrl(networkEnv);
+  const accountLoginUrl = accountLinks?.signIn;
 
   useEffect(() => {
     const checkAccount = async () => {
