@@ -13,7 +13,7 @@ backon.workspace = true
 base64-url.workspace = true
 bip39 = { workspace = true, features = ["zeroize"] }
 bs58.workspace = true
-chrono.workspace = true
+chrono = { workspace = true, features = ["serde"] }
 itertools.workspace = true
 nym-compact-ecash.workspace = true
 nym-config.workspace = true

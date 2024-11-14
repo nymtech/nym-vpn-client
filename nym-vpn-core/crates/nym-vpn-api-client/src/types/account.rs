@@ -30,8 +30,11 @@ impl VpnApiAccount {
         self.wallet.get_accounts().unwrap()[0].address().to_string()
     }
 
-    pub(crate) fn jwt(&self) -> Jwt {
-        Jwt::new_secp256k1(&self.wallet)
+    pub(crate) fn jwt(&self, vpn_api_unix_epoch: Option<i64>) -> Jwt {
+        match vpn_api_unix_epoch {
+            Some(epoch) => Jwt::new_secp256k1_synced(&self.wallet, epoch),
+            None => Jwt::new_secp256k1(&self.wallet),
+        }
     }
 
     pub fn create_ecash_keypair(&self) -> Result<KeyPairUser> {

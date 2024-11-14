@@ -4,6 +4,7 @@
 pub(crate) const PUBLIC: &str = "public";
 pub(crate) const V1: &str = "v1";
 pub(crate) const ACCOUNT: &str = "account";
+pub(crate) const HEALTH: &str = "health";
 pub(crate) const SUMMARY: &str = "summary";
 pub(crate) const DEVICE: &str = "device";
 pub(crate) const ACTIVE: &str = "active";
