@@ -6,7 +6,6 @@ use crate::{error::BackendError, MAIN_WINDOW_LABEL};
 #[instrument(skip_all)]
 #[tauri::command]
 pub fn show_main_window(app: AppHandle) -> Result<(), BackendError> {
-    debug!("show_window");
     let main_window =
         app.get_webview_window(MAIN_WINDOW_LABEL)
             .ok_or(BackendError::new_internal(

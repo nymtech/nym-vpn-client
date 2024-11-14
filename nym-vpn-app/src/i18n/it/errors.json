@@ -1,1 +1,5 @@
-{}
+{
+  "account": {
+    "invalid-recovery-phrase": "Frase di recupero non valida"
+  }
+}

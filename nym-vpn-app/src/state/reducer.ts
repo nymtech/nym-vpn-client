@@ -6,6 +6,7 @@ import {
   DefaultVpnMode,
 } from '../constants';
 import {
+  AccountLinks,
   AppError,
   AppState,
   CodeDependency,
@@ -65,7 +66,8 @@ export type StateAction =
   | { type: 'set-code-deps-rust'; dependencies: CodeDependency[] }
   | { type: 'set-account'; stored: boolean }
   | { type: 'set-entry-countries-error'; payload: AppError | null }
-  | { type: 'set-exit-countries-error'; payload: AppError | null };
+  | { type: 'set-exit-countries-error'; payload: AppError | null }
+  | { type: 'set-account-links'; links: AccountLinks | null };
 
 export const initialState: AppState = {
   initialized: false,
@@ -93,11 +95,8 @@ export const initialState: AppState = {
   codeDepsRust: [],
   codeDepsJs: [],
   account: false,
-  fetchMxEntryCountries: async () => {
+  fetchMnCountries: async () => {
     /*  SCARECROW */
-  },
-  fetchMxExitCountries: async () => {
-    /* SCARECROW */
   },
   fetchWgCountries: async () => {
     /* SCARECROW */
@@ -285,6 +284,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         exitCountriesError: action.payload,
+      };
+    case 'set-account-links':
+      return {
+        ...state,
+        accountLinks: action.links,
       };
 
     case 'reset':

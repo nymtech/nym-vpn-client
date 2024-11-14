@@ -1,8 +1,7 @@
 use std::{fs, path::PathBuf};
 
-use crate::envi;
 use crate::fs::path::APP_LOG_DIR;
-use crate::Cli;
+use crate::{env, Cli};
 
 use anyhow::{anyhow, Result};
 use tracing::{debug, info};
@@ -37,7 +36,7 @@ pub async fn setup_tracing(cli: &Cli) -> Result<Option<WorkerGuard>> {
         .add_directive("hyper::proto=info".parse()?)
         .add_directive("netlink_proto=info".parse()?);
 
-    if cli.log_file || envi::is_truthy(ENV_LOG_FILE) {
+    if cli.log_file || env::is_truthy(ENV_LOG_FILE) {
         let log_dir = APP_LOG_DIR
             .clone()
             .ok_or(anyhow!("failed to get log dir"))?;

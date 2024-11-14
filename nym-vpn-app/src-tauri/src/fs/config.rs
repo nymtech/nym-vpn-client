@@ -4,8 +4,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Default, Serialize, Deserialize, Debug, Clone)]
 pub struct AppConfig {
-    /// Path to a file to load a custom network environment
-    pub network_env_file: Option<PathBuf>,
     /// Unix socket path of gRPC endpoint in IPC mode
     pub grpc_socket_endpoint: Option<PathBuf>,
     /// Enable HTTP transport for gRPC connection

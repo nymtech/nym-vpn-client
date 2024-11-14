@@ -40,12 +40,12 @@ mod commands;
 mod country;
 mod db;
 mod env;
-mod envi;
 mod error;
 mod events;
 mod fs;
 mod grpc;
 mod log;
+mod misc;
 mod startup_error;
 mod states;
 mod tray;
@@ -74,6 +74,9 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
     let _guard = log::setup_tracing(&cli).await?;
     trace!("cli args: {:#?}", cli);
+
+    #[cfg(unix)]
+    misc::nvidia_check();
 
     #[cfg(windows)]
     if cli.console {
@@ -175,7 +178,7 @@ async fn main() -> Result<()> {
 
             // if splash-screen is disabled, remove it and show
             // the main window without waiting for frontend signal
-            if cli.nosplash || envi::is_truthy(ENV_APP_NOSPLASH) {
+            if cli.nosplash || env::is_truthy(ENV_APP_NOSPLASH) {
                 debug!("splash screen disabled, showing main window");
                 app_win.no_splash();
             }
@@ -237,9 +240,12 @@ async fn main() -> Result<()> {
             account::delete_account,
             account::is_account_stored,
             account::get_account_info,
+            account::account_links,
             cmd_daemon::daemon_status,
             cmd_daemon::daemon_info,
             cmd_daemon::set_network,
+            cmd_daemon::system_messages,
+            cmd_daemon::feature_flags,
             cmd_fs::log_dir,
             startup::startup_error,
             cmd_env::env,

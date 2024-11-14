@@ -3,5 +3,8 @@
   "via": "通过",
   "ok": "ok",
   "selected": "选定的",
-  "account": "账户"
+  "account": "账户",
+  "cancel": "取消",
+  "login": "登录",
+  "logout": "注销"
 }

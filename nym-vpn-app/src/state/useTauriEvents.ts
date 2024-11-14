@@ -1,9 +1,11 @@
 import { useCallback, useEffect } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
+import i18n from 'i18next';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import dayjs from 'dayjs';
 import {
+  AccountLinks,
   BackendError,
   ConnectionEvent as ConnectionEventData,
   DaemonInfo,
@@ -19,6 +21,7 @@ import {
   ProgressEvent,
   StatusUpdateEvent,
 } from '../constants';
+import { S_STATE } from '../static';
 
 function handleError(dispatch: StateDispatch, error?: BackendError | null) {
   if (!error) {
@@ -43,10 +46,21 @@ export function useTauriEvents(dispatch: StateDispatch) {
         try {
           const info = await invoke<DaemonInfo>('daemon_info');
           dispatch({ type: 'set-daemon-info', info });
+          if (info.network) {
+            S_STATE.networkEnvInit = true;
+          }
           const stored = await invoke<boolean | undefined>('is_account_stored');
           dispatch({ type: 'set-account', stored: stored || false });
         } catch (e: unknown) {
           console.error('failed to refresh daemon info', e);
+        }
+        try {
+          const links = await invoke<AccountLinks>('account_links', {
+            locale: i18n.language,
+          });
+          dispatch({ type: 'set-account-links', links });
+        } catch (e: unknown) {
+          console.warn('failed to get account links', e);
         }
       }
     });

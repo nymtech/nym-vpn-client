@@ -44,5 +44,9 @@
     "client-version": "客户端版本",
     "daemon-version": "守护进程版本",
     "network-name": "网络"
+  },
+  "logout-confirmation": {
+    "title": "你确定吗？",
+    "description": "您需要使用助记词才能再次登录。"
   }
 }

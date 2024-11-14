@@ -44,5 +44,9 @@
     "daemon-version": "Versão do Daemon",
     "network-name": "Rede",
     "client-version": "Versão do cliente"
+  },
+  "logout-confirmation": {
+    "description": "Você precisará da frase de recuperação para fazer login novamente.",
+    "title": "Você tem certeza?"
   }
 }

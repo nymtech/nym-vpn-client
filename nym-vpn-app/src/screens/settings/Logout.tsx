@@ -13,7 +13,7 @@ import { StateDispatch } from '../../types';
 function Logout() {
   const [isOpen, setIsOpen] = useState(false);
 
-  const { account } = useMainState();
+  const { account, daemonStatus } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const { t } = useTranslation('settings');
   const navigate = useNavigate();
@@ -49,7 +49,11 @@ function Logout() {
 
   return (
     <>
-      <SettingsMenuCard title={logoutCopy} onClick={() => setIsOpen(true)} />
+      <SettingsMenuCard
+        title={logoutCopy}
+        onClick={() => setIsOpen(true)}
+        disabled={daemonStatus === 'NotOk'}
+      />
       <Dialog open={isOpen} onClose={onClose}>
         <div className="flex flex-col items-center gap-4 w-11/12">
           <MsIcon

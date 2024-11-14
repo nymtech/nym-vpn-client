@@ -66,7 +66,8 @@
     },
     "add-ipv6-route": "添加 ipv6 默认路由捕获 ipv6 流量失败",
     "tun-device": "Tun 设备故障",
-    "routing": "路由选择失败"
+    "routing": "路由选择失败",
+    "ready-to-connect": "在检查过程中还无法确定我们是否已准备好连接"
   },
   "countries-request": {
     "entry": "获取可用条目节点国家失败",
@@ -80,7 +81,7 @@
     "ping": "{{protocol}} 流量的出口节点 ping 失败"
   },
   "account": {
-    "invalid-recovery-phrase": "恢复短语无效",
+    "invalid-recovery-phrase": "助记词无效",
     "storage": "存储后端错误",
     "no-account-stored": "未存储帐户恢复短语",
     "not-active": "账户未激活",
