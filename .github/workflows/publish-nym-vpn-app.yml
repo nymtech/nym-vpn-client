@@ -17,6 +17,11 @@ on:
         description: "nym-vpn-core release tag to use for Windows build (as it bundles the daemon)"
         required: false
         type: string
+      pre_release:
+        description: "Mark the release as a prerelease"
+        required: false
+        type: boolean
+        default: false
   push:
     tags:
       - nym-vpn-app-v[0-9]+.[0-9]+.[0-9]+*
@@ -101,7 +106,7 @@ jobs:
         id: set_tag
         run: echo "tag=${{ env.TAG_NAME }}" >> "$GITHUB_OUTPUT"
 
-      - name: Setting subject, prerelease and notes files
+      - name: Setting subject, prerelease and notes files (nightly)
         if: ${{ contains(env.TAG_NAME, 'nym-vpn-app-nightly') }}
         run: |
           (echo "SUBJECT=nym-vpn-app-v${{ steps.package-version.outputs.metadata }} nightly prerelease build";
@@ -110,11 +115,11 @@ jobs:
           gh release delete nym-vpn-app-nightly --yes || true
           git push origin :nym-vpn-app-nightly || true
 
-      - name: Removing --prerelease if needed
+      - name: Setting subject, prerelease and notes files
         if: ${{ !contains(env.TAG_NAME, 'nym-vpn-app-nightly') }}
         run: |
           (echo "SUBJECT=$TAG_NAME"
-           echo 'PRERELEASE='
+           echo 'PRERELEASE=${{ inputs.pre_release && '--prerelease' || '' }}';
            echo 'NOTES_FILE=release-notes/release-notes-vpn-app.md') >> $GITHUB_ENV
 
       - name: Generate checksums
