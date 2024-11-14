@@ -35,7 +35,6 @@ public final class CredentialsManager {
     }
 
     public func add(credential: String) async throws {
-        let trimmedCredential = credential.trimmingCharacters(in: .whitespacesAndNewlines)
         try await Task(priority: .background) {
             do {
 #if os(iOS)

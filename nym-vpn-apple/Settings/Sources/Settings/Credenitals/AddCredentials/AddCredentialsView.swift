@@ -107,10 +107,10 @@ private extension AddCredentialsView {
 
         HStack {
             loginButton()
-#if os(iOS)
-            qrScannerButton()
-                .padding(.trailing, 16)
-#endif
+//#if os(iOS)
+//            qrScannerButton()
+//                .padding(.trailing, 16)
+//#endif
         }
         .padding(.vertical, 16)
 
@@ -168,6 +168,17 @@ private extension AddCredentialsView {
     func inputView() -> some View {
         LazyVStack(alignment: .leading) {
             TextField(viewModel.credentialsPlaceholderTitle, text: $viewModel.credentialText, axis: .vertical)
+// https://stackoverflow.com/questions/74989806/how-to-dismiss-keyboard-in-swiftui-keyboard-when-pressing-done
+//                .onSubmit {
+//                    viewModel.importCredentials()
+//                    isFocused = false
+//                }
+                .onChange(of: viewModel.credentialText) { [weak viewModel] _ in
+                    if viewModel?.credentialText.last?.isNewline == .some(true) {
+                        login()
+                    }
+                }
+                .submitLabel(.done)
                 .textStyle(NymTextStyle.Body.Large.regular)
                 .padding(16)
                 .lineLimit(8, reservesSpace: true)
@@ -215,24 +226,23 @@ private extension AddCredentialsView {
         GenericButton(title: viewModel.loginButtonTitle)
             .padding(.horizontal, 16)
             .onTapGesture {
-                viewModel.importCredentials()
-                isFocused = false
+                login()
             }
     }
 
-    @ViewBuilder
-    func qrScannerButton() -> some View {
-        GenericImage(systemImageName: viewModel.scannerIconName)
-            .frame(width: 56, height: 56)
-            .foregroundStyle(NymColor.connectTitle)
-            .background(NymColor.primaryOrange)
-            .cornerRadius(8)
-            .onTapGesture {
-                Task { @MainActor in
-                    viewModel.isScannerDisplayed.toggle()
-                }
-            }
-    }
+//    @ViewBuilder
+//    func qrScannerButton() -> some View {
+//        GenericImage(systemImageName: viewModel.scannerIconName)
+//            .frame(width: 56, height: 56)
+//            .foregroundStyle(NymColor.connectTitle)
+//            .background(NymColor.primaryOrange)
+//            .cornerRadius(8)
+//            .onTapGesture {
+//                Task { @MainActor in
+//                    viewModel.isScannerDisplayed.toggle()
+//                }
+//            }
+//    }
 
     @ViewBuilder
     func createAccount() -> some View {
@@ -242,5 +252,12 @@ private extension AddCredentialsView {
             .textStyle(.Body.Large.regular)
             .multilineTextAlignment(.center)
             .padding(.horizontal, 16)
+    }
+}
+
+private extension AddCredentialsView {
+    func login() {
+        viewModel.importCredentials()
+        isFocused = false
     }
 }

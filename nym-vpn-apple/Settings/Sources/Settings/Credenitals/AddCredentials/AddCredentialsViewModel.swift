@@ -75,13 +75,15 @@ final class AddCredentialsViewModel: ObservableObject {
 
     @MainActor func importCredentials() {
         error = CredentialsManagerError.noError
+        let trimmedCredential = credentialText.trimmingCharacters(in: .whitespacesAndNewlines)
 
         Task {
             do {
-                try await credentialsManager.add(credential: credentialText)
+                try await credentialsManager.add(credential: trimmedCredential)
                 credentialsDidAdd()
             } catch let newError {
                 Task { @MainActor in
+                    credentialText = trimmedCredential
                     error = CredentialsManagerError.generalError(String(describing: newError.localizedDescription))
                 }
             }
