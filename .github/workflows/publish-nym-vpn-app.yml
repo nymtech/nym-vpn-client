@@ -13,6 +13,10 @@ on:
         required: true
         type: boolean
         default: false
+      core_release_tag:
+        description: "nym-vpn-core release tag to use for Windows build (as it bundles the daemon)"
+        required: false
+        type: string
   push:
     tags:
       - nym-vpn-app-v[0-9]+.[0-9]+.[0-9]+*
@@ -27,6 +31,7 @@ jobs:
     uses: ./.github/workflows/build-nym-vpn-app-windows.yml
     with:
       dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true  }}
+      core_release_tag: ${{ inputs.core_release_tag }}
     secrets: inherit
 
   generate-build-info-nym-vpn-app:

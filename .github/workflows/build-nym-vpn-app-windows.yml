@@ -7,6 +7,10 @@ on:
         required: true
         type: boolean
         default: false
+      core_release_tag:
+        description: "nym-vpn-core release tag to use for Windows build (as it bundles the daemon)"
+        required: false
+        type: string
   workflow_call:
     inputs:
       # set to true when it is a 'dev' build
@@ -14,6 +18,9 @@ on:
         required: true
         type: boolean
         default: false
+      core_release_tag:
+        required: false
+        type: string
     secrets:
       WINDOWS_SIGNING_PFX_BASE64:
         required: true
@@ -128,7 +135,13 @@ jobs:
           winget list MikeFarah.yq || winget install --disable-interactivity --id MikeFarah.yq
 
       - name: Get nym-vpn-core release tag
-        if: inputs.dev_mode == false
+        if: inputs.core_release_tag
+        run: |
+          echo "core_release_tag: ${{ inputs.core_release_tag }}"
+          "core_release_tag=${{ inputs.core_release_tag }}" >> $env:GITHUB_ENV
+
+      - name: Get nym-vpn-core release tag
+        if: ${{ !inputs.core_release_tag && !inputs.dev_mode }}
         run: |
           $release_tag = curl -sSL -H "Accept: application/vnd.github+json" `
             https://api.github.com/repos/nymtech/nym-vpn-client/releases |
@@ -137,7 +150,7 @@ jobs:
           "core_release_tag=$release_tag" >> $env:GITHUB_ENV
 
       - name: Get nym-vpn-core release tag (dev)
-        if: inputs.dev_mode == true
+        if: ${{ !inputs.core_release_tag && inputs.dev_mode }}
         run: |
           echo "core_release_tag: nym-vpn-core-nightly"
           "core_release_tag=nym-vpn-core-nightly" >> $env:GITHUB_ENV
