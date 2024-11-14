@@ -26,7 +26,7 @@ use nym_crypto::asymmetric::{encryption, x25519::KeyPair};
 use nym_gateway_directory::Recipient;
 use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::PeerPublicKey;
 use nym_pemstore::KeyPairPath;
-use nym_sdk::mixnet::CredentialStorage;
+use nym_sdk::mixnet::{ClientStatsEvents, CredentialStorage};
 use nym_validator_client::QueryHttpRpcNyxdClient;
 use nym_wg_go::PublicKey;
 use rand::{rngs::OsRng, CryptoRng, RngCore};
@@ -154,6 +154,10 @@ impl WgGatewayLightClient {
         };
 
         Ok(remaining_bandwidth)
+    }
+
+    pub fn send_stats_event(&self, event: ClientStatsEvents) {
+        self.auth_client.send_stats_event(event);
     }
 }
 
