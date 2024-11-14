@@ -6,6 +6,7 @@ use std::net::IpAddr;
 use nym_gateway_directory::{GatewayClient, IpPacketRouterAddress, Recipient};
 use nym_ip_packet_client::IprClientConnect;
 use nym_ip_packet_requests::IpPair;
+use nym_sdk::mixnet::ConnectionStatsEvent;
 use nym_task::TaskManager;
 
 use super::connected_tunnel::ConnectedTunnel;
@@ -72,6 +73,13 @@ impl Connector {
             exit_mix_addresses,
             interface_addresses,
         };
+        if let Some(exit_country_code) = selected_gateways.exit.two_letter_iso_country_code() {
+            self.mixnet_client
+                .send_stats_event(
+                    ConnectionStatsEvent::MixCountry(exit_country_code.to_string()).into(),
+                )
+                .await;
+        }
 
         Ok(ConnectedTunnel::new(
             self.task_manager,
