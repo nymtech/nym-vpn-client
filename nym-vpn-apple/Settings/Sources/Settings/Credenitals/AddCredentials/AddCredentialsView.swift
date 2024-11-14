@@ -107,10 +107,10 @@ private extension AddCredentialsView {
 
         HStack {
             loginButton()
-//#if os(iOS)
+// #if os(iOS)
 //            qrScannerButton()
 //                .padding(.trailing, 16)
-//#endif
+// #endif
         }
         .padding(.vertical, 16)
 
@@ -246,12 +246,14 @@ private extension AddCredentialsView {
 
     @ViewBuilder
     func createAccount() -> some View {
-        Text("\(viewModel.newToNymVPNTitle) [\(viewModel.createAccountTitle)](https://nymvpn.com/en/account/create)")
-            .tint(NymColor.primaryOrange)
-            .foregroundStyle(NymColor.sysOnSurface)
-            .textStyle(.Body.Large.regular)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, 16)
+        if let createAccountAttributedString = viewModel.createAnAccountAttributedString() {
+            Text(createAccountAttributedString)
+                .tint(NymColor.primaryOrange)
+                .foregroundStyle(NymColor.sysOnSurface)
+                .textStyle(.Body.Large.regular)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 16)
+        }
     }
 }
 

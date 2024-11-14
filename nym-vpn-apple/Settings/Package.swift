@@ -33,6 +33,7 @@ let package = Package(
                 .product(name: "Constants", package: "Services"),
                 .product(name: "ConnectionManager", package: "Services"),
                 .product(name: "CredentialsManager", package: "Services"),
+                .product(name: "ConfigurationManager", package: "Services"),
                 .product(name: "Device", package: "Services"),
                 .product(name: "ExternalLinkManager", package: "Services"),
                 .product(name: "ImpactGenerator", package: "ServicesIOS", condition: .when(platforms: [.iOS])),

@@ -54,6 +54,7 @@ let package = Package(
                 "AppSettings",
                 "Constants",
                 "Device",
+                "CredentialsManager",
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 "NymLogger",
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS]))
