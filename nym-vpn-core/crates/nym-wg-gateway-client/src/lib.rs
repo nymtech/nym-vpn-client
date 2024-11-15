@@ -67,11 +67,18 @@ impl WgGatewayLightClient {
     }
 
     pub async fn query_bandwidth(&mut self) -> Result<Option<i64>> {
-        let query_message =
-            ClientMessage::Query(PeerPublicKey::new(self.public_key.to_bytes().into()));
+        match self.auth_version {
+            AuthenticatorVersion::V2 => todo!(),
+            AuthenticatorVersion::V3 => todo!(),
+            AuthenticatorVersion::V4 => todo!(),
+            AuthenticatorVersion::UNKNOWN => return Err(Error::UnsupportedAuthenticatorVersion),
+        }
+        let query_message = ClientMessage::Query(Box::new(PeerPublicKey::new(
+            self.public_key.to_bytes().into(),
+        )));
         let response = self
             .auth_client
-            .send(query_message, self.auth_recipient)
+            .send(&query_message, self.auth_recipient)
             .await?;
 
         let remaining_bandwidth_data = match response.data {
@@ -113,11 +120,7 @@ impl WgGatewayLightClient {
         if msg.is_wasteful() {
             let now = std::time::Instant::now();
             while now.elapsed() < RETRY_PERIOD {
-                match self
-                    .auth_client
-                    .send(msg.clone(), self.auth_recipient)
-                    .await
-                {
+                match self.auth_client.send(&msg, self.auth_recipient).await {
                     Ok(response) => return Ok(response),
                     Err(nym_authenticator_client::Error::TimeoutWaitingForConnectResponse) => {
                         continue
@@ -129,10 +132,7 @@ impl WgGatewayLightClient {
                 source: nym_authenticator_client::Error::TimeoutWaitingForConnectResponse,
             })
         } else {
-            Ok(self
-                .auth_client
-                .send(msg.clone(), self.auth_recipient)
-                .await?)
+            Ok(self.auth_client.send(&msg, self.auth_recipient).await?)
         }
     }
 
@@ -307,12 +307,12 @@ impl WgGatewayClient {
         <St as CredentialStorage>::StorageError: Send + Sync + 'static,
     {
         debug!("Registering with the wg gateway...");
-        let init_message = ClientMessage::Initial(InitMessage {
+        let init_message = ClientMessage::Initial(Box::new(InitMessage {
             pub_key: PeerPublicKey::new(self.keypair.public_key().to_bytes().into()),
-        });
+        }));
         let response = self
             .auth_client
-            .send(init_message, self.auth_recipient)
+            .send(&init_message, self.auth_recipient)
             .await?;
         let registered_data = match response.data {
             AuthenticatorResponseData::PendingRegistration(PendingRegistrationResponse {

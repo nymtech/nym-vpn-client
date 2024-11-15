@@ -141,15 +141,15 @@ async fn wg_probe(
     let private_key = nym_crypto::asymmetric::encryption::PrivateKey::new(&mut rng);
     let public_key = private_key.public_key();
 
-    let init_message = ClientMessage::Initial(InitMessage {
+    let init_message = ClientMessage::Initial(Box::new(InitMessage {
         pub_key: PeerPublicKey::new(public_key.to_bytes().into()),
-    });
+    }));
 
     let mut wg_outcome = WgProbeResults::default();
 
     if let Some(authenticator_address) = authenticator.0 {
         let response = auth_client
-            .send(init_message, authenticator_address)
+            .send(&init_message, authenticator_address)
             .await?;
 
         let registered_data = match response.data {
@@ -176,7 +176,7 @@ async fn wg_probe(
                     credential: None,
                 }));
                 let response = auth_client
-                    .send(finalized_message, authenticator_address)
+                    .send(&finalized_message, authenticator_address)
                     .await?;
                 let AuthenticatorResponseData::Registered(RegisteredResponse { reply, .. }) =
                     response.data

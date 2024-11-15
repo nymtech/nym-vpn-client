@@ -1,22 +1,22 @@
-use std::{cmp::Ordering, sync::Arc, time::Duration};
+use std::{
+    cmp::Ordering,
+    net::{Ipv4Addr, Ipv6Addr},
+    sync::Arc,
+    time::Duration,
+};
 
 use nym_authenticator_requests::{
     latest::VERSION as LATEST_VERSION,
-    v3::{
-        registration::{FinalMessage, InitMessage},
-        request::AuthenticatorRequest,
-        response::AuthenticatorResponse,
-        topup::TopUpMessage,
-        VERSION as USED_VERSION,
-    },
+    v2, v3,
+    v4::{self, response::AuthenticatorResponse, VERSION as USED_VERSION},
 };
 
+use nym_credentials_interface::CredentialSpendingData;
 use nym_sdk::mixnet::{
     MixnetClient, MixnetClientSender, MixnetMessageSender, Recipient, ReconstructedMessage,
     TransmissionLane,
 };
 use nym_wireguard_types::PeerPublicKey;
-use serde::{Deserialize, Serialize};
 use tracing::{debug, error};
 
 mod error;
@@ -29,13 +29,206 @@ pub use crate::error::{Error, Result};
 // through the envs (qa, sandbox, mainnet).
 const _: () = assert!(USED_VERSION == LATEST_VERSION || USED_VERSION + 1 == LATEST_VERSION);
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(tag = "type", rename_all = "camelCase")]
+pub trait Versionable {
+    fn version(&self) -> AuthenticatorVersion;
+}
+
+impl Versionable for v2::registration::InitMessage {
+    fn version(&self) -> AuthenticatorVersion {
+        AuthenticatorVersion::V2
+    }
+}
+
+impl Versionable for v2::registration::FinalMessage {
+    fn version(&self) -> AuthenticatorVersion {
+        AuthenticatorVersion::V2
+    }
+}
+
+impl Versionable for v3::registration::InitMessage {
+    fn version(&self) -> AuthenticatorVersion {
+        AuthenticatorVersion::V3
+    }
+}
+
+impl Versionable for v3::registration::FinalMessage {
+    fn version(&self) -> AuthenticatorVersion {
+        AuthenticatorVersion::V3
+    }
+}
+
+impl Versionable for v4::registration::InitMessage {
+    fn version(&self) -> AuthenticatorVersion {
+        AuthenticatorVersion::V4
+    }
+}
+
+impl Versionable for v4::registration::FinalMessage {
+    fn version(&self) -> AuthenticatorVersion {
+        AuthenticatorVersion::V4
+    }
+}
+
+impl Versionable for PeerPublicKey {
+    fn version(&self) -> AuthenticatorVersion {
+        AuthenticatorVersion::V4
+    }
+}
+
+impl Versionable for v3::topup::TopUpMessage {
+    fn version(&self) -> AuthenticatorVersion {
+        AuthenticatorVersion::V3
+    }
+}
+
+impl Versionable for v4::topup::TopUpMessage {
+    fn version(&self) -> AuthenticatorVersion {
+        AuthenticatorVersion::V4
+    }
+}
+
+pub trait InitMessage: Versionable {
+    fn pub_key(&self) -> PeerPublicKey;
+}
+
+impl InitMessage for v2::registration::InitMessage {
+    fn pub_key(&self) -> PeerPublicKey {
+        self.pub_key
+    }
+}
+
+impl InitMessage for v3::registration::InitMessage {
+    fn pub_key(&self) -> PeerPublicKey {
+        self.pub_key
+    }
+}
+
+impl InitMessage for v4::registration::InitMessage {
+    fn pub_key(&self) -> PeerPublicKey {
+        self.pub_key
+    }
+}
+
+pub trait FinalMessage: Versionable {
+    fn gateway_client_pub_key(&self) -> PeerPublicKey;
+    fn gateway_client_ipv4(&self) -> Option<Ipv4Addr>;
+    fn gateway_client_ipv6(&self) -> Option<Ipv6Addr>;
+    fn gateway_client_mac(&self) -> Vec<u8>;
+    fn credential(&self) -> Option<CredentialSpendingData>;
+}
+
+impl FinalMessage for v2::registration::FinalMessage {
+    fn gateway_client_pub_key(&self) -> PeerPublicKey {
+        self.gateway_client.pub_key
+    }
+
+    fn gateway_client_ipv4(&self) -> Option<Ipv4Addr> {
+        match self.gateway_client.private_ip {
+            std::net::IpAddr::V4(ipv4_addr) => Some(ipv4_addr),
+            std::net::IpAddr::V6(_) => None,
+        }
+    }
+
+    fn gateway_client_ipv6(&self) -> Option<Ipv6Addr> {
+        None
+    }
+
+    fn gateway_client_mac(&self) -> Vec<u8> {
+        self.gateway_client.mac.to_vec()
+    }
+
+    fn credential(&self) -> Option<CredentialSpendingData> {
+        self.credential.clone()
+    }
+}
+
+impl FinalMessage for v3::registration::FinalMessage {
+    fn gateway_client_pub_key(&self) -> PeerPublicKey {
+        self.gateway_client.pub_key
+    }
+
+    fn gateway_client_ipv4(&self) -> Option<Ipv4Addr> {
+        match self.gateway_client.private_ip {
+            std::net::IpAddr::V4(ipv4_addr) => Some(ipv4_addr),
+            std::net::IpAddr::V6(_) => None,
+        }
+    }
+
+    fn gateway_client_ipv6(&self) -> Option<Ipv6Addr> {
+        None
+    }
+
+    fn gateway_client_mac(&self) -> Vec<u8> {
+        self.gateway_client.mac.to_vec()
+    }
+
+    fn credential(&self) -> Option<CredentialSpendingData> {
+        self.credential.clone()
+    }
+}
+
+impl FinalMessage for v4::registration::FinalMessage {
+    fn gateway_client_pub_key(&self) -> PeerPublicKey {
+        self.gateway_client.pub_key
+    }
+
+    fn gateway_client_ipv4(&self) -> Option<Ipv4Addr> {
+        Some(self.gateway_client.private_ips.ipv4)
+    }
+
+    fn gateway_client_ipv6(&self) -> Option<Ipv6Addr> {
+        Some(self.gateway_client.private_ips.ipv6)
+    }
+
+    fn gateway_client_mac(&self) -> Vec<u8> {
+        self.gateway_client.mac.to_vec()
+    }
+
+    fn credential(&self) -> Option<CredentialSpendingData> {
+        self.credential.clone()
+    }
+}
+
+pub trait QueryMessage: Versionable {
+    fn pub_key(&self) -> PeerPublicKey;
+}
+
+impl QueryMessage for PeerPublicKey {
+    fn pub_key(&self) -> PeerPublicKey {
+        *self
+    }
+}
+
+pub trait TopUpMessage: Versionable {
+    fn pub_key(&self) -> PeerPublicKey;
+    fn credential(&self) -> CredentialSpendingData;
+}
+
+impl TopUpMessage for v3::topup::TopUpMessage {
+    fn pub_key(&self) -> PeerPublicKey {
+        self.pub_key
+    }
+
+    fn credential(&self) -> CredentialSpendingData {
+        self.credential.clone()
+    }
+}
+
+impl TopUpMessage for v4::topup::TopUpMessage {
+    fn pub_key(&self) -> PeerPublicKey {
+        self.pub_key
+    }
+
+    fn credential(&self) -> CredentialSpendingData {
+        self.credential.clone()
+    }
+}
+
 pub enum ClientMessage {
-    Initial(InitMessage),
-    Final(Box<FinalMessage>),
-    Query(PeerPublicKey),
-    TopUp(Box<TopUpMessage>),
+    Initial(Box<dyn InitMessage + Send + Sync + 'static>),
+    Final(Box<dyn FinalMessage + Send + Sync + 'static>),
+    Query(Box<dyn QueryMessage + Send + Sync + 'static>),
+    TopUp(Box<dyn TopUpMessage + Send + Sync + 'static>),
 }
 
 impl ClientMessage {
@@ -44,6 +237,171 @@ impl ClientMessage {
         match self {
             Self::Final(_) | Self::TopUp(_) => true,
             Self::Initial(_) | Self::Query(_) => false,
+        }
+    }
+
+    fn version(&self) -> AuthenticatorVersion {
+        match self {
+            ClientMessage::Initial(msg) => msg.version(),
+            ClientMessage::Final(msg) => msg.version(),
+            ClientMessage::Query(msg) => msg.version(),
+            ClientMessage::TopUp(msg) => msg.version(),
+        }
+    }
+
+    pub fn bytes(&self, reply_to: Recipient) -> Result<(Vec<u8>, u64)> {
+        match self.version() {
+            AuthenticatorVersion::V2 => {
+                use v2::{
+                    registration::{ClientMac, FinalMessage, GatewayClient, InitMessage},
+                    request::AuthenticatorRequest,
+                };
+                match self {
+                    ClientMessage::Initial(init_message) => {
+                        let (req, id) = AuthenticatorRequest::new_initial_request(
+                            InitMessage {
+                                pub_key: init_message.pub_key(),
+                            },
+                            reply_to,
+                        );
+                        Ok((req.to_bytes()?, id))
+                    }
+                    ClientMessage::Final(final_message) => {
+                        let (req, id) = AuthenticatorRequest::new_final_request(
+                            FinalMessage {
+                                gateway_client: GatewayClient {
+                                    pub_key: final_message.gateway_client_pub_key(),
+                                    private_ip: final_message
+                                        .gateway_client_ipv4()
+                                        .ok_or(Error::UnsupportedMessage)?
+                                        .into(),
+                                    mac: ClientMac::new(final_message.gateway_client_mac()),
+                                },
+                                credential: final_message.credential(),
+                            },
+                            reply_to,
+                        );
+                        Ok((req.to_bytes()?, id))
+                    }
+                    ClientMessage::Query(query_message) => {
+                        let (req, id) = AuthenticatorRequest::new_query_request(
+                            query_message.pub_key(),
+                            reply_to,
+                        );
+                        Ok((req.to_bytes()?, id))
+                    }
+                    _ => Err(Error::UnsupportedMessage),
+                }
+            }
+            AuthenticatorVersion::V3 => {
+                use v3::{
+                    registration::{ClientMac, FinalMessage, GatewayClient, InitMessage},
+                    request::AuthenticatorRequest,
+                    topup::TopUpMessage,
+                };
+                match self {
+                    ClientMessage::Initial(init_message) => {
+                        let (req, id) = AuthenticatorRequest::new_initial_request(
+                            InitMessage {
+                                pub_key: init_message.pub_key(),
+                            },
+                            reply_to,
+                        );
+                        Ok((req.to_bytes()?, id))
+                    }
+                    ClientMessage::Final(final_message) => {
+                        let (req, id) = AuthenticatorRequest::new_final_request(
+                            FinalMessage {
+                                gateway_client: GatewayClient {
+                                    pub_key: final_message.gateway_client_pub_key(),
+                                    private_ip: final_message
+                                        .gateway_client_ipv4()
+                                        .ok_or(Error::UnsupportedMessage)?
+                                        .into(),
+                                    mac: ClientMac::new(final_message.gateway_client_mac()),
+                                },
+                                credential: final_message.credential(),
+                            },
+                            reply_to,
+                        );
+                        Ok((req.to_bytes()?, id))
+                    }
+                    ClientMessage::Query(query_message) => {
+                        let (req, id) = AuthenticatorRequest::new_query_request(
+                            query_message.pub_key(),
+                            reply_to,
+                        );
+                        Ok((req.to_bytes()?, id))
+                    }
+                    ClientMessage::TopUp(top_up_message) => {
+                        let (req, id) = AuthenticatorRequest::new_topup_request(
+                            TopUpMessage {
+                                pub_key: top_up_message.pub_key(),
+                                credential: top_up_message.credential(),
+                            },
+                            reply_to,
+                        );
+                        Ok((req.to_bytes()?, id))
+                    }
+                }
+            }
+            AuthenticatorVersion::V4 => {
+                use v4::{
+                    registration::{ClientMac, FinalMessage, GatewayClient, InitMessage, IpPair},
+                    request::AuthenticatorRequest,
+                    topup::TopUpMessage,
+                };
+                match self {
+                    ClientMessage::Initial(init_message) => {
+                        let (req, id) = AuthenticatorRequest::new_initial_request(
+                            InitMessage {
+                                pub_key: init_message.pub_key(),
+                            },
+                            reply_to,
+                        );
+                        Ok((req.to_bytes()?, id))
+                    }
+                    ClientMessage::Final(final_message) => {
+                        let (req, id) = AuthenticatorRequest::new_final_request(
+                            FinalMessage {
+                                gateway_client: GatewayClient {
+                                    pub_key: final_message.gateway_client_pub_key(),
+                                    private_ips: IpPair {
+                                        ipv4: final_message
+                                            .gateway_client_ipv4()
+                                            .ok_or(Error::UnsupportedMessage)?,
+                                        ipv6: final_message
+                                            .gateway_client_ipv6()
+                                            .ok_or(Error::UnsupportedMessage)?,
+                                    },
+                                    mac: ClientMac::new(final_message.gateway_client_mac()),
+                                },
+                                credential: final_message.credential(),
+                            },
+                            reply_to,
+                        );
+                        Ok((req.to_bytes()?, id))
+                    }
+                    ClientMessage::Query(query_message) => {
+                        let (req, id) = AuthenticatorRequest::new_query_request(
+                            query_message.pub_key(),
+                            reply_to,
+                        );
+                        Ok((req.to_bytes()?, id))
+                    }
+                    ClientMessage::TopUp(top_up_message) => {
+                        let (req, id) = AuthenticatorRequest::new_topup_request(
+                            TopUpMessage {
+                                pub_key: top_up_message.pub_key(),
+                                credential: top_up_message.credential(),
+                            },
+                            reply_to,
+                        );
+                        Ok((req.to_bytes()?, id))
+                    }
+                }
+            }
+            AuthenticatorVersion::UNKNOWN => Err(Error::UnknownVersion),
         }
     }
 }
@@ -85,28 +443,23 @@ impl SharedMixnetClient {
 }
 
 #[derive(Clone)]
-pub struct AuthenticatorVersion {
-    version: u8,
+pub enum AuthenticatorVersion {
+    V2,
+    V3,
+    V4,
+    UNKNOWN,
 }
 
-impl TryFrom<String> for AuthenticatorVersion {
-    type Error = Error;
-
-    fn try_from(value: String) -> std::result::Result<Self, Self::Error> {
+impl From<String> for AuthenticatorVersion {
+    fn from(value: String) -> Self {
         if value.contains("1.1.9") {
-            Ok(Self {
-                version: nym_authenticator_requests::v2::VERSION,
-            })
+            Self::V2
         } else if value.contains("1.1.10") {
-            Ok(Self {
-                version: nym_authenticator_requests::v3::VERSION,
-            })
+            Self::V3
         } else if value.contains("1.1.11") {
-            Ok(Self {
-                version: nym_authenticator_requests::v4::VERSION,
-            })
+            Self::V4
         } else {
-            Err(Error::ParseVersion)
+            Self::UNKNOWN
         }
     }
 }
@@ -145,7 +498,7 @@ impl AuthClient {
 
     pub async fn send(
         &mut self,
-        message: ClientMessage,
+        message: &ClientMessage,
         authenticator_address: Recipient,
     ) -> Result<AuthenticatorResponse> {
         self.send_inner(message, authenticator_address).await
@@ -153,7 +506,7 @@ impl AuthClient {
 
     async fn send_inner(
         &mut self,
-        message: ClientMessage,
+        message: &ClientMessage,
         authenticator_address: Recipient,
     ) -> Result<AuthenticatorResponse> {
         // Connecting is basically synchronous from the perspective of the mixnet client, so it's safe
@@ -175,29 +528,15 @@ impl AuthClient {
 
     async fn send_connect_request(
         &self,
-        message: ClientMessage,
+        message: &ClientMessage,
         authenticator_address: Recipient,
     ) -> Result<u64> {
-        let (request, request_id) = match message {
-            ClientMessage::Initial(init_message) => {
-                AuthenticatorRequest::new_initial_request(init_message, self.nym_address)
-            }
-            ClientMessage::Final(final_message) => {
-                AuthenticatorRequest::new_final_request(*final_message, self.nym_address)
-            }
-            ClientMessage::Query(peer_public_key) => {
-                AuthenticatorRequest::new_query_request(peer_public_key, self.nym_address)
-            }
-            ClientMessage::TopUp(top_up_message) => {
-                AuthenticatorRequest::new_topup_request(*top_up_message, self.nym_address)
-            }
-        };
-        debug!("Sent connect request {:?}", request);
+        let (data, request_id) = message.bytes(self.nym_address)?;
 
         self.mixnet_sender
             .send(nym_sdk::mixnet::InputMessage::new_regular(
                 authenticator_address,
-                request.to_bytes().unwrap(),
+                data,
                 TransmissionLane::General,
                 None,
             ))

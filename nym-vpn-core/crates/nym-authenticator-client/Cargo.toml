@@ -10,8 +10,10 @@ license.workspace = true
 
 [dependencies]
 nym-authenticator-requests.workspace = true
+nym-credentials-interface.workspace = true
 nym-sdk.workspace = true
 nym-wireguard-types.workspace = true
+bincode = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 tracing.workspace = true
 thiserror.workspace = true
