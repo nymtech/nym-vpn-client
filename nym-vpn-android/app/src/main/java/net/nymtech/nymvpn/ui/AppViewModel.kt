@@ -13,11 +13,15 @@ import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.service.country.CountryCacheService
+import net.nymtech.nymvpn.service.gateway.NymApiService
 import net.nymtech.nymvpn.service.tunnel.TunnelManager
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.util.Constants
+import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.model.Country
+import nym_vpn_lib.SystemMessage
 import timber.log.Timber
+import javax.inject.Provider
 import javax.inject.Inject
 
 @HiltViewModel
@@ -28,10 +32,15 @@ constructor(
 	gatewayRepository: GatewayRepository,
 	private val countryCacheService: CountryCacheService,
 	private val tunnelManager: TunnelManager,
+	private val backend: Provider<Backend>,
+	private val nymApiService: NymApiService,
 ) : ViewModel() {
 
 	private val _navBarState = MutableStateFlow(NavBarState())
 	val navBarState = _navBarState.asStateFlow()
+
+	private val _systemMessage = MutableStateFlow<SystemMessage?>(null)
+	val systemMessage = _systemMessage.asStateFlow()
 
 	val uiState =
 		combine(
@@ -57,7 +66,9 @@ constructor(
 	}
 
 	fun logout() = viewModelScope.launch {
-		tunnelManager.removeMnemonic()
+		runCatching {
+			tunnelManager.removeMnemonic()
+		}.onFailure { Timber.w("Not logged in") }
 	}
 
 	fun onErrorReportingSelected() = viewModelScope.launch {
@@ -74,7 +85,17 @@ constructor(
 		}
 	}
 
+	private suspend fun checkSystemMessages() {
+		val env = settingsRepository.getEnvironment()
+		val messages = nymApiService.getSystemMessages(env)
+		messages.firstOrNull()?.let {
+			_systemMessage.emit(it)
+		}
+	}
+
 	fun onAppStartup() = viewModelScope.launch {
+		val env = settingsRepository.getEnvironment()
+		backend.get().init(env)
 		launch {
 			Timber.d("Updating exit country cache")
 			countryCacheService.updateExitCountriesCache().onSuccess {
@@ -92,6 +113,10 @@ constructor(
 			countryCacheService.updateWgCountriesCache().onSuccess {
 				Timber.d("Wg countries updated")
 			}.onFailure { Timber.w("Failed to get wg countries: ${it.message}") }
+		}
+		launch {
+			Timber.d("Checking for system messages")
+			checkSystemMessages()
 		}
 	}
 }

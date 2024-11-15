@@ -24,7 +24,7 @@ private val LocalSnackbarController = staticCompositionLocalOf {
 		scope = CoroutineScope(EmptyCoroutineContext),
 	)
 }
-private val channel = Channel<SnackbarChannelMessage>(capacity = 1)
+private val channel = Channel<SnackbarChannelMessage?>(capacity = 1)
 
 @Composable
 fun SnackbarControllerProvider(content: @Composable (snackbarHost: SnackbarHostState) -> Unit) {
@@ -36,11 +36,13 @@ fun SnackbarControllerProvider(content: @Composable (snackbarHost: SnackbarHostS
 	DisposableEffect(snackController, scope) {
 		val job = scope.launch {
 			for (payload in channel) {
-				snackController.showMessage(
-					message = payload.message.asString(context),
-					duration = payload.duration,
-					action = payload.action,
-				)
+				payload?.let {
+					snackController.showMessage(
+						message = it.message.asString(context),
+						duration = it.duration,
+						action = it.action,
+					)
+				} ?: snackHostState.currentSnackbarData?.dismiss()
 			}
 		}
 
@@ -75,6 +77,9 @@ class SnackbarController(
 					action = action,
 				),
 			)
+		}
+		fun dismiss() {
+			channel.trySend(null)
 		}
 	}
 

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarData
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -28,25 +29,25 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import net.nymtech.localizationutil.LocaleStorage
 import net.nymtech.localizationutil.LocaleUtil
+import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.shortcut.ShortcutManager
+import net.nymtech.nymvpn.service.gateway.NymApiService
 import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBar
+import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarControllerProvider
 import net.nymtech.nymvpn.ui.screens.analytics.AnalyticsScreen
 import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
@@ -69,6 +70,7 @@ import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.screens.splash.SplashScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
+import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.isCurrentRoute
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.resetTile
@@ -90,6 +92,12 @@ class MainActivity : ComponentActivity() {
 
 	private lateinit var appViewModel: AppViewModel
 
+	@Inject
+	lateinit var nymApiService: NymApiService
+
+	@Inject
+	lateinit var settingsRepository: SettingsRepository
+
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 
@@ -97,15 +105,10 @@ class MainActivity : ComponentActivity() {
 
 		this.resetTile()
 
-		lifecycleScope.launch {
-			repeatOnLifecycle(Lifecycle.State.CREATED) {
-				appViewModel.onAppStartup()
-			}
-		}
-
 		setContent {
-			val appState by appViewModel.uiState.collectAsStateWithLifecycle(lifecycle = this.lifecycle)
-			val navBarState by appViewModel.navBarState.collectAsStateWithLifecycle(lifecycle = this.lifecycle)
+			val appState by appViewModel.uiState.collectAsStateWithLifecycle(lifecycle)
+			val navBarState by appViewModel.navBarState.collectAsStateWithLifecycle(lifecycle)
+			val systemMessage by appViewModel.systemMessage.collectAsStateWithLifecycle(lifecycle)
 
 			val navController = rememberNavController()
 			val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -115,7 +118,7 @@ class MainActivity : ComponentActivity() {
 			LaunchedEffect(navBackStackEntry) {
 				if (navBackStackEntry.isCurrentRoute(Route.Main::class)) {
 					val args = navBackStackEntry?.toRoute<Route.Main>()
-					if (args?.changeLanguage == true) {
+					if (args?.configChange == true) {
 						// Restart activity for built-in translation of country names
 						Intent(this@MainActivity, MainActivity::class.java).also {
 							finish()
@@ -123,6 +126,17 @@ class MainActivity : ComponentActivity() {
 						}
 					}
 				}
+			}
+
+			// only display system message on main screen
+			LaunchedEffect(systemMessage, navBackStackEntry) {
+				if (navBackStackEntry.isCurrentRoute(Route.Main::class)) {
+					// delay to allow other messages before we show persistent again
+					delay(2000)
+					systemMessage?.let {
+						SnackbarController.showMessage(StringValue.DynamicString(it.message), duration = SnackbarDuration.Indefinite)
+					}
+				} else if (systemMessage != null) SnackbarController.dismiss()
 			}
 
 			with(appState.settings) {
