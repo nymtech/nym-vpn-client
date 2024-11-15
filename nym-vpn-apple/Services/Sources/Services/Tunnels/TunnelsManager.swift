@@ -73,7 +73,7 @@ extension TunnelsManager {
 private extension TunnelsManager {
     func startPolling() {
         isPolling = true
-        work = Task {
+        work = Task(priority: .background) {
             await pollLoop()
         }
     }
@@ -114,6 +114,7 @@ extension TunnelsManager {
 #if targetEnvironment(simulator)
         tunnel.status = .connected
 #else
+        activeTunnel = tunnel
         do {
             try await tunnel.connect()
         } catch {
