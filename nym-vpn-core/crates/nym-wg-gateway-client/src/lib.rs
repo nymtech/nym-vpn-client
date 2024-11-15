@@ -11,8 +11,8 @@ use std::{
 };
 
 pub use error::{Error, ErrorMessage};
-use nym_authenticator_client::{AuthClient, ClientMessage};
-use nym_authenticator_requests::v3::{
+use nym_authenticator_client::{AuthClient, AuthenticatorVersion, ClientMessage};
+use nym_authenticator_requests::v4::{
     registration::{FinalMessage, GatewayClient, InitMessage, RegistrationData},
     response::{
         AuthenticatorResponse, AuthenticatorResponseData, PendingRegistrationResponse,
@@ -58,6 +58,7 @@ pub struct WgGatewayLightClient {
     public_key: encryption::PublicKey,
     auth_client: AuthClient,
     auth_recipient: Recipient,
+    auth_version: AuthenticatorVersion,
 }
 
 impl WgGatewayLightClient {
@@ -157,6 +158,7 @@ pub struct WgGatewayClient {
     keypair: encryption::KeyPair,
     auth_client: AuthClient,
     auth_recipient: Recipient,
+    auth_version: AuthenticatorVersion,
 }
 
 impl WgGatewayClient {
@@ -165,6 +167,7 @@ impl WgGatewayClient {
             public_key: *self.keypair.public_key(),
             auth_client: self.auth_client.clone(),
             auth_recipient: self.auth_recipient,
+            auth_version: self.auth_version.clone(),
         }
     }
 
@@ -172,6 +175,7 @@ impl WgGatewayClient {
         data_path: &Option<PathBuf>,
         auth_client: AuthClient,
         auth_recipient: Recipient,
+        auth_version: AuthenticatorVersion,
         private_file_name: &str,
         public_file_name: &str,
     ) -> Self {
@@ -186,12 +190,14 @@ impl WgGatewayClient {
                 keypair,
                 auth_client,
                 auth_recipient,
+                auth_version,
             }
         } else {
             WgGatewayClient {
                 keypair: KeyPair::new(&mut rng),
                 auth_client,
                 auth_recipient,
+                auth_version,
             }
         }
     }
@@ -200,11 +206,13 @@ impl WgGatewayClient {
         data_path: &Option<PathBuf>,
         auth_client: AuthClient,
         auth_recipient: Recipient,
+        auth_version: AuthenticatorVersion,
     ) -> Self {
         Self::new_type(
             data_path,
             auth_client,
             auth_recipient,
+            auth_version,
             DEFAULT_FREE_PRIVATE_ENTRY_WIREGUARD_KEY_FILENAME,
             DEFAULT_FREE_PUBLIC_ENTRY_WIREGUARD_KEY_FILENAME,
         )
@@ -214,11 +222,13 @@ impl WgGatewayClient {
         data_path: &Option<PathBuf>,
         auth_client: AuthClient,
         auth_recipient: Recipient,
+        auth_version: AuthenticatorVersion,
     ) -> Self {
         Self::new_type(
             data_path,
             auth_client,
             auth_recipient,
+            auth_version,
             DEFAULT_FREE_PRIVATE_EXIT_WIREGUARD_KEY_FILENAME,
             DEFAULT_FREE_PUBLIC_EXIT_WIREGUARD_KEY_FILENAME,
         )
@@ -228,11 +238,13 @@ impl WgGatewayClient {
         data_path: &Option<PathBuf>,
         auth_client: AuthClient,
         auth_recipient: Recipient,
+        auth_version: AuthenticatorVersion,
     ) -> Self {
         Self::new_type(
             data_path,
             auth_client,
             auth_recipient,
+            auth_version,
             DEFAULT_PRIVATE_ENTRY_WIREGUARD_KEY_FILENAME,
             DEFAULT_PUBLIC_ENTRY_WIREGUARD_KEY_FILENAME,
         )
@@ -242,11 +254,13 @@ impl WgGatewayClient {
         data_path: &Option<PathBuf>,
         auth_client: AuthClient,
         auth_recipient: Recipient,
+        auth_version: AuthenticatorVersion,
     ) -> Self {
         Self::new_type(
             data_path,
             auth_client,
             auth_recipient,
+            auth_version,
             DEFAULT_PRIVATE_EXIT_WIREGUARD_KEY_FILENAME,
             DEFAULT_PUBLIC_EXIT_WIREGUARD_KEY_FILENAME,
         )

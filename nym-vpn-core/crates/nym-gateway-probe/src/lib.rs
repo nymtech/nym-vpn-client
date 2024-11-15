@@ -65,6 +65,7 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
     let exit_router_address = entry_gateway.ipr_address;
     let authenticator = entry_gateway.authenticator_address;
     let gateway_host = entry_gateway.host.clone().unwrap();
+    let gateway_version = entry_gateway.version.clone();
     let entry_gateway_id = entry_gateway.identity();
 
     info!("Probing gateway: {entry_gateway:?}");
@@ -106,7 +107,7 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
     let outcome = do_ping(shared_mixnet_client.clone(), exit_router_address).await;
 
     let wg_outcome = if let Some(authenticator) = authenticator {
-        wg_probe(authenticator, shared_client, &gateway_host)
+        wg_probe(authenticator, shared_client, &gateway_host, gateway_version)
             .await
             .unwrap_or_default()
     } else {
@@ -130,6 +131,7 @@ async fn wg_probe(
     authenticator: AuthAddress,
     shared_mixnet_client: Arc<Mutex<Option<MixnetClient>>>,
     gateway_host: &nym_topology::NetworkAddress,
+    gateway_version: String,
 ) -> anyhow::Result<WgProbeResults> {
     let auth_shared_client =
         nym_authenticator_client::SharedMixnetClient::from_shared(&shared_mixnet_client);

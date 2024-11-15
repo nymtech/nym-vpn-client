@@ -20,6 +20,9 @@ pub enum Error {
 
     #[error("unable to get mixnet handle when sending authenticator message")]
     UnableToGetMixnetHandle,
+
+    #[error("unable to parse version number")]
+    ParseVersion,
 }
 
 // Result type based on our error type

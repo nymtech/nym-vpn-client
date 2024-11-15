@@ -223,6 +223,9 @@ pub enum Error {
     #[error("failed to find authenticator address")]
     AuthenticatorAddressNotFound,
 
+    #[error("failed to parse authenticator version")]
+    AuthenticatorVersionParsing,
+
     #[error("failed to setup storage paths: {0}")]
     SetupStoragePaths(#[source] nym_sdk::Error),
 

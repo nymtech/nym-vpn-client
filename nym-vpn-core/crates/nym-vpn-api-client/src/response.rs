@@ -260,6 +260,7 @@ pub struct NymDirectoryGateway {
     // The performance data here originates from the nym-api, and is effectively mixnet performance
     // at the time of writing this
     pub performance: Percent,
+    pub version: String,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

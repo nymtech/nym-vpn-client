@@ -85,6 +85,33 @@ impl SharedMixnetClient {
 }
 
 #[derive(Clone)]
+pub struct AuthenticatorVersion {
+    version: u8,
+}
+
+impl TryFrom<String> for AuthenticatorVersion {
+    type Error = Error;
+
+    fn try_from(value: String) -> std::result::Result<Self, Self::Error> {
+        if value.contains("1.1.9") {
+            Ok(Self {
+                version: nym_authenticator_requests::v2::VERSION,
+            })
+        } else if value.contains("1.1.10") {
+            Ok(Self {
+                version: nym_authenticator_requests::v3::VERSION,
+            })
+        } else if value.contains("1.1.11") {
+            Ok(Self {
+                version: nym_authenticator_requests::v4::VERSION,
+            })
+        } else {
+            Err(Error::ParseVersion)
+        }
+    }
+}
+
+#[derive(Clone)]
 pub struct AuthClient {
     mixnet_client: SharedMixnetClient,
     mixnet_sender: MixnetClientSender,
