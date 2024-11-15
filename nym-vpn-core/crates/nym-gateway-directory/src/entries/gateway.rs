@@ -240,7 +240,7 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             clients_ws_port: Some(gateway.entry.ws_port),
             clients_wss_port: gateway.entry.wss_port,
             mixnet_performance: Some(gateway.performance),
-            version: gateway.version,
+            version: gateway.build_information.build_version,
         })
     }
 }
