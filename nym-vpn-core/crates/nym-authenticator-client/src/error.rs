@@ -29,6 +29,9 @@ pub enum Error {
 
     #[error("gateway doesn't support this type of message")]
     UnsupportedMessage,
+
+    #[error("{0}")]
+    AuthenticatorRequests(#[from] nym_authenticator_requests::Error),
 }
 
 // Result type based on our error type

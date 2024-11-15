@@ -1,20 +1,18 @@
 use std::{
-    cmp::Ordering,
-    net::{Ipv4Addr, Ipv6Addr},
+    net::{IpAddr, Ipv4Addr, Ipv6Addr},
     sync::Arc,
     time::Duration,
 };
 
-use nym_authenticator_requests::{
-    v2,
-    v3::{self, response::AuthenticatorResponse, VERSION as USED_VERSION},
-};
+use nym_authenticator_requests::{v2, v3};
 
 use nym_credentials_interface::CredentialSpendingData;
+use nym_crypto::asymmetric::x25519::PrivateKey;
 use nym_sdk::mixnet::{
     MixnetClient, MixnetClientSender, MixnetMessageSender, Recipient, ReconstructedMessage,
     TransmissionLane,
 };
+use nym_service_provider_requests_common::ServiceProviderType;
 use nym_wireguard_types::PeerPublicKey;
 use tracing::{debug, error};
 
@@ -299,6 +297,223 @@ impl ClientMessage {
     }
 }
 
+pub trait Id {
+    fn id(&self) -> u64;
+}
+
+impl Id for v2::response::PendingRegistrationResponse {
+    fn id(&self) -> u64 {
+        self.request_id
+    }
+}
+
+impl Id for v3::response::PendingRegistrationResponse {
+    fn id(&self) -> u64 {
+        self.request_id
+    }
+}
+
+impl Id for v2::response::RegisteredResponse {
+    fn id(&self) -> u64 {
+        self.request_id
+    }
+}
+
+impl Id for v3::response::RegisteredResponse {
+    fn id(&self) -> u64 {
+        self.request_id
+    }
+}
+
+impl Id for v2::response::RemainingBandwidthResponse {
+    fn id(&self) -> u64 {
+        self.request_id
+    }
+}
+
+impl Id for v3::response::RemainingBandwidthResponse {
+    fn id(&self) -> u64 {
+        self.request_id
+    }
+}
+
+impl Id for v3::response::TopUpBandwidthResponse {
+    fn id(&self) -> u64 {
+        self.request_id
+    }
+}
+
+pub trait PendingRegistrationResponse: Id {
+    fn nonce(&self) -> u64;
+    fn verify(
+        &self,
+        gateway_key: &PrivateKey,
+    ) -> std::result::Result<(), nym_authenticator_requests::Error>;
+    fn pub_key(&self) -> PeerPublicKey;
+    fn private_ip(&self) -> IpAddr;
+}
+
+impl PendingRegistrationResponse for v2::response::PendingRegistrationResponse {
+    fn nonce(&self) -> u64 {
+        self.reply.nonce
+    }
+
+    fn verify(
+        &self,
+        gateway_key: &PrivateKey,
+    ) -> std::result::Result<(), nym_authenticator_requests::Error> {
+        self.reply.gateway_data.verify(gateway_key, self.nonce())
+    }
+
+    fn pub_key(&self) -> PeerPublicKey {
+        self.reply.gateway_data.pub_key
+    }
+
+    fn private_ip(&self) -> IpAddr {
+        self.reply.gateway_data.private_ip
+    }
+}
+
+impl PendingRegistrationResponse for v3::response::PendingRegistrationResponse {
+    fn nonce(&self) -> u64 {
+        self.reply.nonce
+    }
+
+    fn verify(
+        &self,
+        gateway_key: &PrivateKey,
+    ) -> std::result::Result<(), nym_authenticator_requests::Error> {
+        self.reply.gateway_data.verify(gateway_key, self.nonce())
+    }
+
+    fn pub_key(&self) -> PeerPublicKey {
+        self.reply.gateway_data.pub_key
+    }
+
+    fn private_ip(&self) -> IpAddr {
+        self.reply.gateway_data.private_ip
+    }
+}
+
+pub trait RegisteredResponse: Id {
+    fn private_ip(&self) -> IpAddr;
+    fn pub_key(&self) -> PeerPublicKey;
+    fn wg_port(&self) -> u16;
+}
+
+impl RegisteredResponse for v2::response::RegisteredResponse {
+    fn private_ip(&self) -> IpAddr {
+        self.reply.private_ip
+    }
+
+    fn pub_key(&self) -> PeerPublicKey {
+        self.reply.pub_key
+    }
+
+    fn wg_port(&self) -> u16 {
+        self.reply.wg_port
+    }
+}
+
+impl RegisteredResponse for v3::response::RegisteredResponse {
+    fn private_ip(&self) -> IpAddr {
+        self.reply.private_ip
+    }
+
+    fn pub_key(&self) -> PeerPublicKey {
+        self.reply.pub_key
+    }
+
+    fn wg_port(&self) -> u16 {
+        self.reply.wg_port
+    }
+}
+
+pub trait RemainingBandwidthResponse: Id {
+    fn available_bandwidth(&self) -> Option<i64>;
+}
+
+impl RemainingBandwidthResponse for v2::response::RemainingBandwidthResponse {
+    fn available_bandwidth(&self) -> Option<i64> {
+        self.reply.as_ref().map(|r| r.available_bandwidth)
+    }
+}
+
+impl RemainingBandwidthResponse for v3::response::RemainingBandwidthResponse {
+    fn available_bandwidth(&self) -> Option<i64> {
+        self.reply.as_ref().map(|r| r.available_bandwidth)
+    }
+}
+
+pub trait TopUpBandwidthResponse: Id {
+    fn available_bandwidth(&self) -> i64;
+}
+
+impl TopUpBandwidthResponse for v3::response::TopUpBandwidthResponse {
+    fn available_bandwidth(&self) -> i64 {
+        self.reply.available_bandwidth
+    }
+}
+
+pub enum AuthenticatorResponse {
+    PendingRegistration(Box<dyn PendingRegistrationResponse + Send + Sync + 'static>),
+    Registered(Box<dyn RegisteredResponse + Send + Sync + 'static>),
+    RemainingBandwidth(Box<dyn RemainingBandwidthResponse + Send + Sync + 'static>),
+    TopUpBandwidth(Box<dyn TopUpBandwidthResponse + Send + Sync + 'static>),
+}
+
+impl Id for AuthenticatorResponse {
+    fn id(&self) -> u64 {
+        match self {
+            AuthenticatorResponse::PendingRegistration(pending_registration_response) => {
+                pending_registration_response.id()
+            }
+            AuthenticatorResponse::Registered(registered_response) => registered_response.id(),
+            AuthenticatorResponse::RemainingBandwidth(remaining_bandwidth_response) => {
+                remaining_bandwidth_response.id()
+            }
+            AuthenticatorResponse::TopUpBandwidth(top_up_bandwidth_response) => {
+                top_up_bandwidth_response.id()
+            }
+        }
+    }
+}
+
+impl From<v2::response::AuthenticatorResponse> for AuthenticatorResponse {
+    fn from(value: v2::response::AuthenticatorResponse) -> Self {
+        match value.data {
+            v2::response::AuthenticatorResponseData::PendingRegistration(
+                pending_registration_response,
+            ) => Self::PendingRegistration(Box::new(pending_registration_response)),
+            v2::response::AuthenticatorResponseData::Registered(registered_response) => {
+                Self::Registered(Box::new(registered_response))
+            }
+            v2::response::AuthenticatorResponseData::RemainingBandwidth(
+                remaining_bandwidth_response,
+            ) => Self::RemainingBandwidth(Box::new(remaining_bandwidth_response)),
+        }
+    }
+}
+
+impl From<v3::response::AuthenticatorResponse> for AuthenticatorResponse {
+    fn from(value: v3::response::AuthenticatorResponse) -> Self {
+        match value.data {
+            v3::response::AuthenticatorResponseData::PendingRegistration(
+                pending_registration_response,
+            ) => Self::PendingRegistration(Box::new(pending_registration_response)),
+            v3::response::AuthenticatorResponseData::Registered(registered_response) => {
+                Self::Registered(Box::new(registered_response))
+            }
+            v3::response::AuthenticatorResponseData::RemainingBandwidth(
+                remaining_bandwidth_response,
+            ) => Self::RemainingBandwidth(Box::new(remaining_bandwidth_response)),
+            v3::response::AuthenticatorResponseData::TopUpBandwidth(top_up_bandwidth_response) => {
+                Self::TopUpBandwidth(Box::new(top_up_bandwidth_response))
+            }
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct SharedMixnetClient(Arc<tokio::sync::Mutex<Option<MixnetClient>>>);
 
@@ -335,11 +550,23 @@ impl SharedMixnetClient {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum AuthenticatorVersion {
     V2,
     V3,
     UNKNOWN,
+}
+
+impl From<u8> for AuthenticatorVersion {
+    fn from(value: u8) -> Self {
+        if value == 2 {
+            Self::V2
+        } else if value == 3 {
+            Self::V3
+        } else {
+            Self::UNKNOWN
+        }
+    }
 }
 
 impl From<String> for AuthenticatorVersion {
@@ -464,11 +691,11 @@ impl AuthClient {
                             let version = check_auth_message_version(&msg)?;
 
                             // Then we deserialize the message
-                            debug!("AuthClient: got message while waiting for connect response with version {version}");
-                            let ret = if version == USED_VERSION + 1 {
-                                nym_authenticator_requests::latest::response::AuthenticatorResponse::from_reconstructed_message(&msg).map(Into::into)
-                            } else {
-                                AuthenticatorResponse::from_reconstructed_message(&msg)
+                            debug!("AuthClient: got message while waiting for connect response with version {version:?}");
+                            let ret: Result<AuthenticatorResponse> = match version {
+                                AuthenticatorVersion::V2 => v2::response::AuthenticatorResponse::from_reconstructed_message(&msg).map(Into::into).map_err(Into::into),
+                                AuthenticatorVersion::V3 => v3::response::AuthenticatorResponse::from_reconstructed_message(&msg).map(Into::into).map_err(Into::into),
+                                AuthenticatorVersion::UNKNOWN => Err(Error::UnknownVersion),
                             };
                             let Ok(response) = ret else {
                                 // This is ok, it's likely just one of our self-pings
@@ -476,7 +703,7 @@ impl AuthClient {
                                 continue;
                             };
 
-                            if response.id() == Some(request_id) {
+                            if response.id() == request_id {
                                 debug!("Got response with matching id");
                                 return Ok(response);
                             }
@@ -489,40 +716,17 @@ impl AuthClient {
 }
 
 fn check_if_authenticator_message(message: &ReconstructedMessage) -> bool {
-    // TODO: switch version number so that they have their own reserved range, like 50-100 for the
-    // authenticator messages
-    if let Some(version) = message.message.first() {
-        // Temporary constant, see above TODO note
-        *version < 6
+    if let Some(msg_type) = message.message.get(1) {
+        ServiceProviderType::Authenticator as u8 == *msg_type
     } else {
         false
     }
 }
 
-fn check_auth_message_version(message: &ReconstructedMessage) -> Result<u8> {
+fn check_auth_message_version(message: &ReconstructedMessage) -> Result<AuthenticatorVersion> {
     // Assuing it's an Authenticator message, it will have a version as its first byte
-    if let Some(version) = message.message.first() {
-        match version.cmp(&USED_VERSION) {
-            Ordering::Greater => {
-                // We accept one unit of version difference, for easier transitions
-                if version.cmp(&(USED_VERSION + 1)) == Ordering::Greater {
-                    Err(Error::ReceivedResponseWithNewVersion {
-                        expected: USED_VERSION,
-                        received: *version,
-                    })
-                } else {
-                    Ok(*version)
-                }
-            }
-            Ordering::Less => Err(Error::ReceivedResponseWithOldVersion {
-                expected: USED_VERSION,
-                received: *version,
-            }),
-            Ordering::Equal => {
-                // We're good
-                Ok(*version)
-            }
-        }
+    if let Some(&version) = message.message.first() {
+        Ok(version.into())
     } else {
         Err(Error::NoVersionInMessage)
     }

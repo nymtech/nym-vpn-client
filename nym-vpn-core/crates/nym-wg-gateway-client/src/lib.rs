@@ -11,18 +11,10 @@ use std::{
 };
 
 pub use error::{Error, ErrorMessage};
-use nym_authenticator_client::{AuthClient, AuthenticatorVersion, ClientMessage, QueryMessageImpl};
-use nym_authenticator_requests::{
-    v2,
-    v3::{
-        self,
-        registration::RegistrationData,
-        response::{
-            AuthenticatorResponse, AuthenticatorResponseData, PendingRegistrationResponse,
-            RegisteredResponse, RemainingBandwidthResponse, TopUpBandwidthResponse,
-        },
-    },
+use nym_authenticator_client::{
+    AuthClient, AuthenticatorResponse, AuthenticatorVersion, ClientMessage, QueryMessageImpl,
 };
+use nym_authenticator_requests::{v2, v3};
 use nym_bandwidth_controller::PreparedCredential;
 use nym_credentials_interface::{CredentialSpendingData, TicketType};
 use nym_crypto::asymmetric::{encryption, x25519::KeyPair};
@@ -86,35 +78,29 @@ impl WgGatewayLightClient {
             .send(&query_message, self.auth_recipient)
             .await?;
 
-        let remaining_bandwidth_data = match response.data {
-            AuthenticatorResponseData::RemainingBandwidth(RemainingBandwidthResponse {
-                reply: Some(remaining_bandwidth_data),
-                ..
-            }) => remaining_bandwidth_data,
-            AuthenticatorResponseData::RemainingBandwidth(RemainingBandwidthResponse {
-                reply: None,
-                ..
-            }) => return Ok(Some(0)),
+        let available_bandwidth = match response {
+            nym_authenticator_client::AuthenticatorResponse::RemainingBandwidth(
+                remaining_bandwidth_response,
+            ) => remaining_bandwidth_response
+                .available_bandwidth()
+                .unwrap_or_default(),
             _ => return Err(Error::InvalidGatewayAuthResponse),
         };
 
-        let remaining_pretty = if remaining_bandwidth_data.available_bandwidth > 1024 * 1024 {
-            format!(
-                "{:.2} MB",
-                remaining_bandwidth_data.available_bandwidth as f64 / 1024.0 / 1024.0
-            )
+        let remaining_pretty = if available_bandwidth > 1024 * 1024 {
+            format!("{:.2} MB", available_bandwidth as f64 / 1024.0 / 1024.0)
         } else {
-            format!("{} KB", remaining_bandwidth_data.available_bandwidth / 1024)
+            format!("{} KB", available_bandwidth / 1024)
         };
         info!(
             "Remaining wireguard bandwidth with gateway {} for today: {}",
             self.auth_recipient.gateway(),
             remaining_pretty
         );
-        if remaining_bandwidth_data.available_bandwidth < 1024 * 1024 {
+        if available_bandwidth < 1024 * 1024 {
             warn!("Remaining bandwidth is under 1 MB. The wireguard mode will get suspended after that until tomorrow, UTC time. The client might shutdown with timeout soon");
         }
-        Ok(Some(remaining_bandwidth_data.available_bandwidth))
+        Ok(Some(available_bandwidth))
     }
 
     pub async fn suspended(&mut self) -> Result<bool> {
@@ -153,9 +139,9 @@ impl WgGatewayLightClient {
         };
         let response = self.send(top_up_message).await?;
 
-        let remaining_bandwidth = match response.data {
-            AuthenticatorResponseData::TopUpBandwidth(TopUpBandwidthResponse { reply, .. }) => {
-                reply.available_bandwidth
+        let remaining_bandwidth = match response {
+            AuthenticatorResponse::TopUpBandwidth(top_up_bandwidth_response) => {
+                top_up_bandwidth_response.available_bandwidth()
             }
             _ => return Err(Error::InvalidGatewayAuthResponse),
         };
@@ -334,21 +320,13 @@ impl WgGatewayClient {
             .auth_client
             .send(&init_message, self.auth_recipient)
             .await?;
-        let registered_data = match response.data {
-            AuthenticatorResponseData::PendingRegistration(PendingRegistrationResponse {
-                reply:
-                    RegistrationData {
-                        nonce,
-                        gateway_data,
-                        ..
-                    },
-                ..
-            }) => {
+        let registered_data = match response {
+            AuthenticatorResponse::PendingRegistration(pending_registration_response) => {
                 // Unwrap since we have already checked that we have the keypair.
                 debug!("Verifying data");
-                gateway_data
-                    .verify(self.keypair.private_key(), nonce)
-                    .map_err(Error::VerificationFailed)?;
+                if let Err(e) = pending_registration_response.verify(self.keypair.private_key()) {
+                    return Err(Error::VerificationFailed(e));
+                }
 
                 let credential = if enable_credentials_mode {
                     let cred = Self::request_bandwidth(
@@ -367,9 +345,9 @@ impl WgGatewayClient {
                         ClientMessage::Final(Box::new(v2::registration::FinalMessage {
                             gateway_client: v2::registration::GatewayClient::new(
                                 self.keypair.private_key(),
-                                gateway_data.pub_key().inner(),
-                                gateway_data.private_ip,
-                                nonce,
+                                pending_registration_response.pub_key().inner(),
+                                pending_registration_response.private_ip(),
+                                pending_registration_response.nonce(),
                             ),
                             credential,
                         }))
@@ -378,9 +356,9 @@ impl WgGatewayClient {
                         ClientMessage::Final(Box::new(v3::registration::FinalMessage {
                             gateway_client: v3::registration::GatewayClient::new(
                                 self.keypair.private_key(),
-                                gateway_data.pub_key().inner(),
-                                gateway_data.private_ip,
-                                nonce,
+                                pending_registration_response.pub_key().inner(),
+                                pending_registration_response.private_ip(),
+                                pending_registration_response.nonce(),
                             ),
                             credential,
                         }))
@@ -390,25 +368,24 @@ impl WgGatewayClient {
                     }
                 };
                 let response = self.light_client().send(finalized_message).await?;
-                let AuthenticatorResponseData::Registered(RegisteredResponse { reply, .. }) =
-                    response.data
-                else {
+                let AuthenticatorResponse::Registered(registered_response) = response else {
                     return Err(Error::InvalidGatewayAuthResponse);
                 };
-                reply
+                registered_response
             }
-            AuthenticatorResponseData::Registered(RegisteredResponse { reply, .. }) => reply,
+            AuthenticatorResponse::Registered(registered_response) => registered_response,
             _ => return Err(Error::InvalidGatewayAuthResponse),
         };
 
-        let IpAddr::V4(private_ipv4) = registered_data.private_ip else {
+        let IpAddr::V4(private_ipv4) = registered_data.private_ip() else {
             return Err(Error::InvalidGatewayAuthResponse);
         };
         let gateway_data = GatewayData {
-            public_key: PublicKey::from(registered_data.pub_key.to_bytes()),
+            public_key: PublicKey::from(registered_data.pub_key().to_bytes()),
             endpoint: SocketAddr::from_str(&format!(
                 "{}:{}",
-                gateway_host, registered_data.wg_port
+                gateway_host,
+                registered_data.wg_port()
             ))
             .map_err(Error::FailedToParseEntryGatewaySocketAddr)?,
             private_ipv4,
