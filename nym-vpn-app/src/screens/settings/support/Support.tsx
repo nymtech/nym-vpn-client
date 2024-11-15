@@ -23,11 +23,11 @@ function Support() {
         trailingIcon="arrow_right"
       />
       <SettingsMenuCard
-        title={t('support.contact')}
+        title={t('feedback.get-in-touch')}
         onClick={() => {
           open(ContactSupportUrl);
         }}
-        leadingIcon="email"
+        leadingIcon="send"
         trailingIcon="arrow_right"
       />
       <SettingsMenuCard
