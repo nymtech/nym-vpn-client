@@ -44,5 +44,8 @@
     "daemon-version": "نسخة الديمن",
     "network-name": "الشبكة"
   },
-  "login-button": "أضف بيانات الاعتماد للاتصال"
+  "login-button": "تسجيل الدخول",
+  "logout-confirmation": {
+    "title": "هل أنت متأكد؟"
+  }
 }
