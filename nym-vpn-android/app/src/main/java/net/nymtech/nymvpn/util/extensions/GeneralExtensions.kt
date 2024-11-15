@@ -3,6 +3,7 @@ package net.nymtech.nymvpn.util.extensions
 import net.nymtech.vpn.model.Country
 import java.time.Instant
 import java.util.Locale
+import kotlin.math.round
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -27,4 +28,9 @@ fun Instant?.isInvalid(): Boolean {
 
 fun Set<Country>.default(): Country {
 	return this.firstOrNull() ?: Country(isDefault = true)
+}
+
+fun Long.toMB(): String {
+	val mb = this / 1024.0 * 1024.0
+	return "%.2f".format(round(mb * 100) / 100)
 }

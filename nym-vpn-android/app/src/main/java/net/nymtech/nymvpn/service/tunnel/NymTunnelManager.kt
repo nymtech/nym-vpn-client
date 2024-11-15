@@ -20,6 +20,7 @@ import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
+import net.nymtech.nymvpn.util.extensions.toMB
 import net.nymtech.nymvpn.util.extensions.toUserMessage
 import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.backend.Tunnel
@@ -198,7 +199,7 @@ class NymTunnelManager @Inject constructor(
 					)
 					is BandwidthEvent.RemainingBandwidth -> notificationService.showNotification(
 						title = context.getString(R.string.bandwidth_alert),
-						description = context.getString(R.string.low_bandwidth) + " ${alert.v1}",
+						description = context.getString(R.string.low_bandwidth) + " ${alert.v1.toMB()} MB",
 					)
 				}
 			}
