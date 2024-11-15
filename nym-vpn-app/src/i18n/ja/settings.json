@@ -13,14 +13,12 @@
   "feedback": {
     "title": "フィードバック",
     "github": "GitHubでIssueを作成する",
-    "send": "フィードバックを送信する",
     "matrix": "Matrixに参加",
     "discord": "Discordに参加"
   },
   "support": {
     "title": "サポート",
-    "faq": "FAQをチェック",
-    "contact": "お問い合わせ"
+    "faq": "FAQをチェック"
   },
   "legal": {
     "title": "法務情報",

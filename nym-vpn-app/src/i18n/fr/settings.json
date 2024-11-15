@@ -10,14 +10,12 @@
   "feedback": {
     "title": "Retour d'information",
     "github": "Créer un ticket GitHub",
-    "send": "Envoyez-nous un retour d'information",
     "matrix": "Rejoignez-nous sur Matrix",
     "discord": "Rejoignez-nous sur Discord"
   },
   "support": {
     "title": "Support",
-    "faq": "Consulter la FAQ",
-    "contact": "Contacter le Support"
+    "faq": "Consulter la FAQ"
   },
   "legal": {
     "title": "Juridique",

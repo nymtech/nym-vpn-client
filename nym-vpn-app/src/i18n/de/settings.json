@@ -15,14 +15,12 @@
   "feedback": {
     "title": "Feedback",
     "github": "Problem auf GitHub melden",
-    "send": "Schick uns Feedback",
     "matrix": "Tritt unserem Matrix Chat bei",
     "discord": "Tritt unserem Discord Channel bei"
   },
   "support": {
     "title": "Support",
-    "faq": "Lies die FAQs",
-    "contact": "Kontaktiere den Support"
+    "faq": "Lies die FAQs"
   },
   "legal": {
     "title": "Rechtlich",
