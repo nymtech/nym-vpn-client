@@ -4810,7 +4810,7 @@ public enum VpnError {
     case NoActiveSubscription
     case AccountDeviceNotRegistered
     case AccountDeviceNotActive
-    case AccountStatusUnknown
+    case VpnApiTimeout
 }
 
 
@@ -4846,7 +4846,7 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
         case 10: return .NoActiveSubscription
         case 11: return .AccountDeviceNotRegistered
         case 12: return .AccountDeviceNotActive
-        case 13: return .AccountStatusUnknown
+        case 13: return .VpnApiTimeout
 
          default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -4912,7 +4912,7 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
             writeInt(&buf, Int32(12))
         
         
-        case .AccountStatusUnknown:
+        case .VpnApiTimeout:
             writeInt(&buf, Int32(13))
         
         }

@@ -15,7 +15,7 @@ public enum VPNErrorReason: Codable, Error, LocalizedError {
     case noActiveSubscription
     case accountDeviceNotRegistered
     case accountDeviceNotActive
-    case accountStatusUnknown
+    case vpnApiTimeout
 
     public static let domain = "ErrorHandler.VPNErrorReason"
 
@@ -45,8 +45,8 @@ public enum VPNErrorReason: Codable, Error, LocalizedError {
             self = .accountDeviceNotRegistered
         case .AccountDeviceNotActive:
             self = .accountDeviceNotActive
-        case .AccountStatusUnknown:
-            self = .accountStatusUnknown
+        case .VpnApiTimeout:
+            self = .vpnApiTimeout
         }
     }
 
@@ -79,7 +79,7 @@ public enum VPNErrorReason: Codable, Error, LocalizedError {
         case 11:
             self = .accountDeviceNotActive
         case 12:
-            self = .accountStatusUnknown
+            self = .vpnApiTimeout
         default:
             return nil
         }
@@ -127,7 +127,7 @@ private extension VPNErrorReason {
             return 10
         case .accountDeviceNotActive:
             return 11
-        case .accountStatusUnknown:
+        case .vpnApiTimeout:
             return 12
         }
     }
@@ -155,8 +155,8 @@ private extension VPNErrorReason {
             return "The device is not registered to the account."
         case .accountDeviceNotActive:
             return "The account device is not active."
-        case .accountStatusUnknown:
-            return "The account status is unknown."
+        case .vpnApiTimeout:
+            return "The VPN API timed out."
         }
     }
 }
