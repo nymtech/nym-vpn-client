@@ -141,7 +141,7 @@ private extension SettingsViewModel {
         .account(
             viewModels: [
                 SettingsListItemViewModel(
-                    accessory: .arrow,
+                    accessory: .externalLink,
                     title: "settings.account".localizedString,
                     imageName: "person",
                     action: { [weak self] in

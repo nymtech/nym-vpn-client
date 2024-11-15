@@ -4,12 +4,15 @@ public final class SettingsListItemViewModel: Hashable {
     public enum Accessory: Hashable {
         case arrow
         case toggle(viewModel: ToggleViewModel)
+        case externalLink
         case empty
 
         var imageName: String? {
             switch self {
             case .arrow:
                 return "arrowRight"
+            case .externalLink:
+                return "externalLink"
             case .toggle, .empty:
                 return nil
             }
