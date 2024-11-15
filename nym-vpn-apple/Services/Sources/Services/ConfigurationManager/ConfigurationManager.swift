@@ -31,9 +31,7 @@ public final class ConfigurationManager {
             Env(rawValue: appSettings.currentEnv) ?? fallbackEnv
         }
         set {
-            Task { @MainActor in
-                appSettings.currentEnv = newValue.rawValue
-            }
+            appSettings.currentEnv = newValue.rawValue
         }
     }
 #if os(iOS)
@@ -79,13 +77,16 @@ public final class ConfigurationManager {
     }
 
     public func updateEnv(to env: Env) {
-        Task(priority: .background) {
+        Task(priority: .background) { [weak self] in
+            guard let self else { return }
             guard isTestFlight || Device.isMacOS,
                   env != currentEnv
             else {
                 return
             }
-            currentEnv = env
+            await MainActor.run { [weak self] in
+                self?.currentEnv = env
+            }
             do {
                 try await configure()
             } catch {
@@ -126,6 +127,8 @@ public final class ConfigurationManager {
 
 private extension ConfigurationManager {
     func configure() async throws {
+        logger.info("🛜 env: \(currentEnv.rawValue)")
+        print("🛜 env: \(currentEnv.rawValue)")
 #if os(iOS)
         try await setEnvVariables()
 #elseif os(macOS)

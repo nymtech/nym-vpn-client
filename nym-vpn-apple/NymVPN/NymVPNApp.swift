@@ -14,8 +14,8 @@ import Theme
 @main
 struct NymVPNApp: App {
     private let logFileManager = LogFileManager(logFileType: .app)
-    private let appSettings = AppSettings.shared
 
+    @ObservedObject private var appSettings = AppSettings.shared
     @StateObject private var homeViewModel = HomeViewModel()
     @StateObject private var welcomeViewModel = WelcomeViewModel()
 
