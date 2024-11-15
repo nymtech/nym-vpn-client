@@ -7,7 +7,8 @@
     "title": "Feedback",
     "github": "Abra uma issue no GitHub",
     "matrix": "Junte-se a nós no Matrix",
-    "discord": "Junte-se a nós no Discord"
+    "discord": "Junte-se a nós no Discord",
+    "get-in-touch": "Entrar em contacto"
   },
   "error-monitoring": {
     "title": "Relatórios de erros anónimos",
