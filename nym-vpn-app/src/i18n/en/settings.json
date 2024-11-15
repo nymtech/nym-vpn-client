@@ -14,14 +14,13 @@
   "feedback": {
     "title": "Feedback",
     "github": "Open a GitHub issue",
-    "send": "Send us feedback",
+    "get-in-touch": "Get in touch",
     "matrix": "Join us on Matrix",
     "discord": "Join us on Discord"
   },
   "support": {
     "title": "Support",
-    "faq": "Check the FAQ",
-    "contact": "Contact Support"
+    "faq": "Check the FAQ"
   },
   "legal": {
     "title": "Legal",

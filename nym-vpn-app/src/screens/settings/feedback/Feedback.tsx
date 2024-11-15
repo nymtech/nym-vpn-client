@@ -25,7 +25,7 @@ function Feedback() {
         trailingIcon="arrow_right"
       />
       <SettingsMenuCard
-        title={t('feedback.send')}
+        title={t('feedback.get-in-touch')}
         leadingIcon="send"
         trailingIcon="arrow_right"
         onClick={() => {
