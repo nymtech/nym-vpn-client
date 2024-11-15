@@ -37,5 +37,5 @@ pub struct CliArgs {
     no_log: bool,
 
     #[arg(long, short)]
-    pub version: u8,
+    pub version: u8
 }

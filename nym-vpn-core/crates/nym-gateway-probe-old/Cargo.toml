@@ -1,0 +1,90 @@
+[package]
+name = "nym-gateway-probe-old"
+build = "build.rs"
+edition = "2021"
+
+[workspace]
+
+
+[dependencies]
+tokio-util = "*"
+tracing-subscriber = {version = "*", features = ["env-filter"]}
+tracing = "*"
+x25519-dalek = { version = "*", features = [
+    "reusable_secrets",
+    "static_secrets",
+] }
+anyhow = "*"
+base64 = "*"
+bincode = "*"
+bs58 = "*"
+bytes = "*"
+clap = { version = "*", features = ["cargo", "derive"] }
+cfg-if = "*"
+dirs = "*"
+dns-lookup = "*"
+futures = "*"
+hex = "*"
+log = "*"
+pnet_packet = "*"
+rand = "*"
+rust2go = "*"
+serde = {version = "*", features = ["derive"]}
+serde_json = "*"
+thiserror = "*"
+tokio = { version = "*", features = [
+    "process",
+    "rt-multi-thread",
+    "fs",
+    "sync",
+    "macros",
+] }
+
+
+
+# nym monorepo
+nym-authenticator-requests-v2 = { git = "https://github.com/nymtech/nym.git", package = "nym-authenticator-requests", rev = "e78040f0ecfc795691a800c72831bd7ba7a02b9c" }
+nym-client-core-v2 = { git = "https://github.com/nymtech/nym.git", package = "nym-client-core", rev = "e78040f0ecfc795691a800c72831bd7ba7a02b9c" }
+nym-crypto-v2 = { git = "https://github.com/nymtech/nym.git", package = "nym-crypto", rev = "e78040f0ecfc795691a800c72831bd7ba7a02b9c" }
+nym-config-v2 = { git = "https://github.com/nymtech/nym.git", package = "nym-config", rev = "e78040f0ecfc795691a800c72831bd7ba7a02b9c" }
+nym-wireguard-types-v2 = { git = "https://github.com/nymtech/nym.git", package = "nym-wireguard-types", rev = "e78040f0ecfc795691a800c72831bd7ba7a02b9c" }
+nym-ip-packet-requests-v2 = { git = "https://github.com/nymtech/nym.git", package = "nym-ip-packet-requests", rev = "e78040f0ecfc795691a800c72831bd7ba7a02b9c" }
+nym-sdk-v2 = { git = "https://github.com/nymtech/nym.git", package = "nym-sdk", rev = "e78040f0ecfc795691a800c72831bd7ba7a02b9c" }
+nym-task-v2 = { git = "https://github.com/nymtech/nym.git", package = "nym-task", rev = "e78040f0ecfc795691a800c72831bd7ba7a02b9c" }
+nym-topology-v2 = { git = "https://github.com/nymtech/nym.git", package = "nym-topology", rev = "e78040f0ecfc795691a800c72831bd7ba7a02b9c" }
+nym-bin-common-v2 = { git = "https://github.com/nymtech/nym.git", package = "nym-bin-common", rev = "e78040f0ecfc795691a800c72831bd7ba7a02b9c" }
+
+nym-authenticator-requests-v1 = { git = "https://github.com/nymtech/nym.git", package = "nym-authenticator-requests", rev = "fabd48b" }
+nym-client-core-v1 = { git = "https://github.com/nymtech/nym.git", package = "nym-client-core", rev = "fabd48b" }
+nym-crypto-v1 = { git = "https://github.com/nymtech/nym.git", package = "nym-crypto", rev = "fabd48b" }
+nym-config-v1 = { git = "https://github.com/nymtech/nym.git", package = "nym-config", rev = "fabd48b" }
+nym-wireguard-types-v1 = { git = "https://github.com/nymtech/nym.git", package = "nym-wireguard-types", rev = "fabd48b" }
+nym-ip-packet-requests-v1 = { git = "https://github.com/nymtech/nym.git", package = "nym-ip-packet-requests", rev = "fabd48b" }
+nym-sdk-v1 = { git = "https://github.com/nymtech/nym.git", package = "nym-sdk", rev = "fabd48b" }
+nym-task-v1 = { git = "https://github.com/nymtech/nym.git", package = "nym-task", rev = "fabd48b" }
+nym-topology-v1 = { git = "https://github.com/nymtech/nym.git", package = "nym-topology", rev = "fabd48b" }
+nym-bin-common-v1 = { git = "https://github.com/nymtech/nym.git", package = "nym-bin-common", rev = "fabd48b" }
+
+
+# nym-vpn-client
+nym-connection-monitor-v2 = { git = "https://github.com/nymtech/nym-vpn-client.git", package = "nym-connection-monitor", rev = "a22d85865f7c9eb0bfcb63d300b79bf43f8d2a37" }
+nym-gateway-directory-v2 = { git = "https://github.com/nymtech/nym-vpn-client.git", package = "nym-gateway-directory", rev = "a22d85865f7c9eb0bfcb63d300b79bf43f8d2a37" }
+nym-ip-packet-client-v2 = { git = "https://github.com/nymtech/nym-vpn-client.git", package = "nym-ip-packet-client", rev = "a22d85865f7c9eb0bfcb63d300b79bf43f8d2a37" }
+nym-authenticator-client-v2 = { git = "https://github.com/nymtech/nym-vpn-client.git", package = "nym-authenticator-client", rev = "a22d85865f7c9eb0bfcb63d300b79bf43f8d2a37" }
+
+nym-connection-monitor-v1 = { git = "https://github.com/nymtech/nym-vpn-client.git", package = "nym-connection-monitor", rev = "24630c9aa37a2d8ddd0c3e90655ffba47d01984a" }
+nym-gateway-directory-v1 = { git = "https://github.com/nymtech/nym-vpn-client.git", package = "nym-gateway-directory", rev = "24630c9aa37a2d8ddd0c3e90655ffba47d01984a" }
+nym-ip-packet-client-v1 = { git = "https://github.com/nymtech/nym-vpn-client.git", package = "nym-ip-packet-client", rev = "24630c9aa37a2d8ddd0c3e90655ffba47d01984a" }
+nym-authenticator-client-v1 = { git = "https://github.com/nymtech/nym-vpn-client.git", package = "nym-authenticator-client", rev = "24630c9aa37a2d8ddd0c3e90655ffba47d01984a" }
+
+
+[build-dependencies]
+vergen = { version = "*", default-features = false, features = [
+    "build",
+    "git",
+    "gitcl",
+    "rustc",
+    "cargo",
+] }
+
+rust2go = { version = "*", features = ["build"] }

@@ -1,7 +1,8 @@
 use std::net::{Ipv4Addr, Ipv6Addr};
 
 use bytes::Bytes;
-use nym_connection_monitor::{
+
+use nym_connection_monitor_magura::{
     is_icmp_beacon_reply, is_icmp_v6_beacon_reply,
     packet_helpers::{
         create_icmpv4_echo_request, create_icmpv6_echo_request, wrap_icmp_in_ipv4,
@@ -9,14 +10,15 @@ use nym_connection_monitor::{
     },
     ConnectionStatusEvent, IcmpBeaconReply, Icmpv6BeaconReply,
 };
-use nym_gateway_directory::IpPacketRouterAddress;
-use nym_ip_packet_client::SharedMixnetClient;
-use nym_ip_packet_requests::{codec::MultiIpPacketCodec, IpPair};
-use nym_sdk::mixnet::{InputMessage, Recipient};
-use nym_task::connections::TransmissionLane;
-use pnet_packet::Packet;
 
-use crate::Result;
+use nym_gateway_directory_magura::IpPacketRouterAddress;
+use nym_ip_packet_client_magura::SharedMixnetClient;
+
+use nym_ip_packet_requests_magura::{codec::MultiIpPacketCodec, IpPair, request::IpPacketRequest};
+use nym_sdk_magura::mixnet::{InputMessage, Recipient};
+use nym_task_magura::connections::TransmissionLane;
+
+use pnet_packet::Packet;
 
 pub fn icmp_identifier() -> u16 {
     8475
@@ -72,10 +74,8 @@ pub async fn send_ping_v6(
     Ok(())
 }
 
-fn create_input_message(recipient: Recipient, bundled_packets: Bytes) -> Result<InputMessage> {
-    let packet =
-        nym_ip_packet_requests::request::IpPacketRequest::new_data_request(bundled_packets)
-            .to_bytes()?;
+fn create_input_message(recipient: Recipient, bundled_packets: Bytes) -> anyhow::Result<InputMessage> {
+    let packet = IpPacketRequest::new_data_request(bundled_packets).to_bytes()?;
 
     let lane = TransmissionLane::General;
     let packet_type = None;

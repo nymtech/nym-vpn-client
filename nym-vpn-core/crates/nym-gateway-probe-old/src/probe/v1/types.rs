@@ -1,4 +1,4 @@
-use nym_connection_monitor::ConnectionStatusEvent;
+use nym_connection_monitor_v2::ConnectionStatusEvent;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -59,6 +59,30 @@ impl Entry {
     }
 }
 
+#[derive(Debug, Clone, Default)]
+pub struct IpPingReplies {
+    pub ipr_tun_ip_v4: bool,
+    pub ipr_tun_ip_v6: bool,
+    pub external_ip_v4: bool,
+    pub external_ip_v6: bool,
+}
+
+impl IpPingReplies {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn register_event(&mut self, event: &ConnectionStatusEvent) {
+        match event {
+            ConnectionStatusEvent::MixnetSelfPing => {}
+            ConnectionStatusEvent::Icmpv4IprTunDevicePingReply => self.ipr_tun_ip_v4 = true,
+            ConnectionStatusEvent::Icmpv6IprTunDevicePingReply => self.ipr_tun_ip_v6 = true,
+            ConnectionStatusEvent::Icmpv4IprExternalPingReply => self.external_ip_v4 = true,
+            ConnectionStatusEvent::Icmpv6IprExternalPingReply => self.external_ip_v6 = true,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Exit {
     pub can_connect: bool,
@@ -86,30 +110,6 @@ impl Exit {
             can_route_ip_external_v4: replies.external_ip_v4,
             can_route_ip_v6: replies.ipr_tun_ip_v6,
             can_route_ip_external_v6: replies.external_ip_v6,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Default)]
-pub struct IpPingReplies {
-    pub ipr_tun_ip_v4: bool,
-    pub ipr_tun_ip_v6: bool,
-    pub external_ip_v4: bool,
-    pub external_ip_v6: bool,
-}
-
-impl IpPingReplies {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn register_event(&mut self, event: &ConnectionStatusEvent) {
-        match event {
-            ConnectionStatusEvent::MixnetSelfPing => {}
-            ConnectionStatusEvent::Icmpv4IprTunDevicePingReply => self.ipr_tun_ip_v4 = true,
-            ConnectionStatusEvent::Icmpv6IprTunDevicePingReply => self.ipr_tun_ip_v6 = true,
-            ConnectionStatusEvent::Icmpv4IprExternalPingReply => self.external_ip_v4 = true,
-            ConnectionStatusEvent::Icmpv6IprExternalPingReply => self.external_ip_v6 = true,
         }
     }
 }
