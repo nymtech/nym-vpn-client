@@ -256,10 +256,13 @@ pub struct NymDirectoryGateway {
     pub location: Location,
     pub last_probe: Option<Probe>,
     pub ip_addresses: Vec<String>,
+    pub mix_port: u16,
+    pub role: Role,
     pub entry: EntryInformation,
     // The performance data here originates from the nym-api, and is effectively mixnet performance
     // at the time of writing this
     pub performance: Percent,
+    pub build_information: BuildInformation,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -277,6 +280,32 @@ pub struct IpPacketRouter {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Authenticator {
     pub address: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub enum Role {
+    // a properly active mixnode
+    Mixnode {
+        layer: u8,
+    },
+
+    #[serde(alias = "entry", alias = "gateway")]
+    EntryGateway,
+
+    #[serde(alias = "exit")]
+    ExitGateway,
+
+    // equivalent of node that's in rewarded set but not in the inactive set
+    Standby,
+
+    Inactive,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct BuildInformation {
+    pub build_version: String,
+    pub commit_branch: String,
+    pub commit_sha: String,
 }
 
 impl NymDirectoryGateway {
