@@ -66,7 +66,9 @@ constructor(
 	}
 
 	fun logout() = viewModelScope.launch {
-		tunnelManager.removeMnemonic()
+		runCatching {
+			tunnelManager.removeMnemonic()
+		}.onFailure { Timber.w("Not logged in") }
 	}
 
 	fun onErrorReportingSelected() = viewModelScope.launch {

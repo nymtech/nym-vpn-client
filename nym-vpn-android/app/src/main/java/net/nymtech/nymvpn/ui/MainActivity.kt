@@ -118,7 +118,7 @@ class MainActivity : ComponentActivity() {
 			LaunchedEffect(navBackStackEntry) {
 				if (navBackStackEntry.isCurrentRoute(Route.Main::class)) {
 					val args = navBackStackEntry?.toRoute<Route.Main>()
-					if (args?.changeLanguage == true) {
+					if (args?.configChange == true) {
 						// Restart activity for built-in translation of country names
 						Intent(this@MainActivity, MainActivity::class.java).also {
 							finish()
