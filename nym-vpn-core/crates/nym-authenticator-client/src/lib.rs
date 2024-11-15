@@ -6,9 +6,8 @@ use std::{
 };
 
 use nym_authenticator_requests::{
-    latest::VERSION as LATEST_VERSION,
-    v2, v3,
-    v4::{self, response::AuthenticatorResponse, VERSION as USED_VERSION},
+    v2,
+    v3::{self, response::AuthenticatorResponse, VERSION as USED_VERSION},
 };
 
 use nym_credentials_interface::CredentialSpendingData;
@@ -22,12 +21,6 @@ use tracing::{debug, error};
 mod error;
 
 pub use crate::error::{Error, Result};
-
-// We shouldn't get too much behind the latest version, or else it will be difficult
-// to support smooth version transitions. Right now, we support one unit of version
-// discrepancy between client and gateway, to account for the time a version moves
-// through the envs (qa, sandbox, mainnet).
-const _: () = assert!(USED_VERSION == LATEST_VERSION || USED_VERSION + 1 == LATEST_VERSION);
 
 pub trait Versionable {
     fn version(&self) -> AuthenticatorVersion;
@@ -57,33 +50,15 @@ impl Versionable for v3::registration::FinalMessage {
     }
 }
 
-impl Versionable for v4::registration::InitMessage {
-    fn version(&self) -> AuthenticatorVersion {
-        AuthenticatorVersion::V4
-    }
-}
-
-impl Versionable for v4::registration::FinalMessage {
-    fn version(&self) -> AuthenticatorVersion {
-        AuthenticatorVersion::V4
-    }
-}
-
 impl Versionable for PeerPublicKey {
     fn version(&self) -> AuthenticatorVersion {
-        AuthenticatorVersion::V4
+        AuthenticatorVersion::V3
     }
 }
 
 impl Versionable for v3::topup::TopUpMessage {
     fn version(&self) -> AuthenticatorVersion {
         AuthenticatorVersion::V3
-    }
-}
-
-impl Versionable for v4::topup::TopUpMessage {
-    fn version(&self) -> AuthenticatorVersion {
-        AuthenticatorVersion::V4
     }
 }
 
@@ -98,12 +73,6 @@ impl InitMessage for v2::registration::InitMessage {
 }
 
 impl InitMessage for v3::registration::InitMessage {
-    fn pub_key(&self) -> PeerPublicKey {
-        self.pub_key
-    }
-}
-
-impl InitMessage for v4::registration::InitMessage {
     fn pub_key(&self) -> PeerPublicKey {
         self.pub_key
     }
@@ -167,25 +136,15 @@ impl FinalMessage for v3::registration::FinalMessage {
     }
 }
 
-impl FinalMessage for v4::registration::FinalMessage {
-    fn gateway_client_pub_key(&self) -> PeerPublicKey {
-        self.gateway_client.pub_key
-    }
+// Temporary solution for lacking a query message wrapper in monorepo
+pub struct QueryMessageImpl {
+    pub pub_key: PeerPublicKey,
+    pub version: AuthenticatorVersion,
+}
 
-    fn gateway_client_ipv4(&self) -> Option<Ipv4Addr> {
-        Some(self.gateway_client.private_ips.ipv4)
-    }
-
-    fn gateway_client_ipv6(&self) -> Option<Ipv6Addr> {
-        Some(self.gateway_client.private_ips.ipv6)
-    }
-
-    fn gateway_client_mac(&self) -> Vec<u8> {
-        self.gateway_client.mac.to_vec()
-    }
-
-    fn credential(&self) -> Option<CredentialSpendingData> {
-        self.credential.clone()
+impl Versionable for QueryMessageImpl {
+    fn version(&self) -> AuthenticatorVersion {
+        self.version
     }
 }
 
@@ -193,9 +152,9 @@ pub trait QueryMessage: Versionable {
     fn pub_key(&self) -> PeerPublicKey;
 }
 
-impl QueryMessage for PeerPublicKey {
+impl QueryMessage for QueryMessageImpl {
     fn pub_key(&self) -> PeerPublicKey {
-        *self
+        self.pub_key
     }
 }
 
@@ -205,16 +164,6 @@ pub trait TopUpMessage: Versionable {
 }
 
 impl TopUpMessage for v3::topup::TopUpMessage {
-    fn pub_key(&self) -> PeerPublicKey {
-        self.pub_key
-    }
-
-    fn credential(&self) -> CredentialSpendingData {
-        self.credential.clone()
-    }
-}
-
-impl TopUpMessage for v4::topup::TopUpMessage {
     fn pub_key(&self) -> PeerPublicKey {
         self.pub_key
     }
@@ -345,62 +294,6 @@ impl ClientMessage {
                     }
                 }
             }
-            AuthenticatorVersion::V4 => {
-                use v4::{
-                    registration::{ClientMac, FinalMessage, GatewayClient, InitMessage, IpPair},
-                    request::AuthenticatorRequest,
-                    topup::TopUpMessage,
-                };
-                match self {
-                    ClientMessage::Initial(init_message) => {
-                        let (req, id) = AuthenticatorRequest::new_initial_request(
-                            InitMessage {
-                                pub_key: init_message.pub_key(),
-                            },
-                            reply_to,
-                        );
-                        Ok((req.to_bytes()?, id))
-                    }
-                    ClientMessage::Final(final_message) => {
-                        let (req, id) = AuthenticatorRequest::new_final_request(
-                            FinalMessage {
-                                gateway_client: GatewayClient {
-                                    pub_key: final_message.gateway_client_pub_key(),
-                                    private_ips: IpPair {
-                                        ipv4: final_message
-                                            .gateway_client_ipv4()
-                                            .ok_or(Error::UnsupportedMessage)?,
-                                        ipv6: final_message
-                                            .gateway_client_ipv6()
-                                            .ok_or(Error::UnsupportedMessage)?,
-                                    },
-                                    mac: ClientMac::new(final_message.gateway_client_mac()),
-                                },
-                                credential: final_message.credential(),
-                            },
-                            reply_to,
-                        );
-                        Ok((req.to_bytes()?, id))
-                    }
-                    ClientMessage::Query(query_message) => {
-                        let (req, id) = AuthenticatorRequest::new_query_request(
-                            query_message.pub_key(),
-                            reply_to,
-                        );
-                        Ok((req.to_bytes()?, id))
-                    }
-                    ClientMessage::TopUp(top_up_message) => {
-                        let (req, id) = AuthenticatorRequest::new_topup_request(
-                            TopUpMessage {
-                                pub_key: top_up_message.pub_key(),
-                                credential: top_up_message.credential(),
-                            },
-                            reply_to,
-                        );
-                        Ok((req.to_bytes()?, id))
-                    }
-                }
-            }
             AuthenticatorVersion::UNKNOWN => Err(Error::UnknownVersion),
         }
     }
@@ -442,11 +335,10 @@ impl SharedMixnetClient {
     }
 }
 
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 pub enum AuthenticatorVersion {
     V2,
     V3,
-    V4,
     UNKNOWN,
 }
 
@@ -456,8 +348,6 @@ impl From<String> for AuthenticatorVersion {
             Self::V2
         } else if value.contains("1.1.10") {
             Self::V3
-        } else if value.contains("1.1.11") {
-            Self::V4
         } else {
             Self::UNKNOWN
         }

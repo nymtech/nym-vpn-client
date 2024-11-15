@@ -13,10 +13,14 @@ use bytes::BytesMut;
 use dns_lookup::lookup_host;
 use futures::StreamExt;
 use netstack::{NetstackCall as _, NetstackCallImpl};
-use nym_authenticator_client::ClientMessage;
-use nym_authenticator_requests::v3::{
-    registration::{FinalMessage, GatewayClient, InitMessage, RegistrationData},
-    response::{AuthenticatorResponseData, PendingRegistrationResponse, RegisteredResponse},
+use nym_authenticator_client::{AuthenticatorVersion, ClientMessage};
+use nym_authenticator_requests::{
+    v2,
+    v3::{
+        self,
+        registration::RegistrationData,
+        response::{AuthenticatorResponseData, PendingRegistrationResponse, RegisteredResponse},
+    },
 };
 use nym_config::defaults::NymNetworkDetails;
 use nym_connection_monitor::self_ping_and_wait;
@@ -136,14 +140,22 @@ async fn wg_probe(
     let auth_shared_client =
         nym_authenticator_client::SharedMixnetClient::from_shared(&shared_mixnet_client);
     let mut auth_client = nym_authenticator_client::AuthClient::new(auth_shared_client).await;
+    let auth_version = AuthenticatorVersion::from(gateway_version);
 
     let mut rng = rand::thread_rng();
     let private_key = nym_crypto::asymmetric::encryption::PrivateKey::new(&mut rng);
     let public_key = private_key.public_key();
 
-    let init_message = ClientMessage::Initial(Box::new(InitMessage {
-        pub_key: PeerPublicKey::new(public_key.to_bytes().into()),
-    }));
+    let authenticator_pub_key = PeerPublicKey::new(public_key.to_bytes().into());
+    let init_message = match auth_version {
+        AuthenticatorVersion::V2 => ClientMessage::Initial(Box::new(
+            v2::registration::InitMessage::new(authenticator_pub_key),
+        )),
+        AuthenticatorVersion::V3 => ClientMessage::Initial(Box::new(
+            v3::registration::InitMessage::new(authenticator_pub_key),
+        )),
+        AuthenticatorVersion::UNKNOWN => bail!("Unknwon version number"),
+    };
 
     let mut wg_outcome = WgProbeResults::default();
 
@@ -166,15 +178,31 @@ async fn wg_probe(
                 debug!("Verifying data");
                 gateway_data.verify(&private_key, nonce)?;
 
-                let finalized_message = ClientMessage::Final(Box::new(FinalMessage {
-                    gateway_client: GatewayClient::new(
-                        &private_key,
-                        gateway_data.pub_key().inner(),
-                        gateway_data.private_ip,
-                        nonce,
-                    ),
-                    credential: None,
-                }));
+                let finalized_message = match auth_version {
+                    AuthenticatorVersion::V2 => {
+                        ClientMessage::Final(Box::new(v2::registration::FinalMessage {
+                            gateway_client: v2::registration::GatewayClient::new(
+                                &private_key,
+                                gateway_data.pub_key().inner(),
+                                gateway_data.private_ip,
+                                nonce,
+                            ),
+                            credential: None,
+                        }))
+                    }
+                    AuthenticatorVersion::V3 => {
+                        ClientMessage::Final(Box::new(v3::registration::FinalMessage {
+                            gateway_client: v3::registration::GatewayClient::new(
+                                &private_key,
+                                gateway_data.pub_key().inner(),
+                                gateway_data.private_ip,
+                                nonce,
+                            ),
+                            credential: None,
+                        }))
+                    }
+                    AuthenticatorVersion::UNKNOWN => bail!("Unknwon version number"),
+                };
                 let response = auth_client
                     .send(&finalized_message, authenticator_address)
                     .await?;

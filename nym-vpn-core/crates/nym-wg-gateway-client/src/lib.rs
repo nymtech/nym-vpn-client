@@ -11,14 +11,17 @@ use std::{
 };
 
 pub use error::{Error, ErrorMessage};
-use nym_authenticator_client::{AuthClient, AuthenticatorVersion, ClientMessage};
-use nym_authenticator_requests::v4::{
-    registration::{FinalMessage, GatewayClient, InitMessage, RegistrationData},
-    response::{
-        AuthenticatorResponse, AuthenticatorResponseData, PendingRegistrationResponse,
-        RegisteredResponse, RemainingBandwidthResponse, TopUpBandwidthResponse,
+use nym_authenticator_client::{AuthClient, AuthenticatorVersion, ClientMessage, QueryMessageImpl};
+use nym_authenticator_requests::{
+    v2,
+    v3::{
+        self,
+        registration::RegistrationData,
+        response::{
+            AuthenticatorResponse, AuthenticatorResponseData, PendingRegistrationResponse,
+            RegisteredResponse, RemainingBandwidthResponse, TopUpBandwidthResponse,
+        },
     },
-    topup::TopUpMessage,
 };
 use nym_bandwidth_controller::PreparedCredential;
 use nym_credentials_interface::{CredentialSpendingData, TicketType};
@@ -67,15 +70,17 @@ impl WgGatewayLightClient {
     }
 
     pub async fn query_bandwidth(&mut self) -> Result<Option<i64>> {
-        match self.auth_version {
-            AuthenticatorVersion::V2 => todo!(),
-            AuthenticatorVersion::V3 => todo!(),
-            AuthenticatorVersion::V4 => todo!(),
+        let query_message = match self.auth_version {
+            AuthenticatorVersion::V2 => ClientMessage::Query(Box::new(QueryMessageImpl {
+                pub_key: PeerPublicKey::new(self.public_key.to_bytes().into()),
+                version: AuthenticatorVersion::V2,
+            })),
+            AuthenticatorVersion::V3 => ClientMessage::Query(Box::new(QueryMessageImpl {
+                pub_key: PeerPublicKey::new(self.public_key.to_bytes().into()),
+                version: AuthenticatorVersion::V3,
+            })),
             AuthenticatorVersion::UNKNOWN => return Err(Error::UnsupportedAuthenticatorVersion),
-        }
-        let query_message = ClientMessage::Query(Box::new(PeerPublicKey::new(
-            self.public_key.to_bytes().into(),
-        )));
+        };
         let response = self
             .auth_client
             .send(&query_message, self.auth_recipient)
@@ -137,10 +142,15 @@ impl WgGatewayLightClient {
     }
 
     pub async fn top_up(&mut self, credential: CredentialSpendingData) -> Result<i64> {
-        let top_up_message = ClientMessage::TopUp(Box::new(TopUpMessage {
-            pub_key: PeerPublicKey::new(self.public_key.to_bytes().into()),
-            credential,
-        }));
+        let top_up_message = match self.auth_version {
+            AuthenticatorVersion::V3 => ClientMessage::TopUp(Box::new(v3::topup::TopUpMessage {
+                pub_key: PeerPublicKey::new(self.public_key.to_bytes().into()),
+                credential,
+            })),
+            AuthenticatorVersion::V2 | AuthenticatorVersion::UNKNOWN => {
+                return Err(Error::UnsupportedAuthenticatorVersion)
+            }
+        };
         let response = self.send(top_up_message).await?;
 
         let remaining_bandwidth = match response.data {
@@ -307,9 +317,19 @@ impl WgGatewayClient {
         <St as CredentialStorage>::StorageError: Send + Sync + 'static,
     {
         debug!("Registering with the wg gateway...");
-        let init_message = ClientMessage::Initial(Box::new(InitMessage {
-            pub_key: PeerPublicKey::new(self.keypair.public_key().to_bytes().into()),
-        }));
+        let init_message = match self.auth_version {
+            AuthenticatorVersion::V2 => {
+                ClientMessage::Initial(Box::new(v2::registration::InitMessage {
+                    pub_key: PeerPublicKey::new(self.keypair.public_key().to_bytes().into()),
+                }))
+            }
+            AuthenticatorVersion::V3 => {
+                ClientMessage::Initial(Box::new(v3::registration::InitMessage {
+                    pub_key: PeerPublicKey::new(self.keypair.public_key().to_bytes().into()),
+                }))
+            }
+            AuthenticatorVersion::UNKNOWN => return Err(Error::UnsupportedAuthenticatorVersion),
+        };
         let response = self
             .auth_client
             .send(&init_message, self.auth_recipient)
@@ -342,15 +362,33 @@ impl WgGatewayClient {
                     None
                 };
 
-                let finalized_message = ClientMessage::Final(Box::new(FinalMessage {
-                    gateway_client: GatewayClient::new(
-                        self.keypair.private_key(),
-                        gateway_data.pub_key().inner(),
-                        gateway_data.private_ip,
-                        nonce,
-                    ),
-                    credential,
-                }));
+                let finalized_message = match self.auth_version {
+                    AuthenticatorVersion::V2 => {
+                        ClientMessage::Final(Box::new(v2::registration::FinalMessage {
+                            gateway_client: v2::registration::GatewayClient::new(
+                                self.keypair.private_key(),
+                                gateway_data.pub_key().inner(),
+                                gateway_data.private_ip,
+                                nonce,
+                            ),
+                            credential,
+                        }))
+                    }
+                    AuthenticatorVersion::V3 => {
+                        ClientMessage::Final(Box::new(v3::registration::FinalMessage {
+                            gateway_client: v3::registration::GatewayClient::new(
+                                self.keypair.private_key(),
+                                gateway_data.pub_key().inner(),
+                                gateway_data.private_ip,
+                                nonce,
+                            ),
+                            credential,
+                        }))
+                    }
+                    AuthenticatorVersion::UNKNOWN => {
+                        return Err(Error::UnsupportedAuthenticatorVersion)
+                    }
+                };
                 let response = self.light_client().send(finalized_message).await?;
                 let AuthenticatorResponseData::Registered(RegisteredResponse { reply, .. }) =
                     response.data
