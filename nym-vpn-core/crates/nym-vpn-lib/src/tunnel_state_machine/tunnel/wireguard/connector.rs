@@ -54,16 +54,8 @@ impl Connector {
         else {
             return Err(Error::AuthenticationNotPossible(auth_addresses.to_string()));
         };
-        let entry_version = selected_gateways
-            .entry
-            .version
-            .try_into()
-            .map_err(|_| Error::AuthenticatorVersionParsing)?;
-        let exit_version = selected_gateways
-            .exit
-            .version
-            .try_into()
-            .map_err(|_| Error::AuthenticatorVersionParsing)?;
+        let entry_version = selected_gateways.entry.version.into();
+        let exit_version = selected_gateways.exit.version.into();
         let auth_client = AuthClient::new_from_inner(self.mixnet_client.inner()).await;
 
         let mut wg_entry_gateway_client = if enable_credentials_mode {

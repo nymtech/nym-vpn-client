@@ -163,7 +163,7 @@ impl WgGatewayClient {
             public_key: *self.keypair.public_key(),
             auth_client: self.auth_client.clone(),
             auth_recipient: self.auth_recipient,
-            auth_version: self.auth_version.clone(),
+            auth_version: self.auth_version,
         }
     }
 
