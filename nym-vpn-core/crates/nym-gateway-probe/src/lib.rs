@@ -144,10 +144,9 @@ async fn wg_probe(
         AuthenticatorVersion::V2 => ClientMessage::Initial(Box::new(
             v2::registration::InitMessage::new(authenticator_pub_key),
         )),
-        AuthenticatorVersion::V3 => ClientMessage::Initial(Box::new(
-            v3::registration::InitMessage::new(authenticator_pub_key),
-        )),
-        AuthenticatorVersion::UNKNOWN => bail!("Unknwon version number"),
+        AuthenticatorVersion::V3 | AuthenticatorVersion::UNKNOWN => ClientMessage::Initial(
+            Box::new(v3::registration::InitMessage::new(authenticator_pub_key)),
+        ),
     };
 
     let mut wg_outcome = WgProbeResults::default();
