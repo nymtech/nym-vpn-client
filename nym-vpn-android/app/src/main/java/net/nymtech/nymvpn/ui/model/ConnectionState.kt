@@ -34,7 +34,7 @@ sealed class ConnectionState(val status: StringValue) {
 			return when (tunnelState) {
 				Tunnel.State.Down -> Disconnected
 				Tunnel.State.Up -> Connected
-				Tunnel.State.Connecting.InitializingClient ->
+				Tunnel.State.InitializingClient ->
 					Connecting(
 						StateMessage.Status(
 							StringValue.StringResource(
@@ -43,7 +43,7 @@ sealed class ConnectionState(val status: StringValue) {
 						),
 					)
 
-				Tunnel.State.Connecting.EstablishingConnection ->
+				Tunnel.State.EstablishingConnection ->
 					Connecting(
 						StateMessage.Status(
 							StringValue.StringResource(R.string.establishing_connection),

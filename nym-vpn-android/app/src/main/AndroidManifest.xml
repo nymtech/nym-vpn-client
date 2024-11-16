@@ -96,10 +96,6 @@
 				<action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
 			</intent-filter>
 		</receiver>
-		<receiver
-			android:name=".receiver.BackgroundActionReceiver"
-			android:enabled="true"
-			android:exported="false"/>
 		<provider
 			android:name="androidx.core.content.FileProvider"
 			android:authorities="@string/provider"

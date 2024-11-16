@@ -12,8 +12,6 @@ import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.service.tunnel.TunnelManager
-import net.nymtech.nymvpn.util.extensions.startTunnelFromBackground
-import net.nymtech.nymvpn.util.extensions.stopTunnelFromBackground
 import net.nymtech.vpn.backend.Tunnel
 import timber.log.Timber
 import javax.inject.Inject
@@ -55,7 +53,11 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 						setTileDescription(this@VpnQuickTile.getString(R.string.disconnecting))
 						setActive()
 					}
-					Tunnel.State.Connecting.EstablishingConnection, Tunnel.State.Connecting.InitializingClient -> {
+					Tunnel.State.InitializingClient -> {
+						setTileDescription(this@VpnQuickTile.getString(R.string.initializing))
+						setInactive()
+					}
+					Tunnel.State.EstablishingConnection -> {
 						setTileDescription(this@VpnQuickTile.getString(R.string.connecting))
 						setInactive()
 					}
@@ -83,10 +85,12 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 	override fun onClick() {
 		super.onClick()
 		unlockAndRun {
-			when (tunnelManager.getState()) {
-				Tunnel.State.Up -> stopTunnelFromBackground()
-				Tunnel.State.Down -> startTunnelFromBackground()
-				else -> Unit
+			lifecycleScope.launch {
+				when (tunnelManager.getState()) {
+					Tunnel.State.Up -> tunnelManager.stop()
+					Tunnel.State.Down -> tunnelManager.start(true)
+					else -> Unit
+				}
 			}
 		}
 	}

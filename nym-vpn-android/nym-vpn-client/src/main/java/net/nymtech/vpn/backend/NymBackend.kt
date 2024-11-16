@@ -23,7 +23,9 @@ import net.nymtech.vpn.util.Constants.LOG_LEVEL
 import net.nymtech.vpn.util.LifecycleVpnService
 import net.nymtech.vpn.util.NotificationManager
 import net.nymtech.vpn.util.SingletonHolder
+import net.nymtech.vpn.util.exceptions.NymVpnInitializeException
 import net.nymtech.vpn.util.extensions.addRoutes
+import net.nymtech.vpn.util.extensions.asTunnelState
 import net.nymtech.vpn.util.extensions.startVpnService
 import nym_vpn_lib.AccountLinks
 import nym_vpn_lib.AccountStateSummary
@@ -44,8 +46,8 @@ import nym_vpn_lib.startVpn
 import nym_vpn_lib.stopVpn
 import nym_vpn_lib.storeAccountMnemonic
 import timber.log.Timber
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.also
 import kotlin.properties.Delegates
 
 class NymBackend private constructor(val context: Context) : Backend, TunnelStatusListener {
@@ -72,6 +74,8 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		const val DEFAULT_LOCALE = "en"
 	}
 
+	private val initialized = AtomicBoolean(false)
+
 	private val ioDispatcher = Dispatchers.IO
 
 	private val storagePath = context.filesDir.absolutePath
@@ -84,11 +88,12 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	@get:Synchronized @set:Synchronized
 	private var state: Tunnel.State = Tunnel.State.Down
 
-	override suspend fun init(environment: Tunnel.Environment): Boolean {
+	override suspend fun init(environment: Tunnel.Environment) {
 		return withContext(ioDispatcher) {
 			runCatching {
 				initEnvironment(environment)
 				nym_vpn_lib.configureLib(storagePath)
+				initialized.set(true)
 			}.onFailure {
 				Timber.e(it)
 			}.isSuccess
@@ -144,15 +149,22 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		removeAccountMnemonic(storagePath)
 	}
 
+	@Throws(NymVpnInitializeException::class)
 	override suspend fun start(tunnel: Tunnel, background: Boolean) {
 		val state = getState()
-		if (tunnel == this.tunnel && state != Tunnel.State.Down) return
+		// TODO handle changes to tunnel while tunnel is up in future
+		if (state != Tunnel.State.Down) throw NymVpnInitializeException.VpnAlreadyRunning()
 		this.tunnel = tunnel
-		// reset any error state
 		tunnel.onBackendMessage(None)
-		tunnel.onStateChange(Tunnel.State.Connecting.InitializingClient)
-		if (!vpnService.isCompleted) context.startVpnService(background)
+		onStateChange(Tunnel.State.InitializingClient)
+		if (android.net.VpnService.prepare(context) != null) throw NymVpnInitializeException.VpnPermissionDenied()
+		startVpn(tunnel, background)
+	}
+
+	private suspend fun startVpn(tunnel: Tunnel, background: Boolean) {
 		withContext(ioDispatcher) {
+			if (!initialized.get()) init(tunnel.environment)
+			if (!vpnService.isCompleted) context.startVpnService(background)
 			val service = vpnService.await()
 			val backend = this@NymBackend
 			service.setOwner(backend)
@@ -176,7 +188,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	private fun onStartFailure(e: VpnException) {
 		Timber.e(e)
 		onDisconnect()
-		tunnel?.onStateChange(Tunnel.State.Down)
+		onStateChange(Tunnel.State.Down)
 		tunnel?.onBackendMessage(StartFailure(e))
 	}
 
@@ -248,19 +260,23 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 				}
 			}
 			is TunnelEvent.NewState -> {
-				state = when (event.v1) {
-					is TunnelState.Connected -> Tunnel.State.Up.also { statsJob = onConnect() }
-					TunnelState.Disconnected -> Tunnel.State.Down
-					is TunnelState.Disconnecting -> Tunnel.State.Disconnecting.also { onDisconnect() }
-					is TunnelState.Error -> Tunnel.State.Down.also {
+				onStateChange(event.asTunnelState())
+				when (event.v1) {
+					is TunnelState.Connected -> statsJob = onConnect()
+					is TunnelState.Disconnecting -> onDisconnect()
+					is TunnelState.Error -> {
 						tunnel?.onBackendMessage(Failure(event.v1.v1))
 						onVpnShutdown()
 					}
-					is TunnelState.Connecting -> Tunnel.State.Connecting.EstablishingConnection
+					else -> Unit
 				}
-				tunnel?.onStateChange(state)
 			}
 		}
+	}
+
+	private fun onStateChange(state: Tunnel.State) {
+		this.state = state
+		tunnel?.onStateChange(state)
 	}
 
 	class VpnService : LifecycleVpnService(), AndroidTunProvider {
