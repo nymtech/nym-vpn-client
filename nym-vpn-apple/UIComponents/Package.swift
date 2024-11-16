@@ -27,6 +27,7 @@ let package = Package(
             name: "UIComponents",
             dependencies: [
                 "Theme",
+                .product(name: "AppSettings", package: "Services"),
                 .product(name: "ConnectionManager", package: "Services"),
                 .product(name: "CountriesManager", package: "Services"),
                 .product(name: "ConfigurationManager", package: "Services"),
