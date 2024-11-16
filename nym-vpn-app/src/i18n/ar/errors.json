@@ -58,7 +58,8 @@
     "tun-device": "جهاز Tun لم يعمل بشكل صحيح",
     "routing": "فشل عملية التوجيه",
     "no-valid-credential": "لا توجد بيانات اعتماد صالحة، يرجى إضافة بيانات اعتماد أولاً",
-    "timeout": "انتهاء مهلة الاتصال"
+    "timeout": "انتهاء مهلة الاتصال",
+    "ready-to-connect": "لم يكن بالإمكان تحديد جاهزيتنا للاتصال أثناء الفحص"
   },
   "out-of-bandwidth": "نفاد النطاق الترددي المخصص",
   "exit-node": {
@@ -80,6 +81,14 @@
   "internal": "خطأ داخلي",
   "grpc": "خطأ داخلي في خدمة gRPC",
   "account": {
-    "invalid-recovery-phrase": "عبارة الاسترداد غير صحيحة"
+    "invalid-recovery-phrase": "عبارة الاسترداد غير صحيحة",
+    "storage": "خطأ في تخزين البيانات",
+    "no-account-stored": "لم يتم تخزين عبارة استرداد الحساب",
+    "not-active": "الحساب غير نشط",
+    "no-active-subscription": "الحساب لا يحتوي على اشتراك نشط",
+    "device": {
+      "not-registered": "الجهاز ليس مسجلاً",
+      "not-active": "الجهاز غير نشط"
+    }
   }
 }
