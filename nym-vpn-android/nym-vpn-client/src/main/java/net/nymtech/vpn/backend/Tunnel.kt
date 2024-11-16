@@ -43,11 +43,9 @@ interface Tunnel {
 
 		data object Down : State()
 
-		data object Connecting {
-			data object InitializingClient : State()
+		data object InitializingClient : State()
 
-			data object EstablishingConnection : State()
-		}
+		data object EstablishingConnection : State()
 
 		data object Disconnecting : State()
 	}

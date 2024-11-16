@@ -16,7 +16,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import net.nymtech.nymvpn.NymVpn.Companion.instance
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.receiver.BackgroundActionReceiver
 import net.nymtech.nymvpn.service.android.tile.VpnQuickTile
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.vpn.model.Country
@@ -75,22 +74,6 @@ fun Context.launchVpnSettings(): Result<Unit> {
 		}
 		startActivity(intent)
 	}
-}
-
-fun Context.startTunnelFromBackground() {
-	sendBroadcast(
-		Intent(this, BackgroundActionReceiver::class.java).apply {
-			action = BackgroundActionReceiver.ACTION_CONNECT
-		},
-	)
-}
-
-fun Context.stopTunnelFromBackground() {
-	sendBroadcast(
-		Intent(this, BackgroundActionReceiver::class.java).apply {
-			action = BackgroundActionReceiver.ACTION_DISCONNECT
-		},
-	)
 }
 
 @SuppressLint("DiscouragedApi")
