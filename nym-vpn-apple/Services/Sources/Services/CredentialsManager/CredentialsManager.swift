@@ -156,6 +156,8 @@ private extension CredentialsManager {
         else {
             do {
                 isInstalledAndRunning = try await helperManager.installHelperIfNeeded()
+                // Force version update after install.
+                _ = try? await grpcManager.version()
             } catch let error {
                 logger.error("Failed to install helper: \(error)")
             }

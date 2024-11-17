@@ -24,18 +24,10 @@ public struct SnackbarView: View {
         VStack {
             if isDisplayed {
                 HStack(alignment: .center, spacing: 12) {
-                    if let name = style.systemIconName {
-                        Image(systemName: name)
-                            .resizable()
-                            .foregroundColor(style.iconColor)
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 14, height: 14)
-                    }
-
-                    Text(message)
-                        .foregroundColor(style.textColor)
-                        .font(.system(size: 14))
-                        .frame(alignment: .leading)
+                    messageStyleImage()
+                    messageText()
+                    Spacer()
+                    closeButton()
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 16)
@@ -50,19 +42,38 @@ public struct SnackbarView: View {
             }
             Spacer()
         }
-        .onAppear {
-            Task {
-                while true {
-                    try? await Task.sleep(for: .seconds(3))
-                    withAnimation {
-                        isDisplayed = false
-                    }
-                    try? await Task.sleep(for: .seconds(3))
-                    withAnimation {
-                        isDisplayed = true
-                    }
-                }
-            }
+    }
+}
+
+extension SnackbarView {
+    @ViewBuilder
+    func messageStyleImage() -> some View {
+        if let name = style.systemIconName {
+            Image(systemName: name)
+                .resizable()
+                .foregroundStyle(style.iconColor)
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 14, height: 14)
         }
+    }
+
+    @ViewBuilder
+    func messageText() -> some View {
+        Text(message)
+            .foregroundColor(style.textColor)
+            .font(.system(size: 14))
+            .frame(alignment: .leading)
+    }
+
+    @ViewBuilder
+    func closeButton() -> some View {
+        Image(systemName: "xmark")
+            .resizable()
+            .foregroundStyle(style.iconColor)
+            .aspectRatio(contentMode: .fit)
+            .frame(width: 14, height: 14)
+            .onTapGesture {
+                isDisplayed = false
+            }
     }
 }

@@ -12,6 +12,7 @@ let package = Package(
     ],
     products: [
         .library(name: "AppVersionProvider", targets: ["AppVersionProvider"]),
+        .library(name: "SystemMessageModels", targets: ["SystemMessageModels"]),
         .library(name: "TunnelStatus", targets: ["TunnelStatus"])
     ],
     targets: [
@@ -19,6 +20,11 @@ let package = Package(
             name: "AppVersionProvider",
             dependencies: [],
             path: "Sources/AppVersionProvider"
+        ),
+        .target(
+            name: "SystemMessageModels",
+            dependencies: [],
+            path: "Sources/SystemMessageModels"
         ),
         .target(
             name: "TunnelStatus",

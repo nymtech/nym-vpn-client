@@ -18,8 +18,8 @@ extension View {
 
 struct SnackbarModifier: ViewModifier {
     @Binding var isDisplayed: Bool
-    let style: SnackbarStyle
-    let message: String
+    var style: SnackbarStyle
+    var message: String
 
     func body(content: Content) -> some View {
         ZStack {

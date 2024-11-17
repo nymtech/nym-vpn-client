@@ -27,6 +27,7 @@ let package = Package(
         .library(name: "NotificationsManager", targets: ["NotificationsManager"]),
         .library(name: "NymLogger", targets: ["NymLogger"]),
         .library(name: "SentryManager", targets: ["SentryManager"]),
+        .library(name: "SystemMessageManager", targets: ["SystemMessageManager"]),
         .library(name: "Tunnels", targets: ["Tunnels"]),
         .library(name: "TunnelMixnet", targets: ["TunnelMixnet"])
     ],
@@ -176,6 +177,16 @@ let package = Package(
                 .product(name: "Sentry", package: "sentry-cocoa")
             ],
             path: "Sources/Services/SentryManager"
+        ),
+        .target(
+            name: "SystemMessageManager",
+            dependencies: [
+                "AppSettings",
+                .product(name: "SystemMessageModels", package: "ServicesMutual"),
+                .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
+                .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS]))
+            ],
+            path: "Sources/Services/SystemMessageManager"
         ),
         .target(
             name: "Tunnels",
