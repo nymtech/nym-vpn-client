@@ -6,7 +6,7 @@ use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     path::PathBuf,
     sync::Arc,
-    time::Duration,
+    time::{Duration, Instant},
 };
 
 use bip39::Mnemonic;
@@ -706,31 +706,61 @@ where
     }
 
     async fn wait_for_disconnect(&mut self) -> Result<(), VpnServiceDisconnectError> {
-        let mut vpn_state_changes_rx = self.vpn_state_changes_tx.subscribe();
+        // let mut vpn_state_changes_rx = self.vpn_state_changes_tx.subscribe();
         self.handle_disconnect().await?;
 
-        if self.tunnel_state.is_disconnected() {
-            return Ok(());
+        let now = Instant::now();
+        loop {
+            if now.elapsed() > Duration::from_secs(5) {
+                return Err(VpnServiceDisconnectError::Internal(
+                    "Timeout waiting for VPN to disconnect".to_string(),
+                ));
+            }
+            if self.tunnel_state.is_disconnected() {
+                tracing::info!("Finshed waiting for disconnect");
+                return Ok(());
+            }
         }
 
-        while let Ok(state_change) = vpn_state_changes_rx.recv().await {
-            match state_change {
-                VpnServiceStateChange::NotConnected => {
-                    tracing::info!("VPN disconnected");
-                    break;
-                }
-                VpnServiceStateChange::ConnectionFailed(err) => {
-                    tracing::info!("VPN disconnected: {:?}", err);
-                    break;
-                }
-                state => {
-                    tracing::info!("VPN state change: {:?}", state);
-                }
-            }
-            tracing::info!("Waiting for VPN to disconnect");
-        }
-        tracing::info!("Finshed waiting for disconnect");
-        Ok(())
+        //loop {
+        //    match vpn_state_changes_rx.recv().await {
+        //        Ok(VpnServiceStateChange::NotConnected) => {
+        //            tracing::info!("VPN disconnected");
+        //            break;
+        //        }
+        //        Ok(VpnServiceStateChange::ConnectionFailed(err)) => {
+        //            tracing::info!("VPN disconnected: {:?}", err);
+        //            break;
+        //        }
+        //        Ok(state) => {
+        //            tracing::info!("VPN state change: {:?}", state);
+        //        }
+        //        Err(e) => {
+        //            tracing::error!("Failed to receive VPN state change: {}", e);
+        //            break;
+        //        }
+        //    }
+        //    tracing::info!("Waiting for VPN to disconnect");
+        //}
+
+        //while let Ok(state_change) = vpn_state_changes_rx.next().await {
+        //    match state_change {
+        //        VpnServiceStateChange::NotConnected => {
+        //            tracing::info!("VPN disconnected");
+        //            break;
+        //        }
+        //        VpnServiceStateChange::ConnectionFailed(err) => {
+        //            tracing::info!("VPN disconnected: {:?}", err);
+        //            break;
+        //        }
+        //        state => {
+        //            tracing::info!("VPN state change: {:?}", state);
+        //        }
+        //    }
+        //    tracing::info!("Waiting for VPN to disconnect");
+        //}
+        // tracing::info!("Finshed waiting for disconnect");
+        // Ok(())
     }
 
     async fn handle_connect(
