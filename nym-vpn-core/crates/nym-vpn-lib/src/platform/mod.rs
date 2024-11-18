@@ -262,7 +262,7 @@ async fn fetch_account_links(
         .and_then(|network| {
             network
                 .nym_vpn_network
-                .try_into_parsed_links(locale, account_id.as_ref().map(|s| s.as_str()))
+                .try_into_parsed_links(locale, account_id.as_deref())
         })
         .map(AccountLinks::from)
         .map_err(|err| VpnError::InternalError {
