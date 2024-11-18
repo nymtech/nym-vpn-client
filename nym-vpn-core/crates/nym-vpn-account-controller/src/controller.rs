@@ -31,7 +31,7 @@ use crate::{
             construct_zk_nym_request_data, poll_zk_nym, request_zk_nym, PollingResult,
             ZkNymRequestData,
         },
-        AccountCommand, AccountCommandError, AccountCommandResult, RunningCommands,
+        AccountCommand, AccountCommandError, AccountCommandResult, Command, RunningCommands,
     },
     error::Error,
     shared_state::{MnemonicState, ReadyToRegisterDevice, ReadyToRequestZkNym, SharedAccountState},
@@ -446,8 +446,9 @@ where
 
         let command_handler = self.waiting_update_account_command_handler.build(account);
 
-        self.running_commands.add(command).await;
-        self.running_command_tasks.spawn(command_handler.run());
+        if self.running_commands.add(command).await == Command::IsFirst {
+            self.running_command_tasks.spawn(command_handler.run());
+        }
     }
 
     async fn handle_update_device_state(&mut self, command: AccountCommand) {
@@ -482,8 +483,9 @@ where
             .waiting_update_device_command_handler
             .build(account, device);
 
-        self.running_commands.add(command).await;
-        self.running_command_tasks.spawn(command_handler.run());
+        if self.running_commands.add(command).await == Command::IsFirst {
+            self.running_command_tasks.spawn(command_handler.run());
+        }
     }
 
     async fn handle_register_device(&mut self, command: AccountCommand) {
@@ -520,8 +522,9 @@ where
             self.account_state.clone(),
             self.vpn_api_client.clone(),
         );
-        self.running_commands.add(command).await;
-        self.running_command_tasks.spawn(command_handler.run());
+        if self.running_commands.add(command).await == Command::IsFirst {
+            self.running_command_tasks.spawn(command_handler.run());
+        }
     }
 
     // Get and list zk-nyms for the device
