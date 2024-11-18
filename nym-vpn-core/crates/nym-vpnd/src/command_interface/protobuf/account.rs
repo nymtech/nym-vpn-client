@@ -10,9 +10,13 @@ use crate::service::AccountError;
 pub(crate) fn into_account_summary(state: AccountStateSummary) -> nym_vpn_proto::AccountSummary {
     nym_vpn_proto::AccountSummary {
         mnemonic: state.mnemonic.map(into_mnemonic).map(|m| m as i32),
-        account: state.account.map(into_account).map(|m| m as i32),
-        subscription: state.subscription.map(into_subscription).map(|m| m as i32),
+        account_registered: state
+            .account_registered
+            .map(into_account_registered)
+            .map(|m| m as i32),
+        account_summary: state.account_summary.map(into_account_summary_inner),
         device: state.device.map(into_device).map(|m| m as i32),
+        device_registration: state.device_registration.map(into_device_registration),
         pending_zk_nym: state.pending_zk_nym,
     }
 }
@@ -30,13 +34,23 @@ fn into_mnemonic(
     }
 }
 
+fn into_account_registered(
+    account_registered: nym_vpn_account_controller::shared_state::AccountRegistered,
+) -> nym_vpn_proto::AccountRegistered {
+    match account_registered {
+        nym_vpn_account_controller::shared_state::AccountRegistered::Registered => {
+            nym_vpn_proto::AccountRegistered::AccountRegistered
+        }
+        nym_vpn_account_controller::shared_state::AccountRegistered::NotRegistered => {
+            nym_vpn_proto::AccountRegistered::AccountNotRegistered
+        }
+    }
+}
+
 fn into_account(
     account: nym_vpn_account_controller::shared_state::AccountState,
 ) -> nym_vpn_proto::AccountState {
     match account {
-        nym_vpn_account_controller::shared_state::AccountState::NotRegistered => {
-            nym_vpn_proto::AccountState::NotRegistered
-        }
         nym_vpn_account_controller::shared_state::AccountState::Inactive => {
             nym_vpn_proto::AccountState::Inactive
         }
@@ -68,6 +82,26 @@ fn into_subscription(
     }
 }
 
+fn into_device_summary(
+    device_summary: nym_vpn_account_controller::shared_state::DeviceSummary,
+) -> nym_vpn_proto::DeviceSummary {
+    nym_vpn_proto::DeviceSummary {
+        active: device_summary.active,
+        max: device_summary.max,
+        remaining: device_summary.remaining,
+    }
+}
+
+fn into_account_summary_inner(
+    account_summary: nym_vpn_account_controller::shared_state::AccountSummary,
+) -> nym_vpn_proto::AccountSummaryInner {
+    nym_vpn_proto::AccountSummaryInner {
+        account: into_account(account_summary.account) as i32,
+        subscription: into_subscription(account_summary.subscription) as i32,
+        device_summary: Some(into_device_summary(account_summary.device_summary)),
+    }
+}
+
 fn into_device(
     device: nym_vpn_account_controller::shared_state::DeviceState,
 ) -> nym_vpn_proto::DeviceState {
@@ -84,6 +118,35 @@ fn into_device(
         nym_vpn_account_controller::shared_state::DeviceState::DeleteMe => {
             nym_vpn_proto::DeviceState::DeleteMe
         }
+    }
+}
+
+fn into_device_registration(
+    device_registration: nym_vpn_account_controller::shared_state::DeviceRegistration,
+) -> nym_vpn_proto::DeviceRegistration {
+    let mut returned_message = None;
+    let mut returned_message_id = None;
+    let kind = match device_registration {
+        nym_vpn_account_controller::shared_state::DeviceRegistration::InProgress => {
+            nym_vpn_proto::device_registration::DeviceRegistrationType::DeviceRegistrationInProgress
+        }
+        nym_vpn_account_controller::shared_state::DeviceRegistration::Success => {
+            nym_vpn_proto::device_registration::DeviceRegistrationType::DeviceRegistrationSuccess
+        }
+        nym_vpn_account_controller::shared_state::DeviceRegistration::Failed {
+            message,
+            message_id,
+        } => {
+            returned_message = Some(message);
+            returned_message_id = message_id;
+            nym_vpn_proto::device_registration::DeviceRegistrationType::DeviceRegistrationFailed
+        }
+    } as i32;
+
+    nym_vpn_proto::DeviceRegistration {
+        kind,
+        message: returned_message,
+        message_id: returned_message_id,
     }
 }
 

@@ -4,13 +4,15 @@
 use tokio::sync::mpsc::error::SendError;
 use url::Url;
 
-use crate::commands::AccountCommand;
+use crate::{commands::AccountCommand, shared_state::WaitForRegistrationError};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("failed to get account summary from nym-vpn-api at {base_url}")]
+    #[error("failed to get account summary: {message}")]
     GetAccountSummary {
-        base_url: Url,
+        message_id: Option<String>,
+        message: String,
+        base_url: Box<Url>,
         source: Box<nym_vpn_api_client::VpnApiClientError>,
     },
 
@@ -36,16 +38,26 @@ pub enum Error {
     #[error("failed to setup credential storage")]
     SetupCredentialStorage(#[source] nym_sdk::Error),
 
-    #[error("failed to register device")]
-    RegisterDevice(#[source] nym_vpn_api_client::VpnApiClientError),
+    #[error(transparent)]
+    WaitForRegisterDevice(#[from] WaitForRegistrationError),
 
-    #[error("failed to get devices")]
-    GetDevices(#[source] nym_vpn_api_client::VpnApiClientError),
+    #[error("failed to get devices: {message}")]
+    GetDevices {
+        message_id: Option<String>,
+        message: String,
+        response: Box<nym_vpn_api_client::response::NymErrorResponse>,
+    },
 
     #[error("failed to send account controller command")]
     AccountCommandSend {
         #[from]
         source: SendError<AccountCommand>,
+    },
+
+    #[error("failed to receive account controller result")]
+    AccountCommandRecv {
+        #[from]
+        source: tokio::sync::oneshot::error::RecvError,
     },
 
     #[error("failed to construct withdrawal request")]
@@ -56,6 +68,9 @@ pub enum Error {
 
     #[error("failed to send request zk-nym request")]
     RequestZkNym(#[source] nym_vpn_api_client::VpnApiClientError),
+
+    #[error("unexepected response from nym-vpn-api: {0}")]
+    UnexpectedResponse(#[source] nym_vpn_api_client::VpnApiClientError),
 
     #[error(transparent)]
     HttpClient(#[from] nym_http_api_client::HttpClientError),
@@ -101,10 +116,26 @@ pub enum Error {
 
     #[error("empty set of tickets")]
     NoTickets,
+
+    #[error("error returned by channel: {0}")]
+    ErrorReturnedByChannel(String),
+
+    #[error("command already running")]
+    CommandAlreadyRunning(String),
+
+    #[error("timeout waiting for: {0}")]
+    Timeout(String),
+
+    #[error("trying to wait for device registration that hasn't started")]
+    TryToWaitForDeviceRegistrationThatHasntStarted,
 }
 
 impl Error {
     pub fn internal(msg: impl ToString) -> Self {
         Error::Internal(msg.to_string())
+    }
+
+    pub fn by_channel(msg: impl ToString) -> Self {
+        Error::ErrorReturnedByChannel(msg.to_string())
     }
 }

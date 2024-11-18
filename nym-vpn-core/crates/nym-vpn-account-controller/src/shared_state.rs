@@ -1,14 +1,17 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{fmt, sync::Arc, time::Duration};
+use std::{fmt, sync::Arc};
 
 use nym_vpn_api_client::response::{
-    NymVpnAccountResponse, NymVpnAccountStatusResponse, NymVpnAccountSummarySubscription,
+    NymVpnAccountResponse, NymVpnAccountStatusResponse, NymVpnAccountSummaryDevices,
+    NymVpnAccountSummaryFairUsage, NymVpnAccountSummaryResponse, NymVpnAccountSummarySubscription,
     NymVpnDeviceStatus, NymVpnSubscriptionStatus,
 };
 use serde::Serialize;
 use tokio::sync::MutexGuard;
+
+use crate::commands::AccountCommandError;
 
 #[derive(Clone)]
 pub struct SharedAccountState {
@@ -18,26 +21,67 @@ pub struct SharedAccountState {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub enum ReadyToRegisterDevice {
     Ready,
+    InProgress,
     NoMnemonicStored,
+    AccountNotSynced,
+    AccountNotRegistered,
     AccountNotActive,
     NoActiveSubscription,
     DeviceAlreadyRegistered,
-    DeviceInactive,
-    DeviceDeleted,
+    //DeviceInactive,
+    //DeviceDeleted,
+    MaxDevicesReached(u64),
 }
 
 impl fmt::Display for ReadyToRegisterDevice {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ReadyToRegisterDevice::Ready => write!(f, "ready to register device"),
+            ReadyToRegisterDevice::InProgress => write!(f, "device registration in progress"),
             ReadyToRegisterDevice::NoMnemonicStored => write!(f, "no mnemonic stored"),
+            ReadyToRegisterDevice::AccountNotSynced => write!(f, "account not synced"),
+            ReadyToRegisterDevice::AccountNotRegistered => write!(f, "account not registered"),
             ReadyToRegisterDevice::AccountNotActive => write!(f, "account not active"),
             ReadyToRegisterDevice::NoActiveSubscription => write!(f, "no active subscription"),
             ReadyToRegisterDevice::DeviceAlreadyRegistered => {
                 write!(f, "device already registered")
             }
-            ReadyToRegisterDevice::DeviceInactive => write!(f, "device inactive"),
-            ReadyToRegisterDevice::DeviceDeleted => write!(f, "device marked for deletion"),
+            // ReadyToRegisterDevice::DeviceInactive => write!(f, "device inactive"),
+            // ReadyToRegisterDevice::DeviceDeleted => write!(f, "device marked for deletion"),
+            ReadyToRegisterDevice::MaxDevicesReached(max) => {
+                write!(f, "maximum number of devices reached: {max}")
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub enum ReadyToRequestZkNym {
+    Ready,
+    InProgress,
+    NoMnemonicStored,
+    AccountNotSynced,
+    AccountNotRegistered,
+    AccountNotActive,
+    DeviceNotSynced,
+    NoActiveSubscription,
+    DeviceNotRegistered,
+    DeviceNotActive,
+}
+
+impl fmt::Display for ReadyToRequestZkNym {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ReadyToRequestZkNym::Ready => write!(f, "ready to request zk-nym"),
+            ReadyToRequestZkNym::InProgress => write!(f, "zk-nym request in progress"),
+            ReadyToRequestZkNym::NoMnemonicStored => write!(f, "no mnemonic stored"),
+            ReadyToRequestZkNym::AccountNotSynced => write!(f, "account not synced"),
+            ReadyToRequestZkNym::AccountNotRegistered => write!(f, "account not registered"),
+            ReadyToRequestZkNym::AccountNotActive => write!(f, "account not active"),
+            ReadyToRequestZkNym::DeviceNotSynced => write!(f, "device not synced"),
+            ReadyToRequestZkNym::NoActiveSubscription => write!(f, "no active subscription"),
+            ReadyToRequestZkNym::DeviceNotRegistered => write!(f, "device not registered"),
+            ReadyToRequestZkNym::DeviceNotActive => write!(f, "device not active"),
         }
     }
 }
@@ -46,10 +90,17 @@ impl fmt::Display for ReadyToRegisterDevice {
 pub enum ReadyToConnect {
     Ready,
     NoMnemonicStored,
+    AccountNotSynced,
+    AccountNotRegistered,
     AccountNotActive,
     NoActiveSubscription,
     DeviceNotRegistered,
     DeviceNotActive,
+    DeviceRegistrationFailed {
+        message: String,
+        message_id: Option<String>,
+    },
+    //NoCredentialsAvailable,
 }
 
 impl fmt::Display for ReadyToConnect {
@@ -57,10 +108,15 @@ impl fmt::Display for ReadyToConnect {
         match self {
             ReadyToConnect::Ready => write!(f, "ready to connect"),
             ReadyToConnect::NoMnemonicStored => write!(f, "no mnemonic stored"),
+            ReadyToConnect::AccountNotSynced => write!(f, "account not synced"),
+            ReadyToConnect::AccountNotRegistered => write!(f, "account not registered"),
             ReadyToConnect::AccountNotActive => write!(f, "account not active"),
             ReadyToConnect::NoActiveSubscription => write!(f, "no active subscription"),
             ReadyToConnect::DeviceNotRegistered => write!(f, "device not registered"),
             ReadyToConnect::DeviceNotActive => write!(f, "device not active"),
+            ReadyToConnect::DeviceRegistrationFailed { message, .. } => {
+                write!(f, "device registration failed: {}", message)
+            }
         }
     }
 }
@@ -76,59 +132,6 @@ impl SharedAccountState {
         self.inner.lock().await
     }
 
-    pub async fn is_ready_to_connect(&self) -> ReadyToConnect {
-        self.lock().await.is_ready_now()
-    }
-
-    // Wait until the account status has been fetched from the API.
-    // Returns:
-    //  - Some: is the readyness status,
-    //  - None: timeout waiting for the status from the API.
-    pub async fn wait_for_ready_to_connect(&self, timeout: Duration) -> Option<ReadyToConnect> {
-        tracing::info!("Waiting for account state to be ready to connect");
-        let start = tokio::time::Instant::now();
-        let mut interval = tokio::time::interval(Duration::from_secs(1));
-        loop {
-            interval.tick().await;
-            if start.elapsed() > timeout {
-                tracing::error!("Timed out waiting for account state to be ready to connect");
-                return None;
-            }
-            if let Some(ready_to_connect) = self.lock().await.is_ready() {
-                tracing::info!("Account readyness status: {}", ready_to_connect);
-                return Some(ready_to_connect);
-            }
-        }
-    }
-
-    pub(crate) async fn is_ready_to_register_device(&self) -> ReadyToRegisterDevice {
-        let state = self.lock().await.clone();
-        if !state
-            .mnemonic
-            .map(|m| matches!(m, MnemonicState::Stored { .. }))
-            .unwrap_or(false)
-        {
-            return ReadyToRegisterDevice::NoMnemonicStored;
-        }
-        if state.account != Some(AccountState::Active) {
-            // if state.account.map(|a| !a.is_active()).unwrap_or(false) {
-            return ReadyToRegisterDevice::AccountNotActive;
-        }
-        if state.subscription != Some(SubscriptionState::Active) {
-            return ReadyToRegisterDevice::NoActiveSubscription;
-        }
-        if state.device == Some(DeviceState::Active) {
-            return ReadyToRegisterDevice::DeviceAlreadyRegistered;
-        }
-        if state.device == Some(DeviceState::Inactive) {
-            return ReadyToRegisterDevice::DeviceInactive;
-        }
-        if state.device == Some(DeviceState::DeleteMe) {
-            return ReadyToRegisterDevice::DeviceDeleted;
-        }
-        ReadyToRegisterDevice::Ready
-    }
-
     pub(crate) async fn set_mnemonic(&self, state: MnemonicState) {
         let mut guard = self.inner.lock().await;
         if guard.mnemonic.as_ref() != Some(&state) {
@@ -137,20 +140,20 @@ impl SharedAccountState {
         guard.mnemonic = Some(state);
     }
 
-    pub(crate) async fn set_account(&self, state: AccountState) {
+    pub(crate) async fn set_account_registered(&self, active: AccountRegistered) {
         let mut guard = self.inner.lock().await;
-        if guard.account.as_ref() != Some(&state) {
-            tracing::info!("Setting account state to {:?}", state);
+        if guard.account_registered.as_ref() != Some(&active) {
+            tracing::info!("Setting account to {:?}", active);
         }
-        guard.account = Some(state);
+        guard.account_registered = Some(active);
     }
 
-    pub(crate) async fn set_subscription(&self, state: SubscriptionState) {
+    pub(crate) async fn set_account_summary(&self, summary: AccountSummary) {
         let mut guard = self.inner.lock().await;
-        if guard.subscription.as_ref() != Some(&state) {
-            tracing::info!("Setting subscription state to {:?}", state);
+        if guard.account_summary.as_ref() != Some(&summary) {
+            tracing::info!("Setting account summary to {:?}", summary);
         }
-        guard.subscription = Some(state);
+        guard.account_summary = Some(summary);
     }
 
     pub(crate) async fn set_device(&self, state: DeviceState) {
@@ -161,6 +164,14 @@ impl SharedAccountState {
         guard.device = Some(state);
     }
 
+    pub(crate) async fn set_device_registration(&self, registration: DeviceRegistration) {
+        let mut guard = self.inner.lock().await;
+        if guard.device_registration.as_ref() != Some(&registration) {
+            tracing::info!("Setting device registration result to {:?}", registration);
+        }
+        guard.device_registration = Some(registration);
+    }
+
     pub(crate) async fn set_pending_zk_nym(&self, pending: bool) {
         let mut guard = self.inner.lock().await;
         if guard.pending_zk_nym != pending {
@@ -168,6 +179,33 @@ impl SharedAccountState {
             guard.pending_zk_nym = pending;
         }
     }
+
+    pub(crate) async fn is_ready_to_register_device(&self) -> ReadyToRegisterDevice {
+        self.lock().await.is_ready_to_register_device()
+    }
+
+    pub(crate) async fn is_ready_to_request_zk_nym(&self) -> ReadyToRequestZkNym {
+        self.lock().await.is_ready_to_request_zk_nym()
+    }
+
+    pub async fn is_ready_to_connect(&self, credential_mode: bool) -> ReadyToConnect {
+        self.lock().await.is_ready_to_connect(credential_mode)
+    }
+}
+
+#[derive(thiserror::Error, Debug, Clone, PartialEq, Serialize)]
+pub enum WaitForRegistrationError {
+    #[error("device registration failed: {message}, message_id: {message_id:?}")]
+    Failed {
+        message: String,
+        message_id: Option<String>,
+    },
+
+    #[error("timed out waiting for device registration")]
+    Timeout,
+
+    #[error("tried to wait for device registration that hasn't started")]
+    TryToWaitForDeviceRegistrationThatHasntStarted,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize)]
@@ -175,18 +213,35 @@ pub struct AccountStateSummary {
     // The locally stored recovery phrase that is deeply tied to the account
     pub mnemonic: Option<MnemonicState>,
 
-    // The state of the account on the remote server
-    pub account: Option<AccountState>,
+    // If the account is active on nym-vpn-api
+    pub account_registered: Option<AccountRegistered>,
 
-    // The state of the subscription on the remote server
-    pub subscription: Option<SubscriptionState>,
+    // The summary of the account on nym-vpn-api
+    pub account_summary: Option<AccountSummary>,
 
-    // The state of the device on the remote server
+    // The state of the device as reported by nym-vpn-api
     pub device: Option<DeviceState>,
+
+    // The result of the latest registration attempt, if any
+    pub device_registration: Option<DeviceRegistration>,
 
     // If there are any pending zk-nym requests. This is not stopping from trying to connect, but
     // it might be useful to hold off.
     pub pending_zk_nym: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub enum AccountRegistered {
+    NotRegistered,
+    Registered,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct AccountSummary {
+    pub account: AccountState,
+    pub subscription: SubscriptionState,
+    pub device_summary: DeviceSummary,
+    pub fair_usage: FairUsage,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -200,9 +255,6 @@ pub enum MnemonicState {
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum AccountState {
-    // The account is not registered on the remote server
-    NotRegistered,
-
     // The account is registered but not active
     Inactive,
 
@@ -211,6 +263,20 @@ pub enum AccountState {
 
     // The account is marked for deletion
     DeleteMe,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct DeviceSummary {
+    pub active: u64,
+    pub max: u64,
+    pub remaining: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct FairUsage {
+    pub used_gb: Option<f64>,
+    pub limit_gb: Option<f64>,
+    pub resets_on_utc: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -243,75 +309,172 @@ pub enum DeviceState {
     DeleteMe,
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub enum DeviceRegistration {
+    // The device registration is in progress
+    InProgress,
+
+    // The device registration was successful
+    Success,
+
+    // The device registration failed
+    Failed {
+        message: String,
+        message_id: Option<String>,
+    },
+}
+
 impl AccountStateSummary {
-    pub fn account_id(&self) -> Option<String> {
-        match &self.mnemonic {
-            Some(MnemonicState::Stored { id }) => Some(id.clone()),
-            _ => None,
+    //pub fn account_id(&self) -> Option<String> {
+    //    match &self.mnemonic {
+    //        Some(MnemonicState::Stored { id }) => Some(id.clone()),
+    //        _ => None,
+    //    }
+    //}
+
+    pub(crate) fn is_ready_to_register_device(&self) -> ReadyToRegisterDevice {
+        match self.device {
+            Some(DeviceState::NotRegistered) => {}
+            Some(DeviceState::Inactive) => {}
+            Some(DeviceState::Active) => return ReadyToRegisterDevice::DeviceAlreadyRegistered,
+            Some(DeviceState::DeleteMe) => {}
+            None => {}
         }
+
+        match self.device_registration {
+            Some(DeviceRegistration::InProgress) => return ReadyToRegisterDevice::InProgress,
+            Some(DeviceRegistration::Success) => {}
+            Some(DeviceRegistration::Failed { .. }) => {}
+            None => {}
+        }
+
+        match self.mnemonic {
+            Some(MnemonicState::NotStored) => return ReadyToRegisterDevice::NoMnemonicStored,
+            Some(MnemonicState::Stored { .. }) => {}
+            None => return ReadyToRegisterDevice::NoMnemonicStored,
+        }
+
+        match self.account_registered {
+            Some(AccountRegistered::Registered) => {}
+            Some(AccountRegistered::NotRegistered) => {
+                return ReadyToRegisterDevice::AccountNotRegistered
+            }
+            None => return ReadyToRegisterDevice::AccountNotSynced,
+        }
+
+        if let Some(ref account_summary) = self.account_summary {
+            match account_summary.account {
+                AccountState::Inactive => return ReadyToRegisterDevice::AccountNotActive,
+                AccountState::DeleteMe => return ReadyToRegisterDevice::AccountNotActive,
+                AccountState::Active => {}
+            }
+
+            match account_summary.subscription {
+                SubscriptionState::NotActive => return ReadyToRegisterDevice::NoActiveSubscription,
+                SubscriptionState::Pending => return ReadyToRegisterDevice::NoActiveSubscription,
+                SubscriptionState::Complete => return ReadyToRegisterDevice::NoActiveSubscription,
+                SubscriptionState::Active => {}
+            }
+
+            if account_summary.device_summary.remaining == 0 {
+                return ReadyToRegisterDevice::MaxDevicesReached(
+                    account_summary.device_summary.max,
+                );
+            }
+        }
+
+        ReadyToRegisterDevice::Ready
+    }
+
+    pub(crate) fn is_ready_to_request_zk_nym(&self) -> ReadyToRequestZkNym {
+        match self.mnemonic {
+            Some(MnemonicState::NotStored) => return ReadyToRequestZkNym::NoMnemonicStored,
+            Some(MnemonicState::Stored { .. }) => {}
+            None => return ReadyToRequestZkNym::NoMnemonicStored,
+        }
+
+        match self.account_registered {
+            Some(AccountRegistered::Registered) => {}
+            Some(AccountRegistered::NotRegistered) => {
+                return ReadyToRequestZkNym::AccountNotRegistered
+            }
+            None => return ReadyToRequestZkNym::AccountNotSynced,
+        }
+
+        if let Some(ref account_summary) = self.account_summary {
+            match account_summary.account {
+                AccountState::Inactive => return ReadyToRequestZkNym::AccountNotActive,
+                AccountState::DeleteMe => return ReadyToRequestZkNym::AccountNotActive,
+                AccountState::Active => {}
+            }
+
+            match account_summary.subscription {
+                SubscriptionState::NotActive => return ReadyToRequestZkNym::NoActiveSubscription,
+                SubscriptionState::Pending => return ReadyToRequestZkNym::NoActiveSubscription,
+                SubscriptionState::Complete => return ReadyToRequestZkNym::NoActiveSubscription,
+                SubscriptionState::Active => {}
+            }
+        }
+
+        match self.device {
+            Some(DeviceState::Active) => {}
+            Some(DeviceState::NotRegistered) => return ReadyToRequestZkNym::DeviceNotRegistered,
+            Some(DeviceState::Inactive) => return ReadyToRequestZkNym::DeviceNotActive,
+            Some(DeviceState::DeleteMe) => return ReadyToRequestZkNym::DeviceNotActive,
+            None => return ReadyToRequestZkNym::DeviceNotSynced,
+        }
+
+        if self.pending_zk_nym {
+            return ReadyToRequestZkNym::InProgress;
+        }
+
+        ReadyToRequestZkNym::Ready
     }
 
     // If we are ready right right now.
-    fn is_ready_now(&self) -> ReadyToConnect {
-        if !self
-            .mnemonic
-            .as_ref()
-            .map(|m| matches!(m, MnemonicState::Stored { .. }))
-            .unwrap_or(false)
-        {
-            return ReadyToConnect::NoMnemonicStored;
+    pub(crate) fn is_ready_to_connect(&self, credential_mode: bool) -> ReadyToConnect {
+        match self.mnemonic {
+            Some(MnemonicState::NotStored) => return ReadyToConnect::NoMnemonicStored,
+            Some(MnemonicState::Stored { .. }) => {}
+            None => return ReadyToConnect::NoMnemonicStored,
         }
-        if self.account != Some(AccountState::Active) {
-            return ReadyToConnect::AccountNotActive;
+
+        match self.account_registered {
+            Some(AccountRegistered::Registered) => {}
+            Some(AccountRegistered::NotRegistered) => return ReadyToConnect::AccountNotRegistered,
+            None => return ReadyToConnect::AccountNotSynced,
         }
-        if self.subscription != Some(SubscriptionState::Active) {
-            return ReadyToConnect::NoActiveSubscription;
+
+        if let Some(ref account_summary) = self.account_summary {
+            match account_summary.account {
+                AccountState::Inactive => return ReadyToConnect::AccountNotActive,
+                AccountState::DeleteMe => return ReadyToConnect::AccountNotActive,
+                AccountState::Active => {}
+            }
+
+            match account_summary.subscription {
+                SubscriptionState::NotActive => return ReadyToConnect::NoActiveSubscription,
+                SubscriptionState::Pending => return ReadyToConnect::NoActiveSubscription,
+                SubscriptionState::Complete => return ReadyToConnect::NoActiveSubscription,
+                SubscriptionState::Active => {}
+            }
         }
+
         match self.device {
-            None => return ReadyToConnect::DeviceNotRegistered,
+            Some(DeviceState::Active) => {}
             Some(DeviceState::NotRegistered) => return ReadyToConnect::DeviceNotRegistered,
             Some(DeviceState::Inactive) => return ReadyToConnect::DeviceNotActive,
-            _ => {}
+            Some(DeviceState::DeleteMe) => return ReadyToConnect::DeviceNotActive,
+            None => return ReadyToConnect::DeviceNotRegistered,
         }
-        ReadyToConnect::Ready
-    }
 
-    // If we know if we are ready
-    // - Some: we know if we are ready
-    // - None: we don't yet know if we are ready
-    fn is_ready(&self) -> Option<ReadyToConnect> {
-        match self.mnemonic {
-            Some(MnemonicState::NotStored) => return Some(ReadyToConnect::NoMnemonicStored),
-            Some(MnemonicState::Stored { .. }) => {}
-            None => return None,
+        if credential_mode {
+            //if !local_credentials_available {
+            //    return ReadyToConnect::NoCredentialsAvailable
+            //}
         }
-        match self.account {
-            Some(AccountState::NotRegistered) => return Some(ReadyToConnect::AccountNotActive),
-            Some(AccountState::Inactive { .. }) => return Some(ReadyToConnect::AccountNotActive),
-            Some(AccountState::DeleteMe { .. }) => return Some(ReadyToConnect::AccountNotActive),
-            Some(AccountState::Active { .. }) => {}
-            None => return None,
-        }
-        match self.subscription {
-            Some(SubscriptionState::NotActive) => {
-                return Some(ReadyToConnect::NoActiveSubscription)
-            }
-            Some(SubscriptionState::Pending) => return Some(ReadyToConnect::NoActiveSubscription),
-            Some(SubscriptionState::Complete) => return Some(ReadyToConnect::NoActiveSubscription),
-            Some(SubscriptionState::Active) => {}
-            None => return None,
-        }
-        match self.device {
-            Some(DeviceState::NotRegistered) => return Some(ReadyToConnect::DeviceNotRegistered),
-            Some(DeviceState::Inactive) => return Some(ReadyToConnect::DeviceNotActive),
-            Some(DeviceState::DeleteMe) => return Some(ReadyToConnect::DeviceNotActive),
-            Some(DeviceState::Active) => {}
-            None => return None,
-        }
-        if self.pending_zk_nym {
-            return None;
-        }
-        Some(ReadyToConnect::Ready)
+
+        ReadyToConnect::Ready
     }
 }
 
@@ -319,10 +482,10 @@ impl fmt::Display for AccountStateSummary {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "AccountState {{ Mnemonic: {}, Account: {}, Subscription: {}, Device: {}, Pending ZK-Nym: {} }}",
+            "AccountState {{ mnemonic: {}, account_registered: {}, account_summary: {}, device: {}, pending_zk_nym: {} }}",
             debug_or_unknown(self.mnemonic.as_ref()),
-            debug_or_unknown(self.account.as_ref()),
-            debug_or_unknown(self.subscription.as_ref()),
+            debug_or_unknown(self.account_registered.as_ref()),
+            debug_or_unknown(self.account_summary.as_ref()),
             debug_or_unknown(self.device.as_ref()),
             self.pending_zk_nym,
         )
@@ -362,12 +525,73 @@ impl From<NymVpnAccountSummarySubscription> for SubscriptionState {
     }
 }
 
+impl From<NymVpnAccountSummaryResponse> for AccountSummary {
+    fn from(summary: NymVpnAccountSummaryResponse) -> Self {
+        Self {
+            account: AccountState::from(summary.account),
+            subscription: SubscriptionState::from(summary.subscription),
+            device_summary: DeviceSummary::from(summary.devices),
+            fair_usage: FairUsage::from(summary.fair_usage),
+        }
+    }
+}
+
+impl From<NymVpnAccountSummaryDevices> for DeviceSummary {
+    fn from(devices: NymVpnAccountSummaryDevices) -> Self {
+        DeviceSummary {
+            active: devices.active,
+            max: devices.max,
+            remaining: devices.remaining,
+        }
+    }
+}
+
+impl From<NymVpnAccountSummaryFairUsage> for FairUsage {
+    fn from(fair_usage: NymVpnAccountSummaryFairUsage) -> Self {
+        FairUsage {
+            used_gb: fair_usage.used_gb,
+            limit_gb: fair_usage.limit_gb,
+            resets_on_utc: fair_usage.resets_on_utc,
+        }
+    }
+}
+
 impl From<NymVpnDeviceStatus> for DeviceState {
     fn from(status: NymVpnDeviceStatus) -> Self {
         match status {
             NymVpnDeviceStatus::Active => DeviceState::Active,
             NymVpnDeviceStatus::Inactive => DeviceState::Inactive,
             NymVpnDeviceStatus::DeleteMe => DeviceState::DeleteMe,
+        }
+    }
+}
+
+impl From<&AccountCommandError> for DeviceRegistration {
+    fn from(err: &AccountCommandError) -> Self {
+        match err {
+            AccountCommandError::UpdateAccountEndpointFailure {
+                message,
+                message_id,
+                base_url: _,
+            }
+            | AccountCommandError::UpdateDeviceEndpointFailure {
+                message_id,
+                message,
+            }
+            | AccountCommandError::RegisterDeviceEndpointFailure {
+                message_id,
+                message,
+            } => DeviceRegistration::Failed {
+                message: message.clone(),
+                message_id: message_id.clone(),
+            },
+            AccountCommandError::General(_)
+            | AccountCommandError::Internal(_)
+            | AccountCommandError::NoAccountStored
+            | AccountCommandError::NoDeviceStored => DeviceRegistration::Failed {
+                message: err.to_string(),
+                message_id: None,
+            },
         }
     }
 }
