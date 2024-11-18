@@ -1,4 +1,6 @@
 import Foundation
+import SwiftUI
+import Theme
 import TunnelStatus
 
 public enum StatusInfoState: Equatable {
@@ -38,7 +40,16 @@ public enum StatusInfoState: Equatable {
         }
     }
 
-    public var isConnecting: Bool {
+    var isConnecting: Bool {
         self == .connecting
+    }
+
+    var textColor: Color {
+        switch self {
+        case .initialising, .connecting, .connectionTime, .installingDaemon:
+            NymColor.statusInfoText
+        case .error, .unknown:
+            NymColor.sysError
+        }
     }
 }

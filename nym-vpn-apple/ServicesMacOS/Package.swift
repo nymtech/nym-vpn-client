@@ -33,6 +33,7 @@ let package = Package(
             dependencies: [
                 "HelperManager",
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
+                .product(name: "SystemMessageModels", package: "ServicesMutual"),
                 .product(name: "Base58Swift", package: "Base58Swift"),
                 .product(name: "GRPC", package: "grpc-swift")
             ],
