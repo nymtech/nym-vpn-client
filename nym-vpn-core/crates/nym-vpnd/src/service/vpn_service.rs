@@ -696,73 +696,6 @@ where
         Ok(())
     }
 
-    async fn wait_for_disconnect_with_timeout(
-        &mut self,
-        timeout: Duration,
-    ) -> Result<(), VpnServiceDisconnectError> {
-        tokio::time::timeout(timeout, self.wait_for_disconnect())
-            .await
-            .map_err(|_| VpnServiceDisconnectError::Internal("timeout".to_string()))?
-    }
-
-    async fn wait_for_disconnect(&mut self) -> Result<(), VpnServiceDisconnectError> {
-        // let mut vpn_state_changes_rx = self.vpn_state_changes_tx.subscribe();
-        self.handle_disconnect().await?;
-
-        let now = Instant::now();
-        loop {
-            if now.elapsed() > Duration::from_secs(5) {
-                return Err(VpnServiceDisconnectError::Internal(
-                    "Timeout waiting for VPN to disconnect".to_string(),
-                ));
-            }
-            if self.tunnel_state.is_disconnected() {
-                tracing::info!("Finshed waiting for disconnect");
-                return Ok(());
-            }
-        }
-
-        //loop {
-        //    match vpn_state_changes_rx.recv().await {
-        //        Ok(VpnServiceStateChange::NotConnected) => {
-        //            tracing::info!("VPN disconnected");
-        //            break;
-        //        }
-        //        Ok(VpnServiceStateChange::ConnectionFailed(err)) => {
-        //            tracing::info!("VPN disconnected: {:?}", err);
-        //            break;
-        //        }
-        //        Ok(state) => {
-        //            tracing::info!("VPN state change: {:?}", state);
-        //        }
-        //        Err(e) => {
-        //            tracing::error!("Failed to receive VPN state change: {}", e);
-        //            break;
-        //        }
-        //    }
-        //    tracing::info!("Waiting for VPN to disconnect");
-        //}
-
-        //while let Ok(state_change) = vpn_state_changes_rx.next().await {
-        //    match state_change {
-        //        VpnServiceStateChange::NotConnected => {
-        //            tracing::info!("VPN disconnected");
-        //            break;
-        //        }
-        //        VpnServiceStateChange::ConnectionFailed(err) => {
-        //            tracing::info!("VPN disconnected: {:?}", err);
-        //            break;
-        //        }
-        //        state => {
-        //            tracing::info!("VPN state change: {:?}", state);
-        //        }
-        //    }
-        //    tracing::info!("Waiting for VPN to disconnect");
-        //}
-        // tracing::info!("Finshed waiting for disconnect");
-        // Ok(())
-    }
-
     async fn handle_connect(
         &mut self,
         connect_args: ConnectArgs,
@@ -973,12 +906,6 @@ where
     }
 
     async fn handle_remove_account(&mut self) -> Result<(), AccountError> {
-        tracing::info!("First disconnecting the VPN");
-        self.wait_for_disconnect_with_timeout(Duration::from_secs(10))
-            .await
-            .inspect_err(|err| tracing::error!("Error during disconnect: {err:?}"))
-            .ok();
-
         self.storage
             .lock()
             .await
@@ -999,12 +926,6 @@ where
     }
 
     async fn handle_forget_account(&mut self) -> Result<(), AccountError> {
-        tracing::info!("First disconnecting the VPN");
-        self.wait_for_disconnect_with_timeout(Duration::from_secs(10))
-            .await
-            .inspect_err(|err| tracing::error!("Error during disconnect: {err:?}"))
-            .ok();
-
         let data_dir = self.data_dir.clone();
         tracing::warn!(
             "REMOVING ALL ACCOUNT AND DEVICE DATA IN: {}",

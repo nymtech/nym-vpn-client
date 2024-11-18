@@ -1,6 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::time::Duration;
+
 use nym_vpn_account_controller::{AccountStateSummary, AvailableTicketbooks, ReadyToConnect};
 use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
 use tokio::sync::{mpsc::UnboundedSender, oneshot};
@@ -151,6 +153,7 @@ impl CommandInterfaceConnectionHandler {
     pub(crate) async fn handle_remove_account(
         &self,
     ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
+        self.disconnect_and_wait().await;
         self.send_and_wait(VpnServiceCommand::RemoveAccount, ())
             .await
     }
@@ -158,6 +161,7 @@ impl CommandInterfaceConnectionHandler {
     pub(crate) async fn handle_forget_account(
         &self,
     ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
+        self.disconnect_and_wait().await;
         self.send_and_wait(VpnServiceCommand::ForgetAccount, ())
             .await
     }
@@ -294,6 +298,33 @@ impl CommandInterfaceConnectionHandler {
             VpnCommandSendError::Receive
         })
     }
+
+    pub(crate) async fn disconnect_and_wait(&self) {
+        self.send_and_wait(VpnServiceCommand::Disconnect, ())
+            .await
+            .inspect_err(|err| {
+                tracing::error!("Failed to disconnect account: {:?}", err);
+            })
+            .ok();
+        let now = std::time::Instant::now();
+        loop {
+            tokio::time::sleep(Duration::from_millis(500)).await;
+            if now.elapsed() > Duration::from_secs(5) {
+                break;
+            }
+            match self.handle_status().await {
+                Ok(VpnServiceStatus::NotConnected) => break,
+                Ok(VpnServiceStatus::ConnectionFailed(..)) => break,
+                Ok(_) => {}
+                Err(err) => {
+                    tracing::error!("Failed to get status: {:?}", err);
+                    break;
+                }
+            }
+        }
+        tracing::info!("Account is disconnected");
+    }
+
 }
 
 fn directory_client(

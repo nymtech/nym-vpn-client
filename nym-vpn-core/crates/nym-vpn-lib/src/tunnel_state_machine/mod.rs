@@ -236,12 +236,6 @@ pub enum TunnelState {
     Error(ErrorStateReason),
 }
 
-impl TunnelState {
-    pub fn is_disconnected(&self) -> bool {
-        matches!(self, Self::Disconnected | Self::Error(_))
-    }
-}
-
 impl From<PrivateTunnelState> for TunnelState {
     fn from(value: PrivateTunnelState) -> Self {
         match value {
