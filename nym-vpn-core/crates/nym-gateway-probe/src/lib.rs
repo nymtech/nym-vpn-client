@@ -14,7 +14,7 @@ use dns_lookup::lookup_host;
 use futures::StreamExt;
 use netstack::{NetstackCall as _, NetstackCallImpl};
 use nym_authenticator_client::{AuthenticatorResponse, AuthenticatorVersion, ClientMessage};
-use nym_authenticator_requests::{v2, v3};
+use nym_authenticator_requests::{v2, v3, v4};
 use nym_config::defaults::NymNetworkDetails;
 use nym_connection_monitor::self_ping_and_wait;
 use nym_gateway_directory::{
@@ -147,6 +147,9 @@ async fn wg_probe(
         AuthenticatorVersion::V3 => ClientMessage::Initial(Box::new(
             v3::registration::InitMessage::new(authenticator_pub_key),
         )),
+        AuthenticatorVersion::V4 => ClientMessage::Initial(Box::new(
+            v4::registration::InitMessage::new(authenticator_pub_key),
+        )),
         AuthenticatorVersion::UNKNOWN => bail!("Unknwon version number"),
     };
 
@@ -171,7 +174,7 @@ async fn wg_probe(
                             gateway_client: v2::registration::GatewayClient::new(
                                 &private_key,
                                 pending_registration_response.pub_key().inner(),
-                                pending_registration_response.private_ip(),
+                                pending_registration_response.private_ips().ipv4.into(),
                                 pending_registration_response.nonce(),
                             ),
                             credential: None,
@@ -182,7 +185,18 @@ async fn wg_probe(
                             gateway_client: v3::registration::GatewayClient::new(
                                 &private_key,
                                 pending_registration_response.pub_key().inner(),
-                                pending_registration_response.private_ip(),
+                                pending_registration_response.private_ips().ipv4.into(),
+                                pending_registration_response.nonce(),
+                            ),
+                            credential: None,
+                        }))
+                    }
+                    AuthenticatorVersion::V4 => {
+                        ClientMessage::Final(Box::new(v4::registration::FinalMessage {
+                            gateway_client: v4::registration::GatewayClient::new(
+                                &private_key,
+                                pending_registration_response.pub_key().inner(),
+                                pending_registration_response.private_ips(),
                                 pending_registration_response.nonce(),
                             ),
                             credential: None,
