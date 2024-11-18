@@ -63,7 +63,9 @@ private extension HomeView {
             viewModel.configureConnectedTimeTimer()
         }
         .onDisappear {
+#if os(iOS)
             viewModel.stopConnectedTimeTimerUpdates()
+#endif
         }
     }
 
