@@ -130,6 +130,7 @@ vergen = { version = "8.3.1", default-features = false }
 windows-sys = "0.52"
 x25519-dalek = "2.0"
 zeroize = "1.6.0"
+
 nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "develop" }

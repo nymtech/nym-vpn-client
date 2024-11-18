@@ -6,6 +6,7 @@ import CountriesManager
 import CredentialsManager
 import ExternalLinkManager
 import Settings
+import SystemMessageManager
 import TunnelMixnet
 import TunnelStatus
 import Tunnels
@@ -25,6 +26,7 @@ public class HomeViewModel: HomeFlowState {
     private var cancellables = Set<AnyCancellable>()
     private var tunnelStatusUpdateCancellable: AnyCancellable?
     private var lastError: Error?
+    private var isProcessingMessages = false
     @MainActor @Published private var activeTunnel: Tunnel?
 
     let title = "NymVPN".localizedString
@@ -36,6 +38,7 @@ public class HomeViewModel: HomeFlowState {
     let countriesManager: CountriesManager
     let credentialsManager: CredentialsManager
     let externalLinkManager: ExternalLinkManager
+    let systemMessageManager: SystemMessageManager
 #if os(iOS)
     let impactGenerator: ImpactGenerator
 #endif
@@ -56,16 +59,26 @@ public class HomeViewModel: HomeFlowState {
     @MainActor @Published var statusInfoState = StatusInfoState.initialising
     @MainActor @Published var connectButtonState = ConnectButtonState.connect
     @MainActor @Published var isModeInfoOverlayDisplayed = false
+    @MainActor @Published var isSnackbarDisplayed = false {
+        didSet {
+            guard !isSnackbarDisplayed else { return }
+            isProcessingMessages = false
+            displaySystemMessages()
+        }
+    }
+    @MainActor @Published var snackBarStyle = SnackbarStyle.info
+    @MainActor @Published var currentSnackBarMessage = ""
     var lastTunnelStatus = TunnelStatus.disconnected
 
 #if os(iOS)
     public init(
-        appSettings: AppSettings = AppSettings.shared,
-        connectionManager: ConnectionManager = ConnectionManager.shared,
-        countriesManager: CountriesManager = CountriesManager.shared,
-        credentialsManager: CredentialsManager = CredentialsManager.shared,
-        externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared,
-        impactGenerator: ImpactGenerator = ImpactGenerator.shared
+        appSettings: AppSettings = .shared,
+        connectionManager: ConnectionManager = .shared,
+        countriesManager: CountriesManager = .shared,
+        credentialsManager: CredentialsManager = .shared,
+        externalLinkManager: ExternalLinkManager = .shared,
+        impactGenerator: ImpactGenerator = .shared,
+        systemMessageManager: SystemMessageManager = .shared
     ) {
         self.appSettings = appSettings
         self.connectionManager = connectionManager
@@ -73,7 +86,7 @@ public class HomeViewModel: HomeFlowState {
         self.credentialsManager = credentialsManager
         self.externalLinkManager = externalLinkManager
         self.impactGenerator = impactGenerator
-
+        self.systemMessageManager = systemMessageManager
         super.init()
 
         setup()
@@ -82,13 +95,14 @@ public class HomeViewModel: HomeFlowState {
 
 #if os(macOS)
     public init(
-        appSettings: AppSettings = AppSettings.shared,
-        connectionManager: ConnectionManager = ConnectionManager.shared,
-        countriesManager: CountriesManager = CountriesManager.shared,
-        credentialsManager: CredentialsManager = CredentialsManager.shared,
-        grpcManager: GRPCManager = GRPCManager.shared,
-        helperManager: HelperManager = HelperManager.shared,
-        externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared
+        appSettings: AppSettings = .shared,
+        connectionManager: ConnectionManager = .shared,
+        countriesManager: CountriesManager = .shared,
+        credentialsManager: CredentialsManager = .shared,
+        grpcManager: GRPCManager = .shared,
+        helperManager: HelperManager = .shared,
+        externalLinkManager: ExternalLinkManager = .shared,
+        systemMessageManager: SystemMessageManager = .shared
     ) {
         self.appSettings = appSettings
         self.connectionManager = connectionManager
@@ -97,6 +111,7 @@ public class HomeViewModel: HomeFlowState {
         self.grpcManager = grpcManager
         self.helperManager = helperManager
         self.externalLinkManager = externalLinkManager
+        self.systemMessageManager = systemMessageManager
         super.init()
 
         setup()
@@ -106,6 +121,10 @@ public class HomeViewModel: HomeFlowState {
     deinit {
         cancellables.forEach { $0.cancel() }
         timer.invalidate()
+    }
+
+    func updateSystemMessages() {
+        systemMessageManager.fetchMessages()
     }
 }
 
@@ -217,6 +236,7 @@ private extension HomeViewModel {
         updateInitialTunnelStatus()
 #endif
         setupCountriesManagerObservers()
+        setupSystemMessageObservers()
     }
 
     func setupTunnelManagerObservers() {
@@ -249,6 +269,14 @@ private extension HomeViewModel {
     func setupCountriesManagerObservers() {
         countriesManager.$lastError.sink { [weak self] error in
             self?.lastError = error
+        }
+        .store(in: &cancellables)
+    }
+
+    func setupSystemMessageObservers() {
+        systemMessageManager.$messages.sink { [weak self] messages in
+            guard !messages.isEmpty else { return }
+            self?.displaySystemMessages()
         }
         .store(in: &cancellables)
     }
@@ -367,6 +395,8 @@ private extension HomeViewModel {
             do {
                 updateStatusInfoState(with: .installingDaemon)
                 isInstalledAndRunning = try await helperManager.installHelperIfNeeded()
+                // Force version update after install.
+                _ = try? await grpcManager.version()
                 resetStatusInfoState()
             } catch let error {
                 updateStatusInfoState(with: .error(message: error.localizedDescription))
@@ -422,6 +452,38 @@ private extension HomeViewModel {
         Task { @MainActor in
             guard newState != statusInfoState else { return }
             statusInfoState = newState
+        }
+    }
+}
+
+// MARK: - System messages -
+private extension HomeViewModel {
+    // TODO: move to system messages manager
+    func displaySystemMessages() {
+        guard !isProcessingMessages else { return }
+
+        isProcessingMessages = true
+
+        Task(priority: .background) { [weak self] in
+            while let self = self,
+                  !self.systemMessageManager.messages.isEmpty,
+                  let message = self.systemMessageManager.messages.first?.message {
+                await MainActor.run {
+                    self.currentSnackBarMessage = message
+                    self.isSnackbarDisplayed = true
+                }
+
+                self.systemMessageManager.messages.removeFirst()
+
+                try? await Task.sleep(for: .seconds(10))
+
+                await MainActor.run {
+                    self.isSnackbarDisplayed = false
+                    self.currentSnackBarMessage = ""
+                }
+            }
+
+            self?.isProcessingMessages = false
         }
     }
 }

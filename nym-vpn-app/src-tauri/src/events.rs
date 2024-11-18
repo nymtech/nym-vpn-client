@@ -151,7 +151,7 @@ pub struct StatusUpdatePayload {
 
 fn status_update_to_error(update: ConnectionStatusUpdate) -> Option<BackendError> {
     let status = update.kind();
-    let error = BackendError::new_with_optional_data(
+    let error = BackendError::with_optional_data(
         &update.message,
         ErrorKey::from(status),
         Some(update.details),

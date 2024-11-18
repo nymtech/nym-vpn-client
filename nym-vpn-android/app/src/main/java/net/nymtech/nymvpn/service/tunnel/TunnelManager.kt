@@ -2,6 +2,7 @@ package net.nymtech.nymvpn.service.tunnel
 
 import kotlinx.coroutines.flow.Flow
 import net.nymtech.vpn.backend.Tunnel
+import nym_vpn_lib.AccountLinks
 import nym_vpn_lib.AccountStateSummary
 
 interface TunnelManager {
@@ -11,6 +12,7 @@ interface TunnelManager {
 	suspend fun isMnemonicStored(): Boolean
 	suspend fun removeMnemonic()
 	suspend fun getAccountSummary(): AccountStateSummary
-	val stateFlow: Flow<TunnelState>
+	suspend fun getAccountLinks(): AccountLinks?
+	val stateFlow: Flow<TunnelManagerState>
 	fun getState(): Tunnel.State
 }

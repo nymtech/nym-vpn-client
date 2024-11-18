@@ -9,26 +9,28 @@ use nym_vpn_proto::{
     ConnectRequest, ConnectionStatus, DisconnectRequest, Dns, Empty, EntryNode, ExitNode,
     FetchRawAccountSummaryRequest, GatewayType, GetAccountLinksRequest, GetFeatureFlagsRequest,
     GetSystemMessagesRequest, HealthCheckRequest, InfoRequest, InfoResponse,
-    IsAccountStoredRequest, ListCountriesRequest, Location, RemoveAccountRequest,
-    SetNetworkRequest, StatusRequest, StatusResponse, StoreAccountRequest, UserAgent,
+    IsAccountStoredRequest, IsReadyToConnectRequest, ListCountriesRequest, Location,
+    RemoveAccountRequest, SetNetworkRequest, StatusRequest, StatusResponse, StoreAccountRequest,
+    UserAgent,
 };
 use parity_tokio_ipc::Endpoint as IpcEndpoint;
 use tauri::{AppHandle, Manager, PackageInfo};
-use thiserror::Error;
 use time::OffsetDateTime;
 use tokio::sync::mpsc;
 use tonic::transport::Endpoint as TonicEndpoint;
 use tonic::{transport::Channel, Request};
 use tracing::{debug, error, info, instrument, warn};
 
+pub use super::account_links::AccountLinks;
+pub use super::error::VpndError;
+pub use super::feature_flags::FeatureFlags;
+pub use super::ready_to_connect::ReadyToConnect;
+pub use super::system_message::SystemMessage;
+pub use super::vpnd_status::VpndStatus;
 use crate::cli::Cli;
 use crate::country::Country;
 use crate::error::BackendError;
 use crate::fs::config::AppConfig;
-pub use crate::grpc::account_links::AccountLinks;
-pub use crate::grpc::feature_flags::FeatureFlags;
-pub use crate::grpc::system_message::SystemMessage;
-pub use crate::grpc::vpnd_status::VpndStatus;
 use crate::states::app::ConnectionState;
 use crate::{env, vpn_status};
 use crate::{events::AppHandleEventEmitter, states::SharedAppState};
@@ -46,18 +48,6 @@ const DEFAULT_HTTP_ENDPOINT: &str = "http://[::1]:53181";
 enum Transport {
     Http(String),
     Ipc(PathBuf),
-}
-
-#[derive(Error, Debug)]
-pub enum VpndError {
-    #[error("gRPC call error")]
-    GrpcError(#[from] tonic::Status),
-    #[error("failed to connect to daemon using HTTP transport")]
-    FailedToConnectHttp(#[from] tonic::transport::Error),
-    #[error("failed to connect to daemon using IPC transport")]
-    FailedToConnectIpc(#[from] anyhow::Error),
-    #[error("call response error {0}")]
-    Response(#[from] BackendError),
 }
 
 #[derive(Debug, Default, Clone)]
@@ -385,9 +375,7 @@ impl GrpcClient {
                 .map(BackendError::from)
                 .ok_or_else(|| {
                     error!("connect bad response: no ConnectRequestError");
-                    VpndError::GrpcError(tonic::Status::internal(
-                        "connect bad response: no ConnectRequestError".to_string(),
-                    ))
+                    VpndError::internal("connect bad response: no ConnectRequestError")
                 })?,
         ))
     }
@@ -429,9 +417,7 @@ impl GrpcClient {
                 .map(BackendError::from)
                 .ok_or_else(|| {
                     error!("store account bad response: no AccountError");
-                    VpndError::GrpcError(tonic::Status::internal(
-                        "store account bad response: no AccountError".to_string(),
-                    ))
+                    VpndError::internal("store account bad response: no AccountError")
                 })?,
         ))
     }
@@ -458,9 +444,7 @@ impl GrpcClient {
                 .map(BackendError::from)
                 .ok_or_else(|| {
                     error!("remove account bad response: no AccountError");
-                    VpndError::GrpcError(tonic::Status::internal(
-                        "remove account bad response: no AccountError".to_string(),
-                    ))
+                    VpndError::internal("remove account bad response: no AccountError")
                 })?,
         ))
     }
@@ -479,13 +463,29 @@ impl GrpcClient {
         let response = response.into_inner();
         match response.resp.ok_or_else(|| {
             error!("failed to get stored account: invalid response");
-            VpndError::GrpcError(tonic::Status::internal(
-                "failed to get stored account: invalid response",
-            ))
+            VpndError::internal("failed to get stored account: invalid response")
         })? {
             IsAccountStoredResp::IsStored(v) => Ok(v),
             IsAccountStoredResp::Error(e) => Err(VpndError::Response(e.into())),
         }
+    }
+
+    /// Check the local account state and device info, if it is ready to connect
+    #[instrument(skip_all)]
+    pub async fn is_ready_to_connect(&self) -> Result<ReadyToConnect, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let request = Request::new(IsReadyToConnectRequest {});
+        let response = vpnd.is_ready_to_connect(request).await.map_err(|e| {
+            error!("grpc: {}", e);
+            VpndError::GrpcError(e)
+        })?;
+        let response = response.into_inner();
+        debug!("grpc response: {:?}", response);
+        response.kind().try_into().map_err(|e: String| {
+            error!("{e}");
+            VpndError::internal(&e)
+        })
     }
 
     /// Get account info
@@ -529,9 +529,7 @@ impl GrpcClient {
         debug!("grpc response: {:?}", response.res);
         match response.res.ok_or_else(|| {
             error!("failed to get account links: invalid response");
-            VpndError::GrpcError(tonic::Status::internal(
-                "failed to get account links: invalid response",
-            ))
+            VpndError::internal("failed to get account links: invalid response")
         })? {
             get_account_links_response::Res::Links(l) => Ok(l.into()),
             get_account_links_response::Res::Error(e) => Err(VpndError::Response(e.into())),

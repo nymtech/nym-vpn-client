@@ -241,6 +241,7 @@ async fn main() -> Result<()> {
             account::is_account_stored,
             account::get_account_info,
             account::account_links,
+            account::ready_to_connect,
             cmd_daemon::daemon_status,
             cmd_daemon::daemon_info,
             cmd_daemon::set_network,

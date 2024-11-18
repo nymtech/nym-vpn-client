@@ -78,6 +78,27 @@ extension GRPCManager {
             }
         }
     }
+
+    public func accountLinks() async throws -> (account: String, signIn: String, signUp: String) {
+        guard helperManager.isHelperAuthorizedAndRunning()
+        else {
+            throw GRPCError.daemonNotRunning
+        }
+        logger.log(level: .info, "Fetching account links")
+
+        return try await withCheckedThrowingContinuation { continuation in
+            let call = client.getAccountLinks(Nym_Vpn_GetAccountLinksRequest())
+
+            call.response.whenComplete { result in
+                switch result {
+                case .success(let response):
+                    continuation.resume(returning: (account: response.links.account.url, signIn: response.links.signIn.url, signUp: response.links.signUp.url))
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
 }
 
 private extension GRPCManager {

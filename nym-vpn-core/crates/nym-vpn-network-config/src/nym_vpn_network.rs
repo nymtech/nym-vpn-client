@@ -25,7 +25,7 @@ impl NymVpnNetwork {
     pub fn try_into_parsed_links(
         self,
         locale: &str,
-        account_id: &str,
+        account_id: Option<&str>,
     ) -> Result<ParsedAccountLinks, anyhow::Error> {
         self.account_management
             .ok_or_else(|| anyhow::anyhow!("Account management is not available for this network"))?

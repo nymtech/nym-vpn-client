@@ -55,7 +55,7 @@ pub async fn connect(
     {
         let mut app_state = state.lock().await;
         if app_state.state != ConnectionState::Disconnected {
-            return Err(BackendError::new_internal(
+            return Err(BackendError::internal(
                 &format!("cannot connect from state {:?}", app_state.state),
                 None,
             ));
@@ -74,7 +74,7 @@ pub async fn connect(
 
     #[cfg(windows)]
     if matches!(vpn_mode, VpnMode::TwoHop) {
-        return Err(BackendError::new_internal(
+        return Err(BackendError::internal(
             "fast mode is not yet supported on windows",
             None,
         ));
@@ -183,7 +183,7 @@ pub async fn disconnect(
 ) -> Result<ConnectionState, BackendError> {
     let mut app_state = state.lock().await;
     if !matches!(app_state.state, ConnectionState::Connected) {
-        return Err(BackendError::new_internal(
+        return Err(BackendError::internal(
             &format!("cannot disconnect from state {:?}", app_state.state),
             None,
         ));
@@ -215,7 +215,7 @@ pub async fn set_vpn_mode(
 ) -> Result<(), BackendError> {
     #[cfg(windows)]
     if matches!(mode, VpnMode::TwoHop) {
-        return Err(BackendError::new_internal(
+        return Err(BackendError::internal(
             "fast mode is not yet supported on windows",
             None,
         ));
@@ -227,12 +227,12 @@ pub async fn set_vpn_mode(
     } else {
         let err_message = format!("cannot change vpn mode from state {:?}", state.state);
         error!(err_message);
-        return Err(BackendError::new_internal(&err_message, None));
+        return Err(BackendError::internal(&err_message, None));
     }
     state.vpn_mode = mode.clone();
     drop(state);
 
     db.insert(Key::VpnMode, &mode)
-        .map_err(|_| BackendError::new_internal("Failed to save vpn mode in db", None))?;
+        .map_err(|_| BackendError::internal("Failed to save vpn mode in db", None))?;
     Ok(())
 }

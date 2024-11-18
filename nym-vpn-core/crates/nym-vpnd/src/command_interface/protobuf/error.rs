@@ -16,46 +16,79 @@ impl From<VpnServiceConnectError> for nym_vpn_proto::ConnectRequestError {
                     kind: nym_vpn_proto::connect_request_error::ConnectRequestErrorType::Internal
                         as i32,
                     message: err.to_string(),
+                    message_id: None,
                 }
             }
-            VpnServiceConnectError::Account(ref not_ready_to_connect) => {
-                nym_vpn_proto::ConnectRequestError {
-                    kind: nym_vpn_proto::connect_request_error::ConnectRequestErrorType::from(
-                        not_ready_to_connect,
-                    ) as i32,
-                    message: not_ready_to_connect.to_string(),
-                }
+            VpnServiceConnectError::Account(not_ready_to_connect) => {
+                nym_vpn_proto::ConnectRequestError::from(not_ready_to_connect)
             }
             VpnServiceConnectError::Cancel => nym_vpn_proto::ConnectRequestError {
                 kind: nym_vpn_proto::connect_request_error::ConnectRequestErrorType::Internal
                     as i32,
                 message: err.to_string(),
+                message_id: None,
             },
         }
     }
 }
 
-impl From<&AccountNotReady> for nym_vpn_proto::connect_request_error::ConnectRequestErrorType {
-    fn from(not_ready: &AccountNotReady) -> Self {
-        match not_ready {
-            AccountNotReady::Pending => {
-                nym_vpn_proto::connect_request_error::ConnectRequestErrorType::Pending
-            }
-            AccountNotReady::NoMnemonicStored => {
-                nym_vpn_proto::connect_request_error::ConnectRequestErrorType::NoAccountStored
-            }
-            AccountNotReady::AccountNotActive => {
-                nym_vpn_proto::connect_request_error::ConnectRequestErrorType::AccountNotActive
-            }
-            AccountNotReady::NoActiveSubscription => {
-                nym_vpn_proto::connect_request_error::ConnectRequestErrorType::NoActiveSubscription
-            }
-            AccountNotReady::DeviceNotRegistered => {
-                nym_vpn_proto::connect_request_error::ConnectRequestErrorType::DeviceNotRegistered
-            }
-            AccountNotReady::DeviceNotActive => {
-                nym_vpn_proto::connect_request_error::ConnectRequestErrorType::DeviceNotActive
-            }
+impl From<AccountNotReady> for nym_vpn_proto::ConnectRequestError {
+    fn from(error: AccountNotReady) -> Self {
+        match error {
+            AccountNotReady::UpdateAccount {
+                message,
+                message_id,
+                code_reference_id: _,
+            } => Self {
+                kind: nym_vpn_proto::connect_request_error::ConnectRequestErrorType::UpdateAccount
+                    as i32,
+                message: message.clone(),
+                message_id: message_id.clone(),
+            },
+            AccountNotReady::UpdateDevice {
+                message,
+                message_id,
+                code_reference_id: _,
+            } => Self {
+                kind: nym_vpn_proto::connect_request_error::ConnectRequestErrorType::UpdateDevice
+                    as i32,
+                message: message.clone(),
+                message_id: message_id.clone(),
+            },
+            AccountNotReady::RegisterDevice {
+                message,
+                message_id,
+                code_reference_id: _,
+            } => Self {
+                kind: nym_vpn_proto::connect_request_error::ConnectRequestErrorType::RegisterDevice
+                    as i32,
+                message: message.clone(),
+                message_id: message_id.clone(),
+            },
+            AccountNotReady::NoAccountStored => Self {
+                kind: nym_vpn_proto::connect_request_error::ConnectRequestErrorType::NoAccountStored
+                    as i32,
+                message: error.to_string(),
+                message_id: None,
+            },
+            AccountNotReady::NoDeviceStored => Self {
+                kind: nym_vpn_proto::connect_request_error::ConnectRequestErrorType::NoDeviceStored
+                    as i32,
+                message: error.to_string(),
+                message_id: None,
+            },
+            AccountNotReady::General(_) => Self {
+                kind: nym_vpn_proto::connect_request_error::ConnectRequestErrorType::Internal
+                    as i32,
+                message: error.to_string(),
+                message_id: None,
+            },
+            AccountNotReady::Internal(_) => Self {
+                kind: nym_vpn_proto::connect_request_error::ConnectRequestErrorType::Internal
+                    as i32,
+                message: error.to_string(),
+                message_id: None,
+            },
         }
     }
 }

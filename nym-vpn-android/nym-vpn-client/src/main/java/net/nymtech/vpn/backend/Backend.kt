@@ -1,12 +1,15 @@
 package net.nymtech.vpn.backend
 
+import nym_vpn_lib.AccountLinks
 import nym_vpn_lib.AccountStateSummary
 
 interface Backend {
 
-	suspend fun init(environment: Tunnel.Environment): Boolean
+	suspend fun init(environment: Tunnel.Environment)
 
 	suspend fun getAccountSummary(): AccountStateSummary
+
+	suspend fun getAccountLinks(environment: Tunnel.Environment): AccountLinks
 
 	suspend fun storeMnemonic(credential: String)
 

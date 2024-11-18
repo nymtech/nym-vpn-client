@@ -50,7 +50,15 @@ extension NotificationsManager: UNUserNotificationCenterDelegate {
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification
     ) async -> UNNotificationPresentationOptions {
-        if UIApplication.shared.applicationState == .active {
+        let isAppActive: Bool
+
+#if os(iOS)
+        isAppActive = UIApplication.shared.applicationState == .active
+#elseif os(macOS)
+        isAppActive = NSApplication.shared.isActive
+#endif
+
+        if isAppActive {
             return []
         } else {
             return [.badge, .banner, .sound]
@@ -88,8 +96,14 @@ private extension NotificationsManager {
     }
 
     func requestNotificationPermission() {
+        let options: UNAuthorizationOptions
+#if os(iOS)
+        options = [.alert, .badge, .sound]
+#elseif os(macOS)
+        options = [.alert, .badge, .sound, .provisional]
+#endif
         userNotificationCenter.requestAuthorization(
-            options: [.alert, .badge, .sound]
+            options: options
         ) { [weak self] granted, _ in
             self?.permissionGranted = granted
         }
@@ -97,7 +111,7 @@ private extension NotificationsManager {
 
     func askForPermissionIfNeeded() async {
         let notificationAuthorizationStatus = await userNotificationCenter.notificationSettings().authorizationStatus
-        guard notificationAuthorizationStatus == .notDetermined else { return }
+        guard notificationAuthorizationStatus == .notDetermined || notificationAuthorizationStatus == .denied else { return }
         requestNotificationPermission()
     }
 }

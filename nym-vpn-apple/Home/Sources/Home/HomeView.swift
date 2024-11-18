@@ -53,11 +53,19 @@ private extension HomeView {
                 )
             }
         }
+        .snackbar(
+            isDisplayed: $viewModel.isSnackbarDisplayed,
+            style: viewModel.snackBarStyle,
+            message: viewModel.currentSnackBarMessage
+        )
         .onAppear {
+            viewModel.updateSystemMessages()
             viewModel.configureConnectedTimeTimer()
         }
         .onDisappear {
+#if os(iOS)
             viewModel.stopConnectedTimeTimerUpdates()
+#endif
         }
     }
 

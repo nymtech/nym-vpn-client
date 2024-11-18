@@ -62,8 +62,6 @@ class NymVpn : Application() {
 			Timber.plant(ReleaseTree())
 		}
 		applicationScope.launch(ioDispatcher) {
-			val env = settingsRepository.getEnvironment()
-			backend.get().init(env)
 			logCollect.start()
 		}
 		requestTileServiceStateUpdate()

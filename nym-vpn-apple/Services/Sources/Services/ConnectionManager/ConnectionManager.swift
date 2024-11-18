@@ -4,6 +4,7 @@ import NetworkExtension
 import AppSettings
 import CountriesManager
 import CredentialsManager
+import NotificationMessages
 import TunnelMixnet
 import Tunnels
 import TunnelStatus
@@ -233,9 +234,18 @@ private extension ConnectionManager {
 private extension ConnectionManager {
     func setupGRPCManagerObservers() {
         grpcManager.$tunnelStatus.sink { [weak self] status in
+            guard self?.currentTunnelStatus != status else { return }
             self?.currentTunnelStatus = status
+            self?.scheduleNotificationIfNeeded()
         }
         .store(in: &cancellables)
+    }
+
+    func scheduleNotificationIfNeeded() {
+        guard currentTunnelStatus == .disconnecting else { return }
+        Task(priority: .background) {
+            await NotificationMessages.scheduleDisconnectNotification()
+        }
     }
 }
 #endif

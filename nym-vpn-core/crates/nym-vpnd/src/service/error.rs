@@ -1,12 +1,11 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_account_controller::ReadyToConnect;
+use nym_vpn_account_controller::AccountCommandError;
 use nym_vpn_lib::{
     gateway_directory::Error as DirError, tunnel_state_machine, GatewayDirectoryError,
     NodeIdentity, Recipient,
 };
-use serde::Serialize;
 use tokio::sync::{mpsc::error::SendError, oneshot::error::RecvError};
 use tracing::error;
 
@@ -19,45 +18,83 @@ pub enum VpnServiceConnectError {
     Internal(String),
 
     #[error("failed to connect: {0}")]
-    Account(AccountNotReady),
+    Account(#[from] AccountNotReady),
 
     #[error("connection attempt cancelled")]
     Cancel,
 }
 
-#[derive(Debug, thiserror::Error, Clone, PartialEq, Eq, Serialize)]
-pub enum AccountNotReady {
-    #[error("account status pending")]
-    Pending,
-    #[error("no recovery phrase stored")]
-    NoMnemonicStored,
-    #[error("account is not active")]
-    AccountNotActive,
-    #[error("no active subscription")]
-    NoActiveSubscription,
-    #[error("device is not registered")]
-    DeviceNotRegistered,
-    #[error("device is not active")]
-    DeviceNotActive,
-}
-
 #[derive(Debug, thiserror::Error)]
-pub enum AcountNotReadyConversion {
-    #[error("invalid conversion")]
-    InvalidConversion,
+pub enum AccountNotReady {
+    #[error("update account failed: {message}")]
+    UpdateAccount {
+        message: String,
+        message_id: Option<String>,
+        code_reference_id: Option<String>,
+    },
+
+    #[error("update device failed: {message}")]
+    UpdateDevice {
+        message: String,
+        message_id: Option<String>,
+        code_reference_id: Option<String>,
+    },
+
+    #[error("register device failed: {message}")]
+    RegisterDevice {
+        message: String,
+        message_id: Option<String>,
+        code_reference_id: Option<String>,
+    },
+
+    #[error("no account stored")]
+    NoAccountStored,
+
+    #[error("no device identity stored")]
+    NoDeviceStored,
+
+    #[error("general error: {0}")]
+    General(String),
+
+    #[error("internal error: {0}")]
+    Internal(String),
 }
 
-impl TryFrom<ReadyToConnect> for AccountNotReady {
-    type Error = AcountNotReadyConversion;
-
-    fn try_from(err: ReadyToConnect) -> Result<Self, Self::Error> {
+impl From<AccountCommandError> for AccountNotReady {
+    fn from(err: AccountCommandError) -> Self {
         match err {
-            ReadyToConnect::Ready => Err(AcountNotReadyConversion::InvalidConversion),
-            ReadyToConnect::NoMnemonicStored => Ok(AccountNotReady::NoMnemonicStored),
-            ReadyToConnect::AccountNotActive => Ok(AccountNotReady::AccountNotActive),
-            ReadyToConnect::NoActiveSubscription => Ok(AccountNotReady::NoActiveSubscription),
-            ReadyToConnect::DeviceNotRegistered => Ok(AccountNotReady::DeviceNotRegistered),
-            ReadyToConnect::DeviceNotActive => Ok(AccountNotReady::DeviceNotActive),
+            AccountCommandError::UpdateAccountEndpointFailure {
+                message,
+                message_id,
+                code_reference_id,
+                base_url: _,
+            } => AccountNotReady::UpdateAccount {
+                message,
+                message_id,
+                code_reference_id,
+            },
+            AccountCommandError::UpdateDeviceEndpointFailure {
+                message,
+                message_id,
+                code_reference_id,
+            } => AccountNotReady::UpdateDevice {
+                message,
+                message_id,
+                code_reference_id,
+            },
+            AccountCommandError::RegisterDeviceEndpointFailure {
+                message,
+                message_id,
+                code_reference_id,
+            } => AccountNotReady::RegisterDevice {
+                message,
+                message_id,
+                code_reference_id,
+            },
+            AccountCommandError::NoAccountStored => AccountNotReady::NoAccountStored,
+            AccountCommandError::NoDeviceStored => AccountNotReady::NoDeviceStored,
+            AccountCommandError::General(err) => AccountNotReady::General(err),
+            AccountCommandError::Internal(err) => AccountNotReady::Internal(err),
         }
     }
 }

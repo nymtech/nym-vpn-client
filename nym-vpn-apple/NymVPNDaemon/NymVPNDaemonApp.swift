@@ -7,6 +7,7 @@ import ConfigurationManager
 import Constants
 import Home
 import HelperManager
+import NotificationsManager
 import NymLogger
 import Migrations
 import SentryManager
@@ -17,8 +18,8 @@ struct NymVPNDaemonApp: App {
     private let autoUpdater = AutoUpdater.shared
     private let logFileManager = LogFileManager(logFileType: .app)
     private let helperManager = HelperManager.shared
-    private let appSettings = AppSettings.shared
 
+    @ObservedObject private var appSettings = AppSettings.shared
     @StateObject private var homeViewModel = HomeViewModel()
     @StateObject private var checkForUpdatesViewModel = CheckForUpdatesViewModel(updater: AutoUpdater.shared.updater)
     @StateObject private var welcomeViewModel = WelcomeViewModel()
@@ -81,6 +82,7 @@ private extension NymVPNDaemonApp {
         Task {
             try await ConfigurationManager.shared.setup()
         }
+        NotificationsManager.shared.setup()
         ThemeConfiguration.setup()
         SentryManager.shared.setup()
         HelperManager.shared.setup(helperName: Constants.helperName.rawValue)

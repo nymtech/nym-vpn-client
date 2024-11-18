@@ -25,8 +25,10 @@ let package = Package(
         .library(name: "Migrations", targets: ["Migrations"]),
         .library(name: "Modifiers", targets: ["Modifiers"]),
         .library(name: "NotificationsManager", targets: ["NotificationsManager"]),
+        .library(name: "NotificationMessages", targets: ["NotificationMessages"]),
         .library(name: "NymLogger", targets: ["NymLogger"]),
         .library(name: "SentryManager", targets: ["SentryManager"]),
+        .library(name: "SystemMessageManager", targets: ["SystemMessageManager"]),
         .library(name: "Tunnels", targets: ["Tunnels"]),
         .library(name: "TunnelMixnet", targets: ["TunnelMixnet"])
     ],
@@ -54,6 +56,7 @@ let package = Package(
                 "AppSettings",
                 "Constants",
                 "Device",
+                "CredentialsManager",
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 "NymLogger",
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS]))
@@ -64,6 +67,7 @@ let package = Package(
             name: "ConnectionManager",
             dependencies: [
                 "CredentialsManager",
+                "NotificationMessages",
                 "Tunnels",
                 "TunnelMixnet"
             ],
@@ -160,6 +164,14 @@ let package = Package(
             path: "Sources/Services/NotificationsManager"
         ),
         .target(
+            name: "NotificationMessages",
+            dependencies: [
+                "NymLogger",
+                .product(name: "Logging", package: "swift-log")
+            ],
+            path: "Sources/Services/NotificationMessages"
+        ),
+        .target(
             name: "NymLogger",
             dependencies: [
                 "Constants",
@@ -175,6 +187,16 @@ let package = Package(
                 .product(name: "Sentry", package: "sentry-cocoa")
             ],
             path: "Sources/Services/SentryManager"
+        ),
+        .target(
+            name: "SystemMessageManager",
+            dependencies: [
+                "AppSettings",
+                .product(name: "SystemMessageModels", package: "ServicesMutual"),
+                .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
+                .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS]))
+            ],
+            path: "Sources/Services/SystemMessageManager"
         ),
         .target(
             name: "Tunnels",

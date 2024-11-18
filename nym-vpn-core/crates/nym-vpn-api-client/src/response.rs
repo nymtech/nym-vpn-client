@@ -3,6 +3,7 @@
 
 use std::fmt;
 
+use chrono::{DateTime, Utc};
 use itertools::Itertools;
 use nym_contracts_common::Percent;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;
@@ -56,6 +57,13 @@ pub struct NymVpnAccountSummaryFairUsage {
     pub used_gb: Option<f64>,
     pub limit_gb: Option<f64>,
     pub resets_on_utc: Option<String>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct NymVpnHealthResponse {
+    pub status: String,
+    pub timestamp_utc: DateTime<Utc>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -442,7 +450,7 @@ impl From<String> for NymDirectoryCountry {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct NymErrorResponse {
     pub message: String,
@@ -496,4 +504,30 @@ impl fmt::Display for UnexpectedError {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct StatusOk {
     status: String,
+}
+
+pub fn extract_error_response<E>(err: &E) -> Option<NymErrorResponse>
+where
+    E: std::error::Error + 'static,
+{
+    let mut source = err.source();
+    while let Some(err) = source {
+        if let Some(status) = err
+            .downcast_ref::<nym_http_api_client::HttpClientError<NymErrorResponse>>()
+            .and_then(extract_error_response_inner)
+        {
+            return Some(status);
+        }
+        source = err.source();
+    }
+    None
+}
+
+fn extract_error_response_inner(
+    err: &nym_http_api_client::HttpClientError<NymErrorResponse>,
+) -> Option<NymErrorResponse> {
+    match err {
+        nym_http_api_client::HttpClientError::EndpointFailure { error, .. } => Some(error.clone()),
+        _ => None,
+    }
 }

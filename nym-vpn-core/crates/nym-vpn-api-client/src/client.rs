@@ -9,6 +9,7 @@ use nym_http_api_client::{HttpClientError, Params, PathSegments, UserAgent, NO_P
 use reqwest::Url;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
+use crate::response::NymVpnHealthResponse;
 use crate::{
     error::{Result, VpnApiClientError},
     request::{
@@ -52,6 +53,13 @@ impl VpnApiClient {
         self.inner.current_url()
     }
 
+    async fn get_vpn_api_unix_timestamp(&self) -> Option<i64> {
+        match self.get_health().await {
+            Ok(response) => Some(response.timestamp_utc.timestamp()),
+            Err(_) => None,
+        }
+    }
+
     async fn get_authorized<T, E>(
         &self,
         path: PathSegments<'_>,
@@ -62,10 +70,11 @@ impl VpnApiClient {
         T: DeserializeOwned,
         E: fmt::Display + DeserializeOwned,
     {
-        let request = self
-            .inner
-            .create_get_request(path, NO_PARAMS)
-            .bearer_auth(account.jwt().to_string());
+        let request = self.inner.create_get_request(path, NO_PARAMS).bearer_auth(
+            account
+                .jwt(self.get_vpn_api_unix_timestamp().await)
+                .to_string(),
+        );
 
         let request = match device {
             Some(device) => request.header(
@@ -91,10 +100,11 @@ impl VpnApiClient {
         T: DeserializeOwned,
         E: fmt::Display + DeserializeOwned,
     {
-        let request = self
-            .inner
-            .create_get_request(path, NO_PARAMS)
-            .bearer_auth(account.jwt().to_string());
+        let request = self.inner.create_get_request(path, NO_PARAMS).bearer_auth(
+            account
+                .jwt(self.get_vpn_api_unix_timestamp().await)
+                .to_string(),
+        );
 
         let request = match device {
             Some(device) => request.header(
@@ -172,7 +182,11 @@ impl VpnApiClient {
         let request = self
             .inner
             .create_post_request(path, NO_PARAMS, json_body)
-            .bearer_auth(account.jwt().to_string());
+            .bearer_auth(
+                account
+                    .jwt(self.get_vpn_api_unix_timestamp().await)
+                    .to_string(),
+            );
 
         let request = match device {
             Some(device) => request.header(
@@ -209,9 +223,11 @@ impl VpnApiClient {
         T: DeserializeOwned,
         E: fmt::Display + DeserializeOwned,
     {
-        let request = self
-            .create_delete_request(path, NO_PARAMS)
-            .bearer_auth(account.jwt().to_string());
+        let request = self.create_delete_request(path, NO_PARAMS).bearer_auth(
+            account
+                .jwt(self.get_vpn_api_unix_timestamp().await)
+                .to_string(),
+        );
 
         let request = match device {
             Some(device) => request.header(
@@ -271,6 +287,12 @@ impl VpnApiClient {
         )
         .await
         .map_err(crate::error::VpnApiClientError::FailedToGetAccount)
+    }
+
+    pub async fn get_health(&self) -> Result<NymVpnHealthResponse> {
+        self.get_json_with_retry(&[routes::PUBLIC, routes::V1, routes::HEALTH], NO_PARAMS)
+            .await
+            .map_err(crate::error::VpnApiClientError::FailedToGetHealth)
     }
 
     pub async fn get_account_summary(

@@ -34,6 +34,7 @@ fun SplashScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 				show = false,
 			),
 		)
+		appViewModel.onAppStartup()
 	}
 
 	Box(

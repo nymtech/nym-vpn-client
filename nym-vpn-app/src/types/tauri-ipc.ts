@@ -28,6 +28,10 @@ export type DbKey =
   | 'WelcomeScreenSeen'
   | 'DesktopNotifications';
 
+/*
+ * Enum of the possible specialized errors emitted by the daemon or from the
+ * backend side
+ * */
 export type ErrorKey =
   | 'UnknownError'
   | 'InternalError'
@@ -80,12 +84,12 @@ export type ErrorKey =
   | 'CSMixnetConnectionMonitor'
   | 'AccountInvalidMnemonic'
   | 'AccountStorage'
-  | 'NoAccountStored'
-  | 'AccountNotActive'
-  | 'NoActiveSubscription'
-  | 'DeviceNotRegistered'
-  | 'DeviceNotActive'
-  | 'ReadyToConnectPending'
+  | 'ConnectGeneral'
+  | 'ConnectNoAccountStored'
+  | 'ConnectNoDeviceStored'
+  | 'ConnectUpdateAccount'
+  | 'ConnectUpdateDevice'
+  | 'ConnectRegisterDevice'
   | 'EntryGatewayNotRouting'
   | 'ExitRouterPingIpv4'
   | 'ExitRouterPingIpv6'
@@ -118,3 +122,5 @@ export type AccountLinks = {
   signIn?: string | null;
   account?: string | null;
 };
+
+export type ReadyToConnect = 'ready' | { not_ready: string };

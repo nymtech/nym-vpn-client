@@ -207,32 +207,31 @@ message ConnectRequestError {
     // Unspecified internal error
     INTERNAL = 1;
 
+    // General error
+    GENERAL = 2;
+
     // No account recovery phrase stored
-    NO_ACCOUNT_STORED = 2;
+    NO_ACCOUNT_STORED = 3;
 
-    // The account is not active
-    ACCOUNT_NOT_ACTIVE = 3;
+    // No device keys stored
+    NO_DEVICE_STORED = 4;
 
-    // The account does not have an active subscription
-    NO_ACTIVE_SUBSCRIPTION = 4;
+    // Update account failed
+    UPDATE_ACCOUNT = 5;
 
-    // The device is not registered
-    DEVICE_NOT_REGISTERED = 5;
+    // Update device failed
+    UPDATE_DEVICE = 6;
 
-    // The device is not active
-    // NOTE: in the future we will try to re-active an inactive device on
-    // connect
-    DEVICE_NOT_ACTIVE = 6;
-
-    // It was not yet possible to determine if we are ready to connect during
-    // the check
-    PENDING = 7;
+    // Device registration failed
+    REGISTER_DEVICE = 7;
   }
 
   ConnectRequestErrorType kind = 1;
 
   // Internal message for logging and debugging
   string message = 2;
+
+  optional string message_id = 3;
 }
 
 message ConnectRequest {
@@ -634,6 +633,12 @@ message GetAccountLinksResponse {
   }
 }
 
+enum AccountRegistered {
+  ACCOUNT_REGISTERED_UNSPECIFIED = 0;
+  ACCOUNT_REGISTERED = 1;
+  ACCOUNT_NOT_REGISTERED = 2;
+}
+
 enum MnemonicState {
   MNEMONIC_STATE_UNSPECIFIED = 0;
   MNEMONIC_STATE_NOT_STORED = 1;
@@ -656,6 +661,18 @@ enum SubscriptionState {
   SUBSCRIPTION_STATE_COMPLETE = 4;
 }
 
+message DeviceSummary {
+  uint64 active = 1;
+  uint64 max = 2;
+  uint64 remaining = 3;
+}
+
+message AccountSummaryInner {
+  AccountState account = 1;
+  SubscriptionState subscription = 2;
+  DeviceSummary device_summary = 3;
+}
+
 enum DeviceState {
   DEVICE_STATE_UNSPECIFIED = 0;
   DEVICE_STATE_NOT_REGISTERED = 1;
@@ -664,12 +681,27 @@ enum DeviceState {
   DEVICE_STATE_DELETE_ME = 4;
 }
 
+message DeviceRegistration {
+  enum DeviceRegistrationType {
+    DEVICE_REGISTRATION_UNSPECIFIED = 0;
+    DEVICE_REGISTRATION_IN_PROGRESS = 1;
+    DEVICE_REGISTRATION_SUCCESS = 2;
+    DEVICE_REGISTRATION_FAILED = 3;
+  }
+
+  DeviceRegistrationType kind = 1;
+  optional string message = 2;
+  optional string message_id = 3;
+}
+
+
 message AccountSummary {
   optional MnemonicState mnemonic = 1;
-  optional AccountState account = 2;
-  optional SubscriptionState subscription = 3;
+  optional AccountRegistered account_registered = 2;
+  optional AccountSummaryInner account_summary = 3;
   optional DeviceState device = 4;
-  bool pending_zk_nym = 5;
+  optional DeviceRegistration device_registration = 5;
+  bool pending_zk_nym = 6;
 }
 
 message GetAccountStateRequest {}
@@ -813,19 +845,31 @@ message IsReadyToConnectResponse {
     // No account recovery phrase stored
     NO_ACCOUNT_STORED = 2;
 
+    // The account is not synced
+    ACCOUNT_NOT_SYNCED = 3;
+
+    // The account is not registered
+    ACCOUNT_NOT_REGISTERED = 4;
+
     // The account is not active
-    ACCOUNT_NOT_ACTIVE = 3;
+    ACCOUNT_NOT_ACTIVE = 5;
 
     // The account does not have an active subscripion
-    NO_ACTIVE_SUBSCRIPTION = 4;
+    NO_ACTIVE_SUBSCRIPTION = 6;
 
     // The device is not registered
-    DEVICE_NOT_REGISTERED = 5;
+    DEVICE_NOT_REGISTERED = 7;
 
     // The device is not active
     // NOTE: in the future we will try to re-active an inactive device on
     // connect
-    DEVICE_NOT_ACTIVE = 6;
+    DEVICE_NOT_ACTIVE = 8;
+
+    // The device has reached the maximum number of devices
+    MAX_DEVICES_REACHED = 9;
+
+    // Device registration failed
+    DEVICE_REGISTRATION_FAILED = 10;
   }
 
   IsReadyToConnectResponseType kind = 1;

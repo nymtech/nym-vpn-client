@@ -27,7 +27,7 @@ private extension StatusInfoView {
     @ViewBuilder
     func infoLabel() -> some View {
         Text(infoState.localizedTitle)
-            .foregroundStyle(NymColor.statusInfoText)
+            .foregroundStyle(infoState.textColor)
             .textStyle(isSmallScreen ? .Label.Medium.primary : .Label.Large.bold)
         Spacer()
             .frame(height: 8)

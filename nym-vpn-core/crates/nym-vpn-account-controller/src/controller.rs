@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{collections::HashMap, path::PathBuf, sync::Arc, time::Duration};
+use std::{path::PathBuf, sync::Arc, time::Duration};
 
 use futures::StreamExt;
 use nym_compact_ecash::Base58;
@@ -11,10 +11,7 @@ use nym_credentials_interface::{RequestInfo, TicketType, VerificationKeyAuth};
 use nym_ecash_time::EcashTime;
 use nym_http_api_client::UserAgent;
 use nym_vpn_api_client::{
-    response::{
-        NymVpnAccountSummaryResponse, NymVpnDevicesResponse, NymVpnZkNym, NymVpnZkNymPost,
-        NymVpnZkNymStatus,
-    },
+    response::{NymVpnZkNym, NymVpnZkNymPost, NymVpnZkNymStatus},
     types::{Device, VpnApiAccount},
 };
 use nym_vpn_store::VpnStorage;
@@ -27,16 +24,19 @@ use url::Url;
 
 use crate::{
     commands::{
+        register_device::RegisterDeviceCommandHandler,
+        update_account::WaitingUpdateAccountCommandHandler,
+        update_device::WaitingUpdateDeviceCommandHandler,
         zknym::{
             construct_zk_nym_request_data, poll_zk_nym, request_zk_nym, PollingResult,
             ZkNymRequestData,
         },
-        AccountCommand, AccountCommandResult, CommandHandler,
+        AccountCommand, AccountCommandError, AccountCommandResult, Command, RunningCommands,
     },
     error::Error,
-    shared_state::{MnemonicState, ReadyToRegisterDevice, SharedAccountState},
+    shared_state::{MnemonicState, ReadyToRegisterDevice, ReadyToRequestZkNym, SharedAccountState},
     storage::{AccountStorage, VpnCredentialStorage},
-    AvailableTicketbooks,
+    AccountControllerCommander, AvailableTicketbooks, ReadyToConnect,
 };
 
 // The interval at which we automatically request zk-nyms
@@ -48,11 +48,6 @@ const ZK_NYM_MAX_FAILS: u32 = 10;
 
 // The interval at which we update the account state
 const ACCOUNT_UPDATE_INTERVAL: Duration = Duration::from_secs(5 * 60);
-
-pub(crate) type PendingCommands = Arc<std::sync::Mutex<HashMap<uuid::Uuid, String>>>;
-pub(crate) type DevicesResponse = Arc<tokio::sync::Mutex<Option<NymVpnDevicesResponse>>>;
-pub(crate) type AccountSummaryResponse =
-    Arc<tokio::sync::Mutex<Option<NymVpnAccountSummaryResponse>>>;
 
 pub struct AccountController<S>
 where
@@ -70,20 +65,6 @@ where
     // The current state of the account
     account_state: SharedAccountState,
 
-    // The last account summary we received from the API. We use this to check if the account state
-    // has changed.
-    last_account_summary: AccountSummaryResponse,
-
-    // The last devices we received from the API. We use this to check if the device state has
-    // changed.
-    last_devices: DevicesResponse,
-
-    // If we have multiple fails in a row, disable background refresh
-    zk_nym_fails_in_row: u32,
-
-    // Tasks used to poll the status of zk-nyms
-    polling_tasks: JoinSet<PollingResult>,
-
     // Receiver channel used to receive commands from the consumer
     command_rx: UnboundedReceiver<AccountCommand>,
 
@@ -91,14 +72,31 @@ where
     // controller, but also to queue up commands to itself
     command_tx: UnboundedSender<AccountCommand>,
 
-    // Listen for cancellation signals
-    cancel_token: CancellationToken,
+    // List of currently running command tasks and their type
+    running_commands: RunningCommands,
 
     // Command tasks that are currently running
-    command_tasks: JoinSet<Result<AccountCommandResult, Error>>,
+    // running_command_tasks: JoinSet<Result<AccountCommandResult, Error>>,
+    running_command_tasks: JoinSet<AccountCommandResult>,
 
-    // List of currently running command tasks and their type
-    pending_commands: PendingCommands,
+    // Account update command handler state reused between runs
+    waiting_update_account_command_handler: WaitingUpdateAccountCommandHandler,
+
+    // Device update command handler state reused between runs
+    waiting_update_device_command_handler: WaitingUpdateDeviceCommandHandler,
+
+    // Tasks used to poll the status of zk-nyms
+    zk_nym_polling_tasks: JoinSet<PollingResult>,
+
+    // If we have multiple fails in a row, disable background refresh
+    zk_nym_fails_in_row: u32,
+
+    // When credential mode is disabled we don't automatically request zk-nyms. We can still do so
+    // manually, but we don't want to do it automatically
+    background_zk_nym_refresh: bool,
+
+    // Listen for cancellation signals
+    cancel_token: CancellationToken,
 }
 
 impl<S> AccountController<S>
@@ -109,8 +107,13 @@ where
         storage: Arc<tokio::sync::Mutex<S>>,
         data_dir: PathBuf,
         user_agent: UserAgent,
+        credentials_mode: bool,
         cancel_token: CancellationToken,
     ) -> Result<Self, Error> {
+        tracing::info!("Starting account controller");
+        tracing::info!("Account controller: data directory: {:?}", data_dir);
+        tracing::info!("Account controller: credential mode: {}", credentials_mode);
+
         let account_storage = AccountStorage::from(storage);
 
         // Generate the device keys if we don't already have them
@@ -127,20 +130,29 @@ where
 
         let (command_tx, command_rx) = tokio::sync::mpsc::unbounded_channel();
 
+        let account_state = SharedAccountState::new();
+        let vpn_api_client = create_api_client(user_agent.clone());
+
+        let waiting_update_state_command_handler =
+            WaitingUpdateAccountCommandHandler::new(account_state.clone(), vpn_api_client.clone());
+        let waiting_update_device_state_command_handler =
+            WaitingUpdateDeviceCommandHandler::new(account_state.clone(), vpn_api_client.clone());
+
         Ok(AccountController {
             account_storage,
             credential_storage,
-            vpn_api_client: create_api_client(user_agent),
-            account_state: SharedAccountState::new(),
-            last_account_summary: Arc::new(tokio::sync::Mutex::new(None)),
-            last_devices: Arc::new(tokio::sync::Mutex::new(None)),
-            zk_nym_fails_in_row: 0,
-            polling_tasks: JoinSet::new(),
+            vpn_api_client,
+            account_state,
             command_rx,
             command_tx,
+            running_commands: Default::default(),
+            running_command_tasks: JoinSet::new(),
+            waiting_update_account_command_handler: waiting_update_state_command_handler,
+            waiting_update_device_command_handler: waiting_update_device_state_command_handler,
+            zk_nym_polling_tasks: JoinSet::new(),
+            zk_nym_fails_in_row: 0,
+            background_zk_nym_refresh: credentials_mode,
             cancel_token,
-            pending_commands: Default::default(),
-            command_tasks: JoinSet::new(),
         })
     }
 
@@ -148,28 +160,11 @@ where
         self.account_state.clone()
     }
 
-    pub fn command_tx(&self) -> UnboundedSender<AccountCommand> {
-        self.command_tx.clone()
-    }
-
-    async fn new_command_handler(&self, command: AccountCommand) -> Result<CommandHandler, Error> {
-        Ok(CommandHandler::new(
-            command,
-            self.account_storage.load_account().await?,
-            self.account_storage.load_device_keys().await?,
-            self.pending_commands.clone(),
-            self.account_state.clone(),
-            self.vpn_api_client.clone(),
-            self.last_account_summary.clone(),
-            self.last_devices.clone(),
-        ))
-    }
-
-    async fn spawn_command_task(&mut self, command: AccountCommand) -> Result<(), Error> {
-        tracing::debug!("Spawning command: {:?}", command);
-        let command_handler = self.new_command_handler(command).await?;
-        self.command_tasks.spawn(command_handler.run());
-        Ok(())
+    pub fn commander(&self) -> AccountControllerCommander {
+        AccountControllerCommander {
+            command_tx: self.command_tx.clone(),
+            shared_state: self.account_state.clone(),
+        }
     }
 
     async fn update_pending_zk_nym_tasks(&self) {
@@ -179,7 +174,7 @@ where
     }
 
     async fn is_pending_zk_nym_tasks(&self) -> bool {
-        !self.polling_tasks.is_empty()
+        !self.zk_nym_polling_tasks.is_empty()
     }
 
     async fn spawn_polling_task(
@@ -191,7 +186,7 @@ where
     ) {
         let api_client = self.vpn_api_client.clone();
         self.account_state.set_pending_zk_nym(true).await;
-        self.polling_tasks
+        self.zk_nym_polling_tasks
             .spawn(poll_zk_nym(request, response, account, device, api_client));
     }
 
@@ -317,7 +312,19 @@ where
     // Check the local credential storage to see if we need to request more zk-nyms, the proceed
     // to request zk-nyms for each ticket type that we need.
     async fn handle_request_zk_nym(&mut self) -> Result<(), Error> {
-        if self.shared_state().lock().await.pending_zk_nym {
+        let account_state = self.shared_state().lock().await.clone();
+
+        // Don't attempt to request zk-nyms if the account is not ready to connect
+        match account_state.is_ready_to_connect(false) {
+            ReadyToConnect::Ready => {}
+            not_ready => {
+                tracing::info!("Account not ready to request zk-nyms, skipping: {not_ready}");
+                return Ok(());
+            }
+        }
+
+        // Check if we are already in the process of requesting zk-nyms
+        if account_state.pending_zk_nym {
             tracing::info!("zk-nym request already in progress, skipping");
             return Ok(());
         }
@@ -373,21 +380,21 @@ where
         Ok(())
     }
 
-    async fn update_mnemonic_state(&self) -> Option<VpnApiAccount> {
+    async fn update_mnemonic_state(&self) -> Result<VpnApiAccount, Error> {
         match self.account_storage.load_account().await {
             Ok(account) => {
                 tracing::debug!("Our account id: {}", account.id());
                 self.account_state
                     .set_mnemonic(MnemonicState::Stored { id: account.id() })
                     .await;
-                Some(account)
+                Ok(account)
             }
             Err(err) => {
                 tracing::debug!("No account stored: {}", err);
                 self.account_state
                     .set_mnemonic(MnemonicState::NotStored)
                     .await;
-                None
+                Err(err)
             }
         }
     }
@@ -395,42 +402,133 @@ where
     async fn register_device_if_ready(&self) -> Result<(), Error> {
         match self.shared_state().is_ready_to_register_device().await {
             ReadyToRegisterDevice::Ready => {
-                self.queue_command(AccountCommand::RegisterDevice);
+                self.queue_command(AccountCommand::RegisterDevice(None));
             }
-            ReadyToRegisterDevice::DeviceAlreadyRegistered => {
-                tracing::debug!("Skipping device registration, already registered");
-            }
-            s @ ReadyToRegisterDevice::NoMnemonicStored
-            | s @ ReadyToRegisterDevice::AccountNotActive
-            | s @ ReadyToRegisterDevice::NoActiveSubscription => {
-                tracing::info!("Not ready to register device: {}", s);
-            }
-            s @ ReadyToRegisterDevice::DeviceInactive
-            | s @ ReadyToRegisterDevice::DeviceDeleted => {
-                tracing::info!("Skipping registering device: {}", s);
+            not_ready => {
+                tracing::info!("Not trying to register device: {not_ready}");
             }
         }
-
         Ok(())
     }
 
-    async fn handle_update_account_state(&mut self) -> Result<(), Error> {
-        let Some(_account) = self.update_mnemonic_state().await else {
+    fn is_background_zk_nym_refresh(&self) -> bool {
+        self.zk_nym_fails_in_row < ZK_NYM_MAX_FAILS && self.background_zk_nym_refresh
+    }
+
+    async fn request_zk_nym_if_ready(&self) -> Result<(), Error> {
+        if !self.is_background_zk_nym_refresh() {
             return Ok(());
-        };
-        self.spawn_command_task(AccountCommand::UpdateAccountState)
-            .await
+        }
+        match self.shared_state().is_ready_to_request_zk_nym().await {
+            ReadyToRequestZkNym::Ready => {
+                self.queue_command(AccountCommand::RequestZkNym);
+            }
+            not_ready => {
+                tracing::info!("Not trying to request zk-nym: {not_ready}");
+            }
+        }
+        Ok(())
     }
 
-    async fn handle_register_device(&mut self) -> Result<(), Error> {
-        tracing::debug!("Registering device");
-        self.spawn_command_task(AccountCommand::RegisterDevice)
+    async fn handle_update_account_state(&mut self, command: AccountCommand) {
+        let account = self
+            .update_mnemonic_state()
             .await
-            .ok();
-        Ok(())
+            .map_err(|_err| AccountCommandError::NoAccountStored);
+
+        let account = match account {
+            Ok(account) => account,
+            Err(err) => {
+                command.return_error(err);
+                return;
+            }
+        };
+
+        let command_handler = self.waiting_update_account_command_handler.build(account);
+
+        if self.running_commands.add(command).await == Command::IsFirst {
+            self.running_command_tasks.spawn(command_handler.run());
+        }
+    }
+
+    async fn handle_update_device_state(&mut self, command: AccountCommand) {
+        let account = self
+            .update_mnemonic_state()
+            .await
+            .map_err(|_err| AccountCommandError::NoAccountStored);
+
+        let account = match account {
+            Ok(account) => account,
+            Err(err) => {
+                command.return_error(err);
+                return;
+            }
+        };
+
+        let device = self
+            .account_storage
+            .load_device_keys()
+            .await
+            .map_err(|_err| AccountCommandError::NoDeviceStored);
+
+        let device = match device {
+            Ok(device) => device,
+            Err(err) => {
+                command.return_error(err);
+                return;
+            }
+        };
+
+        let command_handler = self
+            .waiting_update_device_command_handler
+            .build(account, device);
+
+        if self.running_commands.add(command).await == Command::IsFirst {
+            self.running_command_tasks.spawn(command_handler.run());
+        }
+    }
+
+    async fn handle_register_device(&mut self, command: AccountCommand) {
+        let account = self
+            .update_mnemonic_state()
+            .await
+            .map_err(|_err| AccountCommandError::NoAccountStored);
+
+        let account = match account {
+            Ok(account) => account,
+            Err(err) => {
+                command.return_error(err);
+                return;
+            }
+        };
+
+        let device = self
+            .account_storage
+            .load_device_keys()
+            .await
+            .map_err(|_err| AccountCommandError::NoDeviceStored);
+
+        let device = match device {
+            Ok(device) => device,
+            Err(err) => {
+                command.return_error(err);
+                return;
+            }
+        };
+
+        let command_handler = RegisterDeviceCommandHandler::new(
+            account,
+            device,
+            self.account_state.clone(),
+            self.vpn_api_client.clone(),
+        );
+        if self.running_commands.add(command).await == Command::IsFirst {
+            self.running_command_tasks.spawn(command_handler.run());
+        }
     }
 
     // Get and list zk-nyms for the device
+
     async fn handle_get_device_zk_nym(&mut self) -> Result<(), Error> {
         tracing::info!("Getting device zk-nym from API");
 
@@ -546,42 +644,63 @@ where
         }
     }
 
-    async fn is_command_running(&self, command: &AccountCommand) -> Result<bool, Error> {
-        self.pending_commands
-            .lock()
-            .map(|guard| {
-                guard
-                    .values()
-                    .any(|running_command| running_command == &command.kind())
-            })
-            .map_err(Error::internal)
-    }
-
     fn queue_command(&self, command: AccountCommand) {
         if let Err(err) = self.command_tx.send(command) {
             tracing::error!("Failed to queue command: {:#?}", err);
         }
     }
 
-    async fn handle_command(&mut self, command: AccountCommand) -> Result<(), Error> {
+    async fn handle_command(&mut self, command: AccountCommand) {
         tracing::info!("Received command: {}", command);
-
-        if self.is_command_running(&command).await? {
-            tracing::info!("Command already running, skipping: {:?}", command);
-            return Ok(());
-        }
-
         match command {
-            AccountCommand::UpdateAccountState => self.handle_update_account_state().await,
-            AccountCommand::RegisterDevice => self.handle_register_device().await,
-            AccountCommand::RequestZkNym => self.handle_request_zk_nym().await,
-            AccountCommand::GetDeviceZkNym => self.handle_get_device_zk_nym().await,
-            AccountCommand::GetZkNymsAvailableForDownload => {
-                self.handle_get_zk_nyms_available_for_download().await
+            AccountCommand::UpdateAccountState(_) => {
+                self.handle_update_account_state(command).await;
             }
-            AccountCommand::GetZkNymById(id) => self.handle_get_zk_nym_by_id(&id).await,
+            AccountCommand::UpdateDeviceState(_) => {
+                self.handle_update_device_state(command).await;
+            }
+            AccountCommand::RegisterDevice(_) => {
+                self.handle_register_device(command).await;
+            }
+            AccountCommand::RequestZkNym => {
+                self.handle_request_zk_nym()
+                    .await
+                    .inspect_err(|err| {
+                        tracing::error!("Failed to request zk-nym: {:#?}", err);
+                    })
+                    .ok();
+            }
+            AccountCommand::GetDeviceZkNym => {
+                self.handle_get_device_zk_nym()
+                    .await
+                    .inspect_err(|err| {
+                        tracing::error!("Failed to get device zk-nym: {:#?}", err);
+                    })
+                    .ok();
+            }
+            AccountCommand::GetZkNymsAvailableForDownload => {
+                self.handle_get_zk_nyms_available_for_download()
+                    .await
+                    .inspect_err(|err| {
+                        tracing::error!("Failed to get zk-nyms available for download: {:#?}", err);
+                    })
+                    .ok();
+            }
+            AccountCommand::GetZkNymById(id) => {
+                self.handle_get_zk_nym_by_id(&id)
+                    .await
+                    .inspect_err(|err| {
+                        tracing::error!("Failed to get zk-nym by id: {:#?}", err);
+                    })
+                    .ok();
+            }
             AccountCommand::ConfirmZkNymIdDownloaded(id) => {
-                self.confirm_zk_nym_downloaded(&id).await
+                self.confirm_zk_nym_downloaded(&id)
+                    .await
+                    .inspect_err(|err| {
+                        tracing::error!("Failed to confirm zk-nym downloaded: {:#?}", err);
+                    })
+                    .ok();
             }
             AccountCommand::GetAvailableTickets(result_tx) => {
                 let result = self.handle_get_available_tickets().await;
@@ -591,36 +710,64 @@ where
                         tracing::error!("Failed to send available tickets response: {:#?}", err);
                     })
                     .ok();
-                Ok(())
             }
-        }
+        };
     }
 
-    async fn handle_command_result(
-        &self,
-        result: Result<Result<AccountCommandResult, Error>, JoinError>,
-    ) {
+    async fn handle_command_result(&self, result: Result<AccountCommandResult, JoinError>) {
         let Ok(result) = result else {
-            tracing::error!("Polling task failed: {:#?}", result);
+            tracing::error!("Joining task failed: {:#?}", result);
             return;
         };
 
-        let result = match result {
-            Ok(result) => result,
-            Err(err) => {
-                tracing::warn!("Command failed: {:#?}", err);
-                return;
-            }
-        };
-
         match result {
-            AccountCommandResult::UpdatedAccountState => {
-                tracing::debug!("Account state updated");
-                self.register_device_if_ready().await.ok();
+            AccountCommandResult::UpdateAccountState(r) => {
+                tracing::debug!("Account state completed: {:?}", r);
+                let commands = self
+                    .running_commands
+                    .remove(&AccountCommand::UpdateAccountState(None))
+                    .await;
+                for command in commands {
+                    if let AccountCommand::UpdateAccountState(Some(tx)) = command {
+                        tx.send(r.clone());
+                    }
+                }
+                if r.is_ok() {
+                    self.register_device_if_ready().await.ok();
+                    self.request_zk_nym_if_ready().await.ok();
+                }
             }
-            AccountCommandResult::RegisteredDevice(registered_device) => {
-                tracing::info!("Device registered: {:#?}", registered_device);
-                self.queue_command(AccountCommand::UpdateAccountState);
+            AccountCommandResult::UpdateDeviceState(r) => {
+                tracing::debug!("Device state updated: {:?}", r);
+                let commands = self
+                    .running_commands
+                    .remove(&AccountCommand::UpdateDeviceState(None))
+                    .await;
+                for command in commands {
+                    if let AccountCommand::UpdateDeviceState(Some(tx)) = command {
+                        tx.send(r.clone());
+                    }
+                }
+                if r.is_ok() {
+                    self.register_device_if_ready().await.ok();
+                    self.request_zk_nym_if_ready().await.ok();
+                }
+            }
+            AccountCommandResult::RegisterDevice(r) => {
+                tracing::info!("Device register task: {:#?}", r);
+                let commands = self
+                    .running_commands
+                    .remove(&AccountCommand::RegisterDevice(None))
+                    .await;
+                for command in commands {
+                    if let AccountCommand::RegisterDevice(Some(tx)) = command {
+                        tx.send(r.clone());
+                    }
+                }
+                if r.is_ok() {
+                    self.queue_command(AccountCommand::UpdateAccountState(None));
+                    self.request_zk_nym_if_ready().await.ok();
+                }
             }
         }
     }
@@ -628,16 +775,16 @@ where
     async fn cleanup(mut self) {
         let timeout = tokio::time::sleep(Duration::from_secs(5));
         tokio::pin!(timeout);
-        while !self.command_tasks.is_empty() && !self.polling_tasks.is_empty() {
+        while !self.running_command_tasks.is_empty() && !self.zk_nym_polling_tasks.is_empty() {
             tokio::select! {
                 _ = &mut timeout => {
                     tracing::warn!("Timeout waiting for polling tasks to finish, pending zk-nym's not imported into local credential store!");
                     break;
                 },
-                Some(result) = self.command_tasks.join_next() => {
+                Some(result) = self.running_command_tasks.join_next() => {
                     self.handle_command_result(result).await
                 },
-                Some(result) = self.polling_tasks.join_next() =>  {
+                Some(result) = self.zk_nym_polling_tasks.join_next() =>  {
                     self.handle_polling_result(result).await
                 },
             }
@@ -688,30 +835,28 @@ where
             tokio::select! {
                 // Handle incoming commands
                 Some(command) = self.command_rx.recv() => {
-                    if let Err(err) = self.handle_command(command).await {
-                        tracing::error!("{err}");
-                        tracing::debug!("{err:#?}");
-                    }
+                    self.handle_command(command).await;
                 }
                 // Check the results of finished tasks
                 _ = command_finish_timer.tick() => {
-                    while let Some(result) = self.command_tasks.try_join_next() {
+                    while let Some(result) = self.running_command_tasks.try_join_next() {
                         self.handle_command_result(result).await;
                     }
                 }
                 // Check the results of finished zk nym polling tasks
                 _ = polling_timer.tick() => {
-                    while let Some(result) = self.polling_tasks.try_join_next() {
+                    while let Some(result) = self.zk_nym_polling_tasks.try_join_next() {
                         self.handle_polling_result(result).await;
                     }
                     self.update_pending_zk_nym_tasks().await;
                 }
-                // On a timer we want to refresh the account state
-                _ = update_account_state_timer.tick(), if self.zk_nym_fails_in_row < ZK_NYM_MAX_FAILS => {
-                    self.queue_command(AccountCommand::UpdateAccountState);
+                // On a timer we want to refresh the account and device state
+                _ = update_account_state_timer.tick() => {
+                    self.queue_command(AccountCommand::UpdateAccountState(None));
+                    self.queue_command(AccountCommand::UpdateDeviceState(None));
                 }
                 // On a timer to check if we need to request more zk-nyms
-                _ = update_zk_nym_timer.tick() => {
+                _ = update_zk_nym_timer.tick(), if self.is_background_zk_nym_refresh() => {
                     self.queue_command(AccountCommand::RequestZkNym);
                 }
                 _ = self.cancel_token.cancelled() => {
