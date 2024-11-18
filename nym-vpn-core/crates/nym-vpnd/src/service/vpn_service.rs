@@ -956,7 +956,7 @@ where
             .account_management
             .clone()
             .ok_or(AccountError::AccountManagementNotConfigured)?
-            .try_into_parsed_links(&locale, account_id.as_ref().map(|s| s.as_str()))
+            .try_into_parsed_links(&locale, account_id.as_deref())
             .map_err(|err| {
                 tracing::error!("Failed to parse account links: {:?}", err);
                 AccountError::FailedToParseAccountLinks
