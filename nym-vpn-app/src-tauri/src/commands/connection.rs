@@ -74,7 +74,7 @@ pub async fn connect(
 
     #[cfg(windows)]
     if matches!(vpn_mode, VpnMode::TwoHop) {
-        return Err(BackendError::new_internal(
+        return Err(BackendError::internal(
             "fast mode is not yet supported on windows",
             None,
         ));
@@ -208,7 +208,7 @@ pub async fn set_vpn_mode(
 ) -> Result<(), BackendError> {
     #[cfg(windows)]
     if matches!(mode, VpnMode::TwoHop) {
-        return Err(BackendError::new_internal(
+        return Err(BackendError::internal(
             "fast mode is not yet supported on windows",
             None,
         ));
