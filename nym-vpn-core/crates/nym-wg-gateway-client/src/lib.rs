@@ -82,9 +82,13 @@ impl WgGatewayLightClient {
         let available_bandwidth = match response {
             nym_authenticator_client::AuthenticatorResponse::RemainingBandwidth(
                 remaining_bandwidth_response,
-            ) => remaining_bandwidth_response
-                .available_bandwidth()
-                .unwrap_or_default(),
+            ) => {
+                let Some(available_bandwidth) = remaining_bandwidth_response.available_bandwidth()
+                else {
+                    return Ok(None);
+                };
+                available_bandwidth
+            }
             _ => return Err(Error::InvalidGatewayAuthResponse),
         };
 
