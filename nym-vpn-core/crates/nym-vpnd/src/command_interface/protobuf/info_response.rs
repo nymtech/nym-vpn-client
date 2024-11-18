@@ -128,7 +128,7 @@ pub(crate) fn into_account_management_links(
     nym_vpn_proto::AccountManagement {
         sign_up: Some(into_proto_url(account_links.sign_up)),
         sign_in: Some(into_proto_url(account_links.sign_in)),
-        account: Some(into_proto_url(account_links.account)),
+        account: account_links.account.map(|account| into_proto_url(account)),
     }
 }
 

@@ -22,7 +22,7 @@ pub(crate) struct AccountManagementPaths {
 pub struct ParsedAccountLinks {
     pub sign_up: Url,
     pub sign_in: Url,
-    pub account: Url,
+    pub account: Option<Url>,
 }
 
 impl AccountManagement {
@@ -53,7 +53,7 @@ impl AccountManagement {
     pub fn try_into_parsed_links(
         self,
         locale: &str,
-        account_id: &str,
+        account_id: Option<&str>,
     ) -> Result<ParsedAccountLinks, anyhow::Error> {
         Ok(ParsedAccountLinks {
             sign_up: self
@@ -62,9 +62,7 @@ impl AccountManagement {
             sign_in: self
                 .sign_in_url(locale)
                 .ok_or_else(|| anyhow::anyhow!("Failed to parse sign in URL"))?,
-            account: self
-                .account_url(locale, account_id)
-                .ok_or_else(|| anyhow::anyhow!("Failed to parse account URL"))?,
+            account: account_id.and_then(|account_id| self.account_url(locale, account_id)),
         })
     }
 }

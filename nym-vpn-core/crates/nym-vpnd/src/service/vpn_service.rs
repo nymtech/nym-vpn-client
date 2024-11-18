@@ -948,15 +948,15 @@ where
         &self,
         locale: String,
     ) -> Result<ParsedAccountLinks, AccountError> {
-        let account = self.load_account().await?;
-        let account_id = account.id();
+        let account = self.load_account().await.ok();
+        let account_id = account.map(|a| a.id());
 
         self.network_env
             .nym_vpn_network
             .account_management
             .clone()
             .ok_or(AccountError::AccountManagementNotConfigured)?
-            .try_into_parsed_links(&locale, &account_id)
+            .try_into_parsed_links(&locale, account_id.as_ref().map(|s| s.as_str()))
             .map_err(|err| {
                 tracing::error!("Failed to parse account links: {:?}", err);
                 AccountError::FailedToParseAccountLinks
