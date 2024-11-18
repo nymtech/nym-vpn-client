@@ -696,6 +696,15 @@ where
         Ok(())
     }
 
+    async fn wait_for_disconnect_with_timeout(
+        &mut self,
+        timeout: Duration,
+    ) -> Result<(), VpnServiceDisconnectError> {
+        tokio::time::timeout(timeout, self.wait_for_disconnect())
+            .await
+            .map_err(|_| VpnServiceDisconnectError::Internal("timeout".to_string()))?
+    }
+
     async fn wait_for_disconnect(&mut self) -> Result<(), VpnServiceDisconnectError> {
         let mut vpn_state_changes_rx = self.vpn_state_changes_tx.subscribe();
         self.handle_disconnect().await?;
@@ -929,8 +938,8 @@ where
     }
 
     async fn handle_remove_account(&mut self) -> Result<(), AccountError> {
-        // First disconnect the VPN
-        self.wait_for_disconnect()
+        tracing::info!("First disconnecting the VPN");
+        self.wait_for_disconnect_with_timeout(Duration::from_secs(5))
             .await
             .map_err(|err| AccountError::FailedToRemoveAccount {
                 source: Box::new(err),
@@ -946,6 +955,9 @@ where
             })?;
 
         self.account_command_tx
+            .send(AccountCommand::ResetAccount)
+            .map_err(|source| AccountError::AccountControllerError { source })?;
+        self.account_command_tx
             .send(AccountCommand::UpdateAccountState(None))
             .map_err(|source| AccountError::AccountControllerError { source })?;
 
@@ -954,9 +966,8 @@ where
 
     async fn handle_forget_account(&mut self) -> Result<(), AccountError> {
         tracing::info!("First disconnecting the VPN");
-        tokio::time::timeout(Duration::from_secs(10), self.wait_for_disconnect())
+        self.wait_for_disconnect_with_timeout(Duration::from_secs(5))
             .await
-            .map_err(|_| AccountError::Timeout("timeout waiting for disconnect".to_string()))?
             .map_err(|err| AccountError::FailedToForgetAccount {
                 source: Box::new(err),
             })?;
@@ -975,6 +986,9 @@ where
         // Tell the account controller to reset its state
         self.account_command_tx
             .send(AccountCommand::ResetAccount)
+            .map_err(|source| AccountError::AccountControllerError { source })?;
+        self.account_command_tx
+            .send(AccountCommand::UpdateAccountState(None))
             .map_err(|source| AccountError::AccountControllerError { source })?;
 
         Ok(())

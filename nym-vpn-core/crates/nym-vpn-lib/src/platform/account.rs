@@ -132,10 +132,8 @@ pub(super) async fn send_account_command_if_running(
 ) -> Result<(), VpnError> {
     if let Some(guard) = &*ACCOUNT_CONTROLLER_HANDLE.lock().await {
         guard.send_command(command);
-        Ok(())
-    } else {
-        Ok(())
     }
+    Ok(())
 }
 
 async fn get_shared_account_state() -> Result<SharedAccountState, VpnError> {

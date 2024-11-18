@@ -104,9 +104,8 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
             // TODO: same for windows
         }
 
-        tracing::info!("Only creating the file if it doesn't already exist");
-
         // Another layer of defense, only create the file if it doesn't already exist
+        tracing::debug!("Only creating the file if it doesn't already exist");
         let file = std::fs::OpenOptions::new()
             .create_new(true)
             .write(true)
