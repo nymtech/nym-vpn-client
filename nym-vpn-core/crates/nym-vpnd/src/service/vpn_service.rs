@@ -709,6 +709,10 @@ where
         let mut vpn_state_changes_rx = self.vpn_state_changes_tx.subscribe();
         self.handle_disconnect().await?;
 
+        if self.tunnel_state.is_disconnected() {
+            return Ok(());
+        }
+
         while let Ok(state_change) = vpn_state_changes_rx.recv().await {
             match state_change {
                 VpnServiceStateChange::NotConnected => {
@@ -939,7 +943,7 @@ where
 
     async fn handle_remove_account(&mut self) -> Result<(), AccountError> {
         tracing::info!("First disconnecting the VPN");
-        self.wait_for_disconnect_with_timeout(Duration::from_secs(5))
+        self.wait_for_disconnect_with_timeout(Duration::from_secs(10))
             .await
             .map_err(|err| AccountError::FailedToRemoveAccount {
                 source: Box::new(err),
@@ -966,7 +970,7 @@ where
 
     async fn handle_forget_account(&mut self) -> Result<(), AccountError> {
         tracing::info!("First disconnecting the VPN");
-        self.wait_for_disconnect_with_timeout(Duration::from_secs(5))
+        self.wait_for_disconnect_with_timeout(Duration::from_secs(10))
             .await
             .map_err(|err| AccountError::FailedToForgetAccount {
                 source: Box::new(err),

@@ -391,6 +391,7 @@ where
             }
             Err(err) => {
                 tracing::debug!("No account stored: {}", err);
+                self.account_state.reset().await;
                 self.account_state
                     .set_mnemonic(MnemonicState::NotStored)
                     .await;
