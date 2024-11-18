@@ -124,6 +124,7 @@ where
 
 #[derive(Debug, strum::Display)]
 pub enum AccountCommand {
+    ResetAccount,
     UpdateAccountState(Option<ReturnSender<NymVpnAccountSummaryResponse>>),
     UpdateDeviceState(Option<ReturnSender<DeviceState>>),
     RegisterDevice(Option<ReturnSender<NymVpnDevice>>),

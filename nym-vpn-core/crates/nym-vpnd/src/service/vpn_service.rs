@@ -942,6 +942,12 @@ where
             data_dir.display()
         );
         let _ = std::fs::remove_dir_all(&data_dir);
+
+        // Tell the account controller to reset its state
+        self.account_command_tx
+            .send(AccountCommand::ResetAccount)
+            .map_err(|source| AccountError::AccountControllerError { source })?;
+
         Ok(())
     }
 

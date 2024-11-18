@@ -653,6 +653,9 @@ where
     async fn handle_command(&mut self, command: AccountCommand) {
         tracing::info!("Received command: {}", command);
         match command {
+            AccountCommand::ResetAccount => {
+                self.account_state.reset().await;
+            }
             AccountCommand::UpdateAccountState(_) => {
                 self.handle_update_account_state(command).await;
             }
