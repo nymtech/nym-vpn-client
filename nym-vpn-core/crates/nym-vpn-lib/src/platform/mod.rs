@@ -257,12 +257,12 @@ async fn fetch_account_links(
     network_name: &str,
     locale: &str,
 ) -> Result<AccountLinks, VpnError> {
-    let account_id = account::get_account_id(path).await?;
+    let account_id = account::get_account_id(path).await.ok();
     nym_vpn_network_config::Network::fetch(network_name)
         .and_then(|network| {
             network
                 .nym_vpn_network
-                .try_into_parsed_links(locale, &account_id)
+                .try_into_parsed_links(locale, account_id.as_ref().map(|s| s.as_str()))
         })
         .map(AccountLinks::from)
         .map_err(|err| VpnError::InternalError {

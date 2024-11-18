@@ -898,7 +898,7 @@ impl From<nym_vpn_network_config::SystemMessage> for SystemMessage {
 pub struct AccountLinks {
     pub sign_up: String,
     pub sign_in: String,
-    pub account: String,
+    pub account: Option<String>,
 }
 
 impl From<nym_vpn_network_config::ParsedAccountLinks> for AccountLinks {
@@ -906,7 +906,7 @@ impl From<nym_vpn_network_config::ParsedAccountLinks> for AccountLinks {
         AccountLinks {
             sign_up: value.sign_up.to_string(),
             sign_in: value.sign_in.to_string(),
-            account: value.account.to_string(),
+            account: value.account.map(|s| s.to_string()),
         }
     }
 }
