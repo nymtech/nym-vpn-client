@@ -18,11 +18,25 @@ pub(crate) struct RunningCommands {
     running_commands: Arc<tokio::sync::Mutex<HashMap<String, Vec<AccountCommand>>>>,
 }
 
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) enum Command {
+    IsFirst,
+    IsNotFirst,
+}
+
+// Add the command to the set of running commands.
+// Returns true if this is the first command of this type, otherwise false.
 impl RunningCommands {
-    pub(crate) async fn add(&self, command: AccountCommand) {
+    pub(crate) async fn add(&self, command: AccountCommand) -> Command {
         let mut running_commands = self.running_commands.lock().await;
         let commands = running_commands.entry(command.kind()).or_default();
+        let is_first = if commands.is_empty() {
+            Command::IsFirst
+        } else {
+            Command::IsNotFirst
+        };
         commands.push(command);
+        is_first
     }
 
     pub(crate) async fn remove(&self, command: &AccountCommand) -> Vec<AccountCommand> {
