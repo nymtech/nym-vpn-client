@@ -4795,6 +4795,8 @@ dependencies = [
  "reqwest 0.11.27",
  "serde",
  "serde_json",
+ "strum",
+ "strum_macros",
  "sysinfo",
  "thiserror",
  "time",

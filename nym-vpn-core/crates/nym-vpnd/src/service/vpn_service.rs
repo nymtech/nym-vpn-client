@@ -94,6 +94,7 @@ type Seed = [u8; 32];
 type Locale = String;
 
 #[allow(clippy::large_enum_variant)]
+#[derive(Debug, strum::Display)]
 pub enum VpnServiceCommand {
     Info(oneshot::Sender<VpnServiceInfo>, ()),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
@@ -108,6 +109,7 @@ pub enum VpnServiceCommand {
     StoreAccount(oneshot::Sender<Result<(), AccountError>>, Zeroizing<String>),
     IsAccountStored(oneshot::Sender<Result<bool, AccountError>>, ()),
     RemoveAccount(oneshot::Sender<Result<(), AccountError>>, ()),
+    ForgetAccount(oneshot::Sender<Result<(), AccountError>>, ()),
     GetAccountIdentity(oneshot::Sender<Result<String, AccountError>>, ()),
     GetAccountLinks(
         oneshot::Sender<Result<ParsedAccountLinks, AccountError>>,
@@ -139,45 +141,6 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<NymVpnDevicesResponse, AccountError>>,
         (),
     ),
-}
-
-impl fmt::Display for VpnServiceCommand {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            VpnServiceCommand::Info(..) => write!(f, "Info"),
-            VpnServiceCommand::SetNetwork(..) => write!(f, "SetNetwork"),
-            VpnServiceCommand::GetSystemMessages(..) => write!(f, "GetSystemMessages"),
-            VpnServiceCommand::GetFeatureFlags(..) => write!(f, "GetFeatureFlags"),
-            VpnServiceCommand::Connect(_, (args, user_agent)) => {
-                write!(f, "Connect {{ {args:?}, {user_agent:?} }}")
-            }
-            VpnServiceCommand::Disconnect(..) => write!(f, "Disconnect"),
-            VpnServiceCommand::Status(..) => write!(f, "Status"),
-            VpnServiceCommand::StoreAccount(..) => write!(f, "StoreAccount"),
-            VpnServiceCommand::IsAccountStored(..) => write!(f, "IsAccountStored"),
-            VpnServiceCommand::RemoveAccount(..) => write!(f, "RemoveAccount"),
-            VpnServiceCommand::GetAccountIdentity(..) => write!(f, "GetAccountIdentity"),
-            VpnServiceCommand::GetAccountLinks(..) => write!(f, "GetAccountLinks"),
-            VpnServiceCommand::GetAccountState(..) => write!(f, "GetAccountState"),
-            VpnServiceCommand::RefreshAccountState(..) => write!(f, "RefreshAccountState"),
-            VpnServiceCommand::IsReadyToConnect(..) => write!(f, "IsReadyToConnect"),
-            VpnServiceCommand::ResetDeviceIdentity(..) => write!(f, "ResetDeviceIdentity"),
-            VpnServiceCommand::GetDeviceIdentity(..) => write!(f, "GetDeviceIdentity"),
-            VpnServiceCommand::RegisterDevice(..) => write!(f, "RegisterDevice"),
-            VpnServiceCommand::RequestZkNym(..) => write!(f, "RequestZkNym"),
-            VpnServiceCommand::GetDeviceZkNyms(..) => write!(f, "GetDeviceZkNyms"),
-            VpnServiceCommand::GetZkNymsAvailableForDownload(..) => {
-                write!(f, "GetZkNymsAvailableForDownload")
-            }
-            VpnServiceCommand::GetZkNymById(..) => write!(f, "GetZkNymById"),
-            VpnServiceCommand::ConfirmZkNymIdDownloaded(..) => {
-                write!(f, "ConfirmZkNymIdDownloaded")
-            }
-            VpnServiceCommand::GetAvailableTickets(..) => write!(f, "GetAvailableTickets"),
-            VpnServiceCommand::FetchRawAccountSummary(..) => write!(f, "FetchRawAccountSummery"),
-            VpnServiceCommand::FetchRawDevices(..) => write!(f, "FetchRawDevices"),
-        }
-    }
 }
 
 #[derive(Debug)]
@@ -382,6 +345,7 @@ where
     account_command_tx: AccountControllerCommander,
 
     config_file: PathBuf,
+    data_dir: PathBuf,
 
     // Storage backend
     storage: Arc<tokio::sync::Mutex<S>>,
@@ -514,6 +478,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             status_tx,
             account_command_tx,
             config_file,
+            data_dir,
             storage,
             tunnel_state: TunnelState::Disconnected,
             state_machine_handle,
@@ -612,6 +577,10 @@ where
             }
             VpnServiceCommand::RemoveAccount(tx, ()) => {
                 let result = self.handle_remove_account().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::ForgetAccount(tx, ()) => {
+                let result = self.handle_forget_account().await;
                 let _ = tx.send(result);
             }
             VpnServiceCommand::GetAccountIdentity(tx, ()) => {
@@ -924,6 +893,13 @@ where
     }
 
     async fn handle_remove_account(&mut self) -> Result<(), AccountError> {
+        // First disconnect the VPN
+        self.handle_disconnect()
+            .await
+            .map_err(|err| AccountError::FailedToRemoveAccount {
+                source: Box::new(err),
+            })?;
+
         self.storage
             .lock()
             .await
@@ -937,6 +913,23 @@ where
             .send(AccountCommand::UpdateAccountState(None))
             .map_err(|source| AccountError::AccountControllerError { source })?;
 
+        Ok(())
+    }
+
+    async fn handle_forget_account(&mut self) -> Result<(), AccountError> {
+        tracing::info!("First disconnecting the VPN");
+        self.handle_disconnect()
+            .await
+            .map_err(|err| AccountError::FailedToResetKeys {
+                source: Box::new(err),
+            })?;
+
+        let data_dir = self.data_dir.clone();
+        tracing::warn!(
+            "REMOVING ALL ACCOUNT AND DEVICE DATA IN: {}",
+            data_dir.display()
+        );
+        let _ = std::fs::remove_dir_all(&data_dir);
         Ok(())
     }
 
@@ -1009,9 +1002,16 @@ where
     }
 
     async fn handle_reset_device_identity(
-        &self,
+        &mut self,
         seed: Option<[u8; 32]>,
     ) -> Result<(), AccountError> {
+        // First disconnect the VPN
+        self.handle_disconnect()
+            .await
+            .map_err(|err| AccountError::FailedToResetKeys {
+                source: Box::new(err),
+            })?;
+
         self.storage
             .lock()
             .await

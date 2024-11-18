@@ -30,6 +30,7 @@ pub(crate) enum Command {
     StoreAccount(StoreAccountArgs),
     IsAccountStored,
     RemoveAccount,
+    ForgetAccount,
     GetAccountId,
     GetAccountState,
     GetAccountLinks(GetAccountLinksArgs),
