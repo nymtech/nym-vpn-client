@@ -3,7 +3,7 @@
 
 use std::sync::Arc;
 
-use nym_sdk::mixnet::{MixnetClient, MixnetClientSender, Recipient};
+use nym_sdk::mixnet::{ClientStatsEvents, MixnetClient, MixnetClientSender, Recipient};
 
 #[derive(Clone)]
 pub struct SharedMixnetClient(Arc<tokio::sync::Mutex<Option<MixnetClient>>>);
@@ -23,6 +23,10 @@ impl SharedMixnetClient {
 
     pub async fn split_sender(&self) -> MixnetClientSender {
         self.lock().await.as_ref().unwrap().split_sender()
+    }
+
+    pub async fn send_stats_event(&self, event: ClientStatsEvents) {
+        self.lock().await.as_ref().unwrap().send_stats_event(event);
     }
 
     #[cfg(target_os = "android")]

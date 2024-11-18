@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use nym_authenticator_client::AuthClient;
 use nym_credentials_interface::TicketType;
 use nym_gateway_directory::{AuthAddresses, Gateway, GatewayClient};
-use nym_sdk::mixnet::{EphemeralCredentialStorage, StoragePaths};
+use nym_sdk::mixnet::{ConnectionStatsEvent, EphemeralCredentialStorage, StoragePaths};
 use nym_task::TaskManager;
 use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
 
@@ -131,7 +131,11 @@ impl Connector {
 
             (ConnectionData { entry, exit }, bandwidth_controller_handle)
         };
-
+        if let Some(exit_country_code) = selected_gateways.exit.two_letter_iso_country_code() {
+            auth_client.send_stats_event(
+                ConnectionStatsEvent::WgCountry(exit_country_code.to_string()).into(),
+            );
+        }
         Ok(ConnectedTunnel::new(
             self.task_manager,
             wg_entry_gateway_client,

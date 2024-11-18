@@ -8,12 +8,17 @@ use tokio_stream::{wrappers::IntervalStream, StreamExt};
 
 use nym_credentials_interface::TicketType;
 use nym_gateway_directory::GatewayClient;
-use nym_sdk::{mixnet::CredentialStorage as Storage, NymNetworkDetails, TaskClient};
+use nym_sdk::{
+    mixnet::{ConnectionStatsEvent, CredentialStorage as Storage},
+    NymNetworkDetails, TaskClient,
+};
 use nym_validator_client::{
     nyxd::{Config as NyxdClientConfig, NyxdClient},
     QueryHttpRpcNyxdClient,
 };
-use nym_wg_gateway_client::{ErrorMessage, GatewayData, WgGatewayClient, WgGatewayLightClient};
+use nym_wg_gateway_client::{
+    ErrorMessage, GatewayData, WgGatewayClient, WgGatewayLightClient, TICKETS_TO_SPEND,
+};
 
 const DEFAULT_BANDWIDTH_CHECK: Duration = Duration::from_secs(5); // 5 seconds
 const DEFAULT_BANDWIDTH_DEPLETION_RATE: u64 = 1024 * 1024; // 1 MB/s
@@ -231,6 +236,13 @@ impl<St: Storage> BandwidthController<St> {
                     authenticator_address: Box::new(authenticator_address),
                     source,
                 })?;
+        wg_gateway_client.send_stats_event(
+            ConnectionStatsEvent::TicketSpent {
+                typ: ticketbook_type,
+                amount: TICKETS_TO_SPEND,
+            }
+            .into(),
+        );
         Ok(remaining_bandwidth)
     }
 

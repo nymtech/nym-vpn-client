@@ -12,8 +12,8 @@ use nym_authenticator_requests::{
 };
 
 use nym_sdk::mixnet::{
-    MixnetClient, MixnetClientSender, MixnetMessageSender, Recipient, ReconstructedMessage,
-    TransmissionLane,
+    ClientStatsEvents, ClientStatsSender, MixnetClient, MixnetClientSender, MixnetMessageSender,
+    Recipient, ReconstructedMessage, TransmissionLane,
 };
 use nym_wireguard_types::PeerPublicKey;
 use serde::{Deserialize, Serialize};
@@ -88,6 +88,7 @@ impl SharedMixnetClient {
 pub struct AuthClient {
     mixnet_client: SharedMixnetClient,
     mixnet_sender: MixnetClientSender,
+    stats_sender: ClientStatsSender,
     nym_address: Recipient,
 }
 
@@ -101,9 +102,16 @@ impl AuthClient {
             .as_ref()
             .unwrap()
             .nym_address();
+        let stats_sender = mixnet_client
+            .lock()
+            .await
+            .as_ref()
+            .unwrap()
+            .stats_events_reporter();
         Self {
             mixnet_client,
             mixnet_sender,
+            stats_sender,
             nym_address,
         }
     }
@@ -122,6 +130,10 @@ impl AuthClient {
         authenticator_address: Recipient,
     ) -> Result<AuthenticatorResponse> {
         self.send_inner(message, authenticator_address).await
+    }
+
+    pub fn send_stats_event(&self, event: ClientStatsEvents) {
+        self.stats_sender.report(event);
     }
 
     async fn send_inner(
