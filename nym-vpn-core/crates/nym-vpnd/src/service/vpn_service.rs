@@ -439,10 +439,12 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         .await
         .map_err(|source| Error::Account(AccountError::AccountControllerError { source }))?;
 
+        // These are used to interact with the account controller
         let shared_account_state = account_controller.shared_state();
         let account_command_tx = account_controller.commander();
         let _account_controller_handle = tokio::task::spawn(account_controller.run());
 
+        // These used to interact with the tunnel state machine
         let (command_sender, command_receiver) = mpsc::unbounded_channel();
         let (event_sender, event_receiver) = mpsc::unbounded_channel();
 
@@ -865,12 +867,22 @@ where
         &mut self,
         account: Zeroizing<String>,
     ) -> Result<(), AccountError> {
+        tracing::info!("Storing account");
         self.storage
             .lock()
             .await
             .store_mnemonic(Mnemonic::parse::<&str>(account.as_ref())?)
             .await
             .map_err(|err| AccountError::FailedToStoreAccount {
+                source: Box::new(err),
+            })?;
+
+        self.storage
+            .lock()
+            .await
+            .init_keys(None)
+            .await
+            .map_err(|err| AccountError::FailedToInitDeviceKeys {
                 source: Box::new(err),
             })?;
 
@@ -920,7 +932,7 @@ where
         tracing::info!("First disconnecting the VPN");
         self.handle_disconnect()
             .await
-            .map_err(|err| AccountError::FailedToResetKeys {
+            .map_err(|err| AccountError::FailedToResetDeviceKeys {
                 source: Box::new(err),
             })?;
 
@@ -1008,7 +1020,7 @@ where
         // First disconnect the VPN
         self.handle_disconnect()
             .await
-            .map_err(|err| AccountError::FailedToResetKeys {
+            .map_err(|err| AccountError::FailedToResetDeviceKeys {
                 source: Box::new(err),
             })?;
 
@@ -1017,7 +1029,7 @@ where
             .await
             .reset_keys(seed)
             .await
-            .map_err(|err| AccountError::FailedToResetKeys {
+            .map_err(|err| AccountError::FailedToResetDeviceKeys {
                 source: Box::new(err),
             })?;
 

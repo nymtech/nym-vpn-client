@@ -91,8 +91,8 @@ where
     // If we have multiple fails in a row, disable background refresh
     zk_nym_fails_in_row: u32,
 
-    // When credential mode is disabled we don't automatically request zk-nyms. We can still do so
-    // manually, but we don't want to do it automatically
+    // When credential mode is disabled we don't automatically request zk-nyms. We can still do
+    // so manually, but we don't want to do it automatically
     background_zk_nym_refresh: bool,
 
     // Listen for cancellation signals
