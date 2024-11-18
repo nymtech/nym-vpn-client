@@ -51,23 +51,25 @@ pub enum VpnError {
     #[error("timeout connecting to nym-vpn-api")]
     VpnApiTimeout,
 
-    #[error("account update failed: {message}")]
+    //#[error("max devices reached: {0}")]
+    //MaxDevicesReached(u64),
+    #[error("account update failed: {details}")]
     AccountUpdateFailed {
-        message: String,
+        details: String,
         message_id: Option<String>,
         code_reference_id: Option<String>,
     },
 
-    #[error("device update failed: {message}")]
+    #[error("device update failed: {details}")]
     DeviceUpdateFailed {
-        message: String,
+        details: String,
         message_id: Option<String>,
         code_reference_id: Option<String>,
     },
 
-    #[error("device registration failed: {message}")]
+    #[error("device registration failed: {details}")]
     DeviceRegistrationFailed {
-        message: String,
+        details: String,
         message_id: Option<String>,
         code_reference_id: Option<String>,
     },
@@ -100,7 +102,7 @@ impl From<nym_vpn_account_controller::ReadyToConnect> for VpnError {
                 message_id,
                 code_reference_id,
             } => Self::DeviceRegistrationFailed {
-                message,
+                details: message,
                 message_id,
                 code_reference_id,
             },
@@ -118,7 +120,7 @@ impl From<nym_vpn_account_controller::AccountCommandError> for VpnError {
                 code_reference_id,
                 base_url: _,
             } => VpnError::AccountUpdateFailed {
-                message,
+                details: message,
                 message_id,
                 code_reference_id,
             },
@@ -127,7 +129,7 @@ impl From<nym_vpn_account_controller::AccountCommandError> for VpnError {
                 message_id,
                 code_reference_id,
             } => VpnError::DeviceUpdateFailed {
-                message,
+                details: message,
                 message_id,
                 code_reference_id,
             },
@@ -136,7 +138,7 @@ impl From<nym_vpn_account_controller::AccountCommandError> for VpnError {
                 message_id,
                 code_reference_id,
             } => VpnError::DeviceRegistrationFailed {
-                message,
+                details: message,
                 message_id,
                 code_reference_id,
             },
