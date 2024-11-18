@@ -235,6 +235,7 @@ pub(super) async fn remove_account_mnemonic(path: &str) -> Result<bool, VpnError
 }
 
 pub(super) async fn forget_account(path: &str) -> Result<(), VpnError> {
+    tracing::warn!("REMOVING ALL ACCOUNT AND DEVICE DATA IN: {path}");
     std::fs::remove_dir_all(path).map_err(|err| {
         tracing::error!("Failed to remove account directory: {}", err);
         VpnError::InternalError {
