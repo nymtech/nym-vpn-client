@@ -28,6 +28,8 @@ updates:
     directory: /nym-vpn-core
     schedule:
       interval: weekly
+    ignore:
+      - dependency-name: "nym-*"
     assignees:
       - "octol"
       - "neacsu"
