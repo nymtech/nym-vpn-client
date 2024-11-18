@@ -30,18 +30,21 @@ pub enum AccountNotReady {
     UpdateAccount {
         message: String,
         message_id: Option<String>,
+        code_reference_id: Option<String>,
     },
 
     #[error("update device failed: {message}")]
     UpdateDevice {
         message: String,
         message_id: Option<String>,
+        code_reference_id: Option<String>,
     },
 
     #[error("register device failed: {message}")]
     RegisterDevice {
         message: String,
         message_id: Option<String>,
+        code_reference_id: Option<String>,
     },
 
     #[error("no account stored")]
@@ -63,24 +66,30 @@ impl From<AccountCommandError> for AccountNotReady {
             AccountCommandError::UpdateAccountEndpointFailure {
                 message,
                 message_id,
+                code_reference_id,
                 base_url: _,
             } => AccountNotReady::UpdateAccount {
                 message,
                 message_id,
+                code_reference_id,
             },
             AccountCommandError::UpdateDeviceEndpointFailure {
-                message_id,
                 message,
+                message_id,
+                code_reference_id,
             } => AccountNotReady::UpdateDevice {
-                message_id,
                 message,
+                message_id,
+                code_reference_id,
             },
             AccountCommandError::RegisterDeviceEndpointFailure {
-                message_id,
                 message,
+                message_id,
+                code_reference_id,
             } => AccountNotReady::RegisterDevice {
                 message,
                 message_id,
+                code_reference_id,
             },
             AccountCommandError::NoAccountStored => AccountNotReady::NoAccountStored,
             AccountCommandError::NoDeviceStored => AccountNotReady::NoDeviceStored,

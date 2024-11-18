@@ -98,13 +98,15 @@ pub(crate) async fn register_device(
             nym_vpn_api_client::response::extract_error_response(&err)
                 .map(|e| {
                     tracing::warn!(
-                        "nym-vpn-api reports: message={}, message_id={:?}",
+                        "nym-vpn-api reports: message={}, message_id={:?}, code_reference_id={:?}",
                         e.message,
                         e.message_id,
+                        e.code_reference_id,
                     );
                     AccountCommandError::RegisterDeviceEndpointFailure {
                         message_id: e.message_id.clone(),
                         message: e.message.clone(),
+                        code_reference_id: e.code_reference_id.clone(),
                     }
                 })
                 .unwrap_or(AccountCommandError::General(err.to_string()))

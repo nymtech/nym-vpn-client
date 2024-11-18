@@ -108,8 +108,9 @@ pub(crate) async fn update_state(
                     e.message_id
                 );
                 AccountCommandError::UpdateDeviceEndpointFailure {
-                    message_id: e.message_id.clone(),
                     message: e.message.clone(),
+                    message_id: e.message_id.clone(),
+                    code_reference_id: e.code_reference_id.clone(),
                 }
             })
             .unwrap_or(AccountCommandError::General(err.to_string()))
