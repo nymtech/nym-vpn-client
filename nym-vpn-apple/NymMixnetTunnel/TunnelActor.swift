@@ -1,7 +1,7 @@
 import Logging
 import NetworkExtension
-import UserNotifications
 import MixnetLibrary
+import NotificationMessages
 import NymLogger
 import Tunnels
 
@@ -84,8 +84,7 @@ actor TunnelActor {
             canReassert = true
 
         case .disconnecting(.error):
-            await scheduleDisconnectNotification()
-
+            await NotificationMessages.scheduleDisconnectNotification()
         default:
             break
         }
@@ -121,24 +120,5 @@ actor TunnelActor {
 
     func setDidSendLastError(with value: Bool) {
         didSendLastError = value
-    }
-}
-
-private extension TunnelActor {
-    func scheduleDisconnectNotification() async {
-        // TODO: localize the notification content.
-        // TODO: move localizations to separate package
-        let content = UNMutableNotificationContent()
-        content.title = "The NymVPN connection has failed."
-        content.body = "Please try reconnecting."
-        content.sound = UNNotificationSound.default
-
-        let request = UNNotificationRequest(identifier: "disconnectNotification", content: content, trigger: nil)
-
-        do {
-            try await UNUserNotificationCenter.current().add(request)
-        } catch {
-            logger.info("🚀 Notification scheduled successfully")
-        }
     }
 }
