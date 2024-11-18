@@ -240,7 +240,7 @@ impl ClientMessage {
                     _ => Err(Error::UnsupportedMessage),
                 }
             }
-            AuthenticatorVersion::V3 => {
+            AuthenticatorVersion::V3 | AuthenticatorVersion::UNKNOWN => {
                 use v3::{
                     registration::{ClientMac, FinalMessage, GatewayClient, InitMessage},
                     request::AuthenticatorRequest,
@@ -292,7 +292,6 @@ impl ClientMessage {
                     }
                 }
             }
-            AuthenticatorVersion::UNKNOWN => Err(Error::UnknownVersion),
         }
     }
 }

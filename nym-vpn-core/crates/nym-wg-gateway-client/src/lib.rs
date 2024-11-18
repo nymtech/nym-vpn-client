@@ -67,11 +67,12 @@ impl WgGatewayLightClient {
                 pub_key: PeerPublicKey::new(self.public_key.to_bytes().into()),
                 version: AuthenticatorVersion::V2,
             })),
-            AuthenticatorVersion::V3 => ClientMessage::Query(Box::new(QueryMessageImpl {
-                pub_key: PeerPublicKey::new(self.public_key.to_bytes().into()),
-                version: AuthenticatorVersion::V3,
-            })),
-            AuthenticatorVersion::UNKNOWN => return Err(Error::UnsupportedAuthenticatorVersion),
+            AuthenticatorVersion::V3 | AuthenticatorVersion::UNKNOWN => {
+                ClientMessage::Query(Box::new(QueryMessageImpl {
+                    pub_key: PeerPublicKey::new(self.public_key.to_bytes().into()),
+                    version: AuthenticatorVersion::V3,
+                }))
+            }
         };
         let response = self
             .auth_client
@@ -309,12 +310,11 @@ impl WgGatewayClient {
                     pub_key: PeerPublicKey::new(self.keypair.public_key().to_bytes().into()),
                 }))
             }
-            AuthenticatorVersion::V3 => {
+            AuthenticatorVersion::V3 | AuthenticatorVersion::UNKNOWN => {
                 ClientMessage::Initial(Box::new(v3::registration::InitMessage {
                     pub_key: PeerPublicKey::new(self.keypair.public_key().to_bytes().into()),
                 }))
             }
-            AuthenticatorVersion::UNKNOWN => return Err(Error::UnsupportedAuthenticatorVersion),
         };
         let response = self
             .auth_client
@@ -352,7 +352,7 @@ impl WgGatewayClient {
                             credential,
                         }))
                     }
-                    AuthenticatorVersion::V3 => {
+                    AuthenticatorVersion::V3 | AuthenticatorVersion::UNKNOWN => {
                         ClientMessage::Final(Box::new(v3::registration::FinalMessage {
                             gateway_client: v3::registration::GatewayClient::new(
                                 self.keypair.private_key(),
@@ -362,9 +362,6 @@ impl WgGatewayClient {
                             ),
                             credential,
                         }))
-                    }
-                    AuthenticatorVersion::UNKNOWN => {
-                        return Err(Error::UnsupportedAuthenticatorVersion)
                     }
                 };
                 let response = self.light_client().send(finalized_message).await?;
