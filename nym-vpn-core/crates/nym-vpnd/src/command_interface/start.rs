@@ -14,6 +14,7 @@ use tokio::{
 };
 use tokio_util::sync::CancellationToken;
 use tonic::transport::Server;
+use tonic_health::pb::health_server::{Health, HealthServer};
 
 use super::{
     config::{default_socket_path, default_uri_addr},
@@ -40,19 +41,18 @@ fn grpc_span(req: &http::Request<()>) -> tracing::Span {
     span
 }
 
-async fn run_uri_listener(
+async fn run_uri_listener<T>(
     vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
     status_rx: broadcast::Receiver<MixnetEvent>,
     addr: SocketAddr,
     shutdown_token: CancellationToken,
-) -> Result<(), tonic::transport::Error> {
+    health_service: HealthServer<T>,
+) -> Result<(), tonic::transport::Error>
+where
+    T: Health,
+{
     tracing::info!("Starting HTTP listener on: {addr}");
-
-    let (mut health_reporter, health_service) = tonic_health::server::health_reporter();
-    health_reporter
-        .set_serving::<NymVpndServer<CommandInterface>>()
-        .await;
     let reflection_service = tonic_reflection::server::Builder::configure()
         .register_encoded_file_descriptor_set(VPN_FD_SET)
         .build()
@@ -69,18 +69,18 @@ async fn run_uri_listener(
         .await
 }
 
-async fn run_socket_listener(
+async fn run_socket_listener<T>(
     vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
     status_rx: broadcast::Receiver<MixnetEvent>,
     socket_path: PathBuf,
     shutdown_token: CancellationToken,
-) -> Result<(), tonic::transport::Error> {
+    health_service: HealthServer<T>,
+) -> Result<(), tonic::transport::Error>
+where
+    T: Health,
+{
     tracing::info!("Starting socket listener on: {}", socket_path.display());
-    let (mut health_reporter, health_service) = tonic_health::server::health_reporter();
-    health_reporter
-        .set_serving::<NymVpndServer<CommandInterface>>()
-        .await;
     let reflection_service = tonic_reflection::server::Builder::configure()
         .register_encoded_file_descriptor_set(VPN_FD_SET)
         .build()
@@ -111,6 +111,25 @@ pub(crate) struct CommandInterfaceOptions {
     pub(crate) enable_http_listener: bool,
 }
 
+async fn setup_health_service(
+    shutdown_token: CancellationToken,
+) -> (HealthServer<impl Health>, JoinHandle<()>) {
+    let (mut health_reporter, health_service) = tonic_health::server::health_reporter();
+    health_reporter
+        .set_serving::<NymVpndServer<CommandInterface>>()
+        .await;
+
+    let handle = tokio::spawn(async move {
+        shutdown_token.cancelled().await;
+        tracing::info!("Reporting not serving on health service");
+        health_reporter
+            .set_not_serving::<NymVpndServer<CommandInterface>>()
+            .await;
+    });
+
+    (health_service, handle)
+}
+
 pub(crate) fn start_command_interface(
     vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
     status_rx: broadcast::Receiver<MixnetEvent>,
@@ -127,6 +146,9 @@ pub(crate) fn start_command_interface(
     let handle = tokio::spawn(async move {
         let mut join_set = JoinSet::new();
 
+        let (health_service, health_service_handle) =
+            setup_health_service(shutdown_token.child_token()).await;
+
         if !command_interface_options.disable_socket_listener {
             join_set.spawn(run_socket_listener(
                 vpn_state_changes_rx.resubscribe(),
@@ -134,6 +156,7 @@ pub(crate) fn start_command_interface(
                 status_rx.resubscribe(),
                 socket_path.to_path_buf(),
                 shutdown_token.child_token(),
+                health_service.clone(),
             ));
         }
 
@@ -144,6 +167,7 @@ pub(crate) fn start_command_interface(
                 status_rx.resubscribe(),
                 uri_addr,
                 shutdown_token.child_token(),
+                health_service,
             ));
         }
 
@@ -164,6 +188,11 @@ pub(crate) fn start_command_interface(
                 }
             }
         }
+
+        health_service_handle
+            .await
+            .inspect_err(|e| tracing::error!("Failed to join on health reporter: {e}"))
+            .ok();
 
         tracing::info!("Command interface exiting");
     });
