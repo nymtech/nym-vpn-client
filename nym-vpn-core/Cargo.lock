@@ -4262,7 +4262,7 @@ dependencies = [
  "ipnetwork",
  "libc",
  "log",
- "netlink-packet-route 0.13.0",
+ "netlink-packet-route 0.17.1",
  "netlink-sys",
  "nix 0.28.0",
  "nym-common",
