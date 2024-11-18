@@ -6,6 +6,7 @@ use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     path::PathBuf,
     sync::Arc,
+    time::Duration,
 };
 
 use bip39::Mnemonic;
@@ -695,6 +696,29 @@ where
         Ok(())
     }
 
+    async fn wait_for_disconnect(&mut self) -> Result<(), VpnServiceDisconnectError> {
+        let mut vpn_state_changes_rx = self.vpn_state_changes_tx.subscribe();
+        self.handle_disconnect().await?;
+
+        while let Ok(state_change) = vpn_state_changes_rx.recv().await {
+            match state_change {
+                VpnServiceStateChange::NotConnected => {
+                    tracing::info!("VPN disconnected");
+                    break;
+                }
+                VpnServiceStateChange::ConnectionFailed(err) => {
+                    tracing::info!("VPN disconnected: {:?}", err);
+                    break;
+                }
+                state => {
+                    tracing::info!("VPN state change: {:?}", state);
+                }
+            }
+            tracing::info!("Waiting for VPN to disconnect");
+        }
+        Ok(())
+    }
+
     async fn handle_connect(
         &mut self,
         connect_args: ConnectArgs,
@@ -906,7 +930,7 @@ where
 
     async fn handle_remove_account(&mut self) -> Result<(), AccountError> {
         // First disconnect the VPN
-        self.handle_disconnect()
+        self.wait_for_disconnect()
             .await
             .map_err(|err| AccountError::FailedToRemoveAccount {
                 source: Box::new(err),
@@ -930,9 +954,10 @@ where
 
     async fn handle_forget_account(&mut self) -> Result<(), AccountError> {
         tracing::info!("First disconnecting the VPN");
-        self.handle_disconnect()
+        tokio::time::timeout(Duration::from_secs(10), self.wait_for_disconnect())
             .await
-            .map_err(|err| AccountError::FailedToResetDeviceKeys {
+            .map_err(|_| AccountError::Timeout("timeout waiting for disconnect".to_string()))?
+            .map_err(|err| AccountError::FailedToForgetAccount {
                 source: Box::new(err),
             })?;
 

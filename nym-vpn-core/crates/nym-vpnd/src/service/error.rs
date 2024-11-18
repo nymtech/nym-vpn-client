@@ -458,6 +458,9 @@ pub enum AccountError {
 
     #[error("failed to parse account links")]
     FailedToParseAccountLinks,
+
+    #[error("timeout: {0}")]
+    Timeout(String),
 }
 
 #[derive(Debug, thiserror::Error)]
