@@ -941,7 +941,11 @@ where
             "REMOVING ALL ACCOUNT AND DEVICE DATA IN: {}",
             data_dir.display()
         );
-        let _ = std::fs::remove_dir_all(&data_dir);
+        std::fs::remove_dir_all(&data_dir)
+            .inspect_err(|err| tracing::error!("Failed to remove data dir: {:?}", err))
+            .map_err(|source| AccountError::FailedToForgetAccount {
+                source: Box::new(source),
+            })?;
 
         // Tell the account controller to reset its state
         self.account_command_tx

@@ -400,6 +400,11 @@ pub enum AccountError {
         source: Box<dyn std::error::Error + Send + Sync>,
     },
 
+    #[error("failed to forget account: {source}")]
+    FailedToForgetAccount {
+        source: Box<dyn std::error::Error + Send + Sync>,
+    },
+
     #[error("failed to load account: {source}")]
     FailedToLoadAccount {
         source: Box<dyn std::error::Error + Send + Sync>,
