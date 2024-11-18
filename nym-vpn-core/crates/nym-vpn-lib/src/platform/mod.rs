@@ -88,6 +88,76 @@ async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
     }
 }
 
+// Call that blocks until the account state has been updated/synced
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn waitForUpdateAccount() -> Result<(), VpnError> {
+    RUNTIME.block_on(account::wait_for_update_account())
+}
+
+// Async variant of waitForUpdateAccount
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub async fn waitForUpdateAccountAsync() -> Result<(), VpnError> {
+    account::wait_for_update_account().await
+}
+
+// Call that blocks until the device state has been updated/synced
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn waitForUpdateDevice() -> Result<(), VpnError> {
+    RUNTIME.block_on(account::wait_for_update_device())
+}
+
+// Async variant of waitForUpdateDevice
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub async fn waitForUpdateDeviceAsync() -> Result<(), VpnError> {
+    account::wait_for_update_device().await
+}
+
+// Call that blocks until the device has been registered
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn waitForRegisterDevice() -> Result<(), VpnError> {
+    RUNTIME.block_on(account::wait_for_register_device())
+}
+
+// Async variant of waitForRegisterDevice
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub async fn waitForRegisterDeviceAsync() -> Result<(), VpnError> {
+    account::wait_for_register_device().await
+}
+
+// Call that blocks until the account state is ready to connect
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn waitForAccountReadyToConnect() -> Result<(), VpnError> {
+    RUNTIME.block_on(async {
+        let current_environment = NETWORK_ENVIRONMENT.lock().await.clone();
+        let enable_credentials_mode = current_environment
+            .as_ref()
+            .map(get_feature_flag_credential_mode)
+            .unwrap_or(false);
+        let timeout = Duration::from_secs(10);
+        account::wait_for_account_ready_to_connect(enable_credentials_mode, timeout).await
+    })
+}
+
+// Async variant of waitForAccountReadyToConnect,
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub async fn waitForAccountReadyToConnectAsync(timeout_sec: u64) -> Result<(), VpnError> {
+    let current_environment = NETWORK_ENVIRONMENT.lock().await.clone();
+    let enable_credentials_mode = current_environment
+        .as_ref()
+        .map(get_feature_flag_credential_mode)
+        .unwrap_or(false);
+    let timeout = Duration::from_secs(timeout_sec);
+    account::wait_for_account_ready_to_connect(enable_credentials_mode, timeout).await
+}
+
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn stopVPN() -> Result<(), VpnError> {
