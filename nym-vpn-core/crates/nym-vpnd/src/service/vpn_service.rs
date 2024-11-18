@@ -729,6 +729,7 @@ where
             }
             tracing::info!("Waiting for VPN to disconnect");
         }
+        tracing::info!("Finshed waiting for disconnect");
         Ok(())
     }
 
@@ -945,9 +946,8 @@ where
         tracing::info!("First disconnecting the VPN");
         self.wait_for_disconnect_with_timeout(Duration::from_secs(10))
             .await
-            .map_err(|err| AccountError::FailedToRemoveAccount {
-                source: Box::new(err),
-            })?;
+            .inspect_err(|err| tracing::error!("Error during disconnect: {err:?}"))
+            .ok();
 
         self.storage
             .lock()
@@ -972,9 +972,8 @@ where
         tracing::info!("First disconnecting the VPN");
         self.wait_for_disconnect_with_timeout(Duration::from_secs(10))
             .await
-            .map_err(|err| AccountError::FailedToForgetAccount {
-                source: Box::new(err),
-            })?;
+            .inspect_err(|err| tracing::error!("Error during disconnect: {err:?}"))
+            .ok();
 
         let data_dir = self.data_dir.clone();
         tracing::warn!(
