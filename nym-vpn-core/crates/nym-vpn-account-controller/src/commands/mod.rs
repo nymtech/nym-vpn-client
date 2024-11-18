@@ -38,19 +38,22 @@ pub enum AccountCommandError {
     UpdateAccountEndpointFailure {
         message: String,
         message_id: Option<String>,
+        code_reference_id: Option<String>,
         base_url: Box<url::Url>,
     },
 
     #[error("failed to update device state: {message}")]
     UpdateDeviceEndpointFailure {
-        message_id: Option<String>,
         message: String,
+        message_id: Option<String>,
+        code_reference_id: Option<String>,
     },
 
     #[error("failed to register device: {message}")]
     RegisterDeviceEndpointFailure {
-        message_id: Option<String>,
         message: String,
+        message_id: Option<String>,
+        code_reference_id: Option<String>,
     },
 
     #[error("no account stored")]

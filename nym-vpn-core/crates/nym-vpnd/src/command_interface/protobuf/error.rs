@@ -38,6 +38,7 @@ impl From<AccountNotReady> for nym_vpn_proto::ConnectRequestError {
             AccountNotReady::UpdateAccount {
                 message,
                 message_id,
+                code_reference_id: _,
             } => Self {
                 kind: nym_vpn_proto::connect_request_error::ConnectRequestErrorType::UpdateAccount
                     as i32,
@@ -47,6 +48,7 @@ impl From<AccountNotReady> for nym_vpn_proto::ConnectRequestError {
             AccountNotReady::UpdateDevice {
                 message,
                 message_id,
+                code_reference_id: _,
             } => Self {
                 kind: nym_vpn_proto::connect_request_error::ConnectRequestErrorType::UpdateDevice
                     as i32,
@@ -56,6 +58,7 @@ impl From<AccountNotReady> for nym_vpn_proto::ConnectRequestError {
             AccountNotReady::RegisterDevice {
                 message,
                 message_id,
+                code_reference_id: _,
             } => Self {
                 kind: nym_vpn_proto::connect_request_error::ConnectRequestErrorType::RegisterDevice
                     as i32,

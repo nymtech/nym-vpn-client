@@ -51,24 +51,25 @@ pub enum VpnError {
     #[error("timeout connecting to nym-vpn-api")]
     VpnApiTimeout,
 
-    //#[error("max devices reached: {0}")]
-    //MaxDevicesReached(u64),
     #[error("account update failed: {message}")]
     AccountUpdateFailed {
         message: String,
         message_id: Option<String>,
+        code_reference_id: Option<String>,
     },
 
     #[error("device update failed: {message}")]
     DeviceUpdateFailed {
         message: String,
         message_id: Option<String>,
+        code_reference_id: Option<String>,
     },
 
     #[error("device registration failed: {message}")]
     DeviceRegistrationFailed {
         message: String,
         message_id: Option<String>,
+        code_reference_id: Option<String>,
     },
 
     #[error("invalid account storage path: {details}")]
@@ -97,9 +98,11 @@ impl From<nym_vpn_account_controller::ReadyToConnect> for VpnError {
             nym_vpn_account_controller::ReadyToConnect::DeviceRegistrationFailed {
                 message,
                 message_id,
+                code_reference_id,
             } => Self::DeviceRegistrationFailed {
                 message,
                 message_id,
+                code_reference_id,
             },
         }
     }
@@ -112,24 +115,30 @@ impl From<nym_vpn_account_controller::AccountCommandError> for VpnError {
             AccountCommandError::UpdateAccountEndpointFailure {
                 message,
                 message_id,
+                code_reference_id,
                 base_url: _,
             } => VpnError::AccountUpdateFailed {
                 message,
                 message_id,
+                code_reference_id,
             },
             AccountCommandError::UpdateDeviceEndpointFailure {
-                message_id,
                 message,
+                message_id,
+                code_reference_id,
             } => VpnError::DeviceUpdateFailed {
                 message,
                 message_id,
+                code_reference_id,
             },
             AccountCommandError::RegisterDeviceEndpointFailure {
-                message_id,
                 message,
+                message_id,
+                code_reference_id,
             } => VpnError::DeviceRegistrationFailed {
                 message,
                 message_id,
+                code_reference_id,
             },
             AccountCommandError::NoAccountStored => VpnError::NoAccountStored,
             AccountCommandError::NoDeviceStored => VpnError::NoDeviceIdentity,

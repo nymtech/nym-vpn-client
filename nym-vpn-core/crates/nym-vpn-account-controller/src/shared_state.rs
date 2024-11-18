@@ -99,6 +99,7 @@ pub enum ReadyToConnect {
     DeviceRegistrationFailed {
         message: String,
         message_id: Option<String>,
+        code_reference_id: Option<String>,
     },
     //NoCredentialsAvailable,
 }
@@ -321,17 +322,11 @@ pub enum DeviceRegistration {
     Failed {
         message: String,
         message_id: Option<String>,
+        code_reference_id: Option<String>,
     },
 }
 
 impl AccountStateSummary {
-    //pub fn account_id(&self) -> Option<String> {
-    //    match &self.mnemonic {
-    //        Some(MnemonicState::Stored { id }) => Some(id.clone()),
-    //        _ => None,
-    //    }
-    //}
-
     pub(crate) fn is_ready_to_register_device(&self) -> ReadyToRegisterDevice {
         match self.device {
             Some(DeviceState::NotRegistered) => {}
@@ -572,18 +567,22 @@ impl From<&AccountCommandError> for DeviceRegistration {
             AccountCommandError::UpdateAccountEndpointFailure {
                 message,
                 message_id,
+                code_reference_id,
                 base_url: _,
             }
             | AccountCommandError::UpdateDeviceEndpointFailure {
-                message_id,
                 message,
+                message_id,
+                code_reference_id,
             }
             | AccountCommandError::RegisterDeviceEndpointFailure {
-                message_id,
                 message,
+                message_id,
+                code_reference_id,
             } => DeviceRegistration::Failed {
                 message: message.clone(),
                 message_id: message_id.clone(),
+                code_reference_id: code_reference_id.clone(),
             },
             AccountCommandError::General(_)
             | AccountCommandError::Internal(_)
@@ -591,6 +590,7 @@ impl From<&AccountCommandError> for DeviceRegistration {
             | AccountCommandError::NoDeviceStored => DeviceRegistration::Failed {
                 message: err.to_string(),
                 message_id: None,
+                code_reference_id: None,
             },
         }
     }

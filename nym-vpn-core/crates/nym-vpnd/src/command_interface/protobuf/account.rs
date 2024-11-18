@@ -136,6 +136,7 @@ fn into_device_registration(
         nym_vpn_account_controller::shared_state::DeviceRegistration::Failed {
             message,
             message_id,
+            code_reference_id: _,
         } => {
             returned_message = Some(message);
             returned_message_id = message_id;

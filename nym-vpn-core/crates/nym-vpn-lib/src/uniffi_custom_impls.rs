@@ -869,6 +869,7 @@ impl From<nym_vpn_account_controller::shared_state::DeviceRegistration> for Devi
             nym_vpn_account_controller::shared_state::DeviceRegistration::Failed {
                 message,
                 message_id,
+                code_reference_id: _,
             } => DeviceRegistration::Failed {
                 message,
                 message_id,

@@ -109,6 +109,7 @@ pub(crate) async fn update_state(
                 return Err(AccountCommandError::UpdateAccountEndpointFailure {
                     message: e.message.clone(),
                     message_id: e.message_id.clone(),
+                    code_reference_id: e.code_reference_id.clone(),
                     base_url: Box::new(vpn_api_client.current_url().clone()),
                 });
             }
