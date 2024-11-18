@@ -891,6 +891,9 @@ message AccountError {
 
     // General error from the storage backend
     STORAGE = 2;
+
+    // Unable to proceed while connected
+    IS_CONNECTED = 3;
   }
 
   AccountErrorType kind = 1;

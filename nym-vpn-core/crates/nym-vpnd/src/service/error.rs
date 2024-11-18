@@ -461,6 +461,9 @@ pub enum AccountError {
 
     #[error("timeout: {0}")]
     Timeout(String),
+
+    #[error("unable to proceed while connected")]
+    IsConnected,
 }
 
 #[derive(Debug, thiserror::Error)]

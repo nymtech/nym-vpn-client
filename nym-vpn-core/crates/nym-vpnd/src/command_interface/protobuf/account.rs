@@ -268,6 +268,11 @@ impl From<AccountError> for nym_vpn_proto::AccountError {
                 message: err.to_string(),
                 details: hashmap! {},
             },
+            AccountError::IsConnected => nym_vpn_proto::AccountError {
+                kind: AccountErrorType::IsConnected as i32,
+                message: err.to_string(),
+                details: hashmap! {},
+            },
         }
     }
 }

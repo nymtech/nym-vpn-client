@@ -6,7 +6,6 @@ use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     path::PathBuf,
     sync::Arc,
-    time::{Duration, Instant},
 };
 
 use bip39::Mnemonic;
@@ -906,6 +905,10 @@ where
     }
 
     async fn handle_remove_account(&mut self) -> Result<(), AccountError> {
+        if self.tunnel_state != TunnelState::Disconnected {
+            return Err(AccountError::IsConnected);
+        }
+
         self.storage
             .lock()
             .await
@@ -926,6 +929,10 @@ where
     }
 
     async fn handle_forget_account(&mut self) -> Result<(), AccountError> {
+        if self.tunnel_state != TunnelState::Disconnected {
+            return Err(AccountError::IsConnected);
+        }
+
         let data_dir = self.data_dir.clone();
         tracing::warn!(
             "REMOVING ALL ACCOUNT AND DEVICE DATA IN: {}",
@@ -1020,6 +1027,10 @@ where
         &mut self,
         seed: Option<[u8; 32]>,
     ) -> Result<(), AccountError> {
+        if self.tunnel_state != TunnelState::Disconnected {
+            return Err(AccountError::IsConnected);
+        }
+
         // First disconnect the VPN
         self.handle_disconnect()
             .await
