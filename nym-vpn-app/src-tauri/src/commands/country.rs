@@ -26,7 +26,7 @@ pub async fn get_countries(
 ) -> Result<Vec<Country>, BackendError> {
     let gw_type = match vpn_mode {
         VpnMode::Mixnet => match node_type.ok_or_else(|| {
-            BackendError::new_internal("node type must be provided for Mixnet mode", None)
+            BackendError::internal("node type must be provided for Mixnet mode", None)
         })? {
             NodeType::Entry => GatewayType::MixnetEntry,
             NodeType::Exit => GatewayType::MixnetExit,
@@ -34,7 +34,7 @@ pub async fn get_countries(
         VpnMode::TwoHop => GatewayType::Wg,
     };
     grpc.countries(gw_type).await.map_err(|e| {
-        BackendError::new_with_details(
+        BackendError::with_details(
             &format!("failed to get countries for {:?}", gw_type),
             ErrorKey::from(gw_type),
             e.to_string(),

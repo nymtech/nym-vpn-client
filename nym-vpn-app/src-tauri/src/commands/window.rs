@@ -6,15 +6,12 @@ use crate::{error::BackendError, MAIN_WINDOW_LABEL};
 #[instrument(skip_all)]
 #[tauri::command]
 pub fn show_main_window(app: AppHandle) -> Result<(), BackendError> {
-    let main_window =
-        app.get_webview_window(MAIN_WINDOW_LABEL)
-            .ok_or(BackendError::new_internal(
-                "Failed to get the app window",
-                None,
-            ))?;
+    let main_window = app
+        .get_webview_window(MAIN_WINDOW_LABEL)
+        .ok_or(BackendError::internal("Failed to get the app window", None))?;
     let is_visible = main_window.is_visible().map_err(|e| {
         error!("Failed to get `main` window visibility: {}", e);
-        BackendError::new_internal("Failed to show app window", None)
+        BackendError::internal("Failed to show app window", None)
     })?;
 
     if is_visible {
@@ -25,7 +22,7 @@ pub fn show_main_window(app: AppHandle) -> Result<(), BackendError> {
     debug!("showing `main` window");
     main_window.show().map_err(|e| {
         error!("Failed to show `main` window: {}", e);
-        BackendError::new_internal("Failed to show app window", None)
+        BackendError::internal("Failed to show app window", None)
     })?;
     Ok(())
 }

@@ -113,18 +113,18 @@ function useI18nError() {
           return t('account.invalid-recovery-phrase');
         case 'AccountStorage':
           return t('account.storage');
-        case 'NoAccountStored':
-          return t('account.no-account-stored');
-        case 'AccountNotActive':
-          return t('account.not-active');
-        case 'NoActiveSubscription':
-          return t('account.no-active-subscription');
-        case 'DeviceNotRegistered':
-          return t('account.device.not-registered');
-        case 'DeviceNotActive':
-          return t('account.device.not-active');
-        case 'ReadyToConnectPending':
-          return t('connection.ready-to-connect');
+        case 'ConnectGeneral':
+          return t('connection.general');
+        case 'ConnectNoAccountStored':
+          return t('account.not-stored');
+        case 'ConnectNoDeviceStored':
+          return t('account.no-device-stored');
+        case 'ConnectUpdateAccount':
+          return t('account.update');
+        case 'ConnectUpdateDevice':
+          return t('account.update-device');
+        case 'ConnectRegisterDevice':
+          return t('account.register-device');
         case 'EntryGatewayNotRouting':
           return t('entry-node-routing');
         case 'ExitRouterPingIpv4':

@@ -52,7 +52,7 @@ pub async fn daemon_info(grpc_client: State<'_, GrpcClient>) -> Result<DaemonInf
     let network = res
         .nym_network
         .map(|network| network.network_name)
-        .ok_or_else(|| BackendError::new_internal("missing network details", None))
+        .ok_or_else(|| BackendError::internal("missing network details", None))
         .inspect_err(|e| {
             warn!("daemon info response missing network details: {:?}", e);
         })?;
@@ -71,7 +71,7 @@ pub async fn set_network(
 ) -> Result<(), BackendError> {
     if !*NETWORK_ENV_SELECT {
         warn!("network env selector is disabled");
-        return Err(BackendError::new_internal("nope", None));
+        return Err(BackendError::internal("nope", None));
     }
     grpc_client
         .set_network(network.as_ref())
