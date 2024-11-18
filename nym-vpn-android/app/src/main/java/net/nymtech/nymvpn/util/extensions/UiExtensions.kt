@@ -86,5 +86,12 @@ fun VpnException.toUserMessage(context: Context): String {
 		is VpnException.NoActiveSubscription -> "No active subscription detected."
 		is VpnException.OutOfBandwidth -> "Out of bandwidth"
 		is VpnException.VpnApiTimeout -> "Network request timeout. Please check your connection and try again."
+		is VpnException.AccountNotRegistered -> "Account not registered"
+		is VpnException.AccountNotSynced -> "Account not synced"
+		is VpnException.AccountUpdateFailed -> "Account update failed"
+		is VpnException.DeviceRegistrationFailed -> "Device registration failed"
+		is VpnException.DeviceUpdateFailed -> "Device update failed"
+		is VpnException.InvalidAccountStoragePath -> "Invalid account storage path"
+		is VpnException.NoDeviceIdentity -> "No device identity"
 	}
 }
