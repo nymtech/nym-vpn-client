@@ -128,6 +128,50 @@ extension Nym_Vpn_GatewayType: CaseIterable {
 
 #endif  // swift(>=4.2)
 
+enum Nym_Vpn_AccountRegistered: SwiftProtobuf.Enum {
+  typealias RawValue = Int
+  case unspecified // = 0
+  case accountRegistered // = 1
+  case accountNotRegistered // = 2
+  case UNRECOGNIZED(Int)
+
+  init() {
+    self = .unspecified
+  }
+
+  init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .unspecified
+    case 1: self = .accountRegistered
+    case 2: self = .accountNotRegistered
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  var rawValue: Int {
+    switch self {
+    case .unspecified: return 0
+    case .accountRegistered: return 1
+    case .accountNotRegistered: return 2
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+}
+
+#if swift(>=4.2)
+
+extension Nym_Vpn_AccountRegistered: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  static let allCases: [Nym_Vpn_AccountRegistered] = [
+    .unspecified,
+    .accountRegistered,
+    .accountNotRegistered,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 enum Nym_Vpn_MnemonicState: SwiftProtobuf.Enum {
   typealias RawValue = Int
   case unspecified // = 0
@@ -1216,6 +1260,15 @@ struct Nym_Vpn_ConnectRequestError {
   /// Internal message for logging and debugging
   var message: String = String()
 
+  var messageID: String {
+    get {return _messageID ?? String()}
+    set {_messageID = newValue}
+  }
+  /// Returns true if `messageID` has been explicitly set.
+  var hasMessageID: Bool {return self._messageID != nil}
+  /// Clears the value of `messageID`. Subsequent reads from it will return its default value.
+  mutating func clearMessageID() {self._messageID = nil}
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   enum ConnectRequestErrorType: SwiftProtobuf.Enum {
@@ -1225,26 +1278,23 @@ struct Nym_Vpn_ConnectRequestError {
     /// Unspecified internal error
     case `internal` // = 1
 
+    /// General error
+    case general // = 2
+
     /// No account recovery phrase stored
-    case noAccountStored // = 2
+    case noAccountStored // = 3
 
-    /// The account is not active
-    case accountNotActive // = 3
+    /// No device keys stored
+    case noDeviceStored // = 4
 
-    /// The account does not have an active subscription
-    case noActiveSubscription // = 4
+    /// Update account failed
+    case updateAccount // = 5
 
-    /// The device is not registered
-    case deviceNotRegistered // = 5
+    /// Update device failed
+    case updateDevice // = 6
 
-    /// The device is not active
-    /// NOTE: in the future we will try to re-active an inactive device on
-    /// connect
-    case deviceNotActive // = 6
-
-    /// It was not yet possible to determine if we are ready to connect during
-    /// the check
-    case pending // = 7
+    /// Device registration failed
+    case registerDevice // = 7
     case UNRECOGNIZED(Int)
 
     init() {
@@ -1255,12 +1305,12 @@ struct Nym_Vpn_ConnectRequestError {
       switch rawValue {
       case 0: self = .unspecified
       case 1: self = .internal
-      case 2: self = .noAccountStored
-      case 3: self = .accountNotActive
-      case 4: self = .noActiveSubscription
-      case 5: self = .deviceNotRegistered
-      case 6: self = .deviceNotActive
-      case 7: self = .pending
+      case 2: self = .general
+      case 3: self = .noAccountStored
+      case 4: self = .noDeviceStored
+      case 5: self = .updateAccount
+      case 6: self = .updateDevice
+      case 7: self = .registerDevice
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -1269,12 +1319,12 @@ struct Nym_Vpn_ConnectRequestError {
       switch self {
       case .unspecified: return 0
       case .internal: return 1
-      case .noAccountStored: return 2
-      case .accountNotActive: return 3
-      case .noActiveSubscription: return 4
-      case .deviceNotRegistered: return 5
-      case .deviceNotActive: return 6
-      case .pending: return 7
+      case .general: return 2
+      case .noAccountStored: return 3
+      case .noDeviceStored: return 4
+      case .updateAccount: return 5
+      case .updateDevice: return 6
+      case .registerDevice: return 7
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -1282,6 +1332,8 @@ struct Nym_Vpn_ConnectRequestError {
   }
 
   init() {}
+
+  fileprivate var _messageID: String? = nil
 }
 
 #if swift(>=4.2)
@@ -1291,12 +1343,12 @@ extension Nym_Vpn_ConnectRequestError.ConnectRequestErrorType: CaseIterable {
   static let allCases: [Nym_Vpn_ConnectRequestError.ConnectRequestErrorType] = [
     .unspecified,
     .internal,
+    .general,
     .noAccountStored,
-    .accountNotActive,
-    .noActiveSubscription,
-    .deviceNotRegistered,
-    .deviceNotActive,
-    .pending,
+    .noDeviceStored,
+    .updateAccount,
+    .updateDevice,
+    .registerDevice,
   ]
 }
 
@@ -2580,6 +2632,128 @@ struct Nym_Vpn_GetAccountLinksResponse {
   init() {}
 }
 
+struct Nym_Vpn_DeviceSummary {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var active: UInt64 = 0
+
+  var max: UInt64 = 0
+
+  var remaining: UInt64 = 0
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct Nym_Vpn_AccountSummaryInner {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var account: Nym_Vpn_AccountState = .unspecified
+
+  var subscription: Nym_Vpn_SubscriptionState = .unspecified
+
+  var deviceSummary: Nym_Vpn_DeviceSummary {
+    get {return _deviceSummary ?? Nym_Vpn_DeviceSummary()}
+    set {_deviceSummary = newValue}
+  }
+  /// Returns true if `deviceSummary` has been explicitly set.
+  var hasDeviceSummary: Bool {return self._deviceSummary != nil}
+  /// Clears the value of `deviceSummary`. Subsequent reads from it will return its default value.
+  mutating func clearDeviceSummary() {self._deviceSummary = nil}
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+
+  fileprivate var _deviceSummary: Nym_Vpn_DeviceSummary? = nil
+}
+
+struct Nym_Vpn_DeviceRegistration {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var kind: Nym_Vpn_DeviceRegistration.DeviceRegistrationType = .deviceRegistrationUnspecified
+
+  var message: String {
+    get {return _message ?? String()}
+    set {_message = newValue}
+  }
+  /// Returns true if `message` has been explicitly set.
+  var hasMessage: Bool {return self._message != nil}
+  /// Clears the value of `message`. Subsequent reads from it will return its default value.
+  mutating func clearMessage() {self._message = nil}
+
+  var messageID: String {
+    get {return _messageID ?? String()}
+    set {_messageID = newValue}
+  }
+  /// Returns true if `messageID` has been explicitly set.
+  var hasMessageID: Bool {return self._messageID != nil}
+  /// Clears the value of `messageID`. Subsequent reads from it will return its default value.
+  mutating func clearMessageID() {self._messageID = nil}
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  enum DeviceRegistrationType: SwiftProtobuf.Enum {
+    typealias RawValue = Int
+    case deviceRegistrationUnspecified // = 0
+    case deviceRegistrationInProgress // = 1
+    case deviceRegistrationSuccess // = 2
+    case deviceRegistrationFailed // = 3
+    case UNRECOGNIZED(Int)
+
+    init() {
+      self = .deviceRegistrationUnspecified
+    }
+
+    init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .deviceRegistrationUnspecified
+      case 1: self = .deviceRegistrationInProgress
+      case 2: self = .deviceRegistrationSuccess
+      case 3: self = .deviceRegistrationFailed
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    var rawValue: Int {
+      switch self {
+      case .deviceRegistrationUnspecified: return 0
+      case .deviceRegistrationInProgress: return 1
+      case .deviceRegistrationSuccess: return 2
+      case .deviceRegistrationFailed: return 3
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  init() {}
+
+  fileprivate var _message: String? = nil
+  fileprivate var _messageID: String? = nil
+}
+
+#if swift(>=4.2)
+
+extension Nym_Vpn_DeviceRegistration.DeviceRegistrationType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  static let allCases: [Nym_Vpn_DeviceRegistration.DeviceRegistrationType] = [
+    .deviceRegistrationUnspecified,
+    .deviceRegistrationInProgress,
+    .deviceRegistrationSuccess,
+    .deviceRegistrationFailed,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 struct Nym_Vpn_AccountSummary {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2594,23 +2768,23 @@ struct Nym_Vpn_AccountSummary {
   /// Clears the value of `mnemonic`. Subsequent reads from it will return its default value.
   mutating func clearMnemonic() {self._mnemonic = nil}
 
-  var account: Nym_Vpn_AccountState {
-    get {return _account ?? .unspecified}
-    set {_account = newValue}
+  var accountRegistered: Nym_Vpn_AccountRegistered {
+    get {return _accountRegistered ?? .unspecified}
+    set {_accountRegistered = newValue}
   }
-  /// Returns true if `account` has been explicitly set.
-  var hasAccount: Bool {return self._account != nil}
-  /// Clears the value of `account`. Subsequent reads from it will return its default value.
-  mutating func clearAccount() {self._account = nil}
+  /// Returns true if `accountRegistered` has been explicitly set.
+  var hasAccountRegistered: Bool {return self._accountRegistered != nil}
+  /// Clears the value of `accountRegistered`. Subsequent reads from it will return its default value.
+  mutating func clearAccountRegistered() {self._accountRegistered = nil}
 
-  var subscription: Nym_Vpn_SubscriptionState {
-    get {return _subscription ?? .unspecified}
-    set {_subscription = newValue}
+  var accountSummary: Nym_Vpn_AccountSummaryInner {
+    get {return _accountSummary ?? Nym_Vpn_AccountSummaryInner()}
+    set {_accountSummary = newValue}
   }
-  /// Returns true if `subscription` has been explicitly set.
-  var hasSubscription: Bool {return self._subscription != nil}
-  /// Clears the value of `subscription`. Subsequent reads from it will return its default value.
-  mutating func clearSubscription() {self._subscription = nil}
+  /// Returns true if `accountSummary` has been explicitly set.
+  var hasAccountSummary: Bool {return self._accountSummary != nil}
+  /// Clears the value of `accountSummary`. Subsequent reads from it will return its default value.
+  mutating func clearAccountSummary() {self._accountSummary = nil}
 
   var device: Nym_Vpn_DeviceState {
     get {return _device ?? .unspecified}
@@ -2621,6 +2795,15 @@ struct Nym_Vpn_AccountSummary {
   /// Clears the value of `device`. Subsequent reads from it will return its default value.
   mutating func clearDevice() {self._device = nil}
 
+  var deviceRegistration: Nym_Vpn_DeviceRegistration {
+    get {return _deviceRegistration ?? Nym_Vpn_DeviceRegistration()}
+    set {_deviceRegistration = newValue}
+  }
+  /// Returns true if `deviceRegistration` has been explicitly set.
+  var hasDeviceRegistration: Bool {return self._deviceRegistration != nil}
+  /// Clears the value of `deviceRegistration`. Subsequent reads from it will return its default value.
+  mutating func clearDeviceRegistration() {self._deviceRegistration = nil}
+
   var pendingZkNym: Bool = false
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -2628,9 +2811,10 @@ struct Nym_Vpn_AccountSummary {
   init() {}
 
   fileprivate var _mnemonic: Nym_Vpn_MnemonicState? = nil
-  fileprivate var _account: Nym_Vpn_AccountState? = nil
-  fileprivate var _subscription: Nym_Vpn_SubscriptionState? = nil
+  fileprivate var _accountRegistered: Nym_Vpn_AccountRegistered? = nil
+  fileprivate var _accountSummary: Nym_Vpn_AccountSummaryInner? = nil
   fileprivate var _device: Nym_Vpn_DeviceState? = nil
+  fileprivate var _deviceRegistration: Nym_Vpn_DeviceRegistration? = nil
 }
 
 struct Nym_Vpn_GetAccountStateRequest {
@@ -3225,19 +3409,31 @@ struct Nym_Vpn_IsReadyToConnectResponse {
     /// No account recovery phrase stored
     case noAccountStored // = 2
 
+    /// The account is not synced
+    case accountNotSynced // = 3
+
+    /// The account is not registered
+    case accountNotRegistered // = 4
+
     /// The account is not active
-    case accountNotActive // = 3
+    case accountNotActive // = 5
 
     /// The account does not have an active subscripion
-    case noActiveSubscription // = 4
+    case noActiveSubscription // = 6
 
     /// The device is not registered
-    case deviceNotRegistered // = 5
+    case deviceNotRegistered // = 7
 
     /// The device is not active
     /// NOTE: in the future we will try to re-active an inactive device on
     /// connect
-    case deviceNotActive // = 6
+    case deviceNotActive // = 8
+
+    /// The device has reached the maximum number of devices
+    case maxDevicesReached // = 9
+
+    /// Device registration failed
+    case deviceRegistrationFailed // = 10
     case UNRECOGNIZED(Int)
 
     init() {
@@ -3249,10 +3445,14 @@ struct Nym_Vpn_IsReadyToConnectResponse {
       case 0: self = .unspecified
       case 1: self = .ready
       case 2: self = .noAccountStored
-      case 3: self = .accountNotActive
-      case 4: self = .noActiveSubscription
-      case 5: self = .deviceNotRegistered
-      case 6: self = .deviceNotActive
+      case 3: self = .accountNotSynced
+      case 4: self = .accountNotRegistered
+      case 5: self = .accountNotActive
+      case 6: self = .noActiveSubscription
+      case 7: self = .deviceNotRegistered
+      case 8: self = .deviceNotActive
+      case 9: self = .maxDevicesReached
+      case 10: self = .deviceRegistrationFailed
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -3262,10 +3462,14 @@ struct Nym_Vpn_IsReadyToConnectResponse {
       case .unspecified: return 0
       case .ready: return 1
       case .noAccountStored: return 2
-      case .accountNotActive: return 3
-      case .noActiveSubscription: return 4
-      case .deviceNotRegistered: return 5
-      case .deviceNotActive: return 6
+      case .accountNotSynced: return 3
+      case .accountNotRegistered: return 4
+      case .accountNotActive: return 5
+      case .noActiveSubscription: return 6
+      case .deviceNotRegistered: return 7
+      case .deviceNotActive: return 8
+      case .maxDevicesReached: return 9
+      case .deviceRegistrationFailed: return 10
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -3283,10 +3487,14 @@ extension Nym_Vpn_IsReadyToConnectResponse.IsReadyToConnectResponseType: CaseIte
     .unspecified,
     .ready,
     .noAccountStored,
+    .accountNotSynced,
+    .accountNotRegistered,
     .accountNotActive,
     .noActiveSubscription,
     .deviceNotRegistered,
     .deviceNotActive,
+    .maxDevicesReached,
+    .deviceRegistrationFailed,
   ]
 }
 
@@ -3361,6 +3569,7 @@ extension Nym_Vpn_AccountError.AccountErrorType: CaseIterable {
 #if swift(>=5.5) && canImport(_Concurrency)
 extension Nym_Vpn_ConnectionStatus: @unchecked Sendable {}
 extension Nym_Vpn_GatewayType: @unchecked Sendable {}
+extension Nym_Vpn_AccountRegistered: @unchecked Sendable {}
 extension Nym_Vpn_MnemonicState: @unchecked Sendable {}
 extension Nym_Vpn_AccountState: @unchecked Sendable {}
 extension Nym_Vpn_SubscriptionState: @unchecked Sendable {}
@@ -3437,6 +3646,10 @@ extension Nym_Vpn_GetAccountIdentityResponse.OneOf_ID: @unchecked Sendable {}
 extension Nym_Vpn_GetAccountLinksRequest: @unchecked Sendable {}
 extension Nym_Vpn_GetAccountLinksResponse: @unchecked Sendable {}
 extension Nym_Vpn_GetAccountLinksResponse.OneOf_Res: @unchecked Sendable {}
+extension Nym_Vpn_DeviceSummary: @unchecked Sendable {}
+extension Nym_Vpn_AccountSummaryInner: @unchecked Sendable {}
+extension Nym_Vpn_DeviceRegistration: @unchecked Sendable {}
+extension Nym_Vpn_DeviceRegistration.DeviceRegistrationType: @unchecked Sendable {}
 extension Nym_Vpn_AccountSummary: @unchecked Sendable {}
 extension Nym_Vpn_GetAccountStateRequest: @unchecked Sendable {}
 extension Nym_Vpn_GetAccountStateResponse: @unchecked Sendable {}
@@ -3497,6 +3710,14 @@ extension Nym_Vpn_GatewayType: SwiftProtobuf._ProtoNameProviding {
     1: .same(proto: "MIXNET_ENTRY"),
     2: .same(proto: "MIXNET_EXIT"),
     3: .same(proto: "WG"),
+  ]
+}
+
+extension Nym_Vpn_AccountRegistered: SwiftProtobuf._ProtoNameProviding {
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "ACCOUNT_REGISTERED_UNSPECIFIED"),
+    1: .same(proto: "ACCOUNT_REGISTERED"),
+    2: .same(proto: "ACCOUNT_NOT_REGISTERED"),
   ]
 }
 
@@ -4963,6 +5184,7 @@ extension Nym_Vpn_ConnectRequestError: SwiftProtobuf.Message, SwiftProtobuf._Mes
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "kind"),
     2: .same(proto: "message"),
+    3: .standard(proto: "message_id"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -4973,24 +5195,33 @@ extension Nym_Vpn_ConnectRequestError: SwiftProtobuf.Message, SwiftProtobuf._Mes
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularEnumField(value: &self.kind) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.message) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self._messageID) }()
       default: break
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if self.kind != .unspecified {
       try visitor.visitSingularEnumField(value: self.kind, fieldNumber: 1)
     }
     if !self.message.isEmpty {
       try visitor.visitSingularStringField(value: self.message, fieldNumber: 2)
     }
+    try { if let v = self._messageID {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: Nym_Vpn_ConnectRequestError, rhs: Nym_Vpn_ConnectRequestError) -> Bool {
     if lhs.kind != rhs.kind {return false}
     if lhs.message != rhs.message {return false}
+    if lhs._messageID != rhs._messageID {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -5000,12 +5231,12 @@ extension Nym_Vpn_ConnectRequestError.ConnectRequestErrorType: SwiftProtobuf._Pr
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "CONNECT_REQUEST_ERROR_TYPE_UNSPECIFIED"),
     1: .same(proto: "INTERNAL"),
-    2: .same(proto: "NO_ACCOUNT_STORED"),
-    3: .same(proto: "ACCOUNT_NOT_ACTIVE"),
-    4: .same(proto: "NO_ACTIVE_SUBSCRIPTION"),
-    5: .same(proto: "DEVICE_NOT_REGISTERED"),
-    6: .same(proto: "DEVICE_NOT_ACTIVE"),
-    7: .same(proto: "PENDING"),
+    2: .same(proto: "GENERAL"),
+    3: .same(proto: "NO_ACCOUNT_STORED"),
+    4: .same(proto: "NO_DEVICE_STORED"),
+    5: .same(proto: "UPDATE_ACCOUNT"),
+    6: .same(proto: "UPDATE_DEVICE"),
+    7: .same(proto: "REGISTER_DEVICE"),
   ]
 }
 
@@ -6398,14 +6629,164 @@ extension Nym_Vpn_GetAccountLinksResponse: SwiftProtobuf.Message, SwiftProtobuf.
   }
 }
 
+extension Nym_Vpn_DeviceSummary: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".DeviceSummary"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "active"),
+    2: .same(proto: "max"),
+    3: .same(proto: "remaining"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularUInt64Field(value: &self.active) }()
+      case 2: try { try decoder.decodeSingularUInt64Field(value: &self.max) }()
+      case 3: try { try decoder.decodeSingularUInt64Field(value: &self.remaining) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.active != 0 {
+      try visitor.visitSingularUInt64Field(value: self.active, fieldNumber: 1)
+    }
+    if self.max != 0 {
+      try visitor.visitSingularUInt64Field(value: self.max, fieldNumber: 2)
+    }
+    if self.remaining != 0 {
+      try visitor.visitSingularUInt64Field(value: self.remaining, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Nym_Vpn_DeviceSummary, rhs: Nym_Vpn_DeviceSummary) -> Bool {
+    if lhs.active != rhs.active {return false}
+    if lhs.max != rhs.max {return false}
+    if lhs.remaining != rhs.remaining {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Nym_Vpn_AccountSummaryInner: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".AccountSummaryInner"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "account"),
+    2: .same(proto: "subscription"),
+    3: .standard(proto: "device_summary"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.account) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.subscription) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._deviceSummary) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if self.account != .unspecified {
+      try visitor.visitSingularEnumField(value: self.account, fieldNumber: 1)
+    }
+    if self.subscription != .unspecified {
+      try visitor.visitSingularEnumField(value: self.subscription, fieldNumber: 2)
+    }
+    try { if let v = self._deviceSummary {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Nym_Vpn_AccountSummaryInner, rhs: Nym_Vpn_AccountSummaryInner) -> Bool {
+    if lhs.account != rhs.account {return false}
+    if lhs.subscription != rhs.subscription {return false}
+    if lhs._deviceSummary != rhs._deviceSummary {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Nym_Vpn_DeviceRegistration: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".DeviceRegistration"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "kind"),
+    2: .same(proto: "message"),
+    3: .standard(proto: "message_id"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.kind) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self._message) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self._messageID) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if self.kind != .deviceRegistrationUnspecified {
+      try visitor.visitSingularEnumField(value: self.kind, fieldNumber: 1)
+    }
+    try { if let v = self._message {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 2)
+    } }()
+    try { if let v = self._messageID {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Nym_Vpn_DeviceRegistration, rhs: Nym_Vpn_DeviceRegistration) -> Bool {
+    if lhs.kind != rhs.kind {return false}
+    if lhs._message != rhs._message {return false}
+    if lhs._messageID != rhs._messageID {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Nym_Vpn_DeviceRegistration.DeviceRegistrationType: SwiftProtobuf._ProtoNameProviding {
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "DEVICE_REGISTRATION_UNSPECIFIED"),
+    1: .same(proto: "DEVICE_REGISTRATION_IN_PROGRESS"),
+    2: .same(proto: "DEVICE_REGISTRATION_SUCCESS"),
+    3: .same(proto: "DEVICE_REGISTRATION_FAILED"),
+  ]
+}
+
 extension Nym_Vpn_AccountSummary: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".AccountSummary"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "mnemonic"),
-    2: .same(proto: "account"),
-    3: .same(proto: "subscription"),
+    2: .standard(proto: "account_registered"),
+    3: .standard(proto: "account_summary"),
     4: .same(proto: "device"),
-    5: .standard(proto: "pending_zk_nym"),
+    5: .standard(proto: "device_registration"),
+    6: .standard(proto: "pending_zk_nym"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -6415,10 +6796,11 @@ extension Nym_Vpn_AccountSummary: SwiftProtobuf.Message, SwiftProtobuf._MessageI
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularEnumField(value: &self._mnemonic) }()
-      case 2: try { try decoder.decodeSingularEnumField(value: &self._account) }()
-      case 3: try { try decoder.decodeSingularEnumField(value: &self._subscription) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self._accountRegistered) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._accountSummary) }()
       case 4: try { try decoder.decodeSingularEnumField(value: &self._device) }()
-      case 5: try { try decoder.decodeSingularBoolField(value: &self.pendingZkNym) }()
+      case 5: try { try decoder.decodeSingularMessageField(value: &self._deviceRegistration) }()
+      case 6: try { try decoder.decodeSingularBoolField(value: &self.pendingZkNym) }()
       default: break
       }
     }
@@ -6432,26 +6814,30 @@ extension Nym_Vpn_AccountSummary: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     try { if let v = self._mnemonic {
       try visitor.visitSingularEnumField(value: v, fieldNumber: 1)
     } }()
-    try { if let v = self._account {
+    try { if let v = self._accountRegistered {
       try visitor.visitSingularEnumField(value: v, fieldNumber: 2)
     } }()
-    try { if let v = self._subscription {
-      try visitor.visitSingularEnumField(value: v, fieldNumber: 3)
+    try { if let v = self._accountSummary {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
     } }()
     try { if let v = self._device {
       try visitor.visitSingularEnumField(value: v, fieldNumber: 4)
     } }()
+    try { if let v = self._deviceRegistration {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+    } }()
     if self.pendingZkNym != false {
-      try visitor.visitSingularBoolField(value: self.pendingZkNym, fieldNumber: 5)
+      try visitor.visitSingularBoolField(value: self.pendingZkNym, fieldNumber: 6)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: Nym_Vpn_AccountSummary, rhs: Nym_Vpn_AccountSummary) -> Bool {
     if lhs._mnemonic != rhs._mnemonic {return false}
-    if lhs._account != rhs._account {return false}
-    if lhs._subscription != rhs._subscription {return false}
+    if lhs._accountRegistered != rhs._accountRegistered {return false}
+    if lhs._accountSummary != rhs._accountSummary {return false}
     if lhs._device != rhs._device {return false}
+    if lhs._deviceRegistration != rhs._deviceRegistration {return false}
     if lhs.pendingZkNym != rhs.pendingZkNym {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
@@ -7498,10 +7884,14 @@ extension Nym_Vpn_IsReadyToConnectResponse.IsReadyToConnectResponseType: SwiftPr
     0: .same(proto: "IS_READY_TO_CONNECT_RESPONSE_TYPE_UNSPECIFIED"),
     1: .same(proto: "READY"),
     2: .same(proto: "NO_ACCOUNT_STORED"),
-    3: .same(proto: "ACCOUNT_NOT_ACTIVE"),
-    4: .same(proto: "NO_ACTIVE_SUBSCRIPTION"),
-    5: .same(proto: "DEVICE_NOT_REGISTERED"),
-    6: .same(proto: "DEVICE_NOT_ACTIVE"),
+    3: .same(proto: "ACCOUNT_NOT_SYNCED"),
+    4: .same(proto: "ACCOUNT_NOT_REGISTERED"),
+    5: .same(proto: "ACCOUNT_NOT_ACTIVE"),
+    6: .same(proto: "NO_ACTIVE_SUBSCRIPTION"),
+    7: .same(proto: "DEVICE_NOT_REGISTERED"),
+    8: .same(proto: "DEVICE_NOT_ACTIVE"),
+    9: .same(proto: "MAX_DEVICES_REACHED"),
+    10: .same(proto: "DEVICE_REGISTRATION_FAILED"),
   ]
 }
 
