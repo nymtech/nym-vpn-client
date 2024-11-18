@@ -195,12 +195,12 @@ pub enum ErrorKey {
     AccountInvalidMnemonic,
     AccountStorage,
     // Other account related errors, forwarded from `connect_request_error::ConnectRequestErrorType`
-    NoAccountStored,
-    AccountNotActive,
-    NoActiveSubscription,
-    DeviceNotRegistered,
-    DeviceNotActive,
-    ReadyToConnectPending,
+    ConnectGeneral,
+    ConnectNoAccountStored,
+    ConnectNoDeviceStored,
+    ConnectUpdateAccount,
+    ConnectUpdateDevice,
+    ConnectRegisterDevice,
     // Forwarded from proto `connection_status_update::StatusType`
     EntryGatewayNotRouting,
     ExitRouterPingIpv4,
@@ -305,12 +305,12 @@ impl From<ConnectRequestErrorType> for ErrorKey {
             ConnectRequestErrorType::Internal | ConnectRequestErrorType::Unspecified => {
                 ErrorKey::InternalError
             }
-            ConnectRequestErrorType::NoAccountStored => ErrorKey::NoAccountStored,
-            ConnectRequestErrorType::AccountNotActive => ErrorKey::AccountNotActive,
-            ConnectRequestErrorType::NoActiveSubscription => ErrorKey::NoActiveSubscription,
-            ConnectRequestErrorType::DeviceNotRegistered => ErrorKey::DeviceNotRegistered,
-            ConnectRequestErrorType::DeviceNotActive => ErrorKey::DeviceNotActive,
-            ConnectRequestErrorType::Pending => ErrorKey::ReadyToConnectPending,
+            ConnectRequestErrorType::General => ErrorKey::ConnectGeneral,
+            ConnectRequestErrorType::NoAccountStored => ErrorKey::ConnectNoAccountStored,
+            ConnectRequestErrorType::NoDeviceStored => ErrorKey::ConnectNoDeviceStored,
+            ConnectRequestErrorType::UpdateAccount => ErrorKey::ConnectUpdateAccount,
+            ConnectRequestErrorType::UpdateDevice => ErrorKey::ConnectUpdateDevice,
+            ConnectRequestErrorType::RegisterDevice => ErrorKey::ConnectRegisterDevice,
         }
     }
 }
