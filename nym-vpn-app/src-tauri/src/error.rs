@@ -52,7 +52,7 @@ impl BackendError {
         }
     }
 
-    pub fn _new_with_data(message: &str, key: ErrorKey, data: HashMap<&str, String>) -> Self {
+    pub fn _with_data(message: &str, key: ErrorKey, data: HashMap<&str, String>) -> Self {
         Self {
             message: message.to_string(),
             key,
@@ -60,7 +60,7 @@ impl BackendError {
         }
     }
 
-    pub fn new_with_details(message: &str, key: ErrorKey, details: String) -> Self {
+    pub fn with_details(message: &str, key: ErrorKey, details: String) -> Self {
         Self {
             message: message.to_string(),
             key,
@@ -68,7 +68,7 @@ impl BackendError {
         }
     }
 
-    pub fn new_with_optional_data(
+    pub fn with_optional_data(
         message: &str,
         key: ErrorKey,
         data: Option<HashMap<String, String>>,
@@ -80,7 +80,7 @@ impl BackendError {
         }
     }
 
-    pub fn new_internal(message: &str, data: Option<HashMap<String, String>>) -> Self {
+    pub fn internal(message: &str, data: Option<HashMap<String, String>>) -> Self {
         Self {
             message: message.to_string(),
             key: ErrorKey::InternalError,
@@ -283,14 +283,14 @@ impl From<AccountError> for BackendError {
         let data = error.details.clone().into();
         match error.kind() {
             AccountErrorType::StoreAccountErrorUnspecified => {
-                BackendError::new_internal("grpc UNSPECIFIED", data)
+                BackendError::internal("grpc UNSPECIFIED", data)
             }
-            AccountErrorType::InvalidMnemonic => BackendError::new_with_optional_data(
+            AccountErrorType::InvalidMnemonic => BackendError::with_optional_data(
                 "The provided mnemonic was not able to be parsed",
                 ErrorKey::AccountInvalidMnemonic,
                 data,
             ),
-            AccountErrorType::Storage => BackendError::new_with_optional_data(
+            AccountErrorType::Storage => BackendError::with_optional_data(
                 "General error from the storage backend",
                 ErrorKey::AccountStorage,
                 data,
