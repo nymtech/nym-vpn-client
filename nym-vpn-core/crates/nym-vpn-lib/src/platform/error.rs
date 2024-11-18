@@ -50,7 +50,7 @@ pub enum VpnError {
 
     #[error("timeout connecting to nym-vpn-api")]
     VpnApiTimeout,
-    
+
     //#[error("max devices reached: {0}")]
     //MaxDevicesReached(u64),
     #[error("account update failed: {details}")]
