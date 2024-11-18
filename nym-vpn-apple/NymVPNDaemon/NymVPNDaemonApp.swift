@@ -7,6 +7,7 @@ import ConfigurationManager
 import Constants
 import Home
 import HelperManager
+import NotificationsManager
 import NymLogger
 import Migrations
 import SentryManager
@@ -81,6 +82,7 @@ private extension NymVPNDaemonApp {
         Task {
             try await ConfigurationManager.shared.setup()
         }
+        NotificationsManager.shared.setup()
         ThemeConfiguration.setup()
         SentryManager.shared.setup()
         HelperManager.shared.setup(helperName: Constants.helperName.rawValue)

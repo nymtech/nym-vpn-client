@@ -25,6 +25,7 @@ let package = Package(
         .library(name: "Migrations", targets: ["Migrations"]),
         .library(name: "Modifiers", targets: ["Modifiers"]),
         .library(name: "NotificationsManager", targets: ["NotificationsManager"]),
+        .library(name: "NotificationMessages", targets: ["NotificationMessages"]),
         .library(name: "NymLogger", targets: ["NymLogger"]),
         .library(name: "SentryManager", targets: ["SentryManager"]),
         .library(name: "SystemMessageManager", targets: ["SystemMessageManager"]),
@@ -66,6 +67,7 @@ let package = Package(
             name: "ConnectionManager",
             dependencies: [
                 "CredentialsManager",
+                "NotificationMessages",
                 "Tunnels",
                 "TunnelMixnet"
             ],
@@ -160,6 +162,14 @@ let package = Package(
                 "ConnectionManager"
             ],
             path: "Sources/Services/NotificationsManager"
+        ),
+        .target(
+            name: "NotificationMessages",
+            dependencies: [
+                "NymLogger",
+                .product(name: "Logging", package: "swift-log")
+            ],
+            path: "Sources/Services/NotificationMessages"
         ),
         .target(
             name: "NymLogger",
