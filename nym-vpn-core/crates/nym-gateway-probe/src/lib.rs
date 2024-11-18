@@ -13,11 +13,8 @@ use bytes::BytesMut;
 use dns_lookup::lookup_host;
 use futures::StreamExt;
 use netstack::{NetstackCall as _, NetstackCallImpl};
-use nym_authenticator_client::ClientMessage;
-use nym_authenticator_requests::v4::{
-    registration::{FinalMessage, GatewayClient, InitMessage, RegistrationData},
-    response::{AuthenticatorResponseData, PendingRegistrationResponse, RegisteredResponse},
-};
+use nym_authenticator_client::{AuthenticatorResponse, AuthenticatorVersion, ClientMessage};
+use nym_authenticator_requests::{v2, v3, v4};
 use nym_config::defaults::NymNetworkDetails;
 use nym_connection_monitor::self_ping_and_wait;
 use nym_gateway_directory::{
@@ -65,6 +62,7 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
     let exit_router_address = entry_gateway.ipr_address;
     let authenticator = entry_gateway.authenticator_address;
     let gateway_host = entry_gateway.host.clone().unwrap();
+    let gateway_version = entry_gateway.version.clone();
     let entry_gateway_id = entry_gateway.identity();
 
     info!("Probing gateway: {entry_gateway:?}");
@@ -106,7 +104,7 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
     let outcome = do_ping(shared_mixnet_client.clone(), exit_router_address).await;
 
     let wg_outcome = if let Some(authenticator) = authenticator {
-        wg_probe(authenticator, shared_client, &gateway_host)
+        wg_probe(authenticator, shared_client, &gateway_host, gateway_version)
             .await
             .unwrap_or_default()
     } else {
@@ -130,64 +128,97 @@ async fn wg_probe(
     authenticator: AuthAddress,
     shared_mixnet_client: Arc<Mutex<Option<MixnetClient>>>,
     gateway_host: &nym_topology::NetworkAddress,
+    gateway_version: String,
 ) -> anyhow::Result<WgProbeResults> {
     let auth_shared_client =
         nym_authenticator_client::SharedMixnetClient::from_shared(&shared_mixnet_client);
     let mut auth_client = nym_authenticator_client::AuthClient::new(auth_shared_client).await;
+    let auth_version = AuthenticatorVersion::from(gateway_version);
 
     let mut rng = rand::thread_rng();
     let private_key = nym_crypto::asymmetric::encryption::PrivateKey::new(&mut rng);
     let public_key = private_key.public_key();
 
-    let init_message = ClientMessage::Initial(InitMessage {
-        pub_key: PeerPublicKey::new(public_key.to_bytes().into()),
-    });
+    let authenticator_pub_key = PeerPublicKey::new(public_key.to_bytes().into());
+    let init_message = match auth_version {
+        AuthenticatorVersion::V2 => ClientMessage::Initial(Box::new(
+            v2::registration::InitMessage::new(authenticator_pub_key),
+        )),
+        AuthenticatorVersion::V3 => ClientMessage::Initial(Box::new(
+            v3::registration::InitMessage::new(authenticator_pub_key),
+        )),
+        AuthenticatorVersion::V4 => ClientMessage::Initial(Box::new(
+            v4::registration::InitMessage::new(authenticator_pub_key),
+        )),
+        AuthenticatorVersion::UNKNOWN => bail!("Unknwon version number"),
+    };
 
     let mut wg_outcome = WgProbeResults::default();
 
     if let Some(authenticator_address) = authenticator.0 {
         let response = auth_client
-            .send(init_message, authenticator_address)
+            .send(&init_message, authenticator_address)
             .await?;
 
-        let registered_data = match response.data {
-            AuthenticatorResponseData::PendingRegistration(PendingRegistrationResponse {
-                reply:
-                    RegistrationData {
-                        nonce,
-                        gateway_data,
-                        ..
-                    },
-                ..
-            }) => {
+        let registered_data = match response {
+            nym_authenticator_client::AuthenticatorResponse::PendingRegistration(
+                pending_registration_response,
+            ) => {
                 // Unwrap since we have already checked that we have the keypair.
                 debug!("Verifying data");
-                gateway_data.verify(&private_key, nonce)?;
+                pending_registration_response.verify(&private_key)?;
 
-                let finalized_message = ClientMessage::Final(Box::new(FinalMessage {
-                    gateway_client: GatewayClient::new(
-                        &private_key,
-                        gateway_data.pub_key().inner(),
-                        gateway_data.private_ips,
-                        nonce,
-                    ),
-                    credential: None,
-                }));
-                let response = auth_client
-                    .send(finalized_message, authenticator_address)
-                    .await?;
-                let AuthenticatorResponseData::Registered(RegisteredResponse { reply, .. }) =
-                    response.data
-                else {
-                    bail!("Unexpected response: {response:?}");
+                let finalized_message = match auth_version {
+                    AuthenticatorVersion::V2 => {
+                        ClientMessage::Final(Box::new(v2::registration::FinalMessage {
+                            gateway_client: v2::registration::GatewayClient::new(
+                                &private_key,
+                                pending_registration_response.pub_key().inner(),
+                                pending_registration_response.private_ips().ipv4.into(),
+                                pending_registration_response.nonce(),
+                            ),
+                            credential: None,
+                        }))
+                    }
+                    AuthenticatorVersion::V3 => {
+                        ClientMessage::Final(Box::new(v3::registration::FinalMessage {
+                            gateway_client: v3::registration::GatewayClient::new(
+                                &private_key,
+                                pending_registration_response.pub_key().inner(),
+                                pending_registration_response.private_ips().ipv4.into(),
+                                pending_registration_response.nonce(),
+                            ),
+                            credential: None,
+                        }))
+                    }
+                    AuthenticatorVersion::V4 => {
+                        ClientMessage::Final(Box::new(v4::registration::FinalMessage {
+                            gateway_client: v4::registration::GatewayClient::new(
+                                &private_key,
+                                pending_registration_response.pub_key().inner(),
+                                pending_registration_response.private_ips(),
+                                pending_registration_response.nonce(),
+                            ),
+                            credential: None,
+                        }))
+                    }
+                    AuthenticatorVersion::UNKNOWN => bail!("Unknwon version number"),
                 };
-                reply
+                let response = auth_client
+                    .send(&finalized_message, authenticator_address)
+                    .await?;
+                let AuthenticatorResponse::Registered(registered_response) = response else {
+                    bail!("Unexpected response");
+                };
+                registered_response
             }
-            AuthenticatorResponseData::Registered(RegisteredResponse { reply, .. }) => reply,
-            _ => bail!("Unexpected response: {response:?}"),
+            nym_authenticator_client::AuthenticatorResponse::Registered(registered_response) => {
+                registered_response
+            }
+            _ => bail!("Unexpected response"),
         };
 
-        let peer_public = registered_data.pub_key.inner();
+        let peer_public = registered_data.pub_key().inner();
         let static_private = x25519_dalek::StaticSecret::from(private_key.to_bytes());
 
         // let private_key_bs64 = general_purpose::STANDARD.encode(static_private.as_bytes());
@@ -201,9 +232,9 @@ async fn wg_probe(
         info!("Peer public key: {}", public_key_bs64);
         info!(
             "ips {}(v4) {}(v6), port {}",
-            registered_data.private_ips.ipv4,
-            registered_data.private_ips.ipv6,
-            registered_data.wg_port,
+            registered_data.private_ips().ipv4,
+            registered_data.private_ips().ipv6,
+            registered_data.wg_port(),
         );
 
         let gateway_ip = match gateway_host {
@@ -217,7 +248,7 @@ async fn wg_probe(
             },
         };
 
-        let wg_endpoint = format!("{}:{}", gateway_ip, registered_data.wg_port);
+        let wg_endpoint = format!("{}:{}", gateway_ip, registered_data.wg_port());
 
         info!("Successfully registered with the gateway");
 
@@ -225,7 +256,7 @@ async fn wg_probe(
 
         if wg_outcome.can_register {
             let netstack_request = netstack::NetstackRequest {
-                wg_ip: registered_data.private_ips.ipv4.to_string(),
+                wg_ip: registered_data.private_ips().ipv4.to_string(),
                 private_key: private_key_hex.clone(),
                 public_key: public_key_hex.clone(),
                 endpoint: wg_endpoint.clone(),
@@ -243,7 +274,7 @@ async fn wg_probe(
                 netstack_response.received_ips as f32 / netstack_response.sent_ips as f32;
 
             let netstack_request = netstack::NetstackRequest {
-                wg_ip: registered_data.private_ips.ipv6.to_string(),
+                wg_ip: registered_data.private_ips().ipv6.to_string(),
                 private_key: private_key_hex,
                 public_key: public_key_hex,
                 endpoint: wg_endpoint.clone(),

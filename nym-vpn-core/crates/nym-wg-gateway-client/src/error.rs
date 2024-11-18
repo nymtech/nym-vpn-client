@@ -9,6 +9,9 @@ pub enum Error {
     #[error("received invalid response from gateway authenticator")]
     InvalidGatewayAuthResponse,
 
+    #[error("unknown authenticator version number")]
+    UnsupportedAuthenticatorVersion,
+
     #[error(transparent)]
     AuthenticatorClientError(#[from] nym_authenticator_client::Error),
 

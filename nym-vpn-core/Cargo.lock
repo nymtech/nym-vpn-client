@@ -3373,9 +3373,13 @@ dependencies = [
 name = "nym-authenticator-client"
 version = "1.1.0-dev"
 dependencies = [
+ "bincode",
  "futures",
  "nym-authenticator-requests",
+ "nym-credentials-interface",
+ "nym-crypto",
  "nym-sdk",
+ "nym-service-provider-requests-common",
  "nym-wireguard-types",
  "serde",
  "thiserror",

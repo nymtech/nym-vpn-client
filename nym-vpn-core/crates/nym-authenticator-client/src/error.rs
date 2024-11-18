@@ -20,6 +20,18 @@ pub enum Error {
 
     #[error("unable to get mixnet handle when sending authenticator message")]
     UnableToGetMixnetHandle,
+
+    #[error("unknown version number")]
+    UnknownVersion,
+
+    #[error("{0}")]
+    Bincode(#[from] bincode::Error),
+
+    #[error("gateway doesn't support this type of message")]
+    UnsupportedMessage,
+
+    #[error("{0}")]
+    AuthenticatorRequests(#[from] nym_authenticator_requests::Error),
 }
 
 // Result type based on our error type
