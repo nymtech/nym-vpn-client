@@ -72,6 +72,11 @@ private extension HopButtonViewModel {
 
             guard let text
             else {
+                // Get country even if it is not in the list...
+                if let fallbackCountry = countriesManager.country(with: countryCode ?? "") {
+                    let name = fallbackCountry.name
+                    return countryName = isQuickest ? "fastest".localizedString + " (\(name))" : name
+                }
                 return countryName = isQuickest ? "fastest".localizedString : nil
             }
             countryName = isQuickest ? "fastest".localizedString + " (\(text))" : text
