@@ -82,13 +82,6 @@
   "entry-node-routing": "エントリーノードがトラフィックをルーティングしていません（インターネット接続がダウンしている可能性があります）",
   "account": {
     "invalid-recovery-phrase": "無効なリカバリーフレーズ",
-    "not-active": "アカウントはアクティブではありません",
-    "no-active-subscription": "アカウントにはアクティブなサブスクリプションがありません",
-    "device": {
-      "not-active": "デバイスはアクティブではありません",
-      "not-registered": "デバイスが登録されていません"
-    },
-    "storage": "ストレージバックエンドエラー",
-    "no-account-stored": "アカウントのリカバリーフレーズが保存されていません"
+    "storage": "ストレージバックエンドエラー"
   }
 }

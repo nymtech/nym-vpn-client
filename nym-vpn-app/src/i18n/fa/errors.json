@@ -81,13 +81,6 @@
   "grpc": "خطای gRPC داخلی",
   "account": {
     "invalid-recovery-phrase": "عبارت بازیابی نامعتبر است",
-    "storage": "خطای بخش پشتیبان ذخیره‌سازی",
-    "no-account-stored": "هیچ عبارت بازیابی حسابی ذخیره نشده است",
-    "not-active": "حساب فعال نیست",
-    "no-active-subscription": "حساب دارای اشتراک فعال نیست",
-    "device": {
-      "not-registered": "دستگاه ثبت نشده است",
-      "not-active": "دستگاه فعال نیست"
-    }
+    "storage": "خطای بخش پشتیبان ذخیره‌سازی"
   }
 }

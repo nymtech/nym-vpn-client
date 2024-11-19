@@ -82,13 +82,6 @@
   },
   "account": {
     "invalid-recovery-phrase": "助记词无效",
-    "storage": "存储后端错误",
-    "no-account-stored": "未存储帐户恢复短语",
-    "not-active": "账户未激活",
-    "no-active-subscription": "账户没有激活订阅",
-    "device": {
-      "not-registered": "设备未注册",
-      "not-active": "设备未激活"
-    }
+    "storage": "存储后端错误"
   }
 }
