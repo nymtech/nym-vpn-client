@@ -142,7 +142,7 @@ impl AccountCommand {
     }
 
     pub fn return_error(self, error: AccountCommandError) {
-        tracing::error!("Returning error: {:?}", error);
+        tracing::warn!("Returning error: {:?}", error);
         match self {
             AccountCommand::UpdateAccountState(Some(tx)) => {
                 tx.send(Err(error));
