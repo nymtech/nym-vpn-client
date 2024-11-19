@@ -179,14 +179,6 @@ pub enum ClientMessage {
 }
 
 impl ClientMessage {
-    // check if message is wasteful e.g. contains a credential
-    pub fn is_wasteful(&self) -> bool {
-        match self {
-            Self::Final(_) | Self::TopUp(_) => true,
-            Self::Initial(_) | Self::Query(_) => false,
-        }
-    }
-
     fn version(&self) -> AuthenticatorVersion {
         match self {
             ClientMessage::Initial(msg) => msg.version(),
