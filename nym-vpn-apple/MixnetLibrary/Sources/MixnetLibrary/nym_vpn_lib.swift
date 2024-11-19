@@ -5152,11 +5152,11 @@ public enum VpnError {
     case AccountDeviceNotActive
     case NoDeviceIdentity
     case VpnApiTimeout
-    case AccountUpdateFailed(message: String, messageId: String?
+    case AccountUpdateFailed(details: String, messageId: String?, codeReferenceId: String?
     )
-    case DeviceUpdateFailed(message: String, messageId: String?
+    case DeviceUpdateFailed(details: String, messageId: String?, codeReferenceId: String?
     )
-    case DeviceRegistrationFailed(message: String, messageId: String?
+    case DeviceRegistrationFailed(details: String, messageId: String?, codeReferenceId: String?
     )
     case InvalidAccountStoragePath(details: String
     )
@@ -5200,16 +5200,19 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
         case 15: return .NoDeviceIdentity
         case 16: return .VpnApiTimeout
         case 17: return .AccountUpdateFailed(
-            message: try FfiConverterString.read(from: &buf), 
-            messageId: try FfiConverterOptionString.read(from: &buf)
+            details: try FfiConverterString.read(from: &buf), 
+            messageId: try FfiConverterOptionString.read(from: &buf), 
+            codeReferenceId: try FfiConverterOptionString.read(from: &buf)
             )
         case 18: return .DeviceUpdateFailed(
-            message: try FfiConverterString.read(from: &buf), 
-            messageId: try FfiConverterOptionString.read(from: &buf)
+            details: try FfiConverterString.read(from: &buf), 
+            messageId: try FfiConverterOptionString.read(from: &buf), 
+            codeReferenceId: try FfiConverterOptionString.read(from: &buf)
             )
         case 19: return .DeviceRegistrationFailed(
-            message: try FfiConverterString.read(from: &buf), 
-            messageId: try FfiConverterOptionString.read(from: &buf)
+            details: try FfiConverterString.read(from: &buf), 
+            messageId: try FfiConverterOptionString.read(from: &buf), 
+            codeReferenceId: try FfiConverterOptionString.read(from: &buf)
             )
         case 20: return .InvalidAccountStoragePath(
             details: try FfiConverterString.read(from: &buf)
@@ -5295,22 +5298,25 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
             writeInt(&buf, Int32(16))
         
         
-        case let .AccountUpdateFailed(message,messageId):
+        case let .AccountUpdateFailed(details,messageId,codeReferenceId):
             writeInt(&buf, Int32(17))
-            FfiConverterString.write(message, into: &buf)
+            FfiConverterString.write(details, into: &buf)
             FfiConverterOptionString.write(messageId, into: &buf)
+            FfiConverterOptionString.write(codeReferenceId, into: &buf)
             
         
-        case let .DeviceUpdateFailed(message,messageId):
+        case let .DeviceUpdateFailed(details,messageId,codeReferenceId):
             writeInt(&buf, Int32(18))
-            FfiConverterString.write(message, into: &buf)
+            FfiConverterString.write(details, into: &buf)
             FfiConverterOptionString.write(messageId, into: &buf)
+            FfiConverterOptionString.write(codeReferenceId, into: &buf)
             
         
-        case let .DeviceRegistrationFailed(message,messageId):
+        case let .DeviceRegistrationFailed(details,messageId,codeReferenceId):
             writeInt(&buf, Int32(19))
-            FfiConverterString.write(message, into: &buf)
+            FfiConverterString.write(details, into: &buf)
             FfiConverterOptionString.write(messageId, into: &buf)
+            FfiConverterOptionString.write(codeReferenceId, into: &buf)
             
         
         case let .InvalidAccountStoragePath(details):

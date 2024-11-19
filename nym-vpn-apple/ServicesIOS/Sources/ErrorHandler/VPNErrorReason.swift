@@ -19,9 +19,9 @@ public enum VPNErrorReason: Codable, Error, LocalizedError {
     case accountDeviceNotActive
     case noDeviceIdentity
     case vpnApiTimeout
-    case accountUpdateFailed(message: String, messageId: String?)
-    case deviceUpdateFailed(message: String, messageId: String?)
-    case deviceRegistrationFailed(message: String, messageId: String?)
+    case accountUpdateFailed(details: String, messageId: String?, codeReferenceId: String?)
+    case deviceUpdateFailed(details: String, messageId: String?, codeReferenceId: String?)
+    case deviceRegistrationFailed(details: String, messageId: String?, codeReferenceId: String?)
     case invalidAccountStoragePath(details: String)
     case unkownTunnelState
 
@@ -61,12 +61,12 @@ public enum VPNErrorReason: Codable, Error, LocalizedError {
             self = .accountNotRegistered
         case .NoDeviceIdentity:
             self = .noDeviceIdentity
-        case let .AccountUpdateFailed(message: message, messageId: messageId):
-            self = .accountUpdateFailed(message: message, messageId: messageId)
-        case let .DeviceUpdateFailed(message: message, messageId: messageId):
-            self = .deviceUpdateFailed(message: message, messageId: messageId)
-        case let .DeviceRegistrationFailed(message: message, messageId: messageId):
-            self = .deviceRegistrationFailed(message: message, messageId: messageId)
+        case let .AccountUpdateFailed(details: details, messageId: messageId, codeReferenceId: codeReferenceId):
+            self = .accountUpdateFailed(details: details, messageId: messageId, codeReferenceId: codeReferenceId)
+        case let .DeviceUpdateFailed(details: details, messageId: messageId, codeReferenceId: codeReferenceId):
+            self = .deviceUpdateFailed(details: details, messageId: messageId, codeReferenceId: codeReferenceId)
+        case let .DeviceRegistrationFailed(details: details, messageId: messageId, codeReferenceId: codeReferenceId):
+            self = .deviceRegistrationFailed(details: details, messageId: messageId, codeReferenceId: codeReferenceId)
         case let .InvalidAccountStoragePath(details: details):
             self = .invalidAccountStoragePath(details: details)
         }
@@ -108,11 +108,23 @@ public enum VPNErrorReason: Codable, Error, LocalizedError {
         case 15:
             self = .vpnApiTimeout
         case 16:
-            self = .accountUpdateFailed(message: nsError.localizedDescription, messageId: nil)
+            self = .accountUpdateFailed(
+                details: nsError.localizedDescription,
+                messageId: nsError.userInfo["messageId"] as? String,
+                codeReferenceId: nsError.userInfo["codeReferenceId"] as? String
+            )
         case 17:
-            self = .deviceUpdateFailed(message: nsError.localizedDescription, messageId: nil)
+            self = .deviceUpdateFailed(
+                details: nsError.localizedDescription,
+                messageId: nsError.userInfo["messageId"] as? String,
+                codeReferenceId: nsError.userInfo["codeReferenceId"] as? String
+            )
         case 18:
-            self = .deviceRegistrationFailed(message: nsError.localizedDescription, messageId: nil)
+            self = .deviceRegistrationFailed(
+                details: nsError.localizedDescription,
+                messageId: nsError.userInfo["messageId"] as? String,
+                codeReferenceId: nsError.userInfo["codeReferenceId"] as? String
+            )
         case 19:
             self = .invalidAccountStoragePath(details: nsError.localizedDescription)
         default:
@@ -125,12 +137,16 @@ public enum VPNErrorReason: Codable, Error, LocalizedError {
     }
 
     public var nsError: NSError {
-        NSError(
+        var userInfo: [String: Any] = [
+            NSLocalizedDescriptionKey: description
+        ]
+
+        userInfo.merge(self.userInfo) { (_, new) in new }
+
+        return NSError(
             domain: VPNErrorReason.domain,
             code: errorCode,
-            userInfo: [
-                NSLocalizedDescriptionKey: description
-            ]
+            userInfo: userInfo
         )
     }
 }
@@ -215,12 +231,26 @@ private extension VPNErrorReason {
             return "The account is not registered."
         case .noDeviceIdentity:
             return "No device identity is available."
-        case let .accountUpdateFailed(message: message, messageId: _),
-            let .deviceUpdateFailed(message: message, messageId: _),
-            let .deviceRegistrationFailed(message: message, messageId: _):
-            return message
+        case let .accountUpdateFailed(details: details, messageId: _, codeReferenceId: _),
+            let .deviceUpdateFailed(details: details, messageId: _, codeReferenceId: _),
+            let .deviceRegistrationFailed(details: details, messageId: _, codeReferenceId: _):
+            return details
         case .unkownTunnelState:
             return "Unknown tunnel error reason."
+        }
+    }
+
+    var userInfo: [String: Any] {
+        switch self {
+        case let .accountUpdateFailed(details: _, messageId: messageId, codeReferenceId: codeReferenceId),
+            let .deviceUpdateFailed(details: _, messageId: messageId, codeReferenceId: codeReferenceId),
+            let .deviceRegistrationFailed(details: _, messageId: messageId, codeReferenceId: codeReferenceId):
+            return [
+                "messageId": messageId as Any,
+                "codeReferenceId": codeReferenceId as Any
+            ]
+        default:
+            return [:]
         }
     }
 }

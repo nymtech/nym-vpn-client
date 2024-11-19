@@ -854,7 +854,7 @@ message IsReadyToConnectResponse {
     // The account is not active
     ACCOUNT_NOT_ACTIVE = 5;
 
-    // The account does not have an active subscripion
+    // The account does not have an active subscription
     NO_ACTIVE_SUBSCRIPTION = 6;
 
     // The device is not registered
@@ -928,12 +928,12 @@ service NymVpnd {
   // List the available gateways for the selected mode
   rpc ListGateways (ListGatewaysRequest) returns (ListGatewaysResponse) {}
 
-  // List the avaiable countries for the selected mode
+  // List the available countries for the selected mode
   rpc ListCountries (ListCountriesRequest) returns (ListCountriesResponse) {}
 
   // -- Unstable --
   // These below are considered unstable, in the sense that their definitions
-  // are still being interated upon and their meaning might change
+  // are still being integrated upon and their meaning might change
 
   // Store the recovery phrase, which is also the account identity and authentication
   rpc StoreAccount (StoreAccountRequest) returns (StoreAccountResponse) {}
@@ -982,7 +982,7 @@ service NymVpnd {
   // Get a zk-nym by its id from the nym-vpn-api
   rpc GetZkNymById (GetZkNymByIdRequest) returns (GetZkNymByIdResponse) {}
 
-  // Confirm that a zk-nym has been downloaded from thje nym-vpn-api
+  // Confirm that a zk-nym has been downloaded from the nym-vpn-api
   rpc ConfirmZkNymDownloaded (ConfirmZkNymDownloadedRequest) returns (ConfirmZkNymDownloadedResponse) {}
 
   // Get the available tickets in the local credential store
