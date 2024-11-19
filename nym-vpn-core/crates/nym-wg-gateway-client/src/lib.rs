@@ -113,7 +113,7 @@ impl WgGatewayLightClient {
     }
 
     async fn send(&mut self, msg: ClientMessage) -> Result<AuthenticatorResponse> {
-        if msg.is_wasteful() {
+        if msg.should_retry() {
             let now = std::time::Instant::now();
             while now.elapsed() < RETRY_PERIOD {
                 match self.auth_client.send(&msg, self.auth_recipient).await {

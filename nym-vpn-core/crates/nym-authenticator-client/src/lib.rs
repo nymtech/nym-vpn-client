@@ -180,10 +180,10 @@ pub enum ClientMessage {
 
 impl ClientMessage {
     // check if message is wasteful e.g. contains a credential
-    pub fn is_wasteful(&self) -> bool {
+    pub fn should_retry(&self) -> bool {
         match self {
-            Self::Final(_) | Self::TopUp(_) => true,
-            Self::Initial(_) | Self::Query(_) => false,
+            Self::Final(_) | Self::TopUp(_) | Self::Query(_) => true,
+            Self::Initial(_) => false,
         }
     }
 
