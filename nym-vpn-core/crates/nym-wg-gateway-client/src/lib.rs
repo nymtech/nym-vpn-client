@@ -113,23 +113,17 @@ impl WgGatewayLightClient {
     }
 
     async fn send(&mut self, msg: ClientMessage) -> Result<AuthenticatorResponse> {
-        if msg.should_retry() {
-            let now = std::time::Instant::now();
-            while now.elapsed() < RETRY_PERIOD {
-                match self.auth_client.send(&msg, self.auth_recipient).await {
-                    Ok(response) => return Ok(response),
-                    Err(nym_authenticator_client::Error::TimeoutWaitingForConnectResponse) => {
-                        continue
-                    }
-                    Err(source) => return Err(Error::NoRetry { source }),
-                }
+        let now = std::time::Instant::now();
+        while now.elapsed() < RETRY_PERIOD {
+            match self.auth_client.send(&msg, self.auth_recipient).await {
+                Ok(response) => return Ok(response),
+                Err(nym_authenticator_client::Error::TimeoutWaitingForConnectResponse) => continue,
+                Err(source) => return Err(Error::NoRetry { source }),
             }
-            Err(Error::NoRetry {
-                source: nym_authenticator_client::Error::TimeoutWaitingForConnectResponse,
-            })
-        } else {
-            Ok(self.auth_client.send(&msg, self.auth_recipient).await?)
         }
+        Err(Error::NoRetry {
+            source: nym_authenticator_client::Error::TimeoutWaitingForConnectResponse,
+        })
     }
 
     pub async fn top_up(&mut self, credential: CredentialSpendingData) -> Result<i64> {
