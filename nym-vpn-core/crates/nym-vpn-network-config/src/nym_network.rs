@@ -17,6 +17,12 @@ pub struct NymNetwork {
 }
 
 impl NymNetwork {
+    pub fn mainnet_default() -> Self {
+        Self {
+            network: NymNetworkDetails::new_mainnet(),
+        }
+    }
+
     fn path(config_dir: &Path, network_name: &str) -> PathBuf {
         config_dir
             .join(NETWORKS_SUBDIR)
