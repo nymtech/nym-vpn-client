@@ -22,7 +22,7 @@ pub struct Gateway {
     pub clients_ws_port: Option<u16>,
     pub clients_wss_port: Option<u16>,
     pub mixnet_performance: Option<Percent>,
-    pub version: String,
+    pub version: Option<String>,
 }
 
 impl fmt::Debug for Gateway {
@@ -240,7 +240,7 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             clients_ws_port: Some(gateway.entry.ws_port),
             clients_wss_port: gateway.entry.wss_port,
             mixnet_performance: Some(gateway.performance),
-            version: gateway.build_information.build_version,
+            version: gateway.build_information.map(|info| info.build_version),
         })
     }
 }
@@ -278,7 +278,7 @@ impl TryFrom<nym_validator_client::models::NymNodeDescription> for Gateway {
                     .inspect_err(|err| error!("Failed to parse authenticator address: {err}"))
                     .ok()
             });
-        let version = node_description.version().to_string();
+        let version = Some(node_description.version().to_string());
         let role = if node_description.description.declared_role.entry {
             nym_validator_client::nym_nodes::NodeRole::EntryGateway
         } else if node_description.description.declared_role.exit_ipr
