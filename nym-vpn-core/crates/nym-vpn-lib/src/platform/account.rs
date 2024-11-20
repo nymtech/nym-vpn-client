@@ -292,14 +292,16 @@ pub(super) async fn remove_account_mnemonic(path: &str) -> Result<bool, VpnError
 pub(super) async fn forget_account(path: &str) -> Result<(), VpnError> {
     tracing::warn!("REMOVING ALL ACCOUNT AND DEVICE DATA IN: {path}");
 
-    crate::util::assert_existence_of_expected_files(path).map_err(|err| {
-        VpnError::InternalError {
-            details: err.to_string(),
-        }
+    // First remove the files we own directly
+    remove_account_mnemonic(path).await?;
+    remove_device_identity(path).await?;
+
+    // Then remove the rest of the files, that we own indirectly
+    let path = PathBuf::from_str(path).map_err(|err| VpnError::InvalidAccountStoragePath {
+        details: err.to_string(),
     })?;
 
-    std::fs::remove_dir_all(path).map_err(|err| {
-        tracing::error!("Failed to remove account directory: {}", err);
+    nym_vpn_account_controller::util::remove_files_for_account(&path).map_err(|err| {
         VpnError::InternalError {
             details: err.to_string(),
         }
@@ -313,6 +315,16 @@ pub(super) async fn reset_device_identity(path: &str) -> Result<(), VpnError> {
     let storage = setup_account_storage(path)?;
     storage
         .reset_keys(None)
+        .await
+        .map_err(|err| VpnError::InternalError {
+            details: err.to_string(),
+        })
+}
+
+pub(super) async fn remove_device_identity(path: &str) -> Result<(), VpnError> {
+    let storage = setup_account_storage(path)?;
+    storage
+        .remove_keys()
         .await
         .map_err(|err| VpnError::InternalError {
             details: err.to_string(),

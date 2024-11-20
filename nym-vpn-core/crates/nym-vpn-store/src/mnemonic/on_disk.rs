@@ -153,6 +153,9 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
     }
 
     async fn remove_mnemonic(&self) -> Result<(), OnDiskMnemonicStorageError> {
+        if !self.path.exists() {
+            return Ok(());
+        }
         std::fs::remove_file(&self.path).map_err(OnDiskMnemonicStorageError::RemoveError)
     }
 }
