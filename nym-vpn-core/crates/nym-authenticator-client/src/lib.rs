@@ -572,6 +572,21 @@ impl From<String> for AuthenticatorVersion {
     }
 }
 
+impl From<Option<String>> for AuthenticatorVersion {
+    fn from(value: Option<String>) -> Self {
+        let Some(value) = value else {
+            return Self::UNKNOWN;
+        };
+        if value.contains("1.1.9") {
+            Self::V2
+        } else if value.contains("1.1.10") {
+            Self::V3
+        } else {
+            Self::UNKNOWN
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct AuthClient {
     mixnet_client: SharedMixnetClient,
