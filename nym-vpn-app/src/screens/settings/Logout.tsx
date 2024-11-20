@@ -26,7 +26,7 @@ function Logout() {
     setIsOpen(false);
     navigate(routes.root);
     try {
-      await invoke('delete_account');
+      await invoke('forget_account');
       dispatch({ type: 'set-account', stored: false });
       push({
         text: t('logout.success', { ns: 'notifications' }),
