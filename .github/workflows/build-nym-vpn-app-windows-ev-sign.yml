@@ -225,14 +225,14 @@ jobs:
           npm run gen:licenses:rust
 
       - name: Download EV CodeSignTool from ssl.com
-        working-directory: nym-vpn-app
+        working-directory: nym-vpn-app/src-tauri
         shell: bash
         run: |
           curl -L0 https://www.ssl.com/download/codesigntool-for-linux-and-macos/ -o codesigntool.zip
           unzip codesigntool.zip
 
       - name: Get EV certificate credential id
-        working-directory: nym-vpn-app
+        working-directory: nym-vpn-app/src-tauri
         id: get_credential_ids
         env:
           SSL_COM_USERNAME: ${{ secrets.SSL_COM_USERNAME }}
@@ -244,14 +244,14 @@ jobs:
 
       # Credential_id is obtained with ./CodeSignTool.sh get_credential_ids -username=${{ env.SSL_COM_USERNAME }} -password=${{ env.SSL_COM_PASSWORD }}
       - name: Add custom sign command to tauri.conf.json
-        working-directory: nym-vpn-app
+        working-directory: nym-vpn-app/src-tauri
         env:
           SSL_COM_USERNAME: ${{ secrets.SSL_COM_USERNAME }}
           SSL_COM_PASSWORD: ${{ secrets.SSL_COM_PASSWORD }}
           SSL_COM_TOTP_SECRET: ${{ secrets.SSL_COM_TOTP_SECRET }}
         shell: bash
         run: |
-          yq eval --inplace '.bundle.windows += {"signCommand": "./CodeSignTool.sh sign -username=${{ env.SSL_COM_USERNAME }} -password=${{ env.SSL_COM_PASSWORD }} -credential_id=${{ steps.get_credential_ids.outputs.SSL_COM_CREDENTIAL_ID }} -totp_secret=${{ env.SSL_COM_TOTP_SECRET }} -input_file_path=src-tauri/target/release/"}' src-tauri/tauri.conf.json
+          yq eval --inplace '.bundle.windows += {"signCommand": "./CodeSignTool.sh sign -username=${{ env.SSL_COM_USERNAME }} -password=${{ env.SSL_COM_PASSWORD }} -credential_id=${{ steps.get_credential_ids.outputs.SSL_COM_CREDENTIAL_ID }} -totp_secret=${{ env.SSL_COM_TOTP_SECRET }} -input_file_path=%1"}' tauri.conf.json
 
       - name: Build tauri desktop client
         working-directory: nym-vpn-app/src-tauri
