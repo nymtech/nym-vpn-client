@@ -20,41 +20,80 @@ pub(crate) struct CliArgs {
 
 #[derive(Subcommand)]
 pub(crate) enum Command {
+    /// Connect to the Nym network.
     Connect(ConnectArgs),
+    /// Disconnect from the Nym network.
     Disconnect,
+    /// Get the current status of the connection.
     Status,
+    /// Get info about the current client. Things like version and network details.
     Info,
+    /// Set the network to be used. This requires a restart of the daemon (`nym-vpnd`)
     SetNetwork(SetNetworkArgs),
+    #[clap(hide = true)]
     GetSystemMessages,
+    #[clap(hide = true)]
     GetFeatureFlags,
+    /// Store the account recovery phrase.
     StoreAccount(StoreAccountArgs),
+    /// Check if the account is stored.
     IsAccountStored,
+    /// Remove the stored account. This only removes the stored recovery phrase.
+    #[clap(hide = true)]
     RemoveAccount,
+    /// Forget the stored account. This removes the stores recovery phrase, device and mixnet keys,
+    /// stored local credentials, etc.
     ForgetAccount,
+    /// Get the account ID.
     GetAccountId,
+    /// Get the current account state.
     GetAccountState,
+    /// Get URLs for managing your nym-vpn account.
     GetAccountLinks(GetAccountLinksArgs),
+    #[clap(hide = true)]
     RefreshAccountState,
+    #[clap(hide = true)]
     IsReadyToConnect,
-    ListenToStatus,
-    ListenToStateChanges,
-    ListEntryGateways(ListGatewaysArgs),
-    ListExitGateways(ListGatewaysArgs),
-    ListVpnGateways(ListGatewaysArgs),
-    ListEntryCountries(ListCountriesArgs),
-    ListExitCountries(ListCountriesArgs),
-    ListVpnCountries(ListCountriesArgs),
+    #[clap(hide = true)]
     ResetDeviceIdentity(ResetDeviceIdentityArgs),
+    /// Get the device ID.
     GetDeviceId,
+    /// Register the device with your account.
+    #[clap(hide = true)]
     RegisterDevice,
+    /// Request zknym credentials.
+    #[clap(hide = true)]
     RequestZkNym,
+    #[clap(hide = true)]
     GetDeviceZkNym,
+    #[clap(hide = true)]
     GetZkNymsAvailableForDownload,
+    #[clap(hide = true)]
     GetZkNymById(GetZkNymByIdArgs),
+    #[clap(hide = true)]
     ConfirmZkNymDownloaded(ConfirmZkNymDownloadedArgs),
+    #[clap(hide = true)]
     GetAvailableTickets,
+    #[clap(hide = true)]
     FetchRawAccountSummary,
+    #[clap(hide = true)]
     FetchRawDevices,
+    #[clap(hide = true)]
+    ListenToStatus,
+    #[clap(hide = true)]
+    ListenToStateChanges,
+    /// List the set of entry gateways for mixnet mode.
+    ListEntryGateways(ListGatewaysArgs),
+    /// List the set of exit gateways for mixnet mode.
+    ListExitGateways(ListGatewaysArgs),
+    /// List the set of entry and exit gateways for dVPN mode.
+    ListVpnGateways(ListGatewaysArgs),
+    /// List the set of countries with available entry gateways for mixnet mode.
+    ListEntryCountries(ListCountriesArgs),
+    /// List the set of countries with available exit gateways for mixnet mode.
+    ListExitCountries(ListCountriesArgs),
+    /// List the set of countries with available entry and exit gateways for dVPN mode.
+    ListVpnCountries(ListCountriesArgs),
 }
 
 #[derive(Args)]
