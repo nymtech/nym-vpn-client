@@ -958,18 +958,11 @@ where
                 source: Box::new(err),
             })?;
 
-        // Then remove the rest of the data dir
-        nym_vpn_lib::util::assert_existence_of_expected_files(&data_dir).map_err(|source| {
-            AccountError::FailedToForgetAccount {
+        nym_vpn_account_controller::util::remove_files_for_account(&data_dir).map_err(
+            |source| AccountError::FailedToForgetAccount {
                 source: Box::new(source),
-            }
-        })?;
-
-        nym_vpn_account_controller::util::remove_files_for_account(data_dir).map_err(|source| {
-            AccountError::FailedToForgetAccount {
-                source: Box::new(source),
-            }
-        })?;
+            },
+        )?;
 
         // Tell the account controller to reset its state
         self.account_command_tx

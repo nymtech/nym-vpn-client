@@ -292,20 +292,16 @@ pub(super) async fn remove_account_mnemonic(path: &str) -> Result<bool, VpnError
 pub(super) async fn forget_account(path: &str) -> Result<(), VpnError> {
     tracing::warn!("REMOVING ALL ACCOUNT AND DEVICE DATA IN: {path}");
 
+    // First remove the files we own directly
     remove_account_mnemonic(path).await?;
     remove_device_identity(path).await?;
 
-    // Defensive check, just to make sure we're not deleting from a directory we shouldn't touch
-    crate::util::assert_existence_of_expected_files(path).map_err(|err| {
-        VpnError::InternalError {
-            details: err.to_string(),
-        }
-    })?;
-
+    // Then remove the rest of the files, that we own indirectly
     let path = PathBuf::from_str(path).map_err(|err| VpnError::InvalidAccountStoragePath {
         details: err.to_string(),
     })?;
-    nym_vpn_account_controller::util::remove_files_for_account(path).map_err(|err| {
+
+    nym_vpn_account_controller::util::remove_files_for_account(&path).map_err(|err| {
         VpnError::InternalError {
             details: err.to_string(),
         }
