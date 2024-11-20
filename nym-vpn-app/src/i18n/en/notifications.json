@@ -6,6 +6,6 @@
   },
   "logout": {
     "success": "Logout successfull",
-    "error": "An error occurred while logging out. Please try again."
+    "error": "An error occurred while logging out"
   }
 }

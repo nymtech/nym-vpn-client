@@ -73,6 +73,7 @@
   "account": {
     "invalid-recovery-phrase": "Invalid recovery phrase",
     "storage": "Storage backend error",
+    "is-connected": "Unable to proceed while connected",
     "not-stored": "No account recovery phrase stored",
     "no-device-stored": "No device keys stored",
     "update": "Update account failed",

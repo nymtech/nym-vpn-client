@@ -238,6 +238,7 @@ async fn main() -> Result<()> {
             cmd_log::log_js,
             account::add_account,
             account::delete_account,
+            account::forget_account,
             account::is_account_stored,
             account::get_account_info,
             account::account_links,

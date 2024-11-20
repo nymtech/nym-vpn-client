@@ -3,6 +3,11 @@
 @tailwind utilities;
 
 @layer base {
+  .font-rendering {
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+  }
+
   /* Regular */
   @font-face {
     font-family: 'Lato';
@@ -88,8 +93,8 @@
    */
   .tooltip {
     @apply invisible absolute p-2 px-3 rounded shadow-md
-    bg-seashell dark:bg-poivre-noir text-sm
-    transition-opacity duration-200 opacity-0 ease-out;
+        bg-seashell dark:bg-poivre-noir text-sm
+        transition-opacity duration-200 opacity-0 ease-out;
   }
 
   .attach-tooltip:hover .tooltip {

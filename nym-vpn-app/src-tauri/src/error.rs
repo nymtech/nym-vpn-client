@@ -194,6 +194,7 @@ pub enum ErrorKey {
     // Forwarded from proto `account_error::AccountErrorType`
     AccountInvalidMnemonic,
     AccountStorage,
+    AccountIsConnected,
     // Other account related errors, forwarded from `connect_request_error::ConnectRequestErrorType`
     ConnectGeneral,
     ConnectNoAccountStored,
@@ -293,6 +294,11 @@ impl From<AccountError> for BackendError {
             AccountErrorType::Storage => BackendError::with_optional_data(
                 "General error from the storage backend",
                 ErrorKey::AccountStorage,
+                data,
+            ),
+            AccountErrorType::IsConnected => BackendError::with_optional_data(
+                "Unable to proceed while connected",
+                ErrorKey::AccountIsConnected,
                 data,
             ),
         }
