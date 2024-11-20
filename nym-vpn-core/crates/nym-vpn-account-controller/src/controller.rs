@@ -314,15 +314,6 @@ where
     async fn handle_request_zk_nym(&mut self, _command: AccountCommand) -> Result<(), Error> {
         let account_state = self.shared_state().lock().await.clone();
 
-        // Don't attempt to request zk-nyms if the account is not ready to connect
-        match account_state.is_ready_to_connect(false) {
-            ReadyToConnect::Ready => {}
-            not_ready => {
-                tracing::info!("Account not ready to request zk-nyms, skipping: {not_ready}");
-                return Ok(());
-            }
-        }
-
         // Check if we are already in the process of requesting zk-nyms
         if account_state.pending_zk_nym {
             tracing::info!("zk-nym request already in progress, skipping");
@@ -856,7 +847,7 @@ where
                 }
                 // On a timer to check if we need to request more zk-nyms
                 _ = update_zk_nym_timer.tick(), if self.is_background_zk_nym_refresh() => {
-                    self.queue_command(AccountCommand::RequestZkNym);
+                    self.request_zk_nym_if_ready().await.ok();
                 }
                 _ = self.cancel_token.cancelled() => {
                     tracing::trace!("Received cancellation signal");
