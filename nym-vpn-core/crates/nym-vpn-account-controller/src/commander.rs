@@ -77,6 +77,14 @@ impl AccountControllerCommander {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    pub async fn ensure_available_tickets(&self) -> Result<(), AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::RequestZkNym(Some(tx)))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
     // Send a basic command without waiting for a response
     pub fn send(&self, command: AccountCommand) -> Result<(), Error> {
         self.command_tx

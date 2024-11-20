@@ -194,4 +194,10 @@ impl VpnCredentialStorage {
 
         Ok(ticketbook_types_running_low)
     }
+
+    pub(crate) async fn check_available_tickets_to_connect(&self) -> Result<bool, Error> {
+        let ticket_types_running_low = self.check_ticket_types_running_low().await?;
+        // If no ticket types are running low, we are ready to try to connect
+        Ok(ticket_types_running_low.is_empty())
+    }
 }

@@ -128,7 +128,7 @@ pub enum AccountCommand {
     UpdateAccountState(Option<ReturnSender<NymVpnAccountSummaryResponse>>),
     UpdateDeviceState(Option<ReturnSender<DeviceState>>),
     RegisterDevice(Option<ReturnSender<NymVpnDevice>>),
-    RequestZkNym,
+    RequestZkNym(Option<ReturnSender<()>>),
     GetDeviceZkNym,
     GetZkNymsAvailableForDownload,
     GetZkNymById(String),
@@ -191,7 +191,7 @@ mod tests {
             AccountCommand::RegisterDevice(None).kind(),
             "RegisterDevice"
         );
-        assert_eq!(AccountCommand::RequestZkNym.kind(), "RequestZkNym");
+        assert_eq!(AccountCommand::RequestZkNym(None).kind(), "RequestZkNym");
         assert_eq!(AccountCommand::GetDeviceZkNym.kind(), "GetDeviceZkNym");
         assert_eq!(
             AccountCommand::GetZkNymsAvailableForDownload.kind(),

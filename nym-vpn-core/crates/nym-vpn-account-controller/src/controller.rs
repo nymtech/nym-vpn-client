@@ -311,7 +311,7 @@ where
 
     // Check the local credential storage to see if we need to request more zk-nyms, the proceed
     // to request zk-nyms for each ticket type that we need.
-    async fn handle_request_zk_nym(&mut self) -> Result<(), Error> {
+    async fn handle_request_zk_nym(&mut self, _command: AccountCommand) -> Result<(), Error> {
         let account_state = self.shared_state().lock().await.clone();
 
         // Don't attempt to request zk-nyms if the account is not ready to connect
@@ -422,7 +422,7 @@ where
         }
         match self.shared_state().is_ready_to_request_zk_nym().await {
             ReadyToRequestZkNym::Ready => {
-                self.queue_command(AccountCommand::RequestZkNym);
+                self.queue_command(AccountCommand::RequestZkNym(None));
             }
             not_ready => {
                 tracing::info!("Not trying to request zk-nym: {not_ready}");
@@ -666,13 +666,8 @@ where
             AccountCommand::RegisterDevice(_) => {
                 self.handle_register_device(command).await;
             }
-            AccountCommand::RequestZkNym => {
-                self.handle_request_zk_nym()
-                    .await
-                    .inspect_err(|err| {
-                        tracing::error!("Failed to request zk-nym: {:#?}", err);
-                    })
-                    .ok();
+            AccountCommand::RequestZkNym(_) => {
+                self.handle_request_zk_nym(command).await;
             }
             AccountCommand::GetDeviceZkNym => {
                 self.handle_get_device_zk_nym()

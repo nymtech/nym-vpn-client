@@ -688,10 +688,13 @@ where
         get_feature_flag_credential_mode(&self.network_env)
     }
 
-    async fn wait_for_ready_to_connect(&self) -> Result<(), AccountCommandError> {
+    async fn wait_for_ready_to_connect(&self, credential_mode: bool) -> Result<(), AccountCommandError> {
         self.account_command_tx.ensure_update_account().await?;
         self.account_command_tx.ensure_update_device().await?;
         self.account_command_tx.ensure_register_device().await?;
+        if credential_mode {
+            self.account_command_tx.ensure_available_tickets().await?;
+        }
         Ok(())
     }
 
