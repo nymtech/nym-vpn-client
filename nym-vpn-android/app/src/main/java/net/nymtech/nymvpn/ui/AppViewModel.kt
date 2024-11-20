@@ -10,14 +10,18 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.service.country.CountryCacheService
 import net.nymtech.nymvpn.service.gateway.NymApiService
 import net.nymtech.nymvpn.service.tunnel.TunnelManager
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
+import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.Constants
+import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.vpn.backend.Backend
+import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.Country
 import nym_vpn_lib.SystemMessage
 import timber.log.Timber
@@ -67,8 +71,12 @@ constructor(
 
 	fun logout() = viewModelScope.launch {
 		runCatching {
-			tunnelManager.removeMnemonic()
-		}.onFailure { Timber.w("Not logged in") }
+			if (tunnelManager.getState() == Tunnel.State.Down) {
+				tunnelManager.removeMnemonic()
+			} else {
+				SnackbarController.showMessage(StringValue.StringResource(R.string.action_requires_tunnel_down))
+			}
+		}.onFailure { Timber.e(it) }
 	}
 
 	fun onErrorReportingSelected() = viewModelScope.launch {
@@ -86,11 +94,13 @@ constructor(
 	}
 
 	private suspend fun checkSystemMessages() {
-		val env = settingsRepository.getEnvironment()
-		val messages = nymApiService.getSystemMessages(env)
-		messages.firstOrNull()?.let {
-			_systemMessage.emit(it)
-		}
+		runCatching {
+			val env = settingsRepository.getEnvironment()
+			val messages = nymApiService.getSystemMessages(env)
+			messages.firstOrNull()?.let {
+				_systemMessage.emit(it)
+			}
+		}.onFailure { Timber.e(it) }
 	}
 
 	fun onAppStartup() = viewModelScope.launch {

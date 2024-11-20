@@ -127,6 +127,15 @@ pub(super) async fn send_account_command(command: AccountCommand) -> Result<(), 
     }
 }
 
+pub(super) async fn send_account_command_if_running(
+    command: AccountCommand,
+) -> Result<(), VpnError> {
+    if let Some(guard) = &*ACCOUNT_CONTROLLER_HANDLE.lock().await {
+        guard.send_command(command);
+    }
+    Ok(())
+}
+
 async fn get_shared_account_state() -> Result<SharedAccountState, VpnError> {
     if let Some(guard) = &*ACCOUNT_CONTROLLER_HANDLE.lock().await {
         Ok(guard.shared_state.clone())
@@ -221,6 +230,26 @@ pub(super) async fn remove_account_mnemonic(path: &str) -> Result<bool, VpnError
             })?;
 
     Ok(is_account_removed_success)
+}
+
+pub(super) async fn forget_account(path: &str) -> Result<(), VpnError> {
+    tracing::warn!("REMOVING ALL ACCOUNT AND DEVICE DATA IN: {path}");
+
+    crate::util::assert_existence_of_expected_files(path).map_err(|err| {
+        VpnError::InternalError {
+            details: err.to_string(),
+        }
+    })?;
+
+    std::fs::remove_dir_all(path).map_err(|err| {
+        tracing::error!("Failed to remove account directory: {}", err);
+        VpnError::InternalError {
+            details: err.to_string(),
+        }
+    })?;
+
+    send_account_command_if_running(AccountCommand::ResetAccount).await?;
+    Ok(())
 }
 
 pub(super) async fn reset_device_identity(path: &str) -> Result<(), VpnError> {

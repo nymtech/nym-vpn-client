@@ -362,7 +362,7 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
-  /// List the avaiable countries for the selected mode
+  /// List the available countries for the selected mode
   ///
   /// - Parameters:
   ///   - request: Request to send to ListCountries.
@@ -652,7 +652,7 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
-  /// Confirm that a zk-nym has been downloaded from thje nym-vpn-api
+  /// Confirm that a zk-nym has been downloaded from the nym-vpn-api
   ///
   /// - Parameters:
   ///   - request: Request to send to ConfirmZkNymDownloaded.
@@ -2039,7 +2039,7 @@ internal protocol Nym_Vpn_NymVpndProvider: CallHandlerProvider {
   /// List the available gateways for the selected mode
   func listGateways(request: Nym_Vpn_ListGatewaysRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_ListGatewaysResponse>
 
-  /// List the avaiable countries for the selected mode
+  /// List the available countries for the selected mode
   func listCountries(request: Nym_Vpn_ListCountriesRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_ListCountriesResponse>
 
   /// Store the recovery phrase, which is also the account identity and authentication
@@ -2089,7 +2089,7 @@ internal protocol Nym_Vpn_NymVpndProvider: CallHandlerProvider {
   /// Get a zk-nym by its id from the nym-vpn-api
   func getZkNymById(request: Nym_Vpn_GetZkNymByIdRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetZkNymByIdResponse>
 
-  /// Confirm that a zk-nym has been downloaded from thje nym-vpn-api
+  /// Confirm that a zk-nym has been downloaded from the nym-vpn-api
   func confirmZkNymDownloaded(request: Nym_Vpn_ConfirmZkNymDownloadedRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_ConfirmZkNymDownloadedResponse>
 
   /// Get the available tickets in the local credential store
@@ -2460,7 +2460,7 @@ internal protocol Nym_Vpn_NymVpndAsyncProvider: CallHandlerProvider, Sendable {
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_ListGatewaysResponse
 
-  /// List the avaiable countries for the selected mode
+  /// List the available countries for the selected mode
   func listCountries(
     request: Nym_Vpn_ListCountriesRequest,
     context: GRPCAsyncServerCallContext
@@ -2558,7 +2558,7 @@ internal protocol Nym_Vpn_NymVpndAsyncProvider: CallHandlerProvider, Sendable {
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_GetZkNymByIdResponse
 
-  /// Confirm that a zk-nym has been downloaded from thje nym-vpn-api
+  /// Confirm that a zk-nym has been downloaded from the nym-vpn-api
   func confirmZkNymDownloaded(
     request: Nym_Vpn_ConfirmZkNymDownloadedRequest,
     context: GRPCAsyncServerCallContext

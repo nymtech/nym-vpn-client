@@ -184,6 +184,13 @@ impl From<AccountError> for nym_vpn_proto::AccountError {
                     "reason".to_string() => source.to_string(),
                 },
             },
+            AccountError::FailedToForgetAccount { ref source } => nym_vpn_proto::AccountError {
+                kind: AccountErrorType::Storage as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => source.to_string(),
+                },
+            },
             AccountError::FailedToLoadAccount { ref source } => nym_vpn_proto::AccountError {
                 kind: AccountErrorType::Storage as i32,
                 message: err.to_string(),
@@ -211,7 +218,12 @@ impl From<AccountError> for nym_vpn_proto::AccountError {
                 message: err.to_string(),
                 details: hashmap! {},
             },
-            AccountError::FailedToResetKeys { .. } => nym_vpn_proto::AccountError {
+            AccountError::FailedToInitDeviceKeys { .. } => nym_vpn_proto::AccountError {
+                kind: AccountErrorType::Storage as i32,
+                message: err.to_string(),
+                details: hashmap! {},
+            },
+            AccountError::FailedToResetDeviceKeys { .. } => nym_vpn_proto::AccountError {
                 kind: AccountErrorType::Storage as i32,
                 message: err.to_string(),
                 details: hashmap! {},
@@ -248,6 +260,16 @@ impl From<AccountError> for nym_vpn_proto::AccountError {
             },
             AccountError::FailedToParseAccountLinks => nym_vpn_proto::AccountError {
                 kind: AccountErrorType::Storage as i32,
+                message: err.to_string(),
+                details: hashmap! {},
+            },
+            AccountError::Timeout(_) => nym_vpn_proto::AccountError {
+                kind: AccountErrorType::Storage as i32,
+                message: err.to_string(),
+                details: hashmap! {},
+            },
+            AccountError::IsConnected => nym_vpn_proto::AccountError {
+                kind: AccountErrorType::IsConnected as i32,
                 message: err.to_string(),
                 details: hashmap! {},
             },

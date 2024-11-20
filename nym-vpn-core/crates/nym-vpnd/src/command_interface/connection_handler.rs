@@ -155,6 +155,13 @@ impl CommandInterfaceConnectionHandler {
             .await
     }
 
+    pub(crate) async fn handle_forget_account(
+        &self,
+    ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::ForgetAccount, ())
+            .await
+    }
+
     pub(crate) async fn handle_get_account_identity(
         &self,
     ) -> Result<Result<String, AccountError>, VpnCommandSendError> {

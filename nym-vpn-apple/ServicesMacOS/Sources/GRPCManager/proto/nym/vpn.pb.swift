@@ -3418,7 +3418,7 @@ struct Nym_Vpn_IsReadyToConnectResponse {
     /// The account is not active
     case accountNotActive // = 5
 
-    /// The account does not have an active subscripion
+    /// The account does not have an active subscription
     case noActiveSubscription // = 6
 
     /// The device is not registered

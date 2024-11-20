@@ -3,6 +3,7 @@ use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
 use itertools::Itertools;
+use nym_vpn_proto::ForgetAccountRequest;
 use nym_vpn_proto::{
     get_account_links_response, health_check_response::ServingStatus, health_client::HealthClient,
     is_account_stored_response::Resp as IsAccountStoredResp, nym_vpnd_client::NymVpndClient,
@@ -422,7 +423,7 @@ impl GrpcClient {
         ))
     }
 
-    /// Remove the stored account
+    /// Remove the recovery phrase from fs
     #[instrument(skip_all)]
     pub async fn remove_account(&self) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
@@ -445,6 +446,34 @@ impl GrpcClient {
                 .ok_or_else(|| {
                     error!("remove account bad response: no AccountError");
                     VpndError::internal("remove account bad response: no AccountError")
+                })?,
+        ))
+    }
+
+    /// Removes everything related to the account, including the device identity,
+    /// credential storage, mixnet keys, gateway registrations
+    #[instrument(skip_all)]
+    pub async fn forget_account(&self) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let request = Request::new(ForgetAccountRequest {});
+        let response = vpnd.forget_account(request).await.map_err(|e| {
+            error!("grpc: {}", e);
+            VpndError::GrpcError(e)
+        })?;
+        debug!("grpc response: {:?}", response);
+        let response = response.into_inner();
+        if response.success {
+            return Ok(());
+        }
+        Err(VpndError::Response(
+            response
+                .error
+                .inspect(|e| warn!("forget account error: {:?}", e))
+                .map(BackendError::from)
+                .ok_or_else(|| {
+                    error!("forget account bad response: no AccountError");
+                    VpndError::internal("forget account bad response: no AccountError")
                 })?,
         ))
     }

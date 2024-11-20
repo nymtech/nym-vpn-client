@@ -17,12 +17,13 @@ use nym_vpn_proto::{
     ConfirmZkNymDownloadedResponse, ConnectRequest, ConnectResponse, ConnectionStateChange,
     ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
     FetchRawAccountSummaryRequest, FetchRawAccountSummaryResponse, FetchRawDevicesRequest,
-    FetchRawDevicesResponse, GetAccountIdentityRequest, GetAccountIdentityResponse,
-    GetAccountLinksRequest, GetAccountLinksResponse, GetAccountStateRequest,
-    GetAccountStateResponse, GetAvailableTicketsRequest, GetAvailableTicketsResponse,
-    GetDeviceIdentityRequest, GetDeviceIdentityResponse, GetDeviceZkNymsRequest,
-    GetDeviceZkNymsResponse, GetFeatureFlagsRequest, GetFeatureFlagsResponse,
-    GetSystemMessagesRequest, GetSystemMessagesResponse, GetZkNymByIdRequest, GetZkNymByIdResponse,
+    FetchRawDevicesResponse, ForgetAccountRequest, ForgetAccountResponse,
+    GetAccountIdentityRequest, GetAccountIdentityResponse, GetAccountLinksRequest,
+    GetAccountLinksResponse, GetAccountStateRequest, GetAccountStateResponse,
+    GetAvailableTicketsRequest, GetAvailableTicketsResponse, GetDeviceIdentityRequest,
+    GetDeviceIdentityResponse, GetDeviceZkNymsRequest, GetDeviceZkNymsResponse,
+    GetFeatureFlagsRequest, GetFeatureFlagsResponse, GetSystemMessagesRequest,
+    GetSystemMessagesResponse, GetZkNymByIdRequest, GetZkNymByIdResponse,
     GetZkNymsAvailableForDownloadRequest, GetZkNymsAvailableForDownloadResponse, InfoRequest,
     InfoResponse, IsAccountStoredRequest, IsAccountStoredResponse, IsReadyToConnectRequest,
     IsReadyToConnectResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
@@ -490,6 +491,29 @@ impl NymVpnd for CommandInterface {
         };
 
         tracing::debug!("Returning remove account response");
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn forget_account(
+        &self,
+        _request: tonic::Request<ForgetAccountRequest>,
+    ) -> Result<tonic::Response<ForgetAccountResponse>, tonic::Status> {
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_forget_account()
+            .await?;
+
+        let response = match result {
+            Ok(()) => ForgetAccountResponse {
+                success: true,
+                error: None,
+            },
+            Err(err) => ForgetAccountResponse {
+                success: false,
+                error: Some(nym_vpn_proto::AccountError::from(err)),
+            },
+        };
+
+        tracing::debug!("Returning forget account response");
         Ok(tonic::Response::new(response))
     }
 

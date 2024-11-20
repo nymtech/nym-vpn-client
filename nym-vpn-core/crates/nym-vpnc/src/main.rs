@@ -6,14 +6,14 @@ use clap::Parser;
 use nym_gateway_directory::GatewayType;
 use nym_vpn_proto::{
     ConfirmZkNymDownloadedRequest, ConnectRequest, DisconnectRequest, Empty,
-    FetchRawAccountSummaryRequest, FetchRawDevicesRequest, GetAccountIdentityRequest,
-    GetAccountLinksRequest, GetAccountStateRequest, GetAvailableTicketsRequest,
-    GetDeviceIdentityRequest, GetDeviceZkNymsRequest, GetFeatureFlagsRequest,
-    GetSystemMessagesRequest, GetZkNymByIdRequest, GetZkNymsAvailableForDownloadRequest,
-    InfoRequest, InfoResponse, IsAccountStoredRequest, IsReadyToConnectRequest,
-    ListCountriesRequest, ListGatewaysRequest, RefreshAccountStateRequest, RegisterDeviceRequest,
-    RemoveAccountRequest, RequestZkNymRequest, ResetDeviceIdentityRequest, SetNetworkRequest,
-    StatusRequest, StoreAccountRequest, UserAgent,
+    FetchRawAccountSummaryRequest, FetchRawDevicesRequest, ForgetAccountRequest,
+    GetAccountIdentityRequest, GetAccountLinksRequest, GetAccountStateRequest,
+    GetAvailableTicketsRequest, GetDeviceIdentityRequest, GetDeviceZkNymsRequest,
+    GetFeatureFlagsRequest, GetSystemMessagesRequest, GetZkNymByIdRequest,
+    GetZkNymsAvailableForDownloadRequest, InfoRequest, InfoResponse, IsAccountStoredRequest,
+    IsReadyToConnectRequest, ListCountriesRequest, ListGatewaysRequest, RefreshAccountStateRequest,
+    RegisterDeviceRequest, RemoveAccountRequest, RequestZkNymRequest, ResetDeviceIdentityRequest,
+    SetNetworkRequest, StatusRequest, StoreAccountRequest, UserAgent,
 };
 use protobuf_conversion::{into_gateway_type, into_threshold};
 use sysinfo::System;
@@ -51,6 +51,7 @@ async fn main() -> Result<()> {
         Command::RefreshAccountState => refresh_account_state(client_type).await?,
         Command::IsAccountStored => is_account_stored(client_type).await?,
         Command::RemoveAccount => remove_account(client_type).await?,
+        Command::ForgetAccount => forget_account(client_type).await?,
         Command::GetAccountId => get_account_id(client_type).await?,
         Command::GetAccountLinks(ref args) => get_account_links(client_type, args).await?,
         Command::GetAccountState => get_account_state(client_type).await?,
@@ -244,6 +245,14 @@ async fn remove_account(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(RemoveAccountRequest {});
     let response = client.remove_account(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn forget_account(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(ForgetAccountRequest {});
+    let response = client.forget_account(request).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }

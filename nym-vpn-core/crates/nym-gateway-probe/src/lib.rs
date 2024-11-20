@@ -62,7 +62,7 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
     let exit_router_address = entry_gateway.ipr_address;
     let authenticator = entry_gateway.authenticator_address;
     let gateway_host = entry_gateway.host.clone().unwrap();
-    let gateway_version = entry_gateway.version.clone();
+    let auth_version = AuthenticatorVersion::from(entry_gateway.version.clone());
     let entry_gateway_id = entry_gateway.identity();
 
     info!("Probing gateway: {entry_gateway:?}");
@@ -104,7 +104,7 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
     let outcome = do_ping(shared_mixnet_client.clone(), exit_router_address).await;
 
     let wg_outcome = if let Some(authenticator) = authenticator {
-        wg_probe(authenticator, shared_client, &gateway_host, gateway_version)
+        wg_probe(authenticator, shared_client, &gateway_host, auth_version)
             .await
             .unwrap_or_default()
     } else {
@@ -128,12 +128,11 @@ async fn wg_probe(
     authenticator: AuthAddress,
     shared_mixnet_client: Arc<Mutex<Option<MixnetClient>>>,
     gateway_host: &nym_topology::NetworkAddress,
-    gateway_version: String,
+    auth_version: AuthenticatorVersion,
 ) -> anyhow::Result<WgProbeResults> {
     let auth_shared_client =
         nym_authenticator_client::SharedMixnetClient::from_shared(&shared_mixnet_client);
     let mut auth_client = nym_authenticator_client::AuthClient::new(auth_shared_client).await;
-    let auth_version = AuthenticatorVersion::from(gateway_version);
 
     let mut rng = rand::thread_rng();
     let private_key = nym_crypto::asymmetric::encryption::PrivateKey::new(&mut rng);

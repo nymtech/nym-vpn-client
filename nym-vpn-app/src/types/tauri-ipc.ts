@@ -84,6 +84,7 @@ export type ErrorKey =
   | 'CSMixnetConnectionMonitor'
   | 'AccountInvalidMnemonic'
   | 'AccountStorage'
+  | 'AccountIsConnected'
   | 'ConnectGeneral'
   | 'ConnectNoAccountStored'
   | 'ConnectNoDeviceStored'

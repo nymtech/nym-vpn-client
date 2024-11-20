@@ -16,6 +16,7 @@ class NymApi(
 	private val ioDispatcher: CoroutineDispatcher,
 	private val userAgent: UserAgent,
 ) {
+
 	suspend fun getGatewayCountries(type: GatewayType): Set<Country> {
 		return withContext(ioDispatcher) {
 			getGatewayCountries(type, userAgent, null).map {

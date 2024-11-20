@@ -619,6 +619,13 @@ message RemoveAccountResponse {
   AccountError error = 2;
 }
 
+message ForgetAccountRequest {}
+
+message ForgetAccountResponse {
+  bool success = 1;
+  AccountError error = 2;
+}
+
 message GetAccountIdentityRequest {}
 
 message GetAccountIdentityResponse {
@@ -890,6 +897,9 @@ message AccountError {
 
     // General error from the storage backend
     STORAGE = 2;
+
+    // Unable to proceed while connected
+    IS_CONNECTED = 3;
   }
 
   AccountErrorType kind = 1;
@@ -949,6 +959,10 @@ service NymVpnd {
 
   // Remove the recovery phrase from local storage
   rpc RemoveAccount (RemoveAccountRequest) returns (RemoveAccountResponse) {}
+
+  // Removes everything related to the account, including the device identity,
+  // credential storage, mixnet keys, gateway registrations.
+  rpc ForgetAccount (ForgetAccountRequest) returns (ForgetAccountResponse) {}
 
   // Get the account identity of the locally stored recovery phrase
   rpc GetAccountIdentity (GetAccountIdentityRequest) returns (GetAccountIdentityResponse) {}
