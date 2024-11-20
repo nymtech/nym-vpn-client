@@ -243,13 +243,13 @@
         }
       }
     },
-    "addCredtenials.credential" : {
+    "addCredtenials.mnemonic" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Credential"
+            "value" : "Mnemonic"
           }
         }
       }

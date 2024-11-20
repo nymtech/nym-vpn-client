@@ -199,7 +199,7 @@ private extension AddCredentialsView {
                 .stroke(viewModel.textFieldStrokeColor, lineWidth: 1)
         }
         .overlay(alignment: .topLeading) {
-            Text(viewModel.credentialSubtitle)
+            Text(viewModel.mnemonicSubtitle)
                 .foregroundStyle(viewModel.credentialSubtitleColor)
                 .textStyle(.Body.Small.primary)
                 .padding(4)
