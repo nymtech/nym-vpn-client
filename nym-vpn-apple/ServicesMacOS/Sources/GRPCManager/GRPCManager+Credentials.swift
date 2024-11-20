@@ -17,7 +17,6 @@ extension GRPCManager {
                 switch result {
                 case .success(let response):
                     if response.hasError {
-                        
                         continuation.resume(throwing: GeneralNymError.library(message: response.error.message))
                         break
                     }
@@ -45,11 +44,40 @@ extension GRPCManager {
                 case .success(let response):
                     if response.hasError {
                         continuation.resume(throwing: GeneralNymError.library(message: response.error.message))
-                        break
+                    } else {
+                        continuation.resume(returning: response.success)
                     }
-                    continuation.resume(returning: response.success)
                 case .failure(let error):
                     continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+
+    public func forgetAccount() async throws -> Bool {
+        guard helperManager.isHelperAuthorizedAndRunning()
+        else {
+            throw GRPCError.daemonNotRunning
+        }
+
+        logger.log(level: .info, "Forgetting credentials")
+
+        return try await withCheckedThrowingContinuation { continuation in
+            let call = client.forgetAccount(Nym_Vpn_ForgetAccountRequest())
+
+            call.response.whenComplete { result in
+                switch result {
+                case .success(let response):
+                    if response.hasError {
+                        continuation.resume(throwing: GeneralNymError.library(message: response.error.message))
+                    } else {
+                        continuation.resume(returning: response.success)
+                    }
+                case .failure(let error):
+                    continuation.resume(
+                        throwing:
+                            GeneralNymError.library(message: error.localizedDescription)
+                    )
                 }
             }
         }
@@ -92,7 +120,13 @@ extension GRPCManager {
             call.response.whenComplete { result in
                 switch result {
                 case .success(let response):
-                    continuation.resume(returning: (account: response.links.account.url, signIn: response.links.signIn.url, signUp: response.links.signUp.url))
+                    continuation.resume(
+                        returning: (
+                            account: response.links.account.url,
+                            signIn: response.links.signIn.url,
+                            signUp: response.links.signUp.url
+                        )
+                    )
                 case .failure(let error):
                     continuation.resume(throwing: error)
                 }

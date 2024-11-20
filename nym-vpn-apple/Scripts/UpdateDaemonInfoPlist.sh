@@ -24,6 +24,7 @@ if [[ -z "${1:-}" ]]; then
 fi
 
 VERSION="$1"  # Version passed as an argument (e.g., 0.2.1)
+TRIMMED_VERSION="${VERSION%%-*}"
 
 # Path to the Info.plist file
 PLIST_PATH="../Daemon/Info.plist"
@@ -41,7 +42,7 @@ CURRENT_BUNDLE_VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$PL
 NEW_BUNDLE_VERSION=$((CURRENT_BUNDLE_VERSION + 1))
 
 # Update CFBundleShortVersionString with the new version
-/usr/libexec/PlistBuddy -c "Set CFBundleShortVersionString $VERSION" "$PLIST_PATH"
+/usr/libexec/PlistBuddy -c "Set CFBundleShortVersionString $TRIMMED_VERSION" "$PLIST_PATH"
 
 # Update CFBundleVersion with the incremented version
 /usr/libexec/PlistBuddy -c "Set CFBundleVersion $NEW_BUNDLE_VERSION" "$PLIST_PATH"

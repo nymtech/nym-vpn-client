@@ -6702,6 +6702,12 @@ public func fetchSystemMessages(networkName: String)throws  -> [SystemMessage] {
     )
 })
 }
+public func forgetAccount(path: String)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_forgetaccount(
+        FfiConverterString.lower(path),$0
+    )
+}
+}
 public func getAccountState()throws  -> AccountStateSummary {
     return try  FfiConverterTypeAccountStateSummary.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_getaccountstate($0
@@ -6833,6 +6839,9 @@ private var initializationResult: InitializationResult {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_fetchsystemmessages() != 3367) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_forgetaccount() != 31212) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_getaccountstate() != 12813) {

@@ -3,13 +3,10 @@ import Logging
 import Foundation
 import AppSettings
 import Constants
-
 #if os(iOS)
 import ErrorHandler
 import MixnetLibrary
-#endif
-
-#if os(macOS)
+#elseif os(macOS)
 import GRPCManager
 import HelperManager
 #endif
@@ -69,13 +66,13 @@ public final class CredentialsManager {
             let removalResult: Bool
 #if os(iOS)
             let dataFolderURL = try dataFolderURL()
-            removalResult = try removeAccountMnemonic(path: dataFolderURL.path())
-            // TODO: remove tunnel as well
+            try forgetAccount(path: dataFolderURL.path())
+            // TODO: remove tunnel
 #endif
 
 #if os(macOS)
             _ = await installHelperIfNeeded()
-            removalResult = try await grpcManager.removeAccount()
+            removalResult = try await grpcManager.forgetAccount()
 #endif
             checkCredentialImport()
         } catch {
