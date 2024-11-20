@@ -133,6 +133,11 @@ impl SharedAccountState {
         self.inner.lock().await
     }
 
+    pub async fn reset(&self) {
+        let mut guard = self.inner.lock().await;
+        *guard = AccountStateSummary::default();
+    }
+
     pub(crate) async fn set_mnemonic(&self, state: MnemonicState) {
         let mut guard = self.inner.lock().await;
         if guard.mnemonic.as_ref() != Some(&state) {

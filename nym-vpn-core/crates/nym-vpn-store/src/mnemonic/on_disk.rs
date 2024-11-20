@@ -68,6 +68,8 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
             nonce,
         };
 
+        tracing::info!("Storing mnemonic to: {}", self.path.display());
+
         // Error if the file already exists
         if self.path.exists() {
             return Err(OnDiskMnemonicStorageError::MnemonicAlreadyStored {
@@ -75,18 +77,10 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
             });
         }
 
-        // Another layer of defense, only create the file if it doesn't already exist
-        let file = std::fs::OpenOptions::new()
-            .create_new(true)
-            .write(true)
-            .open(&self.path)
-            .map_err(|err| OnDiskMnemonicStorageError::FileCreateError {
-                path: self.path.clone(),
-                source: err,
-            })?;
-
         // Create parent directories
+        tracing::trace!("Creating parent directories for: {}", self.path.display());
         if let Some(parent) = self.path.parent() {
+            tracing::trace!("Creating parent directory: {}", parent.display());
             fs::create_dir_all(parent).map_err(|err| {
                 OnDiskMnemonicStorageError::FileCreateError {
                     path: parent.to_path_buf(),
@@ -97,6 +91,7 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
             #[cfg(unix)]
             {
                 // Set directory permissions to 700 (rwx------)
+                tracing::trace!("Set directory permissions to 700 (rwx------)");
                 let permissions = fs::Permissions::from_mode(0o700);
                 fs::set_permissions(parent, permissions).map_err(|source| {
                     OnDiskMnemonicStorageError::FileCreateError {
@@ -108,6 +103,17 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
 
             // TODO: same for windows
         }
+
+        // Another layer of defense, only create the file if it doesn't already exist
+        tracing::debug!("Only creating the file if it doesn't already exist");
+        let file = std::fs::OpenOptions::new()
+            .create_new(true)
+            .write(true)
+            .open(&self.path)
+            .map_err(|err| OnDiskMnemonicStorageError::FileCreateError {
+                path: self.path.clone(),
+                source: err,
+            })?;
 
         serde_json::to_writer(file, &stored_mnemonic)
             .map_err(OnDiskMnemonicStorageError::WriteError)?;

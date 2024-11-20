@@ -400,6 +400,11 @@ pub enum AccountError {
         source: Box<dyn std::error::Error + Send + Sync>,
     },
 
+    #[error("failed to forget account: {source}")]
+    FailedToForgetAccount {
+        source: Box<dyn std::error::Error + Send + Sync>,
+    },
+
     #[error("failed to load account: {source}")]
     FailedToLoadAccount {
         source: Box<dyn std::error::Error + Send + Sync>,
@@ -433,8 +438,13 @@ pub enum AccountError {
     #[error("no account stored")]
     NoAccountStored,
 
+    #[error("failed to init device keys")]
+    FailedToInitDeviceKeys {
+        source: Box<dyn std::error::Error + Send + Sync>,
+    },
+
     #[error("failed to reset device keys")]
-    FailedToResetKeys {
+    FailedToResetDeviceKeys {
         source: Box<dyn std::error::Error + Send + Sync>,
     },
 
@@ -448,6 +458,12 @@ pub enum AccountError {
 
     #[error("failed to parse account links")]
     FailedToParseAccountLinks,
+
+    #[error("timeout: {0}")]
+    Timeout(String),
+
+    #[error("unable to proceed while connected")]
+    IsConnected,
 }
 
 #[derive(Debug, thiserror::Error)]

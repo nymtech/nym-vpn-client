@@ -91,8 +91,8 @@ where
     // If we have multiple fails in a row, disable background refresh
     zk_nym_fails_in_row: u32,
 
-    // When credential mode is disabled we don't automatically request zk-nyms. We can still do so
-    // manually, but we don't want to do it automatically
+    // When credential mode is disabled we don't automatically request zk-nyms. We can still do
+    // so manually, but we don't want to do it automatically
     background_zk_nym_refresh: bool,
 
     // Listen for cancellation signals
@@ -391,6 +391,7 @@ where
             }
             Err(err) => {
                 tracing::debug!("No account stored: {}", err);
+                self.account_state.reset().await;
                 self.account_state
                     .set_mnemonic(MnemonicState::NotStored)
                     .await;
@@ -653,6 +654,9 @@ where
     async fn handle_command(&mut self, command: AccountCommand) {
         tracing::info!("Received command: {}", command);
         match command {
+            AccountCommand::ResetAccount => {
+                self.account_state.reset().await;
+            }
             AccountCommand::UpdateAccountState(_) => {
                 self.handle_update_account_state(command).await;
             }

@@ -124,6 +124,7 @@ where
 
 #[derive(Debug, strum::Display)]
 pub enum AccountCommand {
+    ResetAccount,
     UpdateAccountState(Option<ReturnSender<NymVpnAccountSummaryResponse>>),
     UpdateDeviceState(Option<ReturnSender<DeviceState>>),
     RegisterDevice(Option<ReturnSender<NymVpnDevice>>),
@@ -141,7 +142,7 @@ impl AccountCommand {
     }
 
     pub fn return_error(self, error: AccountCommandError) {
-        tracing::error!("Returning error: {:?}", error);
+        tracing::warn!("Returning error: {:?}", error);
         match self {
             AccountCommand::UpdateAccountState(Some(tx)) => {
                 tx.send(Err(error));
