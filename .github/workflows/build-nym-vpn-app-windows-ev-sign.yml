@@ -234,24 +234,16 @@ jobs:
       - name: Get EV certificate credential id
         working-directory: nym-vpn-app/src-tauri
         id: get_credential_ids
-        env:
-          SSL_COM_USERNAME: ${{ secrets.SSL_COM_USERNAME }}
-          SSL_COM_PASSWORD: ${{ secrets.SSL_COM_PASSWORD }}
-          SSL_COM_TOTP_SECRET: ${{ secrets.SSL_COM_TOTP_SECRET }}
         shell: bash
         run: |
-          echo "SSL_COM_CREDENTIAL_ID=$(./CodeSignTool.sh get_credential_ids -username=${{ env.SSL_COM_USERNAME }} -password=${{ env.SSL_COM_PASSWORD }} | sed -n '1!p' | sed 's/- //')" >> "$GITHUB_OUTPUT"
+          echo "SSL_COM_CREDENTIAL_ID=$(./CodeSignTool.sh get_credential_ids -username=${{ secrets.SSL_COM_USERNAME }} -password=${{ secrets.SSL_COM_PASSWORD }} | sed -n '1!p' | sed 's/- //')" >> "$GITHUB_OUTPUT"
 
       # Credential_id is obtained with ./CodeSignTool.sh get_credential_ids -username=${{ env.SSL_COM_USERNAME }} -password=${{ env.SSL_COM_PASSWORD }}
       - name: Add custom sign command to tauri.conf.json
         working-directory: nym-vpn-app/src-tauri
-        env:
-          SSL_COM_USERNAME: ${{ secrets.SSL_COM_USERNAME }}
-          SSL_COM_PASSWORD: ${{ secrets.SSL_COM_PASSWORD }}
-          SSL_COM_TOTP_SECRET: ${{ secrets.SSL_COM_TOTP_SECRET }}
         shell: bash
         run: |
-          yq eval --inplace '.bundle.windows += {"signCommand": {"cmd": "./CodeSignTool.sh sign", "args": ["-username ${{ env.SSL_COM_USERNAME }}","-password ${{ env.SSL_COM_PASSWORD }}","-credential_id ${{ steps.get_credential_ids.outputs.SSL_COM_CREDENTIAL_ID }}","-totp_secret ${{ env.SSL_COM_TOTP_SECRET }}","-input_file_path", "%1"]}}' tauri.conf.json
+          yq eval --inplace '.bundle.windows += {"signCommand": {"cmd": "bash", "args": ["./CodeSignTool.sh sign","-username ${{ secrets.SSL_COM_USERNAME }}","-password ${{ secrets.SSL_COM_PASSWORD }}","-credential_id ${{ steps.get_credential_ids.outputs.SSL_COM_CREDENTIAL_ID }}","-totp_secret ${{ secrets.SSL_COM_TOTP_SECRET }}","-input_file_path", "%1"]}}' tauri.conf.json
           cat tauri.conf.json
 
       - name: Build tauri desktop client
