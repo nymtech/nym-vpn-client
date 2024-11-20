@@ -1,6 +1,6 @@
 use serde_json::Value as JsonValue;
 use tauri::State;
-use tracing::{debug, error, info, instrument};
+use tracing::{error, info, instrument};
 
 use crate::grpc::account_links::AccountLinks;
 use crate::grpc::client::ReadyToConnect;
@@ -26,11 +26,24 @@ pub async fn add_account(
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn delete_account(grpc: State<'_, GrpcClient>) -> Result<(), BackendError> {
-    debug!("delete_account");
     grpc.remove_account()
         .await
         .map_err(|e| {
             error!("failed to remove account: {}", e);
+            e.into()
+        })
+        .inspect(|_| {
+            info!("recovery phrase removed successfully");
+        })
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn forget_account(grpc: State<'_, GrpcClient>) -> Result<(), BackendError> {
+    grpc.forget_account()
+        .await
+        .map_err(|e| {
+            error!("failed to forget account: {}", e);
             e.into()
         })
         .inspect(|_| {
