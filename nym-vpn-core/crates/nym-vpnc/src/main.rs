@@ -1,6 +1,12 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+mod cli;
+mod config;
+mod display_types;
+mod protobuf_conversion;
+mod vpnd_client;
+
 use anyhow::Result;
 use clap::Parser;
 use nym_gateway_directory::GatewayType;
@@ -21,15 +27,11 @@ use vpnd_client::ClientType;
 
 use crate::{
     cli::Command,
+    display_types::info::Info,
     protobuf_conversion::{
         into_entry_point, into_exit_point, ipaddr_into_string, parse_offset_datetime,
     },
 };
-
-mod cli;
-mod config;
-mod protobuf_conversion;
-mod vpnd_client;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -175,15 +177,7 @@ async fn info(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(InfoRequest {});
     let response = client.info(request).await?.into_inner();
-    println!("{:#?}", response);
-
-    if let Some(Ok(utc_build_timestamp)) = response.build_timestamp.map(parse_offset_datetime) {
-        println!("build timestamp (utc): {:?}", utc_build_timestamp);
-        println!(
-            "build age: {}",
-            time::OffsetDateTime::now_utc() - utc_build_timestamp
-        );
-    }
+    println!("{}", Info::from(response));
     Ok(())
 }
 
