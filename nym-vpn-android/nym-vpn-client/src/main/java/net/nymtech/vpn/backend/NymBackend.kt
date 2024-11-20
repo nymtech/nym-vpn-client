@@ -39,9 +39,9 @@ import nym_vpn_lib.TunnelStatusListener
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.VpnException
 import nym_vpn_lib.fetchAccountLinks
+import nym_vpn_lib.forgetAccount
 import nym_vpn_lib.initEnvironment
 import nym_vpn_lib.isAccountMnemonicStored
-import nym_vpn_lib.removeAccountMnemonic
 import nym_vpn_lib.startVpn
 import nym_vpn_lib.stopVpn
 import nym_vpn_lib.storeAccountMnemonic
@@ -125,7 +125,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	}
 
 	private fun getCurrentLocaleCountryCode(): String {
-// disable for now
+// TODO disable for now
 // 		return try {
 // 			context.resources.configuration.locales.get(0).country.lowercase()
 // 		} catch (_: Exception) {
@@ -146,7 +146,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	@Throws(VpnException::class)
 	override suspend fun removeMnemonic() {
-		removeAccountMnemonic(storagePath)
+		forgetAccount(storagePath)
 	}
 
 	@Throws(NymVpnInitializeException::class)
