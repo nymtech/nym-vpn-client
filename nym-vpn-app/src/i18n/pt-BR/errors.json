@@ -66,7 +66,8 @@
     },
     "add-ipv6-route": "Falha ao adicionar a rota padrão ipv6 para capturar o tráfego ipv6",
     "tun-device": "Falha no dispositivo Tun",
-    "routing": "Falha no roteamento"
+    "routing": "Falha no roteamento",
+    "ready-to-connect": "Ainda não foi possível determinar se estamos prontos para nos conectar durante a verificação"
   },
   "countries-request": {
     "entry": "Falha ao buscar os países com nós de entrada disponíveis",
@@ -81,13 +82,6 @@
   "entry-node-routing": "O nó de entrada não está roteando o tráfego (a conexão com a Internet caiu?)",
   "account": {
     "invalid-recovery-phrase": "Frase de recuperação inválida",
-    "no-account-stored": "Nenhuma frase de recuperação de conta armazenada",
-    "not-active": "A conta não está ativa",
-    "no-active-subscription": "A conta não possui uma assinatura ativa",
-    "storage": "Erro no backend de armazenamento",
-    "device": {
-      "not-registered": "O dispositivo não está registrado",
-      "not-active": "O dispositivo não está ativo"
-    }
+    "storage": "Erro no backend de armazenamento"
   }
 }

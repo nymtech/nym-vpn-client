@@ -61,7 +61,8 @@
     "add-ipv6-route": "IPv6トラフィックをキャプチャするためのIPv6デフォルトルートの追加に失敗しました",
     "tun-device": "TUNデバイスに失敗しました",
     "routing": "ルーティングに失敗しました",
-    "unhandled-exit": "VPNがエラーで終了しました。バグの可能性があります。"
+    "unhandled-exit": "VPNがエラーで終了しました。バグの可能性があります。",
+    "ready-to-connect": "チェック中に接続準備ができているかどうかはまだ分かりません"
   },
   "countries-request": {
     "entry": "利用可能なエントリーノードの国を取得できませんでした",
@@ -81,13 +82,6 @@
   "entry-node-routing": "エントリーノードがトラフィックをルーティングしていません（インターネット接続がダウンしている可能性があります）",
   "account": {
     "invalid-recovery-phrase": "無効なリカバリーフレーズ",
-    "not-active": "アカウントはアクティブではありません",
-    "no-active-subscription": "アカウントにはアクティブなサブスクリプションがありません",
-    "device": {
-      "not-active": "デバイスはアクティブではありません",
-      "not-registered": "デバイスが登録されていません"
-    },
-    "storage": "ストレージバックエンドエラー",
-    "no-account-stored": "アカウントのリカバリーフレーズが保存されていません"
+    "storage": "ストレージバックエンドエラー"
   }
 }

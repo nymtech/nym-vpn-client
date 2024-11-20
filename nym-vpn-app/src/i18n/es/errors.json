@@ -82,13 +82,6 @@
   "entry-node-routing": "El nodo de entrada no enruta el tráfico (¿se ha caído la conexión a Internet?)",
   "account": {
     "invalid-recovery-phrase": "Frase de recuperación inválida",
-    "storage": "Error de backend de almacenamiento",
-    "device": {
-      "not-registered": "El dispositivo no está registrado",
-      "not-active": "El dispositivo no está activo"
-    },
-    "no-account-stored": "No se almacena ninguna frase de recuperación de cuenta",
-    "not-active": "La cuenta no está activa",
-    "no-active-subscription": "La cuenta no tiene una suscripción activa"
+    "storage": "Error de backend de almacenamiento"
   }
 }

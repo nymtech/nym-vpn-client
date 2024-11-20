@@ -81,13 +81,6 @@
     "ping": "Échec du ping sur le nœud de sortie pour le trafic {{protocol}}"
   },
   "account": {
-    "invalid-recovery-phrase": "Phrase de récupération invalide",
-    "device": {
-      "not-registered": "L'appareil n'est pas enregistré",
-      "not-active": "L'appareil n'est pas actif"
-    },
-    "no-account-stored": "Aucune phrase de récupération stockée",
-    "not-active": "The compte n'est pas actif",
-    "no-active-subscription": "Le compte n'a pas d'abonnement actif"
+    "invalid-recovery-phrase": "Phrase de récupération invalide"
   }
 }
