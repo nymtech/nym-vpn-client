@@ -113,6 +113,8 @@ function useI18nError() {
           return t('account.invalid-recovery-phrase');
         case 'AccountStorage':
           return t('account.storage');
+        case 'AccountIsConnected':
+          return t('account.is-connected');
         case 'ConnectGeneral':
           return t('connection.general');
         case 'ConnectNoAccountStored':

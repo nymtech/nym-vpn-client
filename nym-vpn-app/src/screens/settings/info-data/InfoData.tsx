@@ -15,8 +15,8 @@ function InfoData() {
     <>
       <div
         className={clsx([
-          'flex grow flex-col justify-end text-comet text-sm',
-          'tracking-tight leading-tight mb-4 cursor-default',
+          'flex grow flex-col justify-end text-comet/80 text-sm',
+          'tracking-tight leading-tight font-semibold mb-4 cursor-default',
         ])}
       >
         <p>{`${t('info.client-version')} ${version}`}</p>
@@ -26,11 +26,9 @@ function InfoData() {
             setShowEnvSelect(!showEnvSelect);
           }}
         >
-          <p>
-            {networkEnv &&
-              networkEnv.length > 0 &&
-              `${t('info.network-name')} ${networkEnv}`}
-          </p>
+          {networkEnv &&
+            networkEnv.length > 0 &&
+            `${t('info.network-name')} ${networkEnv}`}
         </div>
       </div>
       {S_STATE.networkEnvSelect &&
