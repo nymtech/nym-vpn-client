@@ -264,7 +264,7 @@ jobs:
           NETWORK_ENV_SELECT: ${{ inputs.dev_mode == true }}
         run: |
           if [ "${{ env.CARGO_TARGET }}" = "release" ]; then
-            npm run tauri build
+            npm run tauri build --verbose
           else
             npm run tauri build -- --debug
           fi
