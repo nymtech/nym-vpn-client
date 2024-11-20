@@ -230,6 +230,7 @@ jobs:
         run: |
           curl -L0 https://www.ssl.com/download/codesigntool-for-linux-and-macos/ -o codesigntool.zip
           unzip codesigntool.zip
+          sed -i '1 i\echo "$@"' CodeSignTool.sh
 
       - name: Get EV certificate credential id
         working-directory: nym-vpn-app/src-tauri
