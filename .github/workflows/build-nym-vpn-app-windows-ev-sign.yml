@@ -22,9 +22,15 @@ on:
         required: false
         type: string
     secrets:
-      WINDOWS_SIGNING_PFX_BASE64:
+      # WINDOWS_SIGNING_PFX_BASE64:
+      #   required: true
+      # WINDOWS_SIGNING_PFX_PASSWORD:
+      #   required: true
+      SSL_COM_USERNAME:
         required: true
-      WINDOWS_SIGNING_PFX_PASSWORD:
+      SSL_COM_PASSWORD:
+        required: true
+      SSL_COM_TOTP_SECRET:
         required: true
       TAURI_PRIVATE_KEY:
         required: true
@@ -218,16 +224,34 @@ jobs:
           rm public/licenses-rust.json || true
           npm run gen:licenses:rust
 
-      # - name: Import signing certificate
-      #   env:
-      #     WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
-      #     WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
-      #   run: |
-      #     New-Item -ItemType directory -Path certificate
-      #     Set-Content -Path certificate/tempCert.txt -Value $env:WINDOWS_CERTIFICATE
-      #     certutil -decode certificate/tempCert.txt certificate/certificate.pfx
-      #     Remove-Item -path certificate -include tempCert.txt
-      #     Import-PfxCertificate -FilePath certificate/certificate.pfx -CertStoreLocation Cert:\CurrentUser\My -Password (ConvertTo-SecureString -String $env:WINDOWS_CERTIFICATE_PASSWORD -Force -AsPlainText)
+      - name: Download EV CodeSignTool from ssl.com
+        working-directory: nym-vpn-app
+        shell: bash
+        run: |
+          curl -L0 https://www.ssl.com/download/codesigntool-for-linux-and-macos/ -o codesigntool.zip
+          unzip codesigntool.zip
+
+      - name: Get EV certificate credential id
+        working-directory: nym-vpn-app
+        id: get_credential_ids
+        env:
+          SSL_COM_USERNAME: ${{ secrets.SSL_COM_USERNAME }}
+          SSL_COM_PASSWORD: ${{ secrets.SSL_COM_PASSWORD }}
+          SSL_COM_TOTP_SECRET: ${{ secrets.SSL_COM_TOTP_SECRET }}
+        shell: bash
+        run: |
+          echo "SSL_COM_CREDENTIAL_ID=$(./CodeSignTool.sh get_credential_ids -username=${{ env.SSL_COM_USERNAME }} -password=${{ env.SSL_COM_PASSWORD }} | sed -n '1!p' | sed 's/- //')" >> "$GITHUB_OUTPUT"
+
+      # Credential_id is obtained with ./CodeSignTool.sh get_credential_ids -username=${{ env.SSL_COM_USERNAME }} -password=${{ env.SSL_COM_PASSWORD }}
+      - name: Add custom sign command to tauri.conf.json
+        working-directory: nym-vpn-app
+        env:
+          SSL_COM_USERNAME: ${{ secrets.SSL_COM_USERNAME }}
+          SSL_COM_PASSWORD: ${{ secrets.SSL_COM_PASSWORD }}
+          SSL_COM_TOTP_SECRET: ${{ secrets.SSL_COM_TOTP_SECRET }}
+        shell: bash
+        run: |
+          yq eval --inplace '.bundle.windows += {"signCommand": "./CodeSignTool.sh sign -username=${{ env.SSL_COM_USERNAME }} -password=${{ env.SSL_COM_PASSWORD }} -credential_id=${{ steps.get_credential_ids.outputs.SSL_COM_CREDENTIAL_ID }} -totp_secret=${{ env.SSL_COM_TOTP_SECRET }} -input_file_path=%1"}' src-tauri/tauri.conf.json
 
       - name: Build tauri desktop client
         working-directory: nym-vpn-app/src-tauri
@@ -237,8 +261,6 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
           APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
           RUSTFLAGS: "-L ${{ env.TAURI_SRC }}/x86_64-pc-windows-msvc -L ${{ env.TAURI_SRC }} -Clink-args=/LIBPATH:${{ env.TAURI_SRC }}/x64-${{ env.CPP_BUILD_MODES }}"
-          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
-          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
           NETWORK_ENV_SELECT: ${{ inputs.dev_mode == true }}
         run: |
           if [ "${{ env.CARGO_TARGET }}" = "release" ]; then
