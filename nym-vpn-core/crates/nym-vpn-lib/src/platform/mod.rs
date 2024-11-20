@@ -1,14 +1,15 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
-// #![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 
 #[cfg(target_os = "android")]
 pub mod android;
 pub(crate) mod error;
+pub mod helpers;
 #[cfg(any(target_os = "ios", target_os = "macos"))]
 pub mod swift;
 
 mod account;
+mod environment;
 
 use std::{env, path::PathBuf, sync::Arc, time::Duration};
 
@@ -61,11 +62,7 @@ pub fn startVPN(config: VPNConfig) -> Result<(), VpnError> {
 
 async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
     // Check any feature flags set by the network
-    let current_environment = NETWORK_ENVIRONMENT.lock().await.clone();
-    let enable_credentials_mode = current_environment
-        .as_ref()
-        .map(get_feature_flag_credential_mode)
-        .unwrap_or(false);
+    let enable_credentials_mode = environment::get_feature_flag_credential_mode().await?;
 
     // TODO: we do a pre-connect check here. This mirrors the logic in the daemon.
     // We want to move this check into the state machine so that it happens during the connecting
@@ -86,76 +83,6 @@ async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
             details: "State machine is already running.".to_owned(),
         })
     }
-}
-
-// Call that blocks until the account state has been updated/synced
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn waitForUpdateAccount() -> Result<(), VpnError> {
-    RUNTIME.block_on(account::wait_for_update_account())
-}
-
-// Async variant of waitForUpdateAccount
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub async fn waitForUpdateAccountAsync() -> Result<(), VpnError> {
-    account::wait_for_update_account().await
-}
-
-// Call that blocks until the device state has been updated/synced
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn waitForUpdateDevice() -> Result<(), VpnError> {
-    RUNTIME.block_on(account::wait_for_update_device())
-}
-
-// Async variant of waitForUpdateDevice
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub async fn waitForUpdateDeviceAsync() -> Result<(), VpnError> {
-    account::wait_for_update_device().await
-}
-
-// Call that blocks until the device has been registered
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn waitForRegisterDevice() -> Result<(), VpnError> {
-    RUNTIME.block_on(account::wait_for_register_device())
-}
-
-// Async variant of waitForRegisterDevice
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub async fn waitForRegisterDeviceAsync() -> Result<(), VpnError> {
-    account::wait_for_register_device().await
-}
-
-// Call that blocks until the account state is ready to connect
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn waitForAccountReadyToConnect() -> Result<(), VpnError> {
-    RUNTIME.block_on(async {
-        let current_environment = NETWORK_ENVIRONMENT.lock().await.clone();
-        let enable_credentials_mode = current_environment
-            .as_ref()
-            .map(get_feature_flag_credential_mode)
-            .unwrap_or(false);
-        let timeout = Duration::from_secs(10);
-        account::wait_for_account_ready_to_connect(enable_credentials_mode, timeout).await
-    })
-}
-
-// Async variant of waitForAccountReadyToConnect,
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub async fn waitForAccountReadyToConnectAsync(timeout_sec: u64) -> Result<(), VpnError> {
-    let current_environment = NETWORK_ENVIRONMENT.lock().await.clone();
-    let enable_credentials_mode = current_environment
-        .as_ref()
-        .map(get_feature_flag_credential_mode)
-        .unwrap_or(false);
-    let timeout = Duration::from_secs(timeout_sec);
-    account::wait_for_account_ready_to_connect(enable_credentials_mode, timeout).await
 }
 
 #[allow(non_snake_case)]
@@ -186,22 +113,12 @@ pub fn configureLib(data_dir: String) -> Result<(), VpnError> {
 }
 
 async fn reconfigure_library(data_dir: String) -> Result<(), VpnError> {
-    let current_environment = NETWORK_ENVIRONMENT.lock().await.clone();
-    let enable_credentials_mode = current_environment
-        .as_ref()
-        .map(get_feature_flag_credential_mode)
-        .unwrap_or(false);
+    let enable_credentials_mode = environment::get_feature_flag_credential_mode().await?;
 
     // stop if already running
     let _ = account::stop_account_controller_inner().await;
     init_logger();
     start_account_controller_inner(PathBuf::from(data_dir), enable_credentials_mode).await
-}
-
-fn get_feature_flag_credential_mode(network: &nym_vpn_network_config::Network) -> bool {
-    network
-        .get_feature_flag("zkNym", "credentialMode")
-        .unwrap_or(false)
 }
 
 #[allow(non_snake_case)]
@@ -230,84 +147,67 @@ pub fn initLogger() {
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn initEnvironment(network_name: &str) -> Result<(), VpnError> {
-    RUNTIME.block_on(init_environment(network_name))
+    RUNTIME.block_on(environment::init_environment(network_name))
 }
 
-/// Helps iOS synchronise tunnel start
+/// Async variant of initEnvironment. Fetches the network environment details from the network name
+/// and initializes the environment, including exporting to the environment
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub async fn initEnvironmentAsync(network_name: &str) -> Result<(), VpnError> {
-    init_environment(network_name).await
+    environment::init_environment(network_name).await
 }
 
-async fn init_environment(network_name: &str) -> Result<(), VpnError> {
-    let network = nym_vpn_network_config::Network::fetch(network_name).map_err(|err| {
-        VpnError::InternalError {
-            details: err.to_string(),
-        }
-    })?;
-
-    // To bridge with old code, export to environment. New code should now rely on this.
-    network.export_to_env();
-
-    let mut guard = NETWORK_ENVIRONMENT.lock().await;
-    *guard = Some(network);
-
-    Ok(())
+/// Sets up mainnet defaults without making any network calls. This means no system messages or
+/// account links will be available.
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn initFallbackMainnetEnvironment() -> Result<(), VpnError> {
+    RUNTIME.block_on(environment::init_fallback_mainnet_environment())
 }
 
+/// Returns the currently set network environment
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn currentEnvironment() -> Result<NetworkEnvironment, VpnError> {
-    RUNTIME.block_on(current_environment())
+    RUNTIME.block_on(environment::current_environment())
 }
 
-async fn current_environment() -> Result<NetworkEnvironment, VpnError> {
-    let network = NETWORK_ENVIRONMENT.lock().await.clone();
-    network
-        .map(NetworkEnvironment::from)
-        .ok_or(VpnError::InternalError {
-            details: "No network environment initialized".to_string(),
-        })
+/// Returns the system messages for the current network environment
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn getSystemMessages() -> Result<Vec<SystemMessage>, VpnError> {
+    RUNTIME.block_on(environment::get_system_messages())
 }
 
-// Fetch the network environment details from the network name.
-// TODO: also add the ability to catch this information for subsequent use.
+/// Returns the account links for the current network environment
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn getAccountLinks(account_store_path: &str, locale: &str) -> Result<AccountLinks, VpnError> {
+    RUNTIME.block_on(environment::get_account_links(account_store_path, locale))
+}
+
+/// Fetch the network environment details from the network name.
+/// This makes a network call. In normal operations you almost always want to use initEnvironment
+/// instead of this function.
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn fetchEnvironment(network_name: &str) -> Result<NetworkEnvironment, VpnError> {
-    RUNTIME.block_on(fetch_environment(network_name))
+    RUNTIME.block_on(environment::fetch_environment(network_name))
 }
 
-async fn fetch_environment(network_name: &str) -> Result<NetworkEnvironment, VpnError> {
-    nym_vpn_network_config::Network::fetch(network_name)
-        .map(NetworkEnvironment::from)
-        .map_err(|err| VpnError::InternalError {
-            details: err.to_string(),
-        })
-}
-
+/// Feth the account links for the current network environment.
+/// This makes a network call. In normal operations you almost always want to use initEnvironment
+/// followed by getSystemMessages instead of this function.
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn fetchSystemMessages(network_name: &str) -> Result<Vec<SystemMessage>, VpnError> {
-    RUNTIME.block_on(fetch_system_messages(network_name))
+    RUNTIME.block_on(environment::fetch_system_messages(network_name))
 }
 
-async fn fetch_system_messages(network_name: &str) -> Result<Vec<SystemMessage>, VpnError> {
-    nym_vpn_network_config::Network::fetch(network_name)
-        .map(|network| {
-            network
-                .nym_vpn_network
-                .system_messages
-                .into_current_iter()
-                .map(SystemMessage::from)
-                .collect()
-        })
-        .map_err(|err| VpnError::InternalError {
-            details: err.to_string(),
-        })
-}
-
+/// Fetches the account links for the current network environment
+/// This makes a network call. In normal operations you almost always want to use initEnvironment
+/// followed by getAccountLinks instead of this function.
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn fetchAccountLinks(
@@ -315,29 +215,11 @@ pub fn fetchAccountLinks(
     network_name: &str,
     locale: &str,
 ) -> Result<AccountLinks, VpnError> {
-    RUNTIME.block_on(fetch_account_links(
+    RUNTIME.block_on(environment::fetch_account_links(
         account_store_path,
         network_name,
         locale,
     ))
-}
-
-async fn fetch_account_links(
-    path: &str,
-    network_name: &str,
-    locale: &str,
-) -> Result<AccountLinks, VpnError> {
-    let account_id = account::get_account_id(path).await.ok();
-    nym_vpn_network_config::Network::fetch(network_name)
-        .and_then(|network| {
-            network
-                .nym_vpn_network
-                .try_into_parsed_links(locale, account_id.as_deref())
-        })
-        .map(AccountLinks::from)
-        .map_err(|err| VpnError::InternalError {
-            details: err.to_string(),
-        })
 }
 
 #[allow(non_snake_case)]
