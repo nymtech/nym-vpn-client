@@ -19,4 +19,7 @@ pub trait KeyStore {
 
     #[allow(async_fn_in_trait)]
     async fn reset_keys(&self, seed: Option<[u8; 32]>) -> Result<(), Self::StorageError>;
+
+    #[allow(async_fn_in_trait)]
+    async fn remove_keys(&self) -> Result<(), Self::StorageError>;
 }
