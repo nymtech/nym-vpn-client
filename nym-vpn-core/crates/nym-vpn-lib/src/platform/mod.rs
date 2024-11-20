@@ -130,7 +130,7 @@ async fn is_credential_mode_enabled(credential_mode: Option<bool>) -> bool {
             .as_ref()
             .map(get_feature_flag_credential_mode)
             .unwrap_or(false),
-    };
+    }
 }
 
 fn get_feature_flag_credential_mode(network: &nym_vpn_network_config::Network) -> bool {
