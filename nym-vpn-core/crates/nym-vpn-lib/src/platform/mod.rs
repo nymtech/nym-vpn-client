@@ -61,8 +61,7 @@ pub fn startVPN(config: VPNConfig) -> Result<(), VpnError> {
 }
 
 async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
-    // Check any feature flags set by the network
-    let enable_credentials_mode = environment::get_feature_flag_credential_mode().await?;
+    let enable_credentials_mode = is_credential_mode_enabled(config.credential_mode).await;
 
     // TODO: we do a pre-connect check here. This mirrors the logic in the daemon.
     // We want to move this check into the state machine so that it happens during the connecting
@@ -108,17 +107,37 @@ async fn stop_vpn_inner() -> Result<(), VpnError> {
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn configureLib(data_dir: String) -> Result<(), VpnError> {
-    RUNTIME.block_on(reconfigure_library(data_dir))
+pub fn configureLib(data_dir: String, credential_mode: Option<bool>) -> Result<(), VpnError> {
+    RUNTIME.block_on(reconfigure_library(data_dir, credential_mode))
 }
 
-async fn reconfigure_library(data_dir: String) -> Result<(), VpnError> {
-    let enable_credentials_mode = environment::get_feature_flag_credential_mode().await?;
+async fn reconfigure_library(
+    data_dir: String,
+    credential_mode: Option<bool>,
+) -> Result<(), VpnError> {
+    let enable_credentials_mode = is_credential_mode_enabled(credential_mode).await;
 
     // stop if already running
     let _ = account::stop_account_controller_inner().await;
     init_logger();
     start_account_controller_inner(PathBuf::from(data_dir), enable_credentials_mode).await
+}
+
+async fn is_credential_mode_enabled(credential_mode: Option<bool>) -> bool {
+    let current_environment = NETWORK_ENVIRONMENT.lock().await.clone();
+    match credential_mode {
+        Some(enable_credentials_mode) => enable_credentials_mode,
+        None => current_environment
+            .as_ref()
+            .map(get_feature_flag_credential_mode)
+            .unwrap_or(false),
+    }
+}
+
+fn get_feature_flag_credential_mode(network: &nym_vpn_network_config::Network) -> bool {
+    network
+        .get_feature_flag("zkNym", "credentialMode")
+        .unwrap_or(false)
 }
 
 #[allow(non_snake_case)]
@@ -350,6 +369,7 @@ pub struct VPNConfig {
     pub tun_provider: Arc<dyn OSTunProvider>,
     pub credential_data_path: Option<PathBuf>,
     pub tun_status_listener: Option<Arc<dyn TunnelStatusListener>>,
+    pub credential_mode: Option<bool>,
 }
 
 #[uniffi::export(with_foreign)]
