@@ -251,7 +251,7 @@ jobs:
           SSL_COM_TOTP_SECRET: ${{ secrets.SSL_COM_TOTP_SECRET }}
         shell: bash
         run: |
-          yq eval --inplace '.bundle.windows += {"signCommand": {"cmd": "./CodeSignTool.sh sign", "args": ["-username=${{ env.SSL_COM_USERNAME }}","-password=${{ env.SSL_COM_PASSWORD }}","-credential_id=${{ steps.get_credential_ids.outputs.SSL_COM_CREDENTIAL_ID }}","-totp_secret=${{ env.SSL_COM_TOTP_SECRET }}","-input_file_path=\%1"]}}' tauri.conf.json
+          yq eval --inplace '.bundle.windows += {"signCommand": {"cmd": "./CodeSignTool.sh sign", "args": ["-username ${{ env.SSL_COM_USERNAME }}","-password ${{ env.SSL_COM_PASSWORD }}","-credential_id ${{ steps.get_credential_ids.outputs.SSL_COM_CREDENTIAL_ID }}","-totp_secret ${{ env.SSL_COM_TOTP_SECRET }}","-input_file_path %1"]}}' tauri.conf.json
           cat tauri.conf.json
 
       - name: Build tauri desktop client
