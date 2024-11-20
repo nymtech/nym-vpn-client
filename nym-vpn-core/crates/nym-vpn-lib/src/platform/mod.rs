@@ -62,10 +62,13 @@ pub fn startVPN(config: VPNConfig) -> Result<(), VpnError> {
 async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
     // Check any feature flags set by the network
     let current_environment = NETWORK_ENVIRONMENT.lock().await.clone();
-    let enable_credentials_mode = current_environment
-        .as_ref()
-        .map(get_feature_flag_credential_mode)
-        .unwrap_or(false);
+    let enable_credentials_mode = match config.credential_mode {
+        Some(enable_credentials_mode) => enable_credentials_mode,
+        None => current_environment
+            .as_ref()
+            .map(get_feature_flag_credential_mode)
+            .unwrap_or(false),
+    };
 
     // TODO: we do a pre-connect check here. This mirrors the logic in the daemon.
     // We want to move this check into the state machine so that it happens during the connecting
@@ -111,16 +114,22 @@ async fn stop_vpn_inner() -> Result<(), VpnError> {
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn configureLib(data_dir: String) -> Result<(), VpnError> {
-    RUNTIME.block_on(reconfigure_library(data_dir))
+pub fn configureLib(data_dir: String, credential_mode: Option<bool>) -> Result<(), VpnError> {
+    RUNTIME.block_on(reconfigure_library(data_dir, credential_mode))
 }
 
-async fn reconfigure_library(data_dir: String) -> Result<(), VpnError> {
+async fn reconfigure_library(
+    data_dir: String,
+    credential_mode: Option<bool>,
+) -> Result<(), VpnError> {
     let current_environment = NETWORK_ENVIRONMENT.lock().await.clone();
-    let enable_credentials_mode = current_environment
-        .as_ref()
-        .map(get_feature_flag_credential_mode)
-        .unwrap_or(false);
+    let enable_credentials_mode = match credential_mode {
+        Some(enable_credentials_mode) => enable_credentials_mode,
+        None => current_environment
+            .as_ref()
+            .map(get_feature_flag_credential_mode)
+            .unwrap_or(false),
+    };
 
     // stop if already running
     let _ = account::stop_account_controller_inner().await;
@@ -398,6 +407,7 @@ pub struct VPNConfig {
     pub tun_provider: Arc<dyn OSTunProvider>,
     pub credential_data_path: Option<PathBuf>,
     pub tun_status_listener: Option<Arc<dyn TunnelStatusListener>>,
+    pub credential_mode: Option<bool>,
 }
 
 #[uniffi::export(with_foreign)]
