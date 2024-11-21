@@ -5,7 +5,7 @@ import nym_vpn_lib.AccountStateSummary
 
 interface Backend {
 
-	suspend fun init(environment: Tunnel.Environment)
+	suspend fun init(environment: Tunnel.Environment, credentialMode: Boolean?)
 
 	suspend fun getAccountSummary(): AccountStateSummary
 

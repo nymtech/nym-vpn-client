@@ -13,6 +13,7 @@ interface Tunnel {
 	var exitPoint: ExitPoint
 	var mode: Mode
 	var environment: Environment
+	var credentialMode: Boolean?
 
 	/**
 	 * React to a change in state of the tunnel. Should only be directly called by Backend.

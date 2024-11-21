@@ -28,6 +28,8 @@ import net.nymtech.vpn.util.exceptions.NymVpnInitializeException
 import nym_vpn_lib.AccountLinks
 import nym_vpn_lib.AccountStateSummary
 import nym_vpn_lib.BandwidthEvent
+import nym_vpn_lib.EntryPoint
+import nym_vpn_lib.ExitPoint
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Provider
@@ -64,16 +66,15 @@ class NymTunnelManager @Inject constructor(
 
 	override suspend fun start(fromBackground: Boolean) {
 		runCatching {
-			val entryCountry = settingsRepository.getFirstHopCountry()
-			val exitCountry = settingsRepository.getLastHopCountry()
 			val tunnel = NymTunnel(
-				entryPoint = entryCountry.toEntryPoint(),
-				exitPoint = exitCountry.toExitPoint(),
+				entryPoint = getEntryPoint(),
+				exitPoint = getExitPoint(),
 				mode = settingsRepository.getVpnMode(),
 				environment = settingsRepository.getEnvironment(),
 				statChange = ::emitStats,
 				stateChange = ::onStateChange,
 				backendMessage = ::onBackendMessage,
+				credentialMode = settingsRepository.isCredentialMode(),
 			)
 			backend.get().start(tunnel, fromBackground)
 		}.onFailure {
@@ -85,6 +86,32 @@ class NymTunnelManager @Inject constructor(
 			} else {
 				Timber.e(it)
 			}
+		}
+	}
+
+	private suspend fun getEntryPoint(): EntryPoint {
+		val isManualGatewaysEnabled = settingsRepository.isManualGatewayOverride()
+		val entryCountry = settingsRepository.getFirstHopCountry()
+		if (!isManualGatewaysEnabled) return entryCountry.toEntryPoint()
+		val gatewayId = settingsRepository.getEntryGatewayId() ?: return entryCountry.toEntryPoint()
+		return try {
+			EntryPoint.Gateway(identity = gatewayId)
+		} catch (e: Exception) {
+			Timber.e(e)
+			entryCountry.toEntryPoint()
+		}
+	}
+
+	private suspend fun getExitPoint(): ExitPoint {
+		val isManualGatewaysEnabled = settingsRepository.isManualGatewayOverride()
+		val exitCountry = settingsRepository.getLastHopCountry()
+		if (!isManualGatewaysEnabled) return exitCountry.toExitPoint()
+		val gatewayId = settingsRepository.getExitGatewayId() ?: return exitCountry.toExitPoint()
+		return try {
+			ExitPoint.Gateway(identity = gatewayId)
+		} catch (e: Exception) {
+			Timber.e(e)
+			exitCountry.toExitPoint()
 		}
 	}
 

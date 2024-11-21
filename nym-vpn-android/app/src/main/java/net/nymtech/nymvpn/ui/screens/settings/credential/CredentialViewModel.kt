@@ -33,7 +33,7 @@ constructor(
 			tunnelManager.storeMnemonic(mnemonic.trim())
 			Timber.d("Imported account successfully")
 			val env = settingsRepository.getEnvironment()
-			backend.get().init(env)
+			backend.get().init(env, settingsRepository.isCredentialMode())
 			SnackbarController.showMessage(StringValue.StringResource(R.string.device_added_success))
 			_success.emit(true)
 		}.onFailure {

@@ -25,7 +25,7 @@ sealed class Route {
 	data object Appearance : Route()
 
 	@Serializable
-	data object Environment : Route()
+	data object Developer : Route()
 
 	@Serializable
 	data object Display : Route()

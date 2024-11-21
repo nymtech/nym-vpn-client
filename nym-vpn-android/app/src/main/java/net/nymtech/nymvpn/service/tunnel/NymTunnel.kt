@@ -14,6 +14,7 @@ class NymTunnel(
 	val stateChange: (newState: Tunnel.State) -> Unit,
 	val statChange: (stats: Statistics) -> Unit,
 	val backendMessage: (message: BackendMessage) -> Unit,
+	override var credentialMode: Boolean?,
 ) : Tunnel {
 	override fun onStateChange(newState: Tunnel.State) {
 		stateChange(newState)

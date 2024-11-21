@@ -11,15 +11,18 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.service.tunnel.TunnelManager
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.StringValue
+import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.backend.Tunnel
 import javax.inject.Inject
+import javax.inject.Provider
 
 @HiltViewModel
-class EnvironmentViewModel
+class DeveloperViewModel
 @Inject
 constructor(
 	private val settingsRepository: SettingsRepository,
 	private val tunnelManager: TunnelManager,
+	private val backend: Provider<Backend>,
 ) : ViewModel() {
 
 	private val _environmentChanged = MutableStateFlow(false)
@@ -32,5 +35,29 @@ constructor(
 		} else {
 			SnackbarController.showMessage(StringValue.StringResource(R.string.action_requires_tunnel_down))
 		}
+	}
+
+	fun onManualGatewayOverride(enabled: Boolean) = viewModelScope.launch {
+		settingsRepository.setManualGatewayOverride(
+			enabled,
+		)
+	}
+
+	fun onCredentialOverride(value: Boolean?) = viewModelScope.launch {
+		if (tunnelManager.getState() != Tunnel.State.Down) {
+			return@launch SnackbarController.showMessage(
+				StringValue.StringResource(R.string.action_requires_tunnel_down),
+			)
+		}
+		settingsRepository.setCredentialMode(value)
+		_environmentChanged.emit(true)
+	}
+
+	fun onEntryGateway(gatewayId: String) = viewModelScope.launch {
+		settingsRepository.setEntryGatewayId(gatewayId)
+	}
+
+	fun onExitGateway(gatewayId: String) = viewModelScope.launch {
+		settingsRepository.setExitGatewayId(gatewayId)
 	}
 }
