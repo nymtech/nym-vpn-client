@@ -43,6 +43,9 @@ pub async fn select_gateways(
         }
     };
 
+    tracing::info!("Found {} entry gateways", entry_gateways.len());
+    tracing::info!("Found {} exit gateways", exit_gateways.len());
+
     let exit_gateway = exit_point
         .lookup_gateway(&exit_gateways)
         .map_err(|source| GatewayDirectoryError::FailedToSelectExitGateway { source })?;
@@ -67,8 +70,6 @@ pub async fn select_gateways(
             _ => GatewayDirectoryError::FailedToSelectEntryGateway { source },
         })?;
 
-    tracing::info!("Found {} entry gateways", entry_gateways.len());
-    tracing::info!("Found {} exit gateways", exit_gateways.len());
     tracing::info!(
         "Using entry gateway: {}, location: {}, performance: {}",
         *entry_gateway.identity(),
