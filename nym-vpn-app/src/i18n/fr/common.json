@@ -14,8 +14,8 @@
   "privacy-statement": "Déclaration de confidentialité",
   "display-theme": "Affichage",
   "ui-mode": {
-    "dark": "Apparence sombre",
-    "light": "Apparence claire"
+    "dark": "Thème sombre",
+    "light": "Thème claire"
   },
   "vpn-modes": {
     "privacy": "Anonyme",
