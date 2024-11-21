@@ -61,12 +61,12 @@ impl ConnectedTunnel {
     }
 
     pub fn entry_mtu(&self) -> u16 {
-        ENTRY_MTU
+        1360
     }
 
     pub fn exit_mtu(&self) -> u16 {
         // minimum mtu guaranteed by ipv6
-        EXIT_MTU
+        1280
     }
 
     pub async fn run(
