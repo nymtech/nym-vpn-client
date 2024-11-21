@@ -14,6 +14,9 @@ pub(crate) struct CliArgs {
     #[arg(long)]
     pub(crate) http: bool,
 
+    #[arg(long)]
+    pub(crate) verbose: bool,
+
     #[command(subcommand)]
     pub(crate) command: Command,
 }
