@@ -238,13 +238,6 @@ jobs:
         run: |
           echo "SSL_COM_CREDENTIAL_ID=$(./CodeSignTool.sh get_credential_ids -username=${{ secrets.SSL_COM_USERNAME }} -password=${{ secrets.SSL_COM_PASSWORD }} | sed -n '1!p' | sed 's/- //')" >> "$GITHUB_OUTPUT"
           
-      - name: Get path into env to escape the backslashes
-        working-directory: nym-vpn-app/src-tauri
-        shell: bash
-        run: |
-          echo "${{ github.workspace }} >> "$GITHUB_OUTPUT"
-          echo 
-
       # Credential_id is obtained with ./CodeSignTool.sh get_credential_ids -username=${{ env.SSL_COM_USERNAME }} -password=${{ env.SSL_COM_PASSWORD }}
       - name: Add custom sign command to tauri.conf.json
         working-directory: nym-vpn-app/src-tauri
