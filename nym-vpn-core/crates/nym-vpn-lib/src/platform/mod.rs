@@ -461,6 +461,7 @@ async fn start_state_machine(
     let event_broadcaster_handler = tokio::spawn(async move {
         while let Some(event) = event_receiver.recv().await {
             if let Some(ref state_listener) = state_listener {
+                tracing::info!("Got event up to uniffi {event}");
                 (*state_listener).on_event(event);
             }
         }
