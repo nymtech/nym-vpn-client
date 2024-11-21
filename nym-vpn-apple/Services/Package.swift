@@ -201,6 +201,7 @@ let package = Package(
         .target(
             name: "Tunnels",
             dependencies: [
+                "Constants",
                 "Keychain",
                 "NymLogger",
                 .product(name: "ErrorHandler", package: "ServicesIOS", condition: .when(platforms: [.iOS])),

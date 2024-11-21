@@ -2,7 +2,7 @@
 import Foundation
 import MixnetLibrary
 
-public enum ErrorReason: String, Codable, Error {
+public enum ErrorReason: LocalizedError {
     case firewall
     case routing
     case dns
@@ -13,6 +13,9 @@ public enum ErrorReason: String, Codable, Error {
     case invalidEntryGatewayCountry
     case invalidExitGatewayCountry
     case badBandwidthIncrease
+    case unknown
+
+    public static let domain = "ErrorHandler.ErrorReason"
 
     public init(with errorStateReason: ErrorStateReason) {
         switch errorStateReason {
@@ -39,17 +42,81 @@ public enum ErrorReason: String, Codable, Error {
         }
     }
 
-    public init(from data: Data) throws {
-        self = try JSONDecoder().decode(ErrorReason.self, from: data)
+    public init?(nsError: NSError) {
+        guard nsError.domain == ErrorReason.domain else { return nil }
+        switch nsError.code {
+        case 0:
+            self = .firewall
+        case 1:
+            self = .routing
+        case 2:
+            self = .dns
+        case 3:
+            self = .tunDevice
+        case 4:
+            self = .tunnelProvider
+        case 5:
+            self = .internalUnknown
+        case 6:
+            self = .sameEntryAndExitGateway
+        case 7:
+            self = .invalidEntryGatewayCountry
+        case 8:
+            self = .invalidExitGatewayCountry
+        case 9:
+            self = .badBandwidthIncrease
+        default:
+            self = .unknown
+        }
     }
 
-    public func encode() throws -> Data {
-        try JSONEncoder().encode(self)
+    public var errorDescription: String? {
+        description
+    }
+
+    public var nsError: NSError {
+        let userInfo: [String: Any] = [
+            NSLocalizedDescriptionKey: description
+        ]
+        return NSError(
+            domain: ErrorReason.domain,
+            code: errorCode,
+            userInfo: userInfo
+        )
     }
 }
 
-extension ErrorReason: LocalizedError {
-    public var errorDescription: String? {
+extension ErrorReason {
+    var errorCode: Int {
+        switch self {
+        case .firewall:
+            0
+        case .routing:
+            1
+        case .dns:
+            2
+        case .tunDevice:
+            3
+        case .tunnelProvider:
+            4
+        case .internalUnknown:
+            5
+        case .sameEntryAndExitGateway:
+            6
+        case .invalidEntryGatewayCountry:
+            7
+        case .invalidExitGatewayCountry:
+            8
+        case .badBandwidthIncrease:
+            9
+        default:
+            10
+        }
+    }
+}
+
+extension ErrorReason  {
+    private var description: String {
         switch self {
         case .firewall:
             "errorReason.firewall".localizedString
@@ -71,6 +138,8 @@ extension ErrorReason: LocalizedError {
             "errorReason.invalidExitGatewayCountry".localizedString
         case .badBandwidthIncrease:
             "errorReason.badBandwidthIncrease".localizedString
+        case .unknown:
+            "errorReason.unknown".localizedString
         }
     }
 }

@@ -66,10 +66,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
         logger.info("Backend is up and running...")
 
-        await tunnelActor.waitUntilStarted()
         do {
-            try await tunnelActor.didSendLastError()
+            try await tunnelActor.waitUntilStarted()
         } catch {
+            logger.error("Failed to wait until vpn started: \(error)")
             throw error
         }
     }
