@@ -62,6 +62,7 @@ fn default_mainnet_discovery() {
     let generated_code = format!(
         r#"
         impl Default for Discovery {{
+            #[allow(clippy::expect_used)]
             fn default() -> Self {{
                 Self {{
                     network_name: "{}".to_string(),

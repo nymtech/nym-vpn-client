@@ -6,7 +6,6 @@
 pub(crate) mod account;
 pub(crate) mod connection_state;
 pub(crate) mod error;
-pub(crate) mod gateway;
 pub(crate) mod info_response;
 pub(crate) mod state_response;
 pub(crate) mod status_update;

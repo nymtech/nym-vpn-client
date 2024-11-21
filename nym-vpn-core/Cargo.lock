@@ -4914,11 +4914,18 @@ dependencies = [
 name = "nym-vpn-proto"
 version = "1.1.0-dev"
 dependencies = [
+ "nym-config",
+ "nym-vpn-lib",
+ "nym-vpn-network-config",
+ "nym-vpnd-types",
  "prost",
  "prost-types",
+ "thiserror",
+ "time",
  "tonic",
  "tonic-build",
  "tonic-reflection",
+ "url",
 ]
 
 [[package]]
@@ -4947,9 +4954,12 @@ dependencies = [
  "anyhow",
  "bs58",
  "clap",
+ "itertools 0.13.0",
  "nym-bin-common",
  "nym-gateway-directory",
+ "nym-vpn-network-config",
  "nym-vpn-proto",
+ "nym-vpnd-types",
  "parity-tokio-ipc",
  "prost",
  "prost-types",
@@ -4984,6 +4994,7 @@ dependencies = [
  "nym-vpn-network-config",
  "nym-vpn-proto",
  "nym-vpn-store",
+ "nym-vpnd-types",
  "parity-tokio-ipc",
  "prost",
  "prost-types",
@@ -5012,6 +5023,15 @@ dependencies = [
  "windows-service",
  "windows-sys 0.52.0",
  "zeroize",
+]
+
+[[package]]
+name = "nym-vpnd-types"
+version = "1.1.0-dev"
+dependencies = [
+ "nym-validator-client",
+ "nym-vpn-lib",
+ "serde",
 ]
 
 [[package]]

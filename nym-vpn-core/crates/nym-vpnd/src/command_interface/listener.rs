@@ -13,9 +13,9 @@ use tokio::sync::{broadcast, mpsc::UnboundedSender};
 use nym_vpn_api_client::types::GatewayMinPerformance;
 use nym_vpn_lib::tunnel_state_machine::MixnetEvent;
 use nym_vpn_proto::{
-    nym_vpnd_server::NymVpnd, AccountError, ConfirmZkNymDownloadedRequest,
-    ConfirmZkNymDownloadedResponse, ConnectRequest, ConnectResponse, ConnectionStateChange,
-    ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
+    conversions::ConversionError, nym_vpnd_server::NymVpnd, AccountError,
+    ConfirmZkNymDownloadedRequest, ConfirmZkNymDownloadedResponse, ConnectRequest, ConnectResponse,
+    ConnectionStateChange, ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
     FetchRawAccountSummaryRequest, FetchRawAccountSummaryResponse, FetchRawDevicesRequest,
     FetchRawDevicesResponse, ForgetAccountRequest, ForgetAccountResponse,
     GetAccountIdentityRequest, GetAccountIdentityResponse, GetAccountLinksRequest,
@@ -39,15 +39,11 @@ use super::{
     connection_handler::CommandInterfaceConnectionHandler,
     error::CommandInterfaceError,
     helpers::{parse_entry_point, parse_exit_point, threshold_into_percent},
-    protobuf::info_response::into_account_management_links,
 };
 use crate::{
     command_interface::protobuf::{
         connection_state::into_is_ready_to_connect_response_type,
-        gateway::into_user_agent,
-        info_response::{
-            into_proto_available_tickets, into_proto_feature_flags, into_proto_system_message,
-        },
+        info_response::into_proto_available_tickets,
     },
     service::{ConnectOptions, VpnServiceCommand, VpnServiceStateChange},
 };
@@ -168,10 +164,7 @@ impl NymVpnd for CommandInterface {
             .handle_get_system_messages()
             .await?;
 
-        let messages = messages
-            .into_current_iter()
-            .map(into_proto_system_message)
-            .collect();
+        let messages = messages.into_current_iter().map(|m| m.into()).collect();
         let response = GetSystemMessagesResponse { messages };
 
         Ok(tonic::Response::new(response))
@@ -188,9 +181,7 @@ impl NymVpnd for CommandInterface {
             .await?
             .ok_or(tonic::Status::not_found("Feature flags not found"))?;
 
-        Ok(tonic::Response::new(into_proto_feature_flags(
-            feature_flags,
-        )))
+        Ok(tonic::Response::new(feature_flags.into()))
     }
 
     async fn vpn_connect(
@@ -218,7 +209,8 @@ impl NymVpnd for CommandInterface {
         let user_agent = connect_request
             .user_agent
             .clone()
-            .map(into_user_agent)
+            // .map(into_user_agent)
+            .map(nym_vpn_lib::UserAgent::from)
             .unwrap_or_else(crate::util::construct_user_agent);
 
         let options = ConnectOptions::try_from(connect_request).map_err(|err| {
@@ -324,9 +316,11 @@ impl NymVpnd for CommandInterface {
         let request = request.into_inner();
 
         let gw_type = nym_vpn_proto::GatewayType::try_from(request.kind)
-            .ok()
-            .and_then(crate::command_interface::protobuf::gateway::into_gateway_type)
-            .ok_or_else(|| {
+            // .and_then(crate::command_interface::protobuf::gateway::into_gateway_type)
+            // TODO: do this conversion in one step instead
+            .map_err(|err| ConversionError::Generic(err.to_string()))
+            .and_then(nym_vpn_lib::gateway_directory::GatewayType::try_from)
+            .map_err(|_err| {
                 let msg = format!("Failed to parse gateway type: {}", request.kind);
                 tracing::error!(msg);
                 tonic::Status::invalid_argument(msg)
@@ -334,7 +328,7 @@ impl NymVpnd for CommandInterface {
 
         let user_agent = request
             .user_agent
-            .map(into_user_agent)
+            .map(nym_vpn_lib::UserAgent::from)
             .unwrap_or_else(crate::util::construct_user_agent);
 
         let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
@@ -377,9 +371,9 @@ impl NymVpnd for CommandInterface {
         let request = request.into_inner();
 
         let gw_type = nym_vpn_proto::GatewayType::try_from(request.kind)
-            .ok()
-            .and_then(crate::command_interface::protobuf::gateway::into_gateway_type)
-            .ok_or_else(|| {
+            .map_err(|err| ConversionError::Generic(err.to_string()))
+            .and_then(nym_vpn_lib::gateway_directory::GatewayType::try_from)
+            .map_err(|_err| {
                 let msg = format!("Failed to parse list countries kind: {}", request.kind);
                 tracing::error!(msg);
                 tonic::Status::invalid_argument(msg)
@@ -387,7 +381,7 @@ impl NymVpnd for CommandInterface {
 
         let user_agent = request
             .user_agent
-            .map(into_user_agent)
+            .map(nym_vpn_lib::UserAgent::from)
             .unwrap_or_else(crate::util::construct_user_agent);
 
         let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
@@ -558,7 +552,7 @@ impl NymVpnd for CommandInterface {
         let response = match result {
             Ok(account_links) => GetAccountLinksResponse {
                 res: Some(nym_vpn_proto::get_account_links_response::Res::Links(
-                    into_account_management_links(account_links),
+                    account_links.into(),
                 )),
             },
             Err(err) => {

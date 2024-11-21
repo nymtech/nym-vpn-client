@@ -129,23 +129,11 @@ fn export_nym_network_details_to_env(network_details: NymNetworkDetails) {
             .to_string(),
     );
 
-    env::set_var(
-        var_names::NYXD,
-        network_details.endpoints.first().unwrap().nyxd_url.clone(),
-    );
-    set_optional_var(
-        var_names::NYM_API,
-        network_details.endpoints.first().unwrap().api_url.clone(),
-    );
-    set_optional_var(
-        var_names::NYXD_WEBSOCKET,
-        network_details
-            .endpoints
-            .first()
-            .unwrap()
-            .websocket_url
-            .clone(),
-    );
+    if let Some(e) = network_details.endpoints.first() {
+        env::set_var(var_names::NYXD, e.nyxd_url.clone());
+        set_optional_var(var_names::NYM_API, e.api_url.clone());
+        set_optional_var(var_names::NYXD_WEBSOCKET, e.websocket_url.clone());
+    }
 
     set_optional_var(
         var_names::MIXNET_CONTRACT_ADDRESS,
