@@ -26,7 +26,6 @@ public class HomeViewModel: HomeFlowState {
     private var cancellables = Set<AnyCancellable>()
     private var tunnelStatusUpdateCancellable: AnyCancellable?
     private var lastError: Error?
-    private var isProcessingMessages = false
     @MainActor @Published private var activeTunnel: Tunnel?
 
     let title = "NymVPN".localizedString
@@ -38,7 +37,6 @@ public class HomeViewModel: HomeFlowState {
     let countriesManager: CountriesManager
     let credentialsManager: CredentialsManager
     let externalLinkManager: ExternalLinkManager
-    let systemMessageManager: SystemMessageManager
 #if os(iOS)
     let impactGenerator: ImpactGenerator
 #endif
@@ -46,29 +44,30 @@ public class HomeViewModel: HomeFlowState {
     let grpcManager: GRPCManager
     let helperManager: HelperManager
 #endif
+    let systemMessageManager: SystemMessageManager
     let entryHopButtonViewModel = HopButtonViewModel(hopType: .entry)
     let exitHopButtonViewModel = HopButtonViewModel(hopType: .exit)
     let anonymousButtonViewModel = NetworkButtonViewModel(type: .mixnet5hop)
     let fastButtonViewModel = NetworkButtonViewModel(type: .wireguard)
 
+    var lastTunnelStatus = TunnelStatus.disconnected
+
     // If no time connected is shown, should be set to empty string,
     // so the time connected label would not disappear and re-center other UI elements.
-    @MainActor @Published public var splashScreenDidDisplay = false
     @MainActor @Published var timeConnected = " "
     @MainActor @Published var statusButtonConfig = StatusButtonConfig.disconnected
     @MainActor @Published var statusInfoState = StatusInfoState.initialising
     @MainActor @Published var connectButtonState = ConnectButtonState.connect
     @MainActor @Published var isModeInfoOverlayDisplayed = false
-    @MainActor @Published var isSnackbarDisplayed = false {
+    @MainActor @Published var snackBarMessage = ""
+    @MainActor @Published var isSnackBarDisplayed = false {
         didSet {
-            guard !isSnackbarDisplayed else { return }
-            isProcessingMessages = false
-            displaySystemMessages()
+            guard !isSnackBarDisplayed else { return }
+            systemMessageManager.messageDidClose()
         }
     }
-    @MainActor @Published var snackBarStyle = SnackbarStyle.info
-    @MainActor @Published var currentSnackBarMessage = ""
-    var lastTunnelStatus = TunnelStatus.disconnected
+
+    @MainActor @Published public var splashScreenDidDisplay = false
 
 #if os(iOS)
     public init(
@@ -121,10 +120,6 @@ public class HomeViewModel: HomeFlowState {
     deinit {
         cancellables.forEach { $0.cancel() }
         timer.invalidate()
-    }
-
-    func updateSystemMessages() {
-        systemMessageManager.fetchMessages()
     }
 }
 
@@ -274,9 +269,11 @@ private extension HomeViewModel {
     }
 
     func setupSystemMessageObservers() {
-        systemMessageManager.$messages.sink { [weak self] messages in
-            guard !messages.isEmpty else { return }
-            self?.displaySystemMessages()
+        systemMessageManager.$currentMessage.sink { [weak self] message in
+            Task { @MainActor in
+                self?.snackBarMessage = message
+                self?.isSnackBarDisplayed = true
+            }
         }
         .store(in: &cancellables)
     }
@@ -452,38 +449,6 @@ private extension HomeViewModel {
         Task { @MainActor in
             guard newState != statusInfoState else { return }
             statusInfoState = newState
-        }
-    }
-}
-
-// MARK: - System messages -
-private extension HomeViewModel {
-    // TODO: move to system messages manager
-    func displaySystemMessages() {
-        guard !isProcessingMessages else { return }
-
-        isProcessingMessages = true
-
-        Task(priority: .background) { [weak self] in
-            while let self = self,
-                  !self.systemMessageManager.messages.isEmpty,
-                  let message = self.systemMessageManager.messages.first?.message {
-                await MainActor.run {
-                    self.currentSnackBarMessage = message
-                    self.isSnackbarDisplayed = true
-                }
-
-                self.systemMessageManager.messages.removeFirst()
-
-                try? await Task.sleep(for: .seconds(10))
-
-                await MainActor.run {
-                    self.isSnackbarDisplayed = false
-                    self.currentSnackBarMessage = ""
-                }
-            }
-
-            self?.isProcessingMessages = false
         }
     }
 }
