@@ -33,6 +33,7 @@ use crate::{
     },
 };
 
+#[derive(Clone, Debug)]
 struct CliOptions {
     client_type: ClientType,
     verbose: bool,
@@ -132,7 +133,7 @@ async fn connect(opts: CliOptions, connect_args: &cli::ConnectArgs) -> Result<()
     let entry = cli::parse_entry_point(connect_args)?;
     let exit = cli::parse_exit_point(connect_args)?;
 
-    let mut client = vpnd_client::get_client(opts.client_type).await?;
+    let mut client = vpnd_client::get_client(opts.client_type.clone()).await?;
     let info_request = tonic::Request::new(InfoRequest {});
     let info = client.info(info_request).await?.into_inner();
     let user_agent = construct_user_agent(info);
@@ -162,19 +163,46 @@ async fn connect(opts: CliOptions, connect_args: &cli::ConnectArgs) -> Result<()
 
     if response.success {
         println!("Successfully sent connect command");
+        listen_until_connected(opts).await
     } else if let Some(error) = response.error {
         let kind =
             nym_vpn_proto::connect_request_error::ConnectRequestErrorType::try_from(error.kind)
                 .unwrap();
         println!("Connect command failed: {} (id={kind:?})", error.message);
+        Ok(())
     } else {
         println!("Connect command failed with unknown error");
-    };
+        Ok(())
+    }
+}
+
+async fn listen_until_connected(opts: CliOptions) -> Result<()> {
+    let mut client = vpnd_client::get_client(opts.client_type).await?;
+
+    let request = tonic::Request::new(StatusRequest {});
+    let response = client.vpn_status(request).await?.into_inner();
+    if response.status == nym_vpn_proto::ConnectionStatus::Connected as i32 {
+        println!("Connected!");
+        return Ok(());
+    }
+
+    let request = tonic::Request::new(Empty {});
+    let mut stream = client
+        .listen_to_connection_state_changes(request)
+        .await?
+        .into_inner();
+    while let Some(response) = stream.message().await? {
+        println!("{:#?}", response);
+        if response.status == nym_vpn_proto::ConnectionStatus::Connected as i32 {
+            println!("Connected!");
+            break;
+        }
+    }
     Ok(())
 }
 
 async fn disconnect(opts: CliOptions) -> Result<()> {
-    let mut client = vpnd_client::get_client(opts.client_type).await?;
+    let mut client = vpnd_client::get_client(opts.client_type.clone()).await?;
     let request = tonic::Request::new(DisconnectRequest {});
     let response = client.vpn_disconnect(request).await?.into_inner();
 
@@ -184,10 +212,38 @@ async fn disconnect(opts: CliOptions) -> Result<()> {
 
     if response.success {
         println!("Successfully sent disconnect command");
+        listen_until_disconnected(opts).await
     } else {
         println!("Disconnect command failed");
-    };
+        Ok(())
+    }
+}
 
+async fn listen_until_disconnected(opts: CliOptions) -> Result<()> {
+    let mut client = vpnd_client::get_client(opts.client_type).await?;
+
+    let request = tonic::Request::new(StatusRequest {});
+    let response = client.vpn_status(request).await?.into_inner();
+    if response.status == nym_vpn_proto::ConnectionStatus::NotConnected as i32 {
+        println!("Disconnected!");
+        return Ok(());
+    } else if response.status == nym_vpn_proto::ConnectionStatus::ConnectionFailed as i32 {
+        println!("Connection failed!");
+        return Ok(());
+    }
+
+    let request = tonic::Request::new(Empty {});
+    let mut stream = client
+        .listen_to_connection_state_changes(request)
+        .await?
+        .into_inner();
+    while let Some(response) = stream.message().await? {
+        println!("{:#?}", response);
+        if response.status == nym_vpn_proto::ConnectionStatus::NotConnected as i32 {
+            println!("Disconnected!");
+            break;
+        }
+    }
     Ok(())
 }
 

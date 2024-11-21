@@ -10,6 +10,7 @@ use tonic::transport::{Channel as TonicChannel, Endpoint as TonicEndpoint};
 
 use crate::config;
 
+#[derive(Debug, Clone)]
 pub(crate) enum ClientType {
     Http,
     Ipc,
