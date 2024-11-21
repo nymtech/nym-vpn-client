@@ -2915,16 +2915,18 @@ public struct VpnConfig {
     public var tunProvider: OsTunProvider
     public var credentialDataPath: PathBuf?
     public var tunStatusListener: TunnelStatusListener?
+    public var credentialMode: Bool?
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(entryGateway: EntryPoint, exitRouter: ExitPoint, enableTwoHop: Bool, tunProvider: OsTunProvider, credentialDataPath: PathBuf?, tunStatusListener: TunnelStatusListener?) {
+    public init(entryGateway: EntryPoint, exitRouter: ExitPoint, enableTwoHop: Bool, tunProvider: OsTunProvider, credentialDataPath: PathBuf?, tunStatusListener: TunnelStatusListener?, credentialMode: Bool?) {
         self.entryGateway = entryGateway
         self.exitRouter = exitRouter
         self.enableTwoHop = enableTwoHop
         self.tunProvider = tunProvider
         self.credentialDataPath = credentialDataPath
         self.tunStatusListener = tunStatusListener
+        self.credentialMode = credentialMode
     }
 }
 
@@ -2939,7 +2941,8 @@ public struct FfiConverterTypeVPNConfig: FfiConverterRustBuffer {
                 enableTwoHop: FfiConverterBool.read(from: &buf), 
                 tunProvider: FfiConverterTypeOSTunProvider.read(from: &buf), 
                 credentialDataPath: FfiConverterOptionTypePathBuf.read(from: &buf), 
-                tunStatusListener: FfiConverterOptionTypeTunnelStatusListener.read(from: &buf)
+                tunStatusListener: FfiConverterOptionTypeTunnelStatusListener.read(from: &buf), 
+                credentialMode: FfiConverterOptionBool.read(from: &buf)
         )
     }
 
@@ -2950,6 +2953,7 @@ public struct FfiConverterTypeVPNConfig: FfiConverterRustBuffer {
         FfiConverterTypeOSTunProvider.write(value.tunProvider, into: &buf)
         FfiConverterOptionTypePathBuf.write(value.credentialDataPath, into: &buf)
         FfiConverterOptionTypeTunnelStatusListener.write(value.tunStatusListener, into: &buf)
+        FfiConverterOptionBool.write(value.credentialMode, into: &buf)
     }
 }
 
@@ -5374,6 +5378,27 @@ fileprivate struct FfiConverterOptionDouble: FfiConverterRustBuffer {
     }
 }
 
+fileprivate struct FfiConverterOptionBool: FfiConverterRustBuffer {
+    typealias SwiftType = Bool?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterBool.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterBool.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
 fileprivate struct FfiConverterOptionString: FfiConverterRustBuffer {
     typealias SwiftType = String?
 
@@ -6667,9 +6692,10 @@ private func uniffiForeignFutureFree(handle: UInt64) {
 public func uniffiForeignFutureHandleCountNymVpnLib() -> Int {
     UNIFFI_FOREIGN_FUTURE_HANDLE_MAP.count
 }
-public func configureLib(dataDir: String)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func configureLib(dataDir: String, credentialMode: Bool?)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_configurelib(
-        FfiConverterString.lower(dataDir),$0
+        FfiConverterString.lower(dataDir),
+        FfiConverterOptionBool.lower(credentialMode),$0
     )
 }
 }
@@ -7020,7 +7046,7 @@ private var initializationResult: InitializationResult {
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_configurelib() != 38732) {
+    if (uniffi_nym_vpn_lib_checksum_func_configurelib() != 53065) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_currentenvironment() != 53371) {

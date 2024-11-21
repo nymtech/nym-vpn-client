@@ -53,7 +53,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }
 
         do {
-            try configureLib(dataDir: credentialDataPath)
+            try configureLib(dataDir: credentialDataPath, credentialMode: nil)
             try startVpn(config: vpnConfig)
         } catch {
             logger.error("Failed to start vpn: \(error)")

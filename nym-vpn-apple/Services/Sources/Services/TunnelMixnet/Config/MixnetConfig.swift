@@ -56,7 +56,8 @@ extension MixnetConfig {
             enableTwoHop: isTwoHopEnabled,
             tunProvider: tunProvider,
             credentialDataPath: credentialsDataPath,
-            tunStatusListener: tunStatusListener
+            tunStatusListener: tunStatusListener,
+            credentialMode: nil
         )
     }
 }
