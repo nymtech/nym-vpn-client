@@ -276,6 +276,7 @@ impl TunnelMonitor {
             TunnelType::Mixnet => self.start_mixnet_tunnel(connected_mixnet).await?,
             TunnelType::Wireguard => self.start_wireguard_tunnel(connected_mixnet).await?,
         };
+        tracing::info!("Started tunnel");
 
         let conn_data = ConnectionData {
             entry_gateway: Box::new(*selected_gateways.entry.identity()),
@@ -286,6 +287,7 @@ impl TunnelMonitor {
         self.send_event(TunnelMonitorEvent::EstablishingTunnel(Box::new(
             conn_data.clone(),
         )));
+        tracing::info!("Sent tunnel established event");
 
         // todo: do initial ping
 
@@ -294,6 +296,7 @@ impl TunnelMonitor {
             ..conn_data
         };
         self.send_event(TunnelMonitorEvent::Up(conn_data));
+        tracing::info!("Sent tunnel up event");
 
         let task_error = self
             .cancel_token
@@ -304,7 +307,7 @@ impl TunnelMonitor {
             tracing::error!("Task manager quit with error: {}", task_error);
         }
 
-        tracing::debug!("Wait for tunnel to exit");
+        tracing::info!("Wait for tunnel to exit");
         tunnel_handle.cancel();
 
         let tun_devices = tunnel_handle
@@ -315,7 +318,7 @@ impl TunnelMonitor {
             })
             .unwrap_or_default();
 
-        tracing::debug!("Wait for status listener to exit");
+        tracing::info!("Wait for status listener to exit");
         if let Err(e) = status_listener_handle.await {
             tracing::error!("Failed to join on status listener: {}", e);
         }
@@ -536,6 +539,7 @@ impl TunnelMonitor {
                 self.tun_provider.clone(),
             )
             .await?;
+        tracing::info!("returning tunnel handle");
 
         let any_tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
 

@@ -104,6 +104,8 @@ impl ConnectedTunnel {
         let mut entry_tunnel =
             netstack::Tunnel::start(two_hop_config.entry.into_netstack_config())?;
 
+        tracing::info!("Started entry tunnel");
+
         // Configure tunnel sockets to bypass the tunnel interface.
         #[cfg(target_os = "android")]
         {
@@ -123,12 +125,14 @@ impl ConnectedTunnel {
             two_hop_config.forwarder.client_port,
             two_hop_config.forwarder.exit_endpoint,
         )?;
+        tracing::info!("Opened connection to exit node");
 
         #[allow(unused_mut)]
         let mut exit_tunnel = wireguard_go::Tunnel::start(
             two_hop_config.exit.into_wireguard_config(),
             tun_device.get_ref().as_raw_fd(),
         )?;
+        tracing::info!("Started exit tunnel");
 
         #[cfg(target_os = "android")]
         let _ = std::mem::ManuallyDrop::new(tun_device);
@@ -149,16 +153,17 @@ impl ConnectedTunnel {
             default_path_rx
         };
 
+        tracing::info!("Creating event loop handle");
         let event_loop_handle = tokio::spawn(async move {
             #[cfg(target_os = "ios")]
             loop {
                 tokio::select! {
                     _ = cloned_shutdown_token.cancelled() => {
-                        tracing::debug!("Received tunnel shutdown event. Exiting event loop.");
+                        tracing::info!("Received tunnel shutdown event. Exiting event loop.");
                         break;
                     }
                     Some(new_path) = default_path_rx.recv() => {
-                        tracing::debug!("New default path: {:?}", new_path);
+                        tracing::info!("New default path: {:?}", new_path);
 
                         // Depending on the network device is connected to, we may need to re-resolve the IP addresses.
                         // For instance when device connects to IPv4-only server from IPv6-only network,
@@ -202,6 +207,7 @@ impl ConnectedTunnel {
             exit_tunnel.stop();
             exit_connection.close();
             entry_tunnel.stop();
+            tracing::info!("Stopped event loop");
         });
 
         Ok(TunnelHandle {
