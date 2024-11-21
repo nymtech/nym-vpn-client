@@ -9,6 +9,7 @@ mod vpnd_client;
 
 use anyhow::Result;
 use clap::Parser;
+use cli::Internal;
 use nym_gateway_directory::GatewayType;
 use nym_vpn_proto::{
     ConfirmZkNymDownloadedRequest, ConnectRequest, DisconnectRequest, Empty,
@@ -58,19 +59,12 @@ async fn main() -> Result<()> {
         Command::Status => status(opts).await?,
         Command::Info => info(opts.client_type).await?,
         Command::SetNetwork(ref args) => set_network(opts.client_type, args).await?,
-        Command::GetSystemMessages => get_system_messages(opts.client_type).await?,
-        Command::GetFeatureFlags => get_feature_flags(opts.client_type).await?,
         Command::StoreAccount(ref store_args) => store_account(opts, store_args).await?,
-        Command::RefreshAccountState => refresh_account_state(opts.client_type).await?,
         Command::IsAccountStored => is_account_stored(opts.client_type).await?,
-        Command::RemoveAccount => remove_account(opts.client_type).await?,
         Command::ForgetAccount => forget_account(opts.client_type).await?,
         Command::GetAccountId => get_account_id(opts.client_type).await?,
         Command::GetAccountLinks(ref args) => get_account_links(opts.client_type, args).await?,
         Command::GetAccountState => get_account_state(opts.client_type).await?,
-        Command::IsReadyToConnect => is_ready_to_connect(opts.client_type).await?,
-        Command::ListenToStatus => listen_to_status(opts.client_type).await?,
-        Command::ListenToStateChanges => listen_to_state_changes(opts.client_type).await?,
         Command::ListEntryGateways(ref list_args) => {
             list_gateways(opts.client_type, list_args, GatewayType::MixnetEntry).await?
         }
@@ -89,23 +83,32 @@ async fn main() -> Result<()> {
         Command::ListVpnCountries(ref list_args) => {
             list_countries(opts.client_type, list_args, GatewayType::Wg).await?
         }
-        Command::ResetDeviceIdentity(ref args) => {
-            reset_device_identity(opts.client_type, args).await?
-        }
         Command::GetDeviceId => get_device_id(opts.client_type).await?,
-        Command::RegisterDevice => register_device(opts.client_type).await?,
-        Command::RequestZkNym => request_zk_nym(opts.client_type).await?,
-        Command::GetDeviceZkNym => get_device_zk_nym(opts.client_type).await?,
-        Command::GetZkNymsAvailableForDownload => {
-            get_zk_nyms_available_for_download(opts.client_type).await?
-        }
-        Command::GetZkNymById(args) => get_zk_nym_by_id(opts.client_type, args).await?,
-        Command::ConfirmZkNymDownloaded(args) => {
-            confirm_zk_nym_downloaded(opts.client_type, args).await?
-        }
-        Command::GetAvailableTickets => get_available_tickets(opts.client_type).await?,
-        Command::FetchRawAccountSummary => fetch_raw_account_summary(opts.client_type).await?,
-        Command::FetchRawDevices => fetch_raw_devices(opts.client_type).await?,
+        Command::Internal(internal) => match internal {
+            Internal::GetSystemMessages => get_system_messages(opts.client_type).await?,
+            Internal::GetFeatureFlags => get_feature_flags(opts.client_type).await?,
+            Internal::SyncAccountState => refresh_account_state(opts.client_type).await?,
+            Internal::RemoveAccount => remove_account(opts.client_type).await?,
+            Internal::IsReadyToConnect => is_ready_to_connect(opts.client_type).await?,
+            Internal::ListenToStatus => listen_to_status(opts.client_type).await?,
+            Internal::ListenToStateChanges => listen_to_state_changes(opts.client_type).await?,
+            Internal::ResetDeviceIdentity(ref args) => {
+                reset_device_identity(opts.client_type, args).await?
+            }
+            Internal::RegisterDevice => register_device(opts.client_type).await?,
+            Internal::RequestZkNym => request_zk_nym(opts.client_type).await?,
+            Internal::GetDeviceZkNym => get_device_zk_nym(opts.client_type).await?,
+            Internal::GetZkNymsAvailableForDownload => {
+                get_zk_nyms_available_for_download(opts.client_type).await?
+            }
+            Internal::GetZkNymById(args) => get_zk_nym_by_id(opts.client_type, args).await?,
+            Internal::ConfirmZkNymDownloaded(args) => {
+                confirm_zk_nym_downloaded(opts.client_type, args).await?
+            }
+            Internal::GetAvailableTickets => get_available_tickets(opts.client_type).await?,
+            Internal::FetchRawAccountSummary => fetch_raw_account_summary(opts.client_type).await?,
+            Internal::FetchRawDevices => fetch_raw_devices(opts.client_type).await?,
+        },
     }
     Ok(())
 }
