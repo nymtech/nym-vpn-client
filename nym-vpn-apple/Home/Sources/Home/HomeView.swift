@@ -60,7 +60,10 @@ private extension HomeView {
         )
         .onAppear {
             viewModel.configureConnectedTimeTimer()
-            viewModel.systemMessageManager.processMessages()
+            Task(priority: .background) {
+                try? await Task.sleep(for: .seconds(3))
+                viewModel.systemMessageManager.processMessages()
+            }
         }
         .onDisappear {
 #if os(iOS)
