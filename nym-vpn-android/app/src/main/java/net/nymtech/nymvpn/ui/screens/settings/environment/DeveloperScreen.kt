@@ -26,12 +26,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
@@ -51,7 +49,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
 
 @Composable
-fun EnvironmentScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewModel: EnvironmentViewModel = hiltViewModel()) {
+fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewModel: DeveloperViewModel = hiltViewModel()) {
 	val navController = LocalNavController.current
 	val clipboardManager = LocalClipboardManager.current
 
@@ -63,7 +61,7 @@ fun EnvironmentScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMo
 	LaunchedEffect(Unit) {
 		appViewModel.onNavBarStateChange(
 			NavBarState(
-				title = { NavTitle(stringResource(R.string.environment)) },
+				title = { NavTitle("Developer") },
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
 						navController.popBackStack()
