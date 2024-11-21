@@ -32,7 +32,7 @@ function ConnectionTimer() {
       from="opacity-0 scale-90"
       to="opacity-100 scale-100"
       duration={150}
-      className="flex flex-col items-center gap-2"
+      className="flex flex-col items-center gap-2 cursor-default select-none"
     >
       <p className="text-sm font-bold text-dim-gray dark:text-mercury-mist">
         {t('connection-time')}
