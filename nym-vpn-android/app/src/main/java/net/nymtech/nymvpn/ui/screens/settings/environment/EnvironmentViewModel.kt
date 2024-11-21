@@ -33,4 +33,22 @@ constructor(
 			SnackbarController.showMessage(StringValue.StringResource(R.string.action_requires_tunnel_down))
 		}
 	}
+
+	fun onManualGatewayOverride(enabled: Boolean) = viewModelScope.launch {
+		settingsRepository.setManualGatewayOverride(
+			enabled,
+		)
+	}
+
+	fun onCredentialOverride(value: Boolean?) = viewModelScope.launch {
+		settingsRepository.setCredentialMode(value)
+	}
+
+	fun onEntryGateway(gatewayId: String) = viewModelScope.launch {
+		settingsRepository.setEntryGatewayId(gatewayId)
+	}
+
+	fun onExitGateway(gatewayId: String) = viewModelScope.launch {
+		settingsRepository.setExitGatewayId(gatewayId)
+	}
 }
