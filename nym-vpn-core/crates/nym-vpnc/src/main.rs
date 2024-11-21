@@ -165,7 +165,7 @@ async fn connect(opts: CliOptions, connect_args: &cli::ConnectArgs) -> Result<()
     }
 
     if response.success {
-        println!("Successfully sent connect command");
+        println!("Successfully sent connect command, waiting for connected state");
         listen_until_connected(opts).await
     } else if let Some(error) = response.error {
         let kind =
@@ -214,7 +214,7 @@ async fn disconnect(opts: CliOptions) -> Result<()> {
     }
 
     if response.success {
-        println!("Successfully sent disconnect command");
+        println!("Successfully sent disconnect command, waiting for disconnected state");
         listen_until_disconnected(opts).await
     } else {
         println!("Disconnect command failed");
