@@ -32,7 +32,7 @@ final class AddCredentialsViewModel: ObservableObject {
     let welcomeTitle = "addCredentials.welcome.Title".localizedString
     let getStartedTitle = "addCredentials.getStarted.Title".localizedString
     let getStartedSubtitle = "addCredentialsGetStarted.Subtitle".localizedString
-    let credentialSubtitle = "addCredtenials.credential".localizedString
+    let mnemonicSubtitle = "addCredtenials.mnemonic".localizedString
     let credentialsPlaceholderTitle = "addCredentials.placeholder".localizedString
     let logoImageName = "addCredentialsLogo"
     let scannerIconName = "qrcode.viewfinder"

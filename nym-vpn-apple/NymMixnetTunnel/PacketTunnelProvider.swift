@@ -53,7 +53,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }
 
         do {
-            try configureLib(dataDir: credentialDataPath)
+            try configureLib(dataDir: credentialDataPath, credentialMode: nil)
             try startVpn(config: vpnConfig)
         } catch {
             logger.error("Failed to start vpn: \(error)")
@@ -66,10 +66,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
         logger.info("Backend is up and running...")
 
-        await tunnelActor.waitUntilStarted()
         do {
-            try await tunnelActor.didSendLastError()
+            try await tunnelActor.waitUntilStarted()
         } catch {
+            logger.error("Failed to wait until vpn started: \(error)")
             throw error
         }
     }

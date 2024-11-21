@@ -50,13 +50,14 @@ public struct MixnetConfig: Codable, Equatable {
 // MARK: - VpnConfig -
 extension MixnetConfig {
     public func asVpnConfig(tunProvider: OsTunProvider, tunStatusListener: TunnelStatusListener?) throws -> VpnConfig {
-        return VpnConfig(
+        VpnConfig(
             entryGateway: entryGateway?.entryPoint ?? .random,
             exitRouter: exitRouter.exitPoint,
             enableTwoHop: isTwoHopEnabled,
             tunProvider: tunProvider,
             credentialDataPath: credentialsDataPath,
-            tunStatusListener: tunStatusListener
+            tunStatusListener: tunStatusListener,
+            credentialMode: nil
         )
     }
 }

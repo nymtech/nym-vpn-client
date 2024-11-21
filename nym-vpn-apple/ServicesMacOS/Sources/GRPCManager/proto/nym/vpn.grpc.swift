@@ -88,6 +88,11 @@ internal protocol Nym_Vpn_NymVpndClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<Nym_Vpn_RemoveAccountRequest, Nym_Vpn_RemoveAccountResponse>
 
+  func forgetAccount(
+    _ request: Nym_Vpn_ForgetAccountRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Nym_Vpn_ForgetAccountRequest, Nym_Vpn_ForgetAccountResponse>
+
   func getAccountIdentity(
     _ request: Nym_Vpn_GetAccountIdentityRequest,
     callOptions: CallOptions?
@@ -431,6 +436,25 @@ extension Nym_Vpn_NymVpndClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeRemoveAccountInterceptors() ?? []
+    )
+  }
+
+  /// Removes everything related to the account, including the device identity,
+  /// credential storage, mixnet keys, gateway registrations.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to ForgetAccount.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func forgetAccount(
+    _ request: Nym_Vpn_ForgetAccountRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Nym_Vpn_ForgetAccountRequest, Nym_Vpn_ForgetAccountResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.forgetAccount.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeForgetAccountInterceptors() ?? []
     )
   }
 
@@ -857,6 +881,11 @@ internal protocol Nym_Vpn_NymVpndAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Nym_Vpn_RemoveAccountRequest, Nym_Vpn_RemoveAccountResponse>
 
+  func makeForgetAccountCall(
+    _ request: Nym_Vpn_ForgetAccountRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_ForgetAccountRequest, Nym_Vpn_ForgetAccountResponse>
+
   func makeGetAccountIdentityCall(
     _ request: Nym_Vpn_GetAccountIdentityRequest,
     callOptions: CallOptions?
@@ -1113,6 +1142,18 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeRemoveAccountInterceptors() ?? []
+    )
+  }
+
+  internal func makeForgetAccountCall(
+    _ request: Nym_Vpn_ForgetAccountRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_ForgetAccountRequest, Nym_Vpn_ForgetAccountResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.forgetAccount.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeForgetAccountInterceptors() ?? []
     )
   }
 
@@ -1479,6 +1520,18 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
     )
   }
 
+  internal func forgetAccount(
+    _ request: Nym_Vpn_ForgetAccountRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_ForgetAccountResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.forgetAccount.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeForgetAccountInterceptors() ?? []
+    )
+  }
+
   internal func getAccountIdentity(
     _ request: Nym_Vpn_GetAccountIdentityRequest,
     callOptions: CallOptions? = nil
@@ -1733,6 +1786,9 @@ internal protocol Nym_Vpn_NymVpndClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'removeAccount'.
   func makeRemoveAccountInterceptors() -> [ClientInterceptor<Nym_Vpn_RemoveAccountRequest, Nym_Vpn_RemoveAccountResponse>]
 
+  /// - Returns: Interceptors to use when invoking 'forgetAccount'.
+  func makeForgetAccountInterceptors() -> [ClientInterceptor<Nym_Vpn_ForgetAccountRequest, Nym_Vpn_ForgetAccountResponse>]
+
   /// - Returns: Interceptors to use when invoking 'getAccountIdentity'.
   func makeGetAccountIdentityInterceptors() -> [ClientInterceptor<Nym_Vpn_GetAccountIdentityRequest, Nym_Vpn_GetAccountIdentityResponse>]
 
@@ -1801,6 +1857,7 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
       Nym_Vpn_NymVpndClientMetadata.Methods.storeAccount,
       Nym_Vpn_NymVpndClientMetadata.Methods.isAccountStored,
       Nym_Vpn_NymVpndClientMetadata.Methods.removeAccount,
+      Nym_Vpn_NymVpndClientMetadata.Methods.forgetAccount,
       Nym_Vpn_NymVpndClientMetadata.Methods.getAccountIdentity,
       Nym_Vpn_NymVpndClientMetadata.Methods.getAccountLinks,
       Nym_Vpn_NymVpndClientMetadata.Methods.getAccountState,
@@ -1902,6 +1959,12 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
     internal static let removeAccount = GRPCMethodDescriptor(
       name: "RemoveAccount",
       path: "/nym.vpn.NymVpnd/RemoveAccount",
+      type: GRPCCallType.unary
+    )
+
+    internal static let forgetAccount = GRPCMethodDescriptor(
+      name: "ForgetAccount",
+      path: "/nym.vpn.NymVpnd/ForgetAccount",
       type: GRPCCallType.unary
     )
 
@@ -2050,6 +2113,10 @@ internal protocol Nym_Vpn_NymVpndProvider: CallHandlerProvider {
 
   /// Remove the recovery phrase from local storage
   func removeAccount(request: Nym_Vpn_RemoveAccountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_RemoveAccountResponse>
+
+  /// Removes everything related to the account, including the device identity,
+  /// credential storage, mixnet keys, gateway registrations.
+  func forgetAccount(request: Nym_Vpn_ForgetAccountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_ForgetAccountResponse>
 
   /// Get the account identity of the locally stored recovery phrase
   func getAccountIdentity(request: Nym_Vpn_GetAccountIdentityRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetAccountIdentityResponse>
@@ -2238,6 +2305,15 @@ extension Nym_Vpn_NymVpndProvider {
         responseSerializer: ProtobufSerializer<Nym_Vpn_RemoveAccountResponse>(),
         interceptors: self.interceptors?.makeRemoveAccountInterceptors() ?? [],
         userFunction: self.removeAccount(request:context:)
+      )
+
+    case "ForgetAccount":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_ForgetAccountRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_ForgetAccountResponse>(),
+        interceptors: self.interceptors?.makeForgetAccountInterceptors() ?? [],
+        userFunction: self.forgetAccount(request:context:)
       )
 
     case "GetAccountIdentity":
@@ -2484,6 +2560,13 @@ internal protocol Nym_Vpn_NymVpndAsyncProvider: CallHandlerProvider, Sendable {
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_RemoveAccountResponse
 
+  /// Removes everything related to the account, including the device identity,
+  /// credential storage, mixnet keys, gateway registrations.
+  func forgetAccount(
+    request: Nym_Vpn_ForgetAccountRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_ForgetAccountResponse
+
   /// Get the account identity of the locally stored recovery phrase
   func getAccountIdentity(
     request: Nym_Vpn_GetAccountIdentityRequest,
@@ -2728,6 +2811,15 @@ extension Nym_Vpn_NymVpndAsyncProvider {
         wrapping: { try await self.removeAccount(request: $0, context: $1) }
       )
 
+    case "ForgetAccount":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_ForgetAccountRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_ForgetAccountResponse>(),
+        interceptors: self.interceptors?.makeForgetAccountInterceptors() ?? [],
+        wrapping: { try await self.forgetAccount(request: $0, context: $1) }
+      )
+
     case "GetAccountIdentity":
       return GRPCAsyncServerHandler(
         context: context,
@@ -2936,6 +3028,10 @@ internal protocol Nym_Vpn_NymVpndServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeRemoveAccountInterceptors() -> [ServerInterceptor<Nym_Vpn_RemoveAccountRequest, Nym_Vpn_RemoveAccountResponse>]
 
+  /// - Returns: Interceptors to use when handling 'forgetAccount'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeForgetAccountInterceptors() -> [ServerInterceptor<Nym_Vpn_ForgetAccountRequest, Nym_Vpn_ForgetAccountResponse>]
+
   /// - Returns: Interceptors to use when handling 'getAccountIdentity'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeGetAccountIdentityInterceptors() -> [ServerInterceptor<Nym_Vpn_GetAccountIdentityRequest, Nym_Vpn_GetAccountIdentityResponse>]
@@ -3020,6 +3116,7 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
       Nym_Vpn_NymVpndServerMetadata.Methods.storeAccount,
       Nym_Vpn_NymVpndServerMetadata.Methods.isAccountStored,
       Nym_Vpn_NymVpndServerMetadata.Methods.removeAccount,
+      Nym_Vpn_NymVpndServerMetadata.Methods.forgetAccount,
       Nym_Vpn_NymVpndServerMetadata.Methods.getAccountIdentity,
       Nym_Vpn_NymVpndServerMetadata.Methods.getAccountLinks,
       Nym_Vpn_NymVpndServerMetadata.Methods.getAccountState,
@@ -3121,6 +3218,12 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
     internal static let removeAccount = GRPCMethodDescriptor(
       name: "RemoveAccount",
       path: "/nym.vpn.NymVpnd/RemoveAccount",
+      type: GRPCCallType.unary
+    )
+
+    internal static let forgetAccount = GRPCMethodDescriptor(
+      name: "ForgetAccount",
+      path: "/nym.vpn.NymVpnd/ForgetAccount",
       type: GRPCCallType.unary
     )
 

@@ -9,6 +9,7 @@ import Migrations
 import NymLogger
 import NotificationsManager
 import SentryManager
+import SystemMessageManager
 import Theme
 
 @main
@@ -52,7 +53,9 @@ private extension NymVPNApp {
             FileLogHandler(label: label, logFileManager: logFileManager)
         }
         Task {
+            // Things dependant on environment beeing set.
             try await ConfigurationManager.shared.setup()
+            SystemMessageManager.shared.setup()
         }
         NotificationsManager.shared.setup()
         ThemeConfiguration.setup()

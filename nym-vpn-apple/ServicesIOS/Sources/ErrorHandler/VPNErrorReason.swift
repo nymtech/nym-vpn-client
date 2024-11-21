@@ -2,7 +2,7 @@
 import Foundation
 import MixnetLibrary
 
-public enum VPNErrorReason: Codable, Error, LocalizedError {
+public enum VPNErrorReason: LocalizedError {
     case internalError(details: String)
     case networkConnectionError(details: String)
     case gatewayError(details: String)
@@ -140,9 +140,7 @@ public enum VPNErrorReason: Codable, Error, LocalizedError {
         var userInfo: [String: Any] = [
             NSLocalizedDescriptionKey: description
         ]
-
-        userInfo.merge(self.userInfo) { (_, new) in new }
-
+        userInfo.merge(self.userInfo) { _, new in new }
         return NSError(
             domain: VPNErrorReason.domain,
             code: errorCode,
