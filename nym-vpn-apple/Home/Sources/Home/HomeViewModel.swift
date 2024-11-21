@@ -62,8 +62,11 @@ public class HomeViewModel: HomeFlowState {
     @MainActor @Published var snackBarMessage = ""
     @MainActor @Published var isSnackBarDisplayed = false {
         didSet {
-            guard !isSnackBarDisplayed else { return }
-            systemMessageManager.messageDidClose()
+            Task(priority: .background) {
+                try? await Task.sleep(for: .seconds(1))
+                guard !isSnackBarDisplayed else { return }
+                systemMessageManager.messageDidClose()
+            }
         }
     }
 
@@ -270,9 +273,18 @@ private extension HomeViewModel {
 
     func setupSystemMessageObservers() {
         systemMessageManager.$currentMessage.sink { [weak self] message in
+            guard !message.isEmpty
+            else {
+                Task { @MainActor in
+                    self?.isSnackBarDisplayed = false
+                }
+                return
+            }
             Task { @MainActor in
                 self?.snackBarMessage = message
-                self?.isSnackBarDisplayed = true
+                withAnimation {
+                    self?.isSnackBarDisplayed = true
+                }
             }
         }
         .store(in: &cancellables)

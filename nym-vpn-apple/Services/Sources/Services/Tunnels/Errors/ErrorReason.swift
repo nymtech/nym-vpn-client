@@ -115,7 +115,7 @@ extension ErrorReason {
     }
 }
 
-extension ErrorReason  {
+extension ErrorReason {
     private var description: String {
         switch self {
         case .firewall:

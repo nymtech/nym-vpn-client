@@ -37,7 +37,7 @@ public struct SnackbarView: View {
                 .cornerRadius(10)
                 .padding(.horizontal, 16)
                 .padding(.top, appSettings.isSmallScreen ? 64 : 80) // CustomNavBarSize + 16
-                .transition(.move(edge: .top))
+                .transition(isDisplayed ? .move(edge: .trailing) : .move(edge: .leading))
                 .animation(.easeInOut, value: isDisplayed)
             }
             Spacer()
@@ -73,7 +73,9 @@ extension SnackbarView {
             .aspectRatio(contentMode: .fit)
             .frame(width: 14, height: 14)
             .onTapGesture {
-                isDisplayed = false
+                withAnimation {
+                    isDisplayed = false
+                }
             }
     }
 }

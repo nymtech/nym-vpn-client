@@ -17,6 +17,7 @@ public final class SystemMessageManager: ObservableObject {
     private let logger = Logger(label: "SystemMessageManager")
 
     private var messages: [NymNetworkMessage] = []
+    private var timer: Timer?
 
     public static let shared = SystemMessageManager()
 
@@ -41,6 +42,8 @@ public final class SystemMessageManager: ObservableObject {
     }
 
     public func processMessages() {
+        timer?.invalidate()
+
         guard !messages.isEmpty,
               let text = messages.first?.message,
               text.count > 1
@@ -49,6 +52,9 @@ public final class SystemMessageManager: ObservableObject {
         }
 
         currentMessage = text
+        timer = Timer.scheduledTimer(withTimeInterval: 10, repeats: false) { [weak self] _ in
+            self?.currentMessage = ""
+        }
     }
 
     public func messageDidClose() {
