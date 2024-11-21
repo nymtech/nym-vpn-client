@@ -244,7 +244,7 @@ jobs:
         shell: bash
         run: |
           # yq eval --inplace '.bundle.windows += {"signCommand": {"cmd": "bash", "args": ["-c", "/c/actions-runner/_work/nym-vpn-client/nym-vpn-client/nym-vpn-app/src-tauri/CodeSignTool.sh sign","-username lawrence@nymtech.net","-password wec\*eup\!RGC2ckv2abv","-credential_id ${{ steps.get_credential_ids.outputs.SSL_COM_CREDENTIAL_ID }}","-totp_secret ${{ secrets.SSL_COM_TOTP_SECRET }}","-input_file_path", "%1"]}}' tauri.conf.json
-          yq eval --inplace '.bundle.windows += {"signCommand": {"cmd": "bash", "args": ["-c", "/c/actions-runner/_work/nym-vpn-client/nym-vpn-client/nym-vpn-app/src-tauri/CodeSignTool.sh","sign","-username=${{ secrets.SSL_COM_USERNAME }}","-password=${{ secrets.SSL_COM_PASSWORD }}","-credential_id=${{ steps.get_credential_ids.outputs.SSL_COM_CREDENTIAL_ID }}","-totp_secret=${{ secrets.SSL_COM_TOTP_SECRET }}","-input_file_path=", "%1"]}}' tauri.conf.json
+          yq eval --inplace '.bundle.windows += {"signCommand": {"cmd": "bash", "args": ["-c", "/c/actions-runner/_work/nym-vpn-client/nym-vpn-client/nym-vpn-app/src-tauri/CodeSignTool.sh","sign","-username ${{ secrets.SSL_COM_USERNAME }}","-password ${{ secrets.SSL_COM_PASSWORD }}","-credential_id ${{ steps.get_credential_ids.outputs.SSL_COM_CREDENTIAL_ID }}","-totp_secret ${{ secrets.SSL_COM_TOTP_SECRET }}","-input_file_path ", "%1"]}}' tauri.conf.json
           cat tauri.conf.json
 
       - name: Build tauri desktop client
@@ -256,6 +256,7 @@ jobs:
           APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
           RUSTFLAGS: "-L ${{ env.TAURI_SRC }}/x86_64-pc-windows-msvc -L ${{ env.TAURI_SRC }} -Clink-args=/LIBPATH:${{ env.TAURI_SRC }}/x64-${{ env.CPP_BUILD_MODES }}"
           NETWORK_ENV_SELECT: ${{ inputs.dev_mode == true }}
+          CODE_SIGN_TOOL_PATH: "/c/actions-runner/_work/nym-vpn-client/nym-vpn-client/nym-vpn-app/src-tauri/"
         run: |
           npm run tauri info
           if [ "${{ env.CARGO_TARGET }}" = "release" ]; then
