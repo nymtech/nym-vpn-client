@@ -11,11 +11,11 @@ import "C"
 import (
 	"net/netip"
 
+	"github.com/amnezia-vpn/amneziawg-go/device"
+	"github.com/amnezia-vpn/amneziawg-go/tun/netstack"
 	"github.com/nymtech/nym-vpn-client/wireguard/libwg/container"
 	"github.com/nymtech/nym-vpn-client/wireguard/libwg/logging"
 	"github.com/nymtech/nym-vpn-client/wireguard/libwg/udp_forwarder"
-	"golang.zx2c4.com/wireguard/device"
-	"golang.zx2c4.com/wireguard/tun/netstack"
 )
 
 type NetTunnelHandle struct {
