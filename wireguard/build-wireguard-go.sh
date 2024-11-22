@@ -9,7 +9,6 @@ IS_ANDROID_BUILD=false
 IS_IOS_BUILD=false
 IS_DOCKER_BUILD=true
 IS_WIN_ARM64=false
-IS_AMNEZIA_BUILD=false
 
 function parseArgs {
     for arg in "$@"; do
@@ -30,10 +29,6 @@ function parseArgs {
         "--arm64" )
             IS_WIN_ARM64=true;
             shift ;;
-        # handle --android option
-        "--amnezia" )
-            IS_AMNEZIA_BUILD=true;
-            shift ;;
         # if we receive "--" consider everything after to be inner arguments
         -- ) shift; break ;;
         # any other args before "--" are improper
@@ -41,7 +36,7 @@ function parseArgs {
       esac
     done
 
-    echo "android:$IS_ANDROID_BUILD ios:$IS_IOS_BUILD docker:$IS_DOCKER_BUILD win_arm64:$IS_WIN_ARM64 amnezia:$IS_AMNEZIA_BUILD"
+    echo "android:$IS_ANDROID_BUILD ios:$IS_IOS_BUILD docker:$IS_DOCKER_BUILD win_arm64:$IS_WIN_ARM64"
 }
 
 function win_deduce_lib_executable_path {

@@ -1,21 +1,30 @@
 # Nym Gateway Probe
 
 Probe IPv4 and IPv6 interfaces of available gateways to check for the
-set that passes a set of minumum service guarantees.
+set that passes a set of minimum service guarantees.
+
 
 
 ## Build
 
 These instructions assume a debian based system. Adjust accordingly for your
-preffered platform.
+preferred platform.
 
 Install required dependencies
 ```sh
-sudo apt install libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler clang
+sudo apt install libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
 ```
 
 
-Build piece by piece
+Build the wireguard library
+
+```sh
+# from the root of the repository
+make build-wireguard
+```
+
+Build VPN libraries and executables
+
 ```sh
 cd nym-vpn-core/
 # build the prober
