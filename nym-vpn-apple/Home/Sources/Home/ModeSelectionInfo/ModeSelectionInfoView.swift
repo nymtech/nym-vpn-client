@@ -156,7 +156,9 @@ private extension ModeSelectionInfoView {
         GenericButton(title: viewModel.okLocalizedString)
             .padding(EdgeInsets(top: 0, leading: 24, bottom: 24, trailing: 24))
             .onTapGesture {
-                viewModel.isDisplayed.toggle()
+                withAnimation {
+                    viewModel.isDisplayed.toggle()
+                }
             }
     }
 }

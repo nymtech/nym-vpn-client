@@ -342,18 +342,20 @@ private extension HomeViewModel {
         lastTunnelStatus = newStatus
         Task { @MainActor [weak self] in
             guard let self else { return }
+            withAnimation { [weak self] in
+                guard let self else { return }
+                statusButtonConfig = StatusButtonConfig(tunnelStatus: newStatus)
+                connectButtonState = ConnectButtonState(tunnelStatus: newStatus)
 
-            statusButtonConfig = StatusButtonConfig(tunnelStatus: newStatus)
-            connectButtonState = ConnectButtonState(tunnelStatus: newStatus)
-
-            if let lastError {
-                statusInfoState = .error(message: lastError.localizedDescription)
-            } else {
-                statusInfoState = StatusInfoState(tunnelStatus: newStatus)
-            }
+                if let lastError {
+                    statusInfoState = .error(message: lastError.localizedDescription)
+                } else {
+                    statusInfoState = StatusInfoState(tunnelStatus: newStatus)
+                }
 #if os(macOS)
-            updateConnectedStartDateMacOS(with: status)
+                updateConnectedStartDateMacOS(with: status)
 #endif
+            }
         }
     }
 
