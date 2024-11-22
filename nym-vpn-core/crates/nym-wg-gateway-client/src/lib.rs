@@ -118,12 +118,24 @@ impl WgGatewayLightClient {
             match self.auth_client.send(&msg, self.auth_recipient).await {
                 Ok(response) => return Ok(response),
                 Err(nym_authenticator_client::Error::TimeoutWaitingForConnectResponse) => continue,
-                Err(source) => return Err(Error::NoRetry { source }),
+                Err(source) => {
+                    if msg.is_wasteful() {
+                        return Err(Error::NoRetry { source });
+                    } else {
+                        return Err(Error::AuthenticatorClientError(source));
+                    }
+                }
             }
         }
-        Err(Error::NoRetry {
-            source: nym_authenticator_client::Error::TimeoutWaitingForConnectResponse,
-        })
+        if msg.is_wasteful() {
+            Err(Error::NoRetry {
+                source: nym_authenticator_client::Error::TimeoutWaitingForConnectResponse,
+            })
+        } else {
+            Err(Error::AuthenticatorClientError(
+                nym_authenticator_client::Error::TimeoutWaitingForConnectResponse,
+            ))
+        }
     }
 
     pub async fn top_up(&mut self, credential: CredentialSpendingData) -> Result<i64> {
