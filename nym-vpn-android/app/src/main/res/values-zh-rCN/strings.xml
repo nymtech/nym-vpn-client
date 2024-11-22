@@ -161,7 +161,6 @@
     <string name="low_bandwidth">"低带宽！ 剩余带宽： "</string>
     <string name="vpn_permission_missing">Vpn 权限未被接受或正被其他应用程序使用。</string>
     <string name="credential_already_imported">已导入凭证</string>
-    <string name="environment">环境</string>
     <string name="action_requires_tunnel_down">行动需要下穿隧道</string>
     <string name="selected_exit_unavailable">所选出口国家不可用，请选择其他出口国家。</string>
     <string name="selected_entry_unavailable">所选入口国家不可用，请选择其他入口国家。</string>

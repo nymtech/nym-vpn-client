@@ -62,7 +62,6 @@
     <string name="error_reporting_alert">لن تُطبق التغييرات على تقارير الأخطاء بشكل كامل حتى يتم إعادة تشغيل التطبيق.</string>
     <string name="alpha_help_message">ساعدنا في تحسين تطبيقنا أثناء اختبار النسخة التجريبية! ملاحظاتك ضرورية لتحديد المشكلات وحلها.</string>
     <string name="error_bad_peer_cert">"تحتوي البوابة المختارة على شهادة نظير خاطئة. يرجى المحاولة مرة أخرى للاتصال ببوابة أخرى. "</string>
-    <string name="environment">المحيط</string>
     <string name="action_requires_tunnel_down">الإجراء يتطلب انقطاع النفق</string>
     <string name="selected_entry_unavailable">الدولة المختارة للدخول غير متاحة. يرجى اختيار دولة دخول مختلفة.</string>
     <string name="sentry">سينتاري</string>

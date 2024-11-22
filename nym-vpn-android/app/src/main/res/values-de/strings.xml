@@ -178,5 +178,4 @@
     <string name="account">Konto</string>
     <string name="mnemonic_example">bzw. smoke artefact velvet skull pop palace tortoise damage rough...</string>
     <string name="recovery_phrase_message">Geben Sie unten Ihre 24 Wörter geheime Wiederherstellungsphrase ein, um sich bei Ihrem Konto anzumelden</string>
-    <string name="environment">Umfeld</string>
 </resources>
