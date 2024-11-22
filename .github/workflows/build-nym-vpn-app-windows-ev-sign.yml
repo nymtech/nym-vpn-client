@@ -252,7 +252,7 @@ jobs:
               "cmd": "powershell",
               "args": [
                 "Start-Process",
-                "\"${{ github.workspace }}\src-tauri\CodeSignTool.bat\"",
+                "${{ github.workspace }}\nym-vpn-app\src-tauri\CodeSignTool.bat",
                 "sign",
                 "-username ${{ secrets.SSL_COM_USERNAME }}",
                 "-password ${{ secrets.SSL_COM_PASSWORD }}",
