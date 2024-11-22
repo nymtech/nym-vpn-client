@@ -560,30 +560,40 @@ impl From<u8> for AuthenticatorVersion {
     }
 }
 
-impl From<String> for AuthenticatorVersion {
-    fn from(value: String) -> Self {
-        if value.contains("1.1.9") {
-            Self::V2
-        } else if value.contains("1.1.10") {
-            Self::V3
-        } else {
-            Self::UNKNOWN
+impl From<Option<String>> for AuthenticatorVersion {
+    fn from(value: Option<String>) -> Self {
+        match value {
+            None => Self::UNKNOWN,
+            Some(value) => value.into(),
         }
     }
 }
 
-impl From<Option<String>> for AuthenticatorVersion {
-    fn from(value: Option<String>) -> Self {
-        let Some(value) = value else {
+impl From<String> for AuthenticatorVersion {
+    fn from(value: String) -> Self {
+        let Ok(semver) = semver::Version::parse(value.as_str()) else {
             return Self::UNKNOWN;
         };
-        if value.contains("1.1.9") {
-            Self::V2
-        } else if value.contains("1.1.10") {
-            Self::V3
-        } else {
-            Self::UNKNOWN
+
+        semver.into()
+    }
+}
+
+impl From<semver::Version> for AuthenticatorVersion {
+    fn from(semver: semver::Version) -> Self {
+        if semver.major < 1 {
+            return Self::UNKNOWN;
         }
+        if semver.minor < 1 {
+            return Self::UNKNOWN;
+        }
+        if semver.minor == 1 && semver.patch == 9 {
+            return Self::V2;
+        }
+        if semver.minor == 1 && semver.patch >= 10 {
+            return Self::V3;
+        }
+        Self::UNKNOWN
     }
 }
 
