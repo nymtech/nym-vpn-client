@@ -101,7 +101,8 @@ export type ErrorKey =
   | 'GetMixnetEntryCountriesQuery'
   | 'GetMixnetExitCountriesQuery'
   | 'GetWgCountriesQuery'
-  | 'InvalidNetworkName';
+  | 'InvalidNetworkName'
+  | 'MaxRegisteredDevices';
 
 export type StartupErrorKey = 'StartupOpenDb' | 'StartupOpenDbLocked';
 
