@@ -3235,6 +3235,7 @@ dependencies = [
  "nym-sdk",
  "nym-service-provider-requests-common",
  "nym-wireguard-types",
+ "semver",
  "serde",
  "thiserror",
  "tokio",
