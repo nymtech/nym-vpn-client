@@ -1,8 +1,15 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+mod cli;
+mod config;
+mod display_types;
+mod protobuf_conversion;
+mod vpnd_client;
+
 use anyhow::Result;
 use clap::Parser;
+use cli::Internal;
 use nym_gateway_directory::GatewayType;
 use nym_vpn_proto::{
     ConfirmZkNymDownloadedRequest, ConnectRequest, DisconnectRequest, Empty,
@@ -21,15 +28,17 @@ use vpnd_client::ClientType;
 
 use crate::{
     cli::Command,
+    display_types::info::Info,
     protobuf_conversion::{
         into_entry_point, into_exit_point, ipaddr_into_string, parse_offset_datetime,
     },
 };
 
-mod cli;
-mod config;
-mod protobuf_conversion;
-mod vpnd_client;
+#[derive(Clone, Debug)]
+struct CliOptions {
+    client_type: ClientType,
+    verbose: bool,
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -39,58 +48,67 @@ async fn main() -> Result<()> {
     } else {
         vpnd_client::ClientType::Ipc
     };
+    let opts = CliOptions {
+        client_type,
+        verbose: args.verbose,
+    };
+
     match args.command {
-        Command::Connect(ref connect_args) => connect(client_type, connect_args).await?,
-        Command::Disconnect => disconnect(client_type).await?,
-        Command::Status => status(client_type).await?,
-        Command::Info => info(client_type).await?,
-        Command::SetNetwork(ref args) => set_network(client_type, args).await?,
-        Command::GetSystemMessages => get_system_messages(client_type).await?,
-        Command::GetFeatureFlags => get_feature_flags(client_type).await?,
-        Command::StoreAccount(ref store_args) => store_account(client_type, store_args).await?,
-        Command::RefreshAccountState => refresh_account_state(client_type).await?,
-        Command::IsAccountStored => is_account_stored(client_type).await?,
-        Command::RemoveAccount => remove_account(client_type).await?,
-        Command::ForgetAccount => forget_account(client_type).await?,
-        Command::GetAccountId => get_account_id(client_type).await?,
-        Command::GetAccountLinks(ref args) => get_account_links(client_type, args).await?,
-        Command::GetAccountState => get_account_state(client_type).await?,
-        Command::IsReadyToConnect => is_ready_to_connect(client_type).await?,
-        Command::ListenToStatus => listen_to_status(client_type).await?,
-        Command::ListenToStateChanges => listen_to_state_changes(client_type).await?,
+        Command::Connect(ref connect_args) => connect(opts, connect_args).await?,
+        Command::Disconnect => disconnect(opts).await?,
+        Command::Status => status(opts).await?,
+        Command::Info => info(opts.client_type).await?,
+        Command::SetNetwork(ref args) => set_network(opts.client_type, args).await?,
+        Command::StoreAccount(ref store_args) => store_account(opts, store_args).await?,
+        Command::IsAccountStored => is_account_stored(opts.client_type).await?,
+        Command::ForgetAccount => forget_account(opts.client_type).await?,
+        Command::GetAccountId => get_account_id(opts.client_type).await?,
+        Command::GetAccountLinks(ref args) => get_account_links(opts.client_type, args).await?,
+        Command::GetAccountState => get_account_state(opts.client_type).await?,
         Command::ListEntryGateways(ref list_args) => {
-            list_gateways(client_type, list_args, GatewayType::MixnetEntry).await?
+            list_gateways(opts.client_type, list_args, GatewayType::MixnetEntry).await?
         }
         Command::ListExitGateways(ref list_args) => {
-            list_gateways(client_type, list_args, GatewayType::MixnetExit).await?
+            list_gateways(opts.client_type, list_args, GatewayType::MixnetExit).await?
         }
         Command::ListVpnGateways(ref list_args) => {
-            list_gateways(client_type, list_args, GatewayType::Wg).await?
+            list_gateways(opts.client_type, list_args, GatewayType::Wg).await?
         }
         Command::ListEntryCountries(ref list_args) => {
-            list_countries(client_type, list_args, GatewayType::MixnetEntry).await?
+            list_countries(opts.client_type, list_args, GatewayType::MixnetEntry).await?
         }
         Command::ListExitCountries(ref list_args) => {
-            list_countries(client_type, list_args, GatewayType::MixnetExit).await?
+            list_countries(opts.client_type, list_args, GatewayType::MixnetExit).await?
         }
         Command::ListVpnCountries(ref list_args) => {
-            list_countries(client_type, list_args, GatewayType::Wg).await?
+            list_countries(opts.client_type, list_args, GatewayType::Wg).await?
         }
-        Command::ResetDeviceIdentity(ref args) => reset_device_identity(client_type, args).await?,
-        Command::GetDeviceId => get_device_id(client_type).await?,
-        Command::RegisterDevice => register_device(client_type).await?,
-        Command::RequestZkNym => request_zk_nym(client_type).await?,
-        Command::GetDeviceZkNym => get_device_zk_nym(client_type).await?,
-        Command::GetZkNymsAvailableForDownload => {
-            get_zk_nyms_available_for_download(client_type).await?
-        }
-        Command::GetZkNymById(args) => get_zk_nym_by_id(client_type, args).await?,
-        Command::ConfirmZkNymDownloaded(args) => {
-            confirm_zk_nym_downloaded(client_type, args).await?
-        }
-        Command::GetAvailableTickets => get_available_tickets(client_type).await?,
-        Command::FetchRawAccountSummary => fetch_raw_account_summary(client_type).await?,
-        Command::FetchRawDevices => fetch_raw_devices(client_type).await?,
+        Command::GetDeviceId => get_device_id(opts.client_type).await?,
+        Command::Internal(internal) => match internal {
+            Internal::GetSystemMessages => get_system_messages(opts.client_type).await?,
+            Internal::GetFeatureFlags => get_feature_flags(opts.client_type).await?,
+            Internal::SyncAccountState => refresh_account_state(opts.client_type).await?,
+            Internal::RemoveAccount => remove_account(opts.client_type).await?,
+            Internal::IsReadyToConnect => is_ready_to_connect(opts.client_type).await?,
+            Internal::ListenToStatus => listen_to_status(opts.client_type).await?,
+            Internal::ListenToStateChanges => listen_to_state_changes(opts.client_type).await?,
+            Internal::ResetDeviceIdentity(ref args) => {
+                reset_device_identity(opts.client_type, args).await?
+            }
+            Internal::RegisterDevice => register_device(opts.client_type).await?,
+            Internal::RequestZkNym => request_zk_nym(opts.client_type).await?,
+            Internal::GetDeviceZkNym => get_device_zk_nym(opts.client_type).await?,
+            Internal::GetZkNymsAvailableForDownload => {
+                get_zk_nyms_available_for_download(opts.client_type).await?
+            }
+            Internal::GetZkNymById(args) => get_zk_nym_by_id(opts.client_type, args).await?,
+            Internal::ConfirmZkNymDownloaded(args) => {
+                confirm_zk_nym_downloaded(opts.client_type, args).await?
+            }
+            Internal::GetAvailableTickets => get_available_tickets(opts.client_type).await?,
+            Internal::FetchRawAccountSummary => fetch_raw_account_summary(opts.client_type).await?,
+            Internal::FetchRawDevices => fetch_raw_devices(opts.client_type).await?,
+        },
     }
     Ok(())
 }
@@ -114,11 +132,11 @@ fn construct_user_agent(daemon_info: InfoResponse) -> UserAgent {
     }
 }
 
-async fn connect(client_type: ClientType, connect_args: &cli::ConnectArgs) -> Result<()> {
+async fn connect(opts: CliOptions, connect_args: &cli::ConnectArgs) -> Result<()> {
     let entry = cli::parse_entry_point(connect_args)?;
     let exit = cli::parse_exit_point(connect_args)?;
 
-    let mut client = vpnd_client::get_client(client_type).await?;
+    let mut client = vpnd_client::get_client(opts.client_type.clone()).await?;
     let info_request = tonic::Request::new(InfoRequest {});
     let info = client.info(info_request).await?.into_inner();
     let user_agent = construct_user_agent(info);
@@ -142,31 +160,113 @@ async fn connect(client_type: ClientType, connect_args: &cli::ConnectArgs) -> Re
     });
 
     let response = client.vpn_connect(request).await?.into_inner();
-    println!("{:#?}", response);
-    Ok(())
+
+    if opts.verbose {
+        println!("{:#?}", response);
+    }
+
+    if response.success {
+        println!("Successfully sent connect command, waiting for connected state");
+        listen_until_connected(opts).await
+    } else if let Some(error) = response.error {
+        let kind =
+            nym_vpn_proto::connect_request_error::ConnectRequestErrorType::try_from(error.kind)
+                .unwrap();
+        println!("Connect command failed: {} (id={kind:?})", error.message);
+        Ok(())
+    } else {
+        println!("Connect command failed with unknown error");
+        Ok(())
+    }
 }
 
-async fn disconnect(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(client_type).await?;
-    let request = tonic::Request::new(DisconnectRequest {});
-    let response = client.vpn_disconnect(request).await?.into_inner();
-    println!("{:#?}", response);
-    Ok(())
-}
+async fn listen_until_connected(opts: CliOptions) -> Result<()> {
+    let mut client = vpnd_client::get_client(opts.client_type).await?;
 
-async fn status(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(StatusRequest {});
     let response = client.vpn_status(request).await?.into_inner();
-    println!("{:#?}", response);
+    if response.status == nym_vpn_proto::ConnectionStatus::Connected as i32 {
+        println!("Connected!");
+        return Ok(());
+    }
 
-    if let Some(Ok(utc_since)) = response
-        .details
-        .and_then(|details| details.since)
-        .map(parse_offset_datetime)
-    {
-        println!("since (utc): {:?}", utc_since);
-        println!("duration: {}", time::OffsetDateTime::now_utc() - utc_since);
+    let request = tonic::Request::new(Empty {});
+    let mut stream = client
+        .listen_to_connection_state_changes(request)
+        .await?
+        .into_inner();
+    while let Some(response) = stream.message().await? {
+        println!("{:#?}", response);
+        if response.status == nym_vpn_proto::ConnectionStatus::Connected as i32 {
+            println!("Connected!");
+            break;
+        }
+    }
+    Ok(())
+}
+
+async fn disconnect(opts: CliOptions) -> Result<()> {
+    let mut client = vpnd_client::get_client(opts.client_type.clone()).await?;
+    let request = tonic::Request::new(DisconnectRequest {});
+    let response = client.vpn_disconnect(request).await?.into_inner();
+
+    if opts.verbose {
+        println!("{:#?}", response);
+    }
+
+    if response.success {
+        println!("Successfully sent disconnect command, waiting for disconnected state");
+        listen_until_disconnected(opts).await
+    } else {
+        println!("Disconnect command failed");
+        Ok(())
+    }
+}
+
+async fn listen_until_disconnected(opts: CliOptions) -> Result<()> {
+    let mut client = vpnd_client::get_client(opts.client_type).await?;
+
+    let request = tonic::Request::new(StatusRequest {});
+    let response = client.vpn_status(request).await?.into_inner();
+    if response.status == nym_vpn_proto::ConnectionStatus::NotConnected as i32 {
+        println!("Disconnected!");
+        return Ok(());
+    } else if response.status == nym_vpn_proto::ConnectionStatus::ConnectionFailed as i32 {
+        println!("Connection failed!");
+        return Ok(());
+    }
+
+    let request = tonic::Request::new(Empty {});
+    let mut stream = client
+        .listen_to_connection_state_changes(request)
+        .await?
+        .into_inner();
+    while let Some(response) = stream.message().await? {
+        println!("{:#?}", response);
+        if response.status == nym_vpn_proto::ConnectionStatus::NotConnected as i32 {
+            println!("Disconnected!");
+            break;
+        }
+    }
+    Ok(())
+}
+
+async fn status(opts: CliOptions) -> Result<()> {
+    let mut client = vpnd_client::get_client(opts.client_type).await?;
+    let request = tonic::Request::new(StatusRequest {});
+    let response = client.vpn_status(request).await?.into_inner();
+
+    if opts.verbose {
+        println!("{:#?}", response);
+    }
+
+    let status = nym_vpn_proto::ConnectionStatus::try_from(response.status).unwrap();
+    println!("status: {:?}", status);
+    if let Some(details) = response.details {
+        println!("details: {:#?}", details);
+    }
+    if let Some(error) = response.error {
+        println!("error: {:#?}", error);
     }
 
     Ok(())
@@ -176,15 +276,7 @@ async fn info(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(InfoRequest {});
     let response = client.info(request).await?.into_inner();
-    println!("{:#?}", response);
-
-    if let Some(Ok(utc_build_timestamp)) = response.build_timestamp.map(parse_offset_datetime) {
-        println!("build timestamp (utc): {:?}", utc_build_timestamp);
-        println!(
-            "build age: {}",
-            time::OffsetDateTime::now_utc() - utc_build_timestamp
-        );
-    }
+    println!("{}", Info::from(response));
     Ok(())
 }
 
@@ -214,14 +306,28 @@ async fn get_feature_flags(client_type: ClientType) -> Result<()> {
     Ok(())
 }
 
-async fn store_account(client_type: ClientType, store_args: &cli::StoreAccountArgs) -> Result<()> {
-    let mut client = vpnd_client::get_client(client_type).await?;
+async fn store_account(opts: CliOptions, store_args: &cli::StoreAccountArgs) -> Result<()> {
+    let mut client = vpnd_client::get_client(opts.client_type).await?;
     let request = tonic::Request::new(StoreAccountRequest {
         mnemonic: store_args.mnemonic.clone(),
         nonce: 0,
     });
     let response = client.store_account(request).await?.into_inner();
-    println!("{:#?}", response);
+    if opts.verbose {
+        println!("{:#?}", response);
+    }
+    if response.success {
+        println!("Account recovery phrase stored");
+    } else {
+        let msg = if let Some(error) = response.error {
+            let kind =
+                nym_vpn_proto::account_error::AccountErrorType::try_from(error.kind).unwrap();
+            format!("{} (id={:?})", error.message, kind)
+        } else {
+            "unknown".to_owned()
+        };
+        println!("Error: {msg}");
+    }
     Ok(())
 }
 

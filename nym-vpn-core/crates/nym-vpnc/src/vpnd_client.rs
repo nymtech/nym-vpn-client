@@ -10,6 +10,7 @@ use tonic::transport::{Channel as TonicChannel, Endpoint as TonicEndpoint};
 
 use crate::config;
 
+#[derive(Debug, Clone)]
 pub(crate) enum ClientType {
     Http,
     Ipc,
@@ -22,6 +23,7 @@ pub(crate) async fn get_client(
         ClientType::Http => get_http_client().await,
         ClientType::Ipc => get_ipc_client().await,
     }
+    .with_context(|| "failed to connect to `nym-vpnd`. Is it running?")
 }
 
 async fn get_channel(socket_path: PathBuf) -> anyhow::Result<TonicChannel> {
@@ -37,7 +39,7 @@ async fn get_http_client() -> anyhow::Result<NymVpndClient<TonicChannel>> {
     let endpoint = config::default_endpoint();
     let client = NymVpndClient::connect(endpoint.clone())
         .await
-        .with_context(|| format!("Failed to connect to: {}", endpoint))?;
+        .with_context(|| format!("failed to connect to: {}", endpoint))?;
     Ok(client)
 }
 
@@ -45,7 +47,7 @@ async fn get_ipc_client() -> anyhow::Result<NymVpndClient<TonicChannel>> {
     let socket_path = config::get_socket_path();
     let channel = get_channel(socket_path.clone())
         .await
-        .with_context(|| format!("Failed to connect to: {:?}", socket_path))?;
+        .with_context(|| format!("failed to connect to: {:?}", socket_path))?;
     let client = NymVpndClient::new(channel);
     Ok(client)
 }

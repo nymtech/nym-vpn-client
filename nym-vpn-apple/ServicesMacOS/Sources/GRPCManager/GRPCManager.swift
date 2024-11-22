@@ -61,14 +61,9 @@ public final class GRPCManager: ObservableObject {
     // MARK: - Info -
 
     public func version() async throws -> String {
-        guard helperManager.isHelperAuthorizedAndRunning()
-        else {
-            throw GRPCError.daemonNotRunning
-        }
-
         logger.log(level: .info, "Version")
         return try await withCheckedThrowingContinuation { continuation in
-            let call = client.info(Nym_Vpn_InfoRequest(), callOptions: nil)
+            let call = client.info(Nym_Vpn_InfoRequest(), callOptions: CallOptions(timeLimit: .timeout(.seconds(5))))
 
             call.response.whenComplete { [weak self] result in
                 switch result {

@@ -51,4 +51,9 @@ impl KeyStore for InMemEphemeralKeys {
         };
         self.store_keys(&device_keys).await
     }
+
+    async fn remove_keys(&self) -> Result<(), Self::StorageError> {
+        *self.keys.lock().await = None;
+        Ok(())
+    }
 }

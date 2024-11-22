@@ -54,13 +54,13 @@ jobs:
           version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install build tools
-        shell: cmd
-        run: |
-          winget install --disable-interactivity --id=Microsoft.VisualStudio.2022.BuildTools --override "--wait --passive --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended"
-          if %ERRORLEVEL% EQU -1978335189 (
-            exit /b 0
-          )
+      # - name: Install build tools
+      #   shell: cmd
+      #   run: |
+      #     winget install --disable-interactivity --id=Microsoft.VisualStudio.2022.BuildTools --override "--wait --passive --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended"
+      #     if %ERRORLEVEL% EQU -1978335189 (
+      #       exit /b 0
+      #     )
 
       - name: Update path with vctools
         shell: pwsh

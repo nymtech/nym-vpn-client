@@ -29,13 +29,14 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install build tools
-        shell: cmd
-        run: |
-          winget install --disable-interactivity --id=Microsoft.VisualStudio.2022.BuildTools --override "--wait --passive --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended"
-          if %ERRORLEVEL% EQU -1978335189 (
-            exit /b 0
-          )
+      # trying to install latest 17.12.1 version fails on CI
+      # - name: Install build tools
+      #   shell: cmd
+      #   run: |
+      #     winget install --disable-interactivity --id=Microsoft.VisualStudio.2022.BuildTools --override "--wait --passive --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended"
+      #     if %ERRORLEVEL% EQU -1978335189 (
+      #       exit /b 0
+      #     )
 
       - name: Update path with vctools
         shell: pwsh

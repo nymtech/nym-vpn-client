@@ -947,17 +947,30 @@ where
             data_dir.display()
         );
 
-        nym_vpn_lib::util::assert_existence_of_expected_files(&data_dir).map_err(|source| {
-            AccountError::FailedToForgetAccount {
-                source: Box::new(source),
-            }
-        })?;
-
-        std::fs::remove_dir_all(&data_dir)
-            .inspect_err(|err| tracing::error!("Failed to remove data dir: {:?}", err))
-            .map_err(|source| AccountError::FailedToForgetAccount {
-                source: Box::new(source),
+        // First remove some of the files that we are the owner of
+        self.storage
+            .lock()
+            .await
+            .remove_mnemonic()
+            .await
+            .map_err(|err| AccountError::FailedToRemoveAccount {
+                source: Box::new(err),
             })?;
+
+        self.storage
+            .lock()
+            .await
+            .remove_keys()
+            .await
+            .map_err(|err| AccountError::FailedToRemoveAccount {
+                source: Box::new(err),
+            })?;
+
+        nym_vpn_account_controller::util::remove_files_for_account(&data_dir).map_err(
+            |source| AccountError::FailedToForgetAccount {
+                source: Box::new(source),
+            },
+        )?;
 
         // Tell the account controller to reset its state
         self.account_command_tx

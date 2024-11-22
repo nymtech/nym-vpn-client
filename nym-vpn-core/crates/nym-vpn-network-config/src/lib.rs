@@ -43,6 +43,14 @@ pub struct Network {
 }
 
 impl Network {
+    pub fn mainnet_default() -> Self {
+        Network {
+            nym_network: NymNetwork::mainnet_default(),
+            nym_vpn_network: NymVpnNetwork::mainnet_default(),
+            feature_flags: None,
+        }
+    }
+
     pub fn nym_network_details(&self) -> &NymNetworkDetails {
         &self.nym_network.network
     }

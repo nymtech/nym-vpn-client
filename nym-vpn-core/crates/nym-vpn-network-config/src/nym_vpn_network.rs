@@ -18,6 +18,17 @@ pub struct NymVpnNetwork {
 }
 
 impl NymVpnNetwork {
+    pub fn mainnet_default() -> Self {
+        Self {
+            nym_vpn_api_url: NymNetworkDetails::new_mainnet()
+                .nym_vpn_api_url
+                .unwrap()
+                .parse()
+                .unwrap(),
+            account_management: None,
+            system_messages: SystemMessages::default(),
+        }
+    }
     pub(super) fn export_to_env(&self) {
         env::set_var(var_names::NYM_VPN_API, self.nym_vpn_api_url.to_string());
     }

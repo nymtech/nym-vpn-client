@@ -61,7 +61,7 @@ import net.nymtech.nymvpn.ui.screens.settings.appearance.AppearanceScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.display.DisplayScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.language.LanguageScreen
 import net.nymtech.nymvpn.ui.screens.settings.credential.CredentialScreen
-import net.nymtech.nymvpn.ui.screens.settings.environment.EnvironmentScreen
+import net.nymtech.nymvpn.ui.screens.settings.environment.DeveloperScreen
 import net.nymtech.nymvpn.ui.screens.settings.feedback.FeedbackScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.LegalScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.licenses.LicensesScreen
@@ -242,8 +242,8 @@ class MainActivity : ComponentActivity() {
 								composable<Route.Language> {
 									LanguageScreen(appViewModel, localeStorage)
 								}
-								composable<Route.Environment> {
-									EnvironmentScreen(appState, appViewModel)
+								composable<Route.Developer> {
+									DeveloperScreen(appState, appViewModel)
 								}
 								composable<Route.CredentialScanner> {
 									ScannerScreen()

@@ -7,6 +7,7 @@
 // 3. request ticketbooks and top up the local credential store
 
 pub mod shared_state;
+pub mod util;
 
 mod commander;
 mod commands;

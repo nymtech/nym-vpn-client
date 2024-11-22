@@ -25,6 +25,10 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val analyticsShown = booleanPreferencesKey("ANALYTICS_SHOWN")
 	private val applicationShortcuts = booleanPreferencesKey("APPLICATION_SHORTCUTS")
 	private val environment = stringPreferencesKey("ENVIRONMENT")
+	private val manualGatewayOverride = booleanPreferencesKey("MANUAL_GATEWAYS")
+	private val credentialMode = booleanPreferencesKey("CREDENTIAL_MODE")
+	private val entryGateway = stringPreferencesKey("ENTRY_GATEWAY_ID")
+	private val exitGateway = stringPreferencesKey("EXIT_GATEWAY_ID")
 
 	override suspend fun init() {
 		val firstHop = dataStoreManager.getFromStore(firstHopCountry)
@@ -132,6 +136,39 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		dataStoreManager.saveToDataStore(this.environment, environment.name)
 	}
 
+	override suspend fun setManualGatewayOverride(enabled: Boolean) {
+		dataStoreManager.saveToDataStore(manualGatewayOverride, enabled)
+	}
+
+	override suspend fun isManualGatewayOverride(): Boolean {
+		return dataStoreManager.getFromStore(manualGatewayOverride) ?: Settings.MANUAL_GATEWAY_OVERRIDE
+	}
+
+	override suspend fun setCredentialMode(enabled: Boolean?) {
+		if (enabled == null) return dataStoreManager.clear(credentialMode)
+		dataStoreManager.saveToDataStore(credentialMode, enabled)
+	}
+
+	override suspend fun isCredentialMode(): Boolean? {
+		return dataStoreManager.getFromStore(credentialMode)
+	}
+
+	override suspend fun setEntryGatewayId(id: String) {
+		dataStoreManager.saveToDataStore(entryGateway, id)
+	}
+
+	override suspend fun setExitGatewayId(id: String) {
+		dataStoreManager.saveToDataStore(exitGateway, id)
+	}
+
+	override suspend fun getEntryGatewayId(): String? {
+		return dataStoreManager.getFromStore(entryGateway)
+	}
+
+	override suspend fun getExitGatewayId(): String? {
+		return dataStoreManager.getFromStore(exitGateway)
+	}
+
 	override val settingsFlow: Flow<Settings> =
 		dataStoreManager.preferencesFlow.map { prefs ->
 			prefs?.let { pref ->
@@ -156,6 +193,10 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 						lastHopCountry = Country.from(pref[lastHopCountry]) ?: default,
 						isShortcutsEnabled = pref[applicationShortcuts] ?: Settings.SHORTCUTS_DEFAULT,
 						environment = pref[environment]?.let { Tunnel.Environment.valueOf(it) } ?: Settings.DEFAULT_ENVIRONMENT,
+						isManualGatewayOverride = pref[manualGatewayOverride] ?: Settings.MANUAL_GATEWAY_OVERRIDE,
+						isCredentialMode = pref[credentialMode],
+						entryGatewayId = pref[entryGateway],
+						exitGatewayId = pref[exitGateway],
 					)
 				} catch (e: IllegalArgumentException) {
 					Timber.e(e)

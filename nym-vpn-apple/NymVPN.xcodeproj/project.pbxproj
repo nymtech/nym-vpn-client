@@ -59,7 +59,6 @@
 		D9AC152E2BF3845E0041E334 /* net.nymtech.vpn.helper in Embed Helper Tool */ = {isa = PBXBuildFile; fileRef = D9AC152C2BF384580041E334 /* net.nymtech.vpn.helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		D9B7BAF82C4866A0005AF2D6 /* NymLogger in Frameworks */ = {isa = PBXBuildFile; productRef = D9B7BAF72C4866A0005AF2D6 /* NymLogger */; };
 		D9B7BAFC2C4866AF005AF2D6 /* NymLogger in Frameworks */ = {isa = PBXBuildFile; productRef = D9B7BAFB2C4866AF005AF2D6 /* NymLogger */; };
-		D9B969D52CCCD0C2002EC9D1 /* PacketTunnelProvider+Messaging.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B969D42CCCD0AF002EC9D1 /* PacketTunnelProvider+Messaging.swift */; };
 		D9BB53552BAC4AE500917C97 /* Tunnels in Frameworks */ = {isa = PBXBuildFile; productRef = D9BB53542BAC4AE500917C97 /* Tunnels */; };
 		D9BD6A142BD84EF400B42D6F /* SentryManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9BD6A132BD84EF400B42D6F /* SentryManager */; };
 		D9BEF2D32BEB63310036C566 /* NymVPNDaemonApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9BEF2D22BEB63310036C566 /* NymVPNDaemonApp.swift */; };
@@ -176,7 +175,6 @@
 		D99A14762B357E9900F2728B /* NymVPN.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NymVPN.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D99A14792B357E9900F2728B /* NymVPNApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NymVPNApp.swift; sourceTree = "<group>"; };
 		D9AC152C2BF384580041E334 /* net.nymtech.vpn.helper */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = net.nymtech.vpn.helper; sourceTree = "<group>"; };
-		D9B969D42CCCD0AF002EC9D1 /* PacketTunnelProvider+Messaging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PacketTunnelProvider+Messaging.swift"; sourceTree = "<group>"; };
 		D9BEF2D02BEB63310036C566 /* NymVPN.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NymVPN.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D9BEF2D22BEB63310036C566 /* NymVPNDaemonApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NymVPNDaemonApp.swift; sourceTree = "<group>"; };
 		D9BEF2D62BEB63320036C566 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -312,7 +310,6 @@
 			children = (
 				D954C0BB2B51C1CA00C6BAAC /* PacketTunnelProvider.swift */,
 				D925D5312CCFBEA100C8286E /* PacketTunnelProvider+TunnelStatusListener.swift */,
-				D9B969D42CCCD0AF002EC9D1 /* PacketTunnelProvider+Messaging.swift */,
 				D9188A9D2CE12C5F0031E141 /* TunnelActor.swift */,
 				5879C2052C80A37200BAB142 /* TunnelSettingsConversions.swift */,
 				D954C0BD2B51C1CA00C6BAAC /* Info.plist */,
@@ -728,7 +725,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9188A9E2CE12C5F0031E141 /* TunnelActor.swift in Sources */,
-				D9B969D52CCCD0C2002EC9D1 /* PacketTunnelProvider+Messaging.swift in Sources */,
 				D925D5322CCFBEAF00C8286E /* PacketTunnelProvider+TunnelStatusListener.swift in Sources */,
 				5879C2062C80A37200BAB142 /* TunnelSettingsConversions.swift in Sources */,
 				D954C0BC2B51C1CA00C6BAAC /* PacketTunnelProvider.swift in Sources */,
@@ -785,7 +781,7 @@
 				CODE_SIGN_ENTITLEMENTS = NymMixnetTunnel/NymMixnetTunnel.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 310;
+				CURRENT_PROJECT_VERSION = 313;
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -820,7 +816,7 @@
 				CODE_SIGN_ENTITLEMENTS = NymMixnetTunnel/NymMixnetTunnel.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 310;
+				CURRENT_PROJECT_VERSION = 313;
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -978,7 +974,7 @@
 				CODE_SIGN_ENTITLEMENTS = NymVPN/NymVPN.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 310;
+				CURRENT_PROJECT_VERSION = 313;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_PREVIEWS = YES;
@@ -1018,7 +1014,7 @@
 				CODE_SIGN_ENTITLEMENTS = NymVPN/NymVPN.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 310;
+				CURRENT_PROJECT_VERSION = 313;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_PREVIEWS = YES;
@@ -1057,7 +1053,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 22;
+				CURRENT_PROJECT_VERSION = 25;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"NymVPNDaemon/Preview Content\"";
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
@@ -1093,7 +1089,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 22;
+				CURRENT_PROJECT_VERSION = 25;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"NymVPNDaemon/Preview Content\"";
 				DEVELOPMENT_TEAM = "";

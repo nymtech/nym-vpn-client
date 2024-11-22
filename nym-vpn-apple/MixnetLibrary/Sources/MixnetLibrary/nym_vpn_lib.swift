@@ -2915,16 +2915,18 @@ public struct VpnConfig {
     public var tunProvider: OsTunProvider
     public var credentialDataPath: PathBuf?
     public var tunStatusListener: TunnelStatusListener?
+    public var credentialMode: Bool?
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(entryGateway: EntryPoint, exitRouter: ExitPoint, enableTwoHop: Bool, tunProvider: OsTunProvider, credentialDataPath: PathBuf?, tunStatusListener: TunnelStatusListener?) {
+    public init(entryGateway: EntryPoint, exitRouter: ExitPoint, enableTwoHop: Bool, tunProvider: OsTunProvider, credentialDataPath: PathBuf?, tunStatusListener: TunnelStatusListener?, credentialMode: Bool?) {
         self.entryGateway = entryGateway
         self.exitRouter = exitRouter
         self.enableTwoHop = enableTwoHop
         self.tunProvider = tunProvider
         self.credentialDataPath = credentialDataPath
         self.tunStatusListener = tunStatusListener
+        self.credentialMode = credentialMode
     }
 }
 
@@ -2939,7 +2941,8 @@ public struct FfiConverterTypeVPNConfig: FfiConverterRustBuffer {
                 enableTwoHop: FfiConverterBool.read(from: &buf), 
                 tunProvider: FfiConverterTypeOSTunProvider.read(from: &buf), 
                 credentialDataPath: FfiConverterOptionTypePathBuf.read(from: &buf), 
-                tunStatusListener: FfiConverterOptionTypeTunnelStatusListener.read(from: &buf)
+                tunStatusListener: FfiConverterOptionTypeTunnelStatusListener.read(from: &buf), 
+                credentialMode: FfiConverterOptionBool.read(from: &buf)
         )
     }
 
@@ -2950,6 +2953,7 @@ public struct FfiConverterTypeVPNConfig: FfiConverterRustBuffer {
         FfiConverterTypeOSTunProvider.write(value.tunProvider, into: &buf)
         FfiConverterOptionTypePathBuf.write(value.credentialDataPath, into: &buf)
         FfiConverterOptionTypeTunnelStatusListener.write(value.tunStatusListener, into: &buf)
+        FfiConverterOptionBool.write(value.credentialMode, into: &buf)
     }
 }
 
@@ -5374,6 +5378,27 @@ fileprivate struct FfiConverterOptionDouble: FfiConverterRustBuffer {
     }
 }
 
+fileprivate struct FfiConverterOptionBool: FfiConverterRustBuffer {
+    typealias SwiftType = Bool?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterBool.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterBool.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
 fileprivate struct FfiConverterOptionString: FfiConverterRustBuffer {
     typealias SwiftType = String?
 
@@ -6667,18 +6692,27 @@ private func uniffiForeignFutureFree(handle: UInt64) {
 public func uniffiForeignFutureHandleCountNymVpnLib() -> Int {
     UNIFFI_FOREIGN_FUTURE_HANDLE_MAP.count
 }
-public func configureLib(dataDir: String)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func configureLib(dataDir: String, credentialMode: Bool?)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_configurelib(
-        FfiConverterString.lower(dataDir),$0
+        FfiConverterString.lower(dataDir),
+        FfiConverterOptionBool.lower(credentialMode),$0
     )
 }
 }
+/**
+ * Returns the currently set network environment
+ */
 public func currentEnvironment()throws  -> NetworkEnvironment {
     return try  FfiConverterTypeNetworkEnvironment.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_currentenvironment($0
     )
 })
 }
+/**
+ * Fetches the account links for the current network environment
+ * This makes a network call. In normal operations you almost always want to use initEnvironment
+ * followed by getAccountLinks instead of this function.
+ */
 public func fetchAccountLinks(accountStorePath: String, networkName: String, locale: String)throws  -> AccountLinks {
     return try  FfiConverterTypeAccountLinks.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_fetchaccountlinks(
@@ -6688,6 +6722,11 @@ public func fetchAccountLinks(accountStorePath: String, networkName: String, loc
     )
 })
 }
+/**
+ * Fetch the network environment details from the network name.
+ * This makes a network call. In normal operations you almost always want to use initEnvironment
+ * instead of this function.
+ */
 public func fetchEnvironment(networkName: String)throws  -> NetworkEnvironment {
     return try  FfiConverterTypeNetworkEnvironment.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_fetchenvironment(
@@ -6695,10 +6734,32 @@ public func fetchEnvironment(networkName: String)throws  -> NetworkEnvironment {
     )
 })
 }
+/**
+ * Feth the account links for the current network environment.
+ * This makes a network call. In normal operations you almost always want to use initEnvironment
+ * followed by getSystemMessages instead of this function.
+ */
 public func fetchSystemMessages(networkName: String)throws  -> [SystemMessage] {
     return try  FfiConverterSequenceTypeSystemMessage.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_fetchsystemmessages(
         FfiConverterString.lower(networkName),$0
+    )
+})
+}
+public func forgetAccount(path: String)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_forgetaccount(
+        FfiConverterString.lower(path),$0
+    )
+}
+}
+/**
+ * Returns the account links for the current network environment
+ */
+public func getAccountLinks(accountStorePath: String, locale: String)throws  -> AccountLinks {
+    return try  FfiConverterTypeAccountLinks.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_getaccountlinks(
+        FfiConverterString.lower(accountStorePath),
+        FfiConverterString.lower(locale),$0
     )
 })
 }
@@ -6725,6 +6786,15 @@ public func getLowLatencyEntryCountry(userAgent: UserAgent)throws  -> Location {
 })
 }
 /**
+ * Returns the system messages for the current network environment
+ */
+public func getSystemMessages()throws  -> [SystemMessage] {
+    return try  FfiConverterSequenceTypeSystemMessage.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_getsystemmessages($0
+    )
+})
+}
+/**
  * Fetches the network environment details from the network name and initializes the environment,
  * including exporting to the environment
  */
@@ -6735,7 +6805,8 @@ public func initEnvironment(networkName: String)throws  {try rustCallWithError(F
 }
 }
 /**
- * Helps iOS synchronise tunnel start
+ * Async variant of initEnvironment. Fetches the network environment details from the network name
+ * and initializes the environment, including exporting to the environment
  */
 public func initEnvironmentAsync(networkName: String)async throws  {
     return
@@ -6750,6 +6821,15 @@ public func initEnvironmentAsync(networkName: String)async throws  {
             liftFunc: { $0 },
             errorHandler: FfiConverterTypeVpnError.lift
         )
+}
+/**
+ * Sets up mainnet defaults without making any network calls. This means no system messages or
+ * account links will be available.
+ */
+public func initFallbackMainnetEnvironment()throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_initfallbackmainnetenvironment($0
+    )
+}
 }
 public func initLogger() {try! rustCall() {
     uniffi_nym_vpn_lib_fn_func_initlogger($0
@@ -6804,6 +6884,152 @@ public func updateAccountState()throws  {try rustCallWithError(FfiConverterTypeV
     )
 }
 }
+/**
+ * Call that blocks until the account controller reports that we are ready to connect. This is
+ * useful when you want to wait for the account to be ready before proceeding with other
+ * operations.
+ *
+ * # Errors
+ *
+ * This function will return an error of the network environment is not set or the account.
+ *
+ * This function will return an error if the account controller is not running.
+ */
+public func waitForAccountReadyToConnect(timeoutSec: UInt64)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_waitforaccountreadytoconnect(
+        FfiConverterUInt64.lower(timeoutSec),$0
+    )
+}
+}
+/**
+ * Async variant of waitForAccountReadyToConnect. This is useful when you want to wait for the
+ * account to be ready before proceeding with other operations.
+ *
+ * # Errors
+ *
+ * This function will return an error of the network environment is not set or the account.
+ *
+ * This function will return an error if the account controller is not running.
+ */
+public func waitForAccountReadyToConnectAsync(timeoutSec: UInt64)async throws  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_nym_vpn_lib_fn_func_waitforaccountreadytoconnectasync(FfiConverterUInt64.lower(timeoutSec)
+                )
+            },
+            pollFunc: ffi_nym_vpn_lib_rust_future_poll_void,
+            completeFunc: ffi_nym_vpn_lib_rust_future_complete_void,
+            freeFunc: ffi_nym_vpn_lib_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeVpnError.lift
+        )
+}
+/**
+ * Call that blocks until the device has been registered. This is useful when you want to wait
+ * for the device to be registered before proceeding with other operations.
+ *
+ * # Errors
+ *
+ * This function will return an error if the account controller is not running.
+ */
+public func waitForRegisterDevice()throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_waitforregisterdevice($0
+    )
+}
+}
+/**
+ * Async variant of waitForRegisterDevice. This is useful when you want to wait for the device
+ * to be registered before proceeding with other operations.
+ *
+ * # Errors
+ *
+ * This function will return an error if the account controller is not running.
+ */
+public func waitForRegisterDeviceAsync()async throws  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_nym_vpn_lib_fn_func_waitforregisterdeviceasync(
+                )
+            },
+            pollFunc: ffi_nym_vpn_lib_rust_future_poll_void,
+            completeFunc: ffi_nym_vpn_lib_rust_future_complete_void,
+            freeFunc: ffi_nym_vpn_lib_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeVpnError.lift
+        )
+}
+/**
+ * Call that blocks until the account state has been updated/synced. This is useful when you want
+ * to wait for the account state to be updated before proceeding with other operations.
+ *
+ * # Errors
+ *
+ * This function will return an error if the account controller is not running.
+ */
+public func waitForUpdateAccount()throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_waitforupdateaccount($0
+    )
+}
+}
+/**
+ * Async variant of waitForUpdateAccount. This is useful when you want to wait for the account
+ * state to be updated before proceeding with other operations.
+ *
+ * # Errors
+ *
+ * This function will return an error if the account controller is not running.
+ */
+public func waitForUpdateAccountAsync()async throws  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_nym_vpn_lib_fn_func_waitforupdateaccountasync(
+                )
+            },
+            pollFunc: ffi_nym_vpn_lib_rust_future_poll_void,
+            completeFunc: ffi_nym_vpn_lib_rust_future_complete_void,
+            freeFunc: ffi_nym_vpn_lib_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeVpnError.lift
+        )
+}
+/**
+ * Call that blocks until the device has been updated/synced. This is useful when you want to wait
+ * for the device state to be updated before proceeding with other operations.
+ *
+ * # Errors
+ *
+ * This function will return an error if the account controller is not running.
+ */
+public func waitForUpdateDevice()throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_waitforupdatedevice($0
+    )
+}
+}
+/**
+ * Async variant of waitForUpdateDevice. This is useful when you want to wait for the device
+ * state to be updated before proceeding with other operations.
+ *
+ * # Errors
+ *
+ * This function will return an error if the account controller is not running.
+ */
+public func waitForUpdateDeviceAsync()async throws  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_nym_vpn_lib_fn_func_waitforupdatedeviceasync(
+                )
+            },
+            pollFunc: ffi_nym_vpn_lib_rust_future_poll_void,
+            completeFunc: ffi_nym_vpn_lib_rust_future_complete_void,
+            freeFunc: ffi_nym_vpn_lib_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeVpnError.lift
+        )
+}
 
 private enum InitializationResult {
     case ok
@@ -6820,19 +7046,25 @@ private var initializationResult: InitializationResult {
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_configurelib() != 38732) {
+    if (uniffi_nym_vpn_lib_checksum_func_configurelib() != 53065) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_currentenvironment() != 63403) {
+    if (uniffi_nym_vpn_lib_checksum_func_currentenvironment() != 53371) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_fetchaccountlinks() != 52598) {
+    if (uniffi_nym_vpn_lib_checksum_func_fetchaccountlinks() != 56994) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_fetchenvironment() != 34561) {
+    if (uniffi_nym_vpn_lib_checksum_func_fetchenvironment() != 14368) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_fetchsystemmessages() != 3367) {
+    if (uniffi_nym_vpn_lib_checksum_func_fetchsystemmessages() != 47843) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_forgetaccount() != 31212) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_getaccountlinks() != 5427) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_getaccountstate() != 12813) {
@@ -6844,10 +7076,16 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 10827) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_nym_vpn_lib_checksum_func_getsystemmessages() != 3453) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_nym_vpn_lib_checksum_func_initenvironment() != 50720) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_initenvironmentasync() != 36435) {
+    if (uniffi_nym_vpn_lib_checksum_func_initenvironmentasync() != 45760) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_initfallbackmainnetenvironment() != 43903) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_initlogger() != 45606) {
@@ -6875,6 +7113,30 @@ private var initializationResult: InitializationResult {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_updateaccountstate() != 33999) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_waitforaccountreadytoconnect() != 23259) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_waitforaccountreadytoconnectasync() != 20647) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_waitforregisterdevice() != 59983) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_waitforregisterdeviceasync() != 39165) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_waitforupdateaccount() != 28166) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_waitforupdateaccountasync() != 19300) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_waitforupdatedevice() != 29532) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_waitforupdatedeviceasync() != 62630) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_method_osdefaultpathobserver_on_default_path_change() != 43452) {

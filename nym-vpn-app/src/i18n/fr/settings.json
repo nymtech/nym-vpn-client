@@ -10,6 +10,7 @@
   "feedback": {
     "title": "Retour d'information",
     "github": "Créer un ticket GitHub",
+    "get-in-touch": "Contactez-nous",
     "matrix": "Rejoignez-nous sur Matrix",
     "discord": "Rejoignez-nous sur Discord"
   },
@@ -26,7 +27,7 @@
     "licenses-rust": "Licences (Rust)",
     "licenses-js": "Licences (JavaScript)"
   },
-  "display-theme": "Apparence",
+  "display-theme": "Affichage",
   "login-button": "S'identifier",
   "monitoring-alert": "Redémarrez l'application pour que le changement s'applique.",
   "faq": "F.A.Q.",

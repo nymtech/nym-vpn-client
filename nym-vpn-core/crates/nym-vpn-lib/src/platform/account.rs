@@ -4,9 +4,10 @@
 use std::{path::PathBuf, str::FromStr, sync::Arc, time::Duration};
 
 use nym_vpn_account_controller::{
-    AccountCommand, AccountCommandError, AccountControllerCommander, SharedAccountState,
+    shared_state::DeviceState, AccountCommand, AccountCommandError, AccountControllerCommander,
+    SharedAccountState,
 };
-use nym_vpn_api_client::types::VpnApiAccount;
+use nym_vpn_api_client::{response::NymVpnAccountSummaryResponse, types::VpnApiAccount};
 use nym_vpn_store::{keys::KeyStore, mnemonic::MnemonicStorage};
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
@@ -94,6 +95,20 @@ impl AccountControllerHandle {
         }
     }
 
+    async fn wait_for_update_account(
+        &self,
+    ) -> Result<Option<NymVpnAccountSummaryResponse>, AccountCommandError> {
+        self.command_sender.ensure_update_account().await
+    }
+
+    async fn wait_for_update_device(&self) -> Result<DeviceState, AccountCommandError> {
+        self.command_sender.ensure_update_device().await
+    }
+
+    async fn wait_for_register_device(&self) -> Result<(), AccountCommandError> {
+        self.command_sender.ensure_register_device().await
+    }
+
     async fn wait_for_ready_to_connect(
         &self,
         credential_mode: bool,
@@ -139,6 +154,48 @@ pub(super) async fn send_account_command_if_running(
 async fn get_shared_account_state() -> Result<SharedAccountState, VpnError> {
     if let Some(guard) = &*ACCOUNT_CONTROLLER_HANDLE.lock().await {
         Ok(guard.shared_state.clone())
+    } else {
+        Err(VpnError::InvalidStateError {
+            details: "Account controller is not running.".to_owned(),
+        })
+    }
+}
+
+pub(super) async fn wait_for_update_account() -> Result<(), VpnError> {
+    if let Some(guard) = &*ACCOUNT_CONTROLLER_HANDLE.lock().await {
+        guard
+            .wait_for_update_account()
+            .await
+            .map(|_| ())
+            .map_err(VpnError::from)
+    } else {
+        Err(VpnError::InvalidStateError {
+            details: "Account controller is not running.".to_owned(),
+        })
+    }
+}
+
+pub(super) async fn wait_for_update_device() -> Result<(), VpnError> {
+    if let Some(guard) = &*ACCOUNT_CONTROLLER_HANDLE.lock().await {
+        guard
+            .wait_for_update_device()
+            .await
+            .map(|_| ())
+            .map_err(VpnError::from)
+    } else {
+        Err(VpnError::InvalidStateError {
+            details: "Account controller is not running.".to_owned(),
+        })
+    }
+}
+
+pub(super) async fn wait_for_register_device() -> Result<(), VpnError> {
+    if let Some(guard) = &*ACCOUNT_CONTROLLER_HANDLE.lock().await {
+        guard
+            .wait_for_register_device()
+            .await
+            .map(|_| ())
+            .map_err(VpnError::from)
     } else {
         Err(VpnError::InvalidStateError {
             details: "Account controller is not running.".to_owned(),
@@ -235,14 +292,16 @@ pub(super) async fn remove_account_mnemonic(path: &str) -> Result<bool, VpnError
 pub(super) async fn forget_account(path: &str) -> Result<(), VpnError> {
     tracing::warn!("REMOVING ALL ACCOUNT AND DEVICE DATA IN: {path}");
 
-    crate::util::assert_existence_of_expected_files(path).map_err(|err| {
-        VpnError::InternalError {
-            details: err.to_string(),
-        }
+    // First remove the files we own directly
+    remove_account_mnemonic(path).await?;
+    remove_device_identity(path).await?;
+
+    // Then remove the rest of the files, that we own indirectly
+    let path = PathBuf::from_str(path).map_err(|err| VpnError::InvalidAccountStoragePath {
+        details: err.to_string(),
     })?;
 
-    std::fs::remove_dir_all(path).map_err(|err| {
-        tracing::error!("Failed to remove account directory: {}", err);
+    nym_vpn_account_controller::util::remove_files_for_account(&path).map_err(|err| {
         VpnError::InternalError {
             details: err.to_string(),
         }
@@ -256,6 +315,16 @@ pub(super) async fn reset_device_identity(path: &str) -> Result<(), VpnError> {
     let storage = setup_account_storage(path)?;
     storage
         .reset_keys(None)
+        .await
+        .map_err(|err| VpnError::InternalError {
+            details: err.to_string(),
+        })
+}
+
+pub(super) async fn remove_device_identity(path: &str) -> Result<(), VpnError> {
+    let storage = setup_account_storage(path)?;
+    storage
+        .remove_keys()
         .await
         .map_err(|err| VpnError::InternalError {
             details: err.to_string(),

@@ -50,5 +50,21 @@ interface SettingsRepository {
 
 	suspend fun setEnvironment(environment: Tunnel.Environment)
 
+	suspend fun setManualGatewayOverride(enabled: Boolean)
+
+	suspend fun isManualGatewayOverride(): Boolean
+
+	suspend fun setCredentialMode(enabled: Boolean?)
+
+	suspend fun isCredentialMode(): Boolean?
+
+	suspend fun setEntryGatewayId(id: String)
+
+	suspend fun setExitGatewayId(id: String)
+
+	suspend fun getEntryGatewayId(): String?
+
+	suspend fun getExitGatewayId(): String?
+
 	val settingsFlow: Flow<Settings>
 }

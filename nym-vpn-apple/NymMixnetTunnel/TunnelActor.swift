@@ -21,7 +21,6 @@ actor TunnelActor {
     var canReassert = false
 
     @Published private(set) var tunnelState: TunnelState?
-    @Published private var didSendLastError = false
 
     init() {
         let (eventStream, eventContinuation) = AsyncStream<TunnelEvent>.makeStream()
@@ -93,32 +92,18 @@ actor TunnelActor {
     }
 
     /// Wait until the tunnel state shifted into either connected, disconnected or error state.
-    func waitUntilStarted() async {
+    func waitUntilStarted() async throws {
         var stateStream = $tunnelState.values.makeAsyncIterator()
 
         while case let .some(newState) = await stateStream.next() {
             switch newState {
-            case .connected, .disconnected, .error:
+            case .connected, .disconnected:
                 return
+            case let .error(errorStateReason):
+                throw ErrorReason(with: errorStateReason).nsError
             case .disconnecting, .none, .connecting:
                 break
             }
         }
-    }
-
-    func didSendLastError() async throws {
-        var stateStream = $didSendLastError.values.makeAsyncIterator()
-        while case let .some(newState) = await stateStream.next() {
-            switch newState {
-            case true:
-                throw PacketTunnelProviderError.backendStartFailure
-            case false:
-                break
-            }
-        }
-    }
-
-    func setDidSendLastError(with value: Bool) {
-        didSendLastError = value
     }
 }

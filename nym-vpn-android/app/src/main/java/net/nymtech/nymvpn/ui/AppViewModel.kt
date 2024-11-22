@@ -105,7 +105,7 @@ constructor(
 
 	fun onAppStartup() = viewModelScope.launch {
 		val env = settingsRepository.getEnvironment()
-		backend.get().init(env)
+		backend.get().init(env, settingsRepository.isCredentialMode())
 		launch {
 			Timber.d("Updating exit country cache")
 			countryCacheService.updateExitCountriesCache().onSuccess {

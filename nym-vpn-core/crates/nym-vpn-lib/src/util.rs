@@ -31,7 +31,6 @@ pub enum DataDirError {
 
 // Check that the directory contains at least some of the expected files.
 // A usefule safety check for when deleting the directory.
-// pub fn assert_existence_of_expected_files(data_dir: &Path) -> Result<(), DataDirError> {
 pub fn assert_existence_of_expected_files<P: TryInto<PathBuf>>(
     data_dir: P,
 ) -> Result<(), DataDirError> {
@@ -64,7 +63,7 @@ pub fn assert_existence_of_expected_files<P: TryInto<PathBuf>>(
 
     // Not all files might be present, e.g if we just removed the account. Or if not all files have
     // created yet when starting out.
-    if found_files > 2 {
+    if found_files > 1 {
         Ok(())
     } else {
         Err(DataDirError::UnexpectedDataDirContent)

@@ -20,7 +20,6 @@ import androidx.compose.material.icons.automirrored.outlined.ViewQuilt
 import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.AppShortcut
 import androidx.compose.material.icons.outlined.BugReport
-import androidx.compose.material.icons.outlined.Launch
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
@@ -309,7 +308,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 				color = MaterialTheme.colorScheme.secondary,
 				modifier = Modifier.clickable {
 					if (BuildConfig.DEBUG || BuildConfig.BUILD_TYPE == "prerelease") {
-						navController.navigate(Route.Environment)
+						navController.navigate(Route.Developer)
 					} else {
 						clipboardManager.setText(
 							annotatedString = AnnotatedString(BuildConfig.VERSION_NAME),

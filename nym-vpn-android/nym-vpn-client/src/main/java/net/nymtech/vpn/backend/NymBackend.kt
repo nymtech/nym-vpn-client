@@ -88,11 +88,11 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	@get:Synchronized @set:Synchronized
 	private var state: Tunnel.State = Tunnel.State.Down
 
-	override suspend fun init(environment: Tunnel.Environment) {
+	override suspend fun init(environment: Tunnel.Environment, credentialMode: Boolean?) {
 		return withContext(ioDispatcher) {
 			runCatching {
 				initEnvironment(environment)
-				nym_vpn_lib.configureLib(storagePath)
+				nym_vpn_lib.configureLib(storagePath, credentialMode)
 				initialized.set(true)
 			}.onFailure {
 				Timber.e(it)
@@ -163,7 +163,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	private suspend fun startVpn(tunnel: Tunnel, background: Boolean) {
 		withContext(ioDispatcher) {
-			if (!initialized.get()) init(tunnel.environment)
+			if (!initialized.get()) init(tunnel.environment, tunnel.credentialMode)
 			if (!vpnService.isCompleted) context.startVpnService(background)
 			val service = vpnService.await()
 			val backend = this@NymBackend
@@ -177,6 +177,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 						service,
 						storagePath,
 						backend,
+						tunnel.credentialMode,
 					),
 				)
 			} catch (e: VpnException) {

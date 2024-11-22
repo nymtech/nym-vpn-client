@@ -2506,6 +2506,39 @@ struct Nym_Vpn_RemoveAccountResponse {
   fileprivate var _error: Nym_Vpn_AccountError? = nil
 }
 
+struct Nym_Vpn_ForgetAccountRequest {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct Nym_Vpn_ForgetAccountResponse {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var success: Bool = false
+
+  var error: Nym_Vpn_AccountError {
+    get {return _error ?? Nym_Vpn_AccountError()}
+    set {_error = newValue}
+  }
+  /// Returns true if `error` has been explicitly set.
+  var hasError: Bool {return self._error != nil}
+  /// Clears the value of `error`. Subsequent reads from it will return its default value.
+  mutating func clearError() {self._error = nil}
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+
+  fileprivate var _error: Nym_Vpn_AccountError? = nil
+}
+
 struct Nym_Vpn_GetAccountIdentityRequest {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -3524,6 +3557,9 @@ struct Nym_Vpn_AccountError {
 
     /// General error from the storage backend
     case storage // = 2
+
+    /// Unable to proceed while connected
+    case isConnected // = 3
     case UNRECOGNIZED(Int)
 
     init() {
@@ -3535,6 +3571,7 @@ struct Nym_Vpn_AccountError {
       case 0: self = .storeAccountErrorUnspecified
       case 1: self = .invalidMnemonic
       case 2: self = .storage
+      case 3: self = .isConnected
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -3544,6 +3581,7 @@ struct Nym_Vpn_AccountError {
       case .storeAccountErrorUnspecified: return 0
       case .invalidMnemonic: return 1
       case .storage: return 2
+      case .isConnected: return 3
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -3561,6 +3599,7 @@ extension Nym_Vpn_AccountError.AccountErrorType: CaseIterable {
     .storeAccountErrorUnspecified,
     .invalidMnemonic,
     .storage,
+    .isConnected,
   ]
 }
 
@@ -3640,6 +3679,8 @@ extension Nym_Vpn_IsAccountStoredResponse: @unchecked Sendable {}
 extension Nym_Vpn_IsAccountStoredResponse.OneOf_Resp: @unchecked Sendable {}
 extension Nym_Vpn_RemoveAccountRequest: @unchecked Sendable {}
 extension Nym_Vpn_RemoveAccountResponse: @unchecked Sendable {}
+extension Nym_Vpn_ForgetAccountRequest: @unchecked Sendable {}
+extension Nym_Vpn_ForgetAccountResponse: @unchecked Sendable {}
 extension Nym_Vpn_GetAccountIdentityRequest: @unchecked Sendable {}
 extension Nym_Vpn_GetAccountIdentityResponse: @unchecked Sendable {}
 extension Nym_Vpn_GetAccountIdentityResponse.OneOf_ID: @unchecked Sendable {}
@@ -6443,6 +6484,67 @@ extension Nym_Vpn_RemoveAccountResponse: SwiftProtobuf.Message, SwiftProtobuf._M
   }
 }
 
+extension Nym_Vpn_ForgetAccountRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".ForgetAccountRequest"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let _ = try decoder.nextFieldNumber() {
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Nym_Vpn_ForgetAccountRequest, rhs: Nym_Vpn_ForgetAccountRequest) -> Bool {
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Nym_Vpn_ForgetAccountResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".ForgetAccountResponse"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "success"),
+    2: .same(proto: "error"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBoolField(value: &self.success) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._error) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if self.success != false {
+      try visitor.visitSingularBoolField(value: self.success, fieldNumber: 1)
+    }
+    try { if let v = self._error {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Nym_Vpn_ForgetAccountResponse, rhs: Nym_Vpn_ForgetAccountResponse) -> Bool {
+    if lhs.success != rhs.success {return false}
+    if lhs._error != rhs._error {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Nym_Vpn_GetAccountIdentityRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".GetAccountIdentityRequest"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap()
@@ -7944,5 +8046,6 @@ extension Nym_Vpn_AccountError.AccountErrorType: SwiftProtobuf._ProtoNameProvidi
     0: .same(proto: "STORE_ACCOUNT_ERROR_UNSPECIFIED"),
     1: .same(proto: "INVALID_MNEMONIC"),
     2: .same(proto: "STORAGE"),
+    3: .same(proto: "IS_CONNECTED"),
   ]
 }
