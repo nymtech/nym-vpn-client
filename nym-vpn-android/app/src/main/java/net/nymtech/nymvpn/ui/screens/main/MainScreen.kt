@@ -48,6 +48,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
@@ -75,6 +76,7 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.buildCountryNameString
+import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
@@ -94,6 +96,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 
 	var didAutoStart by remember { mutableStateOf(false) }
 	var showDialog by remember { mutableStateOf(false) }
+	var connectionTime: String? by remember { mutableStateOf(null) }
 
 	LaunchedEffect(Unit) {
 		appViewModel.onNavBarStateChange(
@@ -106,6 +109,18 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 				},
 			),
 		)
+	}
+
+	with(appUiState.managerState) {
+		LaunchedEffect(tunnelState) {
+			while (tunnelState == Tunnel.State.Up && connectionData != null) {
+				connectionData.connectedAt?.let {
+					connectionTime = (System.currentTimeMillis() / 1000L - it).convertSecondsToTimeString()
+					delay(1000)
+				}
+			}
+			connectionTime = null
+		}
 	}
 
 	val vpnActivityResultState =
@@ -187,11 +202,13 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 					}
 				}
 			}
-			AnimatedVisibility(visible = uiState.connectionState is ConnectionState.Connected) {
-				StatusInfoLabel(
-					message = uiState.connectionTime,
-					textColor = MaterialTheme.colorScheme.onSurface,
-				)
+			AnimatedVisibility(visible = connectionTime != null) {
+				connectionTime?.let {
+					StatusInfoLabel(
+						message = it,
+						textColor = MaterialTheme.colorScheme.onSurface,
+					)
+				}
 			}
 		}
 		val firstHopName = context.buildCountryNameString(appUiState.entryCountry)
