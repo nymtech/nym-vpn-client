@@ -17,6 +17,8 @@ use ts_rs::TS;
 
 use crate::grpc::client::VpndError;
 
+const MAX_REG_DEVICES_ID_PATTERN: &str = "register-device.max-devices-exceeded";
+
 #[derive(Error, Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub enum CmdErrorSource {
@@ -216,6 +218,9 @@ pub enum ErrorKey {
     GetWgCountriesQuery,
     // Forwarded from proto `set_network_request_error::SetNetworkRequestErrorType`
     InvalidNetworkName,
+    /// Custom error for the "maximum number of registered devices reached" error as it's not
+    /// yet specialized in the backend
+    MaxRegisteredDevices,
 }
 
 impl From<DError> for ErrorKey {
@@ -324,6 +329,17 @@ impl From<ConnectRequestErrorType> for ErrorKey {
 impl From<ConnectRequestError> for BackendError {
     fn from(error: ConnectRequestError) -> Self {
         let message = error.message.clone();
+
+        // TODO trick to handle "Maximum number of registered devices reached" error which is
+        //  not yet specialized in the backend
+        if let Some(true) = error
+            .message_id
+            .as_ref()
+            .map(|id| id.contains(MAX_REG_DEVICES_ID_PATTERN))
+        {
+            return BackendError::new(&message, ErrorKey::MaxRegisteredDevices);
+        }
+
         BackendError::new(&message, ErrorKey::from(error.kind()))
     }
 }

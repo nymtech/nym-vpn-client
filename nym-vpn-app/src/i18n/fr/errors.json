@@ -82,12 +82,13 @@
   },
   "account": {
     "invalid-recovery-phrase": "Phrase de récupération invalide",
-    "device": {
-      "not-registered": "L'appareil n'est pas enregistré",
-      "not-active": "L'appareil n'est pas actif"
-    },
-    "no-account-stored": "Aucune phrase de récupération stockée",
-    "not-active": "The compte n'est pas actif",
-    "no-active-subscription": "Le compte n'a pas d'abonnement actif"
+    "storage": "Erreur de stockage backend",
+    "is-connected": "Impossible d'effectuer cette action lorsque connecté au VPN",
+    "not-stored": "Aucune phrase de récupération stockée",
+    "no-device-stored": "Aucune clé d'appareil stockée",
+    "update": "La mise à jour du compte utilisateur a échouée",
+    "update-device": "La mise à jour de l'appareil a échouée",
+    "register-device": "L'enregistrement de l'appareil a échoué",
+    "maximum-registered-devices": "L'enregistrement de l'appareil a échoué : le nombre maximum d'appareils enregistrés a été atteint"
   }
 }

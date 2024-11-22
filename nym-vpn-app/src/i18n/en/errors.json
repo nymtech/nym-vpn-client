@@ -78,7 +78,8 @@
     "no-device-stored": "No device keys stored",
     "update": "Update account failed",
     "update-device": "Update device failed",
-    "register-device": "Register device failed"
+    "register-device": "Device registration failed",
+    "maximum-registered-devices": "Device registration failed: the maximum number of registered devices has been reached"
   },
   "countries-request": {
     "entry": "Failed to fetch the available entry node countries",
