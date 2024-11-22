@@ -246,11 +246,6 @@ function patch_darwin_goruntime {
 function build_wireguard_go {
     parseArgs $@
 
-    if $IS_AMNEZIA_BUILD ; then
-        LIB_DIR=$AMNEZIA_DIR
-        echo "amnezia wireguard build enabled"
-    fi
-
     if $IS_ANDROID_BUILD ; then
         build_android $@
         return
