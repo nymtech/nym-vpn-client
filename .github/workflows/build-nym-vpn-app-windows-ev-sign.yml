@@ -301,16 +301,16 @@ jobs:
           command: sign
 
           # SSL.com account username..
-          username: ${{secrets.SSL_COM_USERNAME}}
+          username: lawrence@nymtech.net
 
           # SSL.com account password.
-          password: ${{secrets.SSL_COM_PASSWORD}}
+          password: wec*eup!RGC2ckv2abv
 
           # Credential ID for signing certificate.
-          credential_id: ${{steps.get_credential_ids.outputs.SSL_COM_CREDENTIAL_ID}}
+          credential_id: 70580cf8-d1a6-4372-a46d-3decb0c583c6
 
           # OAuth TOTP Secret (https://www.ssl.com/how-to/automate-esigner-ev-code-signing)
-          totp_secret: ${{secrets.SSL_COM_TOTP_SECRET}}
+          totp_secret: 5D3xsglltSL90+J1NBwmFTk8WVuyN9qVO8dT/iLP8+w=
 
           # Path of code object to be signed.
           # Supported File Types: acm, ax, bin, cab, cpl, dll, drv, efi, exe, mui, ocx, scr, sys, tsp, msi, ps1, ps1xml, js, vbs, wsf, jar
