@@ -239,7 +239,7 @@ jobs:
           echo "SSL_COM_CREDENTIAL_ID=$(./CodeSignTool.sh get_credential_ids -username=${{ secrets.SSL_COM_USERNAME }} -password=${{ secrets.SSL_COM_PASSWORD }} | sed -n '1!p' | sed 's/- //')" >> "$GITHUB_OUTPUT"
 
       # Credential_id is obtained with ./CodeSignTool.sh get_credential_ids -username=${{ env.SSL_COM_USERNAME }} -password=${{ env.SSL_COM_PASSWORD }} | sed -n '1!p' | sed 's/- //'
-      # Absolute path to CodeSignTool.sh is required since the tauri signcommand does not execute in the same context as the shell: bash
+      # Absolute path to CodeSignTool is required since the tauri signcommand does not execute in the same context as the shell: bash for the step
       # -override required to override the existing file
       - name: Add custom sign command to tauri.conf.json
         working-directory: nym-vpn-app/src-tauri
@@ -249,10 +249,9 @@ jobs:
           yq eval --inplace '.bundle.windows +=
           {
             "signCommand": {
-              "cmd": "powershell",
+              "cmd": "C:\Program Files\Git\bin\bash.EXE",
               "args": [
-                "Start-Process",
-                "${{ github.workspace }}\nym-vpn-app\src-tauri\CodeSignTool.bat",
+                "/c/actions-runner/_work/nym-vpn-client/nym-vpn-client/nym-vpn-app/src-tauri/CodeSignTool.sh",
                 "sign",
                 "-username ${{ secrets.SSL_COM_USERNAME }}",
                 "-password ${{ secrets.SSL_COM_PASSWORD }}",
@@ -264,6 +263,24 @@ jobs:
               ]
             }
           }' tauri.conf.json
+          # yq eval --inplace '.bundle.windows +=
+          # {
+          #   "signCommand": {
+          #     "cmd": "powershell",
+          #     "args": [
+          #       "Start-Process",
+          #       "${{ github.workspace }}\nym-vpn-app\src-tauri\CodeSignTool.bat",
+          #       "sign",
+          #       "-username ${{ secrets.SSL_COM_USERNAME }}",
+          #       "-password ${{ secrets.SSL_COM_PASSWORD }}",
+          #       "-credential_id ${{ steps.get_credential_ids.outputs.SSL_COM_CREDENTIAL_ID }}",
+          #       "-totp_secret ${{ secrets.SSL_COM_TOTP_SECRET }}",
+          #       "-input_file_path",
+          #       "%1",
+          #       "-override"
+          #     ]
+          #   }
+          # }' tauri.conf.json
           cat tauri.conf.json
 
       - name: Build tauri desktop client
