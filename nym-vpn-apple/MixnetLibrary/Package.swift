@@ -23,8 +23,8 @@ let package = Package(
         ),
         .binaryTarget(
             name: "NymVpnLib",
-            url: "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-core-v1.0.0-rc.13/nym-vpn-core-v1.0.0-rc.13_ios_universal.zip",
-            checksum: "3dd46bc7e9c417defecf310ba266cf96922c4eea3473e16d5e98905931d1df09"
+            url: "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-core-v1.0.0-rc.14/nym-vpn-core-v1.0.0-rc.14_ios_universal.zip",
+            checksum: "11746a7cb1b1dbdf5b5816985f60c84b6374a69593e40cf9221be8a13a1db7ec"
         ),
 //        .binaryTarget(
 //            name: "NymVpnLib",
