@@ -93,6 +93,8 @@ pub async fn connect(
             EntryNode {
                 entry_node_enum: Some(EntryNodeEnum::Location(Location {
                     two_letter_iso_country_code: country.code.clone(),
+                    latitude: None,
+                    longitude: None,
                 })),
             }
         }
@@ -104,6 +106,8 @@ pub async fn connect(
             EntryNode {
                 entry_node_enum: Some(EntryNodeEnum::Location(Location {
                     two_letter_iso_country_code: FASTEST_NODE_LOCATION.code.clone(),
+                    latitude: None,
+                    longitude: None,
                 })),
             }
         }
@@ -115,6 +119,8 @@ pub async fn connect(
             ExitNode {
                 exit_node_enum: Some(ExitNodeEnum::Location(Location {
                     two_letter_iso_country_code: country.code.clone(),
+                    latitude: None,
+                    longitude: None,
                 })),
             }
         }
@@ -126,6 +132,8 @@ pub async fn connect(
             ExitNode {
                 exit_node_enum: Some(ExitNodeEnum::Location(Location {
                     two_letter_iso_country_code: FASTEST_NODE_LOCATION.code.clone(),
+                    latitude: None,
+                    longitude: None,
                 })),
             }
         }

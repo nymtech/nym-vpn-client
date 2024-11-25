@@ -1,6 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::fmt;
+
 use url::Url;
 
 use crate::response::{AccountManagementPathsResponse, AccountManagementResponse};
@@ -86,5 +88,17 @@ impl From<AccountManagementPathsResponse> for AccountManagementPaths {
             sign_in: response.sign_in,
             account: response.account,
         }
+    }
+}
+
+impl fmt::Display for ParsedAccountLinks {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "sign_up: {}", self.sign_up)?;
+        write!(f, "sign_in: {}", self.sign_in)?;
+        if let Some(account) = &self.account {
+            write!(f, "\naccount: {}", account)?;
+        }
+
+        Ok(())
     }
 }

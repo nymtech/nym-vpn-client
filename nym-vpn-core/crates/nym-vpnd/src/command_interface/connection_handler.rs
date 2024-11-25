@@ -10,14 +10,12 @@ use nym_vpn_api_client::{
     types::GatewayMinPerformance,
 };
 use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint, GatewayClient, GatewayType};
+use nym_vpnd_types::gateway;
 use zeroize::Zeroizing;
 
-use crate::{
-    service::{
-        AccountError, ConnectArgs, ConnectOptions, SetNetworkError, VpnServiceCommand,
-        VpnServiceConnectError, VpnServiceDisconnectError, VpnServiceInfo, VpnServiceStatus,
-    },
-    types::gateway,
+use crate::service::{
+    AccountError, ConnectArgs, ConnectOptions, SetNetworkError, VpnServiceCommand,
+    VpnServiceConnectError, VpnServiceDisconnectError, VpnServiceInfo, VpnServiceStatus,
 };
 
 use super::protobuf::error::VpnCommandSendError;

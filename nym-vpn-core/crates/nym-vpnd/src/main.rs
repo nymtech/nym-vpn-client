@@ -9,7 +9,6 @@ mod logging;
 mod runtime;
 mod service;
 mod shutdown_handler;
-mod types;
 mod util;
 #[cfg(windows)]
 mod windows_service;

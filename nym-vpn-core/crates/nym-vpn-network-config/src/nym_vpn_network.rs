@@ -19,12 +19,14 @@ pub struct NymVpnNetwork {
 
 impl NymVpnNetwork {
     pub fn mainnet_default() -> Self {
+        // These expects are safe because we are using the hardcoded mainnet defaults
+        #[allow(clippy::expect_used)]
         Self {
             nym_vpn_api_url: NymNetworkDetails::new_mainnet()
                 .nym_vpn_api_url
-                .unwrap()
+                .expect("mainnet default for nym_vpn_api_url is missing")
                 .parse()
-                .unwrap(),
+                .expect("mainnet default for nym_vpn_api_url is invalid"),
             account_management: None,
             system_messages: SystemMessages::default(),
         }

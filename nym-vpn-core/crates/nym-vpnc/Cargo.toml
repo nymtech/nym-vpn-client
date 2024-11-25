@@ -13,6 +13,7 @@ license.workspace = true
 anyhow.workspace = true
 bs58.workspace = true
 clap = { workspace = true, features = ["derive", "wrap_help"] }
+itertools.workspace = true
 parity-tokio-ipc.workspace = true
 prost-types.workspace = true
 prost.workspace = true
@@ -24,7 +25,9 @@ tower.workspace = true
 
 nym-bin-common.workspace = true
 nym-gateway-directory = { path = "../nym-gateway-directory" }
-nym-vpn-proto = { path = "../nym-vpn-proto" }
+nym-vpn-network-config = { path = "../nym-vpn-network-config" }
+nym-vpn-proto = { path = "../nym-vpn-proto", features = ["conversions"] }
+nym-vpnd-types = { path = "../nym-vpnd-types" }
 
 [build-dependencies]
 vergen = { workspace = true, default-features = false, features = [

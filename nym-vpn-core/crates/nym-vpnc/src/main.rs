@@ -1,15 +1,16 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
+#![warn(clippy::panic, clippy::unwrap_used, clippy::expect_used)]
 
 mod cli;
 mod config;
-mod display_types;
 mod protobuf_conversion;
 mod vpnd_client;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use clap::Parser;
 use cli::Internal;
+use itertools::Itertools;
 use nym_gateway_directory::GatewayType;
 use nym_vpn_proto::{
     ConfirmZkNymDownloadedRequest, ConnectRequest, DisconnectRequest, Empty,
@@ -22,16 +23,13 @@ use nym_vpn_proto::{
     RegisterDeviceRequest, RemoveAccountRequest, RequestZkNymRequest, ResetDeviceIdentityRequest,
     SetNetworkRequest, StatusRequest, StoreAccountRequest, UserAgent,
 };
-use protobuf_conversion::{into_gateway_type, into_threshold};
+use protobuf_conversion::into_gateway_type;
 use sysinfo::System;
 use vpnd_client::ClientType;
 
 use crate::{
     cli::Command,
-    display_types::info::Info,
-    protobuf_conversion::{
-        into_entry_point, into_exit_point, ipaddr_into_string, parse_offset_datetime,
-    },
+    protobuf_conversion::{into_entry_point, into_exit_point},
 };
 
 #[derive(Clone, Debug)]
@@ -63,25 +61,25 @@ async fn main() -> Result<()> {
         Command::IsAccountStored => is_account_stored(opts.client_type).await?,
         Command::ForgetAccount => forget_account(opts.client_type).await?,
         Command::GetAccountId => get_account_id(opts.client_type).await?,
-        Command::GetAccountLinks(ref args) => get_account_links(opts.client_type, args).await?,
+        Command::GetAccountLinks(ref args) => get_account_links(opts, args).await?,
         Command::GetAccountState => get_account_state(opts.client_type).await?,
         Command::ListEntryGateways(ref list_args) => {
-            list_gateways(opts.client_type, list_args, GatewayType::MixnetEntry).await?
+            list_gateways(opts, list_args, GatewayType::MixnetEntry).await?
         }
         Command::ListExitGateways(ref list_args) => {
-            list_gateways(opts.client_type, list_args, GatewayType::MixnetExit).await?
+            list_gateways(opts, list_args, GatewayType::MixnetExit).await?
         }
         Command::ListVpnGateways(ref list_args) => {
-            list_gateways(opts.client_type, list_args, GatewayType::Wg).await?
+            list_gateways(opts, list_args, GatewayType::Wg).await?
         }
         Command::ListEntryCountries(ref list_args) => {
-            list_countries(opts.client_type, list_args, GatewayType::MixnetEntry).await?
+            list_countries(opts, list_args, GatewayType::MixnetEntry).await?
         }
         Command::ListExitCountries(ref list_args) => {
-            list_countries(opts.client_type, list_args, GatewayType::MixnetExit).await?
+            list_countries(opts, list_args, GatewayType::MixnetExit).await?
         }
         Command::ListVpnCountries(ref list_args) => {
-            list_countries(opts.client_type, list_args, GatewayType::Wg).await?
+            list_countries(opts, list_args, GatewayType::Wg).await?
         }
         Command::GetDeviceId => get_device_id(opts.client_type).await?,
         Command::Internal(internal) => match internal {
@@ -144,7 +142,7 @@ async fn connect(opts: CliOptions, connect_args: &cli::ConnectArgs) -> Result<()
     let request = tonic::Request::new(ConnectRequest {
         entry: entry.map(into_entry_point),
         exit: exit.map(into_exit_point),
-        dns: connect_args.dns.map(ipaddr_into_string),
+        dns: connect_args.dns.map(nym_vpn_proto::Dns::from),
         disable_routing: connect_args.disable_routing,
         enable_two_hop: connect_args.enable_two_hop,
         netstack: connect_args.netstack,
@@ -152,11 +150,15 @@ async fn connect(opts: CliOptions, connect_args: &cli::ConnectArgs) -> Result<()
         disable_background_cover_traffic: connect_args.disable_background_cover_traffic,
         enable_credentials_mode: connect_args.enable_credentials_mode,
         user_agent: Some(user_agent),
-        min_mixnode_performance: connect_args.min_mixnode_performance.map(into_threshold),
+        min_mixnode_performance: connect_args
+            .min_mixnode_performance
+            .map(nym_vpn_proto::Threshold::from),
         min_gateway_mixnet_performance: connect_args
             .min_gateway_mixnet_performance
-            .map(into_threshold),
-        min_gateway_vpn_performance: connect_args.min_gateway_vpn_performance.map(into_threshold),
+            .map(nym_vpn_proto::Threshold::from),
+        min_gateway_vpn_performance: connect_args
+            .min_gateway_vpn_performance
+            .map(nym_vpn_proto::Threshold::from),
     });
 
     let response = client.vpn_connect(request).await?.into_inner();
@@ -171,7 +173,7 @@ async fn connect(opts: CliOptions, connect_args: &cli::ConnectArgs) -> Result<()
     } else if let Some(error) = response.error {
         let kind =
             nym_vpn_proto::connect_request_error::ConnectRequestErrorType::try_from(error.kind)
-                .unwrap();
+                .context("failed to parse connect request error kind")?;
         println!("Connect command failed: {} (id={kind:?})", error.message);
         Ok(())
     } else {
@@ -260,7 +262,8 @@ async fn status(opts: CliOptions) -> Result<()> {
         println!("{:#?}", response);
     }
 
-    let status = nym_vpn_proto::ConnectionStatus::try_from(response.status).unwrap();
+    let status = nym_vpn_proto::ConnectionStatus::try_from(response.status)
+        .context("failed to parse connection status")?;
     println!("status: {:?}", status);
     if let Some(details) = response.details {
         println!("details: {:#?}", details);
@@ -276,7 +279,9 @@ async fn info(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(InfoRequest {});
     let response = client.info(request).await?.into_inner();
-    println!("{}", Info::from(response));
+    let info = nym_vpn_proto::conversions::InfoResponse::try_from(response)
+        .context("failed to parse info response")?;
+    println!("{info}");
     Ok(())
 }
 
@@ -320,8 +325,8 @@ async fn store_account(opts: CliOptions, store_args: &cli::StoreAccountArgs) -> 
         println!("Account recovery phrase stored");
     } else {
         let msg = if let Some(error) = response.error {
-            let kind =
-                nym_vpn_proto::account_error::AccountErrorType::try_from(error.kind).unwrap();
+            let kind = nym_vpn_proto::account_error::AccountErrorType::try_from(error.kind)
+                .context("failed to parse account error kind");
             format!("{} (id={:?})", error.message, kind)
         } else {
             "unknown".to_owned()
@@ -371,13 +376,29 @@ async fn get_account_id(client_type: ClientType) -> Result<()> {
     Ok(())
 }
 
-async fn get_account_links(client_type: ClientType, args: &cli::GetAccountLinksArgs) -> Result<()> {
-    let mut client = vpnd_client::get_client(client_type).await?;
+async fn get_account_links(opts: CliOptions, args: &cli::GetAccountLinksArgs) -> Result<()> {
+    let mut client = vpnd_client::get_client(opts.client_type).await?;
     let request = tonic::Request::new(GetAccountLinksRequest {
         locale: args.locale.clone(),
     });
     let response = client.get_account_links(request).await?.into_inner();
-    println!("{:#?}", response);
+    if opts.verbose {
+        println!("{:#?}", response);
+    }
+    match response
+        .res
+        .context("failed to parse get account links response")?
+    {
+        nym_vpn_proto::get_account_links_response::Res::Links(links) => {
+            let links = nym_vpn_network_config::ParsedAccountLinks::try_from(links)
+                .context("failed to parse account links into ParsedAccountLinks")?;
+            println!("{links}");
+        }
+        nym_vpn_proto::get_account_links_response::Res::Error(err) => {
+            println!("Error: {err:#?}");
+        }
+    };
+
     Ok(())
 }
 
@@ -533,54 +554,81 @@ async fn listen_to_state_changes(client_type: ClientType) -> Result<()> {
 }
 
 async fn list_gateways(
-    client_type: ClientType,
+    opts: CliOptions,
     list_args: &cli::ListGatewaysArgs,
     gw_type: GatewayType,
 ) -> Result<()> {
-    let mut client = vpnd_client::get_client(client_type).await?;
+    let mut client = vpnd_client::get_client(opts.client_type).await?;
 
     let info_request = tonic::Request::new(InfoRequest {});
     let info = client.info(info_request).await?.into_inner();
     let user_agent = construct_user_agent(info);
 
     let request = tonic::Request::new(ListGatewaysRequest {
-        kind: into_gateway_type(gw_type) as i32,
+        kind: into_gateway_type(gw_type.clone()) as i32,
         user_agent: Some(user_agent),
-        min_mixnet_performance: list_args.min_mixnet_performance.map(into_threshold),
-        min_vpn_performance: list_args.min_vpn_performance.map(into_threshold),
+        min_mixnet_performance: list_args
+            .min_mixnet_performance
+            .map(nym_vpn_proto::Threshold::from),
+        min_vpn_performance: list_args
+            .min_vpn_performance
+            .map(nym_vpn_proto::Threshold::from),
     });
     let response = client.list_gateways(request).await?.into_inner();
-    println!("{:#?}", response);
-
-    if list_args.verbose {
-        for gateway in response.gateways {
-            let id = gateway.id.unwrap();
-            let last_probe = gateway.last_probe.unwrap();
-            let last_updated_utc = parse_offset_datetime(last_probe.last_updated_utc.unwrap());
-            println!("id: {:?}, last_updated_utc: {:?}", id, last_updated_utc);
+    if opts.verbose {
+        println!("{:#?}", response);
+    }
+    println!("Gateways available for: {gw_type}");
+    println!("Total gateways: {}", response.gateways.len());
+    for gateway in response.gateways.clone() {
+        if let Ok(gateway) = nym_vpnd_types::gateway::Gateway::try_from(gateway)
+            .inspect_err(|e| println!("Failed to parse gateway: {e}"))
+        {
+            println!("  {gateway}");
         }
     }
     Ok(())
 }
 
 async fn list_countries(
-    client_type: ClientType,
+    opts: CliOptions,
     list_args: &cli::ListCountriesArgs,
     gw_type: GatewayType,
 ) -> Result<()> {
-    let mut client = vpnd_client::get_client(client_type).await?;
+    let mut client = vpnd_client::get_client(opts.client_type).await?;
 
     let info_request = tonic::Request::new(InfoRequest {});
     let info = client.info(info_request).await?.into_inner();
     let user_agent = construct_user_agent(info);
 
     let request = tonic::Request::new(ListCountriesRequest {
-        kind: into_gateway_type(gw_type) as i32,
+        kind: into_gateway_type(gw_type.clone()) as i32,
         user_agent: Some(user_agent),
-        min_mixnet_performance: list_args.min_mixnet_performance.map(into_threshold),
-        min_vpn_performance: list_args.min_vpn_performance.map(into_threshold),
+        min_mixnet_performance: list_args
+            .min_mixnet_performance
+            .map(nym_vpn_proto::Threshold::from),
+        min_vpn_performance: list_args
+            .min_vpn_performance
+            .map(nym_vpn_proto::Threshold::from),
     });
+
     let response = client.list_countries(request).await?.into_inner();
-    println!("{:#?}", response);
+    if opts.verbose {
+        println!("{:#?}", response);
+    }
+
+    let countries = response
+        .countries
+        .into_iter()
+        .map(nym_vpnd_types::gateway::Country::from)
+        .collect::<Vec<_>>();
+
+    println!(
+        "Countries for {} ({}): {}",
+        gw_type,
+        countries.len(),
+        countries.iter().join(", ")
+    );
+
     Ok(())
 }

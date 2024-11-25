@@ -16,6 +16,8 @@ message Address {
 
 message Location {
   string two_letter_iso_country_code = 1;
+  optional double latitude = 2;
+  optional double longitude = 3;
 }
 
 message EntryNode {

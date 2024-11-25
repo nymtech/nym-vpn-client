@@ -1,0 +1,15 @@
+[package]
+name = "nym-vpnd-types"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+nym-validator-client.workspace = true
+serde = { workspace = true }
+
+nym-vpn-lib = { path = "../nym-vpn-lib" }
