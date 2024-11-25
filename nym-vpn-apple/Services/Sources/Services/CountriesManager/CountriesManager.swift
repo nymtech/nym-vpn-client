@@ -6,7 +6,7 @@ import ConfigurationManager
 import CountriesManagerTypes
 #if os(macOS)
 import GRPCManager
-import HelperManager
+import HelperInstallManager
 #endif
 #if os(iOS)
 import MixnetLibrary
@@ -21,7 +21,7 @@ public final class CountriesManager: ObservableObject {
     let logger = Logger(label: "CountriesManager")
 #if os(macOS)
     let grpcManager: GRPCManager
-    let helperManager: HelperManager
+    let helperInstallManager: HelperInstallManager
 
     var daemonVersion: String?
 #endif
@@ -33,10 +33,10 @@ public final class CountriesManager: ObservableObject {
 #endif
 #if os(macOS)
     public static let shared = CountriesManager(
-        appSettings: AppSettings.shared,
-        grpcManager: GRPCManager.shared,
-        helperManager: HelperManager.shared,
-        configurationManager: ConfigurationManager.shared
+        appSettings: .shared,
+        grpcManager: .shared,
+        helperInstallManager: .shared,
+        configurationManager: .shared
     )
 #endif
     var isLoading = false
@@ -68,13 +68,13 @@ public final class CountriesManager: ObservableObject {
     public init(
         appSettings: AppSettings,
         grpcManager: GRPCManager,
-        helperManager: HelperManager,
+        helperInstallManager: HelperInstallManager,
         configurationManager: ConfigurationManager
     ) {
         self.appSettings = appSettings
         self.configurationManager = configurationManager
         self.grpcManager = grpcManager
-        self.helperManager = helperManager
+        self.helperInstallManager = helperInstallManager
         self.entryCountries = []
         self.exitCountries = []
         self.vpnCountries = []
@@ -120,9 +120,6 @@ private extension CountriesManager {
         setupAutoUpdates()
         configureEnvironmentChange()
         fetchCountries()
-#if os(macOS)
-        updateDaemonVersionIfNecessary()
-#endif
     }
 
     func setupAutoUpdates() {
@@ -140,6 +137,17 @@ private extension CountriesManager {
             self?.countryStore.lastFetchDate = nil
             self?.fetchCountries()
         }
+    }
+
+    func setupDaemonStateObseerver() {
+        helperInstallManager.$daemonState.sink { [weak self] daemonState in
+            guard daemonState == .running else { return }
+            Task(priority: .background) {
+                try? await Task.sleep(for: .seconds(5))
+                self?.fetchCountries()
+            }
+        }
+        .store(in: &cancellables)
     }
 }
 
@@ -208,22 +216,7 @@ private extension CountriesManager {
 
 #if os(macOS)
 private extension CountriesManager {
-    func updateDaemonVersionIfNecessary() {
-        Task {
-            guard daemonVersion == nil else { return }
-            daemonVersion = try? await grpcManager.version()
-        }
-    }
-
     func fetchEntryExitCountries() {
-        updateDaemonVersionIfNecessary()
-
-        guard helperManager.isHelperAuthorizedAndRunning()
-        else {
-            fetchCountriesAfterDelay()
-            return
-        }
-
         Task {
             do {
                 try await fetchEntryCountries()

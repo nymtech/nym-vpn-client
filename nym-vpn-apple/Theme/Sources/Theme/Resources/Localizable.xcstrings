@@ -386,6 +386,17 @@
         }
       }
     },
+    "daemonError.authorizationDenied" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authorization denied. Please try again."
+          }
+        }
+      }
+    },
     "darkThemeTitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -855,6 +866,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Installing and authorizing daemon..."
+          }
+        }
+      }
+    },
+    "home.installDaemonButton" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparing…"
           }
         }
       }

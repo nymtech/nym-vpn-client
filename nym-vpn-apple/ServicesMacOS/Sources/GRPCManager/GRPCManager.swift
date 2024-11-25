@@ -16,7 +16,7 @@ public final class GRPCManager: ObservableObject {
 
     private let channel: GRPCChannel
     private let unixDomainSocket = "/var/run/nym-vpn.sock"
-
+    let healthClient: Grpc_Health_V1_HealthClientProtocol
     let client: Nym_Vpn_NymVpndClientProtocol
     let logger = Logger(label: "GRPC Manager")
 
@@ -34,6 +34,8 @@ public final class GRPCManager: ObservableObject {
     @Published public var tunnelStatus: TunnelStatus = .disconnected
     @Published public var lastError: GeneralNymError?
     @Published public var connectedDate: Date?
+    @Published public var isServing = false
+
     public var requiresUpdate: Bool {
         daemonVersion != AppVersionProvider.libVersion
     }
@@ -47,6 +49,7 @@ public final class GRPCManager: ObservableObject {
                     )
         )
         client = Nym_Vpn_NymVpndNIOClient(channel: channel)
+        healthClient = Grpc_Health_V1_HealthNIOClient(channel: channel)
         setup()
     }
 
@@ -55,9 +58,15 @@ public final class GRPCManager: ObservableObject {
         try? group.syncShutdownGracefully()
     }
 
+    func setup() {
+        setupListenToConnectionStateObserver()
+        setupListenToConnectionStatusObserver()
+        setupHealthObserver()
+    }
+
     // MARK: - Info -
 
-    public func version() async throws -> String {
+    public func version() async throws {
         logger.log(level: .info, "Version")
         return try await withCheckedThrowingContinuation { continuation in
             let call = client.info(Nym_Vpn_InfoRequest(), callOptions: CallOptions(timeLimit: .timeout(.seconds(5))))
@@ -68,7 +77,7 @@ public final class GRPCManager: ObservableObject {
                     self?.daemonVersion = response.version
                     self?.logger.info("🛜 \(response.nymNetwork.networkName)")
 
-                    continuation.resume(returning: response.version)
+                    continuation.resume()
                 case .failure(let error):
                     continuation.resume(throwing: error)
                 }
@@ -286,11 +295,6 @@ public final class GRPCManager: ObservableObject {
 
 // MARK: - Private -
 private extension GRPCManager {
-    func setup() {
-        setupListenToConnectionStateObserver()
-        setupListenToConnectionStatusObserver()
-    }
-
     func setupListenToConnectionStateObserver() {
         let call = client.listenToConnectionStateChanges(Nym_Vpn_Empty()) { [weak self] connectionStateChange in
             guard let self else { return }

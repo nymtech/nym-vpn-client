@@ -55,6 +55,7 @@
 		D99820982BB6E8D9000C1FEE /* MixnetLibrary in Frameworks */ = {isa = PBXBuildFile; productRef = D99820972BB6E8D9000C1FEE /* MixnetLibrary */; };
 		D99A147A2B357E9900F2728B /* NymVPNApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99A14792B357E9900F2728B /* NymVPNApp.swift */; };
 		D99A148C2B35A74200F2728B /* Theme in Frameworks */ = {isa = PBXBuildFile; productRef = D99A148B2B35A74200F2728B /* Theme */; };
+		D9A8580E2CF3A2AA0030843A /* HelperInstallManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9A8580D2CF3A2AA0030843A /* HelperInstallManager */; };
 		D9ABF2842BF4989B009089FA /* Shell in Frameworks */ = {isa = PBXBuildFile; productRef = D9ABF2832BF4989B009089FA /* Shell */; };
 		D9AC152E2BF3845E0041E334 /* net.nymtech.vpn.helper in Embed Helper Tool */ = {isa = PBXBuildFile; fileRef = D9AC152C2BF384580041E334 /* net.nymtech.vpn.helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		D9B7BAF82C4866A0005AF2D6 /* NymLogger in Frameworks */ = {isa = PBXBuildFile; productRef = D9B7BAF72C4866A0005AF2D6 /* NymLogger */; };
@@ -258,6 +259,7 @@
 				D91E36A92BF3AA7F00BDE84A /* HelperManager in Frameworks */,
 				D9FB33DE2BECD47E009C3419 /* Theme in Frameworks */,
 				D9BEF2E52BEBA4010036C566 /* AppSettings in Frameworks */,
+				D9A8580E2CF3A2AA0030843A /* HelperInstallManager in Frameworks */,
 				D9144C5F2CC105B20021A617 /* CountriesManager in Frameworks */,
 				D924A8E82C33F3DA00465E84 /* ExternalLinkManager in Frameworks */,
 				D9B7BAF82C4866A0005AF2D6 /* NymLogger in Frameworks */,
@@ -542,6 +544,7 @@
 				D9E552B32CE9E8FB008C74F6 /* SystemMessageManager */,
 				D9E552BB2CEA5A74008C74F6 /* SystemMessageModels */,
 				D9FA77C72CEBB32C003362D7 /* NotificationsManager */,
+				D9A8580D2CF3A2AA0030843A /* HelperInstallManager */,
 			);
 			productName = NymVPNDaemon;
 			productReference = D9BEF2D02BEB63310036C566 /* NymVPN.app */;
@@ -1366,6 +1369,10 @@
 		D99A148B2B35A74200F2728B /* Theme */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Theme;
+		};
+		D9A8580D2CF3A2AA0030843A /* HelperInstallManager */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HelperInstallManager;
 		};
 		D9ABF2832BF4989B009089FA /* Shell */ = {
 			isa = XCSwiftPackageProductDependency;

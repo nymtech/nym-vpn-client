@@ -10,6 +10,7 @@ public enum GeneralNymError: Error, Equatable {
     case noMnemonicStored
     case noEnv
     case somethingWentWrong
+    case authorizationDenied
 }
 
 extension GeneralNymError: LocalizedError {
@@ -31,6 +32,8 @@ extension GeneralNymError: LocalizedError {
             "generalNymError.noEnv".localizedString
         case .somethingWentWrong:
             "generalNymError.somethingWentWrong".localizedString
+        case .authorizationDenied:
+            "generalNymError.authorizationDenied".localizedString
         }
     }
 }
