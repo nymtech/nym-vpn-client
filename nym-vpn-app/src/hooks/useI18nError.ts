@@ -151,6 +151,8 @@ function useI18nError() {
           return t('daemon.invalid-network');
         case 'UnknownError':
           return t('unknown');
+        case 'MaxRegisteredDevices':
+          return t('account.maximum-registered-devices');
 
         default:
           console.warn(`Unknown error key: ${key}`);
