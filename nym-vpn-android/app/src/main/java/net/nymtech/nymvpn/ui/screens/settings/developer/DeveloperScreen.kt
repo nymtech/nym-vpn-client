@@ -4,10 +4,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -36,11 +39,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
@@ -53,18 +59,19 @@ import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.navigation.NavIcon
 import net.nymtech.nymvpn.ui.common.navigation.NavTitle
+import net.nymtech.nymvpn.ui.screens.settings.developer.components.ConnectionDataDisplay
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
-import nym_vpn_lib.TunnelConnectionData
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewModel: DeveloperViewModel = hiltViewModel()) {
 	val navController = LocalNavController.current
 	val clipboardManager = LocalClipboardManager.current
+	val padding = WindowInsets.systemBars.asPaddingValues()
 
 	val environmentChange = viewModel.environmentChanged.collectAsStateWithLifecycle()
 	var showEntryModal by remember { mutableStateOf(false) }
@@ -137,8 +144,8 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMode
 		Modifier
 			.fillMaxSize()
 			.verticalScroll(rememberScrollState())
-			.padding(top = 24.dp.scaledHeight())
-			.padding(horizontal = 24.dp.scaledWidth()),
+			.padding(top = 24.dp)
+			.padding(horizontal = 24.dp.scaledWidth()).padding(bottom = padding.calculateBottomPadding()),
 	) {
 		appUiState.managerState.connectionData?.let {
 			SurfaceSelectionGroupButton(
@@ -170,7 +177,52 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMode
 											.padding(vertical = 6.dp.scaledHeight()),
 									) {
 										Text(
-											"Connection Details",
+											"Tunnel details",
+											style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.onSurface),
+										)
+									}
+								}
+							}
+						},
+						description = {
+							ConnectionDataDisplay(it)
+						},
+						trailing = null,
+					),
+				),
+			)
+		}
+		appUiState.managerState.mixnetConnectionState?.let {
+			SurfaceSelectionGroupButton(
+				listOf(
+					SelectionItem(
+						title = {
+							Row(
+								verticalAlignment = Alignment.CenterVertically,
+								modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp.scaledHeight()),
+							) {
+								Row(
+									verticalAlignment = Alignment.CenterVertically,
+									modifier = Modifier
+										.weight(4f, false)
+										.fillMaxWidth(),
+								) {
+									val icon = ImageVector.vectorResource(R.drawable.mixnet)
+									Icon(
+										icon,
+										icon.name,
+										modifier = Modifier.size(iconSize),
+									)
+									Column(
+										horizontalAlignment = Alignment.Start,
+										verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically),
+										modifier = Modifier
+											.fillMaxWidth()
+											.padding(start = 16.dp.scaledWidth())
+											.padding(vertical = 6.dp.scaledHeight()),
+									) {
+										Text(
+											"Mixnet client state",
 											style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.onSurface),
 										)
 									}
@@ -179,64 +231,15 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMode
 						},
 						description = {
 							Text(
-								"Entry gatewayId: ${it.entryGateway}",
+								"Ipv4: ${it.ipv4State}",
 								style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
 							)
 							Text(
-								"Exit gatewayId: ${it.exitGateway}",
+								"Ipv6: ${it.ipv6State}",
 								style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
 							)
-							Text(
-								"Connected at: ${it.connectedAt}",
-								style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-							)
-							when (val details = it.tunnel) {
-								is TunnelConnectionData.Mixnet -> {
-									Text(
-										"Ipv4: ${details.v1.ipv4}",
-										style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-									)
-									Text(
-										"Ipv6: ${details.v1.ipv6}",
-										style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-									)
-									Text(
-										"Exit IPR: ${details.v1.exitIpr}",
-										style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-									)
-									Text(
-										"Nym address: ${details.v1.nymAddress}",
-										style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-									)
-								}
-								is TunnelConnectionData.Wireguard -> {
-									Text(
-										"Entry endpoint: ${details.v1.entry.endpoint}",
-										style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-									)
-									Text(
-										"Entry pub key: ${details.v1.entry.publicKey}",
-										style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-									)
-									Text(
-										"Entry Ipv4: ${details.v1.entry.privateIpv4}",
-										style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-									)
-									Text(
-										"Exit endpoint: ${details.v1.exit.endpoint}",
-										style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-									)
-									Text(
-										"Exit pub key: ${details.v1.exit.publicKey}",
-										style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-									)
-									Text(
-										"Exit Ipv4: ${details.v1.exit.privateIpv4}",
-										style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-									)
-								}
-							}
 						},
+						trailing = null,
 					),
 				),
 			)
@@ -282,7 +285,7 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMode
 							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
 						)
 					},
-					trailing = {},
+					trailing = null,
 				),
 				SelectionItem(
 					Icons.Outlined.Key,
@@ -326,7 +329,7 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMode
 							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
 						)
 					},
-					trailing = {},
+					trailing = null,
 				),
 			),
 		)

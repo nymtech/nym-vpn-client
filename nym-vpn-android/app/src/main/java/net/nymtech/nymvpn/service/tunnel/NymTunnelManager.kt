@@ -18,6 +18,7 @@ import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.service.tunnel.model.BackendUiEvent
+import net.nymtech.nymvpn.service.tunnel.model.MixnetConnectionState
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.toMB
 import net.nymtech.nymvpn.util.extensions.toUserMessage
@@ -29,6 +30,7 @@ import nym_vpn_lib.AccountLinks
 import nym_vpn_lib.AccountStateSummary
 import nym_vpn_lib.BandwidthEvent
 import nym_vpn_lib.ConnectionData
+import nym_vpn_lib.ConnectionEvent
 import nym_vpn_lib.EntryPoint
 import nym_vpn_lib.ErrorStateReason
 import nym_vpn_lib.ExitPoint
@@ -165,6 +167,12 @@ class NymTunnelManager @Inject constructor(
 		}
 	}
 
+	private fun emitMixnetConnectionEvent(connectionEvent: ConnectionEvent) {
+		_state.update {
+			it.copy(mixnetConnectionState = it.mixnetConnectionState?.onEvent(connectionEvent) ?: MixnetConnectionState().onEvent(connectionEvent))
+		}
+	}
+
 	private fun onBackendEvent(backendEvent: BackendEvent) {
 		when (backendEvent) {
 			is BackendEvent.Mixnet -> when (val event = backendEvent.event) {
@@ -172,7 +180,7 @@ class NymTunnelManager @Inject constructor(
 					emitBackendUiEvent(BackendUiEvent.BandwidthAlert(event.v1))
 					launchBandwidthNotification(event.v1)
 				}
-				is MixnetEvent.Connection -> Timber.d("Mixnet connection event: ${event.v1.name}")
+				is MixnetEvent.Connection -> emitMixnetConnectionEvent(event.v1)
 			}
 
 			is BackendEvent.StartFailure -> {
