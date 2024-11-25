@@ -16,7 +16,7 @@ import ImpactGenerator
 #endif
 #if os(macOS)
 import GRPCManager
-import HelperManager
+import HelperInstallManager
 #endif
 
 public class HomeViewModel: HomeFlowState {
@@ -42,7 +42,7 @@ public class HomeViewModel: HomeFlowState {
 #endif
 #if os(macOS)
     let grpcManager: GRPCManager
-    let helperManager: HelperManager
+    let helperInstallManager: HelperInstallManager
 #endif
     let systemMessageManager: SystemMessageManager
     let entryHopButtonViewModel = HopButtonViewModel(hopType: .entry)
@@ -102,7 +102,7 @@ public class HomeViewModel: HomeFlowState {
         countriesManager: CountriesManager = .shared,
         credentialsManager: CredentialsManager = .shared,
         grpcManager: GRPCManager = .shared,
-        helperManager: HelperManager = .shared,
+        helperInstallManager: HelperInstallManager = .shared,
         externalLinkManager: ExternalLinkManager = .shared,
         systemMessageManager: SystemMessageManager = .shared
     ) {
@@ -111,7 +111,7 @@ public class HomeViewModel: HomeFlowState {
         self.countriesManager = countriesManager
         self.credentialsManager = credentialsManager
         self.grpcManager = grpcManager
-        self.helperManager = helperManager
+        self.helperInstallManager = helperInstallManager
         self.externalLinkManager = externalLinkManager
         self.systemMessageManager = systemMessageManager
         super.init()
@@ -170,56 +170,45 @@ public extension HomeViewModel {
 // MARK: - Connection -
 public extension HomeViewModel {
     func connectDisconnect() {
-        guard connectionManager.currentTunnelStatus != .disconnecting else { return }
+        guard connectionManager.currentTunnelStatus != .disconnecting
+        else {
+            return
+        }
 #if os(iOS)
         impactGenerator.impact()
 #endif
         Task {
             lastError = nil
             resetStatusInfoState()
-
 #if os(macOS)
-            guard await isHelperInstalled() else { return }
-#endif
+            guard helperInstallManager.daemonState != .installing else { return }
+            do {
+                try await helperInstallManager.installIfNeeded()
+            } catch {
+                updateStatusInfoState(with: .error(message: error.localizedDescription))
+                updateConnectButtonState(with: .connect)
+                return
+            }
 
+            updateStatusInfoState(with: .unknown)
+            updateConnectButtonState(with: .connect)
+#endif
             guard credentialsManager.isValidCredentialImported
             else {
                 await navigateToAddCredentials()
                 return
             }
 
-            Task { @MainActor in
-                do {
-                    try await connectionManager.connectDisconnect()
-                } catch let error {
-                    statusInfoState = .error(message: error.localizedDescription)
+            do {
+                try await connectionManager.connectDisconnect()
+            } catch let error {
+                updateStatusInfoState(with: .error(message: error.localizedDescription))
 #if os(iOS)
-                    impactGenerator.error()
+                impactGenerator.error()
 #endif
-                }
             }
         }
     }
-}
-
-private extension  HomeViewModel {
-#if os(macOS)
-    func isHelperInstalled() async -> Bool {
-        let isHelperInstalledAndRunning = await installHelperIfNeeded()
-
-        guard isHelperInstalledAndRunning
-        else {
-            updateStatusInfoState(with: .error(message: "home.installDaemonFailure".localizedString))
-            return false
-        }
-
-        guard helperManager.isHelperAuthorizedAndRunning()
-        else {
-            return false
-        }
-        return true
-    }
-#endif
 }
 
 // MARK: - Configuration -
@@ -231,7 +220,7 @@ private extension HomeViewModel {
 
 #if os(macOS)
         setupGRPCManagerObservers()
-        updateInitialTunnelStatus()
+        setupDaemonStateObserver()
 #endif
         setupCountriesManagerObservers()
         setupSystemMessageObservers()
@@ -342,18 +331,20 @@ private extension HomeViewModel {
         lastTunnelStatus = newStatus
         Task { @MainActor [weak self] in
             guard let self else { return }
+            withAnimation { [weak self] in
+                guard let self else { return }
+                statusButtonConfig = StatusButtonConfig(tunnelStatus: newStatus)
+                connectButtonState = ConnectButtonState(tunnelStatus: newStatus)
 
-            statusButtonConfig = StatusButtonConfig(tunnelStatus: newStatus)
-            connectButtonState = ConnectButtonState(tunnelStatus: newStatus)
-
-            if let lastError {
-                statusInfoState = .error(message: lastError.localizedDescription)
-            } else {
-                statusInfoState = StatusInfoState(tunnelStatus: newStatus)
-            }
+                if let lastError {
+                    statusInfoState = .error(message: lastError.localizedDescription)
+                } else {
+                    statusInfoState = StatusInfoState(tunnelStatus: newStatus)
+                }
 #if os(macOS)
-            updateConnectedStartDateMacOS(with: status)
+                updateConnectedStartDateMacOS(with: status)
 #endif
+            }
         }
     }
 
@@ -396,23 +387,17 @@ private extension HomeViewModel {
             .store(in: &cancellables)
     }
 
-    func installHelperIfNeeded() async -> Bool {
-        var isInstalledAndRunning = helperManager.isHelperAuthorizedAndRunning()
-        // TODO: check if possible to split is helper running vs isHelperAuthorized
-        guard isInstalledAndRunning && !grpcManager.requiresUpdate
-        else {
-            do {
-                updateStatusInfoState(with: .installingDaemon)
-                isInstalledAndRunning = try await helperManager.installHelperIfNeeded()
-                // Force version update after install.
-                _ = try? await grpcManager.version()
-                resetStatusInfoState()
-            } catch let error {
-                updateStatusInfoState(with: .error(message: error.localizedDescription))
+    func setupDaemonStateObserver() {
+        helperInstallManager.$daemonState.sink { [weak self] state in
+            switch state {
+            case .installing:
+                self?.updateStatusInfoState(with: .installingDaemon)
+                self?.updateConnectButtonState(with: .installingDaemon)
+            case .unknown, .running:
+                break
             }
-            return isInstalledAndRunning
         }
-        return isInstalledAndRunning
+        .store(in: &cancellables)
     }
 
     func updateConnectedStartDateMacOS(with status: TunnelStatus) {
@@ -436,11 +421,6 @@ private extension HomeViewModel {
             updateTimeString(with: timeString)
         }
     }
-
-    func updateInitialTunnelStatus() {
-        guard helperManager.isHelperAuthorizedAndRunning() else { return }
-        grpcManager.status()
-    }
 }
 #endif
 
@@ -461,6 +441,13 @@ private extension HomeViewModel {
         Task { @MainActor in
             guard newState != statusInfoState else { return }
             statusInfoState = newState
+        }
+    }
+
+    func updateConnectButtonState(with newState: ConnectButtonState) {
+        Task { @MainActor in
+            guard newState != connectButtonState else { return }
+            connectButtonState = newState
         }
     }
 }

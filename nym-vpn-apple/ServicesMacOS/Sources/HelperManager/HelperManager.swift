@@ -6,7 +6,7 @@ import Shell
 
 public final class HelperManager {
     public static let shared = HelperManager()
-    public let requiredVersion = "1.0.0-rc.12"
+    public let requiredVersion = "1.0.0-rc.14"
 
     private var helperName = ""
 
@@ -14,26 +14,8 @@ public final class HelperManager {
         self.helperName = helperName
     }
 
-    public func isHelperAuthorizedAndRunning() -> Bool {
-        isHelperAuthorized() && isHelperRunning()
-    }
-
-    public func installHelperIfNeeded() async throws -> Bool {
-        do {
-            _ = try authorizeAndInstallHelper()
-
-            var retryCount = 0
-            while retryCount < 10 {
-                retryCount += 1
-                if isHelperAuthorizedAndRunning() {
-                    // Hack: Wait for daemon to start, to avoid connect button unresponsivness
-                    try? await Task.sleep(for: .seconds(5))
-                    return true
-                }
-                try? await Task.sleep(for: .seconds(1))
-            }
-            return false
-        }
+    public func installHelper() async throws {
+        try await authorizeAndInstallHelper()
     }
 
     public func uninstallHelper() -> Bool {
@@ -53,12 +35,12 @@ public final class HelperManager {
 }
 
 private extension HelperManager {
-    func authorizeAndInstallHelper() throws -> Bool {
+    func authorizeAndInstallHelper() async throws {
         var authRef: AuthorizationRef?
         let status = AuthorizationCreate(nil, nil, [], &authRef)
         guard status == errAuthorizationSuccess, let authRef = authRef
         else {
-            return false
+            throw DaemonError.authorizationDenied
         }
 
         var cfError: Unmanaged<CFError>?
@@ -84,11 +66,12 @@ private extension HelperManager {
                 return false
             }
         }
-
+        if !result {
+            throw DaemonError.authorizationDenied
+        }
         if let error = cfError?.takeRetainedValue() {
             throw error
         }
-        return result
     }
 
     func installHelper(with authRef: AuthorizationRef?, error: inout Unmanaged<CFError>?) -> Bool {

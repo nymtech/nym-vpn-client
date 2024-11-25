@@ -249,7 +249,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mnemonic"
+            "value" : "Recovery phrase"
           }
         }
       }
@@ -382,6 +382,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Connect to"
+          }
+        }
+      }
+    },
+    "daemonError.authorizationDenied" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authorization denied. Please try again."
           }
         }
       }
@@ -855,6 +866,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Installing and authorizing daemon..."
+          }
+        }
+      }
+    },
+    "home.installDaemonButton" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparing…"
           }
         }
       }

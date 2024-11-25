@@ -1,9 +1,5 @@
 extension GRPCManager {
     public func switchEnvironment(to environment: String) throws {
-        guard helperManager.isHelperAuthorizedAndRunning()
-        else {
-            throw GRPCError.daemonNotRunning
-        }
         logger.info("Changing env to \(environment)")
 
         var request = Nym_Vpn_SetNetworkRequest()

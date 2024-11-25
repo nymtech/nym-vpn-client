@@ -204,7 +204,7 @@ private extension AddCredentialsView {
                 .textStyle(.Body.Small.primary)
                 .padding(4)
                 .background(NymColor.background)
-                .position(x: 50, y: 0)
+                .position(x: 65, y: 0)
         }
         .padding(EdgeInsets(top: 12, leading: 16, bottom: viewModel.bottomPadding, trailing: 16))
     }
