@@ -27,7 +27,7 @@ function parseArgs {
             shift ;;
         # handle --arm64 option
         "--arm64" )
-            IS_WIN_ARM64=false;
+            IS_WIN_ARM64=true;
             shift ;;
         # if we receive "--" consider everything after to be inner arguments
         -- ) shift; break ;;
