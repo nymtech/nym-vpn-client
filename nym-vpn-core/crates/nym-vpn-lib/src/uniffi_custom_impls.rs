@@ -18,7 +18,10 @@ use nym_wg_go::PublicKey;
 use time::OffsetDateTime;
 use url::Url;
 
-use crate::{platform::error::VpnError, NodeIdentity, Recipient, UniffiCustomTypeConverter};
+use crate::{
+    platform::error::{RequestZkNymError, RequestZkNymSuccess, VpnError},
+    NodeIdentity, Recipient, UniffiCustomTypeConverter,
+};
 
 uniffi::custom_type!(Ipv4Addr, String);
 uniffi::custom_type!(Ipv6Addr, String);
@@ -683,8 +686,8 @@ pub struct AccountStateSummary {
     pub account_registered: Option<AccountRegistered>,
     pub account_summary: Option<AccountSummary>,
     pub device: Option<DeviceState>,
-    pub device_registration: Option<DeviceRegistration>,
-    pub pending_zk_nym: bool,
+    pub register_device_result: Option<RegisterDeviceResult>,
+    pub request_zk_nym_result: Option<RequestZkNymResult>,
 }
 
 impl From<nym_vpn_account_controller::AccountStateSummary> for AccountStateSummary {
@@ -694,8 +697,8 @@ impl From<nym_vpn_account_controller::AccountStateSummary> for AccountStateSumma
             account_registered: value.account_registered.map(|a| a.into()),
             account_summary: value.account_summary.map(|a| a.into()),
             device: value.device.map(|d| d.into()),
-            device_registration: value.device_registration.map(|d| d.into()),
-            pending_zk_nym: value.pending_zk_nym,
+            register_device_result: value.register_device_result.map(|r| r.into()),
+            request_zk_nym_result: value.request_zk_nym_result.map(|r| r.into()),
         }
     }
 }
@@ -867,7 +870,7 @@ impl From<nym_vpn_account_controller::shared_state::DeviceState> for DeviceState
 }
 
 #[derive(uniffi::Enum, Debug, Clone, PartialEq)]
-pub enum DeviceRegistration {
+pub enum RegisterDeviceResult {
     InProgress,
     Success,
     Failed {
@@ -876,22 +879,54 @@ pub enum DeviceRegistration {
     },
 }
 
-impl From<nym_vpn_account_controller::shared_state::DeviceRegistration> for DeviceRegistration {
-    fn from(value: nym_vpn_account_controller::shared_state::DeviceRegistration) -> Self {
-        match value {
-            nym_vpn_account_controller::shared_state::DeviceRegistration::InProgress => {
-                DeviceRegistration::InProgress
+impl From<nym_vpn_account_controller::shared_state::RegisterDeviceResult> for RegisterDeviceResult {
+    fn from(result: nym_vpn_account_controller::shared_state::RegisterDeviceResult) -> Self {
+        match result {
+            nym_vpn_account_controller::shared_state::RegisterDeviceResult::InProgress => {
+                RegisterDeviceResult::InProgress
             }
-            nym_vpn_account_controller::shared_state::DeviceRegistration::Success => {
-                DeviceRegistration::Success
+            nym_vpn_account_controller::shared_state::RegisterDeviceResult::Success => {
+                RegisterDeviceResult::Success
             }
-            nym_vpn_account_controller::shared_state::DeviceRegistration::Failed {
-                message,
-                message_id,
-                code_reference_id: _,
-            } => DeviceRegistration::Failed {
-                message,
-                message_id,
+            nym_vpn_account_controller::shared_state::RegisterDeviceResult::Failed(err) => {
+                RegisterDeviceResult::Failed {
+                    message: err.message(),
+                    message_id: err.message_id(),
+                }
+            }
+        }
+    }
+}
+
+#[derive(uniffi::Enum, Debug, Clone, PartialEq)]
+pub enum RequestZkNymResult {
+    InProgress,
+    Success {
+        successes: Vec<RequestZkNymSuccess>,
+    },
+    Failed {
+        successes: Vec<RequestZkNymSuccess>,
+        failures: Vec<RequestZkNymError>,
+    },
+}
+
+impl From<nym_vpn_account_controller::shared_state::RequestZkNymResult> for RequestZkNymResult {
+    fn from(result: nym_vpn_account_controller::shared_state::RequestZkNymResult) -> Self {
+        match result {
+            nym_vpn_account_controller::shared_state::RequestZkNymResult::InProgress => {
+                RequestZkNymResult::InProgress
+            }
+            nym_vpn_account_controller::shared_state::RequestZkNymResult::Success { successes } => {
+                RequestZkNymResult::Success {
+                    successes: successes.into_iter().map(|s| s.into()).collect(),
+                }
+            }
+            nym_vpn_account_controller::shared_state::RequestZkNymResult::Failed {
+                successes,
+                failures,
+            } => RequestZkNymResult::Failed {
+                successes: successes.into_iter().map(|s| s.into()).collect(),
+                failures: failures.into_iter().map(|f| f.into()).collect(),
             },
         }
     }

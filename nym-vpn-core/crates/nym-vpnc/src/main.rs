@@ -168,23 +168,38 @@ async fn connect(opts: CliOptions, connect_args: &cli::ConnectArgs) -> Result<()
     }
 
     if response.success {
-        if connect_args.wait_until_connected {
-            println!("Successfully sent connect command, waiting for connected state");
-            listen_until_connected_or_failed(opts).await
-        } else {
-            println!("Successfully sent connect command");
-            Ok(())
-        }
+        handle_connect_success(opts, connect_args).await
     } else if let Some(error) = response.error {
-        let kind =
-            nym_vpn_proto::connect_request_error::ConnectRequestErrorType::try_from(error.kind)
-                .context("failed to parse connect request error kind")?;
-        println!("Connect command failed: {} (id={kind:?})", error.message);
-        Ok(())
+        handle_connect_failure(error)
     } else {
         println!("Connect command failed with unknown error");
         Ok(())
     }
+}
+
+async fn handle_connect_success(opts: CliOptions, connect_args: &cli::ConnectArgs) -> Result<()> {
+    if connect_args.wait_until_connected {
+        println!("Successfully sent connect command, waiting for connected state");
+        listen_until_connected_or_failed(opts).await
+    } else {
+        println!("Successfully sent connect command");
+        Ok(())
+    }
+}
+
+fn handle_connect_failure(error: nym_vpn_proto::ConnectRequestError) -> Result<()> {
+    let kind = nym_vpn_proto::connect_request_error::ConnectRequestErrorType::try_from(error.kind)
+        .context("failed to parse connect request error kind")?;
+    println!("Connect command failed: {} (id={kind:?})", error.message);
+    for zk_nym_error in error.zk_nym_error {
+        let zk_nym_error = zk_nym_error.clone();
+        println!(
+            "  zk nym error ({}): {}",
+            zk_nym_error.ticketbook_type(),
+            zk_nym_error.message(),
+        );
+    }
+    Ok(())
 }
 
 async fn listen_until_connected_or_failed(opts: CliOptions) -> Result<()> {

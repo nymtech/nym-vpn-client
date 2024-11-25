@@ -31,7 +31,7 @@ pub(crate) const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";
 // GET requests can unfortunately take a long time over the mixnet
 pub(crate) const NYM_VPN_API_TIMEOUT: Duration = Duration::from_secs(60);
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct VpnApiClient {
     inner: nym_http_api_client::Client,
 }
@@ -432,14 +432,14 @@ impl VpnApiClient {
         expiration_date: String,
         ticketbook_type: String,
     ) -> Result<NymVpnZkNymPost> {
-        tracing::info!("Requesting zk-nym for type: {}", ticketbook_type);
+        tracing::debug!("Requesting zk-nym for type: {}", ticketbook_type);
         let body = RequestZkNymRequestBody {
             withdrawal_request,
             ecash_pubkey,
             expiration_date,
             ticketbook_type,
         };
-        tracing::info!("Request body: {:#?}", body);
+        tracing::debug!("Request body: {:#?}", body);
 
         self.post_authorized(
             &[

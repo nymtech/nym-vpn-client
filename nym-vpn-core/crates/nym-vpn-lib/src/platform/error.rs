@@ -51,17 +51,15 @@ pub enum VpnError {
     #[error("timeout connecting to nym-vpn-api")]
     VpnApiTimeout,
 
-    //#[error("max devices reached: {0}")]
-    //MaxDevicesReached(u64),
     #[error("account update failed: {details}")]
-    AccountUpdateFailed {
+    UpdateAccountEndpointFailure {
         details: String,
         message_id: Option<String>,
         code_reference_id: Option<String>,
     },
 
     #[error("device update failed: {details}")]
-    DeviceUpdateFailed {
+    UpdateDeviceEndpointFailure {
         details: String,
         message_id: Option<String>,
         code_reference_id: Option<String>,
@@ -74,8 +72,42 @@ pub enum VpnError {
         code_reference_id: Option<String>,
     },
 
+    #[error("failed to request zk nym")]
+    RequestZkNym {
+        successes: Vec<RequestZkNymSuccess>,
+        failed: Vec<RequestZkNymError>,
+    },
+
     #[error("invalid account storage path: {details}")]
     InvalidAccountStoragePath { details: String },
+}
+
+#[derive(uniffi::Record, Clone, Debug, PartialEq, Eq)]
+pub struct RequestZkNymSuccess {
+    pub id: String,
+}
+
+impl From<nym_vpn_account_controller::RequestZkNymSuccess> for RequestZkNymSuccess {
+    fn from(value: nym_vpn_account_controller::RequestZkNymSuccess) -> Self {
+        Self { id: value.id }
+    }
+}
+
+#[derive(uniffi::Record, Clone, Debug, PartialEq, Eq)]
+pub struct RequestZkNymError {
+    pub message: String,
+    pub message_id: Option<String>,
+    pub ticket_type: Option<String>,
+}
+
+impl From<nym_vpn_account_controller::RequestZkNymError> for RequestZkNymError {
+    fn from(error: nym_vpn_account_controller::RequestZkNymError) -> Self {
+        Self {
+            message: error.message(),
+            message_id: error.message_id(),
+            ticket_type: error.ticket_type(),
+        }
+    }
 }
 
 impl From<nym_vpn_account_controller::ReadyToConnect> for VpnError {
@@ -97,15 +129,6 @@ impl From<nym_vpn_account_controller::ReadyToConnect> for VpnError {
             nym_vpn_account_controller::ReadyToConnect::DeviceNotActive => {
                 Self::AccountDeviceNotActive
             }
-            nym_vpn_account_controller::ReadyToConnect::DeviceRegistrationFailed {
-                message,
-                message_id,
-                code_reference_id,
-            } => Self::DeviceRegistrationFailed {
-                details: message,
-                message_id,
-                code_reference_id,
-            },
         }
     }
 }
@@ -114,33 +137,30 @@ impl From<nym_vpn_account_controller::AccountCommandError> for VpnError {
     fn from(value: nym_vpn_account_controller::AccountCommandError) -> Self {
         use nym_vpn_account_controller::AccountCommandError;
         match value {
-            AccountCommandError::UpdateAccountEndpointFailure {
-                message,
-                message_id,
-                code_reference_id,
-                base_url: _,
-            } => VpnError::AccountUpdateFailed {
-                details: message,
-                message_id,
-                code_reference_id,
-            },
-            AccountCommandError::UpdateDeviceEndpointFailure {
-                message,
-                message_id,
-                code_reference_id,
-            } => VpnError::DeviceUpdateFailed {
-                details: message,
-                message_id,
-                code_reference_id,
-            },
-            AccountCommandError::RegisterDeviceEndpointFailure {
-                message,
-                message_id,
-                code_reference_id,
-            } => VpnError::DeviceRegistrationFailed {
-                details: message,
-                message_id,
-                code_reference_id,
+            AccountCommandError::UpdateAccountEndpointFailure(e) => {
+                VpnError::UpdateAccountEndpointFailure {
+                    details: e.message,
+                    message_id: e.message_id,
+                    code_reference_id: e.code_reference_id,
+                }
+            }
+            AccountCommandError::UpdateDeviceEndpointFailure(e) => {
+                VpnError::UpdateDeviceEndpointFailure {
+                    details: e.message,
+                    message_id: e.message_id,
+                    code_reference_id: e.code_reference_id,
+                }
+            }
+            AccountCommandError::RegisterDeviceEndpointFailure(e) => {
+                VpnError::DeviceRegistrationFailed {
+                    details: e.message,
+                    message_id: e.message_id,
+                    code_reference_id: e.code_reference_id,
+                }
+            }
+            AccountCommandError::RequestZkNym { successes, failed } => VpnError::RequestZkNym {
+                successes: successes.into_iter().map(|e| e.into()).collect(),
+                failed: failed.into_iter().map(|e| e.into()).collect(),
             },
             AccountCommandError::NoAccountStored => VpnError::NoAccountStored,
             AccountCommandError::NoDeviceStored => VpnError::NoDeviceIdentity,

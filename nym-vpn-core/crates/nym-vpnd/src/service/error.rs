@@ -12,7 +12,7 @@ use tracing::error;
 use super::config::ConfigSetupError;
 
 // Failure to initiate the connect
-#[derive(Debug, thiserror::Error)]
+#[derive(Clone, Debug, thiserror::Error)]
 pub enum VpnServiceConnectError {
     #[error("internal error: {0}")]
     Internal(String),
@@ -24,7 +24,7 @@ pub enum VpnServiceConnectError {
     Cancel,
 }
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Clone, Debug, thiserror::Error)]
 pub enum AccountNotReady {
     #[error("update account failed: {message}")]
     UpdateAccount {
@@ -53,6 +53,12 @@ pub enum AccountNotReady {
     #[error("no device identity stored")]
     NoDeviceStored,
 
+    // There are usually multiple independent zknym requests at a time
+    #[error("failed to request zk-nym(s)")]
+    RequestZkNym {
+        failed: Vec<nym_vpn_account_controller::RequestZkNymError>,
+    },
+
     #[error("general error: {0}")]
     General(String),
 
@@ -60,36 +66,76 @@ pub enum AccountNotReady {
     Internal(String),
 }
 
+//#[derive(Clone, Debug, thiserror::Error)]
+//pub enum RequestZkNymError {
+//    #[error("request zk nym failure: {message}")]
+//    RequestZkNym {
+//        message: String,
+//        message_id: Option<String>,
+//        code_reference_id: Option<String>,
+//    },
+//
+//    #[error("general request zk nym failure: {0}")]
+//    General(String),
+//}
+//
+//impl From<nym_vpn_account_controller::RequestZkNymError> for RequestZkNymError {
+//    fn from(err: nym_vpn_account_controller::RequestZkNymError) -> Self {
+//        match err {
+//            nym_vpn_account_controller::RequestZkNymError::RequestZkNymEndpointFailure {
+//                endpoint_failure,
+//                ticket_type: _,
+//            } => RequestZkNymError::RequestZkNym {
+//                message: endpoint_failure.message,
+//                message_id: endpoint_failure.message_id,
+//                code_reference_id: endpoint_failure.code_reference_id,
+//            },
+//            nym_vpn_account_controller::RequestZkNymError::PollZkNymEndpointFailure(e) => {
+//                RequestZkNymError::RequestZkNym {
+//                    message: e.message,
+//                    message_id: e.message_id,
+//                    code_reference_id: e.code_reference_id,
+//                }
+//            }
+//            nym_vpn_account_controller::RequestZkNymError::PollingTaskError
+//            | nym_vpn_account_controller::RequestZkNymError::PollingTimeout { .. }
+//            | nym_vpn_account_controller::RequestZkNymError::FinishedWithError { .. }
+//            | nym_vpn_account_controller::RequestZkNymError::Import { .. }
+//            | nym_vpn_account_controller::RequestZkNymError::Internal(_) => {
+//                RequestZkNymError::General(err.to_string())
+//            }
+//        }
+//    }
+//}
+
 impl From<AccountCommandError> for AccountNotReady {
     fn from(err: AccountCommandError) -> Self {
         match err {
-            AccountCommandError::UpdateAccountEndpointFailure {
-                message,
-                message_id,
-                code_reference_id,
-                base_url: _,
-            } => AccountNotReady::UpdateAccount {
-                message,
-                message_id,
-                code_reference_id,
+            AccountCommandError::UpdateAccountEndpointFailure(e) => {
+                AccountNotReady::UpdateAccount {
+                    message: e.message,
+                    message_id: e.message_id,
+                    code_reference_id: e.code_reference_id,
+                }
+            }
+            AccountCommandError::UpdateDeviceEndpointFailure(e) => AccountNotReady::UpdateDevice {
+                message: e.message,
+                message_id: e.message_id,
+                code_reference_id: e.code_reference_id,
             },
-            AccountCommandError::UpdateDeviceEndpointFailure {
-                message,
-                message_id,
-                code_reference_id,
-            } => AccountNotReady::UpdateDevice {
-                message,
-                message_id,
-                code_reference_id,
-            },
-            AccountCommandError::RegisterDeviceEndpointFailure {
-                message,
-                message_id,
-                code_reference_id,
-            } => AccountNotReady::RegisterDevice {
-                message,
-                message_id,
-                code_reference_id,
+            AccountCommandError::RegisterDeviceEndpointFailure(e) => {
+                AccountNotReady::RegisterDevice {
+                    message: e.message,
+                    message_id: e.message_id,
+                    code_reference_id: e.code_reference_id,
+                }
+            }
+            AccountCommandError::RequestZkNym {
+                successes: _,
+                failed,
+            } => AccountNotReady::RequestZkNym {
+                // failed: failed.into_iter().map(RequestZkNymError::from).collect(),
+                failed,
             },
             AccountCommandError::NoAccountStored => AccountNotReady::NoAccountStored,
             AccountCommandError::NoDeviceStored => AccountNotReady::NoDeviceStored,
@@ -100,7 +146,7 @@ impl From<AccountCommandError> for AccountNotReady {
 }
 
 // Failure to initiate the disconnect
-#[derive(Debug, thiserror::Error)]
+#[derive(Clone, Debug, thiserror::Error)]
 pub enum VpnServiceDisconnectError {
     #[error("internal error: {0}")]
     Internal(String),
@@ -451,6 +497,11 @@ pub enum AccountError {
     #[error(transparent)]
     AccountControllerError {
         source: nym_vpn_account_controller::Error,
+    },
+
+    #[error(transparent)]
+    AccountCommandError {
+        source: nym_vpn_account_controller::AccountCommandError,
     },
 
     #[error("account not configured")]

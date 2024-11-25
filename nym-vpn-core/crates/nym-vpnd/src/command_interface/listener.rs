@@ -41,10 +41,7 @@ use super::{
     helpers::{parse_entry_point, parse_exit_point, threshold_into_percent},
 };
 use crate::{
-    command_interface::protobuf::{
-        connection_state::into_is_ready_to_connect_response_type,
-        info_response::into_proto_available_tickets,
-    },
+    command_interface::protobuf::info_response::into_proto_available_tickets,
     service::{ConnectOptions, VpnServiceCommand, VpnServiceStateChange},
 };
 
@@ -227,10 +224,13 @@ impl NymVpnd for CommandInterface {
                 success: true,
                 error: None,
             },
-            Err(err) => ConnectResponse {
-                success: false,
-                error: Some(nym_vpn_proto::ConnectRequestError::from(err)),
-            },
+            Err(err) => {
+                tracing::info!("Connect request error: {:?}", err);
+                ConnectResponse {
+                    success: false,
+                    error: Some(nym_vpn_proto::ConnectRequestError::from(err)),
+                }
+            }
         };
 
         tracing::debug!("Returning connect response: {:?}", response);
@@ -578,11 +578,9 @@ impl NymVpnd for CommandInterface {
 
         let response = match result {
             Ok(state) => GetAccountStateResponse {
-                result: Some(
-                    nym_vpn_proto::get_account_state_response::Result::AccountSummary(
-                        super::protobuf::account::into_account_summary(state),
-                    ),
-                ),
+                result: Some(nym_vpn_proto::get_account_state_response::Result::Account(
+                    nym_vpn_proto::AccountStateSummary::from(state),
+                )),
             },
             Err(err) => {
                 // TODO: consider proper error handling for AccountError in this context
@@ -618,9 +616,7 @@ impl NymVpnd for CommandInterface {
             .await?;
 
         let response = match result {
-            Ok(ready) => IsReadyToConnectResponse {
-                kind: into_is_ready_to_connect_response_type(ready) as i32,
-            },
+            Ok(ready) => IsReadyToConnectResponse::from(ready),
             Err(err) => {
                 // TODO: consider proper error handling for AccountError in this context
                 tracing::error!("Failed to check if ready to connect: {:?}", err);

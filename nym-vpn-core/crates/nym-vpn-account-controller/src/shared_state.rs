@@ -11,7 +11,13 @@ use nym_vpn_api_client::response::{
 use serde::Serialize;
 use tokio::sync::MutexGuard;
 
-use crate::commands::AccountCommandError;
+use crate::commands::{
+    register_device::RegisterDeviceError,
+    request_zknym::{
+        RequestZkNymError, RequestZkNymErrorSummary, RequestZkNymSuccess,
+        RequestZkNymSuccessSummary,
+    },
+};
 
 #[derive(Clone)]
 pub struct SharedAccountState {
@@ -28,8 +34,6 @@ pub enum ReadyToRegisterDevice {
     AccountNotActive,
     NoActiveSubscription,
     DeviceAlreadyRegistered,
-    //DeviceInactive,
-    //DeviceDeleted,
     MaxDevicesReached(u64),
 }
 
@@ -46,8 +50,6 @@ impl fmt::Display for ReadyToRegisterDevice {
             ReadyToRegisterDevice::DeviceAlreadyRegistered => {
                 write!(f, "device already registered")
             }
-            // ReadyToRegisterDevice::DeviceInactive => write!(f, "device inactive"),
-            // ReadyToRegisterDevice::DeviceDeleted => write!(f, "device marked for deletion"),
             ReadyToRegisterDevice::MaxDevicesReached(max) => {
                 write!(f, "maximum number of devices reached: {max}")
             }
@@ -96,12 +98,6 @@ pub enum ReadyToConnect {
     NoActiveSubscription,
     DeviceNotRegistered,
     DeviceNotActive,
-    DeviceRegistrationFailed {
-        message: String,
-        message_id: Option<String>,
-        code_reference_id: Option<String>,
-    },
-    //NoCredentialsAvailable,
 }
 
 impl fmt::Display for ReadyToConnect {
@@ -115,9 +111,6 @@ impl fmt::Display for ReadyToConnect {
             ReadyToConnect::NoActiveSubscription => write!(f, "no active subscription"),
             ReadyToConnect::DeviceNotRegistered => write!(f, "device not registered"),
             ReadyToConnect::DeviceNotActive => write!(f, "device not active"),
-            ReadyToConnect::DeviceRegistrationFailed { message, .. } => {
-                write!(f, "device registration failed: {}", message)
-            }
         }
     }
 }
@@ -170,20 +163,20 @@ impl SharedAccountState {
         guard.device = Some(state);
     }
 
-    pub(crate) async fn set_device_registration(&self, registration: DeviceRegistration) {
+    pub(crate) async fn set_device_registration(&self, registration: RegisterDeviceResult) {
         let mut guard = self.inner.lock().await;
-        if guard.device_registration.as_ref() != Some(&registration) {
+        if guard.register_device_result.as_ref() != Some(&registration) {
             tracing::info!("Setting device registration result to {:?}", registration);
         }
-        guard.device_registration = Some(registration);
+        guard.register_device_result = Some(registration);
     }
 
-    pub(crate) async fn set_pending_zk_nym(&self, pending: bool) {
+    pub(crate) async fn set_zk_nym_request(&self, request: RequestZkNymResult) {
         let mut guard = self.inner.lock().await;
-        if guard.pending_zk_nym != pending {
-            tracing::debug!("Setting pending zk-nym to {}", pending);
-            guard.pending_zk_nym = pending;
+        if guard.request_zk_nym_result.as_ref() != Some(&request) {
+            tracing::info!("Setting zk-nym request result to {:?}", request);
         }
+        guard.request_zk_nym_result = Some(request);
     }
 
     pub(crate) async fn is_ready_to_register_device(&self) -> ReadyToRegisterDevice {
@@ -197,21 +190,6 @@ impl SharedAccountState {
     pub async fn is_ready_to_connect(&self, credential_mode: bool) -> ReadyToConnect {
         self.lock().await.is_ready_to_connect(credential_mode)
     }
-}
-
-#[derive(thiserror::Error, Debug, Clone, PartialEq, Serialize)]
-pub enum WaitForRegistrationError {
-    #[error("device registration failed: {message}, message_id: {message_id:?}")]
-    Failed {
-        message: String,
-        message_id: Option<String>,
-    },
-
-    #[error("timed out waiting for device registration")]
-    Timeout,
-
-    #[error("tried to wait for device registration that hasn't started")]
-    TryToWaitForDeviceRegistrationThatHasntStarted,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize)]
@@ -229,11 +207,10 @@ pub struct AccountStateSummary {
     pub device: Option<DeviceState>,
 
     // The result of the latest registration attempt, if any
-    pub device_registration: Option<DeviceRegistration>,
+    pub register_device_result: Option<RegisterDeviceResult>,
 
-    // If there are any pending zk-nym requests. This is not stopping from trying to connect, but
-    // it might be useful to hold off.
-    pub pending_zk_nym: bool,
+    // The result of the latest zk-nym request, if any
+    pub request_zk_nym_result: Option<RequestZkNymResult>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -316,7 +293,7 @@ pub enum DeviceState {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
-pub enum DeviceRegistration {
+pub enum RegisterDeviceResult {
     // The device registration is in progress
     InProgress,
 
@@ -324,11 +301,47 @@ pub enum DeviceRegistration {
     Success,
 
     // The device registration failed
-    Failed {
-        message: String,
-        message_id: Option<String>,
-        code_reference_id: Option<String>,
+    Failed(RegisterDeviceError),
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub enum RequestZkNymResult {
+    // The zk-nym request is in progress
+    InProgress,
+
+    // The last zk-nym request was successful
+    Success {
+        successes: Vec<RequestZkNymSuccess>,
     },
+
+    // The last zk-nym request failed
+    Failed {
+        successes: Vec<RequestZkNymSuccess>,
+        failures: Vec<RequestZkNymError>,
+    },
+}
+
+impl From<RequestZkNymSuccessSummary> for RequestZkNymResult {
+    fn from(success: RequestZkNymSuccessSummary) -> Self {
+        RequestZkNymResult::Success {
+            successes: success.successful_zknym_requests().cloned().collect(),
+        }
+    }
+}
+
+impl From<RequestZkNymErrorSummary> for RequestZkNymResult {
+    fn from(summary: RequestZkNymErrorSummary) -> Self {
+        if summary.failed.is_empty() {
+            RequestZkNymResult::Success {
+                successes: summary.successes,
+            }
+        } else {
+            RequestZkNymResult::Failed {
+                successes: summary.successes,
+                failures: summary.failed,
+            }
+        }
+    }
 }
 
 impl AccountStateSummary {
@@ -341,10 +354,10 @@ impl AccountStateSummary {
             None => {}
         }
 
-        match self.device_registration {
-            Some(DeviceRegistration::InProgress) => return ReadyToRegisterDevice::InProgress,
-            Some(DeviceRegistration::Success) => {}
-            Some(DeviceRegistration::Failed { .. }) => {}
+        match self.register_device_result {
+            Some(RegisterDeviceResult::InProgress) => return ReadyToRegisterDevice::InProgress,
+            Some(RegisterDeviceResult::Success) => {}
+            Some(RegisterDeviceResult::Failed { .. }) => {}
             None => {}
         }
 
@@ -387,6 +400,13 @@ impl AccountStateSummary {
     }
 
     pub(crate) fn is_ready_to_request_zk_nym(&self) -> ReadyToRequestZkNym {
+        match self.request_zk_nym_result {
+            Some(RequestZkNymResult::InProgress) => return ReadyToRequestZkNym::InProgress,
+            Some(RequestZkNymResult::Success { .. }) => {}
+            Some(RequestZkNymResult::Failed { .. }) => {}
+            None => {}
+        }
+
         match self.mnemonic {
             Some(MnemonicState::NotStored) => return ReadyToRequestZkNym::NoMnemonicStored,
             Some(MnemonicState::Stored { .. }) => {}
@@ -422,10 +442,6 @@ impl AccountStateSummary {
             Some(DeviceState::Inactive) => return ReadyToRequestZkNym::DeviceNotActive,
             Some(DeviceState::DeleteMe) => return ReadyToRequestZkNym::DeviceNotActive,
             None => return ReadyToRequestZkNym::DeviceNotSynced,
-        }
-
-        if self.pending_zk_nym {
-            return ReadyToRequestZkNym::InProgress;
         }
 
         ReadyToRequestZkNym::Ready
@@ -482,12 +498,11 @@ impl fmt::Display for AccountStateSummary {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "AccountState {{ mnemonic: {}, account_registered: {}, account_summary: {}, device: {}, pending_zk_nym: {} }}",
+            "AccountState {{ mnemonic: {}, account_registered: {}, account_summary: {}, device: {} }}",
             debug_or_unknown(self.mnemonic.as_ref()),
             debug_or_unknown(self.account_registered.as_ref()),
             debug_or_unknown(self.account_summary.as_ref()),
             debug_or_unknown(self.device.as_ref()),
-            self.pending_zk_nym,
         )
     }
 }
@@ -562,41 +577,6 @@ impl From<NymVpnDeviceStatus> for DeviceState {
             NymVpnDeviceStatus::Active => DeviceState::Active,
             NymVpnDeviceStatus::Inactive => DeviceState::Inactive,
             NymVpnDeviceStatus::DeleteMe => DeviceState::DeleteMe,
-        }
-    }
-}
-
-impl From<&AccountCommandError> for DeviceRegistration {
-    fn from(err: &AccountCommandError) -> Self {
-        match err {
-            AccountCommandError::UpdateAccountEndpointFailure {
-                message,
-                message_id,
-                code_reference_id,
-                base_url: _,
-            }
-            | AccountCommandError::UpdateDeviceEndpointFailure {
-                message,
-                message_id,
-                code_reference_id,
-            }
-            | AccountCommandError::RegisterDeviceEndpointFailure {
-                message,
-                message_id,
-                code_reference_id,
-            } => DeviceRegistration::Failed {
-                message: message.clone(),
-                message_id: message_id.clone(),
-                code_reference_id: code_reference_id.clone(),
-            },
-            AccountCommandError::General(_)
-            | AccountCommandError::Internal(_)
-            | AccountCommandError::NoAccountStored
-            | AccountCommandError::NoDeviceStored => DeviceRegistration::Failed {
-                message: err.to_string(),
-                message_id: None,
-                code_reference_id: None,
-            },
         }
     }
 }

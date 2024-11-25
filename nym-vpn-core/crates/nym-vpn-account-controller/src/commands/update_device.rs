@@ -8,7 +8,10 @@ use nym_vpn_api_client::{
     types::{Device, VpnApiAccount},
 };
 
-use crate::shared_state::{DeviceState, SharedAccountState};
+use crate::{
+    commands::VpnApiEndpointFailure,
+    shared_state::{DeviceState, SharedAccountState},
+};
 
 use super::{AccountCommandError, AccountCommandResult};
 
@@ -107,11 +110,11 @@ pub(crate) async fn update_state(
                     e.message,
                     e.message_id
                 );
-                AccountCommandError::UpdateDeviceEndpointFailure {
+                AccountCommandError::UpdateDeviceEndpointFailure(VpnApiEndpointFailure {
                     message: e.message.clone(),
                     message_id: e.message_id.clone(),
                     code_reference_id: e.code_reference_id.clone(),
-                }
+                })
             })
             .unwrap_or(AccountCommandError::General(err.to_string()))
     })?;

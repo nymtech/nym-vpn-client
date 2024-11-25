@@ -17,7 +17,10 @@ mod storage;
 mod ticketbooks;
 
 pub use commander::AccountControllerCommander;
-pub use commands::{AccountCommand, AccountCommandError};
+pub use commands::{
+    AccountCommand, AccountCommandError, RegisterDeviceError, RequestZkNymError,
+    RequestZkNymSuccess, VpnApiEndpointFailure,
+};
 pub use controller::AccountController;
 pub use error::Error;
 pub use shared_state::{AccountStateSummary, ReadyToConnect, SharedAccountState};

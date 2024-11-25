@@ -5,7 +5,10 @@ use std::sync::Arc;
 
 use nym_vpn_api_client::{response::NymVpnAccountSummaryResponse, types::VpnApiAccount};
 
-use crate::shared_state::{AccountRegistered, AccountSummary, SharedAccountState};
+use crate::{
+    commands::VpnApiEndpointFailure,
+    shared_state::{AccountRegistered, AccountSummary, SharedAccountState},
+};
 
 use super::{AccountCommandError, AccountCommandResult};
 
@@ -106,12 +109,19 @@ pub(crate) async fn update_state(
                 account_state
                     .set_account_registered(AccountRegistered::NotRegistered)
                     .await;
-                return Err(AccountCommandError::UpdateAccountEndpointFailure {
-                    message: e.message.clone(),
-                    message_id: e.message_id.clone(),
-                    code_reference_id: e.code_reference_id.clone(),
-                    base_url: Box::new(vpn_api_client.current_url().clone()),
-                });
+                return Err(AccountCommandError::UpdateAccountEndpointFailure(
+                    VpnApiEndpointFailure {
+                        message: e.message.clone(),
+                        message_id: e.message_id.clone(),
+                        code_reference_id: e.code_reference_id.clone(),
+                    },
+                ));
+                //return Err(AccountCommandError::UpdateAccountEndpointFailure {
+                //    message: e.message.clone(),
+                //    message_id: e.message_id.clone(),
+                //    code_reference_id: e.code_reference_id.clone(),
+                //    base_url: Box::new(vpn_api_client.current_url().clone()),
+                //});
             }
             return Err(AccountCommandError::General(err.to_string()));
         }

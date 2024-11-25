@@ -10,6 +10,11 @@ use time::Date;
 
 use crate::error::Error;
 
+// If we go below this threshold, we should request more tickets
+// TODO: I picked a random number, check what is should be. Or if we can express this in terms of
+// data/bandwidth.
+const TICKET_NUMBER_THRESHOLD: u64 = 30;
+
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct AvailableTicketbook {
     pub id: i64,
@@ -129,6 +134,36 @@ impl AvailableTicketbooks {
         si_scale::helpers::bibytes2(
             self.remaining_tickets(typ) as f64 * typ.to_repr().bandwidth_value() as f64,
         )
+    }
+
+    pub fn ticket_types_above_threshold(&self, threshold: u64) -> Vec<TicketType> {
+        ticketbook_types()
+            .into_iter()
+            .filter(|ticket_type| self.remaining_tickets(*ticket_type) > threshold)
+            .collect()
+    }
+
+    pub fn ticket_types_below_or_at_threshold(&self, threshold: u64) -> Vec<TicketType> {
+        ticketbook_types()
+            .into_iter()
+            .filter(|ticket_type| self.remaining_tickets(*ticket_type) <= threshold)
+            .collect()
+    }
+
+    pub fn is_all_ticket_types_above_threshold(&self, threshold: u64) -> bool {
+        ticketbook_types()
+            .iter()
+            .all(|ticket_type| self.remaining_tickets(*ticket_type) > threshold)
+    }
+
+    pub fn ticket_types_running_low(&self) -> Vec<TicketType> {
+        for ticket_type in self.ticket_types_above_threshold(0) {
+            tracing::info!(
+                "Remaining unexpired tickets for {ticket_type}: {}",
+                self.remaining_tickets(ticket_type)
+            );
+        }
+        self.ticket_types_below_or_at_threshold(TICKET_NUMBER_THRESHOLD)
     }
 
     pub fn len(&self) -> usize {

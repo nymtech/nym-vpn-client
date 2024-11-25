@@ -16,7 +16,7 @@ use super::{error::VpnError, RUNTIME};
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn waitForUpdateAccount() -> Result<(), VpnError> {
-    RUNTIME.block_on(super::account::wait_for_update_account())
+    RUNTIME.block_on(waitForUpdateAccountAsync())
 }
 
 /// Async variant of waitForUpdateAccount. This is useful when you want to wait for the account
@@ -28,7 +28,7 @@ pub fn waitForUpdateAccount() -> Result<(), VpnError> {
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub async fn waitForUpdateAccountAsync() -> Result<(), VpnError> {
-    super::account::wait_for_update_account().await
+    super::account::wait_for_update_account().await.map(|_| ())
 }
 
 /// Call that blocks until the device has been updated/synced. This is useful when you want to wait
@@ -40,7 +40,7 @@ pub async fn waitForUpdateAccountAsync() -> Result<(), VpnError> {
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn waitForUpdateDevice() -> Result<(), VpnError> {
-    RUNTIME.block_on(super::account::wait_for_update_device())
+    RUNTIME.block_on(waitForUpdateDeviceAsync())
 }
 
 /// Async variant of waitForUpdateDevice. This is useful when you want to wait for the device
@@ -52,7 +52,7 @@ pub fn waitForUpdateDevice() -> Result<(), VpnError> {
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub async fn waitForUpdateDeviceAsync() -> Result<(), VpnError> {
-    super::account::wait_for_update_device().await
+    super::account::wait_for_update_device().await.map(|_| ())
 }
 
 /// Call that blocks until the device has been registered. This is useful when you want to wait
@@ -64,7 +64,7 @@ pub async fn waitForUpdateDeviceAsync() -> Result<(), VpnError> {
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn waitForRegisterDevice() -> Result<(), VpnError> {
-    RUNTIME.block_on(super::account::wait_for_register_device())
+    RUNTIME.block_on(waitForRegisterDeviceAsync())
 }
 
 /// Async variant of waitForRegisterDevice. This is useful when you want to wait for the device
@@ -79,6 +79,31 @@ pub async fn waitForRegisterDeviceAsync() -> Result<(), VpnError> {
     super::account::wait_for_register_device().await
 }
 
+/// Call that blocks until the account controller reports that we have zknyms stored in the local
+/// credential store. This is useful when you want to wait for the account to be ready before
+/// proceeding with other operations.
+///
+/// # Errors
+///
+/// This function will return an error if the account controller is not running.
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn waitForAvailableZkNyms() -> Result<(), VpnError> {
+    RUNTIME.block_on(waitForAvailableZkNymsAsync())
+}
+
+/// Async variant of waitForAvailableZkNyms. This is useful when you want to wait for the account
+/// to be ready before proceeding with other operations.
+///
+/// # Errors
+///
+/// This function will return an error if the account controller is not running.
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub async fn waitForAvailableZkNymsAsync() -> Result<(), VpnError> {
+    super::account::wait_for_available_zk_nyms().await
+}
+
 /// Call that blocks until the account controller reports that we are ready to connect. This is
 /// useful when you want to wait for the account to be ready before proceeding with other
 /// operations.
@@ -91,11 +116,7 @@ pub async fn waitForRegisterDeviceAsync() -> Result<(), VpnError> {
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn waitForAccountReadyToConnect(timeout_sec: u64) -> Result<(), VpnError> {
-    RUNTIME.block_on(async {
-        let credentials_mode = super::environment::get_feature_flag_credential_mode().await?;
-        let timeout = Duration::from_secs(timeout_sec);
-        super::account::wait_for_account_ready_to_connect(credentials_mode, timeout).await
-    })
+    RUNTIME.block_on(waitForAccountReadyToConnectAsync(timeout_sec))
 }
 
 /// Async variant of waitForAccountReadyToConnect. This is useful when you want to wait for the
