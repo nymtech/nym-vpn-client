@@ -249,7 +249,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mnemonic"
+            "value" : "Recovery phrase"
           }
         }
       }
