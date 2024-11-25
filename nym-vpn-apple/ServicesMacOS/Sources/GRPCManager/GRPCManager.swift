@@ -9,7 +9,6 @@ import NIOConcurrencyHelpers
 import SwiftProtobuf
 import AppVersionProvider
 import Constants
-import HelperManager
 import TunnelStatus
 
 public final class GRPCManager: ObservableObject {
@@ -20,7 +19,6 @@ public final class GRPCManager: ObservableObject {
 
     let client: Nym_Vpn_NymVpndClientProtocol
     let logger = Logger(label: "GRPC Manager")
-    let helperManager: HelperManager
 
     public static let shared = GRPCManager()
 
@@ -37,11 +35,10 @@ public final class GRPCManager: ObservableObject {
     @Published public var lastError: GeneralNymError?
     @Published public var connectedDate: Date?
     public var requiresUpdate: Bool {
-        daemonVersion != helperManager.requiredVersion
+        daemonVersion != AppVersionProvider.libVersion
     }
 
-    private init(helperManager: HelperManager = HelperManager.shared) {
-        self.helperManager = helperManager
+    private init() {
         channel = ClientConnection(
             configuration:
                     .default(
@@ -80,11 +77,6 @@ public final class GRPCManager: ObservableObject {
     }
 
     public func status() {
-        guard helperManager.isHelperAuthorizedAndRunning()
-        else {
-            return
-        }
-
         logger.log(level: .info, "Status")
         let request = Nym_Vpn_StatusRequest()
         let call = client.vpnStatus(request)
@@ -104,7 +96,6 @@ public final class GRPCManager: ObservableObject {
 
     // MARK: - Connection -
     public func isReadyToConnect() {
-        guard helperManager.isHelperAuthorizedAndRunning() else { return }
         logger.log(level: .info, "isReadyToConnect")
 
         let request = Nym_Vpn_IsReadyToConnectRequest()
@@ -126,7 +117,6 @@ public final class GRPCManager: ObservableObject {
         exitRouterCountryCode: String?,
         isTwoHopEnabled: Bool
     ) async throws {
-        guard helperManager.isHelperAuthorizedAndRunning() else { return }
         logger.log(level: .info, "Connecting")
 
         return try await withCheckedThrowingContinuation { continuation in
@@ -187,11 +177,6 @@ public final class GRPCManager: ObservableObject {
     }
 
     public func disconnect() {
-        guard helperManager.isHelperAuthorizedAndRunning()
-        else {
-            return
-        }
-
         logger.log(level: .info, "Disconnecting")
         let request = Nym_Vpn_DisconnectRequest()
 
@@ -215,11 +200,6 @@ public final class GRPCManager: ObservableObject {
 
     // MARK: - Countries -
     public func entryCountryCodes() async throws -> [String] {
-        guard helperManager.isHelperAuthorizedAndRunning()
-        else {
-            throw GRPCError.daemonNotRunning
-        }
-
         logger.log(level: .info, "Fetching entry countries")
         return try await withCheckedThrowingContinuation { continuation in
             var request = Nym_Vpn_ListCountriesRequest()
@@ -248,11 +228,6 @@ public final class GRPCManager: ObservableObject {
     }
 
     public func exitCountryCodes() async throws -> [String] {
-        guard helperManager.isHelperAuthorizedAndRunning()
-        else {
-            throw GRPCError.daemonNotRunning
-        }
-
         logger.log(level: .info, "Fetching exit countries")
         return try await withCheckedThrowingContinuation { continuation in
             var request = Nym_Vpn_ListCountriesRequest()
@@ -281,11 +256,6 @@ public final class GRPCManager: ObservableObject {
     }
 
     public func vpnCountryCodes() async throws -> [String] {
-        guard helperManager.isHelperAuthorizedAndRunning()
-        else {
-            throw GRPCError.daemonNotRunning
-        }
-
         logger.log(level: .info, "Fetching VPN countries")
         return try await withCheckedThrowingContinuation { continuation in
             var request = Nym_Vpn_ListCountriesRequest()
