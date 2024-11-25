@@ -120,6 +120,9 @@ private extension CountriesManager {
         setupAutoUpdates()
         configureEnvironmentChange()
         fetchCountries()
+#if os(macOS)
+        setupDaemonStateObserver()
+#endif
     }
 
     func setupAutoUpdates() {
@@ -139,7 +142,8 @@ private extension CountriesManager {
         }
     }
 
-    func setupDaemonStateObseerver() {
+#if os(macOS)
+    func setupDaemonStateObserver() {
         helperInstallManager.$daemonState.sink { [weak self] daemonState in
             guard daemonState == .running else { return }
             Task(priority: .background) {
@@ -149,6 +153,7 @@ private extension CountriesManager {
         }
         .store(in: &cancellables)
     }
+#endif
 }
 
 // MARK: - Pre bundled countries -

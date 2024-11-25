@@ -170,9 +170,7 @@ public extension HomeViewModel {
 // MARK: - Connection -
 public extension HomeViewModel {
     func connectDisconnect() {
-
-        guard connectionManager.currentTunnelStatus != .disconnecting ||
-                helperInstallManager.daemonState != .installing
+        guard connectionManager.currentTunnelStatus != .disconnecting
         else {
             return
         }
@@ -183,6 +181,7 @@ public extension HomeViewModel {
             lastError = nil
             resetStatusInfoState()
 #if os(macOS)
+            guard helperInstallManager.daemonState != .installing else { return }
             do {
                 try await helperInstallManager.installIfNeeded()
             } catch {
