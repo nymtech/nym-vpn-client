@@ -9,12 +9,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.service.tunnel.TunnelManager
+import net.nymtech.nymvpn.service.tunnel.model.BackendUiEvent
 import net.nymtech.nymvpn.ui.model.ConnectionState
-import net.nymtech.nymvpn.ui.model.StateMessage.*
+import net.nymtech.nymvpn.ui.model.StateMessage.Error
+import net.nymtech.nymvpn.ui.model.StateMessage.StartError
 import net.nymtech.nymvpn.util.Constants
-import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
 import net.nymtech.vpn.backend.Tunnel
-import net.nymtech.vpn.model.BackendMessage
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,21 +26,14 @@ constructor(
 ) : ViewModel() {
 
 	val uiState = tunnelManager.stateFlow.map { manager ->
-		val connectionTime = manager.tunnelStatistics.connectionSeconds.convertSecondsToTimeString()
 		val connectionState = ConnectionState.from(manager.tunnelState)
-		var stateMessage = connectionState.stateMessage
-		when (manager.backendMessage) {
-			is BackendMessage.Failure -> {
-				stateMessage = Error(manager.backendMessage.reason)
-			}
-			BackendMessage.None -> stateMessage = connectionState.stateMessage
-			is BackendMessage.BandwidthAlert -> Unit
-			is BackendMessage.StartFailure -> {
-				stateMessage = StartError(manager.backendMessage.exception)
-			}
+		val stateMessage = when (val event = manager.backendUiEvent) {
+			is BackendUiEvent.BandwidthAlert, null -> connectionState.stateMessage
+			is BackendUiEvent.Failure -> Error(event.reason)
+			is BackendUiEvent.StartFailure -> StartError(event.exception)
 		}
 		MainUiState(
-			connectionTime = connectionTime,
+			connectionTime = manager.connectionData?.connectedAt,
 			connectionState = connectionState,
 			stateMessage = stateMessage,
 		)

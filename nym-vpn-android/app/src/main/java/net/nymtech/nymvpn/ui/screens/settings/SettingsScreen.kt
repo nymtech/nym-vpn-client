@@ -15,6 +15,7 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowRight
 import androidx.compose.material.icons.automirrored.outlined.Launch
 import androidx.compose.material.icons.automirrored.outlined.ViewQuilt
 import androidx.compose.material.icons.outlined.AdminPanelSettings
@@ -146,6 +147,10 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 				),
 				SelectionItem(
 					Icons.Outlined.AdminPanelSettings,
+					{
+						val icon = Icons.AutoMirrored.Outlined.ArrowRight
+						Icon(icon, icon.name, Modifier.size(iconSize))
+					},
 					title = { Text(stringResource(R.string.kill_switch), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
 						context.launchVpnSettings()
@@ -157,11 +162,19 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 			mutableListOf(
 				SelectionItem(
 					Icons.AutoMirrored.Outlined.ViewQuilt,
+					{
+						val icon = Icons.AutoMirrored.Outlined.ArrowRight
+						Icon(icon, icon.name, Modifier.size(iconSize))
+					},
 					title = { Text(stringResource(R.string.appearance), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = { navController.navigate(Route.Appearance) },
 				),
 				SelectionItem(
 					Icons.Outlined.Notifications,
+					{
+						val icon = Icons.AutoMirrored.Outlined.ArrowRight
+						Icon(icon, icon.name, Modifier.size(iconSize))
+					},
 					title = { Text(stringResource(R.string.notifications), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
 						context.launchNotificationSettings()
@@ -206,16 +219,28 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 			listOf(
 				SelectionItem(
 					ImageVector.vectorResource(R.drawable.feedback),
+					{
+						val icon = Icons.AutoMirrored.Outlined.ArrowRight
+						Icon(icon, icon.name, Modifier.size(iconSize))
+					},
 					title = { Text(stringResource(R.string.feedback), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = { navController.navigate(Route.Feedback) },
 				),
 				SelectionItem(
 					ImageVector.vectorResource(R.drawable.support),
+					{
+						val icon = Icons.AutoMirrored.Outlined.ArrowRight
+						Icon(icon, icon.name, Modifier.size(iconSize))
+					},
 					title = { Text(stringResource(R.string.support), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = { navController.navigate(Route.Support) },
 				),
 				SelectionItem(
 					ImageVector.vectorResource(R.drawable.logs),
+					{
+						val icon = Icons.AutoMirrored.Outlined.ArrowRight
+						Icon(icon, icon.name, Modifier.size(iconSize))
+					},
 					title = { Text(stringResource(R.string.logs), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = { navController.navigate(Route.Logs) },
 				),
@@ -272,6 +297,10 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 		SurfaceSelectionGroupButton(
 			listOf(
 				SelectionItem(
+					trailing = {
+						val icon = Icons.AutoMirrored.Outlined.ArrowRight
+						Icon(icon, icon.name, Modifier.size(iconSize))
+					},
 					title = { Text(stringResource(R.string.legal), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = { navController.navigate(Route.Legal) },
 				),

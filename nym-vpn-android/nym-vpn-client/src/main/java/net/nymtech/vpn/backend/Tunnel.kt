@@ -1,8 +1,7 @@
 package net.nymtech.vpn.backend
 
 import android.system.Os
-import net.nymtech.vpn.model.BackendMessage
-import net.nymtech.vpn.model.Statistics
+import net.nymtech.vpn.model.BackendEvent
 import net.nymtech.vpn.util.Constants.LOG_LEVEL
 import nym_vpn_lib.EntryPoint
 import nym_vpn_lib.ExitPoint
@@ -23,18 +22,11 @@ interface Tunnel {
 	fun onStateChange(newState: State)
 
 	/**
-	 * React to a change in state of the tunnel statistics. Should only be directly called by Backend.
+	 * React to a change in state of the tunnel connection information. Should only be directly called by Backend.
 	 *
-	 * @param stats The new state of the tunnel statistics.
+	 * @param event The new state of mixnet or tunnel connection details.
 	 */
-	fun onStatisticChange(stats: Statistics)
-
-	/**
-	 * React to a change in state of backend messages. Should only be directly called by Backend.
-	 *
-	 * @param message The new message from the backend.
-	 */
-	fun onBackendMessage(message: BackendMessage)
+	fun onBackendEvent(event: BackendEvent)
 
 	/**
 	 * Sealed class to represent all possible states of a [Tunnel].
