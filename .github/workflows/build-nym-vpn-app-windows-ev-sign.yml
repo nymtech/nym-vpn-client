@@ -263,7 +263,6 @@ jobs:
               ]
             }
           }' tauri.conf.json
-          cat tauri.conf.json
 
       - name: Build tauri desktop client
         working-directory: nym-vpn-app/src-tauri
@@ -276,7 +275,6 @@ jobs:
           NETWORK_ENV_SELECT: ${{ inputs.dev_mode == true }}
           CODE_SIGN_TOOL_PATH: "C:\\actions-runner\\_work\\nym-vpn-client\\nym-vpn-client\\nym-vpn-app\\src-tauri\\"
         run: |
-          npm run tauri info
           if [ "${{ env.CARGO_TARGET }}" = "release" ]; then
             npm run tauri build
           else
