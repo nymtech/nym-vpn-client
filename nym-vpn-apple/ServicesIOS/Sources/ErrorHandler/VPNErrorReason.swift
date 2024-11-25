@@ -76,17 +76,17 @@ public enum VPNErrorReason: LocalizedError {
         guard nsError.domain == VPNErrorReason.domain else { return nil }
         switch nsError.code {
         case 0:
-            self = .internalError(details: nsError.localizedDescription)
+            self = .internalError(details: nsError.userInfo["details"] as? String ?? "Something went wrong.")
         case 1:
-            self = .networkConnectionError(details: nsError.localizedDescription)
+            self = .networkConnectionError(details: nsError.userInfo["details"] as? String ?? "Something went wrong.")
         case 2:
-            self = .gatewayError(details: nsError.localizedDescription)
+            self = .gatewayError(details: nsError.userInfo["details"] as? String ?? "Something went wrong.")
         case 3:
-            self = .invalidCredential(details: nsError.localizedDescription)
+            self = .invalidCredential(details: nsError.userInfo["details"] as? String ?? "Something went wrong.")
         case 4:
             self = .outOfBandwidth
         case 5:
-            self = .invalidStateError(details: nsError.localizedDescription)
+            self = .invalidStateError(details: nsError.userInfo["details"] as? String ?? "Something went wrong.")
         case 6:
             self = .accountReady
         case 7:
@@ -109,19 +109,19 @@ public enum VPNErrorReason: LocalizedError {
             self = .vpnApiTimeout
         case 16:
             self = .accountUpdateFailed(
-                details: nsError.localizedDescription,
-                messageId: nsError.userInfo["messageId"] as? String,
-                codeReferenceId: nsError.userInfo["codeReferenceId"] as? String
+                details: nsError.userInfo["details"] as? String ?? "Something went wrong.",
+                messageId: nsError.userInfo["messageId"] as? String ?? "Something went wrong.",
+                codeReferenceId: nsError.userInfo["codeReferenceId"] as? String ?? "Something went wrong."
             )
         case 17:
             self = .deviceUpdateFailed(
-                details: nsError.localizedDescription,
+                details: nsError.userInfo["details"] as? String ?? "Something went wrong.",
                 messageId: nsError.userInfo["messageId"] as? String,
                 codeReferenceId: nsError.userInfo["codeReferenceId"] as? String
             )
         case 18:
             self = .deviceRegistrationFailed(
-                details: nsError.localizedDescription,
+                details: nsError.userInfo["details"] as? String ?? "Something went wrong.",
                 messageId: nsError.userInfo["messageId"] as? String,
                 codeReferenceId: nsError.userInfo["codeReferenceId"] as? String
             )
@@ -137,10 +137,10 @@ public enum VPNErrorReason: LocalizedError {
     }
 
     public var nsError: NSError {
-        var userInfo: [String: Any] = [
-            NSLocalizedDescriptionKey: description
+        let userInfo: [String: String] = [
+            "details": description
         ]
-        userInfo.merge(self.userInfo) { _, new in new }
+
         return NSError(
             domain: VPNErrorReason.domain,
             code: errorCode,
@@ -235,20 +235,6 @@ private extension VPNErrorReason {
             return details
         case .unkownTunnelState:
             return "Unknown tunnel error reason."
-        }
-    }
-
-    var userInfo: [String: Any] {
-        switch self {
-        case let .accountUpdateFailed(details: _, messageId: messageId, codeReferenceId: codeReferenceId),
-            let .deviceUpdateFailed(details: _, messageId: messageId, codeReferenceId: codeReferenceId),
-            let .deviceRegistrationFailed(details: _, messageId: messageId, codeReferenceId: codeReferenceId):
-            return [
-                "messageId": messageId as Any,
-                "codeReferenceId": codeReferenceId as Any
-            ]
-        default:
-            return [:]
         }
     }
 }

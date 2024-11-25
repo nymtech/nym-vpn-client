@@ -75,7 +75,7 @@ public enum ErrorReason: LocalizedError {
     }
 
     public var nsError: NSError {
-        let userInfo: [String: Any] = [
+        let userInfo: [String: String] = [
             NSLocalizedDescriptionKey: description
         ]
         return NSError(
