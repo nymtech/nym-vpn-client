@@ -36,11 +36,11 @@ pub struct ErrorState;
 impl ErrorState {
     pub async fn enter(
         reason: ErrorStateReason,
-        shared_state: &mut SharedState,
+        _shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         #[cfg(target_os = "ios")]
         {
-            Self::set_blocking_network_settings(shared_state.tun_provider.clone()).await;
+            Self::set_blocking_network_settings(_shared_state.tun_provider.clone()).await;
         }
 
         (Box::new(Self), PrivateTunnelState::Error(reason))
