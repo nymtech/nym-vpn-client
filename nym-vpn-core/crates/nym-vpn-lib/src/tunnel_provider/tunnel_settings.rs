@@ -128,14 +128,8 @@ impl TunnelSettings {
 
     fn split_ipnet_addrs(ipnet_addrs: Vec<IpNetwork>) -> (Vec<Ipv4Network>, Vec<Ipv6Network>) {
         ipnet_addrs.into_iter().partition_map(|addr| match addr {
-            IpNetwork::V4(address) => Either::Left(
-                Ipv4Network::new(address.ip(), address.prefix())
-                    .expect("failed to create ipv4 addr with /32 prefix"),
-            ),
-            IpNetwork::V6(address) => Either::Right(
-                Ipv6Network::new(address.ip(), address.prefix())
-                    .expect("failed to create ipv6 addr with /128 prefix"),
-            ),
+            IpNetwork::V4(address) => Either::Left(address),
+            IpNetwork::V6(address) => Either::Right(address),
         })
     }
 }
