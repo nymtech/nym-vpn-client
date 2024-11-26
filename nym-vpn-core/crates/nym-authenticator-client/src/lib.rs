@@ -659,9 +659,11 @@ impl AuthClient {
         if mixnet_client_handle.is_none() {
             return Err(Error::UnableToGetMixnetHandle);
         }
+        debug!("Sending connect request");
         let request_id = self
             .send_connect_request(message, authenticator_address)
-            .await?;
+            .await
+            .inspect_err(|err| debug!("Got error on connect request {:?}", err))?;
 
         debug!("Waiting for reply...");
         self.listen_for_connect_response(request_id, mixnet_client_handle.as_mut().unwrap())
