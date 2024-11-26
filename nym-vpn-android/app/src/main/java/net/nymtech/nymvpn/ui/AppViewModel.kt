@@ -1,5 +1,7 @@
 package net.nymtech.nymvpn.ui
 
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,6 +21,8 @@ import net.nymtech.nymvpn.service.tunnel.TunnelManager
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.Constants
+import net.nymtech.nymvpn.util.LocaleUtil
+import net.nymtech.nymvpn.util.LocaleUtil.OPTION_PHONE_LANGUAGE
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.backend.Tunnel
@@ -45,6 +49,9 @@ constructor(
 
 	private val _systemMessage = MutableStateFlow<SystemMessage?>(null)
 	val systemMessage = _systemMessage.asStateFlow()
+
+	private val _configurationChange = MutableStateFlow<Boolean>(false)
+	val configurationChange = _configurationChange.asStateFlow()
 
 	val uiState =
 		combine(
@@ -90,6 +97,14 @@ constructor(
 	fun onNavBarStateChange(navBarState: NavBarState) {
 		_navBarState.update {
 			navBarState
+		}
+	}
+
+	fun onLocaleChange(localeTag: String) = viewModelScope.launch {
+		settingsRepository.setLocale(localeTag)
+		LocaleUtil.changeLocale(localeTag)
+		_configurationChange.update {
+			true
 		}
 	}
 

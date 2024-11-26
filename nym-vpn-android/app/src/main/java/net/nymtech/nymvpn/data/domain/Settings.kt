@@ -19,6 +19,7 @@ data class Settings(
 	val isCredentialMode: Boolean? = null,
 	val entryGatewayId: String? = null,
 	val exitGatewayId: String? = null,
+	val locale: String? = null,
 ) {
 	companion object {
 		const val AUTO_START_DEFAULT = false

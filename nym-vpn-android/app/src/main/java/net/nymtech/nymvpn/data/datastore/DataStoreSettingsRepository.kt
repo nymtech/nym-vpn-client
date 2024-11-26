@@ -29,6 +29,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val credentialMode = booleanPreferencesKey("CREDENTIAL_MODE")
 	private val entryGateway = stringPreferencesKey("ENTRY_GATEWAY_ID")
 	private val exitGateway = stringPreferencesKey("EXIT_GATEWAY_ID")
+	private val locale = stringPreferencesKey("LOCALE")
 
 	override suspend fun init() {
 		val firstHop = dataStoreManager.getFromStore(firstHopCountry)
@@ -169,6 +170,14 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		return dataStoreManager.getFromStore(exitGateway)
 	}
 
+	override suspend fun getLocale(): String? {
+		return dataStoreManager.getFromStore(locale)
+	}
+
+	override suspend fun setLocale(locale: String) {
+		dataStoreManager.saveToDataStore(this.locale, locale)
+	}
+
 	override val settingsFlow: Flow<Settings> =
 		dataStoreManager.preferencesFlow.map { prefs ->
 			prefs?.let { pref ->
@@ -197,6 +206,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 						isCredentialMode = pref[credentialMode],
 						entryGatewayId = pref[entryGateway],
 						exitGatewayId = pref[exitGateway],
+						locale = pref[locale],
 					)
 				} catch (e: IllegalArgumentException) {
 					Timber.e(e)
