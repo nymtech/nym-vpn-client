@@ -30,6 +30,7 @@ constructor(
 			SnackbarController.showMessage(StringValue.StringResource(R.string.device_added_success))
 			_success.emit(true)
 		}.onFailure {
+			Timber.d(it)
 			_success.emit(false)
 		}
 	}
