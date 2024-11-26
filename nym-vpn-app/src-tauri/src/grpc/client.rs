@@ -31,6 +31,7 @@ use super::version_check::VersionCheck;
 pub use super::vpnd_status::{VpndInfo, VpndStatus};
 use crate::cli::Cli;
 use crate::country::Country;
+use crate::env::VPND_COMPAT_REQ;
 use crate::error::BackendError;
 use crate::fs::config::AppConfig;
 use crate::states::app::ConnectionState;
@@ -45,8 +46,6 @@ const DEFAULT_SOCKET_PATH: &str = "/var/run/nym-vpn.sock";
 #[cfg(windows)]
 const DEFAULT_SOCKET_PATH: &str = r"\\.\pipe\nym-vpn";
 const DEFAULT_HTTP_ENDPOINT: &str = "http://[::1]:53181";
-/// The SemVer required version of the daemon
-const VPND_VERSION_REQ: &str = "=1.0.0-rc.14";
 
 #[derive(Clone, Debug)]
 enum Transport {
@@ -664,12 +663,16 @@ impl GrpcClient {
             return VpndStatus::NotOk;
         }
 
+        let Some(ver_req) = VPND_COMPAT_REQ else {
+            warn!("env variable `VPND_COMPAT_REQ` is not set, skipping vpnd version compatibility check");
+            return VpndStatus::Ok(None);
+        };
         let Some(info) = vpnd_info else {
             // very unlikely to happen
             error!("no vpnd info available, skipping vpnd version compatibility check");
             return VpndStatus::Ok(None);
         };
-        let Ok(ver) = VersionCheck::new(VPND_VERSION_REQ) else {
+        let Ok(ver) = VersionCheck::new(ver_req) else {
             warn!("skipping vpnd version compatibility check");
             return VpndStatus::Ok(Some(info.to_owned()));
         };
@@ -681,11 +684,11 @@ impl GrpcClient {
         if !is_ok {
             warn!(
                 "daemon version is not compatible with the client, required [{}], version [{}]",
-                VPND_VERSION_REQ, info.version
+                ver_req, info.version
             );
             return VpndStatus::NonCompat {
                 current: info.clone(),
-                requirement: VPND_VERSION_REQ.to_string(),
+                requirement: ver_req.to_string(),
             };
         }
 

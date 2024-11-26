@@ -1,0 +1,2 @@
+# semver requirement of supported daemon version(s)
+version = "=1.0.0-rc.14"
