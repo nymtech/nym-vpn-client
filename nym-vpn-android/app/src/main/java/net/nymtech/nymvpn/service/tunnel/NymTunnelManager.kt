@@ -56,7 +56,6 @@ class NymTunnelManager @Inject constructor(
 		_state.update {
 			it.copy(
 				isMnemonicStored = isMnemonicStored,
-				accountLinks = if (isMnemonicStored) getAccountLinks() else null,
 			)
 		}
 	}.stateIn(applicationScope.plus(ioDispatcher), SharingStarted.Eagerly, TunnelManagerState())
@@ -126,6 +125,7 @@ class NymTunnelManager @Inject constructor(
 	override suspend fun storeMnemonic(mnemonic: String) {
 		backend.get().storeMnemonic(mnemonic)
 		emitMnemonicStored(true)
+		refreshAccountLinks()
 	}
 
 	override suspend fun isMnemonicStored(): Boolean {
@@ -135,6 +135,7 @@ class NymTunnelManager @Inject constructor(
 	override suspend fun removeMnemonic() {
 		backend.get().removeMnemonic()
 		emitMnemonicStored(false)
+		refreshAccountLinks()
 	}
 
 	override suspend fun getAccountSummary(): AccountStateSummary {
@@ -146,6 +147,13 @@ class NymTunnelManager @Inject constructor(
 			backend.get().getAccountLinks(settingsRepository.getEnvironment())
 		} catch (_: Exception) {
 			null
+		}
+	}
+
+	override suspend fun refreshAccountLinks() {
+		val accountLinks = getAccountLinks()
+		_state.update {
+			it.copy(accountLinks = accountLinks)
 		}
 	}
 
