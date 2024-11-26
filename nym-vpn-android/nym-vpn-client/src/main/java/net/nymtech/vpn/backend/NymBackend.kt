@@ -33,6 +33,7 @@ import nym_vpn_lib.VpnException
 import nym_vpn_lib.fetchAccountLinks
 import nym_vpn_lib.forgetAccount
 import nym_vpn_lib.initEnvironment
+import nym_vpn_lib.initFallbackMainnetEnvironment
 import nym_vpn_lib.isAccountMnemonicStored
 import nym_vpn_lib.startVpn
 import nym_vpn_lib.stopVpn
@@ -86,7 +87,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 				initialized.set(true)
 			}.onFailure {
 				Timber.e(it)
-			}.isSuccess
+			}
 		}
 	}
 
@@ -97,7 +98,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 				initEnvironment(environment.networkName())
 			}.onFailure {
 				Timber.w("Failed to setup environment, defaulting to bundle mainnet")
-				Tunnel.Environment.setupMainnet()
+				initFallbackMainnetEnvironment()
 			}
 		}
 	}
