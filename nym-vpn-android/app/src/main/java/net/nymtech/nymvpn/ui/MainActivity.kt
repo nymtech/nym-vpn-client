@@ -2,7 +2,6 @@ package net.nymtech.nymvpn.ui
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -71,7 +70,6 @@ import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.isCurrentRoute
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.resetTile
-import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -108,7 +106,7 @@ class MainActivity : AppCompatActivity() {
 			val density = LocalDensity.current
 
 			LaunchedEffect(configurationChange) {
-				if(configurationChange) {
+				if (configurationChange) {
 					// Restart activity for built-in translation of country names
 					Intent(this@MainActivity, MainActivity::class.java).also {
 						finish()

@@ -1,7 +1,5 @@
 package net.nymtech.nymvpn.ui
 
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,7 +20,6 @@ import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.LocaleUtil
-import net.nymtech.nymvpn.util.LocaleUtil.OPTION_PHONE_LANGUAGE
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.backend.Tunnel

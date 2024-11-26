@@ -1,13 +1,10 @@
 package net.nymtech.nymvpn.util
 
 import android.content.res.Resources
-import android.os.Build
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.os.ConfigurationCompat
 import androidx.core.os.LocaleListCompat
 import net.nymtech.nymvpn.BuildConfig
-import timber.log.Timber
 
 object LocaleUtil {
 	private const val DEFAULT_LANG = "en"
@@ -34,7 +31,7 @@ object LocaleUtil {
 	}
 
 	fun changeLocale(locale: String) {
-		if(locale == OPTION_PHONE_LANGUAGE) return resetToSystemLanguage()
+		if (locale == OPTION_PHONE_LANGUAGE) return resetToSystemLanguage()
 		val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags(locale)
 		AppCompatDelegate.setApplicationLocales(appLocale)
 	}

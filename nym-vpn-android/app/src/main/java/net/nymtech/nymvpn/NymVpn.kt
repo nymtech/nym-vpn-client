@@ -3,8 +3,6 @@ package net.nymtech.nymvpn
 import android.app.Application
 import android.os.Build
 import android.os.StrictMode
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
