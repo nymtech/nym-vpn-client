@@ -1,7 +1,7 @@
 import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
 import { Button, Dialog, MsIcon } from '../../ui';
-import { capFirst } from '../../helpers';
+import { capFirst } from '../../util';
 
 export type Props = {
   isOpen: boolean;

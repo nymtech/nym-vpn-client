@@ -28,6 +28,7 @@ export default {
       cornflower: '#7075FF',
       // [DL] error status text
       teaberry: '#E33B5A',
+      'liquid-lava': '#F97316',
       comet: '#625B71',
       // [DL] "Connected" status text
       'vert-menthe': '#2BC761',

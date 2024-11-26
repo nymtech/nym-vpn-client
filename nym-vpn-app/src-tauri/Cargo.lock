@@ -2896,6 +2896,7 @@ dependencies = [
  "once_cell",
  "parity-tokio-ipc",
  "rust_iso3166",
+ "semver",
  "serde",
  "serde_json",
  "sled",

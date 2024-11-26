@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMainState } from '../../contexts';
-import { setToString } from '../../helpers';
+import { setToString } from '../../util';
 import { AnimateIn } from '../../ui';
 import { useI18nError } from '../../hooks';
 import ConnectionBadge from './ConnectionBadge';
