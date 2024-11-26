@@ -42,7 +42,7 @@ sealed class ThemeColors(
 }
 
 val primary = Color(0xFFFB6E4E)
-val secondary = Color(0XFF625B71)
+val secondary = Color(0XFFCECCD1)
 
 object CustomColors {
 	val outlineVariant = Color(0xFF49454F)
