@@ -95,7 +95,7 @@ impl TunnelStateHandler for ConnectingState {
                         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
                         shared_state.route_handler.remove_routes().await;
 
-                        NextTunnelState::NewState(ConnectingState::enter( self.retry_attempt.saturating_add(1), self.selected_gateways, shared_state))
+                        NextTunnelState::NewState(ConnectingState::enter(self.retry_attempt.saturating_add(1), self.selected_gateways, shared_state))
                     }
                 }
             }
