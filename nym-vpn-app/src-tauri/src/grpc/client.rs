@@ -692,8 +692,8 @@ impl GrpcClient {
             };
         }
 
-        info!("daemon version check OK");
-        return VpndStatus::Ok(Some(info.to_owned()));
+        info!("daemon version compatibility check OK");
+        VpndStatus::Ok(Some(info.to_owned()))
     }
 
     /// Set the network environment of the daemon.
