@@ -27,7 +27,8 @@ pub use super::error::VpndError;
 pub use super::feature_flags::FeatureFlags;
 pub use super::ready_to_connect::ReadyToConnect;
 pub use super::system_message::SystemMessage;
-pub use super::vpnd_status::VpndStatus;
+use super::version_check::VersionCheck;
+pub use super::vpnd_status::{VpndInfo, VpndStatus};
 use crate::cli::Cli;
 use crate::country::Country;
 use crate::error::BackendError;
@@ -44,6 +45,8 @@ const DEFAULT_SOCKET_PATH: &str = "/var/run/nym-vpn.sock";
 #[cfg(windows)]
 const DEFAULT_SOCKET_PATH: &str = r"\\.\pipe\nym-vpn";
 const DEFAULT_HTTP_ENDPOINT: &str = "http://[::1]:53181";
+/// The SemVer required version of the daemon
+const VPND_VERSION_REQ: &str = "=1.0.0-rc.14";
 
 #[derive(Clone, Debug)]
 enum Transport {
@@ -51,9 +54,10 @@ enum Transport {
     Ipc(PathBuf),
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Clone)]
 pub struct GrpcClient {
     transport: Transport,
+    pkg_info: PackageInfo,
     user_agent: UserAgent,
     credentials_mode: bool,
 }
@@ -63,6 +67,7 @@ impl GrpcClient {
     pub fn new(config: &AppConfig, cli: &Cli, pkg: &PackageInfo) -> Self {
         let client = GrpcClient {
             transport: Transport::from((config, cli)),
+            pkg_info: pkg.clone(),
             user_agent: GrpcClient::user_agent(pkg, None),
             credentials_mode: cli.credentials_mode || env::is_truthy("ENABLE_CREDENTIALS_MODE"),
         };
@@ -155,43 +160,52 @@ impl GrpcClient {
                 error!("health check failed: {}", e);
             })?
             .into_inner();
-        let status = response.status();
-        let mut state = app_state.lock().await;
-        state.vpnd_status = status.into();
+        let serving = response.status();
 
-        Ok(status.into())
+        let mut state = app_state.lock().await;
+        let status = self.get_vpnd_status(serving, state.vpnd_info.as_ref());
+        state.vpnd_status = status.clone();
+
+        Ok(status)
     }
 
     /// Get daemon info
     #[instrument(skip_all)]
-    pub async fn vpnd_info(&self) -> Result<InfoResponse, VpndError> {
+    pub async fn vpnd_info(&self, app: &AppHandle) -> Result<InfoResponse, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(InfoRequest {});
-        let response = vpnd.info(request).await.map_err(|e| {
-            error!("grpc: {}", e);
-            VpndError::GrpcError(e)
-        })?;
+        let response = vpnd
+            .info(request)
+            .await
+            .map_err(|e| {
+                error!("grpc: {}", e);
+                VpndError::GrpcError(e)
+            })?
+            .into_inner();
 
-        Ok(response.into_inner())
+        let app_state = app.state::<SharedAppState>();
+        let mut state = app_state.lock().await;
+        state.vpnd_info = Some(VpndInfo::from(&response));
+        Ok(response)
     }
 
-    /// Update `user_agent` with the daemon info
-    // TODO this is dirty, this logic shouldn't be handled in the client side
+    /// Update daemon info and user agent
     #[instrument(skip_all)]
-    pub async fn update_agent(&mut self, pkg: &PackageInfo) -> Result<(), VpndError> {
-        let d_info = self.vpnd_info().await?;
-        self.user_agent = GrpcClient::user_agent(pkg, Some(&d_info));
-        info!("vpnd version: {}", d_info.version);
+    pub async fn update_vpnd_info(&mut self, app: &AppHandle) -> Result<VpndInfo, VpndError> {
+        let res = self.vpnd_info(app).await?;
+        let vpnd_info = VpndInfo::from(&res);
+        self.user_agent = GrpcClient::user_agent(&self.pkg_info, Some(&res));
+        info!("vpnd version: {}", res.version);
         info!(
             "network env: {}",
-            d_info
-                .nym_network
+            res.nym_network
                 .map(|n| n.network_name)
                 .unwrap_or_else(|| "unknown".to_string())
         );
         info!("updated user agent: {:?}", self.user_agent);
-        Ok(())
+
+        Ok(vpnd_info)
     }
 
     /// Get VPN status
@@ -595,7 +609,7 @@ impl GrpcClient {
 
     /// Watch the connection with the grpc server
     #[instrument(skip_all)]
-    pub async fn watch(&self, app: &AppHandle) -> Result<()> {
+    pub async fn watch(&mut self, app: &AppHandle) -> Result<()> {
         let mut health = self.health().await?;
         let app_state = app.state::<SharedAppState>();
 
@@ -629,14 +643,54 @@ impl GrpcClient {
             }
         });
 
-        while let Some(status) = rx.recv().await {
-            debug!("health check status: {:?}", status);
-            app.emit_vpnd_status(status.into());
+        while let Some(serving) = rx.recv().await {
+            debug!("health check status: {:?}", serving);
+            let mut vpnd_info = None;
+            if serving == ServingStatus::Serving {
+                vpnd_info = self.update_vpnd_info(app).await.ok();
+            }
+            let status = self.get_vpnd_status(serving, vpnd_info.as_ref());
+            app.emit_vpnd_status(status.clone());
             let mut state = app_state.lock().await;
-            state.vpnd_status = status.into();
+            state.vpnd_status = status;
         }
 
         Ok(())
+    }
+
+    #[instrument(skip(self))]
+    fn get_vpnd_status(&self, serving: ServingStatus, vpnd_info: Option<&VpndInfo>) -> VpndStatus {
+        if serving != ServingStatus::Serving {
+            return VpndStatus::NotOk;
+        }
+
+        let Some(info) = vpnd_info else {
+            // very unlikely to happen
+            error!("no vpnd info available, skipping vpnd version compatibility check");
+            return VpndStatus::Ok(None);
+        };
+        let Ok(ver) = VersionCheck::new(VPND_VERSION_REQ) else {
+            warn!("skipping vpnd version compatibility check");
+            return VpndStatus::Ok(Some(info.to_owned()));
+        };
+        let Ok(is_ok) = ver.check(&info.version) else {
+            warn!("skipping vpnd version compatibility check");
+            return VpndStatus::Ok(Some(info.to_owned()));
+        };
+
+        if !is_ok {
+            warn!(
+                "daemon version is not compatible with the client, required [{}], version [{}]",
+                VPND_VERSION_REQ, info.version
+            );
+            return VpndStatus::NonCompat {
+                current: info.clone(),
+                requirement: VPND_VERSION_REQ.to_string(),
+            };
+        }
+
+        info!("daemon version check OK");
+        return VpndStatus::Ok(Some(info.to_owned()));
     }
 
     /// Set the network environment of the daemon.

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
 import { DialogTitle } from '@headlessui/react';
-import { capFirst } from '../../helpers';
+import { capFirst } from '../../util';
 import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
 import { Button, Dialog, MsIcon, SettingsMenuCard } from '../../ui';
 import { routes } from '../../router';

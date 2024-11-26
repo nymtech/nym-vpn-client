@@ -7,7 +7,7 @@ import {
   MainStateContext,
   useInAppNotify,
 } from '../index';
-import { sleep } from '../../helpers';
+import { sleep } from '../../util';
 import { kvSet } from '../../kvStore';
 import {
   BackendError,
@@ -42,8 +42,8 @@ function MainStateProvider({ children }: Props) {
     networkEnv,
   } = state;
 
-  useTauriEvents(dispatch);
   const { push } = useInAppNotify();
+  useTauriEvents(dispatch, push);
 
   const { t } = useTranslation();
 
@@ -57,7 +57,7 @@ function MainStateProvider({ children }: Props) {
     // this first batch is needed to ensure the app is fully
     // initialized and ready, once done splash screen is removed
     // and the UI is shown
-    initFirstBatch(dispatch).then(async () => {
+    initFirstBatch(dispatch, push).then(async () => {
       console.log('init of 1st batch done');
       dispatch({ type: 'init-done' });
       const args = await invoke<Cli>(`cli_args`);
@@ -87,6 +87,7 @@ function MainStateProvider({ children }: Props) {
     initSecondBatch(dispatch).then(() => {
       console.log('init of 2nd batch done');
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // whenever the vpn mode changes, refresh the countries or use cached ones

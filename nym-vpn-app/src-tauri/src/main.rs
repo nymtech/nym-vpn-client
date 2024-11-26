@@ -166,8 +166,9 @@ async fn main() -> Result<()> {
             let pkg_info = app.package_info().clone();
             let grpc = GrpcClient::new(&app_config, &cli, &pkg_info);
             let mut c_grpc = grpc.clone();
+            let handle = app.handle().clone();
             tokio::spawn(async move {
-                c_grpc.update_agent(&pkg_info).await.ok();
+                c_grpc.update_vpnd_info(&handle).await.ok();
             });
 
             app.manage(app_config);
@@ -186,7 +187,7 @@ async fn main() -> Result<()> {
             tray::setup(app.handle())?;
 
             let handle = app.handle().clone();
-            let c_grpc = grpc.clone();
+            let mut c_grpc = grpc.clone();
             tokio::spawn(async move {
                 info!("starting vpnd health spy");
                 loop {
@@ -197,12 +198,11 @@ async fn main() -> Result<()> {
             });
 
             let handle = app.handle().clone();
-            let mut c_grpc = grpc.clone();
+            let c_grpc = grpc.clone();
             tokio::spawn(async move {
                 info!("starting vpn status spy");
                 loop {
                     if c_grpc.refresh_vpn_status(&handle).await.is_ok() {
-                        c_grpc.update_agent(handle.package_info()).await.ok();
                         c_grpc.watch_vpn_state(&handle).await.ok();
                     }
                     sleep(VPND_RETRY_INTERVAL).await;
@@ -244,7 +244,6 @@ async fn main() -> Result<()> {
             account::account_links,
             account::ready_to_connect,
             cmd_daemon::daemon_status,
-            cmd_daemon::daemon_info,
             cmd_daemon::set_network,
             cmd_daemon::system_messages,
             cmd_daemon::feature_flags,

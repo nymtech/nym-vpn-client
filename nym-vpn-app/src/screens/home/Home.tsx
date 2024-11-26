@@ -126,7 +126,7 @@ function Home() {
         <Button
           onClick={handleClick}
           color={getButtonColor()}
-          disabled={loading || daemonStatus !== 'Ok'}
+          disabled={loading || daemonStatus === 'NotOk'}
           loading={loading}
           className={clsx(['h-14', loading && 'data-[disabled]:opacity-80'])}
         >

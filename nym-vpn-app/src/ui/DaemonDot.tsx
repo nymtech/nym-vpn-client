@@ -6,6 +6,17 @@ type ButtonProps = {
 };
 
 function DaemonDot({ status }: ButtonProps) {
+  const bgColor = () => {
+    switch (status) {
+      case 'Ok':
+        return 'bg-vert-menthe';
+      case 'NonCompat':
+        return 'bg-liquid-lava';
+      default:
+        return 'bg-teaberry';
+    }
+  };
+
   return (
     <div
       className={clsx([
@@ -13,12 +24,7 @@ function DaemonDot({ status }: ButtonProps) {
         status === 'Ok' ? 'animate-pulse' : 'animate-pulse-fast',
       ])}
     >
-      <div
-        className={clsx([
-          'relative w-2.5 h-2.5 rounded-full',
-          status === 'Ok' ? 'bg-vert-menthe' : 'bg-teaberry',
-        ])}
-      />
+      <div className={clsx(['relative w-2.5 h-2.5 rounded-full', bgColor()])} />
     </div>
   );
 }
