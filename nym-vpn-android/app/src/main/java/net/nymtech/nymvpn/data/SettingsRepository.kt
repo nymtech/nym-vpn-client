@@ -66,5 +66,9 @@ interface SettingsRepository {
 
 	suspend fun getExitGatewayId(): String?
 
+	suspend fun getLocale(): String?
+
+	suspend fun setLocale(locale: String)
+
 	val settingsFlow: Flow<Settings>
 }

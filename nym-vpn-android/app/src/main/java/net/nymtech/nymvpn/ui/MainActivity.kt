@@ -1,11 +1,10 @@
 package net.nymtech.nymvpn.ui
 
-import android.content.Context
-import android.content.ContextWrapper
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -29,7 +28,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -38,8 +36,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
-import net.nymtech.localizationutil.LocaleStorage
-import net.nymtech.localizationutil.LocaleUtil
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.shortcut.ShortcutManager
 import net.nymtech.nymvpn.service.gateway.NymApiService
@@ -74,23 +70,16 @@ import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.isCurrentRoute
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.resetTile
-import net.nymtech.nymvpn.util.extensions.setAppLocale
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
-
-	val localeStorage: LocaleStorage by lazy {
-		LocaleStorage(this)
-	}
+class MainActivity : AppCompatActivity() {
 
 	@Inject
 	lateinit var notificationService: NotificationService
 
 	@Inject
 	lateinit var shortcutManager: ShortcutManager
-
-	private lateinit var appViewModel: AppViewModel
 
 	@Inject
 	lateinit var nymApiService: NymApiService
@@ -101,7 +90,7 @@ class MainActivity : ComponentActivity() {
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 
-		appViewModel = ViewModelProvider(this)[AppViewModel::class.java]
+		val appViewModel by viewModels<AppViewModel>()
 
 		this.resetTile()
 
@@ -109,21 +98,19 @@ class MainActivity : ComponentActivity() {
 			val appState by appViewModel.uiState.collectAsStateWithLifecycle(lifecycle)
 			val navBarState by appViewModel.navBarState.collectAsStateWithLifecycle(lifecycle)
 			val systemMessage by appViewModel.systemMessage.collectAsStateWithLifecycle(lifecycle)
+			val configurationChange by appViewModel.configurationChange.collectAsStateWithLifecycle(lifecycle)
 
 			val navController = rememberNavController()
 			val navBackStackEntry by navController.currentBackStackEntryAsState()
 			var navHeight by remember { mutableStateOf(0.dp) }
 			val density = LocalDensity.current
 
-			LaunchedEffect(navBackStackEntry) {
-				if (navBackStackEntry.isCurrentRoute(Route.Main::class)) {
-					val args = navBackStackEntry?.toRoute<Route.Main>()
-					if (args?.configChange == true) {
-						// Restart activity for built-in translation of country names
-						Intent(this@MainActivity, MainActivity::class.java).also {
-							finish()
-							startActivity(it)
-						}
+			LaunchedEffect(configurationChange) {
+				if (configurationChange) {
+					// Restart activity for built-in translation of country names
+					Intent(this@MainActivity, MainActivity::class.java).also {
+						finish()
+						startActivity(it)
 					}
 				}
 			}
@@ -240,7 +227,7 @@ class MainActivity : ComponentActivity() {
 									DisplayScreen(appState, appViewModel)
 								}
 								composable<Route.Language> {
-									LanguageScreen(appViewModel, localeStorage)
+									LanguageScreen(appState, appViewModel)
 								}
 								composable<Route.Developer> {
 									DeveloperScreen(appState, appViewModel)
@@ -254,11 +241,5 @@ class MainActivity : ComponentActivity() {
 				}
 			}
 		}
-	}
-
-	override fun attachBaseContext(newBase: Context) {
-		val lang = LocaleStorage(newBase).getPreferredLocale()
-		val locale = LocaleUtil.getLocaleFromPrefCode(lang)
-		super.attachBaseContext(ContextWrapper(newBase.setAppLocale(locale)))
 	}
 }

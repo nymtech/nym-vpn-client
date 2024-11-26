@@ -25,5 +25,4 @@ rootProject.name = "NymVPN"
 include(":app")
 include(":nym-vpn-client")
 include(":logcat-util")
-include(":localization-util")
 include(":ip-calculator")

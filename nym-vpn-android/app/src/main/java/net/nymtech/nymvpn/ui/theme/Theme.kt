@@ -61,17 +61,14 @@ private val LightColorScheme =
 @Composable
 fun NymVPNTheme(theme: Theme, content: @Composable () -> Unit) {
 	val context = LocalContext.current
-	val isDark = isSystemInDarkTheme()
+	var isDark = isSystemInDarkTheme()
 
 	val colorScheme =
 		when (theme) {
-			Theme.AUTOMATIC -> {
-				if (isDark) DarkColorScheme else LightColorScheme
-			}
-			Theme.DARK_MODE -> DarkColorScheme
-			Theme.LIGHT_MODE -> LightColorScheme
-			Theme.DYNAMIC -> {
-				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+			Theme.DARK_MODE -> DarkColorScheme.also { isDark = true }
+			Theme.LIGHT_MODE -> LightColorScheme.also { isDark = false }
+			Theme.DYNAMIC, Theme.AUTOMATIC -> {
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && theme == Theme.DYNAMIC) {
 					if (isDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
 				} else {
 					if (isDark) DarkColorScheme else LightColorScheme
@@ -85,8 +82,7 @@ fun NymVPNTheme(theme: Theme, content: @Composable () -> Unit) {
 			WindowCompat.setDecorFitsSystemWindows(window, false)
 			window.statusBarColor = Color.Transparent.toArgb()
 			window.navigationBarColor = Color.Transparent.toArgb()
-			WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars =
-				!isDark
+			WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = !isDark
 		}
 	}
 

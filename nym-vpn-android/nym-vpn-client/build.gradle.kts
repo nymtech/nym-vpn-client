@@ -81,7 +81,6 @@ android {
 
 dependencies {
 
-	implementation(project(":localization-util"))
 	implementation(project(":ip-calculator"))
 	implementation(libs.androidx.lifecycle.service)
 	coreLibraryDesugaring(libs.com.android.tools.desugar)

@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -20,7 +19,6 @@ import androidx.compose.material.icons.automirrored.outlined.Launch
 import androidx.compose.material.icons.automirrored.outlined.ViewQuilt
 import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.AppShortcut
-import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
@@ -37,9 +35,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import net.nymtech.nymvpn.BuildConfig
@@ -203,18 +198,6 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 				}
 			},
 		)
-		val errorReportingDescription = buildAnnotatedString {
-			append("(")
-			append(stringResource(id = R.string.via))
-			append(" ")
-			pushStringAnnotation(tag = "sentry", annotation = stringResource(id = R.string.sentry_url))
-			withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-				append(stringResource(id = R.string.sentry))
-			}
-			pop()
-			append("), ")
-			append(stringResource(id = R.string.required_app_restart))
-		}
 		SurfaceSelectionGroupButton(
 			listOf(
 				SelectionItem(
@@ -243,28 +226,6 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 					},
 					title = { Text(stringResource(R.string.logs), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = { navController.navigate(Route.Logs) },
-				),
-				SelectionItem(
-					Icons.Outlined.BugReport,
-					title = {
-						Text(stringResource(R.string.anonymous_error_reports), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface))
-					},
-					description = {
-						ClickableText(
-							text = errorReportingDescription,
-							style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
-						) {
-							errorReportingDescription.getStringAnnotations(tag = "sentry", it, it).firstOrNull()?.let { annotation ->
-								context.openWebUrl(annotation.item)
-							}
-						}
-					},
-					trailing = {
-						ScaledSwitch(
-							checked = appUiState.settings.errorReportingEnabled,
-							onClick = { appViewModel.onErrorReportingSelected() },
-						)
-					},
 				),
 				// TODO disable until api ready
 // 				SelectionItem(
@@ -332,11 +293,11 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 				.padding(bottom = 20.dp),
 		) {
 			Text(
-				"Version: ${BuildConfig.VERSION_NAME}",
+				stringResource(R.string.version) + ": ${BuildConfig.VERSION_NAME}",
 				style = MaterialTheme.typography.bodyMedium,
 				color = MaterialTheme.colorScheme.secondary,
 				modifier = Modifier.clickable {
-					if (BuildConfig.DEBUG || BuildConfig.BUILD_TYPE == "prerelease") {
+					if (BuildConfig.DEBUG || BuildConfig.IS_PRERELEASE) {
 						navController.navigate(Route.Developer)
 					} else {
 						clipboardManager.setText(

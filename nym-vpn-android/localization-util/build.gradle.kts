@@ -10,8 +10,6 @@ android {
 	defaultConfig {
 		minSdk = Constants.MIN_SDK
 
-		buildConfigField("String[]", "LANGUAGES", "new String[]{ ${languageList().joinToString(separator = ", ") { "\"$it\"" }} }")
-
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 		consumerProguardFiles("consumer-rules.pro")
 	}

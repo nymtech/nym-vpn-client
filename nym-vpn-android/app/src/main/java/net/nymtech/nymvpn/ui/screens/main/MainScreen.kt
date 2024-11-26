@@ -55,7 +55,6 @@ import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.Modal
-import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
 import net.nymtech.nymvpn.ui.common.buttons.IconSurfaceButton
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.functions.countryIcon
@@ -364,8 +363,19 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 					is ConnectionState.Disconnecting,
 					is ConnectionState.Connecting,
 					-> {
-						val loading = ImageVector.vectorResource(R.drawable.loading)
-						MainStyledButton(onClick = {}, content = { SpinningIcon(icon = loading) })
+						MainStyledButton(
+							onClick = {
+								viewModel.onDisconnect()
+							},
+							content = {
+								Text(
+									stringResource(id = R.string.stop),
+									style = CustomTypography.labelHuge,
+									color = MaterialTheme.colorScheme.background,
+								)
+							},
+							color = MaterialTheme.colorScheme.secondary,
+						)
 					}
 
 					is ConnectionState.Connected ->
