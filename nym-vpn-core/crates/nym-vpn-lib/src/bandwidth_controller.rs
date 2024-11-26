@@ -271,15 +271,15 @@ impl<St: Storage> BandwidthController<St> {
                         {
                             tracing::warn!("Error topping up with more bandwidth {:?}", e);
                             // TODO: try to return this error in the JoinHandle instead
-                            // self.shutdown
-                            //     .send_we_stopped(Box::new(ErrorMessage::OutOfBandwidth {
-                            //         gateway_id: Box::new(
-                            //             *wg_gateway_client.auth_recipient().gateway(),
-                            //         ),
-                            //         authenticator_address: Box::new(
-                            //             wg_gateway_client.auth_recipient(),
-                            //         ),
-                            //     }));
+                            self.shutdown
+                                .send_we_stopped(Box::new(ErrorMessage::OutOfBandwidth {
+                                    gateway_id: Box::new(
+                                        *wg_gateway_client.auth_recipient().gateway(),
+                                    ),
+                                    authenticator_address: Box::new(
+                                        wg_gateway_client.auth_recipient(),
+                                    ),
+                                }));
                         }
                     }
                 }
