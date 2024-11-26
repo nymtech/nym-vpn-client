@@ -105,6 +105,25 @@ constructor(
 		}
 	}
 
+	fun onEnvironmentChange(environment: Tunnel.Environment) = viewModelScope.launch {
+		if (tunnelManager.getState() == Tunnel.State.Down) {
+			settingsRepository.setEnvironment(environment)
+			_configurationChange.emit(true)
+		} else {
+			SnackbarController.showMessage(StringValue.StringResource(R.string.action_requires_tunnel_down))
+		}
+	}
+
+	fun onCredentialOverride(value: Boolean?) = viewModelScope.launch {
+		if (tunnelManager.getState() != Tunnel.State.Down) {
+			return@launch SnackbarController.showMessage(
+				StringValue.StringResource(R.string.action_requires_tunnel_down),
+			)
+		}
+		settingsRepository.setCredentialMode(value)
+		_configurationChange.emit(true)
+	}
+
 	private suspend fun checkSystemMessages() {
 		runCatching {
 			val env = settingsRepository.getEnvironment()
@@ -139,6 +158,10 @@ constructor(
 		launch {
 			Timber.d("Checking for system messages")
 			checkSystemMessages()
+		}
+		launch {
+			Timber.d("Updating account links")
+			tunnelManager.refreshAccountLinks()
 		}
 	}
 }

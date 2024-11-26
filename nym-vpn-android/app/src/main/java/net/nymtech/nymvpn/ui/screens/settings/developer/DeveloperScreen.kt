@@ -45,11 +45,9 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
-import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
@@ -61,7 +59,6 @@ import net.nymtech.nymvpn.ui.common.navigation.NavIcon
 import net.nymtech.nymvpn.ui.common.navigation.NavTitle
 import net.nymtech.nymvpn.ui.screens.settings.developer.components.ConnectionDataDisplay
 import net.nymtech.nymvpn.ui.theme.iconSize
-import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
@@ -73,7 +70,6 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMode
 	val clipboardManager = LocalClipboardManager.current
 	val padding = WindowInsets.systemBars.asPaddingValues()
 
-	val environmentChange = viewModel.environmentChanged.collectAsStateWithLifecycle()
 	var showEntryModal by remember { mutableStateOf(false) }
 	var showExitModal by remember { mutableStateOf(false) }
 	var gatewayId by remember { mutableStateOf("") }
@@ -101,10 +97,6 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMode
 				},
 			),
 		)
-	}
-
-	LaunchedEffect(environmentChange.value) {
-		if (environmentChange.value) navController.navigateAndForget(Route.Main(configChange = true))
 	}
 
 	Modal(showEntryModal, { showEntryModal = false }, { Text("Entry gateway id") }, {
@@ -271,7 +263,7 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMode
 										onClick = {
 											if (appUiState.settings.environment == item) return@DropdownMenuItem
 											appViewModel.logout()
-											viewModel.onEnvironmentChange(item)
+											appViewModel.onEnvironmentChange(item)
 											environmentExpanded = false
 										},
 									)
@@ -312,9 +304,9 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMode
 										onClick = {
 											if (credentialMode == item) return@DropdownMenuItem
 											when (item) {
-												CredentialMode.DEFAULT -> viewModel.onCredentialOverride(null)
-												CredentialMode.ON -> viewModel.onCredentialOverride(true)
-												CredentialMode.OFF -> viewModel.onCredentialOverride(false)
+												CredentialMode.DEFAULT -> appViewModel.onCredentialOverride(null)
+												CredentialMode.ON -> appViewModel.onCredentialOverride(true)
+												CredentialMode.OFF -> appViewModel.onCredentialOverride(false)
 											}
 											credentialExpanded = false
 										},
