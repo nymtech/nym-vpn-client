@@ -63,7 +63,7 @@ impl Config {
             config_builder.add("fwmark", fwmark.to_string().as_str());
         }
 
-        #[cfg(feature = "amnezia")]
+        #[cfg(all(feature = "amnezia"))]
         if let Some(azwg_config) = &self.interface.azwg_config {
             azwg_config.append_to(&mut config_builder);
         }

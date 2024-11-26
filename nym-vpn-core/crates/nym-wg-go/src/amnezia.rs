@@ -67,11 +67,17 @@ pub struct AmneziaConfig {
 
 impl Default for AmneziaConfig {
     fn default() -> Self {
-        OFF.clone()
+        BASE.clone()
     }
 }
 
 impl AmneziaConfig {
+    /// Disabled Amnezia Configuration
+    pub const OFF: Self = OFF;
+    /// Enables only the minimum Amnezia features, while ensuring compatibility with plain
+    /// wireguard peers.
+    pub const BASE: Self = BASE;
+
     /// Creates a randomized configuration with parameters within suggested ranges.
     ///
     /// Attempts to retry if there is a collision in [H1, H2, H3, H4]. This should
@@ -97,36 +103,25 @@ impl AmneziaConfig {
         panic!("this should not be possible");
     }
 
-    /// Returns a configuration that disables Amnezia.
-    pub fn off() -> Self {
-        OFF.clone()
-    }
-
-    /// Returns a configuration that enables only the basic junk packet feature
-    /// of amneziawg
-    pub fn basic() -> Self {
-        BASE.clone()
-    }
-
     /// Adds the contained AmneziaWG parameters to the UAPI Config
     pub fn append_to(&self, config_builder: &mut UapiConfigBuilder) {
         if self == &OFF {
             return;
         }
-        config_builder.add("Jc", self.junk_pkt_count.to_string().as_str());
-        config_builder.add("Jmin", self.junk_pkt_min_size.to_string().as_str());
-        config_builder.add("Jmax", self.junk_pkt_max_size.to_string().as_str());
+        config_builder.add("jc", self.junk_pkt_count.to_string().as_str());
+        config_builder.add("jmin", self.junk_pkt_min_size.to_string().as_str());
+        config_builder.add("jmax", self.junk_pkt_max_size.to_string().as_str());
 
         if self == &BASE {
             return;
         }
 
-        config_builder.add("S1", self.init_pkt_junk_size.to_string().as_str());
-        config_builder.add("S2", self.response_pkt_junk_size.to_string().as_str());
-        config_builder.add("H1", self.init_pkt_magic_header.to_string().as_str());
-        config_builder.add("H2", self.response_pkt_magic_header.to_string().as_str());
-        config_builder.add("H3", self.under_load_pkt_magic_header.to_string().as_str());
-        config_builder.add("H4", self.transport_pkt_magic_header.to_string().as_str());
+        config_builder.add("s1", self.init_pkt_junk_size.to_string().as_str());
+        config_builder.add("s2", self.response_pkt_junk_size.to_string().as_str());
+        config_builder.add("h1", self.init_pkt_magic_header.to_string().as_str());
+        config_builder.add("h2", self.response_pkt_magic_header.to_string().as_str());
+        config_builder.add("h3", self.under_load_pkt_magic_header.to_string().as_str());
+        config_builder.add("h4", self.transport_pkt_magic_header.to_string().as_str());
     }
 
     /// Check if the provided configuration is valid
@@ -187,7 +182,7 @@ mod test {
 
         let mut config_builder = UapiConfigBuilder::new();
         BASE.append_to(&mut config_builder);
-        assert_eq!(config_builder.into_bytes(), b"Jc=4\nJmin=40\nJmax=70\n\n");
+        assert_eq!(config_builder.into_bytes(), b"jc=4\njmin=40\njmax=70\n\n");
 
         let c = AmneziaConfig {
             junk_pkt_count: 1,
@@ -204,7 +199,7 @@ mod test {
         c.append_to(&mut config_builder);
         assert_eq!(
             config_builder.into_bytes(),
-            b"Jc=1\nJmin=20\nJmax=30\nS1=40\nS2=50\nH1=11\nH2=12\nH3=13\nH4=14\n\n"
+            b"jc=1\njmin=20\njmax=30\ns1=40\ns2=50\nh1=11\nh2=12\nh3=13\nh4=14\n\n"
         );
     }
 }

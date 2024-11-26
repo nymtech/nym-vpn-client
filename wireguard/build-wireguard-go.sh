@@ -39,14 +39,6 @@ function parseArgs {
     echo "android:$IS_ANDROID_BUILD ios:$IS_IOS_BUILD docker:$IS_DOCKER_BUILD win_arm64:$IS_WIN_ARM64"
 }
 
-function win_deduce_lib_executable_path {
-    msbuild_path="$(which msbuild.exe)"
-    msbuild_dir=$(dirname "$msbuild_path")
-    find "$msbuild_dir/../../../../" -name "lib.exe" | \
-        grep -i "hostx64/x64" | \
-        head -n1
-}
-
 function win_gather_export_symbols {
    grep -Eo "\/\/export \w+" libwg.go libwg_windows.go | cut -d' ' -f2
 }

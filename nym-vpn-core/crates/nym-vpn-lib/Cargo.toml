@@ -103,5 +103,6 @@ vergen = { workspace = true, default-features = false, features = [
 ] }
 
 [features]
+default = ["amnezia"]
 metrics-server = ["nym-client-core/metrics-server"]
 amnezia = ["nym-wg-go/amnezia"]
