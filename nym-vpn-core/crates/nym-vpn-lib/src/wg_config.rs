@@ -5,6 +5,8 @@ use std::{
 
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use nym_wg_gateway_client::GatewayData;
+#[cfg(feature = "amnezia")]
+use nym_wg_go::amnezia::AmneziaConfig;
 #[cfg(target_os = "ios")]
 use nym_wg_go::PeerEndpointUpdate;
 use nym_wg_go::{wireguard_go, PeerConfig, PrivateKey, PublicKey};
@@ -55,6 +57,8 @@ impl fmt::Debug for WgInterface {
             .field("mtu", &self.mtu);
         #[cfg(target_os = "linux")]
         d.field("fwmark", &self.fwmark);
+        #[cfg(feature = "amnezia")]
+        d.field("amnezia", &self.azwg_config);
         d.finish()
     }
 }
@@ -158,7 +162,7 @@ impl WgNodeConfig {
                 #[cfg(target_os = "linux")]
                 fwmark: None,
                 #[cfg(feature = "amnezia")]
-                azwg_config: None,
+                azwg_config: Some(AmneziaConfig::BASE),
             },
             peer: WgPeer {
                 public_key: PublicKey::from(*gateway_data.public_key.as_bytes()),
