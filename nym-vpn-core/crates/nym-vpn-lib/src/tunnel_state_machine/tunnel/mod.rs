@@ -143,7 +143,7 @@ pub async fn connect_mixnet(
             // Always disable poisson process for outbound traffic in wireguard.
             mixnet_client_config.disable_poisson_rate = true;
             // Always disable background cover traffic in wireguard.
-            mixnet_client_config.disable_background_cover_traffic = true;
+            mixnet_client_config.disable_background_cover_traffic = false;
         }
     };
 
