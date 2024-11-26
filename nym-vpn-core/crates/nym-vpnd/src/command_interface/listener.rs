@@ -935,7 +935,7 @@ impl TryFrom<ConnectRequest> for ConnectOptions {
 
         let disable_background_cover_traffic = if request.enable_two_hop {
             // If two-hop is enabled, we always disable background cover traffic
-            true
+            false
         } else {
             request.disable_background_cover_traffic
         };
