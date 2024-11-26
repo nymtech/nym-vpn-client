@@ -1,20 +1,67 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(target_os = "ios")]
+use std::{
+    net::{IpAddr, Ipv4Addr, Ipv6Addr},
+    sync::Arc,
+};
+
+#[cfg(target_os = "ios")]
+use ipnetwork::IpNetwork;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
+#[cfg(target_os = "ios")]
+use crate::tunnel_provider::{ios::OSTunProvider, tunnel_settings::TunnelSettings};
+#[cfg(target_os = "ios")]
+use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::MIN_IPV6_MTU;
 use crate::tunnel_state_machine::{
     states::{ConnectingState, DisconnectedState},
     ErrorStateReason, NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand,
     TunnelStateHandler,
 };
 
+/// Interface addresses used as placeholders when in error state.
+#[cfg(target_os = "ios")]
+const BLOCKING_INTERFACE_ADDRS: [IpAddr; 2] = [
+    IpAddr::V4(Ipv4Addr::new(169, 254, 0, 10)),
+    IpAddr::V6(Ipv6Addr::new(
+        0xfdcc, 0x9fc0, 0xe75a, 0x53c3, 0xfa25, 0x241f, 0x21c0, 0x70d0,
+    )),
+];
+
 pub struct ErrorState;
 
 impl ErrorState {
-    pub fn enter(reason: ErrorStateReason) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
+    pub async fn enter(
+        reason: ErrorStateReason,
+        shared_state: &mut SharedState,
+    ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
+        #[cfg(target_os = "ios")]
+        {
+            Self::set_blocking_network_settings(shared_state.tun_provider.clone()).await;
+        }
+
         (Box::new(Self), PrivateTunnelState::Error(reason))
+    }
+
+    /// Configure tunnel with dummy network settings consuming
+    #[cfg(target_os = "ios")]
+    async fn set_blocking_network_settings(tun_provider: Arc<dyn OSTunProvider>) {
+        let tunnel_network_settings = TunnelSettings {
+            remote_addresses: vec![],
+            interface_addresses: BLOCKING_INTERFACE_ADDRS.map(IpNetwork::from).to_vec(),
+            dns_servers: vec![],
+            mtu: MIN_IPV6_MTU,
+        };
+
+        if let Err(e) = tun_provider
+            .set_tunnel_network_settings(tunnel_network_settings.into_tunnel_network_settings())
+            .await
+        {
+            tracing::error!("Failed to set tunnel network settings: {}", e);
+        }
     }
 }
 
