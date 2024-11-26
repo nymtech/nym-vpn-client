@@ -1,7 +1,7 @@
 import SwiftUI
 
 public class SettingsFlowState: ObservableObject {
-    @Published var presentedItem: SettingsLink?
+    @Published var presentedItem: SettingLink?
 
     @Binding var path: NavigationPath
 

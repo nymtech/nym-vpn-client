@@ -36,7 +36,7 @@ extension LegalViewModel {
     }
 
     func navigateToLicences() {
-        path.append(SettingsLink.acknowledgments)
+        path.append(SettingLink.acknowledgments)
     }
 
     func openExternalURL(urlString: String?) {

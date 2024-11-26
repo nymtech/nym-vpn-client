@@ -145,7 +145,7 @@ public extension HomeViewModel {
 
     @MainActor func navigateToAddCredentials() {
         path.append(HomeLink.settings)
-        path.append(SettingsLink.addCredentials)
+        path.append(SettingLink.addCredentials)
     }
 }
 

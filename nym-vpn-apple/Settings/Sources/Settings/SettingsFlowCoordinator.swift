@@ -10,11 +10,11 @@ struct SettingsFlowCoordinator<Content: View>: View {
 
     var body: some View {
         content()
-            .navigationDestination(for: SettingsLink.self, destination: linkDestination)
+            .navigationDestination(for: SettingLink.self, destination: linkDestination)
     }
 
     @ViewBuilder
-    private func linkDestination(link: SettingsLink) -> some View {
+    private func linkDestination(link: SettingLink) -> some View {
         switch link {
         case .theme:
             AppearanceView(viewModel: AppearanceViewModel(path: $flowState.path, appSettings: AppSettings.shared))
@@ -32,6 +32,8 @@ struct SettingsFlowCoordinator<Content: View>: View {
             AcknowledgmentsView(viewModel: AcknowledgeMentsViewModel(navigationPath: $flowState.path))
         case let .licence(details: details):
             LicenseView(viewModel: LicenseViewModel(path: $flowState.path, details: details))
+        case .santasMenu:
+            SantasView(viewModel: SantasViewModel(path: $flowState.path))
         }
     }
 }
