@@ -12,7 +12,9 @@ use nym_task::TaskManager;
 use super::connected_tunnel::ConnectedTunnel;
 use crate::{
     mixnet::SharedMixnetClient,
-    tunnel_state_machine::tunnel::{gateway_selector::SelectedGateways, Error, Result},
+    tunnel_state_machine::tunnel::{
+        self, gateway_selector::SelectedGateways, AnyConnector, ConnectorError, Error, Result,
+    },
 };
 
 /// Struct holding addresses assigned by mixnet upon connect.
@@ -47,11 +49,41 @@ impl Connector {
         self,
         selected_gateways: SelectedGateways,
         nym_ips: Option<IpPair>,
-    ) -> Result<ConnectedTunnel> {
-        let mixnet_client_address = self.mixnet_client.nym_address().await;
+    ) -> Result<ConnectedTunnel, ConnectorError> {
+        let result = Self::connect_inner(
+            selected_gateways,
+            nym_ips,
+            self.mixnet_client.clone(),
+            &self.gateway_directory_client,
+        )
+        .await;
+
+        match result {
+            Ok(assigned_addresses) => Ok(ConnectedTunnel::new(
+                self.task_manager,
+                self.mixnet_client,
+                assigned_addresses,
+            )),
+            Err(e) => Err(ConnectorError::new(
+                e,
+                AnyConnector::Mixnet(Self::new(
+                    self.task_manager,
+                    self.mixnet_client,
+                    self.gateway_directory_client,
+                )),
+            )),
+        }
+    }
+
+    async fn connect_inner(
+        selected_gateways: SelectedGateways,
+        nym_ips: Option<IpPair>,
+        mixnet_client: SharedMixnetClient,
+        gateway_directory_client: &GatewayClient,
+    ) -> Result<AssignedAddresses> {
+        let mixnet_client_address = mixnet_client.nym_address().await;
         let gateway_used = mixnet_client_address.gateway().to_base58_string();
-        let entry_mixnet_gateway_ip: IpAddr = self
-            .gateway_directory_client
+        let entry_mixnet_gateway_ip: IpAddr = gateway_directory_client
             .lookup_gateway_ip(&gateway_used)
             .await
             .map_err(|source| Error::LookupGatewayIp {
@@ -61,30 +93,30 @@ impl Connector {
 
         let exit_mix_addresses = selected_gateways.exit.ipr_address.unwrap();
 
-        let mut ipr_client = IprClientConnect::new_from_inner(self.mixnet_client.inner()).await;
+        let mut ipr_client = IprClientConnect::new_from_inner(mixnet_client.inner()).await;
         let interface_addresses = ipr_client
             .connect(exit_mix_addresses.0, nym_ips)
             .await
             .map_err(Error::ConnectToIpPacketRouter)?;
 
-        let assigned_addresses = AssignedAddresses {
-            entry_mixnet_gateway_ip,
-            mixnet_client_address,
-            exit_mix_addresses,
-            interface_addresses,
-        };
         if let Some(exit_country_code) = selected_gateways.exit.two_letter_iso_country_code() {
-            self.mixnet_client
+            mixnet_client
                 .send_stats_event(
                     ConnectionStatsEvent::MixCountry(exit_country_code.to_string()).into(),
                 )
                 .await;
         }
 
-        Ok(ConnectedTunnel::new(
-            self.task_manager,
-            self.mixnet_client,
-            assigned_addresses,
-        ))
+        Ok(AssignedAddresses {
+            entry_mixnet_gateway_ip,
+            mixnet_client_address,
+            exit_mix_addresses,
+            interface_addresses,
+        })
+    }
+
+    /// Gracefully shutdown task manager and consume the struct.
+    pub async fn dispose(self) {
+        tunnel::shutdown_task_manager(self.task_manager).await;
     }
 }
