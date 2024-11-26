@@ -55,8 +55,6 @@ fun LanguageScreen(appViewModel: AppViewModel, localeStorage: LocaleStorage) {
 		)
 	}
 
-	val context = LocalContext.current
-
 	val collator = Collator.getInstance(Locale.getDefault())
 
 	val currentLocale = remember { mutableStateOf(LocaleUtil.OPTION_PHONE_LANGUAGE) }
@@ -88,7 +86,6 @@ fun LanguageScreen(appViewModel: AppViewModel, localeStorage: LocaleStorage) {
 		modifier =
 		Modifier
 			.fillMaxSize()
-			.padding(top = 24.dp.scaledHeight())
 			.padding(horizontal = 24.dp.scaledWidth()).windowInsetsPadding(WindowInsets.navigationBars),
 	) {
 		item {

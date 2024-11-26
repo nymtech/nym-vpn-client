@@ -203,18 +203,6 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 				}
 			},
 		)
-		val errorReportingDescription = buildAnnotatedString {
-			append("(")
-			append(stringResource(id = R.string.via))
-			append(" ")
-			pushStringAnnotation(tag = "sentry", annotation = stringResource(id = R.string.sentry_url))
-			withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-				append(stringResource(id = R.string.sentry))
-			}
-			pop()
-			append("), ")
-			append(stringResource(id = R.string.required_app_restart))
-		}
 		SurfaceSelectionGroupButton(
 			listOf(
 				SelectionItem(
@@ -243,28 +231,6 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 					},
 					title = { Text(stringResource(R.string.logs), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = { navController.navigate(Route.Logs) },
-				),
-				SelectionItem(
-					Icons.Outlined.BugReport,
-					title = {
-						Text(stringResource(R.string.anonymous_error_reports), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface))
-					},
-					description = {
-						ClickableText(
-							text = errorReportingDescription,
-							style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
-						) {
-							errorReportingDescription.getStringAnnotations(tag = "sentry", it, it).firstOrNull()?.let { annotation ->
-								context.openWebUrl(annotation.item)
-							}
-						}
-					},
-					trailing = {
-						ScaledSwitch(
-							checked = appUiState.settings.errorReportingEnabled,
-							onClick = { appViewModel.onErrorReportingSelected() },
-						)
-					},
 				),
 				// TODO disable until api ready
 // 				SelectionItem(
