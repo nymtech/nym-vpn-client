@@ -40,7 +40,6 @@ import nym_vpn_lib.stopVpn
 import nym_vpn_lib.storeAccountMnemonic
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 import kotlin.properties.Delegates
 
 class NymBackend private constructor(val context: Context) : Backend, TunnelStatusListener {
@@ -63,7 +62,6 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	companion object : SingletonHolder<NymBackend, Context>(::NymBackend) {
 		private var vpnService = CompletableDeferred<VpnService>()
-		private var currentTunnelHandle = AtomicInteger(-1)
 		const val DEFAULT_LOCALE = "en"
 	}
 
@@ -251,7 +249,6 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 		override fun onDestroy() {
 			Timber.d("Vpn service destroyed")
-			currentTunnelHandle.getAndSet(-1)
 			vpnService = CompletableDeferred()
 			stopForeground(STOP_FOREGROUND_REMOVE)
 			notificationManager.cancel(VPN_NOTIFICATION_ID)
@@ -283,8 +280,6 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		override fun configureTunnel(config: TunnelNetworkSettings): Int {
 			Timber.i("Configuring tunnel")
 			if (prepare(this) != null) return -1
-			val currentHandle = currentTunnelHandle.get()
-			if (currentHandle != -1) return currentHandle
 			val vpnInterface = builder.apply {
 				config.ipv4Settings?.addresses?.forEach {
 					Timber.d("Address v4: $it")
@@ -316,7 +311,6 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 				}
 			}.establish()
 			val fd = vpnInterface?.detachFd() ?: return -1
-			currentTunnelHandle.getAndSet(fd)
 			return fd
 		}
 	}
