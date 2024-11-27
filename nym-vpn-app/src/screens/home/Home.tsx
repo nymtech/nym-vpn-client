@@ -30,6 +30,9 @@ function Home() {
     dispatch({ type: 'disconnect' });
     if (state === 'Connected' || state === 'Connecting') {
       console.info('disconnect');
+      if (state === 'Connecting') {
+        dispatch({ type: 'new-progress-message', message: 'Cancelling' });
+      }
       invoke('disconnect')
         .then((result) => {
           console.log(result);
