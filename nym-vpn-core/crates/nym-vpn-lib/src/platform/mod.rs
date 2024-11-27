@@ -443,12 +443,22 @@ async fn start_state_machine(
         gateway_config,
     };
 
+    let mixnet_client_config = None;
+
+    // ios doesn't need cover traffic to keep alive the websocket connection,
+    // but android does
+    #[cfg(target_os = "ios")]
+    let mixnet_client_config = Some(crate::MixnetClientConfig {
+        disable_background_cover_traffic: true,
+        ..Default::default()
+    });
+
     let tunnel_settings = TunnelSettings {
         tunnel_type,
         enable_credentials_mode,
         mixnet_tunnel_options: MixnetTunnelOptions::default(),
         gateway_performance_options: GatewayPerformanceOptions::default(),
-        mixnet_client_config: None,
+        mixnet_client_config,
         entry_point: Box::new(entry_point),
         exit_point: Box::new(exit_point),
         dns: DnsOptions::default(),
