@@ -4676,6 +4676,7 @@ dependencies = [
  "nym-vpn-store",
  "nym-wg-gateway-client",
  "nym-wg-go",
+ "nym-windows",
  "nym-wireguard-types",
  "oslog",
  "pnet_packet",
@@ -4696,6 +4697,7 @@ dependencies = [
  "uniffi",
  "url",
  "vergen",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -4853,6 +4855,7 @@ dependencies = [
  "ipnetwork",
  "thiserror",
  "tracing",
+ "windows-sys 0.52.0",
  "x25519-dalek",
  "zeroize",
 ]

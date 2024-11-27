@@ -529,6 +529,9 @@ pub enum Error {
     #[error("failed to create tunnel device: {}", _0)]
     CreateTunDevice(#[source] tun::Error),
 
+    #[error("failed to setup wintun adapter: {}", _0)]
+    SetupWintunAdapter(#[from] SetupWintunAdapterError),
+
     #[cfg(target_os = "ios")]
     #[error("failed to locate tun device")]
     LocateTunDevice(#[source] std::io::Error),
@@ -580,6 +583,9 @@ impl Error {
                 ErrorStateReason::TunDevice
             }
 
+            #[cfg(windows)]
+            Self::SetupWintunAdapter(_) => ErrorStateReason::TunDevice,
+
             Self::Tunnel(e) => e.error_state_reason()?,
 
             #[cfg(any(target_os = "ios", target_os = "android"))]
@@ -595,6 +601,23 @@ impl Error {
             Self::GetDefaultInterface(_) => ErrorStateReason::Internal,
         })
     }
+}
+
+/// Wintun adapter configuration error.
+#[cfg(windows)]
+#[derive(Debug, thiserror::Error)]
+pub enum SetupWintunAdapterError {
+    #[error("failed to set wintun adapter ipv4 address: {}", _0)]
+    SetIpv4Addr(#[source] nym_windows::net::Error),
+
+    #[error("failed to set wintun adapter ipv6 address: {}", _0)]
+    SetIpv6Addr(#[source] nym_windows::net::Error),
+
+    #[error("failed to set wintun adapter ipv4 gateway address: {}", _0)]
+    SetIpv4Gateway(#[source] nym_windows::net::Error),
+
+    #[error("failed to set wintun adapter ipv6 gateway address: {}", _0)]
+    SetIpv6Gateway(#[source] nym_windows::net::Error),
 }
 
 impl tunnel::Error {

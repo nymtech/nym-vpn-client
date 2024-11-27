@@ -11,6 +11,8 @@ use tun::AsyncDevice;
 use nym_task::TaskManager;
 use nym_wg_gateway_client::WgGatewayClient;
 use nym_wg_go::wireguard_go;
+#[cfg(windows)]
+use nym_wg_go::wireguard_go::WintunInterface;
 
 use crate::{
     tunnel_state_machine::tunnel::{wireguard::connector::ConnectionData, Error, Result},
@@ -61,7 +63,10 @@ impl ConnectedTunnel {
         #[cfg(unix)] entry_tun: AsyncDevice,
         #[cfg(unix)] exit_tun: AsyncDevice,
         #[cfg(windows)] entry_tun_name: &str,
+        #[cfg(windows)] entry_tun_guid: &str,
         #[cfg(windows)] exit_tun_name: &str,
+        #[cfg(windows)] exit_tun_guid: &str,
+        #[cfg(windows)] wintun_tunnel_type: &str,
         dns: Vec<IpAddr>,
     ) -> Result<TunnelHandle> {
         let wg_entry_config = WgNodeConfig::with_gateway_data(
@@ -84,6 +89,9 @@ impl ConnectedTunnel {
             entry_tun.get_ref().as_raw_fd(),
             #[cfg(windows)]
             entry_tun_name,
+            #[cfg(windows)]
+            entry_tun_guid,
+            wintun_tunnel_type,
         )
         .map_err(Error::Wireguard)?;
 
@@ -93,6 +101,9 @@ impl ConnectedTunnel {
             exit_tun.get_ref().as_raw_fd(),
             #[cfg(windows)]
             exit_tun_name,
+            #[cfg(windows)]
+            exit_tun_guid,
+            wintun_tunnel_type,
         )
         .map_err(Error::Wireguard)?;
 
@@ -159,5 +170,15 @@ impl TunnelHandle {
 
         #[cfg(windows)]
         vec![]
+    }
+
+    #[cfg(windows)]
+    pub fn entry_wintun_interface(&self) -> Option<&WintunInterface> {
+        Some(self.entry_wg_tunnel.as_ref()?.wintun_interface())
+    }
+
+    #[cfg(windows)]
+    pub fn exit_wintun_interface(&self) -> Option<&WintunInterface> {
+        Some(self.exit_wg_tunnel.as_ref()?.wintun_interface())
     }
 }
