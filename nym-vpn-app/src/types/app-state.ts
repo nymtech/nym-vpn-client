@@ -73,7 +73,7 @@ export type ConnectionEventPayload = {
   start_time?: bigint | null; // unix timestamp in seconds
 };
 
-export type ConnectProgressMsg = 'Initializing' | 'InitDone' | 'Cancelling';
+export type ConnectProgressMsg = 'Initializing' | 'InitDone' | 'Canceling';
 
 export type ProgressEventPayload = {
   key: ConnectProgressMsg;
