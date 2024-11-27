@@ -80,7 +80,13 @@ nym-wg-go = { path = "../nym-wg-go" }
 [target.'cfg(unix)'.dependencies]
 nix = { workspace = true, features = ["socket", "net", "fs"] }
 
-[target.'cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))'.dependencies]
+[target.'cfg(windows)'.dependencies]
+windows-sys = { workspace = true, features = ["Win32_NetworkManagement_Ndis"] }
+nym-windows = { path = "../nym-windows" }
+nym-routing = { path = "../nym-routing" }
+nym-dns = { path = "../nym-dns" }
+
+[target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
 nym-routing = { path = "../nym-routing" }
 nym-dns = { path = "../nym-dns" }
 

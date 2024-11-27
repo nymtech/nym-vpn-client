@@ -27,6 +27,14 @@ pub enum Error {
     #[error("interface name contains nul byte")]
     InterfaceNameContainsNulByte,
 
+    #[cfg(target_os = "windows")]
+    #[error("requested guid contains nul byte")]
+    RequestedGuidContainsNulByte,
+
+    #[cfg(target_os = "windows")]
+    #[error("wintun tunnel type contains nul byte")]
+    WintunTunnelTypeContainsNulByte,
+
     #[error("failed to start the tunnel (code: {})", _0)]
     StartTunnel(i32),
 
