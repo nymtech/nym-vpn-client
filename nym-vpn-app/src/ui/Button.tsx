@@ -7,10 +7,10 @@ type ButtonProps = {
   children: ReactNode;
   onClick: () => void;
   disabled?: boolean;
-  color?: 'melon' | 'cornflower' | 'grey';
+  color?: 'melon' | 'cornflower' | 'gray';
   outline?: boolean;
   className?: string;
-  loading?: boolean;
+  spinner?: boolean;
 };
 
 function Spinner() {
@@ -21,7 +21,7 @@ function Spinner() {
       className={clsx([
         'loader',
         os === 'linux' ? 'h-[28px] w-[28px]' : 'h-[22px] w-[22px] border-4',
-        'border:white dark:border-[#2c2b2e] border-b-transparent dark:border-b-transparent',
+        'border:white dark:border-[#252426] border-b-transparent dark:border-b-transparent',
       ])}
     ></span>
   );
@@ -34,7 +34,7 @@ function Button({
   color = 'melon',
   outline,
   className,
-  loading,
+  spinner,
 }: ButtonProps) {
   const getColorStyle = () => {
     switch (color) {
@@ -44,7 +44,7 @@ function Button({
         } else {
           return 'bg-melon';
         }
-      case 'grey':
+      case 'gray':
         return 'bg-dim-gray dark:bg-dusty-grey';
       case 'cornflower':
         return 'bg-cornflower';
@@ -69,7 +69,7 @@ function Button({
       onClick={onClick}
       disabled={disabled}
     >
-      {loading ? (
+      {spinner ? (
         Spinner()
       ) : (
         <div className={clsx(outline && `text-${color}`, 'truncate')}>

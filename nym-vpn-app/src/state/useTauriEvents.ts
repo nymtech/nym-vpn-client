@@ -94,15 +94,15 @@ export function useTauriEvents(
           handleError(dispatch, event.payload.error);
           break;
         case 'Connecting':
-          dispatch({ type: 'change-connection-state', state: 'Connecting' });
+          dispatch({ type: 'update-connection-state', state: 'Connecting' });
           handleError(dispatch, event.payload.error);
           break;
         case 'Disconnecting':
-          dispatch({ type: 'change-connection-state', state: 'Disconnecting' });
+          dispatch({ type: 'update-connection-state', state: 'Disconnecting' });
           handleError(dispatch, event.payload.error);
           break;
         case 'Unknown':
-          dispatch({ type: 'change-connection-state', state: 'Unknown' });
+          dispatch({ type: 'update-connection-state', state: 'Unknown' });
           handleError(dispatch, event.payload.error);
           break;
       }

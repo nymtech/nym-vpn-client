@@ -9,34 +9,29 @@ import { BackendError, StateDispatch } from '../../types';
 import { routes } from '../../router';
 import { kvGet } from '../../kvStore';
 import { Button } from '../../ui';
+import { capFirst } from '../../util';
 import NetworkModeSelect from './NetworkModeSelect';
 import ConnectionStatus from './ConnectionStatus';
 import HopSelect from './HopSelect';
 
 function Home() {
-  const {
-    state,
-    loading,
-    entryNodeLocation,
-    exitNodeLocation,
-    daemonStatus,
-    account,
-  } = useMainState();
+  const { state, entryNodeLocation, exitNodeLocation, daemonStatus, account } =
+    useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const navigate = useNavigate();
   const { t } = useTranslation('home');
+  const loading = state === 'Disconnecting';
 
   const handleClick = () => {
-    if (!account) {
+    if (state === 'Disconnected' && !account) {
       navigate(routes.login);
       return;
     }
     dispatch({ type: 'disconnect' });
-    if (state === 'Connected') {
+    if (state === 'Connected' || state === 'Connecting') {
       console.info('disconnect');
       invoke('disconnect')
         .then((result) => {
-          console.log('disconnect result');
           console.log(result);
         })
         .catch((e: unknown) => {
@@ -48,7 +43,7 @@ function Home() {
       dispatch({ type: 'connect' });
       invoke('connect', { entry: entryNodeLocation, exit: exitNodeLocation })
         .then((result) => {
-          console.log('connect result:', result);
+          console.log(result);
         })
         .catch((e: unknown) => {
           console.warn('backend error:', e);
@@ -74,7 +69,7 @@ function Home() {
       case 'Disconnected':
         return t('connect');
       case 'Connecting':
-        return null;
+        return capFirst(t('stop', { ns: 'glossary' }));
       case 'Disconnecting':
         return null;
       case 'Unknown':
@@ -83,10 +78,14 @@ function Home() {
   }, [state, t]);
 
   const getButtonColor = () => {
-    if (state === 'Disconnected' || state === 'Connecting') {
-      return 'melon';
-    } else if (state === 'Connected' || state === 'Disconnecting') {
-      return 'cornflower';
+    switch (state) {
+      case 'Disconnected':
+        return 'melon';
+      case 'Connecting':
+        return 'gray';
+      case 'Connected':
+      case 'Disconnecting':
+        return 'cornflower';
     }
   };
 
@@ -127,7 +126,7 @@ function Home() {
           onClick={handleClick}
           color={getButtonColor()}
           disabled={loading || daemonStatus === 'NotOk'}
-          loading={loading}
+          spinner={loading}
           className={clsx(['h-14', loading && 'data-[disabled]:opacity-80'])}
         >
           {getButtonText()}

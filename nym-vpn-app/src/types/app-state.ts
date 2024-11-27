@@ -32,7 +32,6 @@ export type AppState = {
   daemonVersion?: string;
   networkEnv?: NetworkEnv;
   version: string | null;
-  loading: boolean;
   error?: AppError | null;
   progressMessages: ConnectProgressMsg[];
   sessionStartDate?: Dayjs | null;

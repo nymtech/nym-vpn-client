@@ -10,6 +10,8 @@ import ConnectionTimer from './ConnectionTimer';
 function ConnectionStatus() {
   const state = useMainState();
   const [showBadge, setShowBadge] = useState(true);
+  const loading =
+    state.state === 'Connecting' || state.state === 'Disconnecting';
 
   const { t } = useTranslation('home');
   const { tE } = useI18nError();
@@ -31,7 +33,7 @@ function ConnectionStatus() {
         {showBadge && <ConnectionBadge state={state.state} />}
       </div>
       <div className="w-full flex flex-col flex-1 items-center overflow-hidden">
-        {state.loading && state.progressMessages.length > 0 && !state.error && (
+        {loading && state.progressMessages.length > 0 && !state.error && (
           <AnimateIn
             from="opacity-0 scale-90"
             to="opacity-100 scale-100"

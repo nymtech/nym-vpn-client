@@ -175,7 +175,10 @@ pub async fn disconnect(
     grpc: State<'_, GrpcClient>,
 ) -> Result<ConnectionState, BackendError> {
     let mut app_state = state.lock().await;
-    if !matches!(app_state.state, ConnectionState::Connected) {
+    if matches!(
+        app_state.state,
+        ConnectionState::Disconnected | ConnectionState::Disconnecting
+    ) {
         return Err(BackendError::internal(
             &format!("cannot disconnect from state {:?}", app_state.state),
             None,
