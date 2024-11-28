@@ -1,7 +1,7 @@
 {
   "name": "nym-vpn-app",
   "private": true,
-  "version": "1.0.0-rc.7",
+  "version": "1.0.0",
   "type": "module",
   "authors": [
     "pierre <dommerc.pierre@gmail.com>",

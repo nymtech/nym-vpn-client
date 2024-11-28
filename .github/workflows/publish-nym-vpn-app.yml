@@ -72,9 +72,8 @@ jobs:
           sudo apt update && sudo apt install -y gettext-base gh
 
       - name: Install rust toolchain
-        uses: brndnmtthws/rust-action-rustup@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
           components: rustfmt, clippy
 
       - name: Get package version
