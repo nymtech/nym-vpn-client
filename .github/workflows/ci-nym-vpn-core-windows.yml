@@ -38,6 +38,10 @@ jobs:
           toolchain: 1.82.0
           components: rustfmt, clippy
 
+      - name: Install target i686-pc-windows-msvc
+        run: |
+          rustup target add i686-pc-windows-msvc
+
       - name: Set env
         shell: bash
         run: |
