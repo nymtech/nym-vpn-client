@@ -32,10 +32,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install rust toolchain
-        uses: brndnmtthws/rust-action-rustup@v1
+        uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
+          # TODO let's pin to 1.82.0 as in 1.83.0 the step `Build winfw.dll from mullvad` fails
+          toolchain: 1.82.0
           components: rustfmt, clippy
+
+      - name: Install target i686-pc-windows-msvc
+        run: |
+          rustup target add i686-pc-windows-msvc
 
       - name: Set env
         shell: bash

@@ -36,10 +36,11 @@ jobs:
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v2
 
-      - name: Install Rust toolchain
-        uses: brndnmtthws/rust-action-rustup@v1
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
+          # TODO let's pin to 1.82.0 as in 1.83.0 the "build winfw.dll from mullvad" step fails
+          toolchain: 1.82.0
           components: rustfmt, clippy
 
       - name: Install Go toolchain
