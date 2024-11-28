@@ -85,7 +85,7 @@ actor TunnelActor {
         case .error:
             if canReassert {
                 // todo: remove once we properly handle error state
-                // tunnelProvider?.cancelTunnelWithError(PacketTunnelProviderError.errorState)
+                tunnelProvider?.cancelTunnelWithError(PacketTunnelProviderError.errorState)
             }
 
         case .disconnecting(.error):
