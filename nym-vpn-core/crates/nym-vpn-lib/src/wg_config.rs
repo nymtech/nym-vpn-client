@@ -143,10 +143,7 @@ impl WgNodeConfig {
             interface: WgInterface {
                 listen_port: None,
                 private_key: PrivateKey::from(private_key.to_bytes()),
-                addresses: vec![IpNetwork::V4(
-                    Ipv4Network::new(gateway_data.private_ipv4, 32)
-                        .expect("private_ipv4/32 to ipnetwork"),
-                )],
+                addresses: vec![IpNetwork::V4(Ipv4Network::from(gateway_data.private_ipv4))],
                 dns,
                 mtu,
                 #[cfg(target_os = "linux")]

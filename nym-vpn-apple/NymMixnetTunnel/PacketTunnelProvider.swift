@@ -53,23 +53,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }
 
         do {
-            try configureLib(dataDir: credentialDataPath, credentialMode: nil)
-            try startVpn(config: vpnConfig)
+            try await startNymVpn(credentialDataPath: credentialDataPath, vpnConfig: vpnConfig)
         } catch {
-            logger.error("Failed to start vpn: \(error)")
-            if let lastVPNError = error as? VpnError {
-                throw VPNErrorReason(with: lastVPNError).nsError
-            } else {
-                throw error
-            }
-        }
-
-        logger.info("Backend is up and running...")
-
-        do {
-            try await tunnelActor.waitUntilStarted()
-        } catch {
-            logger.error("Failed to wait until vpn started: \(error)")
+            try? stopVpn()
+            try? shutdown()
             throw error
         }
     }
@@ -90,6 +77,29 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }
 
         await tunnelActor.setTunnelProvider(nil)
+    }
+
+    func startNymVpn(credentialDataPath: String, vpnConfig: VpnConfig) async throws {
+        do {
+            try configureLib(dataDir: credentialDataPath, credentialMode: nil)
+            try startVpn(config: vpnConfig)
+        } catch {
+            logger.error("Failed to start vpn: \(error)")
+            if let lastVPNError = error as? VpnError {
+                throw VPNErrorReason(with: lastVPNError).nsError
+            } else {
+                throw error
+            }
+        }
+
+        logger.info("Backend is up and running...")
+
+        do {
+            try await tunnelActor.waitUntilStarted()
+        } catch {
+            logger.error("Failed to wait until vpn started: \(error)")
+            throw error
+        }
     }
 }
 
