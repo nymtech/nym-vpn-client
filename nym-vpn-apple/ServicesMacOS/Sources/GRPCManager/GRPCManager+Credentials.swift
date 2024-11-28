@@ -44,7 +44,7 @@ extension GRPCManager {
         }
     }
 
-    public func forgetAccount() async throws -> Bool {
+    public func forgetAccount() async throws {
         logger.log(level: .info, "Forgetting credentials")
 
         return try await withCheckedThrowingContinuation { continuation in
@@ -56,7 +56,7 @@ extension GRPCManager {
                     if response.hasError {
                         continuation.resume(throwing: GeneralNymError.library(message: response.error.message))
                     } else {
-                        continuation.resume(returning: response.success)
+                        continuation.resume()
                     }
                 case .failure(let error):
                     continuation.resume(

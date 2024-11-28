@@ -3,6 +3,7 @@ import SwiftUI
 import AppSettings
 import AppVersionProvider
 import ConfigurationManager
+import ConnectionManager
 import CredentialsManager
 import ExternalLinkManager
 import UIComponents
@@ -10,6 +11,7 @@ import UIComponents
 public class SettingsViewModel: SettingsFlowState {
     private let appSettings: AppSettings
     private let configurationManager: ConfigurationManager
+    private let connectionManager: ConnectionManager
     private let credentialsManager: CredentialsManager
     private let externalLinkManager: ExternalLinkManager
 
@@ -41,13 +43,15 @@ public class SettingsViewModel: SettingsFlowState {
 
     public init(
         path: Binding<NavigationPath>,
-        appSettings: AppSettings = AppSettings.shared,
-        configurationManager: ConfigurationManager = ConfigurationManager.shared,
-        credentialsManager: CredentialsManager = CredentialsManager.shared,
-        externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared
+        appSettings: AppSettings = .shared,
+        configurationManager: ConfigurationManager = .shared,
+        connectionManager: ConnectionManager = .shared,
+        credentialsManager: CredentialsManager = .shared,
+        externalLinkManager: ExternalLinkManager = .shared
     ) {
         self.appSettings = appSettings
         self.configurationManager = configurationManager
+        self.connectionManager = connectionManager
         self.credentialsManager = credentialsManager
         self.externalLinkManager = externalLinkManager
         super.init(path: path)
@@ -130,8 +134,8 @@ private extension SettingsViewModel {
 // MARK: - Actions -
 private extension SettingsViewModel {
     func logout() async {
+        await connectionManager.disconnectBeforeLogout()
         try? await credentialsManager.removeCredential()
-        // TODO: check if can login/logout
     }
 }
 
