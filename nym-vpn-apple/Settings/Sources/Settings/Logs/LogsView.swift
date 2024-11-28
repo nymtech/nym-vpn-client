@@ -17,33 +17,9 @@ public struct LogsView: View {
 
             VStack(spacing: .zero) {
                 if !viewModel.logLines.isEmpty {
-                    ScrollViewReader { proxy in
-                        ScrollView(.vertical) {
-                            LazyVStack(alignment: .leading) {
-                                ForEach(viewModel.logLines.indices, id: \.self) { index in
-                                    Text(viewModel.logLines[index])
-                                        .id(index)
-                                }
-                            }
-                            .padding()
-                        }
-                        .onAppear {
-                            withAnimation {
-                                proxy.scrollTo(viewModel.lastLogIndex, anchor: .bottom)
-                            }
-                        }
-                        .onChange(of: viewModel.logLines) { _ in
-                            withAnimation {
-                                proxy.scrollTo(viewModel.lastLogIndex, anchor: .bottom)
-                            }
-                        }
-                    }
+                    logsView()
                 } else {
-                    VStack {
-                        Spacer()
-                        Text(viewModel.noLogsLocalizedString)
-                        Spacer()
-                    }
+                    noLogsView()
                 }
                 logTypePicker()
             }
@@ -82,7 +58,6 @@ public struct LogsView: View {
 }
 
 private extension LogsView {
-    @ViewBuilder
     func navbar() -> some View {
         CustomNavBar(
             title: viewModel.title,
@@ -91,7 +66,6 @@ private extension LogsView {
         .padding(0)
     }
 
-    @ViewBuilder
     func button(systemImageName: String, title: String) -> some View {
         VStack {
             Image(systemName: systemImageName)
@@ -128,7 +102,6 @@ private extension LogsView {
         }
     }
 
-    @ViewBuilder
     func deleteButton() -> some View {
         button(systemImageName: "trash", title: viewModel.deleteLocalizedString)
             .disabled(viewModel.logLines.isEmpty)
@@ -142,7 +115,6 @@ private extension LogsView {
             }
     }
 
-    @ViewBuilder
     func buttonsSection() -> some View {
         HStack {
             Spacer()
@@ -173,6 +145,41 @@ private extension LogsView {
             }
             .pickerStyle(.segmented)
             .padding(16)
+        }
+    }
+
+    func noLogsView() -> some View {
+        VStack {
+            Spacer()
+            Text(viewModel.noLogsLocalizedString)
+            Spacer()
+        }
+    }
+
+    func logsView() -> some View {
+        ScrollViewReader { proxy in
+            ScrollView(.vertical) {
+                LazyVStack(alignment: .leading) {
+                    ForEach(viewModel.logLines.indices, id: \.self) { index in
+                        Text(viewModel.logLines[index])
+                            .id(index)
+                            .onTapGesture(count: 2) {
+                                viewModel.copyToPasteboard(index: index)
+                            }
+                    }
+                }
+                .padding()
+            }
+            .onAppear {
+                withAnimation {
+                    proxy.scrollTo(viewModel.lastLogIndex, anchor: .bottom)
+                }
+            }
+            .onChange(of: viewModel.logLines) { _ in
+                withAnimation {
+                    proxy.scrollTo(viewModel.lastLogIndex, anchor: .bottom)
+                }
+            }
         }
     }
 }

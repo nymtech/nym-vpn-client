@@ -71,6 +71,7 @@ public class SettingsViewModel: SettingsFlowState {
     }
 
     func navigateToAddCredentialsOrCredential() {
+        guard configurationManager.isSantaClaus else { return }
         path.append(SettingLink.addCredentials)
     }
 

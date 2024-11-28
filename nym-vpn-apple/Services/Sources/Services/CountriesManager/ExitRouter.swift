@@ -1,16 +1,19 @@
 public enum ExitRouter: Codable, Equatable {
     case country(code: String)
+    case gateway(String)
 
     public var countryCode: String? {
         switch self {
         case let .country(code: countryCode):
-            return countryCode
+            countryCode
+        case .gateway:
+            nil
         }
     }
 
     public var isQuickest: Bool {
         switch self {
-        case .country:
+        case .country, .gateway:
             return false
         }
     }
@@ -18,7 +21,9 @@ public enum ExitRouter: Codable, Equatable {
     public var isCountry: Bool {
         switch self {
         case .country:
-            return true
+            true
+        case .gateway:
+            false
         }
     }
 }

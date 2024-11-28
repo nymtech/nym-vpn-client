@@ -83,7 +83,11 @@ private extension SettingsView {
                 SettingsListViewModel(
                     sections: viewModel.sections,
                     appVersion: viewModel.appVersion(),
-                    configurationManager: ConfigurationManager.shared
+                    configurationManager: ConfigurationManager.shared,
+                    navigateToSantasMenuAction: { [weak viewModel] in
+                        guard let viewModel else { return }
+                        viewModel.navigateToSantasMenu()
+                    }
                 )
         )
     }

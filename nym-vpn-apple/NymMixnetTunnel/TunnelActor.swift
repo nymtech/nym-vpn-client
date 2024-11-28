@@ -76,18 +76,17 @@ actor TunnelActor {
                 tunnelProvider?.reasserting = true
             }
 
-        case .connected:
+        case let .connected(connectionData):
             if canReassert {
                 tunnelProvider?.reasserting = false
             }
             canReassert = true
-
+            logger.info("🛤️ connected entry gw: \(connectionData.entryGateway), exit gw: \(connectionData.exitGateway)")
         case .error:
             if canReassert {
                 // todo: remove once we properly handle error state
                 tunnelProvider?.cancelTunnelWithError(PacketTunnelProviderError.errorState)
             }
-
         case .disconnecting(.error):
             await NotificationMessages.scheduleDisconnectNotification()
 

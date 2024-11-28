@@ -34,6 +34,12 @@ public final class ConfigurationManager {
             appSettings.currentEnv = newValue.rawValue
         }
     }
+
+    let isRunningOnCI: Bool = {
+        guard let isCiBuild = Bundle.main.object(forInfoDictionaryKey: "IsCiBuild") as? String else { return false }
+        return isCiBuild.lowercased() == "true"
+    }()
+
 #if os(iOS)
     public static let shared = ConfigurationManager(
         appSettings: AppSettings.shared,
@@ -53,6 +59,12 @@ public final class ConfigurationManager {
 
     public var accountLinks: AccountLinks?
     public var environmentDidChange: (() -> Void)?
+
+    public var isSantaClaus: Bool {
+        // TODO: update Device.isMacOS to env var from CI
+        guard isTestFlight || isRunningOnCI else { return false }
+        return true
+    }
 
 #if os(iOS)
     private init(appSettings: AppSettings, credentialsManager: CredentialsManager) {

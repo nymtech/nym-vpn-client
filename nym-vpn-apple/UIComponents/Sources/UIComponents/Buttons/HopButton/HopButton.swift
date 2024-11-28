@@ -15,10 +15,10 @@ public struct HopButton: View {
                 flagOrBoltImage()
                     .padding(.horizontal, 12)
 
-                if let countryName = viewModel.countryName {
-                    Text(countryName)
-                        .foregroundStyle(NymColor.sysOnSurface)
-                        .textStyle(.Body.Large.semibold)
+                if let gateway = viewModel.gateway {
+                    titleText(with: gateway)
+                } else if let countryName = viewModel.countryName {
+                    titleText(with: countryName)
                 }
 
                 Spacer()
@@ -38,6 +38,18 @@ private extension HopButton {
             BoltImage()
         } else if let countryCode = viewModel.countryCode {
             FlagImage(countryCode: countryCode)
+        } else if let gateway = viewModel.gateway {
+            Image(systemName: "network")
+                .resizable()
+                .frame(width: 24, height: 24)
+                .cornerRadius(50)
+                .foregroundStyle(NymColor.sysOnSurface)
         }
+    }
+
+    func titleText(with text: String) -> some View {
+        Text(text)
+            .foregroundStyle(NymColor.sysOnSurface)
+            .textStyle(.Body.Large.semibold)
     }
 }

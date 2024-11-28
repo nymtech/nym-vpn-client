@@ -1,31 +1,40 @@
 import SwiftUI
 import Combine
+import AppSettings
+import ConfigurationManager
 import ConnectionManager
 import CountriesManager
 
 public class HopButtonViewModel: ObservableObject {
-    private var connectionManager: ConnectionManager
-    private var countriesManager: CountriesManager
+    private let appSettings: AppSettings
+    private let configurationManager: ConfigurationManager
+    private let connectionManager: ConnectionManager
+    private let countriesManager: CountriesManager
+
     private var cancellables = Set<AnyCancellable>()
 
     let arrowImageName = "arrowRight"
     let hopType: HopType
 
+    @Published var gateway: String?
     @Published var countryCode: String?
     @Published var countryName: String?
     @Published var isQuickest = false
 
     public init(
         hopType: HopType,
-        connectionManager: ConnectionManager = ConnectionManager.shared,
-        countriesManager: CountriesManager = CountriesManager.shared
+        appSettings: AppSettings = .shared,
+        configurationManager: ConfigurationManager = .shared,
+        connectionManager: ConnectionManager = .shared,
+        countriesManager: CountriesManager = .shared
     ) {
         self.hopType = hopType
+        self.appSettings = appSettings
+        self.configurationManager = configurationManager
         self.connectionManager = connectionManager
         self.countriesManager = countriesManager
 
         setupConnectionManagerObserver()
-        updateData()
     }
 }
 
@@ -47,6 +56,30 @@ private extension HopButtonViewModel {
 
 private extension HopButtonViewModel {
     func updateData() {
+        if configurationManager.isSantaClaus {
+            var newGateway: String?
+            switch hopType {
+            case .entry:
+                if let gateway = appSettings.entryGateway {
+                    newGateway = gateway
+                }
+            case .exit:
+                if let gateway = appSettings.exitGateway {
+                    newGateway = gateway
+                }
+            }
+            guard let newGateway
+            else {
+                gateway = nil
+                updateCountryData()
+                return
+            }
+            gateway = newGateway
+        } else {
+            updateCountryData()
+        }
+    }
+    func updateCountryData() {
         Task { @MainActor in
             let text: String?
             switch hopType {
@@ -80,6 +113,17 @@ private extension HopButtonViewModel {
                 return countryName = isQuickest ? "fastest".localizedString : nil
             }
             countryName = isQuickest ? "fastest".localizedString + " (\(text))" : text
+        }
+    }
+
+    func updateSantaData() {
+        Task { @MainActor in
+            switch hopType {
+            case .entry:
+                gateway = appSettings.entryGateway
+            case .exit:
+                gateway = appSettings.exitGateway
+            }
         }
     }
 

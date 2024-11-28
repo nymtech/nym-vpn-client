@@ -35,10 +35,10 @@ public final class AppSettings: ObservableObject {
     public var isSmallScreen = false
     @AppStorage(AppSettingKey.welcomeScreenDidDisplay.rawValue)
     public var welcomeScreenDidDisplay = false
-    @AppStorage(AppSettingKey.entryCountry.rawValue)
-    public var entryCountryCode = ""
-    @AppStorage(AppSettingKey.exitCountry.rawValue)
-    public var exitCountryCode = ""
+//    @AppStorage(AppSettingKey.entryCountry.rawValue)
+//    public var entryCountryCode = ""
+//    @AppStorage(AppSettingKey.exitCountry.rawValue)
+//    public var exitCountryCode = ""
     @AppStorage(AppSettingKey.connectionType.rawValue)
     public var connectionType: Int?
     @AppStorage(AppSettingKey.lastConnectionIntent.rawValue)

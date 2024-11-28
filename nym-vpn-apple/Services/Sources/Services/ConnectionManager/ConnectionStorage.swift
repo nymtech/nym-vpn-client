@@ -1,10 +1,12 @@
 import AppSettings
+import ConfigurationManager
 import CountriesManager
 
 public final class ConnectionStorage {
     public static let shared = ConnectionStorage()
 
     private let appSettings: AppSettings
+    private let configurationManager: ConfigurationManager
     private let countriesManager: CountriesManager
 
     private var countryType: CountryType {
@@ -12,10 +14,12 @@ public final class ConnectionStorage {
     }
 
     public init(
-        appSettings: AppSettings = AppSettings.shared,
-        countriesManager: CountriesManager = CountriesManager.shared
+        appSettings: AppSettings = .shared,
+        configurationManager: ConfigurationManager = .shared,
+        countriesManager: CountriesManager = .shared
     ) {
         self.appSettings = appSettings
+        self.configurationManager = configurationManager
         self.countriesManager = countriesManager
     }
 

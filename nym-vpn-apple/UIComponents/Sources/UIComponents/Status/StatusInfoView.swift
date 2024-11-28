@@ -19,6 +19,14 @@ public struct StatusInfoView: View {
 
     public var body: some View {
         infoLabel()
+            .onTapGesture {
+                switch infoState {
+                case let .error(message):
+                    copyToPasteboard(text: message)
+                default:
+                    break
+                }
+            }
         timeConnectedLabel()
     }
 }
@@ -29,7 +37,7 @@ private extension StatusInfoView {
         Text(infoState.localizedTitle)
             .foregroundStyle(infoState.textColor)
             .textStyle(isSmallScreen ? .Label.Medium.primary : .Label.Large.bold)
-            .lineLimit(3, reservesSpace: true)
+            .lineLimit(3, reservesSpace: infoState.localizedTitle.count > 30 ? true : false)
             .multilineTextAlignment(.center)
             .transition(.opacity)
             .animation(.easeInOut, value: infoState.localizedTitle)
@@ -56,5 +64,16 @@ private extension StatusInfoView {
         } else {
             Text(" ")
         }
+    }
+}
+
+private extension StatusInfoView {
+    func copyToPasteboard(text: String) {
+#if os(iOS)
+        UIPasteboard.general.string = text
+#elseif os(macOS)
+        NSPasteboard.general.prepareForNewContents()
+        NSPasteboard.general.setString(text, forType: .string)
+#endif
     }
 }

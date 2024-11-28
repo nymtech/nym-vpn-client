@@ -146,7 +146,7 @@ public final class ConnectionManager: ObservableObject {
                     isDisconnecting = true
                     disconnectActiveTunnel()
                 } else {
-                    try await connectMixnet(with: config)
+                    try await connect(with: config)
                 }
             }
         } catch let error {
@@ -274,7 +274,7 @@ public extension ConnectionManager {
 // MARK: - Connection -
 #if os(iOS)
 private extension ConnectionManager {
-    func connectMixnet(with config: MixnetConfig) async throws {
+    func connect(with config: MixnetConfig) async throws {
         do {
             try await tunnelsManager.loadTunnels()
             let tunnel = try await tunnelsManager.addUpdate(tunnelConfiguration: config)
@@ -284,8 +284,6 @@ private extension ConnectionManager {
             throw error
         }
     }
-
-    func connectWireguard() {}
 
     func disconnectActiveTunnel() {
         guard let activeTunnel,

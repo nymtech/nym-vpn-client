@@ -7,6 +7,8 @@ extension ExitRouter {
         switch self {
         case .country(let code):
             return .location(location: code)
+        case let .gateway(identity):
+            return .gateway(identity: identity)
         }
     }
 }

@@ -1090,6 +1090,7 @@
 				INFOPLIST_FILE = "$(PROJECT_DIR)/NymVPNDaemon/Resources/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = NymVPN;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IS_CI_BUILD = true;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -1127,6 +1128,7 @@
 				INFOPLIST_FILE = "$(PROJECT_DIR)/NymVPNDaemon/Resources/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = NymVPN;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IS_CI_BUILD = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",

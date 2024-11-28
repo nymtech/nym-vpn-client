@@ -22,7 +22,6 @@ public final class GRPCManager: ObservableObject {
 
     public static let shared = GRPCManager()
 
-    private var daemonVersion = "unknown"
     private var userAgent: Nym_Vpn_UserAgent {
         var agent = Nym_Vpn_UserAgent()
         agent.application = AppVersionProvider.app
@@ -35,6 +34,8 @@ public final class GRPCManager: ObservableObject {
     @Published public var lastError: GeneralNymError?
     @Published public var connectedDate: Date?
     @Published public var isServing = false
+    @Published public var networkName: String?
+    public var daemonVersion = "unknown"
 
     public var requiresUpdate: Bool {
         daemonVersion != AppVersionProvider.libVersion
@@ -75,6 +76,7 @@ public final class GRPCManager: ObservableObject {
                 switch result {
                 case .success(let response):
                     self?.daemonVersion = response.version
+                    self?.networkName = response.nymNetwork.networkName
                     self?.logger.info("🛜 \(response.nymNetwork.networkName)")
 
                     continuation.resume()
