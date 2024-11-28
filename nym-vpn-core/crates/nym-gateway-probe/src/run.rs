@@ -22,6 +22,9 @@ struct CliArgs {
 
     #[arg(long, short)]
     no_log: bool,
+
+    #[arg(long, default_value = "false")]
+    no_wireguard: bool,
 }
 
 fn setup_logging() {
@@ -52,7 +55,7 @@ pub(crate) async fn run() -> anyhow::Result<ProbeResult> {
         fetch_random_gateway_with_ipr().await?
     };
 
-    nym_gateway_probe::probe(gateway).await
+    nym_gateway_probe::probe(gateway, !args.no_wireguard).await
 }
 
 async fn fetch_random_gateway_with_ipr() -> anyhow::Result<EntryPoint> {

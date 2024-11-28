@@ -55,7 +55,7 @@ pub async fn fetch_gateways_with_ipr() -> anyhow::Result<GatewayList> {
     Ok(lookup_gateways().await?.into_exit_gateways())
 }
 
-pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
+pub async fn probe(entry_point: EntryPoint, test_wireguard: bool) -> anyhow::Result<ProbeResult> {
     // Setup the entry gateways
     let gateways = lookup_gateways().await?;
     let entry_gateway = entry_point.lookup_gateway(&gateways).await?;
@@ -103,25 +103,38 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
     let shared_mixnet_client = SharedMixnetClient::from_shared(&shared_client);
     let outcome = do_ping(shared_mixnet_client.clone(), exit_router_address).await;
 
-    let wg_outcome = if let Some(authenticator) = authenticator {
-        wg_probe(authenticator, shared_client, &gateway_host, auth_version)
-            .await
-            .unwrap_or_default()
+    let wg_outcome = if test_wireguard {
+        if let Some(authenticator) = authenticator {
+            Some(
+                wg_probe(authenticator, shared_client, &gateway_host, auth_version)
+                    .await
+                    .unwrap_or_default(),
+            )
+        } else {
+            Some(WgProbeResults::default())
+        }
     } else {
-        WgProbeResults::default()
+        None
     };
 
     let mixnet_client = shared_mixnet_client.lock().await.take().unwrap();
     mixnet_client.disconnect().await;
 
-    // Disconnect the mixnet client gracefully
-    outcome.map(|mut outcome| {
-        outcome.wg = Some(wg_outcome);
-        ProbeResult {
+    if let Some(wg_outcome) = wg_outcome {
+        outcome.map(|mut outcome| {
+            outcome.wg = Some(wg_outcome);
+            ProbeResult {
+                gateway: entry_gateway.clone(),
+                outcome,
+            }
+        })
+    } else {
+        Ok(ProbeResult {
             gateway: entry_gateway.clone(),
-            outcome,
-        }
-    })
+            outcome: outcome.unwrap(),
+        })
+    }
+
 }
 
 async fn wg_probe(
