@@ -194,31 +194,12 @@ public final class ConnectionManager: ObservableObject {
     public func disconnectBeforeLogout() async {
 #if os(iOS)
         disconnectActiveTunnel()
+        await waitForTunnelStatus(with: .disconnected)
         resetVpnProfile()
 #elseif os(macOS)
         grpcManager.disconnect()
-#endif
         await waitForTunnelStatus(with: .disconnected)
-    }
-
-    private func waitForTunnelStatus(with targetStatus: TunnelStatus) async {
-        await withCheckedContinuation { continuation in
-            var cancellable: AnyCancellable? = nil
-
-            cancellable = $currentTunnelStatus
-                .sink { [weak self] status in
-                    guard let self = self else {
-                        continuation.resume()
-                        cancellable?.cancel()
-                        return
-                    }
-
-                    if status == targetStatus {
-                        continuation.resume()
-                        cancellable?.cancel()
-                    }
-                }
-        }
+#endif
     }
 }
 
@@ -402,6 +383,20 @@ private extension ConnectionManager {
             return
         }
         isDisconnecting = false
+    }
+
+    func waitForTunnelStatus(with targetStatus: TunnelStatus) async {
+        await withCheckedContinuation { continuation in
+            var cancellable: AnyCancellable?
+
+            cancellable = $currentTunnelStatus
+                .sink { status in
+                    if status == targetStatus {
+                        continuation.resume()
+                        cancellable?.cancel()
+                    }
+                }
+        }
     }
 }
 // MARK: - Countries -
