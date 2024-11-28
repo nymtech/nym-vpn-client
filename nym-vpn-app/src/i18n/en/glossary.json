@@ -6,5 +6,6 @@
   "logout": "logout",
   "ok": "ok",
   "selected": "selected",
-  "via": "via"
+  "via": "via",
+  "stop": "stop"
 }

@@ -32,7 +32,6 @@ export type AppState = {
   daemonVersion?: string;
   networkEnv?: NetworkEnv;
   version: string | null;
-  loading: boolean;
   error?: AppError | null;
   progressMessages: ConnectProgressMsg[];
   sessionStartDate?: Dayjs | null;
@@ -74,7 +73,7 @@ export type ConnectionEventPayload = {
   start_time?: bigint | null; // unix timestamp in seconds
 };
 
-export type ConnectProgressMsg = 'Initializing' | 'InitDone';
+export type ConnectProgressMsg = 'Initializing' | 'InitDone' | 'Canceling';
 
 export type ProgressEventPayload = {
   key: ConnectProgressMsg;
