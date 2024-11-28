@@ -62,7 +62,6 @@ public final class CredentialsManager {
 
     public func removeCredential() async throws {
         do {
-            let removalResult: Bool
 #if os(iOS)
             let dataFolderURL = try dataFolderURL()
             try forgetAccount(path: dataFolderURL.path())
@@ -71,7 +70,7 @@ public final class CredentialsManager {
 
 #if os(macOS)
             try? await helperInstallManager.installIfNeeded()
-            removalResult = try await grpcManager.forgetAccount()
+            try await grpcManager.forgetAccount()
 #endif
             checkCredentialImport()
         } catch {
