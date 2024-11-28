@@ -46,7 +46,7 @@ impl ErrorState {
         (Box::new(Self), PrivateTunnelState::Error(reason))
     }
 
-    /// Configure tunnel with dummy network settings consuming
+    /// Configure tunnel with network settings blocking all traffic
     #[cfg(target_os = "ios")]
     async fn set_blocking_network_settings(tun_provider: Arc<dyn OSTunProvider>) {
         let tunnel_network_settings = TunnelSettings {
