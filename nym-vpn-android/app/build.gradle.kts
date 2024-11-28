@@ -32,13 +32,11 @@ android {
 		vectorDrawables {
 			useSupportLibrary = true
 		}
-		buildConfigField(
-			"String",
-			Constants.SENTRY_DSN,
-			"\"${(System.getenv(Constants.SENTRY_DSN) ?: getLocalProperty("sentry.dsn")) ?: ""}\"",
-		)
+
+		buildConfigField("String[]", "LANGUAGES", "new String[]{ ${languageList().joinToString(separator = ", ") { "\"$it\"" }} }")
+
 		buildConfigField("String", "COMMIT_HASH", "\"${grgitService.service.get().grgit.head().id}\"")
-		buildConfigField("Boolean", "IS_SANDBOX", "false")
+		buildConfigField("Boolean", "IS_PRERELEASE", "false")
 		proguardFile("fdroid-rules.pro")
 	}
 
@@ -96,6 +94,7 @@ android {
 			versionNameSuffix = "-pre"
 			resValue("string", "app_name", "NymVPN - Pre")
 			resValue("string", "provider", "\"${Constants.APP_NAME}.provider.pre\"")
+			buildConfigField("Boolean", "IS_PRERELEASE", "true")
 		}
 
 		create(Constants.NIGHTLY) {
@@ -166,7 +165,6 @@ dependencies {
 
 	implementation(project(":nym-vpn-client"))
 	implementation(project(":logcat-util"))
-	implementation(project(":localization-util"))
 	implementation(libs.androidx.lifecycle.process)
 	coreLibraryDesugaring(libs.com.android.tools.desugar)
 

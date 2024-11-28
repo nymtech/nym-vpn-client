@@ -9,7 +9,7 @@ import { useLang } from './hooks';
 import { LngTag } from './i18n';
 import { kvGet } from './kvStore';
 import router from './router';
-import { sleep } from './helpers';
+import { sleep } from './util';
 import { MainStateProvider } from './contexts';
 import './i18n/config';
 import { Cli } from './types';

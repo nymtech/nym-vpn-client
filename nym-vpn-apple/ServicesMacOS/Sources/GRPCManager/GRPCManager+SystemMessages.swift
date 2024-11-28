@@ -3,10 +3,6 @@ import SystemMessageModels
 
 extension GRPCManager {
     public func fetchSystemMessages() async throws -> [NymNetworkMessage] {
-        guard helperManager.isHelperAuthorizedAndRunning()
-        else {
-            throw GRPCError.daemonNotRunning
-        }
         logger.log(level: .info, "Checking if stored account")
 
         return try await withCheckedThrowingContinuation { continuation in
@@ -25,5 +21,4 @@ extension GRPCManager {
             }
         }
     }
-
 }

@@ -18,7 +18,6 @@ import Theme
 struct NymVPNDaemonApp: App {
     private let autoUpdater = AutoUpdater.shared
     private let logFileManager = LogFileManager(logFileType: .app)
-    private let helperManager = HelperManager.shared
 
     @ObservedObject private var appSettings = AppSettings.shared
     @StateObject private var homeViewModel = HomeViewModel()
@@ -59,16 +58,14 @@ struct NymVPNDaemonApp: App {
                 CheckForUpdatesView(viewModel: checkForUpdatesViewModel)
             }
             CommandGroup(after: .help) {
-                if helperManager.isHelperAuthorizedAndRunning() {
-                    Button("helper.uninstallHelper".localizedString) {
-                        let result = HelperManager.shared.uninstallHelper()
-                        if result {
-                            alertTitle = "helper.successfullyUninstalled".localizedString
-                        } else {
-                            alertTitle = "error.unexpected".localizedString
-                        }
-                        isDisplayingAlert = true
+                Button("helper.uninstallHelper".localizedString) {
+                    let result = HelperManager.shared.uninstallHelper()
+                    if result {
+                        alertTitle = "helper.successfullyUninstalled".localizedString
+                    } else {
+                        alertTitle = "error.unexpected".localizedString
                     }
+                    isDisplayingAlert = true
                 }
             }
         }

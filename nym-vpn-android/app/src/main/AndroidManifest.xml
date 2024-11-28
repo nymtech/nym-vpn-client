@@ -35,11 +35,12 @@
 			tools:replace="screenOrientation" />
 		<activity
 			android:name=".ui.MainActivity"
-			android:configChanges="orientation|keyboardHidden|locale|layoutDirection"
 			android:exported="true"
 			android:theme="@style/Theme.NymVPN"
 			android:screenOrientation="portrait"
-			android:windowSoftInputMode="adjustResize">
+			android:windowSoftInputMode="adjustResize"
+			android:configChanges="orientation|screenSize|keyboardHidden|locale"
+			>
 			<intent-filter android:autoVerify="true">
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />

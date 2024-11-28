@@ -7,16 +7,11 @@ import android.system.Os
 import com.getkeepsafe.relinker.ReLinker
 import com.getkeepsafe.relinker.ReLinker.LoadListener
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.nymtech.ipcalculator.AllowedIpCalculator
-import net.nymtech.vpn.model.BackendMessage.*
-import net.nymtech.vpn.model.Statistics
+import net.nymtech.vpn.model.BackendEvent
 import net.nymtech.vpn.util.Action
 import net.nymtech.vpn.util.Constants
 import net.nymtech.vpn.util.Constants.LOG_LEVEL
@@ -30,24 +25,21 @@ import net.nymtech.vpn.util.extensions.startVpnService
 import nym_vpn_lib.AccountLinks
 import nym_vpn_lib.AccountStateSummary
 import nym_vpn_lib.AndroidTunProvider
-import nym_vpn_lib.BandwidthEvent
-import nym_vpn_lib.MixnetEvent
 import nym_vpn_lib.TunnelEvent
 import nym_vpn_lib.TunnelNetworkSettings
-import nym_vpn_lib.TunnelState
 import nym_vpn_lib.TunnelStatusListener
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.VpnException
 import nym_vpn_lib.fetchAccountLinks
 import nym_vpn_lib.forgetAccount
 import nym_vpn_lib.initEnvironment
+import nym_vpn_lib.initFallbackMainnetEnvironment
 import nym_vpn_lib.isAccountMnemonicStored
 import nym_vpn_lib.startVpn
 import nym_vpn_lib.stopVpn
 import nym_vpn_lib.storeAccountMnemonic
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 import kotlin.properties.Delegates
 
 class NymBackend private constructor(val context: Context) : Backend, TunnelStatusListener {
@@ -70,7 +62,6 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	companion object : SingletonHolder<NymBackend, Context>(::NymBackend) {
 		private var vpnService = CompletableDeferred<VpnService>()
-		private var currentTunnelHandle = AtomicInteger(-1)
 		const val DEFAULT_LOCALE = "en"
 	}
 
@@ -79,8 +70,6 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	private val ioDispatcher = Dispatchers.IO
 
 	private val storagePath = context.filesDir.absolutePath
-
-	private var statsJob: Job? = null
 
 	@get:Synchronized @set:Synchronized
 	private var tunnel: Tunnel? = null
@@ -96,7 +85,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 				initialized.set(true)
 			}.onFailure {
 				Timber.e(it)
-			}.isSuccess
+			}
 		}
 	}
 
@@ -107,7 +96,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 				initEnvironment(environment.networkName())
 			}.onFailure {
 				Timber.w("Failed to setup environment, defaulting to bundle mainnet")
-				Tunnel.Environment.setupMainnet()
+				initFallbackMainnetEnvironment()
 			}
 		}
 	}
@@ -155,7 +144,6 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		// TODO handle changes to tunnel while tunnel is up in future
 		if (state != Tunnel.State.Down) throw NymVpnInitializeException.VpnAlreadyRunning()
 		this.tunnel = tunnel
-		tunnel.onBackendMessage(None)
 		onStateChange(Tunnel.State.InitializingClient)
 		if (android.net.VpnService.prepare(context) != null) throw NymVpnInitializeException.VpnPermissionDenied()
 		startVpn(tunnel, background)
@@ -188,9 +176,8 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	private fun onStartFailure(e: VpnException) {
 		Timber.e(e)
-		onDisconnect()
 		onStateChange(Tunnel.State.Down)
-		tunnel?.onBackendMessage(StartFailure(e))
+		tunnel?.onBackendEvent(BackendEvent.StartFailure(e))
 	}
 
 	override suspend fun stop() {
@@ -215,15 +202,6 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		}
 	}
 
-	private fun onDisconnect() {
-		statsJob?.cancel()
-		tunnel?.onStatisticChange(Statistics())
-	}
-
-	private fun onConnect() = CoroutineScope(ioDispatcher).launch {
-		startConnectionTimer()
-	}
-
 	override fun getState(): Tunnel.State {
 		return state
 	}
@@ -233,44 +211,14 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		else -> false
 	}
 
-	private suspend fun startConnectionTimer() {
-		withContext(ioDispatcher) {
-			var seconds = 0L
-			do {
-				if (state == Tunnel.State.Up) {
-					tunnel?.onStatisticChange(Statistics(seconds))
-					seconds++
-				}
-				delay(Constants.STATISTICS_INTERVAL_MILLI)
-			} while (true)
-		}
-	}
-
 	override fun onEvent(event: TunnelEvent) {
 		when (event) {
 			is TunnelEvent.MixnetState -> {
-				when (event.v1) {
-					is MixnetEvent.Bandwidth -> {
-						tunnel?.onBackendMessage(BandwidthAlert(event.v1.v1))
-						if (event.v1.v1 is BandwidthEvent.NoBandwidth) onVpnShutdown()
-					}
-					is MixnetEvent.Connection -> {
-						// just logs these for now
-						Timber.d(event.v1.v1.toString())
-					}
-				}
+				tunnel?.onBackendEvent(BackendEvent.Mixnet(event.v1))
 			}
 			is TunnelEvent.NewState -> {
 				onStateChange(event.asTunnelState())
-				when (event.v1) {
-					is TunnelState.Connected -> statsJob = onConnect()
-					is TunnelState.Disconnecting -> onDisconnect()
-					is TunnelState.Error -> {
-						tunnel?.onBackendMessage(Failure(event.v1.v1))
-						onVpnShutdown()
-					}
-					else -> Unit
-				}
+				tunnel?.onBackendEvent(BackendEvent.Tunnel(event.v1))
 			}
 		}
 	}
@@ -301,7 +249,6 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 		override fun onDestroy() {
 			Timber.d("Vpn service destroyed")
-			currentTunnelHandle.getAndSet(-1)
 			vpnService = CompletableDeferred()
 			stopForeground(STOP_FOREGROUND_REMOVE)
 			notificationManager.cancel(VPN_NOTIFICATION_ID)
@@ -333,8 +280,6 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		override fun configureTunnel(config: TunnelNetworkSettings): Int {
 			Timber.i("Configuring tunnel")
 			if (prepare(this) != null) return -1
-			val currentHandle = currentTunnelHandle.get()
-			if (currentHandle != -1) return currentHandle
 			val vpnInterface = builder.apply {
 				config.ipv4Settings?.addresses?.forEach {
 					Timber.d("Address v4: $it")
@@ -366,7 +311,6 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 				}
 			}.establish()
 			val fd = vpnInterface?.detachFd() ?: return -1
-			currentTunnelHandle.getAndSet(fd)
 			return fd
 		}
 	}

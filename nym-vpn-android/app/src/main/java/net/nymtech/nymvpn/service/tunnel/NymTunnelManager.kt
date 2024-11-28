@@ -17,19 +17,26 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.service.notification.NotificationService
+import net.nymtech.nymvpn.service.tunnel.model.BackendUiEvent
+import net.nymtech.nymvpn.service.tunnel.model.MixnetConnectionState
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.toMB
 import net.nymtech.nymvpn.util.extensions.toUserMessage
 import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.backend.Tunnel
-import net.nymtech.vpn.model.BackendMessage
-import net.nymtech.vpn.model.Statistics
+import net.nymtech.vpn.model.BackendEvent
 import net.nymtech.vpn.util.exceptions.NymVpnInitializeException
 import nym_vpn_lib.AccountLinks
 import nym_vpn_lib.AccountStateSummary
 import nym_vpn_lib.BandwidthEvent
+import nym_vpn_lib.ConnectionData
+import nym_vpn_lib.ConnectionEvent
 import nym_vpn_lib.EntryPoint
+import nym_vpn_lib.ErrorStateReason
 import nym_vpn_lib.ExitPoint
+import nym_vpn_lib.MixnetEvent
+import nym_vpn_lib.TunnelState
+import nym_vpn_lib.VpnException
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Provider
@@ -49,7 +56,6 @@ class NymTunnelManager @Inject constructor(
 		_state.update {
 			it.copy(
 				isMnemonicStored = isMnemonicStored,
-				accountLinks = if (isMnemonicStored) getAccountLinks() else null,
 			)
 		}
 	}.stateIn(applicationScope.plus(ioDispatcher), SharingStarted.Eagerly, TunnelManagerState())
@@ -66,14 +72,15 @@ class NymTunnelManager @Inject constructor(
 
 	override suspend fun start(fromBackground: Boolean) {
 		runCatching {
+			// clear any error states
+			emitBackendUiEvent(null)
 			val tunnel = NymTunnel(
 				entryPoint = getEntryPoint(),
 				exitPoint = getExitPoint(),
 				mode = settingsRepository.getVpnMode(),
 				environment = settingsRepository.getEnvironment(),
-				statChange = ::emitStats,
 				stateChange = ::onStateChange,
-				backendMessage = ::onBackendMessage,
+				backendEvent = ::onBackendEvent,
 				credentialMode = settingsRepository.isCredentialMode(),
 			)
 			backend.get().start(tunnel, fromBackground)
@@ -118,6 +125,7 @@ class NymTunnelManager @Inject constructor(
 	override suspend fun storeMnemonic(mnemonic: String) {
 		backend.get().storeMnemonic(mnemonic)
 		emitMnemonicStored(true)
+		refreshAccountLinks()
 	}
 
 	override suspend fun isMnemonicStored(): Boolean {
@@ -127,6 +135,7 @@ class NymTunnelManager @Inject constructor(
 	override suspend fun removeMnemonic() {
 		backend.get().removeMnemonic()
 		emitMnemonicStored(false)
+		refreshAccountLinks()
 	}
 
 	override suspend fun getAccountSummary(): AccountStateSummary {
@@ -141,37 +150,65 @@ class NymTunnelManager @Inject constructor(
 		}
 	}
 
+	override suspend fun refreshAccountLinks() {
+		val accountLinks = getAccountLinks()
+		_state.update {
+			it.copy(accountLinks = accountLinks)
+		}
+	}
+
 	private fun emitMnemonicStored(stored: Boolean) {
 		_state.update {
 			it.copy(isMnemonicStored = stored)
 		}
 	}
 
-	private fun onBackendMessage(backendMessage: BackendMessage) {
-		launchBackendNotification(backendMessage)
-		emitMessage(backendMessage)
-		// TODO For now, we'll stop tunnel on errors
-		if (backendMessage is BackendMessage.Failure) {
-			Timber.d("Shutting tunnel down on fatal error")
-			applicationScope.launch(ioDispatcher) {
-				backend.get().stop()
+	private fun emitBackendUiEvent(backendEvent: BackendUiEvent?) {
+		_state.update {
+			it.copy(backendUiEvent = backendEvent)
+		}
+	}
+
+	private fun emitConnectionData(connectionData: ConnectionData?) {
+		_state.update {
+			it.copy(connectionData = connectionData)
+		}
+	}
+
+	private fun emitMixnetConnectionEvent(connectionEvent: ConnectionEvent) {
+		_state.update {
+			it.copy(mixnetConnectionState = it.mixnetConnectionState?.onEvent(connectionEvent) ?: MixnetConnectionState().onEvent(connectionEvent))
+		}
+	}
+
+	private fun onBackendEvent(backendEvent: BackendEvent) {
+		when (backendEvent) {
+			is BackendEvent.Mixnet -> when (val event = backendEvent.event) {
+				is MixnetEvent.Bandwidth -> {
+					emitBackendUiEvent(BackendUiEvent.BandwidthAlert(event.v1))
+					launchBandwidthNotification(event.v1)
+				}
+				is MixnetEvent.Connection -> emitMixnetConnectionEvent(event.v1)
 			}
-		}
-	}
 
-	private fun emitMessage(backendMessage: BackendMessage) {
-		_state.update {
-			it.copy(
-				backendMessage = backendMessage,
-			)
-		}
-	}
-
-	private fun emitStats(statistics: Statistics) {
-		_state.update {
-			it.copy(
-				tunnelStatistics = statistics,
-			)
+			is BackendEvent.StartFailure -> {
+				emitBackendUiEvent(BackendUiEvent.StartFailure(backendEvent.exception))
+				launchStartFailureNotification(backendEvent.exception)
+			}
+			is BackendEvent.Tunnel -> when (val state = backendEvent.state) {
+				is TunnelState.Connected -> emitConnectionData(state.connectionData)
+				is TunnelState.Connecting -> emitConnectionData(state.connectionData)
+				is TunnelState.Disconnecting -> Timber.d("After disconnect status: ${state.afterDisconnect.name}")
+				is TunnelState.Error -> {
+					Timber.d("Shutting tunnel down on fatal error")
+					emitBackendUiEvent(BackendUiEvent.Failure(state.v1))
+					launchBackendFailureNotification(state.v1)
+					applicationScope.launch(ioDispatcher) {
+						backend.get().stop()
+					}
+				}
+				else -> Unit
+			}
 		}
 	}
 
@@ -198,31 +235,30 @@ class NymTunnelManager @Inject constructor(
 		}
 	}
 
-	private fun launchBackendNotification(backendMessage: BackendMessage) {
-		when (backendMessage) {
-			is BackendMessage.Failure -> {
-				notificationService.showNotification(
-					title = context.getString(R.string.connection_failed),
-					description = backendMessage.reason.toUserMessage(context),
-				)
-			}
-			is BackendMessage.BandwidthAlert -> {
-				when (val alert = backendMessage.status) {
-					BandwidthEvent.NoBandwidth -> notificationService.showNotification(
-						title = context.getString(R.string.bandwidth_alert),
-						description = context.getString(R.string.no_bandwidth),
-					)
-					is BandwidthEvent.RemainingBandwidth -> notificationService.showNotification(
-						title = context.getString(R.string.bandwidth_alert),
-						description = context.getString(R.string.low_bandwidth) + " ${alert.v1.toMB()} MB",
-					)
-				}
-			}
-			BackendMessage.None -> Unit
-			is BackendMessage.StartFailure -> notificationService.showNotification(
-				title = context.getString(R.string.connection_failed),
-				description = backendMessage.exception.toUserMessage(context),
+	private fun launchBandwidthNotification(bandwidthEvent: BandwidthEvent) {
+		when (bandwidthEvent) {
+			BandwidthEvent.NoBandwidth -> notificationService.showNotification(
+				title = context.getString(R.string.bandwidth_alert),
+				description = context.getString(R.string.no_bandwidth),
+			)
+			is BandwidthEvent.RemainingBandwidth -> notificationService.showNotification(
+				title = context.getString(R.string.bandwidth_alert),
+				description = context.getString(R.string.low_bandwidth) + " ${bandwidthEvent.v1.toMB()} MB",
 			)
 		}
+	}
+
+	private fun launchStartFailureNotification(exception: VpnException) {
+		notificationService.showNotification(
+			title = context.getString(R.string.connection_failed),
+			description = exception.toUserMessage(context),
+		)
+	}
+
+	private fun launchBackendFailureNotification(reason: ErrorStateReason) {
+		notificationService.showNotification(
+			title = context.getString(R.string.connection_failed),
+			description = reason.toUserMessage(context),
+		)
 	}
 }

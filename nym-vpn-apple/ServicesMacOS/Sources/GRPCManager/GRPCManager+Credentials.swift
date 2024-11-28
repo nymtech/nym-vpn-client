@@ -3,11 +3,6 @@ import GRPC
 
 extension GRPCManager {
     public func storeAccount(with mnemonic: String) async throws {
-        guard helperManager.isHelperAuthorizedAndRunning()
-        else {
-            throw GRPCError.daemonNotRunning
-        }
-
         logger.log(level: .info, "Importing credentials")
 
         return try await withCheckedThrowingContinuation { continuation in
@@ -29,11 +24,6 @@ extension GRPCManager {
     }
 
     public func removeAccount() async throws -> Bool {
-        guard helperManager.isHelperAuthorizedAndRunning()
-        else {
-            throw GRPCError.daemonNotRunning
-        }
-
         logger.log(level: .info, "Removing credentials")
 
         return try await withCheckedThrowingContinuation { continuation in
@@ -55,11 +45,6 @@ extension GRPCManager {
     }
 
     public func forgetAccount() async throws -> Bool {
-        guard helperManager.isHelperAuthorizedAndRunning()
-        else {
-            throw GRPCError.daemonNotRunning
-        }
-
         logger.log(level: .info, "Forgetting credentials")
 
         return try await withCheckedThrowingContinuation { continuation in
@@ -84,10 +69,6 @@ extension GRPCManager {
     }
 
     public func isAccountStored() async throws -> Bool {
-        guard helperManager.isHelperAuthorizedAndRunning()
-        else {
-            throw GRPCError.daemonNotRunning
-        }
         logger.log(level: .info, "Checking if stored account")
 
         return try await withCheckedThrowingContinuation { continuation in
@@ -108,10 +89,6 @@ extension GRPCManager {
     }
 
     public func accountLinks() async throws -> (account: String, signIn: String, signUp: String) {
-        guard helperManager.isHelperAuthorizedAndRunning()
-        else {
-            throw GRPCError.daemonNotRunning
-        }
         logger.log(level: .info, "Fetching account links")
 
         return try await withCheckedThrowingContinuation { continuation in

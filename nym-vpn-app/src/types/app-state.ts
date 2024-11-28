@@ -22,7 +22,7 @@ export type CodeDependency = {
   copyright?: string;
 };
 
-export type DaemonStatus = 'Ok' | 'NotOk';
+export type DaemonStatus = 'Ok' | 'NonCompat' | 'NotOk';
 
 export type AppState = {
   // initial loading phase when the app is starting and fetching data from the backend

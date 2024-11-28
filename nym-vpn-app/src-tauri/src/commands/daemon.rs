@@ -7,13 +7,6 @@ use tauri::State;
 use tracing::{debug, info, instrument, warn};
 use ts_rs::TS;
 
-#[derive(Serialize, Deserialize, Debug, Clone, TS)]
-#[ts(export)]
-pub struct DaemonInfo {
-    version: String,
-    network: String,
-}
-
 #[derive(strum::AsRefStr, Serialize, Deserialize, Debug, Clone, TS)]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
@@ -40,27 +33,6 @@ pub async fn daemon_status(
         .unwrap_or(VpndStatus::NotOk);
     debug!("daemon status: {:?}", status);
     Ok(status)
-}
-
-#[instrument(skip_all)]
-#[tauri::command]
-pub async fn daemon_info(grpc_client: State<'_, GrpcClient>) -> Result<DaemonInfo, BackendError> {
-    let res = grpc_client.vpnd_info().await.inspect_err(|e| {
-        warn!("failed to get daemon info: {:?}", e);
-    })?;
-
-    let network = res
-        .nym_network
-        .map(|network| network.network_name)
-        .ok_or_else(|| BackendError::internal("missing network details", None))
-        .inspect_err(|e| {
-            warn!("daemon info response missing network details: {:?}", e);
-        })?;
-
-    Ok(DaemonInfo {
-        version: res.version,
-        network,
-    })
 }
 
 #[instrument(skip(grpc_client))]

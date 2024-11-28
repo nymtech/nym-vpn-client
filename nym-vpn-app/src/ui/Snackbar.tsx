@@ -41,7 +41,7 @@ function Snackbar({
       className={clsx([
         'fixed z-30 inset-x-0 mx-6 px-5 py-4 min-w-56',
         position === 'top' ? 'top-20' : 'bottom-6',
-        'flex justify-between items-center rounded-lg select-none',
+        'flex justify-between items-center rounded-lg select-none cursor-default',
         'text-baltic-sea dark:text-mercury-pinkish bg-seashell dark:bg-poivre-noir',
       ])}
       {...getRootProps()}

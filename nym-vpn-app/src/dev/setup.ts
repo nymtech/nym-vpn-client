@@ -1,13 +1,7 @@
 import { mockIPC, mockWindows } from '@tauri-apps/api/mocks';
 import { InvokeArgs } from '@tauri-apps/api/core';
 import { emit } from '@tauri-apps/api/event';
-import {
-  Cli,
-  ConnectionState,
-  DaemonInfo,
-  DaemonStatus,
-  DbKey,
-} from '../types';
+import { Cli, ConnectionState, DbKey, VpndStatus } from '../types';
 import { ConnectionEvent } from '../constants';
 import { Country } from '../types';
 
@@ -28,8 +22,16 @@ export function mockTauriIPC() {
     console.log(args);
 
     if (cmd === 'daemon_status') {
-      return new Promise<DaemonStatus>((resolve) => resolve('Ok'));
+      return new Promise<VpndStatus>((resolve) =>
+        resolve({
+          ok: {
+            version: '0.0.0',
+            network: 'mainnet',
+          },
+        }),
+      );
     }
+
     if (cmd === 'startup_error') {
       return null;
     }
@@ -123,15 +125,6 @@ export function mockTauriIPC() {
     // if (cmd === 'delete_account') {
     //   return new Promise<boolean>((_, reject) => reject(new Error('oupsy')));
     // }
-
-    if (cmd === 'daemon_info') {
-      return new Promise<DaemonInfo>((resolve) =>
-        resolve({
-          network: 'mainnet',
-          version: '0.1.0',
-        }),
-      );
-    }
 
     if (cmd === 'env') {
       return new Promise((resolve) =>

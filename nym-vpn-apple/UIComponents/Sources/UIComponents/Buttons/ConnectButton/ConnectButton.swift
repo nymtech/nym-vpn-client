@@ -13,6 +13,9 @@ public struct ConnectButton: View {
             Text(state.localizedTitle)
                 .foregroundStyle(NymColor.connectTitle)
                 .textStyle(.Label.Huge.bold)
+                .transaction { transaction in
+                    transaction.animation = nil
+                }
         }
         .frame(maxWidth: .infinity, minHeight: 56, maxHeight: 56)
         .background(state.backgroundColor)

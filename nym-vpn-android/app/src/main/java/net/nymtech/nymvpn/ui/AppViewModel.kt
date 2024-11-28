@@ -19,6 +19,7 @@ import net.nymtech.nymvpn.service.tunnel.TunnelManager
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.Constants
+import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.backend.Tunnel
@@ -45,6 +46,9 @@ constructor(
 
 	private val _systemMessage = MutableStateFlow<SystemMessage?>(null)
 	val systemMessage = _systemMessage.asStateFlow()
+
+	private val _configurationChange = MutableStateFlow<Boolean>(false)
+	val configurationChange = _configurationChange.asStateFlow()
 
 	val uiState =
 		combine(
@@ -93,6 +97,33 @@ constructor(
 		}
 	}
 
+	fun onLocaleChange(localeTag: String) = viewModelScope.launch {
+		settingsRepository.setLocale(localeTag)
+		LocaleUtil.changeLocale(localeTag)
+		_configurationChange.update {
+			true
+		}
+	}
+
+	fun onEnvironmentChange(environment: Tunnel.Environment) = viewModelScope.launch {
+		if (tunnelManager.getState() == Tunnel.State.Down) {
+			settingsRepository.setEnvironment(environment)
+			_configurationChange.emit(true)
+		} else {
+			SnackbarController.showMessage(StringValue.StringResource(R.string.action_requires_tunnel_down))
+		}
+	}
+
+	fun onCredentialOverride(value: Boolean?) = viewModelScope.launch {
+		if (tunnelManager.getState() != Tunnel.State.Down) {
+			return@launch SnackbarController.showMessage(
+				StringValue.StringResource(R.string.action_requires_tunnel_down),
+			)
+		}
+		settingsRepository.setCredentialMode(value)
+		_configurationChange.emit(true)
+	}
+
 	private suspend fun checkSystemMessages() {
 		runCatching {
 			val env = settingsRepository.getEnvironment()
@@ -127,6 +158,10 @@ constructor(
 		launch {
 			Timber.d("Checking for system messages")
 			checkSystemMessages()
+		}
+		launch {
+			Timber.d("Updating account links")
+			tunnelManager.refreshAccountLinks()
 		}
 	}
 }

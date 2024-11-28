@@ -111,7 +111,7 @@ private extension NotificationsManager {
 
     func askForPermissionIfNeeded() async {
         let notificationAuthorizationStatus = await userNotificationCenter.notificationSettings().authorizationStatus
-        guard notificationAuthorizationStatus == .notDetermined || notificationAuthorizationStatus == .denied else { return }
+        guard notificationAuthorizationStatus == .notDetermined else { return }
         requestNotificationPermission()
     }
 }

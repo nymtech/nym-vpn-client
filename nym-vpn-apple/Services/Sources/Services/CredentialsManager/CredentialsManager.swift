@@ -8,14 +8,14 @@ import ErrorHandler
 import MixnetLibrary
 #elseif os(macOS)
 import GRPCManager
-import HelperManager
+import HelperInstallManager
 #endif
 
 public final class CredentialsManager {
     private let logger = Logger(label: "CredentialsManager")
 #if os(macOS)
     private let grpcManager = GRPCManager.shared
-    private let helperManager = HelperManager.shared
+    private let helperInstallManager = HelperInstallManager.shared
 #endif
     private let appSettings = AppSettings.shared
 
@@ -42,8 +42,7 @@ public final class CredentialsManager {
                 }
                 try storeAccountMnemonic(mnemonic: credential, path: dataFolderURL.path())
 #elseif os(macOS)
-                // TODO: check if daemon is installed and does not need an update
-                _ = await installHelperIfNeeded()
+                try? await helperInstallManager.installIfNeeded()
                 try await grpcManager.storeAccount(with: credential)
 #endif
                 checkCredentialImport()
@@ -71,7 +70,7 @@ public final class CredentialsManager {
 #endif
 
 #if os(macOS)
-            _ = await installHelperIfNeeded()
+            try? await helperInstallManager.installIfNeeded()
             removalResult = try await grpcManager.forgetAccount()
 #endif
             checkCredentialImport()
@@ -113,6 +112,12 @@ private extension CredentialsManager {
             }
         }
         .store(in: &cancellables)
+
+        helperInstallManager.$daemonState.sink { [weak self] state in
+            guard state == .running else { return }
+            self?.checkCredentialImport()
+        }
+        .store(in: &cancellables)
 #endif
     }
 }
@@ -142,25 +147,3 @@ private extension CredentialsManager {
         }
     }
 }
-
-#if os(macOS)
-private extension CredentialsManager {
-    // TODO: create helper installer package
-    func installHelperIfNeeded() async -> Bool {
-        var isInstalledAndRunning = helperManager.isHelperAuthorizedAndRunning()
-        // TODO: check if possible to split is helper running vs isHelperAuthorized
-        guard isInstalledAndRunning && !grpcManager.requiresUpdate
-        else {
-            do {
-                isInstalledAndRunning = try await helperManager.installHelperIfNeeded()
-                // Force version update after install.
-                _ = try? await grpcManager.version()
-            } catch let error {
-                logger.error("Failed to install helper: \(error)")
-            }
-            return isInstalledAndRunning
-        }
-        return isInstalledAndRunning
-    }
-}
-#endif

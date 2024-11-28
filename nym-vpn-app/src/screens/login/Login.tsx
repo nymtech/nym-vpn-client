@@ -106,9 +106,9 @@ function Login() {
       <div className="w-full flex flex-col justify-center items-center gap-6 mb-2">
         <Button
           onClick={handleClick}
-          disabled={daemonStatus !== 'Ok'}
+          disabled={daemonStatus === 'NotOk'}
           className={clsx(
-            daemonStatus !== 'Ok' &&
+            daemonStatus === 'NotOk' &&
               'opacity-50 disabled:opacity-50 hover:opacity-50',
           )}
         >

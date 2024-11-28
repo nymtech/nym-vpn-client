@@ -191,4 +191,6 @@
 	<string name="dynamic">Dynamic</string>
 	<string name="system_wallpaper">System wallpaper theme</string>
 	<string name="initializing">Initializing</string>
+    <string name="stop">Stop</string>
+	<string name="version">Version</string>
 </resources>

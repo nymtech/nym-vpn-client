@@ -13,7 +13,7 @@ import { Button, MsIcon, PageAnim, SettingsMenuCard, Switch } from '../../ui';
 import { InfoData } from './info-data';
 import SettingsGroup from './SettingsGroup';
 import Logout from './Logout';
-import { capFirst } from '../../helpers';
+import { capFirst } from '../../util';
 
 const ThrottleDelay = 10000; // ms
 
@@ -93,7 +93,7 @@ function Settings() {
         <Button
           onClick={() => navigate(routes.login)}
           disabled={
-            import.meta.env.MODE !== 'dev-browser' && daemonStatus !== 'Ok'
+            import.meta.env.MODE !== 'dev-browser' && daemonStatus === 'NotOk'
           }
         >
           {t('login-button')}
