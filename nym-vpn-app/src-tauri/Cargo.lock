@@ -2882,7 +2882,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "1.0.0-rc.6"
+version = "1.0.0-rc.7"
 dependencies = [
  "anyhow",
  "bs58",
@@ -2927,7 +2927,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-proto"
-version = "1.0.0-rc.14"
+version = "1.0.0-rc.15"
 dependencies = [
  "prost",
  "prost-types",
