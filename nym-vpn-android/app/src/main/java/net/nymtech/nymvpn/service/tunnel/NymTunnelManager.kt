@@ -189,6 +189,7 @@ class NymTunnelManager @Inject constructor(
 					launchBandwidthNotification(event.v1)
 				}
 				is MixnetEvent.Connection -> emitMixnetConnectionEvent(event.v1)
+				is MixnetEvent.ConnectionStatistics -> Timber.d("Stats: ${event.v1}")
 			}
 
 			is BackendEvent.StartFailure -> {

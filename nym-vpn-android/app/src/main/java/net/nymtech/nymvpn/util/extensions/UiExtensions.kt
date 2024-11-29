@@ -68,6 +68,7 @@ fun ErrorStateReason.toUserMessage(context: Context): String {
 		ErrorStateReason.INVALID_ENTRY_GATEWAY_COUNTRY -> "Entry country not available. Select a different country."
 		ErrorStateReason.INVALID_EXIT_GATEWAY_COUNTRY -> "Exit country not available. Select a different country."
 		ErrorStateReason.BAD_BANDWIDTH_INCREASE -> "Bad bandwidth increase."
+		ErrorStateReason.DUPLICATE_TUN_FD -> "Duplicate tunnel"
 	}
 }
 
