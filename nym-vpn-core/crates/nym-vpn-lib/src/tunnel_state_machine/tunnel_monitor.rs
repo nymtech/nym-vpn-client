@@ -505,7 +505,7 @@ impl TunnelMonitor {
             dns_servers: self.tunnel_settings.dns.ip_addresses().to_vec(),
             interface_addresses: vec![
                 IpNetwork::V4(Ipv4Network::from(conn_data.exit.private_ipv4)),
-                IpNetwork::V6(Ipv6Network::from(conn_data.exit.private_ipv6)),
+                IpNetwork::V6(Ipv6Network::from(WG_EXIT_IPV6_ADDR)),
             ],
             remote_addresses: vec![conn_data.entry.endpoint.ip()],
             mtu: connected_tunnel.exit_mtu(),
