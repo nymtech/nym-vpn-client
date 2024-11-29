@@ -511,7 +511,6 @@ impl TunnelMonitor {
 
         let tunnel_handle = connected_tunnel.run(tunnel_options)?;
 
-        // Patch routing config with actual interface name created by wireguard-go
         let wintun_exit_interface = tunnel_handle
             .exit_wintun_interface()
             .expect("failed to obtain wintun exit interface");
