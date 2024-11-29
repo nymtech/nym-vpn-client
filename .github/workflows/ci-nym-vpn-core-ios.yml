@@ -71,7 +71,6 @@ jobs:
             --language swift --out-dir build -n
 
       - name: Upload generated uniffi file
-        if: steps.diff_ios.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: updated-uniffi-ios
