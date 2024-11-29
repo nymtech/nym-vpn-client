@@ -168,8 +168,13 @@ async fn connect(opts: CliOptions, connect_args: &cli::ConnectArgs) -> Result<()
     }
 
     if response.success {
+        if connect_args.wait_until_connected {
             println!("Successfully sent connect command, waiting for connected state");
             listen_until_connected_or_failed(opts).await
+        } else {
+            println!("Successfully sent connect command");
+            Ok(())
+        }
     } else if let Some(error) = response.error {
         let kind =
             nym_vpn_proto::connect_request_error::ConnectRequestErrorType::try_from(error.kind)
@@ -182,7 +187,7 @@ async fn connect(opts: CliOptions, connect_args: &cli::ConnectArgs) -> Result<()
     }
 }
 
-async fn listen_until_connected(opts: CliOptions) -> Result<()> {
+async fn listen_until_connected_or_failed(opts: CliOptions) -> Result<()> {
     let mut client = vpnd_client::get_client(opts.client_type).await?;
 
     let request = tonic::Request::new(StatusRequest {});
