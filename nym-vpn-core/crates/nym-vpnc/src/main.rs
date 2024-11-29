@@ -7,7 +7,7 @@ mod config;
 mod protobuf_conversion;
 mod vpnd_client;
 
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use clap::Parser;
 use cli::Internal;
 use itertools::Itertools;
@@ -208,8 +208,7 @@ async fn listen_until_connected_or_failed(opts: CliOptions) -> Result<()> {
             println!("Connected!");
             break;
         } else if response.status == nym_vpn_proto::ConnectionStatus::ConnectionFailed as i32 {
-            println!("Connection failed!");
-            break;
+            return Err(anyhow!("Connection failed"));
         }
     }
     Ok(())
