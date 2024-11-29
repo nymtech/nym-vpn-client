@@ -5,9 +5,11 @@ use std::{
 
 use ipnetwork::{IpNetwork, Ipv4Network};
 use nym_wg_gateway_client::GatewayData;
+#[cfg(feature = "amnezia")]
+use nym_wg_go::amnezia::AmneziaConfig;
 #[cfg(target_os = "ios")]
 use nym_wg_go::PeerEndpointUpdate;
-use nym_wg_go::{amnezia::AmneziaConfig, wireguard_go, PeerConfig, PrivateKey, PublicKey};
+use nym_wg_go::{wireguard_go, PeerConfig, PrivateKey, PublicKey};
 
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use nym_wg_go::netstack;

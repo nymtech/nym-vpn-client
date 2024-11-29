@@ -3,7 +3,7 @@
 
 #[cfg(feature = "amnezia")]
 pub mod amnezia;
-
+#[cfg(any(target_os = "ios", target_os = "android"))]
 pub mod netstack;
 pub mod uapi;
 pub mod wireguard_go;
