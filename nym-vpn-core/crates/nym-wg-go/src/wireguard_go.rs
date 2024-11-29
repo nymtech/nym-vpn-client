@@ -102,7 +102,7 @@ pub struct Tunnel {
 impl Tunnel {
     /// Start new WireGuard tunnel
     #[cfg(not(windows))]
-    pub fn start(config: Config, tun_fd: RawFd) -> Result<Self> {
+    pub fn start(config: Config, tun_fd: OwnedFd) -> Result<Self> {
         let settings =
             CString::new(config.as_uapi_config()).map_err(|_| Error::ConfigContainsNulByte)?;
 
@@ -112,7 +112,7 @@ impl Tunnel {
                 #[cfg(any(target_os = "linux", target_os = "macos"))]
                 i32::from(config.interface.mtu),
                 settings.as_ptr(),
-                tun_fd,
+                tun_fd.into_raw_fd(),
                 wg_logger_callback,
                 std::ptr::null_mut(),
             )

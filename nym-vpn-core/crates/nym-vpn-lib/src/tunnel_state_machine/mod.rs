@@ -639,6 +639,7 @@ pub enum Error {
     #[error("failed to create tunnel device: {}", _0)]
     CreateTunDevice(#[source] tun::Error),
 
+    #[cfg(windows)]
     #[error("failed to setup wintun adapter: {}", _0)]
     SetupWintunAdapter(#[from] SetupWintunAdapterError),
 

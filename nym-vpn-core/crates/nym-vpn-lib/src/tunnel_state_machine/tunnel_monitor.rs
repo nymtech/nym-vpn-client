@@ -1,14 +1,14 @@
-#[cfg(windows)]
-use std::net::IpAddr;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use std::net::Ipv4Addr;
+#[cfg(windows)]
+use std::net::{IpAddr, Ipv6Addr};
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use std::os::fd::{AsRawFd, IntoRawFd};
 #[cfg(target_os = "android")]
 use std::os::fd::{FromRawFd, OwnedFd};
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use std::sync::Arc;
-use std::{cmp, net::Ipv6Addr, time::Duration};
+use std::{cmp, time::Duration};
 
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
@@ -592,6 +592,7 @@ impl TunnelMonitor {
             dns: self.tunnel_settings.dns.ip_addresses().to_vec(),
         });
 
+        let tunnel_handle = connected_tunnel.run(tunnel_options)?;
         let any_tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
 
         Ok((tunnel_conn_data, any_tunnel_handle))

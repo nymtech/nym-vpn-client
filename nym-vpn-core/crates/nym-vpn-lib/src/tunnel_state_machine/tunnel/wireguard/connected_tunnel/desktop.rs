@@ -104,6 +104,7 @@ impl ConnectedTunnel {
             &options.exit_tun_name,
             #[cfg(windows)]
             &options.exit_tun_guid,
+            #[cfg(windows)]
             &options.wintun_tunnel_type,
         )
         .map_err(Error::Wireguard)?;
