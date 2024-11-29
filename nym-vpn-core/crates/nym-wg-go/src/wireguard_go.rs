@@ -182,7 +182,6 @@ impl Tunnel {
 
             Ok(Self {
                 handle,
-                #[cfg(windows)]
                 wintun_interface,
             })
         } else {
