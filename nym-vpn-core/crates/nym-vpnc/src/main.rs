@@ -168,8 +168,8 @@ async fn connect(opts: CliOptions, connect_args: &cli::ConnectArgs) -> Result<()
     }
 
     if response.success {
-        println!("Successfully sent connect command, waiting for connected state");
-        listen_until_connected(opts).await
+            println!("Successfully sent connect command, waiting for connected state");
+            listen_until_connected_or_failed(opts).await
     } else if let Some(error) = response.error {
         let kind =
             nym_vpn_proto::connect_request_error::ConnectRequestErrorType::try_from(error.kind)
@@ -201,6 +201,9 @@ async fn listen_until_connected(opts: CliOptions) -> Result<()> {
         println!("{:#?}", response);
         if response.status == nym_vpn_proto::ConnectionStatus::Connected as i32 {
             println!("Connected!");
+            break;
+        } else if response.status == nym_vpn_proto::ConnectionStatus::ConnectionFailed as i32 {
+            println!("Connection failed!");
             break;
         }
     }
