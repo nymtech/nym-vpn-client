@@ -52,9 +52,6 @@ impl DisconnectingState {
 
     async fn on_tunnel_exit(mut tun_devices: Vec<AsyncDevice>, _shared_state: &mut SharedState) {
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-        _shared_state.route_handler.remove_routes().await;
-
-        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         if let Err(e) = _shared_state
             .dns_handler
             .reset_before_interface_removal()
