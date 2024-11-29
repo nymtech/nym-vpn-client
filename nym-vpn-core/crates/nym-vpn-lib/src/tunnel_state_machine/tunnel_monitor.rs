@@ -381,14 +381,12 @@ impl TunnelMonitor {
             let packet_tunnel_settings = tunnel_provider::tunnel_settings::TunnelSettings {
                 dns_servers: self.tunnel_settings.dns.ip_addresses().to_vec(),
                 interface_addresses: vec![
-                    IpNetwork::V4(
-                        Ipv4Network::new(assigned_addresses.interface_addresses.ipv4, 32)
-                            .expect("ipv4/32 to ipnetwork"),
-                    ),
-                    IpNetwork::V6(
-                        Ipv6Network::new(assigned_addresses.interface_addresses.ipv6, 128)
-                            .expect("ipv6/128 addr to ipnetwork"),
-                    ),
+                    IpNetwork::V4(Ipv4Network::from(
+                        assigned_addresses.interface_addresses.ipv4,
+                    )),
+                    IpNetwork::V6(Ipv6Network::from(
+                        assigned_addresses.interface_addresses.ipv6,
+                    )),
                 ],
                 remote_addresses: vec![assigned_addresses.entry_mixnet_gateway_ip],
                 mtu,
