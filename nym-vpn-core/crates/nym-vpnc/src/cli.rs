@@ -162,8 +162,7 @@ pub(crate) struct ConnectArgs {
     #[arg(long)]
     pub(crate) enable_two_hop: bool,
 
-    /// Enable two-hop wireguard traffic. This means that traffic jumps directly from entry gateway to
-    /// exit gateway using Wireguard protocol.
+    /// Blocks until the connection is established or failed
     #[arg(short, long)]
     pub(crate) wait_until_connected: bool,
 
