@@ -18,4 +18,4 @@ x25519-dalek = { workspace = true, features = ["static_secrets"] }
 zeroize.workspace = true
 
 [target.'cfg(windows)'.dependencies]
-windows-sys.workspace = true
+windows-sys = { workspace = true, features = ["Win32_NetworkManagement_Ndis"] }
