@@ -18,10 +18,10 @@ on:
         required: true
         type: boolean
         default: false
-      core_release_tag:
-        description: "nym-vpn-core release tag to use for Windows build (as it bundles the daemon)"
-        required: false
-        type: string
+  #      core_release_tag:
+  #        description: "nym-vpn-core release tag to use for Windows build (as it bundles the daemon)"
+  #        required: false
+  #        type: string
   push:
     tags:
       - nym-vpn-app-v[0-9]+.[0-9]+.[0-9]+*
@@ -32,12 +32,12 @@ jobs:
     with:
       dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true }}
     secrets: inherit
-  build-nym-vpn-app-windows:
-    uses: ./.github/workflows/build-nym-vpn-app-windows.yml
-    with:
-      dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true  }}
-      core_release_tag: ${{ inputs.core_release_tag }}
-    secrets: inherit
+  #  build-nym-vpn-app-windows:
+  #    uses: ./.github/workflows/build-nym-vpn-app-windows.yml
+  #    with:
+  #      dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true  }}
+  #      core_release_tag: ${{ inputs.core_release_tag }}
+  #    secrets: inherit
 
   generate-build-info-nym-vpn-app:
     uses: ./.github/workflows/generate-build-info-nym-vpn-app.yml
@@ -49,7 +49,7 @@ jobs:
   publish:
     needs:
       - build-nym-vpn-app-linux
-      - build-nym-vpn-app-windows
+      #      - build-nym-vpn-app-windows
       - generate-build-info-nym-vpn-app
     runs-on: ubuntu-22.04
     outputs:
@@ -126,12 +126,12 @@ jobs:
           pushd ${{ env.UPLOAD_DIR_UBUNTU_22 }} || exit 1
           for f in *; do sha256sum "$f" > "$f.sha256sum"; done
           popd
-          pushd ${{ env.UPLOAD_DIR_WINDOWS }} || exit 1
-          for f in *; do sha256sum "$f" > "$f.sha256sum"; done
-          popd
+#          pushd ${{ env.UPLOAD_DIR_WINDOWS }} || exit 1
+#          for f in *; do sha256sum "$f" > "$f.sha256sum"; done
+#          popd
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat ${{ env.UPLOAD_DIR_UBUNTU_22 }}/*.sha256sum >> $GITHUB_ENV
-          cat ${{ env.UPLOAD_DIR_WINDOWS }}/*.sha256sum >> $GITHUB_ENV
+#          cat ${{ env.UPLOAD_DIR_WINDOWS }}/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Build info
@@ -155,8 +155,9 @@ jobs:
             --notes-file "$RUNNER_TEMP/release-notes.md" \
             --title "$SUBJECT" \
             --target $GITHUB_SHA \
-            ${{ env.UPLOAD_DIR_UBUNTU_22}}/* \
-            ${{ env.UPLOAD_DIR_WINDOWS}}/*
+            ${{ env.UPLOAD_DIR_UBUNTU_22}}/*
+
+  #            ${{ env.UPLOAD_DIR_WINDOWS}}/*
 
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml
