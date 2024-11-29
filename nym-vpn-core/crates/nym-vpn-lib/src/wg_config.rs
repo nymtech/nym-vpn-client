@@ -142,14 +142,8 @@ impl WgNodeConfig {
                 listen_port: None,
                 private_key: PrivateKey::from(private_key.to_bytes()),
                 addresses: vec![
-                    IpNetwork::V4(
-                        Ipv4Network::new(gateway_data.private_ipv4, 32)
-                            .expect("private_ipv4/32 to ipnetwork"),
-                    ),
-                    IpNetwork::V6(
-                        Ipv6Network::new(gateway_data.private_ipv6, 128)
-                            .expect("private_ipv6/128 to ipnetwork"),
-                    ),
+                    IpNetwork::V4(Ipv4Network::from(gateway_data.private_ipv4)),
+                    IpNetwork::V6(Ipv6Network::from(gateway_data.private_ipv6)),
                 ],
                 dns,
                 mtu,

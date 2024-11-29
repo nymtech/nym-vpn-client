@@ -123,29 +123,13 @@ impl TunnelSettings {
 
     #[cfg(target_os = "android")]
     fn bypass_addresses(remote_addresses: Vec<IpAddr>) -> Vec<IpNetwork> {
-        remote_addresses
-            .into_iter()
-            .map(|ip_addr| match ip_addr {
-                IpAddr::V4(addr) => {
-                    IpNetwork::V4(Ipv4Network::new(addr, 32).expect("remote_addr/32"))
-                }
-                IpAddr::V6(addr) => {
-                    IpNetwork::V6(Ipv6Network::new(addr, 128).expect("remote_addr/128"))
-                }
-            })
-            .collect()
+        remote_addresses.into_iter().map(IpNetwork::from).collect()
     }
 
     fn split_ipnet_addrs(ipnet_addrs: Vec<IpNetwork>) -> (Vec<Ipv4Network>, Vec<Ipv6Network>) {
         ipnet_addrs.into_iter().partition_map(|addr| match addr {
-            IpNetwork::V4(address) => Either::Left(
-                Ipv4Network::new(address.ip(), address.prefix())
-                    .expect("failed to create ipv4 addr with /32 prefix"),
-            ),
-            IpNetwork::V6(address) => Either::Right(
-                Ipv6Network::new(address.ip(), address.prefix())
-                    .expect("failed to create ipv6 addr with /128 prefix"),
-            ),
+            IpNetwork::V4(address) => Either::Left(address),
+            IpNetwork::V6(address) => Either::Right(address),
         })
     }
 }

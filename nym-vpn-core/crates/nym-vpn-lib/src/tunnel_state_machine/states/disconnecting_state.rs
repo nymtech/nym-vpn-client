@@ -95,7 +95,7 @@ impl TunnelStateHandler for DisconnectingState {
                 match self.after_disconnect {
                     PrivateActionAfterDisconnect::Nothing => NextTunnelState::NewState(DisconnectedState::enter()),
                     PrivateActionAfterDisconnect::Error(reason) => {
-                        NextTunnelState::NewState(ErrorState::enter(reason))
+                        NextTunnelState::NewState(ErrorState::enter(reason, shared_state).await)
                     },
                     PrivateActionAfterDisconnect::Reconnect { retry_attempt } => {
                         NextTunnelState::NewState(ConnectingState::enter(retry_attempt, None, shared_state))

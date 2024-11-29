@@ -563,14 +563,8 @@ impl TunnelMonitor {
         let packet_tunnel_settings = tunnel_provider::tunnel_settings::TunnelSettings {
             dns_servers: self.tunnel_settings.dns.ip_addresses().to_vec(),
             interface_addresses: vec![
-                IpNetwork::V4(
-                    Ipv4Network::new(conn_data.exit.private_ipv4, 32)
-                        .expect("ipv4 to ipnetwork/32"),
-                ),
-                IpNetwork::V6(
-                    Ipv6Network::new(conn_data.exit.private_ipv6, 128)
-                        .expect("ipv6 to ipnetwork/128"),
-                ),
+                IpNetwork::V4(Ipv4Network::from(conn_data.exit.private_ipv4)),
+                IpNetwork::V6(Ipv6Network::from(conn_data.exit_private_ipv6)),
             ],
             remote_addresses: vec![conn_data.entry.endpoint.ip()],
             mtu: connected_tunnel.exit_mtu(),

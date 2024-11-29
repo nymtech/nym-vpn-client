@@ -75,7 +75,7 @@ export async function initFirstBatch(
     name: 'get_connection_state',
     request: () => getInitialConnectionState(),
     onFulfilled: ({ state, error }) => {
-      dispatch({ type: 'change-connection-state', state });
+      dispatch({ type: 'update-connection-state', state });
       if (error) {
         dispatch({ type: 'set-error', error });
       }
