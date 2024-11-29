@@ -488,19 +488,13 @@ impl TunnelMonitor {
             .connect_wireguard_tunnel(self.tunnel_settings.enable_credentials_mode)
             .await?;
         let conn_data = connected_tunnel.connection_data();
+        let entry_gateway_address = conn_data.entry.endpoint.ip();
 
         let exit_adapter_config = WintunAdapterConfig {
             interface_ipv4: conn_data.exit.private_ipv4,
             interface_ipv6: conn_data.exit.private_ipv6,
             gateway_ipv4: Some(conn_data.entry.private_ipv4),
             gateway_ipv6: Some(conn_data.exit.private_ipv6),
-        };
-
-        let mut routing_config = RoutingConfig::WireguardNetstack {
-            exit_tun_name: WG_EXIT_WINTUN_NAME.to_owned(),
-            entry_gateway_address: conn_data.entry.endpoint.ip(),
-            #[cfg(target_os = "linux")]
-            physical_interface: DefaultInterface::current()?,
         };
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
@@ -524,16 +518,14 @@ impl TunnelMonitor {
 
         tracing::info!("Created wintun device: {}", wintun_exit_interface.name);
 
-        if let RoutingConfig::WireguardNetstack {
-            ref mut exit_tun_name,
-            ..
-        } = routing_config
-        {
-            *exit_tun_name = wintun_exit_interface.name.clone();
-        }
-
         Self::setup_wintun_adapter(wintun_exit_interface.windows_luid(), exit_adapter_config)?;
 
+        let routing_config = RoutingConfig::WireguardNetstack {
+            exit_tun_name: wintun_exit_interface.name.clone(),
+            entry_gateway_address,
+            #[cfg(target_os = "linux")]
+            physical_interface: DefaultInterface::current()?,
+        };
         // todo: make sure to shutdown tunnel_handle on failure!
         self.set_routes(routing_config).await?;
         self.set_dns(&wintun_exit_interface.name).await?;
@@ -615,12 +607,9 @@ impl TunnelMonitor {
             .await?;
         let conn_data = connected_tunnel.connection_data();
 
-        let mut routing_config = RoutingConfig::Wireguard {
-            entry_tun_name: WG_ENTRY_WINTUN_NAME.to_owned(),
-            exit_tun_name: WG_EXIT_WINTUN_NAME.to_owned(),
-            entry_gateway_address: conn_data.entry.endpoint.ip(),
-            exit_gateway_address: conn_data.exit.endpoint.ip(),
-        };
+        let entry_gateway_address = conn_data.entry.endpoint.ip();
+        let exit_gateway_address = conn_data.exit.endpoint.ip();
+
         let entry_adapter_config = WintunAdapterConfig {
             interface_ipv4: conn_data.entry.private_ipv4,
             interface_ipv6: conn_data.entry.private_ipv6,
@@ -650,7 +639,6 @@ impl TunnelMonitor {
 
         let tunnel_handle = connected_tunnel.run(tunnel_options)?;
 
-        // Patch routing config with actual interface names created by wireguard-go
         let wintun_entry_interface = tunnel_handle
             .entry_wintun_interface()
             .expect("failed to obtain wintun entry interface");
@@ -658,22 +646,21 @@ impl TunnelMonitor {
             .exit_wintun_interface()
             .expect("failed to obtain wintun exit interface");
 
-        tracing::info!("Created entry tun device: {}", wintun_entry_interface.name);
-        tracing::info!("Created exit tun device: {}", wintun_exit_interface.name);
-
-        if let RoutingConfig::Wireguard {
-            ref mut entry_tun_name,
-            ref mut exit_tun_name,
-            ..
-        } = routing_config
-        {
-            *entry_tun_name = wintun_entry_interface.name.clone();
-            *exit_tun_name = wintun_exit_interface.name.clone();
-        }
+        tracing::info!(
+            "Created entry wintun device: {}",
+            wintun_entry_interface.name
+        );
+        tracing::info!("Created exit wintun device: {}", wintun_exit_interface.name);
 
         Self::setup_wintun_adapter(wintun_entry_interface.windows_luid(), entry_adapter_config)?;
         Self::setup_wintun_adapter(wintun_exit_interface.windows_luid(), exit_adapter_config)?;
 
+        let routing_config = RoutingConfig::Wireguard {
+            entry_tun_name: wintun_entry_interface.name.clone(),
+            exit_tun_name: wintun_exit_interface.name.clone(),
+            entry_gateway_address,
+            exit_gateway_address,
+        };
         // todo: make sure to shutdown tunnel_handle on failure!
         self.set_routes(routing_config).await?;
         self.set_dns(&wintun_exit_interface.name).await?;
