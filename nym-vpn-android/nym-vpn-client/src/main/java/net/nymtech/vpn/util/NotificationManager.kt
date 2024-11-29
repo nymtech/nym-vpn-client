@@ -20,8 +20,6 @@ internal class NotificationManager private constructor(val context: Context) {
 		private const val VPN_CHANNEL_ID = "VpnForegroundChannel"
 	}
 
-	private val manager = context.getSystemService(VpnService.NOTIFICATION_SERVICE) as NotificationManager
-
 	fun createNotificationChannel() {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			// Create the NotificationChannel.
@@ -35,6 +33,7 @@ internal class NotificationManager private constructor(val context: Context) {
 			mChannel.description = descriptionText
 			// Register the channel with the system. You can't change the importance
 			// or other notification behaviors after this.
+			val manager = context.getSystemService(VpnService.NOTIFICATION_SERVICE) as NotificationManager
 			manager.createNotificationChannel(mChannel)
 		}
 	}
@@ -62,6 +61,7 @@ internal class NotificationManager private constructor(val context: Context) {
 	}
 
 	fun cancel(id: Int) {
+		val manager = context.getSystemService(VpnService.NOTIFICATION_SERVICE) as NotificationManager
 		manager.cancel(id)
 	}
 }
