@@ -63,6 +63,7 @@ jobs:
           cargo build --verbose --target aarch64-apple-ios -p nym-vpn-lib
 
       - name: Generate uniffi
+        id: generate_uniffi
         working-directory: nym-vpn-core
         run: |
           cargo run --bin uniffi-bindgen generate \
@@ -71,7 +72,7 @@ jobs:
             --language swift --out-dir build -n
 
       - name: Upload generated uniffi file
-        if: steps.diff_ios.outcome == 'failure'
+        if: steps.generate_uniffi.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: updated-uniffi-ios
