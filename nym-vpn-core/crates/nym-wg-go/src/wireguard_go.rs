@@ -4,9 +4,12 @@
 #[cfg(unix)]
 use std::os::fd::{IntoRawFd, OwnedFd, RawFd};
 use std::{
-    ffi::{c_char, c_void, CString},
+    ffi::{c_char, c_void, CStr, CString},
     fmt,
 };
+
+#[cfg(windows)]
+use windows_sys::Win32::NetworkManagement::Ndis::NET_LUID_LH;
 
 use super::{
     uapi::UapiConfigBuilder, Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, PrivateKey,
@@ -69,33 +72,46 @@ impl Config {
     }
 }
 
+/// Wintun interface created by wireguard-go
+#[cfg(windows)]
+#[derive(Debug, Clone)]
+pub struct WintunInterface {
+    /// Interface name.
+    pub name: String,
+
+    /// Interface LUID.
+    pub luid: u64,
+}
+
+#[cfg(windows)]
+impl WintunInterface {
+    pub fn windows_luid(&self) -> NET_LUID_LH {
+        // SAFETY: this is safe since NET_LUID_LH is a union represented by u64 value.
+        unsafe { std::mem::transmute(self.luid) }
+    }
+}
+
 /// Classic WireGuard tunnel.
 #[derive(Debug)]
 pub struct Tunnel {
     handle: i32,
+    #[cfg(windows)]
+    wintun_interface: WintunInterface,
 }
 
 impl Tunnel {
     /// Start new WireGuard tunnel
-    pub fn start(
-        config: Config,
-        #[cfg(not(windows))] tun_fd: OwnedFd,
-        #[cfg(windows)] interface_name: &str,
-    ) -> Result<Self> {
+    #[cfg(not(windows))]
+    pub fn start(config: Config, tun_fd: OwnedFd) -> Result<Self> {
         let settings =
             CString::new(config.as_uapi_config()).map_err(|_| Error::ConfigContainsNulByte)?;
-        #[cfg(windows)]
-        let interface_name =
-            CString::new(interface_name).map_err(|_| Error::InterfaceNameContainsNulByte)?;
+
         let handle = unsafe {
             wgTurnOn(
-                #[cfg(windows)]
-                interface_name.as_ptr(),
                 // note: not all platforms accept mtu = 0
                 #[cfg(any(target_os = "linux", target_os = "macos"))]
                 i32::from(config.interface.mtu),
                 settings.as_ptr(),
-                #[cfg(not(windows))]
                 tun_fd.into_raw_fd(),
                 wg_logger_callback,
                 std::ptr::null_mut(),
@@ -109,10 +125,79 @@ impl Tunnel {
         }
     }
 
+    #[cfg(windows)]
+    /// Start new WireGuard tunnel
+    pub fn start(
+        config: Config,
+        interface_name: &str,
+        requested_guid: &str,
+        wintun_tunnel_type: &str,
+    ) -> Result<Self> {
+        let settings =
+            CString::new(config.as_uapi_config()).map_err(|_| Error::ConfigContainsNulByte)?;
+        let interface_name_cstr =
+            CString::new(interface_name).map_err(|_| Error::InterfaceNameContainsNulByte)?;
+        let requested_guid_cstr =
+            CString::new(requested_guid).map_err(|_| Error::RequestedGuidContainsNulByte)?;
+        let wintun_tunnel_type_cstr =
+            CString::new(wintun_tunnel_type).map_err(|_| Error::WintunTunnelTypeContainsNulByte)?;
+
+        let mut out_interface_name: *mut c_char = std::ptr::null_mut();
+        let out_interface_name_ptr: *mut *mut c_char = &mut out_interface_name;
+
+        let mut out_interface_luid: u64 = 0;
+        let out_interface_luid_ptr: *mut u64 = &mut out_interface_luid;
+
+        let handle = unsafe {
+            wgTurnOn(
+                interface_name_cstr.as_ptr(),
+                requested_guid_cstr.as_ptr(),
+                wintun_tunnel_type_cstr.as_ptr(),
+                i32::from(config.interface.mtu),
+                settings.as_ptr(),
+                out_interface_name_ptr,
+                out_interface_luid_ptr,
+                wg_logger_callback,
+                std::ptr::null_mut(),
+            )
+        };
+
+        if handle >= 0 {
+            // SAFETY: libwg is expected to set a non-null value upon successful return.
+            let wintun_iface_name_cstr = unsafe { CStr::from_ptr(out_interface_name) };
+
+            // SAFETY: conversion must never fail.
+            let wintun_iface_name = wintun_iface_name_cstr
+                .to_str()
+                .expect("failed to convert cstring to str")
+                .to_owned();
+
+            let wintun_interface = WintunInterface {
+                name: wintun_iface_name,
+                luid: out_interface_luid,
+            };
+
+            // SAFETY: free C string allocated in Go using the correct deallocator.
+            unsafe { wgFreePtr(out_interface_name as *mut _) };
+
+            Ok(Self {
+                handle,
+                wintun_interface,
+            })
+        } else {
+            Err(Error::StartTunnel(handle))
+        }
+    }
+
     /// Stop the tunnel.
     pub fn stop(mut self) {
         tracing::info!("Stopping the wg tunnel");
         self.stop_inner();
+    }
+
+    #[cfg(windows)]
+    pub fn wintun_interface(&self) -> &WintunInterface {
+        &self.wintun_interface
     }
 
     /// Re-attach itself to the tun interface.
@@ -155,31 +240,45 @@ impl Drop for Tunnel {
 }
 
 extern "C" {
-    // Start the tunnel.
+    /// Start the tunnel.
+    #[cfg(not(windows))]
     fn wgTurnOn(
-        #[cfg(windows)] interface_name: *const c_char,
         #[cfg(any(target_os = "linux", target_os = "macos"))] mtu: i32,
         settings: *const c_char,
-        #[cfg(not(windows))] fd: RawFd,
+        fd: RawFd,
         logging_callback: LoggingCallback,
         logging_context: *mut c_void,
     ) -> i32;
 
-    // Pass a handle that was created by wgTurnOn to stop a wireguard tunnel.
+    /// Start the tunnel.
+    #[cfg(windows)]
+    fn wgTurnOn(
+        interface_name: *const c_char,
+        requested_guid: *const c_char,
+        wintun_tunnel_type: *const c_char,
+        mtu: i32,
+        settings: *const c_char,
+        iface_name: *mut *mut c_char,
+        iface_luid: *mut u64,
+        logging_callback: LoggingCallback,
+        logging_context: *mut c_void,
+    ) -> i32;
+
+    /// Pass a handle that was created by wgTurnOn to stop a wireguard tunnel.
     fn wgTurnOff(handle: i32);
 
-    // Returns the config of the WireGuard interface.
+    /// Returns the config of the WireGuard interface.
     #[allow(unused)]
     fn wgGetConfig(handle: i32) -> *mut c_char;
 
-    // Sets the config of the WireGuard interface.
+    /// Sets the config of the WireGuard interface.
     fn wgSetConfig(handle: i32, settings: *const c_char) -> i32;
 
-    // Frees a pointer allocated by the go runtime - useful to free return value of wgGetConfig
+    /// Frees a pointer allocated by the go runtime - useful to free return value of wgGetConfig
     #[allow(unused)]
     fn wgFreePtr(ptr: *mut c_void);
 
-    // Re-attach wireguard-go to the tunnel interface.
+    /// Re-attach wireguard-go to the tunnel interface.
     #[cfg(target_os = "ios")]
     fn wgBumpSockets(handle: i32);
 }
@@ -195,7 +294,7 @@ pub unsafe extern "system" fn wg_logger_callback(
     _ctx: *mut c_void,
 ) {
     if !msg.is_null() {
-        let str = std::ffi::CStr::from_ptr(msg).to_string_lossy();
+        let str = CStr::from_ptr(msg).to_string_lossy();
         tracing::debug!("{}", str);
     }
 }

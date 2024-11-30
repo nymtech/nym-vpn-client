@@ -1,11 +1,7 @@
-#[cfg(any(target_os = "linux", target_os = "macos"))]
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use std::net::Ipv4Addr;
-#[cfg(any(
-    target_os = "linux",
-    target_os = "macos",
-    target_os = "ios",
-    target_os = "android"
-))]
+#[cfg(windows)]
+use std::net::{IpAddr, Ipv6Addr};
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use std::os::fd::{AsRawFd, IntoRawFd};
 #[cfg(target_os = "android")]
@@ -23,12 +19,16 @@ use tokio_util::sync::CancellationToken;
 use tun::AsyncDevice;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use tun::Device;
+#[cfg(windows)]
+use windows_sys::Win32::NetworkManagement::Ndis::NET_LUID_LH;
 
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_ip_packet_requests::IpPair;
 
 #[cfg(target_os = "linux")]
 use super::default_interface::DefaultInterface;
+#[cfg(windows)]
+use super::SetupWintunAdapterError;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use super::{dns_handler::DnsHandlerHandle, route_handler::RouteHandler};
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -60,6 +60,33 @@ const DEFAULT_TUN_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android
 } else {
     1500
 };
+
+/// User-facing tunnel type identifier.
+#[cfg(windows)]
+const WINTUN_TUNNEL_TYPE: &str = "Nym";
+
+/// The user-facing name of wintun adapter.
+///
+/// Note that it refers to tunnel type because rust-tun uses the same name for adapter and
+/// tunnel type and there is no way to change that.
+#[cfg(windows)]
+const MIXNET_WINTUN_NAME: &str = WINTUN_TUNNEL_TYPE;
+
+/// The user-facing name of wintun adapter used as entry tunnel.
+#[cfg(windows)]
+const WG_ENTRY_WINTUN_NAME: &str = "WireGuard (entry)";
+
+/// The user-facing name of wintun adapter used as exit tunnel.
+#[cfg(windows)]
+const WG_EXIT_WINTUN_NAME: &str = "WireGuard (exit)";
+
+/// WireGuard entry adapter GUID.
+#[cfg(windows)]
+const WG_ENTRY_WINTUN_GUID: &str = "{AFE43773-E1F8-4EBB-8536-176AB86AFE9B}";
+
+/// WireGuard exit adapter GUID.
+#[cfg(windows)]
+const WG_EXIT_WINTUN_GUID: &str = "{AFE43773-E1F8-4EBB-8536-176AB86AFE9C}";
 
 pub type TunnelMonitorEventReceiver = mpsc::UnboundedReceiver<TunnelMonitorEvent>;
 
@@ -354,14 +381,12 @@ impl TunnelMonitor {
             let packet_tunnel_settings = tunnel_provider::tunnel_settings::TunnelSettings {
                 dns_servers: self.tunnel_settings.dns.ip_addresses().to_vec(),
                 interface_addresses: vec![
-                    IpNetwork::V4(
-                        Ipv4Network::new(assigned_addresses.interface_addresses.ipv4, 32)
-                            .expect("ipv4/32 to ipnetwork"),
-                    ),
-                    IpNetwork::V6(
-                        Ipv6Network::new(assigned_addresses.interface_addresses.ipv6, 128)
-                            .expect("ipv6/128 addr to ipnetwork"),
-                    ),
+                    IpNetwork::V4(Ipv4Network::from(
+                        assigned_addresses.interface_addresses.ipv4,
+                    )),
+                    IpNetwork::V6(Ipv6Network::from(
+                        assigned_addresses.interface_addresses.ipv6,
+                    )),
                 ],
                 remote_addresses: vec![assigned_addresses.entry_mixnet_gateway_ip],
                 mtu,
@@ -404,7 +429,7 @@ impl TunnelMonitor {
         Ok((tunnel_conn_data, tunnel_handle))
     }
 
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
     async fn start_wireguard_netstack_tunnel(
         &mut self,
         connected_mixnet: ConnectedMixnet,
@@ -414,7 +439,6 @@ impl TunnelMonitor {
             .await?;
         let conn_data = connected_tunnel.connection_data();
 
-        #[cfg(unix)]
         let exit_tun = Self::create_wireguard_device(
             IpPair {
                 ipv4: conn_data.exit.private_ipv4,
@@ -423,13 +447,8 @@ impl TunnelMonitor {
             Some(conn_data.entry.private_ipv4),
             connected_tunnel.exit_mtu(),
         )?;
-        #[cfg(unix)]
         let exit_tun_name = exit_tun.get_ref().name().map_err(Error::GetTunDeviceName)?;
-        #[cfg(unix)]
         tracing::info!("Created exit tun device: {}", exit_tun_name);
-
-        #[cfg(windows)]
-        let exit_tun_name = "nym0".to_owned();
 
         let routing_config = RoutingConfig::WireguardNetstack {
             exit_tun_name: exit_tun_name.clone(),
@@ -447,10 +466,7 @@ impl TunnelMonitor {
         });
 
         let tunnel_options = TunnelOptions::Netstack(NetstackTunnelOptions {
-            #[cfg(unix)]
             exit_tun,
-            #[cfg(windows)]
-            exit_tun_name,
             dns: self.tunnel_settings.dns.ip_addresses().to_vec(),
         });
 
@@ -461,7 +477,62 @@ impl TunnelMonitor {
         Ok((tunnel_conn_data, any_tunnel_handle))
     }
 
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    #[cfg(windows)]
+    async fn start_wireguard_netstack_tunnel(
+        &mut self,
+        connected_mixnet: ConnectedMixnet,
+    ) -> Result<(TunnelConnectionData, AnyTunnelHandle)> {
+        let connected_tunnel = connected_mixnet
+            .connect_wireguard_tunnel(self.tunnel_settings.enable_credentials_mode)
+            .await?;
+        let conn_data = connected_tunnel.connection_data();
+        let entry_gateway_address = conn_data.entry.endpoint.ip();
+
+        let exit_adapter_config = WintunAdapterConfig {
+            interface_ipv4: conn_data.exit.private_ipv4,
+            interface_ipv6: conn_data.exit.private_ipv6,
+            gateway_ipv4: Some(conn_data.entry.private_ipv4),
+            gateway_ipv6: Some(conn_data.exit.private_ipv6),
+        };
+
+        let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
+            entry: WireguardNode::from(conn_data.entry.clone()),
+            exit: WireguardNode::from(conn_data.exit.clone()),
+        });
+
+        let tunnel_options = TunnelOptions::Netstack(NetstackTunnelOptions {
+            exit_tun_name: WG_EXIT_WINTUN_NAME.to_owned(),
+            exit_tun_guid: WG_EXIT_WINTUN_GUID.to_owned(),
+            wintun_tunnel_type: WINTUN_TUNNEL_TYPE.to_owned(),
+            dns: self.tunnel_settings.dns.ip_addresses().to_vec(),
+        });
+
+        let tunnel_handle = connected_tunnel.run(tunnel_options)?;
+
+        let wintun_exit_interface = tunnel_handle
+            .exit_wintun_interface()
+            .expect("failed to obtain wintun exit interface");
+
+        tracing::info!("Created wintun device: {}", wintun_exit_interface.name);
+
+        Self::setup_wintun_adapter(wintun_exit_interface.windows_luid(), exit_adapter_config)?;
+
+        let routing_config = RoutingConfig::WireguardNetstack {
+            exit_tun_name: wintun_exit_interface.name.clone(),
+            entry_gateway_address,
+            #[cfg(target_os = "linux")]
+            physical_interface: DefaultInterface::current()?,
+        };
+        // todo: make sure to shutdown tunnel_handle on failure!
+        self.set_routes(routing_config).await?;
+        self.set_dns(&wintun_exit_interface.name).await?;
+
+        let any_tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
+
+        Ok((tunnel_conn_data, any_tunnel_handle))
+    }
+
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
     async fn start_wireguard_tunnel(
         &mut self,
         connected_mixnet: ConnectedMixnet,
@@ -471,7 +542,6 @@ impl TunnelMonitor {
             .await?;
         let conn_data = connected_tunnel.connection_data();
 
-        #[cfg(unix)]
         let entry_tun = Self::create_wireguard_device(
             IpPair {
                 ipv4: conn_data.entry.private_ipv4,
@@ -480,15 +550,12 @@ impl TunnelMonitor {
             None,
             connected_tunnel.entry_mtu(),
         )?;
-        #[cfg(unix)]
         let entry_tun_name = entry_tun
             .get_ref()
             .name()
             .map_err(Error::GetTunDeviceName)?;
-        #[cfg(unix)]
         tracing::info!("Created entry tun device: {}", entry_tun_name);
 
-        #[cfg(unix)]
         let exit_tun = Self::create_wireguard_device(
             IpPair {
                 ipv4: conn_data.exit.private_ipv4,
@@ -497,31 +564,17 @@ impl TunnelMonitor {
             Some(conn_data.entry.private_ipv4),
             connected_tunnel.exit_mtu(),
         )?;
-        #[cfg(unix)]
         let exit_tun_name = exit_tun.get_ref().name().map_err(Error::GetTunDeviceName)?;
-        #[cfg(unix)]
         tracing::info!("Created exit tun device: {}", exit_tun_name);
 
-        #[cfg(windows)]
-        let entry_tun_name = "nym0".to_owned();
-        #[cfg(windows)]
-        let exit_tun_name = "nym1".to_owned();
-
         let routing_config = RoutingConfig::Wireguard {
-            #[cfg(unix)]
             entry_tun_name,
-            #[cfg(unix)]
-            exit_tun_name: exit_tun_name.clone(),
-            #[cfg(windows)]
-            entry_tun_name: entry_tun_name.clone(),
-            #[cfg(windows)]
             exit_tun_name: exit_tun_name.clone(),
             entry_gateway_address: conn_data.entry.endpoint.ip(),
             exit_gateway_address: conn_data.exit.endpoint.ip(),
             #[cfg(target_os = "linux")]
             physical_interface: DefaultInterface::current()?,
         };
-
         self.set_routes(routing_config).await?;
         self.set_dns(&exit_tun_name).await?;
 
@@ -531,22 +584,110 @@ impl TunnelMonitor {
         });
 
         let tunnel_options = TunnelOptions::TunTun(TunTunTunnelOptions {
-            #[cfg(unix)]
             entry_tun,
-            #[cfg(unix)]
             exit_tun,
-            #[cfg(windows)]
-            entry_tun_name,
-            #[cfg(windows)]
-            exit_tun_name,
+            dns: self.tunnel_settings.dns.ip_addresses().to_vec(),
+        });
+
+        let tunnel_handle = connected_tunnel.run(tunnel_options)?;
+        let any_tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
+
+        Ok((tunnel_conn_data, any_tunnel_handle))
+    }
+
+    #[cfg(windows)]
+    async fn start_wireguard_tunnel(
+        &mut self,
+        connected_mixnet: ConnectedMixnet,
+    ) -> Result<(TunnelConnectionData, AnyTunnelHandle)> {
+        let connected_tunnel = connected_mixnet
+            .connect_wireguard_tunnel(self.tunnel_settings.enable_credentials_mode)
+            .await?;
+        let conn_data = connected_tunnel.connection_data();
+
+        let entry_gateway_address = conn_data.entry.endpoint.ip();
+        let exit_gateway_address = conn_data.exit.endpoint.ip();
+
+        let entry_adapter_config = WintunAdapterConfig {
+            interface_ipv4: conn_data.entry.private_ipv4,
+            interface_ipv6: conn_data.entry.private_ipv6,
+            gateway_ipv4: None,
+            gateway_ipv6: None,
+        };
+        let exit_adapter_config = WintunAdapterConfig {
+            interface_ipv4: conn_data.exit.private_ipv4,
+            interface_ipv6: conn_data.exit.private_ipv6,
+            gateway_ipv4: Some(conn_data.entry.private_ipv4),
+            gateway_ipv6: Some(conn_data.entry.private_ipv6),
+        };
+
+        let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
+            entry: WireguardNode::from(conn_data.entry.clone()),
+            exit: WireguardNode::from(conn_data.exit.clone()),
+        });
+
+        let tunnel_options = TunnelOptions::TunTun(TunTunTunnelOptions {
+            entry_tun_name: WG_ENTRY_WINTUN_NAME.to_owned(),
+            entry_tun_guid: WG_ENTRY_WINTUN_GUID.to_owned(),
+            exit_tun_name: WG_EXIT_WINTUN_NAME.to_owned(),
+            exit_tun_guid: WG_EXIT_WINTUN_GUID.to_owned(),
+            wintun_tunnel_type: WINTUN_TUNNEL_TYPE.to_owned(),
             dns: self.tunnel_settings.dns.ip_addresses().to_vec(),
         });
 
         let tunnel_handle = connected_tunnel.run(tunnel_options)?;
 
+        let wintun_entry_interface = tunnel_handle
+            .entry_wintun_interface()
+            .expect("failed to obtain wintun entry interface");
+        let wintun_exit_interface = tunnel_handle
+            .exit_wintun_interface()
+            .expect("failed to obtain wintun exit interface");
+
+        tracing::info!(
+            "Created entry wintun device: {}",
+            wintun_entry_interface.name
+        );
+        tracing::info!("Created exit wintun device: {}", wintun_exit_interface.name);
+
+        Self::setup_wintun_adapter(wintun_entry_interface.windows_luid(), entry_adapter_config)?;
+        Self::setup_wintun_adapter(wintun_exit_interface.windows_luid(), exit_adapter_config)?;
+
+        let routing_config = RoutingConfig::Wireguard {
+            entry_tun_name: wintun_entry_interface.name.clone(),
+            exit_tun_name: wintun_exit_interface.name.clone(),
+            entry_gateway_address,
+            exit_gateway_address,
+        };
+        // todo: make sure to shutdown tunnel_handle on failure!
+        self.set_routes(routing_config).await?;
+        self.set_dns(&wintun_exit_interface.name).await?;
+
         let any_tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
 
         Ok((tunnel_conn_data, any_tunnel_handle))
+    }
+
+    #[cfg(windows)]
+    fn setup_wintun_adapter(luid: NET_LUID_LH, adapter_config: WintunAdapterConfig) -> Result<()> {
+        use nym_windows::net;
+
+        net::add_ip_address_for_interface(luid, IpAddr::V4(adapter_config.interface_ipv4))
+            .map_err(SetupWintunAdapterError::SetIpv4Addr)?;
+        net::add_ip_address_for_interface(luid, IpAddr::V6(adapter_config.interface_ipv6))
+            .map_err(SetupWintunAdapterError::SetIpv6Addr)?;
+
+        if let Some(gateway_ipv4) = adapter_config.gateway_ipv4 {
+            net::add_default_ipv4_gateway_for_interface(luid, gateway_ipv4)
+                .map_err(SetupWintunAdapterError::SetIpv4Gateway)?;
+        }
+
+        if let Some(gateway_ipv6) = adapter_config.gateway_ipv6 {
+            net::add_default_ipv6_gateway_for_interface(luid, gateway_ipv6)
+                .map_err(SetupWintunAdapterError::SetIpv6Gateway)?;
+        }
+
+        Ok(())
     }
 
     #[cfg(any(target_os = "ios", target_os = "android"))]
@@ -579,10 +720,6 @@ impl TunnelMonitor {
             exit: WireguardNode::from(conn_data.exit.clone()),
         });
 
-        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-        let tunnel_handle =
-            connected_tunnel.run(tun_device, self.tunnel_settings.dns.ip_addresses().to_vec())?;
-        #[cfg(any(target_os = "ios", target_os = "android"))]
         let tunnel_handle = connected_tunnel
             .run(
                 tun_device,
@@ -619,6 +756,10 @@ impl TunnelMonitor {
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     fn create_mixnet_device(interface_addresses: IpPair, mtu: u16) -> Result<AsyncDevice> {
         let mut tun_config = tun::Configuration::default();
+
+        // rust-tun uses the same name for tunnel type.
+        #[cfg(windows)]
+        tun_config.name(MIXNET_WINTUN_NAME);
 
         tun_config
             .address(interface_addresses.ipv4)
@@ -721,4 +862,20 @@ fn wait_delay(retry_attempt: u32) -> Duration {
     let multiplier = retry_attempt.saturating_mul(DELAY_MULTIPLIER);
     let delay = INITIAL_WAIT_DELAY.saturating_mul(multiplier);
     cmp::min(delay, MAX_WAIT_DELAY)
+}
+
+/// Struct holding wintun adapter IP configuration.
+#[cfg(windows)]
+struct WintunAdapterConfig {
+    /// Interface IPv4 address.
+    interface_ipv4: Ipv4Addr,
+
+    /// Interface IPv6 address.
+    interface_ipv6: Ipv6Addr,
+
+    /// Default IPv4 gateway.
+    gateway_ipv4: Option<Ipv4Addr>,
+
+    /// Default IPv6 gateway.
+    gateway_ipv6: Option<Ipv6Addr>,
 }

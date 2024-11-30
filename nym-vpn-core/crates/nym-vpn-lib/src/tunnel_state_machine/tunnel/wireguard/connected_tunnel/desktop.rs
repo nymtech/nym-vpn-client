@@ -8,6 +8,8 @@ use tun::AsyncDevice;
 
 use nym_task::TaskManager;
 use nym_wg_gateway_client::WgGatewayClient;
+#[cfg(windows)]
+use nym_wg_go::wireguard_go::WintunInterface;
 use nym_wg_go::{netstack, wireguard_go};
 
 #[cfg(unix)]
@@ -87,6 +89,10 @@ impl ConnectedTunnel {
             options.entry_tun.get_ref().dup_fd().map_err(Error::DupFd)?,
             #[cfg(windows)]
             &options.entry_tun_name,
+            #[cfg(windows)]
+            &options.entry_tun_guid,
+            #[cfg(windows)]
+            &options.wintun_tunnel_type,
         )
         .map_err(Error::Wireguard)?;
 
@@ -96,6 +102,10 @@ impl ConnectedTunnel {
             options.exit_tun.get_ref().dup_fd().map_err(Error::DupFd)?,
             #[cfg(windows)]
             &options.exit_tun_name,
+            #[cfg(windows)]
+            &options.exit_tun_guid,
+            #[cfg(windows)]
+            &options.wintun_tunnel_type,
         )
         .map_err(Error::Wireguard)?;
 
@@ -140,13 +150,16 @@ impl ConnectedTunnel {
             two_hop_config.forwarder.exit_endpoint,
         )?;
 
-        #[allow(unused_mut)]
-        let mut exit_tunnel = wireguard_go::Tunnel::start(
+        let exit_tunnel = wireguard_go::Tunnel::start(
             two_hop_config.exit.into_wireguard_config(),
             #[cfg(unix)]
             options.exit_tun.get_ref().dup_fd().map_err(Error::DupFd)?,
             #[cfg(windows)]
             &options.exit_tun_name,
+            #[cfg(windows)]
+            &options.exit_tun_guid,
+            #[cfg(windows)]
+            &options.wintun_tunnel_type,
         )?;
 
         Ok(TunnelHandle {
@@ -185,9 +198,21 @@ pub struct TunTunTunnelOptions {
     #[cfg(windows)]
     pub entry_tun_name: String,
 
+    /// Entry tunnel guid.
+    #[cfg(windows)]
+    pub entry_tun_guid: String,
+
     /// Exit tunnel device name.
     #[cfg(windows)]
     pub exit_tun_name: String,
+
+    /// Exit tunnel guid.
+    #[cfg(windows)]
+    pub exit_tun_guid: String,
+
+    /// Wintun tunnel type identifier.
+    #[cfg(windows)]
+    pub wintun_tunnel_type: String,
 
     /// In-tunnel DNS addresses
     pub dns: Vec<IpAddr>,
@@ -202,6 +227,14 @@ pub struct NetstackTunnelOptions {
     /// Exit tunnel device name.
     #[cfg(windows)]
     pub exit_tun_name: String,
+
+    /// Exit tunnel guid.
+    #[cfg(windows)]
+    pub exit_tun_guid: String,
+
+    /// Wintun tunnel type identifier.
+    #[cfg(windows)]
+    pub wintun_tunnel_type: String,
 
     /// In-tunnel DNS addresses
     pub dns: Vec<IpAddr>,
@@ -305,5 +338,33 @@ impl TunnelHandle {
 
         #[cfg(windows)]
         vec![]
+    }
+
+    /// Returns entry wintun interface descriptor when available.
+    /// Note: netstack based tunnel uses virtual adapter so it will always return `None`.
+    #[cfg(windows)]
+    pub fn entry_wintun_interface(&self) -> Option<&WintunInterface> {
+        match &self.internal_handle {
+            InternalTunnelHandle::Netstack { .. } => {
+                // Netstack tunnel does not use wintun interface.
+                None
+            }
+            InternalTunnelHandle::TunTun {
+                entry_wg_tunnel, ..
+            } => Some(entry_wg_tunnel.as_ref()?.wintun_interface()),
+        }
+    }
+
+    /// Returns exit wintun interface descriptor when available.
+    #[cfg(windows)]
+    pub fn exit_wintun_interface(&self) -> Option<&WintunInterface> {
+        match &self.internal_handle {
+            InternalTunnelHandle::Netstack { exit_wg_tunnel, .. } => {
+                Some(exit_wg_tunnel.as_ref()?.wintun_interface())
+            }
+            InternalTunnelHandle::TunTun { exit_wg_tunnel, .. } => {
+                Some(exit_wg_tunnel.as_ref()?.wintun_interface())
+            }
+        }
     }
 }

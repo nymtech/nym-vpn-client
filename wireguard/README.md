@@ -56,3 +56,7 @@ It is forked from (https://github.com/mullvad/mullvadvpn-app) which maintains co
   - Build for x64: `./build-wireguard-go.sh`
   - Build for arm64: `./build-wireguard-go.sh --arm64`
 - Upon completion the compiled dll should be placed under `build/lib/{aarch64,x86_64}-pc-windows-msvc/libwg.dll`
+  
+  When developing you will need to copy `libwg.dll` with correct CPU architecture into `nym-vpn-core/target/debug`.
+  
+  Also make sure to obtain `wintun.dll` from [wintun.net](https://wintun.net/) and place it into `nym-vpn-core/target/debug`.
