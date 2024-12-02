@@ -13,6 +13,7 @@ import { MainStateProvider } from './contexts';
 import './i18n/config';
 import { Cli } from './types';
 import { RouteLoading, ThemeSetter } from './ui';
+import { sleep } from './util';
 
 let initialized = false;
 
@@ -42,7 +43,8 @@ function App() {
       }
       console.info('show main window');
       invoke<void>('show_main_window')
-        .then(() => {
+        .then(async () => {
+          await sleep(100); // wait for the main window to show
           const splashLogo = document.getElementById('splash-logo');
           if (splashLogo) {
             // show the nym logo in the splash-screen

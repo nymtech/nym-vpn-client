@@ -67,8 +67,8 @@ function MainStateProvider({ children }: Props) {
       }
       // wait for the splash screen to be visible for a short time
       // as init phase is very fast
-      // duration → 600ms
-      await sleep(600);
+      // duration → 700ms
+      await sleep(700);
       const splash = document.getElementById('splash');
       if (splash) {
         // starts the fade out animation

@@ -135,6 +135,7 @@ async fn main() -> Result<()> {
             db.insert(Key::VpnMode, VpnMode::Mixnet)?;
 
             let app_window = AppWindow::create_main_window(app.handle())?;
+            app_window.set_bg_color(&db).ok();
             app_window.set_max_size().ok();
 
             let app_config_store = {

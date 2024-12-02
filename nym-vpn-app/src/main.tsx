@@ -1,7 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { invoke, isTauri } from '@tauri-apps/api/core';
-import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
+import {
+  WebviewWindow,
+  getCurrentWebviewWindow,
+} from '@tauri-apps/api/webviewWindow';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import duration from 'dayjs/plugin/duration';
@@ -9,7 +12,7 @@ import App from './App';
 import { mockTauriIPC } from './dev/setup';
 import { kvGet } from './kvStore';
 import initSentry from './sentry';
-import { StartupError as TStartupError } from './types';
+import { StartupError as TStartupError, ThemeMode } from './types';
 import { StartupError } from './screens';
 import { init } from './log';
 import { S_STATE } from './static';
@@ -42,11 +45,35 @@ if (import.meta.env.MODE === 'dev-browser') {
 dayjs.extend(relativeTime);
 dayjs.extend(duration);
 
+async function setSplashTheme(window: WebviewWindow) {
+  let isDarkMode = false;
+
+  const mode = await kvGet<ThemeMode>('UiTheme');
+  if (mode === 'Dark') {
+    isDarkMode = true;
+  }
+  if (mode === 'System') {
+    const theme = await window.theme();
+    if (theme === 'dark') {
+      isDarkMode = true;
+    }
+  }
+  if (isDarkMode) {
+    const splash = document.getElementById('splash');
+    splash?.classList.add('dark');
+  }
+}
+
 (async () => {
   if (isTauri()) {
     init();
   }
   console.info('starting UI');
+
+  const window = getCurrentWebviewWindow();
+  if (window.label === 'main') {
+    await setSplashTheme(window);
+  }
 
   const env = await invoke<Record<string, unknown>>('env');
   if (env.NETWORK_ENV_SELECT === true) {
@@ -58,7 +85,6 @@ dayjs.extend(duration);
   const error = await invoke<TStartupError | undefined>('startup_error');
   if (error) {
     console.info('get unrecoverable error');
-    const window = getCurrentWebviewWindow();
     if (window.label !== ErrorWindowLabel) {
       // the index.html entry point is called by all webview windows rendering it
       // so check which window is calling it, if it's not the error window, return
