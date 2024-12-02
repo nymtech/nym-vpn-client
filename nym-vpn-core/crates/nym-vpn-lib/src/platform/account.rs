@@ -246,6 +246,13 @@ pub(super) async fn store_account_mnemonic(mnemonic: &str, path: &str) -> Result
             details: err.to_string(),
         })?;
 
+    storage
+        .init_keys(None)
+        .await
+        .map_err(|err| VpnError::InternalError {
+            details: err.to_string(),
+        })?;
+
     Ok(())
 }
 

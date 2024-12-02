@@ -3,12 +3,15 @@ package net.nymtech.vpn.backend
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.PowerManager
 import android.system.Os
+import androidx.lifecycle.lifecycleScope
 import com.getkeepsafe.relinker.ReLinker
 import com.getkeepsafe.relinker.ReLinker.LoadListener
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.nymtech.ipcalculator.AllowedIpCalculator
 import net.nymtech.vpn.model.BackendEvent
@@ -38,6 +41,9 @@ import nym_vpn_lib.isAccountMnemonicStored
 import nym_vpn_lib.startVpn
 import nym_vpn_lib.stopVpn
 import nym_vpn_lib.storeAccountMnemonic
+import nym_vpn_lib.waitForRegisterDevice
+import nym_vpn_lib.waitForUpdateAccount
+import nym_vpn_lib.waitForUpdateDevice
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.properties.Delegates
@@ -125,8 +131,19 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	@Throws(VpnException::class)
 	override suspend fun storeMnemonic(mnemonic: String) {
-		return storeAccountMnemonic(mnemonic, storagePath)
+		withContext(ioDispatcher) {
+			try {
+				storeAccountMnemonic(mnemonic, storagePath)
+				waitForUpdateAccount()
+				waitForUpdateDevice()
+				waitForRegisterDevice()
+			} catch (e : VpnException) {
+				forgetAccount(storagePath)
+				throw e
+			}
+		}
 	}
+
 
 	@Throws(VpnException::class)
 	override suspend fun isMnemonicStored(): Boolean {
@@ -234,6 +251,8 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		private val calculator = AllowedIpCalculator()
 		private val notificationManager = NotificationManager.getInstance(this)
 
+		private var wakeLock: PowerManager.WakeLock? = null
+
 		companion object {
 			private const val VPN_NOTIFICATION_ID = 222
 		}
@@ -244,14 +263,38 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		override fun onCreate() {
 			Timber.d("Vpn service created")
 			vpnService.complete(this)
+			lifecycleScope.launch {
+				initWakeLock()
+			}
 			super.onCreate()
 		}
+
+		private fun initWakeLock() {
+			wakeLock = (getSystemService(POWER_SERVICE) as PowerManager).run {
+				val tag = this.javaClass.name
+				newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "$tag::lock").apply {
+					try {
+						Timber.i("Initiating wakelock forever..")
+						acquire()
+					} finally {
+						release()
+					}
+				}
+			}
+		}
+
+
 
 		override fun onDestroy() {
 			Timber.d("Vpn service destroyed")
 			vpnService = CompletableDeferred()
 			stopForeground(STOP_FOREGROUND_REMOVE)
 			notificationManager.cancel(VPN_NOTIFICATION_ID)
+			wakeLock?.let {
+				if (it.isHeld) {
+					it.release()
+				}
+			}
 			super.onDestroy()
 		}
 
