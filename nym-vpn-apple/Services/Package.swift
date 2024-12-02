@@ -23,7 +23,6 @@ let package = Package(
         .library(name: "ExternalLinkManager", targets: ["ExternalLinkManager"]),
         .library(name: "Keychain", targets: ["Keychain"]),
         .library(name: "Migrations", targets: ["Migrations"]),
-        .library(name: "Modifiers", targets: ["Modifiers"]),
         .library(name: "NotificationsManager", targets: ["NotificationsManager"]),
         .library(name: "NotificationMessages", targets: ["NotificationMessages"]),
         .library(name: "NymLogger", targets: ["NymLogger"]),
@@ -147,13 +146,6 @@ let package = Package(
                 "ConfigurationManager"
             ],
             path: "Sources/Services/Migrations"
-        ),
-        .target(
-            name: "Modifiers",
-            dependencies: [
-                "AppSettings"
-            ],
-            path: "Sources/Services/Modifiers"
         ),
         .target(
             name: "NotificationsManager",

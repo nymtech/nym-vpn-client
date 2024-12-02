@@ -22,7 +22,9 @@ struct ToggleView: View {
                     .animation(.default, value: viewModel.strokeColor)
             }
             .onTapGesture {
-                viewModel.onTap()
+                withAnimation {
+                    viewModel.onTap()
+                }
             }
     }
 }

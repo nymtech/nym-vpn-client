@@ -58,4 +58,7 @@ public struct NymColor {
     public static let modeInfoViewDescription = Color(.modeInfoViewDescription)
     public static let modeInfoViewTitle = Color(.modeInfoViewTitle)
     public static let modeInfoViewBackground = Color(.modeInfoViewBackground)
+
+    // MARK: - Rebranding -
+    public static let textCTA = Color(.textCTA)
 }
