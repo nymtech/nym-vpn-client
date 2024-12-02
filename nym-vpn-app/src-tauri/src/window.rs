@@ -1,19 +1,79 @@
+use crate::db::{Db, Key};
+use crate::{APP_NAME, MAIN_WINDOW_LABEL};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
+use tauri::window::Color;
 use tauri::{
-    AppHandle, LogicalPosition, LogicalSize, Manager, PhysicalPosition, PhysicalSize,
-    WebviewWindow, WebviewWindowBuilder,
+    AppHandle, LogicalPosition, LogicalSize, Manager, PhysicalPosition, PhysicalSize, Theme,
+    WebviewUrl, WebviewWindow, WebviewWindowBuilder,
 };
 use tracing::{debug, error, instrument, warn};
 use ts_rs::TS;
 
-use crate::MAIN_WINDOW_LABEL;
+const MAIN_WEBVIEW_URL: &str = "index.html";
+const BG_COLOR_LIGHT: [u8; 3] = [242, 244, 246]; // #F2F4F6
+const BG_COLOR_DARK: [u8; 3] = [28, 27, 31]; // #1C1B1F
 
 pub struct AppWindow(pub WebviewWindow);
 
+#[derive(Deserialize, Debug, Default)]
+enum UiTheme {
+    #[default]
+    System,
+    Light,
+    Dark,
+}
+
+/// concrete UI mode
+#[derive(Debug, Default)]
+enum UiMode {
+    #[default]
+    Light,
+    Dark,
+}
+
 impl AppWindow {
     #[instrument(skip(app))]
-    pub fn new(app: &AppHandle, label: &str) -> Result<Self> {
+    pub fn create_main_window(app: &AppHandle) -> Result<AppWindow> {
+        let window = WebviewWindowBuilder::new(
+            app,
+            MAIN_WINDOW_LABEL,
+            WebviewUrl::App(MAIN_WEBVIEW_URL.into()),
+        )
+        // we don't show the window on creation
+        .visible(false)
+        .title(APP_NAME)
+        .fullscreen(false)
+        .resizable(true)
+        .maximizable(false)
+        .center()
+        .focused(true)
+        .inner_size(328.0, 710.0)
+        .min_inner_size(160.0, 346.0)
+        .max_inner_size(600.0, 1299.0)
+        .build()
+        .inspect_err(|e| error!("failed to create main window: {e}"))?;
+        Ok(AppWindow(window))
+    }
+
+    /// set the background color of the webview window from saved
+    /// theme settings (if any)
+    #[instrument(skip_all)]
+    pub fn set_bg_color(&self, db: &Db) -> Result<()> {
+        let ui_mode = self.get_current_theme(db).unwrap_or_default();
+        let color = match ui_mode {
+            UiMode::Light => Color::from(BG_COLOR_LIGHT),
+            UiMode::Dark => Color::from(BG_COLOR_DARK),
+        };
+        debug!("set webview background color to {:?}", color);
+        self.0
+            .set_background_color(Some(color))
+            .inspect_err(|e| error!("failed to set background color: {e}"))?;
+        Ok(())
+    }
+
+    #[instrument(skip(app))]
+    pub fn get(app: &AppHandle, label: &str) -> Result<Self> {
         Ok(AppWindow(app.get_webview_window(label).ok_or_else(
             || {
                 error!("failed to get window {}", label);
@@ -27,32 +87,13 @@ impl AppWindow {
     pub fn get_or_create(app: &AppHandle, label: &str) -> Result<Self> {
         let window = app
             .get_webview_window(label)
+            .map(AppWindow)
             .or_else(|| {
                 debug!("main window not found, re-creating it");
-                app.config()
-                    .app
-                    .windows
-                    .iter()
-                    .find(|cfg| cfg.label == label)
-                    .or_else(|| {
-                        error!("window config not found for label {}", label);
-                        None
-                    })
-                    .and_then(|cfg| {
-                        WebviewWindowBuilder::from_config(app, cfg)
-                            .inspect_err(|e| {
-                                error!("failed to create window builder from config: {e}")
-                            })
-                            .ok()
-                            .and_then(|b| {
-                                b.build()
-                                    .inspect_err(|e| error!("failed to create window: {e}"))
-                                    .ok()
-                            })
-                    })
+                AppWindow::create_main_window(app).ok()
             })
             .ok_or_else(|| anyhow!("failed to get window {}", label))?;
-        Ok(AppWindow(window))
+        Ok(window)
     }
 
     /// "Wake up" the window, show it, unminimize it and focus it
@@ -120,6 +161,26 @@ impl AppWindow {
 
         Ok(())
     }
+
+    /// retrieve the current theme from the saved settings if any
+    /// or fallback to the system theme
+    /// defaults to `Light`
+    #[instrument(skip_all)]
+    fn get_current_theme(&self, db: &Db) -> Result<UiMode> {
+        let ui_theme = db.get_typed::<UiTheme>(Key::UiTheme)?.unwrap_or_default();
+        Ok(match ui_theme {
+            UiTheme::Light => UiMode::Light,
+            UiTheme::Dark => UiMode::Dark,
+            UiTheme::System => self
+                .0
+                .theme()
+                .inspect_err(|e| {
+                    error!("failed to get current window theme: {e}, fallback to `Light`");
+                })
+                .unwrap_or(Theme::Light)
+                .into(),
+        })
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, TS)]
@@ -184,9 +245,18 @@ impl From<&PhysicalPosition<i32>> for WindowPosition {
 
 #[instrument(skip_all)]
 pub fn focus_main_window(app: &AppHandle) {
-    if let Ok(win) = AppWindow::new(app, MAIN_WINDOW_LABEL) {
+    if let Ok(win) = AppWindow::get(app, MAIN_WINDOW_LABEL) {
         win.wake_up();
     } else {
         error!("failed to get window {}", MAIN_WINDOW_LABEL);
+    }
+}
+
+impl From<Theme> for UiMode {
+    fn from(theme: Theme) -> Self {
+        match theme {
+            Theme::Dark => UiMode::Dark,
+            _ => UiMode::Light,
+        }
     }
 }

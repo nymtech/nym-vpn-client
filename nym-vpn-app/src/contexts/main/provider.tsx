@@ -65,10 +65,9 @@ function MainStateProvider({ children }: Props) {
       if (import.meta.env.APP_NOSPLASH || args.nosplash) {
         return;
       }
-      // wait for the splash screen to be visible for a short time as
-      // init phase is very fast, avoiding flashing the splash screen
-      // note: the real duration of splashscreen is this value minus the one
-      // declared in `App.tsx`, that is 700 - 100 → 600ms
+      // wait for the splash screen to be visible for a short time
+      // as init phase is very fast
+      // duration → 700ms
       await sleep(700);
       const splash = document.getElementById('splash');
       if (splash) {
