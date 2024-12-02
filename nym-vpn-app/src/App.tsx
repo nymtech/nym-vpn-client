@@ -9,7 +9,6 @@ import { useLang } from './hooks';
 import { LngTag } from './i18n';
 import { kvGet } from './kvStore';
 import router from './router';
-import { sleep } from './util';
 import { MainStateProvider } from './contexts';
 import './i18n/config';
 import { Cli } from './types';
@@ -41,9 +40,6 @@ function App() {
         }
         return;
       }
-      // allow more time to the app window to be fully ready
-      // avoiding the initial "white flash"
-      await sleep(100);
       console.info('show main window');
       invoke<void>('show_main_window')
         .then(() => {

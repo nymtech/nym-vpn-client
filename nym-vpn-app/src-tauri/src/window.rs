@@ -1,19 +1,104 @@
+use crate::db::{Db, Key};
+use crate::{APP_NAME, MAIN_WINDOW_LABEL};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
+use tauri::window::Color;
 use tauri::{
-    AppHandle, LogicalPosition, LogicalSize, Manager, PhysicalPosition, PhysicalSize,
-    WebviewWindow, WebviewWindowBuilder,
+    AppHandle, LogicalPosition, LogicalSize, Manager, PhysicalPosition, PhysicalSize, Theme,
+    WebviewUrl, WebviewWindow, WebviewWindowBuilder,
 };
 use tracing::{debug, error, instrument, warn};
 use ts_rs::TS;
 
-use crate::MAIN_WINDOW_LABEL;
+const MAIN_WEBVIEW_URL: &str = "index.html";
 
 pub struct AppWindow(pub WebviewWindow);
 
+#[derive(Deserialize, Debug)]
+enum UiTheme {
+    System,
+    Light,
+    Dark,
+}
+
+enum UiMode {
+    Light,
+    Dark,
+}
+
 impl AppWindow {
     #[instrument(skip(app))]
-    pub fn new(app: &AppHandle, label: &str) -> Result<Self> {
+    pub fn create_main_window(app: &AppHandle) -> Result<AppWindow> {
+        let window = WebviewWindowBuilder::new(
+            app,
+            MAIN_WINDOW_LABEL,
+            WebviewUrl::App(MAIN_WEBVIEW_URL.into()),
+        )
+        .title(APP_NAME)
+        .background_color(Color::from((255, 255, 255)))
+        .fullscreen(false)
+        .resizable(true)
+        .maximizable(false)
+        .visible(false)
+        .center()
+        .focused(true)
+        .inner_size(328.0, 710.0)
+        .min_inner_size(160.0, 346.0)
+        .max_inner_size(600.0, 1299.0)
+        .build()
+        .inspect_err(|e| error!("failed to create main window: {e}"))?;
+        Ok(AppWindow(window))
+    }
+
+    /// set the background color of the webview window from saved
+    /// theme settings (if any)
+    #[instrument(skip_all)]
+    pub fn set_bg_color(&mut self, db: &Db) -> Result<()> {
+        let ui_theme: Option<UiTheme> = db.get_typed::<UiTheme>(Key::UiTheme)?;
+
+
+        let mut color = "#ffffff";
+        match ui_theme {
+            Some(UiTheme::Dark) => color = "#000000",
+            Some(UiTheme::Light) => color = "#ffffff",
+            _ => {
+                let current_theme = self.0.theme().inspect_err(|e| {
+                    error!("failed to get current window theme: {e}");
+                })?;
+            }
+        }
+        // if let Some(theme) = theme {
+            // let theme: Theme = serde_json::from_value(theme)?;
+            // let color = theme.background_color;
+            // self.0
+            //     .set_background_color(Color::from((color.r, color.g, color.b)))
+            //     .inspect_err(|e| error!("failed to set background color: {e}"))
+            //     .map_err(|e| anyhow!("failed to set background color: {e}"))?;
+        // } else {
+            // let current_theme = self.0.theme().inspect_err(|e| {
+            //     error!("failed to get current window theme: {e}");
+            // })?;
+            // match current_theme {
+            //     tauri::window::Theme::Light => {
+            //         self.0
+            //             .set_background_color(Color::from((255, 255, 255)))
+            //             .inspect_err(|e| error!("failed to set background color: {e}"))
+            //             .map_err(|e| anyhow!("failed to set background color: {e}"))?;
+            //     }
+            //     tauri::window::Theme::Dark => {
+            //         self.0
+            //             .set_background_color(Color::from((0, 0, 0)))
+            //             .inspect_err(|e| error!("failed to set background color: {e}"))
+            //             .map_err(|e| anyhow!("failed to set background color: {e}"))?;
+            //     }
+            //     _ => {}
+            // }
+        // }
+        Ok(())
+    }
+
+    #[instrument(skip(app))]
+    pub fn get(app: &AppHandle, label: &str) -> Result<Self> {
         Ok(AppWindow(app.get_webview_window(label).ok_or_else(
             || {
                 error!("failed to get window {}", label);
@@ -28,6 +113,8 @@ impl AppWindow {
         let window = app
             .get_webview_window(label)
             .or_else(|| {
+                // TODO this will not work anymore as there is no longer a WindowConfig declared
+                //  in the tauri.conf.json; call `create_main_window` instead
                 debug!("main window not found, re-creating it");
                 app.config()
                     .app
@@ -184,7 +271,7 @@ impl From<&PhysicalPosition<i32>> for WindowPosition {
 
 #[instrument(skip_all)]
 pub fn focus_main_window(app: &AppHandle) {
-    if let Ok(win) = AppWindow::new(app, MAIN_WINDOW_LABEL) {
+    if let Ok(win) = AppWindow::get(app, MAIN_WINDOW_LABEL) {
         win.wake_up();
     } else {
         error!("failed to get window {}", MAIN_WINDOW_LABEL);

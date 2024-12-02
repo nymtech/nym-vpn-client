@@ -52,25 +52,6 @@
   },
   "app": {
     "withGlobalTauri": false,
-    "windows": [
-      {
-        "label": "main",
-        "title": "NymVPN",
-        "fullscreen": false,
-        "resizable": true,
-        "maximizable": false,
-        "visible": false,
-        "center": true,
-        "focus": true,
-        "hiddenTitle": true,
-        "width": 328,
-        "height": 710,
-        "minWidth": 160,
-        "minHeight": 346,
-        "maxWidth": 600,
-        "maxHeight": 1299
-      }
-    ],
     "security": {
       "csp": null
     }

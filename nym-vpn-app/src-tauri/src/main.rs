@@ -134,6 +134,9 @@ async fn main() -> Result<()> {
             #[cfg(windows)]
             db.insert(Key::VpnMode, VpnMode::Mixnet)?;
 
+            let app_window = AppWindow::create_main_window(app.handle())?;
+            app_window.set_max_size().ok();
+
             let app_config_store = {
                 let path = APP_CONFIG_DIR
                     .clone()
@@ -174,14 +177,11 @@ async fn main() -> Result<()> {
             app.manage(app_config);
             app.manage(grpc.clone());
 
-            let app_win = AppWindow::new(app.handle(), MAIN_WINDOW_LABEL)?;
-            app_win.set_max_size().ok();
-
             // if splash-screen is disabled, remove it and show
             // the main window without waiting for frontend signal
             if cli.nosplash || env::is_truthy(ENV_APP_NOSPLASH) {
                 debug!("splash screen disabled, showing main window");
-                app_win.no_splash();
+                app_window.no_splash();
             }
 
             tray::setup(app.handle())?;
@@ -234,6 +234,7 @@ async fn main() -> Result<()> {
             cmd_db::db_flush,
             cmd_country::get_countries,
             cmd_window::show_main_window,
+            cmd_window::set_background_color,
             commands::cli::cli_args,
             cmd_log::log_js,
             account::add_account,

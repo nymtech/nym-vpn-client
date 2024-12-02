@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { invoke } from '@tauri-apps/api/core';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import { useMainDispatch, useMainState } from '../../../../contexts';
 import { kvSet } from '../../../../kvStore';
 import { useSystemTheme } from '../../../../state';
@@ -14,7 +16,7 @@ function Display() {
 
   const { theme: systemTheme } = useSystemTheme();
 
-  const handleThemeChange = (mode: ThemeMode) => {
+  const handleThemeChange = async (mode: ThemeMode) => {
     if (mode !== state.themeMode) {
       dispatch({
         type: 'set-ui-theme',
@@ -25,6 +27,22 @@ function Display() {
         mode,
       });
       kvSet('UiTheme', mode);
+      try {
+        let theme: 'Dark' | 'Light';
+        if (mode === 'System') {
+          const window = getCurrentWindow();
+          const systemTheme = await window.theme();
+          theme = systemTheme === 'dark' ? 'Dark' : 'Light';
+        } else {
+          theme = mode;
+        }
+        await invoke('set_background_color', {
+          hexColor: theme === 'Dark' ? '#1C1B1F' : '#F2F4F6',
+        });
+        console.log('updated webview window background color');
+      } catch (e) {
+        console.error('failed to set the webview window background color', e);
+      }
     }
   };
 
