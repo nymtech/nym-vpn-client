@@ -43,7 +43,6 @@ impl AppWindow {
         // we don't show the window on creation
         .visible(false)
         .title(APP_NAME)
-        .background_color(Color::from((255, 255, 255)))
         .fullscreen(false)
         .resizable(true)
         .maximizable(false)

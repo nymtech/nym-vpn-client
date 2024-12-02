@@ -52,7 +52,7 @@ async function setSplashTheme(window: WebviewWindow) {
   if (mode === 'Dark') {
     isDarkMode = true;
   }
-  if (mode === 'System') {
+  if (!mode || mode === 'System') {
     const theme = await window.theme();
     if (theme === 'dark') {
       isDarkMode = true;
@@ -91,10 +91,8 @@ async function setSplashTheme(window: WebviewWindow) {
       return;
     }
     const theme = await window.theme();
-    const splash = document.getElementById('splash');
-    if (splash) {
-      splash.remove();
-    }
+    document.getElementById('splash')?.remove();
+
     ReactDOM.createRoot(document.getElementById('root')!).render(
       <React.StrictMode>
         <StartupError error={error} theme={theme} />
