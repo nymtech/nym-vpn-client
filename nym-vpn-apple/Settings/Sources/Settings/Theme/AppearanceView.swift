@@ -1,6 +1,6 @@
 import SwiftUI
+import AppSettings
 import Device
-import Modifiers
 import Theme
 import UIComponents
 
@@ -18,7 +18,6 @@ public struct AppearanceView: View {
                 .frame(maxWidth: Device.type == .ipad ? 358 : .infinity)
             Spacer()
         }
-        .appearanceUpdate()
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(edges: [.bottom])

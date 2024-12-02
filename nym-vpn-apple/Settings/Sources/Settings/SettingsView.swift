@@ -2,7 +2,6 @@ import SwiftUI
 import AppSettings
 import Device
 import ConfigurationManager
-import Modifiers
 import UIComponents
 import Theme
 
@@ -33,7 +32,6 @@ private extension SettingsView {
             .frame(maxWidth: Device.type == .ipad ? 358 : .infinity)
             Spacer()
         }
-        .appearanceUpdate()
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(edges: [.bottom])

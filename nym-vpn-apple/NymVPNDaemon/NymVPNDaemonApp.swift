@@ -19,6 +19,9 @@ struct NymVPNDaemonApp: App {
     private let autoUpdater = AutoUpdater.shared
     private let logFileManager = LogFileManager(logFileType: .app)
 
+    @AppStorage(AppSettingKey.currentAppearance.rawValue)
+    private var appearance: AppSetting.Appearance = .light
+
     @ObservedObject private var appSettings = AppSettings.shared
     @StateObject private var homeViewModel = HomeViewModel()
     @StateObject private var checkForUpdatesViewModel = CheckForUpdatesViewModel(updater: AutoUpdater.shared.updater)
@@ -33,10 +36,7 @@ struct NymVPNDaemonApp: App {
     var body: some Scene {
         WindowGroup {
             NavigationStack {
-                // TODO: create flow coordinator, add to flow coordinator.
-                if !homeViewModel.splashScreenDidDisplay {
-                    LaunchView(splashScreenDidDisplay: $homeViewModel.splashScreenDidDisplay)
-                } else if !appSettings.welcomeScreenDidDisplay {
+                if !appSettings.welcomeScreenDidDisplay {
                     WelcomeView(viewModel: welcomeViewModel)
                         .transition(.slide)
                 } else {
@@ -47,6 +47,7 @@ struct NymVPNDaemonApp: App {
             .alert(alertTitle, isPresented: $isDisplayingAlert) {
                 Button("ok".localizedString, role: .cancel) { }
             }
+            .preferredColorScheme(appearance.colorScheme)
             .frame(width: 390, height: 800)
             .animation(.default, value: appSettings.welcomeScreenDidDisplay)
             .environmentObject(appSettings)
