@@ -1,17 +1,23 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::PathBuf;
-
 use anyhow::anyhow;
 use clap::Parser;
+use nym_bin_common::bin_info;
 use nym_config::defaults::setup_env;
 use nym_gateway_directory::EntryPoint;
 use nym_gateway_probe::ProbeResult;
+use std::path::PathBuf;
+use std::sync::OnceLock;
 use tracing::*;
 
+fn pretty_build_info_static() -> &'static str {
+    static PRETTY_BUILD_INFORMATION: OnceLock<String> = OnceLock::new();
+    PRETTY_BUILD_INFORMATION.get_or_init(|| bin_info!().pretty_print())
+}
+
 #[derive(Parser)]
-#[clap(author, version, about)]
+#[clap(author = "Nymtech", version, long_version = pretty_build_info_static(), about)]
 struct CliArgs {
     /// Path pointing to an env file describing the network.
     #[arg(short, long)]
