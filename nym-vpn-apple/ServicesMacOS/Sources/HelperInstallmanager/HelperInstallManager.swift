@@ -35,6 +35,6 @@ extension HelperInstallManager {
             daemonState = .unknown
             throw error
         }
-        try? await Task.sleep(for: .seconds(7))
+        try? await Task.sleep(for: .seconds(10))
     }
 }

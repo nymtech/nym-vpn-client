@@ -59,9 +59,9 @@ public final class GRPCManager: ObservableObject {
     }
 
     func setup() {
+        setupHealthObserver()
         setupListenToConnectionStateObserver()
         setupListenToConnectionStatusObserver()
-        setupHealthObserver()
     }
 
     // MARK: - Info -
