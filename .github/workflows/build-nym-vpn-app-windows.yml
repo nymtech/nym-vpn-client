@@ -76,8 +76,9 @@ jobs:
         uses: microsoft/setup-msbuild@v2
 
       - name: Install rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@master
         with:
+          toolchain: 1.82.0
           components: rustfmt, clippy
 
       - name: Install cargo-license
