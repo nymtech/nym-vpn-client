@@ -38,26 +38,9 @@ pub fn init_logs(level: String) {
         .category_level_filter("sled", LevelFilter::Warn);
 
     #[cfg(target_os = "macos")]
-    let mut log_builder = match ::std::fs::File::create(MACOS_LOG_FILEPATH) {
-        Ok(f) => {
-            Some(pretty_env_logger::formatted_timed_builder().target(Target::Pipe(Box::new(f))))
-        }
-        Err(_) => None,
-    };
-
-    #[cfg(target_os = "ios")]
-    let log_builder = match ::std::env::var(IOS_LOG_FILEPATH_VAR) {
-        Ok(logfile_path) => match ::std::fs::File::create(logfile_path) {
-            Ok(f) => {
-                Some(pretty_env_logger::formatted_timed_builder().target(Target::Pipe(Box::new(f))))
-            }
-            Err(_) => None,
-        },
-        Err(_) => None,
-    };
-
-    let result = match log_builder {
-        Some(builder) => builder
+    let result = match ::std::fs::File::create(MACOS_LOG_FILEPATH) {
+        Ok(f) => pretty_env_logger::formatted_timed_builder()
+            .target(Target::Pipe(Box::new(f)))
             .filter_level(LevelFilter::from_str(&level).unwrap_or(LevelFilter::Info))
             .filter_module("hyper", log::LevelFilter::Warn)
             .filter_module("tokio_reactor", log::LevelFilter::Warn)
@@ -69,7 +52,28 @@ pub fn init_logs(level: String) {
             .filter_module("handlebars", log::LevelFilter::Warn)
             .filter_module("sled", log::LevelFilter::Warn)
             .try_init(),
-        None => oslog_builder.init(),
+        Err(_) => oslog_builder.init(),
+    };
+
+    #[cfg(target_os = "ios")]
+    let result = match ::std::env::var(IOS_LOG_FILEPATH_VAR) {
+        Ok(logfile_path) => match ::std::fs::File::create(logfile_path) {
+            Ok(f) => pretty_env_logger::formatted_timed_builder()
+                .target(Target::Pipe(Box::new(f)))
+                .filter_level(LevelFilter::from_str(&level).unwrap_or(LevelFilter::Info))
+                .filter_module("hyper", log::LevelFilter::Warn)
+                .filter_module("tokio_reactor", log::LevelFilter::Warn)
+                .filter_module("reqwest", log::LevelFilter::Warn)
+                .filter_module("mio", log::LevelFilter::Warn)
+                .filter_module("want", log::LevelFilter::Warn)
+                .filter_module("tungstenite", log::LevelFilter::Warn)
+                .filter_module("tokio_tungstenite", log::LevelFilter::Warn)
+                .filter_module("handlebars", log::LevelFilter::Warn)
+                .filter_module("sled", log::LevelFilter::Warn)
+                .try_init(),
+            Err(_) => oslog_builder.init(),
+        },
+        Err(_) => oslog_builder.init(),
     };
 
     match result {
