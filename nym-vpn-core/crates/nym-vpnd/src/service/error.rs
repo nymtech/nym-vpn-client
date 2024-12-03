@@ -66,48 +66,6 @@ pub enum AccountNotReady {
     Internal(String),
 }
 
-//#[derive(Clone, Debug, thiserror::Error)]
-//pub enum RequestZkNymError {
-//    #[error("request zk nym failure: {message}")]
-//    RequestZkNym {
-//        message: String,
-//        message_id: Option<String>,
-//        code_reference_id: Option<String>,
-//    },
-//
-//    #[error("general request zk nym failure: {0}")]
-//    General(String),
-//}
-//
-//impl From<nym_vpn_account_controller::RequestZkNymError> for RequestZkNymError {
-//    fn from(err: nym_vpn_account_controller::RequestZkNymError) -> Self {
-//        match err {
-//            nym_vpn_account_controller::RequestZkNymError::RequestZkNymEndpointFailure {
-//                endpoint_failure,
-//                ticket_type: _,
-//            } => RequestZkNymError::RequestZkNym {
-//                message: endpoint_failure.message,
-//                message_id: endpoint_failure.message_id,
-//                code_reference_id: endpoint_failure.code_reference_id,
-//            },
-//            nym_vpn_account_controller::RequestZkNymError::PollZkNymEndpointFailure(e) => {
-//                RequestZkNymError::RequestZkNym {
-//                    message: e.message,
-//                    message_id: e.message_id,
-//                    code_reference_id: e.code_reference_id,
-//                }
-//            }
-//            nym_vpn_account_controller::RequestZkNymError::PollingTaskError
-//            | nym_vpn_account_controller::RequestZkNymError::PollingTimeout { .. }
-//            | nym_vpn_account_controller::RequestZkNymError::FinishedWithError { .. }
-//            | nym_vpn_account_controller::RequestZkNymError::Import { .. }
-//            | nym_vpn_account_controller::RequestZkNymError::Internal(_) => {
-//                RequestZkNymError::General(err.to_string())
-//            }
-//        }
-//    }
-//}
-
 impl From<AccountCommandError> for AccountNotReady {
     fn from(err: AccountCommandError) -> Self {
         match err {
@@ -133,10 +91,7 @@ impl From<AccountCommandError> for AccountNotReady {
             AccountCommandError::RequestZkNym {
                 successes: _,
                 failed,
-            } => AccountNotReady::RequestZkNym {
-                // failed: failed.into_iter().map(RequestZkNymError::from).collect(),
-                failed,
-            },
+            } => AccountNotReady::RequestZkNym { failed },
             AccountCommandError::NoAccountStored => AccountNotReady::NoAccountStored,
             AccountCommandError::NoDeviceStored => AccountNotReady::NoDeviceStored,
             AccountCommandError::General(err) => AccountNotReady::General(err),

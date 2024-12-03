@@ -6,7 +6,6 @@ use url::Url;
 
 use crate::{
     commands::AccountCommand,
-    // shared_state::WaitForRegistrationError
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -41,8 +40,6 @@ pub enum Error {
     #[error("failed to setup credential storage")]
     SetupCredentialStorage(#[source] nym_sdk::Error),
 
-    //#[error(transparent)]
-    //WaitForRegisterDevice(#[from] WaitForRegistrationError),
     #[error("failed to get devices: {message}")]
     GetDevices {
         message_id: Option<String>,

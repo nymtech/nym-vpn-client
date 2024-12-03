@@ -192,13 +192,6 @@ impl AccountCommand {
             AccountCommand::RequestZkNym(Some(tx)) => {
                 tx.send(Err(error));
             }
-            //AccountCommand::GetAvailableTickets(tx) => {
-            //    tx.send(Err(error))
-            //        .inspect_err(|err| {
-            //            tracing::error!("Failed to send error response: {:?}", err);
-            //        })
-            //        .ok();
-            //}
             _ => {}
         }
     }
