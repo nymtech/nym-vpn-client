@@ -75,10 +75,12 @@
   },
   "daemon": {
     "not-connected": "به daemon متصل نیست",
-    "internal": "خطای داخلی Daemon"
+    "internal": "خطای داخلی Daemon",
+    "invalid-network": "شبکه نامعتبر است"
   },
   "grpc": "خطای gRPC داخلی",
   "account": {
-    "invalid-recovery-phrase": "عبارت بازیابی نامعتبر است"
+    "invalid-recovery-phrase": "عبارت بازیابی نامعتبر است",
+    "storage": "خطای بخش پشتیبان ذخیره‌سازی"
   }
 }

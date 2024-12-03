@@ -28,6 +28,8 @@ import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
@@ -46,13 +48,13 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.Modal
-import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
 import net.nymtech.nymvpn.ui.common.buttons.IconSurfaceButton
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.functions.countryIcon
@@ -73,6 +75,7 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.buildCountryNameString
+import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
@@ -85,12 +88,14 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val context = LocalContext.current
 	val snackbar = SnackbarController.current
+	val screenSnackbar = remember { SnackbarHostState() }
 	val scope = rememberCoroutineScope()
 	val padding = WindowInsets.systemBars.asPaddingValues()
 	val navController = LocalNavController.current
 
 	var didAutoStart by remember { mutableStateOf(false) }
 	var showDialog by remember { mutableStateOf(false) }
+	var connectionTime: String? by remember { mutableStateOf(null) }
 
 	LaunchedEffect(Unit) {
 		appViewModel.onNavBarStateChange(
@@ -103,6 +108,18 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 				},
 			),
 		)
+	}
+
+	with(appUiState.managerState) {
+		LaunchedEffect(tunnelState) {
+			while (tunnelState == Tunnel.State.Up && connectionData != null) {
+				connectionData.connectedAt?.let {
+					connectionTime = (System.currentTimeMillis() / 1000L - it).convertSecondsToTimeString()
+					delay(1000)
+				}
+			}
+			connectionTime = null
+		}
 	}
 
 	val vpnActivityResultState =
@@ -160,6 +177,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			horizontalAlignment = Alignment.CenterHorizontally,
 			modifier = Modifier.padding(top = 68.dp.scaledHeight()),
 		) {
+			SnackbarHost(hostState = screenSnackbar, Modifier)
 			ConnectionStateDisplay(connectionState = uiState.connectionState)
 			uiState.stateMessage.let {
 				when (it) {
@@ -174,19 +192,28 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 							message = it.reason.toUserMessage(context),
 							textColor = CustomColors.error,
 						)
+
+					is StateMessage.StartError -> {
+						StatusInfoLabel(
+							message = it.exception.toUserMessage(context),
+							textColor = CustomColors.error,
+						)
+					}
 				}
 			}
-			AnimatedVisibility(visible = uiState.connectionState is ConnectionState.Connected) {
-				StatusInfoLabel(
-					message = uiState.connectionTime,
-					textColor = MaterialTheme.colorScheme.onSurface,
-				)
+			AnimatedVisibility(visible = connectionTime != null) {
+				connectionTime?.let {
+					StatusInfoLabel(
+						message = it,
+						textColor = MaterialTheme.colorScheme.onSurface,
+					)
+				}
 			}
 		}
-		val firstHopName = context.buildCountryNameString(appUiState.settings.firstHopCountry)
-		val lastHopName = context.buildCountryNameString(appUiState.settings.lastHopCountry)
-		val firstHopIcon = countryIcon(appUiState.settings.firstHopCountry)
-		val lastHopIcon = countryIcon(appUiState.settings.lastHopCountry)
+		val firstHopName = context.buildCountryNameString(appUiState.entryCountry)
+		val lastHopName = context.buildCountryNameString(appUiState.exitCountry)
+		val firstHopIcon = countryIcon(appUiState.entryCountry)
+		val lastHopIcon = countryIcon(appUiState.exitCountry)
 		Column(
 			verticalArrangement = Arrangement.spacedBy(36.dp.scaledHeight(), Alignment.Bottom),
 			horizontalAlignment = Alignment.CenterHorizontally,
@@ -249,40 +276,38 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 				GroupLabel(title = stringResource(R.string.connect_to))
 				val trailingIcon = ImageVector.vectorResource(R.drawable.link_arrow_right)
 				val selectionEnabled = uiState.connectionState is ConnectionState.Disconnected
-				if (appUiState.settings.firstHopSelectionEnabled) {
-					CustomTextField(
-						value = firstHopName,
-						readOnly = true,
-						enabled = false,
-						label = {
-							Text(
-								stringResource(R.string.first_hop),
-								style = MaterialTheme.typography.bodySmall,
-							)
+				CustomTextField(
+					value = firstHopName,
+					readOnly = true,
+					enabled = false,
+					label = {
+						Text(
+							stringResource(R.string.first_hop),
+							style = MaterialTheme.typography.bodySmall,
+						)
+					},
+					leading = firstHopIcon,
+					trailing = {
+						Icon(trailingIcon, trailingIcon.name, tint = MaterialTheme.colorScheme.onSurface)
+					},
+					singleLine = true,
+					modifier = Modifier
+						.fillMaxWidth()
+						.height(60.dp.scaledHeight())
+						.defaultMinSize(minHeight = 1.dp, minWidth = 1.dp)
+						.clickable(
+							remember { MutableInteractionSource() },
+							indication = if (selectionEnabled) ripple() else null,
+						) {
+							if (selectionEnabled) {
+								navController.goFromRoot(
+									Route.EntryLocation,
+								)
+							} else {
+								snackbar.showMessage(context.getString(R.string.disabled_while_connected))
+							}
 						},
-						leading = firstHopIcon,
-						trailing = {
-							Icon(trailingIcon, trailingIcon.name, tint = MaterialTheme.colorScheme.onSurface)
-						},
-						singleLine = true,
-						modifier = Modifier
-							.fillMaxWidth()
-							.height(60.dp.scaledHeight())
-							.defaultMinSize(minHeight = 1.dp, minWidth = 1.dp)
-							.clickable(
-								remember { MutableInteractionSource() },
-								indication = if (selectionEnabled) ripple() else null,
-							) {
-								if (selectionEnabled) {
-									navController.goFromRoot(
-										Route.EntryLocation,
-									)
-								} else {
-									snackbar.showMessage(context.getString(R.string.disabled_while_connected))
-								}
-							},
-					)
-				}
+				)
 				CustomTextField(
 					value = lastHopName,
 					readOnly = true,
@@ -320,7 +345,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 							testTag = Constants.CONNECT_TEST_TAG,
 							onClick = {
 								scope.launch {
-									if (!appUiState.isMnemonicStored
+									if (!appUiState.managerState.isMnemonicStored
 									) {
 										return@launch navController.goFromRoot(Route.Credential)
 									}
@@ -338,8 +363,19 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 					is ConnectionState.Disconnecting,
 					is ConnectionState.Connecting,
 					-> {
-						val loading = ImageVector.vectorResource(R.drawable.loading)
-						MainStyledButton(onClick = {}, content = { SpinningIcon(icon = loading) })
+						MainStyledButton(
+							onClick = {
+								viewModel.onDisconnect()
+							},
+							content = {
+								Text(
+									stringResource(id = R.string.stop),
+									style = CustomTypography.labelHuge,
+									color = MaterialTheme.colorScheme.background,
+								)
+							},
+							color = MaterialTheme.colorScheme.secondary,
+						)
 					}
 
 					is ConnectionState.Connected ->

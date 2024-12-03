@@ -222,7 +222,7 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 						append(" ")
 						pushStringAnnotation(
 							tag = "create",
-							annotation = appUiState.settings.environment.createAccountUrl.toString(),
+							annotation = appUiState.managerState.accountLinks?.signUp ?: stringResource(R.string.create_account_url),
 						)
 						withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
 							append(stringResource(id = R.string.create_account))

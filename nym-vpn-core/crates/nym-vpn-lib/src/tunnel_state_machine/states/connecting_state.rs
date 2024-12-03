@@ -3,6 +3,7 @@
 
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
+use tun::AsyncDevice;
 
 use crate::tunnel_state_machine::{
     states::{ConnectedState, DisconnectingState},
@@ -55,6 +56,21 @@ impl ConnectingState {
             },
         )
     }
+
+    async fn on_tunnel_exit(mut tun_devices: Vec<AsyncDevice>, _shared_state: &mut SharedState) {
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        {
+            if let Err(e) = _shared_state
+                .dns_handler
+                .reset_before_interface_removal()
+                .await
+            {
+                tracing::error!("Failed to reset dns before interface removal: {}", e);
+            }
+            _shared_state.route_handler.remove_routes().await;
+        }
+        tun_devices.clear();
+    }
 }
 
 #[async_trait::async_trait]
@@ -92,10 +108,10 @@ impl TunnelStateHandler for ConnectingState {
                     if let Some(reason) = reason {
                         NextTunnelState::NewState(DisconnectingState::enter(PrivateActionAfterDisconnect::Error(reason), self.monitor_handle, shared_state))
                     } else {
-                        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-                        shared_state.route_handler.remove_routes().await;
+                        let tun_devices = self.monitor_handle.wait().await;
+                        Self::on_tunnel_exit(tun_devices, shared_state).await;
 
-                        NextTunnelState::NewState(ConnectingState::enter( self.retry_attempt.saturating_add(1), self.selected_gateways, shared_state))
+                        NextTunnelState::NewState(ConnectingState::enter(self.retry_attempt.saturating_add(1), self.selected_gateways, shared_state))
                     }
                 }
             }

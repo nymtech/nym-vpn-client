@@ -9,6 +9,7 @@ on:
   workflow_dispatch:
 
 env:
+  IPHONEOS_DEPLOYMENT_TARGET: 16.0
   CARGO_TERM_COLOR: always
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
 
@@ -60,6 +61,21 @@ jobs:
         working-directory: nym-vpn-core
         run: |
           cargo build --verbose --target aarch64-apple-ios -p nym-vpn-lib
+
+      - name: Generate uniffi
+        working-directory: nym-vpn-core
+        run: |
+          cargo run --bin uniffi-bindgen generate \
+            --library target/aarch64-apple-ios/debug/libnym_vpn_lib.a  \
+            --config crates/nym-vpn-lib/uniffi.toml \
+            --language swift --out-dir build -n
+
+      - name: Upload generated uniffi file
+        uses: actions/upload-artifact@v4
+        with:
+          name: updated-uniffi-ios
+          path: nym-vpn-core/build/nym_vpn_lib.swift
+          retention-days: 1
 
       - name: Clippy
         working-directory: nym-vpn-core

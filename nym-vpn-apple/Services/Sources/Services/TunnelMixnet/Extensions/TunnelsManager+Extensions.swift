@@ -22,7 +22,7 @@ extension TunnelsManager {
         let alwaysOnRule = NEOnDemandRuleConnect()
         alwaysOnRule.interfaceTypeMatch = .any
         tunnelProviderManager.onDemandRules = [alwaysOnRule]
-        tunnelProviderManager.isOnDemandEnabled = true
+        tunnelProviderManager.isOnDemandEnabled = false
 
         let activeTunnel = tunnels.first { $0.status == .connected || $0.status == .connecting }
 

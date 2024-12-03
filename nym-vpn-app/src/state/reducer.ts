@@ -6,6 +6,7 @@ import {
   DefaultVpnMode,
 } from '../constants';
 import {
+  AccountLinks,
   AppError,
   AppState,
   CodeDependency,
@@ -23,7 +24,7 @@ import {
 
 export type StateAction =
   | { type: 'init-done' }
-  | { type: 'change-connection-state'; state: ConnectionState }
+  | { type: 'update-connection-state'; state: ConnectionState }
   | { type: 'set-daemon-status'; status: DaemonStatus }
   | { type: 'set-daemon-info'; info: DaemonInfo }
   | { type: 'set-vpn-mode'; mode: VpnMode }
@@ -65,14 +66,14 @@ export type StateAction =
   | { type: 'set-code-deps-rust'; dependencies: CodeDependency[] }
   | { type: 'set-account'; stored: boolean }
   | { type: 'set-entry-countries-error'; payload: AppError | null }
-  | { type: 'set-exit-countries-error'; payload: AppError | null };
+  | { type: 'set-exit-countries-error'; payload: AppError | null }
+  | { type: 'set-account-links'; links: AccountLinks | null };
 
 export const initialState: AppState = {
   initialized: false,
   state: 'Disconnected',
   daemonStatus: 'NotOk',
   version: null,
-  loading: false,
   vpnMode: DefaultVpnMode,
   uiTheme: 'Light',
   themeMode: DefaultThemeMode,
@@ -178,22 +179,20 @@ export function reducer(state: AppState, action: StateAction): AppState {
         ...state,
         exitCountriesLoading: action.payload.loading,
       };
-    case 'change-connection-state': {
+    case 'update-connection-state': {
       if (action.state === state.state) {
         return state;
       }
       return {
         ...state,
         state: action.state,
-        loading:
-          action.state === 'Connecting' || action.state === 'Disconnecting',
       };
     }
     case 'connect': {
-      return { ...state, state: 'Connecting', loading: true };
+      return { ...state, state: 'Connecting' };
     }
     case 'disconnect': {
-      return { ...state, state: 'Disconnecting', loading: true };
+      return { ...state, state: 'Disconnecting' };
     }
     case 'set-version':
       return {
@@ -204,7 +203,6 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         state: 'Connected',
-        loading: false,
         progressMessages: [],
         sessionStartDate: dayjs.unix(action.startTime),
       };
@@ -213,7 +211,6 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         state: 'Disconnected',
-        loading: false,
         progressMessages: [],
         sessionStartDate: null,
       };
@@ -282,6 +279,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         exitCountriesError: action.payload,
+      };
+    case 'set-account-links':
+      return {
+        ...state,
+        accountLinks: action.links,
       };
 
     case 'reset':

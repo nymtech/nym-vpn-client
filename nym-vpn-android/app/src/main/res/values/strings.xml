@@ -50,6 +50,7 @@
 	<string name="check_faq">Check the FAQ</string>
 	<string name="join_matrix">Join us on Matrix</string>
 	<string name="join_discord">Join us on Discord</string>
+	<string name="create_account_url" translatable="false">https://nymvpn.com/account/create</string>
 	<string name="matrix_url" translatable="false">https://matrix.to/#/%23NymVPN:nymtech.chat</string>
 	<string name="discord_url" translatable="false">http://nymtech.net/go/discord</string>
 	<string name="faq_url" translatable="false">https://support.nymvpn.com</string>
@@ -172,7 +173,6 @@
 	<string name="low_bandwidth">"Low bandwidth! Bandwidth remaining: "</string>
 	<string name="vpn_permission_missing">Vpn permission has not been accepted or is being used by another app.</string>
 	<string name="credential_already_imported">Credential already imported.</string>
-	<string name="environment">Environment</string>
 	<string name="action_requires_tunnel_down">Action requires tunnel down</string>
 	<string name="selected_exit_unavailable">Selected exit country is unavailable. Please select a different exit country.</string>
 	<string name="selected_entry_unavailable">Selected entry country is unavailable. Please select a different entry country.</string>
@@ -190,4 +190,7 @@
 	<string name="recovery_phrase_disclaimer">You can only use the recovery phrase created in NymVPN, not the Nym Wallet.</string>
 	<string name="dynamic">Dynamic</string>
 	<string name="system_wallpaper">System wallpaper theme</string>
+	<string name="initializing">Initializing</string>
+    <string name="stop">Stop</string>
+	<string name="version">Version</string>
 </resources>

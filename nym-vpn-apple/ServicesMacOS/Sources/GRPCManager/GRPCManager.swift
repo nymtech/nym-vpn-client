@@ -9,7 +9,6 @@ import NIOConcurrencyHelpers
 import SwiftProtobuf
 import AppVersionProvider
 import Constants
-import HelperManager
 import TunnelStatus
 
 public final class GRPCManager: ObservableObject {
@@ -17,10 +16,9 @@ public final class GRPCManager: ObservableObject {
 
     private let channel: GRPCChannel
     private let unixDomainSocket = "/var/run/nym-vpn.sock"
-
+    let healthClient: Grpc_Health_V1_HealthClientProtocol
     let client: Nym_Vpn_NymVpndClientProtocol
     let logger = Logger(label: "GRPC Manager")
-    let helperManager: HelperManager
 
     public static let shared = GRPCManager()
 
@@ -36,9 +34,13 @@ public final class GRPCManager: ObservableObject {
     @Published public var tunnelStatus: TunnelStatus = .disconnected
     @Published public var lastError: GeneralNymError?
     @Published public var connectedDate: Date?
+    @Published public var isServing = false
 
-    private init(helperManager: HelperManager = HelperManager.shared) {
-        self.helperManager = helperManager
+    public var requiresUpdate: Bool {
+        daemonVersion != AppVersionProvider.libVersion
+    }
+
+    private init() {
         channel = ClientConnection(
             configuration:
                     .default(
@@ -47,6 +49,7 @@ public final class GRPCManager: ObservableObject {
                     )
         )
         client = Nym_Vpn_NymVpndNIOClient(channel: channel)
+        healthClient = Grpc_Health_V1_HealthNIOClient(channel: channel)
         setup()
     }
 
@@ -55,17 +58,18 @@ public final class GRPCManager: ObservableObject {
         try? group.syncShutdownGracefully()
     }
 
+    func setup() {
+        setupHealthObserver()
+        setupListenToConnectionStateObserver()
+        setupListenToConnectionStatusObserver()
+    }
+
     // MARK: - Info -
 
-    public func version() async throws -> String {
-        guard helperManager.isHelperAuthorizedAndRunning()
-        else {
-            throw GRPCError.daemonNotRunning
-        }
-
+    public func version() async throws {
         logger.log(level: .info, "Version")
         return try await withCheckedThrowingContinuation { continuation in
-            let call = client.info(Nym_Vpn_InfoRequest(), callOptions: nil)
+            let call = client.info(Nym_Vpn_InfoRequest(), callOptions: CallOptions(timeLimit: .timeout(.seconds(5))))
 
             call.response.whenComplete { [weak self] result in
                 switch result {
@@ -73,7 +77,7 @@ public final class GRPCManager: ObservableObject {
                     self?.daemonVersion = response.version
                     self?.logger.info("🛜 \(response.nymNetwork.networkName)")
 
-                    continuation.resume(returning: response.version)
+                    continuation.resume()
                 case .failure(let error):
                     continuation.resume(throwing: error)
                 }
@@ -82,11 +86,6 @@ public final class GRPCManager: ObservableObject {
     }
 
     public func status() {
-        guard helperManager.isHelperAuthorizedAndRunning()
-        else {
-            return
-        }
-
         logger.log(level: .info, "Status")
         let request = Nym_Vpn_StatusRequest()
         let call = client.vpnStatus(request)
@@ -106,7 +105,6 @@ public final class GRPCManager: ObservableObject {
 
     // MARK: - Connection -
     public func isReadyToConnect() {
-        guard helperManager.isHelperAuthorizedAndRunning() else { return }
         logger.log(level: .info, "isReadyToConnect")
 
         let request = Nym_Vpn_IsReadyToConnectRequest()
@@ -128,7 +126,6 @@ public final class GRPCManager: ObservableObject {
         exitRouterCountryCode: String?,
         isTwoHopEnabled: Bool
     ) async throws {
-        guard helperManager.isHelperAuthorizedAndRunning() else { return }
         logger.log(level: .info, "Connecting")
 
         return try await withCheckedThrowingContinuation { continuation in
@@ -189,11 +186,6 @@ public final class GRPCManager: ObservableObject {
     }
 
     public func disconnect() {
-        guard helperManager.isHelperAuthorizedAndRunning()
-        else {
-            return
-        }
-
         logger.log(level: .info, "Disconnecting")
         let request = Nym_Vpn_DisconnectRequest()
 
@@ -217,11 +209,6 @@ public final class GRPCManager: ObservableObject {
 
     // MARK: - Countries -
     public func entryCountryCodes() async throws -> [String] {
-        guard helperManager.isHelperAuthorizedAndRunning()
-        else {
-            throw GRPCError.daemonNotRunning
-        }
-
         logger.log(level: .info, "Fetching entry countries")
         return try await withCheckedThrowingContinuation { continuation in
             var request = Nym_Vpn_ListCountriesRequest()
@@ -250,11 +237,6 @@ public final class GRPCManager: ObservableObject {
     }
 
     public func exitCountryCodes() async throws -> [String] {
-        guard helperManager.isHelperAuthorizedAndRunning()
-        else {
-            throw GRPCError.daemonNotRunning
-        }
-
         logger.log(level: .info, "Fetching exit countries")
         return try await withCheckedThrowingContinuation { continuation in
             var request = Nym_Vpn_ListCountriesRequest()
@@ -283,11 +265,6 @@ public final class GRPCManager: ObservableObject {
     }
 
     public func vpnCountryCodes() async throws -> [String] {
-        guard helperManager.isHelperAuthorizedAndRunning()
-        else {
-            throw GRPCError.daemonNotRunning
-        }
-
         logger.log(level: .info, "Fetching VPN countries")
         return try await withCheckedThrowingContinuation { continuation in
             var request = Nym_Vpn_ListCountriesRequest()
@@ -318,11 +295,6 @@ public final class GRPCManager: ObservableObject {
 
 // MARK: - Private -
 private extension GRPCManager {
-    func setup() {
-        setupListenToConnectionStateObserver()
-        setupListenToConnectionStatusObserver()
-    }
-
     func setupListenToConnectionStateObserver() {
         let call = client.listenToConnectionStateChanges(Nym_Vpn_Empty()) { [weak self] connectionStateChange in
             guard let self else { return }

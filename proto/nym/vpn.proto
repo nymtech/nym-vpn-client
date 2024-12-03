@@ -16,6 +16,8 @@ message Address {
 
 message Location {
   string two_letter_iso_country_code = 1;
+  optional double latitude = 2;
+  optional double longitude = 3;
 }
 
 message EntryNode {
@@ -124,6 +126,12 @@ message NymVpnNetworkDetails {
   Url nym_vpn_api_url = 1;
 }
 
+message AccountManagement {
+  Url sign_up = 1;
+  Url sign_in = 2;
+  Url account = 3;
+}
+
 message ValidatorDetails {
   Url nyxd_url = 1;
   Url websocket_url = 2;
@@ -167,6 +175,29 @@ message SetNetworkRequestError {
   string message = 2;
 }
 
+message SystemMessage {
+  string name = 1;
+  string message = 2;
+  map<string, string> properties = 3;
+}
+
+message GetSystemMessagesRequest {}
+
+message GetSystemMessagesResponse {
+  repeated SystemMessage messages = 1;
+}
+
+message GetFeatureFlagsRequest {}
+
+message GetFeatureFlagsResponse {
+  map<string, string> flags = 1;
+  map<string, FeatureFlagGroup> groups = 2;
+}
+
+message FeatureFlagGroup {
+  map<string, string> map = 1;
+}
+
 message Threshold {
   uint32 min_performance = 1;
 }
@@ -178,32 +209,31 @@ message ConnectRequestError {
     // Unspecified internal error
     INTERNAL = 1;
 
+    // General error
+    GENERAL = 2;
+
     // No account recovery phrase stored
-    NO_ACCOUNT_STORED = 2;
+    NO_ACCOUNT_STORED = 3;
 
-    // The account is not active
-    ACCOUNT_NOT_ACTIVE = 3;
+    // No device keys stored
+    NO_DEVICE_STORED = 4;
 
-    // The account does not have an active subscription
-    NO_ACTIVE_SUBSCRIPTION = 4;
+    // Update account failed
+    UPDATE_ACCOUNT = 5;
 
-    // The device is not registered
-    DEVICE_NOT_REGISTERED = 5;
+    // Update device failed
+    UPDATE_DEVICE = 6;
 
-    // The device is not active
-    // NOTE: in the future we will try to re-active an inactive device on
-    // connect
-    DEVICE_NOT_ACTIVE = 6;
-
-    // It was not yet possible to determine if we are ready to connect during
-    // the check
-    PENDING = 7;
+    // Device registration failed
+    REGISTER_DEVICE = 7;
   }
 
   ConnectRequestErrorType kind = 1;
 
   // Internal message for logging and debugging
   string message = 2;
+
+  optional string message_id = 3;
 }
 
 message ConnectRequest {
@@ -212,6 +242,7 @@ message ConnectRequest {
   Dns dns = 3;
   bool disable_routing = 4;
   bool enable_two_hop = 5;
+  bool netstack = 13;
   bool disable_poisson_rate = 6;
   bool disable_background_cover_traffic = 7;
   bool enable_credentials_mode = 8;
@@ -312,6 +343,11 @@ message ConnectionStatusUpdate {
     // Wireguard tunnel errors sent through the status channel. This error case
     // will go away in the future.
     WG_TUNNEL_ERROR = 14;
+
+    // Event containing the statistics for the current mixnet connection.
+    // Includes real and cover packets send and received, retransmissions, acks
+    // received.
+    MIXNET_BANDWIDTH_RATE = 15;
   }
 
   StatusType kind = 1;
@@ -585,6 +621,13 @@ message RemoveAccountResponse {
   AccountError error = 2;
 }
 
+message ForgetAccountRequest {}
+
+message ForgetAccountResponse {
+  bool success = 1;
+  AccountError error = 2;
+}
+
 message GetAccountIdentityRequest {}
 
 message GetAccountIdentityResponse {
@@ -592,6 +635,23 @@ message GetAccountIdentityResponse {
     string account_identity = 1;
     AccountError error = 2;
   }
+}
+
+message GetAccountLinksRequest {
+  string locale = 1;
+}
+
+message GetAccountLinksResponse {
+  oneof res {
+    AccountManagement links = 1;
+    AccountError error = 2;
+  }
+}
+
+enum AccountRegistered {
+  ACCOUNT_REGISTERED_UNSPECIFIED = 0;
+  ACCOUNT_REGISTERED = 1;
+  ACCOUNT_NOT_REGISTERED = 2;
 }
 
 enum MnemonicState {
@@ -616,6 +676,18 @@ enum SubscriptionState {
   SUBSCRIPTION_STATE_COMPLETE = 4;
 }
 
+message DeviceSummary {
+  uint64 active = 1;
+  uint64 max = 2;
+  uint64 remaining = 3;
+}
+
+message AccountSummaryInner {
+  AccountState account = 1;
+  SubscriptionState subscription = 2;
+  DeviceSummary device_summary = 3;
+}
+
 enum DeviceState {
   DEVICE_STATE_UNSPECIFIED = 0;
   DEVICE_STATE_NOT_REGISTERED = 1;
@@ -624,12 +696,27 @@ enum DeviceState {
   DEVICE_STATE_DELETE_ME = 4;
 }
 
+message DeviceRegistration {
+  enum DeviceRegistrationType {
+    DEVICE_REGISTRATION_UNSPECIFIED = 0;
+    DEVICE_REGISTRATION_IN_PROGRESS = 1;
+    DEVICE_REGISTRATION_SUCCESS = 2;
+    DEVICE_REGISTRATION_FAILED = 3;
+  }
+
+  DeviceRegistrationType kind = 1;
+  optional string message = 2;
+  optional string message_id = 3;
+}
+
+
 message AccountSummary {
   optional MnemonicState mnemonic = 1;
-  optional AccountState account = 2;
-  optional SubscriptionState subscription = 3;
+  optional AccountRegistered account_registered = 2;
+  optional AccountSummaryInner account_summary = 3;
   optional DeviceState device = 4;
-  bool pending_zk_nym = 5;
+  optional DeviceRegistration device_registration = 5;
+  bool pending_zk_nym = 6;
 }
 
 message GetAccountStateRequest {}
@@ -698,6 +785,69 @@ message GetDeviceZkNymsResponse {
   AccountError error = 2;
 }
 
+message GetZkNymsAvailableForDownloadRequest {}
+
+message GetZkNymsAvailableForDownloadResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
+message GetZkNymByIdRequest {
+  string id = 1;
+}
+
+message GetZkNymByIdResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
+message ConfirmZkNymDownloadedRequest {
+  string id = 1;
+}
+
+message ConfirmZkNymDownloadedResponse {
+  AccountError error = 2;
+}
+
+message AvailableTickets {
+  // Remaining number of mixnet entry tickets
+  uint64 mixnet_entry_tickets = 1;
+  // Remaining mixnet entry data in bytes
+  uint64 mixnet_entry_data = 2;
+  // Remaining mixnet entry data formatted to a string using SI units
+  string mixnet_entry_data_si = 3;
+
+  // Remaining number of mixnet exit tickets
+  uint64 mixnet_exit_tickets = 4;
+  // Remaining mixnet exit data in bytes
+  uint64 mixnet_exit_data = 5;
+  // Remaining mixnet exit data formatted to a string using SI units
+  string mixnet_exit_data_si = 6;
+
+  // Remaining number of vpn entry tickets
+  uint64 vpn_entry_tickets = 7;
+  // Remaining vpn entry data in bytes
+  uint64 vpn_entry_data = 8;
+  // Remaining vpn entry data formatted to a string using SI units
+  string vpn_entry_data_si = 9;
+
+  // Remaining number of vpn exit tickets
+  uint64 vpn_exit_tickets = 10;
+  // Remaining vpn exit data in bytes
+  uint64 vpn_exit_data = 11;
+  // Remaining vpn exit data formatted to a string using SI units
+  string vpn_exit_data_si = 12;
+}
+
+message GetAvailableTicketsRequest {}
+
+message GetAvailableTicketsResponse {
+  oneof resp {
+    AvailableTickets available_tickets = 1;
+    AccountError error = 2;
+  }
+}
+
 message IsReadyToConnectRequest {}
 
 message IsReadyToConnectResponse {
@@ -710,19 +860,31 @@ message IsReadyToConnectResponse {
     // No account recovery phrase stored
     NO_ACCOUNT_STORED = 2;
 
-    // The account is not active
-    ACCOUNT_NOT_ACTIVE = 3;
+    // The account is not synced
+    ACCOUNT_NOT_SYNCED = 3;
 
-    // The account does not have an active subscripion
-    NO_ACTIVE_SUBSCRIPTION = 4;
+    // The account is not registered
+    ACCOUNT_NOT_REGISTERED = 4;
+
+    // The account is not active
+    ACCOUNT_NOT_ACTIVE = 5;
+
+    // The account does not have an active subscription
+    NO_ACTIVE_SUBSCRIPTION = 6;
 
     // The device is not registered
-    DEVICE_NOT_REGISTERED = 5;
+    DEVICE_NOT_REGISTERED = 7;
 
     // The device is not active
     // NOTE: in the future we will try to re-active an inactive device on
     // connect
-    DEVICE_NOT_ACTIVE = 6;
+    DEVICE_NOT_ACTIVE = 8;
+
+    // The device has reached the maximum number of devices
+    MAX_DEVICES_REACHED = 9;
+
+    // Device registration failed
+    DEVICE_REGISTRATION_FAILED = 10;
   }
 
   IsReadyToConnectResponseType kind = 1;
@@ -737,6 +899,9 @@ message AccountError {
 
     // General error from the storage backend
     STORAGE = 2;
+
+    // Unable to proceed while connected
+    IS_CONNECTED = 3;
   }
 
   AccountErrorType kind = 1;
@@ -754,6 +919,12 @@ service NymVpnd {
 
   // Set the network. This requires a restart to take effect
   rpc SetNetwork (SetNetworkRequest) returns (SetNetworkResponse) {}
+
+  // List messages fetched from nym-vpn-api
+  rpc GetSystemMessages (GetSystemMessagesRequest) returns (GetSystemMessagesResponse) {}
+
+  // List the feature flags fetched from the nym-vpn-api
+  rpc GetFeatureFlags (GetFeatureFlagsRequest) returns (GetFeatureFlagsResponse) {}
 
   // Start the tunnel and connect
   rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
@@ -775,27 +946,47 @@ service NymVpnd {
   // List the available gateways for the selected mode
   rpc ListGateways (ListGatewaysRequest) returns (ListGatewaysResponse) {}
 
-  // List the avaiable countries for the selected mode
+  // List the available countries for the selected mode
   rpc ListCountries (ListCountriesRequest) returns (ListCountriesResponse) {}
 
   // -- Unstable --
   // These below are considered unstable, in the sense that their definitions
-  // are still being interated upon and their meaning might change
+  // are still being integrated upon and their meaning might change
 
-  // Handle the stored recovery phrase, which is also the account identity and authentication
+  // Store the recovery phrase, which is also the account identity and authentication
   rpc StoreAccount (StoreAccountRequest) returns (StoreAccountResponse) {}
+
+  // Check if the recovery phrase is stored
   rpc IsAccountStored (IsAccountStoredRequest) returns (IsAccountStoredResponse) {}
+
+  // Remove the recovery phrase from local storage
   rpc RemoveAccount (RemoveAccountRequest) returns (RemoveAccountResponse) {}
+
+  // Removes everything related to the account, including the device identity,
+  // credential storage, mixnet keys, gateway registrations.
+  rpc ForgetAccount (ForgetAccountRequest) returns (ForgetAccountResponse) {}
+
+  // Get the account identity of the locally stored recovery phrase
   rpc GetAccountIdentity (GetAccountIdentityRequest) returns (GetAccountIdentityResponse) {}
 
-  // Query the account state, which refers to the server side account, as it is
-  // known and interpreted by nym-vpnd
+  // Get the set of account links for the user
+  rpc GetAccountLinks (GetAccountLinksRequest) returns (GetAccountLinksResponse) {}
+
+  // Query the account state, which is synced from the nym-vpn-api account, as it
+  // is known and interpreted by nym-vpnd
   rpc GetAccountState (GetAccountStateRequest) returns (GetAccountStateResponse) {}
+
+  // The vpn client will periodically refresh the account state in the
+  // background. This command triggers a manual refresh.
   rpc RefreshAccountState (RefreshAccountStateRequest) returns (RefreshAccountStateResponse) {}
+
+  // Check if the local account state is ready to connect
   rpc IsReadyToConnect (IsReadyToConnectRequest) returns (IsReadyToConnectResponse) {}
 
   // Reset the device identity
   rpc ResetDeviceIdentity (ResetDeviceIdentityRequest) returns (ResetDeviceIdentityResponse) {}
+
+  // Get the device identity
   rpc GetDeviceIdentity (GetDeviceIdentityRequest) returns (GetDeviceIdentityResponse) {}
 
   // Try to register the local device with the nym-vpn-api
@@ -806,6 +997,18 @@ service NymVpnd {
 
   // List the zk-nyms associated with this device from the nym-vpn-api
   rpc GetDeviceZkNyms (GetDeviceZkNymsRequest) returns (GetDeviceZkNymsResponse) {}
+
+  // List the zk-nyms available for download from the nym-vpn-api
+  rpc GetZkNymsAvailableForDownload (GetZkNymsAvailableForDownloadRequest) returns (GetZkNymsAvailableForDownloadResponse) {}
+
+  // Get a zk-nym by its id from the nym-vpn-api
+  rpc GetZkNymById (GetZkNymByIdRequest) returns (GetZkNymByIdResponse) {}
+
+  // Confirm that a zk-nym has been downloaded from the nym-vpn-api
+  rpc ConfirmZkNymDownloaded (ConfirmZkNymDownloadedRequest) returns (ConfirmZkNymDownloadedResponse) {}
+
+  // Get the available tickets in the local credential store
+  rpc GetAvailableTickets (GetAvailableTicketsRequest) returns (GetAvailableTicketsResponse) {}
 
   // -- Delegated remote calls --
   // These query the remote nym-vpn-api state directly

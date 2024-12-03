@@ -52,9 +52,6 @@ impl DisconnectingState {
 
     async fn on_tunnel_exit(mut tun_devices: Vec<AsyncDevice>, _shared_state: &mut SharedState) {
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-        _shared_state.route_handler.remove_routes().await;
-
-        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         if let Err(e) = _shared_state
             .dns_handler
             .reset_before_interface_removal()
@@ -66,13 +63,8 @@ impl DisconnectingState {
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         _shared_state.route_handler.remove_routes().await;
 
-        tracing::debug!("Closing tunnel {} device(s).", tun_devices.len());
+        tracing::info!("Closing {} tunnel device(s).", tun_devices.len());
         tun_devices.clear();
-
-        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-        if let Err(e) = _shared_state.dns_handler.reset().await {
-            tracing::error!("Failed to reset dns: {}", e);
-        }
 
         // todo: reset firewall
     }
@@ -100,7 +92,7 @@ impl TunnelStateHandler for DisconnectingState {
                 match self.after_disconnect {
                     PrivateActionAfterDisconnect::Nothing => NextTunnelState::NewState(DisconnectedState::enter()),
                     PrivateActionAfterDisconnect::Error(reason) => {
-                        NextTunnelState::NewState(ErrorState::enter(reason))
+                        NextTunnelState::NewState(ErrorState::enter(reason, shared_state).await)
                     },
                     PrivateActionAfterDisconnect::Reconnect { retry_attempt } => {
                         NextTunnelState::NewState(ConnectingState::enter(retry_attempt, None, shared_state))

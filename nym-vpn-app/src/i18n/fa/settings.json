@@ -2,14 +2,12 @@
   "feedback": {
     "title": "بازخورد",
     "github": "باز کردن مساله در GitHub",
-    "send": "برای ما بازخورد بفرستید",
     "matrix": "در Matrix به ما بپیوندید",
     "discord": "در Discord به ما پیوندید"
   },
   "support": {
     "title": "پشتیبانی",
-    "faq": "بررسی سوالات متداول",
-    "contact": "با پشتیبانی تماس بگیرید"
+    "faq": "بررسی سوالات متداول"
   },
   "legal": {
     "title": "حقوقی",
@@ -44,5 +42,9 @@
     "client-version": "نسخه مشترک",
     "daemon-version": "نسخه Daemon",
     "network-name": "شبکه"
+  },
+  "logout-confirmation": {
+    "title": "مطمئن هستید؟",
+    "description": "برای ورود مجدد به عبارت بازیابی خود نیاز خواهید داشت."
   }
 }

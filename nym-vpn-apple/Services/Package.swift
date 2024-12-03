@@ -25,12 +25,15 @@ let package = Package(
         .library(name: "Migrations", targets: ["Migrations"]),
         .library(name: "Modifiers", targets: ["Modifiers"]),
         .library(name: "NotificationsManager", targets: ["NotificationsManager"]),
+        .library(name: "NotificationMessages", targets: ["NotificationMessages"]),
         .library(name: "NymLogger", targets: ["NymLogger"]),
         .library(name: "SentryManager", targets: ["SentryManager"]),
+        .library(name: "SystemMessageManager", targets: ["SystemMessageManager"]),
         .library(name: "Tunnels", targets: ["Tunnels"]),
         .library(name: "TunnelMixnet", targets: ["TunnelMixnet"])
     ],
     dependencies: [
+        .package(path: "../ServicesIOS"),
         .package(path: "../ServicesMacOS"),
         .package(path: "../ServicesMutual"),
         .package(name: "MixnetLibrary", path: "../MixnetLibrary"),
@@ -53,8 +56,10 @@ let package = Package(
                 "AppSettings",
                 "Constants",
                 "Device",
+                "CredentialsManager",
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
-                "NymLogger"
+                "NymLogger",
+                .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS]))
             ],
             path: "Sources/Services/ConfigurationManager"
         ),
@@ -62,6 +67,7 @@ let package = Package(
             name: "ConnectionManager",
             dependencies: [
                 "CredentialsManager",
+                "NotificationMessages",
                 "Tunnels",
                 "TunnelMixnet"
             ],
@@ -99,9 +105,10 @@ let package = Package(
             dependencies: [
                 "AppSettings",
                 "Constants",
+                .product(name: "ErrorHandler", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
-                .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
+                .product(name: "HelperInstallManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 "Theme"
             ],
             path: "Sources/Services/CredentialsManager"
@@ -157,6 +164,14 @@ let package = Package(
             path: "Sources/Services/NotificationsManager"
         ),
         .target(
+            name: "NotificationMessages",
+            dependencies: [
+                "NymLogger",
+                .product(name: "Logging", package: "swift-log")
+            ],
+            path: "Sources/Services/NotificationMessages"
+        ),
+        .target(
             name: "NymLogger",
             dependencies: [
                 "Constants",
@@ -174,10 +189,23 @@ let package = Package(
             path: "Sources/Services/SentryManager"
         ),
         .target(
+            name: "SystemMessageManager",
+            dependencies: [
+                "AppSettings",
+                .product(name: "SystemMessageModels", package: "ServicesMutual"),
+                .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
+                .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS]))
+            ],
+            path: "Sources/Services/SystemMessageManager"
+        ),
+        .target(
             name: "Tunnels",
             dependencies: [
+                "Constants",
                 "Keychain",
                 "NymLogger",
+                .product(name: "ErrorHandler", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
+                .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
                 .product(name: "TunnelStatus", package: "ServicesMutual")
             ],
             path: "Sources/Services/Tunnels"

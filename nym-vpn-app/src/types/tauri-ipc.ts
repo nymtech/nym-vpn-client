@@ -28,6 +28,10 @@ export type DbKey =
   | 'WelcomeScreenSeen'
   | 'DesktopNotifications';
 
+/*
+ * Enum of the possible specialized errors emitted by the daemon or from the
+ * backend side
+ * */
 export type ErrorKey =
   | 'UnknownError'
   | 'InternalError'
@@ -80,12 +84,13 @@ export type ErrorKey =
   | 'CSMixnetConnectionMonitor'
   | 'AccountInvalidMnemonic'
   | 'AccountStorage'
-  | 'NoAccountStored'
-  | 'AccountNotActive'
-  | 'NoActiveSubscription'
-  | 'DeviceNotRegistered'
-  | 'DeviceNotActive'
-  | 'ReadyToConnectPending'
+  | 'AccountIsConnected'
+  | 'ConnectGeneral'
+  | 'ConnectNoAccountStored'
+  | 'ConnectNoDeviceStored'
+  | 'ConnectUpdateAccount'
+  | 'ConnectUpdateDevice'
+  | 'ConnectRegisterDevice'
   | 'EntryGatewayNotRouting'
   | 'ExitRouterPingIpv4'
   | 'ExitRouterPingIpv6'
@@ -96,7 +101,8 @@ export type ErrorKey =
   | 'GetMixnetEntryCountriesQuery'
   | 'GetMixnetExitCountriesQuery'
   | 'GetWgCountriesQuery'
-  | 'InvalidNetworkName';
+  | 'InvalidNetworkName'
+  | 'MaxRegisteredDevices';
 
 export type StartupErrorKey = 'StartupOpenDb' | 'StartupOpenDbLocked';
 
@@ -105,4 +111,40 @@ export type ConnectionStateResponse = {
   error?: BackendError | null;
 };
 
+type VpndOk = { ok: DaemonInfo | null };
+type VpndNonCompat = {
+  nonCompat: {
+    // The current daemon version and network
+    current: DaemonInfo;
+    // The SemVer version requirement
+    requirement: string;
+  };
+};
+
+export type VpndStatus = VpndOk | VpndNonCompat | 'notOk';
+
+export function isVpndOk(status: VpndStatus): status is VpndOk {
+  return status !== 'notOk' && (status as VpndOk).ok !== undefined;
+}
+
+export function isVpndNonCompat(status: VpndStatus): status is VpndNonCompat {
+  return (
+    status !== 'notOk' && (status as VpndNonCompat).nonCompat !== undefined
+  );
+}
+
 export type DaemonInfo = { version: string; network: NetworkEnv };
+
+export type SystemMessage = {
+  name: string;
+  message: string;
+  properties: Partial<Record<string, string>>;
+};
+
+export type AccountLinks = {
+  signUp?: string | null;
+  signIn?: string | null;
+  account?: string | null;
+};
+
+export type ReadyToConnect = 'ready' | { not_ready: string };

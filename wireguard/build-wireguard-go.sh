@@ -9,6 +9,7 @@ IS_ANDROID_BUILD=false
 IS_IOS_BUILD=false
 IS_DOCKER_BUILD=true
 IS_WIN_ARM64=false
+IS_WIN_CROSS_BUILD=false
 
 function parseArgs {
     for arg in "$@"; do
@@ -25,9 +26,13 @@ function parseArgs {
         "--no-docker" )
             IS_DOCKER_BUILD=false;
             shift ;;
+        # handle --windows option (allowing windows build from linux for example)
+        "--windows-cross" )
+            IS_WIN_CROSS_BUILD=true;
+            shift ;;
         # handle --arm64 option
         "--arm64" )
-            IS_WIN_ARM64=false;
+            IS_WIN_ARM64=true;
             shift ;;
         # if we receive "--" consider everything after to be inner arguments
         -- ) shift; break ;;
@@ -36,11 +41,11 @@ function parseArgs {
       esac
     done
 
-    echo "android:$IS_ANDROID_BUILD ios:$IS_IOS_BUILD docker:$IS_DOCKER_BUILD win_arm64:$IS_WIN_ARM64"
+    echo "android:$IS_ANDROID_BUILD ios:$IS_IOS_BUILD docker:$IS_DOCKER_BUILD windows:$IS_WIN_CROSS_BUILD win_arm64:$IS_WIN_ARM64"
 }
 
 function win_gather_export_symbols {
-   grep -Eo "\/\/export \w+" libwg.go libwg_windows.go | cut -d' ' -f2
+   grep -Eo "\/\/export \w+" libwg.go libwg_windows.go netstack.go netstack_default.go | cut -d' ' -f2
 }
 
 function win_create_lib_file {
@@ -65,6 +70,28 @@ function win_create_lib_file {
         "/machine:$arch"
 }
 
+function win_create_lib_file_cross {
+    echo "LIBRARY libwg" > exports.def
+    echo "EXPORTS" >> exports.def
+
+    for symbol in $(win_gather_export_symbols); do
+        printf "\t%s\n" "$symbol" >> exports.def
+    done
+
+    if $IS_WIN_ARM64; then
+        printf "cross compiling for windows ARM is not supported"
+        # as of late 2024 aarch64-w64-mingw32-gcc is not upstreamed into mingw-w64
+        # so we cannot cross compile windows builds for arm architectures
+        exit 2
+    fi
+
+    local arch="i386:x86-64"
+
+    echo "Creating lib for $arch"
+
+    x86_64-w64-mingw32-dlltool --dllname libwg.dll --def exports.def --output-lib libwg.lib --machine "$arch"
+}
+
 function build_windows {
     export CGO_ENABLED=1
     export GOOS=windows
@@ -76,16 +103,26 @@ function build_windows {
     else
         local arch="x86_64"
         export GOARCH=amd64
-        export CC="x86_64-w64-mingw32-cc"
+        if $IS_WIN_CROSS_BUILD; then
+            export CC="x86_64-w64-mingw32-gcc"
+        else
+            export CC="x86_64-w64-mingw32-cc"
+        fi
     fi
 
     echo "Building wireguard-go for Windows ($arch)"
 
     pushd $LIB_DIR
         go build -trimpath -v -o libwg.dll -buildmode c-shared
-        win_create_lib_file
 
-        local target_dir="../../build/lib/$arch-pc-windows-msvc/"
+        if [ $# -eq 0 ] ; then
+            win_create_lib_file
+            local target_dir="../../build/lib/$arch-pc-windows-msvc/"
+        elif [ "$1" == "cross" ]; then
+            win_create_lib_file_cross
+            local target_dir="../../build/lib/$arch-pc-windows-gnu/"
+        fi
+
         echo "Copying files to $(realpath "$target_dir")"
         mkdir -p $target_dir
         mv libwg.dll libwg.lib $target_dir
@@ -245,6 +282,11 @@ function build_wireguard_go {
 
     if $IS_IOS_BUILD ; then
         build_ios $@
+        return
+    fi
+
+    if $IS_WIN_CROSS_BUILD ; then
+        build_windows "cross"
         return
     fi
 

@@ -40,7 +40,6 @@ mod commands;
 mod country;
 mod db;
 mod env;
-mod envi;
 mod error;
 mod events;
 mod fs;
@@ -135,6 +134,10 @@ async fn main() -> Result<()> {
             #[cfg(windows)]
             db.insert(Key::VpnMode, VpnMode::Mixnet)?;
 
+            let app_window = AppWindow::create_main_window(app.handle())?;
+            app_window.set_bg_color(&db).ok();
+            app_window.set_max_size().ok();
+
             let app_config_store = {
                 let path = APP_CONFIG_DIR
                     .clone()
@@ -167,27 +170,25 @@ async fn main() -> Result<()> {
             let pkg_info = app.package_info().clone();
             let grpc = GrpcClient::new(&app_config, &cli, &pkg_info);
             let mut c_grpc = grpc.clone();
+            let handle = app.handle().clone();
             tokio::spawn(async move {
-                c_grpc.update_agent(&pkg_info).await.ok();
+                c_grpc.update_vpnd_info(&handle).await.ok();
             });
 
             app.manage(app_config);
             app.manage(grpc.clone());
 
-            let app_win = AppWindow::new(app.handle(), MAIN_WINDOW_LABEL)?;
-            app_win.set_max_size().ok();
-
             // if splash-screen is disabled, remove it and show
             // the main window without waiting for frontend signal
-            if cli.nosplash || envi::is_truthy(ENV_APP_NOSPLASH) {
+            if cli.nosplash || env::is_truthy(ENV_APP_NOSPLASH) {
                 debug!("splash screen disabled, showing main window");
-                app_win.no_splash();
+                app_window.no_splash();
             }
 
             tray::setup(app.handle())?;
 
             let handle = app.handle().clone();
-            let c_grpc = grpc.clone();
+            let mut c_grpc = grpc.clone();
             tokio::spawn(async move {
                 info!("starting vpnd health spy");
                 loop {
@@ -198,12 +199,11 @@ async fn main() -> Result<()> {
             });
 
             let handle = app.handle().clone();
-            let mut c_grpc = grpc.clone();
+            let c_grpc = grpc.clone();
             tokio::spawn(async move {
                 info!("starting vpn status spy");
                 loop {
                     if c_grpc.refresh_vpn_status(&handle).await.is_ok() {
-                        c_grpc.update_agent(handle.package_info()).await.ok();
                         c_grpc.watch_vpn_state(&handle).await.ok();
                     }
                     sleep(VPND_RETRY_INTERVAL).await;
@@ -235,15 +235,20 @@ async fn main() -> Result<()> {
             cmd_db::db_flush,
             cmd_country::get_countries,
             cmd_window::show_main_window,
+            cmd_window::set_background_color,
             commands::cli::cli_args,
             cmd_log::log_js,
             account::add_account,
             account::delete_account,
+            account::forget_account,
             account::is_account_stored,
             account::get_account_info,
+            account::account_links,
+            account::ready_to_connect,
             cmd_daemon::daemon_status,
-            cmd_daemon::daemon_info,
             cmd_daemon::set_network,
+            cmd_daemon::system_messages,
+            cmd_daemon::feature_flags,
             cmd_fs::log_dir,
             startup::startup_error,
             cmd_env::env,

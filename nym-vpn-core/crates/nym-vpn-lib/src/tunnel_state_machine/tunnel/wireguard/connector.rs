@@ -3,10 +3,12 @@
 
 use std::path::PathBuf;
 
+use tokio::task::JoinHandle;
+
 use nym_authenticator_client::AuthClient;
 use nym_credentials_interface::TicketType;
 use nym_gateway_directory::{AuthAddresses, Gateway, GatewayClient};
-use nym_sdk::mixnet::{EphemeralCredentialStorage, StoragePaths};
+use nym_sdk::mixnet::{ConnectionStatsEvent, EphemeralCredentialStorage, StoragePaths};
 use nym_task::TaskManager;
 use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
 
@@ -14,7 +16,9 @@ use super::connected_tunnel::ConnectedTunnel;
 use crate::{
     bandwidth_controller::BandwidthController,
     mixnet::SharedMixnetClient,
-    tunnel_state_machine::tunnel::{gateway_selector::SelectedGateways, Error, Result},
+    tunnel_state_machine::tunnel::{
+        self, gateway_selector::SelectedGateways, AnyConnector, ConnectorError, Error, Result,
+    },
 };
 
 pub struct ConnectionData {
@@ -40,13 +44,49 @@ impl Connector {
             gateway_directory_client,
         }
     }
-
     pub async fn connect(
         self,
         enable_credentials_mode: bool,
         selected_gateways: SelectedGateways,
         data_path: Option<PathBuf>,
-    ) -> Result<ConnectedTunnel> {
+    ) -> Result<ConnectedTunnel, ConnectorError> {
+        let result = Self::connect_inner(
+            &self.task_manager,
+            self.mixnet_client.clone(),
+            &self.gateway_directory_client,
+            enable_credentials_mode,
+            selected_gateways,
+            data_path,
+        )
+        .await;
+
+        match result {
+            Ok(connect_result) => Ok(ConnectedTunnel::new(
+                self.task_manager,
+                connect_result.entry_gateway_client,
+                connect_result.exit_gateway_client,
+                connect_result.connection_data,
+                connect_result.bandwidth_controller_handle,
+            )),
+            Err(e) => Err(ConnectorError::new(
+                e,
+                AnyConnector::Wireguard(Self::new(
+                    self.task_manager,
+                    self.mixnet_client,
+                    self.gateway_directory_client,
+                )),
+            )),
+        }
+    }
+
+    async fn connect_inner(
+        task_manager: &TaskManager,
+        mixnet_client: SharedMixnetClient,
+        gateway_directory_client: &GatewayClient,
+        enable_credentials_mode: bool,
+        selected_gateways: SelectedGateways,
+        data_path: Option<PathBuf>,
+    ) -> Result<ConnectResult> {
         let auth_addresses =
             Self::setup_auth_addresses(&selected_gateways.entry, &selected_gateways.exit)?;
         let (Some(entry_auth_recipient), Some(exit_auth_recipient)) =
@@ -54,14 +94,42 @@ impl Connector {
         else {
             return Err(Error::AuthenticationNotPossible(auth_addresses.to_string()));
         };
-        let auth_client = AuthClient::new_from_inner(self.mixnet_client.inner()).await;
+        let entry_version = selected_gateways.entry.version.clone().into();
+        let exit_version = selected_gateways.exit.version.clone().into();
+        let auth_client = AuthClient::new_from_inner(mixnet_client.inner()).await;
 
-        let mut wg_entry_gateway_client =
-            WgGatewayClient::new_entry(&data_path, auth_client.clone(), entry_auth_recipient);
-        let mut wg_exit_gateway_client =
-            WgGatewayClient::new_exit(&data_path, auth_client.clone(), exit_auth_recipient);
+        let mut wg_entry_gateway_client = if enable_credentials_mode {
+            WgGatewayClient::new_free_entry(
+                &data_path,
+                auth_client.clone(),
+                entry_auth_recipient,
+                entry_version,
+            )
+        } else {
+            WgGatewayClient::new_entry(
+                &data_path,
+                auth_client.clone(),
+                entry_auth_recipient,
+                entry_version,
+            )
+        };
+        let mut wg_exit_gateway_client = if enable_credentials_mode {
+            WgGatewayClient::new_free_exit(
+                &data_path,
+                auth_client.clone(),
+                exit_auth_recipient,
+                exit_version,
+            )
+        } else {
+            WgGatewayClient::new_exit(
+                &data_path,
+                auth_client.clone(),
+                exit_auth_recipient,
+                exit_version,
+            )
+        };
 
-        let shutdown = self.task_manager.subscribe_named("bandwidth controller");
+        let shutdown = task_manager.subscribe_named("bandwidth controller");
         let (connection_data, bandwidth_controller_handle) = if let Some(data_path) =
             data_path.as_ref()
         {
@@ -80,7 +148,7 @@ impl Connector {
                 .get_initial_bandwidth(
                     enable_credentials_mode,
                     TicketType::V1WireguardEntry,
-                    &self.gateway_directory_client,
+                    gateway_directory_client,
                     &mut wg_entry_gateway_client,
                 )
                 .await?;
@@ -88,7 +156,7 @@ impl Connector {
                 .get_initial_bandwidth(
                     enable_credentials_mode,
                     TicketType::V1WireguardExit,
-                    &self.gateway_directory_client,
+                    gateway_directory_client,
                     &mut wg_exit_gateway_client,
                 )
                 .await?;
@@ -108,7 +176,7 @@ impl Connector {
                 .get_initial_bandwidth(
                     enable_credentials_mode,
                     TicketType::V1WireguardEntry,
-                    &self.gateway_directory_client,
+                    gateway_directory_client,
                     &mut wg_entry_gateway_client,
                 )
                 .await?;
@@ -116,7 +184,7 @@ impl Connector {
                 .get_initial_bandwidth(
                     enable_credentials_mode,
                     TicketType::V1WireguardExit,
-                    &self.gateway_directory_client,
+                    gateway_directory_client,
                     &mut wg_exit_gateway_client,
                 )
                 .await?;
@@ -126,13 +194,18 @@ impl Connector {
             (ConnectionData { entry, exit }, bandwidth_controller_handle)
         };
 
-        Ok(ConnectedTunnel::new(
-            self.task_manager,
-            wg_entry_gateway_client,
-            wg_exit_gateway_client,
+        if let Some(exit_country_code) = selected_gateways.exit.two_letter_iso_country_code() {
+            auth_client.send_stats_event(
+                ConnectionStatsEvent::WgCountry(exit_country_code.to_string()).into(),
+            );
+        }
+
+        Ok(ConnectResult {
+            entry_gateway_client: wg_entry_gateway_client,
+            exit_gateway_client: wg_exit_gateway_client,
             connection_data,
             bandwidth_controller_handle,
-        ))
+        })
     }
 
     fn setup_auth_addresses(entry: &Gateway, exit: &Gateway) -> Result<AuthAddresses> {
@@ -147,4 +220,16 @@ impl Connector {
             exit_authenticator_address,
         ))
     }
+
+    /// Gracefully shutdown task manager and consume the struct.
+    pub async fn dispose(self) {
+        tunnel::shutdown_task_manager(self.task_manager).await;
+    }
+}
+
+struct ConnectResult {
+    entry_gateway_client: WgGatewayClient,
+    exit_gateway_client: WgGatewayClient,
+    connection_data: ConnectionData,
+    bandwidth_controller_handle: JoinHandle<()>,
 }

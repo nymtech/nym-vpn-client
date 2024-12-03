@@ -14,39 +14,129 @@ pub(crate) struct CliArgs {
     #[arg(long)]
     pub(crate) http: bool,
 
+    #[arg(long)]
+    pub(crate) verbose: bool,
+
     #[command(subcommand)]
     pub(crate) command: Command,
 }
 
 #[derive(Subcommand)]
 pub(crate) enum Command {
+    /// Connect to the Nym network.
     Connect(ConnectArgs),
+
+    /// Disconnect from the Nym network.
     Disconnect,
+
+    /// Get the current status of the connection.
     Status,
+
+    /// Get info about the current client. Things like version and network details.
     Info,
+
+    /// Set the network to be used. This requires a restart of the daemon (`nym-vpnd`)
     SetNetwork(SetNetworkArgs),
+
+    /// Store the account recovery phrase.
     StoreAccount(StoreAccountArgs),
+
+    /// Check if the account is stored.
     IsAccountStored,
-    RemoveAccount,
+
+    /// Forget the stored account. This removes the stores recovery phrase, device and mixnet keys,
+    /// stored local credentials, etc.
+    ForgetAccount,
+
+    /// Get the account ID.
     GetAccountId,
+
+    /// Get the current account state.
     GetAccountState,
-    RefreshAccountState,
-    IsReadyToConnect,
-    ListenToStatus,
-    ListenToStateChanges,
-    ListEntryGateways(ListGatewaysArgs),
-    ListExitGateways(ListGatewaysArgs),
-    ListVpnGateways(ListGatewaysArgs),
-    ListEntryCountries(ListCountriesArgs),
-    ListExitCountries(ListCountriesArgs),
-    ListVpnCountries(ListCountriesArgs),
-    ResetDeviceIdentity(ResetDeviceIdentityArgs),
+
+    /// Get URLs for managing your nym-vpn account.
+    GetAccountLinks(GetAccountLinksArgs),
+
+    /// Get the device ID.
     GetDeviceId,
+
+    /// List the set of entry gateways for mixnet mode.
+    ListEntryGateways(ListGatewaysArgs),
+
+    /// List the set of exit gateways for mixnet mode.
+    ListExitGateways(ListGatewaysArgs),
+
+    /// List the set of entry and exit gateways for dVPN mode.
+    ListVpnGateways(ListGatewaysArgs),
+
+    /// List the set of countries with available entry gateways for mixnet mode.
+    ListEntryCountries(ListCountriesArgs),
+
+    /// List the set of countries with available exit gateways for mixnet mode.
+    ListExitCountries(ListCountriesArgs),
+
+    /// List the set of countries with available entry and exit gateways for dVPN mode.
+    ListVpnCountries(ListCountriesArgs),
+
+    /// Internal commands for development and debugging.
+    #[clap(subcommand, hide = true)]
+    Internal(Internal),
+}
+
+#[derive(Subcommand)]
+pub(crate) enum Internal {
+    /// Get the list of system messages provided by the nym-vpn-api.
+    GetSystemMessages,
+
+    /// Get the list of feature flags provided by the nym-vpn-api.
+    GetFeatureFlags,
+
+    /// Remove the stored account. This only removes the stored recovery phrase.
+    RemoveAccount,
+
+    /// Manually trigger an account sync with the nym-vpn-api.
+    SyncAccountState,
+
+    /// Evaluate the current state of the device and determine if it is ready to connect.
+    IsReadyToConnect,
+
+    /// Manually reset the device identity. A seed can be provided as a way to generate a stable
+    /// identity for testing.
+    ResetDeviceIdentity(ResetDeviceIdentityArgs),
+
+    /// Register the device with your account.
     RegisterDevice,
+
+    /// Manually request zknym credentials.
     RequestZkNym,
+
+    /// Get the zknym credentials associated with this device.
     GetDeviceZkNym,
+
+    /// Get the zknym credentials available to download for this device.
+    GetZkNymsAvailableForDownload,
+
+    /// Get a specific zknym credential by ID.
+    GetZkNymById(GetZkNymByIdArgs),
+
+    /// Manually confirm that a zknym credential has been downloaded to the device and stored in
+    /// the local credential store.
+    ConfirmZkNymDownloaded(ConfirmZkNymDownloadedArgs),
+
+    /// List the available zknym ticketbooks in the local credential store.
+    GetAvailableTickets,
+
+    /// Fetch the account summary from the nym-vpn-api.
     FetchRawAccountSummary,
+
+    /// Fetch the devices associated with the account from the nym-vpn-api.
     FetchRawDevices,
+
+    /// Listen the the status event stream from nym-vpnd.
+    ListenToStatus,
+
+    /// Listen to the state change stream from nym-vpnd.
+    ListenToStateChanges,
 }
 
 #[derive(Args)]
@@ -71,6 +161,14 @@ pub(crate) struct ConnectArgs {
     /// exit gateway using Wireguard protocol.
     #[arg(long)]
     pub(crate) enable_two_hop: bool,
+
+    /// Blocks until the connection is established or failed
+    #[arg(short, long)]
+    pub(crate) wait_until_connected: bool,
+
+    /// Use netstack based implementation for two-hop wireguard.
+    #[arg(long, requires = "enable_two_hop")]
+    pub(crate) netstack: bool,
 
     /// Disable Poisson process rate limiting of outbound traffic.
     #[arg(long, hide = true)]
@@ -154,9 +252,10 @@ pub(crate) struct StoreAccountArgs {
 }
 
 #[derive(Args)]
-pub(crate) struct ApplyFreepassArgs {
-    /// The freepass code to be applied.
-    pub(crate) code: String,
+pub(crate) struct GetAccountLinksArgs {
+    /// The locale to be used.
+    #[arg(long)]
+    pub(crate) locale: String,
 }
 
 #[derive(Args)]
@@ -194,6 +293,20 @@ pub(crate) struct ResetDeviceIdentityArgs {
     /// Reset the device identity using the given seed.
     #[arg(long)]
     pub(crate) seed: Option<String>,
+}
+
+#[derive(Args)]
+pub(crate) struct GetZkNymByIdArgs {
+    /// The ID of the ZK Nym to fetch.
+    #[arg(short, long)]
+    pub(crate) id: String,
+}
+
+#[derive(Args)]
+pub(crate) struct ConfirmZkNymDownloadedArgs {
+    /// The ID of the ZK Nym to confirm.
+    #[arg(short, long)]
+    pub(crate) id: String,
 }
 
 pub(crate) fn parse_entry_point(args: &ConnectArgs) -> Result<Option<EntryPoint>> {

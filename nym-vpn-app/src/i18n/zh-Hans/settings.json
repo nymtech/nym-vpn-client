@@ -9,7 +9,6 @@
   },
   "monitoring-alert": "您必须重新启动应用程序才能使更改生效。",
   "support": {
-    "contact": "联系支持",
     "title": "支持",
     "faq": "查看常见问题"
   },
@@ -27,7 +26,6 @@
   "feedback": {
     "title": "反馈",
     "github": "打开 GitHub 问题",
-    "send": "向我们反馈",
     "matrix": "加入Matrix",
     "discord": "加入Discord"
   },
@@ -44,5 +42,9 @@
     "client-version": "客户端版本",
     "daemon-version": "守护进程版本",
     "network-name": "网络"
+  },
+  "logout-confirmation": {
+    "title": "你确定吗？",
+    "description": "您需要使用助记词才能再次登录。"
   }
 }

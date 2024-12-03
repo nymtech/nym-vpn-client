@@ -28,6 +28,7 @@ pnet_packet.workspace = true
 rand.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+si-scale.workspace = true
 signature.workspace = true
 sysinfo.workspace = true
 tap.workspace = true
@@ -59,6 +60,7 @@ nym-ip-packet-requests.workspace = true
 nym-node-requests.workspace = true
 nym-pemstore.workspace = true
 nym-sdk.workspace = true
+nym-statistics-common.workspace = true
 nym-task.workspace = true
 nym-topology.workspace = true
 nym-validator-client.workspace = true
@@ -75,7 +77,16 @@ nym-vpn-store = { path = "../nym-vpn-store" }
 nym-wg-gateway-client = { path = "../nym-wg-gateway-client" }
 nym-wg-go = { path = "../nym-wg-go" }
 
-[target.'cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))'.dependencies]
+[target.'cfg(unix)'.dependencies]
+nix = { workspace = true, features = ["socket", "net", "fs"] }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { workspace = true, features = ["Win32_NetworkManagement_Ndis"] }
+nym-windows = { path = "../nym-windows" }
+nym-routing = { path = "../nym-routing" }
+nym-dns = { path = "../nym-dns" }
+
+[target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
 nym-routing = { path = "../nym-routing" }
 nym-dns = { path = "../nym-dns" }
 
@@ -83,14 +94,10 @@ nym-dns = { path = "../nym-dns" }
 android_logger = "0.14.1"
 err-derive = "0.3.1"
 jnix = { version = "=0.5.1", features = ["derive"] }
-nix = { workspace = true, features = ["socket", "net"] }
 rand.workspace = true
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 oslog = "0.2.0"
-
-[target.'cfg(target_os = "ios")'.dependencies]
-nix = { workspace = true, features = ["socket", "net"] }
 
 [build-dependencies]
 uniffi = { workspace = true, features = ["build"] }

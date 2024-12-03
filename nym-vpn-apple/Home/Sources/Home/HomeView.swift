@@ -51,13 +51,26 @@ private extension HomeView {
                             isDisplayed: $viewModel.isModeInfoOverlayDisplayed
                         )
                 )
+                .transition(.opacity)
+                .animation(.easeInOut, value: viewModel.isModeInfoOverlayDisplayed)
             }
         }
+        .snackbar(
+            isDisplayed: $viewModel.isSnackBarDisplayed,
+            style: .info,
+            message: viewModel.systemMessageManager.currentMessage
+        )
         .onAppear {
             viewModel.configureConnectedTimeTimer()
+            Task(priority: .background) {
+                try? await Task.sleep(for: .seconds(3))
+                viewModel.systemMessageManager.processMessages()
+            }
         }
         .onDisappear {
+#if os(iOS)
             viewModel.stopConnectedTimeTimerUpdates()
+#endif
         }
     }
 
@@ -95,7 +108,9 @@ private extension HomeView {
                 .foregroundColor(NymColor.sysOutline)
                 .frame(width: 24, height: 24)
                 .onTapGesture {
-                    viewModel.isModeInfoOverlayDisplayed.toggle()
+                    withAnimation {
+                        viewModel.isModeInfoOverlayDisplayed.toggle()
+                    }
                 }
         }
         .padding(.horizontal, 16)

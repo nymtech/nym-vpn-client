@@ -135,6 +135,7 @@ enum StatusUpdate {
     ConnectionOkIpv4,
     ConnectionOkIpv6,
     RemainingBandwidth,
+    MixnetBandwidthRate,
     NoBandwidth,
     WgTunnelError,
 }
@@ -150,7 +151,7 @@ pub struct StatusUpdatePayload {
 
 fn status_update_to_error(update: ConnectionStatusUpdate) -> Option<BackendError> {
     let status = update.kind();
-    let error = BackendError::new_with_optional_data(
+    let error = BackendError::with_optional_data(
         &update.message,
         ErrorKey::from(status),
         Some(update.details),
@@ -200,6 +201,7 @@ impl From<ConnectionStatusUpdate> for StatusUpdatePayload {
                 StatusType::RemainingBandwidth => StatusUpdate::RemainingBandwidth,
                 StatusType::NoBandwidth => StatusUpdate::NoBandwidth,
                 StatusType::WgTunnelError => StatusUpdate::WgTunnelError,
+                StatusType::MixnetBandwidthRate => StatusUpdate::MixnetBandwidthRate,
                 _ => StatusUpdate::Unknown, // Unspecified & Unknown
             },
             message: update.message.clone(),

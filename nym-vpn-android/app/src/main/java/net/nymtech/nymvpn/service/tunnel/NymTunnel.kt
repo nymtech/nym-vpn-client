@@ -1,8 +1,7 @@
 package net.nymtech.nymvpn.service.tunnel
 
 import net.nymtech.vpn.backend.Tunnel
-import net.nymtech.vpn.model.BackendMessage
-import net.nymtech.vpn.model.Statistics
+import net.nymtech.vpn.model.BackendEvent
 import nym_vpn_lib.EntryPoint
 import nym_vpn_lib.ExitPoint
 
@@ -12,18 +11,14 @@ class NymTunnel(
 	override var mode: Tunnel.Mode,
 	override var environment: Tunnel.Environment,
 	val stateChange: (newState: Tunnel.State) -> Unit,
-	val statChange: (stats: Statistics) -> Unit,
-	val backendMessage: (message: BackendMessage) -> Unit,
+	val backendEvent: (message: BackendEvent) -> Unit,
+	override var credentialMode: Boolean?,
 ) : Tunnel {
 	override fun onStateChange(newState: Tunnel.State) {
 		stateChange(newState)
 	}
 
-	override fun onStatisticChange(stats: Statistics) {
-		statChange(stats)
-	}
-
-	override fun onBackendMessage(message: BackendMessage) {
-		backendMessage(message)
+	override fun onBackendEvent(event: BackendEvent) {
+		backendEvent(event)
 	}
 }

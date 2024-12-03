@@ -14,5 +14,24 @@ prost.workspace = true
 tonic-reflection.workspace = true
 tonic.workspace = true
 
+nym-config = { workspace = true, optional = true }
+nym-vpn-lib = { path = "../nym-vpn-lib", optional = true }
+nym-vpn-network-config = { path = "../nym-vpn-network-config", optional = true }
+nym-vpnd-types = { path = "../nym-vpnd-types", optional = true }
+thiserror = { workspace = true, optional = true }
+time = { workspace = true, optional = true }
+url = { workspace = true, optional = true }
+
 [build-dependencies]
 tonic-build.workspace = true
+
+[features]
+conversions = [
+    "dep:nym-config",
+    "dep:nym-vpn-lib",
+    "dep:nym-vpn-network-config",
+    "dep:nym-vpnd-types",
+    "dep:thiserror",
+    "dep:time",
+    "dep:url",
+]

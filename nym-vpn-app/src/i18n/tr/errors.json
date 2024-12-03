@@ -81,13 +81,6 @@
   "entry-node-routing": "Giriş nodeu trafiği iletmiyor (internet bağlantısı mı kesik?)",
   "account": {
     "invalid-recovery-phrase": "Geçersiz kurtarma ifadesi",
-    "storage": "Depolama arka ucu hatası",
-    "device": {
-      "not-registered": "Cihaz kaydedilmemiş",
-      "not-active": "Cihaz aktif değil"
-    },
-    "no-active-subscription": "Hesapta aktif bir abonelik yok",
-    "not-active": "Hesap aktif değil",
-    "no-account-stored": "Hiçbir hesap kurtarma ifadesi saklanmamış"
+    "storage": "Depolama arka ucu hatası"
   }
 }

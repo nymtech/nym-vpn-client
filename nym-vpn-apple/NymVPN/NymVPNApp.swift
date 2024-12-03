@@ -9,6 +9,7 @@ import Migrations
 import NymLogger
 import NotificationsManager
 import SentryManager
+import SystemMessageManager
 import Theme
 
 @main
@@ -17,6 +18,7 @@ struct NymVPNApp: App {
 
     @ObservedObject private var appSettings = AppSettings.shared
     @StateObject private var homeViewModel = HomeViewModel()
+    @StateObject private var welcomeViewModel = WelcomeViewModel()
 
     init() {
         setup()
@@ -28,7 +30,7 @@ struct NymVPNApp: App {
                 if !homeViewModel.splashScreenDidDisplay {
                     LaunchView(splashScreenDidDisplay: $homeViewModel.splashScreenDidDisplay)
                 } else if !appSettings.welcomeScreenDidDisplay {
-                    WelcomeView(viewModel: WelcomeViewModel())
+                    WelcomeView(viewModel: welcomeViewModel)
                         .transition(.slide)
                 } else {
                     HomeView(viewModel: homeViewModel)
@@ -50,7 +52,11 @@ private extension NymVPNApp {
         LoggingSystem.bootstrap { label in
             FileLogHandler(label: label, logFileManager: logFileManager)
         }
-        try? ConfigurationManager.shared.setup()
+        Task {
+            // Things dependant on environment beeing set.
+            try await ConfigurationManager.shared.setup()
+            SystemMessageManager.shared.setup()
+        }
         NotificationsManager.shared.setup()
         ThemeConfiguration.setup()
         SentryManager.shared.setup()

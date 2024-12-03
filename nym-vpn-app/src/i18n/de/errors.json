@@ -55,5 +55,8 @@
   "exit-node": {
     "routing": "Austritts-Node sendet keine {{protocol}} Daten",
     "ping": "Austritts-Node Ping für {{protocol}} fehlgeschlagen"
+  },
+  "account": {
+    "invalid-recovery-phrase": "ungültiger Wiederherstellungsphrase"
   }
 }

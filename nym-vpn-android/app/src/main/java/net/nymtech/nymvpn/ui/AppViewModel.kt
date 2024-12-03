@@ -3,10 +3,6 @@ package net.nymtech.nymvpn.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.sentry.Instrumenter
-import io.sentry.android.core.SentryAndroid
-import io.sentry.opentelemetry.OpenTelemetryLinkErrorEventProcessor
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,20 +10,23 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import net.nymtech.nymvpn.BuildConfig
-import net.nymtech.nymvpn.NymVpn
+import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
-import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
-import net.nymtech.nymvpn.module.qualifiers.Native
 import net.nymtech.nymvpn.service.country.CountryCacheService
-import net.nymtech.nymvpn.service.gateway.GatewayService
+import net.nymtech.nymvpn.service.gateway.NymApiService
 import net.nymtech.nymvpn.service.tunnel.TunnelManager
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
+import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.Constants
+import net.nymtech.nymvpn.util.LocaleUtil
+import net.nymtech.nymvpn.util.StringValue
+import net.nymtech.vpn.backend.Backend
+import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.Country
+import nym_vpn_lib.SystemMessage
 import timber.log.Timber
+import javax.inject.Provider
 import javax.inject.Inject
 
 @HiltViewModel
@@ -35,15 +34,21 @@ class AppViewModel
 @Inject
 constructor(
 	private val settingsRepository: SettingsRepository,
-	private val gatewayRepository: GatewayRepository,
+	gatewayRepository: GatewayRepository,
 	private val countryCacheService: CountryCacheService,
-	@Native private val gatewayService: GatewayService,
 	private val tunnelManager: TunnelManager,
-	@IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+	private val backend: Provider<Backend>,
+	private val nymApiService: NymApiService,
 ) : ViewModel() {
 
 	private val _navBarState = MutableStateFlow(NavBarState())
 	val navBarState = _navBarState.asStateFlow()
+
+	private val _systemMessage = MutableStateFlow<SystemMessage?>(null)
+	val systemMessage = _systemMessage.asStateFlow()
+
+	private val _configurationChange = MutableStateFlow<Boolean>(false)
+	val configurationChange = _configurationChange.asStateFlow()
 
 	val uiState =
 		combine(
@@ -54,9 +59,9 @@ constructor(
 			AppUiState(
 				settings,
 				gateways,
-				manager.state,
-				manager.backendMessage,
-				isMnemonicStored = manager.isMnemonicStored,
+				manager,
+				entryCountry = settings.firstHopCountry ?: Country(isLowLatency = true),
+				exitCountry = settings.lastHopCountry ?: Country(isDefault = true),
 			)
 		}.stateIn(
 			viewModelScope,
@@ -68,29 +73,14 @@ constructor(
 		settingsRepository.setAnalyticsShown(true)
 	}
 
-	fun onEntryLocationSelected(selected: Boolean) = viewModelScope.launch {
-		settingsRepository.setFirstHopSelection(selected)
-		settingsRepository.setFirstHopCountry(Country(isDefault = true))
-// 		launch {
-// 			setFirstHopToLowLatencyFromApi()
-// 		}
-// 		launch {
-// 			setFirstHopToLowLatencyFromCache()
-// 		}
-	}
-
-	private suspend fun setFirstHopToLowLatencyFromApi() {
-		Timber.d("Updating low latency entry gateway")
-		gatewayService.getLowLatencyCountry().onSuccess {
-			Timber.d("New low latency gateway: $it")
-			settingsRepository.setFirstHopCountry(it.copy(isLowLatency = true))
-		}.onFailure {
-			Timber.w(it)
-		}
-	}
-
 	fun logout() = viewModelScope.launch {
-		tunnelManager.removeMnemonic()
+		runCatching {
+			if (tunnelManager.getState() == Tunnel.State.Down) {
+				tunnelManager.removeMnemonic()
+			} else {
+				SnackbarController.showMessage(StringValue.StringResource(R.string.action_requires_tunnel_down))
+			}
+		}.onFailure { Timber.e(it) }
 	}
 
 	fun onErrorReportingSelected() = viewModelScope.launch {
@@ -101,23 +91,52 @@ constructor(
 		settingsRepository.setAnalytics(!uiState.value.settings.analyticsEnabled)
 	}
 
-	private suspend fun setFirstHopToLowLatencyFromCache() {
-		runCatching {
-			gatewayRepository.getLowLatencyEntryCountry()
-		}.onFailure {
-			Timber.e(it)
-		}.onSuccess {
-			settingsRepository.setFirstHopCountry(it ?: Country(isDefault = true))
-		}
-	}
-
 	fun onNavBarStateChange(navBarState: NavBarState) {
 		_navBarState.update {
 			navBarState
 		}
 	}
 
+	fun onLocaleChange(localeTag: String) = viewModelScope.launch {
+		settingsRepository.setLocale(localeTag)
+		LocaleUtil.changeLocale(localeTag)
+		_configurationChange.update {
+			true
+		}
+	}
+
+	fun onEnvironmentChange(environment: Tunnel.Environment) = viewModelScope.launch {
+		if (tunnelManager.getState() == Tunnel.State.Down) {
+			settingsRepository.setEnvironment(environment)
+			_configurationChange.emit(true)
+		} else {
+			SnackbarController.showMessage(StringValue.StringResource(R.string.action_requires_tunnel_down))
+		}
+	}
+
+	fun onCredentialOverride(value: Boolean?) = viewModelScope.launch {
+		if (tunnelManager.getState() != Tunnel.State.Down) {
+			return@launch SnackbarController.showMessage(
+				StringValue.StringResource(R.string.action_requires_tunnel_down),
+			)
+		}
+		settingsRepository.setCredentialMode(value)
+		_configurationChange.emit(true)
+	}
+
+	private suspend fun checkSystemMessages() {
+		runCatching {
+			val env = settingsRepository.getEnvironment()
+			val messages = nymApiService.getSystemMessages(env)
+			messages.firstOrNull()?.let {
+				_systemMessage.emit(it)
+			}
+		}.onFailure { Timber.e(it) }
+	}
+
 	fun onAppStartup() = viewModelScope.launch {
+		val env = settingsRepository.getEnvironment()
+		backend.get().init(env, settingsRepository.isCredentialMode())
 		launch {
 			Timber.d("Updating exit country cache")
 			countryCacheService.updateExitCountriesCache().onSuccess {
@@ -137,29 +156,12 @@ constructor(
 			}.onFailure { Timber.w("Failed to get wg countries: ${it.message}") }
 		}
 		launch {
-			Timber.d("Configuring sentry")
-			configureSentry()
+			Timber.d("Checking for system messages")
+			checkSystemMessages()
 		}
-	}
-
-	private suspend fun configureSentry() {
-		withContext(ioDispatcher) {
-			if (settingsRepository.isErrorReportingEnabled()) {
-				SentryAndroid.init(NymVpn.instance) { options ->
-					options.enableTracing = true
-					options.enableAllAutoBreadcrumbs(true)
-					options.isEnableUserInteractionTracing = true
-					options.isEnableUserInteractionBreadcrumbs = true
-					options.dsn = BuildConfig.SENTRY_DSN
-					options.sampleRate = 1.0
-					options.tracesSampleRate = 1.0
-					options.profilesSampleRate = 1.0
-					options.instrumenter = Instrumenter.OTEL
-					options.addEventProcessor(OpenTelemetryLinkErrorEventProcessor())
-					options.environment =
-						if (BuildConfig.DEBUG) Constants.SENTRY_DEV_ENV else Constants.SENTRY_PROD_ENV
-				}
-			}
+		launch {
+			Timber.d("Updating account links")
+			tunnelManager.refreshAccountLinks()
 		}
 	}
 }

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
+    collections::HashMap,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     path::PathBuf,
     str::FromStr,
@@ -276,6 +277,7 @@ impl UniffiCustomTypeConverter for OffsetDateTime {
 pub struct NetworkEnvironment {
     pub nym_network: NymNetworkDetails,
     pub nym_vpn_network: NymVpnNetwork,
+    pub feature_flags: Option<FeatureFlags>,
 }
 
 impl From<nym_vpn_network_config::Network> for NetworkEnvironment {
@@ -283,6 +285,7 @@ impl From<nym_vpn_network_config::Network> for NetworkEnvironment {
         NetworkEnvironment {
             nym_network: network.nym_network.network.into(),
             nym_vpn_network: network.nym_vpn_network.into(),
+            feature_flags: network.feature_flags.map(FeatureFlags::from),
         }
     }
 }
@@ -389,6 +392,38 @@ impl From<nym_vpn_network_config::NymVpnNetwork> for NymVpnNetwork {
     fn from(value: nym_vpn_network_config::NymVpnNetwork) -> Self {
         NymVpnNetwork {
             nym_vpn_api_url: value.nym_vpn_api_url.to_string(),
+        }
+    }
+}
+
+#[derive(uniffi::Record)]
+pub struct FeatureFlags {
+    pub flags: HashMap<String, FlagValue>,
+}
+
+#[derive(uniffi::Enum)]
+pub enum FlagValue {
+    Value(String),
+    Group(HashMap<String, String>),
+}
+
+impl From<nym_vpn_network_config::FeatureFlags> for FeatureFlags {
+    fn from(value: nym_vpn_network_config::FeatureFlags) -> Self {
+        FeatureFlags {
+            flags: value
+                .flags
+                .into_iter()
+                .map(|(k, v)| (k, v.into()))
+                .collect(),
+        }
+    }
+}
+
+impl From<nym_vpn_network_config::feature_flags::FlagValue> for FlagValue {
+    fn from(value: nym_vpn_network_config::feature_flags::FlagValue) -> Self {
+        match value {
+            nym_vpn_network_config::feature_flags::FlagValue::Value(v) => FlagValue::Value(v),
+            nym_vpn_network_config::feature_flags::FlagValue::Group(g) => FlagValue::Group(g),
         }
     }
 }
@@ -645,9 +680,10 @@ impl UniffiCustomTypeConverter for PathBuf {
 #[derive(uniffi::Record, Clone, Default, PartialEq)]
 pub struct AccountStateSummary {
     pub mnemonic: Option<MnemonicState>,
-    pub account: Option<AccountState>,
-    pub subscription: Option<SubscriptionState>,
+    pub account_registered: Option<AccountRegistered>,
+    pub account_summary: Option<AccountSummary>,
     pub device: Option<DeviceState>,
+    pub device_registration: Option<DeviceRegistration>,
     pub pending_zk_nym: bool,
 }
 
@@ -655,9 +691,10 @@ impl From<nym_vpn_account_controller::AccountStateSummary> for AccountStateSumma
     fn from(value: nym_vpn_account_controller::AccountStateSummary) -> Self {
         AccountStateSummary {
             mnemonic: value.mnemonic.map(|m| m.into()),
-            account: value.account.map(|a| a.into()),
-            subscription: value.subscription.map(|s| s.into()),
+            account_registered: value.account_registered.map(|a| a.into()),
+            account_summary: value.account_summary.map(|a| a.into()),
             device: value.device.map(|d| d.into()),
+            device_registration: value.device_registration.map(|d| d.into()),
             pending_zk_nym: value.pending_zk_nym,
         }
     }
@@ -675,7 +712,7 @@ impl From<nym_vpn_account_controller::shared_state::MnemonicState> for MnemonicS
             nym_vpn_account_controller::shared_state::MnemonicState::NotStored => {
                 MnemonicState::NotStored
             }
-            nym_vpn_account_controller::shared_state::MnemonicState::Stored => {
+            nym_vpn_account_controller::shared_state::MnemonicState::Stored { .. } => {
                 MnemonicState::Stored
             }
         }
@@ -683,8 +720,26 @@ impl From<nym_vpn_account_controller::shared_state::MnemonicState> for MnemonicS
 }
 
 #[derive(uniffi::Enum, Debug, Clone, PartialEq)]
-pub enum AccountState {
+pub enum AccountRegistered {
+    Registered,
     NotRegistered,
+}
+
+impl From<nym_vpn_account_controller::shared_state::AccountRegistered> for AccountRegistered {
+    fn from(value: nym_vpn_account_controller::shared_state::AccountRegistered) -> Self {
+        match value {
+            nym_vpn_account_controller::shared_state::AccountRegistered::Registered { .. } => {
+                AccountRegistered::Registered
+            }
+            nym_vpn_account_controller::shared_state::AccountRegistered::NotRegistered => {
+                AccountRegistered::NotRegistered
+            }
+        }
+    }
+}
+
+#[derive(uniffi::Enum, Debug, Clone, PartialEq)]
+pub enum AccountState {
     Inactive,
     Active,
     DeleteMe,
@@ -693,14 +748,13 @@ pub enum AccountState {
 impl From<nym_vpn_account_controller::shared_state::AccountState> for AccountState {
     fn from(value: nym_vpn_account_controller::shared_state::AccountState) -> Self {
         match value {
-            nym_vpn_account_controller::shared_state::AccountState::NotRegistered => {
-                AccountState::NotRegistered
-            }
-            nym_vpn_account_controller::shared_state::AccountState::Inactive => {
+            nym_vpn_account_controller::shared_state::AccountState::Inactive { .. } => {
                 AccountState::Inactive
             }
-            nym_vpn_account_controller::shared_state::AccountState::Active => AccountState::Active,
-            nym_vpn_account_controller::shared_state::AccountState::DeleteMe => {
+            nym_vpn_account_controller::shared_state::AccountState::Active { .. } => {
+                AccountState::Active
+            }
+            nym_vpn_account_controller::shared_state::AccountState::DeleteMe { .. } => {
                 AccountState::DeleteMe
             }
         }
@@ -734,6 +788,59 @@ impl From<nym_vpn_account_controller::shared_state::SubscriptionState> for Subsc
     }
 }
 
+#[derive(uniffi::Record, Debug, Clone, PartialEq)]
+pub struct DeviceSummary {
+    active: u64,
+    max: u64,
+    remaining: u64,
+}
+
+impl From<nym_vpn_account_controller::shared_state::DeviceSummary> for DeviceSummary {
+    fn from(value: nym_vpn_account_controller::shared_state::DeviceSummary) -> Self {
+        DeviceSummary {
+            active: value.active,
+            max: value.max,
+            remaining: value.remaining,
+        }
+    }
+}
+
+#[derive(uniffi::Record, Debug, Clone, PartialEq)]
+pub struct FairUsage {
+    pub used_gb: Option<f64>,
+    pub limit_gb: Option<f64>,
+    pub resets_on_utc: Option<String>,
+}
+
+impl From<nym_vpn_account_controller::shared_state::FairUsage> for FairUsage {
+    fn from(value: nym_vpn_account_controller::shared_state::FairUsage) -> Self {
+        FairUsage {
+            used_gb: value.used_gb,
+            limit_gb: value.limit_gb,
+            resets_on_utc: value.resets_on_utc,
+        }
+    }
+}
+
+#[derive(uniffi::Record, Debug, Clone, PartialEq)]
+pub struct AccountSummary {
+    account: AccountState,
+    subscription: SubscriptionState,
+    device_summary: DeviceSummary,
+    fair_usage: FairUsage,
+}
+
+impl From<nym_vpn_account_controller::shared_state::AccountSummary> for AccountSummary {
+    fn from(value: nym_vpn_account_controller::shared_state::AccountSummary) -> Self {
+        AccountSummary {
+            account: value.account.into(),
+            subscription: value.subscription.into(),
+            device_summary: value.device_summary.into(),
+            fair_usage: value.fair_usage.into(),
+        }
+    }
+}
+
 #[derive(uniffi::Enum, Debug, Clone, PartialEq)]
 pub enum DeviceState {
     NotRegistered,
@@ -755,6 +862,71 @@ impl From<nym_vpn_account_controller::shared_state::DeviceState> for DeviceState
             nym_vpn_account_controller::shared_state::DeviceState::DeleteMe => {
                 DeviceState::DeleteMe
             }
+        }
+    }
+}
+
+#[derive(uniffi::Enum, Debug, Clone, PartialEq)]
+pub enum DeviceRegistration {
+    InProgress,
+    Success,
+    Failed {
+        message: String,
+        message_id: Option<String>,
+    },
+}
+
+impl From<nym_vpn_account_controller::shared_state::DeviceRegistration> for DeviceRegistration {
+    fn from(value: nym_vpn_account_controller::shared_state::DeviceRegistration) -> Self {
+        match value {
+            nym_vpn_account_controller::shared_state::DeviceRegistration::InProgress => {
+                DeviceRegistration::InProgress
+            }
+            nym_vpn_account_controller::shared_state::DeviceRegistration::Success => {
+                DeviceRegistration::Success
+            }
+            nym_vpn_account_controller::shared_state::DeviceRegistration::Failed {
+                message,
+                message_id,
+                code_reference_id: _,
+            } => DeviceRegistration::Failed {
+                message,
+                message_id,
+            },
+        }
+    }
+}
+
+#[derive(uniffi::Record, Clone, PartialEq)]
+pub struct SystemMessage {
+    pub name: String,
+    pub message: String,
+    pub properties: HashMap<String, String>,
+}
+
+impl From<nym_vpn_network_config::SystemMessage> for SystemMessage {
+    fn from(value: nym_vpn_network_config::SystemMessage) -> Self {
+        SystemMessage {
+            name: value.name,
+            message: value.message,
+            properties: value.properties.into_inner(),
+        }
+    }
+}
+
+#[derive(uniffi::Record, Clone, PartialEq)]
+pub struct AccountLinks {
+    pub sign_up: String,
+    pub sign_in: String,
+    pub account: Option<String>,
+}
+
+impl From<nym_vpn_network_config::ParsedAccountLinks> for AccountLinks {
+    fn from(value: nym_vpn_network_config::ParsedAccountLinks) -> Self {
+        AccountLinks {
+            sign_up: value.sign_up.to_string(),
+            sign_in: value.sign_in.to_string(),
+            account: value.account.map(|s| s.to_string()),
         }
     }
 }

@@ -26,6 +26,8 @@ reqwest = { workspace = true, default-features = false, features = [
 ] }
 serde.workspace = true
 serde_json.workspace = true
+strum.workspace = true
+strum_macros.workspace = true
 sysinfo.workspace = true
 thiserror.workspace = true
 time.workspace = true
@@ -41,10 +43,12 @@ tracing-appender.workspace = true
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 tracing.workspace = true
 url.workspace = true
+zeroize.workspace = true
 
 # Nym monorepo
 nym-bandwidth-controller.workspace = true
 nym-bin-common.workspace = true
+nym-credentials-interface.workspace = true
 nym-task.workspace = true
 nym-validator-client.workspace = true
 
@@ -53,8 +57,9 @@ nym-vpn-account-controller = { path = "../nym-vpn-account-controller" }
 nym-vpn-api-client = { path = "../nym-vpn-api-client" }
 nym-vpn-lib = { path = "../nym-vpn-lib" }
 nym-vpn-network-config = { path = "../nym-vpn-network-config" }
-nym-vpn-proto = { path = "../nym-vpn-proto" }
+nym-vpn-proto = { path = "../nym-vpn-proto", features = ["conversions"]}
 nym-vpn-store = { path = "../nym-vpn-store" }
+nym-vpnd-types = { path = "../nym-vpnd-types" }
 
 [target.'cfg(windows)'.dependencies]
 windows-service = "0.7.0"

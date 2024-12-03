@@ -42,6 +42,9 @@ pub enum VpnApiClientError {
     #[error("failed to get zk-nym by id")]
     FailedToGetZkNymById(#[source] HttpClientError<NymErrorResponse>),
 
+    #[error("failed to confirm zk-nym download")]
+    FailedToConfirmZkNymDownloadById(#[source] HttpClientError<NymErrorResponse>),
+
     #[error("failed to get free passes")]
     FailedToGetFreePasses(#[source] HttpClientError<ErrorMessage>),
 
@@ -86,6 +89,13 @@ pub enum VpnApiClientError {
 
     #[error("failed to derive from path")]
     CosmosDeriveFromPath(#[source] nym_validator_client::nyxd::bip32::Error),
+
+    #[error("failed to get directory zk-nym ticketbook partial verification keys")]
+    FailedToGetDirectoryZkNymsTicketbookPartialVerificationKeys(
+        #[source] HttpClientError<ErrorMessage>,
+    ),
+    #[error("failed to get health")]
+    FailedToGetHealth(#[source] HttpClientError<UnexpectedError>),
 }
 
 pub type Result<T> = std::result::Result<T, VpnApiClientError>;

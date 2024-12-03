@@ -11,16 +11,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowRight
 import androidx.compose.material.icons.automirrored.outlined.Launch
 import androidx.compose.material.icons.automirrored.outlined.ViewQuilt
 import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.AppShortcut
-import androidx.compose.material.icons.outlined.BugReport
-import androidx.compose.material.icons.outlined.Launch
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
@@ -37,9 +35,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import net.nymtech.nymvpn.BuildConfig
@@ -63,6 +58,7 @@ import net.nymtech.nymvpn.util.extensions.launchVpnSettings
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
+import timber.log.Timber
 
 @Composable
 fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel: SettingsViewModel = hiltViewModel()) {
@@ -95,7 +91,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 			.padding(top = 24.dp)
 			.padding(horizontal = 24.dp.scaledWidth()).padding(bottom = padding.calculateBottomPadding()),
 	) {
-		if (!appUiState.isMnemonicStored) {
+		if (!appUiState.managerState.isMnemonicStored) {
 			MainStyledButton(
 				onClick = { navController.navigate(Route.Credential) },
 				content = {
@@ -117,8 +113,10 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 						},
 						title = { Text(stringResource(R.string.account), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 						onClick = {
-							val url = appUiState.settings.environment.accountUrl.toString()
-							context.openWebUrl(url)
+							appUiState.managerState.accountLinks?.account?.let {
+								Timber.d("Account url: $it")
+								context.openWebUrl(it)
+							} ?: snackbar.showMessage("Not available")
 						},
 					),
 				),
@@ -144,25 +142,13 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 				),
 				SelectionItem(
 					Icons.Outlined.AdminPanelSettings,
+					{
+						val icon = Icons.AutoMirrored.Outlined.ArrowRight
+						Icon(icon, icon.name, Modifier.size(iconSize))
+					},
 					title = { Text(stringResource(R.string.kill_switch), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
 						context.launchVpnSettings()
-					},
-				),
-				SelectionItem(
-					ImageVector.vectorResource(R.drawable.two),
-					{
-						ScaledSwitch(
-							appUiState.settings.firstHopSelectionEnabled,
-							onClick = { appViewModel.onEntryLocationSelected(it) },
-							enabled = (appUiState.state is Tunnel.State.Down),
-						)
-					},
-					title = {
-						Text(
-							stringResource(R.string.entry_location_selector),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-						)
 					},
 				),
 			),
@@ -171,11 +157,19 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 			mutableListOf(
 				SelectionItem(
 					Icons.AutoMirrored.Outlined.ViewQuilt,
+					{
+						val icon = Icons.AutoMirrored.Outlined.ArrowRight
+						Icon(icon, icon.name, Modifier.size(iconSize))
+					},
 					title = { Text(stringResource(R.string.appearance), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = { navController.navigate(Route.Appearance) },
 				),
 				SelectionItem(
 					Icons.Outlined.Notifications,
+					{
+						val icon = Icons.AutoMirrored.Outlined.ArrowRight
+						Icon(icon, icon.name, Modifier.size(iconSize))
+					},
 					title = { Text(stringResource(R.string.notifications), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
 						context.launchNotificationSettings()
@@ -204,56 +198,34 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 				}
 			},
 		)
-		val errorReportingDescription = buildAnnotatedString {
-			append("(")
-			append(stringResource(id = R.string.via))
-			append(" ")
-			pushStringAnnotation(tag = "sentry", annotation = stringResource(id = R.string.sentry_url))
-			withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-				append(stringResource(id = R.string.sentry))
-			}
-			pop()
-			append("), ")
-			append(stringResource(id = R.string.required_app_restart))
-		}
 		SurfaceSelectionGroupButton(
 			listOf(
 				SelectionItem(
 					ImageVector.vectorResource(R.drawable.feedback),
+					{
+						val icon = Icons.AutoMirrored.Outlined.ArrowRight
+						Icon(icon, icon.name, Modifier.size(iconSize))
+					},
 					title = { Text(stringResource(R.string.feedback), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = { navController.navigate(Route.Feedback) },
 				),
 				SelectionItem(
 					ImageVector.vectorResource(R.drawable.support),
+					{
+						val icon = Icons.AutoMirrored.Outlined.ArrowRight
+						Icon(icon, icon.name, Modifier.size(iconSize))
+					},
 					title = { Text(stringResource(R.string.support), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = { navController.navigate(Route.Support) },
 				),
 				SelectionItem(
 					ImageVector.vectorResource(R.drawable.logs),
+					{
+						val icon = Icons.AutoMirrored.Outlined.ArrowRight
+						Icon(icon, icon.name, Modifier.size(iconSize))
+					},
 					title = { Text(stringResource(R.string.logs), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = { navController.navigate(Route.Logs) },
-				),
-				SelectionItem(
-					Icons.Outlined.BugReport,
-					title = {
-						Text(stringResource(R.string.anonymous_error_reports), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface))
-					},
-					description = {
-						ClickableText(
-							text = errorReportingDescription,
-							style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
-						) {
-							errorReportingDescription.getStringAnnotations(tag = "sentry", it, it).firstOrNull()?.let { annotation ->
-								context.openWebUrl(annotation.item)
-							}
-						}
-					},
-					trailing = {
-						ScaledSwitch(
-							checked = appUiState.settings.errorReportingEnabled,
-							onClick = { appViewModel.onErrorReportingSelected() },
-						)
-					},
 				),
 				// TODO disable until api ready
 // 				SelectionItem(
@@ -286,18 +258,22 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 		SurfaceSelectionGroupButton(
 			listOf(
 				SelectionItem(
+					trailing = {
+						val icon = Icons.AutoMirrored.Outlined.ArrowRight
+						Icon(icon, icon.name, Modifier.size(iconSize))
+					},
 					title = { Text(stringResource(R.string.legal), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = { navController.navigate(Route.Legal) },
 				),
 			),
 		)
-		if (appUiState.isMnemonicStored) {
+		if (appUiState.managerState.isMnemonicStored) {
 			SurfaceSelectionGroupButton(
 				listOf(
 					SelectionItem(
 						title = { Text(stringResource(R.string.log_out), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 						onClick = {
-							if (appUiState.state == Tunnel.State.Down) {
+							if (appUiState.managerState.tunnelState == Tunnel.State.Down) {
 								appViewModel.logout()
 							} else {
 								snackbar.showMessage(context.getString(R.string.action_requires_tunnel_down))
@@ -317,12 +293,12 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 				.padding(bottom = 20.dp),
 		) {
 			Text(
-				"Version: ${BuildConfig.VERSION_NAME}",
+				stringResource(R.string.version) + ": ${BuildConfig.VERSION_NAME}",
 				style = MaterialTheme.typography.bodyMedium,
 				color = MaterialTheme.colorScheme.secondary,
 				modifier = Modifier.clickable {
-					if (BuildConfig.DEBUG || BuildConfig.BUILD_TYPE == "prerelease") {
-						navController.navigate(Route.Environment)
+					if (BuildConfig.DEBUG || BuildConfig.IS_PRERELEASE) {
+						navController.navigate(Route.Developer)
 					} else {
 						clipboardManager.setText(
 							annotatedString = AnnotatedString(BuildConfig.VERSION_NAME),

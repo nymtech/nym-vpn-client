@@ -4,18 +4,20 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
 import { DialogTitle } from '@headlessui/react';
-import { capFirst } from '../../helpers';
+import { capFirst } from '../../util';
 import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
 import { Button, Dialog, MsIcon, SettingsMenuCard } from '../../ui';
 import { routes } from '../../router';
-import { StateDispatch } from '../../types';
+import { BackendError, StateDispatch } from '../../types';
+import { useI18nError } from '../../hooks';
 
 function Logout() {
   const [isOpen, setIsOpen] = useState(false);
 
-  const { account } = useMainState();
+  const { account, daemonStatus } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const { t } = useTranslation('settings');
+  const { tE } = useI18nError();
   const navigate = useNavigate();
   const { push } = useInAppNotify();
   const logoutCopy = capFirst(t('logout', { ns: 'glossary' }));
@@ -24,7 +26,7 @@ function Logout() {
     setIsOpen(false);
     navigate(routes.root);
     try {
-      await invoke('delete_account');
+      await invoke('forget_account');
       dispatch({ type: 'set-account', stored: false });
       push({
         text: t('logout.success', { ns: 'notifications' }),
@@ -33,8 +35,9 @@ function Logout() {
     } catch (e) {
       console.warn('failed to logout', e);
       push({
-        text: t('logout.error', { ns: 'notifications' }),
+        text: `${t('logout.error', { ns: 'notifications' })}: ${tE((e as BackendError).key || 'unknown')}`,
         position: 'top',
+        autoHideDuration: 5000,
       });
     }
   };
@@ -49,7 +52,11 @@ function Logout() {
 
   return (
     <>
-      <SettingsMenuCard title={logoutCopy} onClick={() => setIsOpen(true)} />
+      <SettingsMenuCard
+        title={logoutCopy}
+        onClick={() => setIsOpen(true)}
+        disabled={daemonStatus === 'NotOk'}
+      />
       <Dialog open={isOpen} onClose={onClose}>
         <div className="flex flex-col items-center gap-4 w-11/12">
           <MsIcon

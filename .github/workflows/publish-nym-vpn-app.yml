@@ -8,11 +8,20 @@ on:
         description: "Tag name for release"
         required: false
         default: nym-vpn-app-nightly
+      pre_release:
+        description: "Pre-release"
+        required: false
+        type: boolean
+        default: false
       dev_mode:
-        description: "dev build"
+        description: "dev build (enable env selector)"
         required: true
         type: boolean
         default: false
+      core_release_tag:
+        description: "nym-vpn-core release tag to use for Windows build (as it bundles the daemon)"
+        required: false
+        type: string
   push:
     tags:
       - nym-vpn-app-v[0-9]+.[0-9]+.[0-9]+*
@@ -27,6 +36,7 @@ jobs:
     uses: ./.github/workflows/build-nym-vpn-app-windows.yml
     with:
       dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true  }}
+      core_release_tag: ${{ inputs.core_release_tag }}
     secrets: inherit
 
   generate-build-info-nym-vpn-app:
@@ -62,9 +72,8 @@ jobs:
           sudo apt update && sudo apt install -y gettext-base gh
 
       - name: Install rust toolchain
-        uses: brndnmtthws/rust-action-rustup@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
           components: rustfmt, clippy
 
       - name: Get package version
@@ -96,7 +105,7 @@ jobs:
         id: set_tag
         run: echo "tag=${{ env.TAG_NAME }}" >> "$GITHUB_OUTPUT"
 
-      - name: Setting subject, prerelease and notes files
+      - name: Setting subject, prerelease and notes files (nightly)
         if: ${{ contains(env.TAG_NAME, 'nym-vpn-app-nightly') }}
         run: |
           (echo "SUBJECT=nym-vpn-app-v${{ steps.package-version.outputs.metadata }} nightly prerelease build";
@@ -105,11 +114,11 @@ jobs:
           gh release delete nym-vpn-app-nightly --yes || true
           git push origin :nym-vpn-app-nightly || true
 
-      - name: Removing --prerelease if needed
+      - name: Setting subject, prerelease and notes files
         if: ${{ !contains(env.TAG_NAME, 'nym-vpn-app-nightly') }}
         run: |
           (echo "SUBJECT=$TAG_NAME"
-           echo 'PRERELEASE='
+           echo 'PRERELEASE=${{ inputs.pre_release && '--prerelease' || '' }}';
            echo 'NOTES_FILE=release-notes/release-notes-vpn-app.md') >> $GITHUB_ENV
 
       - name: Generate checksums

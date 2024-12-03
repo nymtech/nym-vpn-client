@@ -3,5 +3,8 @@
   "via": "via",
   "left": "restant",
   "ok": "ok",
-  "selected": "choisi"
+  "selected": "choisi",
+  "cancel": "annuler",
+  "login": "se connecter",
+  "logout": "se déconnecter"
 }

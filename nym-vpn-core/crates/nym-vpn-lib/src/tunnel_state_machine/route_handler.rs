@@ -31,6 +31,12 @@ pub enum RoutingConfig {
         #[cfg(target_os = "linux")]
         physical_interface: DefaultInterface,
     },
+    WireguardNetstack {
+        exit_tun_name: String,
+        entry_gateway_address: IpAddr,
+        #[cfg(target_os = "linux")]
+        physical_interface: DefaultInterface,
+    },
 }
 
 #[derive(Debug, Clone)]
@@ -138,6 +144,34 @@ impl RouteHandler {
                 routes.insert(RequiredRoute::new(
                     IpNetwork::from(exit_gateway_address),
                     Node::device(entry_tun_name.to_owned()),
+                ));
+
+                routes.insert(RequiredRoute::new(
+                    "0.0.0.0/0".parse().unwrap(),
+                    Node::device(exit_tun_name.to_owned()),
+                ));
+
+                routes.insert(RequiredRoute::new(
+                    "::0/0".parse().unwrap(),
+                    Node::device(exit_tun_name.to_owned()),
+                ));
+            }
+            RoutingConfig::WireguardNetstack {
+                exit_tun_name,
+                entry_gateway_address,
+                #[cfg(target_os = "linux")]
+                physical_interface,
+            } => {
+                #[cfg(not(target_os = "linux"))]
+                routes.insert(RequiredRoute::new(
+                    IpNetwork::from(entry_gateway_address),
+                    NetNode::DefaultNode,
+                ));
+                // todo: remove once firewall/fwmark is active.
+                #[cfg(target_os = "linux")]
+                routes.insert(RequiredRoute::new(
+                    IpNetwork::from(entry_gateway_address),
+                    physical_interface.as_node(),
                 ));
 
                 routes.insert(RequiredRoute::new(

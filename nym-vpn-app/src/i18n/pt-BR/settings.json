@@ -10,14 +10,13 @@
   "feedback": {
     "title": "Comentário",
     "github": "Abrir um problema no GitHub",
-    "send": "Envie-nos seu feedback",
     "matrix": "Junte-se a nós no Matrix",
-    "discord": "Junte-se a nós no Discord"
+    "discord": "Junte-se a nós no Discord",
+    "get-in-touch": "Entre em contato"
   },
   "support": {
     "title": "Suporte",
-    "faq": "Verifique as perguntas frequentes",
-    "contact": "Contato com o suporte"
+    "faq": "Verifique as perguntas frequentes"
   },
   "legal": {
     "policy": "Declaração de privacidade",

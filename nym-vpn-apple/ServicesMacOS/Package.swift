@@ -11,6 +11,7 @@ let package = Package(
     products: [
         .library(name: "AutoUpdater", targets: ["AutoUpdater"]),
         .library(name: "GRPCManager", targets: ["GRPCManager"]),
+        .library(name: "HelperInstallManager", targets: ["HelperInstallManager"]),
         .library(name: "HelperManager", targets: ["HelperManager"]),
         .library(name: "Shell", targets: ["Shell"])
     ],
@@ -31,12 +32,20 @@ let package = Package(
         .target(
             name: "GRPCManager",
             dependencies: [
-                "HelperManager",
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
+                .product(name: "SystemMessageModels", package: "ServicesMutual"),
                 .product(name: "Base58Swift", package: "Base58Swift"),
                 .product(name: "GRPC", package: "grpc-swift")
             ],
             path: "Sources/GRPCManager"
+        ),
+        .target(
+            name: "HelperInstallManager",
+            dependencies: [
+                "GRPCManager",
+                "HelperManager"
+            ],
+            path: "Sources/HelperInstallManager"
         ),
         .target(
             name: "HelperManager",

@@ -8,26 +8,32 @@ public enum GeneralNymError: Error, Equatable {
     case cannotParseCountries
     case library(message: String)
     case noMnemonicStored
-    case noEnvFile
+    case noEnv
+    case somethingWentWrong
+    case authorizationDenied
 }
 
 extension GeneralNymError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .invalidUrl:
-            return "generalNymError.invalidUrl".localizedString
+            "generalNymError.invalidUrl".localizedString
         case .cannotFetchCountries:
-            return "generalNymError.cannotFetchCountries".localizedString
+            "generalNymError.cannotFetchCountries".localizedString
         case .noPrebundledCountries:
-            return "generalNymError.noPrebundledCountries".localizedString
+            "generalNymError.noPrebundledCountries".localizedString
         case .cannotParseCountries:
-            return "generalNymError.cannotParseCountries".localizedString
+            "generalNymError.cannotParseCountries".localizedString
         case .library(message: let message):
-            return message
+            message
         case .noMnemonicStored:
-            return "error.noMnemonicStored".localizedString
-        case .noEnvFile:
-            return "generalNymError.noEnvFile".localizedString
+            "error.noMnemonicStored".localizedString
+        case .noEnv:
+            "generalNymError.noEnv".localizedString
+        case .somethingWentWrong:
+            "generalNymError.somethingWentWrong".localizedString
+        case .authorizationDenied:
+            "generalNymError.authorizationDenied".localizedString
         }
     }
 }

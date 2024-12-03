@@ -11,7 +11,6 @@
   "faq": "الأسئلة الشائعة",
   "display-theme": "نمط العرض",
   "support": {
-    "contact": "الأتصال بالدعم",
     "title": "الدعم",
     "faq": "تحقق من الأسئلة الشائعة"
   },
@@ -36,13 +35,17 @@
     "title": "ملاحظات",
     "github": "افتح مشكلة على GitHub",
     "matrix": "انضم إلينا على ماتريكس",
-    "send": "أرسل لنا ملاحظتك",
-    "discord": "انضم إلينا على ديسكورد (Discord)"
+    "discord": "انضم إلينا على ديسكورد (Discord)",
+    "get-in-touch": "اتصل بنا"
   },
   "info": {
     "client-version": "نسخة العميل",
     "daemon-version": "نسخة الديمن",
     "network-name": "الشبكة"
   },
-  "login-button": "أضف بيانات الاعتماد للاتصال"
+  "login-button": "تسجيل الدخول",
+  "logout-confirmation": {
+    "title": "هل أنت متأكد؟",
+    "description": "يمكنك استخدام عبارة الاسترداد لتسجيل الدخول مرة أخرى."
+  }
 }

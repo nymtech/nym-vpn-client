@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{error::Error as StdError, net::IpAddr, os::fd::AsRawFd, sync::Arc};
+use std::{error::Error as StdError, net::IpAddr, sync::Arc};
 
 #[cfg(target_os = "ios")]
 use tokio::sync::mpsc;
@@ -18,12 +18,16 @@ use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::{
     tunnel_provider::ios::{default_path_observer::DefaultPathObserver, OSTunProvider},
-    tunnel_state_machine::tunnel::{wireguard::dns64::Dns64Resolution, Error},
+    tunnel_state_machine::tunnel::wireguard::dns64::Dns64Resolution,
 };
 use crate::{
     tunnel_state_machine::tunnel::{
-        wireguard::{connector::ConnectionData, two_hop_config::TwoHopConfig},
-        Result,
+        wireguard::{
+            connector::ConnectionData,
+            fd::DupFd,
+            two_hop_config::{TwoHopConfig, ENTRY_MTU, EXIT_MTU},
+        },
+        Error, Result,
     },
     wg_config::WgNodeConfig,
 };
@@ -58,16 +62,15 @@ impl ConnectedTunnel {
     }
 
     pub fn entry_mtu(&self) -> u16 {
-        // exit mtu + 80 (ipv6 + wg overhead)
-        1360
+        ENTRY_MTU
     }
 
     pub fn exit_mtu(&self) -> u16 {
         // minimum mtu guaranteed by ipv6
-        1280
+        EXIT_MTU
     }
 
-    pub fn run(
+    pub async fn run(
         self,
         tun_device: AsyncDevice,
         dns: Vec<IpAddr>,
@@ -125,7 +128,7 @@ impl ConnectedTunnel {
         #[allow(unused_mut)]
         let mut exit_tunnel = wireguard_go::Tunnel::start(
             two_hop_config.exit.into_wireguard_config(),
-            tun_device.get_ref().as_raw_fd(),
+            tun_device.get_ref().dup_fd().map_err(Error::DupFd)?,
         )?;
 
         let shutdown_token = CancellationToken::new();
@@ -138,6 +141,7 @@ impl ConnectedTunnel {
 
             tun_provider
                 .set_default_path_observer(Some(default_path_observer))
+                .await
                 .map_err(|e| Error::SetDefaultPathObserver(e.to_string()))?;
 
             default_path_rx
@@ -163,8 +167,8 @@ impl ConnectedTunnel {
                                 let peer_update = resolved_peer.into_peer_endpoint_update();
 
                                 // Update wireguard-go configuration with re-resolved peer endpoints.
-                                if let Err(e) = exit_tunnel.update_peers(&[peer_update]) {
-                                    tracing::error!("Failed to update peers on network change: {}", e);
+                                if let Err(e) = entry_tunnel.update_peers(&[peer_update]) {
+                                   tracing::error!("Failed to update peers on network change: {}", e);
                                 }
                             }
                             Err(e) => {
@@ -174,6 +178,7 @@ impl ConnectedTunnel {
 
                         // Rebind wireguard-go on tun device.
                         exit_tunnel.bump_sockets();
+                        entry_tunnel.bump_sockets();
                     }
                     else => {
                         tracing::error!("Default path observer has been dropped. Exiting event loop.");
@@ -190,7 +195,7 @@ impl ConnectedTunnel {
 
             // Reset default path observer before exiting the event loop.
             #[cfg(target_os = "ios")]
-            let _ = tun_provider.set_default_path_observer(None);
+            let _ = tun_provider.set_default_path_observer(None).await;
 
             exit_tunnel.stop();
             exit_connection.close();

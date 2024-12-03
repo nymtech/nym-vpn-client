@@ -10,7 +10,7 @@ use crate::{
     country::Country,
     db::{Db, Key},
     fs::config::AppConfig,
-    grpc::client::VpndStatus,
+    grpc::client::{VpndInfo, VpndStatus},
 };
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS, strum::Display)]
@@ -40,6 +40,7 @@ pub enum VpnMode {
 #[derive(Debug, Default)]
 pub struct AppState {
     pub vpnd_status: VpndStatus,
+    pub vpnd_info: Option<VpndInfo>,
     pub state: ConnectionState,
     pub vpn_mode: VpnMode,
     pub connection_start_time: Option<OffsetDateTime>,

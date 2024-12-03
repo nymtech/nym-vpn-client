@@ -3,8 +3,10 @@
 
 use std::fmt;
 
+use chrono::{DateTime, Utc};
 use itertools::Itertools;
 use nym_contracts_common::Percent;
+use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;
 use serde::{Deserialize, Serialize};
 
 const MAX_PROBE_RESULT_AGE_MINUTES: i64 = 60;
@@ -55,6 +57,13 @@ pub struct NymVpnAccountSummaryFairUsage {
     pub used_gb: Option<f64>,
     pub limit_gb: Option<f64>,
     pub resets_on_utc: Option<String>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct NymVpnHealthResponse {
+    pub status: String,
+    pub timestamp_utc: DateTime<Utc>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -129,15 +138,31 @@ pub enum NymVpnRefundUserReason {
     Other,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+// Legacy type, because the blinded_shares response for the POST seems to be different than the GET
+// Remove once it's not needed anymore
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct NymVpnZkNymPost {
+    pub created_on_utc: String,
+    pub last_updated_utc: String,
+    pub id: String,
+    pub ticketbook_type: String,
+    pub valid_until_utc: String,
+    pub valid_from_utc: String,
+    pub issued_bandwidth_in_gb: f64,
+    pub blinded_shares: Option<Vec<Option<TicketbookWalletSharesResponse>>>,
+    pub status: NymVpnZkNymStatus,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct NymVpnZkNym {
     pub created_on_utc: String,
     pub last_updated_utc: String,
     pub id: String,
+    pub ticketbook_type: String,
     pub valid_until_utc: String,
     pub valid_from_utc: String,
     pub issued_bandwidth_in_gb: f64,
-    pub blinded_shares: Vec<String>,
+    pub blinded_shares: Option<TicketbookWalletSharesResponse>,
     pub status: NymVpnZkNymStatus,
 }
 
@@ -151,7 +176,7 @@ pub enum NymVpnZkNymStatus {
     Error,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NymVpnZkNymResponse {
     pub total_items: u64,
@@ -231,10 +256,13 @@ pub struct NymDirectoryGateway {
     pub location: Location,
     pub last_probe: Option<Probe>,
     pub ip_addresses: Vec<String>,
+    pub mix_port: u16,
+    pub role: Role,
     pub entry: EntryInformation,
     // The performance data here originates from the nym-api, and is effectively mixnet performance
     // at the time of writing this
     pub performance: Percent,
+    pub build_information: Option<BuildInformation>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -252,6 +280,32 @@ pub struct IpPacketRouter {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Authenticator {
     pub address: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub enum Role {
+    // a properly active mixnode
+    Mixnode {
+        layer: u8,
+    },
+
+    #[serde(alias = "entry", alias = "gateway")]
+    EntryGateway,
+
+    #[serde(alias = "exit")]
+    ExitGateway,
+
+    // equivalent of node that's in rewarded set but not in the inactive set
+    Standby,
+
+    Inactive,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct BuildInformation {
+    pub build_version: String,
+    pub commit_branch: String,
+    pub commit_sha: String,
 }
 
 impl NymDirectoryGateway {
@@ -396,7 +450,7 @@ impl From<String> for NymDirectoryCountry {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct NymErrorResponse {
     pub message: String,
@@ -444,5 +498,36 @@ pub struct UnexpectedError {
 impl fmt::Display for UnexpectedError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.message)
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StatusOk {
+    status: String,
+}
+
+pub fn extract_error_response<E>(err: &E) -> Option<NymErrorResponse>
+where
+    E: std::error::Error + 'static,
+{
+    let mut source = err.source();
+    while let Some(err) = source {
+        if let Some(status) = err
+            .downcast_ref::<nym_http_api_client::HttpClientError<NymErrorResponse>>()
+            .and_then(extract_error_response_inner)
+        {
+            return Some(status);
+        }
+        source = err.source();
+    }
+    None
+}
+
+fn extract_error_response_inner(
+    err: &nym_http_api_client::HttpClientError<NymErrorResponse>,
+) -> Option<NymErrorResponse> {
+    match err {
+        nym_http_api_client::HttpClientError::EndpointFailure { error, .. } => Some(error.clone()),
+        _ => None,
     }
 }

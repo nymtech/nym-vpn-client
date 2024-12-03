@@ -13,6 +13,7 @@ import "C"
 import (
 	"bufio"
 	"strings"
+	"sync"
 	"unsafe"
 
 	"golang.org/x/sys/windows"
@@ -30,7 +31,7 @@ type LogSink = unsafe.Pointer
 type LogContext = unsafe.Pointer
 
 //export wgTurnOn
-func wgTurnOn(cIfaceName *C.char, mtu int, cSettings *C.char, cIfaceNameOut **C.char, cLuidOut *uint64, logSink LogSink, logContext LogContext) int32 {
+func wgTurnOn(cIfaceName *C.char, cRequestedGUID *C.char, cWintunTunnelType *C.char, mtu int, cSettings *C.char, cIfaceNameOut **C.char, cLuidOut *uint64, logSink LogSink, logContext LogContext) int32 {
 	logger := logging.NewLogger(logSink, logContext)
 	if cIfaceNameOut != nil {
 		*cIfaceNameOut = nil
@@ -41,6 +42,16 @@ func wgTurnOn(cIfaceName *C.char, mtu int, cSettings *C.char, cIfaceNameOut **C.
 		return ERROR_GENERAL_FAILURE
 	}
 
+	if cRequestedGUID == nil {
+		logger.Errorf("cRequestedGUID is null\n")
+		return ERROR_GENERAL_FAILURE
+	}
+
+	if cWintunTunnelType == nil {
+		logger.Errorf("cWintunTunnelType is null\n")
+		return ERROR_GENERAL_FAILURE
+	}
+
 	if cSettings == nil {
 		logger.Errorf("cSettings is null\n")
 		return ERROR_GENERAL_FAILURE
@@ -48,19 +59,34 @@ func wgTurnOn(cIfaceName *C.char, mtu int, cSettings *C.char, cIfaceNameOut **C.
 
 	settings := C.GoString(cSettings)
 	ifaceName := C.GoString(cIfaceName)
+	requestedGUID := C.GoString(cRequestedGUID)
+	wintunTunnelType := C.GoString(cWintunTunnelType)
 
-	// {AFE43773-E1F8-4EBB-8536-576AB86AFE9A}
-	networkId := windows.GUID{0xafe43773, 0xe1f8, 0x4ebb, [8]byte{0x85, 0x36, 0x57, 0x6a, 0xb8, 0x6a, 0xfe, 0x9a}}
-
-	tun.WintunTunnelType = "Mullvad"
-
-	wintun, err := tun.CreateTUNWithRequestedGUID(ifaceName, &networkId, mtu)
+	networkId, err := windows.GUIDFromString(requestedGUID)
 	if err != nil {
-		logger.Errorf("Failed to create tunnel\n")
-		logger.Errorf("%s\n", err)
-		return ERROR_INTERMITTENT_FAILURE
+		logger.Errorf("Failed to parse guid: %s\n", err)
+		return ERROR_GENERAL_FAILURE
 	}
 
+	tun.WintunTunnelType = wintunTunnelType
+
+	logger.Verbosef("Creating interface %s (guid: %s, tunnel-type: %s) and mtu %d", ifaceName, networkId, wintunTunnelType, mtu)
+
+	// WORKAROUND: wrap CreateTUNWithRequestedGUID() into go routine to avoid a panic saying: "runtime: stack split at bad time"
+	// See: https://github.com/golang/go/issues/68285
+	var wintun tun.Device
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		wintun, err = tun.CreateTUNWithRequestedGUID(ifaceName, &networkId, mtu)
+	}()
+	wg.Wait()
+
+	if err != nil {
+		logger.Errorf("Failed to create tunnel: %s\n", err)
+		return ERROR_INTERMITTENT_FAILURE
+	}
 	nativeTun := wintun.(*tun.NativeTun)
 
 	actualInterfaceName, err := nativeTun.Name()

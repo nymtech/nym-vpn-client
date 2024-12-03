@@ -129,7 +129,7 @@ function NodeLocation({ node }: { node: NodeHop }) {
 
   const renderError = (e: AppError) => (
     <div className="w-4/5 h-2/3 overflow-auto break-words text-center">
-      <p className="text-sm text-teaberry font-bold">{`${tE(e.key)}: ${e.data?.details || '-'}`}</p>
+      <p className="text-sm text-teaberry font-bold">{`${tE(e.key)}: ${e.message} ${e.data?.details || '-'}`}</p>
     </div>
   );
 

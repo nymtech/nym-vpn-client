@@ -4,10 +4,12 @@
 use std::{fmt, time::Duration};
 
 use backon::Retryable;
+use nym_credential_proxy_requests::api::v1::ticketbook::models::PartialVerificationKeysResponse;
 use nym_http_api_client::{HttpClientError, Params, PathSegments, UserAgent, NO_PARAMS};
 use reqwest::Url;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
+use crate::response::NymVpnHealthResponse;
 use crate::{
     error::{Result, VpnApiClientError},
     request::{
@@ -17,7 +19,8 @@ use crate::{
     response::{
         NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymVpnAccountResponse,
         NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnSubscription,
-        NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse, NymVpnZkNym, NymVpnZkNymResponse,
+        NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse, NymVpnZkNym, NymVpnZkNymPost,
+        NymVpnZkNymResponse, StatusOk,
     },
     routes,
     types::{Device, GatewayMinPerformance, GatewayType, VpnApiAccount},
@@ -50,6 +53,13 @@ impl VpnApiClient {
         self.inner.current_url()
     }
 
+    async fn get_vpn_api_unix_timestamp(&self) -> Option<i64> {
+        match self.get_health().await {
+            Ok(response) => Some(response.timestamp_utc.timestamp()),
+            Err(_) => None,
+        }
+    }
+
     async fn get_authorized<T, E>(
         &self,
         path: PathSegments<'_>,
@@ -60,10 +70,11 @@ impl VpnApiClient {
         T: DeserializeOwned,
         E: fmt::Display + DeserializeOwned,
     {
-        let request = self
-            .inner
-            .create_get_request(path, NO_PARAMS)
-            .bearer_auth(account.jwt().to_string());
+        let request = self.inner.create_get_request(path, NO_PARAMS).bearer_auth(
+            account
+                .jwt(self.get_vpn_api_unix_timestamp().await)
+                .to_string(),
+        );
 
         let request = match device {
             Some(device) => request.header(
@@ -76,6 +87,63 @@ impl VpnApiClient {
         let response = request.send().await?;
 
         nym_http_api_client::parse_response(response, false).await
+    }
+
+    #[allow(unused)]
+    async fn get_authorized_debug<T, E>(
+        &self,
+        path: PathSegments<'_>,
+        account: &VpnApiAccount,
+        device: Option<&Device>,
+    ) -> std::result::Result<T, HttpClientError<E>>
+    where
+        T: DeserializeOwned,
+        E: fmt::Display + DeserializeOwned,
+    {
+        let request = self.inner.create_get_request(path, NO_PARAMS).bearer_auth(
+            account
+                .jwt(self.get_vpn_api_unix_timestamp().await)
+                .to_string(),
+        );
+
+        let request = match device {
+            Some(device) => request.header(
+                DEVICE_AUTHORIZATION_HEADER,
+                format!("Bearer {}", device.jwt()),
+            ),
+            None => request,
+        };
+
+        let response = request.send().await?;
+        let status = response.status();
+        tracing::info!("Response status: {:#?}", status);
+
+        // TODO: support this mode in the upstream crate
+
+        if status.is_success() {
+            let response_text = response.text().await?;
+            tracing::info!("Response: {:#?}", response_text);
+            let response_json = serde_json::from_str(&response_text)
+                .map_err(|e| HttpClientError::GenericRequestFailure(e.to_string()))?;
+            Ok(response_json)
+        //} else if status == reqwest::StatusCode::NOT_FOUND {
+        //    Err(HttpClientError::NotFound)
+        } else {
+            let Ok(response_text) = response.text().await else {
+                return Err(HttpClientError::RequestFailure { status });
+            };
+
+            tracing::info!("Response: {:#?}", response_text);
+
+            if let Ok(request_error) = serde_json::from_str(&response_text) {
+                Err(HttpClientError::EndpointFailure {
+                    status,
+                    error: request_error,
+                })
+            } else {
+                Err(HttpClientError::GenericRequestFailure(response_text))
+            }
+        }
     }
 
     async fn get_json_with_retry<T, K, V, E>(
@@ -114,7 +182,11 @@ impl VpnApiClient {
         let request = self
             .inner
             .create_post_request(path, NO_PARAMS, json_body)
-            .bearer_auth(account.jwt().to_string());
+            .bearer_auth(
+                account
+                    .jwt(self.get_vpn_api_unix_timestamp().await)
+                    .to_string(),
+            );
 
         let request = match device {
             Some(device) => request.header(
@@ -129,6 +201,82 @@ impl VpnApiClient {
         nym_http_api_client::parse_response(response, false).await
     }
 
+    // TODO: add support for delete in the upstream crate
+    fn create_delete_request(
+        &self,
+        path: PathSegments<'_>,
+        params: Params<'_, &str, &str>,
+    ) -> reqwest::RequestBuilder {
+        let base_url = self.inner.current_url().clone();
+        let url = nym_http_api_client::sanitize_url(&base_url, path, params);
+        let client = reqwest::ClientBuilder::new().build().unwrap();
+        client.delete(url)
+    }
+
+    async fn delete_authorized<T, E>(
+        &self,
+        path: PathSegments<'_>,
+        account: &VpnApiAccount,
+        device: Option<&Device>,
+    ) -> std::result::Result<T, HttpClientError<E>>
+    where
+        T: DeserializeOwned,
+        E: fmt::Display + DeserializeOwned,
+    {
+        let request = self.create_delete_request(path, NO_PARAMS).bearer_auth(
+            account
+                .jwt(self.get_vpn_api_unix_timestamp().await)
+                .to_string(),
+        );
+
+        let request = match device {
+            Some(device) => request.header(
+                DEVICE_AUTHORIZATION_HEADER,
+                format!("Bearer {}", device.jwt()),
+            ),
+            None => request,
+        };
+
+        let response = request.send().await.map_err(|err| {
+            // TODO: we can't use HttpClientError::RequestFailure here because of reqwest
+            // version mismatch
+            // Once we implement delete in the upstream crate this problem goes away
+            HttpClientError::GenericRequestFailure(err.to_string())
+        })?;
+
+        let status = response.status();
+
+        if status.is_success() {
+            let response_text = response
+                .text()
+                .await
+                .map_err(|e| HttpClientError::GenericRequestFailure(e.to_string()))?;
+            tracing::info!("Response: {:#?}", response_text);
+            let response_json = serde_json::from_str(&response_text)
+                .map_err(|e| HttpClientError::GenericRequestFailure(e.to_string()))?;
+            Ok(response_json)
+        //} else if status == reqwest::StatusCode::NOT_FOUND {
+        //    Err(HttpClientError::NotFound)
+        } else {
+            let Ok(response_text) = response.text().await else {
+                return Err(HttpClientError::GenericRequestFailure(format!(
+                    "Request failure: {status}",
+                )));
+            };
+
+            tracing::info!("Response: {:#?}", response_text);
+
+            if let Ok(_request_error) = serde_json::from_str::<T>(&response_text) {
+                Err(HttpClientError::GenericRequestFailure(format!(
+                    "Endpoint failure: status: {}",
+                    status,
+                )))
+            } else {
+                Err(HttpClientError::GenericRequestFailure(response_text))
+            }
+        }
+    }
+
     // ACCOUNT
 
     pub async fn get_account(&self, account: &VpnApiAccount) -> Result<NymVpnAccountResponse> {
@@ -139,6 +287,12 @@ impl VpnApiClient {
         )
         .await
         .map_err(crate::error::VpnApiClientError::FailedToGetAccount)
+    }
+
+    pub async fn get_health(&self) -> Result<NymVpnHealthResponse> {
+        self.get_json_with_retry(&[routes::PUBLIC, routes::V1, routes::HEALTH], NO_PARAMS)
+            .await
+            .map_err(crate::error::VpnApiClientError::FailedToGetHealth)
     }
 
     pub async fn get_account_summary(
@@ -275,13 +429,18 @@ impl VpnApiClient {
         device: &Device,
         withdrawal_request: String,
         ecash_pubkey: String,
+        expiration_date: String,
         ticketbook_type: String,
-    ) -> Result<NymVpnZkNym> {
+    ) -> Result<NymVpnZkNymPost> {
+        tracing::info!("Requesting zk-nym for type: {}", ticketbook_type);
         let body = RequestZkNymRequestBody {
             withdrawal_request,
             ecash_pubkey,
+            expiration_date,
             ticketbook_type,
         };
+        tracing::info!("Request body: {:#?}", body);
+
         self.post_authorized(
             &[
                 routes::PUBLIC,
@@ -300,11 +459,11 @@ impl VpnApiClient {
         .map_err(VpnApiClientError::FailedToRequestZkNym)
     }
 
-    pub async fn get_active_zk_nym(
+    pub async fn get_zk_nyms_available_for_download(
         &self,
         account: &VpnApiAccount,
         device: &Device,
-    ) -> Result<NymVpnZkNym> {
+    ) -> Result<NymVpnZkNymResponse> {
         self.get_authorized(
             &[
                 routes::PUBLIC,
@@ -314,13 +473,13 @@ impl VpnApiClient {
                 routes::DEVICE,
                 &device.identity_key().to_string(),
                 routes::ZKNYM,
-                routes::ACTIVE,
+                routes::AVAILABLE,
             ],
             account,
             Some(device),
         )
         .await
-        .map_err(VpnApiClientError::FailedToGetActiveZkNym)
+        .map_err(VpnApiClientError::FailedToGetDeviceZkNyms)
     }
 
     pub async fn get_zk_nym_by_id(
@@ -345,6 +504,30 @@ impl VpnApiClient {
         )
         .await
         .map_err(VpnApiClientError::FailedToGetZkNymById)
+    }
+
+    pub async fn confirm_zk_nym_download_by_id(
+        &self,
+        account: &VpnApiAccount,
+        device: &Device,
+        id: &str,
+    ) -> Result<StatusOk> {
+        self.delete_authorized(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::ACCOUNT,
+                &account.id(),
+                routes::DEVICE,
+                &device.identity_key().to_string(),
+                routes::ZKNYM,
+                id,
+            ],
+            account,
+            Some(device),
+        )
+        .await
+        .map_err(VpnApiClientError::FailedToConfirmZkNymDownloadById)
     }
 
     // FREEPASS
@@ -626,6 +809,26 @@ impl VpnApiClient {
         )
         .await
         .map_err(VpnApiClientError::FailedToGetExitGatewayCountries)
+    }
+
+    // DIRECTORY ZK-NYM
+
+    pub async fn get_directory_zk_nyms_ticketbookt_partial_verification_keys(
+        &self,
+    ) -> Result<PartialVerificationKeysResponse> {
+        self.get_json_with_retry(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::DIRECTORY,
+                "zk-nyms",
+                "ticketbook",
+                "partial-verification-keys",
+            ],
+            NO_PARAMS,
+        )
+        .await
+        .map_err(VpnApiClientError::FailedToGetDirectoryZkNymsTicketbookPartialVerificationKeys)
     }
 }
 

@@ -24,6 +24,12 @@ pub enum OnDiskKeysError {
         name: String,
         error: std::io::Error,
     },
+
+    #[error("unable to remove keys")]
+    UnableToRemoveKeys {
+        paths: KeyPairPath,
+        error: std::io::Error,
+    },
 }
 
 pub struct OnDiskKeys {
@@ -101,6 +107,16 @@ impl OnDiskKeys {
         })
     }
 
+    fn remove_keypair_files(&self, paths: &KeyPairPath) -> Result<(), std::io::Error> {
+        std::fs::remove_file(&paths.private_key_path)?;
+        std::fs::remove_file(&paths.public_key_path)
+    }
+
+    fn remove_keypair(&self, paths: KeyPairPath) -> Result<(), OnDiskKeysError> {
+        self.remove_keypair_files(&paths)
+            .map_err(|error| OnDiskKeysError::UnableToRemoveKeys { paths, error })
+    }
+
     fn load_keys(&self) -> Result<DeviceKeys, OnDiskKeysError> {
         let device_keypair = self.load_device_keypair()?;
         Ok(DeviceKeys::from_keys(device_keypair))
@@ -130,6 +146,11 @@ impl OnDiskKeys {
         };
         self.store_keys(&device_keys)
     }
+
+    fn remove_keys(&self) -> Result<(), OnDiskKeysError> {
+        let device_paths = self.paths.device_key_pair_path();
+        self.remove_keypair(device_paths)
+    }
 }
 
 impl KeyStore for OnDiskKeys {
@@ -149,5 +170,14 @@ impl KeyStore for OnDiskKeys {
 
     async fn reset_keys(&self, seed: Option<[u8; 32]>) -> Result<(), Self::StorageError> {
         self.reset_keys(seed)
+    }
+
+    async fn remove_keys(&self) -> Result<(), Self::StorageError> {
+        self.reset_keys(None)
+            .inspect_err(|_| {
+                tracing::warn!("Failed to reset keys before removal.");
+            })
+            .ok();
+        self.remove_keys()
     }
 }

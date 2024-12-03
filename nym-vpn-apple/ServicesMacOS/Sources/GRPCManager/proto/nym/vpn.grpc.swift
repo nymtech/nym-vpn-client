@@ -26,6 +26,16 @@ internal protocol Nym_Vpn_NymVpndClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<Nym_Vpn_SetNetworkRequest, Nym_Vpn_SetNetworkResponse>
 
+  func getSystemMessages(
+    _ request: Nym_Vpn_GetSystemMessagesRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Nym_Vpn_GetSystemMessagesRequest, Nym_Vpn_GetSystemMessagesResponse>
+
+  func getFeatureFlags(
+    _ request: Nym_Vpn_GetFeatureFlagsRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Nym_Vpn_GetFeatureFlagsRequest, Nym_Vpn_GetFeatureFlagsResponse>
+
   func vpnConnect(
     _ request: Nym_Vpn_ConnectRequest,
     callOptions: CallOptions?
@@ -78,10 +88,20 @@ internal protocol Nym_Vpn_NymVpndClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<Nym_Vpn_RemoveAccountRequest, Nym_Vpn_RemoveAccountResponse>
 
+  func forgetAccount(
+    _ request: Nym_Vpn_ForgetAccountRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Nym_Vpn_ForgetAccountRequest, Nym_Vpn_ForgetAccountResponse>
+
   func getAccountIdentity(
     _ request: Nym_Vpn_GetAccountIdentityRequest,
     callOptions: CallOptions?
   ) -> UnaryCall<Nym_Vpn_GetAccountIdentityRequest, Nym_Vpn_GetAccountIdentityResponse>
+
+  func getAccountLinks(
+    _ request: Nym_Vpn_GetAccountLinksRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Nym_Vpn_GetAccountLinksRequest, Nym_Vpn_GetAccountLinksResponse>
 
   func getAccountState(
     _ request: Nym_Vpn_GetAccountStateRequest,
@@ -122,6 +142,26 @@ internal protocol Nym_Vpn_NymVpndClientProtocol: GRPCClient {
     _ request: Nym_Vpn_GetDeviceZkNymsRequest,
     callOptions: CallOptions?
   ) -> UnaryCall<Nym_Vpn_GetDeviceZkNymsRequest, Nym_Vpn_GetDeviceZkNymsResponse>
+
+  func getZkNymsAvailableForDownload(
+    _ request: Nym_Vpn_GetZkNymsAvailableForDownloadRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Nym_Vpn_GetZkNymsAvailableForDownloadRequest, Nym_Vpn_GetZkNymsAvailableForDownloadResponse>
+
+  func getZkNymById(
+    _ request: Nym_Vpn_GetZkNymByIdRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Nym_Vpn_GetZkNymByIdRequest, Nym_Vpn_GetZkNymByIdResponse>
+
+  func confirmZkNymDownloaded(
+    _ request: Nym_Vpn_ConfirmZkNymDownloadedRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Nym_Vpn_ConfirmZkNymDownloadedRequest, Nym_Vpn_ConfirmZkNymDownloadedResponse>
+
+  func getAvailableTickets(
+    _ request: Nym_Vpn_GetAvailableTicketsRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Nym_Vpn_GetAvailableTicketsRequest, Nym_Vpn_GetAvailableTicketsResponse>
 
   func fetchRawAccountSummary(
     _ request: Nym_Vpn_FetchRawAccountSummaryRequest,
@@ -172,6 +212,42 @@ extension Nym_Vpn_NymVpndClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeSetNetworkInterceptors() ?? []
+    )
+  }
+
+  /// List messages fetched from nym-vpn-api
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to GetSystemMessages.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func getSystemMessages(
+    _ request: Nym_Vpn_GetSystemMessagesRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Nym_Vpn_GetSystemMessagesRequest, Nym_Vpn_GetSystemMessagesResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getSystemMessages.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetSystemMessagesInterceptors() ?? []
+    )
+  }
+
+  /// List the feature flags fetched from the nym-vpn-api
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to GetFeatureFlags.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func getFeatureFlags(
+    _ request: Nym_Vpn_GetFeatureFlagsRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Nym_Vpn_GetFeatureFlagsRequest, Nym_Vpn_GetFeatureFlagsResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getFeatureFlags.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetFeatureFlagsInterceptors() ?? []
     )
   }
 
@@ -291,7 +367,7 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
-  /// List the avaiable countries for the selected mode
+  /// List the available countries for the selected mode
   ///
   /// - Parameters:
   ///   - request: Request to send to ListCountries.
@@ -309,7 +385,7 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
-  /// Handle the stored recovery phrase, which is also the account identity and authentication
+  /// Store the recovery phrase, which is also the account identity and authentication
   ///
   /// - Parameters:
   ///   - request: Request to send to StoreAccount.
@@ -327,7 +403,7 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
-  /// Unary call to IsAccountStored
+  /// Check if the recovery phrase is stored
   ///
   /// - Parameters:
   ///   - request: Request to send to IsAccountStored.
@@ -345,7 +421,7 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
-  /// Unary call to RemoveAccount
+  /// Remove the recovery phrase from local storage
   ///
   /// - Parameters:
   ///   - request: Request to send to RemoveAccount.
@@ -363,7 +439,26 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
-  /// Unary call to GetAccountIdentity
+  /// Removes everything related to the account, including the device identity,
+  /// credential storage, mixnet keys, gateway registrations.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to ForgetAccount.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func forgetAccount(
+    _ request: Nym_Vpn_ForgetAccountRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Nym_Vpn_ForgetAccountRequest, Nym_Vpn_ForgetAccountResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.forgetAccount.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeForgetAccountInterceptors() ?? []
+    )
+  }
+
+  /// Get the account identity of the locally stored recovery phrase
   ///
   /// - Parameters:
   ///   - request: Request to send to GetAccountIdentity.
@@ -381,8 +476,26 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
-  /// Query the account state, which refers to the server side account, as it is
-  /// known and interpreted by nym-vpnd
+  /// Get the set of account links for the user
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to GetAccountLinks.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func getAccountLinks(
+    _ request: Nym_Vpn_GetAccountLinksRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Nym_Vpn_GetAccountLinksRequest, Nym_Vpn_GetAccountLinksResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getAccountLinks.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetAccountLinksInterceptors() ?? []
+    )
+  }
+
+  /// Query the account state, which is synced from the nym-vpn-api account, as it
+  /// is known and interpreted by nym-vpnd
   ///
   /// - Parameters:
   ///   - request: Request to send to GetAccountState.
@@ -400,7 +513,8 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
-  /// Unary call to RefreshAccountState
+  /// The vpn client will periodically refresh the account state in the
+  /// background. This command triggers a manual refresh.
   ///
   /// - Parameters:
   ///   - request: Request to send to RefreshAccountState.
@@ -418,7 +532,7 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
-  /// Unary call to IsReadyToConnect
+  /// Check if the local account state is ready to connect
   ///
   /// - Parameters:
   ///   - request: Request to send to IsReadyToConnect.
@@ -454,7 +568,7 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
-  /// Unary call to GetDeviceIdentity
+  /// Get the device identity
   ///
   /// - Parameters:
   ///   - request: Request to send to GetDeviceIdentity.
@@ -523,6 +637,78 @@ extension Nym_Vpn_NymVpndClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeGetDeviceZkNymsInterceptors() ?? []
+    )
+  }
+
+  /// List the zk-nyms available for download from the nym-vpn-api
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to GetZkNymsAvailableForDownload.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func getZkNymsAvailableForDownload(
+    _ request: Nym_Vpn_GetZkNymsAvailableForDownloadRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Nym_Vpn_GetZkNymsAvailableForDownloadRequest, Nym_Vpn_GetZkNymsAvailableForDownloadResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getZkNymsAvailableForDownload.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetZkNymsAvailableForDownloadInterceptors() ?? []
+    )
+  }
+
+  /// Get a zk-nym by its id from the nym-vpn-api
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to GetZkNymById.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func getZkNymById(
+    _ request: Nym_Vpn_GetZkNymByIdRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Nym_Vpn_GetZkNymByIdRequest, Nym_Vpn_GetZkNymByIdResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getZkNymById.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetZkNymByIdInterceptors() ?? []
+    )
+  }
+
+  /// Confirm that a zk-nym has been downloaded from the nym-vpn-api
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to ConfirmZkNymDownloaded.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func confirmZkNymDownloaded(
+    _ request: Nym_Vpn_ConfirmZkNymDownloadedRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Nym_Vpn_ConfirmZkNymDownloadedRequest, Nym_Vpn_ConfirmZkNymDownloadedResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.confirmZkNymDownloaded.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeConfirmZkNymDownloadedInterceptors() ?? []
+    )
+  }
+
+  /// Get the available tickets in the local credential store
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to GetAvailableTickets.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func getAvailableTickets(
+    _ request: Nym_Vpn_GetAvailableTicketsRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Nym_Vpn_GetAvailableTicketsRequest, Nym_Vpn_GetAvailableTicketsResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getAvailableTickets.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetAvailableTicketsInterceptors() ?? []
     )
   }
 
@@ -635,6 +821,16 @@ internal protocol Nym_Vpn_NymVpndAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Nym_Vpn_SetNetworkRequest, Nym_Vpn_SetNetworkResponse>
 
+  func makeGetSystemMessagesCall(
+    _ request: Nym_Vpn_GetSystemMessagesRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetSystemMessagesRequest, Nym_Vpn_GetSystemMessagesResponse>
+
+  func makeGetFeatureFlagsCall(
+    _ request: Nym_Vpn_GetFeatureFlagsRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetFeatureFlagsRequest, Nym_Vpn_GetFeatureFlagsResponse>
+
   func makeVpnConnectCall(
     _ request: Nym_Vpn_ConnectRequest,
     callOptions: CallOptions?
@@ -685,10 +881,20 @@ internal protocol Nym_Vpn_NymVpndAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Nym_Vpn_RemoveAccountRequest, Nym_Vpn_RemoveAccountResponse>
 
+  func makeForgetAccountCall(
+    _ request: Nym_Vpn_ForgetAccountRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_ForgetAccountRequest, Nym_Vpn_ForgetAccountResponse>
+
   func makeGetAccountIdentityCall(
     _ request: Nym_Vpn_GetAccountIdentityRequest,
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetAccountIdentityRequest, Nym_Vpn_GetAccountIdentityResponse>
+
+  func makeGetAccountLinksCall(
+    _ request: Nym_Vpn_GetAccountLinksRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetAccountLinksRequest, Nym_Vpn_GetAccountLinksResponse>
 
   func makeGetAccountStateCall(
     _ request: Nym_Vpn_GetAccountStateRequest,
@@ -729,6 +935,26 @@ internal protocol Nym_Vpn_NymVpndAsyncClientProtocol: GRPCClient {
     _ request: Nym_Vpn_GetDeviceZkNymsRequest,
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetDeviceZkNymsRequest, Nym_Vpn_GetDeviceZkNymsResponse>
+
+  func makeGetZkNymsAvailableForDownloadCall(
+    _ request: Nym_Vpn_GetZkNymsAvailableForDownloadRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetZkNymsAvailableForDownloadRequest, Nym_Vpn_GetZkNymsAvailableForDownloadResponse>
+
+  func makeGetZkNymByIDCall(
+    _ request: Nym_Vpn_GetZkNymByIdRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetZkNymByIdRequest, Nym_Vpn_GetZkNymByIdResponse>
+
+  func makeConfirmZkNymDownloadedCall(
+    _ request: Nym_Vpn_ConfirmZkNymDownloadedRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_ConfirmZkNymDownloadedRequest, Nym_Vpn_ConfirmZkNymDownloadedResponse>
+
+  func makeGetAvailableTicketsCall(
+    _ request: Nym_Vpn_GetAvailableTicketsRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetAvailableTicketsRequest, Nym_Vpn_GetAvailableTicketsResponse>
 
   func makeFetchRawAccountSummaryCall(
     _ request: Nym_Vpn_FetchRawAccountSummaryRequest,
@@ -772,6 +998,30 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeSetNetworkInterceptors() ?? []
+    )
+  }
+
+  internal func makeGetSystemMessagesCall(
+    _ request: Nym_Vpn_GetSystemMessagesRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetSystemMessagesRequest, Nym_Vpn_GetSystemMessagesResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getSystemMessages.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetSystemMessagesInterceptors() ?? []
+    )
+  }
+
+  internal func makeGetFeatureFlagsCall(
+    _ request: Nym_Vpn_GetFeatureFlagsRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetFeatureFlagsRequest, Nym_Vpn_GetFeatureFlagsResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getFeatureFlags.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetFeatureFlagsInterceptors() ?? []
     )
   }
 
@@ -895,6 +1145,18 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
     )
   }
 
+  internal func makeForgetAccountCall(
+    _ request: Nym_Vpn_ForgetAccountRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_ForgetAccountRequest, Nym_Vpn_ForgetAccountResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.forgetAccount.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeForgetAccountInterceptors() ?? []
+    )
+  }
+
   internal func makeGetAccountIdentityCall(
     _ request: Nym_Vpn_GetAccountIdentityRequest,
     callOptions: CallOptions? = nil
@@ -904,6 +1166,18 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeGetAccountIdentityInterceptors() ?? []
+    )
+  }
+
+  internal func makeGetAccountLinksCall(
+    _ request: Nym_Vpn_GetAccountLinksRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetAccountLinksRequest, Nym_Vpn_GetAccountLinksResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getAccountLinks.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetAccountLinksInterceptors() ?? []
     )
   }
 
@@ -1003,6 +1277,54 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
     )
   }
 
+  internal func makeGetZkNymsAvailableForDownloadCall(
+    _ request: Nym_Vpn_GetZkNymsAvailableForDownloadRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetZkNymsAvailableForDownloadRequest, Nym_Vpn_GetZkNymsAvailableForDownloadResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getZkNymsAvailableForDownload.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetZkNymsAvailableForDownloadInterceptors() ?? []
+    )
+  }
+
+  internal func makeGetZkNymByIDCall(
+    _ request: Nym_Vpn_GetZkNymByIdRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetZkNymByIdRequest, Nym_Vpn_GetZkNymByIdResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getZkNymById.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetZkNymByIdInterceptors() ?? []
+    )
+  }
+
+  internal func makeConfirmZkNymDownloadedCall(
+    _ request: Nym_Vpn_ConfirmZkNymDownloadedRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_ConfirmZkNymDownloadedRequest, Nym_Vpn_ConfirmZkNymDownloadedResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.confirmZkNymDownloaded.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeConfirmZkNymDownloadedInterceptors() ?? []
+    )
+  }
+
+  internal func makeGetAvailableTicketsCall(
+    _ request: Nym_Vpn_GetAvailableTicketsRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetAvailableTicketsRequest, Nym_Vpn_GetAvailableTicketsResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getAvailableTickets.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetAvailableTicketsInterceptors() ?? []
+    )
+  }
+
   internal func makeFetchRawAccountSummaryCall(
     _ request: Nym_Vpn_FetchRawAccountSummaryRequest,
     callOptions: CallOptions? = nil
@@ -1051,6 +1373,30 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeSetNetworkInterceptors() ?? []
+    )
+  }
+
+  internal func getSystemMessages(
+    _ request: Nym_Vpn_GetSystemMessagesRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_GetSystemMessagesResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getSystemMessages.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetSystemMessagesInterceptors() ?? []
+    )
+  }
+
+  internal func getFeatureFlags(
+    _ request: Nym_Vpn_GetFeatureFlagsRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_GetFeatureFlagsResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getFeatureFlags.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetFeatureFlagsInterceptors() ?? []
     )
   }
 
@@ -1174,6 +1520,18 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
     )
   }
 
+  internal func forgetAccount(
+    _ request: Nym_Vpn_ForgetAccountRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_ForgetAccountResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.forgetAccount.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeForgetAccountInterceptors() ?? []
+    )
+  }
+
   internal func getAccountIdentity(
     _ request: Nym_Vpn_GetAccountIdentityRequest,
     callOptions: CallOptions? = nil
@@ -1183,6 +1541,18 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeGetAccountIdentityInterceptors() ?? []
+    )
+  }
+
+  internal func getAccountLinks(
+    _ request: Nym_Vpn_GetAccountLinksRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_GetAccountLinksResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getAccountLinks.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetAccountLinksInterceptors() ?? []
     )
   }
 
@@ -1282,6 +1652,54 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
     )
   }
 
+  internal func getZkNymsAvailableForDownload(
+    _ request: Nym_Vpn_GetZkNymsAvailableForDownloadRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_GetZkNymsAvailableForDownloadResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getZkNymsAvailableForDownload.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetZkNymsAvailableForDownloadInterceptors() ?? []
+    )
+  }
+
+  internal func getZkNymById(
+    _ request: Nym_Vpn_GetZkNymByIdRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_GetZkNymByIdResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getZkNymById.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetZkNymByIdInterceptors() ?? []
+    )
+  }
+
+  internal func confirmZkNymDownloaded(
+    _ request: Nym_Vpn_ConfirmZkNymDownloadedRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_ConfirmZkNymDownloadedResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.confirmZkNymDownloaded.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeConfirmZkNymDownloadedInterceptors() ?? []
+    )
+  }
+
+  internal func getAvailableTickets(
+    _ request: Nym_Vpn_GetAvailableTicketsRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_GetAvailableTicketsResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getAvailableTickets.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetAvailableTicketsInterceptors() ?? []
+    )
+  }
+
   internal func fetchRawAccountSummary(
     _ request: Nym_Vpn_FetchRawAccountSummaryRequest,
     callOptions: CallOptions? = nil
@@ -1332,6 +1750,12 @@ internal protocol Nym_Vpn_NymVpndClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'setNetwork'.
   func makeSetNetworkInterceptors() -> [ClientInterceptor<Nym_Vpn_SetNetworkRequest, Nym_Vpn_SetNetworkResponse>]
 
+  /// - Returns: Interceptors to use when invoking 'getSystemMessages'.
+  func makeGetSystemMessagesInterceptors() -> [ClientInterceptor<Nym_Vpn_GetSystemMessagesRequest, Nym_Vpn_GetSystemMessagesResponse>]
+
+  /// - Returns: Interceptors to use when invoking 'getFeatureFlags'.
+  func makeGetFeatureFlagsInterceptors() -> [ClientInterceptor<Nym_Vpn_GetFeatureFlagsRequest, Nym_Vpn_GetFeatureFlagsResponse>]
+
   /// - Returns: Interceptors to use when invoking 'vpnConnect'.
   func makeVpnConnectInterceptors() -> [ClientInterceptor<Nym_Vpn_ConnectRequest, Nym_Vpn_ConnectResponse>]
 
@@ -1362,8 +1786,14 @@ internal protocol Nym_Vpn_NymVpndClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'removeAccount'.
   func makeRemoveAccountInterceptors() -> [ClientInterceptor<Nym_Vpn_RemoveAccountRequest, Nym_Vpn_RemoveAccountResponse>]
 
+  /// - Returns: Interceptors to use when invoking 'forgetAccount'.
+  func makeForgetAccountInterceptors() -> [ClientInterceptor<Nym_Vpn_ForgetAccountRequest, Nym_Vpn_ForgetAccountResponse>]
+
   /// - Returns: Interceptors to use when invoking 'getAccountIdentity'.
   func makeGetAccountIdentityInterceptors() -> [ClientInterceptor<Nym_Vpn_GetAccountIdentityRequest, Nym_Vpn_GetAccountIdentityResponse>]
+
+  /// - Returns: Interceptors to use when invoking 'getAccountLinks'.
+  func makeGetAccountLinksInterceptors() -> [ClientInterceptor<Nym_Vpn_GetAccountLinksRequest, Nym_Vpn_GetAccountLinksResponse>]
 
   /// - Returns: Interceptors to use when invoking 'getAccountState'.
   func makeGetAccountStateInterceptors() -> [ClientInterceptor<Nym_Vpn_GetAccountStateRequest, Nym_Vpn_GetAccountStateResponse>]
@@ -1389,6 +1819,18 @@ internal protocol Nym_Vpn_NymVpndClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'getDeviceZkNyms'.
   func makeGetDeviceZkNymsInterceptors() -> [ClientInterceptor<Nym_Vpn_GetDeviceZkNymsRequest, Nym_Vpn_GetDeviceZkNymsResponse>]
 
+  /// - Returns: Interceptors to use when invoking 'getZkNymsAvailableForDownload'.
+  func makeGetZkNymsAvailableForDownloadInterceptors() -> [ClientInterceptor<Nym_Vpn_GetZkNymsAvailableForDownloadRequest, Nym_Vpn_GetZkNymsAvailableForDownloadResponse>]
+
+  /// - Returns: Interceptors to use when invoking 'getZkNymById'.
+  func makeGetZkNymByIdInterceptors() -> [ClientInterceptor<Nym_Vpn_GetZkNymByIdRequest, Nym_Vpn_GetZkNymByIdResponse>]
+
+  /// - Returns: Interceptors to use when invoking 'confirmZkNymDownloaded'.
+  func makeConfirmZkNymDownloadedInterceptors() -> [ClientInterceptor<Nym_Vpn_ConfirmZkNymDownloadedRequest, Nym_Vpn_ConfirmZkNymDownloadedResponse>]
+
+  /// - Returns: Interceptors to use when invoking 'getAvailableTickets'.
+  func makeGetAvailableTicketsInterceptors() -> [ClientInterceptor<Nym_Vpn_GetAvailableTicketsRequest, Nym_Vpn_GetAvailableTicketsResponse>]
+
   /// - Returns: Interceptors to use when invoking 'fetchRawAccountSummary'.
   func makeFetchRawAccountSummaryInterceptors() -> [ClientInterceptor<Nym_Vpn_FetchRawAccountSummaryRequest, Nym_Vpn_FetchRawAccountSummaryResponse>]
 
@@ -1403,6 +1845,8 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
     methods: [
       Nym_Vpn_NymVpndClientMetadata.Methods.info,
       Nym_Vpn_NymVpndClientMetadata.Methods.setNetwork,
+      Nym_Vpn_NymVpndClientMetadata.Methods.getSystemMessages,
+      Nym_Vpn_NymVpndClientMetadata.Methods.getFeatureFlags,
       Nym_Vpn_NymVpndClientMetadata.Methods.vpnConnect,
       Nym_Vpn_NymVpndClientMetadata.Methods.vpnDisconnect,
       Nym_Vpn_NymVpndClientMetadata.Methods.vpnStatus,
@@ -1413,7 +1857,9 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
       Nym_Vpn_NymVpndClientMetadata.Methods.storeAccount,
       Nym_Vpn_NymVpndClientMetadata.Methods.isAccountStored,
       Nym_Vpn_NymVpndClientMetadata.Methods.removeAccount,
+      Nym_Vpn_NymVpndClientMetadata.Methods.forgetAccount,
       Nym_Vpn_NymVpndClientMetadata.Methods.getAccountIdentity,
+      Nym_Vpn_NymVpndClientMetadata.Methods.getAccountLinks,
       Nym_Vpn_NymVpndClientMetadata.Methods.getAccountState,
       Nym_Vpn_NymVpndClientMetadata.Methods.refreshAccountState,
       Nym_Vpn_NymVpndClientMetadata.Methods.isReadyToConnect,
@@ -1422,6 +1868,10 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
       Nym_Vpn_NymVpndClientMetadata.Methods.registerDevice,
       Nym_Vpn_NymVpndClientMetadata.Methods.requestZkNym,
       Nym_Vpn_NymVpndClientMetadata.Methods.getDeviceZkNyms,
+      Nym_Vpn_NymVpndClientMetadata.Methods.getZkNymsAvailableForDownload,
+      Nym_Vpn_NymVpndClientMetadata.Methods.getZkNymById,
+      Nym_Vpn_NymVpndClientMetadata.Methods.confirmZkNymDownloaded,
+      Nym_Vpn_NymVpndClientMetadata.Methods.getAvailableTickets,
       Nym_Vpn_NymVpndClientMetadata.Methods.fetchRawAccountSummary,
       Nym_Vpn_NymVpndClientMetadata.Methods.fetchRawDevices,
     ]
@@ -1437,6 +1887,18 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
     internal static let setNetwork = GRPCMethodDescriptor(
       name: "SetNetwork",
       path: "/nym.vpn.NymVpnd/SetNetwork",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getSystemMessages = GRPCMethodDescriptor(
+      name: "GetSystemMessages",
+      path: "/nym.vpn.NymVpnd/GetSystemMessages",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getFeatureFlags = GRPCMethodDescriptor(
+      name: "GetFeatureFlags",
+      path: "/nym.vpn.NymVpnd/GetFeatureFlags",
       type: GRPCCallType.unary
     )
 
@@ -1500,9 +1962,21 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
       type: GRPCCallType.unary
     )
 
+    internal static let forgetAccount = GRPCMethodDescriptor(
+      name: "ForgetAccount",
+      path: "/nym.vpn.NymVpnd/ForgetAccount",
+      type: GRPCCallType.unary
+    )
+
     internal static let getAccountIdentity = GRPCMethodDescriptor(
       name: "GetAccountIdentity",
       path: "/nym.vpn.NymVpnd/GetAccountIdentity",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getAccountLinks = GRPCMethodDescriptor(
+      name: "GetAccountLinks",
+      path: "/nym.vpn.NymVpnd/GetAccountLinks",
       type: GRPCCallType.unary
     )
 
@@ -1554,6 +2028,30 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
       type: GRPCCallType.unary
     )
 
+    internal static let getZkNymsAvailableForDownload = GRPCMethodDescriptor(
+      name: "GetZkNymsAvailableForDownload",
+      path: "/nym.vpn.NymVpnd/GetZkNymsAvailableForDownload",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getZkNymById = GRPCMethodDescriptor(
+      name: "GetZkNymById",
+      path: "/nym.vpn.NymVpnd/GetZkNymById",
+      type: GRPCCallType.unary
+    )
+
+    internal static let confirmZkNymDownloaded = GRPCMethodDescriptor(
+      name: "ConfirmZkNymDownloaded",
+      path: "/nym.vpn.NymVpnd/ConfirmZkNymDownloaded",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getAvailableTickets = GRPCMethodDescriptor(
+      name: "GetAvailableTickets",
+      path: "/nym.vpn.NymVpnd/GetAvailableTickets",
+      type: GRPCCallType.unary
+    )
+
     internal static let fetchRawAccountSummary = GRPCMethodDescriptor(
       name: "FetchRawAccountSummary",
       path: "/nym.vpn.NymVpnd/FetchRawAccountSummary",
@@ -1578,6 +2076,12 @@ internal protocol Nym_Vpn_NymVpndProvider: CallHandlerProvider {
   /// Set the network. This requires a restart to take effect
   func setNetwork(request: Nym_Vpn_SetNetworkRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_SetNetworkResponse>
 
+  /// List messages fetched from nym-vpn-api
+  func getSystemMessages(request: Nym_Vpn_GetSystemMessagesRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetSystemMessagesResponse>
+
+  /// List the feature flags fetched from the nym-vpn-api
+  func getFeatureFlags(request: Nym_Vpn_GetFeatureFlagsRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetFeatureFlagsResponse>
+
   /// Start the tunnel and connect
   func vpnConnect(request: Nym_Vpn_ConnectRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_ConnectResponse>
 
@@ -1598,29 +2102,43 @@ internal protocol Nym_Vpn_NymVpndProvider: CallHandlerProvider {
   /// List the available gateways for the selected mode
   func listGateways(request: Nym_Vpn_ListGatewaysRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_ListGatewaysResponse>
 
-  /// List the avaiable countries for the selected mode
+  /// List the available countries for the selected mode
   func listCountries(request: Nym_Vpn_ListCountriesRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_ListCountriesResponse>
 
-  /// Handle the stored recovery phrase, which is also the account identity and authentication
+  /// Store the recovery phrase, which is also the account identity and authentication
   func storeAccount(request: Nym_Vpn_StoreAccountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_StoreAccountResponse>
 
+  /// Check if the recovery phrase is stored
   func isAccountStored(request: Nym_Vpn_IsAccountStoredRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_IsAccountStoredResponse>
 
+  /// Remove the recovery phrase from local storage
   func removeAccount(request: Nym_Vpn_RemoveAccountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_RemoveAccountResponse>
 
+  /// Removes everything related to the account, including the device identity,
+  /// credential storage, mixnet keys, gateway registrations.
+  func forgetAccount(request: Nym_Vpn_ForgetAccountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_ForgetAccountResponse>
+
+  /// Get the account identity of the locally stored recovery phrase
   func getAccountIdentity(request: Nym_Vpn_GetAccountIdentityRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetAccountIdentityResponse>
 
-  /// Query the account state, which refers to the server side account, as it is
-  /// known and interpreted by nym-vpnd
+  /// Get the set of account links for the user
+  func getAccountLinks(request: Nym_Vpn_GetAccountLinksRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetAccountLinksResponse>
+
+  /// Query the account state, which is synced from the nym-vpn-api account, as it
+  /// is known and interpreted by nym-vpnd
   func getAccountState(request: Nym_Vpn_GetAccountStateRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetAccountStateResponse>
 
+  /// The vpn client will periodically refresh the account state in the
+  /// background. This command triggers a manual refresh.
   func refreshAccountState(request: Nym_Vpn_RefreshAccountStateRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_RefreshAccountStateResponse>
 
+  /// Check if the local account state is ready to connect
   func isReadyToConnect(request: Nym_Vpn_IsReadyToConnectRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_IsReadyToConnectResponse>
 
   /// Reset the device identity
   func resetDeviceIdentity(request: Nym_Vpn_ResetDeviceIdentityRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_ResetDeviceIdentityResponse>
 
+  /// Get the device identity
   func getDeviceIdentity(request: Nym_Vpn_GetDeviceIdentityRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetDeviceIdentityResponse>
 
   /// Try to register the local device with the nym-vpn-api
@@ -1631,6 +2149,18 @@ internal protocol Nym_Vpn_NymVpndProvider: CallHandlerProvider {
 
   /// List the zk-nyms associated with this device from the nym-vpn-api
   func getDeviceZkNyms(request: Nym_Vpn_GetDeviceZkNymsRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetDeviceZkNymsResponse>
+
+  /// List the zk-nyms available for download from the nym-vpn-api
+  func getZkNymsAvailableForDownload(request: Nym_Vpn_GetZkNymsAvailableForDownloadRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetZkNymsAvailableForDownloadResponse>
+
+  /// Get a zk-nym by its id from the nym-vpn-api
+  func getZkNymById(request: Nym_Vpn_GetZkNymByIdRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetZkNymByIdResponse>
+
+  /// Confirm that a zk-nym has been downloaded from the nym-vpn-api
+  func confirmZkNymDownloaded(request: Nym_Vpn_ConfirmZkNymDownloadedRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_ConfirmZkNymDownloadedResponse>
+
+  /// Get the available tickets in the local credential store
+  func getAvailableTickets(request: Nym_Vpn_GetAvailableTicketsRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetAvailableTicketsResponse>
 
   /// Get the server side account summary directly from the nym-vpn-api
   func fetchRawAccountSummary(request: Nym_Vpn_FetchRawAccountSummaryRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_FetchRawAccountSummaryResponse>
@@ -1667,6 +2197,24 @@ extension Nym_Vpn_NymVpndProvider {
         responseSerializer: ProtobufSerializer<Nym_Vpn_SetNetworkResponse>(),
         interceptors: self.interceptors?.makeSetNetworkInterceptors() ?? [],
         userFunction: self.setNetwork(request:context:)
+      )
+
+    case "GetSystemMessages":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetSystemMessagesRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetSystemMessagesResponse>(),
+        interceptors: self.interceptors?.makeGetSystemMessagesInterceptors() ?? [],
+        userFunction: self.getSystemMessages(request:context:)
+      )
+
+    case "GetFeatureFlags":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetFeatureFlagsRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetFeatureFlagsResponse>(),
+        interceptors: self.interceptors?.makeGetFeatureFlagsInterceptors() ?? [],
+        userFunction: self.getFeatureFlags(request:context:)
       )
 
     case "VpnConnect":
@@ -1759,6 +2307,15 @@ extension Nym_Vpn_NymVpndProvider {
         userFunction: self.removeAccount(request:context:)
       )
 
+    case "ForgetAccount":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_ForgetAccountRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_ForgetAccountResponse>(),
+        interceptors: self.interceptors?.makeForgetAccountInterceptors() ?? [],
+        userFunction: self.forgetAccount(request:context:)
+      )
+
     case "GetAccountIdentity":
       return UnaryServerHandler(
         context: context,
@@ -1766,6 +2323,15 @@ extension Nym_Vpn_NymVpndProvider {
         responseSerializer: ProtobufSerializer<Nym_Vpn_GetAccountIdentityResponse>(),
         interceptors: self.interceptors?.makeGetAccountIdentityInterceptors() ?? [],
         userFunction: self.getAccountIdentity(request:context:)
+      )
+
+    case "GetAccountLinks":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetAccountLinksRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetAccountLinksResponse>(),
+        interceptors: self.interceptors?.makeGetAccountLinksInterceptors() ?? [],
+        userFunction: self.getAccountLinks(request:context:)
       )
 
     case "GetAccountState":
@@ -1840,6 +2406,42 @@ extension Nym_Vpn_NymVpndProvider {
         userFunction: self.getDeviceZkNyms(request:context:)
       )
 
+    case "GetZkNymsAvailableForDownload":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetZkNymsAvailableForDownloadRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetZkNymsAvailableForDownloadResponse>(),
+        interceptors: self.interceptors?.makeGetZkNymsAvailableForDownloadInterceptors() ?? [],
+        userFunction: self.getZkNymsAvailableForDownload(request:context:)
+      )
+
+    case "GetZkNymById":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetZkNymByIdRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetZkNymByIdResponse>(),
+        interceptors: self.interceptors?.makeGetZkNymByIdInterceptors() ?? [],
+        userFunction: self.getZkNymById(request:context:)
+      )
+
+    case "ConfirmZkNymDownloaded":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_ConfirmZkNymDownloadedRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_ConfirmZkNymDownloadedResponse>(),
+        interceptors: self.interceptors?.makeConfirmZkNymDownloadedInterceptors() ?? [],
+        userFunction: self.confirmZkNymDownloaded(request:context:)
+      )
+
+    case "GetAvailableTickets":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetAvailableTicketsRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetAvailableTicketsResponse>(),
+        interceptors: self.interceptors?.makeGetAvailableTicketsInterceptors() ?? [],
+        userFunction: self.getAvailableTickets(request:context:)
+      )
+
     case "FetchRawAccountSummary":
       return UnaryServerHandler(
         context: context,
@@ -1882,6 +2484,18 @@ internal protocol Nym_Vpn_NymVpndAsyncProvider: CallHandlerProvider, Sendable {
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_SetNetworkResponse
 
+  /// List messages fetched from nym-vpn-api
+  func getSystemMessages(
+    request: Nym_Vpn_GetSystemMessagesRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_GetSystemMessagesResponse
+
+  /// List the feature flags fetched from the nym-vpn-api
+  func getFeatureFlags(
+    request: Nym_Vpn_GetFeatureFlagsRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_GetFeatureFlagsResponse
+
   /// Start the tunnel and connect
   func vpnConnect(
     request: Nym_Vpn_ConnectRequest,
@@ -1922,45 +2536,64 @@ internal protocol Nym_Vpn_NymVpndAsyncProvider: CallHandlerProvider, Sendable {
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_ListGatewaysResponse
 
-  /// List the avaiable countries for the selected mode
+  /// List the available countries for the selected mode
   func listCountries(
     request: Nym_Vpn_ListCountriesRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_ListCountriesResponse
 
-  /// Handle the stored recovery phrase, which is also the account identity and authentication
+  /// Store the recovery phrase, which is also the account identity and authentication
   func storeAccount(
     request: Nym_Vpn_StoreAccountRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_StoreAccountResponse
 
+  /// Check if the recovery phrase is stored
   func isAccountStored(
     request: Nym_Vpn_IsAccountStoredRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_IsAccountStoredResponse
 
+  /// Remove the recovery phrase from local storage
   func removeAccount(
     request: Nym_Vpn_RemoveAccountRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_RemoveAccountResponse
 
+  /// Removes everything related to the account, including the device identity,
+  /// credential storage, mixnet keys, gateway registrations.
+  func forgetAccount(
+    request: Nym_Vpn_ForgetAccountRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_ForgetAccountResponse
+
+  /// Get the account identity of the locally stored recovery phrase
   func getAccountIdentity(
     request: Nym_Vpn_GetAccountIdentityRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_GetAccountIdentityResponse
 
-  /// Query the account state, which refers to the server side account, as it is
-  /// known and interpreted by nym-vpnd
+  /// Get the set of account links for the user
+  func getAccountLinks(
+    request: Nym_Vpn_GetAccountLinksRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_GetAccountLinksResponse
+
+  /// Query the account state, which is synced from the nym-vpn-api account, as it
+  /// is known and interpreted by nym-vpnd
   func getAccountState(
     request: Nym_Vpn_GetAccountStateRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_GetAccountStateResponse
 
+  /// The vpn client will periodically refresh the account state in the
+  /// background. This command triggers a manual refresh.
   func refreshAccountState(
     request: Nym_Vpn_RefreshAccountStateRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_RefreshAccountStateResponse
 
+  /// Check if the local account state is ready to connect
   func isReadyToConnect(
     request: Nym_Vpn_IsReadyToConnectRequest,
     context: GRPCAsyncServerCallContext
@@ -1972,6 +2605,7 @@ internal protocol Nym_Vpn_NymVpndAsyncProvider: CallHandlerProvider, Sendable {
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_ResetDeviceIdentityResponse
 
+  /// Get the device identity
   func getDeviceIdentity(
     request: Nym_Vpn_GetDeviceIdentityRequest,
     context: GRPCAsyncServerCallContext
@@ -1994,6 +2628,30 @@ internal protocol Nym_Vpn_NymVpndAsyncProvider: CallHandlerProvider, Sendable {
     request: Nym_Vpn_GetDeviceZkNymsRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_GetDeviceZkNymsResponse
+
+  /// List the zk-nyms available for download from the nym-vpn-api
+  func getZkNymsAvailableForDownload(
+    request: Nym_Vpn_GetZkNymsAvailableForDownloadRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_GetZkNymsAvailableForDownloadResponse
+
+  /// Get a zk-nym by its id from the nym-vpn-api
+  func getZkNymById(
+    request: Nym_Vpn_GetZkNymByIdRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_GetZkNymByIdResponse
+
+  /// Confirm that a zk-nym has been downloaded from the nym-vpn-api
+  func confirmZkNymDownloaded(
+    request: Nym_Vpn_ConfirmZkNymDownloadedRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_ConfirmZkNymDownloadedResponse
+
+  /// Get the available tickets in the local credential store
+  func getAvailableTickets(
+    request: Nym_Vpn_GetAvailableTicketsRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_GetAvailableTicketsResponse
 
   /// Get the server side account summary directly from the nym-vpn-api
   func fetchRawAccountSummary(
@@ -2043,6 +2701,24 @@ extension Nym_Vpn_NymVpndAsyncProvider {
         responseSerializer: ProtobufSerializer<Nym_Vpn_SetNetworkResponse>(),
         interceptors: self.interceptors?.makeSetNetworkInterceptors() ?? [],
         wrapping: { try await self.setNetwork(request: $0, context: $1) }
+      )
+
+    case "GetSystemMessages":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetSystemMessagesRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetSystemMessagesResponse>(),
+        interceptors: self.interceptors?.makeGetSystemMessagesInterceptors() ?? [],
+        wrapping: { try await self.getSystemMessages(request: $0, context: $1) }
+      )
+
+    case "GetFeatureFlags":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetFeatureFlagsRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetFeatureFlagsResponse>(),
+        interceptors: self.interceptors?.makeGetFeatureFlagsInterceptors() ?? [],
+        wrapping: { try await self.getFeatureFlags(request: $0, context: $1) }
       )
 
     case "VpnConnect":
@@ -2135,6 +2811,15 @@ extension Nym_Vpn_NymVpndAsyncProvider {
         wrapping: { try await self.removeAccount(request: $0, context: $1) }
       )
 
+    case "ForgetAccount":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_ForgetAccountRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_ForgetAccountResponse>(),
+        interceptors: self.interceptors?.makeForgetAccountInterceptors() ?? [],
+        wrapping: { try await self.forgetAccount(request: $0, context: $1) }
+      )
+
     case "GetAccountIdentity":
       return GRPCAsyncServerHandler(
         context: context,
@@ -2142,6 +2827,15 @@ extension Nym_Vpn_NymVpndAsyncProvider {
         responseSerializer: ProtobufSerializer<Nym_Vpn_GetAccountIdentityResponse>(),
         interceptors: self.interceptors?.makeGetAccountIdentityInterceptors() ?? [],
         wrapping: { try await self.getAccountIdentity(request: $0, context: $1) }
+      )
+
+    case "GetAccountLinks":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetAccountLinksRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetAccountLinksResponse>(),
+        interceptors: self.interceptors?.makeGetAccountLinksInterceptors() ?? [],
+        wrapping: { try await self.getAccountLinks(request: $0, context: $1) }
       )
 
     case "GetAccountState":
@@ -2216,6 +2910,42 @@ extension Nym_Vpn_NymVpndAsyncProvider {
         wrapping: { try await self.getDeviceZkNyms(request: $0, context: $1) }
       )
 
+    case "GetZkNymsAvailableForDownload":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetZkNymsAvailableForDownloadRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetZkNymsAvailableForDownloadResponse>(),
+        interceptors: self.interceptors?.makeGetZkNymsAvailableForDownloadInterceptors() ?? [],
+        wrapping: { try await self.getZkNymsAvailableForDownload(request: $0, context: $1) }
+      )
+
+    case "GetZkNymById":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetZkNymByIdRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetZkNymByIdResponse>(),
+        interceptors: self.interceptors?.makeGetZkNymByIdInterceptors() ?? [],
+        wrapping: { try await self.getZkNymById(request: $0, context: $1) }
+      )
+
+    case "ConfirmZkNymDownloaded":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_ConfirmZkNymDownloadedRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_ConfirmZkNymDownloadedResponse>(),
+        interceptors: self.interceptors?.makeConfirmZkNymDownloadedInterceptors() ?? [],
+        wrapping: { try await self.confirmZkNymDownloaded(request: $0, context: $1) }
+      )
+
+    case "GetAvailableTickets":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetAvailableTicketsRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetAvailableTicketsResponse>(),
+        interceptors: self.interceptors?.makeGetAvailableTicketsInterceptors() ?? [],
+        wrapping: { try await self.getAvailableTickets(request: $0, context: $1) }
+      )
+
     case "FetchRawAccountSummary":
       return GRPCAsyncServerHandler(
         context: context,
@@ -2249,6 +2979,14 @@ internal protocol Nym_Vpn_NymVpndServerInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when handling 'setNetwork'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeSetNetworkInterceptors() -> [ServerInterceptor<Nym_Vpn_SetNetworkRequest, Nym_Vpn_SetNetworkResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getSystemMessages'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetSystemMessagesInterceptors() -> [ServerInterceptor<Nym_Vpn_GetSystemMessagesRequest, Nym_Vpn_GetSystemMessagesResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getFeatureFlags'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetFeatureFlagsInterceptors() -> [ServerInterceptor<Nym_Vpn_GetFeatureFlagsRequest, Nym_Vpn_GetFeatureFlagsResponse>]
 
   /// - Returns: Interceptors to use when handling 'vpnConnect'.
   ///   Defaults to calling `self.makeInterceptors()`.
@@ -2290,9 +3028,17 @@ internal protocol Nym_Vpn_NymVpndServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeRemoveAccountInterceptors() -> [ServerInterceptor<Nym_Vpn_RemoveAccountRequest, Nym_Vpn_RemoveAccountResponse>]
 
+  /// - Returns: Interceptors to use when handling 'forgetAccount'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeForgetAccountInterceptors() -> [ServerInterceptor<Nym_Vpn_ForgetAccountRequest, Nym_Vpn_ForgetAccountResponse>]
+
   /// - Returns: Interceptors to use when handling 'getAccountIdentity'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeGetAccountIdentityInterceptors() -> [ServerInterceptor<Nym_Vpn_GetAccountIdentityRequest, Nym_Vpn_GetAccountIdentityResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getAccountLinks'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetAccountLinksInterceptors() -> [ServerInterceptor<Nym_Vpn_GetAccountLinksRequest, Nym_Vpn_GetAccountLinksResponse>]
 
   /// - Returns: Interceptors to use when handling 'getAccountState'.
   ///   Defaults to calling `self.makeInterceptors()`.
@@ -2326,6 +3072,22 @@ internal protocol Nym_Vpn_NymVpndServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeGetDeviceZkNymsInterceptors() -> [ServerInterceptor<Nym_Vpn_GetDeviceZkNymsRequest, Nym_Vpn_GetDeviceZkNymsResponse>]
 
+  /// - Returns: Interceptors to use when handling 'getZkNymsAvailableForDownload'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetZkNymsAvailableForDownloadInterceptors() -> [ServerInterceptor<Nym_Vpn_GetZkNymsAvailableForDownloadRequest, Nym_Vpn_GetZkNymsAvailableForDownloadResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getZkNymById'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetZkNymByIdInterceptors() -> [ServerInterceptor<Nym_Vpn_GetZkNymByIdRequest, Nym_Vpn_GetZkNymByIdResponse>]
+
+  /// - Returns: Interceptors to use when handling 'confirmZkNymDownloaded'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeConfirmZkNymDownloadedInterceptors() -> [ServerInterceptor<Nym_Vpn_ConfirmZkNymDownloadedRequest, Nym_Vpn_ConfirmZkNymDownloadedResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getAvailableTickets'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetAvailableTicketsInterceptors() -> [ServerInterceptor<Nym_Vpn_GetAvailableTicketsRequest, Nym_Vpn_GetAvailableTicketsResponse>]
+
   /// - Returns: Interceptors to use when handling 'fetchRawAccountSummary'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeFetchRawAccountSummaryInterceptors() -> [ServerInterceptor<Nym_Vpn_FetchRawAccountSummaryRequest, Nym_Vpn_FetchRawAccountSummaryResponse>]
@@ -2342,6 +3104,8 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
     methods: [
       Nym_Vpn_NymVpndServerMetadata.Methods.info,
       Nym_Vpn_NymVpndServerMetadata.Methods.setNetwork,
+      Nym_Vpn_NymVpndServerMetadata.Methods.getSystemMessages,
+      Nym_Vpn_NymVpndServerMetadata.Methods.getFeatureFlags,
       Nym_Vpn_NymVpndServerMetadata.Methods.vpnConnect,
       Nym_Vpn_NymVpndServerMetadata.Methods.vpnDisconnect,
       Nym_Vpn_NymVpndServerMetadata.Methods.vpnStatus,
@@ -2352,7 +3116,9 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
       Nym_Vpn_NymVpndServerMetadata.Methods.storeAccount,
       Nym_Vpn_NymVpndServerMetadata.Methods.isAccountStored,
       Nym_Vpn_NymVpndServerMetadata.Methods.removeAccount,
+      Nym_Vpn_NymVpndServerMetadata.Methods.forgetAccount,
       Nym_Vpn_NymVpndServerMetadata.Methods.getAccountIdentity,
+      Nym_Vpn_NymVpndServerMetadata.Methods.getAccountLinks,
       Nym_Vpn_NymVpndServerMetadata.Methods.getAccountState,
       Nym_Vpn_NymVpndServerMetadata.Methods.refreshAccountState,
       Nym_Vpn_NymVpndServerMetadata.Methods.isReadyToConnect,
@@ -2361,6 +3127,10 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
       Nym_Vpn_NymVpndServerMetadata.Methods.registerDevice,
       Nym_Vpn_NymVpndServerMetadata.Methods.requestZkNym,
       Nym_Vpn_NymVpndServerMetadata.Methods.getDeviceZkNyms,
+      Nym_Vpn_NymVpndServerMetadata.Methods.getZkNymsAvailableForDownload,
+      Nym_Vpn_NymVpndServerMetadata.Methods.getZkNymById,
+      Nym_Vpn_NymVpndServerMetadata.Methods.confirmZkNymDownloaded,
+      Nym_Vpn_NymVpndServerMetadata.Methods.getAvailableTickets,
       Nym_Vpn_NymVpndServerMetadata.Methods.fetchRawAccountSummary,
       Nym_Vpn_NymVpndServerMetadata.Methods.fetchRawDevices,
     ]
@@ -2376,6 +3146,18 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
     internal static let setNetwork = GRPCMethodDescriptor(
       name: "SetNetwork",
       path: "/nym.vpn.NymVpnd/SetNetwork",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getSystemMessages = GRPCMethodDescriptor(
+      name: "GetSystemMessages",
+      path: "/nym.vpn.NymVpnd/GetSystemMessages",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getFeatureFlags = GRPCMethodDescriptor(
+      name: "GetFeatureFlags",
+      path: "/nym.vpn.NymVpnd/GetFeatureFlags",
       type: GRPCCallType.unary
     )
 
@@ -2439,9 +3221,21 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
       type: GRPCCallType.unary
     )
 
+    internal static let forgetAccount = GRPCMethodDescriptor(
+      name: "ForgetAccount",
+      path: "/nym.vpn.NymVpnd/ForgetAccount",
+      type: GRPCCallType.unary
+    )
+
     internal static let getAccountIdentity = GRPCMethodDescriptor(
       name: "GetAccountIdentity",
       path: "/nym.vpn.NymVpnd/GetAccountIdentity",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getAccountLinks = GRPCMethodDescriptor(
+      name: "GetAccountLinks",
+      path: "/nym.vpn.NymVpnd/GetAccountLinks",
       type: GRPCCallType.unary
     )
 
@@ -2490,6 +3284,30 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
     internal static let getDeviceZkNyms = GRPCMethodDescriptor(
       name: "GetDeviceZkNyms",
       path: "/nym.vpn.NymVpnd/GetDeviceZkNyms",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getZkNymsAvailableForDownload = GRPCMethodDescriptor(
+      name: "GetZkNymsAvailableForDownload",
+      path: "/nym.vpn.NymVpnd/GetZkNymsAvailableForDownload",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getZkNymById = GRPCMethodDescriptor(
+      name: "GetZkNymById",
+      path: "/nym.vpn.NymVpnd/GetZkNymById",
+      type: GRPCCallType.unary
+    )
+
+    internal static let confirmZkNymDownloaded = GRPCMethodDescriptor(
+      name: "ConfirmZkNymDownloaded",
+      path: "/nym.vpn.NymVpnd/ConfirmZkNymDownloaded",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getAvailableTickets = GRPCMethodDescriptor(
+      name: "GetAvailableTickets",
+      path: "/nym.vpn.NymVpnd/GetAvailableTickets",
       type: GRPCCallType.unary
     )
 

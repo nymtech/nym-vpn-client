@@ -12,34 +12,28 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import net.nymtech.localizationutil.LocaleStorage
-import net.nymtech.localizationutil.LocaleUtil
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
-import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.SelectionItemButton
 import net.nymtech.nymvpn.ui.common.labels.SelectedLabel
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.navigation.NavIcon
 import net.nymtech.nymvpn.ui.common.navigation.NavTitle
+import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.extensions.capitalize
-import net.nymtech.nymvpn.util.extensions.navigateAndForget
-import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
-import timber.log.Timber
 import java.text.Collator
 import java.util.Locale
 
 @Composable
-fun LanguageScreen(appViewModel: AppViewModel, localeStorage: LocaleStorage) {
+fun LanguageScreen(appUiState: AppUiState, appViewModel: AppViewModel) {
 	val navController = LocalNavController.current
 
 	LaunchedEffect(Unit) {
@@ -55,11 +49,7 @@ fun LanguageScreen(appViewModel: AppViewModel, localeStorage: LocaleStorage) {
 		)
 	}
 
-	val context = LocalContext.current
-
 	val collator = Collator.getInstance(Locale.getDefault())
-
-	val currentLocale = remember { mutableStateOf(LocaleUtil.OPTION_PHONE_LANGUAGE) }
 
 	// TODO re-enable fa
 	val locales = LocaleUtil.supportedLocales.filter { it != "fa" }.map {
@@ -72,49 +62,37 @@ fun LanguageScreen(appViewModel: AppViewModel, localeStorage: LocaleStorage) {
 			locales.sortedWith(compareBy(collator) { it.getDisplayName(it) }).toList()
 		}
 
-	LaunchedEffect(Unit) {
-		currentLocale.value = localeStorage.getPreferredLocale()
-	}
-
-	fun onChangeLocale(locale: String) {
-		Timber.d("Setting preferred locale: $locale")
-		localeStorage.setPreferredLocale(locale)
-		LocaleUtil.applyLocalizedContext(context, locale)
-		navController.navigateAndForget(Route.Main(changeLanguage = true))
-	}
-
 	LazyColumn(
 		horizontalAlignment = Alignment.CenterHorizontally,
 		verticalArrangement = Arrangement.Top,
 		modifier =
 		Modifier
 			.fillMaxSize()
-			.padding(top = 24.dp.scaledHeight())
 			.padding(horizontal = 24.dp.scaledWidth()).windowInsetsPadding(WindowInsets.navigationBars),
 	) {
 		item {
 			SelectionItemButton(
 				buttonText = stringResource(R.string.automatic),
 				onClick = {
-					onChangeLocale(LocaleUtil.OPTION_PHONE_LANGUAGE)
+					appViewModel.onLocaleChange(LocaleUtil.OPTION_PHONE_LANGUAGE)
 				},
 				trailing = {
-					if (currentLocale.value == LocaleUtil.OPTION_PHONE_LANGUAGE) {
+					if (appUiState.settings.locale == LocaleUtil.OPTION_PHONE_LANGUAGE) {
 						SelectedLabel()
 					}
 				},
 				ripple = false,
 			)
 		}
-		items(sortedLocales, key = { it.toLanguageTag() }) { locale ->
+		items(sortedLocales, key = { it }) { locale ->
 			SelectionItemButton(
 				buttonText = locale.getDisplayLanguage(locale).capitalize(locale) +
 					if (locale.toLanguageTag().contains("-")) " (${locale.getDisplayCountry(locale).capitalize(locale)})" else "",
 				onClick = {
-					onChangeLocale(locale.toLanguageTag())
+					appViewModel.onLocaleChange(locale.toLanguageTag())
 				},
 				trailing = {
-					if (locale.toLanguageTag() == currentLocale.value) {
+					if (locale.toLanguageTag() == appUiState.settings.locale) {
 						SelectedLabel()
 					}
 				},

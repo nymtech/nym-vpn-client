@@ -1,6 +1,8 @@
 import SwiftUI
 import AppSettings
 import CredentialsManager
+import ConnectionManager
+import ConfigurationManager
 #if os(iOS)
 import KeyboardManager
 #endif
@@ -8,19 +10,30 @@ import Theme
 
 final class AddCredentialsViewModel: ObservableObject {
     private let credentialsManager: CredentialsManager
+    private let configurationManager: ConfigurationManager
 #if os(iOS)
     private let keyboardManager: KeyboardManager
 #endif
+    private let newToNymVPNTitle = "addCredentials.newToNymVPN".localizedString
+    private let createAccountTitle = "addCredentials.createAccount".localizedString
+
+    var signUpLink: String {
+        if let link = configurationManager.accountLinks?.signUp, !link.isEmpty {
+            return link
+        } else {
+            return "https://nymvpn.com/en/account/create"
+        }
+    }
+
+    let signUpLinkFallback = "https://nymvpn.com/en/account/create"
 
     let appSettings: AppSettings
     let loginButtonTitle = "addCredentials.Login.Title".localizedString
     let welcomeTitle = "addCredentials.welcome.Title".localizedString
     let getStartedTitle = "addCredentials.getStarted.Title".localizedString
     let getStartedSubtitle = "addCredentialsGetStarted.Subtitle".localizedString
-    let credentialSubtitle = "addCredtenials.credential".localizedString
+    let mnemonicSubtitle = "addCredtenials.mnemonic".localizedString
     let credentialsPlaceholderTitle = "addCredentials.placeholder".localizedString
-    let newToNymVPNTitle = "addCredentials.newToNymVPN".localizedString
-    let createAccountTitle = "addCredentials.createAccount".localizedString
     let logoImageName = "addCredentialsLogo"
     let scannerIconName = "qrcode.viewfinder"
 
@@ -53,11 +66,13 @@ final class AddCredentialsViewModel: ObservableObject {
         path: Binding<NavigationPath>,
         appSettings: AppSettings = AppSettings.shared,
         credentialsManager: CredentialsManager = CredentialsManager.shared,
+        configurationManager: ConfigurationManager = ConfigurationManager.shared,
         keyboardManager: KeyboardManager = KeyboardManager.shared
     ) {
         _path = path
         self.appSettings = appSettings
         self.credentialsManager = credentialsManager
+        self.configurationManager = configurationManager
         self.keyboardManager = keyboardManager
     }
 #endif
@@ -65,24 +80,32 @@ final class AddCredentialsViewModel: ObservableObject {
     init(
         path: Binding<NavigationPath>,
         appSettings: AppSettings = AppSettings.shared,
+        configurationManager: ConfigurationManager = ConfigurationManager.shared,
         credentialsManager: CredentialsManager = CredentialsManager.shared
     ) {
         _path = path
         self.appSettings = appSettings
+        self.configurationManager = configurationManager
         self.credentialsManager = credentialsManager
     }
 #endif
 
+    func createAnAccountAttributedString() -> AttributedString? {
+        try? AttributedString(markdown: "\(newToNymVPNTitle) [\(createAccountTitle)](\(signUpLink))")
+    }
+
     @MainActor func importCredentials() {
         error = CredentialsManagerError.noError
+        let trimmedCredential = credentialText.trimmingCharacters(in: .whitespacesAndNewlines)
 
         Task {
             do {
-                try await credentialsManager.add(credential: credentialText)
+                try await credentialsManager.add(credential: trimmedCredential)
                 credentialsDidAdd()
             } catch let newError {
                 Task { @MainActor in
-                    error = CredentialsManagerError.generalError(String(describing: newError))
+                    credentialText = trimmedCredential
+                    error = CredentialsManagerError.generalError(String(describing: newError.localizedDescription))
                 }
             }
         }

@@ -10,14 +10,13 @@
   "feedback": {
     "title": "Retour d'information",
     "github": "Créer un ticket GitHub",
-    "send": "Envoyez-nous un retour d'information",
+    "get-in-touch": "Contactez-nous",
     "matrix": "Rejoignez-nous sur Matrix",
     "discord": "Rejoignez-nous sur Discord"
   },
   "support": {
     "title": "Support",
-    "faq": "Consulter la FAQ",
-    "contact": "Contacter le Support"
+    "faq": "Consulter la FAQ"
   },
   "legal": {
     "title": "Juridique",
@@ -28,8 +27,8 @@
     "licenses-rust": "Licences (Rust)",
     "licenses-js": "Licences (JavaScript)"
   },
-  "display-theme": "Apparence",
-  "login-button": "Ajoutez un identifiant pour vous connecter",
+  "display-theme": "Affichage",
+  "login-button": "S'identifier",
   "monitoring-alert": "Redémarrez l'application pour que le changement s'applique.",
   "faq": "F.A.Q.",
   "quit": "Quitter NymVPN",
@@ -44,5 +43,9 @@
     "client-version": "Version du client",
     "daemon-version": "Version du daemon",
     "network-name": "Réseau"
+  },
+  "logout-confirmation": {
+    "title": "Etes-vous sûr ?",
+    "description": "Vous aurez besoin de votre phrase de récupération pour vous reconnecter."
   }
 }

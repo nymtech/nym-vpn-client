@@ -1,14 +1,15 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
-// #![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 
 #[cfg(target_os = "android")]
 pub mod android;
 pub(crate) mod error;
+pub mod helpers;
 #[cfg(any(target_os = "ios", target_os = "macos"))]
 pub mod swift;
 
 mod account;
+mod environment;
 
 use std::{env, path::PathBuf, sync::Arc, time::Duration};
 
@@ -26,6 +27,7 @@ use url::Url;
 use nym_gateway_directory::Config as GatewayDirectoryConfig;
 
 use self::error::VpnError;
+use crate::platform::account::start_account_controller_inner;
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
@@ -35,11 +37,12 @@ use crate::{
     tunnel_state_machine::{
         BandwidthEvent, ConnectionEvent, DnsOptions, GatewayPerformanceOptions,
         MixnetTunnelOptions, NymConfig, TunnelCommand, TunnelEvent, TunnelSettings, TunnelState,
-        TunnelStateMachine, TunnelType,
+        TunnelStateMachine, TunnelType, WireguardTunnelOptions,
     },
     uniffi_custom_impls::{
-        AccountStateSummary, BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint,
-        GatewayMinPerformance, GatewayType, Location, NetworkEnvironment, TunStatus, UserAgent,
+        AccountLinks, AccountStateSummary, BandwidthStatus, ConnectionStatus, EntryPoint,
+        ExitPoint, GatewayMinPerformance, GatewayType, Location, NetworkEnvironment, SystemMessage,
+        TunStatus, UserAgent,
     },
 };
 
@@ -47,6 +50,8 @@ lazy_static! {
     static ref RUNTIME: Runtime = Runtime::new().unwrap();
     static ref STATE_MACHINE_HANDLE: Mutex<Option<StateMachineHandle>> = Mutex::new(None);
     static ref ACCOUNT_CONTROLLER_HANDLE: Mutex<Option<AccountControllerHandle>> = Mutex::new(None);
+    static ref NETWORK_ENVIRONMENT: Mutex<Option<nym_vpn_network_config::Network>> =
+        Mutex::new(None);
 }
 
 #[allow(non_snake_case)]
@@ -56,17 +61,19 @@ pub fn startVPN(config: VPNConfig) -> Result<(), VpnError> {
 }
 
 async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
+    let enable_credentials_mode = is_credential_mode_enabled(config.credential_mode).await?;
+
     // TODO: we do a pre-connect check here. This mirrors the logic in the daemon.
     // We want to move this check into the state machine so that it happens during the connecting
     // state instead. This would allow us more flexibility in waiting for the account to be ready
     // and handle errors in a unified manner.
     let timeout = Duration::from_secs(10);
-    account::assert_account_ready_to_connect(timeout).await?;
+    account::wait_for_account_ready_to_connect(enable_credentials_mode, timeout).await?;
 
     let mut guard = STATE_MACHINE_HANDLE.lock().await;
 
     if guard.is_none() {
-        let state_machine_handle = start_state_machine(config).await?;
+        let state_machine_handle = start_state_machine(config, enable_credentials_mode).await?;
         state_machine_handle.send_command(TunnelCommand::Connect);
         *guard = Some(state_machine_handle);
         Ok(())
@@ -100,21 +107,36 @@ async fn stop_vpn_inner() -> Result<(), VpnError> {
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn startAccountController(data_dir: String) -> Result<(), VpnError> {
-    RUNTIME.block_on(account::start_account_controller_inner(PathBuf::from(
-        data_dir,
-    )))
+pub fn configureLib(data_dir: String, credential_mode: Option<bool>) -> Result<(), VpnError> {
+    RUNTIME.block_on(reconfigure_library(data_dir, credential_mode))
+}
+
+async fn reconfigure_library(
+    data_dir: String,
+    credential_mode: Option<bool>,
+) -> Result<(), VpnError> {
+    let enable_credentials_mode = is_credential_mode_enabled(credential_mode).await?;
+
+    // stop if already running
+    let _ = account::stop_account_controller_inner().await;
+    init_logger();
+    start_account_controller_inner(PathBuf::from(data_dir), enable_credentials_mode).await
+}
+
+async fn is_credential_mode_enabled(credential_mode: Option<bool>) -> Result<bool, VpnError> {
+    match credential_mode {
+        Some(enable_credentials_mode) => Ok(enable_credentials_mode),
+        None => environment::get_feature_flag_credential_mode().await,
+    }
 }
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn stopAccountController() -> Result<(), VpnError> {
+pub fn shutdown() -> Result<(), VpnError> {
     RUNTIME.block_on(account::stop_account_controller_inner())
 }
 
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn initLogger() {
+pub fn init_logger() {
     let log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
     info!("Setting log level: {}", log_level);
     #[cfg(target_os = "ios")]
@@ -123,20 +145,90 @@ pub fn initLogger() {
     android::init_logs(log_level);
 }
 
-// Fetch the network environment details from the network name.
-// TODO: also add the ability to catch this information for subsequent use.
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn initLogger() {
+    init_logger();
+}
+
+/// Fetches the network environment details from the network name and initializes the environment,
+/// including exporting to the environment
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn initEnvironment(network_name: &str) -> Result<(), VpnError> {
+    RUNTIME.block_on(environment::init_environment(network_name))
+}
+
+/// Async variant of initEnvironment. Fetches the network environment details from the network name
+/// and initializes the environment, including exporting to the environment
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub async fn initEnvironmentAsync(network_name: &str) -> Result<(), VpnError> {
+    environment::init_environment(network_name).await
+}
+
+/// Sets up mainnet defaults without making any network calls. This means no system messages or
+/// account links will be available.
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn initFallbackMainnetEnvironment() -> Result<(), VpnError> {
+    RUNTIME.block_on(environment::init_fallback_mainnet_environment())
+}
+
+/// Returns the currently set network environment
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn currentEnvironment() -> Result<NetworkEnvironment, VpnError> {
+    RUNTIME.block_on(environment::current_environment())
+}
+
+/// Returns the system messages for the current network environment
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn getSystemMessages() -> Result<Vec<SystemMessage>, VpnError> {
+    RUNTIME.block_on(environment::get_system_messages())
+}
+
+/// Returns the account links for the current network environment
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn getAccountLinks(account_store_path: &str, locale: &str) -> Result<AccountLinks, VpnError> {
+    RUNTIME.block_on(environment::get_account_links(account_store_path, locale))
+}
+
+/// Fetch the network environment details from the network name.
+/// This makes a network call. In normal operations you almost always want to use initEnvironment
+/// instead of this function.
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn fetchEnvironment(network_name: &str) -> Result<NetworkEnvironment, VpnError> {
-    RUNTIME.block_on(fetch_environment(network_name))
+    RUNTIME.block_on(environment::fetch_environment(network_name))
 }
 
-async fn fetch_environment(network_name: &str) -> Result<NetworkEnvironment, VpnError> {
-    nym_vpn_network_config::Network::fetch(network_name)
-        .map(NetworkEnvironment::from)
-        .map_err(|err| VpnError::InternalError {
-            details: err.to_string(),
-        })
+/// Feth the account links for the current network environment.
+/// This makes a network call. In normal operations you almost always want to use initEnvironment
+/// followed by getSystemMessages instead of this function.
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn fetchSystemMessages(network_name: &str) -> Result<Vec<SystemMessage>, VpnError> {
+    RUNTIME.block_on(environment::fetch_system_messages(network_name))
+}
+
+/// Fetches the account links for the current network environment
+/// This makes a network call. In normal operations you almost always want to use initEnvironment
+/// followed by getAccountLinks instead of this function.
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn fetchAccountLinks(
+    account_store_path: &str,
+    network_name: &str,
+    locale: &str,
+) -> Result<AccountLinks, VpnError> {
+    RUNTIME.block_on(environment::fetch_account_links(
+        account_store_path,
+        network_name,
+        locale,
+    ))
 }
 
 #[allow(non_snake_case)]
@@ -155,6 +247,12 @@ pub fn isAccountMnemonicStored(path: String) -> Result<bool, VpnError> {
 #[uniffi::export]
 pub fn removeAccountMnemonic(path: String) -> Result<bool, VpnError> {
     RUNTIME.block_on(account::remove_account_mnemonic(&path))
+}
+
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn forgetAccount(path: String) -> Result<(), VpnError> {
+    RUNTIME.block_on(account::forget_account(&path))
 }
 
 #[allow(non_snake_case)]
@@ -178,12 +276,12 @@ pub fn getAccountState() -> Result<AccountStateSummary, VpnError> {
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn getGatewayCountries(
-    api_url: Url,
-    nym_vpn_api_url: Option<Url>,
     gw_type: GatewayType,
     user_agent: Option<UserAgent>,
     min_gateway_performance: Option<GatewayMinPerformance>,
 ) -> Result<Vec<Location>, VpnError> {
+    let (api_url, nym_vpn_api_url) = get_nym_urls()?;
+
     RUNTIME.block_on(get_gateway_countries(
         api_url,
         nym_vpn_api_url,
@@ -195,7 +293,7 @@ pub fn getGatewayCountries(
 
 async fn get_gateway_countries(
     api_url: Url,
-    nym_vpn_api_url: Option<Url>,
+    nym_vpn_api_url: Url,
     gw_type: GatewayType,
     user_agent: Option<UserAgent>,
     min_gateway_performance: Option<GatewayMinPerformance>,
@@ -206,7 +304,7 @@ async fn get_gateway_countries(
     let min_gateway_performance = min_gateway_performance.map(|p| p.try_into()).transpose()?;
     let directory_config = nym_gateway_directory::Config {
         api_url,
-        nym_vpn_api_url,
+        nym_vpn_api_url: Some(nym_vpn_api_url),
         min_gateway_performance,
     };
     GatewayClient::new(directory_config, user_agent)?
@@ -218,11 +316,9 @@ async fn get_gateway_countries(
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn getLowLatencyEntryCountry(
-    api_url: Url,
-    vpn_api_url: Option<Url>,
-    user_agent: UserAgent,
-) -> Result<Location, VpnError> {
+pub fn getLowLatencyEntryCountry(user_agent: UserAgent) -> Result<Location, VpnError> {
+    let (api_url, vpn_api_url) = get_nym_urls()?;
+
     RUNTIME.block_on(get_low_latency_entry_country(
         api_url,
         vpn_api_url,
@@ -232,12 +328,12 @@ pub fn getLowLatencyEntryCountry(
 
 async fn get_low_latency_entry_country(
     api_url: Url,
-    vpn_api_url: Option<Url>,
+    vpn_api_url: Url,
     user_agent: UserAgent,
 ) -> Result<Location, VpnError> {
     let config = nym_gateway_directory::Config {
         api_url,
-        nym_vpn_api_url: vpn_api_url,
+        nym_vpn_api_url: Some(vpn_api_url),
         min_gateway_performance: None,
     };
     GatewayClient::new(config, user_agent.into())?
@@ -254,8 +350,6 @@ async fn get_low_latency_entry_country(
 
 #[derive(uniffi::Record)]
 pub struct VPNConfig {
-    pub api_url: Url,
-    pub vpn_api_url: Option<Url>,
     pub entry_gateway: EntryPoint,
     pub exit_router: ExitPoint,
     pub enable_two_hop: bool,
@@ -265,6 +359,7 @@ pub struct VPNConfig {
     pub tun_provider: Arc<dyn OSTunProvider>,
     pub credential_data_path: Option<PathBuf>,
     pub tun_status_listener: Option<Arc<dyn TunnelStatusListener>>,
+    pub credential_mode: Option<bool>,
 }
 
 #[uniffi::export(with_foreign)]
@@ -299,7 +394,33 @@ impl StateMachineHandle {
     }
 }
 
-async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, VpnError> {
+fn get_api_url() -> Option<Url> {
+    match env::var("NYM_API") {
+        Ok(url) => Url::parse(&url).ok(),
+        Err(_) => None,
+    }
+}
+
+fn get_nym_api_url() -> Option<Url> {
+    match env::var("NYM_VPN_API") {
+        Ok(url) => Url::parse(&url).ok(),
+        Err(_) => None,
+    }
+}
+
+fn get_nym_urls() -> Result<(Url, Url), VpnError> {
+    match (get_api_url(), get_nym_api_url()) {
+        (Some(api_url), Some(nym_vpn_api_url)) => Ok((api_url, nym_vpn_api_url)),
+        _ => Err(VpnError::InternalError {
+            details: "NYM_API and NYM_VPN_API environment variables must be set".to_string(),
+        }),
+    }
+}
+
+async fn start_state_machine(
+    config: VPNConfig,
+    enable_credentials_mode: bool,
+) -> Result<StateMachineHandle, VpnError> {
     let tunnel_type = if config.enable_two_hop {
         TunnelType::Wireguard
     } else {
@@ -309,9 +430,11 @@ async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, Vp
     let entry_point = nym_gateway_directory::EntryPoint::from(config.entry_gateway);
     let exit_point = nym_gateway_directory::ExitPoint::from(config.exit_router);
 
+    let (api_url, nym_vpn_api_url) = get_nym_urls()?;
+
     let gateway_config = GatewayDirectoryConfig {
-        api_url: config.api_url,
-        nym_vpn_api_url: config.vpn_api_url,
+        api_url,
+        nym_vpn_api_url: Some(nym_vpn_api_url),
         ..Default::default()
     };
 
@@ -322,8 +445,9 @@ async fn start_state_machine(config: VPNConfig) -> Result<StateMachineHandle, Vp
 
     let tunnel_settings = TunnelSettings {
         tunnel_type,
-        enable_credentials_mode: false,
+        enable_credentials_mode,
         mixnet_tunnel_options: MixnetTunnelOptions::default(),
+        wireguard_tunnel_options: WireguardTunnelOptions::default(),
         gateway_performance_options: GatewayPerformanceOptions::default(),
         mixnet_client_config: None,
         entry_point: Box::new(entry_point),

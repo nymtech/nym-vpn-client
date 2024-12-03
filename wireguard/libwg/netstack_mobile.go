@@ -14,27 +14,11 @@ import (
 	"net/netip"
 	"strings"
 
-	"github.com/nymtech/nym-vpn-client/wireguard/libwg/container"
 	"github.com/nymtech/nym-vpn-client/wireguard/libwg/logging"
-	"github.com/nymtech/nym-vpn-client/wireguard/libwg/udp_forwarder"
 	"golang.zx2c4.com/wireguard/conn"
 	"golang.zx2c4.com/wireguard/device"
 	"golang.zx2c4.com/wireguard/tun/netstack"
 )
-
-type netTunnelHandle struct {
-	*device.Device
-	*netstack.Net
-	*device.Logger
-}
-
-var netTunnelHandles container.Container[netTunnelHandle]
-var udpForwarders container.Container[*udp_forwarder.UDPForwarder]
-
-func init() {
-	netTunnelHandles = container.New[netTunnelHandle]()
-	udpForwarders = container.New[*udp_forwarder.UDPForwarder]()
-}
 
 //export wgNetTurnOn
 func wgNetTurnOn(localAddresses *C.char, dnsAddresses *C.char, mtu int, settings *C.char, logSink LogSink, logContext LogContext) int32 {
@@ -87,7 +71,7 @@ func wgNetTurnOn(localAddresses *C.char, dnsAddresses *C.char, mtu int, settings
 
 	logger.Verbosef("Net device started")
 
-	i, err := netTunnelHandles.Insert(netTunnelHandle{dev, tnet, logger})
+	i, err := netTunnelHandles.Insert(NetTunnelHandle{dev, tnet, logger})
 	if err != nil {
 		logger.Errorf("Failed to store tunnel: %v", err)
 		dev.Close()
@@ -95,15 +79,6 @@ func wgNetTurnOn(localAddresses *C.char, dnsAddresses *C.char, mtu int, settings
 	}
 
 	return i
-}
-
-//export wgNetTurnOff
-func wgNetTurnOff(tunnelHandle int32) {
-	dev, err := netTunnelHandles.Remove(tunnelHandle)
-	if err != nil {
-		return
-	}
-	dev.Close()
 }
 
 //export wgNetSetConfig
@@ -124,66 +99,6 @@ func wgNetSetConfig(tunnelHandle int32, settings *C.char) int64 {
 	dev.DisableSomeRoamingForBrokenMobileSemantics()
 
 	return 0
-}
-
-//export wgNetGetConfig
-func wgNetGetConfig(tunnelHandle int32) *C.char {
-	device, err := netTunnelHandles.Get(tunnelHandle)
-	if err != nil {
-		return nil
-	}
-	settings, err := device.IpcGet()
-	if err != nil {
-		return nil
-	}
-	return C.CString(settings)
-}
-
-//export wgNetOpenConnectionThroughTunnel
-func wgNetOpenConnectionThroughTunnel(entryTunnelHandle int32, listenPort uint16, clientPort uint16, exitEndpointStr *C.char, logSink LogSink, logContext LogContext) int32 {
-	logger := logging.NewLogger(logSink, logContext)
-
-	dev, err := netTunnelHandles.Get(entryTunnelHandle)
-	if err != nil {
-		dev.Errorf("Invalid tunnel handle: %d", entryTunnelHandle)
-		return ERROR_GENERAL_FAILURE
-	}
-
-	exitEndpoint, err := netip.ParseAddrPort(C.GoString(exitEndpointStr))
-	if err != nil {
-		dev.Errorf("Failed to parse endpoint: %v", err)
-		return ERROR_GENERAL_FAILURE
-	}
-
-	forwarderConfig := udp_forwarder.UDPForwarderConfig{
-		ListenPort:   listenPort,
-		ClientPort:   clientPort,
-		ExitEndpoint: exitEndpoint,
-	}
-
-	udpForwarder, err := udp_forwarder.New(forwarderConfig, dev.Net, logger)
-	if err != nil {
-		dev.Errorf("Failed to create udp forwarder: %v", err)
-		return ERROR_GENERAL_FAILURE
-	}
-
-	forwarderHandle, err := udpForwarders.Insert(udpForwarder)
-	if err != nil {
-		dev.Errorf("Failed to store udp forwarder: %v", err)
-		udpForwarder.Close()
-		return ERROR_GENERAL_FAILURE
-	}
-
-	return forwarderHandle
-}
-
-//export wgNetCloseConnectionThroughTunnel
-func wgNetCloseConnectionThroughTunnel(udpForwarderHandle int32) {
-	udpForwarder, err := udpForwarders.Remove(udpForwarderHandle)
-	if err != nil {
-		return
-	}
-	(*udpForwarder).Close()
 }
 
 // Parse a list of comma-separated IP addresses into array of netip.Addr structs.

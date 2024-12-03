@@ -10,14 +10,13 @@
   "feedback": {
     "title": "Retroalimentación",
     "github": "Abrir un ticket en GitHub",
-    "send": "Envíanos tus comentarios",
     "matrix": "Únete en Matrix",
-    "discord": "Únete en Discord"
+    "discord": "Únete en Discord",
+    "get-in-touch": "Ponte en contacto"
   },
   "support": {
     "title": "Soporte",
-    "faq": "Consulta las preguntas frecuentes",
-    "contact": "Contacto para soporte"
+    "faq": "Consulta las preguntas frecuentes"
   },
   "legal": {
     "title": "Legal",
@@ -44,5 +43,9 @@
     "daemon-version": "Versión Demonio",
     "network-name": "Red",
     "client-version": "Versión de cliente"
+  },
+  "logout-confirmation": {
+    "title": "¿Estás seguro?",
+    "description": "Necesitarás tu frase de recuperación para iniciar sesión nuevamente."
   }
 }

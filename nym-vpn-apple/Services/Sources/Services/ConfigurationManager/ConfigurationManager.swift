@@ -1,20 +1,27 @@
-import Foundation
+import Combine
+import SwiftUI
 import AppSettings
 import Device
-#if os(macOS)
+#if os(iOS)
+import MixnetLibrary
+#elseif os(macOS)
 import GRPCManager
 #endif
 import Constants
+import CredentialsManager
 import Logging
 
 public final class ConfigurationManager {
     private let appSettings: AppSettings
+    private let credentialsManager: CredentialsManager
     private let logger = Logger(label: "Configuration Manager")
     private let fallbackEnv = Env.mainnet
 
 #if os(macOS)
     private let grpcManager: GRPCManager
 #endif
+
+    private var cancellables = Set<AnyCancellable>()
 
     // Source of truth in AppSettings.
     // We need to set same settings in tunnel extension as well.
@@ -28,107 +35,115 @@ public final class ConfigurationManager {
         }
     }
 #if os(iOS)
-    public static let shared = ConfigurationManager(appSettings: AppSettings.shared)
+    public static let shared = ConfigurationManager(
+        appSettings: AppSettings.shared,
+        credentialsManager: CredentialsManager.shared
+    )
 #endif
 
 #if os(macOS)
     public static let shared = ConfigurationManager(
         appSettings: AppSettings.shared,
+        credentialsManager: CredentialsManager.shared,
         grpcManager: GRPCManager.shared
     )
 #endif
     public let isTestFlight = Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
     public let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0"
 
-    public var nymVpnApiURL: URL? {
-        getenv("NYM_VPN_API").flatMap { URL(string: String(cString: $0)) }
-    }
-
-    public var apiURL: URL? {
-        getenv("NYM_API").flatMap { URL(string: String(cString: $0)) }
-    }
-
+    public var accountLinks: AccountLinks?
     public var environmentDidChange: (() -> Void)?
 
 #if os(iOS)
-    private init(appSettings: AppSettings) {
+    private init(appSettings: AppSettings, credentialsManager: CredentialsManager) {
         self.appSettings = appSettings
+        self.credentialsManager = credentialsManager
     }
-#endif
-
-#if os(macOS)
-    private init(appSettings: AppSettings, grpcManager: GRPCManager) {
+#elseif os(macOS)
+    private init(appSettings: AppSettings, credentialsManager: CredentialsManager, grpcManager: GRPCManager) {
         self.appSettings = appSettings
+        self.credentialsManager = credentialsManager
         self.grpcManager = grpcManager
     }
 #endif
 
-    public func setup() throws {
-#if os(iOS)
-        try setEnvVariables(for: currentEnv)
-#elseif os(macOS)
-        try setDaemonEnvironmentVariables()
-#endif
+    public func setup() async throws {
+        appSettings.$isCredentialImportedPublisher.sink { [weak self] _ in
+            self?.updateAccountLinks()
+        }
+        .store(in: &cancellables)
+
+        try await configure()
     }
 
     public func updateEnv(to env: Env) {
-        guard isTestFlight || Device.isMacOS,
-                env != currentEnv
-        else {
-            return
-        }
-        currentEnv = env
-        try? setup()
-        environmentDidChange?()
-    }
-}
-
-private extension ConfigurationManager {
-    func setEnvVariables(for environment: Env) throws {
-        do {
-            let envString = try contentOfEnvFile(named: environment.rawValue)
-            try setEnvironmentVariables(envString: envString)
-            logger.info("Env vars enabled for \(environment.rawValue)")
-        } catch {
-            logger.error("setEnvVariables failed: \(error.localizedDescription)")
+        Task(priority: .background) { [weak self] in
+            guard let self else { return }
+            guard isTestFlight || Device.isMacOS,
+                  env != currentEnv
+            else {
+                return
+            }
+            await MainActor.run { [weak self] in
+                self?.currentEnv = env
+            }
+            do {
+                try await configure()
+            } catch {
+                logger.error("Failed to set env to \(env.rawValue): \(error.localizedDescription)")
+            }
+            environmentDidChange?()
         }
     }
-}
 
-private extension ConfigurationManager {
-    func contentOfEnvFile(named: String) throws -> String {
-        guard let filePath = Bundle.main.path(forResource: named, ofType: "env")
-        else {
-            throw GeneralNymError.noEnvFile
-        }
-        return try String(contentsOfFile: filePath, encoding: .utf8)
-    }
-
-    func setEnvironmentVariables(envString: String) throws {
-        let escapeQuote = "\""
-        let lines = envString.split(whereSeparator: { $0.isNewline })
-
-        try lines.forEach { line in
-            guard !line.isEmpty else { return }
-
-            let substrings = line.split(separator: "=", maxSplits: 2)
-            if substrings.count == 2 {
-                let key = substrings[0].trimmingCharacters(in: .whitespaces)
-                var value = substrings[1].trimmingCharacters(in: .whitespaces)
-
-                if value.hasPrefix(escapeQuote) && value.hasSuffix(escapeQuote) {
-                    value.removeFirst()
-                    value.removeLast()
+    public func updateAccountLinks() {
+        Task(priority: .background) {
+            do {
+#if os(iOS)
+                let links = try fetchAccountLinks(
+                    accountStorePath: credentialsManager.dataFolderURL().path(),
+                    networkName: currentEnv.rawValue,
+                    locale: Locale.current.region?.identifier.lowercased() ?? "en"
+                )
+                Task { @MainActor in
+                    accountLinks = AccountLinks(account: links.account, signIn: links.signIn, signUp: links.signUp)
                 }
-
-                setenv(key, value, 1)
-            } else {
-                throw ParseEnvironmentFileError(kind: .invalidValue, source: String(line))
+#elseif os(macOS)
+                let links = try await grpcManager.accountLinks()
+                Task { @MainActor in
+                    if !links.signIn.isEmpty, !links.signUp.isEmpty {
+                        accountLinks = AccountLinks(account: links.account, signIn: links.signIn, signUp: links.signUp)
+                    } else {
+                        accountLinks = nil
+                    }
+                }
+#endif
+            } catch {
+                logger.error("Failed to fetch account links: \(error.localizedDescription)")
             }
         }
     }
+}
 
-#if os(macOS)
+private extension ConfigurationManager {
+    func configure() async throws {
+        logger.info("🛜 env: \(currentEnv.rawValue)")
+        print("🛜 env: \(currentEnv.rawValue)")
+#if os(iOS)
+        try await setEnvVariables()
+#elseif os(macOS)
+        try setDaemonEnvironmentVariables()
+#endif
+        updateAccountLinks()
+    }
+
+#if os(iOS)
+    func setEnvVariables() async throws {
+        try await Task(priority: .background) {
+            try await initEnvironmentAsync(networkName: currentEnv.rawValue)
+        }.value
+    }
+#elseif os(macOS)
     func setDaemonEnvironmentVariables() throws {
         try grpcManager.switchEnvironment(to: currentEnv.rawValue)
     }

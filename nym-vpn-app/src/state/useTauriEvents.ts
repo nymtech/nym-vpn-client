@@ -1,16 +1,19 @@
 import { useCallback, useEffect } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
+import i18n from 'i18next';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import dayjs from 'dayjs';
 import {
+  AccountLinks,
   BackendError,
   ConnectionEvent as ConnectionEventData,
-  DaemonInfo,
-  DaemonStatus,
   ProgressEventPayload,
   StateDispatch,
   StatusUpdatePayload,
+  VpndStatus,
+  isVpndNonCompat,
+  isVpndOk,
 } from '../types';
 import {
   ConnectionEvent,
@@ -19,7 +22,8 @@ import {
   ProgressEvent,
   StatusUpdateEvent,
 } from '../constants';
-import { S_STATE } from '../static';
+import { Notification } from '../contexts';
+import { daemonStatusUpdate } from './helper';
 
 function handleError(dispatch: StateDispatch, error?: BackendError | null) {
   if (!error) {
@@ -30,31 +34,41 @@ function handleError(dispatch: StateDispatch, error?: BackendError | null) {
   dispatch({ type: 'set-error', error });
 }
 
-export function useTauriEvents(dispatch: StateDispatch) {
+export function useTauriEvents(
+  dispatch: StateDispatch,
+  push: (notification: Notification) => void,
+) {
   const registerDaemonListener = useCallback(() => {
-    return listen<DaemonStatus>(DaemonEvent, async (event) => {
-      console.info(`received event [${event.event}], status: ${event.payload}`);
-      dispatch({
-        type: 'set-daemon-status',
-        status: event.payload,
-      });
+    return listen<VpndStatus>(
+      DaemonEvent,
+      async ({ event, payload: status }) => {
+        console.info(
+          `received event [${event}], status: ${status === 'notOk' ? status : JSON.stringify(status)}`,
+        );
+        daemonStatusUpdate(status, dispatch, push);
 
-      // refresh daemon info, network env and account status
-      if (event.payload === 'Ok') {
-        try {
-          const info = await invoke<DaemonInfo>('daemon_info');
-          dispatch({ type: 'set-daemon-info', info });
-          if (info.network) {
-            S_STATE.networkEnvInit = true;
+        // refresh account status
+        if (isVpndOk(status) || isVpndNonCompat(status)) {
+          try {
+            const stored = await invoke<boolean | undefined>(
+              'is_account_stored',
+            );
+            dispatch({ type: 'set-account', stored: stored || false });
+          } catch (e: unknown) {
+            console.error('failed to refresh daemon info', e);
           }
-          const stored = await invoke<boolean | undefined>('is_account_stored');
-          dispatch({ type: 'set-account', stored: stored || false });
-        } catch (e: unknown) {
-          console.error('failed to refresh daemon info', e);
+          try {
+            const links = await invoke<AccountLinks>('account_links', {
+              locale: i18n.language,
+            });
+            dispatch({ type: 'set-account-links', links });
+          } catch (e: unknown) {
+            console.warn('failed to get account links', e);
+          }
         }
-      }
-    });
-  }, [dispatch]);
+      },
+    );
+  }, [dispatch, push]);
 
   const registerStateListener = useCallback(() => {
     return listen<ConnectionEventData>(ConnectionEvent, (event) => {
@@ -80,15 +94,15 @@ export function useTauriEvents(dispatch: StateDispatch) {
           handleError(dispatch, event.payload.error);
           break;
         case 'Connecting':
-          dispatch({ type: 'change-connection-state', state: 'Connecting' });
+          dispatch({ type: 'update-connection-state', state: 'Connecting' });
           handleError(dispatch, event.payload.error);
           break;
         case 'Disconnecting':
-          dispatch({ type: 'change-connection-state', state: 'Disconnecting' });
+          dispatch({ type: 'update-connection-state', state: 'Disconnecting' });
           handleError(dispatch, event.payload.error);
           break;
         case 'Unknown':
-          dispatch({ type: 'change-connection-state', state: 'Unknown' });
+          dispatch({ type: 'update-connection-state', state: 'Unknown' });
           handleError(dispatch, event.payload.error);
           break;
       }

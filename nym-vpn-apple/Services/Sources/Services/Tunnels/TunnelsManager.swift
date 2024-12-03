@@ -1,10 +1,13 @@
 import Combine
 import NetworkExtension
 import Logging
+import Constants
 import Keychain
+#if os(iOS)
+import ErrorHandler
+#endif
 
 public final class TunnelsManager: ObservableObject {
-    private let secondInNanoseconds: UInt64 = 1000000000
     public static let shared = TunnelsManager()
 
     private var cancellables = Set<AnyCancellable>()
@@ -21,9 +24,6 @@ public final class TunnelsManager: ObservableObject {
         Task {
             try? await loadTunnels()
             observeTunnelStatuses()
-#if os(iOS)
-            startPolling()
-#endif
         }
     }
 }
@@ -66,45 +66,6 @@ extension TunnelsManager {
     }
 }
 
-// MARK: - Polling -
-#if os(iOS)
-private extension TunnelsManager {
-    func startPolling() {
-        isPolling = true
-        work = Task {
-            await pollLoop()
-        }
-    }
-
-    func pollLoop() async {
-        while isPolling {
-            await pollTunnelLastError()
-            try? await Task.sleep(nanoseconds: secondInNanoseconds)
-        }
-    }
-
-    func pollTunnelLastError() async {
-        guard let tunnel = tunnels.first(where: { $0.tunnel.isEnabled }),
-              let session = tunnel.tunnel.connection as? NETunnelProviderSession
-        else {
-            logger.log(level: .error, "Failed to access NETunnelProviderSession from the active tunnel.")
-            return
-        }
-
-        do {
-            let message = try TunnelProviderMessage.lastErrorReason.encode()
-            let response = try await session.sendProviderMessageAsync(message)
-            if let response, let decodedReason = try? ErrorReason(from: response) {
-                lastError = decodedReason
-                logger.info("Last tunnel error: \(decodedReason)")
-            }
-        } catch {
-            logger.error("Failed to send polling message with error: \(error)")
-        }
-    }
-}
-#endif
-
 // MARK: - Connection -
 extension TunnelsManager {
     public func connect(tunnel: Tunnel) async throws {
@@ -112,6 +73,7 @@ extension TunnelsManager {
 #if targetEnvironment(simulator)
         tunnel.status = .connected
 #else
+        activeTunnel = tunnel
         do {
             try await tunnel.connect()
         } catch {
@@ -189,15 +151,34 @@ private extension TunnelsManager {
                     level: .debug,
                     "Tunnel '\(tunnel.name)' connection status changed to '\(tunnel.tunnel.connection.status)'"
                 )
-
-                if tunnel.status == .restarting && session.status == .disconnected {
-                    Task {
-                        try? await tunnel.connect()
-                    }
-                    return
+#if os(iOS)
+                Task { [weak self] in
+                    await self?.updateLastTunnelErrorIfNeeded()
                 }
+#endif
                 tunnel.updateStatus()
             }
             .store(in: &cancellables)
     }
+
+#if os(iOS)
+    func updateLastTunnelErrorIfNeeded() async {
+        guard activeTunnel?.status == .disconnecting else { return }
+
+        do {
+            try await activeTunnel?.tunnel.connection.fetchLastDisconnectError()
+        } catch let error as NSError {
+            switch error.domain {
+            case VPNErrorReason.domain:
+                lastError = VPNErrorReason(nsError: error)
+            case ErrorReason.domain:
+                lastError = ErrorReason(nsError: error)
+            default:
+                lastError = GeneralNymError.somethingWentWrong
+            }
+        } catch {
+            lastError = GeneralNymError.somethingWentWrong
+        }
+    }
+#endif
 }

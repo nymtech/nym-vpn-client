@@ -1,21 +1,21 @@
 import Combine
+import Logging
 import Foundation
 import AppSettings
 import Constants
-
 #if os(iOS)
+import ErrorHandler
 import MixnetLibrary
-#endif
-
-#if os(macOS)
+#elseif os(macOS)
 import GRPCManager
-import HelperManager
+import HelperInstallManager
 #endif
 
 public final class CredentialsManager {
+    private let logger = Logger(label: "CredentialsManager")
 #if os(macOS)
     private let grpcManager = GRPCManager.shared
-    private let helperManager = HelperManager.shared
+    private let helperInstallManager = HelperInstallManager.shared
 #endif
     private let appSettings = AppSettings.shared
 
@@ -31,19 +31,8 @@ public final class CredentialsManager {
         setup()
     }
 
-    deinit {
-#if os(iOS)
-        do {
-            try stopAccountController()
-        } catch {
-            print("Error stopping account controller: \(error)")
-        }
-#endif
-    }
-
     public func add(credential: String) async throws {
-        Task {
-            let trimmedCredential = credential.trimmingCharacters(in: .whitespacesAndNewlines)
+        try await Task(priority: .background) {
             do {
 #if os(iOS)
                 let dataFolderURL = try dataFolderURL()
@@ -51,38 +40,41 @@ public final class CredentialsManager {
                 if !FileManager.default.fileExists(atPath: dataFolderURL.path()) {
                     try FileManager.default.createDirectory(at: dataFolderURL, withIntermediateDirectories: true)
                 }
-                try storeAccountMnemonic(mnemonic: trimmedCredential, path: dataFolderURL.path())
-#endif
-
-#if os(macOS)
-                _ = try await helperManager.installHelperIfNeeded()
-                try grpcManager.storeAccount(with: trimmedCredential)
+                try storeAccountMnemonic(mnemonic: credential, path: dataFolderURL.path())
+#elseif os(macOS)
+                try? await helperInstallManager.installIfNeeded()
+                try await grpcManager.storeAccount(with: credential)
 #endif
                 checkCredentialImport()
-            } catch let error {
-                print("add credential : \(error)")
+            } catch {
+#if os(iOS)
+                if let vpnError = error as? VpnError {
+                    throw VPNErrorReason(with: vpnError)
+                } else {
+                    throw error
+                }
+#elseif os(macOS)
                 throw error
+#endif
             }
-        }
+        }.value
     }
 
     public func removeCredential() async throws {
         do {
-            let removalResult: Bool
 #if os(iOS)
             let dataFolderURL = try dataFolderURL()
-            removalResult = try removeAccountMnemonic(path: dataFolderURL.path())
-            // TODO: remove tunnel as well
+            try forgetAccount(path: dataFolderURL.path())
+            // TODO: remove tunnel
 #endif
 
 #if os(macOS)
-            _ = try await helperManager.installHelperIfNeeded()
-            removalResult = try await grpcManager.removeAccount()
+            try? await helperInstallManager.installIfNeeded()
+            try await grpcManager.forgetAccount()
 #endif
             checkCredentialImport()
         } catch {
             // TODO: need modal for alerts
-            print(" remove credential : \(error)")
             throw error
         }
     }
@@ -103,7 +95,6 @@ public final class CredentialsManager {
 private extension CredentialsManager {
     func setup() {
         setupGRPCManagerObservers()
-        setupAccountController()
         checkCredentialImport()
     }
 
@@ -120,39 +111,30 @@ private extension CredentialsManager {
             }
         }
         .store(in: &cancellables)
-#endif
-    }
 
-    func setupAccountController() {
-        Task {
-#if os(iOS)
-            do {
-                let dataFolderURL = try dataFolderURL()
-                try startAccountController(dataDir: dataFolderURL.path())
-            } catch {
-                print("Error starting account controller: \(error)")
-            }
-#endif
+        helperInstallManager.$daemonState.sink { [weak self] state in
+            guard state == .running else { return }
+            self?.checkCredentialImport()
         }
+        .store(in: &cancellables)
+#endif
     }
 }
 
 private extension CredentialsManager {
     func checkCredentialImport() {
-        Task {
+        Task(priority: .background) {
             do {
                 let isImported: Bool
 #if os(iOS)
                 let dataFolderURL = try dataFolderURL()
                 isImported = try isAccountMnemonicStored(path: dataFolderURL.path())
-#endif
-
-#if os(macOS)
+#elseif os(macOS)
                 isImported = try await grpcManager.isAccountStored()
 #endif
                 updateIsCredentialImported(with: isImported)
             } catch {
-                print("checkCredentialImport error: \(error)")
+                logger.error("Failed to check credential import: \(error.localizedDescription)")
                 updateIsCredentialImported(with: false)
             }
         }

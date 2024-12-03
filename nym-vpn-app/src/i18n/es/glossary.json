@@ -3,5 +3,8 @@
   "left": "quedan",
   "ok": "Ok",
   "selected": "seleccionado",
-  "account": "cuenta"
+  "account": "cuenta",
+  "cancel": "cancelar",
+  "login": "iniciar sesión",
+  "logout": "cerrar sesión"
 }

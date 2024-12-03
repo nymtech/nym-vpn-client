@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMainState } from '../../contexts';
-import { setToString } from '../../helpers';
+import { setToString } from '../../util';
 import { AnimateIn } from '../../ui';
 import { useI18nError } from '../../hooks';
 import ConnectionBadge from './ConnectionBadge';
@@ -10,6 +10,8 @@ import ConnectionTimer from './ConnectionTimer';
 function ConnectionStatus() {
   const state = useMainState();
   const [showBadge, setShowBadge] = useState(true);
+  const loading =
+    state.state === 'Connecting' || state.state === 'Disconnecting';
 
   const { t } = useTranslation('home');
   const { tE } = useI18nError();
@@ -27,16 +29,16 @@ function ConnectionStatus() {
 
   return (
     <div className="h-full min-h-52 flex flex-col justify-center items-center gap-y-2">
-      <div className="flex flex-1 items-end select-none hover:cursor-default">
+      <div className="flex flex-1 items-end cursor-default select-none">
         {showBadge && <ConnectionBadge state={state.state} />}
       </div>
       <div className="w-full flex flex-col flex-1 items-center overflow-hidden">
-        {state.loading && state.progressMessages.length > 0 && !state.error && (
+        {loading && state.progressMessages.length > 0 && !state.error && (
           <AnimateIn
             from="opacity-0 scale-90"
             to="opacity-100 scale-100"
             duration={100}
-            className="w-4/5 h-2/3 overflow-auto break-words text-center"
+            className="w-4/5 h-2/3 overflow-auto break-words text-center cursor-default select-none"
           >
             <p className="text-sm text-dim-gray dark:text-mercury-mist font-bold">
               {t(
@@ -56,7 +58,7 @@ function ConnectionStatus() {
             from="opacity-0 scale-90 -translate-x-8"
             to="opacity-100 scale-100 translate-y-0 translate-x-0"
             duration={200}
-            className="w-4/5 h-2/3 overflow-auto break-words text-center"
+            className="w-4/5 h-2/3 overflow-auto break-words text-center cursor-default"
           >
             <p className="text-sm text-teaberry font-bold">
               {state.error.key ? tE(state.error.key) : state.error.message}

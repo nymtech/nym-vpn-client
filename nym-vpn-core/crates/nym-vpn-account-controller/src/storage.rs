@@ -13,7 +13,12 @@ use nym_sdk::mixnet::CredentialStorage;
 use nym_vpn_api_client::types::{Device, VpnApiAccount};
 use nym_vpn_store::{keys::KeyStore, mnemonic::MnemonicStorage, VpnStorage};
 
-use crate::error::Error;
+use crate::{error::Error, AvailableTicketbooks};
+
+// If we go below this threshold, we should request more tickets
+// TODO: I picked a random number, check what is should be. Or if we can express this in terms of
+// data/bandwidth.
+const TICKET_NUMBER_THRESHOLD: u64 = 30;
 
 pub(crate) struct AccountStorage<S>
 where
@@ -63,6 +68,10 @@ where
             })
     }
 
+    pub(crate) async fn load_account_id(&self) -> Result<String, Error> {
+        self.load_account().await.map(|account| account.id())
+    }
+
     // Load device keys and keep the error type
     pub(crate) async fn load_device_keys_from_storage(
         &self,
@@ -86,6 +95,12 @@ where
                 source: Box::new(err),
             })
     }
+
+    pub(crate) async fn load_device_id(&self) -> Result<String, Error> {
+        self.load_device_keys()
+            .await
+            .map(|device| device.identity_key().to_string())
+    }
 }
 
 pub(crate) struct VpnCredentialStorage {
@@ -93,27 +108,6 @@ pub(crate) struct VpnCredentialStorage {
 }
 
 impl VpnCredentialStorage {
-    pub(crate) async fn check_local_remaining_tickets(&self) -> Vec<(TicketType, u32)> {
-        // TODO: remove unwrap
-        let ticketbooks_info = self.storage.get_ticketbooks_info().await.unwrap();
-
-        // For each ticketbook type, iterate over and check if we have enough tickets stored
-        // locally
-        let ticketbook_types = ticketbook_types();
-
-        let mut request_zk_nym = Vec::new();
-        for ticketbook_type in ticketbook_types.iter() {
-            let available_tickets: u32 = ticketbooks_info
-                .iter()
-                .filter(|ticketbook| ticketbook.ticketbook_type == ticketbook_type.to_string())
-                .map(|ticketbook| ticketbook.total_tickets - ticketbook.used_tickets)
-                .sum();
-
-            request_zk_nym.push((*ticketbook_type, available_tickets));
-        }
-        request_zk_nym
-    }
-
     pub(crate) async fn insert_issued_ticketbook(
         &self,
         ticketbook: &IssuedTicketBook,
@@ -134,6 +128,7 @@ impl VpnCredentialStorage {
             .map_err(Error::from)
     }
 
+    #[allow(unused)]
     pub(crate) async fn get_master_verification_key(
         &self,
         epoch_id: u64,
@@ -165,10 +160,10 @@ impl VpnCredentialStorage {
     }
 
     pub(crate) async fn print_info(&self) -> Result<(), Error> {
-        let ticketbooks_info = self.storage.get_ticketbooks_info().await?;
+        let ticketbooks_info = self.get_available_ticketbooks().await?;
         tracing::info!("Ticketbooks stored: {}", ticketbooks_info.len());
         for ticketbook in ticketbooks_info {
-            tracing::info!("Ticketbook id: {}", ticketbook.id);
+            tracing::info!("Ticketbook: {ticketbook}");
         }
 
         let pending_ticketbooks = self.storage.get_pending_ticketbooks().await?;
@@ -177,14 +172,26 @@ impl VpnCredentialStorage {
         }
         Ok(())
     }
-}
 
-// TODO: add #[derive(EnumIter)] to TicketType so we can iterate over it directly.
-fn ticketbook_types() -> [TicketType; 4] {
-    [
-        TicketType::V1MixnetEntry,
-        TicketType::V1MixnetExit,
-        TicketType::V1WireguardEntry,
-        TicketType::V1WireguardExit,
-    ]
+    pub(crate) async fn get_available_ticketbooks(&self) -> Result<AvailableTicketbooks, Error> {
+        let ticketbooks_info = self.storage.get_ticketbooks_info().await?;
+        AvailableTicketbooks::try_from(ticketbooks_info)
+    }
+
+    pub(crate) async fn check_ticket_types_running_low(&self) -> Result<Vec<TicketType>, Error> {
+        let available_ticketbooks = self.get_available_ticketbooks().await?;
+
+        let ticketbook_types_running_low = crate::ticketbooks::ticketbook_types()
+            .into_iter()
+            .filter(|ticket_type| {
+                tracing::info!(
+                    "Remaining unexpired tickets for {ticket_type}: {}",
+                    available_ticketbooks.remaining_tickets(*ticket_type)
+                );
+                available_ticketbooks.remaining_tickets(*ticket_type) < TICKET_NUMBER_THRESHOLD
+            })
+            .collect();
+
+        Ok(ticketbook_types_running_low)
+    }
 }

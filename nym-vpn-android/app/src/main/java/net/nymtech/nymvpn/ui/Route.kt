@@ -6,7 +6,7 @@ sealed class Route {
 	@Serializable
 	data class Main(
 		val autoStart: Boolean = false,
-		val changeLanguage: Boolean = false,
+		val configChange: Boolean = false,
 	) : Route()
 
 	@Serializable
@@ -25,7 +25,7 @@ sealed class Route {
 	data object Appearance : Route()
 
 	@Serializable
-	data object Environment : Route()
+	data object Developer : Route()
 
 	@Serializable
 	data object Display : Route()

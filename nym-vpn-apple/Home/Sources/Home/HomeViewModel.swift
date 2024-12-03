@@ -6,6 +6,7 @@ import CountriesManager
 import CredentialsManager
 import ExternalLinkManager
 import Settings
+import SystemMessageManager
 import TunnelMixnet
 import TunnelStatus
 import Tunnels
@@ -15,7 +16,7 @@ import ImpactGenerator
 #endif
 #if os(macOS)
 import GRPCManager
-import HelperManager
+import HelperInstallManager
 #endif
 
 public class HomeViewModel: HomeFlowState {
@@ -41,30 +42,45 @@ public class HomeViewModel: HomeFlowState {
 #endif
 #if os(macOS)
     let grpcManager: GRPCManager
-    let helperManager: HelperManager
+    let helperInstallManager: HelperInstallManager
 #endif
+    let systemMessageManager: SystemMessageManager
     let entryHopButtonViewModel = HopButtonViewModel(hopType: .entry)
     let exitHopButtonViewModel = HopButtonViewModel(hopType: .exit)
     let anonymousButtonViewModel = NetworkButtonViewModel(type: .mixnet5hop)
     let fastButtonViewModel = NetworkButtonViewModel(type: .wireguard)
 
+    var lastTunnelStatus = TunnelStatus.disconnected
+
     // If no time connected is shown, should be set to empty string,
     // so the time connected label would not disappear and re-center other UI elements.
-    @MainActor @Published public var splashScreenDidDisplay = false
     @MainActor @Published var timeConnected = " "
     @MainActor @Published var statusButtonConfig = StatusButtonConfig.disconnected
     @MainActor @Published var statusInfoState = StatusInfoState.initialising
     @MainActor @Published var connectButtonState = ConnectButtonState.connect
     @MainActor @Published var isModeInfoOverlayDisplayed = false
+    @MainActor @Published var snackBarMessage = ""
+    @MainActor @Published var isSnackBarDisplayed = false {
+        didSet {
+            Task(priority: .background) {
+                try? await Task.sleep(for: .seconds(1))
+                guard !isSnackBarDisplayed else { return }
+                systemMessageManager.messageDidClose()
+            }
+        }
+    }
+
+    @MainActor @Published public var splashScreenDidDisplay = false
 
 #if os(iOS)
     public init(
-        appSettings: AppSettings = AppSettings.shared,
-        connectionManager: ConnectionManager = ConnectionManager.shared,
-        countriesManager: CountriesManager = CountriesManager.shared,
-        credentialsManager: CredentialsManager = CredentialsManager.shared,
-        externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared,
-        impactGenerator: ImpactGenerator = ImpactGenerator.shared
+        appSettings: AppSettings = .shared,
+        connectionManager: ConnectionManager = .shared,
+        countriesManager: CountriesManager = .shared,
+        credentialsManager: CredentialsManager = .shared,
+        externalLinkManager: ExternalLinkManager = .shared,
+        impactGenerator: ImpactGenerator = .shared,
+        systemMessageManager: SystemMessageManager = .shared
     ) {
         self.appSettings = appSettings
         self.connectionManager = connectionManager
@@ -72,7 +88,7 @@ public class HomeViewModel: HomeFlowState {
         self.credentialsManager = credentialsManager
         self.externalLinkManager = externalLinkManager
         self.impactGenerator = impactGenerator
-
+        self.systemMessageManager = systemMessageManager
         super.init()
 
         setup()
@@ -81,26 +97,33 @@ public class HomeViewModel: HomeFlowState {
 
 #if os(macOS)
     public init(
-        appSettings: AppSettings = AppSettings.shared,
-        connectionManager: ConnectionManager = ConnectionManager.shared,
-        countriesManager: CountriesManager = CountriesManager.shared,
-        credentialsManager: CredentialsManager = CredentialsManager.shared,
-        grpcManager: GRPCManager = GRPCManager.shared,
-        helperManager: HelperManager = HelperManager.shared,
-        externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared
+        appSettings: AppSettings = .shared,
+        connectionManager: ConnectionManager = .shared,
+        countriesManager: CountriesManager = .shared,
+        credentialsManager: CredentialsManager = .shared,
+        grpcManager: GRPCManager = .shared,
+        helperInstallManager: HelperInstallManager = .shared,
+        externalLinkManager: ExternalLinkManager = .shared,
+        systemMessageManager: SystemMessageManager = .shared
     ) {
         self.appSettings = appSettings
         self.connectionManager = connectionManager
         self.countriesManager = countriesManager
         self.credentialsManager = credentialsManager
         self.grpcManager = grpcManager
-        self.helperManager = helperManager
+        self.helperInstallManager = helperInstallManager
         self.externalLinkManager = externalLinkManager
+        self.systemMessageManager = systemMessageManager
         super.init()
 
         setup()
     }
 #endif
+
+    deinit {
+        cancellables.forEach { $0.cancel() }
+        timer.invalidate()
+    }
 }
 
 // MARK: - Navigation -
@@ -147,56 +170,45 @@ public extension HomeViewModel {
 // MARK: - Connection -
 public extension HomeViewModel {
     func connectDisconnect() {
-        guard connectionManager.currentTunnelStatus != .disconnecting else { return }
+        guard connectionManager.currentTunnelStatus != .disconnecting
+        else {
+            return
+        }
 #if os(iOS)
         impactGenerator.impact()
 #endif
         Task {
             lastError = nil
             resetStatusInfoState()
-
 #if os(macOS)
-            guard await isHelperInstalled() else { return }
-#endif
+            guard helperInstallManager.daemonState != .installing else { return }
+            do {
+                try await helperInstallManager.installIfNeeded()
+            } catch {
+                updateStatusInfoState(with: .error(message: error.localizedDescription))
+                updateConnectButtonState(with: .connect)
+                return
+            }
 
+            updateStatusInfoState(with: .unknown)
+            updateConnectButtonState(with: .connect)
+#endif
             guard credentialsManager.isValidCredentialImported
             else {
                 await navigateToAddCredentials()
                 return
             }
 
-            Task { @MainActor in
-                do {
-                    try await connectionManager.connectDisconnect()
-                } catch let error {
-                    statusInfoState = .error(message: error.localizedDescription)
+            do {
+                try await connectionManager.connectDisconnect()
+            } catch let error {
+                updateStatusInfoState(with: .error(message: error.localizedDescription))
 #if os(iOS)
-                    impactGenerator.error()
+                impactGenerator.error()
 #endif
-                }
             }
         }
     }
-}
-
-private extension  HomeViewModel {
-#if os(macOS)
-    func isHelperInstalled() async -> Bool {
-        let isHelperInstalledAndRunning = await installHelperIfNeeded()
-
-        guard isHelperInstalledAndRunning
-        else {
-            updateStatusInfoState(with: .error(message: "home.installDaemonFailure".localizedString))
-            return false
-        }
-
-        guard helperManager.isHelperAuthorizedAndRunning()
-        else {
-            return false
-        }
-        return true
-    }
-#endif
 }
 
 // MARK: - Configuration -
@@ -208,9 +220,10 @@ private extension HomeViewModel {
 
 #if os(macOS)
         setupGRPCManagerObservers()
-        updateInitialTunnelStatus()
+        setupDaemonStateObserver()
 #endif
         setupCountriesManagerObservers()
+        setupSystemMessageObservers()
     }
 
     func setupTunnelManagerObservers() {
@@ -247,6 +260,25 @@ private extension HomeViewModel {
         .store(in: &cancellables)
     }
 
+    func setupSystemMessageObservers() {
+        systemMessageManager.$currentMessage.sink { [weak self] message in
+            guard !message.isEmpty
+            else {
+                Task { @MainActor in
+                    self?.isSnackBarDisplayed = false
+                }
+                return
+            }
+            Task { @MainActor in
+                self?.snackBarMessage = message
+                withAnimation {
+                    self?.isSnackBarDisplayed = true
+                }
+            }
+        }
+        .store(in: &cancellables)
+    }
+
     func setupConnectionErrorObservers() {
 #if os(iOS)
         connectionManager.$lastError.sink { [weak self] error in
@@ -278,6 +310,8 @@ private extension HomeViewModel {
 #endif
 
     func updateUI(with status: TunnelStatus) {
+        guard status != lastTunnelStatus else { return }
+
         let newStatus: TunnelStatus
         // Fake satus, until we get support from the tunnel
         if connectionManager.isReconnecting &&
@@ -294,18 +328,23 @@ private extension HomeViewModel {
             impactGenerator.success()
         }
 #endif
-        Task { @MainActor in
-            statusButtonConfig = StatusButtonConfig(tunnelStatus: newStatus)
-            connectButtonState = ConnectButtonState(tunnelStatus: newStatus)
+        lastTunnelStatus = newStatus
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            withAnimation { [weak self] in
+                guard let self else { return }
+                statusButtonConfig = StatusButtonConfig(tunnelStatus: newStatus)
+                connectButtonState = ConnectButtonState(tunnelStatus: newStatus)
 
-            if let lastError {
-                statusInfoState = .error(message: lastError.localizedDescription)
-            } else {
-                statusInfoState = StatusInfoState(tunnelStatus: newStatus)
-            }
+                if let lastError {
+                    statusInfoState = .error(message: lastError.localizedDescription)
+                } else {
+                    statusInfoState = StatusInfoState(tunnelStatus: newStatus)
+                }
 #if os(macOS)
-            updateConnectedStartDateMacOS(with: status)
+                updateConnectedStartDateMacOS(with: status)
 #endif
+            }
         }
     }
 
@@ -325,10 +364,11 @@ private extension HomeViewModel {
                   let connectedDate = activeTunnel.tunnel.connection.connectedDate
             else {
                 guard timeConnected != emptyTimeText else { return }
-                timeConnected = emptyTimeText
+                updateTimeString(with: emptyTimeText)
                 return
             }
-            timeConnected = dateFormatter.string(from: connectedDate, to: Date()) ?? emptyTimeText
+            let timeString = dateFormatter.string(from: connectedDate, to: Date()) ?? emptyTimeText
+            updateTimeString(with: timeString)
         }
     }
 }
@@ -347,32 +387,17 @@ private extension HomeViewModel {
             .store(in: &cancellables)
     }
 
-    func installHelperIfNeeded() async -> Bool {
-        var isInstalledAndRunning = helperManager.isHelperAuthorizedAndRunning()
-        let needsUpdate = await needsHelperUpdate()
-        // TODO: check if possible to split is helper running vs isHelperAuthorized
-        guard isInstalledAndRunning && !needsUpdate
-        else {
-            do {
-                updateStatusInfoState(with: .installingDaemon)
-                isInstalledAndRunning = try await helperManager.installHelperIfNeeded()
-                resetStatusInfoState()
-            } catch let error {
-                updateStatusInfoState(with: .error(message: error.localizedDescription))
+    func setupDaemonStateObserver() {
+        helperInstallManager.$daemonState.sink { [weak self] state in
+            switch state {
+            case .installing:
+                self?.updateStatusInfoState(with: .installingDaemon)
+                self?.updateConnectButtonState(with: .installingDaemon)
+            case .unknown, .running:
+                break
             }
-            return isInstalledAndRunning
         }
-        return isInstalledAndRunning
-    }
-
-    func needsHelperUpdate() async -> Bool {
-        guard helperManager.isHelperAuthorizedAndRunning() else { return false }
-        do {
-            let version = try await grpcManager.version()
-            return helperManager.requiredVersion != version
-        } catch {
-            return true
-        }
+        .store(in: &cancellables)
     }
 
     func updateConnectedStartDateMacOS(with status: TunnelStatus) {
@@ -381,27 +406,33 @@ private extension HomeViewModel {
     }
 
     func updateTimeConnected() {
-        Task { @MainActor in
+        Task { [weak self] in
+            guard let self else { return }
+
             let emptyTimeText = " "
             guard grpcManager.tunnelStatus == .connected,
                   let connectedDate = grpcManager.connectedDate
             else {
-                guard timeConnected != emptyTimeText else { return }
-                timeConnected = emptyTimeText
+                guard await timeConnected != emptyTimeText else { return }
+                updateTimeString(with: emptyTimeText)
                 return
             }
-            timeConnected = dateFormatter.string(from: connectedDate, to: Date()) ?? emptyTimeText
+            let timeString = dateFormatter.string(from: connectedDate, to: Date()) ?? emptyTimeText
+            updateTimeString(with: timeString)
         }
-    }
-
-    func updateInitialTunnelStatus() {
-        guard helperManager.isHelperAuthorizedAndRunning() else { return }
-        grpcManager.status()
     }
 }
 #endif
 
 private extension HomeViewModel {
+    func updateTimeString(with text: String) {
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            guard timeConnected != text else { return }
+            timeConnected = text
+        }
+    }
+
     func resetStatusInfoState() {
         updateStatusInfoState(with: .unknown)
     }
@@ -410,6 +441,13 @@ private extension HomeViewModel {
         Task { @MainActor in
             guard newState != statusInfoState else { return }
             statusInfoState = newState
+        }
+    }
+
+    func updateConnectButtonState(with newState: ConnectButtonState) {
+        Task { @MainActor in
+            guard newState != connectButtonState else { return }
+            connectButtonState = newState
         }
     }
 }

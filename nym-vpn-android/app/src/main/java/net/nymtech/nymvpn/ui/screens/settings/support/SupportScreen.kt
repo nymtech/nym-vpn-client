@@ -4,10 +4,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowRight
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,6 +30,7 @@ import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.navigation.NavIcon
 import net.nymtech.nymvpn.ui.common.navigation.NavTitle
+import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
@@ -63,6 +67,10 @@ fun SupportScreen(appViewModel: AppViewModel) {
 			listOf(
 				SelectionItem(
 					leadingIcon = ImageVector.vectorResource(R.drawable.faq),
+					{
+						val icon = Icons.AutoMirrored.Outlined.ArrowRight
+						Icon(icon, icon.name, Modifier.size(iconSize))
+					},
 					title = { Text(stringResource(R.string.check_faq), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = { context.openWebUrl(context.getString(R.string.faq_url)) },
 				),
@@ -72,6 +80,10 @@ fun SupportScreen(appViewModel: AppViewModel) {
 			listOf(
 				SelectionItem(
 					leadingIcon = ImageVector.vectorResource(R.drawable.send),
+					{
+						val icon = Icons.AutoMirrored.Outlined.ArrowRight
+						Icon(icon, icon.name, Modifier.size(iconSize))
+					},
 					title = { Text(stringResource(R.string.contact_support), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = { context.openWebUrl(context.getString(R.string.contact_url)) },
 				),
@@ -81,6 +93,10 @@ fun SupportScreen(appViewModel: AppViewModel) {
 			listOf(
 				SelectionItem(
 					leadingIcon = ImageVector.vectorResource(R.drawable.matrix),
+					{
+						val icon = Icons.AutoMirrored.Outlined.ArrowRight
+						Icon(icon, icon.name, Modifier.size(iconSize))
+					},
 					title = { Text(stringResource(R.string.join_matrix), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
 						context.openWebUrl(context.getString(R.string.matrix_url))
@@ -92,6 +108,10 @@ fun SupportScreen(appViewModel: AppViewModel) {
 			listOf(
 				SelectionItem(
 					leadingIcon = ImageVector.vectorResource(R.drawable.discord),
+					{
+						val icon = Icons.AutoMirrored.Outlined.ArrowRight
+						Icon(icon, icon.name, Modifier.size(iconSize))
+					},
 					title = { Text(stringResource(R.string.join_discord), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
 						context.openWebUrl(context.getString(R.string.discord_url))

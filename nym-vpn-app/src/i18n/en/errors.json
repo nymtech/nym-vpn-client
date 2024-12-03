@@ -8,6 +8,7 @@
   },
   "grpc": "Internal gRPC error",
   "connection": {
+    "general": "General error, check the logs to get more details",
     "no-valid-credential": "No valid credential, please add a credential first",
     "timeout": "Connection timeout",
     "unhandled-exit": "The vpn exiting with an error. It's likely a bug.",
@@ -72,13 +73,13 @@
   "account": {
     "invalid-recovery-phrase": "Invalid recovery phrase",
     "storage": "Storage backend error",
-    "no-account-stored": "No account recovery phrase stored",
-    "not-active": "The account is not active",
-    "no-active-subscription": "The account does not have an active subscription",
-    "device": {
-      "not-registered": "The device is not registered",
-      "not-active": "The device is not active"
-    }
+    "is-connected": "Unable to proceed while connected",
+    "not-stored": "No account recovery phrase stored",
+    "no-device-stored": "No device keys stored",
+    "update": "Update account failed",
+    "update-device": "Update device failed",
+    "register-device": "Device registration failed",
+    "maximum-registered-devices": "Device registration failed: the maximum number of registered devices has been reached"
   },
   "countries-request": {
     "entry": "Failed to fetch the available entry node countries",

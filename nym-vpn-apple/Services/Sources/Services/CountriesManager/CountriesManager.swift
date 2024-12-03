@@ -6,7 +6,7 @@ import ConfigurationManager
 import CountriesManagerTypes
 #if os(macOS)
 import GRPCManager
-import HelperManager
+import HelperInstallManager
 #endif
 #if os(iOS)
 import MixnetLibrary
@@ -21,7 +21,7 @@ public final class CountriesManager: ObservableObject {
     let logger = Logger(label: "CountriesManager")
 #if os(macOS)
     let grpcManager: GRPCManager
-    let helperManager: HelperManager
+    let helperInstallManager: HelperInstallManager
 
     var daemonVersion: String?
 #endif
@@ -33,10 +33,10 @@ public final class CountriesManager: ObservableObject {
 #endif
 #if os(macOS)
     public static let shared = CountriesManager(
-        appSettings: AppSettings.shared,
-        grpcManager: GRPCManager.shared,
-        helperManager: HelperManager.shared,
-        configurationManager: ConfigurationManager.shared
+        appSettings: .shared,
+        grpcManager: .shared,
+        helperInstallManager: .shared,
+        configurationManager: .shared
     )
 #endif
     var isLoading = false
@@ -68,13 +68,13 @@ public final class CountriesManager: ObservableObject {
     public init(
         appSettings: AppSettings,
         grpcManager: GRPCManager,
-        helperManager: HelperManager,
+        helperInstallManager: HelperInstallManager,
         configurationManager: ConfigurationManager
     ) {
         self.appSettings = appSettings
         self.configurationManager = configurationManager
         self.grpcManager = grpcManager
-        self.helperManager = helperManager
+        self.helperInstallManager = helperInstallManager
         self.entryCountries = []
         self.exitCountries = []
         self.vpnCountries = []
@@ -95,8 +95,8 @@ public final class CountriesManager: ObservableObject {
         }
         isLoading = true
 
-        Task {
-            fetchEntryExitCountries()
+        Task(priority: .background) { [weak self] in
+            self?.fetchEntryExitCountries()
         }
     }
 
@@ -121,7 +121,7 @@ private extension CountriesManager {
         configureEnvironmentChange()
         fetchCountries()
 #if os(macOS)
-        updateDaemonVersionIfNecessary()
+        setupDaemonStateObserver()
 #endif
     }
 
@@ -141,6 +141,19 @@ private extension CountriesManager {
             self?.fetchCountries()
         }
     }
+
+#if os(macOS)
+    func setupDaemonStateObserver() {
+        helperInstallManager.$daemonState.sink { [weak self] daemonState in
+            guard daemonState == .running else { return }
+            Task(priority: .background) {
+                try? await Task.sleep(for: .seconds(5))
+                self?.fetchCountries()
+            }
+        }
+        .store(in: &cancellables)
+    }
+#endif
 }
 
 // MARK: - Pre bundled countries -
@@ -208,22 +221,7 @@ private extension CountriesManager {
 
 #if os(macOS)
 private extension CountriesManager {
-    func updateDaemonVersionIfNecessary() {
-        Task {
-            guard daemonVersion == nil else { return }
-            daemonVersion = try? await grpcManager.version()
-        }
-    }
-
     func fetchEntryExitCountries() {
-        updateDaemonVersionIfNecessary()
-
-        guard helperManager.isHelperAuthorizedAndRunning()
-        else {
-            fetchCountriesAfterDelay()
-            return
-        }
-
         Task {
             do {
                 try await fetchEntryCountries()
@@ -286,13 +284,6 @@ private extension CountriesManager {
 #if os(iOS)
 private extension CountriesManager {
     func fetchEntryExitCountries() {
-        guard let apiURL = configurationManager.apiURL
-        else {
-            logger.error("Cannot fetch countries. No API URL.")
-            updateError(with: GeneralNymError.cannotFetchCountries)
-            return
-        }
-
         do {
             let userAgent = UserAgent(
                 application: AppVersionProvider.app,
@@ -300,9 +291,8 @@ private extension CountriesManager {
                 platform: AppVersionProvider.platform,
                 gitCommit: ""
             )
+
             let entryLocations = try getGatewayCountries(
-                apiUrl: apiURL,
-                nymVpnApiUrl: configurationManager.nymVpnApiURL,
                 gwType: .mixnetEntry,
                 userAgent: userAgent,
                 minGatewayPerformance: nil
@@ -314,8 +304,6 @@ private extension CountriesManager {
             .sorted(by: { $0.name < $1.name })
 
             let exitLocations = try getGatewayCountries(
-                apiUrl: apiURL,
-                nymVpnApiUrl: configurationManager.nymVpnApiURL,
                 gwType: .mixnetExit,
                 userAgent: userAgent,
                 minGatewayPerformance: nil
@@ -327,8 +315,6 @@ private extension CountriesManager {
             .sorted(by: { $0.name < $1.name })
 
             let newVpnLocations = try getGatewayCountries(
-                apiUrl: apiURL,
-                nymVpnApiUrl: configurationManager.nymVpnApiURL,
                 gwType: .wg,
                 userAgent: userAgent,
                 minGatewayPerformance: nil
@@ -360,8 +346,8 @@ private extension CountriesManager {
 }
 #endif
 
-private extension CountriesManager {
-    func country(with countryCode: String) -> Country? {
+extension CountriesManager {
+    public func country(with countryCode: String) -> Country? {
         guard let countryName = Locale.current.localizedString(forRegionCode: countryCode)
         else {
             logger.log(level: .error, "Failed resolving country code for: \(countryCode)")
@@ -408,10 +394,9 @@ extension CountriesManager {
     }
 
     func fetchCountriesAfterDelay() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 60) { [weak self] in
-            Task {
-                self?.fetchEntryExitCountries()
-            }
+        Task { [weak self] in
+            try? await Task.sleep(for: .seconds(60))
+            self?.fetchEntryExitCountries()
         }
     }
 }

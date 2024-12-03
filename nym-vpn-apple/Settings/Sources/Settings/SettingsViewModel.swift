@@ -2,19 +2,24 @@ import Combine
 import SwiftUI
 import AppSettings
 import AppVersionProvider
+import ConfigurationManager
+import ConnectionManager
 import CredentialsManager
+import ExternalLinkManager
 import UIComponents
 
 public class SettingsViewModel: SettingsFlowState {
     private let appSettings: AppSettings
+    private let configurationManager: ConfigurationManager
+    private let connectionManager: ConnectionManager
     private let credentialsManager: CredentialsManager
+    private let externalLinkManager: ExternalLinkManager
 
     private var cancellables = Set<AnyCancellable>()
 
     let settingsTitle = "settings".localizedString
 
     @Published var isLogoutConfirmationDisplayed = false
-
     @Published var sections: [SettingsSection] = []
 
     var isValidCredentialImported: Bool {
@@ -23,7 +28,8 @@ public class SettingsViewModel: SettingsFlowState {
 
     var logoutDialogConfiguration: ActionDialogConfiguration {
         ActionDialogConfiguration(
-            titleLocalizedString: "settings.logout".localizedString,
+            iconImageName: "exclamationmark.circle",
+            titleLocalizedString: "settings.logoutTitle".localizedString,
             subtitleLocalizedString: "settings.logoutSubtitle".localizedString,
             yesLocalizedString: "cancel".localizedString,
             noLocalizedString: "settings.logout".localizedString,
@@ -37,11 +43,17 @@ public class SettingsViewModel: SettingsFlowState {
 
     public init(
         path: Binding<NavigationPath>,
-        appSettings: AppSettings = AppSettings.shared,
-        credentialsManager: CredentialsManager = CredentialsManager.shared
+        appSettings: AppSettings = .shared,
+        configurationManager: ConfigurationManager = .shared,
+        connectionManager: ConnectionManager = .shared,
+        credentialsManager: CredentialsManager = .shared,
+        externalLinkManager: ExternalLinkManager = .shared
     ) {
         self.appSettings = appSettings
+        self.configurationManager = configurationManager
+        self.connectionManager = connectionManager
         self.credentialsManager = credentialsManager
+        self.externalLinkManager = externalLinkManager
         super.init(path: path)
         setup()
     }
@@ -79,6 +91,10 @@ private extension SettingsViewModel {
     func navigateToLegal() {
         path.append(SettingsLink.legal)
     }
+
+    func navigateToAccount() {
+        try? externalLinkManager.openExternalURL(urlString: configurationManager.accountLinks?.account)
+    }
 }
 
 // MARK: - Setup -
@@ -96,12 +112,18 @@ private extension SettingsViewModel {
     }
 
     func configureSections() {
-        var newSections = [
-            connectionSection(),
-            themeSection(),
-            feedbackSection(),
-            legalSection()
-        ]
+        var newSections = [SettingsSection]()
+        if appSettings.isCredentialImported {
+            newSections.append(accountSection())
+        }
+        newSections.append(
+            contentsOf: [
+                connectionSection(),
+                themeSection(),
+                feedbackSection(),
+                legalSection()
+            ]
+        )
         if appSettings.isCredentialImported {
             newSections.append(logoutSection())
         }
@@ -112,13 +134,28 @@ private extension SettingsViewModel {
 // MARK: - Actions -
 private extension SettingsViewModel {
     func logout() async {
+        await connectionManager.disconnectBeforeLogout()
         try? await credentialsManager.removeCredential()
-        // TODO: check if can login/logout
     }
 }
 
 // MARK: - Sections -
 private extension SettingsViewModel {
+    func accountSection() -> SettingsSection {
+        .account(
+            viewModels: [
+                SettingsListItemViewModel(
+                    accessory: .externalLink,
+                    title: "settings.account".localizedString,
+                    imageName: "person",
+                    action: { [weak self] in
+                        self?.navigateToAccount()
+                    }
+                )
+            ]
+        )
+    }
+
     func connectionSection() -> SettingsSection {
         .connection(
             viewModels: [

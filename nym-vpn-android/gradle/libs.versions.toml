@@ -1,26 +1,25 @@
 [versions]
 accompanist = "0.36.0"
-agp = "8.7.1"
+agp = "8.7.2"
 detektRulesCompose = "1.4.0"
 ipaddress = "5.5.1"
 jna = "5.15.0"
 kotlin = "2.0.21"
-ksp = "2.0.21-1.0.25"
-coreKtx = "1.13.1"
+ksp = "2.0.21-1.0.28"
+coreKtx = "1.15.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
-lottieCompose = "6.3.0"
-materialIconsExtended = "1.7.4"
-navigationCompose = "2.8.3"
+lottieCompose = "6.6.0"
+materialIconsExtended = "1.7.5"
+navigationCompose = "2.8.4"
 hiltNavigationCompose = "1.2.0"
-lifecycle-compose = "2.8.6"
+lifecycle-compose = "2.8.7"
 activityCompose = "1.9.3"
-composeBom = "2024.10.00"
+composeBom = "2024.11.00"
 datastorePreferences = "1.1.1"
 relinker = "1.4.5"
 securityCrypto = "1.1.0-alpha06"
-sentryOpentelemetryCoreVersion = "7.15.0"
 timber = "5.0.1"
 hiltAndroid = "2.52"
 kotlinx-serialization-json = "1.7.3"
@@ -28,17 +27,12 @@ kotlinxCoroutinesCore = "1.9.0"
 uiautomator = "2.3.0"
 window = "1.3.0"
 windowCoreAndroid = "1.3.0"
-desugar = "2.1.2"
-moshi = "1.15.1"
-moshiKotlin = "1.15.1"
-moshiKotlinCodegen = "1.15.1"
-converterMoshi = "2.11.0"
+desugar = "2.1.3"
 zxingAndroidEmbedded = "4.3.0"
 
 gradlePlugins-licensee = "1.12.0"
 gradlePlugins-detekt = "1.23.7"
-gradlePlugins-gross = "0.4.2"
-gradlePlugins-sentry = "4.12.0"
+gradlePlugins-gross = "0.4.4"
 material = "1.12.0"
 gradlePlugins-ktlint="12.1.1"
 gradlePlugins-grgit="5.3.0"
@@ -71,16 +65,10 @@ androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 
 #retrofit/moshi
-converter-moshi = { module = "com.squareup.retrofit2:converter-moshi", version.ref = "converterMoshi" }
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottieCompose" }
-moshi = { module = "com.squareup.moshi:moshi", version.ref = "moshi" }
-moshi-kotlin = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "moshiKotlin" }
-moshi-kotlin-codegen = { module = "com.squareup.moshi:moshi-kotlin-codegen", version.ref = "moshiKotlinCodegen" }
 relinker = { module = "com.getkeepsafe.relinker:relinker", version.ref = "relinker" }
-retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "converterMoshi" }
 
 #barcode
-sentry-sentry-opentelemetry-core = { module = "io.sentry:sentry-opentelemetry-core", version.ref = "sentryOpentelemetryCoreVersion" }
 zxing-android-embedded = { module = "com.journeyapps:zxing-android-embedded", version.ref = "zxingAndroidEmbedded" }
 
 #util
@@ -118,6 +106,5 @@ licensee = { id = "app.cash.licensee", version.ref = "gradlePlugins-licensee" }
 gross = { id = "se.premex.gross", version.ref = "gradlePlugins-gross" }
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "gradlePlugins-detekt" }
-sentry = { id = "io.sentry.android.gradle", version.ref = "gradlePlugins-sentry" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "gradlePlugins-ktlint" }
 grgit = { id = "org.ajoberstar.grgit.service", version.ref = "gradlePlugins-grgit" }

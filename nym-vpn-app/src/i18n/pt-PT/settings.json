@@ -6,9 +6,9 @@
   "feedback": {
     "title": "Feedback",
     "github": "Abra uma issue no GitHub",
-    "send": "Envie-nos um feedback",
     "matrix": "Junte-se a nós no Matrix",
-    "discord": "Junte-se a nós no Discord"
+    "discord": "Junte-se a nós no Discord",
+    "get-in-touch": "Entrar em contacto"
   },
   "error-monitoring": {
     "title": "Relatórios de erros anónimos",
@@ -16,8 +16,7 @@
   },
   "support": {
     "title": "Suporte",
-    "faq": "Verificar as FAQ",
-    "contact": "Contactar o suporte"
+    "faq": "Verificar as FAQ"
   },
   "legal": {
     "title": "Legal",

@@ -1,12 +1,13 @@
-# note: this is a manifest file for local flatpak build
+# NOTE: this is a manifest file for local flatpak build
 # dev purpose only
+# Flathub repo https://github.com/flathub/net.nymtech.NymVPN
 
 id: net.nymtech.NymVPN
 runtime: org.gnome.Platform
 runtime-version: '47'
 sdk: org.gnome.Sdk
+command: nym-vpn
 
-command: run.sh
 finish-args:
   - --socket=wayland
   - --socket=fallback-x11
@@ -20,8 +21,8 @@ modules:
     buildsystem: simple
     sources:
       - type: file
-        url: https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-app-v0.2.3/nym-vpn_0.2.3_linux_x64
-        sha256: bfc302e582d086c691ac6038bc626ec94f7dae99eb8790ef66785a106a8f9a1c
+        url: https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-app-v1.0.0/nym-vpn_1.0.0_linux_x64
+        sha256: 341263928f3020ca78fcfa617e8ac1b976b6b4b7550a234577437d56242df286
         only-arches: [x86_64]
         dest-filename: nym-vpn
       - type: file
@@ -32,7 +33,7 @@ modules:
         path: ../icon.svg
     build-commands:
       - install -Dm755 nym-vpn /app/bin/nym-vpn
-      - desktop-file-edit --set-key=Exec --set-value='env LOG_FILE=1 RUST_LOG=info nym-vpn %U' app.desktop
+      - desktop-file-edit --set-key=Exec --set-value="env LOG_FILE=1 RUST_LOG=info,nym_vpn_app=debug nym-vpn %U" app.desktop
       - desktop-file-edit --set-icon=net.nymtech.NymVPN app.desktop
       - install -Dm644 app.desktop /app/share/applications/net.nymtech.NymVPN.desktop
       - install -Dm644 icon.svg /app/share/icons/hicolor/scalable/apps/net.nymtech.NymVPN.svg

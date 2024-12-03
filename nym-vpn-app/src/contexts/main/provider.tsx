@@ -7,7 +7,7 @@ import {
   MainStateContext,
   useInAppNotify,
 } from '../index';
-import { sleep } from '../../helpers';
+import { sleep } from '../../util';
 import { kvSet } from '../../kvStore';
 import {
   BackendError,
@@ -15,6 +15,7 @@ import {
   Country,
   NodeHop,
   NodeLocation,
+  SystemMessage,
   VpnMode,
   isCountry,
 } from '../../types';
@@ -41,8 +42,8 @@ function MainStateProvider({ children }: Props) {
     networkEnv,
   } = state;
 
-  useTauriEvents(dispatch);
   const { push } = useInAppNotify();
+  useTauriEvents(dispatch, push);
 
   const { t } = useTranslation();
 
@@ -56,7 +57,7 @@ function MainStateProvider({ children }: Props) {
     // this first batch is needed to ensure the app is fully
     // initialized and ready, once done splash screen is removed
     // and the UI is shown
-    initFirstBatch(dispatch).then(async () => {
+    initFirstBatch(dispatch, push).then(async () => {
       console.log('init of 1st batch done');
       dispatch({ type: 'init-done' });
       const args = await invoke<Cli>(`cli_args`);
@@ -64,10 +65,9 @@ function MainStateProvider({ children }: Props) {
       if (import.meta.env.APP_NOSPLASH || args.nosplash) {
         return;
       }
-      // wait for the splash screen to be visible for a short time as
-      // init phase is very fast, avoiding flashing the splash screen
-      // note: the real duration of splashscreen is this value minus the one
-      // declared in `App.tsx`, that is 700 - 100 → 600ms
+      // wait for the splash screen to be visible for a short time
+      // as init phase is very fast
+      // duration → 700ms
       await sleep(700);
       const splash = document.getElementById('splash');
       if (splash) {
@@ -86,6 +86,7 @@ function MainStateProvider({ children }: Props) {
     initSecondBatch(dispatch).then(() => {
       console.log('init of 2nd batch done');
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // whenever the vpn mode changes, refresh the countries or use cached ones
@@ -110,6 +111,32 @@ function MainStateProvider({ children }: Props) {
     console.info(`network env changed ${networkEnv}, clearing cache`);
     MCache.clear();
   }, [networkEnv]);
+
+  useEffect(() => {
+    if (S_STATE.systemMessageInit) {
+      return;
+    }
+    S_STATE.systemMessageInit = true;
+    const querySystemMessages = async () => {
+      try {
+        const messages = await invoke<SystemMessage[]>('system_messages');
+        if (messages.length > 0) {
+          console.info('system messages', messages);
+          push({
+            text: messages
+              .map(({ name, message }) => `${name}: ${message}`)
+              .join('\n'),
+            position: 'top',
+            closeIcon: true,
+            autoHideDuration: 10000,
+          });
+        }
+      } catch (e) {
+        console.warn('failed to query system messages:', e);
+      }
+    };
+    querySystemMessages();
+  }, [push]);
 
   // use cached values if any, otherwise query from daemon
   const fetchCountries = async (vpnMode: VpnMode, node: NodeHop) => {

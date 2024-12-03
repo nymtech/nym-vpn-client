@@ -25,7 +25,11 @@ public final class Migrations {
 
 private extension Migrations {
     func migrateToMainnet() {
-        guard appSettings.currentEnv != "mainnet" else { return }
+        guard appSettings.currentEnv != "mainnet",
+              !configurationManager.isTestFlight
+        else {
+            return
+        }
         Task { @MainActor in
             appSettings.currentEnv = "mainnet"
         }

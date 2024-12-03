@@ -22,6 +22,7 @@ use std::{
     path::PathBuf,
 };
 
+use si_scale::helpers::bibytes2;
 use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
@@ -30,7 +31,7 @@ use nym_gateway_directory::{
     Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, NodeIdentity, Recipient,
 };
 use nym_ip_packet_requests::IpPair;
-use nym_wg_gateway_client::GatewayData;
+use nym_wg_gateway_client::{Error as WgGatewayClientError, GatewayData};
 use nym_wg_go::PublicKey;
 
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -40,7 +41,10 @@ use dns_handler::DnsHandlerHandle;
 use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::ios::OSTunProvider;
-use crate::{GatewayDirectoryError, MixnetClientConfig};
+use crate::{
+    bandwidth_controller::Error as BandwidthControllerError, GatewayDirectoryError,
+    MixnetClientConfig,
+};
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use route_handler::RouteHandler;
 use states::DisconnectedState;
@@ -78,6 +82,9 @@ pub struct TunnelSettings {
     /// Mixnet tunnel options.
     pub mixnet_tunnel_options: MixnetTunnelOptions,
 
+    /// WireGuard tunnel options.
+    pub wireguard_tunnel_options: WireguardTunnelOptions,
+
     /// Overrides gateway config.
     pub gateway_performance_options: GatewayPerformanceOptions,
 
@@ -110,6 +117,35 @@ pub struct MixnetTunnelOptions {
     pub mtu: Option<u16>,
 }
 
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub enum WireguardMultihopMode {
+    /// Multihop using two tun devices to nest tunnels.
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    TunTun,
+
+    /// Netstack based multihop.
+    Netstack,
+}
+
+impl Default for WireguardMultihopMode {
+    fn default() -> Self {
+        #[cfg(any(target_os = "ios", target_os = "android"))]
+        {
+            Self::Netstack
+        }
+
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        {
+            Self::TunTun
+        }
+    }
+}
+
+#[derive(Debug, Default, Clone, Eq, PartialEq)]
+pub struct WireguardTunnelOptions {
+    pub multihop_mode: WireguardMultihopMode,
+}
+
 #[derive(Debug, Default, Clone, Eq, PartialEq)]
 pub enum DnsOptions {
     #[default]
@@ -133,6 +169,7 @@ impl Default for TunnelSettings {
             enable_credentials_mode: false,
             mixnet_tunnel_options: MixnetTunnelOptions::default(),
             mixnet_client_config: None,
+            wireguard_tunnel_options: WireguardTunnelOptions::default(),
             gateway_performance_options: GatewayPerformanceOptions::default(),
             entry_point: Box::new(EntryPoint::Random),
             exit_point: Box::new(ExitPoint::Random),
@@ -331,6 +368,13 @@ pub enum ErrorStateReason {
     /// Invalid country set for exit gateway
     InvalidExitGatewayCountry,
 
+    /// Gateway is not responding or responding badly to a bandwidth
+    /// increase request, causing credential waste
+    BadBandwidthIncrease,
+
+    /// Failure to duplicate tunnel file descriptor.
+    DuplicateTunFd,
+
     /// Program errors that must not happen.
     Internal,
 }
@@ -354,6 +398,7 @@ impl fmt::Display for TunnelEvent {
 pub enum MixnetEvent {
     Bandwidth(BandwidthEvent),
     Connection(ConnectionEvent),
+    ConnectionStatistics(ConnectionStatisticsEvent),
 }
 
 #[derive(Debug, Copy, Clone, uniffi::Enum)]
@@ -371,6 +416,76 @@ pub enum ConnectionEvent {
     ExitGatewayRoutingErrorIpv6,
     ConnectedIpv4,
     ConnectedIpv6,
+}
+
+#[derive(Debug, Copy, Clone, uniffi::Record)]
+pub struct ConnectionStatisticsEvent {
+    pub rates: SphinxPacketRates,
+}
+
+#[derive(Debug, Copy, Clone, uniffi::Record)]
+pub struct SphinxPacketRates {
+    pub real_packets_sent: f64,
+    pub real_packets_sent_size: f64,
+    pub cover_packets_sent: f64,
+    pub cover_packets_sent_size: f64,
+
+    pub real_packets_received: f64,
+    pub real_packets_received_size: f64,
+    pub cover_packets_received: f64,
+    pub cover_packets_received_size: f64,
+
+    pub total_acks_received: f64,
+    pub total_acks_received_size: f64,
+    pub real_acks_received: f64,
+    pub real_acks_received_size: f64,
+    pub cover_acks_received: f64,
+    pub cover_acks_received_size: f64,
+
+    pub real_packets_queued: f64,
+    pub retransmissions_queued: f64,
+    pub reply_surbs_queued: f64,
+    pub additional_reply_surbs_queued: f64,
+}
+
+impl fmt::Display for ConnectionStatisticsEvent {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.rates)
+    }
+}
+
+impl fmt::Display for SphinxPacketRates {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.summary())
+    }
+}
+
+impl SphinxPacketRates {
+    pub fn summary(&self) -> String {
+        format!(
+            "down: {}/s, up: {}/s (cover down: {}/s, cover up: {}/s)",
+            bibytes2(self.real_packets_received_size),
+            bibytes2(self.real_packets_sent_size),
+            bibytes2(self.cover_packets_received_size),
+            bibytes2(self.cover_packets_sent_size),
+        )
+    }
+
+    pub fn real_received(&self) -> String {
+        bibytes2(self.real_packets_received_size)
+    }
+
+    pub fn real_sent(&self) -> String {
+        bibytes2(self.real_packets_sent_size)
+    }
+
+    pub fn cover_received(&self) -> String {
+        bibytes2(self.cover_packets_received_size)
+    }
+
+    pub fn cover_sent(&self) -> String {
+        bibytes2(self.cover_packets_sent_size)
+    }
 }
 
 pub struct SharedState {
@@ -524,6 +639,10 @@ pub enum Error {
     #[error("failed to create tunnel device: {}", _0)]
     CreateTunDevice(#[source] tun::Error),
 
+    #[cfg(windows)]
+    #[error("failed to setup wintun adapter: {}", _0)]
+    SetupWintunAdapter(#[from] SetupWintunAdapterError),
+
     #[cfg(target_os = "ios")]
     #[error("failed to locate tun device")]
     LocateTunDevice(#[source] std::io::Error),
@@ -575,6 +694,9 @@ impl Error {
                 ErrorStateReason::TunDevice
             }
 
+            #[cfg(windows)]
+            Self::SetupWintunAdapter(_) => ErrorStateReason::TunDevice,
+
             Self::Tunnel(e) => e.error_state_reason()?,
 
             #[cfg(any(target_os = "ios", target_os = "android"))]
@@ -590,6 +712,23 @@ impl Error {
             Self::GetDefaultInterface(_) => ErrorStateReason::Internal,
         })
     }
+}
+
+/// Wintun adapter configuration error.
+#[cfg(windows)]
+#[derive(Debug, thiserror::Error)]
+pub enum SetupWintunAdapterError {
+    #[error("failed to set wintun adapter ipv4 address: {}", _0)]
+    SetIpv4Addr(#[source] nym_windows::net::Error),
+
+    #[error("failed to set wintun adapter ipv6 address: {}", _0)]
+    SetIpv6Addr(#[source] nym_windows::net::Error),
+
+    #[error("failed to set wintun adapter ipv4 gateway address: {}", _0)]
+    SetIpv4Gateway(#[source] nym_windows::net::Error),
+
+    #[error("failed to set wintun adapter ipv6 gateway address: {}", _0)]
+    SetIpv6Gateway(#[source] nym_windows::net::Error),
 }
 
 impl tunnel::Error {
@@ -610,6 +749,15 @@ impl tunnel::Error {
 
                 _ => None,
             },
+            Self::BandwidthController(BandwidthControllerError::RegisterWireguard {
+                source: WgGatewayClientError::NoRetry { .. },
+                ..
+            })
+            | Self::BandwidthController(BandwidthControllerError::TopUpWireguard {
+                source: WgGatewayClientError::NoRetry { .. },
+                ..
+            }) => Some(ErrorStateReason::BadBandwidthIncrease),
+            Self::DupFd(_) => Some(ErrorStateReason::DuplicateTunFd),
             _ => None,
         }
     }
@@ -675,6 +823,7 @@ impl fmt::Display for MixnetEvent {
         match self {
             Self::Bandwidth(event) => write!(f, "{}", event),
             Self::Connection(event) => write!(f, "{}", event),
+            Self::ConnectionStatistics(event) => write!(f, "{}", event),
         }
     }
 }
@@ -701,7 +850,13 @@ impl fmt::Display for BandwidthEvent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::NoBandwidth => f.write_str("No bandwidth"),
-            Self::RemainingBandwidth(value) => write!(f, "Remaining bandwidth: {}", value),
+            Self::RemainingBandwidth(value) => {
+                write!(
+                    f,
+                    "Remaining bandwidth: {}",
+                    si_scale::helpers::bibytes2(*value as f64)
+                )
+            }
         }
     }
 }

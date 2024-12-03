@@ -1,4 +1,5 @@
 import Foundation
+import AppVersionProvider
 import ConfigurationManager
 import Theme
 
@@ -9,7 +10,7 @@ public struct SettingsListViewModel {
     let sections: [SettingsSection]
 
     var versionTitle: String {
-        "\("version".localizedString) \(appVersion)"
+        "\("version".localizedString) \(appVersion) (\(AppVersionProvider.libVersion))"
     }
 
     var isTestFlight: Bool {

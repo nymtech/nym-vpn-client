@@ -91,7 +91,8 @@ private extension HopListViewModel {
 // MARK: - Countries -
 private extension HopListViewModel {
     func updateCountries() {
-        Task {
+        Task { [weak self] in
+            guard let self else { return }
             let newCountries: [Country]?
             switch connectionManager.connectionType {
             case .mixnet5hop:
@@ -100,7 +101,7 @@ private extension HopListViewModel {
                 newCountries = countriesWireGuard()
             }
             await MainActor.run {
-                countries = newCountries
+                self.countries = newCountries
             }
         }
     }

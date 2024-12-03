@@ -27,8 +27,12 @@ private extension StatusInfoView {
     @ViewBuilder
     func infoLabel() -> some View {
         Text(infoState.localizedTitle)
-            .foregroundStyle(NymColor.statusInfoText)
+            .foregroundStyle(infoState.textColor)
             .textStyle(isSmallScreen ? .Label.Medium.primary : .Label.Large.bold)
+            .lineLimit(3, reservesSpace: true)
+            .multilineTextAlignment(.center)
+            .transition(.opacity)
+            .animation(.easeInOut, value: infoState.localizedTitle)
         Spacer()
             .frame(height: 8)
     }
@@ -38,5 +42,7 @@ private extension StatusInfoView {
         Text("\(timeConnected)")
             .foregroundStyle(NymColor.statusTimer)
             .textStyle(isSmallScreen ? .Label.Medium.primary : .Label.Large.bold)
+            .transition(.opacity)
+            .animation(.easeInOut, value: timeConnected)
     }
 }

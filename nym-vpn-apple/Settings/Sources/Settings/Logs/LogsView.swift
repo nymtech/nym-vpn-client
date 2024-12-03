@@ -166,12 +166,14 @@ private extension LogsView {
 
     @ViewBuilder
     func logTypePicker() -> some View {
-        Picker("", selection: $viewModel.currentLogFileType) {
-            ForEach(viewModel.logFileTypes, id: \.self) {
-                Text($0.rawValue.capitalized.localizedString)
+        if viewModel.logFileTypes.count > 1 {
+            Picker("", selection: $viewModel.currentLogFileType) {
+                ForEach(viewModel.logFileTypes, id: \.self) {
+                    Text($0.rawValue.capitalized.localizedString)
+                }
             }
+            .pickerStyle(.segmented)
+            .padding(16)
         }
-        .pickerStyle(.segmented)
-        .padding(16)
     }
 }

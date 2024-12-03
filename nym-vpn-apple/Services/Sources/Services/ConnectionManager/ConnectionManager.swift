@@ -4,6 +4,7 @@ import NetworkExtension
 import AppSettings
 import CountriesManager
 import CredentialsManager
+import NotificationMessages
 import TunnelMixnet
 import Tunnels
 import TunnelStatus
@@ -189,6 +190,17 @@ public final class ConnectionManager: ObservableObject {
         }
     }
 #endif
+
+    public func disconnectBeforeLogout() async {
+#if os(iOS)
+        disconnectActiveTunnel()
+        await waitForTunnelStatus(with: .disconnected)
+        resetVpnProfile()
+#elseif os(macOS)
+        grpcManager.disconnect()
+        await waitForTunnelStatus(with: .disconnected)
+#endif
+    }
 }
 
 // MARK: - Setup -
@@ -233,9 +245,18 @@ private extension ConnectionManager {
 private extension ConnectionManager {
     func setupGRPCManagerObservers() {
         grpcManager.$tunnelStatus.sink { [weak self] status in
+            guard self?.currentTunnelStatus != status else { return }
             self?.currentTunnelStatus = status
+            self?.scheduleNotificationIfNeeded()
         }
         .store(in: &cancellables)
+    }
+
+    func scheduleNotificationIfNeeded() {
+        guard currentTunnelStatus == .disconnecting else { return }
+        Task(priority: .background) {
+            await NotificationMessages.scheduleDisconnectNotification()
+        }
     }
 }
 #endif
@@ -362,6 +383,20 @@ private extension ConnectionManager {
             return
         }
         isDisconnecting = false
+    }
+
+    func waitForTunnelStatus(with targetStatus: TunnelStatus) async {
+        await withCheckedContinuation { continuation in
+            var cancellable: AnyCancellable?
+
+            cancellable = $currentTunnelStatus
+                .sink { status in
+                    if status == targetStatus {
+                        continuation.resume()
+                        cancellable?.cancel()
+                    }
+                }
+        }
     }
 }
 // MARK: - Countries -

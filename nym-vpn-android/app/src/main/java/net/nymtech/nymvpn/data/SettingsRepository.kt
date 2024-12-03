@@ -37,9 +37,6 @@ interface SettingsRepository {
 	suspend fun setAnalytics(enabled: Boolean)
 
 	suspend fun isAnalyticsEnabled(): Boolean
-	suspend fun isFirstHopSelectionEnabled(): Boolean
-
-	suspend fun setFirstHopSelection(enabled: Boolean)
 
 	suspend fun isAnalyticsShown(): Boolean
 
@@ -52,6 +49,26 @@ interface SettingsRepository {
 	suspend fun getEnvironment(): Tunnel.Environment
 
 	suspend fun setEnvironment(environment: Tunnel.Environment)
+
+	suspend fun setManualGatewayOverride(enabled: Boolean)
+
+	suspend fun isManualGatewayOverride(): Boolean
+
+	suspend fun setCredentialMode(enabled: Boolean?)
+
+	suspend fun isCredentialMode(): Boolean?
+
+	suspend fun setEntryGatewayId(id: String)
+
+	suspend fun setExitGatewayId(id: String)
+
+	suspend fun getEntryGatewayId(): String?
+
+	suspend fun getExitGatewayId(): String?
+
+	suspend fun getLocale(): String?
+
+	suspend fun setLocale(locale: String)
 
 	val settingsFlow: Flow<Settings>
 }

@@ -71,13 +71,13 @@ private extension ConnectionStorage {
         case .exit:
             if countriesManager.exitCountries.contains(where: { $0.code == "CH" }) {
                 return "CH"
-            } else if let country = countriesManager.entryCountries.first {
+            } else if let country = countriesManager.exitCountries.first {
                 return country.code
             }
         case .vpn:
             if countriesManager.vpnCountries.contains(where: { $0.code == "CH" }) {
                 return "CH"
-            } else if let country = countriesManager.entryCountries.first {
+            } else if let country = countriesManager.vpnCountries.first {
                 return country.code
             }
         }

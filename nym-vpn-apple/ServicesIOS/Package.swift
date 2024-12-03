@@ -11,14 +11,25 @@ let package = Package(
     ],
     products: [
         .library(name: "Extensions", targets: ["Extensions"]),
+        .library(name: "ErrorHandler", targets: ["ErrorHandler"]),
         .library(name: "ImpactGenerator", targets: ["ImpactGenerator"]),
         .library(name: "KeyboardManager", targets: ["KeyboardManager"])
+    ],
+    dependencies: [
+        .package(name: "MixnetLibrary", path: "../MixnetLibrary")
     ],
     targets: [
         .target(
             name: "Extensions",
             dependencies: [],
             path: "Sources/Extensions"
+        ),
+        .target(
+            name: "ErrorHandler",
+            dependencies: [
+                .product(name: "MixnetLibrary", package: "MixnetLibrary")
+            ],
+            path: "Sources/ErrorHandler"
         ),
         .target(
             name: "ImpactGenerator",

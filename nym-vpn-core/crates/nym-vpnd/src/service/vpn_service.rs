@@ -6,11 +6,12 @@ use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     path::PathBuf,
     sync::Arc,
-    time::Duration,
 };
 
 use bip39::Mnemonic;
-use nym_vpn_network_config::{NymNetwork, NymVpnNetwork};
+use nym_vpn_network_config::{
+    FeatureFlags, Network, NymNetwork, NymVpnNetwork, ParsedAccountLinks, SystemMessages,
+};
 use serde::{Deserialize, Serialize};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use tokio::{
@@ -18,10 +19,10 @@ use tokio::{
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
-use url::Url;
 
 use nym_vpn_account_controller::{
-    AccountCommand, AccountController, AccountStateSummary, ReadyToConnect, SharedAccountState,
+    AccountCommand, AccountCommandError, AccountController, AccountControllerCommander,
+    AccountStateSummary, AvailableTicketbooks, ReadyToConnect, SharedAccountState,
 };
 use nym_vpn_api_client::{
     response::{NymVpnAccountSummaryResponse, NymVpnDevicesResponse},
@@ -29,20 +30,20 @@ use nym_vpn_api_client::{
 };
 use nym_vpn_lib::{
     gateway_directory::{self, EntryPoint, ExitPoint},
-    nym_config::defaults::NymNetworkDetails,
     tunnel_state_machine::{
         ConnectionData, DnsOptions, GatewayPerformanceOptions, MixnetEvent, MixnetTunnelOptions,
         NymConfig, TunnelCommand, TunnelConnectionData, TunnelEvent, TunnelSettings, TunnelState,
-        TunnelStateMachine, TunnelType,
+        TunnelStateMachine, TunnelType, WireguardMultihopMode, WireguardTunnelOptions,
     },
     MixnetClientConfig, NodeIdentity, Recipient,
 };
+use zeroize::Zeroizing;
 
-use crate::{config::GlobalConfigFile, GLOBAL_NETWORK_DETAILS};
+use crate::{config::GlobalConfigFile, service::AccountNotReady};
 
 use super::{
     config::{ConfigSetupError, NetworkEnvironments, NymVpnServiceConfig, DEFAULT_CONFIG_FILE},
-    error::{AccountError, AccountNotReady, ConnectionFailedError, Error, Result, SetNetworkError},
+    error::{AccountError, ConnectionFailedError, Error, Result, SetNetworkError},
     VpnServiceConnectError, VpnServiceDisconnectError,
 };
 
@@ -90,20 +91,30 @@ impl fmt::Display for ConnectedStateDetails {
 // Seed used to generate device identity keys
 type Seed = [u8; 32];
 
+type Locale = String;
+
 #[allow(clippy::large_enum_variant)]
+#[derive(Debug, strum::Display)]
 pub enum VpnServiceCommand {
+    Info(oneshot::Sender<VpnServiceInfo>, ()),
+    SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
+    GetSystemMessages(oneshot::Sender<SystemMessages>, ()),
+    GetFeatureFlags(oneshot::Sender<Option<FeatureFlags>>, ()),
     Connect(
         oneshot::Sender<Result<(), VpnServiceConnectError>>,
         (ConnectArgs, nym_vpn_lib::UserAgent),
     ),
     Disconnect(oneshot::Sender<Result<(), VpnServiceDisconnectError>>, ()),
     Status(oneshot::Sender<VpnServiceStatus>, ()),
-    Info(oneshot::Sender<VpnServiceInfo>, ()),
-    SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
-    StoreAccount(oneshot::Sender<Result<(), AccountError>>, String),
+    StoreAccount(oneshot::Sender<Result<(), AccountError>>, Zeroizing<String>),
     IsAccountStored(oneshot::Sender<Result<bool, AccountError>>, ()),
     RemoveAccount(oneshot::Sender<Result<(), AccountError>>, ()),
+    ForgetAccount(oneshot::Sender<Result<(), AccountError>>, ()),
     GetAccountIdentity(oneshot::Sender<Result<String, AccountError>>, ()),
+    GetAccountLinks(
+        oneshot::Sender<Result<ParsedAccountLinks, AccountError>>,
+        Locale,
+    ),
     GetAccountState(
         oneshot::Sender<Result<AccountStateSummary, AccountError>>,
         (),
@@ -115,6 +126,13 @@ pub enum VpnServiceCommand {
     RegisterDevice(oneshot::Sender<Result<(), AccountError>>, ()),
     RequestZkNym(oneshot::Sender<Result<(), AccountError>>, ()),
     GetDeviceZkNyms(oneshot::Sender<Result<(), AccountError>>, ()),
+    GetZkNymsAvailableForDownload(oneshot::Sender<Result<(), AccountError>>, ()),
+    GetZkNymById(oneshot::Sender<Result<(), AccountError>>, String),
+    ConfirmZkNymIdDownloaded(oneshot::Sender<Result<(), AccountError>>, String),
+    GetAvailableTickets(
+        oneshot::Sender<Result<AvailableTicketbooks, AccountError>>,
+        (),
+    ),
     FetchRawAccountSummary(
         oneshot::Sender<Result<NymVpnAccountSummaryResponse, AccountError>>,
         (),
@@ -123,34 +141,6 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<NymVpnDevicesResponse, AccountError>>,
         (),
     ),
-}
-
-impl fmt::Display for VpnServiceCommand {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            VpnServiceCommand::Connect(_, (args, user_agent)) => {
-                write!(f, "Connect {{ {args:?}, {user_agent:?} }}")
-            }
-            VpnServiceCommand::Disconnect(..) => write!(f, "Disconnect"),
-            VpnServiceCommand::Status(..) => write!(f, "Status"),
-            VpnServiceCommand::Info(..) => write!(f, "Info"),
-            VpnServiceCommand::SetNetwork(..) => write!(f, "SetNetwork"),
-            VpnServiceCommand::StoreAccount(..) => write!(f, "StoreAccount"),
-            VpnServiceCommand::IsAccountStored(..) => write!(f, "IsAccountStored"),
-            VpnServiceCommand::RemoveAccount(..) => write!(f, "RemoveAccount"),
-            VpnServiceCommand::GetAccountIdentity(..) => write!(f, "GetAccountIdentity"),
-            VpnServiceCommand::GetAccountState(..) => write!(f, "GetAccountState"),
-            VpnServiceCommand::RefreshAccountState(..) => write!(f, "RefreshAccountState"),
-            VpnServiceCommand::IsReadyToConnect(..) => write!(f, "IsReadyToConnect"),
-            VpnServiceCommand::ResetDeviceIdentity(..) => write!(f, "ResetDeviceIdentity"),
-            VpnServiceCommand::GetDeviceIdentity(..) => write!(f, "GetDeviceIdentity"),
-            VpnServiceCommand::RegisterDevice(..) => write!(f, "RegisterDevice"),
-            VpnServiceCommand::RequestZkNym(..) => write!(f, "RequestZkNym"),
-            VpnServiceCommand::GetDeviceZkNyms(..) => write!(f, "GetDeviceZkNyms"),
-            VpnServiceCommand::FetchRawAccountSummary(..) => write!(f, "FetchRawAccountSummery"),
-            VpnServiceCommand::FetchRawDevices(..) => write!(f, "FetchRawDevices"),
-        }
-    }
 }
 
 #[derive(Debug)]
@@ -165,6 +155,7 @@ pub(crate) struct ConnectOptions {
     pub(crate) dns: Option<IpAddr>,
     pub(crate) disable_routing: bool,
     pub(crate) enable_two_hop: bool,
+    pub(crate) netstack: bool,
     pub(crate) disable_poisson_rate: bool,
     pub(crate) disable_background_cover_traffic: bool,
     pub(crate) enable_credentials_mode: bool,
@@ -338,6 +329,9 @@ pub(crate) struct NymVpnService<S>
 where
     S: nym_vpn_store::VpnStorage,
 {
+    // The network environment
+    network_env: Network,
+
     // The account state, updated by the account controller
     shared_account_state: SharedAccountState,
 
@@ -349,9 +343,10 @@ where
     status_tx: broadcast::Sender<MixnetEvent>,
 
     // Send commands to the account controller
-    account_command_tx: mpsc::UnboundedSender<AccountCommand>,
+    account_command_tx: AccountControllerCommander,
 
     config_file: PathBuf,
+    data_dir: PathBuf,
 
     // Storage backend
     storage: Arc<tokio::sync::Mutex<S>>,
@@ -378,6 +373,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
         status_tx: broadcast::Sender<MixnetEvent>,
         shutdown_token: CancellationToken,
+        network_env: Network,
     ) -> JoinHandle<()> {
         tracing::info!("Starting VPN service");
         tokio::spawn(async {
@@ -386,6 +382,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
                 vpn_command_rx,
                 status_tx,
                 shutdown_token,
+                network_env,
             )
             .await
             {
@@ -413,12 +410,9 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
         status_tx: broadcast::Sender<MixnetEvent>,
         shutdown_token: CancellationToken,
+        network_env: Network,
     ) -> Result<Self> {
-        let network_details = GLOBAL_NETWORK_DETAILS
-            .get()
-            .ok_or(Error::ConfigSetup(ConfigSetupError::GlobalNetworkNotSet))?
-            .clone();
-        let network_name = network_details.nym_network_details().network_name.clone();
+        let network_name = network_env.nym_network_details().network_name.clone();
 
         let config_dir = super::config::config_dir().join(&network_name);
         let config_file = config_dir.join(DEFAULT_CONFIG_FILE);
@@ -431,29 +425,42 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         // Make sure the data dir exists
         super::config::create_data_dir(&data_dir).map_err(Error::ConfigSetup)?;
 
+        let credentials_mode = get_feature_flag_credential_mode(&network_env);
+
         // We need to create the user agent here and not in the controller so that we correctly
         // pick up build time constants.
         let user_agent = crate::util::construct_user_agent();
         let account_controller = AccountController::new(
             Arc::clone(&storage),
             data_dir.clone(),
-            user_agent.clone(),
+            user_agent,
+            credentials_mode,
             shutdown_token.child_token(),
         )
         .await
         .map_err(|source| Error::Account(AccountError::AccountControllerError { source }))?;
 
+        // These are used to interact with the account controller
         let shared_account_state = account_controller.shared_state();
-        let account_command_tx = account_controller.command_tx();
+        let account_command_tx = account_controller.commander();
         let _account_controller_handle = tokio::task::spawn(account_controller.run());
 
+        // These used to interact with the tunnel state machine
         let (command_sender, command_receiver) = mpsc::unbounded_channel();
         let (event_sender, event_receiver) = mpsc::unbounded_channel();
 
         let tunnel_settings = TunnelSettings::default();
+        let api_url = network_env
+            .api_url()
+            .ok_or(Error::ConfigSetup(ConfigSetupError::MissingApiUrl))?;
+        let gateway_config = gateway_directory::Config {
+            api_url,
+            nym_vpn_api_url: Some(network_env.vpn_api_url()),
+            min_gateway_performance: None,
+        };
         let nym_config = NymConfig {
             data_path: Some(data_dir.clone()),
-            gateway_config: gateway_directory::Config::new_from_env(),
+            gateway_config,
         };
 
         let state_machine_handle = TunnelStateMachine::spawn(
@@ -467,12 +474,14 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         .map_err(Error::StateMachine)?;
 
         Ok(Self {
+            network_env,
             shared_account_state,
             vpn_command_rx,
             vpn_state_changes_tx,
             status_tx,
             account_command_tx,
             config_file,
+            data_dir,
             storage,
             tunnel_state: TunnelState::Disconnected,
             state_machine_handle,
@@ -533,6 +542,22 @@ where
 
     async fn handle_service_command(&mut self, command: VpnServiceCommand) {
         match command {
+            VpnServiceCommand::Info(tx, ()) => {
+                let result = self.handle_info().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::SetNetwork(tx, network) => {
+                let result = self.handle_set_network(network).await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::GetSystemMessages(tx, ()) => {
+                let result = self.handle_get_system_messages().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::GetFeatureFlags(tx, ()) => {
+                let result = self.handle_get_feature_flags().await;
+                let _ = tx.send(result);
+            }
             VpnServiceCommand::Connect(tx, (connect_args, user_agent)) => {
                 let result = self.handle_connect(connect_args, user_agent).await;
                 let _ = tx.send(result);
@@ -543,14 +568,6 @@ where
             }
             VpnServiceCommand::Status(tx, ()) => {
                 let result = self.handle_status().await;
-                let _ = tx.send(result);
-            }
-            VpnServiceCommand::Info(tx, ()) => {
-                let result = self.handle_info().await;
-                let _ = tx.send(result);
-            }
-            VpnServiceCommand::SetNetwork(tx, network) => {
-                let result = self.handle_set_network(network).await;
                 let _ = tx.send(result);
             }
             VpnServiceCommand::StoreAccount(tx, account) => {
@@ -565,8 +582,16 @@ where
                 let result = self.handle_remove_account().await;
                 let _ = tx.send(result);
             }
+            VpnServiceCommand::ForgetAccount(tx, ()) => {
+                let result = self.handle_forget_account().await;
+                let _ = tx.send(result);
+            }
             VpnServiceCommand::GetAccountIdentity(tx, ()) => {
                 let result = self.handle_get_account_identity().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::GetAccountLinks(tx, locale) => {
+                let result = self.handle_get_account_links(locale).await;
                 let _ = tx.send(result);
             }
             VpnServiceCommand::GetAccountState(tx, ()) => {
@@ -599,6 +624,22 @@ where
             }
             VpnServiceCommand::GetDeviceZkNyms(tx, ()) => {
                 let result = self.handle_get_device_zk_nyms().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::GetZkNymsAvailableForDownload(tx, ()) => {
+                let result = self.handle_get_zk_nyms_available_for_download().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::GetZkNymById(tx, id) => {
+                let result = self.handle_get_zk_nym_by_id(id).await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::ConfirmZkNymIdDownloaded(tx, id) => {
+                let result = self.handle_confirm_zk_nym_id_downloaded(id).await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::GetAvailableTickets(tx, ()) => {
+                let result = self.handle_get_available_tickets().await;
                 let _ = tx.send(result);
             }
             VpnServiceCommand::FetchRawAccountSummary(tx, ()) => {
@@ -644,24 +685,15 @@ where
         Ok(config)
     }
 
-    async fn wait_for_ready_to_connect(&self) -> Result<(), VpnServiceConnectError> {
-        match self
-            .shared_account_state
-            .wait_for_ready_to_connect(Duration::from_secs(10))
-            .await
-        {
-            Some(is_ready) => match is_ready {
-                ReadyToConnect::Ready => Ok(()),
-                not_ready => {
-                    tracing::info!("Not ready to connect: {:?}", not_ready);
-                    Err(VpnServiceConnectError::Account(
-                        AccountNotReady::try_from(not_ready)
-                            .map_err(|err| VpnServiceConnectError::Internal(err.to_string()))?,
-                    ))
-                }
-            },
-            None => Err(VpnServiceConnectError::Internal("timeout".to_owned())),
-        }
+    fn get_feature_flag_credential_mode(&self) -> bool {
+        get_feature_flag_credential_mode(&self.network_env)
+    }
+
+    async fn wait_for_ready_to_connect(&self) -> Result<(), AccountCommandError> {
+        self.account_command_tx.ensure_update_account().await?;
+        self.account_command_tx.ensure_update_device().await?;
+        self.account_command_tx.ensure_register_device().await?;
+        Ok(())
     }
 
     async fn handle_connect(
@@ -673,13 +705,21 @@ where
         self.shutdown_token
             .run_until_cancelled(wait_for_ready_to_connect_fut)
             .await
-            .ok_or(VpnServiceConnectError::Cancel)??;
+            .ok_or(VpnServiceConnectError::Cancel)?
+            .map_err(AccountNotReady::from)?;
 
         let ConnectArgs {
             entry,
             exit,
-            options,
+            mut options,
         } = connect_args;
+
+        // Get feature flag
+        let enable_credentials_mode = self.get_feature_flag_credential_mode();
+        tracing::debug!("feature flag: credential mode: {enable_credentials_mode}");
+
+        options.enable_credentials_mode =
+            options.enable_credentials_mode || enable_credentials_mode;
 
         tracing::info!(
             "Using entry point: {}",
@@ -736,6 +776,13 @@ where
             tunnel_type,
             enable_credentials_mode: options.enable_credentials_mode,
             mixnet_tunnel_options: MixnetTunnelOptions::default(),
+            wireguard_tunnel_options: WireguardTunnelOptions {
+                multihop_mode: if options.netstack {
+                    WireguardMultihopMode::Netstack
+                } else {
+                    WireguardMultihopMode::TunTun
+                },
+            },
             gateway_performance_options: gateway_options,
             mixnet_client_config: Some(mixnet_client_config),
             entry_point: Box::new(config.entry_point),
@@ -752,7 +799,7 @@ where
                 .send(TunnelCommand::Connect)
                 .map_err(|e| {
                     tracing::error!("Failed to send command to connect: {}", e);
-                    VpnServiceConnectError::Internal("failed to send tunnel command".to_owned())
+                    VpnServiceConnectError::Internal("failed to send command to connect".to_owned())
                 }),
             Err(e) => {
                 tracing::error!("Failed to send command to set tunnel options: {}", e);
@@ -777,11 +824,6 @@ where
     }
 
     async fn handle_info(&self) -> VpnServiceInfo {
-        // TODO: remove expect
-        let network = GLOBAL_NETWORK_DETAILS
-            .get()
-            .expect("Incorrect environment setup")
-            .clone();
         let bin_info = nym_bin_common::bin_info_local_vergen!();
         let user_agent = crate::util::construct_user_agent();
 
@@ -791,8 +833,8 @@ where
             triple: bin_info.cargo_triple.to_string(),
             platform: user_agent.platform,
             git_commit: bin_info.commit_sha.to_string(),
-            nym_network: network.nym_network.clone(),
-            nym_vpn_network: network.nym_vpn_network.clone(),
+            nym_network: self.network_env.nym_network.clone(),
+            nym_vpn_network: self.network_env.nym_vpn_network.clone(),
         }
     }
 
@@ -821,21 +863,40 @@ where
         Ok(())
     }
 
-    async fn handle_store_account(&mut self, account: String) -> Result<(), AccountError> {
+    async fn handle_get_system_messages(&self) -> SystemMessages {
+        self.network_env.nym_vpn_network.system_messages.clone()
+    }
+
+    async fn handle_get_feature_flags(&self) -> Option<FeatureFlags> {
+        self.network_env.feature_flags.clone()
+    }
+
+    async fn handle_store_account(
+        &mut self,
+        account: Zeroizing<String>,
+    ) -> Result<(), AccountError> {
+        tracing::info!("Storing account");
         self.storage
             .lock()
             .await
-            .store_mnemonic(Mnemonic::parse(&account)?)
+            .store_mnemonic(Mnemonic::parse::<&str>(account.as_ref())?)
             .await
             .map_err(|err| AccountError::FailedToStoreAccount {
                 source: Box::new(err),
             })?;
 
-        self.account_command_tx
-            .send(AccountCommand::UpdateSharedAccountState)
-            .map_err(|err| AccountError::SendCommand {
+        self.storage
+            .lock()
+            .await
+            .init_keys(None)
+            .await
+            .map_err(|err| AccountError::FailedToInitDeviceKeys {
                 source: Box::new(err),
             })?;
+
+        self.account_command_tx
+            .send(AccountCommand::UpdateAccountState(None))
+            .map_err(|source| AccountError::AccountControllerError { source })?;
 
         Ok(())
     }
@@ -852,6 +913,10 @@ where
     }
 
     async fn handle_remove_account(&mut self) -> Result<(), AccountError> {
+        if self.tunnel_state != TunnelState::Disconnected {
+            return Err(AccountError::IsConnected);
+        }
+
         self.storage
             .lock()
             .await
@@ -862,10 +927,58 @@ where
             })?;
 
         self.account_command_tx
-            .send(AccountCommand::UpdateSharedAccountState)
-            .map_err(|err| AccountError::SendCommand {
+            .send(AccountCommand::ResetAccount)
+            .map_err(|source| AccountError::AccountControllerError { source })?;
+        self.account_command_tx
+            .send(AccountCommand::UpdateAccountState(None))
+            .map_err(|source| AccountError::AccountControllerError { source })?;
+
+        Ok(())
+    }
+
+    async fn handle_forget_account(&mut self) -> Result<(), AccountError> {
+        if self.tunnel_state != TunnelState::Disconnected {
+            return Err(AccountError::IsConnected);
+        }
+
+        let data_dir = self.data_dir.clone();
+        tracing::warn!(
+            "REMOVING ALL ACCOUNT AND DEVICE DATA IN: {}",
+            data_dir.display()
+        );
+
+        // First remove some of the files that we are the owner of
+        self.storage
+            .lock()
+            .await
+            .remove_mnemonic()
+            .await
+            .map_err(|err| AccountError::FailedToRemoveAccount {
                 source: Box::new(err),
             })?;
+
+        self.storage
+            .lock()
+            .await
+            .remove_keys()
+            .await
+            .map_err(|err| AccountError::FailedToRemoveAccount {
+                source: Box::new(err),
+            })?;
+
+        nym_vpn_account_controller::util::remove_files_for_account(&data_dir).map_err(
+            |source| AccountError::FailedToForgetAccount {
+                source: Box::new(source),
+            },
+        )?;
+
+        // Tell the account controller to reset its state
+        self.account_command_tx
+            .send(AccountCommand::ResetAccount)
+            .map_err(|source| AccountError::AccountControllerError { source })?;
+        self.account_command_tx
+            .send(AccountCommand::UpdateAccountState(None))
+            .map_err(|source| AccountError::AccountControllerError { source })?;
 
         Ok(())
     }
@@ -874,20 +987,40 @@ where
         self.load_account().await.map(|account| account.id())
     }
 
+    async fn handle_get_account_links(
+        &self,
+        locale: String,
+    ) -> Result<ParsedAccountLinks, AccountError> {
+        let account = self.load_account().await.ok();
+        let account_id = account.map(|a| a.id());
+
+        self.network_env
+            .nym_vpn_network
+            .account_management
+            .clone()
+            .ok_or(AccountError::AccountManagementNotConfigured)?
+            .try_into_parsed_links(&locale, account_id.as_deref())
+            .map_err(|err| {
+                tracing::error!("Failed to parse account links: {:?}", err);
+                AccountError::FailedToParseAccountLinks
+            })
+    }
+
     async fn handle_get_account_state(&self) -> Result<AccountStateSummary, AccountError> {
         Ok(self.shared_account_state.lock().await.clone())
     }
 
     async fn handle_refresh_account_state(&self) -> Result<(), AccountError> {
         self.account_command_tx
-            .send(AccountCommand::UpdateSharedAccountState)
-            .map_err(|err| AccountError::SendCommand {
-                source: Box::new(err),
-            })
+            .send(AccountCommand::UpdateAccountState(None))
+            .map_err(|err| AccountError::AccountControllerError { source: err })
     }
 
     async fn handle_is_ready_to_connect(&self) -> ReadyToConnect {
-        self.shared_account_state.is_ready_to_connect().await
+        let credential_mode = false;
+        self.shared_account_state
+            .is_ready_to_connect(credential_mode)
+            .await
     }
 
     async fn load_account(&self) -> Result<VpnApiAccount, AccountError> {
@@ -919,25 +1052,32 @@ where
     }
 
     async fn handle_reset_device_identity(
-        &self,
+        &mut self,
         seed: Option<[u8; 32]>,
     ) -> Result<(), AccountError> {
+        if self.tunnel_state != TunnelState::Disconnected {
+            return Err(AccountError::IsConnected);
+        }
+
+        // First disconnect the VPN
+        self.handle_disconnect()
+            .await
+            .map_err(|err| AccountError::FailedToResetDeviceKeys {
+                source: Box::new(err),
+            })?;
+
         self.storage
             .lock()
             .await
             .reset_keys(seed)
             .await
-            .map_err(|err| AccountError::FailedToResetKeys {
+            .map_err(|err| AccountError::FailedToResetDeviceKeys {
                 source: Box::new(err),
             })?;
 
         self.account_command_tx
-            .send(AccountCommand::UpdateSharedAccountState)
-            .map_err(|err| AccountError::SendCommand {
-                source: Box::new(err),
-            })?;
-
-        Ok(())
+            .send(AccountCommand::UpdateAccountState(None))
+            .map_err(|source| AccountError::AccountControllerError { source })
     }
 
     async fn handle_get_device_identity(&self) -> Result<String, AccountError> {
@@ -948,26 +1088,50 @@ where
 
     async fn handle_register_device(&self) -> Result<(), AccountError> {
         self.account_command_tx
-            .send(AccountCommand::RegisterDevice)
-            .map_err(|err| AccountError::SendCommand {
-                source: Box::new(err),
-            })
+            .send(AccountCommand::RegisterDevice(None))
+            .map_err(|source| AccountError::AccountControllerError { source })
     }
 
     async fn handle_request_zk_nym(&self) -> Result<(), AccountError> {
         self.account_command_tx
             .send(AccountCommand::RequestZkNym)
-            .map_err(|err| AccountError::SendCommand {
-                source: Box::new(err),
-            })
+            .map_err(|source| AccountError::AccountControllerError { source })
     }
 
     async fn handle_get_device_zk_nyms(&self) -> Result<(), AccountError> {
         self.account_command_tx
             .send(AccountCommand::GetDeviceZkNym)
-            .map_err(|err| AccountError::SendCommand {
-                source: Box::new(err),
-            })
+            .map_err(|source| AccountError::AccountControllerError { source })
+    }
+
+    async fn handle_get_zk_nyms_available_for_download(&self) -> Result<(), AccountError> {
+        self.account_command_tx
+            .send(AccountCommand::GetZkNymsAvailableForDownload)
+            .map_err(|source| AccountError::AccountControllerError { source })
+    }
+
+    async fn handle_get_zk_nym_by_id(&self, id: String) -> Result<(), AccountError> {
+        self.account_command_tx
+            .send(AccountCommand::GetZkNymById(id))
+            .map_err(|source| AccountError::AccountControllerError { source })
+    }
+
+    async fn handle_confirm_zk_nym_id_downloaded(&self, id: String) -> Result<(), AccountError> {
+        self.account_command_tx
+            .send(AccountCommand::ConfirmZkNymIdDownloaded(id))
+            .map_err(|source| AccountError::AccountControllerError { source })
+    }
+
+    async fn handle_get_available_tickets(&self) -> Result<AvailableTicketbooks, AccountError> {
+        let (result_tx, result_rx) = oneshot::channel();
+        self.account_command_tx
+            .send(AccountCommand::GetAvailableTickets(result_tx))
+            .map_err(|source| AccountError::AccountControllerError { source })?;
+
+        let result = result_rx.await.map_err(|err| AccountError::RecvCommand {
+            source: Box::new(err),
+        })?;
+        result.map_err(|err| AccountError::AccountControllerError { source: err })
     }
 
     async fn handle_fetch_raw_account_summary(
@@ -981,7 +1145,7 @@ where
         let account = self.load_account().await?;
 
         // Setup client
-        let nym_vpn_api_url = get_nym_vpn_api_url()?;
+        let nym_vpn_api_url = self.network_env.vpn_api_url();
         let user_agent = crate::util::construct_user_agent();
         let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent)?;
 
@@ -1000,7 +1164,7 @@ where
         let account = self.load_account().await?;
 
         // Setup client
-        let nym_vpn_api_url = get_nym_vpn_api_url()?;
+        let nym_vpn_api_url = self.network_env.vpn_api_url();
         let user_agent = crate::util::construct_user_agent();
         let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent)?;
 
@@ -1008,11 +1172,8 @@ where
     }
 }
 
-fn get_nym_vpn_api_url() -> Result<Url, AccountError> {
-    NymNetworkDetails::new_from_env()
-        .nym_vpn_api_url
-        .ok_or(AccountError::MissingApiUrl)?
-        .parse()
-        .map_err(|_| AccountError::InvalidApiUrl)
-        .inspect(|url| tracing::info!("Using nym-vpn-api url: {}", url))
+fn get_feature_flag_credential_mode(network_env: &Network) -> bool {
+    network_env
+        .get_feature_flag("zkNym", "credentialMode")
+        .unwrap_or(false)
 }

@@ -1,9 +1,10 @@
 package net.nymtech.nymvpn.ui
 
-import android.content.Context
+import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarData
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -26,11 +28,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -38,15 +36,14 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import net.nymtech.localizationutil.LocaleStorage
-import net.nymtech.localizationutil.LocaleUtil
-import net.nymtech.nymvpn.NymVpn
+import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.shortcut.ShortcutManager
+import net.nymtech.nymvpn.service.gateway.NymApiService
 import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBar
+import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarControllerProvider
 import net.nymtech.nymvpn.ui.screens.analytics.AnalyticsScreen
 import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
@@ -60,7 +57,7 @@ import net.nymtech.nymvpn.ui.screens.settings.appearance.AppearanceScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.display.DisplayScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.language.LanguageScreen
 import net.nymtech.nymvpn.ui.screens.settings.credential.CredentialScreen
-import net.nymtech.nymvpn.ui.screens.settings.environment.EnvironmentScreen
+import net.nymtech.nymvpn.ui.screens.settings.developer.DeveloperScreen
 import net.nymtech.nymvpn.ui.screens.settings.feedback.FeedbackScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.LegalScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.licenses.LicensesScreen
@@ -69,22 +66,14 @@ import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.screens.splash.SplashScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.util.Constants
+import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.isCurrentRoute
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.resetTile
-import net.nymtech.vpn.model.BackendMessage
-import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
-
-	private val localeStorage: LocaleStorage by lazy {
-		(application as NymVpn).localeStorage
-	}
-
-	private lateinit var oldPrefLocaleCode: String
+class MainActivity : AppCompatActivity() {
 
 	@Inject
 	lateinit var notificationService: NotificationService
@@ -92,40 +81,49 @@ class MainActivity : ComponentActivity() {
 	@Inject
 	lateinit var shortcutManager: ShortcutManager
 
-	private lateinit var appViewModel: AppViewModel
+	@Inject
+	lateinit var nymApiService: NymApiService
+
+	@Inject
+	lateinit var settingsRepository: SettingsRepository
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 
-		appViewModel = ViewModelProvider(this)[AppViewModel::class.java]
+		val appViewModel by viewModels<AppViewModel>()
 
 		this.resetTile()
 
-		lifecycleScope.launch {
-			repeatOnLifecycle(Lifecycle.State.CREATED) {
-				appViewModel.onAppStartup()
-			}
-		}
-
 		setContent {
-			val appState by appViewModel.uiState.collectAsStateWithLifecycle(lifecycle = this.lifecycle)
-			val navBarState by appViewModel.navBarState.collectAsStateWithLifecycle(lifecycle = this.lifecycle)
+			val appState by appViewModel.uiState.collectAsStateWithLifecycle(lifecycle)
+			val navBarState by appViewModel.navBarState.collectAsStateWithLifecycle(lifecycle)
+			val systemMessage by appViewModel.systemMessage.collectAsStateWithLifecycle(lifecycle)
+			val configurationChange by appViewModel.configurationChange.collectAsStateWithLifecycle(lifecycle)
 
 			val navController = rememberNavController()
 			val navBackStackEntry by navController.currentBackStackEntryAsState()
 			var navHeight by remember { mutableStateOf(0.dp) }
 			val density = LocalDensity.current
 
-			LaunchedEffect(navBackStackEntry) {
-				if (navBackStackEntry.isCurrentRoute(Route.Main(changeLanguage = true)::class)) {
-					val locale = LocaleUtil.getLocaleFromPrefCode(localeStorage.getPreferredLocale())
-					val currentLocale = Locale.getDefault()
-					if (locale != currentLocale) {
-						delay(Constants.LANGUAGE_SWITCH_DELAY)
-						navController.clearBackStack<Route.Main>()
-						recreate()
+			LaunchedEffect(configurationChange) {
+				if (configurationChange) {
+					// Restart activity for built-in translation of country names
+					Intent(this@MainActivity, MainActivity::class.java).also {
+						finish()
+						startActivity(it)
 					}
 				}
+			}
+
+			// only display system message on main screen
+			LaunchedEffect(systemMessage, navBackStackEntry) {
+				if (navBackStackEntry.isCurrentRoute(Route.Main::class)) {
+					// delay to allow other messages before we show persistent again
+					delay(2000)
+					systemMessage?.let {
+						SnackbarController.showMessage(StringValue.DynamicString(it.message), duration = SnackbarDuration.Indefinite)
+					}
+				} else if (systemMessage != null) SnackbarController.dismiss()
 			}
 
 			with(appState.settings) {
@@ -135,26 +133,6 @@ class MainActivity : ComponentActivity() {
 				LaunchedEffect(isShortcutsEnabled) {
 					if (!isShortcutsEnabled) return@LaunchedEffect shortcutManager.removeShortcuts()
 					shortcutManager.addShortcuts()
-				}
-			}
-
-			LaunchedEffect(appState.backendMessage) {
-				when (val message = appState.backendMessage) {
-					is BackendMessage.Failure -> {
-						// TODO invalid credential errors?
-// 						when (message.exception) {
-// 							is VpnException.InvalidCredential -> {
-// 								if (NymVpn.isForeground()) {
-// 									SnackbarController.showMessage(StringValue.StringResource(R.string.exception_cred_invalid))
-// 									navController.goFromRoot(Route.Credential)
-// 								}
-// 							}
-//
-// 							else -> Unit
-// 						}
-					}
-
-					else -> Unit
 				}
 			}
 
@@ -249,10 +227,10 @@ class MainActivity : ComponentActivity() {
 									DisplayScreen(appState, appViewModel)
 								}
 								composable<Route.Language> {
-									LanguageScreen(appViewModel, localeStorage)
+									LanguageScreen(appState, appViewModel)
 								}
-								composable<Route.Environment> {
-									EnvironmentScreen(appState, appViewModel)
+								composable<Route.Developer> {
+									DeveloperScreen(appState, appViewModel)
 								}
 								composable<Route.CredentialScanner> {
 									ScannerScreen()
@@ -263,20 +241,5 @@ class MainActivity : ComponentActivity() {
 				}
 			}
 		}
-	}
-
-	override fun attachBaseContext(newBase: Context) {
-		oldPrefLocaleCode = LocaleStorage(newBase).getPreferredLocale()
-		applyOverrideConfiguration(LocaleUtil.getLocalizedConfiguration(oldPrefLocaleCode))
-		super.attachBaseContext(newBase)
-	}
-
-	override fun onResume() {
-		val currentLocaleCode = LocaleStorage(this).getPreferredLocale()
-		if (oldPrefLocaleCode != currentLocaleCode) {
-			recreate() // locale is changed, restart the activity to update
-			oldPrefLocaleCode = currentLocaleCode
-		}
-		super.onResume()
 	}
 }

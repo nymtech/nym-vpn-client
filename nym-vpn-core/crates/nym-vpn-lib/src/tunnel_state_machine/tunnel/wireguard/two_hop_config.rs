@@ -7,6 +7,9 @@ use crate::wg_config::{WgInterface, WgNodeConfig, WgPeer};
 /// Minimum IPv6 MTU that the hosts should be ready to accept.
 pub const MIN_IPV6_MTU: u16 = 1280;
 
+/// Ethernet 2 mtu.
+pub const ETHERNET_V2_MTU: u16 = 1500;
+
 /// WG tunnel overhead (IPv6)
 pub const WG_TUNNEL_OVERHEAD: u16 = 80;
 
@@ -15,6 +18,18 @@ const UDP_FORWARDER_PORT: u16 = 34001;
 
 /// Local port used by exit tunnel when sending traffic to the udp forwarder.
 const EXIT_WG_CLIENT_PORT: u16 = 54001;
+
+pub const ENTRY_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android")) {
+    MIN_IPV6_MTU + WG_TUNNEL_OVERHEAD
+} else {
+    ETHERNET_V2_MTU - WG_TUNNEL_OVERHEAD
+};
+
+pub const EXIT_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android")) {
+    MIN_IPV6_MTU
+} else {
+    ETHERNET_V2_MTU - WG_TUNNEL_OVERHEAD * 2
+};
 
 /// A struct that holds all configuration needed to setup the tunnels, tun device and forwarder.
 #[derive(Debug)]
@@ -54,8 +69,8 @@ impl TwoHopConfig {
         };
 
         // Since we collect the exit traffic on tun, the tun's mtu must be lesser than entry mtu.
-        let exit_mtu = MIN_IPV6_MTU;
-        let entry_mtu = exit_mtu + WG_TUNNEL_OVERHEAD;
+        let exit_mtu = EXIT_MTU;
+        let entry_mtu = ENTRY_MTU;
 
         let tun_config = TunConfig {
             addresses: exit.interface.addresses.clone(),

@@ -13,14 +13,13 @@
   "feedback": {
     "title": "フィードバック",
     "github": "GitHubでIssueを作成する",
-    "send": "フィードバックを送信する",
     "matrix": "Matrixに参加",
-    "discord": "Discordに参加"
+    "discord": "Discordに参加",
+    "get-in-touch": "お問い合わせ"
   },
   "support": {
     "title": "サポート",
-    "faq": "FAQをチェック",
-    "contact": "お問い合わせ"
+    "faq": "FAQをチェック"
   },
   "legal": {
     "title": "法務情報",
@@ -38,7 +37,7 @@
   "faq": "よくある質問",
   "display-theme": "ディスプレイモード",
   "quit": "NymVPNを終了する",
-  "login-button": "接続するには、認証情報を追加してください",
+  "login-button": "ログイン",
   "monitoring-alert": "変更を反映させるには、アプリを再起動する必要があります。",
   "info": {
     "client-version": "クライアントバージョン",

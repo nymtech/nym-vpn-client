@@ -1,7 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(any(target_os = "ios", target_os = "android"))]
 pub mod netstack;
 pub mod uapi;
 pub mod wireguard_go;
@@ -27,6 +26,14 @@ pub enum Error {
     #[cfg(target_os = "windows")]
     #[error("interface name contains nul byte")]
     InterfaceNameContainsNulByte,
+
+    #[cfg(target_os = "windows")]
+    #[error("requested guid contains nul byte")]
+    RequestedGuidContainsNulByte,
+
+    #[cfg(target_os = "windows")]
+    #[error("wintun tunnel type contains nul byte")]
+    WintunTunnelTypeContainsNulByte,
 
     #[error("failed to start the tunnel (code: {})", _0)]
     StartTunnel(i32),

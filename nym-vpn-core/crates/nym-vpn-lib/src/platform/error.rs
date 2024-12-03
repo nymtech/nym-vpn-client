@@ -27,6 +27,12 @@ pub enum VpnError {
     #[error("no account stored")]
     NoAccountStored,
 
+    #[error("account not synced")]
+    AccountNotSynced,
+
+    #[error("account not registered")]
+    AccountNotRegistered,
+
     #[error("account not active")]
     AccountNotActive,
 
@@ -39,8 +45,37 @@ pub enum VpnError {
     #[error("device not active")]
     AccountDeviceNotActive,
 
-    #[error("account status unknown")]
-    AccountStatusUnknown,
+    #[error("no device identity stored")]
+    NoDeviceIdentity,
+
+    #[error("timeout connecting to nym-vpn-api")]
+    VpnApiTimeout,
+
+    //#[error("max devices reached: {0}")]
+    //MaxDevicesReached(u64),
+    #[error("account update failed: {details}")]
+    AccountUpdateFailed {
+        details: String,
+        message_id: Option<String>,
+        code_reference_id: Option<String>,
+    },
+
+    #[error("device update failed: {details}")]
+    DeviceUpdateFailed {
+        details: String,
+        message_id: Option<String>,
+        code_reference_id: Option<String>,
+    },
+
+    #[error("device registration failed: {details}")]
+    DeviceRegistrationFailed {
+        details: String,
+        message_id: Option<String>,
+        code_reference_id: Option<String>,
+    },
+
+    #[error("invalid account storage path: {details}")]
+    InvalidAccountStoragePath { details: String },
 }
 
 impl From<nym_vpn_account_controller::ReadyToConnect> for VpnError {
@@ -48,6 +83,10 @@ impl From<nym_vpn_account_controller::ReadyToConnect> for VpnError {
         match value {
             nym_vpn_account_controller::ReadyToConnect::Ready => Self::AccountReady,
             nym_vpn_account_controller::ReadyToConnect::NoMnemonicStored => Self::NoAccountStored,
+            nym_vpn_account_controller::ReadyToConnect::AccountNotSynced => Self::AccountNotSynced,
+            nym_vpn_account_controller::ReadyToConnect::AccountNotRegistered => {
+                Self::AccountNotRegistered
+            }
             nym_vpn_account_controller::ReadyToConnect::AccountNotActive => Self::AccountNotActive,
             nym_vpn_account_controller::ReadyToConnect::NoActiveSubscription => {
                 Self::NoActiveSubscription
@@ -58,6 +97,55 @@ impl From<nym_vpn_account_controller::ReadyToConnect> for VpnError {
             nym_vpn_account_controller::ReadyToConnect::DeviceNotActive => {
                 Self::AccountDeviceNotActive
             }
+            nym_vpn_account_controller::ReadyToConnect::DeviceRegistrationFailed {
+                message,
+                message_id,
+                code_reference_id,
+            } => Self::DeviceRegistrationFailed {
+                details: message,
+                message_id,
+                code_reference_id,
+            },
+        }
+    }
+}
+
+impl From<nym_vpn_account_controller::AccountCommandError> for VpnError {
+    fn from(value: nym_vpn_account_controller::AccountCommandError) -> Self {
+        use nym_vpn_account_controller::AccountCommandError;
+        match value {
+            AccountCommandError::UpdateAccountEndpointFailure {
+                message,
+                message_id,
+                code_reference_id,
+                base_url: _,
+            } => VpnError::AccountUpdateFailed {
+                details: message,
+                message_id,
+                code_reference_id,
+            },
+            AccountCommandError::UpdateDeviceEndpointFailure {
+                message,
+                message_id,
+                code_reference_id,
+            } => VpnError::DeviceUpdateFailed {
+                details: message,
+                message_id,
+                code_reference_id,
+            },
+            AccountCommandError::RegisterDeviceEndpointFailure {
+                message,
+                message_id,
+                code_reference_id,
+            } => VpnError::DeviceRegistrationFailed {
+                details: message,
+                message_id,
+                code_reference_id,
+            },
+            AccountCommandError::NoAccountStored => VpnError::NoAccountStored,
+            AccountCommandError::NoDeviceStored => VpnError::NoDeviceIdentity,
+            AccountCommandError::General(err) => VpnError::InternalError { details: err },
+            AccountCommandError::Internal(err) => VpnError::InternalError { details: err },
         }
     }
 }

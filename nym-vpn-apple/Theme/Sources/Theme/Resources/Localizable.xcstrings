@@ -243,13 +243,13 @@
         }
       }
     },
-    "addCredtenials.credential" : {
+    "addCredtenials.mnemonic" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Credential"
+            "value" : "Recovery phrase"
           }
         }
       }
@@ -386,6 +386,17 @@
         }
       }
     },
+    "daemonError.authorizationDenied" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authorization denied. Please try again."
+          }
+        }
+      }
+    },
     "darkThemeTitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -518,6 +529,17 @@
         }
       }
     },
+    "errorReason.badBandwidthIncrease" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bad bandwidth increase"
+          }
+        }
+      }
+    },
     "errorReason.dns" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -525,17 +547,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Failed to configure DNS"
-          }
-        }
-      }
-    },
-    "errorReason.establishMixnetConnection" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to establish mixnet connection"
           }
         }
       }
@@ -573,6 +584,28 @@
         }
       }
     },
+    "errorReason.invalidEntryGatewayCountry" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid entry gateway country"
+          }
+        }
+      }
+    },
+    "errorReason.invalidExitGatewayCountry" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid exit router country"
+          }
+        }
+      }
+    },
     "errorReason.routing" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -580,6 +613,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Failed to configure routing"
+          }
+        }
+      }
+    },
+    "errorReason.sameEntryAndExitGateway" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failure: entry gateway cannot be same as exit router"
           }
         }
       }
@@ -595,17 +639,6 @@
         }
       }
     },
-    "errorReason.tunnelDown" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tunnel failed at runtime"
-          }
-        }
-      }
-    },
     "errorReason.tunnelProvider" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -613,6 +646,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Failed to configure packet tunnel provider"
+          }
+        }
+      }
+    },
+    "errorReason.unknown" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown reason. Please try again."
           }
         }
       }
@@ -738,13 +782,13 @@
         }
       }
     },
-    "generalNymError.noEnvFile" : {
+    "generalNymError.noEnv" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Env file cannot be found"
+            "value" : "Failed to fetch environment"
           }
         }
       }
@@ -756,6 +800,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Something went wrong: Cannot load pre-bundled countries"
+          }
+        }
+      }
+    },
+    "generalNymError.somethingWentWrong" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Something went wrong. Please try again."
           }
         }
       }
@@ -811,6 +866,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Installing and authorizing daemon..."
+          }
+        }
+      }
+    },
+    "home.installDaemonButton" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparing…"
           }
         }
       }
@@ -1211,6 +1277,17 @@
         }
       }
     },
+    "settings.account" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account"
+          }
+        }
+      }
+    },
     "settings.anonymousErrorReports.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1267,6 +1344,17 @@
       }
     },
     "settings.logoutSubtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You will need your recovery phrase to log in again."
+          }
+        }
+      }
+    },
+    "settings.logoutTitle" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {

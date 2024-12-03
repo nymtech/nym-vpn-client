@@ -6,6 +6,4 @@ interface CountryCacheService {
 	suspend fun updateEntryCountriesCache(): Result<Unit>
 
 	suspend fun updateWgCountriesCache(): Result<Unit>
-
-	suspend fun updateLowLatencyEntryCountryCache(): Result<Unit>
 }

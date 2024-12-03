@@ -1,3 +1,4 @@
+import i18n from 'i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { getVersion } from '@tauri-apps/api/app';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
@@ -11,20 +12,21 @@ import {
 import { getJsLicenses, getRustLicenses } from '../data';
 import { kvGet } from '../kvStore';
 import {
+  AccountLinks,
   CodeDependency,
   ConnectionStateResponse,
   Country,
-  DaemonInfo,
-  DaemonStatus,
   NodeLocation,
   StateDispatch,
   ThemeMode,
   UiTheme,
   VpnMode,
+  VpndStatus,
 } from '../types';
-import fireRequests, { TauriReq } from './helper';
+import { TauriReq, daemonStatusUpdate, fireRequests } from './helper';
 import { S_STATE } from '../static';
 import { MCache } from '../cache';
+import { Notification } from '../contexts';
 
 // initialize connection state
 const getInitialConnectionState = async () => {
@@ -32,11 +34,7 @@ const getInitialConnectionState = async () => {
 };
 
 const getDaemonStatus = async () => {
-  return await invoke<DaemonStatus>('daemon_status');
-};
-
-const getDaemonInfo = async () => {
-  return await invoke<DaemonInfo>('daemon_info');
+  return await invoke<VpndStatus>('daemon_status');
 };
 
 // initialize session start time
@@ -69,34 +67,26 @@ const getTheme = async () => {
   return { winTheme, themeMode };
 };
 
-export async function initFirstBatch(dispatch: StateDispatch) {
+export async function initFirstBatch(
+  dispatch: StateDispatch,
+  push: (notification: Notification) => void,
+) {
   const initStateRq: TauriReq<typeof getInitialConnectionState> = {
     name: 'get_connection_state',
     request: () => getInitialConnectionState(),
     onFulfilled: ({ state, error }) => {
-      dispatch({ type: 'change-connection-state', state });
+      dispatch({ type: 'update-connection-state', state });
       if (error) {
         dispatch({ type: 'set-error', error });
       }
     },
   };
 
-  const initDaemonStatusRq: TauriReq<() => Promise<DaemonStatus>> = {
+  const initDaemonStatusRq: TauriReq<() => Promise<VpndStatus>> = {
     name: 'daemon_status',
     request: () => getDaemonStatus(),
     onFulfilled: (status) => {
-      dispatch({ type: 'set-daemon-status', status });
-    },
-  };
-
-  const initDaemonInfoRq: TauriReq<() => Promise<DaemonInfo>> = {
-    name: 'daemon_status',
-    request: () => getDaemonInfo(),
-    onFulfilled: (info) => {
-      dispatch({ type: 'set-daemon-info', info });
-      if (info.network) {
-        S_STATE.networkEnvInit = true;
-      }
+      daemonStatusUpdate(status, dispatch, push);
     },
   };
 
@@ -251,7 +241,6 @@ export async function initFirstBatch(dispatch: StateDispatch) {
   await fireRequests([
     initStateRq,
     initDaemonStatusRq,
-    initDaemonInfoRq,
     getVpnModeRq,
     syncConTimeRq,
     getEntryLocationRq,
@@ -314,5 +303,21 @@ export async function initSecondBatch(dispatch: StateDispatch) {
     },
   };
 
-  await fireRequests([getEntryCountriesRq, getExitCountriesRq]);
+  const getAccountLinksRq: TauriReq<() => Promise<AccountLinks | undefined>> = {
+    name: 'getAccountLinksRq',
+    request: () =>
+      invoke<AccountLinks>('account_links', { locale: i18n.language }),
+    onFulfilled: (links) => {
+      dispatch({
+        type: 'set-account-links',
+        links: links as AccountLinks | null,
+      });
+    },
+  };
+
+  await fireRequests([
+    getEntryCountriesRq,
+    getExitCountriesRq,
+    getAccountLinksRq,
+  ]);
 }

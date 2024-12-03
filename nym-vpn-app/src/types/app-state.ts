@@ -2,7 +2,7 @@ import { Dispatch } from 'react';
 import { Dayjs } from 'dayjs';
 import { StateAction } from '../state';
 import { Country, NodeHop, NodeLocation, ThemeMode, UiTheme } from './common';
-import { BackendError, ErrorKey, NetworkEnv } from './tauri-ipc';
+import { AccountLinks, BackendError, ErrorKey, NetworkEnv } from './tauri-ipc';
 
 export type ConnectionState =
   | 'Connected'
@@ -22,7 +22,7 @@ export type CodeDependency = {
   copyright?: string;
 };
 
-export type DaemonStatus = 'Ok' | 'NotOk';
+export type DaemonStatus = 'Ok' | 'NonCompat' | 'NotOk';
 
 export type AppState = {
   // initial loading phase when the app is starting and fetching data from the backend
@@ -32,7 +32,6 @@ export type AppState = {
   daemonVersion?: string;
   networkEnv?: NetworkEnv;
   version: string | null;
-  loading: boolean;
   error?: AppError | null;
   progressMessages: ConnectProgressMsg[];
   sessionStartDate?: Dayjs | null;
@@ -40,7 +39,7 @@ export type AppState = {
   // `UiTheme` is the current applied theme to the UI, that is either `Dark` or `Light`
   uiTheme: UiTheme;
   // `themeMode` is the current user selected mode, could be `System`, `Dark` or `Light`
-  //  if `System` is selected, the app will follow the system theme
+  //  if `System` is selected, the app follows the system theme
   themeMode: ThemeMode;
   autoConnect: boolean;
   monitoring: boolean;
@@ -59,6 +58,7 @@ export type AppState = {
   codeDepsRust: CodeDependency[];
   // TODO just a boolean for now to indicate if the user has added an account
   account: boolean;
+  accountLinks?: AccountLinks | null;
   fetchMnCountries: FetchMnCountriesFn;
   fetchWgCountries: FetchWgCountriesFn;
 };
@@ -73,7 +73,7 @@ export type ConnectionEventPayload = {
   start_time?: bigint | null; // unix timestamp in seconds
 };
 
-export type ConnectProgressMsg = 'Initializing' | 'InitDone';
+export type ConnectProgressMsg = 'Initializing' | 'InitDone' | 'Canceling';
 
 export type ProgressEventPayload = {
   key: ConnectProgressMsg;
@@ -103,6 +103,7 @@ export type StatusUpdate =
   | 'ConnectionOkIpv4'
   | 'ConnectionOkIpv6'
   | 'RemainingBandwidth'
+  | 'MixnetBandwidthRate'
   | 'NoBandwidth';
 
 export type StatusUpdatePayload = {

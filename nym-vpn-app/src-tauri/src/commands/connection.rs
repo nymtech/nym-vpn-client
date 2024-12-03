@@ -32,7 +32,6 @@ pub async fn get_connection_state(
     state: State<'_, SharedAppState>,
     grpc: State<'_, GrpcClient>,
 ) -> Result<ConnectionStateResponse, BackendError> {
-    debug!("get_connection_state");
     let res = grpc.vpn_status().await?;
     let status = ConnectionState::from(res.status());
     let mut app_state = state.lock().await;
@@ -53,11 +52,10 @@ pub async fn connect(
     entry: NodeLocation,
     exit: NodeLocation,
 ) -> Result<ConnectionState, BackendError> {
-    debug!("connect");
     {
         let mut app_state = state.lock().await;
         if app_state.state != ConnectionState::Disconnected {
-            return Err(BackendError::new_internal(
+            return Err(BackendError::internal(
                 &format!("cannot connect from state {:?}", app_state.state),
                 None,
             ));
@@ -76,7 +74,7 @@ pub async fn connect(
 
     #[cfg(windows)]
     if matches!(vpn_mode, VpnMode::TwoHop) {
-        return Err(BackendError::new_internal(
+        return Err(BackendError::internal(
             "fast mode is not yet supported on windows",
             None,
         ));
@@ -95,6 +93,8 @@ pub async fn connect(
             EntryNode {
                 entry_node_enum: Some(EntryNodeEnum::Location(Location {
                     two_letter_iso_country_code: country.code.clone(),
+                    latitude: None,
+                    longitude: None,
                 })),
             }
         }
@@ -106,6 +106,8 @@ pub async fn connect(
             EntryNode {
                 entry_node_enum: Some(EntryNodeEnum::Location(Location {
                     two_letter_iso_country_code: FASTEST_NODE_LOCATION.code.clone(),
+                    latitude: None,
+                    longitude: None,
                 })),
             }
         }
@@ -117,6 +119,8 @@ pub async fn connect(
             ExitNode {
                 exit_node_enum: Some(ExitNodeEnum::Location(Location {
                     two_letter_iso_country_code: country.code.clone(),
+                    latitude: None,
+                    longitude: None,
                 })),
             }
         }
@@ -128,6 +132,8 @@ pub async fn connect(
             ExitNode {
                 exit_node_enum: Some(ExitNodeEnum::Location(Location {
                     two_letter_iso_country_code: FASTEST_NODE_LOCATION.code.clone(),
+                    latitude: None,
+                    longitude: None,
                 })),
             }
         }
@@ -140,10 +146,17 @@ pub async fn connect(
         info!("5-hop mode enabled");
         false
     };
+    let use_netstack_wireguard = false;
 
     app.emit_connection_progress(ConnectProgressMsg::InitDone);
     match grpc
-        .vpn_connect(entry_node, exit_node, two_hop_mod, dns)
+        .vpn_connect(
+            entry_node,
+            exit_node,
+            two_hop_mod,
+            use_netstack_wireguard,
+            dns,
+        )
         .await
     {
         Ok(_) => Ok(ConnectionState::Connecting),
@@ -176,10 +189,12 @@ pub async fn disconnect(
     state: State<'_, SharedAppState>,
     grpc: State<'_, GrpcClient>,
 ) -> Result<ConnectionState, BackendError> {
-    debug!("disconnect");
     let mut app_state = state.lock().await;
-    if !matches!(app_state.state, ConnectionState::Connected) {
-        return Err(BackendError::new_internal(
+    if matches!(
+        app_state.state,
+        ConnectionState::Disconnected | ConnectionState::Disconnecting
+    ) {
+        return Err(BackendError::internal(
             &format!("cannot disconnect from state {:?}", app_state.state),
             None,
         ));
@@ -198,7 +213,6 @@ pub async fn disconnect(
 pub async fn get_connection_start_time(
     state: State<'_, SharedAppState>,
 ) -> Result<Option<i64>, BackendError> {
-    debug!("get_connection_start_time");
     let app_state = state.lock().await;
     Ok(app_state.connection_start_time.map(|t| t.unix_timestamp()))
 }
@@ -210,11 +224,9 @@ pub async fn set_vpn_mode(
     db: State<'_, Db>,
     mode: VpnMode,
 ) -> Result<(), BackendError> {
-    debug!("set_vpn_mode");
-
     #[cfg(windows)]
     if matches!(mode, VpnMode::TwoHop) {
-        return Err(BackendError::new_internal(
+        return Err(BackendError::internal(
             "fast mode is not yet supported on windows",
             None,
         ));
@@ -226,12 +238,12 @@ pub async fn set_vpn_mode(
     } else {
         let err_message = format!("cannot change vpn mode from state {:?}", state.state);
         error!(err_message);
-        return Err(BackendError::new_internal(&err_message, None));
+        return Err(BackendError::internal(&err_message, None));
     }
     state.vpn_mode = mode.clone();
     drop(state);
 
     db.insert(Key::VpnMode, &mode)
-        .map_err(|_| BackendError::new_internal("Failed to save vpn mode in db", None))?;
+        .map_err(|_| BackendError::internal("Failed to save vpn mode in db", None))?;
     Ok(())
 }

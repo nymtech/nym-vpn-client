@@ -6,19 +6,22 @@ use std::time::Duration;
 use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
 use tokio_stream::{wrappers::IntervalStream, StreamExt};
 
-use nym_bandwidth_controller::PreparedCredential;
 use nym_credentials_interface::TicketType;
 use nym_gateway_directory::GatewayClient;
-use nym_sdk::{mixnet::CredentialStorage as Storage, NymNetworkDetails, TaskClient};
+use nym_sdk::{
+    mixnet::{ConnectionStatsEvent, CredentialStorage as Storage},
+    NymNetworkDetails, TaskClient,
+};
 use nym_validator_client::{
     nyxd::{Config as NyxdClientConfig, NyxdClient},
     QueryHttpRpcNyxdClient,
 };
-use nym_wg_gateway_client::{ErrorMessage, GatewayData, WgGatewayClient, WgGatewayLightClient};
+use nym_wg_gateway_client::{
+    ErrorMessage, GatewayData, WgGatewayClient, WgGatewayLightClient, TICKETS_TO_SPEND,
+};
 
 const DEFAULT_BANDWIDTH_CHECK: Duration = Duration::from_secs(5); // 5 seconds
 const DEFAULT_BANDWIDTH_DEPLETION_RATE: u64 = 1024 * 1024; // 1 MB/s
-const TICKETS_TO_SPEND: u32 = 1;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -44,13 +47,6 @@ pub enum Error {
         authenticator_address: Box<nym_gateway_directory::Recipient>,
         #[source]
         source: nym_wg_gateway_client::Error,
-    },
-
-    #[error("failed to get {ticketbook_type} ticket: {source}")]
-    GetTicket {
-        ticketbook_type: TicketType,
-        #[source]
-        source: nym_bandwidth_controller::error::BandwidthControllerError,
     },
 
     #[error("nyxd client error: {0}")]
@@ -192,18 +188,6 @@ impl<St: Storage> BandwidthController<St> {
     where
         <St as Storage>::StorageError: Send + Sync + 'static,
     {
-        let credential = if enable_credentials_mode {
-            let cred = self
-                .request_bandwidth(
-                    ticketbook_type,
-                    wg_gateway_client.auth_recipient().gateway().to_bytes(),
-                )
-                .await?;
-            Some(cred.data)
-        } else {
-            None
-        };
-
         // First we need to register with the gateway to setup keys and IP assignment
         tracing::info!("Registering with wireguard gateway");
         let authenticator_address = wg_gateway_client.auth_recipient();
@@ -216,7 +200,12 @@ impl<St: Storage> BandwidthController<St> {
                 source,
             })?;
         let wg_gateway_data = wg_gateway_client
-            .register_wireguard(gateway_host, credential)
+            .register_wireguard(
+                gateway_host,
+                &self.inner,
+                enable_credentials_mode,
+                ticketbook_type,
+            )
             .await
             .map_err(|source| Error::RegisterWireguard {
                 gateway_id: gateway_id.to_base58_string(),
@@ -236,17 +225,10 @@ impl<St: Storage> BandwidthController<St> {
     where
         <St as Storage>::StorageError: Send + Sync + 'static,
     {
-        let credential = self
-            .request_bandwidth(
-                ticketbook_type,
-                wg_gateway_client.auth_recipient().gateway().to_bytes(),
-            )
-            .await?;
         let authenticator_address = wg_gateway_client.auth_recipient();
         let gateway_id = *wg_gateway_client.auth_recipient().gateway();
         let remaining_bandwidth =
-            wg_gateway_client
-                .top_up(credential.data)
+            WgGatewayClient::top_up_wireguard(wg_gateway_client, &self.inner, ticketbook_type)
                 .await
                 .map_err(|source| Error::TopUpWireguard {
                     gateway_id: gateway_id.to_string(),
@@ -254,27 +236,14 @@ impl<St: Storage> BandwidthController<St> {
                     authenticator_address: Box::new(authenticator_address),
                     source,
                 })?;
-
+        wg_gateway_client.send_stats_event(
+            ConnectionStatsEvent::TicketSpent {
+                typ: ticketbook_type,
+                amount: TICKETS_TO_SPEND,
+            }
+            .into(),
+        );
         Ok(remaining_bandwidth)
-    }
-
-    pub(crate) async fn request_bandwidth(
-        &self,
-        ticketbook_type: TicketType,
-        provider_pk: [u8; 32],
-    ) -> Result<PreparedCredential>
-    where
-        <St as Storage>::StorageError: Send + Sync + 'static,
-    {
-        let credential = self
-            .inner
-            .prepare_ecash_ticket(ticketbook_type, provider_pk, TICKETS_TO_SPEND)
-            .await
-            .map_err(|source| Error::GetTicket {
-                ticketbook_type,
-                source,
-            })?;
-        Ok(credential)
     }
 
     async fn check_bandwidth(&mut self, entry: bool, current_period: Duration) -> Option<Duration>

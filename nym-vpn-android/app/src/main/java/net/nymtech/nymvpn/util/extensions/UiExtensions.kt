@@ -12,6 +12,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.ui.Route
 import nym_vpn_lib.ErrorStateReason
+import nym_vpn_lib.VpnException
 import kotlin.reflect.KClass
 
 fun Dp.scaledHeight(): Dp {
@@ -62,9 +63,36 @@ fun ErrorStateReason.toUserMessage(context: Context): String {
 		ErrorStateReason.DNS -> "A dns issue occurred"
 		ErrorStateReason.TUN_DEVICE -> "A tunnel device issue occurred"
 		ErrorStateReason.TUNNEL_PROVIDER -> "A tunnel provider issue occurred"
-		ErrorStateReason.ESTABLISH_MIXNET_CONNECTION -> "Failed to establish mixnet connection"
-		ErrorStateReason.ESTABLISH_WIREGUARD_CONNECTION -> "Failed to establish wireguard connection"
-		ErrorStateReason.TUNNEL_DOWN -> "Tunnel down error"
 		ErrorStateReason.INTERNAL -> "Internal error"
+		ErrorStateReason.SAME_ENTRY_AND_EXIT_GATEWAY -> "Entry and exit must be different gateways"
+		ErrorStateReason.INVALID_ENTRY_GATEWAY_COUNTRY -> "Entry country not available. Select a different country."
+		ErrorStateReason.INVALID_EXIT_GATEWAY_COUNTRY -> "Exit country not available. Select a different country."
+		ErrorStateReason.BAD_BANDWIDTH_INCREASE -> "Bad bandwidth increase."
+		ErrorStateReason.DUPLICATE_TUN_FD -> "Duplicate tunnel"
+	}
+}
+
+fun VpnException.toUserMessage(context: Context): String {
+	return when (this) {
+		is VpnException.AccountDeviceNotActive -> "Account device not active."
+		is VpnException.AccountDeviceNotRegistered -> "Account device not registered."
+		is VpnException.AccountNotActive -> "Account not active."
+		is VpnException.AccountReady -> "Account ready"
+		is VpnException.GatewayException -> "Gateway error"
+		is VpnException.InternalException -> "Internal error"
+		is VpnException.InvalidCredential -> "Invalid credential"
+		is VpnException.InvalidStateException -> "Invalid state exception"
+		is VpnException.NetworkConnectionException -> "Network connection error"
+		is VpnException.NoAccountStored -> "Account missing"
+		is VpnException.NoActiveSubscription -> "No active subscription detected."
+		is VpnException.OutOfBandwidth -> "Out of bandwidth"
+		is VpnException.VpnApiTimeout -> "Network request timeout. Please check your connection and try again."
+		is VpnException.AccountNotRegistered -> "Account not registered"
+		is VpnException.AccountNotSynced -> "Account not synced"
+		is VpnException.AccountUpdateFailed -> "Account update failed"
+		is VpnException.DeviceRegistrationFailed -> "Device registration failed"
+		is VpnException.DeviceUpdateFailed -> "Device update failed"
+		is VpnException.InvalidAccountStoragePath -> "Invalid account storage path"
+		is VpnException.NoDeviceIdentity -> "No device identity"
 	}
 }

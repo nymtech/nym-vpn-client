@@ -4,13 +4,7 @@
 use nym_vpn_lib::nym_config::defaults::NymNetworkDetails;
 use nym_vpn_network_config::Network;
 
-use crate::{cli::CliArgs, config::GlobalConfigFile, GLOBAL_NETWORK_DETAILS};
-
-fn set_global_network_details(network_details: Network) -> anyhow::Result<()> {
-    GLOBAL_NETWORK_DETAILS
-        .set(network_details)
-        .map_err(|_| anyhow::anyhow!("Failed to set network details"))
-}
+use crate::{cli::CliArgs, config::GlobalConfigFile};
 
 pub(crate) fn setup_environment(
     global_config_file: &GlobalConfigFile,
@@ -24,7 +18,7 @@ pub(crate) fn setup_environment(
         let network_name = global_config_file.network_name.clone();
         let config_path = crate::service::config_dir();
 
-        tracing::info!("Setting up registered networks");
+        tracing::debug!("Setting up registered networks");
         let networks = nym_vpn_network_config::discover_networks(&config_path)?;
         tracing::debug!("Registered networks: {}", networks);
 
@@ -32,8 +26,7 @@ pub(crate) fn setup_environment(
         nym_vpn_network_config::discover_env(&config_path, &network_name)?
     };
 
-    // TODO: pass network_env explicitly instead of relying on being exported to env
+    // TODO: we need to export to env here to bridge the gap to older code.
     network_env.export_to_env();
-    set_global_network_details(network_env.clone())?;
     Ok(network_env)
 }

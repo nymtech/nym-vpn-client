@@ -7,7 +7,7 @@ pub mod mixnet;
 mod status_listener;
 pub mod wireguard;
 
-use std::{path::PathBuf, time::Duration};
+use std::{error::Error as StdError, fmt, path::PathBuf, time::Duration};
 
 pub use gateway_selector::SelectedGateways;
 use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayClient};
@@ -60,9 +60,17 @@ impl ConnectedMixnet {
             self.mixnet_client,
             self.gateway_directory_client,
         );
-        connector
+
+        match connector
             .connect(self.selected_gateways, interface_addresses)
             .await
+        {
+            Ok(connected_tunnel) => Ok(connected_tunnel),
+            Err(connector_error) => {
+                connector_error.connector.dispose().await;
+                Err(connector_error.error)
+            }
+        }
     }
 
     /// Creates a tunnel over WireGuard.
@@ -75,13 +83,21 @@ impl ConnectedMixnet {
             self.mixnet_client,
             self.gateway_directory_client,
         );
-        connector
+
+        match connector
             .connect(
                 enable_credentials_mode,
                 self.selected_gateways,
                 self.data_path,
             )
             .await
+        {
+            Ok(connected_tunnel) => Ok(connected_tunnel),
+            Err(connector_error) => {
+                connector_error.connector.dispose().await;
+                Err(connector_error.error)
+            }
+        }
     }
 
     /// Gracefully shutdown the mixnet client and consume the struct.
@@ -142,8 +158,8 @@ pub async fn connect_mixnet(
         TunnelType::Wireguard => {
             // Always disable poisson process for outbound traffic in wireguard.
             mixnet_client_config.disable_poisson_rate = true;
-            // Always disable background cover traffic in wireguard.
-            mixnet_client_config.disable_background_cover_traffic = true;
+            // Always disable background cover traffic in wireguard, except for android
+            mixnet_client_config.disable_background_cover_traffic = !cfg!(target_os = "android");
         }
     };
 
@@ -156,6 +172,7 @@ pub async fn connect_mixnet(
             task_manager.subscribe_named("mixnet_client_main"),
             mixnet_client_config,
             options.enable_credentials_mode,
+            options.tunnel_type == TunnelType::Wireguard,
         ),
     );
 
@@ -236,6 +253,9 @@ pub enum Error {
     #[error("WireGuard error: {0}")]
     Wireguard(#[from] nym_wg_go::Error),
 
+    #[error("failed to dup tunnel file descriptor: {0}")]
+    DupFd(#[source] std::io::Error),
+
     #[cfg(target_os = "ios")]
     #[error("failed to set default path observer: {0}")]
     SetDefaultPathObserver(String),
@@ -245,3 +265,53 @@ pub enum Error {
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
+
+/// Tunnel connector container.
+pub enum AnyConnector {
+    Mixnet(mixnet::connector::Connector),
+    Wireguard(wireguard::connector::Connector),
+}
+
+impl AnyConnector {
+    pub async fn dispose(self) {
+        match self {
+            Self::Mixnet(connector) => connector.dispose().await,
+            Self::Wireguard(connector) => connector.dispose().await,
+        }
+    }
+}
+
+/// Error returned when connector is unable to connect the tunnel.
+pub struct ConnectorError {
+    /// The error returned during the attempt to connect the tunnel.
+    pub error: Error,
+
+    /// The source connector.
+    pub connector: AnyConnector,
+}
+
+impl ConnectorError {
+    fn new(error: Error, connector: AnyConnector) -> Self {
+        Self { error, connector }
+    }
+}
+
+impl StdError for ConnectorError {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
+        Some(&self.error)
+    }
+}
+
+impl fmt::Debug for ConnectorError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ConnectorError")
+            .field("error", &self.error)
+            .finish_non_exhaustive()
+    }
+}
+
+impl fmt::Display for ConnectorError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.error.fmt(f)
+    }
+}

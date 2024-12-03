@@ -1,7 +1,7 @@
 use nym_vpn_proto::GatewayType;
 use serde::{Deserialize, Serialize};
 use tauri::State;
-use tracing::{debug, instrument};
+use tracing::instrument;
 use ts_rs::TS;
 
 use crate::grpc::client::GrpcClient;
@@ -24,10 +24,9 @@ pub async fn get_countries(
     node_type: Option<NodeType>,
     grpc: State<'_, GrpcClient>,
 ) -> Result<Vec<Country>, BackendError> {
-    debug!("get_countries");
     let gw_type = match vpn_mode {
         VpnMode::Mixnet => match node_type.ok_or_else(|| {
-            BackendError::new_internal("node type must be provided for Mixnet mode", None)
+            BackendError::internal("node type must be provided for Mixnet mode", None)
         })? {
             NodeType::Entry => GatewayType::MixnetEntry,
             NodeType::Exit => GatewayType::MixnetExit,
@@ -35,7 +34,7 @@ pub async fn get_countries(
         VpnMode::TwoHop => GatewayType::Wg,
     };
     grpc.countries(gw_type).await.map_err(|e| {
-        BackendError::new_with_details(
+        BackendError::with_details(
             &format!("failed to get countries for {:?}", gw_type),
             ErrorKey::from(gw_type),
             e.to_string(),

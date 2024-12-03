@@ -19,13 +19,17 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val lastHopCountry = stringPreferencesKey("LAST_HOP_COUNTRY")
 	private val theme = stringPreferencesKey("THEME")
 	private val vpnMode = stringPreferencesKey("TUNNEL_MODE")
-	private val firstHopSelection = booleanPreferencesKey("FIRST_HOP_SELECTION")
 	private val errorReporting = booleanPreferencesKey("ERROR_REPORTING")
 	private val analytics = booleanPreferencesKey("ANALYTICS")
 	private val autoStart = booleanPreferencesKey("AUTO_START")
 	private val analyticsShown = booleanPreferencesKey("ANALYTICS_SHOWN")
 	private val applicationShortcuts = booleanPreferencesKey("APPLICATION_SHORTCUTS")
 	private val environment = stringPreferencesKey("ENVIRONMENT")
+	private val manualGatewayOverride = booleanPreferencesKey("MANUAL_GATEWAYS")
+	private val credentialMode = booleanPreferencesKey("CREDENTIAL_MODE")
+	private val entryGateway = stringPreferencesKey("ENTRY_GATEWAY_ID")
+	private val exitGateway = stringPreferencesKey("EXIT_GATEWAY_ID")
+	private val locale = stringPreferencesKey("LOCALE")
 
 	override suspend fun init() {
 		val firstHop = dataStoreManager.getFromStore(firstHopCountry)
@@ -107,15 +111,6 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		return dataStoreManager.getFromStore(analytics) ?: Settings.REPORTING_DEFAULT
 	}
 
-	override suspend fun isFirstHopSelectionEnabled(): Boolean {
-		return dataStoreManager.getFromStore(firstHopSelection)
-			?: Settings.FIRST_HOP_SELECTION_DEFAULT
-	}
-
-	override suspend fun setFirstHopSelection(enabled: Boolean) {
-		dataStoreManager.saveToDataStore(firstHopSelection, enabled)
-	}
-
 	override suspend fun isAnalyticsShown(): Boolean {
 		return dataStoreManager.getFromStore(analyticsShown) ?: Settings.ANALYTICS_SHOWN_DEFAULT
 	}
@@ -142,6 +137,47 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		dataStoreManager.saveToDataStore(this.environment, environment.name)
 	}
 
+	override suspend fun setManualGatewayOverride(enabled: Boolean) {
+		dataStoreManager.saveToDataStore(manualGatewayOverride, enabled)
+	}
+
+	override suspend fun isManualGatewayOverride(): Boolean {
+		return dataStoreManager.getFromStore(manualGatewayOverride) ?: Settings.MANUAL_GATEWAY_OVERRIDE
+	}
+
+	override suspend fun setCredentialMode(enabled: Boolean?) {
+		if (enabled == null) return dataStoreManager.clear(credentialMode)
+		dataStoreManager.saveToDataStore(credentialMode, enabled)
+	}
+
+	override suspend fun isCredentialMode(): Boolean? {
+		return dataStoreManager.getFromStore(credentialMode)
+	}
+
+	override suspend fun setEntryGatewayId(id: String) {
+		dataStoreManager.saveToDataStore(entryGateway, id)
+	}
+
+	override suspend fun setExitGatewayId(id: String) {
+		dataStoreManager.saveToDataStore(exitGateway, id)
+	}
+
+	override suspend fun getEntryGatewayId(): String? {
+		return dataStoreManager.getFromStore(entryGateway)
+	}
+
+	override suspend fun getExitGatewayId(): String? {
+		return dataStoreManager.getFromStore(exitGateway)
+	}
+
+	override suspend fun getLocale(): String? {
+		return dataStoreManager.getFromStore(locale)
+	}
+
+	override suspend fun setLocale(locale: String) {
+		dataStoreManager.saveToDataStore(this.locale, locale)
+	}
+
 	override val settingsFlow: Flow<Settings> =
 		dataStoreManager.preferencesFlow.map { prefs ->
 			prefs?.let { pref ->
@@ -161,14 +197,16 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 							?: Settings.REPORTING_DEFAULT,
 						analyticsEnabled = pref[analytics]
 							?: Settings.REPORTING_DEFAULT,
-						firstHopSelectionEnabled =
-						pref[firstHopSelection]
-							?: Settings.FIRST_HOP_SELECTION_DEFAULT,
 						isAnalyticsShown = pref[analyticsShown] ?: Settings.ANALYTICS_SHOWN_DEFAULT,
 						firstHopCountry = Country.from(pref[firstHopCountry]) ?: default,
 						lastHopCountry = Country.from(pref[lastHopCountry]) ?: default,
 						isShortcutsEnabled = pref[applicationShortcuts] ?: Settings.SHORTCUTS_DEFAULT,
 						environment = pref[environment]?.let { Tunnel.Environment.valueOf(it) } ?: Settings.DEFAULT_ENVIRONMENT,
+						isManualGatewayOverride = pref[manualGatewayOverride] ?: Settings.MANUAL_GATEWAY_OVERRIDE,
+						isCredentialMode = pref[credentialMode],
+						entryGatewayId = pref[entryGateway],
+						exitGatewayId = pref[exitGateway],
+						locale = pref[locale],
 					)
 				} catch (e: IllegalArgumentException) {
 					Timber.e(e)

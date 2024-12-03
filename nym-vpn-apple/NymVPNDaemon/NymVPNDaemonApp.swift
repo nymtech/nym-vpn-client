@@ -7,19 +7,22 @@ import ConfigurationManager
 import Constants
 import Home
 import HelperManager
+import NotificationsManager
 import NymLogger
 import Migrations
 import SentryManager
+import SystemMessageManager
 import Theme
 
 @main
 struct NymVPNDaemonApp: App {
     private let autoUpdater = AutoUpdater.shared
     private let logFileManager = LogFileManager(logFileType: .app)
-    private let helperManager = HelperManager.shared
 
     @ObservedObject private var appSettings = AppSettings.shared
     @StateObject private var homeViewModel = HomeViewModel()
+    @StateObject private var checkForUpdatesViewModel = CheckForUpdatesViewModel(updater: AutoUpdater.shared.updater)
+    @StateObject private var welcomeViewModel = WelcomeViewModel()
     @State private var isDisplayingAlert = false
     @State private var alertTitle = ""
 
@@ -34,7 +37,7 @@ struct NymVPNDaemonApp: App {
                 if !homeViewModel.splashScreenDidDisplay {
                     LaunchView(splashScreenDidDisplay: $homeViewModel.splashScreenDidDisplay)
                 } else if !appSettings.welcomeScreenDidDisplay {
-                    WelcomeView(viewModel: WelcomeViewModel())
+                    WelcomeView(viewModel: welcomeViewModel)
                         .transition(.slide)
                 } else {
                     HomeView(viewModel: homeViewModel)
@@ -52,19 +55,17 @@ struct NymVPNDaemonApp: App {
         .windowResizability(.contentSize)
         .commands {
             CommandGroup(after: .appInfo) {
-                CheckForUpdatesView(viewModel: CheckForUpdatesViewModel(updater: autoUpdater.updater))
+                CheckForUpdatesView(viewModel: checkForUpdatesViewModel)
             }
             CommandGroup(after: .help) {
-                if helperManager.isHelperAuthorizedAndRunning() {
-                    Button("helper.uninstallHelper".localizedString) {
-                        let result = HelperManager.shared.uninstallHelper()
-                        if result {
-                            alertTitle = "helper.successfullyUninstalled".localizedString
-                        } else {
-                            alertTitle = "error.unexpected".localizedString
-                        }
-                        isDisplayingAlert = true
+                Button("helper.uninstallHelper".localizedString) {
+                    let result = HelperManager.shared.uninstallHelper()
+                    if result {
+                        alertTitle = "helper.successfullyUninstalled".localizedString
+                    } else {
+                        alertTitle = "error.unexpected".localizedString
                     }
+                    isDisplayingAlert = true
                 }
             }
         }
@@ -76,7 +77,12 @@ private extension NymVPNDaemonApp {
         LoggingSystem.bootstrap { label in
             FileLogHandler(label: label, logFileManager: logFileManager)
         }
-        try? ConfigurationManager.shared.setup()
+        Task {
+            // Things dependant on environment beeing set.
+            try await ConfigurationManager.shared.setup()
+            SystemMessageManager.shared.setup()
+        }
+        NotificationsManager.shared.setup()
         ThemeConfiguration.setup()
         SentryManager.shared.setup()
         HelperManager.shared.setup(helperName: Constants.helperName.rawValue)

@@ -20,9 +20,9 @@ use windows_sys::{
         NetworkManagement::{
             IpHelper::{
                 CancelMibChangeNotify2, ConvertInterfaceAliasToLuid, ConvertInterfaceLuidToAlias,
-                ConvertInterfaceLuidToGuid, ConvertInterfaceLuidToIndex,
+                ConvertInterfaceLuidToGuid, ConvertInterfaceLuidToIndex, CreateIpForwardEntry2,
                 CreateUnicastIpAddressEntry, FreeMibTable, GetIpInterfaceEntry,
-                GetUnicastIpAddressEntry, GetUnicastIpAddressTable,
+                GetUnicastIpAddressEntry, GetUnicastIpAddressTable, InitializeIpForwardEntry,
                 InitializeUnicastIpAddressEntry, MibAddInstance, NotifyIpInterfaceChange,
                 SetIpInterfaceEntry, MIB_IPINTERFACE_ROW, MIB_UNICASTIPADDRESS_ROW,
                 MIB_UNICASTIPADDRESS_TABLE,
@@ -31,9 +31,9 @@ use windows_sys::{
         },
         Networking::WinSock::{
             IpDadStateDeprecated, IpDadStateDuplicate, IpDadStateInvalid, IpDadStatePreferred,
-            IpDadStateTentative, AF_INET, AF_INET6, AF_UNSPEC, IN6_ADDR, IN_ADDR, NL_DAD_STATE,
-            SOCKADDR_IN as sockaddr_in, SOCKADDR_IN6 as sockaddr_in6, SOCKADDR_INET,
-            SOCKADDR_STORAGE as sockaddr_storage,
+            IpDadStateTentative, NlroManual, AF_INET, AF_INET6, AF_UNSPEC, IN6_ADDR, IN_ADDR,
+            MIB_IPPROTO_NT_STATIC, NL_DAD_STATE, SOCKADDR_IN as sockaddr_in,
+            SOCKADDR_IN6 as sockaddr_in6, SOCKADDR_INET, SOCKADDR_STORAGE as sockaddr_storage,
         },
     },
 };
@@ -66,6 +66,11 @@ pub enum Error {
     #[cfg(windows)]
     #[error("Failed to create unicast IP address")]
     CreateUnicastEntry(#[source] io::Error),
+
+    /// Error returned from `CreateIpForwardEntry2`
+    #[cfg(windows)]
+    #[error("Failed to create IP forwarding entry")]
+    CreateForwardEntry(#[source] io::Error),
 
     /// Unexpected DAD state returned for a unicast address
     #[cfg(windows)]
@@ -333,6 +338,44 @@ pub fn add_ip_address_for_interface(luid: NET_LUID_LH, address: IpAddr) -> Resul
     row.OnLinkPrefixLength = 255;
 
     win32_err!(unsafe { CreateUnicastIpAddressEntry(&row) }).map_err(Error::CreateUnicastEntry)
+}
+
+/// Add default IPv4 gateway for the given interface.
+pub fn add_default_ipv4_gateway_for_interface(luid: NET_LUID_LH, address: Ipv4Addr) -> Result<()> {
+    let mut forward_row = unsafe { mem::zeroed() };
+    unsafe { InitializeIpForwardEntry(&mut forward_row) };
+
+    forward_row.InterfaceLuid = luid;
+    forward_row.DestinationPrefix.Prefix.si_family = AF_INET;
+    forward_row.DestinationPrefix.Prefix.Ipv4.sin_family = AF_INET;
+    forward_row.NextHop.si_family = AF_INET;
+    forward_row.NextHop.Ipv4.sin_family = AF_INET;
+    forward_row.NextHop.Ipv4.sin_addr = inaddr_from_ipaddr(address);
+    forward_row.SitePrefixLength = 0;
+    forward_row.Metric = 1;
+    forward_row.Protocol = MIB_IPPROTO_NT_STATIC;
+    forward_row.Origin = NlroManual;
+
+    win32_err!(unsafe { CreateIpForwardEntry2(&forward_row) }).map_err(Error::CreateForwardEntry)
+}
+
+/// Add default IPv6 gateway for the given interface.
+pub fn add_default_ipv6_gateway_for_interface(luid: NET_LUID_LH, address: Ipv6Addr) -> Result<()> {
+    let mut forward_row = unsafe { mem::zeroed() };
+    unsafe { InitializeIpForwardEntry(&mut forward_row) };
+
+    forward_row.InterfaceLuid = luid;
+    forward_row.DestinationPrefix.Prefix.si_family = AF_INET6;
+    forward_row.DestinationPrefix.Prefix.Ipv6.sin6_family = AF_INET6;
+    forward_row.NextHop.si_family = AF_INET6;
+    forward_row.NextHop.Ipv6.sin6_family = AF_INET6;
+    forward_row.NextHop.Ipv6.sin6_addr = in6addr_from_ipaddr(address);
+    forward_row.SitePrefixLength = 0;
+    forward_row.Metric = 1;
+    forward_row.Protocol = MIB_IPPROTO_NT_STATIC;
+    forward_row.Origin = NlroManual;
+
+    win32_err!(unsafe { CreateIpForwardEntry2(&forward_row) }).map_err(Error::CreateForwardEntry)
 }
 
 /// Sets MTU on the specified network interface identified by `luid`.

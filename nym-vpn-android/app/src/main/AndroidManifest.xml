@@ -35,11 +35,12 @@
 			tools:replace="screenOrientation" />
 		<activity
 			android:name=".ui.MainActivity"
-			android:configChanges="orientation|keyboardHidden"
 			android:exported="true"
 			android:theme="@style/Theme.NymVPN"
 			android:screenOrientation="portrait"
-			android:windowSoftInputMode="adjustResize">
+			android:windowSoftInputMode="adjustResize"
+			android:configChanges="orientation|screenSize|keyboardHidden|locale"
+			>
 			<intent-filter android:autoVerify="true">
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
@@ -96,10 +97,6 @@
 				<action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
 			</intent-filter>
 		</receiver>
-		<receiver
-			android:name=".receiver.BackgroundActionReceiver"
-			android:enabled="true"
-			android:exported="false"/>
 		<provider
 			android:name="androidx.core.content.FileProvider"
 			android:authorities="@string/provider"

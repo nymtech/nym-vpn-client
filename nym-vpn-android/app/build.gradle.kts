@@ -7,7 +7,6 @@ plugins {
 	alias(libs.plugins.licensee)
 	alias(libs.plugins.kotlinxSerialization)
 	alias(libs.plugins.gross)
-	alias(libs.plugins.sentry)
 	alias(libs.plugins.grgit)
 }
 
@@ -33,13 +32,11 @@ android {
 		vectorDrawables {
 			useSupportLibrary = true
 		}
-		buildConfigField(
-			"String",
-			Constants.SENTRY_DSN,
-			"\"${(System.getenv(Constants.SENTRY_DSN) ?: getLocalProperty("sentry.dsn")) ?: ""}\"",
-		)
+
+		buildConfigField("String[]", "LANGUAGES", "new String[]{ ${languageList().joinToString(separator = ", ") { "\"$it\"" }} }")
+
 		buildConfigField("String", "COMMIT_HASH", "\"${grgitService.service.get().grgit.head().id}\"")
-		buildConfigField("Boolean", "IS_SANDBOX", "false")
+		buildConfigField("Boolean", "IS_PRERELEASE", "false")
 		proguardFile("fdroid-rules.pro")
 	}
 
@@ -97,6 +94,7 @@ android {
 			versionNameSuffix = "-pre"
 			resValue("string", "app_name", "NymVPN - Pre")
 			resValue("string", "provider", "\"${Constants.APP_NAME}.provider.pre\"")
+			buildConfigField("Boolean", "IS_PRERELEASE", "true")
 		}
 
 		create(Constants.NIGHTLY) {
@@ -146,14 +144,6 @@ android {
 
 	gross { enableAndroidAssetGeneration.set(true) }
 
-	sentry {
-		tracingInstrumentation {
-			org.set("nymtech")
-			projectName.set("nym-vpn-android")
-			autoUploadProguardMapping.set(false)
-		}
-	}
-
 	buildFeatures {
 		compose = true
 		buildConfig = true
@@ -175,7 +165,6 @@ dependencies {
 
 	implementation(project(":nym-vpn-client"))
 	implementation(project(":logcat-util"))
-	implementation(project(":localization-util"))
 	implementation(libs.androidx.lifecycle.process)
 	coreLibraryDesugaring(libs.com.android.tools.desugar)
 
@@ -209,7 +198,6 @@ dependencies {
 
 	// logging
 	implementation(libs.timber)
-	implementation(libs.sentry.sentry.opentelemetry.core)
 
 	// navigation
 	implementation(libs.androidx.navigation.compose)
@@ -224,14 +212,6 @@ dependencies {
 	implementation(libs.androidx.security.crypto)
 
 	detektPlugins(libs.detekt.rules.compose)
-
-	// moshi/retrofit
-	implementation(libs.retrofit)
-	implementation(libs.converter.moshi)
-	implementation(libs.moshi)
-	implementation(libs.moshi.kotlin)
-	// warning here https://github.com/square/moshi/discussions/1752
-	ksp(libs.moshi.kotlin.codegen)
 
 	// barcode scanning
 	implementation(libs.zxing.android.embedded)

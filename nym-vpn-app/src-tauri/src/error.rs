@@ -17,6 +17,8 @@ use ts_rs::TS;
 
 use crate::grpc::client::VpndError;
 
+const MAX_REG_DEVICES_ID_PATTERN: &str = "register-device.max-devices-exceeded";
+
 #[derive(Error, Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub enum CmdErrorSource {
@@ -52,7 +54,7 @@ impl BackendError {
         }
     }
 
-    pub fn _new_with_data(message: &str, key: ErrorKey, data: HashMap<&str, String>) -> Self {
+    pub fn _with_data(message: &str, key: ErrorKey, data: HashMap<&str, String>) -> Self {
         Self {
             message: message.to_string(),
             key,
@@ -60,7 +62,7 @@ impl BackendError {
         }
     }
 
-    pub fn new_with_details(message: &str, key: ErrorKey, details: String) -> Self {
+    pub fn with_details(message: &str, key: ErrorKey, details: String) -> Self {
         Self {
             message: message.to_string(),
             key,
@@ -68,7 +70,7 @@ impl BackendError {
         }
     }
 
-    pub fn new_with_optional_data(
+    pub fn with_optional_data(
         message: &str,
         key: ErrorKey,
         data: Option<HashMap<String, String>>,
@@ -80,7 +82,7 @@ impl BackendError {
         }
     }
 
-    pub fn new_internal(message: &str, data: Option<HashMap<String, String>>) -> Self {
+    pub fn internal(message: &str, data: Option<HashMap<String, String>>) -> Self {
         Self {
             message: message.to_string(),
             key: ErrorKey::InternalError,
@@ -194,13 +196,14 @@ pub enum ErrorKey {
     // Forwarded from proto `account_error::AccountErrorType`
     AccountInvalidMnemonic,
     AccountStorage,
+    AccountIsConnected,
     // Other account related errors, forwarded from `connect_request_error::ConnectRequestErrorType`
-    NoAccountStored,
-    AccountNotActive,
-    NoActiveSubscription,
-    DeviceNotRegistered,
-    DeviceNotActive,
-    ReadyToConnectPending,
+    ConnectGeneral,
+    ConnectNoAccountStored,
+    ConnectNoDeviceStored,
+    ConnectUpdateAccount,
+    ConnectUpdateDevice,
+    ConnectRegisterDevice,
     // Forwarded from proto `connection_status_update::StatusType`
     EntryGatewayNotRouting,
     ExitRouterPingIpv4,
@@ -215,6 +218,9 @@ pub enum ErrorKey {
     GetWgCountriesQuery,
     // Forwarded from proto `set_network_request_error::SetNetworkRequestErrorType`
     InvalidNetworkName,
+    /// Custom error for the "maximum number of registered devices reached" error as it's not
+    /// yet specialized in the backend
+    MaxRegisteredDevices,
 }
 
 impl From<DError> for ErrorKey {
@@ -283,16 +289,21 @@ impl From<AccountError> for BackendError {
         let data = error.details.clone().into();
         match error.kind() {
             AccountErrorType::StoreAccountErrorUnspecified => {
-                BackendError::new_internal("grpc UNSPECIFIED", data)
+                BackendError::internal("grpc UNSPECIFIED", data)
             }
-            AccountErrorType::InvalidMnemonic => BackendError::new_with_optional_data(
+            AccountErrorType::InvalidMnemonic => BackendError::with_optional_data(
                 "The provided mnemonic was not able to be parsed",
                 ErrorKey::AccountInvalidMnemonic,
                 data,
             ),
-            AccountErrorType::Storage => BackendError::new_with_optional_data(
+            AccountErrorType::Storage => BackendError::with_optional_data(
                 "General error from the storage backend",
                 ErrorKey::AccountStorage,
+                data,
+            ),
+            AccountErrorType::IsConnected => BackendError::with_optional_data(
+                "Unable to proceed while connected",
+                ErrorKey::AccountIsConnected,
                 data,
             ),
         }
@@ -305,12 +316,12 @@ impl From<ConnectRequestErrorType> for ErrorKey {
             ConnectRequestErrorType::Internal | ConnectRequestErrorType::Unspecified => {
                 ErrorKey::InternalError
             }
-            ConnectRequestErrorType::NoAccountStored => ErrorKey::NoAccountStored,
-            ConnectRequestErrorType::AccountNotActive => ErrorKey::AccountNotActive,
-            ConnectRequestErrorType::NoActiveSubscription => ErrorKey::NoActiveSubscription,
-            ConnectRequestErrorType::DeviceNotRegistered => ErrorKey::DeviceNotRegistered,
-            ConnectRequestErrorType::DeviceNotActive => ErrorKey::DeviceNotActive,
-            ConnectRequestErrorType::Pending => ErrorKey::ReadyToConnectPending,
+            ConnectRequestErrorType::General => ErrorKey::ConnectGeneral,
+            ConnectRequestErrorType::NoAccountStored => ErrorKey::ConnectNoAccountStored,
+            ConnectRequestErrorType::NoDeviceStored => ErrorKey::ConnectNoDeviceStored,
+            ConnectRequestErrorType::UpdateAccount => ErrorKey::ConnectUpdateAccount,
+            ConnectRequestErrorType::UpdateDevice => ErrorKey::ConnectUpdateDevice,
+            ConnectRequestErrorType::RegisterDevice => ErrorKey::ConnectRegisterDevice,
         }
     }
 }
@@ -318,6 +329,17 @@ impl From<ConnectRequestErrorType> for ErrorKey {
 impl From<ConnectRequestError> for BackendError {
     fn from(error: ConnectRequestError) -> Self {
         let message = error.message.clone();
+
+        // TODO trick to handle "Maximum number of registered devices reached" error which is
+        //  not yet specialized in the backend
+        if let Some(true) = error
+            .message_id
+            .as_ref()
+            .map(|id| id.contains(MAX_REG_DEVICES_ID_PATTERN))
+        {
+            return BackendError::new(&message, ErrorKey::MaxRegisteredDevices);
+        }
+
         BackendError::new(&message, ErrorKey::from(error.kind()))
     }
 }
