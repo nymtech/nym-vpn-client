@@ -178,6 +178,36 @@ impl RequestZkNymCommandHandler {
             .await;
 
         // Spawn polling tasks for each zk-nym request to monitor the outcome
+        let (zk_nym_polling_tasks, mut request_zk_nym_errors) =
+            self.handle_request_zk_nym_responses(responses).await;
+
+        // Wait for the polling tasks to finish
+        let zk_nym_successes = self
+            .wait_for_polling_tasks(zk_nym_polling_tasks, &mut request_zk_nym_errors)
+            .await;
+
+        if request_zk_nym_errors.is_empty() {
+            tracing::info!("zk-nym request command handler finished: {}", self.id);
+            Ok(RequestZkNymSuccessSummary::All(zk_nym_successes))
+        } else {
+            tracing::warn!(
+                "zk-nym request command handler finished with errors: {}",
+                self.id
+            );
+            Err(RequestZkNymErrorSummary {
+                successes: zk_nym_successes,
+                failed: request_zk_nym_errors,
+            })
+        }
+    }
+
+    async fn handle_request_zk_nym_responses(
+        &self,
+        responses: Vec<(ZkNymRequestData, Result<NymVpnZkNymPost, Error>)>,
+    ) -> (
+        JoinSet<Result<PollingResult, RequestZkNymError>>,
+        Vec<RequestZkNymError>,
+    ) {
         let mut request_zk_nym_errors = Vec::new();
         let mut zk_nym_polling_tasks = JoinSet::new();
         for (request, response) in responses {
@@ -216,8 +246,14 @@ impl RequestZkNymCommandHandler {
                 }
             }
         }
+        (zk_nym_polling_tasks, request_zk_nym_errors)
+    }
 
-        // Here we wait for the polling tasks to finish
+    async fn wait_for_polling_tasks(
+        &mut self,
+        mut zk_nym_polling_tasks: JoinSet<Result<PollingResult, RequestZkNymError>>,
+        request_zk_nym_errors: &mut Vec<RequestZkNymError>,
+    ) -> Vec<RequestZkNymSuccess> {
         let mut zk_nym_successes = Vec::new();
         while let Some(polling_result) = zk_nym_polling_tasks.join_next().await {
             let result = match polling_result {
@@ -286,20 +322,7 @@ impl RequestZkNymCommandHandler {
                 }
             }
         }
-
-        if request_zk_nym_errors.is_empty() {
-            tracing::info!("zk-nym request command handler finished: {}", self.id);
-            Ok(RequestZkNymSuccessSummary::All(zk_nym_successes))
-        } else {
-            tracing::warn!(
-                "zk-nym request command handler finished with errors: {}",
-                self.id
-            );
-            Err(RequestZkNymErrorSummary {
-                successes: zk_nym_successes,
-                failed: request_zk_nym_errors,
-            })
-        }
+        zk_nym_successes
     }
 
     async fn import_zk_nym(

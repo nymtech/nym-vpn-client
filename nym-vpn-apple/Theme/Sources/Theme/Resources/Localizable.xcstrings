@@ -551,6 +551,17 @@
         }
       }
     },
+    "errorReason.duplicateTunFd" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duplicate tunnel file descriptor"
+          }
+        }
+      }
+    },
     "errorReason.establishWireguardConnection" : {
       "extractionState" : "manual",
       "localizations" : {

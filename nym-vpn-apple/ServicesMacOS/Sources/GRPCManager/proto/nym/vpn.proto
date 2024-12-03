@@ -16,6 +16,8 @@ message Address {
 
 message Location {
   string two_letter_iso_country_code = 1;
+  optional double latitude = 2;
+  optional double longitude = 3;
 }
 
 message EntryNode {
@@ -224,6 +226,9 @@ message ConnectRequestError {
 
     // Device registration failed
     REGISTER_DEVICE = 7;
+
+    // Requesting zk-nym failed
+    REQUEST_ZK_NYM = 8;
   }
 
   ConnectRequestErrorType kind = 1;
@@ -232,6 +237,9 @@ message ConnectRequestError {
   string message = 2;
 
   optional string message_id = 3;
+
+  // When we have an error request zk-nyms, this is the set of zk-nym failures
+  repeated RequestZkNymError zk_nym_error = 4;
 }
 
 message ConnectRequest {
@@ -240,6 +248,7 @@ message ConnectRequest {
   Dns dns = 3;
   bool disable_routing = 4;
   bool enable_two_hop = 5;
+  bool netstack = 13;
   bool disable_poisson_rate = 6;
   bool disable_background_cover_traffic = 7;
   bool enable_credentials_mode = 8;
@@ -340,6 +349,11 @@ message ConnectionStatusUpdate {
     // Wireguard tunnel errors sent through the status channel. This error case
     // will go away in the future.
     WG_TUNNEL_ERROR = 14;
+
+    // Event containing the statistics for the current mixnet connection.
+    // Includes real and cover packets send and received, retransmissions, acks
+    // received.
+    MIXNET_BANDWIDTH_RATE = 15;
   }
 
   StatusType kind = 1;
@@ -674,7 +688,7 @@ message DeviceSummary {
   uint64 remaining = 3;
 }
 
-message AccountSummaryInner {
+message AccountSummary {
   AccountState account = 1;
   SubscriptionState subscription = 2;
   DeviceSummary device_summary = 3;
@@ -688,34 +702,91 @@ enum DeviceState {
   DEVICE_STATE_DELETE_ME = 4;
 }
 
-message DeviceRegistration {
-  enum DeviceRegistrationType {
-    DEVICE_REGISTRATION_UNSPECIFIED = 0;
-    DEVICE_REGISTRATION_IN_PROGRESS = 1;
-    DEVICE_REGISTRATION_SUCCESS = 2;
-    DEVICE_REGISTRATION_FAILED = 3;
+message RegisterDeviceResult {
+  enum RegisterDeviceResultType {
+    REGISTER_DEVICE_RESULT_UNSPECIFIED = 0;
+    IN_PROGRESS = 1;
+    SUCCESS = 2;
+    FAILED = 3;
   }
 
-  DeviceRegistrationType kind = 1;
+  RegisterDeviceResultType kind = 1;
   optional string message = 2;
   optional string message_id = 3;
 }
 
+// The status of a zk-nym request. A request can have multiple successes
+// and failures, depending on how many ticket types were requested.
+message RequestZkNymResult {
+  enum RequestZkNymResultType {
+    REQUEST_ZK_NYM_RESULT_UNSPECIFIED = 0;
+    IN_PROGRESS = 1;
+    SUCCESS = 2;
+    FAILED = 3;
+  }
 
-message AccountSummary {
+  RequestZkNymResultType kind = 1;
+  repeated RequestZkNymSuccess successes = 2;
+  repeated RequestZkNymError failures = 3;
+}
+
+message RequestZkNymSuccess {
+  string id = 1;
+}
+
+message RequestZkNymError {
+  enum RequestZkNymErrorType {
+    REQUEST_ZK_NYM_ERROR_TYPE_UNSPECIFIED = 0;
+
+    // Unspecified internal error
+    INTERNAL = 1;
+
+    // General error
+    GENERAL = 2;
+
+    // Error returned from the nym-vpn-api endpoint
+    REQUEST_ZK_NYM_ENDPOINT_FAILURE = 3;
+
+    // Error returned from the nym-vpn-api polling endpoint
+    POLL_ZK_NYM_ENDPOINT_FAILURE = 4;
+
+    // The task polling for the result failed
+    POLLING_TASK_ERROR = 5;
+
+    // Timeout polling for the result
+    POLLING_TIMEOUT = 6;
+
+    // Request finished correctly, but the nym-vpn-api returned an error
+    // with the result.
+    FINISHED_WITH_ERROR = 7;
+
+    // Failed to import the ticketbook into local storage
+    IMPORT = 8;
+  }
+
+  RequestZkNymErrorType kind = 1;
+  optional string id = 2;
+  optional string ticketbook_type = 3;
+  optional string message = 4;
+  optional string message_id = 5;
+}
+
+message AccountStateSummary {
   optional MnemonicState mnemonic = 1;
   optional AccountRegistered account_registered = 2;
-  optional AccountSummaryInner account_summary = 3;
+  optional AccountSummary account_summary = 3;
   optional DeviceState device = 4;
-  optional DeviceRegistration device_registration = 5;
-  bool pending_zk_nym = 6;
+  optional RegisterDeviceResult register_device_result = 5;
+  // NOTE: don't reuse tag 6
+  // bool pending_zk_nym = 6;
+  optional RequestZkNymResult request_zk_nym_result = 7;
 }
 
 message GetAccountStateRequest {}
 
 message GetAccountStateResponse {
   oneof result {
-    AccountSummary account_summary = 1;
+    AccountStateSummary account = 1;
     AccountError error = 2;
   }
 }
@@ -874,9 +945,6 @@ message IsReadyToConnectResponse {
 
     // The device has reached the maximum number of devices
     MAX_DEVICES_REACHED = 9;
-
-    // Device registration failed
-    DEVICE_REGISTRATION_FAILED = 10;
   }
 
   IsReadyToConnectResponseType kind = 1;

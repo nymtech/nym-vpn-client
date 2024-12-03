@@ -1150,18 +1150,18 @@ public struct AccountStateSummary {
     public var accountRegistered: AccountRegistered?
     public var accountSummary: AccountSummary?
     public var device: DeviceState?
-    public var deviceRegistration: DeviceRegistration?
-    public var pendingZkNym: Bool
+    public var registerDeviceResult: RegisterDeviceResult?
+    public var requestZkNymResult: RequestZkNymResult?
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(mnemonic: MnemonicState?, accountRegistered: AccountRegistered?, accountSummary: AccountSummary?, device: DeviceState?, deviceRegistration: DeviceRegistration?, pendingZkNym: Bool) {
+    public init(mnemonic: MnemonicState?, accountRegistered: AccountRegistered?, accountSummary: AccountSummary?, device: DeviceState?, registerDeviceResult: RegisterDeviceResult?, requestZkNymResult: RequestZkNymResult?) {
         self.mnemonic = mnemonic
         self.accountRegistered = accountRegistered
         self.accountSummary = accountSummary
         self.device = device
-        self.deviceRegistration = deviceRegistration
-        self.pendingZkNym = pendingZkNym
+        self.registerDeviceResult = registerDeviceResult
+        self.requestZkNymResult = requestZkNymResult
     }
 }
 
@@ -1181,10 +1181,10 @@ extension AccountStateSummary: Equatable, Hashable {
         if lhs.device != rhs.device {
             return false
         }
-        if lhs.deviceRegistration != rhs.deviceRegistration {
+        if lhs.registerDeviceResult != rhs.registerDeviceResult {
             return false
         }
-        if lhs.pendingZkNym != rhs.pendingZkNym {
+        if lhs.requestZkNymResult != rhs.requestZkNymResult {
             return false
         }
         return true
@@ -1195,8 +1195,8 @@ extension AccountStateSummary: Equatable, Hashable {
         hasher.combine(accountRegistered)
         hasher.combine(accountSummary)
         hasher.combine(device)
-        hasher.combine(deviceRegistration)
-        hasher.combine(pendingZkNym)
+        hasher.combine(registerDeviceResult)
+        hasher.combine(requestZkNymResult)
     }
 }
 
@@ -1209,8 +1209,8 @@ public struct FfiConverterTypeAccountStateSummary: FfiConverterRustBuffer {
                 accountRegistered: FfiConverterOptionTypeAccountRegistered.read(from: &buf), 
                 accountSummary: FfiConverterOptionTypeAccountSummary.read(from: &buf), 
                 device: FfiConverterOptionTypeDeviceState.read(from: &buf), 
-                deviceRegistration: FfiConverterOptionTypeDeviceRegistration.read(from: &buf), 
-                pendingZkNym: FfiConverterBool.read(from: &buf)
+                registerDeviceResult: FfiConverterOptionTypeRegisterDeviceResult.read(from: &buf), 
+                requestZkNymResult: FfiConverterOptionTypeRequestZkNymResult.read(from: &buf)
         )
     }
 
@@ -1219,8 +1219,8 @@ public struct FfiConverterTypeAccountStateSummary: FfiConverterRustBuffer {
         FfiConverterOptionTypeAccountRegistered.write(value.accountRegistered, into: &buf)
         FfiConverterOptionTypeAccountSummary.write(value.accountSummary, into: &buf)
         FfiConverterOptionTypeDeviceState.write(value.device, into: &buf)
-        FfiConverterOptionTypeDeviceRegistration.write(value.deviceRegistration, into: &buf)
-        FfiConverterBool.write(value.pendingZkNym, into: &buf)
+        FfiConverterOptionTypeRegisterDeviceResult.write(value.registerDeviceResult, into: &buf)
+        FfiConverterOptionTypeRequestZkNymResult.write(value.requestZkNymResult, into: &buf)
     }
 }
 
@@ -1468,6 +1468,55 @@ public func FfiConverterTypeConnectionData_lift(_ buf: RustBuffer) throws -> Con
 
 public func FfiConverterTypeConnectionData_lower(_ value: ConnectionData) -> RustBuffer {
     return FfiConverterTypeConnectionData.lower(value)
+}
+
+
+public struct ConnectionStatisticsEvent {
+    public var rates: SphinxPacketRates
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(rates: SphinxPacketRates) {
+        self.rates = rates
+    }
+}
+
+
+
+extension ConnectionStatisticsEvent: Equatable, Hashable {
+    public static func ==(lhs: ConnectionStatisticsEvent, rhs: ConnectionStatisticsEvent) -> Bool {
+        if lhs.rates != rhs.rates {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(rates)
+    }
+}
+
+
+public struct FfiConverterTypeConnectionStatisticsEvent: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> ConnectionStatisticsEvent {
+        return
+            try ConnectionStatisticsEvent(
+                rates: FfiConverterTypeSphinxPacketRates.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: ConnectionStatisticsEvent, into buf: inout [UInt8]) {
+        FfiConverterTypeSphinxPacketRates.write(value.rates, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeConnectionStatisticsEvent_lift(_ buf: RustBuffer) throws -> ConnectionStatisticsEvent {
+    return try FfiConverterTypeConnectionStatisticsEvent.lift(buf)
+}
+
+public func FfiConverterTypeConnectionStatisticsEvent_lower(_ value: ConnectionStatisticsEvent) -> RustBuffer {
+    return FfiConverterTypeConnectionStatisticsEvent.lower(value)
 }
 
 
@@ -2656,6 +2705,305 @@ public func FfiConverterTypeOSDefaultPath_lower(_ value: OsDefaultPath) -> RustB
 }
 
 
+public struct RequestZkNymError {
+    public var message: String
+    public var messageId: String?
+    public var ticketType: String?
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(message: String, messageId: String?, ticketType: String?) {
+        self.message = message
+        self.messageId = messageId
+        self.ticketType = ticketType
+    }
+}
+
+
+
+extension RequestZkNymError: Equatable, Hashable {
+    public static func ==(lhs: RequestZkNymError, rhs: RequestZkNymError) -> Bool {
+        if lhs.message != rhs.message {
+            return false
+        }
+        if lhs.messageId != rhs.messageId {
+            return false
+        }
+        if lhs.ticketType != rhs.ticketType {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(message)
+        hasher.combine(messageId)
+        hasher.combine(ticketType)
+    }
+}
+
+
+public struct FfiConverterTypeRequestZkNymError: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> RequestZkNymError {
+        return
+            try RequestZkNymError(
+                message: FfiConverterString.read(from: &buf), 
+                messageId: FfiConverterOptionString.read(from: &buf), 
+                ticketType: FfiConverterOptionString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: RequestZkNymError, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.message, into: &buf)
+        FfiConverterOptionString.write(value.messageId, into: &buf)
+        FfiConverterOptionString.write(value.ticketType, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeRequestZkNymError_lift(_ buf: RustBuffer) throws -> RequestZkNymError {
+    return try FfiConverterTypeRequestZkNymError.lift(buf)
+}
+
+public func FfiConverterTypeRequestZkNymError_lower(_ value: RequestZkNymError) -> RustBuffer {
+    return FfiConverterTypeRequestZkNymError.lower(value)
+}
+
+
+public struct RequestZkNymSuccess {
+    public var id: String
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(id: String) {
+        self.id = id
+    }
+}
+
+
+
+extension RequestZkNymSuccess: Equatable, Hashable {
+    public static func ==(lhs: RequestZkNymSuccess, rhs: RequestZkNymSuccess) -> Bool {
+        if lhs.id != rhs.id {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+}
+
+
+public struct FfiConverterTypeRequestZkNymSuccess: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> RequestZkNymSuccess {
+        return
+            try RequestZkNymSuccess(
+                id: FfiConverterString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: RequestZkNymSuccess, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.id, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeRequestZkNymSuccess_lift(_ buf: RustBuffer) throws -> RequestZkNymSuccess {
+    return try FfiConverterTypeRequestZkNymSuccess.lift(buf)
+}
+
+public func FfiConverterTypeRequestZkNymSuccess_lower(_ value: RequestZkNymSuccess) -> RustBuffer {
+    return FfiConverterTypeRequestZkNymSuccess.lower(value)
+}
+
+
+public struct SphinxPacketRates {
+    public var realPacketsSent: Double
+    public var realPacketsSentSize: Double
+    public var coverPacketsSent: Double
+    public var coverPacketsSentSize: Double
+    public var realPacketsReceived: Double
+    public var realPacketsReceivedSize: Double
+    public var coverPacketsReceived: Double
+    public var coverPacketsReceivedSize: Double
+    public var totalAcksReceived: Double
+    public var totalAcksReceivedSize: Double
+    public var realAcksReceived: Double
+    public var realAcksReceivedSize: Double
+    public var coverAcksReceived: Double
+    public var coverAcksReceivedSize: Double
+    public var realPacketsQueued: Double
+    public var retransmissionsQueued: Double
+    public var replySurbsQueued: Double
+    public var additionalReplySurbsQueued: Double
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(realPacketsSent: Double, realPacketsSentSize: Double, coverPacketsSent: Double, coverPacketsSentSize: Double, realPacketsReceived: Double, realPacketsReceivedSize: Double, coverPacketsReceived: Double, coverPacketsReceivedSize: Double, totalAcksReceived: Double, totalAcksReceivedSize: Double, realAcksReceived: Double, realAcksReceivedSize: Double, coverAcksReceived: Double, coverAcksReceivedSize: Double, realPacketsQueued: Double, retransmissionsQueued: Double, replySurbsQueued: Double, additionalReplySurbsQueued: Double) {
+        self.realPacketsSent = realPacketsSent
+        self.realPacketsSentSize = realPacketsSentSize
+        self.coverPacketsSent = coverPacketsSent
+        self.coverPacketsSentSize = coverPacketsSentSize
+        self.realPacketsReceived = realPacketsReceived
+        self.realPacketsReceivedSize = realPacketsReceivedSize
+        self.coverPacketsReceived = coverPacketsReceived
+        self.coverPacketsReceivedSize = coverPacketsReceivedSize
+        self.totalAcksReceived = totalAcksReceived
+        self.totalAcksReceivedSize = totalAcksReceivedSize
+        self.realAcksReceived = realAcksReceived
+        self.realAcksReceivedSize = realAcksReceivedSize
+        self.coverAcksReceived = coverAcksReceived
+        self.coverAcksReceivedSize = coverAcksReceivedSize
+        self.realPacketsQueued = realPacketsQueued
+        self.retransmissionsQueued = retransmissionsQueued
+        self.replySurbsQueued = replySurbsQueued
+        self.additionalReplySurbsQueued = additionalReplySurbsQueued
+    }
+}
+
+
+
+extension SphinxPacketRates: Equatable, Hashable {
+    public static func ==(lhs: SphinxPacketRates, rhs: SphinxPacketRates) -> Bool {
+        if lhs.realPacketsSent != rhs.realPacketsSent {
+            return false
+        }
+        if lhs.realPacketsSentSize != rhs.realPacketsSentSize {
+            return false
+        }
+        if lhs.coverPacketsSent != rhs.coverPacketsSent {
+            return false
+        }
+        if lhs.coverPacketsSentSize != rhs.coverPacketsSentSize {
+            return false
+        }
+        if lhs.realPacketsReceived != rhs.realPacketsReceived {
+            return false
+        }
+        if lhs.realPacketsReceivedSize != rhs.realPacketsReceivedSize {
+            return false
+        }
+        if lhs.coverPacketsReceived != rhs.coverPacketsReceived {
+            return false
+        }
+        if lhs.coverPacketsReceivedSize != rhs.coverPacketsReceivedSize {
+            return false
+        }
+        if lhs.totalAcksReceived != rhs.totalAcksReceived {
+            return false
+        }
+        if lhs.totalAcksReceivedSize != rhs.totalAcksReceivedSize {
+            return false
+        }
+        if lhs.realAcksReceived != rhs.realAcksReceived {
+            return false
+        }
+        if lhs.realAcksReceivedSize != rhs.realAcksReceivedSize {
+            return false
+        }
+        if lhs.coverAcksReceived != rhs.coverAcksReceived {
+            return false
+        }
+        if lhs.coverAcksReceivedSize != rhs.coverAcksReceivedSize {
+            return false
+        }
+        if lhs.realPacketsQueued != rhs.realPacketsQueued {
+            return false
+        }
+        if lhs.retransmissionsQueued != rhs.retransmissionsQueued {
+            return false
+        }
+        if lhs.replySurbsQueued != rhs.replySurbsQueued {
+            return false
+        }
+        if lhs.additionalReplySurbsQueued != rhs.additionalReplySurbsQueued {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(realPacketsSent)
+        hasher.combine(realPacketsSentSize)
+        hasher.combine(coverPacketsSent)
+        hasher.combine(coverPacketsSentSize)
+        hasher.combine(realPacketsReceived)
+        hasher.combine(realPacketsReceivedSize)
+        hasher.combine(coverPacketsReceived)
+        hasher.combine(coverPacketsReceivedSize)
+        hasher.combine(totalAcksReceived)
+        hasher.combine(totalAcksReceivedSize)
+        hasher.combine(realAcksReceived)
+        hasher.combine(realAcksReceivedSize)
+        hasher.combine(coverAcksReceived)
+        hasher.combine(coverAcksReceivedSize)
+        hasher.combine(realPacketsQueued)
+        hasher.combine(retransmissionsQueued)
+        hasher.combine(replySurbsQueued)
+        hasher.combine(additionalReplySurbsQueued)
+    }
+}
+
+
+public struct FfiConverterTypeSphinxPacketRates: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SphinxPacketRates {
+        return
+            try SphinxPacketRates(
+                realPacketsSent: FfiConverterDouble.read(from: &buf), 
+                realPacketsSentSize: FfiConverterDouble.read(from: &buf), 
+                coverPacketsSent: FfiConverterDouble.read(from: &buf), 
+                coverPacketsSentSize: FfiConverterDouble.read(from: &buf), 
+                realPacketsReceived: FfiConverterDouble.read(from: &buf), 
+                realPacketsReceivedSize: FfiConverterDouble.read(from: &buf), 
+                coverPacketsReceived: FfiConverterDouble.read(from: &buf), 
+                coverPacketsReceivedSize: FfiConverterDouble.read(from: &buf), 
+                totalAcksReceived: FfiConverterDouble.read(from: &buf), 
+                totalAcksReceivedSize: FfiConverterDouble.read(from: &buf), 
+                realAcksReceived: FfiConverterDouble.read(from: &buf), 
+                realAcksReceivedSize: FfiConverterDouble.read(from: &buf), 
+                coverAcksReceived: FfiConverterDouble.read(from: &buf), 
+                coverAcksReceivedSize: FfiConverterDouble.read(from: &buf), 
+                realPacketsQueued: FfiConverterDouble.read(from: &buf), 
+                retransmissionsQueued: FfiConverterDouble.read(from: &buf), 
+                replySurbsQueued: FfiConverterDouble.read(from: &buf), 
+                additionalReplySurbsQueued: FfiConverterDouble.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: SphinxPacketRates, into buf: inout [UInt8]) {
+        FfiConverterDouble.write(value.realPacketsSent, into: &buf)
+        FfiConverterDouble.write(value.realPacketsSentSize, into: &buf)
+        FfiConverterDouble.write(value.coverPacketsSent, into: &buf)
+        FfiConverterDouble.write(value.coverPacketsSentSize, into: &buf)
+        FfiConverterDouble.write(value.realPacketsReceived, into: &buf)
+        FfiConverterDouble.write(value.realPacketsReceivedSize, into: &buf)
+        FfiConverterDouble.write(value.coverPacketsReceived, into: &buf)
+        FfiConverterDouble.write(value.coverPacketsReceivedSize, into: &buf)
+        FfiConverterDouble.write(value.totalAcksReceived, into: &buf)
+        FfiConverterDouble.write(value.totalAcksReceivedSize, into: &buf)
+        FfiConverterDouble.write(value.realAcksReceived, into: &buf)
+        FfiConverterDouble.write(value.realAcksReceivedSize, into: &buf)
+        FfiConverterDouble.write(value.coverAcksReceived, into: &buf)
+        FfiConverterDouble.write(value.coverAcksReceivedSize, into: &buf)
+        FfiConverterDouble.write(value.realPacketsQueued, into: &buf)
+        FfiConverterDouble.write(value.retransmissionsQueued, into: &buf)
+        FfiConverterDouble.write(value.replySurbsQueued, into: &buf)
+        FfiConverterDouble.write(value.additionalReplySurbsQueued, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeSphinxPacketRates_lift(_ buf: RustBuffer) throws -> SphinxPacketRates {
+    return try FfiConverterTypeSphinxPacketRates.lift(buf)
+}
+
+public func FfiConverterTypeSphinxPacketRates_lower(_ value: SphinxPacketRates) -> RustBuffer {
+    return FfiConverterTypeSphinxPacketRates.lower(value)
+}
+
+
 public struct SystemMessage {
     public var name: String
     public var message: String
@@ -3093,13 +3441,15 @@ public struct WireguardConnectionInfo {
     public var gatewayId: NodeIdentity
     public var publicKey: String
     public var privateIpv4: Ipv4Addr
+    public var privateIpv6: Ipv6Addr
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(gatewayId: NodeIdentity, publicKey: String, privateIpv4: Ipv4Addr) {
+    public init(gatewayId: NodeIdentity, publicKey: String, privateIpv4: Ipv4Addr, privateIpv6: Ipv6Addr) {
         self.gatewayId = gatewayId
         self.publicKey = publicKey
         self.privateIpv4 = privateIpv4
+        self.privateIpv6 = privateIpv6
     }
 }
 
@@ -3116,6 +3466,9 @@ extension WireguardConnectionInfo: Equatable, Hashable {
         if lhs.privateIpv4 != rhs.privateIpv4 {
             return false
         }
+        if lhs.privateIpv6 != rhs.privateIpv6 {
+            return false
+        }
         return true
     }
 
@@ -3123,6 +3476,7 @@ extension WireguardConnectionInfo: Equatable, Hashable {
         hasher.combine(gatewayId)
         hasher.combine(publicKey)
         hasher.combine(privateIpv4)
+        hasher.combine(privateIpv6)
     }
 }
 
@@ -3133,7 +3487,8 @@ public struct FfiConverterTypeWireguardConnectionInfo: FfiConverterRustBuffer {
             try WireguardConnectionInfo(
                 gatewayId: FfiConverterTypeNodeIdentity.read(from: &buf), 
                 publicKey: FfiConverterString.read(from: &buf), 
-                privateIpv4: FfiConverterTypeIpv4Addr.read(from: &buf)
+                privateIpv4: FfiConverterTypeIpv4Addr.read(from: &buf), 
+                privateIpv6: FfiConverterTypeIpv6Addr.read(from: &buf)
         )
     }
 
@@ -3141,6 +3496,7 @@ public struct FfiConverterTypeWireguardConnectionInfo: FfiConverterRustBuffer {
         FfiConverterTypeNodeIdentity.write(value.gatewayId, into: &buf)
         FfiConverterString.write(value.publicKey, into: &buf)
         FfiConverterTypeIpv4Addr.write(value.privateIpv4, into: &buf)
+        FfiConverterTypeIpv6Addr.write(value.privateIpv6, into: &buf)
     }
 }
 
@@ -3156,15 +3512,17 @@ public func FfiConverterTypeWireguardConnectionInfo_lower(_ value: WireguardConn
 
 public struct WireguardNode {
     public var endpoint: SocketAddr
-    public var publicKey: PublicKey
+    public var publicKey: BoxedPublicKey
     public var privateIpv4: Ipv4Addr
+    public var privateIpv6: Ipv6Addr
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(endpoint: SocketAddr, publicKey: PublicKey, privateIpv4: Ipv4Addr) {
+    public init(endpoint: SocketAddr, publicKey: BoxedPublicKey, privateIpv4: Ipv4Addr, privateIpv6: Ipv6Addr) {
         self.endpoint = endpoint
         self.publicKey = publicKey
         self.privateIpv4 = privateIpv4
+        self.privateIpv6 = privateIpv6
     }
 }
 
@@ -3181,6 +3539,9 @@ extension WireguardNode: Equatable, Hashable {
         if lhs.privateIpv4 != rhs.privateIpv4 {
             return false
         }
+        if lhs.privateIpv6 != rhs.privateIpv6 {
+            return false
+        }
         return true
     }
 
@@ -3188,6 +3549,7 @@ extension WireguardNode: Equatable, Hashable {
         hasher.combine(endpoint)
         hasher.combine(publicKey)
         hasher.combine(privateIpv4)
+        hasher.combine(privateIpv6)
     }
 }
 
@@ -3197,15 +3559,17 @@ public struct FfiConverterTypeWireguardNode: FfiConverterRustBuffer {
         return
             try WireguardNode(
                 endpoint: FfiConverterTypeSocketAddr.read(from: &buf), 
-                publicKey: FfiConverterTypePublicKey.read(from: &buf), 
-                privateIpv4: FfiConverterTypeIpv4Addr.read(from: &buf)
+                publicKey: FfiConverterTypeBoxedPublicKey.read(from: &buf), 
+                privateIpv4: FfiConverterTypeIpv4Addr.read(from: &buf), 
+                privateIpv6: FfiConverterTypeIpv6Addr.read(from: &buf)
         )
     }
 
     public static func write(_ value: WireguardNode, into buf: inout [UInt8]) {
         FfiConverterTypeSocketAddr.write(value.endpoint, into: &buf)
-        FfiConverterTypePublicKey.write(value.publicKey, into: &buf)
+        FfiConverterTypeBoxedPublicKey.write(value.publicKey, into: &buf)
         FfiConverterTypeIpv4Addr.write(value.privateIpv4, into: &buf)
+        FfiConverterTypeIpv6Addr.write(value.privateIpv6, into: &buf)
     }
 }
 
@@ -3708,72 +4072,6 @@ extension ConnectionStatus: Equatable, Hashable {}
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
-public enum DeviceRegistration {
-    
-    case inProgress
-    case success
-    case failed(message: String, messageId: String?
-    )
-}
-
-
-public struct FfiConverterTypeDeviceRegistration: FfiConverterRustBuffer {
-    typealias SwiftType = DeviceRegistration
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> DeviceRegistration {
-        let variant: Int32 = try readInt(&buf)
-        switch variant {
-        
-        case 1: return .inProgress
-        
-        case 2: return .success
-        
-        case 3: return .failed(message: try FfiConverterString.read(from: &buf), messageId: try FfiConverterOptionString.read(from: &buf)
-        )
-        
-        default: throw UniffiInternalError.unexpectedEnumCase
-        }
-    }
-
-    public static func write(_ value: DeviceRegistration, into buf: inout [UInt8]) {
-        switch value {
-        
-        
-        case .inProgress:
-            writeInt(&buf, Int32(1))
-        
-        
-        case .success:
-            writeInt(&buf, Int32(2))
-        
-        
-        case let .failed(message,messageId):
-            writeInt(&buf, Int32(3))
-            FfiConverterString.write(message, into: &buf)
-            FfiConverterOptionString.write(messageId, into: &buf)
-            
-        }
-    }
-}
-
-
-public func FfiConverterTypeDeviceRegistration_lift(_ buf: RustBuffer) throws -> DeviceRegistration {
-    return try FfiConverterTypeDeviceRegistration.lift(buf)
-}
-
-public func FfiConverterTypeDeviceRegistration_lower(_ value: DeviceRegistration) -> RustBuffer {
-    return FfiConverterTypeDeviceRegistration.lower(value)
-}
-
-
-
-extension DeviceRegistration: Equatable, Hashable {}
-
-
-
-// Note that we don't yet support `indirect` for enums.
-// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
-
 public enum DeviceState {
     
     case notRegistered
@@ -3958,6 +4256,10 @@ public enum ErrorStateReason {
      */
     case badBandwidthIncrease
     /**
+     * Failure to duplicate tunnel file descriptor.
+     */
+    case duplicateTunFd
+    /**
      * Program errors that must not happen.
      */
     case `internal`
@@ -3989,7 +4291,9 @@ public struct FfiConverterTypeErrorStateReason: FfiConverterRustBuffer {
         
         case 9: return .badBandwidthIncrease
         
-        case 10: return .`internal`
+        case 10: return .duplicateTunFd
+        
+        case 11: return .`internal`
         
         default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -4035,8 +4339,12 @@ public struct FfiConverterTypeErrorStateReason: FfiConverterRustBuffer {
             writeInt(&buf, Int32(9))
         
         
-        case .`internal`:
+        case .duplicateTunFd:
             writeInt(&buf, Int32(10))
+        
+        
+        case .`internal`:
+            writeInt(&buf, Int32(11))
         
         }
     }
@@ -4450,6 +4758,8 @@ public enum MixnetEvent {
     )
     case connection(ConnectionEvent
     )
+    case connectionStatistics(ConnectionStatisticsEvent
+    )
 }
 
 
@@ -4464,6 +4774,9 @@ public struct FfiConverterTypeMixnetEvent: FfiConverterRustBuffer {
         )
         
         case 2: return .connection(try FfiConverterTypeConnectionEvent.read(from: &buf)
+        )
+        
+        case 3: return .connectionStatistics(try FfiConverterTypeConnectionStatisticsEvent.read(from: &buf)
         )
         
         default: throw UniffiInternalError.unexpectedEnumCase
@@ -4482,6 +4795,11 @@ public struct FfiConverterTypeMixnetEvent: FfiConverterRustBuffer {
         case let .connection(v1):
             writeInt(&buf, Int32(2))
             FfiConverterTypeConnectionEvent.write(v1, into: &buf)
+            
+        
+        case let .connectionStatistics(v1):
+            writeInt(&buf, Int32(3))
+            FfiConverterTypeConnectionStatisticsEvent.write(v1, into: &buf)
             
         }
     }
@@ -4714,6 +5032,141 @@ public func FfiConverterTypeOSPathStatus_lower(_ value: OsPathStatus) -> RustBuf
 
 
 extension OsPathStatus: Equatable, Hashable {}
+
+
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
+public enum RegisterDeviceResult {
+    
+    case inProgress
+    case success
+    case failed(message: String, messageId: String?
+    )
+}
+
+
+public struct FfiConverterTypeRegisterDeviceResult: FfiConverterRustBuffer {
+    typealias SwiftType = RegisterDeviceResult
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> RegisterDeviceResult {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .inProgress
+        
+        case 2: return .success
+        
+        case 3: return .failed(message: try FfiConverterString.read(from: &buf), messageId: try FfiConverterOptionString.read(from: &buf)
+        )
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: RegisterDeviceResult, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .inProgress:
+            writeInt(&buf, Int32(1))
+        
+        
+        case .success:
+            writeInt(&buf, Int32(2))
+        
+        
+        case let .failed(message,messageId):
+            writeInt(&buf, Int32(3))
+            FfiConverterString.write(message, into: &buf)
+            FfiConverterOptionString.write(messageId, into: &buf)
+            
+        }
+    }
+}
+
+
+public func FfiConverterTypeRegisterDeviceResult_lift(_ buf: RustBuffer) throws -> RegisterDeviceResult {
+    return try FfiConverterTypeRegisterDeviceResult.lift(buf)
+}
+
+public func FfiConverterTypeRegisterDeviceResult_lower(_ value: RegisterDeviceResult) -> RustBuffer {
+    return FfiConverterTypeRegisterDeviceResult.lower(value)
+}
+
+
+
+extension RegisterDeviceResult: Equatable, Hashable {}
+
+
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
+public enum RequestZkNymResult {
+    
+    case inProgress
+    case success(successes: [RequestZkNymSuccess]
+    )
+    case failed(successes: [RequestZkNymSuccess], failures: [RequestZkNymError]
+    )
+}
+
+
+public struct FfiConverterTypeRequestZkNymResult: FfiConverterRustBuffer {
+    typealias SwiftType = RequestZkNymResult
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> RequestZkNymResult {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .inProgress
+        
+        case 2: return .success(successes: try FfiConverterSequenceTypeRequestZkNymSuccess.read(from: &buf)
+        )
+        
+        case 3: return .failed(successes: try FfiConverterSequenceTypeRequestZkNymSuccess.read(from: &buf), failures: try FfiConverterSequenceTypeRequestZkNymError.read(from: &buf)
+        )
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: RequestZkNymResult, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .inProgress:
+            writeInt(&buf, Int32(1))
+        
+        
+        case let .success(successes):
+            writeInt(&buf, Int32(2))
+            FfiConverterSequenceTypeRequestZkNymSuccess.write(successes, into: &buf)
+            
+        
+        case let .failed(successes,failures):
+            writeInt(&buf, Int32(3))
+            FfiConverterSequenceTypeRequestZkNymSuccess.write(successes, into: &buf)
+            FfiConverterSequenceTypeRequestZkNymError.write(failures, into: &buf)
+            
+        }
+    }
+}
+
+
+public func FfiConverterTypeRequestZkNymResult_lift(_ buf: RustBuffer) throws -> RequestZkNymResult {
+    return try FfiConverterTypeRequestZkNymResult.lift(buf)
+}
+
+public func FfiConverterTypeRequestZkNymResult_lower(_ value: RequestZkNymResult) -> RustBuffer {
+    return FfiConverterTypeRequestZkNymResult.lower(value)
+}
+
+
+
+extension RequestZkNymResult: Equatable, Hashable {}
 
 
 
@@ -5156,11 +5609,13 @@ public enum VpnError {
     case AccountDeviceNotActive
     case NoDeviceIdentity
     case VpnApiTimeout
-    case AccountUpdateFailed(details: String, messageId: String?, codeReferenceId: String?
+    case UpdateAccountEndpointFailure(details: String, messageId: String?, codeReferenceId: String?
     )
-    case DeviceUpdateFailed(details: String, messageId: String?, codeReferenceId: String?
+    case UpdateDeviceEndpointFailure(details: String, messageId: String?, codeReferenceId: String?
     )
     case DeviceRegistrationFailed(details: String, messageId: String?, codeReferenceId: String?
+    )
+    case RequestZkNym(successes: [RequestZkNymSuccess], failed: [RequestZkNymError]
     )
     case InvalidAccountStoragePath(details: String
     )
@@ -5203,12 +5658,12 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
         case 14: return .AccountDeviceNotActive
         case 15: return .NoDeviceIdentity
         case 16: return .VpnApiTimeout
-        case 17: return .AccountUpdateFailed(
+        case 17: return .UpdateAccountEndpointFailure(
             details: try FfiConverterString.read(from: &buf), 
             messageId: try FfiConverterOptionString.read(from: &buf), 
             codeReferenceId: try FfiConverterOptionString.read(from: &buf)
             )
-        case 18: return .DeviceUpdateFailed(
+        case 18: return .UpdateDeviceEndpointFailure(
             details: try FfiConverterString.read(from: &buf), 
             messageId: try FfiConverterOptionString.read(from: &buf), 
             codeReferenceId: try FfiConverterOptionString.read(from: &buf)
@@ -5218,7 +5673,11 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
             messageId: try FfiConverterOptionString.read(from: &buf), 
             codeReferenceId: try FfiConverterOptionString.read(from: &buf)
             )
-        case 20: return .InvalidAccountStoragePath(
+        case 20: return .RequestZkNym(
+            successes: try FfiConverterSequenceTypeRequestZkNymSuccess.read(from: &buf), 
+            failed: try FfiConverterSequenceTypeRequestZkNymError.read(from: &buf)
+            )
+        case 21: return .InvalidAccountStoragePath(
             details: try FfiConverterString.read(from: &buf)
             )
 
@@ -5302,14 +5761,14 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
             writeInt(&buf, Int32(16))
         
         
-        case let .AccountUpdateFailed(details,messageId,codeReferenceId):
+        case let .UpdateAccountEndpointFailure(details,messageId,codeReferenceId):
             writeInt(&buf, Int32(17))
             FfiConverterString.write(details, into: &buf)
             FfiConverterOptionString.write(messageId, into: &buf)
             FfiConverterOptionString.write(codeReferenceId, into: &buf)
             
         
-        case let .DeviceUpdateFailed(details,messageId,codeReferenceId):
+        case let .UpdateDeviceEndpointFailure(details,messageId,codeReferenceId):
             writeInt(&buf, Int32(18))
             FfiConverterString.write(details, into: &buf)
             FfiConverterOptionString.write(messageId, into: &buf)
@@ -5323,8 +5782,14 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
             FfiConverterOptionString.write(codeReferenceId, into: &buf)
             
         
-        case let .InvalidAccountStoragePath(details):
+        case let .RequestZkNym(successes,failed):
             writeInt(&buf, Int32(20))
+            FfiConverterSequenceTypeRequestZkNymSuccess.write(successes, into: &buf)
+            FfiConverterSequenceTypeRequestZkNymError.write(failed, into: &buf)
+            
+        
+        case let .InvalidAccountStoragePath(details):
+            writeInt(&buf, Int32(21))
             FfiConverterString.write(details, into: &buf)
             
         }
@@ -5651,27 +6116,6 @@ fileprivate struct FfiConverterOptionTypeAccountRegistered: FfiConverterRustBuff
     }
 }
 
-fileprivate struct FfiConverterOptionTypeDeviceRegistration: FfiConverterRustBuffer {
-    typealias SwiftType = DeviceRegistration?
-
-    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
-        guard let value = value else {
-            writeInt(&buf, Int8(0))
-            return
-        }
-        writeInt(&buf, Int8(1))
-        FfiConverterTypeDeviceRegistration.write(value, into: &buf)
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
-        switch try readInt(&buf) as Int8 {
-        case 0: return nil
-        case 1: return try FfiConverterTypeDeviceRegistration.read(from: &buf)
-        default: throw UniffiInternalError.unexpectedOptionalTag
-        }
-    }
-}
-
 fileprivate struct FfiConverterOptionTypeDeviceState: FfiConverterRustBuffer {
     typealias SwiftType = DeviceState?
 
@@ -5709,6 +6153,48 @@ fileprivate struct FfiConverterOptionTypeMnemonicState: FfiConverterRustBuffer {
         switch try readInt(&buf) as Int8 {
         case 0: return nil
         case 1: return try FfiConverterTypeMnemonicState.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionTypeRegisterDeviceResult: FfiConverterRustBuffer {
+    typealias SwiftType = RegisterDeviceResult?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeRegisterDeviceResult.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeRegisterDeviceResult.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionTypeRequestZkNymResult: FfiConverterRustBuffer {
+    typealias SwiftType = RequestZkNymResult?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeRequestZkNymResult.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeRequestZkNymResult.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }
@@ -5900,6 +6386,50 @@ fileprivate struct FfiConverterSequenceTypeLocation: FfiConverterRustBuffer {
         seq.reserveCapacity(Int(len))
         for _ in 0 ..< len {
             seq.append(try FfiConverterTypeLocation.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+fileprivate struct FfiConverterSequenceTypeRequestZkNymError: FfiConverterRustBuffer {
+    typealias SwiftType = [RequestZkNymError]
+
+    public static func write(_ value: [RequestZkNymError], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeRequestZkNymError.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [RequestZkNymError] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [RequestZkNymError]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeRequestZkNymError.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+fileprivate struct FfiConverterSequenceTypeRequestZkNymSuccess: FfiConverterRustBuffer {
+    typealias SwiftType = [RequestZkNymSuccess]
+
+    public static func write(_ value: [RequestZkNymSuccess], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeRequestZkNymSuccess.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [RequestZkNymSuccess] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [RequestZkNymSuccess]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeRequestZkNymSuccess.read(from: &buf))
         }
         return seq
     }
@@ -6136,6 +6666,40 @@ public func FfiConverterTypeBoxedNodeIdentity_lift(_ value: RustBuffer) throws -
 
 public func FfiConverterTypeBoxedNodeIdentity_lower(_ value: BoxedNodeIdentity) -> RustBuffer {
     return FfiConverterTypeBoxedNodeIdentity.lower(value)
+}
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ */
+public typealias BoxedPublicKey = String
+public struct FfiConverterTypeBoxedPublicKey: FfiConverter {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> BoxedPublicKey {
+        return try FfiConverterString.read(from: &buf)
+    }
+
+    public static func write(_ value: BoxedPublicKey, into buf: inout [UInt8]) {
+        return FfiConverterString.write(value, into: &buf)
+    }
+
+    public static func lift(_ value: RustBuffer) throws -> BoxedPublicKey {
+        return try FfiConverterString.lift(value)
+    }
+
+    public static func lower(_ value: BoxedPublicKey) -> RustBuffer {
+        return FfiConverterString.lower(value)
+    }
+}
+
+
+public func FfiConverterTypeBoxedPublicKey_lift(_ value: RustBuffer) throws -> BoxedPublicKey {
+    return try FfiConverterTypeBoxedPublicKey.lift(value)
+}
+
+public func FfiConverterTypeBoxedPublicKey_lower(_ value: BoxedPublicKey) -> RustBuffer {
+    return FfiConverterTypeBoxedPublicKey.lower(value)
 }
 
 
@@ -6476,40 +7040,6 @@ public func FfiConverterTypePathBuf_lift(_ value: RustBuffer) throws -> PathBuf 
 
 public func FfiConverterTypePathBuf_lower(_ value: PathBuf) -> RustBuffer {
     return FfiConverterTypePathBuf.lower(value)
-}
-
-
-
-/**
- * Typealias from the type name used in the UDL file to the builtin type.  This
- * is needed because the UDL type name is used in function/method signatures.
- */
-public typealias PublicKey = String
-public struct FfiConverterTypePublicKey: FfiConverter {
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> PublicKey {
-        return try FfiConverterString.read(from: &buf)
-    }
-
-    public static func write(_ value: PublicKey, into buf: inout [UInt8]) {
-        return FfiConverterString.write(value, into: &buf)
-    }
-
-    public static func lift(_ value: RustBuffer) throws -> PublicKey {
-        return try FfiConverterString.lift(value)
-    }
-
-    public static func lower(_ value: PublicKey) -> RustBuffer {
-        return FfiConverterString.lower(value)
-    }
-}
-
-
-public func FfiConverterTypePublicKey_lift(_ value: RustBuffer) throws -> PublicKey {
-    return try FfiConverterTypePublicKey.lift(value)
-}
-
-public func FfiConverterTypePublicKey_lower(_ value: PublicKey) -> RustBuffer {
-    return FfiConverterTypePublicKey.lower(value)
 }
 
 
@@ -6926,6 +7456,42 @@ public func waitForAccountReadyToConnectAsync(timeoutSec: UInt64)async throws  {
         )
 }
 /**
+ * Call that blocks until the account controller reports that we have zknyms stored in the local
+ * credential store. This is useful when you want to wait for the account to be ready before
+ * proceeding with other operations.
+ *
+ * # Errors
+ *
+ * This function will return an error if the account controller is not running.
+ */
+public func waitForAvailableZkNyms()throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_waitforavailablezknyms($0
+    )
+}
+}
+/**
+ * Async variant of waitForAvailableZkNyms. This is useful when you want to wait for the account
+ * to be ready before proceeding with other operations.
+ *
+ * # Errors
+ *
+ * This function will return an error if the account controller is not running.
+ */
+public func waitForAvailableZkNymsAsync()async throws  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_nym_vpn_lib_fn_func_waitforavailablezknymsasync(
+                )
+            },
+            pollFunc: ffi_nym_vpn_lib_rust_future_poll_void,
+            completeFunc: ffi_nym_vpn_lib_rust_future_complete_void,
+            freeFunc: ffi_nym_vpn_lib_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeVpnError.lift
+        )
+}
+/**
  * Call that blocks until the device has been registered. This is useful when you want to wait
  * for the device to be registered before proceeding with other operations.
  *
@@ -7119,6 +7685,12 @@ private var initializationResult: InitializationResult {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_waitforaccountreadytoconnectasync() != 20647) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_waitforavailablezknyms() != 27184) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_waitforavailablezknymsasync() != 38231) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_waitforregisterdevice() != 59983) {
