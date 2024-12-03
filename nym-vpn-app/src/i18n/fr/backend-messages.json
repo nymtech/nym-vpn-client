@@ -1,7 +1,6 @@
 {
   "connection-progress": {
     "Initializing": "Démarrage du client NymVPN…",
-    "InitDone": "Client NymVPN initialisé",
-    "Cancelling": "Annulation…"
+    "InitDone": "Client NymVPN initialisé"
   }
 }
