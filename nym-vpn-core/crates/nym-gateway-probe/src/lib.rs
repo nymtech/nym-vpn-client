@@ -20,7 +20,8 @@ use nym_config::defaults::NymNetworkDetails;
 use nym_connection_monitor::self_ping_and_wait;
 use nym_gateway_directory::{
     AuthAddress, Config as GatewayDirectoryConfig, EntryPoint,
-    GatewayClient as GatewayDirectoryClient, GatewayList, IpPacketRouterAddress,
+    GatewayClient as GatewayDirectoryClient, GatewayList, GatewayMinPerformance,
+    IpPacketRouterAddress,
 };
 use nym_ip_packet_client::{IprClientConnect, SharedMixnetClient};
 use nym_ip_packet_requests::{
@@ -48,17 +49,26 @@ mod types;
 pub use error::{Error, Result};
 pub use types::{IpPingReplies, ProbeOutcome, ProbeResult};
 
-pub async fn fetch_gateways() -> anyhow::Result<GatewayList> {
-    lookup_gateways().await
+pub async fn fetch_gateways(
+    min_gateway_performance: GatewayMinPerformance,
+) -> anyhow::Result<GatewayList> {
+    lookup_gateways(min_gateway_performance).await
 }
 
-pub async fn fetch_gateways_with_ipr() -> anyhow::Result<GatewayList> {
-    Ok(lookup_gateways().await?.into_exit_gateways())
+pub async fn fetch_gateways_with_ipr(
+    min_gateway_performance: GatewayMinPerformance,
+) -> anyhow::Result<GatewayList> {
+    Ok(lookup_gateways(min_gateway_performance)
+        .await?
+        .into_exit_gateways())
 }
 
-pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
+pub async fn probe(
+    entry_point: EntryPoint,
+    min_gateway_performance: GatewayMinPerformance,
+) -> anyhow::Result<ProbeResult> {
     // Setup the entry gateways
-    let gateways = lookup_gateways().await?;
+    let gateways = lookup_gateways(min_gateway_performance).await?;
     let entry_gateway = entry_point.lookup_gateway(&gateways).await?;
     let exit_router_address = entry_gateway.ipr_address;
     let authenticator = entry_gateway.authenticator_address;
@@ -300,8 +310,11 @@ async fn wg_probe(
     Ok(wg_outcome)
 }
 
-async fn lookup_gateways() -> anyhow::Result<GatewayList> {
-    let gateway_config = GatewayDirectoryConfig::new_from_env();
+async fn lookup_gateways(
+    min_gateway_performance: GatewayMinPerformance,
+) -> anyhow::Result<GatewayList> {
+    let gateway_config = GatewayDirectoryConfig::new_from_env()
+        .with_min_gateway_performance(min_gateway_performance);
     info!("nym-api: {}", gateway_config.api_url());
     info!(
         "nym-vpn-api: {}",
