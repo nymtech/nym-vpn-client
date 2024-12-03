@@ -4,9 +4,7 @@
 use tokio::sync::mpsc::error::SendError;
 use url::Url;
 
-use crate::{
-    commands::AccountCommand,
-};
+use crate::commands::AccountCommand;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -71,6 +69,9 @@ pub enum Error {
     #[error("failed to send request zk-nym request")]
     RequestZkNym(#[source] nym_vpn_api_client::VpnApiClientError),
 
+    #[error("failed to send confirm zk-nym download")]
+    ConfirmZkNymDownload(#[source] nym_vpn_api_client::VpnApiClientError),
+
     #[error("unexepected response from nym-vpn-api: {0}")]
     UnexpectedResponse(#[source] nym_vpn_api_client::VpnApiClientError),
 
@@ -101,14 +102,26 @@ pub enum Error {
     #[error("invalid master verification key: {0}")]
     InvalidMasterVerificationKey(#[source] nym_compact_ecash::CompactEcashError),
 
+    #[error("invalid verification key: {0}")]
+    InvalidVerificationKey(#[source] nym_compact_ecash::CompactEcashError),
+
+    #[error("missing aggregated coin index signatures")]
+    MissingAggregatedCoinIndexSignatures,
+
     #[error("failed to deserialize blinded signature")]
     DeserializeBlindedSignature(nym_compact_ecash::CompactEcashError),
 
     #[error("inconsistent epoch id")]
     InconsistentEpochId,
 
+    #[error("decoded key missing index")]
+    DecodedKeysMissingIndex,
+
     #[error("invalid expiration date: {0}")]
     InvalidExpirationDate(#[source] time::error::Parse),
+
+    #[error("failed to aggregate wallets")]
+    AggregateWallets(#[source] nym_compact_ecash::CompactEcashError),
 
     #[error("failed to confirm zk-nym downloaded: {0}")]
     ConfirmZkNymDownloaded(#[source] nym_vpn_api_client::VpnApiClientError),
@@ -127,9 +140,6 @@ pub enum Error {
 
     #[error("timeout waiting for: {0}")]
     Timeout(String),
-
-    #[error("trying to wait for device registration that hasn't started")]
-    TryToWaitForDeviceRegistrationThatHasntStarted,
 }
 
 impl Error {

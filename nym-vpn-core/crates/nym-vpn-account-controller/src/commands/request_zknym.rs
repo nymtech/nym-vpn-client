@@ -363,37 +363,33 @@ impl RequestZkNymCommandHandler {
             })
             .ok();
 
-        // Insert aggregated coin index signatures
-        tracing::info!("Inserting coin index signatures");
-        self.credential_storage
-            .insert_coin_index_signatures(
-                &shares
-                    .aggregated_coin_index_signatures
-                    .clone()
-                    .unwrap()
-                    .signatures,
-            )
-            .await
-            .inspect_err(|err| {
-                tracing::error!("Failed to insert coin index signatures: {:#?}", err);
-            })
-            .ok();
+        // Insert aggregated coin index signatures, if available
+        if let Some(aggregated_coin_index_signatures) = &shares.aggregated_coin_index_signatures {
+            tracing::info!("Inserting coin index signatures");
+            self.credential_storage
+                .insert_coin_index_signatures(&aggregated_coin_index_signatures.signatures)
+                .await
+                .inspect_err(|err| {
+                    tracing::error!("Failed to insert coin index signatures: {:#?}", err);
+                })
+                .ok();
+        }
 
-        // Insert aggregated expiration date signatures
-        tracing::info!("Inserting expiration date signatures");
-        self.credential_storage
-            .insert_expiration_date_signatures(
-                &shares
-                    .aggregated_expiration_date_signatures
-                    .clone()
-                    .unwrap()
-                    .signatures,
-            )
-            .await
-            .inspect_err(|err| {
-                tracing::error!("Failed to insert expiration date signatures: {:#?}", err);
-            })
-            .ok();
+        // Insert aggregated expiration date signatures, if available
+        if let Some(aggregated_expiration_date_signatures) =
+            &shares.aggregated_expiration_date_signatures
+        {
+            tracing::info!("Inserting expiration date signatures");
+            self.credential_storage
+                .insert_expiration_date_signatures(
+                    &aggregated_expiration_date_signatures.signatures,
+                )
+                .await
+                .inspect_err(|err| {
+                    tracing::error!("Failed to insert expiration date signatures: {:#?}", err);
+                })
+                .ok();
+        }
 
         tracing::info!("Inserting issued ticketbook");
         self.credential_storage
@@ -407,7 +403,7 @@ impl RequestZkNymCommandHandler {
         self.vpn_api_client
             .confirm_zk_nym_download_by_id(&self.account, &self.device, id)
             .await
-            .unwrap();
+            .map_err(Error::ConfirmZkNymDownload)?;
         tracing::info!("Confirmed zk-nym downloaded: {}", id);
         Ok(())
     }
@@ -550,7 +546,9 @@ pub(crate) async fn unblind_and_aggregate(
 
     let mut decoded_keys = HashMap::new();
     for key in issuers.keys {
-        let vk = VerificationKeyAuth::try_from_bs58(&key.bs58_encoded_key).unwrap();
+        let vk = VerificationKeyAuth::try_from_bs58(&key.bs58_encoded_key)
+            .inspect_err(|err| tracing::error!("Failed to create VerificationKeyAuth: {:#?}", err))
+            .map_err(Error::InvalidVerificationKey)?;
         decoded_keys.insert(key.node_index, vk);
     }
 
@@ -566,7 +564,7 @@ pub(crate) async fn unblind_and_aggregate(
             })?;
 
         let Some(vk) = decoded_keys.get(&share.node_index) else {
-            panic!();
+            return Err(Error::DecodedKeysMissingIndex);
         };
 
         tracing::info!("Calling issue_verify");
@@ -590,14 +588,13 @@ pub(crate) async fn unblind_and_aggregate(
 
     tracing::info!("Aggregating wallets");
 
-    // TODO: remove unwrap
     let aggregated_wallets = nym_compact_ecash::aggregate_wallets(
         &master_vk,
         ecash_keypair.secret_key(),
         &partial_wallets,
         &request_info,
     )
-    .unwrap();
+    .map_err(Error::AggregateWallets)?;
 
     tracing::info!("Creating ticketbook");
 
@@ -606,7 +603,6 @@ pub(crate) async fn unblind_and_aggregate(
         shares.epoch_id,
         ecash_keypair.into(),
         ticketbook_type,
-        // expiration_date.ecash_date(),
         expiration_date,
     );
 

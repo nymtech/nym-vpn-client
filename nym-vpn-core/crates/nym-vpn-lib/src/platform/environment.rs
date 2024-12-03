@@ -37,7 +37,8 @@ pub(crate) async fn current_environment() -> Result<NetworkEnvironment, VpnError
         .map(NetworkEnvironment::from)
 }
 
-pub(super) async fn current_environment_details() -> Result<nym_vpn_network_config::Network, VpnError> {
+pub(super) async fn current_environment_details(
+) -> Result<nym_vpn_network_config::Network, VpnError> {
     NETWORK_ENVIRONMENT
         .lock()
         .await
