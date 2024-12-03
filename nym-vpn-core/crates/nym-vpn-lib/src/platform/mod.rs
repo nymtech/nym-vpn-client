@@ -139,7 +139,7 @@ pub fn shutdown() -> Result<(), VpnError> {
 pub fn init_logger() {
     let log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
     info!("Setting log level: {}", log_level);
-    #[cfg(target_os = "ios")]
+    #[cfg(any(target_os = "ios", target_os = "macos"))]
     swift::init_logs(log_level);
     #[cfg(target_os = "android")]
     android::init_logs(log_level);
