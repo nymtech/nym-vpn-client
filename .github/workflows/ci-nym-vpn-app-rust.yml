@@ -55,9 +55,9 @@ jobs:
 
       - name: Install rust toolchain (Windows)
         if: contains(matrix.os, 'windows')
-        uses: brndnmtthws/rust-action-rustup@v1
+        uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
+          toolchain: 1.82.0
           components: rustfmt, clippy
 
       - name: Set env
