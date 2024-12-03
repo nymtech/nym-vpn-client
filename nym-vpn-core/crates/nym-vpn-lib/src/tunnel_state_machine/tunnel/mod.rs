@@ -18,10 +18,13 @@ use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
 use super::{MixnetEvent, TunnelType};
-use crate::{mixnet::SharedMixnetClient, GatewayDirectoryError, MixnetClientConfig, MixnetError};
+use crate::{
+    bandwidth_controller::ReconnectMixnetClientData, mixnet::SharedMixnetClient,
+    GatewayDirectoryError, MixnetClientConfig, MixnetError,
+};
 use status_listener::StatusListener;
 
-const MIXNET_CLIENT_STARTUP_TIMEOUT: Duration = Duration::from_secs(30);
+pub(crate) const MIXNET_CLIENT_STARTUP_TIMEOUT: Duration = Duration::from_secs(30);
 const TASK_MANAGER_SHUTDOWN_TIMER_SECS: u64 = 10;
 
 pub struct ConnectedMixnet {
@@ -30,6 +33,7 @@ pub struct ConnectedMixnet {
     selected_gateways: SelectedGateways,
     data_path: Option<PathBuf>,
     mixnet_client: SharedMixnetClient,
+    reconnect_mixnet_client_data: ReconnectMixnetClientData,
 }
 
 impl ConnectedMixnet {
@@ -89,6 +93,7 @@ impl ConnectedMixnet {
                 enable_credentials_mode,
                 self.selected_gateways,
                 self.data_path,
+                self.reconnect_mixnet_client_data,
             )
             .await
         {
@@ -106,6 +111,7 @@ impl ConnectedMixnet {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct MixnetConnectOptions {
     pub data_path: Option<PathBuf>,
     pub gateway_config: nym_gateway_directory::Config,
@@ -146,6 +152,20 @@ pub async fn connect_mixnet(
     options: MixnetConnectOptions,
     cancel_token: CancellationToken,
 ) -> Result<ConnectedMixnet> {
+    let task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS);
+    let bw_controller_task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS);
+
+    let task_client = match options.tunnel_type {
+        TunnelType::Mixnet => task_manager.subscribe_named("mixnet_client_main"),
+        TunnelType::Wireguard => bw_controller_task_manager.subscribe_named("mixnet_client_main"),
+    };
+
+    let mut mixnet_client_config = options.clone().mixnet_client_config.unwrap_or_default();
+    let reconnect_mixnet_client_data = ReconnectMixnetClientData::new(
+        options.clone(),
+        bw_controller_task_manager,
+        mixnet_client_config.clone(),
+    );
     let user_agent = options
         .user_agent
         .unwrap_or(UserAgent::from(nym_bin_common::bin_info_local_vergen!()));
@@ -161,7 +181,6 @@ pub async fn connect_mixnet(
         .await
         .map_err(|source| Error::LookupGatewayIp { gateway_id, source })?;
 
-    let mut mixnet_client_config = options.mixnet_client_config.unwrap_or_default();
     match options.tunnel_type {
         TunnelType::Mixnet => {}
         TunnelType::Wireguard => {
@@ -172,13 +191,12 @@ pub async fn connect_mixnet(
         }
     };
 
-    let task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS);
     let connect_fut = tokio::time::timeout(
         MIXNET_CLIENT_STARTUP_TIMEOUT,
         crate::mixnet::setup_mixnet_client(
             options.selected_gateways.entry.identity(),
             &options.data_path,
-            task_manager.subscribe_named("mixnet_client_main"),
+            task_client,
             mixnet_client_config,
             options.enable_credentials_mode,
             options.tunnel_type == TunnelType::Wireguard,
@@ -201,6 +219,7 @@ pub async fn connect_mixnet(
             data_path: options.data_path,
             gateway_host,
             mixnet_client,
+            reconnect_mixnet_client_data,
         }),
         Err(e) => {
             shutdown_task_manager(task_manager).await;
