@@ -51,7 +51,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Create an account"
+            "value" : "Get Access Code"
           }
         }
       }
@@ -139,7 +139,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter the 24 words of your NymVPN recovery phrase to log in to your account"
+            "value" : "Please enter your anonymous Access Code."
           }
         }
       }
@@ -150,7 +150,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Log in"
+            "value" : "Next"
           }
         }
       }
@@ -172,7 +172,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "e.g. smoke artefact velvet skull pop palace tortoise damage rough..."
+            "value" : "24-word-access-code\n\ne.g. smoke artefact velvet skull pop palace tortoise damage rough..."
           }
         }
       }
@@ -227,18 +227,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Welcome to NymVPN!"
-          }
-        }
-      }
-    },
-    "addCredentialsGetStarted.Subtitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You can only use the recovery phrase created in NymVPN, not the Nym Wallet."
+            "value" : "Welcome to NymVPN"
           }
         }
       }
@@ -249,7 +238,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recovery phrase"
+            "value" : "Access Code"
           }
         }
       }
@@ -1327,7 +1316,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Log in"
+            "value" : "Connect device"
           }
         }
       }
@@ -1349,7 +1338,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You will need your recovery phrase to log in again."
+            "value" : "You will need your anonymous Access Code to log in again."
           }
         }
       }

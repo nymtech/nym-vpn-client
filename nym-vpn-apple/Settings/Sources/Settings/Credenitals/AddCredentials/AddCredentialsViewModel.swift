@@ -31,7 +31,6 @@ final class AddCredentialsViewModel: ObservableObject {
     let loginButtonTitle = "addCredentials.Login.Title".localizedString
     let welcomeTitle = "addCredentials.welcome.Title".localizedString
     let getStartedTitle = "addCredentials.getStarted.Title".localizedString
-    let getStartedSubtitle = "addCredentialsGetStarted.Subtitle".localizedString
     let mnemonicSubtitle = "addCredtenials.mnemonic".localizedString
     let credentialsPlaceholderTitle = "addCredentials.placeholder".localizedString
     let logoImageName = "addCredentialsLogo"
