@@ -7,12 +7,13 @@ use std::{
     time::Duration,
 };
 
+use crate::netstack::NetstackRequest;
 use anyhow::bail;
 use base64::{engine::general_purpose, Engine as _};
 use bytes::BytesMut;
 use dns_lookup::lookup_host;
 use futures::StreamExt;
-use netstack::{NetstackCall as _, NetstackCallImpl};
+use netstack::ffi::{NetstackCall as _, NetstackCallImpl, NetstackRequestGo};
 use nym_authenticator_client::{AuthenticatorResponse, AuthenticatorVersion, ClientMessage};
 use nym_authenticator_requests::{v2, v3, v4};
 use nym_config::defaults::NymNetworkDetails;
@@ -66,6 +67,7 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
     let entry_gateway_id = entry_gateway.identity();
 
     info!("Probing gateway: {entry_gateway:?}");
+    debug!("gateway_host: {}", gateway_host);
 
     // Connect to the mixnet
     let mixnet_client = MixnetClientBuilder::new_ephemeral()
@@ -219,15 +221,11 @@ async fn wg_probe(
 
         let peer_public = registered_data.pub_key().inner();
         let static_private = x25519_dalek::StaticSecret::from(private_key.to_bytes());
-
-        // let private_key_bs64 = general_purpose::STANDARD.encode(static_private.as_bytes());
         let public_key_bs64 = general_purpose::STANDARD.encode(peer_public.as_bytes());
-
         let private_key_hex = hex::encode(static_private.to_bytes());
         let public_key_hex = hex::encode(peer_public.as_bytes());
 
         info!("WG connection details");
-        // info!("Our private key: {}", private_key_bs64);
         info!("Peer public key: {}", public_key_bs64);
         info!(
             "ips {}(v4) {}(v6), port {}",
@@ -239,7 +237,10 @@ async fn wg_probe(
         let gateway_ip = match gateway_host {
             nym_topology::NetworkAddress::Hostname(host) => lookup_host(host)?
                 .first()
-                .map(|ip| ip.to_string())
+                .map(|ip| match ip {
+                    IpAddr::V4(ip) => ip.to_string(),
+                    IpAddr::V6(ip) => format!("[{}]", ip),
+                })
                 .unwrap_or_default(),
             nym_topology::NetworkAddress::IpAddr(ip) => match ip {
                 IpAddr::V4(ip) => ip.to_string(),
@@ -254,41 +255,45 @@ async fn wg_probe(
         wg_outcome.can_register = true;
 
         if wg_outcome.can_register {
-            let netstack_request = netstack::NetstackRequest {
-                wg_ip: registered_data.private_ips().ipv4.to_string(),
-                private_key: private_key_hex.clone(),
-                public_key: public_key_hex.clone(),
-                endpoint: wg_endpoint.clone(),
-                ..Default::default()
-            };
+            let netstack_request = NetstackRequest::new(
+                &registered_data.private_ips().ipv4.to_string(),
+                &registered_data.private_ips().ipv6.to_string(),
+                &private_key_hex,
+                &public_key_hex,
+                &wg_endpoint,
+                None,
+                None,
+            );
 
-            let netstack_response = NetstackCallImpl::ping(&netstack_request);
+            // Perform IPv4 ping test
+            let ipv4_request = NetstackRequestGo::from_rust_v4(&netstack_request);
 
-            info!("Wireguard probe response for IPv4: {:?}", netstack_response);
-            wg_outcome.can_handshake_v4 = netstack_response.can_handshake;
-            wg_outcome.can_resolve_dns_v4 = netstack_response.can_resolve_dns;
+            let netstack_response_v4 = NetstackCallImpl::ping(&ipv4_request);
+            info!(
+                "Wireguard probe response for IPv4: {:?}",
+                netstack_response_v4
+            );
+            wg_outcome.can_handshake_v4 = netstack_response_v4.can_handshake;
+            wg_outcome.can_resolve_dns_v4 = netstack_response_v4.can_resolve_dns;
             wg_outcome.ping_hosts_performance_v4 =
-                netstack_response.received_hosts as f32 / netstack_response.sent_hosts as f32;
+                netstack_response_v4.received_hosts as f32 / netstack_response_v4.sent_hosts as f32;
             wg_outcome.ping_ips_performance_v4 =
-                netstack_response.received_ips as f32 / netstack_response.sent_ips as f32;
+                netstack_response_v4.received_ips as f32 / netstack_response_v4.sent_ips as f32;
 
-            let netstack_request = netstack::NetstackRequest {
-                wg_ip: registered_data.private_ips().ipv6.to_string(),
-                private_key: private_key_hex,
-                public_key: public_key_hex,
-                endpoint: wg_endpoint.clone(),
-                ..Default::default()
-            };
+            // Perform IPv6 ping test
+            let ipv6_request = NetstackRequestGo::from_rust_v6(&netstack_request);
 
-            let netstack_response = NetstackCallImpl::ping(&netstack_request);
-
-            info!("Wireguard probe response for IPv6: {:?}", netstack_response);
-            wg_outcome.can_handshake_v6 = netstack_response.can_handshake;
-            wg_outcome.can_resolve_dns_v6 = netstack_response.can_resolve_dns;
+            let netstack_response_v6 = NetstackCallImpl::ping(&ipv6_request);
+            info!(
+                "Wireguard probe response for IPv6: {:?}",
+                netstack_response_v6
+            );
+            wg_outcome.can_handshake_v6 = netstack_response_v6.can_handshake;
+            wg_outcome.can_resolve_dns_v6 = netstack_response_v6.can_resolve_dns;
             wg_outcome.ping_hosts_performance_v6 =
-                netstack_response.received_hosts as f32 / netstack_response.sent_hosts as f32;
+                netstack_response_v6.received_hosts as f32 / netstack_response_v6.sent_hosts as f32;
             wg_outcome.ping_ips_performance_v6 =
-                netstack_response.received_ips as f32 / netstack_response.sent_ips as f32;
+                netstack_response_v6.received_ips as f32 / netstack_response_v6.sent_ips as f32;
         }
     }
 
@@ -376,14 +381,18 @@ async fn send_icmp_pings(
     our_ips: IpPair,
     exit_router_address: IpPacketRouterAddress,
 ) -> anyhow::Result<()> {
+    // ipv4 addresses for testing
     let ipr_tun_ip_v4 = Ipv4Addr::new(10, 0, 0, 1);
-    let ipr_tun_ip_v6 = Ipv6Addr::new(0x2001, 0xdb8, 0xa160, 0, 0, 0, 0, 0x1);
     let external_ip_v4 = Ipv4Addr::new(8, 8, 8, 8);
+
+    // ipv6 addresses for testing
+    let ipr_tun_ip_v6 = Ipv6Addr::new(0x2001, 0xdb8, 0xa160, 0, 0, 0, 0, 0x1);
     let external_ip_v6 = Ipv6Addr::new(0x2001, 0x4860, 0x4860, 0, 0, 0, 0, 0x8888);
+
     info!("Sending ICMP echo requests to: {ipr_tun_ip_v4}, {ipr_tun_ip_v6}, {external_ip_v4}, {external_ip_v6}");
+
+    // send ipv4 pings
     for ii in 0..10 {
-        // HACK: there is hidden hardcoded assumption about these IPs inside
-        // `check_for_icmp_beacon_reply`
         send_ping_v4(
             shared_mixnet_client.clone(),
             our_ips,
@@ -400,6 +409,10 @@ async fn send_icmp_pings(
             exit_router_address,
         )
         .await?;
+    }
+
+    // send ipv6 pings
+    for ii in 0..10 {
         send_ping_v6(
             shared_mixnet_client.clone(),
             our_ips,
