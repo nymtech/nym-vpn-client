@@ -123,8 +123,8 @@ function build_windows {
             local target_dir="../../build/lib/$arch-pc-windows-gnu/"
         fi
 
-        echo "Copying files to $(realpath "$target_dir")"
         mkdir -p $target_dir
+        echo "Copying files to $(realpath "$target_dir")"
         mv libwg.dll libwg.lib $target_dir
     popd
 }
