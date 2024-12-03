@@ -147,4 +147,31 @@ mod tests {
             )]))
         );
     }
+
+    #[test]
+    fn parse_statistics() {
+        let json = r#"{
+            "showaccounts": "true",
+            "website": {
+                "showaccounts": "true",
+                "foo": "bar"
+            },
+            "zknyms": {
+                "credentialmode": "false"
+            },
+            "statistics": {
+                "recipient": "6Yu1b6cb3TJNProLHSL1kAiDcpiRxBrhiqUbP9uDz3xz.8boeihWTpiMNzCzdWmeDgc77yUZio47kdRRaLiqvXqyC@8wH1ScVTGnBVxLjrA3hzZ8m55dvpkiNrpqTet6ccchFV",
+                "foo": "bar"
+            }
+        }"#;
+        let parsed: Value = serde_json::from_str(json).unwrap();
+        let flags = FeatureFlags::try_from(parsed).unwrap();
+        assert_eq!(
+            flags.flags["statistics"],
+            FlagValue::Group(HashMap::from([(
+                "recipient".to_owned(),
+                "6Yu1b6cb3TJNProLHSL1kAiDcpiRxBrhiqUbP9uDz3xz.8boeihWTpiMNzCzdWmeDgc77yUZio47kdRRaLiqvXqyC@8wH1ScVTGnBVxLjrA3hzZ8m55dvpkiNrpqTet6ccchFV".to_owned()
+            )]))
+        );
+    }
 }

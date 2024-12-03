@@ -79,6 +79,9 @@ pub struct TunnelSettings {
     /// Enable the credentials mode between the client and the gateways.
     pub enable_credentials_mode: bool,
 
+    /// The (optional) recipient to send statistics to.
+    pub statistics_recipient: Option<Recipient>,
+
     /// Mixnet tunnel options.
     pub mixnet_tunnel_options: MixnetTunnelOptions,
 
@@ -167,6 +170,7 @@ impl Default for TunnelSettings {
         Self {
             tunnel_type: TunnelType::Wireguard,
             enable_credentials_mode: false,
+            statistics_recipient: None,
             mixnet_tunnel_options: MixnetTunnelOptions::default(),
             mixnet_client_config: None,
             wireguard_tunnel_options: WireguardTunnelOptions::default(),

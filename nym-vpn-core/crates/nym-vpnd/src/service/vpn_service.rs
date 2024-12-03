@@ -339,13 +339,19 @@ where
     // commands.
     vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
 
+    // Broadcast channel for sending state changes to the outside world
     vpn_state_changes_tx: broadcast::Sender<VpnServiceStateChange>,
+
+    // Broadcast channel for sending mixnet events to the outside world
     status_tx: broadcast::Sender<MixnetEvent>,
 
     // Send commands to the account controller
     account_command_tx: AccountControllerCommander,
 
+    // Path to the main config file
     config_file: PathBuf,
+
+    // Path to the data directory
     data_dir: PathBuf,
 
     // Storage backend
@@ -365,6 +371,9 @@ where
 
     // Service shutdown token.
     shutdown_token: CancellationToken,
+
+    // The (optional) recipient to send statistics to
+    statistics_recipient: Option<Recipient>,
 }
 
 impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
@@ -426,6 +435,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         super::config::create_data_dir(&data_dir).map_err(Error::ConfigSetup)?;
 
         let credentials_mode = get_feature_flag_credential_mode(&network_env);
+        let statistics_recipient = get_feature_flag_stats_recipient(&network_env);
 
         // We need to create the user agent here and not in the controller so that we correctly
         // pick up build time constants.
@@ -488,6 +498,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             command_sender,
             event_receiver,
             shutdown_token,
+            statistics_recipient,
         })
     }
 }
@@ -750,6 +761,11 @@ where
                 .map(|x| x.round_to_integer()),
         };
 
+        tracing::info!(
+            "Using statistics recipient: {:?}",
+            self.statistics_recipient
+        );
+
         let mixnet_client_config = MixnetClientConfig {
             disable_poisson_rate: options.disable_poisson_rate,
             disable_background_cover_traffic: options.disable_background_cover_traffic,
@@ -775,6 +791,7 @@ where
         let tunnel_settings = TunnelSettings {
             tunnel_type,
             enable_credentials_mode: options.enable_credentials_mode,
+            statistics_recipient: self.statistics_recipient.clone(),
             mixnet_tunnel_options: MixnetTunnelOptions::default(),
             wireguard_tunnel_options: WireguardTunnelOptions {
                 multihop_mode: if options.netstack {
@@ -1176,4 +1193,8 @@ fn get_feature_flag_credential_mode(network_env: &Network) -> bool {
     network_env
         .get_feature_flag("zkNym", "credentialMode")
         .unwrap_or(false)
+}
+
+fn get_feature_flag_stats_recipient(network_env: &Network) -> Option<Recipient> {
+    network_env.get_feature_flag("statistics", "recipient")
 }

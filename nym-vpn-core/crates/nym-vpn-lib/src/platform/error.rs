@@ -76,6 +76,9 @@ pub enum VpnError {
 
     #[error("invalid account storage path: {details}")]
     InvalidAccountStoragePath { details: String },
+
+    #[error("invalid statistics recipient")]
+    StatisticsRecipient,
 }
 
 impl From<nym_vpn_account_controller::ReadyToConnect> for VpnError {
