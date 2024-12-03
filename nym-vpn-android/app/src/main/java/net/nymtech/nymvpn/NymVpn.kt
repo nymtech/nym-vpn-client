@@ -63,6 +63,8 @@ class NymVpn : Application() {
 			Timber.plant(ReleaseTree())
 		}
 		applicationScope.launch {
+			val env = settingsRepository.getEnvironment()
+			backend.get().init(env, settingsRepository.isCredentialMode())
 			settingsRepository.getLocale()?.let {
 				LocaleUtil.changeLocale(it)
 			}
