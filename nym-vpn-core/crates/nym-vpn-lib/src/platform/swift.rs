@@ -6,7 +6,6 @@ use std::str::FromStr;
 use log::LevelFilter;
 use oslog::OsLogger;
 
-
 /// Path used for MacOS logs
 #[cfg(target_os = "macos")]
 const MACOS_LOG_FILEPATH: &str = "/var/log/nym-vpnd/daemon.log";
@@ -17,14 +16,13 @@ const IOS_LOG_FILEPATH_VAR: &str = "IOS_LOG_FILEPATH";
 
 /// Enables and configures logging using the `log` and `oslog` libraries.
 ///
-/// On call this subscriber attempts to parse filter level from the `"RUST_LOG"` environment variable.
-/// If that is not set it defaults to `INFO` level.
+/// On call this subscriber attempts to parse filter level from the provided argument. If that is not set it defaults to
+/// `INFO` level.
 ///
-/// As logs are not available to iOS or MacOS apps through the console, logs can be written to
-/// file for handling. On iOS if a path is provided in the `"IOS__LOG_FILEPATH"` variable this
-/// function will attempt to open that file and use it as the logging sink. On MacOS logs are
-/// written to the static `"/var/log/nym-vpnd/daemon.log"`. If we are unable to open the
-/// log filepath for either iOS or MacOS we default to writing to the default (console) output.
+/// As logs are not available to iOS or MacOS apps through the console, logs can be written to file for handling. On iOS
+/// if a path is provided in the `"IOS_LOG_FILEPATH"` environment variable this function will attempt to open that file
+/// and use it as the logging sink. On MacOS logs are written to the static `"/var/log/nym-vpnd/daemon.log"`. If we are
+/// unable to open the log filepath for either iOS or MacOS we default to writing to the default (console) output.
 pub fn init_logs(level: String) {
     let log_builder = OsLogger::new("net.nymtech.vpn.agent")
         .level_filter(LevelFilter::from_str(&level).unwrap_or(LevelFilter::Info))
@@ -38,7 +36,6 @@ pub fn init_logs(level: String) {
         .category_level_filter("handlebars", LevelFilter::Warn)
         .category_level_filter("sled", LevelFilter::Warn);
 
-    
     #[cfg(target_os = "macos")]
     if let Ok(f) = ::std::fs::File::create(MACOS_LOG_FILEPATH) {
         log_builder.target(env_logger::fmt::Target::Pipe(Box::new(f)));
