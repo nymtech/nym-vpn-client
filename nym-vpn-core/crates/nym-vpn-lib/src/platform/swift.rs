@@ -3,7 +3,7 @@
 
 use std::str::FromStr;
 
-use log::{LevelFilter, Log};
+use log::LevelFilter;
 use oslog::OsLogger;
 
 /// Path used for MacOS logs
@@ -24,7 +24,7 @@ const IOS_LOG_FILEPATH_VAR: &str = "IOS_LOG_FILEPATH";
 /// and use it as the logging sink. On MacOS logs are written to the static `"/var/log/nym-vpnd/daemon.log"`. If we are
 /// unable to open the log filepath for either iOS or MacOS we default to writing to the default (console) output.
 pub fn init_logs(level: String) {
-    let log_builder = OsLogger::new("net.nymtech.vpn.agent")
+    let oslog_builder = OsLogger::new("net.nymtech.vpn.agent")
         .level_filter(LevelFilter::from_str(&level).unwrap_or(LevelFilter::Info))
         .category_level_filter("hyper", LevelFilter::Warn)
         .category_level_filter("tokio_reactor", LevelFilter::Warn)
@@ -37,23 +37,48 @@ pub fn init_logs(level: String) {
         .category_level_filter("sled", LevelFilter::Warn);
 
     #[cfg(target_os = "macos")]
-    if let Ok(f) = ::std::fs::File::create(MACOS_LOG_FILEPATH) {
-        log_builder.target(env_logger::fmt::Target::Pipe(Box::new(f)));
-    }
+    let mut log_builder = match ::std::fs::File::create(MACOS_LOG_FILEPATH) {
+        Ok(f) => Some(
+            pretty_env_logger::formatted_timed_builder()
+                .target(env_logger::fmt::Target::Pipe(Box::new(f))),
+        ),
+        Err(_) => None,
+    };
 
     #[cfg(target_os = "ios")]
-    if let Ok(logfile_path) = ::std::env::var(IOS_LOG_FILEPATH_VAR) {
-        if let Ok(f) = ::std::fs::File::create(logfile_path) {
-            log_builder.target(env_logger::fmt::Target::Pipe(Box::new(f)));
-        }
-    }
+    let log_builder = match ::std::env::var(IOS_LOG_FILEPATH_VAR) {
+        Ok(logfile_path) => match ::std::fs::File::create(logfile_path) {
+            Ok(f) => Some(
+                pretty_env_logger::formatted_timed_builder()
+                    .target(env_logger::fmt::Target::Pipe(Box::new(f))),
+            ),
+            Err(_) => None,
+        },
+        Err(_) => None,
+    };
 
-    match log_builder.init() {
+    let result = match log_builder {
+        Some(builder) => builder
+            .level_filter(LevelFilter::from_str(&level).unwrap_or(LevelFilter::Info))
+            .filter_module("hyper", log::LevelFilter::Warn)
+            .filter_module("tokio_reactor", log::LevelFilter::Warn)
+            .filter_module("reqwest", log::LevelFilter::Warn)
+            .filter_module("mio", log::LevelFilter::Warn)
+            .filter_module("want", log::LevelFilter::Warn)
+            .filter_module("tungstenite", log::LevelFilter::Warn)
+            .filter_module("tokio_tungstenite", log::LevelFilter::Warn)
+            .filter_module("handlebars", log::LevelFilter::Warn)
+            .filter_module("sled", log::LevelFilter::Warn)
+            .try_init(),
+        None => oslog_builder.init(),
+    };
+
+    match result {
         Ok(_) => {
             tracing::debug!("Logger initialized");
         }
         Err(e) => {
-            tracing::error!("Failed to initialize os_log: {}", e);
+            tracing::error!("Failed to initialize swift logger: {}", e);
         }
     };
 }
