@@ -20,6 +20,7 @@ pub use feature_flags::FeatureFlags;
 use feature_flags::FlagValue;
 use futures_util::FutureExt;
 pub use nym_network::NymNetwork;
+use nym_sdk::mixnet::Recipient;
 pub use nym_vpn_network::NymVpnNetwork;
 pub use system_messages::{SystemMessage, SystemMessages};
 
@@ -154,6 +155,10 @@ impl Network {
 
     pub fn get_feature_flag_credential_mode(&self) -> Option<bool> {
         self.get_feature_flag("zkNyms", "credentialMode")
+    }
+
+    pub fn get_feature_flag_stats_recipient(&self) -> Option<Recipient> {
+        self.get_feature_flag("statistics", "recipient")
     }
 }
 
