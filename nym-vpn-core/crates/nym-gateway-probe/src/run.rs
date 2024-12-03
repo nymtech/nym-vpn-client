@@ -33,6 +33,9 @@ struct CliArgs {
     min_gateway_vpn_performance: Option<u8>,
 
     #[arg(long, short)]
+    only_wireguard: bool,
+
+    #[arg(long, short)]
     no_log: bool,
 }
 
@@ -69,7 +72,7 @@ pub(crate) async fn run() -> anyhow::Result<ProbeResult> {
         fetch_random_gateway_with_ipr(min_gateway_performance).await?
     };
 
-    nym_gateway_probe::probe(gateway, min_gateway_performance).await
+    nym_gateway_probe::probe(gateway, min_gateway_performance, args.only_wireguard).await
 }
 
 async fn fetch_random_gateway_with_ipr(

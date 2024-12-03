@@ -66,6 +66,7 @@ pub async fn fetch_gateways_with_ipr(
 pub async fn probe(
     entry_point: EntryPoint,
     min_gateway_performance: GatewayMinPerformance,
+    only_wireguard: bool,
 ) -> anyhow::Result<ProbeResult> {
     // Setup the entry gateways
     let gateways = lookup_gateways(min_gateway_performance).await?;
@@ -74,14 +75,18 @@ pub async fn probe(
     let authenticator = entry_gateway.authenticator_address;
     let gateway_host = entry_gateway.host.clone().unwrap();
     let auth_version = AuthenticatorVersion::from(entry_gateway.version.clone());
-    let entry_gateway_id = entry_gateway.identity();
+    let mixnet_entry_gateway_id = if only_wireguard {
+        *gateways.random_gateway().unwrap().identity()
+    } else {
+        *entry_gateway.identity()
+    };
 
     info!("Probing gateway: {entry_gateway:?}");
     debug!("gateway_host: {}", gateway_host);
 
     // Connect to the mixnet
     let mixnet_client = MixnetClientBuilder::new_ephemeral()
-        .request_gateway(entry_gateway_id.to_string())
+        .request_gateway(mixnet_entry_gateway_id.to_string())
         .network_details(NymNetworkDetails::new_from_env())
         .debug_config(mixnet_debug_config())
         .build()?
@@ -93,7 +98,7 @@ pub async fn probe(
         Err(err) => {
             error!("Failed to connect to mixnet: {err}");
             return Ok(ProbeResult {
-                gateway: entry_gateway_id.to_string(),
+                gateway: mixnet_entry_gateway_id.to_string(),
                 outcome: ProbeOutcome {
                     as_entry: Entry::fail_to_connect(),
                     as_exit: None,
