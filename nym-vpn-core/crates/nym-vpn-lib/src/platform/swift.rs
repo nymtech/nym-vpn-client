@@ -3,7 +3,7 @@
 
 use std::str::FromStr;
 
-use log::LevelFilter;
+use log::{LevelFilter, Log};
 use oslog::OsLogger;
 
 /// Path used for MacOS logs
@@ -43,7 +43,7 @@ pub fn init_logs(level: String) {
 
     #[cfg(target_os = "ios")]
     if let Ok(logfile_path) = ::std::env::var(IOS_LOG_FILEPATH_VAR) {
-        if let Ok(f) = File::create(logfile_path) {
+        if let Ok(f) = ::std::fs::File::create(logfile_path) {
             log_builder.target(env_logger::fmt::Target::Pipe(Box::new(f)));
         }
     }

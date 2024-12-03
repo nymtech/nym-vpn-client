@@ -17,6 +17,7 @@ async-trait.workspace = true
 bincode.workspace = true
 bs58.workspace = true
 bytes.workspace = true
+env_logger.workspace = true
 futures.workspace = true
 hickory-resolver.workspace = true
 ipnetwork.workspace = true
