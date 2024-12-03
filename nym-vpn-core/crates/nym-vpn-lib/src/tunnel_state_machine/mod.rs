@@ -13,6 +13,10 @@ mod states;
 mod tun_ipv6;
 pub mod tunnel;
 mod tunnel_monitor;
+#[cfg(windows)]
+mod wintun;
+#[cfg(windows)]
+use wintun::SetupWintunAdapterError;
 
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use std::sync::Arc;
@@ -712,23 +716,6 @@ impl Error {
             Self::GetDefaultInterface(_) => ErrorStateReason::Internal,
         })
     }
-}
-
-/// Wintun adapter configuration error.
-#[cfg(windows)]
-#[derive(Debug, thiserror::Error)]
-pub enum SetupWintunAdapterError {
-    #[error("failed to set wintun adapter ipv4 address: {}", _0)]
-    SetIpv4Addr(#[source] nym_windows::net::Error),
-
-    #[error("failed to set wintun adapter ipv6 address: {}", _0)]
-    SetIpv6Addr(#[source] nym_windows::net::Error),
-
-    #[error("failed to set wintun adapter ipv4 gateway address: {}", _0)]
-    SetIpv4Gateway(#[source] nym_windows::net::Error),
-
-    #[error("failed to set wintun adapter ipv6 gateway address: {}", _0)]
-    SetIpv6Gateway(#[source] nym_windows::net::Error),
 }
 
 impl tunnel::Error {

@@ -1,7 +1,5 @@
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 use std::net::Ipv4Addr;
-#[cfg(windows)]
-use std::net::{IpAddr, Ipv6Addr};
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use std::os::fd::{AsRawFd, IntoRawFd};
 #[cfg(target_os = "android")]
@@ -10,6 +8,8 @@ use std::os::fd::{FromRawFd, OwnedFd};
 use std::sync::Arc;
 use std::{cmp, time::Duration};
 
+#[cfg(windows)]
+use super::wintun::{self, WintunAdapterConfig};
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use nym_gateway_directory::GatewayMinPerformance;
@@ -19,16 +19,12 @@ use tokio_util::sync::CancellationToken;
 use tun::AsyncDevice;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use tun::Device;
-#[cfg(windows)]
-use windows_sys::Win32::NetworkManagement::Ndis::NET_LUID_LH;
 
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_ip_packet_requests::IpPair;
 
 #[cfg(target_os = "linux")]
 use super::default_interface::DefaultInterface;
-#[cfg(windows)]
-use super::SetupWintunAdapterError;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use super::{dns_handler::DnsHandlerHandle, route_handler::RouteHandler};
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -515,7 +511,7 @@ impl TunnelMonitor {
 
         tracing::info!("Created wintun device: {}", wintun_exit_interface.name);
 
-        Self::setup_wintun_adapter(wintun_exit_interface.windows_luid(), exit_adapter_config)?;
+        wintun::setup_wintun_adapter(wintun_exit_interface.windows_luid(), exit_adapter_config)?;
 
         let routing_config = RoutingConfig::WireguardNetstack {
             exit_tun_name: wintun_exit_interface.name.clone(),
@@ -650,8 +646,8 @@ impl TunnelMonitor {
         );
         tracing::info!("Created exit wintun device: {}", wintun_exit_interface.name);
 
-        Self::setup_wintun_adapter(wintun_entry_interface.windows_luid(), entry_adapter_config)?;
-        Self::setup_wintun_adapter(wintun_exit_interface.windows_luid(), exit_adapter_config)?;
+        wintun::setup_wintun_adapter(wintun_entry_interface.windows_luid(), entry_adapter_config)?;
+        wintun::setup_wintun_adapter(wintun_exit_interface.windows_luid(), exit_adapter_config)?;
 
         let routing_config = RoutingConfig::Wireguard {
             entry_tun_name: wintun_entry_interface.name.clone(),
@@ -666,28 +662,6 @@ impl TunnelMonitor {
         let any_tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
 
         Ok((tunnel_conn_data, any_tunnel_handle))
-    }
-
-    #[cfg(windows)]
-    fn setup_wintun_adapter(luid: NET_LUID_LH, adapter_config: WintunAdapterConfig) -> Result<()> {
-        use nym_windows::net;
-
-        net::add_ip_address_for_interface(luid, IpAddr::V4(adapter_config.interface_ipv4))
-            .map_err(SetupWintunAdapterError::SetIpv4Addr)?;
-        net::add_ip_address_for_interface(luid, IpAddr::V6(adapter_config.interface_ipv6))
-            .map_err(SetupWintunAdapterError::SetIpv6Addr)?;
-
-        if let Some(gateway_ipv4) = adapter_config.gateway_ipv4 {
-            net::add_default_ipv4_gateway_for_interface(luid, gateway_ipv4)
-                .map_err(SetupWintunAdapterError::SetIpv4Gateway)?;
-        }
-
-        if let Some(gateway_ipv6) = adapter_config.gateway_ipv6 {
-            net::add_default_ipv6_gateway_for_interface(luid, gateway_ipv6)
-                .map_err(SetupWintunAdapterError::SetIpv6Gateway)?;
-        }
-
-        Ok(())
     }
 
     #[cfg(any(target_os = "ios", target_os = "android"))]
@@ -862,20 +836,4 @@ fn wait_delay(retry_attempt: u32) -> Duration {
     let multiplier = retry_attempt.saturating_mul(DELAY_MULTIPLIER);
     let delay = INITIAL_WAIT_DELAY.saturating_mul(multiplier);
     cmp::min(delay, MAX_WAIT_DELAY)
-}
-
-/// Struct holding wintun adapter IP configuration.
-#[cfg(windows)]
-struct WintunAdapterConfig {
-    /// Interface IPv4 address.
-    interface_ipv4: Ipv4Addr,
-
-    /// Interface IPv6 address.
-    interface_ipv6: Ipv6Addr,
-
-    /// Default IPv4 gateway.
-    gateway_ipv4: Option<Ipv4Addr>,
-
-    /// Default IPv6 gateway.
-    gateway_ipv6: Option<Ipv6Addr>,
 }
