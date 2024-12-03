@@ -5,6 +5,7 @@ use std::str::FromStr;
 
 use log::LevelFilter;
 use oslog::OsLogger;
+use pretty_env_logger::env_logger::fmt::Target;
 
 /// Path used for MacOS logs
 #[cfg(target_os = "macos")]
@@ -38,20 +39,18 @@ pub fn init_logs(level: String) {
 
     #[cfg(target_os = "macos")]
     let mut log_builder = match ::std::fs::File::create(MACOS_LOG_FILEPATH) {
-        Ok(f) => Some(
-            pretty_env_logger::formatted_timed_builder()
-                .target(env_logger::fmt::Target::Pipe(Box::new(f))),
-        ),
+        Ok(f) => {
+            Some(pretty_env_logger::formatted_timed_builder().target(Target::Pipe(Box::new(f))))
+        }
         Err(_) => None,
     };
 
     #[cfg(target_os = "ios")]
     let log_builder = match ::std::env::var(IOS_LOG_FILEPATH_VAR) {
         Ok(logfile_path) => match ::std::fs::File::create(logfile_path) {
-            Ok(f) => Some(
-                pretty_env_logger::formatted_timed_builder()
-                    .target(env_logger::fmt::Target::Pipe(Box::new(f))),
-            ),
+            Ok(f) => {
+                Some(pretty_env_logger::formatted_timed_builder().target(Target::Pipe(Box::new(f))))
+            }
             Err(_) => None,
         },
         Err(_) => None,
@@ -59,7 +58,7 @@ pub fn init_logs(level: String) {
 
     let result = match log_builder {
         Some(builder) => builder
-            .level_filter(LevelFilter::from_str(&level).unwrap_or(LevelFilter::Info))
+            .filter_level(LevelFilter::from_str(&level).unwrap_or(LevelFilter::Info))
             .filter_module("hyper", log::LevelFilter::Warn)
             .filter_module("tokio_reactor", log::LevelFilter::Warn)
             .filter_module("reqwest", log::LevelFilter::Warn)
