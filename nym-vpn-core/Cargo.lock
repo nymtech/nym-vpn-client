@@ -4920,6 +4920,7 @@ dependencies = [
  "futures-util",
  "itertools 0.13.0",
  "nym-config",
+ "nym-sdk",
  "reqwest 0.11.27",
  "serde",
  "serde_json",

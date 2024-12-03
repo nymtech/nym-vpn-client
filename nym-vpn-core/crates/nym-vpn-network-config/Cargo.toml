@@ -10,13 +10,15 @@ license.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+futures-util = "0.3"
 itertools.workspace = true
+nym-config.workspace = true
+nym-sdk.workspace = true
 reqwest = { workspace = true, default-features = false, features = [
     "blocking",
     "rustls-tls",
     "json",
-] }
-nym-config.workspace = true
+]}
 serde.workspace = true
 serde_json.workspace = true
 tempfile.workspace = true
@@ -25,7 +27,9 @@ tokio = { workspace = true, features = ["time", "macros"] }
 tokio-util.workspace = true
 tracing.workspace = true
 url = { workspace = true, features = ["serde"] }
-futures-util = "0.3"
+
+[dev-dependencies]
+nym-sdk.workspace = true
 
 [build-dependencies]
 serde_json.workspace = true
