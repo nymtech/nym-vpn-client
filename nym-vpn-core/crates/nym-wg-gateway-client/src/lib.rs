@@ -61,6 +61,10 @@ impl WgGatewayLightClient {
         self.auth_recipient
     }
 
+    pub fn set_auth_client(&mut self, auth_client: AuthClient) {
+        self.auth_client = auth_client;
+    }
+
     pub async fn query_bandwidth(&mut self) -> Result<Option<i64>> {
         let query_message = match self.auth_version {
             AuthenticatorVersion::V2 => ClientMessage::Query(Box::new(QueryMessageImpl {

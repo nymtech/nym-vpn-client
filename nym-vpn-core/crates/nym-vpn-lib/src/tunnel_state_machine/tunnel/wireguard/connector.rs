@@ -14,7 +14,7 @@ use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
 
 use super::connected_tunnel::ConnectedTunnel;
 use crate::{
-    bandwidth_controller::BandwidthController,
+    bandwidth_controller::{BandwidthController, ReconnectMixnetClientData},
     mixnet::SharedMixnetClient,
     tunnel_state_machine::tunnel::{
         self, gateway_selector::SelectedGateways, AnyConnector, ConnectorError, Error, Result,
@@ -49,6 +49,7 @@ impl Connector {
         enable_credentials_mode: bool,
         selected_gateways: SelectedGateways,
         data_path: Option<PathBuf>,
+        reconnect_mixnet_client_data: ReconnectMixnetClientData,
     ) -> Result<ConnectedTunnel, ConnectorError> {
         let result = Self::connect_inner(
             &self.task_manager,
@@ -57,6 +58,7 @@ impl Connector {
             enable_credentials_mode,
             selected_gateways,
             data_path,
+            reconnect_mixnet_client_data,
         )
         .await;
 
@@ -86,6 +88,7 @@ impl Connector {
         enable_credentials_mode: bool,
         selected_gateways: SelectedGateways,
         data_path: Option<PathBuf>,
+        reconnect_mixnet_client_data: ReconnectMixnetClientData,
     ) -> Result<ConnectResult> {
         let auth_addresses =
             Self::setup_auth_addresses(&selected_gateways.entry, &selected_gateways.exit)?;
@@ -143,6 +146,7 @@ impl Connector {
                 wg_entry_gateway_client.light_client(),
                 wg_exit_gateway_client.light_client(),
                 shutdown,
+                reconnect_mixnet_client_data,
             )?;
             let entry = bw
                 .get_initial_bandwidth(
@@ -171,6 +175,7 @@ impl Connector {
                 wg_entry_gateway_client.light_client(),
                 wg_exit_gateway_client.light_client(),
                 shutdown,
+                reconnect_mixnet_client_data,
             )?;
             let entry = bw
                 .get_initial_bandwidth(
