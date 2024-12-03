@@ -98,10 +98,8 @@ android_logger.workspace = true
 rand.workspace = true
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
-oslog.workspace = true
-
-[target.'cfg(target_os = "ios")'.dependencies]
-debounced.workspace = true
+oslog = "0.2.0"
+pretty_env_logger = "0.5.0"
 
 [build-dependencies]
 uniffi = { workspace = true, features = ["build"] }

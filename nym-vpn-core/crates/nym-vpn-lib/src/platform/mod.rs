@@ -128,6 +128,19 @@ async fn configure_lib(data_dir: String, credential_mode: Option<bool>) -> Resul
     account::init_account_controller(PathBuf::from(data_dir), credential_mode, network).await
 }
 
+// async fn reconfigure_library(
+//     data_dir: String,
+//     credential_mode: Option<bool>,
+// ) -> Result<(), VpnError> {
+//     let enable_credentials_mode = is_credential_mode_enabled(credential_mode).await?;
+
+//     // stop if already running
+//     let _ = account::stop_account_controller_inner().await;
+//     init_logger();
+//     start_account_controller_inner(PathBuf::from(data_dir), enable_credentials_mode).await
+// }
+
+
 fn init_logger() {
     let log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
     tracing::info!("Setting log level: {}", log_level);
