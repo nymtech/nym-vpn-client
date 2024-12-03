@@ -225,7 +225,7 @@ impl NymVpnd for CommandInterface {
                 error: None,
             },
             Err(err) => {
-                tracing::info!("Connect request error: {:?}", err);
+                tracing::debug!("Connect request error: {:?}", err);
                 ConnectResponse {
                     success: false,
                     error: Some(nym_vpn_proto::ConnectRequestError::from(err)),

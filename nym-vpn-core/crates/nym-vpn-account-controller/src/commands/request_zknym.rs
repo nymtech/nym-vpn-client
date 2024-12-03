@@ -117,7 +117,7 @@ impl RequestZkNymCommandHandler {
             ));
         }
         let ticket_types = self.check_ticket_types_running_low().await?;
-        tracing::info!("Ticket types running low: {:?}", ticket_types);
+        tracing::debug!("Ticket types running low: {:?}", ticket_types);
 
         self.account_state
             .set_zk_nym_request(RequestZkNymResult::InProgress)

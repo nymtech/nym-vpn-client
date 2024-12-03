@@ -414,7 +414,7 @@ where
     async fn handle_get_available_tickets(
         &self,
     ) -> Result<AvailableTicketbooks, AccountCommandError> {
-        tracing::info!("Getting available tickets from local credential storage");
+        tracing::debug!("Getting available tickets from local credential storage");
         self.credential_storage
             .print_info()
             .await

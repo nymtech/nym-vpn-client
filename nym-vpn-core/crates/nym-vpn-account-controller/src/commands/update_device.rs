@@ -100,7 +100,7 @@ pub(crate) async fn update_state(
     vpn_api_client: &nym_vpn_api_client::VpnApiClient,
     previous_devices_response: &PreviousDevicesResponse,
 ) -> Result<DeviceState, AccountCommandError> {
-    tracing::info!("Updating device state");
+    tracing::debug!("Updating device state");
 
     let devices = vpn_api_client.get_devices(account).await.map_err(|err| {
         nym_vpn_api_client::response::extract_error_response(&err)
@@ -126,7 +126,7 @@ pub(crate) async fn update_state(
         .as_ref()
         != Some(&devices)
     {
-        tracing::info!("Updated devices: {:?}", devices);
+        tracing::debug!("Updated devices: {:?}", devices);
     }
 
     // TODO: pagination
