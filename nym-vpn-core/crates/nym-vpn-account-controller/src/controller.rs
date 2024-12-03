@@ -3,16 +3,15 @@
 
 use std::{path::PathBuf, sync::Arc, time::Duration};
 
-use nym_config::defaults::NymNetworkDetails;
 use nym_http_api_client::UserAgent;
 use nym_vpn_api_client::types::VpnApiAccount;
+use nym_vpn_network_config::Network;
 use nym_vpn_store::VpnStorage;
 use tokio::{
     sync::mpsc::{UnboundedReceiver, UnboundedSender},
     task::{JoinError, JoinSet},
 };
 use tokio_util::sync::CancellationToken;
-use url::Url;
 
 use crate::{
     commands::{
@@ -88,9 +87,16 @@ where
         storage: Arc<tokio::sync::Mutex<S>>,
         data_dir: PathBuf,
         user_agent: UserAgent,
-        credentials_mode: bool,
+        credentials_mode: Option<bool>,
+        network_env: Network,
         cancel_token: CancellationToken,
     ) -> Result<Self, Error> {
+        let credentials_mode = credentials_mode.unwrap_or_else(|| {
+            network_env
+                .get_feature_flag("zkNym", "credentialMode")
+                .unwrap_or(false)
+        });
+
         tracing::info!("Starting account controller");
         tracing::info!("Account controller: data directory: {:?}", data_dir);
         tracing::info!("Account controller: credential mode: {}", credentials_mode);
@@ -104,7 +110,9 @@ where
         let (command_tx, command_rx) = tokio::sync::mpsc::unbounded_channel();
 
         let account_state = SharedAccountState::new();
-        let vpn_api_client = create_api_client(user_agent.clone());
+        let vpn_api_client =
+            nym_vpn_api_client::VpnApiClient::new(network_env.vpn_api_url(), user_agent)
+                .map_err(Error::SetupVpnApiClient)?;
 
         let waiting_update_account_command_handler =
             WaitingUpdateAccountCommandHandler::new(account_state.clone(), vpn_api_client.clone());
@@ -646,18 +654,4 @@ where
         self.cleanup().await;
         tracing::debug!("Account controller is exiting");
     }
-}
-
-fn get_nym_vpn_api_url() -> Result<Url, Error> {
-    NymNetworkDetails::new_from_env()
-        .nym_vpn_api_url()
-        .ok_or(Error::MissingApiUrl)
-        .inspect(|url| tracing::info!("Using nym-vpn-api url: {}", url))
-}
-
-fn create_api_client(user_agent: UserAgent) -> nym_vpn_api_client::VpnApiClient {
-    // TODO: remove unwrap
-    let nym_vpn_api_url = get_nym_vpn_api_url().unwrap();
-    // TODO: remove unwrap
-    nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent).unwrap()
 }

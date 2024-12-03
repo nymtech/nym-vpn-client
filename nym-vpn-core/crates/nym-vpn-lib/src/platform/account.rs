@@ -7,6 +7,7 @@ use nym_vpn_account_controller::{
     shared_state::DeviceState, AccountCommand, AccountControllerCommander, SharedAccountState,
 };
 use nym_vpn_api_client::{response::NymVpnAccountSummaryResponse, types::VpnApiAccount};
+use nym_vpn_network_config::Network;
 use nym_vpn_store::{keys::KeyStore, mnemonic::MnemonicStorage};
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
@@ -15,14 +16,16 @@ use crate::uniffi_custom_impls::AccountStateSummary;
 
 use super::{error::VpnError, ACCOUNT_CONTROLLER_HANDLE};
 
-pub(super) async fn start_account_controller_inner(
+pub(super) async fn start_account_controller_handle(
     data_dir: PathBuf,
-    credential_mode: bool,
+    credential_mode: Option<bool>,
+    network: Network,
 ) -> Result<(), VpnError> {
     let mut guard = ACCOUNT_CONTROLLER_HANDLE.lock().await;
 
     if guard.is_none() {
-        let account_controller_handle = start_account_controller(data_dir, credential_mode).await?;
+        let account_controller_handle =
+            start_account_controller(data_dir, credential_mode, network).await?;
         *guard = Some(account_controller_handle);
         Ok(())
     } else {
@@ -32,7 +35,7 @@ pub(super) async fn start_account_controller_inner(
     }
 }
 
-pub(super) async fn stop_account_controller_inner() -> Result<(), VpnError> {
+pub(super) async fn stop_account_controller_handle() -> Result<(), VpnError> {
     let mut guard = ACCOUNT_CONTROLLER_HANDLE.lock().await;
 
     match guard.take() {
@@ -48,7 +51,8 @@ pub(super) async fn stop_account_controller_inner() -> Result<(), VpnError> {
 
 async fn start_account_controller(
     data_dir: PathBuf,
-    credential_mode: bool,
+    credential_mode: Option<bool>,
+    network_env: Network,
 ) -> Result<AccountControllerHandle, VpnError> {
     let storage = Arc::new(tokio::sync::Mutex::new(
         crate::storage::VpnClientOnDiskStorage::new(data_dir.clone()),
@@ -61,6 +65,7 @@ async fn start_account_controller(
         data_dir.clone(),
         user_agent,
         credential_mode,
+        network_env,
         shutdown_token.child_token(),
     )
     .await

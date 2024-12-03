@@ -4751,6 +4751,7 @@ dependencies = [
  "nym-sdk",
  "nym-validator-client",
  "nym-vpn-api-client",
+ "nym-vpn-network-config",
  "nym-vpn-store",
  "reqwest 0.11.27",
  "serde",

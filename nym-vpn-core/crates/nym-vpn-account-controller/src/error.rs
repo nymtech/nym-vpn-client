@@ -21,6 +21,9 @@ pub enum Error {
     #[error("missing API URL")]
     MissingApiUrl,
 
+    #[error("failed to setup nym-vpn-api client")]
+    SetupVpnApiClient(nym_vpn_api_client::VpnApiClientError),
+
     #[error("mnemonic store error")]
     MnemonicStore {
         source: Box<dyn std::error::Error + Send + Sync>,

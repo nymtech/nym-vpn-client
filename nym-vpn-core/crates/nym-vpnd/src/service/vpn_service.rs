@@ -426,8 +426,6 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         // Make sure the data dir exists
         super::config::create_data_dir(&data_dir).map_err(Error::ConfigSetup)?;
 
-        let credentials_mode = get_feature_flag_credential_mode(&network_env);
-
         // We need to create the user agent here and not in the controller so that we correctly
         // pick up build time constants.
         let user_agent = crate::util::construct_user_agent();
@@ -435,7 +433,8 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             Arc::clone(&storage),
             data_dir.clone(),
             user_agent,
-            credentials_mode,
+            None,
+            network_env.clone(),
             shutdown_token.child_token(),
         )
         .await
