@@ -40,6 +40,7 @@ import nym_vpn_lib.initEnvironment
 import nym_vpn_lib.initFallbackMainnetEnvironment
 import nym_vpn_lib.isAccountMnemonicStored
 import nym_vpn_lib.startVpn
+import nym_vpn_lib.stopVpn
 import nym_vpn_lib.storeAccountMnemonic
 import nym_vpn_lib.waitForRegisterDevice
 import nym_vpn_lib.waitForUpdateAccount
@@ -147,12 +148,16 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	@Throws(VpnException::class)
 	override suspend fun isMnemonicStored(): Boolean {
-		return isAccountMnemonicStored(storagePath)
+		return withContext(ioDispatcher) {
+			isAccountMnemonicStored(storagePath)
+		}
 	}
 
 	@Throws(VpnException::class)
 	override suspend fun removeMnemonic() {
-		forgetAccount(storagePath)
+		withContext(ioDispatcher) {
+			forgetAccount(storagePath)
+		}
 	}
 
 	@Throws(NymVpnInitializeException::class)
@@ -202,6 +207,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	override suspend fun stop() {
 		withContext(ioDispatcher) {
 			runCatching {
+				stopVpn()
 				vpnService.getCompleted().stopSelf()
 				stateMachineService.getCompleted().stopSelf()
 			}.onFailure {
