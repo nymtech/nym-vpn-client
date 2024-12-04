@@ -1,13 +1,12 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::time::Duration;
+use std::{net::IpAddr, time::Duration};
 
 use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
 use tokio_stream::{wrappers::IntervalStream, StreamExt};
 
 use nym_credentials_interface::TicketType;
-use nym_gateway_directory::GatewayClient;
 use nym_sdk::{
     mixnet::{ConnectionStatsEvent, CredentialStorage as Storage},
     NymNetworkDetails, TaskClient,
@@ -182,7 +181,7 @@ impl<St: Storage> BandwidthController<St> {
         &self,
         enable_credentials_mode: bool,
         ticketbook_type: TicketType,
-        gateway_client: &GatewayClient,
+        gateway_host: IpAddr,
         wg_gateway_client: &mut WgGatewayClient,
     ) -> Result<GatewayData>
     where
@@ -192,13 +191,6 @@ impl<St: Storage> BandwidthController<St> {
         tracing::info!("Registering with wireguard gateway");
         let authenticator_address = wg_gateway_client.auth_recipient();
         let gateway_id = *wg_gateway_client.auth_recipient().gateway();
-        let gateway_host = gateway_client
-            .lookup_gateway_ip(&gateway_id.to_base58_string())
-            .await
-            .map_err(|source| Error::LookupGatewayIp {
-                gateway_id: gateway_id.to_base58_string(),
-                source,
-            })?;
         let wg_gateway_data = wg_gateway_client
             .register_wireguard(
                 gateway_host,
