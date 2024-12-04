@@ -18,7 +18,9 @@ use nym_task::{TaskManager, TaskStatus};
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
-use super::{route_handler, MixnetEvent, TunnelType};
+#[cfg(windows)]
+use super::route_handler;
+use super::{MixnetEvent, TunnelType};
 use crate::{mixnet::SharedMixnetClient, GatewayDirectoryError, MixnetClientConfig, MixnetError};
 use status_listener::StatusListener;
 

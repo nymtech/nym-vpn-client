@@ -3,15 +3,15 @@
 
 use std::{error::Error as StdError, net::IpAddr};
 
-use nym_routing::{Callback, EventType};
-use tokio::{
-    sync::mpsc,
-    task::{JoinError, JoinHandle},
-};
+#[cfg(windows)]
+use tokio::sync::mpsc;
+use tokio::task::{JoinError, JoinHandle};
 use tokio_util::sync::CancellationToken;
+#[cfg(unix)]
+use tun::AsyncDevice;
 
 #[cfg(windows)]
-use nym_routing::CallbackHandle;
+use nym_routing::{Callback, CallbackHandle, EventType};
 use nym_task::TaskManager;
 use nym_wg_gateway_client::WgGatewayClient;
 #[cfg(windows)]
@@ -20,16 +20,15 @@ use nym_wg_go::{netstack, wireguard_go};
 #[cfg(windows)]
 use nym_windows::net::AddressFamily;
 
+#[cfg(windows)]
+use crate::tunnel_state_machine::route_handler::RouteHandler;
 #[cfg(unix)]
 use crate::tunnel_state_machine::tunnel::wireguard::fd::DupFd;
 use crate::{
-    tunnel_state_machine::{
-        route_handler::RouteHandler,
-        tunnel::{
-            tombstone::Tombstone,
-            wireguard::{connector::ConnectionData, two_hop_config::TwoHopConfig},
-            Error, Result,
-        },
+    tunnel_state_machine::tunnel::{
+        tombstone::Tombstone,
+        wireguard::{connector::ConnectionData, two_hop_config::TwoHopConfig},
+        Error, Result,
     },
     wg_config::WgNodeConfig,
 };
@@ -80,7 +79,12 @@ impl ConnectedTunnel {
     ) -> Result<TunnelHandle> {
         match options {
             TunnelOptions::TunTun(tuntun_options) => {
-                self.run_using_tun_tun(route_handler, tuntun_options).await
+                self.run_using_tun_tun(
+                    #[cfg(windows)]
+                    route_handler,
+                    tuntun_options,
+                )
+                .await
             }
             TunnelOptions::Netstack(netstack_options) => self.run_using_netstack(netstack_options),
         }
@@ -105,6 +109,7 @@ impl ConnectedTunnel {
             self.exit_mtu(),
         );
 
+        #[allow(unused_mut)]
         let mut entry_tunnel = wireguard_go::Tunnel::start(
             wg_entry_config.into_wireguard_config(),
             #[cfg(unix)]
@@ -167,6 +172,9 @@ impl ConnectedTunnel {
             {
                 child_shutdown_token.cancelled().await;
                 tracing::debug!("Received tunnel shutdown event. Exiting event loop.");
+
+                entry_tunnel.stop();
+                exit_tunnel.stop();
             }
 
             Tombstone {
