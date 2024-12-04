@@ -1,6 +1,6 @@
 ## Release
 
-This doc describes how to release a new version of the NymVPN
+This doc describes how to release a new version of the NymVPN \
 desktop app for Linux and Windows platforms
 
 ### Prerequisites
@@ -28,8 +28,8 @@ Release tags must follow the following patterns:
 version = "1.2.3"
 ```
 
-`src-tauri/Cargo.lock` should be updated accordingly, run
-`cargo build` and recheck the `Cargo.lock` changes.
+`src-tauri/Cargo.lock` should be updated accordingly, \
+run `cargo build` and recheck the `Cargo.lock` changes.
 
 2. update the version in the `package.json`, e.g. if the
    release version is `1.2.3`
@@ -38,8 +38,8 @@ version = "1.2.3"
 "version": "1.2.3",
 ```
 
-`package-lock.json` should be updated accordingly, run `npm i` and
-recheck the `package-lock.json` changes.
+`package-lock.json` should be updated accordingly, \
+run `npm i` and recheck the `package-lock.json` changes.
 
 3. update the vpnd compatibility semver version
    [requirement](https://docs.rs/semver/1.0.23/semver/struct.VersionReq.html)
@@ -66,24 +66,24 @@ Go to the workflow
 [publish-nym-vpn-app](https://github.com/nymtech/nym-vpn-client/actions/workflows/publish-nym-vpn-app.yml)
 and click on the _Run workflow_ button
 
-1. select the branch from which the release should be made
+1. select the branch from which the release should be made \
    (including the version bump changes)
 
 2. enter the release tag (including the version)
 
    **NOTE** refer to the [types of releases](#types-of-releases) section
 
-3. :warning: if it is **not** a stable release check the `pre-release` tickbox
+3. :warning: if it is **not** a stable release check the _Pre-release_ tickbox
 
-4. check the `dev` tickbox if it is a dev release, not stable,
+4. check the _dev_ tickbox if it is a dev release, not stable, \
    (that enables the network env selector)
 
-5. in the `nym-vpn-core release tag` input, enter the core release
+5. in the _nym-vpn-core release tag_ input, enter the core release \
    tag that this app release targets, e.g. `nym-vpn-core-v1.2.3`
 
 6. click the green _Run workflow_ button
 
-If the release job is successful, the release has been published
+If the release job is successful, the release has been published \
 -> https://github.com/nymtech/nym-vpn-client/releases
 
 ### Trigger the release via a git tag
@@ -94,9 +94,9 @@ _TODO_
 
 ### Post-release
 
-Once the release is published, the artifacts and sources tarball are available 
+Once the release is published, the artifacts and sources tarball are available \
 for download from GitHub. \
-Generally after a **stable** release we want to update our different packages
+Generally after a **stable** release we want to update our different packages \
 to distribute the new version.
 
 #### Linux packages
@@ -104,5 +104,16 @@ to distribute the new version.
 For now, except the `deb` package which is automatically updated \
 on new stable, the rest of the packages need to be updated manually.
 
-For AUR packages, refer to the [update AUR](update_aur.md) doc.
-For Flatpak, refer to the [update Flatpak](update_flatpak.md) doc.
+- refer to [update AUR](update_aur.md) for Arch Linux packages
+- refer to [update Flatpak](update_flatpak.md) for Flatpak package
+
+#### nymvpn.com
+
+The website should automatically scrap any new stable release. \
+Confirm all is looking as expected, e.g. download links, \
+the displayed version and hash are correct
+
+- https://nymvpn.com/en/download/linux
+- https://nymvpn.com/en/download/windows
+
+If not, it needs to be fixed in the nym-dot-com repo.

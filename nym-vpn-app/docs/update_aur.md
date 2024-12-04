@@ -2,16 +2,18 @@
 
 ### Prerequisites
 
-- A new app **stable** release has been released and published
 - A new core **stable** release has been released and published
+- A new app **stable** release has been released and published
 
 ### How to update the AUR packages
 
 We provide 2 AUR packages for the daemon:
+
 - https://aur.archlinux.org/packages/nym-vpnd
 - https://aur.archlinux.org/packages/nym-vpnd-bin
 
 We provide 2 AUR packages for the app:
+
 - https://aur.archlinux.org/packages/nym-vpn-app
 - https://aur.archlinux.org/packages/nym-vpn-app-bin
 
@@ -37,3 +39,6 @@ or you're updating the workflow itself
 6. click the green _Run workflow_ button
 
 If the job is successful, the corresponding AUR packages have been updated
+
+**NOTE** depending on the upstream release(s), you can independently update \
+the daemon and app packages
