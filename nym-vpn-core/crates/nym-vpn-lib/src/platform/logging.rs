@@ -3,7 +3,6 @@
 
 use tracing_subscriber::{filter::LevelFilter, EnvFilter};
 
-
 pub(crate) const DEFAULT_LOG_FILE: &str = "nym-vpn-lib.log";
 
 /// Enables and configures logging using the `tracing-subscriber` and `tracing-appender` libraries. If a non-empty
@@ -17,7 +16,7 @@ pub(crate) const DEFAULT_LOG_FILE: &str = "nym-vpn-lib.log";
 //
 // Is there a state object  associated with `uniffi::export` stored in `nym-vpn-lib`? As is, the
 // [`tracing_appender::rolling::RollingFileAppender`] may write in blocking mode. Without somewhere to store the
-// workingguard provided by the construction of a [`tracing_appender::non_blocking::NonBlocking`] the appender
+// worker guard provided by the construction of a [`tracing_appender::non_blocking::NonBlocking`] the appender
 // may not flush properly on drop (i.e. around a crash).
 //
 // let (writer, worker_guard) = tracing_appender::non_blocking(appender);

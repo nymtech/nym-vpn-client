@@ -14,7 +14,7 @@ pub fn setup_logging(_as_service: bool) {
 #[allow(unused)]
 pub fn setup_logging_to_file() -> WorkerGuard {
     let log_dir = service::log_dir();
-    // let path = log_dir.join(service::DEFAULT_LOG_FILE); 
+    // let path = log_dir.join(service::DEFAULT_LOG_FILE);
     // nym_vpn_lib::init_logger(path);
 
     println!("log_dir: {}", log_dir.display());
