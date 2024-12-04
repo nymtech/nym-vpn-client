@@ -1,6 +1,7 @@
 {
   "connection-progress": {
     "Initializing": "NymVPN クライアントを初期化中…",
-    "InitDone": "NymVPNクライアントが初期化されました"
+    "InitDone": "NymVPNクライアントが初期化されました",
+    "Canceling": "キャンセル中…"
   }
 }
