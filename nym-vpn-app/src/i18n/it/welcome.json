@@ -12,6 +12,8 @@
     "part1": "Aiutaci a migliorare la nostra app durante la fase beta!"
   },
   "tos": {
-    "part3": "."
+    "part3": ".",
+    "part1": "Continuando, accetti",
+    "part2": "e riconosci"
   }
 }
