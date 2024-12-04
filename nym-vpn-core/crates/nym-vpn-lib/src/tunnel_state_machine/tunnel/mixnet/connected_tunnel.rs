@@ -12,7 +12,7 @@ use nym_task::TaskManager;
 use super::connector::AssignedAddresses;
 use crate::{
     mixnet::{MixnetError, SharedMixnetClient},
-    tunnel_state_machine::tunnel::tombstone::Tombstone,
+    tunnel_state_machine::tunnel::Tombstone,
 };
 
 /// Type representing a connected mixnet tunnel.
