@@ -6,5 +6,6 @@
   "selected": "choisi",
   "cancel": "annuler",
   "login": "se connecter",
-  "logout": "se déconnecter"
+  "logout": "se déconnecter",
+  "stop": "stop"
 }
