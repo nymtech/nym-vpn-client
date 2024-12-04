@@ -41,15 +41,6 @@ run_cargo_set_version() {
     cd ../..
 }
 
-run_npm_set_version() {
-    cd $DIRNAME
-    local next_version=$1
-    local command="npm version $next_version"
-    echo "Running: $command"
-    $command
-    cd ..
-}
-
 main() {
     check_unstaged_changes
     confirm_root_directory
@@ -62,7 +53,6 @@ main() {
     fi
 
     run_cargo_set_version "$next_version" "$YES"
-    run_npm_set_version "$next_version"
     git_commit_new_dev_version "$next_version" "$NAME"
 }
 
