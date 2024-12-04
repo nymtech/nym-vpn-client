@@ -88,7 +88,7 @@ pub async fn probe(
     let mixnet_client = MixnetClientBuilder::new_ephemeral()
         .request_gateway(mixnet_entry_gateway_id.to_string())
         .network_details(NymNetworkDetails::new_from_env())
-        .debug_config(mixnet_debug_config())
+        .debug_config(mixnet_debug_config(min_gateway_performance))
         .build()?
         .connect_to_mixnet()
         .await;
@@ -335,12 +335,18 @@ async fn lookup_gateways(
     Ok(gateways)
 }
 
-fn mixnet_debug_config() -> nym_client_core::config::DebugConfig {
+fn mixnet_debug_config(
+    min_gateway_performance: GatewayMinPerformance,
+) -> nym_client_core::config::DebugConfig {
     let mut debug_config = nym_client_core::config::DebugConfig::default();
     debug_config
         .traffic
         .disable_main_poisson_packet_distribution = true;
     debug_config.cover_traffic.disable_loop_cover_traffic_stream = true;
+    if let Some(minimum_gateway_performance) = min_gateway_performance.mixnet_min_performance {
+        debug_config.topology.minimum_gateway_performance =
+            minimum_gateway_performance.round_to_integer();
+    }
     debug_config
 }
 
