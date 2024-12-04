@@ -42,22 +42,23 @@
 //!     This will stop the account controller and clean up any resources, including make sure there
 //!     are no open DB connections.
 
-#[cfg(target_os = "android")]
-pub mod android;
 pub(crate) mod error;
 pub mod helpers;
-#[cfg(any(target_os = "ios", target_os = "macos"))]
-pub mod swift;
 
 mod account;
 mod environment;
 mod state_machine;
+mod logging;
+pub use logging::init_logger;
 
-use std::{env, path::PathBuf, sync::Arc, time::Duration};
+use std::{path::PathBuf, sync::Arc, time::Duration};
 
 use account::AccountControllerHandle;
 use lazy_static::lazy_static;
-use tokio::{runtime::Runtime, sync::Mutex};
+use tokio::{
+    runtime::Runtime,
+    sync::Mutex,
+};
 
 use state_machine::StateMachineHandle;
 
@@ -123,39 +124,17 @@ pub fn configureLib(data_dir: String, credential_mode: Option<bool>) -> Result<(
 }
 
 async fn configure_lib(data_dir: String, credential_mode: Option<bool>) -> Result<(), VpnError> {
-    init_logger();
+    init_logger("");
     let network = environment::current_environment_details().await?;
     account::init_account_controller(PathBuf::from(data_dir), credential_mode, network).await
-}
-
-// async fn reconfigure_library(
-//     data_dir: String,
-//     credential_mode: Option<bool>,
-// ) -> Result<(), VpnError> {
-//     let enable_credentials_mode = is_credential_mode_enabled(credential_mode).await?;
-
-//     // stop if already running
-//     let _ = account::stop_account_controller_inner().await;
-//     init_logger();
-//     start_account_controller_inner(PathBuf::from(data_dir), enable_credentials_mode).await
-// }
-
-
-fn init_logger() {
-    let log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
-    tracing::info!("Setting log level: {}", log_level);
-    #[cfg(target_os = "ios")]
-    swift::init_logs(log_level);
-    #[cfg(target_os = "android")]
-    android::init_logs(log_level);
 }
 
 /// Additional extra function for when only only want to set the logger without initializing the
 /// library. Thus it's only needed when `configureLib` is not used.
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn initLogger() {
-    init_logger();
+pub fn initLogger(logfile_path: &str) {
+    init_logger(logfile_path);
 }
 
 /// Returns the system messages for the current network environment
