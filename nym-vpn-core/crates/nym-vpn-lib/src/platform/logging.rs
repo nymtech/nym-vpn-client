@@ -25,14 +25,16 @@ pub(crate) const DEFAULT_LOG_FILE: &str = "nym-vpn-lib.log";
 pub fn init_logger(path_str: &str) {
     #[cfg(target_os = "android")]
     {
+        let log_level = ::std::env::var("RUST_LOG").unwrap_or("info".to_string());
         init_logs(log_level);
+        /// todo
         return;
     }
 
     #[cfg(any(target_os = "ios", target_os = "macos"))]
     let mut filter = EnvFilter::builder()
         .with_env_var("RUST_LOG")
-        .with_default_directive(LevelFilter::INFO)
+        .with_default_directive(LevelFilter::INFO.into())
         .from_env_lossy();
 
     #[cfg(not(any(target_os = "ios", target_os = "macos")))]
