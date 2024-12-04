@@ -202,10 +202,7 @@ impl ConnectedTunnel {
             exit_connection.close();
             entry_tunnel.stop();
 
-            Tombstone {
-                tun_devices: vec![tun_device],
-                ..Default::default()
-            }
+            Tombstone::with_tun_device(tun_device)
         });
 
         Ok(TunnelHandle {
