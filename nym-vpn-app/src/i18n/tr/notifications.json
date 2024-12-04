@@ -6,6 +6,7 @@
   },
   "logout": {
     "success": "Oturum kapatma başarılı",
-    "error": "Oturumu kaparken bir hata oluştu. Lütfen tekrar deneyin."
-  }
+    "error": "Çıkış yaparken bir hata oluştu"
+  },
+  "daemon-not-compat": "Daemon sürümü, uygulama sürümüyle uyumlu değil! Daemon sürümü: {{version}}, beklenen: {{required}}. Lütfen uygulamayı veya daemon'u güncelleyin."
 }
