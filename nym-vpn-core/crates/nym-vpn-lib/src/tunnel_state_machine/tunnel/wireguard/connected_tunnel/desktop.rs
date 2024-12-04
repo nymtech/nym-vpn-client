@@ -18,7 +18,7 @@ use nym_wg_gateway_client::WgGatewayClient;
 use nym_wg_go::wireguard_go::WintunInterface;
 use nym_wg_go::{netstack, wireguard_go};
 #[cfg(windows)]
-use nym_windows::net::AddressFamily;
+use nym_windows::net::{self as winnet, AddressFamily};
 
 #[cfg(windows)]
 use crate::tunnel_state_machine::route_handler::RouteHandler;
@@ -284,15 +284,26 @@ impl ConnectedTunnel {
         mut route_handler: RouteHandler,
         tx: mpsc::UnboundedSender<(u32, AddressFamily)>,
     ) -> Result<CallbackHandle> {
-        let boxed_fn: Callback = Box::new(move |event, address_family| {
+        let default_route_callback: Callback = Box::new(move |event, address_family| {
             let result = match event {
                 EventType::Removed => {
-                    // Bind to blackhole when default route is no longer available.
+                    tracing::debug!(
+                        "Default {} interface was removed. Rebind to blackhole.",
+                        address_family
+                    );
                     Ok(0)
                 }
                 EventType::Updated(interface_and_gateway)
                 | EventType::UpdatedDetails(interface_and_gateway) => {
-                    nym_windows::net::index_from_luid(&interface_and_gateway.iface)
+                    let interface_name =
+                        winnet::alias_from_luid(&interface_and_gateway.iface).unwrap_or_default();
+                    tracing::debug!(
+                        "New default {} route: {}, gateway: {}",
+                        interface_name.to_string_lossy(),
+                        address_family,
+                        interface_and_gateway.gateway,
+                    );
+                    winnet::index_from_luid(&interface_and_gateway.iface)
                 }
             };
 
@@ -309,7 +320,7 @@ impl ConnectedTunnel {
         });
 
         route_handler
-            .add_default_route_listener(Box::new(boxed_fn))
+            .add_default_route_listener(default_route_callback)
             .await
             .map_err(Error::AddDefaultRouteListener)
     }

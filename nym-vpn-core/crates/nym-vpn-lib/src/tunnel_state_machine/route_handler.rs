@@ -84,7 +84,7 @@ impl RouteHandler {
     #[cfg(windows)]
     pub async fn add_default_route_listener(
         &mut self,
-        event_handler: Box<Callback>,
+        event_handler: Callback,
     ) -> Result<CallbackHandle> {
         self.route_manager
             .add_default_route_change_callback(event_handler)
