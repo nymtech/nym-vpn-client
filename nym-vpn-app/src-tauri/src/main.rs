@@ -24,11 +24,7 @@ use commands::fs as cmd_fs;
 use commands::log as cmd_log;
 use commands::window as cmd_window;
 use commands::*;
-#[cfg(windows)]
-use db::Key;
 use states::app::AppState;
-#[cfg(windows)]
-use states::app::VpnMode;
 use tauri::Manager;
 use tauri_plugin_window_state::StateFlags;
 use tokio::sync::Mutex;
@@ -129,10 +125,6 @@ async fn main() -> Result<()> {
                 return Ok(());
             };
             app.manage(db.clone());
-
-            // TODO remove when two-hop is supported on Windows
-            #[cfg(windows)]
-            db.insert(Key::VpnMode, VpnMode::Mixnet)?;
 
             let app_window = AppWindow::create_main_window(app.handle())?;
             app_window.set_bg_color(&db).ok();

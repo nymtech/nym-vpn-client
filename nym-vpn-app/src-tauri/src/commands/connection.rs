@@ -72,14 +72,6 @@ pub async fn connect(
     let app_state = state.lock().await;
     let vpn_mode = app_state.vpn_mode.clone();
 
-    #[cfg(windows)]
-    if matches!(vpn_mode, VpnMode::TwoHop) {
-        return Err(BackendError::internal(
-            "fast mode is not yet supported on windows",
-            None,
-        ));
-    }
-
     let dns = app_state
         .dns_server
         .clone()
@@ -140,10 +132,10 @@ pub async fn connect(
     };
 
     let two_hop_mod = if let VpnMode::TwoHop = vpn_mode {
-        info!("2-hop mode enabled");
+        info!("mode [wg]");
         true
     } else {
-        info!("5-hop mode enabled");
+        info!("mode [mixnet]");
         false
     };
     let use_netstack_wireguard = false;
@@ -224,14 +216,6 @@ pub async fn set_vpn_mode(
     db: State<'_, Db>,
     mode: VpnMode,
 ) -> Result<(), BackendError> {
-    #[cfg(windows)]
-    if matches!(mode, VpnMode::TwoHop) {
-        return Err(BackendError::internal(
-            "fast mode is not yet supported on windows",
-            None,
-        ));
-    }
-
     let mut state = app_state.lock().await;
 
     if let ConnectionState::Disconnected = state.state {

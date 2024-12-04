@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@headlessui/react';
-import { type } from '@tauri-apps/plugin-os';
 import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
 import { StateDispatch, VpnMode } from '../../types';
 import { RadioGroup, RadioGroupOption } from '../../ui';
@@ -19,15 +18,8 @@ function NetworkModeSelect() {
   const [isDialogModesOpen, setIsDialogModesOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const { push } = useInAppNotify();
-  const os = type();
 
   const { t } = useTranslation('home');
-
-  useEffect(() => {
-    if (state.vpnMode === 'TwoHop' && os === 'windows') {
-      dispatch({ type: 'set-vpn-mode', mode: 'Mixnet' });
-    }
-  }, [os, dispatch, state.vpnMode]);
 
   const handleNetworkModeChange = async (value: VpnMode) => {
     if (state.state === 'Disconnected' && value !== state.vpnMode) {
@@ -93,20 +85,15 @@ function NetworkModeSelect() {
         key: 'TwoHop',
         label: t('fast-mode.title'),
         desc: t('fast-mode.desc'),
-        disabled:
-          // TODO remove os check when Windows is supported
-          os === 'windows' || state.state !== 'Disconnected' || loading,
+        disabled: state.state !== 'Disconnected' || loading,
         icon: (
           <span className="font-icon text-3xl text-baltic-sea dark:text-mercury-pinkish">
             speed
           </span>
         ),
-        // TODO remove when Windows is supported
-        className: os === 'windows' ? 'opacity-40' : undefined,
-        tooltip: os === 'windows' ? t('windows-no-fast-mode') : undefined,
       },
     ];
-  }, [os, loading, state.state, t]);
+  }, [loading, state.state, t]);
 
   return (
     <div>
