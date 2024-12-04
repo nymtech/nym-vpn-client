@@ -5,7 +5,7 @@ pub use nym_contracts_common::Percent;
 
 use crate::VpnApiClientError;
 
-#[derive(Clone, Default, Debug)]
+#[derive(Clone, Copy, Default, Debug)]
 pub struct GatewayMinPerformance {
     pub mixnet_min_performance: Option<Percent>,
     pub vpn_min_performance: Option<Percent>,
@@ -30,7 +30,7 @@ impl GatewayMinPerformance {
         })
     }
 
-    pub(crate) fn to_param(&self) -> Vec<(String, String)> {
+    pub(crate) fn to_param(self) -> Vec<(String, String)> {
         let mut params = vec![];
         if let Some(threshold) = self.mixnet_min_performance {
             params.push((

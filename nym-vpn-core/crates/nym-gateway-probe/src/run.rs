@@ -5,7 +5,7 @@ use anyhow::anyhow;
 use clap::Parser;
 use nym_bin_common::bin_info;
 use nym_config::defaults::setup_env;
-use nym_gateway_directory::EntryPoint;
+use nym_gateway_directory::{EntryPoint, GatewayMinPerformance};
 use nym_gateway_probe::ProbeResult;
 use std::path::PathBuf;
 use std::sync::OnceLock;
@@ -25,6 +25,15 @@ struct CliArgs {
 
     #[arg(long, short)]
     gateway: Option<String>,
+
+    #[arg(long, short)]
+    min_gateway_mixnet_performance: Option<u8>,
+
+    #[arg(long, short)]
+    min_gateway_vpn_performance: Option<u8>,
+
+    #[arg(long, short)]
+    only_wireguard: bool,
 
     #[arg(long, short)]
     no_log: bool,
@@ -52,20 +61,27 @@ pub(crate) async fn run() -> anyhow::Result<ProbeResult> {
     debug!("{:?}", nym_bin_common::bin_info_local_vergen!());
     setup_env(args.config_env_file.as_ref());
 
+    let min_gateway_performance = GatewayMinPerformance::from_percentage_values(
+        args.min_gateway_mixnet_performance.map(u64::from),
+        args.min_gateway_vpn_performance.map(u64::from),
+    )?;
+
     let gateway = if let Some(gateway) = args.gateway {
         EntryPoint::from_base58_string(&gateway)?
     } else {
-        fetch_random_gateway_with_ipr().await?
+        fetch_random_gateway_with_ipr(min_gateway_performance).await?
     };
 
-    nym_gateway_probe::probe(gateway).await
+    nym_gateway_probe::probe(gateway, min_gateway_performance, args.only_wireguard).await
 }
 
-async fn fetch_random_gateway_with_ipr() -> anyhow::Result<EntryPoint> {
+async fn fetch_random_gateway_with_ipr(
+    min_gateway_performance: GatewayMinPerformance,
+) -> anyhow::Result<EntryPoint> {
     // We're fetching gateways with IPR, since they are more interesting to ping, but we can probe
     // gateways without an IPR as well
     tracing::info!("Selecting random gateway with IPR enabled");
-    let gateways = nym_gateway_probe::fetch_gateways_with_ipr().await?;
+    let gateways = nym_gateway_probe::fetch_gateways_with_ipr(min_gateway_performance).await?;
     let gateway = gateways
         .random_gateway()
         .ok_or(anyhow!("No gateways returned by nym-api"))?;

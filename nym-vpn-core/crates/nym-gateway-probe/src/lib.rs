@@ -20,7 +20,8 @@ use nym_config::defaults::NymNetworkDetails;
 use nym_connection_monitor::self_ping_and_wait;
 use nym_gateway_directory::{
     AuthAddress, Config as GatewayDirectoryConfig, EntryPoint,
-    GatewayClient as GatewayDirectoryClient, GatewayList, IpPacketRouterAddress,
+    GatewayClient as GatewayDirectoryClient, GatewayList, GatewayMinPerformance,
+    IpPacketRouterAddress,
 };
 use nym_ip_packet_client::{IprClientConnect, SharedMixnetClient};
 use nym_ip_packet_requests::{
@@ -48,32 +49,46 @@ mod types;
 pub use error::{Error, Result};
 pub use types::{IpPingReplies, ProbeOutcome, ProbeResult};
 
-pub async fn fetch_gateways() -> anyhow::Result<GatewayList> {
-    lookup_gateways().await
+pub async fn fetch_gateways(
+    min_gateway_performance: GatewayMinPerformance,
+) -> anyhow::Result<GatewayList> {
+    lookup_gateways(min_gateway_performance).await
 }
 
-pub async fn fetch_gateways_with_ipr() -> anyhow::Result<GatewayList> {
-    Ok(lookup_gateways().await?.into_exit_gateways())
+pub async fn fetch_gateways_with_ipr(
+    min_gateway_performance: GatewayMinPerformance,
+) -> anyhow::Result<GatewayList> {
+    Ok(lookup_gateways(min_gateway_performance)
+        .await?
+        .into_exit_gateways())
 }
 
-pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
+pub async fn probe(
+    entry_point: EntryPoint,
+    min_gateway_performance: GatewayMinPerformance,
+    only_wireguard: bool,
+) -> anyhow::Result<ProbeResult> {
     // Setup the entry gateways
-    let gateways = lookup_gateways().await?;
+    let gateways = lookup_gateways(min_gateway_performance).await?;
     let entry_gateway = entry_point.lookup_gateway(&gateways).await?;
     let exit_router_address = entry_gateway.ipr_address;
     let authenticator = entry_gateway.authenticator_address;
     let gateway_host = entry_gateway.host.clone().unwrap();
     let auth_version = AuthenticatorVersion::from(entry_gateway.version.clone());
-    let entry_gateway_id = entry_gateway.identity();
+    let mixnet_entry_gateway_id = if only_wireguard {
+        *gateways.random_gateway().unwrap().identity()
+    } else {
+        *entry_gateway.identity()
+    };
 
     info!("Probing gateway: {entry_gateway:?}");
     debug!("gateway_host: {}", gateway_host);
 
     // Connect to the mixnet
     let mixnet_client = MixnetClientBuilder::new_ephemeral()
-        .request_gateway(entry_gateway_id.to_string())
+        .request_gateway(mixnet_entry_gateway_id.to_string())
         .network_details(NymNetworkDetails::new_from_env())
-        .debug_config(mixnet_debug_config())
+        .debug_config(mixnet_debug_config(min_gateway_performance))
         .build()?
         .connect_to_mixnet()
         .await;
@@ -83,7 +98,7 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
         Err(err) => {
             error!("Failed to connect to mixnet: {err}");
             return Ok(ProbeResult {
-                gateway: entry_gateway_id.to_string(),
+                gateway: mixnet_entry_gateway_id.to_string(),
                 outcome: ProbeOutcome {
                     as_entry: Entry::fail_to_connect(),
                     as_exit: None,
@@ -300,8 +315,11 @@ async fn wg_probe(
     Ok(wg_outcome)
 }
 
-async fn lookup_gateways() -> anyhow::Result<GatewayList> {
-    let gateway_config = GatewayDirectoryConfig::new_from_env();
+async fn lookup_gateways(
+    min_gateway_performance: GatewayMinPerformance,
+) -> anyhow::Result<GatewayList> {
+    let gateway_config = GatewayDirectoryConfig::new_from_env()
+        .with_min_gateway_performance(min_gateway_performance);
     info!("nym-api: {}", gateway_config.api_url());
     info!(
         "nym-vpn-api: {}",
@@ -317,12 +335,18 @@ async fn lookup_gateways() -> anyhow::Result<GatewayList> {
     Ok(gateways)
 }
 
-fn mixnet_debug_config() -> nym_client_core::config::DebugConfig {
+fn mixnet_debug_config(
+    min_gateway_performance: GatewayMinPerformance,
+) -> nym_client_core::config::DebugConfig {
     let mut debug_config = nym_client_core::config::DebugConfig::default();
     debug_config
         .traffic
         .disable_main_poisson_packet_distribution = true;
     debug_config.cover_traffic.disable_loop_cover_traffic_stream = true;
+    if let Some(minimum_gateway_performance) = min_gateway_performance.mixnet_min_performance {
+        debug_config.topology.minimum_gateway_performance =
+            minimum_gateway_performance.round_to_integer();
+    }
     debug_config
 }
 

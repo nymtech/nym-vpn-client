@@ -294,7 +294,7 @@ impl GatewayClient {
         if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
             info!("Fetching all gateways from nym-vpn-api...");
             let gateways: Vec<_> = nym_vpn_api_client
-                .get_gateways(self.min_gateway_performance.clone())
+                .get_gateways(self.min_gateway_performance)
                 .await?
                 .into_iter()
                 .filter_map(|gw| {
@@ -314,7 +314,7 @@ impl GatewayClient {
         if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
             info!("Fetching gateways from nym-vpn-api...");
             let gateways: Vec<_> = nym_vpn_api_client
-                .get_gateways_by_type(gw_type.into(), self.min_gateway_performance.clone())
+                .get_gateways_by_type(gw_type.into(), self.min_gateway_performance)
                 .await?
                 .into_iter()
                 .filter_map(|gw| {
@@ -334,7 +334,7 @@ impl GatewayClient {
         if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
             info!("Fetching entry countries from nym-vpn-api...");
             Ok(nym_vpn_api_client
-                .get_gateway_countries_by_type(gw_type.into(), self.min_gateway_performance.clone())
+                .get_gateway_countries_by_type(gw_type.into(), self.min_gateway_performance)
                 .await?
                 .into_iter()
                 .map(Country::from)
