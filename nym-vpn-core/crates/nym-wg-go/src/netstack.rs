@@ -9,6 +9,9 @@ use std::{
     net::{IpAddr, SocketAddr},
 };
 
+#[cfg(windows)]
+use nym_windows::net::AddressFamily;
+
 use super::{
     uapi::UapiConfigBuilder, Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, PrivateKey,
     Result,
@@ -169,6 +172,13 @@ impl Tunnel {
     pub fn bump_sockets(&mut self) {
         unsafe { wgNetBumpSockets(self.handle) }
     }
+
+    /// Re-bind tunnel socket to the new network interface.
+    /// Pass 0 for the interface to bind to blackhole.
+    #[cfg(windows)]
+    pub fn rebind_tunnel_socket(&mut self, address_family: AddressFamily, interface_index: u32) {
+        unsafe { wgNetRebindTunnelSocket(address_family.to_af_family(), interface_index) }
+    }
 }
 
 impl Drop for Tunnel {
@@ -237,6 +247,7 @@ fn to_comma_separated_addrs(ip_addrs: &[IpAddr]) -> String {
 }
 
 extern "C" {
+    /// Start the netstack tunnel.
     fn wgNetTurnOn(
         local_addresses: *const c_char,
         dns_addresses: *const c_char,
@@ -245,10 +256,18 @@ extern "C" {
         logging_callback: LoggingCallback,
         logging_context: *mut c_void,
     ) -> i32;
+
+    /// Pass a handle that was created by wgNetTurnOn to stop the wireguard tunnel.
     fn wgNetTurnOff(net_tunnel_handle: i32);
+
+    /// Sets the config of the WireGuard interface.
     fn wgNetSetConfig(net_tunnel_handle: i32, settings: *const c_char) -> i64;
+
+    /// Returns the config of the WireGuard interface.
     #[allow(unused)]
     fn wgNetGetConfig(net_tunnel_handle: i32) -> *const c_char;
+
+    /// Open connection through the tunnel.
     fn wgNetOpenConnectionThroughTunnel(
         entry_tunnel_handle: i32,
         listen_port: u16,
@@ -257,13 +276,28 @@ extern "C" {
         logging_callback: LoggingCallback,
         logging_context: *mut c_void,
     ) -> i32;
+
+    /// Close connection through the tunnel.
     fn wgNetCloseConnectionThroughTunnel(handle: i32);
+
+    /// Returns tunnel IPv4 socket.
     #[cfg(target_os = "android")]
     fn wgNetGetSocketV4(net_tunnel_handle: i32) -> i32;
+
+    /// Returns tunnel IPv6 socket.
     #[cfg(target_os = "android")]
     fn wgNetGetSocketV6(net_tunnel_handle: i32) -> i32;
+
+    /// Re-attach wireguard-go to the tunnel interface.
     #[cfg(target_os = "ios")]
     fn wgNetBumpSockets(handle: i32);
+
+    /// Re-bind tunnel socket to the new interface.
+    ///
+    /// - `family` - address family
+    /// - `interface_index` - index of network interface to which the tunnel socket should be bound to. Pass 0 to bind to blackhole.
+    #[cfg(windows)]
+    fn wgNetRebindTunnelSocket(address_family: u16, interface_index: u32);
 }
 
 /// Callback used by libwg to pass netstack logs.

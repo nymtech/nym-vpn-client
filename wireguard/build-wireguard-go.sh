@@ -45,7 +45,7 @@ function parseArgs {
 }
 
 function win_gather_export_symbols {
-   grep -Eo "\/\/export \w+" libwg.go libwg_windows.go netstack.go netstack_default.go | cut -d' ' -f2
+   grep -Eo "\/\/export \w+" libwg.go libwg_windows.go netstack.go netstack_default.go netstack_bind_windows.go | cut -d' ' -f2
 }
 
 function win_create_lib_file {

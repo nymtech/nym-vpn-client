@@ -86,7 +86,11 @@ impl ConnectedTunnel {
                 )
                 .await
             }
-            TunnelOptions::Netstack(netstack_options) => self.run_using_netstack(netstack_options),
+            TunnelOptions::Netstack(netstack_options) => self.run_using_netstack(
+                #[cfg(windows)]
+                route_handler,
+                netstack_options,
+            ),
         }
     }
 
@@ -200,7 +204,11 @@ impl ConnectedTunnel {
         })
     }
 
-    fn run_using_netstack(self, options: NetstackTunnelOptions) -> Result<TunnelHandle> {
+    fn run_using_netstack(
+        self,
+        #[cfg(windows)] route_handler: RouteHandler,
+        options: NetstackTunnelOptions,
+    ) -> Result<TunnelHandle> {
         let wg_entry_config = WgNodeConfig::with_gateway_data(
             self.connection_data.entry.clone(),
             self.entry_gateway_client.keypair().private_key(),
@@ -239,14 +247,41 @@ impl ConnectedTunnel {
             &options.wintun_tunnel_type,
         )?;
 
-        #[cfg(windows)]
-        let wintun_exit_interface = exit_tunnel.wintun_interface().clone();
-
         let shutdown_token = CancellationToken::new();
         let child_shutdown_token = shutdown_token.child_token();
 
+        #[cfg(windows)]
+        let wintun_exit_interface = exit_tunnel.wintun_interface().clone();
+
         let event_handler_task = tokio::spawn(async move {
-            child_shutdown_token.cancelled().await;
+            #[cfg(windows)]
+            {
+                let (default_route_tx, mut default_route_rx) = mpsc::unbounded_channel();
+                let _callback = Self::add_default_route_listener(route_handler, default_route_tx);
+
+                loop {
+                    tokio::select! {
+                        _ = child_shutdown_token.cancelled() => {
+                            tracing::debug!("Received tunnel shutdown event. Exiting event loop.");
+                            break
+                        }
+                        Some((interface_index, address_family)) = default_route_rx.recv() => {
+                            tracing::debug!("New default route: {} {}", interface_index, address_family);
+                            entry_tunnel.rebind_tunnel_socket(address_family, interface_index);
+                        }
+                        else => {
+                            tracing::error!("Default route listener has been dropped. Exiting event loop.");
+                            break;
+                        }
+                    }
+                }
+            }
+
+            #[cfg(not(windows))]
+            {
+                child_shutdown_token.cancelled().await;
+                tracing::debug!("Received tunnel shutdown event. Exiting event loop.");
+            }
 
             entry_tunnel.stop();
             exit_connection.close();
