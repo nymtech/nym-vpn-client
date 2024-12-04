@@ -6,5 +6,6 @@
   "account": "hesap",
   "cancel": "iptal et",
   "login": "giriş yap",
-  "logout": "çıkış yap"
+  "logout": "çıkış yap",
+  "stop": "Durdur"
 }
