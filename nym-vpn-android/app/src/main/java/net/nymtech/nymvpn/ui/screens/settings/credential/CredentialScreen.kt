@@ -20,6 +20,7 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -39,25 +40,26 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
+import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.functions.rememberImeState
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
+import net.nymtech.nymvpn.ui.screens.settings.credential.components.CredentialModalBody
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
+import timber.log.Timber
 
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewModel: CredentialViewModel = hiltViewModel()) {
 	val snackbar = SnackbarController.current
@@ -68,12 +70,46 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 	val navController = LocalNavController.current
 
 	val success = viewModel.success.collectAsStateWithLifecycle(null)
+	var showModal by remember { mutableStateOf(false) }
 
 	LaunchedEffect(success.value) {
-		if (success.value == true) {
-			navController.navigateAndForget(Route.Main())
-		}
+		if (success.value == true) navController.navigateAndForget(Route.Main())
+		if (success.value == false) showModal = true
 	}
+
+	val onDismiss = {
+		showModal = false
+		viewModel.resetSuccess()
+	}
+
+	Modal(show = showModal, onDismiss = {
+		onDismiss()
+		}, title = {
+		Text(
+			text = stringResource(R.string.max_devices_reached_title),
+			color = MaterialTheme.colorScheme.onSurface,
+			style = CustomTypography.labelHuge,
+			textAlign = TextAlign.Center
+		)
+	}, text = {
+		CredentialModalBody { appUiState.managerState.accountLinks?.signIn?.let {
+			context.openWebUrl(it)
+			onDismiss()
+			}
+		}
+	}, confirmButton = {
+		Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center){
+			TextButton(
+				onClick = {
+					onDismiss()
+				},
+				content = {
+					Text(stringResource(id = R.string.close), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+				}
+			)
+		}
+
+	})
 
 	val requestPermissionLauncher = rememberLauncherForActivityResult(
 		ActivityResultContracts.RequestPermission(),

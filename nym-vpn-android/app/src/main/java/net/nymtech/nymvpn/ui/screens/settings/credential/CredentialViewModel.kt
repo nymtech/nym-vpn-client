@@ -31,12 +31,10 @@ constructor(
 			_success.emit(true)
 		}.onFailure {
 			Timber.e(it)
-			if(it.message?.contains("maximum number of devices") == true) {
-				SnackbarController.showMessage(StringValue.StringResource(R.string.max_devices_reached))
-			}
 			_success.emit(false)
 		}
 	}
+
 	fun resetSuccess() = viewModelScope.launch {
 		_success.emit(null)
 	}

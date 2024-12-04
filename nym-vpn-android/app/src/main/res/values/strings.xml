@@ -195,4 +195,8 @@
 	<string name="version">Version</string>
     <string name="max_devices_reached">Max number of added devices reached.</string>
     <string name="app_restart_required">App restart required</string>
+	<string name="max_devices_reached_title">You’ve reached the maximum number of devices for your account</string>
+	<string name="credential_modal_description">To add this device, go to your account\'s \'Devices\' page, remove one of the existing devices, and then log in on this device with your recovery phrase.</string>
+	<string name="manage_devices">Manage your devices</string>
+	<string name="close">Close</string>
 </resources>

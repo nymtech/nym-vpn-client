@@ -7,9 +7,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -23,7 +22,6 @@ import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GatewayModalBody(onClick: () -> Unit) {
 	Column(verticalArrangement = Arrangement.spacedBy(16.dp.scaledHeight())) {
@@ -34,7 +32,7 @@ fun GatewayModalBody(onClick: () -> Unit) {
 			textAlign = TextAlign.Center,
 		)
 		CompositionLocalProvider(
-			LocalMinimumInteractiveComponentEnforcement provides false,
+			LocalMinimumInteractiveComponentSize provides 0.dp,
 		) {
 			TextButton(
 				onClick = {
