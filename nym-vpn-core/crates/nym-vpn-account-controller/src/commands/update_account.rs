@@ -4,6 +4,7 @@
 use std::sync::Arc;
 
 use nym_vpn_api_client::{response::NymVpnAccountSummaryResponse, types::VpnApiAccount};
+use tracing::Level;
 
 use crate::{
     commands::VpnApiEndpointFailure,
@@ -70,6 +71,7 @@ impl UpdateStateCommandHandler {
         fields(id = %self.id_str()),
         ret,
         err,
+        level = Level::DEBUG,
     )]
     pub(crate) async fn run_inner(
         self,

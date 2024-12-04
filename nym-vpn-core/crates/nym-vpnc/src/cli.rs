@@ -97,6 +97,9 @@ pub(crate) enum Internal {
     /// Manually trigger an account sync with the nym-vpn-api.
     SyncAccountState,
 
+    /// Get the account usage from the nym-vpn-api.
+    GetAccountUsage,
+
     /// Evaluate the current state of the device and determine if it is ready to connect.
     IsReadyToConnect,
 
@@ -106,6 +109,12 @@ pub(crate) enum Internal {
 
     /// Register the device with your account.
     RegisterDevice,
+
+    /// Get the devices associated with the account.
+    GetDevices,
+
+    /// Get the active devices associated with the account.
+    GetActiveDevices,
 
     /// Manually request zknym credentials.
     RequestZkNym,

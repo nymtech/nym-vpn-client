@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_api_client::response::{NymVpnAccountSummaryResponse, NymVpnDevice};
+use nym_vpn_api_client::response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnUsage};
 use tokio::sync::mpsc::UnboundedSender;
 
 use crate::{
@@ -45,10 +45,34 @@ impl AccountControllerCommander {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    pub async fn get_usage(&self) -> Result<Vec<NymVpnUsage>, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::GetUsage(tx))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
     pub async fn register_device(&self) -> Result<NymVpnDevice, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::RegisterDevice(Some(tx)))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    pub async fn get_devices(&self) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::GetDevices(tx))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    pub async fn get_active_devices(&self) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::GetActiveDevices(tx))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }

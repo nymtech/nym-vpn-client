@@ -310,3 +310,55 @@ impl From<nym_vpn_account_controller::AccountStateSummary> for crate::AccountSta
         }
     }
 }
+
+impl From<nym_vpn_api_client::response::NymVpnUsage> for crate::AccountUsage {
+    fn from(usage: nym_vpn_api_client::response::NymVpnUsage) -> Self {
+        Self {
+            created_on_utc: usage.created_on_utc,
+            last_updated_utc: usage.last_updated_utc,
+            id: usage.id,
+            subscription_id: usage.subscription_id,
+            valid_until_utc: usage.valid_until_utc,
+            valid_from_utc: usage.valid_from_utc,
+            bandwidth_allowance_gb: usage.bandwidth_allowance_gb,
+            bandwidth_used_gb: usage.bandwidth_used_gb,
+        }
+    }
+}
+
+impl From<Vec<nym_vpn_api_client::response::NymVpnUsage>> for crate::AccountUsages {
+    fn from(usage: Vec<nym_vpn_api_client::response::NymVpnUsage>) -> Self {
+        Self {
+            account_usages: usage.into_iter().map(crate::AccountUsage::from).collect(),
+        }
+    }
+}
+
+impl From<nym_vpn_api_client::response::NymVpnDeviceStatus> for crate::DeviceStatus {
+    fn from(value: nym_vpn_api_client::response::NymVpnDeviceStatus) -> Self {
+        match value {
+            nym_vpn_api_client::response::NymVpnDeviceStatus::Active => Self::Active,
+            nym_vpn_api_client::response::NymVpnDeviceStatus::Inactive => Self::Inactive,
+            nym_vpn_api_client::response::NymVpnDeviceStatus::DeleteMe => Self::DeleteMe,
+        }
+    }
+}
+
+impl From<nym_vpn_api_client::response::NymVpnDevice> for crate::Device {
+    fn from(device: nym_vpn_api_client::response::NymVpnDevice) -> Self {
+        Self {
+            created_on_utc: device.created_on_utc,
+            last_updated_utc: device.last_updated_utc,
+            device_identity_key: device.device_identity_key,
+            status: crate::DeviceStatus::from(device.status) as i32,
+        }
+    }
+}
+
+impl From<Vec<nym_vpn_api_client::response::NymVpnDevice>> for crate::Devices {
+    fn from(devices: Vec<nym_vpn_api_client::response::NymVpnDevice>) -> Self {
+        Self {
+            devices: devices.into_iter().map(crate::Device::from).collect(),
+        }
+    }
+}

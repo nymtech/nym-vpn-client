@@ -26,7 +26,7 @@ use nym_vpn_account_controller::{
     AccountStateSummary, AvailableTicketbooks, ReadyToConnect, SharedAccountState,
 };
 use nym_vpn_api_client::{
-    response::{NymVpnAccountSummaryResponse, NymVpnDevicesResponse},
+    response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnUsage},
     types::{Percent, VpnApiAccount},
 };
 use nym_vpn_lib::{
@@ -121,10 +121,13 @@ pub enum VpnServiceCommand {
         (),
     ),
     RefreshAccountState(oneshot::Sender<Result<(), AccountError>>, ()),
+    GetAccountUsage(oneshot::Sender<Result<Vec<NymVpnUsage>, AccountError>>, ()),
     IsReadyToConnect(oneshot::Sender<Result<ReadyToConnect, AccountError>>, ()),
     ResetDeviceIdentity(oneshot::Sender<Result<(), AccountError>>, Option<Seed>),
     GetDeviceIdentity(oneshot::Sender<Result<String, AccountError>>, ()),
     RegisterDevice(oneshot::Sender<Result<(), AccountError>>, ()),
+    GetDevices(oneshot::Sender<Result<Vec<NymVpnDevice>, AccountError>>, ()),
+    GetActiveDevices(oneshot::Sender<Result<Vec<NymVpnDevice>, AccountError>>, ()),
     RequestZkNym(oneshot::Sender<Result<(), AccountError>>, ()),
     GetDeviceZkNyms(oneshot::Sender<Result<(), AccountError>>, ()),
     GetZkNymsAvailableForDownload(oneshot::Sender<Result<(), AccountError>>, ()),
@@ -602,6 +605,10 @@ where
                 let result = self.handle_refresh_account_state().await;
                 let _ = tx.send(result);
             }
+            VpnServiceCommand::GetAccountUsage(tx, ()) => {
+                let result = self.handle_get_usage().await;
+                let _ = tx.send(result);
+            }
             VpnServiceCommand::IsReadyToConnect(tx, ()) => {
                 let result = Ok(self.handle_is_ready_to_connect().await);
                 let _ = tx.send(result);
@@ -616,6 +623,14 @@ where
             }
             VpnServiceCommand::RegisterDevice(tx, ()) => {
                 let result = self.handle_register_device().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::GetDevices(tx, ()) => {
+                let result = self.handle_get_devices().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::GetActiveDevices(tx, ()) => {
+                let result = self.handle_get_active_devices().await;
                 let _ = tx.send(result);
             }
             VpnServiceCommand::RequestZkNym(tx, ()) => {
@@ -683,6 +698,34 @@ where
                 .map_err(Error::ConfigSetup)?
         };
         Ok(config)
+    }
+
+    async fn load_account(&self) -> Result<VpnApiAccount, AccountError> {
+        self.storage
+            .lock()
+            .await
+            .load_mnemonic()
+            .await
+            .map_err(|err| AccountError::FailedToLoadAccount {
+                source: Box::new(err),
+            })
+            .map(VpnApiAccount::from)
+            .inspect(|account| tracing::info!("Loading account id: {}", account.id()))
+    }
+
+    async fn load_device_keys(&self) -> Result<nym_vpn_store::keys::DeviceKeys, AccountError> {
+        self.storage
+            .lock()
+            .await
+            .load_keys()
+            .await
+            .map_err(|err| AccountError::FailedToLoadKeys {
+                source: Box::new(err),
+            })
+            .inspect(|keys| {
+                let device_keypair = keys.device_keypair();
+                tracing::info!("Loading device key: {}", device_keypair.public_key())
+            })
     }
 
     fn get_feature_flag_credential_mode(&self) -> bool {
@@ -1040,39 +1083,18 @@ where
             .map_err(|err| AccountError::AccountControllerError { source: err })
     }
 
+    async fn handle_get_usage(&self) -> Result<Vec<NymVpnUsage>, AccountError> {
+        self.account_command_tx
+            .get_usage()
+            .await
+            .map_err(|source| AccountError::AccountCommandError { source })
+    }
+
     async fn handle_is_ready_to_connect(&self) -> ReadyToConnect {
         let credential_mode = false;
         self.shared_account_state
             .is_ready_to_connect(credential_mode)
             .await
-    }
-
-    async fn load_account(&self) -> Result<VpnApiAccount, AccountError> {
-        self.storage
-            .lock()
-            .await
-            .load_mnemonic()
-            .await
-            .map_err(|err| AccountError::FailedToLoadAccount {
-                source: Box::new(err),
-            })
-            .map(VpnApiAccount::from)
-            .inspect(|account| tracing::info!("Loading account id: {}", account.id()))
-    }
-
-    async fn load_device_keys(&self) -> Result<nym_vpn_store::keys::DeviceKeys, AccountError> {
-        self.storage
-            .lock()
-            .await
-            .load_keys()
-            .await
-            .map_err(|err| AccountError::FailedToLoadKeys {
-                source: Box::new(err),
-            })
-            .inspect(|keys| {
-                let device_keypair = keys.device_keypair();
-                tracing::info!("Loading device key: {}", device_keypair.public_key())
-            })
     }
 
     async fn handle_reset_device_identity(
@@ -1114,6 +1136,20 @@ where
         self.account_command_tx
             .send(AccountCommand::RegisterDevice(None))
             .map_err(|source| AccountError::AccountControllerError { source })
+    }
+
+    async fn handle_get_devices(&self) -> Result<Vec<NymVpnDevice>, AccountError> {
+        self.account_command_tx
+            .get_devices()
+            .await
+            .map_err(|source| AccountError::AccountCommandError { source })
+    }
+
+    async fn handle_get_active_devices(&self) -> Result<Vec<NymVpnDevice>, AccountError> {
+        self.account_command_tx
+            .get_active_devices()
+            .await
+            .map_err(|source| AccountError::AccountCommandError { source })
     }
 
     async fn handle_request_zk_nym(&self) -> Result<(), AccountError> {

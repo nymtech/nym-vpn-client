@@ -7,6 +7,7 @@ use nym_vpn_api_client::{
     response::NymVpnDevicesResponse,
     types::{Device, VpnApiAccount},
 };
+use tracing::Level;
 
 use crate::{
     commands::VpnApiEndpointFailure,
@@ -79,6 +80,7 @@ impl UpdateDeviceStateCommandHandler {
         fields(id = %self.id_str()),
         ret,
         err,
+        level = Level::DEBUG,
     )]
     async fn run_inner(self) -> Result<DeviceState, AccountCommandError> {
         tracing::debug!("Running update device state command handler: {}", self.id);

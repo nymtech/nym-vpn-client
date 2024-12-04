@@ -4,7 +4,10 @@
 use std::{path::PathBuf, sync::Arc, time::Duration};
 
 use nym_http_api_client::UserAgent;
-use nym_vpn_api_client::types::VpnApiAccount;
+use nym_vpn_api_client::{
+    response::{NymVpnDevice, NymVpnUsage},
+    types::VpnApiAccount,
+};
 use nym_vpn_network_config::Network;
 use nym_vpn_store::VpnStorage;
 use tokio::{
@@ -302,6 +305,21 @@ where
         }
     }
 
+    async fn handle_get_usage(&self) -> Result<Vec<NymVpnUsage>, AccountCommandError> {
+        let account = self
+            .account_storage
+            .load_account()
+            .await
+            .map_err(AccountCommandError::general)?;
+        let usage = self
+            .vpn_api_client
+            .get_usage(&account)
+            .await
+            .map_err(AccountCommandError::general)?;
+        tracing::info!("Usage: {:#?}", usage);
+        Ok(usage.items)
+    }
+
     async fn handle_register_device(&mut self, command: AccountCommand) {
         let account = self
             .update_mnemonic_state()
@@ -339,6 +357,54 @@ where
         if self.running_commands.add(command).await == Command::IsFirst {
             self.running_command_tasks.spawn(command_handler.run());
         }
+    }
+
+    async fn handle_get_devices(&mut self) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
+        tracing::info!("Getting devices from API");
+
+        let account = self
+            .account_storage
+            .load_account()
+            .await
+            .map_err(AccountCommandError::general)?;
+
+        let devices = self
+            .vpn_api_client
+            .get_devices(&account)
+            .await
+            .map_err(AccountCommandError::general)?;
+
+        tracing::info!("The account has the following devices associated to it:");
+        // TODO: pagination
+        for device in &devices.items {
+            tracing::info!("{:?}", device);
+        }
+        Ok(devices.items)
+    }
+
+    async fn handle_get_active_devices(
+        &mut self,
+    ) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
+        tracing::info!("Getting active devices from API");
+
+        let account = self
+            .account_storage
+            .load_account()
+            .await
+            .map_err(AccountCommandError::general)?;
+
+        let devices = self
+            .vpn_api_client
+            .get_active_devices(&account)
+            .await
+            .map_err(AccountCommandError::general)?;
+
+        tracing::info!("The account has the following active devices associated to it:");
+        // TODO: pagination
+        for device in &devices.items {
+            tracing::info!("{:?}", device);
+        }
+        Ok(devices.items)
     }
 
     async fn handle_get_device_zk_nym(&mut self) -> Result<(), Error> {
@@ -412,7 +478,7 @@ where
             .vpn_api_client
             .confirm_zk_nym_download_by_id(&account, &device, &id)
             .await
-            .map_err(Error::ConfirmZkNymDownloaded)?;
+            .map_err(Error::ConfirmZkNymDownload)?;
 
         tracing::info!("Confirmed zk-nym downloaded: {:?}", response);
 
@@ -451,8 +517,20 @@ where
             AccountCommand::UpdateDeviceState(_) => {
                 self.handle_update_device_state(command).await;
             }
+            AccountCommand::GetUsage(result_tx) => {
+                let result = self.handle_get_usage().await;
+                result_tx.send(result);
+            }
             AccountCommand::RegisterDevice(_) => {
                 self.handle_register_device(command).await;
+            }
+            AccountCommand::GetDevices(result_tx) => {
+                let result = self.handle_get_devices().await;
+                result_tx.send(result);
+            }
+            AccountCommand::GetActiveDevices(result_tx) => {
+                let result = self.handle_get_active_devices().await;
+                result_tx.send(result);
             }
             AccountCommand::RequestZkNym(_) => {
                 self.handle_request_zk_nym(command).await;

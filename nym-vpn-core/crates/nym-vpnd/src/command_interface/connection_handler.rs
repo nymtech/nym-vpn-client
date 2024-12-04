@@ -6,7 +6,7 @@ use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
 use tokio::sync::{mpsc::UnboundedSender, oneshot};
 
 use nym_vpn_api_client::{
-    response::{NymVpnAccountSummaryResponse, NymVpnDevicesResponse},
+    response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnUsage},
     types::GatewayMinPerformance,
 };
 use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint, GatewayClient, GatewayType};
@@ -189,6 +189,13 @@ impl CommandInterfaceConnectionHandler {
             .await
     }
 
+    pub(crate) async fn handle_get_account_usage(
+        &self,
+    ) -> Result<Result<Vec<NymVpnUsage>, AccountError>, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::GetAccountUsage, ())
+            .await
+    }
+
     pub(crate) async fn handle_is_ready_to_connect(
         &self,
     ) -> Result<Result<ReadyToConnect, AccountError>, VpnCommandSendError> {
@@ -215,6 +222,19 @@ impl CommandInterfaceConnectionHandler {
         &self,
     ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::RegisterDevice, ())
+            .await
+    }
+
+    pub(crate) async fn handle_get_devices(
+        &self,
+    ) -> Result<Result<Vec<NymVpnDevice>, AccountError>, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::GetDevices, ()).await
+    }
+
+    pub(crate) async fn handle_get_active_devices(
+        &self,
+    ) -> Result<Result<Vec<NymVpnDevice>, AccountError>, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::GetActiveDevices, ())
             .await
     }
 

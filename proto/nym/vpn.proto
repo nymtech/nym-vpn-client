@@ -794,6 +794,29 @@ message GetAccountStateResponse {
 message RefreshAccountStateRequest {}
 message RefreshAccountStateResponse {}
 
+message AccountUsages {
+  repeated AccountUsage account_usages = 1;
+}
+
+message AccountUsage {
+  string created_on_utc = 1;
+  string last_updated_utc = 2;
+  string id = 3;
+  string subscription_id = 4;
+  string valid_until_utc = 5;
+  string valid_from_utc = 6;
+  double bandwidth_allowance_gb = 7;
+  double bandwidth_used_gb = 8;
+}
+
+message GetAccountUsageRequest {}
+message GetAccountUsageResponse {
+  oneof result {
+    AccountUsages account_usages = 1;
+    AccountError error = 2;
+  }
+}
+
 message FetchRawAccountSummaryRequest {}
 
 message FetchRawAccountSummaryResponse {
@@ -832,6 +855,40 @@ message RegisterDeviceRequest {}
 message RegisterDeviceResponse {
   string json = 1;
   AccountError error = 2;
+}
+
+enum DeviceStatus {
+  DEVICE_STATUS_UNSPECIFIED = 0;
+  DEVICE_STATUS_ACTIVE = 1;
+  DEVICE_STATUS_INACTIVE = 2;
+  DEVICE_STATUS_DELETE_ME = 3;
+}
+
+message Device {
+  string created_on_utc = 1;
+  string last_updated_utc = 2;
+  string device_identity_key = 3;
+  DeviceStatus status = 4;
+}
+
+message Devices {
+  repeated Device devices = 1;
+}
+
+message GetDevicesRequest {}
+message GetDevicesResponse {
+  oneof result {
+    Devices devices = 1;
+    AccountError error = 2;
+  }
+}
+
+message GetActiveDevicesRequest {}
+message GetActiveDevicesResponse {
+  oneof result {
+    Devices devices = 1;
+    AccountError error = 2;
+  }
 }
 
 message RequestZkNymRequest {}
@@ -1040,6 +1097,9 @@ service NymVpnd {
   // background. This command triggers a manual refresh.
   rpc RefreshAccountState (RefreshAccountStateRequest) returns (RefreshAccountStateResponse) {}
 
+  // Get the account usage from the nym-vpn-api
+  rpc GetAccountUsage (GetAccountUsageRequest) returns (GetAccountUsageResponse) {}
+
   // Check if the local account state is ready to connect
   rpc IsReadyToConnect (IsReadyToConnectRequest) returns (IsReadyToConnectResponse) {}
 
@@ -1051,6 +1111,12 @@ service NymVpnd {
 
   // Try to register the local device with the nym-vpn-api
   rpc RegisterDevice (RegisterDeviceRequest) returns (RegisterDeviceResponse) {}
+
+  // Get the list of devices associated with this account from the nym-vpn-api
+  rpc GetDevices (GetDevicesRequest) returns (GetDevicesResponse) {}
+
+  // Get the list of active devices associated with this account from the nym-vpn-api
+  rpc GetActiveDevices (GetActiveDevicesRequest) returns (GetActiveDevicesResponse) {}
 
   // Request new zk-nyms (ticketbooks) from the nym-vpn-api
   rpc RequestZkNym (RequestZkNymRequest) returns (RequestZkNymResponse) {}
