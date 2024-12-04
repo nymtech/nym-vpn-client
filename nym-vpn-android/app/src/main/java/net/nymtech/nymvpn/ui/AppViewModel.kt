@@ -21,12 +21,10 @@ import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.StringValue
-import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.Country
 import nym_vpn_lib.SystemMessage
 import timber.log.Timber
-import javax.inject.Provider
 import javax.inject.Inject
 
 @HiltViewModel
@@ -37,7 +35,6 @@ constructor(
 	gatewayRepository: GatewayRepository,
 	private val countryCacheService: CountryCacheService,
 	private val tunnelManager: TunnelManager,
-	private val backend: Provider<Backend>,
 	private val nymApiService: NymApiService,
 ) : ViewModel() {
 
@@ -47,7 +44,7 @@ constructor(
 	private val _systemMessage = MutableStateFlow<SystemMessage?>(null)
 	val systemMessage = _systemMessage.asStateFlow()
 
-	private val _configurationChange = MutableStateFlow<Boolean>(false)
+	private val _configurationChange = MutableStateFlow(false)
 	val configurationChange = _configurationChange.asStateFlow()
 
 	val uiState =
@@ -108,7 +105,7 @@ constructor(
 	fun onEnvironmentChange(environment: Tunnel.Environment) = viewModelScope.launch {
 		if (tunnelManager.getState() == Tunnel.State.Down) {
 			settingsRepository.setEnvironment(environment)
-			_configurationChange.emit(true)
+			SnackbarController.showMessage(StringValue.StringResource(R.string.app_restart_required))
 		} else {
 			SnackbarController.showMessage(StringValue.StringResource(R.string.action_requires_tunnel_down))
 		}
@@ -121,7 +118,7 @@ constructor(
 			)
 		}
 		settingsRepository.setCredentialMode(value)
-		_configurationChange.emit(true)
+		SnackbarController.showMessage(StringValue.StringResource(R.string.app_restart_required))
 	}
 
 	private suspend fun checkSystemMessages() {
@@ -135,8 +132,6 @@ constructor(
 	}
 
 	fun onAppStartup() = viewModelScope.launch {
-		val env = settingsRepository.getEnvironment()
-		backend.get().init(env, settingsRepository.isCredentialMode())
 		launch {
 			Timber.d("Updating exit country cache")
 			countryCacheService.updateExitCountriesCache().onSuccess {

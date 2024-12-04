@@ -30,10 +30,11 @@ constructor(
 			SnackbarController.showMessage(StringValue.StringResource(R.string.device_added_success))
 			_success.emit(true)
 		}.onFailure {
-			Timber.d(it)
+			Timber.e(it)
 			_success.emit(false)
 		}
 	}
+
 	fun resetSuccess() = viewModelScope.launch {
 		_success.emit(null)
 	}

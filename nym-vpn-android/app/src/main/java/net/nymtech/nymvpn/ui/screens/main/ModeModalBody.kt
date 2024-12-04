@@ -9,9 +9,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -25,7 +24,6 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModeModalBody(onClick: () -> Unit) {
 	Column(verticalArrangement = Arrangement.spacedBy(16.dp.scaledHeight())) {
@@ -64,7 +62,7 @@ fun ModeModalBody(onClick: () -> Unit) {
 			color = MaterialTheme.colorScheme.onSurfaceVariant,
 		)
 		CompositionLocalProvider(
-			LocalMinimumInteractiveComponentEnforcement provides false,
+			LocalMinimumInteractiveComponentSize provides 0.dp,
 		) {
 			TextButton(
 				onClick = {
