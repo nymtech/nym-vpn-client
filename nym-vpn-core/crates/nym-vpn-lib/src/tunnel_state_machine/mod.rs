@@ -80,7 +80,7 @@ pub struct TunnelSettings {
     pub enable_credentials_mode: bool,
 
     /// The (optional) recipient to send statistics to.
-    pub statistics_recipient: Option<Recipient>,
+    pub statistics_recipient: Option<Box<Recipient>>,
 
     /// Mixnet tunnel options.
     pub mixnet_tunnel_options: MixnetTunnelOptions,

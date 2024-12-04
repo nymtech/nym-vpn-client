@@ -435,7 +435,8 @@ async fn start_state_machine(
         .inspect_err(|err| {
             tracing::error!("Failed to parse statistics recipient: {}", err);
         })
-        .unwrap_or_default();
+        .unwrap_or_default()
+        .map(Box::new);
 
     let entry_point = nym_gateway_directory::EntryPoint::from(config.entry_gateway);
     let exit_point = nym_gateway_directory::ExitPoint::from(config.exit_router);
