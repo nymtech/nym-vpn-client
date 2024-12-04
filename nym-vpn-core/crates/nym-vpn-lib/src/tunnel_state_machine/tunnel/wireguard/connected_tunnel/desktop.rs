@@ -184,10 +184,8 @@ impl ConnectedTunnel {
             Tombstone {
                 #[cfg(not(windows))]
                 tun_devices: vec![options.exit_tun, options.entry_tun],
-
                 #[cfg(windows)]
                 wg_instances: vec![exit_tunnel, entry_tunnel],
-
                 ..Default::default()
             }
         });
@@ -295,10 +293,8 @@ impl ConnectedTunnel {
                     #[cfg(not(windows))]
                     options.exit_tun,
                 ],
-                wg_instances: vec![
-                    #[cfg(windows)]
-                    exit_tunnel,
-                ],
+                #[cfg(windows)]
+                wg_instances: vec![exit_tunnel],
             }
         });
 

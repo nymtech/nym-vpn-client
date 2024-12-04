@@ -64,8 +64,9 @@ impl DisconnectingState {
         _shared_state.route_handler.remove_routes().await;
 
         tracing::info!("Closing {} tunnel device(s).", tombstone.tun_devices.len());
-        tombstone.tun_devices.clear();
+        #[cfg(windows)]
         tombstone.wg_instances.clear();
+        tombstone.tun_devices.clear();
 
         // todo: reset firewall
     }

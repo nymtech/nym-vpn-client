@@ -68,6 +68,7 @@ impl ConnectingState {
             }
             _shared_state.route_handler.remove_routes().await;
         }
+        #[cfg(windows)]
         tombstone.wg_instances.clear();
         tombstone.tun_devices.clear();
     }
