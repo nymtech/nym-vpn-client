@@ -68,6 +68,7 @@ impl fmt::Display for FlagValue {
 
 #[cfg(test)]
 mod tests {
+    use nym_sdk::mixnet::Recipient;
     use serde_json::Value;
 
     use super::*;
@@ -166,12 +167,26 @@ mod tests {
         }"#;
         let parsed: Value = serde_json::from_str(json).unwrap();
         let flags = FeatureFlags::try_from(parsed).unwrap();
+
+        let recipient = "6Yu1b6cb3TJNProLHSL1kAiDcpiRxBrhiqUbP9uDz3xz\
+                         .8boeihWTpiMNzCzdWmeDgc77yUZio47kdRRaLiqvXqyC\
+                         @8wH1ScVTGnBVxLjrA3hzZ8m55dvpkiNrpqTet6ccchFV";
         assert_eq!(
             flags.flags["statistics"],
-            FlagValue::Group(HashMap::from([(
-                "recipient".to_owned(),
-                "6Yu1b6cb3TJNProLHSL1kAiDcpiRxBrhiqUbP9uDz3xz.8boeihWTpiMNzCzdWmeDgc77yUZio47kdRRaLiqvXqyC@8wH1ScVTGnBVxLjrA3hzZ8m55dvpkiNrpqTet6ccchFV".to_owned()
-            )]))
+            FlagValue::Group(HashMap::from([
+                ("recipient".to_owned(), recipient.to_owned()),
+                ("foo".to_owned(), "bar".to_owned()),
+            ]))
+        );
+        assert_eq!(
+            match flags.flags.get("statistics").unwrap() {
+                FlagValue::Group(group) => group
+                    .get("recipient")
+                    .and_then(|v| v.parse::<Recipient>().ok())
+                    .unwrap(),
+                _ => panic!("unexpected flag value"),
+            },
+            Recipient::try_from_base58_string(recipient).unwrap(),
         );
     }
 }
