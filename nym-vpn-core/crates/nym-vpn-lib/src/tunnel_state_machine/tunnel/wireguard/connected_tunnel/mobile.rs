@@ -22,13 +22,12 @@ use crate::{
 };
 use crate::{
     tunnel_state_machine::tunnel::{
-        tombstone::Tombstone,
         wireguard::{
             connector::ConnectionData,
             fd::DupFd,
             two_hop_config::{TwoHopConfig, ENTRY_MTU, EXIT_MTU},
         },
-        Error, Result,
+        Error, Result, Tombstone,
     },
     wg_config::WgNodeConfig,
 };

@@ -1,11 +1,11 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-pub mod any_tunnel_handle;
+mod any_tunnel_handle;
 mod gateway_selector;
 pub mod mixnet;
 mod status_listener;
-pub mod tombstone;
+mod tombstone;
 pub mod wireguard;
 
 use std::{error::Error as StdError, fmt, path::PathBuf, time::Duration};
@@ -22,7 +22,9 @@ use tokio_util::sync::CancellationToken;
 use super::route_handler;
 use super::{MixnetEvent, TunnelType};
 use crate::{mixnet::SharedMixnetClient, GatewayDirectoryError, MixnetClientConfig, MixnetError};
+pub use any_tunnel_handle::AnyTunnelHandle;
 use status_listener::StatusListener;
+pub use tombstone::Tombstone;
 
 const MIXNET_CLIENT_STARTUP_TIMEOUT: Duration = Duration::from_secs(30);
 const TASK_MANAGER_SHUTDOWN_TIMER_SECS: u64 = 10;

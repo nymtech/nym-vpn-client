@@ -31,8 +31,7 @@ use super::{dns_handler::DnsHandlerHandle, route_handler::RouteHandler};
 use super::{route_handler::RoutingConfig, tun_ipv6};
 use super::{
     tunnel::{
-        self, any_tunnel_handle::AnyTunnelHandle, tombstone::Tombstone, ConnectedMixnet,
-        MixnetConnectOptions, SelectedGateways,
+        self, AnyTunnelHandle, ConnectedMixnet, MixnetConnectOptions, SelectedGateways, Tombstone,
     },
     ConnectionData, Error, ErrorStateReason, MixnetConnectionData, MixnetEvent, NymConfig, Result,
     TunnelConnectionData, TunnelSettings, TunnelType, WireguardConnectionData, WireguardNode,

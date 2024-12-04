@@ -6,7 +6,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::tunnel_state_machine::{
     states::{ConnectedState, DisconnectingState},
-    tunnel::{tombstone::Tombstone, SelectedGateways},
+    tunnel::{SelectedGateways, Tombstone},
     tunnel_monitor::{
         TunnelMonitor, TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorHandle,
     },
