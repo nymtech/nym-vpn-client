@@ -19,3 +19,4 @@ zeroize.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { workspace = true, features = ["Win32_NetworkManagement_Ndis"] }
+nym-windows = { path = "../nym-windows" }

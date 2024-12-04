@@ -10,7 +10,10 @@ use tun::AsyncDevice;
 use nym_task::TaskManager;
 
 use super::connector::AssignedAddresses;
-use crate::mixnet::{MixnetError, SharedMixnetClient};
+use crate::{
+    mixnet::{MixnetError, SharedMixnetClient},
+    tunnel_state_machine::tunnel::tombstone::Tombstone,
+};
 
 /// Type representing a connected mixnet tunnel.
 pub struct ConnectedTunnel {
@@ -92,7 +95,9 @@ impl TunnelHandle {
     }
 
     /// Wait until the tunnel finished execution.
-    pub async fn wait(self) -> Result<Result<AsyncDevice, MixnetError>, JoinError> {
-        self.processor_handle.await
+    pub async fn wait(self) -> Result<Result<Tombstone, MixnetError>, JoinError> {
+        self.processor_handle
+            .await
+            .map(|result| result.map(Tombstone::with_tun_device))
     }
 }
