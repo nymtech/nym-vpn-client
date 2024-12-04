@@ -26,7 +26,7 @@ function parseArgs {
         "--no-docker" )
             IS_DOCKER_BUILD=false;
             shift ;;
-        # handle --windows option (allowing windows build from linux for example)
+        # handle --windows-cross option (allowing windows build from linux for example)
         "--windows-cross" )
             IS_WIN_CROSS_BUILD=true;
             shift ;;
