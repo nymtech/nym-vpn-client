@@ -6,5 +6,6 @@
   "account": "アカウント",
   "cancel": "キャンセル",
   "login": "ログイン",
-  "logout": "ログアウト"
+  "logout": "ログアウト",
+  "stop": "止める"
 }

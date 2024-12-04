@@ -63,7 +63,9 @@
     "tun-device": "Tun cihazı başarısız oldu",
     "routing": "Yönlendirme başarısız oldu",
     "add-ipv6-route": "IPv6 trafiğini yakalamak için IPv6 varsayılan yol eklenemedi",
-    "unhandled-exit": "VPN bir hata ile sonlandı. Muhtemelen bir yazılım hatası."
+    "unhandled-exit": "VPN bir hata ile sonlandı. Muhtemelen bir yazılım hatası.",
+    "ready-to-connect": "Kontrol sırasında bağlanmaya hazır olup olmadığımız henüz belirlenemedi",
+    "general": "Genel bir hata oluştu, daha fazla detay için logları kontrol edin"
   },
   "countries-request": {
     "entry": "Kullanılabilir entry node ülke bilgileri alınamadı",
@@ -81,6 +83,13 @@
   "entry-node-routing": "Giriş nodeu trafiği iletmiyor (internet bağlantısı mı kesik?)",
   "account": {
     "invalid-recovery-phrase": "Geçersiz kurtarma ifadesi",
-    "storage": "Depolama arka ucu hatası"
+    "storage": "Depolama arka ucu hatası",
+    "maximum-registered-devices": "Cihaz kaydı başarısız oldu: Kayıtlı cihaz sayısı maksimum sınırına ulaştı",
+    "is-connected": "Bağlantı varken işlem yapılamıyor",
+    "update-device": "Cihaz güncellemesi başarısız oldu",
+    "register-device": "Cihaz kaydı başarısız oldu",
+    "not-stored": "Hesap kurtarma ifadesi saklanmamış",
+    "no-device-stored": "Cihaz anahtarları saklanmamış",
+    "update": "Hesap güncellemesi başarısız oldu"
   }
 }
