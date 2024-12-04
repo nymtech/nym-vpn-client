@@ -7,7 +7,8 @@ pub struct Tombstone {
     pub tun_devices: Vec<tun::AsyncDevice>,
 
     /// Wireguard tunnels that have not been shutdown yet because they own the tunnel device.
-    /// So we need to keep them around until after the routing table is reset. Windows only.
+    /// These tunnels are kept around until after the routing table is reset. Windows only.
+    #[cfg(windows)]
     pub wg_instances: Vec<nym_wg_go::wireguard_go::Tunnel>,
 }
 
