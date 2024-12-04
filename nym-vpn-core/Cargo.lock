@@ -5067,6 +5067,7 @@ dependencies = [
  "base64 0.22.1",
  "hex",
  "ipnetwork",
+ "nym-windows",
  "thiserror",
  "tracing",
  "windows-sys 0.52.0",
