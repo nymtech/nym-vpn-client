@@ -58,7 +58,6 @@ import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
-import timber.log.Timber
 
 @Composable
 fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewModel: CredentialViewModel = hiltViewModel()) {
@@ -84,31 +83,31 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 
 	Modal(show = showModal, onDismiss = {
 		onDismiss()
-		}, title = {
+	}, title = {
 		Text(
 			text = stringResource(R.string.max_devices_reached_title),
 			color = MaterialTheme.colorScheme.onSurface,
 			style = CustomTypography.labelHuge,
-			textAlign = TextAlign.Center
+			textAlign = TextAlign.Center,
 		)
 	}, text = {
-		CredentialModalBody { appUiState.managerState.accountLinks?.signIn?.let {
-			context.openWebUrl(it)
-			onDismiss()
+		CredentialModalBody {
+			appUiState.managerState.accountLinks?.signIn?.let {
+				context.openWebUrl(it)
+				onDismiss()
 			}
 		}
 	}, confirmButton = {
-		Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center){
+		Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
 			TextButton(
 				onClick = {
 					onDismiss()
 				},
 				content = {
 					Text(stringResource(id = R.string.close), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-				}
+				},
 			)
 		}
-
 	})
 
 	val requestPermissionLauncher = rememberLauncherForActivityResult(

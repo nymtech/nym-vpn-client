@@ -21,12 +21,10 @@ import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.StringValue
-import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.Country
 import nym_vpn_lib.SystemMessage
 import timber.log.Timber
-import javax.inject.Provider
 import javax.inject.Inject
 
 @HiltViewModel

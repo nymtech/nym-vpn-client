@@ -27,8 +27,8 @@ fun CredentialModalBody(onClick: () -> Unit) {
 			LocalMinimumInteractiveComponentSize provides 0.dp,
 		) {
 			MainStyledButton(onClick = { onClick() }, content = {
-				Text(stringResource(id = R.string.manage_devices), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimary )
-			} )
+				Text(stringResource(id = R.string.manage_devices), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimary)
+			})
 		}
 	}
 }

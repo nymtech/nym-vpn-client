@@ -138,13 +138,12 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 				waitForUpdateAccount()
 				waitForUpdateDevice()
 				waitForRegisterDevice()
-			} catch (e : VpnException) {
+			} catch (e: VpnException) {
 				forgetAccount(storagePath)
 				throw e
 			}
 		}
 	}
-
 
 	@Throws(VpnException::class)
 	override suspend fun isMnemonicStored(): Boolean {
