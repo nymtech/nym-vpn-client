@@ -8,29 +8,14 @@ use tracing_appender::non_blocking::WorkerGuard;
 use crate::service;
 
 pub fn setup_logging(_as_service: bool) {
-    #[cfg(target_os = "macos")]
-    if _as_service {
-        let log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
-        nym_vpn_lib::swift::init_logs(log_level);
-        return;
-    }
-
-    let filter = tracing_subscriber::EnvFilter::builder()
-        .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
-        .from_env()
-        .unwrap()
-        .add_directive("hyper::proto=info".parse().unwrap())
-        .add_directive("netlink_proto=info".parse().unwrap());
-
-    tracing_subscriber::fmt()
-        .with_env_filter(filter)
-        .compact()
-        .init();
+    nym_vpn_lib::init_logger("");
 }
 
 #[allow(unused)]
 pub fn setup_logging_to_file() -> WorkerGuard {
     let log_dir = service::log_dir();
+    // let path = log_dir.join(service::DEFAULT_LOG_FILE); 
+    // nym_vpn_lib::init_logger(path);
 
     println!("log_dir: {}", log_dir.display());
 

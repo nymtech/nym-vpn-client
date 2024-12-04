@@ -43,6 +43,7 @@ tokio = { workspace = true, features = [
 tokio-stream.workspace = true
 tokio-util = { workspace = true, features = ["codec", "rt"] }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
+tracing-appender.workspace = true
 tracing.workspace = true
 tun = { workspace = true, features = ["async"] }
 uniffi.workspace = true
@@ -97,8 +98,7 @@ jnix = { version = "=0.5.1", features = ["derive"] }
 rand.workspace = true
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
-oslog = "0.2.0"
-pretty_env_logger = "0.5.0"
+tracing-oslog = "0.2.0"
 
 [build-dependencies]
 uniffi = { workspace = true, features = ["build"] }

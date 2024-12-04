@@ -34,11 +34,10 @@ pub use nym_task::{
 };
 pub use nym_wg_gateway_client as wg_gateway_client;
 
-#[cfg(any(target_os = "ios", target_os = "macos"))]
-pub use crate::platform::swift;
 pub use crate::{
     error::{Error, GatewayDirectoryError},
     mixnet::MixnetError,
+    platform::init_logger,
 };
 
 pub const DEFAULT_DNS_SERVERS: [IpAddr; 4] = [
