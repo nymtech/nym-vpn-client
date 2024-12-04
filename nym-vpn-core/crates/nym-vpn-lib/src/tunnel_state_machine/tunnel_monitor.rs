@@ -477,7 +477,7 @@ impl TunnelMonitor {
             dns: self.tunnel_settings.dns.ip_addresses().to_vec(),
         });
 
-        let tunnel_handle = connected_tunnel.run(tunnel_options)?;
+        let tunnel_handle = connected_tunnel.run(tunnel_options).await?;
 
         let any_tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
 
@@ -602,7 +602,7 @@ impl TunnelMonitor {
             dns: self.tunnel_settings.dns.ip_addresses().to_vec(),
         });
 
-        let tunnel_handle = connected_tunnel.run(tunnel_options)?;
+        let tunnel_handle = connected_tunnel.run(tunnel_options).await?;
         let any_tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
 
         Ok((tunnel_conn_data, any_tunnel_handle))
