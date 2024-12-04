@@ -25,7 +25,7 @@ use crate::{
 use status_listener::StatusListener;
 
 pub(crate) const MIXNET_CLIENT_STARTUP_TIMEOUT: Duration = Duration::from_secs(30);
-const TASK_MANAGER_SHUTDOWN_TIMER_SECS: u64 = 10;
+pub(crate) const TASK_MANAGER_SHUTDOWN_TIMER_SECS: u64 = 10;
 
 pub struct ConnectedMixnet {
     task_manager: TaskManager,

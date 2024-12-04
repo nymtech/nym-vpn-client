@@ -6,6 +6,7 @@ use std::{net::IpAddr, time::Duration};
 use nym_authenticator_client::{AuthClient, SharedMixnetClient};
 use nym_task::TaskManager;
 use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
+use tokio::sync::mpsc;
 use tokio_stream::{wrappers::IntervalStream, StreamExt};
 
 use nym_credentials_interface::TicketType;
@@ -20,10 +21,13 @@ use nym_validator_client::{
 use nym_wg_gateway_client::{
     ErrorMessage, GatewayData, WgGatewayClient, WgGatewayLightClient, TICKETS_TO_SPEND,
 };
+use tokio_util::sync::CancellationToken;
 
 use crate::{
     tunnel_state_machine::{
-        tunnel::{MixnetConnectOptions, MIXNET_CLIENT_STARTUP_TIMEOUT},
+        tunnel::{
+            MixnetConnectOptions, MIXNET_CLIENT_STARTUP_TIMEOUT, TASK_MANAGER_SHUTDOWN_TIMER_SECS,
+        },
         TunnelType,
     },
     MixnetClientConfig,
@@ -214,6 +218,7 @@ pub(crate) struct BandwidthController<St> {
     exit_depletion_rate: DepletionRate,
     shutdown: TaskClient,
     reconnect_mixnet_client_data: ReconnectMixnetClientData,
+    cancel_token: CancellationToken,
 }
 
 impl<St: Storage> BandwidthController<St> {
@@ -228,6 +233,7 @@ impl<St: Storage> BandwidthController<St> {
         let inner = nym_bandwidth_controller::BandwidthController::new(storage, client);
         let timeout_check_interval =
             IntervalStream::new(tokio::time::interval(DEFAULT_BANDWIDTH_CHECK));
+        let cancel_token = CancellationToken::new();
 
         Ok(BandwidthController {
             inner,
@@ -239,6 +245,7 @@ impl<St: Storage> BandwidthController<St> {
             exit_depletion_rate: Default::default(),
             shutdown,
             reconnect_mixnet_client_data,
+            cancel_token,
         })
     }
 
@@ -358,38 +365,57 @@ impl<St: Storage> BandwidthController<St> {
         None
     }
 
-    pub(crate) async fn try_reconnect(&mut self) -> bool {
+    pub(crate) async fn try_reconnect(&mut self, mixnet_error_tx: mpsc::Sender<()>) -> bool {
         let Some(auth_client) = self
             .reconnect_mixnet_client_data
             .recreate_mixnet_connection()
             .await
         else {
+            self.connected_mixnet = false;
             return false;
         };
         self.wg_entry_gateway_client
             .set_auth_client(auth_client.clone());
         self.wg_exit_gateway_client.set_auth_client(auth_client);
         self.connected_mixnet = true;
-
+        self.spawn_wait_for_mixnet_error(mixnet_error_tx);
         true
+    }
+
+    fn spawn_wait_for_mixnet_error(&mut self, mixnet_error_tx: mpsc::Sender<()>) {
+        let cancel_token = self.cancel_token.clone();
+        let mut task_manager = std::mem::replace(
+            &mut self.reconnect_mixnet_client_data.bw_controller_task_manager,
+            TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS),
+        );
+        tokio::task::spawn(async move {
+            cancel_token
+                .run_until_cancelled(task_manager.wait_for_error())
+                .await;
+            mixnet_error_tx.send(()).await.ok();
+        });
     }
 
     pub(crate) async fn run(mut self)
     where
         <St as Storage>::StorageError: Send + Sync + 'static,
     {
+        let (mixnet_error_tx, mut mixnet_error_rx) = mpsc::channel(1);
+        self.spawn_wait_for_mixnet_error(mixnet_error_tx.clone());
+
         // Skip the first, immediate tick
         self.timeout_check_interval.next().await;
         while !self.shutdown.is_shutdown() {
             tokio::select! {
                 _ = self.shutdown.recv() => {
+                    self.cancel_token.cancel();
                     tracing::trace!("BandwidthController: Received shutdown");
                 }
-                _ = self.reconnect_mixnet_client_data.bw_controller_task_manager.wait_for_error() => {
-                    self.try_reconnect().await;
+                _ = mixnet_error_rx.recv() => {
+                    self.try_reconnect(mixnet_error_tx.clone()).await;
                 }
                 _ = self.timeout_check_interval.next() => {
-                    if !self.connected_mixnet && !self.try_reconnect().await {
+                    if !self.connected_mixnet && !self.try_reconnect(mixnet_error_tx.clone()).await {
                         continue;
                     }
                     let current_period = self.timeout_check_interval.as_ref().period();
