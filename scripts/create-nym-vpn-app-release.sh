@@ -35,15 +35,6 @@ cargo_version_bump() {
     cd ../..
 }
 
-npm_version_bump() {
-    # We can't run this with --dry-run, so let's assume it will be fine
-    cd $DIRNAME
-    local command_npm="npm version patch"
-    echo "Running: $command_npm"
-    $command_npm
-    cd ..
-}
-
 tag_release() {
     cd $DIRNAME
     local version=$(cargo get package.version --entry src-tauri)
@@ -56,7 +47,6 @@ main() {
     check_unstaged_changes
     confirm_root_directory
     cargo_version_bump
-    npm_version_bump
     tag_release
 }
 

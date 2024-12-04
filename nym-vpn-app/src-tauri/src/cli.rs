@@ -165,10 +165,8 @@ pub fn print_build_info(package_info: &PackageInfo) {
     let info = crate::build_info();
 
     print!(
-        r"app name:      {}
-app version:   {}
-crate name:    {}
-crate version: {}
+        r"name:          {}
+version:       {}
 tauri version: {}
 target:        {}
 profile:       {}
@@ -178,8 +176,6 @@ rustc channel: {}
 ",
         package_info.name,
         package_info.version,
-        info.crate_info.name,
-        info.crate_info.version,
         tauri::VERSION,
         info.target.triple,
         info.profile,
