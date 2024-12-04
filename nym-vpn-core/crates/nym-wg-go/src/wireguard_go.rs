@@ -9,6 +9,8 @@ use std::{
 };
 
 #[cfg(windows)]
+use nym_windows::net::AddressFamily;
+#[cfg(windows)]
 use windows_sys::Win32::NetworkManagement::Ndis::NET_LUID_LH;
 
 use super::{
@@ -208,6 +210,13 @@ impl Tunnel {
         unsafe { wgBumpSockets(self.handle) }
     }
 
+    /// Re-bind tunnel socket to the new network interface.
+    /// Pass 0 for the interface to bind to blackhole.
+    #[cfg(windows)]
+    pub fn rebind_tunnel_socket(&mut self, address_family: AddressFamily, interface_index: u32) {
+        unsafe { wgRebindTunnelSocket(address_family.to_af_family(), interface_index) }
+    }
+
     /// Update the endpoints of peers matched by public key.
     pub fn update_peers(&mut self, peer_updates: &[PeerEndpointUpdate]) -> Result<()> {
         let mut config_builder = UapiConfigBuilder::new();
@@ -281,6 +290,13 @@ extern "C" {
     /// Re-attach wireguard-go to the tunnel interface.
     #[cfg(target_os = "ios")]
     fn wgBumpSockets(handle: i32);
+
+    /// Re-bind tunnel socket to the new interface.
+    ///
+    /// - `family` - address family
+    /// - `interface_index` - index of network interface to which the tunnel socket should be bound to. Pass 0 to bind to blackhole.
+    #[cfg(windows)]
+    fn wgRebindTunnelSocket(address_family: u16, interface_index: u32);
 }
 
 /// Callback used by libwg to pass wireguard-go logs.

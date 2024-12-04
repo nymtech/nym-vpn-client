@@ -5,6 +5,7 @@ pub mod any_tunnel_handle;
 mod gateway_selector;
 pub mod mixnet;
 mod status_listener;
+pub mod tombstone;
 pub mod wireguard;
 
 use std::{error::Error as StdError, fmt, net::IpAddr, path::PathBuf, time::Duration};
@@ -17,7 +18,7 @@ use nym_task::{TaskManager, TaskStatus};
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
-use super::{MixnetEvent, TunnelType};
+use super::{route_handler, MixnetEvent, TunnelType};
 use crate::{
     bandwidth_controller::ReconnectMixnetClientData, mixnet::SharedMixnetClient,
     GatewayDirectoryError, MixnetClientConfig, MixnetError,
@@ -293,6 +294,10 @@ pub enum Error {
     #[cfg(target_os = "ios")]
     #[error("failed to set default path observer: {0}")]
     SetDefaultPathObserver(String),
+
+    #[cfg(windows)]
+    #[error("failed to add default route listener: {0}")]
+    AddDefaultRouteListener(#[source] route_handler::Error),
 
     #[error("connection cancelled")]
     Cancelled,

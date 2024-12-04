@@ -31,8 +31,8 @@ use super::{dns_handler::DnsHandlerHandle, route_handler::RouteHandler};
 use super::{route_handler::RoutingConfig, tun_ipv6};
 use super::{
     tunnel::{
-        self, any_tunnel_handle::AnyTunnelHandle, ConnectedMixnet, MixnetConnectOptions,
-        SelectedGateways,
+        self, any_tunnel_handle::AnyTunnelHandle, tombstone::Tombstone, ConnectedMixnet,
+        MixnetConnectOptions, SelectedGateways,
     },
     ConnectionData, Error, ErrorStateReason, MixnetConnectionData, MixnetEvent, NymConfig, Result,
     TunnelConnectionData, TunnelSettings, TunnelType, WireguardConnectionData, WireguardNode,
@@ -115,7 +115,7 @@ pub enum TunnelMonitorEvent {
 
 pub struct TunnelMonitorHandle {
     cancel_token: CancellationToken,
-    join_handle: JoinHandle<Vec<AsyncDevice>>,
+    join_handle: JoinHandle<Tombstone>,
 }
 
 impl TunnelMonitorHandle {
@@ -123,7 +123,7 @@ impl TunnelMonitorHandle {
         self.cancel_token.cancel();
     }
 
-    pub async fn wait(self) -> Vec<AsyncDevice> {
+    pub async fn wait(self) -> Tombstone {
         self.join_handle
             .await
             .inspect_err(|e| {
@@ -192,25 +192,25 @@ impl TunnelMonitor {
         mut self,
         retry_attempt: u32,
         selected_gateways: Option<SelectedGateways>,
-    ) -> Vec<AsyncDevice> {
-        let (devices, reason) = match self.run_inner(retry_attempt, selected_gateways).await {
-            Ok(devices) => (devices, None),
+    ) -> Tombstone {
+        let (tombstone, reason) = match self.run_inner(retry_attempt, selected_gateways).await {
+            Ok(tombstone) => (tombstone, None),
             Err(e) => {
                 tracing::error!("Tunnel monitor exited with error: {}", e);
-                (vec![], e.error_state_reason())
+                (Tombstone::default(), e.error_state_reason())
             }
         };
 
         self.send_event(TunnelMonitorEvent::Down(reason));
 
-        devices
+        tombstone
     }
 
     async fn run_inner(
         &mut self,
         retry_attempt: u32,
         selected_gateways: Option<SelectedGateways>,
-    ) -> Result<Vec<AsyncDevice>> {
+    ) -> Result<Tombstone> {
         if retry_attempt > 0 {
             let delay = wait_delay(retry_attempt);
             tracing::debug!("Waiting for {}s before connecting.", delay.as_secs());
@@ -514,7 +514,13 @@ impl TunnelMonitor {
             dns: self.tunnel_settings.dns.ip_addresses().to_vec(),
         });
 
-        let tunnel_handle = connected_tunnel.run(tunnel_options)?;
+        let tunnel_handle = connected_tunnel
+            .run(
+                #[cfg(windows)]
+                self.route_handler.clone(),
+                tunnel_options,
+            )
+            .await?;
 
         let wintun_exit_interface = tunnel_handle
             .exit_wintun_interface()
@@ -642,7 +648,13 @@ impl TunnelMonitor {
             dns: self.tunnel_settings.dns.ip_addresses().to_vec(),
         });
 
-        let tunnel_handle = connected_tunnel.run(tunnel_options)?;
+        let tunnel_handle = connected_tunnel
+            .run(
+                #[cfg(windows)]
+                self.route_handler.clone(),
+                tunnel_options,
+            )
+            .await?;
 
         let wintun_entry_interface = tunnel_handle
             .entry_wintun_interface()
