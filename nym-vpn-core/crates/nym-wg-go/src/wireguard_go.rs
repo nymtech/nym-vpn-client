@@ -273,7 +273,7 @@ extern "C" {
         logging_context: *mut c_void,
     ) -> i32;
 
-    /// Pass a handle that was created by wgTurnOn to stop a wireguard tunnel.
+    /// Pass a handle that was created by wgTurnOn to stop the wireguard tunnel.
     fn wgTurnOff(handle: i32);
 
     /// Returns the config of the WireGuard interface.
