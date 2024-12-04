@@ -65,14 +65,4 @@ internal class NotificationManager private constructor(val context: Context) {
 		val manager = context.getSystemService(VpnService.NOTIFICATION_SERVICE) as NotificationManager
 		manager.cancel(id)
 	}
-
-	fun createStateMachineNotification(): Notification {
-		val notificationBuilder = NotificationCompat.Builder(context, VPN_CHANNEL_ID)
-		return notificationBuilder.setOngoing(true)
-			.setContentTitle("State machine")
-			.setContentText(context.getString(R.string.vpn_notification_text))
-			.setSmallIcon(R.drawable.ic_stat_name)
-			.setCategory(Notification.CATEGORY_SERVICE)
-			.build()
-	}
 }

@@ -29,12 +29,5 @@
 				android:name="android.net.VpnService.SUPPORTS_ALWAYS_ON"
 				android:value="true" />
 		</service>
-		<service
-			android:name="net.nymtech.vpn.backend.NymBackend$StateMachineService"
-			android:enabled="true"
-			android:exported="false"
-			android:foregroundServiceType="systemExempted"
-			android:persistent="true"
-			android:stopWithTask="false"/>
     </application>
 </manifest>

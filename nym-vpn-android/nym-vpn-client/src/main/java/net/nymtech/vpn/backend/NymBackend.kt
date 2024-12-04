@@ -1,18 +1,17 @@
 package net.nymtech.vpn.backend
 
-import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.os.IBinder
 import android.os.PowerManager
 import android.system.Os
-import androidx.core.app.ServiceCompat
+import androidx.lifecycle.lifecycleScope
 import com.getkeepsafe.relinker.ReLinker
 import com.getkeepsafe.relinker.ReLinker.LoadListener
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.nymtech.ipcalculator.AllowedIpCalculator
 import net.nymtech.vpn.model.BackendEvent
@@ -25,7 +24,7 @@ import net.nymtech.vpn.util.SingletonHolder
 import net.nymtech.vpn.util.exceptions.NymVpnInitializeException
 import net.nymtech.vpn.util.extensions.addRoutes
 import net.nymtech.vpn.util.extensions.asTunnelState
-import net.nymtech.vpn.util.extensions.startServiceByClass
+import net.nymtech.vpn.util.extensions.startVpnService
 import nym_vpn_lib.AccountLinks
 import nym_vpn_lib.AccountStateSummary
 import nym_vpn_lib.AndroidTunProvider
@@ -40,6 +39,7 @@ import nym_vpn_lib.initEnvironment
 import nym_vpn_lib.initFallbackMainnetEnvironment
 import nym_vpn_lib.isAccountMnemonicStored
 import nym_vpn_lib.startVpn
+import nym_vpn_lib.stopVpn
 import nym_vpn_lib.storeAccountMnemonic
 import nym_vpn_lib.waitForRegisterDevice
 import nym_vpn_lib.waitForUpdateAccount
@@ -68,7 +68,6 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	companion object : SingletonHolder<NymBackend, Context>(::NymBackend) {
 		private var vpnService = CompletableDeferred<VpnService>()
-		private var stateMachineService = CompletableDeferred<StateMachineService>()
 		const val DEFAULT_LOCALE = "en"
 	}
 
@@ -169,8 +168,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	private suspend fun startVpn(tunnel: Tunnel, background: Boolean) {
 		withContext(ioDispatcher) {
 			if (!initialized.get()) init(tunnel.environment, tunnel.credentialMode)
-			if (!vpnService.isCompleted) context.startServiceByClass(background, VpnService::class.java)
-			context.startServiceByClass(background, StateMachineService::class.java)
+			if (!vpnService.isCompleted) context.startVpnService(background)
 			val service = vpnService.await()
 			val backend = this@NymBackend
 			service.setOwner(backend)
@@ -198,15 +196,25 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		tunnel?.onBackendEvent(BackendEvent.StartFailure(e))
 	}
 
-	@OptIn(ExperimentalCoroutinesApi::class)
 	override suspend fun stop() {
 		withContext(ioDispatcher) {
 			runCatching {
-				vpnService.getCompleted().stopSelf()
-				stateMachineService.getCompleted().stopSelf()
+				Timber.d("Stopping vpn")
+				stopVpn()
+				onVpnShutdown()
 			}.onFailure {
 				Timber.e(it)
 			}
+		}
+	}
+
+	@OptIn(ExperimentalCoroutinesApi::class)
+	private fun onVpnShutdown() {
+		kotlin.runCatching {
+			vpnService.getCompleted().stopSelf()
+			Timber.d("Vpn service stopped")
+		}.onFailure {
+			Timber.e(it)
 		}
 	}
 
@@ -236,68 +244,13 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		tunnel?.onStateChange(state)
 	}
 
-	internal class StateMachineService : Service() {
-
-		private var wakeLock: PowerManager.WakeLock? = null
-
-		companion object {
-			private const val FOREGROUND_ID = 223
-			const val SYSTEM_EXEMPT_SERVICE_TYPE_ID = 1024
-		}
-
-		override fun onCreate() {
-			stateMachineService.complete(this)
-			ServiceCompat.startForeground(
-				this,
-				FOREGROUND_ID,
-				notificationManager.createStateMachineNotification(),
-				SYSTEM_EXEMPT_SERVICE_TYPE_ID,
-			)
-			initWakeLock()
-			super.onCreate()
-		}
-
-		override fun onDestroy() {
-			wakeLock?.let {
-				if (it.isHeld) {
-					it.release()
-				}
-			}
-			stopForeground(STOP_FOREGROUND_REMOVE)
-			super.onDestroy()
-		}
-
-		override fun onBind(p0: Intent?): IBinder? {
-			return null
-		}
-
-		private val notificationManager = NotificationManager.getInstance(this)
-
-		override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-			stateMachineService.complete(this)
-			return super.onStartCommand(intent, flags, startId)
-		}
-
-		private fun initWakeLock() {
-			wakeLock = (getSystemService(POWER_SERVICE) as PowerManager).run {
-				val tag = this.javaClass.name
-				newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "$tag::lock").apply {
-					try {
-						Timber.i("Initiating wakelock forever.. for now..")
-						acquire()
-					} finally {
-						release()
-					}
-				}
-			}
-		}
-	}
-
-	internal class VpnService : LifecycleVpnService(), AndroidTunProvider {
+	class VpnService : LifecycleVpnService(), AndroidTunProvider {
 		private var owner: NymBackend? = null
 		private var startId by Delegates.notNull<Int>()
 		private val calculator = AllowedIpCalculator()
 		private val notificationManager = NotificationManager.getInstance(this)
+
+		private var wakeLock: PowerManager.WakeLock? = null
 
 		companion object {
 			private const val VPN_NOTIFICATION_ID = 222
@@ -309,14 +262,38 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		override fun onCreate() {
 			Timber.d("Vpn service created")
 			vpnService.complete(this)
+			lifecycleScope.launch {
+				initWakeLock()
+			}
 			super.onCreate()
 		}
+
+		private fun initWakeLock() {
+			wakeLock = (getSystemService(POWER_SERVICE) as PowerManager).run {
+				val tag = this.javaClass.name
+				newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "$tag::lock").apply {
+					try {
+						Timber.i("Initiating wakelock forever..")
+						acquire()
+					} finally {
+						release()
+					}
+				}
+			}
+		}
+
+
 
 		override fun onDestroy() {
 			Timber.d("Vpn service destroyed")
 			vpnService = CompletableDeferred()
 			stopForeground(STOP_FOREGROUND_REMOVE)
 			notificationManager.cancel(VPN_NOTIFICATION_ID)
+			wakeLock?.let {
+				if (it.isHeld) {
+					it.release()
+				}
+			}
 			super.onDestroy()
 		}
 
