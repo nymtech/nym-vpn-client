@@ -6,7 +6,6 @@ desktop app for Linux and Windows platforms
 ### Prerequisites
 
 - Rust toolchain
-- node, `npm`
 - the targeted core `vpn-vpn-core-v*` version must be released
   and published
 
@@ -21,8 +20,8 @@ Release tags must follow the following patterns:
 
 ### Bump versions
 
-1. update the version in the `src-tauri/Cargo.toml`, e.g. if the
-   release version is `1.2.3`
+1. update the version in the `src-tauri/Cargo.toml` \
+   e.g. if the release version is `1.2.3`
 
 ```toml
 version = "1.2.3"
@@ -31,23 +30,20 @@ version = "1.2.3"
 `src-tauri/Cargo.lock` should be updated accordingly, \
 run `cargo build` and recheck the `Cargo.lock` changes.
 
-2. update the version in the `package.json`, e.g. if the
-   release version is `1.2.3`
-
-```
-"version": "1.2.3",
-```
-
-`package-lock.json` should be updated accordingly, \
-run `npm i` and recheck the `package-lock.json` changes.
-
-3. update the vpnd compatibility semver version
-   [requirement](https://docs.rs/semver/1.0.23/semver/struct.VersionReq.html)
-   in the `vpnd_compat.toml`, if needed. \
-   E.g. if this app release is compatible with any vpnd versions >= `1.2.0`
+2. update the vpnd compatibility semver version
+   [requirement](https://docs.rs/semver/1.0.23/semver/struct.VersionReq.html) \
+   edit the file `vpnd_compat.toml` \
+   e.g. if this app release is compatible with any vpnd versions >= `1.2.0`
 
 ```toml
 version = ">=1.2.0"
+```
+
+3. in the same way update the vpnd compatibility for the deb package \
+   edit the property `linux.deb.depends` in `src-tauri/tauri.conf.json`
+
+```
+"depends": ["nym-vpnd (>= 1.2.0)"],
 ```
 
 4. push the changes to the repository (likely via a dedicated
