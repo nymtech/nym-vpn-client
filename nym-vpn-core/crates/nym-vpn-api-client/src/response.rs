@@ -166,7 +166,7 @@ pub struct NymVpnZkNym {
     pub status: NymVpnZkNymStatus,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, strum::Display)]
 #[serde(rename_all = "snake_case")]
 pub enum NymVpnZkNymStatus {
     Pending,

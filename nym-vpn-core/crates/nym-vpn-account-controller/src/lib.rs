@@ -1,5 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
+#![warn(clippy::panic, clippy::unwrap_used, clippy::expect_used)]
 
 // The account controller is responsible for
 // 1. checking if the account exists
@@ -17,7 +18,10 @@ mod storage;
 mod ticketbooks;
 
 pub use commander::AccountControllerCommander;
-pub use commands::{AccountCommand, AccountCommandError};
+pub use commands::{
+    AccountCommand, AccountCommandError, RegisterDeviceError, RequestZkNymError,
+    RequestZkNymSuccess, VpnApiEndpointFailure,
+};
 pub use controller::AccountController;
 pub use error::Error;
 pub use shared_state::{AccountStateSummary, ReadyToConnect, SharedAccountState};

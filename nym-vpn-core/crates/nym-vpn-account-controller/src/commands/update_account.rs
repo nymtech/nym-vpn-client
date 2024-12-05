@@ -5,7 +5,10 @@ use std::sync::Arc;
 
 use nym_vpn_api_client::{response::NymVpnAccountSummaryResponse, types::VpnApiAccount};
 
-use crate::shared_state::{AccountRegistered, AccountSummary, SharedAccountState};
+use crate::{
+    commands::VpnApiEndpointFailure,
+    shared_state::{AccountRegistered, AccountSummary, SharedAccountState},
+};
 
 use super::{AccountCommandError, AccountCommandResult};
 
@@ -90,28 +93,25 @@ pub(crate) async fn update_state(
     vpn_api_client: &nym_vpn_api_client::VpnApiClient,
     previous_account_summary_response: &PreviousAccountSummaryResponse,
 ) -> Result<NymVpnAccountSummaryResponse, AccountCommandError> {
-    tracing::info!("Updating account state");
+    tracing::debug!("Updating account state");
     let response = vpn_api_client.get_account_summary(account).await;
 
     let account_summary = match response {
         Ok(account_summary) => account_summary,
         Err(err) => {
             if let Some(e) = nym_vpn_api_client::response::extract_error_response(&err) {
-                tracing::warn!(
-                    "nym-vpn-api reports: message={}, message_id={:?}",
-                    e.message,
-                    e.message_id
-                );
+                tracing::warn!(message = %e.message, message_id=?e.message_id, code_reference_id=?e.code_reference_id, "nym-vpn-api reports");
                 // TODO: check the message_id to confirm it's an error saying we are not registered
                 account_state
                     .set_account_registered(AccountRegistered::NotRegistered)
                     .await;
-                return Err(AccountCommandError::UpdateAccountEndpointFailure {
-                    message: e.message.clone(),
-                    message_id: e.message_id.clone(),
-                    code_reference_id: e.code_reference_id.clone(),
-                    base_url: Box::new(vpn_api_client.current_url().clone()),
-                });
+                return Err(AccountCommandError::UpdateAccountEndpointFailure(
+                    VpnApiEndpointFailure {
+                        message: e.message.clone(),
+                        message_id: e.message_id.clone(),
+                        code_reference_id: e.code_reference_id.clone(),
+                    },
+                ));
             }
             return Err(AccountCommandError::General(err.to_string()));
         }
@@ -124,7 +124,7 @@ pub(crate) async fn update_state(
         .as_ref()
         != Some(&account_summary)
     {
-        tracing::info!("Updated account summary: {:#?}", account_summary);
+        tracing::debug!("Updated account summary: {:#?}", account_summary);
     }
 
     account_state

@@ -2,16 +2,22 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 pub(crate) mod register_device;
+pub(crate) mod request_zknym;
 pub(crate) mod update_account;
 pub(crate) mod update_device;
-pub(crate) mod zknym;
 
-use std::{collections::HashMap, sync::Arc};
+pub use register_device::RegisterDeviceError;
+pub use request_zknym::{
+    RequestZkNymError, RequestZkNymErrorSummary, RequestZkNymSuccess, RequestZkNymSuccessSummary,
+};
+
+use std::{collections::HashMap, fmt, sync::Arc};
 
 use nym_vpn_api_client::response::{NymVpnAccountSummaryResponse, NymVpnDevice};
+use serde::{Deserialize, Serialize};
 use tokio::sync::oneshot;
 
-use crate::{error::Error, shared_state::DeviceState, AvailableTicketbooks};
+use crate::{shared_state::DeviceState, AvailableTicketbooks};
 
 #[derive(Debug, Default)]
 pub(crate) struct RunningCommands {
@@ -48,26 +54,19 @@ impl RunningCommands {
 
 #[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
 pub enum AccountCommandError {
-    #[error("failed to update account state: {message}")]
-    UpdateAccountEndpointFailure {
-        message: String,
-        message_id: Option<String>,
-        code_reference_id: Option<String>,
-        base_url: Box<url::Url>,
-    },
+    #[error("failed to update account state: {0}")]
+    UpdateAccountEndpointFailure(VpnApiEndpointFailure),
 
-    #[error("failed to update device state: {message}")]
-    UpdateDeviceEndpointFailure {
-        message: String,
-        message_id: Option<String>,
-        code_reference_id: Option<String>,
-    },
+    #[error("failed to update device state: {0}")]
+    UpdateDeviceEndpointFailure(VpnApiEndpointFailure),
 
-    #[error("failed to register device: {message}")]
-    RegisterDeviceEndpointFailure {
-        message: String,
-        message_id: Option<String>,
-        code_reference_id: Option<String>,
+    #[error("failed to register device: {0}")]
+    RegisterDeviceEndpointFailure(VpnApiEndpointFailure),
+
+    #[error("failed to request zk nym")]
+    RequestZkNym {
+        successes: Vec<RequestZkNymSuccess>,
+        failed: Vec<RequestZkNymError>,
     },
 
     #[error("no account stored")]
@@ -85,6 +84,26 @@ pub enum AccountCommandError {
     Internal(String),
 }
 
+impl From<RegisterDeviceError> for AccountCommandError {
+    fn from(err: RegisterDeviceError) -> Self {
+        match err {
+            RegisterDeviceError::RegisterDeviceEndpointFailure(failure) => {
+                AccountCommandError::RegisterDeviceEndpointFailure(failure)
+            }
+            RegisterDeviceError::General(message) => AccountCommandError::General(message),
+        }
+    }
+}
+
+impl From<RequestZkNymErrorSummary> for AccountCommandError {
+    fn from(summary: RequestZkNymErrorSummary) -> Self {
+        AccountCommandError::RequestZkNym {
+            successes: summary.successes,
+            failed: summary.failed,
+        }
+    }
+}
+
 impl AccountCommandError {
     pub fn internal(message: impl ToString) -> Self {
         AccountCommandError::Internal(message.to_string())
@@ -92,6 +111,23 @@ impl AccountCommandError {
 
     pub fn general(message: impl ToString) -> Self {
         AccountCommandError::General(message.to_string())
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct VpnApiEndpointFailure {
+    pub message: String,
+    pub message_id: Option<String>,
+    pub code_reference_id: Option<String>,
+}
+
+impl fmt::Display for VpnApiEndpointFailure {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "message={}, message_id={:?}, code_reference_id={:?}",
+            self.message, self.message_id, self.code_reference_id
+        )
     }
 }
 
@@ -128,12 +164,12 @@ pub enum AccountCommand {
     UpdateAccountState(Option<ReturnSender<NymVpnAccountSummaryResponse>>),
     UpdateDeviceState(Option<ReturnSender<DeviceState>>),
     RegisterDevice(Option<ReturnSender<NymVpnDevice>>),
-    RequestZkNym,
+    RequestZkNym(Option<ReturnSender<RequestZkNymSuccessSummary>>),
     GetDeviceZkNym,
     GetZkNymsAvailableForDownload,
     GetZkNymById(String),
     ConfirmZkNymIdDownloaded(String),
-    GetAvailableTickets(oneshot::Sender<Result<AvailableTicketbooks, Error>>),
+    GetAvailableTickets(ReturnSender<AvailableTicketbooks>),
 }
 
 impl AccountCommand {
@@ -153,13 +189,9 @@ impl AccountCommand {
             AccountCommand::RegisterDevice(Some(tx)) => {
                 tx.send(Err(error));
             }
-            //AccountCommand::GetAvailableTickets(tx) => {
-            //    tx.send(Err(error))
-            //        .inspect_err(|err| {
-            //            tracing::error!("Failed to send error response: {:?}", err);
-            //        })
-            //        .ok();
-            //}
+            AccountCommand::RequestZkNym(Some(tx)) => {
+                tx.send(Err(error));
+            }
             _ => {}
         }
     }
@@ -171,6 +203,7 @@ pub(crate) enum AccountCommandResult {
     UpdateAccountState(Result<NymVpnAccountSummaryResponse, AccountCommandError>),
     UpdateDeviceState(Result<DeviceState, AccountCommandError>),
     RegisterDevice(Result<NymVpnDevice, AccountCommandError>),
+    RequestZkNym(Result<RequestZkNymSuccessSummary, AccountCommandError>),
 }
 
 #[cfg(test)]
@@ -191,7 +224,7 @@ mod tests {
             AccountCommand::RegisterDevice(None).kind(),
             "RegisterDevice"
         );
-        assert_eq!(AccountCommand::RequestZkNym.kind(), "RequestZkNym");
+        assert_eq!(AccountCommand::RequestZkNym(None).kind(), "RequestZkNym");
         assert_eq!(AccountCommand::GetDeviceZkNym.kind(), "GetDeviceZkNym");
         assert_eq!(
             AccountCommand::GetZkNymsAvailableForDownload.kind(),
@@ -205,8 +238,9 @@ mod tests {
             AccountCommand::ConfirmZkNymIdDownloaded("some_id".to_string()).kind(),
             "ConfirmZkNymIdDownloaded"
         );
+        let (tx, _) = ReturnSender::new();
         assert_eq!(
-            AccountCommand::GetAvailableTickets(oneshot::channel().0).kind(),
+            AccountCommand::GetAvailableTickets(tx).kind(),
             "GetAvailableTickets"
         );
     }

@@ -9,6 +9,7 @@ use std::{
 };
 
 use bip39::Mnemonic;
+use futures::FutureExt;
 use nym_vpn_network_config::{
     FeatureFlags, Network, NymNetwork, NymVpnNetwork, ParsedAccountLinks, SystemMessages,
 };
@@ -425,8 +426,6 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         // Make sure the data dir exists
         super::config::create_data_dir(&data_dir).map_err(Error::ConfigSetup)?;
 
-        let credentials_mode = get_feature_flag_credential_mode(&network_env);
-
         // We need to create the user agent here and not in the controller so that we correctly
         // pick up build time constants.
         let user_agent = crate::util::construct_user_agent();
@@ -434,7 +433,8 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             Arc::clone(&storage),
             data_dir.clone(),
             user_agent,
-            credentials_mode,
+            None,
+            network_env.clone(),
             shutdown_token.child_token(),
         )
         .await
@@ -689,10 +689,35 @@ where
         get_feature_flag_credential_mode(&self.network_env)
     }
 
-    async fn wait_for_ready_to_connect(&self) -> Result<(), AccountCommandError> {
+    async fn wait_for_ready_to_connect(
+        &self,
+        credentials_mode: bool,
+    ) -> Result<(), AccountCommandError> {
         self.account_command_tx.ensure_update_account().await?;
         self.account_command_tx.ensure_update_device().await?;
         self.account_command_tx.ensure_register_device().await?;
+        if credentials_mode {
+            self.account_command_tx.ensure_available_zk_nyms().await?;
+        }
+        Ok(())
+    }
+
+    async fn wait_for_ready_to_connect_until_cancelled(
+        &self,
+        enable_credentials_mode: bool,
+    ) -> Result<(), VpnServiceConnectError> {
+        let wait_for_ready_to_connect_fut = self
+            .wait_for_ready_to_connect(enable_credentials_mode)
+            .then(|n| async move {
+                n.inspect_err(|err| {
+                    tracing::error!("Failed to wait for ready to connect: {:?}", err);
+                })
+            });
+        self.shutdown_token
+            .run_until_cancelled(wait_for_ready_to_connect_fut)
+            .await
+            .ok_or(VpnServiceConnectError::Cancel)?
+            .map_err(AccountNotReady::from)?;
         Ok(())
     }
 
@@ -701,13 +726,6 @@ where
         connect_args: ConnectArgs,
         _user_agent: nym_vpn_lib::UserAgent, // todo: use user-agent!
     ) -> Result<(), VpnServiceConnectError> {
-        let wait_for_ready_to_connect_fut = self.wait_for_ready_to_connect();
-        self.shutdown_token
-            .run_until_cancelled(wait_for_ready_to_connect_fut)
-            .await
-            .ok_or(VpnServiceConnectError::Cancel)?
-            .map_err(AccountNotReady::from)?;
-
         let ConnectArgs {
             entry,
             exit,
@@ -720,6 +738,12 @@ where
 
         options.enable_credentials_mode =
             options.enable_credentials_mode || enable_credentials_mode;
+
+        // Before attempting to connect, ensure that the account is ready with the account synced,
+        // the device registered, and possibly zknym ticketbooks available in local credential
+        // storage.
+        self.wait_for_ready_to_connect_until_cancelled(options.enable_credentials_mode)
+            .await?;
 
         tracing::info!(
             "Using entry point: {}",
@@ -1094,7 +1118,7 @@ where
 
     async fn handle_request_zk_nym(&self) -> Result<(), AccountError> {
         self.account_command_tx
-            .send(AccountCommand::RequestZkNym)
+            .send(AccountCommand::RequestZkNym(None))
             .map_err(|source| AccountError::AccountControllerError { source })
     }
 
@@ -1123,15 +1147,10 @@ where
     }
 
     async fn handle_get_available_tickets(&self) -> Result<AvailableTicketbooks, AccountError> {
-        let (result_tx, result_rx) = oneshot::channel();
         self.account_command_tx
-            .send(AccountCommand::GetAvailableTickets(result_tx))
-            .map_err(|source| AccountError::AccountControllerError { source })?;
-
-        let result = result_rx.await.map_err(|err| AccountError::RecvCommand {
-            source: Box::new(err),
-        })?;
-        result.map_err(|err| AccountError::AccountControllerError { source: err })
+            .get_available_tickets()
+            .await
+            .map_err(|source| AccountError::AccountCommandError { source })
     }
 
     async fn handle_fetch_raw_account_summary(

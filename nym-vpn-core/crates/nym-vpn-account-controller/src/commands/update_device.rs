@@ -8,7 +8,10 @@ use nym_vpn_api_client::{
     types::{Device, VpnApiAccount},
 };
 
-use crate::shared_state::{DeviceState, SharedAccountState};
+use crate::{
+    commands::VpnApiEndpointFailure,
+    shared_state::{DeviceState, SharedAccountState},
+};
 
 use super::{AccountCommandError, AccountCommandResult};
 
@@ -97,21 +100,17 @@ pub(crate) async fn update_state(
     vpn_api_client: &nym_vpn_api_client::VpnApiClient,
     previous_devices_response: &PreviousDevicesResponse,
 ) -> Result<DeviceState, AccountCommandError> {
-    tracing::info!("Updating device state");
+    tracing::debug!("Updating device state");
 
     let devices = vpn_api_client.get_devices(account).await.map_err(|err| {
         nym_vpn_api_client::response::extract_error_response(&err)
             .map(|e| {
-                tracing::warn!(
-                    "nym-vpn-api reports: message={}, message_id={:?}",
-                    e.message,
-                    e.message_id
-                );
-                AccountCommandError::UpdateDeviceEndpointFailure {
+                tracing::warn!(message = %e.message, message_id=?e.message_id, code_reference_id=?e.code_reference_id, "nym-vpn-api reports");
+                AccountCommandError::UpdateDeviceEndpointFailure(VpnApiEndpointFailure {
                     message: e.message.clone(),
                     message_id: e.message_id.clone(),
                     code_reference_id: e.code_reference_id.clone(),
-                }
+                })
             })
             .unwrap_or(AccountCommandError::General(err.to_string()))
     })?;
@@ -123,7 +122,7 @@ pub(crate) async fn update_state(
         .as_ref()
         != Some(&devices)
     {
-        tracing::info!("Updated devices: {:?}", devices);
+        tracing::debug!("Updated devices: {:?}", devices);
     }
 
     // TODO: pagination

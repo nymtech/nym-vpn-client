@@ -15,7 +15,9 @@ tonic-reflection.workspace = true
 tonic.workspace = true
 
 nym-config = { workspace = true, optional = true }
-nym-vpn-lib = { path = "../nym-vpn-lib", optional = true }
+nym-gateway-directory = { path = "../nym-gateway-directory", optional = true }
+nym-sdk = { workspace = true, optional = true }
+nym-vpn-account-controller = { path = "../nym-vpn-account-controller", optional = true }
 nym-vpn-network-config = { path = "../nym-vpn-network-config", optional = true }
 nym-vpnd-types = { path = "../nym-vpnd-types", optional = true }
 thiserror = { workspace = true, optional = true }
@@ -28,7 +30,9 @@ tonic-build.workspace = true
 [features]
 conversions = [
     "dep:nym-config",
-    "dep:nym-vpn-lib",
+    "dep:nym-gateway-directory",
+    "dep:nym-sdk",
+    "dep:nym-vpn-account-controller",
     "dep:nym-vpn-network-config",
     "dep:nym-vpnd-types",
     "dep:thiserror",

@@ -27,7 +27,7 @@ use url::Url;
 use nym_gateway_directory::Config as GatewayDirectoryConfig;
 
 use self::error::VpnError;
-use crate::platform::account::start_account_controller_inner;
+use crate::platform::account::start_account_controller_handle;
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
@@ -115,12 +115,13 @@ async fn reconfigure_library(
     data_dir: String,
     credential_mode: Option<bool>,
 ) -> Result<(), VpnError> {
-    let enable_credentials_mode = is_credential_mode_enabled(credential_mode).await?;
-
     // stop if already running
-    let _ = account::stop_account_controller_inner().await;
+    let _ = account::stop_account_controller_handle().await;
+
     init_logger();
-    start_account_controller_inner(PathBuf::from(data_dir), enable_credentials_mode).await
+    let network = environment::current_environment_details().await?;
+
+    start_account_controller_handle(PathBuf::from(data_dir), credential_mode, network).await
 }
 
 async fn is_credential_mode_enabled(credential_mode: Option<bool>) -> Result<bool, VpnError> {
@@ -133,7 +134,7 @@ async fn is_credential_mode_enabled(credential_mode: Option<bool>) -> Result<boo
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn shutdown() -> Result<(), VpnError> {
-    RUNTIME.block_on(account::stop_account_controller_inner())
+    RUNTIME.block_on(account::stop_account_controller_handle())
 }
 
 pub fn init_logger() {

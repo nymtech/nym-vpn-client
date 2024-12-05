@@ -32,12 +32,13 @@ pub(crate) async fn init_fallback_mainnet_environment() -> Result<(), VpnError> 
 }
 
 pub(crate) async fn current_environment() -> Result<NetworkEnvironment, VpnError> {
-    current_environment_inner()
+    current_environment_details()
         .await
         .map(NetworkEnvironment::from)
 }
 
-async fn current_environment_inner() -> Result<nym_vpn_network_config::Network, VpnError> {
+pub(super) async fn current_environment_details(
+) -> Result<nym_vpn_network_config::Network, VpnError> {
     NETWORK_ENVIRONMENT
         .lock()
         .await
@@ -48,7 +49,7 @@ async fn current_environment_inner() -> Result<nym_vpn_network_config::Network, 
 }
 
 pub(crate) async fn get_system_messages() -> Result<Vec<SystemMessage>, VpnError> {
-    current_environment_inner().await.map(|network| {
+    current_environment_details().await.map(|network| {
         network
             .nym_vpn_network
             .system_messages
@@ -60,7 +61,7 @@ pub(crate) async fn get_system_messages() -> Result<Vec<SystemMessage>, VpnError
 
 pub(crate) async fn get_account_links(path: &str, locale: &str) -> Result<AccountLinks, VpnError> {
     let account_id = super::account::get_account_id(path).await.ok();
-    current_environment_inner()
+    current_environment_details()
         .await
         .and_then(|network| {
             network

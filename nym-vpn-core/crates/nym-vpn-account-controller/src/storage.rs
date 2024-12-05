@@ -1,9 +1,10 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::sync::Arc;
+use std::{path::Path, sync::Arc};
 
 use nym_compact_ecash::VerificationKeyAuth;
+use nym_credential_storage::persistent_storage::PersistentStorage as PersistentCredentialStorage;
 use nym_credentials::{
     AggregatedCoinIndicesSignatures, AggregatedExpirationDateSignatures, EpochVerificationKey,
     IssuedTicketBook,
@@ -15,11 +16,7 @@ use nym_vpn_store::{keys::KeyStore, mnemonic::MnemonicStorage, VpnStorage};
 
 use crate::{error::Error, AvailableTicketbooks};
 
-// If we go below this threshold, we should request more tickets
-// TODO: I picked a random number, check what is should be. Or if we can express this in terms of
-// data/bandwidth.
-const TICKET_NUMBER_THRESHOLD: u64 = 30;
-
+#[derive(Debug, Clone)]
 pub(crate) struct AccountStorage<S>
 where
     S: VpnStorage,
@@ -103,16 +100,30 @@ where
     }
 }
 
+#[derive(Clone)]
 pub(crate) struct VpnCredentialStorage {
-    pub(crate) storage: nym_credential_storage::persistent_storage::PersistentStorage,
+    pub(crate) storage: Arc<tokio::sync::Mutex<PersistentCredentialStorage>>,
 }
 
 impl VpnCredentialStorage {
+    pub(crate) async fn setup_from_path<P: AsRef<Path>>(data_dir: P) -> Result<Self, Error> {
+        let storage_paths =
+            nym_sdk::mixnet::StoragePaths::new_from_dir(data_dir).map_err(Error::StoragePaths)?;
+        let storage = storage_paths
+            .persistent_credential_storage()
+            .await
+            .map_err(Error::SetupCredentialStorage)?;
+        let storage = Arc::new(tokio::sync::Mutex::new(storage));
+        Ok(Self::from(storage))
+    }
+
     pub(crate) async fn insert_issued_ticketbook(
         &self,
         ticketbook: &IssuedTicketBook,
     ) -> Result<(), Error> {
         self.storage
+            .lock()
+            .await
             .insert_issued_ticketbook(ticketbook)
             .await
             .map_err(Error::from)
@@ -123,6 +134,8 @@ impl VpnCredentialStorage {
         key: &EpochVerificationKey,
     ) -> Result<(), Error> {
         self.storage
+            .lock()
+            .await
             .insert_master_verification_key(key)
             .await
             .map_err(Error::from)
@@ -134,6 +147,8 @@ impl VpnCredentialStorage {
         epoch_id: u64,
     ) -> Result<Option<VerificationKeyAuth>, Error> {
         self.storage
+            .lock()
+            .await
             .get_master_verification_key(epoch_id)
             .await
             .map_err(Error::from)
@@ -144,6 +159,8 @@ impl VpnCredentialStorage {
         signatures: &AggregatedCoinIndicesSignatures,
     ) -> Result<(), Error> {
         self.storage
+            .lock()
+            .await
             .insert_coin_index_signatures(signatures)
             .await
             .map_err(Error::from)
@@ -154,6 +171,8 @@ impl VpnCredentialStorage {
         signatures: &AggregatedExpirationDateSignatures,
     ) -> Result<(), Error> {
         self.storage
+            .lock()
+            .await
             .insert_expiration_date_signatures(signatures)
             .await
             .map_err(Error::from)
@@ -166,7 +185,7 @@ impl VpnCredentialStorage {
             tracing::info!("Ticketbook: {ticketbook}");
         }
 
-        let pending_ticketbooks = self.storage.get_pending_ticketbooks().await?;
+        let pending_ticketbooks = self.storage.lock().await.get_pending_ticketbooks().await?;
         for pending in pending_ticketbooks {
             tracing::info!("Pending ticketbook id: {}", pending.pending_id);
         }
@@ -174,24 +193,19 @@ impl VpnCredentialStorage {
     }
 
     pub(crate) async fn get_available_ticketbooks(&self) -> Result<AvailableTicketbooks, Error> {
-        let ticketbooks_info = self.storage.get_ticketbooks_info().await?;
+        let ticketbooks_info = self.storage.lock().await.get_ticketbooks_info().await?;
         AvailableTicketbooks::try_from(ticketbooks_info)
     }
 
     pub(crate) async fn check_ticket_types_running_low(&self) -> Result<Vec<TicketType>, Error> {
-        let available_ticketbooks = self.get_available_ticketbooks().await?;
+        self.get_available_ticketbooks()
+            .await
+            .map(|ticketbooks| ticketbooks.ticket_types_running_low())
+    }
+}
 
-        let ticketbook_types_running_low = crate::ticketbooks::ticketbook_types()
-            .into_iter()
-            .filter(|ticket_type| {
-                tracing::info!(
-                    "Remaining unexpired tickets for {ticket_type}: {}",
-                    available_ticketbooks.remaining_tickets(*ticket_type)
-                );
-                available_ticketbooks.remaining_tickets(*ticket_type) < TICKET_NUMBER_THRESHOLD
-            })
-            .collect();
-
-        Ok(ticketbook_types_running_low)
+impl From<Arc<tokio::sync::Mutex<PersistentCredentialStorage>>> for VpnCredentialStorage {
+    fn from(storage: Arc<tokio::sync::Mutex<PersistentCredentialStorage>>) -> Self {
+        Self { storage }
     }
 }

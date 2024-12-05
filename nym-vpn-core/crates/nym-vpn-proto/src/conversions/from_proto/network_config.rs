@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use super::error::ConversionError;
+use crate::conversions::ConversionError;
 
 impl TryFrom<crate::ChainDetails> for nym_config::defaults::ChainDetails {
     type Error = ConversionError;
@@ -96,129 +96,6 @@ impl TryFrom<crate::NymNetworkDetails> for nym_config::defaults::NymNetworkDetai
             explorer_api: None,
             nym_vpn_api_url: None,
         })
-    }
-}
-
-impl From<crate::Location> for nym_vpnd_types::gateway::Location {
-    fn from(location: crate::Location) -> Self {
-        Self {
-            two_letter_iso_country_code: location.two_letter_iso_country_code,
-            latitude: location.latitude,
-            longitude: location.longitude,
-        }
-    }
-}
-
-impl From<crate::AsEntry> for nym_vpnd_types::gateway::Entry {
-    fn from(entry: crate::AsEntry) -> Self {
-        Self {
-            can_connect: entry.can_connect,
-            can_route: entry.can_route,
-        }
-    }
-}
-
-impl From<crate::AsExit> for nym_vpnd_types::gateway::Exit {
-    fn from(exit: crate::AsExit) -> Self {
-        Self {
-            can_connect: exit.can_connect,
-            can_route_ip_v4: exit.can_route_ip_v4,
-            can_route_ip_external_v4: exit.can_route_ip_external_v4,
-            can_route_ip_v6: exit.can_route_ip_v6,
-            can_route_ip_external_v6: exit.can_route_ip_external_v6,
-        }
-    }
-}
-
-impl TryFrom<crate::ProbeOutcome> for nym_vpnd_types::gateway::ProbeOutcome {
-    type Error = ConversionError;
-
-    fn try_from(outcome: crate::ProbeOutcome) -> Result<Self, Self::Error> {
-        let as_entry = outcome
-            .as_entry
-            .map(nym_vpnd_types::gateway::Entry::from)
-            .ok_or(ConversionError::generic("missing as entry"))?;
-        let as_exit = outcome.as_exit.map(nym_vpnd_types::gateway::Exit::from);
-        Ok(Self { as_entry, as_exit })
-    }
-}
-
-impl TryFrom<crate::Probe> for nym_vpnd_types::gateway::Probe {
-    type Error = ConversionError;
-
-    fn try_from(probe: crate::Probe) -> Result<Self, Self::Error> {
-        let last_updated_utc = probe
-            .last_updated_utc
-            .ok_or(ConversionError::generic("missing last updated timestamp"))
-            .map(|timestamp| timestamp.to_string())?;
-        let outcome = probe
-            .outcome
-            .ok_or(ConversionError::generic("missing probe outcome"))
-            .and_then(nym_vpnd_types::gateway::ProbeOutcome::try_from)?;
-        Ok(Self {
-            last_updated_utc,
-            outcome,
-        })
-    }
-}
-
-impl TryFrom<crate::GatewayResponse> for nym_vpnd_types::gateway::Gateway {
-    type Error = ConversionError;
-    fn try_from(gateway: crate::GatewayResponse) -> Result<Self, Self::Error> {
-        let identity_key = gateway
-            .id
-            .map(|id| id.id)
-            .ok_or_else(|| ConversionError::generic("missing gateway id"))?;
-        let location = gateway
-            .location
-            .map(nym_vpnd_types::gateway::Location::from);
-        let last_probe = gateway
-            .last_probe
-            .map(nym_vpnd_types::gateway::Probe::try_from)
-            .transpose()?;
-        Ok(Self {
-            identity_key,
-            location,
-            last_probe,
-        })
-    }
-}
-
-impl From<crate::Location> for nym_vpnd_types::gateway::Country {
-    fn from(location: crate::Location) -> Self {
-        Self {
-            iso_code: location.two_letter_iso_country_code,
-        }
-    }
-}
-
-impl TryFrom<crate::GatewayType> for nym_vpn_lib::gateway_directory::GatewayType {
-    type Error = ConversionError;
-
-    fn try_from(gateway_type: crate::GatewayType) -> Result<Self, Self::Error> {
-        use nym_vpn_lib::gateway_directory::GatewayType;
-        let gw_type = match gateway_type {
-            crate::GatewayType::Unspecified => {
-                return Err(ConversionError::Generic(
-                    "gateway type unspecified".to_string(),
-                ))
-            }
-            crate::GatewayType::MixnetEntry => GatewayType::MixnetEntry,
-            crate::GatewayType::MixnetExit => GatewayType::MixnetExit,
-            crate::GatewayType::Wg => GatewayType::Wg,
-        };
-        Ok(gw_type)
-    }
-}
-
-impl From<crate::UserAgent> for nym_vpn_lib::UserAgent {
-    fn from(user_agent: crate::UserAgent) -> Self {
-        Self {
-            application: user_agent.application,
-            version: user_agent.version,
-            platform: user_agent.platform,
-            git_commit: user_agent.git_commit,
-        }
     }
 }
 

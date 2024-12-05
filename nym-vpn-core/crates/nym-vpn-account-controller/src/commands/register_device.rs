@@ -6,13 +6,14 @@ use nym_vpn_api_client::{
     types::{Device, VpnApiAccount},
     VpnApiClient,
 };
+use serde::{Deserialize, Serialize};
 
 use crate::{
-    shared_state::{DeviceRegistration, DeviceState},
+    shared_state::{DeviceState, RegisterDeviceResult},
     SharedAccountState,
 };
 
-use super::{AccountCommandError, AccountCommandResult};
+use super::{AccountCommandError, AccountCommandResult, VpnApiEndpointFailure};
 
 pub(crate) struct RegisterDeviceCommandHandler {
     id: uuid::Uuid,
@@ -45,29 +46,35 @@ impl RegisterDeviceCommandHandler {
     }
 
     pub(crate) async fn run(self) -> AccountCommandResult {
-        AccountCommandResult::RegisterDevice(self.run_inner().await)
+        AccountCommandResult::RegisterDevice(self.register_device().await)
     }
 
     #[tracing::instrument(
         skip(self),
-        name = "register_device",
         fields(id = %self.id_str()),
         ret,
         err,
     )]
-    async fn run_inner(self) -> Result<NymVpnDevice, AccountCommandError> {
+    async fn register_device(self) -> Result<NymVpnDevice, AccountCommandError> {
         tracing::debug!("Running register device command handler: {}", self.id);
 
-        // TODO: assert that it's not already in progress. It shouldn't happen since only one
-        // command per type is supposed to run at a time.
+        // Defensive check for something that should not be possible
+        if let Some(RegisterDeviceResult::InProgress) =
+            self.account_state.lock().await.register_device_result
+        {
+            return Err(AccountCommandError::internal(
+                "duplicate register device command",
+            ));
+        }
+
         self.account_state
-            .set_device_registration(DeviceRegistration::InProgress)
+            .set_device_registration(RegisterDeviceResult::InProgress)
             .await;
 
         match register_device(&self.account, &self.device, &self.vpn_api_client).await {
             Ok(device) => {
                 self.account_state
-                    .set_device_registration(DeviceRegistration::Success)
+                    .set_device_registration(RegisterDeviceResult::Success)
                     .await;
                 self.account_state
                     .set_device(DeviceState::from(device.status))
@@ -77,10 +84,41 @@ impl RegisterDeviceCommandHandler {
             Err(err) => {
                 tracing::warn!("Failed to register device: {}", err);
                 self.account_state
-                    .set_device_registration(DeviceRegistration::from(&err))
+                    .set_device_registration(RegisterDeviceResult::Failed(err.clone()))
                     .await;
-                Err(err)
+                Err(AccountCommandError::from(err))
             }
+        }
+    }
+}
+
+#[derive(Debug, thiserror::Error, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum RegisterDeviceError {
+    #[error("failed to register device: {0}")]
+    RegisterDeviceEndpointFailure(VpnApiEndpointFailure),
+
+    #[error("failed to register device: {0}")]
+    General(String),
+}
+
+impl RegisterDeviceError {
+    pub(crate) fn general(message: impl ToString) -> Self {
+        RegisterDeviceError::General(message.to_string())
+    }
+
+    pub fn message(&self) -> String {
+        match self {
+            RegisterDeviceError::RegisterDeviceEndpointFailure(failure) => failure.message.clone(),
+            RegisterDeviceError::General(message) => message.clone(),
+        }
+    }
+
+    pub fn message_id(&self) -> Option<String> {
+        match self {
+            RegisterDeviceError::RegisterDeviceEndpointFailure(failure) => {
+                failure.message_id.clone()
+            }
+            RegisterDeviceError::General(_) => None,
         }
     }
 }
@@ -89,7 +127,7 @@ pub(crate) async fn register_device(
     account: &VpnApiAccount,
     device: &Device,
     vpn_api_client: &nym_vpn_api_client::VpnApiClient,
-) -> Result<NymVpnDevice, AccountCommandError> {
+) -> Result<NymVpnDevice, RegisterDeviceError> {
     tracing::info!("Registering device: {:?}", device);
     let response = vpn_api_client
         .register_device(account, device)
@@ -97,19 +135,14 @@ pub(crate) async fn register_device(
         .map_err(|err| {
             nym_vpn_api_client::response::extract_error_response(&err)
                 .map(|e| {
-                    tracing::warn!(
-                        "nym-vpn-api reports: message={}, message_id={:?}, code_reference_id={:?}",
-                        e.message,
-                        e.message_id,
-                        e.code_reference_id,
-                    );
-                    AccountCommandError::RegisterDeviceEndpointFailure {
+                    tracing::warn!(message = %e.message, message_id=?e.message_id, code_reference_id=?e.code_reference_id, "nym-vpn-api reports");
+                    RegisterDeviceError::RegisterDeviceEndpointFailure(VpnApiEndpointFailure {
                         message_id: e.message_id.clone(),
                         message: e.message.clone(),
                         code_reference_id: e.code_reference_id.clone(),
-                    }
+                    })
                 })
-                .unwrap_or(AccountCommandError::General(err.to_string()))
+                .unwrap_or_else(|| RegisterDeviceError::general(err))
         })?;
 
     tracing::info!("Response: {:#?}", response);

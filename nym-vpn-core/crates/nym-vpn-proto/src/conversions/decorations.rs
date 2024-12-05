@@ -28,7 +28,7 @@ impl crate::EntryNode {
         }
     }
 
-    pub fn new_from_gateway(identity: &nym_vpn_lib::NodeIdentity) -> Self {
+    pub fn new_from_gateway(identity: &nym_sdk::mixnet::NodeIdentity) -> Self {
         identity.into()
     }
 }
@@ -50,11 +50,11 @@ impl crate::ExitNode {
         }
     }
 
-    pub fn new_from_gateway(identity: &nym_vpn_lib::NodeIdentity) -> Self {
+    pub fn new_from_gateway(identity: &nym_sdk::mixnet::NodeIdentity) -> Self {
         identity.into()
     }
 
-    pub fn new_from_address(address: &nym_vpn_lib::Recipient) -> Self {
+    pub fn new_from_address(address: &nym_sdk::mixnet::Recipient) -> Self {
         address.into()
     }
 }

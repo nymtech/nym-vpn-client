@@ -4754,6 +4754,7 @@ dependencies = [
  "nym-sdk",
  "nym-validator-client",
  "nym-vpn-api-client",
+ "nym-vpn-network-config",
  "nym-vpn-store",
  "reqwest 0.11.27",
  "serde",
@@ -4793,6 +4794,8 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2 0.10.8",
+ "strum",
+ "strum_macros",
  "thiserror",
  "tokio",
  "tracing",
@@ -4920,7 +4923,9 @@ name = "nym-vpn-proto"
 version = "1.1.0-dev"
 dependencies = [
  "nym-config",
- "nym-vpn-lib",
+ "nym-gateway-directory",
+ "nym-sdk",
+ "nym-vpn-account-controller",
  "nym-vpn-network-config",
  "nym-vpnd-types",
  "prost",

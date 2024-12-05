@@ -10,7 +10,6 @@ license.workspace = true
 
 [dependencies]
 futures.workspace = true
-# nym-client-core = { workspace = true, features = ["cli", "fs-credentials-storage", "fs-surb-storage", "fs-gateways-storage"] }
 nym-compact-ecash.workspace = true
 nym-config.workspace = true
 nym-credential-proxy-requests.workspace = true
@@ -22,6 +21,7 @@ nym-http-api-client.workspace = true
 nym-sdk.workspace = true
 nym-validator-client.workspace = true
 nym-vpn-api-client = { path = "../nym-vpn-api-client" }
+nym-vpn-network-config = { path = "../nym-vpn-network-config" }
 nym-vpn-store = { path = "../nym-vpn-store" }
 reqwest.workspace = true
 serde.workspace = true

@@ -4,10 +4,10 @@
 use std::{path::PathBuf, str::FromStr, sync::Arc, time::Duration};
 
 use nym_vpn_account_controller::{
-    shared_state::DeviceState, AccountCommand, AccountCommandError, AccountControllerCommander,
-    SharedAccountState,
+    shared_state::DeviceState, AccountCommand, AccountControllerCommander, SharedAccountState,
 };
 use nym_vpn_api_client::{response::NymVpnAccountSummaryResponse, types::VpnApiAccount};
+use nym_vpn_network_config::Network;
 use nym_vpn_store::{keys::KeyStore, mnemonic::MnemonicStorage};
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
@@ -16,14 +16,16 @@ use crate::uniffi_custom_impls::AccountStateSummary;
 
 use super::{error::VpnError, ACCOUNT_CONTROLLER_HANDLE};
 
-pub(super) async fn start_account_controller_inner(
+pub(super) async fn start_account_controller_handle(
     data_dir: PathBuf,
-    credential_mode: bool,
+    credential_mode: Option<bool>,
+    network: Network,
 ) -> Result<(), VpnError> {
     let mut guard = ACCOUNT_CONTROLLER_HANDLE.lock().await;
 
     if guard.is_none() {
-        let account_controller_handle = start_account_controller(data_dir, credential_mode).await?;
+        let account_controller_handle =
+            start_account_controller(data_dir, credential_mode, network).await?;
         *guard = Some(account_controller_handle);
         Ok(())
     } else {
@@ -33,7 +35,7 @@ pub(super) async fn start_account_controller_inner(
     }
 }
 
-pub(super) async fn stop_account_controller_inner() -> Result<(), VpnError> {
+pub(super) async fn stop_account_controller_handle() -> Result<(), VpnError> {
     let mut guard = ACCOUNT_CONTROLLER_HANDLE.lock().await;
 
     match guard.take() {
@@ -49,7 +51,8 @@ pub(super) async fn stop_account_controller_inner() -> Result<(), VpnError> {
 
 async fn start_account_controller(
     data_dir: PathBuf,
-    credential_mode: bool,
+    credential_mode: Option<bool>,
+    network_env: Network,
 ) -> Result<AccountControllerHandle, VpnError> {
     let storage = Arc::new(tokio::sync::Mutex::new(
         crate::storage::VpnClientOnDiskStorage::new(data_dir.clone()),
@@ -62,6 +65,7 @@ async fn start_account_controller(
         data_dir.clone(),
         user_agent,
         credential_mode,
+        network_env,
         shutdown_token.child_token(),
     )
     .await
@@ -93,33 +97,6 @@ impl AccountControllerHandle {
         if let Err(e) = self.command_sender.send(command) {
             tracing::error!("Failed to send comamnd: {}", e);
         }
-    }
-
-    async fn wait_for_update_account(
-        &self,
-    ) -> Result<Option<NymVpnAccountSummaryResponse>, AccountCommandError> {
-        self.command_sender.ensure_update_account().await
-    }
-
-    async fn wait_for_update_device(&self) -> Result<DeviceState, AccountCommandError> {
-        self.command_sender.ensure_update_device().await
-    }
-
-    async fn wait_for_register_device(&self) -> Result<(), AccountCommandError> {
-        self.command_sender.ensure_register_device().await
-    }
-
-    async fn wait_for_ready_to_connect(
-        &self,
-        credential_mode: bool,
-    ) -> Result<(), AccountCommandError> {
-        self.command_sender.ensure_update_account().await?;
-        self.command_sender.ensure_update_device().await?;
-        self.command_sender.ensure_register_device().await?;
-        if credential_mode {
-            //self.command_sender.request_zk_nym().await.unwrap();
-        }
-        Ok(())
     }
 
     async fn shutdown_and_wait(self) {
@@ -161,13 +138,9 @@ async fn get_shared_account_state() -> Result<SharedAccountState, VpnError> {
     }
 }
 
-pub(super) async fn wait_for_update_account() -> Result<(), VpnError> {
+pub(super) async fn get_command_sender() -> Result<AccountControllerCommander, VpnError> {
     if let Some(guard) = &*ACCOUNT_CONTROLLER_HANDLE.lock().await {
-        guard
-            .wait_for_update_account()
-            .await
-            .map(|_| ())
-            .map_err(VpnError::from)
+        Ok(guard.command_sender.clone())
     } else {
         Err(VpnError::InvalidStateError {
             details: "Account controller is not running.".to_owned(),
@@ -175,49 +148,51 @@ pub(super) async fn wait_for_update_account() -> Result<(), VpnError> {
     }
 }
 
-pub(super) async fn wait_for_update_device() -> Result<(), VpnError> {
-    if let Some(guard) = &*ACCOUNT_CONTROLLER_HANDLE.lock().await {
-        guard
-            .wait_for_update_device()
-            .await
-            .map(|_| ())
-            .map_err(VpnError::from)
-    } else {
-        Err(VpnError::InvalidStateError {
-            details: "Account controller is not running.".to_owned(),
-        })
-    }
+pub(super) async fn wait_for_update_account(
+) -> Result<Option<NymVpnAccountSummaryResponse>, VpnError> {
+    get_command_sender()
+        .await?
+        .ensure_update_account()
+        .await
+        .map_err(VpnError::from)
+}
+
+pub(super) async fn wait_for_update_device() -> Result<DeviceState, VpnError> {
+    get_command_sender()
+        .await?
+        .ensure_update_device()
+        .await
+        .map_err(VpnError::from)
 }
 
 pub(super) async fn wait_for_register_device() -> Result<(), VpnError> {
-    if let Some(guard) = &*ACCOUNT_CONTROLLER_HANDLE.lock().await {
-        guard
-            .wait_for_register_device()
-            .await
-            .map(|_| ())
-            .map_err(VpnError::from)
-    } else {
-        Err(VpnError::InvalidStateError {
-            details: "Account controller is not running.".to_owned(),
-        })
-    }
+    get_command_sender()
+        .await?
+        .ensure_register_device()
+        .await
+        .map_err(VpnError::from)
+}
+
+pub(super) async fn wait_for_available_zk_nyms() -> Result<(), VpnError> {
+    get_command_sender()
+        .await?
+        .ensure_available_zk_nyms()
+        .await
+        .map_err(VpnError::from)
 }
 
 pub(super) async fn wait_for_account_ready_to_connect(
     credential_mode: bool,
     timeout: Duration,
 ) -> Result<(), VpnError> {
-    if let Some(guard) = &*ACCOUNT_CONTROLLER_HANDLE.lock().await {
-        let wait_for_ready_to_connect = guard.wait_for_ready_to_connect(credential_mode);
-        tokio::time::timeout(timeout, wait_for_ready_to_connect)
-            .await
-            .map_err(|_| VpnError::VpnApiTimeout)?
-            .map_err(VpnError::from)
-    } else {
-        Err(VpnError::InvalidStateError {
-            details: "Account controller is not running.".to_owned(),
-        })
-    }
+    let command_sender = get_command_sender().await?;
+    tokio::time::timeout(
+        timeout,
+        command_sender.wait_for_account_ready_to_connect(credential_mode),
+    )
+    .await
+    .map_err(|_| VpnError::VpnApiTimeout)?
+    .map_err(VpnError::from)
 }
 
 fn setup_account_storage(path: &str) -> Result<crate::storage::VpnClientOnDiskStorage, VpnError> {
