@@ -5,7 +5,7 @@ use std::{error::Error as StdError, net::IpAddr, sync::Arc};
 
 #[cfg(target_os = "ios")]
 use tokio::sync::mpsc;
-use tokio::task::JoinHandle;
+use tokio::task::{JoinError, JoinHandle};
 use tokio_util::sync::CancellationToken;
 use tun::AsyncDevice;
 
@@ -216,7 +216,7 @@ impl ConnectedTunnel {
 pub struct TunnelHandle {
     task_manager: TaskManager,
     shutdown_token: CancellationToken,
-    event_loop_handle: JoinHandle<()>,
+    event_loop_handle: JoinHandle<Tombstone>,
     bandwidth_controller_handle: JoinHandle<()>,
 }
 
