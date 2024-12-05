@@ -13,10 +13,26 @@ pub struct Tombstone {
 }
 
 impl Tombstone {
+    /// Convenience initializer that creates a tombstone with a single tunnel device.
     pub fn with_tun_device(tun_device: AsyncDevice) -> Self {
+        Self::with_tun_devices(vec![tun_device])
+    }
+
+    /// Creates a tombstone with tunnel devices.
+    pub fn with_tun_devices(tun_devices: Vec<AsyncDevice>) -> Self {
         Self {
-            tun_devices: vec![tun_device],
-            ..Default::default()
+            tun_devices: tun_devices,
+            #[cfg(windows)]
+            wg_instances: Vec::new(),
+        }
+    }
+
+    /// Creates a tombstone with wireguard tunnel instances.
+    #[cfg(windows)]
+    pub fn with_wg_instances(wg_instances: Vec<nym_wg_go::wireguard_go::Tunnel>) {
+        Self {
+            tun_devices: Vec::new(),
+            wg_instances,
         }
     }
 }

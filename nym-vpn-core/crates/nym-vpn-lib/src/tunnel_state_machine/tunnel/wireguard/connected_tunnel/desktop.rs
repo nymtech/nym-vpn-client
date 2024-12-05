@@ -171,6 +171,8 @@ impl ConnectedTunnel {
                 }
             }
 
+            // On non-windows platforms we have direct ownership over the tunnel adapters,
+            // so we can shutdown the tunnel right away and return adapters with a tombstone.
             #[cfg(not(windows))]
             {
                 child_shutdown_token.cancelled().await;
@@ -178,14 +180,15 @@ impl ConnectedTunnel {
 
                 entry_tunnel.stop();
                 exit_tunnel.stop();
+
+                Tombstone::with_tun_devices(vec![options.exit_tun, options.entry_tun])
             }
 
-            Tombstone {
-                #[cfg(not(windows))]
-                tun_devices: vec![options.exit_tun, options.entry_tun],
-                #[cfg(windows)]
-                wg_instances: vec![exit_tunnel, entry_tunnel],
-                ..Default::default()
+            // On windows return tunnels as part of tombstone since they own tunnel adapters and should be
+            // dropped only after resetting the routing table.
+            #[cfg(windows)]
+            {
+                Tombstone::with_wg_instances(vec![exit_tunnel, entry_tunnel])
             }
         });
 
