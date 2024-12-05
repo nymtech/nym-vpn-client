@@ -26,16 +26,16 @@ struct CliArgs {
     #[arg(long, short)]
     gateway: Option<String>,
 
-    #[arg(long, short)]
+    #[arg(long)]
     min_gateway_mixnet_performance: Option<u8>,
 
-    #[arg(long, short)]
+    #[arg(long)]
     min_gateway_vpn_performance: Option<u8>,
 
-    #[arg(long, short)]
+    #[arg(long)]
     only_wireguard: bool,
 
-    #[arg(long, short)]
+    #[arg(long)]
     no_log: bool,
 }
 
