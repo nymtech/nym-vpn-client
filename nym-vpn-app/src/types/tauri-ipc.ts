@@ -91,6 +91,7 @@ export type ErrorKey =
   | 'ConnectUpdateAccount'
   | 'ConnectUpdateDevice'
   | 'ConnectRegisterDevice'
+  | 'ConnectRequestZkNym'
   | 'EntryGatewayNotRouting'
   | 'ExitRouterPingIpv4'
   | 'ExitRouterPingIpv6'
