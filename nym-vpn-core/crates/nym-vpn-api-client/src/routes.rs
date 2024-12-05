@@ -17,6 +17,9 @@ pub(crate) const GATEWAYS: &str = "gateways";
 pub(crate) const COUNTRIES: &str = "countries";
 pub(crate) const ENTRY: &str = "entry";
 pub(crate) const EXIT: &str = "exit";
+pub(crate) const ZK_NYMS: &str = "zk-nyms";
+pub(crate) const TICKETBOOK: &str = "ticketbook";
+pub(crate) const PARTIAL_VERIFICATION_KEYS: &str = "partial-verification-keys";
 
 pub(crate) const SHOW_VPN_ONLY: &str = "show_vpn_only";
 pub(crate) const VPN_MIN_PERFORMANCE: &str = "vpn_min_performance";

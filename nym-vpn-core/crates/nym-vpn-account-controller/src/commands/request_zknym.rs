@@ -43,6 +43,11 @@ pub(crate) struct WaitingRequestZkNymCommandHandler {
     account_state: SharedAccountState,
     vpn_api_client: VpnApiClient,
     zk_nym_fails_in_a_row: Arc<AtomicU32>,
+
+    // Cache the partial verification keys to avoid fetching them multiple times, as
+    // long as we have them for the correct epoch
+    partial_verification_keys:
+        Arc<tokio::sync::Mutex<HashMap<u64, PartialVerificationKeysResponse>>>,
 }
 
 impl WaitingRequestZkNymCommandHandler {
@@ -56,6 +61,7 @@ impl WaitingRequestZkNymCommandHandler {
             account_state,
             vpn_api_client,
             zk_nym_fails_in_a_row: Default::default(),
+            partial_verification_keys: Default::default(),
         }
     }
 
@@ -74,6 +80,7 @@ impl WaitingRequestZkNymCommandHandler {
             account_state: self.account_state.clone(),
             vpn_api_client: self.vpn_api_client.clone(),
             zk_nym_fails_in_a_row: self.zk_nym_fails_in_a_row.clone(),
+            partial_verification_keys: self.partial_verification_keys.clone(),
         }
     }
 
@@ -91,6 +98,8 @@ pub(crate) struct RequestZkNymCommandHandler {
     vpn_api_client: VpnApiClient,
 
     zk_nym_fails_in_a_row: Arc<AtomicU32>,
+    partial_verification_keys:
+        Arc<tokio::sync::Mutex<HashMap<u64, PartialVerificationKeysResponse>>>,
 }
 
 impl RequestZkNymCommandHandler {
@@ -338,14 +347,8 @@ impl RequestZkNymCommandHandler {
         };
 
         let issuers = self
-            .vpn_api_client
-            .get_directory_zk_nyms_ticketbookt_partial_verification_keys()
-            .await
-            .map_err(Error::GetZkNyms)?;
-
-        if shares.epoch_id != issuers.epoch_id {
-            return Err(Error::InconsistentEpochId);
-        }
+            .get_or_fetch_partial_verification_keys(shares.epoch_id)
+            .await?;
 
         tracing::info!("epoch_id: {}", shares.epoch_id);
 
@@ -419,6 +422,29 @@ impl RequestZkNymCommandHandler {
             .await?;
 
         Ok(())
+    }
+
+    async fn get_or_fetch_partial_verification_keys(
+        &self,
+        epoch_id: u64,
+    ) -> Result<PartialVerificationKeysResponse, Error> {
+        let mut partial_verification_keys = self.partial_verification_keys.lock().await;
+        if let Some(issuers) = partial_verification_keys.get(&epoch_id) {
+            Ok(issuers.clone())
+        } else {
+            let issuers = self
+                .vpn_api_client
+                .get_directory_zk_nyms_ticketbook_partial_verification_keys()
+                .await
+                .map_err(Error::GetZkNyms)?;
+
+            if issuers.epoch_id != epoch_id {
+                return Err(Error::InconsistentEpochId);
+            }
+
+            partial_verification_keys.insert(epoch_id, issuers.clone());
+            Ok(issuers)
+        }
     }
 
     async fn confirm_zk_nym_downloaded(&self, id: &str) -> Result<(), Error> {

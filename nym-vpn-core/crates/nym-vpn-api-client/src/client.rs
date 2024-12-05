@@ -813,7 +813,7 @@ impl VpnApiClient {
 
     // DIRECTORY ZK-NYM
 
-    pub async fn get_directory_zk_nyms_ticketbookt_partial_verification_keys(
+    pub async fn get_directory_zk_nyms_ticketbook_partial_verification_keys(
         &self,
     ) -> Result<PartialVerificationKeysResponse> {
         self.get_json_with_retry(
@@ -821,9 +821,9 @@ impl VpnApiClient {
                 routes::PUBLIC,
                 routes::V1,
                 routes::DIRECTORY,
-                "zk-nyms",
-                "ticketbook",
-                "partial-verification-keys",
+                routes::ZK_NYMS,
+                routes::TICKETBOOK,
+                routes::PARTIAL_VERIFICATION_KEYS,
             ],
             NO_PARAMS,
         )
