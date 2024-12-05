@@ -263,6 +263,12 @@ pub fn resetDeviceIdentity(path: String) -> Result<(), VpnError> {
 
 #[allow(non_snake_case)]
 #[uniffi::export]
+pub fn getDeviceIdentity(path: String) -> Result<String, VpnError> {
+    RUNTIME.block_on(account::get_account_id(&path))
+}
+
+#[allow(non_snake_case)]
+#[uniffi::export]
 pub fn updateAccountState() -> Result<(), VpnError> {
     RUNTIME.block_on(account::update_account_state())
 }
