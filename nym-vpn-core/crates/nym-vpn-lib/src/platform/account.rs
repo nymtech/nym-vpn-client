@@ -293,6 +293,15 @@ pub(super) async fn forget_account(path: &str) -> Result<(), VpnError> {
     Ok(())
 }
 
+pub(super) async fn get_device_id(path: &str) -> Result<String, VpnError> {
+    let storage = setup_account_storage(path)?;
+    storage
+        .load_keys()
+        .await
+        .map(|keys| keys.device_keypair().public_key().to_string())
+        .map_err(|_err| VpnError::NoDeviceIdentity)
+}
+
 pub(super) async fn reset_device_identity(path: &str) -> Result<(), VpnError> {
     let storage = setup_account_storage(path)?;
     storage
