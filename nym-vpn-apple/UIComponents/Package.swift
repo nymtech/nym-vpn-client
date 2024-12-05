@@ -34,7 +34,6 @@ let package = Package(
                 .product(name: "CountriesManagerTypes", package: "Services"),
                 .product(name: "Device", package: "Services"),
                 .product(name: "ImpactGenerator", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
-                .product(name: "Modifiers", package: "Services"),
                 .product(name: "Lottie", package: "lottie-spm")
             ],
             resources: [

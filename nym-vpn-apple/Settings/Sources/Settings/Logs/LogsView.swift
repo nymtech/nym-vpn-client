@@ -47,7 +47,6 @@ public struct LogsView: View {
                 }
                 logTypePicker()
             }
-            .preferredColorScheme(AppSettings.shared.currentAppearance.colorScheme)
             .frame(maxWidth: .infinity)
             .background {
                 NymColor.background

@@ -72,7 +72,7 @@ private extension AppSettings {
 }
 #endif
 
-enum AppSettingKey: String {
+public enum AppSettingKey: String {
     case currentAppearance
     case entryLocation
     case errorReporting

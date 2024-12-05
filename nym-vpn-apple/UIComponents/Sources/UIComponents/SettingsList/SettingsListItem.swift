@@ -1,5 +1,5 @@
 import SwiftUI
-import Modifiers
+import AppSettings
 import Theme
 
 public struct SettingsListItem: View {
@@ -90,7 +90,6 @@ private extension SettingsListItem {
         if case let .toggle(viewModel: viewModel) = viewModel.accessory {
             ToggleView(viewModel: viewModel)
                 .padding(.trailing, 24)
-                .appearanceUpdate()
         }
     }
 }

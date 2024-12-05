@@ -6,15 +6,18 @@ public struct CustomNavBar: View {
     @EnvironmentObject private var appSettings: AppSettings
 
     public let title: String?
+    public let isHomeScreen: Bool
     public let leftButton: CustomNavBarButton?
     public let rightButton: CustomNavBarButton?
 
     public init(
         title: String? = nil,
+        isHomeScreen: Bool = false,
         leftButton: CustomNavBarButton? = CustomNavBarButton(type: .empty, action: {}),
         rightButton: CustomNavBarButton? = CustomNavBarButton(type: .empty, action: {})
     ) {
         self.title = title
+        self.isHomeScreen = isHomeScreen
         self.leftButton = leftButton
         self.rightButton = rightButton
     }
@@ -35,8 +38,18 @@ public struct CustomNavBar: View {
         }
         .frame(height: appSettings.isSmallScreen ? 48 : 64)
         .background {
-            NymColor.navigationBarBackground
+            backgroundColor()
                 .ignoresSafeArea()
+        }
+    }
+}
+
+private extension CustomNavBar {
+    func backgroundColor() -> Color {
+        if isHomeScreen {
+            return NymColor.background
+        } else {
+            return NymColor.navigationBarBackground
         }
     }
 }

@@ -6,7 +6,6 @@ import Device
 import ExternalLinkManager
 import KeyboardManager
 #endif
-import Modifiers
 import Theme
 import UIComponents
 
@@ -35,7 +34,6 @@ struct AddCredentialsView: View {
             }
             .frame(maxWidth: Device.type == .ipad ? 358 : .infinity)
         }
-        .preferredColorScheme(AppSettings.shared.currentAppearance.colorScheme)
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(edges: [.bottom])
