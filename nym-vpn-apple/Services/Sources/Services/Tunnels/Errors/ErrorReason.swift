@@ -13,6 +13,7 @@ public enum ErrorReason: LocalizedError {
     case invalidEntryGatewayCountry
     case invalidExitGatewayCountry
     case badBandwidthIncrease
+    case duplicateTunFd
     case unknown
 
     public static let domain = "ErrorHandler.ErrorReason"
@@ -39,6 +40,8 @@ public enum ErrorReason: LocalizedError {
             self = .invalidExitGatewayCountry
         case .badBandwidthIncrease:
             self = .badBandwidthIncrease
+        case .duplicateTunFd:
+            self = .duplicateTunFd
         }
     }
 
@@ -109,8 +112,10 @@ extension ErrorReason {
             8
         case .badBandwidthIncrease:
             9
-        default:
+        case .duplicateTunFd:
             10
+        default:
+            11
         }
     }
 }
@@ -138,6 +143,8 @@ extension ErrorReason {
             "errorReason.invalidExitGatewayCountry".localizedString
         case .badBandwidthIncrease:
             "errorReason.badBandwidthIncrease".localizedString
+        case .duplicateTunFd:
+            "errorReason.duplicateTunFd".localizedString
         case .unknown:
             "errorReason.unknown".localizedString
         }

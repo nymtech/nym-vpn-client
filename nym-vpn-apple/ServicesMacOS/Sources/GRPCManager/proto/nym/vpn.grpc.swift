@@ -113,6 +113,11 @@ internal protocol Nym_Vpn_NymVpndClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<Nym_Vpn_RefreshAccountStateRequest, Nym_Vpn_RefreshAccountStateResponse>
 
+  func getAccountUsage(
+    _ request: Nym_Vpn_GetAccountUsageRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Nym_Vpn_GetAccountUsageRequest, Nym_Vpn_GetAccountUsageResponse>
+
   func isReadyToConnect(
     _ request: Nym_Vpn_IsReadyToConnectRequest,
     callOptions: CallOptions?
@@ -132,6 +137,16 @@ internal protocol Nym_Vpn_NymVpndClientProtocol: GRPCClient {
     _ request: Nym_Vpn_RegisterDeviceRequest,
     callOptions: CallOptions?
   ) -> UnaryCall<Nym_Vpn_RegisterDeviceRequest, Nym_Vpn_RegisterDeviceResponse>
+
+  func getDevices(
+    _ request: Nym_Vpn_GetDevicesRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Nym_Vpn_GetDevicesRequest, Nym_Vpn_GetDevicesResponse>
+
+  func getActiveDevices(
+    _ request: Nym_Vpn_GetActiveDevicesRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Nym_Vpn_GetActiveDevicesRequest, Nym_Vpn_GetActiveDevicesResponse>
 
   func requestZkNym(
     _ request: Nym_Vpn_RequestZkNymRequest,
@@ -532,6 +547,24 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
+  /// Get the account usage from the nym-vpn-api
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to GetAccountUsage.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func getAccountUsage(
+    _ request: Nym_Vpn_GetAccountUsageRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Nym_Vpn_GetAccountUsageRequest, Nym_Vpn_GetAccountUsageResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getAccountUsage.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetAccountUsageInterceptors() ?? []
+    )
+  }
+
   /// Check if the local account state is ready to connect
   ///
   /// - Parameters:
@@ -601,6 +634,42 @@ extension Nym_Vpn_NymVpndClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeRegisterDeviceInterceptors() ?? []
+    )
+  }
+
+  /// Get the list of devices associated with this account from the nym-vpn-api
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to GetDevices.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func getDevices(
+    _ request: Nym_Vpn_GetDevicesRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Nym_Vpn_GetDevicesRequest, Nym_Vpn_GetDevicesResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getDevices.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetDevicesInterceptors() ?? []
+    )
+  }
+
+  /// Get the list of active devices associated with this account from the nym-vpn-api
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to GetActiveDevices.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func getActiveDevices(
+    _ request: Nym_Vpn_GetActiveDevicesRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Nym_Vpn_GetActiveDevicesRequest, Nym_Vpn_GetActiveDevicesResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getActiveDevices.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetActiveDevicesInterceptors() ?? []
     )
   }
 
@@ -906,6 +975,11 @@ internal protocol Nym_Vpn_NymVpndAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Nym_Vpn_RefreshAccountStateRequest, Nym_Vpn_RefreshAccountStateResponse>
 
+  func makeGetAccountUsageCall(
+    _ request: Nym_Vpn_GetAccountUsageRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetAccountUsageRequest, Nym_Vpn_GetAccountUsageResponse>
+
   func makeIsReadyToConnectCall(
     _ request: Nym_Vpn_IsReadyToConnectRequest,
     callOptions: CallOptions?
@@ -925,6 +999,16 @@ internal protocol Nym_Vpn_NymVpndAsyncClientProtocol: GRPCClient {
     _ request: Nym_Vpn_RegisterDeviceRequest,
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Nym_Vpn_RegisterDeviceRequest, Nym_Vpn_RegisterDeviceResponse>
+
+  func makeGetDevicesCall(
+    _ request: Nym_Vpn_GetDevicesRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetDevicesRequest, Nym_Vpn_GetDevicesResponse>
+
+  func makeGetActiveDevicesCall(
+    _ request: Nym_Vpn_GetActiveDevicesRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetActiveDevicesRequest, Nym_Vpn_GetActiveDevicesResponse>
 
   func makeRequestZkNymCall(
     _ request: Nym_Vpn_RequestZkNymRequest,
@@ -1205,6 +1289,18 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
     )
   }
 
+  internal func makeGetAccountUsageCall(
+    _ request: Nym_Vpn_GetAccountUsageRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetAccountUsageRequest, Nym_Vpn_GetAccountUsageResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getAccountUsage.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetAccountUsageInterceptors() ?? []
+    )
+  }
+
   internal func makeIsReadyToConnectCall(
     _ request: Nym_Vpn_IsReadyToConnectRequest,
     callOptions: CallOptions? = nil
@@ -1250,6 +1346,30 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeRegisterDeviceInterceptors() ?? []
+    )
+  }
+
+  internal func makeGetDevicesCall(
+    _ request: Nym_Vpn_GetDevicesRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetDevicesRequest, Nym_Vpn_GetDevicesResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getDevices.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetDevicesInterceptors() ?? []
+    )
+  }
+
+  internal func makeGetActiveDevicesCall(
+    _ request: Nym_Vpn_GetActiveDevicesRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetActiveDevicesRequest, Nym_Vpn_GetActiveDevicesResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getActiveDevices.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetActiveDevicesInterceptors() ?? []
     )
   }
 
@@ -1580,6 +1700,18 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
     )
   }
 
+  internal func getAccountUsage(
+    _ request: Nym_Vpn_GetAccountUsageRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_GetAccountUsageResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getAccountUsage.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetAccountUsageInterceptors() ?? []
+    )
+  }
+
   internal func isReadyToConnect(
     _ request: Nym_Vpn_IsReadyToConnectRequest,
     callOptions: CallOptions? = nil
@@ -1625,6 +1757,30 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeRegisterDeviceInterceptors() ?? []
+    )
+  }
+
+  internal func getDevices(
+    _ request: Nym_Vpn_GetDevicesRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_GetDevicesResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getDevices.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetDevicesInterceptors() ?? []
+    )
+  }
+
+  internal func getActiveDevices(
+    _ request: Nym_Vpn_GetActiveDevicesRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_GetActiveDevicesResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getActiveDevices.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetActiveDevicesInterceptors() ?? []
     )
   }
 
@@ -1801,6 +1957,9 @@ internal protocol Nym_Vpn_NymVpndClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'refreshAccountState'.
   func makeRefreshAccountStateInterceptors() -> [ClientInterceptor<Nym_Vpn_RefreshAccountStateRequest, Nym_Vpn_RefreshAccountStateResponse>]
 
+  /// - Returns: Interceptors to use when invoking 'getAccountUsage'.
+  func makeGetAccountUsageInterceptors() -> [ClientInterceptor<Nym_Vpn_GetAccountUsageRequest, Nym_Vpn_GetAccountUsageResponse>]
+
   /// - Returns: Interceptors to use when invoking 'isReadyToConnect'.
   func makeIsReadyToConnectInterceptors() -> [ClientInterceptor<Nym_Vpn_IsReadyToConnectRequest, Nym_Vpn_IsReadyToConnectResponse>]
 
@@ -1812,6 +1971,12 @@ internal protocol Nym_Vpn_NymVpndClientInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when invoking 'registerDevice'.
   func makeRegisterDeviceInterceptors() -> [ClientInterceptor<Nym_Vpn_RegisterDeviceRequest, Nym_Vpn_RegisterDeviceResponse>]
+
+  /// - Returns: Interceptors to use when invoking 'getDevices'.
+  func makeGetDevicesInterceptors() -> [ClientInterceptor<Nym_Vpn_GetDevicesRequest, Nym_Vpn_GetDevicesResponse>]
+
+  /// - Returns: Interceptors to use when invoking 'getActiveDevices'.
+  func makeGetActiveDevicesInterceptors() -> [ClientInterceptor<Nym_Vpn_GetActiveDevicesRequest, Nym_Vpn_GetActiveDevicesResponse>]
 
   /// - Returns: Interceptors to use when invoking 'requestZkNym'.
   func makeRequestZkNymInterceptors() -> [ClientInterceptor<Nym_Vpn_RequestZkNymRequest, Nym_Vpn_RequestZkNymResponse>]
@@ -1862,10 +2027,13 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
       Nym_Vpn_NymVpndClientMetadata.Methods.getAccountLinks,
       Nym_Vpn_NymVpndClientMetadata.Methods.getAccountState,
       Nym_Vpn_NymVpndClientMetadata.Methods.refreshAccountState,
+      Nym_Vpn_NymVpndClientMetadata.Methods.getAccountUsage,
       Nym_Vpn_NymVpndClientMetadata.Methods.isReadyToConnect,
       Nym_Vpn_NymVpndClientMetadata.Methods.resetDeviceIdentity,
       Nym_Vpn_NymVpndClientMetadata.Methods.getDeviceIdentity,
       Nym_Vpn_NymVpndClientMetadata.Methods.registerDevice,
+      Nym_Vpn_NymVpndClientMetadata.Methods.getDevices,
+      Nym_Vpn_NymVpndClientMetadata.Methods.getActiveDevices,
       Nym_Vpn_NymVpndClientMetadata.Methods.requestZkNym,
       Nym_Vpn_NymVpndClientMetadata.Methods.getDeviceZkNyms,
       Nym_Vpn_NymVpndClientMetadata.Methods.getZkNymsAvailableForDownload,
@@ -1992,6 +2160,12 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
       type: GRPCCallType.unary
     )
 
+    internal static let getAccountUsage = GRPCMethodDescriptor(
+      name: "GetAccountUsage",
+      path: "/nym.vpn.NymVpnd/GetAccountUsage",
+      type: GRPCCallType.unary
+    )
+
     internal static let isReadyToConnect = GRPCMethodDescriptor(
       name: "IsReadyToConnect",
       path: "/nym.vpn.NymVpnd/IsReadyToConnect",
@@ -2013,6 +2187,18 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
     internal static let registerDevice = GRPCMethodDescriptor(
       name: "RegisterDevice",
       path: "/nym.vpn.NymVpnd/RegisterDevice",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getDevices = GRPCMethodDescriptor(
+      name: "GetDevices",
+      path: "/nym.vpn.NymVpnd/GetDevices",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getActiveDevices = GRPCMethodDescriptor(
+      name: "GetActiveDevices",
+      path: "/nym.vpn.NymVpnd/GetActiveDevices",
       type: GRPCCallType.unary
     )
 
@@ -2132,6 +2318,9 @@ internal protocol Nym_Vpn_NymVpndProvider: CallHandlerProvider {
   /// background. This command triggers a manual refresh.
   func refreshAccountState(request: Nym_Vpn_RefreshAccountStateRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_RefreshAccountStateResponse>
 
+  /// Get the account usage from the nym-vpn-api
+  func getAccountUsage(request: Nym_Vpn_GetAccountUsageRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetAccountUsageResponse>
+
   /// Check if the local account state is ready to connect
   func isReadyToConnect(request: Nym_Vpn_IsReadyToConnectRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_IsReadyToConnectResponse>
 
@@ -2143,6 +2332,12 @@ internal protocol Nym_Vpn_NymVpndProvider: CallHandlerProvider {
 
   /// Try to register the local device with the nym-vpn-api
   func registerDevice(request: Nym_Vpn_RegisterDeviceRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_RegisterDeviceResponse>
+
+  /// Get the list of devices associated with this account from the nym-vpn-api
+  func getDevices(request: Nym_Vpn_GetDevicesRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetDevicesResponse>
+
+  /// Get the list of active devices associated with this account from the nym-vpn-api
+  func getActiveDevices(request: Nym_Vpn_GetActiveDevicesRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetActiveDevicesResponse>
 
   /// Request new zk-nyms (ticketbooks) from the nym-vpn-api
   func requestZkNym(request: Nym_Vpn_RequestZkNymRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_RequestZkNymResponse>
@@ -2352,6 +2547,15 @@ extension Nym_Vpn_NymVpndProvider {
         userFunction: self.refreshAccountState(request:context:)
       )
 
+    case "GetAccountUsage":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetAccountUsageRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetAccountUsageResponse>(),
+        interceptors: self.interceptors?.makeGetAccountUsageInterceptors() ?? [],
+        userFunction: self.getAccountUsage(request:context:)
+      )
+
     case "IsReadyToConnect":
       return UnaryServerHandler(
         context: context,
@@ -2386,6 +2590,24 @@ extension Nym_Vpn_NymVpndProvider {
         responseSerializer: ProtobufSerializer<Nym_Vpn_RegisterDeviceResponse>(),
         interceptors: self.interceptors?.makeRegisterDeviceInterceptors() ?? [],
         userFunction: self.registerDevice(request:context:)
+      )
+
+    case "GetDevices":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetDevicesRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetDevicesResponse>(),
+        interceptors: self.interceptors?.makeGetDevicesInterceptors() ?? [],
+        userFunction: self.getDevices(request:context:)
+      )
+
+    case "GetActiveDevices":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetActiveDevicesRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetActiveDevicesResponse>(),
+        interceptors: self.interceptors?.makeGetActiveDevicesInterceptors() ?? [],
+        userFunction: self.getActiveDevices(request:context:)
       )
 
     case "RequestZkNym":
@@ -2593,6 +2815,12 @@ internal protocol Nym_Vpn_NymVpndAsyncProvider: CallHandlerProvider, Sendable {
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_RefreshAccountStateResponse
 
+  /// Get the account usage from the nym-vpn-api
+  func getAccountUsage(
+    request: Nym_Vpn_GetAccountUsageRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_GetAccountUsageResponse
+
   /// Check if the local account state is ready to connect
   func isReadyToConnect(
     request: Nym_Vpn_IsReadyToConnectRequest,
@@ -2616,6 +2844,18 @@ internal protocol Nym_Vpn_NymVpndAsyncProvider: CallHandlerProvider, Sendable {
     request: Nym_Vpn_RegisterDeviceRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_RegisterDeviceResponse
+
+  /// Get the list of devices associated with this account from the nym-vpn-api
+  func getDevices(
+    request: Nym_Vpn_GetDevicesRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_GetDevicesResponse
+
+  /// Get the list of active devices associated with this account from the nym-vpn-api
+  func getActiveDevices(
+    request: Nym_Vpn_GetActiveDevicesRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_GetActiveDevicesResponse
 
   /// Request new zk-nyms (ticketbooks) from the nym-vpn-api
   func requestZkNym(
@@ -2856,6 +3096,15 @@ extension Nym_Vpn_NymVpndAsyncProvider {
         wrapping: { try await self.refreshAccountState(request: $0, context: $1) }
       )
 
+    case "GetAccountUsage":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetAccountUsageRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetAccountUsageResponse>(),
+        interceptors: self.interceptors?.makeGetAccountUsageInterceptors() ?? [],
+        wrapping: { try await self.getAccountUsage(request: $0, context: $1) }
+      )
+
     case "IsReadyToConnect":
       return GRPCAsyncServerHandler(
         context: context,
@@ -2890,6 +3139,24 @@ extension Nym_Vpn_NymVpndAsyncProvider {
         responseSerializer: ProtobufSerializer<Nym_Vpn_RegisterDeviceResponse>(),
         interceptors: self.interceptors?.makeRegisterDeviceInterceptors() ?? [],
         wrapping: { try await self.registerDevice(request: $0, context: $1) }
+      )
+
+    case "GetDevices":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetDevicesRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetDevicesResponse>(),
+        interceptors: self.interceptors?.makeGetDevicesInterceptors() ?? [],
+        wrapping: { try await self.getDevices(request: $0, context: $1) }
+      )
+
+    case "GetActiveDevices":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetActiveDevicesRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetActiveDevicesResponse>(),
+        interceptors: self.interceptors?.makeGetActiveDevicesInterceptors() ?? [],
+        wrapping: { try await self.getActiveDevices(request: $0, context: $1) }
       )
 
     case "RequestZkNym":
@@ -3048,6 +3315,10 @@ internal protocol Nym_Vpn_NymVpndServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeRefreshAccountStateInterceptors() -> [ServerInterceptor<Nym_Vpn_RefreshAccountStateRequest, Nym_Vpn_RefreshAccountStateResponse>]
 
+  /// - Returns: Interceptors to use when handling 'getAccountUsage'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetAccountUsageInterceptors() -> [ServerInterceptor<Nym_Vpn_GetAccountUsageRequest, Nym_Vpn_GetAccountUsageResponse>]
+
   /// - Returns: Interceptors to use when handling 'isReadyToConnect'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeIsReadyToConnectInterceptors() -> [ServerInterceptor<Nym_Vpn_IsReadyToConnectRequest, Nym_Vpn_IsReadyToConnectResponse>]
@@ -3063,6 +3334,14 @@ internal protocol Nym_Vpn_NymVpndServerInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when handling 'registerDevice'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeRegisterDeviceInterceptors() -> [ServerInterceptor<Nym_Vpn_RegisterDeviceRequest, Nym_Vpn_RegisterDeviceResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getDevices'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetDevicesInterceptors() -> [ServerInterceptor<Nym_Vpn_GetDevicesRequest, Nym_Vpn_GetDevicesResponse>]
+
+  /// - Returns: Interceptors to use when handling 'getActiveDevices'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetActiveDevicesInterceptors() -> [ServerInterceptor<Nym_Vpn_GetActiveDevicesRequest, Nym_Vpn_GetActiveDevicesResponse>]
 
   /// - Returns: Interceptors to use when handling 'requestZkNym'.
   ///   Defaults to calling `self.makeInterceptors()`.
@@ -3121,10 +3400,13 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
       Nym_Vpn_NymVpndServerMetadata.Methods.getAccountLinks,
       Nym_Vpn_NymVpndServerMetadata.Methods.getAccountState,
       Nym_Vpn_NymVpndServerMetadata.Methods.refreshAccountState,
+      Nym_Vpn_NymVpndServerMetadata.Methods.getAccountUsage,
       Nym_Vpn_NymVpndServerMetadata.Methods.isReadyToConnect,
       Nym_Vpn_NymVpndServerMetadata.Methods.resetDeviceIdentity,
       Nym_Vpn_NymVpndServerMetadata.Methods.getDeviceIdentity,
       Nym_Vpn_NymVpndServerMetadata.Methods.registerDevice,
+      Nym_Vpn_NymVpndServerMetadata.Methods.getDevices,
+      Nym_Vpn_NymVpndServerMetadata.Methods.getActiveDevices,
       Nym_Vpn_NymVpndServerMetadata.Methods.requestZkNym,
       Nym_Vpn_NymVpndServerMetadata.Methods.getDeviceZkNyms,
       Nym_Vpn_NymVpndServerMetadata.Methods.getZkNymsAvailableForDownload,
@@ -3251,6 +3533,12 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
       type: GRPCCallType.unary
     )
 
+    internal static let getAccountUsage = GRPCMethodDescriptor(
+      name: "GetAccountUsage",
+      path: "/nym.vpn.NymVpnd/GetAccountUsage",
+      type: GRPCCallType.unary
+    )
+
     internal static let isReadyToConnect = GRPCMethodDescriptor(
       name: "IsReadyToConnect",
       path: "/nym.vpn.NymVpnd/IsReadyToConnect",
@@ -3272,6 +3560,18 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
     internal static let registerDevice = GRPCMethodDescriptor(
       name: "RegisterDevice",
       path: "/nym.vpn.NymVpnd/RegisterDevice",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getDevices = GRPCMethodDescriptor(
+      name: "GetDevices",
+      path: "/nym.vpn.NymVpnd/GetDevices",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getActiveDevices = GRPCMethodDescriptor(
+      name: "GetActiveDevices",
+      path: "/nym.vpn.NymVpnd/GetActiveDevices",
       type: GRPCCallType.unary
     )
 
