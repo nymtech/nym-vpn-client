@@ -1,13 +1,13 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{net::IpAddr, path::PathBuf};
+use std::path::PathBuf;
 
 use tokio::task::JoinHandle;
 
 use nym_authenticator_client::AuthClient;
 use nym_credentials_interface::TicketType;
-use nym_gateway_directory::{AuthAddresses, Gateway};
+use nym_gateway_directory::{AuthAddresses, Gateway, GatewayClient};
 use nym_sdk::mixnet::{ConnectionStatsEvent, EphemeralCredentialStorage, StoragePaths};
 use nym_task::TaskManager;
 use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
@@ -29,19 +29,19 @@ pub struct ConnectionData {
 pub struct Connector {
     task_manager: TaskManager,
     mixnet_client: SharedMixnetClient,
-    gateway_host: IpAddr,
+    gateway_directory_client: GatewayClient,
 }
 
 impl Connector {
     pub fn new(
         task_manager: TaskManager,
         mixnet_client: SharedMixnetClient,
-        gateway_host: IpAddr,
+        gateway_directory_client: GatewayClient,
     ) -> Self {
         Self {
             task_manager,
             mixnet_client,
-            gateway_host,
+            gateway_directory_client,
         }
     }
     pub async fn connect(
@@ -54,7 +54,7 @@ impl Connector {
         let result = Self::connect_inner(
             &self.task_manager,
             self.mixnet_client.clone(),
-            self.gateway_host,
+            &self.gateway_directory_client,
             enable_credentials_mode,
             selected_gateways,
             data_path,
@@ -75,7 +75,7 @@ impl Connector {
                 AnyConnector::Wireguard(Self::new(
                     self.task_manager,
                     self.mixnet_client,
-                    self.gateway_host,
+                    self.gateway_directory_client,
                 )),
             )),
         }
@@ -84,7 +84,7 @@ impl Connector {
     async fn connect_inner(
         task_manager: &TaskManager,
         mixnet_client: SharedMixnetClient,
-        gateway_host: IpAddr,
+        gateway_directory_client: &GatewayClient,
         enable_credentials_mode: bool,
         selected_gateways: SelectedGateways,
         data_path: Option<PathBuf>,
@@ -152,7 +152,7 @@ impl Connector {
                 .get_initial_bandwidth(
                     enable_credentials_mode,
                     TicketType::V1WireguardEntry,
-                    gateway_host,
+                    gateway_directory_client,
                     &mut wg_entry_gateway_client,
                 )
                 .await?;
@@ -160,7 +160,7 @@ impl Connector {
                 .get_initial_bandwidth(
                     enable_credentials_mode,
                     TicketType::V1WireguardExit,
-                    gateway_host,
+                    gateway_directory_client,
                     &mut wg_exit_gateway_client,
                 )
                 .await?;
@@ -181,7 +181,7 @@ impl Connector {
                 .get_initial_bandwidth(
                     enable_credentials_mode,
                     TicketType::V1WireguardEntry,
-                    gateway_host,
+                    gateway_directory_client,
                     &mut wg_entry_gateway_client,
                 )
                 .await?;
@@ -189,7 +189,7 @@ impl Connector {
                 .get_initial_bandwidth(
                     enable_credentials_mode,
                     TicketType::V1WireguardExit,
-                    gateway_host,
+                    gateway_directory_client,
                     &mut wg_exit_gateway_client,
                 )
                 .await?;
