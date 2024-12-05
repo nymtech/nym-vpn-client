@@ -27,6 +27,10 @@ pub(crate) struct CliArgs {
     #[arg(long)]
     pub(crate) disable_socket_listener: bool,
 
+    /// Override the default user agent string.
+    #[arg(long, value_parser = parse_user_agent)]
+    pub(crate) user_agent: Option<nym_vpn_lib::UserAgent>,
+
     #[cfg(windows)]
     #[arg(long)]
     pub(crate) disable_service: bool,
@@ -70,4 +74,20 @@ fn check_path(path: &str) -> Result<PathBuf, String> {
         return Err(format!("Path {:?} is not a file", path));
     }
     Ok(path)
+}
+
+// TODO: make use of the From<&str> implementation for UserAgent once that is available in the
+// upstream branch.
+fn parse_user_agent(user_agent: &str) -> Result<nym_vpn_lib::UserAgent, String> {
+    let parts: Vec<&str> = user_agent.split('/').collect();
+    if parts.len() != 4 {
+        return Err("User agent must have 4 parts".to_string());
+    }
+
+    Ok(nym_vpn_lib::UserAgent {
+        application: parts[0].to_string(),
+        version: parts[1].to_string(),
+        platform: parts[2].to_string(),
+        git_commit: parts[3].to_string(),
+    })
 }

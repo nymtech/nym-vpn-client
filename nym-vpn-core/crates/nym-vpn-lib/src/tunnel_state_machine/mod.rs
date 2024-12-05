@@ -15,6 +15,7 @@ pub mod tunnel;
 mod tunnel_monitor;
 #[cfg(windows)]
 mod wintun;
+use nym_sdk::UserAgent;
 #[cfg(windows)]
 use wintun::SetupWintunAdapterError;
 
@@ -104,6 +105,9 @@ pub struct TunnelSettings {
 
     /// DNS configuration.
     pub dns: DnsOptions,
+
+    /// The user agent used for HTTP requests.
+    pub user_agent: Option<UserAgent>,
 }
 
 #[derive(Debug, Default, Clone, Copy, Eq, PartialEq)]
@@ -178,6 +182,7 @@ impl Default for TunnelSettings {
             entry_point: Box::new(EntryPoint::Random),
             exit_point: Box::new(ExitPoint::Random),
             dns: DnsOptions::default(),
+            user_agent: None,
         }
     }
 }

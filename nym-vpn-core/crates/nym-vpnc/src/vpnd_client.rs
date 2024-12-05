@@ -17,7 +17,7 @@ pub(crate) enum ClientType {
 }
 
 pub(crate) async fn get_client(
-    client_type: ClientType,
+    client_type: &ClientType,
 ) -> anyhow::Result<NymVpndClient<TonicChannel>> {
     match client_type {
         ClientType::Http => get_http_client().await,

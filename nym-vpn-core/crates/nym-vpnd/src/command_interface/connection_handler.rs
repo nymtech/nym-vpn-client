@@ -80,7 +80,6 @@ impl CommandInterfaceConnectionHandler {
         entry: Option<EntryPoint>,
         exit: Option<ExitPoint>,
         options: ConnectOptions,
-        user_agent: nym_vpn_lib::UserAgent,
     ) -> Result<Result<(), VpnServiceConnectError>, VpnCommandSendError> {
         tracing::info!("Starting VPN");
         let connect_args = ConnectArgs {
@@ -89,7 +88,7 @@ impl CommandInterfaceConnectionHandler {
             options,
         };
 
-        self.send_and_wait(VpnServiceCommand::Connect, (connect_args, user_agent))
+        self.send_and_wait(VpnServiceCommand::Connect, connect_args)
             .await
     }
 
