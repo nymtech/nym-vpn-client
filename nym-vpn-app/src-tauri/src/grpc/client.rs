@@ -3,14 +3,16 @@ use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
 use itertools::Itertools;
-use nym_vpn_proto::ForgetAccountRequest;
 use nym_vpn_proto::{
-    get_account_links_response, health_check_response::ServingStatus, health_client::HealthClient,
-    is_account_stored_response::Resp as IsAccountStoredResp, nym_vpnd_client::NymVpndClient,
-    ConnectRequest, ConnectionStatus, DisconnectRequest, Dns, Empty, EntryNode, ExitNode,
-    FetchRawAccountSummaryRequest, GatewayType, GetAccountLinksRequest, GetFeatureFlagsRequest,
-    GetSystemMessagesRequest, HealthCheckRequest, InfoRequest, InfoResponse,
-    IsAccountStoredRequest, IsReadyToConnectRequest, ListCountriesRequest, Location,
+    get_account_identity_response::Id as AccountIdRes,
+    get_account_links_response::Res as AccountLinkRes,
+    get_device_identity_response::Id as DeviceIdRes, health_check_response::ServingStatus,
+    health_client::HealthClient, is_account_stored_response::Resp as IsAccountStoredResp,
+    nym_vpnd_client::NymVpndClient, ConnectRequest, ConnectionStatus, DisconnectRequest, Dns,
+    Empty, EntryNode, ExitNode, FetchRawAccountSummaryRequest, ForgetAccountRequest, GatewayType,
+    GetAccountIdentityRequest, GetAccountLinksRequest, GetDeviceIdentityRequest,
+    GetFeatureFlagsRequest, GetSystemMessagesRequest, HealthCheckRequest, InfoRequest,
+    InfoResponse, IsAccountStoredRequest, IsReadyToConnectRequest, ListCountriesRequest, Location,
     RemoveAccountRequest, SetNetworkRequest, StatusRequest, StatusResponse, StoreAccountRequest,
     UserAgent,
 };
@@ -530,6 +532,55 @@ impl GrpcClient {
         })
     }
 
+    /// Get the account identity \
+    /// public key derived from the mnemonic
+    #[instrument(skip_all)]
+    pub async fn account_id(&self) -> Result<String, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let request = Request::new(GetAccountIdentityRequest {});
+        let response = vpnd
+            .get_account_identity(request)
+            .await
+            .map_err(|e| {
+                error!("grpc: {}", e);
+                VpndError::GrpcError(e)
+            })?
+            .into_inner();
+        debug!("grpc response: {:?}", response);
+        match response.id.ok_or_else(|| {
+            error!("failed to get account id: invalid response");
+            VpndError::internal("failed to get account id: invalid response")
+        })? {
+            AccountIdRes::AccountIdentity(id) => Ok(id),
+            AccountIdRes::Error(e) => Err(VpndError::Response(e.into())),
+        }
+    }
+
+    /// Get the device identity
+    #[instrument(skip_all)]
+    pub async fn device_id(&self) -> Result<String, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let request = Request::new(GetDeviceIdentityRequest {});
+        let response = vpnd
+            .get_device_identity(request)
+            .await
+            .map_err(|e| {
+                error!("grpc: {}", e);
+                VpndError::GrpcError(e)
+            })?
+            .into_inner();
+        debug!("grpc response: {:?}", response);
+        match response.id.ok_or_else(|| {
+            error!("failed to get device id: invalid response");
+            VpndError::internal("failed to get device id: invalid response")
+        })? {
+            DeviceIdRes::DeviceIdentity(id) => Ok(id),
+            DeviceIdRes::Error(e) => Err(VpndError::Response(e.into())),
+        }
+    }
+
     /// Get account info
     /// Note: if no account is stored yet, the call will fail
     #[instrument(skip_all)]
@@ -573,8 +624,8 @@ impl GrpcClient {
             error!("failed to get account links: invalid response");
             VpndError::internal("failed to get account links: invalid response")
         })? {
-            get_account_links_response::Res::Links(l) => Ok(l.into()),
-            get_account_links_response::Res::Error(e) => Err(VpndError::Response(e.into())),
+            AccountLinkRes::Links(l) => Ok(l.into()),
+            AccountLinkRes::Error(e) => Err(VpndError::Response(e.into())),
         }
     }
 

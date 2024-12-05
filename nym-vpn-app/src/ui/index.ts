@@ -1,4 +1,6 @@
 export { default as Button } from './Button';
+export { default as ButtonIcon } from './ButtonIcon';
+export { default as ButtonText } from './ButtonText';
 export { default as Dialog } from './Dialog';
 export { default as MsIcon } from './MsIcon';
 export { default as DaemonDot } from './DaemonDot';
@@ -17,6 +19,8 @@ export { default as FlagIcon } from './FlagIcon';
 export { default as Notifications } from './Notifications';
 export { default as Link } from './Link';
 export * from './Button';
+export * from './ButtonIcon';
+export * from './ButtonText';
 export * from './Dialog';
 export * from './FlagIcon';
 export * from './MsIcon';

@@ -234,6 +234,8 @@ async fn main() -> Result<()> {
             account::delete_account,
             account::forget_account,
             account::is_account_stored,
+            account::get_account_id,
+            account::get_device_id,
             account::get_account_info,
             account::account_links,
             account::ready_to_connect,

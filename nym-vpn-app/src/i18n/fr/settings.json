@@ -42,10 +42,12 @@
   "info": {
     "client-version": "Version du client",
     "daemon-version": "Version du daemon",
-    "network-name": "Réseau"
+    "network-name": "Réseau",
+    "account-id": "ID du compte",
+    "device-id": "ID de l'appareil"
   },
   "logout-confirmation": {
-    "title": "Etes-vous sûr ?",
+    "title": "Etes-vous sûr ?",
     "description": "Vous aurez besoin de votre phrase de récupération pour vous reconnecter."
   }
 }

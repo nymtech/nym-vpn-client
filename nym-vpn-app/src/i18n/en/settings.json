@@ -46,6 +46,8 @@
   "info": {
     "client-version": "Client version",
     "daemon-version": "Daemon version",
-    "network-name": "Network"
+    "network-name": "Network",
+    "account-id": "Account ID",
+    "device-id": "Device ID"
   }
 }

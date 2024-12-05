@@ -1,13 +1,19 @@
-// simple memory cache
+// simple in-memory cache
 
-export type Cached<T> = {
+export type MCached<T> = {
   value: T;
   // timestamp in ms
   expiry?: number;
 };
 
-export type CKey = 'mn-entry-countries' | 'mn-exit-countries' | 'wg-countries';
-const cache = new Map<CKey, Cached<never>>();
+export type CKey =
+  | 'mn-entry-countries'
+  | 'mn-exit-countries'
+  | 'wg-countries'
+  | 'account-id'
+  | 'device-id';
+
+const cache = new Map<CKey, MCached<never>>();
 
 /**
  * In-memory cache, with optional expiry
