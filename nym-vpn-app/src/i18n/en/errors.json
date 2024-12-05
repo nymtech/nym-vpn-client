@@ -70,6 +70,9 @@
     "routing": "Routing failed",
     "ready-to-connect": "It was not yet possible to determine if we are ready to connect during the check"
   },
+  "zknym": {
+    "request-failed": "Requesting zk-nym failed"
+  },
   "account": {
     "invalid-recovery-phrase": "Invalid recovery phrase",
     "storage": "Storage backend error",

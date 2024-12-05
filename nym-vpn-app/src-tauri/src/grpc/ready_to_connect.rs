@@ -42,9 +42,6 @@ impl TryFrom<IsReadyToConnectResponseType> for ReadyToConnect {
             IsReadyToConnectResponseType::MaxDevicesReached => Ok(ReadyToConnect::NotReady(
                 "maximum number of device reached".to_string(),
             )),
-            IsReadyToConnectResponseType::DeviceRegistrationFailed => Ok(ReadyToConnect::NotReady(
-                "device registration failed".to_string(),
-            )),
         }
     }
 }
