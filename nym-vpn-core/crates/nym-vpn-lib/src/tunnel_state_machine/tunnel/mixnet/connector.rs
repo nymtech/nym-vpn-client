@@ -3,7 +3,7 @@
 
 use std::net::IpAddr;
 
-use nym_gateway_directory::{GatewayClient, IpPacketRouterAddress, Recipient};
+use nym_gateway_directory::{IpPacketRouterAddress, Recipient};
 use nym_ip_packet_client::IprClientConnect;
 use nym_ip_packet_requests::IpPair;
 use nym_sdk::mixnet::ConnectionStatsEvent;
@@ -29,19 +29,19 @@ pub struct AssignedAddresses {
 pub struct Connector {
     task_manager: TaskManager,
     mixnet_client: SharedMixnetClient,
-    gateway_directory_client: GatewayClient,
+    gateway_host: IpAddr,
 }
 
 impl Connector {
     pub fn new(
         task_manager: TaskManager,
         mixnet_client: SharedMixnetClient,
-        gateway_directory_client: GatewayClient,
+        gateway_host: IpAddr,
     ) -> Self {
         Self {
             task_manager,
             mixnet_client,
-            gateway_directory_client,
+            gateway_host,
         }
     }
 
@@ -54,7 +54,7 @@ impl Connector {
             selected_gateways,
             nym_ips,
             self.mixnet_client.clone(),
-            &self.gateway_directory_client,
+            self.gateway_host,
         )
         .await;
 
@@ -69,7 +69,7 @@ impl Connector {
                 AnyConnector::Mixnet(Self::new(
                     self.task_manager,
                     self.mixnet_client,
-                    self.gateway_directory_client,
+                    self.gateway_host,
                 )),
             )),
         }
@@ -79,17 +79,9 @@ impl Connector {
         selected_gateways: SelectedGateways,
         nym_ips: Option<IpPair>,
         mixnet_client: SharedMixnetClient,
-        gateway_directory_client: &GatewayClient,
+        entry_mixnet_gateway_ip: IpAddr,
     ) -> Result<AssignedAddresses> {
         let mixnet_client_address = mixnet_client.nym_address().await;
-        let gateway_used = mixnet_client_address.gateway().to_base58_string();
-        let entry_mixnet_gateway_ip: IpAddr = gateway_directory_client
-            .lookup_gateway_ip(&gateway_used)
-            .await
-            .map_err(|source| Error::LookupGatewayIp {
-                gateway_id: gateway_used,
-                source,
-            })?;
 
         let exit_mix_addresses = selected_gateways.exit.ipr_address.unwrap();
 
