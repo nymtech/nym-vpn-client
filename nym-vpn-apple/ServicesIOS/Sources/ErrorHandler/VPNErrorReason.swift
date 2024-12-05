@@ -19,10 +19,11 @@ public enum VPNErrorReason: LocalizedError {
     case accountDeviceNotActive
     case noDeviceIdentity
     case vpnApiTimeout
-    case accountUpdateFailed(details: String, messageId: String?, codeReferenceId: String?)
-    case deviceUpdateFailed(details: String, messageId: String?, codeReferenceId: String?)
+    case updateAccountEndpointFailure(details: String, messageId: String?, codeReferenceId: String?)
+    case updateDeviceEndpointFailure(details: String, messageId: String?, codeReferenceId: String?)
     case deviceRegistrationFailed(details: String, messageId: String?, codeReferenceId: String?)
     case invalidAccountStoragePath(details: String)
+    case requestZkNym(successes: [String], failed: [(message: String, messageId: String?, ticketType: String?)])
     case unkownTunnelState
 
     public static let domain = "ErrorHandler.VPNErrorReason"
@@ -61,14 +62,22 @@ public enum VPNErrorReason: LocalizedError {
             self = .accountNotRegistered
         case .NoDeviceIdentity:
             self = .noDeviceIdentity
-        case let .AccountUpdateFailed(details: details, messageId: messageId, codeReferenceId: codeReferenceId):
-            self = .accountUpdateFailed(details: details, messageId: messageId, codeReferenceId: codeReferenceId)
-        case let .DeviceUpdateFailed(details: details, messageId: messageId, codeReferenceId: codeReferenceId):
-            self = .deviceUpdateFailed(details: details, messageId: messageId, codeReferenceId: codeReferenceId)
+        case let .UpdateAccountEndpointFailure(details: details, messageId: messageId, codeReferenceId: codeReferenceId):
+            self = .updateAccountEndpointFailure(details: details, messageId: messageId, codeReferenceId: codeReferenceId)
+        case let .UpdateDeviceEndpointFailure(details: details, messageId: messageId, codeReferenceId: codeReferenceId):
+            self = .updateDeviceEndpointFailure(details: details, messageId: messageId, codeReferenceId: codeReferenceId)
         case let .DeviceRegistrationFailed(details: details, messageId: messageId, codeReferenceId: codeReferenceId):
             self = .deviceRegistrationFailed(details: details, messageId: messageId, codeReferenceId: codeReferenceId)
         case let .InvalidAccountStoragePath(details: details):
             self = .invalidAccountStoragePath(details: details)
+        case let .RequestZkNym(successes: successes, failed: failed):
+            let newSuccesses = successes.map {
+                $0.id
+            }
+            let newFailed = failed.map {
+                (message: $0.message, messageId: $0.messageId, ticketType: $0.ticketType)
+            }
+            self = .requestZkNym(successes: newSuccesses, failed: newFailed)
         }
     }
 
@@ -107,18 +116,18 @@ public enum VPNErrorReason: LocalizedError {
             self = .noDeviceIdentity
         case 15:
             self = .vpnApiTimeout
-        case 16:
-            self = .accountUpdateFailed(
-                details: nsError.userInfo["details"] as? String ?? "Something went wrong.",
-                messageId: nsError.userInfo["messageId"] as? String ?? "Something went wrong.",
-                codeReferenceId: nsError.userInfo["codeReferenceId"] as? String ?? "Something went wrong."
-            )
-        case 17:
-            self = .deviceUpdateFailed(
-                details: nsError.userInfo["details"] as? String ?? "Something went wrong.",
-                messageId: nsError.userInfo["messageId"] as? String,
-                codeReferenceId: nsError.userInfo["codeReferenceId"] as? String
-            )
+//        case 16:
+//            self = .accountUpdateFailed(
+//                details: nsError.userInfo["details"] as? String ?? "Something went wrong.",
+//                messageId: nsError.userInfo["messageId"] as? String ?? "Something went wrong.",
+//                codeReferenceId: nsError.userInfo["codeReferenceId"] as? String ?? "Something went wrong."
+//            )
+//        case 17:
+//            self = .deviceUpdateFailed(
+//                details: nsError.userInfo["details"] as? String ?? "Something went wrong.",
+//                messageId: nsError.userInfo["messageId"] as? String,
+//                codeReferenceId: nsError.userInfo["codeReferenceId"] as? String
+//            )
         case 18:
             self = .deviceRegistrationFailed(
                 details: nsError.userInfo["details"] as? String ?? "Something went wrong.",
@@ -184,9 +193,9 @@ private extension VPNErrorReason {
             return 14
         case .vpnApiTimeout:
             return 15
-        case .accountUpdateFailed:
+        case .updateAccountEndpointFailure:
             return 16
-        case .deviceUpdateFailed:
+        case .updateDeviceEndpointFailure:
             return 17
         case .deviceRegistrationFailed:
             return 18
@@ -229,10 +238,13 @@ private extension VPNErrorReason {
             return "The account is not registered."
         case .noDeviceIdentity:
             return "No device identity is available."
-        case let .accountUpdateFailed(details: details, messageId: _, codeReferenceId: _),
-            let .deviceUpdateFailed(details: details, messageId: _, codeReferenceId: _),
+        case let .updateAccountEndpointFailure(details: details, messageId: _, codeReferenceId: _),
+            let .updateDeviceEndpointFailure(details: details, messageId: _, codeReferenceId: _),
             let .deviceRegistrationFailed(details: details, messageId: _, codeReferenceId: _):
             return details
+        case let .requestZkNym(successes: successes, failed: failed):
+            let failures = failed.map { "\($0.message) \($0.messageId ?? "") \($0.ticketType ?? ""))" }
+            return "Successes: \(successes.joined(separator: ",")) Failures: \(failures.joined(separator: ",")))"
         case .unkownTunnelState:
             return "Unknown tunnel error reason."
         }
