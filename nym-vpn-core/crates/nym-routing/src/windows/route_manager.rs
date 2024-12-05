@@ -107,6 +107,7 @@ enum RecordEventType {
     AddRoute,
 }
 
+/// Default route monitor callback closure.
 pub type Callback = Box<dyn for<'a> Fn(RouteMonitorEventType<'a>, AddressFamily) + Send>;
 
 pub struct RouteManagerInternal {

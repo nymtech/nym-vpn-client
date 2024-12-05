@@ -1,10 +1,11 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-pub mod any_tunnel_handle;
+mod any_tunnel_handle;
 mod gateway_selector;
 pub mod mixnet;
 mod status_listener;
+mod tombstone;
 pub mod wireguard;
 
 use std::{error::Error as StdError, fmt, net::IpAddr, path::PathBuf, time::Duration};
@@ -17,12 +18,16 @@ use nym_task::{TaskManager, TaskStatus};
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
+#[cfg(windows)]
+use super::route_handler;
 use super::{MixnetEvent, TunnelType};
 use crate::{
     bandwidth_controller::ReconnectMixnetClientData, mixnet::SharedMixnetClient,
     GatewayDirectoryError, MixnetClientConfig, MixnetError,
 };
+pub use any_tunnel_handle::AnyTunnelHandle;
 use status_listener::StatusListener;
+pub use tombstone::Tombstone;
 
 pub(crate) const MIXNET_CLIENT_STARTUP_TIMEOUT: Duration = Duration::from_secs(30);
 pub(crate) const TASK_MANAGER_SHUTDOWN_TIMER_SECS: u64 = 10;
@@ -293,6 +298,10 @@ pub enum Error {
     #[cfg(target_os = "ios")]
     #[error("failed to set default path observer: {0}")]
     SetDefaultPathObserver(String),
+
+    #[cfg(windows)]
+    #[error("failed to add default route listener: {0}")]
+    AddDefaultRouteListener(#[source] route_handler::Error),
 
     #[error("connection cancelled")]
     Cancelled,

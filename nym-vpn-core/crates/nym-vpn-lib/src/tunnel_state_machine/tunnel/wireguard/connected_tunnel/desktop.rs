@@ -3,21 +3,31 @@
 
 use std::{error::Error as StdError, net::IpAddr};
 
-use tokio::task::JoinHandle;
+#[cfg(windows)]
+use tokio::sync::mpsc;
+use tokio::task::{JoinError, JoinHandle};
+use tokio_util::sync::CancellationToken;
+#[cfg(unix)]
 use tun::AsyncDevice;
 
+#[cfg(windows)]
+use nym_routing::{Callback, CallbackHandle, EventType};
 use nym_task::TaskManager;
 use nym_wg_gateway_client::WgGatewayClient;
 #[cfg(windows)]
 use nym_wg_go::wireguard_go::WintunInterface;
 use nym_wg_go::{netstack, wireguard_go};
+#[cfg(windows)]
+use nym_windows::net::{self as winnet, AddressFamily};
 
+#[cfg(windows)]
+use crate::tunnel_state_machine::route_handler::RouteHandler;
 #[cfg(unix)]
 use crate::tunnel_state_machine::tunnel::wireguard::fd::DupFd;
 use crate::{
     tunnel_state_machine::tunnel::{
         wireguard::{connector::ConnectionData, two_hop_config::TwoHopConfig},
-        Error, Result,
+        Error, Result, Tombstone,
     },
     wg_config::WgNodeConfig,
 };
@@ -61,14 +71,33 @@ impl ConnectedTunnel {
         1340
     }
 
-    pub fn run(self, options: TunnelOptions) -> Result<TunnelHandle> {
+    pub async fn run(
+        self,
+        #[cfg(windows)] route_handler: RouteHandler,
+        options: TunnelOptions,
+    ) -> Result<TunnelHandle> {
         match options {
-            TunnelOptions::TunTun(tuntun_options) => self.run_using_tun_tun(tuntun_options),
-            TunnelOptions::Netstack(netstack_options) => self.run_using_netstack(netstack_options),
+            TunnelOptions::TunTun(tuntun_options) => {
+                self.run_using_tun_tun(
+                    #[cfg(windows)]
+                    route_handler,
+                    tuntun_options,
+                )
+                .await
+            }
+            TunnelOptions::Netstack(netstack_options) => self.run_using_netstack(
+                #[cfg(windows)]
+                route_handler,
+                netstack_options,
+            ),
         }
     }
 
-    fn run_using_tun_tun(self, options: TunTunTunnelOptions) -> Result<TunnelHandle> {
+    async fn run_using_tun_tun(
+        self,
+        #[cfg(windows)] route_handler: RouteHandler,
+        options: TunTunTunnelOptions,
+    ) -> Result<TunnelHandle> {
         let wg_entry_config = WgNodeConfig::with_gateway_data(
             self.connection_data.entry.clone(),
             self.entry_gateway_client.keypair().private_key(),
@@ -83,7 +112,8 @@ impl ConnectedTunnel {
             self.exit_mtu(),
         );
 
-        let entry_tunnel = wireguard_go::Tunnel::start(
+        #[allow(unused_mut)]
+        let mut entry_tunnel = wireguard_go::Tunnel::start(
             wg_entry_config.into_wireguard_config(),
             #[cfg(unix)]
             options.entry_tun.get_ref().dup_fd().map_err(Error::DupFd)?,
@@ -109,21 +139,76 @@ impl ConnectedTunnel {
         )
         .map_err(Error::Wireguard)?;
 
+        let shutdown_token = CancellationToken::new();
+        let child_shutdown_token = shutdown_token.child_token();
+
+        #[cfg(windows)]
+        let wintun_entry_interface = entry_tunnel.wintun_interface().clone();
+        #[cfg(windows)]
+        let wintun_exit_interface = exit_tunnel.wintun_interface().clone();
+
+        let event_handler_task = tokio::spawn(async move {
+            #[cfg(windows)]
+            {
+                let (default_route_tx, mut default_route_rx) = mpsc::unbounded_channel();
+                let _callback = Self::add_default_route_listener(route_handler, default_route_tx);
+
+                loop {
+                    tokio::select! {
+                        _ = child_shutdown_token.cancelled() => {
+                            tracing::debug!("Received tunnel shutdown event. Exiting event loop.");
+                            break
+                        }
+                        Some((interface_index, address_family)) = default_route_rx.recv() => {
+                            tracing::debug!("New default route: {} {}", interface_index, address_family);
+                            entry_tunnel.rebind_tunnel_socket(address_family, interface_index);
+                        }
+                        else => {
+                            tracing::error!("Default route listener has been dropped. Exiting event loop.");
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // On non-windows platforms we have direct ownership over the tunnel adapters,
+            // so we can shutdown the tunnel right away and return adapters with a tombstone.
+            #[cfg(not(windows))]
+            {
+                child_shutdown_token.cancelled().await;
+                tracing::debug!("Received tunnel shutdown event. Exiting event loop.");
+
+                entry_tunnel.stop();
+                exit_tunnel.stop();
+
+                Tombstone::with_tun_devices(vec![options.exit_tun, options.entry_tun])
+            }
+
+            // On windows return tunnels as part of tombstone since they own tunnel adapters and should be
+            // dropped only after resetting the routing table.
+            #[cfg(windows)]
+            {
+                Tombstone::with_wg_instances(vec![exit_tunnel, entry_tunnel])
+            }
+        });
+
         Ok(TunnelHandle {
             task_manager: self.task_manager,
-            internal_handle: InternalTunnelHandle::TunTun {
-                #[cfg(unix)]
-                entry_tun: options.entry_tun,
-                #[cfg(unix)]
-                exit_tun: options.exit_tun,
-                entry_wg_tunnel: Some(entry_tunnel),
-                exit_wg_tunnel: Some(exit_tunnel),
-            },
+            shutdown_token,
+            event_handler_task,
             bandwidth_controller_handle: self.bandwidth_controller_handle,
+            #[cfg(windows)]
+            wintun_entry_interface: Some(wintun_entry_interface),
+            #[cfg(windows)]
+            wintun_exit_interface: Some(wintun_exit_interface),
         })
     }
 
-    fn run_using_netstack(self, options: NetstackTunnelOptions) -> Result<TunnelHandle> {
+    fn run_using_netstack(
+        self,
+        #[cfg(windows)] route_handler: RouteHandler,
+        options: NetstackTunnelOptions,
+    ) -> Result<TunnelHandle> {
         let wg_entry_config = WgNodeConfig::with_gateway_data(
             self.connection_data.entry.clone(),
             self.entry_gateway_client.keypair().private_key(),
@@ -162,17 +247,115 @@ impl ConnectedTunnel {
             &options.wintun_tunnel_type,
         )?;
 
+        let shutdown_token = CancellationToken::new();
+        let child_shutdown_token = shutdown_token.child_token();
+
+        #[cfg(windows)]
+        let wintun_exit_interface = exit_tunnel.wintun_interface().clone();
+
+        let event_handler_task = tokio::spawn(async move {
+            #[cfg(windows)]
+            {
+                let (default_route_tx, mut default_route_rx) = mpsc::unbounded_channel();
+                let _callback = Self::add_default_route_listener(route_handler, default_route_tx);
+
+                loop {
+                    tokio::select! {
+                        _ = child_shutdown_token.cancelled() => {
+                            tracing::debug!("Received tunnel shutdown event. Exiting event loop.");
+                            break
+                        }
+                        Some((interface_index, address_family)) = default_route_rx.recv() => {
+                            tracing::debug!("New default route: {} {}", interface_index, address_family);
+                            entry_tunnel.rebind_tunnel_socket(address_family, interface_index);
+                        }
+                        else => {
+                            tracing::error!("Default route listener has been dropped. Exiting event loop.");
+                            break;
+                        }
+                    }
+                }
+            }
+
+            #[cfg(not(windows))]
+            {
+                child_shutdown_token.cancelled().await;
+                tracing::debug!("Received tunnel shutdown event. Exiting event loop.");
+            }
+
+            entry_tunnel.stop();
+            exit_connection.close();
+
+            // Windows: do not drop exit tunnel as it owns the underlying tunnel device.
+            #[cfg(not(windows))]
+            exit_tunnel.stop();
+
+            Tombstone {
+                tun_devices: vec![
+                    #[cfg(not(windows))]
+                    options.exit_tun,
+                ],
+                #[cfg(windows)]
+                wg_instances: vec![exit_tunnel],
+            }
+        });
+
         Ok(TunnelHandle {
             task_manager: self.task_manager,
-            internal_handle: InternalTunnelHandle::Netstack {
-                #[cfg(unix)]
-                exit_tun: options.exit_tun,
-                entry_wg_tunnel: Some(entry_tunnel),
-                exit_wg_tunnel: Some(exit_tunnel),
-                exit_connection: Some(exit_connection),
-            },
+            shutdown_token,
+            event_handler_task,
             bandwidth_controller_handle: self.bandwidth_controller_handle,
+            #[cfg(windows)]
+            wintun_entry_interface: None,
+            #[cfg(windows)]
+            wintun_exit_interface: Some(wintun_exit_interface),
         })
+    }
+
+    #[cfg(windows)]
+    async fn add_default_route_listener(
+        mut route_handler: RouteHandler,
+        tx: mpsc::UnboundedSender<(u32, AddressFamily)>,
+    ) -> Result<CallbackHandle> {
+        let default_route_callback: Callback = Box::new(move |event, address_family| {
+            let result = match event {
+                EventType::Removed => {
+                    tracing::debug!(
+                        "Default {} interface was removed. Rebind to blackhole.",
+                        address_family
+                    );
+                    Ok(0)
+                }
+                EventType::Updated(interface_and_gateway)
+                | EventType::UpdatedDetails(interface_and_gateway) => {
+                    let interface_name =
+                        winnet::alias_from_luid(&interface_and_gateway.iface).unwrap_or_default();
+                    tracing::debug!(
+                        "New default {} route: {}, gateway: {}",
+                        interface_name.to_string_lossy(),
+                        address_family,
+                        interface_and_gateway.gateway,
+                    );
+                    winnet::index_from_luid(&interface_and_gateway.iface)
+                }
+            };
+
+            match result {
+                Ok(interface_index) => {
+                    if let Err(e) = tx.send((interface_index, address_family)) {
+                        tracing::error!("Failed to send new default route over the channel: {}", e);
+                    }
+                }
+                Err(e) => {
+                    tracing::error!("Failed to convert luid to interface index: {}", e);
+                }
+            }
+        });
+
+        route_handler
+            .add_default_route_listener(default_route_callback)
+            .await
+            .map_err(Error::AddDefaultRouteListener)
     }
 }
 
@@ -240,64 +423,21 @@ pub struct NetstackTunnelOptions {
     pub dns: Vec<IpAddr>,
 }
 
-enum InternalTunnelHandle {
-    TunTun {
-        #[cfg(unix)]
-        entry_tun: AsyncDevice,
-        #[cfg(unix)]
-        exit_tun: AsyncDevice,
-        entry_wg_tunnel: Option<wireguard_go::Tunnel>,
-        exit_wg_tunnel: Option<wireguard_go::Tunnel>,
-    },
-    Netstack {
-        #[cfg(unix)]
-        exit_tun: AsyncDevice,
-        entry_wg_tunnel: Option<netstack::Tunnel>,
-        exit_wg_tunnel: Option<wireguard_go::Tunnel>,
-        exit_connection: Option<netstack::TunnelConnection>,
-    },
-}
-
 pub struct TunnelHandle {
     task_manager: TaskManager,
-    internal_handle: InternalTunnelHandle,
+    shutdown_token: CancellationToken,
+    event_handler_task: JoinHandle<Tombstone>,
     bandwidth_controller_handle: JoinHandle<()>,
+    #[cfg(windows)]
+    wintun_entry_interface: Option<WintunInterface>,
+    #[cfg(windows)]
+    wintun_exit_interface: Option<WintunInterface>,
 }
 
 impl TunnelHandle {
     /// Close entry and exit WireGuard tunnels and signal mixnet facilities shutdown.
     pub fn cancel(&mut self) {
-        match self.internal_handle {
-            InternalTunnelHandle::Netstack {
-                ref mut entry_wg_tunnel,
-                ref mut exit_wg_tunnel,
-                ref mut exit_connection,
-                ..
-            } => {
-                if let Some(exit_wg_tunnel) = exit_wg_tunnel.take() {
-                    exit_wg_tunnel.stop();
-                }
-                if let Some(exit_connection) = exit_connection.take() {
-                    exit_connection.close();
-                }
-                if let Some(entry_wg_tunnel) = entry_wg_tunnel.take() {
-                    entry_wg_tunnel.stop();
-                }
-            }
-            InternalTunnelHandle::TunTun {
-                ref mut entry_wg_tunnel,
-                ref mut exit_wg_tunnel,
-                ..
-            } => {
-                if let Some(entry_wg_tunnel) = entry_wg_tunnel.take() {
-                    entry_wg_tunnel.stop();
-                }
-
-                if let Some(exit_wg_tunnel) = exit_wg_tunnel.take() {
-                    exit_wg_tunnel.stop();
-                }
-            }
-        }
+        self.shutdown_token.cancel();
 
         if let Err(e) = self.task_manager.signal_shutdown() {
             tracing::error!("Failed to signal task manager shutdown: {}", e);
@@ -314,57 +454,25 @@ impl TunnelHandle {
 
     /// Wait until the tunnel finished execution.
     ///
-    /// Returns a pair of tun devices no longer in use.
-    pub async fn wait(self) -> Vec<AsyncDevice> {
+    /// Returns a tombstone containing the no longer used tunnel devices and wireguard tunnels (on Windows).
+    pub async fn wait(self) -> Result<Tombstone, JoinError> {
         if let Err(e) = self.bandwidth_controller_handle.await {
             tracing::error!("Failed to join on bandwidth controller: {}", e);
         }
 
-        #[cfg(unix)]
-        {
-            match self.internal_handle {
-                InternalTunnelHandle::Netstack { exit_tun, .. } => {
-                    vec![exit_tun]
-                }
-                InternalTunnelHandle::TunTun {
-                    entry_tun,
-                    exit_tun,
-                    ..
-                } => {
-                    vec![entry_tun, exit_tun]
-                }
-            }
-        }
-
-        #[cfg(windows)]
-        vec![]
+        self.event_handler_task.await
     }
 
     /// Returns entry wintun interface descriptor when available.
     /// Note: netstack based tunnel uses virtual adapter so it will always return `None`.
     #[cfg(windows)]
     pub fn entry_wintun_interface(&self) -> Option<&WintunInterface> {
-        match &self.internal_handle {
-            InternalTunnelHandle::Netstack { .. } => {
-                // Netstack tunnel does not use wintun interface.
-                None
-            }
-            InternalTunnelHandle::TunTun {
-                entry_wg_tunnel, ..
-            } => Some(entry_wg_tunnel.as_ref()?.wintun_interface()),
-        }
+        self.wintun_entry_interface.as_ref()
     }
 
     /// Returns exit wintun interface descriptor when available.
     #[cfg(windows)]
     pub fn exit_wintun_interface(&self) -> Option<&WintunInterface> {
-        match &self.internal_handle {
-            InternalTunnelHandle::Netstack { exit_wg_tunnel, .. } => {
-                Some(exit_wg_tunnel.as_ref()?.wintun_interface())
-            }
-            InternalTunnelHandle::TunTun { exit_wg_tunnel, .. } => {
-                Some(exit_wg_tunnel.as_ref()?.wintun_interface())
-            }
-        }
+        self.wintun_exit_interface.as_ref()
     }
 }

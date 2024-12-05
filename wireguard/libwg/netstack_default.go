@@ -95,8 +95,6 @@ func wgNetSetConfig(tunnelHandle int32, settings *C.char) int64 {
 		return ERROR_GENERAL_FAILURE
 	}
 
-	dev.DisableSomeRoamingForBrokenMobileSemantics()
-
 	return 0
 }
 

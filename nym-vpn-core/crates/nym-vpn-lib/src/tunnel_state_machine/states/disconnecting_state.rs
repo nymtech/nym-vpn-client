@@ -4,16 +4,16 @@
 use futures::future::{BoxFuture, Fuse, FutureExt};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
-use tun::AsyncDevice;
 
 use crate::tunnel_state_machine::{
     states::{ConnectingState, DisconnectedState, ErrorState},
+    tunnel::Tombstone,
     tunnel_monitor::TunnelMonitorHandle,
     NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState, TunnelCommand,
     TunnelStateHandler,
 };
 
-type WaitHandle = BoxFuture<'static, Vec<AsyncDevice>>;
+type WaitHandle = BoxFuture<'static, Tombstone>;
 
 pub struct DisconnectingState {
     after_disconnect: PrivateActionAfterDisconnect,
@@ -50,7 +50,7 @@ impl DisconnectingState {
         )
     }
 
-    async fn on_tunnel_exit(mut tun_devices: Vec<AsyncDevice>, _shared_state: &mut SharedState) {
+    async fn on_tunnel_exit(mut tombstone: Tombstone, _shared_state: &mut SharedState) {
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         if let Err(e) = _shared_state
             .dns_handler
@@ -63,8 +63,10 @@ impl DisconnectingState {
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         _shared_state.route_handler.remove_routes().await;
 
-        tracing::info!("Closing {} tunnel device(s).", tun_devices.len());
-        tun_devices.clear();
+        tracing::info!("Closing {} tunnel device(s).", tombstone.tun_devices.len());
+        #[cfg(windows)]
+        tombstone.wg_instances.clear();
+        tombstone.tun_devices.clear();
 
         // todo: reset firewall
     }

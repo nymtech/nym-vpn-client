@@ -26,7 +26,7 @@ function parseArgs {
         "--no-docker" )
             IS_DOCKER_BUILD=false;
             shift ;;
-        # handle --windows option (allowing windows build from linux for example)
+        # handle --windows-cross option (allowing windows build from linux for example)
         "--windows-cross" )
             IS_WIN_CROSS_BUILD=true;
             shift ;;
@@ -41,11 +41,11 @@ function parseArgs {
       esac
     done
 
-    echo "android:$IS_ANDROID_BUILD ios:$IS_IOS_BUILD docker:$IS_DOCKER_BUILD windows:$IS_WIN_CROSS_BUILD win_arm64:$IS_WIN_ARM64"
+    echo "android:$IS_ANDROID_BUILD ios:$IS_IOS_BUILD docker:$IS_DOCKER_BUILD windows-cross:$IS_WIN_CROSS_BUILD win_arm64:$IS_WIN_ARM64"
 }
 
 function win_gather_export_symbols {
-   grep -Eo "\/\/export \w+" libwg.go libwg_windows.go netstack.go netstack_default.go | cut -d' ' -f2
+   grep -Eo "\/\/export \w+" libwg.go libwg_windows.go netstack.go netstack_default.go netstack_bind_windows.go | cut -d' ' -f2
 }
 
 function win_create_lib_file {

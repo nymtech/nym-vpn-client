@@ -5,7 +5,7 @@ use std::{error::Error as StdError, net::IpAddr, sync::Arc};
 
 #[cfg(target_os = "ios")]
 use tokio::sync::mpsc;
-use tokio::task::JoinHandle;
+use tokio::task::{JoinError, JoinHandle};
 use tokio_util::sync::CancellationToken;
 use tun::AsyncDevice;
 
@@ -27,7 +27,7 @@ use crate::{
             fd::DupFd,
             two_hop_config::{TwoHopConfig, ENTRY_MTU, EXIT_MTU},
         },
-        Error, Result,
+        Error, Result, Tombstone,
     },
     wg_config::WgNodeConfig,
 };
@@ -200,11 +200,12 @@ impl ConnectedTunnel {
             exit_tunnel.stop();
             exit_connection.close();
             entry_tunnel.stop();
+
+            Tombstone::with_tun_device(tun_device)
         });
 
         Ok(TunnelHandle {
             task_manager: self.task_manager,
-            tun_device,
             shutdown_token,
             event_loop_handle,
             bandwidth_controller_handle: self.bandwidth_controller_handle,
@@ -214,9 +215,8 @@ impl ConnectedTunnel {
 
 pub struct TunnelHandle {
     task_manager: TaskManager,
-    tun_device: AsyncDevice,
     shutdown_token: CancellationToken,
-    event_loop_handle: JoinHandle<()>,
+    event_loop_handle: JoinHandle<Tombstone>,
     bandwidth_controller_handle: JoinHandle<()>,
 }
 
@@ -241,15 +241,11 @@ impl TunnelHandle {
     /// Wait until the tunnel finished execution.
     ///
     /// Returns an array with a single tunnel device that is no longer in use.
-    pub async fn wait(self) -> Vec<AsyncDevice> {
-        if let Err(e) = self.event_loop_handle.await {
-            tracing::error!("Failed to join on event loop handle: {}", e);
-        }
-
+    pub async fn wait(self) -> Result<Tombstone, JoinError> {
         if let Err(e) = self.bandwidth_controller_handle.await {
             tracing::error!("Failed to join on bandwidth controller: {}", e);
         }
 
-        vec![self.tun_device]
+        self.event_loop_handle.await
     }
 }

@@ -30,9 +30,8 @@ impl StatusListener {
 
         while let Some(msg) = self.rx.next().await {
             if let Some(msg) = msg.as_any().downcast_ref::<TaskStatus>() {
-                tracing::info!("Received ignored TaskStatus message: {msg}");
+                tracing::debug!("Received ignored TaskStatus message: {msg}");
             } else if let Some(msg) = msg.as_any().downcast_ref::<ConnectionMonitorStatus>() {
-                tracing::info!("VPN connection monitor status: {msg}");
                 self.send_event(MixnetEvent::Connection(ConnectionEvent::from(msg)));
             } else if let Some(msg) = msg.as_any().downcast_ref::<BandwidthStatusMessage>() {
                 self.send_event(MixnetEvent::Bandwidth(BandwidthEvent::from(msg)));
@@ -40,12 +39,10 @@ impl StatusListener {
                 .as_any()
                 .downcast_ref::<MixnetBandwidthStatisticsEvent>()
             {
-                tracing::info!("Mixnet bandwidth: {msg}");
                 self.send_event(MixnetEvent::ConnectionStatistics(
                     ConnectionStatisticsEvent::from(msg),
                 ));
             } else {
-                tracing::warn!("VPN status: unknown: {msg}");
                 tracing::debug!("Unknown status message received: {msg}");
             }
         }

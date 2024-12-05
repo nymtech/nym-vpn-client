@@ -18,7 +18,7 @@ pub mod debounce;
 mod imp;
 
 #[cfg(target_os = "windows")]
-pub use imp::{get_best_default_route, CallbackHandle, EventType, InterfaceAndGateway};
+pub use imp::{get_best_default_route, Callback, CallbackHandle, EventType, InterfaceAndGateway};
 
 #[cfg(not(target_os = "windows"))]
 #[path = "unix/mod.rs"]

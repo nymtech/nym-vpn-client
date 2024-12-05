@@ -3,11 +3,10 @@
 
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
-use tun::AsyncDevice;
 
 use crate::tunnel_state_machine::{
     states::{ConnectedState, DisconnectingState},
-    tunnel::SelectedGateways,
+    tunnel::{SelectedGateways, Tombstone},
     tunnel_monitor::{
         TunnelMonitor, TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorHandle,
     },
@@ -57,7 +56,7 @@ impl ConnectingState {
         )
     }
 
-    async fn on_tunnel_exit(mut tun_devices: Vec<AsyncDevice>, _shared_state: &mut SharedState) {
+    async fn on_tunnel_exit(mut tombstone: Tombstone, _shared_state: &mut SharedState) {
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         {
             if let Err(e) = _shared_state
@@ -69,7 +68,9 @@ impl ConnectingState {
             }
             _shared_state.route_handler.remove_routes().await;
         }
-        tun_devices.clear();
+        #[cfg(windows)]
+        tombstone.wg_instances.clear();
+        tombstone.tun_devices.clear();
     }
 }
 
@@ -108,8 +109,8 @@ impl TunnelStateHandler for ConnectingState {
                     if let Some(reason) = reason {
                         NextTunnelState::NewState(DisconnectingState::enter(PrivateActionAfterDisconnect::Error(reason), self.monitor_handle, shared_state))
                     } else {
-                        let tun_devices = self.monitor_handle.wait().await;
-                        Self::on_tunnel_exit(tun_devices, shared_state).await;
+                        let tombstone = self.monitor_handle.wait().await;
+                        Self::on_tunnel_exit(tombstone, shared_state).await;
 
                         NextTunnelState::NewState(ConnectingState::enter(self.retry_attempt.saturating_add(1), self.selected_gateways, shared_state))
                     }

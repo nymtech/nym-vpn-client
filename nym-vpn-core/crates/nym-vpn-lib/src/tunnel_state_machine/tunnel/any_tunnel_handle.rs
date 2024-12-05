@@ -1,9 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use super::{Error, Result};
-
-use tun::AsyncDevice;
+use super::{Error, Result, Tombstone};
 
 use super::{
     mixnet::connected_tunnel::TunnelHandle as MixnetTunnelHandle,
@@ -48,17 +46,20 @@ impl AnyTunnelHandle {
         }
     }
 
-    pub async fn wait(self) -> Result<Vec<AsyncDevice>> {
+    pub async fn wait(self) -> Result<Tombstone> {
         match self {
             Self::Mixnet(handle) => match handle.wait().await {
-                Ok(Ok(device)) => Ok(vec![device]),
+                Ok(Ok(tombstone)) => Ok(tombstone),
                 Ok(Err(e)) => Err(Error::MixnetClient(e)),
                 Err(e) => {
                     tracing::error!("Failed to join on mixnet tunnel handle: {}", e);
-                    Ok(vec![])
+                    Ok(Tombstone::default())
                 }
             },
-            Self::Wireguard(handle) => Ok(handle.wait().await),
+            Self::Wireguard(handle) => handle.wait().await.or_else(|e| {
+                tracing::error!("Failed to join on wireguard tunnel handle: {}", e);
+                Ok(Tombstone::default())
+            }),
         }
     }
 }

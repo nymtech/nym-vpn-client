@@ -4,8 +4,11 @@
 use std::{collections::HashSet, fmt, net::IpAddr};
 
 use ipnetwork::IpNetwork;
+
 #[cfg(not(target_os = "linux"))]
 use nym_routing::NetNode;
+#[cfg(windows)]
+pub use nym_routing::{Callback, CallbackHandle};
 use nym_routing::{Node, RequiredRoute, RouteManagerHandle};
 
 #[cfg(target_os = "linux")]
@@ -76,6 +79,17 @@ impl RouteHandler {
         if let Err(e) = self.route_manager.clear_routing_rules().await {
             tracing::error!("Failed to remove routing rules: {}", e);
         }
+    }
+
+    #[cfg(windows)]
+    pub async fn add_default_route_listener(
+        &mut self,
+        event_handler: Callback,
+    ) -> Result<CallbackHandle> {
+        self.route_manager
+            .add_default_route_change_callback(event_handler)
+            .await
+            .map_err(Error::from)
     }
 
     pub async fn stop(self) {
