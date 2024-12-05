@@ -360,6 +360,7 @@ pub struct VPNConfig {
     pub credential_data_path: Option<PathBuf>,
     pub tun_status_listener: Option<Arc<dyn TunnelStatusListener>>,
     pub credential_mode: Option<bool>,
+    pub statistics_recipient: Option<String>,
 }
 
 #[uniffi::export(with_foreign)]
@@ -427,6 +428,16 @@ async fn start_state_machine(
         TunnelType::Mixnet
     };
 
+    let statistics_recipient = config
+        .statistics_recipient
+        .map(nym_gateway_directory::Recipient::try_from_base58_string)
+        .transpose()
+        .inspect_err(|err| {
+            tracing::error!("Failed to parse statistics recipient: {}", err);
+        })
+        .unwrap_or_default()
+        .map(Box::new);
+
     let entry_point = nym_gateway_directory::EntryPoint::from(config.entry_gateway);
     let exit_point = nym_gateway_directory::ExitPoint::from(config.exit_router);
 
@@ -446,6 +457,7 @@ async fn start_state_machine(
     let tunnel_settings = TunnelSettings {
         tunnel_type,
         enable_credentials_mode,
+        statistics_recipient,
         mixnet_tunnel_options: MixnetTunnelOptions::default(),
         wireguard_tunnel_options: WireguardTunnelOptions::default(),
         gateway_performance_options: GatewayPerformanceOptions::default(),
