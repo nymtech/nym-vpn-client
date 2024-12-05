@@ -29,7 +29,7 @@ impl Tombstone {
 
     /// Creates a tombstone with wireguard tunnel instances.
     #[cfg(windows)]
-    pub fn with_wg_instances(wg_instances: Vec<nym_wg_go::wireguard_go::Tunnel>) {
+    pub fn with_wg_instances(wg_instances: Vec<nym_wg_go::wireguard_go::Tunnel>) -> Self {
         Self {
             tun_devices: Vec::new(),
             wg_instances,
