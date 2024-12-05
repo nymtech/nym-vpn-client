@@ -3,21 +3,21 @@
 
 use std::time::Duration;
 
-use nym_authenticator_client::{AuthClient, SharedMixnetClient};
-use nym_task::TaskManager;
-use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
 use tokio::sync::mpsc;
 use tokio_stream::{wrappers::IntervalStream, StreamExt};
+use tokio_util::sync::CancellationToken;
 
+use nym_authenticator_client::{AuthClient, SharedMixnetClient};
 use nym_credentials_interface::TicketType;
 use nym_gateway_directory::GatewayClient;
 use nym_sdk::{mixnet::CredentialStorage as Storage, NymNetworkDetails, TaskClient};
+use nym_task::TaskManager;
 use nym_validator_client::{
     nyxd::{Config as NyxdClientConfig, NyxdClient},
     QueryHttpRpcNyxdClient,
 };
 use nym_wg_gateway_client::{ErrorMessage, GatewayData, WgGatewayClient, WgGatewayLightClient};
-use tokio_util::sync::CancellationToken;
+use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
 
 use crate::{
     tunnel_state_machine::{

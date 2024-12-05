@@ -160,7 +160,7 @@ pub async fn connect_mixnet(
         TunnelType::Wireguard => bw_controller_task_manager.subscribe_named("mixnet_client_main"),
     };
 
-    let mut mixnet_client_config = options.clone().mixnet_client_config.unwrap_or_default();
+    let mut mixnet_client_config = options.mixnet_client_config.clone().unwrap_or_default();
     let reconnect_mixnet_client_data = ReconnectMixnetClientData::new(
         options.clone(),
         bw_controller_task_manager,
