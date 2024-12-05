@@ -498,7 +498,7 @@ impl TunnelMonitor {
             interface_ipv4: conn_data.exit.private_ipv4,
             interface_ipv6: conn_data.exit.private_ipv6,
             gateway_ipv4: Some(conn_data.entry.private_ipv4),
-            gateway_ipv6: Some(conn_data.exit.private_ipv6),
+            gateway_ipv6: Some(conn_data.entry.private_ipv6),
         };
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
