@@ -21,7 +21,7 @@ impl Tombstone {
     /// Creates a tombstone with tunnel devices.
     pub fn with_tun_devices(tun_devices: Vec<AsyncDevice>) -> Self {
         Self {
-            tun_devices: tun_devices,
+            tun_devices,
             #[cfg(windows)]
             wg_instances: Vec::new(),
         }
