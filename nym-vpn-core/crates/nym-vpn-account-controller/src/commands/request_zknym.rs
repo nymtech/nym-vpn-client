@@ -3,7 +3,10 @@
 
 use std::{
     collections::HashMap,
-    sync::Arc,
+    sync::{
+        atomic::{AtomicU32, Ordering},
+        Arc,
+    },
     time::{Duration, Instant},
 };
 
@@ -39,7 +42,7 @@ pub(crate) struct WaitingRequestZkNymCommandHandler {
     credential_storage: VpnCredentialStorage,
     account_state: SharedAccountState,
     vpn_api_client: VpnApiClient,
-    zk_nym_fails_in_a_row: Arc<tokio::sync::Mutex<u32>>,
+    zk_nym_fails_in_a_row: Arc<AtomicU32>,
 }
 
 impl WaitingRequestZkNymCommandHandler {
@@ -75,7 +78,7 @@ impl WaitingRequestZkNymCommandHandler {
     }
 
     pub(crate) async fn max_fails_reached(&self) -> bool {
-        *self.zk_nym_fails_in_a_row.lock().await >= ZK_NYM_MAX_FAILS
+        self.zk_nym_fails_in_a_row.load(Ordering::Relaxed) >= ZK_NYM_MAX_FAILS
     }
 }
 
@@ -87,7 +90,7 @@ pub(crate) struct RequestZkNymCommandHandler {
     account_state: SharedAccountState,
     vpn_api_client: VpnApiClient,
 
-    zk_nym_fails_in_a_row: Arc<tokio::sync::Mutex<u32>>,
+    zk_nym_fails_in_a_row: Arc<AtomicU32>,
 }
 
 impl RequestZkNymCommandHandler {
@@ -136,7 +139,7 @@ impl RequestZkNymCommandHandler {
                     .await;
                 tracing::warn!(
                     "We have reached {} zk-nym fails in a row",
-                    *self.zk_nym_fails_in_a_row.lock().await,
+                    self.zk_nym_fails_in_a_row.load(Ordering::Relaxed),
                 );
                 Err(AccountCommandError::from(error_summary))
             }
@@ -241,7 +244,7 @@ impl RequestZkNymCommandHandler {
                             }
                         })
                         .unwrap_or_else(|| RequestZkNymError::internal(err));
-                    *self.zk_nym_fails_in_a_row.lock().await += 1;
+                    self.zk_nym_fails_in_a_row.fetch_add(1, Ordering::Relaxed);
                     request_zk_nym_errors.push(err);
                 }
             }
@@ -284,7 +287,7 @@ impl RequestZkNymCommandHandler {
                         {
                             Ok(_) => {
                                 tracing::info!("Successfully imported zk-nym: {}", id);
-                                *self.zk_nym_fails_in_a_row.lock().await = 0;
+                                self.zk_nym_fails_in_a_row.store(0, Ordering::Relaxed);
                                 zk_nym_successes.push(RequestZkNymSuccess::new(id.clone()));
                                 if let Err(err) = self.confirm_zk_nym_downloaded(&id).await {
                                     tracing::warn!("Failed to confirm zk-nym downloaded: {err:?}");
@@ -292,7 +295,7 @@ impl RequestZkNymCommandHandler {
                             }
                             Err(err) => {
                                 tracing::error!("Failed to import zk-nym: {:#?}", err);
-                                *self.zk_nym_fails_in_a_row.lock().await += 1;
+                                self.zk_nym_fails_in_a_row.fetch_add(1, Ordering::Relaxed);
                                 request_zk_nym_errors.push(RequestZkNymError::Import {
                                     id,
                                     ticket_type: ticketbook_type.to_string(),
@@ -307,7 +310,7 @@ impl RequestZkNymCommandHandler {
                             response.status,
                         );
                         tracing::warn!("Not importing zk-nym: {}", response.id);
-                        *self.zk_nym_fails_in_a_row.lock().await += 1;
+                        self.zk_nym_fails_in_a_row.fetch_add(1, Ordering::Relaxed);
                         request_zk_nym_errors.push(RequestZkNymError::FinishedWithError {
                             id: response.id.clone(),
                             ticket_type: ticketbook_type.to_string(),
@@ -317,7 +320,7 @@ impl RequestZkNymCommandHandler {
                 }
                 Err(err) => {
                     tracing::error!("zk-nym polling error: {:#?}", err);
-                    *self.zk_nym_fails_in_a_row.lock().await += 1;
+                    self.zk_nym_fails_in_a_row.fetch_add(1, Ordering::Relaxed);
                     request_zk_nym_errors.push(err);
                 }
             }
