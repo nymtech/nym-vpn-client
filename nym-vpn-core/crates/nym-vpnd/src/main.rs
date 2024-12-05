@@ -83,12 +83,18 @@ async fn run_inner_async(args: CliArgs, network_env: Network) -> anyhow::Result<
         shutdown_token.child_token(),
     );
 
+    // The user agent can be overridden by the user, but if it's not, we'll construct it
+    // based on the current system information and it will be for "nym-vpnd". A number of the rpc
+    // calls also provide a user-agent field so that the app can identity itself properly.
+    let user_agent = args.user_agent.unwrap_or_else(util::construct_user_agent);
+
     let vpn_service_handle = NymVpnService::spawn(
         state_changes_tx,
         vpn_command_rx,
         status_tx,
         shutdown_token.child_token(),
         network_env,
+        user_agent,
     );
 
     let mut shutdown_join_set = shutdown_handler::install(shutdown_token);

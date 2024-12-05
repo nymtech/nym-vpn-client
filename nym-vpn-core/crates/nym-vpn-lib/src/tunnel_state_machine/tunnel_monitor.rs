@@ -253,7 +253,7 @@ impl TunnelMonitor {
                 self.tunnel_settings.tunnel_type,
                 self.tunnel_settings.entry_point.clone(),
                 self.tunnel_settings.exit_point.clone(),
-                None, // todo: provider user agent
+                self.tunnel_settings.user_agent.clone(),
                 self.cancel_token.child_token(),
             )
             .await?;

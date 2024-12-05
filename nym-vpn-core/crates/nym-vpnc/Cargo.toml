@@ -25,6 +25,7 @@ tower.workspace = true
 
 nym-bin-common.workspace = true
 nym-gateway-directory = { path = "../nym-gateway-directory" }
+nym-http-api-client.workspace = true
 nym-vpn-network-config = { path = "../nym-vpn-network-config" }
 nym-vpn-proto = { path = "../nym-vpn-proto", features = ["conversions"] }
 nym-vpnd-types = { path = "../nym-vpnd-types" }
