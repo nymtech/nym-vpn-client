@@ -1,21 +1,18 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(target_os = "android")]
-pub mod android;
 pub(crate) mod error;
 pub mod helpers;
-#[cfg(any(target_os = "ios", target_os = "macos"))]
-pub mod swift;
 
 mod account;
 mod environment;
+mod logging;
+pub use logging::init_logger;
 
 use std::{env, path::PathBuf, sync::Arc, time::Duration};
 
 use account::AccountControllerHandle;
 use lazy_static::lazy_static;
-use log::*;
 use tokio::{
     runtime::Runtime,
     sync::{mpsc, Mutex},
@@ -119,7 +116,7 @@ async fn reconfigure_library(
 
     // stop if already running
     let _ = account::stop_account_controller_inner().await;
-    init_logger();
+    init_logger("");
     start_account_controller_inner(PathBuf::from(data_dir), enable_credentials_mode).await
 }
 
@@ -136,19 +133,10 @@ pub fn shutdown() -> Result<(), VpnError> {
     RUNTIME.block_on(account::stop_account_controller_inner())
 }
 
-pub fn init_logger() {
-    let log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
-    info!("Setting log level: {}", log_level);
-    #[cfg(target_os = "ios")]
-    swift::init_logs(log_level);
-    #[cfg(target_os = "android")]
-    android::init_logs(log_level);
-}
-
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn initLogger() {
-    init_logger();
+pub fn initLogger(logfile_path: &str) {
+    init_logger(logfile_path);
 }
 
 /// Fetches the network environment details from the network name and initializes the environment,
