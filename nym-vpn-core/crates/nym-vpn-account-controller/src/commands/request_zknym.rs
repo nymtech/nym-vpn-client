@@ -163,6 +163,7 @@ impl RequestZkNymCommandHandler {
             return Ok(RequestZkNymSuccessSummary::NoneNeeded);
         }
         tracing::info!("Ticket types needed: {:?}", ticket_types);
+        let num_ticket_types = ticket_types.len();
 
         // Request zk-nyms for each ticket type that we need
         let responses = futures::stream::iter(ticket_types)
@@ -176,7 +177,7 @@ impl RequestZkNymCommandHandler {
                 let vpn_api_client = self.vpn_api_client.clone();
                 async move { request_zk_nym(request, &account, &device, &vpn_api_client).await }
             })
-            .buffer_unordered(4)
+            .buffer_unordered(num_ticket_types)
             .collect::<Vec<_>>()
             .await;
 
