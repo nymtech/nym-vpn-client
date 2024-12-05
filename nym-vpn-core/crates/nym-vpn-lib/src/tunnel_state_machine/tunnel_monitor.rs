@@ -279,6 +279,17 @@ impl TunnelMonitor {
         let mut connected_mixnet =
             tunnel::connect_mixnet(connect_options, self.cancel_token.child_token()).await?;
 
+        // Route mixnet client outside the tunnel.
+        #[cfg(target_os = "android")]
+        match connected_mixnet.websocket_fd().await {
+            Some(fd) => {
+                self.tun_provider.bypass(fd);
+            }
+            None => {
+                tracing::error!("Failed to obtain websocket for bypass");
+            }
+        }
+
         let status_listener_handle = connected_mixnet
             .start_event_listener(self.mixnet_event_sender.clone())
             .await;
