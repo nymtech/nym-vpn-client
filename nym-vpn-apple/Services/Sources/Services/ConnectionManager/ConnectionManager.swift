@@ -391,10 +391,14 @@ private extension ConnectionManager {
 
             cancellable = $currentTunnelStatus
                 .sink { status in
-                    if status == targetStatus {
-                        continuation.resume()
-                        cancellable?.cancel()
+                    guard cancellable != nil,
+                        status == targetStatus
+                    else {
+                        return
                     }
+                    continuation.resume()
+                    cancellable?.cancel()
+                    cancellable = nil
                 }
         }
     }
