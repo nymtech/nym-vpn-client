@@ -192,7 +192,6 @@ fn handle_connect_failure(error: nym_vpn_proto::ConnectRequestError) -> Result<(
         .context("failed to parse connect request error kind")?;
     println!("Connect command failed: {} (id={kind:?})", error.message);
     for zk_nym_error in error.zk_nym_error {
-        let zk_nym_error = zk_nym_error.clone();
         println!(
             "  zk nym error ({}): {}",
             zk_nym_error.ticketbook_type(),
