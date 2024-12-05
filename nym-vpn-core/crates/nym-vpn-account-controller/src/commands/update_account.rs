@@ -100,11 +100,7 @@ pub(crate) async fn update_state(
         Ok(account_summary) => account_summary,
         Err(err) => {
             if let Some(e) = nym_vpn_api_client::response::extract_error_response(&err) {
-                tracing::warn!(
-                    "nym-vpn-api reports: message={}, message_id={:?}",
-                    e.message,
-                    e.message_id
-                );
+                tracing::warn!(message = %e.message, message_id=?e.message_id, code_reference_id=?e.code_reference_id, "nym-vpn-api reports");
                 // TODO: check the message_id to confirm it's an error saying we are not registered
                 account_state
                     .set_account_registered(AccountRegistered::NotRegistered)

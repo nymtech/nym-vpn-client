@@ -229,12 +229,7 @@ impl RequestZkNymCommandHandler {
                     tracing::debug!("Failed to request zk-nym: {:#?}", err);
                     let err = nym_vpn_api_client::response::extract_error_response(&err)
                         .map(|e| {
-                            tracing::warn!(
-                                "nym-vpn-api reports: message={}, message_id={:?}, code_reference_id={:?}",
-                                e.message,
-                                e.message_id,
-                                e.code_reference_id,
-                            );
+                            tracing::warn!(message = %e.message, message_id=?e.message_id, code_reference_id=?e.code_reference_id, "nym-vpn-api reports");
                             RequestZkNymError::RequestZkNymEndpointFailure {
                                 endpoint_failure: VpnApiEndpointFailure {
                                     message_id: e.message_id.clone(),
