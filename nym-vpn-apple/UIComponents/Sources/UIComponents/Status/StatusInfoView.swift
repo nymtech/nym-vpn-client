@@ -4,11 +4,11 @@ import Theme
 public struct StatusInfoView: View {
     private let isSmallScreen: Bool
 
-    @Binding private var timeConnected: String
+    @Binding private var timeConnected: Date?
     @Binding private var infoState: StatusInfoState
 
     public init(
-        timeConnected: Binding<String>,
+        timeConnected: Binding<Date?>,
         infoState: Binding<StatusInfoState>,
         isSmallScreen: Bool
     ) {
@@ -19,7 +19,7 @@ public struct StatusInfoView: View {
 
     public var body: some View {
         infoLabel()
-        timeConnectedLabel(timeConnected: timeConnected)
+        timeConnectedLabel()
     }
 }
 
@@ -38,11 +38,23 @@ private extension StatusInfoView {
     }
 
     @ViewBuilder
-    func timeConnectedLabel(timeConnected: String) -> some View {
-        Text("\(timeConnected)")
-            .foregroundStyle(NymColor.statusTimer)
-            .textStyle(isSmallScreen ? .Label.Medium.primary : .Label.Large.bold)
-            .transition(.opacity)
-            .animation(.easeInOut, value: timeConnected)
+    func timeConnectedLabel() -> some View {
+        if let timeConnected {
+            TimelineView(.periodic(from: timeConnected, by: 1.0)) { context in
+                let timeElapsed = context.date.timeIntervalSince(timeConnected)
+
+                let hours = Int(timeElapsed) / 3600
+                let minutes = (Int(timeElapsed) % 3600) / 60
+                let seconds = Int(timeElapsed) % 60
+
+                Text("\(String(format: "%02d:%02d:%02d", hours, minutes, seconds))")
+                    .foregroundStyle(NymColor.statusTimer)
+                    .textStyle(isSmallScreen ? .Label.Medium.primary : .Label.Large.bold)
+                    .transition(.opacity)
+                    .animation(.easeInOut, value: timeConnected)
+            }
+        } else {
+            Text(" ")
+        }
     }
 }

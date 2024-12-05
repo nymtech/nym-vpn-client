@@ -55,9 +55,9 @@ struct AddCredentialsView: View {
             )
         }
 #endif
-        .onAppear {
-            isFocused = viewModel.isFocused
-        }
+//        .onAppear {
+//            isFocused = viewModel.isFocused
+//        }
         .onChange(of: isFocused) {
             viewModel.isFocused = $0
         }
@@ -134,10 +134,6 @@ private extension AddCredentialsView {
         getStartedTitleText()
         Spacer()
             .frame(height: 16)
-
-        getStartedSubtitleText()
-        Spacer()
-            .frame(height: 16)
     }
 
     @ViewBuilder
@@ -151,15 +147,6 @@ private extension AddCredentialsView {
         Text(viewModel.getStartedTitle)
             .textStyle(.Body.Large.regular)
             .foregroundStyle(NymColor.credetnialsTitle)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, 16)
-    }
-
-    @ViewBuilder
-    func getStartedSubtitleText() -> some View {
-        Text(viewModel.getStartedSubtitle)
-            .textStyle(.Body.Small.primary)
-            .foregroundStyle(NymColor.credetnialsSubtitle)
             .multilineTextAlignment(.center)
             .padding(.horizontal, 16)
     }
@@ -204,7 +191,7 @@ private extension AddCredentialsView {
                 .textStyle(.Body.Small.primary)
                 .padding(4)
                 .background(NymColor.background)
-                .position(x: 65, y: 0)
+                .position(x: 55, y: 0)
         }
         .padding(EdgeInsets(top: 12, leading: 16, bottom: viewModel.bottomPadding, trailing: 16))
     }

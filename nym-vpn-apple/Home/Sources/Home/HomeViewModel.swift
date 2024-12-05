@@ -20,9 +20,6 @@ import HelperInstallManager
 #endif
 
 public class HomeViewModel: HomeFlowState {
-    private let dateFormatter = DateComponentsFormatter()
-
-    private var timer = Timer()
     private var cancellables = Set<AnyCancellable>()
     private var tunnelStatusUpdateCancellable: AnyCancellable?
     private var lastError: Error?
@@ -54,7 +51,7 @@ public class HomeViewModel: HomeFlowState {
 
     // If no time connected is shown, should be set to empty string,
     // so the time connected label would not disappear and re-center other UI elements.
-    @MainActor @Published var timeConnected = " "
+    @Published var timeConnected: Date?
     @MainActor @Published var statusButtonConfig = StatusButtonConfig.disconnected
     @MainActor @Published var statusInfoState = StatusInfoState.initialising
     @MainActor @Published var connectButtonState = ConnectButtonState.connect
@@ -122,7 +119,6 @@ public class HomeViewModel: HomeFlowState {
 
     deinit {
         cancellables.forEach { $0.cancel() }
-        timer.invalidate()
     }
 }
 
@@ -150,20 +146,6 @@ public extension HomeViewModel {
     @MainActor func navigateToAddCredentials() {
         path.append(HomeLink.settings)
         path.append(SettingsLink.addCredentials)
-    }
-}
-
-// MARK: - Helpers -
-
-public extension HomeViewModel {
-    func configureConnectedTimeTimer() {
-        timer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { [weak self] _ in
-            self?.updateTimeConnected()
-        }
-    }
-
-    func stopConnectedTimeTimerUpdates() {
-        timer.invalidate()
     }
 }
 
@@ -214,7 +196,6 @@ public extension HomeViewModel {
 // MARK: - Configuration -
 private extension HomeViewModel {
     func setup() {
-        setupDateFormatter()
         setupTunnelManagerObservers()
         setupConnectionErrorObservers()
 
@@ -224,6 +205,7 @@ private extension HomeViewModel {
 #endif
         setupCountriesManagerObservers()
         setupSystemMessageObservers()
+        updateTimeConnected()
     }
 
     func setupTunnelManagerObservers() {
@@ -243,14 +225,10 @@ private extension HomeViewModel {
                 self.activeTunnel = tunnel
             }
             self.configureTunnelStatusObservation(with: tunnel)
+            self.updateTimeConnected()
         }
         .store(in: &cancellables)
 #endif
-    }
-
-    func setupDateFormatter() {
-        dateFormatter.allowedUnits = [.hour, .minute, .second]
-        dateFormatter.zeroFormattingBehavior = .pad
     }
 
     func setupCountriesManagerObservers() {
@@ -305,6 +283,7 @@ private extension HomeViewModel {
             .receive(on: RunLoop.main)
             .sink { [weak self] status in
                 self?.updateUI(with: status)
+                self?.updateTimeConnected()
             }
     }
 #endif
@@ -358,17 +337,14 @@ private extension HomeViewModel {
 private extension HomeViewModel {
     func updateTimeConnected() {
         Task { @MainActor in
-            let emptyTimeText = " "
             guard let activeTunnel,
                   activeTunnel.status == .connected,
                   let connectedDate = activeTunnel.tunnel.connection.connectedDate
             else {
-                guard timeConnected != emptyTimeText else { return }
-                updateTimeString(with: emptyTimeText)
+                timeConnected = nil
                 return
             }
-            let timeString = dateFormatter.string(from: connectedDate, to: Date()) ?? emptyTimeText
-            updateTimeString(with: timeString)
+            timeConnected = connectedDate
         }
     }
 }
@@ -383,6 +359,7 @@ private extension HomeViewModel {
             .receive(on: RunLoop.main)
             .sink { [weak self] status in
                 self?.updateUI(with: status)
+                self?.updateTimeConnected()
             }
             .store(in: &cancellables)
     }
@@ -406,33 +383,21 @@ private extension HomeViewModel {
     }
 
     func updateTimeConnected() {
-        Task { [weak self] in
-            guard let self else { return }
-
-            let emptyTimeText = " "
-            guard grpcManager.tunnelStatus == .connected,
+        Task { @MainActor [weak self] in
+            guard let self,
+                  grpcManager.tunnelStatus == .connected,
                   let connectedDate = grpcManager.connectedDate
             else {
-                guard await timeConnected != emptyTimeText else { return }
-                updateTimeString(with: emptyTimeText)
+                self?.timeConnected = nil
                 return
             }
-            let timeString = dateFormatter.string(from: connectedDate, to: Date()) ?? emptyTimeText
-            updateTimeString(with: timeString)
+            self.timeConnected = connectedDate
         }
     }
 }
 #endif
 
 private extension HomeViewModel {
-    func updateTimeString(with text: String) {
-        Task { @MainActor [weak self] in
-            guard let self else { return }
-            guard timeConnected != text else { return }
-            timeConnected = text
-        }
-    }
-
     func resetStatusInfoState() {
         updateStatusInfoState(with: .unknown)
     }
