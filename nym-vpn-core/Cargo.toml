@@ -79,7 +79,7 @@ duct = "0.13"
 futures = "0.3.31"
 hex = "0.4"
 hickory-resolver = "0.24.1"
-http = "0.2.12"                                                                                       # version compatible with tonic
+http = "0.2.12"                                                     # version compatible with tonic
 ipnetwork = "0.16"
 itertools = "0.13.0"
 lazy_static = "1.5.0"
@@ -133,27 +133,27 @@ windows-sys = "0.52"
 x25519-dalek = "2.0"
 zeroize = "1.6.0"
 
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "release/2024.14-crunch" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "release/2024.14-crunch" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "release/2024.14-crunch" }
-nym-client-core = { git = "https://github.com/nymtech/nym", branch = "release/2024.14-crunch" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "release/2024.14-crunch" }
-nym-config = { git = "https://github.com/nymtech/nym", branch = "release/2024.14-crunch" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "release/2024.14-crunch" }
-nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "release/2024.14-crunch" }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "release/2024.14-crunch" }
-nym-credentials = { git = "https://github.com/nymtech/nym", branch = "release/2024.14-crunch" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "release/2024.14-crunch" }
-nym-crypto = { git = "https://github.com/nymtech/nym", branch = "release/2024.14-crunch" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "release/2024.14-crunch" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "release/2024.14-crunch" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "release/2024.14-crunch" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "release/2024.14-crunch" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "release/2024.14-crunch" }
-nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "release/2024.14-crunch" }
-nym-sdk = { git = "https://github.com/nymtech/nym", branch = "release/2024.14-crunch" }
-nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "release/2024.14-crunch" }
-nym-task = { git = "https://github.com/nymtech/nym", branch = "release/2024.14-crunch" }
-nym-topology = { git = "https://github.com/nymtech/nym", branch = "release/2024.14-crunch" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "release/2024.14-crunch" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "release/2024.14-crunch" }
+nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "feature/extend_ws_fd_crunch" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "feature/extend_ws_fd_crunch" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "feature/extend_ws_fd_crunch" }
+nym-client-core = { git = "https://github.com/nymtech/nym", branch = "feature/extend_ws_fd_crunch" }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "feature/extend_ws_fd_crunch" }
+nym-config = { git = "https://github.com/nymtech/nym", branch = "feature/extend_ws_fd_crunch" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "feature/extend_ws_fd_crunch" }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "feature/extend_ws_fd_crunch" }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "feature/extend_ws_fd_crunch" }
+nym-credentials = { git = "https://github.com/nymtech/nym", branch = "feature/extend_ws_fd_crunch" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "feature/extend_ws_fd_crunch" }
+nym-crypto = { git = "https://github.com/nymtech/nym", branch = "feature/extend_ws_fd_crunch" }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "feature/extend_ws_fd_crunch" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "feature/extend_ws_fd_crunch" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "feature/extend_ws_fd_crunch" }
+nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "feature/extend_ws_fd_crunch" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "feature/extend_ws_fd_crunch" }
+nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "feature/extend_ws_fd_crunch" }
+nym-sdk = { git = "https://github.com/nymtech/nym", branch = "feature/extend_ws_fd_crunch" }
+nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "feature/extend_ws_fd_crunch" }
+nym-task = { git = "https://github.com/nymtech/nym", branch = "feature/extend_ws_fd_crunch" }
+nym-topology = { git = "https://github.com/nymtech/nym", branch = "feature/extend_ws_fd_crunch" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "feature/extend_ws_fd_crunch" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "feature/extend_ws_fd_crunch" }
