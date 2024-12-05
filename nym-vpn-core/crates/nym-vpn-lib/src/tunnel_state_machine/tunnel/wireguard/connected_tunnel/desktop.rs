@@ -302,7 +302,7 @@ impl ConnectedTunnel {
 
         Ok(TunnelHandle {
             task_manager: self.task_manager,
-            shutdown_token: CancellationToken::new(),
+            shutdown_token,
             event_handler_task,
             bandwidth_controller_handle: self.bandwidth_controller_handle,
             #[cfg(windows)]
