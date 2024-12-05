@@ -12,6 +12,7 @@ pub(crate) const ZKNYM: &str = "zknym";
 pub(crate) const AVAILABLE: &str = "available";
 pub(crate) const FREEPASS: &str = "freepass";
 pub(crate) const SUBSCRIPTION: &str = "subscription";
+pub(crate) const USAGE: &str = "usage";
 pub(crate) const DIRECTORY: &str = "directory";
 pub(crate) const GATEWAYS: &str = "gateways";
 pub(crate) const COUNTRIES: &str = "countries";

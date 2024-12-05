@@ -16,12 +16,13 @@ use nym_vpn_proto::{
     ConfirmZkNymDownloadedRequest, ConnectRequest, DisconnectRequest, Empty,
     FetchRawAccountSummaryRequest, FetchRawDevicesRequest, ForgetAccountRequest,
     GetAccountIdentityRequest, GetAccountLinksRequest, GetAccountStateRequest,
-    GetAvailableTicketsRequest, GetDeviceIdentityRequest, GetDeviceZkNymsRequest,
-    GetFeatureFlagsRequest, GetSystemMessagesRequest, GetZkNymByIdRequest,
-    GetZkNymsAvailableForDownloadRequest, InfoRequest, InfoResponse, IsAccountStoredRequest,
-    IsReadyToConnectRequest, ListCountriesRequest, ListGatewaysRequest, RefreshAccountStateRequest,
-    RegisterDeviceRequest, RemoveAccountRequest, RequestZkNymRequest, ResetDeviceIdentityRequest,
-    SetNetworkRequest, StatusRequest, StoreAccountRequest, UserAgent,
+    GetAccountUsageRequest, GetActiveDevicesRequest, GetAvailableTicketsRequest,
+    GetDeviceIdentityRequest, GetDeviceZkNymsRequest, GetDevicesRequest, GetFeatureFlagsRequest,
+    GetSystemMessagesRequest, GetZkNymByIdRequest, GetZkNymsAvailableForDownloadRequest,
+    InfoRequest, InfoResponse, IsAccountStoredRequest, IsReadyToConnectRequest,
+    ListCountriesRequest, ListGatewaysRequest, RefreshAccountStateRequest, RegisterDeviceRequest,
+    RemoveAccountRequest, RequestZkNymRequest, ResetDeviceIdentityRequest, SetNetworkRequest,
+    StatusRequest, StoreAccountRequest, UserAgent,
 };
 use protobuf_conversion::into_gateway_type;
 use sysinfo::System;
@@ -87,6 +88,7 @@ async fn main() -> Result<()> {
             Internal::GetFeatureFlags => get_feature_flags(opts.client_type).await?,
             Internal::SyncAccountState => refresh_account_state(opts.client_type).await?,
             Internal::RemoveAccount => remove_account(opts.client_type).await?,
+            Internal::GetAccountUsage => get_account_usage(opts.client_type).await?,
             Internal::IsReadyToConnect => is_ready_to_connect(opts.client_type).await?,
             Internal::ListenToStatus => listen_to_status(opts.client_type).await?,
             Internal::ListenToStateChanges => listen_to_state_changes(opts.client_type).await?,
@@ -94,6 +96,8 @@ async fn main() -> Result<()> {
                 reset_device_identity(opts.client_type, args).await?
             }
             Internal::RegisterDevice => register_device(opts.client_type).await?,
+            Internal::GetDevices => get_devices(opts.client_type).await?,
+            Internal::GetActiveDevices => get_active_devices(opts.client_type).await?,
             Internal::RequestZkNym => request_zk_nym(opts.client_type).await?,
             Internal::GetDeviceZkNym => get_device_zk_nym(opts.client_type).await?,
             Internal::GetZkNymsAvailableForDownload => {
@@ -381,6 +385,14 @@ async fn remove_account(client_type: ClientType) -> Result<()> {
     Ok(())
 }
 
+async fn get_account_usage(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(GetAccountUsageRequest {});
+    let response = client.get_account_usage(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
 async fn forget_account(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(ForgetAccountRequest {});
@@ -483,6 +495,22 @@ async fn register_device(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(RegisterDeviceRequest {});
     let response = client.register_device(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn get_devices(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(GetDevicesRequest {});
+    let response = client.get_devices(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn get_active_devices(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(GetActiveDevicesRequest {});
+    let response = client.get_active_devices(request).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }

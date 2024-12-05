@@ -9,7 +9,7 @@ use nym_http_api_client::{HttpClientError, Params, PathSegments, UserAgent, NO_P
 use reqwest::Url;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
-use crate::response::NymVpnHealthResponse;
+use crate::response::{NymVpnHealthResponse, NymVpnUsagesResponse};
 use crate::{
     error::{Result, VpnApiClientError},
     request::{
@@ -635,6 +635,22 @@ impl VpnApiClient {
         )
         .await
         .map_err(VpnApiClientError::FailedToGetActiveSubscriptions)
+    }
+
+    pub async fn get_usage(&self, account: &VpnApiAccount) -> Result<NymVpnUsagesResponse> {
+        self.get_authorized(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::ACCOUNT,
+                &account.id(),
+                routes::USAGE,
+            ],
+            account,
+            None,
+        )
+        .await
+        .map_err(VpnApiClientError::FailedToGetUsage)
     }
 
     // GATEWAYS

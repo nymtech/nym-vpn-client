@@ -230,6 +230,27 @@ pub struct NymVpnSubscriptionsResponse {
     pub items: Vec<NymVpnSubscription>,
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct NymVpnUsagesResponse {
+    pub total_items: u64,
+    pub page: u64,
+    pub page_size: u64,
+    pub items: Vec<NymVpnUsage>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
+pub struct NymVpnUsage {
+    pub created_on_utc: String,
+    pub last_updated_utc: String,
+    pub id: String,
+    pub subscription_id: String,
+    pub valid_until_utc: String,
+    pub valid_from_utc: String,
+    pub bandwidth_allowance_gb: f64,
+    pub bandwidth_used_gb: f64,
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct NymDirectoryGatewaysResponse(Vec<NymDirectoryGateway>);
 

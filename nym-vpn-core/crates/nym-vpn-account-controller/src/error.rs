@@ -2,23 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use tokio::sync::mpsc::error::SendError;
-use url::Url;
 
 use crate::commands::AccountCommand;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("failed to get account summary: {message}")]
-    GetAccountSummary {
-        message_id: Option<String>,
-        message: String,
-        base_url: Box<Url>,
-        source: Box<nym_vpn_api_client::VpnApiClientError>,
-    },
-
-    #[error("missing API URL")]
-    MissingApiUrl,
-
     #[error("failed to setup nym-vpn-api client")]
     SetupVpnApiClient(nym_vpn_api_client::VpnApiClientError),
 
@@ -40,13 +28,6 @@ pub enum Error {
 
     #[error("failed to setup credential storage")]
     SetupCredentialStorage(#[source] nym_sdk::Error),
-
-    #[error("failed to get devices: {message}")]
-    GetDevices {
-        message_id: Option<String>,
-        message: String,
-        response: Box<nym_vpn_api_client::response::NymErrorResponse>,
-    },
 
     #[error("failed to send account controller command")]
     AccountCommandSend {
@@ -72,15 +53,6 @@ pub enum Error {
     #[error("failed to send confirm zk-nym download")]
     ConfirmZkNymDownload(#[source] nym_vpn_api_client::VpnApiClientError),
 
-    #[error("unexepected response from nym-vpn-api: {0}")]
-    UnexpectedResponse(#[source] nym_vpn_api_client::VpnApiClientError),
-
-    #[error(transparent)]
-    HttpClient(#[from] nym_http_api_client::HttpClientError),
-
-    #[error("trying to use epoch before it's available")]
-    NoEpoch,
-
     #[error("failed to import zk-nym")]
     ImportZkNym(#[source] nym_compact_ecash::CompactEcashError),
 
@@ -89,9 +61,6 @@ pub enum Error {
 
     #[error("internal error: {0}")]
     Internal(String),
-
-    #[error(transparent)]
-    NymSdk(#[from] nym_sdk::Error),
 
     #[error("succesfull zknym response is missing blinded shares")]
     MissingBlindedShares,
@@ -105,9 +74,6 @@ pub enum Error {
     #[error("invalid verification key: {0}")]
     InvalidVerificationKey(#[source] nym_compact_ecash::CompactEcashError),
 
-    #[error("missing aggregated coin index signatures")]
-    MissingAggregatedCoinIndexSignatures,
-
     #[error("failed to deserialize blinded signature")]
     DeserializeBlindedSignature(nym_compact_ecash::CompactEcashError),
 
@@ -117,37 +83,15 @@ pub enum Error {
     #[error("decoded key missing index")]
     DecodedKeysMissingIndex,
 
-    #[error("invalid expiration date: {0}")]
-    InvalidExpirationDate(#[source] time::error::Parse),
-
     #[error("failed to aggregate wallets")]
     AggregateWallets(#[source] nym_compact_ecash::CompactEcashError),
 
-    #[error("failed to confirm zk-nym downloaded: {0}")]
-    ConfirmZkNymDownloaded(#[source] nym_vpn_api_client::VpnApiClientError),
-
     #[error("failed to parse ticket type: {0}")]
     ParseTicketType(String),
-
-    #[error("empty set of tickets")]
-    NoTickets,
-
-    #[error("error returned by channel: {0}")]
-    ErrorReturnedByChannel(String),
-
-    #[error("command already running")]
-    CommandAlreadyRunning(String),
-
-    #[error("timeout waiting for: {0}")]
-    Timeout(String),
 }
 
 impl Error {
     pub fn internal(msg: impl ToString) -> Self {
         Error::Internal(msg.to_string())
-    }
-
-    pub fn by_channel(msg: impl ToString) -> Self {
-        Error::ErrorReturnedByChannel(msg.to_string())
     }
 }

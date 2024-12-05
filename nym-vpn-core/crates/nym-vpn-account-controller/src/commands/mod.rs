@@ -13,7 +13,7 @@ pub use request_zknym::{
 
 use std::{collections::HashMap, fmt, sync::Arc};
 
-use nym_vpn_api_client::response::{NymVpnAccountSummaryResponse, NymVpnDevice};
+use nym_vpn_api_client::response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnUsage};
 use serde::{Deserialize, Serialize};
 use tokio::sync::oneshot;
 
@@ -163,7 +163,10 @@ pub enum AccountCommand {
     ResetAccount,
     UpdateAccountState(Option<ReturnSender<NymVpnAccountSummaryResponse>>),
     UpdateDeviceState(Option<ReturnSender<DeviceState>>),
+    GetUsage(ReturnSender<Vec<NymVpnUsage>>),
     RegisterDevice(Option<ReturnSender<NymVpnDevice>>),
+    GetDevices(ReturnSender<Vec<NymVpnDevice>>),
+    GetActiveDevices(ReturnSender<Vec<NymVpnDevice>>),
     RequestZkNym(Option<ReturnSender<RequestZkNymSuccessSummary>>),
     GetDeviceZkNym,
     GetZkNymsAvailableForDownload,
