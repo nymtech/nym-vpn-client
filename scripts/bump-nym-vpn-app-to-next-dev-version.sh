@@ -44,6 +44,7 @@ run_cargo_set_version() {
 main() {
     check_unstaged_changes
     confirm_root_directory
+    check_cargo_utils_installed
     local version=$(get_current_cargo_version)
     local next_version=$(increment_version "$version")
 
