@@ -1,6 +1,5 @@
 package net.nymtech.nymvpn.ui.screens.analytics
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -9,20 +8,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BugReport
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
@@ -123,14 +122,10 @@ fun AnalyticsScreen(appViewModel: AppViewModel, navController: NavController, ap
 			verticalArrangement = Arrangement.spacedBy(16.dp.scaledHeight(), Alignment.Bottom),
 			modifier = Modifier.padding(horizontal = 40.dp.scaledWidth()),
 		) {
-			Image(
-				painter = painterResource(id = R.drawable.login),
+			Icon(
+				imageVector = ImageVector.vectorResource(R.drawable.app_label),
 				contentDescription = stringResource(id = R.string.login),
-				contentScale = ContentScale.None,
-				modifier =
-				Modifier
-					.width(80.dp)
-					.height(80.dp),
+				tint = MaterialTheme.colorScheme.onBackground,
 			)
 			Text(
 				stringResource(id = R.string.welcome) + "\r\n" + stringResource(id = R.string.to_alpha),

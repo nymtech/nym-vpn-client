@@ -71,7 +71,6 @@ import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.ui.screens.permission.Permission
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
-import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.buildCountryNameString
@@ -100,7 +99,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	LaunchedEffect(Unit) {
 		appViewModel.onNavBarStateChange(
 			NavBarState(
-				title = { MainTitle(appUiState.settings.theme ?: Theme.default()) },
+				title = { MainTitle() },
 				trailing = {
 					NavIcon(Icons.Outlined.Settings) {
 						navController.goFromRoot(Route.Settings)

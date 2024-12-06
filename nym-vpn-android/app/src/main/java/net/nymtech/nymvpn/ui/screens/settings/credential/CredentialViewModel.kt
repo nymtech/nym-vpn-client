@@ -23,6 +23,9 @@ constructor(
 	private val _success = MutableSharedFlow<Boolean?>()
 	val success = _success.asSharedFlow()
 
+	private val _showMaxDevicesModal = MutableSharedFlow<Boolean?>()
+	val showMaxDevicesModal = _showMaxDevicesModal.asSharedFlow()
+
 	fun onMnemonicImport(mnemonic: String) = viewModelScope.launch {
 		runCatching {
 			tunnelManager.storeMnemonic(mnemonic.trim())
@@ -31,11 +34,23 @@ constructor(
 			_success.emit(true)
 		}.onFailure {
 			Timber.e(it)
-			_success.emit(false)
+			// TODO this should be mapped to an exception type
+			if (it.message?.contains("maximum number of device") == true) {
+				showModal()
+			} else {
+				_success.emit(false)
+				SnackbarController.showMessage(StringValue.StringResource(R.string.error_invalid_credential))
+			}
 		}
 	}
 
+	private suspend fun showModal() {
+		_showMaxDevicesModal.emit(true)
+		_success.emit(false)
+	}
+
 	fun resetSuccess() = viewModelScope.launch {
+		_showMaxDevicesModal.emit(null)
 		_success.emit(null)
 	}
 }

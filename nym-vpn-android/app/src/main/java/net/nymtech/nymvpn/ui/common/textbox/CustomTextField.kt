@@ -3,6 +3,8 @@ package net.nymtech.nymvpn.ui.common.textbox
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -12,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.ui.theme.CustomColors
@@ -27,6 +30,7 @@ fun CustomTextField(
 	singleLine: Boolean = false,
 	placeholder: @Composable (() -> Unit)? = null,
 	supportingText: @Composable (() -> Unit)? = null,
+	keyboardActions: KeyboardActions = KeyboardActions(),
 	leading: @Composable (() -> Unit)? = null,
 	trailing: @Composable (() -> Unit)? = null,
 	isError: Boolean = false,
@@ -42,6 +46,10 @@ fun CustomTextField(
 			onValueChange(it)
 		},
 		readOnly = readOnly,
+		keyboardActions = keyboardActions,
+		keyboardOptions = KeyboardOptions.Default.copy(
+			imeAction = ImeAction.Done,
+		),
 		cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurface),
 		modifier = modifier,
 		interactionSource = interactionSource,

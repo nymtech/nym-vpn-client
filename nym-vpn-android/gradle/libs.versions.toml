@@ -1,6 +1,7 @@
 [versions]
 accompanist = "0.36.0"
 agp = "8.7.3"
+coreSplashscreen = "1.2.0-alpha02"
 detektRulesCompose = "1.4.0"
 ipaddress = "5.5.1"
 jna = "5.15.0"
@@ -39,6 +40,7 @@ gradlePlugins-grgit="5.3.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
 androidx-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "uiautomator" }

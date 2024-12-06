@@ -216,8 +216,9 @@ dependencies {
 	// barcode scanning
 	implementation(libs.zxing.android.embedded)
 
-	// animations
+	// animations/splash
 	implementation(libs.lottie.compose)
+	implementation(libs.androidx.core.splashscreen)
 }
 
 fun determineVersionCode(): Int {
