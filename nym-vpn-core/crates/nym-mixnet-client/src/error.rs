@@ -2,6 +2,9 @@
 pub enum Error {
     #[error(transparent)]
     SdkError(#[from] nym_sdk::Error),
+
+    #[error("failed to obtain websocket for bypass")]
+    NoWebSocket,
 }
 
 // Result type based on our error type

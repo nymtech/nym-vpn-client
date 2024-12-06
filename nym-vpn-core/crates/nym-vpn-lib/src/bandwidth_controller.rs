@@ -3,6 +3,7 @@
 
 use std::time::Duration;
 
+use nym_mixnet_client::SharedMixnetClient;
 use tokio::sync::mpsc;
 use tokio_stream::{wrappers::IntervalStream, StreamExt};
 use tokio_util::sync::CancellationToken;
@@ -178,7 +179,10 @@ impl ReconnectMixnetClientData {
         }
     }
 
-    pub async fn recreate_mixnet_connection(&self) -> Option<AuthClient> {
+    pub async fn recreate_mixnet_connection(
+        &self,
+        _previous_mixnet_client: SharedMixnetClient,
+    ) -> Option<AuthClient> {
         let entry_gateway = *self.options.selected_gateways.entry.identity();
         let mixnet_client = match tokio::time::timeout(
             MIXNET_CLIENT_STARTUP_TIMEOUT,
@@ -190,6 +194,8 @@ impl ReconnectMixnetClientData {
                 self.mixnet_client_config.clone(),
                 self.options.enable_credentials_mode,
                 self.options.tunnel_type == TunnelType::Wireguard,
+                #[cfg(target_os = "android")]
+                _previous_mixnet_client.tun_provider(),
             ),
         )
         .await
@@ -375,12 +381,16 @@ impl<St: Storage> BandwidthController<St> {
     pub(crate) async fn try_reconnect(&mut self, mixnet_error_tx: mpsc::Sender<()>) -> bool {
         let Some(auth_client) = self
             .reconnect_mixnet_client_data
-            .recreate_mixnet_connection()
+            .recreate_mixnet_connection(self.wg_entry_gateway_client.auth_client().mixnet_client())
             .await
         else {
             self.connected_mixnet = false;
             return false;
         };
+        #[cfg(target_os = "android")]
+        if let Err(e) = auth_client.mixnet_client().bypass().await {
+            tracing::error!("Could not bypass new mixnet client {:?}", e);
+        }
         self.wg_entry_gateway_client
             .set_auth_client(auth_client.clone());
         self.wg_exit_gateway_client.set_auth_client(auth_client);

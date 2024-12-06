@@ -7,8 +7,6 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
-nym-sdk.workspace = true
-
 tokio = { workspace = true, features = [
     "process",
     "rt-multi-thread",
@@ -16,3 +14,7 @@ tokio = { workspace = true, features = [
     "sync",
 ] }
 thiserror.workspace = true
+
+nym-sdk.workspace = true
+
+nym-tunnel-provider = { path = "../nym-tunnel-provider" }

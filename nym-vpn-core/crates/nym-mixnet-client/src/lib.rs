@@ -6,21 +6,34 @@ use std::sync::Arc;
 use nym_sdk::mixnet::{
     ed25519, ClientStatsEvents, MixnetClient, MixnetClientSender, MixnetMessageSender, Recipient,
 };
+#[cfg(target_os = "android")]
+use nym_tunnel_provider::android::AndroidTunProvider;
 
-use crate::error::Result;
+use crate::error::*;
 
-mod error;
+pub mod error;
 
 #[derive(Clone)]
-pub struct SharedMixnetClient(Arc<tokio::sync::Mutex<Option<MixnetClient>>>);
+pub struct SharedMixnetClient {
+    inner: Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
+    #[cfg(target_os = "android")]
+    tun_provider: Arc<dyn AndroidTunProvider>,
+}
 
 impl SharedMixnetClient {
-    pub fn new(mixnet_client: MixnetClient) -> Self {
-        Self(Arc::new(tokio::sync::Mutex::new(Some(mixnet_client))))
+    pub fn new(
+        mixnet_client: MixnetClient,
+        #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
+    ) -> Self {
+        Self {
+            inner: Arc::new(tokio::sync::Mutex::new(Some(mixnet_client))),
+            #[cfg(target_os = "android")]
+            tun_provider,
+        }
     }
 
     pub async fn lock(&self) -> tokio::sync::MutexGuard<'_, Option<MixnetClient>> {
-        self.0.lock().await
+        self.inner.lock().await
     }
 
     pub async fn nym_address(&self) -> Recipient {
@@ -45,16 +58,25 @@ impl SharedMixnetClient {
     }
 
     #[cfg(target_os = "android")]
-    pub async fn gateway_ws_fd(&self) -> Option<std::os::fd::RawFd> {
-        self.lock()
+    pub async fn bypass(&self) -> Result<()> {
+        let fd = self
+            .lock()
             .await
             .as_ref()
             .unwrap()
             .gateway_connection()
             .gateway_ws_fd
+            .ok_or(Error::NoWebSocket)?;
+        self.tun_provider.bypass(fd);
+        Ok(())
     }
 
     pub fn inner(&self) -> Arc<tokio::sync::Mutex<Option<MixnetClient>>> {
-        self.0.clone()
+        self.inner.clone()
+    }
+
+    #[cfg(target_os = "android")]
+    pub fn tun_provider(&self) -> Arc<dyn AndroidTunProvider> {
+        self.tun_provider.clone()
     }
 }

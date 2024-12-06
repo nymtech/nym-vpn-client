@@ -800,6 +800,10 @@ impl AuthClient {
         }
     }
 
+    pub fn mixnet_client(&self) -> SharedMixnetClient {
+        self.mixnet_client.clone()
+    }
+
     pub async fn send(
         &mut self,
         message: &ClientMessage,
