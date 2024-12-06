@@ -1,0 +1,15 @@
+[package]
+name = "nym-path-monitor"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[target.'cfg(target_vendor = "apple")'.dependencies]
+objc2-foundation = { version = "0.2" }
+block2 = { version = "0.5" }
+objc2 = { version = "0.5" }
+thiserror.workspace = true
