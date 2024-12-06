@@ -17,7 +17,10 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -31,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -45,6 +49,7 @@ import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.Modal
+import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.functions.rememberImeState
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
@@ -67,18 +72,21 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 	val padding = WindowInsets.systemBars.asPaddingValues()
 	val context = LocalContext.current
 	val navController = LocalNavController.current
+	val keyboardController = LocalSoftwareKeyboardController.current
 
 	val success = viewModel.success.collectAsStateWithLifecycle(null)
+	val showMaxDevicesModal = viewModel.showMaxDevicesModal.collectAsStateWithLifecycle(null)
 	var showModal by remember { mutableStateOf(false) }
+	var loading by remember { mutableStateOf(false) }
 
 	LaunchedEffect(success.value) {
+		loading = false
 		if (success.value == true) navController.navigateAndForget(Route.Main())
-		if (success.value == false) showModal = true
+		if (success.value == false && showMaxDevicesModal.value == true) showModal = true
 	}
 
 	val onDismiss = {
 		showModal = false
-		viewModel.resetSuccess()
 	}
 
 	Modal(show = showModal, onDismiss = {
@@ -127,6 +135,11 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 
 	var mnemonic by remember {
 		mutableStateOf("")
+	}
+
+	val onSubmit = {
+		loading = true
+		viewModel.onMnemonicImport(mnemonic)
 	}
 
 	LaunchedEffect(imeState.value) {
@@ -195,6 +208,10 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 					if (success.value == false) viewModel.resetSuccess()
 					mnemonic = it
 				},
+				keyboardActions = KeyboardActions(onDone = {
+					keyboardController?.hide()
+					onSubmit()
+				}),
 				modifier = Modifier
 					.width(358.dp.scaledWidth())
 					.height(212.dp.scaledHeight()),
@@ -227,13 +244,17 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 					MainStyledButton(
 						Constants.LOGIN_TEST_TAG,
 						onClick = {
-							viewModel.onMnemonicImport(mnemonic)
+							onSubmit()
 						},
 						content = {
-							Text(
-								stringResource(id = R.string.log_in),
-								style = CustomTypography.labelHuge,
-							)
+							if (loading) {
+								SpinningIcon(Icons.Outlined.Refresh)
+							} else {
+								Text(
+									stringResource(id = R.string.log_in),
+									style = CustomTypography.labelHuge,
+								)
+							}
 						},
 						color = MaterialTheme.colorScheme.primary,
 					)
