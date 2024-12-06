@@ -6,15 +6,13 @@ use std::net::IpAddr;
 use nym_gateway_directory::{GatewayClient, IpPacketRouterAddress, Recipient};
 use nym_ip_packet_client::IprClientConnect;
 use nym_ip_packet_requests::IpPair;
+use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::ConnectionStatsEvent;
 use nym_task::TaskManager;
 
 use super::connected_tunnel::ConnectedTunnel;
-use crate::{
-    mixnet::SharedMixnetClient,
-    tunnel_state_machine::tunnel::{
-        self, gateway_selector::SelectedGateways, AnyConnector, ConnectorError, Error, Result,
-    },
+use crate::tunnel_state_machine::tunnel::{
+    self, gateway_selector::SelectedGateways, AnyConnector, ConnectorError, Error, Result,
 };
 
 /// Struct holding addresses assigned by mixnet upon connect.
@@ -93,7 +91,7 @@ impl Connector {
 
         let exit_mix_addresses = selected_gateways.exit.ipr_address.unwrap();
 
-        let mut ipr_client = IprClientConnect::new_from_inner(mixnet_client.inner()).await;
+        let mut ipr_client = IprClientConnect::new(mixnet_client.clone()).await;
         let interface_addresses = ipr_client
             .connect(exit_mix_addresses.0, nym_ips)
             .await

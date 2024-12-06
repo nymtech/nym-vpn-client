@@ -41,14 +41,14 @@ use nym_wg_go::PublicKey;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use dns_handler::DnsHandlerHandle;
 //use firewall_handler::FirewallHandler;
-#[cfg(target_os = "android")]
-use crate::tunnel_provider::android::AndroidTunProvider;
-#[cfg(target_os = "ios")]
-use crate::tunnel_provider::ios::OSTunProvider;
 use crate::{
     bandwidth_controller::Error as BandwidthControllerError, GatewayDirectoryError,
     MixnetClientConfig,
 };
+#[cfg(target_os = "android")]
+use nym_tunnel_provider::android::AndroidTunProvider;
+#[cfg(target_os = "ios")]
+use nym_tunnel_provider::ios::OSTunProvider;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use route_handler::RouteHandler;
 use states::DisconnectedState;

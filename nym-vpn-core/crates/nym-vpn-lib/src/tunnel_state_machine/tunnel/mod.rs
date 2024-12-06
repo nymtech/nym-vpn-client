@@ -13,8 +13,11 @@ use std::{error::Error as StdError, fmt, path::PathBuf, time::Duration};
 pub use gateway_selector::SelectedGateways;
 use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayClient};
 use nym_ip_packet_requests::IpPair;
+use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::UserAgent;
 use nym_task::{TaskManager, TaskStatus};
+#[cfg(target_os = "android")]
+use nym_tunnel_provider::android::AndroidTunProvider;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
@@ -22,8 +25,8 @@ use tokio_util::sync::CancellationToken;
 use super::route_handler;
 use super::{MixnetEvent, TunnelType};
 use crate::{
-    bandwidth_controller::ReconnectMixnetClientData, mixnet::SharedMixnetClient,
-    GatewayDirectoryError, MixnetClientConfig, MixnetError,
+    bandwidth_controller::ReconnectMixnetClientData, GatewayDirectoryError, MixnetClientConfig,
+    MixnetError,
 };
 pub use any_tunnel_handle::AnyTunnelHandle;
 use status_listener::StatusListener;
@@ -44,8 +47,8 @@ pub struct ConnectedMixnet {
 impl ConnectedMixnet {
     /// Returns the websocket fd owned by mixnet client.
     #[cfg(target_os = "android")]
-    pub async fn websocket_fd(&self) -> Option<std::os::fd::RawFd> {
-        self.mixnet_client.gateway_ws_fd().await
+    pub async fn bypass(&self) -> Result<()> {
+        Ok(self.mixnet_client.bypass().await?)
     }
 
     pub fn selected_gateways(&self) -> &SelectedGateways {
@@ -162,6 +165,7 @@ pub async fn select_gateways(
 pub async fn connect_mixnet(
     options: MixnetConnectOptions,
     cancel_token: CancellationToken,
+    #[cfg(target_os = "android")] tun_provider: std::sync::Arc<dyn AndroidTunProvider>,
 ) -> Result<ConnectedMixnet> {
     let task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS);
     let bw_controller_task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS);
@@ -202,6 +206,8 @@ pub async fn connect_mixnet(
             mixnet_client_config,
             options.enable_credentials_mode,
             options.tunnel_type == TunnelType::Wireguard,
+            #[cfg(target_os = "android")]
+            tun_provider,
         ),
     );
 
@@ -282,6 +288,9 @@ pub enum Error {
 
     #[error("WireGuard error: {0}")]
     Wireguard(#[from] nym_wg_go::Error),
+
+    #[error("shared mixnet client error: {0}")]
+    SharedMixnetClient(#[from] nym_mixnet_client::error::Error),
 
     #[error("failed to dup tunnel file descriptor: {0}")]
     DupFd(#[source] std::io::Error),

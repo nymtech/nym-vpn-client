@@ -3380,6 +3380,7 @@ dependencies = [
  "nym-authenticator-requests",
  "nym-credentials-interface",
  "nym-crypto",
+ "nym-mixnet-client",
  "nym-sdk",
  "nym-service-provider-requests-common",
  "nym-wireguard-types",
@@ -3979,6 +3980,7 @@ dependencies = [
  "nym-gateway-directory",
  "nym-ip-packet-client",
  "nym-ip-packet-requests",
+ "nym-mixnet-client",
  "nym-sdk",
  "nym-task",
  "nym-topology",
@@ -4105,6 +4107,7 @@ dependencies = [
  "futures",
  "nym-gateway-directory",
  "nym-ip-packet-requests",
+ "nym-mixnet-client",
  "nym-sdk",
  "thiserror",
  "tokio",
@@ -4140,6 +4143,16 @@ dependencies = [
  "lazy_static",
  "log",
  "prometheus",
+]
+
+[[package]]
+name = "nym-mixnet-client"
+version = "1.1.0-dev"
+dependencies = [
+ "nym-sdk",
+ "nym-tunnel-provider",
+ "thiserror",
+ "tokio",
 ]
 
 [[package]]
@@ -4676,6 +4689,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-tunnel-provider"
+version = "1.1.0-dev"
+dependencies = [
+ "async-trait",
+ "ipnetwork",
+ "itertools 0.13.0",
+ "nix 0.29.0",
+ "nym-gateway-directory",
+ "nym-vpn-account-controller",
+ "nym-vpn-api-client",
+ "thiserror",
+ "tokio",
+ "tracing",
+ "uniffi",
+]
+
+[[package]]
 name = "nym-validator-client"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=release%2F2024.14-crunch#80d1a24164aa4e3338015dfd091c329d5568f155"
@@ -4860,6 +4890,7 @@ dependencies = [
  "nym-gateway-directory",
  "nym-ip-packet-client",
  "nym-ip-packet-requests",
+ "nym-mixnet-client",
  "nym-node-requests",
  "nym-pemstore",
  "nym-routing",
@@ -4867,6 +4898,7 @@ dependencies = [
  "nym-statistics-common",
  "nym-task",
  "nym-topology",
+ "nym-tunnel-provider",
  "nym-validator-client",
  "nym-vpn-account-controller",
  "nym-vpn-api-client",

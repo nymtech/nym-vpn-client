@@ -1,12 +1,11 @@
 // Copyright 2023-2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{sync::Arc, time::Duration};
+use std::time::Duration;
 
 use nym_ip_packet_requests::IpPair;
-use nym_sdk::mixnet::{
-    ed25519, MixnetClient, MixnetClientSender, MixnetMessageSender, Recipient, TransmissionLane,
-};
+use nym_mixnet_client::SharedMixnetClient;
+use nym_sdk::mixnet::{MixnetClientSender, MixnetMessageSender, Recipient, TransmissionLane};
 use tracing::{debug, error};
 
 use crate::{
@@ -22,40 +21,6 @@ use crate::{
 };
 
 const IPR_CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
-
-#[derive(Clone)]
-pub struct SharedMixnetClient(Arc<tokio::sync::Mutex<Option<MixnetClient>>>);
-
-impl SharedMixnetClient {
-    pub fn from_shared(mixnet_client: &Arc<tokio::sync::Mutex<Option<MixnetClient>>>) -> Self {
-        Self(Arc::clone(mixnet_client))
-    }
-
-    pub fn new(mixnet_client: MixnetClient) -> Self {
-        Self(Arc::new(tokio::sync::Mutex::new(Some(mixnet_client))))
-    }
-
-    pub async fn lock(&self) -> tokio::sync::MutexGuard<'_, Option<MixnetClient>> {
-        self.0.lock().await
-    }
-
-    pub async fn nym_address(&self) -> Recipient {
-        *self.lock().await.as_ref().unwrap().nym_address()
-    }
-
-    pub async fn send(&self, msg: nym_sdk::mixnet::InputMessage) -> Result<()> {
-        self.lock().await.as_mut().unwrap().send(msg).await?;
-        Ok(())
-    }
-
-    pub async fn sign(&self, data: &[u8]) -> ed25519::Signature {
-        self.lock().await.as_ref().unwrap().sign(data)
-    }
-
-    pub fn inner(&self) -> Arc<tokio::sync::Mutex<Option<MixnetClient>>> {
-        self.0.clone()
-    }
-}
 
 #[derive(Debug, PartialEq, Eq)]
 enum ConnectionState {
@@ -92,14 +57,6 @@ impl IprClientConnect {
             nym_address,
             connected: ConnectionState::Disconnected,
         }
-    }
-
-    // A workaround until we can extract SharedMixnetClient to a common crate
-    pub async fn new_from_inner(
-        mixnet_client: Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
-    ) -> Self {
-        let mixnet_client = SharedMixnetClient(mixnet_client);
-        Self::new(mixnet_client).await
     }
 
     pub async fn connect(

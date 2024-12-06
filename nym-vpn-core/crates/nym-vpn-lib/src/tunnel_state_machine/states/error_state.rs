@@ -13,14 +13,14 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 #[cfg(target_os = "ios")]
-use crate::tunnel_provider::{ios::OSTunProvider, tunnel_settings::TunnelSettings};
-#[cfg(target_os = "ios")]
 use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::MIN_IPV6_MTU;
 use crate::tunnel_state_machine::{
     states::{ConnectingState, DisconnectedState},
     ErrorStateReason, NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand,
     TunnelStateHandler,
 };
+#[cfg(target_os = "ios")]
+use nym_tunnel_provider::{ios::OSTunProvider, tunnel_settings::TunnelSettings};
 
 /// Interface addresses used as placeholders when in error state.
 #[cfg(target_os = "ios")]

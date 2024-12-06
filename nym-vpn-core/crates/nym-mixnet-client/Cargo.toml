@@ -1,0 +1,20 @@
+[package]
+name = "nym-mixnet-client"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+tokio = { workspace = true, features = [
+    "process",
+    "rt-multi-thread",
+    "fs",
+    "sync",
+] }
+thiserror.workspace = true
+
+nym-sdk.workspace = true
+
+nym-tunnel-provider = { path = "../nym-tunnel-provider" }
