@@ -65,7 +65,6 @@ public final class CredentialsManager {
 #if os(iOS)
             let dataFolderURL = try dataFolderURL()
             try forgetAccount(path: dataFolderURL.path())
-            // TODO: remove tunnel
 #endif
 
 #if os(macOS)
