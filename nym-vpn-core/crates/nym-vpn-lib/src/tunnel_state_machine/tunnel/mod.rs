@@ -15,6 +15,7 @@ use std::{os::fd::RawFd, sync::Arc};
 pub use gateway_selector::SelectedGateways;
 use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayClient};
 use nym_ip_packet_requests::IpPair;
+use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::UserAgent;
 use nym_task::{TaskManager, TaskStatus};
 use tokio::{sync::mpsc, task::JoinHandle};
@@ -24,8 +25,8 @@ use tokio_util::sync::CancellationToken;
 use super::route_handler;
 use super::{MixnetEvent, TunnelType};
 use crate::{
-    bandwidth_controller::ReconnectMixnetClientData, mixnet::SharedMixnetClient,
-    GatewayDirectoryError, MixnetClientConfig, MixnetError,
+    bandwidth_controller::ReconnectMixnetClientData, GatewayDirectoryError, MixnetClientConfig,
+    MixnetError,
 };
 pub use any_tunnel_handle::AnyTunnelHandle;
 use status_listener::StatusListener;

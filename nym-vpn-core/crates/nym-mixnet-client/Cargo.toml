@@ -1,0 +1,18 @@
+[package]
+name = "nym-mixnet-client"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+nym-sdk.workspace = true
+
+tokio = { workspace = true, features = [
+    "process",
+    "rt-multi-thread",
+    "fs",
+    "sync",
+] }
+thiserror.workspace = true

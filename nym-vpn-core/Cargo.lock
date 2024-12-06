@@ -3380,6 +3380,7 @@ dependencies = [
  "nym-authenticator-requests",
  "nym-credentials-interface",
  "nym-crypto",
+ "nym-mixnet-client",
  "nym-sdk",
  "nym-service-provider-requests-common",
  "nym-wireguard-types",
@@ -3979,6 +3980,7 @@ dependencies = [
  "nym-gateway-directory",
  "nym-ip-packet-client",
  "nym-ip-packet-requests",
+ "nym-mixnet-client",
  "nym-sdk",
  "nym-task",
  "nym-topology",
@@ -4105,6 +4107,7 @@ dependencies = [
  "futures",
  "nym-gateway-directory",
  "nym-ip-packet-requests",
+ "nym-mixnet-client",
  "nym-sdk",
  "thiserror",
  "tokio",
@@ -4140,6 +4143,15 @@ dependencies = [
  "lazy_static",
  "log",
  "prometheus",
+]
+
+[[package]]
+name = "nym-mixnet-client"
+version = "1.2.0-dev"
+dependencies = [
+ "nym-sdk",
+ "thiserror",
+ "tokio",
 ]
 
 [[package]]
@@ -4861,6 +4873,7 @@ dependencies = [
  "nym-gateway-directory",
  "nym-ip-packet-client",
  "nym-ip-packet-requests",
+ "nym-mixnet-client",
  "nym-node-requests",
  "nym-pemstore",
  "nym-routing",
