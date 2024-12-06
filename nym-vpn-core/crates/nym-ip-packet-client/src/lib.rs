@@ -6,7 +6,7 @@ mod error;
 mod helpers;
 mod listener;
 
-pub use connect::{IprClientConnect, SharedMixnetClient};
+pub use connect::IprClientConnect;
 pub use error::Error;
 pub use listener::{IprListener, MixnetMessageOutcome};
 

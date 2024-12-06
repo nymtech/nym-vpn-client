@@ -1,6 +1,5 @@
 use std::{
     net::{Ipv4Addr, Ipv6Addr},
-    sync::Arc,
     time::Duration,
 };
 
@@ -11,6 +10,7 @@ use nym_authenticator_requests::{
 
 use nym_credentials_interface::CredentialSpendingData;
 use nym_crypto::asymmetric::x25519::PrivateKey;
+use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{
     ClientStatsEvents, ClientStatsSender, MixnetClient, MixnetClientSender, MixnetMessageSender,
     Recipient, ReconstructedMessage, TransmissionLane,
@@ -709,42 +709,6 @@ impl From<v4::response::AuthenticatorResponse> for AuthenticatorResponse {
     }
 }
 
-#[derive(Clone)]
-pub struct SharedMixnetClient(Arc<tokio::sync::Mutex<Option<MixnetClient>>>);
-
-impl SharedMixnetClient {
-    pub fn from_shared(mixnet_client: &Arc<tokio::sync::Mutex<Option<MixnetClient>>>) -> Self {
-        Self(Arc::clone(mixnet_client))
-    }
-
-    pub fn new(mixnet_client: MixnetClient) -> Self {
-        Self(Arc::new(tokio::sync::Mutex::new(Some(mixnet_client))))
-    }
-
-    pub async fn lock(&self) -> tokio::sync::MutexGuard<'_, Option<MixnetClient>> {
-        self.0.lock().await
-    }
-
-    pub async fn nym_address(&self) -> Recipient {
-        *self.lock().await.as_ref().unwrap().nym_address()
-    }
-
-    pub async fn send(&self, msg: nym_sdk::mixnet::InputMessage) -> Result<()> {
-        self.lock()
-            .await
-            .as_mut()
-            .unwrap()
-            .send(msg)
-            .await
-            .map_err(Error::SendMixnetMessage)?;
-        Ok(())
-    }
-
-    pub fn inner(&self) -> Arc<tokio::sync::Mutex<Option<MixnetClient>>> {
-        self.0.clone()
-    }
-}
-
 #[derive(Copy, Clone, Debug)]
 pub enum AuthenticatorVersion {
     V2,
@@ -834,14 +798,6 @@ impl AuthClient {
             stats_sender,
             nym_address,
         }
-    }
-
-    // A workaround until we can extract SharedMixnetClient to a common crate
-    pub async fn new_from_inner(
-        mixnet_client: Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
-    ) -> Self {
-        let mixnet_client = SharedMixnetClient(mixnet_client);
-        Self::new(mixnet_client).await
     }
 
     pub async fn send(

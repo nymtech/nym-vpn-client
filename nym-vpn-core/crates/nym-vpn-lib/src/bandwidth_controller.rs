@@ -7,7 +7,7 @@ use tokio::sync::mpsc;
 use tokio_stream::{wrappers::IntervalStream, StreamExt};
 use tokio_util::sync::CancellationToken;
 
-use nym_authenticator_client::{AuthClient, SharedMixnetClient};
+use nym_authenticator_client::AuthClient;
 use nym_credentials_interface::TicketType;
 use nym_gateway_directory::GatewayClient;
 use nym_sdk::{
@@ -204,7 +204,6 @@ impl ReconnectMixnetClientData {
                 return None;
             }
         };
-        let mixnet_client = SharedMixnetClient::from_shared(&mixnet_client.inner());
         Some(AuthClient::new(mixnet_client).await)
     }
 }
