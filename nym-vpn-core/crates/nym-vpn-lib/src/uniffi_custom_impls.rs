@@ -14,14 +14,12 @@ use nym_connection_monitor::ConnectionMonitorStatus;
 use nym_gateway_directory::{EntryPoint as GwEntryPoint, ExitPoint as GwExitPoint};
 use nym_ip_packet_requests::IpPair;
 use nym_sdk::UserAgent as NymUserAgent;
+use nym_tunnel_provider::error::{RequestZkNymError, RequestZkNymSuccess, VpnError};
 use nym_wg_go::PublicKey;
 use time::OffsetDateTime;
 use url::Url;
 
-use crate::{
-    platform::error::{RequestZkNymError, RequestZkNymSuccess, VpnError},
-    NodeIdentity, Recipient, UniffiCustomTypeConverter,
-};
+use crate::{NodeIdentity, Recipient, UniffiCustomTypeConverter};
 
 uniffi::custom_type!(Ipv4Addr, String);
 uniffi::custom_type!(Ipv6Addr, String);

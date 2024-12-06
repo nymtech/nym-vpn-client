@@ -22,6 +22,12 @@ use tun::Device;
 
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_ip_packet_requests::IpPair;
+#[cfg(any(target_os = "ios", target_os = "android"))]
+use nym_tunnel_provider;
+#[cfg(target_os = "android")]
+use nym_tunnel_provider::android::AndroidTunProvider;
+#[cfg(target_os = "ios")]
+use nym_tunnel_provider::ios::OSTunProvider;
 
 #[cfg(target_os = "linux")]
 use super::default_interface::DefaultInterface;
@@ -41,12 +47,6 @@ use super::{
 use super::tunnel::wireguard::connected_tunnel::{
     NetstackTunnelOptions, TunTunTunnelOptions, TunnelOptions,
 };
-#[cfg(any(target_os = "ios", target_os = "android"))]
-use crate::tunnel_provider;
-#[cfg(target_os = "android")]
-use crate::tunnel_provider::android::AndroidTunProvider;
-#[cfg(target_os = "ios")]
-use crate::tunnel_provider::ios::OSTunProvider;
 use crate::tunnel_state_machine::WireguardMultihopMode;
 
 /// Default MTU for mixnet tun device.
@@ -384,7 +384,7 @@ impl TunnelMonitor {
 
         #[cfg(any(target_os = "ios", target_os = "android"))]
         let tun_device = {
-            let packet_tunnel_settings = tunnel_provider::tunnel_settings::TunnelSettings {
+            let packet_tunnel_settings = nym_tunnel_provider::tunnel_settings::TunnelSettings {
                 dns_servers: self.tunnel_settings.dns.ip_addresses().to_vec(),
                 interface_addresses: vec![
                     IpNetwork::V4(Ipv4Network::from(
@@ -697,7 +697,7 @@ impl TunnelMonitor {
 
         let conn_data = connected_tunnel.connection_data();
 
-        let packet_tunnel_settings = tunnel_provider::tunnel_settings::TunnelSettings {
+        let packet_tunnel_settings = nym_tunnel_provider::tunnel_settings::TunnelSettings {
             dns_servers: self.tunnel_settings.dns.ip_addresses().to_vec(),
             interface_addresses: vec![
                 IpNetwork::V4(Ipv4Network::from(conn_data.exit.private_ipv4)),
@@ -819,11 +819,11 @@ impl TunnelMonitor {
     #[cfg(any(target_os = "ios", target_os = "android"))]
     async fn create_tun_device(
         &self,
-        packet_tunnel_settings: tunnel_provider::tunnel_settings::TunnelSettings,
+        packet_tunnel_settings: nym_tunnel_provider::tunnel_settings::TunnelSettings,
     ) -> Result<AsyncDevice> {
         #[cfg(target_os = "ios")]
         let owned_tun_fd =
-            tunnel_provider::ios::interface::get_tun_fd().map_err(Error::LocateTunDevice)?;
+            nym_tunnel_provider::ios::interface::get_tun_fd().map_err(Error::LocateTunDevice)?;
 
         #[cfg(target_os = "android")]
         let owned_tun_fd = {

@@ -3,6 +3,7 @@
 
 use std::{path::PathBuf, str::FromStr, sync::Arc, time::Duration};
 
+use nym_tunnel_provider::error::VpnError;
 use nym_vpn_account_controller::{
     shared_state::DeviceState, AccountCommand, AccountControllerCommander, SharedAccountState,
 };
@@ -14,7 +15,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::uniffi_custom_impls::AccountStateSummary;
 
-use super::{error::VpnError, ACCOUNT_CONTROLLER_HANDLE};
+use super::ACCOUNT_CONTROLLER_HANDLE;
 
 pub(super) async fn start_account_controller_handle(
     data_dir: PathBuf,

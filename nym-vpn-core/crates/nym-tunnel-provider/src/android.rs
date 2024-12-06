@@ -4,7 +4,7 @@
 use std::{fmt::Debug, os::fd::RawFd};
 
 use super::tunnel_settings::TunnelNetworkSettings;
-use crate::platform::error::VpnError;
+use crate::error::VpnError;
 
 #[uniffi::export(with_foreign)]
 pub trait AndroidTunProvider: Send + Sync + Debug {

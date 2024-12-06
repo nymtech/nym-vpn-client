@@ -13,8 +13,6 @@ use nym_task::TaskManager;
 use nym_wg_gateway_client::WgGatewayClient;
 use nym_wg_go::{netstack, wireguard_go};
 
-#[cfg(target_os = "android")]
-use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::{
     tunnel_provider::ios::{default_path_observer::DefaultPathObserver, OSTunProvider},
@@ -31,6 +29,8 @@ use crate::{
     },
     wg_config::WgNodeConfig,
 };
+#[cfg(target_os = "android")]
+use nym_tunnel_provider::android::AndroidTunProvider;
 
 pub struct ConnectedTunnel {
     task_manager: TaskManager,

@@ -1,9 +1,10 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::uniffi_custom_impls::{AccountLinks, NetworkEnvironment, SystemMessage};
+use nym_tunnel_provider::error::VpnError;
 
-use super::{error::VpnError, NETWORK_ENVIRONMENT};
+use super::NETWORK_ENVIRONMENT;
+use crate::uniffi_custom_impls::{AccountLinks, NetworkEnvironment, SystemMessage};
 
 pub(crate) async fn init_environment(network_name: &str) -> Result<(), VpnError> {
     let network = nym_vpn_network_config::Network::fetch(network_name).map_err(|err| {

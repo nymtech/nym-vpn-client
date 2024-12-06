@@ -10,8 +10,6 @@ mod bandwidth_controller;
 mod error;
 mod mixnet;
 mod platform;
-#[cfg(any(target_os = "ios", target_os = "android"))]
-pub mod tunnel_provider;
 pub mod tunnel_state_machine;
 mod uniffi_custom_impls;
 mod wg_config;
@@ -32,6 +30,8 @@ pub use nym_task::{
     event::{SentStatus, TaskStatus},
     StatusReceiver,
 };
+#[cfg(any(target_os = "ios", target_os = "android"))]
+pub use nym_tunnel_provider;
 pub use nym_wg_gateway_client as wg_gateway_client;
 
 #[cfg(any(target_os = "ios", target_os = "macos"))]

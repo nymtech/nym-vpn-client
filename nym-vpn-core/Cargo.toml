@@ -11,7 +11,7 @@ members = [
     "crates/nym-harbour-master-client",
     "crates/nym-ip-packet-client",
     "crates/nym-mixnet-client",
-    "crates/nym-routing",
+    "crates/nym-routing", "crates/nym-tunnel-provider",
     "crates/nym-vpn-account-controller",
     "crates/nym-vpn-api-client",
     "crates/nym-vpn-cli",
