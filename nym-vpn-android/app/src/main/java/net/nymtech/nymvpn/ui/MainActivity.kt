@@ -94,7 +94,7 @@ class MainActivity : AppCompatActivity() {
 		val appViewModel by viewModels<AppViewModel>()
 
 		installSplashScreen().apply {
-			setKeepOnScreenCondition{
+			setKeepOnScreenCondition {
 				!appViewModel.isAppReady.value
 			}
 		}
@@ -172,7 +172,7 @@ class MainActivity : AppCompatActivity() {
 						) { padding ->
 							NavHost(
 								navController,
-								//startDestination = Route.Splash,
+								// startDestination = Route.Splash,
 								startDestination = Route.Main(),
 								modifier =
 								Modifier
