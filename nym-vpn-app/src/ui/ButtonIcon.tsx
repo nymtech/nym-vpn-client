@@ -2,7 +2,7 @@
 
 import clsx from 'clsx';
 import { Button as HuButton } from '@headlessui/react';
-import { MsIcon } from './index.ts';
+import { MsIcon } from './index';
 
 type ButtonIconProps = {
   icon: string;
