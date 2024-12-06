@@ -23,6 +23,32 @@ function InfoData() {
     }
   };
 
+  const InfoView = (
+    <>
+      {daemonVersion && (
+        <div className={clsx('flex flex-row flex-nowrap gap-1')}>
+          <p className="text-nowrap">{t('info.daemon-version')}</p>
+          <ButtonText onClick={() => copyToClipboard(daemonVersion)} truncate>
+            {daemonVersion}
+          </ButtonText>
+        </div>
+      )}
+      {networkEnv && networkEnv.length > 0 && (
+        <div className={clsx('flex flex-row flex-nowrap gap-1')}>
+          <p className="text-nowrap">{t('info.network-name')}</p>
+          <ButtonText
+            onClick={() => copyToClipboard(networkEnv)}
+            onDoubleClick={() => setShowEnvSelect(!showEnvSelect)}
+            truncate
+          >
+            {networkEnv}
+          </ButtonText>
+        </div>
+      )}
+      {account && <AccountData />}
+    </>
+  );
+
   return (
     <>
       <div
@@ -38,27 +64,7 @@ function InfoData() {
             {version}
           </ButtonText>
         </div>
-        {daemonVersion && (
-          <div className={clsx('flex flex-row flex-nowrap gap-1')}>
-            <p className="text-nowrap">{t('info.daemon-version')}</p>
-            <ButtonText onClick={() => copyToClipboard(daemonVersion)} truncate>
-              {daemonVersion}
-            </ButtonText>
-          </div>
-        )}
-        {networkEnv && networkEnv.length > 0 && (
-          <div className={clsx('flex flex-row flex-nowrap gap-1')}>
-            <p className="text-nowrap">{t('info.network-name')}</p>
-            <ButtonText
-              onClick={() => copyToClipboard(networkEnv)}
-              onDoubleClick={() => setShowEnvSelect(!showEnvSelect)}
-              truncate
-            >
-              {networkEnv}
-            </ButtonText>
-          </div>
-        )}
-        {account && <AccountData />}
+        {daemonStatus !== 'NotOk' && InfoView}
       </div>
       {S_STATE.networkEnvSelect &&
         daemonStatus !== 'NotOk' &&
