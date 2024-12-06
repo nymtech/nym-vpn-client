@@ -427,6 +427,7 @@ impl<St: Storage> BandwidthController<St> {
             cancel_token
                 .run_until_cancelled(task_manager.wait_for_error())
                 .await;
+            task_manager.signal_shutdown().ok();
             mixnet_error_tx.send(()).await.ok();
         });
     }
