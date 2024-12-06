@@ -1,6 +1,8 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(target_os = "android")]
+use std::{os::fd::RawFd, sync::Arc};
 use std::{path::PathBuf, result::Result, time::Duration};
 
 use nym_config::defaults::NymNetworkDetails;
@@ -79,6 +81,7 @@ pub(crate) async fn setup_mixnet_client(
     mixnet_client_config: MixnetClientConfig,
     enable_credentials_mode: bool,
     two_hop_mode: bool,
+    #[cfg(target_os = "android")] bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
 ) -> Result<SharedMixnetClient, MixnetError> {
     let mut debug_config = nym_client_core::config::DebugConfig::default();
     // for mobile platforms, in two hop mode, we do less frequent cover traffic,
@@ -141,7 +144,11 @@ pub(crate) async fn setup_mixnet_client(
             .map_err(map_mixnet_connect_error)?
     };
 
-    Ok(SharedMixnetClient::new(mixnet_client))
+    Ok(SharedMixnetClient::new(
+        mixnet_client,
+        #[cfg(target_os = "android")]
+        bypass_fn,
+    ))
 }
 
 // Map some specific mixnet errors to more specific ones

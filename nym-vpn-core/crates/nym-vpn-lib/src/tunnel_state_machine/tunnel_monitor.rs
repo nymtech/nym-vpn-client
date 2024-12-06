@@ -4,9 +4,9 @@ use std::net::Ipv4Addr;
 use std::os::fd::{AsRawFd, IntoRawFd};
 #[cfg(target_os = "android")]
 use std::os::fd::{FromRawFd, OwnedFd};
-#[cfg(any(target_os = "android", target_os = "ios"))]
-use std::sync::Arc;
 use std::{cmp, time::Duration};
+#[cfg(target_os = "android")]
+use std::{os::fd::RawFd, sync::Arc};
 
 #[cfg(windows)]
 use super::wintun::{self, WintunAdapterConfig};
@@ -275,8 +275,20 @@ impl TunnelMonitor {
             user_agent: None, // todo: provide user-agent
         };
 
-        let mut connected_mixnet =
-            tunnel::connect_mixnet(connect_options, self.cancel_token.child_token()).await?;
+        #[cfg(target_os = "android")]
+        let tun_provider = self.tun_provider.clone();
+        #[cfg(target_os = "android")]
+        let bypass_fn = move |_fd: RawFd| {
+            #[cfg(target_os = "android")]
+            tun_provider.bypass(_fd);
+        };
+        let mut connected_mixnet = tunnel::connect_mixnet(
+            connect_options,
+            self.cancel_token.child_token(),
+            #[cfg(target_os = "android")]
+            Arc::new(bypass_fn),
+        )
+        .await?;
 
         // Route mixnet client outside the tunnel.
         #[cfg(target_os = "android")]

@@ -1,6 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(target_os = "android")]
+use std::os::fd::RawFd;
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     sync::Arc,
@@ -147,8 +149,11 @@ async fn wg_probe(
     gateway_host: &nym_topology::NetworkAddress,
     auth_version: AuthenticatorVersion,
 ) -> anyhow::Result<WgProbeResults> {
-    let auth_shared_client =
-        nym_authenticator_client::SharedMixnetClient::from_shared(&shared_mixnet_client);
+    let auth_shared_client = nym_authenticator_client::SharedMixnetClient::from_shared(
+        &shared_mixnet_client,
+        #[cfg(target_os = "android")]
+        Arc::new(|_: RawFd| {}),
+    );
     let mut auth_client = nym_authenticator_client::AuthClient::new(auth_shared_client).await;
 
     let mut rng = rand::thread_rng();
