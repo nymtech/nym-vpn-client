@@ -6,6 +6,7 @@
   },
   "logout": {
     "success": "Logout bem-sucedido",
-    "error": "Ocorreu um erro ao fazer o logout. Tente novamente."
-  }
+    "error": "Ocorreu um erro ao fazer o logout."
+  },
+  "daemon-not-compat": "A versão Daemon não é compatível com a versão do aplicativo! Versão do daemon: {{version}}, esperado: {{required}}. Atualize o aplicativo ou o daemon."
 }
