@@ -10,6 +10,7 @@ import { useI18nError } from '../../hooks';
 import { routes } from '../../router';
 import { BackendError, StateDispatch } from '../../types';
 import { Button, Link, PageAnim, TextArea } from '../../ui';
+import { MCache } from '../../cache';
 
 type AddError = {
   error: string;
@@ -48,6 +49,8 @@ function Login() {
           position: 'top',
           closeIcon: true,
         });
+        MCache.del('account-id');
+        MCache.del('device-id');
       })
       .catch((e: unknown) => {
         const eT = e as BackendError;

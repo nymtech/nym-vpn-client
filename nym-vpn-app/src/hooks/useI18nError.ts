@@ -127,6 +127,8 @@ function useI18nError() {
           return t('account.update-device');
         case 'ConnectRegisterDevice':
           return t('account.register-device');
+        case 'ConnectRequestZkNym':
+          return t('zknym.request-failed');
         case 'EntryGatewayNotRouting':
           return t('entry-node-routing');
         case 'ExitRouterPingIpv4':

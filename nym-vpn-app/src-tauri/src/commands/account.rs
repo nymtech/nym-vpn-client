@@ -1,6 +1,6 @@
 use serde_json::Value as JsonValue;
 use tauri::State;
-use tracing::{error, info, instrument};
+use tracing::{error, info, instrument, warn};
 
 use crate::grpc::account_links::AccountLinks;
 use crate::grpc::client::ReadyToConnect;
@@ -103,4 +103,32 @@ pub async fn account_links(
         error!("failed to get account link: {e}");
         e.into()
     })
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn get_account_id(grpc: State<'_, GrpcClient>) -> Result<String, BackendError> {
+    grpc.account_id()
+        .await
+        .map_err(|e| {
+            warn!("failed to get account id: {e}");
+            e.into()
+        })
+        .inspect(|id| {
+            info!("account id: {id}");
+        })
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn get_device_id(grpc: State<'_, GrpcClient>) -> Result<String, BackendError> {
+    grpc.device_id()
+        .await
+        .map_err(|e| {
+            warn!("failed to get device id: {e}");
+            e.into()
+        })
+        .inspect(|id| {
+            info!("device id: {id}");
+        })
 }
