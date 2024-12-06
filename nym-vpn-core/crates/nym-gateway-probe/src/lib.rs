@@ -3,6 +3,7 @@
 
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
+    os::fd::RawFd,
     sync::Arc,
     time::Duration,
 };
@@ -147,8 +148,11 @@ async fn wg_probe(
     gateway_host: &nym_topology::NetworkAddress,
     auth_version: AuthenticatorVersion,
 ) -> anyhow::Result<WgProbeResults> {
-    let auth_shared_client =
-        nym_authenticator_client::SharedMixnetClient::from_shared(&shared_mixnet_client);
+    let bypass_fn = |_: RawFd| {};
+    let auth_shared_client = nym_authenticator_client::SharedMixnetClient::from_shared(
+        &shared_mixnet_client,
+        Arc::new(bypass_fn),
+    );
     let mut auth_client = nym_authenticator_client::AuthClient::new(auth_shared_client).await;
 
     let mut rng = rand::thread_rng();

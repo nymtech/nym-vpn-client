@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::time::Duration;
+use std::{os::fd::RawFd, sync::Arc, time::Duration};
 
 use tokio::sync::mpsc;
 use tokio_stream::{wrappers::IntervalStream, StreamExt};
@@ -178,7 +178,10 @@ impl ReconnectMixnetClientData {
         }
     }
 
-    pub async fn recreate_mixnet_connection(&self) -> Option<AuthClient> {
+    pub async fn recreate_mixnet_connection(
+        &self,
+        bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
+    ) -> Option<AuthClient> {
         let entry_gateway = *self.options.selected_gateways.entry.identity();
         let mixnet_client = match tokio::time::timeout(
             MIXNET_CLIENT_STARTUP_TIMEOUT,
@@ -190,6 +193,7 @@ impl ReconnectMixnetClientData {
                 self.mixnet_client_config.clone(),
                 self.options.enable_credentials_mode,
                 self.options.tunnel_type == TunnelType::Wireguard,
+                bypass_fn.clone(),
             ),
         )
         .await
@@ -204,7 +208,7 @@ impl ReconnectMixnetClientData {
                 return None;
             }
         };
-        let mixnet_client = SharedMixnetClient::from_shared(&mixnet_client.inner());
+        let mixnet_client = SharedMixnetClient::from_shared(&mixnet_client.inner(), bypass_fn);
         Some(AuthClient::new(mixnet_client).await)
     }
 }
@@ -374,13 +378,23 @@ impl<St: Storage> BandwidthController<St> {
     }
 
     pub(crate) async fn try_reconnect(&mut self, mixnet_error_tx: mpsc::Sender<()>) -> bool {
+        let bypass_fn = self
+            .wg_entry_gateway_client
+            .auth_client()
+            .mixnet_client()
+            .bypass_fn();
         let Some(auth_client) = self
             .reconnect_mixnet_client_data
-            .recreate_mixnet_connection()
+            .recreate_mixnet_connection(bypass_fn.clone())
             .await
         else {
             self.connected_mixnet = false;
             return false;
+        };
+        if let Some(fd) = auth_client.mixnet_client().gateway_ws_fd().await {
+            bypass_fn.as_ref()(fd);
+        } else {
+            tracing::error!("Could not bypass new mixnet client");
         };
         self.wg_entry_gateway_client
             .set_auth_client(auth_client.clone());

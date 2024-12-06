@@ -1,5 +1,6 @@
 use std::{
     net::{Ipv4Addr, Ipv6Addr},
+    os::fd::RawFd,
     sync::Arc,
     time::Duration,
 };
@@ -710,19 +711,31 @@ impl From<v4::response::AuthenticatorResponse> for AuthenticatorResponse {
 }
 
 #[derive(Clone)]
-pub struct SharedMixnetClient(Arc<tokio::sync::Mutex<Option<MixnetClient>>>);
+pub struct SharedMixnetClient {
+    inner: Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
+    bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
+}
 
 impl SharedMixnetClient {
-    pub fn from_shared(mixnet_client: &Arc<tokio::sync::Mutex<Option<MixnetClient>>>) -> Self {
-        Self(Arc::clone(mixnet_client))
+    pub fn from_shared(
+        mixnet_client: &Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
+        bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
+    ) -> Self {
+        Self {
+            inner: Arc::clone(mixnet_client),
+            bypass_fn,
+        }
     }
 
-    pub fn new(mixnet_client: MixnetClient) -> Self {
-        Self(Arc::new(tokio::sync::Mutex::new(Some(mixnet_client))))
+    pub fn new(mixnet_client: MixnetClient, bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>) -> Self {
+        Self {
+            inner: Arc::new(tokio::sync::Mutex::new(Some(mixnet_client))),
+            bypass_fn,
+        }
     }
 
     pub async fn lock(&self) -> tokio::sync::MutexGuard<'_, Option<MixnetClient>> {
-        self.0.lock().await
+        self.inner.lock().await
     }
 
     pub async fn nym_address(&self) -> Recipient {
@@ -740,8 +753,21 @@ impl SharedMixnetClient {
         Ok(())
     }
 
+    pub async fn gateway_ws_fd(&self) -> Option<std::os::fd::RawFd> {
+        self.lock()
+            .await
+            .as_ref()
+            .unwrap()
+            .gateway_connection()
+            .gateway_ws_fd
+    }
+
     pub fn inner(&self) -> Arc<tokio::sync::Mutex<Option<MixnetClient>>> {
-        self.0.clone()
+        self.inner.clone()
+    }
+
+    pub fn bypass_fn(&self) -> Arc<dyn Fn(RawFd) + Send + Sync> {
+        self.bypass_fn.clone()
     }
 }
 
@@ -836,11 +862,19 @@ impl AuthClient {
         }
     }
 
+    pub fn mixnet_client(&self) -> SharedMixnetClient {
+        self.mixnet_client.clone()
+    }
+
     // A workaround until we can extract SharedMixnetClient to a common crate
     pub async fn new_from_inner(
         mixnet_client: Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
+        bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
     ) -> Self {
-        let mixnet_client = SharedMixnetClient(mixnet_client);
+        let mixnet_client = SharedMixnetClient {
+            inner: mixnet_client,
+            bypass_fn,
+        };
         Self::new(mixnet_client).await
     }
 

@@ -8,7 +8,7 @@ mod status_listener;
 mod tombstone;
 pub mod wireguard;
 
-use std::{error::Error as StdError, fmt, path::PathBuf, time::Duration};
+use std::{error::Error as StdError, fmt, os::fd::RawFd, path::PathBuf, sync::Arc, time::Duration};
 
 pub use gateway_selector::SelectedGateways;
 use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayClient};
@@ -162,6 +162,7 @@ pub async fn select_gateways(
 pub async fn connect_mixnet(
     options: MixnetConnectOptions,
     cancel_token: CancellationToken,
+    bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
 ) -> Result<ConnectedMixnet> {
     let task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS);
     let bw_controller_task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS);
@@ -202,6 +203,7 @@ pub async fn connect_mixnet(
             mixnet_client_config,
             options.enable_credentials_mode,
             options.tunnel_type == TunnelType::Wireguard,
+            bypass_fn,
         ),
     );
 
