@@ -728,10 +728,6 @@ where
             })
     }
 
-    fn get_feature_flag_credential_mode(&self) -> bool {
-        get_feature_flag_credential_mode(&self.network_env)
-    }
-
     async fn wait_for_ready_to_connect(
         &self,
         credentials_mode: bool,
@@ -776,7 +772,10 @@ where
         } = connect_args;
 
         // Get feature flag
-        let enable_credentials_mode = self.get_feature_flag_credential_mode();
+        let enable_credentials_mode = self
+            .network_env
+            .get_feature_flag_credential_mode()
+            .unwrap_or(false);
         tracing::debug!("feature flag: credential mode: {enable_credentials_mode}");
 
         options.enable_credentials_mode =
@@ -1225,10 +1224,4 @@ where
 
         api_client.get_devices(&account).await.map_err(Into::into)
     }
-}
-
-fn get_feature_flag_credential_mode(network_env: &Network) -> bool {
-    network_env
-        .get_feature_flag("zkNym", "credentialMode")
-        .unwrap_or(false)
 }
