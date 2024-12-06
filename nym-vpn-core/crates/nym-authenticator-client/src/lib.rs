@@ -1,6 +1,7 @@
+#[cfg(target_os = "android")]
+use std::os::fd::RawFd;
 use std::{
     net::{Ipv4Addr, Ipv6Addr},
-    os::fd::RawFd,
     sync::Arc,
     time::Duration,
 };
@@ -713,23 +714,29 @@ impl From<v4::response::AuthenticatorResponse> for AuthenticatorResponse {
 #[derive(Clone)]
 pub struct SharedMixnetClient {
     inner: Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
+    #[cfg(target_os = "android")]
     bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
 }
 
 impl SharedMixnetClient {
     pub fn from_shared(
         mixnet_client: &Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
-        bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
+        #[cfg(target_os = "android")] bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
     ) -> Self {
         Self {
             inner: Arc::clone(mixnet_client),
+            #[cfg(target_os = "android")]
             bypass_fn,
         }
     }
 
-    pub fn new(mixnet_client: MixnetClient, bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>) -> Self {
+    pub fn new(
+        mixnet_client: MixnetClient,
+        #[cfg(target_os = "android")] bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
+    ) -> Self {
         Self {
             inner: Arc::new(tokio::sync::Mutex::new(Some(mixnet_client))),
+            #[cfg(target_os = "android")]
             bypass_fn,
         }
     }
@@ -753,6 +760,7 @@ impl SharedMixnetClient {
         Ok(())
     }
 
+    #[cfg(target_os = "android")]
     pub async fn gateway_ws_fd(&self) -> Option<std::os::fd::RawFd> {
         self.lock()
             .await
@@ -766,6 +774,7 @@ impl SharedMixnetClient {
         self.inner.clone()
     }
 
+    #[cfg(target_os = "android")]
     pub fn bypass_fn(&self) -> Arc<dyn Fn(RawFd) + Send + Sync> {
         self.bypass_fn.clone()
     }
@@ -869,10 +878,11 @@ impl AuthClient {
     // A workaround until we can extract SharedMixnetClient to a common crate
     pub async fn new_from_inner(
         mixnet_client: Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
-        bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
+        #[cfg(target_os = "android")] bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
     ) -> Self {
         let mixnet_client = SharedMixnetClient {
             inner: mixnet_client,
+            #[cfg(target_os = "android")]
             bypass_fn,
         };
         Self::new(mixnet_client).await

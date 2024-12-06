@@ -1,7 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{os::fd::RawFd, sync::Arc, time::Duration};
+use std::time::Duration;
+#[cfg(target_os = "android")]
+use std::{os::fd::RawFd, sync::Arc};
 
 use tokio::sync::mpsc;
 use tokio_stream::{wrappers::IntervalStream, StreamExt};
@@ -180,7 +182,7 @@ impl ReconnectMixnetClientData {
 
     pub async fn recreate_mixnet_connection(
         &self,
-        bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
+        #[cfg(target_os = "android")] bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
     ) -> Option<AuthClient> {
         let entry_gateway = *self.options.selected_gateways.entry.identity();
         let mixnet_client = match tokio::time::timeout(
@@ -193,6 +195,7 @@ impl ReconnectMixnetClientData {
                 self.mixnet_client_config.clone(),
                 self.options.enable_credentials_mode,
                 self.options.tunnel_type == TunnelType::Wireguard,
+                #[cfg(target_os = "android")]
                 bypass_fn.clone(),
             ),
         )
@@ -208,7 +211,11 @@ impl ReconnectMixnetClientData {
                 return None;
             }
         };
-        let mixnet_client = SharedMixnetClient::from_shared(&mixnet_client.inner(), bypass_fn);
+        let mixnet_client = SharedMixnetClient::from_shared(
+            &mixnet_client.inner(),
+            #[cfg(target_os = "android")]
+            bypass_fn,
+        );
         Some(AuthClient::new(mixnet_client).await)
     }
 }
@@ -378,6 +385,7 @@ impl<St: Storage> BandwidthController<St> {
     }
 
     pub(crate) async fn try_reconnect(&mut self, mixnet_error_tx: mpsc::Sender<()>) -> bool {
+        #[cfg(target_os = "android")]
         let bypass_fn = self
             .wg_entry_gateway_client
             .auth_client()
@@ -385,12 +393,17 @@ impl<St: Storage> BandwidthController<St> {
             .bypass_fn();
         let Some(auth_client) = self
             .reconnect_mixnet_client_data
-            .recreate_mixnet_connection(bypass_fn.clone())
+            .recreate_mixnet_connection(
+                #[cfg(target_os = "android")]
+                bypass_fn.clone(),
+            )
             .await
         else {
             self.connected_mixnet = false;
             return false;
         };
+
+        #[cfg(target_os = "android")]
         if let Some(fd) = auth_client.mixnet_client().gateway_ws_fd().await {
             bypass_fn.as_ref()(fd);
         } else {
