@@ -8,7 +8,7 @@ mod status_listener;
 mod tombstone;
 pub mod wireguard;
 
-use std::{error::Error as StdError, fmt, net::IpAddr, path::PathBuf, time::Duration};
+use std::{error::Error as StdError, fmt, path::PathBuf, time::Duration};
 
 pub use gateway_selector::SelectedGateways;
 use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayClient};
@@ -34,7 +34,7 @@ pub(crate) const TASK_MANAGER_SHUTDOWN_TIMER_SECS: u64 = 10;
 
 pub struct ConnectedMixnet {
     task_manager: TaskManager,
-    gateway_host: IpAddr,
+    gateway_directory_client: GatewayClient,
     selected_gateways: SelectedGateways,
     data_path: Option<PathBuf>,
     mixnet_client: SharedMixnetClient,
@@ -73,7 +73,7 @@ impl ConnectedMixnet {
         let connector = mixnet::connector::Connector::new(
             self.task_manager,
             self.mixnet_client,
-            self.gateway_host,
+            self.gateway_directory_client,
         );
 
         match connector
@@ -96,7 +96,7 @@ impl ConnectedMixnet {
         let connector = wireguard::connector::Connector::new(
             self.task_manager,
             self.mixnet_client,
-            self.gateway_host,
+            self.gateway_directory_client,
         );
 
         match connector
@@ -182,15 +182,6 @@ pub async fn connect_mixnet(
         .unwrap_or(UserAgent::from(nym_bin_common::bin_info_local_vergen!()));
     let gateway_directory_client = GatewayClient::new(options.gateway_config, user_agent)
         .map_err(Error::CreateGatewayClient)?;
-    let gateway_id = options
-        .selected_gateways
-        .entry
-        .identity()
-        .to_base58_string();
-    let gateway_host = gateway_directory_client
-        .lookup_gateway_ip(&gateway_id)
-        .await
-        .map_err(|source| Error::LookupGatewayIp { gateway_id, source })?;
 
     match options.tunnel_type {
         TunnelType::Mixnet => {}
@@ -228,7 +219,7 @@ pub async fn connect_mixnet(
             task_manager,
             selected_gateways: options.selected_gateways,
             data_path: options.data_path,
-            gateway_host,
+            gateway_directory_client,
             mixnet_client,
             reconnect_mixnet_client_data,
         }),
