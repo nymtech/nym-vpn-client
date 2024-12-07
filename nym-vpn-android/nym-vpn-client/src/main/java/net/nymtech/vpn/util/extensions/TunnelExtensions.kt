@@ -6,10 +6,11 @@ import nym_vpn_lib.Ipv4Route
 import nym_vpn_lib.Ipv6Route
 import nym_vpn_lib.TunnelNetworkSettings
 import timber.log.Timber
+import java.net.InetAddress
 
 fun VpnService.Builder.addRoutes(config: TunnelNetworkSettings, calculator: IpCalculator) {
-	val includedRoutes = mutableListOf<String>()
-	val excludedRoutes = mutableListOf<String>()
+	val includedRoutes = mutableSetOf<String>()
+	val excludedRoutes = mutableSetOf<String>()
 	with(config.ipv4Settings) {
 		this?.includedRoutes?.forEach {
 			when (it) {
@@ -35,6 +36,16 @@ fun VpnService.Builder.addRoutes(config: TunnelNetworkSettings, calculator: IpCa
 					excludedRoutes.add(it.destination)
 				}
 				Ipv4Route.Default -> Unit
+			}
+		}
+	}
+	config.entryGatewayHostname?.let {
+		runCatching {
+			val address: InetAddress = InetAddress.getByName(it)
+			Timber.d("Entry gateway host name: ${address.hostName}")
+			Timber.d("Host name address: ${address.hostAddress}")
+			address.hostAddress?.let {
+				excludedRoutes.add(it)
 			}
 		}
 	}
@@ -67,7 +78,7 @@ fun VpnService.Builder.addRoutes(config: TunnelNetworkSettings, calculator: IpCa
 	Timber.d("Excluded routes: $excludedRoutes")
 	// Add all ipv6 to included to block ipv6 leaks
 	if (!includedRoutes.contains(IpCalculator.ALL_IPV6_ADDRESS)) includedRoutes.add(IpCalculator.ALL_IPV6_ADDRESS)
-	val allowedIps = calculator.calculateAllowedIps(includedRoutes, excludedRoutes)
+	val allowedIps = calculator.calculateAllowedIps(includedRoutes.toList(), excludedRoutes.toList())
 	allowedIps.forEach {
 		Timber.d("Adding allowed route: ${it.first}/${it.second}")
 		addRoute(it.first, it.second)

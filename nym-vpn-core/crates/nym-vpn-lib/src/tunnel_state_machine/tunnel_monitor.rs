@@ -20,9 +20,6 @@ use tun::AsyncDevice;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use tun::Device;
 
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-use nym_ip_packet_requests::IpPair;
-
 #[cfg(target_os = "linux")]
 use super::default_interface::DefaultInterface;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -36,6 +33,9 @@ use super::{
     ConnectionData, Error, ErrorStateReason, MixnetConnectionData, MixnetEvent, NymConfig, Result,
     TunnelConnectionData, TunnelSettings, TunnelType, WireguardConnectionData, WireguardNode,
 };
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+use nym_ip_packet_requests::IpPair;
+use nym_topology::NetworkAddress;
 
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use super::tunnel::wireguard::connected_tunnel::{
@@ -282,7 +282,7 @@ impl TunnelMonitor {
         #[cfg(target_os = "android")]
         match connected_mixnet.websocket_fd().await {
             Some(fd) => {
-                self.tun_provider.bypass(fd);
+                //self.tun_provider.bypass(fd);
             }
             None => {
                 tracing::error!("Failed to obtain websocket for bypass");
@@ -294,8 +294,25 @@ impl TunnelMonitor {
             .await;
 
         let selected_gateways = connected_mixnet.selected_gateways().clone();
+
+        #[cfg(any(target_os = "ios", target_os = "android"))]
+        let entry_hostname = match selected_gateways.clone().entry.host {
+            Some(address) => match address {
+                NetworkAddress::IpAddr(ip) => Some(ip.to_string()),
+                NetworkAddress::Hostname(host) => Some(host),
+            },
+            None => None,
+        };
+
         let (tunnel_conn_data, mut tunnel_handle) = match self.tunnel_settings.tunnel_type {
-            TunnelType::Mixnet => self.start_mixnet_tunnel(connected_mixnet).await?,
+            TunnelType::Mixnet => {
+                self.start_mixnet_tunnel(
+                    connected_mixnet,
+                    #[cfg(any(target_os = "ios", target_os = "android"))]
+                    entry_hostname,
+                )
+                .await?
+            }
             TunnelType::Wireguard => {
                 match self.tunnel_settings.wireguard_tunnel_options.multihop_mode {
                     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -303,8 +320,12 @@ impl TunnelMonitor {
                         self.start_wireguard_tunnel(connected_mixnet).await?
                     }
                     WireguardMultihopMode::Netstack => {
-                        self.start_wireguard_netstack_tunnel(connected_mixnet)
-                            .await?
+                        self.start_wireguard_netstack_tunnel(
+                            connected_mixnet,
+                            #[cfg(any(target_os = "ios", target_os = "android"))]
+                            entry_hostname,
+                        )
+                        .await?
                     }
                 }
             }
@@ -365,6 +386,7 @@ impl TunnelMonitor {
     async fn start_mixnet_tunnel(
         &mut self,
         connected_mixnet: ConnectedMixnet,
+        #[cfg(any(target_os = "ios", target_os = "android"))] entry_hostname: Option<String>,
     ) -> Result<(TunnelConnectionData, AnyTunnelHandle)> {
         let interface_addrs = self.tunnel_settings.mixnet_tunnel_options.interface_addrs;
 
@@ -386,6 +408,7 @@ impl TunnelMonitor {
         let tun_device = {
             let packet_tunnel_settings = tunnel_provider::tunnel_settings::TunnelSettings {
                 dns_servers: self.tunnel_settings.dns.ip_addresses().to_vec(),
+                entry_gateway_hostname: entry_hostname,
                 interface_addresses: vec![
                     IpNetwork::V4(Ipv4Network::from(
                         assigned_addresses.interface_addresses.ipv4,
@@ -690,6 +713,7 @@ impl TunnelMonitor {
     async fn start_wireguard_netstack_tunnel(
         &self,
         connected_mixnet: ConnectedMixnet,
+        entry_hostname: Option<String>,
     ) -> Result<(TunnelConnectionData, AnyTunnelHandle)> {
         let connected_tunnel = connected_mixnet
             .connect_wireguard_tunnel(self.tunnel_settings.enable_credentials_mode)
@@ -699,6 +723,7 @@ impl TunnelMonitor {
 
         let packet_tunnel_settings = tunnel_provider::tunnel_settings::TunnelSettings {
             dns_servers: self.tunnel_settings.dns.ip_addresses().to_vec(),
+            entry_gateway_hostname: entry_hostname,
             interface_addresses: vec![
                 IpNetwork::V4(Ipv4Network::from(conn_data.exit.private_ipv4)),
                 IpNetwork::V6(Ipv6Network::from(conn_data.exit.private_ipv6)),
