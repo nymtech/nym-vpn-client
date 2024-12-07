@@ -376,7 +376,11 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 					addSearchDomain(it)
 				}
 
-				addRoutes(config, calculator)
+				addRoute("0.0.0.0", 0)
+				addRoute("::", 0)
+
+				//disable calculated routes for now because we bypass mixnet socket
+				//addRoutes(config, calculator)
 
 				setMtu(config.mtu.toInt())
 
