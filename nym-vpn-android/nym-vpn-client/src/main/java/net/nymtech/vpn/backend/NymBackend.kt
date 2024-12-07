@@ -46,6 +46,7 @@ import nym_vpn_lib.waitForRegisterDevice
 import nym_vpn_lib.waitForUpdateAccount
 import nym_vpn_lib.waitForUpdateDevice
 import timber.log.Timber
+import java.net.InetAddress
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.properties.Delegates
 

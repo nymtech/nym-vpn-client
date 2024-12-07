@@ -13,6 +13,9 @@ pub struct TunnelSettings {
     /// Tunnel interface addresses.
     pub interface_addresses: Vec<IpNetwork>,
 
+    #[cfg(any(target_os = "ios", target_os = "android"))]
+    pub entry_gateway_hostname: Option<String>,
+
     /// DNS servers to set on tunnel interface.
     pub dns_servers: Vec<IpAddr>,
 
@@ -47,6 +50,7 @@ impl TunnelSettings {
 
         TunnelNetworkSettings {
             tunnel_remote_address: "127.0.0.1".to_owned(),
+            entry_gateway_hostname: self.entry_gateway_hostname,
             ipv4_settings,
             ipv6_settings,
             dns_settings: Some(DnsSettings {
@@ -225,6 +229,9 @@ impl Ipv6Settings {
 pub struct TunnelNetworkSettings {
     /// Tunnel remote address, which is mostly of decorative value.
     pub tunnel_remote_address: String,
+
+    /// host name of the entry gateway
+    pub entry_gateway_hostname: Option<String>,
 
     /// IPv4 interface settings.
     pub ipv4_settings: Option<Ipv4Settings>,
