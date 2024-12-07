@@ -42,7 +42,9 @@
   "info": {
     "client-version": "Версия клиента",
     "daemon-version": "Версия демона",
-    "network-name": "Сеть"
+    "network-name": "Сеть",
+    "account-id": "ID аккаунта",
+    "device-id": "ID устройства"
   },
   "logout-confirmation": {
     "title": "Вы уверены?",
