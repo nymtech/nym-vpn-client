@@ -397,10 +397,9 @@ impl<St: Storage> BandwidthController<St> {
             TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS),
         );
         tokio::task::spawn(async move {
-            let err = cancel_token
+            cancel_token
                 .run_until_cancelled(task_manager.wait_for_error())
-                .await
-                .flatten();
+                .await;
             mixnet_error_tx.send(()).await.ok();
         });
     }
