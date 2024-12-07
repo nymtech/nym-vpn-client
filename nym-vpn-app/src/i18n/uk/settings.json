@@ -42,7 +42,9 @@
   "info": {
     "daemon-version": "Версія Daemon",
     "network-name": "Мережа",
-    "client-version": "Версія клієнту"
+    "client-version": "Версія клієнту",
+    "account-id": "Ідентифікатор облікового запису",
+    "device-id": "Ідентифікатор пристрою"
   },
   "logout-confirmation": {
     "description": "Для повторного входу вам знадобиться фраза відновлення.",
