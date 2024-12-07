@@ -397,9 +397,10 @@ impl<St: Storage> BandwidthController<St> {
             TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS),
         );
         tokio::task::spawn(async move {
-            cancel_token
+            let err = cancel_token
                 .run_until_cancelled(task_manager.wait_for_error())
-                .await;
+                .await
+                .flatten();
             mixnet_error_tx.send(()).await.ok();
         });
     }
@@ -420,7 +421,10 @@ impl<St: Storage> BandwidthController<St> {
                     tracing::trace!("BandwidthController: Received shutdown");
                 }
                 _ = mixnet_error_rx.recv() => {
-                    self.try_reconnect(mixnet_error_tx.clone()).await;
+                    break;
+                    // Don't attempt to reconnect and just drop the BandwidthController and shut down
+                    // the tunnel
+                    // self.try_reconnect(mixnet_error_tx.clone()).await;
                 }
                 _ = self.timeout_check_interval.next() => {
                     if !self.connected_mixnet && !self.try_reconnect(mixnet_error_tx.clone()).await {
