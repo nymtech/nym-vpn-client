@@ -23,7 +23,6 @@ import net.nymtech.vpn.util.LifecycleVpnService
 import net.nymtech.vpn.util.NotificationManager
 import net.nymtech.vpn.util.SingletonHolder
 import net.nymtech.vpn.util.exceptions.NymVpnInitializeException
-import net.nymtech.vpn.util.extensions.addRoutes
 import net.nymtech.vpn.util.extensions.asTunnelState
 import net.nymtech.vpn.util.extensions.startServiceByClass
 import nym_vpn_lib.AccountLinks
@@ -376,7 +375,11 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 					addSearchDomain(it)
 				}
 
-				addRoutes(config, calculator)
+				addRoute("0.0.0.0", 0)
+				addRoute("::", 0)
+
+				// disable calculated routes for now because we bypass mixnet socket
+				// addRoutes(config, calculator)
 
 				setMtu(config.mtu.toInt())
 
