@@ -10,8 +10,8 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
-import net.nymtech.logcatutil.LogCollect
-import net.nymtech.logcatutil.LogcatHelper
+import net.nymtech.logcatutil.LogReader
+import net.nymtech.logcatutil.LogcatReader
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.GatewayRepository
@@ -80,8 +80,8 @@ object AppModule {
 
 	@Singleton
 	@Provides
-	fun provideLogcatHelper(@ApplicationContext context: Context): LogCollect {
-		return LogcatHelper.init(context = context)
+	fun provideLogcatHelper(@ApplicationContext context: Context): LogReader {
+		return LogcatReader.init(storageDir = context.filesDir.absolutePath)
 	}
 
 	@Singleton

@@ -56,4 +56,6 @@ dependencies {
 	implementation(libs.timber)
 
 	detektPlugins(libs.detekt.rules.compose)
+
+	implementation(libs.androidx.lifecycle.process)
 }
