@@ -1,0 +1,2 @@
+Nouveautés:
+- Correction d'un bug de plantage des journaux
