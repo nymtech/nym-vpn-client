@@ -10,7 +10,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import net.nymtech.logcatutil.LogCollect
+import net.nymtech.logcatutil.LogReader
 import net.nymtech.logcatutil.model.LogMessage
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
@@ -26,7 +26,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LogsViewModel @Inject constructor(
-	private val logCollect: LogCollect,
+	private val logReader: LogReader,
 	@IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 	@MainDispatcher private val mainDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
@@ -35,7 +35,7 @@ class LogsViewModel @Inject constructor(
 
 	init {
 		viewModelScope.launch(ioDispatcher) {
-			logCollect.bufferedLogs.chunked(500, Duration.ofSeconds(1)).collect {
+			logReader.bufferedLogs.chunked(500, Duration.ofSeconds(1)).collect {
 				withContext(mainDispatcher) {
 					logs.addAll(it)
 				}
@@ -56,7 +56,7 @@ class LogsViewModel @Inject constructor(
 			val file = File("${sharePath.path + "/" + Constants.BASE_LOG_FILE_NAME}-${Instant.now().epochSecond}.zip")
 			if (file.exists()) file.delete()
 			file.createNewFile()
-			logCollect.zipLogFiles(file.absolutePath)
+			logReader.zipLogFiles(file.absolutePath)
 			val uri = FileProvider.getUriForFile(context, context.getString(R.string.provider), file)
 			context.launchShareFile(uri)
 		}.onFailure {
@@ -65,7 +65,7 @@ class LogsViewModel @Inject constructor(
 	}
 
 	fun deleteLogs() = viewModelScope.launch {
-		logCollect.deleteAndClearLogs()
+		logReader.deleteAndClearLogs()
 		logs.clear()
 	}
 }
