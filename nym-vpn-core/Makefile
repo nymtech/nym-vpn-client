@@ -11,7 +11,10 @@ export IPHONEOS_DEPLOYMENT_TARGET = 16.0
 # Main targets
 all: help
 
-# Build targets
+# -----------------------------------------------------------------------------
+#  Build targets
+# -----------------------------------------------------------------------------
+
 build: ## Build the Rust workspace
 	cargo build
 
@@ -24,9 +27,10 @@ build-mac: ## Build the Rust workspace suitable for running the daemon
 build-win-cross:
 	cargo build --target x86_64-pc-windows-gnu --release
 
-deb: build-deb-vpn-cli build-deb-vpnd build-deb-vpnc ## Build debian packages
+# -----------------------------------------------------------------------------
+#  Linting targets
+# -----------------------------------------------------------------------------
 
-# Linting targets
 clippy: ## Run clippy
 	cargo clippy --workspace -- -Dwarnings
 
@@ -36,7 +40,12 @@ fmt: ## Run rustfmt
 fmt-check: ## Check rustfmt
 	cargo fmt --all --check
 
-# Debian package builds
+# -----------------------------------------------------------------------------
+#  Debian package builds
+# -----------------------------------------------------------------------------
+
+deb: build-deb-vpn-cli build-deb-vpnd build-deb-vpnc
+
 build-deb-vpn-cli:
 	cargo deb -p nym-vpn-cli
 
@@ -50,6 +59,10 @@ build-vpn-lib-swift: ## Rust cargo swift
 	cd crates/nym-vpn-lib; \
 	cargo swift package --platforms ios --name NymVpnLib --release
 
+# -----------------------------------------------------------------------------
+#  Uniffi
+# -----------------------------------------------------------------------------
+
 generate-uniffi-ios: ## Generate uniffi for ios
 	cargo run --bin uniffi-bindgen generate \
 		--library $(CURDIR)/target/aarch64-apple-ios/release/libnym_vpn_lib.a \
@@ -61,6 +74,11 @@ generate-uniffi-android: ## Generate uniffi for android
 		--language kotlin --out-dir crates/nym-vpn-lib/uniffi -n
 	mv crates/nym-vpn-lib/uniffi/nym_vpn_lib/nym_vpn_lib.kt crates/nym-vpn-lib/uniffi
 	rm -rf crates/nym-vpn-lib/uniffi/nym_vpn_lib/
+
+
+# -----------------------------------------------------------------------------
+#  Misc
+# -----------------------------------------------------------------------------
 
 print-info: ## Print detected architecture
 
