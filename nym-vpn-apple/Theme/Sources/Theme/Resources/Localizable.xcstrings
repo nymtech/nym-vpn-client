@@ -1321,6 +1321,17 @@
         }
       }
     },
+    "settings.deviceId" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Device ID: "
+          }
+        }
+      }
+    },
     "settings.logIn" : {
       "extractionState" : "manual",
       "localizations" : {
