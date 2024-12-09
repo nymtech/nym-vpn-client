@@ -28,7 +28,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -92,12 +91,6 @@ class MainActivity : AppCompatActivity() {
 		super.onCreate(savedInstanceState)
 
 		val appViewModel by viewModels<AppViewModel>()
-
-		installSplashScreen().apply {
-			setKeepOnScreenCondition{
-				!appViewModel.isAppReady.value
-			}
-		}
 
 		this.resetTile()
 
@@ -172,8 +165,7 @@ class MainActivity : AppCompatActivity() {
 						) { padding ->
 							NavHost(
 								navController,
-								//startDestination = Route.Splash,
-								startDestination = Route.Main(),
+								startDestination = Route.Splash,
 								modifier =
 								Modifier
 									.fillMaxSize()
