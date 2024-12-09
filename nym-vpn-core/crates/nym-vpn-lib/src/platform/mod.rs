@@ -26,12 +26,7 @@ use url::Url;
 
 use nym_gateway_directory::Config as GatewayDirectoryConfig;
 
-use self::error::VpnError;
 use crate::platform::account::start_account_controller_handle;
-#[cfg(target_os = "android")]
-use crate::tunnel_provider::android::AndroidTunProvider;
-#[cfg(target_os = "ios")]
-use crate::tunnel_provider::ios::OSTunProvider;
 use crate::{
     gateway_directory::GatewayClient,
     tunnel_state_machine::{
@@ -45,6 +40,11 @@ use crate::{
         TunStatus, UserAgent,
     },
 };
+#[cfg(target_os = "android")]
+use nym_tunnel_provider::android::AndroidTunProvider;
+use nym_tunnel_provider::error::VpnError;
+#[cfg(target_os = "ios")]
+use nym_tunnel_provider::ios::OSTunProvider;
 
 lazy_static! {
     static ref RUNTIME: Runtime = Runtime::new().unwrap();

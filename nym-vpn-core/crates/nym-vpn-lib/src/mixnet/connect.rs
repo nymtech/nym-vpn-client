@@ -6,10 +6,11 @@ use std::{os::fd::RawFd, sync::Arc};
 use std::{path::PathBuf, result::Result, time::Duration};
 
 use nym_config::defaults::NymNetworkDetails;
+use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{MixnetClientBuilder, NodeIdentity, StoragePaths};
 use nym_vpn_store::mnemonic::MnemonicStorage as _;
 
-use super::{MixnetError, SharedMixnetClient};
+use super::MixnetError;
 use crate::{storage::VpnClientOnDiskStorage, MixnetClientConfig};
 
 const MOBILE_LOOP_COVER_STREAM_AVERAGE_DELAY: Duration = Duration::from_secs(10);

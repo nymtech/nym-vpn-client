@@ -51,6 +51,7 @@ nym-connection-monitor = { path = "../nym-connection-monitor" }
 nym-gateway-directory = { path = "../nym-gateway-directory" }
 nym-ip-packet-client = { path = "../nym-ip-packet-client" }
 nym-authenticator-client = { path = "../nym-authenticator-client" }
+nym-mixnet-client = { path = "../nym-mixnet-client" }
 nym-wireguard-types.workspace = true
 nym-ip-packet-requests.workspace = true
 nym-sdk.workspace = true
