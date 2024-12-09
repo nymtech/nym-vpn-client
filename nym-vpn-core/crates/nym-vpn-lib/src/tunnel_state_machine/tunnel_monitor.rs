@@ -1,12 +1,15 @@
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use std::net::Ipv4Addr;
-#[cfg(any(target_os = "android", target_os = "ios"))]
-use std::os::fd::{AsRawFd, IntoRawFd};
+#[cfg(target_os = "android")]
+use std::os::fd::RawFd;
 #[cfg(target_os = "android")]
 use std::os::fd::{FromRawFd, OwnedFd};
 use std::{cmp, time::Duration};
-#[cfg(target_os = "android")]
-use std::{os::fd::RawFd, sync::Arc};
+#[cfg(any(target_os = "android", target_os = "ios"))]
+use std::{
+    os::fd::{AsRawFd, IntoRawFd},
+    sync::Arc,
+};
 
 #[cfg(windows)]
 use super::wintun::{self, WintunAdapterConfig};
