@@ -26,7 +26,7 @@ sealed class ThemeColors(
 		onSurfaceVariant = Color(0xFF938F99),
 		onSecondary = Color(0xFF56545A),
 		surfaceContainer = Color(0xFF313033),
-		tertiary = Color(0xFF14E76F),
+		tertiary = Color(0xFF14E76F)
 	)
 
 	data object Light : ThemeColors(
@@ -40,7 +40,7 @@ sealed class ThemeColors(
 		onSurfaceVariant = Color(0xFF79747E),
 		onSecondary = Color(0xFFA4A4A4),
 		surfaceContainer = Color(0xFFFFFFFF),
-		tertiary = Color(0xFF0B8A42),
+		tertiary = Color(0xFF0B8A42)
 	)
 }
 
