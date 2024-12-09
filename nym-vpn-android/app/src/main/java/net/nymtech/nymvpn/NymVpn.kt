@@ -10,7 +10,7 @@ import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import net.nymtech.logcatutil.LogCollect
+import net.nymtech.logcatutil.LogReader
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
@@ -41,7 +41,7 @@ class NymVpn : Application() {
 	lateinit var backend: Provider<Backend>
 
 	@Inject
-	lateinit var logCollect: LogCollect
+	lateinit var logReader: LogReader
 
 	override fun onCreate() {
 		super.onCreate()
@@ -62,15 +62,15 @@ class NymVpn : Application() {
 		} else {
 			Timber.plant(ReleaseTree())
 		}
+
+		logReader.initialize()
+
 		applicationScope.launch {
 			val env = settingsRepository.getEnvironment()
 			backend.get().init(env, settingsRepository.isCredentialMode())
 			settingsRepository.getLocale()?.let {
 				LocaleUtil.changeLocale(it)
 			}
-		}
-		applicationScope.launch(ioDispatcher) {
-			logCollect.start()
 		}
 		requestTileServiceStateUpdate()
 	}
