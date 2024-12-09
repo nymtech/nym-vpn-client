@@ -5,12 +5,4 @@
 		<item name="android:fontFamily">@font/lato</item>
 		<item name="android:windowIsTranslucent">true</item>
 	</style>
-
-	<style name="Theme.NymVPN.Starting" parent="Theme.SplashScreen">
-		<item name="windowSplashScreenBackground">@color/dark_background</item>
-		<item name="windowSplashScreenIconBackgroundColor">@color/dark_background</item>
-		<item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
-		<!-- Set the theme of the Activity that follows your splash screen. -->
-		<item name="postSplashScreenTheme">@style/Theme.NymVPN</item>
-	</style>
 </resources>

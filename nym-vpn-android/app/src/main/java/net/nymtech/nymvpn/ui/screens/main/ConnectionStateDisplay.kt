@@ -18,7 +18,7 @@ fun ConnectionStateDisplay(connectionState: ConnectionState) {
 			PillLabel(
 				text = text,
 				backgroundColor = CustomColors.statusGreen,
-				textColor = MaterialTheme.colorScheme.tertiary,
+				textColor = CustomColors.confirm,
 			)
 
 		ConnectionState.Disconnected ->

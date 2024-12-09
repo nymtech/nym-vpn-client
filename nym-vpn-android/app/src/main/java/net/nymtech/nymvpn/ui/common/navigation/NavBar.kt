@@ -2,9 +2,6 @@ package net.nymtech.nymvpn.ui.common.navigation
 
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.TopAppBarColors
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -36,7 +33,6 @@ fun NavBar(navBarState: NavBarState, navController: NavController, modifier: Mod
 			navigationIcon = {
 				navBarState.leading()
 			},
-			colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
 		)
 	}
 }
