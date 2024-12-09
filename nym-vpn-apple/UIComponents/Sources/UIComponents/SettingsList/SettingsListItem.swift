@@ -75,7 +75,6 @@ private extension SettingsListItem {
                     speed: 70,
                     pauseDuration: 1.0
                 )
-                .padding(.trailing, 16)
             }
         }
         .clipped()
