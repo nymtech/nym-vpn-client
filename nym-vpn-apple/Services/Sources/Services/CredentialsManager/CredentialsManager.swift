@@ -23,6 +23,8 @@ public final class CredentialsManager {
 
     public static let shared = CredentialsManager()
 
+    public var deviceIdentifier: String?
+
     public var isValidCredentialImported: Bool {
         appSettings.isCredentialImported
     }
@@ -136,12 +138,26 @@ private extension CredentialsManager {
                 logger.error("Failed to check credential import: \(error.localizedDescription)")
                 updateIsCredentialImported(with: false)
             }
+            updateDeviceIdentifier()
         }
     }
 
     func updateIsCredentialImported(with value: Bool) {
         Task { @MainActor in
             appSettings.isCredentialImported = value
+        }
+    }
+}
+
+private extension CredentialsManager {
+    func updateDeviceIdentifier() {
+        Task(priority: .background) {
+#if os(iOS)
+            let dataFolderURL = try dataFolderURL()
+            deviceIdentifier = try? getDeviceIdentity(path: dataFolderURL.path())
+#elseif os(macOS)
+            deviceIdentifier = try? await grpcManager.deviceIdentifier()
+#endif
         }
     }
 }

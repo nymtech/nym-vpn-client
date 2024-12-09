@@ -68,11 +68,17 @@ private extension SettingsListItem {
                 .foregroundStyle(NymColor.sysOnSurface)
                 .textStyle(.Body.Large.semibold)
             if let subtitle = viewModel.subtitle {
-                Text(subtitle)
-                    .foregroundStyle(NymColor.sysOutline)
-                    .textStyle(.Body.Medium.regular)
+                BouncingMarqueeTextView(
+                    text: subtitle,
+                    textStyle: .Body.Medium.regular,
+                    fontColor: NymColor.sysOutline,
+                    speed: 70,
+                    pauseDuration: 1.0
+                )
+                .padding(.trailing, 16)
             }
         }
+        .clipped()
         .padding(.leading, 16)
     }
 
