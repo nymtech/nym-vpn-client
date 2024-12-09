@@ -1,0 +1,6 @@
+What's new:
+- Added anonymous credentials
+- Improved tunnel reliability
+- UI updates
+- Improved network change handling
+- Other fixes and improvements
