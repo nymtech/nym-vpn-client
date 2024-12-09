@@ -800,7 +800,7 @@ impl From<semver::Version> for AuthenticatorVersion {
         if semver.minor == 1 && semver.patch >= 10 {
             return Self::V3;
         }
-        if semver.minor >= 1 && semver.patch >= 0 {
+        if semver.minor >= 1 {
             return Self::V4;
         }
         Self::UNKNOWN
