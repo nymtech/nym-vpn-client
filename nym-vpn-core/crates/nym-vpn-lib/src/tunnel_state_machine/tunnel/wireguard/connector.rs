@@ -99,7 +99,12 @@ impl Connector {
         };
         let entry_version = selected_gateways.entry.version.clone().into();
         let exit_version = selected_gateways.exit.version.clone().into();
-        let auth_client = AuthClient::new_from_inner(mixnet_client.inner()).await;
+        let auth_client = AuthClient::new_from_inner(
+            mixnet_client.inner(),
+            #[cfg(target_os = "android")]
+            mixnet_client.bypass_fn(),
+        )
+        .await;
 
         let mut wg_entry_gateway_client = if enable_credentials_mode {
             WgGatewayClient::new_free_entry(

@@ -62,6 +62,10 @@ impl WgGatewayLightClient {
         self.auth_recipient
     }
 
+    pub fn auth_client(&self) -> &AuthClient {
+        &self.auth_client
+    }
+
     pub fn set_auth_client(&mut self, auth_client: AuthClient) {
         self.auth_client = auth_client;
     }

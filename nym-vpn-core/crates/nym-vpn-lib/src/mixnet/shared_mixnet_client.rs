@@ -1,20 +1,33 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(target_os = "android")]
+use std::os::fd::RawFd;
 use std::sync::Arc;
 
 use nym_sdk::mixnet::{ClientStatsEvents, MixnetClient, MixnetClientSender, Recipient};
 
 #[derive(Clone)]
-pub struct SharedMixnetClient(Arc<tokio::sync::Mutex<Option<MixnetClient>>>);
+pub struct SharedMixnetClient {
+    inner: Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
+    #[cfg(target_os = "android")]
+    bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
+}
 
 impl SharedMixnetClient {
-    pub fn new(mixnet_client: MixnetClient) -> Self {
-        Self(Arc::new(tokio::sync::Mutex::new(Some(mixnet_client))))
+    pub fn new(
+        mixnet_client: MixnetClient,
+        #[cfg(target_os = "android")] bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
+    ) -> Self {
+        Self {
+            inner: Arc::new(tokio::sync::Mutex::new(Some(mixnet_client))),
+            #[cfg(target_os = "android")]
+            bypass_fn,
+        }
     }
 
     pub async fn lock(&self) -> tokio::sync::MutexGuard<'_, Option<MixnetClient>> {
-        self.0.lock().await
+        self.inner.lock().await
     }
 
     pub async fn nym_address(&self) -> Recipient {
@@ -40,6 +53,11 @@ impl SharedMixnetClient {
     }
 
     pub fn inner(&self) -> Arc<tokio::sync::Mutex<Option<MixnetClient>>> {
-        self.0.clone()
+        self.inner.clone()
+    }
+
+    #[cfg(target_os = "android")]
+    pub fn bypass_fn(&self) -> Arc<dyn Fn(RawFd) + Send + Sync> {
+        self.bypass_fn.clone()
     }
 }
