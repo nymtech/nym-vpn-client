@@ -13,6 +13,7 @@ use nym_vpn_proto::{
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+use tracing::warn;
 use ts_rs::TS;
 
 use crate::grpc::client::VpndError;
@@ -54,7 +55,7 @@ impl BackendError {
         }
     }
 
-    pub fn _with_data(message: &str, key: ErrorKey, data: HashMap<&str, String>) -> Self {
+    pub fn with_data(message: &str, key: ErrorKey, data: HashMap<&str, String>) -> Self {
         Self {
             message: message.to_string(),
             key,
@@ -204,6 +205,7 @@ pub enum ErrorKey {
     ConnectUpdateAccount,
     ConnectUpdateDevice,
     ConnectRegisterDevice,
+    ConnectRequestZkNym,
     // Forwarded from proto `connection_status_update::StatusType`
     EntryGatewayNotRouting,
     ExitRouterPingIpv4,
@@ -322,6 +324,7 @@ impl From<ConnectRequestErrorType> for ErrorKey {
             ConnectRequestErrorType::UpdateAccount => ErrorKey::ConnectUpdateAccount,
             ConnectRequestErrorType::UpdateDevice => ErrorKey::ConnectUpdateDevice,
             ConnectRequestErrorType::RegisterDevice => ErrorKey::ConnectRegisterDevice,
+            ConnectRequestErrorType::RequestZkNym => ErrorKey::ConnectRequestZkNym,
         }
     }
 }
@@ -338,6 +341,14 @@ impl From<ConnectRequestError> for BackendError {
             .map(|id| id.contains(MAX_REG_DEVICES_ID_PATTERN))
         {
             return BackendError::new(&message, ErrorKey::MaxRegisteredDevices);
+        }
+        if !error.zk_nym_error.is_empty() {
+            let mut data = HashMap::new();
+            for zk_err in &error.zk_nym_error {
+                warn!("zk-nym error: {:?}", zk_err);
+                data.insert(zk_err.kind().as_str_name(), format!("{:?}", zk_err));
+            }
+            return BackendError::with_data(&message, ErrorKey::from(error.kind()), data);
         }
 
         BackendError::new(&message, ErrorKey::from(error.kind()))

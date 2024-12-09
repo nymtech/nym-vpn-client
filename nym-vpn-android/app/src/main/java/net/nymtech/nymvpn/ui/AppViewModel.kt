@@ -6,8 +6,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
@@ -46,6 +49,13 @@ constructor(
 
 	private val _configurationChange = MutableStateFlow(false)
 	val configurationChange = _configurationChange.asStateFlow()
+
+	private val _isAppReady = MutableStateFlow(false)
+	val isAppReady = _isAppReady.asStateFlow()
+
+	init {
+		onAppStartup()
+	}
 
 	val uiState =
 		combine(
@@ -158,5 +168,9 @@ constructor(
 			Timber.d("Updating account links")
 			tunnelManager.refreshAccountLinks()
 		}
+		val theme = settingsRepository.getTheme()
+		uiState.takeWhile { it.settings.theme != theme }.onCompletion {
+			_isAppReady.emit(true)
+		}.collect()
 	}
 }

@@ -50,7 +50,7 @@ public final class ConnectionManager: ObservableObject {
         }
     }
 #endif
-    @Published public var currentTunnelStatus: TunnelStatus? {
+    @Published public var currentTunnelStatus: TunnelStatus = .disconnected {
         didSet {
             updateTunnelStatusIfReconnecting()
             updateTunnelStatusIfDisconnecting()
@@ -190,16 +190,18 @@ public final class ConnectionManager: ObservableObject {
         }
     }
 #endif
-
+    
+    /// Disconnects tunnel if connected.
+    /// iOS removes tunnel profile.
     public func disconnectBeforeLogout() async {
+        guard currentTunnelStatus != .disconnected else { return }
 #if os(iOS)
         disconnectActiveTunnel()
-        await waitForTunnelStatus(with: .disconnected)
         resetVpnProfile()
 #elseif os(macOS)
         grpcManager.disconnect()
-        await waitForTunnelStatus(with: .disconnected)
 #endif
+        await waitForTunnelStatus(with: .disconnected)
     }
 }
 

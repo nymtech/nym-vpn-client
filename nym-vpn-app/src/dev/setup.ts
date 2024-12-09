@@ -118,6 +118,18 @@ export function mockTauriIPC() {
       return new Promise<boolean>((resolve) => resolve(true));
     }
 
+    if (cmd === 'get_account_id') {
+      return new Promise<string>((resolve) =>
+        resolve('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'),
+      );
+    }
+
+    if (cmd === 'get_device_id') {
+      return new Promise<string>((resolve) =>
+        resolve('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'),
+      );
+    }
+
     // if (cmd === 'add_account') {
     //   return new Promise<boolean>((_, reject) => reject(new Error('nope')));
     // }

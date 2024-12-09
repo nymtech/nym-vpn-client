@@ -28,7 +28,7 @@ use envs::RegisteredNetworks;
 use nym_config::defaults::NymNetworkDetails;
 use tokio::join;
 
-use std::{path::Path, time::Duration};
+use std::{fmt::Debug, path::Path, str::FromStr, time::Duration};
 
 const NETWORKS_SUBDIR: &str = "networks";
 
@@ -117,28 +117,43 @@ impl Network {
 
     pub fn get_feature_flag<T>(&self, group: &str, flag: &str) -> Option<T>
     where
-        T: std::str::FromStr,
+        T: FromStr + Debug,
+        <T as FromStr>::Err: Debug,
     {
+        tracing::debug!("Getting feature flag: group={}, flag={}", group, flag);
         self.feature_flags
             .as_ref()
             .and_then(|ff| ff.flags.get(group))
             .and_then(|value| match value {
-                FlagValue::Group(group) => group.get(flag).and_then(|v| v.parse::<T>().ok()),
+                FlagValue::Group(group) => group.get(flag).and_then(|v| {
+                    v.parse::<T>()
+                        .inspect_err(|e| tracing::warn!("Failed to parse flag value: {e:#?}"))
+                        .ok()
+                }),
                 _ => None,
             })
     }
 
     pub fn get_simple_feature_flag<T>(&self, flag: &str) -> Option<T>
     where
-        T: std::str::FromStr,
+        T: FromStr + Debug,
+        <T as FromStr>::Err: Debug,
     {
+        tracing::debug!("Getting simple feature flag: flag={}", flag);
         self.feature_flags
             .as_ref()
             .and_then(|ff| ff.flags.get(flag))
             .and_then(|value| match value {
-                FlagValue::Value(value) => value.parse::<T>().ok(),
+                FlagValue::Value(value) => value
+                    .parse::<T>()
+                    .inspect_err(|e| tracing::warn!("Failed to parse flag value: {e:#?}"))
+                    .ok(),
                 _ => None,
             })
+    }
+
+    pub fn get_feature_flag_credential_mode(&self) -> Option<bool> {
+        self.get_feature_flag("zkNyms", "credentialMode")
     }
 }
 

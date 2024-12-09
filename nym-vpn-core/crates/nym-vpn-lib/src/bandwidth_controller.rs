@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::time::Duration;
+#[cfg(target_os = "android")]
+use std::{os::fd::RawFd, sync::Arc};
 
 use tokio::sync::mpsc;
 use tokio_stream::{wrappers::IntervalStream, StreamExt};
@@ -178,7 +180,10 @@ impl ReconnectMixnetClientData {
         }
     }
 
-    pub async fn recreate_mixnet_connection(&self) -> Option<AuthClient> {
+    pub async fn recreate_mixnet_connection(
+        &self,
+        #[cfg(target_os = "android")] bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
+    ) -> Option<AuthClient> {
         let entry_gateway = *self.options.selected_gateways.entry.identity();
         let mixnet_client = match tokio::time::timeout(
             MIXNET_CLIENT_STARTUP_TIMEOUT,
@@ -190,6 +195,8 @@ impl ReconnectMixnetClientData {
                 self.mixnet_client_config.clone(),
                 self.options.enable_credentials_mode,
                 self.options.tunnel_type == TunnelType::Wireguard,
+                #[cfg(target_os = "android")]
+                bypass_fn.clone(),
             ),
         )
         .await
@@ -373,13 +380,29 @@ impl<St: Storage> BandwidthController<St> {
     }
 
     pub(crate) async fn try_reconnect(&mut self, mixnet_error_tx: mpsc::Sender<()>) -> bool {
+        #[cfg(target_os = "android")]
+        let bypass_fn = self
+            .wg_entry_gateway_client
+            .auth_client()
+            .mixnet_client()
+            .bypass_fn();
         let Some(auth_client) = self
             .reconnect_mixnet_client_data
-            .recreate_mixnet_connection()
+            .recreate_mixnet_connection(
+                #[cfg(target_os = "android")]
+                bypass_fn.clone(),
+            )
             .await
         else {
             self.connected_mixnet = false;
             return false;
+        };
+
+        #[cfg(target_os = "android")]
+        if let Some(fd) = auth_client.mixnet_client().gateway_ws_fd().await {
+            bypass_fn.as_ref()(fd);
+        } else {
+            tracing::error!("Could not bypass new mixnet client");
         };
         self.wg_entry_gateway_client
             .set_auth_client(auth_client.clone());
@@ -399,6 +422,7 @@ impl<St: Storage> BandwidthController<St> {
             cancel_token
                 .run_until_cancelled(task_manager.wait_for_error())
                 .await;
+            task_manager.signal_shutdown().ok();
             mixnet_error_tx.send(()).await.ok();
         });
     }
@@ -419,7 +443,10 @@ impl<St: Storage> BandwidthController<St> {
                     tracing::trace!("BandwidthController: Received shutdown");
                 }
                 _ = mixnet_error_rx.recv() => {
-                    self.try_reconnect(mixnet_error_tx.clone()).await;
+                    break;
+                    // Don't attempt to reconnect and just drop the BandwidthController and shut down
+                    // the tunnel
+                    // self.try_reconnect(mixnet_error_tx.clone()).await;
                 }
                 _ = self.timeout_check_interval.next() => {
                     if !self.connected_mixnet && !self.try_reconnect(mixnet_error_tx.clone()).await {

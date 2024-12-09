@@ -86,9 +86,7 @@ pub(crate) async fn get_feature_flag_credential_mode() -> Result<bool, VpnError>
 }
 
 fn get_credential_mode(network: &nym_vpn_network_config::Network) -> bool {
-    network
-        .get_feature_flag("zkNym", "credentialMode")
-        .unwrap_or(false)
+    network.get_feature_flag_credential_mode().unwrap_or(false)
 }
 
 pub(crate) async fn fetch_environment(network_name: &str) -> Result<NetworkEnvironment, VpnError> {

@@ -6,5 +6,6 @@
   "account": "conta",
   "cancel": "cancelar",
   "login": "fazer login",
-  "logout": "encerrar sessão"
+  "logout": "encerrar sessão",
+  "stop": "parar"
 }

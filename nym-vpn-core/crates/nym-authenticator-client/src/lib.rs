@@ -1,3 +1,5 @@
+#[cfg(target_os = "android")]
+use std::os::fd::RawFd;
 use std::{
     net::{Ipv4Addr, Ipv6Addr},
     time::Duration,

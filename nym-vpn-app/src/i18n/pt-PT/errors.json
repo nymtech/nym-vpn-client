@@ -67,7 +67,8 @@
     "tun-device": "Falha do dispositivo Tun",
     "unhandled-exit": "A VPN está a sair com um erro. É provável que seja um bug.",
     "add-ipv6-route": "Falha ao adicionar a rota predefinida ipv6 para capturar o tráfego ipv6",
-    "ready-to-connect": "Ainda não foi possível determinar se estamos prontos para nos ligarmos durante o controlo"
+    "ready-to-connect": "Ainda não foi possível determinar se estamos prontos para nos ligarmos durante o controlo",
+    "general": "Erro geral, verifique os registos para obter mais detalhes"
   },
   "countries-request": {
     "entry": "Falha ao procurar os países com nós de entrada disponíveis",
@@ -82,6 +83,13 @@
   },
   "account": {
     "invalid-recovery-phrase": "Frase de recuperação inválida",
-    "storage": "Erro de backend de armazenamento"
+    "storage": "Erro de backend de armazenamento",
+    "is-connected": "Não é possível prosseguir enquanto ligado",
+    "update": "Falha na atualização da conta",
+    "update-device": "Falha na atualização do dispositivo",
+    "register-device": "Falha no registo do dispositivo",
+    "no-device-stored": "Nenhuma chave de dispositivo armazenada",
+    "maximum-registered-devices": "Falha no registo do dispositivo: o número máximo de dispositivos registados foi atingido",
+    "not-stored": "Nenhuma frase de recuperação de conta armazenada"
   }
 }

@@ -5,6 +5,7 @@ use ts_rs::TS;
 use crate::error::BackendError;
 
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]
+#[serde(rename_all = "lowercase")]
 pub enum Level {
     Trace,
     Debug,

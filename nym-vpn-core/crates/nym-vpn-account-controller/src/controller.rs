@@ -96,7 +96,7 @@ where
     ) -> Result<Self, Error> {
         let credentials_mode = credentials_mode.unwrap_or_else(|| {
             network_env
-                .get_feature_flag("zkNym", "credentialMode")
+                .get_feature_flag_credential_mode()
                 .unwrap_or(false)
         });
 

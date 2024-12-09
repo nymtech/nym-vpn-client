@@ -24,6 +24,7 @@ import {
 } from '../constants';
 import { Notification } from '../contexts';
 import { daemonStatusUpdate } from './helper';
+import { MCache } from '../cache';
 
 function handleError(dispatch: StateDispatch, error?: BackendError | null) {
   if (!error) {
@@ -46,6 +47,8 @@ export function useTauriEvents(
           `received event [${event}], status: ${status === 'notOk' ? status : JSON.stringify(status)}`,
         );
         daemonStatusUpdate(status, dispatch, push);
+        MCache.del('account-id');
+        MCache.del('device-id');
 
         // refresh account status
         if (isVpndOk(status) || isVpndNonCompat(status)) {

@@ -23,7 +23,6 @@ import net.nymtech.vpn.util.LifecycleVpnService
 import net.nymtech.vpn.util.NotificationManager
 import net.nymtech.vpn.util.SingletonHolder
 import net.nymtech.vpn.util.exceptions.NymVpnInitializeException
-import net.nymtech.vpn.util.extensions.addRoutes
 import net.nymtech.vpn.util.extensions.asTunnelState
 import net.nymtech.vpn.util.extensions.startServiceByClass
 import nym_vpn_lib.AccountLinks
@@ -111,7 +110,9 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	@Throws(VpnException::class)
 	override suspend fun getAccountSummary(): AccountStateSummary {
-		return nym_vpn_lib.getAccountState()
+		return withContext(ioDispatcher) {
+			nym_vpn_lib.getAccountState()
+		}
 	}
 
 	@Throws(VpnException::class)
@@ -162,13 +163,15 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	@Throws(NymVpnInitializeException::class)
 	override suspend fun start(tunnel: Tunnel, background: Boolean) {
-		val state = getState()
-		// TODO handle changes to tunnel while tunnel is up in future
-		if (state != Tunnel.State.Down) throw NymVpnInitializeException.VpnAlreadyRunning()
-		this.tunnel = tunnel
-		onStateChange(Tunnel.State.InitializingClient)
-		if (android.net.VpnService.prepare(context) != null) throw NymVpnInitializeException.VpnPermissionDenied()
-		startVpn(tunnel, background)
+		withContext(ioDispatcher) {
+			val state = getState()
+			// TODO handle changes to tunnel while tunnel is up in future
+			if (state != Tunnel.State.Down) throw NymVpnInitializeException.VpnAlreadyRunning()
+			this@NymBackend.tunnel = tunnel
+			onStateChange(Tunnel.State.InitializingClient)
+			if (android.net.VpnService.prepare(context) != null) throw NymVpnInitializeException.VpnPermissionDenied()
+			startVpn(tunnel, background)
+		}
 	}
 
 	private suspend fun startVpn(tunnel: Tunnel, background: Boolean) {
@@ -372,7 +375,11 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 					addSearchDomain(it)
 				}
 
-				addRoutes(config, calculator)
+				addRoute("0.0.0.0", 0)
+				addRoute("::", 0)
+
+				// disable calculated routes for now because we bypass mixnet socket
+				// addRoutes(config, calculator)
 
 				setMtu(config.mtu.toInt())
 
