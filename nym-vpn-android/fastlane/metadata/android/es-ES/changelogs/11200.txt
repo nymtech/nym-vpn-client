@@ -1,0 +1,2 @@
+Novedades:
+- Corrección de fallos en los registros
