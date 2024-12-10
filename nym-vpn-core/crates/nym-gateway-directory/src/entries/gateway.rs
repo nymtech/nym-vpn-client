@@ -53,8 +53,7 @@ impl Gateway {
     }
 
     pub fn is_two_letter_iso_country_code(&self, code: &str) -> bool {
-        self.two_letter_iso_country_code()
-            .map_or(false, |gw_code| gw_code == code)
+        self.two_letter_iso_country_code() == Some(code)
     }
 
     pub fn has_ipr_address(&self) -> bool {
@@ -352,7 +351,7 @@ impl GatewayList {
         self.gateways.iter().filter(move |gateway| {
             gateway
                 .two_letter_iso_country_code()
-                .map_or(false, |gw_code| gw_code == code)
+                .is_some_and(|gw_code| gw_code == code)
         })
     }
 
