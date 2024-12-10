@@ -20,7 +20,7 @@ nym-config.workspace = true
 nym-contracts-common.workspace = true
 nym-credential-proxy-requests.workspace = true
 nym-credentials-interface.workspace = true
-nym-crypto = { workspace = true, features = ["asymmetric"] }
+nym-crypto = { workspace = true, features = ["asymmetric", "stream_cipher"] }
 nym-ecash-time.workspace = true
 nym-http-api-client.workspace = true
 nym-validator-client.workspace = true
@@ -36,4 +36,3 @@ tracing.workspace = true
 [dev-dependencies]
 tokio = { workspace = true, features = ["full"] }
 bip39 = { workspace = true, features = ["zeroize"] }
-
