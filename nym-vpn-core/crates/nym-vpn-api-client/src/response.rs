@@ -389,7 +389,7 @@ impl ProbeOutcome {
     pub fn is_fully_operational_exit(&self) -> bool {
         self.as_entry.can_connect
             && self.as_entry.can_route
-            && self.as_exit.as_ref().map_or(false, |exit| {
+            && self.as_exit.as_ref().is_some_and(|exit| {
                 exit.can_connect
                     && exit.can_route_ip_v4
                     && exit.can_route_ip_external_v4
