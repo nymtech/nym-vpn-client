@@ -40,7 +40,7 @@ tonic-reflection.workspace = true
 tonic.workspace = true
 tower-http = { workspace = true, features = ["cors"] }
 tracing-appender.workspace = true
-tracing-subscriber = { workspace = true, features = ["env-filter"] }
+tracing-subscriber = { workspace = true, features = ["env-filter", "ansi"] }
 tracing.workspace = true
 url.workspace = true
 zeroize.workspace = true
@@ -57,7 +57,7 @@ nym-vpn-account-controller = { path = "../nym-vpn-account-controller" }
 nym-vpn-api-client = { path = "../nym-vpn-api-client" }
 nym-vpn-lib = { path = "../nym-vpn-lib" }
 nym-vpn-network-config = { path = "../nym-vpn-network-config" }
-nym-vpn-proto = { path = "../nym-vpn-proto", features = ["conversions"]}
+nym-vpn-proto = { path = "../nym-vpn-proto", features = ["conversions"] }
 nym-vpn-store = { path = "../nym-vpn-store" }
 nym-vpnd-types = { path = "../nym-vpnd-types" }
 
