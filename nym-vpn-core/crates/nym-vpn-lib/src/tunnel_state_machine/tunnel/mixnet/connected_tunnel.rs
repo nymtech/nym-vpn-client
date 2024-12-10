@@ -3,17 +3,15 @@
 
 use std::error::Error as StdError;
 
-use nym_connection_monitor::ConnectionMonitorTask;
+use nym_task::TaskManager;
 use tokio::task::{JoinError, JoinHandle};
 use tun::AsyncDevice;
 
-use nym_task::TaskManager;
+use nym_connection_monitor::ConnectionMonitorTask;
+use nym_mixnet_client::SharedMixnetClient;
 
 use super::connector::AssignedAddresses;
-use crate::{
-    mixnet::{MixnetError, SharedMixnetClient},
-    tunnel_state_machine::tunnel::Tombstone,
-};
+use crate::{mixnet::MixnetError, tunnel_state_machine::tunnel::Tombstone};
 
 /// Type representing a connected mixnet tunnel.
 pub struct ConnectedTunnel {

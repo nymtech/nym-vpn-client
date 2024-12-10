@@ -13,6 +13,7 @@ bytes.workspace = true
 futures.workspace = true
 nym-gateway-directory = { path = "../nym-gateway-directory" }
 nym-ip-packet-requests.workspace = true
+nym-mixnet-client = { path = "../nym-mixnet-client" }
 nym-sdk.workspace = true
 thiserror.workspace = true
 tokio-util.workspace = true

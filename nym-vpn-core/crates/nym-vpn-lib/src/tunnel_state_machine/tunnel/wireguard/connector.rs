@@ -8,6 +8,7 @@ use tokio::task::JoinHandle;
 use nym_authenticator_client::AuthClient;
 use nym_credentials_interface::TicketType;
 use nym_gateway_directory::{AuthAddresses, Gateway, GatewayClient};
+use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{ConnectionStatsEvent, EphemeralCredentialStorage, StoragePaths};
 use nym_task::TaskManager;
 use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
@@ -15,7 +16,6 @@ use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
 use super::connected_tunnel::ConnectedTunnel;
 use crate::{
     bandwidth_controller::{BandwidthController, ReconnectMixnetClientData},
-    mixnet::SharedMixnetClient,
     tunnel_state_machine::tunnel::{
         self, gateway_selector::SelectedGateways, AnyConnector, ConnectorError, Error, Result,
     },
@@ -99,12 +99,7 @@ impl Connector {
         };
         let entry_version = selected_gateways.entry.version.clone().into();
         let exit_version = selected_gateways.exit.version.clone().into();
-        let auth_client = AuthClient::new_from_inner(
-            mixnet_client.inner(),
-            #[cfg(target_os = "android")]
-            mixnet_client.bypass_fn(),
-        )
-        .await;
+        let auth_client = AuthClient::new(mixnet_client).await;
 
         let mut wg_entry_gateway_client = if enable_credentials_mode {
             WgGatewayClient::new_free_entry(

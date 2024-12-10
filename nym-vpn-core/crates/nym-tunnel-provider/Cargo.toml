@@ -1,0 +1,17 @@
+[package]
+name = "nym-tunnel-provider"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+ipnetwork.workspace = true
+itertools.workspace = true
+thiserror.workspace = true
+uniffi.workspace = true
+
+nym-vpn-account-controller = { path = "../nym-vpn-account-controller" }
+nym-vpn-api-client = { path = "../nym-vpn-api-client" }
+nym-gateway-directory = { path = "../nym-gateway-directory" }
