@@ -48,6 +48,7 @@ pub fn setup_logging_to_file() -> WorkerGuard {
         .with_env_filter(filter)
         .compact()
         .with_writer(file_writer)
+        .with_ansi(false)
         .init();
 
     std::panic::set_hook(Box::new(|panic| {
