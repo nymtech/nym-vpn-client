@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{env, ffi::OsString, time::Duration};
+use std::{env, ffi::OsString, io, time::Duration};
 
 use tokio::sync::broadcast;
 use tokio_util::sync::CancellationToken;
@@ -27,24 +27,20 @@ pub(crate) static SERVICE_DESCRIPTION: &str =
 static SERVICE_TYPE: ServiceType = ServiceType::OWN_PROCESS;
 
 fn service_main(arguments: Vec<OsString>) {
-    let result = runtime::new_runtime().block_on(run_service(arguments));
-
-    if let Err(err) = result {
-        // Handle error in some way.
-        println!("service_main: {:?}", err);
+    if let Err(err) = run_service(arguments) {
+        println!("service_main {:?}", err);
         tracing::error!("service_main: {:?}", err);
     }
 }
 
-async fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
-    tracing::info!("Setting up event handler");
-
+fn run_service(_args: Vec<OsString>) -> windows_service::Result<()> {
     // TODO: network selection is not yet implemented/supported
     let network_name = "mainnet";
-    let network_env = match nym_vpn_network_config::Network::fetch(network_name) {
+    match nym_vpn_network_config::Network::fetch(network_name) {
         Ok(network_env) => {
             network_env.export_to_env();
-            network_env
+            let rt = runtime::new_runtime();
+            rt.block_on(run_service_inner(network_env))
         }
         Err(err) => {
             tracing::error!(
@@ -52,10 +48,18 @@ async fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
                 network_name,
                 err
             );
-            // TODO: just picking something here to make it compile
-            return Err(windows_service::Error::LaunchArgumentsNotSupported);
+            Err(windows_service::Error::Winapi(io::Error::new(
+                io::ErrorKind::Other,
+                "Failed to fetch network environment",
+            )))
         }
-    };
+    }
+}
+
+async fn run_service_inner(
+    network_env: nym_vpn_network_config::Network,
+) -> windows_service::Result<()> {
+    tracing::info!("Setting up event handler");
 
     let shutdown_token = CancellationToken::new();
     let cloned_shutdown_token = shutdown_token.clone();
