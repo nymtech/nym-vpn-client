@@ -190,19 +190,7 @@ echo "✅ Files copied successfully to $destination_folder."
 # Go back to the previous directory
 cd -
 
-# Update the requiredVersion in HelperManager.swift to match the provided version
-
-helper_manager_file="../ServicesMacOS/Sources/HelperManager/HelperManager.swift"
-
-if [[ -f "$helper_manager_file" ]]; then
-    # Use sed to update the requiredVersion line with the new version
-    sed -i '' "s/public let requiredVersion = \".*\"/public let requiredVersion = \"$VERSION\"/g" "$helper_manager_file"
-    echo "✅ HelperManager.swift has been successfully updated with the new required version: $VERSION."
-else
-    echo "❌ Error: HelperManager.swift file not found at $helper_manager_file"
-    exit 1
-fi
-
+# Update daemon Info.plist
 sh UpdateDaemonInfoPlist.sh ${VERSION}
 
 # Remove the downloaded source zip file and extracted folder

@@ -16,6 +16,10 @@ public class SettingsViewModel: SettingsFlowState {
     private let externalLinkManager: ExternalLinkManager
 
     private var cancellables = Set<AnyCancellable>()
+    private var deviceIdentifier: String? {
+        guard let deviceIdentifier = credentialsManager.deviceIdentifier else { return nil }
+        return "settings.deviceId".localizedString + deviceIdentifier
+    }
 
     let settingsTitle = "settings".localizedString
 
@@ -147,6 +151,7 @@ private extension SettingsViewModel {
                 SettingsListItemViewModel(
                     accessory: .externalLink,
                     title: "settings.account".localizedString,
+                    subtitle: deviceIdentifier,
                     imageName: "person",
                     action: { [weak self] in
                         self?.navigateToAccount()
