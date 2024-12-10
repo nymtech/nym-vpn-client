@@ -4925,6 +4925,7 @@ version = "1.2.0-dev"
 dependencies = [
  "nym-config",
  "nym-gateway-directory",
+ "nym-http-api-client",
  "nym-sdk",
  "nym-vpn-account-controller",
  "nym-vpn-api-client",
@@ -4969,6 +4970,7 @@ dependencies = [
  "itertools 0.13.0",
  "nym-bin-common",
  "nym-gateway-directory",
+ "nym-http-api-client",
  "nym-vpn-network-config",
  "nym-vpn-proto",
  "nym-vpnd-types",

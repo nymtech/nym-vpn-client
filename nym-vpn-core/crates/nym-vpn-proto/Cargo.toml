@@ -16,6 +16,7 @@ tonic.workspace = true
 
 nym-config = { workspace = true, optional = true }
 nym-gateway-directory = { path = "../nym-gateway-directory", optional = true }
+nym-http-api-client.workspace = true
 nym-sdk = { workspace = true, optional = true }
 nym-vpn-account-controller = { path = "../nym-vpn-account-controller", optional = true }
 nym-vpn-api-client = { path = "../nym-vpn-api-client", optional = true }
