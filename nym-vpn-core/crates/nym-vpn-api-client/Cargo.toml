@@ -32,8 +32,8 @@ strum.workspace = true
 strum_macros.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
+zeroize.workspace = true
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["full"] }
 bip39 = { workspace = true, features = ["zeroize"] }
-
