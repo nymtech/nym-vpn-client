@@ -103,8 +103,8 @@ impl fmt::Display for SystemMessage {
 impl SystemMessage {
     pub fn is_current(&self) -> bool {
         let now = OffsetDateTime::now_utc();
-        self.display_from.map_or(true, |from| from <= now)
-            && self.display_until.map_or(true, |until| until >= now)
+        self.display_from.is_none_or(|from| from <= now)
+            && self.display_until.is_none_or(|until| until >= now)
     }
 }
 
