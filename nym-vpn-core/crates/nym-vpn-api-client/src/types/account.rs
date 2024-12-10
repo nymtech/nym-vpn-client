@@ -1,8 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use zeroize::Zeroizing;
+
 use nym_compact_ecash::scheme::keygen::KeyPairUser;
-use nym_crypto::ctr::cipher::zeroize::Zeroizing;
 use nym_validator_client::{
     nyxd::bip32::DerivationPath, signing::signer::OfflineSigner as _, DirectSecp256k1HdWallet,
 };
