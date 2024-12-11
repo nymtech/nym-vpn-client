@@ -27,6 +27,11 @@ members = [
     "crates/uniffi-bindgen",
 ]
 
+default-members = [
+    "crates/nym-vpnd",
+    "crates/nym-vpnc",
+]
+
 # For local development
 # [patch."https://github.com/nymtech/nym"]
 # nym-authenticator-requests = { path = "../../nym/common/authenticator-requests" }
