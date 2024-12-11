@@ -201,18 +201,6 @@ impl VpnApiClient {
         nym_http_api_client::parse_response(response, false).await
     }
 
-    // TODO: add support for delete in the upstream crate
-    fn create_delete_request(
-        &self,
-        path: PathSegments<'_>,
-        params: Params<'_, &str, &str>,
-    ) -> reqwest::RequestBuilder {
-        let base_url = self.inner.current_url().clone();
-        let url = nym_http_api_client::sanitize_url(&base_url, path, params);
-        let client = reqwest::ClientBuilder::new().build().unwrap();
-        client.delete(url)
-    }
-
     async fn delete_authorized<T, E>(
         &self,
         path: PathSegments<'_>,
@@ -223,11 +211,15 @@ impl VpnApiClient {
         T: DeserializeOwned,
         E: fmt::Display + DeserializeOwned,
     {
-        let request = self.create_delete_request(path, NO_PARAMS).bearer_auth(
-            account
-                .jwt(self.get_vpn_api_unix_timestamp().await)
-                .to_string(),
-        );
+        let request = self
+            .inner
+            .create_delete_request(path, NO_PARAMS)
+            .await
+            .bearer_auth(
+                account
+                    .jwt(self.get_vpn_api_unix_timestamp().await)
+                    .to_string(),
+            );
 
         let request = match device {
             Some(device) => request.header(
@@ -237,44 +229,9 @@ impl VpnApiClient {
             None => request,
         };
 
-        let response = request.send().await.map_err(|err| {
-            // TODO: we can't use HttpClientError::RequestFailure here because of reqwest
-            // version mismatch
-            // Once we implement delete in the upstream crate this problem goes away
-            HttpClientError::GenericRequestFailure(err.to_string())
-        })?;
+        let response = request.send().await?;
 
-        let status = response.status();
-
-        if status.is_success() {
-            let response_text = response
-                .text()
-                .await
-                .map_err(|e| HttpClientError::GenericRequestFailure(e.to_string()))?;
-            tracing::info!("Response: {:#?}", response_text);
-            let response_json = serde_json::from_str(&response_text)
-                .map_err(|e| HttpClientError::GenericRequestFailure(e.to_string()))?;
-            Ok(response_json)
-        //} else if status == reqwest::StatusCode::NOT_FOUND {
-        //    Err(HttpClientError::NotFound)
-        } else {
-            let Ok(response_text) = response.text().await else {
-                return Err(HttpClientError::GenericRequestFailure(format!(
-                    "Request failure: {status}",
-                )));
-            };
-
-            tracing::info!("Response: {:#?}", response_text);
-
-            if let Ok(_request_error) = serde_json::from_str::<T>(&response_text) {
-                Err(HttpClientError::GenericRequestFailure(format!(
-                    "Endpoint failure: status: {}",
-                    status,
-                )))
-            } else {
-                Err(HttpClientError::GenericRequestFailure(response_text))
-            }
-        }
+        nym_http_api_client::parse_response(response, false).await
     }
 
     // ACCOUNT
