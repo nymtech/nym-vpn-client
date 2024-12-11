@@ -88,7 +88,9 @@ pub enum VpnApiClientError {
     InvalidPercentValue(#[source] ContractsCommonError),
 
     #[error("failed to derive from path")]
-    CosmosDeriveFromPath(#[source] nym_validator_client::nyxd::bip32::Error),
+    CosmosDeriveFromPath(
+        #[source] nym_validator_client::signing::direct_wallet::DirectSecp256k1HdWalletError,
+    ),
 
     #[error("failed to get directory zk-nym ticketbook partial verification keys")]
     FailedToGetDirectoryZkNymsTicketbookPartialVerificationKeys(
