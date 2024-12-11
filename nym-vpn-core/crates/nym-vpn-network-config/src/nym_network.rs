@@ -1,13 +1,10 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    env,
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 
 use anyhow::Context;
-use nym_config::defaults::{var_names, NymNetworkDetails};
+use nym_config::defaults::NymNetworkDetails;
 
 use super::{discovery::Discovery, MAX_FILE_AGE, NETWORKS_SUBDIR};
 
@@ -78,7 +75,7 @@ impl NymNetwork {
     }
 
     pub(super) fn export_to_env(&self) {
-        export_nym_network_details_to_env(self.network.clone())
+        self.network.clone().export_to_env()
     }
 }
 
@@ -86,82 +83,6 @@ impl From<NymNetworkDetails> for NymNetwork {
     fn from(network: NymNetworkDetails) -> Self {
         Self { network }
     }
-}
-
-// TODO: move this to the NymNetworkDetails struct in the nym repo
-fn export_nym_network_details_to_env(network_details: NymNetworkDetails) {
-    fn set_optional_var(var_name: &str, value: Option<String>) {
-        if let Some(value) = value {
-            env::set_var(var_name, value);
-        }
-    }
-
-    env::set_var(var_names::NETWORK_NAME, network_details.network_name);
-    env::set_var(
-        var_names::BECH32_PREFIX,
-        network_details.chain_details.bech32_account_prefix,
-    );
-
-    env::set_var(
-        var_names::MIX_DENOM,
-        network_details.chain_details.mix_denom.base,
-    );
-    env::set_var(
-        var_names::MIX_DENOM_DISPLAY,
-        network_details.chain_details.mix_denom.display,
-    );
-
-    env::set_var(
-        var_names::STAKE_DENOM,
-        network_details.chain_details.stake_denom.base,
-    );
-    env::set_var(
-        var_names::STAKE_DENOM_DISPLAY,
-        network_details.chain_details.stake_denom.display,
-    );
-
-    env::set_var(
-        var_names::DENOMS_EXPONENT,
-        network_details
-            .chain_details
-            .mix_denom
-            .display_exponent
-            .to_string(),
-    );
-
-    if let Some(e) = network_details.endpoints.first() {
-        env::set_var(var_names::NYXD, e.nyxd_url.clone());
-        set_optional_var(var_names::NYM_API, e.api_url.clone());
-        set_optional_var(var_names::NYXD_WEBSOCKET, e.websocket_url.clone());
-    }
-
-    set_optional_var(
-        var_names::MIXNET_CONTRACT_ADDRESS,
-        network_details.contracts.mixnet_contract_address,
-    );
-    set_optional_var(
-        var_names::VESTING_CONTRACT_ADDRESS,
-        network_details.contracts.vesting_contract_address,
-    );
-    set_optional_var(
-        var_names::ECASH_CONTRACT_ADDRESS,
-        network_details.contracts.ecash_contract_address,
-    );
-    set_optional_var(
-        var_names::GROUP_CONTRACT_ADDRESS,
-        network_details.contracts.group_contract_address,
-    );
-    set_optional_var(
-        var_names::MULTISIG_CONTRACT_ADDRESS,
-        network_details.contracts.multisig_contract_address,
-    );
-    set_optional_var(
-        var_names::COCONUT_DKG_CONTRACT_ADDRESS,
-        network_details.contracts.coconut_dkg_contract_address,
-    );
-
-    set_optional_var(var_names::EXPLORER_API, network_details.explorer_api);
-    set_optional_var(var_names::NYM_VPN_API, network_details.nym_vpn_api_url);
 }
 
 #[cfg(test)]
