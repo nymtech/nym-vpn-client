@@ -55,7 +55,7 @@ jobs:
       - name: rustfmt check
         working-directory: nym-vpn-core
         run: |
-          cargo fmt --check
+          cargo fmt --check --all
 
       - name: Build
         working-directory: nym-vpn-core

@@ -48,20 +48,20 @@ jobs:
       - name: rustfmt check
         working-directory: nym-vpn-core
         run: |
-          cargo fmt --check
+          cargo fmt --check --all
 
       - name: Build
         working-directory: nym-vpn-core
         run: |
-          cargo build --verbose
+          cargo build --verbose --workspace
 
       - name: Run tests
         working-directory: nym-vpn-core
         run: |
-          cargo test --verbose
+          cargo test --verbose --workspace
 
       - name: Clippy
         working-directory: nym-vpn-core
         run: |
-          cargo clippy -- -Dwarnings
+          cargo clippy --workspace -- -Dwarnings
 
