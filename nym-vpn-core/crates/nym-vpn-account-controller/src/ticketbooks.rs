@@ -6,13 +6,12 @@ use std::fmt;
 use nym_credential_storage::models::BasicTicketbookInformation;
 use nym_credentials_interface::TicketType;
 use serde::{Deserialize, Serialize};
+use strum::IntoEnumIterator;
 use time::Date;
 
 use crate::error::Error;
 
 // If we go below this threshold, we should request more tickets
-// TODO: I picked a random number, check what is should be. Or if we can express this in terms of
-// data/bandwidth.
 const TICKET_NUMBER_THRESHOLD: u64 = 30;
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -137,23 +136,19 @@ impl AvailableTicketbooks {
     }
 
     pub fn ticket_types_above_threshold(&self, threshold: u64) -> Vec<TicketType> {
-        ticketbook_types()
-            .into_iter()
+        Self::ticketbook_types()
             .filter(|ticket_type| self.remaining_tickets(*ticket_type) > threshold)
             .collect()
     }
 
     pub fn ticket_types_below_or_at_threshold(&self, threshold: u64) -> Vec<TicketType> {
-        ticketbook_types()
-            .into_iter()
+        Self::ticketbook_types()
             .filter(|ticket_type| self.remaining_tickets(*ticket_type) <= threshold)
             .collect()
     }
 
     pub fn is_all_ticket_types_above_threshold(&self, threshold: u64) -> bool {
-        ticketbook_types()
-            .iter()
-            .all(|ticket_type| self.remaining_tickets(*ticket_type) > threshold)
+        Self::ticketbook_types().all(|ticket_type| self.remaining_tickets(ticket_type) > threshold)
     }
 
     pub fn ticket_types_running_low(&self) -> Vec<TicketType> {
@@ -172,6 +167,11 @@ impl AvailableTicketbooks {
 
     pub fn is_empty(&self) -> bool {
         self.ticketbooks.is_empty()
+    }
+
+    fn ticketbook_types() -> impl Iterator<Item = TicketType> {
+        // We don't include the mixnet exit ticket type as it's not used by the client
+        TicketType::iter().filter(|&t| t != TicketType::V1MixnetExit)
     }
 }
 
@@ -205,14 +205,4 @@ impl TryFrom<Vec<BasicTicketbookInformation>> for AvailableTicketbooks {
             .collect();
         Ok(AvailableTicketbooks::from(ticketbooks))
     }
-}
-
-// TODO: add #[derive(EnumIter)] to TicketType so we can iterate over it directly.
-pub(crate) fn ticketbook_types() -> [TicketType; 4] {
-    [
-        TicketType::V1MixnetEntry,
-        TicketType::V1MixnetExit,
-        TicketType::V1WireguardEntry,
-        TicketType::V1WireguardExit,
-    ]
 }

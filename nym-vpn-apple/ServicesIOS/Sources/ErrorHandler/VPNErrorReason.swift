@@ -23,7 +23,7 @@ public enum VPNErrorReason: LocalizedError {
     case updateDeviceEndpointFailure(details: String, messageId: String?, codeReferenceId: String?)
     case deviceRegistrationFailed(details: String, messageId: String?, codeReferenceId: String?)
     case invalidAccountStoragePath(details: String)
-    case requestZkNym(successes: [String], failed: [(message: String, messageId: String?, ticketType: String?)])
+    case requestZkNym(successes: [String], failed: [RequestZkNymFailure])
     case unkownTunnelState
 
     public static let domain = "ErrorHandler.VPNErrorReason"
@@ -62,10 +62,26 @@ public enum VPNErrorReason: LocalizedError {
             self = .accountNotRegistered
         case .NoDeviceIdentity:
             self = .noDeviceIdentity
-        case let .UpdateAccountEndpointFailure(details: details, messageId: messageId, codeReferenceId: codeReferenceId):
-            self = .updateAccountEndpointFailure(details: details, messageId: messageId, codeReferenceId: codeReferenceId)
-        case let .UpdateDeviceEndpointFailure(details: details, messageId: messageId, codeReferenceId: codeReferenceId):
-            self = .updateDeviceEndpointFailure(details: details, messageId: messageId, codeReferenceId: codeReferenceId)
+        case let .UpdateAccountEndpointFailure(
+            details: details,
+            messageId: messageId,
+            codeReferenceId: codeReferenceId
+        ):
+            self = .updateAccountEndpointFailure(
+                details: details,
+                messageId: messageId,
+                codeReferenceId: codeReferenceId
+            )
+        case let .UpdateDeviceEndpointFailure(
+            details: details,
+            messageId: messageId,
+            codeReferenceId: codeReferenceId
+        ):
+            self = .updateDeviceEndpointFailure(
+                details: details,
+                messageId: messageId,
+                codeReferenceId: codeReferenceId
+            )
         case let .DeviceRegistrationFailed(details: details, messageId: messageId, codeReferenceId: codeReferenceId):
             self = .deviceRegistrationFailed(details: details, messageId: messageId, codeReferenceId: codeReferenceId)
         case let .InvalidAccountStoragePath(details: details):
@@ -75,7 +91,7 @@ public enum VPNErrorReason: LocalizedError {
                 $0.id
             }
             let newFailed = failed.map {
-                (message: $0.message, messageId: $0.messageId, ticketType: $0.ticketType)
+                RequestZkNymFailure(message: $0.message, messageId: $0.messageId, ticketType: $0.ticketType)
             }
             self = .requestZkNym(successes: newSuccesses, failed: newFailed)
         }
@@ -116,18 +132,18 @@ public enum VPNErrorReason: LocalizedError {
             self = .noDeviceIdentity
         case 15:
             self = .vpnApiTimeout
-//        case 16:
-//            self = .accountUpdateFailed(
-//                details: nsError.userInfo["details"] as? String ?? "Something went wrong.",
-//                messageId: nsError.userInfo["messageId"] as? String ?? "Something went wrong.",
-//                codeReferenceId: nsError.userInfo["codeReferenceId"] as? String ?? "Something went wrong."
-//            )
-//        case 17:
-//            self = .deviceUpdateFailed(
-//                details: nsError.userInfo["details"] as? String ?? "Something went wrong.",
-//                messageId: nsError.userInfo["messageId"] as? String,
-//                codeReferenceId: nsError.userInfo["codeReferenceId"] as? String
-//            )
+        case 16:
+            self = .updateAccountEndpointFailure(
+                details: nsError.userInfo["details"] as? String ?? "Something went wrong.",
+                messageId: nsError.userInfo["messageId"] as? String,
+                codeReferenceId: nsError.userInfo["codeReferenceId"] as? String
+            )
+        case 17:
+            self = .updateDeviceEndpointFailure(
+                details: nsError.userInfo["details"] as? String ?? "Something went wrong.",
+                messageId: nsError.userInfo["messageId"] as? String,
+                codeReferenceId: nsError.userInfo["codeReferenceId"] as? String
+            )
         case 18:
             self = .deviceRegistrationFailed(
                 details: nsError.userInfo["details"] as? String ?? "Something went wrong.",
@@ -136,6 +152,26 @@ public enum VPNErrorReason: LocalizedError {
             )
         case 19:
             self = .invalidAccountStoragePath(details: nsError.localizedDescription)
+        case 20:
+            let decoder = JSONDecoder()
+            var successes: [String] = []
+            var failures: [RequestZkNymFailure] = []
+
+            if let jsonString = nsError.userInfo["requestZknymSuccesses"] as? String,
+               let jsonData = jsonString.data(using: .utf8),
+               let decodedSuccesses = try? decoder.decode([String].self, from: jsonData) {
+                successes = decodedSuccesses
+            }
+            if let jsonString = nsError.userInfo["requestZknymFailures"] as? String,
+               let jsonData = jsonString.data(using: .utf8),
+               let decodedFailures = try? decoder.decode([RequestZkNymFailure].self, from: jsonData) {
+                failures = decodedFailures
+            }
+
+            self = .requestZkNym(
+                successes: successes,
+                failed: failures
+            )
         default:
             self = .unkownTunnelState
         }
@@ -146,10 +182,24 @@ public enum VPNErrorReason: LocalizedError {
     }
 
     public var nsError: NSError {
-        let userInfo: [String: String] = [
+        let jsonEncoder = JSONEncoder()
+
+        var userInfo: [String: String] = [
             "details": description
         ]
-
+        let requestZknymDetails = requestZknymDetails
+        if let requestZknymDetails,
+           !requestZknymDetails.successes.isEmpty,
+           let jsonData = try? jsonEncoder.encode(requestZknymDetails.successes),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            userInfo["requestZknymSuccesses"] = jsonString
+        }
+        if let requestZknymDetails,
+           !requestZknymDetails.failures.isEmpty,
+           let jsonData = try? jsonEncoder.encode(requestZknymDetails.failures),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            userInfo["requestZknymFailures"] = jsonString
+        }
         return NSError(
             domain: VPNErrorReason.domain,
             code: errorCode,
@@ -201,8 +251,10 @@ private extension VPNErrorReason {
             return 18
         case .invalidAccountStoragePath:
             return 19
-        default:
+        case .requestZkNym:
             return 20
+        case .unkownTunnelState:
+            return 21
         }
     }
 
@@ -243,10 +295,21 @@ private extension VPNErrorReason {
             let .deviceRegistrationFailed(details: details, messageId: _, codeReferenceId: _):
             return details
         case let .requestZkNym(successes: successes, failed: failed):
-            let failures = failed.map { "\($0.message) \($0.messageId ?? "") \($0.ticketType ?? ""))" }
-            return "Successes: \(successes.joined(separator: ",")) Failures: \(failures.joined(separator: ",")))"
+            let failures = failed.map { "\($0.message)" }
+            let successText = successes.first ?? ""
+            let failuresText = failures.first ?? ""
+            return "\(successText) \(failuresText)"
         case .unkownTunnelState:
             return "Unknown tunnel error reason."
+        }
+    }
+
+    var requestZknymDetails: (successes: [String], failures: [RequestZkNymFailure])? {
+        switch self {
+        case let .requestZkNym(successes: successes, failed: failed):
+            return (successes, failed)
+        default:
+            return nil
         }
     }
 }

@@ -614,7 +614,7 @@ where
                 }
             }
             AccountCommandResult::RegisterDevice(r) => {
-                tracing::info!("Device register task: {:#?}", r);
+                tracing::debug!("Device register task: {:#?}", r);
                 let commands = self
                     .running_commands
                     .remove(&AccountCommand::RegisterDevice(None))
@@ -630,7 +630,7 @@ where
                 }
             }
             AccountCommandResult::RequestZkNym(r) => {
-                tracing::info!("Request zk-nym task: {:#?}", r);
+                tracing::debug!("Request zk-nym task: {:#?}", r);
                 let commands = self
                     .running_commands
                     .remove(&AccountCommand::RequestZkNym(None))

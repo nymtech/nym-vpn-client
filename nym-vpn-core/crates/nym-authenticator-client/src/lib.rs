@@ -788,6 +788,10 @@ pub enum AuthenticatorVersion {
     UNKNOWN,
 }
 
+impl AuthenticatorVersion {
+    pub const LATEST: AuthenticatorVersion = AuthenticatorVersion::V4;
+}
+
 impl From<u8> for AuthenticatorVersion {
     fn from(value: u8) -> Self {
         if value == 2 {
@@ -838,7 +842,7 @@ impl From<semver::Version> for AuthenticatorVersion {
         if semver.minor >= 1 {
             return Self::V4;
         }
-        Self::UNKNOWN
+        Self::LATEST
     }
 }
 

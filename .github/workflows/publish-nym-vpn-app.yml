@@ -51,7 +51,7 @@ jobs:
       - build-nym-vpn-app-linux
       - build-nym-vpn-app-windows
       - generate-build-info-nym-vpn-app
-    runs-on: arc-ubuntu-22.04
+    runs-on: ubuntu-22.04
     outputs:
       tag: ${{ steps.set_tag.outputs.tag }}
     env:
