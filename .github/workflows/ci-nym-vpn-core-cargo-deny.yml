@@ -8,7 +8,7 @@ on:
       - '.github/workflows/ci-nym-vpn-core-cargo-deny.yml'
 jobs:
   cargo-deny:
-    runs-on: arc-ubuntu-22.04-dind
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
