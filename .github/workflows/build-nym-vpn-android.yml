@@ -50,7 +50,7 @@ env:
 
 jobs:
   build:
-    runs-on: arc-ubuntu-22.04
+    runs-on: ubuntu-latest
     env:
       SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
       SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
