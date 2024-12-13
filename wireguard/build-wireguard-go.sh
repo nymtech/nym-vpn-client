@@ -281,12 +281,12 @@ function build_wireguard_go {
     parseArgs $@
 
     if $IS_ANDROID_BUILD ; then
-        build_android $@
+        build_android
         return
     fi
 
     if $IS_IOS_BUILD ; then
-        build_ios $@
+        build_ios
         return
     fi
 
