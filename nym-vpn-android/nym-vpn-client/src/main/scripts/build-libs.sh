@@ -8,8 +8,7 @@ archDir=$(basename $1/toolchains/llvm/prebuilt/*/)
 echo "archdir: ${archDir}"
 export ANDROID_NDK_HOME="$1"
 export NDK_TOOLCHAIN_DIR="$1/toolchains/llvm/prebuilt/${archDir}/bin"
-bash $PWD/../../wireguard/build-wireguard-go.sh
-bash $PWD/../../wireguard/libwg/build-android.sh
+bash $PWD/../../wireguard/build-wireguard-go.sh --android
 echo "Building nym-vpn-lib dep"
 
 #fix emulators later
