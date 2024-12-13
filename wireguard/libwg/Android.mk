@@ -3,6 +3,7 @@
 # Copyright © 2017-2019 WireGuard LLC. All Rights Reserved.
 
 DESTDIR ?= $(CURDIR)/../../build/lib/$(RUST_TARGET_TRIPLE)
+ANDROID_PACKAGE_NAME ?= net.nymtech.nymvpn
 
 NDK_GO_ARCH_MAP_x86 := 386
 NDK_GO_ARCH_MAP_x86_64 := amd64
