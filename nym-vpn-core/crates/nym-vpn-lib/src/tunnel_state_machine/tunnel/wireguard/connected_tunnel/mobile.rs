@@ -14,10 +14,7 @@ use nym_wg_gateway_client::WgGatewayClient;
 use nym_wg_go::{netstack, wireguard_go};
 
 #[cfg(target_os = "ios")]
-use crate::{
-    tunnel_provider::ios::{default_path_observer::DefaultPathObserver, OSTunProvider},
-    tunnel_state_machine::tunnel::wireguard::dns64::Dns64Resolution,
-};
+use crate::tunnel_state_machine::tunnel::wireguard::dns64::Dns64Resolution;
 use crate::{
     tunnel_state_machine::tunnel::{
         wireguard::{
@@ -31,6 +28,8 @@ use crate::{
 };
 #[cfg(target_os = "android")]
 use nym_tunnel_provider::android::AndroidTunProvider;
+#[cfg(target_os = "ios")]
+use nym_tunnel_provider::ios::{default_path_observer::DefaultPathObserver, OSTunProvider};
 
 pub struct ConnectedTunnel {
     task_manager: TaskManager,

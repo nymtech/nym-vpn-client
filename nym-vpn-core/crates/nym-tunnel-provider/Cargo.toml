@@ -7,10 +7,21 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+async-trait.workspace = true
 ipnetwork.workspace = true
 itertools.workspace = true
 thiserror.workspace = true
+tracing.workspace = true
+tokio = { workspace = true, features = [
+    "process",
+    "rt-multi-thread",
+    "fs",
+    "sync",
+] }
 uniffi.workspace = true
+
+[target.'cfg(unix)'.dependencies]
+nix = { workspace = true, features = ["socket", "net", "fs"] }
 
 nym-vpn-account-controller = { path = "../nym-vpn-account-controller" }
 nym-vpn-api-client = { path = "../nym-vpn-api-client" }

@@ -4691,12 +4691,16 @@ dependencies = [
 name = "nym-tunnel-provider"
 version = "1.1.0-dev"
 dependencies = [
+ "async-trait",
  "ipnetwork",
  "itertools 0.13.0",
+ "nix 0.29.0",
  "nym-gateway-directory",
  "nym-vpn-account-controller",
  "nym-vpn-api-client",
  "thiserror",
+ "tokio",
+ "tracing",
  "uniffi",
 ]
 
