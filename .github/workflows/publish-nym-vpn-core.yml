@@ -179,6 +179,46 @@ jobs:
             ${{ env.ARCHIVE_WINDOWS }}.zip ${{ env.ARCHIVE_WINDOWS }}.zip.sha256sum \
             ${{ env.UPLOAD_DIR_DEB}}/nym-vpn*_amd64.deb ${{ env.UPLOAD_DIR_DEB }}/nym-vpn*_amd64.deb.sha256sum
 
+      # Upload to CI server
+
+      - name: Prepare build output directory
+        shell: bash
+        env:
+          OUTPUT_DIR_BASE: ci-builds/${{ github.ref_name }}
+        run: |
+          TIMESTAMP=$(date +%Y%m%d%H%M) # Short and suitable for paths
+          OUTPUT_DIR="$OUTPUT_DIR_BASE/${{ github.ref_name }}/$TIMESTAMP"
+          echo "OUTPUT_DIR=$OUTPUT_DIR" >> $GITHUB_ENV
+          rm -rf ci-builds || true
+          mkdir -p $OUTPUT_DIR
+          echo $OUTPUT_DIR
+
+      - name: Prepare build output
+        shell: bash
+        run: |
+          cp -v ${{ env.ARCHIVE_LINUX }}.tar.gz ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_LINUX }}.tar.gz.sha256sum ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_MAC }}.tar.gz ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_MAC }}.tar.gz.sha256sum ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_IOS }}.zip ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_IOS }}.zip.sha256sum ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_ANDROID }}.tar.gz ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_ANDROID }}.tar.gz.sha256sum ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_WINDOWS }}.zip ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_WINDOWS }}.zip.sha256sum ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.UPLOAD_DIR_DEB }}/nym-vpn*_amd64.deb ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.UPLOAD_DIR_DEB }}/nym-vpn*_amd64.deb.sha256sum ${{ env.OUTPUT_DIR }}
+
+      - name: Upload to www
+        continue-on-error: true
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.CI_WWW_SSH_PRIVATE_KEY }}
+          ARGS: "-avzr"
+          SOURCE: "ci-builds/"
+          REMOTE_HOST: ${{ secrets.CI_WWW_REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.CI_WWW_REMOTE_USER }}
+          TARGET: ${{ secrets.CI_WWW_REMOTE_TARGET }}/builds/nym-vpn-client
 
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml
