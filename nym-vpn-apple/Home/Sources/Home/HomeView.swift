@@ -1,7 +1,6 @@
 import SwiftUI
 import AppSettings
 import Device
-import Modifiers
 import Theme
 import TunnelStatus
 import UIComponents
@@ -36,7 +35,6 @@ private extension HomeView {
             }
             .frame(maxWidth: Device.type == .ipad ? 358 : .infinity)
         }
-        .appearanceUpdate()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
             NymColor.background
@@ -70,7 +68,10 @@ private extension HomeView {
 
     @ViewBuilder
     func navbar() -> some View {
-        CustomNavBar(rightButton: CustomNavBarButton(type: .settings, action: { viewModel.navigateToSettings() }))
+        CustomNavBar(
+            isHomeScreen: true,
+            rightButton: CustomNavBarButton(type: .settings, action: { viewModel.navigateToSettings() })
+        )
     }
 
     @ViewBuilder

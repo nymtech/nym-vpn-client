@@ -16,6 +16,8 @@ import Theme
 struct NymVPNApp: App {
     private let logFileManager = LogFileManager(logFileType: .app)
 
+    @AppStorage(AppSettingKey.currentAppearance.rawValue)
+    private var appearance: AppSetting.Appearance = .automatic
     @ObservedObject private var appSettings = AppSettings.shared
     @StateObject private var homeViewModel = HomeViewModel()
     @StateObject private var welcomeViewModel = WelcomeViewModel()
@@ -27,9 +29,7 @@ struct NymVPNApp: App {
     var body: some Scene {
         WindowGroup {
             NavigationStack {
-                if !homeViewModel.splashScreenDidDisplay {
-                    LaunchView(splashScreenDidDisplay: $homeViewModel.splashScreenDidDisplay)
-                } else if !appSettings.welcomeScreenDidDisplay {
+                if !appSettings.welcomeScreenDidDisplay {
                     WelcomeView(viewModel: welcomeViewModel)
                         .transition(.slide)
                 } else {
@@ -37,6 +37,7 @@ struct NymVPNApp: App {
                         .transition(.slide)
                 }
             }
+            .preferredColorScheme(appearance.colorScheme)
             .onAppear {
                 configureScreenSize()
             }

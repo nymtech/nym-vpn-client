@@ -25,7 +25,6 @@ public struct LaunchView: View {
             }
             Spacer()
         }
-        .preferredColorScheme(AppSettings.shared.currentAppearance.colorScheme)
         .background {
             NymColor.background
                 .ignoresSafeArea()
