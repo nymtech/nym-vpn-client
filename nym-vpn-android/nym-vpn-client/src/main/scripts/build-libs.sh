@@ -1,4 +1,7 @@
 #!/bin/bash
+
+set -euo pipefail
+
 # requires cargo, cargo-ndk and android NDK to be installed
 echo "Building WireGuard dep"
 echo "Working dir: $PWD"
