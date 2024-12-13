@@ -14,15 +14,12 @@ IS_WIN_CROSS_BUILD=false
 function parseArgs {
     for arg in "$@"; do
       case "$arg" in
-        # handle --android option
         "--android" )
             IS_ANDROID_BUILD=true;
             shift ;;
-        # handle --ios option
         "--ios" )
             IS_IOS_BUILD=true;
             shift ;;
-        # handle --no-docker option
         "--docker" )
             IS_DOCKER_BUILD=true;
             shift ;;
@@ -30,7 +27,6 @@ function parseArgs {
         "--windows-cross" )
             IS_WIN_CROSS_BUILD=true;
             shift ;;
-        # handle --arm64 option
         "--arm64" )
             IS_WIN_ARM64=true;
             shift ;;
