@@ -1,5 +1,3 @@
-#[cfg(target_os = "android")]
-use std::os::fd::RawFd;
 use std::{
     net::{Ipv4Addr, Ipv6Addr},
     time::Duration,
@@ -800,6 +798,10 @@ impl AuthClient {
             stats_sender,
             nym_address,
         }
+    }
+
+    pub fn mixnet_client(&self) -> SharedMixnetClient {
+        self.mixnet_client.clone()
     }
 
     pub async fn send(

@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::time::Duration;
-#[cfg(target_os = "android")]
-use std::{os::fd::RawFd, sync::Arc};
 
 use tokio::sync::mpsc;
 use tokio_stream::{wrappers::IntervalStream, StreamExt};
@@ -182,7 +180,9 @@ impl ReconnectMixnetClientData {
 
     pub async fn recreate_mixnet_connection(
         &self,
-        #[cfg(target_os = "android")] bypass_fn: Arc<dyn Fn(std::os::fd::RawFd) + Send + Sync>,
+        #[cfg(target_os = "android")] bypass_fn: std::sync::Arc<
+            dyn Fn(std::os::fd::RawFd) + Send + Sync,
+        >,
     ) -> Option<AuthClient> {
         let entry_gateway = *self.options.selected_gateways.entry.identity();
         let mixnet_client = match tokio::time::timeout(

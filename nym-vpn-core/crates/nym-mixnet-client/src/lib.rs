@@ -7,9 +7,6 @@ use nym_sdk::mixnet::{
     ed25519, ClientStatsEvents, MixnetClient, MixnetClientSender, MixnetMessageSender, Recipient,
 };
 
-use crate::error::Result;
-
-mod error;
 #[derive(Clone)]
 pub struct SharedMixnetClient {
     inner: Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
@@ -41,7 +38,7 @@ impl SharedMixnetClient {
         self.lock().await.as_ref().unwrap().sign(data)
     }
 
-    pub async fn send(&self, msg: nym_sdk::mixnet::InputMessage) -> Result<()> {
+    pub async fn send(&self, msg: nym_sdk::mixnet::InputMessage) -> Result<(), nym_sdk::Error> {
         self.lock().await.as_mut().unwrap().send(msg).await?;
         Ok(())
     }
@@ -69,7 +66,7 @@ impl SharedMixnetClient {
     }
 
     #[cfg(target_os = "android")]
-    pub fn bypass_fn(&self) -> Arc<dyn Fn(RawFd) + Send + Sync> {
+    pub fn bypass_fn(&self) -> Arc<dyn Fn(std::os::fd::RawFd) + Send + Sync> {
         self.bypass_fn.clone()
     }
 }

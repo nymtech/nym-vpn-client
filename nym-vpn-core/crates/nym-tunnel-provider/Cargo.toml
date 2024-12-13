@@ -20,9 +20,9 @@ tokio = { workspace = true, features = [
 ] }
 uniffi.workspace = true
 
-[target.'cfg(unix)'.dependencies]
-nix = { workspace = true, features = ["socket", "net", "fs"] }
-
 nym-vpn-account-controller = { path = "../nym-vpn-account-controller" }
 nym-vpn-api-client = { path = "../nym-vpn-api-client" }
 nym-gateway-directory = { path = "../nym-gateway-directory" }
+
+[target.'cfg(unix)'.dependencies]
+nix = { workspace = true, features = ["socket", "net", "fs"] }
