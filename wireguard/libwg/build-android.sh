@@ -10,6 +10,9 @@ cd $script_dir
 export GOPATH=$script_dir/../../build/android-go-path/
 mkdir -p $GOPATH
 
+echo "GOPATH: $GOPATH"
+echo "GOROOT: $GOROOT"
+
 for arch in ${ARCHITECTURES:-armv7 aarch64 x86_64 i686}; do
     case "$arch" in
         "aarch64")
