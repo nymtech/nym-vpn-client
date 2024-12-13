@@ -7,30 +7,26 @@ LIB_DIR="libwg"
 
 IS_ANDROID_BUILD=false
 IS_IOS_BUILD=false
-IS_DOCKER_BUILD=true
+IS_DOCKER_BUILD=false
 IS_WIN_ARM64=false
 IS_WIN_CROSS_BUILD=false
 
 function parseArgs {
     for arg in "$@"; do
       case "$arg" in
-        # handle --android option
         "--android" )
             IS_ANDROID_BUILD=true;
             shift ;;
-        # handle --ios option
         "--ios" )
             IS_IOS_BUILD=true;
             shift ;;
-        # handle --no-docker option
-        "--no-docker" )
-            IS_DOCKER_BUILD=false;
+        "--docker" )
+            IS_DOCKER_BUILD=true;
             shift ;;
         # handle --windows-cross option (allowing windows build from linux for example)
         "--windows-cross" )
             IS_WIN_CROSS_BUILD=true;
             shift ;;
-        # handle --arm64 option
         "--arm64" )
             IS_WIN_ARM64=true;
             shift ;;
@@ -176,6 +172,7 @@ function build_android {
             --env ANDROID_NDK_HOME="/opt/android/android-ndk-r20b" \
             docker.io/pronebird1337/nymtech-android-app@sha256:$docker_image_hash
     else
+        patch_go_runtime
         ./$LIB_DIR/build-android.sh
     fi
 }
@@ -188,7 +185,7 @@ function create_folder_and_build {
 }
 
 function build_macos_universal {
-    patch_darwin_goruntime
+    patch_go_runtime
 
     export CGO_ENABLED=1
     export MACOSX_DEPLOYMENT_TARGET=10.13
@@ -212,7 +209,7 @@ function build_macos_universal {
 }
 
 function build_ios {
-    patch_darwin_goruntime
+    patch_go_runtime
 
     export CGO_ENABLED=1
     export IPHONEOS_DEPLOYMENT_TARGET=16.0
@@ -262,26 +259,34 @@ function build_ios {
     popd
 }
 
-function patch_darwin_goruntime {
-    echo "Patching goruntime..."
+function patch_go_runtime {
+    echo "Patching go runtime"
+
     BUILDDIR="$(pwd)/../build"
     REAL_GOROOT=$(go env GOROOT 2>/dev/null)
     export GOROOT="$BUILDDIR/goroot"
     mkdir -p "$GOROOT"
     rsync -a --delete --exclude=pkg/obj/go-build "$REAL_GOROOT/" "$GOROOT/"
-    cat $LIB_DIR/goruntime-boottime-over-monotonic-darwin.diff | patch -p1 -f -N -r- -d "$GOROOT"
+
+    if $IS_ANDROID_BUILD; then
+        local patch_file="$LIB_DIR/goruntime-boottime-over-monotonic.diff"
+    else
+        local patch_file="$LIB_DIR/goruntime-boottime-over-monotonic-darwin.diff"
+    fi
+    echo "Applying patch: $patch_file"
+    cat "$patch_file" | patch -p1 -f -N -r- -d "$GOROOT"
 }
 
 function build_wireguard_go {
     parseArgs $@
 
     if $IS_ANDROID_BUILD ; then
-        build_android $@
+        build_android
         return
     fi
 
     if $IS_IOS_BUILD ; then
-        build_ios $@
+        build_ios
         return
     fi
 
