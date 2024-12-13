@@ -25,7 +25,7 @@ $(DESTDIR)/libwg.so:
 	mkdir -p $(DESTDIR)
 	go get -tags "linux android"
 	chmod -fR +w "$(GOPATH)/pkg/mod"
-	go build -tags "linux android" -ldflags="-X main.socketDirectory=/data/data/$(ANDROID_PACKAGE_NAME)/cache/wireguard" -v -o "$@" -buildmode c-shared
+	go build -tags "linux android" -ldflags="-X main.socketDirectory=/data/data/$(ANDROID_PACKAGE_NAME)/cache/wireguard" -trimpath -v -o "$@" -buildmode c-shared
 	rm -f $(DESTDIR)/libwg.h
 
 
