@@ -8,7 +8,7 @@ brew install go
 2. Build the wireguard-go dependency
 ```
 cd nym-vpn-lib
-NDK_TOOLCHAIN_DIR="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/<system arch>/bin" ../wireguard/libwg/build-android.sh
+NDK_TOOLCHAIN_DIR="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/<system arch>/bin" ../wireguard/build-wireguard-go.sh --android
 ```
 3. Install rustup
 ```

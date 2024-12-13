@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip
+        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip rsync
 
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -58,7 +58,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build wireguard
-        run: ./wireguard/libwg/build-android.sh
+        run: ./wireguard/build-wireguard-go.sh --android
 
       - name: rustfmt check
         working-directory: nym-vpn-core
@@ -68,7 +68,7 @@ jobs:
       - name: Build
         working-directory: nym-vpn-core
         run: |
-          cargo ndk  -t aarch64-linux-android -o ./build build -p nym-vpn-lib
+          cargo ndk -t aarch64-linux-android -o ./build build -p nym-vpn-lib
 
       - name: Clippy
         working-directory: nym-vpn-core

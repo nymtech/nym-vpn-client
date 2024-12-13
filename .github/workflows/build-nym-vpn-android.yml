@@ -102,7 +102,7 @@ jobs:
 
       - name: Install deps
         run: |
-          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip
+          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip rsync
 
       # Here we need to decode keystore.jks from base64 string and place it
       # in the folder specified in the release signing configuration
