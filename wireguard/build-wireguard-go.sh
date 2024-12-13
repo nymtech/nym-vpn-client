@@ -7,7 +7,7 @@ LIB_DIR="libwg"
 
 IS_ANDROID_BUILD=false
 IS_IOS_BUILD=false
-IS_DOCKER_BUILD=true
+IS_DOCKER_BUILD=false
 IS_WIN_ARM64=false
 IS_WIN_CROSS_BUILD=false
 
@@ -23,8 +23,8 @@ function parseArgs {
             IS_IOS_BUILD=true;
             shift ;;
         # handle --no-docker option
-        "--no-docker" )
-            IS_DOCKER_BUILD=false;
+        "--docker" )
+            IS_DOCKER_BUILD=true;
             shift ;;
         # handle --windows-cross option (allowing windows build from linux for example)
         "--windows-cross" )
