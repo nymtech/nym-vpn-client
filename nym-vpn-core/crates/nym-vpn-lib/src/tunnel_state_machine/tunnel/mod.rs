@@ -165,7 +165,7 @@ pub async fn select_gateways(
 pub async fn connect_mixnet(
     options: MixnetConnectOptions,
     cancel_token: CancellationToken,
-    #[cfg(target_os = "android")] bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
+    #[cfg(target_os = "android")] bypass_fn: Arc<dyn Fn(std::os::fd::RawFd) + Send + Sync>,
 ) -> Result<ConnectedMixnet> {
     let task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS);
     let bw_controller_task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS);

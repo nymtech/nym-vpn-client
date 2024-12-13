@@ -14,13 +14,13 @@ mod error;
 pub struct SharedMixnetClient {
     inner: Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
     #[cfg(target_os = "android")]
-    bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
+    bypass_fn: Arc<dyn Fn(std::os::fd::RawFd) + Send + Sync>,
 }
 
 impl SharedMixnetClient {
     pub fn new(
         mixnet_client: MixnetClient,
-        #[cfg(target_os = "android")] bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
+        #[cfg(target_os = "android")] bypass_fn: Arc<dyn Fn(std::os::fd::RawFd) + Send + Sync>,
     ) -> Self {
         Self {
             inner: Arc::new(tokio::sync::Mutex::new(Some(mixnet_client))),

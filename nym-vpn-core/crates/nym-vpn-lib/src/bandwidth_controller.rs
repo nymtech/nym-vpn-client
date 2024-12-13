@@ -182,7 +182,7 @@ impl ReconnectMixnetClientData {
 
     pub async fn recreate_mixnet_connection(
         &self,
-        #[cfg(target_os = "android")] bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
+        #[cfg(target_os = "android")] bypass_fn: Arc<dyn Fn(std::os::fd::RawFd) + Send + Sync>,
     ) -> Option<AuthClient> {
         let entry_gateway = *self.options.selected_gateways.entry.identity();
         let mixnet_client = match tokio::time::timeout(
