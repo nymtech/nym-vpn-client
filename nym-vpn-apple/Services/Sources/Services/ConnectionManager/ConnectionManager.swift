@@ -59,8 +59,7 @@ public final class ConnectionManager: ObservableObject {
     @Published public var entryGateway: EntryGateway {
         didSet {
             Task { @MainActor in
-                guard entryGateway.isCountry else { return }
-                appSettings.entryCountryCode = entryGateway.countryCode ?? "CH"
+                appSettings.entryGateway = entryGateway.toJson()
                 await reconnectIfNeeded()
             }
         }
@@ -68,8 +67,7 @@ public final class ConnectionManager: ObservableObject {
     @Published public var exitRouter: ExitRouter {
         didSet {
             Task { @MainActor in
-                guard exitRouter.isCountry else { return }
-                appSettings.exitCountryCode = exitRouter.countryCode ?? "CH"
+                appSettings.exitRouter = exitRouter.toJson()
                 await reconnectIfNeeded()
             }
         }

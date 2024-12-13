@@ -5,8 +5,8 @@ import MixnetLibrary
 extension ExitRouter {
     var exitPoint: ExitPoint {
         switch self {
-        case .country(let code):
-            return .location(location: code)
+        case let .country(country):
+            return .location(location: country.code)
         case let .gateway(identity):
             return .gateway(identity: identity)
         }

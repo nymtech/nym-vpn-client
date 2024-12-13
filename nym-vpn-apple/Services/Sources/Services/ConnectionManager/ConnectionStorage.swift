@@ -1,6 +1,7 @@
 import AppSettings
 import ConfigurationManager
 import CountriesManager
+import CountriesManagerTypes
 
 public final class ConnectionStorage {
     public static let shared = ConnectionStorage()
@@ -32,19 +33,49 @@ public final class ConnectionStorage {
         }
     }
 
+    /// Manipulates gateway if last parameter does not exist anymore.
+    /// Example: Checks if country exists, if not returns Switzerland, if Switzerland does not exist - first country.
+    /// - Returns: EntryGateway
     func entryGateway() -> EntryGateway {
-        if !appSettings.entryCountryCode.isEmpty {
-            return .country(code: existingCountryCode(with: appSettings.entryCountryCode, countryType: countryType))
-        } else {
-            return .country(code: fallbackCountryCode(countryType: countryType))
+        let jsonString = appSettings.entryGateway ?? ""
+        guard let gateway = EntryGateway.from(jsonString: jsonString)
+        else {
+            // Fallback to Switzerland or first country
+            return .country(fallbackCountry(countryType: countryType))
+        }
+
+        switch gateway {
+        case let .country(country):
+            let existingCountry = existingCountry(with: country.code, countryType: countryType)
+            return .country(existingCountry)
+        case let .lowLatencyCountry(country):
+            let country = existingCountry(with: country.code, countryType: countryType)
+            return .lowLatencyCountry(country)
+        case let .gateway(identifier):
+            return .gateway(identifier)
+        case .randomLowLatency:
+            return .randomLowLatency
+        case .random:
+            return .random
         }
     }
 
+    /// Manipulates router if last parameter does not exist anymore.
+    /// Example: Checks if country exists, if not returns Switzerland, if Switzerland does not exist - first country.
+    /// - Returns: ExitRouter
     func exitRouter() -> ExitRouter {
-        if !appSettings.exitCountryCode.isEmpty {
-            return .country(code: existingCountryCode(with: appSettings.exitCountryCode, countryType: countryType))
-        } else {
-            return .country(code: fallbackCountryCode(countryType: countryType))
+        let jsonString = appSettings.exitRouter ?? ""
+        guard let router = ExitRouter.from(jsonString: jsonString)
+        else {
+            return .country(fallbackCountry(countryType: countryType))
+        }
+
+        switch router {
+        case let .country(country):
+            let existingCountry = existingCountry(with: country.code, countryType: countryType)
+            return .country(existingCountry)
+        case let .gateway(identifier):
+            return .gateway(identifier)
         }
     }
 }
@@ -54,37 +85,38 @@ private extension ConnectionStorage {
     /// - Parameter countryCode: String
     /// - Parameter isEntryHop: Bool. Determines from which country array(entry/exit) to return the country from
     /// - Returns: String with countryCode
-    func existingCountryCode(with countryCode: String, countryType: CountryType) -> String {
+    func existingCountry(with countryCode: String, countryType: CountryType) -> Country {
         let country = countriesManager.country(with: countryCode, countryType: countryType)
 
         if let country {
-            return country.code
+            return country
         } else {
-            return fallbackCountryCode(countryType: countryType)
+            return fallbackCountry(countryType: countryType)
         }
     }
 
-    func fallbackCountryCode(countryType: CountryType) -> String {
+    func fallbackCountry(countryType: CountryType) -> Country {
+        let fallbackCountry = Country(name: "Switzerland", code: "CH")
         switch countryType {
         case .entry:
             if countriesManager.entryCountries.contains(where: { $0.code == "CH" }) {
-                return "CH"
+                return fallbackCountry
             } else if let country = countriesManager.entryCountries.first {
-                return country.code
+                return country
             }
         case .exit:
             if countriesManager.exitCountries.contains(where: { $0.code == "CH" }) {
-                return "CH"
+                return fallbackCountry
             } else if let country = countriesManager.exitCountries.first {
-                return country.code
+                return country
             }
         case .vpn:
             if countriesManager.vpnCountries.contains(where: { $0.code == "CH" }) {
-                return "CH"
+                return fallbackCountry
             } else if let country = countriesManager.vpnCountries.first {
-                return country.code
+                return country
             }
         }
-        return "CH"
+        return fallbackCountry
     }
 }

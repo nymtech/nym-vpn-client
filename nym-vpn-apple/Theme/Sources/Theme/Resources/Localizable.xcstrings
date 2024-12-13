@@ -749,6 +749,28 @@
         }
       }
     },
+    "gateway.random" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Random"
+          }
+        }
+      }
+    },
+    "gateway.randomLowLatency" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Random low latency"
+          }
+        }
+      }
+    },
     "generalNymError.cannotFetchCountries" : {
       "extractionState" : "manual",
       "localizations" : {

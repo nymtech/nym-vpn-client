@@ -15,11 +15,7 @@ public struct HopButton: View {
                 flagOrBoltImage()
                     .padding(.horizontal, 12)
 
-                if let gateway = viewModel.gateway {
-                    titleText(with: gateway)
-                } else if let countryName = viewModel.countryName {
-                    titleText(with: countryName)
-                }
+                titleText(with: viewModel.name)
 
                 Spacer()
                 Image(viewModel.arrowImageName, bundle: .module)
@@ -38,7 +34,7 @@ private extension HopButton {
             BoltImage()
         } else if let countryCode = viewModel.countryCode {
             FlagImage(countryCode: countryCode)
-        } else if let gateway = viewModel.gateway {
+        } else if viewModel.isGateway {
             Image(systemName: "network")
                 .resizable()
                 .frame(width: 24, height: 24)
