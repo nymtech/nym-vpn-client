@@ -27,7 +27,8 @@
     "title": "反馈",
     "github": "打开 GitHub 问题",
     "matrix": "加入Matrix",
-    "discord": "加入Discord"
+    "discord": "加入Discord",
+    "get-in-touch": "取得联系"
   },
   "display-theme": "显示模式",
   "login-button": "登录",
@@ -41,7 +42,9 @@
   "info": {
     "client-version": "客户端版本",
     "daemon-version": "守护进程版本",
-    "network-name": "网络"
+    "network-name": "网络",
+    "device-id": "设备ID",
+    "account-id": "账户ID"
   },
   "logout-confirmation": {
     "title": "你确定吗？",
