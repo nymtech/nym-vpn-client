@@ -6,5 +6,6 @@
   "account": "账户",
   "cancel": "取消",
   "login": "登录",
-  "logout": "注销"
+  "logout": "注销",
+  "stop": "停止"
 }
