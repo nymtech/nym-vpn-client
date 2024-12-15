@@ -6,6 +6,7 @@
   },
   "logout": {
     "success": "注销成功",
-    "error": "退出登录时发生错误。 请重试。"
-  }
+    "error": "退出登录时发生错误"
+  },
+  "daemon-not-compat": "守护进程版本与应用程序版本不兼容！ 守护进程版本: {{version}}, expected: {{required}}。 请更新应用程序或守护进程。"
 }
