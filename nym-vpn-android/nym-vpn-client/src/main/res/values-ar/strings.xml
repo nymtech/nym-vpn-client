@@ -1,2 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="vpn_notification_title">NymVPN</string>
+    <string name="channel_name">قناة NymVPN</string>
+    <string name="channel_description">قناة للإشعارات المتعلقة بشبكة VPN.</string>
+    <string name="vpn_notification_text">جارٍ</string>
+    <string name="failed">فشل</string>
+</resources>
