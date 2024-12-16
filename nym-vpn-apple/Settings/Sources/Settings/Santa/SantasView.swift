@@ -57,6 +57,11 @@ private extension SantasView {
                 .padding(4)
             Text("Daemon/lib version: \(viewModel.libVersion)")
                 .padding(4)
+#if os(macOS)
+            Button("Refetch daemon info") {
+                viewModel.updateDaemonInfo()
+            }
+#endif
         }
         .padding(16)
     }

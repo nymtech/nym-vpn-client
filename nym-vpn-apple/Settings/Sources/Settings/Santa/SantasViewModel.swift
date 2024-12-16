@@ -147,4 +147,13 @@ public final class SantasViewModel: ObservableObject {
     func navigateBack() {
         if !path.isEmpty { path.removeLast() }
     }
+
+    func updateDaemonInfo() {
+        Task(priority: .background) {
+            try? await grpcManager.version()
+            Task { @MainActor in
+                objectWillChange.send()
+            }
+        }
+    }
 }
