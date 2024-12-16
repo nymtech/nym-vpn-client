@@ -42,7 +42,9 @@
   "info": {
     "daemon-version": "Versión Demonio",
     "network-name": "Red",
-    "client-version": "Versión de cliente"
+    "client-version": "Versión de cliente",
+    "account-id": "ID de la cuenta",
+    "device-id": "ID del dispositivo"
   },
   "logout-confirmation": {
     "title": "¿Estás seguro?",
