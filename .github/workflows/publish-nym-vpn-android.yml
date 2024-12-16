@@ -165,7 +165,7 @@ jobs:
 
 
   publish-nym-fdroid:
-    runs-on: arc-ubuntu-22.04
+    runs-on: ubuntu-22.04
     needs:
       - publish-github
     if: inputs.release_type == 'release'
@@ -180,7 +180,7 @@ jobs:
   publish-play:
     if: ${{ inputs.track != 'none' && inputs.track != '' }}
     # issue here: https://github.com/ruby/setup-ruby?tab=readme-ov-file#using-self-hosted-runners
-    runs-on: arc-ubuntu-22.04
+    runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: nym-vpn-android
