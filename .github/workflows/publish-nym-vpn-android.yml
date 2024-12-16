@@ -59,7 +59,7 @@ jobs:
     if: ${{ inputs.release_type != 'none' }}
     needs:
       - build-nym-vpn-android
-    runs-on: arc-ubuntu-22.04
+    runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: nym-vpn-android
