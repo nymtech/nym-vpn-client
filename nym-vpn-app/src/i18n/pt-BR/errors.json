@@ -91,5 +91,8 @@
     "not-stored": "Nenhuma frase de recuperação de conta armazenada",
     "no-device-stored": "Nenhuma chave de dispositivo armazenada",
     "update": "Falha na atualização da conta"
+  },
+  "zknym": {
+    "request-failed": "O pedido de zk-nym falhou"
   }
 }
