@@ -70,14 +70,10 @@ impl Drop for PathMonitor {
 
 #[cfg(test)]
 mod tests {
-    use crate::{EndpointType, PathMonitor};
-    use nix::sys::socket::{AddressFamily, SockaddrLike};
+    use crate::{Endpoint, PathMonitor};
     use nym_apple_dispatch::{Queue, QueueAttr};
 
-    use std::{
-        net::{SocketAddrV4, SocketAddrV6},
-        sync::mpsc,
-    };
+    use std::sync::mpsc;
 
     #[test]
     fn test_create_path_monitor() {
@@ -104,21 +100,8 @@ mod tests {
             }
 
             for gateway in gateways.iter() {
-                if gateway.r#type() == EndpointType::Address {
-                    let addr = gateway.address().unwrap();
-                    match addr.family() {
-                        Some(AddressFamily::Inet) => {
-                            let sa = SocketAddrV4::from(*addr.as_sockaddr_in().unwrap());
-                            println!("Gateway v4: {}", sa);
-                        }
-                        Some(AddressFamily::Inet6) => {
-                            let sa = SocketAddrV6::from(*addr.as_sockaddr_in6().unwrap());
-                            println!("Gateway v6: {}", sa);
-                        }
-                        other => {
-                            println!("Unknown gateway address family: {:?}", other);
-                        }
-                    }
+                if let Endpoint::Address(ep) = gateway {
+                    println!("Gateway: {}", ep.address().unwrap());
                 }
             }
 

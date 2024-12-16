@@ -13,5 +13,6 @@ objc2-foundation = { version = "0.2", features = ["NSString"] }
 block2 = { version = "0.5" }
 objc2 = { version = "0.5", features = ["unstable-apple-new"] }
 nix = { workspace = true, features = ["socket", "net"] }
+thiserror.workspace = true
 
 nym-apple-dispatch = { path = "../nym-apple-dispatch" }

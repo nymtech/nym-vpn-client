@@ -94,13 +94,23 @@ unsafe extern "C" {
     pub fn nw_interface_get_name(interface: nw_interface_t) -> *const c_char;
     pub fn nw_interface_get_index(interface: nw_interface_t) -> u32;
 
+    pub fn nw_endpoint_create_host(host: *const c_char, port: *const c_char) -> nw_endpoint_t;
     pub fn nw_endpoint_get_type(endpoint: nw_endpoint_t) -> nw_endpoint_type_t;
     pub fn nw_endpoint_get_hostname(endpoint: nw_endpoint_t) -> *const c_char;
     pub fn nw_endpoint_get_port(endpoint: nw_endpoint_t) -> u16;
 
+    pub fn nw_endpoint_create_address(host: *const sockaddr) -> nw_endpoint_t;
     pub fn nw_endpoint_get_address(endpoint: nw_endpoint_t) -> *const sockaddr;
+
+    pub fn nw_endpoint_create_bonjour_service(
+        name: *const c_char,
+        service_type: *const c_char,
+        domain: *const c_char,
+    ) -> nw_endpoint_t;
     pub fn nw_endpoint_get_bonjour_service_name(endpoint: nw_endpoint_t) -> *const c_char;
     pub fn nw_endpoint_get_bonjour_service_type(endpoint: nw_endpoint_t) -> *const c_char;
     pub fn nw_endpoint_get_bonjour_service_domain(endpoint: nw_endpoint_t) -> *const c_char;
+
+    pub fn nw_endpoint_create_url(url: *const c_char) -> nw_endpoint_t;
     pub fn nw_endpoint_get_url(endpoint: nw_endpoint_t) -> *const c_char;
 }
