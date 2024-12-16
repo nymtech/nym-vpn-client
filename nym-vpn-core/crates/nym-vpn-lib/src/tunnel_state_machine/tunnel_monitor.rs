@@ -274,6 +274,11 @@ impl TunnelMonitor {
             mixnet_client_config: self.tunnel_settings.mixnet_client_config.clone(),
             tunnel_type: self.tunnel_settings.tunnel_type,
             enable_credentials_mode: self.tunnel_settings.enable_credentials_mode,
+            stats_recipient_address: self
+                .tunnel_settings
+                .statistics_recipient
+                .clone()
+                .map(|inner| *inner),
             selected_gateways: selected_gateways.clone(),
             user_agent: None, // todo: provide user-agent
         };

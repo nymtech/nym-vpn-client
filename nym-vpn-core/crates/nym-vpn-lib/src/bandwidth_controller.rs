@@ -194,6 +194,7 @@ impl ReconnectMixnetClientData {
                     .subscribe_named("mixnet_client_main"),
                 self.mixnet_client_config.clone(),
                 self.options.enable_credentials_mode,
+                self.options.stats_recipient_address,
                 self.options.tunnel_type == TunnelType::Wireguard,
                 #[cfg(target_os = "android")]
                 bypass_fn.clone(),
