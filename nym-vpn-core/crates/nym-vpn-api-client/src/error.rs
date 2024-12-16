@@ -33,6 +33,9 @@ pub enum VpnApiClientError {
     #[error("failed to get device zk-nym")]
     FailedToGetDeviceZkNyms(#[source] HttpClientError<NymErrorResponse>),
 
+    #[error("failed to update device")]
+    FailedToUpdateDevice(#[source] HttpClientError<NymErrorResponse>),
+
     #[error("failed to request zk-nym")]
     FailedToRequestZkNym(#[source] HttpClientError<NymErrorResponse>),
 

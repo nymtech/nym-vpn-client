@@ -9,7 +9,9 @@ use nym_http_api_client::{HttpClientError, Params, PathSegments, UserAgent, NO_P
 use reqwest::Url;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
+use crate::request::{UpdateDeviceRequestBody, UpdateDeviceRequestStatus};
 use crate::response::{NymVpnHealthResponse, NymVpnUsagesResponse};
+use crate::types::DeviceStatus;
 use crate::{
     error::{Result, VpnApiClientError},
     request::{
@@ -233,6 +235,40 @@ impl VpnApiClient {
         nym_http_api_client::parse_response(response, false).await
     }
 
+    async fn patch_authorized<T, B, E>(
+        &self,
+        path: PathSegments<'_>,
+        json_body: &B,
+        account: &VpnApiAccount,
+        device: Option<&Device>,
+    ) -> std::result::Result<T, HttpClientError<E>>
+    where
+        T: DeserializeOwned,
+        B: Serialize,
+        E: fmt::Display + DeserializeOwned,
+    {
+        let request = self
+            .inner
+            .create_patch_request(path, NO_PARAMS, json_body)
+            .bearer_auth(
+                account
+                    .jwt(self.get_vpn_api_unix_timestamp().await)
+                    .to_string(),
+            );
+
+        let request = match device {
+            Some(device) => request.header(
+                DEVICE_AUTHORIZATION_HEADER,
+                format!("Bearer {}", device.jwt()),
+            ),
+            None => request,
+        };
+
+        let response = request.send().await?;
+
+        nym_http_api_client::parse_response(response, false).await
+    }
+
     // ACCOUNT
 
     pub async fn get_account(&self, account: &VpnApiAccount) -> Result<NymVpnAccountResponse> {
@@ -353,6 +389,33 @@ impl VpnApiClient {
         )
         .await
         .map_err(VpnApiClientError::FailedToGetDeviceById)
+    }
+
+    pub async fn update_device(
+        &self,
+        account: &VpnApiAccount,
+        device: &Device,
+        status: DeviceStatus,
+    ) -> Result<NymVpnDevice> {
+        let body = UpdateDeviceRequestBody {
+            status: UpdateDeviceRequestStatus::from(status),
+        };
+
+        self.patch_authorized(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::ACCOUNT,
+                &account.id(),
+                routes::DEVICE,
+                &device.identity_key().to_string(),
+            ],
+            &body,
+            account,
+            Some(device),
+        )
+        .await
+        .map_err(VpnApiClientError::FailedToUpdateDevice)
     }
 
     // ZK-NYM
