@@ -109,7 +109,6 @@ pub enum VpnServiceCommand {
     Status(oneshot::Sender<VpnServiceStatus>, ()),
     StoreAccount(oneshot::Sender<Result<(), AccountError>>, Zeroizing<String>),
     IsAccountStored(oneshot::Sender<Result<bool, AccountError>>, ()),
-    RemoveAccount(oneshot::Sender<Result<(), AccountError>>, ()),
     ForgetAccount(oneshot::Sender<Result<(), AccountError>>, ()),
     GetAccountIdentity(oneshot::Sender<Result<String, AccountError>>, ()),
     GetAccountLinks(
@@ -596,10 +595,6 @@ where
                 let result = self.handle_is_account_stored().await;
                 let _ = tx.send(result);
             }
-            VpnServiceCommand::RemoveAccount(tx, ()) => {
-                let result = self.handle_remove_account().await;
-                let _ = tx.send(result);
-            }
             VpnServiceCommand::ForgetAccount(tx, ()) => {
                 let result = self.handle_forget_account().await;
                 let _ = tx.send(result);
@@ -962,64 +957,15 @@ where
         account: Zeroizing<String>,
     ) -> Result<(), AccountError> {
         tracing::info!("Storing account");
-        self.storage
-            .lock()
-            .await
-            .store_mnemonic(Mnemonic::parse::<&str>(account.as_ref())?)
-            .await
-            .map_err(|err| AccountError::FailedToStoreAccount {
-                source: Box::new(err),
-            })?;
-
-        self.storage
-            .lock()
-            .await
-            .init_keys(None)
-            .await
-            .map_err(|err| AccountError::FailedToInitDeviceKeys {
-                source: Box::new(err),
-            })?;
-
+        let mnemonic = Mnemonic::parse::<&str>(account.as_ref())?;
         self.account_command_tx
-            .send(AccountCommand::UpdateAccountState(None))
-            .map_err(|source| AccountError::AccountControllerError { source })?;
-
-        Ok(())
+            .store_account(mnemonic)
+            .await
+            .map_err(|source| AccountError::AccountCommandError { source })
     }
 
     async fn handle_is_account_stored(&self) -> Result<bool, AccountError> {
-        self.storage
-            .lock()
-            .await
-            .is_mnemonic_stored()
-            .await
-            .map_err(|err| AccountError::FailedToCheckIfAccountIsStored {
-                source: Box::new(err),
-            })
-    }
-
-    async fn handle_remove_account(&mut self) -> Result<(), AccountError> {
-        if self.tunnel_state != TunnelState::Disconnected {
-            return Err(AccountError::IsConnected);
-        }
-
-        self.storage
-            .lock()
-            .await
-            .remove_mnemonic()
-            .await
-            .map_err(|err| AccountError::FailedToRemoveAccount {
-                source: Box::new(err),
-            })?;
-
-        self.account_command_tx
-            .send(AccountCommand::ResetAccount)
-            .map_err(|source| AccountError::AccountControllerError { source })?;
-        self.account_command_tx
-            .send(AccountCommand::UpdateAccountState(None))
-            .map_err(|source| AccountError::AccountControllerError { source })?;
-
-        Ok(())
+        Ok(self.shared_account_state.is_account_stored().await)
     }
 
     async fn handle_forget_account(&mut self) -> Result<(), AccountError> {
@@ -1033,40 +979,10 @@ where
             data_dir.display()
         );
 
-        // First remove some of the files that we are the owner of
-        self.storage
-            .lock()
-            .await
-            .remove_mnemonic()
-            .await
-            .map_err(|err| AccountError::FailedToRemoveAccount {
-                source: Box::new(err),
-            })?;
-
-        self.storage
-            .lock()
-            .await
-            .remove_keys()
-            .await
-            .map_err(|err| AccountError::FailedToRemoveAccount {
-                source: Box::new(err),
-            })?;
-
-        nym_vpn_account_controller::util::remove_files_for_account(&data_dir).map_err(
-            |source| AccountError::FailedToForgetAccount {
-                source: Box::new(source),
-            },
-        )?;
-
-        // Tell the account controller to reset its state
         self.account_command_tx
-            .send(AccountCommand::ResetAccount)
-            .map_err(|source| AccountError::AccountControllerError { source })?;
-        self.account_command_tx
-            .send(AccountCommand::UpdateAccountState(None))
-            .map_err(|source| AccountError::AccountControllerError { source })?;
-
-        Ok(())
+            .forget_account()
+            .await
+            .map_err(|source| AccountError::AccountCommandError { source })
     }
 
     async fn handle_get_account_identity(&self) -> Result<String, AccountError> {
@@ -1098,7 +1014,7 @@ where
 
     async fn handle_refresh_account_state(&self) -> Result<(), AccountError> {
         self.account_command_tx
-            .send(AccountCommand::UpdateAccountState(None))
+            .send(AccountCommand::SyncAccountState(None))
             .map_err(|err| AccountError::AccountControllerError { source: err })
     }
 
@@ -1141,7 +1057,7 @@ where
             })?;
 
         self.account_command_tx
-            .send(AccountCommand::UpdateAccountState(None))
+            .send(AccountCommand::SyncAccountState(None))
             .map_err(|source| AccountError::AccountControllerError { source })
     }
 

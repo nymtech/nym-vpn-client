@@ -88,6 +88,9 @@ pub enum Error {
 
     #[error("failed to parse ticket type: {0}")]
     ParseTicketType(String),
+
+    #[error("credential storage not initialized")]
+    CredentialStorageNotInitialized,
 }
 
 impl Error {

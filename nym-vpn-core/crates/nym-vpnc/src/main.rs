@@ -21,8 +21,8 @@ use nym_vpn_proto::{
     GetSystemMessagesRequest, GetZkNymByIdRequest, GetZkNymsAvailableForDownloadRequest,
     InfoRequest, InfoResponse, IsAccountStoredRequest, IsReadyToConnectRequest,
     ListCountriesRequest, ListGatewaysRequest, RefreshAccountStateRequest, RegisterDeviceRequest,
-    RemoveAccountRequest, RequestZkNymRequest, ResetDeviceIdentityRequest, SetNetworkRequest,
-    StatusRequest, StoreAccountRequest, UserAgent,
+    RequestZkNymRequest, ResetDeviceIdentityRequest, SetNetworkRequest, StatusRequest,
+    StoreAccountRequest, UserAgent,
 };
 use protobuf_conversion::into_gateway_type;
 use sysinfo::System;
@@ -89,7 +89,6 @@ async fn main() -> Result<()> {
             Internal::GetSystemMessages => get_system_messages(opts.client_type).await?,
             Internal::GetFeatureFlags => get_feature_flags(opts.client_type).await?,
             Internal::SyncAccountState => refresh_account_state(opts.client_type).await?,
-            Internal::RemoveAccount => remove_account(opts.client_type).await?,
             Internal::GetAccountUsage => get_account_usage(opts.client_type).await?,
             Internal::IsReadyToConnect => is_ready_to_connect(opts.client_type).await?,
             Internal::ListenToStatus => listen_to_status(opts.client_type).await?,
@@ -382,14 +381,6 @@ async fn is_account_stored(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
     let request = tonic::Request::new(IsAccountStoredRequest {});
     let response = client.is_account_stored(request).await?.into_inner();
-    println!("{:#?}", response);
-    Ok(())
-}
-
-async fn remove_account(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(RemoveAccountRequest {});
-    let response = client.remove_account(request).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }

@@ -59,8 +59,26 @@ pub(crate) async fn get_system_messages() -> Result<Vec<SystemMessage>, VpnError
     })
 }
 
-pub(crate) async fn get_account_links(path: &str, locale: &str) -> Result<AccountLinks, VpnError> {
-    let account_id = super::account::get_account_id(path).await.ok();
+pub(crate) async fn get_account_links(locale: &str) -> Result<AccountLinks, VpnError> {
+    let account_id = super::account::get_account_id().await?;
+    current_environment_details()
+        .await
+        .and_then(|network| {
+            network
+                .nym_vpn_network
+                .try_into_parsed_links(locale, account_id.as_deref())
+                .map_err(|err| VpnError::InternalError {
+                    details: err.to_string(),
+                })
+        })
+        .map(AccountLinks::from)
+}
+
+pub(crate) async fn get_account_links_raw(
+    path: &str,
+    locale: &str,
+) -> Result<AccountLinks, VpnError> {
+    let account_id = super::account::raw::get_account_id_raw(path).await.ok();
     current_environment_details()
         .await
         .and_then(|network| {
@@ -86,47 +104,4 @@ pub(crate) async fn get_feature_flag_credential_mode() -> Result<bool, VpnError>
 
 fn get_credential_mode(network: &nym_vpn_network_config::Network) -> bool {
     network.get_feature_flag_credential_mode().unwrap_or(false)
-}
-
-pub(crate) async fn fetch_environment(network_name: &str) -> Result<NetworkEnvironment, VpnError> {
-    nym_vpn_network_config::Network::fetch(network_name)
-        .map(NetworkEnvironment::from)
-        .map_err(|err| VpnError::InternalError {
-            details: err.to_string(),
-        })
-}
-
-pub(crate) async fn fetch_system_messages(
-    network_name: &str,
-) -> Result<Vec<SystemMessage>, VpnError> {
-    nym_vpn_network_config::Network::fetch(network_name)
-        .map(|network| {
-            network
-                .nym_vpn_network
-                .system_messages
-                .into_current_iter()
-                .map(SystemMessage::from)
-                .collect()
-        })
-        .map_err(|err| VpnError::InternalError {
-            details: err.to_string(),
-        })
-}
-
-pub(crate) async fn fetch_account_links(
-    path: &str,
-    network_name: &str,
-    locale: &str,
-) -> Result<AccountLinks, VpnError> {
-    let account_id = super::account::get_account_id(path).await.ok();
-    nym_vpn_network_config::Network::fetch(network_name)
-        .and_then(|network| {
-            network
-                .nym_vpn_network
-                .try_into_parsed_links(locale, account_id.as_deref())
-        })
-        .map(AccountLinks::from)
-        .map_err(|err| VpnError::InternalError {
-            details: err.to_string(),
-        })
 }

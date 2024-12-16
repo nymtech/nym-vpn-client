@@ -620,13 +620,6 @@ message IsAccountStoredResponse {
   }
 }
 
-message RemoveAccountRequest {}
-
-message RemoveAccountResponse {
-  bool success = 1;
-  AccountError error = 2;
-}
-
 message ForgetAccountRequest {}
 
 message ForgetAccountResponse {
@@ -1075,9 +1068,6 @@ service NymVpnd {
 
   // Check if the recovery phrase is stored
   rpc IsAccountStored (IsAccountStoredRequest) returns (IsAccountStoredResponse) {}
-
-  // Remove the recovery phrase from local storage
-  rpc RemoveAccount (RemoveAccountRequest) returns (RemoveAccountResponse) {}
 
   // Removes everything related to the account, including the device identity,
   // credential storage, mixnet keys, gateway registrations.

@@ -111,9 +111,6 @@ pub(crate) enum Internal {
     /// Get the list of feature flags provided by the nym-vpn-api.
     GetFeatureFlags,
 
-    /// Remove the stored account. This only removes the stored recovery phrase.
-    RemoveAccount,
-
     /// Manually trigger an account sync with the nym-vpn-api.
     SyncAccountState,
 

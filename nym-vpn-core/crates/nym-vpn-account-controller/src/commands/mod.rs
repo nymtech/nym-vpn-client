@@ -3,9 +3,10 @@
 
 pub(crate) mod register_device;
 pub(crate) mod request_zknym;
-pub(crate) mod update_account;
-pub(crate) mod update_device;
+pub(crate) mod sync_account;
+pub(crate) mod sync_device;
 
+use nym_vpn_store::mnemonic::Mnemonic;
 pub use register_device::RegisterDeviceError;
 pub use request_zknym::{
     RequestZkNymError, RequestZkNymErrorSummary, RequestZkNymSuccess, RequestZkNymSuccessSummary,
@@ -54,11 +55,11 @@ impl RunningCommands {
 
 #[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
 pub enum AccountCommandError {
-    #[error("failed to update account state: {0}")]
-    UpdateAccountEndpointFailure(VpnApiEndpointFailure),
+    #[error("failed to sync account state: {0}")]
+    SyncAccountEndpointFailure(VpnApiEndpointFailure),
 
-    #[error("failed to update device state: {0}")]
-    UpdateDeviceEndpointFailure(VpnApiEndpointFailure),
+    #[error("failed to sync device state: {0}")]
+    SyncDeviceEndpointFailure(VpnApiEndpointFailure),
 
     #[error("failed to register device: {0}")]
     RegisterDeviceEndpointFailure(VpnApiEndpointFailure),
@@ -74,6 +75,18 @@ pub enum AccountCommandError {
 
     #[error("no device stored")]
     NoDeviceStored,
+
+    #[error("failed to remove account: {0}")]
+    RemoveAccount(String),
+
+    #[error("failed to remove device identity: {0}")]
+    RemoveDeviceIdentity(String),
+
+    #[error("failed to reset credential storage: {0}")]
+    ResetCredentialStorage(String),
+
+    #[error("failed to remove account files: {0}")]
+    RemoveAccountFiles(String),
 
     // Catch all for any other error
     #[error("general error: {0}")]
@@ -160,10 +173,12 @@ where
 
 #[derive(Debug, strum::Display)]
 pub enum AccountCommand {
-    ResetAccount,
-    UpdateAccountState(Option<ReturnSender<NymVpnAccountSummaryResponse>>),
-    UpdateDeviceState(Option<ReturnSender<DeviceState>>),
+    StoreAccount(ReturnSender<()>, Mnemonic),
+    ForgetAccount(ReturnSender<()>),
+    SyncAccountState(Option<ReturnSender<NymVpnAccountSummaryResponse>>),
+    SyncDeviceState(Option<ReturnSender<DeviceState>>),
     GetUsage(ReturnSender<Vec<NymVpnUsage>>),
+    GetDeviceIdentity(ReturnSender<String>),
     RegisterDevice(Option<ReturnSender<NymVpnDevice>>),
     GetDevices(ReturnSender<Vec<NymVpnDevice>>),
     GetActiveDevices(ReturnSender<Vec<NymVpnDevice>>),
@@ -183,10 +198,10 @@ impl AccountCommand {
     pub fn return_error(self, error: AccountCommandError) {
         tracing::warn!("Returning error: {:?}", error);
         match self {
-            AccountCommand::UpdateAccountState(Some(tx)) => {
+            AccountCommand::SyncAccountState(Some(tx)) => {
                 tx.send(Err(error));
             }
-            AccountCommand::UpdateDeviceState(Some(tx)) => {
+            AccountCommand::SyncDeviceState(Some(tx)) => {
                 tx.send(Err(error));
             }
             AccountCommand::RegisterDevice(Some(tx)) => {
@@ -203,8 +218,8 @@ impl AccountCommand {
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
 pub(crate) enum AccountCommandResult {
-    UpdateAccountState(Result<NymVpnAccountSummaryResponse, AccountCommandError>),
-    UpdateDeviceState(Result<DeviceState, AccountCommandError>),
+    SyncAccountState(Result<NymVpnAccountSummaryResponse, AccountCommandError>),
+    SyncDeviceState(Result<DeviceState, AccountCommandError>),
     RegisterDevice(Result<NymVpnDevice, AccountCommandError>),
     RequestZkNym(Result<RequestZkNymSuccessSummary, AccountCommandError>),
 }
@@ -216,12 +231,12 @@ mod tests {
     #[test]
     fn account_command_kind_representation() {
         assert_eq!(
-            AccountCommand::UpdateAccountState(None).kind(),
-            "UpdateAccountState"
+            AccountCommand::SyncAccountState(None).kind(),
+            "SyncAccountState"
         );
         assert_eq!(
-            AccountCommand::UpdateDeviceState(None).kind(),
-            "UpdateDeviceState"
+            AccountCommand::SyncDeviceState(None).kind(),
+            "SyncDeviceState"
         );
         assert_eq!(
             AccountCommand::RegisterDevice(None).kind(),

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_api_client::response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnUsage};
+use nym_vpn_store::mnemonic::Mnemonic;
 use tokio::sync::mpsc::UnboundedSender;
 
 use crate::{
@@ -27,20 +28,36 @@ impl AccountControllerCommander {
             .map_err(|source| Error::AccountCommandSend { source })
     }
 
-    pub async fn update_account(
-        &self,
-    ) -> Result<NymVpnAccountSummaryResponse, AccountCommandError> {
+    pub async fn store_account(&self, mnemonic: Mnemonic) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
-            .send(AccountCommand::UpdateAccountState(Some(tx)))
+            .send(AccountCommand::StoreAccount(tx, mnemonic))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }
 
-    pub async fn update_device(&self) -> Result<DeviceState, AccountCommandError> {
+    pub async fn forget_account(&self) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
-            .send(AccountCommand::UpdateDeviceState(Some(tx)))
+            .send(AccountCommand::ForgetAccount(tx))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    pub async fn sync_account_state(
+        &self,
+    ) -> Result<NymVpnAccountSummaryResponse, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::SyncAccountState(Some(tx)))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    pub async fn sync_device_state(&self) -> Result<DeviceState, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::SyncDeviceState(Some(tx)))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }
@@ -49,6 +66,14 @@ impl AccountControllerCommander {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::GetUsage(tx))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    pub async fn get_device_identity(&self) -> Result<String, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::GetDeviceIdentity(tx))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }
@@ -106,7 +131,7 @@ impl AccountControllerCommander {
             Some(AccountRegistered::Registered) => return Ok(None),
             Some(AccountRegistered::NotRegistered) | None => {}
         }
-        self.update_account().await.map(Some)
+        self.sync_account_state().await.map(Some)
     }
 
     pub async fn ensure_update_device(&self) -> Result<DeviceState, AccountCommandError> {
@@ -118,7 +143,7 @@ impl AccountControllerCommander {
             | Some(DeviceState::DeleteMe)
             | None => {}
         }
-        self.update_device().await
+        self.sync_device_state().await
     }
 
     pub async fn ensure_register_device(&self) -> Result<(), AccountCommandError> {
