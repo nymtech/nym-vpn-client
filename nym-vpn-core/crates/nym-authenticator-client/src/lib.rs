@@ -1,8 +1,5 @@
-#[cfg(target_os = "android")]
-use std::os::fd::RawFd;
 use std::{
     net::{Ipv4Addr, Ipv6Addr},
-    sync::Arc,
     time::Duration,
 };
 
@@ -13,6 +10,7 @@ use nym_authenticator_requests::{
 
 use nym_credentials_interface::CredentialSpendingData;
 use nym_crypto::asymmetric::x25519::PrivateKey;
+use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{
     ClientStatsEvents, ClientStatsSender, MixnetClient, MixnetClientSender, MixnetMessageSender,
     Recipient, ReconstructedMessage, TransmissionLane,
@@ -711,75 +709,6 @@ impl From<v4::response::AuthenticatorResponse> for AuthenticatorResponse {
     }
 }
 
-#[derive(Clone)]
-pub struct SharedMixnetClient {
-    inner: Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
-    #[cfg(target_os = "android")]
-    bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
-}
-
-impl SharedMixnetClient {
-    pub fn from_shared(
-        mixnet_client: &Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
-        #[cfg(target_os = "android")] bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
-    ) -> Self {
-        Self {
-            inner: Arc::clone(mixnet_client),
-            #[cfg(target_os = "android")]
-            bypass_fn,
-        }
-    }
-
-    pub fn new(
-        mixnet_client: MixnetClient,
-        #[cfg(target_os = "android")] bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
-    ) -> Self {
-        Self {
-            inner: Arc::new(tokio::sync::Mutex::new(Some(mixnet_client))),
-            #[cfg(target_os = "android")]
-            bypass_fn,
-        }
-    }
-
-    pub async fn lock(&self) -> tokio::sync::MutexGuard<'_, Option<MixnetClient>> {
-        self.inner.lock().await
-    }
-
-    pub async fn nym_address(&self) -> Recipient {
-        *self.lock().await.as_ref().unwrap().nym_address()
-    }
-
-    pub async fn send(&self, msg: nym_sdk::mixnet::InputMessage) -> Result<()> {
-        self.lock()
-            .await
-            .as_mut()
-            .unwrap()
-            .send(msg)
-            .await
-            .map_err(Error::SendMixnetMessage)?;
-        Ok(())
-    }
-
-    #[cfg(target_os = "android")]
-    pub async fn gateway_ws_fd(&self) -> Option<std::os::fd::RawFd> {
-        self.lock()
-            .await
-            .as_ref()
-            .unwrap()
-            .gateway_connection()
-            .gateway_ws_fd
-    }
-
-    pub fn inner(&self) -> Arc<tokio::sync::Mutex<Option<MixnetClient>>> {
-        self.inner.clone()
-    }
-
-    #[cfg(target_os = "android")]
-    pub fn bypass_fn(&self) -> Arc<dyn Fn(RawFd) + Send + Sync> {
-        self.bypass_fn.clone()
-    }
-}
-
 #[derive(Copy, Clone, Debug)]
 pub enum AuthenticatorVersion {
     V2,
@@ -880,19 +809,6 @@ impl AuthClient {
 
     pub fn mixnet_client(&self) -> SharedMixnetClient {
         self.mixnet_client.clone()
-    }
-
-    // A workaround until we can extract SharedMixnetClient to a common crate
-    pub async fn new_from_inner(
-        mixnet_client: Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
-        #[cfg(target_os = "android")] bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
-    ) -> Self {
-        let mixnet_client = SharedMixnetClient {
-            inner: mixnet_client,
-            #[cfg(target_os = "android")]
-            bypass_fn,
-        };
-        Self::new(mixnet_client).await
     }
 
     pub async fn send(

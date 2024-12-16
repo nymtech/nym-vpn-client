@@ -1,11 +1,13 @@
-// Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
+// Copyright 2024 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
 #[cfg(target_os = "android")]
 use std::os::fd::RawFd;
 use std::sync::Arc;
 
-use nym_sdk::mixnet::{ClientStatsEvents, MixnetClient, MixnetClientSender, Recipient};
+use nym_sdk::mixnet::{
+    ed25519, ClientStatsEvents, MixnetClient, MixnetClientSender, MixnetMessageSender, Recipient,
+};
 
 #[derive(Clone)]
 pub struct SharedMixnetClient {
@@ -32,6 +34,15 @@ impl SharedMixnetClient {
 
     pub async fn nym_address(&self) -> Recipient {
         *self.lock().await.as_ref().unwrap().nym_address()
+    }
+
+    pub async fn sign(&self, data: &[u8]) -> ed25519::Signature {
+        self.lock().await.as_ref().unwrap().sign(data)
+    }
+
+    pub async fn send(&self, msg: nym_sdk::mixnet::InputMessage) -> Result<(), nym_sdk::Error> {
+        self.lock().await.as_mut().unwrap().send(msg).await?;
+        Ok(())
     }
 
     pub async fn split_sender(&self) -> MixnetClientSender {

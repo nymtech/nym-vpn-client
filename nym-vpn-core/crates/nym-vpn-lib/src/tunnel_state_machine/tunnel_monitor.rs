@@ -281,9 +281,8 @@ impl TunnelMonitor {
         #[cfg(target_os = "android")]
         let tun_provider = self.tun_provider.clone();
         #[cfg(target_os = "android")]
-        let bypass_fn = move |_fd: RawFd| {
-            #[cfg(target_os = "android")]
-            tun_provider.bypass(_fd);
+        let bypass_fn = move |fd: RawFd| {
+            tun_provider.bypass(fd);
         };
         let mut connected_mixnet = tunnel::connect_mixnet(
             connect_options,
