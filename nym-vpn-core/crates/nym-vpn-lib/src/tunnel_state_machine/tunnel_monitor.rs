@@ -278,7 +278,8 @@ impl TunnelMonitor {
                 .tunnel_settings
                 .statistics_recipient
                 .clone()
-                .map(|inner| *inner),
+                .as_deref()
+                .copied(),
             selected_gateways: selected_gateways.clone(),
             user_agent: None, // todo: provide user-agent
         };
