@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(target_os = "android")]
+#[cfg(unix)]
 use std::{os::fd::RawFd, sync::Arc};
 use std::{path::PathBuf, result::Result, time::Duration};
 
@@ -77,6 +77,7 @@ fn apply_mixnet_client_config(
     );
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) async fn setup_mixnet_client(
     mixnet_entry_gateway: &NodeIdentity,
     mixnet_client_key_storage_path: &Option<PathBuf>,
@@ -85,12 +86,12 @@ pub(crate) async fn setup_mixnet_client(
     enable_credentials_mode: bool,
     stats_recipient_address: Option<Recipient>,
     two_hop_mode: bool,
-    #[cfg(target_os = "android")] bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
+    #[cfg(unix)] connection_fd_callback: Arc<dyn Fn(RawFd) + Send + Sync>,
 ) -> Result<SharedMixnetClient, MixnetError> {
     let mut debug_config = nym_client_core::config::DebugConfig::default();
     // for mobile platforms, in two hop mode, we do less frequent cover traffic,
     // to preserve battery
-    if two_hop_mode && (cfg!(target_os = "android") || cfg!(target_os = "ios")) {
+    if two_hop_mode && (cfg!(unix) || cfg!(target_os = "ios")) {
         debug_config.cover_traffic.loop_cover_traffic_average_delay =
             MOBILE_LOOP_COVER_STREAM_AVERAGE_DELAY;
     }
@@ -122,7 +123,7 @@ pub(crate) async fn setup_mixnet_client(
 
         let key_storage_path = StoragePaths::new_from_dir(path)
             .map_err(MixnetError::FailedToSetupMixnetStoragePaths)?;
-        MixnetClientBuilder::new_with_default_storage(key_storage_path)
+        let builder = MixnetClientBuilder::new_with_default_storage(key_storage_path)
             .await
             .map_err(MixnetError::FailedToCreateMixnetClientWithDefaultStorage)?
             .with_user_agent(user_agent)
@@ -131,7 +132,12 @@ pub(crate) async fn setup_mixnet_client(
             .debug_config(debug_config)
             .custom_shutdown(task_client)
             .credentials_mode(enable_credentials_mode)
-            .with_statistics_reporting(stats_reporting)
+            .with_statistics_reporting(stats_reporting);
+
+        #[cfg(unix)]
+        let builder = builder.with_connection_fd_callback(connection_fd_callback.clone());
+
+        builder
             .build()
             .map_err(MixnetError::FailedToBuildMixnetClient)?
             .connect_to_mixnet()
@@ -139,14 +145,19 @@ pub(crate) async fn setup_mixnet_client(
             .map_err(map_mixnet_connect_error)?
     } else {
         tracing::debug!("Using ephemeral key storage");
-        MixnetClientBuilder::new_ephemeral()
+        let builder = MixnetClientBuilder::new_ephemeral()
             .with_user_agent(user_agent)
             .request_gateway(mixnet_entry_gateway.to_string())
             .network_details(NymNetworkDetails::new_from_env())
             .debug_config(debug_config)
             .custom_shutdown(task_client)
             .credentials_mode(enable_credentials_mode)
-            .with_statistics_reporting(stats_reporting)
+            .with_statistics_reporting(stats_reporting);
+
+        #[cfg(unix)]
+        let builder = builder.with_connection_fd_callback(connection_fd_callback.clone());
+
+        builder
             .build()
             .map_err(MixnetError::FailedToBuildMixnetClient)?
             .connect_to_mixnet()
@@ -156,8 +167,8 @@ pub(crate) async fn setup_mixnet_client(
 
     Ok(SharedMixnetClient::new(
         mixnet_client,
-        #[cfg(target_os = "android")]
-        bypass_fn,
+        #[cfg(unix)]
+        connection_fd_callback,
     ))
 }
 

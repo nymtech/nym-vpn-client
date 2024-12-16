@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::time::Duration;
-#[cfg(target_os = "android")]
+#[cfg(unix)]
 use std::{os::fd::RawFd, sync::Arc};
 
 use tokio::sync::mpsc;
@@ -182,7 +182,7 @@ impl ReconnectMixnetClientData {
 
     pub async fn recreate_mixnet_connection(
         &self,
-        #[cfg(target_os = "android")] bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
+        #[cfg(unix)] connection_fd_callback: Arc<dyn Fn(RawFd) + Send + Sync>,
     ) -> Option<AuthClient> {
         let entry_gateway = *self.options.selected_gateways.entry.identity();
         let mixnet_client = match tokio::time::timeout(
@@ -196,8 +196,8 @@ impl ReconnectMixnetClientData {
                 self.options.enable_credentials_mode,
                 self.options.stats_recipient_address,
                 self.options.tunnel_type == TunnelType::Wireguard,
-                #[cfg(target_os = "android")]
-                bypass_fn.clone(),
+                #[cfg(unix)]
+                connection_fd_callback.clone(),
             ),
         )
         .await
@@ -381,17 +381,17 @@ impl<St: Storage> BandwidthController<St> {
     }
 
     pub(crate) async fn try_reconnect(&mut self, mixnet_error_tx: mpsc::Sender<()>) -> bool {
-        #[cfg(target_os = "android")]
-        let bypass_fn = self
+        #[cfg(unix)]
+        let connection_fd_callback = self
             .wg_entry_gateway_client
             .auth_client()
             .mixnet_client()
-            .bypass_fn();
+            .connection_fd_callback();
         let Some(auth_client) = self
             .reconnect_mixnet_client_data
             .recreate_mixnet_connection(
-                #[cfg(target_os = "android")]
-                bypass_fn.clone(),
+                #[cfg(unix)]
+                connection_fd_callback.clone(),
             )
             .await
         else {
@@ -399,12 +399,6 @@ impl<St: Storage> BandwidthController<St> {
             return false;
         };
 
-        #[cfg(target_os = "android")]
-        if let Some(fd) = auth_client.mixnet_client().gateway_ws_fd().await {
-            bypass_fn.as_ref()(fd);
-        } else {
-            tracing::error!("Could not bypass new mixnet client");
-        };
         self.wg_entry_gateway_client
             .set_auth_client(auth_client.clone());
         self.wg_exit_gateway_client.set_auth_client(auth_client);
