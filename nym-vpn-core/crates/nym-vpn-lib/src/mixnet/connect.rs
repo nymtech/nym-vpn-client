@@ -5,7 +5,9 @@
 use std::{os::fd::RawFd, sync::Arc};
 use std::{path::PathBuf, result::Result, time::Duration};
 
+use nym_client_core::config::StatsReporting;
 use nym_config::defaults::NymNetworkDetails;
+use nym_gateway_directory::Recipient;
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{MixnetClientBuilder, NodeIdentity, StoragePaths};
 use nym_vpn_store::mnemonic::MnemonicStorage as _;
@@ -81,6 +83,7 @@ pub(crate) async fn setup_mixnet_client(
     mut task_client: nym_task::TaskClient,
     mixnet_client_config: MixnetClientConfig,
     enable_credentials_mode: bool,
+    stats_recipient_address: Option<Recipient>,
     two_hop_mode: bool,
     #[cfg(target_os = "android")] bypass_fn: Arc<dyn Fn(RawFd) + Send + Sync>,
 ) -> Result<SharedMixnetClient, MixnetError> {
@@ -93,6 +96,10 @@ pub(crate) async fn setup_mixnet_client(
     }
     apply_mixnet_client_config(&mixnet_client_config, &mut debug_config);
 
+    let stats_reporting = StatsReporting {
+        provider_address: stats_recipient_address,
+        ..Default::default()
+    };
     let user_agent = nym_bin_common::bin_info_owned!().into();
 
     let mixnet_client = if let Some(path) = mixnet_client_key_storage_path {
@@ -124,6 +131,7 @@ pub(crate) async fn setup_mixnet_client(
             .debug_config(debug_config)
             .custom_shutdown(task_client)
             .credentials_mode(enable_credentials_mode)
+            .with_statistics_reporting(stats_reporting)
             .build()
             .map_err(MixnetError::FailedToBuildMixnetClient)?
             .connect_to_mixnet()
@@ -138,6 +146,7 @@ pub(crate) async fn setup_mixnet_client(
             .debug_config(debug_config)
             .custom_shutdown(task_client)
             .credentials_mode(enable_credentials_mode)
+            .with_statistics_reporting(stats_reporting)
             .build()
             .map_err(MixnetError::FailedToBuildMixnetClient)?
             .connect_to_mixnet()

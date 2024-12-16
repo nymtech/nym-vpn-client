@@ -13,7 +13,7 @@ use std::{error::Error as StdError, fmt, path::PathBuf, time::Duration};
 use std::{os::fd::RawFd, sync::Arc};
 
 pub use gateway_selector::SelectedGateways;
-use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayClient};
+use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayClient, Recipient};
 use nym_ip_packet_requests::IpPair;
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::UserAgent;
@@ -132,6 +132,7 @@ pub struct MixnetConnectOptions {
     pub mixnet_client_config: Option<MixnetClientConfig>,
     pub tunnel_type: TunnelType,
     pub enable_credentials_mode: bool,
+    pub stats_recipient_address: Option<Recipient>,
     pub selected_gateways: SelectedGateways,
     pub user_agent: Option<UserAgent>,
 }
@@ -205,6 +206,7 @@ pub async fn connect_mixnet(
             task_client,
             mixnet_client_config,
             options.enable_credentials_mode,
+            options.stats_recipient_address,
             options.tunnel_type == TunnelType::Wireguard,
             #[cfg(target_os = "android")]
             bypass_fn,
