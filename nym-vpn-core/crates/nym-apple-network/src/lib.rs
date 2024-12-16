@@ -12,7 +12,10 @@ mod path;
 mod path_monitor;
 mod sys;
 
-pub use endpoint::{nw_endpoint_type_t, Endpoint, EndpointType};
+pub use endpoint::{
+    nw_endpoint_type_t, AddressEndpoint, BonjourServiceEndpoint, Endpoint, HostEndpoint,
+    UnknownEndpoint, UrlEndpoint,
+};
 pub use interface::{nw_interface_type_t, Interface, InterfaceType};
 pub use path::{nw_path_status_t, Path, PathStatus};
 pub use path_monitor::PathMonitor;
