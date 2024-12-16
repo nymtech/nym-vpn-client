@@ -12,7 +12,7 @@ on:
 
 jobs:
   check:
-    runs-on: arc-ubuntu-22.04
+    runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: nym-vpn-android
