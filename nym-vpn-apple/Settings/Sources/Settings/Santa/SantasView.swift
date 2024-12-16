@@ -14,16 +14,17 @@ public struct SantasView: View {
     public var body: some View {
         VStack(spacing: .zero) {
             navbar()
-            santasSpacer()
-            VStack {
-                enivironmentDetails()
+            ScrollView {
                 santasSpacer()
-                gatewaySection()
-                santasSpacer()
-                environmentSection()
+                VStack {
+                    enivironmentDetails()
+                    santasSpacer()
+                    gatewaySection()
+                    santasSpacer()
+                    environmentSection()
+                }
+                Spacer()
             }
-
-            Spacer()
         }
         .preferredColorScheme(AppSettings.shared.currentAppearance.colorScheme)
         .navigationBarBackButtonHidden(true)
@@ -62,26 +63,22 @@ private extension SantasView {
 
     func gatewaySection() -> some View {
         VStack {
-            Text("Gateway-Router:")
+            Text("Connection:")
                 .foregroundStyle(NymColor.primaryOrange)
                 .bold()
                 .padding(4)
 
             entryGatewaySection()
             exitGatewaySection()
-
-            Button("Clear both gateways") {
-                viewModel.clearBothGateways()
-            }
         }
     }
 
     func entryGatewaySection() -> some View {
         VStack {
             HStack {
-                Text("Entry gateway:")
+                Text("Entry gateways:")
                 Spacer()
-                Button("Clear") {
+                Button("Clear all") {
                     viewModel.clearEntryGateway()
                 }
                 Button("Paste") {
@@ -90,7 +87,16 @@ private extension SantasView {
             }
             .padding(.horizontal, 16)
             HStack {
-                Text("\(viewModel.entryGatewayString())")
+                VStack {
+                    if viewModel.entryGateways.isEmpty {
+                        Text("No gateways")
+                    } else {
+                        ForEach(viewModel.entryGateways, id: \.self) { entryGateway in
+                            Text("\(entryGateway)")
+                                .padding(4)
+                        }
+                    }
+                }
                 Spacer()
             }
             .padding(.horizontal, 16)
@@ -101,9 +107,9 @@ private extension SantasView {
     func exitGatewaySection() -> some View {
         VStack {
             HStack {
-                Text("Exit gateway:")
+                Text("Exit routers:")
                 Spacer()
-                Button("Clear") {
+                Button("Clear all") {
                     viewModel.clearExitGateway()
                 }
                 Button("Paste") {
@@ -112,7 +118,16 @@ private extension SantasView {
             }
             .padding(.horizontal, 16)
             HStack {
-                Text("\(viewModel.exitGatewayString())")
+                VStack {
+                    if viewModel.exitGateways.isEmpty {
+                        Text("No gateways")
+                    } else {
+                        ForEach(viewModel.exitGateways, id: \.self) { exitGateway in
+                            Text("\(exitGateway)")
+                                .padding(4)
+                        }
+                    }
+                }
                 Spacer()
             }
             .padding(.horizontal, 16)

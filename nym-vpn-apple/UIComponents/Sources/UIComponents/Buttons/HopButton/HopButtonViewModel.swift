@@ -7,23 +7,26 @@ import CountriesManager
 
 public class HopButtonViewModel: ObservableObject {
     private let appSettings: AppSettings
-    let connectionManager: ConnectionManager
+
     let arrowImageName = "arrowRight"
     let hopType: HopType
+
+    @Binding private var entryGateway: EntryGateway
+    @Binding private var exitRouter: ExitRouter
 
     var name: String {
         switch hopType {
         case .entry:
-            connectionManager.entryGateway.name
+            entryGateway.name
         case .exit:
-            connectionManager.exitRouter.name
+            exitRouter.name
         }
     }
 
     var isQuickest: Bool {
         switch hopType {
         case .entry:
-            connectionManager.entryGateway.isQuickest
+            entryGateway.isQuickest
         case .exit:
             false
         }
@@ -32,28 +35,30 @@ public class HopButtonViewModel: ObservableObject {
     var countryCode: String? {
         switch hopType {
         case .entry:
-            connectionManager.entryGateway.countryCode
+            entryGateway.countryCode
         case .exit:
-            connectionManager.exitRouter.countryCode
+            exitRouter.countryCode
         }
     }
 
     var isGateway: Bool {
         switch hopType {
         case .entry:
-            connectionManager.entryGateway.isGateway
+            entryGateway.isGateway
         case .exit:
-            connectionManager.exitRouter.isGateway
+            exitRouter.isGateway
         }
     }
 
     public init(
         hopType: HopType,
-        appSettings: AppSettings = .shared,
-        connectionManager: ConnectionManager = .shared
+        entryGateway: Binding<EntryGateway>,
+        exitRouter: Binding<ExitRouter>,
+        appSettings: AppSettings = .shared
     ) {
         self.hopType = hopType
+        _entryGateway = entryGateway
+        _exitRouter = exitRouter
         self.appSettings = appSettings
-        self.connectionManager = connectionManager
     }
 }

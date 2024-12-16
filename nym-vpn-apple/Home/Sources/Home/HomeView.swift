@@ -157,22 +157,36 @@ private extension HomeView {
 
     @ViewBuilder
     func entryHop() -> some View {
-        HopButton(viewModel: viewModel.entryHopButtonViewModel)
-            .animation(.default, value: viewModel.connectionManager.entryGateway)
-            .onTapGesture {
-                viewModel.navigateToFirstHopSelection()
-            }
+        HopButton(
+            viewModel:
+                HopButtonViewModel(
+                    hopType: .entry,
+                    entryGateway: $viewModel.connectionManager.entryGateway,
+                    exitRouter: $viewModel.connectionManager.exitRouter
+                )
+        )
+        .animation(.default, value: viewModel.connectionManager.entryGateway)
+        .onTapGesture {
+            viewModel.navigateToFirstHopSelection()
+        }
         Spacer()
             .frame(height: 20)
     }
 
     @ViewBuilder
     func exitHop() -> some View {
-        HopButton(viewModel: viewModel.exitHopButtonViewModel)
-            .animation(.default, value: viewModel.connectionManager.exitRouter)
-            .onTapGesture {
-                viewModel.navigateToLastHopSelection()
-            }
+        HopButton(
+            viewModel:
+                HopButtonViewModel(
+                    hopType: .exit,
+                    entryGateway: $viewModel.connectionManager.entryGateway,
+                    exitRouter: $viewModel.connectionManager.exitRouter
+                )
+        )
+        .animation(.default, value: viewModel.connectionManager.exitRouter)
+        .onTapGesture {
+            viewModel.navigateToLastHopSelection()
+        }
     }
 
     @ViewBuilder

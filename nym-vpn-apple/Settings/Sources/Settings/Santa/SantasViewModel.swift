@@ -45,6 +45,32 @@ public final class SantasViewModel: ObservableObject {
 #endif
     }
 
+    var entryGateways: [String] {
+        get {
+            guard let decoded = try? JSONDecoder().decode([String].self, from: appSettings.santaEntryGatewaysData)
+            else {
+                return []
+            }
+            return decoded
+        }
+        set {
+            appSettings.santaEntryGatewaysData = (try? JSONEncoder().encode(newValue)) ?? Data()
+        }
+    }
+
+    var exitGateways: [String] {
+        get {
+            guard let decoded = try? JSONDecoder().decode([String].self, from: appSettings.santaExitGatewaysData)
+            else {
+                return []
+            }
+            return decoded
+        }
+        set {
+            appSettings.santaExitGatewaysData = (try? JSONEncoder().encode(newValue)) ?? Data()
+        }
+    }
+
 #if os(iOS)
     init(
         path: Binding<NavigationPath>,
@@ -71,23 +97,17 @@ public final class SantasViewModel: ObservableObject {
 
     func changeEnvironment(to env: Env) {
         configurationManager.updateEnv(to: env)
-        navigateBack()
+        objectWillChange.send()
     }
 
     func clearEntryGateway() {
-        appSettings.entryGateway = nil
-        navigateBack()
+        entryGateways.removeAll()
+        objectWillChange.send()
     }
 
     func clearExitGateway() {
-        appSettings.exitGateway = nil
-        navigateBack()
-    }
-
-    func clearBothGateways() {
-        appSettings.entryGateway = nil
-        appSettings.exitGateway = nil
-        navigateBack()
+        exitGateways.removeAll()
+        objectWillChange.send()
     }
 
     func pasteEntryGateway() {
@@ -97,8 +117,14 @@ public final class SantasViewModel: ObservableObject {
 #elseif os(macOS)
         gateway = NSPasteboard.general.string(forType: .string)
 #endif
-        appSettings.entryGateway = gateway
-        navigateBack()
+        guard let gateway,
+              gateway.count == 44,
+              !entryGateways.contains(gateway)
+        else {
+            return
+        }
+        entryGateways.append(gateway)
+        objectWillChange.send()
     }
 
     func pasteExitGateway() {
@@ -108,16 +134,14 @@ public final class SantasViewModel: ObservableObject {
 #elseif os(macOS)
         gateway = NSPasteboard.general.string(forType: .string)
 #endif
-        appSettings.exitGateway = gateway
-        navigateBack()
-    }
-
-    func entryGatewayString() -> String {
-        appSettings.entryGateway ?? "None"
-    }
-
-    func exitGatewayString() -> String {
-        appSettings.exitGateway ?? "None"
+        guard let gateway,
+              gateway.count == 44,
+              !exitGateways.contains(gateway)
+        else {
+            return
+        }
+        exitGateways.append(gateway)
+        objectWillChange.send()
     }
 
     func navigateBack() {

@@ -30,7 +30,6 @@ public class HomeViewModel: HomeFlowState {
     let networkSelectLocalizedTitle = "selectNetwork".localizedString
 
     let appSettings: AppSettings
-    let connectionManager: ConnectionManager
     let countriesManager: CountriesManager
     let credentialsManager: CredentialsManager
     let externalLinkManager: ExternalLinkManager
@@ -42,11 +41,10 @@ public class HomeViewModel: HomeFlowState {
     let helperInstallManager: HelperInstallManager
 #endif
     let systemMessageManager: SystemMessageManager
-    let entryHopButtonViewModel = HopButtonViewModel(hopType: .entry)
-    let exitHopButtonViewModel = HopButtonViewModel(hopType: .exit)
     let anonymousButtonViewModel = NetworkButtonViewModel(type: .mixnet5hop)
     let fastButtonViewModel = NetworkButtonViewModel(type: .wireguard)
 
+    var connectionManager: ConnectionManager
     var lastTunnelStatus = TunnelStatus.disconnected
 
     // If no time connected is shown, should be set to empty string,

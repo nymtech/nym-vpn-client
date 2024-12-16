@@ -19,7 +19,7 @@ public struct SettingsList: View {
                 .frame(height: 24)
         }
         appVersionText()
-            .onTapGesture(count: 7) {
+            .onTapGesture(count: 3) {
                 viewModel.navigateToSantasMenu()
             }
     }
