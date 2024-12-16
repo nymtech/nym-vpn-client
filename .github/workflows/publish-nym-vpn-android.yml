@@ -76,7 +76,7 @@ jobs:
 
       - name: Install system dependencies
         run: |
-          sudo apt update && sudo apt install -y gettext-base gh zip apksigner
+          sudo apt update && sudo apt install -y gettext-base gh zip apksigner rsync
 
       - name: Get version code
         run: |
@@ -165,7 +165,7 @@ jobs:
 
 
   publish-nym-fdroid:
-    runs-on: arc-ubuntu-22.04
+    runs-on: ubuntu-22.04
     needs:
       - publish-github
     if: inputs.release_type == 'release'
@@ -180,7 +180,7 @@ jobs:
   publish-play:
     if: ${{ inputs.track != 'none' && inputs.track != '' }}
     # issue here: https://github.com/ruby/setup-ruby?tab=readme-ov-file#using-self-hosted-runners
-    runs-on: arc-ubuntu-22.04
+    runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: nym-vpn-android
@@ -209,7 +209,7 @@ jobs:
 
       - name: Install deps
         run: |
-          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip
+          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip rsync
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3

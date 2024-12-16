@@ -7,7 +7,7 @@ platform :android do
 
 	desc 'Deploy an internal version to Google Play'
 	lane :internal do |options|
-		gradle(task: "clean bundleGeneralPrerelease")
+		gradle(task: "clean bundleGeneralRelease")
 		skip_bundle = options[:skip_bundle]
 		skip_metadata = options[:skip_metadata]
 		upload_to_play_store(track: 'internal', skip_upload_apk: true, skip_upload_aab: skip_bundle, skip_upload_metadata: skip_metadata, skip_upload_changelogs: skip_metadata)
@@ -15,7 +15,7 @@ platform :android do
 
 	desc "Deploy an alpha version to Google Play"
 	lane :alpha do |options|
-		gradle(task: "clean bundleGeneralPrerelease")
+		gradle(task: "clean bundleGeneralRelease")
 		skip_bundle = options[:skip_bundle]
 		skip_metadata = options[:skip_metadata]
 		upload_to_play_store(track: 'alpha', skip_upload_apk: true, skip_upload_aab: skip_bundle, skip_upload_metadata: skip_metadata, skip_upload_changelogs: skip_metadata)
