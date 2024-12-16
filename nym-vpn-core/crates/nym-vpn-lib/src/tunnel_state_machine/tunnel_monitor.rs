@@ -277,7 +277,6 @@ impl TunnelMonitor {
             stats_recipient_address: self
                 .tunnel_settings
                 .statistics_recipient
-                .clone()
                 .as_deref()
                 .copied(),
             selected_gateways: selected_gateways.clone(),
