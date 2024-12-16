@@ -22,7 +22,7 @@ android {
 		applicationId = Constants.APP_ID
 		minSdk = Constants.MIN_SDK
 		targetSdk = Constants.TARGET_SDK
-		versionCode = determineVersionCode()
+		versionCode = Constants.VERSION_CODE
 		versionName = determineVersionName()
 
 		// keep all language resources
@@ -219,16 +219,6 @@ dependencies {
 	// animations/splash
 	implementation(libs.lottie.compose)
 	implementation(libs.androidx.core.splashscreen)
-}
-
-fun determineVersionCode(): Int {
-	return with(getBuildTaskName().lowercase()) {
-		when {
-			contains(Constants.NIGHTLY) -> Constants.VERSION_CODE + Constants.NIGHTLY_CODE
-			contains(Constants.PRERELEASE) -> Constants.VERSION_CODE + Constants.PRERELEASE_CODE
-			else -> Constants.VERSION_CODE
-		}
-	}
 }
 
 fun determineVersionName(): String {

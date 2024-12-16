@@ -76,7 +76,7 @@ jobs:
 
       - name: Install system dependencies
         run: |
-          sudo apt update && sudo apt install -y gettext-base gh zip apksigner
+          sudo apt update && sudo apt install -y gettext-base gh zip apksigner rsync
 
       - name: Get version code
         run: |
