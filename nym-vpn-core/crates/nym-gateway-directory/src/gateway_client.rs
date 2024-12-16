@@ -162,7 +162,7 @@ impl GatewayClient {
     async fn lookup_skimmed_gateways(&self) -> Result<Vec<SkimmedNode>> {
         info!("Fetching skimmed entry assigned nodes from nym-api...");
         self.api_client
-            .get_all_basic_entry_assigned_nodes(None)
+            .get_all_basic_entry_assigned_nodes()
             .await
             .map_err(Error::FailedToLookupSkimmedGateways)
     }
