@@ -103,6 +103,11 @@ dependencies {
 }
 
 tasks.register<Exec>(Constants.BUILD_LIB_TASK) {
+	if (project.hasProperty(Constants.BUILD_LIB_TASK) &&
+		project.property(Constants.BUILD_LIB_TASK) == "false") {
+		commandLine("echo", "Skipping library build")
+		return@register
+	}
 	val ndkPath = android.sdkDirectory.resolve("ndk").listFilesOrdered().lastOrNull()?.path ?: System.getenv("ANDROID_NDK_HOME")
 	commandLine("echo", "NDK HOME: $ndkPath")
 	val script = "${projectDir.path}/src/main/scripts/build-libs.sh"
@@ -110,7 +115,7 @@ tasks.register<Exec>(Constants.BUILD_LIB_TASK) {
 	if (file("${projectDir.path}/src/main/jniLibs/arm64-v8a/libnym_vpn_lib.so").exists() &&
 		file("${projectDir.path}/src/main/jniLibs/arm64-v8a/libwg.so").exists()
 	) {
-		commandLine("echo", "Libs already compiled")
+		commandLine("echo", "Library already compiled")
 	} else {
 		commandLine("bash").args(script, ndkPath)
 	}
