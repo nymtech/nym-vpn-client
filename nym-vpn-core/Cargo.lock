@@ -3397,6 +3397,7 @@ dependencies = [
  "nym-apple-dispatch",
  "objc2",
  "objc2-foundation",
+ "thiserror",
 ]
 
 [[package]]
