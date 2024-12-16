@@ -18,6 +18,7 @@ pub struct NetstackRequestGo {
     num_ping: u8,
     send_timeout_sec: u64,
     recv_timeout_sec: u64,
+    download_timeout_sec: u64,
 }
 
 impl NetstackRequestGo {
@@ -34,6 +35,7 @@ impl NetstackRequestGo {
             num_ping: req.v4_ping_config.num_ping,
             send_timeout_sec: req.v4_ping_config.send_timeout_sec,
             recv_timeout_sec: req.v4_ping_config.recv_timeout_sec,
+            download_timeout_sec: req.download_timeout_sec,
         }
     }
 
@@ -50,6 +52,7 @@ impl NetstackRequestGo {
             num_ping: req.v6_ping_config.num_ping,
             send_timeout_sec: req.v6_ping_config.send_timeout_sec,
             recv_timeout_sec: req.v6_ping_config.recv_timeout_sec,
+            download_timeout_sec: req.download_timeout_sec,
         }
     }
 }
@@ -67,4 +70,7 @@ pub struct NetstackResponse {
     pub sent_hosts: u16,
     pub received_hosts: u16,
     pub can_resolve_dns: bool,
+    pub downloaded_file: String,
+    pub download_duration_sec: u64,
+    pub download_error: String,
 }
