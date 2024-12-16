@@ -104,7 +104,8 @@ dependencies {
 
 tasks.register<Exec>(Constants.BUILD_LIB_TASK) {
 	if (project.hasProperty(Constants.BUILD_LIB_TASK) &&
-		project.property(Constants.BUILD_LIB_TASK) == "false") {
+		project.property(Constants.BUILD_LIB_TASK) == "false"
+	) {
 		commandLine("echo", "Skipping library build")
 		return@register
 	}
