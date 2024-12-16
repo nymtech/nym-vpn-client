@@ -84,6 +84,10 @@ impl WaitingRequestZkNymCommandHandler {
         }
     }
 
+    pub(crate) fn reset(&self) {
+        self.zk_nym_fails_in_a_row.store(0, Ordering::Relaxed);
+    }
+
     pub(crate) async fn max_fails_reached(&self) -> bool {
         self.zk_nym_fails_in_a_row.load(Ordering::Relaxed) >= ZK_NYM_MAX_FAILS
     }

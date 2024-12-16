@@ -145,13 +145,6 @@ impl CommandInterfaceConnectionHandler {
             .await
     }
 
-    pub(crate) async fn handle_remove_account(
-        &self,
-    ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
-        self.send_and_wait(VpnServiceCommand::RemoveAccount, ())
-            .await
-    }
-
     pub(crate) async fn handle_forget_account(
         &self,
     ) -> Result<Result<(), AccountError>, VpnCommandSendError> {

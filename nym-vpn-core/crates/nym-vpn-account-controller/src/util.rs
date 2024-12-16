@@ -10,7 +10,6 @@ use crate::Error;
 
 pub fn remove_files_for_account(data_dir: &Path) -> Result<(), Error> {
     // Delete all files in data_dir that matches any of these patterns:
-    // credentials_database.db
     // *.sqlite
     // *.pem
 
@@ -23,8 +22,7 @@ pub fn remove_files_for_account(data_dir: &Path) -> Result<(), Error> {
             }
         };
 
-        if OsStr::new("credentials_database.db") == file.file_name()
-            || Some(OsStr::new("sqlite")) == file.path().extension()
+        if Some(OsStr::new("sqlite")) == file.path().extension()
             || Some(OsStr::new("pem")) == file.path().extension()
         {
             tracing::info!("removing file: {:?}", file.path());
