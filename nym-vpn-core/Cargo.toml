@@ -28,8 +28,9 @@ members = [
 ]
 
 default-members = [
-    "crates/nym-vpnd",
     "crates/nym-vpnc",
+    "crates/nym-vpnd",
+    "crates/uniffi-bindgen",
 ]
 
 # For local development
