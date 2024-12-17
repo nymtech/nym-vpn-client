@@ -6,6 +6,21 @@ include platform.mk
 export MACOSX_DEPLOYMENT_TARGET = 10.13
 export IPHONEOS_DEPLOYMENT_TARGET = 16.0
 
+# Project root replaced with /buildroot in reproducible builds
+PROJECT_ROOT=$(shell dirname $(CURDIR))
+
+# Rust compiler sysroot that typically points to ~/.rustup/toolchains/<toolchain>
+RUST_COMPILER_SYS_ROOT=$(shell rustc --print sysroot)
+
+# Rust flags used in reproducible builds to replace common paths with defaults
+IDEMPOTENT_RUSTFLAGS=--remap-path-prefix $(HOME)=~ --remap-path-prefix $(PROJECT_ROOT)=/buildroot --remap-path-prefix $(RUST_COMPILER_SYS_ROOT)=/sysroot
+
+# Export rust flags enforcing reproducible builds
+export RUSTFLAGS=$(IDEMPOTENT_RUSTFLAGS)
+
+# Force vergen to emit stable values
+export VERGEN_IDEMPOTENT=1
+
 .PHONY: all deb fmt help
 
 # Main targets
@@ -22,7 +37,7 @@ build-release: ## Build the Rust workspace in release mode
 	cargo build --release
 
 build-mac: ## Build the Rust workspace suitable for running the daemon
-	RUSTFLAGS="-C link-arg=-all_load -C link-arg=-ObjC -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__info_plist -C link-arg=$(CURDIR)/../nym-vpn-apple/Daemon/Info.plist -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__launchd_plist -C link-arg=$(CURDIR)/../nym-vpn-apple/Daemon/Launchd.plist" cargo build --release --workspace --exclude nym-gateway-probe
+	RUSTFLAGS="$(IDEMPOTENT_RUSTFLAGS) -C link-arg=-all_load -C link-arg=-ObjC -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__info_plist -C link-arg=$(CURDIR)/../nym-vpn-apple/Daemon/Info.plist -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__launchd_plist -C link-arg=$(CURDIR)/../nym-vpn-apple/Daemon/Launchd.plist" cargo build --release --workspace --exclude nym-gateway-probe
 
 build-win-cross:
 	cargo build --target x86_64-pc-windows-gnu --release
