@@ -4,6 +4,7 @@ on:
   workflow_call:
   pull_request:
     paths:
+      - "wireguard/**"
       - ".github/workflows/build-wireguard-go-windows.yml"
 
 env:
