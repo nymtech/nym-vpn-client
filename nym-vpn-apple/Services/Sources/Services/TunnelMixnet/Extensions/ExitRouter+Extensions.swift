@@ -1,14 +1,15 @@
 #if os(iOS)
 import CountriesManager
 import MixnetLibrary
+import ConnectionTypes
 
 extension ExitRouter {
     var exitPoint: ExitPoint {
         switch self {
         case let .country(country):
-            return .location(location: country.code)
+            .location(location: country.code)
         case let .gateway(identity):
-            return .gateway(identity: identity)
+            .gateway(identity: identity)
         }
     }
 }

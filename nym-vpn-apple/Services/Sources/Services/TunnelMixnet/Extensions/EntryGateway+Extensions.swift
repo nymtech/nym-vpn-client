@@ -1,6 +1,7 @@
 #if os(iOS)
 import CountriesManager
 import MixnetLibrary
+import ConnectionTypes
 
 extension EntryGateway {
     var entryPoint: EntryPoint {

@@ -97,8 +97,6 @@ private extension ConnectionStorage {
             return .country(existingCountry)
         case let .gateway(identifier):
             return .gateway(identifier)
-        case .random:
-            return .random
         }
     }
 }

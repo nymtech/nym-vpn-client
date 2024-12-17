@@ -81,7 +81,7 @@ private extension SantasView {
     func entryGatewaySection() -> some View {
         VStack {
             HStack {
-                Text("Entry gateways:")
+                Text("Entry nodes:")
                 Spacer()
                 Button("Clear all") {
                     viewModel.clearEntryGateway()
@@ -112,7 +112,7 @@ private extension SantasView {
     func exitGatewaySection() -> some View {
         VStack {
             HStack {
-                Text("Exit routers:")
+                Text("Exit nodes:")
                 Spacer()
                 Button("Clear all") {
                     viewModel.clearExitGateway()

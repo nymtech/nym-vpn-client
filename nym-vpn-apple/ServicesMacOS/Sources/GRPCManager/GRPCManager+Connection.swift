@@ -85,8 +85,6 @@ private extension GRPCManager {
             var gateway = Nym_Vpn_Gateway()
             gateway.id = identifier
             exitNode.gateway = gateway
-        case .random:
-            exitNode.random = Nym_Vpn_Empty()
         }
         return exitNode
     }

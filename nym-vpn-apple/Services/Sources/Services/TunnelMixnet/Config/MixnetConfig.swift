@@ -52,7 +52,7 @@ public struct MixnetConfig: Codable, Equatable {
 extension MixnetConfig {
     public func asVpnConfig(tunProvider: OsTunProvider, tunStatusListener: TunnelStatusListener?) throws -> VpnConfig {
         VpnConfig(
-            entryGateway: entryGateway?.entryPoint ?? .random,
+            entryGateway: entryGateway.entryPoint,
             exitRouter: exitRouter.exitPoint,
             enableTwoHop: isTwoHopEnabled,
             tunProvider: tunProvider,

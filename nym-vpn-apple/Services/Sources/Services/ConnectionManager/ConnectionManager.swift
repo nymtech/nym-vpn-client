@@ -87,9 +87,9 @@ public final class ConnectionManager: ObservableObject {
         self.countriesManager = countriesManager
         self.credentialsManager = credentialsManager
         self.tunnelsManager = tunnelsManager
-        self.entryGateway = connectionStorage.entryGateway()
-        self.exitRouter = connectionStorage.exitRouter()
-        self.connectionType = connectionStorage.connectionType()
+        self.entryGateway = connectionStorage.entryGateway
+        self.exitRouter = connectionStorage.exitRouter
+        self.connectionType = connectionStorage.connectionType
         setup()
     }
 #endif
