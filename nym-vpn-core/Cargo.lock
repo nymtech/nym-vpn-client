@@ -3769,7 +3769,7 @@ dependencies = [
 
 [[package]]
 name = "nym-dbus"
-version = "0.0.0"
+version = "1.2.0-dev"
 dependencies = [
  "dbus",
  "libc",
@@ -5088,7 +5088,7 @@ dependencies = [
 
 [[package]]
 name = "nym-windows"
-version = "0.0.0"
+version = "1.2.0-dev"
 dependencies = [
  "futures",
  "nym-common",
