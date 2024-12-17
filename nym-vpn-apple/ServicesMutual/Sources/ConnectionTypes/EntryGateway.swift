@@ -1,5 +1,6 @@
 import Foundation
 import CountriesManagerTypes
+import Theme
 
 public enum EntryGateway: Codable, Equatable {
     case country(Country)

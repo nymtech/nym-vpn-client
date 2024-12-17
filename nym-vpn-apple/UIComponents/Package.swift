@@ -19,6 +19,7 @@ let package = Package(
     dependencies: [
         .package(path: "../Services"),
         .package(path: "../ServicesIOS"),
+        .package(path: "../ServicesMutual"),
         .package(path: "../Theme"),
         .package(url: "https://github.com/airbnb/lottie-spm.git", from: "4.5.0")
     ],
@@ -31,6 +32,7 @@ let package = Package(
                 .product(name: "ConnectionManager", package: "Services"),
                 .product(name: "CountriesManager", package: "Services"),
                 .product(name: "ConfigurationManager", package: "Services"),
+                .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "CountriesManagerTypes", package: "Services"),
                 .product(name: "Device", package: "Services"),
                 .product(name: "ImpactGenerator", package: "ServicesIOS", condition: .when(platforms: [.iOS])),

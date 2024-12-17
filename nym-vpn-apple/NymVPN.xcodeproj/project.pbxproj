@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		582C5F8E2C7654A800B678AE /* ConfigurationManager in Frameworks */ = {isa = PBXBuildFile; productRef = 582C5F8D2C7654A800B678AE /* ConfigurationManager */; };
 		5879C2062C80A37200BAB142 /* TunnelSettingsConversions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5879C2052C80A37200BAB142 /* TunnelSettingsConversions.swift */; };
+		D90E2A9D2D11CFA000EBEC69 /* ConnectionTypes in Frameworks */ = {isa = PBXBuildFile; productRef = D90E2A9C2D11CFA000EBEC69 /* ConnectionTypes */; };
+		D90E2A9F2D11CFA700EBEC69 /* ConnectionTypes in Frameworks */ = {isa = PBXBuildFile; productRef = D90E2A9E2D11CFA700EBEC69 /* ConnectionTypes */; };
 		D9144C5B2CC1057A0021A617 /* CountriesManagerTypes in Frameworks */ = {isa = PBXBuildFile; productRef = D9144C5A2CC1057A0021A617 /* CountriesManagerTypes */; };
 		D9144C5D2CC1057F0021A617 /* CountriesManagerTypes in Frameworks */ = {isa = PBXBuildFile; productRef = D9144C5C2CC1057F0021A617 /* CountriesManagerTypes */; };
 		D9144C5F2CC105B20021A617 /* CountriesManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9144C5E2CC105B20021A617 /* CountriesManager */; };
@@ -247,6 +249,7 @@
 				D94866FF2BE035C300F5331B /* CredentialsManager in Frameworks */,
 				D96680D12CC4FC7200267FA1 /* Device in Frameworks */,
 				D9BD6A142BD84EF400B42D6F /* SentryManager in Frameworks */,
+				D90E2A9F2D11CFA700EBEC69 /* ConnectionTypes in Frameworks */,
 				D974C03B2BBED2460011924A /* ConnectionManager in Frameworks */,
 				D9144C632CC10AA20021A617 /* Migrations in Frameworks */,
 				D92FBA2D2C6B6AB800D743DF /* ConfigurationManager in Frameworks */,
@@ -277,6 +280,7 @@
 				D9FB33E82BECFD1F009C3419 /* ServiceManagement.framework in Frameworks */,
 				D92FBA2B2C6B6AB300D743DF /* ConfigurationManager in Frameworks */,
 				D9E9F1A02C3807A00056EB8C /* Sparkle in Frameworks */,
+				D90E2A9D2D11CFA000EBEC69 /* ConnectionTypes in Frameworks */,
 				D96680D32CC4FC7800267FA1 /* Device in Frameworks */,
 				D916EE672C90F2A700FADEEF /* Migrations in Frameworks */,
 				D9E9F19D2C3806BB0056EB8C /* AutoUpdater in Frameworks */,
@@ -518,6 +522,7 @@
 				D9E552B12CE9E8F6008C74F6 /* SystemMessageManager */,
 				D9E552B72CE9E909008C74F6 /* ErrorHandler */,
 				D9E552B92CEA5A6E008C74F6 /* SystemMessageModels */,
+				D90E2A9E2D11CFA700EBEC69 /* ConnectionTypes */,
 			);
 			productName = NymVPN;
 			productReference = D99A14762B357E9900F2728B /* NymVPN.app */;
@@ -562,6 +567,7 @@
 				D9E552BB2CEA5A74008C74F6 /* SystemMessageModels */,
 				D9FA77C72CEBB32C003362D7 /* NotificationsManager */,
 				D9A8580D2CF3A2AA0030843A /* HelperInstallManager */,
+				D90E2A9C2D11CFA000EBEC69 /* ConnectionTypes */,
 			);
 			productName = NymVPNDaemon;
 			productReference = D9BEF2D02BEB63310036C566 /* NymVPN.app */;
@@ -1272,6 +1278,14 @@
 		582C5F8D2C7654A800B678AE /* ConfigurationManager */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = ConfigurationManager;
+		};
+		D90E2A9C2D11CFA000EBEC69 /* ConnectionTypes */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ConnectionTypes;
+		};
+		D90E2A9E2D11CFA700EBEC69 /* ConnectionTypes */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ConnectionTypes;
 		};
 		D9144C5A2CC1057A0021A617 /* CountriesManagerTypes */ = {
 			isa = XCSwiftPackageProductDependency;

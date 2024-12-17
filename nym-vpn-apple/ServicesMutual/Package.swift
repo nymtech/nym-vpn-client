@@ -12,6 +12,7 @@ let package = Package(
     ],
     products: [
         .library(name: "AppVersionProvider", targets: ["AppVersionProvider"]),
+        .library(name: "ConnectionTypes", targets: ["ConnectionTypes"]),
         .library(name: "SystemMessageModels", targets: ["SystemMessageModels"]),
         .library(name: "TunnelStatus", targets: ["TunnelStatus"])
     ],
@@ -20,6 +21,11 @@ let package = Package(
             name: "AppVersionProvider",
             dependencies: [],
             path: "Sources/AppVersionProvider"
+        ),
+        .target(
+            name: "ConnectionTypes",
+            dependencies: [],
+            path: "Sources/ConnectionTypes"
         ),
         .target(
             name: "SystemMessageModels",

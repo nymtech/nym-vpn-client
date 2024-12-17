@@ -66,6 +66,7 @@ let package = Package(
             name: "ConnectionManager",
             dependencies: [
                 "CredentialsManager",
+                .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 "NotificationMessages",
                 "Tunnels",
                 "TunnelMixnet"
@@ -210,6 +211,7 @@ let package = Package(
                 "CredentialsManager",
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
+                .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 "NymLogger",
                 "Tunnels"
             ],
