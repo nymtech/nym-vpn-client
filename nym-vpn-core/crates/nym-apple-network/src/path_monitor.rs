@@ -5,7 +5,7 @@ use std::ptr::NonNull;
 
 use objc2::rc::Retained;
 
-use super::{path::Path, sys};
+use super::{path::Path, sys, InterfaceType};
 
 /// An observer that you use to monitor and react to network changes.
 #[derive(Debug)]
@@ -20,6 +20,7 @@ impl Default for PathMonitor {
 }
 
 impl PathMonitor {
+    /// Initializes a path monitor to observe all available interface types.
     pub fn new() -> Self {
         Self {
             inner: unsafe { Retained::from_raw(sys::nw_path_monitor_create()) }
@@ -27,20 +28,41 @@ impl PathMonitor {
         }
     }
 
+    /// Initializes a path monitor to observe a specific interface type.
+    pub fn new_with_required_interface(required_interface: InterfaceType) -> Self {
+        Self {
+            inner: unsafe {
+                Retained::from_raw(sys::nw_path_monitor_create_with_type(
+                    required_interface.as_raw(),
+                ))
+                .expect("failed to create nw_path_monitor with required interfaces")
+            },
+        }
+    }
+
+    /// Prohibit a path monitor from using a specific interface type.
+    pub fn prohibit_interface_type(&mut self, interface_type: &InterfaceType) {
+        unsafe {
+            sys::nw_path_monitor_prohibit_interface_type(self.as_raw_mut(), interface_type.as_raw())
+        };
+    }
+
+    /// Starts monitoring path changes.
     pub fn start(&mut self) {
         unsafe { sys::nw_path_monitor_start(self.as_raw_mut()) };
     }
 
+    /// Stops receiving network path updates.
     pub fn cancel(&mut self) {
         unsafe { sys::nw_path_monitor_cancel(self.as_raw_mut()) };
     }
 
-    /// Set dispatch queue on which updates will be delivered.
+    /// Sets a queue on which to deliver path events.
     pub fn set_dispatch_queue(&mut self, dispatch_queue: &dispatch2::Queue) {
         unsafe { sys::nw_path_monitor_set_queue(self.as_raw_mut(), dispatch_queue.as_raw()) };
     }
 
-    /// Set path update handler.
+    /// Sets a handler to receive network path updates.
     pub fn set_update_handler(&mut self, update_handler: impl Fn(Path) + 'static) {
         let block = block2::RcBlock::new(move |nw_path_ref| {
             let nw_path = Path::retain(NonNull::new(nw_path_ref).expect("invalid nw_path_ref"));
@@ -50,6 +72,7 @@ impl PathMonitor {
         unsafe { sys::nw_path_monitor_set_update_handler(self.as_raw_mut(), &block) };
     }
 
+    /// Sets a handler to determine when a monitor is fully cancelled and will no longer deliver events.
     pub fn set_cancel_handler(&mut self, cancel_handler: impl Fn() + 'static) {
         let block = block2::RcBlock::new(cancel_handler);
         unsafe { sys::nw_path_monitor_set_cancel_handler(self.as_raw_mut(), &block) };

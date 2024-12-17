@@ -62,7 +62,13 @@ pub const nw_endpoint_type_url: nw_endpoint_type_t = 4;
 #[link(name = "Network", kind = "framework")]
 unsafe extern "C" {
     pub fn nw_path_monitor_create() -> nw_path_monitor_t;
-
+    pub fn nw_path_monitor_create_with_type(
+        required_interface_type: nw_interface_type_t,
+    ) -> nw_path_monitor_t;
+    pub fn nw_path_monitor_prohibit_interface_type(
+        monitor: nw_path_monitor_t,
+        interface_type: nw_interface_type_t,
+    );
     pub fn nw_path_monitor_set_queue(monitor: nw_path_monitor_t, dispatch_queue: dispatch_queue_t);
     pub fn nw_path_monitor_set_update_handler(
         monitor: nw_path_monitor_t,
@@ -72,7 +78,6 @@ unsafe extern "C" {
         monitor: nw_path_monitor_t,
         update_handler: &nw_path_monitor_cancel_handler_t,
     );
-
     pub fn nw_path_monitor_start(monitor: nw_path_monitor_t);
     pub fn nw_path_monitor_cancel(monitor: nw_path_monitor_t);
 
