@@ -4,54 +4,71 @@
 use std::{
     ffi::{c_char, CStr, CString},
     net::{IpAddr, SocketAddr, SocketAddrV4, SocketAddrV6},
+    ptr::NonNull,
 };
 
 use nix::sys::socket::{AddressFamily, SockaddrLike, SockaddrStorage};
 use objc2::rc::Retained;
 
+use crate::sys::OS_nw_endpoint;
+
 use super::sys;
 pub use sys::nw_endpoint_type_t;
 
+/// An umbrella type describing all kinds of endpoints.
 #[derive(Debug)]
 pub enum Endpoint {
+    /// Invalid endpoint.
     Invalid,
+
+    /// Address endpoint.
     Address(AddressEndpoint),
+
+    /// Host endpoint.
     Host(HostEndpoint),
+
+    /// Bonjour service endpoint.
     BonjourService(BonjourServiceEndpoint),
+
+    /// URL endpoint.
     Url(UrlEndpoint),
+
+    /// An endpoint unknown to the crate.
     Unknown(UnknownEndpoint),
 }
 
 impl Endpoint {
-    pub(crate) fn retain(nw_endpoint_ref: sys::nw_endpoint_t) -> Option<Self> {
-        Some(match get_endpoint_type(nw_endpoint_ref) {
-            EndpointType::Address => Self::Address(
-                AddressEndpoint::retain(nw_endpoint_ref)
-                    .expect("failed to retain address endpoint"),
-            ),
-            EndpointType::Host => Self::Host(
-                HostEndpoint::retain(nw_endpoint_ref).expect("failed to retain host endpoint"),
-            ),
-            EndpointType::Url => Self::Url(
-                UrlEndpoint::retain(nw_endpoint_ref).expect("failed to retain url endpoint"),
-            ),
-            EndpointType::BonjourService => Self::BonjourService(
-                BonjourServiceEndpoint::retain(nw_endpoint_ref)
-                    .expect("failed to retain bonjour service endpoint"),
-            ),
-            EndpointType::Unknown(_) => Endpoint::Unknown(UnknownEndpoint(unsafe {
-                Retained::from_raw(nw_endpoint_ref)
-            })),
+    /// Create new `Endpoint` retaining the raw pointer that we don't own.
+    pub(crate) fn retain(nw_endpoint_ref: NonNull<sys::OS_nw_endpoint>) -> Self {
+        match get_endpoint_type(nw_endpoint_ref) {
+            EndpointType::Address => Self::Address(AddressEndpoint::retain(nw_endpoint_ref)),
+            EndpointType::Host => Self::Host(HostEndpoint::retain(nw_endpoint_ref)),
+            EndpointType::Url => Self::Url(UrlEndpoint::retain(nw_endpoint_ref)),
+            EndpointType::BonjourService => {
+                Self::BonjourService(BonjourServiceEndpoint::retain(nw_endpoint_ref))
+            }
+            EndpointType::Unknown(_) => Endpoint::Unknown(UnknownEndpoint::retain(nw_endpoint_ref)),
             EndpointType::Invalid => Self::Invalid,
-        })
+        }
     }
 }
 
-/// Holds any endpoint that couldn't be parsed or unknown to the bindings.
+/// Holds any endpoint that couldn't be parsed or unknown to the crate.
 /// This will make ensure to release the underlying handle properly.
 #[derive(Debug)]
 #[allow(unused)]
-pub struct UnknownEndpoint(Option<Retained<sys::OS_nw_endpoint>>);
+pub struct UnknownEndpoint {
+    inner: Retained<sys::OS_nw_endpoint>,
+}
+
+impl UnknownEndpoint {
+    pub(crate) fn retain(nw_endpoint_ref: NonNull<sys::OS_nw_endpoint>) -> Self {
+        Self {
+            inner: unsafe { Retained::retain(nw_endpoint_ref.as_ptr()) }
+                .expect("failed to retain unknown endpoint"),
+        }
+    }
+}
 
 #[derive(Debug, Eq, PartialEq)]
 enum EndpointType {
@@ -91,20 +108,18 @@ impl HostEndpoint {
         let nw_endpoint_ref =
             unsafe { sys::nw_endpoint_create_host(host_str.as_ptr(), port_str.as_ptr()) };
 
-        if nw_endpoint_ref.is_null() {
-            Err(Error::InvalidEndpointData)
-        } else {
-            Ok(Self::retain(nw_endpoint_ref).expect("failed to retain nw_endpoint_ref"))
-        }
+        Ok(Self {
+            inner: unsafe { Retained::from_raw(nw_endpoint_ref) }.ok_or(Error::CreateEndpoint)?,
+        })
     }
 
-    pub(crate) fn retain(nw_endpoint_ref: sys::nw_endpoint_t) -> Option<Self> {
-        if get_endpoint_type(nw_endpoint_ref) == EndpointType::Host {
-            Some(Self {
-                inner: unsafe { Retained::retain(nw_endpoint_ref)? },
-            })
-        } else {
-            None
+    /// Create new `HostEndpoint` retaining the raw pointer that we don't own.
+    pub(crate) fn retain(nw_endpoint_ref: NonNull<sys::OS_nw_endpoint>) -> Self {
+        debug_assert!(get_endpoint_type(nw_endpoint_ref) == EndpointType::Host);
+
+        Self {
+            inner: unsafe { Retained::retain(nw_endpoint_ref.as_ptr()) }
+                .expect("failed to retain host endpoint"),
         }
     }
 
@@ -133,20 +148,18 @@ impl AddressEndpoint {
         let sockaddr_storage = SockaddrStorage::from(sockaddr);
         let nw_endpoint_ref = unsafe { sys::nw_endpoint_create_address(sockaddr_storage.as_ptr()) };
 
-        if nw_endpoint_ref.is_null() {
-            Err(Error::InvalidEndpointData)
-        } else {
-            Ok(Self::retain(nw_endpoint_ref).expect("failed to retain nw_endpoint_ref"))
-        }
+        Ok(Self {
+            inner: unsafe { Retained::from_raw(nw_endpoint_ref) }.ok_or(Error::CreateEndpoint)?,
+        })
     }
 
-    pub(crate) fn retain(nw_endpoint_ref: sys::nw_endpoint_t) -> Option<Self> {
-        if get_endpoint_type(nw_endpoint_ref) == EndpointType::Address {
-            Some(Self {
-                inner: unsafe { Retained::retain(nw_endpoint_ref)? },
-            })
-        } else {
-            None
+    /// Create new `AddressEndpoint` retaining the raw pointer that we don't own.
+    pub(crate) fn retain(nw_endpoint_ref: NonNull<sys::OS_nw_endpoint>) -> Self {
+        debug_assert!(get_endpoint_type(nw_endpoint_ref) == EndpointType::Address);
+
+        Self {
+            inner: unsafe { Retained::retain(nw_endpoint_ref.as_ptr()) }
+                .expect("failed ot retain address endpoint"),
         }
     }
 
@@ -195,20 +208,18 @@ impl UrlEndpoint {
         let url_str = CString::new(url).map_err(|_| Error::FieldContainsNulByte(FieldName::Url))?;
         let nw_endpoint_ref = unsafe { sys::nw_endpoint_create_url(url_str.as_ptr()) };
 
-        if nw_endpoint_ref.is_null() {
-            Err(Error::InvalidEndpointData)
-        } else {
-            Ok(Self::retain(nw_endpoint_ref).expect("failed to retain nw_endpoint_ref"))
-        }
+        Ok(Self {
+            inner: unsafe { Retained::from_raw(nw_endpoint_ref) }.ok_or(Error::CreateEndpoint)?,
+        })
     }
 
-    pub(crate) fn retain(nw_endpoint_ref: sys::nw_endpoint_t) -> Option<Self> {
-        if get_endpoint_type(nw_endpoint_ref) == EndpointType::Url {
-            Some(Self {
-                inner: unsafe { Retained::retain(nw_endpoint_ref)? },
-            })
-        } else {
-            None
+    /// Create new `UrlEndpoint` retaining the raw pointer that we don't own.
+    pub(crate) fn retain(nw_endpoint_ref: NonNull<sys::OS_nw_endpoint>) -> Self {
+        debug_assert!(get_endpoint_type(nw_endpoint_ref) == EndpointType::Url);
+
+        Self {
+            inner: unsafe { Retained::retain(nw_endpoint_ref.as_ptr()) }
+                .expect("failed ot retain url endpoint"),
         }
     }
 
@@ -243,20 +254,18 @@ impl BonjourServiceEndpoint {
             )
         };
 
-        if nw_endpoint_ref.is_null() {
-            Err(Error::InvalidEndpointData)
-        } else {
-            Ok(Self::retain(nw_endpoint_ref).expect("failed to retain nw_endpoint_ref"))
-        }
+        Ok(Self {
+            inner: unsafe { Retained::from_raw(nw_endpoint_ref) }.ok_or(Error::CreateEndpoint)?,
+        })
     }
 
-    pub(crate) fn retain(nw_endpoint_ref: sys::nw_endpoint_t) -> Option<Self> {
-        if get_endpoint_type(nw_endpoint_ref) == EndpointType::BonjourService {
-            Some(Self {
-                inner: unsafe { Retained::retain(nw_endpoint_ref)? },
-            })
-        } else {
-            None
+    /// Create new `BonjourServiceEndpoint` retaining the raw pointer that we don't own.
+    pub(crate) fn retain(nw_endpoint_ref: NonNull<sys::OS_nw_endpoint>) -> Self {
+        debug_assert!(get_endpoint_type(nw_endpoint_ref) == EndpointType::BonjourService);
+
+        Self {
+            inner: unsafe { Retained::retain(nw_endpoint_ref.as_ptr()) }
+                .expect("failed ot retain bonjour service endpoint"),
         }
     }
 
@@ -283,8 +292,8 @@ impl BonjourServiceEndpoint {
     }
 }
 
-fn get_endpoint_type(nw_endpoint_ref: sys::nw_endpoint_t) -> EndpointType {
-    EndpointType::from(unsafe { sys::nw_endpoint_get_type(nw_endpoint_ref) })
+fn get_endpoint_type(nw_endpoint_ref: NonNull<OS_nw_endpoint>) -> EndpointType {
+    EndpointType::from(unsafe { sys::nw_endpoint_get_type(nw_endpoint_ref.as_ptr()) })
 }
 
 fn cstr_to_owned_string(ptr: *const c_char) -> Result<String> {
@@ -306,7 +315,7 @@ pub enum FieldName {
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("Failed to create endpoint due to invalid data")]
-    InvalidEndpointData,
+    CreateEndpoint,
 
     #[error("Failed to decode UTF-8 string")]
     DecodeUtf8(std::str::Utf8Error),
