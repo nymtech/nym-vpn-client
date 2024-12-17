@@ -13,6 +13,8 @@ pub struct PathMonitor {
     inner: Retained<sys::OS_nw_path_monitor>,
 }
 
+unsafe impl Send for PathMonitor {}
+
 impl Default for PathMonitor {
     fn default() -> Self {
         Self::new()
@@ -63,7 +65,7 @@ impl PathMonitor {
     }
 
     /// Sets a handler to receive network path updates.
-    pub fn set_update_handler(&mut self, update_handler: impl Fn(Path) + 'static) {
+    pub fn set_update_handler(&mut self, update_handler: impl Fn(Path) + Send + 'static) {
         let block = block2::RcBlock::new(move |nw_path_ref| {
             let nw_path = Path::retain(NonNull::new(nw_path_ref).expect("invalid nw_path_ref"));
 

@@ -14,6 +14,8 @@ pub struct Interface {
     inner: Retained<sys::OS_nw_interface>,
 }
 
+unsafe impl Send for Interface {}
+
 impl Interface {
     /// Create new `Interface` retaining the raw pointer that we don't own.
     pub(crate) fn retain(nw_interface_ref: NonNull<sys::OS_nw_interface>) -> Self {
