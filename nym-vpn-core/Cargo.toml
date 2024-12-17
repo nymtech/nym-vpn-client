@@ -26,7 +26,6 @@ members = [
     "crates/nym-wg-go",
     "crates/nym-windows",
     "crates/nym-apple-network",
-    "crates/nym-apple-dispatch",
     "crates/uniffi-bindgen",
 ]
 

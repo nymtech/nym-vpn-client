@@ -1485,6 +1485,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "dispatch2"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7de2a06334da574f293150949a2bb7c4916c76b0c3a4e8ffd20ec4d71c2be9a5"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "displaydoc"
 version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3350,20 +3359,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "nym-apple-dispatch"
-version = "1.2.0-dev"
-dependencies = [
- "objc2",
- "objc2-foundation",
-]
-
-[[package]]
 name = "nym-apple-network"
 version = "1.2.0-dev"
 dependencies = [
  "block2",
+ "dispatch2",
  "nix 0.29.0",
- "nym-apple-dispatch",
  "objc2",
  "objc2-foundation",
  "thiserror",
