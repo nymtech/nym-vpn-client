@@ -281,6 +281,7 @@ async fn wg_probe(
                 &wg_endpoint,
                 None,
                 None,
+                180,
             );
 
             // Perform IPv4 ping test
@@ -298,6 +299,10 @@ async fn wg_probe(
             wg_outcome.ping_ips_performance_v4 =
                 netstack_response_v4.received_ips as f32 / netstack_response_v4.sent_ips as f32;
 
+            wg_outcome.download_duration_sec_v4 = netstack_response_v4.download_duration_sec;
+            wg_outcome.downloaded_file_v4 = netstack_response_v4.downloaded_file;
+            wg_outcome.download_error_v4 = netstack_response_v4.download_error;
+
             // Perform IPv6 ping test
             let ipv6_request = NetstackRequestGo::from_rust_v6(&netstack_request);
 
@@ -312,6 +317,10 @@ async fn wg_probe(
                 netstack_response_v6.received_hosts as f32 / netstack_response_v6.sent_hosts as f32;
             wg_outcome.ping_ips_performance_v6 =
                 netstack_response_v6.received_ips as f32 / netstack_response_v6.sent_ips as f32;
+
+            wg_outcome.download_duration_sec_v6 = netstack_response_v6.download_duration_sec;
+            wg_outcome.downloaded_file_v6 = netstack_response_v6.downloaded_file;
+            wg_outcome.download_error_v6 = netstack_response_v6.download_error;
         }
     }
 

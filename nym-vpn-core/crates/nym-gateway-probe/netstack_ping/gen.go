@@ -8,24 +8,15 @@ package main
 #include <stdint.h>
 #include <stdlib.h>
 
-typedef struct ListRef {
-  const void *ptr;
-  uintptr_t len;
-} ListRef;
-
-typedef struct NetstackResponseRef {
-  bool can_handshake;
-  uint16_t sent_ips;
-  uint16_t received_ips;
-  uint16_t sent_hosts;
-  uint16_t received_hosts;
-  bool can_resolve_dns;
-} NetstackResponseRef;
-
 typedef struct StringRef {
   const uint8_t *ptr;
   uintptr_t len;
 } StringRef;
+
+typedef struct ListRef {
+  const void *ptr;
+  uintptr_t len;
+} ListRef;
 
 typedef struct NetstackRequestGoRef {
   struct StringRef wg_ip;
@@ -39,7 +30,20 @@ typedef struct NetstackRequestGoRef {
   uint8_t num_ping;
   uint64_t send_timeout_sec;
   uint64_t recv_timeout_sec;
+  uint64_t download_timeout_sec;
 } NetstackRequestGoRef;
+
+typedef struct NetstackResponseRef {
+  bool can_handshake;
+  uint16_t sent_ips;
+  uint16_t received_ips;
+  uint16_t sent_hosts;
+  uint16_t received_hosts;
+  bool can_resolve_dns;
+  struct StringRef downloaded_file;
+  uint64_t download_duration_sec;
+  struct StringRef download_error;
+} NetstackResponseRef;
 
 // hack from: https://stackoverflow.com/a/69904977
 __attribute__((weak))
@@ -216,32 +220,34 @@ func refC_float(p *float32, _ *[]byte) C.float      { return C.float(*p) }
 func refC_double(p *float64, _ *[]byte) C.double    { return C.double(*p) }
 
 type NetstackRequestGo struct {
-	wg_ip            string
-	private_key      string
-	public_key       string
-	endpoint         string
-	dns              string
-	ip_version       uint8
-	ping_hosts       []string
-	ping_ips         []string
-	num_ping         uint8
-	send_timeout_sec uint64
-	recv_timeout_sec uint64
+	wg_ip                string
+	private_key          string
+	public_key           string
+	endpoint             string
+	dns                  string
+	ip_version           uint8
+	ping_hosts           []string
+	ping_ips             []string
+	num_ping             uint8
+	send_timeout_sec     uint64
+	recv_timeout_sec     uint64
+	download_timeout_sec uint64
 }
 
 func newNetstackRequestGo(p C.NetstackRequestGoRef) NetstackRequestGo {
 	return NetstackRequestGo{
-		wg_ip:            newString(p.wg_ip),
-		private_key:      newString(p.private_key),
-		public_key:       newString(p.public_key),
-		endpoint:         newString(p.endpoint),
-		dns:              newString(p.dns),
-		ip_version:       newC_uint8_t(p.ip_version),
-		ping_hosts:       new_list_mapper(newString)(p.ping_hosts),
-		ping_ips:         new_list_mapper(newString)(p.ping_ips),
-		num_ping:         newC_uint8_t(p.num_ping),
-		send_timeout_sec: newC_uint64_t(p.send_timeout_sec),
-		recv_timeout_sec: newC_uint64_t(p.recv_timeout_sec),
+		wg_ip:                newString(p.wg_ip),
+		private_key:          newString(p.private_key),
+		public_key:           newString(p.public_key),
+		endpoint:             newString(p.endpoint),
+		dns:                  newString(p.dns),
+		ip_version:           newC_uint8_t(p.ip_version),
+		ping_hosts:           new_list_mapper(newString)(p.ping_hosts),
+		ping_ips:             new_list_mapper(newString)(p.ping_ips),
+		num_ping:             newC_uint8_t(p.num_ping),
+		send_timeout_sec:     newC_uint64_t(p.send_timeout_sec),
+		recv_timeout_sec:     newC_uint64_t(p.recv_timeout_sec),
+		download_timeout_sec: newC_uint64_t(p.download_timeout_sec),
 	}
 }
 func cntNetstackRequestGo(s *NetstackRequestGo, cnt *uint) [0]C.NetstackRequestGoRef {
@@ -251,37 +257,44 @@ func cntNetstackRequestGo(s *NetstackRequestGo, cnt *uint) [0]C.NetstackRequestG
 }
 func refNetstackRequestGo(p *NetstackRequestGo, buffer *[]byte) C.NetstackRequestGoRef {
 	return C.NetstackRequestGoRef{
-		wg_ip:            refString(&p.wg_ip, buffer),
-		private_key:      refString(&p.private_key, buffer),
-		public_key:       refString(&p.public_key, buffer),
-		endpoint:         refString(&p.endpoint, buffer),
-		dns:              refString(&p.dns, buffer),
-		ip_version:       refC_uint8_t(&p.ip_version, buffer),
-		ping_hosts:       ref_list_mapper(refString)(&p.ping_hosts, buffer),
-		ping_ips:         ref_list_mapper(refString)(&p.ping_ips, buffer),
-		num_ping:         refC_uint8_t(&p.num_ping, buffer),
-		send_timeout_sec: refC_uint64_t(&p.send_timeout_sec, buffer),
-		recv_timeout_sec: refC_uint64_t(&p.recv_timeout_sec, buffer),
+		wg_ip:                refString(&p.wg_ip, buffer),
+		private_key:          refString(&p.private_key, buffer),
+		public_key:           refString(&p.public_key, buffer),
+		endpoint:             refString(&p.endpoint, buffer),
+		dns:                  refString(&p.dns, buffer),
+		ip_version:           refC_uint8_t(&p.ip_version, buffer),
+		ping_hosts:           ref_list_mapper(refString)(&p.ping_hosts, buffer),
+		ping_ips:             ref_list_mapper(refString)(&p.ping_ips, buffer),
+		num_ping:             refC_uint8_t(&p.num_ping, buffer),
+		send_timeout_sec:     refC_uint64_t(&p.send_timeout_sec, buffer),
+		recv_timeout_sec:     refC_uint64_t(&p.recv_timeout_sec, buffer),
+		download_timeout_sec: refC_uint64_t(&p.download_timeout_sec, buffer),
 	}
 }
 
 type NetstackResponse struct {
-	can_handshake   bool
-	sent_ips        uint16
-	received_ips    uint16
-	sent_hosts      uint16
-	received_hosts  uint16
-	can_resolve_dns bool
+	can_handshake         bool
+	sent_ips              uint16
+	received_ips          uint16
+	sent_hosts            uint16
+	received_hosts        uint16
+	can_resolve_dns       bool
+	downloaded_file       string
+	download_duration_sec uint64
+	download_error        string
 }
 
 func newNetstackResponse(p C.NetstackResponseRef) NetstackResponse {
 	return NetstackResponse{
-		can_handshake:   newC_bool(p.can_handshake),
-		sent_ips:        newC_uint16_t(p.sent_ips),
-		received_ips:    newC_uint16_t(p.received_ips),
-		sent_hosts:      newC_uint16_t(p.sent_hosts),
-		received_hosts:  newC_uint16_t(p.received_hosts),
-		can_resolve_dns: newC_bool(p.can_resolve_dns),
+		can_handshake:         newC_bool(p.can_handshake),
+		sent_ips:              newC_uint16_t(p.sent_ips),
+		received_ips:          newC_uint16_t(p.received_ips),
+		sent_hosts:            newC_uint16_t(p.sent_hosts),
+		received_hosts:        newC_uint16_t(p.received_hosts),
+		can_resolve_dns:       newC_bool(p.can_resolve_dns),
+		downloaded_file:       newString(p.downloaded_file),
+		download_duration_sec: newC_uint64_t(p.download_duration_sec),
+		download_error:        newString(p.download_error),
 	}
 }
 func cntNetstackResponse(s *NetstackResponse, cnt *uint) [0]C.NetstackResponseRef {
@@ -289,12 +302,15 @@ func cntNetstackResponse(s *NetstackResponse, cnt *uint) [0]C.NetstackResponseRe
 }
 func refNetstackResponse(p *NetstackResponse, buffer *[]byte) C.NetstackResponseRef {
 	return C.NetstackResponseRef{
-		can_handshake:   refC_bool(&p.can_handshake, buffer),
-		sent_ips:        refC_uint16_t(&p.sent_ips, buffer),
-		received_ips:    refC_uint16_t(&p.received_ips, buffer),
-		sent_hosts:      refC_uint16_t(&p.sent_hosts, buffer),
-		received_hosts:  refC_uint16_t(&p.received_hosts, buffer),
-		can_resolve_dns: refC_bool(&p.can_resolve_dns, buffer),
+		can_handshake:         refC_bool(&p.can_handshake, buffer),
+		sent_ips:              refC_uint16_t(&p.sent_ips, buffer),
+		received_ips:          refC_uint16_t(&p.received_ips, buffer),
+		sent_hosts:            refC_uint16_t(&p.sent_hosts, buffer),
+		received_hosts:        refC_uint16_t(&p.received_hosts, buffer),
+		can_resolve_dns:       refC_bool(&p.can_resolve_dns, buffer),
+		downloaded_file:       refString(&p.downloaded_file, buffer),
+		download_duration_sec: refC_uint64_t(&p.download_duration_sec, buffer),
+		download_error:        refString(&p.download_error, buffer),
 	}
 }
 func main() {}
