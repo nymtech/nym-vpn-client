@@ -3,5 +3,9 @@
   "selected": "चुना गया",
   "ok": "ok",
   "left": "बचा हुआ",
-  "account": "खाता"
+  "account": "खाता",
+  "stop": "रोकें",
+  "login": "लॉगिन",
+  "cancel": "कैंसल",
+  "logout": "लॉगआउट"
 }
