@@ -14,6 +14,17 @@ export NDK_TOOLCHAIN_DIR="$1/toolchains/llvm/prebuilt/${archDir}/bin"
 bash $PWD/../../wireguard/build-wireguard-go.sh --android
 echo "Building nym-vpn-lib dep"
 
+# Project root replaced with /buildroot in reproducible builds
+PROJECT_ROOT="$PWD/../.."
+# Rust compiler sysroot that typically points to ~/.rustup/toolchains/<toolchain>
+RUST_COMPILER_SYS_ROOT=$(rustc --print sysroot)
+# Rust flags used in reproducible builds to replace common paths with defaults
+IDEMPOTENT_RUSTFLAGS="--remap-path-prefix ${HOME}=~ --remap-path-prefix ${PROJECT_ROOT}=/buildroot --remap-path-prefix ${RUST_COMPILER_SYS_ROOT}=/sysroot"
+# Export rust flags enforcing reproducible builds
+export RUSTFLAGS=$IDEMPOTENT_RUSTFLAGS
+# Force vergen to emit stable values
+export VERGEN_IDEMPOTENT=1
+
 #fix emulators later
 #(cd $PWD/src/tools/nym-vpn-client/crates/nym-vpn-lib; cargo ndk -t armeabi-v7a -t arm64-v8a -t i686-linux-android -t x86_64-linux-android  -o ../../../main/jniLibs build --release)
 pushd $PWD/../../nym-vpn-core/crates/nym-vpn-lib
