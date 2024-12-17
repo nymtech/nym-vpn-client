@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::ffi::CStr;
+use std::{ffi::CStr, ptr::NonNull};
 
 use objc2::rc::Retained;
 
@@ -16,11 +16,11 @@ pub struct Interface {
 
 impl Interface {
     /// Create new `Interface` retaining the raw pointer that we don't own.
-    /// Returns `None` if the pointer is null.
-    pub(crate) fn retain(nw_interface_ref: sys::nw_interface_t) -> Option<Self> {
-        Some(Self {
-            inner: unsafe { Retained::retain(nw_interface_ref)? },
-        })
+    pub(crate) fn retain(nw_interface_ref: NonNull<sys::OS_nw_interface>) -> Self {
+        Self {
+            inner: unsafe { Retained::retain(nw_interface_ref.as_ptr()) }
+                .expect("failed to retain interface"),
+        }
     }
 
     pub fn name(&self) -> Result<String, std::str::Utf8Error> {

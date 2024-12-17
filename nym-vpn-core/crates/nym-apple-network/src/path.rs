@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, ptr::NonNull, rc::Rc};
 
 use objc2::rc::Retained;
 use objc2_foundation::{NSObjectProtocol, NSString};
@@ -21,11 +21,11 @@ pub struct Path {
 
 impl Path {
     /// Create new `Path` retaining the raw pointer that we don't own.
-    /// Returns `None` if the pointer is null.
-    pub(crate) fn retain(nw_path_ref: sys::nw_path_t) -> Option<Self> {
-        Some(Self {
-            inner: unsafe { Retained::retain(nw_path_ref)? },
-        })
+    pub(crate) fn retain(nw_path_ref: NonNull<sys::OS_nw_path>) -> Self {
+        Self {
+            inner: unsafe { Retained::retain(nw_path_ref.as_ptr()) }
+                .expect("failed to retain nw_path_ref"),
+        }
     }
 
     pub fn description(&self) -> String {
@@ -44,10 +44,12 @@ impl Path {
         let interfaces = Rc::new(RefCell::new(Vec::new()));
         let cloned_interfaces = interfaces.clone();
 
-        // SAFETY: Use stack block since interface enumerator is not escaping (NW_NOESCAPE)
+        // SAFETY: Use stack block since interface enumerator is not escaping
         let block = block2::StackBlock::new(move |nw_interface_ref| {
-            // SAFETY: nw_interface_ref must never be null.
-            let interface = Interface::retain(nw_interface_ref).expect("invalid nw_interface_ref");
+            let interface = Interface::retain(
+                NonNull::new(nw_interface_ref)
+                    .expect("nw_interface_ref is guaranteed to be non-null"),
+            );
 
             cloned_interfaces.borrow_mut().push(interface);
 
@@ -62,10 +64,12 @@ impl Path {
         let gateways = Rc::new(RefCell::new(Vec::new()));
         let cloned_gateways = gateways.clone();
 
-        // SAFETY: Use stack block since interface enumerator is not escaping (NW_NOESCAPE)
+        // SAFETY: Use stack block since interface enumerator is not escaping
         let block = block2::StackBlock::new(move |nw_endpoint_ref| {
-            // SAFETY: nw_endpoint_ref must never be null.
-            let endpoint = Endpoint::retain(nw_endpoint_ref).expect("invalid nw_endpoint_ref");
+            let endpoint = Endpoint::retain(
+                NonNull::new(nw_endpoint_ref)
+                    .expect("nw_endpoint_ref is guaranteed to be non-null"),
+            );
 
             cloned_gateways.borrow_mut().push(endpoint);
 
