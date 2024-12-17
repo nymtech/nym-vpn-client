@@ -1,13 +1,14 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::fmt;
-
 use chrono::{DateTime, Utc};
 use itertools::Itertools;
 use nym_contracts_common::Percent;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;
+use nym_validator_client::client::NodeId;
 use serde::{Deserialize, Serialize};
+use std::fmt;
+use std::net::IpAddr;
 
 const MAX_PROBE_RESULT_AGE_MINUTES: i64 = 60;
 
@@ -271,12 +272,13 @@ impl IntoIterator for NymDirectoryGatewaysResponse {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct NymDirectoryGateway {
+    pub node_id: NodeId,
     pub identity_key: String,
     pub ip_packet_router: Option<IpPacketRouter>,
     pub authenticator: Option<Authenticator>,
     pub location: Location,
     pub last_probe: Option<Probe>,
-    pub ip_addresses: Vec<String>,
+    pub ip_addresses: Vec<IpAddr>,
     pub mix_port: u16,
     pub role: Role,
     pub entry: EntryInformation,

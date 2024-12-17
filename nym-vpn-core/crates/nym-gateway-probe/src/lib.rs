@@ -10,10 +10,9 @@ use std::{
 };
 
 use crate::netstack::NetstackRequest;
-use anyhow::bail;
+use anyhow::{anyhow, bail};
 use base64::{engine::general_purpose, Engine as _};
 use bytes::BytesMut;
-use dns_lookup::lookup_host;
 use futures::StreamExt;
 use netstack::ffi::{NetstackCall as _, NetstackCallImpl, NetstackRequestGo};
 use nym_authenticator_client::{AuthenticatorResponse, AuthenticatorVersion, ClientMessage};
@@ -23,7 +22,7 @@ use nym_connection_monitor::self_ping_and_wait;
 use nym_gateway_directory::{
     AuthAddress, Config as GatewayDirectoryConfig, EntryPoint,
     GatewayClient as GatewayDirectoryClient, GatewayList, GatewayMinPerformance,
-    IpPacketRouterAddress,
+    IpPacketRouterAddress, NymNode,
 };
 use nym_ip_packet_client::{IprClientConnect, SharedMixnetClient};
 use nym_ip_packet_requests::{
@@ -31,7 +30,7 @@ use nym_ip_packet_requests::{
     response::{DataResponse, InfoLevel, IpPacketResponse, IpPacketResponseData},
     IpPair,
 };
-use nym_sdk::mixnet::{MixnetClient, MixnetClientBuilder, ReconstructedMessage};
+use nym_sdk::mixnet::{MixnetClient, MixnetClientBuilder, NodeIdentity, ReconstructedMessage};
 use nym_wireguard_types::PeerPublicKey;
 use tokio::sync::Mutex;
 use tokio_util::codec::Decoder;
@@ -40,7 +39,7 @@ use types::WgProbeResults;
 
 use crate::{
     icmp::{check_for_icmp_beacon_reply, icmp_identifier, send_ping_v4, send_ping_v6},
-    types::{Entry, Exit},
+    types::Exit,
 };
 
 mod error;
@@ -48,8 +47,55 @@ mod icmp;
 mod netstack;
 mod types;
 
+use crate::types::Entry;
 pub use error::{Error, Result};
 pub use types::{IpPingReplies, ProbeOutcome, ProbeResult};
+
+#[derive(Default, Debug)]
+pub enum TestedNode {
+    #[default]
+    SameAsEntry,
+    Custom {
+        identity: NodeIdentity,
+    },
+}
+
+impl TestedNode {
+    pub fn is_same_as_entry(&self) -> bool {
+        matches!(self, TestedNode::SameAsEntry)
+    }
+}
+
+#[derive(Debug)]
+pub struct TestedNodeDetails {
+    exit_router_address: Option<IpPacketRouterAddress>,
+    authenticator_address: Option<AuthAddress>,
+    authenticator_version: AuthenticatorVersion,
+    ip_address: Option<IpAddr>,
+}
+
+impl From<&NymNode> for TestedNodeDetails {
+    fn from(node: &NymNode) -> Self {
+        TestedNodeDetails {
+            exit_router_address: node.ipr_address,
+            authenticator_address: node.authenticator_address,
+            authenticator_version: AuthenticatorVersion::from(node.version.as_ref()),
+            ip_address: node.ips.first().copied(),
+        }
+    }
+}
+
+/// Obtain nym-node for testing
+pub async fn get_nym_node(identity: NodeIdentity) -> anyhow::Result<NymNode> {
+    let config = GatewayDirectoryConfig::new_from_env();
+    let user_agent = nym_bin_common::bin_info_local_vergen!().into();
+    let nodes_client = GatewayDirectoryClient::new(config.clone(), user_agent)?;
+    let nodes = nodes_client.lookup_all_nymnodes().await?;
+    let node = nodes
+        .node_with_identity(&identity)
+        .ok_or_else(|| anyhow!("did not find the specified node"))?;
+    Ok(node.clone())
+}
 
 pub async fn fetch_gateways(
     min_gateway_performance: GatewayMinPerformance,
@@ -67,30 +113,44 @@ pub async fn fetch_gateways_with_ipr(
 
 pub async fn probe(
     entry_point: EntryPoint,
+    tested_node: TestedNode,
     min_gateway_performance: GatewayMinPerformance,
+    ignore_egress_epoch_role: bool,
     only_wireguard: bool,
 ) -> anyhow::Result<ProbeResult> {
     // Setup the entry gateways
     let gateways = lookup_gateways(min_gateway_performance).await?;
     let entry_gateway = entry_point.lookup_gateway(&gateways).await?;
-    let exit_router_address = entry_gateway.ipr_address;
-    let authenticator = entry_gateway.authenticator_address;
-    let gateway_host = entry_gateway.host.clone().unwrap();
-    let auth_version = AuthenticatorVersion::from(entry_gateway.version.clone());
-    let mixnet_entry_gateway_id = if only_wireguard {
-        *gateways.random_gateway().unwrap().identity()
-    } else {
-        *entry_gateway.identity()
+    let tested_entry = tested_node.is_same_as_entry();
+
+    let node_info: TestedNodeDetails = match tested_node {
+        TestedNode::Custom { identity } => {
+            let node = get_nym_node(identity).await?;
+            info!(
+                "testing node {} (via entry {})",
+                node.identity, entry_gateway.identity
+            );
+            (&node).into()
+        }
+        TestedNode::SameAsEntry => (&entry_gateway).into(),
     };
 
-    info!("Probing gateway: {entry_gateway:?}");
-    debug!("gateway_host: {}", gateway_host);
+    let mixnet_entry_gateway_id = entry_gateway.identity();
 
-    // Connect to the mixnet
+    info!("connecting to entry gateway: {entry_gateway:?}");
+    debug!(
+        "authenticator version: {:?}",
+        node_info.authenticator_version
+    );
+
+    // Connect to the mixnet via the entry gateway
     let mixnet_client = MixnetClientBuilder::new_ephemeral()
         .request_gateway(mixnet_entry_gateway_id.to_string())
         .network_details(NymNetworkDetails::new_from_env())
-        .debug_config(mixnet_debug_config(min_gateway_performance))
+        .debug_config(mixnet_debug_config(
+            min_gateway_performance,
+            ignore_egress_epoch_role,
+        ))
         .build()?
         .connect_to_mixnet()
         .await;
@@ -102,7 +162,11 @@ pub async fn probe(
             return Ok(ProbeResult {
                 gateway: mixnet_entry_gateway_id.to_string(),
                 outcome: ProbeOutcome {
-                    as_entry: Entry::fail_to_connect(),
+                    as_entry: if tested_entry {
+                        Entry::fail_to_connect()
+                    } else {
+                        Entry::EntryFailure
+                    },
                     as_exit: None,
                     wg: None,
                 },
@@ -120,12 +184,37 @@ pub async fn probe(
 
     // Now that we have a connected mixnet client, we can start pinging
     let shared_mixnet_client = SharedMixnetClient::from_shared(&shared_client);
-    let outcome = do_ping(shared_mixnet_client.clone(), exit_router_address).await;
 
-    let wg_outcome = if let Some(authenticator) = authenticator {
-        wg_probe(authenticator, shared_client, &gateway_host, auth_version)
-            .await
-            .unwrap_or_default()
+    let outcome = if only_wireguard {
+        Ok(ProbeOutcome {
+            as_entry: if tested_entry {
+                Entry::success()
+            } else {
+                Entry::NotTested
+            },
+            as_exit: None,
+            wg: None,
+        })
+    } else {
+        do_ping(
+            shared_mixnet_client.clone(),
+            node_info.exit_router_address,
+            tested_entry,
+        )
+        .await
+    };
+
+    let wg_outcome = if let (Some(authenticator), Some(ip_address)) =
+        (node_info.authenticator_address, node_info.ip_address)
+    {
+        wg_probe(
+            authenticator,
+            shared_client,
+            ip_address,
+            node_info.authenticator_version,
+        )
+        .await
+        .unwrap_or_default()
     } else {
         WgProbeResults::default()
     };
@@ -146,7 +235,7 @@ pub async fn probe(
 async fn wg_probe(
     authenticator: AuthAddress,
     shared_mixnet_client: Arc<Mutex<Option<MixnetClient>>>,
-    gateway_host: &nym_topology::NetworkAddress,
+    gateway_ip: IpAddr,
     auth_version: AuthenticatorVersion,
 ) -> anyhow::Result<WgProbeResults> {
     let auth_shared_client = nym_authenticator_client::SharedMixnetClient::from_shared(
@@ -154,6 +243,7 @@ async fn wg_probe(
         #[cfg(target_os = "android")]
         Arc::new(|_: RawFd| {}),
     );
+
     let mut auth_client = nym_authenticator_client::AuthClient::new(auth_shared_client).await;
 
     let mut rng = rand::thread_rng();
@@ -171,7 +261,7 @@ async fn wg_probe(
         AuthenticatorVersion::V4 => ClientMessage::Initial(Box::new(
             v4::registration::InitMessage::new(authenticator_pub_key),
         )),
-        AuthenticatorVersion::UNKNOWN => bail!("Unknwon version number"),
+        AuthenticatorVersion::UNKNOWN => bail!("unknown version number"),
     };
 
     let mut wg_outcome = WgProbeResults::default();
@@ -185,8 +275,6 @@ async fn wg_probe(
             nym_authenticator_client::AuthenticatorResponse::PendingRegistration(
                 pending_registration_response,
             ) => {
-                // Unwrap since we have already checked that we have the keypair.
-                debug!("Verifying data");
                 pending_registration_response.verify(&private_key)?;
 
                 let finalized_message = match auth_version {
@@ -254,21 +342,7 @@ async fn wg_probe(
             registered_data.wg_port(),
         );
 
-        let gateway_ip = match gateway_host {
-            nym_topology::NetworkAddress::Hostname(host) => lookup_host(host)?
-                .first()
-                .map(|ip| match ip {
-                    IpAddr::V4(ip) => ip.to_string(),
-                    IpAddr::V6(ip) => format!("[{}]", ip),
-                })
-                .unwrap_or_default(),
-            nym_topology::NetworkAddress::IpAddr(ip) => match ip {
-                IpAddr::V4(ip) => ip.to_string(),
-                IpAddr::V6(ip) => format!("[{}]", ip),
-            },
-        };
-
-        let wg_endpoint = format!("{}:{}", gateway_ip, registered_data.wg_port());
+        let wg_endpoint = format!("{gateway_ip}:{}", registered_data.wg_port());
 
         info!("Successfully registered with the gateway");
 
@@ -342,6 +416,7 @@ async fn lookup_gateways(
 
 fn mixnet_debug_config(
     min_gateway_performance: GatewayMinPerformance,
+    ignore_egress_epoch_role: bool,
 ) -> nym_client_core::config::DebugConfig {
     let mut debug_config = nym_client_core::config::DebugConfig::default();
     debug_config
@@ -352,12 +427,17 @@ fn mixnet_debug_config(
         debug_config.topology.minimum_gateway_performance =
             minimum_gateway_performance.round_to_integer();
     }
+    if ignore_egress_epoch_role {
+        debug_config.topology.ignore_egress_epoch_role = ignore_egress_epoch_role;
+    }
+
     debug_config
 }
 
 async fn do_ping(
     shared_mixnet_client: SharedMixnetClient,
     exit_router_address: Option<IpPacketRouterAddress>,
+    tested_entry: bool,
 ) -> anyhow::Result<ProbeOutcome> {
     // Step 1: confirm that the entry gateway is routing our mixnet traffic
     info!("Sending mixnet ping to ourselves to verify mixnet connection");
@@ -369,16 +449,26 @@ async fn do_ping(
     .is_err()
     {
         return Ok(ProbeOutcome {
-            as_entry: Entry::fail_to_route(),
+            as_entry: if tested_entry {
+                Entry::fail_to_connect()
+            } else {
+                Entry::EntryFailure
+            },
             as_exit: None,
             wg: None,
         });
     }
     info!("Successfully mixnet pinged ourselves");
 
+    let as_entry = if tested_entry {
+        Entry::success()
+    } else {
+        Entry::NotTested
+    };
+
     let Some(exit_router_address) = exit_router_address else {
         return Ok(ProbeOutcome {
-            as_entry: Entry::success(),
+            as_entry,
             as_exit: None,
             wg: None,
         });
@@ -392,7 +482,7 @@ async fn do_ping(
     let mut ipr_client = IprClientConnect::new(shared_mixnet_client.clone()).await;
     let Ok(our_ips) = ipr_client.connect(exit_router_address.0, None).await else {
         return Ok(ProbeOutcome {
-            as_entry: Entry::success(),
+            as_entry,
             as_exit: Some(Exit::fail_to_connect()),
             wg: None,
         });
@@ -503,17 +593,18 @@ async fn listen_for_icmp_ping_replies(
         .await
         .replace(mixnet_client);
 
-    Ok(ProbeOutcome {
-        as_entry: Entry::success(),
-        as_exit: Some(Exit {
-            can_connect: true,
-            can_route_ip_v4: registered_replies.ipr_tun_ip_v4,
-            can_route_ip_external_v4: registered_replies.external_ip_v4,
-            can_route_ip_v6: registered_replies.ipr_tun_ip_v6,
-            can_route_ip_external_v6: registered_replies.external_ip_v6,
-        }),
-        wg: None,
-    })
+    todo!()
+    // Ok(ProbeOutcome {
+    //     as_entry: EntryTestResult::success(),
+    //     as_exit: Some(Exit {
+    //         can_connect: true,
+    //         can_route_ip_v4: registered_replies.ipr_tun_ip_v4,
+    //         can_route_ip_external_v4: registered_replies.external_ip_v4,
+    //         can_route_ip_v6: registered_replies.ipr_tun_ip_v6,
+    //         can_route_ip_external_v6: registered_replies.external_ip_v6,
+    //     }),
+    //     wg: None,
+    // })
 }
 
 fn unpack_data_response(reconstructed_message: &ReconstructedMessage) -> Option<DataResponse> {

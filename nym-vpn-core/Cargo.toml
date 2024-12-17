@@ -28,31 +28,31 @@ members = [
 ]
 
 # For local development
-# [patch."https://github.com/nymtech/nym"]
-# nym-authenticator-requests = { path = "../../nym/common/authenticator-requests" }
-# nym-bandwidth-controller = { path = "../../nym/common/bandwidth-controller" }
-# nym-bin-common = { path = "../../nym/common/bin-common" }
-# nym-client-core = { path = "../../nym/common/client-core" }
-# nym-compact-ecash = { path = "../../nym/common/nym_offline_compact_ecash" }
-# nym-config = { path = "../../nym/common/config" }
-# nym-contracts-common = { path = "../../nym/common/cosmwasm-smart-contracts/contracts-common" }
-# nym-credential-proxy-requests = { path = "../../nym/nym-credential-proxy/nym-credential-proxy-requests" }
-# nym-credential-storage = { path = "../../nym/common/credential-storage" }
-# nym-credentials = { path = "../../nym/common/credentials" }
-# nym-credentials-interface = { path = "../../nym/common/credentials-interface" }
-# nym-crypto = { path = "../../nym/common/crypto" }
-# nym-ecash-time = { path = "../../nym/common/ecash-time" }
-# nym-http-api-client = { path = "../../nym/common/http-api-client" }
-# nym-ip-packet-requests = { path = "../../nym/common/ip-packet-requests" }
-# nym-node-requests = { path = "../../nym/nym-node/nym-node-requests" }
-# nym-pemstore = { path = "../../nym/common/pemstore" }
-# nym-service-provider-requests-common = { path = "../../nym/common/service-provider-requests-common" }
-# nym-sdk = { path = "../../nym/sdk/rust/nym-sdk" }
-# nym-statistics-common = { path = "../../nym/common/statistics" }
-# nym-task = { path = "../../nym/common/task" }
-# nym-topology = { path = "../../nym/common/topology" }
-# nym-validator-client = { path = "../../nym/common/client-libs/validator-client" }
-# nym-wireguard-types = { path = "../../nym/common/wireguard-types" }
+#[patch."https://github.com/nymtech/nym"]
+#nym-authenticator-requests = { path = "../../nym/common/authenticator-requests" }
+#nym-bandwidth-controller = { path = "../../nym/common/bandwidth-controller" }
+#nym-bin-common = { path = "../../nym/common/bin-common" }
+#nym-client-core = { path = "../../nym/common/client-core" }
+#nym-compact-ecash = { path = "../../nym/common/nym_offline_compact_ecash" }
+#nym-config = { path = "../../nym/common/config" }
+#nym-contracts-common = { path = "../../nym/common/cosmwasm-smart-contracts/contracts-common" }
+#nym-credential-proxy-requests = { path = "../../nym/nym-credential-proxy/nym-credential-proxy-requests" }
+#nym-credential-storage = { path = "../../nym/common/credential-storage" }
+#nym-credentials = { path = "../../nym/common/credentials" }
+#nym-credentials-interface = { path = "../../nym/common/credentials-interface" }
+#nym-crypto = { path = "../../nym/common/crypto" }
+#nym-ecash-time = { path = "../../nym/common/ecash-time" }
+#nym-http-api-client = { path = "../../nym/common/http-api-client" }
+#nym-ip-packet-requests = { path = "../../nym/common/ip-packet-requests" }
+#nym-node-requests = { path = "../../nym/nym-node/nym-node-requests" }
+#nym-pemstore = { path = "../../nym/common/pemstore" }
+#nym-service-provider-requests-common = { path = "../../nym/common/service-provider-requests-common" }
+#nym-sdk = { path = "../../nym/sdk/rust/nym-sdk" }
+#nym-statistics-common = { path = "../../nym/common/statistics" }
+#nym-task = { path = "../../nym/common/task" }
+#nym-topology = { path = "../../nym/common/topology" }
+#nym-validator-client = { path = "../../nym/common/client-libs/validator-client" }
+#nym-wireguard-types = { path = "../../nym/common/wireguard-types" }
 
 [workspace.package]
 version = "1.2.0-dev"
