@@ -20,7 +20,8 @@
     "title": "प्रतिक्रिया",
     "github": "GitHub मुद्दा खोलें",
     "matrix": "Matrix पर हमसे जुड़ें",
-    "discord": "Discord पर हमसे जुड़ें"
+    "discord": "Discord पर हमसे जुड़ें",
+    "get-in-touch": "संपर्क करें"
   },
   "support": {
     "title": "सहायता",
@@ -34,7 +35,9 @@
   "info": {
     "client-version": "क्लाइंट वर्शन",
     "daemon-version": "Daemon वर्शन",
-    "network-name": "नेटवर्क"
+    "network-name": "नेटवर्क",
+    "device-id": "डिवाइस आईडी",
+    "account-id": "खाता पहचान"
   },
   "display-theme": "डिस्प्ले मोड",
   "notifications": {
@@ -42,5 +45,9 @@
   },
   "quit": "NymVPN बंद करें",
   "faq": "FAQ",
-  "monitoring-alert": "परिवर्तन लागू होने के लिए ऐप को फिरसे शुरू करें।"
+  "monitoring-alert": "परिवर्तन लागू होने के लिए ऐप को फिरसे शुरू करें।",
+  "logout-confirmation": {
+    "description": "आपको फिर से लॉग इन करने के लिए अपनी रिकवरी वाक्यांश की आवश्यकता होगी।",
+    "title": "क्या आप सुनिश्चित हैं?"
+  }
 }
