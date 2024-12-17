@@ -53,9 +53,9 @@ impl ExitPoint {
                 let ipr_address = IpPacketRouterAddress(*address);
                 let gateway_address = ipr_address.gateway();
 
-                // Now fetch the gateway that the IPR is connected to, and override it's IPR address
+                // Now fetch the gateway that the IPR is connected to, and override its IPR address
                 let mut gateway = gateways
-                    .gateway_with_identity(gateway_address)
+                    .gateway_with_identity(&gateway_address)
                     .ok_or_else(|| Error::NoMatchingGateway {
                         requested_identity: gateway_address.to_string(),
                     })

@@ -6,7 +6,8 @@ use clap::Parser;
 use nym_bin_common::bin_info;
 use nym_config::defaults::setup_env;
 use nym_gateway_directory::{EntryPoint, GatewayMinPerformance};
-use nym_gateway_probe::ProbeResult;
+use nym_gateway_probe::{ProbeResult, TestedNode};
+use nym_sdk::mixnet::NodeIdentity;
 use std::path::PathBuf;
 use std::sync::OnceLock;
 use tracing::*;
@@ -14,6 +15,13 @@ use tracing::*;
 fn pretty_build_info_static() -> &'static str {
     static PRETTY_BUILD_INFORMATION: OnceLock<String> = OnceLock::new();
     PRETTY_BUILD_INFORMATION.get_or_init(|| bin_info!().pretty_print())
+}
+
+fn validate_node_identity(s: &str) -> Result<NodeIdentity, String> {
+    match s.parse() {
+        Ok(cg) => Ok(cg),
+        Err(_) => Err(format!("failed to parse country group: {}", s)),
+    }
 }
 
 #[derive(Parser)]
@@ -24,8 +32,12 @@ struct CliArgs {
     config_env_file: Option<PathBuf>,
 
     /// The specific gateway specified by ID.
-    #[arg(long, short)]
-    gateway: Option<String>,
+    #[arg(long, short = 'g', alias = "gateway")]
+    entry_gateway: Option<String>,
+
+    /// Identity of the node to test
+    #[arg(long, short, value_parser = validate_node_identity)]
+    node: Option<NodeIdentity>,
 
     #[arg(long)]
     min_gateway_mixnet_performance: Option<u8>,
@@ -38,6 +50,9 @@ struct CliArgs {
 
     /// Disable logging during probe
     #[arg(long, short)]
+    ignore_egress_epoch_role: bool,
+
+    #[arg(long)]
     no_log: bool,
 
     /// Arguments to be appended to the wireguard config enabling amnezia-wg configuration
@@ -72,18 +87,29 @@ pub(crate) async fn run() -> anyhow::Result<ProbeResult> {
         args.min_gateway_vpn_performance.map(u64::from),
     )?;
 
-    let gateway = if let Some(gateway) = args.gateway {
+    let entry = if let Some(gateway) = args.entry_gateway {
         EntryPoint::from_base58_string(&gateway)?
     } else {
         fetch_random_gateway_with_ipr(min_gateway_performance).await?
     };
 
-    let mut trial = nym_gateway_probe::Probe::new(gateway);
+    let test_point = if let Some(node) = args.node {
+        TestedNode::Custom { identity: node }
+    } else {
+        TestedNode::SameAsEntry
+    };
+
+    let mut trial = nym_gateway_probe::Probe::new(entry);
     if let Some(awg_args) = args.amnezia_args {
         trial.with_amnezia(&awg_args);
     }
     trial
-        .probe(min_gateway_performance, args.only_wireguard)
+        .probe(
+            test_point,
+            min_gateway_performance,
+            args.only_wireguard,
+            args.ignore_egress_epoch_role,
+        )
         .await
 }
 
@@ -98,6 +124,6 @@ async fn fetch_random_gateway_with_ipr(
         .random_gateway()
         .ok_or(anyhow!("No gateways returned by nym-api"))?;
     Ok(EntryPoint::Gateway {
-        identity: *gateway.identity(),
+        identity: gateway.identity(),
     })
 }

@@ -1,24 +1,28 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{fmt, net::IpAddr, str::FromStr};
-
 use itertools::Itertools;
 use nym_sdk::mixnet::NodeIdentity;
+use nym_topology::{NodeId, RoutingNode};
 use nym_vpn_api_client::types::Percent;
 use rand::seq::IteratorRandom;
+use std::{fmt, net::IpAddr};
 use tracing::error;
 
 use crate::{error::Result, AuthAddress, Country, Error, IpPacketRouterAddress};
 
+pub type NymNode = Gateway;
+
 #[derive(Clone)]
 pub struct Gateway {
+    pub node_id: NodeId,
     pub identity: NodeIdentity,
     pub location: Option<Location>,
     pub ipr_address: Option<IpPacketRouterAddress>,
     pub authenticator_address: Option<AuthAddress>,
     pub last_probe: Option<Probe>,
-    pub host: Option<nym_topology::NetworkAddress>,
+    pub ips: Vec<IpAddr>,
+    pub host: Option<String>,
     pub clients_ws_port: Option<u16>,
     pub clients_wss_port: Option<u16>,
     pub mixnet_performance: Option<Percent>,
@@ -28,6 +32,7 @@ pub struct Gateway {
 impl fmt::Debug for Gateway {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Gateway")
+            .field("node_id", &self.node_id)
             .field("identity", &self.identity.to_base58_string())
             .field("location", &self.location)
             .field("ipr_address", &self.ipr_address)
@@ -42,8 +47,12 @@ impl fmt::Debug for Gateway {
 }
 
 impl Gateway {
-    pub fn identity(&self) -> &NodeIdentity {
-        &self.identity
+    pub fn node_id(&self) -> NodeId {
+        self.node_id
+    }
+
+    pub fn identity(&self) -> NodeIdentity {
+        self.identity
     }
 
     pub fn two_letter_iso_country_code(&self) -> Option<&str> {
@@ -64,17 +73,12 @@ impl Gateway {
         self.authenticator_address.is_some()
     }
 
-    pub fn host(&self) -> Option<&nym_topology::NetworkAddress> {
+    pub fn host(&self) -> Option<&String> {
         self.host.as_ref()
     }
 
-    pub async fn lookup_ip(&self) -> Option<IpAddr> {
-        match self.host.clone()? {
-            nym_topology::NetworkAddress::IpAddr(ip) => Some(ip),
-            nym_topology::NetworkAddress::Hostname(hostname) => {
-                crate::helpers::try_resolve_hostname(&hostname).await.ok()
-            }
-        }
+    pub fn lookup_ip(&self) -> Option<IpAddr> {
+        self.ips.first().copied()
     }
 
     pub fn clients_address_no_tls(&self) -> Option<String> {
@@ -218,23 +222,22 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             .authenticator
             .and_then(|auth| AuthAddress::try_from_base58_string(&auth.address).ok());
 
-        let hostname = gateway
-            .entry
-            .hostname
-            .map(nym_topology::NetworkAddress::Hostname);
-        let first_ip_address = gateway.ip_addresses.first().cloned().and_then(|ip| {
-            IpAddr::from_str(&ip)
-                .ok()
-                .map(nym_topology::NetworkAddress::IpAddr)
-        });
+        let hostname = gateway.entry.hostname;
+        let first_ip_address = gateway
+            .ip_addresses
+            .first()
+            .cloned()
+            .map(|ip| ip.to_string());
         let host = hostname.or(first_ip_address);
 
         Ok(Gateway {
+            node_id: gateway.node_id,
             identity,
             location: Some(gateway.location.into()),
             ipr_address,
             authenticator_address,
             last_probe: gateway.last_probe.map(Probe::from),
+            ips: gateway.ip_addresses,
             host,
             clients_ws_port: Some(gateway.entry.ws_port),
             clients_wss_port: gateway.entry.wss_port,
@@ -287,19 +290,24 @@ impl TryFrom<nym_validator_client::models::NymNodeDescription> for Gateway {
         } else {
             nym_validator_client::nym_nodes::NodeRole::Inactive
         };
-        let gateway = nym_topology::gateway::LegacyNode::try_from(
-            &node_description.to_skimmed_node(role, Default::default()),
-        )
-        .ok();
-        let host = gateway.clone().map(|g| g.host);
-        let clients_ws_port = gateway.as_ref().map(|g| g.clients_ws_port);
-        let clients_wss_port = gateway.and_then(|g| g.clients_wss_port);
+
+        let gateway =
+            RoutingNode::try_from(&node_description.to_skimmed_node(role, Default::default()))
+                .map_err(|_| Error::MalformedGateway)?;
+
+        let host = gateway.ws_entry_address(false);
+        let entry_info = &gateway.entry;
+        let clients_ws_port = entry_info.as_ref().map(|g| g.clients_ws_port);
+        let clients_wss_port = entry_info.as_ref().and_then(|g| g.clients_wss_port);
+        let ips = node_description.description.host_information.ip_address;
         Ok(Gateway {
+            node_id: gateway.node_id,
             identity,
             location,
             ipr_address,
             authenticator_address,
             last_probe: None,
+            ips,
             host,
             clients_ws_port,
             clients_wss_port,
@@ -308,6 +316,8 @@ impl TryFrom<nym_validator_client::models::NymNodeDescription> for Gateway {
         })
     }
 }
+
+pub type NymNodeList = GatewayList;
 
 #[derive(Debug, Clone)]
 pub struct GatewayList {
@@ -341,10 +351,14 @@ impl GatewayList {
             .collect()
     }
 
-    pub fn gateway_with_identity(&self, identity: &NodeIdentity) -> Option<&Gateway> {
+    pub fn node_with_identity(&self, identity: &NodeIdentity) -> Option<&NymNode> {
         self.gateways
             .iter()
-            .find(|gateway| gateway.identity() == identity)
+            .find(|node| &node.identity() == identity)
+    }
+
+    pub fn gateway_with_identity(&self, identity: &NodeIdentity) -> Option<&Gateway> {
+        self.node_with_identity(identity)
     }
 
     pub fn gateways_located_at(&self, code: String) -> impl Iterator<Item = &Gateway> {
@@ -425,16 +439,22 @@ impl IntoIterator for GatewayList {
 }
 
 impl nym_client_core::init::helpers::ConnectableGateway for Gateway {
-    fn identity(&self) -> &nym_sdk::mixnet::NodeIdentity {
+    fn node_id(&self) -> NodeId {
+        self.node_id()
+    }
+
+    fn identity(&self) -> nym_sdk::mixnet::NodeIdentity {
         self.identity()
     }
 
-    fn clients_address(&self) -> String {
+    fn clients_address(&self, _prefer_ipv6: bool) -> Option<String> {
         // This is a bit of a sharp edge, but temporary until we can remove Option from host
         // and tls port when we add these to the vpn API endpoints.
-        self.clients_address_tls()
-            .or(self.clients_address_no_tls())
-            .unwrap_or("ws://".to_string())
+        Some(
+            self.clients_address_tls()
+                .or(self.clients_address_no_tls())
+                .unwrap_or("ws://".to_string()),
+        )
     }
 
     fn is_wss(&self) -> bool {

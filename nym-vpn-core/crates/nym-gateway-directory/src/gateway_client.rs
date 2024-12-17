@@ -11,13 +11,14 @@ use rand::thread_rng;
 use tracing::{debug, error, info, warn};
 use url::Url;
 
+use crate::entries::gateway::NymNodeList;
 use crate::{
     entries::{
         country::Country,
         gateway::{Gateway, GatewayList, GatewayType},
     },
     error::Result,
-    Error,
+    Error, NymNode,
 };
 
 #[derive(Clone, Debug)]
@@ -167,6 +168,14 @@ impl GatewayClient {
             .map_err(Error::FailedToLookupSkimmedGateways)
     }
 
+    async fn lookup_skimmed_nodes(&self) -> Result<Vec<SkimmedNode>> {
+        info!("Fetching skimmed entry assigned nodes from nym-api...");
+        self.api_client
+            .get_all_basic_nodes()
+            .await
+            .map_err(Error::FailedToLookupSkimmedNodes)
+    }
+
     pub async fn lookup_low_latency_entry_gateway(&self) -> Result<Gateway> {
         debug!("Fetching low latency entry gateway...");
         let gateways = self.lookup_gateways(GatewayType::MixnetEntry).await?;
@@ -238,6 +247,23 @@ impl GatewayClient {
         Ok(GatewayList::new(gateways))
     }
 
+    pub async fn lookup_all_nymnodes(&self) -> Result<NymNodeList> {
+        let mut nodes = self
+            .lookup_described_nodes()
+            .await?
+            .into_iter()
+            .filter_map(|gw| {
+                NymNode::try_from(gw)
+                    .inspect_err(|err| error!("Failed to parse node: {err}"))
+                    .ok()
+            })
+            .collect::<Vec<_>>();
+        let skimmed_nodes = self.lookup_skimmed_nodes().await?;
+        append_performance(&mut nodes, skimmed_nodes);
+        filter_on_mixnet_min_performance(&mut nodes, &self.min_gateway_performance);
+        Ok(GatewayList::new(nodes))
+    }
+
     pub async fn lookup_gateways_from_nym_api(&self, gw_type: GatewayType) -> Result<GatewayList> {
         match gw_type {
             GatewayType::MixnetEntry => self.lookup_entry_gateways_from_nym_api().await,
@@ -282,7 +308,6 @@ impl GatewayClient {
                 .ok_or_else(|| Error::RequestedGatewayIdNotFound(gateway_identity.to_string()))?;
             gateway
                 .lookup_ip()
-                .await
                 .ok_or(Error::FailedToLookupIp(gateway_identity.to_string()))
         } else {
             warn!("OPERATING IN FALLBACK MODE WITHOUT NYM-VPN-API!");
@@ -358,7 +383,7 @@ fn append_performance(
     for gateway in gateways.iter_mut() {
         if let Some(basic_gw) = basic_gw
             .iter()
-            .find(|bgw| bgw.ed25519_identity_pubkey == *gateway.identity())
+            .find(|bgw| bgw.ed25519_identity_pubkey == gateway.identity())
         {
             gateway.mixnet_performance = Some(basic_gw.performance);
         } else {

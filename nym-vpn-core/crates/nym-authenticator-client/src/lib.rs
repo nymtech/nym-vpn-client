@@ -735,22 +735,34 @@ impl From<u8> for AuthenticatorVersion {
     }
 }
 
-impl From<Option<String>> for AuthenticatorVersion {
-    fn from(value: Option<String>) -> Self {
+impl From<&str> for AuthenticatorVersion {
+    fn from(value: &str) -> Self {
+        let Ok(semver) = semver::Version::parse(value) else {
+            return Self::UNKNOWN;
+        };
+
+        semver.into()
+    }
+}
+
+impl From<Option<&String>> for AuthenticatorVersion {
+    fn from(value: Option<&String>) -> Self {
         match value {
             None => Self::UNKNOWN,
-            Some(value) => value.into(),
+            Some(value) => value.as_str().into(),
         }
     }
 }
 
 impl From<String> for AuthenticatorVersion {
     fn from(value: String) -> Self {
-        let Ok(semver) = semver::Version::parse(value.as_str()) else {
-            return Self::UNKNOWN;
-        };
+        Self::from(value.as_str())
+    }
+}
 
-        semver.into()
+impl From<Option<String>> for AuthenticatorVersion {
+    fn from(value: Option<String>) -> Self {
+        value.as_ref().into()
     }
 }
 
