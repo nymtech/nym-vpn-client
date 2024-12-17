@@ -13,8 +13,12 @@ let package = Package(
     products: [
         .library(name: "AppVersionProvider", targets: ["AppVersionProvider"]),
         .library(name: "ConnectionTypes", targets: ["ConnectionTypes"]),
+        .library(name: "CountriesManagerTypes", targets: ["CountriesManagerTypes"]),
         .library(name: "SystemMessageModels", targets: ["SystemMessageModels"]),
         .library(name: "TunnelStatus", targets: ["TunnelStatus"])
+    ],
+    dependencies: [
+        .package(name: "Theme", path: "../Theme")
     ],
     targets: [
         .target(
@@ -24,8 +28,16 @@ let package = Package(
         ),
         .target(
             name: "ConnectionTypes",
-            dependencies: [],
+            dependencies: [
+                "Theme"
+            ],
             path: "Sources/ConnectionTypes"
+        ),
+        .target(
+            name: "CountriesManagerTypes",
+            dependencies: [
+            ],
+            path: "Sources/CountriesManagerTypes"
         ),
         .target(
             name: "SystemMessageModels",

@@ -16,7 +16,6 @@ let package = Package(
         .library(name: "ConfigurationManager", targets: ["ConfigurationManager"]),
         .library(name: "Constants", targets: ["Constants"]),
         .library(name: "CountriesManager", targets: ["CountriesManager"]),
-        .library(name: "CountriesManagerTypes", targets: ["CountriesManagerTypes"]),
         .library(name: "CredentialsManager", targets: ["CredentialsManager"]),
         .library(name: "DarwinNotificationCenter", targets: ["DarwinNotificationCenter"]),
         .library(name: "Device", targets: ["Device"]),
@@ -45,7 +44,7 @@ let package = Package(
             name: "AppSettings",
             dependencies: [
                 "Constants",
-                "CountriesManagerTypes"
+                .product(name: "CountriesManagerTypes", package: "ServicesMutual")
             ],
             path: "Sources/Services/AppSettings"
         ),
@@ -93,12 +92,6 @@ let package = Package(
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS]))
             ],
             path: "Sources/Services/CountriesManager"
-        ),
-        .target(
-            name: "CountriesManagerTypes",
-            dependencies: [
-            ],
-            path: "Sources/Services/CountriesManagerTypes"
         ),
         .target(
             name: "CredentialsManager",

@@ -33,7 +33,7 @@ let package = Package(
                 .product(name: "CountriesManager", package: "Services"),
                 .product(name: "ConfigurationManager", package: "Services"),
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
-                .product(name: "CountriesManagerTypes", package: "Services"),
+                .product(name: "CountriesManagerTypes", package: "ServicesMutual"),
                 .product(name: "Device", package: "Services"),
                 .product(name: "ImpactGenerator", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
                 .product(name: "Lottie", package: "lottie-spm")
