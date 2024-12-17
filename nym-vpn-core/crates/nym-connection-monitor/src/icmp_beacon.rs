@@ -31,7 +31,7 @@ const ICMP_BEACON_PING_INTERVAL: Duration = Duration::from_millis(1000);
 // TODO: extract these from the ip-packet-router crate
 const ICMP_IPR_TUN_IP_V4: Ipv4Addr = Ipv4Addr::new(10, 0, 0, 1);
 // 2001:db8:a160::1
-const ICMP_IPR_TUN_IP_V6: Ipv6Addr = Ipv6Addr::new(0x2001, 0xdb8, 0xa160, 0, 0, 0, 0, 0x1);
+const ICMP_IPR_TUN_IP_V6: Ipv6Addr = Ipv6Addr::new(0xfc00, 0, 0, 0, 0, 0, 0, 0x1);
 
 // This can be anything really, we just want to check if the exit IPR can reach the internet
 // TODO: have a pool of IPs to ping
