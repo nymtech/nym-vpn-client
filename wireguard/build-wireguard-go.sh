@@ -109,7 +109,7 @@ function build_windows {
     echo "Building wireguard-go for Windows ($arch)"
 
     pushd $LIB_DIR
-        go build -trimpath -v -o libwg.dll -buildmode c-shared
+        go build -trimpath ldflags="-buildid=" -buildvcs=false -v -o libwg.dll -buildmode c-shared
 
         if [ $# -eq 0 ] ; then
             win_create_lib_file
@@ -181,7 +181,7 @@ function create_folder_and_build {
     target_triple_dir="../../build/lib/$1"
 
     mkdir -p $target_triple_dir
-    go build -trimpath -v -o $target_triple_dir/libwg.a -buildmode c-archive
+    go build -trimpath ldflags="-buildid=" -buildvcs=false -v -o $target_triple_dir/libwg.a -buildmode c-archive
 }
 
 function build_macos_universal {
