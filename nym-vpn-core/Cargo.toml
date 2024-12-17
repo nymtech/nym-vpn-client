@@ -72,6 +72,7 @@ edition = "2021"
 license = "GPL-3.0-only"
 
 [workspace.dependencies]
+dispatch2 = { path = "/Users/pronebird/Nym/objc2/crates/dispatch2" }
 anyhow = "1.0.94"
 async-trait = "0.1.83"
 backon = "1.3"
