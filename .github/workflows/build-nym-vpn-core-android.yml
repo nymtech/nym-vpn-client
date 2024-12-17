@@ -44,11 +44,18 @@ jobs:
         run: |
           rustup target install aarch64-linux-android
 
-      - name: Setup Android SDK
+      - name: Setup NDK
         uses: nttld/setup-ndk@v1
         id: setup-ndk
         with:
           ndk-version: r25c
+          add-to-path: false
+
+      - name: Set env
+        shell: bash
+        run: |
+          echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
+          echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_ENV
 
       - name: Install cargo deps
         run: |
