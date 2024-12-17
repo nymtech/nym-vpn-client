@@ -1,6 +1,9 @@
 # Detect the OS and architecture
 include platform.mk
 
+# Linker/compiler flags for producing reproducible output
+include reproducible_builds.mk
+
 # Minimum deployment targets for macOS and iOS
 # These environment variables are used by clang
 export MACOSX_DEPLOYMENT_TARGET = 10.13
@@ -22,16 +25,16 @@ build-all: ## Build all crates in the Rust workspace
 	cargo build --workspace
 
 build-release: ## Build the default crates in the Rust workspace in release mode
-	cargo build --release
+	$(ALL_IDEMPOTENT_FLAGS) cargo build --release
 
 build-release-all: ## Build all the crates in the Rust workspace in release mode
-	cargo build --release --workspace
+	$(ALL_IDEMPOTENT_FLAGS) cargo build --release --workspace
 
 build-mac: ## Build the Rust workspace suitable for running the daemon
-	RUSTFLAGS="-C link-arg=-all_load -C link-arg=-ObjC -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__info_plist -C link-arg=$(CURDIR)/../nym-vpn-apple/Daemon/Info.plist -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__launchd_plist -C link-arg=$(CURDIR)/../nym-vpn-apple/Daemon/Launchd.plist" cargo build --release
+	RUSTFLAGS="$(IDEMPOTENT_RUSTFLAGS) -C link-arg=-all_load -C link-arg=-ObjC -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__info_plist -C link-arg=$(CURDIR)/../nym-vpn-apple/Daemon/Info.plist -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__launchd_plist -C link-arg=$(CURDIR)/../nym-vpn-apple/Daemon/Launchd.plist" $(OTHER_IDEMPOTENT_FLAGS) cargo build --release
 
 build-win-cross:
-	cargo build --target x86_64-pc-windows-gnu --release
+	$(ALL_IDEMPOTENT_FLAGS) cargo build --target x86_64-pc-windows-gnu --release
 
 # -----------------------------------------------------------------------------
 #  Linting targets
