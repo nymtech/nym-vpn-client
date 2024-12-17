@@ -12,6 +12,6 @@ license.workspace = true
 objc2-foundation = { version = "0.2", features = ["NSString"] }
 block2 = { version = "0.5" }
 objc2 = { version = "0.5", features = ["unstable-apple-new"] }
-dispatch2 = { version = "0.1" }
+dispatch2.workspace = true
 nix = { workspace = true, features = ["socket", "net"] }
 thiserror.workspace = true

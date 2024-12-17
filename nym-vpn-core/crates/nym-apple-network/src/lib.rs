@@ -13,7 +13,7 @@ mod path_monitor;
 mod sys;
 
 pub use endpoint::{
-    nw_endpoint_type_t, AddressEndpoint, BonjourServiceEndpoint, Endpoint, HostEndpoint,
+    nw_endpoint_type_t, Address, AddressEndpoint, BonjourServiceEndpoint, Endpoint, HostEndpoint,
     UnknownEndpoint, UrlEndpoint,
 };
 pub use interface::{nw_interface_type_t, Interface, InterfaceType};

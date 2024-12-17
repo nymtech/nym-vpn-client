@@ -19,6 +19,8 @@ pub struct Path {
     inner: Retained<sys::OS_nw_path>,
 }
 
+unsafe impl Send for Path {}
+
 impl Path {
     /// Create new `Path` retaining the raw pointer that we don't own.
     pub(crate) fn retain(nw_path_ref: NonNull<sys::OS_nw_path>) -> Self {
@@ -44,7 +46,7 @@ impl Path {
         let interfaces = Rc::new(RefCell::new(Vec::new()));
         let cloned_interfaces = interfaces.clone();
 
-        // SAFETY: Use stack block since interface enumerator is not escaping
+        // SAFETY: Use stack block since enumerator is not escaping
         let block = block2::StackBlock::new(move |nw_interface_ref| {
             let interface = Interface::retain(
                 NonNull::new(nw_interface_ref)
@@ -64,7 +66,7 @@ impl Path {
         let gateways = Rc::new(RefCell::new(Vec::new()));
         let cloned_gateways = gateways.clone();
 
-        // SAFETY: Use stack block since interface enumerator is not escaping
+        // SAFETY: Use stack block since enumerator is not escaping
         let block = block2::StackBlock::new(move |nw_endpoint_ref| {
             let endpoint = Endpoint::retain(
                 NonNull::new(nw_endpoint_ref)
@@ -91,12 +93,22 @@ impl PartialEq for Path {
     }
 }
 
+/// Status values indicating whether a path can be used by connections.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum PathStatus {
+    /// The path cannot be evaluated.
     Invalid,
+
+    /// The path is not available for use.
     Unsatisfied,
+
+    /// The path is available to establish connections and send data.
     Satisfied,
+
+    /// The path is not currently available, but establishing a new connection may activate the path.
     Satisfiable,
+
+    /// The path unknown to the crate.
     Unknown(nw_path_status_t),
 }
 

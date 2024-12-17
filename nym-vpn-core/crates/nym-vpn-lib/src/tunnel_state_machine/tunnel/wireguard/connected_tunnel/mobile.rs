@@ -1,14 +1,24 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{error::Error as StdError, net::IpAddr, sync::Arc};
+#[cfg(target_os = "android")]
+use std::sync::Arc;
+#[cfg(target_os = "ios")]
+use std::time::Duration;
+use std::{error::Error as StdError, net::IpAddr};
 
+#[cfg(target_os = "ios")]
+use dispatch2::{Queue, QueueAttribute};
 #[cfg(target_os = "ios")]
 use tokio::sync::mpsc;
 use tokio::task::{JoinError, JoinHandle};
+#[cfg(target_os = "ios")]
+use tokio_stream::{wrappers::UnboundedReceiverStream, StreamExt};
 use tokio_util::sync::CancellationToken;
 use tun::AsyncDevice;
 
+#[cfg(target_os = "ios")]
+use nym_apple_network::PathMonitor;
 use nym_task::TaskManager;
 use nym_wg_gateway_client::WgGatewayClient;
 use nym_wg_go::{netstack, wireguard_go};
@@ -16,10 +26,7 @@ use nym_wg_go::{netstack, wireguard_go};
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
-use crate::{
-    tunnel_provider::ios::{default_path_observer::DefaultPathObserver, OSTunProvider},
-    tunnel_state_machine::tunnel::wireguard::dns64::Dns64Resolution,
-};
+use crate::tunnel_state_machine::tunnel::wireguard::dns64::Dns64Resolution;
 use crate::{
     tunnel_state_machine::tunnel::{
         wireguard::{
@@ -31,6 +38,10 @@ use crate::{
     },
     wg_config::WgNodeConfig,
 };
+
+/// Delay before acting on default route changes.
+#[cfg(target_os = "ios")]
+const DEFAULT_PATH_DEBOUNCE: Duration = Duration::from_millis(100);
 
 pub struct ConnectedTunnel {
     task_manager: TaskManager,
@@ -74,7 +85,6 @@ impl ConnectedTunnel {
         self,
         tun_device: AsyncDevice,
         dns: Vec<IpAddr>,
-        #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
     ) -> Result<TunnelHandle> {
         let wg_entry_config = WgNodeConfig::with_gateway_data(
@@ -134,55 +144,60 @@ impl ConnectedTunnel {
         let shutdown_token = CancellationToken::new();
         let cloned_shutdown_token = shutdown_token.child_token();
 
-        #[cfg(target_os = "ios")]
-        let mut default_path_rx = {
-            let (default_path_tx, default_path_rx) = mpsc::unbounded_channel();
-            let default_path_observer = Arc::new(DefaultPathObserver::new(default_path_tx));
-
-            tun_provider
-                .set_default_path_observer(Some(default_path_observer))
-                .await
-                .map_err(|e| Error::SetDefaultPathObserver(e.to_string()))?;
-
-            default_path_rx
-        };
-
         let event_loop_handle = tokio::spawn(async move {
             #[cfg(target_os = "ios")]
-            loop {
-                tokio::select! {
-                    _ = cloned_shutdown_token.cancelled() => {
-                        tracing::debug!("Received tunnel shutdown event. Exiting event loop.");
-                        break;
+            {
+                let (default_path_tx, default_path_rx) = mpsc::unbounded_channel();
+                let mut default_path_rx = debounced::debounced(
+                    UnboundedReceiverStream::new(default_path_rx),
+                    DEFAULT_PATH_DEBOUNCE,
+                );
+
+                let queue = Queue::new("net.nymtech.vpn.wg-path-monitor", QueueAttribute::Serial);
+                let mut path_monitor = PathMonitor::new();
+                path_monitor.set_dispatch_queue(&queue);
+                path_monitor.set_update_handler(move |network_path| {
+                    if let Err(e) = default_path_tx.send(network_path) {
+                        tracing::error!("Failed to send new default path: {}", e);
                     }
-                    Some(new_path) = default_path_rx.recv() => {
-                        tracing::debug!("New default path: {:?}", new_path);
+                });
+                path_monitor.start();
 
-                        // Depending on the network device is connected to, we may need to re-resolve the IP addresses.
-                        // For instance when device connects to IPv4-only server from IPv6-only network,
-                        // it needs to use an IPv4-mapped address, which can be received by re-resolving
-                        // the original peer IP.
-                        match orig_entry_peer.resolved() {
-                            Ok(resolved_peer) => {
-                                let peer_update = resolved_peer.into_peer_endpoint_update();
+                loop {
+                    tokio::select! {
+                        _ = cloned_shutdown_token.cancelled() => {
+                            tracing::debug!("Received tunnel shutdown event. Exiting event loop.");
+                            break;
+                        }
+                        Some(new_path) = default_path_rx.next() => {
+                            tracing::debug!("New default path: {:?}", new_path);
 
-                                // Update wireguard-go configuration with re-resolved peer endpoints.
-                                if let Err(e) = entry_tunnel.update_peers(&[peer_update]) {
-                                   tracing::error!("Failed to update peers on network change: {}", e);
+                            // Depending on the network device is connected to, we may need to re-resolve the IP addresses.
+                            // For instance when device connects to IPv4-only server from IPv6-only network,
+                            // it needs to use an IPv4-mapped address, which can be received by re-resolving
+                            // the original peer IP.
+                            match orig_entry_peer.resolved() {
+                                Ok(resolved_peer) => {
+                                    let peer_update = resolved_peer.into_peer_endpoint_update();
+
+                                    // Update wireguard-go configuration with re-resolved peer endpoints.
+                                    if let Err(e) = entry_tunnel.update_peers(&[peer_update]) {
+                                       tracing::error!("Failed to update peers on network change: {}", e);
+                                    }
+                                }
+                                Err(e) => {
+                                    tracing::error!("Failed to re-resolve peer on default path update: {}", e);
                                 }
                             }
-                            Err(e) => {
-                                tracing::error!("Failed to re-resolve peer on default path update: {}", e);
-                            }
-                        }
 
-                        // Rebind wireguard-go on tun device.
-                        exit_tunnel.bump_sockets();
-                        entry_tunnel.bump_sockets();
-                    }
-                    else => {
-                        tracing::error!("Default path observer has been dropped. Exiting event loop.");
-                        break;
+                            // Rebind wireguard-go on tun device.
+                            exit_tunnel.bump_sockets();
+                            entry_tunnel.bump_sockets();
+                        }
+                        else => {
+                            tracing::error!("Default path observer has been dropped. Exiting event loop.");
+                            break;
+                        }
                     }
                 }
             }
@@ -192,10 +207,6 @@ impl ConnectedTunnel {
                 cloned_shutdown_token.cancelled().await;
                 tracing::debug!("Received tunnel shutdown event. Exiting event loop.");
             }
-
-            // Reset default path observer before exiting the event loop.
-            #[cfg(target_os = "ios")]
-            let _ = tun_provider.set_default_path_observer(None).await;
 
             exit_tunnel.stop();
             exit_connection.close();

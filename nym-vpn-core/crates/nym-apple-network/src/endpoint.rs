@@ -1,13 +1,17 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use core::fmt;
 use std::{
     ffi::{c_char, CStr, CString},
-    net::{IpAddr, SocketAddr, SocketAddrV4, SocketAddrV6},
+    net::{SocketAddr, SocketAddrV4, SocketAddrV6},
+    path::PathBuf,
     ptr::NonNull,
 };
 
-use nix::sys::socket::{AddressFamily, SockaddrLike, SockaddrStorage};
+use nix::sys::socket::{
+    AddressFamily, SockaddrIn, SockaddrIn6, SockaddrLike, SockaddrStorage, UnixAddr,
+};
 use objc2::rc::Retained;
 
 use crate::sys::OS_nw_endpoint;
@@ -15,7 +19,7 @@ use crate::sys::OS_nw_endpoint;
 use super::sys;
 pub use sys::nw_endpoint_type_t;
 
-/// An umbrella type describing all kinds of endpoints.
+/// A local or remote endpoint in a network connection.
 #[derive(Debug)]
 pub enum Endpoint {
     /// Invalid endpoint.
@@ -37,6 +41,8 @@ pub enum Endpoint {
     Unknown(UnknownEndpoint),
 }
 
+unsafe impl Send for Endpoint {}
+
 impl Endpoint {
     /// Create new `Endpoint` retaining the raw pointer that we don't own.
     pub(crate) fn retain(nw_endpoint_ref: NonNull<sys::OS_nw_endpoint>) -> Self {
@@ -53,13 +59,14 @@ impl Endpoint {
     }
 }
 
-/// Holds any endpoint that couldn't be parsed or unknown to the crate.
-/// This will make ensure to release the underlying handle properly.
+/// An endpoint that couldn't be parsed or unknown to the crate.
 #[derive(Debug)]
 #[allow(unused)]
 pub struct UnknownEndpoint {
     inner: Retained<sys::OS_nw_endpoint>,
 }
+
+unsafe impl Send for UnknownEndpoint {}
 
 impl UnknownEndpoint {
     pub(crate) fn retain(nw_endpoint_ref: NonNull<sys::OS_nw_endpoint>) -> Self {
@@ -93,11 +100,13 @@ impl From<nw_endpoint_type_t> for EndpointType {
     }
 }
 
-/// Endpoint that holds hostname and port.
+/// An endpoint represented as a host and port.
 #[derive(Debug)]
 pub struct HostEndpoint {
     inner: Retained<sys::OS_nw_endpoint>,
 }
+
+unsafe impl Send for HostEndpoint {}
 
 impl HostEndpoint {
     pub fn new(host: &str, port: u16) -> Result<Self> {
@@ -136,17 +145,81 @@ impl HostEndpoint {
     }
 }
 
-/// Endpoint that holds IP address and port.
+/// An endpoint represented as an IP address and port.
 #[derive(Debug)]
 pub struct AddressEndpoint {
     inner: Retained<sys::OS_nw_endpoint>,
 }
 
+/// An address held in address endpoint.
+#[derive(Debug, Eq, PartialEq)]
+pub enum Address {
+    /// IP address and port.
+    SocketAddr(SocketAddr),
+
+    /// Unix path.
+    Unix(PathBuf),
+}
+
+impl Address {
+    unsafe fn from_raw(sockaddr: NonNull<nix::libc::sockaddr>) -> Result<Self> {
+        let raw_address_family = i32::from(unsafe { (*sockaddr.as_ptr()).sa_family });
+
+        match AddressFamily::from_i32(raw_address_family) {
+            Some(AddressFamily::Inet) => SockaddrIn::from_raw(sockaddr.as_ptr(), None)
+                .ok_or(Error::ConvertSocketAddr)
+                .map(|sin| Address::SocketAddr(SocketAddr::V4(SocketAddrV4::from(sin)))),
+            Some(AddressFamily::Inet6) => SockaddrIn6::from_raw(sockaddr.as_ptr(), None)
+                .ok_or(Error::ConvertSocketAddr)
+                .map(|sin6| Address::SocketAddr(SocketAddr::V6(SocketAddrV6::from(sin6)))),
+            Some(AddressFamily::Unix) => UnixAddr::from_raw(sockaddr.as_ptr(), None)
+                .ok_or(Error::ConvertSocketAddr)
+                .map(|unix_addr| {
+                    unix_addr
+                        .path()
+                        .map(|path| path.to_owned())
+                        .unwrap_or_default()
+                })
+                .map(Address::Unix),
+            _ => Err(Error::UnsupportedAddressFamily(raw_address_family)),
+        }
+    }
+}
+
+impl fmt::Display for Address {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::SocketAddr(addr) => addr.fmt(f),
+            Self::Unix(addr) => write!(f, "{}", addr.display()),
+        }
+    }
+}
+
+unsafe impl Send for AddressEndpoint {}
+
 impl AddressEndpoint {
-    pub fn new(addr: IpAddr, port: u16) -> Result<Self> {
-        let sockaddr = SocketAddr::new(addr, port);
-        let sockaddr_storage = SockaddrStorage::from(sockaddr);
+    /// Creates an address from `Address`.
+    pub fn new(addr: Address) -> Result<Self> {
+        match addr {
+            Address::SocketAddr(socket_addr) => Self::new_with_socket_addr(socket_addr),
+            Address::Unix(unix_path) => Self::new_with_unix_path(&unix_path),
+        }
+    }
+
+    /// Creates an address endpoint holding `SocketAddr`.
+    pub fn new_with_socket_addr(socket_addr: SocketAddr) -> Result<Self> {
+        let sockaddr_storage = SockaddrStorage::from(socket_addr);
         let nw_endpoint_ref = unsafe { sys::nw_endpoint_create_address(sockaddr_storage.as_ptr()) };
+
+        Ok(Self {
+            inner: unsafe { Retained::from_raw(nw_endpoint_ref) }.ok_or(Error::CreateEndpoint)?,
+        })
+    }
+
+    /// Creates an address endpoint holding unix path.
+    pub fn new_with_unix_path<P: ?Sized + nix::NixPath>(path: &P) -> Result<Self> {
+        let unix_addr = UnixAddr::new(path).map_err(Error::CreateUnixAddr)?;
+        let nw_endpoint_ref = unsafe { sys::nw_endpoint_create_address(unix_addr.as_ptr().cast()) };
 
         Ok(Self {
             inner: unsafe { Retained::from_raw(nw_endpoint_ref) }.ok_or(Error::CreateEndpoint)?,
@@ -163,30 +236,12 @@ impl AddressEndpoint {
         }
     }
 
-    pub fn address(&self) -> Result<SocketAddr> {
-        let sa_ptr = unsafe { sys::nw_endpoint_get_address(self.as_raw_mut()) };
-        if sa_ptr.is_null() {
-            Err(Error::NoSocketAddr)
-        } else {
-            let sockaddr_storage = unsafe { SockaddrStorage::from_raw(sa_ptr, None) }
-                .ok_or(Error::SockAddrToAddrStorageConversion)?;
+    pub fn address(&self) -> Result<Address> {
+        let sockaddr = unsafe { sys::nw_endpoint_get_address(self.as_raw_mut()) };
 
-            match sockaddr_storage.family().ok_or(Error::NoAddrFamily)? {
-                AddressFamily::Inet => sockaddr_storage
-                    .as_sockaddr_in()
-                    .ok_or(Error::SockAddrStorageToAddr)
-                    .map(|sin| SocketAddr::V4(SocketAddrV4::from(*sin))),
-                AddressFamily::Inet6 => sockaddr_storage
-                    .as_sockaddr_in6()
-                    .ok_or(Error::SockAddrStorageToAddr)
-                    .map(|sin6| SocketAddr::V6(SocketAddrV6::from(*sin6))),
-                other => Err(Error::UnsupportedAddrFamily(other)),
-            }
-        }
-    }
-
-    pub fn ip(&self) -> Result<IpAddr> {
-        self.address().map(|x| x.ip())
+        NonNull::new(sockaddr.cast_mut())
+            .ok_or(Error::InvalidSocketAddr)
+            .and_then(|sockaddr| unsafe { Address::from_raw(sockaddr) })
     }
 
     pub fn port(&self) -> u16 {
@@ -198,10 +253,13 @@ impl AddressEndpoint {
     }
 }
 
+/// An endpoint represented as a URL, with host and port values inferred from the URL.
 #[derive(Debug)]
 pub struct UrlEndpoint {
     inner: Retained<sys::OS_nw_endpoint>,
 }
+
+unsafe impl Send for UrlEndpoint {}
 
 impl UrlEndpoint {
     pub fn new(url: &str) -> Result<Self> {
@@ -232,10 +290,13 @@ impl UrlEndpoint {
     }
 }
 
+/// An endpoint represented as a Bonjour service.
 #[derive(Debug)]
 pub struct BonjourServiceEndpoint {
     inner: Retained<sys::OS_nw_endpoint>,
 }
+
+unsafe impl Send for BonjourServiceEndpoint {}
 
 impl BonjourServiceEndpoint {
     pub fn new(name: &str, service_type: &str, domain: &str) -> Result<Self> {
@@ -317,6 +378,9 @@ pub enum Error {
     #[error("Failed to create endpoint due to invalid data")]
     CreateEndpoint,
 
+    #[error("Failed to create unix address")]
+    CreateUnixAddr(#[source] nix::errno::Errno),
+
     #[error("Failed to decode UTF-8 string")]
     DecodeUtf8(std::str::Utf8Error),
 
@@ -326,27 +390,21 @@ pub enum Error {
     #[error("{:?} contains nul byte", _0)]
     FieldContainsNulByte(FieldName),
 
-    #[error("No socket address was returned")]
-    NoSocketAddr,
+    #[error("Invalid socket address was returned")]
+    InvalidSocketAddr,
 
-    #[error("Failed to convert socket address to socket address storage")]
-    SockAddrToAddrStorageConversion,
+    #[error("Failure to convert socket address to rust representation")]
+    ConvertSocketAddr,
 
-    #[error("No address family set on socket address storage")]
-    NoAddrFamily,
-
-    #[error("Failure to convert socket address storage to socket address")]
-    SockAddrStorageToAddr,
-
-    #[error("Unsupported address family")]
-    UnsupportedAddrFamily(AddressFamily),
+    #[error("Unsupported address family: {0}")]
+    UnsupportedAddressFamily(i32),
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 #[cfg(test)]
 mod tests {
-    use std::net::Ipv4Addr;
+    use std::net::{IpAddr, Ipv4Addr};
 
     use super::*;
 
@@ -364,12 +422,26 @@ mod tests {
 
     #[test]
     fn create_address_endpoint() {
-        let ep = AddressEndpoint::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 443).unwrap();
+        let ep = AddressEndpoint::new_with_socket_addr(SocketAddr::new(
+            IpAddr::V4(Ipv4Addr::LOCALHOST),
+            443,
+        ))
+        .unwrap();
         assert_eq!(
             ep.address().unwrap(),
-            SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 443))
+            Address::SocketAddr(SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 443)))
         );
         assert_eq!(ep.port(), 443);
+    }
+
+    #[test]
+    fn create_unix_address_endpoint() {
+        let ep = AddressEndpoint::new_with_unix_path("/var/run/mysock").unwrap();
+        assert_eq!(
+            ep.address().unwrap(),
+            Address::Unix(PathBuf::from("/var/run/mysock"))
+        );
+        assert_eq!(ep.port(), 0);
     }
 
     #[test]
