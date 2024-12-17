@@ -231,6 +231,7 @@ private extension CountriesManager {
                 logger.error("\(error.localizedDescription)")
             }
             countryStore.lastFetchDate = Date()
+            storeCountryStore()
         }
     }
 
