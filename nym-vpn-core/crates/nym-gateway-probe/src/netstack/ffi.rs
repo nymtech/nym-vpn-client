@@ -7,11 +7,11 @@ pub mod binding {
 
 #[derive(rust2go::R2G, Clone)]
 pub struct NetstackRequestGo {
-    wg_ip: String,
+    pub wg_ip: String,
     private_key: String,
     public_key: String,
     endpoint: String,
-    dns: String,
+    pub dns: String,
     ip_version: u8,
     ping_hosts: Vec<String>,
     ping_ips: Vec<String>,

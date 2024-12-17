@@ -36,6 +36,9 @@ pub enum Error {
     #[error("failed to lookup skimmed gateways: {0}")]
     FailedToLookupSkimmedGateways(#[source] nym_validator_client::ValidatorClientError),
 
+    #[error("failed to lookup skimmed nodes: {0}")]
+    FailedToLookupSkimmedNodes(#[source] nym_validator_client::ValidatorClientError),
+
     #[error("requested gateway not found in the remote list: {0}")]
     RequestedGatewayIdNotFound(String),
 
@@ -76,6 +79,9 @@ pub enum Error {
 
     #[error("failed to lookup gateway ip for gateway {0}")]
     FailedToLookupIp(String),
+
+    #[error("the provided gateway information is malformed")]
+    MalformedGateway,
 }
 
 // Result type based on our error type
