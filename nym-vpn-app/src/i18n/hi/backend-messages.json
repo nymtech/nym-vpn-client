@@ -1,6 +1,7 @@
 {
   "connection-progress": {
     "InitDone": "NymVPN क्लाइंट शुरू हो गया है",
-    "Initializing": "NymVPN क्लाइंट शुरू हो रहा है…"
+    "Initializing": "NymVPN क्लाइंट शुरू हो रहा है…",
+    "Canceling": "कैंसल हो रहा है…"
   }
 }
