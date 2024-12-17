@@ -214,7 +214,6 @@ impl VpnApiClient {
         let request = self
             .inner
             .create_delete_request(path, NO_PARAMS)
-            .await
             .bearer_auth(
                 account
                     .jwt(self.get_vpn_api_unix_timestamp().await)
