@@ -4,6 +4,7 @@ authors.workspace = true
 repository.workspace = true
 license.workspace = true
 edition.workspace = true
+version = "1.2.0-dev"
 
 [target.'cfg(windows)'.dependencies]
 thiserror = { workspace = true }
