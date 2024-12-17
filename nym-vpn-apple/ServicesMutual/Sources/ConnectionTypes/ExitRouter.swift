@@ -1,15 +1,17 @@
 import Foundation
 import CountriesManagerTypes
+import Theme
 
 public enum ExitRouter: Codable, Equatable {
     case country(Country)
     case gateway(String)
+    case random
 
     public var isCountry: Bool {
         switch self {
         case .country:
             true
-        case .gateway:
+        case .gateway, .random:
             false
         }
     }
@@ -22,6 +24,8 @@ extension ExitRouter: GatewayInfoProtocol {
             country.name
         case let .gateway(identifier):
             identifier
+        case .random:
+            "random".localizedString
         }
     }
 
@@ -29,14 +33,14 @@ extension ExitRouter: GatewayInfoProtocol {
         switch self {
         case let .country(country):
             country.code
-        case .gateway:
+        case .gateway, .random:
             nil
         }
     }
 
     public var isGateway: Bool {
         switch self {
-        case .country:
+        case .country, .random:
             false
         case .gateway:
             true

@@ -1,5 +1,6 @@
 import AppSettings
 import ConfigurationManager
+import ConnectionTypes
 import CountriesManager
 import CountriesManagerTypes
 
@@ -76,6 +77,8 @@ public final class ConnectionStorage {
             return .country(existingCountry)
         case let .gateway(identifier):
             return .gateway(identifier)
+        case .random:
+            return .random
         }
     }
 }
