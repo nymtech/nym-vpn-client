@@ -109,7 +109,7 @@ function build_windows {
     echo "Building wireguard-go for Windows ($arch)"
 
     pushd $LIB_DIR
-        go build -trimpath -v -o libwg.dll -buildmode c-shared
+        build_go -v -o libwg.dll -buildmode c-shared
 
         if [ $# -eq 0 ] ; then
             win_create_lib_file
@@ -141,7 +141,6 @@ function unix_target_triple {
         return 1
     fi
 }
-
 
 function build_unix {
     echo "Building wireguard-go for $1"
@@ -181,7 +180,12 @@ function create_folder_and_build {
     target_triple_dir="../../build/lib/$1"
 
     mkdir -p $target_triple_dir
-    go build -trimpath -v -o $target_triple_dir/libwg.a -buildmode c-archive
+    build_go -v -o $target_triple_dir/libwg.a -buildmode c-archive
+}
+
+# Runs `go build` prefixed with flags to enable reproducible builds.
+function build_go {
+    (set -x; go build -ldflags="-buildid=" -trimpath -buildvcs=false $@)
 }
 
 function build_macos_universal {
