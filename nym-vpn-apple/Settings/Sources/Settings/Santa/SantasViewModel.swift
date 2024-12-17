@@ -148,6 +148,7 @@ public final class SantasViewModel: ObservableObject {
         if !path.isEmpty { path.removeLast() }
     }
 
+#if os(macOS)
     func updateDaemonInfo() {
         Task(priority: .background) {
             try? await grpcManager.version()
@@ -156,4 +157,5 @@ public final class SantasViewModel: ObservableObject {
             }
         }
     }
+#endif
 }

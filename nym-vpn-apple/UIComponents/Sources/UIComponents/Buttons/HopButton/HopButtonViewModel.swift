@@ -3,6 +3,7 @@ import Combine
 import AppSettings
 import ConfigurationManager
 import ConnectionManager
+import ConnectionTypes
 import CountriesManager
 
 public class HopButtonViewModel: ObservableObject {

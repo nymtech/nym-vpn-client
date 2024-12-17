@@ -3,6 +3,7 @@ import Foundation
 import NetworkExtension
 import AppSettings
 import CountriesManager
+import ConnectionTypes
 import CredentialsManager
 import NotificationMessages
 import TunnelMixnet
@@ -180,8 +181,8 @@ public final class ConnectionManager: ObservableObject {
                     appSettings.lastConnectionIntent = config.toJson()
                 }
                 try await grpcManager.connect(
-                    entryGatewayCountryCode: config.entryGateway?.countryCode,
-                    exitRouterCountryCode: config.exitRouter.countryCode,
+                    entryGateway: config.entryGateway,
+                    exitRouter: config.exitRouter,
                     isTwoHopEnabled: config.isTwoHopEnabled
                 )
             }

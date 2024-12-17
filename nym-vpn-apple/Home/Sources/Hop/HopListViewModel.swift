@@ -1,5 +1,6 @@
 import SwiftUI
 import AppSettings
+import ConfigurationManager
 import ConnectionManager
 import CountriesManager
 import CountriesManagerTypes
@@ -11,6 +12,7 @@ public class HopListViewModel: ObservableObject {
     public let noResultsText = "search.noResults".localizedString
 
     var appSettings: AppSettings
+    var configurationManager: ConfigurationManager
     var connectionManager: ConnectionManager
     var countriesManager: CountriesManager
     @Binding var path: NavigationPath
@@ -24,16 +26,46 @@ public class HopListViewModel: ObservableObject {
         }
     }
 
+    private var santasEntryGateways: [String] {
+        get {
+            guard configurationManager.isSantaClaus,
+                  let decoded = try? JSONDecoder().decode([String].self, from: appSettings.santaEntryGatewaysData)
+            else {
+                return []
+            }
+            return decoded
+        }
+        set {
+            appSettings.santaEntryGatewaysData = (try? JSONEncoder().encode(newValue)) ?? Data()
+        }
+    }
+
+    private var santasExitGateways: [String] {
+        get {
+            guard configurationManager.isSantaClaus,
+                  let decoded = try? JSONDecoder().decode([String].self, from: appSettings.santaExitGatewaysData)
+            else {
+                return []
+            }
+            return decoded
+        }
+        set {
+            appSettings.santaExitGatewaysData = (try? JSONEncoder().encode(newValue)) ?? Data()
+        }
+    }
+
     public init(
         type: HopType,
         path: Binding<NavigationPath>,
-        appSettings: AppSettings = AppSettings.shared,
-        connectionManager: ConnectionManager = ConnectionManager.shared,
-        countriesManager: CountriesManager = CountriesManager.shared
+        appSettings: AppSettings = .shared,
+        configurationManager: ConfigurationManager = .shared,
+        connectionManager: ConnectionManager = .shared,
+        countriesManager: CountriesManager = .shared
     ) {
         _path = path
         self.type = type
         self.appSettings = appSettings
+        self.configurationManager = configurationManager
         self.connectionManager = connectionManager
         self.countriesManager = countriesManager
 
@@ -46,6 +78,16 @@ public class HopListViewModel: ObservableObject {
             connectionManager.entryGateway = .country(country)
         case .exit:
             connectionManager.exitRouter = .country(country)
+        }
+        navigateHome()
+    }
+
+    func connectionSelect(with gatewayIdentifier: String) {
+        switch type {
+        case .entry:
+            connectionManager.entryGateway = .gateway(gatewayIdentifier)
+        case .exit:
+            connectionManager.exitRouter = .gateway(gatewayIdentifier)
         }
         navigateHome()
     }
@@ -71,6 +113,15 @@ public class HopListViewModel: ObservableObject {
 
     func displayInfoTooltip() {
         isGeolocationModalDisplayed.toggle()
+    }
+
+    func santasGateways() -> [String] {
+        switch type {
+        case .entry:
+            santasEntryGateways
+        case .exit:
+            santasExitGateways
+        }
     }
 }
 

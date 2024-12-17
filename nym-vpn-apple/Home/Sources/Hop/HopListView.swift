@@ -28,6 +28,7 @@ public struct HopListView: View {
                 noSearchResultsView()
                 quickestConnection()
                 availableCountryList()
+                santaGatewaysList()
             }
             .frame(maxWidth: Device.type == .ipad ? 358 : .infinity)
             .ignoresSafeArea(.all)
@@ -85,12 +86,8 @@ private extension HopListView {
     @ViewBuilder
     func quickestConnection() -> some View {
         if let country = viewModel.quickestCountry {
-            CountryCellButton(
-                viewModel:
-                    CountryCellButtonViewModel(
-                        type: .fastest(country: country),
-                        isSelected: false
-                    )
+            GatewayCellButton(
+                viewModel: GatewayCellButtonViewModel(type: .fastest(country: country), isSelected: false)
             )
             .onTapGesture {
                 viewModel.quickestConnectionSelect(with: country)
@@ -109,11 +106,9 @@ private extension HopListView {
 
     @ViewBuilder
     func countryButton(with country: Country) -> some View {
-        CountryCellButton(
-            viewModel: CountryCellButtonViewModel(
-                type: .country(
-                    country: country
-                ),
+        GatewayCellButton(
+            viewModel: GatewayCellButtonViewModel(
+                type: .country(country: country),
                 isSelected: viewModel.isCountrySelected(countryCode: country.code)
             )
         )
@@ -121,6 +116,30 @@ private extension HopListView {
         .ignoresSafeArea(.all)
         .onTapGesture {
             viewModel.connectionSelect(with: country)
+        }
+    }
+
+    @ViewBuilder
+    func santaGatewaysList() -> some View {
+        if !viewModel.santasGateways().isEmpty {
+            ForEach(viewModel.santasGateways(), id: \.self) { identifier in
+                gatewayButton(with: identifier)
+            }
+        }
+    }
+
+    @ViewBuilder
+    func gatewayButton(with identifier: String) -> some View {
+        GatewayCellButton(
+            viewModel: GatewayCellButtonViewModel(
+                type: .gateway(identifier: identifier),
+                isSelected: false
+            )
+        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .ignoresSafeArea(.all)
+        .onTapGesture {
+            viewModel.connectionSelect(with: identifier)
         }
     }
 }

@@ -1,16 +1,16 @@
 import SwiftUI
 import Theme
 
-public struct CountryCellButton: View {
-    private let viewModel: CountryCellButtonViewModel
+public struct GatewayCellButton: View {
+    private let viewModel: GatewayCellButtonViewModel
 
-    public init(viewModel: CountryCellButtonViewModel) {
+    public init(viewModel: GatewayCellButtonViewModel) {
         self.viewModel = viewModel
     }
 
     public var body: some View {
         HStack {
-            flagOrBoltImage()
+            gatewayImage()
                 .padding(.trailing, 12)
 
             Text(viewModel.title)
@@ -29,15 +29,19 @@ public struct CountryCellButton: View {
     }
 }
 
-private extension CountryCellButton {
+private extension GatewayCellButton {
 
     @ViewBuilder
-    func flagOrBoltImage() -> some View {
+    func gatewayImage() -> some View {
         switch viewModel.type {
         case .fastest:
             BoltImage()
         case .country:
-            FlagImage(countryCode: viewModel.type.country.code)
+            if let country = viewModel.type.country {
+                FlagImage(countryCode: country.code)
+            }
+        case .gateway:
+            networkImage()
         }
     }
 
@@ -48,5 +52,12 @@ private extension CountryCellButton {
                 .textStyle(.Label.Small.primary)
                 .padding(.trailing, 24)
         }
+    }
+
+    func networkImage() -> some View {
+        GenericImage(systemImageName: "network")
+            .frame(width: 24, height: 24)
+            .cornerRadius(50)
+            .foregroundStyle(NymColor.sysOnSurface)
     }
 }
