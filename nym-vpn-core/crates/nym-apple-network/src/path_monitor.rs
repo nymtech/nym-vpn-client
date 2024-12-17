@@ -1,6 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::ptr::NonNull;
+
 use objc2::rc::Retained;
 
 use super::{path::Path, sys};
@@ -20,11 +22,8 @@ impl Default for PathMonitor {
 impl PathMonitor {
     pub fn new() -> Self {
         Self {
-            inner: unsafe {
-                // SAFETY: this must never fail
-                Retained::from_raw(sys::nw_path_monitor_create())
-                    .expect("failed to create nw_path_monitor")
-            },
+            inner: unsafe { Retained::from_raw(sys::nw_path_monitor_create()) }
+                .expect("failed to create nw_path_monitor"),
         }
     }
 
@@ -44,7 +43,7 @@ impl PathMonitor {
     /// Set path update handler.
     pub fn set_update_handler(&mut self, update_handler: impl Fn(Path) + 'static) {
         let block = block2::RcBlock::new(move |nw_path_ref| {
-            let nw_path = Path::retain(nw_path_ref).expect("invalid nw_path_ref");
+            let nw_path = Path::retain(NonNull::new(nw_path_ref).expect("invalid nw_path_ref"));
 
             update_handler(nw_path)
         });
@@ -56,7 +55,6 @@ impl PathMonitor {
         unsafe { sys::nw_path_monitor_set_cancel_handler(self.as_raw_mut(), &block) };
     }
 
-    /// Returns the underlying handle to the dispatch queue object.
     fn as_raw_mut(&self) -> sys::nw_path_monitor_t {
         Retained::as_ptr(&self.inner).cast_mut()
     }
