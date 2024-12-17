@@ -12,7 +12,34 @@ public final class ConnectionStorage {
     private let countriesManager: CountriesManager
 
     private var countryType: CountryType {
-        connectionType() == .wireguard ? .vpn : .entry
+        connectionType == .wireguard ? .vpn : .entry
+    }
+
+    var connectionType: ConnectionType {
+        if let typeValue = appSettings.connectionType,
+           let connectionType = ConnectionType(rawValue: typeValue) {
+            return connectionType
+        } else {
+            return ConnectionType.wireguard
+        }
+    }
+
+    var entryGateway: EntryGateway {
+        set {
+            appSettings.entryGateway = newValue.toJson()
+        }
+        get {
+            loadEntryGateway()
+        }
+    }
+
+    var exitRouter: ExitRouter {
+        set {
+            appSettings.exitRouter = newValue.toJson()
+        }
+        get {
+            loadExitRouter()
+        }
     }
 
     public init(
@@ -24,20 +51,13 @@ public final class ConnectionStorage {
         self.configurationManager = configurationManager
         self.countriesManager = countriesManager
     }
+}
 
-    func connectionType() -> ConnectionType {
-        if let typeValue = appSettings.connectionType,
-           let connectionType = ConnectionType(rawValue: typeValue) {
-            return connectionType
-        } else {
-            return ConnectionType.wireguard
-        }
-    }
-
+private extension ConnectionStorage {
     /// Manipulates gateway if last parameter does not exist anymore.
     /// Example: Checks if country exists, if not returns Switzerland, if Switzerland does not exist - first country.
     /// - Returns: EntryGateway
-    func entryGateway() -> EntryGateway {
+    func loadEntryGateway() -> EntryGateway {
         let jsonString = appSettings.entryGateway ?? ""
         guard let gateway = EntryGateway.from(jsonString: jsonString)
         else {
@@ -64,7 +84,7 @@ public final class ConnectionStorage {
     /// Manipulates router if last parameter does not exist anymore.
     /// Example: Checks if country exists, if not returns Switzerland, if Switzerland does not exist - first country.
     /// - Returns: ExitRouter
-    func exitRouter() -> ExitRouter {
+    func loadExitRouter() -> ExitRouter {
         let jsonString = appSettings.exitRouter ?? ""
         guard let router = ExitRouter.from(jsonString: jsonString)
         else {

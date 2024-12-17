@@ -60,7 +60,7 @@ public final class ConnectionManager: ObservableObject {
     @Published public var entryGateway: EntryGateway {
         didSet {
             Task { @MainActor in
-                appSettings.entryGateway = entryGateway.toJson()
+                connectionStorage.entryGateway = entryGateway
                 await reconnectIfNeeded()
             }
         }
@@ -68,7 +68,7 @@ public final class ConnectionManager: ObservableObject {
     @Published public var exitRouter: ExitRouter {
         didSet {
             Task { @MainActor in
-                appSettings.exitRouter = exitRouter.toJson()
+                connectionStorage.exitRouter = exitRouter
                 await reconnectIfNeeded()
             }
         }
@@ -109,9 +109,9 @@ public final class ConnectionManager: ObservableObject {
         self.credentialsManager = credentialsManager
         self.tunnelsManager = tunnelsManager
         self.grpcManager = grpcManager
-        self.entryGateway = connectionStorage.entryGateway()
-        self.exitRouter = connectionStorage.exitRouter()
-        self.connectionType = connectionStorage.connectionType()
+        self.entryGateway = connectionStorage.entryGateway
+        self.exitRouter = connectionStorage.exitRouter
+        self.connectionType = connectionStorage.connectionType
         setup()
     }
 #endif
@@ -453,7 +453,7 @@ private extension ConnectionManager {
     }
 
     func updateConnectionHops() {
-        entryGateway = connectionStorage.entryGateway()
-        exitRouter = connectionStorage.exitRouter()
+        entryGateway = connectionStorage.entryGateway
+        exitRouter = connectionStorage.exitRouter
     }
 }
