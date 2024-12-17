@@ -25,20 +25,20 @@ public final class ConnectionStorage {
     }
 
     var entryGateway: EntryGateway {
-        set {
-            appSettings.entryGateway = newValue.toJson()
-        }
         get {
             loadEntryGateway()
+        }
+        set {
+            appSettings.entryGateway = newValue.toJson()
         }
     }
 
     var exitRouter: ExitRouter {
-        set {
-            appSettings.exitRouter = newValue.toJson()
-        }
         get {
             loadExitRouter()
+        }
+        set {
+            appSettings.exitRouter = newValue.toJson()
         }
     }
 

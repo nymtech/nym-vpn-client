@@ -137,7 +137,10 @@ let package = Package(
             name: "Migrations",
             dependencies: [
                 "AppSettings",
-                "ConfigurationManager"
+                "ConfigurationManager",
+                "CountriesManager",
+                .product(name: "ConnectionTypes", package: "ServicesMutual"),
+                .product(name: "CountriesManagerTypes", package: "ServicesMutual")
             ],
             path: "Sources/Services/Migrations"
         ),
