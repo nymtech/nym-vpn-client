@@ -16,10 +16,6 @@ android {
 		disable.add("UnsafeOptInUsageError")
 	}
 
-	android {
-		ndkVersion = "25.2.9519653"
-	}
-
 	namespace = "${Constants.NAMESPACE}.${Constants.VPN_LIB_NAME}"
 	compileSdk = Constants.COMPILE_SDK
 
