@@ -15,11 +15,12 @@ bash $PWD/../../wireguard/build-wireguard-go.sh --android
 echo "Building nym-vpn-lib dep"
 
 # Project root replaced with /buildroot in reproducible builds
-PROJECT_ROOT="$PWD/../.."
+PROJECT_ROOT="$(realpath $(pwd)/../..)"
 # Rust compiler sysroot that typically points to ~/.rustup/toolchains/<toolchain>
 RUST_COMPILER_SYS_ROOT=$(rustc --print sysroot)
 # Rust flags used in reproducible builds to replace common paths with defaults
-IDEMPOTENT_RUSTFLAGS="--remap-path-prefix ${HOME}=~ --remap-path-prefix ${PROJECT_ROOT}=/buildroot --remap-path-prefix ${RUST_COMPILER_SYS_ROOT}=/sysroot"
+IDEMPOTENT_RUSTFLAGS="-C link-args=-Wl,--build-id=none --remap-path-prefix ${HOME}=~ --remap-path-prefix ${PROJECT_ROOT}=/buildroot --remap-path-prefix ${RUST_COMPILER_SYS_ROOT}=/sysroot"
+
 # Export rust flags enforcing reproducible builds
 export RUSTFLAGS=$IDEMPOTENT_RUSTFLAGS
 # Force vergen to emit stable values
