@@ -1,11 +1,13 @@
-import Foundation
+import SwiftUI
 import AppVersionProvider
 import ConfigurationManager
+import Device
 import Theme
 
 public struct SettingsListViewModel {
     private let appVersion: String
     private let configurationManager: ConfigurationManager
+    private let navigateToSantasMenuAction: (() -> Void)
 
     let sections: [SettingsSection]
 
@@ -13,25 +15,20 @@ public struct SettingsListViewModel {
         "\("version".localizedString) \(appVersion) (\(AppVersionProvider.libVersion))"
     }
 
-    var isTestFlight: Bool {
-        configurationManager.isTestFlight
-    }
-
-    var envs: [Env] {
-        Env.allCases
-    }
-
     public init(
         sections: [SettingsSection],
         appVersion: String,
-        configurationManager: ConfigurationManager
+        configurationManager: ConfigurationManager,
+        navigateToSantasMenuAction: @escaping (() -> Void)
     ) {
         self.sections = sections
         self.appVersion = appVersion
         self.configurationManager = configurationManager
+        self.navigateToSantasMenuAction = navigateToSantasMenuAction
     }
 
-    func changeEnvironment(to env: Env) {
-        configurationManager.updateEnv(to: env)
+    public func navigateToSantasMenu() {
+        guard configurationManager.isSantaClaus else { return }
+        navigateToSantasMenuAction()
     }
 }

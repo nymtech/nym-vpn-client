@@ -67,6 +67,15 @@ public final class LogsViewModel: ObservableObject {
     func logFileURL() -> URL? {
         logFileManager.logFileURL(logFileType: currentLogFileType)
     }
+
+    func copyToPasteboard(index: Int) {
+#if os(iOS)
+        UIPasteboard.general.string = logLines[index]
+#elseif os(macOS)
+        NSPasteboard.general.prepareForNewContents()
+        NSPasteboard.general.setString(logLines[index], forType: .string)
+#endif
+    }
 }
 
 private extension LogsViewModel {

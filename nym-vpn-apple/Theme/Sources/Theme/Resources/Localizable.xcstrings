@@ -749,6 +749,28 @@
         }
       }
     },
+    "gateway.random" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Random"
+          }
+        }
+      }
+    },
+    "gateway.randomLowLatency" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Random low latency"
+          }
+        }
+      }
+    },
     "generalNymError.cannotFetchCountries" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -909,7 +931,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "join us on Discord"
+            "value" : "Join us on Discord"
           }
         }
       }

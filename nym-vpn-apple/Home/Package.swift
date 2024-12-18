@@ -20,7 +20,8 @@ let package = Package(
         .package(path: "../UIComponents"),
         .package(path: "../Settings"),
         .package(path: "../Services"),
-        .package(path: "../ServicesMacOS")
+        .package(path: "../ServicesMacOS"),
+        .package(path: "../ServicesMutual")
     ],
     targets: [
         .target(
@@ -29,7 +30,7 @@ let package = Package(
                 "UIComponents",
                 "Settings",
                 .product(name: "CountriesManager", package: "Services"),
-                .product(name: "CountriesManagerTypes", package: "Services"),
+                .product(name: "CountriesManagerTypes", package: "ServicesMutual"),
                 .product(name: "ConnectionManager", package: "Services"),
                 .product(name: "Device", package: "Services"),
                 .product(name: "ExternalLinkManager", package: "Services"),

@@ -1,16 +1,19 @@
 #if os(iOS)
 import CountriesManager
 import MixnetLibrary
+import ConnectionTypes
 
 extension EntryGateway {
     var entryPoint: EntryPoint {
         switch self {
-        case let .country(code):
-            return .location(location: code)
-        case let .lowLatencyCountry(code):
-            return .location(location: code)
+        case let .country(country):
+            return .location(location: country.code)
+        case let .lowLatencyCountry(country):
+            return .location(location: country.code)
         case .randomLowLatency:
             return .randomLowLatency
+        case let .gateway(identity):
+            return .gateway(identity: identity)
         case .random:
             return .random
         }

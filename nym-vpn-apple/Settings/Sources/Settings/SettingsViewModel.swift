@@ -71,29 +71,34 @@ public class SettingsViewModel: SettingsFlowState {
     }
 
     func navigateToAddCredentialsOrCredential() {
-        path.append(SettingsLink.addCredentials)
+        guard configurationManager.isSantaClaus else { return }
+        path.append(SettingLink.addCredentials)
+    }
+
+    func navigateToSantasMenu() {
+        path.append(SettingLink.santasMenu)
     }
 }
 
 private extension SettingsViewModel {
     func navigateToTheme() {
-        path.append(SettingsLink.theme)
+        path.append(SettingLink.theme)
     }
 
     func navigateToLogs() {
-        path.append(SettingsLink.logs)
+        path.append(SettingLink.logs)
     }
 
     func navigateToFeedback() {
-        path.append(SettingsLink.feedback)
+        path.append(SettingLink.feedback)
     }
 
     func navigateToSupport() {
-        path.append(SettingsLink.support)
+        path.append(SettingLink.support)
     }
 
     func navigateToLegal() {
-        path.append(SettingsLink.legal)
+        path.append(SettingLink.legal)
     }
 
     func navigateToAccount() {

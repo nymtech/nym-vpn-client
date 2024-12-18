@@ -35,10 +35,19 @@ public final class AppSettings: ObservableObject {
     public var isSmallScreen = false
     @AppStorage(AppSettingKey.welcomeScreenDidDisplay.rawValue)
     public var welcomeScreenDidDisplay = false
+
+    // TODO: remove after migration. Introduced in 1.6.0
     @AppStorage(AppSettingKey.entryCountry.rawValue)
     public var entryCountryCode = ""
+    // TODO: remove after migration. Introduced in 1.6.0
     @AppStorage(AppSettingKey.exitCountry.rawValue)
     public var exitCountryCode = ""
+
+    @AppStorage(AppSettingKey.entryGateway.rawValue)
+    public var entryGateway: String?
+    @AppStorage(AppSettingKey.exitRouter.rawValue)
+    public var exitRouter: String?
+
     @AppStorage(AppSettingKey.connectionType.rawValue)
     public var connectionType: Int?
     @AppStorage(AppSettingKey.lastConnectionIntent.rawValue)
@@ -51,6 +60,11 @@ public final class AppSettings: ObservableObject {
         store: UserDefaults(suiteName: Constants.groupID.rawValue)
     )
     public var currentEnv: String = "mainnet"
+
+    @AppStorage(AppSettingKey.santaEntryGateways.rawValue)
+    public var santaEntryGatewaysData = Data()
+    @AppStorage(AppSettingKey.santaExitGateways.rawValue)
+    public var santaExitGatewaysData = Data()
 
     // Observed values for view models
     @Published public var isErrorReportingOnPublisher = false
@@ -74,15 +88,20 @@ private extension AppSettings {
 
 public enum AppSettingKey: String {
     case currentAppearance
-    case entryLocation
     case errorReporting
     case credenitalExists
     case smallScreen
     case welcomeScreenDidDisplay
+    case entryGateway
+    case exitRouter
+    // TODO: remove after migration. Introduced in 1.6.0
     case entryCountry
+    // TODO: remove after migration. Introduced in 1.6.0
     case exitCountry
     case connectionType
     case lastConnectionIntent
     case currentEnv
     case countryStore
+    case santaEntryGateways
+    case santaExitGateways
 }

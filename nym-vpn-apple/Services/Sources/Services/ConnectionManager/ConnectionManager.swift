@@ -3,6 +3,7 @@ import Foundation
 import NetworkExtension
 import AppSettings
 import CountriesManager
+import ConnectionTypes
 import CredentialsManager
 import NotificationMessages
 import TunnelMixnet
@@ -59,8 +60,7 @@ public final class ConnectionManager: ObservableObject {
     @Published public var entryGateway: EntryGateway {
         didSet {
             Task { @MainActor in
-                guard entryGateway.isCountry else { return }
-                appSettings.entryCountryCode = entryGateway.countryCode ?? "CH"
+                connectionStorage.entryGateway = entryGateway
                 await reconnectIfNeeded()
             }
         }
@@ -68,8 +68,7 @@ public final class ConnectionManager: ObservableObject {
     @Published public var exitRouter: ExitRouter {
         didSet {
             Task { @MainActor in
-                guard exitRouter.isCountry else { return }
-                appSettings.exitCountryCode = exitRouter.countryCode ?? "CH"
+                connectionStorage.exitRouter = exitRouter
                 await reconnectIfNeeded()
             }
         }
@@ -88,9 +87,9 @@ public final class ConnectionManager: ObservableObject {
         self.countriesManager = countriesManager
         self.credentialsManager = credentialsManager
         self.tunnelsManager = tunnelsManager
-        self.entryGateway = connectionStorage.entryGateway()
-        self.exitRouter = connectionStorage.exitRouter()
-        self.connectionType = connectionStorage.connectionType()
+        self.entryGateway = connectionStorage.entryGateway
+        self.exitRouter = connectionStorage.exitRouter
+        self.connectionType = connectionStorage.connectionType
         setup()
     }
 #endif
@@ -110,9 +109,9 @@ public final class ConnectionManager: ObservableObject {
         self.credentialsManager = credentialsManager
         self.tunnelsManager = tunnelsManager
         self.grpcManager = grpcManager
-        self.entryGateway = connectionStorage.entryGateway()
-        self.exitRouter = connectionStorage.exitRouter()
-        self.connectionType = connectionStorage.connectionType()
+        self.entryGateway = connectionStorage.entryGateway
+        self.exitRouter = connectionStorage.exitRouter
+        self.connectionType = connectionStorage.connectionType
         setup()
     }
 #endif
@@ -146,7 +145,7 @@ public final class ConnectionManager: ObservableObject {
                     isDisconnecting = true
                     disconnectActiveTunnel()
                 } else {
-                    try await connectMixnet(with: config)
+                    try await connect(with: config)
                 }
             }
         } catch let error {
@@ -182,8 +181,8 @@ public final class ConnectionManager: ObservableObject {
                     appSettings.lastConnectionIntent = config.toJson()
                 }
                 try await grpcManager.connect(
-                    entryGatewayCountryCode: config.entryGateway?.countryCode,
-                    exitRouterCountryCode: config.exitRouter.countryCode,
+                    entryGateway: config.entryGateway,
+                    exitRouter: config.exitRouter,
                     isTwoHopEnabled: config.isTwoHopEnabled
                 )
             }
@@ -274,7 +273,7 @@ public extension ConnectionManager {
 // MARK: - Connection -
 #if os(iOS)
 private extension ConnectionManager {
-    func connectMixnet(with config: MixnetConfig) async throws {
+    func connect(with config: MixnetConfig) async throws {
         do {
             try await tunnelsManager.loadTunnels()
             let tunnel = try await tunnelsManager.addUpdate(tunnelConfiguration: config)
@@ -284,8 +283,6 @@ private extension ConnectionManager {
             throw error
         }
     }
-
-    func connectWireguard() {}
 
     func disconnectActiveTunnel() {
         guard let activeTunnel,
@@ -456,7 +453,7 @@ private extension ConnectionManager {
     }
 
     func updateConnectionHops() {
-        entryGateway = connectionStorage.entryGateway()
-        exitRouter = connectionStorage.exitRouter()
+        entryGateway = connectionStorage.entryGateway
+        exitRouter = connectionStorage.exitRouter
     }
 }

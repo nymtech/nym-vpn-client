@@ -1,6 +1,7 @@
 import Foundation
 import Network
 import Constants
+import ConnectionTypes
 import CountriesManager
 import CredentialsManager
 #if os(iOS)
@@ -12,7 +13,7 @@ public struct MixnetConfig: Codable, Equatable {
 #if os(iOS)
     let credentialsDataPath: String
 #endif
-    public let entryGateway: EntryGateway?
+    public let entryGateway: EntryGateway
     public let exitRouter: ExitRouter
     public let isTwoHopEnabled: Bool
 
@@ -51,7 +52,7 @@ public struct MixnetConfig: Codable, Equatable {
 extension MixnetConfig {
     public func asVpnConfig(tunProvider: OsTunProvider, tunStatusListener: TunnelStatusListener?) throws -> VpnConfig {
         VpnConfig(
-            entryGateway: entryGateway?.entryPoint ?? .random,
+            entryGateway: entryGateway.entryPoint,
             exitRouter: exitRouter.exitPoint,
             enableTwoHop: isTwoHopEnabled,
             tunProvider: tunProvider,

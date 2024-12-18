@@ -15,11 +15,7 @@ public struct HopButton: View {
                 flagOrBoltImage()
                     .padding(.horizontal, 12)
 
-                if let countryName = viewModel.countryName {
-                    Text(countryName)
-                        .foregroundStyle(NymColor.sysOnSurface)
-                        .textStyle(.Body.Large.semibold)
-                }
+                titleText(with: viewModel.name)
 
                 Spacer()
                 Image(viewModel.arrowImageName, bundle: .module)
@@ -38,6 +34,18 @@ private extension HopButton {
             BoltImage()
         } else if let countryCode = viewModel.countryCode {
             FlagImage(countryCode: countryCode)
+        } else if viewModel.isGateway {
+            Image(systemName: "network")
+                .resizable()
+                .frame(width: 24, height: 24)
+                .cornerRadius(50)
+                .foregroundStyle(NymColor.sysOnSurface)
         }
+    }
+
+    func titleText(with text: String) -> some View {
+        Text(text)
+            .foregroundStyle(NymColor.sysOnSurface)
+            .textStyle(.Body.Large.semibold)
     }
 }

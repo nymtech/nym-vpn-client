@@ -26,7 +26,7 @@ public final class AcknowledgementsRowViewModel {
 
     func navigateToLicence() {
         navigationPath.append(
-            SettingsLink.licence(
+            SettingLink.licence(
                 details: LicenceDetails(
                     title: acknowledgement.title,
                     text: acknowledgement.text,

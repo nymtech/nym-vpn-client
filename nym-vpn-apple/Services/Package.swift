@@ -16,7 +16,6 @@ let package = Package(
         .library(name: "ConfigurationManager", targets: ["ConfigurationManager"]),
         .library(name: "Constants", targets: ["Constants"]),
         .library(name: "CountriesManager", targets: ["CountriesManager"]),
-        .library(name: "CountriesManagerTypes", targets: ["CountriesManagerTypes"]),
         .library(name: "CredentialsManager", targets: ["CredentialsManager"]),
         .library(name: "DarwinNotificationCenter", targets: ["DarwinNotificationCenter"]),
         .library(name: "Device", targets: ["Device"]),
@@ -45,7 +44,7 @@ let package = Package(
             name: "AppSettings",
             dependencies: [
                 "Constants",
-                "CountriesManagerTypes"
+                .product(name: "CountriesManagerTypes", package: "ServicesMutual")
             ],
             path: "Sources/Services/AppSettings"
         ),
@@ -66,6 +65,7 @@ let package = Package(
             name: "ConnectionManager",
             dependencies: [
                 "CredentialsManager",
+                .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 "NotificationMessages",
                 "Tunnels",
                 "TunnelMixnet"
@@ -92,12 +92,6 @@ let package = Package(
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS]))
             ],
             path: "Sources/Services/CountriesManager"
-        ),
-        .target(
-            name: "CountriesManagerTypes",
-            dependencies: [
-            ],
-            path: "Sources/Services/CountriesManagerTypes"
         ),
         .target(
             name: "CredentialsManager",
@@ -143,7 +137,10 @@ let package = Package(
             name: "Migrations",
             dependencies: [
                 "AppSettings",
-                "ConfigurationManager"
+                "ConfigurationManager",
+                "CountriesManager",
+                .product(name: "ConnectionTypes", package: "ServicesMutual"),
+                .product(name: "CountriesManagerTypes", package: "ServicesMutual")
             ],
             path: "Sources/Services/Migrations"
         ),
@@ -210,6 +207,7 @@ let package = Package(
                 "CredentialsManager",
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
+                .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 "NymLogger",
                 "Tunnels"
             ],
