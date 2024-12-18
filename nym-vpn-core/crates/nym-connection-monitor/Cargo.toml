@@ -12,6 +12,7 @@ license.workspace = true
 bincode.workspace = true
 bytes.workspace = true
 futures.workspace = true
+nym-config.workspace = true
 nym-ip-packet-requests.workspace = true
 nym-sdk.workspace = true
 nym-task.workspace = true

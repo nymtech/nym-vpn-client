@@ -10,9 +10,10 @@ use std::{
 
 use clap::{Args, Parser, Subcommand};
 use ipnetwork::{Ipv4Network, Ipv6Network};
-
-const TUN_IP4_SUBNET: &str = "10.0.0.0/16";
-const TUN_IP6_SUBNET: &str = "2001:db8:a160::0/112";
+use nym_vpn_lib::nym_config::defaults::mixnet_vpn::{
+    NYM_TUN_DEVICE_ADDRESS_V4, NYM_TUN_DEVICE_ADDRESS_V6, NYM_TUN_DEVICE_NETMASK_V4,
+    NYM_TUN_DEVICE_NETMASK_V6,
+};
 
 // Helper for passing LONG_VERSION to clap
 fn pretty_build_info_static() -> &'static str {
@@ -148,24 +149,35 @@ pub(crate) struct StoreAccountArgs {
 
 fn validate_ipv4(ip: &str) -> Result<Ipv4Addr, String> {
     let ip = Ipv4Addr::from_str(ip).map_err(|err| err.to_string())?;
-    let network = Ipv4Network::from_str(TUN_IP4_SUBNET).unwrap();
+    let network =
+        Ipv4Network::with_netmask(NYM_TUN_DEVICE_ADDRESS_V4, NYM_TUN_DEVICE_NETMASK_V4).unwrap();
     if !network.contains(ip) {
         return Err(format!("IPv4 address must be in the range {}", network));
     }
-    if ip == Ipv4Addr::new(10, 0, 0, 1) {
-        return Err("IPv4 address cannot be 10.0.0.1".to_string());
+    if ip == NYM_TUN_DEVICE_ADDRESS_V4 {
+        return Err(format!(
+            "IPv4 address cannot be {:?}",
+            NYM_TUN_DEVICE_ADDRESS_V4
+        ));
     }
     Ok(ip)
 }
 
 fn validate_ipv6(ip: &str) -> Result<Ipv6Addr, String> {
     let ip = Ipv6Addr::from_str(ip).map_err(|err| err.to_string())?;
-    let network = Ipv6Network::from_str(TUN_IP6_SUBNET).unwrap();
+    let network = Ipv6Network::new(
+        NYM_TUN_DEVICE_ADDRESS_V6,
+        NYM_TUN_DEVICE_NETMASK_V6.parse().unwrap(),
+    )
+    .unwrap();
     if !network.contains(ip) {
         return Err(format!("IPv6 address must be in the range {}", network));
     }
-    if ip == Ipv6Addr::from_str("2001:db8:a160::1").unwrap() {
-        return Err("IPv6 address cannot be 2001:db8:a160::1".to_string());
+    if ip == NYM_TUN_DEVICE_ADDRESS_V6 {
+        return Err(format!(
+            "IPv6 address cannot be {:?}",
+            NYM_TUN_DEVICE_ADDRESS_V6
+        ));
     }
     Ok(ip)
 }
