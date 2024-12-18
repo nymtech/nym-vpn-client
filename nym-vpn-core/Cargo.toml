@@ -26,6 +26,7 @@ members = [
     "crates/nym-wg-go",
     "crates/nym-windows",
     "crates/nym-apple-network",
+    "crates/nym-apple-dispatch",
     "crates/uniffi-bindgen",
 ]
 
@@ -72,7 +73,6 @@ edition = "2021"
 license = "GPL-3.0-only"
 
 [workspace.dependencies]
-dispatch2 = { path = "/Users/pronebird/Nym/objc2/crates/dispatch2" }
 anyhow = "1.0.94"
 async-trait = "0.1.83"
 backon = "1.3"
@@ -90,7 +90,7 @@ duct = "0.13"
 futures = "0.3.31"
 hex = "0.4"
 hickory-resolver = "0.24.1"
-http = "0.2.12"                                                      # version compatible with tonic
+http = "0.2.12"                                                     # version compatible with tonic
 ipnetwork = "0.16"
 itertools = "0.13.0"
 lazy_static = "1.5.0"
