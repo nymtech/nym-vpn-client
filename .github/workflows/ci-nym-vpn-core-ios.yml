@@ -55,7 +55,7 @@ jobs:
       - name: rustfmt check
         working-directory: nym-vpn-core
         run: |
-          cargo fmt --check
+          cargo fmt --check --all
 
       - name: Build
         working-directory: nym-vpn-core
@@ -65,7 +65,7 @@ jobs:
       - name: Generate uniffi
         working-directory: nym-vpn-core
         run: |
-          cargo run --bin uniffi-bindgen generate \
+          cargo run -p uniffi-bindgen generate \
             --library target/aarch64-apple-ios/debug/libnym_vpn_lib.a  \
             --config crates/nym-vpn-lib/uniffi.toml \
             --language swift --out-dir build -n
