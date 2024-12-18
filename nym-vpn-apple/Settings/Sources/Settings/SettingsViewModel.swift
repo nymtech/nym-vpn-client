@@ -89,11 +89,7 @@ private extension SettingsViewModel {
         path.append(SettingLink.logs)
     }
 
-    func navigateToFeedback() {
-        path.append(SettingLink.feedback)
-    }
-
-    func navigateToSupport() {
+    func navigateToSupportAndFeedback() {
         path.append(SettingLink.support)
     }
 
@@ -208,18 +204,10 @@ private extension SettingsViewModel {
             viewModels: [
                 SettingsListItemViewModel(
                     accessory: .arrow,
-                    title: "feedback".localizedString,
-                    imageName: "feedback",
-                    action: { [weak self] in
-                        self?.navigateToFeedback()
-                    }
-                ),
-                SettingsListItemViewModel(
-                    accessory: .arrow,
-                    title: "support".localizedString,
+                    title: "settings.supportAndFeedback".localizedString,
                     imageName: "support",
                     action: { [weak self] in
-                        self?.navigateToSupport()
+                        self?.navigateToSupportAndFeedback()
                     }
                 ),
                 SettingsListItemViewModel(
