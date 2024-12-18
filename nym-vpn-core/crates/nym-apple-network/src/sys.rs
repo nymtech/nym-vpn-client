@@ -12,7 +12,7 @@ use nix::sys::socket::sockaddr;
 use objc2::runtime::ProtocolObject;
 use objc2_foundation::NSObjectProtocol;
 
-use dispatch2::ffi::dispatch_queue_t;
+use nym_apple_dispatch::dispatch_queue_t;
 
 // NW objects are objc types when compiled with objc compiler.
 pub type OS_nw_object = ProtocolObject<dyn NSObjectProtocol>;

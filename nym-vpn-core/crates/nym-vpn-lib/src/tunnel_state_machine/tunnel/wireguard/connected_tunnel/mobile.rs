@@ -8,7 +8,7 @@ use std::time::Duration;
 use std::{error::Error as StdError, net::IpAddr};
 
 #[cfg(target_os = "ios")]
-use dispatch2::{Queue, QueueAttribute};
+use nym_apple_dispatch::{Queue, QueueAttr};
 #[cfg(target_os = "ios")]
 use tokio::sync::mpsc;
 use tokio::task::{JoinError, JoinHandle};
@@ -153,7 +153,9 @@ impl ConnectedTunnel {
                     DEFAULT_PATH_DEBOUNCE,
                 );
 
-                let queue = Queue::new("net.nymtech.vpn.wg-path-monitor", QueueAttribute::Serial);
+                let queue =
+                    Queue::new(Some("net.nymtech.vpn.wg-path-monitor"), QueueAttr::serial())
+                        .expect("failed to create dispatch queue");
                 let mut path_monitor = PathMonitor::new();
                 path_monitor.set_dispatch_queue(&queue);
                 path_monitor.set_update_handler(move |network_path| {

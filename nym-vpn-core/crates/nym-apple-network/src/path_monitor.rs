@@ -60,8 +60,8 @@ impl PathMonitor {
     }
 
     /// Sets a queue on which to deliver path events.
-    pub fn set_dispatch_queue(&mut self, dispatch_queue: &dispatch2::Queue) {
-        unsafe { sys::nw_path_monitor_set_queue(self.as_raw_mut(), dispatch_queue.as_raw()) };
+    pub fn set_dispatch_queue(&mut self, dispatch_queue: &nym_apple_dispatch::Queue) {
+        unsafe { sys::nw_path_monitor_set_queue(self.as_raw_mut(), dispatch_queue.as_raw_mut()) };
     }
 
     /// Sets a handler to receive network path updates.
@@ -94,13 +94,14 @@ impl Drop for PathMonitor {
 #[cfg(test)]
 mod tests {
     use crate::{Endpoint, PathMonitor};
-    use dispatch2::{Queue, QueueAttribute};
+    use nym_apple_dispatch::{Queue, QueueAttr};
 
     use std::sync::mpsc;
 
     #[test]
     fn test_create_path_monitor() {
-        let queue = Queue::new("net.nymtech.test", QueueAttribute::Serial);
+        let queue = Queue::new(Some("net.nymtech.test"), QueueAttr::serial())
+            .expect("failed to create a queue");
         let (tx, rx) = mpsc::channel();
 
         let mut path_monitor = PathMonitor::new();
