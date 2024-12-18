@@ -26,8 +26,8 @@ use nym_vpn_account_controller::{
     AccountStateSummary, AvailableTicketbooks, ReadyToConnect, SharedAccountState,
 };
 use nym_vpn_api_client::{
-    response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnUsage},
-    types::{Percent, VpnApiAccount},
+    response::{NymVpnDevice, NymVpnUsage},
+    types::Percent,
 };
 use nym_vpn_lib::{
     gateway_directory::{self, EntryPoint, ExitPoint},
@@ -110,7 +110,7 @@ pub enum VpnServiceCommand {
     StoreAccount(oneshot::Sender<Result<(), AccountError>>, Zeroizing<String>),
     IsAccountStored(oneshot::Sender<Result<bool, AccountError>>, ()),
     ForgetAccount(oneshot::Sender<Result<(), AccountError>>, ()),
-    GetAccountIdentity(oneshot::Sender<Result<String, AccountError>>, ()),
+    GetAccountIdentity(oneshot::Sender<Result<Option<String>, AccountError>>, ()),
     GetAccountLinks(
         oneshot::Sender<Result<ParsedAccountLinks, AccountError>>,
         Locale,
@@ -134,14 +134,6 @@ pub enum VpnServiceCommand {
     ConfirmZkNymIdDownloaded(oneshot::Sender<Result<(), AccountError>>, String),
     GetAvailableTickets(
         oneshot::Sender<Result<AvailableTicketbooks, AccountError>>,
-        (),
-    ),
-    FetchRawAccountSummary(
-        oneshot::Sender<Result<NymVpnAccountSummaryResponse, AccountError>>,
-        (),
-    ),
-    FetchRawDevices(
-        oneshot::Sender<Result<NymVpnDevicesResponse, AccountError>>,
         (),
     ),
 }
@@ -667,14 +659,6 @@ where
                 let result = self.handle_get_available_tickets().await;
                 let _ = tx.send(result);
             }
-            VpnServiceCommand::FetchRawAccountSummary(tx, ()) => {
-                let result = self.handle_fetch_raw_account_summary().await;
-                let _ = tx.send(result);
-            }
-            VpnServiceCommand::FetchRawDevices(tx, ()) => {
-                let result = self.handle_fetch_raw_devices().await;
-                let _ = tx.send(result);
-            }
         }
     }
 
@@ -708,34 +692,6 @@ where
                 .map_err(Error::ConfigSetup)?
         };
         Ok(config)
-    }
-
-    async fn load_account(&self) -> Result<VpnApiAccount, AccountError> {
-        self.storage
-            .lock()
-            .await
-            .load_mnemonic()
-            .await
-            .map_err(|err| AccountError::FailedToLoadAccount {
-                source: Box::new(err),
-            })
-            .map(VpnApiAccount::from)
-            .inspect(|account| tracing::info!("Loading account id: {}", account.id()))
-    }
-
-    async fn load_device_keys(&self) -> Result<nym_vpn_store::keys::DeviceKeys, AccountError> {
-        self.storage
-            .lock()
-            .await
-            .load_keys()
-            .await
-            .map_err(|err| AccountError::FailedToLoadKeys {
-                source: Box::new(err),
-            })
-            .inspect(|keys| {
-                let device_keypair = keys.device_keypair();
-                tracing::info!("Loading device key: {}", device_keypair.public_key())
-            })
     }
 
     async fn wait_for_ready_to_connect(
@@ -985,16 +941,15 @@ where
             .map_err(|source| AccountError::AccountCommandError { source })
     }
 
-    async fn handle_get_account_identity(&self) -> Result<String, AccountError> {
-        self.load_account().await.map(|account| account.id())
+    async fn handle_get_account_identity(&self) -> Result<Option<String>, AccountError> {
+        Ok(self.shared_account_state.get_account_id().await)
     }
 
     async fn handle_get_account_links(
         &self,
         locale: String,
     ) -> Result<ParsedAccountLinks, AccountError> {
-        let account = self.load_account().await.ok();
-        let account_id = account.map(|a| a.id());
+        let account_id = self.handle_get_account_identity().await?;
 
         self.network_env
             .nym_vpn_network
@@ -1062,9 +1017,10 @@ where
     }
 
     async fn handle_get_device_identity(&self) -> Result<String, AccountError> {
-        self.load_device_keys()
+        self.account_command_tx
+            .get_device_identity()
             .await
-            .map(|keys| keys.device_keypair().public_key().to_string())
+            .map_err(|source| AccountError::AccountCommandError { source })
     }
 
     async fn handle_register_device(&self) -> Result<(), AccountError> {
@@ -1122,44 +1078,5 @@ where
             .get_available_tickets()
             .await
             .map_err(|source| AccountError::AccountCommandError { source })
-    }
-
-    async fn handle_fetch_raw_account_summary(
-        &self,
-    ) -> Result<NymVpnAccountSummaryResponse, AccountError> {
-        if !self.handle_is_account_stored().await? {
-            return Err(AccountError::NoAccountStored);
-        }
-
-        // Get account
-        let account = self.load_account().await?;
-
-        // Setup client
-        let api_client = nym_vpn_api_client::VpnApiClient::new(
-            self.network_env.vpn_api_url(),
-            self.user_agent.clone(),
-        )?;
-
-        api_client
-            .get_account_summary(&account)
-            .await
-            .map_err(Into::into)
-    }
-
-    async fn handle_fetch_raw_devices(&self) -> Result<NymVpnDevicesResponse, AccountError> {
-        if !self.handle_is_account_stored().await? {
-            return Err(AccountError::NoAccountStored);
-        }
-
-        // Get account
-        let account = self.load_account().await?;
-
-        // Setup client
-        let api_client = nym_vpn_api_client::VpnApiClient::new(
-            self.network_env.vpn_api_url(),
-            self.user_agent.clone(),
-        )?;
-
-        api_client.get_devices(&account).await.map_err(Into::into)
     }
 }

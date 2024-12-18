@@ -627,11 +627,15 @@ message ForgetAccountResponse {
   AccountError error = 2;
 }
 
+message AccountIdentity {
+  optional string account_identity = 1;
+}
+
 message GetAccountIdentityRequest {}
 
 message GetAccountIdentityResponse {
   oneof id {
-    string account_identity = 1;
+    AccountIdentity account_identity = 1;
     AccountError error = 2;
   }
 }
@@ -808,20 +812,6 @@ message GetAccountUsageResponse {
     AccountUsages account_usages = 1;
     AccountError error = 2;
   }
-}
-
-message FetchRawAccountSummaryRequest {}
-
-message FetchRawAccountSummaryResponse {
-  string json = 1;
-  AccountError error = 2;
-}
-
-message FetchRawDevicesRequest {}
-
-message FetchRawDevicesResponse {
-  string json = 1;
-  AccountError error = 2;
 }
 
 message ResetDeviceIdentityRequest {
@@ -1125,14 +1115,5 @@ service NymVpnd {
 
   // Get the available tickets in the local credential store
   rpc GetAvailableTickets (GetAvailableTicketsRequest) returns (GetAvailableTicketsResponse) {}
-
-  // -- Delegated remote calls --
-  // These query the remote nym-vpn-api state directly
-
-  // Get the server side account summary directly from the nym-vpn-api
-  rpc FetchRawAccountSummary (FetchRawAccountSummaryRequest) returns (FetchRawAccountSummaryResponse) {}
-
-  // Get the list of devices directly from the nym-vpn-api
-  rpc FetchRawDevices (FetchRawDevicesRequest) returns (FetchRawDevicesResponse) {}
 }
 
