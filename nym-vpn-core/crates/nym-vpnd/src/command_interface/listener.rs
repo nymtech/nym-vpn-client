@@ -16,23 +16,21 @@ use nym_vpn_proto::{
     conversions::ConversionError, nym_vpnd_server::NymVpnd, AccountError,
     ConfirmZkNymDownloadedRequest, ConfirmZkNymDownloadedResponse, ConnectRequest, ConnectResponse,
     ConnectionStateChange, ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
-    FetchRawAccountSummaryRequest, FetchRawAccountSummaryResponse, FetchRawDevicesRequest,
-    FetchRawDevicesResponse, ForgetAccountRequest, ForgetAccountResponse,
-    GetAccountIdentityRequest, GetAccountIdentityResponse, GetAccountLinksRequest,
-    GetAccountLinksResponse, GetAccountStateRequest, GetAccountStateResponse,
-    GetAccountUsageRequest, GetAccountUsageResponse, GetActiveDevicesRequest,
-    GetActiveDevicesResponse, GetAvailableTicketsRequest, GetAvailableTicketsResponse,
-    GetDeviceIdentityRequest, GetDeviceIdentityResponse, GetDeviceZkNymsRequest,
-    GetDeviceZkNymsResponse, GetDevicesRequest, GetDevicesResponse, GetFeatureFlagsRequest,
-    GetFeatureFlagsResponse, GetSystemMessagesRequest, GetSystemMessagesResponse,
-    GetZkNymByIdRequest, GetZkNymByIdResponse, GetZkNymsAvailableForDownloadRequest,
-    GetZkNymsAvailableForDownloadResponse, InfoRequest, InfoResponse, IsAccountStoredRequest,
-    IsAccountStoredResponse, IsReadyToConnectRequest, IsReadyToConnectResponse,
-    ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest, ListGatewaysResponse,
-    RefreshAccountStateRequest, RefreshAccountStateResponse, RegisterDeviceRequest,
-    RegisterDeviceResponse, RequestZkNymRequest, RequestZkNymResponse, ResetDeviceIdentityRequest,
-    ResetDeviceIdentityResponse, SetNetworkRequest, SetNetworkResponse, StatusRequest,
-    StatusResponse, StoreAccountRequest, StoreAccountResponse,
+    ForgetAccountRequest, ForgetAccountResponse, GetAccountIdentityRequest,
+    GetAccountIdentityResponse, GetAccountLinksRequest, GetAccountLinksResponse,
+    GetAccountStateRequest, GetAccountStateResponse, GetAccountUsageRequest,
+    GetAccountUsageResponse, GetActiveDevicesRequest, GetActiveDevicesResponse,
+    GetAvailableTicketsRequest, GetAvailableTicketsResponse, GetDeviceIdentityRequest,
+    GetDeviceIdentityResponse, GetDeviceZkNymsRequest, GetDeviceZkNymsResponse, GetDevicesRequest,
+    GetDevicesResponse, GetFeatureFlagsRequest, GetFeatureFlagsResponse, GetSystemMessagesRequest,
+    GetSystemMessagesResponse, GetZkNymByIdRequest, GetZkNymByIdResponse,
+    GetZkNymsAvailableForDownloadRequest, GetZkNymsAvailableForDownloadResponse, InfoRequest,
+    InfoResponse, IsAccountStoredRequest, IsAccountStoredResponse, IsReadyToConnectRequest,
+    IsReadyToConnectResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
+    ListGatewaysResponse, RefreshAccountStateRequest, RefreshAccountStateResponse,
+    RegisterDeviceRequest, RegisterDeviceResponse, RequestZkNymRequest, RequestZkNymResponse,
+    ResetDeviceIdentityRequest, ResetDeviceIdentityResponse, SetNetworkRequest, SetNetworkResponse,
+    StatusRequest, StatusResponse, StoreAccountRequest, StoreAccountResponse,
 };
 use zeroize::Zeroizing;
 
@@ -497,7 +495,9 @@ impl NymVpnd for CommandInterface {
         let response = match result {
             Ok(identity) => GetAccountIdentityResponse {
                 id: Some(
-                    nym_vpn_proto::get_account_identity_response::Id::AccountIdentity(identity),
+                    nym_vpn_proto::get_account_identity_response::Id::AccountIdentity(
+                        nym_vpn_proto::AccountIdentity::from(identity),
+                    ),
                 ),
             },
             Err(err) => GetAccountIdentityResponse {
@@ -884,52 +884,6 @@ impl NymVpnd for CommandInterface {
                 resp: Some(nym_vpn_proto::get_available_tickets_response::Resp::Error(
                     nym_vpn_proto::AccountError::from(err),
                 )),
-            },
-        };
-
-        Ok(tonic::Response::new(response))
-    }
-
-    async fn fetch_raw_account_summary(
-        &self,
-        _request: tonic::Request<FetchRawAccountSummaryRequest>,
-    ) -> Result<tonic::Response<FetchRawAccountSummaryResponse>, tonic::Status> {
-        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_fetch_raw_account_summary()
-            .await?;
-
-        let response = match result {
-            Ok(summary) => FetchRawAccountSummaryResponse {
-                json: serde_json::to_string(&summary)
-                    .unwrap_or_else(|_| "failed to serialize".to_owned()),
-                error: None,
-            },
-            Err(err) => FetchRawAccountSummaryResponse {
-                json: err.to_string(),
-                error: Some(AccountError::from(err)),
-            },
-        };
-
-        Ok(tonic::Response::new(response))
-    }
-
-    async fn fetch_raw_devices(
-        &self,
-        _request: tonic::Request<FetchRawDevicesRequest>,
-    ) -> Result<tonic::Response<FetchRawDevicesResponse>, tonic::Status> {
-        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_fetch_raw_devices()
-            .await?;
-
-        let response = match result {
-            Ok(devices) => FetchRawDevicesResponse {
-                json: serde_json::to_string(&devices)
-                    .unwrap_or_else(|_| "failed to serialize".to_owned()),
-                error: None,
-            },
-            Err(err) => FetchRawDevicesResponse {
-                json: err.to_string(),
-                error: Some(AccountError::from(err)),
             },
         };
 

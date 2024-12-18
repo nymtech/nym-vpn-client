@@ -13,8 +13,7 @@ use cli::Internal;
 use itertools::Itertools;
 use nym_gateway_directory::GatewayType;
 use nym_vpn_proto::{
-    ConfirmZkNymDownloadedRequest, ConnectRequest, DisconnectRequest, Empty,
-    FetchRawAccountSummaryRequest, FetchRawDevicesRequest, ForgetAccountRequest,
+    ConfirmZkNymDownloadedRequest, ConnectRequest, DisconnectRequest, Empty, ForgetAccountRequest,
     GetAccountIdentityRequest, GetAccountLinksRequest, GetAccountStateRequest,
     GetAccountUsageRequest, GetActiveDevicesRequest, GetAvailableTicketsRequest,
     GetDeviceIdentityRequest, GetDeviceZkNymsRequest, GetDevicesRequest, GetFeatureFlagsRequest,
@@ -109,8 +108,6 @@ async fn main() -> Result<()> {
                 confirm_zk_nym_downloaded(opts.client_type, args).await?
             }
             Internal::GetAvailableTickets => get_available_tickets(opts.client_type).await?,
-            Internal::FetchRawAccountSummary => fetch_raw_account_summary(opts.client_type).await?,
-            Internal::FetchRawDevices => fetch_raw_devices(opts.client_type).await?,
         },
     }
     Ok(())
@@ -447,25 +444,6 @@ async fn is_ready_to_connect(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
     let request = tonic::Request::new(IsReadyToConnectRequest {});
     let response = client.is_ready_to_connect(request).await?.into_inner();
-    println!("{:#?}", response);
-    Ok(())
-}
-
-async fn fetch_raw_account_summary(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(FetchRawAccountSummaryRequest {});
-    let response = client
-        .fetch_raw_account_summary(request)
-        .await?
-        .into_inner();
-    println!("{:#?}", response);
-    Ok(())
-}
-
-async fn fetch_raw_devices(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(FetchRawDevicesRequest {});
-    let response = client.fetch_raw_devices(request).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }

@@ -152,12 +152,6 @@ pub(crate) enum Internal {
     /// List the available zknym ticketbooks in the local credential store.
     GetAvailableTickets,
 
-    /// Fetch the account summary from the nym-vpn-api.
-    FetchRawAccountSummary,
-
-    /// Fetch the devices associated with the account from the nym-vpn-api.
-    FetchRawDevices,
-
     /// Listen the the status event stream from nym-vpnd.
     ListenToStatus,
 
