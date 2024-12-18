@@ -29,16 +29,16 @@ use netlink_packet_core::{
 use netlink_packet_route::{
     link::{LinkAttribute, LinkLayerType, LinkMessage},
     route::{
-        RouteAddress, RouteAttribute, RouteFlag, RouteHeader, RouteMessage, RouteMetric,
+        RouteAddress, RouteAttribute, RouteFlags, RouteHeader, RouteMessage, RouteMetric,
         RouteProtocol, RouteScope, RouteType, RouteVia,
     },
-    rule::{RuleAction, RuleAttribute, RuleFlag, RuleHeader, RuleMessage},
+    rule::{RuleAction, RuleAttribute, RuleFlags, RuleHeader, RuleMessage},
     AddressFamily, RouteNetlinkMessage,
 };
 use netlink_sys::SocketAddr;
 use rtnetlink::{
     constants::{RTMGRP_IPV4_ROUTE, RTMGRP_IPV6_ROUTE, RTMGRP_LINK, RTMGRP_NOTIFY},
-    Handle, IpVersion,
+    Handle, RouteMessageBuilder,
 };
 use std::sync::LazyLock;
 
@@ -75,7 +75,7 @@ fn no_fwmark_rule_v4(fwmark: u32, table: u32) -> RuleMessage {
     rule.header = RuleHeader {
         family: AddressFamily::Inet,
         action: RuleAction::ToTable,
-        flags: vec![RuleFlag::Invert],
+        flags: RuleFlags::Invert,
         ..RuleHeader::default()
     };
     rule.attributes = vec![RuleAttribute::FwMark(fwmark), RuleAttribute::Table(table)];
@@ -222,18 +222,9 @@ impl RouteManagerImpl {
                     continue;
                 }
 
-                // Convert Vec<RuleFlag> into bitmask
-                let found_rule_bitflags = found_rule
-                    .header
-                    .flags
-                    .iter()
-                    .fold(0, |acc, n| acc | u32::from(*n));
-                let rule_flags = rule
-                    .header
-                    .flags
-                    .iter()
-                    .fold(0, |acc, n| acc | u32::from(*n));
-                if (found_rule_bitflags & rule_flags) != rule_flags {
+                let found_rule_flags = found_rule.header.flags;
+                let rule_flags = rule.header.flags;
+                if (found_rule_flags & rule_flags) != rule_flags {
                     continue;
                 }
 
@@ -398,7 +389,7 @@ impl RouteManagerImpl {
                 let _ = result_tx.send(self.listen());
             }
             RouteManagerCommand::GetDestinationRoute(destination, mark, result_tx) => {
-                let _ = result_tx.send(self.get_destination_route(&destination, mark).await);
+                let _ = result_tx.send(self.get_destination_route(destination, mark).await);
             }
             RouteManagerCommand::GetMtuForRoute(ip, result_tx) => {
                 let _ = result_tx.send(self.get_mtu_for_route(ip).await);
@@ -613,7 +604,7 @@ impl RouteManagerImpl {
             protocol: RouteProtocol::Unspec,
             scope,
             kind: RouteType::Unspec,
-            flags: Vec::new(),
+            flags: RouteFlags::empty(),
         };
         route_message.attributes = vec![RouteAttribute::Destination(ip_to_route_address(
             route.prefix.ip(),
@@ -659,53 +650,44 @@ impl RouteManagerImpl {
     async fn add_route_direct(&mut self, route: Route) -> Result<()> {
         let mut add_message = match &route.prefix {
             IpNetwork::V4(v4_prefix) => {
-                let mut add_message = self
-                    .handle
-                    .route()
-                    .add()
-                    .v4()
+                let mut message_builder = RouteMessageBuilder::<Ipv4Addr>::new()
                     .destination_prefix(v4_prefix.ip(), v4_prefix.prefix());
 
                 if v4_prefix.prefix() > 0 && v4_prefix.prefix() < 32 {
-                    add_message = add_message.scope(RouteScope::Link);
+                    message_builder = message_builder.scope(RouteScope::Link);
                 }
 
                 if let Some(IpAddr::V4(node_address)) = route.node.get_address() {
-                    add_message = add_message.gateway(node_address);
+                    message_builder = message_builder.gateway(node_address);
                 }
 
                 if let Some(interface_name) = route.node.get_device() {
                     if let Some(iface_idx) = self.find_iface_idx(interface_name) {
-                        add_message = add_message.output_interface(iface_idx);
+                        message_builder = message_builder.output_interface(iface_idx);
                     }
                 }
 
-                add_message.message_mut().clone()
+                message_builder.build()
             }
-
             IpNetwork::V6(v6_prefix) => {
-                let mut add_message = self
-                    .handle
-                    .route()
-                    .add()
-                    .v6()
+                let mut message_builder = RouteMessageBuilder::<Ipv6Addr>::new()
                     .destination_prefix(v6_prefix.ip(), v6_prefix.prefix());
 
                 if v6_prefix.prefix() > 0 && v6_prefix.prefix() < 128 {
-                    add_message = add_message.scope(RouteScope::Link);
+                    message_builder = message_builder.scope(RouteScope::Link);
                 }
 
                 if let Some(IpAddr::V6(node_address)) = route.node.get_address() {
-                    add_message = add_message.gateway(node_address);
+                    message_builder = message_builder.gateway(node_address);
                 }
 
                 if let Some(interface_name) = route.node.get_device() {
                     if let Some(iface_idx) = self.find_iface_idx(interface_name) {
-                        add_message = add_message.output_interface(iface_idx);
+                        message_builder = message_builder.output_interface(iface_idx);
                     }
                 }
 
-                add_message.message_mut().clone()
+                message_builder.build()
             }
         };
 
@@ -731,20 +713,13 @@ impl RouteManagerImpl {
                 .push(RouteAttribute::Metrics(vec![RouteMetric::Mtu(mtu)]));
         }
 
-        // Need to modify the request in place to set the correct flags to be able to replace any
-        // existing routes - self.handle.route().add_v4().execute() sets the NLM_F_EXCL flag which
-        // will make the request fail if a route with the same destination already exists.
-        let mut req = NetlinkMessage::from(RouteNetlinkMessage::NewRoute(add_message));
-        req.header.flags = NLM_F_REQUEST | NLM_F_ACK | NLM_F_CREATE | NLM_F_REPLACE;
-
-        let mut response = self.handle.request(req).map_err(Error::Netlink)?;
-
-        while let Some(message) = response.next().await {
-            if let NetlinkPayload::Error(err) = message.payload {
-                return Err(Error::Netlink(rtnetlink::Error::NetlinkError(err)));
-            }
-        }
-        Ok(())
+        self.handle
+            .route()
+            .add(add_message)
+            .replace()
+            .execute()
+            .await
+            .map_err(Error::Netlink)
     }
 
     async fn add_route(&mut self, route: Route) -> Result<()> {
@@ -779,7 +754,7 @@ impl RouteManagerImpl {
         let mut attempted_ip = ip;
         for _ in 0..RECURSION_LIMIT {
             let route = self
-                .get_destination_route(&attempted_ip, Some(self.fwmark))
+                .get_destination_route(attempted_ip, Some(self.fwmark))
                 .await?;
             match route {
                 Some(route) => {
@@ -841,27 +816,31 @@ impl RouteManagerImpl {
 
     async fn get_destination_route(
         &self,
-        destination: &IpAddr,
+        destination: IpAddr,
         fwmark: Option<u32>,
     ) -> Result<Option<Route>> {
-        let mut request = self.handle.route().get(get_ip_version(destination));
-        let octets = match destination {
-            IpAddr::V4(address) => address.octets().to_vec(),
-            IpAddr::V6(address) => address.octets().to_vec(),
+        let num_octets = match destination {
+            IpAddr::V4(address) => address.octets().len(),
+            IpAddr::V6(address) => address.octets().len(),
         };
-        let route_addr = match destination {
-            IpAddr::V4(address) => RouteAddress::Inet(*address),
-            IpAddr::V6(address) => RouteAddress::Inet6(*address),
+        let destination_prefix_len = 8u8 * (num_octets as u8);
+        let mut message = match destination {
+            IpAddr::V4(addr) => RouteMessageBuilder::<Ipv4Addr>::new()
+                .destination_prefix(addr, destination_prefix_len)
+                .build(),
+            IpAddr::V6(addr) => RouteMessageBuilder::<Ipv6Addr>::new()
+                .destination_prefix(addr, destination_prefix_len)
+                .build(),
         };
-        let message = request.message_mut();
+
         if let Some(mark) = fwmark {
             message.attributes.push(RouteAttribute::Mark(mark));
         }
-        message.header.destination_prefix_length = 8u8 * (octets.len() as u8);
-        message.header.flags = vec![RouteFlag::FibMatch];
-        message
-            .attributes
-            .push(RouteAttribute::Destination(route_addr));
+        message.header.flags = RouteFlags::FibMatch;
+
+        // todo: equivalent to execute_route_get_request is the following (except it sets NLM_F_DUMP -- not sure important?)
+        // self.handle.route().get(message).execute().await;
+
         let mut stream = execute_route_get_request(self.handle.clone(), message.clone());
         match stream.try_next().await {
             Ok(Some(route_msg)) => self.parse_route_message(route_msg),
@@ -912,14 +891,6 @@ fn compat_table_id(id: u32) -> u8 {
         RT_TABLE_COMPAT
     } else {
         id as u8
-    }
-}
-
-fn get_ip_version(addr: &IpAddr) -> IpVersion {
-    if addr.is_ipv4() {
-        IpVersion::V4
-    } else {
-        IpVersion::V6
     }
 }
 
