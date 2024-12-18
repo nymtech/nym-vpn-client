@@ -256,7 +256,16 @@ where
         self.account_storage
             .store_account(mnemonic)
             .await
-            .map_err(AccountCommandError::general)
+            .map_err(AccountCommandError::general)?;
+
+        self.update_mnemonic_state()
+            .await
+            .map_err(|_err| AccountCommandError::NoAccountStored)?;
+
+        // We don't need to wait for the sync to finish, so queue it up and return
+        self.queue_command(AccountCommand::SyncAccountState(None));
+
+        Ok(())
     }
 
     async fn handle_forget_account(&mut self) -> Result<(), AccountCommandError> {
