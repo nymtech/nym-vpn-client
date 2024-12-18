@@ -88,6 +88,9 @@ pub enum AccountCommandError {
     #[error("failed to remove account files: {0}")]
     RemoveAccountFiles(String),
 
+    #[error("failed to init device keys: {0}")]
+    InitDeviceKeys(String),
+
     // Catch all for any other error
     #[error("general error: {0}")]
     General(String),

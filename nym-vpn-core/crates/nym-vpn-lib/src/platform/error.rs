@@ -173,6 +173,7 @@ impl From<nym_vpn_account_controller::AccountCommandError> for VpnError {
                 VpnError::InternalError { details: e }
             }
             AccountCommandError::RemoveAccountFiles(e) => VpnError::InternalError { details: e },
+            AccountCommandError::InitDeviceKeys(e) => VpnError::InternalError { details: e },
             AccountCommandError::General(err) => VpnError::InternalError { details: err },
             AccountCommandError::Internal(err) => VpnError::InternalError { details: err },
         }

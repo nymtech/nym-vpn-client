@@ -96,6 +96,7 @@ impl From<AccountCommandError> for AccountNotReady {
             AccountCommandError::RemoveDeviceIdentity(e) => AccountNotReady::General(e),
             AccountCommandError::ResetCredentialStorage(e) => AccountNotReady::General(e),
             AccountCommandError::RemoveAccountFiles(e) => AccountNotReady::General(e),
+            AccountCommandError::InitDeviceKeys(e) => AccountNotReady::General(e),
             AccountCommandError::General(err) => AccountNotReady::General(err),
             AccountCommandError::Internal(err) => AccountNotReady::Internal(err),
         }
