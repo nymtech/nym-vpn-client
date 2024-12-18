@@ -26,6 +26,8 @@ export SOURCE_DATE_EPOCH=0
 # Force vergen to emit stable values
 export VERGEN_IDEMPOTENT=1
 
+export VERGEN_GIT_BRANCH="VERGEN_IDEMPOTENT_OUTPUT"
+
 #fix emulators later
 #(cd $PWD/src/tools/nym-vpn-client/crates/nym-vpn-lib; cargo ndk -t armeabi-v7a -t arm64-v8a -t i686-linux-android -t x86_64-linux-android  -o ../../../main/jniLibs build --release)
 pushd $PWD/../../nym-vpn-core/crates/nym-vpn-lib
