@@ -35,17 +35,6 @@ where
         Self { storage }
     }
 
-    pub(crate) async fn init_keys(&self) -> Result<(), Error> {
-        self.storage
-            .lock()
-            .await
-            .init_keys(None)
-            .await
-            .map_err(|err| Error::KeyStore {
-                source: Box::new(err),
-            })
-    }
-
     pub(crate) async fn store_account(&self, mnemonic: Mnemonic) -> Result<(), Error> {
         self.storage
             .lock()
@@ -82,6 +71,17 @@ where
 
     pub(crate) async fn load_account_id(&self) -> Result<String, Error> {
         self.load_account().await.map(|account| account.id())
+    }
+
+    pub(crate) async fn init_keys(&self) -> Result<(), Error> {
+        self.storage
+            .lock()
+            .await
+            .init_keys(None)
+            .await
+            .map_err(|err| Error::KeyStore {
+                source: Box::new(err),
+            })
     }
 
     pub(crate) async fn load_device_keys(&self) -> Result<Device, Error> {

@@ -298,14 +298,29 @@ where
         self.waiting_request_zknym_command_handler.reset();
         self.account_state.reset().await;
 
+        // And now we are ready to start reconstructing
+        let reinit_keys_result = self
+            .account_storage
+            .init_keys()
+            .await
+            .inspect_err(|source| {
+                tracing::error!("Failed to reinitialize device keys: {source:?}");
+            });
+
         // And conclude by syncing with the remote state
         self.handle_sync_account_state(AccountCommand::SyncAccountState(None))
             .await;
 
-        if remove_files_result.is_err() {
-            return Err(AccountCommandError::RemoveAccountFiles(
-                "Failed to remove files for account".to_string(),
-            ));
+        if let Err(err) = remove_files_result {
+            return Err(AccountCommandError::RemoveAccountFiles(format!(
+                "Failed to remove files for account: {err}"
+            )));
+        }
+
+        if let Err(err) = reinit_keys_result {
+            return Err(AccountCommandError::InitDeviceKeys(format!(
+                "Failed to reinitialize device keys: {err}"
+            )));
         }
 
         Ok(())
