@@ -1495,13 +1495,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "dispatch2"
-version = "0.1.0"
-dependencies = [
- "libc",
-]
-
-[[package]]
 name = "displaydoc"
 version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2521,7 +2514,7 @@ dependencies = [
  "iana-time-zone-haiku",
  "js-sys",
  "wasm-bindgen",
- "windows-core 0.52.0",
+ "windows-core 0.51.1",
 ]
 
 [[package]]
@@ -3373,12 +3366,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-apple-dispatch"
+version = "1.2.0-dev"
+dependencies = [
+ "objc2",
+ "objc2-foundation",
+]
+
+[[package]]
 name = "nym-apple-network"
 version = "1.2.0-dev"
 dependencies = [
  "block2",
- "dispatch2",
  "nix 0.29.0",
+ "nym-apple-dispatch",
  "objc2",
  "objc2-foundation",
  "thiserror",
@@ -4878,7 +4879,6 @@ dependencies = [
  "bs58",
  "bytes",
  "debounced",
- "dispatch2",
  "err-derive",
  "futures",
  "hickory-resolver",
@@ -4889,6 +4889,7 @@ dependencies = [
  "log",
  "netdev",
  "nix 0.29.0",
+ "nym-apple-dispatch",
  "nym-apple-network",
  "nym-authenticator-client",
  "nym-authenticator-requests",
