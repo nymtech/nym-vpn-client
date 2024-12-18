@@ -1,12 +1,12 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(target_os = "android")]
-use std::os::fd::RawFd;
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     time::Duration,
 };
+#[cfg(unix)]
+use std::{os::fd::RawFd, sync::Arc};
 
 use crate::netstack::NetstackRequest;
 use anyhow::bail;
@@ -115,7 +115,11 @@ pub async fn probe(
     info!("Successfully connected to entry gateway: {entry_gateway}");
     info!("Our nym address: {nym_address}");
 
-    let shared_client = SharedMixnetClient::new(mixnet_client);
+    let shared_client = SharedMixnetClient::new(
+        mixnet_client,
+        #[cfg(unix)]
+        Arc::new(|_: RawFd| {}),
+    );
 
     // Now that we have a connected mixnet client, we can start pinging
     let outcome = do_ping(shared_client.clone(), exit_router_address).await;
