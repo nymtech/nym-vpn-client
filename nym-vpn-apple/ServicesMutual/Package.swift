@@ -29,6 +29,7 @@ let package = Package(
         .target(
             name: "ConnectionTypes",
             dependencies: [
+                "CountriesManagerTypes",
                 "Theme"
             ],
             path: "Sources/ConnectionTypes"
