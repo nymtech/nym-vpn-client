@@ -8,6 +8,7 @@ final class SupportViewModel: ObservableObject {
     private let externalLinkManager: ExternalLinkManager
     private let faqLink = Constants.supportURL.rawValue
     private let emailLink = Constants.emailLink.rawValue
+    private let githubIssueLink = Constants.ghIssuesLink.rawValue
     private let matrixLink = "https://matrix.to/#/%23NymVPN:nymtech.chat"
     private let discordLink = Constants.discordLink.rawValue
     private let connectionManager: ConnectionManager
@@ -21,6 +22,7 @@ final class SupportViewModel: ObservableObject {
         var newSections = [
             faqSectionViewModel(),
             emailSectionViewModel(),
+            githubIssueViewModel(),
             matrixSectionViewModel(),
             discordSectionViewModel()
         ]
@@ -81,11 +83,23 @@ private extension SupportViewModel {
     func emailSectionViewModel() -> SettingsListItemViewModel {
         SettingsListItemViewModel(
             accessory: .arrow,
-            title: "sendEmail".localizedString,
+            title: "settings.getInTouch".localizedString,
             imageName: "email",
             position: SettingsListItemPosition(isFirst: true, isLast: true),
             action: { [weak self] in
                 self?.openExternalURL(urlString: self?.emailLink)
+            }
+        )
+    }
+
+    func githubIssueViewModel() -> SettingsListItemViewModel {
+        SettingsListItemViewModel(
+            accessory: .arrow,
+            title: "feedback.githubIssue".localizedString,
+            imageName: "github",
+            position: SettingsListItemPosition(isFirst: true, isLast: true),
+            action: { [weak self] in
+                self?.openExternalURL(urlString: self?.githubIssueLink)
             }
         )
     }

@@ -683,17 +683,6 @@
         }
       }
     },
-    "feedback" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Feedback"
-          }
-        }
-      }
-    },
     "feedback.errorReportingSubtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -946,6 +935,9 @@
           }
         }
       }
+    },
+    "Key" : {
+      "extractionState" : "manual"
     },
     "lastHopSelection" : {
       "extractionState" : "manual",
@@ -1277,17 +1269,6 @@
         }
       }
     },
-    "sendEmail" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Send us an e-mail"
-          }
-        }
-      }
-    },
     "settings" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1350,6 +1331,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Device ID: "
+          }
+        }
+      }
+    },
+    "settings.getInTouch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get in touch"
           }
         }
       }
@@ -1431,6 +1423,17 @@
         }
       }
     },
+    "settings.supportAndFeedback" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Support & feedback"
+          }
+        }
+      }
+    },
     "stop" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1438,17 +1441,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Stop"
-          }
-        }
-      }
-    },
-    "support" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Support"
           }
         }
       }

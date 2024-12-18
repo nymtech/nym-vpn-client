@@ -18,8 +18,6 @@ struct SettingsFlowCoordinator<Content: View>: View {
         switch link {
         case .theme:
             AppearanceView(viewModel: AppearanceViewModel(path: $flowState.path, appSettings: AppSettings.shared))
-        case .feedback:
-            FeedbackView(viewModel: FeedbackViewModel(path: $flowState.path))
         case .support:
             SupportView(viewModel: SupportViewModel(path: $flowState.path))
         case .legal:
