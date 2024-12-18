@@ -89,16 +89,16 @@ duct = "0.13"
 futures = "0.3.31"
 hex = "0.4"
 hickory-resolver = "0.24.1"
-http = "0.2.12"                                                     # version compatible with tonic
+http = "0.2.12"                                                                                                    # version compatible with tonic
 ipnetwork = "0.16"
 itertools = "0.13.0"
 lazy_static = "1.5.0"
 libc = "0.2"
 log = "0.4.22"
 maplit = "1.0.2"
-netdev = "0.29.0"
+netdev = { git = "https://github.com/pronebird/netdev.git", branch = "netlink-packet-route-0.21" }
 netlink-packet-core = "0.7"
-netlink-packet-route = "0.19"
+netlink-packet-route = "0.21"
 netlink-sys = "0.8"
 nix = "0.29"
 parity-tokio-ipc = "0.9.0"
@@ -109,7 +109,7 @@ prost-types = "0.12.6"
 rand = "0.8.5"
 rand_chacha = "0.3.1"
 reqwest = { version = "0.11.27", default-features = false }
-rtnetlink = "0.14"
+rtnetlink = { git = "https://github.com/mwanner/rtnetlink.git", rev = "d2c650da4a3bc08a157cc0c5359171d376fef8ea" }
 rust2go = "0.3.16"
 semver = "1.0.23"
 serde = "1.0"
