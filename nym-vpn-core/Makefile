@@ -24,6 +24,9 @@ export RUSTFLAGS=$(IDEMPOTENT_RUSTFLAGS)
 # Force vergen to emit stable values
 export VERGEN_IDEMPOTENT=1
 
+# Make branch name idempotent to avoid catching detached head
+export VERGEN_GIT_BRANCH="VERGEN_IDEMPOTENT_OUTPUT"
+
 .PHONY: all deb fmt help
 
 # Main targets
