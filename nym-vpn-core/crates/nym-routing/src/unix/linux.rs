@@ -570,7 +570,7 @@ impl RouteManagerImpl {
     async fn delete_route_if_exists(&self, route: &Route) -> Result<()> {
         if let Err(error) = self.delete_route(route).await {
             if let Error::Netlink(rtnetlink::Error::NetlinkError(msg)) = &error {
-                if msg.code == NonZeroI32::new(-libc::ESRCH){
+                if msg.code == NonZeroI32::new(-libc::ESRCH) {
                     return Ok(());
                 }
             }
@@ -828,8 +828,9 @@ impl RouteManagerImpl {
                     .into_iter()
                     .find(|e| matches!(e, LinkAttribute::Mtu(_)))
                 {
-                    return Ok(u16::try_from(mtu)
-                        .expect("MTU returned by device does not fit into a u16"));
+                    return Ok(
+                        u16::try_from(mtu).expect("MTU returned by device does not fit into a u16")
+                    );
                 }
             }
         }
@@ -863,7 +864,7 @@ impl RouteManagerImpl {
         match stream.try_next().await {
             Ok(Some(route_msg)) => self.parse_route_message(route_msg),
             Ok(None) => Err(Error::NoRoute),
-            Err(rtnetlink::Error::NetlinkError(nl_err)) 
+            Err(rtnetlink::Error::NetlinkError(nl_err))
                 if nl_err.code == NonZeroI32::new(-libc::ENETUNREACH) =>
             {
                 Ok(None)
