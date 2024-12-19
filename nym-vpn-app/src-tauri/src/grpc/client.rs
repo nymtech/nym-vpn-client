@@ -507,7 +507,7 @@ impl GrpcClient {
     /// Get the account identity \
     /// public key derived from the mnemonic
     #[instrument(skip_all)]
-    pub async fn account_id(&self) -> Result<String, VpndError> {
+    pub async fn account_id(&self) -> Result<Option<String>, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(GetAccountIdentityRequest {});
@@ -524,9 +524,7 @@ impl GrpcClient {
             error!("failed to get account id: invalid response");
             VpndError::internal("failed to get account id: invalid response")
         })? {
-            // TODO: update return type to `Result<Option<String>, VpndError>` instead of
-            // flattening it.
-            AccountIdRes::AccountIdentity(id) => Ok(id.account_identity().to_owned()),
+            AccountIdRes::AccountIdentity(id) => Ok(id.account_identity),
             AccountIdRes::Error(e) => Err(VpndError::Response(e.into())),
         }
     }
