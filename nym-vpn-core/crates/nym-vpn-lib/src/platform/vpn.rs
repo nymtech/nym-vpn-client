@@ -13,8 +13,7 @@ use crate::tunnel_provider::android::AndroidTunProvider;
 use crate::tunnel_provider::ios::OSTunProvider;
 use crate::tunnel_state_machine::{
     DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
-    TunnelSettings, TunnelStateMachine, TunnelType,
-    WireguardTunnelOptions,
+    TunnelSettings, TunnelStateMachine, TunnelType, WireguardTunnelOptions,
 };
 
 use super::{error::VpnError, VPNConfig, STATE_MACHINE_HANDLE};
