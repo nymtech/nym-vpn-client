@@ -12,6 +12,7 @@ use std::{
     collections::{BTreeMap, HashSet},
     io,
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
+    num::NonZeroI32,
 };
 
 use futures::{
@@ -20,7 +21,6 @@ use futures::{
     StreamExt, TryStream, TryStreamExt,
 };
 use ipnetwork::IpNetwork;
-use libc::{AF_INET, AF_INET6};
 use libc::RT_TABLE_COMPAT;
 use netlink_packet_core::{
     NetlinkMessage, NetlinkPayload, NLM_F_ACK, NLM_F_CREATE, NLM_F_DUMP, NLM_F_REPLACE,
@@ -42,20 +42,22 @@ use rtnetlink::{
 };
 use std::sync::LazyLock;
 
-static SUPPRESS_RULE_V4: LazyLock<RuleMessage> = LazyLock::new(|| RuleMessage {
-    header: RuleHeader {
+static SUPPRESS_RULE_V4: LazyLock<RuleMessage> = LazyLock::new(|| {
+    let mut rule = RuleMessage::default();
+    rule.header = RuleHeader {
         family: AddressFamily::Inet,
         action: RuleAction::ToTable,
         ..RuleHeader::default()
-    },
-    nlas: vec![
+    };
+    rule.attributes = vec![
         RuleAttribute::SuppressPrefixLen(0),
         RuleAttribute::Table(RouteHeader::RT_TABLE_MAIN as u32),
-    ],
+    ];
+    rule
 });
 static SUPPRESS_RULE_V6: LazyLock<RuleMessage> = LazyLock::new(|| {
     let mut v6_rule = SUPPRESS_RULE_V4.clone();
-    v6_rule.header.family = AF_INET6 as u8;
+    v6_rule.header.family = AddressFamily::Inet6;
     v6_rule
 });
 
@@ -103,8 +105,11 @@ pub enum Error {
     #[error("Route without a valid node")]
     InvalidRoute,
 
-    #[error("Invalid length of byte buffer for IP address")]
-    InvalidIpBytes,
+    #[error("Failed to convert route address to IP. Received: {0}")]
+    ConvertRouteAddrToIp(String),
+
+    #[error("Failed to convert route via to IP. Received: {0}")]
+    ConvertRouteViaToIp(String),
 
     #[error("Invalid network prefix")]
     InvalidNetworkPrefix(#[source] ipnetwork::IpNetworkError),
@@ -184,10 +189,10 @@ impl RouteManagerImpl {
         self.clear_routing_rules().await?;
 
         for rule in all_rules(self.fwmark, self.table_id)
-            .iter()
-            .filter(|rule| rule.header.family as u16 == AF_INET || enable_ipv6)
+            .into_iter()
+            .filter(|rule| rule.header.family == AddressFamily::Inet || enable_ipv6)
         {
-            let mut req = NetlinkMessage::from(RtnlMessage::NewRule((*rule).clone()));
+            let mut req = NetlinkMessage::from(RouteNetlinkMessage::NewRule(rule));
             req.header.flags = NLM_F_REQUEST | NLM_F_ACK | NLM_F_CREATE | NLM_F_REPLACE;
 
             let mut response = self.handle.request(req).map_err(Error::Netlink)?;
@@ -216,9 +221,22 @@ impl RouteManagerImpl {
                 if found_rule.header.action != rule.header.action {
                     continue;
                 }
-                if (found_rule.header.flags & rule.header.flags) != rule.header.flags {
+
+                // Convert Vec<RuleFlag> into bitmask
+                let found_rule_bitflags = found_rule
+                    .header
+                    .flags
+                    .iter()
+                    .fold(0, |acc, n| acc | u32::from(*n));
+                let rule_flags = rule
+                    .header
+                    .flags
+                    .iter()
+                    .fold(0, |acc, n| acc | u32::from(*n));
+                if (found_rule_bitflags & rule_flags) != rule_flags {
                     continue;
                 }
+
                 // Match NLAs
                 let mut contains_nlas = true;
                 for nla in &rule.attributes {
@@ -242,7 +260,7 @@ impl RouteManagerImpl {
     }
 
     async fn get_rules(&mut self) -> Result<Vec<RuleMessage>> {
-        let mut req = NetlinkMessage::from(RtnlMessage::GetRule(RuleMessage::default()));
+        let mut req = NetlinkMessage::from(RouteNetlinkMessage::GetRule(RuleMessage::default()));
         req.header.flags = NLM_F_REQUEST | NLM_F_ACK | NLM_F_DUMP;
 
         let mut response = self.handle.request(req).map_err(Error::Netlink)?;
@@ -264,7 +282,7 @@ impl RouteManagerImpl {
     }
 
     async fn delete_rule_if_exists(&mut self, rule: RuleMessage) -> Result<()> {
-        let mut req = NetlinkMessage::from(RtnlMessage::DelRule(rule));
+        let mut req = NetlinkMessage::from(RouteNetlinkMessage::DelRule(rule));
         req.header.flags = NLM_F_REQUEST | NLM_F_ACK;
 
         let mut response = self.handle.request(req).map_err(Error::Netlink)?;
@@ -549,25 +567,10 @@ impl RouteManagerImpl {
         None
     }
 
-    fn parse_ip(bytes: &[u8]) -> Result<IpAddr> {
-        if bytes.len() == 4 {
-            let mut ipv4_bytes = [0u8; 4];
-            ipv4_bytes.copy_from_slice(bytes);
-            Ok(IpAddr::from(ipv4_bytes))
-        } else if bytes.len() == 16 {
-            let mut ipv6_bytes = [0u8; 16];
-            ipv6_bytes.copy_from_slice(bytes);
-            Ok(IpAddr::from(ipv6_bytes))
-        } else {
-            log::error!("Expected either 4 or 16 bytes, got {} bytes", bytes.len());
-            Err(Error::InvalidIpBytes)
-        }
-    }
-
     async fn delete_route_if_exists(&self, route: &Route) -> Result<()> {
         if let Err(error) = self.delete_route(route).await {
             if let Error::Netlink(rtnetlink::Error::NetlinkError(msg)) = &error {
-                if msg.code == -libc::ESRCH {
+                if msg.code == NonZeroI32::new(-libc::ESRCH){
                     return Ok(());
                 }
             }
@@ -596,24 +599,26 @@ impl RouteManagerImpl {
             }
         };
 
-        let mut route_message = RouteMessage {
-            header: RouteHeader {
-                address_family: if route.prefix.is_ipv4() {
-                    AF_INET as u8
-                } else {
-                    AF_INET6 as u8
-                },
-                source_prefix_length: 0,
-                destination_prefix_length: route.prefix.prefix(),
-                tos: 0u8,
-                table: compat_table,
-                protocol: RouteProtocol::Unspec,
-                scope,
-                kind: RouteProtocol::Unspec,
-                flags: RouteFlags::empty(),
+        let mut route_message = RouteMessage::default();
+        route_message.header = RouteHeader {
+            address_family: if route.prefix.is_ipv4() {
+                AddressFamily::Inet
+            } else {
+                AddressFamily::Inet6
             },
-            nlas: vec![RouteNla::Destination(ip_to_bytes(route.prefix.ip()))],
+            source_prefix_length: 0,
+            destination_prefix_length: route.prefix.prefix(),
+            tos: 0u8,
+            table: compat_table,
+            protocol: RouteProtocol::Unspec,
+            scope,
+            kind: RouteType::Unspec,
+            flags: Vec::new(),
         };
+        route_message.attributes = vec![RouteAttribute::Destination(ip_to_route_address(
+            route.prefix.ip(),
+        ))];
+
         if compat_table == RT_TABLE_COMPAT {
             route_message
                 .attributes
@@ -816,12 +821,14 @@ impl RouteManagerImpl {
         let mut links = self.handle.link().get().execute();
         let target_device = LinkAttribute::IfName(device);
         while let Some(msg) = links.try_next().await.map_err(|_| Error::LinkNotFound)? {
-            let found = msg.nlas.iter().any(|e| *e == target_device);
+            let found = msg.attributes.iter().any(|e| *e == target_device);
             if found {
-                if let Some(LinkAttribute::Mtu(mtu)) =
-                    msg.nlas.iter().find(|e| matches!(e, LinkAttribute::Mtu(_)))
+                if let Some(LinkAttribute::Mtu(mtu)) = msg
+                    .attributes
+                    .into_iter()
+                    .find(|e| matches!(e, LinkAttribute::Mtu(_)))
                 {
-                    return Ok(u16::try_from(*mtu)
+                    return Ok(u16::try_from(mtu)
                         .expect("MTU returned by device does not fit into a u16"));
                 }
             }
@@ -839,29 +846,30 @@ impl RouteManagerImpl {
             IpAddr::V4(address) => address.octets().to_vec(),
             IpAddr::V6(address) => address.octets().to_vec(),
         };
+        let route_addr = match destination {
+            IpAddr::V4(address) => RouteAddress::Inet(*address),
+            IpAddr::V6(address) => RouteAddress::Inet6(*address),
+        };
         let message = request.message_mut();
         if let Some(mark) = fwmark {
-            message.nlas.push(RouteNla::Mark(mark));
+            message.attributes.push(RouteAttribute::Mark(mark));
         }
         message.header.destination_prefix_length = 8u8 * (octets.len() as u8);
-        message.header.flags = RouteFlags::RTM_F_FIB_MATCH;
-        message.nlas.push(RouteNla::Destination(octets));
+        message.header.flags = vec![RouteFlag::FibMatch];
+        message
+            .attributes
+            .push(RouteAttribute::Destination(route_addr));
         let mut stream = execute_route_get_request(self.handle.clone(), message.clone());
         match stream.try_next().await {
             Ok(Some(route_msg)) => self.parse_route_message(route_msg),
             Ok(None) => Err(Error::NoRoute),
-            Err(rtnetlink::Error::NetlinkError(nl_err)) if nl_err.code == -libc::ENETUNREACH => {
+            Err(rtnetlink::Error::NetlinkError(nl_err)) 
+                if nl_err.code == NonZeroI32::new(-libc::ENETUNREACH) =>
+            {
                 Ok(None)
             }
             Err(err) => Err(Error::GetRoute(err)),
         }
-    }
-}
-
-fn ip_to_bytes(addr: IpAddr) -> Vec<u8> {
-    match addr {
-        IpAddr::V4(addr) => addr.octets().to_vec(),
-        IpAddr::V6(addr) => addr.octets().to_vec(),
     }
 }
 
@@ -919,7 +927,7 @@ fn execute_route_get_request(
     use futures::future::{self, Either};
     use rtnetlink::Error;
 
-    let mut req = NetlinkMessage::from(RtnlMessage::GetRoute(message));
+    let mut req = NetlinkMessage::from(RouteNetlinkMessage::GetRoute(message));
     req.header.flags = NLM_F_REQUEST;
 
     match handle.request(req) {
