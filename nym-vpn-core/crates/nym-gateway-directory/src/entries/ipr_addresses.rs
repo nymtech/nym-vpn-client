@@ -32,7 +32,7 @@ impl IpPacketRouterAddress {
         )?))
     }
 
-    pub fn gateway(&self) -> &NodeIdentity {
+    pub fn gateway(&self) -> NodeIdentity {
         self.0.gateway()
     }
 }

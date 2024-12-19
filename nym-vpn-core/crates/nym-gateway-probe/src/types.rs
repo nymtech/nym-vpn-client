@@ -3,7 +3,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProbeResult {
-    pub gateway: String,
+    pub node: String,
+    pub used_entry: String,
     pub outcome: ProbeOutcome,
 }
 
@@ -39,32 +40,49 @@ pub struct WgProbeResults {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Entry {
-    pub can_connect: bool,
-    pub can_route: bool,
+#[serde(untagged)]
+pub enum Entry {
+    Tested(EntryTestResult),
+    NotTested,
+    EntryFailure,
+}
+
+impl From<EntryTestResult> for Entry {
+    fn from(value: EntryTestResult) -> Self {
+        Entry::Tested(value)
+    }
 }
 
 impl Entry {
     pub fn fail_to_connect() -> Self {
-        Self {
+        EntryTestResult {
             can_connect: false,
             can_route: false,
         }
+        .into()
     }
 
     pub fn fail_to_route() -> Self {
-        Self {
+        EntryTestResult {
             can_connect: true,
             can_route: false,
         }
+        .into()
     }
 
     pub fn success() -> Self {
-        Self {
+        EntryTestResult {
             can_connect: true,
             can_route: true,
         }
+        .into()
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EntryTestResult {
+    pub can_connect: bool,
+    pub can_route: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
