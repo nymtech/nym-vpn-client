@@ -9,5 +9,5 @@ edition.workspace = true
 license.workspace = true
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
-objc2-foundation = { version = "0.2" }
-objc2 = { version = "0.5" }
+objc2-foundation.workspace = true
+objc2.workspace = true
