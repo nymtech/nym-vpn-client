@@ -17,7 +17,10 @@ use futures::StreamExt;
 use netstack::ffi::{NetstackCall as _, NetstackCallImpl, NetstackRequestGo};
 use nym_authenticator_client::{AuthenticatorResponse, AuthenticatorVersion, ClientMessage};
 use nym_authenticator_requests::{v2, v3, v4};
-use nym_config::defaults::NymNetworkDetails;
+use nym_config::defaults::{
+    mixnet_vpn::{NYM_TUN_DEVICE_ADDRESS_V4, NYM_TUN_DEVICE_ADDRESS_V6},
+    NymNetworkDetails,
+};
 use nym_connection_monitor::self_ping_and_wait;
 use nym_gateway_directory::{
     AuthAddress, Config as GatewayDirectoryConfig, EntryPoint,
@@ -422,11 +425,11 @@ async fn send_icmp_pings(
     exit_router_address: IpPacketRouterAddress,
 ) -> anyhow::Result<()> {
     // ipv4 addresses for testing
-    let ipr_tun_ip_v4 = Ipv4Addr::new(10, 0, 0, 1);
+    let ipr_tun_ip_v4 = NYM_TUN_DEVICE_ADDRESS_V4;
     let external_ip_v4 = Ipv4Addr::new(8, 8, 8, 8);
 
     // ipv6 addresses for testing
-    let ipr_tun_ip_v6 = Ipv6Addr::new(0xfc00, 0, 0, 0, 0, 0, 0, 0x1);
+    let ipr_tun_ip_v6 = NYM_TUN_DEVICE_ADDRESS_V6;
     let external_ip_v6 = Ipv6Addr::new(0x2001, 0x4860, 0x4860, 0, 0, 0, 0, 0x8888);
 
     info!("Sending ICMP echo requests to: {ipr_tun_ip_v4}, {ipr_tun_ip_v6}, {external_ip_v4}, {external_ip_v6}");

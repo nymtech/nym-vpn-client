@@ -7,6 +7,7 @@ use std::{
 };
 
 use bytes::Bytes;
+use nym_config::defaults::mixnet_vpn::{NYM_TUN_DEVICE_ADDRESS_V4, NYM_TUN_DEVICE_ADDRESS_V6};
 use nym_ip_packet_requests::{codec::MultiIpPacketCodec, IpPair};
 use nym_sdk::{
     mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient},
@@ -27,11 +28,6 @@ use crate::{
 };
 
 const ICMP_BEACON_PING_INTERVAL: Duration = Duration::from_millis(1000);
-
-// TODO: extract these from the ip-packet-router crate
-const ICMP_IPR_TUN_IP_V4: Ipv4Addr = Ipv4Addr::new(10, 0, 0, 1);
-// 2001:db8:a160::1
-const ICMP_IPR_TUN_IP_V6: Ipv6Addr = Ipv6Addr::new(0xfc00, 0, 0, 0, 0, 0, 0, 0x1);
 
 // This can be anything really, we just want to check if the exit IPR can reach the internet
 // TODO: have a pool of IPs to ping
@@ -117,11 +113,11 @@ impl IcmpConnectionBeacon {
     }
 
     async fn ping_v4_ipr_tun_device_over_the_mixnet(&mut self) -> Result<()> {
-        self.send_icmp_v4_ping(ICMP_IPR_TUN_IP_V4).await
+        self.send_icmp_v4_ping(NYM_TUN_DEVICE_ADDRESS_V4).await
     }
 
     async fn ping_v6_ipr_tun_device_over_the_mixnet(&mut self) -> Result<()> {
-        self.send_icmp_v6_ping(ICMP_IPR_TUN_IP_V6).await
+        self.send_icmp_v6_ping(NYM_TUN_DEVICE_ADDRESS_V6).await
     }
 
     async fn ping_v4_some_external_ip_over_the_mixnet(&mut self) -> Result<()> {
@@ -194,7 +190,7 @@ pub fn is_icmp_beacon_reply(
 ) -> Option<IcmpBeaconReply> {
     if let Some((reply_identifier, reply_source, reply_destination)) = is_icmp_echo_reply(packet) {
         if reply_identifier == identifier && reply_destination == destination {
-            if reply_source == ICMP_IPR_TUN_IP_V4 {
+            if reply_source == NYM_TUN_DEVICE_ADDRESS_V4 {
                 return Some(IcmpBeaconReply::TunDeviceReply);
             } else if reply_source == ICMP_IPR_TUN_EXTERNAL_PING_V4 {
                 return Some(IcmpBeaconReply::ExternalPingReply(reply_source));
@@ -212,7 +208,7 @@ pub fn is_icmp_v6_beacon_reply(
     if let Some((reply_identifier, reply_source, reply_destination)) = is_icmp_v6_echo_reply(packet)
     {
         if reply_identifier == identifier && reply_destination == destination {
-            if reply_source == ICMP_IPR_TUN_IP_V6 {
+            if reply_source == NYM_TUN_DEVICE_ADDRESS_V6 {
                 return Some(Icmpv6BeaconReply::TunDeviceReply);
             } else if reply_source == ICMP_IPR_TUN_EXTERNAL_PING_V6 {
                 return Some(Icmpv6BeaconReply::ExternalPingReply(reply_source));
