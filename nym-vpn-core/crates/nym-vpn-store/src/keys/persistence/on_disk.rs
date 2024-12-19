@@ -9,6 +9,9 @@ use rand::SeedableRng as _;
 
 use crate::keys::{DeviceKeys, KeyStore};
 
+pub const DEFAULT_PRIVATE_DEVICE_KEY_FILENAME: &str = "private_device.pem";
+pub const DEFAULT_PUBLIC_DEVICE_KEY_FILENAME: &str = "public_device.pem";
+
 #[derive(Debug, thiserror::Error)]
 pub enum OnDiskKeysError {
     #[error("unable to load keys")]
@@ -45,8 +48,8 @@ impl DeviceKeysPaths {
     pub fn new<P: AsRef<Path>>(base_data_directory: P) -> Self {
         let base_dir = base_data_directory.as_ref();
         DeviceKeysPaths {
-            private_device_key_file: base_dir.join("private_device.pem"),
-            public_device_key_file: base_dir.join("public_device.pem"),
+            private_device_key_file: base_dir.join(DEFAULT_PRIVATE_DEVICE_KEY_FILENAME),
+            public_device_key_file: base_dir.join(DEFAULT_PUBLIC_DEVICE_KEY_FILENAME),
         }
     }
 

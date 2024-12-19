@@ -179,6 +179,19 @@ impl SharedAccountState {
         guard.request_zk_nym_result = Some(request);
     }
 
+    pub async fn is_account_stored(&self) -> bool {
+        self.lock()
+            .await
+            .mnemonic
+            .clone()
+            .map(|m| m.is_stored())
+            .unwrap_or(false)
+    }
+
+    pub async fn get_account_id(&self) -> Option<String> {
+        self.lock().await.mnemonic.clone().and_then(|m| m.id())
+    }
+
     pub(crate) async fn is_ready_to_register_device(&self) -> ReadyToRegisterDevice {
         self.lock().await.is_ready_to_register_device()
     }
@@ -234,6 +247,19 @@ pub enum MnemonicState {
 
     // The recovery phrase is stored locally
     Stored { id: String },
+}
+
+impl MnemonicState {
+    pub fn is_stored(&self) -> bool {
+        matches!(self, MnemonicState::Stored { .. })
+    }
+
+    pub fn id(&self) -> Option<String> {
+        match self {
+            MnemonicState::Stored { id } => Some(id.clone()),
+            MnemonicState::NotStored => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]

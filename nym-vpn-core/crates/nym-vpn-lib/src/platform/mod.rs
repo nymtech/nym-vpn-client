@@ -155,7 +155,7 @@ pub fn shutdown() -> Result<(), VpnError> {
     RUNTIME.block_on(account::stop_account_controller_handle())
 }
 
-pub fn init_logger() {
+fn init_logger() {
     let log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
     info!("Setting log level: {}", log_level);
     #[cfg(target_os = "ios")]
@@ -211,87 +211,93 @@ pub fn getSystemMessages() -> Result<Vec<SystemMessage>, VpnError> {
 /// Returns the account links for the current network environment
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn getAccountLinks(account_store_path: &str, locale: &str) -> Result<AccountLinks, VpnError> {
-    RUNTIME.block_on(environment::get_account_links(account_store_path, locale))
+pub fn getAccountLinks(locale: &str) -> Result<AccountLinks, VpnError> {
+    RUNTIME.block_on(environment::get_account_links(locale))
 }
 
-/// Fetch the network environment details from the network name.
-/// This makes a network call. In normal operations you almost always want to use initEnvironment
-/// instead of this function.
+/// Returns the account links for the current network environment.
+/// This is a version that can be called when the account controller is not running.
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn fetchEnvironment(network_name: &str) -> Result<NetworkEnvironment, VpnError> {
-    RUNTIME.block_on(environment::fetch_environment(network_name))
-}
-
-/// Feth the account links for the current network environment.
-/// This makes a network call. In normal operations you almost always want to use initEnvironment
-/// followed by getSystemMessages instead of this function.
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn fetchSystemMessages(network_name: &str) -> Result<Vec<SystemMessage>, VpnError> {
-    RUNTIME.block_on(environment::fetch_system_messages(network_name))
-}
-
-/// Fetches the account links for the current network environment
-/// This makes a network call. In normal operations you almost always want to use initEnvironment
-/// followed by getAccountLinks instead of this function.
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn fetchAccountLinks(
+pub fn getAccountLinksRaw(
     account_store_path: &str,
-    network_name: &str,
     locale: &str,
 ) -> Result<AccountLinks, VpnError> {
-    RUNTIME.block_on(environment::fetch_account_links(
+    RUNTIME.block_on(environment::get_account_links_raw(
         account_store_path,
-        network_name,
         locale,
     ))
 }
 
+/// Store the account mnemonic
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn storeAccountMnemonic(mnemonic: String, path: String) -> Result<(), VpnError> {
-    RUNTIME.block_on(account::store_account_mnemonic(&mnemonic, &path))
+pub fn storeAccountMnemonic(mnemonic: String) -> Result<(), VpnError> {
+    RUNTIME.block_on(account::store_account_mnemonic(&mnemonic))
 }
 
+/// Store the account mnemonic
+/// This is a version that can be called when the account controller is not running.
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn isAccountMnemonicStored(path: String) -> Result<bool, VpnError> {
-    RUNTIME.block_on(account::is_account_mnemonic_stored(&path))
+pub fn storeAccountMnemonicRaw(mnemonic: String, path: String) -> Result<(), VpnError> {
+    RUNTIME.block_on(account::raw::store_account_mnemonic_raw(&mnemonic, &path))
 }
 
+/// Check if the account mnemonic is stored
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn removeAccountMnemonic(path: String) -> Result<bool, VpnError> {
-    RUNTIME.block_on(account::remove_account_mnemonic(&path))
+pub fn isAccountMnemonicStored() -> Result<bool, VpnError> {
+    RUNTIME.block_on(account::is_account_mnemonic_stored())
 }
 
+/// Check if the account mnemonic is stored
+/// This is a version that can be called when the account controller is not running.
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn forgetAccount(path: String) -> Result<(), VpnError> {
-    RUNTIME.block_on(account::forget_account(&path))
+pub fn isAccountMnemonicStoredRaw(path: String) -> Result<bool, VpnError> {
+    RUNTIME.block_on(account::raw::is_account_mnemonic_stored_raw(&path))
 }
 
+/// Remove the account mnemonic and all associated keys and files
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn resetDeviceIdentity(path: String) -> Result<(), VpnError> {
-    RUNTIME.block_on(account::reset_device_identity(&path))
+pub fn forgetAccount() -> Result<(), VpnError> {
+    RUNTIME.block_on(account::forget_account())
 }
 
+/// Remove the account mnemonic and all associated keys and files.
+/// This is a version that can be called when the account controller is not running.
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn getDeviceIdentity(path: String) -> Result<String, VpnError> {
-    RUNTIME.block_on(account::get_device_id(&path))
+pub fn forgetAccountRaw(path: String) -> Result<(), VpnError> {
+    RUNTIME.block_on(account::raw::forget_account_raw(&path))
 }
 
+/// Get the device identity
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn getDeviceIdentity() -> Result<String, VpnError> {
+    RUNTIME.block_on(account::get_device_id())
+}
+
+/// Get the device identity
+/// This is a version that can be called when the account controller is not running.
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn getDeviceIdentityRaw(path: String) -> Result<String, VpnError> {
+    RUNTIME.block_on(account::raw::get_device_id_raw(&path))
+}
+
+/// This manually syncs the account state with the server. Normally this is done automatically, but
+/// this can be used to manually trigger a sync.
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn updateAccountState() -> Result<(), VpnError> {
     RUNTIME.block_on(account::update_account_state())
 }
 
+/// Get the account state
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn getAccountState() -> Result<AccountStateSummary, VpnError> {

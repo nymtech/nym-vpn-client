@@ -111,9 +111,6 @@ pub(crate) enum Internal {
     /// Get the list of feature flags provided by the nym-vpn-api.
     GetFeatureFlags,
 
-    /// Remove the stored account. This only removes the stored recovery phrase.
-    RemoveAccount,
-
     /// Manually trigger an account sync with the nym-vpn-api.
     SyncAccountState,
 
@@ -154,12 +151,6 @@ pub(crate) enum Internal {
 
     /// List the available zknym ticketbooks in the local credential store.
     GetAvailableTickets,
-
-    /// Fetch the account summary from the nym-vpn-api.
-    FetchRawAccountSummary,
-
-    /// Fetch the devices associated with the account from the nym-vpn-api.
-    FetchRawDevices,
 
     /// Listen the the status event stream from nym-vpnd.
     ListenToStatus,

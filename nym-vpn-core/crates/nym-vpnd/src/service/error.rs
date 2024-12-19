@@ -69,14 +69,12 @@ pub enum AccountNotReady {
 impl From<AccountCommandError> for AccountNotReady {
     fn from(err: AccountCommandError) -> Self {
         match err {
-            AccountCommandError::UpdateAccountEndpointFailure(e) => {
-                AccountNotReady::UpdateAccount {
-                    message: e.message,
-                    message_id: e.message_id,
-                    code_reference_id: e.code_reference_id,
-                }
-            }
-            AccountCommandError::UpdateDeviceEndpointFailure(e) => AccountNotReady::UpdateDevice {
+            AccountCommandError::SyncAccountEndpointFailure(e) => AccountNotReady::UpdateAccount {
+                message: e.message,
+                message_id: e.message_id,
+                code_reference_id: e.code_reference_id,
+            },
+            AccountCommandError::SyncDeviceEndpointFailure(e) => AccountNotReady::UpdateDevice {
                 message: e.message,
                 message_id: e.message_id,
                 code_reference_id: e.code_reference_id,
@@ -94,6 +92,11 @@ impl From<AccountCommandError> for AccountNotReady {
             } => AccountNotReady::RequestZkNym { failed },
             AccountCommandError::NoAccountStored => AccountNotReady::NoAccountStored,
             AccountCommandError::NoDeviceStored => AccountNotReady::NoDeviceStored,
+            AccountCommandError::RemoveAccount(e) => AccountNotReady::General(e),
+            AccountCommandError::RemoveDeviceIdentity(e) => AccountNotReady::General(e),
+            AccountCommandError::ResetCredentialStorage(e) => AccountNotReady::General(e),
+            AccountCommandError::RemoveAccountFiles(e) => AccountNotReady::General(e),
+            AccountCommandError::InitDeviceKeys(e) => AccountNotReady::General(e),
             AccountCommandError::General(err) => AccountNotReady::General(err),
             AccountCommandError::Internal(err) => AccountNotReady::Internal(err),
         }

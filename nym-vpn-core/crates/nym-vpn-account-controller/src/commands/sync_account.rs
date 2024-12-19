@@ -15,29 +15,29 @@ use super::{AccountCommandError, AccountCommandResult};
 
 type PreviousAccountSummaryResponse = Arc<tokio::sync::Mutex<Option<NymVpnAccountSummaryResponse>>>;
 
-pub(crate) struct WaitingUpdateAccountCommandHandler {
+pub(crate) struct WaitingSyncAccountCommandHandler {
     account_state: SharedAccountState,
     vpn_api_client: nym_vpn_api_client::VpnApiClient,
 
     previous_account_summary_response: PreviousAccountSummaryResponse,
 }
 
-impl WaitingUpdateAccountCommandHandler {
+impl WaitingSyncAccountCommandHandler {
     pub(crate) fn new(
         account_state: SharedAccountState,
         vpn_api_client: nym_vpn_api_client::VpnApiClient,
     ) -> Self {
-        WaitingUpdateAccountCommandHandler {
+        WaitingSyncAccountCommandHandler {
             account_state,
             vpn_api_client,
             previous_account_summary_response: Default::default(),
         }
     }
 
-    pub(crate) fn build(&self, account: VpnApiAccount) -> UpdateStateCommandHandler {
+    pub(crate) fn build(&self, account: VpnApiAccount) -> SyncStateCommandHandler {
         let id = uuid::Uuid::new_v4();
-        tracing::debug!("Created new update state command handler: {}", id);
-        UpdateStateCommandHandler {
+        tracing::debug!("Created new sync state command handler: {}", id);
+        SyncStateCommandHandler {
             id,
             account,
             account_state: self.account_state.clone(),
@@ -47,7 +47,7 @@ impl WaitingUpdateAccountCommandHandler {
     }
 }
 
-pub(crate) struct UpdateStateCommandHandler {
+pub(crate) struct SyncStateCommandHandler {
     id: uuid::Uuid,
     account: VpnApiAccount,
     account_state: SharedAccountState,
@@ -56,9 +56,9 @@ pub(crate) struct UpdateStateCommandHandler {
     previous_account_summary_response: PreviousAccountSummaryResponse,
 }
 
-impl UpdateStateCommandHandler {
+impl SyncStateCommandHandler {
     pub(crate) async fn run(self) -> AccountCommandResult {
-        AccountCommandResult::UpdateAccountState(self.run_inner().await)
+        AccountCommandResult::SyncAccountState(self.run_inner().await)
     }
 
     fn id_str(&self) -> String {
@@ -67,7 +67,7 @@ impl UpdateStateCommandHandler {
 
     #[tracing::instrument(
         skip(self),
-        name = "update_state",
+        name = "sync_account",
         fields(id = %self.id_str()),
         ret,
         err,
@@ -76,7 +76,7 @@ impl UpdateStateCommandHandler {
     pub(crate) async fn run_inner(
         self,
     ) -> Result<NymVpnAccountSummaryResponse, AccountCommandError> {
-        tracing::debug!("Running update state command handler: {}", self.id);
+        tracing::debug!("Running sync account state command handler: {}", self.id);
         let update_result = update_state(
             &self.account,
             &self.account_state,
@@ -89,7 +89,7 @@ impl UpdateStateCommandHandler {
     }
 }
 
-pub(crate) async fn update_state(
+async fn update_state(
     account: &VpnApiAccount,
     account_state: &SharedAccountState,
     vpn_api_client: &nym_vpn_api_client::VpnApiClient,
@@ -107,7 +107,7 @@ pub(crate) async fn update_state(
                 account_state
                     .set_account_registered(AccountRegistered::NotRegistered)
                     .await;
-                return Err(AccountCommandError::UpdateAccountEndpointFailure(
+                return Err(AccountCommandError::SyncAccountEndpointFailure(
                     VpnApiEndpointFailure {
                         message: e.message.clone(),
                         message_id: e.message_id.clone(),
@@ -126,7 +126,7 @@ pub(crate) async fn update_state(
         .as_ref()
         != Some(&account_summary)
     {
-        tracing::debug!("Updated account summary: {:#?}", account_summary);
+        tracing::debug!("Synced account summary: {:#?}", account_summary);
     }
 
     account_state

@@ -1,6 +1,14 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+impl From<Option<String>> for crate::AccountIdentity {
+    fn from(identity: Option<String>) -> Self {
+        Self {
+            account_identity: identity,
+        }
+    }
+}
+
 impl From<nym_vpn_account_controller::ReadyToConnect> for crate::IsReadyToConnectResponse {
     fn from(ready: nym_vpn_account_controller::ReadyToConnect) -> Self {
         use crate::is_ready_to_connect_response::IsReadyToConnectResponseType;

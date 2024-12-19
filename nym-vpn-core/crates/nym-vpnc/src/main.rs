@@ -13,16 +13,15 @@ use cli::Internal;
 use itertools::Itertools;
 use nym_gateway_directory::GatewayType;
 use nym_vpn_proto::{
-    ConfirmZkNymDownloadedRequest, ConnectRequest, DisconnectRequest, Empty,
-    FetchRawAccountSummaryRequest, FetchRawDevicesRequest, ForgetAccountRequest,
+    ConfirmZkNymDownloadedRequest, ConnectRequest, DisconnectRequest, Empty, ForgetAccountRequest,
     GetAccountIdentityRequest, GetAccountLinksRequest, GetAccountStateRequest,
     GetAccountUsageRequest, GetActiveDevicesRequest, GetAvailableTicketsRequest,
     GetDeviceIdentityRequest, GetDeviceZkNymsRequest, GetDevicesRequest, GetFeatureFlagsRequest,
     GetSystemMessagesRequest, GetZkNymByIdRequest, GetZkNymsAvailableForDownloadRequest,
     InfoRequest, InfoResponse, IsAccountStoredRequest, IsReadyToConnectRequest,
     ListCountriesRequest, ListGatewaysRequest, RefreshAccountStateRequest, RegisterDeviceRequest,
-    RemoveAccountRequest, RequestZkNymRequest, ResetDeviceIdentityRequest, SetNetworkRequest,
-    StatusRequest, StoreAccountRequest, UserAgent,
+    RequestZkNymRequest, ResetDeviceIdentityRequest, SetNetworkRequest, StatusRequest,
+    StoreAccountRequest, UserAgent,
 };
 use protobuf_conversion::into_gateway_type;
 use sysinfo::System;
@@ -89,7 +88,6 @@ async fn main() -> Result<()> {
             Internal::GetSystemMessages => get_system_messages(opts.client_type).await?,
             Internal::GetFeatureFlags => get_feature_flags(opts.client_type).await?,
             Internal::SyncAccountState => refresh_account_state(opts.client_type).await?,
-            Internal::RemoveAccount => remove_account(opts.client_type).await?,
             Internal::GetAccountUsage => get_account_usage(opts.client_type).await?,
             Internal::IsReadyToConnect => is_ready_to_connect(opts.client_type).await?,
             Internal::ListenToStatus => listen_to_status(opts.client_type).await?,
@@ -110,8 +108,6 @@ async fn main() -> Result<()> {
                 confirm_zk_nym_downloaded(opts.client_type, args).await?
             }
             Internal::GetAvailableTickets => get_available_tickets(opts.client_type).await?,
-            Internal::FetchRawAccountSummary => fetch_raw_account_summary(opts.client_type).await?,
-            Internal::FetchRawDevices => fetch_raw_devices(opts.client_type).await?,
         },
     }
     Ok(())
@@ -386,14 +382,6 @@ async fn is_account_stored(client_type: ClientType) -> Result<()> {
     Ok(())
 }
 
-async fn remove_account(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(RemoveAccountRequest {});
-    let response = client.remove_account(request).await?.into_inner();
-    println!("{:#?}", response);
-    Ok(())
-}
-
 async fn get_account_usage(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
     let request = tonic::Request::new(GetAccountUsageRequest {});
@@ -456,25 +444,6 @@ async fn is_ready_to_connect(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
     let request = tonic::Request::new(IsReadyToConnectRequest {});
     let response = client.is_ready_to_connect(request).await?.into_inner();
-    println!("{:#?}", response);
-    Ok(())
-}
-
-async fn fetch_raw_account_summary(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(FetchRawAccountSummaryRequest {});
-    let response = client
-        .fetch_raw_account_summary(request)
-        .await?
-        .into_inner();
-    println!("{:#?}", response);
-    Ok(())
-}
-
-async fn fetch_raw_devices(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(FetchRawDevicesRequest {});
-    let response = client.fetch_raw_devices(request).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }

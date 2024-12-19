@@ -140,14 +140,14 @@ impl From<nym_vpn_account_controller::AccountCommandError> for VpnError {
     fn from(value: nym_vpn_account_controller::AccountCommandError) -> Self {
         use nym_vpn_account_controller::AccountCommandError;
         match value {
-            AccountCommandError::UpdateAccountEndpointFailure(e) => {
+            AccountCommandError::SyncAccountEndpointFailure(e) => {
                 VpnError::UpdateAccountEndpointFailure {
                     details: e.message,
                     message_id: e.message_id,
                     code_reference_id: e.code_reference_id,
                 }
             }
-            AccountCommandError::UpdateDeviceEndpointFailure(e) => {
+            AccountCommandError::SyncDeviceEndpointFailure(e) => {
                 VpnError::UpdateDeviceEndpointFailure {
                     details: e.message,
                     message_id: e.message_id,
@@ -167,6 +167,13 @@ impl From<nym_vpn_account_controller::AccountCommandError> for VpnError {
             },
             AccountCommandError::NoAccountStored => VpnError::NoAccountStored,
             AccountCommandError::NoDeviceStored => VpnError::NoDeviceIdentity,
+            AccountCommandError::RemoveAccount(e) => VpnError::InternalError { details: e },
+            AccountCommandError::RemoveDeviceIdentity(e) => VpnError::InternalError { details: e },
+            AccountCommandError::ResetCredentialStorage(e) => {
+                VpnError::InternalError { details: e }
+            }
+            AccountCommandError::RemoveAccountFiles(e) => VpnError::InternalError { details: e },
+            AccountCommandError::InitDeviceKeys(e) => VpnError::InternalError { details: e },
             AccountCommandError::General(err) => VpnError::InternalError { details: err },
             AccountCommandError::Internal(err) => VpnError::InternalError { details: err },
         }

@@ -9,7 +9,7 @@ use nym_vpn_api_client::{
     types::VpnApiAccount,
 };
 use nym_vpn_network_config::Network;
-use nym_vpn_store::VpnStorage;
+use nym_vpn_store::{mnemonic::Mnemonic, VpnStorage};
 use tokio::{
     sync::mpsc::{UnboundedReceiver, UnboundedSender},
     task::{JoinError, JoinSet},
@@ -20,8 +20,8 @@ use crate::{
     commands::{
         register_device::RegisterDeviceCommandHandler,
         request_zknym::WaitingRequestZkNymCommandHandler,
-        update_account::WaitingUpdateAccountCommandHandler,
-        update_device::WaitingUpdateDeviceCommandHandler, AccountCommand, AccountCommandError,
+        sync_account::WaitingSyncAccountCommandHandler,
+        sync_device::WaitingSyncDeviceCommandHandler, AccountCommand, AccountCommandError,
         AccountCommandResult, Command, RunningCommands,
     },
     error::Error,
@@ -43,8 +43,12 @@ where
     // The storage used for the account and device keys
     account_storage: AccountStorage<S>,
 
-    // Storage used for credentials
+    // Storage used for credentials.
+    // It is an Option because we want to be able to close it when we reset the account.
     credential_storage: VpnCredentialStorage,
+
+    // The data directory where we store the account and device keys.
+    data_dir: PathBuf,
 
     // The API client used to interact with the nym-vpn-api
     vpn_api_client: nym_vpn_api_client::VpnApiClient,
@@ -65,11 +69,11 @@ where
     // Command tasks that are currently running
     running_command_tasks: JoinSet<AccountCommandResult>,
 
-    // Account update command handler state reused between runs
-    waiting_update_account_command_handler: WaitingUpdateAccountCommandHandler,
+    // Account sync command handler state reused between runs
+    waiting_sync_account_command_handler: WaitingSyncAccountCommandHandler,
 
-    // Device update command handler state reused between runs
-    waiting_update_device_command_handler: WaitingUpdateDeviceCommandHandler,
+    // Device sync command handler state reused between runs
+    waiting_sync_device_command_handler: WaitingSyncDeviceCommandHandler,
 
     // Zk-nym request command handler state reused between runs
     waiting_request_zknym_command_handler: WaitingRequestZkNymCommandHandler,
@@ -108,7 +112,7 @@ where
         // Generate the device keys if we don't already have them
         account_storage.init_keys().await?;
 
-        let credential_storage = VpnCredentialStorage::setup_from_path(data_dir).await?;
+        let credential_storage = VpnCredentialStorage::setup_from_path(data_dir.clone()).await?;
 
         let (command_tx, command_rx) = tokio::sync::mpsc::unbounded_channel();
 
@@ -117,10 +121,10 @@ where
             nym_vpn_api_client::VpnApiClient::new(network_env.vpn_api_url(), user_agent)
                 .map_err(Error::SetupVpnApiClient)?;
 
-        let waiting_update_account_command_handler =
-            WaitingUpdateAccountCommandHandler::new(account_state.clone(), vpn_api_client.clone());
-        let waiting_update_device_command_handler =
-            WaitingUpdateDeviceCommandHandler::new(account_state.clone(), vpn_api_client.clone());
+        let waiting_sync_account_command_handler =
+            WaitingSyncAccountCommandHandler::new(account_state.clone(), vpn_api_client.clone());
+        let waiting_sync_device_command_handler =
+            WaitingSyncDeviceCommandHandler::new(account_state.clone(), vpn_api_client.clone());
         let waiting_request_zknym_command_handler = WaitingRequestZkNymCommandHandler::new(
             credential_storage.clone(),
             account_state.clone(),
@@ -130,14 +134,15 @@ where
         Ok(AccountController {
             account_storage,
             credential_storage,
+            data_dir,
             vpn_api_client,
             account_state,
             command_rx,
             command_tx,
             running_commands: Default::default(),
             running_command_tasks: JoinSet::new(),
-            waiting_update_account_command_handler,
-            waiting_update_device_command_handler,
+            waiting_sync_account_command_handler,
+            waiting_sync_device_command_handler,
             waiting_request_zknym_command_handler,
             background_zk_nym_refresh: credentials_mode,
             cancel_token,
@@ -247,7 +252,90 @@ where
         Ok(())
     }
 
-    async fn handle_update_account_state(&mut self, command: AccountCommand) {
+    async fn handle_store_account(&self, mnemonic: Mnemonic) -> Result<(), AccountCommandError> {
+        self.account_storage
+            .store_account(mnemonic)
+            .await
+            .map_err(AccountCommandError::general)?;
+
+        self.update_mnemonic_state()
+            .await
+            .map_err(|_err| AccountCommandError::NoAccountStored)?;
+
+        // We don't need to wait for the sync to finish, so queue it up and return
+        self.queue_command(AccountCommand::SyncAccountState(None));
+
+        Ok(())
+    }
+
+    async fn handle_forget_account(&mut self) -> Result<(), AccountCommandError> {
+        tracing::info!("REMOVING ACCOUNT AND ALL ASSOCIATED DATA");
+
+        // TODO: here we should put the controller in some sort of idle state, and wait for all
+        // currently running operations to finish before proceeding with the reset
+
+        self.account_storage
+            .remove_account()
+            .await
+            .map_err(|source| {
+                tracing::error!("Failed to remove account: {source:?}");
+                AccountCommandError::RemoveAccount(source.to_string())
+            })?;
+
+        self.account_storage
+            .remove_device_keys()
+            .await
+            .map_err(|source| {
+                tracing::error!("Failed to remove device identity: {source:?}");
+                AccountCommandError::RemoveAccount(source.to_string())
+            })?;
+
+        self.credential_storage.reset().await.map_err(|source| {
+            tracing::error!("Failed to reset credential storage: {source:?}");
+            AccountCommandError::ResetCredentialStorage(source.to_string())
+        })?;
+
+        // Purge all files in the data directory that we are not explicitly deleting through it's
+        // owner. Ideally we should strive for this to be removed.
+        // If this fails, we still need to continue with the remaining steps
+        let remove_files_result = crate::util::remove_files_for_account(&self.data_dir)
+            .inspect_err(|err| {
+                tracing::error!("Failed to remove files for account: {err:?}");
+            });
+
+        // Once we have removed or reset all storage, we need to reset the account state
+        self.waiting_request_zknym_command_handler.reset();
+        self.account_state.reset().await;
+
+        // And now we are ready to start reconstructing
+        let reinit_keys_result = self
+            .account_storage
+            .init_keys()
+            .await
+            .inspect_err(|source| {
+                tracing::error!("Failed to reinitialize device keys: {source:?}");
+            });
+
+        // And conclude by syncing with the remote state
+        self.handle_sync_account_state(AccountCommand::SyncAccountState(None))
+            .await;
+
+        if let Err(err) = remove_files_result {
+            return Err(AccountCommandError::RemoveAccountFiles(format!(
+                "Failed to remove files for account: {err}"
+            )));
+        }
+
+        if let Err(err) = reinit_keys_result {
+            return Err(AccountCommandError::InitDeviceKeys(format!(
+                "Failed to reinitialize device keys: {err}"
+            )));
+        }
+
+        Ok(())
+    }
+
+    async fn handle_sync_account_state(&mut self, command: AccountCommand) {
         let account = self
             .update_mnemonic_state()
             .await
@@ -261,14 +349,14 @@ where
             }
         };
 
-        let command_handler = self.waiting_update_account_command_handler.build(account);
+        let command_handler = self.waiting_sync_account_command_handler.build(account);
 
         if self.running_commands.add(command).await == Command::IsFirst {
             self.running_command_tasks.spawn(command_handler.run());
         }
     }
 
-    async fn handle_update_device_state(&mut self, command: AccountCommand) {
+    async fn handle_sync_device_state(&mut self, command: AccountCommand) {
         let account = self
             .update_mnemonic_state()
             .await
@@ -297,7 +385,7 @@ where
         };
 
         let command_handler = self
-            .waiting_update_device_command_handler
+            .waiting_sync_device_command_handler
             .build(account, device);
 
         if self.running_commands.add(command).await == Command::IsFirst {
@@ -318,6 +406,17 @@ where
             .map_err(AccountCommandError::general)?;
         tracing::info!("Usage: {:#?}", usage);
         Ok(usage.items)
+    }
+
+    async fn handle_get_device_identity(&self) -> Result<String, AccountCommandError> {
+        let device = self
+            .account_storage
+            .load_device_id()
+            .await
+            .map_err(|_err| AccountCommandError::NoDeviceStored)?;
+
+        tracing::info!("Device identity: {device:?}");
+        Ok(device)
     }
 
     async fn handle_register_device(&mut self, command: AccountCommand) {
@@ -508,17 +607,26 @@ where
     async fn handle_command(&mut self, command: AccountCommand) {
         tracing::info!("Received command: {}", command);
         match command {
-            AccountCommand::ResetAccount => {
-                self.account_state.reset().await;
+            AccountCommand::StoreAccount(result_tx, mnemonic) => {
+                let result = self.handle_store_account(mnemonic).await;
+                result_tx.send(result);
             }
-            AccountCommand::UpdateAccountState(_) => {
-                self.handle_update_account_state(command).await;
+            AccountCommand::ForgetAccount(result_tx) => {
+                let result = self.handle_forget_account().await;
+                result_tx.send(result);
             }
-            AccountCommand::UpdateDeviceState(_) => {
-                self.handle_update_device_state(command).await;
+            AccountCommand::SyncAccountState(_) => {
+                self.handle_sync_account_state(command).await;
+            }
+            AccountCommand::SyncDeviceState(_) => {
+                self.handle_sync_device_state(command).await;
             }
             AccountCommand::GetUsage(result_tx) => {
                 let result = self.handle_get_usage().await;
+                result_tx.send(result);
+            }
+            AccountCommand::GetDeviceIdentity(result_tx) => {
+                let result = self.handle_get_device_identity().await;
                 result_tx.send(result);
             }
             AccountCommand::RegisterDevice(_) => {
@@ -581,14 +689,14 @@ where
         };
 
         match result {
-            AccountCommandResult::UpdateAccountState(r) => {
-                tracing::debug!("Account state completed: {:?}", r);
+            AccountCommandResult::SyncAccountState(r) => {
+                tracing::debug!("Account sync task: {:?}", r);
                 let commands = self
                     .running_commands
-                    .remove(&AccountCommand::UpdateAccountState(None))
+                    .remove(&AccountCommand::SyncAccountState(None))
                     .await;
                 for command in commands {
-                    if let AccountCommand::UpdateAccountState(Some(tx)) = command {
+                    if let AccountCommand::SyncAccountState(Some(tx)) = command {
                         tx.send(r.clone());
                     }
                 }
@@ -597,14 +705,14 @@ where
                     self.request_zk_nym_if_ready().await.ok();
                 }
             }
-            AccountCommandResult::UpdateDeviceState(r) => {
-                tracing::debug!("Device state updated: {:?}", r);
+            AccountCommandResult::SyncDeviceState(r) => {
+                tracing::debug!("Device sync task: {:?}", r);
                 let commands = self
                     .running_commands
-                    .remove(&AccountCommand::UpdateDeviceState(None))
+                    .remove(&AccountCommand::SyncDeviceState(None))
                     .await;
                 for command in commands {
-                    if let AccountCommand::UpdateDeviceState(Some(tx)) = command {
+                    if let AccountCommand::SyncDeviceState(Some(tx)) = command {
                         tx.send(r.clone());
                     }
                 }
@@ -625,7 +733,7 @@ where
                     }
                 }
                 if r.is_ok() {
-                    self.queue_command(AccountCommand::UpdateAccountState(None));
+                    self.queue_command(AccountCommand::SyncAccountState(None));
                     self.request_zk_nym_if_ready().await.ok();
                 }
             }
@@ -689,8 +797,8 @@ where
         // so that we periodically check the results without interfering with other tasks
         let mut command_finish_timer = tokio::time::interval(Duration::from_millis(500));
 
-        // Timer to periodically refresh the remote account state
-        let mut update_account_state_timer = tokio::time::interval(ACCOUNT_UPDATE_INTERVAL);
+        // Timer to periodically sync the remote account state
+        let mut sync_account_state_timer = tokio::time::interval(ACCOUNT_UPDATE_INTERVAL);
 
         // Timer to periodically check if we need to request more zk-nyms
         let mut update_zk_nym_timer = tokio::time::interval(ZK_NYM_AUTOMATIC_REQUEST_INTERVAL);
@@ -707,10 +815,10 @@ where
                         self.handle_command_result(result).await;
                     }
                 }
-                // On a timer we want to refresh the account and device state
-                _ = update_account_state_timer.tick() => {
-                    self.queue_command(AccountCommand::UpdateAccountState(None));
-                    self.queue_command(AccountCommand::UpdateDeviceState(None));
+                // On a timer we want to sync the account and device state
+                _ = sync_account_state_timer.tick() => {
+                    self.queue_command(AccountCommand::SyncAccountState(None));
+                    self.queue_command(AccountCommand::SyncDeviceState(None));
                 }
                 // On a timer to check if we need to request more zk-nyms
                 _ = update_zk_nym_timer.tick() => {

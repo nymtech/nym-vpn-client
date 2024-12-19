@@ -18,14 +18,14 @@ use super::{AccountCommandError, AccountCommandResult};
 
 type PreviousDevicesResponse = Arc<tokio::sync::Mutex<Option<NymVpnDevicesResponse>>>;
 
-pub(crate) struct WaitingUpdateDeviceCommandHandler {
+pub(crate) struct WaitingSyncDeviceCommandHandler {
     account_state: SharedAccountState,
     vpn_api_client: nym_vpn_api_client::VpnApiClient,
 
     previous_devices_response: PreviousDevicesResponse,
 }
 
-impl WaitingUpdateDeviceCommandHandler {
+impl WaitingSyncDeviceCommandHandler {
     pub(crate) fn new(
         account_state: SharedAccountState,
         vpn_api_client: nym_vpn_api_client::VpnApiClient,
@@ -41,10 +41,10 @@ impl WaitingUpdateDeviceCommandHandler {
         &self,
         account: VpnApiAccount,
         device: Device,
-    ) -> UpdateDeviceStateCommandHandler {
+    ) -> SyncDeviceStateCommandHandler {
         let id = uuid::Uuid::new_v4();
-        tracing::debug!("Created new update state command handler: {}", id);
-        UpdateDeviceStateCommandHandler {
+        tracing::debug!("Created new sync state command handler: {}", id);
+        SyncDeviceStateCommandHandler {
             id,
             account,
             device,
@@ -55,7 +55,7 @@ impl WaitingUpdateDeviceCommandHandler {
     }
 }
 
-pub(crate) struct UpdateDeviceStateCommandHandler {
+pub(crate) struct SyncDeviceStateCommandHandler {
     id: uuid::Uuid,
     account: VpnApiAccount,
     device: Device,
@@ -65,9 +65,9 @@ pub(crate) struct UpdateDeviceStateCommandHandler {
     previous_devices_response: PreviousDevicesResponse,
 }
 
-impl UpdateDeviceStateCommandHandler {
+impl SyncDeviceStateCommandHandler {
     pub(crate) async fn run(self) -> AccountCommandResult {
-        AccountCommandResult::UpdateDeviceState(self.run_inner().await)
+        AccountCommandResult::SyncDeviceState(self.run_inner().await)
     }
 
     fn id_str(&self) -> String {
@@ -76,14 +76,14 @@ impl UpdateDeviceStateCommandHandler {
 
     #[tracing::instrument(
         skip(self),
-        name = "update_device",
+        name = "sync_device",
         fields(id = %self.id_str()),
         ret,
         err,
         level = Level::DEBUG,
     )]
     async fn run_inner(self) -> Result<DeviceState, AccountCommandError> {
-        tracing::debug!("Running update device state command handler: {}", self.id);
+        tracing::debug!("Running sync device state command handler: {}", self.id);
         update_state(
             &self.account,
             &self.device,
@@ -95,7 +95,7 @@ impl UpdateDeviceStateCommandHandler {
     }
 }
 
-pub(crate) async fn update_state(
+async fn update_state(
     account: &VpnApiAccount,
     device: &Device,
     account_state: &SharedAccountState,
@@ -108,7 +108,7 @@ pub(crate) async fn update_state(
         nym_vpn_api_client::response::extract_error_response(&err)
             .map(|e| {
                 tracing::warn!(message = %e.message, message_id=?e.message_id, code_reference_id=?e.code_reference_id, "nym-vpn-api reports");
-                AccountCommandError::UpdateDeviceEndpointFailure(VpnApiEndpointFailure {
+                AccountCommandError::SyncDeviceEndpointFailure(VpnApiEndpointFailure {
                     message: e.message.clone(),
                     message_id: e.message_id.clone(),
                     code_reference_id: e.code_reference_id.clone(),
@@ -124,7 +124,7 @@ pub(crate) async fn update_state(
         .as_ref()
         != Some(&devices)
     {
-        tracing::debug!("Updated devices: {:?}", devices);
+        tracing::debug!("Synced devices: {:?}", devices);
     }
 
     // TODO: pagination
