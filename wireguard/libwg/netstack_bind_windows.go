@@ -7,8 +7,8 @@ package main
 
 import "C"
 import (
+	"github.com/amnezia-vpn/amneziawg-go/conn"
 	"golang.org/x/sys/windows"
-	"golang.zx2c4.com/wireguard/conn"
 )
 
 //export wgNetRebindTunnelSocket

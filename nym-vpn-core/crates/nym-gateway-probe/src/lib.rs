@@ -8,13 +8,11 @@ use std::{
 #[cfg(unix)]
 use std::{os::fd::RawFd, sync::Arc};
 
-use crate::netstack::NetstackRequest;
 use anyhow::bail;
 use base64::{engine::general_purpose, Engine as _};
 use bytes::BytesMut;
 use dns_lookup::lookup_host;
 use futures::StreamExt;
-use netstack::ffi::{NetstackCall as _, NetstackCallImpl, NetstackRequestGo};
 use nym_authenticator_client::{AuthenticatorResponse, AuthenticatorVersion, ClientMessage};
 use nym_authenticator_requests::{v2, v3, v4};
 use nym_config::defaults::{
@@ -49,6 +47,8 @@ mod error;
 mod icmp;
 mod netstack;
 mod types;
+use netstack::ffi::{NetstackCall as _, NetstackCallImpl, NetstackRequestGo};
+use netstack::NetstackRequest;
 
 pub use error::{Error, Result};
 pub use types::{IpPingReplies, ProbeOutcome, ProbeResult};
@@ -67,90 +67,112 @@ pub async fn fetch_gateways_with_ipr(
         .into_exit_gateways())
 }
 
-pub async fn probe(
-    entry_point: EntryPoint,
-    min_gateway_performance: GatewayMinPerformance,
-    only_wireguard: bool,
-) -> anyhow::Result<ProbeResult> {
-    // Setup the entry gateways
-    let gateways = lookup_gateways(min_gateway_performance).await?;
-    let entry_gateway = entry_point.lookup_gateway(&gateways).await?;
-    let exit_router_address = entry_gateway.ipr_address;
-    let authenticator = entry_gateway.authenticator_address;
-    let gateway_host = entry_gateway.host.clone().unwrap();
-    let auth_version = AuthenticatorVersion::from(entry_gateway.version.clone());
-    let mixnet_entry_gateway_id = if only_wireguard {
-        *gateways.random_gateway().unwrap().identity()
-    } else {
-        *entry_gateway.identity()
-    };
+pub struct Probe {
+    entrypoint: EntryPoint,
+    amnezia_args: String,
+}
 
-    info!("Probing gateway: {entry_gateway:?}");
-    debug!("gateway_host: {}", gateway_host);
-
-    // Connect to the mixnet
-    let mixnet_client = MixnetClientBuilder::new_ephemeral()
-        .request_gateway(mixnet_entry_gateway_id.to_string())
-        .network_details(NymNetworkDetails::new_from_env())
-        .debug_config(mixnet_debug_config(min_gateway_performance))
-        .build()?
-        .connect_to_mixnet()
-        .await;
-
-    let mixnet_client = match mixnet_client {
-        Ok(mixnet_client) => mixnet_client,
-        Err(err) => {
-            error!("Failed to connect to mixnet: {err}");
-            return Ok(ProbeResult {
-                gateway: mixnet_entry_gateway_id.to_string(),
-                outcome: ProbeOutcome {
-                    as_entry: Entry::fail_to_connect(),
-                    as_exit: None,
-                    wg: None,
-                },
-            });
+impl Probe {
+    pub fn new(entrypoint: EntryPoint) -> Self {
+        Self {
+            entrypoint,
+            amnezia_args: "".into(),
         }
-    };
+    }
+    pub fn with_amnezia(&mut self, args: &str) -> &Self {
+        self.amnezia_args = args.to_string();
+        self
+    }
 
-    let nym_address = *mixnet_client.nym_address();
-    let entry_gateway = nym_address.gateway().to_base58_string();
+    pub async fn probe(
+        self,
+        min_gateway_performance: GatewayMinPerformance,
+        only_wireguard: bool,
+    ) -> anyhow::Result<ProbeResult> {
+        let entry_point = self.entrypoint;
 
-    info!("Successfully connected to entry gateway: {entry_gateway}");
-    info!("Our nym address: {nym_address}");
+        // Setup the entry gateways
+        let gateways = lookup_gateways(min_gateway_performance).await?;
+        let entry_gateway = entry_point.lookup_gateway(&gateways).await?;
+        let exit_router_address = entry_gateway.ipr_address;
+        let authenticator = entry_gateway.authenticator_address;
+        let gateway_host = entry_gateway.host.clone().unwrap();
+        let auth_version = AuthenticatorVersion::from(entry_gateway.version.clone());
+        let mixnet_entry_gateway_id = if only_wireguard {
+            *gateways.random_gateway().unwrap().identity()
+        } else {
+            *entry_gateway.identity()
+        };
 
-    let shared_client = SharedMixnetClient::new(
-        mixnet_client,
-        #[cfg(unix)]
-        Arc::new(|_: RawFd| {}),
-    );
+        info!("Probing gateway: {entry_gateway:?}");
+        debug!("gateway_host: {}", gateway_host);
 
-    // Now that we have a connected mixnet client, we can start pinging
-    let outcome = do_ping(shared_client.clone(), exit_router_address).await;
+        // Connect to the mixnet
+        let mixnet_client = MixnetClientBuilder::new_ephemeral()
+            .request_gateway(mixnet_entry_gateway_id.to_string())
+            .network_details(NymNetworkDetails::new_from_env())
+            .debug_config(mixnet_debug_config(min_gateway_performance))
+            .build()?
+            .connect_to_mixnet()
+            .await;
 
-    let wg_outcome = if let Some(authenticator) = authenticator {
-        wg_probe(
-            authenticator,
-            shared_client.clone(),
-            &gateway_host,
-            auth_version,
-        )
-        .await
-        .unwrap_or_default()
-    } else {
-        WgProbeResults::default()
-    };
+        let mixnet_client = match mixnet_client {
+            Ok(mixnet_client) => mixnet_client,
+            Err(err) => {
+                error!("Failed to connect to mixnet: {err}");
+                return Ok(ProbeResult {
+                    gateway: mixnet_entry_gateway_id.to_string(),
+                    outcome: ProbeOutcome {
+                        as_entry: Entry::fail_to_connect(),
+                        as_exit: None,
+                        wg: None,
+                    },
+                });
+            }
+        };
 
-    let mixnet_client = shared_client.lock().await.take().unwrap();
-    mixnet_client.disconnect().await;
+        let nym_address = mixnet_client.nym_address();
+        let entry_gateway = nym_address.gateway().to_base58_string();
 
-    // Disconnect the mixnet client gracefully
-    outcome.map(|mut outcome| {
-        outcome.wg = Some(wg_outcome);
-        ProbeResult {
-            gateway: entry_gateway.clone(),
-            outcome,
-        }
-    })
+        info!("Successfully connected to entry gateway: {entry_gateway}");
+        info!("Our nym address: {nym_address}");
+
+        // Now that we have a connected mixnet client, we can start pinging
+        let shared_client = SharedMixnetClient::new(
+            mixnet_client,
+            #[cfg(unix)]
+            Arc::new(|_: RawFd| {}),
+        );
+
+        // Now that we have a connected mixnet client, we can start pinging
+        let outcome = do_ping(shared_client.clone(), exit_router_address).await;
+
+        let wg_outcome = if let Some(authenticator) = authenticator {
+            wg_probe(
+                authenticator,
+                shared_client.clone(),
+                &gateway_host,
+                auth_version,
+                self.amnezia_args,
+            )
+            .await
+            .unwrap_or_default()
+        } else {
+            WgProbeResults::default()
+        };
+
+        let mixnet_client = shared_client.lock().await.take().unwrap();
+        mixnet_client.disconnect().await;
+
+        // Disconnect the mixnet client gracefully
+        outcome.map(|mut outcome| {
+            outcome.wg = Some(wg_outcome);
+            ProbeResult {
+                gateway: entry_gateway.clone(),
+                outcome,
+            }
+        })
+    }
 }
 
 async fn wg_probe(
@@ -158,6 +180,7 @@ async fn wg_probe(
     shared_mixnet_client: SharedMixnetClient,
     gateway_host: &nym_topology::NetworkAddress,
     auth_version: AuthenticatorVersion,
+    awg_args: String,
 ) -> anyhow::Result<WgProbeResults> {
     let mut auth_client = nym_authenticator_client::AuthClient::new(shared_mixnet_client).await;
 
@@ -289,6 +312,7 @@ async fn wg_probe(
                 None,
                 None,
                 180,
+                &awg_args,
             );
 
             // Perform IPv4 ping test

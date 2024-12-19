@@ -23,6 +23,7 @@ struct CliArgs {
     #[arg(short, long)]
     config_env_file: Option<PathBuf>,
 
+    /// The specific gateway specified by ID.
     #[arg(long, short)]
     gateway: Option<String>,
 
@@ -35,8 +36,13 @@ struct CliArgs {
     #[arg(long)]
     only_wireguard: bool,
 
-    #[arg(long)]
+    /// Disable logging during probe
+    #[arg(long, short)]
     no_log: bool,
+
+    /// Arguments to be appended to the wireguard config enabling amnezia-wg configuration
+    #[arg(long, short)]
+    amnezia_args: Option<String>,
 }
 
 fn setup_logging() {
@@ -72,7 +78,13 @@ pub(crate) async fn run() -> anyhow::Result<ProbeResult> {
         fetch_random_gateway_with_ipr(min_gateway_performance).await?
     };
 
-    nym_gateway_probe::probe(gateway, min_gateway_performance, args.only_wireguard).await
+    let mut trial = nym_gateway_probe::Probe::new(gateway);
+    if let Some(awg_args) = args.amnezia_args {
+        trial.with_amnezia(&awg_args);
+    }
+    trial
+        .probe(min_gateway_performance, args.only_wireguard)
+        .await
 }
 
 async fn fetch_random_gateway_with_ipr(
