@@ -9,12 +9,11 @@ use nym_vpn_proto::{
     get_device_identity_response::Id as DeviceIdRes, health_check_response::ServingStatus,
     health_client::HealthClient, is_account_stored_response::Resp as IsAccountStoredResp,
     nym_vpnd_client::NymVpndClient, ConnectRequest, ConnectionStatus, DisconnectRequest, Dns,
-    Empty, EntryNode, ExitNode, FetchRawAccountSummaryRequest, ForgetAccountRequest, GatewayType,
-    GetAccountIdentityRequest, GetAccountLinksRequest, GetDeviceIdentityRequest,
-    GetFeatureFlagsRequest, GetSystemMessagesRequest, HealthCheckRequest, InfoRequest,
-    InfoResponse, IsAccountStoredRequest, IsReadyToConnectRequest, ListCountriesRequest, Location,
-    RemoveAccountRequest, SetNetworkRequest, StatusRequest, StatusResponse, StoreAccountRequest,
-    UserAgent,
+    Empty, EntryNode, ExitNode, ForgetAccountRequest, GatewayType, GetAccountIdentityRequest,
+    GetAccountLinksRequest, GetDeviceIdentityRequest, GetFeatureFlagsRequest,
+    GetSystemMessagesRequest, HealthCheckRequest, InfoRequest, InfoResponse,
+    IsAccountStoredRequest, IsReadyToConnectRequest, ListCountriesRequest, Location,
+    SetNetworkRequest, StatusRequest, StatusResponse, StoreAccountRequest, UserAgent,
 };
 use parity_tokio_ipc::Endpoint as IpcEndpoint;
 use tauri::{AppHandle, Manager, PackageInfo};
@@ -438,33 +437,6 @@ impl GrpcClient {
         ))
     }
 
-    /// Remove the recovery phrase from fs
-    #[instrument(skip_all)]
-    pub async fn remove_account(&self) -> Result<(), VpndError> {
-        let mut vpnd = self.vpnd().await?;
-
-        let request = Request::new(RemoveAccountRequest {});
-        let response = vpnd.remove_account(request).await.map_err(|e| {
-            error!("grpc: {}", e);
-            VpndError::GrpcError(e)
-        })?;
-        debug!("grpc response: {:?}", response);
-        let response = response.into_inner();
-        if response.success {
-            return Ok(());
-        }
-        Err(VpndError::Response(
-            response
-                .error
-                .inspect(|e| warn!("remove account error: {:?}", e))
-                .map(BackendError::from)
-                .ok_or_else(|| {
-                    error!("remove account bad response: no AccountError");
-                    VpndError::internal("remove account bad response: no AccountError")
-                })?,
-        ))
-    }
-
     /// Removes everything related to the account, including the device identity,
     /// credential storage, mixnet keys, gateway registrations
     #[instrument(skip_all)]
@@ -552,7 +524,9 @@ impl GrpcClient {
             error!("failed to get account id: invalid response");
             VpndError::internal("failed to get account id: invalid response")
         })? {
-            AccountIdRes::AccountIdentity(id) => Ok(id),
+            // TODO: update return type to `Result<Option<String>, VpndError>` instead of
+            // flattening it.
+            AccountIdRes::AccountIdentity(id) => Ok(id.account_identity().to_owned()),
             AccountIdRes::Error(e) => Err(VpndError::Response(e.into())),
         }
     }
@@ -579,30 +553,6 @@ impl GrpcClient {
             DeviceIdRes::DeviceIdentity(id) => Ok(id),
             DeviceIdRes::Error(e) => Err(VpndError::Response(e.into())),
         }
-    }
-
-    /// Get account info
-    /// Note: if no account is stored yet, the call will fail
-    #[instrument(skip_all)]
-    pub async fn get_account_summary(&self) -> Result<String, VpndError> {
-        let mut vpnd = self.vpnd().await?;
-
-        let request = Request::new(FetchRawAccountSummaryRequest {});
-        let response = vpnd
-            .fetch_raw_account_summary(request)
-            .await
-            .map_err(|e| {
-                error!("grpc: {}", e);
-                VpndError::GrpcError(e)
-            })?
-            .into_inner();
-        debug!("grpc response: {:?}", response);
-        if let Some(error) = response.error {
-            error!("get account summary error: {:?}", error);
-            return Err(VpndError::Response(error.into()));
-        }
-
-        Ok(response.json)
     }
 
     /// Get the account links

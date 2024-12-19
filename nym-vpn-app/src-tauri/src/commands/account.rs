@@ -1,4 +1,3 @@
-use serde_json::Value as JsonValue;
 use tauri::State;
 use tracing::{error, info, instrument, warn};
 
@@ -20,20 +19,6 @@ pub async fn add_account(
         })
         .inspect(|_| {
             info!("account added successfully");
-        })
-}
-
-#[instrument(skip_all)]
-#[tauri::command]
-pub async fn delete_account(grpc: State<'_, GrpcClient>) -> Result<(), BackendError> {
-    grpc.remove_account()
-        .await
-        .map_err(|e| {
-            error!("failed to remove account: {}", e);
-            e.into()
-        })
-        .inspect(|_| {
-            info!("recovery phrase removed successfully");
         })
 }
 
@@ -73,23 +58,6 @@ pub async fn ready_to_connect(grpc: State<'_, GrpcClient>) -> Result<ReadyToConn
         .map_err(|e| e.into())
         .inspect(|state| {
             info!("ready to connect: {state}");
-        })
-}
-
-#[instrument(skip_all)]
-#[tauri::command]
-pub async fn get_account_info(grpc: State<'_, GrpcClient>) -> Result<JsonValue, BackendError> {
-    grpc.get_account_summary()
-        .await
-        .map_err(|e| {
-            error!("failed to get account info: {e}");
-            e.into()
-        })
-        .map(|s| {
-            info!("account info: {}", s);
-            s.parse::<JsonValue>()
-                .inspect_err(|e| error!("failed to parse json value: {e}"))
-                .unwrap_or(JsonValue::Null)
         })
 }
 
