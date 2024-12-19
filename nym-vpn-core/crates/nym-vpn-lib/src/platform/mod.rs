@@ -1,6 +1,47 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+//! The Uniffi generated bindings for the Nym VPN library. The API is designed to be used by
+//! frontends to interact with the Nym VPN library. The API is designed to be platform agnostic and
+//! should work on any platform that supports the Uniffi FFI bindings.
+//!
+//! Usage:
+//!
+//! 1. Initialize the environment: `initEnvironment(..)` or `initFallbackMainnetEnvironment`.
+//!
+//!     This is required to set the network environment details.
+//!
+//! 2. Initialise the library: `configureLib(..)`.
+//!
+//!     This sets up the logger and starts the account controller that runs in the background and
+//!     manages the account state.
+//!
+//! 3. At this point we can interact with the vpn-api and the account controller to do things like:
+//!
+//!     - Get gateway countries: `getGatewayCountries(..)`.
+//!     - Store the account mnemonic: `storeAccountMnemonic(..)`.
+//!     - Get the account state: `getAccountState()`.
+//!     - Get system messages: `getSystemMessages()`.
+//!     - Get account links: `getAccountLinks(..)`.
+//!     - ...
+//!
+//! 3. Start the VPN: `startVPN(..)`.
+//!
+//!     This will:
+//!
+//!     1. Check if the account is ready to connect.
+//!     2. Request zknym credentials if needed.
+//!     3. Start the VPN state machine.
+//!
+//! 4. Stop the VPN: `stopVPN()`.
+//!
+//!     This will stop the VPN state machine.
+//!
+//! 5. (Optional) shutdown the library: `shutdown()`.
+//!
+//!     This will stop the account controller and clean up any resources.
+//!     Probably this is not needed.
+
 #[cfg(target_os = "android")]
 pub mod android;
 pub(crate) mod error;
