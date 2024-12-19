@@ -1,37 +1,20 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{env, path::PathBuf, sync::Arc, time::Duration};
-
-use lazy_static::lazy_static;
-use log::*;
 use nym_vpn_network_config::Network;
-use tokio::{
-    runtime::Runtime,
-    sync::{mpsc, Mutex},
-    task::JoinHandle,
-};
+use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
 use nym_gateway_directory::Config as GatewayDirectoryConfig;
 
-use crate::platform::account::start_account_controller_handle;
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::ios::OSTunProvider;
-use crate::{
-    gateway_directory::GatewayClient,
-    tunnel_state_machine::{
-        BandwidthEvent, ConnectionEvent, DnsOptions, GatewayPerformanceOptions,
-        MixnetTunnelOptions, NymConfig, TunnelCommand, TunnelEvent, TunnelSettings, TunnelState,
-        TunnelStateMachine, TunnelType, WireguardTunnelOptions,
-    },
-    uniffi_custom_impls::{
-        AccountLinks, AccountStateSummary, BandwidthStatus, ConnectionStatus, EntryPoint,
-        ExitPoint, GatewayMinPerformance, GatewayType, Location, NetworkEnvironment, SystemMessage,
-        TunStatus, UserAgent,
-    },
+use crate::tunnel_state_machine::{
+    DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
+    TunnelSettings, TunnelStateMachine, TunnelType,
+    WireguardTunnelOptions,
 };
 
 use super::{error::VpnError, VPNConfig, STATE_MACHINE_HANDLE};
@@ -168,4 +151,3 @@ impl StateMachineHandle {
         }
     }
 }
-
