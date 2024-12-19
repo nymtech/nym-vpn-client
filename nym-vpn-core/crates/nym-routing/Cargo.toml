@@ -24,20 +24,20 @@ nym-common = { path = "../nym-common" }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 libc.workspace = true
-netlink-packet-route = { version = "0.19", features = ["rich_nlas"] }
-netlink-packet-core = { version = "0.7" }
-netlink-sys = "0.8"
-rtnetlink = "0.14"
+netlink-packet-route = { workspace = true, features = ["rich_nlas"] }
+netlink-packet-core.workspace = true
+netlink-sys.workspace = true
+rtnetlink.workspace = true
 
 [target.'cfg(target_os = "macos")'.dependencies]
-bitflags = "2"
+bitflags.workspace = true
 libc.workspace = true
 nix = { workspace = true, features = ["socket", "fs", "net"] }
 system-configuration.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 nym-windows = { path = "../nym-windows" }
-widestring = "1.0"
+widestring.workspace = true
 
 [target.'cfg(windows)'.dependencies.windows-sys]
 workspace = true
