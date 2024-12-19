@@ -15,7 +15,6 @@ Install required dependencies
 sudo apt install libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
 ```
 
-
 Build the wireguard library
 
 ```sh
@@ -30,9 +29,6 @@ cd nym-vpn-core/
 # build the prober
 cargo build -p nym-gateway-probe
 ```
-
-You may need to adjust your `RUSTFLAGS` or `.cargo/config.toml` to ensure that
-the golang wireguard library links properly.
 
 ## Usage
 
@@ -61,5 +57,5 @@ Examples
 nym-gateway-probe -g "qj3GgGYgGZZ3HkFrtD1GU9UJ5oNXME9eD2xtmPLqYYw"
 
 # Run a probe against the node with id "qj3GgGYg..." using amnezia with junk packets enabled.
-nym-gateway-probe -g "qj3GgGYgGZZ3HkFrtD1GU9UJ5oNXME9eD2xtmPLqYYw" -a "Jc=4\nJmin=40\mJmax=70\n"
+nym-gateway-probe -g "qj3GgGYgGZZ3HkFrtD1GU9UJ5oNXME9eD2xtmPLqYYw" -a "jc=4\njmin=40\njmax=70\n"
 ```

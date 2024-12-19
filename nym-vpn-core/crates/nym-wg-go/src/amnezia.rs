@@ -1,4 +1,4 @@
-//! Interface to amneziawg (fork of wireguard-go) allowing optional use of Amnezia features.
+//! Interface to amneziawg-go (fork of wireguard-go) allowing optional use of Amnezia features.
 //!
 
 use crate::UapiConfigBuilder;

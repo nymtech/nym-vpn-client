@@ -162,12 +162,20 @@ impl WgNodeConfig {
                 #[cfg(target_os = "linux")]
                 fwmark: None,
                 #[cfg(feature = "amnezia")]
-                azwg_config: Some(AmneziaConfig::BASE),
+                // Even when enabled by feature flag amnezia is disabled by default.
+                azwg_config: None,
             },
             peer: WgPeer {
                 public_key: PublicKey::from(*gateway_data.public_key.as_bytes()),
                 endpoint: gateway_data.endpoint,
             },
         }
+    }
+
+    #[cfg(feature = "amnezia")]
+    /// Enable Amnezia wireguard features
+    pub fn with_amnezia_config(mut self, azwg_config: AmneziaConfig) -> Self {
+        self.interface.azwg_config = Some(azwg_config);
+        self
     }
 }
