@@ -311,6 +311,7 @@ pub unsafe extern "system" fn wg_logger_callback(
 ) {
     if !msg.is_null() {
         let str = CStr::from_ptr(msg).to_string_lossy();
-        tracing::debug!("{}", str);
+        let trimmed_str = str.trim_end();
+        tracing::debug!("{}", trimmed_str);
     }
 }

@@ -4,7 +4,7 @@
 #[cfg(target_os = "android")]
 use std::os::fd::RawFd;
 use std::{
-    ffi::{c_char, c_void, CString},
+    ffi::{c_char, c_void, CStr, CString},
     fmt,
     net::{IpAddr, SocketAddr},
 };
@@ -311,7 +311,8 @@ pub unsafe extern "system" fn wg_netstack_logger_callback(
     _ctx: *mut c_void,
 ) {
     if !msg.is_null() {
-        let str = std::ffi::CStr::from_ptr(msg).to_string_lossy();
-        tracing::debug!("{}", str);
+        let str = CStr::from_ptr(msg).to_string_lossy();
+        let trimmed_str = str.trim_end();
+        tracing::debug!("{}", trimmed_str);
     }
 }
