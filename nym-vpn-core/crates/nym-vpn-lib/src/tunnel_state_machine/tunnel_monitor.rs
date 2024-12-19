@@ -737,6 +737,7 @@ impl TunnelMonitor {
             .run(
                 tun_device,
                 self.tunnel_settings.dns.ip_addresses().to_vec(),
+                #[cfg(target_os = "android")]
                 self.tun_provider.clone(),
             )
             .await?;
