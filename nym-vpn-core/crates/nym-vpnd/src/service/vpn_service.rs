@@ -930,7 +930,7 @@ where
         }
 
         let data_dir = self.data_dir.clone();
-        tracing::warn!(
+        tracing::info!(
             "REMOVING ALL ACCOUNT AND DEVICE DATA IN: {}",
             data_dir.display()
         );

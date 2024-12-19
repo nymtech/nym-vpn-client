@@ -269,7 +269,7 @@ where
     }
 
     async fn handle_forget_account(&mut self) -> Result<(), AccountCommandError> {
-        tracing::warn!("REMOVING ACCOUNT AND ALL ASSOCIATED DATA");
+        tracing::info!("REMOVING ACCOUNT AND ALL ASSOCIATED DATA");
 
         // TODO: here we should put the controller in some sort of idle state, and wait for all
         // currently running operations to finish before proceeding with the reset
