@@ -29,15 +29,18 @@ use tracing::{debug, error, info, warn};
 
 use crate::error::Result;
 
-const DEFAULT_PRIVATE_ENTRY_WIREGUARD_KEY_FILENAME: &str = "private_entry_wireguard.pem";
-const DEFAULT_PUBLIC_ENTRY_WIREGUARD_KEY_FILENAME: &str = "public_entry_wireguard.pem";
-const DEFAULT_PRIVATE_EXIT_WIREGUARD_KEY_FILENAME: &str = "private_exit_wireguard.pem";
-const DEFAULT_PUBLIC_EXIT_WIREGUARD_KEY_FILENAME: &str = "public_exit_wireguard.pem";
+pub const DEFAULT_PRIVATE_ENTRY_WIREGUARD_KEY_FILENAME: &str = "private_entry_wireguard.pem";
+pub const DEFAULT_PUBLIC_ENTRY_WIREGUARD_KEY_FILENAME: &str = "public_entry_wireguard.pem";
+pub const DEFAULT_PRIVATE_EXIT_WIREGUARD_KEY_FILENAME: &str = "private_exit_wireguard.pem";
+pub const DEFAULT_PUBLIC_EXIT_WIREGUARD_KEY_FILENAME: &str = "public_exit_wireguard.pem";
 
-const DEFAULT_FREE_PRIVATE_ENTRY_WIREGUARD_KEY_FILENAME: &str = "free_private_entry_wireguard.pem";
-const DEFAULT_FREE_PUBLIC_ENTRY_WIREGUARD_KEY_FILENAME: &str = "free_public_entry_wireguard.pem";
-const DEFAULT_FREE_PRIVATE_EXIT_WIREGUARD_KEY_FILENAME: &str = "free_private_exit_wireguard.pem";
-const DEFAULT_FREE_PUBLIC_EXIT_WIREGUARD_KEY_FILENAME: &str = "free_public_exit_wireguard.pem";
+pub const DEFAULT_FREE_PRIVATE_ENTRY_WIREGUARD_KEY_FILENAME: &str =
+    "free_private_entry_wireguard.pem";
+pub const DEFAULT_FREE_PUBLIC_ENTRY_WIREGUARD_KEY_FILENAME: &str =
+    "free_public_entry_wireguard.pem";
+pub const DEFAULT_FREE_PRIVATE_EXIT_WIREGUARD_KEY_FILENAME: &str =
+    "free_private_exit_wireguard.pem";
+pub const DEFAULT_FREE_PUBLIC_EXIT_WIREGUARD_KEY_FILENAME: &str = "free_public_exit_wireguard.pem";
 
 pub const TICKETS_TO_SPEND: u32 = 1;
 const RETRY_PERIOD: Duration = Duration::from_secs(30);
