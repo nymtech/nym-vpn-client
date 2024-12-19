@@ -232,6 +232,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> anyhow:
         entry_point: Box::new(entry_point),
         exit_point: Box::new(exit_point),
         dns,
+        user_agent: None,
     };
 
     let state_machine_handle = TunnelStateMachine::spawn(

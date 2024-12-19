@@ -27,6 +27,10 @@ pub(crate) struct CliArgs {
     #[arg(long)]
     pub(crate) disable_socket_listener: bool,
 
+    /// Override the default user agent string.
+    #[arg(long, value_parser = parse_user_agent)]
+    pub(crate) user_agent: Option<nym_vpn_lib::UserAgent>,
+
     #[cfg(windows)]
     #[arg(long)]
     pub(crate) disable_service: bool,
@@ -70,4 +74,8 @@ fn check_path(path: &str) -> Result<PathBuf, String> {
         return Err(format!("Path {:?} is not a file", path));
     }
     Ok(path)
+}
+
+fn parse_user_agent(user_agent: &str) -> Result<nym_vpn_lib::UserAgent, String> {
+    nym_vpn_lib::UserAgent::try_from(user_agent).map_err(|e| e.to_string())
 }

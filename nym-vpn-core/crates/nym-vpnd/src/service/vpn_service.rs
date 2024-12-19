@@ -36,7 +36,7 @@ use nym_vpn_lib::{
         NymConfig, TunnelCommand, TunnelConnectionData, TunnelEvent, TunnelSettings, TunnelState,
         TunnelStateMachine, TunnelType, WireguardMultihopMode, WireguardTunnelOptions,
     },
-    MixnetClientConfig, NodeIdentity, Recipient,
+    MixnetClientConfig, NodeIdentity, Recipient, UserAgent,
 };
 use zeroize::Zeroizing;
 
@@ -103,7 +103,7 @@ pub enum VpnServiceCommand {
     GetFeatureFlags(oneshot::Sender<Option<FeatureFlags>>, ()),
     Connect(
         oneshot::Sender<Result<(), VpnServiceConnectError>>,
-        (ConnectArgs, nym_vpn_lib::UserAgent),
+        ConnectArgs,
     ),
     Disconnect(oneshot::Sender<Result<(), VpnServiceDisconnectError>>, ()),
     Status(oneshot::Sender<VpnServiceStatus>, ()),
@@ -166,8 +166,7 @@ pub(crate) struct ConnectOptions {
     pub(crate) min_mixnode_performance: Option<Percent>,
     pub(crate) min_gateway_mixnet_performance: Option<Percent>,
     pub(crate) min_gateway_vpn_performance: Option<Percent>,
-    // Consider adding this here once UserAgent implements Serialize/Deserialize
-    // pub(crate) user_agent: Option<nym_vpn_lib::UserAgent>,
+    pub(crate) user_agent: Option<UserAgent>,
 }
 
 // Respond with the current state of the VPN service. This is currently almost the same as VpnState,
@@ -336,6 +335,9 @@ where
     // The network environment
     network_env: Network,
 
+    // The user agent used for HTTP request
+    user_agent: UserAgent,
+
     // The account state, updated by the account controller
     shared_account_state: SharedAccountState,
 
@@ -387,6 +389,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         status_tx: broadcast::Sender<MixnetEvent>,
         shutdown_token: CancellationToken,
         network_env: Network,
+        user_agent: UserAgent,
     ) -> JoinHandle<()> {
         tracing::info!("Starting VPN service");
         tokio::spawn(async {
@@ -396,6 +399,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
                 status_tx,
                 shutdown_token,
                 network_env,
+                user_agent,
             )
             .await
             {
@@ -424,6 +428,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         status_tx: broadcast::Sender<MixnetEvent>,
         shutdown_token: CancellationToken,
         network_env: Network,
+        user_agent: UserAgent,
     ) -> Result<Self> {
         let network_name = network_env.nym_network_details().network_name.clone();
 
@@ -440,13 +445,10 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
 
         let statistics_recipient = network_env.get_feature_flag_stats_recipient();
 
-        // We need to create the user agent here and not in the controller so that we correctly
-        // pick up build time constants.
-        let user_agent = crate::util::construct_user_agent();
         let account_controller = AccountController::new(
             Arc::clone(&storage),
             data_dir.clone(),
-            user_agent,
+            user_agent.clone(),
             None,
             network_env.clone(),
             shutdown_token.child_token(),
@@ -489,6 +491,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
 
         Ok(Self {
             network_env,
+            user_agent,
             shared_account_state,
             vpn_command_rx,
             vpn_state_changes_tx,
@@ -573,8 +576,8 @@ where
                 let result = self.handle_get_feature_flags().await;
                 let _ = tx.send(result);
             }
-            VpnServiceCommand::Connect(tx, (connect_args, user_agent)) => {
-                let result = self.handle_connect(connect_args, user_agent).await;
+            VpnServiceCommand::Connect(tx, connect_args) => {
+                let result = self.handle_connect(connect_args).await;
                 let _ = tx.send(result);
             }
             VpnServiceCommand::Disconnect(tx, ()) => {
@@ -775,7 +778,6 @@ where
     async fn handle_connect(
         &mut self,
         connect_args: ConnectArgs,
-        _user_agent: nym_vpn_lib::UserAgent, // todo: use user-agent!
     ) -> Result<(), VpnServiceConnectError> {
         let ConnectArgs {
             entry,
@@ -872,6 +874,7 @@ where
             entry_point: Box::new(config.entry_point),
             exit_point: Box::new(config.exit_point),
             dns,
+            user_agent: options.user_agent,
         };
 
         match self
@@ -909,13 +912,12 @@ where
 
     async fn handle_info(&self) -> VpnServiceInfo {
         let bin_info = nym_bin_common::bin_info_local_vergen!();
-        let user_agent = crate::util::construct_user_agent();
 
         VpnServiceInfo {
             version: bin_info.build_version.to_string(),
             build_timestamp: time::OffsetDateTime::parse(bin_info.build_timestamp, &Rfc3339).ok(),
             triple: bin_info.cargo_triple.to_string(),
-            platform: user_agent.platform,
+            platform: self.user_agent.platform.clone(),
             git_commit: bin_info.commit_sha.to_string(),
             nym_network: self.network_env.nym_network.clone(),
             nym_vpn_network: self.network_env.nym_vpn_network.clone(),
@@ -1217,9 +1219,10 @@ where
         let account = self.load_account().await?;
 
         // Setup client
-        let nym_vpn_api_url = self.network_env.vpn_api_url();
-        let user_agent = crate::util::construct_user_agent();
-        let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent)?;
+        let api_client = nym_vpn_api_client::VpnApiClient::new(
+            self.network_env.vpn_api_url(),
+            self.user_agent.clone(),
+        )?;
 
         api_client
             .get_account_summary(&account)
@@ -1236,9 +1239,10 @@ where
         let account = self.load_account().await?;
 
         // Setup client
-        let nym_vpn_api_url = self.network_env.vpn_api_url();
-        let user_agent = crate::util::construct_user_agent();
-        let api_client = nym_vpn_api_client::VpnApiClient::new(nym_vpn_api_url, user_agent)?;
+        let api_client = nym_vpn_api_client::VpnApiClient::new(
+            self.network_env.vpn_api_url(),
+            self.user_agent.clone(),
+        )?;
 
         api_client.get_devices(&account).await.map_err(Into::into)
     }

@@ -205,20 +205,13 @@ impl NymVpnd for CommandInterface {
             .map(parse_exit_point)
             .transpose()?;
 
-        let user_agent = connect_request
-            .user_agent
-            .clone()
-            // .map(into_user_agent)
-            .map(nym_vpn_lib::UserAgent::from)
-            .unwrap_or_else(crate::util::construct_user_agent);
-
         let options = ConnectOptions::try_from(connect_request).map_err(|err| {
             tracing::error!("Failed to parse connect options: {:?}", err);
             tonic::Status::invalid_argument("Invalid connect options")
         })?;
 
         let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_connect(entry, exit, options, user_agent)
+            .handle_connect(entry, exit, options)
             .await?;
 
         let response = match status {
@@ -1000,6 +993,11 @@ impl TryFrom<ConnectRequest> for ConnectOptions {
             request.disable_background_cover_traffic
         };
 
+        let user_agent = request
+            .user_agent
+            .map(nym_vpn_lib::UserAgent::from)
+            .or(Some(crate::util::construct_user_agent()));
+
         Ok(ConnectOptions {
             dns,
             disable_routing: request.disable_routing,
@@ -1011,6 +1009,7 @@ impl TryFrom<ConnectRequest> for ConnectOptions {
             min_mixnode_performance,
             min_gateway_mixnet_performance,
             min_gateway_vpn_performance,
+            user_agent,
         })
     }
 }

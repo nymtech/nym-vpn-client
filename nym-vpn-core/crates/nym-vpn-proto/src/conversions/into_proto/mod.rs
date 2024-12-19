@@ -62,3 +62,14 @@ impl From<u8> for crate::Threshold {
         }
     }
 }
+
+impl From<nym_http_api_client::UserAgent> for crate::UserAgent {
+    fn from(user_agent: nym_http_api_client::UserAgent) -> Self {
+        Self {
+            application: user_agent.application,
+            version: user_agent.version,
+            platform: user_agent.platform,
+            git_commit: user_agent.git_commit,
+        }
+    }
+}

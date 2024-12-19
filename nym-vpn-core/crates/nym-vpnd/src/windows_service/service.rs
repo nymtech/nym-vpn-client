@@ -105,6 +105,8 @@ async fn run_service_inner(
         shutdown_token.child_token(),
     );
 
+    let user_agent = crate::util::construct_user_agent();
+
     // Start the VPN service that wraps the actual VPN
     let vpn_handle = NymVpnService::spawn(
         state_changes_tx,
@@ -112,6 +114,7 @@ async fn run_service_inner(
         status_tx,
         shutdown_token.child_token(),
         network_env,
+        user_agent,
     );
 
     tracing::info!("Service has started");

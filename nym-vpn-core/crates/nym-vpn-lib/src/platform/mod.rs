@@ -16,13 +16,13 @@ use std::{env, path::PathBuf, sync::Arc, time::Duration};
 use account::AccountControllerHandle;
 use lazy_static::lazy_static;
 use log::*;
+use nym_vpn_network_config::Network;
 use tokio::{
     runtime::Runtime,
     sync::{mpsc, Mutex},
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
-use url::Url;
 
 use nym_gateway_directory::Config as GatewayDirectoryConfig;
 
@@ -61,19 +61,37 @@ pub fn startVPN(config: VPNConfig) -> Result<(), VpnError> {
 }
 
 async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
+    // Get the network environment details. This relies on the network environment being set in
+    // advance by calling initEnvironment or initFallbackMainnetEnvironment.
+    let network_env = environment::current_environment_details().await?;
+
+    // Enabling credential mode will depend on the network feature flag as well as what is passed
+    // in the config.
     let enable_credentials_mode = is_credential_mode_enabled(config.credential_mode).await?;
 
     // TODO: we do a pre-connect check here. This mirrors the logic in the daemon.
     // We want to move this check into the state machine so that it happens during the connecting
     // state instead. This would allow us more flexibility in waiting for the account to be ready
     // and handle errors in a unified manner.
-    let timeout = Duration::from_secs(10);
+    // This can take a surprisingly long time, if we need to go through all steps of registering
+    // the device and requesting zknym ticketbooks.
+    let timeout = Duration::from_secs(60);
     account::wait_for_account_ready_to_connect(enable_credentials_mode, timeout).await?;
 
+    // Once we have established that the account is ready, we can start the state machine.
+    init_state_machine(config, network_env, enable_credentials_mode).await
+}
+
+async fn init_state_machine(
+    config: VPNConfig,
+    network_env: Network,
+    enable_credentials_mode: bool,
+) -> Result<(), VpnError> {
     let mut guard = STATE_MACHINE_HANDLE.lock().await;
 
     if guard.is_none() {
-        let state_machine_handle = start_state_machine(config, enable_credentials_mode).await?;
+        let state_machine_handle =
+            start_state_machine(config, network_env, enable_credentials_mode).await?;
         state_machine_handle.send_command(TunnelCommand::Connect);
         *guard = Some(state_machine_handle);
         Ok(())
@@ -284,14 +302,10 @@ pub fn getAccountState() -> Result<AccountStateSummary, VpnError> {
 #[uniffi::export]
 pub fn getGatewayCountries(
     gw_type: GatewayType,
-    user_agent: Option<UserAgent>,
+    user_agent: UserAgent,
     min_gateway_performance: Option<GatewayMinPerformance>,
 ) -> Result<Vec<Location>, VpnError> {
-    let (api_url, nym_vpn_api_url) = get_nym_urls()?;
-
     RUNTIME.block_on(get_gateway_countries(
-        api_url,
-        nym_vpn_api_url,
         gw_type,
         user_agent,
         min_gateway_performance,
@@ -299,60 +313,26 @@ pub fn getGatewayCountries(
 }
 
 async fn get_gateway_countries(
-    api_url: Url,
-    nym_vpn_api_url: Url,
     gw_type: GatewayType,
-    user_agent: Option<UserAgent>,
+    user_agent: UserAgent,
     min_gateway_performance: Option<GatewayMinPerformance>,
 ) -> Result<Vec<Location>, VpnError> {
-    let user_agent = user_agent
-        .map(nym_sdk::UserAgent::from)
-        .unwrap_or_else(crate::util::construct_user_agent);
+    let network_env = environment::current_environment_details().await?;
+    let api_url = network_env.api_url().ok_or(VpnError::InternalError {
+        details: "API URL not found".to_string(),
+    })?;
+    let nym_vpn_api_url = Some(network_env.vpn_api_url());
     let min_gateway_performance = min_gateway_performance.map(|p| p.try_into()).transpose()?;
     let directory_config = nym_gateway_directory::Config {
         api_url,
-        nym_vpn_api_url: Some(nym_vpn_api_url),
+        nym_vpn_api_url,
         min_gateway_performance,
     };
-    GatewayClient::new(directory_config, user_agent)?
+    GatewayClient::new(directory_config, user_agent.into())?
         .lookup_countries(gw_type.into())
         .await
         .map(|countries| countries.into_iter().map(Location::from).collect())
         .map_err(VpnError::from)
-}
-
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn getLowLatencyEntryCountry(user_agent: UserAgent) -> Result<Location, VpnError> {
-    let (api_url, vpn_api_url) = get_nym_urls()?;
-
-    RUNTIME.block_on(get_low_latency_entry_country(
-        api_url,
-        vpn_api_url,
-        user_agent,
-    ))
-}
-
-async fn get_low_latency_entry_country(
-    api_url: Url,
-    vpn_api_url: Url,
-    user_agent: UserAgent,
-) -> Result<Location, VpnError> {
-    let config = nym_gateway_directory::Config {
-        api_url,
-        nym_vpn_api_url: Some(vpn_api_url),
-        min_gateway_performance: None,
-    };
-    GatewayClient::new(config, user_agent.into())?
-        .lookup_low_latency_entry_gateway()
-        .await
-        .map_err(VpnError::from)
-        .and_then(|gateway| {
-            gateway.location.ok_or(VpnError::InternalError {
-                details: "gateway does not contain a two character country ISO".to_string(),
-            })
-        })
-        .map(Location::from)
 }
 
 #[derive(uniffi::Record)]
@@ -368,6 +348,7 @@ pub struct VPNConfig {
     pub tun_status_listener: Option<Arc<dyn TunnelStatusListener>>,
     pub credential_mode: Option<bool>,
     pub statistics_recipient: Option<String>,
+    pub user_agent: UserAgent,
 }
 
 #[uniffi::export(with_foreign)]
@@ -402,31 +383,9 @@ impl StateMachineHandle {
     }
 }
 
-fn get_api_url() -> Option<Url> {
-    match env::var("NYM_API") {
-        Ok(url) => Url::parse(&url).ok(),
-        Err(_) => None,
-    }
-}
-
-fn get_nym_api_url() -> Option<Url> {
-    match env::var("NYM_VPN_API") {
-        Ok(url) => Url::parse(&url).ok(),
-        Err(_) => None,
-    }
-}
-
-fn get_nym_urls() -> Result<(Url, Url), VpnError> {
-    match (get_api_url(), get_nym_api_url()) {
-        (Some(api_url), Some(nym_vpn_api_url)) => Ok((api_url, nym_vpn_api_url)),
-        _ => Err(VpnError::InternalError {
-            details: "NYM_API and NYM_VPN_API environment variables must be set".to_string(),
-        }),
-    }
-}
-
 async fn start_state_machine(
     config: VPNConfig,
+    network_env: Network,
     enable_credentials_mode: bool,
 ) -> Result<StateMachineHandle, VpnError> {
     let tunnel_type = if config.enable_two_hop {
@@ -448,11 +407,14 @@ async fn start_state_machine(
     let entry_point = nym_gateway_directory::EntryPoint::from(config.entry_gateway);
     let exit_point = nym_gateway_directory::ExitPoint::from(config.exit_router);
 
-    let (api_url, nym_vpn_api_url) = get_nym_urls()?;
+    let api_url = network_env.api_url().ok_or(VpnError::InternalError {
+        details: "API URL not found".to_string(),
+    })?;
+    let nym_vpn_api_url = Some(network_env.vpn_api_url());
 
     let gateway_config = GatewayDirectoryConfig {
         api_url,
-        nym_vpn_api_url: Some(nym_vpn_api_url),
+        nym_vpn_api_url,
         ..Default::default()
     };
 
@@ -472,6 +434,7 @@ async fn start_state_machine(
         entry_point: Box::new(entry_point),
         exit_point: Box::new(exit_point),
         dns: DnsOptions::default(),
+        user_agent: Some(config.user_agent.into()),
     };
 
     let (command_sender, command_receiver) = mpsc::unbounded_channel();
