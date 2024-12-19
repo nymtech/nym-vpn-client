@@ -6,6 +6,7 @@
   },
   "logout": {
     "success": "A cerrado sesión satisfactoriamente",
-    "error": "A ocurrido un error mientras iniciaba sesión. Por favor intente nuevamente."
-  }
+    "error": "A ocurrido un error mientras iniciaba sesión"
+  },
+  "daemon-not-compat": "La versión del Daemon no es compatible con la versión de la aplicación. Versión daemon: {{version}}, esperada: {{required}}. Actualiza la aplicación o el Daemon."
 }

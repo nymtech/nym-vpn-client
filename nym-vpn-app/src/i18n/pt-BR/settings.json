@@ -42,7 +42,9 @@
   "info": {
     "daemon-version": "Versão do Daemon",
     "network-name": "Rede",
-    "client-version": "Versão do cliente"
+    "client-version": "Versão do cliente",
+    "device-id": "ID do dispositivo",
+    "account-id": "ID da conta"
   },
   "logout-confirmation": {
     "description": "Você precisará da frase de recuperação para fazer login novamente.",

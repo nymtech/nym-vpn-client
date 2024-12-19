@@ -67,7 +67,8 @@
     "add-ipv6-route": "添加 ipv6 默认路由捕获 ipv6 流量失败",
     "tun-device": "Tun 设备故障",
     "routing": "路由选择失败",
-    "ready-to-connect": "在检查过程中还无法确定我们是否已准备好连接"
+    "ready-to-connect": "在检查过程中还无法确定我们是否已准备好连接",
+    "general": "一般错误，请查看日志了解更多详情"
   },
   "countries-request": {
     "entry": "获取可用条目节点国家失败",
@@ -82,6 +83,16 @@
   },
   "account": {
     "invalid-recovery-phrase": "助记词无效",
-    "storage": "存储后端错误"
+    "storage": "存储后端错误",
+    "is-connected": "连接时无法继续",
+    "maximum-registered-devices": "设备注册失败：已达到注册设备的最大数量",
+    "no-device-stored": "未存储设备密钥",
+    "update": "更新帐户失败",
+    "update-device": "更新设备失败",
+    "register-device": "设备注册失败",
+    "not-stored": "未存储帐户助记词"
+  },
+  "zknym": {
+    "request-failed": "请求 zk-nym 失败"
   }
 }

@@ -72,7 +72,8 @@
     "add-ipv6-route": "Fallo al añadir la ruta por defecto al ipv6 para capturar tráfico ipv6",
     "tun-device": "Fallo del dispositivo Tun",
     "routing": "Error de enrutamiento",
-    "ready-to-connect": "在检查过程中还无法确定我们是否已准备好连接"
+    "ready-to-connect": "在检查过程中还无法确定我们是否已准备好连接",
+    "general": "Error general, revisa los logs para tener mas detalles"
   },
   "out-of-bandwidth": "Fuera del ancho de banda asignado",
   "exit-node": {
@@ -82,6 +83,16 @@
   "entry-node-routing": "El nodo de entrada no enruta el tráfico (¿se ha caído la conexión a Internet?)",
   "account": {
     "invalid-recovery-phrase": "Frase de recuperación inválida",
-    "storage": "Error de backend de almacenamiento"
+    "storage": "Error de backend de almacenamiento",
+    "is-connected": "No se puede continuar mientras está conectado",
+    "no-device-stored": "No hay claves de dispositivo almacenadas",
+    "update": "Error al actualizar la cuenta",
+    "update-device": "Error al actualizar el dispositivo",
+    "register-device": "Fallo en el registro del dispositivo",
+    "maximum-registered-devices": "Fallo en el registro de dispositivos: se ha alcanzado el número máximo de dispositivos registrados",
+    "not-stored": "No se almacena ninguna frase de recuperación de tu cuenta"
+  },
+  "zknym": {
+    "request-failed": "Fallo en la solicitud del zk-nym"
   }
 }
