@@ -25,7 +25,7 @@ pub use imp::{get_best_default_route, Callback, CallbackHandle, EventType, Inter
 mod imp;
 
 #[cfg(target_os = "linux")]
-use netlink_packet_route::rtnl::constants::RT_TABLE_MAIN;
+use netlink_packet_route::route::RouteHeader;
 
 #[cfg(target_os = "macos")]
 pub use imp::{imp::RouteError, DefaultRouteEvent, PlatformError};
@@ -93,7 +93,7 @@ impl Route {
             prefix,
             metric: None,
             #[cfg(target_os = "linux")]
-            table_id: u32::from(RT_TABLE_MAIN),
+            table_id: u32::from(RouteHeader::RT_TABLE_MAIN),
             #[cfg(any(target_os = "linux", target_os = "macos"))]
             mtu: None,
         }
