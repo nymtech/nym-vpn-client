@@ -6,7 +6,7 @@ use std::{fmt, sync::Arc};
 use nym_crypto::asymmetric::ed25519;
 use sha2::Digest as _;
 
-use crate::jwt::Jwt;
+use crate::{jwt::Jwt, request::UpdateDeviceRequestStatus};
 
 #[derive(Clone)]
 pub struct Device {
@@ -87,6 +87,23 @@ impl From<bip39::Mnemonic> for Device {
 
         Self {
             keypair: Arc::new(keypair),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DeviceStatus {
+    Active,
+    Inactive,
+    DeleteMe,
+}
+
+impl From<DeviceStatus> for UpdateDeviceRequestStatus {
+    fn from(status: DeviceStatus) -> Self {
+        match status {
+            DeviceStatus::Active => UpdateDeviceRequestStatus::Active,
+            DeviceStatus::Inactive => UpdateDeviceRequestStatus::Inactive,
+            DeviceStatus::DeleteMe => UpdateDeviceRequestStatus::DeleteMe,
         }
     }
 }
