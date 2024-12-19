@@ -114,10 +114,6 @@ extension PacketTunnelProvider {
 }
 
 extension PacketTunnelProvider: OsTunProvider {
-    func setDefaultPathObserver(observer: (any OsDefaultPathObserver)?) async throws {
-        await tunnelActor.setDefaultPathObserver(observer)
-    }
-
     func setTunnelNetworkSettings(tunnelSettings: TunnelNetworkSettings) async throws {
         do {
             let networkSettings = tunnelSettings.asPacketTunnelNetworkSettings()
