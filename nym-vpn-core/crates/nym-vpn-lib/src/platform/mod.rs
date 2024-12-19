@@ -154,72 +154,6 @@ pub fn initLogger() {
     init_logger();
 }
 
-/// Start the VPN by first establishing that the account is ready to connect, including requesting
-/// zknym credentials, and then starting the VPN state machine.
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn startVPN(config: VPNConfig) -> Result<(), VpnError> {
-    RUNTIME.block_on(start_vpn_inner(config))
-}
-
-async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
-    // Get the network environment details. This relies on the network environment being set in
-    // advance by calling initEnvironment or initFallbackMainnetEnvironment.
-    let network_env = environment::current_environment_details().await?;
-
-    // Enabling credential mode will depend on the network feature flag as well as what is passed
-    // in the config.
-    let enable_credentials_mode = is_credential_mode_enabled(config.credential_mode).await?;
-
-    // TODO: we do a pre-connect check here. This mirrors the logic in the daemon.
-    // We want to move this check into the state machine so that it happens during the connecting
-    // state instead. This would allow us more flexibility in waiting for the account to be ready
-    // and handle errors in a unified manner.
-    // This can take a surprisingly long time, if we need to go through all steps of registering
-    // the device and requesting zknym ticketbooks.
-    let timeout = Duration::from_secs(120);
-    account::wait_for_account_ready_to_connect(enable_credentials_mode, timeout).await?;
-
-    // Once we have established that the account is ready, we can start the state machine.
-    vpn::init_state_machine(config, network_env, enable_credentials_mode).await
-}
-
-async fn is_credential_mode_enabled(credential_mode: Option<bool>) -> Result<bool, VpnError> {
-    match credential_mode {
-        Some(enable_credentials_mode) => Ok(enable_credentials_mode),
-        None => environment::get_feature_flag_credential_mode().await,
-    }
-}
-
-/// Stop the VPN by stopping the VPN state machine.
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn stopVPN() -> Result<(), VpnError> {
-    RUNTIME.block_on(stop_vpn_inner())
-}
-
-async fn stop_vpn_inner() -> Result<(), VpnError> {
-    let mut guard = STATE_MACHINE_HANDLE.lock().await;
-
-    match guard.take() {
-        Some(state_machine_handle) => {
-            // TODO: add timeout
-            state_machine_handle.shutdown_and_wait().await;
-            Ok(())
-        }
-        None => Err(VpnError::InvalidStateError {
-            details: "State machine is not running.".to_owned(),
-        }),
-    }
-}
-
-/// Shutdown the library by stopping the account controller and cleaning up any resources.
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn shutdown() -> Result<(), VpnError> {
-    RUNTIME.block_on(account::stop_account_controller_handle())
-}
-
 /// Returns the system messages for the current network environment
 #[allow(non_snake_case)]
 #[uniffi::export]
@@ -359,6 +293,72 @@ async fn get_gateway_countries(
         .await
         .map(|countries| countries.into_iter().map(Location::from).collect())
         .map_err(VpnError::from)
+}
+
+/// Start the VPN by first establishing that the account is ready to connect, including requesting
+/// zknym credentials, and then starting the VPN state machine.
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn startVPN(config: VPNConfig) -> Result<(), VpnError> {
+    RUNTIME.block_on(start_vpn_inner(config))
+}
+
+async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
+    // Get the network environment details. This relies on the network environment being set in
+    // advance by calling initEnvironment or initFallbackMainnetEnvironment.
+    let network_env = environment::current_environment_details().await?;
+
+    // Enabling credential mode will depend on the network feature flag as well as what is passed
+    // in the config.
+    let enable_credentials_mode = is_credential_mode_enabled(config.credential_mode).await?;
+
+    // TODO: we do a pre-connect check here. This mirrors the logic in the daemon.
+    // We want to move this check into the state machine so that it happens during the connecting
+    // state instead. This would allow us more flexibility in waiting for the account to be ready
+    // and handle errors in a unified manner.
+    // This can take a surprisingly long time, if we need to go through all steps of registering
+    // the device and requesting zknym ticketbooks.
+    let timeout = Duration::from_secs(120);
+    account::wait_for_account_ready_to_connect(enable_credentials_mode, timeout).await?;
+
+    // Once we have established that the account is ready, we can start the state machine.
+    vpn::init_state_machine(config, network_env, enable_credentials_mode).await
+}
+
+async fn is_credential_mode_enabled(credential_mode: Option<bool>) -> Result<bool, VpnError> {
+    match credential_mode {
+        Some(enable_credentials_mode) => Ok(enable_credentials_mode),
+        None => environment::get_feature_flag_credential_mode().await,
+    }
+}
+
+/// Stop the VPN by stopping the VPN state machine.
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn stopVPN() -> Result<(), VpnError> {
+    RUNTIME.block_on(stop_vpn_inner())
+}
+
+async fn stop_vpn_inner() -> Result<(), VpnError> {
+    let mut guard = STATE_MACHINE_HANDLE.lock().await;
+
+    match guard.take() {
+        Some(state_machine_handle) => {
+            // TODO: add timeout
+            state_machine_handle.shutdown_and_wait().await;
+            Ok(())
+        }
+        None => Err(VpnError::InvalidStateError {
+            details: "State machine is not running.".to_owned(),
+        }),
+    }
+}
+
+/// Shutdown the library by stopping the account controller and cleaning up any resources.
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn shutdown() -> Result<(), VpnError> {
+    RUNTIME.block_on(account::stop_account_controller_handle())
 }
 
 #[derive(uniffi::Record)]
