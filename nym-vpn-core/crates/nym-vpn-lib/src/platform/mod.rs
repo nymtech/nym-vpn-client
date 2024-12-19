@@ -75,7 +75,7 @@ async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
     // and handle errors in a unified manner.
     // This can take a surprisingly long time, if we need to go through all steps of registering
     // the device and requesting zknym ticketbooks.
-    let timeout = Duration::from_secs(60);
+    let timeout = Duration::from_secs(120);
     account::wait_for_account_ready_to_connect(enable_credentials_mode, timeout).await?;
 
     // Once we have established that the account is ready, we can start the state machine.
