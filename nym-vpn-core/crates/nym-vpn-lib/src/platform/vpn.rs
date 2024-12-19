@@ -7,10 +7,6 @@ use tokio_util::sync::CancellationToken;
 
 use nym_gateway_directory::Config as GatewayDirectoryConfig;
 
-#[cfg(target_os = "android")]
-use crate::tunnel_provider::android::AndroidTunProvider;
-#[cfg(target_os = "ios")]
-use crate::tunnel_provider::ios::OSTunProvider;
 use crate::tunnel_state_machine::{
     DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
     TunnelSettings, TunnelStateMachine, TunnelType, WireguardTunnelOptions,
