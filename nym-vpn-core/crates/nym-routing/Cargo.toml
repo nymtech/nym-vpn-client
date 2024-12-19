@@ -24,7 +24,7 @@ nym-common = { path = "../nym-common" }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 libc.workspace = true
-netlink-packet-route = { version = "0.13", features = ["rich_nlas"] }
+netlink-packet-route = { version = "0.17", features = ["rich_nlas"] }
 netlink-sys = "0.8.3"
 rtnetlink = "0.11"
 
