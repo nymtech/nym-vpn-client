@@ -1,6 +1,8 @@
 [workspace]
 resolver = "2"
 members = [
+    "crates/nym-apple-dispatch",
+    "crates/nym-apple-network",
     "crates/nym-authenticator-client",
     "crates/nym-common",
     "crates/nym-connection-monitor",
@@ -20,13 +22,11 @@ members = [
     "crates/nym-vpn-proto",
     "crates/nym-vpn-store",
     "crates/nym-vpnc",
-    "crates/nym-vpnd",
     "crates/nym-vpnd-types",
+    "crates/nym-vpnd",
     "crates/nym-wg-gateway-client",
     "crates/nym-wg-go",
     "crates/nym-windows",
-    "crates/nym-apple-network",
-    "crates/nym-apple-dispatch",
     "crates/uniffi-bindgen",
 ]
 
