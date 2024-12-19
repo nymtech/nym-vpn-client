@@ -1,14 +1,17 @@
 module github.com/nymtech/nym-vpn-client/nym-vpn-core/crates/nym-gateway-probe/netstack_ping
 
-go 1.22
+go 1.22.3
+
+toolchain go1.23.1
 
 require (
+	github.com/amnezia-vpn/amneziawg-go v0.2.12
 	golang.org/x/net v0.23.0
-	golang.zx2c4.com/wireguard v0.0.0-20231211153847-12269c276173
 )
 
 require (
 	github.com/google/btree v1.0.1 // indirect
+	github.com/tevino/abool/v2 v2.1.0 // indirect
 	golang.org/x/crypto v0.21.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8 // indirect

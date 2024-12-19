@@ -17,6 +17,8 @@ use super::{
     uapi::UapiConfigBuilder, Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, PrivateKey,
     Result,
 };
+#[cfg(feature = "amnezia")]
+use crate::amnezia::AmneziaConfig;
 
 /// Classic WireGuard interface configuration.
 pub struct InterfaceConfig {
@@ -25,6 +27,9 @@ pub struct InterfaceConfig {
     pub mtu: u16,
     #[cfg(target_os = "linux")]
     pub fwmark: Option<u32>,
+    #[cfg(feature = "amnezia")]
+    /// Amnezia wireguard configuration disabled by default
+    pub azwg_config: Option<AmneziaConfig>,
 }
 
 impl fmt::Debug for InterfaceConfig {
@@ -61,6 +66,11 @@ impl Config {
         #[cfg(target_os = "linux")]
         if let Some(fwmark) = self.interface.fwmark {
             config_builder.add("fwmark", fwmark.to_string().as_str());
+        }
+
+        #[cfg(feature = "amnezia")]
+        if let Some(azwg_config) = &self.interface.azwg_config {
+            azwg_config.append_to(&mut config_builder);
         }
 
         if !self.peers.is_empty() {
