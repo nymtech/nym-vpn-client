@@ -51,7 +51,7 @@ pub mod swift;
 
 mod account;
 mod environment;
-mod vpn;
+mod state_machine;
 
 use std::{env, path::PathBuf, sync::Arc, time::Duration};
 
@@ -60,7 +60,7 @@ use lazy_static::lazy_static;
 use log::*;
 use tokio::{runtime::Runtime, sync::Mutex};
 
-use vpn::StateMachineHandle;
+use state_machine::StateMachineHandle;
 
 use self::error::VpnError;
 use crate::platform::account::start_account_controller_handle;
@@ -322,7 +322,7 @@ async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
     account::wait_for_account_ready_to_connect(enable_credentials_mode, timeout).await?;
 
     // Once we have established that the account is ready, we can start the state machine.
-    vpn::init_state_machine(config, network_env, enable_credentials_mode).await
+    state_machine::init_state_machine(config, network_env, enable_credentials_mode).await
 }
 
 async fn is_credential_mode_enabled(credential_mode: Option<bool>) -> Result<bool, VpnError> {
