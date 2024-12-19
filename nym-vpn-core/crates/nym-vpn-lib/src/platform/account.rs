@@ -327,7 +327,7 @@ pub(crate) mod raw {
     }
 
     pub(crate) async fn forget_account_raw(path: &str) -> Result<(), VpnError> {
-        tracing::warn!("REMOVING ALL ACCOUNT AND DEVICE DATA IN: {path}");
+        tracing::info!("REMOVING ALL ACCOUNT AND DEVICE DATA IN: {path}");
 
         let path_buf =
             PathBuf::from_str(path).map_err(|err| VpnError::InvalidAccountStoragePath {
