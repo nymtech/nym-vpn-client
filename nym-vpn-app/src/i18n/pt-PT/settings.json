@@ -42,7 +42,9 @@
   "info": {
     "client-version": "Versão cliente",
     "daemon-version": "Versão do daemon",
-    "network-name": "Rede"
+    "network-name": "Rede",
+    "account-id": "ID da conta",
+    "device-id": "ID do dispositivo"
   },
   "logout-confirmation": {
     "title": "Tens a certeza?",

@@ -91,5 +91,8 @@
     "no-device-stored": "Nenhuma chave de dispositivo armazenada",
     "maximum-registered-devices": "Falha no registo do dispositivo: o número máximo de dispositivos registados foi atingido",
     "not-stored": "Nenhuma frase de recuperação de conta armazenada"
+  },
+  "zknym": {
+    "request-failed": "O pedido de zk-nym falhou"
   }
 }
