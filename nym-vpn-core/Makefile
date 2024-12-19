@@ -13,7 +13,7 @@ PROJECT_ROOT=$(shell dirname $(CURDIR))
 RUST_COMPILER_SYS_ROOT=$(shell rustc --print sysroot)
 
 # Rust flags used in reproducible builds to replace common paths with defaults
-IDEMPOTENT_RUSTFLAGS=-C link-args=-Wl,--build-id=none --remap-path-prefix $(HOME)=~ --remap-path-prefix $(PROJECT_ROOT)=/buildroot --remap-path-prefix $(RUST_COMPILER_SYS_ROOT)=/sysroot
+IDEMPOTENT_RUSTFLAGS=-C link-args=-Wl,--build-id=none --remap-path-prefix $(HOME)= --remap-path-prefix $(PROJECT_ROOT)= --remap-path-prefix $(RUST_COMPILER_SYS_ROOT)=
 
 # Tell build tools to use unix timestamp of zero as a reference date
 export SOURCE_DATE_EPOCH=0
