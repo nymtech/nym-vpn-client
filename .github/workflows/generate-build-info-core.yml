@@ -33,25 +33,19 @@ jobs:
       - name: Install rust toolchain
         uses: brndnmtthws/rust-action-rustup@v1
 
-      - name: Get package version cli
-        id: package-version-cli
-        uses: nicolaiunrein/cargo-get@master
-        with:
-          subcommand: package.version --entry nym-vpn-core/crates/nym-vpn-cli
-
-      - name: Get package version vpnc
+      - name: Get package version nym-vpnc
         id: package-version-vpnc
         uses: nicolaiunrein/cargo-get@master
         with:
           subcommand: package.version --entry nym-vpn-core/crates/nym-vpnc
 
-      - name: Get package version vpnd
+      - name: Get package version nym-vpnd
         id: package-version-vpnd
         uses: nicolaiunrein/cargo-get@master
         with:
           subcommand: package.version --entry nym-vpn-core/crates/nym-vpnd
 
-      - name: Get package version lib
+      - name: Get package version nym-vpn-lib
         id: package-version-lib
         uses: nicolaiunrein/cargo-get@master
         with:
@@ -64,7 +58,6 @@ jobs:
           echo " nym-vpnc: ${{ steps.package-version-vpnc.outputs.metadata }}" >> build-info.txt
           echo " nym-vpnd: ${{ steps.package-version-vpnd.outputs.metadata }}" >> build-info.txt
           echo " nym-vpn-lib: ${{ steps.package-version-lib.outputs.metadata }}" >> build-info.txt
-          echo " nym-vpn-cli: ${{ steps.package-version-cli.outputs.metadata }}" >> build-info.txt
           echo "Rustc version: ${{ inputs.rust-version}}" >> build-info.txt
           echo "Build profile: ${{ inputs.build-profile}}" >> build-info.txt
           echo "Date:          ${{ steps.date.outputs.date }}" >> build-info.txt
