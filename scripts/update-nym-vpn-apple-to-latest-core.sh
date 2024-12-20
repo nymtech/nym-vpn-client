@@ -37,6 +37,7 @@ update_daemon_version_on_mac() {
 main() {
     check_unstaged_changes
     confirm_root_directory
+    check_cargo_utils_installed
 
     local core_version=$(cargo get --entry nym-vpn-core workspace.package.version)
     update_daemon_version_on_mac $core_version
