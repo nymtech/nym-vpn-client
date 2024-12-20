@@ -11,7 +11,7 @@ jobs:
     # do not run while in draft mode
     if: github.event.pull_request.draft == false
     steps:
-      - uses: shufo/auto-assign-reviewer-by-files@v1.1.5
+      - uses: shufo/auto-assign-reviewer-by-files@v1.2.1
         with:
           config: ".github/reviewer-by-files.yml"
           token: ${{ secrets.GITHUB_TOKEN }}
