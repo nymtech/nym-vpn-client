@@ -24,8 +24,8 @@ rand.workspace = true
 serde.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true }
-tokio-tungstenite = { version = "0.23" }
-tungstenite = { version = "0.23" }
+tokio-tungstenite = { version = "0.26.1" }
+tungstenite = { version = "0.26.1" }
 tracing.workspace = true
 url.workspace = true
 
