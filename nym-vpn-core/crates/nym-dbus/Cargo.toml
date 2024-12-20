@@ -4,6 +4,7 @@ authors.workspace = true
 repository.workspace = true
 license.workspace = true
 edition.workspace = true
+version.workspace = true
 
 [target.'cfg(target_os = "linux")'.dependencies]
 dbus = { workspace = true }
