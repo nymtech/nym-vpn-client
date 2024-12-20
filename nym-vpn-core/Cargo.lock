@@ -1648,9 +1648,9 @@ dependencies = [
 
 [[package]]
 name = "env_filter"
-version = "0.1.2"
+version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4f2c92ceda6ceec50f43169f9ee8424fe2db276791afde7b2cd8bc084cb376ab"
+checksum = "186e05a59d4c50738528153b83b0b0194d3a29507dfec16eccd4b342903397d0"
 dependencies = [
  "log",
  "regex",
@@ -2999,12 +2999,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "memalloc"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "df39d232f5c40b0891c10216992c2f250c054105cb1e56f0fc9032db6203ecc1"
-
-[[package]]
 name = "memchr"
 version = "2.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3069,13 +3063,13 @@ checksum = "defc4c55412d89136f966bbb339008b474350e5e6e78d2714439c386b3137a03"
 
 [[package]]
 name = "netdev"
-version = "0.29.0"
+version = "0.31.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e6b7a18d9c482b774500c660991da545bac1259fe4dfd40981870e5832aedffc"
+checksum = "f901362e84cd407be6f8cd9d3a46bccf09136b095792785401ea7d283c79b91d"
 dependencies = [
  "dlopen2",
+ "ipnet",
  "libc",
- "memalloc",
  "netlink-packet-core",
  "netlink-packet-route 0.17.1",
  "netlink-sys",
@@ -3116,21 +3110,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "74c171cd77b4ee8c7708da746ce392440cb7bcf618d122ec9ecc607b12938bf4"
 dependencies = [
  "anyhow",
- "byteorder",
- "libc",
- "log",
- "netlink-packet-core",
- "netlink-packet-utils",
-]
-
-[[package]]
-name = "netlink-packet-route"
-version = "0.21.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "483325d4bfef65699214858f097d504eb812c38ce7077d165f301ec406c3066e"
-dependencies = [
- "anyhow",
- "bitflags 2.6.0",
  "byteorder",
  "libc",
  "log",
@@ -4261,7 +4240,7 @@ dependencies = [
  "libc",
  "log",
  "netlink-packet-core",
- "netlink-packet-route 0.21.0",
+ "netlink-packet-route 0.19.0",
  "netlink-sys",
  "nix 0.29.0",
  "nym-common",
