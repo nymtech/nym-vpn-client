@@ -63,7 +63,6 @@ use tokio::{runtime::Runtime, sync::Mutex};
 use state_machine::StateMachineHandle;
 
 use self::error::VpnError;
-use crate::platform::account::start_account_controller_handle;
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
@@ -121,20 +120,13 @@ pub fn currentEnvironment() -> Result<NetworkEnvironment, VpnError> {
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn configureLib(data_dir: String, credential_mode: Option<bool>) -> Result<(), VpnError> {
-    RUNTIME.block_on(reconfigure_library(data_dir, credential_mode))
+    RUNTIME.block_on(configure_lib(data_dir, credential_mode))
 }
 
-async fn reconfigure_library(
-    data_dir: String,
-    credential_mode: Option<bool>,
-) -> Result<(), VpnError> {
-    // stop if already running
-    let _ = account::stop_account_controller_handle().await;
-
+async fn configure_lib(data_dir: String, credential_mode: Option<bool>) -> Result<(), VpnError> {
     init_logger();
     let network = environment::current_environment_details().await?;
-
-    start_account_controller_handle(PathBuf::from(data_dir), credential_mode, network).await
+    account::init_account_controller(PathBuf::from(data_dir), credential_mode, network).await
 }
 
 fn init_logger() {
@@ -358,7 +350,7 @@ async fn stop_vpn_inner() -> Result<(), VpnError> {
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn shutdown() -> Result<(), VpnError> {
-    RUNTIME.block_on(account::stop_account_controller_handle())
+    RUNTIME.block_on(account::stop_account_controller())
 }
 
 #[derive(uniffi::Record)]

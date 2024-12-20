@@ -19,7 +19,7 @@ use crate::uniffi_custom_impls::AccountStateSummary;
 
 use super::{error::VpnError, ACCOUNT_CONTROLLER_HANDLE};
 
-pub(super) async fn start_account_controller_handle(
+pub(super) async fn init_account_controller(
     data_dir: PathBuf,
     credential_mode: Option<bool>,
     network: Network,
@@ -38,7 +38,7 @@ pub(super) async fn start_account_controller_handle(
     }
 }
 
-pub(super) async fn stop_account_controller_handle() -> Result<(), VpnError> {
+pub(super) async fn stop_account_controller() -> Result<(), VpnError> {
     let mut guard = ACCOUNT_CONTROLLER_HANDLE.lock().await;
 
     match guard.take() {
