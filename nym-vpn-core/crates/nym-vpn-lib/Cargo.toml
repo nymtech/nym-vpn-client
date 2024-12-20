@@ -77,6 +77,8 @@ nym-vpn-network-config = { path = "../nym-vpn-network-config" }
 nym-vpn-store = { path = "../nym-vpn-store" }
 nym-wg-gateway-client = { path = "../nym-wg-gateway-client" }
 nym-wg-go = { path = "../nym-wg-go" }
+nym-apple-network = { path = "../nym-apple-network" }
+nym-apple-dispatch = { path = "../nym-apple-dispatch" }
 
 [target.'cfg(unix)'.dependencies]
 nix = { workspace = true, features = ["socket", "net", "fs"] }
@@ -99,6 +101,9 @@ rand.workspace = true
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 oslog = "0.2.0"
+
+[target.'cfg(target_os = "ios")'.dependencies]
+debounced = "0.2"
 
 [build-dependencies]
 uniffi = { workspace = true, features = ["build"] }

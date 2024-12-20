@@ -294,10 +294,6 @@ pub enum Error {
     #[error("failed to dup tunnel file descriptor: {0}")]
     DupFd(#[source] std::io::Error),
 
-    #[cfg(target_os = "ios")]
-    #[error("failed to set default path observer: {0}")]
-    SetDefaultPathObserver(String),
-
     #[cfg(windows)]
     #[error("failed to add default route listener: {0}")]
     AddDefaultRouteListener(#[source] route_handler::Error),

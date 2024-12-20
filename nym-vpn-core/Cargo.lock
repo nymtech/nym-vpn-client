@@ -626,6 +626,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "block2"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2c132eebf10f5cad5289222520a4a058514204aed6d791f1cf4fe8088b82d15f"
+dependencies = [
+ "objc2",
+]
+
+[[package]]
 name = "bls12_381"
 version = "0.8.0"
 source = "git+https://github.com/jstuczyn/bls12_381?branch=temp%2Fexperimental-serdect#22cd0a16b674af1629110a2dc8b6cf6c73ea4cd9"
@@ -1393,6 +1402,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "debounced"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "107e5cd9b5163c19751e53eef634cae25cf5ed5f6d0c81125feaa92e43703cc7"
+dependencies = [
+ "futures-timer",
+ "futures-util",
+]
+
+[[package]]
 name = "der"
 version = "0.7.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1926,6 +1945,12 @@ name = "futures-task"
 version = "0.3.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f90f7dce0722e95104fcb095585910c0977252f286e354b5e3bd38902cd99988"
+
+[[package]]
+name = "futures-timer"
+version = "3.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f288b0a4f20f9a56b5d1da57e2227c661b7b16168e2f72365f57b63326e29b24"
 
 [[package]]
 name = "futures-util"
@@ -2489,7 +2514,7 @@ dependencies = [
  "iana-time-zone-haiku",
  "js-sys",
  "wasm-bindgen",
- "windows-core 0.52.0",
+ "windows-core 0.51.1",
 ]
 
 [[package]]
@@ -3338,6 +3363,26 @@ dependencies = [
  "thiserror",
  "time",
  "utoipa",
+]
+
+[[package]]
+name = "nym-apple-dispatch"
+version = "1.2.0-dev"
+dependencies = [
+ "objc2",
+ "objc2-foundation",
+]
+
+[[package]]
+name = "nym-apple-network"
+version = "1.2.0-dev"
+dependencies = [
+ "block2",
+ "nix 0.29.0",
+ "nym-apple-dispatch",
+ "objc2",
+ "objc2-foundation",
+ "thiserror",
 ]
 
 [[package]]
@@ -4833,6 +4878,7 @@ dependencies = [
  "bincode",
  "bs58",
  "bytes",
+ "debounced",
  "err-derive",
  "futures",
  "hickory-resolver",
@@ -4843,6 +4889,8 @@ dependencies = [
  "log",
  "netdev",
  "nix 0.29.0",
+ "nym-apple-dispatch",
+ "nym-apple-network",
  "nym-authenticator-client",
  "nym-authenticator-requests",
  "nym-bandwidth-controller",
@@ -5109,6 +5157,40 @@ dependencies = [
  "serde",
  "thiserror",
  "x25519-dalek",
+]
+
+[[package]]
+name = "objc-sys"
+version = "0.3.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cdb91bdd390c7ce1a8607f35f3ca7151b65afc0ff5ff3b34fa350f7d7c7e4310"
+
+[[package]]
+name = "objc2"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "46a785d4eeff09c14c487497c162e92766fbb3e4059a71840cecc03d9a50b804"
+dependencies = [
+ "objc-sys",
+ "objc2-encode",
+]
+
+[[package]]
+name = "objc2-encode"
+version = "4.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7891e71393cd1f227313c9379a26a584ff3d7e6e7159e988851f0934c993f0f8"
+
+[[package]]
+name = "objc2-foundation"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0ee638a5da3799329310ad4cfa62fbf045d5f56e3ef5ba4149e7452dcf89d5a8"
+dependencies = [
+ "bitflags 2.6.0",
+ "block2",
+ "libc",
+ "objc2",
 ]
 
 [[package]]
