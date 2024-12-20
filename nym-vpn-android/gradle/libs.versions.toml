@@ -46,10 +46,10 @@ androidx-uiautomator = { module = "androidx.test.uiautomator:uiautomator", versi
 androidx-window = { module = "androidx.window:window", version.ref = "window" }
 detekt-rules-compose = { module = "ru.kode:detekt-rules-compose", version.ref = "detektRulesCompose" }
 ipaddress = { module = "com.github.seancfoley:ipaddress", version.ref = "ipaddress" }
+jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
 
 
-jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
