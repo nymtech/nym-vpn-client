@@ -37,10 +37,10 @@
 //!
 //!     This will stop the VPN state machine.
 //!
-//! 5. (Optional) shutdown the library: `shutdown()`.
+//! 5. Shutdown the library: `shutdown()`.
 //!
-//!     This will stop the account controller and clean up any resources.
-//!     Probably this is not needed.
+//!     This will stop the account controller and clean up any resources, including make sure there
+//!     are no open DB connections.
 
 #[cfg(target_os = "android")]
 pub mod android;
