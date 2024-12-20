@@ -154,6 +154,7 @@ impl From<nym_vpn_account_controller::AccountCommandError> for VpnError {
                     code_reference_id: e.code_reference_id,
                 }
             }
+
             AccountCommandError::RegisterDeviceEndpointFailure(e) => {
                 VpnError::DeviceRegistrationFailed {
                     details: e.message,
