@@ -9,7 +9,7 @@ mod gateway;
 mod test_fixtures;
 
 pub use account::VpnApiAccount;
-pub use device::Device;
+pub use device::{Device, DeviceStatus};
 pub use gateway::{GatewayMinPerformance, GatewayType};
 
 pub use nym_contracts_common::Percent;
