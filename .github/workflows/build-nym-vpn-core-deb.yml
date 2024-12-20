@@ -54,7 +54,6 @@ jobs:
         run: |
           cargo deb -p nym-vpnd
           cargo deb -p nym-vpnc
-          cargo deb -p nym-vpn-cli
           ls -la target/debian/ || true
 
       - name: Move things around to prepare for upload
@@ -64,7 +63,6 @@ jobs:
           mkdir ${{ env.UPLOAD_DIR_DEB }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnc_*_amd64.deb ${{ env.UPLOAD_DIR_DEB }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnd_*_amd64.deb ${{ env.UPLOAD_DIR_DEB }}
-          cp -vpr ${{ env.SRC_BINARY }}/nym-vpn-cli_*_amd64.deb ${{ env.UPLOAD_DIR_DEB }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
