@@ -43,15 +43,15 @@ pushd nym-vpn-core/crates/nym-vpn-lib
 
 cargo install cargo-ndk cargo-license --locked
 
-cargo ndk -t arm64-v8a -o ../../../nym-vpn-android/nym-vpn-client/src/main/jniLibs build --release
+cargo ndk -t arm64-v8a -o ../../../nym-vpn-android/core/src/main/jniLibs build --release
 popd
 
 pushd nym-vpn-core
 
-cargo run --bin uniffi-bindgen generate --library ./target/aarch64-linux-android/release/libnym_vpn_lib.so  --language kotlin --out-dir ../nym-vpn-android/nym-vpn-client/src/main/java/net/nymtech/vpn -n
+cargo run --bin uniffi-bindgen generate --library ./target/aarch64-linux-android/release/libnym_vpn_lib.so  --language kotlin --out-dir ../nym-vpn-android/core/src/main/java/net/nymtech/vpn -n
 popd
 
-mv nym-vpn-android/app/build/extraJni/arm64-v8a/libwg.so nym-vpn-android/nym-vpn-client/src/main/jniLibs/arm64-v8a/
+mv nym-vpn-android/app/build/extraJni/arm64-v8a/libwg.so nym-vpn-android/core/src/main/jniLibs/arm64-v8a/
 
-cargo license -j --avoid-dev-deps --current-dir nym-vpn-core/crates/nym-vpn-lib --filter-platform aarch64-linux-android --avoid-build-deps > nym-vpn-android/nym-vpn-client/src/main/assets/licenses_rust.json
+cargo license -j --avoid-dev-deps --current-dir nym-vpn-core/crates/nym-vpn-lib --filter-platform aarch64-linux-android --avoid-build-deps > nym-vpn-android/core/src/main/assets/licenses_rust.json
 
