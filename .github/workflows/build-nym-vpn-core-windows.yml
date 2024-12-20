@@ -101,7 +101,6 @@ jobs:
           rm -rf ${{ env.UPLOAD_DIR_WINDOWS }} || true
           mkdir ${{ env.UPLOAD_DIR_WINDOWS }}
           #cp -vpr ${{ env.SRC_BINARY }}/nym-gateway-probe.exe ${{ env.UPLOAD_DIR_WINDOWS }}
-          cp -vpr ${{ env.SRC_BINARY }}/nym-vpn-cli.exe ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnc.exe ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnd.exe ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr nym-vpn-core/libwg.dll ${{ env.UPLOAD_DIR_WINDOWS }}

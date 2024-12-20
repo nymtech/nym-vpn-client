@@ -67,6 +67,7 @@ jobs:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
           cargo build --${{ env.CARGO_TARGET }}
+          cargo build -p nym-gateway-probe --${{ env.CARGO_TARGET }}
           ls -la target/release/ || true
 
       - name: Build nym-vpn-core (x86_64)
@@ -75,6 +76,7 @@ jobs:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
           cargo build --${{ env.CARGO_TARGET }} --target x86_64-apple-darwin --workspace --exclude nym-gateway-probe
+          cargo build -p nym-gateway-probe --${{ env.CARGO_TARGET }}
           ls -la target/x86_64-apple-darwin/release/ || true
 
       - name: Build nym-vpnd with extra flags (native)
@@ -99,7 +101,6 @@ jobs:
           SRC_X86_64_BINARY: nym-vpn-core/target/x86_64-apple-darwin/${{ env.CARGO_TARGET }}/
         run: |
           mkdir ${{ env.UPLOAD_DIR_MAC }}
-          lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpn-cli ${{ env.SRC_NATIVE_BINARY }}/nym-vpn-cli ${{ env.SRC_X86_64_BINARY }}/nym-vpn-cli
           lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpnc ${{ env.SRC_NATIVE_BINARY }}/nym-vpnc ${{ env.SRC_X86_64_BINARY }}/nym-vpnc
           lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpnd ${{ env.SRC_NATIVE_BINARY }}/nym-vpnd ${{ env.SRC_X86_64_BINARY }}/nym-vpnd
           #lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-gateway-probe ${{ env.SRC_NATIVE_BINARY }}/nym-gateway-probe ${{ env.SRC_X86_64_BINARY }}/nym-gateway-probe

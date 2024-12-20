@@ -55,6 +55,7 @@ jobs:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
           cargo build --${{ env.CARGO_TARGET }}
+          cargo build -p nym-gateway-probe --${{ env.CARGO_TARGET }}
           ls -la nym-vpn-core/target/release/ || true
 
       - name: Get rust version used for build
@@ -68,7 +69,6 @@ jobs:
         run: |
           mkdir ${{ env.UPLOAD_DIR_LINUX }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-gateway-probe ${{ env.UPLOAD_DIR_LINUX }}
-          cp -vpr ${{ env.SRC_BINARY }}/nym-vpn-cli ${{ env.UPLOAD_DIR_LINUX }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnc ${{ env.UPLOAD_DIR_LINUX }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnd ${{ env.UPLOAD_DIR_LINUX }}
 
