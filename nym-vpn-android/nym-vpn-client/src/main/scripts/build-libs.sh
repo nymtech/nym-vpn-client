@@ -13,35 +13,28 @@ echo "archdir: ${archDir}"
 export ANDROID_NDK_HOME="$1"
 export NDK_TOOLCHAIN_DIR="$1/toolchains/llvm/prebuilt/${archDir}/bin"
 
-PROJECT_ROOT="$(realpath $(pwd)/../..)"
+# for reproducibility
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
 
-# Rust compiler sysroot that typically points to ~/.rustup/toolchains/<toolchain>
-RUST_COMPILER_SYS_ROOT=$(rustc --print sysroot)
-# Rust flags used in reproducible builds to replace common paths with defaults
+    PROJECT_ROOT="$(realpath $(pwd)/../..)"
 
-# --build-id=none does not work on macOS and -no_uuid would not work with clang version
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    IDEMPOTENT_RUSTFLAGS="-C link-args=-Wl, --remap-path-prefix \
+    # Rust compiler sysroot that typically points to ~/.rustup/toolchains/<toolchain>
+    RUST_COMPILER_SYS_ROOT=$(rustc --print sysroot)
+
+    # Rust flags used in reproducible builds to replace common paths with defaults
+    IDEMPOTENT_RUSTFLAGS="-C link-args=-Wl, --build-id=none --remap-path-prefix \
                 ${HOME}=~ --remap-path-prefix ${PROJECT_ROOT}=/buildroot --remap-path-prefix \
                 ${RUST_COMPILER_SYS_ROOT}=/sysroot"
-    echo "Setting macOS flags"
-elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    IDEMPOTENT_RUSTFLAGS="-C link-args=-Wl, --build-id=none --remap-path-prefix \
-            ${HOME}=~ --remap-path-prefix ${PROJECT_ROOT}=/buildroot --remap-path-prefix \
-            ${RUST_COMPILER_SYS_ROOT}=/sysroot"
-    echo "Setting Linux flags"
-else
-    echo "Flags not properly set as OS is not supported"
+
+    # Export rust flags enforcing reproducible builds
+    export RUSTFLAGS=$IDEMPOTENT_RUSTFLAGS
+    # Tell build tools to use unix timestamp of zero as a reference date
+    export SOURCE_DATE_EPOCH=0
+    # Force vergen to emit stable values
+    export VERGEN_IDEMPOTENT=1
+
+    export VERGEN_GIT_BRANCH="VERGEN_IDEMPOTENT_OUTPUT"
 fi
-
-# Export rust flags enforcing reproducible builds
-export RUSTFLAGS=$IDEMPOTENT_RUSTFLAGS
-# Tell build tools to use unix timestamp of zero as a reference date
-export SOURCE_DATE_EPOCH=0
-# Force vergen to emit stable values
-export VERGEN_IDEMPOTENT=1
-
-export VERGEN_GIT_BRANCH="VERGEN_IDEMPOTENT_OUTPUT"
 
 cd ../..
 
