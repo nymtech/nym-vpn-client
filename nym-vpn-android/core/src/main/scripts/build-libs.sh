@@ -22,7 +22,7 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     RUST_COMPILER_SYS_ROOT=$(rustc --print sysroot)
 
     # Rust flags used in reproducible builds to replace common paths with defaults
-    IDEMPOTENT_RUSTFLAGS="-C link-args=-Wl, --build-id=none --remap-path-prefix \
+    IDEMPOTENT_RUSTFLAGS="-C link-args=-Wl,--build-id=none --remap-path-prefix \
                 ${HOME}=~ --remap-path-prefix ${PROJECT_ROOT}=/buildroot --remap-path-prefix \
                 ${RUST_COMPILER_SYS_ROOT}=/sysroot"
 
