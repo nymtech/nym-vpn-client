@@ -133,7 +133,7 @@ tonic = "0.11.0"
 tonic-build = "0.11.0"
 tonic-health = "0.11.0"
 tonic-reflection = { version = "0.11.0", features = ["server"] }
-tower = "0.4.13"
+tower = "0.5.1"
 tower-http = { version = "0.5.2", features = ["cors"] }
 tracing = "0.1"
 tracing-appender = "0.2.3"
