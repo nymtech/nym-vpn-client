@@ -5,6 +5,8 @@ use std::{
 
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use nym_wg_gateway_client::GatewayData;
+#[cfg(feature = "amnezia")]
+use nym_wg_go::amnezia::AmneziaConfig;
 #[cfg(target_os = "ios")]
 use nym_wg_go::PeerEndpointUpdate;
 use nym_wg_go::{wireguard_go, PeerConfig, PrivateKey, PublicKey};
@@ -39,6 +41,10 @@ pub struct WgInterface {
     /// Mark used for mark-based routing.
     #[cfg(target_os = "linux")]
     pub fwmark: Option<u32>,
+
+    /// Amnezia Configuration
+    #[cfg(feature = "amnezia")]
+    pub azwg_config: Option<nym_wg_go::amnezia::AmneziaConfig>,
 }
 
 impl fmt::Debug for WgInterface {
@@ -51,6 +57,8 @@ impl fmt::Debug for WgInterface {
             .field("mtu", &self.mtu);
         #[cfg(target_os = "linux")]
         d.field("fwmark", &self.fwmark);
+        #[cfg(feature = "amnezia")]
+        d.field("amnezia", &self.azwg_config);
         d.finish()
     }
 }
@@ -88,6 +96,8 @@ impl WgNodeConfig {
                     .collect(),
                 dns_addrs: self.interface.dns,
                 mtu: self.interface.mtu,
+                #[cfg(feature = "amnezia")]
+                azwg_config: self.interface.azwg_config,
             },
             peers: vec![PeerConfig {
                 public_key: self.peer.public_key,
@@ -108,6 +118,8 @@ impl WgNodeConfig {
                 mtu: self.interface.mtu,
                 #[cfg(target_os = "linux")]
                 fwmark: self.interface.fwmark,
+                #[cfg(feature = "amnezia")]
+                azwg_config: self.interface.azwg_config,
             },
             peers: vec![PeerConfig {
                 public_key: self.peer.public_key,
@@ -149,11 +161,21 @@ impl WgNodeConfig {
                 mtu,
                 #[cfg(target_os = "linux")]
                 fwmark: None,
+                #[cfg(feature = "amnezia")]
+                // Even when enabled by feature flag amnezia is disabled by default.
+                azwg_config: None,
             },
             peer: WgPeer {
                 public_key: PublicKey::from(*gateway_data.public_key.as_bytes()),
                 endpoint: gateway_data.endpoint,
             },
         }
+    }
+
+    #[cfg(feature = "amnezia")]
+    /// Enable Amnezia wireguard features
+    pub fn with_amnezia_config(mut self, azwg_config: AmneziaConfig) -> Self {
+        self.interface.azwg_config = Some(azwg_config);
+        self
     }
 }
