@@ -66,8 +66,7 @@ jobs:
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
-          cargo build --${{ env.CARGO_TARGET }}
-          cargo build -p nym-gateway-probe --${{ env.CARGO_TARGET }}
+          cargo build -p nym-vpnc -p nym-gateway-probe --${{ env.CARGO_TARGET }}
           ls -la target/release/ || true
 
       - name: Build nym-vpn-core (x86_64)
@@ -75,8 +74,7 @@ jobs:
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
-          cargo build --${{ env.CARGO_TARGET }} --target x86_64-apple-darwin
-          cargo build -p nym-gateway-probe --${{ env.CARGO_TARGET }}
+          cargo build -p nym-vpnc --${{ env.CARGO_TARGET }} --target x86_64-apple-darwin
           ls -la target/x86_64-apple-darwin/release/ || true
 
       - name: Build nym-vpnd with extra flags (native)
