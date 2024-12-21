@@ -64,7 +64,7 @@ nym-vpnd-types = { path = "../nym-vpnd-types" }
 [target.'cfg(windows)'.dependencies]
 windows-service = "0.7.0"
 eventlog = "0.3.0"
-winapi = { version = "0.3", features = ["winnt", "excpt"] }
+winapi = { version = "0.3", features = ["winnt", "excpt", "winerror"] }
 
 [target.'cfg(windows)'.dependencies.windows-sys]
 workspace = true
