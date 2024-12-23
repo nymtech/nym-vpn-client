@@ -105,30 +105,3 @@ extension Ipv6Route {
         }
     }
 }
-
-extension NWPath {
-    func asOsDefaultPath() -> OsDefaultPath {
-        OsDefaultPath(
-            status: status.asOsPathStatus(),
-            isExpensive: isExpensive,
-            isConstrained: isConstrained
-        )
-    }
-}
-
-extension NWPathStatus {
-    func asOsPathStatus() -> OsPathStatus {
-        switch self {
-        case .invalid:
-            return .invalid
-        case .satisfiable:
-            return .satisfiable
-        case .satisfied:
-            return .satisfied
-        case .unsatisfied:
-            return .unsatisfied
-        @unknown default:
-            return .unknown(Int64(rawValue))
-        }
-    }
-}
