@@ -40,7 +40,7 @@ SOURCE_PATH="nym-vpn-core/crates/nym-vpn-lib/NymVpnLib/RustFramework.xcframework
 DESTINATION_PATH="nym-vpn-apple/MixnetLibrary/Sources/RustFramework.xcframework"
 
 if [ -e "$SOURCE_PATH" ]; then
-    cp -R "$SOURCE_PATH" "$DESTINATION_PATH"
+    cp -R "$SOURCE_PATH/" "$DESTINATION_PATH"
     echo "✅ RustFramework.xcframework has been successfully copied to $DESTINATION_PATH"
 else
     echo "❌ Error: $SOURCE_PATH does not exist. Copy operation failed." >&2
@@ -51,7 +51,7 @@ SOURCE_PATH="nym-vpn-core/crates/nym-vpn-lib/NymVpnLib/Sources/NymVpnLib/nym_vpn
 DESTINATION_PATH="nym-vpn-apple/MixnetLibrary/Sources/MixnetLibrary/nym_vpn_lib.swift"
 
 if [ -e "$SOURCE_PATH" ]; then
-    cp -R "$SOURCE_PATH" "$DESTINATION_PATH"
+    cp "$SOURCE_PATH" "$DESTINATION_PATH"
     echo "✅ nym_vpn_lib.swift has been successfully copied to $DESTINATION_PATH"
 else
     echo "❌ Error: $SOURCE_PATH does not exist. Copy operation failed." >&2
@@ -70,7 +70,7 @@ SOURCE_PATH="nym-vpn-core/target/release/nym-vpnd"
 DESTINATION_PATH="nym-vpn-apple/Daemon/net.nymtech.vpn.helper"
 
 if [ -e "$SOURCE_PATH" ]; then
-    cp -R "$SOURCE_PATH" "$DESTINATION_PATH"
+    cp "$SOURCE_PATH" "$DESTINATION_PATH"
     echo "✅ nym-vpnd has been successfully copied to $DESTINATION_PATH"
 else
     echo "❌ Error: $SOURCE_PATH does not exist. Copy operation failed." >&2
@@ -81,7 +81,7 @@ SOURCE_PATH="proto/nym/vpn.proto"
 DESTINATION_PATH="nym-vpn-apple/ServicesMacOS/Sources/GRPCManager/proto/nym/vpn.proto"
 
 if [ -e "$SOURCE_PATH" ]; then    
-    cp -R "$SOURCE_PATH" "$DESTINATION_PATH"
+    cp "$SOURCE_PATH" "$DESTINATION_PATH"
     echo "✅ vpn.proto has been successfully copied to $DESTINATION_PATH"
 else
     echo "❌ Error: $SOURCE_PATH does not exist. Copy operation failed." >&2
