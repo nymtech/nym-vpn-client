@@ -41,7 +41,7 @@ use crate::{
 
 /// Delay before acting on default route changes.
 #[cfg(target_os = "ios")]
-const DEFAULT_PATH_DEBOUNCE: Duration = Duration::from_millis(100);
+const DEFAULT_PATH_DEBOUNCE: Duration = Duration::from_millis(250);
 
 pub struct ConnectedTunnel {
     task_manager: TaskManager,
