@@ -6,6 +6,7 @@
 
 #![cfg(any(target_os = "macos", target_os = "ios"))]
 
+mod rc;
 mod sys;
 
 use std::{
@@ -14,8 +15,7 @@ use std::{
     ptr,
 };
 
-use objc2::rc::Retained;
-
+use rc::Retained;
 pub use sys::{dispatch_queue_attr_t, dispatch_queue_t};
 
 /// Dispatch queue.
@@ -35,7 +35,7 @@ impl Queue {
         Self {
             inner: unsafe {
                 ManuallyDrop::new(
-                    Retained::from_raw(sys::dispatch_get_main_queue())
+                    Retained::from_raw(sys::dispatch_get_main_queue().cast())
                         .expect("invalid main queue reference"),
                 )
             },
@@ -70,7 +70,7 @@ impl Queue {
 
     /// Returns queue label.
     pub fn label(&self) -> Result<String, std::str::Utf8Error> {
-        // SAFETY: libdispatch guarantees to never return null.
+        // Safety: libdispatch guarantees to never return null.
         let raw_queue_label = unsafe { sys::dispatch_queue_get_label(self.as_raw_mut()) };
         assert!(!raw_queue_label.is_null());
 
@@ -80,7 +80,7 @@ impl Queue {
 
     /// Returns the underlying handle to the dispatch queue object.
     pub fn as_raw_mut(&self) -> dispatch_queue_t {
-        Retained::as_ptr(&self.inner).cast_mut()
+        self.inner.as_mut_ptr()
     }
 }
 
@@ -93,6 +93,7 @@ impl Drop for Queue {
     }
 }
 
+#[repr(transparent)]
 /// Dispatch queue attribute.
 pub struct QueueAttr {
     /// Underlying attribute handle.
@@ -112,7 +113,7 @@ impl QueueAttr {
     pub fn as_raw_mut(&self) -> dispatch_queue_attr_t {
         self.inner
             .as_ref()
-            .map(|x| Retained::as_ptr(x).cast_mut())
+            .map(|x| x.as_mut_ptr())
             .unwrap_or(std::ptr::null_mut())
     }
 }

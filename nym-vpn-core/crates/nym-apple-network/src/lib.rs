@@ -10,6 +10,7 @@ mod endpoint;
 mod interface;
 mod path;
 mod path_monitor;
+mod rc;
 mod sys;
 
 pub use endpoint::{

@@ -12,11 +12,10 @@ use std::{
 use nix::sys::socket::{
     AddressFamily, SockaddrIn, SockaddrIn6, SockaddrLike, SockaddrStorage, UnixAddr,
 };
-use objc2::rc::Retained;
 
 use crate::sys::OS_nw_endpoint;
 
-use super::sys;
+use super::{rc::Retained, sys};
 pub use sys::nw_endpoint_type_t;
 
 /// A local or remote endpoint in a network connection.
@@ -60,6 +59,7 @@ impl Endpoint {
 }
 
 /// An endpoint that couldn't be parsed or unknown to the crate.
+#[repr(transparent)]
 #[derive(Debug)]
 #[allow(unused)]
 pub struct UnknownEndpoint {
@@ -101,6 +101,7 @@ impl From<nw_endpoint_type_t> for EndpointType {
 }
 
 /// An endpoint represented as a host and port.
+#[repr(transparent)]
 #[derive(Debug)]
 pub struct HostEndpoint {
     inner: Retained<sys::OS_nw_endpoint>,
@@ -133,19 +134,16 @@ impl HostEndpoint {
     }
 
     pub fn host(&self) -> Result<String> {
-        cstr_to_owned_string(unsafe { sys::nw_endpoint_get_hostname(self.as_raw_mut()) })
+        cstr_to_owned_string(unsafe { sys::nw_endpoint_get_hostname(self.inner.as_mut_ptr()) })
     }
 
     pub fn port(&self) -> u16 {
-        unsafe { sys::nw_endpoint_get_port(self.as_raw_mut()) }
-    }
-
-    fn as_raw_mut(&self) -> sys::nw_endpoint_t {
-        Retained::as_ptr(&self.inner).cast_mut()
+        unsafe { sys::nw_endpoint_get_port(self.inner.as_mut_ptr()) }
     }
 }
 
 /// An endpoint represented as an IP address and port.
+#[repr(transparent)]
 #[derive(Debug)]
 pub struct AddressEndpoint {
     inner: Retained<sys::OS_nw_endpoint>,
@@ -237,7 +235,7 @@ impl AddressEndpoint {
     }
 
     pub fn address(&self) -> Result<Address> {
-        let sockaddr = unsafe { sys::nw_endpoint_get_address(self.as_raw_mut()) };
+        let sockaddr = unsafe { sys::nw_endpoint_get_address(self.inner.as_mut_ptr()) };
 
         NonNull::new(sockaddr.cast_mut())
             .ok_or(Error::InvalidSocketAddr)
@@ -245,15 +243,12 @@ impl AddressEndpoint {
     }
 
     pub fn port(&self) -> u16 {
-        unsafe { sys::nw_endpoint_get_port(self.as_raw_mut()) }
-    }
-
-    fn as_raw_mut(&self) -> sys::nw_endpoint_t {
-        Retained::as_ptr(&self.inner).cast_mut()
+        unsafe { sys::nw_endpoint_get_port(self.inner.as_mut_ptr()) }
     }
 }
 
 /// An endpoint represented as a URL, with host and port values inferred from the URL.
+#[repr(transparent)]
 #[derive(Debug)]
 pub struct UrlEndpoint {
     inner: Retained<sys::OS_nw_endpoint>,
@@ -282,15 +277,12 @@ impl UrlEndpoint {
     }
 
     pub fn url(&self) -> Result<String> {
-        cstr_to_owned_string(unsafe { sys::nw_endpoint_get_url(self.as_raw_mut()) })
-    }
-
-    fn as_raw_mut(&self) -> sys::nw_endpoint_t {
-        Retained::as_ptr(&self.inner).cast_mut()
+        cstr_to_owned_string(unsafe { sys::nw_endpoint_get_url(self.inner.as_mut_ptr()) })
     }
 }
 
 /// An endpoint represented as a Bonjour service.
+#[repr(transparent)]
 #[derive(Debug)]
 pub struct BonjourServiceEndpoint {
     inner: Retained<sys::OS_nw_endpoint>,
@@ -332,24 +324,20 @@ impl BonjourServiceEndpoint {
 
     pub fn name(&self) -> Result<String> {
         cstr_to_owned_string(unsafe {
-            sys::nw_endpoint_get_bonjour_service_name(self.as_raw_mut())
+            sys::nw_endpoint_get_bonjour_service_name(self.inner.as_mut_ptr())
         })
     }
 
     pub fn domain(&self) -> Result<String> {
         cstr_to_owned_string(unsafe {
-            sys::nw_endpoint_get_bonjour_service_domain(self.as_raw_mut())
+            sys::nw_endpoint_get_bonjour_service_domain(self.inner.as_mut_ptr())
         })
     }
 
     pub fn service_type(&self) -> Result<String> {
         cstr_to_owned_string(unsafe {
-            sys::nw_endpoint_get_bonjour_service_type(self.as_raw_mut())
+            sys::nw_endpoint_get_bonjour_service_type(self.inner.as_mut_ptr())
         })
-    }
-
-    fn as_raw_mut(&self) -> sys::nw_endpoint_t {
-        Retained::as_ptr(&self.inner).cast_mut()
     }
 }
 

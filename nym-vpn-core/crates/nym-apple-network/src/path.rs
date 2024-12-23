@@ -3,17 +3,19 @@
 
 use std::{cell::RefCell, ptr::NonNull, rc::Rc};
 
-use objc2::rc::Retained;
-use objc2_foundation::{NSObjectProtocol, NSString};
+use objc2::runtime::NSObjectProtocol;
+use objc2_foundation::NSString;
 
 use super::{
     endpoint::Endpoint,
     interface::{Interface, InterfaceType},
+    rc::Retained,
     sys,
 };
 pub use sys::nw_path_status_t;
 
 /// An object that contains information about the properties of the network that a connection uses, or that are available to your app.
+#[repr(transparent)]
 #[derive(Debug)]
 pub struct Path {
     inner: Retained<sys::OS_nw_path>,
@@ -31,22 +33,24 @@ impl Path {
     }
 
     pub fn description(&self) -> String {
-        unsafe { Retained::cast::<NSString>((*self.inner).description()) }.to_string()
+        unsafe { objc2::rc::Retained::cast::<NSString>((*self.inner).description()) }.to_string()
     }
 
     pub fn status(&self) -> PathStatus {
-        PathStatus::from(unsafe { sys::nw_path_get_status(self.as_raw_mut()) })
+        PathStatus::from(unsafe { sys::nw_path_get_status(self.inner.as_mut_ptr()) })
     }
 
     pub fn uses_interface_type(&self, interface_type: InterfaceType) -> bool {
-        unsafe { sys::nw_path_uses_interface_type(self.as_raw_mut(), interface_type.as_raw()) }
+        unsafe {
+            sys::nw_path_uses_interface_type(self.inner.as_mut_ptr(), interface_type.as_raw())
+        }
     }
 
     pub fn available_interfaces(&self) -> Vec<Interface> {
         let interfaces = Rc::new(RefCell::new(Vec::new()));
         let cloned_interfaces = interfaces.clone();
 
-        // SAFETY: Use stack block since enumerator is not escaping
+        // Safety: Use stack block since enumerator is not escaping
         let block = block2::StackBlock::new(move |nw_interface_ref| {
             let interface = Interface::retain(
                 NonNull::new(nw_interface_ref)
@@ -58,7 +62,7 @@ impl Path {
             // Return yes to continue iteration
             objc2::runtime::Bool::YES
         });
-        unsafe { sys::nw_path_enumerate_interfaces(self.as_raw_mut(), &block) };
+        unsafe { sys::nw_path_enumerate_interfaces(self.inner.as_mut_ptr(), &block) };
         interfaces.take()
     }
 
@@ -66,7 +70,7 @@ impl Path {
         let gateways = Rc::new(RefCell::new(Vec::new()));
         let cloned_gateways = gateways.clone();
 
-        // SAFETY: Use stack block since enumerator is not escaping
+        // Safety: Use stack block since enumerator is not escaping
         let block = block2::StackBlock::new(move |nw_endpoint_ref| {
             let endpoint = Endpoint::retain(
                 NonNull::new(nw_endpoint_ref)
@@ -78,18 +82,14 @@ impl Path {
             // Return yes to continue iteration
             objc2::runtime::Bool::YES
         });
-        unsafe { sys::nw_path_enumerate_gateways(self.as_raw_mut(), &block) };
+        unsafe { sys::nw_path_enumerate_gateways(self.inner.as_mut_ptr(), &block) };
         gateways.take()
-    }
-
-    fn as_raw_mut(&self) -> sys::nw_path_t {
-        Retained::as_ptr(&self.inner).cast_mut()
     }
 }
 
 impl PartialEq for Path {
     fn eq(&self, other: &Self) -> bool {
-        unsafe { sys::nw_path_is_equal(self.as_raw_mut(), other.as_raw_mut()) }
+        unsafe { sys::nw_path_is_equal(self.inner.as_mut_ptr(), other.inner.as_mut_ptr()) }
     }
 }
 

@@ -3370,7 +3370,6 @@ name = "nym-apple-dispatch"
 version = "1.2.0-dev"
 dependencies = [
  "objc2",
- "objc2-foundation",
 ]
 
 [[package]]

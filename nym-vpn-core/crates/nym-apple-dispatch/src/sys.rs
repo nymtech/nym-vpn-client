@@ -8,22 +8,40 @@
 
 use std::ffi::c_char;
 
-use objc2::runtime::ProtocolObject;
-use objc2_foundation::NSObjectProtocol;
+use objc2::{
+    encode::{Encoding, RefEncode},
+    runtime::NSObjectProtocol,
+    Message,
+};
 
-// Dispatch objects are objc types when compiled with objc compiler.
-pub type dispatch_object_s = ProtocolObject<dyn NSObjectProtocol>;
-#[allow(unused)]
-pub type dispatch_object_t = *mut dispatch_object_s;
+macro_rules! create_opaque_type {
+    ($type_name: ident, $typedef_name: ident) => {
+        // Dispatch objects are objc types when compiled with objc compiler.
+        #[repr(C)]
+        #[derive(Copy, Clone, Debug)]
+        pub struct $type_name {
+            _inner: [u8; 0],
+        }
 
-pub type OS_dispatch_queue = dispatch_object_s;
-pub type dispatch_queue_t = *mut OS_dispatch_queue;
+        pub type $typedef_name = *mut $type_name;
 
-pub type OS_dispatch_queue_main = dispatch_object_s;
-pub type dispatch_queue_main_t = *mut OS_dispatch_queue_main;
+        // Safety: dispatch types are internally objects.
+        unsafe impl RefEncode for $type_name {
+            const ENCODING_REF: Encoding = Encoding::Object;
+        }
 
-pub type OS_dispatch_queue_attr = dispatch_object_s;
-pub type dispatch_queue_attr_t = *mut OS_dispatch_queue_attr;
+        // Safety: dispatch types respond to objc messages.
+        unsafe impl Message for $type_name {}
+
+        // Safety: dispatch types implement NSObject.
+        unsafe impl NSObjectProtocol for $type_name {}
+    };
+}
+
+create_opaque_type!(dispatch_object_s, dispatch_object_t);
+create_opaque_type!(OS_dispatch_queue, dispatch_queue_t);
+create_opaque_type!(OS_dispatch_queue_main, dispatch_queue_main_t);
+create_opaque_type!(OS_dispatch_queue_attr, dispatch_queue_attr_t);
 
 #[cfg_attr(
     any(target_os = "macos", target_os = "ios"),
@@ -35,6 +53,10 @@ pub type dispatch_queue_attr_t = *mut OS_dispatch_queue_attr;
 )]
 extern "C" {
     static _dispatch_main_q: dispatch_object_s;
+
+    #[allow(unused)]
+    pub fn dispatch_retain(object: dispatch_object_t);
+    pub fn dispatch_release(object: dispatch_object_t);
 
     pub fn dispatch_queue_create(
         label: *const c_char,

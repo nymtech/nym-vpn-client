@@ -3,11 +3,10 @@
 
 use std::ptr::NonNull;
 
-use objc2::rc::Retained;
-
-use super::{path::Path, sys, InterfaceType};
+use super::{path::Path, rc::Retained, sys, InterfaceType};
 
 /// An observer that you use to monitor and react to network changes.
+#[repr(transparent)]
 #[derive(Debug)]
 pub struct PathMonitor {
     inner: Retained<sys::OS_nw_path_monitor>,
@@ -45,23 +44,28 @@ impl PathMonitor {
     /// Prohibit a path monitor from using a specific interface type.
     pub fn prohibit_interface_type(&mut self, interface_type: &InterfaceType) {
         unsafe {
-            sys::nw_path_monitor_prohibit_interface_type(self.as_raw_mut(), interface_type.as_raw())
+            sys::nw_path_monitor_prohibit_interface_type(
+                self.inner.as_mut_ptr(),
+                interface_type.as_raw(),
+            )
         };
     }
 
     /// Starts monitoring path changes.
     pub fn start(&mut self) {
-        unsafe { sys::nw_path_monitor_start(self.as_raw_mut()) };
+        unsafe { sys::nw_path_monitor_start(self.inner.as_mut_ptr()) };
     }
 
     /// Stops receiving network path updates.
     pub fn cancel(&mut self) {
-        unsafe { sys::nw_path_monitor_cancel(self.as_raw_mut()) };
+        unsafe { sys::nw_path_monitor_cancel(self.inner.as_mut_ptr()) };
     }
 
     /// Sets a queue on which to deliver path events.
     pub fn set_dispatch_queue(&mut self, dispatch_queue: &nym_apple_dispatch::Queue) {
-        unsafe { sys::nw_path_monitor_set_queue(self.as_raw_mut(), dispatch_queue.as_raw_mut()) };
+        unsafe {
+            sys::nw_path_monitor_set_queue(self.inner.as_mut_ptr(), dispatch_queue.as_raw_mut())
+        };
     }
 
     /// Sets a handler to receive network path updates.
@@ -71,17 +75,13 @@ impl PathMonitor {
 
             update_handler(nw_path)
         });
-        unsafe { sys::nw_path_monitor_set_update_handler(self.as_raw_mut(), &block) };
+        unsafe { sys::nw_path_monitor_set_update_handler(self.inner.as_mut_ptr(), &block) };
     }
 
     /// Sets a handler to determine when a monitor is fully cancelled and will no longer deliver events.
     pub fn set_cancel_handler(&mut self, cancel_handler: impl Fn() + 'static) {
         let block = block2::RcBlock::new(cancel_handler);
-        unsafe { sys::nw_path_monitor_set_cancel_handler(self.as_raw_mut(), &block) };
-    }
-
-    fn as_raw_mut(&self) -> sys::nw_path_monitor_t {
-        Retained::as_ptr(&self.inner).cast_mut()
+        unsafe { sys::nw_path_monitor_set_cancel_handler(self.inner.as_mut_ptr(), &block) };
     }
 }
 

@@ -9,27 +9,43 @@
 use std::ffi::{c_char, c_int};
 
 use nix::sys::socket::sockaddr;
-use objc2::runtime::ProtocolObject;
-use objc2_foundation::NSObjectProtocol;
+use objc2::{
+    encode::{Encoding, RefEncode},
+    runtime::NSObjectProtocol,
+    Message,
+};
 
 use nym_apple_dispatch::dispatch_queue_t;
 
-// NW objects are objc types when compiled with objc compiler.
-pub type OS_nw_object = ProtocolObject<dyn NSObjectProtocol>;
-#[allow(unused)]
-pub type nw_object_t = *mut OS_nw_object;
+macro_rules! create_opaque_type {
+    ($type_name: ident, $typedef_name: ident) => {
+        // NW objects are objc types when compiled with objc compiler.
+        #[repr(C)]
+        #[derive(Copy, Clone, Debug)]
+        pub struct $type_name {
+            _inner: [u8; 0],
+        }
 
-pub type OS_nw_path_monitor = OS_nw_object;
-pub type nw_path_monitor_t = *mut OS_nw_path_monitor;
+        pub type $typedef_name = *mut $type_name;
 
-pub type OS_nw_path = OS_nw_object;
-pub type nw_path_t = *mut OS_nw_path;
+        // Safety: NW types are internally objects.
+        unsafe impl RefEncode for $type_name {
+            const ENCODING_REF: Encoding = Encoding::Object;
+        }
 
-pub type OS_nw_interface = OS_nw_object;
-pub type nw_interface_t = *mut OS_nw_interface;
+        // Safety: NW types respond to objc messages.
+        unsafe impl Message for $type_name {}
 
-pub type OS_nw_endpoint = OS_nw_object;
-pub type nw_endpoint_t = *mut OS_nw_endpoint;
+        // Safety: NW types implement NSObject.
+        unsafe impl NSObjectProtocol for $type_name {}
+    };
+}
+
+create_opaque_type!(OS_nw_object, nw_object_t);
+create_opaque_type!(OS_nw_path_monitor, nw_path_monitor_t);
+create_opaque_type!(OS_nw_path, nw_path_t);
+create_opaque_type!(OS_nw_interface, nw_interface_t);
+create_opaque_type!(OS_nw_endpoint, nw_endpoint_t);
 
 pub type nw_path_monitor_update_handler_t = block2::Block<dyn Fn(nw_path_t)>;
 pub type nw_path_monitor_cancel_handler_t = block2::Block<dyn Fn()>;
@@ -61,6 +77,9 @@ pub const nw_endpoint_type_url: nw_endpoint_type_t = 4;
 
 #[link(name = "Network", kind = "framework")]
 unsafe extern "C" {
+    pub fn nw_retain(object: nw_object_t);
+    pub fn nw_release(object: nw_object_t);
+
     pub fn nw_path_monitor_create() -> nw_path_monitor_t;
     pub fn nw_path_monitor_create_with_type(
         required_interface_type: nw_interface_type_t,

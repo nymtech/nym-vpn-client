@@ -3,12 +3,11 @@
 
 use std::{ffi::CStr, ptr::NonNull};
 
-use objc2::rc::Retained;
-
-use super::sys;
+use super::{rc::Retained, sys};
 pub use sys::nw_interface_type_t;
 
 /// An interface that a network connection uses to send and receive data.
+#[repr(transparent)]
 #[derive(Debug)]
 pub struct Interface {
     inner: Retained<sys::OS_nw_interface>,
@@ -27,23 +26,19 @@ impl Interface {
 
     pub fn name(&self) -> Result<String, std::str::Utf8Error> {
         unsafe {
-            let ptr = sys::nw_interface_get_name(self.as_raw_mut());
+            let ptr = sys::nw_interface_get_name(self.inner.as_mut_ptr());
             assert!(!ptr.is_null());
             Ok(CStr::from_ptr(ptr).to_str()?.to_owned())
         }
     }
 
     pub fn index(&self) -> u32 {
-        unsafe { sys::nw_interface_get_index(self.as_raw_mut()) }
+        unsafe { sys::nw_interface_get_index(self.inner.as_mut_ptr()) }
     }
 
     pub fn interface_type(&self) -> InterfaceType {
-        let raw_interface_type = unsafe { sys::nw_interface_get_type(self.as_raw_mut()) };
+        let raw_interface_type = unsafe { sys::nw_interface_get_type(self.inner.as_mut_ptr()) };
         InterfaceType::from(raw_interface_type)
-    }
-
-    fn as_raw_mut(&self) -> sys::nw_interface_t {
-        Retained::as_ptr(&self.inner).cast_mut()
     }
 }
 
