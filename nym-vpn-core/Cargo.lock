@@ -5981,9 +5981,9 @@ dependencies = [
 
 [[package]]
 name = "rust2go"
-version = "0.3.17"
+version = "0.3.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cedb3ca308113535deaf2e0cce0fe93bb53d5f4b1e571a13c701e5bca5b1c3ed"
+checksum = "1fb8398eed0838a26fda0a3eb2228c85e51b0f32206e97e687b8e79b1d34e8c2"
 dependencies = [
  "bindgen",
  "rust2go-cli",
