@@ -172,7 +172,7 @@ impl ConnectedTunnel {
                             break;
                         }
                         Some(new_path) = default_path_rx.next() => {
-                            tracing::debug!("New default path: {:?}", new_path);
+                            tracing::debug!("New default path: {}", new_path.description());
 
                             // Depending on the network device is connected to, we may need to re-resolve the IP addresses.
                             // For instance when device connects to IPv4-only server from IPv6-only network,
