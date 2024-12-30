@@ -75,18 +75,15 @@ pub async fn account_links(
 
 #[instrument(skip_all)]
 #[tauri::command]
-pub async fn get_account_id(grpc: State<'_, GrpcClient>) -> Result<String, BackendError> {
+pub async fn get_account_id(grpc: State<'_, GrpcClient>) -> Result<Option<String>, BackendError> {
     grpc.account_id()
         .await
         .map_err(|e| {
             warn!("failed to get account id: {e}");
             e.into()
         })
-        // Flatten the Result<Option<String>> to Result<String> until the UI side is updated
-        // to handle the Option<String> type.
-        .map(Option::unwrap_or_default)
         .inspect(|id| {
-            info!("account id: {id}");
+            info!("account id: {:?}", id);
         })
 }
 
