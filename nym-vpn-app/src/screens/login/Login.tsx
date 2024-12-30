@@ -65,18 +65,15 @@ function Login() {
   return (
     <PageAnim className="h-full flex flex-col justify-end items-center gap-10 select-none cursor-default">
       {uiTheme === 'Dark' ? (
-        <NymDarkOutlineIcon className="w-32 h-32" />
+        <NymDarkOutlineIcon className="w-22 h-22" />
       ) : (
-        <NymIcon className="w-32 h-32 fill-ghost" />
+        <NymIcon className="w-24 h-24 fill-ghost" />
       )}
       <div className="flex flex-col items-center gap-4 px-4">
         <h1 className="text-2xl dark:text-white">{t('welcome')}</h1>
-        <h2 className="text-center dark:text-laughing-jack">
-          {t('description1')}
+        <h2 className="text-center text-dim-gray dark:text-mercury-mist w-11/12">
+          {t('description')}
         </h2>
-        <p className="text-xs text-center text-dim-gray dark:text-mercury-mist w-11/12">
-          {t('description2')}
-        </p>
       </div>
       <div className="w-full">
         <TextArea
@@ -119,7 +116,7 @@ function Login() {
         </Button>
         {signUpUrl && (
           <div className="flex flex-row justify-center items-center gap-2">
-            <span className="dark:text-mercury-pinkish">
+            <span className="dark:text-mercury-pinkish truncate">
               {t('create-account.text')}
             </span>
             <Link text={t('create-account.link')} url={signUpUrl} />

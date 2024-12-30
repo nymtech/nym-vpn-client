@@ -1,7 +1,13 @@
 import { mockIPC, mockWindows } from '@tauri-apps/api/mocks';
 import { InvokeArgs } from '@tauri-apps/api/core';
 import { emit } from '@tauri-apps/api/event';
-import { Cli, ConnectionState, DbKey, VpndStatus } from '../types';
+import {
+  AccountLinks,
+  Cli,
+  ConnectionState,
+  DbKey,
+  VpndStatus,
+} from '../types';
 import { ConnectionEvent } from '../constants';
 import { Country } from '../types';
 
@@ -115,7 +121,7 @@ export function mockTauriIPC() {
     }
 
     if (cmd === 'is_account_stored') {
-      return new Promise<boolean>((resolve) => resolve(true));
+      return new Promise<boolean>((resolve) => resolve(false));
     }
 
     if (cmd === 'get_account_id') {
@@ -141,6 +147,15 @@ export function mockTauriIPC() {
 
     if (cmd === 'system_messages') {
       return new Promise<object[]>((resolve) => resolve([]));
+    }
+
+    if (cmd === 'account_links') {
+      return new Promise<AccountLinks>((resolve) =>
+        resolve({
+          signUp: 'https://xyz.xyz/signup',
+          signIn: 'https://xyz.xyz/signin',
+        }),
+      );
     }
 
     if (cmd === 'env') {

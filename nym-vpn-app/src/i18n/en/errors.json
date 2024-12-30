@@ -74,10 +74,10 @@
     "request-failed": "Requesting zk-nym failed"
   },
   "account": {
-    "invalid-recovery-phrase": "Invalid recovery phrase",
+    "invalid-recovery-phrase": "Invalid access code",
     "storage": "Storage backend error",
     "is-connected": "Unable to proceed while connected",
-    "not-stored": "No account recovery phrase stored",
+    "not-stored": "No account access code stored",
     "no-device-stored": "No device keys stored",
     "update": "Update account failed",
     "update-device": "Update device failed",

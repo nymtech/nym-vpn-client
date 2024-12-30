@@ -28,7 +28,7 @@
     "licenses-js": "Licences (JavaScript)"
   },
   "display-theme": "Affichage",
-  "login-button": "S'identifier",
+  "login-button": "Connecter cet appareil",
   "monitoring-alert": "Redémarrez l'application pour que le changement s'applique.",
   "faq": "F.A.Q.",
   "quit": "Quitter NymVPN",
@@ -48,6 +48,6 @@
   },
   "logout-confirmation": {
     "title": "Etes-vous sûr ?",
-    "description": "Vous aurez besoin de votre phrase de récupération pour vous reconnecter."
+    "description": "Vous aurez besoin de votre code d'accès pour reconnecter votre appareil."
   }
 }

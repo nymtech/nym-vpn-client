@@ -39,10 +39,10 @@
   "display-theme": "Display mode",
   "logout-confirmation": {
     "title": "Are you sure?",
-    "description": "You will need your recovery phrase to log in again."
+    "description": "You will need your access code to reconnect your device."
   },
   "quit": "Quit NymVPN",
-  "login-button": "Log in",
+  "login-button": "Connect device",
   "info": {
     "client-version": "Client version",
     "daemon-version": "Daemon version",

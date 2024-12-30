@@ -81,10 +81,10 @@
     "ping": "Échec du ping sur le nœud de sortie pour le trafic {{protocol}}"
   },
   "account": {
-    "invalid-recovery-phrase": "Phrase de récupération invalide",
+    "invalid-recovery-phrase": "Code d'accès invalide",
     "storage": "Erreur de stockage backend",
     "is-connected": "Impossible d'effectuer cette action lorsque connecté au VPN",
-    "not-stored": "Aucune phrase de récupération stockée",
+    "not-stored": "Aucun code d'accès stocké",
     "no-device-stored": "Aucune clé d'appareil stockée",
     "update": "La mise à jour du compte utilisateur a échouée",
     "update-device": "La mise à jour de l'appareil a échouée",
