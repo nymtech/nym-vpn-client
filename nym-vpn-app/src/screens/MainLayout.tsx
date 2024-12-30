@@ -1,4 +1,4 @@
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router';
 import clsx from 'clsx';
 import { useMainState } from '../contexts';
 import { EventNotification } from '../layers';

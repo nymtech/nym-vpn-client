@@ -1,6 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { Suspense, useEffect } from 'react';
-import { RouterProvider } from 'react-router-dom';
+import { RouterProvider } from 'react-router/dom';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { useTranslation } from 'react-i18next';
@@ -72,12 +72,7 @@ function App() {
         <ThemeSetter>
           <DialogProvider>
             <Suspense fallback={<RouteLoading />}>
-              <RouterProvider
-                future={{
-                  v7_startTransition: true,
-                }}
-                router={router}
-              />
+              <RouterProvider router={router} />
             </Suspense>
           </DialogProvider>
         </ThemeSetter>

@@ -21,7 +21,7 @@ const AnimateIn = ({
   duration?: number;
   className?: string;
   style?: React.CSSProperties;
-  as?: keyof React.ReactHTML;
+  as?: 'div' | 'nav';
 }) => {
   const [animate, setAnimate] = useState(from);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);

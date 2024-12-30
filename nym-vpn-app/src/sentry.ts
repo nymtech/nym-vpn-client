@@ -4,7 +4,7 @@ import {
   matchRoutes,
   useLocation,
   useNavigationType,
-} from 'react-router-dom';
+} from 'react-router';
 import * as Sentry from '@sentry/react';
 import { getVersion } from '@tauri-apps/api/app';
 

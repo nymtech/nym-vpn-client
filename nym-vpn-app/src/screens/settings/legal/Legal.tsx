@@ -1,6 +1,6 @@
 import { open } from '@tauri-apps/plugin-shell';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { PrivacyPolicyUrl, ToSUrl } from '../../../constants';
 import { routes } from '../../../router';
 import { MsIcon, PageAnim } from '../../../ui';

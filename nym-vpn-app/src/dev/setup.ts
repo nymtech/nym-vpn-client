@@ -134,9 +134,14 @@ export function mockTauriIPC() {
     //   return new Promise<boolean>((_, reject) => reject(new Error('nope')));
     // }
 
-    // if (cmd === 'delete_account') {
-    //   return new Promise<boolean>((_, reject) => reject(new Error('oupsy')));
-    // }
+    if (cmd === 'forget_account') {
+      // return new Promise<void>((_, reject) => reject(new Error('oupsy')));
+      return new Promise<void>((resolve) => resolve());
+    }
+
+    if (cmd === 'system_messages') {
+      return new Promise<object[]>((resolve) => resolve([]));
+    }
 
     if (cmd === 'env') {
       return new Promise((resolve) =>

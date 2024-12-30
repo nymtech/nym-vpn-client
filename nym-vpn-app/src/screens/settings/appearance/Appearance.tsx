@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { routes } from '../../../router';
 import { PageAnim, SettingsMenuCard } from '../../../ui';
 
