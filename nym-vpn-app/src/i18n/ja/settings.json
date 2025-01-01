@@ -42,7 +42,9 @@
   "info": {
     "client-version": "クライアントバージョン",
     "daemon-version": "デーモンバージョン",
-    "network-name": "ネットワーク"
+    "network-name": "ネットワーク",
+    "account-id": "アカウントID",
+    "device-id": "デバイスID"
   },
   "logout-confirmation": {
     "title": "実行しますか？",
