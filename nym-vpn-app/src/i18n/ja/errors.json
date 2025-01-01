@@ -91,5 +91,8 @@
     "not-stored": "アカウントのリカバリーフレーズが保存されていません",
     "no-device-stored": "デバイスキーが保存されていません",
     "update": "アカウントアップデートに失敗"
+  },
+  "zknym": {
+    "request-failed": "zk-nymのリクエストに失敗しました"
   }
 }
