@@ -219,8 +219,8 @@ export default function TopBar() {
         'text-baltic-sea dark:text-mercury-pinkish',
         'h-16 text-xl shadow z-30 select-none cursor-default',
         currentNavLocation.noBackground
-          ? 'shadow-none dark:bg-baltic-sea bg-blanc-nacre'
-          : 'dark:bg-baltic-sea-jaguar bg-white',
+          ? 'shadow-none dark:bg-ash bg-faded-lavender'
+          : 'dark:bg-octave-arsenic bg-white',
       ])}
       as="nav"
     >
@@ -234,7 +234,7 @@ export default function TopBar() {
               icon={currentNavLocation.leftIcon}
               className={clsx([
                 'dark:text-laughing-jack transition duration-150',
-                'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-black hover:dark:text-blanc-nacre',
+                'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-black hover:dark:text-white',
               ])}
             />
           </button>
@@ -253,7 +253,7 @@ export default function TopBar() {
               icon={currentNavLocation.rightIcon}
               className={clsx([
                 'dark:text-laughing-jack transition duration-150',
-                'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-black hover:dark:text-blanc-nacre',
+                'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-black hover:dark:text-white',
                 currentNavLocation.rightIconClassName,
               ])}
             />

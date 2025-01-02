@@ -57,7 +57,7 @@ function TextArea({
         value={value}
         aria-multiline={true}
         className={clsx([
-          'text-base bg-blanc-nacre dark:bg-baltic-sea transition',
+          'text-base bg-faded-lavender dark:bg-ash transition',
           'w-full flex flex-row justify-between items-center py-4 px-4',
           'text-baltic-sea dark:text-mercury-pinkish',
           'placeholder:text-cement-feet placeholder:dark:text-mercury-mist',
@@ -76,7 +76,7 @@ function TextArea({
           className={clsx([
             'select-none absolute left-3 -top-2 px-1',
             'dark:text-mercury-pinkish',
-            'bg-blanc-nacre dark:bg-baltic-sea text-xs',
+            'bg-faded-lavender dark:bg-ash text-xs',
           ])}
         >
           {label}

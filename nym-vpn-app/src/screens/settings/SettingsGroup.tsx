@@ -27,7 +27,7 @@ function SettingsGroup({ settings, className }: Props) {
           onClick={setting.onClick}
           className={clsx([
             'cursor-default',
-            'bg-white dark:bg-baltic-sea-jaguar relative flex px-5 py-2 focus:outline-none min-h-16',
+            'bg-white dark:bg-octave-arsenic relative flex px-5 py-2 focus:outline-none min-h-16',
             'hover:bg-platinum dark:hover:bg-onyx',
             'transition duration-75',
             index === 0 && 'rounded-t-lg',

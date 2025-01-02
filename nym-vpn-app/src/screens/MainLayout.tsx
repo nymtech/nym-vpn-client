@@ -23,8 +23,8 @@ function MainLayout({
     <div
       className={clsx([
         'h-full flex flex-col min-w-64',
-        'bg-blanc-nacre text-baltic-sea',
-        'dark:bg-baltic-sea dark:text-white',
+        'bg-faded-lavender text-baltic-sea',
+        'dark:bg-ash dark:text-white',
       ])}
     >
       {!noTopBar && <TopBar />}

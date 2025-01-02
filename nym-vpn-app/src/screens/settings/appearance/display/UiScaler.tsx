@@ -29,7 +29,7 @@ function UiScaler() {
     <div
       className={clsx([
         'flex flex-row justify-between items-center gap-10',
-        'bg-white dark:bg-baltic-sea-jaguar',
+        'bg-white dark:bg-octave',
         'px-6 py-4 rounded-lg',
       ])}
     >

@@ -6,11 +6,11 @@ function RouteLoading() {
     <div
       className={clsx([
         'h-full flex flex-col min-w-80',
-        'bg-blanc-nacre dark:bg-baltic-sea',
+        'bg-faded-lavender dark:bg-ash',
       ])}
     >
       {/* Top-bar placeholder */}
-      <div className="w-full h-16 shadow bg-white dark:bg-baltic-sea-jaguar"></div>
+      <div className="w-full h-16 shadow bg-white dark:bg-octave-arsenic"></div>
     </div>
   );
 }

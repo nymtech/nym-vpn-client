@@ -26,7 +26,7 @@ function ButtonText({
     switch (colors) {
       case 'rain':
         return [
-          'bg-blanc-nacre dark:bg-baltic-sea',
+          'bg-faded-lavender dark:bg-ash',
           'data-[hover]:text-oil data-[hover]:bg-cement-feet/30',
           'data-[hover]:dark:text-laughing-jack data-[hover]:dark:bg-baltic-sea-jaguar/80',
         ];

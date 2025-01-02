@@ -8,7 +8,6 @@ export default {
       transparent: 'transparent',
       current: 'currentColor',
       'baltic-sea': {
-        // [D] bg for top-bar nav
         // [D] bg for network modes
         jaguar: '#2B2831',
         // [L] status-line title text + icon
@@ -18,10 +17,8 @@ export default {
         // [L] network mode title text + icon
         // [L] node location select text value + icon + label
         // [D] button text
-        DEFAULT: '#1C1B1F', // [D] main bg
+        DEFAULT: '#1C1B1F',
       },
-      // [L] main bg
-      'blanc-nacre': '#F2F4F6',
       // [DL] primary accent
       melon: '#FB6E4E',
       // [DL] secondary accent
@@ -85,6 +82,20 @@ export default {
       'poivre-noir': '#484649',
       // [L] bg for snackbar
       seashell: '#FFF2EF',
+
+      /// NEON-SKIN UPDATE //////////////////////////////
+      // [D] main bg
+      ash: '#242B2D',
+      octave: {
+        // [D] surface bg
+        DEFAULT: '#32373D',
+        // [D] top-bar bg
+        arsenic: '#374042',
+      },
+      // [L] main bg
+      'faded-lavender': '#EBEEF4',
+      // [DL] Main accent
+      malachite: '#14E76F',
     },
     extend: {
       fontFamily: {

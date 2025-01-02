@@ -22,7 +22,7 @@ function Switch({ checked, onChange, disabled }: SwitchProps) {
         className={clsx([
           checked ? 'translate-x-5' : 'translate-x-1',
           checked
-            ? 'bg-white dark:bg-baltic-sea h-5 w-5'
+            ? 'bg-white dark:bg-ash h-5 w-5'
             : 'bg-cement-feet dark:bg-mercury-mist h-4 w-4',
           'inline-block transform rounded-full transition',
         ])}
