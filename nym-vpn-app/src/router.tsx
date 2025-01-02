@@ -6,7 +6,6 @@ import {
   AppearanceRouteIndex,
   Display,
   Error,
-  Feedback,
   Lang,
   Legal,
   LegalRouteIndex,
@@ -32,8 +31,6 @@ export const routes = {
   display: '/settings/appearance/display',
   lang: '/settings/appearance/lang',
   logs: '/settings/logs',
-  feedback: '/settings/feedback',
-  feedbackSend: '/settings/feedback/send',
   support: '/settings/support',
   legal: '/settings/legal',
   licensesRust: '/settings/legal/licenses-rust',
@@ -93,19 +90,6 @@ const router = createRouterFn([
               {
                 path: routes.display,
                 element: <Display />,
-                errorElement: <Error />,
-              },
-            ],
-          },
-          {
-            path: routes.feedback,
-            element: <Feedback />,
-            errorElement: <Error />,
-            children: [
-              {
-                path: routes.feedbackSend,
-                // To be implemented
-                element: <div />,
                 errorElement: <Error />,
               },
             ],

@@ -4,10 +4,11 @@ import {
   ContactSupportUrl,
   DiscordInviteUrl,
   FaqUrl,
+  GitHubIssuesUrl,
   MatrixRoomUrl,
 } from '../../../constants';
 import { PageAnim, SettingsMenuCard } from '../../../ui';
-import { DiscordIcon, ElementIcon } from '../../../assets';
+import { DiscordIcon, ElementIcon, GitHubIcon } from '../../../assets';
 
 function Support() {
   const { t } = useTranslation('settings');
@@ -23,7 +24,7 @@ function Support() {
         trailingIcon="arrow_right"
       />
       <SettingsMenuCard
-        title={t('feedback.get-in-touch')}
+        title={t('support.get-in-touch')}
         onClick={() => {
           open(ContactSupportUrl);
         }}
@@ -31,7 +32,17 @@ function Support() {
         trailingIcon="arrow_right"
       />
       <SettingsMenuCard
-        title={t('feedback.matrix')}
+        title={t('support.github')}
+        onClick={() => {
+          open(GitHubIssuesUrl);
+        }}
+        leadingComponent={
+          <GitHubIcon className="w-6 h-7 fill-baltic-sea dark:fill-mercury-pinkish" />
+        }
+        trailingIcon="arrow_right"
+      />
+      <SettingsMenuCard
+        title={t('support.matrix')}
         onClick={() => {
           open(MatrixRoomUrl);
         }}
@@ -41,7 +52,7 @@ function Support() {
         trailingIcon="arrow_right"
       />
       <SettingsMenuCard
-        title={t('feedback.discord')}
+        title={t('support.discord')}
         onClick={() => {
           open(DiscordInviteUrl);
         }}

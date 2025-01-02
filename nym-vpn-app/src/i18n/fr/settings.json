@@ -7,16 +7,13 @@
     "title": "Rapports d'erreur anonymes",
     "desc": "s'applique au redémarrage de l'application"
   },
-  "feedback": {
-    "title": "Retour d'information",
+  "support": {
+    "title": "Support",
+    "faq": "Consulter la FAQ",
     "github": "Créer un ticket GitHub",
     "get-in-touch": "Contactez-nous",
     "matrix": "Rejoignez-nous sur Matrix",
     "discord": "Rejoignez-nous sur Discord"
-  },
-  "support": {
-    "title": "Support",
-    "faq": "Consulter la FAQ"
   },
   "legal": {
     "title": "Juridique",

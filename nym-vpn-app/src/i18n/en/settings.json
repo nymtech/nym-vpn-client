@@ -11,16 +11,13 @@
     "title": "Desktop notifications"
   },
   "monitoring-alert": "You must restart the app for the change to take effect.",
-  "feedback": {
-    "title": "Feedback",
-    "github": "Open a GitHub issue",
+  "support": {
+    "title": "Support & feedback",
+    "faq": "Check the FAQ",
     "get-in-touch": "Get in touch",
+    "github": "Open a GitHub issue",
     "matrix": "Join us on Matrix",
     "discord": "Join us on Discord"
-  },
-  "support": {
-    "title": "Support",
-    "faq": "Check the FAQ"
   },
   "legal": {
     "title": "Legal",

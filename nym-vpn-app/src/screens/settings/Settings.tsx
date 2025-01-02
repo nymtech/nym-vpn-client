@@ -167,17 +167,6 @@ function Settings() {
       <SettingsGroup
         settings={[
           {
-            title: t('feedback.title'),
-            leadingIcon: 'edit_note',
-            onClick: () => navigate(routes.feedback),
-            trailing: (
-              <MsIcon
-                icon="arrow_right"
-                className="dark:text-mercury-pinkish"
-              />
-            ),
-          },
-          {
             title: t('support.title'),
             leadingIcon: 'question_answer',
             onClick: () => navigate(routes.support),
