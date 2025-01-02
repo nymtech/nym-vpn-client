@@ -82,13 +82,13 @@
   },
   "entry-node-routing": "エントリーノードがトラフィックをルーティングしていません（インターネット接続がダウンしている可能性があります）",
   "account": {
-    "invalid-recovery-phrase": "無効なリカバリーフレーズ",
+    "invalid-recovery-phrase": "無効なアクセスコード",
     "storage": "ストレージバックエンドエラー",
     "is-connected": "接続中は操作を進めることができません",
     "maximum-registered-devices": "デバイスの登録に失敗しました：登録可能なデバイス数の上限に達しました",
     "register-device": "デバイスの登録に失敗しました",
     "update-device": "デバイスのアップデートに失敗しました",
-    "not-stored": "アカウントのリカバリーフレーズが保存されていません",
+    "not-stored": "アカウントのアクセスコードが保存されていません",
     "no-device-stored": "デバイスキーが保存されていません",
     "update": "アカウントアップデートに失敗"
   },
