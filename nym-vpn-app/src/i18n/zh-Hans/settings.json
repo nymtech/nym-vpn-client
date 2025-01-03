@@ -10,7 +10,10 @@
   "monitoring-alert": "您必须重新启动应用程序才能使更改生效。",
   "support": {
     "title": "支持",
-    "faq": "查看常见问题"
+    "faq": "查看常见问题",
+    "github": "打开 GitHub 问题",
+    "matrix": "加入Matrix",
+    "discord": "加入Discord"
   },
   "legal": {
     "license": "许可证",
