@@ -12,7 +12,10 @@
   },
   "support": {
     "title": "サポート",
-    "faq": "FAQをチェック"
+    "faq": "FAQをチェック",
+    "github": "Githubでissueを作成",
+    "matrix": "Matrixに参加",
+    "discord": "Discordに参加"
   },
   "legal": {
     "title": "法務情報",
