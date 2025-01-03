@@ -11,7 +11,10 @@
   },
   "support": {
     "title": "Destek",
-    "faq": "SSS'i kontrol edin"
+    "faq": "SSS'i kontrol edin",
+    "github": "GitHub hata raporu açın",
+    "matrix": "Matrix'te bize katılın",
+    "discord": "Discord'da bize katılın"
   },
   "legal": {
     "title": "Hukuki",
