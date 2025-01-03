@@ -89,7 +89,7 @@ async fn check_connectivity(handle: &RouteManagerHandle, fwmark: Option<u32>) ->
         (Ok(ipv4), Ok(ipv6)) => Connectivity::Status { ipv4, ipv6 },
         // If we fail to retrieve the IPv4 route, always assume we're connected
         (Err(err), _) => {
-            log::error!(
+            tracing::error!(
                 "Failed to verify offline state: {}. Presuming connectivity",
                 err
             );
@@ -97,7 +97,7 @@ async fn check_connectivity(handle: &RouteManagerHandle, fwmark: Option<u32>) ->
         }
         // Errors for IPv6 likely mean it's disabled, so assume it's unavailable
         (Ok(ipv4), Err(err)) => {
-            log::trace!(
+            tracing::trace!(
                 "{}",
                 err.display_chain_with_msg(
                     "Failed to infer offline state for IPv6. Assuming it's unavailable"
