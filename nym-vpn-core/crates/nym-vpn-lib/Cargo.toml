@@ -94,16 +94,14 @@ nym-routing = { path = "../nym-routing" }
 nym-dns = { path = "../nym-dns" }
 
 [target.'cfg(target_os = "android")'.dependencies]
-android_logger = "0.14.1"
-err-derive = "0.3.1"
-jnix = { version = "=0.5.1", features = ["derive"] }
+android_logger.workspace = true
 rand.workspace = true
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
-oslog = "0.2.0"
+oslog.workspace = true
 
 [target.'cfg(target_os = "ios")'.dependencies]
-debounced = "0.2"
+debounced.workspace = true
 
 [build-dependencies]
 uniffi = { workspace = true, features = ["build"] }

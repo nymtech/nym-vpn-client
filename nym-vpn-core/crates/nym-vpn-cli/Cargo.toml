@@ -18,7 +18,12 @@ futures.workspace = true
 ipnetwork.workspace = true
 thiserror.workspace = true
 time.workspace = true
-tokio = { workspace = true, features = ["process", "rt-multi-thread", "fs", "sync"] }
+tokio = { workspace = true, features = [
+    "process",
+    "rt-multi-thread",
+    "fs",
+    "sync",
+] }
 tokio-util.workspace = true
 tracing-subscriber.workspace = true
 tracing.workspace = true
@@ -33,7 +38,7 @@ nym-bin-common.workspace = true
 nix = { workspace = true, features = ["user"] }
 
 [target.'cfg(windows)'.dependencies]
-is_elevated = "0.1.2"
+is_elevated.workspace = true
 
 [build-dependencies]
 vergen = { workspace = true, default-features = false, features = [

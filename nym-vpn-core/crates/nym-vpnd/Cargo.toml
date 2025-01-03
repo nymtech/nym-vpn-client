@@ -62,8 +62,8 @@ nym-vpn-store = { path = "../nym-vpn-store" }
 nym-vpnd-types = { path = "../nym-vpnd-types" }
 
 [target.'cfg(windows)'.dependencies]
-windows-service = "0.7.0"
-eventlog = "0.3.0"
+windows-service.workspace = true
+eventlog.workspace = true
 winapi = { version = "0.3", features = ["winnt", "excpt", "winerror"] }
 
 [target.'cfg(windows)'.dependencies.windows-sys]
