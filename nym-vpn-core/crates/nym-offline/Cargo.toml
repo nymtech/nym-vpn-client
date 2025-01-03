@@ -9,3 +9,10 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+thiserror.workspace = true
+tracing.workspace = true
+futures.workspace = true
+tokio.workspace = true
+
+nym-common = { path = "../nym-common" }
+nym-routing = { path = "../nym-routing" }

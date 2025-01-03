@@ -12,24 +12,27 @@
 //! online from an offline state. This is done to work around issues with DNS being blocked due
 //! to macOS's connectivity check. In the offline state, a DNS server on localhost prevents the
 //! connectivity check from being blocked.
+
+use std::{
+    sync::{Arc, Mutex},
+    time::Duration,
+};
+
 use futures::{
     channel::mpsc::UnboundedSender,
     future::{Fuse, FutureExt},
     select, StreamExt,
 };
-use std::{
-    sync::{Arc, Mutex},
-    time::Duration,
-};
-use talpid_routing::{DefaultRouteEvent, RouteManagerHandle};
-use talpid_types::net::Connectivity;
+use nym_routing::{DefaultRouteEvent, RouteManagerHandle};
+
+use super::Connectivity;
 
 const SYNTHETIC_OFFLINE_DURATION: Duration = Duration::from_secs(1);
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("Failed to initialize route monitor")]
-    StartMonitorError(#[from] talpid_routing::Error),
+    StartMonitorError(#[from] nym_routing::Error),
 }
 
 pub struct MonitorHandle {
@@ -79,7 +82,7 @@ pub async fn spawn_monitor(
     let (ipv4, ipv6) = match route_manager.get_default_routes().await {
         Ok((v4_route, v6_route)) => (v4_route.is_some(), v6_route.is_some()),
         Err(error) => {
-            log::warn!("Failed to initialize offline monitor: {error}");
+            tracing::warn!("Failed to initialize offline monitor: {error}");
             // Fail open: Assume that we have connectivity if we cannot determine the existence of
             // a default route, since we don't want to block the user from connecting
             (true, true)
@@ -100,7 +103,7 @@ pub async fn spawn_monitor(
         let mut route_listener = route_listener.fuse();
 
         loop {
-            talpid_types::detect_flood!();
+            nym_common::detect_flood!();
 
             select! {
                 _ = timeout => {
@@ -111,7 +114,7 @@ pub async fn spawn_monitor(
 
                     let mut state = state.lock().unwrap();
                     if real_state.is_online() {
-                        log::info!("Connectivity changed: Connected");
+                        tracing::info!("Connectivity changed: Connected");
                         let Some(tx) = weak_notify_tx.upgrade() else {
                             break;
                         };
@@ -157,7 +160,7 @@ pub async fn spawn_monitor(
                             break;
                         };
                         let _ = tx.unbounded_send(state.into_connectivity());
-                        log::info!("Connectivity changed: Offline");
+                        tracing::info!("Connectivity changed: Offline");
                     }
 
                     if real_state.is_online() {
@@ -167,7 +170,7 @@ pub async fn spawn_monitor(
             }
         }
 
-        log::trace!("Offline monitor exiting");
+        tracing::trace!("Offline monitor exiting");
     });
 
     Ok(MonitorHandle {

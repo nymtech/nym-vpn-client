@@ -4163,6 +4163,14 @@ dependencies = [
 [[package]]
 name = "nym-offline"
 version = "1.2.0-dev"
+dependencies = [
+ "futures",
+ "nym-common",
+ "nym-routing",
+ "thiserror",
+ "tokio",
+ "tracing",
+]
 
 [[package]]
 name = "nym-ordered-buffer"
