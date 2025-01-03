@@ -4167,7 +4167,7 @@ dependencies = [
  "futures",
  "nym-common",
  "nym-routing",
- "thiserror",
+ "thiserror 1.0.69",
  "tokio",
  "tracing",
 ]
