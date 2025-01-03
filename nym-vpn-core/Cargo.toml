@@ -138,7 +138,7 @@ tap = "1.0.1"
 tempfile = "3.15"
 thiserror = "1.0.69"
 time = "0.3.37"
-tokio = { version = "1.42" }
+tokio = "1.42"
 tokio-stream = "0.1.17"
 tokio-util = { version = "0.7.13", features = ["codec"] }
 toml = "0.8"
