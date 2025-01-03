@@ -69,16 +69,22 @@ function NetworkModeSelect() {
   };
 
   const vpnModes = useMemo<RadioGroupOption<VpnMode>[]>(() => {
+    const iconStyle = (checked: boolean) =>
+      clsx(
+        'font-icon text-3xl',
+        checked
+          ? 'text-malachite-moss dark:text-malachite'
+          : 'text-baltic-sea dark:text-mercury-pinkish',
+      );
+
     return [
       {
         key: 'Mixnet',
         label: t('privacy-mode.title'),
         desc: t('privacy-mode.desc'),
         disabled: state.state !== 'Disconnected' || loading,
-        icon: (
-          <span className="font-icon text-3xl text-baltic-sea dark:text-mercury-pinkish">
-            visibility_off
-          </span>
+        icon: (checked) => (
+          <span className={iconStyle(checked)}>visibility_off</span>
         ),
       },
       {
@@ -86,11 +92,7 @@ function NetworkModeSelect() {
         label: t('fast-mode.title'),
         desc: t('fast-mode.desc'),
         disabled: state.state !== 'Disconnected' || loading,
-        icon: (
-          <span className="font-icon text-3xl text-baltic-sea dark:text-mercury-pinkish">
-            speed
-          </span>
-        ),
+        icon: (checked) => <span className={iconStyle(checked)}>speed</span>,
       },
     ];
   }, [loading, state.state, t]);

@@ -19,16 +19,15 @@ export default {
         // [D] button text
         DEFAULT: '#1C1B1F',
       },
-      // [DL] primary accent
-      melon: '#FB6E4E',
       // [DL] secondary accent
       cornflower: '#7075FF',
       // [DL] error status text
       teaberry: '#E33B5A',
-      'liquid-lava': '#F97316',
       comet: '#625B71',
-      // [DL] "Connected" status text
+      // [DL] Daemon dot 'Ok'
       'vert-menthe': '#2BC761',
+      // [DL] Daemon dot 'NonCompat'
+      'liquid-lava': '#F97316',
       // [DL] "Connected" status bg (combined with 10% opacity)
       'vert-prasin': '#47C45D',
       // [D] main titles text
@@ -85,6 +84,7 @@ export default {
 
       /// NEON-SKIN UPDATE //////////////////////////////
       // [D] main bg
+      // [L] NYM logo fg
       ash: '#242B2D',
       octave: {
         // [D] surface bg
@@ -95,7 +95,11 @@ export default {
       // [L] main bg
       'faded-lavender': '#EBEEF4',
       // [DL] Main accent
-      malachite: '#14E76F',
+      malachite: {
+        DEFAULT: '#14E76F',
+        // [L] link text, button ring
+        moss: '#0B8A42',
+      },
     },
     extend: {
       fontFamily: {

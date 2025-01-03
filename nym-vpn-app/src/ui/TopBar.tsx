@@ -10,7 +10,7 @@ import { useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { type } from '@tauri-apps/plugin-os';
-import { NymVpnTextLogoDark, NymVpnTextLogoLight } from '../assets';
+import { NymVpnTextLogo } from '../assets';
 import { useDialog, useMainState } from '../contexts';
 import { routes } from '../router';
 import { Routes } from '../types';
@@ -51,10 +51,13 @@ export default function TopBar() {
       // we don't show the logo since the native window-bar already shows it
       return null;
     }
-    return uiTheme === 'Light' ? (
-      <NymVpnTextLogoLight className="w-28 h-4" />
-    ) : (
-      <NymVpnTextLogoDark className="w-28 h-4" />
+    return (
+      <NymVpnTextLogo
+        className={clsx(
+          'w-24 h-6',
+          uiTheme === 'Dark' ? 'fill-white' : 'fill-ash',
+        )}
+      />
     );
   }, [os, uiTheme]);
 
@@ -217,9 +220,9 @@ export default function TopBar() {
       className={clsx([
         'flex flex-row flex-nowrap justify-between items-center shrink-0',
         'text-baltic-sea dark:text-mercury-pinkish',
-        'h-16 text-xl shadow z-30 select-none cursor-default',
+        'h-16 text-xl z-30 select-none cursor-default',
         currentNavLocation.noBackground
-          ? 'shadow-none dark:bg-ash bg-faded-lavender'
+          ? 'dark:bg-ash bg-faded-lavender'
           : 'dark:bg-octave-arsenic bg-white',
       ])}
       as="nav"

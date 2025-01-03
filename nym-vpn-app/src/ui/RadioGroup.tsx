@@ -14,7 +14,7 @@ export type RadioGroupOption<K extends Key> = {
   label: string;
   desc?: string;
   disabled?: boolean;
-  icon?: React.ReactNode;
+  icon?: React.ReactNode | ((checked: boolean) => React.ReactNode);
   cursor?: RadioGroupOptionCursor;
   // custom style applied to the container of the option
   className?: string;
@@ -49,7 +49,7 @@ function RadioGroup<K extends Key>({
   const checkedIcon = (checked: boolean) => {
     if (checked) {
       return (
-        <span className="font-icon text-2xl text-melon">
+        <span className="font-icon text-2xl dark:text-malachite">
           radio_button_checked
         </span>
       );
@@ -83,14 +83,17 @@ function RadioGroup<K extends Key>({
               value={option.key}
               className={({ checked }) =>
                 clsx([
-                  'bg-white dark:bg-octave-arsenic relative flex rounded-lg px-5 py-2 focus:outline-none',
-                  checked && 'border border-melon hover:border-melon',
-                  !checked &&
-                    'border border-white dark:border-baltic-sea-jaguar',
+                  'bg-white dark:bg-octave relative flex rounded-lg px-5 py-2 focus:outline-none',
+                  checked &&
+                    'border border-malachite-moss hover:border-malachite-moss',
+                  checked &&
+                    'dark:border-malachite hover:dark:border-malachite',
+                  !checked && 'border border-white dark:border-octave',
                   !option.disabled &&
                     !checked &&
-                    'hover:border-platinum dark:hover:border-baltic-sea-jaguar',
-                  !option.disabled && 'hover:bg-platinum dark:hover:bg-onyx',
+                    'hover:border-white/70 dark:hover:border-octave/70',
+                  !option.disabled &&
+                    'hover:bg-white/70 dark:hover:bg-octave/70',
                   'transition-noborder cursor-default',
                   option.tooltip && 'attach-tooltip',
                 ])
@@ -114,7 +117,9 @@ function RadioGroup<K extends Key>({
                       {radioIcons && checkedIcon(checked)}
                       {option.icon && (
                         <div className="w-7 flex justify-center items-center">
-                          {option.icon}
+                          {typeof option.icon === 'function'
+                            ? option.icon(checked)
+                            : option.icon}
                         </div>
                       )}
                       <div className="min-w-0 flex flex-col justify-center">

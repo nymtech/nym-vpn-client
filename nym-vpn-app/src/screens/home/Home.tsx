@@ -83,7 +83,7 @@ function Home() {
   const getButtonColor = () => {
     switch (state) {
       case 'Disconnected':
-        return 'melon';
+        return 'malachite';
       case 'Connecting':
         return 'gray';
       case 'Connected':

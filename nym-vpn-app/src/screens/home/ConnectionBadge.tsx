@@ -7,7 +7,10 @@ function ConnectionBadge({ state }: { state: ConnectionState }) {
   const { t } = useTranslation('home');
 
   const statusBadgeDynStyles = {
-    Connected: ['text-vert-menthe', 'bg-vert-prasin bg-opacity-10'],
+    Connected: [
+      'text-malachite-moss dark:text-malachite',
+      'bg-vert-prasin bg-opacity-10',
+    ],
     Disconnected: [
       'bg-cement-feet bg-opacity-10',
       'text-coal-mine-light',

@@ -13,7 +13,7 @@ function Switch({ checked, onChange, disabled }: SwitchProps) {
       checked={checked}
       onChange={onChange}
       className={clsx([
-        checked ? 'bg-melon' : 'bg-mercury-pinkish dark:bg-gun-powder',
+        checked ? 'bg-malachite' : 'bg-mercury-pinkish dark:bg-gun-powder',
         'relative inline-flex h-7 w-11 min-w-11 items-center rounded-full cursor-default',
       ])}
       disabled={disabled}

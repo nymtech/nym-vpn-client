@@ -7,7 +7,7 @@ type ButtonProps = {
   children: ReactNode;
   onClick: () => void;
   disabled?: boolean;
-  color?: 'melon' | 'cornflower' | 'gray';
+  color?: 'malachite' | 'cornflower' | 'gray';
   outline?: boolean;
   className?: string;
   spinner?: boolean;
@@ -31,18 +31,18 @@ function Button({
   onClick,
   children,
   disabled,
-  color = 'melon',
+  color = 'malachite',
   outline,
   className,
   spinner,
 }: ButtonProps) {
   const getColorStyle = () => {
     switch (color) {
-      case 'melon':
+      case 'malachite':
         if (outline) {
-          return 'border border-melon outline-melon';
+          return 'border border-malachite outline-malachite';
         } else {
-          return 'bg-melon';
+          return 'bg-malachite';
         }
       case 'gray':
         return 'bg-dim-gray dark:bg-dusty-grey';
@@ -56,11 +56,11 @@ function Button({
       className={clsx([
         'flex justify-center items-center w-full',
         'rounded-lg text-lg font-bold py-3 px-6',
-        'text-white dark:text-baltic-sea',
+        'text-black dark:text-baltic-sea',
         'focus:outline-none data-[focus]:ring-2 data-[focus]:ring-black data-[focus]:dark:ring-white',
         'transition data-[disabled]:opacity-60 data-[active]:ring-0',
         outline
-          ? 'data-[hover]:ring-1 data-[hover]:ring-melon'
+          ? 'data-[hover]:ring-1 data-[hover]:ring-malachite'
           : 'data-[hover]:opacity-80',
         'shadow tracking-normal cursor-default',
         getColorStyle(),

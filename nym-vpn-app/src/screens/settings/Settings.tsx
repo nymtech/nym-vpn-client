@@ -182,7 +182,7 @@ function Settings() {
             desc: (
               <span>
                 {`(${t('via', { ns: 'glossary' })} `}
-                <span className="text-melon">
+                <span className="text-malachite-moss dark:text-malachite">
                   {t('sentry', { ns: 'common' })}
                 </span>
                 {`), ${t('error-monitoring.desc', { ns: 'settings' })}`}
