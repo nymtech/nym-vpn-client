@@ -12,7 +12,10 @@
   "display-theme": "نمط العرض",
   "support": {
     "title": "الدعم",
-    "faq": "تحقق من الأسئلة الشائعة"
+    "faq": "تحقق من الأسئلة الشائعة",
+    "github": "إرسال مشكلة إلى GitHub",
+    "discord": "انضم إلينا على Discord",
+    "matrix": "انضم إلينا على Matrix"
   },
   "logs": {
     "title": "السجلات",
