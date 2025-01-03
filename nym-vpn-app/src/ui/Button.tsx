@@ -61,7 +61,7 @@ function Button({
         'transition data-[disabled]:opacity-60 data-[active]:ring-0',
         outline
           ? 'data-[hover]:ring-1 data-[hover]:ring-malachite'
-          : 'data-[hover]:opacity-80',
+          : 'data-[hover]:bg-opacity-75 data-[hover]:dark:bg-opacity-85',
         'shadow tracking-normal cursor-default',
         getColorStyle(),
         className && className,

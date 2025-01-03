@@ -35,7 +35,7 @@ function Dialog({ open, onClose, children }: DialogProps) {
             transition
             className={clsx([
               'text-base min-w-80 overflow-x-hidden',
-              'max-w-md rounded-xl bg-white dark:bg-oil p-6',
+              'max-w-md rounded-xl bg-white dark:bg-octave p-6',
               'flex flex-col items-center gap-6',
               'duration-150 ease-out data-[closed]:ease-out data-[closed]:opacity-0',
             ])}

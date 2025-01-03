@@ -49,7 +49,7 @@ function RadioGroup<K extends Key>({
   const checkedIcon = (checked: boolean) => {
     if (checked) {
       return (
-        <span className="font-icon text-2xl dark:text-malachite">
+        <span className="font-icon text-2xl text-malachite-moss dark:text-malachite">
           radio_button_checked
         </span>
       );
@@ -91,9 +91,9 @@ function RadioGroup<K extends Key>({
                   !checked && 'border border-white dark:border-octave',
                   !option.disabled &&
                     !checked &&
-                    'hover:border-white/70 dark:hover:border-octave/70',
+                    'hover:border-transparent dark:hover:border-octave/70',
                   !option.disabled &&
-                    'hover:bg-white/70 dark:hover:bg-octave/70',
+                    'hover:bg-white/50 dark:hover:bg-octave/70',
                   'transition-noborder cursor-default',
                   option.tooltip && 'attach-tooltip',
                 ])

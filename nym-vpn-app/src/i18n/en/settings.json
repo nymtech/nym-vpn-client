@@ -41,7 +41,7 @@
   "quit": "Quit NymVPN",
   "login-button": "Connect device",
   "info": {
-    "client-version": "Client version",
+    "client-version": "App version",
     "daemon-version": "Daemon version",
     "network-name": "Network",
     "account-id": "Account ID",

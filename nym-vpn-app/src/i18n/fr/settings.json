@@ -37,7 +37,7 @@
     "desc": "Copier ou supprimer les journaux"
   },
   "info": {
-    "client-version": "Version du client",
+    "client-version": "Version de l'app",
     "daemon-version": "Version du daemon",
     "network-name": "Réseau",
     "account-id": "ID du compte",
