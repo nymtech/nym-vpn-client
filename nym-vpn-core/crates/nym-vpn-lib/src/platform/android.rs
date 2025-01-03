@@ -13,5 +13,5 @@ pub(crate) fn init_logs(level: String) {
             .with_tag("libnymvpn")
             .with_filter(FilterBuilder::new().parse(levels.as_str()).build()),
     );
-    log::debug!("Logger initialized");
+    tracing::debug!("Logger initialized");
 }

@@ -152,7 +152,7 @@ fn config_interface(
 
     // Try to disable LLMNR on the interface
     if let Err(error) = adapter_key.set_value("EnableMulticast", &0u32) {
-        log::error!(
+        tracing::error!(
             "{}\nService: {service}",
             error.display_chain_with_msg("Failed to disable LLMNR on the tunnel interface")
         );

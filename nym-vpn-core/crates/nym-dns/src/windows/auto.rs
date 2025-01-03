@@ -92,7 +92,7 @@ impl DnsMonitor {
             _ => false,
         };
         if is_dnscache_error {
-            log::warn!("dnscache is not running? Falling back on tcpip method");
+            tracing::warn!("dnscache is not running? Falling back on tcpip method");
 
             match tcpip::DnsMonitor::new() {
                 Ok(mut tcpip) => {
@@ -103,7 +103,7 @@ impl DnsMonitor {
                     true
                 }
                 Err(error) => {
-                    log::error!("Failed to init tcpip DNS module: {error}");
+                    tracing::error!("Failed to init tcpip DNS module: {error}");
                     false
                 }
             }

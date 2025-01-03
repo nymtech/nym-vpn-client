@@ -50,7 +50,7 @@ impl SystemdResolved {
         self.tunnel_index = tunnel_index;
 
         if let Err(error) = self.dbus_interface.disable_dot(self.tunnel_index).await {
-            log::error!("Failed to disable DoT: {}", error.display_chain());
+            tracing::error!("Failed to disable DoT: {}", error.display_chain());
         }
 
         if let Err(error) = self
@@ -58,7 +58,7 @@ impl SystemdResolved {
             .set_domains(tunnel_index, &[(".", true)])
             .await
         {
-            log::error!("Failed to set search domains: {}", error.display_chain());
+            tracing::error!("Failed to set search domains: {}", error.display_chain());
         }
 
         let _ = self
@@ -75,7 +75,7 @@ impl SystemdResolved {
             .set_domains(self.tunnel_index, &[])
             .await
         {
-            log::error!("Failed to set search domains: {}", error.display_chain());
+            tracing::error!("Failed to set search domains: {}", error.display_chain());
         }
 
         let _ = self

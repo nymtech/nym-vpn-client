@@ -13,7 +13,7 @@ crate-type = ["cdylib", "lib", "staticlib"]
 
 [dependencies]
 thiserror.workspace = true
-log.workspace = true
+tracing.workspace = true
 parking_lot.workspace = true
 tokio.workspace = true
 futures.workspace = true

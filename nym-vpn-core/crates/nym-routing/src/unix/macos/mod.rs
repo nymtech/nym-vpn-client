@@ -147,7 +147,7 @@ impl RouteManagerImpl {
         // NOTE: This isn't race-free, as we're not listening for route changes before initializing
         self.update_best_default_route(interface::Family::V4)
             .unwrap_or_else(|error| {
-                log::error!(
+                tracing::error!(
                     "{}",
                     error.display_chain_with_msg("Failed to get initial default v4 route")
                 );
@@ -155,7 +155,7 @@ impl RouteManagerImpl {
             });
         self.update_best_default_route(interface::Family::V6)
             .unwrap_or_else(|error| {
-                log::error!(
+                tracing::error!(
                     "{}",
                     error.display_chain_with_msg("Failed to get initial default v6 route")
                 );
@@ -181,7 +181,7 @@ impl RouteManagerImpl {
                         continue;
                     }
                     if self.try_restore_default_routes().await {
-                        log::debug!("Unscoped routes were already restored");
+                        tracing::debug!("Unscoped routes were already restored");
                         self.check_default_routes_restored = Box::pin(futures::stream::pending());
                     }
                 }
@@ -222,15 +222,15 @@ impl RouteManagerImpl {
 
                         Some(RouteManagerCommand::AddRoutes(routes, tx)) => {
                             if !self.check_default_routes_restored.is_terminated() {
-                                log::debug!("Cancelling restoration of default routes");
+                                tracing::debug!("Cancelling restoration of default routes");
                                 self.check_default_routes_restored = Box::pin(futures::stream::pending());
                             }
-                            log::debug!("Adding routes: {routes:?}");
+                            tracing::debug!("Adding routes: {routes:?}");
                             let _ = tx.send(self.add_required_routes(routes).await);
                         }
                         Some(RouteManagerCommand::ClearRoutes) => {
                             if let Err(err) = self.cleanup_routes().await {
-                                log::error!("Failed to clean up rotues: {err}");
+                                tracing::error!("Failed to clean up rotues: {err}");
                             }
                         },
 
@@ -242,7 +242,7 @@ impl RouteManagerImpl {
 
                         Some(RouteManagerCommand::RefreshRoutes) => {
                             if let Err(error) = self.refresh_routes().await {
-                                log::error!("Failed to refresh routes: {error}");
+                                tracing::error!("Failed to refresh routes: {error}");
                             }
                         },
                         None => {
@@ -254,7 +254,7 @@ impl RouteManagerImpl {
         }
 
         if let Err(err) = self.cleanup_routes().await {
-            log::error!("Failed to clean up routing table when shutting down: {err}");
+            tracing::error!("Failed to clean up routing table when shutting down: {err}");
         }
 
         self.update_trigger.stop_nonblocking();
@@ -313,12 +313,12 @@ impl RouteManagerImpl {
                     Some(link_addr) => RouteMessage::new_route(Destination::from(route.prefix))
                         .set_gateway_sockaddr(*link_addr),
                     None => {
-                        log::error!("Route with unknown device: {route:?}, {device}");
+                        tracing::error!("Route with unknown device: {route:?}, {device}");
                         continue;
                     }
                 }
             } else {
-                log::error!("Specifying gateway by IP rather than device is unimplemented");
+                tracing::error!("Specifying gateway by IP rather than device is unimplemented");
                 continue;
             };
 
@@ -366,7 +366,7 @@ impl RouteManagerImpl {
                         self.applied_routes.remove(&destination);
                     }
                     Err(err) => {
-                        log::error!("Failed to process deleted route: {err}");
+                        tracing::error!("Failed to process deleted route: {err}");
                     }
                 }
                 if route.errno() != 0 {
@@ -392,7 +392,7 @@ impl RouteManagerImpl {
             }
             Ok(RouteSocketMessage::Interface(iface)) => {
                 let Ok(mtu) = u16::try_from(iface.mtu()) else {
-                    log::warn!("Invalid mtu for interface: {}", iface.index());
+                    tracing::warn!("Invalid mtu for interface: {}", iface.index());
                     return;
                 };
 
@@ -407,7 +407,7 @@ impl RouteManagerImpl {
             // ignore all other message types
             Ok(_) => {}
             Err(err) => {
-                log::error!(
+                tracing::error!(
                     "{}",
                     err.display_chain_with_msg(
                         "Failed to receive a message from the routing table"
@@ -471,7 +471,7 @@ impl RouteManagerImpl {
 
         let current_route = get_current_best_default_route!(self, family);
 
-        log::trace!("Best route ({family:?}): {best_route:?}");
+        tracing::trace!("Best route ({family:?}): {best_route:?}");
         if best_route == *current_route {
             return Ok(false);
         }
@@ -484,7 +484,7 @@ impl RouteManagerImpl {
         let new_pair = best_route
             .as_ref()
             .map(|r| (r.interface_index, r.router_ip));
-        log::debug!("Best default route ({family}) changed from {old_pair:?} to {new_pair:?}");
+        tracing::debug!("Best default route ({family}) changed from {old_pair:?} to {new_pair:?}");
         let _ = std::mem::replace(current_route, best_route);
 
         let changed = current_route.is_some();
@@ -553,7 +553,7 @@ impl RouteManagerImpl {
                     .map(|addr| Some(addr) != tun_gateway_link_addr)
                     .unwrap_or(true)
                 {
-                    log::trace!("Removing existing unscoped default route");
+                    tracing::trace!("Removing existing unscoped default route");
                     let _ = self.routing_table.delete_route(&msg).await;
                 } else if !old_route.is_ifscope() {
                     // NOTE: Skipping route
@@ -561,7 +561,7 @@ impl RouteManagerImpl {
                 }
             }
 
-            log::debug!("Adding default route for tunnel");
+            tracing::debug!("Adding default route for tunnel");
             self.add_route_with_record(tunnel_route).await?;
         }
 
@@ -620,7 +620,7 @@ impl RouteManagerImpl {
         let default_route = RouteMessage::from(default_route.clone());
         let new_route = default_route.set_ifscope(interface_index);
 
-        log::trace!("Setting ifscope: {new_route:?}");
+        tracing::trace!("Setting ifscope: {new_route:?}");
 
         self.add_route_with_record(new_route).await
     }
@@ -669,11 +669,11 @@ impl RouteManagerImpl {
         });
 
         for route in deleted_routes {
-            log::trace!("Removing route: {route:?}");
+            tracing::trace!("Removing route: {route:?}");
             match self.routing_table.delete_route(&route).await {
                 Ok(_) | Err(watch::Error::RouteNotFound) | Err(watch::Error::Unreachable) => (),
                 Err(err) => {
-                    log::error!("Failed to remove relay route: {err:?}");
+                    tracing::error!("Failed to remove relay route: {err:?}");
                 }
             }
         }
@@ -730,7 +730,7 @@ impl RouteManagerImpl {
         };
 
         if let Err(error) = self.routing_table.add_route(&desired_default_route).await {
-            log::trace!("Failed to add unscoped default {family} route: {error}");
+            tracing::trace!("Failed to add unscoped default {family} route: {error}");
         }
 
         self.update_trigger.trigger();

@@ -55,7 +55,7 @@ impl Drop for CallbackHandle {
         match callbacks.remove(&self.nonce) {
             Some(_) => (),
             None => {
-                log::warn!("Could not un-register route manager callback due to it already being de-registered");
+                tracing::warn!("Could not un-register route manager callback due to it already being de-registered");
             }
         }
     }
@@ -222,7 +222,7 @@ impl RouteManagerInternal {
         }
 
         win32_err!(status).map_err(|e| {
-            log::error!("Could not register route in routing table");
+            tracing::error!("Could not register route in routing table");
             Error::AddToRouteTable(e)
         })?;
 
@@ -247,7 +247,7 @@ impl RouteManagerInternal {
                 let default_route = get_best_default_route(family)?;
                 match default_route {
                     None => {
-                        log::error!("Unable to determine details of default route");
+                        tracing::error!("Unable to determine details of default route");
                         Err(Error::NoDefaultRoute)
                     }
                     Some(default_route) => Ok(default_route),
@@ -264,7 +264,7 @@ impl RouteManagerInternal {
                             if let Err(e) = win32_err!(unsafe {
                                 ConvertInterfaceAliasToLuid(device_name.as_ptr(), &mut luid)
                             }) {
-                                log::error!("Unable to get interface LUID for interface \"{device_name:?}\": {e}");
+                                tracing::error!("Unable to get interface LUID for interface \"{device_name:?}\": {e}");
                                 return Err(Error::DeviceNameNotFound);
                             } else {
                                 luid
@@ -351,11 +351,13 @@ impl RouteManagerInternal {
         match win32_err!(unsafe { DeleteIpForwardEntry2(&r) }) {
             Ok(()) => Ok(()),
             Err(e) if e.raw_os_error() == Some(ERROR_NOT_FOUND as i32) => {
-                log::warn!("Attempting to delete route which was not present in routing table, ignoring and proceeding. Route: {route}");
+                tracing::warn!("Attempting to delete route which was not present in routing table, ignoring and proceeding. Route: {route}");
                 Ok(())
             }
             Err(e) => {
-                log::error!("Failed to delete route in routing table. Route: {route}, Error: {e}");
+                tracing::error!(
+                    "Failed to delete route in routing table. Route: {route}, Error: {e}"
+                );
                 Err(Error::DeleteFromRouteTable(e))
             }
         }
@@ -381,7 +383,7 @@ impl RouteManagerInternal {
         // valid IP address and family. At least one of InterfaceLuid and InterfaceIndex must be set
         // to the interface.
         win32_err!(unsafe { CreateIpForwardEntry2(&spec) }).map_err(|e| {
-            log::error!("Could not register route in routing table. Route: {route}");
+            tracing::error!("Could not register route in routing table. Route: {route}");
             Error::AddToRouteTable(e)
         })?;
         Ok(())
@@ -404,13 +406,13 @@ impl RouteManagerInternal {
         let luid = NET_LUID_LH {
             Value: u64::from_str_radix(
                 &encoded_luid.to_string().map_err(|_| {
-                    log::error!("Failed to parse string encoded LUID: {:?}", encoded_luid);
+                    tracing::error!("Failed to parse string encoded LUID: {:?}", encoded_luid);
                     Error::Conversion
                 })?[1..],
                 16,
             )
             .map_err(|_| {
-                log::error!("Failed to parse string encoded LUID: {:?}", encoded_luid);
+                tracing::error!("Failed to parse string encoded LUID: {:?}", encoded_luid);
                 Error::Conversion
             })?,
         };
@@ -425,7 +427,7 @@ impl RouteManagerInternal {
 
         for record in (*routes).iter() {
             if Self::delete_from_routing_table(&record.registered_route).is_err() {
-                log::error!(
+                tracing::error!(
                     "Failed to delete route while clearing applied routes, {}",
                     record.registered_route
                 );
@@ -494,7 +496,7 @@ impl RouteManagerInternal {
         // Update all affected routes.
         //
 
-        log::info!("Best default route has changed. Refreshing dependent routes");
+        tracing::info!("Best default route has changed. Refreshing dependent routes");
 
         for affected_route in affected_routes {
             // We can't update the existing route because defining characteristics are being
@@ -502,7 +504,7 @@ impl RouteManagerInternal {
             //
 
             if let Err(error) = Self::delete_from_routing_table(&affected_route.registered_route) {
-                log::error!(
+                tracing::error!(
                     "Failed to delete route when refreshing existing routes: {}",
                     error
                 );
@@ -513,7 +515,7 @@ impl RouteManagerInternal {
             affected_route.registered_route.next_hop = route.gateway;
 
             if let Err(error) = Self::restore_into_routing_table(&affected_route.registered_route) {
-                log::error!(
+                tracing::error!(
                     "Failed to add route when refreshing existing routes: {}",
                     error
                 );
@@ -531,7 +533,7 @@ impl Drop for RouteManagerInternal {
         match self.delete_applied_routes() {
             Ok(()) => (),
             Err(e) => {
-                log::error!("Failed to correctly drop RouteManagerInternal {}", e)
+                tracing::error!("Failed to correctly drop RouteManagerInternal {}", e)
             }
         }
     }
@@ -592,7 +594,7 @@ fn interface_luid_from_gateway(gateway: &SOCKADDR_INET) -> Result<NET_LUID_LH> {
         .first()
         .map(|interface| interface.Luid)
         .ok_or_else(|| {
-            log::error!("Unable to find network adapter with specified gateway");
+            tracing::error!("Unable to find network adapter with specified gateway");
             Error::DeviceGatewayNotFound
         })
 }
@@ -675,7 +677,7 @@ fn equal_address(lhs: &SOCKADDR_INET, rhs: &SOCKET_ADDRESS) -> Result<bool> {
             Ok(unsafe { lhs.Ipv6.sin6_addr.u.Byte == (*typed_rhs).sin6_addr.u.Byte })
         }
         _ => {
-            log::error!("Missing case handler in match");
+            tracing::error!("Missing case handler in match");
             Err(Error::InvalidSiFamily)
         }
     }
@@ -732,7 +734,7 @@ impl Adapters {
             }
 
             if ERROR_BUFFER_OVERFLOW != status {
-                log::error!("Probe required buffer size for GetAdaptersAddresses");
+                tracing::error!("Probe required buffer size for GetAdaptersAddresses");
                 return Err(Error::Adapter(io::Error::from_raw_os_error(
                     i32::try_from(status).unwrap(),
                 )));
@@ -760,7 +762,7 @@ impl Adapters {
         let code_size = u32::try_from(std::mem::size_of::<IP_ADAPTER_ADDRESSES_LH>()).unwrap();
 
         if system_size < code_size {
-            log::error!("Expecting IP_ADAPTER_ADDRESSES to have size {code_size} bytes. Found structure with size {system_size} bytes.");
+            tracing::error!("Expecting IP_ADAPTER_ADDRESSES to have size {code_size} bytes. Found structure with size {system_size} bytes.");
             return Err(Error::Adapter(io::Error::new(io::ErrorKind::Other,
                 format!("Expecting IP_ADAPTER_ADDRESSES to have size {code_size} bytes. Found structure with size {system_size} bytes."))));
         }

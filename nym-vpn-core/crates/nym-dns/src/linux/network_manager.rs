@@ -51,7 +51,7 @@ impl NetworkManager {
             }
             return Ok(());
         }
-        log::trace!("No DNS settings to reset");
+        tracing::trace!("No DNS settings to reset");
         Ok(())
     }
 }

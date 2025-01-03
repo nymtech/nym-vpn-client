@@ -3504,8 +3504,8 @@ name = "nym-common"
 version = "1.2.0-dev"
 dependencies = [
  "libc",
- "log",
  "thiserror 1.0.69",
+ "tracing",
  "windows-sys 0.52.0",
 ]
 
@@ -3717,9 +3717,9 @@ version = "1.2.0-dev"
 dependencies = [
  "dbus",
  "libc",
- "log",
  "thiserror 1.0.69",
  "tokio",
+ "tracing",
 ]
 
 [[package]]
@@ -3729,7 +3729,6 @@ dependencies = [
  "duct",
  "futures",
  "inotify",
- "log",
  "nym-common",
  "nym-dbus",
  "nym-routing",
@@ -3740,6 +3739,7 @@ dependencies = [
  "system-configuration 0.6.1",
  "thiserror 1.0.69",
  "tokio",
+ "tracing",
  "triggered",
  "which",
  "windows-sys 0.52.0",
@@ -3883,7 +3883,6 @@ dependencies = [
  "dns-lookup",
  "futures",
  "hex",
- "log",
  "nym-authenticator-client",
  "nym-authenticator-requests",
  "nym-bin-common",
@@ -4208,7 +4207,6 @@ dependencies = [
  "futures",
  "ipnetwork",
  "libc",
- "log",
  "netlink-packet-core",
  "netlink-packet-route 0.19.0",
  "netlink-sys",
@@ -4219,6 +4217,7 @@ dependencies = [
  "system-configuration 0.6.1",
  "thiserror 1.0.69",
  "tokio",
+ "tracing",
  "widestring",
  "windows-sys 0.52.0",
 ]

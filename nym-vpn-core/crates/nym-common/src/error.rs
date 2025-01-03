@@ -74,9 +74,6 @@ macro_rules! win32_err {
 }
 
 pub mod flood {
-    #[doc(hidden)]
-    pub use log;
-
     use std::time::{Duration, Instant};
 
     const CALLS_INTERVAL: Duration = Duration::from_secs(5);
@@ -90,12 +87,7 @@ pub mod flood {
             static FLOOD: ::std::sync::Mutex<$crate::flood::DetectFlood> =
                 ::std::sync::Mutex::new($crate::flood::DetectFlood::new());
             if FLOOD.lock().unwrap().bump() {
-                $crate::flood::log::warn!(
-                    "Flood: {}, line {}, col {}",
-                    file!(),
-                    line!(),
-                    column!()
-                );
+                ::tracing::warn!("Flood: {}, line {}, col {}", file!(), line!(), column!());
             }
         }};
     }

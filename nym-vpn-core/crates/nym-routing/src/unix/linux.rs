@@ -246,7 +246,7 @@ impl RouteManagerImpl {
                     }
                 }
                 if contains_nlas {
-                    log::trace!("Existing routing rule matched: {:?}", found_rule);
+                    tracing::trace!("Existing routing rule matched: {:?}", found_rule);
                     matching_rule = Some(found_rule);
                     break;
                 }
@@ -351,7 +351,7 @@ impl RouteManagerImpl {
     async fn cleanup_routes(&mut self) {
         for route in self.added_routes.drain().collect::<Vec<_>>().iter() {
             if let Err(e) = self.delete_route_if_exists(route).await {
-                log::error!("Failed to remove route: {}: {}", route, e);
+                tracing::error!("Failed to remove route: {}: {}", route, e);
             }
         }
     }
@@ -368,7 +368,7 @@ impl RouteManagerImpl {
                 },
                 (route_change, _socket) = self.messages.select_next_some().fuse() => {
                     if let Err(error) = self.process_netlink_message(route_change) {
-                        log::error!("{}", error.display_chain_with_msg("Failed to process netlink message"));
+                        tracing::error!("{}", error.display_chain_with_msg("Failed to process netlink message"));
                     }
                 }
             };
@@ -378,14 +378,14 @@ impl RouteManagerImpl {
     async fn process_command(&mut self, command: RouteManagerCommand) -> Result<()> {
         match command {
             RouteManagerCommand::Shutdown(shutdown_signal) => {
-                log::trace!("Shutting down route manager");
+                tracing::trace!("Shutting down route manager");
                 self.destructor().await;
-                log::trace!("Route manager done");
+                tracing::trace!("Route manager done");
                 let _ = shutdown_signal.send(());
                 return Err(Error::Shutdown);
             }
             RouteManagerCommand::AddRoutes(routes, result_tx) => {
-                log::debug!("Adding routes: {:?}", routes);
+                tracing::debug!("Adding routes: {:?}", routes);
                 let _ = result_tx.send(self.add_required_routes(routes.clone()).await);
             }
             RouteManagerCommand::CreateRoutingRules(enable_ipv6, result_tx) => {
@@ -404,7 +404,7 @@ impl RouteManagerImpl {
                 let _ = result_tx.send(self.get_mtu_for_route(ip).await);
             }
             RouteManagerCommand::ClearRoutes => {
-                log::debug!("Clearing routes");
+                tracing::debug!("Clearing routes");
                 self.cleanup_routes().await;
             }
         }
@@ -452,7 +452,7 @@ impl RouteManagerImpl {
             AddressFamily::Inet => true,
             AddressFamily::Inet6 => false,
             af_spec => {
-                log::error!("Unexpected routing protocol: {:?}", af_spec);
+                tracing::error!("Unexpected routing protocol: {:?}", af_spec);
                 return Ok(None);
             }
         };
@@ -763,7 +763,7 @@ impl RouteManagerImpl {
         self.cleanup_routes().await;
 
         if let Err(error) = self.clear_routing_rules().await {
-            log::error!(
+            tracing::error!(
                 "{}",
                 error.display_chain_with_msg("Failed to remove routing rules")
             );
@@ -788,7 +788,7 @@ impl RouteManagerImpl {
                         (Some(device), _) => {
                             let mtu = self.get_device_mtu(device.to_string()).await?;
                             if mtu != STANDARD_MTU {
-                                log::info!(
+                                tracing::info!(
                                     "Found MTU: {} on device {} which is different from the standard {}",
                                     mtu,
                                     device,
@@ -799,18 +799,20 @@ impl RouteManagerImpl {
                         }
                         (None, Some(address)) => attempted_ip = address,
                         (None, None) => {
-                            log::error!("Route contains an invalid node which lacks both a device and an address");
+                            tracing::error!("Route contains an invalid node which lacks both a device and an address");
                             return Err(Error::InvalidRouteNode);
                         }
                     }
                 }
                 None => {
-                    log::error!("No route detected when assigning the mtu to the Wireguard tunnel");
+                    tracing::error!(
+                        "No route detected when assigning the mtu to the Wireguard tunnel"
+                    );
                     return Err(Error::NoRoute);
                 }
             }
         }
-        log::error!(
+        tracing::error!(
             "Retried {} times looking for the correct device and could not find it",
             RECURSION_LIMIT
         );
