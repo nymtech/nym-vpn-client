@@ -9,7 +9,10 @@
   },
   "support": {
     "title": "Soporte",
-    "faq": "Consulta las preguntas frecuentes"
+    "faq": "Consulta las preguntas frecuentes",
+    "github": "Abrir un ticket en GitHub",
+    "matrix": "Únete en Matrix",
+    "discord": "Únete en Discord"
   },
   "legal": {
     "title": "Legal",
