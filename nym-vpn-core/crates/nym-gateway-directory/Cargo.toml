@@ -23,7 +23,7 @@ nym-vpn-api-client = { path = "../nym-vpn-api-client" }
 rand.workspace = true
 serde.workspace = true
 thiserror.workspace = true
-tokio = { workspace = true }
+tokio.workspace = true
 tokio-tungstenite = { version = "0.26.1" }
 tungstenite = { version = "0.26.1" }
 tracing.workspace = true

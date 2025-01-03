@@ -7,10 +7,10 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
-thiserror = { workspace = true }
-futures = { workspace = true }
-ipnetwork = { workspace = true }
-log = { workspace = true }
+thiserror.workspace = true
+futures.workspace = true
+ipnetwork.workspace = true
+log.workspace = true
 tokio = { workspace = true, features = [
     "process",
     "rt-multi-thread",

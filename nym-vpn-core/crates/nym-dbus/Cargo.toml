@@ -7,8 +7,8 @@ edition.workspace = true
 version.workspace = true
 
 [target.'cfg(target_os = "linux")'.dependencies]
-dbus = { workspace = true }
-libc = { workspace = true }
-log = { workspace = true }
-thiserror = { workspace = true }
+dbus.workspace = true
+libc.workspace = true
+log.workspace = true
+thiserror.workspace = true
 tokio = { workspace = true, features = ["rt"] }

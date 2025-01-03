@@ -15,7 +15,7 @@ nym-crypto.workspace = true
 nym-service-provider-requests-common.workspace = true
 nym-sdk.workspace = true
 nym-wireguard-types.workspace = true
-bincode = { workspace = true }
+bincode.workspace = true
 serde = { workspace = true, features = ["derive"] }
 tracing.workspace = true
 thiserror.workspace = true
