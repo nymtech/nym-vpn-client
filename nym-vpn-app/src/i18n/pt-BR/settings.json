@@ -7,13 +7,6 @@
     "title": "Relatórios de erros anônimos",
     "desc": "aplica-se ao reiniciar o aplicativo"
   },
-  "feedback": {
-    "title": "Comentário",
-    "github": "Abrir um problema no GitHub",
-    "matrix": "Junte-se a nós no Matrix",
-    "discord": "Junte-se a nós no Discord",
-    "get-in-touch": "Entre em contato"
-  },
   "support": {
     "title": "Suporte",
     "faq": "Verifique as perguntas frequentes"

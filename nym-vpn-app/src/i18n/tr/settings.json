@@ -9,13 +9,6 @@
     "title": "Anonim hata raporları",
     "desc": "uygulama yeniden başlatıldığında geçerlidir"
   },
-  "feedback": {
-    "title": "Geri bildirim",
-    "github": "GitHub hata raporu açın",
-    "matrix": "Matrix'te bize katılın",
-    "discord": "Discord'da bize katılın",
-    "get-in-touch": "İletişime geçin"
-  },
   "support": {
     "title": "Destek",
     "faq": "SSS'i kontrol edin"

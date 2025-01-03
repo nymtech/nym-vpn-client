@@ -31,13 +31,6 @@
     "title": "إشعارات سطح المكتب"
   },
   "monitoring-alert": "يجب أن تعيد تشغيل التطبيق لتصبح التغييرات سارية المفعول.",
-  "feedback": {
-    "title": "ملاحظات",
-    "github": "افتح مشكلة على GitHub",
-    "matrix": "انضم إلينا على ماتريكس",
-    "discord": "انضم إلينا على ديسكورد (Discord)",
-    "get-in-touch": "اتصل بنا"
-  },
   "info": {
     "client-version": "نسخة العميل",
     "daemon-version": "نسخة الديمن",
