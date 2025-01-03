@@ -77,7 +77,7 @@ impl IphlpApi {
     fn new() -> Result<Self, Error> {
         let module = unsafe { LoadLibraryExW(w!("iphlpapi.dll"), 0, LOAD_LIBRARY_SEARCH_SYSTEM32) };
         if module == 0 {
-            log::error!("Failed to load iphlpapi.dll");
+            tracing::error!("Failed to load iphlpapi.dll");
             return Err(Error::LoadDll(io::Error::last_os_error()));
         }
 
@@ -90,7 +90,7 @@ impl IphlpApi {
             let error = io::Error::last_os_error();
 
             if error.raw_os_error() != Some(ERROR_PROC_NOT_FOUND as i32) {
-                log::error!(
+                tracing::error!(
                     "Could not find SetInterfaceDnsSettings due to an unexpected error: {error}"
                 );
             }

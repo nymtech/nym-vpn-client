@@ -239,13 +239,13 @@ pub async fn connect_mixnet(
 }
 
 async fn shutdown_task_manager(mut task_manager: TaskManager) {
-    log::debug!("Shutting down task manager");
+    tracing::debug!("Shutting down task manager");
     if task_manager.signal_shutdown().is_err() {
-        log::error!("Failed to signal task manager shutdown");
+        tracing::error!("Failed to signal task manager shutdown");
     }
 
     task_manager.wait_for_shutdown().await;
-    log::debug!("Task manager finished");
+    tracing::debug!("Task manager finished");
 }
 
 #[derive(Debug, thiserror::Error)]

@@ -69,12 +69,12 @@ impl DnsApi {
             let result = if unsafe { (DnsFlushResolverCache)() } != 0 {
                 let elapsed = begin.elapsed();
                 if elapsed >= FLUSH_TIMEOUT {
-                    log::warn!(
+                    tracing::warn!(
                         "Flushing system DNS cache took {} seconds",
                         elapsed.as_secs()
                     );
                 } else {
-                    log::debug!("Flushed system DNS cache");
+                    tracing::debug!("Flushed system DNS cache");
                 }
                 Ok(())
             } else {

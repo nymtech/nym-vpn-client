@@ -134,7 +134,7 @@ impl NetworkManager {
         let tunnel = self.create_wg_tunnel_inner(config)?;
         if let Err(err) = self.wait_until_device_is_ready(&tunnel.device_path) {
             if let Err(removal_error) = self.remove_tunnel(tunnel) {
-                log::error!(
+                tracing::error!(
                     "Failed to remove WireGuard tunnel after it not becoming ready fast enough: {}",
                     removal_error
                 );
@@ -165,7 +165,7 @@ impl NetworkManager {
                 self.add_connection_unsaved(config)?.0
             }
             Err(err) => {
-                log::error!(
+                tracing::error!(
                     "Failed to create a new interface via AddConnection2: {}",
                     err
                 );
@@ -295,7 +295,7 @@ impl NetworkManager {
                     .add_match(
                         match_rule,
                         move |state_change: DeviceStateChange, _connection, _message| {
-                            log::debug!("Received new tunnel state change: {:?}", state_change);
+                            tracing::debug!("Received new tunnel state change: {:?}", state_change);
                             let new_state = state_change.new_state;
                             shared_device_state.store(new_state, Ordering::Release);
                             true
@@ -306,7 +306,7 @@ impl NetworkManager {
                     && !device_is_ready(device_state.load(Ordering::Acquire))
                 {
                     if let Err(err) = self.connection.process(RPC_TIMEOUT) {
-                        log::error!(
+                        tracing::error!(
                             "DBus connection failed while waiting for device to be ready: {}",
                             err
                         );
@@ -314,7 +314,7 @@ impl NetworkManager {
                 }
 
                 if let Err(err) = self.connection.remove_match(device_matcher) {
-                    log::error!("Failed to remove match from DBus connection: {}", err);
+                    tracing::error!("Failed to remove match from DBus connection: {}", err);
                 }
             }
 
@@ -355,7 +355,7 @@ impl NetworkManager {
         match nm_manager.get(NM_MANAGER, CONNECTIVITY_CHECK_KEY) {
             Ok(true) => {
                 if let Err(err) = nm_manager.set(NM_MANAGER, CONNECTIVITY_CHECK_KEY, false) {
-                    log::error!(
+                    tracing::error!(
                         "Failed to disable NetworkManager connectivity check: {}",
                         err
                     );
@@ -375,7 +375,7 @@ impl NetworkManager {
             .nm_manager()
             .set(NM_MANAGER, CONNECTIVITY_CHECK_KEY, true)
         {
-            log::error!("Failed to reset NetworkManager connectivity check: {}", err);
+            tracing::error!("Failed to reset NetworkManager connectivity check: {}", err);
         }
     }
 
@@ -390,7 +390,7 @@ impl NetworkManager {
         {
             Ok(_) => Ok(()),
             Err(err) => {
-                log::error!("Failed to read version of NetworkManager {}", err);
+                tracing::error!("Failed to read version of NetworkManager {}", err);
                 Err(Error::NetworkManagerNotDetected)
             }
         }
@@ -432,7 +432,7 @@ impl NetworkManager {
         };
 
         if !verify_etc_resolv_conf_contents() {
-            log::debug!("/etc/resolv.conf differs from reference resolv.conf, therefore NM is not managing DNS");
+            tracing::debug!("/etc/resolv.conf differs from reference resolv.conf, therefore NM is not managing DNS");
             return Err(Error::NetworkManagerNotManagingDns);
         }
 
@@ -564,7 +564,7 @@ impl NetworkManager {
 
         if let Some(wg_config) = settings.get_mut("wireguard") {
             if !wg_config.contains_key("fwmark") {
-                log::error!("WireGuard config doesn't contain the firewall mark");
+                tracing::error!("WireGuard config doesn't contain the firewall mark");
             }
         }
 
@@ -721,14 +721,14 @@ fn eq_file_content<P: AsRef<Path>>(a: &P, b: &P) -> bool {
     let file_a = match File::open(a).map(BufReader::new) {
         Ok(file) => file,
         Err(e) => {
-            log::debug!("Failed to open file {}: {}", a.as_ref().display(), e);
+            tracing::debug!("Failed to open file {}: {}", a.as_ref().display(), e);
             return false;
         }
     };
     let file_b = match File::open(b).map(BufReader::new) {
         Ok(file) => file,
         Err(e) => {
-            log::debug!("Failed to open file {}: {}", b.as_ref().display(), e);
+            tracing::debug!("Failed to open file {}: {}", b.as_ref().display(), e);
             return false;
         }
     };

@@ -134,7 +134,7 @@ impl PrimaryInterfaceMonitor {
             let watch_patterns = CFArray::from_CFTypes(&[CFString::new(STATE_SERVICE_PATTERN)]);
 
             if !listener_store.set_notification_keys(&watch_keys, &watch_patterns) {
-                log::error!("Failed to start interface listener");
+                tracing::error!("Failed to start interface listener");
                 return;
             }
 
@@ -142,7 +142,7 @@ impl PrimaryInterfaceMonitor {
             CFRunLoop::get_current().add_source(&run_loop_source, unsafe { kCFRunLoopCommonModes });
             CFRunLoop::run_current();
 
-            log::debug!("Interface listener exiting");
+            tracing::debug!("Interface listener exiting");
         });
     }
 
@@ -152,7 +152,7 @@ impl PrimaryInterfaceMonitor {
         tx: &mut UnboundedSender<InterfaceEvent>,
     ) {
         for k in changed_keys.iter() {
-            log::debug!("Interface change, key {}", k.to_string());
+            tracing::debug!("Interface change, key {}", k.to_string());
         }
         let _ = tx.unbounded_send(InterfaceEvent::Update);
     }
@@ -163,7 +163,7 @@ impl PrimaryInterfaceMonitor {
         let ifaces = self
             .get_primary_interface(family)
             .map(|iface| {
-                log::debug!("Found primary interface for {family}");
+                tracing::debug!("Found primary interface for {family}");
                 vec![iface]
             })
             .unwrap_or_else(|| self.network_services(family));
@@ -173,7 +173,7 @@ impl PrimaryInterfaceMonitor {
             .filter_map(|iface| {
                 let index = if_nametoindex(iface.name.as_str())
                     .inspect_err(|error| {
-                        log::error!(
+                        tracing::error!(
                             "Failed to retrieve interface index for \"{}\": {error}",
                             iface.name
                         );
@@ -224,15 +224,15 @@ impl PrimaryInterfaceMonitor {
             kSCDynamicStorePropNetPrimaryInterface
         })
         .or_else(|| {
-            log::debug!("Missing name for primary interface ({family})");
+            tracing::debug!("Missing name for primary interface ({family})");
             None
         })?;
         let router_ip = get_service_router_ip(&global_dict, family).or_else(|| {
-            log::debug!("Missing router IP for primary interface ({name}, {family})");
+            tracing::debug!("Missing router IP for primary interface ({name}, {family})");
             None
         })?;
         let first_ip = get_service_first_ip(&global_dict, family).or_else(|| {
-            log::debug!("Missing IP for primary interface ({name}, {family})");
+            tracing::debug!("Missing IP for primary interface ({name}, {family})");
             None
         })?;
         Some(NetworkServiceDetails {
@@ -259,15 +259,15 @@ impl PrimaryInterfaceMonitor {
                     .and_then(|v| v.downcast_into::<CFDictionary>())?;
                 let name = get_dict_elem_as_string(&service_dict, unsafe { kSCPropInterfaceName })
                     .or_else(|| {
-                        log::debug!("Missing name for service {service_key} ({family})");
+                        tracing::debug!("Missing name for service {service_key} ({family})");
                         None
                     })?;
                 let router_ip = get_service_router_ip(&service_dict, family).or_else(|| {
-                    log::debug!("Missing router IP for {service_key} ({name}, {family})");
+                    tracing::debug!("Missing router IP for {service_key} ({name}, {family})");
                     None
                 })?;
                 let first_ip = get_service_first_ip(&service_dict, family).or_else(|| {
-                    log::debug!("Missing IP for \"{service_key}\" ({name}, {family})");
+                    tracing::debug!("Missing IP for \"{service_key}\" ({name}, {family})");
                     None
                 })?;
                 Some(NetworkServiceDetails {
@@ -281,11 +281,11 @@ impl PrimaryInterfaceMonitor {
 
     pub fn debug(&self) {
         for family in [Family::V4, Family::V6] {
-            log::debug!(
+            tracing::debug!(
                 "Primary interface ({family}): {:?}",
                 self.get_primary_interface(family)
             );
-            log::debug!(
+            tracing::debug!(
                 "Network services ({family}): {:?}",
                 self.network_services(family)
             );

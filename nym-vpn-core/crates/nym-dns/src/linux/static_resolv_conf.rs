@@ -159,7 +159,7 @@ impl DnsWatcher {
                 Some(_) = events.next() => {
                     let mut locked_state = state.lock();
                     if let Err(error) = Self::update(locked_state.as_mut()) {
-                        log::error!(
+                        tracing::error!(
                             "{}",
                             error.display_chain_with_msg(
                                 "Failed to update DNS state after DNS settings changed"
@@ -223,7 +223,7 @@ fn write_backup(backup: &Config) -> Result<()> {
 fn restore_from_backup() -> Result<()> {
     match fs::read_to_string(RESOLV_CONF_BACKUP_PATH) {
         Ok(backup) => {
-            log::info!("Restoring DNS state from backup");
+            tracing::info!("Restoring DNS state from backup");
             let config =
                 Config::parse(backup).map_err(|e| Error::Parse(RESOLV_CONF_BACKUP_PATH, e))?;
 
@@ -233,7 +233,7 @@ fn restore_from_backup() -> Result<()> {
                 .map_err(|e| Error::RemoveBackup(RESOLV_CONF_BACKUP_PATH, e))
         }
         Err(ref error) if error.kind() == io::ErrorKind::NotFound => {
-            log::debug!("No DNS state backup to restore");
+            tracing::debug!("No DNS state backup to restore");
             Ok(())
         }
         Err(error) => Err(Error::ReadResolvConf(RESOLV_CONF_BACKUP_PATH, error)),

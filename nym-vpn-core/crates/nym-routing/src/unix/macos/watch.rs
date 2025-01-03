@@ -64,7 +64,7 @@ impl RoutingTable {
             match self.socket.recv_msg(&mut buf).await {
                 Ok(bytes_read) => break bytes_read,
                 Err(error) if error.is_shutdown() => {
-                    log::debug!("Recreating shut down socket");
+                    tracing::debug!("Recreating shut down socket");
                     self.socket =
                         routing_socket::RoutingSocket::new().map_err(Error::RoutingSocket)?;
                 }
@@ -82,7 +82,7 @@ impl RoutingTable {
                 // Workaround that allows us to reach a wg peer on our router.
                 // If we don't do this, adding the route fails due to errno 49
                 // ("Can't assign requested address").
-                log::warn!("Ignoring route because the destination equals its gateway");
+                tracing::warn!("Ignoring route because the destination equals its gateway");
                 return Ok(AddResult::AlreadyExists);
             }
         }
@@ -99,7 +99,7 @@ impl RoutingTable {
                 Ok(AddResult::AlreadyExists)
             }
             Ok(anything_else) => {
-                log::error!("Unexpected route message: {anything_else:?}");
+                tracing::error!("Unexpected route message: {anything_else:?}");
                 Err(Error::UnexpectedMessageType(
                     anything_else,
                     MessageType::RTM_ADD,

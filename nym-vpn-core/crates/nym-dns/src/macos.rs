@@ -149,14 +149,14 @@ impl State {
                         .as_ref()
                         .map(|settings| settings.server_addresses().join(","))
                         .unwrap_or_default();
-                    log::debug!("Saving DNS settings [{}] for {}", servers, path);
+                    tracing::debug!("Saving DNS settings [{}] for {}", servers, path);
                     modified_state.insert(path.to_owned(), settings.to_owned());
                 }
             }
         }
 
         for path in prev_state.keys() {
-            log::debug!("DNS removed for {path}");
+            tracing::debug!("DNS removed for {path}");
         }
 
         modified_state
@@ -179,13 +179,13 @@ impl State {
                 Some(settings) if settings.address_set() == desired_set => (),
                 // Ignore loopback addresses
                 Some(settings) if settings.ips().any(|ip| ip.is_loopback()) => {
-                    log::trace!("Not updating DNS config: localhost is used");
+                    tracing::trace!("Not updating DNS config: localhost is used");
                 }
                 // Apply desired state to service
                 _ => {
                     let path_cf = CFString::new(path);
                     if let Err(e) = desired_settings.save(store, path_cf) {
-                        log::error!("Failed changing DNS for {}: {}", path, e);
+                        tracing::error!("Failed changing DNS for {}: {}", path, e);
                     }
                 }
             }
@@ -193,7 +193,7 @@ impl State {
     }
 
     fn reset(&mut self, store: &SCDynamicStore) -> Result<()> {
-        log::trace!("Restoring DNS settings to: {:#?}", self.backup);
+        tracing::trace!("Restoring DNS settings to: {:#?}", self.backup);
 
         let actual_state = read_all_dns(store);
         self.update_backup_state(&actual_state);
@@ -205,7 +205,7 @@ impl State {
             if let Some(settings) = settings {
                 settings.save(store, service_path.as_str())?;
             } else {
-                log::debug!("Removing DNS for {}", service_path);
+                tracing::debug!("Removing DNS for {}", service_path);
                 if !store.remove(CFString::new(&service_path)) {
                     return Err(Error::SettingDnsFailed);
                 }
@@ -263,7 +263,7 @@ impl DnsSettings {
         store: &SCDynamicStore,
         path: S,
     ) -> Result<()> {
-        log::trace!(
+        tracing::trace!(
             "Setting DNS to [{}] for {}",
             self.server_addresses().join(", "),
             path.to_string()
@@ -303,7 +303,7 @@ impl DnsSettings {
             if let Some(string) = item.downcast::<CFString>() {
                 strings.push(string.to_string());
             } else {
-                log::error!("DNS server entry is not a string: {:?}", item);
+                tracing::error!("DNS server entry is not a string: {:?}", item);
                 return None;
             };
         }
@@ -395,7 +395,7 @@ impl DnsMonitor {
                 result_tx.send(Ok(())).unwrap();
                 run_dynamic_store_runloop(store);
                 // TODO(linus): This is critical. Improve later by sending error signal to Daemon
-                log::error!("Core Foundation main loop exited! It should run forever");
+                tracing::error!("Core Foundation main loop exited! It should run forever");
             }
             Err(e) => result_tx.send(Err(e)).unwrap(),
         });
@@ -447,7 +447,7 @@ fn create_dynamic_store(state: Arc<Mutex<State>>) -> Result<SCDynamicStore> {
     ]);
 
     if store.set_notification_keys(&watch_keys, &watch_patterns) {
-        log::trace!("Registered for dynamic store notifications");
+        tracing::trace!("Registered for dynamic store notifications");
         Ok(store)
     } else {
         Err(Error::DynamicStoreInitError)
@@ -458,7 +458,7 @@ fn run_dynamic_store_runloop(store: SCDynamicStore) {
     let run_loop_source = store.create_run_loop_source();
     CFRunLoop::get_current().add_source(&run_loop_source, unsafe { kCFRunLoopCommonModes });
 
-    log::trace!("Entering DNS CFRunLoop");
+    tracing::trace!("Entering DNS CFRunLoop");
     CFRunLoop::run_current();
 }
 

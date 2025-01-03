@@ -57,7 +57,6 @@ use std::{env, path::PathBuf, sync::Arc, time::Duration};
 
 use account::AccountControllerHandle;
 use lazy_static::lazy_static;
-use log::*;
 use tokio::{runtime::Runtime, sync::Mutex};
 
 use state_machine::StateMachineHandle;
@@ -131,7 +130,7 @@ async fn configure_lib(data_dir: String, credential_mode: Option<bool>) -> Resul
 
 fn init_logger() {
     let log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
-    info!("Setting log level: {}", log_level);
+    tracing::info!("Setting log level: {}", log_level);
     #[cfg(target_os = "ios")]
     swift::init_logs(log_level);
     #[cfg(target_os = "android")]

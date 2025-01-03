@@ -7,7 +7,7 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
-log.workspace = true
+tracing.workspace = true
 
 [target.'cfg(target_os = "linux")'.dependencies]
 libc.workspace = true

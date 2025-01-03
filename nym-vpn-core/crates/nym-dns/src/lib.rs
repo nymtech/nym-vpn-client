@@ -161,14 +161,14 @@ impl DnsMonitor {
 
     /// Set DNS to the given servers. And start monitoring the system for changes.
     pub fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
-        log::info!("Setting DNS servers: {config}",);
+        tracing::info!("Setting DNS servers: {config}");
         self.inner.set(interface, config)
     }
 
     /// Reset system DNS settings to what it was before being set by this instance.
     /// This succeeds if the interface does not exist.
     pub fn reset(&mut self) -> Result<(), Error> {
-        log::info!("Resetting DNS");
+        tracing::info!("Resetting DNS");
         self.inner.reset()
     }
 
@@ -176,7 +176,7 @@ impl DnsMonitor {
     /// If the settings only affect a specific interface, this can be a no-op,
     /// as the interface will be destroyed.
     pub fn reset_before_interface_removal(&mut self) -> Result<(), Error> {
-        log::info!("Resetting DNS");
+        tracing::info!("Resetting DNS");
         self.inner.reset_before_interface_removal()
     }
 }

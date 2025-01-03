@@ -123,7 +123,7 @@ impl DnsMonitorT for DnsMonitor {
             netsh_input.push_str(&create_netsh_flush_command(index, IpVersion::V6));
 
             if let Err(error) = run_netsh_with_timeout(netsh_input, NETSH_TIMEOUT) {
-                log::error!("{}", error.display_chain_with_msg("Failed to reset DNS"));
+                tracing::error!("{}", error.display_chain_with_msg("Failed to reset DNS"));
             }
         }
         Ok(())
@@ -137,7 +137,7 @@ impl DnsMonitorT for DnsMonitor {
 }
 
 fn run_netsh_with_timeout(netsh_input: String, timeout: Duration) -> Result<(), Error> {
-    log::debug!("running netsh:\n{}", netsh_input);
+    tracing::debug!("running netsh:\n{}", netsh_input);
 
     let sysdir = get_system_dir().map_err(Error::GetSystemDir)?;
     let mut netsh = Command::new(sysdir.join(r"netsh.exe"));

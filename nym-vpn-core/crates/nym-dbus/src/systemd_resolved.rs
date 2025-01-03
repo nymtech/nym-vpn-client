@@ -163,7 +163,7 @@ impl SystemdResolved {
                 Self::ensure_resolvconf_contents()
             }
             Err(err) => {
-                log::trace!("Failed to read /etc/resolv.conf symlink: {}", err);
+                tracing::trace!("Failed to read /etc/resolv.conf symlink: {}", err);
                 Err(Error::NotSymlinkedToResolvConf)
             }
         }
@@ -189,7 +189,7 @@ impl SystemdResolved {
             match Path::new("/etc/").join(link_path).canonicalize() {
                 Ok(link_destination) => RESOLVED_STUB_PATHS.contains(&link_destination.as_ref()),
                 Err(e) => {
-                    log::error!(
+                    tracing::error!(
                         "Failed to canonicalize resolv conf path {}: {}",
                         link_path.display(),
                         e
@@ -363,7 +363,7 @@ impl SystemdResolved {
         link_object.method_call(LINK_INTERFACE, SET_DNS_OVER_TLS_METHOD, ("no",))
             .or_else(|error| {
             if error.name() == Some("org.freedesktop.DBus.Error.UnknownMethod") {
-                log::debug!(
+                tracing::debug!(
                     "Didn't disable DNSOverTLS because systemd-resolved doesn't have 'SetDnsOverTLS' method. {}",
                     error);
                 Ok(())
@@ -389,7 +389,7 @@ impl SystemdResolved {
 
         if let Err(error) = link.method_call::<(), _, _, _>(LINK_INTERFACE, REVERT_METHOD, ()) {
             if error.name() == Some("org.freedesktop.DBus.Error.UnknownObject") {
-                log::trace!(
+                tracing::trace!(
                     "Not resetting DNS of interface {} because it no longer exists",
                     dns_state.interface_index
                 );
@@ -447,7 +447,7 @@ impl SystemdResolved {
                                 callback(new_server_list);
                             }
                             None => {
-                                log::error!("Failed to deserialize message {:?}", dns_change);
+                                tracing::error!("Failed to deserialize message {:?}", dns_change);
                             }
                         }
                     };
@@ -458,7 +458,7 @@ impl SystemdResolved {
 
         while should_continue_outer() {
             if let Err(err) = self.dbus_connection.process(RPC_TIMEOUT) {
-                log::error!("Failed to process DBus messages: {}", err);
+                tracing::error!("Failed to process DBus messages: {}", err);
             }
         }
 

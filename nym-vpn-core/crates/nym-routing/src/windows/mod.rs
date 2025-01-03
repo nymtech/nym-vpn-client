@@ -212,7 +212,7 @@ impl RouteManagerHandle {
                 }
                 RouteManagerCommand::ClearRoutes => {
                     if let Err(e) = internal.delete_applied_routes() {
-                        log::error!("{}", e.display_chain_with_msg("Could not clear routes"));
+                        tracing::error!("{}", e.display_chain_with_msg("Could not clear routes"));
                     }
                 }
                 RouteManagerCommand::RegisterDefaultRouteChangeCallback(callback, tx) => {
@@ -233,7 +233,7 @@ fn get_mtu_for_route(addr_family: AddressFamily) -> Result<Option<u16>> {
         Ok(Some(route)) => {
             let interface_row =
                 net::get_ip_interface_entry(addr_family, &route.iface).map_err(|e| {
-                    log::error!("Could not get ip interface entry: {}", e);
+                    tracing::error!("Could not get ip interface entry: {}", e);
                     Error::GetMtu
                 })?;
             let mtu = interface_row.NlMtu;
@@ -242,7 +242,7 @@ fn get_mtu_for_route(addr_family: AddressFamily) -> Result<Option<u16>> {
         }
         Ok(None) => Ok(None),
         Err(e) => {
-            log::error!("Could not get best default route: {}", e);
+            tracing::error!("Could not get best default route: {}", e);
             Err(Error::GetMtu)
         }
     }

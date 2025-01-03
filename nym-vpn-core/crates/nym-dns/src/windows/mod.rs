@@ -45,7 +45,7 @@ impl DnsMonitorT for DnsMonitor {
             Some(_) | None => DnsMonitorHolder::Auto(auto::DnsMonitor::new()?),
         };
 
-        log::debug!("DNS monitor: {}", inner);
+        tracing::debug!("DNS monitor: {}", inner);
 
         Ok(DnsMonitor { inner })
     }
