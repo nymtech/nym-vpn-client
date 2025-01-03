@@ -52,7 +52,7 @@ impl BroadcastListener {
             while let Some(event) = power_mgmt_rx.next().await {
                 match event {
                     PowerManagementEvent::Suspend => {
-                        log::debug!("Machine is preparing to enter sleep mode");
+                        tracing::debug!("Machine is preparing to enter sleep mode");
                         apply_system_state_change(state.clone(), StateChange::Suspended(true));
                     }
                     PowerManagementEvent::ResumeAutomatic => {
@@ -61,7 +61,9 @@ impl BroadcastListener {
                             // Tunnel will be unavailable for approximately 2 seconds on a healthy
                             // machine.
                             tokio::time::sleep(Duration::from_secs(5)).await;
-                            log::debug!("Tunnel device is presumed to have been re-initialized");
+                            tracing::debug!(
+                                "Tunnel device is presumed to have been re-initialized"
+                            );
                             apply_system_state_change(state_copy, StateChange::Suspended(false));
                         });
                     }
@@ -84,7 +86,7 @@ impl BroadcastListener {
         let v4_connectivity = get_best_default_route(AddressFamily::Ipv4)
             .map(|route| route.is_some())
             .unwrap_or_else(|error| {
-                log::error!(
+                tracing::error!(
                     "{}",
                     error.display_chain_with_msg("Failed to check initial IPv4 connectivity")
                 );
@@ -93,7 +95,7 @@ impl BroadcastListener {
         let v6_connectivity = get_best_default_route(AddressFamily::Ipv6)
             .map(|route| route.is_some())
             .unwrap_or_else(|error| {
-                log::error!(
+                tracing::error!(
                     "{}",
                     error.display_chain_with_msg("Failed to check initial IPv6 connectivity")
                 );
@@ -101,7 +103,7 @@ impl BroadcastListener {
             });
 
         let is_online = v4_connectivity || v6_connectivity;
-        log::info!("Initial connectivity: {}", is_offline_str(!is_online));
+        tracing::info!("Initial connectivity: {}", is_offline_str(!is_online));
 
         (v4_connectivity, v6_connectivity)
     }
@@ -178,10 +180,10 @@ impl SystemState {
 
         let new_state = self.connectivity.is_offline();
         if old_state != new_state {
-            log::info!("Connectivity changed: {}", is_offline_str(new_state));
+            tracing::info!("Connectivity changed: {}", is_offline_str(new_state));
             if let Some(notify_tx) = self.notify_tx.upgrade() {
                 if let Err(e) = notify_tx.unbounded_send(self.connectivity.into_connectivity()) {
-                    log::error!("Failed to send new offline state to daemon: {}", e);
+                    tracing::error!("Failed to send new offline state to daemon: {}", e);
                 }
             }
         }
