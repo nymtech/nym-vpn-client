@@ -226,7 +226,7 @@ impl From<TunnelState> for VpnServiceStatus {
                 }))
             }
             TunnelState::Connecting { .. } => Self::Connecting,
-            TunnelState::Disconnected => Self::NotConnected,
+            TunnelState::Disconnected | TunnelState::Offline { .. } => Self::NotConnected,
             TunnelState::Disconnecting { .. } => Self::Disconnecting,
             TunnelState::Error(e) => Self::ConnectionFailed(ConnectionFailedError::InternalError(
                 format!("Error state: {:?}", e),
@@ -301,7 +301,7 @@ impl From<TunnelState> for VpnServiceStateChange {
         match value {
             TunnelState::Connecting { .. } => Self::Connecting,
             TunnelState::Connected { .. } => Self::Connected,
-            TunnelState::Disconnected => Self::NotConnected,
+            TunnelState::Disconnected | TunnelState::Offline { .. } => Self::NotConnected,
             TunnelState::Disconnecting { .. } => Self::Disconnecting,
             TunnelState::Error(reason) => Self::ConnectionFailed(
                 ConnectionFailedError::InternalError(format!("Error state: {:?}", reason)),
