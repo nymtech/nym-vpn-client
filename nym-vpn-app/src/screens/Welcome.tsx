@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
-import { NymDarkOutlineIcon, NymIcon } from '../assets';
 import { PrivacyPolicyUrl, SentryHomePage, ToSUrl } from '../constants';
-import { useMainDispatch, useMainState } from '../contexts';
+import { useMainDispatch } from '../contexts';
 import { kvSet } from '../kvStore';
 import { routes } from '../router';
 import { StateDispatch } from '../types';
@@ -11,7 +10,6 @@ import { Button, Link, PageAnim, Switch } from '../ui';
 import SettingsGroup from './settings/SettingsGroup';
 
 function Welcome() {
-  const { uiTheme } = useMainState();
   const [monitoring, setMonitoring] = useState<boolean>(false);
   const dispatch = useMainDispatch() as StateDispatch;
   const navigate = useNavigate();
@@ -33,11 +31,6 @@ function Welcome() {
   return (
     <PageAnim className="h-full flex flex-col justify-end items-center gap-14 select-none cursor-default">
       <div className="flex flex-col items-center gap-4 px-4 mt-4">
-        {uiTheme === 'Dark' ? (
-          <NymDarkOutlineIcon className="w-28 h-28" />
-        ) : (
-          <NymIcon className="w-28 h-28 fill-ghost" />
-        )}
         <div className="flex flex-col gap-2 text-2xl text-center dark:text-white">
           <h1 className="truncate">{t('title.part1')}</h1>
           <h1 className="truncate">{t('title.part2')}</h1>
