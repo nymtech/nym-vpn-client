@@ -127,7 +127,7 @@ strum_macros = "0.26"
 sysinfo = "0.31"
 system-configuration = "0.6"
 tap = "1.0.1"
-tempfile = "3.14"
+tempfile = "3.15"
 thiserror = "1.0.69"
 time = "0.3.37"
 tokio = { version = "1.42" }
