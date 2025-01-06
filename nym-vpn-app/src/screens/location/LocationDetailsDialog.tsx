@@ -38,7 +38,7 @@ function LocationDetailsDialog({ isOpen, onClose }: Props) {
       />
 
       <Button onClick={onClose} className="mt-2">
-        <span className="text-base text-white dark:text-baltic-sea">
+        <span className="text-base text-black dark:text-baltic-sea">
           {capFirst(t('ok', { ns: 'glossary' }))}
         </span>
       </Button>
