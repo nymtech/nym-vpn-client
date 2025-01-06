@@ -6,7 +6,7 @@ use std::sync::LazyLock;
 
 use futures::channel::mpsc::UnboundedSender;
 use nym_common::ErrorExt;
-#[cfg(not(target_os = "android"))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_routing::RouteManagerHandle;
 
 #[cfg(target_os = "android")]
@@ -14,6 +14,10 @@ use crate::connectivity_listener::ConnectivityListener;
 
 #[cfg(target_os = "macos")]
 #[path = "macos.rs"]
+mod imp;
+
+#[cfg(target_os = "ios")]
+#[path = "ios.rs"]
 mod imp;
 
 #[cfg(target_os = "windows")]
@@ -90,7 +94,7 @@ pub enum Connectivity {
         /// Whether IPv6 connectivity seems to be available on the host.
         ipv6: bool,
     },
-    #[cfg(any(target_os = "ios", target_os = "android"))]
+    #[cfg(target_os = "android")]
     Status {
         /// Whether _any_ connectivity seems to be available on the host.
         connected: bool,
@@ -108,7 +112,7 @@ impl Connectivity {
 
     /// If no IP4 nor IPv6 routes exist, we have no way of reaching the internet
     /// so we consider ourselves offline.
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[cfg(not(target_os = "android"))]
     pub fn is_offline(&self) -> bool {
         matches!(
             self,

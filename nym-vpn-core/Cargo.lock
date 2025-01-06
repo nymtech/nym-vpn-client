@@ -4164,11 +4164,16 @@ dependencies = [
 name = "nym-offline"
 version = "1.2.0-dev"
 dependencies = [
+ "debounced",
  "futures",
+ "nym-apple-dispatch",
+ "nym-apple-network",
  "nym-common",
  "nym-routing",
  "thiserror 1.0.69",
  "tokio",
+ "tokio-stream",
+ "tokio-util",
  "tracing",
 ]
 
@@ -4784,6 +4789,7 @@ dependencies = [
  "nym-ip-packet-requests",
  "nym-mixnet-client 1.2.0-dev",
  "nym-node-requests",
+ "nym-offline",
  "nym-pemstore",
  "nym-routing",
  "nym-sdk",
