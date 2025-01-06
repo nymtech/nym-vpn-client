@@ -283,6 +283,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		}
 
 		override fun onDestroy() {
+			stateMachineService = CompletableDeferred()
 			wakeLock?.let {
 				if (it.isHeld) {
 					it.release()
