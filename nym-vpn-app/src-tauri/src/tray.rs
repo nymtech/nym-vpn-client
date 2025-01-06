@@ -20,7 +20,7 @@ use crate::{
 
 pub const TRAY_ICON_ID: &str = "main";
 pub const TRAY_MENU_ID: &str = "tray_menu";
-const APP_ICON: Image<'_> = include_image!("icons/icon.png");
+const APP_ICON: Image<'_> = include_image!("icons/tray_icon.png");
 
 #[derive(AsRefStr, Debug)]
 enum MenuItemId {
