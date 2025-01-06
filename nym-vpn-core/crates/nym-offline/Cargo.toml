@@ -13,6 +13,11 @@ thiserror.workspace = true
 tracing.workspace = true
 futures.workspace = true
 tokio.workspace = true
+debounced.workspace = true
+tokio-stream.workspace = true
+tokio-util.workspace = true
 
 nym-common = { path = "../nym-common" }
 nym-routing = { path = "../nym-routing" }
+nym-apple-dispatch = { path = "../nym-apple-dispatch" }
+nym-apple-network = { path = "../nym-apple-network" }

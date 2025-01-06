@@ -2,9 +2,10 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::connectivity_listener::{ConnectivityListener, Error};
 use futures::channel::mpsc::UnboundedSender;
-use talpid_types::net::Connectivity;
+
+use super::Connectivity;
+use crate::connectivity_listener::{ConnectivityListener, Error};
 
 pub struct MonitorHandle {
     connectivity_listener: ConnectivityListener,
