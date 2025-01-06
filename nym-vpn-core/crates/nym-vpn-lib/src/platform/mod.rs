@@ -381,6 +381,7 @@ impl From<&TunnelState> for TunStatus {
             TunnelState::Disconnecting { .. } => Self::Disconnecting,
             TunnelState::Disconnected => Self::Down,
             TunnelState::Error(_) => Self::Down,
+            TunnelState::Offline { .. } => Self::Down,
         }
     }
 }

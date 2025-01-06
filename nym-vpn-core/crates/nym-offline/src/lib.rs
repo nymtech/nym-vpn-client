@@ -48,7 +48,7 @@ impl MonitorHandle {
 
 pub async fn spawn_monitor(
     sender: UnboundedSender<Connectivity>,
-    #[cfg(not(target_os = "android"))] route_manager: RouteManagerHandle,
+    #[cfg(not(any(target_os = "android", target_os = "ios")))] route_manager: RouteManagerHandle,
     #[cfg(target_os = "linux")] fwmark: Option<u32>,
     #[cfg(target_os = "android")] connectivity_listener: ConnectivityListener,
 ) -> MonitorHandle {
@@ -57,7 +57,7 @@ pub async fn spawn_monitor(
     } else {
         imp::spawn_monitor(
             sender,
-            #[cfg(not(target_os = "android"))]
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
             route_manager,
             #[cfg(target_os = "linux")]
             fwmark,
@@ -108,7 +108,7 @@ impl Connectivity {
 
     /// If no IP4 nor IPv6 routes exist, we have no way of reaching the internet
     /// so we consider ourselves offline.
-    #[cfg(not(target_os = "android"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     pub fn is_offline(&self) -> bool {
         matches!(
             self,

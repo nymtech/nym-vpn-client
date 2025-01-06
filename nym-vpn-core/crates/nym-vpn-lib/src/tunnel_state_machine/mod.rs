@@ -272,17 +272,30 @@ pub struct WireguardConnectionData {
 /// Public enum describing the tunnel state
 #[derive(Debug, Clone, Eq, PartialEq, uniffi::Enum)]
 pub enum TunnelState {
+    /// Tunnel is disconnected and network connectivity is available.
     Disconnected,
+
+    /// Tunnel connection is being established.
     Connecting {
         connection_data: Option<ConnectionData>,
     },
-    Connected {
-        connection_data: ConnectionData,
-    },
+
+    /// Tunnel is connected.
+    Connected { connection_data: ConnectionData },
+
+    /// Tunnel is disconnecting.
     Disconnecting {
         after_disconnect: ActionAfterDisconnect,
     },
+
+    /// Tunnel is disconnected due to failure.
     Error(ErrorStateReason),
+
+    /// Tunnel is disconnected, network connectivity is unavailable.
+    Offline {
+        /// Whether tunnel will be reconnected upon gaining the network connectivity.
+        reconnect: bool,
+    },
 }
 
 impl From<PrivateTunnelState> for TunnelState {
@@ -299,6 +312,7 @@ impl From<PrivateTunnelState> for TunnelState {
                 after_disconnect: ActionAfterDisconnect::from(after_disconnect),
             },
             PrivateTunnelState::Error(reason) => Self::Error(reason),
+            PrivateTunnelState::Offline { reconnect } => Self::Offline { reconnect },
         }
     }
 }
@@ -317,6 +331,10 @@ enum PrivateTunnelState {
         after_disconnect: PrivateActionAfterDisconnect,
     },
     Error(ErrorStateReason),
+    Offline {
+        /// Whether to reconnect after gaining the network connectivity.
+        reconnect: bool,
+    },
 }
 
 /// Public enum describing action to perform after disconnect
@@ -809,6 +827,13 @@ impl fmt::Display for TunnelState {
             },
             Self::Error(reason) => {
                 write!(f, "Error state: {:?}", reason)
+            }
+            Self::Offline { reconnect } => {
+                if *reconnect {
+                    write!(f, "Offline, auto-connect once back online")
+                } else {
+                    write!(f, "Offline")
+                }
             }
         }
     }
