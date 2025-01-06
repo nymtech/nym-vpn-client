@@ -90,8 +90,13 @@ dependencies {
 
 	implementation(libs.kotlinx.serialization)
 	implementation(libs.timber)
-	implementation(libs.jna)
 	implementation(libs.relinker)
+
+	implementation(libs.jna) {
+		artifact {
+			type = "aar"
+		}
+	}
 
 	testImplementation(libs.junit)
 	androidTestImplementation(libs.androidx.junit)

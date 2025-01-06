@@ -70,9 +70,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            nym-vpn-android
 
       - name: Install system dependencies
         run: |
@@ -86,7 +83,7 @@ jobs:
       - name: Set version release notes
         if: ${{ inputs.release_type == 'release' }}
         run: |
-          RELEASE_NOTES="$(cat ${{ github.workspace }}/nym-vpn-android/fastlane/metadata/android/en-US/changelogs/${{ env.VERSION_CODE }}.txt)"
+          RELEASE_NOTES="$(cat ${{ github.workspace }}/fastlane/metadata/android/en-US/changelogs/${{ env.VERSION_CODE }}.txt)"
           echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV
           echo "$RELEASE_NOTES" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV

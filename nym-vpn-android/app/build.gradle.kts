@@ -18,6 +18,14 @@ android {
 		generateLocaleConfig = true
 	}
 
+	//reproducibility
+	dependenciesInfo {
+		// Disables dependency metadata when building APKs.
+		includeInApk = false
+		// Disables dependency metadata when building Android App Bundles.
+		includeInBundle = false
+	}
+
 	defaultConfig {
 		applicationId = Constants.APP_ID
 		minSdk = Constants.MIN_SDK
@@ -71,6 +79,7 @@ android {
 			isDebuggable = false
 			isMinifyEnabled = true
 			isShrinkResources = true
+			vcsInfo.include = false
 			proguardFiles(
 				getDefaultProguardFile("proguard-android-optimize.txt"),
 				"proguard-rules.pro",
@@ -163,7 +172,7 @@ android {
 
 dependencies {
 
-	implementation(project(":nym-vpn-client"))
+	implementation(project(":core"))
 	implementation(project(":logcat-util"))
 	implementation(libs.androidx.lifecycle.process)
 	coreLibraryDesugaring(libs.com.android.tools.desugar)
