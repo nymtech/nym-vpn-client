@@ -74,4 +74,5 @@ app/release/output.json
 app/signing.properties
 *.so
 !libjnidispatch.so
-nym-vpn-client/src/main/assets/licenses_rust.json
+core/src/main/assets/licenses_rust.json
+

@@ -95,5 +95,6 @@ fun VpnException.toUserMessage(context: Context): String {
 		is VpnException.RequestZkNym -> "Failed to request nyms"
 		is VpnException.UpdateAccountEndpointFailure -> "Account endpoint failure"
 		is VpnException.UpdateDeviceEndpointFailure -> "Device endpoint failure"
+		is VpnException.StatisticsRecipient -> "Statistics recipient error"
 	}
 }

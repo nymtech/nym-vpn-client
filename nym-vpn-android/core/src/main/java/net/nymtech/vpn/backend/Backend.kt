@@ -2,6 +2,7 @@ package net.nymtech.vpn.backend
 
 import nym_vpn_lib.AccountLinks
 import nym_vpn_lib.AccountStateSummary
+import nym_vpn_lib.UserAgent
 
 interface Backend {
 
@@ -9,7 +10,7 @@ interface Backend {
 
 	suspend fun getAccountSummary(): AccountStateSummary
 
-	suspend fun getAccountLinks(environment: Tunnel.Environment): AccountLinks
+	suspend fun getAccountLinks(): AccountLinks
 
 	suspend fun storeMnemonic(credential: String)
 
@@ -17,7 +18,7 @@ interface Backend {
 
 	suspend fun removeMnemonic()
 
-	suspend fun start(tunnel: Tunnel, background: Boolean)
+	suspend fun start(tunnel: Tunnel, background: Boolean, userAgent: UserAgent)
 
 	suspend fun stop()
 

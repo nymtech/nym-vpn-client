@@ -13,6 +13,7 @@ import com.getkeepsafe.relinker.ReLinker.LoadListener
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import net.nymtech.ipcalculator.AllowedIpCalculator
 import net.nymtech.vpn.model.BackendEvent
@@ -31,9 +32,9 @@ import nym_vpn_lib.AndroidTunProvider
 import nym_vpn_lib.TunnelEvent
 import nym_vpn_lib.TunnelNetworkSettings
 import nym_vpn_lib.TunnelStatusListener
+import nym_vpn_lib.UserAgent
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.VpnException
-import nym_vpn_lib.fetchAccountLinks
 import nym_vpn_lib.forgetAccount
 import nym_vpn_lib.initEnvironment
 import nym_vpn_lib.initFallbackMainnetEnvironment
@@ -96,6 +97,12 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		}
 	}
 
+	private suspend fun waitForInit() {
+		while (!initialized.get()) {
+			delay(5000L)
+		}
+	}
+
 	private suspend fun initEnvironment(environment: Tunnel.Environment) {
 		withContext(ioDispatcher) {
 			runCatching {
@@ -111,14 +118,16 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	@Throws(VpnException::class)
 	override suspend fun getAccountSummary(): AccountStateSummary {
 		return withContext(ioDispatcher) {
+			waitForInit()
 			nym_vpn_lib.getAccountState()
 		}
 	}
 
 	@Throws(VpnException::class)
-	override suspend fun getAccountLinks(environment: Tunnel.Environment): AccountLinks {
+	override suspend fun getAccountLinks(): AccountLinks {
 		return withContext(ioDispatcher) {
-			fetchAccountLinks(storagePath, environment.networkName(), getCurrentLocaleCountryCode())
+			waitForInit()
+			nym_vpn_lib.getAccountLinks(getCurrentLocaleCountryCode())
 		}
 	}
 
@@ -136,12 +145,13 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	override suspend fun storeMnemonic(mnemonic: String) {
 		withContext(ioDispatcher) {
 			try {
-				storeAccountMnemonic(mnemonic, storagePath)
+				waitForInit()
+				storeAccountMnemonic(mnemonic)
 				waitForUpdateAccount()
 				waitForUpdateDevice()
 				waitForRegisterDevice()
 			} catch (e: VpnException) {
-				forgetAccount(storagePath)
+				forgetAccount()
 				throw e
 			}
 		}
@@ -150,31 +160,34 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	@Throws(VpnException::class)
 	override suspend fun isMnemonicStored(): Boolean {
 		return withContext(ioDispatcher) {
-			isAccountMnemonicStored(storagePath)
+			waitForInit()
+			isAccountMnemonicStored()
 		}
 	}
 
 	@Throws(VpnException::class)
 	override suspend fun removeMnemonic() {
 		withContext(ioDispatcher) {
-			forgetAccount(storagePath)
+			waitForInit()
+			forgetAccount()
 		}
 	}
 
 	@Throws(NymVpnInitializeException::class)
-	override suspend fun start(tunnel: Tunnel, background: Boolean) {
+	override suspend fun start(tunnel: Tunnel, background: Boolean, userAgent: UserAgent) {
 		withContext(ioDispatcher) {
+			waitForInit()
 			val state = getState()
 			// TODO handle changes to tunnel while tunnel is up in future
 			if (state != Tunnel.State.Down) throw NymVpnInitializeException.VpnAlreadyRunning()
 			this@NymBackend.tunnel = tunnel
 			onStateChange(Tunnel.State.InitializingClient)
 			if (android.net.VpnService.prepare(context) != null) throw NymVpnInitializeException.VpnPermissionDenied()
-			startVpn(tunnel, background)
+			startVpn(tunnel, background, userAgent)
 		}
 	}
 
-	private suspend fun startVpn(tunnel: Tunnel, background: Boolean) {
+	private suspend fun startVpn(tunnel: Tunnel, background: Boolean, userAgent: UserAgent) {
 		withContext(ioDispatcher) {
 			if (!initialized.get()) init(tunnel.environment, tunnel.credentialMode)
 			if (!vpnService.isCompleted) context.startServiceByClass(background, VpnService::class.java)
@@ -192,6 +205,8 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 						storagePath,
 						backend,
 						tunnel.credentialMode,
+						null,
+						userAgent,
 					),
 				)
 			} catch (e: VpnException) {
@@ -209,6 +224,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	@OptIn(ExperimentalCoroutinesApi::class)
 	override suspend fun stop() {
 		withContext(ioDispatcher) {
+			waitForInit()
 			runCatching {
 				stopVpn()
 				vpnService.getCompleted().stopSelf()

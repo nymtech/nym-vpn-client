@@ -14,11 +14,14 @@ import android.widget.Toast
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
+import net.nymtech.nymvpn.BuildConfig
+import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.NymVpn.Companion.instance
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.service.android.tile.VpnQuickTile
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.vpn.model.Country
+import nym_vpn_lib.UserAgent
 import timber.log.Timber
 import java.util.Locale
 
@@ -169,4 +172,14 @@ fun Context.launchAppSettings() {
 
 fun Context.isAndroidTV(): Boolean {
 	return packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
+}
+
+fun Context.toUserAgent(): UserAgent {
+	val platform = if (isAndroidTV()) "AndroidTV" else "Android"
+	return UserAgent(
+		Constants.APP_PROJECT_NAME,
+		BuildConfig.VERSION_NAME,
+		"$platform; ${Build.VERSION.SDK_INT}; ${NymVpn.getCPUArchitecture()}; ${BuildConfig.FLAVOR}",
+		BuildConfig.COMMIT_HASH,
+	)
 }

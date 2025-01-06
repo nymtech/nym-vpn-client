@@ -21,6 +21,7 @@ import net.nymtech.nymvpn.service.tunnel.model.BackendUiEvent
 import net.nymtech.nymvpn.service.tunnel.model.MixnetConnectionState
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.toMB
+import net.nymtech.nymvpn.util.extensions.toUserAgent
 import net.nymtech.nymvpn.util.extensions.toUserMessage
 import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.backend.Tunnel
@@ -83,7 +84,7 @@ class NymTunnelManager @Inject constructor(
 				backendEvent = ::onBackendEvent,
 				credentialMode = settingsRepository.isCredentialMode(),
 			)
-			backend.get().start(tunnel, fromBackground)
+			backend.get().start(tunnel, fromBackground, context.toUserAgent())
 		}.onFailure {
 			if (it is NymVpnInitializeException) {
 				when (it) {
@@ -144,7 +145,7 @@ class NymTunnelManager @Inject constructor(
 
 	override suspend fun getAccountLinks(): AccountLinks? {
 		return try {
-			backend.get().getAccountLinks(settingsRepository.getEnvironment())
+			backend.get().getAccountLinks()
 		} catch (_: Exception) {
 			null
 		}

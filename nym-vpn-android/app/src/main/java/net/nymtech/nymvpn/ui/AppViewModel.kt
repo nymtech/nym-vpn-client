@@ -133,8 +133,7 @@ constructor(
 
 	private suspend fun checkSystemMessages() {
 		runCatching {
-			val env = settingsRepository.getEnvironment()
-			val messages = nymApiService.getSystemMessages(env)
+			val messages = nymApiService.getSystemMessages()
 			messages.firstOrNull()?.let {
 				_systemMessage.emit(it)
 			}
