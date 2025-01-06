@@ -13,7 +13,7 @@ final class SupportViewModel: ObservableObject {
     private let discordLink = Constants.discordLink.rawValue
     private let connectionManager: ConnectionManager
 
-    let title = "support".localizedString
+    let title = "settings.supportAndFeedback".localizedString
 
     @Binding var path: NavigationPath
     @Published var isResetVPNProfileDisplayed = false
