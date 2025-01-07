@@ -116,9 +116,12 @@ impl fmt::Display for ReadyToConnect {
 }
 
 impl SharedAccountState {
-    pub(crate) fn new() -> Self {
+    pub(crate) fn new(state: MnemonicState) -> Self {
+        let mut summary = AccountStateSummary::default();
+        tracing::info!("Setting mnemonic state to {:?}", state);
+        summary.mnemonic = Some(state);
         SharedAccountState {
-            inner: Arc::new(tokio::sync::Mutex::new(AccountStateSummary::default())),
+            inner: Arc::new(tokio::sync::Mutex::new(summary)),
         }
     }
 

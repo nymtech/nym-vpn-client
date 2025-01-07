@@ -109,17 +109,30 @@ where
         tracing::info!("Account controller: credential mode: {}", credentials_mode);
 
         let account_storage = AccountStorage::from(storage);
+
         // Generate the device keys if we don't already have them
         account_storage.init_keys().await?;
 
+        // Load the account id if we have one stored
+        let mnemonic_state = account_storage
+            .load_account_id()
+            .await
+            .map(|id| MnemonicState::Stored { id })
+            .unwrap_or(MnemonicState::NotStored);
+
         let credential_storage = VpnCredentialStorage::setup_from_path(data_dir.clone()).await?;
 
-        let (command_tx, command_rx) = tokio::sync::mpsc::unbounded_channel();
-
-        let account_state = SharedAccountState::new();
+        // Client to query the VPN API
         let vpn_api_client =
             nym_vpn_api_client::VpnApiClient::new(network_env.vpn_api_url(), user_agent)
                 .map_err(Error::SetupVpnApiClient)?;
+
+        // We expose the account state as a shared object that can be queried without having to ask
+        // the controller
+        let account_state = SharedAccountState::new(mnemonic_state);
+
+        // The channels used to communicate with the controller
+        let (command_tx, command_rx) = tokio::sync::mpsc::unbounded_channel();
 
         let waiting_sync_account_command_handler =
             WaitingSyncAccountCommandHandler::new(account_state.clone(), vpn_api_client.clone());
