@@ -1,13 +1,18 @@
 package net.nymtech.nymvpn.ui
 
 import android.content.Intent
+import android.graphics.Color.TRANSPARENT
+import android.os.Build
 import android.os.Bundle
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -80,18 +85,25 @@ class MainActivity : AppCompatActivity() {
 	@Inject
 	lateinit var settingsRepository: SettingsRepository
 
+	@OptIn(ExperimentalLayoutApi::class)
 	override fun onCreate(savedInstanceState: Bundle?) {
-		super.onCreate(savedInstanceState)
-
 		val appViewModel by viewModels<AppViewModel>()
-
 		installSplashScreen().apply {
 			setKeepOnScreenCondition {
 				!appViewModel.isAppReady.value
 			}
 		}
 
-		this.resetTile()
+		enableEdgeToEdge(
+			statusBarStyle = SystemBarStyle.auto(TRANSPARENT, TRANSPARENT),
+			navigationBarStyle = SystemBarStyle.auto(TRANSPARENT, TRANSPARENT),
+		)
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+			window.isNavigationBarContrastEnforced = false
+		}
+
+		super.onCreate(savedInstanceState)
 
 		setContent {
 			val appState by appViewModel.uiState.collectAsStateWithLifecycle(lifecycle)
