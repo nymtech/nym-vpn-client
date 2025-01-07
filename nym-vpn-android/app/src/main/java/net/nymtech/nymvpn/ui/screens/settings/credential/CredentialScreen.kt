@@ -190,7 +190,6 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 						Text(stringResource(R.string.access_code), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 						Text("")
 						Text(stringResource(R.string.mnemonic_example), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-
 					}
 				},
 				value = mnemonic,
