@@ -6,15 +6,15 @@ import net.nymtech.vpn.model.Country
 
 interface GatewayRepository {
 
-	suspend fun setEntryCountries(countries: Set<Country>)
+	suspend fun setEntryCountries(countries: List<Country>)
 
-	suspend fun getEntryCountries(): Set<Country>
+	suspend fun getEntryCountries(): List<Country>
 
-	suspend fun setExitCountries(countries: Set<Country>)
+	suspend fun setExitCountries(countries: List<Country>)
 
-	suspend fun getExitCountries(): Set<Country>
+	suspend fun getExitCountries(): List<Country>
 
-	suspend fun setWgCountries(it: Set<Country>)
+	suspend fun setWgCountries(countries: List<Country>)
 
 	val gatewayFlow: Flow<Gateways>
 }

@@ -40,6 +40,7 @@ internal class NotificationManager private constructor(val context: Context) {
 	}
 
 	fun createVpnRunningNotification(): Notification {
+		createNotificationChannel()
 		val notificationBuilder = NotificationCompat.Builder(context, VPN_CHANNEL_ID)
 		return notificationBuilder.setOngoing(true)
 			.setContentTitle(context.getString(R.string.vpn_notification_title))
@@ -67,6 +68,7 @@ internal class NotificationManager private constructor(val context: Context) {
 	}
 
 	fun createStateMachineNotification(): Notification {
+		createNotificationChannel()
 		val notificationBuilder = NotificationCompat.Builder(context, VPN_CHANNEL_ID)
 		return notificationBuilder.setOngoing(true)
 			.setContentTitle("State machine")

@@ -17,13 +17,13 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.service.country.CountryCacheService
-import net.nymtech.nymvpn.service.gateway.NymApiService
 import net.nymtech.nymvpn.service.tunnel.TunnelManager
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.StringValue
+import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.Country
 import nym_vpn_lib.SystemMessage
@@ -38,7 +38,7 @@ constructor(
 	gatewayRepository: GatewayRepository,
 	private val countryCacheService: CountryCacheService,
 	private val tunnelManager: TunnelManager,
-	private val nymApiService: NymApiService,
+	private val backend: Backend,
 ) : ViewModel() {
 
 	private val _navBarState = MutableStateFlow(NavBarState())
@@ -133,7 +133,7 @@ constructor(
 
 	private suspend fun checkSystemMessages() {
 		runCatching {
-			val messages = nymApiService.getSystemMessages()
+			val messages = backend.getSystemMessages()
 			messages.firstOrNull()?.let {
 				_systemMessage.emit(it)
 			}

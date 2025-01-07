@@ -16,25 +16,25 @@ class DataStoreGatewayRepository(private val dataStoreManager: DataStoreManager)
 		val WG_COUNTRIES = stringPreferencesKey("WG_COUNTRIES")
 	}
 
-	override suspend fun setEntryCountries(countries: Set<Country>) {
+	override suspend fun setEntryCountries(countries: List<Country>) {
 		dataStoreManager.saveToDataStore(ENTRY_COUNTRIES, countries.toString())
 	}
 
-	override suspend fun getEntryCountries(): Set<Country> {
+	override suspend fun getEntryCountries(): List<Country> {
 		val countries = dataStoreManager.getFromStore(ENTRY_COUNTRIES)
 		return Country.fromCollectionString(countries)
 	}
 
-	override suspend fun setExitCountries(countries: Set<Country>) {
+	override suspend fun setExitCountries(countries: List<Country>) {
 		dataStoreManager.saveToDataStore(EXIT_COUNTRIES, countries.toString())
 	}
 
-	override suspend fun getExitCountries(): Set<Country> {
+	override suspend fun getExitCountries(): List<Country> {
 		val countries = dataStoreManager.getFromStore(EXIT_COUNTRIES)
 		return Country.fromCollectionString(countries)
 	}
 
-	override suspend fun setWgCountries(countries: Set<Country>) {
+	override suspend fun setWgCountries(countries: List<Country>) {
 		dataStoreManager.saveToDataStore(WG_COUNTRIES, countries.toString())
 	}
 

@@ -41,10 +41,10 @@ data class Country(
 			return string?.let { Json.decodeFromString<Country>(string) }
 		}
 
-		fun fromCollectionString(string: String?): Set<Country> {
+		fun fromCollectionString(string: String?): List<Country> {
 			return string?.let {
-				Json.decodeFromString<Set<Country>>(it)
-			} ?: emptySet()
+				Json.decodeFromString<List<Country>>(it)
+			} ?: emptyList()
 		}
 	}
 }

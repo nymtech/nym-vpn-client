@@ -1,7 +1,10 @@
 package net.nymtech.vpn.backend
 
+import net.nymtech.vpn.model.Country
 import nym_vpn_lib.AccountLinks
 import nym_vpn_lib.AccountStateSummary
+import nym_vpn_lib.GatewayType
+import nym_vpn_lib.SystemMessage
 import nym_vpn_lib.UserAgent
 
 interface Backend {
@@ -11,6 +14,10 @@ interface Backend {
 	suspend fun getAccountSummary(): AccountStateSummary
 
 	suspend fun getAccountLinks(): AccountLinks
+
+	suspend fun getSystemMessages(): List<SystemMessage>
+
+	suspend fun getGatewayCountries(type: GatewayType, userAgent: UserAgent): List<Country>
 
 	suspend fun storeMnemonic(credential: String)
 

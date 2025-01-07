@@ -19,13 +19,10 @@ import net.nymtech.nymvpn.module.qualifiers.DefaultDispatcher
 import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.service.country.CountryCacheService
 import net.nymtech.nymvpn.service.country.CountryDataStoreCacheService
-import net.nymtech.nymvpn.service.gateway.NymApiLibService
-import net.nymtech.nymvpn.service.gateway.NymApiService
 import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.service.notification.VpnAlertNotifications
 import net.nymtech.nymvpn.util.FileUtils
 import net.nymtech.nymvpn.util.extensions.toUserAgent
-import net.nymtech.vpn.NymApi
 import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.backend.NymBackend
 import javax.inject.Singleton
@@ -42,23 +39,8 @@ object AppModule {
 
 	@Singleton
 	@Provides
-	fun provideNymApi(@IoDispatcher dispatcher: CoroutineDispatcher, @ApplicationContext context: Context): NymApi {
-		return NymApi(
-			dispatcher,
-			context.toUserAgent(),
-		)
-	}
-
-	@Singleton
-	@Provides
-	fun provideGatewayLibService(nymApi: NymApi): NymApiService {
-		return NymApiLibService(nymApi)
-	}
-
-	@Singleton
-	@Provides
-	fun provideCountryCacheService(nymApiService: NymApiService, gatewayRepository: GatewayRepository): CountryCacheService {
-		return CountryDataStoreCacheService(gatewayRepository, nymApiService)
+	fun provideCountryCacheService(backend: Backend, gatewayRepository: GatewayRepository, @ApplicationContext context: Context): CountryCacheService {
+		return CountryDataStoreCacheService(gatewayRepository, backend, context.toUserAgent())
 	}
 
 	@Singleton

@@ -39,8 +39,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.shortcut.ShortcutManager
-import net.nymtech.nymvpn.service.gateway.NymApiService
-import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBar
@@ -77,13 +75,7 @@ import javax.inject.Inject
 class MainActivity : AppCompatActivity() {
 
 	@Inject
-	lateinit var notificationService: NotificationService
-
-	@Inject
 	lateinit var shortcutManager: ShortcutManager
-
-	@Inject
-	lateinit var nymApiService: NymApiService
 
 	@Inject
 	lateinit var settingsRepository: SettingsRepository

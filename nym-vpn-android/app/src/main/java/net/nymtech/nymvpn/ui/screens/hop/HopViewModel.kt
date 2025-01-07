@@ -24,11 +24,11 @@ constructor(
 	private val _uiState = MutableStateFlow(HopUiState())
 	val uiState = _uiState.asStateFlow()
 
-	fun onQueryChange(query: String, countries: Set<Country>) {
+	fun onQueryChange(query: String, countries: List<Country>) {
 		_uiState.update {
 			it.copy(
 				query = query.lowercase(),
-				queriedCountries = countries.filter { country -> country.name.lowercase().contains(query) }.toSet(),
+				queriedCountries = countries.filter { country -> country.name.lowercase().contains(query) },
 			)
 		}
 	}
