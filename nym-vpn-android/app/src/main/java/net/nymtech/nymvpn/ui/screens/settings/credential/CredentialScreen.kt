@@ -165,24 +165,17 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 			modifier =
 			Modifier
 				.padding(
-					horizontal = 24.dp.scaledWidth(),
 					vertical = 24.dp.scaledHeight(),
 				),
 		) {
 			Text(
-				text = stringResource(id = R.string.welcome_exclaim),
+				text = stringResource(id = R.string.welcome_to_nym),
 				style = MaterialTheme.typography.headlineSmall,
 				color = MaterialTheme.colorScheme.onBackground,
 			)
 			Text(
-				text = stringResource(id = R.string.recovery_phrase_message),
+				text = stringResource(id = R.string.enter_access_code),
 				style = MaterialTheme.typography.bodyLarge,
-				color = MaterialTheme.colorScheme.onSurface,
-				textAlign = TextAlign.Center,
-			)
-			Text(
-				text = stringResource(id = R.string.recovery_phrase_disclaimer),
-				style = MaterialTheme.typography.bodySmall,
 				color = MaterialTheme.colorScheme.onSurfaceVariant,
 				textAlign = TextAlign.Center,
 			)
@@ -193,7 +186,12 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 		) {
 			CustomTextField(
 				placeholder = {
-					Text(stringResource(R.string.mnemonic_example), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+					Column {
+						Text(stringResource(R.string.access_code), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+						Text("")
+						Text(stringResource(R.string.mnemonic_example), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+					}
 				},
 				value = mnemonic,
 				onValueChange = {
@@ -273,7 +271,7 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 							annotation = appUiState.managerState.accountLinks?.signUp ?: stringResource(R.string.create_account_url),
 						)
 						withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-							append(stringResource(id = R.string.create_account))
+							append(stringResource(id = R.string.get_access_code))
 						}
 						pop()
 					}
