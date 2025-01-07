@@ -2,24 +2,29 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::window::{PowerManagementEvent, PowerManagementListener};
-use parking_lot::Mutex;
 use std::{
     io,
     sync::{Arc, Weak},
     time::Duration,
 };
-use talpid_routing::{get_best_default_route, CallbackHandle, EventType, RouteManagerHandle};
-use talpid_types::{net::Connectivity, ErrorExt};
-use talpid_windows::net::AddressFamily;
-use tokio::sync::mpsc;
+
+use tokio::sync::{mpsc, Mutex};
+
+use nym_common::ErrorExt;
+use nym_routing::{get_best_default_route, CallbackHandle, EventType, RouteManagerHandle};
+use nym_windows::net::AddressFamily;
+
+use super::{
+    window::{PowerManagementEvent, PowerManagementListener},
+    Connectivity,
+};
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("Unable to create listener thread")]
     ThreadCreationError(#[from] io::Error),
     #[error("Failed to start connectivity monitor")]
-    ConnectivityMonitorError(#[from] talpid_routing::Error),
+    ConnectivityMonitorError(#[from] nym_routing::Error),
 }
 
 pub struct BroadcastListener {
@@ -53,7 +58,10 @@ impl BroadcastListener {
                 match event {
                     PowerManagementEvent::Suspend => {
                         tracing::debug!("Machine is preparing to enter sleep mode");
-                        apply_system_state_change(state.clone(), StateChange::Suspended(true));
+                        state
+                            .lock()
+                            .await
+                            .apply_change(StateChange::Suspended(true));
                     }
                     PowerManagementEvent::ResumeAutomatic => {
                         let state_copy = state.clone();
@@ -64,7 +72,10 @@ impl BroadcastListener {
                             tracing::debug!(
                                 "Tunnel device is presumed to have been re-initialized"
                             );
-                            apply_system_state_change(state_copy, StateChange::Suspended(false));
+                            state_copy
+                                .lock()
+                                .await
+                                .apply_change(StateChange::Suspended(false));
                         });
                     }
                     _ => (),
@@ -128,7 +139,7 @@ impl BroadcastListener {
         family: AddressFamily,
         state_lock: &Arc<Mutex<SystemState>>,
     ) {
-        use talpid_routing::EventType::*;
+        use nym_routing::EventType::*;
 
         if matches!(event_type, UpdatedDetails(_)) {
             // ignore changes that don't affect the route
@@ -140,14 +151,17 @@ impl BroadcastListener {
             AddressFamily::Ipv4 => StateChange::NetworkV4Connectivity(connectivity),
             AddressFamily::Ipv6 => StateChange::NetworkV6Connectivity(connectivity),
         };
-        let mut state = state_lock.lock();
+        let mut state = state_lock.blocking_lock();
         state.apply_change(change);
     }
 
     #[allow(clippy::unused_async)]
     pub async fn connectivity(&self) -> Connectivity {
-        let state = self.system_state.lock();
-        state.connectivity.into_connectivity()
+        self.system_state
+            .lock()
+            .await
+            .connectivity
+            .into_connectivity()
     }
 }
 
@@ -182,7 +196,7 @@ impl SystemState {
         if old_state != new_state {
             tracing::info!("Connectivity changed: {}", is_offline_str(new_state));
             if let Some(notify_tx) = self.notify_tx.upgrade() {
-                if let Err(e) = notify_tx.unbounded_send(self.connectivity.into_connectivity()) {
+                if let Err(e) = notify_tx.send(self.connectivity.into_connectivity()) {
                     tracing::error!("Failed to send new offline state to daemon: {}", e);
                 }
             }
@@ -211,11 +225,6 @@ pub async fn spawn_monitor(
 ) -> Result<MonitorHandle, Error> {
     let power_mgmt_rx = crate::window::PowerManagementListener::new();
     BroadcastListener::start(sender, route_manager, power_mgmt_rx).await
-}
-
-fn apply_system_state_change(state: Arc<Mutex<SystemState>>, change: StateChange) {
-    let mut state = state.lock();
-    state.apply_change(change);
 }
 
 #[derive(Clone, Copy, Debug)]
