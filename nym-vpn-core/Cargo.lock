@@ -3281,7 +3281,7 @@ dependencies = [
  "nym-apple-dispatch",
  "objc2",
  "objc2-foundation",
- "thiserror 1.0.69",
+ "thiserror 2.0.9",
 ]
 
 [[package]]
@@ -3299,7 +3299,7 @@ dependencies = [
  "nym-wireguard-types",
  "semver",
  "serde",
- "thiserror 1.0.69",
+ "thiserror 2.0.9",
  "tokio",
  "tracing",
  "tracing-subscriber",
@@ -3504,7 +3504,7 @@ name = "nym-common"
 version = "1.2.0-dev"
 dependencies = [
  "libc",
- "thiserror 1.0.69",
+ "thiserror 2.0.9",
  "tracing",
  "windows-sys 0.52.0",
 ]
@@ -3558,7 +3558,7 @@ dependencies = [
  "nym-sdk",
  "nym-task",
  "pnet_packet",
- "thiserror 1.0.69",
+ "thiserror 2.0.9",
  "tokio",
  "tracing",
 ]
@@ -3717,7 +3717,7 @@ version = "1.2.0-dev"
 dependencies = [
  "dbus",
  "libc",
- "thiserror 1.0.69",
+ "thiserror 2.0.9",
  "tokio",
  "tracing",
 ]
@@ -3737,7 +3737,7 @@ dependencies = [
  "parking_lot",
  "resolv-conf",
  "system-configuration 0.6.1",
- "thiserror 1.0.69",
+ "thiserror 2.0.9",
  "tokio",
  "tracing",
  "triggered",
@@ -3861,7 +3861,7 @@ dependencies = [
  "nym-vpn-api-client",
  "rand 0.8.5",
  "serde",
- "thiserror 1.0.69",
+ "thiserror 2.0.9",
  "tokio",
  "tokio-tungstenite 0.26.1",
  "tracing",
@@ -3903,7 +3903,7 @@ dependencies = [
  "rust2go",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror 2.0.9",
  "tokio",
  "tokio-util",
  "tracing",
@@ -3959,7 +3959,7 @@ dependencies = [
  "reqwest 0.11.27",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror 2.0.9",
  "tracing",
 ]
 
@@ -4022,7 +4022,7 @@ dependencies = [
  "nym-ip-packet-requests",
  "nym-mixnet-client 1.2.0-dev",
  "nym-sdk",
- "thiserror 1.0.69",
+ "thiserror 2.0.9",
  "tokio",
  "tokio-util",
  "tracing",
@@ -4074,7 +4074,7 @@ name = "nym-mixnet-client"
 version = "1.2.0-dev"
 dependencies = [
  "nym-sdk",
- "thiserror 1.0.69",
+ "thiserror 2.0.9",
  "tokio",
 ]
 
@@ -4215,7 +4215,7 @@ dependencies = [
  "nym-windows",
  "rtnetlink",
  "system-configuration 0.6.1",
- "thiserror 1.0.69",
+ "thiserror 2.0.9",
  "tokio",
  "tracing",
  "widestring",
@@ -4701,7 +4701,7 @@ dependencies = [
  "si-scale",
  "strum",
  "strum_macros",
- "thiserror 1.0.69",
+ "thiserror 2.0.9",
  "time",
  "tokio",
  "tokio-util",
@@ -4735,7 +4735,7 @@ dependencies = [
  "sha2 0.10.8",
  "strum",
  "strum_macros",
- "thiserror 1.0.69",
+ "thiserror 2.0.9",
  "tokio",
  "tracing",
  "zeroize",
@@ -4757,7 +4757,7 @@ dependencies = [
  "nym-vpn-api-client",
  "nym-vpn-lib",
  "nym-vpn-store",
- "thiserror 1.0.69",
+ "thiserror 2.0.9",
  "time",
  "tokio",
  "tokio-util",
@@ -4827,7 +4827,7 @@ dependencies = [
  "signature",
  "sysinfo 0.31.4",
  "tap",
- "thiserror 1.0.69",
+ "thiserror 2.0.9",
  "time",
  "tokio",
  "tokio-stream",
@@ -4875,7 +4875,7 @@ dependencies = [
  "nym-vpnd-types",
  "prost",
  "prost-types",
- "thiserror 1.0.69",
+ "thiserror 2.0.9",
  "time",
  "tonic",
  "tonic-build",
@@ -4896,7 +4896,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tempfile",
- "thiserror 1.0.69",
+ "thiserror 2.0.9",
  "tokio",
  "tracing",
  "zeroize",
@@ -4961,7 +4961,7 @@ dependencies = [
  "strum",
  "strum_macros",
  "sysinfo 0.31.4",
- "thiserror 1.0.69",
+ "thiserror 2.0.9",
  "time",
  "tokio",
  "tokio-stream",
@@ -5009,7 +5009,7 @@ dependencies = [
  "nym-wireguard-types",
  "rand 0.8.5",
  "si-scale",
- "thiserror 1.0.69",
+ "thiserror 2.0.9",
  "tokio",
  "tokio-stream",
  "tracing",
@@ -5024,7 +5024,7 @@ dependencies = [
  "ipnetwork",
  "nym-windows",
  "rand 0.8.5",
- "thiserror 1.0.69",
+ "thiserror 2.0.9",
  "tracing",
  "windows-sys 0.52.0",
  "x25519-dalek",
@@ -5038,7 +5038,7 @@ dependencies = [
  "futures",
  "nym-common",
  "socket2",
- "thiserror 1.0.69",
+ "thiserror 2.0.9",
  "windows-sys 0.52.0",
 ]
 
