@@ -37,9 +37,6 @@ sealed class Route {
 	data object Logs : Route()
 
 	@Serializable
-	data object Feedback : Route()
-
-	@Serializable
 	data object Support : Route()
 
 	@Serializable

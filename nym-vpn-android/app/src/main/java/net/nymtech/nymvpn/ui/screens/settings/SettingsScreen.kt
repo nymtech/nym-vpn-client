@@ -201,21 +201,17 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 		SurfaceSelectionGroupButton(
 			listOf(
 				SelectionItem(
-					ImageVector.vectorResource(R.drawable.feedback),
-					{
-						val icon = Icons.AutoMirrored.Outlined.ArrowRight
-						Icon(icon, icon.name, Modifier.size(iconSize))
-					},
-					title = { Text(stringResource(R.string.feedback), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { navController.navigate(Route.Feedback) },
-				),
-				SelectionItem(
 					ImageVector.vectorResource(R.drawable.support),
 					{
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
 						Icon(icon, icon.name, Modifier.size(iconSize))
 					},
-					title = { Text(stringResource(R.string.support), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+					title = {
+						Text(
+							stringResource(R.string.support_and_feedback),
+							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+						)
+					},
 					onClick = { navController.navigate(Route.Support) },
 				),
 				SelectionItem(

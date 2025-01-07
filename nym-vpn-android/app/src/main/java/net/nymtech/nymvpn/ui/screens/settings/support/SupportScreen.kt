@@ -84,8 +84,27 @@ fun SupportScreen(appViewModel: AppViewModel) {
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
 						Icon(icon, icon.name, Modifier.size(iconSize))
 					},
-					title = { Text(stringResource(R.string.contact_support), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { context.openWebUrl(context.getString(R.string.contact_url)) },
+					title = { Text(stringResource(R.string.get_in_touch), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+					onClick = {
+						context.openWebUrl(context.getString(R.string.contact_url))
+					},
+				),
+			),
+		)
+		SurfaceSelectionGroupButton(
+			listOf(
+				SelectionItem(
+					leadingIcon = ImageVector.vectorResource(R.drawable.github),
+					{
+						val icon = Icons.AutoMirrored.Outlined.ArrowRight
+						Icon(icon, icon.name, Modifier.size(iconSize))
+					},
+					title = { Text(stringResource(R.string.open_github), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+					onClick = {
+						context.openWebUrl(
+							context.getString(R.string.github_issues_url),
+						)
+					},
 				),
 			),
 		)

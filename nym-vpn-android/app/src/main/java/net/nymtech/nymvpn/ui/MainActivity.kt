@@ -62,7 +62,6 @@ import net.nymtech.nymvpn.ui.screens.settings.appearance.display.DisplayScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.language.LanguageScreen
 import net.nymtech.nymvpn.ui.screens.settings.credential.CredentialScreen
 import net.nymtech.nymvpn.ui.screens.settings.developer.DeveloperScreen
-import net.nymtech.nymvpn.ui.screens.settings.feedback.FeedbackScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.LegalScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.licenses.LicensesScreen
 import net.nymtech.nymvpn.ui.screens.settings.logs.LogsScreen
@@ -225,7 +224,6 @@ class MainActivity : AppCompatActivity() {
 								}
 								composable<Route.Logs> { LogsScreen(appViewModel) }
 								composable<Route.Support> { SupportScreen(appViewModel) }
-								composable<Route.Feedback> { FeedbackScreen(appViewModel) }
 								composable<Route.Legal> { LegalScreen(appViewModel) }
 								composable<Route.Credential> {
 									CredentialScreen(appState, appViewModel)
