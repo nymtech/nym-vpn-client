@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::window::{PowerManagementEvent, PowerManagementListener};
-use futures::channel::mpsc::UnboundedSender;
 use parking_lot::Mutex;
 use std::{
     io,
@@ -13,6 +12,7 @@ use std::{
 use talpid_routing::{get_best_default_route, CallbackHandle, EventType, RouteManagerHandle};
 use talpid_types::{net::Connectivity, ErrorExt};
 use talpid_windows::net::AddressFamily;
+use tokio::sync::mpsc;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -25,14 +25,14 @@ pub enum Error {
 pub struct BroadcastListener {
     system_state: Arc<Mutex<SystemState>>,
     _callback_handle: CallbackHandle,
-    _notify_tx: Arc<UnboundedSender<Connectivity>>,
+    _notify_tx: Arc<mpsc::UnboundedSender<Connectivity>>,
 }
 
 unsafe impl Send for BroadcastListener {}
 
 impl BroadcastListener {
     pub async fn start(
-        notify_tx: UnboundedSender<Connectivity>,
+        notify_tx: mpsc::UnboundedSender<Connectivity>,
         route_manager: RouteManagerHandle,
         mut power_mgmt_rx: PowerManagementListener,
     ) -> Result<Self, Error> {
@@ -160,7 +160,7 @@ enum StateChange {
 
 struct SystemState {
     connectivity: ConnectivityInner,
-    notify_tx: Weak<UnboundedSender<Connectivity>>,
+    notify_tx: Weak<mpsc::UnboundedSender<Connectivity>>,
 }
 
 impl SystemState {
@@ -206,7 +206,7 @@ fn is_offline_str(offline: bool) -> &'static str {
 pub type MonitorHandle = BroadcastListener;
 
 pub async fn spawn_monitor(
-    sender: UnboundedSender<Connectivity>,
+    sender: mpsc::UnboundedSender<Connectivity>,
     route_manager: RouteManagerHandle,
 ) -> Result<MonitorHandle, Error> {
     let power_mgmt_rx = crate::window::PowerManagementListener::new();

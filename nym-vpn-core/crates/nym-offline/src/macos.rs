@@ -19,11 +19,11 @@ use std::{
 };
 
 use futures::{
-    channel::mpsc::UnboundedSender,
     future::{Fuse, FutureExt},
-    select, StreamExt,
+    StreamExt,
 };
 use nym_routing::{DefaultRouteEvent, RouteManagerHandle};
+use tokio::sync::mpsc;
 
 use super::Connectivity;
 
@@ -37,7 +37,7 @@ pub enum Error {
 
 pub struct MonitorHandle {
     state: Arc<Mutex<ConnectivityInner>>,
-    _notify_tx: Arc<UnboundedSender<Connectivity>>,
+    _notify_tx: Arc<mpsc::UnboundedSender<Connectivity>>,
 }
 
 impl MonitorHandle {
@@ -71,7 +71,7 @@ impl ConnectivityInner {
 }
 
 pub async fn spawn_monitor(
-    notify_tx: UnboundedSender<Connectivity>,
+    notify_tx: mpsc::UnboundedSender<Connectivity>,
     route_manager: RouteManagerHandle,
 ) -> Result<MonitorHandle, Error> {
     let notify_tx = Arc::new(notify_tx);
@@ -105,8 +105,8 @@ pub async fn spawn_monitor(
         loop {
             nym_common::detect_flood!();
 
-            select! {
-                _ = timeout => {
+            tokio::select! {
+                _ = &mut timeout => {
                     // Update shared state
                     let Some(state) = weak_state.upgrade() else {
                         break;
@@ -118,7 +118,7 @@ pub async fn spawn_monitor(
                         let Some(tx) = weak_notify_tx.upgrade() else {
                             break;
                         };
-                        let _ = tx.unbounded_send(real_state.into_connectivity());
+                        let _ = tx.send(real_state.into_connectivity());
                     }
 
                     *state = real_state;
@@ -159,7 +159,7 @@ pub async fn spawn_monitor(
                         let Some(tx) = weak_notify_tx.upgrade() else {
                             break;
                         };
-                        let _ = tx.unbounded_send(state.into_connectivity());
+                        let _ = tx.send(state.into_connectivity());
                         tracing::info!("Connectivity changed: Offline");
                     }
 
