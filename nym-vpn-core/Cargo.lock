@@ -4170,11 +4170,13 @@ dependencies = [
  "nym-apple-network",
  "nym-common",
  "nym-routing",
+ "nym-windows",
  "thiserror 2.0.9",
  "tokio",
  "tokio-stream",
  "tokio-util",
  "tracing",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
