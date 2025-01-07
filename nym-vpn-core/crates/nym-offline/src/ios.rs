@@ -3,7 +3,6 @@
 
 use std::{sync::Arc, time::Duration};
 
-use futures::channel::mpsc::UnboundedSender;
 use tokio::{
     sync::{mpsc, Mutex},
     task::JoinHandle,
@@ -59,7 +58,7 @@ impl MonitorHandle {
     }
 }
 
-pub async fn spawn_monitor(sender: UnboundedSender<Connectivity>) -> Result<MonitorHandle> {
+pub async fn spawn_monitor(sender: mpsc::UnboundedSender<Connectivity>) -> Result<MonitorHandle> {
     let (connectivity_tx, mut connectivity_rx) = mpsc::unbounded_channel();
 
     // Start system path monitor.
@@ -94,7 +93,7 @@ pub async fn spawn_monitor(sender: UnboundedSender<Connectivity>) -> Result<Moni
                     let mut state = cloned_current_state.lock().await;
                     *state = connectivity;
 
-                    _ = sender.unbounded_send(connectivity);
+                    _ = sender.send(connectivity);
                 }
                 _ = child_token.cancelled() => {
                     break;

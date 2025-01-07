@@ -4,10 +4,10 @@
 
 use std::sync::LazyLock;
 
-use futures::channel::mpsc::UnboundedSender;
 use nym_common::ErrorExt;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_routing::RouteManagerHandle;
+use tokio::sync::mpsc;
 
 #[cfg(target_os = "android")]
 use crate::connectivity_listener::ConnectivityListener;
@@ -51,7 +51,7 @@ impl MonitorHandle {
 }
 
 pub async fn spawn_monitor(
-    sender: UnboundedSender<Connectivity>,
+    sender: mpsc::UnboundedSender<Connectivity>,
     #[cfg(not(any(target_os = "android", target_os = "ios")))] route_manager: RouteManagerHandle,
     #[cfg(target_os = "linux")] fwmark: Option<u32>,
     #[cfg(target_os = "android")] connectivity_listener: ConnectivityListener,

@@ -2,13 +2,17 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::{channel::mpsc::UnboundedSender, StreamExt};
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     sync::Arc,
 };
-use talpid_routing::RouteManagerHandle;
-use talpid_types::{net::Connectivity, ErrorExt};
+
+use futures::StreamExt;
+use tokio::sync::mpsc;
+
+use super::Connectivity;
+use nym_common::ErrorExt;
+use nym_routing::RouteManagerHandle;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -21,7 +25,7 @@ pub enum Error {
 pub struct MonitorHandle {
     route_manager: RouteManagerHandle,
     fwmark: Option<u32>,
-    _notify_tx: Arc<UnboundedSender<Connectivity>>,
+    _notify_tx: Arc<mpsc::UnboundedSender<Connectivity>>,
 }
 
 /// A non-local IPv4 address.
@@ -37,7 +41,7 @@ impl MonitorHandle {
 }
 
 pub async fn spawn_monitor(
-    notify_tx: UnboundedSender<Connectivity>,
+    notify_tx: mpsc::UnboundedSender<Connectivity>,
     route_manager: RouteManagerHandle,
     fwmark: Option<u32>,
 ) -> Result<MonitorHandle> {
