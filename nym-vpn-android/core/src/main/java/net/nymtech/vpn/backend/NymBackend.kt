@@ -169,6 +169,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	override suspend fun isMnemonicStored(): Boolean {
 		return withContext(ioDispatcher) {
 			waitForInit()
+			delay(2000L)
 			isAccountMnemonicStored()
 		}
 	}
