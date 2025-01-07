@@ -105,6 +105,8 @@ class MainActivity : AppCompatActivity() {
 
 		super.onCreate(savedInstanceState)
 
+		resetTile()
+
 		setContent {
 			val appState by appViewModel.uiState.collectAsStateWithLifecycle(lifecycle)
 			val navBarState by appViewModel.navBarState.collectAsStateWithLifecycle(lifecycle)
