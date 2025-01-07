@@ -36,7 +36,7 @@ sealed class ThemeColors(
 		secondary = secondary,
 		onBackground = Color(0xFF1C1B1F),
 		onSurface = Color(0xFF1C1B1F),
-		onPrimary = Color(0xFFEBEEF4),
+		onPrimary = Color(0xFF1C1B1F),
 		onSurfaceVariant = Color(0xFF79747E),
 		onSecondary = Color(0xFFA4A4A4),
 		surfaceContainer = Color(0xFFFFFFFF),
