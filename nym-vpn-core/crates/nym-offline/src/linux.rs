@@ -19,7 +19,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("The route manager returned an error")]
-    RouteManagerError(#[source] talpid_routing::Error),
+    RouteManagerError(#[source] nym_routing::Error),
 }
 
 pub struct MonitorHandle {
@@ -67,7 +67,7 @@ pub async fn spawn_monitor(
                     let new_connectivity = check_connectivity(&route_manager, fwmark).await;
                     if new_connectivity != connectivity {
                         connectivity = new_connectivity;
-                        let _ = sender.unbounded_send(connectivity);
+                        let _ = sender.send(connectivity);
                     }
                 }
                 None => return,
