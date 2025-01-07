@@ -100,15 +100,19 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	}
 
 	suspend fun waitForInit() {
-		val startTime = System.currentTimeMillis()
-		val timeout = 5000L
-		while (System.currentTimeMillis() - startTime < timeout) {
-			if (initialized.get()) {
-				return
+		runCatching {
+			val startTime = System.currentTimeMillis()
+			val timeout = 5000L
+			while (System.currentTimeMillis() - startTime < timeout) {
+				if (initialized.get()) {
+					return
+				}
+				delay(10)
 			}
-			delay(10)
+			throw TimeoutException("Failed to initialize backend")
+		}.onFailure {
+			Timber.e(it)
 		}
-		throw TimeoutException("Failed to initialize backend")
 	}
 
 	private suspend fun initEnvironment(environment: Tunnel.Environment) {
