@@ -48,6 +48,7 @@ import nym_vpn_lib.waitForRegisterDevice
 import nym_vpn_lib.waitForUpdateAccount
 import nym_vpn_lib.waitForUpdateDevice
 import timber.log.Timber
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.properties.Delegates
 
@@ -107,7 +108,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			}
 			delay(10)
 		}
-		throw Exception("Failed to initialize backend")
+		throw TimeoutException("Failed to initialize backend")
 	}
 
 	private suspend fun initEnvironment(environment: Tunnel.Environment) {
