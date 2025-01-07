@@ -47,18 +47,15 @@ pub mod helpers;
 
 mod account;
 mod environment;
-mod state_machine;
 mod logging;
+mod state_machine;
 pub use logging::init_logger;
 
 use std::{path::PathBuf, sync::Arc, time::Duration};
 
 use account::AccountControllerHandle;
 use lazy_static::lazy_static;
-use tokio::{
-    runtime::Runtime,
-    sync::Mutex,
-};
+use tokio::{runtime::Runtime, sync::Mutex};
 
 use state_machine::StateMachineHandle;
 
