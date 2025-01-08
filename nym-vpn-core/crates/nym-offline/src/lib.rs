@@ -12,9 +12,6 @@ use nym_common::ErrorExt;
 use nym_routing::RouteManagerHandle;
 use tokio::sync::mpsc;
 
-#[cfg(target_os = "android")]
-use crate::connectivity_listener::ConnectivityListener;
-
 #[cfg(target_os = "macos")]
 #[path = "macos.rs"]
 mod imp;
