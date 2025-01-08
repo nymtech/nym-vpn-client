@@ -1,4 +1,4 @@
-use crate::env::NETWORK_ENV_SELECT;
+use crate::env::DEV_MODE;
 use crate::error::BackendError;
 use crate::grpc::client::{FeatureFlags, GrpcClient, SystemMessage, VpndStatus};
 use crate::states::SharedAppState;
@@ -41,8 +41,8 @@ pub async fn set_network(
     grpc_client: State<'_, GrpcClient>,
     network: NetworkEnv,
 ) -> Result<(), BackendError> {
-    if !*NETWORK_ENV_SELECT {
-        warn!("network env selector is disabled");
+    if !*DEV_MODE {
+        warn!("not in dev mode");
         return Err(BackendError::internal("nope", None));
     }
     grpc_client

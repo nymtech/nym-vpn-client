@@ -4,5 +4,5 @@ export const S_STATE = {
   vpnModeInit: false,
   networkEnvInit: false,
   systemMessageInit: false,
-  networkEnvSelect: false,
+  devMode: false,
 };

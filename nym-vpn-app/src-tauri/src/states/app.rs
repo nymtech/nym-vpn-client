@@ -45,6 +45,7 @@ pub struct AppState {
     pub vpn_mode: VpnMode,
     pub connection_start_time: Option<OffsetDateTime>,
     pub dns_server: Option<String>,
+    pub credentials_mode: bool,
 }
 
 impl AppState {
@@ -61,6 +62,7 @@ impl AppState {
         AppState {
             vpn_mode,
             dns_server,
+            credentials_mode: cli.dev_mode,
             ..Default::default()
         }
     }

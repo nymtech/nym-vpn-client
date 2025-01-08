@@ -76,6 +76,7 @@ pub async fn connect(
         .dns_server
         .clone()
         .map(|ip| nym_vpn_proto::Dns { ip });
+    let credentials_mode = app_state.credentials_mode;
     // release the lock
     drop(app_state);
 
@@ -146,6 +147,7 @@ pub async fn connect(
             entry_node,
             exit_node,
             two_hop_mod,
+            credentials_mode,
             use_netstack_wireguard,
             dns,
         )

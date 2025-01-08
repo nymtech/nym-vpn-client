@@ -4,6 +4,7 @@ pub mod connection;
 pub mod country;
 pub mod daemon;
 pub mod db;
+pub mod dev;
 pub mod env;
 pub mod fs;
 pub mod log;

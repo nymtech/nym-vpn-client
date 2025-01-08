@@ -1,17 +1,17 @@
-import { useState } from 'react';
 import clsx from 'clsx';
+import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 import { useMainState } from '../../../contexts';
-import NetworkEnvSelect from './NetworkEnvSelect';
+import { routes } from '../../../router';
 import { S_STATE } from '../../../static';
 import { ButtonText } from '../../../ui';
 import AccountData from './AccountData';
 
 function InfoData() {
-  const [showEnvSelect, setShowEnvSelect] = useState(false);
   const { version, daemonStatus, daemonVersion, networkEnv, account } =
     useMainState();
+  const navigate = useNavigate();
 
   const { t } = useTranslation('settings');
 
@@ -36,11 +36,7 @@ function InfoData() {
       {networkEnv && networkEnv.length > 0 && (
         <div className={clsx('flex flex-row flex-nowrap gap-1')}>
           <p className="text-nowrap">{t('info.network-name')}</p>
-          <ButtonText
-            onClick={() => copyToClipboard(networkEnv)}
-            onDoubleClick={() => setShowEnvSelect(!showEnvSelect)}
-            truncate
-          >
+          <ButtonText onClick={() => copyToClipboard(networkEnv)} truncate>
             {networkEnv}
           </ButtonText>
         </div>
@@ -60,22 +56,16 @@ function InfoData() {
       >
         <div className={clsx('flex flex-row flex-nowrap gap-1')}>
           <p className="text-nowrap">{t('info.client-version')}</p>
-          <ButtonText onClick={() => copyToClipboard(version || '')} truncate>
+          <ButtonText
+            onClick={() => copyToClipboard(version || '')}
+            onDoubleClick={() => S_STATE.devMode && navigate(routes.dev)}
+            truncate
+          >
             {version}
           </ButtonText>
         </div>
         {daemonStatus !== 'NotOk' && InfoView}
       </div>
-      {S_STATE.networkEnvSelect &&
-        daemonStatus !== 'NotOk' &&
-        networkEnv &&
-        showEnvSelect && (
-          <NetworkEnvSelect
-            open={showEnvSelect}
-            onClose={() => setShowEnvSelect(false)}
-            current={networkEnv}
-          />
-        )}
     </>
   );
 }

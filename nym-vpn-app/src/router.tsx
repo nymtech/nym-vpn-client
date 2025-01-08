@@ -4,6 +4,7 @@ import * as Sentry from '@sentry/react';
 import {
   Appearance,
   AppearanceRouteIndex,
+  Dev,
   Display,
   Error,
   Lang,
@@ -36,6 +37,7 @@ export const routes = {
   licensesRust: '/settings/legal/licenses-rust',
   licensesJs: '/settings/legal/licenses-js',
   licenseDetails: '/settings/legal/license-details',
+  dev: '/settings/dev',
   entryNodeLocation: '/entry-node-location',
   exitNodeLocation: '/exit-node-location',
   hideout: '/hideout',
@@ -71,6 +73,11 @@ const router = createRouterFn([
             element: <Settings />,
             errorElement: <Error />,
             index: true,
+          },
+          {
+            path: routes.dev,
+            element: <Dev />,
+            errorElement: <Error />,
           },
           {
             path: routes.appearance,

@@ -19,6 +19,7 @@ use clap::Parser;
 use commands::country as cmd_country;
 use commands::daemon as cmd_daemon;
 use commands::db as cmd_db;
+use commands::dev as cmd_dev;
 use commands::env as cmd_env;
 use commands::fs as cmd_fs;
 use commands::log as cmd_log;
@@ -222,6 +223,8 @@ async fn main() -> Result<()> {
             connection::connect,
             connection::disconnect,
             connection::get_connection_start_time,
+            cmd_dev::get_credentials_mode,
+            cmd_dev::set_credentials_mode,
             cmd_db::db_set,
             cmd_db::db_get,
             cmd_db::db_flush,

@@ -36,7 +36,7 @@ use crate::env::VPND_COMPAT_REQ;
 use crate::error::BackendError;
 use crate::fs::config::AppConfig;
 use crate::states::app::ConnectionState;
-use crate::{env, vpn_status};
+use crate::vpn_status;
 use crate::{events::AppHandleEventEmitter, states::SharedAppState};
 
 const VPND_SERVICE: &str = "nym.vpn.NymVpnd";
@@ -59,7 +59,6 @@ pub struct GrpcClient {
     transport: Transport,
     pkg_info: PackageInfo,
     user_agent: UserAgent,
-    credentials_mode: bool,
 }
 
 impl GrpcClient {
@@ -69,7 +68,6 @@ impl GrpcClient {
             transport: Transport::from((config, cli)),
             pkg_info: pkg.clone(),
             user_agent: GrpcClient::user_agent(pkg, None),
-            credentials_mode: cli.credentials_mode || env::is_truthy("ENABLE_CREDENTIALS_MODE"),
         };
         match &client.transport {
             Transport::Http(endpoint) => {
@@ -348,12 +346,13 @@ impl GrpcClient {
         entry_node: EntryNode,
         exit_node: ExitNode,
         two_hop_mod: bool,
+        credentials_mode: bool,
         netstack: bool,
         dns: Option<Dns>,
     ) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        if self.credentials_mode {
+        if credentials_mode {
             info!("credentials mode enabled");
         }
         let request = Request::new(ConnectRequest {
@@ -364,7 +363,7 @@ impl GrpcClient {
             netstack,
             disable_poisson_rate: false,
             disable_background_cover_traffic: false,
-            enable_credentials_mode: self.credentials_mode,
+            enable_credentials_mode: credentials_mode,
             dns,
             user_agent: Some(self.user_agent.clone()),
             min_mixnode_performance: None,

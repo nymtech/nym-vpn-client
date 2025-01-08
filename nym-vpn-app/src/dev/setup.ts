@@ -161,7 +161,7 @@ export function mockTauriIPC() {
     if (cmd === 'env') {
       return new Promise((resolve) =>
         resolve({
-          NETWORK_ENV_SELECT: true,
+          DEV_MODE: true,
         }),
       );
     }

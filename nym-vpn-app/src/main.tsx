@@ -76,9 +76,9 @@ async function setSplashTheme(window: WebviewWindow) {
   }
 
   const env = await invoke<Record<string, unknown>>('env');
-  if (env.NETWORK_ENV_SELECT === true) {
-    console.info('network env selector enabled');
-    S_STATE.networkEnvSelect = true;
+  if (env.DEV_MODE === true) {
+    console.info('dev mode enabled');
+    S_STATE.devMode = true;
   }
 
   // check for unrecoverable errors
