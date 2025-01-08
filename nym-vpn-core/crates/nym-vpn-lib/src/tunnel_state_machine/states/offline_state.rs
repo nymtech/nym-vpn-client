@@ -5,23 +5,25 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 use crate::tunnel_state_machine::{
-    tunnel_monitor::TunnelMonitorHandle, NextTunnelState, PrivateTunnelState, SharedState,
-    TunnelCommand, TunnelStateHandler,
+    tunnel::SelectedGateways, tunnel_monitor::TunnelMonitorHandle, NextTunnelState,
+    PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
 };
 
 pub struct OfflineState {
+    // todo: store last used gateway and reconnect to it!
+    selected_gateways: Option<SelectedGateways>,
     /// Whether to connect the tunnel upon gaining the network connectivity.
     reconnect: bool,
     // todo: wait for handle before reconnecting
     monitor_handle: TunnelMonitorHandle,
-    // todo: store last used gateway and reconnect to it!
 }
 
 impl OfflineState {
     pub fn enter(
         monitor_handle: TunnelMonitorHandle,
-        shared_state: &mut SharedState,
+        selected_gateways: Option<SelectedGateways>,
         reconnect: bool,
+        shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         // It's safe to abort status listener as it's stateless.
         if let Some(status_listener_handle) = shared_state.status_listener_handle.take() {
@@ -33,6 +35,7 @@ impl OfflineState {
             Box::new(Self {
                 reconnect,
                 monitor_handle,
+                selected_gateways,
             }),
             PrivateTunnelState::Offline { reconnect },
         )

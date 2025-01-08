@@ -103,16 +103,35 @@ impl TunnelStateHandler for ConnectingState {
                     NextTunnelState::SameState(self)
                 }
                 TunnelMonitorEvent::Up(conn_data) => {
-                    NextTunnelState::NewState(ConnectedState::enter(conn_data, self.monitor_handle, self.monitor_event_receiver, shared_state))
+                    NextTunnelState::NewState(
+                        ConnectedState::enter(
+                            conn_data, self.monitor_handle,
+                            self.monitor_event_receiver,
+                            self.selected_gateways.expect("selected gateways must be set"),
+                            shared_state
+                        )
+                    )
                 }
                 TunnelMonitorEvent::Down(reason) => {
                     if let Some(reason) = reason {
-                        NextTunnelState::NewState(DisconnectingState::enter(PrivateActionAfterDisconnect::Error(reason), self.monitor_handle, shared_state))
+                        NextTunnelState::NewState(
+                            DisconnectingState::enter(
+                                PrivateActionAfterDisconnect::Error(reason),
+                                self.monitor_handle,
+                                shared_state
+                            )
+                        )
                     } else {
                         let tombstone = self.monitor_handle.wait().await;
                         Self::on_tunnel_exit(tombstone, shared_state).await;
 
-                        NextTunnelState::NewState(ConnectingState::enter(self.retry_attempt.saturating_add(1), self.selected_gateways, shared_state))
+                        NextTunnelState::NewState(
+                            ConnectingState::enter(
+                                self.retry_attempt.saturating_add(1),
+                                self.selected_gateways,
+                                shared_state
+                            )
+                        )
                     }
                 }
             }
