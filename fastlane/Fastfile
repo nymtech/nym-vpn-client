@@ -5,6 +5,12 @@ default_platform(:android)
 
 platform :android do
 
+    before_all do
+      Dir.chdir("../nym-vpn-android") do
+      end
+    end
+
+
 	desc 'Deploy an internal version to Google Play'
 	lane :internal do |options|
 		gradle(task: "clean bundleGeneralRelease")
