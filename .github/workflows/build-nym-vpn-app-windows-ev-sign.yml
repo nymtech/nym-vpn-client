@@ -239,7 +239,7 @@ jobs:
           RUSTFLAGS: "-L ${{ env.TAURI_SRC }}/x86_64-pc-windows-msvc -L ${{ env.TAURI_SRC }} -Clink-args=/LIBPATH:${{ env.TAURI_SRC }}/x64-${{ env.CPP_BUILD_MODES }}"
           WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
-          NETWORK_ENV_SELECT: ${{ inputs.dev_mode == true }}
+          DEV_MODE: ${{ inputs.dev_mode == true }}
         run: |
           if [ "${{ env.CARGO_TARGET }}" = "release" ]; then
             npm run tauri build

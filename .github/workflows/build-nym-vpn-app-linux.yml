@@ -109,7 +109,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
           APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
           # RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
-          NETWORK_ENV_SELECT: ${{ inputs.dev_mode == true }}
+          DEV_MODE: ${{ inputs.dev_mode == true }}
         run: |
           if [ "${{ env.CARGO_TARGET }}" = "release" ]; then
             npm run tauri build

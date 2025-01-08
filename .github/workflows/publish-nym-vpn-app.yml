@@ -14,7 +14,7 @@ on:
         type: boolean
         default: false
       dev_mode:
-        description: "dev build (enable env selector)"
+        description: "Enable dev mode (in-app dev menu)"
         required: true
         type: boolean
         default: false
