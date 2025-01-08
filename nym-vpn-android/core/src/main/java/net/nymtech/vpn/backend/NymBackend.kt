@@ -176,7 +176,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			// TODO temporary until bug is fixed
 			delay(100L)
 			var stored = isAccountMnemonicStored()
-			if(!stored) {
+			if (!stored) {
 				delay(200L)
 				stored = isAccountMnemonicStored()
 			}
