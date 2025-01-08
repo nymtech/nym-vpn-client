@@ -99,13 +99,12 @@ pub(crate) async fn run() -> anyhow::Result<ProbeResult> {
         TestedNode::SameAsEntry
     };
 
-    let mut trial = nym_gateway_probe::Probe::new(entry);
+    let mut trial = nym_gateway_probe::Probe::new(entry, test_point);
     if let Some(awg_args) = args.amnezia_args {
         trial.with_amnezia(&awg_args);
     }
     trial
         .probe(
-            test_point,
             min_gateway_performance,
             args.only_wireguard,
             args.ignore_egress_epoch_role,

@@ -8,6 +8,7 @@ use std::{
 #[cfg(unix)]
 use std::{os::fd::RawFd, sync::Arc};
 
+use crate::types::Entry;
 use anyhow::{anyhow, bail};
 use base64::{engine::general_purpose, Engine as _};
 use bytes::BytesMut;
@@ -36,7 +37,6 @@ use nym_wireguard_types::PeerPublicKey;
 use tokio_util::codec::Decoder;
 use tracing::*;
 use types::WgProbeResults;
-use crate::types::Entry;
 
 use crate::{
     icmp::{check_for_icmp_beacon_reply, icmp_identifier, send_ping_v4, send_ping_v6},
@@ -50,7 +50,6 @@ mod error;
 mod icmp;
 mod netstack;
 mod types;
-
 
 pub use error::{Error, Result};
 pub use types::{IpPingReplies, ProbeOutcome, ProbeResult};
@@ -117,16 +116,17 @@ pub async fn fetch_gateways_with_ipr(
         .into_exit_gateways())
 }
 
-
 pub struct Probe {
     entrypoint: EntryPoint,
+    tested_node: TestedNode,
     amnezia_args: String,
 }
 
 impl Probe {
-    pub fn new(entrypoint: EntryPoint) -> Self {
+    pub fn new(entrypoint: EntryPoint, tested_node: TestedNode) -> Self {
         Self {
             entrypoint,
+            tested_node,
             amnezia_args: "".into(),
         }
     }
@@ -137,9 +137,8 @@ impl Probe {
 
     pub async fn probe(
         self,
-        tested_node: TestedNode,
-    min_gateway_performance: GatewayMinPerformance,
-    ignore_egress_epoch_role: bool,
+        min_gateway_performance: GatewayMinPerformance,
+        ignore_egress_epoch_role: bool,
         only_wireguard: bool,
     ) -> anyhow::Result<ProbeResult> {
         let entry_point = self.entrypoint;
@@ -147,27 +146,27 @@ impl Probe {
         // Setup the entry gateways
         let gateways = lookup_gateways(min_gateway_performance).await?;
         let entry_gateway = entry_point.lookup_gateway(&gateways).await?;
-        let tested_entry = tested_node.is_same_as_entry();
+        let tested_entry = self.tested_node.is_same_as_entry();
 
-        let node_info: TestedNodeDetails = match tested_node {
-        TestedNode::Custom { identity } => {
-            let node = get_nym_node(identity).await?;
-            info!(
-                "testing node {} (via entry {})",
-                node.identity, entry_gateway.identity
-            );
-            (&node).into()
-        }
-        TestedNode::SameAsEntry => (&entry_gateway).into(),
+        let node_info: TestedNodeDetails = match self.tested_node {
+            TestedNode::Custom { identity } => {
+                let node = get_nym_node(identity).await?;
+                info!(
+                    "testing node {} (via entry {})",
+                    node.identity, entry_gateway.identity
+                );
+                (&node).into()
+            }
+            TestedNode::SameAsEntry => (&entry_gateway).into(),
         };
 
-    let mixnet_entry_gateway_id = entry_gateway.identity();
+        let mixnet_entry_gateway_id = entry_gateway.identity();
 
         info!("connecting to entry gateway: {entry_gateway:?}");
         debug!(
-        "authenticator version: {:?}",
-        node_info.authenticator_version
-    );
+            "authenticator version: {:?}",
+            node_info.authenticator_version
+        );
 
         // Connect to the mixnet via the entry gateway
         let mixnet_client = MixnetClientBuilder::new_ephemeral()
@@ -181,82 +180,87 @@ impl Probe {
             .connect_to_mixnet()
             .await;
 
-    let mixnet_client = match mixnet_client {
-        Ok(mixnet_client) => mixnet_client,
-        Err(err) => {
-            error!("Failed to connect to mixnet: {err}");
-            return Ok(ProbeResult {
+        let mixnet_client = match mixnet_client {
+            Ok(mixnet_client) => mixnet_client,
+            Err(err) => {
+                error!("Failed to connect to mixnet: {err}");
+                return Ok(ProbeResult {
+                    node: node_info.identity.to_string(),
+                    used_entry: mixnet_entry_gateway_id.to_string(),
+                    outcome: ProbeOutcome {
+                        as_entry: if tested_entry {
+                            Entry::fail_to_connect()
+                        } else {
+                            Entry::EntryFailure
+                        },
+                        as_exit: None,
+                        wg: None,
+                    },
+                });
+            }
+        };
+
+        let nym_address = *mixnet_client.nym_address();
+        let entry_gateway = nym_address.gateway().to_base58_string();
+
+        info!("Successfully connected to entry gateway: {entry_gateway}");
+        info!("Our nym address: {nym_address}");
+
+        let shared_client = SharedMixnetClient::new(
+            mixnet_client,
+            #[cfg(unix)]
+            Arc::new(|_: RawFd| {}),
+        );
+
+        // Now that we have a connected mixnet client, we can start pinging
+        let outcome = if only_wireguard {
+            Ok(ProbeOutcome {
+                as_entry: if tested_entry {
+                    Entry::success()
+                } else {
+                    Entry::NotTested
+                },
+                as_exit: None,
+                wg: None,
+            })
+        } else {
+            do_ping(
+                shared_client.clone(),
+                node_info.exit_router_address,
+                tested_entry,
+            )
+            .await
+        };
+
+        let wg_outcome = if let (Some(authenticator), Some(ip_address)) =
+            (node_info.authenticator_address, node_info.ip_address)
+        {
+            wg_probe(
+                authenticator,
+                shared_client.clone(),
+                ip_address,
+                node_info.authenticator_version,
+                self.amnezia_args,
+            )
+            .await
+            .unwrap_or_default()
+        } else {
+            WgProbeResults::default()
+        };
+
+        let mixnet_client = shared_client.lock().await.take().unwrap();
+        mixnet_client.disconnect().await;
+
+        // Disconnect the mixnet client gracefully
+        outcome.map(|mut outcome| {
+            outcome.wg = Some(wg_outcome);
+            ProbeResult {
                 node: node_info.identity.to_string(),
                 used_entry: mixnet_entry_gateway_id.to_string(),
-                outcome: ProbeOutcome {
-                    as_entry: if tested_entry {
-                        Entry::fail_to_connect()
-                    } else {
-                        Entry::EntryFailure
-                    },
-                    as_exit: None,
-                    wg: None,
-                },
-            });
-        }
-    };
-
-    let nym_address = *mixnet_client.nym_address();
-    let entry_gateway = nym_address.gateway().to_base58_string();
-
-    info!("Successfully connected to entry gateway: {entry_gateway}");
-    info!("Our nym address: {nym_address}");
-
-    let shared_client = SharedMixnetClient::new(mixnet_client);
-
-    // Now that we have a connected mixnet client, we can start pinging
-    let outcome = if only_wireguard {
-        Ok(ProbeOutcome {
-            as_entry: if tested_entry {
-                Entry::success()
-            } else {
-                Entry::NotTested
-            },
-            as_exit: None,
-            wg: None,
+                outcome,
+            }
         })
-    } else {
-        do_ping(
-            shared_client.clone(),
-            node_info.exit_router_address,
-            tested_entry,
-        )
-        .await
-    };
-
-    let wg_outcome = if let (Some(authenticator), Some(ip_address)) =
-        (node_info.authenticator_address, node_info.ip_address)
-    {
-        wg_probe(
-            authenticator,
-            shared_client.clone(),
-            ip_address,
-            node_info.authenticator_version,
-            self.amnezia_args,
-        )
-        .await
-        .unwrap_or_default()
-    } else {
-        WgProbeResults::default()
-    };
-
-    let mixnet_client = shared_client.lock().await.take().unwrap();
-    mixnet_client.disconnect().await;
-
-    // Disconnect the mixnet client gracefully
-    outcome.map(|mut outcome| {
-        outcome.wg = Some(wg_outcome);
-        ProbeResult {
-            node: node_info.identity.to_string(),
-            used_entry: mixnet_entry_gateway_id.to_string(),
-            outcome,
-        }
-    })
+    }
 }
 
 async fn wg_probe(

@@ -41,6 +41,7 @@ pub struct WgProbeResults {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[allow(clippy::enum_variant_names)]
 pub enum Entry {
     Tested(EntryTestResult),
     NotTested,
