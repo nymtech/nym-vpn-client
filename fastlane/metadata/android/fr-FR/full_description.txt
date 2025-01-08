@@ -19,19 +19,6 @@ Notre dVPN a été conçu avec la confidentialité à l'esprit. Nous ne stockons
 Résistance à la censure
 Notre application VPN rend votre activité en ligne complètement anonyme. Nous chiffrons votre trafic, votre adresse IP, votre localisation et tout ce qu'une personne mal intentionnée pourrait surveiller. Vous êtes complètement en sécurité grâce à des fonctionnalités comme le killswitch.
 
-Vitesse
-La vitesse de notre réseau VPN augmente de minute en minute grâce à de nombreux nœuds supplémentaires rejoignant le réseau Mixnet. De plus, nous utilisons des algorithmes cryptographiques modernes et des protocoles innovants tels que Sphinx et Loopix pour rendre votre connexion aussi rapide que possible.
-
-Choix de localisation
-Avec NymVPN, vous pouvez choisir de vous connecter depuis des centaines de localisations dans le monde entier.
-Téléchargez l'application --> Choisissez la localisation --> Connectez-vous
-
-Paiements en crypto
-Vous recherchez un VPN qui accepte les paiements en crypto-monnaies ? Nous sommes là. Nous acceptons volontiers les paiements en crypto-monnaies.
-
-Sans publicités
-Profitez de votre VPN sans publicités. Notre objectif principal est de protéger votre vie privée, c'est pourquoi vous ne verrez aucune publicité dans notre application VPN.
-
 Utilisation illimitée
 Profitez d'Internet autant que vous le souhaitez, NymVPN ne limitera jamais votre trafic.
 
