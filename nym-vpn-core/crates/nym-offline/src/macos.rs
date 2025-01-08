@@ -13,17 +13,14 @@
 //! to macOS's connectivity check. In the offline state, a DNS server on localhost prevents the
 //! connectivity check from being blocked.
 
-use std::{
-    sync::{Arc, Mutex},
-    time::Duration,
-};
+use std::{sync::Arc, time::Duration};
 
 use futures::{
     future::{Fuse, FutureExt},
     StreamExt,
 };
 use nym_routing::{DefaultRouteEvent, RouteManagerHandle};
-use tokio::sync::mpsc;
+use tokio::sync::Mutex;
 
 use super::Connectivity;
 
@@ -42,10 +39,8 @@ pub struct MonitorHandle {
 
 impl MonitorHandle {
     /// Return whether the host is offline
-    #[allow(clippy::unused_async)]
     pub async fn connectivity(&self) -> Connectivity {
-        let state = self.state.lock().unwrap();
-        state.into_connectivity()
+        self.state.lock().await.into_connectivity()
     }
 }
 
@@ -112,7 +107,7 @@ pub async fn spawn_monitor(
                         break;
                     };
 
-                    let mut state = state.lock().unwrap();
+                    let mut state = state.lock().await;
                     if real_state.is_online() {
                         tracing::info!("Connectivity changed: Connected");
                         let Some(tx) = weak_notify_tx.upgrade() else {
@@ -150,7 +145,7 @@ pub async fn spawn_monitor(
                     let Some(state) = weak_state.upgrade() else {
                         break;
                     };
-                    let mut state = state.lock().unwrap();
+                    let mut state = state.lock().await;
                     let previous_connectivity = *state;
                     state.ipv4 = false;
                     state.ipv6 = false;
