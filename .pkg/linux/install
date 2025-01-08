@@ -34,15 +34,18 @@ BI_GRY="$ITL$B_GRY"
 BI="$ITL$BLD"
 ####
 
-# nym-vpn-app AppImage
-app_tag=nym-vpn-app-v0.2.3
-app_version=0.2.3
-appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/nym-vpn_${app_version}_x64.AppImage"
+# AppImage
+app_tag=nym-vpn-app-v1.2.0-malachite.2
+app_version=1.2.0-malachite.2
+appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/NymVPN_${app_version}_x64.AppImage"
+desktop_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/fb526935/nym-vpn-app/.pkg/app.desktop"
+icon_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/fb526935/nym-vpn-app/.pkg/icon.svg"
 
-# nym-vpnd prebuilt binary
-vpnd_tag=nym-vpn-core-v0.2.4
-vpnd_version=0.2.4
+# nym-vpnd
+vpnd_tag=nym-vpn-core-nightly
+vpnd_version=1.2.0-dev
 vpnd_url="https://github.com/nymtech/nym-vpn-client/releases/download/$vpnd_tag/nym-vpn-core-v${vpnd_version}_linux_x86_64.tar.gz"
+unit_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/fb526935/nym-vpn-core/crates/nym-vpnd/.pkg/aur/nym-vpnd.service"
 
 # function called when an error occurs, will print the exit
 # status, function name and line number
@@ -120,22 +123,17 @@ data_home=${XDG_DATA_HOME:-$HOME/.local/share}
 state_home=${XDG_STATE_HOME:-$HOME/.local/state}
 config_home=${XDG_CONFIG_HOME:-$HOME/.config}
 cache_home=${XDG_CACHE_HOME:-$HOME/.cache}
-xdg_bin_home="$HOME/.local/bin"
 app_dir="nym-vpn-app"
-usr_bin_dir="/usr/bin"
-# default installation directory
-prefix_install="$HOME/.local"
-install_dir="$xdg_bin_home"
-icon_name="nym-vpn.svg"
-icons_dir="$data_home/icons"
-desktop_dir="$data_home/applications"
-appimage="nym-vpn_${app_version}_x64.AppImage"
-wrapper_sh="nym-vpn-wrapper.sh"
-target_appimage="nym-vpn.appimage"
+install_dir="/usr/bin"
+desktop_dir="/usr/share/applications"
+icons_dir="/usr/share/icons/hicolor/scalable/apps"
+appimage="NymVPN_${app_version}_x64.AppImage"
+target_appimage="NymVPN.AppImage"
 core_archive="nym-vpn-core-v${vpnd_version}_linux_x86_64.tar.gz"
 vpnd_bin="nym-vpnd"
 vpnd_service="nym-vpnd.service"
 units_dir="/usr/lib/systemd/system"
+desktop_exec='env LOG_FILE=1 RUST_LOG=info,nym_vpn_app=debug NymVPN.AppImage %U'
 os=$(uname -a)
 # → to lowercase
 os="${os,,}"
@@ -146,49 +144,6 @@ _vpnd=1
 _app=1
 # system packages to check
 sys_pkgs=()
-
-### desktop entry wrapper script ###
-wrapper="#! /bin/bash
-
-# fix an issue with NVIDIA gpu
-# https://github.com/nymtech/nym-vpn-client/issues/305
-export WEBKIT_DISABLE_DMABUF_RENDERER=1
-
-LOG_FILE=1 RUST_LOG=info,nym_vpn_app=trace INSTALL_DIR/$target_appimage"
-###
-
-### desktop entry ###
-desktop_entry="[Desktop Entry]
-Name=NymVPN
-Type=Application
-Version=1.0
-Comment=Decentralized, mixnet, and zero-knowledge VPN
-Exec=INSTALL_DIR/$wrapper_sh %U
-Icon=ICONS_DIR/$icon_name
-Terminal=false
-Categories=Network;"
-###
-
-### app icon ###
-icon='<svg width="32" height="32" viewBox="0 0 32 32" fill="#FB6E4E" xmlns="http://www.w3.org/2000/svg"><path d="M3.7229 29.9997C-0.460546 26.7617 -1.23766 20.7391 2.0003 16.5557C5.23826 12.3722 11.2609 11.5951 15.4443 14.8331C19.6278 18.0711 20.4049 24.0937 17.1669 28.2771C13.9289 32.4605 7.90634 33.2377 3.7229 29.9997ZM28.0076 23.2647C33.3308 17.9415 33.3308 9.31561 28.0076 3.9924C22.6844 -1.3308 14.0455 -1.3308 8.73526 3.9924C3.42501 9.31561 3.41205 17.9415 8.73526 23.2647C14.0585 28.5879 22.6844 28.5879 28.0076 23.2647Z" fill="#FB6E4E"/></svg>'
-###
-
-### daemon service ###
-service="[Unit]
-Description=NymVPN daemon
-StartLimitBurst=6
-StartLimitIntervalSec=24
-Wants=network-pre.target
-After=network-pre.target NetworkManager.service systemd-resolved.service
-
-[Service]
-ExecStart=INSTALL_DIR/$vpnd_bin
-Restart=on-failure
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target"
-###
 
 # do not install/uninstall if system packages are installed
 # ⚠ be sure to call `select_components` before this function
@@ -261,6 +216,11 @@ download_client() {
   curl -fL -# "$appimage_url.sha256sum" -o "$appimage.sha256sum"
   log "  ${B_GRN}Checking$RS sha256sum"
   sha256sum --check --status "$appimage.sha256sum"
+  log "   ${BI_GRN}ok$RS"
+  log "  ${B_GRN}Downloading$RS app desktop entry"
+  curl -fL -# "$desktop_url" -o app.desktop
+  log "  ${B_GRN}Downloading$RS app icon"
+  curl -fL -# "$icon_url" -o icon.svg
   _popd
 }
 
@@ -273,33 +233,13 @@ download_daemon() {
   curl -fL -# "$vpnd_url.sha256sum" -o "$core_archive.sha256sum"
   log "  ${B_GRN}Checking$RS sha256sum"
   sha256sum --check --status "$core_archive.sha256sum"
+  log "   ${BI_GRN}ok$RS"
+  log "  ${B_GRN}Downloading$RS unit file"
+  curl -fL -# "$unit_url" -o nym-vpnd.service
   log "  ${B_GRN}Unarchiving$RS nym-vpnd"
   tar -xzf "$core_archive"
   mv "${core_archive%.tar.gz}/$vpnd_bin" $vpnd_bin
   _popd
-}
-
-select_install_dir() {
-  # prompt user for the installation directory
-  # select between these 2 options
-  # 1. ~/.local (default)
-  # 2. /usr
-  choice=""
-  log "  ${B_GRN}Select$RS the install directory"
-  prompt="    ${BI_YLW}H$RS ~/.local (default) or ${BI_YLW}U$RS /usr\n(${BI_YLW}H$RS/${BI_YLW}U$RS) "
-  user_prompt choice "$prompt"
-
-  if [ "$choice" = "u" ] || [ "$choice" = "U" ]; then
-    prefix_install="/usr"
-    install_dir="$usr_bin_dir"
-    desktop_dir="/usr/share/applications"
-    icons_dir="/usr/share/icons"
-  else
-    prefix_install="~/.local"
-    install_dir="$xdg_bin_home"
-    desktop_dir="$data_home/applications"
-    icons_dir="$data_home/icons"
-  fi
 }
 
 # checking if a directory is in the PATH
@@ -308,19 +248,6 @@ dir_in_path() {
     return 0
   fi
   return 1
-}
-
-check_install_dir() {
-  if ! dir_in_path "$xdg_bin_home"; then
-    prefix_install="/usr"
-    install_dir="$usr_bin_dir"
-    desktop_dir="/usr/share/applications"
-    icons_dir="/usr/share/icons"
-    log "  ${B_GRN}Install$RS directory set to $prefix_install"
-  else
-    select_install_dir
-    log "  ${B_GRN}Selected$RS install directory $prefix_install"
-  fi
 }
 
 # check if a unit exists
@@ -358,7 +285,7 @@ sanity_check() {
     files_check+=("$install_dir/$vpnd_bin" "$units_dir/$vpnd_service")
   fi
   if [ "$_app" == 0 ]; then
-    files_check+=("$install_dir/$target_appimage" "$install_dir/$wrapper_sh" "$desktop_dir/nym-vpn.desktop" "$icons_dir/$icon_name")
+    files_check+=("$install_dir/$target_appimage" "$desktop_dir/nym-vpn.desktop" "$icons_dir/nym-vpn.svg")
   fi
 
   for file in "${files_check[@]}"; do
@@ -445,59 +372,33 @@ check_system_deps() {
 }
 
 install_client() {
-  log "  ${B_GRN}Installing$RS nym-vpn.AppImage"
-  _pushd "$temp_dir"
-  echo "${wrapper/INSTALL_DIR/$install_dir}" >"$wrapper_sh"
-  _popd
-
-  if [ "$install_dir" = "$usr_bin_dir" ]; then
-    log "  ${B_YLW}sudo$RS needed to install AppImage in $install_dir"
-    sudo install -o "$(id -u)" -g "$(id -g)" -Dm755 "$temp_dir/$appimage" "$install_dir/$target_appimage"
-    sudo install -o "$(id -u)" -g "$(id -g)" -Dm755 "$temp_dir/$wrapper_sh" "$install_dir/$wrapper_sh"
-  else
-    install -Dm755 "$temp_dir/$appimage" "$install_dir/$target_appimage"
-    install -Dm755 "$temp_dir/$wrapper_sh" "$install_dir/$wrapper_sh"
-  fi
-
-  log "   ${B_GRN}Installed$RS $(tilded "$install_dir/$target_appimage")"
-  log "   ${B_GRN}Installed$RS $(tilded "$install_dir/$wrapper_sh")"
+  log "  ${B_GRN}Installing$RS NymVPN.AppImage"
+  sudo install -o "$(id -u)" -g "$(id -g)" -Dm755 "$temp_dir/$appimage" "$install_dir/$target_appimage"
 
   log "  ${B_GRN}Installing$RS desktop entry"
   _pushd "$temp_dir"
-  echo "${desktop_entry/INSTALL_DIR/$install_dir}" >"nym-vpn.desktop"
-  sed -i "s|ICONS_DIR|$icons_dir|" "nym-vpn.desktop"
-  echo "$icon" >"$icon_name"
+  sed -i "s|^Exec=.*|Exec=$desktop_exec|" app.desktop
   _popd
-  if [ "$install_dir" = "$usr_bin_dir" ]; then
-    log "  ${B_YLW}sudo$RS needed to install desktop entry in $desktop_dir"
-    sudo install -Dm644 "$temp_dir/nym-vpn.desktop" "$desktop_dir/nym-vpn.desktop"
-    sudo install -Dm644 "$temp_dir/$icon_name" "$icons_dir/$icon_name"
-  else
-    install -Dm644 "$temp_dir/nym-vpn.desktop" "$desktop_dir/nym-vpn.desktop"
-    install -Dm644 "$temp_dir/$icon_name" "$icons_dir/$icon_name"
-  fi
-  log "   ${B_GRN}Installed$RS $(tilded "$desktop_dir/nym-vpn.desktop")"
-  log "   ${B_GRN}Installed$RS $(tilded "$icons_dir/$icon_name")"
+  sudo install -Dm644 "$temp_dir/app.desktop" "$desktop_dir/nym-vpn.desktop"
+  sudo install -Dm644 "$temp_dir/icon.svg" "$icons_dir/nym-vpn.svg"
   install -Dm755 -d "$state_home/$app_dir"
+
+  log "  ${B_GRN}Installed$RS files"
+  log "   ${I_YLW}$(tilded "$install_dir/$target_appimage")$RS"
+  log "   ${I_YLW}$(tilded "$desktop_dir/nym-vpn.desktop")$RS"
+  log "   ${I_YLW}$(tilded "$icons_dir/nym-vpn.svg")$RS"
 }
 
 install_daemon() {
   log "  ${B_GRN}Installing$RS nym-vpnd"
-  if [ "$install_dir" = "$usr_bin_dir" ]; then
-    log "  ${B_YLW}sudo$RS needed to install nym-vpnd in $install_dir"
-    sudo install -o "$(id -u)" -g "$(id -g)" -Dm755 "$temp_dir/$vpnd_bin" "$install_dir/$vpnd_bin"
-  else
-    install -Dm755 "$temp_dir/$vpnd_bin" "$install_dir/$vpnd_bin"
-  fi
-  log "   ${B_GRN}Installed$RS $(tilded "$install_dir/$vpnd_bin")"
+  sudo install -o "$(id -u)" -g "$(id -g)" -Dm755 "$temp_dir/$vpnd_bin" "$install_dir/$vpnd_bin"
 
   log "  ${B_GRN}Installing$RS systemd service"
-  _pushd "$temp_dir"
-  echo "${service/INSTALL_DIR/$install_dir}" >"$vpnd_service"
-  _popd
-  log "  ${B_YLW}sudo$RS needed to install nym-vpnd.service in $units_dir"
   sudo install -Dm644 "$temp_dir/$vpnd_service" "$units_dir/$vpnd_service"
-  log "   ${B_GRN}Installed$RS $(tilded "$units_dir/$vpnd_service")"
+
+  log "  ${B_GRN}Installed$RS files"
+  log "   ${I_YLW}$(tilded "$install_dir/$vpnd_bin")$RS"
+  log "   ${I_YLW}$(tilded "$units_dir/$vpnd_service")$RS"
 }
 
 # try to remove a bunch of files or directories
@@ -575,8 +476,10 @@ cleanup() {
 
 _install() {
   log "$ITL${B_GRN}nym$RS${BI_GRY}VPN$RS ${BI}installer$RS\n"
-  log "  nym-vpnd $ITL${B_YLW}$vpnd_version$RS ${I_GRY}daemon$RS"
-  log "  nym-vpn-app $ITL${B_YLW}$app_version$RS ${I_GRY}client$RS\n"
+  log "  nym-vpnd ${BI_YLW}$vpnd_version$RS ${I_GRY}daemon$RS"
+  log "  app ${BI_YLW}$app_version$RS ${I_GRY}client$RS\n"
+  # TODO remove this when we switch to stable
+  log "  ${BI_YLW}⚠ currently this script only installs 'dev' versions$RS\n"
 
   need_cmd mktemp
   temp_dir=$(mktemp -d)
@@ -586,7 +489,6 @@ _install() {
   check_system_pkg
   sanity_check
   check_system_deps
-  check_install_dir
   [[ "$_app" == 0 ]] && download_client
   [[ "$_vpnd" == 0 ]] && download_daemon
   [[ "$_app" == 0 ]] && install_client
@@ -617,14 +519,9 @@ _uninstall() {
   fi
   if [ "$_app" == 0 ]; then
     files+=(
-      "$xdg_bin_home/nym-vpn.appimage"
-      "$xdg_bin_home/nym-vpn-wrapper.sh"
-      "$data_home/applications/nym-vpn.desktop"
-      "$data_home/icons/nym-vpn.svg"
-      "/usr/bin/nym-vpn.appimage"
-      "/usr/bin/nym-vpn-wrapper.sh"
-      /usr/share/applications/nym-vpn.desktop
-      /usr/share/icons/nym-vpn.svg
+      "/usr/bin/NymVPN.AppImage"
+      "$desktop_dir/nym-vpn.desktop"
+      "$icons_dir/nym-vpn.svg"
     )
   fi
 
