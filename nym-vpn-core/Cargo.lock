@@ -2728,15 +2728,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "is_elevated"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5299060ff5db63e788015dcb9525ad9b84f4fd9717ed2cbdeba5018cbf42f9b5"
-dependencies = [
- "winapi",
-]
-
-[[package]]
 name = "is_terminal_polyfill"
 version = "1.70.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4739,31 +4730,6 @@ dependencies = [
  "tokio",
  "tracing",
  "zeroize",
-]
-
-[[package]]
-name = "nym-vpn-cli"
-version = "1.2.0-dev"
-dependencies = [
- "anyhow",
- "bs58",
- "clap",
- "dirs",
- "futures",
- "ipnetwork",
- "is_elevated",
- "nix 0.29.0",
- "nym-bin-common",
- "nym-vpn-api-client",
- "nym-vpn-lib",
- "nym-vpn-store",
- "thiserror 2.0.9",
- "time",
- "tokio",
- "tokio-util",
- "tracing",
- "tracing-subscriber",
- "vergen",
 ]
 
 [[package]]

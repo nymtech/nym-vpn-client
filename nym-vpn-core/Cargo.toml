@@ -16,7 +16,6 @@ members = [
     "crates/nym-routing",
     "crates/nym-vpn-account-controller",
     "crates/nym-vpn-api-client",
-    "crates/nym-vpn-cli",
     "crates/nym-vpn-lib",
     "crates/nym-vpn-network-config",
     "crates/nym-vpn-proto",

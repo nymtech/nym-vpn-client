@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 #
-# Bump the version of nym-vpn-cli and tag it.
+# Bump the version of nym-vpn-core and tag it.
 # Pushing this upstream will then trigger a new release.
 #
 # Currently it's always the patch version that is bumped, if you need to bump

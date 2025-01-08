@@ -72,7 +72,6 @@ message UserAgent {
   // Example:
   //    nym-vpn-app
   //    nym-vpnd
-  //    nym-vpn-cli
   string application = 1;
   // Format: version[-optional] [(daemon version[-optional])]
   // Example:
