@@ -1,17 +1,13 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{sync::Arc, time::Duration};
+use std::time::Duration;
 
-use tokio::{
-    sync::{mpsc, Mutex},
-    task::JoinHandle,
-};
+use tokio::sync::{mpsc, watch};
 use tokio_stream::{wrappers::UnboundedReceiverStream, StreamExt};
-use tokio_util::sync::CancellationToken;
 
 use nym_apple_dispatch::{Queue, QueueAttr};
-use nym_apple_network::{PathMonitor, PathStatus};
+use nym_apple_network::{Path as NWPath, PathMonitor, PathStatus};
 
 use super::Connectivity;
 
@@ -22,98 +18,72 @@ const INITIAL_STATE_WAIT: Duration = Duration::from_secs(1);
 const DEFAULT_PATH_DEBOUNCE: Duration = Duration::from_millis(250);
 
 pub struct MonitorHandle {
-    current_state: Arc<Mutex<Connectivity>>,
     path_monitor: PathMonitor,
-    broadcaster_task: JoinHandle<()>,
-    cancel_token: CancellationToken,
+    rx: watch::Receiver<Connectivity>,
 }
 
 impl MonitorHandle {
-    fn new(
-        current_state: Arc<Mutex<Connectivity>>,
-        path_monitor: PathMonitor,
-        broadcaster_task: JoinHandle<()>,
-        cancel_token: CancellationToken,
-    ) -> Self {
-        MonitorHandle {
-            current_state,
-            path_monitor,
-            broadcaster_task,
-            cancel_token,
-        }
+    fn new(path_monitor: PathMonitor, rx: watch::Receiver<Connectivity>) -> Self {
+        MonitorHandle { path_monitor, rx }
     }
 
     pub async fn connectivity(&self) -> Connectivity {
-        *self.current_state.lock().await
+        *self.rx.borrow()
     }
 
-    #[allow(unused)]
-    pub async fn cancel_and_wait(mut self) {
-        self.path_monitor.cancel();
-        self.cancel_token.cancel();
-
-        if let Err(e) = self.broadcaster_task.await {
-            tracing::error!("Failed to join broadcast task: {}", e);
-        }
+    pub async fn monitor(&mut self) -> Option<Connectivity> {
+        self.rx
+            .changed()
+            .await
+            .map(|_| *self.rx.borrow_and_update())
+            .ok()
     }
 }
 
-pub async fn spawn_monitor(sender: mpsc::UnboundedSender<Connectivity>) -> Result<MonitorHandle> {
-    let (connectivity_tx, mut connectivity_rx) = mpsc::unbounded_channel();
+pub async fn spawn_monitor() -> Result<MonitorHandle> {
+    let (network_path_tx, mut network_path_rx) = mpsc::unbounded_channel();
 
     // Start system path monitor.
-    let path_monitor = start_path_monitor(connectivity_tx)?;
+    let path_monitor = start_path_monitor(network_path_tx)?;
 
     // Wait for initial state
     // Path monitor should always send an update on start(), but if it doesn't then presume the device is online.
-    let initial_state = tokio::time::timeout(INITIAL_STATE_WAIT, connectivity_rx.recv())
+    let initial_connectivity = tokio::time::timeout(INITIAL_STATE_WAIT, network_path_rx.recv())
         .await
+        .inspect_err(|_| {
+            tracing::warn!(
+                "Timed out receiving initial update from network monitor. Default to presuming being online."
+            );
+        })
         .ok()
         .flatten()
+        .as_ref()
+        .map(map_network_path_to_connectivity)
         .unwrap_or(Connectivity::PresumeOnline);
-    tracing::debug!("Initial state: {:?}", initial_state);
 
-    let current_state = Arc::new(Mutex::new(initial_state));
-    let cloned_current_state = current_state.clone();
+    let (connectivity_tx, connectivity_rx) = watch::channel(initial_connectivity);
+    tracing::debug!("Initial state: {:?}", *connectivity_rx.borrow());
 
-    // Create a task to debouce and broadcast changes outside
-    let cancel_token = CancellationToken::new();
-    let child_token = cancel_token.child_token();
-    let broadcaster_task = tokio::spawn(async move {
-        let mut connectivity_rx = debounced::debounced(
-            UnboundedReceiverStream::new(connectivity_rx),
+    // Create a task to debounce and broadcast changes outside
+    _ = tokio::spawn(async move {
+        let mut network_path_rx = debounced::debounced(
+            UnboundedReceiverStream::new(network_path_rx),
             DEFAULT_PATH_DEBOUNCE,
         );
 
-        loop {
-            tokio::select! {
-                Some(connectivity) = connectivity_rx.next() => {
-                    tracing::trace!("New connectivity: {:?}", connectivity);
-
-                    let mut state = cloned_current_state.lock().await;
-                    *state = connectivity;
-
-                    _ = sender.send(connectivity);
-                }
-                _ = child_token.cancelled() => {
-                    break;
-                }
-                else => {
-                    break;
-                }
-            }
+        while let Some(network_path) = network_path_rx.next().await {
+            let connectivity = map_network_path_to_connectivity(&network_path);
+            tracing::trace!("New connectivity: {:?}", connectivity);
+            _ = connectivity_tx.send(connectivity);
         }
+
+        tracing::debug!("Connectivity broadcast loop is exiting.");
     });
 
-    Ok(MonitorHandle::new(
-        current_state,
-        path_monitor,
-        broadcaster_task,
-        cancel_token,
-    ))
+    Ok(MonitorHandle::new(path_monitor, connectivity_rx))
 }
 
-fn start_path_monitor(connectivity_tx: mpsc::UnboundedSender<Connectivity>) -> Result<PathMonitor> {
+fn start_path_monitor(path_tx: mpsc::UnboundedSender<NWPath>) -> Result<PathMonitor> {
     let queue = Queue::new(Some("net.nymtech.vpn.offline-monitor"), QueueAttr::serial())
         .map_err(Error::CreateDispatchQueue)?;
 
@@ -121,29 +91,32 @@ fn start_path_monitor(connectivity_tx: mpsc::UnboundedSender<Connectivity>) -> R
     let mut path_monitor = PathMonitor::new();
     path_monitor.set_dispatch_queue(&queue);
     path_monitor.set_update_handler(move |nw_path| {
-        let connectivity = match nw_path.status() {
-            PathStatus::Satisfiable | PathStatus::Satisfied => Connectivity::Status {
-                ipv4: nw_path.supports_ipv4(),
-                ipv6: nw_path.supports_ipv6(),
-            },
-            PathStatus::Unsatisfied => Connectivity::Status {
-                ipv4: false,
-                ipv6: false,
-            },
-            path_status @ PathStatus::Unknown(_) | path_status @ PathStatus::Invalid => {
-                tracing::warn!("Received {:?} path status", path_status);
-                Connectivity::PresumeOnline
-            }
-        };
-        tracing::trace!("Received path status update: {:?}", nw_path);
+        tracing::trace!("Path status update: {:?}", nw_path);
 
-        if let Err(e) = connectivity_tx.send(connectivity) {
+        if let Err(e) = path_tx.send(nw_path) {
             tracing::warn!("Failed to send new connectivity status: {}", e);
         }
     });
     path_monitor.start();
 
     Ok(path_monitor)
+}
+
+fn map_network_path_to_connectivity(nw_path: &NWPath) -> Connectivity {
+    match nw_path.status() {
+        PathStatus::Satisfiable | PathStatus::Satisfied => Connectivity::Status {
+            ipv4: nw_path.supports_ipv4(),
+            ipv6: nw_path.supports_ipv6(),
+        },
+        PathStatus::Unsatisfied => Connectivity::Status {
+            ipv4: false,
+            ipv6: false,
+        },
+        path_status @ PathStatus::Unknown(_) | path_status @ PathStatus::Invalid => {
+            tracing::warn!("Cannot map {:?} path status to connectivity.", path_status);
+            Connectivity::PresumeOnline
+        }
+    }
 }
 
 #[derive(thiserror::Error, Debug)]
