@@ -54,7 +54,6 @@ pub async fn spawn_monitor(
     sender: mpsc::UnboundedSender<Connectivity>,
     #[cfg(not(any(target_os = "android", target_os = "ios")))] route_manager: RouteManagerHandle,
     #[cfg(target_os = "linux")] fwmark: Option<u32>,
-    #[cfg(target_os = "android")] connectivity_listener: ConnectivityListener,
 ) -> MonitorHandle {
     let monitor = if *FORCE_DISABLE_OFFLINE_MONITOR {
         None
@@ -65,8 +64,6 @@ pub async fn spawn_monitor(
             route_manager,
             #[cfg(target_os = "linux")]
             fwmark,
-            #[cfg(target_os = "android")]
-            connectivity_listener,
         )
         .await
         .inspect_err(|error| {
