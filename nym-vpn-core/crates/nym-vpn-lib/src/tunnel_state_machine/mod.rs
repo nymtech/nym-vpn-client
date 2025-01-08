@@ -387,6 +387,9 @@ pub enum ErrorStateReason {
     /// Failure to configure tunnel device.
     TunDevice,
 
+    /// Failure to start offline monitor.
+    StartOfflineMonitor,
+
     /// Failure to configure packet tunnel provider.
     TunnelProvider,
 
@@ -526,6 +529,7 @@ pub struct SharedState {
     //firewall_handler: FirewallHandler,
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     dns_handler: DnsHandlerHandle,
+    offline_monitor: nym_offline::MonitorHandle,
     nym_config: NymConfig,
     tunnel_settings: TunnelSettings,
     status_listener_handle: Option<JoinHandle<()>>,
@@ -562,12 +566,11 @@ impl TunnelStateMachine {
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
         shutdown_token: CancellationToken,
     ) -> Result<JoinHandle<()>> {
-        let (current_state_handler, _) = DisconnectedState::enter();
-
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let route_handler = RouteHandler::new()
             .await
             .map_err(Error::CreateRouteHandler)?;
+
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let (dns_handler, dns_handler_task) = DnsHandlerHandle::spawn(
             #[cfg(target_os = "linux")]
@@ -575,6 +578,18 @@ impl TunnelStateMachine {
             shutdown_token.child_token(),
         )
         .map_err(Error::CreateDnsHandler)?;
+
+        let offline_monitor = nym_offline::spawn_monitor(
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+            route_handler.inner_handle(),
+            #[cfg(target_os = "linux")]
+            Some(routing_parameters.fwmark),
+        )
+        .await
+        .map_err(Error::OfflineMonitor)?;
+
+        let (current_state_handler, _) = DisconnectedState::enter();
+
         //let firewall_handler = FirewallHandler::new().map_err(Error::CreateFirewallHandler)?;
 
         let (mixnet_event_sender, mixnet_event_receiver) = mpsc::unbounded_channel();
@@ -586,6 +601,7 @@ impl TunnelStateMachine {
             //firewall_handler,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             dns_handler,
+            offline_monitor,
             nym_config,
             tunnel_settings,
             status_listener_handle: None,
@@ -706,6 +722,9 @@ pub enum Error {
     #[error("failed to set dns: {}", _0)]
     SetDns(#[source] dns_handler::Error),
 
+    #[error("Unable to spawn offline monitor")]
+    OfflineMonitor(#[source] nym_offline::Error),
+
     #[error("tunnel error: {}", _0)]
     Tunnel(#[from] tunnel::Error),
 }
@@ -719,6 +738,7 @@ impl Error {
             Self::CreateDnsHandler(_) | Self::SetDns(_) => ErrorStateReason::Dns,
             //Self::CreateFirewallHandler(_) => ErrorStateReason::Firewall,
             Self::CreateTunDevice(_) => ErrorStateReason::TunDevice,
+            Self::OfflineMonitor(_) => ErrorStateReason::StartOfflineMonitor,
 
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::GetTunDeviceName(_) | Self::SetTunDeviceIpv6Addr(_) => {

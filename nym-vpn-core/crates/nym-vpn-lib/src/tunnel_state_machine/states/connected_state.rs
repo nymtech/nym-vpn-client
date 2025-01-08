@@ -6,6 +6,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::tunnel_state_machine::{
     states::DisconnectingState,
+    tunnel::SelectedGateways,
     tunnel_monitor::{TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorHandle},
     ConnectionData, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState,
     TunnelCommand, TunnelStateHandler,
@@ -14,6 +15,7 @@ use crate::tunnel_state_machine::{
 pub struct ConnectedState {
     monitor_handle: TunnelMonitorHandle,
     monitor_event_receiver: TunnelMonitorEventReceiver,
+    selected_gateways: SelectedGateways,
 }
 
 impl ConnectedState {
@@ -21,12 +23,14 @@ impl ConnectedState {
         connection_data: ConnectionData,
         monitor_handle: TunnelMonitorHandle,
         monitor_event_receiver: TunnelMonitorEventReceiver,
+        selected_gateways: SelectedGateways,
         _shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         (
             Box::new(Self {
                 monitor_handle,
                 monitor_event_receiver,
+                selected_gateways,
             }),
             PrivateTunnelState::Connected { connection_data },
         )
