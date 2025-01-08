@@ -3,13 +3,12 @@ default_platform(:android)
 # Google Play supported metadata locales
 # https://support.google.com/googleplay/android-developer/table/4419860?hl=en
 
-platform :android do
-
-    before_all do
-      Dir.chdir("../nym-vpn-android") do
-      end
+before_all do
+    Dir.chdir("../nym-vpn-android") do
     end
+end
 
+platform :android do
 
 	desc 'Deploy an internal version to Google Play'
 	lane :internal do |options|
