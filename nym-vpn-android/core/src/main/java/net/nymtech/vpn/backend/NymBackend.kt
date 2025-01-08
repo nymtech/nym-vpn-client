@@ -174,8 +174,13 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		return withContext(ioDispatcher) {
 			waitForInit()
 			// TODO temporary until bug is fixed
-			delay(2000L)
-			isAccountMnemonicStored()
+			delay(100L)
+			var stored = isAccountMnemonicStored()
+			if(!stored) {
+				delay(200L)
+				stored = isAccountMnemonicStored()
+			}
+			stored
 		}
 	}
 
