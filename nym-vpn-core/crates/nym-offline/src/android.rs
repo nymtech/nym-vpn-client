@@ -2,36 +2,23 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::channel::mpsc::UnboundedSender;
+use tokio::sync::mpsc;
 
 use super::Connectivity;
-use crate::connectivity_listener::{ConnectivityListener, Error};
 
-pub struct MonitorHandle {
-    connectivity_listener: ConnectivityListener,
-}
+pub struct MonitorHandle;
 
 impl MonitorHandle {
-    fn new(connectivity_listener: ConnectivityListener) -> Self {
-        MonitorHandle {
-            connectivity_listener,
-        }
-    }
-
     #[allow(clippy::unused_async)]
     pub async fn connectivity(&self) -> Connectivity {
-        self.connectivity_listener.connectivity()
+        Connectivity::PresumeOnline
     }
 }
 
 #[allow(clippy::unused_async)]
 pub async fn spawn_monitor(
-    sender: UnboundedSender<Connectivity>,
-    connectivity_listener: ConnectivityListener,
+    _sender: mpsc::UnboundedSender<Connectivity>,
 ) -> Result<MonitorHandle, Error> {
-    let mut monitor_handle = MonitorHandle::new(connectivity_listener);
-    monitor_handle
-        .connectivity_listener
-        .set_connectivity_listener(sender);
-    Ok(monitor_handle)
+    // todo: implement
+    Ok(MonitorHandle)
 }
