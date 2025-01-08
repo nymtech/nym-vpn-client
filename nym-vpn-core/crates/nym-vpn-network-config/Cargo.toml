@@ -10,7 +10,7 @@ license.workspace = true
 
 [dependencies]
 anyhow.workspace = true
-futures-util = "0.3"
+futures-util.workspace = true
 itertools.workspace = true
 nym-config.workspace = true
 nym-sdk.workspace = true
@@ -18,7 +18,7 @@ reqwest = { workspace = true, default-features = false, features = [
     "blocking",
     "rustls-tls",
     "json",
-]}
+] }
 serde.workspace = true
 serde_json.workspace = true
 tempfile.workspace = true

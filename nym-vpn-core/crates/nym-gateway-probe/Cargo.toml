@@ -17,7 +17,7 @@ bs58.workspace = true
 bytes.workspace = true
 clap = { workspace = true, features = ["cargo", "derive"] }
 dirs.workspace = true
-dns-lookup = "2"
+dns-lookup.workspace = true
 futures.workspace = true
 hex.workspace = true
 tracing.workspace = true

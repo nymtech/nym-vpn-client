@@ -8,7 +8,7 @@ version.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 thiserror.workspace = true
-socket2 = "0.5.8"
+socket2.workspace = true
 futures.workspace = true
 
 nym-common = { path = "../nym-common" }
