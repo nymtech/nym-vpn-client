@@ -178,6 +178,9 @@ jobs:
     if: ${{ inputs.track != 'none' && inputs.track != '' }}
     # issue here: https://github.com/ruby/setup-ruby?tab=readme-ov-file#using-self-hosted-runners
     runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: nym-vpn-android
     env:
       SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
       SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
@@ -269,6 +272,7 @@ jobs:
           echo "VERSION_CODE=$version_code" >> $GITHUB_ENV
 
       - name: Distribute app to fastlane track 🚀
+        working-directory: ${{ github.workspace }}
         run: |
           bundle install
           bundle exec fastlane ${{ inputs.track }} skip_bundle:${{github.event.inputs.publish-bundle == 'true'}} skip_metadata:${{github.event.inputs.publish-metadata == 'true'}}
