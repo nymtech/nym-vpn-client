@@ -35,8 +35,8 @@ BI="$ITL$BLD"
 ####
 
 # AppImage
-app_tag=nym-vpn-app-v1.2.0-malachite.2
-app_version=1.2.0-malachite.2
+app_tag=nym-vpn-app-v1.2.0-malachite.3
+app_version=1.2.0-malachite.3
 appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/NymVPN_${app_version}_x64.AppImage"
 desktop_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/fb526935/nym-vpn-app/.pkg/app.desktop"
 icon_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/fb526935/nym-vpn-app/.pkg/icon.svg"
