@@ -85,6 +85,31 @@ impl Path {
         unsafe { sys::nw_path_enumerate_gateways(self.inner.as_mut_ptr(), &block) };
         gateways.take()
     }
+
+    /// Checks whether the path can route IPv4 traffic.
+    pub fn supports_ipv4(&self) -> bool {
+        unsafe { sys::nw_path_has_ipv4(self.inner.as_mut_ptr()) }
+    }
+
+    /// Checks whether the path can route IPv6 traffic.
+    pub fn supports_ipv6(&self) -> bool {
+        unsafe { sys::nw_path_has_ipv6(self.inner.as_mut_ptr()) }
+    }
+
+    /// Checks whether the path has a DNS server configured.
+    pub fn supports_dns(&self) -> bool {
+        unsafe { sys::nw_path_has_dns(self.inner.as_mut_ptr()) }
+    }
+
+    /// Checks whether the path uses an interface in Low Data Mode.
+    pub fn is_constrained(&self) -> bool {
+        unsafe { sys::nw_path_is_constrained(self.inner.as_mut_ptr()) }
+    }
+
+    /// Checks whether the path uses an interface that is considered expensive, such as Cellular or a Personal Hotspot.
+    pub fn is_expensive(&self) -> bool {
+        unsafe { sys::nw_path_is_expensive(self.inner.as_mut_ptr()) }
+    }
 }
 
 impl PartialEq for Path {

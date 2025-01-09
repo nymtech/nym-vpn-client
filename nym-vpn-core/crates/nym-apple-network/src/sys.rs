@@ -114,6 +114,12 @@ unsafe extern "C" {
         path: nw_path_t,
         enumerate_block: &nw_path_enumerate_gateways_block_t,
     );
+    pub fn nw_path_has_ipv4(path: nw_path_t) -> objc2::ffi::BOOL;
+    pub fn nw_path_has_ipv6(path: nw_path_t) -> objc2::ffi::BOOL;
+    pub fn nw_path_has_dns(path: nw_path_t) -> objc2::ffi::BOOL;
+    pub fn nw_path_is_constrained(path: nw_path_t) -> objc2::ffi::BOOL;
+    pub fn nw_path_is_expensive(path: nw_path_t) -> objc2::ffi::BOOL;
+
     pub fn nw_interface_get_type(interface: nw_interface_t) -> nw_interface_type_t;
     pub fn nw_interface_get_name(interface: nw_interface_t) -> *const c_char;
     pub fn nw_interface_get_index(interface: nw_interface_t) -> u32;

@@ -45,11 +45,22 @@ impl Interface {
 /// Types of network interfaces, based on their link layer media types.
 #[derive(Debug, Copy, Clone)]
 pub enum InterfaceType {
+    /// The network interface type used for communication over virtual networks or networks of unknown types.
     Other,
+
+    /// The network interface type used for communication over Wi-Fi networks.
     Wifi,
+
+    /// The network interface type used for communication over cellular networks.
     Cellular,
+
+    /// The network interface type used for communication over wired Ethernet networks.
     Wired,
+
+    /// The network interface type used for communication over local loopback networks.
     Loopback,
+
+    /// Interface type unknown to the crate.
     Unknown(nw_interface_type_t),
 }
 

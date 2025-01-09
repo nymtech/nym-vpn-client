@@ -13,6 +13,7 @@ pub struct PathMonitor {
 }
 
 unsafe impl Send for PathMonitor {}
+unsafe impl Sync for PathMonitor {}
 
 impl Default for PathMonitor {
     fn default() -> Self {
@@ -42,7 +43,7 @@ impl PathMonitor {
     }
 
     /// Prohibit a path monitor from using a specific interface type.
-    pub fn prohibit_interface_type(&mut self, interface_type: &InterfaceType) {
+    pub fn prohibit_interface_type(&mut self, interface_type: InterfaceType) {
         unsafe {
             sys::nw_path_monitor_prohibit_interface_type(
                 self.inner.as_mut_ptr(),
