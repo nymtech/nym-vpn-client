@@ -3,19 +3,6 @@
 
 use std::{path::PathBuf, sync::Arc, time::Duration};
 
-use nym_http_api_client::UserAgent;
-use nym_vpn_api_client::{
-    response::{NymVpnDevice, NymVpnUsage},
-    types::VpnApiAccount,
-};
-use nym_vpn_network_config::Network;
-use nym_vpn_store::{mnemonic::Mnemonic, VpnStorage};
-use tokio::{
-    sync::mpsc::{UnboundedReceiver, UnboundedSender},
-    task::{JoinError, JoinSet},
-};
-use tokio_util::sync::CancellationToken;
-
 use crate::{
     commands::{
         register_device::RegisterDeviceCommandHandler,
@@ -29,6 +16,19 @@ use crate::{
     storage::{AccountStorage, VpnCredentialStorage},
     AccountControllerCommander, AvailableTicketbooks,
 };
+use nym_http_api_client::UserAgent;
+use nym_vpn_api_client::types::DeviceStatus;
+use nym_vpn_api_client::{
+    response::{NymVpnDevice, NymVpnUsage},
+    types::VpnApiAccount,
+};
+use nym_vpn_network_config::Network;
+use nym_vpn_store::{mnemonic::Mnemonic, VpnStorage};
+use tokio::{
+    sync::mpsc::{UnboundedReceiver, UnboundedSender},
+    task::{JoinError, JoinSet},
+};
+use tokio_util::sync::CancellationToken;
 
 // The interval at which we automatically request zk-nyms
 const ZK_NYM_AUTOMATIC_REQUEST_INTERVAL: Duration = Duration::from_secs(6 * 60);
@@ -287,6 +287,9 @@ where
         // TODO: here we should put the controller in some sort of idle state, and wait for all
         // currently running operations to finish before proceeding with the reset
 
+        //delete device from nym vpn api
+        self.delete_api_device().await?;
+
         self.account_storage
             .remove_account()
             .await
@@ -346,6 +349,24 @@ where
         }
 
         Ok(())
+    }
+
+    async fn delete_api_device(&self) -> Result<NymVpnDevice, AccountCommandError> {
+        let device = self
+            .account_storage
+            .load_device_keys()
+            .await
+            .map_err(|_err| AccountCommandError::NoDeviceStored)?;
+
+        let account = self
+            .update_mnemonic_state()
+            .await
+            .map_err(|_err| AccountCommandError::NoAccountStored)?;
+
+        self.vpn_api_client
+            .update_device(&account, &device, DeviceStatus::DeleteMe)
+            .await
+            .map_err(|_err| AccountCommandError::NoDeviceStored)
     }
 
     async fn handle_sync_account_state(&mut self, command: AccountCommand) {
