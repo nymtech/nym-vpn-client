@@ -21,6 +21,7 @@ use futures::{
 };
 use nym_routing::{DefaultRouteEvent, RouteManagerHandle};
 use tokio::sync::{mpsc, Mutex};
+use tokio_util::sync::CancellationToken;
 
 use super::Connectivity;
 
@@ -34,7 +35,6 @@ pub enum Error {
 
 pub struct MonitorHandle {
     state: Arc<Mutex<ConnectivityInner>>,
-    _notify_tx: Arc<mpsc::UnboundedSender<Connectivity>>,
 }
 
 impl MonitorHandle {
@@ -68,9 +68,8 @@ impl ConnectivityInner {
 pub async fn spawn_monitor(
     notify_tx: mpsc::UnboundedSender<Connectivity>,
     route_manager: RouteManagerHandle,
+    shutdown_token: CancellationToken,
 ) -> Result<MonitorHandle, Error> {
-    let notify_tx = Arc::new(notify_tx);
-
     // note: begin observing before initializing the state
     let route_listener = route_manager.default_route_listener().await?;
 
@@ -84,13 +83,10 @@ pub async fn spawn_monitor(
         }
     };
 
-    let state = ConnectivityInner { ipv4, ipv6 };
-    let mut real_state = state;
-
-    let state = Arc::new(Mutex::new(state));
-
-    let weak_state = Arc::downgrade(&state);
-    let weak_notify_tx = Arc::downgrade(&notify_tx);
+    let initial_state = ConnectivityInner { ipv4, ipv6 };
+    let mut real_state = initial_state;
+    let state = Arc::new(Mutex::new(initial_state));
+    let shared_state = state.clone();
 
     // Detect changes to the default route
     tokio::spawn(async move {
@@ -103,22 +99,14 @@ pub async fn spawn_monitor(
             tokio::select! {
                 _ = &mut timeout => {
                     // Update shared state
-                    let Some(state) = weak_state.upgrade() else {
-                        break;
-                    };
-
-                    let mut state = state.lock().await;
+                    let mut state = shared_state.lock().await;
                     if real_state.is_online() {
                         tracing::info!("Connectivity changed: Connected");
-                        let Some(tx) = weak_notify_tx.upgrade() else {
-                            break;
-                        };
-                        let _ = tx.send(real_state.into_connectivity());
+                        let _ = notify_tx.send(real_state.into_connectivity());
                     }
 
                     *state = real_state;
                 }
-
                 route_event = route_listener.next() => {
                     let Some(event) = route_event else {
                         break;
@@ -142,19 +130,13 @@ pub async fn spawn_monitor(
 
                     // Synthesize offline state
                     // Update shared state
-                    let Some(state) = weak_state.upgrade() else {
-                        break;
-                    };
-                    let mut state = state.lock().await;
+                    let mut state = shared_state.lock().await;
                     let previous_connectivity = *state;
                     state.ipv4 = false;
                     state.ipv6 = false;
 
                     if previous_connectivity.is_online() {
-                        let Some(tx) = weak_notify_tx.upgrade() else {
-                            break;
-                        };
-                        let _ = tx.send(state.into_connectivity());
+                        let _ = notify_tx.send(state.into_connectivity());
                         tracing::info!("Connectivity changed: Offline");
                     }
 
@@ -162,14 +144,14 @@ pub async fn spawn_monitor(
                         timeout = Box::pin(tokio::time::sleep(SYNTHETIC_OFFLINE_DURATION)).fuse();
                     }
                 }
+                _ = shutdown_token.cancelled() => {
+                    break
+                }
             }
         }
 
         tracing::trace!("Offline monitor exiting");
     });
 
-    Ok(MonitorHandle {
-        state,
-        _notify_tx: notify_tx,
-    })
+    Ok(MonitorHandle { state })
 }

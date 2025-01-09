@@ -9,6 +9,7 @@ use std::{
 
 use futures::StreamExt;
 use tokio::sync::mpsc;
+use tokio_util::sync::CancellationToken;
 
 use super::Connectivity;
 use nym_common::ErrorExt;
@@ -25,7 +26,6 @@ pub enum Error {
 pub struct MonitorHandle {
     route_manager: RouteManagerHandle,
     fwmark: Option<u32>,
-    _notify_tx: Arc<mpsc::UnboundedSender<Connectivity>>,
 }
 
 /// A non-local IPv4 address.
@@ -44,35 +44,40 @@ pub async fn spawn_monitor(
     notify_tx: mpsc::UnboundedSender<Connectivity>,
     route_manager: RouteManagerHandle,
     fwmark: Option<u32>,
+    shutdown_token: CancellationToken,
 ) -> Result<MonitorHandle> {
-    let mut connectivity = check_connectivity(&route_manager, fwmark).await;
-
     let mut listener = route_manager
         .change_listener()
         .await
         .map_err(Error::RouteManagerError)?;
 
-    let notify_tx = Arc::new(notify_tx);
-    let sender = Arc::downgrade(&notify_tx);
+    let mut connectivity = check_connectivity(&route_manager, fwmark).await;
+
     let monitor_handle = MonitorHandle {
         route_manager: route_manager.clone(),
         fwmark,
-        _notify_tx: notify_tx,
     };
 
     tokio::spawn(async move {
-        while let Some(_event) = listener.next().await {
-            match sender.upgrade() {
-                Some(sender) => {
+        loop {
+            tokio::select! {
+                event = listener.next().await {
+                    if event.is_none() {
+                        break;
+                    }
                     let new_connectivity = check_connectivity(&route_manager, fwmark).await;
                     if new_connectivity != connectivity {
                         connectivity = new_connectivity;
                         let _ = sender.send(connectivity);
                     }
+                },
+                _ = shutdown_token.cancelled() => {
+                    break;
                 }
-                None => return,
             }
         }
+
+        tracing::debug!("Offline monitor exiting");
     });
 
     Ok(monitor_handle)

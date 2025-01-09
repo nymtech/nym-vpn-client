@@ -5,7 +5,7 @@ use std::{sync::Arc, time::Duration};
 
 use tokio::sync::{mpsc, Mutex};
 use tokio_stream::{wrappers::UnboundedReceiverStream, StreamExt};
-use tokio_util::sync::{CancellationToken, DropGuard};
+use tokio_util::sync::CancellationToken;
 
 use nym_apple_dispatch::{Queue, QueueAttr};
 use nym_apple_network::{Path, PathMonitor, PathStatus};
@@ -24,21 +24,13 @@ pub struct MonitorHandle {
     // Network path monitor.
     // Has to be retained while monitoring path updates. Auto cancels on drop.
     _path_monitor: PathMonitor,
-
-    // Drop guard with cancellation token that will auto cancel on drop and break the outer event loop.
-    _shutdown_drop_guard: DropGuard,
 }
 
 impl MonitorHandle {
-    fn new(
-        initial_state: Arc<Mutex<Connectivity>>,
-        path_monitor: PathMonitor,
-        shutdown_drop_guard: DropGuard,
-    ) -> Self {
+    fn new(initial_state: Arc<Mutex<Connectivity>>, path_monitor: PathMonitor) -> Self {
         MonitorHandle {
             state: initial_state,
             _path_monitor: path_monitor,
-            _shutdown_drop_guard: shutdown_drop_guard,
         }
     }
 
@@ -47,7 +39,10 @@ impl MonitorHandle {
     }
 }
 
-pub async fn spawn_monitor(sender: mpsc::UnboundedSender<Connectivity>) -> Result<MonitorHandle> {
+pub async fn spawn_monitor(
+    sender: mpsc::UnboundedSender<Connectivity>,
+    shutdown_token: CancellationToken,
+) -> Result<MonitorHandle> {
     let (network_path_tx, mut network_path_rx) = mpsc::unbounded_channel();
     let path_monitor = start_path_monitor(network_path_tx)?;
 
@@ -67,8 +62,6 @@ pub async fn spawn_monitor(sender: mpsc::UnboundedSender<Connectivity>) -> Resul
 
     let initial_state = Arc::new(Mutex::new(initial_connectivity));
     let shared_state = initial_state.clone();
-    let shutdown_token = CancellationToken::new();
-    let shared_shutdown_token = shutdown_token.child_token();
 
     _ = tokio::spawn(async move {
         let mut network_path_stream = debounced::debounced(
@@ -85,7 +78,7 @@ pub async fn spawn_monitor(sender: mpsc::UnboundedSender<Connectivity>) -> Resul
                     tracing::trace!("Path status update: {:?}", network_path);
 
                     let connectivity = map_network_path_to_connectivity(&network_path);
-                    tracing::trace!("New connectivity: {:?}", connectivity);
+                    tracing::trace!("Connectivity changed: {:?}", connectivity);
 
                     let mut state_guard = shared_state.lock().await;
                     *state_guard = connectivity;
@@ -94,20 +87,16 @@ pub async fn spawn_monitor(sender: mpsc::UnboundedSender<Connectivity>) -> Resul
                         break;
                     }
                 },
-                _ = shared_shutdown_token.cancelled() => {
+                _ = shutdown_token.cancelled() => {
                     break;
                 }
             }
         }
 
-        tracing::debug!("Offline monitor loop is exiting.");
+        tracing::debug!("Offline monitor exiting");
     });
 
-    Ok(MonitorHandle::new(
-        initial_state,
-        path_monitor,
-        shutdown_token.drop_guard(),
-    ))
+    Ok(MonitorHandle::new(initial_state, path_monitor))
 }
 
 fn start_path_monitor(path_tx: mpsc::UnboundedSender<Path>) -> Result<PathMonitor> {
