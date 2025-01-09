@@ -1,5 +1,5 @@
 [package]
-name = "nym-offline"
+name = "nym-offline-monitor"
 version.workspace = true
 authors.workspace = true
 repository.workspace = true
