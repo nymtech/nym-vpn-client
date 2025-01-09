@@ -77,13 +77,11 @@ impl TunnelStateHandler for OfflineState {
                 if connectivity.is_offline() {
                     NextTunnelState::SameState(self)
                 } else if self.reconnect {
-                    NextTunnelState::NewState(
-                        ConnectingState::enter(
-                            self.retry_attempt,
-                            self.selected_gateways,
-                            shared_state
-                        ).await
-                    )
+                    NextTunnelState::NewState(ConnectingState::enter(
+                        self.retry_attempt,
+                        self.selected_gateways,
+                        shared_state
+                    ).await)
                 } else {
                     NextTunnelState::NewState(DisconnectedState::enter())
                 }
