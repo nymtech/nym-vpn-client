@@ -21,10 +21,9 @@ pub struct ConnectedState {
 impl ConnectedState {
     pub fn enter(
         connection_data: ConnectionData,
+        selected_gateways: SelectedGateways,
         monitor_handle: TunnelMonitorHandle,
         monitor_event_receiver: TunnelMonitorEventReceiver,
-        selected_gateways: SelectedGateways,
-        _shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         (
             Box::new(Self {
