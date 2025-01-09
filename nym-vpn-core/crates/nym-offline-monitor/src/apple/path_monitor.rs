@@ -76,6 +76,8 @@ pub async fn spawn_monitor(
                         break
                     };
 
+                    tracing::info!("Path update: {}", network_path.description());
+
                     let mut state_guard = shared_state.lock().await;
                     let connectivity = map_network_path_to_connectivity(&network_path);
 
