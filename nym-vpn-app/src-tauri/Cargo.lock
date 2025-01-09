@@ -3106,7 +3106,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "1.2.0-dev"
+version = "1.2.0-malachite.3"
 dependencies = [
  "anyhow",
  "bs58",
