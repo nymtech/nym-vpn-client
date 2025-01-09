@@ -13,7 +13,10 @@
 //! to macOS's connectivity check. In the offline state, a DNS server on localhost prevents the
 //! connectivity check from being blocked.
 
-use std::{sync::Arc, time::Duration};
+use std::{
+    sync::{Arc, LazyLock},
+    time::Duration,
+};
 
 use futures::{
     future::{Fuse, FutureExt},
@@ -23,24 +26,48 @@ use nym_routing::{DefaultRouteEvent, RouteManagerHandle};
 use tokio::sync::{mpsc, Mutex};
 use tokio_util::sync::CancellationToken;
 
-use super::Connectivity;
+use crate::Connectivity;
+
+use super::path_monitor;
+
+/// Use Apple's path monitor facilities to track offline state.
+static USE_PATH_MONITOR: LazyLock<bool> = LazyLock::new(|| {
+    std::env::var("NYM_USE_PATH_MONITOR")
+        .map(|v| v != "0")
+        .unwrap_or(false)
+});
 
 const SYNTHETIC_OFFLINE_DURATION: Duration = Duration::from_secs(1);
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("Failed to initialize route monitor")]
-    StartMonitorError(#[from] nym_routing::Error),
+    StartRouteMonitor(#[from] nym_routing::Error),
+
+    #[error("Failed to initialize path monitor")]
+    StartPathMonitor(#[from] path_monitor::Error),
+}
+
+enum MonitorHandleInner {
+    State(Arc<Mutex<ConnectivityInner>>),
+    PathMonitorImp(path_monitor::MonitorHandle),
 }
 
 pub struct MonitorHandle {
-    state: Arc<Mutex<ConnectivityInner>>,
+    inner: MonitorHandleInner,
 }
 
 impl MonitorHandle {
+    fn new(inner: MonitorHandleInner) -> Self {
+        Self { inner }
+    }
+
     /// Return whether the host is offline
     pub async fn connectivity(&self) -> Connectivity {
-        self.state.lock().await.into_connectivity()
+        match &self.inner {
+            MonitorHandleInner::State(state) => state.lock().await.into_connectivity(),
+            MonitorHandleInner::PathMonitorImp(imp) => imp.connectivity().await,
+        }
     }
 }
 
@@ -66,6 +93,22 @@ impl ConnectivityInner {
 }
 
 pub async fn spawn_monitor(
+    notify_tx: mpsc::UnboundedSender<Connectivity>,
+    route_manager: RouteManagerHandle,
+    shutdown_token: CancellationToken,
+) -> Result<MonitorHandle, Error> {
+    if *USE_PATH_MONITOR {
+        Ok(
+            super::path_monitor::spawn_monitor(notify_tx, shutdown_token)
+                .await
+                .map(|imp| MonitorHandle::new(MonitorHandleInner::PathMonitorImp(imp)))?,
+        )
+    } else {
+        spawn_route_monitor(notify_tx, route_manager, shutdown_token).await
+    }
+}
+
+async fn spawn_route_monitor(
     notify_tx: mpsc::UnboundedSender<Connectivity>,
     route_manager: RouteManagerHandle,
     shutdown_token: CancellationToken,
@@ -153,5 +196,5 @@ pub async fn spawn_monitor(
         tracing::trace!("Offline monitor exiting");
     });
 
-    Ok(MonitorHandle { state })
+    Ok(MonitorHandle::new(MonitorHandleInner::State(state)))
 }

@@ -10,12 +10,8 @@ use nym_routing::RouteManagerHandle;
 use tokio::sync::mpsc;
 use tokio_util::sync::{CancellationToken, DropGuard};
 
-#[cfg(target_os = "macos")]
-#[path = "macos.rs"]
-mod imp;
-
-#[cfg(target_os = "ios")]
-#[path = "ios.rs"]
+#[cfg(any(target_os = "macos", target_os = "ios"))]
+#[path = "apple/mod.rs"]
 mod imp;
 
 #[cfg(windows)]
