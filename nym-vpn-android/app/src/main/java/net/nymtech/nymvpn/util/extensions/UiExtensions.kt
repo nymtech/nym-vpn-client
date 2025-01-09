@@ -14,6 +14,7 @@ import net.nymtech.nymvpn.ui.Route
 import nym_vpn_lib.ErrorStateReason
 import nym_vpn_lib.VpnException
 import kotlin.reflect.KClass
+import net.nymtech.nymvpn.R
 
 fun Dp.scaledHeight(): Dp {
 	return NymVpn.instance.resizeHeight(this)
@@ -64,7 +65,7 @@ fun ErrorStateReason.toUserMessage(context: Context): String {
 		ErrorStateReason.TUN_DEVICE -> "A tunnel device issue occurred"
 		ErrorStateReason.TUNNEL_PROVIDER -> "A tunnel provider issue occurred"
 		ErrorStateReason.INTERNAL -> "Internal error"
-		ErrorStateReason.SAME_ENTRY_AND_EXIT_GATEWAY -> "Entry and exit must be different gateways"
+		ErrorStateReason.SAME_ENTRY_AND_EXIT_GATEWAY -> context.getString(R.string.same_entry_exit_message)
 		ErrorStateReason.INVALID_ENTRY_GATEWAY_COUNTRY -> "Entry country not available. Select a different country."
 		ErrorStateReason.INVALID_EXIT_GATEWAY_COUNTRY -> "Exit country not available. Select a different country."
 		ErrorStateReason.BAD_BANDWIDTH_INCREASE -> "Bad bandwidth increase."

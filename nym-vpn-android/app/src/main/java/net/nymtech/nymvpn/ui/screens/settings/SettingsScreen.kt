@@ -112,6 +112,12 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 							Icon(icon, icon.name, Modifier.size(iconSize))
 						},
 						title = { Text(stringResource(R.string.account), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+						description = {
+							Text(
+								stringResource(id = R.string.device_id) + " ${appUiState.managerState.deviceId}",
+								style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
+							)
+						},
 						onClick = {
 							appUiState.managerState.accountLinks?.account?.let {
 								Timber.d("Account url: $it")

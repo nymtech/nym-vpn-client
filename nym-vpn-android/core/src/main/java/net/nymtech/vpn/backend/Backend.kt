@@ -23,6 +23,8 @@ interface Backend {
 
 	suspend fun isMnemonicStored(): Boolean
 
+	suspend fun getDeviceIdentity(): String
+
 	suspend fun removeMnemonic()
 
 	suspend fun start(tunnel: Tunnel, background: Boolean, userAgent: UserAgent)

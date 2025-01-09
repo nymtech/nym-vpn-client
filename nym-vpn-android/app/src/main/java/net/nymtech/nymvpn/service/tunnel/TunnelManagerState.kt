@@ -12,5 +12,6 @@ data class TunnelManagerState(
 	val connectionData: ConnectionData? = null,
 	val mixnetConnectionState: MixnetConnectionState? = null,
 	val isMnemonicStored: Boolean = false,
+	val deviceId: String? = null,
 	val accountLinks: AccountLinks? = null,
 )

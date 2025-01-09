@@ -173,14 +173,14 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	override suspend fun isMnemonicStored(): Boolean {
 		return withContext(ioDispatcher) {
 			waitForInit()
-			// TODO temporary until bug is fixed
-			delay(100L)
-			var stored = isAccountMnemonicStored()
-			if (!stored) {
-				delay(200L)
-				stored = isAccountMnemonicStored()
-			}
-			stored
+			isAccountMnemonicStored()
+		}
+	}
+
+	override suspend fun getDeviceIdentity(): String {
+		return withContext(ioDispatcher) {
+			waitForInit()
+			nym_vpn_lib.getDeviceIdentity()
 		}
 	}
 

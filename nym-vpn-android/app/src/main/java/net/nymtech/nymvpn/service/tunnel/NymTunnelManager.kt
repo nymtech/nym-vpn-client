@@ -54,9 +54,11 @@ class NymTunnelManager @Inject constructor(
 	private val _state = MutableStateFlow(TunnelManagerState())
 	override val stateFlow: Flow<TunnelManagerState> = _state.onStart {
 		val isMnemonicStored = isMnemonicStored()
+		val deviceId = if (isMnemonicStored) getDeviceId() else null
 		_state.update {
 			it.copy(
 				isMnemonicStored = isMnemonicStored,
+				deviceId = deviceId,
 			)
 		}
 	}.stateIn(applicationScope.plus(ioDispatcher), SharingStarted.Eagerly, TunnelManagerState())
@@ -137,6 +139,10 @@ class NymTunnelManager @Inject constructor(
 		backend.get().removeMnemonic()
 		emitMnemonicStored(false)
 		refreshAccountLinks()
+	}
+
+	override suspend fun getDeviceId(): String {
+		return backend.get().getDeviceIdentity()
 	}
 
 	override suspend fun getAccountSummary(): AccountStateSummary {

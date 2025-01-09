@@ -205,4 +205,6 @@
 	<string name="access_code">24-word-access-code</string>
 	<string name="support_and_feedback"><![CDATA[Support & feedback]]></string>
 	<string name="get_in_touch">Get in touch</string>
+	<string name="same_entry_exit_message">For privacy, NymVPN won\'t use the same gateway for entry and exit. Reconnect or choose different locations.</string>
+	<string name="device_id">Device ID:</string>
 </resources>
