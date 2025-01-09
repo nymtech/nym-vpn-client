@@ -4,7 +4,7 @@
 
 use std::{io, sync::Arc, time::Duration};
 
-use tokio::sync::{mpsc, Mutex};
+use tokio::sync::{watch, Mutex};
 use tokio_util::sync::CancellationToken;
 
 use nym_common::ErrorExt;
@@ -33,7 +33,7 @@ unsafe impl Send for BroadcastListener {}
 
 impl BroadcastListener {
     pub async fn start(
-        notify_tx: mpsc::UnboundedSender<Connectivity>,
+        notify_tx: watch::Sender<Connectivity>,
         route_manager: RouteManagerHandle,
         mut power_mgmt_rx: PowerManagementListener,
         shutdown_token: CancellationToken,
@@ -182,7 +182,7 @@ enum StateChange {
 
 struct SystemState {
     connectivity: ConnectivityInner,
-    notify_tx: mpsc::UnboundedSender<Connectivity>,
+    notify_tx: watch::Sender<Connectivity>,
 }
 
 impl SystemState {
@@ -226,7 +226,7 @@ fn is_offline_str(offline: bool) -> &'static str {
 pub type MonitorHandle = BroadcastListener;
 
 pub async fn spawn_monitor(
-    sender: mpsc::UnboundedSender<Connectivity>,
+    sender: watch::Sender<Connectivity>,
     route_manager: RouteManagerHandle,
     shutdown_token: CancellationToken,
 ) -> Result<MonitorHandle, Error> {

@@ -121,10 +121,6 @@ impl TunnelStateHandler for DisconnectingState {
                 }
                 NextTunnelState::SameState(self)
             }
-            Some(_connectivity) = shared_state.offline_monitor.next() => {
-                // consume connectivity status but do nothing while disconnecting.
-                NextTunnelState::SameState(self)
-            }
             _ = shutdown_token.cancelled() => {
                 // Wait for tunnel to exit anyway because it's unsafe to drop the task manager.
                 let result = self.wait_handle.await;

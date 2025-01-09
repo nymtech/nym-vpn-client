@@ -5,7 +5,7 @@
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 use futures::StreamExt;
-use tokio::sync::mpsc;
+use tokio::sync::watch;
 use tokio_util::sync::CancellationToken;
 
 use super::Connectivity;
@@ -38,7 +38,7 @@ impl MonitorHandle {
 }
 
 pub async fn spawn_monitor(
-    notify_tx: mpsc::UnboundedSender<Connectivity>,
+    notify_tx: watch::Sender<Connectivity>,
     route_manager: RouteManagerHandle,
     fwmark: Option<u32>,
     shutdown_token: CancellationToken,

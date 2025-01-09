@@ -2,7 +2,7 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use tokio::sync::mpsc;
+use tokio::sync::watch;
 
 use super::Connectivity;
 
@@ -16,9 +16,7 @@ impl MonitorHandle {
 }
 
 #[allow(clippy::unused_async)]
-pub async fn spawn_monitor(
-    _sender: mpsc::UnboundedSender<Connectivity>,
-) -> Result<MonitorHandle, Error> {
+pub async fn spawn_monitor(_sender: watch::Sender<Connectivity>) -> Result<MonitorHandle, Error> {
     // todo: implement
     Ok(MonitorHandle)
 }
