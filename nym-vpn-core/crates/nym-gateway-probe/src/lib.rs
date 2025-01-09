@@ -88,7 +88,6 @@ pub struct NetstackArgs {
     netstack_ping_ips_v6: Vec<String>,
 }
 
-
 #[derive(Default, Debug)]
 pub enum TestedNode {
     #[default]
@@ -159,7 +158,11 @@ pub struct Probe {
 }
 
 impl Probe {
-    pub fn new(entrypoint: EntryPoint, tested_node: TestedNode, netstack_args: NetstackArgs) -> Self {
+    pub fn new(
+        entrypoint: EntryPoint,
+        tested_node: TestedNode,
+        netstack_args: NetstackArgs,
+    ) -> Self {
         Self {
             entrypoint,
             tested_node,
