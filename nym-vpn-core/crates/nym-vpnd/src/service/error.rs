@@ -102,6 +102,9 @@ impl From<AccountCommandError> for AccountNotReady {
             AccountCommandError::UnregisterDeviceApiClientFailure(err) => {
                 AccountNotReady::Internal(err)
             }
+            AccountCommandError::RegistrationInProgress => {
+                AccountNotReady::Internal(err.to_string())
+            }
         }
     }
 }
