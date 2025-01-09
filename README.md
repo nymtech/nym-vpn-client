@@ -1,17 +1,17 @@
-Hello and welcome to the NymVPN GitHub page! For more information about NymVPN and to request beta access credentials, visit https://nymvpn.com/en.
+Hello and welcome to the NymVPN GitHub page! For more information about NymVPN and to request beta access credentials, visit [https://nym.com/](https://nym.com/).
 
 # NymVPN client
 
-The NymVPN client is a VPN-like app built on [Nym's signature mixnet](https://nymtech.net), offering the following [features](https://nymvpn.com/en/features):
+The NymVPN client is a VPN-like app built on [Nym's signature mixnet](https://nym.com/mixnet), offering the following [features](https://nym.com/features):
 - Anonymous 5-hop mixnet mode
 - Fast 2-hop WireGuard-based decentralized VPN mode
 - Private credentials using zk-nyms (zero-knowledge proofs)
 
-NymVPN is available on all major platforms incl. [Android](https://nymvpn.com/en/download/android), [iOS](https://nymvpn.com/en/download/ios), [Linux](https://nymvpn.com/en/download/linux), [macOS](https://nymvpn.com/en/download/macos) and [Windows](https://nymvpn.com/en/download/windows).
+NymVPN is available on all major platforms incl. [Android](https://nym.com/download/android), [iOS](https://nym.com/download/ios), [Linux](https://nym.com/download/linux), [macOS](https://nym.com/download/macos) and [Windows](https://nym.com/download/windows).
 
 NymVPN relies on [Mullvad open source libraries](https://github.com/mullvad/mullvadvpn-app/) to handle setting up local routing and wrapping wireguard-go.
 
-Visit [NymVPN's blog](https://nymvpn.com/en/blog) for the latest announcements and articles on privacy and security. Visit our [Help Center](https://support.nymvpn.com/hc/en-us) or contact our [Support team](https://support.nymvpn.com/hc/en-us/requests/new) with any questions about NymVPN.
+Visit [Nym's blog](https://nym.com/en/blog) for the latest announcements and articles on privacy and security. Visit our [Help Center](https://support.nym.com/hc/en-us) or contact our [Support team](https://support.nym.com/hc/en-us/requests/new) with any questions about NymVPN.
 
 
 
