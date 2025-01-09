@@ -3,6 +3,19 @@
 
 use std::{path::PathBuf, sync::Arc, time::Duration};
 
+use nym_http_api_client::UserAgent;
+use nym_vpn_api_client::{
+    response::{NymVpnDevice, NymVpnUsage},
+    types::{DeviceStatus, VpnApiAccount},
+};
+use nym_vpn_network_config::Network;
+use nym_vpn_store::{mnemonic::Mnemonic, VpnStorage};
+use tokio::{
+    sync::mpsc::{UnboundedReceiver, UnboundedSender},
+    task::{JoinError, JoinSet},
+};
+use tokio_util::sync::CancellationToken;
+
 use crate::{
     commands::{
         register_device::RegisterDeviceCommandHandler,
@@ -16,19 +29,6 @@ use crate::{
     storage::{AccountStorage, VpnCredentialStorage},
     AccountControllerCommander, AvailableTicketbooks,
 };
-use nym_http_api_client::UserAgent;
-use nym_vpn_api_client::types::DeviceStatus;
-use nym_vpn_api_client::{
-    response::{NymVpnDevice, NymVpnUsage},
-    types::VpnApiAccount,
-};
-use nym_vpn_network_config::Network;
-use nym_vpn_store::{mnemonic::Mnemonic, VpnStorage};
-use tokio::{
-    sync::mpsc::{UnboundedReceiver, UnboundedSender},
-    task::{JoinError, JoinSet},
-};
-use tokio_util::sync::CancellationToken;
 
 // The interval at which we automatically request zk-nyms
 const ZK_NYM_AUTOMATIC_REQUEST_INTERVAL: Duration = Duration::from_secs(6 * 60);
@@ -355,9 +355,7 @@ where
         if self.shared_state().is_ready_to_register_device().await
             == ReadyToRegisterDevice::InProgress
         {
-            return Err(AccountCommandError::Internal(
-                "Device registration in progress".to_owned(),
-            ));
+            return Err(AccountCommandError::RegistrationInProgress);
         }
 
         let device = self

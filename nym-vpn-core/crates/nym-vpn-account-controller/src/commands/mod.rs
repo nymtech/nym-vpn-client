@@ -76,6 +76,9 @@ pub enum AccountCommandError {
     #[error("no device stored")]
     NoDeviceStored,
 
+    #[error("device registration is in progress")]
+    RegistrationInProgress,
+
     #[error("failed to remove account: {0}")]
     RemoveAccount(String),
 
