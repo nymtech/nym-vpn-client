@@ -61,14 +61,16 @@ pub async fn spawn_monitor(
     tokio::spawn(async move {
         loop {
             tokio::select! {
-                event = listener.next().await {
+                event = listener.next() => {
                     if event.is_none() {
                         break;
                     }
                     let new_connectivity = check_connectivity(&route_manager, fwmark).await;
                     if new_connectivity != connectivity {
                         connectivity = new_connectivity;
-                        let _ = sender.send(connectivity);
+                        if sender.send(connectivity).is_err() {
+                            break;
+                        }
                     }
                 },
                 _ = shutdown_token.cancelled() => {
