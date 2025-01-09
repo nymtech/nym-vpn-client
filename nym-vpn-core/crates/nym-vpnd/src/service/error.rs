@@ -99,7 +99,9 @@ impl From<AccountCommandError> for AccountNotReady {
             AccountCommandError::InitDeviceKeys(e) => AccountNotReady::General(e),
             AccountCommandError::General(err) => AccountNotReady::General(err),
             AccountCommandError::Internal(err) => AccountNotReady::Internal(err),
-            AccountCommandError::RemoveDeviceApiClientFailure(err) => { AccountNotReady::Internal(err) }
+            AccountCommandError::RemoveDeviceApiClientFailure(err) => {
+                AccountNotReady::Internal(err)
+            }
         }
     }
 }
