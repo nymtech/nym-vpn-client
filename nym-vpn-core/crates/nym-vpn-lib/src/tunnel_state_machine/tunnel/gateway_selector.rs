@@ -7,8 +7,8 @@ use crate::{tunnel_state_machine::TunnelType, GatewayDirectoryError};
 
 #[derive(Debug, Clone)]
 pub struct SelectedGateways {
-    pub entry: Gateway,
-    pub exit: Gateway,
+    pub entry: Box<Gateway>,
+    pub exit: Box<Gateway>,
 }
 
 pub async fn select_gateways(
@@ -98,7 +98,7 @@ pub async fn select_gateways(
     );
 
     Ok(SelectedGateways {
-        entry: entry_gateway,
-        exit: exit_gateway,
+        entry: Box::new(entry_gateway),
+        exit: Box::new(exit_gateway),
     })
 }
