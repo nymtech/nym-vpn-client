@@ -2,13 +2,10 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    io,
-    sync::{Arc, Weak},
-    time::Duration,
-};
+use std::{io, sync::Arc, time::Duration};
 
 use tokio::sync::{mpsc, Mutex};
+use tokio_util::sync::CancellationToken;
 
 use nym_common::ErrorExt;
 use nym_routing::{get_best_default_route, CallbackHandle, EventType, RouteManagerHandle};
@@ -30,7 +27,6 @@ pub enum Error {
 pub struct BroadcastListener {
     system_state: Arc<Mutex<SystemState>>,
     _callback_handle: CallbackHandle,
-    _notify_tx: Arc<mpsc::UnboundedSender<Connectivity>>,
 }
 
 unsafe impl Send for BroadcastListener {}
@@ -40,8 +36,8 @@ impl BroadcastListener {
         notify_tx: mpsc::UnboundedSender<Connectivity>,
         route_manager: RouteManagerHandle,
         mut power_mgmt_rx: PowerManagementListener,
+        shutdown_token: CancellationToken,
     ) -> Result<Self, Error> {
-        let notify_tx = Arc::new(notify_tx);
         let (ipv4, ipv6) = Self::check_initial_connectivity();
         let system_state = Arc::new(Mutex::new(SystemState {
             connectivity: ConnectivityInner {
@@ -49,38 +45,51 @@ impl BroadcastListener {
                 ipv6,
                 suspended: false,
             },
-            notify_tx: Arc::downgrade(&notify_tx),
+            notify_tx,
         }));
 
         let state = system_state.clone();
         tokio::spawn(async move {
-            while let Some(event) = power_mgmt_rx.next().await {
-                match event {
-                    PowerManagementEvent::Suspend => {
-                        tracing::debug!("Machine is preparing to enter sleep mode");
-                        state
-                            .lock()
-                            .await
-                            .apply_change(StateChange::Suspended(true));
+            loop {
+                tokio::select! {
+                    event = power_mgmt_rx.next() => {
+                        let Some(event) = event else {
+                            break
+                        };
+
+                        match event {
+                            PowerManagementEvent::Suspend => {
+                                tracing::debug!("Machine is preparing to enter sleep mode");
+                                state
+                                    .lock()
+                                    .await
+                                    .apply_change(StateChange::Suspended(true));
+                            }
+                            PowerManagementEvent::ResumeAutomatic => {
+                                let state_copy = state.clone();
+                                tokio::spawn(async move {
+                                    // Tunnel will be unavailable for approximately 2 seconds on a healthy
+                                    // machine.
+                                    tokio::time::sleep(Duration::from_secs(5)).await;
+                                    tracing::debug!(
+                                        "Tunnel device is presumed to have been re-initialized"
+                                    );
+                                    state_copy
+                                        .lock()
+                                        .await
+                                        .apply_change(StateChange::Suspended(false));
+                                });
+                            }
+                            _ => (),
+                        }
                     }
-                    PowerManagementEvent::ResumeAutomatic => {
-                        let state_copy = state.clone();
-                        tokio::spawn(async move {
-                            // Tunnel will be unavailable for approximately 2 seconds on a healthy
-                            // machine.
-                            tokio::time::sleep(Duration::from_secs(5)).await;
-                            tracing::debug!(
-                                "Tunnel device is presumed to have been re-initialized"
-                            );
-                            state_copy
-                                .lock()
-                                .await
-                                .apply_change(StateChange::Suspended(false));
-                        });
+                    _ = shutdown_token.cancelled() => {
+                        break;
                     }
-                    _ => (),
                 }
             }
+
+            tracing::debug!("Offline monitor exiting");
         });
 
         let callback_handle =
@@ -89,7 +98,6 @@ impl BroadcastListener {
         Ok(BroadcastListener {
             system_state,
             _callback_handle: callback_handle,
-            _notify_tx: notify_tx,
         })
     }
 
@@ -174,7 +182,7 @@ enum StateChange {
 
 struct SystemState {
     connectivity: ConnectivityInner,
-    notify_tx: Weak<mpsc::UnboundedSender<Connectivity>>,
+    notify_tx: mpsc::UnboundedSender<Connectivity>,
 }
 
 impl SystemState {
@@ -195,10 +203,8 @@ impl SystemState {
         let new_state = self.connectivity.is_offline();
         if old_state != new_state {
             tracing::info!("Connectivity changed: {}", is_offline_str(new_state));
-            if let Some(notify_tx) = self.notify_tx.upgrade() {
-                if let Err(e) = notify_tx.send(self.connectivity.into_connectivity()) {
-                    tracing::error!("Failed to send new offline state to daemon: {}", e);
-                }
+            if let Err(e) = self.notify_tx.send(self.connectivity.into_connectivity()) {
+                tracing::error!("Failed to send new offline state to daemon: {}", e);
             }
         }
     }
@@ -222,9 +228,10 @@ pub type MonitorHandle = BroadcastListener;
 pub async fn spawn_monitor(
     sender: mpsc::UnboundedSender<Connectivity>,
     route_manager: RouteManagerHandle,
+    shutdown_token: CancellationToken,
 ) -> Result<MonitorHandle, Error> {
     let power_mgmt_rx = crate::window::PowerManagementListener::new();
-    BroadcastListener::start(sender, route_manager, power_mgmt_rx).await
+    BroadcastListener::start(sender, route_manager, power_mgmt_rx, shutdown_token).await
 }
 
 #[derive(Clone, Copy, Debug)]

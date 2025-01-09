@@ -11,6 +11,7 @@ use nym_common::ErrorExt;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_routing::RouteManagerHandle;
 use tokio::sync::mpsc;
+use tokio_util::sync::{CancellationToken, DropGuard};
 
 #[cfg(target_os = "macos")]
 #[path = "macos.rs"]
@@ -42,11 +43,20 @@ static FORCE_DISABLE_OFFLINE_MONITOR: LazyLock<bool> = LazyLock::new(|| {
 pub struct MonitorHandle {
     inner: Option<imp::MonitorHandle>,
     rx: mpsc::UnboundedReceiver<Connectivity>,
+    _shutdown_drop_guard: DropGuard,
 }
 
 impl MonitorHandle {
-    fn new(inner: Option<imp::MonitorHandle>, rx: mpsc::UnboundedReceiver<Connectivity>) -> Self {
-        Self { inner, rx }
+    fn new(
+        inner: Option<imp::MonitorHandle>,
+        rx: mpsc::UnboundedReceiver<Connectivity>,
+        shutdown_drop_guard: DropGuard,
+    ) -> Self {
+        Self {
+            inner,
+            rx,
+            _shutdown_drop_guard: shutdown_drop_guard,
+        }
     }
 
     /// Returns current connectivity status.
@@ -63,7 +73,11 @@ impl MonitorHandle {
     ///
     /// This method is cancel safe as it uses the channel internally.
     pub async fn next(&mut self) -> Option<Connectivity> {
-        self.rx.recv().await
+        if self.inner.is_some() {
+            self.rx.recv().await
+        } else {
+            None
+        }
     }
 }
 
@@ -73,6 +87,8 @@ pub async fn spawn_monitor(
     #[cfg(target_os = "linux")] fwmark: Option<u32>,
 ) -> MonitorHandle {
     let (tx, rx) = mpsc::unbounded_channel();
+    let shutdown_token = CancellationToken::new();
+    let child_token = shutdown_token.child_token();
 
     let monitor = if *FORCE_DISABLE_OFFLINE_MONITOR {
         tracing::info!("Offline monitor is disabled.");
@@ -84,6 +100,7 @@ pub async fn spawn_monitor(
             route_manager,
             #[cfg(target_os = "linux")]
             fwmark,
+            child_token,
         )
         .await
         .inspect_err(|error| {
@@ -95,7 +112,7 @@ pub async fn spawn_monitor(
         .ok()
     };
 
-    MonitorHandle::new(monitor, rx)
+    MonitorHandle::new(monitor, rx, shutdown_token.drop_guard())
 }
 
 /// Details about the hosts's connectivity.
