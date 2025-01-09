@@ -5,36 +5,32 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 use crate::tunnel_state_machine::{
-    tunnel::SelectedGateways, tunnel_monitor::TunnelMonitorHandle, NextTunnelState,
-    PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
+    states::{ConnectingState, DisconnectedState},
+    tunnel::SelectedGateways,
+    NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
 };
 
 pub struct OfflineState {
-    // todo: store last used gateway and reconnect to it!
-    selected_gateways: Option<SelectedGateways>,
-    /// Whether to connect the tunnel upon gaining the network connectivity.
+    /// Whether to connect the tunnel once online
     reconnect: bool,
-    // todo: wait for handle before reconnecting
-    monitor_handle: TunnelMonitorHandle,
+
+    /// Last known retry attempt before entering offline state.
+    retry_attempt: u32,
+
+    /// Gateways to which the tunnel will reconnect to once online
+    selected_gateways: Option<SelectedGateways>,
 }
 
 impl OfflineState {
     pub fn enter(
-        monitor_handle: TunnelMonitorHandle,
-        selected_gateways: Option<SelectedGateways>,
         reconnect: bool,
-        shared_state: &mut SharedState,
+        retry_attempt: u32,
+        selected_gateways: Option<SelectedGateways>,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
-        // It's safe to abort status listener as it's stateless.
-        if let Some(status_listener_handle) = shared_state.status_listener_handle.take() {
-            status_listener_handle.abort();
-        }
-        monitor_handle.cancel();
-
         (
             Box::new(Self {
                 reconnect,
-                monitor_handle,
+                retry_attempt,
                 selected_gateways,
             }),
             PrivateTunnelState::Offline { reconnect },
@@ -78,6 +74,21 @@ impl TunnelStateHandler for OfflineState {
                         shared_state.tunnel_settings = tunnel_settings;
                         NextTunnelState::SameState(self)
                     }
+                }
+            }
+            Some(connectivity) = shared_state.offline_monitor.next() => {
+                if connectivity.is_offline() {
+                    NextTunnelState::SameState(self)
+                } else if self.reconnect {
+                    NextTunnelState::NewState(
+                        ConnectingState::enter(
+                            self.retry_attempt,
+                            self.selected_gateways,
+                            shared_state
+                        ).await
+                    )
+                } else {
+                    NextTunnelState::NewState(DisconnectedState::enter())
                 }
             }
             else => NextTunnelState::Finished

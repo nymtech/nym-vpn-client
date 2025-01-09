@@ -4,7 +4,7 @@ mod path_monitor;
 mod macos;
 
 #[cfg(target_os = "macos")]
-pub use macos::{spawn_monitor, Error, MonitorHandle};
+pub use macos::{spawn_monitor, MonitorHandle};
 
 #[cfg(target_os = "ios")]
-pub use path_monitor::{spawn_monitor, Error, MonitorHandle};
+pub use path_monitor::{spawn_monitor, MonitorHandle};
