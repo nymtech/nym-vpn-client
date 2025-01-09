@@ -10,7 +10,6 @@ use tokio_util::sync::CancellationToken;
 use nym_apple_dispatch::{Queue, QueueAttr};
 use nym_apple_network::{InterfaceType, Path, PathMonitor, PathStatus};
 
-use super::path_monitor;
 use crate::Connectivity;
 
 /// Maximum duration to wait for the initial state from path monitor.
@@ -45,7 +44,7 @@ pub async fn spawn_monitor(
     shutdown_token: CancellationToken,
 ) -> Result<MonitorHandle, Error> {
     let (network_path_tx, mut network_path_rx) = mpsc::unbounded_channel();
-    let path_monitor = path_monitor::start_path_monitor(network_path_tx)?;
+    let path_monitor = start_path_monitor(network_path_tx)?;
 
     // Wait for initial state since path monitor should always send an update on start()
     let initial_connectivity = tokio::time::timeout(INITIAL_STATE_TIMEOUT, network_path_rx.recv())
@@ -56,7 +55,7 @@ pub async fn spawn_monitor(
         .ok()
         .flatten()
         .as_ref()
-        .map(path_monitor::map_network_path_to_connectivity)
+        .map(map_network_path_to_connectivity)
         .unwrap_or(Connectivity::PresumeOnline);
 
     tracing::info!("Initial connectivity: {:?}", initial_connectivity);
@@ -78,7 +77,7 @@ pub async fn spawn_monitor(
                     };
 
                     let mut state_guard = shared_state.lock().await;
-                    let connectivity = path_monitor::map_network_path_to_connectivity(&network_path);
+                    let connectivity = map_network_path_to_connectivity(&network_path);
 
                     if *state_guard != connectivity {
                         *state_guard = connectivity;
