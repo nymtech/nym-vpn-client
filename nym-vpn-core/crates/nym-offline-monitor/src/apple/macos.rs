@@ -98,6 +98,7 @@ pub async fn spawn_monitor(
     shutdown_token: CancellationToken,
 ) -> Result<MonitorHandle, Error> {
     if *USE_PATH_MONITOR {
+        tracing::info!("Using path monitor.");
         Ok(
             super::path_monitor::spawn_monitor(notify_tx, shutdown_token)
                 .await
