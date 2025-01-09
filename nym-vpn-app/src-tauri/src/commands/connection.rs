@@ -139,6 +139,12 @@ pub async fn connect(
         info!("mode [mixnet]");
         false
     };
+    if credentials_mode {
+        info!("credentials mode [on]");
+    } else {
+        info!("credentials mode [off]");
+    }
+
     let use_netstack_wireguard = false;
 
     app.emit_connection_progress(ConnectProgressMsg::InitDone);

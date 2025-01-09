@@ -352,9 +352,6 @@ impl GrpcClient {
     ) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        if credentials_mode {
-            info!("credentials mode enabled");
-        }
         let request = Request::new(ConnectRequest {
             entry: Some(entry_node),
             exit: Some(exit_node),
