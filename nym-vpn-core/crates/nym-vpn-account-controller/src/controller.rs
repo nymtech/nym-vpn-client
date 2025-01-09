@@ -352,13 +352,12 @@ where
     }
 
     async fn unregister_device_from_api(&self) -> Result<NymVpnDevice, AccountCommandError> {
-        match self.shared_state().is_ready_to_register_device().await {
-            ReadyToRegisterDevice::InProgress => {
-                return Err(AccountCommandError::Internal(
-                    "Device registration in progress".to_owned(),
-                ));
-            }
-            _ => {}
+        if self.shared_state().is_ready_to_register_device().await
+            == ReadyToRegisterDevice::InProgress
+        {
+            return Err(AccountCommandError::Internal(
+                "Device registration in progress".to_owned(),
+            ));
         }
 
         let device = self
