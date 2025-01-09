@@ -9,12 +9,12 @@ use tokio_util::sync::CancellationToken;
 
 use nym_common::ErrorExt;
 use nym_routing::{get_best_default_route, CallbackHandle, EventType, RouteManagerHandle};
-use nym_windows::net::AddressFamily;
-
-use super::{
+use nym_windows::{
+    net::AddressFamily,
     window::{PowerManagementEvent, PowerManagementListener},
-    Connectivity,
 };
+
+use super::Connectivity;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -230,7 +230,7 @@ pub async fn spawn_monitor(
     route_manager: RouteManagerHandle,
     shutdown_token: CancellationToken,
 ) -> Result<MonitorHandle, Error> {
-    let power_mgmt_rx = crate::window::PowerManagementListener::new();
+    let power_mgmt_rx = PowerManagementListener::new();
     BroadcastListener::start(sender, route_manager, power_mgmt_rx, shutdown_token).await
 }
 
