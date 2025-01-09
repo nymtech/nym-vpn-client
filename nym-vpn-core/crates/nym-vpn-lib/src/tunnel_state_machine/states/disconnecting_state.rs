@@ -128,6 +128,10 @@ impl TunnelStateHandler for DisconnectingState {
                 }
                 NextTunnelState::SameState(self)
             }
+            Some(_connectivity) = shared_state.offline_monitor.next() => {
+                // consume connectivity status but do nothing while disconnecting.
+                NextTunnelState::SameState(self)
+            }
             else => NextTunnelState::Finished
         }
     }
