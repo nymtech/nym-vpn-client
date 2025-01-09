@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.defaultMinSize
@@ -20,6 +21,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
@@ -169,7 +172,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	Column(
 		verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Top),
 		horizontalAlignment = Alignment.CenterHorizontally,
-		modifier = Modifier.fillMaxSize().padding(bottom = padding.calculateBottomPadding()),
+		modifier = Modifier.verticalScroll(rememberScrollState()).fillMaxSize().padding(bottom = padding.calculateBottomPadding())
 	) {
 		Column(
 			verticalArrangement = Arrangement.spacedBy(8.dp.scaledHeight()),
@@ -209,6 +212,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 				}
 			}
 		}
+		Spacer(modifier = Modifier.weight(1f))
 		val firstHopName = context.buildCountryNameString(appUiState.entryCountry)
 		val lastHopName = context.buildCountryNameString(appUiState.exitCountry)
 		val firstHopIcon = countryIcon(appUiState.entryCountry)
