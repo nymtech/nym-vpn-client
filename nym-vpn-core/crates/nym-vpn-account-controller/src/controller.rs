@@ -366,7 +366,7 @@ where
         self.vpn_api_client
             .update_device(&account, &device, DeviceStatus::DeleteMe)
             .await
-            .map_err(|_err| AccountCommandError::NoDeviceStored)
+            .map_err(|_err| AccountCommandError::RemoveDeviceApiClientFailure)
     }
 
     async fn handle_sync_account_state(&mut self, command: AccountCommand) {
