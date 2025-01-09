@@ -81,13 +81,6 @@ impl TunnelStateHandler for DisconnectingState {
         shared_state: &'async_trait mut SharedState,
     ) -> NextTunnelState {
         tokio::select! {
-            _ = shutdown_token.cancelled() => {
-                // Wait for tunnel to exit anyway because it's unsafe to drop the task manager.
-                let result = self.wait_handle.await;
-                Self::on_tunnel_exit(result, shared_state).await;
-
-                NextTunnelState::NewState(DisconnectedState::enter())
-            }
             result = (&mut self.wait_handle) => {
                 Self::on_tunnel_exit(result, shared_state).await;
 
@@ -131,6 +124,13 @@ impl TunnelStateHandler for DisconnectingState {
             Some(_connectivity) = shared_state.offline_monitor.next() => {
                 // consume connectivity status but do nothing while disconnecting.
                 NextTunnelState::SameState(self)
+            }
+            _ = shutdown_token.cancelled() => {
+                // Wait for tunnel to exit anyway because it's unsafe to drop the task manager.
+                let result = self.wait_handle.await;
+                Self::on_tunnel_exit(result, shared_state).await;
+
+                NextTunnelState::NewState(DisconnectedState::enter())
             }
             else => NextTunnelState::Finished
         }

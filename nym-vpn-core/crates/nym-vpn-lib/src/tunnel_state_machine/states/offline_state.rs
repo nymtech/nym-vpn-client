@@ -47,9 +47,6 @@ impl TunnelStateHandler for OfflineState {
         shared_state: &'async_trait mut SharedState,
     ) -> NextTunnelState {
         tokio::select! {
-            _ = shutdown_token.cancelled() => {
-                NextTunnelState::Finished
-            }
             Some(command) = command_rx.recv() => {
                 match command {
                     TunnelCommand::Connect => {
@@ -90,6 +87,9 @@ impl TunnelStateHandler for OfflineState {
                 } else {
                     NextTunnelState::NewState(DisconnectedState::enter())
                 }
+            }
+            _ = shutdown_token.cancelled() => {
+                NextTunnelState::Finished
             }
             else => NextTunnelState::Finished
         }
