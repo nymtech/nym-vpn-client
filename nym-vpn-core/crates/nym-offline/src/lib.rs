@@ -39,27 +39,47 @@ static FORCE_DISABLE_OFFLINE_MONITOR: LazyLock<bool> = LazyLock::new(|| {
         .unwrap_or(false)
 });
 
-pub struct MonitorHandle(Option<imp::MonitorHandle>);
+pub struct MonitorHandle {
+    inner: Option<imp::MonitorHandle>,
+    rx: mpsc::UnboundedReceiver<Connectivity>,
+}
 
 impl MonitorHandle {
+    fn new(inner: Option<imp::MonitorHandle>, rx: mpsc::UnboundedReceiver<Connectivity>) -> Self {
+        Self { inner, rx }
+    }
+
+    /// Returns current connectivity status.
     pub async fn connectivity(&self) -> Connectivity {
-        match self.0.as_ref() {
+        match self.inner.as_ref() {
             Some(monitor) => monitor.connectivity().await,
             None => Connectivity::PresumeOnline,
         }
     }
+
+    /// Returns next connectivity status once changed.
+    ///
+    /// # Cancel safety
+    ///
+    /// This method is cancel safe as it uses the channel internally.
+    pub async fn next(&mut self) -> Option<Connectivity> {
+        self.rx.recv().await
+    }
 }
 
+/// Spawn offline monitor.
 pub async fn spawn_monitor(
-    sender: mpsc::UnboundedSender<Connectivity>,
     #[cfg(not(any(target_os = "android", target_os = "ios")))] route_manager: RouteManagerHandle,
     #[cfg(target_os = "linux")] fwmark: Option<u32>,
 ) -> MonitorHandle {
+    let (tx, rx) = mpsc::unbounded_channel();
+
     let monitor = if *FORCE_DISABLE_OFFLINE_MONITOR {
+        tracing::info!("Offline monitor is disabled.");
         None
     } else {
         imp::spawn_monitor(
-            sender,
+            tx,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             route_manager,
             #[cfg(target_os = "linux")]
@@ -75,7 +95,7 @@ pub async fn spawn_monitor(
         .ok()
     };
 
-    MonitorHandle(monitor)
+    MonitorHandle::new(monitor, rx)
 }
 
 /// Details about the hosts's connectivity.
