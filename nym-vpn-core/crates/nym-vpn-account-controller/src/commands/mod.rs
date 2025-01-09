@@ -80,7 +80,7 @@ pub enum AccountCommandError {
     RemoveAccount(String),
 
     #[error("failed to remove device from nym vpn api: {0}")]
-    RemoveDeviceApiClientFailure(String),
+    UnregisterDeviceApiClientFailure(String),
 
     #[error("failed to remove device identity: {0}")]
     RemoveDeviceIdentity(String),

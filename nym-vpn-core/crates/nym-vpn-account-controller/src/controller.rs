@@ -288,7 +288,7 @@ where
         // currently running operations to finish before proceeding with the reset
 
         //delete device from nym vpn api
-        self.delete_api_device().await?;
+        self.unregister_device_from_api().await?;
 
         self.account_storage
             .remove_account()
@@ -351,7 +351,7 @@ where
         Ok(())
     }
 
-    async fn delete_api_device(&self) -> Result<NymVpnDevice, AccountCommandError> {
+    async fn unregister_device_from_api(&self) -> Result<NymVpnDevice, AccountCommandError> {
         let device = self
             .account_storage
             .load_device_keys()
@@ -366,7 +366,7 @@ where
         self.vpn_api_client
             .update_device(&account, &device, DeviceStatus::DeleteMe)
             .await
-            .map_err(|_err| AccountCommandError::RemoveDeviceApiClientFailure(_err.to_string()))
+            .map_err(|err| AccountCommandError::UnregisterDeviceApiClientFailure(err.to_string()))
     }
 
     async fn handle_sync_account_state(&mut self, command: AccountCommand) {
