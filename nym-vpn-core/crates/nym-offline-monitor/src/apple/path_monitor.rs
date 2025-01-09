@@ -59,7 +59,7 @@ pub async fn spawn_monitor(
         .map(path_monitor::map_network_path_to_connectivity)
         .unwrap_or(Connectivity::PresumeOnline);
 
-    tracing::debug!("Initial connectivity: {:?}", initial_connectivity);
+    tracing::info!("Initial connectivity: {:?}", initial_connectivity);
 
     let initial_state = Arc::new(Mutex::new(initial_connectivity));
     let shared_state = initial_state.clone();
@@ -76,16 +76,16 @@ pub async fn spawn_monitor(
                     let Some(network_path) = network_path else {
                         break
                     };
-                    tracing::trace!("Path status update: {:?}", network_path);
-
-                    let connectivity = path_monitor::map_network_path_to_connectivity(&network_path);
-                    tracing::trace!("Connectivity changed: {:?}", connectivity);
 
                     let mut state_guard = shared_state.lock().await;
-                    *state_guard = connectivity;
+                    let connectivity = path_monitor::map_network_path_to_connectivity(&network_path);
 
-                    if sender.send(connectivity).is_err() {
-                        break;
+                    if *state_guard != connectivity {
+                        *state_guard = connectivity;
+                        tracing::info!("Connectivity changed: {:?}", connectivity);
+                        if sender.send(connectivity).is_err() {
+                            break;
+                        }
                     }
                 },
                 _ = shutdown_token.cancelled() => {
