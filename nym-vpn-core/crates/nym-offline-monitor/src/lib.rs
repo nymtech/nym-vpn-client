@@ -2,9 +2,6 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(windows)]
-mod window;
-
 use std::sync::LazyLock;
 
 use nym_common::ErrorExt;

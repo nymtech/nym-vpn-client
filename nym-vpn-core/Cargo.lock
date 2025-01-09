@@ -4176,7 +4176,6 @@ dependencies = [
  "tokio-stream",
  "tokio-util",
  "tracing",
- "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -5028,6 +5027,8 @@ dependencies = [
  "nym-common",
  "socket2",
  "thiserror 2.0.9",
+ "tokio",
+ "tracing",
  "windows-sys 0.52.0",
 ]
 

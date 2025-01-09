@@ -18,3 +18,6 @@ pub mod sync;
 
 /// Processes
 pub mod process;
+
+/// Window event handling
+pub mod window;
