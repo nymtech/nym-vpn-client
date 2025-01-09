@@ -23,7 +23,7 @@ use futures::{
     StreamExt,
 };
 use nym_routing::{DefaultRouteEvent, RouteManagerHandle};
-use tokio::sync::{mpsc, Mutex};
+use tokio::sync::{watch, Mutex};
 use tokio_util::sync::CancellationToken;
 
 use crate::Connectivity;
@@ -93,7 +93,7 @@ impl ConnectivityInner {
 }
 
 pub async fn spawn_monitor(
-    notify_tx: mpsc::UnboundedSender<Connectivity>,
+    notify_tx: watch::Sender<Connectivity>,
     route_manager: RouteManagerHandle,
     shutdown_token: CancellationToken,
 ) -> Result<MonitorHandle, Error> {
@@ -109,7 +109,7 @@ pub async fn spawn_monitor(
 }
 
 async fn spawn_route_monitor(
-    notify_tx: mpsc::UnboundedSender<Connectivity>,
+    notify_tx: watch::Sender<Connectivity>,
     route_manager: RouteManagerHandle,
     shutdown_token: CancellationToken,
 ) -> Result<MonitorHandle, Error> {

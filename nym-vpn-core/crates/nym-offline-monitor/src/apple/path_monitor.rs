@@ -3,7 +3,7 @@
 
 use std::{sync::Arc, time::Duration};
 
-use tokio::sync::{mpsc, Mutex};
+use tokio::sync::{mpsc, watch, Mutex};
 use tokio_stream::{wrappers::UnboundedReceiverStream, StreamExt};
 use tokio_util::sync::CancellationToken;
 
@@ -41,7 +41,7 @@ impl MonitorHandle {
 }
 
 pub async fn spawn_monitor(
-    sender: mpsc::UnboundedSender<Connectivity>,
+    sender: watch::Sender<Connectivity>,
     shutdown_token: CancellationToken,
 ) -> Result<MonitorHandle, Error> {
     let (network_path_tx, mut network_path_rx) = mpsc::unbounded_channel();
