@@ -328,8 +328,8 @@ impl TunnelMonitor {
         };
 
         let conn_data = ConnectionData {
-            entry_gateway: Box::new(*selected_gateways.entry.identity()),
-            exit_gateway: Box::new(*selected_gateways.exit.identity()),
+            entry_gateway: Box::new(selected_gateways.entry.identity()),
+            exit_gateway: Box::new(selected_gateways.exit.identity()),
             connected_at: None,
             tunnel: tunnel_conn_data,
         };

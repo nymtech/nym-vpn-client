@@ -72,7 +72,7 @@ pub async fn select_gateways(
 
     tracing::info!(
         "Using entry gateway: {}, location: {}, performance: {}",
-        *entry_gateway.identity(),
+        entry_gateway.identity(),
         entry_gateway
             .two_letter_iso_country_code()
             .map_or_else(|| "unknown".to_string(), |code| code.to_string()),
@@ -82,7 +82,7 @@ pub async fn select_gateways(
     );
     tracing::info!(
         "Using exit gateway: {}, location: {}, performance: {}",
-        *exit_gateway.identity(),
+        exit_gateway.identity(),
         exit_gateway
             .two_letter_iso_country_code()
             .map_or_else(|| "unknown".to_string(), |code| code.to_string()),

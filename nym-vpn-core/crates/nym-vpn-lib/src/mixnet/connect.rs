@@ -79,7 +79,7 @@ fn apply_mixnet_client_config(
 
 #[allow(clippy::too_many_arguments)]
 pub(crate) async fn setup_mixnet_client(
-    mixnet_entry_gateway: &NodeIdentity,
+    mixnet_entry_gateway: NodeIdentity,
     mixnet_client_key_storage_path: &Option<PathBuf>,
     mut task_client: nym_task::TaskClient,
     mixnet_client_config: MixnetClientConfig,

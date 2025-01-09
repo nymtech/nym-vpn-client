@@ -184,11 +184,11 @@ impl ReconnectMixnetClientData {
         &self,
         #[cfg(unix)] connection_fd_callback: Arc<dyn Fn(RawFd) + Send + Sync>,
     ) -> Option<AuthClient> {
-        let entry_gateway = *self.options.selected_gateways.entry.identity();
+        let entry_gateway = self.options.selected_gateways.entry.identity();
         let mixnet_client = match tokio::time::timeout(
             MIXNET_CLIENT_STARTUP_TIMEOUT,
             crate::mixnet::setup_mixnet_client(
-                &entry_gateway,
+                entry_gateway,
                 &self.options.data_path,
                 self.bw_controller_task_manager
                     .subscribe_named("mixnet_client_main"),
@@ -270,7 +270,7 @@ impl<St: Storage> BandwidthController<St> {
         // First we need to register with the gateway to setup keys and IP assignment
         tracing::info!("Registering with wireguard gateway");
         let authenticator_address = wg_gateway_client.auth_recipient();
-        let gateway_id = *wg_gateway_client.auth_recipient().gateway();
+        let gateway_id = wg_gateway_client.auth_recipient().gateway();
         let gateway_host = gateway_client
             .lookup_gateway_ip(&gateway_id.to_base58_string())
             .await
@@ -305,7 +305,7 @@ impl<St: Storage> BandwidthController<St> {
         <St as Storage>::StorageError: Send + Sync + 'static,
     {
         let authenticator_address = wg_gateway_client.auth_recipient();
-        let gateway_id = *wg_gateway_client.auth_recipient().gateway();
+        let gateway_id = wg_gateway_client.auth_recipient().gateway();
         let remaining_bandwidth =
             WgGatewayClient::top_up_wireguard(wg_gateway_client, &self.inner, ticketbook_type)
                 .await
@@ -365,7 +365,7 @@ impl<St: Storage> BandwidthController<St> {
                             self.shutdown
                                 .send_we_stopped(Box::new(ErrorMessage::OutOfBandwidth {
                                     gateway_id: Box::new(
-                                        *wg_gateway_client.auth_recipient().gateway(),
+                                        wg_gateway_client.auth_recipient().gateway(),
                                     ),
                                     authenticator_address: Box::new(
                                         wg_gateway_client.auth_recipient(),
