@@ -580,7 +580,7 @@ impl TunnelStateMachine {
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             route_handler.inner_handle(),
             #[cfg(target_os = "linux")]
-            Some(super::route_handler::TUNNEL_FWMARK),
+            Some(route_handler::TUNNEL_FWMARK),
         )
         .await;
 
