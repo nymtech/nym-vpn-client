@@ -387,9 +387,6 @@ pub enum ErrorStateReason {
     /// Failure to configure tunnel device.
     TunDevice,
 
-    /// Failure to start offline monitor.
-    StartOfflineMonitor,
-
     /// Failure to configure packet tunnel provider.
     TunnelProvider,
 
@@ -583,10 +580,9 @@ impl TunnelStateMachine {
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             route_handler.inner_handle(),
             #[cfg(target_os = "linux")]
-            Some(routing_parameters.fwmark),
+            Some(super::route_handler::TUNNEL_FWMARK),
         )
-        .await
-        .map_err(Error::OfflineMonitor)?;
+        .await;
 
         let (current_state_handler, _) = DisconnectedState::enter();
 
@@ -722,9 +718,6 @@ pub enum Error {
     #[error("failed to set dns: {}", _0)]
     SetDns(#[source] dns_handler::Error),
 
-    #[error("Unable to spawn offline monitor")]
-    OfflineMonitor(#[source] nym_offline::Error),
-
     #[error("tunnel error: {}", _0)]
     Tunnel(#[from] tunnel::Error),
 }
@@ -738,7 +731,6 @@ impl Error {
             Self::CreateDnsHandler(_) | Self::SetDns(_) => ErrorStateReason::Dns,
             //Self::CreateFirewallHandler(_) => ErrorStateReason::Firewall,
             Self::CreateTunDevice(_) => ErrorStateReason::TunDevice,
-            Self::OfflineMonitor(_) => ErrorStateReason::StartOfflineMonitor,
 
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::GetTunDeviceName(_) | Self::SetTunDeviceIpv6Addr(_) => {

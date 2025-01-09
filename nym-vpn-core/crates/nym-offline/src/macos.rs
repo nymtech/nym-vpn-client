@@ -20,7 +20,7 @@ use futures::{
     StreamExt,
 };
 use nym_routing::{DefaultRouteEvent, RouteManagerHandle};
-use tokio::sync::Mutex;
+use tokio::sync::{mpsc, Mutex};
 
 use super::Connectivity;
 
