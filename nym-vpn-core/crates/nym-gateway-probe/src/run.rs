@@ -6,7 +6,7 @@ use clap::Parser;
 use nym_bin_common::bin_info;
 use nym_config::defaults::setup_env;
 use nym_gateway_directory::{EntryPoint, GatewayMinPerformance};
-use nym_gateway_probe::{ProbeResult, TestedNode};
+use nym_gateway_probe::{NetstackArgs, ProbeResult, TestedNode};
 use nym_sdk::mixnet::NodeIdentity;
 use std::path::PathBuf;
 use std::sync::OnceLock;
@@ -58,6 +58,10 @@ struct CliArgs {
     /// Arguments to be appended to the wireguard config enabling amnezia-wg configuration
     #[arg(long, short)]
     amnezia_args: Option<String>,
+
+    /// Arguments to manage netstack downloads
+    #[command(flatten)]
+    netstack_args: NetstackArgs,
 }
 
 fn setup_logging() {
@@ -99,7 +103,7 @@ pub(crate) async fn run() -> anyhow::Result<ProbeResult> {
         TestedNode::SameAsEntry
     };
 
-    let mut trial = nym_gateway_probe::Probe::new(entry, test_point);
+    let mut trial = nym_gateway_probe::Probe::new(entry, test_point, args.netstack_args);
     if let Some(awg_args) = args.amnezia_args {
         trial.with_amnezia(&awg_args);
     }

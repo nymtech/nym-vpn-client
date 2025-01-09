@@ -1,7 +1,6 @@
-pub mod ffi;
+use crate::NetstackArgs;
 
-pub const V4_DNS: &str = "1.1.1.1";
-pub const V6_DNS: &str = "2606:4700:4700::1111";
+pub mod ffi;
 
 pub struct NetstackRequest {
     private_key: String,
@@ -24,41 +23,27 @@ pub struct PingConfig {
 }
 
 impl PingConfig {
-    pub fn default_v4(self_ip: &str, dns_v4: Option<String>) -> Self {
+    pub fn from_netstack_args_v4(wg_ip4: &str, args: &NetstackArgs) -> Self {
         Self {
-            self_ip: self_ip.to_string(),
-            dns: dns_v4.unwrap_or(V4_DNS.to_string()),
-            ping_hosts: vec!["nymtech.net".to_string()],
-            ping_ips: vec!["1.1.1.1".to_string()],
-            ..Default::default()
+            self_ip: wg_ip4.to_string(),
+            dns: args.netstack_v4_dns.clone(),
+            ping_hosts: args.netstack_ping_hosts_v4.clone(),
+            ping_ips: args.netstack_ping_ips_v4.clone(),
+            num_ping: args.netstack_num_ping,
+            send_timeout_sec: args.netstack_send_timeout_sec,
+            recv_timeout_sec: args.netstack_recv_timeout_sec,
         }
     }
 
-    pub fn default_v6(self_ip: &str, dns_v6: Option<String>) -> Self {
+    pub fn from_netstack_args_v6(wg_ip6: &str, args: &NetstackArgs) -> Self {
         Self {
-            self_ip: self_ip.to_string(),
-            dns: dns_v6.unwrap_or(V6_DNS.to_string()),
-            ping_hosts: vec!["ipv6.google.com".to_string()],
-            ping_ips: vec![
-                "2001:4860:4860::8888".to_string(), // google DNS
-                "2606:4700:4700::1111".to_string(), // cloudflare DNS
-                "2620:fe::fe".to_string(),          //Quad9 DNS
-            ],
-            ..Default::default()
-        }
-    }
-}
-
-impl Default for PingConfig {
-    fn default() -> Self {
-        Self {
-            self_ip: Default::default(),
-            dns: Default::default(),
-            ping_hosts: vec![],
-            ping_ips: vec![],
-            num_ping: 10,
-            send_timeout_sec: 3,
-            recv_timeout_sec: 3,
+            self_ip: wg_ip6.to_string(),
+            dns: args.netstack_v6_dns.clone(),
+            ping_hosts: args.netstack_ping_hosts_v6.clone(),
+            ping_ips: args.netstack_ping_ips_v6.clone(),
+            num_ping: args.netstack_num_ping,
+            send_timeout_sec: args.netstack_send_timeout_sec,
+            recv_timeout_sec: args.netstack_recv_timeout_sec,
         }
     }
 }
@@ -71,18 +56,17 @@ impl NetstackRequest {
         private_key: &str,
         public_key: &str,
         endpoint: &str,
-        dns_v4: Option<String>,
-        dns_v6: Option<String>,
         download_timeout_sec: u64,
         awg_args: &str,
+        netstack_args: NetstackArgs,
     ) -> Self {
         Self {
             private_key: private_key.to_string(),
             public_key: public_key.to_string(),
             endpoint: endpoint.to_string(),
             awg_args: awg_args.to_string(),
-            v4_ping_config: PingConfig::default_v4(wg_ip4, dns_v4),
-            v6_ping_config: PingConfig::default_v6(wg_ip6, dns_v6),
+            v4_ping_config: PingConfig::from_netstack_args_v4(wg_ip4, &netstack_args),
+            v6_ping_config: PingConfig::from_netstack_args_v6(wg_ip6, &netstack_args),
             download_timeout_sec,
         }
     }
@@ -95,19 +79,5 @@ impl NetstackRequest {
     #[allow(dead_code)]
     pub fn set_v6_config(&mut self, config: PingConfig) {
         self.v6_ping_config = config;
-    }
-}
-
-impl Default for NetstackRequest {
-    fn default() -> Self {
-        Self {
-            private_key: Default::default(),
-            public_key: Default::default(),
-            endpoint: Default::default(),
-            v4_ping_config: PingConfig::default_v4(Default::default(), None),
-            v6_ping_config: PingConfig::default_v6(Default::default(), None),
-            download_timeout_sec: 180,
-            awg_args: Default::default(),
-        }
     }
 }

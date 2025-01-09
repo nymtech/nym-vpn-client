@@ -12,6 +12,7 @@ use crate::types::Entry;
 use anyhow::{anyhow, bail};
 use base64::{engine::general_purpose, Engine as _};
 use bytes::BytesMut;
+use clap::Args;
 use futures::StreamExt;
 use nym_authenticator_client::{AuthenticatorResponse, AuthenticatorVersion, ClientMessage};
 use nym_authenticator_requests::{v2, v3, v4};
@@ -53,6 +54,40 @@ mod types;
 
 pub use error::{Error, Result};
 pub use types::{IpPingReplies, ProbeOutcome, ProbeResult};
+
+#[derive(Args)]
+pub struct NetstackArgs {
+    #[arg(long, default_value_t = 180)]
+    netstack_download_timeout_sec: u64,
+
+    #[arg(long, default_value = "1.1.1.1")]
+    netstack_v4_dns: String,
+
+    #[arg(long, default_value = "2606:4700:4700::1111")]
+    netstack_v6_dns: String,
+
+    #[arg(long, default_value_t = 5)]
+    netstack_num_ping: u8,
+
+    #[arg(long, default_value_t = 3)]
+    netstack_send_timeout_sec: u64,
+
+    #[arg(long, default_value_t = 3)]
+    netstack_recv_timeout_sec: u64,
+
+    #[arg(long, default_values_t = vec!["nymtech.net".to_string()])]
+    netstack_ping_hosts_v4: Vec<String>,
+
+    #[arg(long, default_values_t = vec!["1.1.1.1".to_string()])]
+    netstack_ping_ips_v4: Vec<String>,
+
+    #[arg(long, default_values_t = vec!["ipv6.google.com".to_string()])]
+    netstack_ping_hosts_v6: Vec<String>,
+
+    #[arg(long, default_values_t = vec!["2001:4860:4860::8888".to_string(), "2606:4700:4700::1111".to_string(), "2620:fe::fe".to_string()])]
+    netstack_ping_ips_v6: Vec<String>,
+}
+
 
 #[derive(Default, Debug)]
 pub enum TestedNode {
@@ -120,14 +155,16 @@ pub struct Probe {
     entrypoint: EntryPoint,
     tested_node: TestedNode,
     amnezia_args: String,
+    netstack_args: NetstackArgs,
 }
 
 impl Probe {
-    pub fn new(entrypoint: EntryPoint, tested_node: TestedNode) -> Self {
+    pub fn new(entrypoint: EntryPoint, tested_node: TestedNode, netstack_args: NetstackArgs) -> Self {
         Self {
             entrypoint,
             tested_node,
             amnezia_args: "".into(),
+            netstack_args,
         }
     }
     pub fn with_amnezia(&mut self, args: &str) -> &Self {
@@ -241,6 +278,7 @@ impl Probe {
                 ip_address,
                 node_info.authenticator_version,
                 self.amnezia_args,
+                self.netstack_args,
             )
             .await
             .unwrap_or_default()
@@ -269,6 +307,7 @@ async fn wg_probe(
     gateway_ip: IpAddr,
     auth_version: AuthenticatorVersion,
     awg_args: String,
+    netstack_args: NetstackArgs,
 ) -> anyhow::Result<WgProbeResults> {
     let mut auth_client = nym_authenticator_client::AuthClient::new(shared_mixnet_client).await;
     info!("attempting to use authenticator version {auth_version:?}");
@@ -385,10 +424,9 @@ async fn wg_probe(
                 &private_key_hex,
                 &public_key_hex,
                 &wg_endpoint,
-                None,
-                None,
-                180,
+                netstack_args.netstack_download_timeout_sec,
                 &awg_args,
+                netstack_args,
             );
 
             // Perform IPv4 ping test
