@@ -8,9 +8,10 @@ use tokio_stream::{wrappers::UnboundedReceiverStream, StreamExt};
 use tokio_util::sync::CancellationToken;
 
 use nym_apple_dispatch::{Queue, QueueAttr};
-use nym_apple_network::{Path, PathMonitor, PathStatus};
+use nym_apple_network::{InterfaceType, Path, PathMonitor, PathStatus};
 
-use super::Connectivity;
+use super::path_monitor;
+use crate::Connectivity;
 
 /// Maximum duration to wait for the initial state from path monitor.
 const INITIAL_STATE_TIMEOUT: Duration = Duration::from_secs(1);
@@ -42,9 +43,9 @@ impl MonitorHandle {
 pub async fn spawn_monitor(
     sender: mpsc::UnboundedSender<Connectivity>,
     shutdown_token: CancellationToken,
-) -> Result<MonitorHandle> {
+) -> Result<MonitorHandle, Error> {
     let (network_path_tx, mut network_path_rx) = mpsc::unbounded_channel();
-    let path_monitor = start_path_monitor(network_path_tx)?;
+    let path_monitor = path_monitor::start_path_monitor(network_path_tx)?;
 
     // Wait for initial state since path monitor should always send an update on start()
     let initial_connectivity = tokio::time::timeout(INITIAL_STATE_TIMEOUT, network_path_rx.recv())
@@ -55,7 +56,7 @@ pub async fn spawn_monitor(
         .ok()
         .flatten()
         .as_ref()
-        .map(map_network_path_to_connectivity)
+        .map(path_monitor::map_network_path_to_connectivity)
         .unwrap_or(Connectivity::PresumeOnline);
 
     tracing::debug!("Initial connectivity: {:?}", initial_connectivity);
@@ -77,7 +78,7 @@ pub async fn spawn_monitor(
                     };
                     tracing::trace!("Path status update: {:?}", network_path);
 
-                    let connectivity = map_network_path_to_connectivity(&network_path);
+                    let connectivity = path_monitor::map_network_path_to_connectivity(&network_path);
                     tracing::trace!("Connectivity changed: {:?}", connectivity);
 
                     let mut state_guard = shared_state.lock().await;
@@ -99,11 +100,12 @@ pub async fn spawn_monitor(
     Ok(MonitorHandle::new(initial_state, path_monitor))
 }
 
-fn start_path_monitor(path_tx: mpsc::UnboundedSender<Path>) -> Result<PathMonitor> {
+fn start_path_monitor(path_tx: mpsc::UnboundedSender<Path>) -> Result<PathMonitor, Error> {
     let queue = Queue::new(Some("net.nymtech.vpn.offline-monitor"), QueueAttr::serial())
         .map_err(Error::CreateDispatchQueue)?;
 
     let mut path_monitor = PathMonitor::new();
+    path_monitor.prohibit_interface_type(InterfaceType::Other);
     path_monitor.set_dispatch_queue(&queue);
     path_monitor.set_update_handler(move |nw_path| {
         if let Err(e) = path_tx.send(nw_path) {
@@ -137,5 +139,3 @@ pub enum Error {
     #[error("Failed to create a dispatch queue")]
     CreateDispatchQueue(#[source] std::ffi::NulError),
 }
-
-pub type Result<T, E = Error> = std::result::Result<T, E>;
