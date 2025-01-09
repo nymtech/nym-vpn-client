@@ -98,13 +98,6 @@ impl TunnelStateHandler for ConnectingState {
         shared_state: &'async_trait mut SharedState,
     ) -> NextTunnelState {
         tokio::select! {
-            _ = shutdown_token.cancelled() => {
-                NextTunnelState::NewState(DisconnectingState::enter(
-                    PrivateActionAfterDisconnect::Nothing,
-                    self.monitor_handle,
-                    shared_state,
-                ))
-            }
            Some(monitor_event) = self.monitor_event_receiver.recv() => {
             match monitor_event {
                 TunnelMonitorEvent::InitializingClient => {
@@ -183,6 +176,13 @@ impl TunnelStateHandler for ConnectingState {
                 } else {
                     NextTunnelState::SameState(self)
                 }
+            }
+            _ = shutdown_token.cancelled() => {
+                NextTunnelState::NewState(DisconnectingState::enter(
+                    PrivateActionAfterDisconnect::Nothing,
+                    self.monitor_handle,
+                    shared_state,
+                ))
             }
             else => NextTunnelState::Finished
         }
