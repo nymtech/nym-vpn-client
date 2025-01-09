@@ -80,7 +80,7 @@ impl TunnelStateHandler for ErrorState {
             Some(command) = command_rx.recv() => {
                 match command {
                     TunnelCommand::Connect => {
-                        NextTunnelState::NewState(ConnectingState::enter(0, None, shared_state))
+                        NextTunnelState::NewState(ConnectingState::enter(0, None, shared_state).await)
                     },
                     TunnelCommand::Disconnect => NextTunnelState::NewState(DisconnectedState::enter()),
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
