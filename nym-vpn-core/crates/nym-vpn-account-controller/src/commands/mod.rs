@@ -79,8 +79,8 @@ pub enum AccountCommandError {
     #[error("failed to remove account: {0}")]
     RemoveAccount(String),
 
-    #[error("failed to remove device from nym vpn api")]
-    RemoveDeviceApiClientFailure,
+    #[error("failed to remove device from nym vpn api: {0}")]
+    RemoveDeviceApiClientFailure(String),
 
     #[error("failed to remove device identity: {0}")]
     RemoveDeviceIdentity(String),
