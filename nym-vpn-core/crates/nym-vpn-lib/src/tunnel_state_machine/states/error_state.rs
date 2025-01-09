@@ -89,6 +89,10 @@ impl TunnelStateHandler for ErrorState {
                     }
                 }
             }
+            Some(_connectivity) = shared_state.offline_monitor.next() => {
+                // consume connectivity status but do nothing while in error state.
+                NextTunnelState::SameState(self)
+            }
             else => NextTunnelState::Finished
         }
     }
