@@ -2,10 +2,7 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    net::{IpAddr, Ipv4Addr, Ipv6Addr},
-    sync::Arc,
-};
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 use futures::StreamExt;
 use tokio::sync::mpsc;
@@ -68,7 +65,7 @@ pub async fn spawn_monitor(
                     let new_connectivity = check_connectivity(&route_manager, fwmark).await;
                     if new_connectivity != connectivity {
                         connectivity = new_connectivity;
-                        if sender.send(connectivity).is_err() {
+                        if notify_tx.send(connectivity).is_err() {
                             break;
                         }
                     }
