@@ -526,7 +526,7 @@ pub struct SharedState {
     //firewall_handler: FirewallHandler,
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     dns_handler: DnsHandlerHandle,
-    offline_monitor: nym_offline::MonitorHandle,
+    offline_monitor: nym_offline_monitor::MonitorHandle,
     nym_config: NymConfig,
     tunnel_settings: TunnelSettings,
     status_listener_handle: Option<JoinHandle<()>>,
@@ -576,7 +576,7 @@ impl TunnelStateMachine {
         )
         .map_err(Error::CreateDnsHandler)?;
 
-        let offline_monitor = nym_offline::spawn_monitor(
+        let offline_monitor = nym_offline_monitor::spawn_monitor(
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             route_handler.inner_handle(),
             #[cfg(target_os = "linux")]

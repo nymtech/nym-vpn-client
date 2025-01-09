@@ -13,6 +13,7 @@ members = [
     "crates/nym-harbour-master-client",
     "crates/nym-ip-packet-client",
     "crates/nym-mixnet-client",
+    "crates/nym-offline-monitor",
     "crates/nym-routing",
     "crates/nym-vpn-account-controller",
     "crates/nym-vpn-api-client",
@@ -27,7 +28,6 @@ members = [
     "crates/nym-wg-go",
     "crates/nym-windows",
     "crates/uniffi-bindgen",
-    "crates/nym-offline",
 ]
 
 default-members = [

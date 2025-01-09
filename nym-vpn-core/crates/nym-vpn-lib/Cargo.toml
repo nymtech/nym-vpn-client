@@ -79,7 +79,7 @@ nym-wg-gateway-client = { path = "../nym-wg-gateway-client" }
 nym-wg-go = { path = "../nym-wg-go" }
 nym-apple-network = { path = "../nym-apple-network" }
 nym-apple-dispatch = { path = "../nym-apple-dispatch" }
-nym-offline = { path = "../nym-offline" }
+nym-offline-monitor = { path = "../nym-offline-monitor" }
 
 [target.'cfg(unix)'.dependencies]
 nix = { workspace = true, features = ["socket", "net", "fs"] }
