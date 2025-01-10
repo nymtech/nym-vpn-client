@@ -1,6 +1,6 @@
 # NymVPN Android
 
-The Android client application for [NymVPN](https://nymvpn.com/en). For more information about NymVPN, its features, latest announcements, Help Center, or to download the latest stable release, visit [nymvpn.com](https://nymvpn.com/en).
+The Android client application for [NymVPN](https://nym.com).
 
 ## Building
 

@@ -39,8 +39,7 @@
     <string name="via">vía</string>
     <string name="required_app_restart">aplica al reiniciar</string>
     <string name="legal">Legal</string>
-    <string name="privacy_link" translatable="false">https://nymvpn.com/en/privacy?type=apps</string>
-    <string name="terms_of_use">Términos de uso</string>
+	<string name="terms_of_use">Términos de uso</string>
     <string name="privacy_policy">Declaración de privacidad</string>
     <string name="licenses">Licencias</string>
     <string name="open_github">Abrir un ticket en GitHub</string>
@@ -48,13 +47,7 @@
     <string name="check_faq">Consulta las preguntas frecuentes</string>
     <string name="join_matrix">Únete en Matrix</string>
     <string name="join_discord">Únete en Discord</string>
-    <string name="matrix_url" translatable="false">https://matrix.to/#/%23NymVPN:nymtech.chat</string>
-    <string name="discord_url" translatable="false">http://nymtech.net/go/discord</string>
-    <string name="faq_url" translatable="false">https://support.nymvpn.com</string>
-    <string name="contact_url" translatable="false">https://support.nymvpn.com/hc/en-us/requests/new</string>
-    <string name="support_email" translatable="false">support@nymvpn.com</string>
-    <string name="github_issues_url" translatable="false">https://github.com/nymtech/nym-vpn-client/issues/new/choose</string>
-    <string name="email_subject">Soporte de NymVPN</string>
+	<string name="email_subject">Soporte de NymVPN</string>
     <string name="email_chooser">Enviar un correo electrónico…</string>
     <string name="login">Iniciar sesión</string>
     <string name="add_credential">Agregar credencial</string>
@@ -79,8 +72,7 @@
     <string name="no_email_detected">No se detectó ninguna aplicación de correo electrónico</string>
     <string name="unknown">Desconocido</string>
     <string name="no_scm_found">URL del código fuente no encontrada</string>
-    <string name="terms_link" translatable="false">https://nymvpn.com/en/terms</string>
-    <string name="five_hop">5 saltos</string>
+	<string name="five_hop">5 saltos</string>
     <string name="mode">Modo</string>
     <string name="okay">De acuerdo</string>
     <string name="error_reporting_alert">Los cambios en los informes de errores no se aplicarán completamente hasta que la aplicación se haya reiniciado.</string>
