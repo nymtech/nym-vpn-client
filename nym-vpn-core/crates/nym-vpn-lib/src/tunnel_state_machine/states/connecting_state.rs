@@ -37,7 +37,7 @@ impl ConnectingState {
             #[cfg(target_os = "macos")]
             {
                 log::debug!("Poking route manager to update default routes");
-                let _ = shared_state.route_handler.refresh_routes();
+                shared_state.route_handler.refresh_routes().await;
             }
             return OfflineState::enter(true, retry_attempt, selected_gateways);
         }
