@@ -123,7 +123,6 @@ pub fn configureLib(data_dir: String, credential_mode: Option<bool>) -> Result<(
 }
 
 async fn configure_lib(data_dir: String, credential_mode: Option<bool>) -> Result<(), VpnError> {
-    init_logger(None);
     let network = environment::current_environment_details().await?;
     account::init_account_controller(PathBuf::from(data_dir), credential_mode, network).await
 }
