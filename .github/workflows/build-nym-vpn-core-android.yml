@@ -22,7 +22,7 @@ jobs:
 
   build-android:
     needs: build-wireguard-go-android
-    runs-on: arc-ubuntu-22.04
+    runs-on: ubuntu-22.04
     outputs:
       UPLOAD_DIR_ANDROID: ${{ env.UPLOAD_DIR_ANDROID }}
       RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}

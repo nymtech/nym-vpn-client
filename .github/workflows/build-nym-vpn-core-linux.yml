@@ -19,7 +19,7 @@ jobs:
 
   build-linux:
     needs: build-wireguard-go-linux
-    runs-on: arc-ubuntu-22.04
+    runs-on: ubuntu-22.04
     outputs:
       UPLOAD_DIR_LINUX: ${{ env.UPLOAD_DIR_LINUX }}
       RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}

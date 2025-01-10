@@ -12,7 +12,7 @@ env:
 
 jobs:
   build:
-    runs-on: 'arc-ubuntu-22.04-dind'
+    runs-on: 'ubuntu-22.04'
 
     steps:
       - name: Checkout nym-vpn-client
