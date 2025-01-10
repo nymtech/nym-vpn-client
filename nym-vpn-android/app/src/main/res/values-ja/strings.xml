@@ -142,4 +142,7 @@
     <string name="no_email_detected">Eメールアプリが検出できません</string>
     <string name="unknown">不明</string>
     <string name="add_cred_to_connect">認証情報を追加して接続</string>
+    <string name="device_added_success">デバイスがアカウントに正常に追加されました</string>
+    <string name="enter_access_code">匿名アクセスコードを入力してください。</string>
+    <string name="new_to_nym">NymVPNは初めてですか？</string>
 </resources>
