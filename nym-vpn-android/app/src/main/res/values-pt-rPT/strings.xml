@@ -37,7 +37,7 @@
     <string name="via">via</string>
     <string name="required_app_restart">aplica-se ao reiniciar</string>
     <string name="legal">Legal</string>
-	<string name="terms_of_use">Termos de uso</string>
+    <string name="terms_of_use">Termos de uso</string>
     <string name="privacy_policy">Declaração de Privacidade</string>
     <string name="licenses">Licenças</string>
     <string name="open_github">Abra uma issue no GitHub</string>
@@ -45,7 +45,7 @@
     <string name="check_faq">Verificar as FAQ</string>
     <string name="join_matrix">Junte-se a nós no Matrix</string>
     <string name="join_discord">Junte-se a nós no Discord</string>
-	<string name="email_subject">Suporte NymVPN</string>
+    <string name="email_subject">Suporte NymVPN</string>
     <string name="email_chooser">Envie um email…</string>
     <string name="login">Iniciar sessão</string>
     <string name="add_credential">Adicione credencial</string>
@@ -70,7 +70,7 @@
     <string name="no_email_detected">Nenhum app de email detectado</string>
     <string name="unknown">Desconhecido</string>
     <string name="no_scm_found">Url do código de origem não encontrada</string>
-	<string name="five_hop">5-saltos</string>
+    <string name="five_hop">5-saltos</string>
     <string name="mode">Modo</string>
     <string name="okay">Okay</string>
     <string name="error_reporting_alert">As alterações ao relatório de erros não terão efeito total até que a aplicação seja reiniciada.</string>
@@ -142,4 +142,6 @@
     <string name="two_hop">2-saltos</string>
     <string name="gateway_modal_description">Inferimos as localizações dos servidores com base nos seus endereços IP, mas as localizações reais podem variar ligeiramente.</string>
     <string name="always_on_message">Não está a funcionar? Certifique-se de que a VPN sempre ativa está desactivada para outras aplicações em</string>
+    <string name="new_to_nym">Novo no NymVPN?</string>
+    <string name="device_added_success">Dispositivo adicionado com sucesso à sua conta</string>
 </resources>

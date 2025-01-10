@@ -39,7 +39,7 @@
     <string name="via">via</string>
     <string name="required_app_restart">prend effet au redémarrage</string>
     <string name="legal">Juridique</string>
-	<string name="terms_of_use">Conditions d\'utilisation</string>
+    <string name="terms_of_use">Conditions d\'utilisation</string>
     <string name="privacy_policy">Déclaration de confidentialité</string>
     <string name="licenses">Licences</string>
     <string name="open_github">Créer un ticket GitHub</string>
@@ -47,7 +47,7 @@
     <string name="check_faq">Lire la F.A.Q.</string>
     <string name="join_matrix">Rejoignez-nous sur Matrix</string>
     <string name="join_discord">Rejoignez-nous sur Discord</string>
-	<string name="email_chooser">Envoyer un email…</string>
+    <string name="email_chooser">Envoyer un email…</string>
     <string name="login">Se connecter</string>
     <string name="add_credential">Ajouter un identifiant</string>
     <string name="add_cred_to_connect">Ajoutez un identifiant pour vous connecter</string>
@@ -71,7 +71,7 @@
     <string name="no_email_detected">Aucune application d\'email détectée</string>
     <string name="unknown">Inconnu</string>
     <string name="no_scm_found">Impossible de trouver le code source de l\'URL</string>
-	<string name="two_hop">2 sauts</string>
+    <string name="two_hop">2 sauts</string>
     <string name="five_hop">5 sauts</string>
     <string name="mode">Mode</string>
     <string name="okay">OK</string>
@@ -132,4 +132,8 @@
     <string name="gateway_locations_title">Détails sur l\'emplacement des serveurs</string>
     <string name="entry_location_selector">Nœud d\'entrée manuel</string>
     <string name="appearance">Apparence</string>
+    <string name="device_added_success">Appareil ajouté à votre compte avec succès</string>
+    <string name="new_to_nym">Nouveau sur NymVPN ?</string>
+    <string name="enter_access_code">S\'il vous plaît, entrer votre code d\'accès.</string>
+    <string name="get_in_touch">Contactez-nous</string>
 </resources>

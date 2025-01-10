@@ -140,4 +140,8 @@
     <string name="exception_cred_missing">Nessuna credenziale trovata.</string>
     <string name="exception_permission_not_granted">Il permesso richiesto non è stato concesso.</string>
     <string name="exception_cred_invalid">Le credenziali sono invalide o scadute</string>
+    <string name="and_acknowledge">e riconosci</string>
+    <string name="continue_agree">Continuando, accetti</string>
+    <string name="new_to_nym">Prima volta su NymVPN?</string>
+    <string name="device_added_success">Dispositivo aggiunto con successo al tuo account</string>
 </resources>

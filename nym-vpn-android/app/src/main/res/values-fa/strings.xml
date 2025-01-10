@@ -141,4 +141,7 @@
     <string name="try_again">و دوباره وصل شوید</string>
     <string name="opt_in_message_second">و گزارش‌ها (می‌توانید بعدا انصراف دهید)</string>
     <string name="auto_connect">اتصال خودکار</string>
+    <string name="device_added_success">دستگاه با موفقیت به حساب شما اضافه شد</string>
+    <string name="new_to_nym">در NymVPN تازه واردید؟</string>
+    <string name="and_acknowledge">موافقت می‌کنید</string>
 </resources>

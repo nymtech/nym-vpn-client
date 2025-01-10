@@ -142,4 +142,8 @@
     <string name="always_on_disbled">Постійно ввімкнений VPN вимкнено</string>
     <string name="always_on_message">Не працює? Переконайтеся, що Always-on VPN вимкнено для інших програм у</string>
     <string name="vpn_settings">налаштуваннях системи VPN</string>
+    <string name="device_added_success">Пристрій успішно додано до вашого облікового запису</string>
+    <string name="enter_access_code">Будь ласка, введіть свій анонімний код доступу.</string>
+    <string name="get_in_touch">Зв\'яжіться з нами</string>
+    <string name="new_to_nym">Новачок в NymVPN?</string>
 </resources>

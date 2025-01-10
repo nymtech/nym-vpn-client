@@ -142,4 +142,6 @@
     <string name="try_reconnecting">Yeniden bağlanmayı deneyin</string>
     <string name="vpn_settings">VPN sistem ayarları</string>
     <string name="try_again">ve yeniden bağlanmayı deneyin</string>
+    <string name="device_added_success">Cihaz hesabınıza başarıyla eklendi</string>
+    <string name="new_to_nym">NymVPN\'de yeni misiniz?</string>
 </resources>

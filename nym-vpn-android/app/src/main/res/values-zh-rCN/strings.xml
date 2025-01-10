@@ -142,4 +142,8 @@
     <string name="always_on_message">无法工作？ 确保已禁用 Always-on VPN 中的其他应用程序</string>
     <string name="vpn_settings">VPN 系统设置</string>
     <string name="try_again">并尝试重新连接</string>
+    <string name="enter_access_code">请输入您的匿名访问代码。</string>
+    <string name="get_in_touch">取得联系</string>
+    <string name="device_added_success">设备已成功添加到您的账户</string>
+    <string name="new_to_nym">NymVPN 新手？</string>
 </resources>
