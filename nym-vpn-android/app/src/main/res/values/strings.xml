@@ -41,7 +41,7 @@
 	<string name="via">via</string>
 	<string name="required_app_restart">applies on restart</string>
 	<string name="legal">Legal</string>
-	<string name="privacy_link" translatable="false">https://nymvpn.com/en/privacy?type=apps</string>
+	<string name="privacy_link" translatable="false">https://nym.com/vpn-privacy-statement</string>
 	<string name="terms_of_use">Terms of use</string>
 	<string name="privacy_policy">Privacy statement</string>
 	<string name="licenses">Licenses</string>
@@ -50,13 +50,13 @@
 	<string name="check_faq">Check the FAQ</string>
 	<string name="join_matrix">Join us on Matrix</string>
 	<string name="join_discord">Join us on Discord</string>
-	<string name="create_account_url" translatable="false">https://nymvpn.com/account/create</string>
-	<string name="matrix_url" translatable="false">https://matrix.to/#/%23NymVPN:nymtech.chat</string>
-	<string name="discord_url" translatable="false">http://nymtech.net/go/discord</string>
-	<string name="faq_url" translatable="false">https://support.nymvpn.com</string>
-	<string name="contact_url" translatable="false">https://support.nymvpn.com/hc/en-us/requests/new</string>
+	<string name="create_account_url" translatable="false">https://nym.com/account/create</string>
+	<string name="matrix_url" translatable="false">https://nym.com/go/matrix</string>
+	<string name="discord_url" translatable="false">https://nym.com/go/discord</string>
+	<string name="faq_url" translatable="false">https://support.nym.com/hc</string>
+	<string name="contact_url" translatable="false">https://support.nym.com/hc/requests/new</string>
 	<string name="support_email" translatable="false">support@nymvpn.com</string>
-	<string name="github_issues_url" translatable="false">https://github.com/nymtech/nym-vpn-client/issues/new/choose</string>
+	<string name="github_issues_url" translatable="false">https://nym.com/go/github/nym-vpn-client/issues</string>
 	<string name="email_subject">NymVPN Support</string>
 	<string name="email_chooser">Send an email…</string>
 	<string name="login">Login</string>
@@ -82,7 +82,7 @@
 	<string name="no_email_detected">No email app detected</string>
 	<string name="unknown">Unknown</string>
 	<string name="no_scm_found">Source code url not found</string>
-	<string name="terms_link" translatable="false">https://nymvpn.com/en/terms</string>
+	<string name="terms_link" translatable="false">https://nym.com/vpn-terms</string>
 	<string name="five_hop">5-hop</string>
 	<string name="mode">Mode</string>
 	<string name="okay">Okay</string>
@@ -144,8 +144,7 @@
 	<string name="gateway_locations_title">Details on server locations</string>
 	<string name="remaining">remaining</string>
 	<string name="entry_location_selector">Entry location selector</string>
-	<string translatable="false" name="location_support_link">https://support.nymvpn.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN</string>
-	<string translatable="false" name="mode_support_link">https://support.nymvpn.com/hc/en-us/articles/24326365096721-What-s-the-difference-between-Fast-and-Anonymous-mode</string>
+	<string translatable="false" name="mode_support_link">https://support.nym.com/hc/articles/24326365096721-What-s-the-difference-between-Fast-and-Anonymous-mode</string>
 	<string name="vpn_connection">VPN Connection</string>
 	<string name="vpn_permission_message">Attest to the VPN connection request by trying to reconnect.</string>
 	<string name="view_system_settings">View system settings</string>
@@ -207,4 +206,5 @@
 	<string name="get_in_touch">Get in touch</string>
 	<string name="same_entry_exit_message">For privacy, NymVPN won\'t use the same gateway for entry and exit. Reconnect or choose different locations.</string>
 	<string name="device_id">Device ID:</string>
+	<string name="location_support_link" translatable="false">https://support.nym.com/hc/articles/26448676449297-How-is-server-location-determined-by-NymVPN</string>
 </resources>
