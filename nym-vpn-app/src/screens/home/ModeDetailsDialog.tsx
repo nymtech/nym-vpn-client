@@ -1,7 +1,8 @@
 import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
-import { Button, Dialog, MsIcon } from '../../ui';
+import { Button, Dialog, Link, MsIcon } from '../../ui';
 import { capFirst } from '../../util';
+import { ModesDetailsArticle } from '../../constants';
 
 export type Props = {
   isOpen: boolean;
@@ -45,6 +46,7 @@ function ModeDetailsDialog({ isOpen, onClose }: Props) {
           {t('modes-dialog.fast-description')}
         </p>
       </div>
+      <Link text={t('modes-dialog.link')} url={ModesDetailsArticle} className="mb-1" />
       <Button onClick={onClose} className="mt-2">
         <span className="text-base text-black dark:text-baltic-sea">
           {capFirst(t('ok', { ns: 'glossary' }))}

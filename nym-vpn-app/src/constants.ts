@@ -34,6 +34,8 @@ export const ToSUrl = 'https://nym.com/vpn-terms';
 export const PrivacyPolicyUrl = 'https://nym.com/vpn-privacy-statement';
 export const LocationDetailsArticle =
   'https://support.nym.com/hc/articles/26448676449297-How-is-server-location-determined-by-NymVPN';
+export const ModesDetailsArticle =
+  'https://support.nym.com/hc/articles/24326365096721-What-s-the-difference-between-Fast-and-Anonymous-mode';
 export const SentryHomePage = 'https://sentry.io/';
 export const CountryCacheDuration = 120; // seconds
 export const HomeThrottleDelay = 6000;
