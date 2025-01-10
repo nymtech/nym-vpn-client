@@ -13,7 +13,7 @@ use cli::Internal;
 use itertools::Itertools;
 use nym_gateway_directory::GatewayType;
 use nym_vpn_proto::{
-    ConfirmZkNymDownloadedRequest, ConnectRequest, DisconnectRequest, Empty, ForgetAccountRequest,
+    ConfirmZkNymDownloadedRequest, ConnectRequest, DisconnectRequest, ForgetAccountRequest,
     GetAccountIdentityRequest, GetAccountLinksRequest, GetAccountStateRequest,
     GetAccountUsageRequest, GetActiveDevicesRequest, GetAvailableTicketsRequest,
     GetDeviceIdentityRequest, GetDeviceZkNymsRequest, GetDevicesRequest, GetFeatureFlagsRequest,
@@ -220,7 +220,7 @@ async fn listen_until_connected_or_failed(opts: CliOptions) -> Result<()> {
         return Ok(());
     }
 
-    let request = tonic::Request::new(Empty {});
+    let request = tonic::Request::new(());
     let mut stream = client
         .listen_to_connection_state_changes(request)
         .await?
@@ -268,7 +268,7 @@ async fn listen_until_disconnected(opts: CliOptions) -> Result<()> {
         return Ok(());
     }
 
-    let request = tonic::Request::new(Empty {});
+    let request = tonic::Request::new(());
     let mut stream = client
         .listen_to_connection_state_changes(request)
         .await?
@@ -556,7 +556,7 @@ async fn get_available_tickets(client_type: ClientType) -> Result<()> {
 
 async fn listen_to_status(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(Empty {});
+    let request = tonic::Request::new(());
     let mut stream = client
         .listen_to_connection_status(request)
         .await?
@@ -569,7 +569,7 @@ async fn listen_to_status(client_type: ClientType) -> Result<()> {
 
 async fn listen_to_state_changes(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(Empty {});
+    let request = tonic::Request::new(());
     let mut stream = client
         .listen_to_connection_state_changes(request)
         .await?

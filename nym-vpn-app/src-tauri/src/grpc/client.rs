@@ -254,7 +254,7 @@ impl GrpcClient {
     pub async fn watch_vpn_state(&self, app: &AppHandle) -> Result<()> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(Empty {});
+        let request = Request::new(());
         let mut stream = vpnd
             .listen_to_connection_state_changes(request)
             .await
@@ -305,7 +305,7 @@ impl GrpcClient {
     pub async fn watch_vpn_connection_updates(&self, app: &AppHandle) -> Result<()> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(Empty {});
+        let request = Request::new(());
         let mut stream = vpnd
             .listen_to_connection_status(request)
             .await

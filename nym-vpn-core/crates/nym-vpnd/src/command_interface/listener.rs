@@ -15,7 +15,7 @@ use nym_vpn_lib::tunnel_state_machine::MixnetEvent;
 use nym_vpn_proto::{
     conversions::ConversionError, nym_vpnd_server::NymVpnd, AccountError,
     ConfirmZkNymDownloadedRequest, ConfirmZkNymDownloadedResponse, ConnectRequest, ConnectResponse,
-    ConnectionStateChange, ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
+    ConnectionStateChange, ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse,
     ForgetAccountRequest, ForgetAccountResponse, GetAccountIdentityRequest,
     GetAccountIdentityResponse, GetAccountLinksRequest, GetAccountLinksResponse,
     GetAccountStateRequest, GetAccountStateResponse, GetAccountUsageRequest,
@@ -262,7 +262,7 @@ impl NymVpnd for CommandInterface {
 
     async fn listen_to_connection_status(
         &self,
-        request: tonic::Request<Empty>,
+        request: tonic::Request<()>,
     ) -> Result<tonic::Response<Self::ListenToConnectionStatusStream>, tonic::Status> {
         tracing::debug!("Got connection status stream request: {request:?}");
         let rx = self.status_rx.resubscribe();
@@ -284,7 +284,7 @@ impl NymVpnd for CommandInterface {
 
     async fn listen_to_connection_state_changes(
         &self,
-        request: tonic::Request<Empty>,
+        request: tonic::Request<()>,
     ) -> Result<tonic::Response<Self::ListenToConnectionStateChangesStream>, tonic::Status> {
         tracing::debug!("Got connection status stream request: {request:?}");
         let rx = self.vpn_state_changes_rx.resubscribe();
