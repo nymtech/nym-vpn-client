@@ -11,7 +11,7 @@ use futures::{stream::BoxStream, StreamExt};
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 
 use nym_vpn_api_client::types::GatewayMinPerformance;
-use nym_vpn_lib::tunnel_state_machine::MixnetEvent;
+use nym_vpn_lib::tunnel_state_machine::TunnelEvent;
 use nym_vpn_proto::{
     conversions::ConversionError, nym_vpnd_server::NymVpnd, AccountError,
     ConfirmZkNymDownloadedRequest, ConfirmZkNymDownloadedResponse, ConnectRequest, ConnectResponse,
@@ -35,7 +35,7 @@ use super::{
     helpers::{parse_entry_point, parse_exit_point, threshold_into_percent},
 };
 use crate::{
-    command_interface::protobuf::info_response::into_proto_available_tickets,
+    command_interface::protobuf::{IntoProtobuf, info_response::into_proto_available_tickets},
     service::{ConnectOptions, VpnServiceCommand, VpnServiceStateChange},
 };
 
@@ -51,8 +51,8 @@ pub(super) struct CommandInterface {
     // Send commands to the VPN service
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
 
-    // Broadcast connection status updates to our API endpoint listeners
-    status_rx: broadcast::Receiver<MixnetEvent>,
+    // Broadcast tunnel events to our API endpoint listeners
+    tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
 
     listener: ListenerType,
 }
@@ -61,13 +61,13 @@ impl CommandInterface {
     pub(super) fn new_with_path(
         vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
         vpn_command_tx: UnboundedSender<VpnServiceCommand>,
-        status_rx: broadcast::Receiver<MixnetEvent>,
+        tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
         socket_path: &Path,
     ) -> Self {
         Self {
             vpn_state_changes_rx,
             vpn_command_tx,
-            status_rx,
+            tunnel_event_rx,
             listener: ListenerType::Path(socket_path.to_path_buf()),
         }
     }
@@ -75,13 +75,13 @@ impl CommandInterface {
     pub(super) fn new_with_uri(
         vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
         vpn_command_tx: UnboundedSender<VpnServiceCommand>,
-        status_rx: broadcast::Receiver<MixnetEvent>,
+        tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
         uri: SocketAddr,
     ) -> Self {
         Self {
             vpn_state_changes_rx,
             vpn_command_tx,
-            status_rx,
+            tunnel_event_rx,
             listener: ListenerType::Uri(uri),
         }
     }
@@ -260,14 +260,24 @@ impl NymVpnd for CommandInterface {
         request: tonic::Request<()>,
     ) -> Result<tonic::Response<Self::ListenToConnectionStatusStream>, tonic::Status> {
         tracing::debug!("Got connection status stream request: {request:?}");
-        let rx = self.status_rx.resubscribe();
-        let stream = tokio_stream::wrappers::BroadcastStream::new(rx).map(|status| {
-            status
-                .map(crate::command_interface::protobuf::status_update::status_update_from_event)
-                .map_err(|err| {
-                    tracing::error!("Failed to receive connection status update: {:?}", err);
-                    tonic::Status::internal("Failed to receive connection status update")
-                })
+        let rx = self.tunnel_event_rx.resubscribe();
+        let stream = tokio_stream::wrappers::BroadcastStream::new(rx)
+            .filter_map(|event| {
+                async move { 
+                    event
+                        .map(|event| {
+                            if let TunnelEvent::MixnetState(mixnet_event) = event {
+                                Some(crate::command_interface::protobuf::status_update::status_update_from_event(mixnet_event))
+                            } else {
+                                None
+                            }
+                        })
+                        .map_err(|err| {
+                            tracing::error!("Failed to receive connection status update: {:?}", err);
+                            tonic::Status::internal("Failed to receive connection status update")
+                        })
+                        .transpose()
+            }
         });
         Ok(tonic::Response::new(
             Box::pin(stream) as Self::ListenToConnectionStatusStream
@@ -291,6 +301,35 @@ impl NymVpnd for CommandInterface {
         });
         Ok(tonic::Response::new(
             Box::pin(stream) as Self::ListenToConnectionStateChangesStream
+        ))
+    }
+
+    type ListenToTunnelStateChangesStream =
+        BoxStream<'static, Result<TunnelState, tonic::Status>>;
+    async fn listen_to_tunnel_state_changes(
+        &self,
+        request: tonic::Request<Empty>,
+    ) -> Result<tonic::Response<Self::ListenToTunnelStateChangesStream>, tonic::Status> {
+        tracing::debug!("Got connection status stream request: {request:?}");
+        let rx = self.tunnel_event_rx.resubscribe();
+        let stream =
+            tokio_stream::wrappers::BroadcastStream::new(rx).filter_map(|event| async move {
+                event
+                    .map(|event| {
+                        if let TunnelEvent::NewState(tunnel_state) = event {
+                            Some(tunnel_state.to_protobuf())
+                        } else {
+                            None
+                        }
+                    })
+                    .map_err(|err| {
+                        tracing::error!("Failed to receive tunnel state update: {:?}", err);
+                        tonic::Status::internal("Failed to receive tunnel state update")
+                    })
+                    .transpose()
+            });
+        Ok(tonic::Response::new(
+            Box::pin(stream) as Self::ListenToTunnelStateChangesStream
         ))
     }
 

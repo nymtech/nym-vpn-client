@@ -4,7 +4,7 @@
 use std::{net::SocketAddr, path::PathBuf, time::Duration};
 
 use futures::FutureExt;
-use nym_vpn_lib::tunnel_state_machine::MixnetEvent;
+use nym_vpn_lib::tunnel_state_machine::TunnelEvent;
 use nym_vpn_proto::{nym_vpnd_server::NymVpndServer, VPN_FD_SET};
 use tokio::{
     sync::{
@@ -49,7 +49,7 @@ fn grpc_span(req: &http::Request<()>) -> tracing::Span {
 async fn run_uri_listener<T>(
     vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
-    status_rx: broadcast::Receiver<MixnetEvent>,
+    tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
     addr: SocketAddr,
     shutdown_token: CancellationToken,
     health_service: HealthServer<T>,
@@ -63,7 +63,7 @@ where
         .build()
         .unwrap();
     let command_interface =
-        CommandInterface::new_with_uri(vpn_state_changes_rx, vpn_command_tx, status_rx, addr);
+        CommandInterface::new_with_uri(vpn_state_changes_rx, vpn_command_tx, tunnel_event_rx, addr);
 
     Server::builder()
         .trace_fn(grpc_span)
@@ -77,7 +77,7 @@ where
 async fn run_socket_listener<T>(
     vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
-    status_rx: broadcast::Receiver<MixnetEvent>,
+    tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
     socket_path: PathBuf,
     shutdown_token: CancellationToken,
     health_service: HealthServer<T>,
@@ -93,7 +93,7 @@ where
     let command_interface = CommandInterface::new_with_path(
         vpn_state_changes_rx,
         vpn_command_tx,
-        status_rx,
+        tunnel_event_rx,
         &socket_path,
     );
     command_interface.remove_previous_socket_file();
@@ -137,7 +137,7 @@ async fn setup_health_service(
 
 pub(crate) fn start_command_interface(
     vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
-    status_rx: broadcast::Receiver<MixnetEvent>,
+    tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
     command_interface_options: Option<CommandInterfaceOptions>,
     shutdown_token: CancellationToken,
 ) -> (JoinHandle<()>, UnboundedReceiver<VpnServiceCommand>) {
@@ -158,7 +158,7 @@ pub(crate) fn start_command_interface(
             join_set.spawn(run_socket_listener(
                 vpn_state_changes_rx.resubscribe(),
                 vpn_command_tx.clone(),
-                status_rx.resubscribe(),
+                tunnel_event_rx.resubscribe(),
                 socket_path.to_path_buf(),
                 shutdown_token.child_token(),
                 health_service.clone(),
@@ -169,7 +169,7 @@ pub(crate) fn start_command_interface(
             join_set.spawn(run_uri_listener(
                 vpn_state_changes_rx,
                 vpn_command_tx.clone(),
-                status_rx.resubscribe(),
+                tunnel_event_rx.resubscribe(),
                 uri_addr,
                 shutdown_token.child_token(),
                 health_service,
