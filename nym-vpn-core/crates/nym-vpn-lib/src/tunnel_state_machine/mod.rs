@@ -428,7 +428,7 @@ pub enum ErrorStateReason {
     Internal,
 }
 
-#[derive(Debug, uniffi::Enum)]
+#[derive(Debug, Clone, uniffi::Enum)]
 pub enum TunnelEvent {
     NewState(TunnelState),
     MixnetState(MixnetEvent),

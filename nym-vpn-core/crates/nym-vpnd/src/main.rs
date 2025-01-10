@@ -70,12 +70,12 @@ async fn run_inner_async(args: CliArgs, network_env: Network) -> anyhow::Result<
     network_env.check_consistency().await?;
 
     let (state_changes_tx, state_changes_rx) = broadcast::channel(10);
-    let (status_tx, status_rx) = broadcast::channel(10);
+    let (tunnel_event_tx, tunnel_event_rx) = broadcast::channel(10);
     let shutdown_token = CancellationToken::new();
 
     let (command_handle, vpn_command_rx) = command_interface::start_command_interface(
         state_changes_rx,
-        status_rx,
+        tunnel_event_rx,
         Some(CommandInterfaceOptions {
             disable_socket_listener: args.disable_socket_listener,
             enable_http_listener: args.enable_http_listener,
@@ -91,7 +91,7 @@ async fn run_inner_async(args: CliArgs, network_env: Network) -> anyhow::Result<
     let vpn_service_handle = NymVpnService::spawn(
         state_changes_tx,
         vpn_command_rx,
-        status_tx,
+        tunnel_event_tx,
         shutdown_token.child_token(),
         network_env,
         user_agent,
