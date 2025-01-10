@@ -16,7 +16,10 @@ impl MonitorHandle {
 }
 
 #[allow(clippy::unused_async)]
-pub async fn spawn_monitor(_sender: watch::Sender<Connectivity>) -> Result<MonitorHandle, Error> {
+pub async fn spawn_monitor(
+    _sender: watch::Sender<Connectivity>,
+    _shutdown_token: CancellationToken,
+) -> Result<MonitorHandle, Error> {
     // todo: implement
     Ok(MonitorHandle)
 }
