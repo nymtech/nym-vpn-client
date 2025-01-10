@@ -142,4 +142,5 @@
     <string name="gateway_modal_description">Wir leiten den Serverstandort von der IP-Addresse ab. Der reale Standort kann abweichen.</string>
     <string name="five_hop_explanation">Geniess die höchste Sicherheit indem du deine Verbindung durch 5 Server (Mixnet) leitest. Ideal für die sichere Abwicklung von Zahlungen, E-Mails und Nachrichten.</string>
     <string name="always_on_message">Probleme? Stell sicher, dass \"Always on\" VPN in anderen Apps deaktiviert ist</string>
+    <string name="new_to_nym">Neu bei NymVPN?</string>
 </resources>
