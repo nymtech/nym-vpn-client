@@ -142,4 +142,6 @@
     <string name="try_reconnecting">फिर से कनेक्ट करने का प्रयास करें</string>
     <string name="always_on_disbled">आगे-पीछे VPN बंद है</string>
     <string name="vpn_settings">VPN सिस्टम सेटिंग्स</string>
+    <string name="device_added_success">डिवाइस सफलतापूर्वक आपके खाते में जोड़ा गया है</string>
+    <string name="new_to_nym">NymVPN में नए हैं?</string>
 </resources>
