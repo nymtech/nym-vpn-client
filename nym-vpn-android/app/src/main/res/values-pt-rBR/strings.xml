@@ -142,4 +142,6 @@
     <string name="vpn_settings">Configurações do sistema VPN</string>
     <string name="try_again">e tentar se reconectar</string>
     <string name="two_hop">2-saltos</string>
+    <string name="device_added_success">Dispositivo adicionado com sucesso à sua conta</string>
+    <string name="new_to_nym">Novo no NymVPN?</string>
 </resources>
