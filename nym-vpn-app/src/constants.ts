@@ -24,16 +24,16 @@ export const DefaultThemeMode = 'System';
 
 // Various external links
 export const GitHubIssuesUrl =
-  'https://www.nymtech.net/go/github/nym-vpn-client/issues';
-export const MatrixRoomUrl = 'https://matrix.to/#/%23NymVPN:nymtech.chat';
-export const DiscordInviteUrl = 'https://nymtech.net/go/discord';
-export const FaqUrl = 'https://support.nymvpn.com/hc/en-us';
+  'https://nym.com/go/github/nym-vpn-client/issues';
+export const MatrixRoomUrl = 'https://nym.com/go/matrix';
+export const DiscordInviteUrl = 'https://nym.com/go/discord';
+export const FaqUrl = 'https://support.nym.com/hc';
 export const ContactSupportUrl =
-  'https://support.nymvpn.com/hc/en-us/requests/new';
-export const ToSUrl = 'https://nymvpn.com/en/terms';
-export const PrivacyPolicyUrl = 'https://nymvpn.com/en/privacy?type=apps';
+  'https://support.nym.com/hc/requests/new';
+export const ToSUrl = 'https://nym.com/vpn-terms';
+export const PrivacyPolicyUrl = 'https://nym.com/vpn-privacy-statement';
 export const LocationDetailsArticle =
-  'https://support.nymvpn.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN';
+  'https://support.nym.com/hc/articles/26448676449297-How-is-server-location-determined-by-NymVPN';
 export const SentryHomePage = 'https://sentry.io/';
 export const CountryCacheDuration = 120; // seconds
 export const HomeThrottleDelay = 6000;
