@@ -431,7 +431,7 @@ fn create_dynamic_store(state: Arc<Mutex<State>>) -> Result<SCDynamicStore> {
         info: update_trigger,
     };
 
-    let store = SCDynamicStoreBuilder::new("talpid-dns-monitor")
+    let store = SCDynamicStoreBuilder::new("nym-dns-monitor")
         .callback_context(callback_context)
         .build();
 

@@ -109,8 +109,8 @@ impl From<DefaultRoute> for RouteMessage {
 
 impl PrimaryInterfaceMonitor {
     pub fn new() -> (Self, UnboundedReceiver<InterfaceEvent>) {
-        let store = SCDynamicStoreBuilder::new("talpid-routing").build();
-        let prefs = SCPreferences::default(&CFString::new("talpid-routing"));
+        let store = SCDynamicStoreBuilder::new("nym-routing").build();
+        let prefs = SCPreferences::default(&CFString::new("nym-routing"));
 
         let (tx, rx) = mpsc::unbounded();
         Self::start_listener(tx);
@@ -120,7 +120,7 @@ impl PrimaryInterfaceMonitor {
 
     fn start_listener(tx: UnboundedSender<InterfaceEvent>) {
         std::thread::spawn(|| {
-            let listener_store = SCDynamicStoreBuilder::new("talpid-routing-listener")
+            let listener_store = SCDynamicStoreBuilder::new("nym-routing-listener")
                 .callback_context(SCDynamicStoreCallBackContext {
                     callout: Self::store_change_handler,
                     info: tx,
