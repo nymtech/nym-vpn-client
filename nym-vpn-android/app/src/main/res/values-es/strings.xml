@@ -39,7 +39,7 @@
     <string name="via">vía</string>
     <string name="required_app_restart">aplica al reiniciar</string>
     <string name="legal">Legal</string>
-	<string name="terms_of_use">Términos de uso</string>
+    <string name="terms_of_use">Términos de uso</string>
     <string name="privacy_policy">Declaración de privacidad</string>
     <string name="licenses">Licencias</string>
     <string name="open_github">Abrir un ticket en GitHub</string>
@@ -47,7 +47,7 @@
     <string name="check_faq">Consulta las preguntas frecuentes</string>
     <string name="join_matrix">Únete en Matrix</string>
     <string name="join_discord">Únete en Discord</string>
-	<string name="email_subject">Soporte de NymVPN</string>
+    <string name="email_subject">Soporte de NymVPN</string>
     <string name="email_chooser">Enviar un correo electrónico…</string>
     <string name="login">Iniciar sesión</string>
     <string name="add_credential">Agregar credencial</string>
@@ -72,7 +72,7 @@
     <string name="no_email_detected">No se detectó ninguna aplicación de correo electrónico</string>
     <string name="unknown">Desconocido</string>
     <string name="no_scm_found">URL del código fuente no encontrada</string>
-	<string name="five_hop">5 saltos</string>
+    <string name="five_hop">5 saltos</string>
     <string name="mode">Modo</string>
     <string name="okay">De acuerdo</string>
     <string name="error_reporting_alert">Los cambios en los informes de errores no se aplicarán completamente hasta que la aplicación se haya reiniciado.</string>
@@ -142,4 +142,6 @@
     <string name="always_on_message">¿No funciona? Asegúrate de que VPN siempre activa está desactivada para otras aplicaciones</string>
     <string name="vpn_settings">Ajustes del sistema VPN</string>
     <string name="try_again">y intenta reconectar</string>
+    <string name="device_added_success">Dispositivo añadido correctamente a tu cuenta</string>
+    <string name="new_to_nym">¿Nuevo en NymVPN?</string>
 </resources>
