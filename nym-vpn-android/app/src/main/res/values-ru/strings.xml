@@ -142,4 +142,8 @@
     <string name="always_on_message">VPN не работает? Убедитесь, что функция постоянного VPN отключена для других приложений</string>
     <string name="vpn_settings">Настройки системы VPN</string>
     <string name="try_again">попробуйте переподключиться</string>
+    <string name="device_added_success">Устройство успешно добавлено к вашему аккаунту</string>
+    <string name="enter_access_code">Пожалуйста, введите свой анонимный код доступа.</string>
+    <string name="get_in_touch">Связаться с нами</string>
+    <string name="new_to_nym">Еще не используете NymVPN?</string>
 </resources>
