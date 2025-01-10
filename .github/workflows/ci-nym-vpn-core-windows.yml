@@ -14,7 +14,7 @@ env:
 
 jobs:
   build:
-    runs-on: custom-windows-11
+    runs-on: windows-latest
 
     steps:
       - name: "Cleanup working directory"
