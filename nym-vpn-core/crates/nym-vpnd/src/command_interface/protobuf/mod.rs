@@ -9,3 +9,11 @@ pub(crate) mod error;
 pub(crate) mod info_response;
 pub(crate) mod state_response;
 pub(crate) mod status_update;
+pub(crate) mod tunnel_state;
+
+/// Infallible conversion to protobuf type
+pub trait IntoProtobuf {
+    type ProtobufType;
+
+    fn to_protobuf(self) -> Self::ProtobufType;
+}

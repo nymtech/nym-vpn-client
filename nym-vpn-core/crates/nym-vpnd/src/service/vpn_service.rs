@@ -32,8 +32,8 @@ use nym_vpn_api_client::{
 use nym_vpn_lib::{
     gateway_directory::{self, EntryPoint, ExitPoint},
     tunnel_state_machine::{
-        ConnectionData, DnsOptions, GatewayPerformanceOptions, MixnetEvent, MixnetTunnelOptions,
-        NymConfig, TunnelCommand, TunnelConnectionData, TunnelEvent, TunnelSettings, TunnelState,
+        ConnectionData, DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig,
+        TunnelCommand, TunnelConnectionData, TunnelEvent, TunnelSettings, TunnelState,
         TunnelStateMachine, TunnelType, WireguardMultihopMode, WireguardTunnelOptions,
     },
     MixnetClientConfig, NodeIdentity, Recipient, UserAgent,
@@ -339,8 +339,8 @@ where
     // Broadcast channel for sending state changes to the outside world
     vpn_state_changes_tx: broadcast::Sender<VpnServiceStateChange>,
 
-    // Broadcast channel for sending mixnet events to the outside world
-    status_tx: broadcast::Sender<MixnetEvent>,
+    // Broadcast channel for sending tunnel events to the outside world
+    tunnel_event_tx: broadcast::Sender<TunnelEvent>,
 
     // Send commands to the account controller
     account_command_tx: AccountControllerCommander,
@@ -377,7 +377,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
     pub(crate) fn spawn(
         vpn_state_changes_tx: broadcast::Sender<VpnServiceStateChange>,
         vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
-        status_tx: broadcast::Sender<MixnetEvent>,
+        tunnel_event_tx: broadcast::Sender<TunnelEvent>,
         shutdown_token: CancellationToken,
         network_env: Network,
         user_agent: UserAgent,
@@ -387,7 +387,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             match NymVpnService::new(
                 vpn_state_changes_tx,
                 vpn_command_rx,
-                status_tx,
+                tunnel_event_tx,
                 shutdown_token,
                 network_env,
                 user_agent,
@@ -416,7 +416,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
     pub(crate) async fn new(
         vpn_state_changes_tx: broadcast::Sender<VpnServiceStateChange>,
         vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
-        status_tx: broadcast::Sender<MixnetEvent>,
+        tunnel_event_tx: broadcast::Sender<TunnelEvent>,
         shutdown_token: CancellationToken,
         network_env: Network,
         user_agent: UserAgent,
@@ -486,7 +486,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             shared_account_state,
             vpn_command_rx,
             vpn_state_changes_tx,
-            status_tx,
+            tunnel_event_tx,
             account_command_tx,
             config_file,
             data_dir,
@@ -513,6 +513,10 @@ where
                     self.handle_service_command(command).await;
                 }
                 Some(event) = self.event_receiver.recv() => {
+                    if let Err(e) = self.tunnel_event_tx.send(event.clone()) {
+                        tracing::error!("Failed to send tunnel event: {}", e);
+                    }
+
                     match event {
                         TunnelEvent::NewState(new_state) => {
                             self.tunnel_state = new_state.clone();
@@ -521,11 +525,7 @@ where
                                 tracing::error!("Failed to send vpn state change: {}", e);
                             }
                         }
-                        TunnelEvent::MixnetState(event) => {
-                            if let Err(e) = self.status_tx.send(event) {
-                                tracing::error!("Failed to send mixnet event: {}", e);
-                            }
-                        }
+                        TunnelEvent::MixnetState(_) => {}
                     }
                 }
                 _ = self.shutdown_token.cancelled() => {
