@@ -1,4 +1,4 @@
-name: build-nym-vpn-app-windows
+name: build-nym-vpn-app-windows-ev-sign
 on:
   workflow_dispatch:
     inputs:

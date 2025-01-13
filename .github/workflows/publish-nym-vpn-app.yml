@@ -54,7 +54,7 @@ jobs:
   publish:
     needs:
       - build-nym-vpn-app-linux
-      - build-nym-vpn-app-windows-ev-sign
+      - build-nym-vpn-app-windows
       - generate-build-info-nym-vpn-app
     runs-on: arc-ubuntu-22.04
     outputs:
