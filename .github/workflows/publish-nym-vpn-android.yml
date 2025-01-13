@@ -154,7 +154,7 @@ jobs:
             ${{ steps.checksum.outputs.checksum }}
             ```
             
-            To verify checksum:
+            To verify fingerprint:
             ```sh
             apksigner verify --print-certs [path to APK file] | grep SHA-256
             ```
