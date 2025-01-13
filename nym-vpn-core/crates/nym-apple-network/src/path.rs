@@ -43,6 +43,7 @@ impl Path {
     pub fn uses_interface_type(&self, interface_type: InterfaceType) -> bool {
         unsafe {
             sys::nw_path_uses_interface_type(self.inner.as_mut_ptr(), interface_type.as_raw())
+                == objc2::ffi::YES
         }
     }
 
@@ -88,33 +89,36 @@ impl Path {
 
     /// Checks whether the path can route IPv4 traffic.
     pub fn supports_ipv4(&self) -> bool {
-        unsafe { sys::nw_path_has_ipv4(self.inner.as_mut_ptr()) }
+        unsafe { sys::nw_path_has_ipv4(self.inner.as_mut_ptr()) == objc2::ffi::YES }
     }
 
     /// Checks whether the path can route IPv6 traffic.
     pub fn supports_ipv6(&self) -> bool {
-        unsafe { sys::nw_path_has_ipv6(self.inner.as_mut_ptr()) }
+        unsafe { sys::nw_path_has_ipv6(self.inner.as_mut_ptr()) == objc2::ffi::YES }
     }
 
     /// Checks whether the path has a DNS server configured.
     pub fn supports_dns(&self) -> bool {
-        unsafe { sys::nw_path_has_dns(self.inner.as_mut_ptr()) }
+        unsafe { sys::nw_path_has_dns(self.inner.as_mut_ptr()) == objc2::ffi::YES }
     }
 
     /// Checks whether the path uses an interface in Low Data Mode.
     pub fn is_constrained(&self) -> bool {
-        unsafe { sys::nw_path_is_constrained(self.inner.as_mut_ptr()) }
+        unsafe { sys::nw_path_is_constrained(self.inner.as_mut_ptr()) == objc2::ffi::YES }
     }
 
     /// Checks whether the path uses an interface that is considered expensive, such as Cellular or a Personal Hotspot.
     pub fn is_expensive(&self) -> bool {
-        unsafe { sys::nw_path_is_expensive(self.inner.as_mut_ptr()) }
+        unsafe { sys::nw_path_is_expensive(self.inner.as_mut_ptr()) == objc2::ffi::YES }
     }
 }
 
 impl PartialEq for Path {
     fn eq(&self, other: &Self) -> bool {
-        unsafe { sys::nw_path_is_equal(self.inner.as_mut_ptr(), other.inner.as_mut_ptr()) }
+        unsafe {
+            sys::nw_path_is_equal(self.inner.as_mut_ptr(), other.inner.as_mut_ptr())
+                == objc2::ffi::YES
+        }
     }
 }
 
