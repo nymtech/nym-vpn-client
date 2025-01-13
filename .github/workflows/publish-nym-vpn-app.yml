@@ -23,7 +23,7 @@ on:
         required: false
         type: string
       sign:
-        description: "Sign this release ⚠️ signing is payant by signature so be 100% sure you want a signed release (should be the case for stable rel only)"
+        description: "Sign this release. Signing is billed per signature so be 100% sure you want a signed release (should be the case for stable rel only)"
         required: false
         type: boolean
         default: false
