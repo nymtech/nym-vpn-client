@@ -149,7 +149,7 @@ jobs:
         with:
           body: |
 
-            SHA256 checksum:
+            SHA-256 fingerprint for the 4096-bit signing certificate:
             ```sh
             ${{ steps.checksum.outputs.checksum }}
             ```
