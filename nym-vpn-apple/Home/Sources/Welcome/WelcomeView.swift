@@ -14,7 +14,6 @@ public struct WelcomeView: View {
     public var body: some View {
         VStack {
             Spacer()
-            logoImage()
             titleView()
             subtitleView()
             sentryToggle()
@@ -33,14 +32,6 @@ public struct WelcomeView: View {
 }
 
 private extension WelcomeView {
-    @ViewBuilder
-    func logoImage() -> some View {
-        GenericImage(imageName: viewModel.logoImageName)
-            .frame(width: 80, height: 80)
-        Spacer()
-            .frame(height: 16)
-    }
-
     @ViewBuilder
     func titleView() -> some View {
         Text(viewModel.titleText)

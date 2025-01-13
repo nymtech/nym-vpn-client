@@ -6,7 +6,6 @@ import Theme
 public final class WelcomeViewModel: ObservableObject {
     private var appSettings: AppSettings
 
-    let logoImageName = "addCredentialsLogo"
     let titleText = "welcome.title".localizedString
     let subtitle1Text = "welcome.subtitle1".localizedString
     let subtitle2Text = "welcome.subtitle2".localizedString
