@@ -1,22 +1,25 @@
 package net.nymtech.vpn.backend
 
-import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.os.IBinder
 import android.os.PowerManager
 import android.system.Os
 import androidx.core.app.ServiceCompat
+import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.lifecycleScope
 import com.getkeepsafe.relinker.ReLinker
 import com.getkeepsafe.relinker.ReLinker.LoadListener
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.nymtech.vpn.model.BackendEvent
 import net.nymtech.vpn.model.Country
+import net.nymtech.vpn.service.network.NetworkConnectivityService
+import net.nymtech.vpn.service.network.NetworkStatus
 import net.nymtech.vpn.util.Action
 import net.nymtech.vpn.util.Constants
 import net.nymtech.vpn.util.Constants.LOG_LEVEL
@@ -29,6 +32,8 @@ import net.nymtech.vpn.util.extensions.startServiceByClass
 import nym_vpn_lib.AccountLinks
 import nym_vpn_lib.AccountStateSummary
 import nym_vpn_lib.AndroidTunProvider
+import nym_vpn_lib.ConnectionStatus
+import nym_vpn_lib.ConnectivityObserver
 import nym_vpn_lib.GatewayType
 import nym_vpn_lib.SystemMessage
 import nym_vpn_lib.TunnelEvent
@@ -75,6 +80,8 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		const val DEFAULT_LOCALE = "en"
 	}
 
+	private val observers : MutableList<ConnectivityObserver> = mutableListOf()
+
 	private val initialized = AtomicBoolean(false)
 
 	private val ioDispatcher = Dispatchers.IO
@@ -87,6 +94,10 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	@get:Synchronized @set:Synchronized
 	private var state: Tunnel.State = Tunnel.State.Down
 
+	@get:Synchronized @set:Synchronized
+	internal var connected: NetworkStatus = NetworkStatus.Unknown
+
+
 	override suspend fun init(environment: Tunnel.Environment, credentialMode: Boolean?) {
 		return withContext(ioDispatcher) {
 			runCatching {
@@ -97,6 +108,20 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 				Timber.e(it)
 			}
 		}
+	}
+
+	private fun addObserver(observer: ConnectivityObserver) {
+		observers.add(observer)
+		val isConnected = when(connected) {
+			NetworkStatus.Connected -> true
+			NetworkStatus.Disconnected -> false
+			NetworkStatus.Unknown -> return
+		}
+		observer.onNetworkChange(isConnected)
+	}
+
+	private fun removeObserver(observer: ConnectivityObserver) {
+		observers.remove(observer)
 	}
 
 	suspend fun waitForInit() {
@@ -226,16 +251,18 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			if (!initialized.get()) init(tunnel.environment, tunnel.credentialMode)
 			if (!vpnService.isCompleted) context.startServiceByClass(background, VpnService::class.java)
 			context.startServiceByClass(background, StateMachineService::class.java)
-			val service = vpnService.await()
+			val vpnService = vpnService.await()
+			val stateMachineService = stateMachineService.await()
 			val backend = this@NymBackend
-			service.setOwner(backend)
+			vpnService.setOwner(backend)
+			stateMachineService.setOwner(backend)
 			try {
 				startVpn(
 					VpnConfig(
 						tunnel.entryPoint,
 						tunnel.exitPoint,
 						isTwoHop(tunnel.mode),
-						service,
+						vpnService,
 						storagePath,
 						backend,
 						tunnel.credentialMode,
@@ -295,8 +322,9 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		tunnel?.onStateChange(state)
 	}
 
-	internal class StateMachineService : Service() {
+	internal class StateMachineService : LifecycleService() {
 
+		private var owner: NymBackend? = null
 		private var wakeLock: PowerManager.WakeLock? = null
 
 		companion object {
@@ -304,14 +332,24 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			const val SYSTEM_EXEMPT_SERVICE_TYPE_ID = 1024
 		}
 
+		fun setOwner(owner: NymBackend?) {
+			this.owner = owner
+		}
+
 		override fun onCreate() {
 			stateMachineService.complete(this)
+			val notificationManager = NotificationManager.getInstance(this)
 			ServiceCompat.startForeground(
 				this,
 				FOREGROUND_ID,
 				notificationManager.createStateMachineNotification(),
 				SYSTEM_EXEMPT_SERVICE_TYPE_ID,
 			)
+			lifecycleScope.launch {
+				NetworkConnectivityService(this@StateMachineService).networkStatus.collect {
+					owner?.connected = it
+				}
+			}
 			initWakeLock()
 			super.onCreate()
 		}
@@ -326,12 +364,6 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			stopForeground(STOP_FOREGROUND_REMOVE)
 			super.onDestroy()
 		}
-
-		override fun onBind(p0: Intent?): IBinder? {
-			return null
-		}
-
-		private val notificationManager = NotificationManager.getInstance(this)
 
 		override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 			stateMachineService.complete(this)
@@ -375,7 +407,6 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			Timber.d("Vpn service destroyed")
 			vpnService = CompletableDeferred()
 			stopForeground(STOP_FOREGROUND_REMOVE)
-			notificationManager.cancel(VPN_NOTIFICATION_ID)
 			super.onDestroy()
 		}
 
@@ -440,6 +471,14 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			}.establish()
 			val fd = vpnInterface?.detachFd() ?: return -1
 			return fd
+		}
+
+		override fun addConnectivityObserver(observer: ConnectivityObserver) {
+			owner?.addObserver(observer)
+		}
+
+		override fun removeConnectivityObserver(observer: ConnectivityObserver) {
+			owner?.removeObserver(observer)
 		}
 	}
 }
