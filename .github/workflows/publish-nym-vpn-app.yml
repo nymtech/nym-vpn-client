@@ -36,13 +36,13 @@ jobs:
     uses: ./.github/workflows/build-nym-vpn-app-linux.yml
     with:
       dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true }}
-      sign: ${{ inputs.sign }}
     secrets: inherit
   build-nym-vpn-app-windows:
     uses: ./.github/workflows/build-nym-vpn-app-windows.yml
     with:
       dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true  }}
       core_release_tag: ${{ inputs.core_release_tag }}
+      sign: ${{ inputs.sign }}
     secrets: inherit
 
   generate-build-info-nym-vpn-app:
