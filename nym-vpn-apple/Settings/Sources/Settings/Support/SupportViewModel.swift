@@ -9,7 +9,7 @@ final class SupportViewModel: ObservableObject {
     private let faqLink = Constants.supportURL.rawValue
     private let emailLink = Constants.emailLink.rawValue
     private let githubIssueLink = Constants.ghIssuesLink.rawValue
-    private let matrixLink = "https://matrix.to/#/%23NymVPN:nymtech.chat"
+    private let matrixLink = "https://nym.com/go/matrix"
     private let discordLink = Constants.discordLink.rawValue
     private let connectionManager: ConnectionManager
 

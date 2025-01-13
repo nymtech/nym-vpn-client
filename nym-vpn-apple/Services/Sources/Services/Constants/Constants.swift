@@ -4,13 +4,13 @@ public enum Constants: String {
     case groupID = "group.net.nymtech.vpn"
     case helperName = "net.nymtech.vpn.helper"
 
-    case supportURL = "https://support.nymvpn.com/hc/en-us"
-    case termsOfUseURL = "https://nymvpn.com/en/terms"
-    case privacyPolicyURL = "https://nymvpn.com/en/privacy?type=apps"
-    case emailLink = "https://support.nymvpn.com/hc/en-us/requests/new"
+    case supportURL = "https://support.nym.com/hc"
+    case termsOfUseURL = "https://nym.com/vpn-terms"
+    case privacyPolicyURL = "https://nym.com/vpn-privacy-statement"
+    case emailLink = "https://support.nym.com/hc/requests/new"
 
-    case discordLink = "https://nymtech.net/go/discord"
-    case ghIssuesLink = "https://www.nymtech.net/go/github/nym-vpn-client/issues"
+    case discordLink = "https://nym.com/go/discord"
+    case ghIssuesLink = "https://nym.com/go/github/nym-vpn-client/issues"
 
     case logFileName = "Logs.log"
 }

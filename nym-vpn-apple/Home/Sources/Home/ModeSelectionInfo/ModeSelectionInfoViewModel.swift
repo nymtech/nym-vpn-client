@@ -14,7 +14,7 @@ final class ModeSelectionInfoViewModel {
     let fastDescriptionLocalizedString = "modeSelectionInfo.fastDescription".localizedString
     let continueReadingLocalizedString = "modeSelectionInfo.continueReading".localizedString
     let continueReadingLinkImageName = "export"
-    let continueReadingURLString = "https://nymvpn.com/en/blog"
+    let continueReadingURLString = "https://support.nym.com/hc/articles/24326365096721-What-s-the-difference-between-Fast-and-Anonymous-mode"
     let okLocalizedString = "ok".localizedString
 
     @Binding var isDisplayed: Bool

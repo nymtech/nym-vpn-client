@@ -9,7 +9,7 @@ final class LocationInfoViewModel {
     let messageLocalizedString = "locationModal.message".localizedString
     let readMoreLocalizedString = "locationModal.readMore".localizedString
     let readMoreLinkImageName = "export"
-    let readMoreURLString = "https://support.nymvpn.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN"
+    let readMoreURLString = "https://support.nym.com/hc/articles/26448676449297-How-is-server-location-determined-by-NymVPN"
     let okLocalizedString = "ok".localizedString
 
     @Binding var isDisplayed: Bool
