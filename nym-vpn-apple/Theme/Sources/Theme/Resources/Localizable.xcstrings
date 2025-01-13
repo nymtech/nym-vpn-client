@@ -623,7 +623,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Failure: entry gateway cannot be same as exit router"
+            "value" : "For privacy, NymVPN won't use the same gateway for entry and exit. Reconnect or choose different locations."
           }
         }
       }

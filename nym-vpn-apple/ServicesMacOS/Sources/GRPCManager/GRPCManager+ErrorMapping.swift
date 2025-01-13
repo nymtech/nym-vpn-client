@@ -34,7 +34,7 @@ extension GRPCManager {
         case .gatewayDirectoryExitLocation:
             GeneralNymError.library(message: error.message)
         case .gatewayDirectorySameEntryAndExitGw:
-            GeneralNymError.library(message: error.message)
+            GeneralNymError.library(message: "errorReason.sameEntryAndExitGateway".localizedString)
         case .outOfBandwidth:
             GeneralNymError.library(message: error.message)
         case .mixnetStoragePaths:
