@@ -23,7 +23,7 @@ on:
         required: false
         type: string
       windows_sign:
-        description: "Sign this release for Windows using SSL.com. Signing is billed per signature."
+        description: "Sign this release for Windows using SSL.com. Signing is billed per signature so be 100% sure you want a signed release (should be the case for stable rel only)"
         required: false
         type: boolean
         default: false
@@ -42,7 +42,7 @@ jobs:
     with:
       dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true  }}
       core_release_tag: ${{ inputs.core_release_tag }}
-      windows_sign: ${{ inputs.windows_sign }}
+      sign: ${{ inputs.windows_sign }}
     secrets: inherit
 
   generate-build-info-nym-vpn-app:

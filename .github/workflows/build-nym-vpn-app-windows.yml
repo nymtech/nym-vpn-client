@@ -11,8 +11,8 @@ on:
         description: "nym-vpn-core release tag to use for Windows build (as it bundles the daemon)"
         required: false
         type: string
-      windows_sign:
-        description: "Sign this release. Signing is billed per signature so be 100% sure you want a signed release (should be the case for stable rel only)"
+      sign:
+        description: "Sign this build using SSL.com. Signing is billed per signature so be 100% sure you want a signed release"
         required: false
         type: boolean
         default: false
@@ -26,7 +26,7 @@ on:
       core_release_tag:
         required: false
         type: string
-      windows_sign:
+      sign:
         required: false
         type: boolean
         default: false
@@ -231,7 +231,7 @@ jobs:
           npm run gen:licenses:rust
 
       - name: Import signing certificate
-        if: ${{ !inputs.windows_sign }}
+        if: ${{ !inputs.sign }}
         env:
           WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
@@ -244,7 +244,7 @@ jobs:
 
       - name: Download EV CodeSignTool from ssl.com
         working-directory: nym-vpn-app/src-tauri
-        if: ${{ inputs.windows_sign }}
+        if: ${{ inputs.sign }}
         shell: bash
         run: |
           curl -L0 https://www.ssl.com/download/codesigntool-for-linux-and-macos/ -o codesigntool.zip
@@ -252,7 +252,7 @@ jobs:
 
       - name: Get EV certificate credential id
         working-directory: nym-vpn-app/src-tauri
-        if: ${{ inputs.windows_sign }}
+        if: ${{ inputs.sign }}
         id: get_credential_ids
         shell: bash
         run: |
@@ -263,7 +263,7 @@ jobs:
       # -override required to override the existing file
       - name: Add custom sign command to tauri.conf.json
         working-directory: nym-vpn-app/src-tauri
-        if: ${{ inputs.windows_sign }}
+        if: ${{ inputs.sign }}
         shell: bash
         run: |
           yq eval --inplace '.bundle.windows +=
@@ -287,15 +287,13 @@ jobs:
 
       - name: Build tauri desktop client with SSL.com signature
         working-directory: nym-vpn-app/src-tauri
-        if: ${{ inputs.windows_sign }}
         shell: bash
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
           APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
           RUSTFLAGS: "-L ${{ env.TAURI_SRC }}/x86_64-pc-windows-msvc -L ${{ env.TAURI_SRC }} -Clink-args=/LIBPATH:${{ env.TAURI_SRC }}/x64-${{ env.CPP_BUILD_MODES }}"
-          NETWORK_ENV_SELECT: ${{ inputs.dev_mode == true }}
-          CODE_SIGN_TOOL_PATH: ${{ inputs.windows_sign == true && 'C:\\actions-runner\\_work\\nym-vpn-client\\nym-vpn-client\\nym-vpn-app\\src-tauri\\' }}
+          CODE_SIGN_TOOL_PATH: ${{ inputs.sign == true && 'C:\\actions-runner\\_work\\nym-vpn-client\\nym-vpn-client\\nym-vpn-app\\src-tauri\\' }}
           DEV_MODE: ${{ inputs.dev_mode == true }}
         run: |
           if [ "${{ env.CARGO_TARGET }}" = "release" ]; then
