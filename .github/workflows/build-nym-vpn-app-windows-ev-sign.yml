@@ -22,10 +22,6 @@ on:
         required: false
         type: string
     secrets:
-      # WINDOWS_SIGNING_PFX_BASE64:
-      #   required: true
-      # WINDOWS_SIGNING_PFX_PASSWORD:
-      #   required: true
       SSL_COM_USERNAME:
         required: true
       SSL_COM_PASSWORD:
@@ -224,8 +220,53 @@ jobs:
           rm public/licenses-rust.json || true
           npm run gen:licenses:rust
 
+      #
+      # NEXT BLOC NO SIGNING
+      #
+      - name: Import signing certificate
+        if: ${{ !inputs.sign }}
+        env:
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
+        run: |
+          New-Item -ItemType directory -Path certificate
+          Set-Content -Path certificate/tempCert.txt -Value $env:WINDOWS_CERTIFICATE
+          certutil -decode certificate/tempCert.txt certificate/certificate.pfx
+          Remove-Item -path certificate -include tempCert.txt
+          Import-PfxCertificate -FilePath certificate/certificate.pfx -CertStoreLocation Cert:\CurrentUser\My -Password (ConvertTo-SecureString -String $env:WINDOWS_CERTIFICATE_PASSWORD -Force -AsPlainText)
+
+      - name: Build tauri desktop client
+        working-directory: nym-vpn-app/src-tauri
+        if: ${{ !inputs.sign }}
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+          APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
+          RUSTFLAGS: "-L ${{ env.TAURI_SRC }}/x86_64-pc-windows-msvc -L ${{ env.TAURI_SRC }} -Clink-args=/LIBPATH:${{ env.TAURI_SRC }}/x64-${{ env.CPP_BUILD_MODES }}"
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
+          NETWORK_ENV_SELECT: ${{ inputs.dev_mode == true }}
+        run: |
+          if [ "${{ env.CARGO_TARGET }}" = "release" ]; then
+            npm run tauri build
+          else
+            npm run tauri build -- --debug
+          fi
+          ls -la target/release/ || true
+          ls -la target/release/bundle || true
+          ls -la target/release/bundle/* || true
+      #
+      # END OF SIGN BLOC
+      #
+
+
+      #
+      # NEXT BLOC ONLY IF SIGN BOOLEAN IS TRUE
+      #
       - name: Download EV CodeSignTool from ssl.com
         working-directory: nym-vpn-app/src-tauri
+        if: ${{ inputs.sign }}
         shell: bash
         run: |
           curl -L0 https://www.ssl.com/download/codesigntool-for-linux-and-macos/ -o codesigntool.zip
@@ -233,6 +274,7 @@ jobs:
 
       - name: Get EV certificate credential id
         working-directory: nym-vpn-app/src-tauri
+        if: ${{ inputs.sign }}
         id: get_credential_ids
         shell: bash
         run: |
@@ -264,8 +306,9 @@ jobs:
             }
           }' tauri.conf.json
 
-      - name: Build tauri desktop client
+      - name: Build tauri desktop client with SSL.com signature
         working-directory: nym-vpn-app/src-tauri
+        if: ${{ inputs.sign }}
         shell: bash
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
@@ -283,6 +326,9 @@ jobs:
           ls -la target/release/ || true
           ls -la target/release/bundle || true
           ls -la target/release/bundle/* || true
+      #
+      # END OF SIGN BLOC
+      #
 
       - name: Move things around to prepare for upload
         shell: bash
