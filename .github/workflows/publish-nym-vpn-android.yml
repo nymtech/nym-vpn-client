@@ -149,9 +149,14 @@ jobs:
         with:
           body: |
 
-            SHA256 fingerprint:
+            SHA256 checksum:
             ```sh
             ${{ steps.checksum.outputs.checksum }}
+            ```
+            
+            To verify checksum:
+            ```sh
+            apksigner verify --print-certs [path to APK file] | grep SHA-256
             ```
           token: ${{ env.GITHUB_TOKEN }}
           tag_name: ${{ env.TAG_NAME }}
