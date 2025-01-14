@@ -1,6 +1,8 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+//! Types shared between nym-vpn-lib and other crates in the workspace.
+
 mod connection_data;
 mod tunnel_event;
 mod tunnel_state;

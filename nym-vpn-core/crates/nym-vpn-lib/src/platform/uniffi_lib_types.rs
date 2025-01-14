@@ -1,6 +1,8 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+//! Types providing a bridge between uniffi and nym-vpn-lib-types.
+
 use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr};
 
 use nym_gateway_directory::{NodeIdentity, Recipient};
