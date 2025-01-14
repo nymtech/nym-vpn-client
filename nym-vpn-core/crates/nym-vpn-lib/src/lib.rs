@@ -13,7 +13,6 @@ mod platform;
 #[cfg(any(target_os = "ios", target_os = "android"))]
 pub mod tunnel_provider;
 pub mod tunnel_state_machine;
-mod uniffi_custom_impls;
 mod wg_config;
 
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
