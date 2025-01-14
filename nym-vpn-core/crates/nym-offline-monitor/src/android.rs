@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use tokio::sync::watch;
+use tokio_util::sync::CancellationToken;
 
 use super::Connectivity;
 
@@ -12,6 +13,17 @@ impl MonitorHandle {
     #[allow(clippy::unused_async)]
     pub async fn connectivity(&self) -> Connectivity {
         Connectivity::PresumeOnline
+    }
+}
+
+#[derive(Debug)]
+pub struct Error;
+
+impl std::error::Error for Error {}
+
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Generic error")
     }
 }
 
