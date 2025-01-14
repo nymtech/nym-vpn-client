@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@headlessui/react": "^2.1.2",
-    "@mui/base": "^5.0.0-beta.39",
+    "@mui/base": "^5.0.0-beta.68",
     "@sentry/react": "^8.22.0",
     "@tauri-apps/api": "^2.2.0",
     "@tauri-apps/plugin-clipboard-manager": "^2.0.0",
@@ -67,7 +67,7 @@
     "@vitejs/plugin-react-swc": "^3.7.2",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.8.0",
-    "eslint-config-prettier": "^9.0.0",
+    "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-react": "^7.34.4",
     "eslint-plugin-react-hooks": "^5.0.0",
     "globals": "^15.9.0",
