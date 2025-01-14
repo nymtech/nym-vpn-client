@@ -8,12 +8,9 @@ use nym_vpn_proto::{
     get_account_links_response::Res as AccountLinkRes,
     get_device_identity_response::Id as DeviceIdRes, health_check_response::ServingStatus,
     health_client::HealthClient, is_account_stored_response::Resp as IsAccountStoredResp,
-    nym_vpnd_client::NymVpndClient, ConnectRequest, ConnectionStatus, DisconnectRequest, Dns,
-    Empty, EntryNode, ExitNode, ForgetAccountRequest, GatewayType, GetAccountIdentityRequest,
-    GetAccountLinksRequest, GetDeviceIdentityRequest, GetFeatureFlagsRequest,
-    GetSystemMessagesRequest, HealthCheckRequest, InfoRequest, InfoResponse,
-    IsAccountStoredRequest, IsReadyToConnectRequest, ListCountriesRequest, Location,
-    SetNetworkRequest, StatusRequest, StatusResponse, StoreAccountRequest, UserAgent,
+    nym_vpnd_client::NymVpndClient, ConnectRequest, ConnectionStatus, Dns, EntryNode, ExitNode,
+    GatewayType, GetAccountLinksRequest, HealthCheckRequest, InfoResponse, ListCountriesRequest,
+    Location, SetNetworkRequest, StatusResponse, StoreAccountRequest, UserAgent,
 };
 use parity_tokio_ipc::Endpoint as IpcEndpoint;
 use tauri::{AppHandle, Manager, PackageInfo};
@@ -172,7 +169,7 @@ impl GrpcClient {
     pub async fn vpnd_info(&self, app: &AppHandle) -> Result<InfoResponse, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(InfoRequest {});
+        let request = Request::new(());
         let response = vpnd
             .info(request)
             .await
@@ -211,7 +208,7 @@ impl GrpcClient {
     pub async fn vpn_status(&self) -> Result<StatusResponse, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(StatusRequest {});
+        let request = Request::new(());
         let response = vpnd.vpn_status(request).await.map_err(|e| {
             error!("grpc: {}", e);
             VpndError::GrpcError(e)
@@ -254,7 +251,7 @@ impl GrpcClient {
     pub async fn watch_vpn_state(&self, app: &AppHandle) -> Result<()> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(Empty {});
+        let request = Request::new(());
         let mut stream = vpnd
             .listen_to_connection_state_changes(request)
             .await
@@ -305,7 +302,7 @@ impl GrpcClient {
     pub async fn watch_vpn_connection_updates(&self, app: &AppHandle) -> Result<()> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(Empty {});
+        let request = Request::new(());
         let mut stream = vpnd
             .listen_to_connection_status(request)
             .await
@@ -396,7 +393,7 @@ impl GrpcClient {
     pub async fn vpn_disconnect(&self) -> Result<bool, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(DisconnectRequest {});
+        let request = Request::new(());
         let response = vpnd.vpn_disconnect(request).await.map_err(|e| {
             error!("grpc: {}", e);
             VpndError::GrpcError(e)
@@ -439,7 +436,7 @@ impl GrpcClient {
     pub async fn forget_account(&self) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(ForgetAccountRequest {});
+        let request = Request::new(());
         let response = vpnd.forget_account(request).await.map_err(|e| {
             error!("grpc: {}", e);
             VpndError::GrpcError(e)
@@ -466,7 +463,7 @@ impl GrpcClient {
     pub async fn is_account_stored(&self) -> Result<bool, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(IsAccountStoredRequest {});
+        let request = Request::new(());
         let response = vpnd.is_account_stored(request).await.map_err(|e| {
             error!("grpc: {}", e);
             VpndError::GrpcError(e)
@@ -487,7 +484,7 @@ impl GrpcClient {
     pub async fn is_ready_to_connect(&self) -> Result<ReadyToConnect, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(IsReadyToConnectRequest {});
+        let request = Request::new(());
         let response = vpnd.is_ready_to_connect(request).await.map_err(|e| {
             error!("grpc: {}", e);
             VpndError::GrpcError(e)
@@ -506,7 +503,7 @@ impl GrpcClient {
     pub async fn account_id(&self) -> Result<Option<String>, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(GetAccountIdentityRequest {});
+        let request = Request::new(());
         let response = vpnd
             .get_account_identity(request)
             .await
@@ -530,7 +527,7 @@ impl GrpcClient {
     pub async fn device_id(&self) -> Result<String, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(GetDeviceIdentityRequest {});
+        let request = Request::new(());
         let response = vpnd
             .get_device_identity(request)
             .await
@@ -723,7 +720,7 @@ impl GrpcClient {
     pub async fn system_messages(&self) -> Result<Vec<SystemMessage>, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(GetSystemMessagesRequest {});
+        let request = Request::new(());
         let response = vpnd.get_system_messages(request).await.map_err(|e| {
             error!("grpc: {}", e);
             VpndError::GrpcError(e)
@@ -738,7 +735,7 @@ impl GrpcClient {
     pub async fn feature_flags(&self) -> Result<FeatureFlags, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(GetFeatureFlagsRequest {});
+        let request = Request::new(());
         let response = vpnd.get_feature_flags(request).await.map_err(|e| {
             error!("grpc: {}", e);
             VpndError::GrpcError(e)

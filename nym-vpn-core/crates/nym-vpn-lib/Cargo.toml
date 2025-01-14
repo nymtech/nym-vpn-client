@@ -98,7 +98,8 @@ android_logger.workspace = true
 rand.workspace = true
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
-oslog.workspace = true
+tracing-oslog.workspace = true
+tracing-appender.workspace = true
 
 [target.'cfg(target_os = "ios")'.dependencies]
 debounced.workspace = true

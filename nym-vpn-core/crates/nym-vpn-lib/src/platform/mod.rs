@@ -123,16 +123,15 @@ pub fn configureLib(data_dir: String, credential_mode: Option<bool>) -> Result<(
 }
 
 async fn configure_lib(data_dir: String, credential_mode: Option<bool>) -> Result<(), VpnError> {
-    init_logger();
     let network = environment::current_environment_details().await?;
     account::init_account_controller(PathBuf::from(data_dir), credential_mode, network).await
 }
 
-fn init_logger() {
+fn init_logger(path: Option<PathBuf>) {
     let log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
-    tracing::info!("Setting log level: {}", log_level);
+    tracing::info!("Setting log level: {log_level}, path?: {path:?}");
     #[cfg(target_os = "ios")]
-    swift::init_logs(log_level);
+    swift::init_logs(log_level, path);
     #[cfg(target_os = "android")]
     android::init_logs(log_level);
 }
@@ -141,8 +140,8 @@ fn init_logger() {
 /// library. Thus it's only needed when `configureLib` is not used.
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn initLogger() {
-    init_logger();
+pub fn initLogger(path: Option<PathBuf>) {
+    init_logger(path);
 }
 
 /// Returns the system messages for the current network environment
