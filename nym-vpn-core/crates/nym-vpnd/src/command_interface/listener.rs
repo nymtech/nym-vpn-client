@@ -13,7 +13,6 @@ use tokio::sync::{broadcast, mpsc::UnboundedSender};
 use nym_vpn_api_client::types::GatewayMinPerformance;
 use nym_vpn_lib_types::TunnelEvent;
 use nym_vpn_proto::{
-    TunnelState,
     conversions::ConversionError, nym_vpnd_server::NymVpnd, AccountError,
     ConfirmZkNymDownloadedRequest, ConfirmZkNymDownloadedResponse, ConnectRequest, ConnectResponse,
     ConnectionStateChange, ConnectionStatusUpdate, DisconnectResponse, ForgetAccountResponse,
@@ -26,7 +25,7 @@ use nym_vpn_proto::{
     ListGatewaysRequest, ListGatewaysResponse, RefreshAccountStateResponse, RegisterDeviceResponse,
     RequestZkNymResponse, ResetDeviceIdentityRequest, ResetDeviceIdentityResponse,
     SetNetworkRequest, SetNetworkResponse, StatusResponse, StoreAccountRequest,
-    StoreAccountResponse,
+    StoreAccountResponse, TunnelState,
 };
 use zeroize::Zeroizing;
 
@@ -264,7 +263,7 @@ impl NymVpnd for CommandInterface {
         let rx = self.tunnel_event_rx.resubscribe();
         let stream = tokio_stream::wrappers::BroadcastStream::new(rx)
             .filter_map(|event| {
-                async move { 
+                async move {
                     event
                         .map(|event| {
                             if let TunnelEvent::MixnetState(mixnet_event) = event {
@@ -305,8 +304,7 @@ impl NymVpnd for CommandInterface {
         ))
     }
 
-    type ListenToTunnelStateChangesStream =
-        BoxStream<'static, Result<TunnelState, tonic::Status>>;
+    type ListenToTunnelStateChangesStream = BoxStream<'static, Result<TunnelState, tonic::Status>>;
     async fn listen_to_tunnel_state_changes(
         &self,
         request: tonic::Request<()>,
