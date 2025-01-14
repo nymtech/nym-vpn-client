@@ -7,10 +7,12 @@ use tokio_util::sync::CancellationToken;
 
 use nym_gateway_directory::Config as GatewayDirectoryConfig;
 
+use super::TunnelEvent as PlatformTunnelEvent;
 use crate::tunnel_state_machine::{
     DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
-    TunnelSettings, TunnelStateMachine, TunnelType, WireguardTunnelOptions,
+    TunnelSettings, TunnelStateMachine, WireguardTunnelOptions,
 };
+use nym_vpn_lib_types::TunnelType;
 
 use super::{error::VpnError, VPNConfig, STATE_MACHINE_HANDLE};
 
@@ -95,7 +97,8 @@ pub(super) async fn start_state_machine(
     let event_broadcaster_handler = tokio::spawn(async move {
         while let Some(event) = event_receiver.recv().await {
             if let Some(ref state_listener) = state_listener {
-                (*state_listener).on_event(event);
+                let platform_event = PlatformTunnelEvent::from(event);
+                (*state_listener).on_event(platform_event);
             }
         }
     });

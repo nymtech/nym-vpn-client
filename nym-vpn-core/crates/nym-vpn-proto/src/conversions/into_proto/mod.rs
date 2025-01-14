@@ -3,6 +3,7 @@
 
 pub mod account;
 pub mod network_config;
+pub mod tunnel_state;
 pub mod vpnd;
 
 impl From<String> for crate::Url {

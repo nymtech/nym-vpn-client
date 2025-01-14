@@ -80,6 +80,7 @@ nym-wg-go = { path = "../nym-wg-go" }
 nym-apple-network = { path = "../nym-apple-network" }
 nym-apple-dispatch = { path = "../nym-apple-dispatch" }
 nym-offline-monitor = { path = "../nym-offline-monitor" }
+nym-vpn-lib-types = { path = "../nym-vpn-lib-types" }
 
 [target.'cfg(unix)'.dependencies]
 nix = { workspace = true, features = ["socket", "net", "fs"] }

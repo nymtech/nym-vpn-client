@@ -20,24 +20,19 @@ mod wintun;
 
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use std::sync::Arc;
-use std::{
-    fmt,
-    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
-    path::PathBuf,
-};
+use std::{net::IpAddr, path::PathBuf};
 
-use si_scale::helpers::bibytes2;
-use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
-use nym_gateway_directory::{
-    Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, NodeIdentity, Recipient,
-};
+use nym_gateway_directory::{Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, Recipient};
 use nym_ip_packet_requests::IpPair;
 use nym_sdk::UserAgent;
-use nym_wg_gateway_client::{Error as WgGatewayClientError, GatewayData};
-use nym_wg_go::PublicKey;
+use nym_vpn_lib_types::{
+    ActionAfterDisconnect, ConnectionData, ErrorStateReason, MixnetEvent, TunnelEvent, TunnelState,
+    TunnelType,
+};
+use nym_wg_gateway_client::Error as WgGatewayClientError;
 
 use tunnel::SelectedGateways;
 #[cfg(windows)]
@@ -72,12 +67,6 @@ enum NextTunnelState {
     NewState((Box<dyn TunnelStateHandler>, PrivateTunnelState)),
     SameState(Box<dyn TunnelStateHandler>),
     Finished,
-}
-
-#[derive(Debug, Clone, Copy, Eq, PartialEq, uniffi::Enum)]
-pub enum TunnelType {
-    Mixnet,
-    Wireguard,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -207,101 +196,6 @@ pub enum TunnelCommand {
     SetTunnelSettings(TunnelSettings),
 }
 
-#[derive(Clone, Eq, PartialEq, uniffi::Record)]
-pub struct ConnectionData {
-    /// Mixnet entry gateway
-    pub entry_gateway: Box<NodeIdentity>,
-
-    /// Mixnet exit gateway
-    pub exit_gateway: Box<NodeIdentity>,
-
-    /// When the tunnel was last established.
-    /// Set once the tunnel is connected.
-    pub connected_at: Option<OffsetDateTime>,
-
-    /// Tunnel connection data.
-    pub tunnel: TunnelConnectionData,
-}
-
-impl fmt::Debug for ConnectionData {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("ConnectionData")
-            .field("entry_gateway", &self.entry_gateway.to_base58_string())
-            .field("exit_gateway", &self.exit_gateway.to_base58_string())
-            .field("connected_at", &self.connected_at)
-            .field("tunnel", &self.tunnel)
-            .finish()
-    }
-}
-
-#[derive(Debug, Clone, Eq, PartialEq, uniffi::Enum)]
-pub enum TunnelConnectionData {
-    Mixnet(MixnetConnectionData),
-    Wireguard(WireguardConnectionData),
-}
-
-#[derive(Debug, Clone, Eq, PartialEq, uniffi::Record)]
-pub struct MixnetConnectionData {
-    pub nym_address: Box<Recipient>,
-    pub exit_ipr: Box<Recipient>,
-    pub ipv4: Ipv4Addr,
-    pub ipv6: Ipv6Addr,
-}
-
-#[derive(Debug, Clone, Eq, PartialEq, uniffi::Record)]
-pub struct WireguardNode {
-    pub endpoint: SocketAddr,
-    pub public_key: Box<PublicKey>,
-    pub private_ipv4: Ipv4Addr,
-    pub private_ipv6: Ipv6Addr,
-}
-
-impl From<GatewayData> for WireguardNode {
-    fn from(value: GatewayData) -> Self {
-        Self {
-            endpoint: value.endpoint,
-            public_key: Box::new(value.public_key),
-            private_ipv4: value.private_ipv4,
-            private_ipv6: value.private_ipv6,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Eq, PartialEq, uniffi::Record)]
-pub struct WireguardConnectionData {
-    pub entry: WireguardNode,
-    pub exit: WireguardNode,
-}
-
-/// Public enum describing the tunnel state
-#[derive(Debug, Clone, Eq, PartialEq, uniffi::Enum)]
-pub enum TunnelState {
-    /// Tunnel is disconnected and network connectivity is available.
-    Disconnected,
-
-    /// Tunnel connection is being established.
-    Connecting {
-        connection_data: Option<ConnectionData>,
-    },
-
-    /// Tunnel is connected.
-    Connected { connection_data: ConnectionData },
-
-    /// Tunnel is disconnecting.
-    Disconnecting {
-        after_disconnect: ActionAfterDisconnect,
-    },
-
-    /// Tunnel is disconnected due to failure.
-    Error(ErrorStateReason),
-
-    /// Tunnel is disconnected, network connectivity is unavailable.
-    Offline {
-        /// Whether tunnel will be reconnected upon gaining the network connectivity.
-        reconnect: bool,
-    },
-}
-
 impl From<PrivateTunnelState> for TunnelState {
     fn from(value: PrivateTunnelState) -> Self {
         match value {
@@ -341,22 +235,6 @@ enum PrivateTunnelState {
     },
 }
 
-/// Public enum describing action to perform after disconnect
-#[derive(Debug, Clone, Copy, Eq, PartialEq, uniffi::Enum)]
-pub enum ActionAfterDisconnect {
-    /// Do nothing after disconnect
-    Nothing,
-
-    /// Reconnect after disconnect
-    Reconnect,
-
-    /// Enter offline after disconnect
-    Offline,
-
-    /// Enter error state
-    Error,
-}
-
 impl From<PrivateActionAfterDisconnect> for ActionAfterDisconnect {
     fn from(value: PrivateActionAfterDisconnect) -> Self {
         match value {
@@ -391,152 +269,6 @@ enum PrivateActionAfterDisconnect {
 
     /// Enter error state
     Error(ErrorStateReason),
-}
-
-#[derive(Debug, Clone, Copy, Eq, PartialEq, uniffi::Enum)]
-pub enum ErrorStateReason {
-    /// Issues related to firewall configuration.
-    Firewall,
-
-    /// Failure to configure routing.
-    Routing,
-
-    /// Failure to configure dns.
-    Dns,
-
-    /// Failure to configure tunnel device.
-    TunDevice,
-
-    /// Failure to configure packet tunnel provider.
-    TunnelProvider,
-
-    /// Same entry and exit gateway are unsupported.
-    SameEntryAndExitGateway,
-
-    /// Invalid country set for entry gateway
-    InvalidEntryGatewayCountry,
-
-    /// Invalid country set for exit gateway
-    InvalidExitGatewayCountry,
-
-    /// Gateway is not responding or responding badly to a bandwidth
-    /// increase request, causing credential waste
-    BadBandwidthIncrease,
-
-    /// Failure to duplicate tunnel file descriptor.
-    DuplicateTunFd,
-
-    /// Program errors that must not happen.
-    Internal,
-}
-
-#[derive(Debug, Clone, uniffi::Enum)]
-pub enum TunnelEvent {
-    NewState(TunnelState),
-    MixnetState(MixnetEvent),
-}
-
-impl fmt::Display for TunnelEvent {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::NewState(new_state) => new_state.fmt(f),
-            Self::MixnetState(event) => event.fmt(f),
-        }
-    }
-}
-
-#[derive(Debug, Copy, Clone, uniffi::Enum)]
-pub enum MixnetEvent {
-    Bandwidth(BandwidthEvent),
-    Connection(ConnectionEvent),
-    ConnectionStatistics(ConnectionStatisticsEvent),
-}
-
-#[derive(Debug, Copy, Clone, uniffi::Enum)]
-pub enum BandwidthEvent {
-    NoBandwidth,
-    RemainingBandwidth(i64),
-}
-
-#[derive(Debug, Copy, Clone, uniffi::Enum)]
-pub enum ConnectionEvent {
-    EntryGatewayDown,
-    ExitGatewayDownIpv4,
-    ExitGatewayDownIpv6,
-    ExitGatewayRoutingErrorIpv4,
-    ExitGatewayRoutingErrorIpv6,
-    ConnectedIpv4,
-    ConnectedIpv6,
-}
-
-#[derive(Debug, Copy, Clone, uniffi::Record)]
-pub struct ConnectionStatisticsEvent {
-    pub rates: SphinxPacketRates,
-}
-
-#[derive(Debug, Copy, Clone, uniffi::Record)]
-pub struct SphinxPacketRates {
-    pub real_packets_sent: f64,
-    pub real_packets_sent_size: f64,
-    pub cover_packets_sent: f64,
-    pub cover_packets_sent_size: f64,
-
-    pub real_packets_received: f64,
-    pub real_packets_received_size: f64,
-    pub cover_packets_received: f64,
-    pub cover_packets_received_size: f64,
-
-    pub total_acks_received: f64,
-    pub total_acks_received_size: f64,
-    pub real_acks_received: f64,
-    pub real_acks_received_size: f64,
-    pub cover_acks_received: f64,
-    pub cover_acks_received_size: f64,
-
-    pub real_packets_queued: f64,
-    pub retransmissions_queued: f64,
-    pub reply_surbs_queued: f64,
-    pub additional_reply_surbs_queued: f64,
-}
-
-impl fmt::Display for ConnectionStatisticsEvent {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.rates)
-    }
-}
-
-impl fmt::Display for SphinxPacketRates {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.summary())
-    }
-}
-
-impl SphinxPacketRates {
-    pub fn summary(&self) -> String {
-        format!(
-            "down: {}/s, up: {}/s (cover down: {}/s, cover up: {}/s)",
-            bibytes2(self.real_packets_received_size),
-            bibytes2(self.real_packets_sent_size),
-            bibytes2(self.cover_packets_received_size),
-            bibytes2(self.cover_packets_sent_size),
-        )
-    }
-
-    pub fn real_received(&self) -> String {
-        bibytes2(self.real_packets_received_size)
-    }
-
-    pub fn real_sent(&self) -> String {
-        bibytes2(self.real_packets_sent_size)
-    }
-
-    pub fn cover_received(&self) -> String {
-        bibytes2(self.cover_packets_received_size)
-    }
-
-    pub fn cover_sent(&self) -> String {
-        bibytes2(self.cover_packets_sent_size)
-    }
 }
 
 pub struct SharedState {
@@ -816,109 +548,3 @@ impl tunnel::Error {
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
-
-impl fmt::Display for TunnelState {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Disconnected => f.write_str("Disconnected"),
-            Self::Connecting { connection_data } => match connection_data {
-                Some(data) => match data.tunnel {
-                    TunnelConnectionData::Mixnet(ref data) => {
-                        write!(
-                            f,
-                            "Connecting Mixnet tunnel with entry {} and exit {}",
-                            data.nym_address.gateway().to_base58_string(),
-                            data.exit_ipr.gateway().to_base58_string(),
-                        )
-                    }
-                    TunnelConnectionData::Wireguard(ref data) => {
-                        write!(
-                            f,
-                            "Connecting WireGuard tunnel with entry {} and exit {}",
-                            data.entry.endpoint, data.exit.endpoint
-                        )
-                    }
-                },
-                None => f.write_str("Connecting"),
-            },
-            Self::Connected { connection_data } => match connection_data.tunnel {
-                TunnelConnectionData::Mixnet(ref data) => {
-                    write!(
-                        f,
-                        "Connected Mixnet tunnel with entry {} and exit {}",
-                        data.nym_address.gateway().to_base58_string(),
-                        data.exit_ipr.gateway().to_base58_string(),
-                    )
-                }
-                TunnelConnectionData::Wireguard(ref data) => {
-                    write!(
-                        f,
-                        "Connected WireGuard tunnel with entry {} and exit {}",
-                        data.entry.endpoint, data.exit.endpoint
-                    )
-                }
-            },
-            Self::Disconnecting { after_disconnect } => match after_disconnect {
-                ActionAfterDisconnect::Nothing => f.write_str("Disconnecting"),
-                ActionAfterDisconnect::Reconnect => f.write_str("Disconnecting to reconnect"),
-                ActionAfterDisconnect::Error => f.write_str("Disconnecting because of an error"),
-                ActionAfterDisconnect::Offline => {
-                    f.write_str("Disconnecting because device is offline")
-                }
-            },
-            Self::Error(reason) => {
-                write!(f, "Error state: {:?}", reason)
-            }
-            Self::Offline { reconnect } => {
-                if *reconnect {
-                    write!(f, "Offline, auto-connect once back online")
-                } else {
-                    write!(f, "Offline")
-                }
-            }
-        }
-    }
-}
-
-impl fmt::Display for MixnetEvent {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Bandwidth(event) => write!(f, "{}", event),
-            Self::Connection(event) => write!(f, "{}", event),
-            Self::ConnectionStatistics(event) => write!(f, "{}", event),
-        }
-    }
-}
-
-impl fmt::Display for ConnectionEvent {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let s = match self {
-            Self::ConnectedIpv4 => "Connected with IPv4",
-            Self::ConnectedIpv6 => "Connected with IPv6",
-            Self::EntryGatewayDown => {
-                "Entry gateway appears down - it's not routing our mixnet traffic"
-            }
-            Self::ExitGatewayDownIpv4 => "Exit gateway (or ipr) appears down - it's not responding to IPv4 traffic",
-            Self::ExitGatewayDownIpv6 => "Exit gateway (or ipr) appears down - it's not responding to IPv6 traffic",
-            Self::ExitGatewayRoutingErrorIpv4 => "Exit gateway (or ipr) appears to be having issues routing and forwarding our external IPv4 traffic",
-            Self::ExitGatewayRoutingErrorIpv6 => "Exit gateway (or ipr) appears to be having issues routing and forwarding our external IPv6 traffic",
-        };
-
-        f.write_str(s)
-    }
-}
-
-impl fmt::Display for BandwidthEvent {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::NoBandwidth => f.write_str("No bandwidth"),
-            Self::RemainingBandwidth(value) => {
-                write!(
-                    f,
-                    "Remaining bandwidth: {}",
-                    si_scale::helpers::bibytes2(*value as f64)
-                )
-            }
-        }
-    }
-}

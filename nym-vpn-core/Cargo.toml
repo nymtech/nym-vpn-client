@@ -28,6 +28,7 @@ members = [
     "crates/nym-wg-go",
     "crates/nym-windows",
     "crates/uniffi-bindgen",
+    "crates/nym-vpn-lib-types",
 ]
 
 default-members = [

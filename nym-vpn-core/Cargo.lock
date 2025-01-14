@@ -4801,6 +4801,7 @@ dependencies = [
  "nym-validator-client",
  "nym-vpn-account-controller",
  "nym-vpn-api-client",
+ "nym-vpn-lib-types",
  "nym-vpn-network-config",
  "nym-vpn-store",
  "nym-wg-gateway-client",
@@ -4829,6 +4830,20 @@ dependencies = [
  "url",
  "vergen",
  "windows-sys 0.52.0",
+]
+
+[[package]]
+name = "nym-vpn-lib-types"
+version = "1.2.0-dev"
+dependencies = [
+ "nym-bandwidth-controller",
+ "nym-connection-monitor",
+ "nym-gateway-directory",
+ "nym-statistics-common",
+ "nym-wg-gateway-client",
+ "nym-wg-go",
+ "si-scale",
+ "time",
 ]
 
 [[package]]
@@ -4861,6 +4876,7 @@ dependencies = [
  "nym-sdk",
  "nym-vpn-account-controller",
  "nym-vpn-api-client",
+ "nym-vpn-lib-types",
  "nym-vpn-network-config",
  "nym-vpnd-types",
  "prost",
@@ -4938,6 +4954,7 @@ dependencies = [
  "nym-vpn-account-controller",
  "nym-vpn-api-client",
  "nym-vpn-lib",
+ "nym-vpn-lib-types",
  "nym-vpn-network-config",
  "nym-vpn-proto",
  "nym-vpn-store",
