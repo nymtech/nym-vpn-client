@@ -1,0 +1,20 @@
+[package]
+name = "nym-vpn-lib-types"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+time.workspace = true
+si-scale.workspace = true
+
+nym-statistics-common.workspace = true
+nym-bandwidth-controller.workspace = true
+nym-gateway-directory = { path = "../nym-gateway-directory" }
+nym-wg-gateway-client = { path = "../nym-wg-gateway-client" }
+nym-connection-monitor = { path = "../nym-connection-monitor" }
+nym-wg-go = { path = "../nym-wg-go" }

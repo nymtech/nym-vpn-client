@@ -11,8 +11,9 @@ use futures::{stream::BoxStream, StreamExt};
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 
 use nym_vpn_api_client::types::GatewayMinPerformance;
-use nym_vpn_lib::tunnel_state_machine::TunnelEvent;
+use nym_vpn_lib_types::TunnelEvent;
 use nym_vpn_proto::{
+    TunnelState,
     conversions::ConversionError, nym_vpnd_server::NymVpnd, AccountError,
     ConfirmZkNymDownloadedRequest, ConfirmZkNymDownloadedResponse, ConnectRequest, ConnectResponse,
     ConnectionStateChange, ConnectionStatusUpdate, DisconnectResponse, ForgetAccountResponse,
@@ -35,7 +36,7 @@ use super::{
     helpers::{parse_entry_point, parse_exit_point, threshold_into_percent},
 };
 use crate::{
-    command_interface::protobuf::{IntoProtobuf, info_response::into_proto_available_tickets},
+    command_interface::protobuf::info_response::into_proto_available_tickets,
     service::{ConnectOptions, VpnServiceCommand, VpnServiceStateChange},
 };
 
@@ -308,7 +309,7 @@ impl NymVpnd for CommandInterface {
         BoxStream<'static, Result<TunnelState, tonic::Status>>;
     async fn listen_to_tunnel_state_changes(
         &self,
-        request: tonic::Request<Empty>,
+        request: tonic::Request<()>,
     ) -> Result<tonic::Response<Self::ListenToTunnelStateChangesStream>, tonic::Status> {
         tracing::debug!("Got connection status stream request: {request:?}");
         let rx = self.tunnel_event_rx.resubscribe();
@@ -317,7 +318,7 @@ impl NymVpnd for CommandInterface {
                 event
                     .map(|event| {
                         if let TunnelEvent::NewState(tunnel_state) = event {
-                            Some(tunnel_state.to_protobuf())
+                            Some(TunnelState::from(tunnel_state))
                         } else {
                             None
                         }

@@ -33,8 +33,11 @@ use super::{
     tunnel::{
         self, AnyTunnelHandle, ConnectedMixnet, MixnetConnectOptions, SelectedGateways, Tombstone,
     },
-    ConnectionData, Error, ErrorStateReason, MixnetConnectionData, MixnetEvent, NymConfig, Result,
-    TunnelConnectionData, TunnelSettings, TunnelType, WireguardConnectionData, WireguardNode,
+    Error, NymConfig, Result, TunnelSettings,
+};
+use nym_vpn_lib_types::{
+    ConnectionData, ErrorStateReason, MixnetConnectionData, MixnetEvent, TunnelConnectionData,
+    TunnelType, WireguardConnectionData, WireguardNode,
 };
 
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]

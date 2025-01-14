@@ -32,11 +32,13 @@ use nym_vpn_api_client::{
 use nym_vpn_lib::{
     gateway_directory::{self, EntryPoint, ExitPoint},
     tunnel_state_machine::{
-        ConnectionData, DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig,
-        TunnelCommand, TunnelConnectionData, TunnelEvent, TunnelSettings, TunnelState,
-        TunnelStateMachine, TunnelType, WireguardMultihopMode, WireguardTunnelOptions,
+        DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
+        TunnelSettings, TunnelStateMachine, WireguardMultihopMode, WireguardTunnelOptions,
     },
     MixnetClientConfig, NodeIdentity, Recipient, UserAgent,
+};
+use nym_vpn_lib_types::{
+    ConnectionData, TunnelConnectionData, TunnelEvent, TunnelState, TunnelType,
 };
 use zeroize::Zeroizing;
 
