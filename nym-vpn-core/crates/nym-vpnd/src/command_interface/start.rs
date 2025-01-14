@@ -4,7 +4,7 @@
 use std::{net::SocketAddr, path::PathBuf, time::Duration};
 
 use futures::FutureExt;
-use nym_vpn_lib::tunnel_state_machine::TunnelEvent;
+use nym_vpn_lib_types::TunnelEvent;
 use nym_vpn_proto::{nym_vpnd_server::NymVpndServer, VPN_FD_SET};
 use tokio::{
     sync::{

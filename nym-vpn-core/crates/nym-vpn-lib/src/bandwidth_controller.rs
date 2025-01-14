@@ -27,14 +27,12 @@ use nym_wg_gateway_client::{
 use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
 
 use crate::{
-    tunnel_state_machine::{
-        tunnel::{
-            MixnetConnectOptions, MIXNET_CLIENT_STARTUP_TIMEOUT, TASK_MANAGER_SHUTDOWN_TIMER_SECS,
-        },
-        TunnelType,
+    tunnel_state_machine::tunnel::{
+        MixnetConnectOptions, MIXNET_CLIENT_STARTUP_TIMEOUT, TASK_MANAGER_SHUTDOWN_TIMER_SECS,
     },
     MixnetClientConfig,
 };
+use nym_vpn_lib_types::TunnelType;
 
 const DEFAULT_BANDWIDTH_CHECK: Duration = Duration::from_secs(5); // 5 seconds
 const DEFAULT_BANDWIDTH_DEPLETION_RATE: u64 = 1024 * 1024; // 1 MB/s

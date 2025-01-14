@@ -1,12 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_lib::{
-    connection_monitor::ConnectionMonitorStatus,
-    tunnel_state_machine::{
-        BandwidthEvent, ConnectionEvent, ConnectionStatisticsEvent, MixnetEvent,
-    },
-};
+use nym_vpn_lib::connection_monitor::ConnectionMonitorStatus;
+use nym_vpn_lib_types::{BandwidthEvent, ConnectionEvent, ConnectionStatisticsEvent, MixnetEvent};
+
 use nym_vpn_proto::{connection_status_update::StatusType, ConnectionStatusUpdate};
 
 pub fn status_update_from_event(event: MixnetEvent) -> ConnectionStatusUpdate {
