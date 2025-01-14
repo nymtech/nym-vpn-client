@@ -15,7 +15,7 @@ use nym_vpn_store::{
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
-use crate::uniffi_custom_impls::AccountStateSummary;
+use super::uniffi_custom_impls::AccountStateSummary;
 
 use super::{error::VpnError, ACCOUNT_CONTROLLER_HANDLE};
 
