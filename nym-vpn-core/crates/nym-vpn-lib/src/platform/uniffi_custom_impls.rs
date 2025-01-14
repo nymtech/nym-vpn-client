@@ -9,8 +9,6 @@ use std::{
 };
 
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
-use nym_bandwidth_controller::BandwidthStatusMessage;
-use nym_connection_monitor::ConnectionMonitorStatus;
 use nym_gateway_directory::{EntryPoint as GwEntryPoint, ExitPoint as GwExitPoint};
 use nym_ip_packet_requests::IpPair;
 use nym_sdk::UserAgent as NymUserAgent;
@@ -588,82 +586,6 @@ impl From<ExitPoint> for GwExitPoint {
             ExitPoint::Address { address } => GwExitPoint::Address { address },
             ExitPoint::Gateway { identity } => GwExitPoint::Gateway { identity },
             ExitPoint::Location { location } => GwExitPoint::Location { location },
-        }
-    }
-}
-
-#[derive(uniffi::Enum, Clone, PartialEq)]
-pub enum ExitStatus {
-    Failure { error: VpnError },
-    Stopped,
-}
-
-#[derive(uniffi::Enum, Clone, PartialEq)]
-pub enum TunStatus {
-    Up,
-    Down,
-    InitializingClient,
-    EstablishingConnection,
-    Disconnecting,
-}
-
-#[derive(uniffi::Enum, PartialEq)]
-#[allow(clippy::large_enum_variant)]
-pub enum NymVpnStatus {
-    MixConnectInfo {
-        mix_connection_info: MixConnectionInfo,
-        mix_exit_connection_info: MixExitConnectionInfo,
-    },
-    WgConnectInfo {
-        entry_connection_info: WireguardConnectionInfo,
-        exit_connection_info: WireguardConnectionInfo,
-    },
-}
-
-#[derive(uniffi::Enum, Clone, PartialEq)]
-pub enum BandwidthStatus {
-    NoBandwidth,
-    RemainingBandwidth { bandwidth: i64 },
-}
-
-impl From<&BandwidthStatusMessage> for BandwidthStatus {
-    fn from(value: &BandwidthStatusMessage) -> Self {
-        match value {
-            BandwidthStatusMessage::RemainingBandwidth(bandwidth) => {
-                BandwidthStatus::RemainingBandwidth {
-                    bandwidth: *bandwidth,
-                }
-            }
-            BandwidthStatusMessage::NoBandwidth => BandwidthStatus::NoBandwidth,
-        }
-    }
-}
-
-#[derive(uniffi::Enum, Clone, PartialEq)]
-pub enum ConnectionStatus {
-    EntryGatewayDown,
-    ExitGatewayDownIpv4,
-    ExitGatewayDownIpv6,
-    ExitGatewayRoutingErrorIpv4,
-    ExitGatewayRoutingErrorIpv6,
-    ConnectedIpv4,
-    ConnectedIpv6,
-}
-
-impl From<ConnectionMonitorStatus> for ConnectionStatus {
-    fn from(value: ConnectionMonitorStatus) -> Self {
-        match value {
-            ConnectionMonitorStatus::EntryGatewayDown => ConnectionStatus::EntryGatewayDown,
-            ConnectionMonitorStatus::ExitGatewayDownIpv4 => ConnectionStatus::ExitGatewayDownIpv4,
-            ConnectionMonitorStatus::ExitGatewayDownIpv6 => ConnectionStatus::ExitGatewayDownIpv6,
-            ConnectionMonitorStatus::ExitGatewayRoutingErrorIpv4 => {
-                ConnectionStatus::ExitGatewayRoutingErrorIpv4
-            }
-            ConnectionMonitorStatus::ExitGatewayRoutingErrorIpv6 => {
-                ConnectionStatus::ExitGatewayRoutingErrorIpv6
-            }
-            ConnectionMonitorStatus::ConnectedIpv4 => ConnectionStatus::ConnectedIpv4,
-            ConnectionMonitorStatus::ConnectedIpv6 => ConnectionStatus::ConnectedIpv6,
         }
     }
 }
