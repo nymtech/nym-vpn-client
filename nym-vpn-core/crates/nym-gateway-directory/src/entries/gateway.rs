@@ -45,7 +45,6 @@ impl fmt::Debug for Gateway {
 }
 
 impl Gateway {
-
     pub fn identity(&self) -> NodeIdentity {
         self.identity
     }
