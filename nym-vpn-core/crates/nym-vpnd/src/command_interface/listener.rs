@@ -15,22 +15,17 @@ use nym_vpn_lib::tunnel_state_machine::MixnetEvent;
 use nym_vpn_proto::{
     conversions::ConversionError, nym_vpnd_server::NymVpnd, AccountError,
     ConfirmZkNymDownloadedRequest, ConfirmZkNymDownloadedResponse, ConnectRequest, ConnectResponse,
-    ConnectionStateChange, ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
-    ForgetAccountRequest, ForgetAccountResponse, GetAccountIdentityRequest,
+    ConnectionStateChange, ConnectionStatusUpdate, DisconnectResponse, ForgetAccountResponse,
     GetAccountIdentityResponse, GetAccountLinksRequest, GetAccountLinksResponse,
-    GetAccountStateRequest, GetAccountStateResponse, GetAccountUsageRequest,
-    GetAccountUsageResponse, GetActiveDevicesRequest, GetActiveDevicesResponse,
-    GetAvailableTicketsRequest, GetAvailableTicketsResponse, GetDeviceIdentityRequest,
-    GetDeviceIdentityResponse, GetDeviceZkNymsRequest, GetDeviceZkNymsResponse, GetDevicesRequest,
-    GetDevicesResponse, GetFeatureFlagsRequest, GetFeatureFlagsResponse, GetSystemMessagesRequest,
-    GetSystemMessagesResponse, GetZkNymByIdRequest, GetZkNymByIdResponse,
-    GetZkNymsAvailableForDownloadRequest, GetZkNymsAvailableForDownloadResponse, InfoRequest,
-    InfoResponse, IsAccountStoredRequest, IsAccountStoredResponse, IsReadyToConnectRequest,
-    IsReadyToConnectResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
-    ListGatewaysResponse, RefreshAccountStateRequest, RefreshAccountStateResponse,
-    RegisterDeviceRequest, RegisterDeviceResponse, RequestZkNymRequest, RequestZkNymResponse,
-    ResetDeviceIdentityRequest, ResetDeviceIdentityResponse, SetNetworkRequest, SetNetworkResponse,
-    StatusRequest, StatusResponse, StoreAccountRequest, StoreAccountResponse,
+    GetAccountStateResponse, GetAccountUsageResponse, GetActiveDevicesResponse,
+    GetAvailableTicketsResponse, GetDeviceIdentityResponse, GetDeviceZkNymsResponse,
+    GetDevicesResponse, GetFeatureFlagsResponse, GetSystemMessagesResponse, GetZkNymByIdRequest,
+    GetZkNymByIdResponse, GetZkNymsAvailableForDownloadResponse, InfoResponse,
+    IsAccountStoredResponse, IsReadyToConnectResponse, ListCountriesRequest, ListCountriesResponse,
+    ListGatewaysRequest, ListGatewaysResponse, RefreshAccountStateResponse, RegisterDeviceResponse,
+    RequestZkNymResponse, ResetDeviceIdentityRequest, ResetDeviceIdentityResponse,
+    SetNetworkRequest, SetNetworkResponse, StatusResponse, StoreAccountRequest,
+    StoreAccountResponse,
 };
 use zeroize::Zeroizing;
 
@@ -120,7 +115,7 @@ impl Drop for CommandInterface {
 impl NymVpnd for CommandInterface {
     async fn info(
         &self,
-        _request: tonic::Request<InfoRequest>,
+        _request: tonic::Request<()>,
     ) -> Result<tonic::Response<InfoResponse>, tonic::Status> {
         let info = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_info()
@@ -152,7 +147,7 @@ impl NymVpnd for CommandInterface {
 
     async fn get_system_messages(
         &self,
-        _request: tonic::Request<GetSystemMessagesRequest>,
+        _request: tonic::Request<()>,
     ) -> Result<tonic::Response<GetSystemMessagesResponse>, tonic::Status> {
         tracing::debug!("Got get system messages request");
 
@@ -168,7 +163,7 @@ impl NymVpnd for CommandInterface {
 
     async fn get_feature_flags(
         &self,
-        _request: tonic::Request<GetFeatureFlagsRequest>,
+        _request: tonic::Request<()>,
     ) -> Result<tonic::Response<GetFeatureFlagsResponse>, tonic::Status> {
         tracing::debug!("Got get feature flags request");
 
@@ -231,7 +226,7 @@ impl NymVpnd for CommandInterface {
 
     async fn vpn_disconnect(
         &self,
-        _request: tonic::Request<DisconnectRequest>,
+        _request: tonic::Request<()>,
     ) -> Result<tonic::Response<DisconnectResponse>, tonic::Status> {
         let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_disconnect()
@@ -246,7 +241,7 @@ impl NymVpnd for CommandInterface {
 
     async fn vpn_status(
         &self,
-        _request: tonic::Request<StatusRequest>,
+        _request: tonic::Request<()>,
     ) -> Result<tonic::Response<StatusResponse>, tonic::Status> {
         let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_status()
@@ -262,7 +257,7 @@ impl NymVpnd for CommandInterface {
 
     async fn listen_to_connection_status(
         &self,
-        request: tonic::Request<Empty>,
+        request: tonic::Request<()>,
     ) -> Result<tonic::Response<Self::ListenToConnectionStatusStream>, tonic::Status> {
         tracing::debug!("Got connection status stream request: {request:?}");
         let rx = self.status_rx.resubscribe();
@@ -284,7 +279,7 @@ impl NymVpnd for CommandInterface {
 
     async fn listen_to_connection_state_changes(
         &self,
-        request: tonic::Request<Empty>,
+        request: tonic::Request<()>,
     ) -> Result<tonic::Response<Self::ListenToConnectionStateChangesStream>, tonic::Status> {
         tracing::debug!("Got connection status stream request: {request:?}");
         let rx = self.vpn_state_changes_rx.resubscribe();
@@ -434,7 +429,7 @@ impl NymVpnd for CommandInterface {
 
     async fn is_account_stored(
         &self,
-        _request: tonic::Request<IsAccountStoredRequest>,
+        _request: tonic::Request<()>,
     ) -> Result<tonic::Response<IsAccountStoredResponse>, tonic::Status> {
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_is_account_stored()
@@ -459,7 +454,7 @@ impl NymVpnd for CommandInterface {
 
     async fn forget_account(
         &self,
-        _request: tonic::Request<ForgetAccountRequest>,
+        _request: tonic::Request<()>,
     ) -> Result<tonic::Response<ForgetAccountResponse>, tonic::Status> {
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_forget_account()
@@ -482,7 +477,7 @@ impl NymVpnd for CommandInterface {
 
     async fn get_account_identity(
         &self,
-        _request: tonic::Request<GetAccountIdentityRequest>,
+        _request: tonic::Request<()>,
     ) -> Result<tonic::Response<GetAccountIdentityResponse>, tonic::Status> {
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_account_identity()
@@ -541,7 +536,7 @@ impl NymVpnd for CommandInterface {
 
     async fn get_account_state(
         &self,
-        _request: tonic::Request<GetAccountStateRequest>,
+        _request: tonic::Request<()>,
     ) -> Result<tonic::Response<GetAccountStateResponse>, tonic::Status> {
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_account_state()
@@ -566,7 +561,7 @@ impl NymVpnd for CommandInterface {
 
     async fn refresh_account_state(
         &self,
-        _request: tonic::Request<RefreshAccountStateRequest>,
+        _request: tonic::Request<()>,
     ) -> Result<tonic::Response<RefreshAccountStateResponse>, tonic::Status> {
         CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_refresh_account_state()
@@ -580,7 +575,7 @@ impl NymVpnd for CommandInterface {
 
     async fn get_account_usage(
         &self,
-        _request: tonic::Request<GetAccountUsageRequest>,
+        _request: tonic::Request<()>,
     ) -> Result<tonic::Response<GetAccountUsageResponse>, tonic::Status> {
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_account_usage()
@@ -608,7 +603,7 @@ impl NymVpnd for CommandInterface {
 
     async fn is_ready_to_connect(
         &self,
-        _request: tonic::Request<IsReadyToConnectRequest>,
+        _request: tonic::Request<()>,
     ) -> Result<tonic::Response<IsReadyToConnectResponse>, tonic::Status> {
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_is_ready_to_connect()
@@ -656,7 +651,7 @@ impl NymVpnd for CommandInterface {
 
     async fn get_device_identity(
         &self,
-        _request: tonic::Request<GetDeviceIdentityRequest>,
+        _request: tonic::Request<()>,
     ) -> Result<tonic::Response<GetDeviceIdentityResponse>, tonic::Status> {
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_device_identity()
@@ -678,7 +673,7 @@ impl NymVpnd for CommandInterface {
 
     async fn register_device(
         &self,
-        _request: tonic::Request<RegisterDeviceRequest>,
+        _request: tonic::Request<()>,
     ) -> Result<tonic::Response<RegisterDeviceResponse>, tonic::Status> {
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_register_device()
@@ -702,7 +697,7 @@ impl NymVpnd for CommandInterface {
 
     async fn get_devices(
         &self,
-        _request: tonic::Request<GetDevicesRequest>,
+        _request: tonic::Request<()>,
     ) -> Result<tonic::Response<GetDevicesResponse>, tonic::Status> {
         let response = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_devices()
@@ -722,7 +717,7 @@ impl NymVpnd for CommandInterface {
 
     async fn get_active_devices(
         &self,
-        _request: tonic::Request<GetActiveDevicesRequest>,
+        _request: tonic::Request<()>,
     ) -> Result<tonic::Response<GetActiveDevicesResponse>, tonic::Status> {
         let response = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_active_devices()
@@ -742,7 +737,7 @@ impl NymVpnd for CommandInterface {
 
     async fn request_zk_nym(
         &self,
-        _request: tonic::Request<RequestZkNymRequest>,
+        _request: tonic::Request<()>,
     ) -> Result<tonic::Response<RequestZkNymResponse>, tonic::Status> {
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_request_zk_nym()
@@ -766,7 +761,7 @@ impl NymVpnd for CommandInterface {
 
     async fn get_device_zk_nyms(
         &self,
-        _request: tonic::Request<GetDeviceZkNymsRequest>,
+        _request: tonic::Request<()>,
     ) -> Result<tonic::Response<GetDeviceZkNymsResponse>, tonic::Status> {
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_device_zk_nyms()
@@ -790,7 +785,7 @@ impl NymVpnd for CommandInterface {
 
     async fn get_zk_nyms_available_for_download(
         &self,
-        _request: tonic::Request<GetZkNymsAvailableForDownloadRequest>,
+        _request: tonic::Request<()>,
     ) -> Result<tonic::Response<GetZkNymsAvailableForDownloadResponse>, tonic::Status> {
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_zk_nyms_available_for_download()
@@ -860,7 +855,7 @@ impl NymVpnd for CommandInterface {
 
     async fn get_available_tickets(
         &self,
-        _request: tonic::Request<GetAvailableTicketsRequest>,
+        _request: tonic::Request<()>,
     ) -> Result<tonic::Response<GetAvailableTicketsResponse>, tonic::Status> {
         tracing::debug!("Got get available tickets request");
 

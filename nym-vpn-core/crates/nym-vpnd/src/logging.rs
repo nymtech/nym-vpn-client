@@ -11,7 +11,7 @@ pub fn setup_logging(_as_service: bool) {
     #[cfg(target_os = "macos")]
     if _as_service {
         let log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
-        nym_vpn_lib::swift::init_logs(log_level);
+        nym_vpn_lib::swift::init_logs(log_level, None);
         return;
     }
 

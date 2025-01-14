@@ -16,15 +16,13 @@ impl crate::EntryNode {
 
     pub fn new_random() -> Self {
         Self {
-            entry_node_enum: Some(crate::entry_node::EntryNodeEnum::Random(crate::Empty {})),
+            entry_node_enum: Some(crate::entry_node::EntryNodeEnum::Random(())),
         }
     }
 
     pub fn new_random_low_latency() -> Self {
         Self {
-            entry_node_enum: Some(crate::entry_node::EntryNodeEnum::RandomLowLatency(
-                crate::Empty {},
-            )),
+            entry_node_enum: Some(crate::entry_node::EntryNodeEnum::RandomLowLatency(())),
         }
     }
 
@@ -46,7 +44,7 @@ impl crate::ExitNode {
 
     pub fn new_random() -> Self {
         Self {
-            exit_node_enum: Some(crate::exit_node::ExitNodeEnum::Random(crate::Empty {})),
+            exit_node_enum: Some(crate::exit_node::ExitNodeEnum::Random(())),
         }
     }
 

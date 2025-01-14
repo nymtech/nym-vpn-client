@@ -5,7 +5,6 @@ use chrono::{DateTime, Utc};
 use itertools::Itertools;
 use nym_contracts_common::Percent;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;
-use nym_validator_client::client::NodeId;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::net::IpAddr;

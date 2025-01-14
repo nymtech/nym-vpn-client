@@ -45,7 +45,6 @@ impl fmt::Debug for Gateway {
 }
 
 impl Gateway {
-
     pub fn identity(&self) -> NodeIdentity {
         self.identity
     }
@@ -432,6 +431,7 @@ impl IntoIterator for GatewayList {
 }
 
 impl nym_client_core::init::helpers::ConnectableGateway for Gateway {
+    #[allow(unconditional_recursion)]
     fn node_id(&self) -> NodeId {
         self.node_id()
     }
