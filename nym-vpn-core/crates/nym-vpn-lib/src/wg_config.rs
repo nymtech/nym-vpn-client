@@ -162,8 +162,7 @@ impl WgNodeConfig {
                 #[cfg(target_os = "linux")]
                 fwmark: None,
                 #[cfg(feature = "amnezia")]
-                // Even when enabled by feature flag amnezia is disabled by default.
-                azwg_config: None,
+                azwg_config: Some(AmneziaConfig::BASE),
             },
             peer: WgPeer {
                 public_key: PublicKey::from(*gateway_data.public_key.as_bytes()),
