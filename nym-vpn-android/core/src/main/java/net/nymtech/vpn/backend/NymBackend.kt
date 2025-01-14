@@ -32,7 +32,6 @@ import net.nymtech.vpn.util.extensions.startServiceByClass
 import nym_vpn_lib.AccountLinks
 import nym_vpn_lib.AccountStateSummary
 import nym_vpn_lib.AndroidTunProvider
-import nym_vpn_lib.ConnectionStatus
 import nym_vpn_lib.ConnectivityObserver
 import nym_vpn_lib.GatewayType
 import nym_vpn_lib.SystemMessage
@@ -80,7 +79,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		const val DEFAULT_LOCALE = "en"
 	}
 
-	private val observers : MutableList<ConnectivityObserver> = mutableListOf()
+	private val observers: MutableList<ConnectivityObserver> = mutableListOf()
 
 	private val initialized = AtomicBoolean(false)
 
@@ -95,8 +94,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	private var state: Tunnel.State = Tunnel.State.Down
 
 	@get:Synchronized @set:Synchronized
-	internal var connected: NetworkStatus = NetworkStatus.Unknown
-
+	private var networkStatus: NetworkStatus = NetworkStatus.Unknown
 
 	override suspend fun init(environment: Tunnel.Environment, credentialMode: Boolean?) {
 		return withContext(ioDispatcher) {
@@ -110,14 +108,26 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		}
 	}
 
+	private fun onNetworkStateChange(networkStatus: NetworkStatus) {
+		this.networkStatus = networkStatus
+		updateObservers()
+	}
+
 	private fun addObserver(observer: ConnectivityObserver) {
 		observers.add(observer)
-		val isConnected = when(connected) {
+		updateObservers()
+	}
+
+	private fun updateObservers() {
+		val isConnected = when (networkStatus) {
 			NetworkStatus.Connected -> true
 			NetworkStatus.Disconnected -> false
 			NetworkStatus.Unknown -> return
 		}
-		observer.onNetworkChange(isConnected)
+		Timber.d("Updating observers.. isConnected=$isConnected")
+		observers.forEach {
+			it.onNetworkChange(isConnected)
+		}
 	}
 
 	private fun removeObserver(observer: ConnectivityObserver) {
@@ -347,7 +357,8 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			)
 			lifecycleScope.launch {
 				NetworkConnectivityService(this@StateMachineService).networkStatus.collect {
-					owner?.connected = it
+					Timber.d("New network event: $it")
+					owner?.onNetworkStateChange(it)
 				}
 			}
 			initWakeLock()
@@ -375,7 +386,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 				val tag = this.javaClass.name
 				newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "$tag::lock").apply {
 					try {
-						Timber.i("Initiating wakelock forever.. for now..")
+						Timber.d("Initiating wakelock forever.. for now..")
 						acquire()
 					} finally {
 						release()

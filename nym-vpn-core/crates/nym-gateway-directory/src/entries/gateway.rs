@@ -15,7 +15,6 @@ pub type NymNode = Gateway;
 
 #[derive(Clone)]
 pub struct Gateway {
-    pub node_id: NodeId,
     pub identity: NodeIdentity,
     pub location: Option<Location>,
     pub ipr_address: Option<IpPacketRouterAddress>,
@@ -32,7 +31,6 @@ pub struct Gateway {
 impl fmt::Debug for Gateway {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Gateway")
-            .field("node_id", &self.node_id)
             .field("identity", &self.identity.to_base58_string())
             .field("location", &self.location)
             .field("ipr_address", &self.ipr_address)
@@ -47,9 +45,6 @@ impl fmt::Debug for Gateway {
 }
 
 impl Gateway {
-    pub fn node_id(&self) -> NodeId {
-        self.node_id
-    }
 
     pub fn identity(&self) -> NodeIdentity {
         self.identity
@@ -231,7 +226,6 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
         let host = hostname.or(first_ip_address);
 
         Ok(Gateway {
-            node_id: gateway.node_id,
             identity,
             location: Some(gateway.location.into()),
             ipr_address,
@@ -301,7 +295,6 @@ impl TryFrom<nym_validator_client::models::NymNodeDescription> for Gateway {
         let clients_wss_port = entry_info.as_ref().and_then(|g| g.clients_wss_port);
         let ips = node_description.description.host_information.ip_address;
         Ok(Gateway {
-            node_id: gateway.node_id,
             identity,
             location,
             ipr_address,

@@ -272,7 +272,6 @@ impl IntoIterator for NymDirectoryGatewaysResponse {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct NymDirectoryGateway {
-    pub node_id: NodeId,
     pub identity_key: String,
     pub ip_packet_router: Option<IpPacketRouter>,
     pub authenticator: Option<Authenticator>,

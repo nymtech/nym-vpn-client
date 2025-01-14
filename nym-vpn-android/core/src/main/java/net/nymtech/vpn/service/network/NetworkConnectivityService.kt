@@ -31,13 +31,13 @@ class NetworkConnectivityService(context: Context) : NetworkService {
 				trySend(NetworkStatus.Disconnected)
 			}
 
+			override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
+				trySend(NetworkStatus.Connected)
+			}
 		}
 
 		val request = NetworkRequest.Builder()
 			.addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-			.addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-			.addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
-			.addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET)
 			.build()
 
 		connectivityManager.registerNetworkCallback(request, connectivityCallback)
@@ -46,5 +46,4 @@ class NetworkConnectivityService(context: Context) : NetworkService {
 			connectivityManager.unregisterNetworkCallback(connectivityCallback)
 		}
 	}.distinctUntilChanged().flowOn(Dispatchers.IO)
-
 }

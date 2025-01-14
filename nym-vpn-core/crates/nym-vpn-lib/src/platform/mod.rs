@@ -241,14 +241,6 @@ pub fn updateAccountState() -> Result<(), VpnError> {
     RUNTIME.block_on(account::update_account_state())
 }
 
-/// This updates state machine with internet connectivity status of the client
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn updateConnectivityState(connected: bool) {
-    //Just log for now
-    tracing::info!("Update to connectivity status: {}", connected);
-}
-
 /// Get the account state
 #[allow(non_snake_case)]
 #[uniffi::export]
