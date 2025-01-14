@@ -1,4 +1,5 @@
 import GRPC
+import SwiftProtobuf
 import Constants
 import ConnectionTypes
 
@@ -67,9 +68,9 @@ private extension GRPCManager {
             gateway.id = identifier
             entryNode.gateway = gateway
         case .randomLowLatency:
-            entryNode.randomLowLatency = Nym_Vpn_Empty()
+            entryNode.randomLowLatency = Google_Protobuf_Empty()
         case .random:
-            entryNode.random = Nym_Vpn_Empty()
+            entryNode.random = Google_Protobuf_Empty()
         }
         return entryNode
     }

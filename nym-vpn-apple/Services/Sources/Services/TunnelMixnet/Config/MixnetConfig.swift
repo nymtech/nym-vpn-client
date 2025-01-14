@@ -5,6 +5,7 @@ import ConnectionTypes
 import CountriesManager
 import CredentialsManager
 #if os(iOS)
+import AppVersionProvider
 import ConfigurationManager
 import MixnetLibrary
 #endif
@@ -58,7 +59,14 @@ extension MixnetConfig {
             tunProvider: tunProvider,
             credentialDataPath: credentialsDataPath,
             tunStatusListener: tunStatusListener,
-            credentialMode: nil
+            credentialMode: nil,
+            statisticsRecipient: nil,
+            userAgent: UserAgent(
+                application: AppVersionProvider.app,
+                version: "\(AppVersionProvider.appVersion()) (\(AppVersionProvider.libVersion))",
+                platform: AppVersionProvider.platform,
+                gitCommit: ""
+            )
         )
     }
 }

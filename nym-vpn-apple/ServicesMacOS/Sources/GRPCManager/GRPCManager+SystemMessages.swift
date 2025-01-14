@@ -1,4 +1,5 @@
 import GRPC
+import SwiftProtobuf
 import SystemMessageModels
 
 extension GRPCManager {
@@ -6,7 +7,8 @@ extension GRPCManager {
         logger.log(level: .info, "Checking if stored account")
 
         return try await withCheckedThrowingContinuation { continuation in
-            let call = client.getSystemMessages(Nym_Vpn_GetSystemMessagesRequest())
+            
+            let call = client.getSystemMessages(Google_Protobuf_Empty())
 
             call.response.whenComplete { result in
                 switch result {

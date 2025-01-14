@@ -1,5 +1,6 @@
 import Constants
 import GRPC
+import SwiftProtobuf
 
 extension GRPCManager {
     public func storeAccount(with mnemonic: String) async throws {
@@ -23,32 +24,11 @@ extension GRPCManager {
         }
     }
 
-    public func removeAccount() async throws -> Bool {
-        logger.log(level: .info, "Removing credentials")
-
-        return try await withCheckedThrowingContinuation { continuation in
-            let call = client.removeAccount(Nym_Vpn_RemoveAccountRequest())
-
-            call.response.whenComplete { result in
-                switch result {
-                case .success(let response):
-                    if response.hasError {
-                        continuation.resume(throwing: GeneralNymError.library(message: response.error.message))
-                    } else {
-                        continuation.resume(returning: response.success)
-                    }
-                case .failure(let error):
-                    continuation.resume(throwing: error)
-                }
-            }
-        }
-    }
-
     public func forgetAccount() async throws {
         logger.log(level: .info, "Forgetting credentials")
 
         return try await withCheckedThrowingContinuation { continuation in
-            let call = client.forgetAccount(Nym_Vpn_ForgetAccountRequest())
+            let call = client.forgetAccount(Google_Protobuf_Empty())
 
             call.response.whenComplete { result in
                 switch result {
@@ -73,7 +53,7 @@ extension GRPCManager {
 
         return try await withCheckedThrowingContinuation { continuation in
             let call = client.isAccountStored(
-                Nym_Vpn_IsAccountStoredRequest(),
+                Google_Protobuf_Empty(),
                 callOptions: CallOptions(timeLimit: .timeout(.seconds(5)))
             )
 

@@ -420,16 +420,6 @@ extension Nym_Vpn_DeviceStatus: CaseIterable {
 
 #endif  // swift(>=4.2)
 
-struct Nym_Vpn_Empty {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
 /// Represents the identity of a gateway
 struct Nym_Vpn_Gateway {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -512,18 +502,18 @@ struct Nym_Vpn_EntryNode {
     set {entryNodeEnum = .location(newValue)}
   }
 
-  var randomLowLatency: Nym_Vpn_Empty {
+  var randomLowLatency: SwiftProtobuf.Google_Protobuf_Empty {
     get {
       if case .randomLowLatency(let v)? = entryNodeEnum {return v}
-      return Nym_Vpn_Empty()
+      return SwiftProtobuf.Google_Protobuf_Empty()
     }
     set {entryNodeEnum = .randomLowLatency(newValue)}
   }
 
-  var random: Nym_Vpn_Empty {
+  var random: SwiftProtobuf.Google_Protobuf_Empty {
     get {
       if case .random(let v)? = entryNodeEnum {return v}
-      return Nym_Vpn_Empty()
+      return SwiftProtobuf.Google_Protobuf_Empty()
     }
     set {entryNodeEnum = .random(newValue)}
   }
@@ -533,8 +523,8 @@ struct Nym_Vpn_EntryNode {
   enum OneOf_EntryNodeEnum: Equatable {
     case gateway(Nym_Vpn_Gateway)
     case location(Nym_Vpn_Location)
-    case randomLowLatency(Nym_Vpn_Empty)
-    case random(Nym_Vpn_Empty)
+    case randomLowLatency(SwiftProtobuf.Google_Protobuf_Empty)
+    case random(SwiftProtobuf.Google_Protobuf_Empty)
 
   #if !swift(>=4.1)
     static func ==(lhs: Nym_Vpn_EntryNode.OneOf_EntryNodeEnum, rhs: Nym_Vpn_EntryNode.OneOf_EntryNodeEnum) -> Bool {
@@ -598,10 +588,10 @@ struct Nym_Vpn_ExitNode {
     set {exitNodeEnum = .location(newValue)}
   }
 
-  var random: Nym_Vpn_Empty {
+  var random: SwiftProtobuf.Google_Protobuf_Empty {
     get {
       if case .random(let v)? = exitNodeEnum {return v}
-      return Nym_Vpn_Empty()
+      return SwiftProtobuf.Google_Protobuf_Empty()
     }
     set {exitNodeEnum = .random(newValue)}
   }
@@ -612,7 +602,7 @@ struct Nym_Vpn_ExitNode {
     case address(Nym_Vpn_Address)
     case gateway(Nym_Vpn_Gateway)
     case location(Nym_Vpn_Location)
-    case random(Nym_Vpn_Empty)
+    case random(SwiftProtobuf.Google_Protobuf_Empty)
 
   #if !swift(>=4.1)
     static func ==(lhs: Nym_Vpn_ExitNode.OneOf_ExitNodeEnum, rhs: Nym_Vpn_ExitNode.OneOf_ExitNodeEnum) -> Bool {
@@ -781,7 +771,6 @@ struct Nym_Vpn_UserAgent {
   /// Example:
   ///    nym-vpn-app
   ///    nym-vpnd
-  ///    nym-vpn-cli
   var application: String = String()
 
   /// Format: version[-optional] [(daemon version[-optional])]
@@ -1068,16 +1057,6 @@ struct Nym_Vpn_ValidatorDetails {
   fileprivate var _apiURL: Nym_Vpn_Url? = nil
 }
 
-struct Nym_Vpn_InfoRequest {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
 struct Nym_Vpn_InfoResponse {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1249,32 +1228,12 @@ struct Nym_Vpn_SystemMessage {
   init() {}
 }
 
-struct Nym_Vpn_GetSystemMessagesRequest {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
 struct Nym_Vpn_GetSystemMessagesResponse {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
   var messages: [Nym_Vpn_SystemMessage] = []
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
-struct Nym_Vpn_GetFeatureFlagsRequest {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -1562,16 +1521,6 @@ struct Nym_Vpn_ConnectResponse {
   fileprivate var _error: Nym_Vpn_ConnectRequestError? = nil
 }
 
-struct Nym_Vpn_DisconnectRequest {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
 struct Nym_Vpn_DisconnectResponse {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1633,16 +1582,6 @@ struct Nym_Vpn_ConnectionDetails {
   fileprivate var _exitGateway: Nym_Vpn_Gateway? = nil
   fileprivate var _protocolDetails: Nym_Vpn_ConnectedStateDetails? = nil
   fileprivate var _since: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
-}
-
-struct Nym_Vpn_StatusRequest {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
 }
 
 struct Nym_Vpn_StatusResponse {
@@ -2509,16 +2448,6 @@ struct Nym_Vpn_StoreAccountResponse {
   fileprivate var _error: Nym_Vpn_AccountError? = nil
 }
 
-struct Nym_Vpn_IsAccountStoredRequest {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
 struct Nym_Vpn_IsAccountStoredResponse {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2571,49 +2500,6 @@ struct Nym_Vpn_IsAccountStoredResponse {
   init() {}
 }
 
-struct Nym_Vpn_RemoveAccountRequest {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
-struct Nym_Vpn_RemoveAccountResponse {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var success: Bool = false
-
-  var error: Nym_Vpn_AccountError {
-    get {return _error ?? Nym_Vpn_AccountError()}
-    set {_error = newValue}
-  }
-  /// Returns true if `error` has been explicitly set.
-  var hasError: Bool {return self._error != nil}
-  /// Clears the value of `error`. Subsequent reads from it will return its default value.
-  mutating func clearError() {self._error = nil}
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-
-  fileprivate var _error: Nym_Vpn_AccountError? = nil
-}
-
-struct Nym_Vpn_ForgetAccountRequest {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
 struct Nym_Vpn_ForgetAccountResponse {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2637,14 +2523,25 @@ struct Nym_Vpn_ForgetAccountResponse {
   fileprivate var _error: Nym_Vpn_AccountError? = nil
 }
 
-struct Nym_Vpn_GetAccountIdentityRequest {
+struct Nym_Vpn_AccountIdentity {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
+  var accountIdentity: String {
+    get {return _accountIdentity ?? String()}
+    set {_accountIdentity = newValue}
+  }
+  /// Returns true if `accountIdentity` has been explicitly set.
+  var hasAccountIdentity: Bool {return self._accountIdentity != nil}
+  /// Clears the value of `accountIdentity`. Subsequent reads from it will return its default value.
+  mutating func clearAccountIdentity() {self._accountIdentity = nil}
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
+
+  fileprivate var _accountIdentity: String? = nil
 }
 
 struct Nym_Vpn_GetAccountIdentityResponse {
@@ -2654,10 +2551,10 @@ struct Nym_Vpn_GetAccountIdentityResponse {
 
   var id: Nym_Vpn_GetAccountIdentityResponse.OneOf_ID? = nil
 
-  var accountIdentity: String {
+  var accountIdentity: Nym_Vpn_AccountIdentity {
     get {
       if case .accountIdentity(let v)? = id {return v}
-      return String()
+      return Nym_Vpn_AccountIdentity()
     }
     set {id = .accountIdentity(newValue)}
   }
@@ -2673,7 +2570,7 @@ struct Nym_Vpn_GetAccountIdentityResponse {
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   enum OneOf_ID: Equatable {
-    case accountIdentity(String)
+    case accountIdentity(Nym_Vpn_AccountIdentity)
     case error(Nym_Vpn_AccountError)
 
   #if !swift(>=4.1)
@@ -3174,16 +3071,6 @@ struct Nym_Vpn_AccountStateSummary {
   fileprivate var _requestZkNymResult: Nym_Vpn_RequestZkNymResult? = nil
 }
 
-struct Nym_Vpn_GetAccountStateRequest {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
 struct Nym_Vpn_GetAccountStateResponse {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -3236,16 +3123,6 @@ struct Nym_Vpn_GetAccountStateResponse {
   init() {}
 }
 
-struct Nym_Vpn_RefreshAccountStateRequest {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
 struct Nym_Vpn_RefreshAccountStateResponse {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -3288,16 +3165,6 @@ struct Nym_Vpn_AccountUsage {
   var bandwidthAllowanceGb: Double = 0
 
   var bandwidthUsedGb: Double = 0
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
-struct Nym_Vpn_GetAccountUsageRequest {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -3356,72 +3223,6 @@ struct Nym_Vpn_GetAccountUsageResponse {
   init() {}
 }
 
-struct Nym_Vpn_FetchRawAccountSummaryRequest {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
-struct Nym_Vpn_FetchRawAccountSummaryResponse {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var json: String = String()
-
-  var error: Nym_Vpn_AccountError {
-    get {return _error ?? Nym_Vpn_AccountError()}
-    set {_error = newValue}
-  }
-  /// Returns true if `error` has been explicitly set.
-  var hasError: Bool {return self._error != nil}
-  /// Clears the value of `error`. Subsequent reads from it will return its default value.
-  mutating func clearError() {self._error = nil}
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-
-  fileprivate var _error: Nym_Vpn_AccountError? = nil
-}
-
-struct Nym_Vpn_FetchRawDevicesRequest {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
-struct Nym_Vpn_FetchRawDevicesResponse {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var json: String = String()
-
-  var error: Nym_Vpn_AccountError {
-    get {return _error ?? Nym_Vpn_AccountError()}
-    set {_error = newValue}
-  }
-  /// Returns true if `error` has been explicitly set.
-  var hasError: Bool {return self._error != nil}
-  /// Clears the value of `error`. Subsequent reads from it will return its default value.
-  mutating func clearError() {self._error = nil}
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-
-  fileprivate var _error: Nym_Vpn_AccountError? = nil
-}
-
 struct Nym_Vpn_ResetDeviceIdentityRequest {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -3465,16 +3266,6 @@ struct Nym_Vpn_ResetDeviceIdentityResponse {
   init() {}
 
   fileprivate var _error: Nym_Vpn_AccountError? = nil
-}
-
-struct Nym_Vpn_GetDeviceIdentityRequest {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
 }
 
 struct Nym_Vpn_GetDeviceIdentityResponse {
@@ -3529,16 +3320,6 @@ struct Nym_Vpn_GetDeviceIdentityResponse {
   init() {}
 }
 
-struct Nym_Vpn_RegisterDeviceRequest {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
 struct Nym_Vpn_RegisterDeviceResponse {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -3586,16 +3367,6 @@ struct Nym_Vpn_Devices {
   // methods supported on all messages.
 
   var devices: [Nym_Vpn_Device] = []
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
-struct Nym_Vpn_GetDevicesRequest {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -3654,16 +3425,6 @@ struct Nym_Vpn_GetDevicesResponse {
   init() {}
 }
 
-struct Nym_Vpn_GetActiveDevicesRequest {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
 struct Nym_Vpn_GetActiveDevicesResponse {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -3716,16 +3477,6 @@ struct Nym_Vpn_GetActiveDevicesResponse {
   init() {}
 }
 
-struct Nym_Vpn_RequestZkNymRequest {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
 struct Nym_Vpn_RequestZkNymResponse {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -3749,16 +3500,6 @@ struct Nym_Vpn_RequestZkNymResponse {
   fileprivate var _error: Nym_Vpn_AccountError? = nil
 }
 
-struct Nym_Vpn_GetDeviceZkNymsRequest {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
 struct Nym_Vpn_GetDeviceZkNymsResponse {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -3780,16 +3521,6 @@ struct Nym_Vpn_GetDeviceZkNymsResponse {
   init() {}
 
   fileprivate var _error: Nym_Vpn_AccountError? = nil
-}
-
-struct Nym_Vpn_GetZkNymsAvailableForDownloadRequest {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
 }
 
 struct Nym_Vpn_GetZkNymsAvailableForDownloadResponse {
@@ -3929,16 +3660,6 @@ struct Nym_Vpn_AvailableTickets {
   init() {}
 }
 
-struct Nym_Vpn_GetAvailableTicketsRequest {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
 struct Nym_Vpn_GetAvailableTicketsResponse {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -3987,16 +3708,6 @@ struct Nym_Vpn_GetAvailableTicketsResponse {
     }
   #endif
   }
-
-  init() {}
-}
-
-struct Nym_Vpn_IsReadyToConnectRequest {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 }
@@ -4186,7 +3897,6 @@ extension Nym_Vpn_AccountState: @unchecked Sendable {}
 extension Nym_Vpn_SubscriptionState: @unchecked Sendable {}
 extension Nym_Vpn_DeviceState: @unchecked Sendable {}
 extension Nym_Vpn_DeviceStatus: @unchecked Sendable {}
-extension Nym_Vpn_Empty: @unchecked Sendable {}
 extension Nym_Vpn_Gateway: @unchecked Sendable {}
 extension Nym_Vpn_Address: @unchecked Sendable {}
 extension Nym_Vpn_Location: @unchecked Sendable {}
@@ -4208,16 +3918,13 @@ extension Nym_Vpn_NymNetworkDetails: @unchecked Sendable {}
 extension Nym_Vpn_NymVpnNetworkDetails: @unchecked Sendable {}
 extension Nym_Vpn_AccountManagement: @unchecked Sendable {}
 extension Nym_Vpn_ValidatorDetails: @unchecked Sendable {}
-extension Nym_Vpn_InfoRequest: @unchecked Sendable {}
 extension Nym_Vpn_InfoResponse: @unchecked Sendable {}
 extension Nym_Vpn_SetNetworkRequest: @unchecked Sendable {}
 extension Nym_Vpn_SetNetworkResponse: @unchecked Sendable {}
 extension Nym_Vpn_SetNetworkRequestError: @unchecked Sendable {}
 extension Nym_Vpn_SetNetworkRequestError.SetNetworkRequestErrorType: @unchecked Sendable {}
 extension Nym_Vpn_SystemMessage: @unchecked Sendable {}
-extension Nym_Vpn_GetSystemMessagesRequest: @unchecked Sendable {}
 extension Nym_Vpn_GetSystemMessagesResponse: @unchecked Sendable {}
-extension Nym_Vpn_GetFeatureFlagsRequest: @unchecked Sendable {}
 extension Nym_Vpn_GetFeatureFlagsResponse: @unchecked Sendable {}
 extension Nym_Vpn_FeatureFlagGroup: @unchecked Sendable {}
 extension Nym_Vpn_Threshold: @unchecked Sendable {}
@@ -4225,10 +3932,8 @@ extension Nym_Vpn_ConnectRequestError: @unchecked Sendable {}
 extension Nym_Vpn_ConnectRequestError.ConnectRequestErrorType: @unchecked Sendable {}
 extension Nym_Vpn_ConnectRequest: @unchecked Sendable {}
 extension Nym_Vpn_ConnectResponse: @unchecked Sendable {}
-extension Nym_Vpn_DisconnectRequest: @unchecked Sendable {}
 extension Nym_Vpn_DisconnectResponse: @unchecked Sendable {}
 extension Nym_Vpn_ConnectionDetails: @unchecked Sendable {}
-extension Nym_Vpn_StatusRequest: @unchecked Sendable {}
 extension Nym_Vpn_StatusResponse: @unchecked Sendable {}
 extension Nym_Vpn_ConnectionStateChange: @unchecked Sendable {}
 extension Nym_Vpn_ConnectionStatusUpdate: @unchecked Sendable {}
@@ -4247,14 +3952,10 @@ extension Nym_Vpn_ListCountriesRequest: @unchecked Sendable {}
 extension Nym_Vpn_ListCountriesResponse: @unchecked Sendable {}
 extension Nym_Vpn_StoreAccountRequest: @unchecked Sendable {}
 extension Nym_Vpn_StoreAccountResponse: @unchecked Sendable {}
-extension Nym_Vpn_IsAccountStoredRequest: @unchecked Sendable {}
 extension Nym_Vpn_IsAccountStoredResponse: @unchecked Sendable {}
 extension Nym_Vpn_IsAccountStoredResponse.OneOf_Resp: @unchecked Sendable {}
-extension Nym_Vpn_RemoveAccountRequest: @unchecked Sendable {}
-extension Nym_Vpn_RemoveAccountResponse: @unchecked Sendable {}
-extension Nym_Vpn_ForgetAccountRequest: @unchecked Sendable {}
 extension Nym_Vpn_ForgetAccountResponse: @unchecked Sendable {}
-extension Nym_Vpn_GetAccountIdentityRequest: @unchecked Sendable {}
+extension Nym_Vpn_AccountIdentity: @unchecked Sendable {}
 extension Nym_Vpn_GetAccountIdentityResponse: @unchecked Sendable {}
 extension Nym_Vpn_GetAccountIdentityResponse.OneOf_ID: @unchecked Sendable {}
 extension Nym_Vpn_GetAccountLinksRequest: @unchecked Sendable {}
@@ -4270,50 +3971,34 @@ extension Nym_Vpn_RequestZkNymSuccess: @unchecked Sendable {}
 extension Nym_Vpn_RequestZkNymError: @unchecked Sendable {}
 extension Nym_Vpn_RequestZkNymError.RequestZkNymErrorType: @unchecked Sendable {}
 extension Nym_Vpn_AccountStateSummary: @unchecked Sendable {}
-extension Nym_Vpn_GetAccountStateRequest: @unchecked Sendable {}
 extension Nym_Vpn_GetAccountStateResponse: @unchecked Sendable {}
 extension Nym_Vpn_GetAccountStateResponse.OneOf_Result: @unchecked Sendable {}
-extension Nym_Vpn_RefreshAccountStateRequest: @unchecked Sendable {}
 extension Nym_Vpn_RefreshAccountStateResponse: @unchecked Sendable {}
 extension Nym_Vpn_AccountUsages: @unchecked Sendable {}
 extension Nym_Vpn_AccountUsage: @unchecked Sendable {}
-extension Nym_Vpn_GetAccountUsageRequest: @unchecked Sendable {}
 extension Nym_Vpn_GetAccountUsageResponse: @unchecked Sendable {}
 extension Nym_Vpn_GetAccountUsageResponse.OneOf_Result: @unchecked Sendable {}
-extension Nym_Vpn_FetchRawAccountSummaryRequest: @unchecked Sendable {}
-extension Nym_Vpn_FetchRawAccountSummaryResponse: @unchecked Sendable {}
-extension Nym_Vpn_FetchRawDevicesRequest: @unchecked Sendable {}
-extension Nym_Vpn_FetchRawDevicesResponse: @unchecked Sendable {}
 extension Nym_Vpn_ResetDeviceIdentityRequest: @unchecked Sendable {}
 extension Nym_Vpn_ResetDeviceIdentityResponse: @unchecked Sendable {}
-extension Nym_Vpn_GetDeviceIdentityRequest: @unchecked Sendable {}
 extension Nym_Vpn_GetDeviceIdentityResponse: @unchecked Sendable {}
 extension Nym_Vpn_GetDeviceIdentityResponse.OneOf_ID: @unchecked Sendable {}
-extension Nym_Vpn_RegisterDeviceRequest: @unchecked Sendable {}
 extension Nym_Vpn_RegisterDeviceResponse: @unchecked Sendable {}
 extension Nym_Vpn_Device: @unchecked Sendable {}
 extension Nym_Vpn_Devices: @unchecked Sendable {}
-extension Nym_Vpn_GetDevicesRequest: @unchecked Sendable {}
 extension Nym_Vpn_GetDevicesResponse: @unchecked Sendable {}
 extension Nym_Vpn_GetDevicesResponse.OneOf_Result: @unchecked Sendable {}
-extension Nym_Vpn_GetActiveDevicesRequest: @unchecked Sendable {}
 extension Nym_Vpn_GetActiveDevicesResponse: @unchecked Sendable {}
 extension Nym_Vpn_GetActiveDevicesResponse.OneOf_Result: @unchecked Sendable {}
-extension Nym_Vpn_RequestZkNymRequest: @unchecked Sendable {}
 extension Nym_Vpn_RequestZkNymResponse: @unchecked Sendable {}
-extension Nym_Vpn_GetDeviceZkNymsRequest: @unchecked Sendable {}
 extension Nym_Vpn_GetDeviceZkNymsResponse: @unchecked Sendable {}
-extension Nym_Vpn_GetZkNymsAvailableForDownloadRequest: @unchecked Sendable {}
 extension Nym_Vpn_GetZkNymsAvailableForDownloadResponse: @unchecked Sendable {}
 extension Nym_Vpn_GetZkNymByIdRequest: @unchecked Sendable {}
 extension Nym_Vpn_GetZkNymByIdResponse: @unchecked Sendable {}
 extension Nym_Vpn_ConfirmZkNymDownloadedRequest: @unchecked Sendable {}
 extension Nym_Vpn_ConfirmZkNymDownloadedResponse: @unchecked Sendable {}
 extension Nym_Vpn_AvailableTickets: @unchecked Sendable {}
-extension Nym_Vpn_GetAvailableTicketsRequest: @unchecked Sendable {}
 extension Nym_Vpn_GetAvailableTicketsResponse: @unchecked Sendable {}
 extension Nym_Vpn_GetAvailableTicketsResponse.OneOf_Resp: @unchecked Sendable {}
-extension Nym_Vpn_IsReadyToConnectRequest: @unchecked Sendable {}
 extension Nym_Vpn_IsReadyToConnectResponse: @unchecked Sendable {}
 extension Nym_Vpn_IsReadyToConnectResponse.IsReadyToConnectResponseType: @unchecked Sendable {}
 extension Nym_Vpn_AccountError: @unchecked Sendable {}
@@ -4398,25 +4083,6 @@ extension Nym_Vpn_DeviceStatus: SwiftProtobuf._ProtoNameProviding {
     2: .same(proto: "DEVICE_STATUS_INACTIVE"),
     3: .same(proto: "DEVICE_STATUS_DELETE_ME"),
   ]
-}
-
-extension Nym_Vpn_Empty: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".Empty"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Nym_Vpn_Empty, rhs: Nym_Vpn_Empty) -> Bool {
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
 }
 
 extension Nym_Vpn_Gateway: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
@@ -4573,7 +4239,7 @@ extension Nym_Vpn_EntryNode: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
         }
       }()
       case 3: try {
-        var v: Nym_Vpn_Empty?
+        var v: SwiftProtobuf.Google_Protobuf_Empty?
         var hadOneofValue = false
         if let current = self.entryNodeEnum {
           hadOneofValue = true
@@ -4586,7 +4252,7 @@ extension Nym_Vpn_EntryNode: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
         }
       }()
       case 4: try {
-        var v: Nym_Vpn_Empty?
+        var v: SwiftProtobuf.Google_Protobuf_Empty?
         var hadOneofValue = false
         if let current = self.entryNodeEnum {
           hadOneofValue = true
@@ -4692,7 +4358,7 @@ extension Nym_Vpn_ExitNode: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
         }
       }()
       case 4: try {
-        var v: Nym_Vpn_Empty?
+        var v: SwiftProtobuf.Google_Protobuf_Empty?
         var hadOneofValue = false
         if let current = self.exitNodeEnum {
           hadOneofValue = true
@@ -5363,25 +5029,6 @@ extension Nym_Vpn_ValidatorDetails: SwiftProtobuf.Message, SwiftProtobuf._Messag
   }
 }
 
-extension Nym_Vpn_InfoRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".InfoRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Nym_Vpn_InfoRequest, rhs: Nym_Vpn_InfoRequest) -> Bool {
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
 extension Nym_Vpn_InfoResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".InfoResponse"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -5664,25 +5311,6 @@ extension Nym_Vpn_SystemMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
   }
 }
 
-extension Nym_Vpn_GetSystemMessagesRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".GetSystemMessagesRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Nym_Vpn_GetSystemMessagesRequest, rhs: Nym_Vpn_GetSystemMessagesRequest) -> Bool {
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
 extension Nym_Vpn_GetSystemMessagesResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".GetSystemMessagesResponse"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -5710,25 +5338,6 @@ extension Nym_Vpn_GetSystemMessagesResponse: SwiftProtobuf.Message, SwiftProtobu
 
   static func ==(lhs: Nym_Vpn_GetSystemMessagesResponse, rhs: Nym_Vpn_GetSystemMessagesResponse) -> Bool {
     if lhs.messages != rhs.messages {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension Nym_Vpn_GetFeatureFlagsRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".GetFeatureFlagsRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Nym_Vpn_GetFeatureFlagsRequest, rhs: Nym_Vpn_GetFeatureFlagsRequest) -> Bool {
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -6118,25 +5727,6 @@ extension Nym_Vpn_ConnectResponse: SwiftProtobuf.Message, SwiftProtobuf._Message
   }
 }
 
-extension Nym_Vpn_DisconnectRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".DisconnectRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Nym_Vpn_DisconnectRequest, rhs: Nym_Vpn_DisconnectRequest) -> Bool {
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
 extension Nym_Vpn_DisconnectResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".DisconnectResponse"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -6218,25 +5808,6 @@ extension Nym_Vpn_ConnectionDetails: SwiftProtobuf.Message, SwiftProtobuf._Messa
     if lhs._exitGateway != rhs._exitGateway {return false}
     if lhs._protocolDetails != rhs._protocolDetails {return false}
     if lhs._since != rhs._since {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension Nym_Vpn_StatusRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".StatusRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Nym_Vpn_StatusRequest, rhs: Nym_Vpn_StatusRequest) -> Bool {
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -7077,25 +6648,6 @@ extension Nym_Vpn_StoreAccountResponse: SwiftProtobuf.Message, SwiftProtobuf._Me
   }
 }
 
-extension Nym_Vpn_IsAccountStoredRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".IsAccountStoredRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Nym_Vpn_IsAccountStoredRequest, rhs: Nym_Vpn_IsAccountStoredRequest) -> Bool {
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
 extension Nym_Vpn_IsAccountStoredResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".IsAccountStoredResponse"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -7161,86 +6713,6 @@ extension Nym_Vpn_IsAccountStoredResponse: SwiftProtobuf.Message, SwiftProtobuf.
   }
 }
 
-extension Nym_Vpn_RemoveAccountRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".RemoveAccountRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Nym_Vpn_RemoveAccountRequest, rhs: Nym_Vpn_RemoveAccountRequest) -> Bool {
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension Nym_Vpn_RemoveAccountResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".RemoveAccountResponse"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "success"),
-    2: .same(proto: "error"),
-  ]
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularBoolField(value: &self.success) }()
-      case 2: try { try decoder.decodeSingularMessageField(value: &self._error) }()
-      default: break
-      }
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    if self.success != false {
-      try visitor.visitSingularBoolField(value: self.success, fieldNumber: 1)
-    }
-    try { if let v = self._error {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    } }()
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Nym_Vpn_RemoveAccountResponse, rhs: Nym_Vpn_RemoveAccountResponse) -> Bool {
-    if lhs.success != rhs.success {return false}
-    if lhs._error != rhs._error {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension Nym_Vpn_ForgetAccountRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".ForgetAccountRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Nym_Vpn_ForgetAccountRequest, rhs: Nym_Vpn_ForgetAccountRequest) -> Bool {
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
 extension Nym_Vpn_ForgetAccountResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".ForgetAccountResponse"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -7283,20 +6755,37 @@ extension Nym_Vpn_ForgetAccountResponse: SwiftProtobuf.Message, SwiftProtobuf._M
   }
 }
 
-extension Nym_Vpn_GetAccountIdentityRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".GetAccountIdentityRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+extension Nym_Vpn_AccountIdentity: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".AccountIdentity"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "account_identity"),
+  ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self._accountIdentity) }()
+      default: break
+      }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._accountIdentity {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 1)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: Nym_Vpn_GetAccountIdentityRequest, rhs: Nym_Vpn_GetAccountIdentityRequest) -> Bool {
+  static func ==(lhs: Nym_Vpn_AccountIdentity, rhs: Nym_Vpn_AccountIdentity) -> Bool {
+    if lhs._accountIdentity != rhs._accountIdentity {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -7316,10 +6805,15 @@ extension Nym_Vpn_GetAccountIdentityResponse: SwiftProtobuf.Message, SwiftProtob
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try {
-        var v: String?
-        try decoder.decodeSingularStringField(value: &v)
+        var v: Nym_Vpn_AccountIdentity?
+        var hadOneofValue = false
+        if let current = self.id {
+          hadOneofValue = true
+          if case .accountIdentity(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
-          if self.id != nil {try decoder.handleConflictingOneOf()}
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
           self.id = .accountIdentity(v)
         }
       }()
@@ -7349,7 +6843,7 @@ extension Nym_Vpn_GetAccountIdentityResponse: SwiftProtobuf.Message, SwiftProtob
     switch self.id {
     case .accountIdentity?: try {
       guard case .accountIdentity(let v)? = self.id else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 1)
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
     }()
     case .error?: try {
       guard case .error(let v)? = self.id else { preconditionFailure() }
@@ -7843,25 +7337,6 @@ extension Nym_Vpn_AccountStateSummary: SwiftProtobuf.Message, SwiftProtobuf._Mes
   }
 }
 
-extension Nym_Vpn_GetAccountStateRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".GetAccountStateRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Nym_Vpn_GetAccountStateRequest, rhs: Nym_Vpn_GetAccountStateRequest) -> Bool {
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
 extension Nym_Vpn_GetAccountStateResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".GetAccountStateResponse"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -7927,25 +7402,6 @@ extension Nym_Vpn_GetAccountStateResponse: SwiftProtobuf.Message, SwiftProtobuf.
 
   static func ==(lhs: Nym_Vpn_GetAccountStateResponse, rhs: Nym_Vpn_GetAccountStateResponse) -> Bool {
     if lhs.result != rhs.result {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension Nym_Vpn_RefreshAccountStateRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".RefreshAccountStateRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Nym_Vpn_RefreshAccountStateRequest, rhs: Nym_Vpn_RefreshAccountStateRequest) -> Bool {
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -8076,25 +7532,6 @@ extension Nym_Vpn_AccountUsage: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
   }
 }
 
-extension Nym_Vpn_GetAccountUsageRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".GetAccountUsageRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Nym_Vpn_GetAccountUsageRequest, rhs: Nym_Vpn_GetAccountUsageRequest) -> Bool {
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
 extension Nym_Vpn_GetAccountUsageResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".GetAccountUsageResponse"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -8160,128 +7597,6 @@ extension Nym_Vpn_GetAccountUsageResponse: SwiftProtobuf.Message, SwiftProtobuf.
 
   static func ==(lhs: Nym_Vpn_GetAccountUsageResponse, rhs: Nym_Vpn_GetAccountUsageResponse) -> Bool {
     if lhs.result != rhs.result {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension Nym_Vpn_FetchRawAccountSummaryRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".FetchRawAccountSummaryRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Nym_Vpn_FetchRawAccountSummaryRequest, rhs: Nym_Vpn_FetchRawAccountSummaryRequest) -> Bool {
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension Nym_Vpn_FetchRawAccountSummaryResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".FetchRawAccountSummaryResponse"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "json"),
-    2: .same(proto: "error"),
-  ]
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.json) }()
-      case 2: try { try decoder.decodeSingularMessageField(value: &self._error) }()
-      default: break
-      }
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    if !self.json.isEmpty {
-      try visitor.visitSingularStringField(value: self.json, fieldNumber: 1)
-    }
-    try { if let v = self._error {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    } }()
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Nym_Vpn_FetchRawAccountSummaryResponse, rhs: Nym_Vpn_FetchRawAccountSummaryResponse) -> Bool {
-    if lhs.json != rhs.json {return false}
-    if lhs._error != rhs._error {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension Nym_Vpn_FetchRawDevicesRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".FetchRawDevicesRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Nym_Vpn_FetchRawDevicesRequest, rhs: Nym_Vpn_FetchRawDevicesRequest) -> Bool {
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension Nym_Vpn_FetchRawDevicesResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".FetchRawDevicesResponse"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "json"),
-    2: .same(proto: "error"),
-  ]
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.json) }()
-      case 2: try { try decoder.decodeSingularMessageField(value: &self._error) }()
-      default: break
-      }
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    if !self.json.isEmpty {
-      try visitor.visitSingularStringField(value: self.json, fieldNumber: 1)
-    }
-    try { if let v = self._error {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    } }()
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Nym_Vpn_FetchRawDevicesResponse, rhs: Nym_Vpn_FetchRawDevicesResponse) -> Bool {
-    if lhs.json != rhs.json {return false}
-    if lhs._error != rhs._error {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -8365,25 +7680,6 @@ extension Nym_Vpn_ResetDeviceIdentityResponse: SwiftProtobuf.Message, SwiftProto
   }
 }
 
-extension Nym_Vpn_GetDeviceIdentityRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".GetDeviceIdentityRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Nym_Vpn_GetDeviceIdentityRequest, rhs: Nym_Vpn_GetDeviceIdentityRequest) -> Bool {
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
 extension Nym_Vpn_GetDeviceIdentityResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".GetDeviceIdentityResponse"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -8444,25 +7740,6 @@ extension Nym_Vpn_GetDeviceIdentityResponse: SwiftProtobuf.Message, SwiftProtobu
 
   static func ==(lhs: Nym_Vpn_GetDeviceIdentityResponse, rhs: Nym_Vpn_GetDeviceIdentityResponse) -> Bool {
     if lhs.id != rhs.id {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension Nym_Vpn_RegisterDeviceRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".RegisterDeviceRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Nym_Vpn_RegisterDeviceRequest, rhs: Nym_Vpn_RegisterDeviceRequest) -> Bool {
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -8592,25 +7869,6 @@ extension Nym_Vpn_Devices: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
   }
 }
 
-extension Nym_Vpn_GetDevicesRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".GetDevicesRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Nym_Vpn_GetDevicesRequest, rhs: Nym_Vpn_GetDevicesRequest) -> Bool {
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
 extension Nym_Vpn_GetDevicesResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".GetDevicesResponse"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -8676,25 +7934,6 @@ extension Nym_Vpn_GetDevicesResponse: SwiftProtobuf.Message, SwiftProtobuf._Mess
 
   static func ==(lhs: Nym_Vpn_GetDevicesResponse, rhs: Nym_Vpn_GetDevicesResponse) -> Bool {
     if lhs.result != rhs.result {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension Nym_Vpn_GetActiveDevicesRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".GetActiveDevicesRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Nym_Vpn_GetActiveDevicesRequest, rhs: Nym_Vpn_GetActiveDevicesRequest) -> Bool {
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -8770,25 +8009,6 @@ extension Nym_Vpn_GetActiveDevicesResponse: SwiftProtobuf.Message, SwiftProtobuf
   }
 }
 
-extension Nym_Vpn_RequestZkNymRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".RequestZkNymRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Nym_Vpn_RequestZkNymRequest, rhs: Nym_Vpn_RequestZkNymRequest) -> Bool {
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
 extension Nym_Vpn_RequestZkNymResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".RequestZkNymResponse"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -8831,25 +8051,6 @@ extension Nym_Vpn_RequestZkNymResponse: SwiftProtobuf.Message, SwiftProtobuf._Me
   }
 }
 
-extension Nym_Vpn_GetDeviceZkNymsRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".GetDeviceZkNymsRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Nym_Vpn_GetDeviceZkNymsRequest, rhs: Nym_Vpn_GetDeviceZkNymsRequest) -> Bool {
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
 extension Nym_Vpn_GetDeviceZkNymsResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".GetDeviceZkNymsResponse"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -8887,25 +8088,6 @@ extension Nym_Vpn_GetDeviceZkNymsResponse: SwiftProtobuf.Message, SwiftProtobuf.
   static func ==(lhs: Nym_Vpn_GetDeviceZkNymsResponse, rhs: Nym_Vpn_GetDeviceZkNymsResponse) -> Bool {
     if lhs.json != rhs.json {return false}
     if lhs._error != rhs._error {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension Nym_Vpn_GetZkNymsAvailableForDownloadRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".GetZkNymsAvailableForDownloadRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Nym_Vpn_GetZkNymsAvailableForDownloadRequest, rhs: Nym_Vpn_GetZkNymsAvailableForDownloadRequest) -> Bool {
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -9193,25 +8375,6 @@ extension Nym_Vpn_AvailableTickets: SwiftProtobuf.Message, SwiftProtobuf._Messag
   }
 }
 
-extension Nym_Vpn_GetAvailableTicketsRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".GetAvailableTicketsRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Nym_Vpn_GetAvailableTicketsRequest, rhs: Nym_Vpn_GetAvailableTicketsRequest) -> Bool {
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
 extension Nym_Vpn_GetAvailableTicketsResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".GetAvailableTicketsResponse"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -9277,25 +8440,6 @@ extension Nym_Vpn_GetAvailableTicketsResponse: SwiftProtobuf.Message, SwiftProto
 
   static func ==(lhs: Nym_Vpn_GetAvailableTicketsResponse, rhs: Nym_Vpn_GetAvailableTicketsResponse) -> Bool {
     if lhs.resp != rhs.resp {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension Nym_Vpn_IsReadyToConnectRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".IsReadyToConnectRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Nym_Vpn_IsReadyToConnectRequest, rhs: Nym_Vpn_IsReadyToConnectRequest) -> Bool {
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

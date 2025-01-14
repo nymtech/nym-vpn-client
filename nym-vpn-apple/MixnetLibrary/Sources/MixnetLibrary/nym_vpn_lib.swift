@@ -521,179 +521,12 @@ fileprivate struct FfiConverterString: FfiConverter {
 
 
 
-/**
- * Types observing network changes.
- */
-public protocol OsDefaultPathObserver : AnyObject {
-    
-    func onDefaultPathChange(newPath: OsDefaultPath) 
-    
-}
-
-/**
- * Types observing network changes.
- */
-open class OsDefaultPathObserverImpl:
-    OsDefaultPathObserver {
-    fileprivate let pointer: UnsafeMutableRawPointer!
-
-    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
-    public struct NoPointer {
-        public init() {}
-    }
-
-    // TODO: We'd like this to be `private` but for Swifty reasons,
-    // we can't implement `FfiConverter` without making this `required` and we can't
-    // make it `required` without making it `public`.
-    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
-        self.pointer = pointer
-    }
-
-    /// This constructor can be used to instantiate a fake object.
-    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
-    ///
-    /// - Warning:
-    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
-    public init(noPointer: NoPointer) {
-        self.pointer = nil
-    }
-
-    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
-        return try! rustCall { uniffi_nym_vpn_lib_fn_clone_osdefaultpathobserver(self.pointer, $0) }
-    }
-    // No primary constructor declared for this class.
-
-    deinit {
-        guard let pointer = pointer else {
-            return
-        }
-
-        try! rustCall { uniffi_nym_vpn_lib_fn_free_osdefaultpathobserver(pointer, $0) }
-    }
-
-    
-
-    
-open func onDefaultPathChange(newPath: OsDefaultPath) {try! rustCall() {
-    uniffi_nym_vpn_lib_fn_method_osdefaultpathobserver_on_default_path_change(self.uniffiClonePointer(),
-        FfiConverterTypeOSDefaultPath.lower(newPath),$0
-    )
-}
-}
-    
-
-}
-// Magic number for the Rust proxy to call using the same mechanism as every other method,
-// to free the callback once it's dropped by Rust.
-private let IDX_CALLBACK_FREE: Int32 = 0
-// Callback return codes
-private let UNIFFI_CALLBACK_SUCCESS: Int32 = 0
-private let UNIFFI_CALLBACK_ERROR: Int32 = 1
-private let UNIFFI_CALLBACK_UNEXPECTED_ERROR: Int32 = 2
-
-// Put the implementation in a struct so we don't pollute the top-level namespace
-fileprivate struct UniffiCallbackInterfaceOSDefaultPathObserver {
-
-    // Create the VTable using a series of closures.
-    // Swift automatically converts these into C callback functions.
-    static var vtable: UniffiVTableCallbackInterfaceOsDefaultPathObserver = UniffiVTableCallbackInterfaceOsDefaultPathObserver(
-        onDefaultPathChange: { (
-            uniffiHandle: UInt64,
-            newPath: RustBuffer,
-            uniffiOutReturn: UnsafeMutableRawPointer,
-            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
-        ) in
-            let makeCall = {
-                () throws -> () in
-                guard let uniffiObj = try? FfiConverterTypeOSDefaultPathObserver.handleMap.get(handle: uniffiHandle) else {
-                    throw UniffiInternalError.unexpectedStaleHandle
-                }
-                return uniffiObj.onDefaultPathChange(
-                     newPath: try FfiConverterTypeOSDefaultPath.lift(newPath)
-                )
-            }
-
-            
-            let writeReturn = { () }
-            uniffiTraitInterfaceCall(
-                callStatus: uniffiCallStatus,
-                makeCall: makeCall,
-                writeReturn: writeReturn
-            )
-        },
-        uniffiFree: { (uniffiHandle: UInt64) -> () in
-            let result = try? FfiConverterTypeOSDefaultPathObserver.handleMap.remove(handle: uniffiHandle)
-            if result == nil {
-                print("Uniffi callback interface OSDefaultPathObserver: handle missing in uniffiFree")
-            }
-        }
-    )
-}
-
-private func uniffiCallbackInitOSDefaultPathObserver() {
-    uniffi_nym_vpn_lib_fn_init_callback_vtable_osdefaultpathobserver(&UniffiCallbackInterfaceOSDefaultPathObserver.vtable)
-}
-
-public struct FfiConverterTypeOSDefaultPathObserver: FfiConverter {
-    fileprivate static var handleMap = UniffiHandleMap<OsDefaultPathObserver>()
-
-    typealias FfiType = UnsafeMutableRawPointer
-    typealias SwiftType = OsDefaultPathObserver
-
-    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> OsDefaultPathObserver {
-        return OsDefaultPathObserverImpl(unsafeFromRawPointer: pointer)
-    }
-
-    public static func lower(_ value: OsDefaultPathObserver) -> UnsafeMutableRawPointer {
-        guard let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: handleMap.insert(obj: value))) else {
-            fatalError("Cast to UnsafeMutableRawPointer failed")
-        }
-        return ptr
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> OsDefaultPathObserver {
-        let v: UInt64 = try readInt(&buf)
-        // The Rust code won't compile if a pointer won't fit in a UInt64.
-        // We have to go via `UInt` because that's the thing that's the size of a pointer.
-        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
-        if (ptr == nil) {
-            throw UniffiInternalError.unexpectedNullPointer
-        }
-        return try lift(ptr!)
-    }
-
-    public static func write(_ value: OsDefaultPathObserver, into buf: inout [UInt8]) {
-        // This fiddling is because `Int` is the thing that's the same size as a pointer.
-        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
-        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
-    }
-}
-
-
-
-
-public func FfiConverterTypeOSDefaultPathObserver_lift(_ pointer: UnsafeMutableRawPointer) throws -> OsDefaultPathObserver {
-    return try FfiConverterTypeOSDefaultPathObserver.lift(pointer)
-}
-
-public func FfiConverterTypeOSDefaultPathObserver_lower(_ value: OsDefaultPathObserver) -> UnsafeMutableRawPointer {
-    return FfiConverterTypeOSDefaultPathObserver.lower(value)
-}
-
-
-
-
 public protocol OsTunProvider : AnyObject {
     
     /**
      * Set network settings including tun, dns, ip.
      */
     func setTunnelNetworkSettings(tunnelSettings: TunnelNetworkSettings) async throws 
-    
-    /**
-     * Set or unset the default path observer.
-     */
-    func setDefaultPathObserver(observer: OsDefaultPathObserver?) async throws 
     
 }
 
@@ -758,29 +591,15 @@ open func setTunnelNetworkSettings(tunnelSettings: TunnelNetworkSettings)async t
         )
 }
     
-    /**
-     * Set or unset the default path observer.
-     */
-open func setDefaultPathObserver(observer: OsDefaultPathObserver?)async throws  {
-    return
-        try  await uniffiRustCallAsync(
-            rustFutureFunc: {
-                uniffi_nym_vpn_lib_fn_method_ostunprovider_set_default_path_observer(
-                    self.uniffiClonePointer(),
-                    FfiConverterOptionTypeOSDefaultPathObserver.lower(observer)
-                )
-            },
-            pollFunc: ffi_nym_vpn_lib_rust_future_poll_void,
-            completeFunc: ffi_nym_vpn_lib_rust_future_complete_void,
-            freeFunc: ffi_nym_vpn_lib_rust_future_free_void,
-            liftFunc: { $0 },
-            errorHandler: FfiConverterTypeVpnError.lift
-        )
-}
-    
 
 }
-
+// Magic number for the Rust proxy to call using the same mechanism as every other method,
+// to free the callback once it's dropped by Rust.
+private let IDX_CALLBACK_FREE: Int32 = 0
+// Callback return codes
+private let UNIFFI_CALLBACK_SUCCESS: Int32 = 0
+private let UNIFFI_CALLBACK_ERROR: Int32 = 1
+private let UNIFFI_CALLBACK_UNEXPECTED_ERROR: Int32 = 2
 
 // Put the implementation in a struct so we don't pollute the top-level namespace
 fileprivate struct UniffiCallbackInterfaceOSTunProvider {
@@ -802,47 +621,6 @@ fileprivate struct UniffiCallbackInterfaceOSTunProvider {
                 }
                 return try await uniffiObj.setTunnelNetworkSettings(
                      tunnelSettings: try FfiConverterTypeTunnelNetworkSettings.lift(tunnelSettings)
-                )
-            }
-
-            let uniffiHandleSuccess = { (returnValue: ()) in
-                uniffiFutureCallback(
-                    uniffiCallbackData,
-                    UniffiForeignFutureStructVoid(
-                        callStatus: RustCallStatus()
-                    )
-                )
-            }
-            let uniffiHandleError = { (statusCode, errorBuf) in
-                uniffiFutureCallback(
-                    uniffiCallbackData,
-                    UniffiForeignFutureStructVoid(
-                        callStatus: RustCallStatus(code: statusCode, errorBuf: errorBuf)
-                    )
-                )
-            }
-            let uniffiForeignFuture = uniffiTraitInterfaceCallAsyncWithError(
-                makeCall: makeCall,
-                handleSuccess: uniffiHandleSuccess,
-                handleError: uniffiHandleError,
-                lowerError: FfiConverterTypeVpnError.lower
-            )
-            uniffiOutReturn.pointee = uniffiForeignFuture
-        },
-        setDefaultPathObserver: { (
-            uniffiHandle: UInt64,
-            observer: RustBuffer,
-            uniffiFutureCallback: @escaping UniffiForeignFutureCompleteVoid,
-            uniffiCallbackData: UInt64,
-            uniffiOutReturn: UnsafeMutablePointer<UniffiForeignFuture>
-        ) in
-            let makeCall = {
-                () async throws -> () in
-                guard let uniffiObj = try? FfiConverterTypeOSTunProvider.handleMap.get(handle: uniffiHandle) else {
-                    throw UniffiInternalError.unexpectedStaleHandle
-                }
-                return try await uniffiObj.setDefaultPathObserver(
-                     observer: try FfiConverterOptionTypeOSDefaultPathObserver.lift(observer)
                 )
             }
 
@@ -2619,92 +2397,6 @@ public func FfiConverterTypeNymVpnNetwork_lower(_ value: NymVpnNetwork) -> RustB
 }
 
 
-/**
- * Represents a default network route used by the system.
- */
-public struct OsDefaultPath {
-    /**
-     * Indicates whether the process is able to make connection through the given path.
-     */
-    public var status: OsPathStatus
-    /**
-     * Set to true for interfaces that are considered expensive, such as when using cellular data plan.
-     */
-    public var isExpensive: Bool
-    /**
-     * Set to true when using a constrained interface, such as when using low-data mode.
-     */
-    public var isConstrained: Bool
-
-    // Default memberwise initializers are never public by default, so we
-    // declare one manually.
-    public init(
-        /**
-         * Indicates whether the process is able to make connection through the given path.
-         */status: OsPathStatus, 
-        /**
-         * Set to true for interfaces that are considered expensive, such as when using cellular data plan.
-         */isExpensive: Bool, 
-        /**
-         * Set to true when using a constrained interface, such as when using low-data mode.
-         */isConstrained: Bool) {
-        self.status = status
-        self.isExpensive = isExpensive
-        self.isConstrained = isConstrained
-    }
-}
-
-
-
-extension OsDefaultPath: Equatable, Hashable {
-    public static func ==(lhs: OsDefaultPath, rhs: OsDefaultPath) -> Bool {
-        if lhs.status != rhs.status {
-            return false
-        }
-        if lhs.isExpensive != rhs.isExpensive {
-            return false
-        }
-        if lhs.isConstrained != rhs.isConstrained {
-            return false
-        }
-        return true
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(status)
-        hasher.combine(isExpensive)
-        hasher.combine(isConstrained)
-    }
-}
-
-
-public struct FfiConverterTypeOSDefaultPath: FfiConverterRustBuffer {
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> OsDefaultPath {
-        return
-            try OsDefaultPath(
-                status: FfiConverterTypeOSPathStatus.read(from: &buf), 
-                isExpensive: FfiConverterBool.read(from: &buf), 
-                isConstrained: FfiConverterBool.read(from: &buf)
-        )
-    }
-
-    public static func write(_ value: OsDefaultPath, into buf: inout [UInt8]) {
-        FfiConverterTypeOSPathStatus.write(value.status, into: &buf)
-        FfiConverterBool.write(value.isExpensive, into: &buf)
-        FfiConverterBool.write(value.isConstrained, into: &buf)
-    }
-}
-
-
-public func FfiConverterTypeOSDefaultPath_lift(_ buf: RustBuffer) throws -> OsDefaultPath {
-    return try FfiConverterTypeOSDefaultPath.lift(buf)
-}
-
-public func FfiConverterTypeOSDefaultPath_lower(_ value: OsDefaultPath) -> RustBuffer {
-    return FfiConverterTypeOSDefaultPath.lower(value)
-}
-
-
 public struct RequestZkNymError {
     public var message: String
     public var messageId: String?
@@ -3264,10 +2956,12 @@ public struct VpnConfig {
     public var credentialDataPath: PathBuf?
     public var tunStatusListener: TunnelStatusListener?
     public var credentialMode: Bool?
+    public var statisticsRecipient: String?
+    public var userAgent: UserAgent
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(entryGateway: EntryPoint, exitRouter: ExitPoint, enableTwoHop: Bool, tunProvider: OsTunProvider, credentialDataPath: PathBuf?, tunStatusListener: TunnelStatusListener?, credentialMode: Bool?) {
+    public init(entryGateway: EntryPoint, exitRouter: ExitPoint, enableTwoHop: Bool, tunProvider: OsTunProvider, credentialDataPath: PathBuf?, tunStatusListener: TunnelStatusListener?, credentialMode: Bool?, statisticsRecipient: String?, userAgent: UserAgent) {
         self.entryGateway = entryGateway
         self.exitRouter = exitRouter
         self.enableTwoHop = enableTwoHop
@@ -3275,6 +2969,8 @@ public struct VpnConfig {
         self.credentialDataPath = credentialDataPath
         self.tunStatusListener = tunStatusListener
         self.credentialMode = credentialMode
+        self.statisticsRecipient = statisticsRecipient
+        self.userAgent = userAgent
     }
 }
 
@@ -3290,7 +2986,9 @@ public struct FfiConverterTypeVPNConfig: FfiConverterRustBuffer {
                 tunProvider: FfiConverterTypeOSTunProvider.read(from: &buf), 
                 credentialDataPath: FfiConverterOptionTypePathBuf.read(from: &buf), 
                 tunStatusListener: FfiConverterOptionTypeTunnelStatusListener.read(from: &buf), 
-                credentialMode: FfiConverterOptionBool.read(from: &buf)
+                credentialMode: FfiConverterOptionBool.read(from: &buf), 
+                statisticsRecipient: FfiConverterOptionString.read(from: &buf), 
+                userAgent: FfiConverterTypeUserAgent.read(from: &buf)
         )
     }
 
@@ -3302,6 +3000,8 @@ public struct FfiConverterTypeVPNConfig: FfiConverterRustBuffer {
         FfiConverterOptionTypePathBuf.write(value.credentialDataPath, into: &buf)
         FfiConverterOptionTypeTunnelStatusListener.write(value.tunStatusListener, into: &buf)
         FfiConverterOptionBool.write(value.credentialMode, into: &buf)
+        FfiConverterOptionString.write(value.statisticsRecipient, into: &buf)
+        FfiConverterTypeUserAgent.write(value.userAgent, into: &buf)
     }
 }
 
@@ -4941,103 +4641,6 @@ extension NymVpnStatus: Equatable, Hashable {}
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
-public enum OsPathStatus {
-    
-    /**
-     * The path cannot be evaluated.
-     */
-    case invalid
-    /**
-     * The path is ready to be used for network connections.
-     */
-    case satisfied
-    /**
-     * The path for network connections is not available, either due to lack of network
-     * connectivity or being prohibited by system policy.
-     */
-    case unsatisfied
-    /**
-     * The path is not currently satisfied, but may become satisfied upon a connection attempt.
-     * This can be due to a service, such as a VPN or a cellular data connection not being activated.
-     */
-    case satisfiable
-    /**
-     * Unknown path status was received.
-     * The raw variant code is contained in associated value.
-     */
-    case unknown(Int64
-    )
-}
-
-
-public struct FfiConverterTypeOSPathStatus: FfiConverterRustBuffer {
-    typealias SwiftType = OsPathStatus
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> OsPathStatus {
-        let variant: Int32 = try readInt(&buf)
-        switch variant {
-        
-        case 1: return .invalid
-        
-        case 2: return .satisfied
-        
-        case 3: return .unsatisfied
-        
-        case 4: return .satisfiable
-        
-        case 5: return .unknown(try FfiConverterInt64.read(from: &buf)
-        )
-        
-        default: throw UniffiInternalError.unexpectedEnumCase
-        }
-    }
-
-    public static func write(_ value: OsPathStatus, into buf: inout [UInt8]) {
-        switch value {
-        
-        
-        case .invalid:
-            writeInt(&buf, Int32(1))
-        
-        
-        case .satisfied:
-            writeInt(&buf, Int32(2))
-        
-        
-        case .unsatisfied:
-            writeInt(&buf, Int32(3))
-        
-        
-        case .satisfiable:
-            writeInt(&buf, Int32(4))
-        
-        
-        case let .unknown(v1):
-            writeInt(&buf, Int32(5))
-            FfiConverterInt64.write(v1, into: &buf)
-            
-        }
-    }
-}
-
-
-public func FfiConverterTypeOSPathStatus_lift(_ buf: RustBuffer) throws -> OsPathStatus {
-    return try FfiConverterTypeOSPathStatus.lift(buf)
-}
-
-public func FfiConverterTypeOSPathStatus_lower(_ value: OsPathStatus) -> RustBuffer {
-    return FfiConverterTypeOSPathStatus.lower(value)
-}
-
-
-
-extension OsPathStatus: Equatable, Hashable {}
-
-
-
-// Note that we don't yet support `indirect` for enums.
-// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
-
 public enum RegisterDeviceResult {
     
     case inProgress
@@ -5619,6 +5222,7 @@ public enum VpnError {
     )
     case InvalidAccountStoragePath(details: String
     )
+    case StatisticsRecipient
 }
 
 
@@ -5680,6 +5284,7 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
         case 21: return .InvalidAccountStoragePath(
             details: try FfiConverterString.read(from: &buf)
             )
+        case 22: return .StatisticsRecipient
 
          default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -5792,6 +5397,10 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
             writeInt(&buf, Int32(21))
             FfiConverterString.write(details, into: &buf)
             
+        
+        case .StatisticsRecipient:
+            writeInt(&buf, Int32(22))
+        
         }
     }
 }
@@ -5880,27 +5489,6 @@ fileprivate struct FfiConverterOptionString: FfiConverterRustBuffer {
         switch try readInt(&buf) as Int8 {
         case 0: return nil
         case 1: return try FfiConverterString.read(from: &buf)
-        default: throw UniffiInternalError.unexpectedOptionalTag
-        }
-    }
-}
-
-fileprivate struct FfiConverterOptionTypeOSDefaultPathObserver: FfiConverterRustBuffer {
-    typealias SwiftType = OsDefaultPathObserver?
-
-    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
-        guard let value = value else {
-            writeInt(&buf, Int8(0))
-            return
-        }
-        writeInt(&buf, Int8(1))
-        FfiConverterTypeOSDefaultPathObserver.write(value, into: &buf)
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
-        switch try readInt(&buf) as Int8 {
-        case 0: return nil
-        case 1: return try FfiConverterTypeOSDefaultPathObserver.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }
@@ -6069,27 +5657,6 @@ fileprivate struct FfiConverterOptionTypeIpv6Settings: FfiConverterRustBuffer {
         switch try readInt(&buf) as Int8 {
         case 0: return nil
         case 1: return try FfiConverterTypeIpv6Settings.read(from: &buf)
-        default: throw UniffiInternalError.unexpectedOptionalTag
-        }
-    }
-}
-
-fileprivate struct FfiConverterOptionTypeUserAgent: FfiConverterRustBuffer {
-    typealias SwiftType = UserAgent?
-
-    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
-        guard let value = value else {
-            writeInt(&buf, Int8(0))
-            return
-        }
-        writeInt(&buf, Int8(1))
-        FfiConverterTypeUserAgent.write(value, into: &buf)
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
-        switch try readInt(&buf) as Int8 {
-        case 0: return nil
-        case 1: return try FfiConverterTypeUserAgent.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }
@@ -7222,6 +6789,9 @@ private func uniffiForeignFutureFree(handle: UInt64) {
 public func uniffiForeignFutureHandleCountNymVpnLib() -> Int {
     UNIFFI_FOREIGN_FUTURE_HANDLE_MAP.count
 }
+/**
+ * Setup the library with the given data directory and optionally enable credential mode.
+ */
 public func configureLib(dataDir: String, credentialMode: Bool?)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_configurelib(
         FfiConverterString.lower(dataDir),
@@ -7239,45 +6809,19 @@ public func currentEnvironment()throws  -> NetworkEnvironment {
 })
 }
 /**
- * Fetches the account links for the current network environment
- * This makes a network call. In normal operations you almost always want to use initEnvironment
- * followed by getAccountLinks instead of this function.
+ * Remove the account mnemonic and all associated keys and files
  */
-public func fetchAccountLinks(accountStorePath: String, networkName: String, locale: String)throws  -> AccountLinks {
-    return try  FfiConverterTypeAccountLinks.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
-    uniffi_nym_vpn_lib_fn_func_fetchaccountlinks(
-        FfiConverterString.lower(accountStorePath),
-        FfiConverterString.lower(networkName),
-        FfiConverterString.lower(locale),$0
+public func forgetAccount()throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_forgetaccount($0
     )
-})
+}
 }
 /**
- * Fetch the network environment details from the network name.
- * This makes a network call. In normal operations you almost always want to use initEnvironment
- * instead of this function.
+ * Remove the account mnemonic and all associated keys and files.
+ * This is a version that can be called when the account controller is not running.
  */
-public func fetchEnvironment(networkName: String)throws  -> NetworkEnvironment {
-    return try  FfiConverterTypeNetworkEnvironment.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
-    uniffi_nym_vpn_lib_fn_func_fetchenvironment(
-        FfiConverterString.lower(networkName),$0
-    )
-})
-}
-/**
- * Feth the account links for the current network environment.
- * This makes a network call. In normal operations you almost always want to use initEnvironment
- * followed by getSystemMessages instead of this function.
- */
-public func fetchSystemMessages(networkName: String)throws  -> [SystemMessage] {
-    return try  FfiConverterSequenceTypeSystemMessage.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
-    uniffi_nym_vpn_lib_fn_func_fetchsystemmessages(
-        FfiConverterString.lower(networkName),$0
-    )
-})
-}
-public func forgetAccount(path: String)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
-    uniffi_nym_vpn_lib_fn_func_forgetaccount(
+public func forgetAccountRaw(path: String)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_forgetaccountraw(
         FfiConverterString.lower(path),$0
     )
 }
@@ -7285,40 +6829,63 @@ public func forgetAccount(path: String)throws  {try rustCallWithError(FfiConvert
 /**
  * Returns the account links for the current network environment
  */
-public func getAccountLinks(accountStorePath: String, locale: String)throws  -> AccountLinks {
+public func getAccountLinks(locale: String)throws  -> AccountLinks {
     return try  FfiConverterTypeAccountLinks.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_getaccountlinks(
+        FfiConverterString.lower(locale),$0
+    )
+})
+}
+/**
+ * Returns the account links for the current network environment.
+ * This is a version that can be called when the account controller is not running.
+ */
+public func getAccountLinksRaw(accountStorePath: String, locale: String)throws  -> AccountLinks {
+    return try  FfiConverterTypeAccountLinks.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_getaccountlinksraw(
         FfiConverterString.lower(accountStorePath),
         FfiConverterString.lower(locale),$0
     )
 })
 }
+/**
+ * Get the account state
+ */
 public func getAccountState()throws  -> AccountStateSummary {
     return try  FfiConverterTypeAccountStateSummary.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_getaccountstate($0
     )
 })
 }
-public func getDeviceIdentity(path: String)throws  -> String {
+/**
+ * Get the device identity
+ */
+public func getDeviceIdentity()throws  -> String {
     return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
-    uniffi_nym_vpn_lib_fn_func_getdeviceidentity(
+    uniffi_nym_vpn_lib_fn_func_getdeviceidentity($0
+    )
+})
+}
+/**
+ * Get the device identity
+ * This is a version that can be called when the account controller is not running.
+ */
+public func getDeviceIdentityRaw(path: String)throws  -> String {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_getdeviceidentityraw(
         FfiConverterString.lower(path),$0
     )
 })
 }
-public func getGatewayCountries(gwType: GatewayType, userAgent: UserAgent?, minGatewayPerformance: GatewayMinPerformance?)throws  -> [Location] {
+/**
+ * Get the liset of countries that have gateways available of the given type.
+ */
+public func getGatewayCountries(gwType: GatewayType, userAgent: UserAgent, minGatewayPerformance: GatewayMinPerformance?)throws  -> [Location] {
     return try  FfiConverterSequenceTypeLocation.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_getgatewaycountries(
         FfiConverterTypeGatewayType.lower(gwType),
-        FfiConverterOptionTypeUserAgent.lower(userAgent),
+        FfiConverterTypeUserAgent.lower(userAgent),
         FfiConverterOptionTypeGatewayMinPerformance.lower(minGatewayPerformance),$0
-    )
-})
-}
-public func getLowLatencyEntryCountry(userAgent: UserAgent)throws  -> Location {
-    return try  FfiConverterTypeLocation.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
-    uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(
-        FfiConverterTypeUserAgent.lower(userAgent),$0
     )
 })
 }
@@ -7368,54 +6935,86 @@ public func initFallbackMainnetEnvironment()throws  {try rustCallWithError(FfiCo
     )
 }
 }
-public func initLogger() {try! rustCall() {
-    uniffi_nym_vpn_lib_fn_func_initlogger($0
+/**
+ * Additional extra function for when only only want to set the logger without initializing the
+ * library. Thus it's only needed when `configureLib` is not used.
+ */
+public func initLogger(path: PathBuf?) {try! rustCall() {
+    uniffi_nym_vpn_lib_fn_func_initlogger(
+        FfiConverterOptionTypePathBuf.lower(path),$0
     )
 }
 }
-public func isAccountMnemonicStored(path: String)throws  -> Bool {
+/**
+ * Check if the account mnemonic is stored
+ */
+public func isAccountMnemonicStored()throws  -> Bool {
     return try  FfiConverterBool.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
-    uniffi_nym_vpn_lib_fn_func_isaccountmnemonicstored(
+    uniffi_nym_vpn_lib_fn_func_isaccountmnemonicstored($0
+    )
+})
+}
+/**
+ * Check if the account mnemonic is stored
+ * This is a version that can be called when the account controller is not running.
+ */
+public func isAccountMnemonicStoredRaw(path: String)throws  -> Bool {
+    return try  FfiConverterBool.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_isaccountmnemonicstoredraw(
         FfiConverterString.lower(path),$0
     )
 })
 }
-public func removeAccountMnemonic(path: String)throws  -> Bool {
-    return try  FfiConverterBool.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
-    uniffi_nym_vpn_lib_fn_func_removeaccountmnemonic(
-        FfiConverterString.lower(path),$0
-    )
-})
-}
-public func resetDeviceIdentity(path: String)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
-    uniffi_nym_vpn_lib_fn_func_resetdeviceidentity(
-        FfiConverterString.lower(path),$0
-    )
-}
-}
+/**
+ * Shutdown the library by stopping the account controller and cleaning up any resources.
+ */
 public func shutdown()throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_shutdown($0
     )
 }
 }
+/**
+ * Start the VPN by first establishing that the account is ready to connect, including requesting
+ * zknym credentials, and then starting the VPN state machine.
+ */
 public func startVpn(config: VpnConfig)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_startvpn(
         FfiConverterTypeVPNConfig.lower(config),$0
     )
 }
 }
+/**
+ * Stop the VPN by stopping the VPN state machine.
+ */
 public func stopVpn()throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_stopvpn($0
     )
 }
 }
-public func storeAccountMnemonic(mnemonic: String, path: String)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+/**
+ * Store the account mnemonic
+ */
+public func storeAccountMnemonic(mnemonic: String)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_storeaccountmnemonic(
+        FfiConverterString.lower(mnemonic),$0
+    )
+}
+}
+/**
+ * Store the account mnemonic
+ * This is a version that can be called when the account controller is not running.
+ */
+public func storeAccountMnemonicRaw(mnemonic: String, path: String)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_storeaccountmnemonicraw(
         FfiConverterString.lower(mnemonic),
         FfiConverterString.lower(path),$0
     )
 }
 }
+/**
+ * This manually syncs the account state with the server. Normally this is done automatically, but
+ * this can be used to manually trigger a sync.
+ */
 public func updateAccountState()throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_updateaccountstate($0
     )
@@ -7619,37 +7218,34 @@ private var initializationResult: InitializationResult {
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_configurelib() != 53065) {
+    if (uniffi_nym_vpn_lib_checksum_func_configurelib() != 2570) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_currentenvironment() != 53371) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_fetchaccountlinks() != 56994) {
+    if (uniffi_nym_vpn_lib_checksum_func_forgetaccount() != 45453) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_fetchenvironment() != 14368) {
+    if (uniffi_nym_vpn_lib_checksum_func_forgetaccountraw() != 63705) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_fetchsystemmessages() != 47843) {
+    if (uniffi_nym_vpn_lib_checksum_func_getaccountlinks() != 37969) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_forgetaccount() != 31212) {
+    if (uniffi_nym_vpn_lib_checksum_func_getaccountlinksraw() != 55422) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_getaccountlinks() != 5427) {
+    if (uniffi_nym_vpn_lib_checksum_func_getaccountstate() != 4507) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_getaccountstate() != 12813) {
+    if (uniffi_nym_vpn_lib_checksum_func_getdeviceidentity() != 52430) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_getdeviceidentity() != 40381) {
+    if (uniffi_nym_vpn_lib_checksum_func_getdeviceidentityraw() != 1193) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 34915) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 10827) {
+    if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 28627) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_getsystemmessages() != 3453) {
@@ -7664,31 +7260,31 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_func_initfallbackmainnetenvironment() != 43903) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_initlogger() != 45606) {
+    if (uniffi_nym_vpn_lib_checksum_func_initlogger() != 36058) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_isaccountmnemonicstored() != 32917) {
+    if (uniffi_nym_vpn_lib_checksum_func_isaccountmnemonicstored() != 43744) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_removeaccountmnemonic() != 51019) {
+    if (uniffi_nym_vpn_lib_checksum_func_isaccountmnemonicstoredraw() != 63584) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_resetdeviceidentity() != 48847) {
+    if (uniffi_nym_vpn_lib_checksum_func_shutdown() != 33036) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_shutdown() != 58295) {
+    if (uniffi_nym_vpn_lib_checksum_func_startvpn() != 19253) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_startvpn() != 55890) {
+    if (uniffi_nym_vpn_lib_checksum_func_stopvpn() != 16058) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_stopvpn() != 59823) {
+    if (uniffi_nym_vpn_lib_checksum_func_storeaccountmnemonic() != 9242) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_storeaccountmnemonic() != 55674) {
+    if (uniffi_nym_vpn_lib_checksum_func_storeaccountmnemonicraw() != 51317) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_updateaccountstate() != 33999) {
+    if (uniffi_nym_vpn_lib_checksum_func_updateaccountstate() != 46396) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_waitforaccountreadytoconnect() != 23259) {
@@ -7721,20 +7317,13 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_func_waitforupdatedeviceasync() != 62630) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_method_osdefaultpathobserver_on_default_path_change() != 43452) {
-        return InitializationResult.apiChecksumMismatch
-    }
     if (uniffi_nym_vpn_lib_checksum_method_ostunprovider_set_tunnel_network_settings() != 45546) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_nym_vpn_lib_checksum_method_ostunprovider_set_default_path_observer() != 6896) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_event() != 60728) {
         return InitializationResult.apiChecksumMismatch
     }
 
-    uniffiCallbackInitOSDefaultPathObserver()
     uniffiCallbackInitOSTunProvider()
     uniffiCallbackInitTunnelStatusListener()
     return InitializationResult.ok

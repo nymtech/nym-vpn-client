@@ -112,11 +112,7 @@ public final class ConfigurationManager {
         Task(priority: .background) {
             do {
 #if os(iOS)
-                let links = try fetchAccountLinks(
-                    accountStorePath: credentialsManager.dataFolderURL().path(),
-                    networkName: currentEnv.rawValue,
-                    locale: Locale.current.region?.identifier.lowercased() ?? "en"
-                )
+                let links = try getAccountLinks(locale: Locale.current.region?.identifier.lowercased() ?? "en")
                 Task { @MainActor in
                     accountLinks = AccountLinks(account: links.account, signIn: links.signIn, signUp: links.signUp)
                 }

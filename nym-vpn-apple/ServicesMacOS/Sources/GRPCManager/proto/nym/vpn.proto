@@ -2,7 +2,8 @@ syntax = "proto3";
 
 package nym.vpn;
 
-message Empty {}
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 
 // Represents the identity of a gateway
 message Gateway {
@@ -24,8 +25,8 @@ message EntryNode {
   oneof entry_node_enum {
     Gateway gateway = 1;
     Location location = 2;
-    Empty random_low_latency = 3;
-    Empty random = 4;
+    google.protobuf.Empty random_low_latency = 3;
+    google.protobuf.Empty random = 4;
   }
 }
 
@@ -34,7 +35,7 @@ message ExitNode {
     Address address = 1;
     Gateway gateway = 2;
     Location location = 3;
-    Empty random = 4;
+    google.protobuf.Empty random = 4;
   }
 }
 
@@ -72,7 +73,6 @@ message UserAgent {
   // Example:
   //    nym-vpn-app
   //    nym-vpnd
-  //    nym-vpn-cli
   string application = 1;
   // Format: version[-optional] [(daemon version[-optional])]
   // Example:
@@ -138,8 +138,6 @@ message ValidatorDetails {
   Url api_url = 3;
 }
 
-message InfoRequest {}
-
 message InfoResponse {
   string version = 1;
   google.protobuf.Timestamp build_timestamp = 2;
@@ -181,13 +179,9 @@ message SystemMessage {
   map<string, string> properties = 3;
 }
 
-message GetSystemMessagesRequest {}
-
 message GetSystemMessagesResponse {
   repeated SystemMessage messages = 1;
 }
-
-message GetFeatureFlagsRequest {}
 
 message GetFeatureFlagsResponse {
   map<string, string> flags = 1;
@@ -265,7 +259,6 @@ message ConnectResponse {
   ConnectRequestError error = 2;
 }
 
-message DisconnectRequest {}
 message DisconnectResponse {
   bool success = 1;
 }
@@ -280,8 +273,6 @@ enum ConnectionStatus {
   CONNECTION_FAILED = 6;
 }
 
-import "google/protobuf/timestamp.proto";
-
 message ConnectionDetails {
   Gateway entry_gateway = 1;
   Gateway exit_gateway = 2;
@@ -289,7 +280,6 @@ message ConnectionDetails {
   google.protobuf.Timestamp since = 4;
 }
 
-message StatusRequest {}
 message StatusResponse {
   ConnectionStatus status = 1;
   ConnectionDetails details = 2;
@@ -611,8 +601,6 @@ message StoreAccountResponse {
   AccountError error = 2;
 }
 
-message IsAccountStoredRequest {}
-
 message IsAccountStoredResponse {
   oneof resp {
     bool is_stored = 1;
@@ -620,25 +608,18 @@ message IsAccountStoredResponse {
   }
 }
 
-message RemoveAccountRequest {}
-
-message RemoveAccountResponse {
-  bool success = 1;
-  AccountError error = 2;
-}
-
-message ForgetAccountRequest {}
-
 message ForgetAccountResponse {
   bool success = 1;
   AccountError error = 2;
 }
 
-message GetAccountIdentityRequest {}
+message AccountIdentity {
+  optional string account_identity = 1;
+}
 
 message GetAccountIdentityResponse {
   oneof id {
-    string account_identity = 1;
+    AccountIdentity account_identity = 1;
     AccountError error = 2;
   }
 }
@@ -782,8 +763,6 @@ message AccountStateSummary {
   optional RequestZkNymResult request_zk_nym_result = 7;
 }
 
-message GetAccountStateRequest {}
-
 message GetAccountStateResponse {
   oneof result {
     AccountStateSummary account = 1;
@@ -791,7 +770,6 @@ message GetAccountStateResponse {
   }
 }
 
-message RefreshAccountStateRequest {}
 message RefreshAccountStateResponse {}
 
 message AccountUsages {
@@ -809,26 +787,11 @@ message AccountUsage {
   double bandwidth_used_gb = 8;
 }
 
-message GetAccountUsageRequest {}
 message GetAccountUsageResponse {
   oneof result {
     AccountUsages account_usages = 1;
     AccountError error = 2;
   }
-}
-
-message FetchRawAccountSummaryRequest {}
-
-message FetchRawAccountSummaryResponse {
-  string json = 1;
-  AccountError error = 2;
-}
-
-message FetchRawDevicesRequest {}
-
-message FetchRawDevicesResponse {
-  string json = 1;
-  AccountError error = 2;
 }
 
 message ResetDeviceIdentityRequest {
@@ -841,16 +804,12 @@ message ResetDeviceIdentityResponse {
   AccountError error = 2;
 }
 
-message GetDeviceIdentityRequest {}
-
 message GetDeviceIdentityResponse {
   oneof id {
     string device_identity = 1;
     AccountError error = 2;
   }
 }
-
-message RegisterDeviceRequest {}
 
 message RegisterDeviceResponse {
   string json = 1;
@@ -875,7 +834,6 @@ message Devices {
   repeated Device devices = 1;
 }
 
-message GetDevicesRequest {}
 message GetDevicesResponse {
   oneof result {
     Devices devices = 1;
@@ -883,7 +841,6 @@ message GetDevicesResponse {
   }
 }
 
-message GetActiveDevicesRequest {}
 message GetActiveDevicesResponse {
   oneof result {
     Devices devices = 1;
@@ -891,21 +848,15 @@ message GetActiveDevicesResponse {
   }
 }
 
-message RequestZkNymRequest {}
-
 message RequestZkNymResponse {
   string json = 1;
   AccountError error = 2;
 }
 
-message GetDeviceZkNymsRequest {}
-
 message GetDeviceZkNymsResponse {
   string json = 1;
   AccountError error = 2;
 }
-
-message GetZkNymsAvailableForDownloadRequest {}
 
 message GetZkNymsAvailableForDownloadResponse {
   string json = 1;
@@ -959,16 +910,12 @@ message AvailableTickets {
   string vpn_exit_data_si = 12;
 }
 
-message GetAvailableTicketsRequest {}
-
 message GetAvailableTicketsResponse {
   oneof resp {
     AvailableTickets available_tickets = 1;
     AccountError error = 2;
   }
 }
-
-message IsReadyToConnectRequest {}
 
 message IsReadyToConnectResponse {
   enum IsReadyToConnectResponseType {
@@ -1032,33 +979,33 @@ message AccountError {
 
 service NymVpnd {
   // Get info regarding the nym-vpnd in general, like version etc.
-  rpc Info (InfoRequest) returns (InfoResponse) {}
+  rpc Info (google.protobuf.Empty) returns (InfoResponse) {}
 
   // Set the network. This requires a restart to take effect
   rpc SetNetwork (SetNetworkRequest) returns (SetNetworkResponse) {}
 
   // List messages fetched from nym-vpn-api
-  rpc GetSystemMessages (GetSystemMessagesRequest) returns (GetSystemMessagesResponse) {}
+  rpc GetSystemMessages (google.protobuf.Empty) returns (GetSystemMessagesResponse) {}
 
   // List the feature flags fetched from the nym-vpn-api
-  rpc GetFeatureFlags (GetFeatureFlagsRequest) returns (GetFeatureFlagsResponse) {}
+  rpc GetFeatureFlags (google.protobuf.Empty) returns (GetFeatureFlagsResponse) {}
 
   // Start the tunnel and connect
   rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
 
   // Disconnect and stop the tunnel
-  rpc VpnDisconnect (DisconnectRequest) returns (DisconnectResponse) {}
+  rpc VpnDisconnect (google.protobuf.Empty) returns (DisconnectResponse) {}
 
   // Get the current tunnel and connection status
-  rpc VpnStatus (StatusRequest) returns (StatusResponse) {}
+  rpc VpnStatus (google.protobuf.Empty) returns (StatusResponse) {}
 
   // Listen for events that indicate that the connection state changes, such as
   // from Connecting -> Connected
-  rpc ListenToConnectionStateChanges (Empty) returns (stream ConnectionStateChange) {}
+  rpc ListenToConnectionStateChanges (google.protobuf.Empty) returns (stream ConnectionStateChange) {}
 
   // Listen for general status evens emitted by nym-vpnd, which in turn might
   // originate from elsewhere such as remote gateways.
-  rpc ListenToConnectionStatus (Empty) returns (stream ConnectionStatusUpdate) {}
+  rpc ListenToConnectionStatus (google.protobuf.Empty) returns (stream ConnectionStatusUpdate) {}
 
   // List the available gateways for the selected mode
   rpc ListGateways (ListGatewaysRequest) returns (ListGatewaysResponse) {}
@@ -1074,58 +1021,55 @@ service NymVpnd {
   rpc StoreAccount (StoreAccountRequest) returns (StoreAccountResponse) {}
 
   // Check if the recovery phrase is stored
-  rpc IsAccountStored (IsAccountStoredRequest) returns (IsAccountStoredResponse) {}
-
-  // Remove the recovery phrase from local storage
-  rpc RemoveAccount (RemoveAccountRequest) returns (RemoveAccountResponse) {}
+  rpc IsAccountStored (google.protobuf.Empty) returns (IsAccountStoredResponse) {}
 
   // Removes everything related to the account, including the device identity,
   // credential storage, mixnet keys, gateway registrations.
-  rpc ForgetAccount (ForgetAccountRequest) returns (ForgetAccountResponse) {}
+  rpc ForgetAccount (google.protobuf.Empty) returns (ForgetAccountResponse) {}
 
   // Get the account identity of the locally stored recovery phrase
-  rpc GetAccountIdentity (GetAccountIdentityRequest) returns (GetAccountIdentityResponse) {}
+  rpc GetAccountIdentity (google.protobuf.Empty) returns (GetAccountIdentityResponse) {}
 
   // Get the set of account links for the user
   rpc GetAccountLinks (GetAccountLinksRequest) returns (GetAccountLinksResponse) {}
 
   // Query the account state, which is synced from the nym-vpn-api account, as it
   // is known and interpreted by nym-vpnd
-  rpc GetAccountState (GetAccountStateRequest) returns (GetAccountStateResponse) {}
+  rpc GetAccountState (google.protobuf.Empty) returns (GetAccountStateResponse) {}
 
   // The vpn client will periodically refresh the account state in the
   // background. This command triggers a manual refresh.
-  rpc RefreshAccountState (RefreshAccountStateRequest) returns (RefreshAccountStateResponse) {}
+  rpc RefreshAccountState (google.protobuf.Empty) returns (RefreshAccountStateResponse) {}
 
   // Get the account usage from the nym-vpn-api
-  rpc GetAccountUsage (GetAccountUsageRequest) returns (GetAccountUsageResponse) {}
+  rpc GetAccountUsage (google.protobuf.Empty) returns (GetAccountUsageResponse) {}
 
   // Check if the local account state is ready to connect
-  rpc IsReadyToConnect (IsReadyToConnectRequest) returns (IsReadyToConnectResponse) {}
+  rpc IsReadyToConnect (google.protobuf.Empty) returns (IsReadyToConnectResponse) {}
 
   // Reset the device identity
   rpc ResetDeviceIdentity (ResetDeviceIdentityRequest) returns (ResetDeviceIdentityResponse) {}
 
   // Get the device identity
-  rpc GetDeviceIdentity (GetDeviceIdentityRequest) returns (GetDeviceIdentityResponse) {}
+  rpc GetDeviceIdentity (google.protobuf.Empty) returns (GetDeviceIdentityResponse) {}
 
   // Try to register the local device with the nym-vpn-api
-  rpc RegisterDevice (RegisterDeviceRequest) returns (RegisterDeviceResponse) {}
+  rpc RegisterDevice (google.protobuf.Empty) returns (RegisterDeviceResponse) {}
 
   // Get the list of devices associated with this account from the nym-vpn-api
-  rpc GetDevices (GetDevicesRequest) returns (GetDevicesResponse) {}
+  rpc GetDevices (google.protobuf.Empty) returns (GetDevicesResponse) {}
 
   // Get the list of active devices associated with this account from the nym-vpn-api
-  rpc GetActiveDevices (GetActiveDevicesRequest) returns (GetActiveDevicesResponse) {}
+  rpc GetActiveDevices (google.protobuf.Empty) returns (GetActiveDevicesResponse) {}
 
   // Request new zk-nyms (ticketbooks) from the nym-vpn-api
-  rpc RequestZkNym (RequestZkNymRequest) returns (RequestZkNymResponse) {}
+  rpc RequestZkNym (google.protobuf.Empty) returns (RequestZkNymResponse) {}
 
   // List the zk-nyms associated with this device from the nym-vpn-api
-  rpc GetDeviceZkNyms (GetDeviceZkNymsRequest) returns (GetDeviceZkNymsResponse) {}
+  rpc GetDeviceZkNyms (google.protobuf.Empty) returns (GetDeviceZkNymsResponse) {}
 
   // List the zk-nyms available for download from the nym-vpn-api
-  rpc GetZkNymsAvailableForDownload (GetZkNymsAvailableForDownloadRequest) returns (GetZkNymsAvailableForDownloadResponse) {}
+  rpc GetZkNymsAvailableForDownload (google.protobuf.Empty) returns (GetZkNymsAvailableForDownloadResponse) {}
 
   // Get a zk-nym by its id from the nym-vpn-api
   rpc GetZkNymById (GetZkNymByIdRequest) returns (GetZkNymByIdResponse) {}
@@ -1134,15 +1078,6 @@ service NymVpnd {
   rpc ConfirmZkNymDownloaded (ConfirmZkNymDownloadedRequest) returns (ConfirmZkNymDownloadedResponse) {}
 
   // Get the available tickets in the local credential store
-  rpc GetAvailableTickets (GetAvailableTicketsRequest) returns (GetAvailableTicketsResponse) {}
-
-  // -- Delegated remote calls --
-  // These query the remote nym-vpn-api state directly
-
-  // Get the server side account summary directly from the nym-vpn-api
-  rpc FetchRawAccountSummary (FetchRawAccountSummaryRequest) returns (FetchRawAccountSummaryResponse) {}
-
-  // Get the list of devices directly from the nym-vpn-api
-  rpc FetchRawDevices (FetchRawDevicesRequest) returns (FetchRawDevicesResponse) {}
+  rpc GetAvailableTickets (google.protobuf.Empty) returns (GetAvailableTicketsResponse) {}
 }
 

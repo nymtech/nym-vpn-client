@@ -70,7 +70,7 @@ public final class GRPCManager: ObservableObject {
     public func version() async throws {
         logger.log(level: .info, "Version")
         return try await withCheckedThrowingContinuation { continuation in
-            let call = client.info(Nym_Vpn_InfoRequest(), callOptions: CallOptions(timeLimit: .timeout(.seconds(5))))
+            let call = client.info(Google_Protobuf_Empty(), callOptions: CallOptions(timeLimit: .timeout(.seconds(5))))
 
             call.response.whenComplete { [weak self] result in
                 switch result {
@@ -89,8 +89,7 @@ public final class GRPCManager: ObservableObject {
 
     public func status() {
         logger.log(level: .info, "Status")
-        let request = Nym_Vpn_StatusRequest()
-        let call = client.vpnStatus(request)
+        let call = client.vpnStatus(Google_Protobuf_Empty())
 
         call.response.whenComplete { [weak self] result in
             switch result {
@@ -109,8 +108,7 @@ public final class GRPCManager: ObservableObject {
     public func isReadyToConnect() {
         logger.log(level: .info, "isReadyToConnect")
 
-        let request = Nym_Vpn_IsReadyToConnectRequest()
-        let call = client.isReadyToConnect(request)
+        let call = client.isReadyToConnect(Google_Protobuf_Empty())
         call.response.whenComplete { [weak self] result in
             switch result {
             case .success(let response):
@@ -125,9 +123,8 @@ public final class GRPCManager: ObservableObject {
 
     public func disconnect() {
         logger.log(level: .info, "Disconnecting")
-        let request = Nym_Vpn_DisconnectRequest()
 
-        let call = client.vpnDisconnect(request)
+        let call = client.vpnDisconnect(Google_Protobuf_Empty())
 
         call.response.whenComplete { result in
             switch result {
@@ -234,7 +231,7 @@ public final class GRPCManager: ObservableObject {
 // MARK: - Private -
 private extension GRPCManager {
     func setupListenToConnectionStateObserver() {
-        let call = client.listenToConnectionStateChanges(Nym_Vpn_Empty()) { [weak self] connectionStateChange in
+        let call = client.listenToConnectionStateChanges(Google_Protobuf_Empty()) { [weak self] connectionStateChange in
             guard let self else { return }
 
             updateTunnelStatus(with: connectionStateChange.status)
@@ -260,7 +257,7 @@ private extension GRPCManager {
     }
 
     func setupListenToConnectionStatusObserver() {
-        let call = client.listenToConnectionStatus(Nym_Vpn_Empty()) { connectionStatusUpdate in
+        let call = client.listenToConnectionStatus(Google_Protobuf_Empty()) { connectionStatusUpdate in
             // TODO:
             print("DO ME 2 \(connectionStatusUpdate)")
         }

@@ -42,7 +42,8 @@ public final class CredentialsManager {
                 if !FileManager.default.fileExists(atPath: dataFolderURL.path()) {
                     try FileManager.default.createDirectory(at: dataFolderURL, withIntermediateDirectories: true)
                 }
-                try storeAccountMnemonic(mnemonic: credential, path: dataFolderURL.path())
+
+                try storeAccountMnemonicRaw(mnemonic: credential, path: dataFolderURL.path())
 #elseif os(macOS)
                 try? await helperInstallManager.installIfNeeded()
                 try await grpcManager.storeAccount(with: credential)
@@ -66,7 +67,7 @@ public final class CredentialsManager {
         do {
 #if os(iOS)
             let dataFolderURL = try dataFolderURL()
-            try forgetAccount(path: dataFolderURL.path())
+            try forgetAccountRaw(path: dataFolderURL.path())
 #endif
 
 #if os(macOS)
@@ -129,7 +130,7 @@ private extension CredentialsManager {
                 let isImported: Bool
 #if os(iOS)
                 let dataFolderURL = try dataFolderURL()
-                isImported = try isAccountMnemonicStored(path: dataFolderURL.path())
+                isImported = try isAccountMnemonicStoredRaw(path: dataFolderURL.path())
 #elseif os(macOS)
                 isImported = try await grpcManager.isAccountStored()
 #endif
@@ -154,7 +155,7 @@ private extension CredentialsManager {
         Task(priority: .background) {
 #if os(iOS)
             let dataFolderURL = try dataFolderURL()
-            deviceIdentifier = try? getDeviceIdentity(path: dataFolderURL.path())
+            deviceIdentifier = try? getDeviceIdentityRaw(path: dataFolderURL.path())
 #elseif os(macOS)
             deviceIdentifier = try? await grpcManager.deviceIdentifier()
 #endif
