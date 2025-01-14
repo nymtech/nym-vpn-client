@@ -26,10 +26,11 @@ pub struct MonitorHandle {
 }
 
 /// A non-local IPv4 address.
-const PUBLIC_INTERNET_ADDRESS_V4: IpAddr = IpAddr::V4(Ipv4Addr::new(193, 138, 218, 78));
+const PUBLIC_INTERNET_ADDRESS_V4: IpAddr = IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1));
 /// A non-local IPv6 address.
-const PUBLIC_INTERNET_ADDRESS_V6: IpAddr =
-    IpAddr::V6(Ipv6Addr::new(0x2001, 0xdb8, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6));
+const PUBLIC_INTERNET_ADDRESS_V6: IpAddr = IpAddr::V6(Ipv6Addr::new(
+    0x2606, 0x4700, 0x4700, 0x0, 0x0, 0x0, 0x0, 0x1111,
+));
 
 impl MonitorHandle {
     pub async fn connectivity(&self) -> Connectivity {
