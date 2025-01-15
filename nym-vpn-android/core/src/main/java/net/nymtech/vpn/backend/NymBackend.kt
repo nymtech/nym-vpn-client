@@ -44,6 +44,7 @@ import nym_vpn_lib.VpnException
 import nym_vpn_lib.forgetAccount
 import nym_vpn_lib.initEnvironment
 import nym_vpn_lib.initFallbackMainnetEnvironment
+import nym_vpn_lib.initLogger
 import nym_vpn_lib.isAccountMnemonicStored
 import nym_vpn_lib.startVpn
 import nym_vpn_lib.stopVpn
@@ -99,6 +100,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	override suspend fun init(environment: Tunnel.Environment, credentialMode: Boolean?) {
 		return withContext(ioDispatcher) {
 			runCatching {
+				initLogger(null)
 				initEnvironment(environment)
 				nym_vpn_lib.configureLib(storagePath, credentialMode)
 				initialized.set(true)
