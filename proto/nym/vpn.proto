@@ -704,6 +704,8 @@ message RequestZkNymResult {
     IN_PROGRESS = 1;
     SUCCESS = 2;
     FAILED = 3;
+    DONE = 4;
+    ERROR = 5;
   }
 
   RequestZkNymResultType kind = 1;
@@ -725,8 +727,14 @@ message RequestZkNymError {
     // General error
     GENERAL = 2;
 
+    CREATE_ECASH_KEY_PAIR = 9;
+
+    CONSTRUCT_WITHDRAWAL_REQUEST = 10;
+
     // Error returned from the nym-vpn-api endpoint
     REQUEST_ZK_NYM_ENDPOINT_FAILURE = 3;
+
+    INVALID_TICKET_TYPE_IN_RESPONSE = 11;
 
     // Error returned from the nym-vpn-api polling endpoint
     POLL_ZK_NYM_ENDPOINT_FAILURE = 4;
@@ -741,8 +749,28 @@ message RequestZkNymError {
     // with the result.
     FINISHED_WITH_ERROR = 7;
 
+    MISSING_BLINDED_SHARES = 12;
+
+    RESPONSE_HAS_INVALID_MASTER_VERIFICATION_KEY = 13;
+
+    NO_MASTER_VERIFICATION_KEY_IN_STORAGE = 14;
+
+    INVALID_VERIFICATION_KEY = 15;
+
+    DESERIALIZE_BLINDED_SIGNATURE = 16;
+
+    DECODED_KEYS_MISSING_INDEX = 17;
+
     // Failed to import the ticketbook into local storage
     IMPORT = 8;
+
+    AGGREGATE_WALLETS = 18;
+
+    CONFIRM_ZK_NYM_DOWNLOAD_ENDPOINT_FAILURE = 19;
+
+    CREDENTIAL_STORAGE = 20;
+
+    MISSING_PENDING_REQUEST = 21;
   }
 
   RequestZkNymErrorType kind = 1;

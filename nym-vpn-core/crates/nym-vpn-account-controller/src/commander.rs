@@ -6,7 +6,9 @@ use nym_vpn_store::mnemonic::Mnemonic;
 use tokio::sync::mpsc::UnboundedSender;
 
 use crate::{
-    commands::{AccountCommand, AccountCommandError, RequestZkNymSuccessSummary, ReturnSender},
+    commands::{
+        request_zknym::RequestZkNymSummary, AccountCommand, AccountCommandError, ReturnSender,
+    },
     error::Error,
     shared_state::{AccountRegistered, DeviceState, SharedAccountState},
     AvailableTicketbooks,
@@ -110,7 +112,7 @@ impl AccountControllerCommander {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
-    pub async fn request_zk_nyms(&self) -> Result<RequestZkNymSuccessSummary, AccountCommandError> {
+    pub async fn request_zk_nyms(&self) -> Result<RequestZkNymSummary, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::RequestZkNym(Some(tx)))

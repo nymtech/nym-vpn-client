@@ -723,6 +723,8 @@ where
     }
 
     async fn handle_command_result(&self, result: Result<AccountCommandResult, JoinError>) {
+        // WIP: this can be a problem. We need to remove the commands from the running_commands for
+        // this error case
         let Ok(result) = result else {
             tracing::error!("Joining task failed: {:#?}", result);
             return;

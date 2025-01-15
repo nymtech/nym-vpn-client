@@ -3,6 +3,7 @@
 
 use std::{
     collections::HashMap,
+    str::FromStr,
     sync::{
         atomic::{AtomicU32, Ordering},
         Arc,
@@ -10,10 +11,10 @@ use std::{
     time::{Duration, Instant},
 };
 
-use futures::StreamExt;
 use nym_compact_ecash::{Base58, BlindedSignature, VerificationKeyAuth, WithdrawalRequest};
 use nym_credential_proxy_requests::api::v1::ticketbook::models::{
-    PartialVerificationKeysResponse, TicketbookWalletSharesResponse,
+    AggregatedCoinIndicesSignaturesResponse, AggregatedExpirationDateSignaturesResponse,
+    MasterVerificationKeyResponse, PartialVerificationKeysResponse, TicketbookWalletSharesResponse,
 };
 use nym_credentials::{EpochVerificationKey, IssuedTicketBook};
 use nym_credentials_interface::{PublicKeyUser, RequestInfo, TicketType};
@@ -28,8 +29,11 @@ use time::Date;
 use tokio::task::JoinSet;
 
 use crate::{
-    commands::VpnApiEndpointFailure, error::Error, shared_state::RequestZkNymResult,
-    storage::VpnCredentialStorage, SharedAccountState,
+    commands::VpnApiEndpointFailure,
+    error::Error,
+    shared_state::RequestZkNymResult,
+    storage::{PendingCredentialRequestStored, VpnCredentialStorage},
+    SharedAccountState,
 };
 
 use super::{AccountCommandError, AccountCommandResult};
@@ -38,16 +42,48 @@ use super::{AccountCommandError, AccountCommandResult};
 // refresh
 const ZK_NYM_MAX_FAILS: u32 = 10;
 
+#[derive(Clone, Default)]
+struct CachedData {
+    partial_verification_keys:
+        Arc<tokio::sync::Mutex<HashMap<u64, PartialVerificationKeysResponse>>>,
+}
+
+impl CachedData {
+    async fn get_partial_verification_keys(
+        &self,
+        epoch_id: u64,
+        vpn_api_client: &VpnApiClient,
+    ) -> Result<PartialVerificationKeysResponse, Error> {
+        // Get the partial verification keys for the given epoch if they exist in the cache.
+        // Otherwise fetch it from the API, store it and then return it
+        let mut partial_verification_keys = self.partial_verification_keys.lock().await;
+        if let Some(issuers) = partial_verification_keys.get(&epoch_id) {
+            Ok(issuers.clone())
+        } else {
+            let issuers = vpn_api_client
+                .get_directory_zk_nyms_ticketbook_partial_verification_keys()
+                .await
+                .map_err(Error::GetZkNyms)?;
+
+            if issuers.epoch_id != epoch_id {
+                return Err(Error::InconsistentEpochId);
+            }
+
+            partial_verification_keys.insert(epoch_id, issuers.clone());
+            Ok(issuers)
+        }
+    }
+}
+
 pub(crate) struct WaitingRequestZkNymCommandHandler {
     credential_storage: VpnCredentialStorage,
     account_state: SharedAccountState,
     vpn_api_client: VpnApiClient,
     zk_nym_fails_in_a_row: Arc<AtomicU32>,
 
-    // Cache the partial verification keys to avoid fetching them multiple times, as
-    // long as we have them for the correct epoch
-    partial_verification_keys:
-        Arc<tokio::sync::Mutex<HashMap<u64, PartialVerificationKeysResponse>>>,
+    // Cache some of the data used to import zk-nyms between requests, to speed things up. Consider
+    // persisting this to storage
+    cached_data: CachedData,
 }
 
 impl WaitingRequestZkNymCommandHandler {
@@ -61,7 +97,7 @@ impl WaitingRequestZkNymCommandHandler {
             account_state,
             vpn_api_client,
             zk_nym_fails_in_a_row: Default::default(),
-            partial_verification_keys: Default::default(),
+            cached_data: Default::default(),
         }
     }
 
@@ -80,7 +116,7 @@ impl WaitingRequestZkNymCommandHandler {
             account_state: self.account_state.clone(),
             vpn_api_client: self.vpn_api_client.clone(),
             zk_nym_fails_in_a_row: self.zk_nym_fails_in_a_row.clone(),
-            partial_verification_keys: self.partial_verification_keys.clone(),
+            cached_data: self.cached_data.clone(),
         }
     }
 
@@ -102,8 +138,7 @@ pub(crate) struct RequestZkNymCommandHandler {
     vpn_api_client: VpnApiClient,
 
     zk_nym_fails_in_a_row: Arc<AtomicU32>,
-    partial_verification_keys:
-        Arc<tokio::sync::Mutex<HashMap<u64, PartialVerificationKeysResponse>>>,
+    cached_data: CachedData,
 }
 
 impl RequestZkNymCommandHandler {
@@ -112,7 +147,102 @@ impl RequestZkNymCommandHandler {
     }
 
     pub(crate) async fn run(self) -> AccountCommandResult {
-        AccountCommandResult::RequestZkNym(self.request_zk_nym().await)
+        AccountCommandResult::RequestZkNym(self.request_zk_nym_outer().await)
+    }
+
+    //#[tracing::instrument(
+    //    skip(self),
+    //    fields(id = %self.id_str()),
+    //    ret,
+    //    err,
+    //)]
+    //async fn request_zk_nym(mut self) -> Result<RequestZkNymSuccessSummary, AccountCommandError> {
+    //    tracing::debug!("Running zk-nym request command handler: {}", self.id);
+    //
+    //    // Defensive check for something that should not be possible
+    //    if let Some(RequestZkNymResult::InProgress) =
+    //        self.account_state.lock().await.request_zk_nym_result
+    //    {
+    //        return Err(AccountCommandError::internal(
+    //            "duplicate zk-nym request command",
+    //        ));
+    //    }
+    //    let ticket_types = self.check_ticket_types_running_low().await?;
+    //    tracing::debug!("Ticket types running low: {:?}", ticket_types);
+    //
+    //    self.account_state
+    //        .set_zk_nym_request(RequestZkNymResult::InProgress)
+    //        .await;
+    //
+    //    // If we have pending tickets, try those first
+    //    let pending_requests = self
+    //        .credential_storage
+    //        .pending_requests
+    //        .get_pending_requests()
+    //        .await
+    //        .unwrap();
+    //    if !pending_requests.is_empty() {
+    //        tracing::info!(
+    //            "NOT IMPLEMENTED: Resuming {} zk-nym requests",
+    //            pending_requests.len()
+    //        );
+    //        // self.resume_request_zk_nym_inner(pending_requests).await
+    //    }
+    //
+    //    match self.request_zk_nym_inner(ticket_types).await {
+    //        Ok(success_summary) => {
+    //            self.account_state
+    //                .set_zk_nym_request(RequestZkNymResult::from(success_summary.clone()))
+    //                .await;
+    //            Ok(success_summary)
+    //        }
+    //        Err(error_summary) => {
+    //            self.account_state
+    //                .set_zk_nym_request(RequestZkNymResult::from(error_summary.clone()))
+    //                .await;
+    //            tracing::warn!(
+    //                "We have reached {} zk-nym fails in a row",
+    //                self.zk_nym_fails_in_a_row.load(Ordering::Relaxed),
+    //            );
+    //            Err(AccountCommandError::from(error_summary))
+    //        }
+    //    }
+    //}
+
+    #[tracing::instrument(
+        skip(self),
+        fields(id = %self.id_str()),
+        ret,
+        err,
+    )]
+    async fn request_zk_nym_outer(self) -> Result<RequestZkNymSummary, AccountCommandError> {
+        tracing::debug!("Running zk-nym request command handler: {}", self.id);
+
+        // Defensive check for something that should not be possible
+        if self.account_state.is_zk_nym_request_in_progress().await {
+            return Err(AccountCommandError::internal(
+                "duplicate zk-nym request command",
+            ));
+        }
+
+        self.account_state
+            .set_zk_nym_request(RequestZkNymResult::InProgress)
+            .await;
+
+        match self.request_zk_nym().await {
+            Ok(success) => {
+                self.account_state
+                    .set_zk_nym_request(RequestZkNymResult::from(success.clone()))
+                    .await;
+                Ok(success)
+            }
+            Err(err) => {
+                self.account_state
+                    .set_zk_nym_request(RequestZkNymResult::from(err.clone()))
+                    .await;
+                Err(AccountCommandError::from(err))
+            }
+        }
     }
 
     #[tracing::instrument(
@@ -121,344 +251,438 @@ impl RequestZkNymCommandHandler {
         ret,
         err,
     )]
-    async fn request_zk_nym(mut self) -> Result<RequestZkNymSuccessSummary, AccountCommandError> {
+    async fn request_zk_nym(&self) -> Result<RequestZkNymSummary, RequestZkNymError> {
         tracing::debug!("Running zk-nym request command handler: {}", self.id);
 
-        // Defensive check for something that should not be possible
-        if let Some(RequestZkNymResult::InProgress) =
-            self.account_state.lock().await.request_zk_nym_result
-        {
-            return Err(AccountCommandError::internal(
-                "duplicate zk-nym request command",
-            ));
-        }
+        // If we have pending tickets, try those first
+        let pending_requests = self
+            .credential_storage
+            .get_pending_requests()
+            .await
+            .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
+
+        let resumed_requests = if !pending_requests.is_empty() {
+            tracing::info!("Resuming {} zk-nym requests", pending_requests.len());
+            self.resume_request_zk_nym_inner2(pending_requests).await
+        } else {
+            Vec::new()
+        };
+
         let ticket_types = self.check_ticket_types_running_low().await?;
         tracing::debug!("Ticket types running low: {:?}", ticket_types);
 
-        self.account_state
-            .set_zk_nym_request(RequestZkNymResult::InProgress)
-            .await;
+        let new_requests = self.request_zk_nym_inner2(ticket_types).await;
 
-        match self.request_zk_nym_inner(ticket_types).await {
-            Ok(success_summary) => {
-                self.account_state
-                    .set_zk_nym_request(RequestZkNymResult::from(success_summary.clone()))
-                    .await;
-                Ok(success_summary)
-            }
-            Err(error_summary) => {
-                self.account_state
-                    .set_zk_nym_request(RequestZkNymResult::from(error_summary.clone()))
-                    .await;
-                tracing::warn!(
-                    "We have reached {} zk-nym fails in a row",
-                    self.zk_nym_fails_in_a_row.load(Ordering::Relaxed),
-                );
-                Err(AccountCommandError::from(error_summary))
-            }
+        let zk_nym_fails_in_a_row = self.zk_nym_fails_in_a_row.load(Ordering::Relaxed);
+        if zk_nym_fails_in_a_row > 0 {
+            tracing::warn!("We have reached {zk_nym_fails_in_a_row} zk-nym fails in a row",);
         }
+
+        let result = resumed_requests
+            .into_iter()
+            .chain(new_requests.into_iter())
+            .collect();
+
+        Ok(result)
     }
 
-    async fn check_ticket_types_running_low(&self) -> Result<Vec<TicketType>, AccountCommandError> {
-        self.credential_storage
-            .check_ticket_types_running_low()
-            .await
-            .map_err(AccountCommandError::general)
+    async fn check_ticket_types_running_low(&self) -> Result<Vec<TicketType>, RequestZkNymError> {
+        Ok(vec![TicketType::V1MixnetEntry])
+        //self.credential_storage
+        //    .check_ticket_types_running_low()
+        //    .await
+        //    .map_err(AccountCommandError::general)
     }
 
-    async fn request_zk_nym_inner(
-        &mut self,
+    //async fn request_zk_nym_inner(
+    //    &mut self,
+    //    ticket_types: Vec<TicketType>,
+    //) -> Result<RequestZkNymSuccessSummary, RequestZkNymErrorSummary> {
+    //    tracing::info!("Checking which ticket types are running low");
+    //    if ticket_types.is_empty() {
+    //        tracing::info!("No ticket types needed, skipping zk-nym request");
+    //        return Ok(RequestZkNymSuccessSummary::NoneNeeded);
+    //    }
+    //    tracing::info!("Ticket types needed: {:?}", ticket_types);
+    //    let num_ticket_types = ticket_types.len();
+    //
+    //    // Request zk-nyms for each ticket type that we need
+    //    let responses = futures::stream::iter(ticket_types)
+    //        .filter_map(|ticket_type| {
+    //            let account = self.account.clone();
+    //            async move { construct_zk_nym_request_data(&account, ticket_type).ok() }
+    //        })
+    //        .map(|request| {
+    //            let account = self.account.clone();
+    //            let device = self.device.clone();
+    //            let vpn_api_client = self.vpn_api_client.clone();
+    //            async move { request_zk_nym(request, &account, &device, &vpn_api_client).await }
+    //        })
+    //        .buffer_unordered(num_ticket_types)
+    //        .collect::<Vec<_>>()
+    //        .await;
+    //
+    //    // Spawn polling tasks for each zk-nym request to monitor the outcome
+    //    let (zk_nym_polling_tasks, mut request_zk_nym_errors) =
+    //        self.handle_request_zk_nym_responses(responses).await;
+    //
+    //    // Wait for the polling tasks to finish
+    //    let zk_nym_successes = self
+    //        .wait_for_polling_tasks(zk_nym_polling_tasks, &mut request_zk_nym_errors)
+    //        .await;
+    //
+    //    if request_zk_nym_errors.is_empty() {
+    //        tracing::info!("zk-nym request command handler finished: {}", self.id);
+    //        Ok(RequestZkNymSuccessSummary::All(zk_nym_successes))
+    //    } else {
+    //        tracing::warn!(
+    //            "zk-nym request command handler finished with errors: {}",
+    //            self.id
+    //        );
+    //        Err(RequestZkNymErrorSummary {
+    //            successes: zk_nym_successes,
+    //            failed: request_zk_nym_errors,
+    //        })
+    //    }
+    //}
+
+    async fn request_zk_nym_inner2(
+        &self,
         ticket_types: Vec<TicketType>,
-    ) -> Result<RequestZkNymSuccessSummary, RequestZkNymErrorSummary> {
-        tracing::info!("Checking which ticket types are running low");
-        if ticket_types.is_empty() {
-            tracing::info!("No ticket types needed, skipping zk-nym request");
-            return Ok(RequestZkNymSuccessSummary::NoneNeeded);
+    ) -> Vec<Result<RequestZkNymSuccess, RequestZkNymError>> {
+        tracing::info!("Requesting zk-nym ticketbooks for: {:?}", ticket_types);
+
+        let account = self.account.clone();
+        let device = self.device.clone();
+        let vpn_api_client = self.vpn_api_client.clone();
+        let credential_storage = self.credential_storage.clone();
+        let cached_data = self.cached_data.clone();
+
+        let mut join_set = JoinSet::new();
+        for ticket_type in ticket_types {
+            join_set.spawn(request_zk_nym_single(
+                ticket_type,
+                account.clone(),
+                device.clone(),
+                vpn_api_client.clone(),
+                credential_storage.clone(),
+                cached_data.clone(),
+            ));
         }
-        tracing::info!("Ticket types needed: {:?}", ticket_types);
-        let num_ticket_types = ticket_types.len();
-
-        // Request zk-nyms for each ticket type that we need
-        let responses = futures::stream::iter(ticket_types)
-            .filter_map(|ticket_type| {
-                let account = self.account.clone();
-                async move { construct_zk_nym_request_data(&account, ticket_type).ok() }
-            })
-            .map(|request| {
-                let account = self.account.clone();
-                let device = self.device.clone();
-                let vpn_api_client = self.vpn_api_client.clone();
-                async move { request_zk_nym(request, &account, &device, &vpn_api_client).await }
-            })
-            .buffer_unordered(num_ticket_types)
-            .collect::<Vec<_>>()
-            .await;
-
-        // Spawn polling tasks for each zk-nym request to monitor the outcome
-        let (zk_nym_polling_tasks, mut request_zk_nym_errors) =
-            self.handle_request_zk_nym_responses(responses).await;
-
-        // Wait for the polling tasks to finish
-        let zk_nym_successes = self
-            .wait_for_polling_tasks(zk_nym_polling_tasks, &mut request_zk_nym_errors)
-            .await;
-
-        if request_zk_nym_errors.is_empty() {
-            tracing::info!("zk-nym request command handler finished: {}", self.id);
-            Ok(RequestZkNymSuccessSummary::All(zk_nym_successes))
-        } else {
-            tracing::warn!(
-                "zk-nym request command handler finished with errors: {}",
-                self.id
-            );
-            Err(RequestZkNymErrorSummary {
-                successes: zk_nym_successes,
-                failed: request_zk_nym_errors,
-            })
-        }
+        join_set.join_all().await
     }
 
-    async fn handle_request_zk_nym_responses(
+    async fn resume_request_zk_nym_inner2(
         &self,
-        responses: Vec<(ZkNymRequestData, Result<NymVpnZkNymPost, Error>)>,
-    ) -> (
-        JoinSet<Result<PollingResult, RequestZkNymError>>,
-        Vec<RequestZkNymError>,
-    ) {
-        let mut request_zk_nym_errors = Vec::new();
-        let mut zk_nym_polling_tasks = JoinSet::new();
-        for (request, response) in responses {
-            match response {
-                Ok(response) => {
-                    zk_nym_polling_tasks.spawn(poll_zk_nym(
-                        request,
-                        response,
-                        self.account.clone(),
-                        self.device.clone(),
-                        self.vpn_api_client.clone(),
-                    ));
-                }
-                Err(err) => {
-                    tracing::debug!("Failed to request zk-nym: {:#?}", err);
-                    let err = nym_vpn_api_client::response::extract_error_response(&err)
-                        .map(|e| {
-                            tracing::warn!(message = %e.message, message_id=?e.message_id, code_reference_id=?e.code_reference_id, "nym-vpn-api reports");
-                            RequestZkNymError::RequestZkNymEndpointFailure {
-                                endpoint_failure: VpnApiEndpointFailure {
-                                    message_id: e.message_id.clone(),
-                                    message: e.message.clone(),
-                                    code_reference_id: e.code_reference_id.clone(),
-                                },
-                                ticket_type: request.ticketbook_type.to_string(),
-                            }
-                        })
-                        .unwrap_or_else(|| RequestZkNymError::internal(err));
-                    self.zk_nym_fails_in_a_row.fetch_add(1, Ordering::Relaxed);
-                    request_zk_nym_errors.push(err);
-                }
-            }
+        pending_requests: Vec<PendingCredentialRequestStored>,
+    ) -> Vec<Result<RequestZkNymSuccess, RequestZkNymError>> {
+        tracing::info!("Resuming {} zk-nym requests", pending_requests.len());
+
+        let account = self.account.clone();
+        let device = self.device.clone();
+        let vpn_api_client = self.vpn_api_client.clone();
+        let credential_storage = self.credential_storage.clone();
+        let cached_data = self.cached_data.clone();
+
+        let mut join_set = JoinSet::new();
+        for pending_request in pending_requests {
+            join_set.spawn(resume_request_zk_nym_single(
+                pending_request.id.clone(),
+                account.clone(),
+                device.clone(),
+                vpn_api_client.clone(),
+                credential_storage.clone(),
+                cached_data.clone(),
+            ));
         }
-        (zk_nym_polling_tasks, request_zk_nym_errors)
+        join_set.join_all().await
     }
 
-    async fn wait_for_polling_tasks(
-        &mut self,
-        mut zk_nym_polling_tasks: JoinSet<Result<PollingResult, RequestZkNymError>>,
-        request_zk_nym_errors: &mut Vec<RequestZkNymError>,
-    ) -> Vec<RequestZkNymSuccess> {
-        let mut zk_nym_successes = Vec::new();
-        while let Some(polling_result) = zk_nym_polling_tasks.join_next().await {
-            let result = match polling_result {
-                Ok(result) => result,
-                Err(err) => {
-                    tracing::error!("Failed to join zk-nym polling task: {:#?}", err);
-                    request_zk_nym_errors.push(RequestZkNymError::PollingTaskError);
-                    continue;
-                }
-            };
-
-            match result {
-                Ok(PollingResult::Finished(
-                    response,
-                    ticketbook_type,
-                    request_info,
-                    request_data,
-                )) => {
-                    if response.status == NymVpnZkNymStatus::Active {
-                        tracing::info!(
-                            "Polling finished succesfully, importing ticketbook: {}",
-                            response.id
-                        );
-                        let id = response.id.clone();
-                        match self
-                            .import_zk_nym(response, ticketbook_type, *request_info, *request_data)
-                            .await
-                        {
-                            Ok(_) => {
-                                tracing::info!("Successfully imported zk-nym: {}", id);
-                                self.zk_nym_fails_in_a_row.store(0, Ordering::Relaxed);
-                                zk_nym_successes.push(RequestZkNymSuccess::new(id.clone()));
-                                if let Err(err) = self.confirm_zk_nym_downloaded(&id).await {
-                                    tracing::warn!("Failed to confirm zk-nym downloaded: {err:?}");
-                                }
-                            }
-                            Err(err) => {
-                                tracing::error!("Failed to import zk-nym: {:#?}", err);
-                                self.zk_nym_fails_in_a_row.fetch_add(1, Ordering::Relaxed);
-                                request_zk_nym_errors.push(RequestZkNymError::Import {
-                                    id,
-                                    ticket_type: ticketbook_type.to_string(),
-                                    error: err.to_string(),
-                                });
-                            }
-                        }
-                    } else {
-                        tracing::warn!(
-                            "Polling for {} finished with NOT active status: {:?}",
-                            response.id,
-                            response.status,
-                        );
-                        tracing::warn!("Not importing zk-nym: {}", response.id);
-                        self.zk_nym_fails_in_a_row.fetch_add(1, Ordering::Relaxed);
-                        request_zk_nym_errors.push(RequestZkNymError::FinishedWithError {
-                            id: response.id.clone(),
-                            ticket_type: ticketbook_type.to_string(),
-                            status: response.status.clone(),
-                        });
-                    }
-                }
-                Err(err) => {
-                    tracing::error!("zk-nym polling error: {:#?}", err);
-                    self.zk_nym_fails_in_a_row.fetch_add(1, Ordering::Relaxed);
-                    request_zk_nym_errors.push(err);
-                }
-            }
-        }
-        zk_nym_successes
-    }
-
-    async fn import_zk_nym(
-        &mut self,
-        response: NymVpnZkNym,
-        ticketbook_type: TicketType,
-        request_info: RequestInfo,
-        request: ZkNymRequestData,
-    ) -> Result<(), Error> {
-        tracing::info!("Importing zk-nym: {}", response.id);
-
-        let Some(ref shares) = response.blinded_shares else {
-            return Err(Error::MissingBlindedShares);
-        };
-
-        let issuers = self
-            .get_or_fetch_partial_verification_keys(shares.epoch_id)
-            .await?;
-
-        tracing::info!("epoch_id: {}", shares.epoch_id);
-
-        let master_vk_bs58 = shares
-            .master_verification_key
-            .clone()
-            .ok_or(Error::MissingMasterVerificationKey)?
-            .bs58_encoded_key;
-
-        let master_vk = VerificationKeyAuth::try_from_bs58(&master_vk_bs58)
-            .map_err(Error::InvalidMasterVerificationKey)?;
-
-        let expiration_date = request.expiration_date;
-
-        let issued_ticketbook = crate::commands::request_zknym::unblind_and_aggregate(
-            shares.clone(),
-            issuers,
-            master_vk.clone(),
-            ticketbook_type,
-            expiration_date.ecash_date(),
-            request_info,
-            self.account.clone(),
-        )
-        .await?;
-
-        // Insert master verification key
-        tracing::info!("Inserting master verification key");
-        let epoch_vk = EpochVerificationKey {
-            epoch_id: shares.epoch_id,
-            key: master_vk,
-        };
-        self.credential_storage
-            .insert_master_verification_key(&epoch_vk)
-            .await
-            .inspect_err(|err| {
-                tracing::error!("Failed to insert master verification key: {:#?}", err);
-            })
-            .ok();
-
-        // Insert aggregated coin index signatures, if available
-        if let Some(aggregated_coin_index_signatures) = &shares.aggregated_coin_index_signatures {
-            tracing::info!("Inserting coin index signatures");
-            self.credential_storage
-                .insert_coin_index_signatures(&aggregated_coin_index_signatures.signatures)
-                .await
-                .inspect_err(|err| {
-                    tracing::error!("Failed to insert coin index signatures: {:#?}", err);
-                })
-                .ok();
-        }
-
-        // Insert aggregated expiration date signatures, if available
-        if let Some(aggregated_expiration_date_signatures) =
-            &shares.aggregated_expiration_date_signatures
-        {
-            tracing::info!("Inserting expiration date signatures");
-            self.credential_storage
-                .insert_expiration_date_signatures(
-                    &aggregated_expiration_date_signatures.signatures,
-                )
-                .await
-                .inspect_err(|err| {
-                    tracing::error!("Failed to insert expiration date signatures: {:#?}", err);
-                })
-                .ok();
-        }
-
-        tracing::info!("Inserting issued ticketbook");
-        self.credential_storage
-            .insert_issued_ticketbook(&issued_ticketbook)
-            .await?;
-
-        Ok(())
-    }
-
-    async fn get_or_fetch_partial_verification_keys(
-        &self,
-        epoch_id: u64,
-    ) -> Result<PartialVerificationKeysResponse, Error> {
-        let mut partial_verification_keys = self.partial_verification_keys.lock().await;
-        if let Some(issuers) = partial_verification_keys.get(&epoch_id) {
-            Ok(issuers.clone())
-        } else {
-            let issuers = self
-                .vpn_api_client
-                .get_directory_zk_nyms_ticketbook_partial_verification_keys()
-                .await
-                .map_err(Error::GetZkNyms)?;
-
-            if issuers.epoch_id != epoch_id {
-                return Err(Error::InconsistentEpochId);
-            }
-
-            partial_verification_keys.insert(epoch_id, issuers.clone());
-            Ok(issuers)
-        }
-    }
-
-    async fn confirm_zk_nym_downloaded(&self, id: &str) -> Result<(), Error> {
-        self.vpn_api_client
-            .confirm_zk_nym_download_by_id(&self.account, &self.device, id)
-            .await
-            .map_err(Error::ConfirmZkNymDownload)?;
-        tracing::info!("Confirmed zk-nym downloaded: {}", id);
-        Ok(())
-    }
+    //async fn handle_request_zk_nym_responses(
+    //    &self,
+    //    responses: Vec<(ZkNymRequestData, Result<NymVpnZkNymPost, Error>)>,
+    //) -> (
+    //    JoinSet<Result<PollingResult, RequestZkNymError>>,
+    //    Vec<RequestZkNymError>,
+    //) {
+    //    let mut request_zk_nym_errors = Vec::new();
+    //    let mut zk_nym_polling_tasks = JoinSet::new();
+    //    for (request, response) in responses {
+    //        match response {
+    //            Ok(response) => {
+    //                // Persist the request to storage before spawning the polling task so that we can
+    //                // recover from a crash and resume
+    //                self.credential_storage
+    //                    .pending_requests
+    //                    .insert_pending_request(
+    //                        &response.id,
+    //                        request.expiration_date,
+    //                        &request.request_info,
+    //                    )
+    //                    .await
+    //                    .unwrap();
+    //
+    //                zk_nym_polling_tasks.spawn(poll_zk_nym(
+    //                    request,
+    //                    response,
+    //                    self.account.clone(),
+    //                    self.device.clone(),
+    //                    self.vpn_api_client.clone(),
+    //                ));
+    //            }
+    //            Err(err) => {
+    //                tracing::debug!("Failed to request zk-nym: {:#?}", err);
+    //                let err = nym_vpn_api_client::response::extract_error_response(&err)
+    //                    .map(|e| {
+    //                        tracing::warn!(message = %e.message, message_id=?e.message_id, code_reference_id=?e.code_reference_id, "nym-vpn-api reports");
+    //                        RequestZkNymError::RequestZkNymEndpointFailure {
+    //                            endpoint_failure: VpnApiEndpointFailure {
+    //                                message_id: e.message_id.clone(),
+    //                                message: e.message.clone(),
+    //                                code_reference_id: e.code_reference_id.clone(),
+    //                            },
+    //                            ticket_type: request.ticketbook_type.to_string(),
+    //                        }
+    //                    })
+    //                    .unwrap_or_else(|| RequestZkNymError::internal(err));
+    //                self.zk_nym_fails_in_a_row.fetch_add(1, Ordering::Relaxed);
+    //                request_zk_nym_errors.push(err);
+    //            }
+    //        }
+    //    }
+    //    (zk_nym_polling_tasks, request_zk_nym_errors)
+    //}
+    //
+    //async fn wait_for_polling_tasks(
+    //    &mut self,
+    //    mut zk_nym_polling_tasks: JoinSet<Result<PollingResult, RequestZkNymError>>,
+    //    request_zk_nym_errors: &mut Vec<RequestZkNymError>,
+    //) -> Vec<RequestZkNymSuccess> {
+    //    let mut zk_nym_successes = Vec::new();
+    //    while let Some(polling_result) = zk_nym_polling_tasks.join_next().await {
+    //        let result = match polling_result {
+    //            Ok(result) => result,
+    //            Err(err) => {
+    //                tracing::error!("Failed to join zk-nym polling task: {:#?}", err);
+    //                request_zk_nym_errors.push(RequestZkNymError::PollingTaskError);
+    //                continue;
+    //            }
+    //        };
+    //
+    //        match result {
+    //            Ok(PollingResult::Finished(
+    //                response,
+    //                ticketbook_type,
+    //                request_info,
+    //                request_data,
+    //            )) => {
+    //                if response.status == NymVpnZkNymStatus::Active {
+    //                    tracing::info!(
+    //                        "Polling finished succesfully, importing ticketbook: {}",
+    //                        response.id
+    //                    );
+    //                    let id = response.id.clone();
+    //                    // WIP: remove me
+    //                    assert!(response.ticketbook_type == ticketbook_type.to_string());
+    //                    match self
+    //                        .import_zk_nym(response, ticketbook_type, *request_info, *request_data)
+    //                        .await
+    //                    {
+    //                        Ok(_) => {
+    //                            tracing::info!("Successfully imported zk-nym: {}", id);
+    //                            self.zk_nym_fails_in_a_row.store(0, Ordering::Relaxed);
+    //                            zk_nym_successes.push(RequestZkNymSuccess::new(id.clone()));
+    //                            // TODO: spawn a task to confirm the zk-nym download. Or spawn task
+    //                            // for the whole import process?
+    //                            if let Err(err) = self.confirm_zk_nym_downloaded(&id).await {
+    //                                tracing::warn!("Failed to confirm zk-nym downloaded: {err:?}");
+    //                            }
+    //                            // TODO: Only remove the pending request if the confirmation was
+    //                            // successful?
+    //                            self.credential_storage
+    //                                .pending_requests
+    //                                .remove_pending_request(&id)
+    //                                .await
+    //                                .unwrap();
+    //                        }
+    //                        Err(err) => {
+    //                            tracing::error!("Failed to import zk-nym: {:#?}", err);
+    //                            self.zk_nym_fails_in_a_row.fetch_add(1, Ordering::Relaxed);
+    //                            request_zk_nym_errors.push(RequestZkNymError::Import {
+    //                                id,
+    //                                ticket_type: ticketbook_type.to_string(),
+    //                                error: err.to_string(),
+    //                            });
+    //                        }
+    //                    }
+    //                } else {
+    //                    tracing::warn!(
+    //                        "Polling for {} finished with NOT active status: {:?}",
+    //                        response.id,
+    //                        response.status,
+    //                    );
+    //                    tracing::warn!("Not importing zk-nym: {}", response.id);
+    //                    self.zk_nym_fails_in_a_row.fetch_add(1, Ordering::Relaxed);
+    //                    request_zk_nym_errors.push(RequestZkNymError::FinishedWithError {
+    //                        id: response.id.clone(),
+    //                        ticket_type: ticketbook_type.to_string(),
+    //                        status: response.status.clone(),
+    //                    });
+    //                }
+    //            }
+    //            Err(err) => {
+    //                tracing::error!("zk-nym polling error: {:#?}", err);
+    //                self.zk_nym_fails_in_a_row.fetch_add(1, Ordering::Relaxed);
+    //                request_zk_nym_errors.push(err);
+    //            }
+    //        }
+    //    }
+    //    zk_nym_successes
+    //}
+    //
+    //async fn import_zk_nym(
+    //    &mut self,
+    //    response: NymVpnZkNym,
+    //    ticketbook_type: TicketType,
+    //    request_info: RequestInfo,
+    //    request: ZkNymRequestData,
+    //) -> Result<(), Error> {
+    //    tracing::info!("Importing zk-nym: {}", response.id);
+    //
+    //    let Some(ref shares) = response.blinded_shares else {
+    //        return Err(Error::MissingBlindedShares);
+    //    };
+    //
+    //    let issuers = self
+    //        .get_or_fetch_partial_verification_keys(shares.epoch_id)
+    //        .await?;
+    //
+    //    tracing::info!("epoch_id: {}", shares.epoch_id);
+    //
+    //    let master_vk_bs58 = shares
+    //        .master_verification_key
+    //        .clone()
+    //        .ok_or(Error::MissingMasterVerificationKey)?
+    //        .bs58_encoded_key;
+    //
+    //    let master_vk = VerificationKeyAuth::try_from_bs58(&master_vk_bs58)
+    //        .map_err(Error::InvalidMasterVerificationKey)?;
+    //
+    //    // WIP: remove me
+    //    let expiration_date = request.expiration_date;
+    //
+    //    // Load data needed to unblind and aggregate the zk-nym
+    //    let pending_credential_request = self
+    //        .credential_storage
+    //        .pending_requests
+    //        .get_pending_request_by_id(&response.id)
+    //        .await
+    //        .unwrap()
+    //        .unwrap();
+    //
+    //    assert_eq!(pending_credential_request.expiration_date, expiration_date);
+    //    assert_eq!(
+    //        pending_credential_request.request_info,
+    //        crate::storage::request_info_to_bytes(&request_info)
+    //    );
+    //
+    //    let expiration_date = pending_credential_request.expiration_date;
+    //    let request_info =
+    //        crate::storage::request_info_from_bytes(&pending_credential_request.request_info)
+    //            .unwrap();
+    //
+    //    let issued_ticketbook = crate::commands::request_zknym::unblind_and_aggregate(
+    //        shares.clone(),
+    //        issuers,
+    //        master_vk.clone(),
+    //        ticketbook_type,
+    //        expiration_date.ecash_date(),
+    //        request_info,
+    //        self.account.clone(),
+    //    )
+    //    .await?;
+    //
+    //    // Insert master verification key
+    //    tracing::info!("Inserting master verification key");
+    //    let epoch_vk = EpochVerificationKey {
+    //        epoch_id: shares.epoch_id,
+    //        key: master_vk,
+    //    };
+    //    self.credential_storage
+    //        .insert_master_verification_key(&epoch_vk)
+    //        .await
+    //        .inspect_err(|err| {
+    //            tracing::error!("Failed to insert master verification key: {:#?}", err);
+    //        })
+    //        .ok();
+    //
+    //    // Insert aggregated coin index signatures, if available
+    //    if let Some(aggregated_coin_index_signatures) = &shares.aggregated_coin_index_signatures {
+    //        tracing::info!("Inserting coin index signatures");
+    //        self.credential_storage
+    //            .insert_coin_index_signatures(&aggregated_coin_index_signatures.signatures)
+    //            .await
+    //            .inspect_err(|err| {
+    //                tracing::error!("Failed to insert coin index signatures: {:#?}", err);
+    //            })
+    //            .ok();
+    //    }
+    //
+    //    // Insert aggregated expiration date signatures, if available
+    //    if let Some(aggregated_expiration_date_signatures) =
+    //        &shares.aggregated_expiration_date_signatures
+    //    {
+    //        tracing::info!("Inserting expiration date signatures");
+    //        self.credential_storage
+    //            .insert_expiration_date_signatures(
+    //                &aggregated_expiration_date_signatures.signatures,
+    //            )
+    //            .await
+    //            .inspect_err(|err| {
+    //                tracing::error!("Failed to insert expiration date signatures: {:#?}", err);
+    //            })
+    //            .ok();
+    //    }
+    //
+    //    tracing::info!("Inserting issued ticketbook");
+    //    self.credential_storage
+    //        .insert_issued_ticketbook(&issued_ticketbook)
+    //        .await?;
+    //
+    //    Ok(())
+    //}
+    //
+    //async fn get_or_fetch_partial_verification_keys(
+    //    &self,
+    //    epoch_id: u64,
+    //) -> Result<PartialVerificationKeysResponse, Error> {
+    //    let mut partial_verification_keys = self.cached_data.partial_verification_keys.lock().await;
+    //    if let Some(issuers) = partial_verification_keys.get(&epoch_id) {
+    //        Ok(issuers.clone())
+    //    } else {
+    //        let issuers = self
+    //            .vpn_api_client
+    //            .get_directory_zk_nyms_ticketbook_partial_verification_keys()
+    //            .await
+    //            .map_err(Error::GetZkNyms)?;
+    //
+    //        if issuers.epoch_id != epoch_id {
+    //            return Err(Error::InconsistentEpochId);
+    //        }
+    //
+    //        partial_verification_keys.insert(epoch_id, issuers.clone());
+    //        Ok(issuers)
+    //    }
+    //}
+    //
+    //async fn confirm_zk_nym_downloaded(&self, id: &str) -> Result<(), Error> {
+    //    self.vpn_api_client
+    //        .confirm_zk_nym_download_by_id(&self.account, &self.device, id)
+    //        .await
+    //        .map_err(Error::ConfirmZkNymDownload)?;
+    //    tracing::info!("Confirmed zk-nym downloaded: {}", id);
+    //    Ok(())
+    //}
 }
 
 #[derive(Debug, Clone)]
@@ -470,15 +694,104 @@ pub(crate) struct ZkNymRequestData {
     request_info: RequestInfo,
 }
 
+async fn request_zk_nym_single(
+    ticketbook_type: TicketType,
+    account: VpnApiAccount,
+    device: Device,
+    vpn_api_client: VpnApiClient,
+    credential_storage: VpnCredentialStorage,
+    cached_data: CachedData,
+) -> Result<RequestZkNymSuccess, RequestZkNymError> {
+    let request = construct_zk_nym_request_data(&account, ticketbook_type)?;
+
+    let response = request_zk_nym2(&request, &account, &device, &vpn_api_client).await?;
+
+    let id = response.id.clone();
+    let ticketbook_type = TicketType::from_str(&response.ticketbook_type)
+        .map_err(|err| RequestZkNymError::InvalidTicketTypeInResponse(err.to_string()))?;
+    assert_eq!(request.ticketbook_type, ticketbook_type);
+
+    credential_storage
+        .insert_pending_request(&response.id, request.expiration_date, &request.request_info)
+        .await
+        .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
+
+    let pending_request = credential_storage
+        .get_pending_request_by_id(&response.id)
+        .await
+        .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
+        .ok_or(RequestZkNymError::MissingPendingRequest(id.clone()))?;
+
+    assert_eq!(pending_request.expiration_date, request.expiration_date);
+    assert_eq!(
+        pending_request.request_info,
+        crate::storage::request_info_to_bytes(&request.request_info)
+            .map_err(RequestZkNymError::internal)?
+    );
+
+    resume_request_zk_nym_single(
+        id,
+        account,
+        device,
+        vpn_api_client,
+        credential_storage,
+        cached_data,
+    )
+    .await
+}
+
+async fn resume_request_zk_nym_single(
+    id: ZkNymId,
+    account: VpnApiAccount,
+    device: Device,
+    vpn_api_client: VpnApiClient,
+    credential_storage: VpnCredentialStorage,
+    cached_data: CachedData,
+) -> Result<RequestZkNymSuccess, RequestZkNymError> {
+    let pending_request = credential_storage
+        .get_pending_request_by_id(&id)
+        .await
+        .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
+        .ok_or(RequestZkNymError::MissingPendingRequest(id.clone()))?;
+
+    let poll_result = poll_zk_nym2(&id, &account, &device, &vpn_api_client).await?;
+
+    import_attached_keys_and_signatures(
+        &poll_result,
+        pending_request.expiration_date,
+        &credential_storage,
+    )
+    .await?;
+
+    import_zk_nym(
+        poll_result,
+        pending_request,
+        &account,
+        &credential_storage,
+        &cached_data,
+        &vpn_api_client,
+    )
+    .await?;
+
+    confirm_zk_nym_downloaded(&id, &account, &device, &vpn_api_client).await?;
+
+    credential_storage
+        .remove_pending_request(&id)
+        .await
+        .unwrap();
+
+    Ok(RequestZkNymSuccess { id })
+}
+
 pub(crate) fn construct_zk_nym_request_data(
     account: &VpnApiAccount,
     ticketbook_type: TicketType,
-) -> Result<ZkNymRequestData, Error> {
+) -> Result<ZkNymRequestData, RequestZkNymError> {
     tracing::info!("Requesting zk-nym by type: {}", ticketbook_type);
 
     let ecash_keypair = account
         .create_ecash_keypair()
-        .map_err(Error::CreateEcashKeyPair)?;
+        .map_err(|err| RequestZkNymError::CreateEcashKeyPair(err.to_string()))?;
     let expiration_date = nym_ecash_time::ecash_default_expiration_date();
 
     let (withdrawal_request, request_info) = nym_compact_ecash::withdrawal_request(
@@ -486,7 +799,7 @@ pub(crate) fn construct_zk_nym_request_data(
         expiration_date.ecash_unix_timestamp(),
         ticketbook_type.encode(),
     )
-    .map_err(Error::ConstructWithdrawalRequest)?;
+    .map_err(|err| RequestZkNymError::ConstructWithdrawalRequest(err.to_string()))?;
 
     let ecash_pubkey = ecash_keypair.public_key();
 
@@ -499,13 +812,33 @@ pub(crate) fn construct_zk_nym_request_data(
     })
 }
 
-pub(crate) async fn request_zk_nym(
-    request: ZkNymRequestData,
+//pub(crate) async fn request_zk_nym(
+//    request: ZkNymRequestData,
+//    account: &VpnApiAccount,
+//    device: &Device,
+//    vpn_api_client: &nym_vpn_api_client::VpnApiClient,
+//) -> (ZkNymRequestData, Result<NymVpnZkNymPost, Error>) {
+//    let response = vpn_api_client
+//        .request_zk_nym(
+//            account,
+//            device,
+//            request.withdrawal_request.to_bs58(),
+//            request.ecash_pubkey.to_base58_string().to_owned(),
+//            request.expiration_date.to_string(),
+//            request.ticketbook_type.to_string(),
+//        )
+//        .await
+//        .map_err(Error::RequestZkNym);
+//    (request, response)
+//}
+
+pub(crate) async fn request_zk_nym2(
+    request: &ZkNymRequestData,
     account: &VpnApiAccount,
     device: &Device,
     vpn_api_client: &nym_vpn_api_client::VpnApiClient,
-) -> (ZkNymRequestData, Result<NymVpnZkNymPost, Error>) {
-    let response = vpn_api_client
+) -> Result<NymVpnZkNymPost, RequestZkNymError> {
+    vpn_api_client
         .request_zk_nym(
             account,
             device,
@@ -515,45 +848,110 @@ pub(crate) async fn request_zk_nym(
             request.ticketbook_type.to_string(),
         )
         .await
-        .map_err(Error::RequestZkNym);
-    (request, response)
+        .map_err(|err| {
+            nym_vpn_api_client::response::extract_error_response(&err)
+                .map(|e| RequestZkNymError::RequestZkNymEndpointFailure {
+                    endpoint_failure: VpnApiEndpointFailure {
+                        message_id: e.message_id.clone(),
+                        message: e.message.clone(),
+                        code_reference_id: e.code_reference_id.clone(),
+                    },
+                    ticket_type: request.ticketbook_type.to_string(),
+                })
+                .unwrap_or_else(|| RequestZkNymError::internal(err))
+        })
 }
 
-pub(crate) async fn poll_zk_nym(
-    request: ZkNymRequestData,
-    response: NymVpnZkNymPost,
-    account: VpnApiAccount,
-    device: Device,
-    api_client: nym_vpn_api_client::VpnApiClient,
-) -> Result<PollingResult, RequestZkNymError> {
-    tracing::info!("Starting zk-nym polling task for {}", response.id);
-    tracing::info!("which had response : {:#?}", response);
+//pub(crate) async fn poll_zk_nym(
+//    request: ZkNymRequestData,
+//    response: NymVpnZkNymPost,
+//    account: VpnApiAccount,
+//    device: Device,
+//    api_client: nym_vpn_api_client::VpnApiClient,
+//) -> Result<PollingResult, RequestZkNymError> {
+//    tracing::info!("Starting zk-nym polling task for {}", response.id);
+//    tracing::info!("which had response : {:#?}", response);
+//    let start_time = Instant::now();
+//    loop {
+//        tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+//
+//        tracing::info!("Polling zk-nym status: {}", &response.id);
+//        match api_client
+//            .get_zk_nym_by_id(&account, &device, &response.id)
+//            .await
+//        {
+//            // WIP: swap order so that we invert the if check
+//            Ok(poll_response) if poll_response.status != NymVpnZkNymStatus::Pending => {
+//                tracing::info!("zk-nym polling finished: {}", poll_response.id);
+//                tracing::debug!("zk-nym polling finished: {:#?}", poll_response);
+//                return Ok(PollingResult::Finished(
+//                    poll_response,
+//                    request.ticketbook_type,
+//                    Box::new(request.request_info.clone()),
+//                    Box::new(request),
+//                ));
+//            }
+//            Ok(poll_response) => {
+//                tracing::info!("zk-nym polling not finished: {:#?}", poll_response);
+//                if start_time.elapsed() > Duration::from_secs(60) {
+//                    tracing::error!("zk-nym polling timed out: {}", response.id);
+//                    return Err(RequestZkNymError::PollingTimeout {
+//                        id: response.id.clone(),
+//                        ticket_type: request.ticketbook_type.to_string(),
+//                    });
+//                }
+//            }
+//            Err(error) => {
+//                return Err(nym_vpn_api_client::response::extract_error_response(&error)
+//                    .map(|e| {
+//                        tracing::warn!(
+//                        "nym-vpn-api reports: message={}, message_id={:?}, code_reference_id={:?}",
+//                        e.message,
+//                        e.message_id,
+//                        e.code_reference_id,
+//                    );
+//                        RequestZkNymError::PollZkNymEndpointFailure {
+//                            endpoint_failure: VpnApiEndpointFailure {
+//                                message_id: e.message_id.clone(),
+//                                message: e.message.clone(),
+//                                code_reference_id: e.code_reference_id.clone(),
+//                            },
+//                            ticket_type: request.ticketbook_type.to_string(),
+//                        }
+//                    })
+//                    .unwrap_or_else(|| RequestZkNymError::internal(error)))
+//            }
+//        }
+//    }
+//}
+
+pub(crate) async fn poll_zk_nym2(
+    id: &str,
+    account: &VpnApiAccount,
+    device: &Device,
+    api_client: &nym_vpn_api_client::VpnApiClient,
+) -> Result<NymVpnZkNym, RequestZkNymError> {
+    tracing::info!("Starting zk-nym polling task for {}", id);
+
     let start_time = Instant::now();
     loop {
         tokio::time::sleep(std::time::Duration::from_secs(5)).await;
 
-        tracing::info!("Polling zk-nym status: {}", &response.id);
-        match api_client
-            .get_zk_nym_by_id(&account, &device, &response.id)
-            .await
-        {
+        tracing::info!("Polling zk-nym status: {id}");
+        match api_client.get_zk_nym_by_id(&account, &device, id).await {
             Ok(poll_response) if poll_response.status != NymVpnZkNymStatus::Pending => {
                 tracing::info!("zk-nym polling finished: {}", poll_response.id);
                 tracing::debug!("zk-nym polling finished: {:#?}", poll_response);
-                return Ok(PollingResult::Finished(
-                    poll_response,
-                    request.ticketbook_type,
-                    Box::new(request.request_info.clone()),
-                    Box::new(request),
-                ));
+                return Ok(poll_response);
             }
             Ok(poll_response) => {
                 tracing::info!("zk-nym polling not finished: {:#?}", poll_response);
                 if start_time.elapsed() > Duration::from_secs(60) {
-                    tracing::error!("zk-nym polling timed out: {}", response.id);
+                    tracing::error!("zk-nym polling timed out: {id}");
                     return Err(RequestZkNymError::PollingTimeout {
-                        id: response.id.clone(),
-                        ticket_type: request.ticketbook_type.to_string(),
+                        id: id.to_string(),
+                        // TODO: remove this field
+                        ticket_type: "".to_string(),
                     });
                 }
             }
@@ -572,13 +970,266 @@ pub(crate) async fn poll_zk_nym(
                                 message: e.message.clone(),
                                 code_reference_id: e.code_reference_id.clone(),
                             },
-                            ticket_type: request.ticketbook_type.to_string(),
+                            // TODO: remove this field
+                            ticket_type: "".to_string(),
                         }
                     })
-                    .unwrap_or_else(|| RequestZkNymError::internal(error)))
+                    .unwrap_or_else(|| RequestZkNymError::internal(error)));
             }
         }
     }
+}
+
+//pub(crate) async fn resume_poll_zk_nym(
+//    id: &str,
+//    account: VpnApiAccount,
+//    device: Device,
+//    api_client: nym_vpn_api_client::VpnApiClient,
+//) -> Result<ResumePollingResult, RequestZkNymError> {
+//    let start_time = Instant::now();
+//    loop {
+//        tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+//
+//        tracing::info!("Resuming polling zk-nym status: {}", id);
+//
+//        match api_client.get_zk_nym_by_id(&account, &device, id).await {
+//            Ok(poll_response) if poll_response.status != NymVpnZkNymStatus::Pending => {
+//                tracing::info!("zk-nym polling finished: {}", poll_response.id);
+//                tracing::debug!("zk-nym polling finished: {:#?}", poll_response);
+//                return Ok(ResumePollingResult::Finished(poll_response));
+//            }
+//            Ok(poll_response) => {
+//                tracing::info!("zk-nym polling not finished: {:#?}", poll_response);
+//                if start_time.elapsed() > Duration::from_secs(60) {
+//                    tracing::error!("zk-nym polling timed out: {}", id);
+//                    return Err(RequestZkNymError::PollingTimeout {
+//                        id: id.to_string(),
+//                        ticket_type: "".to_string(),
+//                    });
+//                }
+//            }
+//            Err(error) => {
+//                return Err(nym_vpn_api_client::response::extract_error_response(&error)
+//                    .map(|e| {
+//                        tracing::warn!(
+//                        "nym-vpn-api reports: message={}, message_id={:?}, code_reference_id={:?}",
+//                        e.message,
+//                        e.message_id,
+//                        e.code_reference_id,
+//                    );
+//                        RequestZkNymError::PollZkNymEndpointFailure {
+//                            endpoint_failure: VpnApiEndpointFailure {
+//                                message_id: e.message_id.clone(),
+//                                message: e.message.clone(),
+//                                code_reference_id: e.code_reference_id.clone(),
+//                            },
+//                            ticket_type: "".to_string(),
+//                        }
+//                    })
+//                    .unwrap_or_else(|| RequestZkNymError::internal(error)))
+//            }
+//        }
+//    }
+//}
+
+async fn import_attached_master_verification_key(
+    epoch_id: u64,
+    master_verification_key: &MasterVerificationKeyResponse,
+    credential_storage: &VpnCredentialStorage,
+) -> Result<(), RequestZkNymError> {
+    let stored_master_vk = credential_storage
+        .get_master_verification_key(epoch_id)
+        .await
+        .unwrap();
+
+    if let Some(_stored_master_vk) = stored_master_vk {
+        // TODO: insert defensive check here that the attached master_vk is the same as the
+        // one we already have
+    } else {
+        let master_vk = VerificationKeyAuth::try_from_bs58(
+            &master_verification_key.bs58_encoded_key,
+        )
+        .map_err(|e| RequestZkNymError::ResponseHasInvalidMasterVerificationKey(e.to_string()))?;
+
+        let epoch_vk = EpochVerificationKey {
+            epoch_id,
+            key: master_vk.clone(),
+        };
+        credential_storage
+            .insert_master_verification_key(&epoch_vk)
+            .await
+            .inspect_err(|err| {
+                tracing::error!("Failed to insert master verification key: {:#?}", err);
+            })
+            .unwrap();
+    }
+    Ok(())
+}
+
+async fn import_aggregated_coin_index_signatures(
+    epoch_id: u64,
+    aggregated_coin_index_signatures: &AggregatedCoinIndicesSignaturesResponse,
+    credential_storage: &VpnCredentialStorage,
+) -> Result<(), RequestZkNymError> {
+    let stored_coin_index_signatures = credential_storage
+        .get_coin_index_signatures(epoch_id)
+        .await
+        .unwrap();
+
+    if let Some(_stored_coin_index_signatures) = stored_coin_index_signatures {
+        // TODO: insert defensive check here that the attached coin index signatures are the
+        // same as the ones we already have
+    } else {
+        tracing::info!("Inserting coin index signatures");
+        credential_storage
+            .insert_coin_index_signatures(&aggregated_coin_index_signatures.signatures)
+            .await
+            .inspect_err(|err| {
+                tracing::error!("Failed to insert coin index signatures: {:#?}", err);
+            })
+            .unwrap();
+    }
+    Ok(())
+}
+
+async fn import_aggregated_expiration_date_signatures(
+    expiration_date: Date,
+    aggregated_expiration_date_signatures: &AggregatedExpirationDateSignaturesResponse,
+    credential_storage: &VpnCredentialStorage,
+) -> Result<(), RequestZkNymError> {
+    let stored_expiration_date_signatures = credential_storage
+        .get_expiration_date_signatures(expiration_date)
+        .await
+        .unwrap();
+
+    if let Some(_stored_expiration_date_signatures) = stored_expiration_date_signatures {
+        // TODO: insert defensive check here that the attached expiration date signatures are
+        // the same as the ones we already have
+    } else {
+        tracing::info!("Inserting expiration date signatures");
+        credential_storage
+            .insert_expiration_date_signatures(&aggregated_expiration_date_signatures.signatures)
+            .await
+            .inspect_err(|err| {
+                tracing::error!("Failed to insert expiration date signatures: {:#?}", err);
+            })
+            .unwrap();
+    }
+    Ok(())
+}
+
+// If the response contains attached keys and signatures, import them if we don't already
+// have them
+async fn import_attached_keys_and_signatures(
+    response: &NymVpnZkNym,
+    expiration_date: Date,
+    credential_storage: &VpnCredentialStorage,
+) -> Result<(), RequestZkNymError> {
+    tracing::info!("Importing attached keys and signatures, if available and needed");
+
+    let Some(ref shares) = response.blinded_shares else {
+        return Err(RequestZkNymError::MissingBlindedShares);
+    };
+
+    if let Some(ref attached_master_vk) = shares.master_verification_key {
+        import_attached_master_verification_key(
+            shares.epoch_id,
+            attached_master_vk,
+            credential_storage,
+        )
+        .await?;
+    }
+
+    if let Some(ref aggregated_coin_index_signatures) = shares.aggregated_coin_index_signatures {
+        import_aggregated_coin_index_signatures(
+            shares.epoch_id,
+            aggregated_coin_index_signatures,
+            credential_storage,
+        )
+        .await
+        .unwrap();
+    }
+
+    if let Some(ref aggregated_expiration_date_signatures) =
+        shares.aggregated_expiration_date_signatures
+    {
+        import_aggregated_expiration_date_signatures(
+            expiration_date,
+            aggregated_expiration_date_signatures,
+            credential_storage,
+        )
+        .await
+        .unwrap();
+    }
+
+    Ok(())
+}
+
+async fn import_zk_nym(
+    response: NymVpnZkNym,
+    pending_request: PendingCredentialRequestStored,
+    account: &VpnApiAccount,
+    credential_storage: &VpnCredentialStorage,
+    cached_data: &CachedData,
+    vpn_api_client: &VpnApiClient,
+) -> Result<(), RequestZkNymError> {
+    tracing::info!("Importing zk-nym: {}", response.id);
+
+    let Some(ref shares) = response.blinded_shares else {
+        return Err(RequestZkNymError::MissingBlindedShares);
+    };
+
+    tracing::info!("epoch_id: {}", shares.epoch_id);
+
+    let expiration_date = pending_request.expiration_date;
+    let request_info =
+        crate::storage::request_info_from_bytes(&pending_request.request_info).unwrap();
+
+    let issuers = cached_data
+        .get_partial_verification_keys(shares.epoch_id, vpn_api_client)
+        .await
+        .unwrap();
+
+    let master_vk = credential_storage
+        .get_master_verification_key(shares.epoch_id)
+        .await
+        .unwrap()
+        .ok_or(RequestZkNymError::NoMasterVerificationKeyInStorage)?;
+
+    let ticketbook_type = TicketType::from_str(&response.ticketbook_type).unwrap();
+
+    let issued_ticketbook = unblind_and_aggregate(
+        shares.clone(),
+        issuers,
+        master_vk.clone(),
+        ticketbook_type,
+        expiration_date.ecash_date(),
+        request_info,
+        account.clone(),
+    )
+    .await?;
+
+    // Check that we have the signatures we need to import
+    // TODO: fetch them if we don't
+    let _ = credential_storage
+        .get_coin_index_signatures(shares.epoch_id)
+        .await
+        .unwrap()
+        .unwrap();
+
+    let _ = credential_storage
+        .get_expiration_date_signatures(expiration_date)
+        .await
+        .unwrap()
+        .unwrap();
+
+    tracing::info!("Inserting issued ticketbook");
+    credential_storage
+        .insert_issued_ticketbook(&issued_ticketbook)
+        .await
+        .unwrap();
+
+    Ok(())
 }
 
 pub(crate) async fn unblind_and_aggregate(
@@ -589,10 +1240,10 @@ pub(crate) async fn unblind_and_aggregate(
     expiration_date: Date,
     request_info: RequestInfo,
     account: VpnApiAccount,
-) -> Result<IssuedTicketBook, Error> {
+) -> Result<IssuedTicketBook, RequestZkNymError> {
     let ecash_keypair = account
         .create_ecash_keypair()
-        .map_err(Error::CreateEcashKeyPair)?;
+        .map_err(|err| RequestZkNymError::CreateEcashKeyPair(err.to_string()))?;
 
     tracing::info!("Setting up decoded keys");
 
@@ -600,7 +1251,7 @@ pub(crate) async fn unblind_and_aggregate(
     for key in issuers.keys {
         let vk = VerificationKeyAuth::try_from_bs58(&key.bs58_encoded_key)
             .inspect_err(|err| tracing::error!("Failed to create VerificationKeyAuth: {:#?}", err))
-            .map_err(Error::InvalidVerificationKey)?;
+            .map_err(|err| RequestZkNymError::InvalidVerificationKey(err.to_string()))?;
         decoded_keys.insert(key.node_index, vk);
     }
 
@@ -612,11 +1263,11 @@ pub(crate) async fn unblind_and_aggregate(
         let blinded_sig =
             BlindedSignature::try_from_bs58(&share.bs58_encoded_share).map_err(|err| {
                 tracing::error!("Failed to create BlindedSignature: {:#?}", err);
-                Error::DeserializeBlindedSignature(err)
+                RequestZkNymError::DeserializeBlindedSignature(err.to_string())
             })?;
 
         let Some(vk) = decoded_keys.get(&share.node_index) else {
-            return Err(Error::DecodedKeysMissingIndex);
+            return Err(RequestZkNymError::DecodedKeysMissingIndex);
         };
 
         tracing::info!("Calling issue_verify");
@@ -633,7 +1284,10 @@ pub(crate) async fn unblind_and_aggregate(
             }
             Err(err) => {
                 tracing::error!("Failed to issue verify: {:#?}", err);
-                return Err(Error::ImportZkNym(err));
+                return Err(RequestZkNymError::ImportZkNym {
+                    ticket_type: ticketbook_type.to_string(),
+                    error: err.to_string(),
+                });
             }
         }
     }
@@ -646,7 +1300,7 @@ pub(crate) async fn unblind_and_aggregate(
         &partial_wallets,
         &request_info,
     )
-    .map_err(Error::AggregateWallets)?;
+    .map_err(|err| RequestZkNymError::AggregateWallets(err.to_string()))?;
 
     tracing::info!("Creating ticketbook");
 
@@ -661,14 +1315,29 @@ pub(crate) async fn unblind_and_aggregate(
     Ok(ticketbook)
 }
 
-#[derive(Debug)]
-pub(crate) enum PollingResult {
-    Finished(
-        NymVpnZkNym,
-        TicketType,
-        Box<RequestInfo>,
-        Box<ZkNymRequestData>,
-    ),
+async fn confirm_zk_nym_downloaded(
+    id: &str,
+    account: &VpnApiAccount,
+    device: &Device,
+    vpn_api_client: &VpnApiClient,
+) -> Result<(), RequestZkNymError> {
+    vpn_api_client
+        .confirm_zk_nym_download_by_id(account, device, id)
+        .await
+        .map_err(|err| {
+            nym_vpn_api_client::response::extract_error_response(&err)
+                .map(|e| RequestZkNymError::ConfirmZkNymDownloadEndpointFailure {
+                    endpoint_failure: VpnApiEndpointFailure {
+                        message_id: e.message_id.clone(),
+                        message: e.message.clone(),
+                        code_reference_id: e.code_reference_id.clone(),
+                    },
+                    id: id.to_string(),
+                })
+                .unwrap_or_else(|| RequestZkNymError::internal(err))
+        })?;
+    tracing::info!("Confirmed zk-nym downloaded: {id}");
+    Ok(())
 }
 
 pub(crate) type ZkNymId = String;
@@ -684,28 +1353,22 @@ impl RequestZkNymSuccess {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum RequestZkNymSuccessSummary {
-    NoneNeeded,
-    All(Vec<RequestZkNymSuccess>),
-}
-
-impl RequestZkNymSuccessSummary {
-    pub(crate) fn successful_zknym_requests(&self) -> impl Iterator<Item = &RequestZkNymSuccess> {
-        match self {
-            RequestZkNymSuccessSummary::NoneNeeded => [].iter(),
-            RequestZkNymSuccessSummary::All(ids) => ids.iter(),
-        }
-    }
-}
-
 #[derive(Clone, Debug, thiserror::Error, PartialEq, Eq, Serialize, Deserialize)]
 pub enum RequestZkNymError {
-    #[error("failed to request zk nym endpoint for ticket type: {ticket_type}")]
+    #[error("failed to create ecash keypair: {0}")]
+    CreateEcashKeyPair(String),
+
+    #[error("failed to construct withdrawal request: {0}")]
+    ConstructWithdrawalRequest(String),
+
+    #[error("failed to request zknym endpoint for ticket type: {ticket_type}")]
     RequestZkNymEndpointFailure {
         endpoint_failure: VpnApiEndpointFailure,
         ticket_type: String,
     },
+
+    #[error("response contains invalid ticketbook type: {0}")]
+    InvalidTicketTypeInResponse(String),
 
     #[error("error polling for zknym result for ticket type: {ticket_type}")]
     PollZkNymEndpointFailure {
@@ -726,12 +1389,41 @@ pub enum RequestZkNymError {
         status: NymVpnZkNymStatus,
     },
 
-    #[error("failed to import zknym for ticket type: {ticket_type}")]
-    Import {
+    #[error("response is missing blinded shares")]
+    MissingBlindedShares,
+
+    #[error("response contains invalid master verification key: {0}")]
+    ResponseHasInvalidMasterVerificationKey(String),
+
+    #[error("no master verification key in storage")]
+    NoMasterVerificationKeyInStorage,
+
+    #[error("invalid verification key: {0}")]
+    InvalidVerificationKey(String),
+
+    #[error("failed to deserialize blinded signature: {0}")]
+    DeserializeBlindedSignature(String),
+
+    #[error("decoded keys missing index")]
+    DecodedKeysMissingIndex,
+
+    #[error("failed to import zknym")]
+    ImportZkNym { ticket_type: String, error: String },
+
+    #[error("failed to aggregate wallets: {0}")]
+    AggregateWallets(String),
+
+    #[error("failed to confirm zknym download")]
+    ConfirmZkNymDownloadEndpointFailure {
+        endpoint_failure: VpnApiEndpointFailure,
         id: ZkNymId,
-        ticket_type: String,
-        error: String,
     },
+
+    #[error("credential storage error: {0}")]
+    CredentialStorage(String),
+
+    #[error("missing pending request: {0}")]
+    MissingPendingRequest(ZkNymId),
 
     #[error("internal error: {0}")]
     Internal(String),
@@ -785,13 +1477,13 @@ impl RequestZkNymError {
                 ticket_type,
                 status: _,
             }
-            | RequestZkNymError::Import {
-                id: _,
+            | RequestZkNymError::ImportZkNym {
                 ticket_type,
                 error: _,
             }
             | RequestZkNymError::PollingTimeout { id: _, ticket_type } => Some(ticket_type.clone()),
             RequestZkNymError::PollingTaskError | RequestZkNymError::Internal(_) => None,
+            _ => todo!(),
         }
     }
 }
@@ -801,3 +1493,5 @@ pub struct RequestZkNymErrorSummary {
     pub successes: Vec<RequestZkNymSuccess>,
     pub failed: Vec<RequestZkNymError>,
 }
+
+pub type RequestZkNymSummary = Vec<Result<RequestZkNymSuccess, RequestZkNymError>>;

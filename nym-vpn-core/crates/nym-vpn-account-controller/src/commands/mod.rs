@@ -8,9 +8,8 @@ pub(crate) mod sync_device;
 
 use nym_vpn_store::mnemonic::Mnemonic;
 pub use register_device::RegisterDeviceError;
-pub use request_zknym::{
-    RequestZkNymError, RequestZkNymErrorSummary, RequestZkNymSuccess, RequestZkNymSuccessSummary,
-};
+use request_zknym::RequestZkNymSummary;
+pub use request_zknym::{RequestZkNymError, RequestZkNymErrorSummary, RequestZkNymSuccess};
 
 use std::{collections::HashMap, fmt, sync::Arc};
 
@@ -70,6 +69,9 @@ pub enum AccountCommandError {
         failed: Vec<RequestZkNymError>,
     },
 
+    #[error("failed to request zk nym")]
+    RequestZkNymGeneral(RequestZkNymError),
+
     #[error("no account stored")]
     NoAccountStored,
 
@@ -123,6 +125,12 @@ impl From<RequestZkNymErrorSummary> for AccountCommandError {
             successes: summary.successes,
             failed: summary.failed,
         }
+    }
+}
+
+impl From<RequestZkNymError> for AccountCommandError {
+    fn from(err: RequestZkNymError) -> Self {
+        AccountCommandError::RequestZkNymGeneral(err)
     }
 }
 
@@ -191,7 +199,7 @@ pub enum AccountCommand {
     RegisterDevice(Option<ReturnSender<NymVpnDevice>>),
     GetDevices(ReturnSender<Vec<NymVpnDevice>>),
     GetActiveDevices(ReturnSender<Vec<NymVpnDevice>>),
-    RequestZkNym(Option<ReturnSender<RequestZkNymSuccessSummary>>),
+    RequestZkNym(Option<ReturnSender<RequestZkNymSummary>>),
     GetDeviceZkNym,
     GetZkNymsAvailableForDownload,
     GetZkNymById(String),
@@ -224,13 +232,14 @@ impl AccountCommand {
     }
 }
 
+// WIP: Fix this clippy
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
 pub(crate) enum AccountCommandResult {
     SyncAccountState(Result<NymVpnAccountSummaryResponse, AccountCommandError>),
     SyncDeviceState(Result<DeviceState, AccountCommandError>),
     RegisterDevice(Result<NymVpnDevice, AccountCommandError>),
-    RequestZkNym(Result<RequestZkNymSuccessSummary, AccountCommandError>),
+    RequestZkNym(Result<RequestZkNymSummary, AccountCommandError>),
 }
 
 #[cfg(test)]

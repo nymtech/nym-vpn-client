@@ -6,16 +6,23 @@ use std::{
     sync::Arc,
 };
 
+use bincode::Options;
 use nym_compact_ecash::VerificationKeyAuth;
 use nym_credential_storage::persistent_storage::PersistentStorage as PersistentCredentialStorage;
 use nym_credentials::{
     AggregatedCoinIndicesSignatures, AggregatedExpirationDateSignatures, EpochVerificationKey,
     IssuedTicketBook,
 };
-use nym_credentials_interface::TicketType;
+use nym_credentials_interface::{
+    AnnotatedCoinIndexSignature, AnnotatedExpirationDateSignature, RequestInfo, TicketType,
+};
 use nym_sdk::mixnet::{CredentialStorage, StoragePaths};
 use nym_vpn_api_client::types::{Device, VpnApiAccount};
 use nym_vpn_store::{mnemonic::Mnemonic, VpnStorage};
+use serde::{Deserialize, Serialize};
+use sqlx::{ConnectOptions, FromRow};
+use time::Date;
+use tracing::log::LevelFilter;
 
 use crate::{error::Error, AvailableTicketbooks};
 
@@ -119,8 +126,12 @@ where
 
 #[derive(Clone)]
 pub(crate) struct VpnCredentialStorage {
-    pub(crate) storage: Arc<tokio::sync::Mutex<PersistentCredentialStorage>>,
     data_dir: PathBuf,
+
+    // TODO: remove Arc<Mutex>?
+    storage: Arc<tokio::sync::Mutex<PersistentCredentialStorage>>,
+
+    pub(crate) pending_requests: PendingCredentialRequestsStorage,
 }
 
 impl VpnCredentialStorage {
@@ -132,9 +143,17 @@ impl VpnCredentialStorage {
             .await
             .map_err(Error::SetupCredentialStorage)?;
         let storage = Arc::new(tokio::sync::Mutex::new(storage));
+
+        let pending_requests = PendingCredentialRequestsStorage::init(
+            data_dir.as_ref().join("pending_credential_requests.db"),
+        )
+        .await
+        .map_err(Error::SetupPendingCredentialRequestsStorage)?;
+
         Ok(Self {
-            storage,
             data_dir: data_dir.as_ref().to_path_buf(),
+            storage,
+            pending_requests,
         })
     }
 
@@ -163,6 +182,8 @@ impl VpnCredentialStorage {
             .persistent_credential_storage()
             .await
             .map_err(Error::SetupCredentialStorage)?;
+
+        // WIP(JON): reset pending requests
 
         Ok(())
     }
@@ -216,6 +237,18 @@ impl VpnCredentialStorage {
             .map_err(Error::from)
     }
 
+    pub(crate) async fn get_coin_index_signatures(
+        &self,
+        epoch_id: u64,
+    ) -> Result<Option<Vec<AnnotatedCoinIndexSignature>>, Error> {
+        self.storage
+            .lock()
+            .await
+            .get_coin_index_signatures(epoch_id)
+            .await
+            .map_err(Error::from)
+    }
+
     pub(crate) async fn insert_expiration_date_signatures(
         &self,
         signatures: &AggregatedExpirationDateSignatures,
@@ -224,6 +257,18 @@ impl VpnCredentialStorage {
             .lock()
             .await
             .insert_expiration_date_signatures(signatures)
+            .await
+            .map_err(Error::from)
+    }
+
+    pub(crate) async fn get_expiration_date_signatures(
+        &self,
+        expiration_date: Date,
+    ) -> Result<Option<Vec<AnnotatedExpirationDateSignature>>, Error> {
+        self.storage
+            .lock()
+            .await
+            .get_expiration_date_signatures(expiration_date)
             .await
             .map_err(Error::from)
     }
@@ -252,4 +297,204 @@ impl VpnCredentialStorage {
             .await
             .map(|ticketbooks| ticketbooks.ticket_types_running_low())
     }
+
+    pub(crate) async fn get_pending_requests(
+        &self,
+    ) -> Result<Vec<PendingCredentialRequestStored>, Error> {
+        self.pending_requests
+            .get_pending_requests()
+            .await
+            .map_err(Error::from)
+    }
+
+    pub(crate) async fn get_pending_request_by_id(
+        &self,
+        id: &str,
+    ) -> Result<Option<PendingCredentialRequestStored>, Error> {
+        self.pending_requests
+            .get_pending_request_by_id(id)
+            .await
+            .map_err(Error::from)
+    }
+
+    pub(crate) async fn insert_pending_request(
+        &self,
+        id: &str,
+        expiration_date: Date,
+        request_info: &RequestInfo,
+    ) -> Result<(), Error> {
+        self.pending_requests
+            .insert_pending_request(id, expiration_date, request_info)
+            .await
+            .map_err(Error::from)
+    }
+
+    pub(crate) async fn remove_pending_request(&self, id: &str) -> Result<(), Error> {
+        self.pending_requests
+            .remove_pending_request(id)
+            .await
+            .map_err(Error::from)
+    }
+}
+
+#[derive(Clone)]
+struct SqliteZkNymRequestsStorageManager {
+    connection_pool: sqlx::SqlitePool,
+}
+
+// Functions that does the queries
+impl SqliteZkNymRequestsStorageManager {
+    async fn get_pending_requests(
+        &self,
+    ) -> Result<Vec<PendingCredentialRequestStored>, sqlx::Error> {
+        sqlx::query_as("SELECT * FROM pending_zk_nym_requests")
+            .fetch_all(&self.connection_pool)
+            .await
+    }
+
+    async fn get_pending_request_by_id(
+        &self,
+        id: &str,
+    ) -> Result<Option<PendingCredentialRequestStored>, sqlx::Error> {
+        sqlx::query_as("SELECT * FROM pending_zk_nym_requests WHERE id = ?")
+            .bind(id)
+            .fetch_optional(&self.connection_pool)
+            .await
+    }
+
+    async fn insert_pending_request(
+        &self,
+        id: &str,
+        expiration_date: Date,
+        request_info: &[u8],
+    ) -> Result<(), sqlx::Error> {
+        sqlx::query!(
+            "INSERT INTO pending_zk_nym_requests (id, expiration_date, request_info) VALUES (?, ?, ?)",
+            id,
+            expiration_date,
+            request_info,
+        )
+        .execute(&self.connection_pool)
+        .await?;
+        Ok(())
+    }
+
+    async fn remove_pending_request(&self, id: &str) -> Result<(), sqlx::Error> {
+        sqlx::query!("DELETE FROM pending_zk_nym_requests WHERE id = ?", id)
+            .execute(&self.connection_pool)
+            .await?;
+        Ok(())
+    }
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum PendingCredentialRequestsStorageError {
+    #[error("sqlx error: {0}")]
+    Sqlx(#[from] sqlx::Error),
+
+    #[error("migrate error: {0}")]
+    Migrate(#[from] sqlx::migrate::MigrateError),
+
+    #[error("bincode error: {0}")]
+    Bincode(#[from] bincode::Error),
+}
+
+#[derive(Clone)]
+pub(crate) struct PendingCredentialRequestsStorage {
+    storage_manager: SqliteZkNymRequestsStorageManager,
+}
+
+impl PendingCredentialRequestsStorage {
+    async fn init<P: AsRef<Path>>(
+        database_path: P,
+    ) -> Result<Self, PendingCredentialRequestsStorageError> {
+        tracing::info!(
+            "Setting up pending credential requests storage: {:?}",
+            database_path.as_ref().as_os_str()
+        );
+
+        let opts = sqlx::sqlite::SqliteConnectOptions::new()
+            .filename(database_path)
+            .create_if_missing(true)
+            .log_statements(LevelFilter::Info);
+
+        let connection_pool = sqlx::sqlite::SqlitePoolOptions::new()
+            .connect_with(opts)
+            .await?;
+
+        sqlx::migrate!("./migrations").run(&connection_pool).await?;
+
+        Ok(Self {
+            storage_manager: SqliteZkNymRequestsStorageManager { connection_pool },
+        })
+    }
+
+    async fn insert_pending_request(
+        &self,
+        id: &str,
+        expiration_date: Date,
+        request_info: &RequestInfo,
+    ) -> Result<(), PendingCredentialRequestsStorageError> {
+        let request_info = request_info_to_bytes(request_info)?;
+        self.storage_manager
+            .insert_pending_request(id, expiration_date, &request_info)
+            .await
+            .map_err(Into::into)
+    }
+
+    async fn get_pending_requests(
+        &self,
+    ) -> Result<Vec<PendingCredentialRequestStored>, PendingCredentialRequestsStorageError> {
+        self.storage_manager
+            .get_pending_requests()
+            .await
+            .map_err(Into::into)
+    }
+
+    async fn get_pending_request_by_id(
+        &self,
+        id: &str,
+    ) -> Result<Option<PendingCredentialRequestStored>, PendingCredentialRequestsStorageError> {
+        self.storage_manager
+            .get_pending_request_by_id(id)
+            .await
+            .map_err(Into::into)
+    }
+
+    async fn remove_pending_request(
+        &self,
+        id: &str,
+    ) -> Result<(), PendingCredentialRequestsStorageError> {
+        self.storage_manager
+            .remove_pending_request(id)
+            .await
+            .map_err(Into::into)
+    }
+}
+
+// MODELS
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub(crate) struct PendingCredentialRequestStored {
+    // WIP: remove pub
+    pub(crate) id: String,
+    // WIP: remove pub
+    pub(crate) expiration_date: Date,
+    // WIP: remove pub
+    pub(crate) request_info: Vec<u8>,
+}
+
+pub(crate) fn request_info_to_bytes(request_info: &RequestInfo) -> Result<Vec<u8>, bincode::Error> {
+    binary_serialiser().serialize(request_info)
+}
+
+pub(crate) fn request_info_from_bytes(bytes: &[u8]) -> Result<RequestInfo, bincode::Error> {
+    binary_serialiser().deserialize(bytes)
+}
+
+fn binary_serialiser() -> impl bincode::Options {
+    use bincode::Options;
+    bincode::DefaultOptions::new()
+        .with_big_endian()
+        .with_varint_encoding()
 }
