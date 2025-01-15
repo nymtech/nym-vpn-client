@@ -1017,28 +1017,28 @@ message TunnelConnectionData {
   }
 }
 
-enum ErrorStateReason {
-    FIREWALL = 0;
-    ROUTING = 1;
-    DNS = 2;
-    TUN_DEVICE = 3;
-    TUNNEL_PROVIDER = 4;
-    SAME_ENTRY_AND_EXIT_GATEWAY = 5;
-    INVALID_ENTRY_GATEWAY_COUNTRY = 6;
-    INVALID_EXIT_GATEWAY_COUNTRY = 7;
-    BAD_BANDWIDTH_INCREASE = 8;
-    DUPLICATE_TUN_FD = 9;
-    INTERNAL = 10;
-}
-
-enum ActionAfterDisconnect {
-  NOTHING = 0;
-  ERROR = 1;
-  RECONNECT = 2;
-  OFFLINE = 3;
-}
-
 message TunnelState {
+  enum ErrorStateReason {
+      FIREWALL = 0;
+      ROUTING = 1;
+      DNS = 2;
+      TUN_DEVICE = 3;
+      TUNNEL_PROVIDER = 4;
+      SAME_ENTRY_AND_EXIT_GATEWAY = 5;
+      INVALID_ENTRY_GATEWAY_COUNTRY = 6;
+      INVALID_EXIT_GATEWAY_COUNTRY = 7;
+      BAD_BANDWIDTH_INCREASE = 8;
+      DUPLICATE_TUN_FD = 9;
+      INTERNAL = 10;
+  }
+
+  enum ActionAfterDisconnect {
+    NOTHING = 0;
+    ERROR = 1;
+    RECONNECT = 2;
+    OFFLINE = 3;
+  }
+
   message Disconnected {}
   message Connecting {
     optional ConnectionData connection_data = 1;
