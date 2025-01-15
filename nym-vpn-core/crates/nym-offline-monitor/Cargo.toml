@@ -24,3 +24,6 @@ nym-windows = { path = "../nym-windows" }
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 nym-apple-dispatch = { path = "../nym-apple-dispatch" }
 nym-apple-network = { path = "../nym-apple-network" }
+
+[target.'cfg(target_os = "android")'.dependencies]
+async-trait.workspace = true

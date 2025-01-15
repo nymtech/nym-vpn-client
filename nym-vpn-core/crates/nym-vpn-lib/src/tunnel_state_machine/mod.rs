@@ -6,6 +6,8 @@ mod default_interface;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 mod dns_handler;
 //mod firewall_handler;
+#[cfg(target_os = "android")]
+mod android_connectivity_adapter;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 mod route_handler;
 mod states;
@@ -597,6 +599,8 @@ impl TunnelStateMachine {
         let offline_monitor = nym_offline_monitor::spawn_monitor(
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             route_handler.inner_handle(),
+            #[cfg(target_os = "android")]
+            android_connectivity_adapter::AndroidConnectivityAdapter::new(tun_provider.clone()),
             #[cfg(target_os = "linux")]
             Some(route_handler::TUNNEL_FWMARK),
         )

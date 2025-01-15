@@ -4164,6 +4164,7 @@ dependencies = [
 name = "nym-offline-monitor"
 version = "1.2.0-dev"
 dependencies = [
+ "async-trait",
  "debounced",
  "futures",
  "nym-apple-dispatch",

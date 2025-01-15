@@ -26,6 +26,9 @@ mod imp;
 #[path = "android.rs"]
 mod imp;
 
+#[cfg(target_os = "android")]
+pub use imp::NativeConnectivityAdapter;
+
 /// Disables offline monitor
 static FORCE_DISABLE_OFFLINE_MONITOR: LazyLock<bool> = LazyLock::new(|| {
     std::env::var("NYM_DISABLE_OFFLINE_MONITOR")
@@ -78,6 +81,7 @@ impl MonitorHandle {
 /// Spawn offline monitor.
 pub async fn spawn_monitor(
     #[cfg(not(any(target_os = "android", target_os = "ios")))] route_manager: RouteManagerHandle,
+    #[cfg(target_os = "android")] connectivity_adapter: impl imp::NativeConnectivityAdapter + 'static,
     #[cfg(target_os = "linux")] fwmark: Option<u32>,
 ) -> MonitorHandle {
     let (tx, rx) = watch::channel(Connectivity::PresumeOnline);
@@ -92,6 +96,8 @@ pub async fn spawn_monitor(
             tx,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             route_manager,
+            #[cfg(target_os = "android")]
+            connectivity_adapter,
             #[cfg(target_os = "linux")]
             fwmark,
             child_token,
