@@ -1,5 +1,5 @@
 import { ClickAwayListener, useSnackbar } from '@mui/base';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'motion/react';
 import clsx from 'clsx';
 import { useMainState } from '../contexts';
 import MsIcon from './MsIcon';

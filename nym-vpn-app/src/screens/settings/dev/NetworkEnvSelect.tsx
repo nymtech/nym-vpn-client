@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import clsx from 'clsx';
 import { Select } from '@headlessui/react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { invoke } from '@tauri-apps/api/core';
 import { BackendError, NetworkEnv } from '../../../types';
 import { MsIcon } from '../../../ui';

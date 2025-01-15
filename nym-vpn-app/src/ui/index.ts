@@ -11,7 +11,6 @@ export { default as TextArea } from './TextArea';
 export { default as TextInput } from './TextInput';
 export { default as ThemeSetter } from './ThemeSetter';
 export { default as TopBar } from './TopBar';
-export { default as AnimateIn } from './AnimateIn';
 export { default as Snackbar } from './Snackbar';
 export { default as PageAnim } from './PageAnim';
 export { default as RouteLoading } from './RouteLoading';

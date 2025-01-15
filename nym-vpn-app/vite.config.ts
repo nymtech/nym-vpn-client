@@ -26,7 +26,7 @@ export default defineConfig(() => ({
         manualChunks: {
           // put the following packages in their own chunk
           // to reduce main chunk size
-          'framer-motion': ['framer-motion'],
+          motion: ['motion'],
           'mui-base': ['@mui/base'],
           sentry: ['@sentry/react'],
         },

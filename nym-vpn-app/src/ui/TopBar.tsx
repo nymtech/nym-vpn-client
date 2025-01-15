@@ -10,11 +10,11 @@ import { useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { type } from '@tauri-apps/plugin-os';
+import { motion } from 'motion/react';
 import { NymVpnTextLogo } from '../assets';
 import { useDialog, useMainState } from '../contexts';
 import { routes } from '../router';
 import { Routes } from '../types';
-import AnimateIn from './AnimateIn';
 import MsIcon from './MsIcon';
 
 type NavLocation = {
@@ -220,10 +220,16 @@ export default function TopBar() {
   };
 
   return (
-    <AnimateIn
-      from="opacity-0 scale-x-90"
-      to="opacity-100 scale-x-100"
-      duration={200}
+    <motion.nav
+      initial={{
+        opacity: 0,
+        scaleX: 0.9,
+      }}
+      animate={{
+        opacity: 1,
+        scaleX: 1,
+        transition: { duration: 0.2 },
+      }}
       className={clsx([
         'flex flex-row flex-nowrap justify-between items-center shrink-0',
         'text-baltic-sea dark:text-mercury-pinkish',
@@ -232,10 +238,13 @@ export default function TopBar() {
           ? 'dark:bg-ash bg-faded-lavender'
           : 'dark:bg-octave-arsenic bg-white',
       ])}
-      as="nav"
     >
       {currentNavLocation.leftIcon ? (
-        <AnimateIn from="-translate-x-2" to="translate-x-0" duration={200}>
+        <motion.div
+          initial={{ translateX: -4, opacity: 0.6 }}
+          animate={{ translateX: 0, opacity: 1 }}
+          transition={{ duration: 0.15, ease: 'easeOut' }}
+        >
           <button
             className="w-6 mx-4 focus:outline-none cursor-default"
             onClick={currentNavLocation.handleLeftNav}
@@ -248,13 +257,17 @@ export default function TopBar() {
               ])}
             />
           </button>
-        </AnimateIn>
+        </motion.div>
       ) : (
         <div className="w-6 mx-4" />
       )}
       {renderTitle(currentNavLocation.title)}
       {currentNavLocation.rightIcon ? (
-        <AnimateIn from="translate-x-2" to="translate-x-0" duration={200}>
+        <motion.div
+          initial={{ translateX: 4, opacity: 0.6 }}
+          animate={{ translateX: 0, opacity: 1 }}
+          transition={{ duration: 0.15, ease: 'easeOut' }}
+        >
           <button
             className="w-6 mx-4 focus:outline-none cursor-default"
             onClick={currentNavLocation.handleRightNav}
@@ -268,10 +281,10 @@ export default function TopBar() {
               ])}
             />
           </button>
-        </AnimateIn>
+        </motion.div>
       ) : (
         <div className="w-6 mx-4" />
       )}
-    </AnimateIn>
+    </motion.nav>
   );
 }

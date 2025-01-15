@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
+import { motion } from 'motion/react';
 import { ConnectionState } from '../../types';
-import { AnimateIn } from '../../ui';
 
 function ConnectionBadge({ state }: { state: ConnectionState }) {
   const { t } = useTranslation('home');
@@ -53,10 +53,10 @@ function ConnectionBadge({ state }: { state: ConnectionState }) {
   };
 
   return (
-    <AnimateIn
-      from="opacity-0 scale-x-90 translate-y-4"
-      to="opacity-100 scale-100 translate-y-0 translate-x-0"
-      duration={150}
+    <motion.div
+      initial={{ opacity: 0, scaleX: 0.8, translateY: 4 }}
+      animate={{ opacity: 1, scaleX: 1, translateY: 0 }}
+      transition={{ duration: 0.1, ease: 'easeOut' }}
       className={clsx([
         'flex justify-center items-center tracking-normal gap-4',
         ...statusBadgeDynStyles[state],
@@ -82,7 +82,7 @@ function ConnectionBadge({ state }: { state: ConnectionState }) {
           />
         </div>
       )}
-    </AnimateIn>
+    </motion.div>
   );
 }
 

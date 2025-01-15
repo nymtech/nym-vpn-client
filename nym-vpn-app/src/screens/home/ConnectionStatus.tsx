@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { motion } from 'motion/react';
 import { useMainState } from '../../contexts';
 import { setToString } from '../../util';
-import { AnimateIn } from '../../ui';
 import { useI18nError } from '../../hooks';
 import ConnectionBadge from './ConnectionBadge';
 import ConnectionTimer from './ConnectionTimer';
@@ -34,10 +34,10 @@ function ConnectionStatus() {
       </div>
       <div className="w-full flex flex-col flex-1 items-center overflow-hidden">
         {loading && state.progressMessages.length > 0 && !state.error && (
-          <AnimateIn
-            from="opacity-0 scale-90"
-            to="opacity-100 scale-100"
-            duration={100}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.1, ease: 'easeOut' }}
             className="w-4/5 h-2/3 overflow-auto break-words text-center cursor-default select-none"
           >
             <p className="text-sm text-dim-gray dark:text-mercury-mist font-bold">
@@ -50,14 +50,14 @@ function ConnectionStatus() {
                 },
               )}
             </p>
-          </AnimateIn>
+          </motion.div>
         )}
         {state.state === 'Connected' && <ConnectionTimer />}
         {state.error && (
-          <AnimateIn
-            from="opacity-0 scale-90 -translate-x-8"
-            to="opacity-100 scale-100 translate-y-0 translate-x-0"
-            duration={200}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, translateX: -8 }}
+            animate={{ opacity: 1, scale: 1, translateX: 0 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
             className="w-4/5 h-2/3 overflow-auto break-words text-center cursor-default"
           >
             <p className="text-sm text-teaberry font-bold">
@@ -68,7 +68,7 @@ function ConnectionStatus() {
                 {setToString(state.error.data)}
               </p>
             )}
-          </AnimateIn>
+          </motion.div>
         )}
       </div>
     </div>

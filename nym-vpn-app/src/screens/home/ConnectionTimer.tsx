@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { motion } from 'motion/react';
 import dayjs from 'dayjs';
 import { useMainState } from '../../contexts';
-import { AnimateIn } from '../../ui';
 
 function ConnectionTimer() {
   const { sessionStartDate } = useMainState();
@@ -28,10 +28,10 @@ function ConnectionTimer() {
   }, [sessionStartDate]);
 
   return (
-    <AnimateIn
-      from="opacity-0 scale-90"
-      to="opacity-100 scale-100"
-      duration={150}
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.1, ease: 'easeOut' }}
       className="flex flex-col items-center gap-2 cursor-default select-none"
     >
       <p className="text-sm font-bold text-dim-gray dark:text-mercury-mist">
@@ -40,7 +40,7 @@ function ConnectionTimer() {
       <p className="text-sm font-bold text-baltic-sea dark:text-flawed-white">
         {connectionTime}
       </p>
-    </AnimateIn>
+    </motion.div>
   );
 }
 

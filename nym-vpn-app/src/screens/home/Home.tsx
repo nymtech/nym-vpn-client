@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useNavigate } from 'react-router';
 import clsx from 'clsx';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { useMainDispatch, useMainState } from '../../contexts';
 import { BackendError, StateDispatch } from '../../types';
 import { routes } from '../../router';

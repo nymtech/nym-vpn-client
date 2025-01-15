@@ -1,21 +1,28 @@
 import clsx from 'clsx';
-import AnimateIn from './AnimateIn';
+import { motion } from 'motion/react';
 
 type Props = {
   children: React.ReactNode;
   className?: string;
+  slideOrigin?: 'left' | 'right';
 };
 
-function PageAnim({ children, className }: Props) {
+function PageAnim({ children, className, slideOrigin = 'left' }: Props) {
   return (
-    <AnimateIn
-      from="opacity-0 -translate-x-4"
-      to="opacity-100 translate-x-0"
-      duration={150}
+    <motion.div
+      initial={{
+        opacity: 0,
+        translateX: slideOrigin === 'left' ? -6 : 6,
+      }}
+      animate={{
+        opacity: 1,
+        translateX: 0,
+        transition: { duration: 0.15, ease: 'easeOut' },
+      }}
       className={clsx([className])}
     >
       {children}
-    </AnimateIn>
+    </motion.div>
   );
 }
 

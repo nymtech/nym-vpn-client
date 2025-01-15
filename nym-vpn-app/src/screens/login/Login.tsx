@@ -2,7 +2,7 @@ import { invoke } from '@tauri-apps/api/core';
 import clsx from 'clsx';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { useNavigate } from 'react-router';
 import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
 import { useI18nError } from '../../hooks';
