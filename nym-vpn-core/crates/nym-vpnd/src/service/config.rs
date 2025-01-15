@@ -131,6 +131,9 @@ pub enum ConfigSetupError {
 
     #[error("missing nym-api URL")]
     MissingApiUrl,
+
+    #[error("missing nyxd URL")]
+    MissingNyxdUrl,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]

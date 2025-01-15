@@ -61,9 +61,13 @@ pub(super) async fn start_state_machine(
     let api_url = network_env.api_url().ok_or(VpnError::InternalError {
         details: "API URL not found".to_string(),
     })?;
+    let nyxd_url = network_env.nyxd_url().ok_or(VpnError::InternalError {
+        details: "Nyxd URL not found".to_string(),
+    })?;
     let nym_vpn_api_url = Some(network_env.vpn_api_url());
 
     let gateway_config = GatewayDirectoryConfig {
+        nyxd_url,
         api_url,
         nym_vpn_api_url,
         ..Default::default()

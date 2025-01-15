@@ -457,10 +457,14 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         let (event_sender, event_receiver) = mpsc::unbounded_channel();
 
         let tunnel_settings = TunnelSettings::default();
+        let nyxd_url = network_env
+            .nyxd_url()
+            .ok_or(Error::ConfigSetup(ConfigSetupError::MissingNyxdUrl))?;
         let api_url = network_env
             .api_url()
             .ok_or(Error::ConfigSetup(ConfigSetupError::MissingApiUrl))?;
         let gateway_config = gateway_directory::Config {
+            nyxd_url,
             api_url,
             nym_vpn_api_url: Some(network_env.vpn_api_url()),
             min_gateway_performance: None,

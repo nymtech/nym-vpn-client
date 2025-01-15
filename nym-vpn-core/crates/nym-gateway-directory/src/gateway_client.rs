@@ -12,6 +12,7 @@ use tracing::{debug, error, info, warn};
 use url::Url;
 
 use crate::entries::gateway::NymNodeList;
+use crate::helpers::try_resolve_hostname;
 use crate::{
     entries::{
         country::Country,
@@ -23,6 +24,7 @@ use crate::{
 
 #[derive(Clone, Debug)]
 pub struct Config {
+    pub nyxd_url: Url,
     pub api_url: Url,
     pub nym_vpn_api_url: Option<Url>,
     pub min_gateway_performance: Option<GatewayMinPerformance>,
@@ -45,7 +47,8 @@ impl fmt::Display for Config {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "api_url: {}, nym_vpn_api_url: {}",
+            "nyxd_url: {}, api_url: {}, nym_vpn_api_url: {}",
+            self.nyxd_url,
             self.api_url,
             to_string(&self.nym_vpn_api_url),
         )
@@ -55,6 +58,11 @@ impl fmt::Display for Config {
 impl Config {
     fn new_mainnet() -> Self {
         let mainnet_network_defaults = nym_sdk::NymNetworkDetails::default();
+        let default_nyxd_url = mainnet_network_defaults
+            .endpoints
+            .first()
+            .expect("rust sdk mainnet default incorrectly configured")
+            .nyxd_url();
         let default_api_url = mainnet_network_defaults
             .endpoints
             .first()
@@ -67,6 +75,7 @@ impl Config {
             .expect("rust sdk mainnet default nym-vpn-api url not parseable");
 
         Config {
+            nyxd_url: default_nyxd_url,
             api_url: default_api_url,
             nym_vpn_api_url: Some(default_nym_vpn_api_url),
             min_gateway_performance: None,
@@ -75,6 +84,11 @@ impl Config {
 
     pub fn new_from_env() -> Self {
         let network = nym_sdk::NymNetworkDetails::new_from_env();
+        let nyxd_url = network
+            .endpoints
+            .first()
+            .expect("network environment endpoints not correctly configured")
+            .nyxd_url();
         let api_url = network
             .endpoints
             .first()
@@ -86,14 +100,41 @@ impl Config {
         let nym_vpn_api_url = network.nym_vpn_api_url();
 
         Config {
+            nyxd_url,
             api_url,
             nym_vpn_api_url,
             min_gateway_performance: None,
         }
     }
 
+    async fn url_to_ips(url: &Url) -> Result<Vec<IpAddr>> {
+        match url.host() {
+            Some(url::Host::Ipv4(addr)) => Ok(vec![addr.into()]),
+            Some(url::Host::Ipv6(addr)) => Ok(vec![addr.into()]),
+            Some(url::Host::Domain(hostname)) => try_resolve_hostname(hostname).await,
+            None => Err(Error::NoHostForUrl(url.clone())),
+        }
+    }
+
+    pub fn nyxd_url(&self) -> &Url {
+        &self.nyxd_url
+    }
+
+    pub async fn nyxd_ips(&self) -> Result<Vec<IpAddr>> {
+        Self::url_to_ips(&self.nyxd_url).await
+    }
+
+    pub fn with_custom_nyxd_url(mut self, nyxd_url: Url) -> Self {
+        self.nyxd_url = nyxd_url;
+        self
+    }
+
     pub fn api_url(&self) -> &Url {
         &self.api_url
+    }
+
+    pub async fn api_ips(&self) -> Result<Vec<IpAddr>> {
+        Self::url_to_ips(&self.api_url).await
     }
 
     pub fn with_custom_api_url(mut self, api_url: Url) -> Self {
@@ -103,6 +144,14 @@ impl Config {
 
     pub fn nym_vpn_api_url(&self) -> Option<&Url> {
         self.nym_vpn_api_url.as_ref()
+    }
+
+    pub async fn nym_vpn_api_ips(&self) -> Result<Option<Vec<IpAddr>>> {
+        if let Some(url) = &self.nym_vpn_api_url {
+            Self::url_to_ips(url).await.map(Some)
+        } else {
+            Ok(None)
+        }
     }
 
     pub fn with_custom_nym_vpn_api_url(mut self, nym_vpn_api_url: Url) -> Self {

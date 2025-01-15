@@ -1,6 +1,8 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use url::Url;
+
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("identity not formatted correctly: {identity}")]
@@ -79,6 +81,9 @@ pub enum Error {
 
     #[error("failed to lookup gateway ip for gateway {0}")]
     FailedToLookupIp(String),
+
+    #[error("provided url doesn't parse to a host")]
+    NoHostForUrl(Url),
 
     #[error("the provided gateway information is malformed")]
     MalformedGateway,

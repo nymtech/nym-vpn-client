@@ -22,4 +22,5 @@ pub use crate::{
     },
     error::Error,
     gateway_client::{Config, GatewayClient},
+    helpers::allowed_ips,
 };

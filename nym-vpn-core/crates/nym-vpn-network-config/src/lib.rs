@@ -105,6 +105,13 @@ impl Network {
         Ok(network_name == vpn_network_name)
     }
 
+    pub fn nyxd_url(&self) -> Option<url::Url> {
+        self.nym_network_details()
+            .endpoints
+            .first()
+            .map(|endpoint| endpoint.nyxd_url())
+    }
+
     pub fn api_url(&self) -> Option<url::Url> {
         self.nym_network_details()
             .endpoints
