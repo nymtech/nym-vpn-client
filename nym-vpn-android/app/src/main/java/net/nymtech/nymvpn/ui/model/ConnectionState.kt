@@ -32,7 +32,7 @@ sealed class ConnectionState(val status: StringValue) {
 	companion object {
 		fun from(tunnelState: Tunnel.State): ConnectionState {
 			return when (tunnelState) {
-				Tunnel.State.Down -> Disconnected
+				Tunnel.State.Down, Tunnel.State.Offline -> Disconnected
 				Tunnel.State.Up -> Connected
 				Tunnel.State.InitializingClient ->
 					Connecting(

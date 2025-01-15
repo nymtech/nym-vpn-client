@@ -43,5 +43,6 @@ fun TunnelEvent.NewState.asTunnelState(): Tunnel.State {
 		TunnelState.Disconnected -> Tunnel.State.Down
 		is TunnelState.Disconnecting -> Tunnel.State.Disconnecting
 		is TunnelState.Error -> Tunnel.State.Down
+		is TunnelState.Offline -> Tunnel.State.Offline
 	}
 }

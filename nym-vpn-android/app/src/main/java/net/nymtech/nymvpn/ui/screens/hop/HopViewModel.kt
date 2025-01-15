@@ -34,11 +34,14 @@ constructor(
 	}
 
 	fun updateCountryCache(type: GatewayType) = viewModelScope.launch {
+		var error = false
+		_uiState.update { it.copy(error = false) }
 		when (type) {
-			GatewayType.MIXNET_ENTRY -> countryCacheService.updateEntryCountriesCache()
-			GatewayType.MIXNET_EXIT -> countryCacheService.updateExitCountriesCache()
-			GatewayType.WG -> countryCacheService.updateWgCountriesCache()
+			GatewayType.MIXNET_ENTRY -> countryCacheService.updateEntryCountriesCache().onFailure { error = true }
+			GatewayType.MIXNET_EXIT -> countryCacheService.updateExitCountriesCache().onFailure { error = true }
+			GatewayType.WG -> countryCacheService.updateWgCountriesCache().onFailure { error = true }
 		}
+		_uiState.update { it.copy(error = error) }
 	}
 
 	fun onSelected(country: Country, gatewayLocation: GatewayLocation) = viewModelScope.launch {

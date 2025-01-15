@@ -45,7 +45,8 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 						setTileText()
 						setActive()
 					}
-					Tunnel.State.Down -> {
+					// TODO once we get offline designs, change this
+					Tunnel.State.Down, Tunnel.State.Offline -> {
 						setTileText()
 						setInactive()
 					}

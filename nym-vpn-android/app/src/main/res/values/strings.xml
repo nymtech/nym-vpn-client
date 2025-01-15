@@ -209,4 +209,5 @@
     <string name="location_support_link" translatable="false">https://support.nym.com/hc/articles/26448676449297-How-is-server-location-determined-by-NymVPN</string>
     <string name="unexpected_error">An unexpected error occurred:</string>
     <string name="no_active_subscription">No active subscription detected.</string>
+    <string name="loading">Loading</string>
 </resources>

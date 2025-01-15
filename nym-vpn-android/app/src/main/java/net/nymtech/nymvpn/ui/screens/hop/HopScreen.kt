@@ -20,9 +20,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -65,11 +68,15 @@ import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib.GatewayType
 import java.text.Collator
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appUiState: AppUiState, viewModel: HopViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val context = LocalContext.current
 	val navController = LocalNavController.current
+
+	var refreshing by remember { mutableStateOf(false) }
+	val pullRefreshState = rememberPullToRefreshState()
 
 	val currentLocale = ConfigurationCompat.getLocales(context.resources.configuration)[0]
 	val collator = Collator.getInstance(currentLocale)
@@ -137,6 +144,11 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 		viewModel.updateCountryCache(gatewayType)
 	}
 
+	LaunchedEffect(refreshing) {
+		if (refreshing) viewModel.updateCountryCache(gatewayType)
+		refreshing = false
+	}
+
 	Modal(show = showLocationTooltip, onDismiss = { showLocationTooltip = false }, title = {
 		Text(
 			text = stringResource(R.string.gateway_locations_title),
@@ -151,69 +163,91 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 		)
 	})
 
-	LazyColumn(
-		horizontalAlignment = Alignment.CenterHorizontally,
-		verticalArrangement = Arrangement.Top,
-		modifier =
-		Modifier
-			.fillMaxSize().windowInsetsPadding(WindowInsets.navigationBars),
+	PullToRefreshBox(
+		state = pullRefreshState,
+		isRefreshing = refreshing,
+		onRefresh = { refreshing = true },
 	) {
-		item {
-			Column(
-				verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight()),
-				modifier = Modifier
-					.padding(bottom = 24.dp.scaledHeight())
-					.padding(horizontal = 24.dp.scaledWidth()),
-			) {
-				Box(
-					modifier =
-					Modifier
-						.fillMaxWidth()
-						.padding(
-							horizontal = 16.dp.scaledWidth(),
-						),
-				)
-				var query: String by rememberSaveable { mutableStateOf("") }
-				CustomTextField(
-					value = query,
-					onValueChange = {
-						query = it
-						viewModel.onQueryChange(it, countries)
-					},
+		LazyColumn(
+			horizontalAlignment = Alignment.CenterHorizontally,
+			verticalArrangement = Arrangement.Top,
+			modifier =
+			Modifier
+				.fillMaxSize().windowInsetsPadding(WindowInsets.navigationBars),
+		) {
+			item {
+				Column(
+					verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight()),
 					modifier = Modifier
-						.fillMaxWidth()
-						.height(56.dp.scaledHeight())
-						.background(color = Color.Transparent, RoundedCornerShape(30.dp)),
-					placeholder = {
-						Text(
-							stringResource(id = R.string.search_country),
-							color = MaterialTheme.colorScheme.outline,
-							style = MaterialTheme.typography.bodyLarge,
-						)
-					},
-					singleLine = true,
-					leading = {
-						val icon = Icons.Rounded.Search
-						Icon(
-							imageVector = icon,
-							modifier = Modifier.size(iconSize),
-							tint = MaterialTheme.colorScheme.onBackground,
-							contentDescription = icon.name,
-						)
-					},
-					label = {
-						Text(
-							stringResource(R.string.search),
-						)
-					},
-					textStyle = MaterialTheme.typography.bodyLarge.copy(
-						color = MaterialTheme.colorScheme.onSurface,
-					),
-				)
+						.padding(bottom = 24.dp.scaledHeight())
+						.padding(horizontal = 24.dp.scaledWidth()),
+				) {
+					Box(
+						modifier =
+						Modifier
+							.fillMaxWidth()
+							.padding(
+								horizontal = 16.dp.scaledWidth(),
+							),
+					)
+					var query: String by rememberSaveable { mutableStateOf("") }
+					CustomTextField(
+						value = query,
+						onValueChange = {
+							query = it
+							viewModel.onQueryChange(it, countries)
+						},
+						modifier = Modifier
+							.fillMaxWidth()
+							.height(56.dp.scaledHeight())
+							.background(color = Color.Transparent, RoundedCornerShape(30.dp)),
+						placeholder = {
+							Text(
+								stringResource(id = R.string.search_country),
+								color = MaterialTheme.colorScheme.outline,
+								style = MaterialTheme.typography.bodyLarge,
+							)
+						},
+						singleLine = true,
+						leading = {
+							val icon = Icons.Rounded.Search
+							Icon(
+								imageVector = icon,
+								modifier = Modifier.size(iconSize),
+								tint = MaterialTheme.colorScheme.onBackground,
+								contentDescription = icon.name,
+							)
+						},
+						label = {
+							Text(
+								stringResource(R.string.search),
+							)
+						},
+						textStyle = MaterialTheme.typography.bodyLarge.copy(
+							color = MaterialTheme.colorScheme.onSurface,
+						),
+					)
+				}
 			}
-		}
-		item {
+			if (countries.isEmpty()) {
+				item {
+					if (uiState.error) {
+						Text(
+							stringResource(id = R.string.country_load_failure),
+							style = MaterialTheme.typography.bodyMedium.copy(
+								color = CustomColors.error,
+							),
+						)
+					} else {
+						Text(
+							stringResource(id = R.string.loading),
+							style = MaterialTheme.typography.bodyMedium,
+						)
+					}
+				}
+			}
 			if (countries.isNotEmpty()) {
+				item {
 // 				if (gatewayLocation == GatewayLocation.ENTRY) {
 // 					val icon = ImageVector.vectorResource(R.drawable.bolt)
 // 					SelectionItemButton(
@@ -245,47 +279,41 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 // 						},
 // 					)
 // 				}
-			} else {
-				Text(
-					stringResource(id = R.string.country_load_failure),
-					style = MaterialTheme.typography.bodyMedium.copy(
-						color = CustomColors.error,
-					),
+				}
+			}
+			items(displayCountries, key = { it.isoCode }) {
+				if (it.isLowLatency) return@items
+				val icon =
+					ImageVector.vectorResource(
+						context.getFlagImageVectorByName(
+							it.isoCode.lowercase(),
+						),
+					)
+				SelectionItemButton(
+					{
+						Image(
+							icon,
+							icon.name,
+							modifier =
+							Modifier
+								.padding(horizontal = 24.dp.scaledWidth(), 16.dp.scaledHeight())
+								.size(
+									iconSize,
+								),
+						)
+					},
+					buttonText = it.name,
+					onClick = {
+						viewModel.onSelected(it, gatewayLocation)
+						navController.navigateAndForget(Route.Main())
+					},
+					trailing = {
+						if (it.isoCode == selectedCountry.isoCode && !selectedCountry.isLowLatency) {
+							SelectedLabel()
+						}
+					},
 				)
 			}
-		}
-		items(displayCountries, key = { it.isoCode }) {
-			if (it.isLowLatency) return@items
-			val icon =
-				ImageVector.vectorResource(
-					context.getFlagImageVectorByName(
-						it.isoCode.lowercase(),
-					),
-				)
-			SelectionItemButton(
-				{
-					Image(
-						icon,
-						icon.name,
-						modifier =
-						Modifier
-							.padding(horizontal = 24.dp.scaledWidth(), 16.dp.scaledHeight())
-							.size(
-								iconSize,
-							),
-					)
-				},
-				buttonText = it.name,
-				onClick = {
-					viewModel.onSelected(it, gatewayLocation)
-					navController.navigateAndForget(Route.Main())
-				},
-				trailing = {
-					if (it.isoCode == selectedCountry.isoCode && !selectedCountry.isLowLatency) {
-						SelectedLabel()
-					}
-				},
-			)
 		}
 	}
 }

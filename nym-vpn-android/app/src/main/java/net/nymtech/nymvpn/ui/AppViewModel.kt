@@ -141,29 +141,20 @@ constructor(
 	}
 
 	fun onAppStartup() = viewModelScope.launch {
-		val env = settingsRepository.getEnvironment()
-		backend.init(env, settingsRepository.isCredentialMode())
 		val theme = settingsRepository.getTheme()
 		uiState.takeWhile { it.settings.theme != theme }.onCompletion {
 			_isAppReady.emit(true)
 		}.collect()
+		val env = settingsRepository.getEnvironment()
+		backend.init(env, settingsRepository.isCredentialMode())
 		launch {
-			Timber.d("Updating exit country cache")
-			countryCacheService.updateExitCountriesCache().onSuccess {
-				Timber.d("Exit countries updated")
-			}.onFailure { Timber.w("Failed to get exit countries: ${it.message}") }
+			countryCacheService.updateExitCountriesCache()
 		}
 		launch {
-			Timber.d("Updating entry country cache")
-			countryCacheService.updateEntryCountriesCache().onSuccess {
-				Timber.d("Entry countries updated")
-			}.onFailure { Timber.w("Failed to get entry countries: ${it.message}") }
+			countryCacheService.updateEntryCountriesCache()
 		}
 		launch {
-			Timber.d("Updating entry country cache")
-			countryCacheService.updateWgCountriesCache().onSuccess {
-				Timber.d("Wg countries updated")
-			}.onFailure { Timber.w("Failed to get wg countries: ${it.message}") }
+			countryCacheService.updateWgCountriesCache()
 		}
 		launch {
 			Timber.d("Checking for system messages")

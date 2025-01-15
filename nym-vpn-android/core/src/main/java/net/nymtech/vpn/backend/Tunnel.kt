@@ -39,6 +39,8 @@ interface Tunnel {
 		data object EstablishingConnection : State()
 
 		data object Disconnecting : State()
+
+		data object Offline : State()
 	}
 
 	/**
