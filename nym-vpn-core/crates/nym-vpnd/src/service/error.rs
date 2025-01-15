@@ -90,6 +90,9 @@ impl From<AccountCommandError> for AccountNotReady {
                 successes: _,
                 failed,
             } => AccountNotReady::RequestZkNym { failed },
+            AccountCommandError::RequestZkNymGeneral(e) => {
+                AccountNotReady::RequestZkNym { failed: vec![e] }
+            }
             AccountCommandError::NoAccountStored => AccountNotReady::NoAccountStored,
             AccountCommandError::NoDeviceStored => AccountNotReady::NoDeviceStored,
             AccountCommandError::RemoveAccount(e) => AccountNotReady::General(e),

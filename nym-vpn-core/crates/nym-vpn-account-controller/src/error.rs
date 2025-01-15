@@ -26,8 +26,16 @@ pub enum Error {
     #[error(transparent)]
     CredentialStorage(#[from] nym_credential_storage::error::StorageError),
 
+    #[error(transparent)]
+    PendingCredentialRequestsStorage(#[from] crate::storage::PendingCredentialRequestsStorageError),
+
     #[error("failed to setup credential storage")]
     SetupCredentialStorage(#[source] nym_sdk::Error),
+
+    #[error("failed to setup pending credential requests storage")]
+    SetupPendingCredentialRequestsStorage(
+        #[source] crate::storage::PendingCredentialRequestsStorageError,
+    ),
 
     #[error("failed to send account controller command")]
     AccountCommandSend {

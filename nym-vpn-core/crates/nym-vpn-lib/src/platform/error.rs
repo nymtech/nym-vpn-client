@@ -165,6 +165,10 @@ impl From<nym_vpn_account_controller::AccountCommandError> for VpnError {
                 successes: successes.into_iter().map(|e| e.into()).collect(),
                 failed: failed.into_iter().map(|e| e.into()).collect(),
             },
+            AccountCommandError::RequestZkNymGeneral(e) => VpnError::RequestZkNym {
+                successes: vec![],
+                failed: vec![e.into()],
+            },
             AccountCommandError::NoAccountStored => VpnError::NoAccountStored,
             AccountCommandError::NoDeviceStored => VpnError::NoDeviceIdentity,
             AccountCommandError::RemoveAccount(e) => VpnError::InternalError { details: e },

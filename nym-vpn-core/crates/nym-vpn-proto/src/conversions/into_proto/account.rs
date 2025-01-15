@@ -184,6 +184,21 @@ impl From<nym_vpn_account_controller::RequestZkNymSuccess> for crate::RequestZkN
 impl From<nym_vpn_account_controller::RequestZkNymError> for crate::RequestZkNymError {
     fn from(error: nym_vpn_account_controller::RequestZkNymError) -> Self {
         match error {
+            nym_vpn_account_controller::RequestZkNymError::CreateEcashKeyPair(err) => Self {
+                kind: crate::request_zk_nym_error::RequestZkNymErrorType::CreateEcashKeyPair as i32,
+                id: None,
+                ticketbook_type: None,
+                message: Some(err.to_string()),
+                message_id: None,
+            },
+            nym_vpn_account_controller::RequestZkNymError::ConstructWithdrawalRequest(err) => Self {
+                kind: crate::request_zk_nym_error::RequestZkNymErrorType::ConstructWithdrawalRequest
+                    as i32,
+                id: None,
+                ticketbook_type: None,
+                message: Some(err.to_string()),
+                message_id: None,
+            },
             nym_vpn_account_controller::RequestZkNymError::RequestZkNymEndpointFailure {
                 endpoint_failure,
                 ticket_type,
@@ -195,6 +210,14 @@ impl From<nym_vpn_account_controller::RequestZkNymError> for crate::RequestZkNym
                 ticketbook_type: Some(ticket_type),
                 message: Some(endpoint_failure.message.clone()),
                 message_id: endpoint_failure.message_id.clone(),
+            },
+            nym_vpn_account_controller::RequestZkNymError::InvalidTicketTypeInResponse(err) => Self {
+                kind: crate::request_zk_nym_error::RequestZkNymErrorType::InvalidTicketTypeInResponse
+                    as i32,
+                id: None,
+                ticketbook_type: None,
+                message: Some(err.to_string()),
+                message_id: None,
             },
             nym_vpn_account_controller::RequestZkNymError::PollZkNymEndpointFailure {
                 endpoint_failure,
@@ -234,15 +257,87 @@ impl From<nym_vpn_account_controller::RequestZkNymError> for crate::RequestZkNym
                 message: Some(status.to_string()),
                 message_id: None,
             },
-            nym_vpn_account_controller::RequestZkNymError::Import {
-                id,
-                ticket_type,
-                error,
-            } => Self {
-                kind: crate::request_zk_nym_error::RequestZkNymErrorType::Import as i32,
+            nym_vpn_account_controller::RequestZkNymError::MissingBlindedShares => Self {
+                kind: crate::request_zk_nym_error::RequestZkNymErrorType::MissingBlindedShares as i32,
+                id: None,
+                ticketbook_type: None,
+                message: None,
+                message_id: None,
+            },
+            nym_vpn_account_controller::RequestZkNymError::ResponseHasInvalidMasterVerificationKey(err) => {
+                Self {
+                    kind: crate::request_zk_nym_error::RequestZkNymErrorType::ResponseHasInvalidMasterVerificationKey as i32,
+                    id: None,
+                    ticketbook_type: None,
+                    message: Some(err.to_string()),
+                    message_id: None,
+                }
+            },
+            nym_vpn_account_controller::RequestZkNymError::NoMasterVerificationKeyInStorage => Self {
+                kind: crate::request_zk_nym_error::RequestZkNymErrorType::NoMasterVerificationKeyInStorage as i32,
+                id: None,
+                ticketbook_type: None,
+                message: None,
+                message_id: None,
+            },
+            nym_vpn_account_controller::RequestZkNymError::InvalidVerificationKey(err) => Self {
+                kind: crate::request_zk_nym_error::RequestZkNymErrorType::InvalidVerificationKey as i32,
+                id: None,
+                ticketbook_type: None,
+                message: Some(err.to_string()),
+                message_id: None,
+            },
+            nym_vpn_account_controller::RequestZkNymError::DeserializeBlindedSignature(err) => Self {
+                kind: crate::request_zk_nym_error::RequestZkNymErrorType::DeserializeBlindedSignature as i32,
+                id: None,
+                ticketbook_type: None,
+                message: Some(err.to_string()),
+                message_id: None,
+            },
+            nym_vpn_account_controller::RequestZkNymError::DecodedKeysMissingIndex => Self {
+                kind: crate::request_zk_nym_error::RequestZkNymErrorType::DecodedKeysMissingIndex as i32,
+                id: None,
+                ticketbook_type: None,
+                message: None,
+                message_id: None,
+            },
+            nym_vpn_account_controller::RequestZkNymError::ImportZkNym { ticket_type, error } => {
+                Self {
+                    kind: crate::request_zk_nym_error::RequestZkNymErrorType::Import as i32,
+                    id: None,
+                    ticketbook_type: Some(ticket_type),
+                    message: Some(error.to_string()),
+                    message_id: None,
+                }
+            }
+            nym_vpn_account_controller::RequestZkNymError::AggregateWallets(err) => Self {
+                kind: crate::request_zk_nym_error::RequestZkNymErrorType::AggregateWallets as i32,
+                id: None,
+                ticketbook_type: None,
+                message: Some(err.to_string()),
+                message_id: None,
+            },
+            nym_vpn_account_controller::RequestZkNymError::ConfirmZkNymDownloadEndpointFailure { endpoint_failure, id } => {
+                Self {
+                    kind: crate::request_zk_nym_error::RequestZkNymErrorType::ConfirmZkNymDownloadEndpointFailure as i32,
+                    id: Some(id.clone()),
+                    ticketbook_type: None,
+                    message: Some(endpoint_failure.message.clone()),
+                    message_id: endpoint_failure.message_id.clone(),
+                }
+            },
+            nym_vpn_account_controller::RequestZkNymError::CredentialStorage(err) => Self {
+                kind: crate::request_zk_nym_error::RequestZkNymErrorType::CredentialStorage as i32,
+                id: None,
+                ticketbook_type: None,
+                message: Some(err.to_string()),
+                message_id: None,
+            },
+            nym_vpn_account_controller::RequestZkNymError::MissingPendingRequest(id) => Self {
+                kind: crate::request_zk_nym_error::RequestZkNymErrorType::MissingPendingRequest as i32,
                 id: Some(id.clone()),
-                ticketbook_type: Some(ticket_type),
-                message: Some(error.to_string()),
+                ticketbook_type: None,
+                message: None,
                 message_id: None,
             },
             nym_vpn_account_controller::RequestZkNymError::Internal(err) => Self {
@@ -292,6 +387,27 @@ impl From<nym_vpn_account_controller::shared_state::RequestZkNymResult>
                     .map(crate::RequestZkNymError::from)
                     .collect(),
             },
+            nym_vpn_account_controller::shared_state::RequestZkNymResult::Result {
+                successes,
+                failures,
+            } => crate::RequestZkNymResult {
+                kind: crate::request_zk_nym_result::RequestZkNymResultType::Done as i32,
+                successes: successes
+                    .into_iter()
+                    .map(crate::RequestZkNymSuccess::from)
+                    .collect(),
+                failures: failures
+                    .into_iter()
+                    .map(crate::RequestZkNymError::from)
+                    .collect(),
+            },
+            nym_vpn_account_controller::shared_state::RequestZkNymResult::Error(e) => {
+                crate::RequestZkNymResult {
+                    kind: crate::request_zk_nym_result::RequestZkNymResultType::Error as i32,
+                    successes: Default::default(),
+                    failures: vec![crate::RequestZkNymError::from(e)],
+                }
+            }
         }
     }
 }

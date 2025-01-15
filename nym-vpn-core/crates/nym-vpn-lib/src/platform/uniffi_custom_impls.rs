@@ -830,6 +830,10 @@ pub enum RequestZkNymResult {
         successes: Vec<RequestZkNymSuccess>,
         failures: Vec<RequestZkNymError>,
     },
+    Result {
+        successes: Vec<RequestZkNymSuccess>,
+        failures: Vec<RequestZkNymError>,
+    },
 }
 
 impl From<nym_vpn_account_controller::shared_state::RequestZkNymResult> for RequestZkNymResult {
@@ -850,6 +854,19 @@ impl From<nym_vpn_account_controller::shared_state::RequestZkNymResult> for Requ
                 successes: successes.into_iter().map(|s| s.into()).collect(),
                 failures: failures.into_iter().map(|f| f.into()).collect(),
             },
+            nym_vpn_account_controller::shared_state::RequestZkNymResult::Result {
+                successes,
+                failures,
+            } => RequestZkNymResult::Failed {
+                successes: successes.into_iter().map(|s| s.into()).collect(),
+                failures: failures.into_iter().map(|f| f.into()).collect(),
+            },
+            nym_vpn_account_controller::shared_state::RequestZkNymResult::Error(e) => {
+                RequestZkNymResult::Failed {
+                    successes: Vec::new(),
+                    failures: vec![e.into()],
+                }
+            }
         }
     }
 }

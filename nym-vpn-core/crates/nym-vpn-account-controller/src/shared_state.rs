@@ -13,10 +13,7 @@ use tokio::sync::MutexGuard;
 
 use crate::commands::{
     register_device::RegisterDeviceError,
-    request_zknym::{
-        RequestZkNymError, RequestZkNymErrorSummary, RequestZkNymSuccess,
-        RequestZkNymSuccessSummary,
-    },
+    request_zknym::{RequestZkNymError, RequestZkNymErrorSummary, RequestZkNymSuccess},
 };
 
 #[derive(Clone)]
@@ -180,6 +177,15 @@ impl SharedAccountState {
             tracing::info!("Setting zk-nym request result to {:?}", request);
         }
         guard.request_zk_nym_result = Some(request);
+    }
+
+    pub(crate) async fn is_zk_nym_request_in_progress(&self) -> bool {
+        self.lock()
+            .await
+            .request_zk_nym_result
+            .as_ref()
+            .map(|r| matches!(r, RequestZkNymResult::InProgress))
+            .unwrap_or(false)
     }
 
     pub async fn is_account_stored(&self) -> bool {
@@ -348,15 +354,23 @@ pub enum RequestZkNymResult {
         successes: Vec<RequestZkNymSuccess>,
         failures: Vec<RequestZkNymError>,
     },
+
+    Result {
+        successes: Vec<RequestZkNymSuccess>,
+        failures: Vec<RequestZkNymError>,
+    },
+
+    // The last zk-nym request failed before any requests were made
+    Error(RequestZkNymError),
 }
 
-impl From<RequestZkNymSuccessSummary> for RequestZkNymResult {
-    fn from(success: RequestZkNymSuccessSummary) -> Self {
-        RequestZkNymResult::Success {
-            successes: success.successful_zknym_requests().cloned().collect(),
-        }
-    }
-}
+//impl From<RequestZkNymSuccessSummary> for RequestZkNymResult {
+//    fn from(success: RequestZkNymSuccessSummary) -> Self {
+//        RequestZkNymResult::Success {
+//            successes: success.successful_zknym_requests().cloned().collect(),
+//        }
+//    }
+//}
 
 impl From<RequestZkNymErrorSummary> for RequestZkNymResult {
     fn from(summary: RequestZkNymErrorSummary) -> Self {
@@ -370,6 +384,26 @@ impl From<RequestZkNymErrorSummary> for RequestZkNymResult {
                 failures: summary.failed,
             }
         }
+    }
+}
+
+impl From<Vec<Result<RequestZkNymSuccess, RequestZkNymError>>> for RequestZkNymResult {
+    fn from(results: Vec<Result<RequestZkNymSuccess, RequestZkNymError>>) -> Self {
+        let (successes, failures): (Vec<_>, Vec<_>) = results.into_iter().partition(Result::is_ok);
+
+        let successes = successes.into_iter().map(Result::unwrap).collect();
+        let failures = failures.into_iter().map(Result::unwrap_err).collect();
+
+        RequestZkNymResult::Result {
+            successes,
+            failures,
+        }
+    }
+}
+
+impl From<RequestZkNymError> for RequestZkNymResult {
+    fn from(err: RequestZkNymError) -> Self {
+        RequestZkNymResult::Error(err)
     }
 }
 
@@ -433,6 +467,8 @@ impl AccountStateSummary {
             Some(RequestZkNymResult::InProgress) => return ReadyToRequestZkNym::InProgress,
             Some(RequestZkNymResult::Success { .. }) => {}
             Some(RequestZkNymResult::Failed { .. }) => {}
+            Some(RequestZkNymResult::Result { .. }) => {}
+            Some(RequestZkNymResult::Error(_)) => {}
             None => {}
         }
 
