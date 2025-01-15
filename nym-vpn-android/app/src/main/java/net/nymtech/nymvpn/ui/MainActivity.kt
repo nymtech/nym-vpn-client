@@ -74,6 +74,7 @@ import net.nymtech.nymvpn.util.extensions.isCurrentRoute
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.resetTile
 import javax.inject.Inject
+import kotlin.system.exitProcess
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -121,8 +122,8 @@ class MainActivity : AppCompatActivity() {
 				if (configurationChange) {
 					// Restart activity for built-in translation of country names
 					Intent(this@MainActivity, MainActivity::class.java).also {
-						finish()
 						startActivity(it)
+						exitProcess(0)
 					}
 				}
 			}

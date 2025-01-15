@@ -141,6 +141,12 @@ constructor(
 	}
 
 	fun onAppStartup() = viewModelScope.launch {
+		val env = settingsRepository.getEnvironment()
+		backend.init(env, settingsRepository.isCredentialMode())
+		val theme = settingsRepository.getTheme()
+		uiState.takeWhile { it.settings.theme != theme }.onCompletion {
+			_isAppReady.emit(true)
+		}.collect()
 		launch {
 			Timber.d("Updating exit country cache")
 			countryCacheService.updateExitCountriesCache().onSuccess {
@@ -167,9 +173,5 @@ constructor(
 			Timber.d("Updating account links")
 			tunnelManager.refreshAccountLinks()
 		}
-		val theme = settingsRepository.getTheme()
-		uiState.takeWhile { it.settings.theme != theme }.onCompletion {
-			_isAppReady.emit(true)
-		}.collect()
 	}
 }

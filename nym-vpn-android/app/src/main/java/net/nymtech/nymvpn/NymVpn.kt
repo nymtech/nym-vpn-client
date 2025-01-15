@@ -10,10 +10,12 @@ import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.nymtech.logcatutil.LogReader
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
+import net.nymtech.nymvpn.module.qualifiers.MainDispatcher
 import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.timber.ReleaseTree
@@ -33,6 +35,10 @@ class NymVpn : Application() {
 	@Inject
 	@IoDispatcher
 	lateinit var ioDispatcher: CoroutineDispatcher
+
+	@Inject
+	@MainDispatcher
+	lateinit var mainDispatcher: CoroutineDispatcher
 
 	@Inject
 	lateinit var settingsRepository: SettingsRepository
@@ -66,10 +72,10 @@ class NymVpn : Application() {
 		logReader.initialize()
 
 		applicationScope.launch {
-			val env = settingsRepository.getEnvironment()
-			backend.get().init(env, settingsRepository.isCredentialMode())
 			settingsRepository.getLocale()?.let {
-				LocaleUtil.changeLocale(it)
+				withContext(mainDispatcher) {
+					LocaleUtil.changeLocale(it)
+				}
 			}
 		}
 		requestTileServiceStateUpdate()
