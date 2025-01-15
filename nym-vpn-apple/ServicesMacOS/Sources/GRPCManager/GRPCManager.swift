@@ -70,18 +70,20 @@ public final class GRPCManager: ObservableObject {
     public func version() async throws {
         logger.log(level: .info, "Version")
         return try await withCheckedThrowingContinuation { continuation in
-            let call = client.info(Google_Protobuf_Empty(), callOptions: CallOptions(timeLimit: .timeout(.seconds(5))))
+            Task {
+                let call = client.info(Google_Protobuf_Empty(), callOptions: CallOptions(timeLimit: .timeout(.seconds(5))))
 
-            call.response.whenComplete { [weak self] result in
-                switch result {
-                case .success(let response):
-                    self?.daemonVersion = response.version
-                    self?.networkName = response.nymNetwork.networkName
-                    self?.logger.info("🛜 \(response.nymNetwork.networkName)")
+                call.response.whenComplete { [weak self] result in
+                    switch result {
+                    case .success(let response):
+                        self?.daemonVersion = response.version
+                        self?.networkName = response.nymNetwork.networkName
+                        self?.logger.info("🛜 \(response.nymNetwork.networkName)")
 
-                    continuation.resume()
-                case .failure(let error):
-                    continuation.resume(throwing: error)
+                        continuation.resume()
+                    case .failure(let error):
+                        continuation.resume(throwing: error)
+                    }
                 }
             }
         }

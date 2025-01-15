@@ -202,6 +202,7 @@ let package = Package(
         .target(
             name: "TunnelMixnet",
             dependencies: [
+                "AppSettings",
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
                 "ConfigurationManager",
                 "CountriesManager",

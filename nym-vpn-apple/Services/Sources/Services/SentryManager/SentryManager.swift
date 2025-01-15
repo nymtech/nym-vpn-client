@@ -53,7 +53,7 @@ extension SentryManager {
             if appSettings.isErrorReportingOn {
                 SentrySDK.start { options in
                     options.dsn = "https://f860c307259ffe7827fa4ecdfaa8834f@o967446.ingest.us.sentry.io/4507135758237696"
-                    options.debug = true // Enabled debug when first installing is always helpful
+                    options.debug = false // Enabled debug when first installing is always helpful
                     options.enableTracing = true
 
                     // Uncomment the following lines to add more data to your events

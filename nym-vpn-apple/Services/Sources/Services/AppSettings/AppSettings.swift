@@ -66,6 +66,9 @@ public final class AppSettings: ObservableObject {
     @AppStorage(AppSettingKey.santaExitGateways.rawValue)
     public var santaExitGatewaysData = Data()
 
+    @AppStorage(AppSettingKey.isZknymEnabled.rawValue)
+    public var isZknymEnabled: Bool?
+
     // Observed values for view models
     @Published public var isErrorReportingOnPublisher = false
     @Published public var isCredentialImportedPublisher = false
@@ -104,4 +107,5 @@ public enum AppSettingKey: String {
     case countryStore
     case santaEntryGateways
     case santaExitGateways
+    case isZknymEnabled
 }

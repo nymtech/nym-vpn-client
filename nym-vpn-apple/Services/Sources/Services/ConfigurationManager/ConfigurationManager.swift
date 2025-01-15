@@ -61,7 +61,6 @@ public final class ConfigurationManager {
     public var environmentDidChange: (() -> Void)?
 
     public var isSantaClaus: Bool {
-        // TODO: update Device.isMacOS to env var from CI
         guard isTestFlight || isRunningOnCI else { return false }
         return true
     }
