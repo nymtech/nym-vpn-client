@@ -11,7 +11,6 @@ interface TunnelManager {
 	suspend fun storeMnemonic(mnemonic: String)
 	suspend fun isMnemonicStored(): Boolean
 	suspend fun removeMnemonic()
-	suspend fun getDeviceId(): String
 	suspend fun getAccountSummary(): AccountStateSummary
 	suspend fun getAccountLinks(): AccountLinks?
 	suspend fun refreshAccountLinks()

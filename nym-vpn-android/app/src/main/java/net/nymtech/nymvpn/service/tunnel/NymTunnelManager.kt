@@ -128,6 +128,7 @@ class NymTunnelManager @Inject constructor(
 	override suspend fun storeMnemonic(mnemonic: String) {
 		backend.get().storeMnemonic(mnemonic)
 		emitMnemonicStored(true)
+		updateDeviceId()
 		refreshAccountLinks()
 	}
 
@@ -141,7 +142,18 @@ class NymTunnelManager @Inject constructor(
 		refreshAccountLinks()
 	}
 
-	override suspend fun getDeviceId(): String {
+	private suspend fun updateDeviceId() {
+		runCatching {
+			val id = getDeviceId()
+			_state.update {
+				it.copy(deviceId = id)
+			}
+		}.onFailure {
+			Timber.e(it)
+		}
+	}
+
+	private suspend fun getDeviceId(): String {
 		return backend.get().getDeviceIdentity()
 	}
 
