@@ -81,6 +81,12 @@ actor TunnelActor {
                 throw ErrorReason(with: errorStateReason).nsError
             case .disconnecting, .none, .connecting:
                 break
+            case let .some(.offline(reconnect: reconnect)):
+                if reconnect {
+                    break
+                } else {
+                    throw ErrorReason.offline
+                }
             }
         }
     }

@@ -57,6 +57,12 @@ internal protocol Nym_Vpn_NymVpndClientProtocol: GRPCClient {
     handler: @escaping (Nym_Vpn_ConnectionStateChange) -> Void
   ) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_ConnectionStateChange>
 
+  func listenToTunnelStateChanges(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions?,
+    handler: @escaping (Nym_Vpn_TunnelState) -> Void
+  ) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_TunnelState>
+
   func listenToConnectionStatus(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions?,
@@ -323,6 +329,27 @@ extension Nym_Vpn_NymVpndClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeListenToConnectionStateChangesInterceptors() ?? [],
+      handler: handler
+    )
+  }
+
+  /// Listen for tunnel state changes
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to ListenToTunnelStateChanges.
+  ///   - callOptions: Call options.
+  ///   - handler: A closure called when each response is received from the server.
+  /// - Returns: A `ServerStreamingCall` with futures for the metadata and status.
+  internal func listenToTunnelStateChanges(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions? = nil,
+    handler: @escaping (Nym_Vpn_TunnelState) -> Void
+  ) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_TunnelState> {
+    return self.makeServerStreamingCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.listenToTunnelStateChanges.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeListenToTunnelStateChangesInterceptors() ?? [],
       handler: handler
     )
   }
@@ -851,6 +878,11 @@ internal protocol Nym_Vpn_NymVpndAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_ConnectionStateChange>
 
+  func makeListenToTunnelStateChangesCall(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_TunnelState>
+
   func makeListenToConnectionStatusCall(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions?
@@ -1070,6 +1102,18 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeListenToConnectionStateChangesInterceptors() ?? []
+    )
+  }
+
+  internal func makeListenToTunnelStateChangesCall(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_TunnelState> {
+    return self.makeAsyncServerStreamingCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.listenToTunnelStateChanges.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeListenToTunnelStateChangesInterceptors() ?? []
     )
   }
 
@@ -1448,6 +1492,18 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
     )
   }
 
+  internal func listenToTunnelStateChanges(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncResponseStream<Nym_Vpn_TunnelState> {
+    return self.performAsyncServerStreamingCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.listenToTunnelStateChanges.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeListenToTunnelStateChangesInterceptors() ?? []
+    )
+  }
+
   internal func listenToConnectionStatus(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions? = nil
@@ -1768,6 +1824,9 @@ internal protocol Nym_Vpn_NymVpndClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'listenToConnectionStateChanges'.
   func makeListenToConnectionStateChangesInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_ConnectionStateChange>]
 
+  /// - Returns: Interceptors to use when invoking 'listenToTunnelStateChanges'.
+  func makeListenToTunnelStateChangesInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_TunnelState>]
+
   /// - Returns: Interceptors to use when invoking 'listenToConnectionStatus'.
   func makeListenToConnectionStatusInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_ConnectionStatusUpdate>]
 
@@ -1851,6 +1910,7 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
       Nym_Vpn_NymVpndClientMetadata.Methods.vpnDisconnect,
       Nym_Vpn_NymVpndClientMetadata.Methods.vpnStatus,
       Nym_Vpn_NymVpndClientMetadata.Methods.listenToConnectionStateChanges,
+      Nym_Vpn_NymVpndClientMetadata.Methods.listenToTunnelStateChanges,
       Nym_Vpn_NymVpndClientMetadata.Methods.listenToConnectionStatus,
       Nym_Vpn_NymVpndClientMetadata.Methods.listGateways,
       Nym_Vpn_NymVpndClientMetadata.Methods.listCountries,
@@ -1923,6 +1983,12 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
     internal static let listenToConnectionStateChanges = GRPCMethodDescriptor(
       name: "ListenToConnectionStateChanges",
       path: "/nym.vpn.NymVpnd/ListenToConnectionStateChanges",
+      type: GRPCCallType.serverStreaming
+    )
+
+    internal static let listenToTunnelStateChanges = GRPCMethodDescriptor(
+      name: "ListenToTunnelStateChanges",
+      path: "/nym.vpn.NymVpnd/ListenToTunnelStateChanges",
       type: GRPCCallType.serverStreaming
     )
 
@@ -2095,6 +2161,9 @@ internal protocol Nym_Vpn_NymVpndProvider: CallHandlerProvider {
   /// from Connecting -> Connected
   func listenToConnectionStateChanges(request: SwiftProtobuf.Google_Protobuf_Empty, context: StreamingResponseCallContext<Nym_Vpn_ConnectionStateChange>) -> EventLoopFuture<GRPCStatus>
 
+  /// Listen for tunnel state changes
+  func listenToTunnelStateChanges(request: SwiftProtobuf.Google_Protobuf_Empty, context: StreamingResponseCallContext<Nym_Vpn_TunnelState>) -> EventLoopFuture<GRPCStatus>
+
   /// Listen for general status evens emitted by nym-vpnd, which in turn might
   /// originate from elsewhere such as remote gateways.
   func listenToConnectionStatus(request: SwiftProtobuf.Google_Protobuf_Empty, context: StreamingResponseCallContext<Nym_Vpn_ConnectionStatusUpdate>) -> EventLoopFuture<GRPCStatus>
@@ -2251,6 +2320,15 @@ extension Nym_Vpn_NymVpndProvider {
         responseSerializer: ProtobufSerializer<Nym_Vpn_ConnectionStateChange>(),
         interceptors: self.interceptors?.makeListenToConnectionStateChangesInterceptors() ?? [],
         userFunction: self.listenToConnectionStateChanges(request:context:)
+      )
+
+    case "ListenToTunnelStateChanges":
+      return ServerStreamingServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_TunnelState>(),
+        interceptors: self.interceptors?.makeListenToTunnelStateChangesInterceptors() ?? [],
+        userFunction: self.listenToTunnelStateChanges(request:context:)
       )
 
     case "ListenToConnectionStatus":
@@ -2522,6 +2600,13 @@ internal protocol Nym_Vpn_NymVpndAsyncProvider: CallHandlerProvider, Sendable {
     context: GRPCAsyncServerCallContext
   ) async throws
 
+  /// Listen for tunnel state changes
+  func listenToTunnelStateChanges(
+    request: SwiftProtobuf.Google_Protobuf_Empty,
+    responseStream: GRPCAsyncResponseStreamWriter<Nym_Vpn_TunnelState>,
+    context: GRPCAsyncServerCallContext
+  ) async throws
+
   /// Listen for general status evens emitted by nym-vpnd, which in turn might
   /// originate from elsewhere such as remote gateways.
   func listenToConnectionStatus(
@@ -2755,6 +2840,15 @@ extension Nym_Vpn_NymVpndAsyncProvider {
         responseSerializer: ProtobufSerializer<Nym_Vpn_ConnectionStateChange>(),
         interceptors: self.interceptors?.makeListenToConnectionStateChangesInterceptors() ?? [],
         wrapping: { try await self.listenToConnectionStateChanges(request: $0, responseStream: $1, context: $2) }
+      )
+
+    case "ListenToTunnelStateChanges":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_TunnelState>(),
+        interceptors: self.interceptors?.makeListenToTunnelStateChangesInterceptors() ?? [],
+        wrapping: { try await self.listenToTunnelStateChanges(request: $0, responseStream: $1, context: $2) }
       )
 
     case "ListenToConnectionStatus":
@@ -3004,6 +3098,10 @@ internal protocol Nym_Vpn_NymVpndServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeListenToConnectionStateChangesInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_ConnectionStateChange>]
 
+  /// - Returns: Interceptors to use when handling 'listenToTunnelStateChanges'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeListenToTunnelStateChangesInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_TunnelState>]
+
   /// - Returns: Interceptors to use when handling 'listenToConnectionStatus'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeListenToConnectionStatusInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_ConnectionStatusUpdate>]
@@ -3110,6 +3208,7 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
       Nym_Vpn_NymVpndServerMetadata.Methods.vpnDisconnect,
       Nym_Vpn_NymVpndServerMetadata.Methods.vpnStatus,
       Nym_Vpn_NymVpndServerMetadata.Methods.listenToConnectionStateChanges,
+      Nym_Vpn_NymVpndServerMetadata.Methods.listenToTunnelStateChanges,
       Nym_Vpn_NymVpndServerMetadata.Methods.listenToConnectionStatus,
       Nym_Vpn_NymVpndServerMetadata.Methods.listGateways,
       Nym_Vpn_NymVpndServerMetadata.Methods.listCountries,
@@ -3182,6 +3281,12 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
     internal static let listenToConnectionStateChanges = GRPCMethodDescriptor(
       name: "ListenToConnectionStateChanges",
       path: "/nym.vpn.NymVpnd/ListenToConnectionStateChanges",
+      type: GRPCCallType.serverStreaming
+    )
+
+    internal static let listenToTunnelStateChanges = GRPCMethodDescriptor(
+      name: "ListenToTunnelStateChanges",
+      path: "/nym.vpn.NymVpnd/ListenToTunnelStateChanges",
       type: GRPCCallType.serverStreaming
     )
 

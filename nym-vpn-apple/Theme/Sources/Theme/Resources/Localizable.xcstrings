@@ -606,6 +606,17 @@
         }
       }
     },
+    "errorReason.offline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Offline"
+          }
+        }
+      }
+    },
     "errorReason.routing" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -935,9 +946,6 @@
           }
         }
       }
-    },
-    "Key" : {
-      "extractionState" : "manual"
     },
     "lastHopSelection" : {
       "extractionState" : "manual",

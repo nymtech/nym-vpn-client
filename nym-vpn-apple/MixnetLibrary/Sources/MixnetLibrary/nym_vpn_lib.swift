@@ -1151,40 +1151,14 @@ public func FfiConverterTypeChainDetails_lower(_ value: ChainDetails) -> RustBuf
 
 
 public struct ConnectionData {
-    /**
-     * Mixnet entry gateway
-     */
     public var entryGateway: BoxedNodeIdentity
-    /**
-     * Mixnet exit gateway
-     */
     public var exitGateway: BoxedNodeIdentity
-    /**
-     * When the tunnel was last established.
-     * Set once the tunnel is connected.
-     */
     public var connectedAt: OffsetDateTime?
-    /**
-     * Tunnel connection data.
-     */
     public var tunnel: TunnelConnectionData
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(
-        /**
-         * Mixnet entry gateway
-         */entryGateway: BoxedNodeIdentity, 
-        /**
-         * Mixnet exit gateway
-         */exitGateway: BoxedNodeIdentity, 
-        /**
-         * When the tunnel was last established.
-         * Set once the tunnel is connected.
-         */connectedAt: OffsetDateTime?, 
-        /**
-         * Tunnel connection data.
-         */tunnel: TunnelConnectionData) {
+    public init(entryGateway: BoxedNodeIdentity, exitGateway: BoxedNodeIdentity, connectedAt: OffsetDateTime?, tunnel: TunnelConnectionData) {
         self.entryGateway = entryGateway
         self.exitGateway = exitGateway
         self.connectedAt = connectedAt
@@ -3401,23 +3375,12 @@ extension AccountState: Equatable, Hashable {}
 
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
-/**
- * Public enum describing action to perform after disconnect
- */
 
 public enum ActionAfterDisconnect {
     
-    /**
-     * Do nothing after disconnect
-     */
     case nothing
-    /**
-     * Reconnect after disconnect
-     */
     case reconnect
-    /**
-     * Enter error state
-     */
+    case offline
     case error
 }
 
@@ -3433,7 +3396,9 @@ public struct FfiConverterTypeActionAfterDisconnect: FfiConverterRustBuffer {
         
         case 2: return .reconnect
         
-        case 3: return .error
+        case 3: return .offline
+        
+        case 4: return .error
         
         default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -3451,8 +3416,12 @@ public struct FfiConverterTypeActionAfterDisconnect: FfiConverterRustBuffer {
             writeInt(&buf, Int32(2))
         
         
-        case .error:
+        case .offline:
             writeInt(&buf, Int32(3))
+        
+        
+        case .error:
+            writeInt(&buf, Int32(4))
         
         }
     }
@@ -3528,64 +3497,6 @@ public func FfiConverterTypeBandwidthEvent_lower(_ value: BandwidthEvent) -> Rus
 
 
 extension BandwidthEvent: Equatable, Hashable {}
-
-
-
-// Note that we don't yet support `indirect` for enums.
-// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
-
-public enum BandwidthStatus {
-    
-    case noBandwidth
-    case remainingBandwidth(bandwidth: Int64
-    )
-}
-
-
-public struct FfiConverterTypeBandwidthStatus: FfiConverterRustBuffer {
-    typealias SwiftType = BandwidthStatus
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> BandwidthStatus {
-        let variant: Int32 = try readInt(&buf)
-        switch variant {
-        
-        case 1: return .noBandwidth
-        
-        case 2: return .remainingBandwidth(bandwidth: try FfiConverterInt64.read(from: &buf)
-        )
-        
-        default: throw UniffiInternalError.unexpectedEnumCase
-        }
-    }
-
-    public static func write(_ value: BandwidthStatus, into buf: inout [UInt8]) {
-        switch value {
-        
-        
-        case .noBandwidth:
-            writeInt(&buf, Int32(1))
-        
-        
-        case let .remainingBandwidth(bandwidth):
-            writeInt(&buf, Int32(2))
-            FfiConverterInt64.write(bandwidth, into: &buf)
-            
-        }
-    }
-}
-
-
-public func FfiConverterTypeBandwidthStatus_lift(_ buf: RustBuffer) throws -> BandwidthStatus {
-    return try FfiConverterTypeBandwidthStatus.lift(buf)
-}
-
-public func FfiConverterTypeBandwidthStatus_lower(_ value: BandwidthStatus) -> RustBuffer {
-    return FfiConverterTypeBandwidthStatus.lower(value)
-}
-
-
-
-extension BandwidthStatus: Equatable, Hashable {}
 
 
 
@@ -3676,96 +3587,6 @@ public func FfiConverterTypeConnectionEvent_lower(_ value: ConnectionEvent) -> R
 
 
 extension ConnectionEvent: Equatable, Hashable {}
-
-
-
-// Note that we don't yet support `indirect` for enums.
-// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
-
-public enum ConnectionStatus {
-    
-    case entryGatewayDown
-    case exitGatewayDownIpv4
-    case exitGatewayDownIpv6
-    case exitGatewayRoutingErrorIpv4
-    case exitGatewayRoutingErrorIpv6
-    case connectedIpv4
-    case connectedIpv6
-}
-
-
-public struct FfiConverterTypeConnectionStatus: FfiConverterRustBuffer {
-    typealias SwiftType = ConnectionStatus
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> ConnectionStatus {
-        let variant: Int32 = try readInt(&buf)
-        switch variant {
-        
-        case 1: return .entryGatewayDown
-        
-        case 2: return .exitGatewayDownIpv4
-        
-        case 3: return .exitGatewayDownIpv6
-        
-        case 4: return .exitGatewayRoutingErrorIpv4
-        
-        case 5: return .exitGatewayRoutingErrorIpv6
-        
-        case 6: return .connectedIpv4
-        
-        case 7: return .connectedIpv6
-        
-        default: throw UniffiInternalError.unexpectedEnumCase
-        }
-    }
-
-    public static func write(_ value: ConnectionStatus, into buf: inout [UInt8]) {
-        switch value {
-        
-        
-        case .entryGatewayDown:
-            writeInt(&buf, Int32(1))
-        
-        
-        case .exitGatewayDownIpv4:
-            writeInt(&buf, Int32(2))
-        
-        
-        case .exitGatewayDownIpv6:
-            writeInt(&buf, Int32(3))
-        
-        
-        case .exitGatewayRoutingErrorIpv4:
-            writeInt(&buf, Int32(4))
-        
-        
-        case .exitGatewayRoutingErrorIpv6:
-            writeInt(&buf, Int32(5))
-        
-        
-        case .connectedIpv4:
-            writeInt(&buf, Int32(6))
-        
-        
-        case .connectedIpv6:
-            writeInt(&buf, Int32(7))
-        
-        }
-    }
-}
-
-
-public func FfiConverterTypeConnectionStatus_lift(_ buf: RustBuffer) throws -> ConnectionStatus {
-    return try FfiConverterTypeConnectionStatus.lift(buf)
-}
-
-public func FfiConverterTypeConnectionStatus_lower(_ value: ConnectionStatus) -> RustBuffer {
-    return FfiConverterTypeConnectionStatus.lower(value)
-}
-
-
-
-extension ConnectionStatus: Equatable, Hashable {}
 
 
 
@@ -3918,50 +3739,16 @@ extension EntryPoint: Equatable, Hashable {}
 
 public enum ErrorStateReason {
     
-    /**
-     * Issues related to firewall configuration.
-     */
     case firewall
-    /**
-     * Failure to configure routing.
-     */
     case routing
-    /**
-     * Failure to configure dns.
-     */
     case dns
-    /**
-     * Failure to configure tunnel device.
-     */
     case tunDevice
-    /**
-     * Failure to configure packet tunnel provider.
-     */
     case tunnelProvider
-    /**
-     * Same entry and exit gateway are unsupported.
-     */
     case sameEntryAndExitGateway
-    /**
-     * Invalid country set for entry gateway
-     */
     case invalidEntryGatewayCountry
-    /**
-     * Invalid country set for exit gateway
-     */
     case invalidExitGatewayCountry
-    /**
-     * Gateway is not responding or responding badly to a bandwidth
-     * increase request, causing credential waste
-     */
     case badBandwidthIncrease
-    /**
-     * Failure to duplicate tunnel file descriptor.
-     */
     case duplicateTunFd
-    /**
-     * Program errors that must not happen.
-     */
     case `internal`
 }
 
@@ -4133,64 +3920,6 @@ public func FfiConverterTypeExitPoint_lower(_ value: ExitPoint) -> RustBuffer {
 
 
 extension ExitPoint: Equatable, Hashable {}
-
-
-
-// Note that we don't yet support `indirect` for enums.
-// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
-
-public enum ExitStatus {
-    
-    case failure(error: VpnError
-    )
-    case stopped
-}
-
-
-public struct FfiConverterTypeExitStatus: FfiConverterRustBuffer {
-    typealias SwiftType = ExitStatus
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> ExitStatus {
-        let variant: Int32 = try readInt(&buf)
-        switch variant {
-        
-        case 1: return .failure(error: try FfiConverterTypeVpnError.read(from: &buf)
-        )
-        
-        case 2: return .stopped
-        
-        default: throw UniffiInternalError.unexpectedEnumCase
-        }
-    }
-
-    public static func write(_ value: ExitStatus, into buf: inout [UInt8]) {
-        switch value {
-        
-        
-        case let .failure(error):
-            writeInt(&buf, Int32(1))
-            FfiConverterTypeVpnError.write(error, into: &buf)
-            
-        
-        case .stopped:
-            writeInt(&buf, Int32(2))
-        
-        }
-    }
-}
-
-
-public func FfiConverterTypeExitStatus_lift(_ buf: RustBuffer) throws -> ExitStatus {
-    return try FfiConverterTypeExitStatus.lift(buf)
-}
-
-public func FfiConverterTypeExitStatus_lower(_ value: ExitStatus) -> RustBuffer {
-    return FfiConverterTypeExitStatus.lower(value)
-}
-
-
-
-extension ExitStatus: Equatable, Hashable {}
 
 
 
@@ -4578,69 +4307,6 @@ extension MnemonicState: Equatable, Hashable {}
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
-public enum NymVpnStatus {
-    
-    case mixConnectInfo(mixConnectionInfo: MixConnectionInfo, mixExitConnectionInfo: MixExitConnectionInfo
-    )
-    case wgConnectInfo(entryConnectionInfo: WireguardConnectionInfo, exitConnectionInfo: WireguardConnectionInfo
-    )
-}
-
-
-public struct FfiConverterTypeNymVpnStatus: FfiConverterRustBuffer {
-    typealias SwiftType = NymVpnStatus
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NymVpnStatus {
-        let variant: Int32 = try readInt(&buf)
-        switch variant {
-        
-        case 1: return .mixConnectInfo(mixConnectionInfo: try FfiConverterTypeMixConnectionInfo.read(from: &buf), mixExitConnectionInfo: try FfiConverterTypeMixExitConnectionInfo.read(from: &buf)
-        )
-        
-        case 2: return .wgConnectInfo(entryConnectionInfo: try FfiConverterTypeWireguardConnectionInfo.read(from: &buf), exitConnectionInfo: try FfiConverterTypeWireguardConnectionInfo.read(from: &buf)
-        )
-        
-        default: throw UniffiInternalError.unexpectedEnumCase
-        }
-    }
-
-    public static func write(_ value: NymVpnStatus, into buf: inout [UInt8]) {
-        switch value {
-        
-        
-        case let .mixConnectInfo(mixConnectionInfo,mixExitConnectionInfo):
-            writeInt(&buf, Int32(1))
-            FfiConverterTypeMixConnectionInfo.write(mixConnectionInfo, into: &buf)
-            FfiConverterTypeMixExitConnectionInfo.write(mixExitConnectionInfo, into: &buf)
-            
-        
-        case let .wgConnectInfo(entryConnectionInfo,exitConnectionInfo):
-            writeInt(&buf, Int32(2))
-            FfiConverterTypeWireguardConnectionInfo.write(entryConnectionInfo, into: &buf)
-            FfiConverterTypeWireguardConnectionInfo.write(exitConnectionInfo, into: &buf)
-            
-        }
-    }
-}
-
-
-public func FfiConverterTypeNymVpnStatus_lift(_ buf: RustBuffer) throws -> NymVpnStatus {
-    return try FfiConverterTypeNymVpnStatus.lift(buf)
-}
-
-public func FfiConverterTypeNymVpnStatus_lower(_ value: NymVpnStatus) -> RustBuffer {
-    return FfiConverterTypeNymVpnStatus.lower(value)
-}
-
-
-
-extension NymVpnStatus: Equatable, Hashable {}
-
-
-
-// Note that we don't yet support `indirect` for enums.
-// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
-
 public enum RegisterDeviceResult {
     
     case inProgress
@@ -4845,82 +4511,6 @@ extension SubscriptionState: Equatable, Hashable {}
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
-public enum TunStatus {
-    
-    case up
-    case down
-    case initializingClient
-    case establishingConnection
-    case disconnecting
-}
-
-
-public struct FfiConverterTypeTunStatus: FfiConverterRustBuffer {
-    typealias SwiftType = TunStatus
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> TunStatus {
-        let variant: Int32 = try readInt(&buf)
-        switch variant {
-        
-        case 1: return .up
-        
-        case 2: return .down
-        
-        case 3: return .initializingClient
-        
-        case 4: return .establishingConnection
-        
-        case 5: return .disconnecting
-        
-        default: throw UniffiInternalError.unexpectedEnumCase
-        }
-    }
-
-    public static func write(_ value: TunStatus, into buf: inout [UInt8]) {
-        switch value {
-        
-        
-        case .up:
-            writeInt(&buf, Int32(1))
-        
-        
-        case .down:
-            writeInt(&buf, Int32(2))
-        
-        
-        case .initializingClient:
-            writeInt(&buf, Int32(3))
-        
-        
-        case .establishingConnection:
-            writeInt(&buf, Int32(4))
-        
-        
-        case .disconnecting:
-            writeInt(&buf, Int32(5))
-        
-        }
-    }
-}
-
-
-public func FfiConverterTypeTunStatus_lift(_ buf: RustBuffer) throws -> TunStatus {
-    return try FfiConverterTypeTunStatus.lift(buf)
-}
-
-public func FfiConverterTypeTunStatus_lower(_ value: TunStatus) -> RustBuffer {
-    return FfiConverterTypeTunStatus.lower(value)
-}
-
-
-
-extension TunStatus: Equatable, Hashable {}
-
-
-
-// Note that we don't yet support `indirect` for enums.
-// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
-
 public enum TunnelConnectionData {
     
     case mixnet(MixnetConnectionData
@@ -5042,9 +4632,6 @@ extension TunnelEvent: Equatable, Hashable {}
 
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
-/**
- * Public enum describing the tunnel state
- */
 
 public enum TunnelState {
     
@@ -5056,6 +4643,8 @@ public enum TunnelState {
     case disconnecting(afterDisconnect: ActionAfterDisconnect
     )
     case error(ErrorStateReason
+    )
+    case offline(reconnect: Bool
     )
 }
 
@@ -5079,6 +4668,9 @@ public struct FfiConverterTypeTunnelState: FfiConverterRustBuffer {
         )
         
         case 5: return .error(try FfiConverterTypeErrorStateReason.read(from: &buf)
+        )
+        
+        case 6: return .offline(reconnect: try FfiConverterBool.read(from: &buf)
         )
         
         default: throw UniffiInternalError.unexpectedEnumCase
@@ -5112,6 +4704,11 @@ public struct FfiConverterTypeTunnelState: FfiConverterRustBuffer {
             writeInt(&buf, Int32(5))
             FfiConverterTypeErrorStateReason.write(v1, into: &buf)
             
+        
+        case let .offline(reconnect):
+            writeInt(&buf, Int32(6))
+            FfiConverterBool.write(reconnect, into: &buf)
+            
         }
     }
 }
@@ -5128,61 +4725,6 @@ public func FfiConverterTypeTunnelState_lower(_ value: TunnelState) -> RustBuffe
 
 
 extension TunnelState: Equatable, Hashable {}
-
-
-
-// Note that we don't yet support `indirect` for enums.
-// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
-
-public enum TunnelType {
-    
-    case mixnet
-    case wireguard
-}
-
-
-public struct FfiConverterTypeTunnelType: FfiConverterRustBuffer {
-    typealias SwiftType = TunnelType
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> TunnelType {
-        let variant: Int32 = try readInt(&buf)
-        switch variant {
-        
-        case 1: return .mixnet
-        
-        case 2: return .wireguard
-        
-        default: throw UniffiInternalError.unexpectedEnumCase
-        }
-    }
-
-    public static func write(_ value: TunnelType, into buf: inout [UInt8]) {
-        switch value {
-        
-        
-        case .mixnet:
-            writeInt(&buf, Int32(1))
-        
-        
-        case .wireguard:
-            writeInt(&buf, Int32(2))
-        
-        }
-    }
-}
-
-
-public func FfiConverterTypeTunnelType_lift(_ buf: RustBuffer) throws -> TunnelType {
-    return try FfiConverterTypeTunnelType.lift(buf)
-}
-
-public func FfiConverterTypeTunnelType_lower(_ value: TunnelType) -> RustBuffer {
-    return FfiConverterTypeTunnelType.lower(value)
-}
-
-
-
-extension TunnelType: Equatable, Hashable {}
 
 
 

@@ -14,6 +14,7 @@ public enum ErrorReason: LocalizedError {
     case invalidExitGatewayCountry
     case badBandwidthIncrease
     case duplicateTunFd
+    case offline
     case unknown
 
     public static let domain = "ErrorHandler.ErrorReason"
@@ -145,6 +146,8 @@ extension ErrorReason {
             "errorReason.badBandwidthIncrease".localizedString
         case .duplicateTunFd:
             "errorReason.duplicateTunFd".localizedString
+        case .offline:
+            "errorReason.offline".localizedString
         case .unknown:
             "errorReason.unknown".localizedString
         }
