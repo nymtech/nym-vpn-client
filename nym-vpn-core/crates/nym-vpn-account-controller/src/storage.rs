@@ -166,6 +166,8 @@ impl VpnCredentialStorage {
 
     // TODO: move some of this functionality to the credential storage itself
     async fn reset_credential_storage(&mut self) -> Result<(), Error> {
+        tracing::info!("Resetting credential storage");
+
         let mut guard = self.credential_storage.lock().await;
 
         // First we close the storage to ensure that all files are closed
@@ -195,6 +197,7 @@ impl VpnCredentialStorage {
     }
 
     async fn reset_pending_request_storage(&mut self) -> Result<(), Error> {
+        tracing::info!("Resetting pending request storage");
         self.pending_requests_storage.reset().await?;
         Ok(())
     }

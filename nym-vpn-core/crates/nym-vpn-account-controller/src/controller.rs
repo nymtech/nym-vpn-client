@@ -275,6 +275,7 @@ where
 
         // We don't need to wait for the sync to finish, so queue it up and return
         self.queue_command(AccountCommand::SyncAccountState(None));
+        self.queue_command(AccountCommand::SyncDeviceState(None));
 
         Ok(())
     }
@@ -350,6 +351,7 @@ where
     }
 
     async fn unregister_device_from_api(&self) -> Result<NymVpnDevice, AccountCommandError> {
+        tracing::info!("Unregistering device from API");
         if self.shared_state().is_ready_to_register_device().await
             == ReadyToRegisterDevice::InProgress
         {
