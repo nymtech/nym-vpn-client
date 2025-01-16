@@ -42,6 +42,9 @@ use super::{AccountCommandError, AccountCommandResult};
 // refresh
 const ZK_NYM_MAX_FAILS: u32 = 10;
 
+const ZK_NYM_POLLING_TIMEOUT: Duration = Duration::from_secs(60);
+const ZK_NYM_POLLING_INTERVAL: Duration = Duration::from_secs(5);
+
 #[derive(Clone, Default)]
 struct CachedData {
     partial_verification_keys:
@@ -380,7 +383,7 @@ async fn resume_request_zk_nym_single(
     credential_storage
         .remove_pending_request(&id)
         .await
-        .unwrap();
+        .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
 
     Ok(RequestZkNymSuccess { id })
 }
@@ -454,10 +457,10 @@ pub(crate) async fn poll_zk_nym2(
 
     let start_time = Instant::now();
     loop {
-        tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+        tokio::time::sleep(ZK_NYM_POLLING_INTERVAL).await;
 
         tracing::info!("Polling zk-nym status: {id}");
-        match api_client.get_zk_nym_by_id(&account, &device, id).await {
+        match api_client.get_zk_nym_by_id(account, device, id).await {
             Ok(poll_response) if poll_response.status != NymVpnZkNymStatus::Pending => {
                 tracing::info!("zk-nym polling finished: {}", poll_response.id);
                 tracing::debug!("zk-nym polling finished: {:#?}", poll_response);
@@ -465,11 +468,12 @@ pub(crate) async fn poll_zk_nym2(
             }
             Ok(poll_response) => {
                 tracing::info!("zk-nym polling not finished: {:#?}", poll_response);
-                if start_time.elapsed() > Duration::from_secs(60) {
+                if start_time.elapsed() > ZK_NYM_POLLING_TIMEOUT {
                     tracing::error!("zk-nym polling timed out: {id}");
                     return Err(RequestZkNymError::PollingTimeout {
                         id: id.to_string(),
                         // TODO: remove this field
+                        // WIP(JON)
                         ticket_type: "".to_string(),
                     });
                 }
@@ -504,31 +508,33 @@ async fn import_attached_master_verification_key(
     master_verification_key: &MasterVerificationKeyResponse,
     credential_storage: &VpnCredentialStorage,
 ) -> Result<(), RequestZkNymError> {
+    if epoch_id != master_verification_key.epoch_id {
+        return Err(RequestZkNymError::EpochIdMismatch);
+    }
+
+    let attached_master_vk = VerificationKeyAuth::try_from_bs58(
+        &master_verification_key.bs58_encoded_key,
+    )
+    .map_err(|e| RequestZkNymError::ResponseHasInvalidMasterVerificationKey(e.to_string()))?;
+
+    let attached_epoch_vk = EpochVerificationKey {
+        epoch_id,
+        key: attached_master_vk.clone(),
+    };
+
     let stored_master_vk = credential_storage
         .get_master_verification_key(epoch_id)
         .await
-        .unwrap();
+        .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
 
-    if let Some(_stored_master_vk) = stored_master_vk {
-        // TODO: insert defensive check here that the attached master_vk is the same as the
-        // one we already have
-    } else {
-        let master_vk = VerificationKeyAuth::try_from_bs58(
-            &master_verification_key.bs58_encoded_key,
-        )
-        .map_err(|e| RequestZkNymError::ResponseHasInvalidMasterVerificationKey(e.to_string()))?;
-
-        let epoch_vk = EpochVerificationKey {
-            epoch_id,
-            key: master_vk.clone(),
-        };
+    if stored_master_vk.is_none() {
         credential_storage
-            .insert_master_verification_key(&epoch_vk)
+            .insert_master_verification_key(&attached_epoch_vk)
             .await
             .inspect_err(|err| {
                 tracing::error!("Failed to insert master verification key: {:#?}", err);
             })
-            .unwrap();
+            .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
     }
     Ok(())
 }
@@ -538,15 +544,16 @@ async fn import_aggregated_coin_index_signatures(
     aggregated_coin_index_signatures: &AggregatedCoinIndicesSignaturesResponse,
     credential_storage: &VpnCredentialStorage,
 ) -> Result<(), RequestZkNymError> {
+    if epoch_id != aggregated_coin_index_signatures.signatures.epoch_id {
+        return Err(RequestZkNymError::EpochIdMismatch);
+    }
+
     let stored_coin_index_signatures = credential_storage
         .get_coin_index_signatures(epoch_id)
         .await
-        .unwrap();
+        .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
 
-    if let Some(_stored_coin_index_signatures) = stored_coin_index_signatures {
-        // TODO: insert defensive check here that the attached coin index signatures are the
-        // same as the ones we already have
-    } else {
+    if stored_coin_index_signatures.is_none() {
         tracing::info!("Inserting coin index signatures");
         credential_storage
             .insert_coin_index_signatures(&aggregated_coin_index_signatures.signatures)
@@ -554,25 +561,35 @@ async fn import_aggregated_coin_index_signatures(
             .inspect_err(|err| {
                 tracing::error!("Failed to insert coin index signatures: {:#?}", err);
             })
-            .unwrap();
+            .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
     }
     Ok(())
 }
 
 async fn import_aggregated_expiration_date_signatures(
+    epoch_id: u64,
     expiration_date: Date,
     aggregated_expiration_date_signatures: &AggregatedExpirationDateSignaturesResponse,
     credential_storage: &VpnCredentialStorage,
 ) -> Result<(), RequestZkNymError> {
+    // Consistency checks
+    if epoch_id != aggregated_expiration_date_signatures.signatures.epoch_id {
+        return Err(RequestZkNymError::EpochIdMismatch);
+    }
+    if expiration_date
+        != aggregated_expiration_date_signatures
+            .signatures
+            .expiration_date
+    {
+        return Err(RequestZkNymError::ExpirationDateMismatch);
+    }
+
     let stored_expiration_date_signatures = credential_storage
         .get_expiration_date_signatures(expiration_date)
         .await
-        .unwrap();
+        .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
 
-    if let Some(_stored_expiration_date_signatures) = stored_expiration_date_signatures {
-        // TODO: insert defensive check here that the attached expiration date signatures are
-        // the same as the ones we already have
-    } else {
+    if stored_expiration_date_signatures.is_none() {
         tracing::info!("Inserting expiration date signatures");
         credential_storage
             .insert_expiration_date_signatures(&aggregated_expiration_date_signatures.signatures)
@@ -580,7 +597,7 @@ async fn import_aggregated_expiration_date_signatures(
             .inspect_err(|err| {
                 tracing::error!("Failed to insert expiration date signatures: {:#?}", err);
             })
-            .unwrap();
+            .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
     }
     Ok(())
 }
@@ -613,20 +630,19 @@ async fn import_attached_keys_and_signatures(
             aggregated_coin_index_signatures,
             credential_storage,
         )
-        .await
-        .unwrap();
+        .await?;
     }
 
     if let Some(ref aggregated_expiration_date_signatures) =
         shares.aggregated_expiration_date_signatures
     {
         import_aggregated_expiration_date_signatures(
+            shares.epoch_id,
             expiration_date,
             aggregated_expiration_date_signatures,
             credential_storage,
         )
-        .await
-        .unwrap();
+        .await?;
     }
 
     Ok(())
@@ -660,7 +676,7 @@ async fn import_zk_nym(
     let master_vk = credential_storage
         .get_master_verification_key(shares.epoch_id)
         .await
-        .unwrap()
+        .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
         .ok_or(RequestZkNymError::NoMasterVerificationKeyInStorage)?;
 
     let ticketbook_type = TicketType::from_str(&response.ticketbook_type).unwrap();
@@ -681,20 +697,20 @@ async fn import_zk_nym(
     let _ = credential_storage
         .get_coin_index_signatures(shares.epoch_id)
         .await
-        .unwrap()
-        .unwrap();
+        .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
+        .ok_or(RequestZkNymError::NoCoinIndexSignaturesInStorage)?;
 
     let _ = credential_storage
         .get_expiration_date_signatures(expiration_date)
         .await
-        .unwrap()
-        .unwrap();
+        .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
+        .ok_or(RequestZkNymError::NoExpirationDateSignaturesInStorage)?;
 
     tracing::info!("Inserting issued ticketbook");
     credential_storage
         .insert_issued_ticketbook(&issued_ticketbook)
         .await
-        .unwrap();
+        .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
 
     Ok(())
 }
@@ -862,8 +878,20 @@ pub enum RequestZkNymError {
     #[error("response contains invalid master verification key: {0}")]
     ResponseHasInvalidMasterVerificationKey(String),
 
+    #[error("epoch id mismatch")]
+    EpochIdMismatch,
+
+    #[error("expiration date mismatch")]
+    ExpirationDateMismatch,
+
     #[error("no master verification key in storage")]
     NoMasterVerificationKeyInStorage,
+
+    #[error("no coin index signatures in storage")]
+    NoCoinIndexSignaturesInStorage,
+
+    #[error("no expiration date signatures in storage")]
+    NoExpirationDateSignaturesInStorage,
 
     #[error("invalid verification key: {0}")]
     InvalidVerificationKey(String),
@@ -886,11 +914,14 @@ pub enum RequestZkNymError {
         id: ZkNymId,
     },
 
-    #[error("credential storage error: {0}")]
-    CredentialStorage(String),
-
     #[error("missing pending request: {0}")]
     MissingPendingRequest(ZkNymId),
+
+    #[error("failed to remove pending zk-nym request {id}: {error}")]
+    RemovePendingRequest { id: String, error: String },
+
+    #[error("credential storage error: {0}")]
+    CredentialStorage(String),
 
     #[error("internal error: {0}")]
     Internal(String),
