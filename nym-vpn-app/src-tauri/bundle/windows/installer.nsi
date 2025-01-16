@@ -554,9 +554,10 @@ Section Install
   File "..\..\..\..\nym-vpnd.exe"
 
   ; Copy libraries
-  File "..\..\..\..\winfw.dll"
   File "..\..\..\..\libwg.dll"
   File "..\..\..\..\wintun.dll"
+  ; TODO restore when winfw build is fixed
+  ; File "..\..\..\..\winfw.dll"
 
   ; Copy resources
   {{#each resources_dirs}}
@@ -687,8 +688,9 @@ Section Uninstall
   Delete "$INSTDIR\nym-vpnd.exe"
 
   Delete "$INSTDIR\libwg.dll"
-  Delete "$INSTDIR\winfw.dll"
   Delete "$INSTDIR\wintun.dll"
+  ; TODO restore when winfw build is fixed
+  ; Delete "$INSTDIR\winfw.dll"
 
   ; Delete resources
   {{#each resources}}
