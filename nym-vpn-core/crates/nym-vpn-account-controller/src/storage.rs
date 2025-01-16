@@ -418,6 +418,12 @@ pub enum PendingCredentialRequestsStorageError {
 
     #[error("bincode error: {0}")]
     Bincode(#[from] bincode::Error),
+
+    #[error("file permissions error for {path:?}: {source}")]
+    FilePermissions {
+        path: PathBuf,
+        source: std::io::Error,
+    },
 }
 
 #[derive(Clone)]
@@ -443,6 +449,18 @@ impl PendingCredentialRequestsStorage {
         let connection_pool = sqlx::sqlite::SqlitePoolOptions::new()
             .connect_with(opts)
             .await?;
+
+        set_file_permission_owner_rw(&database_path)
+            .map_err(
+                |source| PendingCredentialRequestsStorageError::FilePermissions {
+                    path: database_path.as_ref().to_path_buf(),
+                    source,
+                },
+            )
+            .inspect_err(|err| {
+                tracing::error!("Failed to set file permissions: {err:?}");
+            })
+            .ok();
 
         sqlx::migrate!("./migrations").run(&connection_pool).await?;
 
@@ -516,6 +534,30 @@ impl PendingCredentialRequestsStorage {
             .remove_pending_request(id)
             .await
             .map_err(Into::into)
+    }
+}
+
+fn set_file_permission_owner_rw<P: AsRef<Path>>(path: P) -> Result<(), std::io::Error> {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let metadata = std::fs::metadata(&path)?;
+        let mut permissions = metadata.permissions();
+        permissions.set_mode(0o600);
+        std::fs::set_permissions(&path, permissions)
+    }
+
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::OpenOptionsExt;
+        use winapi::um::winnt::FILE_ATTRIBUTE_NORMAL;
+        let file = std::fs::OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .attributes(FILE_ATTRIBUTE_NORMAL)
+            .open(&path)?;
+        file.set_permissions(std::fs::Permissions::from_mode(0o600))
     }
 }
 

@@ -229,7 +229,7 @@ where
         }
     }
 
-    async fn register_device_if_ready(&self) -> Result<(), Error> {
+    async fn register_device_if_ready(&self) {
         match self.shared_state().is_ready_to_register_device().await {
             ReadyToRegisterDevice::Ready => {
                 self.queue_command(AccountCommand::RegisterDevice(None));
@@ -238,7 +238,6 @@ where
                 tracing::debug!("Not trying to register device: {not_ready}");
             }
         }
-        Ok(())
     }
 
     async fn is_background_zk_nym_refresh_active(&self) -> bool {
@@ -249,11 +248,11 @@ where
                 .await
     }
 
-    async fn request_zk_nym_if_ready(&self) -> Result<(), Error> {
+    async fn request_zk_nym_if_ready(&self) {
         if !self.is_background_zk_nym_refresh_active().await {
-            return Ok(());
+            return;
         }
-        match self.shared_state().is_ready_to_request_zk_nym().await {
+        match self.shared_state().ready_to_request_zk_nym().await {
             ReadyToRequestZkNym::Ready => {
                 self.queue_command(AccountCommand::RequestZkNym(None));
             }
@@ -262,7 +261,6 @@ where
                 tracing::info!("Not trying to request zk-nym: {not_ready}");
             }
         }
-        Ok(())
     }
 
     async fn handle_store_account(&self, mnemonic: Mnemonic) -> Result<(), AccountCommandError> {
@@ -743,8 +741,8 @@ where
                     }
                 }
                 if r.is_ok() {
-                    self.register_device_if_ready().await.ok();
-                    self.request_zk_nym_if_ready().await.ok();
+                    self.register_device_if_ready().await;
+                    self.request_zk_nym_if_ready().await;
                 }
             }
             AccountCommandResult::SyncDeviceState(r) => {
@@ -759,8 +757,8 @@ where
                     }
                 }
                 if r.is_ok() {
-                    self.register_device_if_ready().await.ok();
-                    self.request_zk_nym_if_ready().await.ok();
+                    self.register_device_if_ready().await;
+                    self.request_zk_nym_if_ready().await;
                 }
             }
             AccountCommandResult::RegisterDevice(r) => {
@@ -776,7 +774,7 @@ where
                 }
                 if r.is_ok() {
                     self.queue_command(AccountCommand::SyncAccountState(None));
-                    self.request_zk_nym_if_ready().await.ok();
+                    self.request_zk_nym_if_ready().await;
                 }
             }
             AccountCommandResult::RequestZkNym(r) => {
@@ -864,9 +862,7 @@ where
                 }
                 // On a timer to check if we need to request more zk-nyms
                 _ = update_zk_nym_timer.tick() => {
-                    if self.is_background_zk_nym_refresh_active().await {
-                        self.queue_command(AccountCommand::RequestZkNym(None));
-                    }
+                    self.request_zk_nym_if_ready().await;
                 }
                 _ = self.cancel_token.cancelled() => {
                     tracing::trace!("Received cancellation signal");

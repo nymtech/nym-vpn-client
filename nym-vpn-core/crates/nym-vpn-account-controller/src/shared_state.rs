@@ -205,8 +205,12 @@ impl SharedAccountState {
         self.lock().await.is_ready_to_register_device()
     }
 
-    pub(crate) async fn is_ready_to_request_zk_nym(&self) -> ReadyToRequestZkNym {
-        self.lock().await.is_ready_to_request_zk_nym()
+    pub(crate) async fn ready_to_request_zk_nym(&self) -> ReadyToRequestZkNym {
+        self.lock().await.ready_to_request_zk_nym()
+    }
+
+    pub(crate) async fn is_ready_to_request_zk_nym(&self) -> bool {
+        self.lock().await.ready_to_request_zk_nym() == ReadyToRequestZkNym::Ready
     }
 
     pub async fn is_ready_to_connect(&self, credential_mode: bool) -> ReadyToConnect {
@@ -462,7 +466,7 @@ impl AccountStateSummary {
         ReadyToRegisterDevice::Ready
     }
 
-    pub(crate) fn is_ready_to_request_zk_nym(&self) -> ReadyToRequestZkNym {
+    pub(crate) fn ready_to_request_zk_nym(&self) -> ReadyToRequestZkNym {
         match self.request_zk_nym_result {
             Some(RequestZkNymResult::InProgress) => return ReadyToRequestZkNym::InProgress,
             Some(RequestZkNymResult::Success { .. }) => {}
