@@ -201,16 +201,12 @@ impl SharedAccountState {
         self.lock().await.mnemonic.clone().and_then(|m| m.id())
     }
 
-    pub(crate) async fn is_ready_to_register_device(&self) -> ReadyToRegisterDevice {
-        self.lock().await.is_ready_to_register_device()
+    pub(crate) async fn ready_to_register_device(&self) -> ReadyToRegisterDevice {
+        self.lock().await.ready_to_register_device()
     }
 
     pub(crate) async fn ready_to_request_zk_nym(&self) -> ReadyToRequestZkNym {
         self.lock().await.ready_to_request_zk_nym()
-    }
-
-    pub(crate) async fn is_ready_to_request_zk_nym(&self) -> bool {
-        self.lock().await.ready_to_request_zk_nym() == ReadyToRequestZkNym::Ready
     }
 
     pub async fn is_ready_to_connect(&self, credential_mode: bool) -> ReadyToConnect {
@@ -412,7 +408,7 @@ impl From<RequestZkNymError> for RequestZkNymResult {
 }
 
 impl AccountStateSummary {
-    pub(crate) fn is_ready_to_register_device(&self) -> ReadyToRegisterDevice {
+    pub(crate) fn ready_to_register_device(&self) -> ReadyToRegisterDevice {
         match self.device {
             Some(DeviceState::NotRegistered) => {}
             Some(DeviceState::Inactive) => {}
