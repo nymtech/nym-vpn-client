@@ -10,7 +10,7 @@ else
   git checkout develop
   git pull
   git branch -D feat/bumpBuild
-  git checkout feat/bumpBuild
+  git checkout -b feat/bumpBuild
   fastlane mac bump_build
   git add .
   git commit -m "Apple: Bump build number"
