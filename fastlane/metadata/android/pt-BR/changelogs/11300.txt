@@ -1,0 +1,3 @@
+Novidade:
+- Correções de bugs
+- Melhorias na estabilidade

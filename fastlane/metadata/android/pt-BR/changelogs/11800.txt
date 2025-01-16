@@ -1,0 +1,3 @@
+Novidade:
+- Correções de bugs
+- Atualização da interface do usuário

@@ -1,0 +1,2 @@
+Novidade:
+- Correção do bug de travamento dos logs
