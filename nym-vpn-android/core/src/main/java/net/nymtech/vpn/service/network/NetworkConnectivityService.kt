@@ -19,25 +19,44 @@ class NetworkConnectivityService(context: Context) : NetworkService {
 
 	override val networkStatus: Flow<NetworkStatus> = callbackFlow {
 		val connectivityCallback = object : NetworkCallback() {
-			override fun onAvailable(network: Network) {
-				trySend(NetworkStatus.Connected)
-			}
 
-			override fun onUnavailable() {
-				trySend(NetworkStatus.Disconnected)
+			var wifiState: Int = 0
+			var ethernetState: Int = 0
+			var cellularState: Int = 0
+
+			override fun onAvailable(network: Network) {
+				updateCapabilityState(1, network)
+				trySend(NetworkStatus.Connected)
 			}
 
 			override fun onLost(network: Network) {
-				trySend(NetworkStatus.Disconnected)
+				updateCapabilityState(0, network)
+				if (wifiState == 0 && ethernetState == 0 && cellularState == 0) {
+					trySend(NetworkStatus.Disconnected)
+				}
 			}
 
 			override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
+				updateCapabilityState(1, network)
 				trySend(NetworkStatus.Connected)
+			}
+			fun updateCapabilityState(state: Int, network: Network) {
+				with(connectivityManager.getNetworkCapabilities(network)) {
+					when {
+						this == null -> return
+						hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> wifiState = state
+						hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> cellularState = state
+						hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> ethernetState = state
+					}
+				}
 			}
 		}
 
 		val request = NetworkRequest.Builder()
 			.addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+			.addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+			.addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET)
+			.addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
 			.build()
 
 		connectivityManager.registerNetworkCallback(request, connectivityCallback)
