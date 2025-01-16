@@ -13,7 +13,7 @@ use tokio::sync::MutexGuard;
 
 use crate::commands::{
     register_device::RegisterDeviceError,
-    request_zknym::{RequestZkNymError, RequestZkNymErrorSummary, RequestZkNymSuccess},
+    request_zknym::{RequestZkNymError, RequestZkNymSuccess},
 };
 
 #[derive(Clone)]
@@ -364,29 +364,6 @@ pub enum RequestZkNymResult {
     Error(RequestZkNymError),
 }
 
-//impl From<RequestZkNymSuccessSummary> for RequestZkNymResult {
-//    fn from(success: RequestZkNymSuccessSummary) -> Self {
-//        RequestZkNymResult::Success {
-//            successes: success.successful_zknym_requests().cloned().collect(),
-//        }
-//    }
-//}
-
-impl From<RequestZkNymErrorSummary> for RequestZkNymResult {
-    fn from(summary: RequestZkNymErrorSummary) -> Self {
-        if summary.failed.is_empty() {
-            RequestZkNymResult::Success {
-                successes: summary.successes,
-            }
-        } else {
-            RequestZkNymResult::Failed {
-                successes: summary.successes,
-                failures: summary.failed,
-            }
-        }
-    }
-}
-
 impl From<Vec<Result<RequestZkNymSuccess, RequestZkNymError>>> for RequestZkNymResult {
     fn from(results: Vec<Result<RequestZkNymSuccess, RequestZkNymError>>) -> Self {
         let (successes, failures): (Vec<_>, Vec<_>) = results.into_iter().partition(Result::is_ok);
@@ -550,6 +527,7 @@ impl AccountStateSummary {
         }
 
         if credential_mode {
+            // WIP(JON)
             //if !local_credentials_available {
             //    return ReadyToConnect::NoCredentialsAvailable
             //}

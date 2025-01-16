@@ -273,8 +273,36 @@ impl From<nym_vpn_account_controller::RequestZkNymError> for crate::RequestZkNym
                     message_id: None,
                 }
             },
+            nym_vpn_account_controller::RequestZkNymError::EpochIdMismatch => Self {
+                kind: crate::request_zk_nym_error::RequestZkNymErrorType::EpochIdMismatch as i32,
+                id: None,
+                ticketbook_type: None,
+                message: None,
+                message_id: None,
+            },
+            nym_vpn_account_controller::RequestZkNymError::ExpirationDateMismatch => Self {
+                kind: crate::request_zk_nym_error::RequestZkNymErrorType::ExpirationDateMismatch as i32,
+                id: None,
+                ticketbook_type: None,
+                message: None,
+                message_id: None,
+            },
             nym_vpn_account_controller::RequestZkNymError::NoMasterVerificationKeyInStorage => Self {
                 kind: crate::request_zk_nym_error::RequestZkNymErrorType::NoMasterVerificationKeyInStorage as i32,
+                id: None,
+                ticketbook_type: None,
+                message: None,
+                message_id: None,
+            },
+            nym_vpn_account_controller::RequestZkNymError::NoCoinIndexSignaturesInStorage => Self {
+                kind: crate::request_zk_nym_error::RequestZkNymErrorType::NoCoinIndexSignaturesInStorage as i32,
+                id: None,
+                ticketbook_type: None,
+                message: None,
+                message_id: None,
+            },
+            nym_vpn_account_controller::RequestZkNymError::NoExpirationDateSignaturesInStorage => Self {
+                kind: crate::request_zk_nym_error::RequestZkNymErrorType::NoExpirationDateSignaturesInStorage as i32,
                 id: None,
                 ticketbook_type: None,
                 message: None,
@@ -326,18 +354,25 @@ impl From<nym_vpn_account_controller::RequestZkNymError> for crate::RequestZkNym
                     message_id: endpoint_failure.message_id.clone(),
                 }
             },
-            nym_vpn_account_controller::RequestZkNymError::CredentialStorage(err) => Self {
-                kind: crate::request_zk_nym_error::RequestZkNymErrorType::CredentialStorage as i32,
-                id: None,
-                ticketbook_type: None,
-                message: Some(err.to_string()),
-                message_id: None,
-            },
             nym_vpn_account_controller::RequestZkNymError::MissingPendingRequest(id) => Self {
                 kind: crate::request_zk_nym_error::RequestZkNymErrorType::MissingPendingRequest as i32,
                 id: Some(id.clone()),
                 ticketbook_type: None,
                 message: None,
+                message_id: None,
+            },
+            nym_vpn_account_controller::RequestZkNymError::RemovePendingRequest { id, error } => Self {
+                kind: crate::request_zk_nym_error::RequestZkNymErrorType::RemovePendingRequest as i32,
+                id: Some(id.clone()),
+                ticketbook_type: None,
+                message: Some(error.to_string()),
+                message_id: None,
+            },
+            nym_vpn_account_controller::RequestZkNymError::CredentialStorage(credential_error) => Self {
+                kind: crate::request_zk_nym_error::RequestZkNymErrorType::CredentialStorage as i32,
+                id: None,
+                ticketbook_type: None,
+                message: Some(credential_error.to_string()),
                 message_id: None,
             },
             nym_vpn_account_controller::RequestZkNymError::Internal(err) => Self {

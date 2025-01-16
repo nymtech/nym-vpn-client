@@ -986,10 +986,4 @@ impl RequestZkNymError {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct RequestZkNymErrorSummary {
-    pub successes: Vec<RequestZkNymSuccess>,
-    pub failed: Vec<RequestZkNymError>,
-}
-
 pub type RequestZkNymSummary = Vec<Result<RequestZkNymSuccess, RequestZkNymError>>;

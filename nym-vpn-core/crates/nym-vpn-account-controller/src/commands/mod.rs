@@ -9,7 +9,7 @@ pub(crate) mod sync_device;
 use nym_vpn_store::mnemonic::Mnemonic;
 pub use register_device::RegisterDeviceError;
 use request_zknym::RequestZkNymSummary;
-pub use request_zknym::{RequestZkNymError, RequestZkNymErrorSummary, RequestZkNymSuccess};
+pub use request_zknym::{RequestZkNymError, RequestZkNymSuccess};
 
 use std::{collections::HashMap, fmt, sync::Arc};
 
@@ -115,15 +115,6 @@ impl From<RegisterDeviceError> for AccountCommandError {
                 AccountCommandError::RegisterDeviceEndpointFailure(failure)
             }
             RegisterDeviceError::General(message) => AccountCommandError::General(message),
-        }
-    }
-}
-
-impl From<RequestZkNymErrorSummary> for AccountCommandError {
-    fn from(summary: RequestZkNymErrorSummary) -> Self {
-        AccountCommandError::RequestZkNym {
-            successes: summary.successes,
-            failed: summary.failed,
         }
     }
 }
