@@ -6,6 +6,7 @@ use itertools::Itertools;
 use nym_contracts_common::Percent;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use std::fmt;
 use std::net::IpAddr;
 
@@ -566,3 +567,53 @@ fn extract_error_response_inner(
         _ => None,
     }
 }
+
+// The response type we fetch from the discovery endpoint
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+pub struct DiscoveryResponse {
+    pub network_name: String,
+    pub nym_api_url: String,
+    pub nym_vpn_api_url: String,
+    pub account_management: Option<AccountManagementResponse>,
+    pub feature_flags: Option<serde_json::Value>,
+    pub system_messages: Option<Vec<SystemMessageResponse>>,
+}
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+pub struct AccountManagementResponse {
+    pub url: String,
+    pub paths: AccountManagementPathsResponse,
+}
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+pub struct AccountManagementPathsResponse {
+    pub sign_up: String,
+    pub sign_in: String,
+    pub account: String,
+}
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct SystemMessageResponse {
+    pub name: String,
+    pub display_from: String,
+    pub display_until: String,
+    pub message: String,
+    pub properties: serde_json::Value,
+}
+
+// The response type we fetch from the network details endpoint. This will be added to and exported
+// from nym-api-requests.
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+pub struct NymNetworkDetailsResponse {
+    pub network: nym_config::defaults::NymNetworkDetails,
+}
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+pub struct NymWellknownDiscoveryItem {
+    pub network_name: String,
+    pub nym_api_url: String,
+    pub nym_vpn_api_url: String,
+}
+
+pub type RegisteredNetworksResponse = HashSet<String>;
