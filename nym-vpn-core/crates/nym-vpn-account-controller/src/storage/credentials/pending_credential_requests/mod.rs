@@ -163,11 +163,12 @@ fn set_file_permission_owner_rw<P: AsRef<Path>>(path: P) -> Result<(), std::io::
         let metadata = std::fs::metadata(&path)?;
         let mut permissions = metadata.permissions();
         permissions.set_mode(0o600);
-        return std::fs::set_permissions(&path, permissions);
+        std::fs::set_permissions(&path, permissions)
     }
 
     #[cfg(windows)]
     {
-        // TODO
+        tracing::info!("Setting file permissions on Windows is not yet implemented!");
+        Ok(())
     }
 }
