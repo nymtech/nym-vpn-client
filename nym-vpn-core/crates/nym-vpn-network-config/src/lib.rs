@@ -5,8 +5,6 @@
 pub mod feature_flags;
 pub mod system_messages;
 
-pub(crate) mod response;
-
 mod account_management;
 mod discovery;
 mod envs;

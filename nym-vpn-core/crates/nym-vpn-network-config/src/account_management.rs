@@ -5,7 +5,7 @@ use std::fmt;
 
 use url::Url;
 
-use crate::response::{AccountManagementPathsResponse, AccountManagementResponse};
+use nym_vpn_api_client::response::{AccountManagementPathsResponse, AccountManagementResponse};
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct AccountManagement {
