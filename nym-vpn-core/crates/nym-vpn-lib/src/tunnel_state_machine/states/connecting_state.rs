@@ -112,7 +112,7 @@ impl TunnelStateHandler for ConnectingState {
                 }
                 TunnelMonitorEvent::Up(conn_data) => {
                     NextTunnelState::NewState(ConnectedState::enter(
-                        conn_data,
+                        *conn_data,
                         self.selected_gateways.expect("selected gateways must be set"),
                         self.monitor_handle,
                         self.monitor_event_receiver,

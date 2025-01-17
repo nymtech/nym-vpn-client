@@ -63,6 +63,8 @@ trait TunnelStateHandler: Send {
     ) -> NextTunnelState;
 }
 
+// todo: fix large enum; 248 byte enum is by no means a problem but clippy thinks we develop a firmware for Mars rovers.
+#[allow(clippy::large_enum_variant)]
 enum NextTunnelState {
     NewState((Box<dyn TunnelStateHandler>, PrivateTunnelState)),
     SameState(Box<dyn TunnelStateHandler>),

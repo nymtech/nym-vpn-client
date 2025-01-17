@@ -109,7 +109,7 @@ pub enum TunnelMonitorEvent {
     EstablishingTunnel(Box<ConnectionData>),
 
     /// Tunnel is up
-    Up(ConnectionData),
+    Up(Box<ConnectionData>),
 
     /// Tunnel went down
     Down(Option<ErrorStateReason>),
@@ -346,7 +346,7 @@ impl TunnelMonitor {
             connected_at: Some(OffsetDateTime::now_utc()),
             ..conn_data
         };
-        self.send_event(TunnelMonitorEvent::Up(conn_data));
+        self.send_event(TunnelMonitorEvent::Up(Box::new(conn_data)));
 
         let task_error = self
             .cancel_token
