@@ -527,6 +527,12 @@ pub struct StatusOk {
     status: String,
 }
 
+impl fmt::Display for StatusOk {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.status)
+    }
+}
+
 pub fn extract_error_response<E>(err: &E) -> Option<NymErrorResponse>
 where
     E: std::error::Error + 'static,

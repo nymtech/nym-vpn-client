@@ -114,7 +114,6 @@ impl VpnCredentialStorage {
             .map_err(Error::from)
     }
 
-    #[allow(unused)]
     pub(crate) async fn get_master_verification_key(
         &self,
         epoch_id: u64,
@@ -213,6 +212,7 @@ impl VpnCredentialStorage {
         &self,
         pending_request: PendingCredentialRequest,
     ) -> Result<(), Error> {
+        tracing::debug!("Inserting pending request with id: {}", pending_request.id);
         self.pending_requests_storage
             .insert_pending_request(pending_request)
             .await
@@ -220,6 +220,7 @@ impl VpnCredentialStorage {
     }
 
     pub(crate) async fn remove_pending_request(&self, id: &str) -> Result<(), Error> {
+        tracing::debug!("Removing pending request with id: {}", id);
         self.pending_requests_storage
             .remove_pending_request(id)
             .await
