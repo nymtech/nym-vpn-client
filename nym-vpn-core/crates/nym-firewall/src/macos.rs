@@ -1,8 +1,9 @@
-use std::env;
-use std::io;
-use std::net::{IpAddr, Ipv4Addr};
-use std::ptr;
-use std::sync::LazyLock;
+use std::{
+    env, io,
+    net::{IpAddr, Ipv4Addr},
+    ptr,
+    sync::LazyLock,
+};
 
 use ipnetwork::IpNetwork;
 use libc::{c_int, sysctlbyname};
@@ -20,7 +21,7 @@ type Result<T> = std::result::Result<T, Error>;
 
 /// TODO(linus): This crate is not supposed to be Mullvad-aware. So at some point this should be
 /// replaced by allowing the anchor name to be configured from the public API of this crate.
-const ANCHOR_NAME: &str = "mullvad";
+const ANCHOR_NAME: &str = "nym";
 
 /// If NAT firewall rules should be applied to force Apple services through the tunnel.
 ///
@@ -57,7 +58,7 @@ impl Firewall {
     pub fn new() -> Result<Self> {
         // Allows controlling whether firewall rules should log to pflog0. Useful for debugging the
         // rules. The firewall rules can be inspected by running `tcpdump -netttti pflog0`.
-        let firewall_debugging = env::var("TALPID_FIREWALL_DEBUG");
+        let firewall_debugging = env::var("NYM_FIREWALL_DEBUG");
         let rule_logging = match firewall_debugging.as_ref().map(String::as_str) {
             Ok("pass") => RuleLogging::Pass,
             Ok("drop") => RuleLogging::Drop,

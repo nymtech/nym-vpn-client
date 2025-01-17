@@ -368,7 +368,7 @@ impl super::DnsMonitorT for DnsMonitor {
         let state = Arc::new(Mutex::new(State::new()));
         Self::spawn(state.clone())?;
         Ok(DnsMonitor {
-            store: SCDynamicStoreBuilder::new("mullvad-dns").build(),
+            store: SCDynamicStoreBuilder::new("nym-dns").build(),
             state,
         })
     }

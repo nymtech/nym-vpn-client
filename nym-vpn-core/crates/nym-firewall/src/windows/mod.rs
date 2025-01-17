@@ -33,12 +33,12 @@ thread_local! {
 
 /// Enable or disable blocking Hyper-V rule
 static BLOCK_HYPERV: LazyLock<bool> = LazyLock::new(|| {
-    let enable = std::env::var("TALPID_FIREWALL_BLOCK_HYPERV")
+    let enable = std::env::var("NYM_FIREWALL_BLOCK_HYPERV")
         .map(|v| v != "0")
         .unwrap_or(true);
 
     if !enable {
-        log::debug!("Hyper-V block rule disabled by TALPID_FIREWALL_BLOCK_HYPERV");
+        log::debug!("Hyper-V block rule disabled by NYM_FIREWALL_BLOCK_HYPERV");
     }
 
     enable

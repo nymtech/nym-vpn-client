@@ -80,7 +80,7 @@ impl Resolvconf {
     }
 
     pub fn set_dns(&mut self, interface: &str, servers: &[IpAddr]) -> Result<()> {
-        let record_name = format!("{interface}.mullvad");
+        let record_name = format!("{interface}.nym");
         let mut record_contents = String::new();
 
         for address in servers {
