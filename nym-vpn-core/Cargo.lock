@@ -4723,7 +4723,6 @@ dependencies = [
  "tracing",
  "url",
  "uuid",
- "winapi",
  "zeroize",
 ]
 
