@@ -1,4 +1,5 @@
-use crate::{dns::ResolvedDnsConfig, tunnel::TunnelMetadata};
+use crate::tunnel::TunnelMetadata;
+use nym_dns::ResolvedDnsConfig;
 
 use std::{ffi::CStr, io, net::IpAddr, ptr, sync::LazyLock};
 
@@ -555,8 +556,8 @@ fn with_wmi_if_enabled(f: impl FnOnce(&wmi::WMIConnection)) {
 #[allow(non_snake_case)]
 mod winfw {
     use super::{widestring_ip, AllowedEndpoint, AllowedTunnelTraffic, Error, WideCString};
+    use crate::net::TransportProtocol;
     use std::ffi::{c_char, c_void};
-    use talpid_types::net::TransportProtocol;
 
     type LogSink = extern "system" fn(level: log::Level, msg: *const c_char, context: *mut c_void);
 

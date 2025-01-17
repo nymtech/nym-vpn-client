@@ -1,0 +1,26 @@
+[package]
+name = "nym-platform-metadata"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[features]
+default = ["network-manager"]
+network-manager = ["nym-dbus"]
+
+[target.'cfg(target_os = "linux")'.dependencies]
+rs-release = "0.1.7"
+nym-dbus = { path = "../nym-dbus", optional = true }
+
+[target.'cfg(windows)'.dependencies.windows-sys]
+workspace = true
+features = [
+    "Win32_Foundation",
+    "Win32_System_LibraryLoader",
+    "Win32_System_SystemInformation",
+    "Win32_System_SystemServices",
+]

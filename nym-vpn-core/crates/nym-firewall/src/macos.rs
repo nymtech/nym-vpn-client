@@ -8,12 +8,14 @@ use std::{
 use ipnetwork::IpNetwork;
 use libc::{c_int, sysctlbyname};
 use pfctl::{DropAction, FilterRuleAction, Ip, RedirectRule, Uid};
-use talpid_types::net::{
-    AllowedEndpoint, AllowedTunnelTraffic, TransportProtocol, ALLOWED_LAN_MULTICAST_NETS,
-    ALLOWED_LAN_NETS,
-};
 
-use super::{FirewallArguments, FirewallPolicy};
+use super::{
+    net::{
+        AllowedEndpoint, AllowedTunnelTraffic, TransportProtocol, TunnelMetadata,
+        ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS,
+    },
+    FirewallArguments, FirewallPolicy,
+};
 
 pub use pfctl::Error;
 
@@ -22,6 +24,45 @@ type Result<T> = std::result::Result<T, Error>;
 /// TODO(linus): This crate is not supposed to be Mullvad-aware. So at some point this should be
 /// replaced by allowing the anchor name to be configured from the public API of this crate.
 const ANCHOR_NAME: &str = "nym";
+
+/// If a local DNS resolver should be used at all times.
+///
+/// This setting does not affect the error or blocked state. In those states, we will want to use
+/// the local DNS resoler to work around Apple's captive portals check. Exactly how this is done is
+/// documented elsewhere.
+pub static LOCAL_DNS_RESOLVER: LazyLock<bool> = LazyLock::new(|| {
+    // use nym_platform_metadata::MacosVersion;
+    // let version = MacosVersion::new().expect("Could not detect macOS version");
+    // let v = |s| MacosVersion::from_raw_version(s).unwrap();
+
+    // Apple services tried to perform DNS lookups on the physical interface on some macOS
+    // versions, so we added redirect rules to always redirect DNS to our local DNS resolver.
+    // This seems to break some apps which do not like that we redirect DNS on port 53 to our local
+    // DNS resolver running on some other, arbitrary port, and so we disable this behaviour on
+    // macOS versions that are unaffected by this naughty bug.
+    //
+    // The workaround should only be applied to the affected macOS versions because some programs
+    // set the `skip filtering` pf flag on loopback, which meant that the pf filtering would break
+    // unexpectedly. We could clear the `skip filtering` flag to force pf filtering on loopback,
+    // but apparently it is good practice to enable `skip filtering` on loopback so we decided
+    // against this. Source: https://www.openbsd.org/faq/pf/filter.html
+    //
+    // It should be noted that most programs still works fine with this workaround enabled. Notably
+    // programs that use `getaddrinfo` would behave correctly when we redirect DNS to our local
+    // resolver, while some programs always used port 53 no matter what (nslookup for example).
+    // Also, most programs don't set the `skip filtering` pf flag on loopback, but some notable
+    // ones do for some reason. Orbstack is one such example, which meant that people running
+    // containers would run into the aforementioned issue.
+    //
+    // let use_local_dns_resolver = v("14.6") <= version && version < v("15.1");
+    // if use_local_dns_resolver {
+    //     tracing::debug!("Using local DNS resolver");
+    // }
+    // use_local_dns_resolver
+
+    // todo: re-enable the code above when local resolver is introduced
+    false
+});
 
 /// If NAT firewall rules should be applied to force Apple services through the tunnel.
 ///
@@ -34,7 +75,7 @@ const ANCHOR_NAME: &str = "nym";
 /// on macOS versions that are unaffected by this naughty bug, but keep it were it is necessary for
 /// Apple services to function properly together with a VPN.
 pub static NAT_WORKAROUND: LazyLock<bool> = LazyLock::new(|| {
-    use talpid_platform_metadata::MacosVersion;
+    use nym_platform_metadata::MacosVersion;
     let version = MacosVersion::new().expect("Could not detect macOS version");
     let v = |s| MacosVersion::from_raw_version(s).unwrap();
     let apply_workaround = v("14.6") <= version && version < v("15.1");
@@ -248,7 +289,7 @@ impl Firewall {
             Ok(vec![redirect_dns])
         }
 
-        let redirect_rules = if *crate::resolver::LOCAL_DNS_RESOLVER {
+        let redirect_rules = if *LOCAL_DNS_RESOLVER {
             match policy {
                 FirewallPolicy::Connected { dns_config, .. } if dns_config.is_loopback() => {
                     vec![]
@@ -495,7 +536,7 @@ impl Firewall {
 
     fn get_allow_local_dns_rules_when_connected(
         &self,
-        tunnel: &crate::tunnel::TunnelMetadata,
+        tunnel: &TunnelMetadata,
         server: IpAddr,
     ) -> Result<Vec<pfctl::FilterRule>> {
         let mut rules = Vec::with_capacity(4);
@@ -548,7 +589,7 @@ impl Firewall {
 
     fn get_allow_tunnel_dns_rules_when_connected(
         &self,
-        tunnel: &crate::tunnel::TunnelMetadata,
+        tunnel: &TunnelMetadata,
         server: IpAddr,
     ) -> Result<Vec<pfctl::FilterRule>> {
         let mut rules = Vec::with_capacity(4);
