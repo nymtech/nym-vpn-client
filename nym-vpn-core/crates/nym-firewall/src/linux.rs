@@ -131,7 +131,7 @@ impl Firewall {
 
         let batch = batch.finalize();
 
-        log::debug!("Removing table and chain from netfilter");
+        tracing::debug!("Removing table and chain from netfilter");
         Self::send_and_process(&batch)?;
 
         Ok(())
@@ -139,10 +139,10 @@ impl Firewall {
 
     fn apply_kernel_config(policy: &FirewallPolicy) {
         if *DONT_SET_SRC_VALID_MARK {
-            log::debug!("Not setting src_valid_mark");
+            tracing::debug!("Not setting src_valid_mark");
         } else if let FirewallPolicy::Connecting { .. } = policy {
             if let Err(err) = set_src_valid_mark_sysctl() {
-                log::error!("Failed to apply src_valid_mark: {}", err);
+                tracing::error!("Failed to apply src_valid_mark: {}", err);
             }
         }
 
@@ -156,11 +156,11 @@ impl Firewall {
         // to be too relaxed and don't see any reason why anyone would want a more relaxed
         // setting than the one we are setting here.
         if *DONT_SET_ARP_IGNORE {
-            log::debug!("Not setting arp_ignore");
+            tracing::debug!("Not setting arp_ignore");
         } else if let FirewallPolicy::Connecting { .. } | FirewallPolicy::Connected { .. } = policy
         {
             if let Err(err) = lock_down_arp_ignore_sysctl() {
-                log::error!("Failed to apply arp_ignore: {}", err);
+                tracing::error!("Failed to apply arp_ignore: {}", err);
             }
         }
     }
@@ -176,10 +176,10 @@ impl Firewall {
         while let Some(message) = Self::socket_recv(&socket, &mut buffer[..])? {
             match mnl::cb_run(message, seq, portid).map_err(Error::ProcessNetlinkError)? {
                 mnl::CbResult::Stop => {
-                    log::trace!("cb_run STOP");
+                    tracing::trace!("cb_run STOP");
                     break;
                 }
-                mnl::CbResult::Ok => log::trace!("cb_run OK"),
+                mnl::CbResult::Ok => tracing::trace!("cb_run OK"),
             };
         }
         Ok(())
@@ -203,16 +203,16 @@ impl Firewall {
                 .map_err(Error::ProcessNetlinkError)?
             {
                 mnl::CbResult::Stop => {
-                    log::trace!("cb_run STOP");
+                    tracing::trace!("cb_run STOP");
                     break;
                 }
-                mnl::CbResult::Ok => log::trace!("cb_run OK"),
+                mnl::CbResult::Ok => tracing::trace!("cb_run OK"),
             }
         }
 
         for expected_table in expected_tables {
             if !table_set.contains(*expected_table) {
-                log::error!(
+                tracing::error!(
                     "Expected '{}' netfilter table to be set, but it is not",
                     expected_table.to_string_lossy()
                 );
@@ -224,7 +224,7 @@ impl Firewall {
 
     fn socket_recv<'a>(socket: &mnl::Socket, buf: &'a mut [u8]) -> Result<Option<&'a [u8]>> {
         let ret = socket.recv(buf).map_err(Error::NetlinkRecvError)?;
-        log::trace!("Read {} bytes from netlink", ret);
+        tracing::trace!("Read {} bytes from netlink", ret);
         if ret > 0 {
             Ok(Some(&buf[..ret]))
         } else {
@@ -1085,7 +1085,7 @@ fn lock_down_arp_ignore_sysctl() -> io::Result<()> {
     match current_arp_ignore.trim() {
         "0" | "1" => fs::write(PROC_SYS_NET_IPV4_CONF_ARP_IGNORE, b"2")?,
         "2" => (),
-        _ => log::trace!("Not locking down arp_ignore since it is set to {current_arp_ignore}"),
+        _ => tracing::trace!("Not locking down arp_ignore since it is set to {current_arp_ignore}"),
     }
     Ok(())
 }
