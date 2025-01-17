@@ -1156,7 +1156,7 @@ service NymVpnd {
   rpc VpnDisconnect (google.protobuf.Empty) returns (DisconnectResponse) {}
 
   // Get the current tunnel and connection status
-  rpc VpnStatus (google.protobuf.Empty) returns (StatusResponse) {}
+  rpc VpnStatus (google.protobuf.Empty) returns (TunnelState) {}
 
   // Listen for events that indicate that the connection state changes, such as
   // from Connecting -> Connected

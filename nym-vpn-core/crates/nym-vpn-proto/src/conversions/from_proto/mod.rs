@@ -4,6 +4,7 @@
 use super::ConversionError;
 
 pub mod network_config;
+pub mod tunnel_state;
 pub mod vpnd;
 
 impl TryFrom<crate::GatewayType> for nym_gateway_directory::GatewayType {

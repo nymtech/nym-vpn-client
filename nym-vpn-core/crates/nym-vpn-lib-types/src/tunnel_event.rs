@@ -5,8 +5,11 @@ use std::fmt;
 
 use si_scale::helpers::bibytes2;
 
+#[cfg(feature = "nym-type-conversions")]
 use nym_bandwidth_controller::BandwidthStatusMessage;
+#[cfg(feature = "nym-type-conversions")]
 use nym_connection_monitor::ConnectionMonitorStatus;
+#[cfg(feature = "nym-type-conversions")]
 use nym_statistics_common::clients::packet_statistics::{
     MixnetBandwidthStatisticsEvent, PacketRates,
 };
@@ -165,6 +168,7 @@ impl SphinxPacketRates {
     }
 }
 
+#[cfg(feature = "nym-type-conversions")]
 impl From<&BandwidthStatusMessage> for BandwidthEvent {
     fn from(value: &BandwidthStatusMessage) -> Self {
         match value {
@@ -174,6 +178,7 @@ impl From<&BandwidthStatusMessage> for BandwidthEvent {
     }
 }
 
+#[cfg(feature = "nym-type-conversions")]
 impl From<&ConnectionMonitorStatus> for ConnectionEvent {
     fn from(value: &ConnectionMonitorStatus) -> Self {
         match value {
@@ -192,6 +197,7 @@ impl From<&ConnectionMonitorStatus> for ConnectionEvent {
     }
 }
 
+#[cfg(feature = "nym-type-conversions")]
 impl From<&MixnetBandwidthStatisticsEvent> for ConnectionStatisticsEvent {
     fn from(value: &MixnetBandwidthStatisticsEvent) -> Self {
         Self {
@@ -200,6 +206,7 @@ impl From<&MixnetBandwidthStatisticsEvent> for ConnectionStatisticsEvent {
     }
 }
 
+#[cfg(feature = "nym-type-conversions")]
 impl From<PacketRates> for SphinxPacketRates {
     fn from(value: PacketRates) -> Self {
         Self {

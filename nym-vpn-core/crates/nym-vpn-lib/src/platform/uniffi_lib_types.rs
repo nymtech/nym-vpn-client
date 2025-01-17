@@ -5,7 +5,6 @@
 
 use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr};
 
-use nym_gateway_directory::{NodeIdentity, Recipient};
 use nym_vpn_lib_types::{
     ActionAfterDisconnect as CoreActionAfterDisconnect, BandwidthEvent as CoreBandwidthEvent,
     ConnectionData as CoreConnectionData, ConnectionEvent as CoreConnectionEvent,
@@ -16,7 +15,6 @@ use nym_vpn_lib_types::{
     TunnelState as CoreTunnelState, WireguardConnectionData as CoreWireguardConnectionData,
     WireguardNode as CoreWireguardNode,
 };
-use nym_wg_go::PublicKey;
 use time::OffsetDateTime;
 
 #[derive(uniffi::Enum)]
@@ -249,8 +247,8 @@ impl From<CoreErrorStateReason> for ErrorStateReason {
 
 #[derive(uniffi::Record)]
 pub struct ConnectionData {
-    pub entry_gateway: Box<NodeIdentity>,
-    pub exit_gateway: Box<NodeIdentity>,
+    pub entry_gateway: String,
+    pub exit_gateway: String,
     pub connected_at: Option<OffsetDateTime>,
     pub tunnel: TunnelConnectionData,
 }
@@ -307,8 +305,8 @@ pub enum TunnelConnectionData {
 
 #[derive(uniffi::Record)]
 pub struct MixnetConnectionData {
-    pub nym_address: Box<Recipient>,
-    pub exit_ipr: Box<Recipient>,
+    pub nym_address: String,
+    pub exit_ipr: String,
     pub ipv4: Ipv4Addr,
     pub ipv6: Ipv6Addr,
 }
