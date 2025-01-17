@@ -219,6 +219,16 @@ impl From<nym_vpn_account_controller::RequestZkNymError> for crate::RequestZkNym
                 message: Some(err.to_string()),
                 message_id: None,
             },
+            nym_vpn_account_controller::RequestZkNymError::TicketTypeMismatch => {
+                Self {
+                    kind: crate::request_zk_nym_error::RequestZkNymErrorType::TicketTypeMismatch
+                        as i32,
+                    id: None,
+                    ticketbook_type: None,
+                    message: None,
+                    message_id: None,
+                }
+            }
             nym_vpn_account_controller::RequestZkNymError::PollZkNymEndpointFailure {
                 endpoint_failure,
                 ticket_type,
@@ -237,11 +247,11 @@ impl From<nym_vpn_account_controller::RequestZkNymError> for crate::RequestZkNym
                 message: None,
                 message_id: None,
             },
-            nym_vpn_account_controller::RequestZkNymError::PollingTimeout { id, ticket_type } => {
+            nym_vpn_account_controller::RequestZkNymError::PollingTimeout { id } => {
                 Self {
                     kind: crate::request_zk_nym_error::RequestZkNymErrorType::PollingTimeout as i32,
                     id: Some(id.clone()),
-                    ticketbook_type: Some(ticket_type),
+                    ticketbook_type: None,
                     message: None,
                     message_id: None,
                 }

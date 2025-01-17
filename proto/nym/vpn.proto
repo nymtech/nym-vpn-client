@@ -736,6 +736,8 @@ message RequestZkNymError {
 
     INVALID_TICKET_TYPE_IN_RESPONSE = 11;
 
+    TICKET_TYPE_MISMATCH = 28;
+
     // Error returned from the nym-vpn-api polling endpoint
     POLL_ZK_NYM_ENDPOINT_FAILURE = 4;
 
