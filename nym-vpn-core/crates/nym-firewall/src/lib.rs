@@ -318,14 +318,14 @@ impl Firewall {
     /// Applies and starts enforcing the given `FirewallPolicy` Makes sure it is being kept in place
     /// until this method is called again with another policy, or until `reset_policy` is called.
     pub fn apply_policy(&mut self, policy: FirewallPolicy) -> Result<(), Error> {
-        log::info!("Applying firewall policy: {}", policy);
+        tracing::info!("Applying firewall policy: {}", policy);
         self.inner.apply_policy(policy)
     }
 
     /// Resets/removes any currently enforced `FirewallPolicy`. Returns the system to the same state
     /// it had before any policy was applied through this `Firewall` instance.
     pub fn reset_policy(&mut self) -> Result<(), Error> {
-        log::info!("Resetting firewall policy");
+        tracing::info!("Resetting firewall policy");
         self.inner.reset_policy()
     }
 }

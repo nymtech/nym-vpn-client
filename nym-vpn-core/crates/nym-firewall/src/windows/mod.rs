@@ -21,7 +21,7 @@ thread_local! {
     static WMI: Option<wmi::WMIConnection> = {
         let result = hyperv::init_wmi();
         if matches!(&result, Err(hyperv::Error::ObtainHyperVClass(_))) {
-            log::warn!("The Hyper-V firewall is not available. {HYPERV_LEAK_WARNING_MSG}");
+            tracing::warn!("The Hyper-V firewall is not available. {HYPERV_LEAK_WARNING_MSG}");
             return None;
         }
         consume_and_log_hyperv_err(
@@ -38,7 +38,7 @@ static BLOCK_HYPERV: LazyLock<bool> = LazyLock::new(|| {
         .unwrap_or(true);
 
     if !enable {
-        log::debug!("Hyper-V block rule disabled by NYM_FIREWALL_BLOCK_HYPERV");
+        tracing::debug!("Hyper-V block rule disabled by NYM_FIREWALL_BLOCK_HYPERV");
     }
 
     enable
@@ -99,7 +99,7 @@ impl Firewall {
             .into_result()?
         };
 
-        log::trace!("Successfully initialized windows firewall module");
+        tracing::trace!("Successfully initialized windows firewall module");
         Ok(Firewall(()))
     }
 
@@ -119,7 +119,7 @@ impl Firewall {
             )
             .into_result()?
         };
-        log::trace!("Successfully initialized windows firewall module to a blocking state");
+        tracing::trace!("Successfully initialized windows firewall module to a blocking state");
 
         with_wmi_if_enabled(|wmi| {
             let result = hyperv::add_blocking_hyperv_firewall_rules(wmi);
@@ -206,7 +206,7 @@ impl Firewall {
         allowed_endpoint: &WinFwAllowedEndpoint<'_>,
         allowed_tunnel_traffic: &AllowedTunnelTraffic,
     ) -> Result<(), Error> {
-        log::trace!("Applying 'connecting' firewall policy");
+        tracing::trace!("Applying 'connecting' firewall policy");
         let ip_str = widestring_ip(endpoint.endpoint.address.ip());
         let winfw_relay = WinFwEndpoint {
             ip: ip_str.as_ptr(),
@@ -314,7 +314,7 @@ impl Firewall {
         tunnel_metadata: &TunnelMetadata,
         dns_config: &ResolvedDnsConfig,
     ) -> Result<(), Error> {
-        log::trace!("Applying 'connected' firewall policy");
+        tracing::trace!("Applying 'connected' firewall policy");
         let ip_str = widestring_ip(endpoint.endpoint.address.ip());
 
         let tunnel_alias = WideCString::from_str_truncate(&tunnel_metadata.interface);
@@ -385,7 +385,7 @@ impl Firewall {
         winfw_settings: &WinFwSettings,
         allowed_endpoint: Option<WinFwAllowedEndpointContainer>,
     ) -> Result<(), Error> {
-        log::trace!("Applying 'blocked' firewall policy");
+        tracing::trace!("Applying 'blocked' firewall policy");
         let endpoint = allowed_endpoint
             .as_ref()
             .map(WinFwAllowedEndpointContainer::as_endpoint);
@@ -411,9 +411,9 @@ impl Drop for Firewall {
                 .into_result()
                 .is_ok()
         } {
-            log::trace!("Successfully deinitialized windows firewall module");
+            tracing::trace!("Successfully deinitialized windows firewall module");
         } else {
-            log::error!("Failed to deinitialize windows firewall module");
+            tracing::error!("Failed to deinitialize windows firewall module");
         };
     }
 }
@@ -429,7 +429,7 @@ pub extern "system" fn log_sink(
     context: *mut std::ffi::c_void,
 ) {
     if msg.is_null() {
-        log::error!("Log message from FFI boundary is NULL");
+        tracing::error!("Log message from FFI boundary is NULL");
     } else {
         let target = if context.is_null() {
             "UNKNOWN".into()
@@ -532,7 +532,7 @@ fn consume_and_log_hyperv_err<T>(
 ) -> Option<T> {
     result
         .inspect_err(|error| {
-            log::error!(
+            tracing::error!(
                 "{}",
                 error.display_chain_with_msg(&format!("{action}. {HYPERV_LEAK_WARNING_MSG}"))
             );

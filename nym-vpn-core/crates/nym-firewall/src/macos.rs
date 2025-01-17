@@ -39,7 +39,7 @@ pub static NAT_WORKAROUND: LazyLock<bool> = LazyLock::new(|| {
     let v = |s| MacosVersion::from_raw_version(s).unwrap();
     let apply_workaround = v("14.6") <= version && version < v("15.1");
     if apply_workaround {
-        log::debug!("Using NAT redirect workaround");
+        tracing::debug!("Using NAT redirect workaround");
     };
     apply_workaround
 });
@@ -65,7 +65,7 @@ impl Firewall {
             Ok("all") => RuleLogging::All,
             Ok(_) | Err(_) => RuleLogging::None,
         };
-        log::trace!("Firewall debug log policy: {:?}", rule_logging);
+        tracing::trace!("Firewall debug log policy: {:?}", rule_logging);
 
         Ok(Firewall {
             pf: pfctl::PfCtl::new()?,
@@ -80,7 +80,7 @@ impl Firewall {
         self.set_rules(&policy)?;
 
         if let Err(error) = self.flush_states(&policy) {
-            log::error!("Failed to clear PF connection states: {error}");
+            tracing::error!("Failed to clear PF connection states: {error}");
         }
 
         Ok(())
@@ -101,7 +101,7 @@ impl Firewall {
             })
             .for_each(|state| {
                 if let Err(error) = self.pf.kill_state(&state) {
-                    log::warn!("Failed to delete PF state: {error}");
+                    tracing::warn!("Failed to delete PF state: {error}");
                 }
             });
 
@@ -386,7 +386,7 @@ impl Firewall {
                             enable_forwarding();
 
                             if !allowed_tunnel_traffic.all() {
-                                log::warn!("Split tunneling does not respect the 'allowed tunnel traffic' setting");
+                                tracing::warn!("Split tunneling does not respect the 'allowed tunnel traffic' setting");
                             }
                             rules.append(
                                 &mut self.get_split_tunnel_rules(
@@ -941,7 +941,7 @@ impl Firewall {
         // return false.
         self.pf
             .is_enabled()
-            .inspect_err(|err| log::error!("Unable to determine if pf is enabled: {err}"))
+            .inspect_err(|err| tracing::error!("Unable to determine if pf is enabled: {err}"))
             .unwrap_or(false)
     }
 
@@ -1000,18 +1000,18 @@ enum RuleLogging {
 
 fn enable_forwarding() {
     if let Err(error) = enable_forwarding_for_family(true) {
-        log::error!("Failed to enable forwarding (IPv4): {error}");
+        tracing::error!("Failed to enable forwarding (IPv4): {error}");
     }
     if let Err(error) = enable_forwarding_for_family(false) {
-        log::error!("Failed to enable forwarding (IPv6): {error}");
+        tracing::error!("Failed to enable forwarding (IPv6): {error}");
     }
 }
 
 fn enable_forwarding_for_family(ipv4: bool) -> io::Result<()> {
     if ipv4 {
-        log::trace!("Enabling forwarding (IPv4)");
+        tracing::trace!("Enabling forwarding (IPv4)");
     } else {
-        log::trace!("Enabling forwarding (IPv6)");
+        tracing::trace!("Enabling forwarding (IPv6)");
     }
 
     let mut val: c_int = 1;
