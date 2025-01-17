@@ -218,7 +218,7 @@ impl RequestZkNymCommandHandler {
 
         let resumed_requests = if !pending_requests.is_empty() {
             tracing::info!("Resuming {} zk-nym requests", pending_requests.len());
-            self.resume_request_zk_nym_inner2(pending_requests).await
+            self.resume_request_zk_nym_inner(pending_requests).await
         } else {
             Vec::new()
         };
@@ -226,7 +226,7 @@ impl RequestZkNymCommandHandler {
         let ticket_types = self.check_ticket_types_running_low().await?;
         tracing::debug!("Ticket types running low: {:?}", ticket_types);
 
-        let new_requests = self.request_zk_nym_inner2(ticket_types).await;
+        let new_requests = self.request_zk_nym_inner(ticket_types).await;
 
         let zk_nym_fails_in_a_row = self.zk_nym_fails_in_a_row.load(Ordering::Relaxed);
         if zk_nym_fails_in_a_row > 0 {
@@ -248,7 +248,7 @@ impl RequestZkNymCommandHandler {
             .map_err(RequestZkNymError::internal)
     }
 
-    async fn request_zk_nym_inner2(
+    async fn request_zk_nym_inner(
         &self,
         ticket_types: Vec<TicketType>,
     ) -> Vec<Result<RequestZkNymSuccess, RequestZkNymError>> {
@@ -274,7 +274,7 @@ impl RequestZkNymCommandHandler {
         join_set.join_all().await
     }
 
-    async fn resume_request_zk_nym_inner2(
+    async fn resume_request_zk_nym_inner(
         &self,
         pending_requests: Vec<PendingCredentialRequest>,
     ) -> Vec<Result<RequestZkNymSuccess, RequestZkNymError>> {
@@ -320,14 +320,16 @@ async fn request_zk_nym_single(
 ) -> Result<RequestZkNymSuccess, RequestZkNymError> {
     let request = construct_zk_nym_request_data(&account, ticketbook_type)?;
 
-    let response = request_zk_nym2(&request, &account, &device, &vpn_api_client).await?;
+    let response = request_zk_nym(&request, &account, &device, &vpn_api_client).await?;
 
     let id = response.id.clone();
     let ticketbook_type = response
         .ticketbook_type
         .parse::<TicketType>()
         .map_err(|err| RequestZkNymError::InvalidTicketTypeInResponse(err.to_string()))?;
-    assert_eq!(request.ticketbook_type, ticketbook_type);
+    if ticketbook_type != request.ticketbook_type {
+        return Err(RequestZkNymError::TicketTypeMismatch);
+    }
 
     let pending_credential_request = PendingCredentialRequest {
         id: response.id.clone(),
@@ -339,19 +341,6 @@ async fn request_zk_nym_single(
         .insert_pending_request(pending_credential_request)
         .await
         .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
-
-    let pending_request = credential_storage
-        .get_pending_request_by_id(&response.id)
-        .await
-        .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
-        .ok_or(RequestZkNymError::MissingPendingRequest(id.clone()))?;
-
-    assert_eq!(pending_request.expiration_date, request.expiration_date);
-    //assert_eq!(
-    //    pending_request.request_info,
-    //    crate::storage::request_info_to_bytes(&request.request_info)
-    //        .map_err(RequestZkNymError::internal)?
-    //);
 
     resume_request_zk_nym_single(
         id,
@@ -378,7 +367,7 @@ async fn resume_request_zk_nym_single(
         .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
         .ok_or(RequestZkNymError::MissingPendingRequest(id.clone()))?;
 
-    let poll_result = poll_zk_nym2(&id, &account, &device, &vpn_api_client).await?;
+    let poll_result = poll_zk_nym(&id, &account, &device, &vpn_api_client).await?;
 
     import_attached_keys_and_signatures(
         &poll_result,
@@ -436,7 +425,7 @@ pub(crate) fn construct_zk_nym_request_data(
     })
 }
 
-pub(crate) async fn request_zk_nym2(
+pub(crate) async fn request_zk_nym(
     request: &ZkNymRequestData,
     account: &VpnApiAccount,
     device: &Device,
@@ -466,7 +455,7 @@ pub(crate) async fn request_zk_nym2(
         })
 }
 
-pub(crate) async fn poll_zk_nym2(
+pub(crate) async fn poll_zk_nym(
     id: &str,
     account: &VpnApiAccount,
     device: &Device,
@@ -489,12 +478,7 @@ pub(crate) async fn poll_zk_nym2(
                 tracing::info!("zk-nym polling not finished: {:#?}", poll_response);
                 if start_time.elapsed() > ZK_NYM_POLLING_TIMEOUT {
                     tracing::error!("zk-nym polling timed out: {id}");
-                    return Err(RequestZkNymError::PollingTimeout {
-                        id: id.to_string(),
-                        // TODO: remove this field
-                        // WIP(JON)
-                        ticket_type: "".to_string(),
-                    });
+                    return Err(RequestZkNymError::PollingTimeout { id: id.to_string() });
                 }
             }
             Err(error) => {
@@ -870,6 +854,9 @@ pub enum RequestZkNymError {
     #[error("response contains invalid ticketbook type: {0}")]
     InvalidTicketTypeInResponse(String),
 
+    #[error("ticket type mismatch")]
+    TicketTypeMismatch,
+
     #[error("error polling for zknym result for ticket type: {ticket_type}")]
     PollZkNymEndpointFailure {
         endpoint_failure: VpnApiEndpointFailure,
@@ -879,8 +866,8 @@ pub enum RequestZkNymError {
     #[error("polling task failed")]
     PollingTaskError,
 
-    #[error("timeout polling for zknym {id} for ticket type: {ticket_type}")]
-    PollingTimeout { id: ZkNymId, ticket_type: String },
+    #[error("timeout polling for zknym {id}")]
+    PollingTimeout { id: ZkNymId },
 
     #[error("polling for zknym {id} finished with error for ticket type: {ticket_type}")]
     FinishedWithError {
@@ -1001,9 +988,10 @@ impl RequestZkNymError {
             | RequestZkNymError::ImportZkNym {
                 ticket_type,
                 error: _,
-            }
-            | RequestZkNymError::PollingTimeout { id: _, ticket_type } => Some(ticket_type.clone()),
-            RequestZkNymError::PollingTaskError | RequestZkNymError::Internal(_) => None,
+            } => Some(ticket_type.clone()),
+            RequestZkNymError::PollingTaskError
+            | RequestZkNymError::Internal(_)
+            | RequestZkNymError::PollingTimeout { .. } => None,
             _ => todo!(),
         }
     }

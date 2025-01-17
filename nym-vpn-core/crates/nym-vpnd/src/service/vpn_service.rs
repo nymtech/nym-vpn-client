@@ -982,10 +982,7 @@ where
     }
 
     async fn handle_is_ready_to_connect(&self) -> ReadyToConnect {
-        let credential_mode = false;
-        self.shared_account_state
-            .is_ready_to_connect(credential_mode)
-            .await
+        self.shared_account_state.is_ready_to_connect().await
     }
 
     async fn handle_reset_device_identity(

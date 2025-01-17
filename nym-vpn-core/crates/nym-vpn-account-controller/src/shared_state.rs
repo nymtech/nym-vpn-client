@@ -209,8 +209,8 @@ impl SharedAccountState {
         self.lock().await.ready_to_request_zk_nym()
     }
 
-    pub async fn is_ready_to_connect(&self, credential_mode: bool) -> ReadyToConnect {
-        self.lock().await.is_ready_to_connect(credential_mode)
+    pub async fn is_ready_to_connect(&self) -> ReadyToConnect {
+        self.lock().await.is_ready_to_connect()
     }
 }
 
@@ -490,7 +490,7 @@ impl AccountStateSummary {
     }
 
     // If we are ready right right now.
-    pub(crate) fn is_ready_to_connect(&self, credential_mode: bool) -> ReadyToConnect {
+    pub(crate) fn is_ready_to_connect(&self) -> ReadyToConnect {
         match self.mnemonic {
             Some(MnemonicState::NotStored) => return ReadyToConnect::NoMnemonicStored,
             Some(MnemonicState::Stored { .. }) => {}
@@ -524,13 +524,6 @@ impl AccountStateSummary {
             Some(DeviceState::Inactive) => return ReadyToConnect::DeviceNotActive,
             Some(DeviceState::DeleteMe) => return ReadyToConnect::DeviceNotActive,
             None => return ReadyToConnect::DeviceNotRegistered,
-        }
-
-        if credential_mode {
-            // WIP(JON)
-            //if !local_credentials_available {
-            //    return ReadyToConnect::NoCredentialsAvailable
-            //}
         }
 
         ReadyToConnect::Ready
