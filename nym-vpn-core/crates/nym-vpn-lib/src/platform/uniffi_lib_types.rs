@@ -322,7 +322,7 @@ pub struct WireguardConnectionData {
 #[derive(uniffi::Record)]
 pub struct WireguardNode {
     pub endpoint: SocketAddr,
-    pub public_key: Box<PublicKey>,
+    pub public_key: String,
     pub private_ipv4: Ipv4Addr,
     pub private_ipv6: Ipv6Addr,
 }
