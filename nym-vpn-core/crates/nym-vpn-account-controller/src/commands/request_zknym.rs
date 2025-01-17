@@ -218,9 +218,30 @@ impl RequestZkNymCommandHandler {
             .await
             .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
 
+        // WIP(JON)
+        let zk_nyms_available_for_download = self
+            .vpn_api_client
+            .get_zk_nyms_available_for_download(&self.account, &self.device)
+            .await
+            .unwrap();
+
+        let zk_nyms_available_for_download_ids = zk_nyms_available_for_download
+            .items
+            .iter()
+            .map(|item| item.id.clone());
+
+        let pending_requests: Vec<_> = pending_requests
+            .into_iter()
+            .filter(|pending_request| {
+                zk_nyms_available_for_download_ids
+                    .clone()
+                    .any(|id| id == pending_request.id)
+            })
+            .collect();
+
         let resumed_requests = if !pending_requests.is_empty() {
             tracing::info!("Resuming {} zk-nym requests", pending_requests.len());
-            self.resume_request_zk_nym_inner(pending_requests).await
+            self.resume_request_zk_nyms_inner(pending_requests).await
         } else {
             Vec::new()
         };
@@ -276,7 +297,7 @@ impl RequestZkNymCommandHandler {
         join_set.join_all().await
     }
 
-    async fn resume_request_zk_nym_inner(
+    async fn resume_request_zk_nyms_inner(
         &self,
         pending_requests: Vec<PendingCredentialRequest>,
     ) -> Vec<Result<RequestZkNymSuccess, RequestZkNymError>> {
