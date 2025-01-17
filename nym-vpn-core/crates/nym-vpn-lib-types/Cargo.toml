@@ -17,4 +17,3 @@ nym-bandwidth-controller.workspace = true
 nym-gateway-directory = { path = "../nym-gateway-directory" }
 nym-wg-gateway-client = { path = "../nym-wg-gateway-client" }
 nym-connection-monitor = { path = "../nym-connection-monitor" }
-nym-wg-go = { path = "../nym-wg-go" }

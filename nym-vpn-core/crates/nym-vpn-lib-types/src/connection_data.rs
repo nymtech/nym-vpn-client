@@ -8,7 +8,6 @@ use std::{
 
 use nym_gateway_directory::{NodeIdentity, Recipient};
 use nym_wg_gateway_client::GatewayData;
-use nym_wg_go::PublicKey;
 use time::OffsetDateTime;
 
 #[derive(Clone, Eq, PartialEq)]
@@ -61,7 +60,7 @@ pub struct WireguardConnectionData {
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct WireguardNode {
     pub endpoint: SocketAddr,
-    pub public_key: Box<PublicKey>,
+    pub public_key: String,
     pub private_ipv4: Ipv4Addr,
     pub private_ipv6: Ipv6Addr,
 }
@@ -70,7 +69,7 @@ impl From<GatewayData> for WireguardNode {
     fn from(value: GatewayData) -> Self {
         Self {
             endpoint: value.endpoint,
-            public_key: Box::new(value.public_key),
+            public_key: value.public_key.to_base64(),
             private_ipv4: value.private_ipv4,
             private_ipv6: value.private_ipv6,
         }

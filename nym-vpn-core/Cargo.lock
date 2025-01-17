@@ -4841,7 +4841,6 @@ dependencies = [
  "nym-gateway-directory",
  "nym-statistics-common",
  "nym-wg-gateway-client",
- "nym-wg-go",
  "si-scale",
  "time",
 ]
