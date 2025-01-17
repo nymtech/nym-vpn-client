@@ -10,15 +10,16 @@ use nym_dns::ResolvedDnsConfig;
 
 use std::{ffi::CStr, io, net::IpAddr, ptr, sync::LazyLock};
 
+use nym_common::ErrorExt;
+use widestring::WideCString;
+use windows_sys::Win32::Globalization::{MultiByteToWideChar, CP_ACP};
+
 use self::winfw::*;
 use super::{
     net::{AllowedEndpoint, AllowedTunnelTraffic},
     FirewallArguments, FirewallPolicy, InitialFirewallState,
 };
-use nym_common::ErrorExt;
-use talpid_types::tunnel::FirewallPolicyError;
-use widestring::WideCString;
-use windows_sys::Win32::Globalization::{MultiByteToWideChar, CP_ACP};
+use crate::FirewallPolicyError;
 
 mod hyperv;
 
