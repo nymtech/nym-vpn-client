@@ -129,8 +129,7 @@ where
 pub(crate) struct VpnCredentialStorage {
     data_dir: PathBuf,
 
-    // WIP(JON): remove Arc<Mutex>?
-    credential_storage: Arc<tokio::sync::Mutex<PersistentCredentialStorage>>,
+    credential_storage: PersistentCredentialStorage,
 
     pending_requests_storage: PendingCredentialRequestsStorage,
 }
@@ -143,7 +142,6 @@ impl VpnCredentialStorage {
             .persistent_credential_storage()
             .await
             .map_err(Error::SetupCredentialStorage)?;
-        let storage = Arc::new(tokio::sync::Mutex::new(storage));
 
         let pending_requests = PendingCredentialRequestsStorage::init(
             data_dir.as_ref().join("pending_credential_requests.db"),
@@ -164,14 +162,11 @@ impl VpnCredentialStorage {
         Ok(())
     }
 
-    // TODO: move some of this functionality to the credential storage itself
     async fn reset_credential_storage(&mut self) -> Result<(), Error> {
         tracing::info!("Resetting credential storage");
 
-        let mut guard = self.credential_storage.lock().await;
-
         // First we close the storage to ensure that all files are closed
-        guard.close().await;
+        self.credential_storage.close().await;
 
         // Calling close on the storage should be enough to ensure that all files are closed
         // but just to be sure we wait a bit
@@ -188,7 +183,7 @@ impl VpnCredentialStorage {
             .ok();
 
         // Finally we recreate the storage
-        *guard = storage_paths
+        self.credential_storage = storage_paths
             .persistent_credential_storage()
             .await
             .map_err(Error::SetupCredentialStorage)?;
@@ -207,8 +202,6 @@ impl VpnCredentialStorage {
         ticketbook: &IssuedTicketBook,
     ) -> Result<(), Error> {
         self.credential_storage
-            .lock()
-            .await
             .insert_issued_ticketbook(ticketbook)
             .await
             .map_err(Error::from)
@@ -219,8 +212,6 @@ impl VpnCredentialStorage {
         key: &EpochVerificationKey,
     ) -> Result<(), Error> {
         self.credential_storage
-            .lock()
-            .await
             .insert_master_verification_key(key)
             .await
             .map_err(Error::from)
@@ -232,8 +223,6 @@ impl VpnCredentialStorage {
         epoch_id: u64,
     ) -> Result<Option<VerificationKeyAuth>, Error> {
         self.credential_storage
-            .lock()
-            .await
             .get_master_verification_key(epoch_id)
             .await
             .map_err(Error::from)
@@ -244,8 +233,6 @@ impl VpnCredentialStorage {
         signatures: &AggregatedCoinIndicesSignatures,
     ) -> Result<(), Error> {
         self.credential_storage
-            .lock()
-            .await
             .insert_coin_index_signatures(signatures)
             .await
             .map_err(Error::from)
@@ -256,8 +243,6 @@ impl VpnCredentialStorage {
         epoch_id: u64,
     ) -> Result<Option<Vec<AnnotatedCoinIndexSignature>>, Error> {
         self.credential_storage
-            .lock()
-            .await
             .get_coin_index_signatures(epoch_id)
             .await
             .map_err(Error::from)
@@ -268,8 +253,6 @@ impl VpnCredentialStorage {
         signatures: &AggregatedExpirationDateSignatures,
     ) -> Result<(), Error> {
         self.credential_storage
-            .lock()
-            .await
             .insert_expiration_date_signatures(signatures)
             .await
             .map_err(Error::from)
@@ -280,8 +263,6 @@ impl VpnCredentialStorage {
         expiration_date: Date,
     ) -> Result<Option<Vec<AnnotatedExpirationDateSignature>>, Error> {
         self.credential_storage
-            .lock()
-            .await
             .get_expiration_date_signatures(expiration_date)
             .await
             .map_err(Error::from)
@@ -294,12 +275,7 @@ impl VpnCredentialStorage {
             tracing::info!("Ticketbook: {ticketbook}");
         }
 
-        let pending_ticketbooks = self
-            .credential_storage
-            .lock()
-            .await
-            .get_pending_ticketbooks()
-            .await?;
+        let pending_ticketbooks = self.credential_storage.get_pending_ticketbooks().await?;
         for pending in pending_ticketbooks {
             tracing::info!("Pending ticketbook id: {}", pending.pending_id);
         }
@@ -307,12 +283,7 @@ impl VpnCredentialStorage {
     }
 
     pub(crate) async fn get_available_ticketbooks(&self) -> Result<AvailableTicketbooks, Error> {
-        let ticketbooks_info = self
-            .credential_storage
-            .lock()
-            .await
-            .get_ticketbooks_info()
-            .await?;
+        let ticketbooks_info = self.credential_storage.get_ticketbooks_info().await?;
         AvailableTicketbooks::try_from(ticketbooks_info)
     }
 
