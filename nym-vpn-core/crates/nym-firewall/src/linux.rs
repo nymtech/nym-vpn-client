@@ -1,20 +1,23 @@
-use super::{FirewallArguments, FirewallPolicy};
+use super::{
+    net::{
+        AllowedEndpoint, AllowedTunnelTraffic, Endpoint, TransportProtocol,
+        ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS,
+    },
+    FirewallArguments, FirewallPolicy,
+};
 use crate::{split_tunnel, tunnel};
 use ipnetwork::IpNetwork;
 use nftnl::{
     expr::{self, IcmpCode, Payload, RejectionType, Verdict},
     nft_expr, table, Batch, Chain, FinalizedBatch, ProtoFamily, Rule, Table,
 };
+use nym_common::linux::IfaceIndexLookupError;
 use std::{
     env,
     ffi::CStr,
     fs, io,
     net::{IpAddr, Ipv4Addr},
     sync::LazyLock,
-};
-use talpid_types::net::{
-    AllowedEndpoint, AllowedTunnelTraffic, Endpoint, TransportProtocol, ALLOWED_LAN_MULTICAST_NETS,
-    ALLOWED_LAN_NETS,
 };
 
 /// Priority for rules that tag split tunneling packets. Equals NF_IP_PRI_MANGLE.
@@ -51,7 +54,7 @@ pub enum Error {
 
     /// Unable to translate network interface name into index.
     #[error("Unable to translate network interface name \"{0}\" into index")]
-    LookupIfaceIndexError(String, #[source] crate::linux::IfaceIndexLookupError),
+    LookupIfaceIndexError(String, #[source] IfaceIndexLookupError),
 }
 
 /// TODO(linus): This crate is not supposed to be Mullvad-aware. So at some point this should be
@@ -376,7 +379,7 @@ impl<'a> PolicyBatch<'a> {
         // Don't masquerade packets on the loopback device.
         let mut rule = Rule::new(&self.nat_chain);
 
-        let iface_index = crate::linux::iface_index("lo")
+        let iface_index = nym_common::linux::iface_index("lo")
             .map_err(|e| Error::LookupIfaceIndexError("lo".to_string(), e))?;
         rule.add_expr(&nft_expr!(meta oif));
         rule.add_expr(&nft_expr!(cmp != iface_index));
@@ -951,7 +954,7 @@ fn allow_interface_rule<'a>(
 }
 
 fn check_iface(rule: &mut Rule<'_>, direction: Direction, iface: &str) -> Result<()> {
-    let iface_index = crate::linux::iface_index(iface)
+    let iface_index = nym_common::linux::iface_index(iface)
         .map_err(|e| Error::LookupIfaceIndexError(iface.to_owned(), e))?;
     rule.add_expr(&match direction {
         Direction::In => nft_expr!(meta iif),
@@ -962,7 +965,7 @@ fn check_iface(rule: &mut Rule<'_>, direction: Direction, iface: &str) -> Result
 }
 
 fn check_not_iface(rule: &mut Rule<'_>, direction: Direction, iface: &str) -> Result<()> {
-    let iface_index = crate::linux::iface_index(iface)
+    let iface_index = nym_common::linux::iface_index(iface)
         .map_err(|e| Error::LookupIfaceIndexError(iface.to_owned(), e))?;
     rule.add_expr(&match direction {
         Direction::In => nft_expr!(meta iif),
