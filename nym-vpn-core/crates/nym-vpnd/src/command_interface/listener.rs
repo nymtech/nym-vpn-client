@@ -24,8 +24,7 @@ use nym_vpn_proto::{
     IsAccountStoredResponse, IsReadyToConnectResponse, ListCountriesRequest, ListCountriesResponse,
     ListGatewaysRequest, ListGatewaysResponse, RefreshAccountStateResponse, RegisterDeviceResponse,
     RequestZkNymResponse, ResetDeviceIdentityRequest, ResetDeviceIdentityResponse,
-    SetNetworkRequest, SetNetworkResponse, StatusResponse, StoreAccountRequest,
-    StoreAccountResponse, TunnelState,
+    SetNetworkRequest, SetNetworkResponse, StoreAccountRequest, StoreAccountResponse, TunnelState,
 };
 use zeroize::Zeroizing;
 
@@ -242,14 +241,14 @@ impl NymVpnd for CommandInterface {
     async fn vpn_status(
         &self,
         _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<StatusResponse>, tonic::Status> {
-        let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+    ) -> Result<tonic::Response<TunnelState>, tonic::Status> {
+        let tunnel_state = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_status()
-            .await?;
+            .await
+            .map(TunnelState::from)?;
 
-        let response = StatusResponse::from(status);
-        tracing::debug!("Returning status response: {:?}", response);
-        Ok(tonic::Response::new(response))
+        tracing::debug!("Returning status response: {:?}", tunnel_state);
+        Ok(tonic::Response::new(tunnel_state))
     }
 
     type ListenToConnectionStatusStream =

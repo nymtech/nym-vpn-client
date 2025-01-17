@@ -14,6 +14,6 @@ pub(crate) use error::{
     VpnServiceDisconnectError,
 };
 pub(crate) use vpn_service::{
-    ConnectArgs, ConnectOptions, ConnectedStateDetails, NymVpnService, VpnServiceCommand,
-    VpnServiceInfo, VpnServiceStateChange, VpnServiceStatus,
+    ConnectArgs, ConnectOptions, NymVpnService, VpnServiceCommand, VpnServiceInfo,
+    VpnServiceStateChange,
 };

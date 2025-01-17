@@ -84,7 +84,7 @@ impl From<TunnelState> for ProtoTunnelState {
 impl From<WireguardNode> for ProtoWireguardNode {
     fn from(value: WireguardNode) -> ProtoWireguardNode {
         ProtoWireguardNode {
-            public_key: value.public_key.to_base64(),
+            public_key: value.public_key,
             endpoint: value.endpoint.to_string(),
             private_ipv4: value.private_ipv4.to_string(),
             private_ipv6: value.private_ipv6.to_string(),
