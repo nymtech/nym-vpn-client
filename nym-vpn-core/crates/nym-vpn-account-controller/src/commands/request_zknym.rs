@@ -310,6 +310,7 @@ pub(crate) struct ZkNymRequestData {
     request_info: RequestInfo,
 }
 
+#[tracing::instrument(skip(account, device, vpn_api_client, credential_storage, cached_data))]
 async fn request_zk_nym_single(
     ticketbook_type: TicketType,
     account: VpnApiAccount,
@@ -353,6 +354,7 @@ async fn request_zk_nym_single(
     .await
 }
 
+#[tracing::instrument(skip(account, device, vpn_api_client, credential_storage, cached_data))]
 async fn resume_request_zk_nym_single(
     id: ZkNymId,
     account: VpnApiAccount,
@@ -396,11 +398,11 @@ async fn resume_request_zk_nym_single(
     Ok(RequestZkNymSuccess { id })
 }
 
-pub(crate) fn construct_zk_nym_request_data(
+fn construct_zk_nym_request_data(
     account: &VpnApiAccount,
     ticketbook_type: TicketType,
 ) -> Result<ZkNymRequestData, RequestZkNymError> {
-    tracing::info!("Requesting zk-nym by type: {}", ticketbook_type);
+    tracing::info!("Constructing zk-nym request for type: {ticketbook_type}");
 
     let ecash_keypair = account
         .create_ecash_keypair()
@@ -425,12 +427,16 @@ pub(crate) fn construct_zk_nym_request_data(
     })
 }
 
-pub(crate) async fn request_zk_nym(
+async fn request_zk_nym(
     request: &ZkNymRequestData,
     account: &VpnApiAccount,
     device: &Device,
     vpn_api_client: &nym_vpn_api_client::VpnApiClient,
 ) -> Result<NymVpnZkNymPost, RequestZkNymError> {
+    tracing::info!(
+        "Requesting zk-nym ticketbook for: {}",
+        request.ticketbook_type
+    );
     vpn_api_client
         .request_zk_nym(
             account,
@@ -453,15 +459,22 @@ pub(crate) async fn request_zk_nym(
                 })
                 .unwrap_or_else(|| RequestZkNymError::internal(err))
         })
+        .inspect(|response| {
+            tracing::info!(
+                "zk-nym request successful for {} and assigned id {}",
+                response.ticketbook_type,
+                response.id
+            );
+        })
 }
 
-pub(crate) async fn poll_zk_nym(
+async fn poll_zk_nym(
     id: &str,
     account: &VpnApiAccount,
     device: &Device,
     api_client: &nym_vpn_api_client::VpnApiClient,
 ) -> Result<NymVpnZkNym, RequestZkNymError> {
-    tracing::info!("Starting zk-nym polling task for {}", id);
+    tracing::info!("Starting zk-nym polling task for {id}");
 
     let start_time = Instant::now();
     loop {
@@ -531,11 +544,12 @@ async fn import_attached_master_verification_key(
         .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
 
     if stored_master_vk.is_none() {
+        tracing::info!("Inserting master verification key for epoch: {epoch_id}",);
         credential_storage
             .insert_master_verification_key(&attached_epoch_vk)
             .await
             .inspect_err(|err| {
-                tracing::error!("Failed to insert master verification key: {:#?}", err);
+                tracing::error!("Failed to insert master verification key: {:?}", err);
             })
             .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
     }
@@ -557,7 +571,7 @@ async fn import_aggregated_coin_index_signatures(
         .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
 
     if stored_coin_index_signatures.is_none() {
-        tracing::info!("Inserting coin index signatures");
+        tracing::info!("Inserting coin index signatures for epoch: {epoch_id}",);
         credential_storage
             .insert_coin_index_signatures(&aggregated_coin_index_signatures.signatures)
             .await
@@ -593,7 +607,9 @@ async fn import_aggregated_expiration_date_signatures(
         .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
 
     if stored_expiration_date_signatures.is_none() {
-        tracing::info!("Inserting expiration date signatures");
+        tracing::info!(
+            "Inserting expiration date signatures for epoch {epoch_id} and date: {expiration_date}"
+        );
         credential_storage
             .insert_expiration_date_signatures(&aggregated_expiration_date_signatures.signatures)
             .await
@@ -734,7 +750,7 @@ async fn import_zk_nym(
     Ok(())
 }
 
-pub(crate) async fn unblind_and_aggregate(
+async fn unblind_and_aggregate(
     shares: TicketbookWalletSharesResponse,
     issuers: PartialVerificationKeysResponse,
     master_vk: VerificationKeyAuth,

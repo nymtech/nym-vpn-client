@@ -36,7 +36,7 @@ impl PendingCredentialRequestsStorage {
         let opts = sqlx::sqlite::SqliteConnectOptions::new()
             .filename(&database_path)
             .create_if_missing(true)
-            .log_statements(LevelFilter::Info);
+            .log_statements(LevelFilter::Trace);
 
         let connection_pool = sqlx::sqlite::SqlitePoolOptions::new()
             .connect_with(opts)
@@ -168,6 +168,7 @@ fn set_file_permission_owner_rw<P: AsRef<Path>>(path: P) -> Result<(), std::io::
 
     #[cfg(windows)]
     {
+        // TODO
         tracing::info!("Setting file permissions on Windows is not yet implemented!");
         Ok(())
     }
