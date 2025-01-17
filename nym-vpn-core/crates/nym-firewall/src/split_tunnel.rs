@@ -1,3 +1,7 @@
+// Copyright 2016-2025 Mullvad VPN AB. All Rights Reserved.
+// Copyright 2025 Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 /// Identifies packets coming from the cgroup.
 /// This should be an arbitrary but unique integer.
 pub const NET_CLS_CLASSID: u32 = 0x4d9f41;
