@@ -12,7 +12,6 @@ use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use nym_gateway_directory::{EntryPoint as GwEntryPoint, ExitPoint as GwExitPoint};
 use nym_ip_packet_requests::IpPair;
 use nym_sdk::UserAgent as NymUserAgent;
-use nym_wg_go::PublicKey;
 use time::OffsetDateTime;
 use url::Url;
 
@@ -24,7 +23,6 @@ use crate::{
 uniffi::custom_type!(Ipv4Addr, String);
 uniffi::custom_type!(Ipv6Addr, String);
 uniffi::custom_type!(IpAddr, String);
-uniffi::custom_type!(PublicKey, String);
 uniffi::custom_type!(IpNetwork, String);
 uniffi::custom_type!(Ipv4Network, String);
 uniffi::custom_type!(Ipv6Network, String);
@@ -37,10 +35,8 @@ uniffi::custom_type!(OffsetDateTime, i64);
 
 pub type BoxedRecepient = Box<Recipient>;
 pub type BoxedNodeIdentity = Box<NodeIdentity>;
-pub type BoxedPublicKey = Box<PublicKey>;
 uniffi::custom_type!(BoxedRecepient, String);
 uniffi::custom_type!(BoxedNodeIdentity, String);
-uniffi::custom_type!(BoxedPublicKey, String);
 
 impl UniffiCustomTypeConverter for NodeIdentity {
     type Builtin = String;
@@ -99,38 +95,6 @@ impl UniffiCustomTypeConverter for Url {
 
     fn from_custom(obj: Self) -> Self::Builtin {
         obj.to_string()
-    }
-}
-
-impl UniffiCustomTypeConverter for PublicKey {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(
-            PublicKey::from_base64(&val).ok_or_else(|| VpnError::InternalError {
-                details: "Invalid public key".to_owned(),
-            })?,
-        )
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.to_base64()
-    }
-}
-
-impl UniffiCustomTypeConverter for BoxedPublicKey {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(Box::new(PublicKey::from_base64(&val).ok_or_else(|| {
-            VpnError::InternalError {
-                details: "Invalid public key".to_owned(),
-            }
-        })?))
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.to_base64()
     }
 }
 
@@ -530,27 +494,6 @@ impl From<UserAgent> for NymUserAgent {
             git_commit: value.git_commit,
         }
     }
-}
-
-#[derive(Debug, PartialEq, uniffi::Record, Clone)]
-pub struct MixConnectionInfo {
-    pub nym_address: Recipient,
-    pub entry_gateway: NodeIdentity,
-}
-
-#[derive(Debug, PartialEq, uniffi::Record, Clone)]
-pub struct MixExitConnectionInfo {
-    pub exit_gateway: NodeIdentity,
-    pub exit_ipr: Recipient,
-    pub ips: IpPair,
-}
-
-#[derive(uniffi::Record, Clone, Debug, PartialEq)]
-pub struct WireguardConnectionInfo {
-    pub gateway_id: NodeIdentity,
-    pub public_key: String,
-    pub private_ipv4: Ipv4Addr,
-    pub private_ipv6: Ipv6Addr,
 }
 
 #[derive(uniffi::Enum)]
