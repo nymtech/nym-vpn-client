@@ -8,7 +8,7 @@
     "desc": "se aplica al reiniciar la aplicación"
   },
   "support": {
-    "title": "Soporte",
+    "title": "Soporte y comentarios",
     "faq": "Consulta las preguntas frecuentes",
     "github": "Abrir un ticket en GitHub",
     "matrix": "Únete en Matrix",
@@ -25,7 +25,7 @@
     "licenses-js": "Licencia (JS)"
   },
   "display-theme": "Tema",
-  "login-button": "Iniciar sesión",
+  "login-button": "Conectar dispositivo",
   "monitoring-alert": "Debes reiniciar la aplicación para que el cambio surta efecto.",
   "faq": "FAQ",
   "quit": "Cerrar NymVPN",
@@ -39,12 +39,12 @@
   "info": {
     "daemon-version": "Versión Demonio",
     "network-name": "Red",
-    "client-version": "Versión de cliente",
+    "client-version": "Versión de la aplicación",
     "account-id": "ID de la cuenta",
     "device-id": "ID del dispositivo"
   },
   "logout-confirmation": {
     "title": "¿Estás seguro?",
-    "description": "Necesitarás tu frase de recuperación para iniciar sesión nuevamente."
+    "description": "Necesitarás tu código de acceso para volver a conectar tu dispositivo."
   }
 }
