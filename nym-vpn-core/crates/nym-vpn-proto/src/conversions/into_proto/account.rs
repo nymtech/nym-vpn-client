@@ -287,6 +287,15 @@ impl From<nym_vpn_account_controller::RequestZkNymError> for crate::RequestZkNym
                 message: None,
                 message_id: None,
             },
+            nym_vpn_account_controller::RequestZkNymError::GetPartialVerificationKeysEndpointFailure { endpoint_failure, .. } => {
+                Self {
+                    kind: crate::request_zk_nym_error::RequestZkNymErrorType::GetPartialVerificationKeysEndpointFailure as i32,
+                    id: None,
+                    ticketbook_type: None,
+                    message: Some(endpoint_failure.message.clone()),
+                    message_id: endpoint_failure.message_id.clone(),
+                }
+            },
             nym_vpn_account_controller::RequestZkNymError::NoMasterVerificationKeyInStorage => Self {
                 kind: crate::request_zk_nym_error::RequestZkNymErrorType::NoMasterVerificationKeyInStorage as i32,
                 id: None,

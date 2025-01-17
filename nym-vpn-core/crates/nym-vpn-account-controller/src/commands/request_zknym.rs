@@ -30,7 +30,6 @@ use tokio::task::JoinSet;
 
 use crate::{
     commands::VpnApiEndpointFailure,
-    error::Error,
     shared_state::RequestZkNymResult,
     storage::{PendingCredentialRequest, VpnCredentialStorage},
     SharedAccountState,
@@ -56,7 +55,7 @@ impl CachedData {
         &self,
         epoch_id: u64,
         vpn_api_client: &VpnApiClient,
-    ) -> Result<PartialVerificationKeysResponse, Error> {
+    ) -> Result<PartialVerificationKeysResponse, RequestZkNymError> {
         // Get the partial verification keys for the given epoch if they exist in the cache.
         // Otherwise fetch it from the API, store it and then return it
         let mut partial_verification_keys = self.partial_verification_keys.lock().await;
@@ -66,10 +65,23 @@ impl CachedData {
             let issuers = vpn_api_client
                 .get_directory_zk_nyms_ticketbook_partial_verification_keys()
                 .await
-                .map_err(Error::GetZkNyms)?;
+                .map_err(|err| {
+                    nym_vpn_api_client::response::extract_error_response(&err)
+                        .map(
+                            |e| RequestZkNymError::GetPartialVerificationKeysEndpointFailure {
+                                endpoint_failure: VpnApiEndpointFailure {
+                                    message_id: e.message_id.clone(),
+                                    message: e.message.clone(),
+                                    code_reference_id: e.code_reference_id.clone(),
+                                },
+                                epoch_id,
+                            },
+                        )
+                        .unwrap_or_else(|| RequestZkNymError::internal(err))
+                })?;
 
             if issuers.epoch_id != epoch_id {
-                return Err(Error::InconsistentEpochId);
+                return Err(RequestZkNymError::EpochIdMismatch);
             }
 
             partial_verification_keys.insert(epoch_id, issuers.clone());
@@ -672,8 +684,7 @@ async fn import_zk_nym(
 
     let issuers = cached_data
         .get_partial_verification_keys(shares.epoch_id, vpn_api_client)
-        .await
-        .unwrap();
+        .await?;
 
     let master_vk = credential_storage
         .get_master_verification_key(shares.epoch_id)
@@ -681,7 +692,8 @@ async fn import_zk_nym(
         .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
         .ok_or(RequestZkNymError::NoMasterVerificationKeyInStorage)?;
 
-    let ticketbook_type = TicketType::from_str(&response.ticketbook_type).unwrap();
+    let ticketbook_type = TicketType::from_str(&response.ticketbook_type)
+        .map_err(|err| RequestZkNymError::InvalidTicketTypeInResponse(err.to_string()))?;
 
     let issued_ticketbook = unblind_and_aggregate(
         shares.clone(),
@@ -885,6 +897,12 @@ pub enum RequestZkNymError {
 
     #[error("expiration date mismatch")]
     ExpirationDateMismatch,
+
+    #[error("failed to request partial verification keys for epoch {epoch_id}")]
+    GetPartialVerificationKeysEndpointFailure {
+        endpoint_failure: VpnApiEndpointFailure,
+        epoch_id: u64,
+    },
 
     #[error("no master verification key in storage")]
     NoMasterVerificationKeyInStorage,
