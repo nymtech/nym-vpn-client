@@ -3800,6 +3800,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-firewall"
+version = "1.2.0-dev"
+
+[[package]]
 name = "nym-gateway-client"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?rev=3d2914b3e5d707cd56e45508cfda6b656d483190#3d2914b3e5d707cd56e45508cfda6b656d483190"
