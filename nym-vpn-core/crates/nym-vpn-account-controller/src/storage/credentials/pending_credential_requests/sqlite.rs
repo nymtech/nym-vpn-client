@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use time::Date;
+use time::{Date, OffsetDateTime};
 
 use super::models::PendingCredentialRequestStored;
 
@@ -23,6 +23,16 @@ impl SqliteZkNymRequestsStorageManager {
         &self,
     ) -> Result<Vec<PendingCredentialRequestStored>, sqlx::Error> {
         sqlx::query_as("SELECT * FROM pending_zk_nym_requests")
+            .fetch_all(&self.connection_pool)
+            .await
+    }
+
+    pub async fn get_pending_requests_older_than(
+        &self,
+        cutoff: OffsetDateTime,
+    ) -> Result<Vec<PendingCredentialRequestStored>, sqlx::Error> {
+        sqlx::query_as("SELECT * FROM pending_zk_nym_requests WHERE timestamp > ?")
+            .bind(cutoff)
             .fetch_all(&self.connection_pool)
             .await
     }
