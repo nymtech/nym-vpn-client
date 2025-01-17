@@ -51,12 +51,23 @@ function Button({
     }
   };
 
+  const getOutilineTextColor = () => {
+    switch (color) {
+      case 'malachite':
+        return 'text-malachite';
+      case 'gray':
+        return 'text-dim-gray dark:text-dusty-grey';
+      case 'cornflower':
+        return 'text-cornflower';
+    }
+  };
+
   return (
     <HuButton
       className={clsx([
         'flex justify-center items-center w-full',
         'rounded-lg text-lg font-bold py-3 px-6',
-        'text-black dark:text-baltic-sea',
+        outline ? getOutilineTextColor() : 'text-black dark:text-baltic-sea',
         'focus:outline-none data-[focus]:ring-2 data-[focus]:ring-black data-[focus]:dark:ring-white',
         'transition data-[disabled]:opacity-60 data-[active]:ring-0',
         outline
@@ -69,13 +80,7 @@ function Button({
       onClick={onClick}
       disabled={disabled}
     >
-      {spinner ? (
-        Spinner()
-      ) : (
-        <div className={clsx(outline && `text-${color}`, 'truncate')}>
-          {children}
-        </div>
-      )}
+      {spinner ? Spinner() : <div className="truncate">{children}</div>}
     </HuButton>
   );
 }
