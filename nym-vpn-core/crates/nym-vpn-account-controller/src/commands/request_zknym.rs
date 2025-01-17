@@ -32,7 +32,7 @@ use crate::{
     commands::VpnApiEndpointFailure,
     error::Error,
     shared_state::RequestZkNymResult,
-    storage::{PendingCredentialRequestStored, VpnCredentialStorage},
+    storage::{PendingCredentialRequest, VpnCredentialStorage},
     SharedAccountState,
 };
 
@@ -265,7 +265,7 @@ impl RequestZkNymCommandHandler {
 
     async fn resume_request_zk_nym_inner2(
         &self,
-        pending_requests: Vec<PendingCredentialRequestStored>,
+        pending_requests: Vec<PendingCredentialRequest>,
     ) -> Vec<Result<RequestZkNymSuccess, RequestZkNymError>> {
         tracing::info!("Resuming {} zk-nym requests", pending_requests.len());
 
@@ -316,8 +316,14 @@ async fn request_zk_nym_single(
         .map_err(|err| RequestZkNymError::InvalidTicketTypeInResponse(err.to_string()))?;
     assert_eq!(request.ticketbook_type, ticketbook_type);
 
+    let pending_credential_request = PendingCredentialRequest {
+        id: response.id.clone(),
+        expiration_date: request.expiration_date,
+        request_info: request.request_info.clone(),
+    };
+
     credential_storage
-        .insert_pending_request(&response.id, request.expiration_date, &request.request_info)
+        .insert_pending_request(pending_credential_request)
         .await
         .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
 
@@ -328,11 +334,11 @@ async fn request_zk_nym_single(
         .ok_or(RequestZkNymError::MissingPendingRequest(id.clone()))?;
 
     assert_eq!(pending_request.expiration_date, request.expiration_date);
-    assert_eq!(
-        pending_request.request_info,
-        crate::storage::request_info_to_bytes(&request.request_info)
-            .map_err(RequestZkNymError::internal)?
-    );
+    //assert_eq!(
+    //    pending_request.request_info,
+    //    crate::storage::request_info_to_bytes(&request.request_info)
+    //        .map_err(RequestZkNymError::internal)?
+    //);
 
     resume_request_zk_nym_single(
         id,
@@ -650,7 +656,7 @@ async fn import_attached_keys_and_signatures(
 
 async fn import_zk_nym(
     response: NymVpnZkNym,
-    pending_request: PendingCredentialRequestStored,
+    pending_request: PendingCredentialRequest,
     account: &VpnApiAccount,
     credential_storage: &VpnCredentialStorage,
     cached_data: &CachedData,
@@ -664,9 +670,9 @@ async fn import_zk_nym(
 
     tracing::info!("epoch_id: {}", shares.epoch_id);
 
-    let expiration_date = pending_request.expiration_date;
-    let request_info =
-        crate::storage::request_info_from_bytes(&pending_request.request_info).unwrap();
+    // let expiration_date = pending_request.expiration_date;
+    //let request_info =
+    //    crate::storage::request_info_from_bytes(&pending_request.request_info).unwrap();
 
     let issuers = cached_data
         .get_partial_verification_keys(shares.epoch_id, vpn_api_client)
@@ -686,8 +692,8 @@ async fn import_zk_nym(
         issuers,
         master_vk.clone(),
         ticketbook_type,
-        expiration_date.ecash_date(),
-        request_info,
+        pending_request.expiration_date.ecash_date(),
+        pending_request.request_info,
         account.clone(),
     )
     .await?;
@@ -701,7 +707,7 @@ async fn import_zk_nym(
         .ok_or(RequestZkNymError::NoCoinIndexSignaturesInStorage)?;
 
     let _ = credential_storage
-        .get_expiration_date_signatures(expiration_date)
+        .get_expiration_date_signatures(pending_request.expiration_date)
         .await
         .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
         .ok_or(RequestZkNymError::NoExpirationDateSignaturesInStorage)?;
