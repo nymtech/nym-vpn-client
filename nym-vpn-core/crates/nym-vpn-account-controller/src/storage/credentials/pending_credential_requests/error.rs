@@ -1,29 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    path::{Path, PathBuf},
-    sync::Arc,
-    time::Duration,
-};
-
-use bincode::Options;
-use nym_compact_ecash::VerificationKeyAuth;
-use nym_credential_storage::persistent_storage::PersistentStorage as PersistentCredentialStorage;
-use nym_credentials::{
-    AggregatedCoinIndicesSignatures, AggregatedExpirationDateSignatures, EpochVerificationKey,
-    IssuedTicketBook,
-};
-use nym_credentials_interface::{
-    AnnotatedCoinIndexSignature, AnnotatedExpirationDateSignature, RequestInfo, TicketType,
-};
-use nym_sdk::mixnet::{CredentialStorage, StoragePaths};
-use nym_vpn_api_client::types::{Device, VpnApiAccount};
-use nym_vpn_store::{mnemonic::Mnemonic, VpnStorage};
-use serde::{Deserialize, Serialize};
-use sqlx::{ConnectOptions, FromRow};
-use time::Date;
-use tracing::log::LevelFilter;
+use std::path::PathBuf;
 
 #[derive(Debug, thiserror::Error)]
 pub enum PendingCredentialRequestsStorageError {
@@ -42,4 +20,3 @@ pub enum PendingCredentialRequestsStorageError {
         source: std::io::Error,
     },
 }
-

@@ -670,10 +670,6 @@ async fn import_zk_nym(
 
     tracing::info!("epoch_id: {}", shares.epoch_id);
 
-    // let expiration_date = pending_request.expiration_date;
-    //let request_info =
-    //    crate::storage::request_info_from_bytes(&pending_request.request_info).unwrap();
-
     let issuers = cached_data
         .get_partial_verification_keys(shares.epoch_id, vpn_api_client)
         .await
