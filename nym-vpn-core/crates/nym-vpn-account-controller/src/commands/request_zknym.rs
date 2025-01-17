@@ -472,7 +472,7 @@ async fn insert_pending_request(
     request_info: RequestInfo,
     credential_storage: &VpnCredentialStorage,
 ) -> Result<(), RequestZkNymError> {
-    tracing::info!("Inserting pending zk-nym request");
+    tracing::info!("Inserting pending zk-nym request: {id}");
     let pending_request = PendingCredentialRequest {
         id,
         expiration_date,
@@ -869,7 +869,7 @@ async fn confirm_zk_nym_downloaded(
                 })
                 .unwrap_or_else(|| RequestZkNymError::internal(err))
         })
-        .inspect(|response| tracing::info!("Confirmed zk-nym download: {}", response))
+        .inspect(|response| tracing::debug!("Confirmed zk-nym download: {}", response))
 }
 
 pub(crate) type ZkNymId = String;
