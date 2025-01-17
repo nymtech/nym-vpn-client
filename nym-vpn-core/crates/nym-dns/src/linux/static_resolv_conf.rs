@@ -10,7 +10,7 @@ use resolv_conf::{Config, ScopedIp};
 use std::{fs, io, net::IpAddr, sync::Arc};
 use triggered::{trigger, Listener, Trigger};
 
-const RESOLV_CONF_BACKUP_PATH: &str = "/etc/resolv.conf.mullvadbackup";
+const RESOLV_CONF_BACKUP_PATH: &str = "/etc/resolv.conf.nymbackup";
 const RESOLV_CONF_PATH: &str = "/etc/resolv.conf";
 
 pub type Result<T> = std::result::Result<T, Error>;

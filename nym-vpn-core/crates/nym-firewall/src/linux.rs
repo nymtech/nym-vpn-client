@@ -56,7 +56,7 @@ pub enum Error {
 
 /// TODO(linus): This crate is not supposed to be Mullvad-aware. So at some point this should be
 /// replaced by allowing the table name to be configured from the public API of this crate.
-const TABLE_NAME: &CStr = c"mullvad";
+const TABLE_NAME: &CStr = c"nym";
 const IN_CHAIN_NAME: &CStr = c"input";
 const OUT_CHAIN_NAME: &CStr = c"output";
 const FORWARD_CHAIN_NAME: &CStr = c"forward";
@@ -67,18 +67,18 @@ const NAT_CHAIN_NAME: &CStr = c"nat";
 /// Allows controlling whether firewall rules should have packet counters or not from an env
 /// variable. Useful for debugging the rules.
 static ADD_COUNTERS: LazyLock<bool> = LazyLock::new(|| {
-    env::var("TALPID_FIREWALL_DEBUG")
+    env::var("NYM_FIREWALL_DEBUG")
         .map(|v| v != "0")
         .unwrap_or(false)
 });
 
 static DONT_SET_SRC_VALID_MARK: LazyLock<bool> = LazyLock::new(|| {
-    env::var("TALPID_FIREWALL_DONT_SET_SRC_VALID_MARK")
+    env::var("NYM_FIREWALL_DONT_SET_SRC_VALID_MARK")
         .map(|v| v != "0")
         .unwrap_or(false)
 });
 static DONT_SET_ARP_IGNORE: LazyLock<bool> = LazyLock::new(|| {
-    env::var("TALPID_FIREWALL_DONT_SET_ARP_IGNORE")
+    env::var("NYM_FIREWALL_DONT_SET_ARP_IGNORE")
         .map(|v| v != "0")
         .unwrap_or(false)
 });
@@ -1093,8 +1093,8 @@ fn lock_down_arp_ignore_sysctl() -> io::Result<()> {
 /// Tables that are no longer used but need to be deleted due to upgrades.
 /// This can be removed when upgrades from 2023.3 are no longer supported.
 fn batch_deprecated_tables(batch: &mut Batch) {
-    const MANGLE_TABLE_NAME_V4: &CStr = c"mullvadmangle4";
-    const MANGLE_TABLE_NAME_V6: &CStr = c"mullvadmangle6";
+    const MANGLE_TABLE_NAME_V4: &CStr = c"nymmangle4";
+    const MANGLE_TABLE_NAME_V6: &CStr = c"nymmangle6";
 
     let tables = [
         Table::new(&MANGLE_TABLE_NAME_V4, ProtoFamily::Ipv4),
