@@ -1,17 +1,3 @@
-use super::{
-    net::{
-        AllowedEndpoint, AllowedTunnelTraffic, Endpoint, TransportProtocol,
-        ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS,
-    },
-    FirewallArguments, FirewallPolicy,
-};
-use crate::{split_tunnel, tunnel};
-use ipnetwork::IpNetwork;
-use nftnl::{
-    expr::{self, IcmpCode, Payload, RejectionType, Verdict},
-    nft_expr, table, Batch, Chain, FinalizedBatch, ProtoFamily, Rule, Table,
-};
-use nym_common::linux::IfaceIndexLookupError;
 use std::{
     env,
     ffi::CStr,
@@ -19,6 +5,22 @@ use std::{
     net::{IpAddr, Ipv4Addr},
     sync::LazyLock,
 };
+
+use ipnetwork::IpNetwork;
+use nftnl::{
+    expr::{self, IcmpCode, Payload, RejectionType, Verdict},
+    nft_expr, table, Batch, Chain, FinalizedBatch, ProtoFamily, Rule, Table,
+};
+use nym_common::linux::IfaceIndexLookupError;
+
+use super::{
+    net::{
+        AllowedEndpoint, AllowedTunnelTraffic, Endpoint, TransportProtocol, TunnelMetadata,
+        ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS,
+    },
+    FirewallArguments, FirewallPolicy,
+};
+use crate::split_tunnel;
 
 /// Priority for rules that tag split tunneling packets. Equals NF_IP_PRI_MANGLE.
 const MANGLE_CHAIN_PRIORITY: i32 = libc::NF_IP_PRI_MANGLE;
@@ -851,7 +853,7 @@ impl<'a> PolicyBatch<'a> {
     /// the tunnel IP the device used if the device was set to not filter reverse path (rp_filter.)
     /// These rules stops all packets coming in to the tunnel IP. As such, these rules must come
     /// after the rule allowing the tunnel, otherwise even the tunnel can't talk to that IP.
-    fn add_block_cve_2019_14899(&mut self, tunnel: &tunnel::TunnelMetadata) {
+    fn add_block_cve_2019_14899(&mut self, tunnel: &TunnelMetadata) {
         for tunnel_ip in &tunnel.ips {
             let mut rule = Rule::new(&self.in_chain);
             check_ip(&mut rule, End::Dst, *tunnel_ip);
