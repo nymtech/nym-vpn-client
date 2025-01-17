@@ -334,3 +334,23 @@ impl Firewall {
         self.inner.reset_policy()
     }
 }
+
+/// Application that prevents setting the firewall policy.
+#[cfg(windows)]
+#[derive(Debug, Clone)]
+pub struct BlockingApplication {
+    pub name: String,
+    pub pid: u32,
+}
+
+/// Errors that can occur when setting the firewall policy.
+#[derive(thiserror::Error, Debug, Clone)]
+pub enum FirewallPolicyError {
+    /// General firewall failure
+    #[error("Failed to set firewall policy")]
+    Generic,
+    /// An application prevented the firewall policy from being set
+    #[cfg(windows)]
+    #[error("An application prevented the firewall policy from being set")]
+    Locked(Option<BlockingApplication>),
+}

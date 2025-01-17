@@ -6,6 +6,7 @@ use windows::Win32::System::Wmi::{
     IWbemClassObject, WBEM_E_NOT_FOUND, WBEM_FLAG_RETURN_WBEM_COMPLETE,
 };
 use windows_core::{BSTR, PCWSTR, VARIANT};
+use wmi::result_enumerator::IWbemClassWrapper;
 
 /// Name of the blocking Hyper-V rule.
 const BLOCK_OUTBOUND_RULE_ELEMENT_NAME: &str = "Mullvad VPN outbound block-all rule";
