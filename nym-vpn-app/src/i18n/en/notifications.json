@@ -8,5 +8,6 @@
     "success": "Logout successfull",
     "error": "An error occurred while logging out"
   },
+  "copied-to-clipboard": "Copied to clipboard",
   "daemon-not-compat": "Daemon version is not compatible with the app version! Daemon version: {{version}}, expected: {{required}}. Please update either the app or the daemon."
 }

@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
-import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { useMainState } from '../../../contexts';
 import { MCache } from '../../../cache';
+import { useClipboard } from '../../../hooks';
 import { ButtonText } from '../../../ui';
 
 const IdsTimeToLive = 120; // sec
@@ -13,6 +13,7 @@ function AccountData() {
   const [accountId, setAccountId] = useState<string | null>(null);
   const [deviceId, setDeviceId] = useState<string | null>(null);
   const { account } = useMainState();
+  const { copy } = useClipboard();
 
   const { t } = useTranslation('settings');
 
@@ -55,14 +56,6 @@ function AccountData() {
     }
   }, [account]);
 
-  const copyToClipboard = async (text: string) => {
-    try {
-      await writeText(text);
-    } catch (e) {
-      console.error('failed to copy to clipboard', e);
-    }
-  };
-
   if (!account) {
     return null;
   }
@@ -72,7 +65,7 @@ function AccountData() {
       {accountId && (
         <div className={clsx('flex flex-row flex-nowrap gap-1')}>
           <p className="text-nowrap">{t('info.account-id')}</p>
-          <ButtonText onClick={() => copyToClipboard(accountId)} truncate>
+          <ButtonText onClick={() => copy(accountId)} truncate>
             {accountId}
           </ButtonText>
         </div>
@@ -80,7 +73,7 @@ function AccountData() {
       {deviceId && (
         <div className={clsx('flex flex-row flex-nowrap gap-1')}>
           <p className="text-nowrap">{t('info.device-id')}</p>
-          <ButtonText onClick={() => copyToClipboard(deviceId)} truncate>
+          <ButtonText onClick={() => copy(deviceId)} truncate>
             {deviceId}
           </ButtonText>
         </div>

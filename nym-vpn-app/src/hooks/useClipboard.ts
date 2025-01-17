@@ -1,0 +1,26 @@
+import { writeText } from '@tauri-apps/plugin-clipboard-manager';
+import { useTranslation } from 'react-i18next';
+import { useInAppNotify } from '../contexts';
+
+/* Access the system clipboard */
+function useClipboard() {
+  const { push } = useInAppNotify();
+  const { t } = useTranslation('notifications');
+
+  // Writes text to the clipboard
+  const copy = async (text: string, ntfyPosition: 'top' | 'bottom' = 'top') => {
+    try {
+      await writeText(text);
+      push({
+        text: t('copied-to-clipboard'),
+        position: ntfyPosition,
+      });
+    } catch (e) {
+      console.error('failed to copy to clipboard', e);
+    }
+  };
+
+  return { copy };
+}
+
+export default useClipboard;
