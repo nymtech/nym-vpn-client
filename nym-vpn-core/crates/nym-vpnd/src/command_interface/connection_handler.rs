@@ -1,21 +1,22 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_account_controller::{AccountStateSummary, AvailableTicketbooks, ReadyToConnect};
-use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
 use tokio::sync::{mpsc::UnboundedSender, oneshot};
+use zeroize::Zeroizing;
 
+use nym_vpn_account_controller::{AccountStateSummary, AvailableTicketbooks, ReadyToConnect};
 use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
     types::GatewayMinPerformance,
 };
 use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint, GatewayClient, GatewayType};
+use nym_vpn_lib_types::TunnelState;
+use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::gateway;
-use zeroize::Zeroizing;
 
 use crate::service::{
     AccountError, ConnectArgs, ConnectOptions, SetNetworkError, VpnServiceCommand,
-    VpnServiceConnectError, VpnServiceDisconnectError, VpnServiceInfo, VpnServiceStatus,
+    VpnServiceConnectError, VpnServiceDisconnectError, VpnServiceInfo,
 };
 
 use super::protobuf::error::VpnCommandSendError;
@@ -98,7 +99,7 @@ impl CommandInterfaceConnectionHandler {
         self.send_and_wait(VpnServiceCommand::Disconnect, ()).await
     }
 
-    pub(crate) async fn handle_status(&self) -> Result<VpnServiceStatus, VpnCommandSendError> {
+    pub(crate) async fn handle_status(&self) -> Result<TunnelState, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::Status, ()).await
     }
 

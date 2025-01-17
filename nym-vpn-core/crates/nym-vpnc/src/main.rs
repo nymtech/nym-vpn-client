@@ -12,6 +12,7 @@ use clap::Parser;
 use cli::Internal;
 use itertools::Itertools;
 use nym_gateway_directory::GatewayType;
+use nym_vpn_lib_types::TunnelState;
 use nym_vpn_proto::{
     ConfirmZkNymDownloadedRequest, ConnectRequest, GetAccountLinksRequest, GetZkNymByIdRequest,
     InfoResponse, ListCountriesRequest, ListGatewaysRequest, ResetDeviceIdentityRequest,
@@ -208,23 +209,26 @@ async fn listen_until_connected_or_failed(opts: CliOptions) -> Result<()> {
     let mut client = vpnd_client::get_client(&opts.client_type).await?;
 
     let request = tonic::Request::new(());
-    let response = client.vpn_status(request).await?.into_inner();
-    if response.status == nym_vpn_proto::ConnectionStatus::Connected as i32 {
-        println!("Connected!");
+    let tunnel_state = TunnelState::try_from(client.vpn_status(request).await?.into_inner())?;
+
+    println!("{}", tunnel_state);
+    if matches!(tunnel_state, TunnelState::Connected { .. }) {
         return Ok(());
     }
 
     let request = tonic::Request::new(());
     let mut stream = client
-        .listen_to_connection_state_changes(request)
+        .listen_to_tunnel_state_changes(request)
         .await?
         .into_inner();
-    while let Some(response) = stream.message().await? {
-        println!("{:#?}", response);
-        if response.status == nym_vpn_proto::ConnectionStatus::Connected as i32 {
-            println!("Connected!");
+
+    while let Some(new_state) = stream.message().await? {
+        let new_state = TunnelState::try_from(new_state)?;
+        println!("{}", new_state);
+
+        if matches!(new_state, TunnelState::Connected { .. }) {
             break;
-        } else if response.status == nym_vpn_proto::ConnectionStatus::ConnectionFailed as i32 {
+        } else if matches!(new_state, TunnelState::Error(_)) {
             return Err(anyhow!("Connection failed"));
         }
     }
@@ -253,23 +257,30 @@ async fn listen_until_disconnected(opts: CliOptions) -> Result<()> {
     let mut client = vpnd_client::get_client(&opts.client_type).await?;
 
     let request = tonic::Request::new(());
-    let response = client.vpn_status(request).await?.into_inner();
-    if response.status == nym_vpn_proto::ConnectionStatus::NotConnected as i32 {
+    let tunnel_state = TunnelState::try_from(client.vpn_status(request).await?.into_inner())?;
+
+    if matches!(tunnel_state, TunnelState::Disconnected) {
         println!("Disconnected!");
         return Ok(());
-    } else if response.status == nym_vpn_proto::ConnectionStatus::ConnectionFailed as i32 {
+    } else if matches!(tunnel_state, TunnelState::Error(_)) {
         println!("Connection failed!");
         return Ok(());
     }
 
     let request = tonic::Request::new(());
     let mut stream = client
-        .listen_to_connection_state_changes(request)
+        .listen_to_tunnel_state_changes(request)
         .await?
         .into_inner();
-    while let Some(response) = stream.message().await? {
-        println!("{:#?}", response);
-        if response.status == nym_vpn_proto::ConnectionStatus::NotConnected as i32 {
+
+    let re = stream.message().await;
+    println!("{:?}", re);
+
+    while let Some(new_state) = stream.message().await? {
+        let new_state = TunnelState::try_from(new_state)?;
+        println!("{}", new_state);
+
+        if matches!(new_state, TunnelState::Disconnected) {
             println!("Disconnected!");
             break;
         }
@@ -280,21 +291,9 @@ async fn listen_until_disconnected(opts: CliOptions) -> Result<()> {
 async fn status(opts: CliOptions) -> Result<()> {
     let mut client = vpnd_client::get_client(&opts.client_type).await?;
     let request = tonic::Request::new(());
-    let response = client.vpn_status(request).await?.into_inner();
+    let tunnel_state = TunnelState::try_from(client.vpn_status(request).await?.into_inner())?;
 
-    if opts.verbose {
-        println!("{:#?}", response);
-    }
-
-    let status = nym_vpn_proto::ConnectionStatus::try_from(response.status)
-        .context("failed to parse connection status")?;
-    println!("status: {:?}", status);
-    if let Some(details) = response.details {
-        println!("details: {:#?}", details);
-    }
-    if let Some(error) = response.error {
-        println!("error: {:#?}", error);
-    }
+    println!("{}", tunnel_state);
 
     Ok(())
 }

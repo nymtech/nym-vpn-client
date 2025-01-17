@@ -331,8 +331,8 @@ impl TunnelMonitor {
         };
 
         let conn_data = ConnectionData {
-            entry_gateway: Box::new(selected_gateways.entry.identity()),
-            exit_gateway: Box::new(selected_gateways.exit.identity()),
+            entry_gateway: selected_gateways.entry.identity().to_base58_string(),
+            exit_gateway: selected_gateways.exit.identity().to_base58_string(),
             connected_at: None,
             tunnel: tunnel_conn_data,
         };
@@ -444,8 +444,15 @@ impl TunnelMonitor {
         }
 
         let tunnel_conn_data = TunnelConnectionData::Mixnet(MixnetConnectionData {
-            nym_address: Box::new(assigned_addresses.mixnet_client_address),
-            exit_ipr: Box::new(assigned_addresses.exit_mix_addresses.0),
+            nym_address: assigned_addresses
+                .mixnet_client_address
+                .gateway()
+                .to_base58_string(),
+            exit_ipr: assigned_addresses
+                .exit_mix_addresses
+                .0
+                .gateway()
+                .to_base58_string(),
             ipv4: assigned_addresses.interface_addresses.ipv4,
             ipv6: assigned_addresses.interface_addresses.ipv6,
         });

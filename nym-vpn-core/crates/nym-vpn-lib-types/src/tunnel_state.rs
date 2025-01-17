@@ -50,8 +50,7 @@ impl fmt::Display for TunnelState {
                         write!(
                             f,
                             "Connecting Mixnet tunnel with entry {} and exit {}",
-                            data.nym_address.gateway().to_base58_string(),
-                            data.exit_ipr.gateway().to_base58_string(),
+                            data.nym_address, data.exit_ipr,
                         )
                     }
                     TunnelConnectionData::Wireguard(ref data) => {
@@ -69,8 +68,7 @@ impl fmt::Display for TunnelState {
                     write!(
                         f,
                         "Connected Mixnet tunnel with entry {} and exit {}",
-                        data.nym_address.gateway().to_base58_string(),
-                        data.exit_ipr.gateway().to_base58_string(),
+                        data.nym_address, data.exit_ipr,
                     )
                 }
                 TunnelConnectionData::Wireguard(ref data) => {

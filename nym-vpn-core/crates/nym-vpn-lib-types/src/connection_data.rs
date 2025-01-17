@@ -6,17 +6,15 @@ use std::{
     net::{Ipv4Addr, Ipv6Addr, SocketAddr},
 };
 
-use nym_gateway_directory::{NodeIdentity, Recipient};
-use nym_wg_gateway_client::GatewayData;
 use time::OffsetDateTime;
 
 #[derive(Clone, Eq, PartialEq)]
 pub struct ConnectionData {
-    /// Mixnet entry gateway
-    pub entry_gateway: Box<NodeIdentity>,
+    /// Mixnet entry gateway identity encoded as base58 string.
+    pub entry_gateway: String,
 
-    /// Mixnet exit gateway
-    pub exit_gateway: Box<NodeIdentity>,
+    /// Mixnet exit gateway identity encoded as base58 string.
+    pub exit_gateway: String,
 
     /// When the tunnel was last established.
     /// Set once the tunnel is connected.
@@ -29,8 +27,8 @@ pub struct ConnectionData {
 impl fmt::Debug for ConnectionData {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("ConnectionData")
-            .field("entry_gateway", &self.entry_gateway.to_base58_string())
-            .field("exit_gateway", &self.exit_gateway.to_base58_string())
+            .field("entry_gateway", &self.entry_gateway)
+            .field("exit_gateway", &self.exit_gateway)
             .field("connected_at", &self.connected_at)
             .field("tunnel", &self.tunnel)
             .finish()
@@ -45,8 +43,8 @@ pub enum TunnelConnectionData {
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct MixnetConnectionData {
-    pub nym_address: Box<Recipient>,
-    pub exit_ipr: Box<Recipient>,
+    pub nym_address: String,
+    pub exit_ipr: String,
     pub ipv4: Ipv4Addr,
     pub ipv6: Ipv6Addr,
 }
@@ -65,8 +63,9 @@ pub struct WireguardNode {
     pub private_ipv6: Ipv6Addr,
 }
 
-impl From<GatewayData> for WireguardNode {
-    fn from(value: GatewayData) -> Self {
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_wg_gateway_client::GatewayData> for WireguardNode {
+    fn from(value: nym_wg_gateway_client::GatewayData) -> Self {
         Self {
             endpoint: value.endpoint,
             public_key: value.public_key.to_base64(),
