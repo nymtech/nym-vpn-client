@@ -1,2 +1,2 @@
 Novedades
-- Crear IU
+- Creación de interfaz de usuario
