@@ -1,12 +1,12 @@
-#[cfg(not(target_os = "android"))]
-use crate::dns::ResolvedDnsConfig;
-use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use std::{
     fmt,
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     sync::LazyLock,
 };
-use talpid_types::net::{AllowedEndpoint, AllowedTunnelTraffic, ALLOWED_LAN_NETS};
+
+use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
+#[cfg(not(target_os = "android"))]
+use nym_dns::ResolvedDnsConfig;
 
 #[cfg(target_os = "macos")]
 #[path = "macos.rs"]
@@ -27,6 +27,10 @@ mod imp;
 #[cfg(target_os = "ios")]
 #[path = "ios.rs"]
 mod imp;
+
+mod net;
+use net::ALLOWED_LAN_NETS;
+pub use net::{AllowedClients, AllowedEndpoint, AllowedTunnelTraffic, TunnelMetadata};
 
 pub use self::imp::Error;
 
@@ -88,7 +92,7 @@ pub enum FirewallPolicy {
         /// The peer endpoint that should be allowed.
         peer_endpoint: AllowedEndpoint,
         /// Metadata about the tunnel and tunnel interface.
-        tunnel: Option<crate::tunnel::TunnelMetadata>,
+        tunnel: Option<TunnelMetadata>,
         /// Flag setting if communication with LAN networks should be possible.
         allow_lan: bool,
         /// Host that should be reachable while connecting.
@@ -109,7 +113,7 @@ pub enum FirewallPolicy {
         /// The peer endpoint that should be allowed.
         peer_endpoint: AllowedEndpoint,
         /// Metadata about the tunnel and tunnel interface.
-        tunnel: crate::tunnel::TunnelMetadata,
+        tunnel: TunnelMetadata,
         /// Flag setting if communication with LAN networks should be possible.
         allow_lan: bool,
         /// Servers that are allowed to respond to DNS requests.
@@ -162,7 +166,7 @@ impl FirewallPolicy {
     }
 
     /// Return tunnel metadata, if available
-    pub fn tunnel(&self) -> Option<&crate::tunnel::TunnelMetadata> {
+    pub fn tunnel(&self) -> Option<&TunnelMetadata> {
         match self {
             FirewallPolicy::Connecting {
                 tunnel: Some(tunnel),

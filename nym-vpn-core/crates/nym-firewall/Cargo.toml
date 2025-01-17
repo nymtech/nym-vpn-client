@@ -9,4 +9,13 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+ipnetwork.workspace = true
+libc.workspace = true
+thiserror.workspace = true
 tracing.workspace = true
+
+nym-dns = { path = "../nym-dns" }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+pfctl.workspace = true
+nym-platform-metadata = { path = "../nym-platform-metadata" }
