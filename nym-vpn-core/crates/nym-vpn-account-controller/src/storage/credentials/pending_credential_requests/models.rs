@@ -6,32 +6,33 @@ use nym_credentials_interface::RequestInfo;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use time::Date;
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, Zeroize, ZeroizeOnDrop)]
 pub struct PendingCredentialRequestStored {
-    // WIP: remove pub
-    pub(crate) id: String,
-    // WIP: remove pub
-    pub(crate) expiration_date: Date,
-    // WIP: remove pub
-    pub(crate) request_info: Vec<u8>,
+    pub id: String,
+    #[zeroize(skip)]
+    pub expiration_date: Date,
+    pub request_info: Vec<u8>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Zeroize, ZeroizeOnDrop)]
 pub struct PendingCredentialRequest {
-    pub(crate) id: String,
-    pub(crate) expiration_date: Date,
-    pub(crate) request_info: RequestInfo,
+    pub id: String,
+    #[zeroize(skip)]
+    pub expiration_date: Date,
+    pub request_info: RequestInfo,
 }
 
 impl TryFrom<PendingCredentialRequestStored> for PendingCredentialRequest {
     type Error = bincode::Error;
 
     fn try_from(value: PendingCredentialRequestStored) -> Result<Self, Self::Error> {
+        let request_info = binary_serialiser().deserialize(&value.request_info)?;
         Ok(Self {
-            id: value.id,
+            id: value.id.clone(),
             expiration_date: value.expiration_date,
-            request_info: binary_serialiser().deserialize(&value.request_info)?,
+            request_info,
         })
     }
 }
@@ -40,10 +41,11 @@ impl TryFrom<PendingCredentialRequest> for PendingCredentialRequestStored {
     type Error = bincode::Error;
 
     fn try_from(value: PendingCredentialRequest) -> Result<Self, Self::Error> {
+        let request_info = binary_serialiser().serialize(&value.request_info)?;
         Ok(Self {
-            id: value.id,
+            id: value.id.clone(),
             expiration_date: value.expiration_date,
-            request_info: binary_serialiser().serialize(&value.request_info)?,
+            request_info,
         })
     }
 }

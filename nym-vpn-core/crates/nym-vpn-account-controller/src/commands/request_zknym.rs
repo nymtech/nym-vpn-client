@@ -3,7 +3,6 @@
 
 use std::{
     collections::HashMap,
-    str::FromStr,
     sync::{
         atomic::{AtomicU32, Ordering},
         Arc,
@@ -324,7 +323,9 @@ async fn request_zk_nym_single(
     let response = request_zk_nym2(&request, &account, &device, &vpn_api_client).await?;
 
     let id = response.id.clone();
-    let ticketbook_type = TicketType::from_str(&response.ticketbook_type)
+    let ticketbook_type = response
+        .ticketbook_type
+        .parse::<TicketType>()
         .map_err(|err| RequestZkNymError::InvalidTicketTypeInResponse(err.to_string()))?;
     assert_eq!(request.ticketbook_type, ticketbook_type);
 
@@ -692,7 +693,9 @@ async fn import_zk_nym(
         .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
         .ok_or(RequestZkNymError::NoMasterVerificationKeyInStorage)?;
 
-    let ticketbook_type = TicketType::from_str(&response.ticketbook_type)
+    let ticketbook_type = response
+        .ticketbook_type
+        .parse::<TicketType>()
         .map_err(|err| RequestZkNymError::InvalidTicketTypeInResponse(err.to_string()))?;
 
     let issued_ticketbook = unblind_and_aggregate(
@@ -701,7 +704,7 @@ async fn import_zk_nym(
         master_vk.clone(),
         ticketbook_type,
         pending_request.expiration_date.ecash_date(),
-        pending_request.request_info,
+        &pending_request.request_info,
         account.clone(),
     )
     .await?;
@@ -735,7 +738,7 @@ pub(crate) async fn unblind_and_aggregate(
     master_vk: VerificationKeyAuth,
     ticketbook_type: TicketType,
     expiration_date: Date,
-    request_info: RequestInfo,
+    request_info: &RequestInfo,
     account: VpnApiAccount,
 ) -> Result<IssuedTicketBook, RequestZkNymError> {
     let ecash_keypair = account
@@ -772,7 +775,7 @@ pub(crate) async fn unblind_and_aggregate(
             vk,
             ecash_keypair.secret_key(),
             &blinded_sig,
-            &request_info,
+            request_info,
             share.node_index,
         ) {
             Ok(partial_wallet) => {
@@ -795,7 +798,7 @@ pub(crate) async fn unblind_and_aggregate(
         &master_vk,
         ecash_keypair.secret_key(),
         &partial_wallets,
-        &request_info,
+        request_info,
     )
     .map_err(|err| RequestZkNymError::AggregateWallets(err.to_string()))?;
 
