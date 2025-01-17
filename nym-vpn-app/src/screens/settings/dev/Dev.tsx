@@ -25,7 +25,7 @@ function Dev() {
   };
 
   return (
-    <PageAnim className="h-full flex flex-col py-6 gap-6">
+    <PageAnim className="h-full flex flex-col py-6 gap-6 select-none cursor-default">
       <SettingsMenuCard
         title={'CREDENTIALS_MODE'}
         onClick={() => credentialsModeChanged(!credentialsMode)}

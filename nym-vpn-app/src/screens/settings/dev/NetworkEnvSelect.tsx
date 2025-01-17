@@ -59,7 +59,6 @@ function NetworkEnvSelect({ current }: Props) {
           onChange={(e) => {
             handleOnSelect(e.target.value as NetworkEnv);
           }}
-          autoFocus
         >
           {options.map(({ value, label }) => (
             <option key={value} value={value}>
