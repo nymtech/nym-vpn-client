@@ -89,7 +89,7 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 			lifecycleScope.launch {
 				when (tunnelManager.getState()) {
 					Tunnel.State.Up -> tunnelManager.stop()
-					Tunnel.State.Down -> tunnelManager.start(true)
+					Tunnel.State.Down -> tunnelManager.start()
 					else -> Unit
 				}
 			}

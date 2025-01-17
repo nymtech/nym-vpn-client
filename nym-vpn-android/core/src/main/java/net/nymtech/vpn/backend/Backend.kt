@@ -27,7 +27,7 @@ interface Backend {
 
 	suspend fun removeMnemonic()
 
-	suspend fun start(tunnel: Tunnel, background: Boolean, userAgent: UserAgent)
+	suspend fun start(tunnel: Tunnel, userAgent: UserAgent)
 
 	suspend fun stop()
 

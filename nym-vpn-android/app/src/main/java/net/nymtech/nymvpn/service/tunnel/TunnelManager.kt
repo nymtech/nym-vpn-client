@@ -7,7 +7,7 @@ import nym_vpn_lib.AccountStateSummary
 
 interface TunnelManager {
 	suspend fun stop()
-	suspend fun start(fromBackground: Boolean = true)
+	suspend fun start()
 	suspend fun storeMnemonic(mnemonic: String)
 	suspend fun isMnemonicStored(): Boolean
 	suspend fun removeMnemonic()

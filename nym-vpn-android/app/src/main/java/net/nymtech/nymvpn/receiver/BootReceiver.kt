@@ -30,7 +30,7 @@ class BootReceiver : BroadcastReceiver() {
 		applicationScope.launch {
 			if (settingsRepository.isAutoStartEnabled()) {
 				if (tunnelManager.getState() != Tunnel.State.Down) return@launch
-				tunnelManager.start(true)
+				tunnelManager.start()
 			}
 		}
 	}

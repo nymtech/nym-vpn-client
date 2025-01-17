@@ -26,7 +26,7 @@ import net.nymtech.nymvpn.util.extensions.toUserMessage
 import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.BackendEvent
-import net.nymtech.vpn.util.exceptions.NymVpnInitializeException
+import net.nymtech.vpn.util.exceptions.BackendException
 import nym_vpn_lib.AccountLinks
 import nym_vpn_lib.AccountStateSummary
 import nym_vpn_lib.BandwidthEvent
@@ -73,7 +73,7 @@ class NymTunnelManager @Inject constructor(
 		}
 	}
 
-	override suspend fun start(fromBackground: Boolean) {
+	override suspend fun start() {
 		runCatching {
 			// clear any error states
 			emitBackendUiEvent(null)
@@ -86,12 +86,12 @@ class NymTunnelManager @Inject constructor(
 				backendEvent = ::onBackendEvent,
 				credentialMode = settingsRepository.isCredentialMode(),
 			)
-			backend.get().start(tunnel, fromBackground, context.toUserAgent())
+			backend.get().start(tunnel, context.toUserAgent())
 		}.onFailure {
-			if (it is NymVpnInitializeException) {
+			if (it is BackendException) {
 				when (it) {
-					is NymVpnInitializeException.VpnAlreadyRunning -> Timber.w("Vpn already running")
-					is NymVpnInitializeException.VpnPermissionDenied -> launchVpnPermissionNotification()
+					is BackendException.VpnAlreadyRunning -> Timber.w("Vpn already running")
+					is BackendException.VpnPermissionDenied -> launchVpnPermissionNotification()
 				}
 			} else {
 				Timber.e(it)

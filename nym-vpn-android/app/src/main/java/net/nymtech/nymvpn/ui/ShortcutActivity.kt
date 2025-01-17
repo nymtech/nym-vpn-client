@@ -33,11 +33,11 @@ class ShortcutActivity : ComponentActivity() {
 				when (intent.action) {
 					ShortcutAction.START_MIXNET.name -> {
 						settingsRepository.setVpnMode(Tunnel.Mode.FIVE_HOP_MIXNET)
-						tunnelManager.start(true)
+						tunnelManager.start()
 					}
 					ShortcutAction.START_WG.name -> {
 						settingsRepository.setVpnMode(Tunnel.Mode.TWO_HOP_MIXNET)
-						tunnelManager.start(true)
+						tunnelManager.start()
 					}
 					ShortcutAction.STOP.name -> tunnelManager.stop()
 				}

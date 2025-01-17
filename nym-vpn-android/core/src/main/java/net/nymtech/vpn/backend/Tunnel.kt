@@ -49,6 +49,9 @@ interface Tunnel {
 	enum class Mode {
 		FIVE_HOP_MIXNET,
 		TWO_HOP_MIXNET,
+		;
+
+		fun isTwoHop() = this == TWO_HOP_MIXNET
 	}
 
 	/**
