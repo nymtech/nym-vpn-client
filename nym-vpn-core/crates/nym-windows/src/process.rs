@@ -108,7 +108,7 @@ impl Iterator for ProcessSnapshotModules<'_> {
         }
 
         let cstr_ref = &self.temp_entry.szModule[0];
-        let cstr = unsafe { CStr::from_ptr(cstr_ref as *const u8 as *const c_char) };
+        let cstr = unsafe { CStr::from_ptr(cstr_ref as *const c_char) };
         Some(Ok(ModuleEntry {
             name: cstr.to_string_lossy().into_owned(),
             base_address: self.temp_entry.modBaseAddr,

@@ -2,7 +2,7 @@
 // Copyright 2024 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{io, mem};
+use std::{io, mem, ptr};
 use windows_sys::Win32::System::IO::OVERLAPPED;
 
 use crate::sync::Event;
@@ -45,7 +45,7 @@ impl Overlapped {
                 self.event = Some(event);
             }
             None => {
-                self.overlapped.hEvent = 0;
+                self.overlapped.hEvent = ptr::null_mut();
                 self.event = None;
             }
         }
