@@ -51,13 +51,11 @@ pub enum Error {
 
     //#[error("failed to construct withdrawal request")]
     //ConstructWithdrawalRequest(#[source] nym_compact_ecash::CompactEcashError),
-
     #[error("failed to send get zk-nyms request")]
     GetZkNyms(#[source] nym_vpn_api_client::VpnApiClientError),
 
     //#[error("failed to send request zk-nym request")]
     //RequestZkNym(#[source] nym_vpn_api_client::VpnApiClientError),
-
     #[error("failed to send confirm zk-nym download")]
     ConfirmZkNymDownload(#[source] nym_vpn_api_client::VpnApiClientError),
 
@@ -66,7 +64,6 @@ pub enum Error {
 
     //#[error("failed to create ecash key pair")]
     //CreateEcashKeyPair(#[source] nym_vpn_api_client::VpnApiClientError),
-
     #[error("internal error: {0}")]
     Internal(String),
 
@@ -93,10 +90,8 @@ pub enum Error {
 
     //#[error("failed to aggregate wallets")]
     //AggregateWallets(#[source] nym_compact_ecash::CompactEcashError),
-
     #[error("failed to parse ticket type: {0}")]
     ParseTicketType(String),
-
     //#[error("credential storage not initialized")]
     //CredentialStorageNotInitialized,
 }
