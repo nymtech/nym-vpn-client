@@ -10,7 +10,7 @@ version.workspace = true
 thiserror.workspace = true
 socket2.workspace = true
 futures.workspace = true
-tokio.workspace = true
+tokio = { workspace = true, features = ["sync"] }
 tracing.workspace = true
 
 nym-common = { path = "../nym-common" }

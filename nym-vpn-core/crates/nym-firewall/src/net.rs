@@ -8,6 +8,7 @@ use std::{
     str::FromStr,
     sync::LazyLock,
 };
+use std::path::PathBuf;
 
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 
@@ -174,6 +175,45 @@ pub enum AllowedClients {
 impl AllowedClients {
     pub fn allow_all(&self) -> bool {
         matches!(self, AllowedClients::All)
+    }
+}
+
+
+/// Clients which should be able to reach an allowed host in any tunnel state.
+///
+/// # Note
+/// On Windows, there is no predetermined binary which should be allowed to leak
+/// traffic outside of the tunnel. Thus, [`std::default::Default`] is not
+/// implemented for [`AllowedClients`].
+#[cfg(windows)]
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct AllowedClients(std::sync::Arc<[PathBuf]>);
+
+#[cfg(windows)]
+impl std::ops::Deref for AllowedClients {
+    type Target = [PathBuf];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+#[cfg(windows)]
+impl From<Vec<PathBuf>> for AllowedClients {
+    fn from(value: Vec<PathBuf>) -> Self {
+        Self(value.into())
+    }
+}
+
+#[cfg(windows)]
+impl AllowedClients {
+    /// Allow all clients to leak traffic to an allowed [`Endpoint`].
+    pub fn all() -> Self {
+        vec![].into()
+    }
+
+    pub fn allow_all(&self) -> bool {
+        self.is_empty()
     }
 }
 
