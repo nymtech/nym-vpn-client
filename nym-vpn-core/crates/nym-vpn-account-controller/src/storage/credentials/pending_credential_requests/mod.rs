@@ -90,7 +90,7 @@ impl PendingCredentialRequestsStorage {
         &self,
         pending_request: PendingCredentialRequest,
     ) -> Result<(), PendingCredentialRequestsStorageError> {
-        let pending_request = PendingCredentialRequestStored::try_from(pending_request).unwrap();
+        let pending_request = PendingCredentialRequestStored::try_from(pending_request)?;
         self.storage_manager
             .insert_pending_request(
                 &pending_request.id,
@@ -110,7 +110,14 @@ impl PendingCredentialRequestsStorage {
             .map(|requests| {
                 requests
                     .into_iter()
-                    .map(|stored| stored.try_into().unwrap())
+                    .filter_map(|stored| {
+                        stored
+                            .try_into()
+                            .inspect_err(|err| {
+                                tracing::error!("Failed to deserialize stored request: {err:?}");
+                            })
+                            .ok()
+                    })
                     .collect::<Vec<_>>()
             })
             .map_err(Into::into)
@@ -123,8 +130,19 @@ impl PendingCredentialRequestsStorage {
         self.storage_manager
             .get_pending_request_by_id(id)
             .await
-            .map(|request| request.map(|stored| stored.try_into().unwrap()))
-            .map_err(Into::into)
+            .map(|request| {
+                request
+                    .map(|stored| {
+                        stored
+                            .try_into()
+                            .inspect_err(|err| {
+                                tracing::error!("Failed to deserialize stored request: {err:?}");
+                            })
+                            .map_err(Into::into)
+                    })
+                    .transpose()
+            })
+            .map_err(PendingCredentialRequestsStorageError::from)?
     }
 
     pub(crate) async fn remove_pending_request(

@@ -85,8 +85,8 @@ pub enum Error {
     //#[error("failed to deserialize blinded signature")]
     //DeserializeBlindedSignature(nym_compact_ecash::CompactEcashError),
 
-    #[error("inconsistent epoch id")]
-    InconsistentEpochId,
+    //#[error("inconsistent epoch id")]
+    //InconsistentEpochId,
 
     //#[error("decoded key missing index")]
     //DecodedKeysMissingIndex,

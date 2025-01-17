@@ -352,8 +352,7 @@ where
 
     async fn unregister_device_from_api(&self) -> Result<NymVpnDevice, AccountCommandError> {
         tracing::info!("Unregistering device from API");
-        if self.shared_state().ready_to_register_device().await
-            == ReadyToRegisterDevice::InProgress
+        if self.shared_state().ready_to_register_device().await == ReadyToRegisterDevice::InProgress
         {
             return Err(AccountCommandError::RegistrationInProgress);
         }
