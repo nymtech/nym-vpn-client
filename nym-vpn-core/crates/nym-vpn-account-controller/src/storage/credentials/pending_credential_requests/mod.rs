@@ -156,6 +156,7 @@ impl PendingCredentialRequestsStorage {
     }
 }
 
+#[allow(unused)]
 fn set_file_permission_owner_rw<P: AsRef<Path>>(path: P) -> Result<(), std::io::Error> {
     #[cfg(unix)]
     {
@@ -163,7 +164,7 @@ fn set_file_permission_owner_rw<P: AsRef<Path>>(path: P) -> Result<(), std::io::
         let metadata = std::fs::metadata(&path)?;
         let mut permissions = metadata.permissions();
         permissions.set_mode(0o600);
-        std::fs::set_permissions(&path, permissions)
+        return std::fs::set_permissions(&path, permissions);
     }
 
     #[cfg(windows)]
@@ -176,6 +177,8 @@ fn set_file_permission_owner_rw<P: AsRef<Path>>(path: P) -> Result<(), std::io::
             .create(true)
             .attributes(FILE_ATTRIBUTE_NORMAL)
             .open(&path)?;
-        file.set_permissions(std::fs::Permissions::from_mode(0o600))
+        return file.set_permissions(std::fs::Permissions::from_mode(0o600));
     }
+
+    unimplemented!("Unsupported platform")
 }
