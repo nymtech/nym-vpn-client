@@ -27,9 +27,7 @@ use crate::{error::Error, AvailableTicketbooks};
 #[derive(Clone)]
 pub(crate) struct VpnCredentialStorage {
     data_dir: PathBuf,
-
     credential_storage: PersistentCredentialStorage,
-
     pending_requests_storage: PendingCredentialRequestsStorage,
 }
 
@@ -214,9 +212,6 @@ impl VpnCredentialStorage {
     pub(crate) async fn insert_pending_request(
         &self,
         pending_request: PendingCredentialRequest,
-        //id: &str,
-        //expiration_date: Date,
-        //request_info: &RequestInfo,
     ) -> Result<(), Error> {
         self.pending_requests_storage
             .insert_pending_request(pending_request)

@@ -671,11 +671,18 @@ async fn import_zk_nym(
         .get_partial_verification_keys(shares.epoch_id, vpn_api_client)
         .await?;
 
-    let master_vk = credential_storage
+    let master_vk = if let Some(stored_master_vk) = credential_storage
         .get_master_verification_key(shares.epoch_id)
         .await
         .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
-        .ok_or(RequestZkNymError::NoMasterVerificationKeyInStorage)?;
+    {
+        stored_master_vk
+    } else {
+        tracing::error!("No master verification key in storage");
+        // TODO: implement fetching the missing master verification key from nym-vpn-api.
+        // As of writing this, that endpoint does not yet exist.
+        return Err(RequestZkNymError::NoMasterVerificationKeyInStorage);
+    };
 
     let ticketbook_type = response
         .ticketbook_type
@@ -694,18 +701,29 @@ async fn import_zk_nym(
     .await?;
 
     // Check that we have the signatures we need to import
-    // TODO: fetch them if we don't
-    let _ = credential_storage
+    if credential_storage
         .get_coin_index_signatures(shares.epoch_id)
         .await
         .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
-        .ok_or(RequestZkNymError::NoCoinIndexSignaturesInStorage)?;
+        .is_none()
+    {
+        tracing::error!("No coin index signatures in storage");
+        // TODO: implement fetching the missing signatures from nym-vpn-api. As of writing this,
+        // that endpoint does not yet exist.
+        return Err(RequestZkNymError::NoCoinIndexSignaturesInStorage);
+    }
 
-    let _ = credential_storage
+    if credential_storage
         .get_expiration_date_signatures(pending_request.expiration_date)
         .await
         .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
-        .ok_or(RequestZkNymError::NoExpirationDateSignaturesInStorage)?;
+        .is_none()
+    {
+        tracing::error!("No expiration date signatures in storage");
+        // TODO: implement fetching the missing signatures from nym-vpn-api. As of writing this,
+        // that endpoint does not yet exist.
+        return Err(RequestZkNymError::NoExpirationDateSignaturesInStorage);
+    }
 
     tracing::info!("Inserting issued ticketbook");
     credential_storage
