@@ -3922,16 +3922,23 @@ dependencies = [
  "inotify",
  "ipnetwork",
  "libc",
+ "log",
  "mnl",
  "nftnl",
  "nix 0.29.0",
  "nym-common",
  "nym-dns",
  "nym-platform-metadata",
+ "nym-windows",
  "pfctl",
  "resolv-conf",
  "thiserror 2.0.11",
  "tracing",
+ "widestring",
+ "windows 0.58.0",
+ "windows-core 0.58.0",
+ "windows-sys 0.52.0",
+ "wmi",
 ]
 
 [[package]]
@@ -8806,6 +8813,21 @@ dependencies = [
  "log",
  "thiserror 1.0.69",
  "windows 0.51.1",
+]
+
+[[package]]
+name = "wmi"
+version = "0.14.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2c960b3124cc00cefb350159cb43aba8984ed69c93d443df09f3299693171b37"
+dependencies = [
+ "chrono",
+ "futures",
+ "log",
+ "serde",
+ "thiserror 2.0.11",
+ "windows 0.58.0",
+ "windows-core 0.58.0",
 ]
 
 [[package]]

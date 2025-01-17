@@ -2,18 +2,21 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::tunnel::TunnelMetadata;
+#[macro_use]
+mod ffi;
+
+use crate::net::TunnelMetadata;
 use nym_dns::ResolvedDnsConfig;
 
 use std::{ffi::CStr, io, net::IpAddr, ptr, sync::LazyLock};
 
 use self::winfw::*;
-use super::{FirewallArguments, FirewallPolicy, InitialFirewallState};
-use talpid_types::{
+use super::{
     net::{AllowedEndpoint, AllowedTunnelTraffic},
-    tunnel::FirewallPolicyError,
-    ErrorExt,
+    FirewallArguments, FirewallPolicy, InitialFirewallState,
 };
+use nym_common::ErrorExt;
+use talpid_types::tunnel::FirewallPolicyError;
 use widestring::WideCString;
 use windows_sys::Win32::Globalization::{MultiByteToWideChar, CP_ACP};
 
