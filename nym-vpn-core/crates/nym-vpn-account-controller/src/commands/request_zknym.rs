@@ -264,7 +264,7 @@ impl RequestZkNymCommandHandler {
 
         let mut join_set = JoinSet::new();
         for ticket_type in ticket_types {
-            join_set.spawn(request_zk_nym_single(
+            join_set.spawn(request_zk_nym(
                 ticket_type,
                 account.clone(),
                 device.clone(),
@@ -290,7 +290,7 @@ impl RequestZkNymCommandHandler {
 
         let mut join_set = JoinSet::new();
         for pending_request in pending_requests {
-            join_set.spawn(resume_request_zk_nym_single(
+            join_set.spawn(resume_request_zk_nym(
                 pending_request.id.clone(),
                 account.clone(),
                 device.clone(),
@@ -313,7 +313,7 @@ pub(crate) struct ZkNymRequestData {
 }
 
 #[tracing::instrument(skip(account, device, vpn_api_client, credential_storage, cached_data))]
-async fn request_zk_nym_single(
+async fn request_zk_nym(
     ticketbook_type: TicketType,
     account: VpnApiAccount,
     device: Device,
@@ -323,7 +323,7 @@ async fn request_zk_nym_single(
 ) -> Result<RequestZkNymSuccess, RequestZkNymError> {
     let request = construct_zk_nym_request_data(&account, ticketbook_type)?;
 
-    let response = request_zk_nym(&request, &account, &device, &vpn_api_client).await?;
+    let response = send_request_zk_nym(&request, &account, &device, &vpn_api_client).await?;
     verify_response(&request, &response)?;
 
     insert_pending_request(
@@ -334,7 +334,7 @@ async fn request_zk_nym_single(
     )
     .await?;
 
-    resume_request_zk_nym_single(
+    resume_request_zk_nym(
         response.id,
         account,
         device,
@@ -346,7 +346,7 @@ async fn request_zk_nym_single(
 }
 
 #[tracing::instrument(skip(account, device, vpn_api_client, credential_storage, cached_data))]
-async fn resume_request_zk_nym_single(
+async fn resume_request_zk_nym(
     id: ZkNymId,
     account: VpnApiAccount,
     device: Device,
@@ -419,7 +419,7 @@ fn construct_zk_nym_request_data(
     })
 }
 
-async fn request_zk_nym(
+async fn send_request_zk_nym(
     request: &ZkNymRequestData,
     account: &VpnApiAccount,
     device: &Device,
