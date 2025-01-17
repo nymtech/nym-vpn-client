@@ -74,6 +74,11 @@ fn default_mainnet_discovery() {
                 }}
             }}
         }}
+
+
+        impl Discovery {{
+            pub(crate) const DEFAULT_VPN_API_URL: &str =  "{nym_vpn_api_url}";
+        }}
         "#,
         network_name, nym_api_url, nym_vpn_api_url
     );

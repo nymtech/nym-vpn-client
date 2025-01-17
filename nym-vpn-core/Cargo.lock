@@ -4116,7 +4116,6 @@ version = "1.4.0-dev"
 dependencies = [
  "chrono",
  "nym-http-api-client",
- "reqwest 0.11.27",
  "serde",
  "serde_json",
  "thiserror 2.0.11",
@@ -4892,7 +4891,6 @@ dependencies = [
  "nym-vpn-network-config",
  "nym-vpn-store",
  "nym-wg-gateway-client",
- "reqwest 0.11.27",
  "serde",
  "serde_json",
  "si-scale",
@@ -4928,7 +4926,6 @@ dependencies = [
  "nym-ecash-time",
  "nym-http-api-client",
  "nym-validator-client",
- "reqwest 0.11.27",
  "serde",
  "serde_json",
  "sha2 0.10.8",
@@ -4937,6 +4934,7 @@ dependencies = [
  "thiserror 2.0.11",
  "tokio",
  "tracing",
+ "url",
  "zeroize",
 ]
 
@@ -5042,7 +5040,7 @@ dependencies = [
  "itertools 0.13.0",
  "nym-config",
  "nym-sdk",
- "reqwest 0.11.27",
+ "nym-vpn-api-client",
  "serde",
  "serde_json",
  "tempfile",

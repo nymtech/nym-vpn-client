@@ -27,7 +27,6 @@ nym-vpn-lib-types = { path = "../nym-vpn-lib-types", features = ["nym-type-conve
 nym-vpn-network-config = { path = "../nym-vpn-network-config" }
 nym-vpn-store = { path = "../nym-vpn-store" }
 nym-wg-gateway-client = { path = "../nym-wg-gateway-client" }
-reqwest.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 si-scale.workspace = true

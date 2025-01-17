@@ -6,11 +6,14 @@ use std::{fmt, time::Duration};
 use backon::Retryable;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::PartialVerificationKeysResponse;
 use nym_http_api_client::{HttpClientError, Params, PathSegments, UserAgent, NO_PARAMS};
-use reqwest::Url;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use url::Url;
 
 use crate::request::{UpdateDeviceRequestBody, UpdateDeviceRequestStatus};
-use crate::response::{NymVpnHealthResponse, NymVpnUsagesResponse};
+use crate::response::{
+    DiscoveryResponse, NymNetworkDetailsResponse, NymVpnHealthResponse, NymVpnUsagesResponse,
+    NymWellknownDiscoveryItem, RegisteredNetworksResponse,
+};
 use crate::types::DeviceStatus;
 use crate::{
     error::{Result, VpnApiClientError},
@@ -851,6 +854,85 @@ impl VpnApiClient {
         )
         .await
         .map_err(VpnApiClientError::FailedToGetDirectoryZkNymsTicketbookPartialVerificationKeys)
+    }
+
+    pub async fn get_nym_network_details(&self) -> Result<NymNetworkDetailsResponse> {
+        self.inner
+            .get_json(&[routes::V1, routes::NETWORK, routes::DETAILS], NO_PARAMS)
+            .await
+            .map_err(VpnApiClientError::FailedToGetNetworkDetails)
+    }
+
+    pub async fn get_nym_vpn_network_details(&self) -> Result<NymWellknownDiscoveryItem> {
+        tracing::debug!("Fetching nym vpn network details");
+        self.inner
+            .get_json(
+                &[
+                    routes::PUBLIC,
+                    routes::V1,
+                    routes::WELLKNOWN,
+                    routes::CURRENT_ENV,
+                ],
+                NO_PARAMS,
+            )
+            .await
+            .map_err(VpnApiClientError::FailedToGetVpnNetworkDetails)
+    }
+}
+
+/// Bootstrapping Environments and Network Discovery
+pub struct BootstrapVpnApiClient {
+    inner: nym_http_api_client::Client,
+}
+
+impl BootstrapVpnApiClient {
+    /// Hard coded well known URL for bootstrapping environment and discovery config
+    /// allowing more refined URL usage.
+    // hard coded for now.
+    const WELLKNOWN_URL: &str = "https://nymvpn.com/api";
+
+    /// Returns a VpnApiClient Based on locally set well known url and empty user agent.
+    ///
+    /// THIS SHOULD ONLY BE USED FOR BOOTSTRAPPING.
+    pub fn well_known(base_url: Option<Url>) -> Result<Self> {
+        let url: Url = base_url.unwrap_or(Self::WELLKNOWN_URL.parse().unwrap());
+
+        nym_http_api_client::Client::builder(url)
+            .map(|builder| builder.with_timeout(NYM_VPN_API_TIMEOUT))
+            .and_then(|builder| builder.build())
+            .map(|c| Self { inner: c })
+            .map_err(VpnApiClientError::FailedToCreateVpnApiClient)
+    }
+
+    pub async fn get_network_envs(&self) -> Result<RegisteredNetworksResponse> {
+        self.inner
+            .get_json(
+                &[
+                    routes::PUBLIC,
+                    routes::V1,
+                    routes::WELLKNOWN,
+                    routes::ENVS_FILE,
+                ],
+                NO_PARAMS,
+            )
+            .await
+            .map_err(VpnApiClientError::FailedToGetNetworkEnvs)
+    }
+
+    pub async fn get_discovery_init(&self, network_name: &str) -> Result<DiscoveryResponse> {
+        self.inner
+            .get_json(
+                &[
+                    routes::PUBLIC,
+                    routes::V1,
+                    routes::WELLKNOWN,
+                    network_name,
+                    routes::DISCOVERY_FILE,
+                ],
+                NO_PARAMS,
+            )
+            .await
+            .map_err(VpnApiClientError::FailedToGetDiscoveryInfo)
     }
 }
 
