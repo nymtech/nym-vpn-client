@@ -6,17 +6,10 @@ mod pending_credential_requests;
 pub use pending_credential_requests::error::PendingCredentialRequestsStorageError;
 pub use pending_credential_requests::models::PendingCredentialRequest;
 
-use pending_credential_requests::{
-    models::PendingCredentialRequestStored, PendingCredentialRequestsStorage,
-};
+use pending_credential_requests::PendingCredentialRequestsStorage;
 
-use std::{
-    path::{Path, PathBuf},
-    sync::Arc,
-    time::Duration,
-};
+use std::path::{Path, PathBuf};
 
-use bincode::Options;
 use nym_compact_ecash::VerificationKeyAuth;
 use nym_credential_storage::persistent_storage::PersistentStorage as PersistentCredentialStorage;
 use nym_credentials::{
@@ -24,15 +17,10 @@ use nym_credentials::{
     IssuedTicketBook,
 };
 use nym_credentials_interface::{
-    AnnotatedCoinIndexSignature, AnnotatedExpirationDateSignature, RequestInfo, TicketType,
+    AnnotatedCoinIndexSignature, AnnotatedExpirationDateSignature, TicketType,
 };
 use nym_sdk::mixnet::{CredentialStorage, StoragePaths};
-use nym_vpn_api_client::types::{Device, VpnApiAccount};
-use nym_vpn_store::{mnemonic::Mnemonic, VpnStorage};
-use serde::{Deserialize, Serialize};
-use sqlx::{ConnectOptions, FromRow};
 use time::Date;
-use tracing::log::LevelFilter;
 
 use crate::{error::Error, AvailableTicketbooks};
 
