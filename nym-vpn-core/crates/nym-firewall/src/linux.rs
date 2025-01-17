@@ -18,9 +18,8 @@ use super::{
         AllowedEndpoint, AllowedTunnelTraffic, Endpoint, TransportProtocol, TunnelMetadata,
         ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS,
     },
-    FirewallArguments, FirewallPolicy,
+    split_tunnel, FirewallArguments, FirewallPolicy,
 };
-use crate::split_tunnel;
 
 /// Priority for rules that tag split tunneling packets. Equals NF_IP_PRI_MANGLE.
 const MANGLE_CHAIN_PRIORITY: i32 = libc::NF_IP_PRI_MANGLE;

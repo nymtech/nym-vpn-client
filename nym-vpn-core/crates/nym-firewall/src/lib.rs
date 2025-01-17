@@ -29,6 +29,7 @@ mod imp;
 mod imp;
 
 mod net;
+mod split_tunnel;
 use net::ALLOWED_LAN_NETS;
 pub use net::{AllowedClients, AllowedEndpoint, AllowedTunnelTraffic, TunnelMetadata};
 
