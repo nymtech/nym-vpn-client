@@ -82,7 +82,7 @@
   },
   "entry-node-routing": "El nodo de entrada no enruta el tráfico (¿se ha caído la conexión a Internet?)",
   "account": {
-    "invalid-recovery-phrase": "Frase de recuperación inválida",
+    "invalid-recovery-phrase": "Código de acceso inválido",
     "storage": "Error de backend de almacenamiento",
     "is-connected": "No se puede continuar mientras está conectado",
     "no-device-stored": "No hay claves de dispositivo almacenadas",
@@ -90,7 +90,7 @@
     "update-device": "Error al actualizar el dispositivo",
     "register-device": "Fallo en el registro del dispositivo",
     "maximum-registered-devices": "Fallo en el registro de dispositivos: se ha alcanzado el número máximo de dispositivos registrados",
-    "not-stored": "No se almacena ninguna frase de recuperación de tu cuenta"
+    "not-stored": "No se ha guardado el código de acceso de la cuenta"
   },
   "zknym": {
     "request-failed": "Fallo en la solicitud del zk-nym"
