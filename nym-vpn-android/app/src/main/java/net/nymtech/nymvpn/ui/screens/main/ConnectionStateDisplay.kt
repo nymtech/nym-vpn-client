@@ -57,5 +57,22 @@ fun ConnectionStateDisplay(connectionState: ConnectionState) {
 				textColor = MaterialTheme.colorScheme.onBackground,
 				trailing = { Pulse() },
 			)
+
+		ConnectionState.Offline -> PillLabel(
+			text = text,
+			backgroundColor = CustomColors.statusRed,
+			textColor = MaterialTheme.colorScheme.onSurface,
+		)
+		ConnectionState.WaitingForConnection -> PillLabel(
+			text = text,
+			backgroundColor =
+			if (isSystemInDarkTheme()) {
+				CustomColors.statusDefaultDark
+			} else {
+				CustomColors.statusDefaultLight
+			},
+			textColor = MaterialTheme.colorScheme.onBackground,
+			trailing = { Pulse(color = CustomColors.error) },
+		)
 	}
 }

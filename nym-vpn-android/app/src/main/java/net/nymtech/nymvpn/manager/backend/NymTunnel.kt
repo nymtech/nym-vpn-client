@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.service.tunnel
+package net.nymtech.nymvpn.manager.backend
 
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.BackendEvent

@@ -1,7 +1,5 @@
-package net.nymtech.nymvpn.service.tunnel
+package net.nymtech.nymvpn.manager.backend.model
 
-import net.nymtech.nymvpn.service.tunnel.model.BackendUiEvent
-import net.nymtech.nymvpn.service.tunnel.model.MixnetConnectionState
 import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib.AccountLinks
 import nym_vpn_lib.ConnectionData

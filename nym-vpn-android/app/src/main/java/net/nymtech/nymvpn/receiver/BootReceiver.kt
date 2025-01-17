@@ -8,7 +8,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
-import net.nymtech.nymvpn.service.tunnel.TunnelManager
+import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.vpn.backend.Tunnel
 import javax.inject.Inject
 
@@ -19,7 +19,7 @@ class BootReceiver : BroadcastReceiver() {
 	lateinit var settingsRepository: SettingsRepository
 
 	@Inject
-	lateinit var tunnelManager: TunnelManager
+	lateinit var backendManager: BackendManager
 
 	@Inject
 	@ApplicationScope
@@ -29,8 +29,8 @@ class BootReceiver : BroadcastReceiver() {
 		if (Intent.ACTION_BOOT_COMPLETED != intent.action) return
 		applicationScope.launch {
 			if (settingsRepository.isAutoStartEnabled()) {
-				if (tunnelManager.getState() != Tunnel.State.Down) return@launch
-				tunnelManager.start()
+				if (backendManager.getState() != Tunnel.State.Down) return@launch
+				backendManager.startTunnel()
 			}
 		}
 	}

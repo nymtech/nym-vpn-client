@@ -6,8 +6,8 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import net.nymtech.nymvpn.service.tunnel.NymTunnelManager
-import net.nymtech.nymvpn.service.tunnel.TunnelManager
+import net.nymtech.nymvpn.manager.backend.NymBackendManager
+import net.nymtech.nymvpn.manager.backend.BackendManager
 import javax.inject.Singleton
 
 @Module
@@ -20,5 +20,5 @@ abstract class ManagerModule {
 
 	@Binds
 	@Singleton
-	abstract fun bindNymVpnManager(nymVpnManager: NymTunnelManager): TunnelManager
+	abstract fun bindNymVpnManager(nymVpnManager: NymBackendManager): BackendManager
 }

@@ -13,11 +13,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import net.nymtech.connectivity.NetworkService
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.service.country.CountryCacheService
-import net.nymtech.nymvpn.service.tunnel.TunnelManager
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.Constants
@@ -37,8 +38,9 @@ constructor(
 	private val settingsRepository: SettingsRepository,
 	gatewayRepository: GatewayRepository,
 	private val countryCacheService: CountryCacheService,
-	private val tunnelManager: TunnelManager,
+	private val backendManager: BackendManager,
 	private val backend: Backend,
+	networkService: NetworkService,
 ) : ViewModel() {
 
 	private val _navBarState = MutableStateFlow(NavBarState())
@@ -60,15 +62,17 @@ constructor(
 	val uiState =
 		combine(
 			settingsRepository.settingsFlow,
-			tunnelManager.stateFlow,
+			backendManager.stateFlow,
 			gatewayRepository.gatewayFlow,
-		) { settings, manager, gateways ->
+			networkService.networkStatus,
+		) { settings, manager, gateways, networkStatus ->
 			AppUiState(
 				settings,
 				gateways,
 				manager,
 				entryCountry = settings.firstHopCountry ?: Country(isLowLatency = true),
 				exitCountry = settings.lastHopCountry ?: Country(isDefault = true),
+				networkStatus = networkStatus,
 			)
 		}.stateIn(
 			viewModelScope,
@@ -82,8 +86,8 @@ constructor(
 
 	fun logout() = viewModelScope.launch {
 		runCatching {
-			if (tunnelManager.getState() == Tunnel.State.Down) {
-				tunnelManager.removeMnemonic()
+			if (backendManager.getState() == Tunnel.State.Down) {
+				backendManager.removeMnemonic()
 			} else {
 				SnackbarController.showMessage(StringValue.StringResource(R.string.action_requires_tunnel_down))
 			}
@@ -113,7 +117,7 @@ constructor(
 	}
 
 	fun onEnvironmentChange(environment: Tunnel.Environment) = viewModelScope.launch {
-		if (tunnelManager.getState() == Tunnel.State.Down) {
+		if (backendManager.getState() == Tunnel.State.Down) {
 			settingsRepository.setEnvironment(environment)
 			SnackbarController.showMessage(StringValue.StringResource(R.string.app_restart_required))
 		} else {
@@ -122,7 +126,7 @@ constructor(
 	}
 
 	fun onCredentialOverride(value: Boolean?) = viewModelScope.launch {
-		if (tunnelManager.getState() != Tunnel.State.Down) {
+		if (backendManager.getState() != Tunnel.State.Down) {
 			return@launch SnackbarController.showMessage(
 				StringValue.StringResource(R.string.action_requires_tunnel_down),
 			)
@@ -162,7 +166,7 @@ constructor(
 		}
 		launch {
 			Timber.d("Updating account links")
-			tunnelManager.refreshAccountLinks()
+			backendManager.refreshAccountLinks()
 		}
 	}
 }

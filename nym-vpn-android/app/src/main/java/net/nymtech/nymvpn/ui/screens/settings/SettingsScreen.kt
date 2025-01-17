@@ -35,6 +35,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import net.nymtech.nymvpn.BuildConfig
@@ -113,10 +114,19 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 						},
 						title = { Text(stringResource(R.string.account), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 						description = {
-							Text(
-								stringResource(id = R.string.device_id) + " ${appUiState.managerState.deviceId}",
-								style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-							)
+							appUiState.managerState.deviceId?.let {
+								Text(
+									stringResource(id = R.string.device_id) + " $it",
+									maxLines = 1,
+									overflow = TextOverflow.Ellipsis,
+									style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
+									modifier = Modifier.clickable {
+										clipboardManager.setText(
+											annotatedString = AnnotatedString(it),
+										)
+									},
+								)
+							}
 						},
 						onClick = {
 							appUiState.managerState.accountLinks?.account?.let {

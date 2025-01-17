@@ -15,16 +15,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import net.nymtech.connectivity.NetworkConnectivityService
+import net.nymtech.connectivity.NetworkStatus
 import net.nymtech.vpn.model.BackendEvent
 import net.nymtech.vpn.model.Country
-import net.nymtech.vpn.service.network.NetworkConnectivityService
-import net.nymtech.vpn.service.network.NetworkService
-import net.nymtech.vpn.service.network.NetworkStatus
 import net.nymtech.vpn.util.Constants
 import net.nymtech.vpn.util.Constants.LOG_LEVEL
 import net.nymtech.vpn.util.LifecycleVpnService
 import net.nymtech.vpn.util.NotificationManager
-import net.nymtech.vpn.util.SingletonHolder
 import net.nymtech.vpn.util.exceptions.BackendException
 import net.nymtech.vpn.util.extensions.asTunnelState
 import net.nymtech.vpn.util.extensions.startServiceByClass
@@ -54,7 +52,6 @@ import nym_vpn_lib.waitForUpdateAccount
 import nym_vpn_lib.waitForUpdateDevice
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.properties.Delegates
 
 class NymBackend private constructor(val context: Context) : Backend, TunnelStatusListener {
 
@@ -73,10 +70,19 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		)
 	}
 
-	companion object : SingletonHolder<NymBackend, Context>(::NymBackend) {
+	companion object {
 		private var vpnService = CompletableDeferred<VpnService>()
 		private var stateMachineService = CompletableDeferred<StateMachineService>()
 		const val DEFAULT_LOCALE = "en"
+
+		@Volatile
+		private var instance: Backend? = null
+
+		fun getInstance(context: Context): Backend {
+			return instance ?: synchronized(this) {
+				instance ?: NymBackend(context).also { instance = it }
+			}
+		}
 	}
 
 	private val observers: MutableList<ConnectivityObserver> = mutableListOf()
@@ -110,7 +116,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		}
 	}
 
-	private fun onNetworkStatusChange(networkStatus: NetworkStatus) {
+	private fun onNetworkStatusChange(networkStatus: net.nymtech.connectivity.NetworkStatus) {
 		this.networkStatus = networkStatus
 		updateObservers()
 	}
@@ -122,9 +128,9 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	private fun updateObservers() {
 		val isConnected = when (networkStatus) {
-			NetworkStatus.Connected -> true
-			NetworkStatus.Disconnected -> false
-			NetworkStatus.Unknown -> return
+			net.nymtech.connectivity.NetworkStatus.Connected -> true
+			net.nymtech.connectivity.NetworkStatus.Disconnected -> false
+			net.nymtech.connectivity.NetworkStatus.Unknown -> return
 		}
 		Timber.d("Updating observers.. isConnected=$isConnected")
 		observers.forEach {
@@ -183,7 +189,9 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 				waitForUpdateDevice()
 				waitForRegisterDevice()
 			} catch (e: VpnException) {
-				forgetAccount()
+				runCatching {
+					forgetAccount()
+				}
 				throw e
 			}
 		}
@@ -315,7 +323,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	internal class StateMachineService : LifecycleService() {
 
-		private lateinit var networkService: NetworkService
+		val notificationManager = NotificationManager.getInstance(this)
 
 		private var owner: NymBackend? = null
 		private var wakeLock: PowerManager.WakeLock? = null
@@ -331,23 +339,21 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 		override fun onCreate() {
 			super.onCreate()
-			networkService = NetworkConnectivityService(this)
 			stateMachineService.complete(this)
-			val notificationManager = NotificationManager.getInstance(this)
+			startNetworkStatusMonitor()
 			ServiceCompat.startForeground(
 				this,
 				FOREGROUND_ID,
 				notificationManager.createStateMachineNotification(),
 				SYSTEM_EXEMPT_SERVICE_TYPE_ID,
 			)
-			startNetworkStatusMonitor()
 			initWakeLock()
 		}
 
 		private fun startNetworkStatusMonitor() = lifecycleScope.launch {
-			networkService.networkStatus.collect {
+			NetworkConnectivityService(this@StateMachineService).networkStatus.collect {
 				Timber.d("New network event: $it")
-				owner?.onNetworkStatusChange(it)
+				owner?.onNetworkStatusChange(it) ?: Timber.w("OWNER IS NULL!!")
 			}
 		}
 
@@ -358,12 +364,18 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 					it.release()
 				}
 			}
-			stopForeground(STOP_FOREGROUND_REMOVE)
+			ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
 			super.onDestroy()
 		}
 
 		override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 			stateMachineService.complete(this)
+			ServiceCompat.startForeground(
+				this,
+				FOREGROUND_ID,
+				notificationManager.createStateMachineNotification(),
+				SYSTEM_EXEMPT_SERVICE_TYPE_ID,
+			)
 			return super.onStartCommand(intent, flags, startId)
 		}
 
@@ -372,7 +384,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 				val tag = this.javaClass.name
 				newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "$tag::lock").apply {
 					try {
-						Timber.d("Initiating wakelock forever.. for now..")
+						Timber.d("Initiating wakelock")
 						acquire()
 					} finally {
 						release()
@@ -384,7 +396,6 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	internal class VpnService : LifecycleVpnService(), AndroidTunProvider {
 		private var owner: NymBackend? = null
-		private var startId by Delegates.notNull<Int>()
 		private val notificationManager = NotificationManager.getInstance(this)
 
 		private val builder: Builder
@@ -404,11 +415,8 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		}
 
 		override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-			this.startId = startId
 			vpnService.complete(this)
-			intent?.let {
-				startForeground(startId, notificationManager.createVpnRunningNotification())
-			}
+			startForeground(startId, notificationManager.createVpnRunningNotification())
 			return super.onStartCommand(intent, flags, startId)
 		}
 

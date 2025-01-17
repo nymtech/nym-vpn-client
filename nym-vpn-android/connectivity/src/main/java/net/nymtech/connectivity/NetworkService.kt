@@ -1,7 +1,7 @@
-package net.nymtech.vpn.service.network
+package net.nymtech.connectivity
 
 import kotlinx.coroutines.flow.Flow
 
-internal interface NetworkService {
+interface NetworkService {
 	val networkStatus: Flow<NetworkStatus>
 }

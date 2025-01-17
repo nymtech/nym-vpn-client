@@ -1,43 +1,55 @@
 package net.nymtech.nymvpn.ui.model
 
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.model.StateMessage.*
 import net.nymtech.nymvpn.util.StringValue
+import net.nymtech.nymvpn.util.StringValue.*
 import net.nymtech.vpn.backend.Tunnel
 
 sealed class ConnectionState(val status: StringValue) {
 	abstract val stateMessage: StateMessage
 
-	data object Connected : ConnectionState(StringValue.StringResource(R.string.connected)) {
+	data object Connected : ConnectionState(StringResource(R.string.connected)) {
 		override val stateMessage: StateMessage
-			get() = StateMessage.Status(StringValue.StringResource(R.string.connection_time))
+			get() = Status(StringResource(R.string.connection_time))
 	}
 
 	data class Connecting(private val message: StateMessage) :
-		ConnectionState(StringValue.StringResource(R.string.connecting)) {
+		ConnectionState(StringResource(R.string.connecting)) {
 		override val stateMessage: StateMessage
 			get() = message
 	}
 
 	data object Disconnecting :
-		ConnectionState(StringValue.StringResource(R.string.disconnecting)) {
+		ConnectionState(StringResource(R.string.disconnecting)) {
 		override val stateMessage: StateMessage
-			get() = StateMessage.Status(StringValue.Empty)
+			get() = Status(Empty)
 	}
 
-	data object Disconnected : ConnectionState(StringValue.StringResource(R.string.disconnected)) {
+	data object Disconnected : ConnectionState(StringResource(R.string.disconnected)) {
 		override val stateMessage: StateMessage
-			get() = StateMessage.Status(StringValue.Empty)
+			get() = Status(Empty)
+	}
+
+	data object Offline : ConnectionState(StringResource(R.string.offline)) {
+		override val stateMessage: StateMessage
+			get() = Status(StringResource(R.string.no_internet))
+	}
+
+	data object WaitingForConnection : ConnectionState(StringResource(R.string.offline)) {
+		override val stateMessage: StateMessage
+			get() = Status(StringResource(R.string.waiting_for_connection))
 	}
 
 	companion object {
 		fun from(tunnelState: Tunnel.State): ConnectionState {
 			return when (tunnelState) {
-				Tunnel.State.Down, Tunnel.State.Offline -> Disconnected
+				Tunnel.State.Down -> Disconnected
 				Tunnel.State.Up -> Connected
 				Tunnel.State.InitializingClient ->
 					Connecting(
-						StateMessage.Status(
-							StringValue.StringResource(
+						Status(
+							StringResource(
 								R.string.init_client,
 							),
 						),
@@ -45,12 +57,13 @@ sealed class ConnectionState(val status: StringValue) {
 
 				Tunnel.State.EstablishingConnection ->
 					Connecting(
-						StateMessage.Status(
-							StringValue.StringResource(R.string.establishing_connection),
+						Status(
+							StringResource(R.string.establishing_connection),
 						),
 					)
 
 				Tunnel.State.Disconnecting -> Disconnecting
+				Tunnel.State.Offline -> WaitingForConnection
 			}
 		}
 	}

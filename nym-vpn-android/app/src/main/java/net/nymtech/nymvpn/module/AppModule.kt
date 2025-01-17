@@ -9,6 +9,8 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+import net.nymtech.connectivity.NetworkConnectivityService
+import net.nymtech.connectivity.NetworkService
 import net.nymtech.logcatutil.LogReader
 import net.nymtech.logcatutil.LogcatReader
 import net.nymtech.nymvpn.data.GatewayRepository
@@ -71,5 +73,11 @@ object AppModule {
 	@Provides
 	fun provideShortcutManager(@ApplicationContext context: Context): ShortcutManager {
 		return DynamicShortcutManager(context)
+	}
+
+	@Singleton
+	@Provides
+	fun networkConnectivityService(@ApplicationContext context: Context): NetworkService {
+		return NetworkConnectivityService(context)
 	}
 }

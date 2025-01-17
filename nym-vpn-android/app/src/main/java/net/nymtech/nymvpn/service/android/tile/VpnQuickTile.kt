@@ -11,7 +11,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
-import net.nymtech.nymvpn.service.tunnel.TunnelManager
+import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.vpn.backend.Tunnel
 import timber.log.Timber
 import javax.inject.Inject
@@ -23,7 +23,7 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 	lateinit var settingsRepository: SettingsRepository
 
 	@Inject
-	lateinit var tunnelManager: TunnelManager
+	lateinit var backendManager: BackendManager
 
 	private val lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(this)
 
@@ -37,8 +37,8 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 		lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
 
 		lifecycleScope.launch {
-			if (!tunnelManager.isMnemonicStored()) return@launch setUnavailable()
-			val state = tunnelManager.getState()
+			if (!backendManager.isMnemonicStored()) return@launch setUnavailable()
+			val state = backendManager.getState()
 			kotlin.runCatching {
 				when (state) {
 					Tunnel.State.Up -> {
@@ -87,9 +87,9 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 		super.onClick()
 		unlockAndRun {
 			lifecycleScope.launch {
-				when (tunnelManager.getState()) {
-					Tunnel.State.Up -> tunnelManager.stop()
-					Tunnel.State.Down -> tunnelManager.start()
+				when (backendManager.getState()) {
+					Tunnel.State.Up -> backendManager.stopTunnel()
+					Tunnel.State.Down -> backendManager.startTunnel()
 					else -> Unit
 				}
 			}

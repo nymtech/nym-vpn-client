@@ -1,11 +1,10 @@
 package net.nymtech.nymvpn.ui.common.labels
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -25,7 +24,7 @@ fun PillLabel(text: String, backgroundColor: Color, textColor: Color, trailing: 
 		modifier =
 		Modifier
 			.height(56.dp.scaledHeight())
-			.width(IntrinsicSize.Min),
+			.wrapContentWidth(),
 		shape = RoundedCornerShape(size = 50.dp),
 		color = backgroundColor,
 	) {
@@ -38,6 +37,7 @@ fun PillLabel(text: String, backgroundColor: Color, textColor: Color, trailing: 
 				text,
 				textAlign = TextAlign.Center,
 				color = textColor,
+				maxLines = 1,
 				style = CustomTypography.labelHuge,
 			)
 			trailing?.let {

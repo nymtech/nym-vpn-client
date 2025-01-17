@@ -86,6 +86,7 @@ android {
 dependencies {
 
 	implementation(project(":ip-calculator"))
+	implementation(project(":connectivity"))
 	implementation(libs.androidx.lifecycle.service)
 	coreLibraryDesugaring(libs.com.android.tools.desugar)
 

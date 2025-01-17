@@ -1,4 +1,4 @@
-package net.nymtech.vpn.service.network
+package net.nymtech.connectivity
 
 sealed class NetworkStatus {
 	object Unknown : NetworkStatus()

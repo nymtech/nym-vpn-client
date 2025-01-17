@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.service.tunnel
+package net.nymtech.nymvpn.manager.backend
 
 import android.content.Context
 import kotlinx.coroutines.CoroutineDispatcher
@@ -17,8 +17,9 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.service.notification.NotificationService
-import net.nymtech.nymvpn.service.tunnel.model.BackendUiEvent
-import net.nymtech.nymvpn.service.tunnel.model.MixnetConnectionState
+import net.nymtech.nymvpn.manager.backend.model.BackendUiEvent
+import net.nymtech.nymvpn.manager.backend.model.MixnetConnectionState
+import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.toMB
 import net.nymtech.nymvpn.util.extensions.toUserAgent
@@ -42,14 +43,14 @@ import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Provider
 
-class NymTunnelManager @Inject constructor(
+class NymBackendManager @Inject constructor(
 	private val settingsRepository: SettingsRepository,
 	private val notificationService: NotificationService,
 	private val backend: Provider<Backend>,
 	private val context: Context,
 	@ApplicationScope private val applicationScope: CoroutineScope,
 	@IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-) : TunnelManager {
+) : BackendManager {
 
 	private val _state = MutableStateFlow(TunnelManagerState())
 	override val stateFlow: Flow<TunnelManagerState> = _state.onStart {
@@ -67,13 +68,13 @@ class NymTunnelManager @Inject constructor(
 		return backend.get().getState()
 	}
 
-	override suspend fun stop() {
+	override suspend fun stopTunnel() {
 		runCatching {
 			backend.get().stop()
 		}
 	}
 
-	override suspend fun start() {
+	override suspend fun startTunnel() {
 		runCatching {
 			// clear any error states
 			emitBackendUiEvent(null)

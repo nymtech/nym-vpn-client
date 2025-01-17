@@ -50,10 +50,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import net.nymtech.connectivity.NetworkStatus
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.manager.backend.model.BackendUiEvent
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
@@ -71,6 +72,8 @@ import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.model.StateMessage
+import net.nymtech.nymvpn.ui.model.StateMessage.Error
+import net.nymtech.nymvpn.ui.model.StateMessage.StartError
 import net.nymtech.nymvpn.ui.screens.permission.Permission
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
@@ -87,7 +90,26 @@ import net.nymtech.vpn.backend.Tunnel
 
 @Composable
 fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewModel = hiltViewModel()) {
-	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+	val uiState = remember(appUiState) {
+		with(appUiState) {
+			val connectionState = when {
+				managerState.tunnelState != Tunnel.State.Down && networkStatus == NetworkStatus.Disconnected -> ConnectionState.WaitingForConnection
+				managerState.tunnelState == Tunnel.State.Down && networkStatus == NetworkStatus.Disconnected -> ConnectionState.Offline
+				else -> ConnectionState.from(managerState.tunnelState)
+			}
+			val stateMessage = when (val event = managerState.backendUiEvent) {
+				is BackendUiEvent.BandwidthAlert, null -> connectionState.stateMessage
+				is BackendUiEvent.Failure -> Error(event.reason)
+				is BackendUiEvent.StartFailure -> StartError(event.exception)
+			}
+			MainUiState(
+				connectionTime = managerState.connectionData?.connectedAt,
+				connectionState = connectionState,
+				stateMessage = stateMessage,
+			)
+		}
+	}
+
 	val context = LocalContext.current
 	val snackbar = SnackbarController.current
 	val screenSnackbar = remember { SnackbarHostState() }
@@ -343,7 +365,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			}
 			Box(modifier = Modifier.padding(horizontal = 24.dp.scaledWidth())) {
 				when (uiState.connectionState) {
-					is ConnectionState.Disconnected ->
+					is ConnectionState.Disconnected, ConnectionState.Offline ->
 						MainStyledButton(
 							testTag = Constants.CONNECT_TEST_TAG,
 							onClick = {
@@ -352,6 +374,8 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 									) {
 										return@launch navController.goFromRoot(Route.Credential)
 									}
+									// TODO show users they can't connect while offline
+									if (uiState.connectionState is ConnectionState.Offline) return@launch
 									onConnectPressed()
 								}
 							},
@@ -365,6 +389,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 
 					is ConnectionState.Disconnecting,
 					is ConnectionState.Connecting,
+					is ConnectionState.WaitingForConnection,
 					-> {
 						MainStyledButton(
 							onClick = {

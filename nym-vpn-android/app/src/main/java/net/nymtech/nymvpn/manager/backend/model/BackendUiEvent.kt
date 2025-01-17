@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.service.tunnel.model
+package net.nymtech.nymvpn.manager.backend.model
 
 import nym_vpn_lib.BandwidthEvent
 import nym_vpn_lib.ErrorStateReason

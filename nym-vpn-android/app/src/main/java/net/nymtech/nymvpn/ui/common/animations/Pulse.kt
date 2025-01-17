@@ -24,21 +24,16 @@ import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.ui.theme.CustomColors
 
 @Composable
-fun Pulse() {
-	MultiplePulsarEffect { modifier ->
+fun Pulse(color: Color = CustomColors.disconnect) {
+	MultiplePulsarEffect(pulsarColor = color) { modifier ->
 		Canvas(modifier = modifier.size(5.dp), onDraw = {
-			drawCircle(color = CustomColors.disconnect)
+			drawCircle(color = color)
 		})
 	}
 }
 
 @Composable
-fun MultiplePulsarEffect(
-	nbPulsar: Int = 2,
-	pulsarRadius: Float = 10f,
-	pulsarColor: Color = CustomColors.disconnect,
-	circle: @Composable (Modifier) -> Unit = {},
-) {
+fun MultiplePulsarEffect(nbPulsar: Int = 2, pulsarRadius: Float = 10f, pulsarColor: Color, circle: @Composable (Modifier) -> Unit = {}) {
 	var circleSize by remember { mutableStateOf(IntSize(0, 0)) }
 
 	val effects: List<Pair<Float, Float>> = List(nbPulsar) {

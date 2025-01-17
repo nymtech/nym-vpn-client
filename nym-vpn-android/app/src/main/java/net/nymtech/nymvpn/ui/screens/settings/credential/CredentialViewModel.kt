@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.service.tunnel.TunnelManager
+import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.StringValue
 import timber.log.Timber
@@ -17,7 +17,7 @@ import javax.inject.Inject
 class CredentialViewModel
 @Inject
 constructor(
-	private val tunnelManager: TunnelManager,
+	private val backendManager: BackendManager,
 ) : ViewModel() {
 
 	private val _success = MutableSharedFlow<Boolean?>()
@@ -28,7 +28,7 @@ constructor(
 
 	fun onMnemonicImport(mnemonic: String) = viewModelScope.launch {
 		runCatching {
-			tunnelManager.storeMnemonic(mnemonic.trim())
+			backendManager.storeMnemonic(mnemonic.trim())
 			Timber.d("Imported account successfully")
 			SnackbarController.showMessage(StringValue.StringResource(R.string.device_added_success))
 			_success.emit(true)
