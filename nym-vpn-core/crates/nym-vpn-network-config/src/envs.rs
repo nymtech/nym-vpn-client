@@ -69,8 +69,8 @@ impl RegisteredNetworks {
         let rt = tokio::runtime::Runtime::new()?;
 
         // Spawn the root task
-        let inner = rt.block_on(VpnApiClient::well_known()?
-            .get_network_envs())
+        let inner = rt
+            .block_on(VpnApiClient::well_known()?.get_network_envs())
             .with_context(|| "Failed to fetch envs")?;
         tracing::debug!("Envs response: {:#?}", inner);
 
