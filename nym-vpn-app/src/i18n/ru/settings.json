@@ -37,7 +37,7 @@
     "desc": "Скопировать или удалить логи"
   },
   "info": {
-    "client-version": "Версия клиента",
+    "client-version": "Версия приложения",
     "daemon-version": "Версия демона",
     "network-name": "Сеть",
     "account-id": "ID аккаунта",
