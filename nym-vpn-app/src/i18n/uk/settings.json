@@ -39,7 +39,7 @@
   "info": {
     "daemon-version": "Версія Daemon",
     "network-name": "Мережа",
-    "client-version": "Версія клієнту",
+    "client-version": "Версія програми",
     "account-id": "Ідентифікатор облікового запису",
     "device-id": "Ідентифікатор пристрою"
   },
