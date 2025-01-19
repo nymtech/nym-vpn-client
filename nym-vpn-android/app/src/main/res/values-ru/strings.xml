@@ -195,4 +195,8 @@
     <string name="network_error">Возникла проблема с сетевым подключением. Пожалуйста, проверьте ваше сетевое подключение и повторите попытку.</string>
     <string name="recovery_phrase_disclaimer">Используйте только фразу восстановления созданную в NymVPN, а не в кошельке Nym.</string>
     <string name="low_bandwidth">"Низкая пропускная способность! Оставшаяся пропускная способность: "</string>
+    <string name="offline">Нет интернета</string>
+    <string name="waiting_for_connection">Подключится, как только устройство будет в сети</string>
+    <string name="loading">Загрузка</string>
+    <string name="no_internet">Ваше устройство не подключено к интернету</string>
 </resources>
