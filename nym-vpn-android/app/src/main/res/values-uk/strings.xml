@@ -195,4 +195,8 @@
     <string name="no_bandwidth">Пропускної здатності не залишилося.</string>
     <string name="same_entry_exit_message">Для забезпечення конфіденційності NymVPN не використовує один і той самий шлюз для входу і виходу. Повторно підключіться або виберіть інші місця.</string>
     <string name="delete">Видалити</string>
+    <string name="no_internet">Ваш пристрій не підключено до Інтернету</string>
+    <string name="offline">Немає інтернету</string>
+    <string name="loading">Завантаження</string>
+    <string name="waiting_for_connection">Підключиться, як тільки пристрій увімкнеться в мережу</string>
 </resources>
