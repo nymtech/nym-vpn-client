@@ -189,12 +189,21 @@ impl VpnCredentialStorage {
             .map(|ticketbooks| ticketbooks.ticket_types_running_low())
     }
 
+    #[allow(unused)]
     pub(crate) async fn get_pending_requests(
         &self,
     ) -> Result<Vec<PendingCredentialRequest>, Error> {
         self.pending_requests_storage
             .get_pending_requests()
             .await
+            .map_err(Error::from)
+    }
+
+    pub(crate) async fn get_pending_request_ids(&self) -> Result<Vec<String>, Error> {
+        self.pending_requests_storage
+            .get_pending_requests()
+            .await
+            .map(|requests| requests.into_iter().map(|r| r.id.clone()).collect())
             .map_err(Error::from)
     }
 
@@ -223,6 +232,13 @@ impl VpnCredentialStorage {
         tracing::debug!("Removing pending request with id: {}", id);
         self.pending_requests_storage
             .remove_pending_request(id)
+            .await
+            .map_err(Error::from)
+    }
+
+    pub(crate) async fn clean_up_stale_requests(&self) -> Result<(), Error> {
+        self.pending_requests_storage
+            .clean_up_stale_requests()
             .await
             .map_err(Error::from)
     }

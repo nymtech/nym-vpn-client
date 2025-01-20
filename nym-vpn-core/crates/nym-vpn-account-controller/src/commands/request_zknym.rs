@@ -211,45 +211,13 @@ impl RequestZkNymCommandHandler {
     async fn request_zk_nyms(&self) -> Result<RequestZkNymSummary, RequestZkNymError> {
         tracing::debug!("Running zk-nym request command handler: {}", self.id);
 
-        // If we have pending tickets, try those first
-        let pending_requests = self
-            .credential_storage
-            .get_pending_requests()
-            .await
-            .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
-
-        // WIP(JON)
-        let zk_nyms_available_for_download = self
-            .vpn_api_client
-            .get_zk_nyms_available_for_download(&self.account, &self.device)
-            .await
-            .unwrap();
-
-        let zk_nyms_available_for_download_ids = zk_nyms_available_for_download
-            .items
-            .iter()
-            .map(|item| item.id.clone());
-
-        let pending_requests: Vec<_> = pending_requests
-            .into_iter()
-            .filter(|pending_request| {
-                zk_nyms_available_for_download_ids
-                    .clone()
-                    .any(|id| id == pending_request.id)
-            })
-            .collect();
-
-        let resumed_requests = if !pending_requests.is_empty() {
-            tracing::info!("Resuming {} zk-nym requests", pending_requests.len());
-            self.resume_request_zk_nyms_inner(pending_requests).await
-        } else {
-            Vec::new()
-        };
+        // If we have pending zk-nym ticketbooks, try those first
+        let resumed_requests = self.resume_request_zk_nyms().await;
 
         let ticket_types = self.check_ticket_types_running_low().await?;
         tracing::debug!("Ticket types running low: {:?}", ticket_types);
 
-        let new_requests = self.request_zk_nyms_inner(ticket_types).await;
+        let new_requests = self.request_zk_nyms_for_ticket_types(ticket_types).await;
 
         let zk_nym_fails_in_a_row = self.zk_nym_fails_in_a_row.load(Ordering::Relaxed);
         if zk_nym_fails_in_a_row > 0 {
@@ -271,7 +239,7 @@ impl RequestZkNymCommandHandler {
             .map_err(RequestZkNymError::internal)
     }
 
-    async fn request_zk_nyms_inner(
+    async fn request_zk_nyms_for_ticket_types(
         &self,
         ticket_types: Vec<TicketType>,
     ) -> Vec<Result<RequestZkNymSuccess, RequestZkNymError>> {
@@ -297,10 +265,69 @@ impl RequestZkNymCommandHandler {
         join_set.join_all().await
     }
 
-    async fn resume_request_zk_nyms_inner(
+    async fn resume_request_zk_nyms(&self) -> Vec<Result<RequestZkNymSuccess, RequestZkNymError>> {
+        let to_resume = self
+            .check_zk_nyms_possible_to_resume()
+            .await
+            .inspect_err(|err| {
+                tracing::error!("Failed to check zk-nyms possible to resume: {:?}", err);
+            })
+            .unwrap_or_default();
+        self.resume_request_zk_nyms_for_ids(to_resume).await
+    }
+
+    async fn check_zk_nyms_possible_to_resume(&self) -> Result<Vec<ZkNymId>, RequestZkNymError> {
+        let zk_nyms_available_for_download = self.get_zk_nyms_available_for_download().await?;
+
+        self.credential_storage
+            .clean_up_stale_requests()
+            .await
+            .inspect_err(|err| {
+                tracing::error!("Failed to clean up stale requests: {:?}", err);
+            })
+            .ok();
+
+        let pending_requests_data = self
+            .credential_storage
+            .get_pending_request_ids()
+            .await
+            .map_err(RequestZkNymError::internal)?;
+
+        let zk_nyms_possible_to_resume = zk_nyms_available_for_download
+            .into_iter()
+            .filter(|zk_nym| pending_requests_data.contains(zk_nym))
+            .collect();
+
+        Ok(zk_nyms_possible_to_resume)
+    }
+
+    async fn get_zk_nyms_available_for_download(&self) -> Result<Vec<ZkNymId>, RequestZkNymError> {
+        self.vpn_api_client
+            .get_zk_nyms_available_for_download(&self.account, &self.device)
+            .await
+            .map(|response| response.items.into_iter().map(|item| item.id).collect())
+            .map_err(|err| {
+                nym_vpn_api_client::response::extract_error_response(&err)
+                    .map(
+                        |e| RequestZkNymError::GetZkNymsAvailableForDownloadEndpointFailure {
+                            endpoint_failure: VpnApiEndpointFailure {
+                                message_id: e.message_id.clone(),
+                                message: e.message.clone(),
+                                code_reference_id: e.code_reference_id.clone(),
+                            },
+                        },
+                    )
+                    .unwrap_or_else(|| RequestZkNymError::internal(err))
+            })
+    }
+
+    async fn resume_request_zk_nyms_for_ids(
         &self,
-        pending_requests: Vec<PendingCredentialRequest>,
+        pending_requests: Vec<ZkNymId>,
     ) -> Vec<Result<RequestZkNymSuccess, RequestZkNymError>> {
+        if pending_requests.is_empty() {
+            return Vec::new();
+        }
         tracing::info!("Resuming {} zk-nym requests", pending_requests.len());
 
         let account = self.account.clone();
@@ -312,7 +339,7 @@ impl RequestZkNymCommandHandler {
         let mut join_set = JoinSet::new();
         for pending_request in pending_requests {
             join_set.spawn(resume_request_zk_nym(
-                pending_request.id.clone(),
+                pending_request,
                 account.clone(),
                 device.clone(),
                 vpn_api_client.clone(),
@@ -908,6 +935,11 @@ impl RequestZkNymSuccess {
 
 #[derive(Clone, Debug, thiserror::Error, PartialEq, Eq, Serialize, Deserialize)]
 pub enum RequestZkNymError {
+    #[error("failed to get zk-nyms available for download")]
+    GetZkNymsAvailableForDownloadEndpointFailure {
+        endpoint_failure: VpnApiEndpointFailure,
+    },
+
     #[error("failed to create ecash keypair: {0}")]
     CreateEcashKeyPair(String),
 

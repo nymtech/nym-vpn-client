@@ -13,10 +13,14 @@ use std::{
 
 use sqlite::SqliteZkNymRequestsStorageManager;
 use sqlx::ConnectOptions;
+use time::OffsetDateTime;
 use tracing::log::LevelFilter;
 
 use error::PendingCredentialRequestsStorageError;
 use models::{PendingCredentialRequest, PendingCredentialRequestStored};
+
+// Consider requests older than 60 days as stale
+const DEFAULT_STALE_REQUESTS_MAX_AGE: Duration = Duration::from_secs(60 * 60 * 24 * 60);
 
 #[derive(Clone)]
 pub(crate) struct PendingCredentialRequestsStorage {
@@ -84,6 +88,16 @@ impl PendingCredentialRequestsStorage {
         self.database_path = new_storage_manager.database_path.clone();
 
         Ok(())
+    }
+
+    pub(crate) async fn clean_up_stale_requests(
+        &self,
+    ) -> Result<(), PendingCredentialRequestsStorageError> {
+        let cutoff = OffsetDateTime::now_utc() - DEFAULT_STALE_REQUESTS_MAX_AGE;
+        self.storage_manager
+            .remove_stale(cutoff)
+            .await
+            .map_err(Into::into)
     }
 
     pub(crate) async fn insert_pending_request(

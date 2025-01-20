@@ -184,6 +184,15 @@ impl From<nym_vpn_account_controller::RequestZkNymSuccess> for crate::RequestZkN
 impl From<nym_vpn_account_controller::RequestZkNymError> for crate::RequestZkNymError {
     fn from(error: nym_vpn_account_controller::RequestZkNymError) -> Self {
         match error {
+            nym_vpn_account_controller::RequestZkNymError::GetZkNymsAvailableForDownloadEndpointFailure {
+                endpoint_failure,
+            } => Self {
+                kind: crate::request_zk_nym_error::RequestZkNymErrorType::GetZkNymsAvailableForDownloadEndpointFailure as i32,
+                id: None,
+                ticketbook_type: None,
+                message: Some(endpoint_failure.message.clone()),
+                message_id: endpoint_failure.message_id.clone(),
+            },
             nym_vpn_account_controller::RequestZkNymError::CreateEcashKeyPair(err) => Self {
                 kind: crate::request_zk_nym_error::RequestZkNymErrorType::CreateEcashKeyPair as i32,
                 id: None,

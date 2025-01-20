@@ -727,6 +727,8 @@ message RequestZkNymError {
     // General error
     GENERAL = 2;
 
+    GET_ZK_NYMS_AVAILABLE_FOR_DOWNLOAD_ENDPOINT_FAILURE = 29;
+
     CREATE_ECASH_KEY_PAIR = 9;
 
     CONSTRUCT_WITHDRAWAL_REQUEST = 10;

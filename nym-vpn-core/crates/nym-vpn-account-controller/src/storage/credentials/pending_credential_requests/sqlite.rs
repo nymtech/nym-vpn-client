@@ -27,14 +27,17 @@ impl SqliteZkNymRequestsStorageManager {
             .await
     }
 
-    pub async fn get_pending_requests_older_than(
-        &self,
-        cutoff: OffsetDateTime,
-    ) -> Result<Vec<PendingCredentialRequestStored>, sqlx::Error> {
-        sqlx::query_as("SELECT * FROM pending_zk_nym_requests WHERE timestamp > ?")
-            .bind(cutoff)
-            .fetch_all(&self.connection_pool)
-            .await
+    #[allow(unused)]
+    pub async fn remove_stale(&self, cutoff: OffsetDateTime) -> Result<(), sqlx::Error> {
+        let affected = sqlx::query!(
+            "DELETE FROM pending_zk_nym_requests WHERE timestamp < ?",
+            cutoff
+        )
+        .execute(&self.connection_pool)
+        .await?
+        .rows_affected();
+        tracing::info!("Removed {} stale pending requests", affected);
+        Ok(())
     }
 
     pub async fn get_pending_request_by_id(
