@@ -41,7 +41,7 @@ function Slider({
       </RxSlider.Track>
       <RxSlider.Thumb
         className={clsx(
-          'block size-5 rounded-full bg-malachite transition hover:scale-125 duration-150',
+          'block size-5 rounded-full bg-malachite transition hover:scale-110 duration-150',
           'focus:outline-none focus:ring-4 focus:ring-malachite/35 focus:dark:ring-malachite/15',
         )}
       />

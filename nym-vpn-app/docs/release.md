@@ -72,7 +72,7 @@ and click on the _Run workflow_ button
 3. :warning: if it is **not** a stable release check the _Pre-release_ tickbox
 
 4. check the _dev_ tickbox if it is a dev release, not stable, \
-   (that enables the network env selector)
+   (enable in-app dev menu)
 
 5. in the _nym-vpn-core release tag_ input, enter the core release \
    tag that this app release targets, e.g. `nym-vpn-core-v1.2.3`

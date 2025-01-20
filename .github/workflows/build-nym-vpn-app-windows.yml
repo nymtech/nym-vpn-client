@@ -127,7 +127,10 @@ jobs:
       #     name: ${{ env.MULLVAD_LIB_NAME }}.lib
       #     path: ${{ env.TAURI_SRC }}/
       #
-      # - name: Download mullvad      sign: ${{ inputs.sign }}D_LIB_NAME }}.dll
+      # - name: Download mullvad lib artifact (winfw.lib)
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: ${{ env.MULLVAD_LIB_NAME }}.dll
       #     path: ${{ env.TAURI_SRC }}/
       #
       # - name: Download/Unzip/Move wintun.zip, winpcap.zip also move wireguard lib for windows
@@ -285,7 +288,7 @@ jobs:
             }
           }' tauri.conf.json
 
-      - name: Build tauri desktop client with SSL.com signature
+      - name: Build tauri app ${{ inputs.sign && '(signed)' }}
         working-directory: nym-vpn-app/src-tauri
         shell: bash
         env:

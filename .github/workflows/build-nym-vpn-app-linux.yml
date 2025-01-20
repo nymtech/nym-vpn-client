@@ -102,7 +102,7 @@ jobs:
           rm public/licenses-rust.json || true
           npm run gen:licenses:rust
 
-      - name: Build tauri desktop client
+      - name: Build tauri app
         working-directory: nym-vpn-app/src-tauri
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
