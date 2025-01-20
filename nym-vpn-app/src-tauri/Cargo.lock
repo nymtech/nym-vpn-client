@@ -3119,7 +3119,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "1.2.0-dev"
+version = "1.2.0-malachite.4"
 dependencies = [
  "anyhow",
  "build-info",
