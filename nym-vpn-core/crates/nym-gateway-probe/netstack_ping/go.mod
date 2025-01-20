@@ -6,7 +6,7 @@ toolchain go1.23.1
 
 require (
 	github.com/amnezia-vpn/amneziawg-go v0.2.12
-	golang.org/x/net v0.23.0
+	golang.org/x/net v0.33.0
 )
 
 require (
