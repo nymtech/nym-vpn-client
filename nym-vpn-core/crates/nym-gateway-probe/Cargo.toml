@@ -47,6 +47,7 @@ nym-client-core.workspace = true
 nym-crypto.workspace = true
 nym-config.workspace = true
 nym-connection-monitor = { path = "../nym-connection-monitor" }
+nym-credentials-interface.workspace = true
 nym-gateway-directory = { path = "../nym-gateway-directory" }
 nym-ip-packet-client = { path = "../nym-ip-packet-client" }
 nym-authenticator-client = { path = "../nym-authenticator-client" }

@@ -6,7 +6,7 @@ use clap::Parser;
 use nym_bin_common::bin_info;
 use nym_config::defaults::setup_env;
 use nym_gateway_directory::{EntryPoint, GatewayMinPerformance};
-use nym_gateway_probe::{NetstackArgs, ProbeResult, TestedNode};
+use nym_gateway_probe::{CredentialArgs, NetstackArgs, ProbeResult, TestedNode};
 use nym_sdk::mixnet::NodeIdentity;
 use std::path::PathBuf;
 use std::sync::OnceLock;
@@ -62,6 +62,10 @@ struct CliArgs {
     /// Arguments to manage netstack downloads
     #[command(flatten)]
     netstack_args: NetstackArgs,
+
+    /// Arguments to manage credentials
+    #[command(flatten)]
+    credential_args: CredentialArgs,
 }
 
 fn setup_logging() {
@@ -103,7 +107,8 @@ pub(crate) async fn run() -> anyhow::Result<ProbeResult> {
         TestedNode::SameAsEntry
     };
 
-    let mut trial = nym_gateway_probe::Probe::new(entry, test_point, args.netstack_args);
+    let mut trial =
+        nym_gateway_probe::Probe::new(entry, test_point, args.netstack_args, args.credential_args);
     if let Some(awg_args) = args.amnezia_args {
         trial.with_amnezia(&awg_args);
     }

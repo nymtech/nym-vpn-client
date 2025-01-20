@@ -21,6 +21,7 @@ use nym_config::defaults::{
     NymNetworkDetails,
 };
 use nym_connection_monitor::self_ping_and_wait;
+use nym_credentials_interface::TicketType;
 use nym_gateway_directory::{
     AuthAddress, Config as GatewayDirectoryConfig, EntryPoint,
     GatewayClient as GatewayDirectoryClient, GatewayList, GatewayMinPerformance,
@@ -86,6 +87,15 @@ pub struct NetstackArgs {
 
     #[arg(long, default_values_t = vec!["2001:4860:4860::8888".to_string(), "2606:4700:4700::1111".to_string(), "2620:fe::fe".to_string()])]
     netstack_ping_ips_v6: Vec<String>,
+}
+
+#[derive(Args)]
+pub struct CredentialArgs {
+    #[arg(long)]
+    enable_credentials_mode: bool,
+
+    #[arg(long, required_if_eq("enable_credentials_mode", "true"))]
+    mnemonic: Option<String>,
 }
 
 #[derive(Default, Debug)]
@@ -155,6 +165,7 @@ pub struct Probe {
     tested_node: TestedNode,
     amnezia_args: String,
     netstack_args: NetstackArgs,
+    credentials_args: CredentialArgs,
 }
 
 impl Probe {
@@ -162,12 +173,14 @@ impl Probe {
         entrypoint: EntryPoint,
         tested_node: TestedNode,
         netstack_args: NetstackArgs,
+        credentials_args: CredentialArgs,
     ) -> Self {
         Self {
             entrypoint,
             tested_node,
             amnezia_args: "".into(),
             netstack_args,
+            credentials_args,
         }
     }
     pub fn with_amnezia(&mut self, args: &str) -> &Self {
@@ -209,16 +222,34 @@ impl Probe {
         );
 
         // Connect to the mixnet via the entry gateway
-        let mixnet_client = MixnetClientBuilder::new_ephemeral()
+        let disconnected_mixnet_client = MixnetClientBuilder::new_ephemeral()
             .request_gateway(mixnet_entry_gateway_id.to_string())
             .network_details(NymNetworkDetails::new_from_env())
             .debug_config(mixnet_debug_config(
                 min_gateway_performance,
                 ignore_egress_epoch_role,
             ))
-            .build()?
-            .connect_to_mixnet()
-            .await;
+            .credentials_mode(self.credentials_args.enable_credentials_mode)
+            .build()?;
+
+        if self.credentials_args.enable_credentials_mode {
+            let mnemonic = self
+                .credentials_args
+                .mnemonic
+                .expect("Mnemonic should be required if credentials mode is enabled");
+
+            for ticketbook_type in [
+                TicketType::V1MixnetEntry,
+                TicketType::V1WireguardEntry,
+                TicketType::V1WireguardExit,
+            ] {
+                let bw_client = disconnected_mixnet_client
+                    .create_bandwidth_client(mnemonic.clone(), ticketbook_type)
+                    .await?;
+                bw_client.acquire().await?;
+            }
+        }
+        let mixnet_client = disconnected_mixnet_client.connect_to_mixnet().await;
 
         let mixnet_client = match mixnet_client {
             Ok(mixnet_client) => mixnet_client,
