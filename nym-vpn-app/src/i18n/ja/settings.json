@@ -11,11 +11,12 @@
     "title": "デスクトップ通知"
   },
   "support": {
-    "title": "サポート",
+    "title": "サポート&フィードバック",
     "faq": "FAQをチェック",
     "github": "Githubでissueを作成",
     "matrix": "Matrixに参加",
-    "discord": "Discordに参加"
+    "discord": "Discordに参加",
+    "get-in-touch": "お問い合わせ"
   },
   "legal": {
     "title": "法務情報",
@@ -36,7 +37,7 @@
   "login-button": "デバイスの接続",
   "monitoring-alert": "変更を反映させるには、アプリを再起動する必要があります。",
   "info": {
-    "client-version": "クライアントバージョン",
+    "client-version": "Appバージョン",
     "daemon-version": "デーモンバージョン",
     "network-name": "ネットワーク",
     "account-id": "アカウントID",
