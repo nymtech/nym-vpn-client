@@ -35,8 +35,8 @@ BI="$ITL$BLD"
 ####
 
 # AppImage
-app_tag=nym-vpn-app-v1.2.0-malachite.3
-app_version=1.2.0-malachite.3
+app_tag=nym-vpn-app-v1.2.0-malachite.4
+app_version=1.2.0-malachite.4
 appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/NymVPN_${app_version}_x64.AppImage"
 desktop_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/fb526935/nym-vpn-app/.pkg/app.desktop"
 icon_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/fb526935/nym-vpn-app/.pkg/icon.svg"
@@ -186,17 +186,17 @@ select_components() {
   operation=${1:-install}
   choice=""
   log "  ${B_GRN}Select$RS the component(s) to $operation"
-  prompt="    ${BI_YLW}N$RS vpnd and app combo (default)\n    ${BI_YLW}D$RS vpnd only\n    ${BI_YLW}A$RS app only\n(${BI_YLW}N$RS/${BI_YLW}D$RS/${BI_YLW}A$RS) "
+  prompt="    ${BI_YLW}N$RS app and vpnd combo (default)\n    ${BI_YLW}A$RS app only\n    ${BI_YLW}D$RS vpnd only\n(${BI_YLW}N$RS/${BI_YLW}A$RS/${BI_YLW}D$RS) "
   user_prompt choice "$prompt"
 
   case "$choice" in
-  d | D)
-    _vpnd=0
-    sys_pkgs+=('nym-vpnd')
-    ;;
   a | A)
     _app=0
     sys_pkgs+=('nym-vpn-app')
+    ;;
+  d | D)
+    _vpnd=0
+    sys_pkgs+=('nym-vpnd')
     ;;
   n | N | '')
     _vpnd=0
@@ -476,8 +476,8 @@ cleanup() {
 
 _install() {
   log "$ITL${B_GRN}nym$RS${BI_GRY}VPN$RS ${BI}installer$RS\n"
-  log "  nym-vpnd ${BI_YLW}$vpnd_version$RS ${I_GRY}daemon$RS"
-  log "  app ${BI_YLW}$app_version$RS ${I_GRY}client$RS\n"
+  log "  app ${BI_YLW}$app_version$RS ${I_GRY}client$RS"
+  log "  nym-vpnd ${BI_YLW}$vpnd_version$RS ${I_GRY}daemon$RS\n"
   # TODO remove this when we switch to stable
   log "  ${BI_YLW}⚠ currently this script only installs 'dev' versions$RS\n"
 
