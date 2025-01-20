@@ -19,4 +19,7 @@ pub enum PendingCredentialRequestsStorageError {
         path: PathBuf,
         source: std::io::Error,
     },
+
+    #[error("failed to remove pending credential request storage: {0}")]
+    RemoveStorage(#[source] std::io::Error),
 }

@@ -37,6 +37,9 @@ pub enum Error {
         #[source] crate::storage::PendingCredentialRequestsStorageError,
     ),
 
+    #[error("failed to remove credential storage: {0}")]
+    RemoveCredentialStorage(std::io::Error),
+
     #[error("failed to send account controller command")]
     AccountCommandSend {
         #[from]

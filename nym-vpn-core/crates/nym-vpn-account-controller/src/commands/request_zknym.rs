@@ -262,7 +262,7 @@ impl RequestZkNymCommandHandler {
                 cached_data.clone(),
             ));
         }
-        join_set.join_all().await
+        wait_for_join_set(join_set).await
     }
 
     async fn resume_request_zk_nyms(&self) -> Vec<Result<RequestZkNymSuccess, RequestZkNymError>> {
@@ -347,7 +347,7 @@ impl RequestZkNymCommandHandler {
                 cached_data.clone(),
             ));
         }
-        join_set.join_all().await
+        wait_for_join_set(join_set).await
     }
 }
 
@@ -920,6 +920,33 @@ async fn confirm_zk_nym_downloaded(
         .inspect(|response| tracing::debug!("Confirmed zk-nym download: {}", response))
 }
 
+async fn wait_for_join_set(
+    mut join_set: JoinSet<Result<RequestZkNymSuccess, RequestZkNymError>>,
+) -> Vec<Result<RequestZkNymSuccess, RequestZkNymError>> {
+    let mut partial_results = Vec::new();
+    loop {
+        tokio::select! {
+            _ = tokio::time::sleep(Duration::from_secs(5 * 60)) => {
+                tracing::warn!("Request zk-nym timed out");
+                break;
+            }
+            result = join_set.join_next() => match result {
+                Some(Ok(result)) => {
+                    partial_results.push(result);
+                }
+                Some(Err(err)) => {
+                    tracing::error!("Failed to wait for task: {:?}", err);
+                }
+                None => {
+                    tracing::debug!("All zk-nym requests finished");
+                    break;
+                }
+            }
+        }
+    }
+    partial_results
+}
+
 pub(crate) type ZkNymId = String;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -1090,10 +1117,7 @@ impl RequestZkNymError {
                 ticket_type,
                 error: _,
             } => Some(ticket_type.clone()),
-            RequestZkNymError::PollingTaskError
-            | RequestZkNymError::Internal(_)
-            | RequestZkNymError::PollingTimeout { .. } => None,
-            _ => todo!(),
+            _ => None,
         }
     }
 }

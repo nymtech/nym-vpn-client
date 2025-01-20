@@ -76,16 +76,11 @@ impl PendingCredentialRequestsStorage {
 
         // Then we remove the database file
         std::fs::remove_file(&self.database_path)
-            .inspect_err(|err| {
-                tracing::error!("Failed to remove file: {err:?}");
-            })
-            .ok();
+            .map_err(PendingCredentialRequestsStorageError::RemoveStorage)?;
 
         // Finally we recreate the storage
         let new_storage_manager = Self::init(&self.database_path).await?;
-
-        self.storage_manager = new_storage_manager.storage_manager;
-        self.database_path = new_storage_manager.database_path.clone();
+        *self = new_storage_manager;
 
         Ok(())
     }
