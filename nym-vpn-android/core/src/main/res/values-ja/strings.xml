@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="vpn_notification_title">NymVPN</string>
+    <string name="channel_name">NymVPN チャンネル</string>
+    <string name="channel_description">VPN関連の通知チャンネル。</string>
+    <string name="vpn_notification_text">実行中</string>
+    <string name="failed">失敗</string>
 </resources>
