@@ -426,31 +426,7 @@ impl From<nym_vpn_account_controller::shared_state::RequestZkNymResult>
                     failures: Default::default(),
                 }
             }
-            nym_vpn_account_controller::shared_state::RequestZkNymResult::Success { successes } => {
-                crate::RequestZkNymResult {
-                    kind: crate::request_zk_nym_result::RequestZkNymResultType::Success as i32,
-                    successes: successes
-                        .into_iter()
-                        .map(crate::RequestZkNymSuccess::from)
-                        .collect(),
-                    failures: Default::default(),
-                }
-            }
-            nym_vpn_account_controller::shared_state::RequestZkNymResult::Failed {
-                successes,
-                failures,
-            } => crate::RequestZkNymResult {
-                kind: crate::request_zk_nym_result::RequestZkNymResultType::Failed as i32,
-                successes: successes
-                    .into_iter()
-                    .map(crate::RequestZkNymSuccess::from)
-                    .collect(),
-                failures: failures
-                    .into_iter()
-                    .map(crate::RequestZkNymError::from)
-                    .collect(),
-            },
-            nym_vpn_account_controller::shared_state::RequestZkNymResult::Result {
+            nym_vpn_account_controller::shared_state::RequestZkNymResult::Done {
                 successes,
                 failures,
             } => crate::RequestZkNymResult {

@@ -344,18 +344,8 @@ pub enum RequestZkNymResult {
     // The zk-nym request is in progress
     InProgress,
 
-    // The last zk-nym request was successful
-    Success {
-        successes: Vec<RequestZkNymSuccess>,
-    },
-
-    // The last zk-nym request failed
-    Failed {
-        successes: Vec<RequestZkNymSuccess>,
-        failures: Vec<RequestZkNymError>,
-    },
-
-    Result {
+    // The the last zk-nym request finished
+    Done {
         successes: Vec<RequestZkNymSuccess>,
         failures: Vec<RequestZkNymError>,
     },
@@ -371,7 +361,7 @@ impl From<Vec<Result<RequestZkNymSuccess, RequestZkNymError>>> for RequestZkNymR
         let successes = successes.into_iter().map(Result::unwrap).collect();
         let failures = failures.into_iter().map(Result::unwrap_err).collect();
 
-        RequestZkNymResult::Result {
+        RequestZkNymResult::Done {
             successes,
             failures,
         }
@@ -442,9 +432,7 @@ impl AccountStateSummary {
     pub(crate) fn ready_to_request_zk_nym(&self) -> ReadyToRequestZkNym {
         match self.request_zk_nym_result {
             Some(RequestZkNymResult::InProgress) => return ReadyToRequestZkNym::InProgress,
-            Some(RequestZkNymResult::Success { .. }) => {}
-            Some(RequestZkNymResult::Failed { .. }) => {}
-            Some(RequestZkNymResult::Result { .. }) => {}
+            Some(RequestZkNymResult::Done { .. }) => {}
             Some(RequestZkNymResult::Error(_)) => {}
             None => {}
         }

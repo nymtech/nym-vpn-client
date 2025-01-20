@@ -702,8 +702,6 @@ message RequestZkNymResult {
   enum RequestZkNymResultType {
     REQUEST_ZK_NYM_RESULT_UNSPECIFIED = 0;
     IN_PROGRESS = 1;
-    SUCCESS = 2;
-    FAILED = 3;
     DONE = 4;
     ERROR = 5;
   }

@@ -823,17 +823,11 @@ impl From<nym_vpn_account_controller::shared_state::RegisterDeviceResult> for Re
 #[derive(uniffi::Enum, Debug, Clone, PartialEq)]
 pub enum RequestZkNymResult {
     InProgress,
-    Success {
-        successes: Vec<RequestZkNymSuccess>,
-    },
-    Failed {
+    Done {
         successes: Vec<RequestZkNymSuccess>,
         failures: Vec<RequestZkNymError>,
     },
-    Result {
-        successes: Vec<RequestZkNymSuccess>,
-        failures: Vec<RequestZkNymError>,
-    },
+    Error(RequestZkNymError),
 }
 
 impl From<nym_vpn_account_controller::shared_state::RequestZkNymResult> for RequestZkNymResult {
@@ -842,30 +836,15 @@ impl From<nym_vpn_account_controller::shared_state::RequestZkNymResult> for Requ
             nym_vpn_account_controller::shared_state::RequestZkNymResult::InProgress => {
                 RequestZkNymResult::InProgress
             }
-            nym_vpn_account_controller::shared_state::RequestZkNymResult::Success { successes } => {
-                RequestZkNymResult::Success {
-                    successes: successes.into_iter().map(|s| s.into()).collect(),
-                }
-            }
-            nym_vpn_account_controller::shared_state::RequestZkNymResult::Failed {
+            nym_vpn_account_controller::shared_state::RequestZkNymResult::Done {
                 successes,
                 failures,
-            } => RequestZkNymResult::Failed {
-                successes: successes.into_iter().map(|s| s.into()).collect(),
-                failures: failures.into_iter().map(|f| f.into()).collect(),
-            },
-            nym_vpn_account_controller::shared_state::RequestZkNymResult::Result {
-                successes,
-                failures,
-            } => RequestZkNymResult::Failed {
+            } => RequestZkNymResult::Done {
                 successes: successes.into_iter().map(|s| s.into()).collect(),
                 failures: failures.into_iter().map(|f| f.into()).collect(),
             },
             nym_vpn_account_controller::shared_state::RequestZkNymResult::Error(e) => {
-                RequestZkNymResult::Failed {
-                    successes: Vec::new(),
-                    failures: vec![e.into()],
-                }
+                RequestZkNymResult::Error(e.into())
             }
         }
     }
