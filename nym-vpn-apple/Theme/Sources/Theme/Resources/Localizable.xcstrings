@@ -859,6 +859,28 @@
         }
       }
     },
+    "home.deviceNoInternet" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your device has no internet connection"
+          }
+        }
+      }
+    },
+    "home.deviceNoInternetReconnect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Will connect once device goes online"
+          }
+        }
+      }
+    },
     "home.entryHop" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1196,6 +1218,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No"
+          }
+        }
+      }
+    },
+    "noInternet" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No internet"
+          }
+        }
+      }
+    },
+    "noInternetReconnect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No internet"
           }
         }
       }

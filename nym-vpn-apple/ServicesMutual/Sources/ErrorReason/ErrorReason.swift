@@ -1,6 +1,8 @@
-#if os(iOS)
 import Foundation
+#if os(iOS)
 import MixnetLibrary
+#endif
+import Theme
 
 public enum ErrorReason: LocalizedError {
     case firewall
@@ -19,6 +21,7 @@ public enum ErrorReason: LocalizedError {
 
     public static let domain = "ErrorHandler.ErrorReason"
 
+#if os(iOS)
     public init(with errorStateReason: ErrorStateReason) {
         switch errorStateReason {
         case .firewall:
@@ -45,6 +48,7 @@ public enum ErrorReason: LocalizedError {
             self = .duplicateTunFd
         }
     }
+#endif
 
     public init?(nsError: NSError) {
         guard nsError.domain == ErrorReason.domain else { return nil }
@@ -153,4 +157,3 @@ extension ErrorReason {
         }
     }
 }
-#endif

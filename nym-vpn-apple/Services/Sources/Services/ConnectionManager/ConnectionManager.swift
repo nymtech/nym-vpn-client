@@ -173,7 +173,9 @@ public final class ConnectionManager: ObservableObject {
         } else {
             // User "Connect" button actions
             guard !isAutoConnect else { return }
-            if grpcManager.tunnelStatus == .connected || grpcManager.tunnelStatus == .connecting {
+            if grpcManager.tunnelStatus == .connected
+                || grpcManager.tunnelStatus == .connecting
+                || grpcManager.tunnelStatus == .offlineRecconnect {
                 isDisconnecting = true
                 grpcManager.disconnect()
             } else {
@@ -298,9 +300,9 @@ private extension ConnectionManager {
         guard let activeTunnel else { return false }
 
         switch activeTunnel.status {
-        case .connected, .connecting, .reasserting, .restarting:
+        case .connected, .connecting, .reasserting, .restarting, .offlineRecconnect:
             return true
-        case .disconnecting, .disconnected:
+        case .disconnecting, .disconnected, .offline, .unknown:
             return false
         }
     }
@@ -340,9 +342,7 @@ private extension ConnectionManager {
         }
     }
 }
-#endif
-
-#if os(macOS)
+#elseif os(macOS)
 extension ConnectionManager {
     func generateConfig() -> MixnetConfig {
         var config = MixnetConfig(
@@ -457,7 +457,7 @@ private extension ConnectionManager {
 #endif
 
 #if os(macOS)
-        grpcManager.$lastError.sink { [weak self] newError in
+        grpcManager.$errorReason.sink { [weak self] newError in
             self?.lastError = newError
         }
         .store(in: &cancellables)

@@ -1,7 +1,7 @@
 import NetworkExtension
 
 extension NETunnelProviderSession {
-    func sendProviderMessageAsync(_ message: Data) async throws -> Data? {
+    public func sendProviderMessageAsync(_ message: Data) async throws -> Data? {
         try await withCheckedThrowingContinuation { continuation in
             do {
                 try self.sendProviderMessage(message) { response in

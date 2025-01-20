@@ -1,12 +1,15 @@
 import NetworkExtension
 
-public enum TunnelStatus: Int, Equatable {
+public enum TunnelStatus: Int, Equatable, Codable {
     case connected
     case connecting
     case disconnected
     case disconnecting
     case reasserting
     case restarting // Restarting tunnel (done after saving modifications to an active tunnel)
+    case offline
+    case offlineRecconnect
+    case unknown
 
     public init(from systemStatus: NEVPNStatus) {
         switch systemStatus {

@@ -1,5 +1,6 @@
 import Logging
 import NetworkExtension
+import ErrorReason
 import MixnetLibrary
 import NotificationMessages
 import NymLogger
@@ -47,7 +48,6 @@ actor TunnelActor {
             if canReassert {
                 tunnelProvider?.reasserting = true
             }
-
         case let .connected(connectionData):
             if canReassert {
                 tunnelProvider?.reasserting = false
@@ -61,7 +61,6 @@ actor TunnelActor {
             }
         case .disconnecting(.error):
             await NotificationMessages.scheduleDisconnectNotification()
-
         default:
             break
         }

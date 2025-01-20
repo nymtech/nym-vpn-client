@@ -34,6 +34,7 @@ let package = Package(
                 .product(name: "ConnectionManager", package: "Services"),
                 .product(name: "Device", package: "Services"),
                 .product(name: "ExternalLinkManager", package: "Services"),
+                .product(name: "NetworkMonitor", package: "Services"),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "SystemMessageManager", package: "Services")

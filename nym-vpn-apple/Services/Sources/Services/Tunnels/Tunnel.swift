@@ -9,6 +9,8 @@ public final class Tunnel: NSObject, ObservableObject {
     @Published public var status: TunnelStatus
 
     private var logger: Logger
+    private var isPolling = false
+    private var pollingTask: Task<Void, Never>?
 
     public var onDemandEnabled: Bool {
         tunnel.isEnabled && tunnel.isOnDemandEnabled
@@ -84,6 +86,7 @@ public final class Tunnel: NSObject, ObservableObject {
                 throw error
             }
         }
+        startPollingTunnelStatus()
     }
 
     func disconnect() {
@@ -93,10 +96,43 @@ public final class Tunnel: NSObject, ObservableObject {
 
     func updateStatus() {
         status = TunnelStatus(from: tunnel.connection.status)
+        if status == .disconnected {
+            stopPollingTunnelStatus()
+        }
     }
 
-    func sendProviderMessage(_ messageData: Data, responseHandler: ((Data?) -> Void)?) throws {
+    func sendProviderMessage(with messageData: Data) async throws -> Data? {
         let session = tunnel.connection as? NETunnelProviderSession
-        try session?.sendProviderMessage(messageData, responseHandler: responseHandler)
+        return try await session?.sendProviderMessageAsync(messageData)
+    }
+}
+
+private extension Tunnel {
+    func startPollingTunnelStatus() {
+        isPolling = true
+        pollingTask = Task {
+            while isPolling {
+                await pollTunnelStatus()
+                try? await Task.sleep(for: .seconds(2))
+            }
+        }
+    }
+
+    func stopPollingTunnelStatus() {
+        isPolling = false
+        pollingTask?.cancel()
+        pollingTask = nil
+    }
+
+    func pollTunnelStatus() async {
+        guard let session = tunnel.connection as? NETunnelProviderSession,
+              let message = try? TunnelProviderMessage.status.encode(),
+              let response = try? await session.sendProviderMessageAsync(message),
+              let newTunnelStatus = try? JSONDecoder().decode(TunnelStatus.self, from: response)
+        else {
+            return
+        }
+        guard status != newTunnelStatus else { return }
+        status = newTunnelStatus
     }
 }

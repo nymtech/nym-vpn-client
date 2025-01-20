@@ -8,6 +8,8 @@ public enum ConnectButtonState {
     case disconnecting
     case stop
     case installingDaemon
+    case noInternet
+    case noInternetReconnect
 
     public init(tunnelStatus: TunnelStatus) {
         switch tunnelStatus {
@@ -19,18 +21,22 @@ public enum ConnectButtonState {
             self = .connect
         case .disconnecting:
             self = .disconnecting
+        case .offline, .unknown:
+            self = .noInternet
+        case .offlineRecconnect:
+            self = .noInternetReconnect
         }
     }
 
     public var localizedTitle: String {
         switch self {
-        case .connect:
+        case .connect, .noInternet:
             "connect".localizedString
         case .disconnect:
             "disconnect".localizedString
         case .disconnecting:
             "disconnecting".localizedString
-        case .stop:
+        case .stop, .noInternetReconnect:
             "stop".localizedString
         case .installingDaemon:
             "home.installDaemonButton".localizedString
@@ -39,11 +45,11 @@ public enum ConnectButtonState {
 
     var backgroundColor: Color {
         switch self {
-        case .connect:
+        case .connect, .noInternet:
             NymColor.primaryOrange
         case .disconnect:
             NymColor.disconnect
-        case .stop, .disconnecting, .installingDaemon:
+        case .stop, .disconnecting, .installingDaemon, .noInternetReconnect:
             NymColor.sysSecondary
         }
     }

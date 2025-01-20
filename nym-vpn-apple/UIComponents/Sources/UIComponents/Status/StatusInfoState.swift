@@ -8,18 +8,28 @@ public enum StatusInfoState: Equatable {
     case connecting
     case connectionTime
     case error(message: String)
+    case noInternet
+    case noInternetReconnect
     case unknown
     case installingDaemon
 
-    public init(tunnelStatus: TunnelStatus) {
+    public init(tunnelStatus: TunnelStatus, isOnline: Bool) {
         switch tunnelStatus {
         case .connected:
             self = .connectionTime
         case .connecting, .reasserting, .restarting:
             self = .connecting
-        case .disconnected, .disconnecting:
-            self = .unknown
+        case .disconnected, .disconnecting, .unknown:
+            self = isOnline ? .unknown : .noInternet
+        case .offline:
+            self = .noInternet
+        case .offlineRecconnect:
+            self = .noInternetReconnect
         }
+    }
+
+    public init(hasInternet: Bool) {
+        self = hasInternet ? .unknown : .noInternet
     }
 
     var localizedTitle: String {
@@ -32,6 +42,10 @@ public enum StatusInfoState: Equatable {
             "connectionTime".localizedString
         case let .error(message):
             message
+        case .noInternet:
+            "home.deviceNoInternet".localizedString
+        case .noInternetReconnect:
+            "home.deviceNoInternetReconnect".localizedString
         case .unknown:
             // Empty string hides the view. To not mess up UX spacing - need 'space' to still show it.
             " "
@@ -46,7 +60,7 @@ public enum StatusInfoState: Equatable {
 
     var textColor: Color {
         switch self {
-        case .initialising, .connecting, .connectionTime, .installingDaemon:
+        case .initialising, .connecting, .connectionTime, .installingDaemon, .noInternet, .noInternetReconnect:
             NymColor.statusInfoText
         case .error, .unknown:
             NymColor.sysError

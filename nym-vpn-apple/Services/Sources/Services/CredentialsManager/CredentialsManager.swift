@@ -102,7 +102,7 @@ private extension CredentialsManager {
 
     func setupGRPCManagerObservers() {
 #if os(macOS)
-        grpcManager.$lastError.sink { [weak self] error in
+        grpcManager.$generalError.sink { [weak self] error in
             guard let self,
                   error == GeneralNymError.noMnemonicStored
             else {

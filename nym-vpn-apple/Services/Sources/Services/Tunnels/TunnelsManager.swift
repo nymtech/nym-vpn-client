@@ -2,17 +2,16 @@ import Combine
 import NetworkExtension
 import Logging
 import Constants
+import ErrorReason
 import Keychain
 #if os(iOS)
 import ErrorHandler
 #endif
 
 public final class TunnelsManager: ObservableObject {
-    public static let shared = TunnelsManager()
-
     private var cancellables = Set<AnyCancellable>()
-    private var work: Task<Void, Never>?
-    private var isPolling = false
+
+    public static let shared = TunnelsManager()
 
     @Published public var isLoaded: Result<Void, Error>?
     @Published public var activeTunnel: Tunnel?

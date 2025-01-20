@@ -47,7 +47,7 @@ private extension StatusInfoView {
 
     @ViewBuilder
     func timeConnectedLabel() -> some View {
-        if let timeConnected {
+        if infoState != .noInternet || infoState != .noInternetReconnect, let timeConnected {
             TimelineView(.periodic(from: timeConnected, by: 1.0)) { context in
                 let timeElapsed = context.date.timeIntervalSince(timeConnected)
 

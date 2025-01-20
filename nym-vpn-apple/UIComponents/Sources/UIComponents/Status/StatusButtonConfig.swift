@@ -7,9 +7,15 @@ public enum StatusButtonConfig: String {
     case connecting
     case disconnecting
     case disconnected
+    case noInternet
+    case noInternetReconnect
     case error
 
-    public init(tunnelStatus: TunnelStatus) {
+    public init(tunnelStatus: TunnelStatus, hasInternet: Bool) {
+        if !hasInternet {
+            self = .noInternet
+            return
+        }
         switch tunnelStatus {
         case .connected:
             self = .connected
@@ -19,6 +25,10 @@ public enum StatusButtonConfig: String {
             self = .disconnected
         case .disconnecting:
             self = .disconnecting
+        case .offline, .unknown:
+            self = .noInternet
+        case .offlineRecconnect:
+            self = .noInternetReconnect
         }
     }
 
@@ -29,20 +39,22 @@ public enum StatusButtonConfig: String {
     var textColor: Color {
         switch self {
         case .connected:
-            return NymColor.confirm
-        case .connecting, .disconnecting:
-            return NymColor.sysOnSurfaceWhite
+            NymColor.confirm
+        case .connecting, .disconnecting, .noInternet, .noInternetReconnect:
+            NymColor.sysOnSurfaceWhite
         case .disconnected, .error:
-            return NymColor.sysOnSecondary
+            NymColor.sysOnSecondary
         }
     }
 
     var backgroundColor: Color {
         switch self {
         case .connected:
-            return NymColor.statusGreen
+            NymColor.statusGreen
         case .connecting, .disconnecting, .disconnected, .error:
-            return NymColor.statusButtonBackground
+            NymColor.statusButtonBackground
+        case .noInternet, .noInternetReconnect:
+            NymColor.noInternet
         }
     }
 }

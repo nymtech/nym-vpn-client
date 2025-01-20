@@ -7,7 +7,6 @@ extension GRPCManager {
         logger.log(level: .info, "Checking if stored account")
 
         return try await withCheckedThrowingContinuation { continuation in
-            
             let call = client.getSystemMessages(Google_Protobuf_Empty())
 
             call.response.whenComplete { result in

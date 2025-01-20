@@ -22,6 +22,7 @@ let package = Package(
         .library(name: "ExternalLinkManager", targets: ["ExternalLinkManager"]),
         .library(name: "Keychain", targets: ["Keychain"]),
         .library(name: "Migrations", targets: ["Migrations"]),
+        .library(name: "NetworkMonitor", targets: ["NetworkMonitor"]),
         .library(name: "NotificationsManager", targets: ["NotificationsManager"]),
         .library(name: "NotificationMessages", targets: ["NotificationMessages"]),
         .library(name: "NymLogger", targets: ["NymLogger"]),
@@ -145,6 +146,13 @@ let package = Package(
             path: "Sources/Services/Migrations"
         ),
         .target(
+            name: "NetworkMonitor",
+            dependencies: [
+                "ConnectionManager"
+            ],
+            path: "Sources/Services/NetworkMonitor"
+        ),
+        .target(
             name: "NotificationsManager",
             dependencies: [
                 "AppSettings",
@@ -193,6 +201,7 @@ let package = Package(
                 "Constants",
                 "Keychain",
                 "NymLogger",
+                .product(name: "ErrorReason", package: "ServicesMutual"),
                 .product(name: "ErrorHandler", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
                 .product(name: "TunnelStatus", package: "ServicesMutual")

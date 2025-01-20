@@ -61,4 +61,7 @@ public struct NymColor {
 
     // MARK: - Rebranding -
     public static let textCTA = Color(.textCTA)
+
+    // MARK: - No Internet -
+    public static let noInternet = Color(.noInternetRed)
 }

@@ -146,7 +146,10 @@ private extension SantasView {
                 .foregroundStyle(NymColor.primaryOrange)
                 .bold()
                 .padding(4)
-
+#if os(macOS)
+            Text("⚠️ Please restart daemon after switching the env ⚠️")
+                .padding(4)
+#endif
             HStack {
                 ForEach(viewModel.envs, id: \.self) { env in
                     Button(env.rawValue) {

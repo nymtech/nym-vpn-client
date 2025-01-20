@@ -53,7 +53,7 @@ let package = Package(
             name: "HelperManager",
             dependencies: [
                 "Shell",
-                "Theme"
+                .product(name: "Theme", package: "Theme")
             ],
             path: "Sources/HelperManager"
         ),

@@ -34,7 +34,7 @@ public final class Migrations {
 private extension Migrations {
     func migrateToMainnet() {
         guard appSettings.currentEnv != "mainnet",
-              !configurationManager.isTestFlight
+              configurationManager.isSantaClaus
         else {
             return
         }

@@ -14,10 +14,12 @@ let package = Package(
         .library(name: "AppVersionProvider", targets: ["AppVersionProvider"]),
         .library(name: "ConnectionTypes", targets: ["ConnectionTypes"]),
         .library(name: "CountriesManagerTypes", targets: ["CountriesManagerTypes"]),
+        .library(name: "ErrorReason", targets: ["ErrorReason"]),
         .library(name: "SystemMessageModels", targets: ["SystemMessageModels"]),
         .library(name: "TunnelStatus", targets: ["TunnelStatus"])
     ],
     dependencies: [
+        .package(name: "MixnetLibrary", path: "../MixnetLibrary"),
         .package(name: "Theme", path: "../Theme")
     ],
     targets: [
@@ -39,6 +41,14 @@ let package = Package(
             dependencies: [
             ],
             path: "Sources/CountriesManagerTypes"
+        ),
+        .target(
+            name: "ErrorReason",
+            dependencies: [
+                .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
+                "Theme"
+            ],
+            path: "Sources/ErrorReason"
         ),
         .target(
             name: "SystemMessageModels",

@@ -12,7 +12,7 @@ public struct GatewayCellButtonViewModel {
             switch self {
             case let .fastest(country), let .country(country):
                 country
-            case let .gateway(identifier):
+            case .gateway:
                 nil
             }
         }

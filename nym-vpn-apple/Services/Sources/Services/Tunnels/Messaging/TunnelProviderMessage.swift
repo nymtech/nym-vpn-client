@@ -1,7 +1,7 @@
 import Foundation
 
 public enum TunnelProviderMessage: Codable {
-    case lastErrorReason
+    case status
 
     public init(messageData: Data) throws {
         self = try JSONDecoder().decode(Self.self, from: messageData)
