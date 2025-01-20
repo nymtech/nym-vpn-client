@@ -4,5 +4,6 @@ pub mod error;
 pub mod feature_flags;
 pub mod ready_to_connect;
 pub mod system_message;
+pub mod tunnel;
 mod version_check;
 pub mod vpnd_status;
