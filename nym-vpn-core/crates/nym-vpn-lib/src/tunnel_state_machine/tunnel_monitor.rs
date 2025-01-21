@@ -36,8 +36,8 @@ use super::{
     Error, NymConfig, Result, TunnelSettings,
 };
 use nym_vpn_lib_types::{
-    ConnectionData, ErrorStateReason, MixnetConnectionData, MixnetEvent, TunnelConnectionData,
-    TunnelType, WireguardConnectionData, WireguardNode,
+    ConnectionData, ErrorStateReason, Gateway, MixnetConnectionData, MixnetEvent,
+    TunnelConnectionData, TunnelType, WireguardConnectionData, WireguardNode,
 };
 
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -331,8 +331,8 @@ impl TunnelMonitor {
         };
 
         let conn_data = ConnectionData {
-            entry_gateway: selected_gateways.entry.identity().to_base58_string(),
-            exit_gateway: selected_gateways.exit.identity().to_base58_string(),
+            entry_gateway: Gateway::from(*selected_gateways.entry),
+            exit_gateway: Gateway::from(*selected_gateways.exit),
             connected_at: None,
             tunnel: tunnel_conn_data,
         };

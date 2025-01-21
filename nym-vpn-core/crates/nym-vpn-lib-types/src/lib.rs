@@ -8,7 +8,7 @@ mod tunnel_event;
 mod tunnel_state;
 
 pub use connection_data::{
-    ConnectionData, MixnetConnectionData, TunnelConnectionData, WireguardConnectionData,
+    ConnectionData, Gateway, MixnetConnectionData, TunnelConnectionData, WireguardConnectionData,
     WireguardNode,
 };
 pub use tunnel_event::{
