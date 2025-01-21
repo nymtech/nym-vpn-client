@@ -1,0 +1,2 @@
+-keep class net.nymtech.connectivity.** { *; }
+-keep class net.nymtech.vpn.backend.** { *; }

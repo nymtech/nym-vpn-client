@@ -21,10 +21,7 @@ android {
 		release {
 			isMinifyEnabled = true
 			vcsInfo.include = false
-			proguardFiles(
-				getDefaultProguardFile("proguard-android-optimize.txt"),
-				"proguard-rules.pro",
-			)
+			proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
 		}
 		create(Constants.PRERELEASE) {
 			initWith(buildTypes.getByName(Constants.RELEASE))
