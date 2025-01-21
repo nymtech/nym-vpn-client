@@ -3,8 +3,9 @@ use time::OffsetDateTime;
 use ts_rs::TS;
 
 use nym_vpn_proto as p;
+use p::tunnel_state::{ActionAfterDisconnect, ErrorStateReason, State};
 
-#[derive(Serialize, Clone, Debug, TS)]
+#[derive(Serialize, Clone, Debug, PartialEq, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct WgNode {
@@ -14,7 +15,7 @@ pub struct WgNode {
     pub private_ipv6: String,
 }
 
-#[derive(Serialize, Clone, Debug, TS)]
+#[derive(Serialize, Clone, Debug, PartialEq, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct MixnetData {
@@ -24,7 +25,7 @@ pub struct MixnetData {
     pub ipv6: String,
 }
 
-#[derive(Serialize, Clone, Debug, TS)]
+#[derive(Serialize, Clone, Debug, PartialEq, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct WireguardData {
@@ -32,7 +33,7 @@ pub struct WireguardData {
     pub exit: WgNode,
 }
 
-#[derive(Serialize, Clone, Debug, TS)]
+#[derive(Serialize, Clone, Debug, PartialEq, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 #[serde(tag = "type")]
@@ -41,7 +42,7 @@ pub enum TunnelData {
     Wireguard(WireguardData),
 }
 
-#[derive(Serialize, Clone, Debug, TS)]
+#[derive(Serialize, Clone, PartialEq, Debug, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct Tunnel {
@@ -49,6 +50,21 @@ pub struct Tunnel {
     pub exit_gw_id: String,
     pub connected_at: Option<i64>,
     pub data: TunnelData,
+}
+
+#[derive(Default, Debug, Clone, Serialize, PartialEq, TS, strum::Display)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub enum TunnelState {
+    #[default]
+    Disconnected,
+    Connected(Tunnel),
+    Connecting(Option<Tunnel>),
+    Disconnecting(Option<TunnelAction>),
+    Error(TunnelError),
+    Offline {
+        reconnect: bool,
+    },
 }
 
 impl From<&p::WireguardNode> for WgNode {
@@ -145,5 +161,105 @@ impl TryFrom<&p::ConnectionData> for Tunnel {
                 .ok_or("missing tunnel data")?
                 .try_into()?,
         })
+    }
+}
+
+impl TunnelState {
+    pub fn from_proto(tunnel: &State) -> Result<TunnelState, &str> {
+        Ok(match tunnel {
+            State::Disconnected(_empty) => TunnelState::Disconnected,
+            State::Connecting(c) => {
+                let tunnel = c
+                    .connection_data
+                    .as_ref()
+                    .map(Tunnel::try_from)
+                    .transpose()?;
+                TunnelState::Connecting(tunnel)
+            }
+            State::Connected(c) => {
+                let tunnel = c
+                    .connection_data
+                    .as_ref()
+                    .map(Tunnel::try_from)
+                    .transpose()?
+                    .ok_or("missing tunnel data")?;
+                TunnelState::Connected(tunnel)
+            }
+            State::Disconnecting(action) => {
+                TunnelState::Disconnecting(TunnelAction::from_proto(action.after_disconnect()))
+            }
+            State::Error(e) => TunnelState::Error(e.reason().into()),
+            State::Offline(o) => TunnelState::Offline {
+                reconnect: o.reconnect,
+            },
+        })
+    }
+}
+
+#[derive(Serialize, Clone, Debug, PartialEq, TS)]
+#[ts(export)]
+#[serde(rename_all = "kebab-case")]
+pub enum TunnelError {
+    Internal,
+    Firewall,
+    Routing,
+    Dns,
+    TunDevice,
+    TunnelProvider,
+    SameEntryAndExitGw,
+    InvalidEntryGwCountry,
+    InvalidExitGwCountry,
+    BadBandwidthIncrease,
+    DuplicateTunFd,
+}
+
+#[derive(Serialize, Clone, Debug, PartialEq, TS)]
+#[ts(export)]
+#[serde(rename_all = "kebab-case")]
+pub enum TunnelAction {
+    Error,
+    Reconnect,
+    Offline,
+}
+
+impl TunnelAction {
+    fn from_proto(action: ActionAfterDisconnect) -> Option<Self> {
+        let action: OptionalTunnelAction = action.into();
+        match action {
+            OptionalTunnelAction(Some(action)) => Some(action),
+            _ => None,
+        }
+    }
+}
+
+// trick to bypass Rust's coherence/orphan Rule (:
+pub struct OptionalTunnelAction(Option<TunnelAction>);
+
+impl From<ActionAfterDisconnect> for OptionalTunnelAction {
+    fn from(action: ActionAfterDisconnect) -> Self {
+        match action {
+            ActionAfterDisconnect::Error => OptionalTunnelAction(Some(TunnelAction::Error)),
+            ActionAfterDisconnect::Reconnect => OptionalTunnelAction(Some(TunnelAction::Reconnect)),
+            ActionAfterDisconnect::Offline => OptionalTunnelAction(Some(TunnelAction::Offline)),
+            _ => OptionalTunnelAction(None),
+        }
+    }
+}
+
+impl From<ErrorStateReason> for TunnelError {
+    fn from(reason: ErrorStateReason) -> Self {
+        match reason {
+            ErrorStateReason::Internal => TunnelError::Internal,
+            ErrorStateReason::Firewall => TunnelError::Firewall,
+            ErrorStateReason::Routing => TunnelError::Routing,
+            ErrorStateReason::Dns => TunnelError::Dns,
+            ErrorStateReason::TunDevice => TunnelError::TunDevice,
+            ErrorStateReason::TunnelProvider => TunnelError::TunnelProvider,
+            ErrorStateReason::SameEntryAndExitGateway => TunnelError::SameEntryAndExitGw,
+            ErrorStateReason::InvalidEntryGatewayCountry => TunnelError::InvalidEntryGwCountry,
+            ErrorStateReason::InvalidExitGatewayCountry => TunnelError::InvalidExitGwCountry,
+            ErrorStateReason::BadBandwidthIncrease => TunnelError::BadBandwidthIncrease,
+            ErrorStateReason::DuplicateTunFd => TunnelError::DuplicateTunFd,
+        }
     }
 }
