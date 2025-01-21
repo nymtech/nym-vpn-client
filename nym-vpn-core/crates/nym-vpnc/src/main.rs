@@ -273,9 +273,6 @@ async fn listen_until_disconnected(opts: CliOptions) -> Result<()> {
         .await?
         .into_inner();
 
-    let re = stream.message().await;
-    println!("{:?}", re);
-
     while let Some(new_state) = stream.message().await? {
         let new_state = TunnelState::try_from(new_state)?;
         println!("{}", new_state);
