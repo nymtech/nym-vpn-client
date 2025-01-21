@@ -8,11 +8,12 @@
     "desc": "aplica-se ao reiniciar a aplicação"
   },
   "support": {
-    "title": "Suporte",
+    "title": "Suporte e feedback",
     "faq": "Verificar as FAQ",
     "discord": "Junte-se a nós no Discord",
     "github": "Abra uma issue no GitHub",
-    "matrix": "Junte-se a nós no Matrix"
+    "matrix": "Junte-se a nós no Matrix",
+    "get-in-touch": "Entrar em contacto"
   },
   "legal": {
     "title": "Legal",
@@ -27,7 +28,7 @@
     "title": "Logs",
     "desc": "Copiar ou apagar registos"
   },
-  "login-button": "Iniciar sessão",
+  "login-button": "Ligar o dispositivo",
   "notifications": {
     "title": "Notificações no ambiente de trabalho"
   },
@@ -36,7 +37,7 @@
   "display-theme": "Modo de visualização",
   "quit": "Sair da NymVPN",
   "info": {
-    "client-version": "Versão cliente",
+    "client-version": "Versão da aplicação",
     "daemon-version": "Versão do daemon",
     "network-name": "Rede",
     "account-id": "ID da conta",
@@ -44,6 +45,6 @@
   },
   "logout-confirmation": {
     "title": "Tens a certeza?",
-    "description": "Necessitará da sua frase de recuperação para iniciar sessão novamente."
+    "description": "Necessitará do seu código de acesso para voltar a ligar o dispositivo."
   }
 }
