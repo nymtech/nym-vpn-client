@@ -257,8 +257,7 @@ where
                 self.queue_command(AccountCommand::RequestZkNym(None));
             }
             not_ready => {
-                // TODO: turn down to trace
-                tracing::info!("Not trying to request zk-nym: {not_ready}");
+                tracing::debug!("Not trying to request zk-nym: {not_ready}");
             }
         }
     }
@@ -832,6 +831,7 @@ where
     }
 
     pub async fn run(mut self) {
+        tracing::info!("Account controller initialized successfully");
         self.print_info().await;
 
         // Timer to check if any command tasks have finished. This just needs to be something small
