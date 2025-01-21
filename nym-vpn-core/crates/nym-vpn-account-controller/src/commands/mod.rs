@@ -153,25 +153,13 @@ impl From<nym_vpn_api_client::response::NymErrorResponse> for VpnApiEndpointFail
     }
 }
 
-impl TryFrom<&nym_vpn_api_client::VpnApiClientError> for VpnApiEndpointFailure {
-    type Error = String;
-
-    fn try_from(response: &nym_vpn_api_client::VpnApiClientError) -> Result<Self, Self::Error> {
-        match nym_vpn_api_client::response::extract_error_response(response) {
-            Some(response) => Ok(VpnApiEndpointFailure::from(response)),
-            None => Err("failed to extract error response".to_string()),
-        }
-    }
-}
-
 impl TryFrom<nym_vpn_api_client::VpnApiClientError> for VpnApiEndpointFailure {
-    type Error = String;
+    type Error = nym_vpn_api_client::VpnApiClientError;
 
     fn try_from(response: nym_vpn_api_client::VpnApiClientError) -> Result<Self, Self::Error> {
-        match nym_vpn_api_client::response::extract_error_response(&response) {
-            Some(response) => Ok(VpnApiEndpointFailure::from(response)),
-            None => Err("failed to extract error response".to_string()),
-        }
+        nym_vpn_api_client::response::extract_error_response(&response)
+            .map(VpnApiEndpointFailure::from)
+            .ok_or(response)
     }
 }
 

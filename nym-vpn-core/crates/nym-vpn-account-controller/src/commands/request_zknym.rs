@@ -66,12 +66,15 @@ impl CachedData {
             let issuers = vpn_api_client
                 .get_directory_zk_nyms_ticketbook_partial_verification_keys()
                 .await
-                .map_err(|err| match VpnApiEndpointFailure::try_from(&err) {
-                    Ok(source) => RequestZkNymError::GetPartialVerificationKeysEndpointFailure {
-                        source,
-                        epoch_id,
-                    },
-                    Err(_) => RequestZkNymError::unexpected_response(err),
+                .map_err(|err| {
+                    VpnApiEndpointFailure::try_from(err)
+                        .map(|source| {
+                            RequestZkNymError::GetPartialVerificationKeysEndpointFailure {
+                                source,
+                                epoch_id,
+                            }
+                        })
+                        .unwrap_or_else(RequestZkNymError::unexpected_response)
                 })?;
 
             if issuers.epoch_id != epoch_id {
@@ -300,13 +303,13 @@ impl RequestZkNymCommandHandler {
             .await
             .map(|response| response.items.into_iter().map(|item| item.id).collect())
             .map_err(|err| {
-                VpnApiEndpointFailure::try_from(&err)
+                VpnApiEndpointFailure::try_from(err)
                     .map(
                         |source| RequestZkNymError::GetZkNymsAvailableForDownloadEndpointFailure {
                             source,
                         },
                     )
-                    .unwrap_or_else(|_| RequestZkNymError::unexpected_response(err))
+                    .unwrap_or_else(RequestZkNymError::unexpected_response)
             })
     }
 
@@ -474,12 +477,12 @@ async fn send_request_zk_nym(
         )
         .await
         .map_err(|err| {
-            VpnApiEndpointFailure::try_from(&err)
+            VpnApiEndpointFailure::try_from(err)
                 .map(|source| RequestZkNymError::RequestZkNymEndpointFailure {
                     source,
                     ticket_type: request.ticketbook_type.to_string(),
                 })
-                .unwrap_or_else(|_| RequestZkNymError::unexpected_response(err))
+                .unwrap_or_else(RequestZkNymError::unexpected_response)
         })
         .inspect(|response| tracing::info!("Successful zk-nym request: {}", response.id))
 }
@@ -545,12 +548,9 @@ async fn poll_zk_nym(
                 }
             }
             Err(error) => {
-                return Err(VpnApiEndpointFailure::try_from(&error)
-                    .map(|source| RequestZkNymError::PollZkNymEndpointFailure {
-                        source,
-                        ticket_type: "".to_string(),
-                    })
-                    .unwrap_or_else(|_| RequestZkNymError::unexpected_response(error)));
+                return Err(VpnApiEndpointFailure::try_from(error)
+                    .map(|source| RequestZkNymError::PollZkNymEndpointFailure { source })
+                    .unwrap_or_else(RequestZkNymError::unexpected_response));
             }
         }
     }
@@ -878,14 +878,14 @@ async fn confirm_zk_nym_downloaded(
         .confirm_zk_nym_download_by_id(account, device, id)
         .await
         .map_err(|err| {
-            VpnApiEndpointFailure::try_from(&err)
+            VpnApiEndpointFailure::try_from(err)
                 .map(
                     |source| RequestZkNymError::ConfirmZkNymDownloadEndpointFailure {
                         source,
                         id: id.to_string(),
                     },
                 )
-                .unwrap_or_else(|_| RequestZkNymError::unexpected_response(err))
+                .unwrap_or_else(RequestZkNymError::unexpected_response)
         })
         .inspect(|response| tracing::debug!("Confirmed zk-nym download: {}", response))
 }
@@ -953,11 +953,8 @@ pub enum RequestZkNymError {
     #[error("ticket type mismatch")]
     TicketTypeMismatch,
 
-    #[error("error polling for zknym result for ticket type {ticket_type}: {source}")]
-    PollZkNymEndpointFailure {
-        ticket_type: String,
-        source: VpnApiEndpointFailure,
-    },
+    #[error("error polling for zknym result: {source}")]
+    PollZkNymEndpointFailure { source: VpnApiEndpointFailure },
 
     #[error("polling task failed")]
     PollingTaskError,
@@ -1051,10 +1048,7 @@ impl RequestZkNymError {
                 source,
                 ticket_type: _,
             }
-            | RequestZkNymError::PollZkNymEndpointFailure {
-                source,
-                ticket_type: _,
-            } => source.message.clone(),
+            | RequestZkNymError::PollZkNymEndpointFailure { source } => source.message.clone(),
             other => other.to_string(),
         }
     }
@@ -1065,10 +1059,7 @@ impl RequestZkNymError {
                 source,
                 ticket_type: _,
             }
-            | RequestZkNymError::PollZkNymEndpointFailure {
-                source,
-                ticket_type: _,
-            } => source.message_id.clone(),
+            | RequestZkNymError::PollZkNymEndpointFailure { source } => source.message_id.clone(),
             _ => None,
         }
     }
@@ -1076,10 +1067,6 @@ impl RequestZkNymError {
     pub fn ticket_type(&self) -> Option<String> {
         match self {
             RequestZkNymError::RequestZkNymEndpointFailure {
-                source: _,
-                ticket_type,
-            }
-            | RequestZkNymError::PollZkNymEndpointFailure {
                 source: _,
                 ticket_type,
             } => Some(ticket_type.clone()),

@@ -240,12 +240,11 @@ impl From<nym_vpn_account_controller::RequestZkNymError> for crate::RequestZkNym
             }
             nym_vpn_account_controller::RequestZkNymError::PollZkNymEndpointFailure {
                 source,
-                ticket_type,
             } => Self {
                 kind: crate::request_zk_nym_error::RequestZkNymErrorType::PollZkNymEndpointFailure
                     as i32,
                 id: None,
-                ticketbook_type: Some(ticket_type),
+                ticketbook_type: None,
                 message: Some(source.message.clone()),
                 message_id: source.message_id.clone(),
             },
