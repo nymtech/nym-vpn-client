@@ -167,18 +167,26 @@ impl PendingCredentialRequestsStorage {
 
 fn set_file_permission_owner_rw<P: AsRef<Path>>(path: P) -> Result<(), std::io::Error> {
     #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        let metadata = std::fs::metadata(&path)?;
-        let mut permissions = metadata.permissions();
-        permissions.set_mode(0o600);
-        std::fs::set_permissions(&path, permissions)
-    }
+    return set_file_permission_owner_rw_unix(path);
 
     #[cfg(windows)]
-    {
-        // TODO
-        tracing::info!("Setting file permissions on Windows is not yet implemented!");
-        Ok(())
-    }
+    return set_file_permission_owner_rw_windows(path);
+
+    #[cfg(not(any(unix, windows)))]
+    tracing::warn!("Setting file permissions is not yet implemented for this platform!");
+}
+
+#[cfg(unix)]
+fn set_file_permission_owner_rw_unix<P: AsRef<Path>>(path: P) -> Result<(), std::io::Error> {
+    use std::os::unix::fs::PermissionsExt;
+    let metadata = std::fs::metadata(&path)?;
+    let mut permissions = metadata.permissions();
+    permissions.set_mode(0o600);
+    std::fs::set_permissions(&path, permissions)
+}
+
+#[cfg(windows)]
+fn set_file_permission_owner_rw_windows<P: AsRef<Path>>(_path: P) -> Result<(), std::io::Error> {
+    tracing::info!("Setting file permissions on Windows is not yet implemented!");
+    Ok(())
 }
