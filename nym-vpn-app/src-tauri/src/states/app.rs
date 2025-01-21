@@ -2,9 +2,10 @@ use nym_vpn_proto::ConnectionStatus;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use time::OffsetDateTime;
-use tracing::error;
+use tracing::{error, instrument};
 use ts_rs::TS;
 
+use crate::grpc::tunnel::{Tunnel, TunnelAction, TunnelError, TunnelState};
 use crate::{
     cli::Cli,
     country::Country,
@@ -13,12 +14,9 @@ use crate::{
     grpc::client::{VpndInfo, VpndStatus},
 };
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS, strum::Display)]
+#[derive(Default, Debug, Clone, Serialize, PartialEq, Eq, TS, strum::Display)]
 #[ts(export)]
 pub enum ConnectionState {
-    // TODO: once the frontend can handle it, include the connection info as part of the connection
-    // state.
-    //Connected(ConnectionInfo),
     Connected,
     #[default]
     Disconnected,
@@ -42,6 +40,7 @@ pub struct AppState {
     pub vpnd_status: VpndStatus,
     pub vpnd_info: Option<VpndInfo>,
     pub state: ConnectionState,
+    pub tunnel: TunnelState,
     pub vpn_mode: VpnMode,
     pub connection_start_time: Option<OffsetDateTime>,
     pub dns_server: Option<String>,
@@ -65,6 +64,16 @@ impl AppState {
             credentials_mode: cli.dev_mode,
             ..Default::default()
         }
+    }
+
+    #[instrument(skip(self, app))]
+    pub async fn update_tunnel(
+        &mut self,
+        app: &tauri::AppHandle,
+        state: TunnelState,
+    ) -> anyhow::Result<()> {
+        self.tunnel = state;
+        Ok(())
     }
 }
 

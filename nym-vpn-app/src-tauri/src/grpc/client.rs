@@ -25,6 +25,7 @@ pub use super::error::VpndError;
 pub use super::feature_flags::FeatureFlags;
 pub use super::ready_to_connect::ReadyToConnect;
 pub use super::system_message::SystemMessage;
+use super::tunnel::TunnelState;
 use super::version_check::VersionCheck;
 pub use super::vpnd_status::{VpndInfo, VpndStatus};
 use crate::cli::Cli;
@@ -292,6 +293,58 @@ impl GrpcClient {
                 status == ConnectionStatus::ConnectionFailed,
             )
             .await?;
+        }
+
+        Ok(())
+    }
+
+    /// Watch tunnel state updates
+    #[instrument(skip_all)]
+    pub async fn watch_tunnel_state(&self, app: &AppHandle) -> Result<()> {
+        let mut vpnd = self.vpnd().await?;
+
+        let request = Request::new(());
+        let mut stream = vpnd
+            .listen_to_tunnel_state_changes(request)
+            .await
+            .inspect_err(|e| {
+                error!("listen_to_tunnel_state_changes failed: {}", e);
+            })?
+            .into_inner();
+
+        let (tx, mut rx) = mpsc::channel(32);
+        tokio::spawn(async move {
+            loop {
+                match stream.message().await {
+                    Ok(Some(update)) => {
+                        tx.send(update).await.unwrap();
+                    }
+                    Ok(None) => {
+                        warn!("listen tunnel state stream closed by the server");
+                        return;
+                    }
+                    Err(e) => {
+                        warn!("listen tunnel state stream get a grpc error: {}", e);
+                    }
+                }
+            }
+        });
+
+        while let Some(state) = rx.recv().await {
+            debug!("tunnel state update (proto-raw) {:?}", state.state);
+            if let Some(s) = state.state {
+                let tunnel = TunnelState::from_proto(&s).map_err(|e| {
+                    error!("failed to parse tunnel state: {}", e);
+                    VpndError::internal("failed to parse tunnel state")
+                })?;
+                info!("tunnel state {}", tunnel);
+                let s_state = app.state::<SharedAppState>();
+                let mut app_state = s_state.lock().await;
+                app_state.update_tunnel(app, tunnel).await?;
+            } else {
+                // this should never happen, right?
+                warn!("no tunnel state data, ignoring…");
+            }
         }
 
         Ok(())

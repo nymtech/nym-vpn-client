@@ -14,12 +14,12 @@ use crate::{
 use nym_vpn_proto::entry_node::EntryNodeEnum;
 use nym_vpn_proto::exit_node::ExitNodeEnum;
 use nym_vpn_proto::{EntryNode, ExitNode, Location};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use tauri::State;
 use tracing::{debug, error, info, instrument, warn};
 use ts_rs::TS;
 
-#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[derive(Debug, Clone, Serialize, TS)]
 #[ts(export)]
 pub struct ConnectionStateResponse {
     state: ConnectionState,
