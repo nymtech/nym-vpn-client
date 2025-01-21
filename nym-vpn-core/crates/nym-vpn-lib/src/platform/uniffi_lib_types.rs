@@ -9,11 +9,11 @@ use nym_vpn_lib_types::{
     ActionAfterDisconnect as CoreActionAfterDisconnect, BandwidthEvent as CoreBandwidthEvent,
     ConnectionData as CoreConnectionData, ConnectionEvent as CoreConnectionEvent,
     ConnectionStatisticsEvent as CoreConnectionStatisticsEvent,
-    ErrorStateReason as CoreErrorStateReason, MixnetConnectionData as CoreMixnetConnectionData,
-    MixnetEvent as CoreMixnetEvent, SphinxPacketRates as CoreSphinxPacketRates,
-    TunnelConnectionData as CoreTunnelConnectionData, TunnelEvent as CoreTunnelEvent,
-    TunnelState as CoreTunnelState, WireguardConnectionData as CoreWireguardConnectionData,
-    WireguardNode as CoreWireguardNode,
+    ErrorStateReason as CoreErrorStateReason, Gateway as CoreGateway,
+    MixnetConnectionData as CoreMixnetConnectionData, MixnetEvent as CoreMixnetEvent,
+    SphinxPacketRates as CoreSphinxPacketRates, TunnelConnectionData as CoreTunnelConnectionData,
+    TunnelEvent as CoreTunnelEvent, TunnelState as CoreTunnelState,
+    WireguardConnectionData as CoreWireguardConnectionData, WireguardNode as CoreWireguardNode,
 };
 use time::OffsetDateTime;
 
@@ -246,9 +246,21 @@ impl From<CoreErrorStateReason> for ErrorStateReason {
 }
 
 #[derive(uniffi::Record)]
+pub struct Gateway {
+    /// Gateway id in base58.
+    pub id: String,
+}
+
+impl From<CoreGateway> for Gateway {
+    fn from(value: CoreGateway) -> Self {
+        Self { id: value.id }
+    }
+}
+
+#[derive(uniffi::Record)]
 pub struct ConnectionData {
-    pub entry_gateway: String,
-    pub exit_gateway: String,
+    pub entry_gateway: Gateway,
+    pub exit_gateway: Gateway,
     pub connected_at: Option<OffsetDateTime>,
     pub tunnel: TunnelConnectionData,
 }
@@ -256,8 +268,8 @@ pub struct ConnectionData {
 impl From<CoreConnectionData> for ConnectionData {
     fn from(value: CoreConnectionData) -> Self {
         Self {
-            entry_gateway: value.entry_gateway,
-            exit_gateway: value.exit_gateway,
+            entry_gateway: Gateway::from(value.entry_gateway),
+            exit_gateway: Gateway::from(value.exit_gateway),
             connected_at: value.connected_at,
             tunnel: TunnelConnectionData::from(value.tunnel),
         }

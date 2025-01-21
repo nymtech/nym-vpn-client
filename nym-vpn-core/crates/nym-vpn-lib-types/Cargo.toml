@@ -12,6 +12,7 @@ license.workspace = true
 nym-type-conversions = [
     "dep:nym-statistics-common",
     "dep:nym-bandwidth-controller",
+    "dep:nym-gateway-directory",
     "dep:nym-wg-gateway-client",
     "dep:nym-connection-monitor",
 ]

@@ -7,7 +7,7 @@ use std::{
 };
 
 use nym_vpn_lib_types::{
-    ActionAfterDisconnect, ConnectionData, ErrorStateReason, MixnetConnectionData,
+    ActionAfterDisconnect, ConnectionData, ErrorStateReason, Gateway, MixnetConnectionData,
     TunnelConnectionData, TunnelState, WireguardConnectionData, WireguardNode,
 };
 
@@ -23,7 +23,8 @@ use crate::{
         Disconnecting as ProtoDisconnecting, Error as ProtoError,
         ErrorStateReason as ProtoErrorStateReason, Offline as ProtoOffline, State as ProtoState,
     },
-    ConnectionData as ProtoConnectionData, MixnetConnectionData as ProtoMixnetConnectionData,
+    ConnectionData as ProtoConnectionData, Gateway as ProtoGateway,
+    MixnetConnectionData as ProtoMixnetConnectionData,
     TunnelConnectionData as ProtoTunnelConnectionData, TunnelState as ProtoTunnelState,
     WireguardConnectionData as ProtoWireguardConnectionData, WireguardNode as ProtoWireguardNode,
 };
@@ -118,12 +119,12 @@ impl TryFrom<ProtoConnectionData> for ConnectionData {
             connected_at,
             entry_gateway: value
                 .entry_gateway
-                .ok_or(ConversionError::NoValueSet("ConnectionData.entry_gateway"))?
-                .id,
+                .map(Gateway::from)
+                .ok_or(ConversionError::NoValueSet("ConnectionData.entry_gateway"))?,
             exit_gateway: value
                 .exit_gateway
-                .ok_or(ConversionError::NoValueSet("ConnectionData.exit_gateway"))?
-                .id,
+                .map(Gateway::from)
+                .ok_or(ConversionError::NoValueSet("ConnectionData.exit_gateway"))?,
             tunnel: TunnelConnectionData::try_from(tunnel_connection_data)?,
         })
     }
@@ -207,6 +208,12 @@ impl TryFrom<ProtoWireguardNode> for WireguardNode {
             private_ipv6: Ipv6Addr::from_str(&value.private_ipv6)
                 .map_err(|e| ConversionError::ParseAddr("WireguardNode.private_ipv6", e))?,
         })
+    }
+}
+
+impl From<ProtoGateway> for Gateway {
+    fn from(value: ProtoGateway) -> Self {
+        Self::new(value.id)
     }
 }
 

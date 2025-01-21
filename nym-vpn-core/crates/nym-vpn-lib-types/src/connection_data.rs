@@ -8,13 +8,32 @@ use std::{
 
 use time::OffsetDateTime;
 
+// Represents the identity of a gateway
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct Gateway {
+    pub id: String,
+}
+
+impl Gateway {
+    pub fn new(id: String) -> Self {
+        Self { id }
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_gateway_directory::Gateway> for Gateway {
+    fn from(value: nym_gateway_directory::Gateway) -> Self {
+        Self::new(value.identity().to_base58_string())
+    }
+}
+
 #[derive(Clone, Eq, PartialEq)]
 pub struct ConnectionData {
-    /// Mixnet entry gateway identity encoded as base58 string.
-    pub entry_gateway: String,
+    /// Mixnet entry gateway.
+    pub entry_gateway: Gateway,
 
-    /// Mixnet exit gateway identity encoded as base58 string.
-    pub exit_gateway: String,
+    /// Mixnet exit gateway.
+    pub exit_gateway: Gateway,
 
     /// When the tunnel was last established.
     /// Set once the tunnel is connected.
