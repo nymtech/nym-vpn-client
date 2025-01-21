@@ -3,13 +3,15 @@ import { Dayjs } from 'dayjs';
 import { StateAction } from '../state';
 import { Country, NodeHop, NodeLocation, ThemeMode, UiTheme } from './common';
 import { AccountLinks, BackendError, ErrorKey, NetworkEnv } from './tauri-ipc';
+import { Tunnel, TunnelError } from './tunnel';
 
-export type ConnectionState =
+export type TunnelState =
   | 'Connected'
   | 'Disconnected'
   | 'Connecting'
   | 'Disconnecting'
-  | 'Unknown';
+  | 'Error'
+  | 'Offline';
 
 export type VpnMode = 'TwoHop' | 'Mixnet';
 
@@ -27,7 +29,9 @@ export type DaemonStatus = 'Ok' | 'NonCompat' | 'NotOk';
 export type AppState = {
   // initial loading phase when the app is starting and fetching data from the backend
   initialized: boolean;
-  state: ConnectionState;
+  state: TunnelState;
+  tunnel?: Tunnel | null;
+  tunnelError?: TunnelError | null;
   daemonStatus: DaemonStatus;
   daemonVersion?: string;
   networkEnv?: NetworkEnv;
@@ -61,16 +65,6 @@ export type AppState = {
   accountLinks?: AccountLinks | null;
   fetchMnCountries: FetchMnCountriesFn;
   fetchWgCountries: FetchWgCountriesFn;
-};
-
-export type ConnectionEvent =
-  | ({ type: 'Update' } & ConnectionEventPayload)
-  | ({ type: 'Failed' } & (BackendError | null));
-
-export type ConnectionEventPayload = {
-  state: ConnectionState;
-  error?: BackendError | null;
-  start_time?: bigint | null; // unix timestamp in seconds
 };
 
 export type ConnectProgressMsg = 'Initializing' | 'InitDone' | 'Canceling';

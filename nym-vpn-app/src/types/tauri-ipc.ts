@@ -1,5 +1,3 @@
-import { ConnectionState } from './app-state';
-
 export type BackendError = {
   message: string;
   key: ErrorKey;
@@ -106,11 +104,6 @@ export type ErrorKey =
   | 'MaxRegisteredDevices';
 
 export type StartupErrorKey = 'StartupOpenDb' | 'StartupOpenDbLocked';
-
-export type ConnectionStateResponse = {
-  state: ConnectionState;
-  error?: BackendError | null;
-};
 
 type VpndOk = { ok: DaemonInfo | null };
 type VpndNonCompat = {

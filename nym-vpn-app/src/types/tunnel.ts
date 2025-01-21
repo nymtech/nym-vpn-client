@@ -9,53 +9,59 @@ export type TunnelStateError = { error: TunnelError };
 export type TunnelOffline = {
   offline: { reconnect: boolean };
 };
-export type TunnelState =
+type TunnelState =
   | 'disconnected'
   | TunnelConnected
   | TunnelConnecting
   | TunnelDisconnecting
   | TunnelStateError
   | TunnelOffline;
+export type TunnelStateIpc = TunnelState;
 
-export function isConnected(state: TunnelState): state is TunnelConnected {
+export function isTunnelConnected(
+  state: TunnelState,
+): state is TunnelConnected {
   return (state as TunnelConnected).connected !== undefined;
 }
 
-export function isConnecting(state: TunnelState): state is TunnelConnecting {
+export function isTunnelConnecting(
+  state: TunnelState,
+): state is TunnelConnecting {
   return (state as TunnelConnecting).connecting !== undefined;
 }
 
-export function isOffline(state: TunnelState): state is TunnelOffline {
+export function isTunnelDisconnecting(
+  state: TunnelState,
+): state is TunnelDisconnecting {
+  return (state as TunnelDisconnecting).disconnecting !== undefined;
+}
+
+export function isTunnelOffline(state: TunnelState): state is TunnelOffline {
   return (state as TunnelOffline).offline !== undefined;
 }
 
-export function isError(state: TunnelState): state is TunnelStateError {
+export function isTunnelError(state: TunnelState): state is TunnelStateError {
   return (state as TunnelStateError).error !== undefined;
 }
 
 export type Tunnel = {
   entryGwId: string;
   exitGwId: string;
-  connectedAt: bigint | null;
+  connectedAt: number | null;
   data: TunnelData;
 };
 
-export type TunnelData =
-  | { mixnet: MixnetData }
-  | {
-      wireguard: WireguardData;
-    };
+export type TunnelData = MixnetData | WireguardData;
 
-export function isMixnetData(data: TunnelData): data is {
-  mixnet: MixnetData;
-} {
-  return (data as { mixnet: MixnetData }).mixnet !== undefined;
+export function isMixnetData(data: TunnelData): data is MixnetData {
+  return (data as MixnetData).nymAddress !== undefined;
 }
 
-export function isWireguardData(data: TunnelData): data is {
-  wireguard: WireguardData;
-} {
-  return (data as { wireguard: WireguardData }).wireguard !== undefined;
+export function isWireguardData(data: TunnelData): data is WireguardData {
+  return (
+    (data as WireguardData).entry !== undefined &&
+    (data as WireguardData).exit !== undefined
+  );
 }
 
 export type TunnelError =

@@ -35,7 +35,7 @@ pub struct WireguardData {
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
 #[ts(export)]
-#[serde(rename_all = "camelCase")]
+#[serde(untagged)]
 pub enum TunnelData {
     Mixnet(MixnetData),
     Wireguard(WireguardData),
