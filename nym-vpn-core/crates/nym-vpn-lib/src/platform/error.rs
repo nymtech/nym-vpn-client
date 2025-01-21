@@ -83,6 +83,9 @@ pub enum VpnError {
 
     #[error("invalid statistics recipient")]
     StatisticsRecipient,
+
+    #[error("failed to remove device from nym vpn api: {details}")]
+    UnregisterDeviceApiClientFailure { details: String },
 }
 
 #[derive(uniffi::Record, Clone, Debug, PartialEq, Eq)]
