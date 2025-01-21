@@ -1,11 +1,11 @@
-use nym_vpn_proto::ConnectionStatus;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use time::OffsetDateTime;
 use tracing::{error, instrument};
 use ts_rs::TS;
 
-use crate::grpc::tunnel::{Tunnel, TunnelAction, TunnelError, TunnelState};
+use crate::events::AppHandleEventEmitter;
+use crate::grpc::tunnel::TunnelState;
 use crate::{
     cli::Cli,
     country::Country,
@@ -13,17 +13,6 @@ use crate::{
     fs::config::AppConfig,
     grpc::client::{VpndInfo, VpndStatus},
 };
-
-#[derive(Default, Debug, Clone, Serialize, PartialEq, Eq, TS, strum::Display)]
-#[ts(export)]
-pub enum ConnectionState {
-    Connected,
-    #[default]
-    Disconnected,
-    Connecting,
-    Disconnecting,
-    Unknown,
-}
 
 #[derive(Default, Debug, Serialize, Deserialize, TS, Clone, PartialEq, Eq)]
 #[ts(export)]
@@ -39,7 +28,6 @@ pub enum VpnMode {
 pub struct AppState {
     pub vpnd_status: VpndStatus,
     pub vpnd_info: Option<VpndInfo>,
-    pub state: ConnectionState,
     pub tunnel: TunnelState,
     pub vpn_mode: VpnMode,
     pub connection_start_time: Option<OffsetDateTime>,
@@ -73,6 +61,7 @@ impl AppState {
         state: TunnelState,
     ) -> anyhow::Result<()> {
         self.tunnel = state;
+        app.emit_tunnel_update(&self.tunnel);
         Ok(())
     }
 }
@@ -91,22 +80,6 @@ impl fmt::Display for NodeLocation {
         match self {
             NodeLocation::Fastest => write!(f, "NodeLocation: Fastest"),
             NodeLocation::Country(country) => write!(f, "NodeLocation: {}", country),
-        }
-    }
-}
-
-impl From<ConnectionStatus> for ConnectionState {
-    fn from(status: ConnectionStatus) -> Self {
-        match status {
-            ConnectionStatus::Connected => ConnectionState::Connected,
-            ConnectionStatus::NotConnected => ConnectionState::Disconnected,
-            ConnectionStatus::Connecting => ConnectionState::Connecting,
-            ConnectionStatus::Disconnecting => ConnectionState::Disconnecting,
-            ConnectionStatus::Unknown => ConnectionState::Unknown,
-            ConnectionStatus::StatusUnspecified => ConnectionState::Unknown,
-            // this variant means "Not connected, but with an error"
-            // so it should be treated as disconnected
-            ConnectionStatus::ConnectionFailed => ConnectionState::Disconnected,
         }
     }
 }
