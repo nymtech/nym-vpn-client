@@ -11,9 +11,10 @@ use nym_vpn_lib_types::{
     ConnectionStatisticsEvent as CoreConnectionStatisticsEvent,
     ErrorStateReason as CoreErrorStateReason, Gateway as CoreGateway,
     MixnetConnectionData as CoreMixnetConnectionData, MixnetEvent as CoreMixnetEvent,
-    SphinxPacketRates as CoreSphinxPacketRates, TunnelConnectionData as CoreTunnelConnectionData,
-    TunnelEvent as CoreTunnelEvent, TunnelState as CoreTunnelState,
-    WireguardConnectionData as CoreWireguardConnectionData, WireguardNode as CoreWireguardNode,
+    NymAddress as CoreNymAddress, SphinxPacketRates as CoreSphinxPacketRates,
+    TunnelConnectionData as CoreTunnelConnectionData, TunnelEvent as CoreTunnelEvent,
+    TunnelState as CoreTunnelState, WireguardConnectionData as CoreWireguardConnectionData,
+    WireguardNode as CoreWireguardNode,
 };
 use time::OffsetDateTime;
 
@@ -258,6 +259,19 @@ impl From<CoreGateway> for Gateway {
 }
 
 #[derive(uniffi::Record)]
+pub struct NymAddress {
+    pub nym_address: String,
+}
+
+impl From<CoreNymAddress> for NymAddress {
+    fn from(value: CoreNymAddress) -> Self {
+        Self {
+            nym_address: value.nym_address,
+        }
+    }
+}
+
+#[derive(uniffi::Record)]
 pub struct ConnectionData {
     pub entry_gateway: Gateway,
     pub exit_gateway: Gateway,
@@ -292,8 +306,8 @@ impl From<CoreTunnelConnectionData> for TunnelConnectionData {
 impl From<CoreMixnetConnectionData> for MixnetConnectionData {
     fn from(value: CoreMixnetConnectionData) -> Self {
         Self {
-            nym_address: value.nym_address,
-            exit_ipr: value.exit_ipr,
+            nym_address: NymAddress::from(value.nym_address),
+            exit_ipr: NymAddress::from(value.exit_ipr),
             ipv4: value.ipv4,
             ipv6: value.ipv6,
         }
@@ -317,8 +331,8 @@ pub enum TunnelConnectionData {
 
 #[derive(uniffi::Record)]
 pub struct MixnetConnectionData {
-    pub nym_address: String,
-    pub exit_ipr: String,
+    pub nym_address: NymAddress,
+    pub exit_ipr: NymAddress,
     pub ipv4: Ipv4Addr,
     pub ipv6: Ipv6Addr,
 }
