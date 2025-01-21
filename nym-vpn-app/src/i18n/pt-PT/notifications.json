@@ -8,5 +8,6 @@
     "success": "Terminar sessão com sucesso",
     "error": "Ocorreu um erro ao terminar a sessão."
   },
-  "daemon-not-compat": "A versão Daemon não é compatível com a versão da aplicação! Versão daemon: {{version}}, esperado: {{required}}. Por favor, actualize a aplicação ou o daemon."
+  "daemon-not-compat": "A versão Daemon não é compatível com a versão da aplicação! Versão daemon: {{version}}, esperado: {{required}}. Por favor, actualize a aplicação ou o daemon.",
+  "copied-to-clipboard": "Copiado para a área de transferência"
 }
