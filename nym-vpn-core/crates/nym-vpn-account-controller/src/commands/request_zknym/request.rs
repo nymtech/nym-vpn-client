@@ -92,6 +92,8 @@ impl RequestZkNymTask {
         )
         .await?;
 
+        // We have successfully requested the zk-nym ticketbook. Now we need to poll the
+        // nym-vpn-api. This is equivalent to resuming an existing request.
         self.resume_request_zk_nym_ticketbook(response.id).await
     }
 
