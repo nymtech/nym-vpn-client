@@ -23,7 +23,9 @@ use crate::{
     AccountCommandError, SharedAccountState,
 };
 
-use super::{cached_data::CachedData, RequestZkNymError, RequestZkNymSuccess};
+use super::{
+    cached_data::CachedData, request::RequestZkNymTask, RequestZkNymError, RequestZkNymSuccess,
+};
 
 // The maximum number of zk-nym requests that can fail in a row before we disable background
 // refresh
@@ -187,22 +189,16 @@ impl RequestZkNymCommandHandler {
     ) -> Vec<Result<RequestZkNymSuccess, RequestZkNymError>> {
         tracing::info!("Requesting zk-nym ticketbooks for: {:?}", ticket_types);
 
-        let account = self.account.clone();
-        let device = self.device.clone();
-        let vpn_api_client = self.vpn_api_client.clone();
-        let credential_storage = self.credential_storage.clone();
-        let cached_data = self.cached_data.clone();
-
         let mut join_set = JoinSet::new();
         for ticket_type in ticket_types {
-            join_set.spawn(super::request::request_zk_nym(
-                ticket_type,
-                account.clone(),
-                device.clone(),
-                vpn_api_client.clone(),
-                credential_storage.clone(),
-                cached_data.clone(),
-            ));
+            let task = RequestZkNymTask::new(
+                self.account.clone(),
+                self.device.clone(),
+                self.vpn_api_client.clone(),
+                self.credential_storage.clone(),
+                self.cached_data.clone(),
+            );
+            join_set.spawn(async move { task.request_zk_nym_ticketbook(ticket_type).await });
         }
         wait_for_join_set(join_set).await
     }
@@ -268,22 +264,17 @@ impl RequestZkNymCommandHandler {
         }
         tracing::info!("Resuming {} zk-nym requests", pending_requests.len());
 
-        let account = self.account.clone();
-        let device = self.device.clone();
-        let vpn_api_client = self.vpn_api_client.clone();
-        let credential_storage = self.credential_storage.clone();
-        let cached_data = self.cached_data.clone();
-
         let mut join_set = JoinSet::new();
         for pending_request in pending_requests {
-            join_set.spawn(super::request::resume_request_zk_nym(
-                pending_request,
-                account.clone(),
-                device.clone(),
-                vpn_api_client.clone(),
-                credential_storage.clone(),
-                cached_data.clone(),
-            ));
+            let task = RequestZkNymTask::new(
+                self.account.clone(),
+                self.device.clone(),
+                self.vpn_api_client.clone(),
+                self.credential_storage.clone(),
+                self.cached_data.clone(),
+            );
+            join_set
+                .spawn(async move { task.resume_request_zk_nym_ticketbook(pending_request).await });
         }
         wait_for_join_set(join_set).await
     }

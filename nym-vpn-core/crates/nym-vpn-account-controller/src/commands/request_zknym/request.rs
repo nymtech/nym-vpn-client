@@ -43,6 +43,62 @@ impl RequestZkNymSuccess {
     }
 }
 
+pub(super) struct RequestZkNymTask {
+    account: VpnApiAccount,
+    device: Device,
+    vpn_api_client: VpnApiClient,
+    credential_storage: VpnCredentialStorage,
+    cached_data: CachedData,
+}
+
+impl RequestZkNymTask {
+    pub(super) fn new(
+        account: VpnApiAccount,
+        device: Device,
+        vpn_api_client: VpnApiClient,
+        credential_storage: VpnCredentialStorage,
+        cached_data: CachedData,
+    ) -> Self {
+        RequestZkNymTask {
+            account,
+            device,
+            vpn_api_client,
+            credential_storage,
+            cached_data,
+        }
+    }
+
+    pub(super) async fn request_zk_nym_ticketbook(
+        &self,
+        ticketbook_type: TicketType,
+    ) -> Result<RequestZkNymSuccess, RequestZkNymError> {
+        request_zk_nym(
+            ticketbook_type,
+            self.account.clone(),
+            self.device.clone(),
+            self.vpn_api_client.clone(),
+            self.credential_storage.clone(),
+            self.cached_data.clone(),
+        )
+        .await
+    }
+
+    pub(super) async fn resume_request_zk_nym_ticketbook(
+        &self,
+        id: ZkNymId,
+    ) -> Result<RequestZkNymSuccess, RequestZkNymError> {
+        resume_request_zk_nym(
+            id,
+            self.account.clone(),
+            self.device.clone(),
+            self.vpn_api_client.clone(),
+            self.credential_storage.clone(),
+            self.cached_data.clone(),
+        )
+        .await
+    }
+}
+
 #[derive(Debug, Clone)]
 struct ZkNymRequestData {
     withdrawal_request: WithdrawalRequest,
@@ -53,7 +109,7 @@ struct ZkNymRequestData {
 }
 
 #[tracing::instrument(skip(account, device, vpn_api_client, credential_storage, cached_data))]
-pub(super) async fn request_zk_nym(
+async fn request_zk_nym(
     ticketbook_type: TicketType,
     account: VpnApiAccount,
     device: Device,
@@ -86,7 +142,7 @@ pub(super) async fn request_zk_nym(
 }
 
 #[tracing::instrument(skip(account, device, vpn_api_client, credential_storage, cached_data))]
-pub(super) async fn resume_request_zk_nym(
+async fn resume_request_zk_nym(
     id: ZkNymId,
     account: VpnApiAccount,
     device: Device,
