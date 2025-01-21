@@ -46,7 +46,6 @@ mod misc;
 mod startup_error;
 mod states;
 mod tray;
-mod vpn_status;
 mod window;
 
 pub const APP_NAME: &str = "NymVPN";
@@ -194,13 +193,12 @@ async fn main() -> Result<()> {
             let handle = app.handle().clone();
             let c_grpc = grpc.clone();
             tokio::spawn(async move {
-                info!("starting vpn status spy");
+                info!("starting vpn tunnel spy");
                 loop {
-                    if c_grpc.refresh_vpn_status(&handle).await.is_ok() {
-                        c_grpc.watch_vpn_state(&handle).await.ok();
-                    }
+                    // TODO once grpc.tunnel_state is ready, make a call here
+                    c_grpc.watch_tunnel_state(&handle).await.ok();
                     sleep(VPND_RETRY_INTERVAL).await;
-                    debug!("vpn status spy retry");
+                    debug!("vpn tunnel spy retry");
                 }
             });
 

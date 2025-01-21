@@ -2,45 +2,27 @@ use crate::country::FASTEST_NODE_LOCATION;
 use crate::db::{Db, Key};
 use crate::error::ErrorKey;
 use crate::grpc::client::{GrpcClient, VpndError};
+use crate::grpc::tunnel::TunnelState;
 use crate::states::app::NodeLocation;
 use crate::{
     error::BackendError,
     events::{AppHandleEventEmitter, ConnectProgressMsg},
-    states::{
-        app::{ConnectionState, VpnMode},
-        SharedAppState,
-    },
+    states::{app::VpnMode, SharedAppState},
 };
 use nym_vpn_proto::entry_node::EntryNodeEnum;
 use nym_vpn_proto::exit_node::ExitNodeEnum;
 use nym_vpn_proto::{EntryNode, ExitNode, Location};
-use serde::Serialize;
 use tauri::State;
 use tracing::{debug, error, info, instrument, warn};
-use ts_rs::TS;
-
-#[derive(Debug, Clone, Serialize, TS)]
-#[ts(export)]
-pub struct ConnectionStateResponse {
-    state: ConnectionState,
-    error: Option<BackendError>,
-}
 
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn get_connection_state(
-    state: State<'_, SharedAppState>,
+    app: tauri::AppHandle,
     grpc: State<'_, GrpcClient>,
-) -> Result<ConnectionStateResponse, BackendError> {
-    let res = grpc.vpn_status().await?;
-    let status = ConnectionState::from(res.status());
-    let mut app_state = state.lock().await;
-    app_state.state = status.clone();
-
-    Ok(ConnectionStateResponse {
-        state: status,
-        error: res.error.map(BackendError::from),
-    })
+) -> Result<TunnelState, BackendError> {
+    let state = grpc.tunnel_state(&app, false).await?;
+    Ok(state)
 }
 
 #[instrument(skip_all)]
@@ -51,19 +33,19 @@ pub async fn connect(
     grpc: State<'_, GrpcClient>,
     entry: NodeLocation,
     exit: NodeLocation,
-) -> Result<ConnectionState, BackendError> {
+) -> Result<TunnelState, BackendError> {
     {
         let mut app_state = state.lock().await;
-        if app_state.state != ConnectionState::Disconnected {
+        if app_state.tunnel != TunnelState::Disconnected {
             return Err(BackendError::internal(
-                &format!("cannot connect from state {:?}", app_state.state),
+                &format!("cannot connect from state {:?}", app_state.tunnel),
                 None,
             ));
         };
 
-        // switch to "Connecting" state
+        // manually switch to "Connecting" state
         debug!("update connection state [Connecting]");
-        app_state.state = ConnectionState::Connecting;
+        app_state.tunnel = TunnelState::Connecting(None);
     }
 
     app.emit_connecting();
@@ -159,12 +141,12 @@ pub async fn connect(
         )
         .await
     {
-        Ok(_) => Ok(ConnectionState::Connecting),
+        Ok(_) => Ok(TunnelState::Connecting(None)),
         Err(vpnd_err) => {
             warn!("grpc vpn_connect: {}", vpnd_err);
             debug!("update connection state [Disconnected]");
             let mut app_state = state.lock().await;
-            app_state.state = ConnectionState::Disconnected;
+            app_state.tunnel = TunnelState::Disconnected;
             drop(app_state);
             match vpnd_err {
                 VpndError::Response(ref e) => {
@@ -188,24 +170,24 @@ pub async fn disconnect(
     app: tauri::AppHandle,
     state: State<'_, SharedAppState>,
     grpc: State<'_, GrpcClient>,
-) -> Result<ConnectionState, BackendError> {
+) -> Result<TunnelState, BackendError> {
     let mut app_state = state.lock().await;
     if matches!(
-        app_state.state,
-        ConnectionState::Disconnected | ConnectionState::Disconnecting
+        app_state.tunnel,
+        TunnelState::Disconnected | TunnelState::Disconnecting(_)
     ) {
         return Err(BackendError::internal(
-            &format!("cannot disconnect from state {:?}", app_state.state),
+            &format!("cannot disconnect from state {}", app_state.tunnel),
             None,
         ));
     };
-    app_state.state = ConnectionState::Disconnecting;
+    app_state.tunnel = TunnelState::Disconnecting(None);
     debug!("update connection state [Disconnecting]");
     drop(app_state);
     app.emit_disconnecting();
 
     grpc.vpn_disconnect().await?;
-    Ok(ConnectionState::Disconnecting)
+    Ok(TunnelState::Disconnecting(None))
 }
 
 #[instrument(skip_all)]
@@ -226,9 +208,11 @@ pub async fn set_vpn_mode(
 ) -> Result<(), BackendError> {
     let mut state = app_state.lock().await;
 
-    if let ConnectionState::Disconnected = state.state {
-    } else {
-        let err_message = format!("cannot change vpn mode from state {:?}", state.state);
+    if matches!(
+        state.tunnel,
+        TunnelState::Connected(_) | TunnelState::Connecting(_) | TunnelState::Disconnecting(_)
+    ) {
+        let err_message = format!("cannot change vpn mode from state {}", state.tunnel);
         error!(err_message);
         return Err(BackendError::internal(&err_message, None));
     }
