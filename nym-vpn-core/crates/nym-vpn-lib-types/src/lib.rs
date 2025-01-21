@@ -8,8 +8,8 @@ mod tunnel_event;
 mod tunnel_state;
 
 pub use connection_data::{
-    ConnectionData, Gateway, MixnetConnectionData, TunnelConnectionData, WireguardConnectionData,
-    WireguardNode,
+    ConnectionData, Gateway, MixnetConnectionData, NymAddress, TunnelConnectionData,
+    WireguardConnectionData, WireguardNode,
 };
 pub use tunnel_event::{
     BandwidthEvent, ConnectionEvent, ConnectionStatisticsEvent, MixnetEvent, SphinxPacketRates,

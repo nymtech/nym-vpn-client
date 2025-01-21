@@ -36,7 +36,7 @@ use super::{
     Error, NymConfig, Result, TunnelSettings,
 };
 use nym_vpn_lib_types::{
-    ConnectionData, ErrorStateReason, Gateway, MixnetConnectionData, MixnetEvent,
+    ConnectionData, ErrorStateReason, Gateway, MixnetConnectionData, MixnetEvent, NymAddress,
     TunnelConnectionData, TunnelType, WireguardConnectionData, WireguardNode,
 };
 
@@ -444,15 +444,8 @@ impl TunnelMonitor {
         }
 
         let tunnel_conn_data = TunnelConnectionData::Mixnet(MixnetConnectionData {
-            nym_address: assigned_addresses
-                .mixnet_client_address
-                .gateway()
-                .to_base58_string(),
-            exit_ipr: assigned_addresses
-                .exit_mix_addresses
-                .0
-                .gateway()
-                .to_base58_string(),
+            nym_address: NymAddress::from(assigned_addresses.mixnet_client_address),
+            exit_ipr: NymAddress::from(assigned_addresses.exit_mix_addresses.0),
             ipv4: assigned_addresses.interface_addresses.ipv4,
             ipv6: assigned_addresses.interface_addresses.ipv6,
         });

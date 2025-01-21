@@ -8,7 +8,7 @@ use std::{
 
 use nym_vpn_lib_types::{
     ActionAfterDisconnect, ConnectionData, ErrorStateReason, Gateway, MixnetConnectionData,
-    TunnelConnectionData, TunnelState, WireguardConnectionData, WireguardNode,
+    NymAddress, TunnelConnectionData, TunnelState, WireguardConnectionData, WireguardNode,
 };
 
 use crate::{
@@ -23,7 +23,7 @@ use crate::{
         Disconnecting as ProtoDisconnecting, Error as ProtoError,
         ErrorStateReason as ProtoErrorStateReason, Offline as ProtoOffline, State as ProtoState,
     },
-    ConnectionData as ProtoConnectionData, Gateway as ProtoGateway,
+    Address as ProtoAddress, ConnectionData as ProtoConnectionData, Gateway as ProtoGateway,
     MixnetConnectionData as ProtoMixnetConnectionData,
     TunnelConnectionData as ProtoTunnelConnectionData, TunnelState as ProtoTunnelState,
     WireguardConnectionData as ProtoWireguardConnectionData, WireguardNode as ProtoWireguardNode,
@@ -158,16 +158,13 @@ impl TryFrom<ProtoMixnetConnectionData> for MixnetConnectionData {
 
     fn try_from(value: ProtoMixnetConnectionData) -> Result<Self> {
         Ok(Self {
-            nym_address: value
-                .nym_address
-                .ok_or(ConversionError::NoValueSet(
-                    "MixnetConnectionData.nym_address",
-                ))?
-                .nym_address,
+            nym_address: value.nym_address.map(NymAddress::from).ok_or(
+                ConversionError::NoValueSet("MixnetConnectionData.nym_address"),
+            )?,
             exit_ipr: value
                 .exit_ipr
-                .ok_or(ConversionError::NoValueSet("MixnetConnectionData.exit_ipr"))?
-                .nym_address,
+                .map(NymAddress::from)
+                .ok_or(ConversionError::NoValueSet("MixnetConnectionData.exit_ipr"))?,
             ipv4: Ipv4Addr::from_str(&value.ipv4)
                 .map_err(|e| ConversionError::ParseAddr("MixnetConnectionData.ipv4", e))?,
             ipv6: Ipv6Addr::from_str(&value.ipv6)
@@ -214,6 +211,12 @@ impl TryFrom<ProtoWireguardNode> for WireguardNode {
 impl From<ProtoGateway> for Gateway {
     fn from(value: ProtoGateway) -> Self {
         Self::new(value.id)
+    }
+}
+
+impl From<ProtoAddress> for NymAddress {
+    fn from(value: ProtoAddress) -> Self {
+        Self::new(value.nym_address)
     }
 }
 
