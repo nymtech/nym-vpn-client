@@ -60,10 +60,35 @@ pub enum TunnelConnectionData {
     Wireguard(WireguardConnectionData),
 }
 
+// Represents a nym-address of the form id.enc@gateway
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct NymAddress {
+    pub nym_address: String,
+}
+
+impl NymAddress {
+    pub fn new(nym_address: String) -> Self {
+        Self { nym_address }
+    }
+}
+
+impl fmt::Display for NymAddress {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.nym_address.fmt(f)
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_gateway_directory::Recipient> for NymAddress {
+    fn from(value: nym_gateway_directory::Recipient) -> Self {
+        Self::new(value.gateway().to_base58_string())
+    }
+}
+
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct MixnetConnectionData {
-    pub nym_address: String,
-    pub exit_ipr: String,
+    pub nym_address: NymAddress,
+    pub exit_ipr: NymAddress,
     pub ipv4: Ipv4Addr,
     pub ipv6: Ipv6Addr,
 }
