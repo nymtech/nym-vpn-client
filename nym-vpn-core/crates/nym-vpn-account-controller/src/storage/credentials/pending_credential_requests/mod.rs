@@ -173,7 +173,10 @@ fn set_file_permission_owner_rw<P: AsRef<Path>>(path: P) -> Result<(), std::io::
     return set_file_permission_owner_rw_windows(path);
 
     #[cfg(not(any(unix, windows)))]
-    tracing::warn!("Setting file permissions is not yet implemented for this platform!");
+    {
+        tracing::warn!("Setting file permissions is not yet implemented for this platform!");
+        Ok(())
+    }
 }
 
 #[cfg(unix)]
