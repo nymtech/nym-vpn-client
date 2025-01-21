@@ -67,6 +67,38 @@ pub enum TunnelState {
     },
 }
 
+impl TunnelState {
+    pub fn from_proto(tunnel: &State) -> Result<TunnelState, &str> {
+        Ok(match tunnel {
+            State::Disconnected(_empty) => TunnelState::Disconnected,
+            State::Connecting(c) => {
+                let tunnel = c
+                    .connection_data
+                    .as_ref()
+                    .map(Tunnel::try_from)
+                    .transpose()?;
+                TunnelState::Connecting(tunnel)
+            }
+            State::Connected(c) => {
+                let tunnel = c
+                    .connection_data
+                    .as_ref()
+                    .map(Tunnel::try_from)
+                    .transpose()?
+                    .ok_or("missing tunnel data")?;
+                TunnelState::Connected(tunnel)
+            }
+            State::Disconnecting(action) => {
+                TunnelState::Disconnecting(TunnelAction::from_proto(action.after_disconnect()))
+            }
+            State::Error(e) => TunnelState::Error(e.reason().into()),
+            State::Offline(o) => TunnelState::Offline {
+                reconnect: o.reconnect,
+            },
+        })
+    }
+}
+
 impl From<&p::WireguardNode> for WgNode {
     fn from(p_data: &p::WireguardNode) -> Self {
         WgNode {
@@ -160,38 +192,6 @@ impl TryFrom<&p::ConnectionData> for Tunnel {
                 .as_ref()
                 .ok_or("missing tunnel data")?
                 .try_into()?,
-        })
-    }
-}
-
-impl TunnelState {
-    pub fn from_proto(tunnel: &State) -> Result<TunnelState, &str> {
-        Ok(match tunnel {
-            State::Disconnected(_empty) => TunnelState::Disconnected,
-            State::Connecting(c) => {
-                let tunnel = c
-                    .connection_data
-                    .as_ref()
-                    .map(Tunnel::try_from)
-                    .transpose()?;
-                TunnelState::Connecting(tunnel)
-            }
-            State::Connected(c) => {
-                let tunnel = c
-                    .connection_data
-                    .as_ref()
-                    .map(Tunnel::try_from)
-                    .transpose()?
-                    .ok_or("missing tunnel data")?;
-                TunnelState::Connected(tunnel)
-            }
-            State::Disconnecting(action) => {
-                TunnelState::Disconnecting(TunnelAction::from_proto(action.after_disconnect()))
-            }
-            State::Error(e) => TunnelState::Error(e.reason().into()),
-            State::Offline(o) => TunnelState::Offline {
-                reconnect: o.reconnect,
-            },
         })
     }
 }

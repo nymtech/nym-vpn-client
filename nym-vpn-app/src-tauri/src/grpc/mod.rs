@@ -1,5 +1,6 @@
 pub mod account_links;
 pub mod client;
+mod connection_update;
 pub mod error;
 pub mod feature_flags;
 pub mod ready_to_connect;

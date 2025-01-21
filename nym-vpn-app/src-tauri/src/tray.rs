@@ -9,13 +9,11 @@ use tauri::{include_image, Manager};
 use tauri::{menu::MenuBuilder, AppHandle};
 use tracing::{debug, error, instrument, trace, warn};
 
+use crate::grpc::tunnel::TunnelState;
 #[cfg(not(target_os = "linux"))]
 use crate::APP_NAME;
 use crate::{
-    grpc::client::GrpcClient,
-    states::{app::ConnectionState, SharedAppState},
-    window::AppWindow,
-    MAIN_WINDOW_LABEL,
+    grpc::client::GrpcClient, states::SharedAppState, window::AppWindow, MAIN_WINDOW_LABEL,
 };
 
 pub const TRAY_ICON_ID: &str = "main";
@@ -58,7 +56,7 @@ fn on_menu_event(app: &AppHandle, event: MenuEvent) {
                 let grpc = c_app.state::<GrpcClient>();
 
                 let app_state = state.lock().await;
-                if let ConnectionState::Connected = app_state.state {
+                if let TunnelState::Connected(_) = app_state.tunnel {
                     drop(app_state);
                     grpc.vpn_disconnect().await.ok();
                 };

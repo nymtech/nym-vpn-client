@@ -11,7 +11,7 @@ use nym_vpn_proto::{
     error::ErrorType as DError, AccountError, ConnectRequestError, GatewayType,
     SetNetworkRequestError,
 };
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use thiserror::Error;
 use tracing::warn;
 use ts_rs::TS;
@@ -20,20 +20,7 @@ use crate::grpc::client::VpndError;
 
 const MAX_REG_DEVICES_ID_PATTERN: &str = "register-device.max-devices-exceeded";
 
-#[derive(Error, Debug, Serialize, Deserialize, TS)]
-#[ts(export)]
-pub enum CmdErrorSource {
-    #[error("daemon error")]
-    DaemonError,
-    #[error("internal error")]
-    InternalError,
-    #[error("caller error")]
-    CallerError,
-    #[error("unknown error")]
-    Unknown,
-}
-
-#[derive(Error, Debug, Serialize, Deserialize, TS, Clone)]
+#[derive(Error, Debug, Serialize, TS, Clone)]
 #[ts(export)]
 /// Generic error type made to be passed to the frontend and
 /// displayed in the UI as localized error message
@@ -133,7 +120,7 @@ impl From<nym_vpn_proto::Error> for BackendError {
 
 /// Enum of the possible specialized errors emitted by the daemon
 /// or the app backend side, to be passed to the UI layer
-#[derive(Debug, Serialize, Deserialize, TS, Clone)]
+#[derive(Debug, Serialize, TS, Clone)]
 #[ts(export)]
 pub enum ErrorKey {
     /// Generic unhandled error
