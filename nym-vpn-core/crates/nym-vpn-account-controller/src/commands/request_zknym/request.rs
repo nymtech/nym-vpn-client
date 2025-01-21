@@ -405,7 +405,7 @@ impl RequestZkNymTask {
 
         let issuers = self
             .cached_data
-            .get_partial_verification_keys(shares.epoch_id, &self.vpn_api_client)
+            .get_partial_verification_keys(shares.epoch_id)
             .await?;
 
         let master_vk = if let Some(stored_master_vk) = self

@@ -10,17 +10,29 @@ use crate::VpnApiEndpointFailure;
 
 use super::RequestZkNymError;
 
-#[derive(Clone, Default)]
+// Generic struct to store cached data during the request process, both between concurrent requests
+// for different types, and between requests for the same type.
+#[derive(Clone)]
 pub struct CachedData {
+    // Cached data
     partial_verification_keys:
         Arc<tokio::sync::Mutex<HashMap<u64, PartialVerificationKeysResponse>>>,
+
+    // nym-vpn-api client used to fetch new data
+    vpn_api_client: VpnApiClient,
 }
 
 impl CachedData {
+    pub fn new(vpn_api_client: VpnApiClient) -> Self {
+        CachedData {
+            partial_verification_keys: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
+            vpn_api_client,
+        }
+    }
+
     pub async fn get_partial_verification_keys(
         &self,
         epoch_id: u64,
-        vpn_api_client: &VpnApiClient,
     ) -> Result<PartialVerificationKeysResponse, RequestZkNymError> {
         // Get the partial verification keys for the given epoch if they exist in the cache.
         // Otherwise fetch it from the API, store it and then return it
@@ -30,7 +42,8 @@ impl CachedData {
             Ok(issuers.clone())
         } else {
             tracing::info!("Fetching partial verification keys for epoch: {epoch_id}");
-            let issuers = vpn_api_client
+            let issuers = self
+                .vpn_api_client
                 .get_directory_zk_nyms_ticketbook_partial_verification_keys()
                 .await
                 .map_err(|err| {

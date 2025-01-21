@@ -52,12 +52,13 @@ impl WaitingRequestZkNymCommandHandler {
         account_state: SharedAccountState,
         vpn_api_client: nym_vpn_api_client::VpnApiClient,
     ) -> Self {
+        let cached_data = CachedData::new(vpn_api_client.clone());
         WaitingRequestZkNymCommandHandler {
             credential_storage,
             account_state,
             vpn_api_client,
             zk_nym_fails_in_a_row: Default::default(),
-            cached_data: Default::default(),
+            cached_data,
         }
     }
 
