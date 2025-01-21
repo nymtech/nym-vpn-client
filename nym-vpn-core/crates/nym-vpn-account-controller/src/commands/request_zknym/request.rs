@@ -44,10 +44,10 @@ impl RequestZkNymSuccess {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct ZkNymRequestData {
+struct ZkNymRequestData {
     withdrawal_request: WithdrawalRequest,
     ecash_pubkey: PublicKeyUser,
-    pub(crate) expiration_date: Date,
+    expiration_date: Date,
     ticketbook_type: TicketType,
     request_info: RequestInfo,
 }
