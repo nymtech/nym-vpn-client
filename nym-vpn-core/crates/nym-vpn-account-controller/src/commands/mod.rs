@@ -11,11 +11,9 @@ pub use register_device::RegisterDeviceError;
 use request_zknym::RequestZkNymSummary;
 pub use request_zknym::{RequestZkNymError, RequestZkNymSuccess};
 
-use std::{collections::HashMap, fmt, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 
-use nym_vpn_api_client::response::{
-    NymErrorResponse, NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnUsage,
-};
+use nym_vpn_api_client::response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnUsage};
 use serde::{Deserialize, Serialize};
 use tokio::sync::oneshot;
 
@@ -176,16 +174,6 @@ impl TryFrom<nym_vpn_api_client::VpnApiClientError> for VpnApiEndpointFailure {
         }
     }
 }
-
-//impl fmt::Display for VpnApiEndpointFailure {
-//    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//        write!(
-//            f,
-//            "message={}, message_id={:?}, code_reference_id={:?}",
-//            self.message, self.message_id, self.code_reference_id
-//        )
-//    }
-//}
 
 #[derive(Debug)]
 pub struct ReturnSender<T> {

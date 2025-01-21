@@ -810,6 +810,9 @@ message RequestZkNymError {
 
     // General credential storage error
     CREDENTIAL_STORAGE = 29;
+
+    // The vpn-api response contained an unexpected error
+    UNEXPECTED_ERROR_RESPONSE = 30;
   }
 
   RequestZkNymErrorType kind = 1;

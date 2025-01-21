@@ -551,25 +551,6 @@ async fn poll_zk_nym(
                         ticket_type: "".to_string(),
                     })
                     .unwrap_or_else(|_| RequestZkNymError::unexpected_response(error)));
-                //return Err(nym_vpn_api_client::response::extract_error_response(&error)
-                //    .map(|e| {
-                //        tracing::warn!(
-                //        "nym-vpn-api reports: message={}, message_id={:?}, code_reference_id={:?}",
-                //        e.message,
-                //        e.message_id,
-                //        e.code_reference_id,
-                //    );
-                //        RequestZkNymError::PollZkNymEndpointFailure {
-                //            endpoint_failure: VpnApiEndpointFailure {
-                //                message_id: e.message_id.clone(),
-                //                message: e.message.clone(),
-                //                code_reference_id: e.code_reference_id.clone(),
-                //            },
-                //            // TODO: remove this field
-                //            ticket_type: "".to_string(),
-                //        }
-                //    })
-                //    .unwrap_or_else(|| RequestZkNymError::internal(error)));
             }
         }
     }
@@ -897,16 +878,14 @@ async fn confirm_zk_nym_downloaded(
         .confirm_zk_nym_download_by_id(account, device, id)
         .await
         .map_err(|err| {
-            nym_vpn_api_client::response::extract_error_response(&err)
-                .map(|e| RequestZkNymError::ConfirmZkNymDownloadEndpointFailure {
-                    source: VpnApiEndpointFailure {
-                        message_id: e.message_id.clone(),
-                        message: e.message.clone(),
-                        code_reference_id: e.code_reference_id.clone(),
+            VpnApiEndpointFailure::try_from(&err)
+                .map(
+                    |source| RequestZkNymError::ConfirmZkNymDownloadEndpointFailure {
+                        source,
+                        id: id.to_string(),
                     },
-                    id: id.to_string(),
-                })
-                .unwrap_or_else(|| RequestZkNymError::internal(err))
+                )
+                .unwrap_or_else(|_| RequestZkNymError::unexpected_response(err))
         })
         .inspect(|response| tracing::debug!("Confirmed zk-nym download: {}", response))
 }
@@ -962,7 +941,7 @@ pub enum RequestZkNymError {
     #[error("failed to construct withdrawal request: {0}")]
     ConstructWithdrawalRequest(String),
 
-    #[error("failed to request zknym endpoint for ticket type: {ticket_type}")]
+    #[error("failed to request zk-nym endpoint for {ticket_type}: {source}")]
     RequestZkNymEndpointFailure {
         ticket_type: String,
         source: VpnApiEndpointFailure,
@@ -974,7 +953,7 @@ pub enum RequestZkNymError {
     #[error("ticket type mismatch")]
     TicketTypeMismatch,
 
-    #[error("error polling for zknym result for ticket type: {ticket_type}")]
+    #[error("error polling for zknym result for ticket type {ticket_type}: {source}")]
     PollZkNymEndpointFailure {
         ticket_type: String,
         source: VpnApiEndpointFailure,
@@ -1005,7 +984,7 @@ pub enum RequestZkNymError {
     #[error("expiration date mismatch")]
     ExpirationDateMismatch,
 
-    #[error("failed to request partial verification keys for epoch {epoch_id}")]
+    #[error("failed to request partial verification keys for epoch {epoch_id}: {source}")]
     GetPartialVerificationKeysEndpointFailure {
         epoch_id: u64,
         source: VpnApiEndpointFailure,
@@ -1035,7 +1014,7 @@ pub enum RequestZkNymError {
     #[error("failed to aggregate wallets: {0}")]
     AggregateWallets(String),
 
-    #[error("failed to confirm zknym download")]
+    #[error("failed to confirm zknym {id} download: {source}")]
     ConfirmZkNymDownloadEndpointFailure {
         id: ZkNymId,
         source: VpnApiEndpointFailure,

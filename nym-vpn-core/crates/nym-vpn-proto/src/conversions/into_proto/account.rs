@@ -185,13 +185,13 @@ impl From<nym_vpn_account_controller::RequestZkNymError> for crate::RequestZkNym
     fn from(error: nym_vpn_account_controller::RequestZkNymError) -> Self {
         match error {
             nym_vpn_account_controller::RequestZkNymError::GetZkNymsAvailableForDownloadEndpointFailure {
-                endpoint_failure,
+                source,
             } => Self {
                 kind: crate::request_zk_nym_error::RequestZkNymErrorType::GetZkNymsAvailableForDownloadEndpointFailure as i32,
                 id: None,
                 ticketbook_type: None,
-                message: Some(endpoint_failure.message.clone()),
-                message_id: endpoint_failure.message_id.clone(),
+                message: Some(source.message.clone()),
+                message_id: source.message_id.clone(),
             },
             nym_vpn_account_controller::RequestZkNymError::CreateEcashKeyPair(err) => Self {
                 kind: crate::request_zk_nym_error::RequestZkNymErrorType::CreateEcashKeyPair as i32,
@@ -209,7 +209,7 @@ impl From<nym_vpn_account_controller::RequestZkNymError> for crate::RequestZkNym
                 message_id: None,
             },
             nym_vpn_account_controller::RequestZkNymError::RequestZkNymEndpointFailure {
-                endpoint_failure,
+                source,
                 ticket_type,
             } => Self {
                 kind:
@@ -217,8 +217,8 @@ impl From<nym_vpn_account_controller::RequestZkNymError> for crate::RequestZkNym
                         as i32,
                 id: None,
                 ticketbook_type: Some(ticket_type),
-                message: Some(endpoint_failure.message.clone()),
-                message_id: endpoint_failure.message_id.clone(),
+                message: Some(source.message.clone()),
+                message_id: source.message_id.clone(),
             },
             nym_vpn_account_controller::RequestZkNymError::InvalidTicketTypeInResponse(err) => Self {
                 kind: crate::request_zk_nym_error::RequestZkNymErrorType::InvalidTicketTypeInResponse
@@ -239,15 +239,15 @@ impl From<nym_vpn_account_controller::RequestZkNymError> for crate::RequestZkNym
                 }
             }
             nym_vpn_account_controller::RequestZkNymError::PollZkNymEndpointFailure {
-                endpoint_failure,
+                source,
                 ticket_type,
             } => Self {
                 kind: crate::request_zk_nym_error::RequestZkNymErrorType::PollZkNymEndpointFailure
                     as i32,
                 id: None,
                 ticketbook_type: Some(ticket_type),
-                message: Some(endpoint_failure.message.clone()),
-                message_id: endpoint_failure.message_id.clone(),
+                message: Some(source.message.clone()),
+                message_id: source.message_id.clone(),
             },
             nym_vpn_account_controller::RequestZkNymError::PollingTaskError => Self {
                 kind: crate::request_zk_nym_error::RequestZkNymErrorType::PollingTaskError as i32,
@@ -306,13 +306,13 @@ impl From<nym_vpn_account_controller::RequestZkNymError> for crate::RequestZkNym
                 message: None,
                 message_id: None,
             },
-            nym_vpn_account_controller::RequestZkNymError::GetPartialVerificationKeysEndpointFailure { endpoint_failure, .. } => {
+            nym_vpn_account_controller::RequestZkNymError::GetPartialVerificationKeysEndpointFailure { source, .. } => {
                 Self {
                     kind: crate::request_zk_nym_error::RequestZkNymErrorType::GetPartialVerificationKeysEndpointFailure as i32,
                     id: None,
                     ticketbook_type: None,
-                    message: Some(endpoint_failure.message.clone()),
-                    message_id: endpoint_failure.message_id.clone(),
+                    message: Some(source.message.clone()),
+                    message_id: source.message_id.clone(),
                 }
             },
             nym_vpn_account_controller::RequestZkNymError::NoMasterVerificationKeyInStorage => Self {
@@ -373,13 +373,13 @@ impl From<nym_vpn_account_controller::RequestZkNymError> for crate::RequestZkNym
                 message: Some(err.to_string()),
                 message_id: None,
             },
-            nym_vpn_account_controller::RequestZkNymError::ConfirmZkNymDownloadEndpointFailure { endpoint_failure, id } => {
+            nym_vpn_account_controller::RequestZkNymError::ConfirmZkNymDownloadEndpointFailure { source, id } => {
                 Self {
                     kind: crate::request_zk_nym_error::RequestZkNymErrorType::ConfirmZkNymDownloadEndpointFailure as i32,
                     id: Some(id.clone()),
                     ticketbook_type: None,
-                    message: Some(endpoint_failure.message.clone()),
-                    message_id: endpoint_failure.message_id.clone(),
+                    message: Some(source.message.clone()),
+                    message_id: source.message_id.clone(),
                 }
             },
             nym_vpn_account_controller::RequestZkNymError::MissingPendingRequest(id) => Self {
@@ -405,6 +405,13 @@ impl From<nym_vpn_account_controller::RequestZkNymError> for crate::RequestZkNym
             },
             nym_vpn_account_controller::RequestZkNymError::Internal(err) => Self {
                 kind: crate::request_zk_nym_error::RequestZkNymErrorType::Internal as i32,
+                id: None,
+                ticketbook_type: None,
+                message: Some(err.to_string()),
+                message_id: None,
+            },
+            nym_vpn_account_controller::RequestZkNymError::UnexpectedErrorResponse(err) => Self {
+                kind: crate::request_zk_nym_error::RequestZkNymErrorType::UnexpectedErrorResponse as i32,
                 id: None,
                 ticketbook_type: None,
                 message: Some(err.to_string()),
