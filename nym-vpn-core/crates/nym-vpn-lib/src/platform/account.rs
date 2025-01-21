@@ -242,8 +242,10 @@ pub(crate) mod raw {
     use std::path::Path;
 
     use super::*;
+    use crate::platform::environment;
     use nym_sdk::mixnet::StoragePaths;
     use nym_vpn_api_client::types::{Device, DeviceStatus};
+    use nym_vpn_api_client::VpnApiClient;
 
     async fn setup_account_storage(
         path: &str,
@@ -326,10 +328,17 @@ pub(crate) mod raw {
         })
     }
 
-    async fn unregister_device_from_api_raw(
-        path: &str,
-        network_env: Network,
-    ) -> Result<(), VpnError> {
+    async fn create_vpn_api_client() -> Result<VpnApiClient, VpnError> {
+        let network_env = environment::current_environment_details().await?;
+        let user_agent = crate::util::construct_user_agent();
+        VpnApiClient::new(network_env.vpn_api_url(), user_agent).map_err(|e| {
+            VpnError::InternalError {
+                details: e.to_string(),
+            }
+        })
+    }
+
+    async fn unregister_device_from_api_raw(path: &str) -> Result<(), VpnError> {
         let account_storage = setup_account_storage(path).await?;
         let device_keys = account_storage
             .load_keys()
@@ -341,14 +350,9 @@ pub(crate) mod raw {
             .await
             .map_err(|_| VpnError::NoAccountStored)?;
         let account = VpnApiAccount::from(mnemonic);
-        let user_agent = crate::util::construct_user_agent();
 
-        let vpn_api_client =
-            nym_vpn_api_client::VpnApiClient::new(network_env.vpn_api_url(), user_agent).map_err(
-                |e| VpnError::InternalError {
-                    details: e.to_string(),
-                },
-            )?;
+        let vpn_api_client = create_vpn_api_client().await?;
+
         vpn_api_client
             .update_device(&account, &device, DeviceStatus::DeleteMe)
             .await
@@ -358,21 +362,15 @@ pub(crate) mod raw {
         Ok(())
     }
 
-    pub(crate) async fn forget_account_raw(path: &str, network: &str) -> Result<(), VpnError> {
+    pub(crate) async fn forget_account_raw(path: &str) -> Result<(), VpnError> {
         tracing::info!("REMOVING ALL ACCOUNT AND DEVICE DATA IN: {path}");
-
-        let network_env = nym_vpn_network_config::Network::fetch(network).map_err(|err| {
-            VpnError::InternalError {
-                details: err.to_string(),
-            }
-        })?;
 
         let path_buf =
             PathBuf::from_str(path).map_err(|err| VpnError::InvalidAccountStoragePath {
                 details: err.to_string(),
             })?;
 
-        unregister_device_from_api_raw(path, network_env).await?;
+        unregister_device_from_api_raw(path).await?;
 
         // First remove the files we own directly
         remove_account_mnemonic_raw(path).await?;
