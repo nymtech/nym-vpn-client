@@ -66,19 +66,12 @@ impl CachedData {
             let issuers = vpn_api_client
                 .get_directory_zk_nyms_ticketbook_partial_verification_keys()
                 .await
-                .map_err(|err| {
-                    nym_vpn_api_client::response::extract_error_response(&err)
-                        .map(
-                            |e| RequestZkNymError::GetPartialVerificationKeysEndpointFailure {
-                                endpoint_failure: VpnApiEndpointFailure {
-                                    message_id: e.message_id.clone(),
-                                    message: e.message.clone(),
-                                    code_reference_id: e.code_reference_id.clone(),
-                                },
-                                epoch_id,
-                            },
-                        )
-                        .unwrap_or_else(|| RequestZkNymError::internal(err))
+                .map_err(|err| match VpnApiEndpointFailure::try_from(&err) {
+                    Ok(source) => RequestZkNymError::GetPartialVerificationKeysEndpointFailure {
+                        source,
+                        epoch_id,
+                    },
+                    Err(_) => RequestZkNymError::unexpected_response(err),
                 })?;
 
             if issuers.epoch_id != epoch_id {
@@ -307,17 +300,13 @@ impl RequestZkNymCommandHandler {
             .await
             .map(|response| response.items.into_iter().map(|item| item.id).collect())
             .map_err(|err| {
-                nym_vpn_api_client::response::extract_error_response(&err)
+                VpnApiEndpointFailure::try_from(&err)
                     .map(
-                        |e| RequestZkNymError::GetZkNymsAvailableForDownloadEndpointFailure {
-                            endpoint_failure: VpnApiEndpointFailure {
-                                message_id: e.message_id.clone(),
-                                message: e.message.clone(),
-                                code_reference_id: e.code_reference_id.clone(),
-                            },
+                        |source| RequestZkNymError::GetZkNymsAvailableForDownloadEndpointFailure {
+                            source,
                         },
                     )
-                    .unwrap_or_else(|| RequestZkNymError::internal(err))
+                    .unwrap_or_else(|_| RequestZkNymError::unexpected_response(err))
             })
     }
 
@@ -485,16 +474,12 @@ async fn send_request_zk_nym(
         )
         .await
         .map_err(|err| {
-            nym_vpn_api_client::response::extract_error_response(&err)
-                .map(|e| RequestZkNymError::RequestZkNymEndpointFailure {
-                    endpoint_failure: VpnApiEndpointFailure {
-                        message_id: e.message_id.clone(),
-                        message: e.message.clone(),
-                        code_reference_id: e.code_reference_id.clone(),
-                    },
+            VpnApiEndpointFailure::try_from(&err)
+                .map(|source| RequestZkNymError::RequestZkNymEndpointFailure {
+                    source,
                     ticket_type: request.ticketbook_type.to_string(),
                 })
-                .unwrap_or_else(|| RequestZkNymError::internal(err))
+                .unwrap_or_else(|_| RequestZkNymError::unexpected_response(err))
         })
         .inspect(|response| tracing::info!("Successful zk-nym request: {}", response.id))
 }
@@ -560,25 +545,31 @@ async fn poll_zk_nym(
                 }
             }
             Err(error) => {
-                return Err(nym_vpn_api_client::response::extract_error_response(&error)
-                    .map(|e| {
-                        tracing::warn!(
-                        "nym-vpn-api reports: message={}, message_id={:?}, code_reference_id={:?}",
-                        e.message,
-                        e.message_id,
-                        e.code_reference_id,
-                    );
-                        RequestZkNymError::PollZkNymEndpointFailure {
-                            endpoint_failure: VpnApiEndpointFailure {
-                                message_id: e.message_id.clone(),
-                                message: e.message.clone(),
-                                code_reference_id: e.code_reference_id.clone(),
-                            },
-                            // TODO: remove this field
-                            ticket_type: "".to_string(),
-                        }
+                return Err(VpnApiEndpointFailure::try_from(&error)
+                    .map(|source| RequestZkNymError::PollZkNymEndpointFailure {
+                        source,
+                        ticket_type: "".to_string(),
                     })
-                    .unwrap_or_else(|| RequestZkNymError::internal(error)));
+                    .unwrap_or_else(|_| RequestZkNymError::unexpected_response(error)));
+                //return Err(nym_vpn_api_client::response::extract_error_response(&error)
+                //    .map(|e| {
+                //        tracing::warn!(
+                //        "nym-vpn-api reports: message={}, message_id={:?}, code_reference_id={:?}",
+                //        e.message,
+                //        e.message_id,
+                //        e.code_reference_id,
+                //    );
+                //        RequestZkNymError::PollZkNymEndpointFailure {
+                //            endpoint_failure: VpnApiEndpointFailure {
+                //                message_id: e.message_id.clone(),
+                //                message: e.message.clone(),
+                //                code_reference_id: e.code_reference_id.clone(),
+                //            },
+                //            // TODO: remove this field
+                //            ticket_type: "".to_string(),
+                //        }
+                //    })
+                //    .unwrap_or_else(|| RequestZkNymError::internal(error)));
             }
         }
     }
@@ -908,7 +899,7 @@ async fn confirm_zk_nym_downloaded(
         .map_err(|err| {
             nym_vpn_api_client::response::extract_error_response(&err)
                 .map(|e| RequestZkNymError::ConfirmZkNymDownloadEndpointFailure {
-                    endpoint_failure: VpnApiEndpointFailure {
+                    source: VpnApiEndpointFailure {
                         message_id: e.message_id.clone(),
                         message: e.message.clone(),
                         code_reference_id: e.code_reference_id.clone(),
@@ -962,10 +953,8 @@ impl RequestZkNymSuccess {
 
 #[derive(Clone, Debug, thiserror::Error, PartialEq, Eq, Serialize, Deserialize)]
 pub enum RequestZkNymError {
-    #[error("failed to get zk-nyms available for download")]
-    GetZkNymsAvailableForDownloadEndpointFailure {
-        endpoint_failure: VpnApiEndpointFailure,
-    },
+    #[error("failed to get zk-nyms available for download: {source}")]
+    GetZkNymsAvailableForDownloadEndpointFailure { source: VpnApiEndpointFailure },
 
     #[error("failed to create ecash keypair: {0}")]
     CreateEcashKeyPair(String),
@@ -975,8 +964,8 @@ pub enum RequestZkNymError {
 
     #[error("failed to request zknym endpoint for ticket type: {ticket_type}")]
     RequestZkNymEndpointFailure {
-        endpoint_failure: VpnApiEndpointFailure,
         ticket_type: String,
+        source: VpnApiEndpointFailure,
     },
 
     #[error("response contains invalid ticketbook type: {0}")]
@@ -987,8 +976,8 @@ pub enum RequestZkNymError {
 
     #[error("error polling for zknym result for ticket type: {ticket_type}")]
     PollZkNymEndpointFailure {
-        endpoint_failure: VpnApiEndpointFailure,
         ticket_type: String,
+        source: VpnApiEndpointFailure,
     },
 
     #[error("polling task failed")]
@@ -1018,8 +1007,8 @@ pub enum RequestZkNymError {
 
     #[error("failed to request partial verification keys for epoch {epoch_id}")]
     GetPartialVerificationKeysEndpointFailure {
-        endpoint_failure: VpnApiEndpointFailure,
         epoch_id: u64,
+        source: VpnApiEndpointFailure,
     },
 
     #[error("no master verification key in storage")]
@@ -1048,8 +1037,8 @@ pub enum RequestZkNymError {
 
     #[error("failed to confirm zknym download")]
     ConfirmZkNymDownloadEndpointFailure {
-        endpoint_failure: VpnApiEndpointFailure,
         id: ZkNymId,
+        source: VpnApiEndpointFailure,
     },
 
     #[error("missing pending request: {0}")]
@@ -1063,6 +1052,9 @@ pub enum RequestZkNymError {
 
     #[error("internal error: {0}")]
     Internal(String),
+
+    #[error("unexpected error response: {0}")]
+    UnexpectedErrorResponse(String),
 }
 
 impl RequestZkNymError {
@@ -1070,16 +1062,20 @@ impl RequestZkNymError {
         RequestZkNymError::Internal(message.to_string())
     }
 
+    pub fn unexpected_response(message: impl ToString) -> Self {
+        RequestZkNymError::UnexpectedErrorResponse(message.to_string())
+    }
+
     pub fn message(&self) -> String {
         match self {
             RequestZkNymError::RequestZkNymEndpointFailure {
-                endpoint_failure,
+                source,
                 ticket_type: _,
             }
             | RequestZkNymError::PollZkNymEndpointFailure {
-                endpoint_failure,
+                source,
                 ticket_type: _,
-            } => endpoint_failure.message.clone(),
+            } => source.message.clone(),
             other => other.to_string(),
         }
     }
@@ -1087,13 +1083,13 @@ impl RequestZkNymError {
     pub fn message_id(&self) -> Option<String> {
         match self {
             RequestZkNymError::RequestZkNymEndpointFailure {
-                endpoint_failure,
+                source,
                 ticket_type: _,
             }
             | RequestZkNymError::PollZkNymEndpointFailure {
-                endpoint_failure,
+                source,
                 ticket_type: _,
-            } => endpoint_failure.message_id.clone(),
+            } => source.message_id.clone(),
             _ => None,
         }
     }
@@ -1101,11 +1097,11 @@ impl RequestZkNymError {
     pub fn ticket_type(&self) -> Option<String> {
         match self {
             RequestZkNymError::RequestZkNymEndpointFailure {
-                endpoint_failure: _,
+                source: _,
                 ticket_type,
             }
             | RequestZkNymError::PollZkNymEndpointFailure {
-                endpoint_failure: _,
+                source: _,
                 ticket_type,
             } => Some(ticket_type.clone()),
             RequestZkNymError::FinishedWithError {

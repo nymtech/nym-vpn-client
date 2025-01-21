@@ -13,7 +13,9 @@ pub use request_zknym::{RequestZkNymError, RequestZkNymSuccess};
 
 use std::{collections::HashMap, fmt, sync::Arc};
 
-use nym_vpn_api_client::response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnUsage};
+use nym_vpn_api_client::response::{
+    NymErrorResponse, NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnUsage,
+};
 use serde::{Deserialize, Serialize};
 use tokio::sync::oneshot;
 
@@ -135,22 +137,55 @@ impl AccountCommandError {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(thiserror::Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[error("nym-vpn-api error: message={message}, message_id={message_id:?}, code_reference_id={code_reference_id:?}")]
 pub struct VpnApiEndpointFailure {
     pub message: String,
     pub message_id: Option<String>,
     pub code_reference_id: Option<String>,
 }
 
-impl fmt::Display for VpnApiEndpointFailure {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "message={}, message_id={:?}, code_reference_id={:?}",
-            self.message, self.message_id, self.code_reference_id
-        )
+impl From<nym_vpn_api_client::response::NymErrorResponse> for VpnApiEndpointFailure {
+    fn from(response: nym_vpn_api_client::response::NymErrorResponse) -> Self {
+        Self {
+            message: response.message,
+            message_id: response.message_id,
+            code_reference_id: response.code_reference_id,
+        }
     }
 }
+
+impl TryFrom<&nym_vpn_api_client::VpnApiClientError> for VpnApiEndpointFailure {
+    type Error = String;
+
+    fn try_from(response: &nym_vpn_api_client::VpnApiClientError) -> Result<Self, Self::Error> {
+        match nym_vpn_api_client::response::extract_error_response(response) {
+            Some(response) => Ok(VpnApiEndpointFailure::from(response)),
+            None => Err("failed to extract error response".to_string()),
+        }
+    }
+}
+
+impl TryFrom<nym_vpn_api_client::VpnApiClientError> for VpnApiEndpointFailure {
+    type Error = String;
+
+    fn try_from(response: nym_vpn_api_client::VpnApiClientError) -> Result<Self, Self::Error> {
+        match nym_vpn_api_client::response::extract_error_response(&response) {
+            Some(response) => Ok(VpnApiEndpointFailure::from(response)),
+            None => Err("failed to extract error response".to_string()),
+        }
+    }
+}
+
+//impl fmt::Display for VpnApiEndpointFailure {
+//    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//        write!(
+//            f,
+//            "message={}, message_id={:?}, code_reference_id={:?}",
+//            self.message, self.message_id, self.code_reference_id
+//        )
+//    }
+//}
 
 #[derive(Debug)]
 pub struct ReturnSender<T> {
