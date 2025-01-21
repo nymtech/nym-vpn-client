@@ -3,51 +3,30 @@ import { listen } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
 import i18n from 'i18next';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
-import dayjs from 'dayjs';
 import {
   AccountLinks,
-  BackendError,
-  ConnectionEvent as ConnectionEventData,
   ProgressEventPayload,
   StateDispatch,
   StatusUpdatePayload,
+  TunnelStateIpc,
   VpndStatus,
+  isTunnelConnected,
+  isTunnelConnecting,
+  isTunnelDisconnecting,
+  isTunnelError,
+  isTunnelOffline,
   isVpndNonCompat,
   isVpndOk,
 } from '../types';
 import {
-  ConnectionEvent,
   DaemonEvent,
-  ErrorEvent,
   ProgressEvent,
   StatusUpdateEvent,
+  TunnelStateEvent,
 } from '../constants';
 import { Notification } from '../contexts';
 import { daemonStatusUpdate } from './helper';
 import { MCache } from '../cache';
-
-function handleError(dispatch: StateDispatch, error?: BackendError | null) {
-  if (!error) {
-    dispatch({ type: 'reset-error' });
-    return;
-  }
-  console.log('received backend error:', error);
-  // TODO remove this dirty hack once switched to the new tunnel API
-  if (
-    error.key === 'CSDaemonInternal' &&
-    error.data?.reason.includes('SameEntryAndExitGateway')
-  ) {
-    dispatch({
-      type: 'set-error',
-      error: {
-        key: 'CStateGwDirSameEntryAndExitGw',
-        message: 'Cannot connect to the same entry and exit gateway',
-      },
-    });
-    return;
-  }
-  dispatch({ type: 'set-error', error });
-}
 
 export function useTauriEvents(
   dispatch: StateDispatch,
@@ -88,51 +67,56 @@ export function useTauriEvents(
   }, [dispatch, push]);
 
   const registerStateListener = useCallback(() => {
-    return listen<ConnectionEventData>(ConnectionEvent, (event) => {
-      if (event.payload.type === 'Failed') {
-        console.log(`received event [${event.event}], connection failed`);
-        handleError(dispatch, event.payload);
+    return listen<TunnelStateIpc>(TunnelStateEvent, (event) => {
+      if (event.payload === 'disconnected') {
+        console.log('tunnel event [disconnected]');
+        dispatch({ type: 'set-tunnel-disconnected' });
         return;
       }
-      console.log(
-        `received event [${event.event}], state: ${event.payload.state}`,
-      );
-      switch (event.payload.state) {
-        case 'Connected':
-          dispatch({
-            type: 'set-connected',
-            startTime:
-              (event.payload.start_time as unknown as number) || dayjs().unix(),
-          });
-          handleError(dispatch, event.payload.error);
-          break;
-        case 'Disconnected':
-          dispatch({ type: 'set-disconnected' });
-          handleError(dispatch, event.payload.error);
-          break;
-        case 'Connecting':
-          dispatch({ type: 'update-connection-state', state: 'Connecting' });
-          handleError(dispatch, event.payload.error);
-          break;
-        case 'Disconnecting':
-          dispatch({ type: 'update-connection-state', state: 'Disconnecting' });
-          handleError(dispatch, event.payload.error);
-          break;
-        case 'Unknown':
-          dispatch({ type: 'update-connection-state', state: 'Unknown' });
-          handleError(dispatch, event.payload.error);
-          break;
+      if (isTunnelConnected(event.payload)) {
+        console.log('tunnel event [connected]');
+        dispatch({
+          type: 'set-tunnel-connected',
+          tunnel: event.payload.connected,
+        });
+        return;
       }
-    });
-  }, [dispatch]);
-
-  const registerErrorListener = useCallback(() => {
-    return listen<BackendError>(ErrorEvent, (event) => {
-      console.info(`received event [${event.event}]`, event.payload);
-      dispatch({
-        type: 'set-error',
-        error: event.payload,
-      });
+      if (isTunnelConnecting(event.payload)) {
+        console.log('tunnel event [connecting]');
+        dispatch({
+          type: 'set-tunnel-connecting',
+          tunnel: event.payload.connecting,
+        });
+        return;
+      }
+      if (isTunnelDisconnecting(event.payload)) {
+        console.log(
+          `tunnel event [disconnecting], action ${event.payload.disconnecting}`,
+        );
+        dispatch({
+          type: 'set-tunnel-disconnecting',
+          action: event.payload.disconnecting,
+        });
+        return;
+      }
+      if (isTunnelOffline(event.payload)) {
+        console.log(
+          `tunnel event [offline], reconnect: ${event.payload.offline.reconnect}`,
+        );
+        dispatch({
+          type: 'set-tunnel-offline',
+          reconnect: event.payload.offline.reconnect,
+        });
+        return;
+      }
+      if (isTunnelError(event.payload)) {
+        console.log(`tunnel event [error] - ${event.payload.error}`);
+        dispatch({
+          type: 'set-tunnel-inerror',
+          error: event.payload.error,
+        });
+        return;
+      }
     });
   }, [dispatch]);
 
@@ -176,7 +160,6 @@ export function useTauriEvents(
   useEffect(() => {
     const unlistenDaemon = registerDaemonListener();
     const unlistenState = registerStateListener();
-    const unlistenError = registerErrorListener();
     const unlistenStatusUpdate = registerStatusUpdateListener();
     const unlistenProgress = registerProgressListener();
     const unlistenThemeChanges = registerThemeChangedListener();
@@ -184,7 +167,6 @@ export function useTauriEvents(
     return () => {
       unlistenDaemon.then((f) => f());
       unlistenState.then((f) => f());
-      unlistenError.then((f) => f());
       unlistenStatusUpdate.then((f) => f());
       unlistenProgress.then((f) => f());
       unlistenThemeChanges.then((f) => f());
@@ -192,7 +174,6 @@ export function useTauriEvents(
   }, [
     registerDaemonListener,
     registerStateListener,
-    registerErrorListener,
     registerStatusUpdateListener,
     registerProgressListener,
     registerThemeChangedListener,

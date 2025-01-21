@@ -75,8 +75,8 @@ function Home() {
         return capFirst(t('stop', { ns: 'glossary' }));
       case 'Disconnecting':
         return null;
-      case 'Unknown':
-        return t('status.unknown');
+      default:
+        return '-';
     }
   }, [state, t]);
 
@@ -89,6 +89,8 @@ function Home() {
       case 'Connected':
       case 'Disconnecting':
         return 'cornflower';
+      default:
+        return 'gray';
     }
   };
 

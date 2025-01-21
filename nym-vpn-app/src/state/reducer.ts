@@ -11,20 +11,23 @@ import {
   AppState,
   CodeDependency,
   ConnectProgressMsg,
-  ConnectionState,
   Country,
   DaemonInfo,
   DaemonStatus,
   NodeHop,
   NodeLocation,
   ThemeMode,
+  Tunnel,
+  TunnelAction,
+  TunnelError,
   UiTheme,
   VpnMode,
 } from '../types';
 
 export type StateAction =
   | { type: 'init-done' }
-  | { type: 'update-connection-state'; state: ConnectionState }
+  | { type: 'set-tunnel'; tunnel: Tunnel }
+  | { type: 'set-tunnel-error'; error: TunnelError }
   | { type: 'set-daemon-status'; status: DaemonStatus }
   | { type: 'set-daemon-info'; info: DaemonInfo }
   | { type: 'set-vpn-mode'; mode: VpnMode }
@@ -34,9 +37,13 @@ export type StateAction =
   | { type: 'connect' }
   | { type: 'disconnect' }
   | { type: 'set-version'; version: string }
-  | { type: 'set-connected'; startTime: number }
+  | { type: 'set-tunnel-connected'; tunnel: Tunnel }
+  | { type: 'set-tunnel-disconnected' }
+  | { type: 'set-tunnel-connecting'; tunnel: Tunnel | null }
+  | { type: 'set-tunnel-disconnecting'; action: TunnelAction | null }
+  | { type: 'set-tunnel-offline'; reconnect: boolean | null }
+  | { type: 'set-tunnel-inerror'; error: TunnelError }
   | { type: 'set-connection-start-time'; startTime?: number | null }
-  | { type: 'set-disconnected' }
   | { type: 'set-auto-connect'; autoConnect: boolean }
   | { type: 'set-monitoring'; monitoring: boolean }
   | { type: 'set-desktop-notifications'; enabled: boolean }
@@ -72,6 +79,8 @@ export type StateAction =
 export const initialState: AppState = {
   initialized: false,
   state: 'Disconnected',
+  tunnel: null,
+  tunnelError: null,
   daemonStatus: 'NotOk',
   version: null,
   vpnMode: DefaultVpnMode,
@@ -179,42 +188,73 @@ export function reducer(state: AppState, action: StateAction): AppState {
         ...state,
         exitCountriesLoading: action.payload.loading,
       };
-    case 'update-connection-state': {
-      if (action.state === state.state) {
-        return state;
-      }
+    case 'set-tunnel':
       return {
         ...state,
-        state: action.state,
+        tunnel: action.tunnel,
       };
-    }
-    case 'connect': {
+    case 'set-tunnel-error':
+      return {
+        ...state,
+        tunnelError: action.error,
+      };
+    case 'connect':
       return { ...state, state: 'Connecting' };
-    }
-    case 'disconnect': {
+    case 'disconnect':
       return { ...state, state: 'Disconnecting' };
-    }
     case 'set-version':
       return {
         ...state,
         version: action.version,
       };
-    case 'set-connected': {
+    case 'set-tunnel-connected':
       return {
         ...state,
         state: 'Connected',
+        tunnel: action.tunnel,
         progressMessages: [],
-        sessionStartDate: dayjs.unix(action.startTime),
+        sessionStartDate: action.tunnel.connectedAt
+          ? dayjs.unix(action.tunnel.connectedAt)
+          : dayjs(),
+        tunnelError: null,
       };
-    }
-    case 'set-disconnected': {
+    case 'set-tunnel-disconnected':
       return {
         ...state,
         state: 'Disconnected',
+        tunnel: null,
         progressMessages: [],
         sessionStartDate: null,
+        tunnelError: null,
       };
-    }
+    case 'set-tunnel-connecting':
+      return {
+        ...state,
+        state: 'Connecting',
+        tunnel: action.tunnel,
+        tunnelError: null,
+      };
+    case 'set-tunnel-disconnecting':
+      return {
+        ...state,
+        state: 'Disconnecting',
+        tunnel: null,
+        tunnelError: null,
+      };
+    case 'set-tunnel-offline':
+      return {
+        ...state,
+        state: 'Offline',
+        // reconnect: action.reconnect,
+        tunnel: null,
+        tunnelError: null,
+      };
+    case 'set-tunnel-inerror':
+      return {
+        ...state,
+        state: 'Error',
+        tunnelError: action.error,
+      };
     case 'set-account':
       return { ...state, account: action.stored };
     case 'set-connection-start-time':
