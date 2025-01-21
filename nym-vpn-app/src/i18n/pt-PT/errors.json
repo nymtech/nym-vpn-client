@@ -82,7 +82,7 @@
     "ping": "O ping do nó de saída falhou para o {{protocol}}tráfego"
   },
   "account": {
-    "invalid-recovery-phrase": "Frase de recuperação inválida",
+    "invalid-recovery-phrase": "Código de acesso inválido",
     "storage": "Erro de backend de armazenamento",
     "is-connected": "Não é possível prosseguir enquanto ligado",
     "update": "Falha na atualização da conta",
@@ -90,7 +90,7 @@
     "register-device": "Falha no registo do dispositivo",
     "no-device-stored": "Nenhuma chave de dispositivo armazenada",
     "maximum-registered-devices": "Falha no registo do dispositivo: o número máximo de dispositivos registados foi atingido",
-    "not-stored": "Nenhuma frase de recuperação de conta armazenada"
+    "not-stored": "Nenhum código de acesso à conta armazenado"
   },
   "zknym": {
     "request-failed": "O pedido de zk-nym falhou"
