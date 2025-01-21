@@ -146,12 +146,7 @@ impl RequestZkNymCommandHandler {
         }
     }
 
-    #[tracing::instrument(
-        skip(self),
-        fields(id = %self.id_str()),
-        ret,
-        err,
-    )]
+    #[tracing::instrument(skip(self), ret, err)]
     async fn request_zk_nyms(&self) -> Result<RequestZkNymSummary, RequestZkNymError> {
         tracing::debug!("Running zk-nym request command handler: {}", self.id);
 

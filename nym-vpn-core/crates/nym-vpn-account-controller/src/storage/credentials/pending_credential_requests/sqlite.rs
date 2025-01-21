@@ -27,7 +27,6 @@ impl SqliteZkNymRequestsStorageManager {
             .await
     }
 
-    #[allow(unused)]
     pub async fn remove_stale(&self, cutoff: OffsetDateTime) -> Result<(), sqlx::Error> {
         let affected = sqlx::query!(
             "DELETE FROM pending_zk_nym_requests WHERE timestamp < ?",
