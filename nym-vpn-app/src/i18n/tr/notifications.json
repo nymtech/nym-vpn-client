@@ -8,5 +8,6 @@
     "success": "Oturum kapatma başarılı",
     "error": "Çıkış yaparken bir hata oluştu"
   },
-  "daemon-not-compat": "Daemon sürümü, uygulama sürümüyle uyumlu değil! Daemon sürümü: {{version}}, beklenen: {{required}}. Lütfen uygulamayı veya daemon'u güncelleyin."
+  "daemon-not-compat": "Daemon sürümü, uygulama sürümüyle uyumlu değil! Daemon sürümü: {{version}}, beklenen: {{required}}. Lütfen uygulamayı veya daemon'u güncelleyin.",
+  "copied-to-clipboard": "Panoya kopyalandı"
 }
