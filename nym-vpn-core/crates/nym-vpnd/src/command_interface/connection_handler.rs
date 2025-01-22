@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use tokio::sync::{mpsc::UnboundedSender, oneshot};
+use tokio::sync::{mpsc::UnboundedSender, oneshot, watch};
 use zeroize::Zeroizing;
 
 use nym_vpn_account_controller::{AccountStateSummary, AvailableTicketbooks, ReadyToConnect};
@@ -101,6 +101,13 @@ impl CommandInterfaceConnectionHandler {
 
     pub(crate) async fn handle_status(&self) -> Result<TunnelState, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::Status, ()).await
+    }
+
+    pub(crate) async fn handle_subscribe_to_tunnel_state(
+        &self,
+    ) -> Result<watch::Receiver<TunnelState>, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::SubscribeToTunnelState, ())
+            .await
     }
 
     pub(crate) async fn handle_list_gateways(

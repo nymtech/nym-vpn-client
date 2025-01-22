@@ -11,7 +11,7 @@ use nym_vpn_network_config::{
 use serde::{Deserialize, Serialize};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use tokio::{
-    sync::{broadcast, mpsc, oneshot},
+    sync::{broadcast, mpsc, oneshot, watch},
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
@@ -61,6 +61,7 @@ pub enum VpnServiceCommand {
     ),
     Disconnect(oneshot::Sender<Result<(), VpnServiceDisconnectError>>, ()),
     Status(oneshot::Sender<TunnelState>, ()),
+    SubscribeToTunnelState(oneshot::Sender<watch::Receiver<TunnelState>>, ()),
     StoreAccount(oneshot::Sender<Result<(), AccountError>>, Zeroizing<String>),
     IsAccountStored(oneshot::Sender<Result<bool, AccountError>>, ()),
     ForgetAccount(oneshot::Sender<Result<(), AccountError>>, ()),
@@ -192,8 +193,8 @@ where
     // Storage backend
     storage: Arc<tokio::sync::Mutex<S>>,
 
-    // Last known tunnel state.
-    tunnel_state: TunnelState,
+    // Last known tunnel state wrapped in a `watch::Sender` that can be used to track tunnel state individually.
+    tunnel_state: watch::Sender<TunnelState>,
 
     // Tunnel state machine handle.
     state_machine_handle: JoinHandle<()>,
@@ -333,7 +334,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             config_file,
             data_dir,
             storage,
-            tunnel_state: TunnelState::Disconnected,
+            tunnel_state: watch::Sender::new(TunnelState::Disconnected),
             state_machine_handle,
             command_sender,
             event_receiver,
@@ -361,7 +362,9 @@ where
 
                     match event {
                         TunnelEvent::NewState(new_state) => {
-                            self.tunnel_state = new_state.clone();
+                            // Replace value even when there are no receivers.
+                            let _ = self.tunnel_state.send_replace(new_state.clone());
+
                             let vpn_state_change = VpnServiceStateChange::from(new_state);
                             if let Err(e) = self.vpn_state_changes_tx.send(vpn_state_change) {
                                 tracing::error!("Failed to send vpn state change: {}", e);
@@ -417,8 +420,12 @@ where
                 let _ = tx.send(result);
             }
             VpnServiceCommand::Status(tx, ()) => {
-                let result = self.handle_status().await;
+                let result = self.handle_status();
                 let _ = tx.send(result);
+            }
+            VpnServiceCommand::SubscribeToTunnelState(tx, ()) => {
+                let rx = self.handle_subscribe_to_tunnel_state();
+                let _ = tx.send(rx);
             }
             VpnServiceCommand::StoreAccount(tx, account) => {
                 let result = self.handle_store_account(account).await;
@@ -698,8 +705,12 @@ where
             })
     }
 
-    async fn handle_status(&self) -> TunnelState {
-        self.tunnel_state.clone()
+    fn handle_status(&self) -> TunnelState {
+        self.tunnel_state.borrow().to_owned()
+    }
+
+    fn handle_subscribe_to_tunnel_state(&self) -> watch::Receiver<TunnelState> {
+        self.tunnel_state.subscribe()
     }
 
     async fn handle_info(&self) -> VpnServiceInfo {
@@ -766,7 +777,7 @@ where
     }
 
     async fn handle_forget_account(&mut self) -> Result<(), AccountError> {
-        if self.tunnel_state != TunnelState::Disconnected {
+        if *self.tunnel_state.borrow() != TunnelState::Disconnected {
             return Err(AccountError::IsConnected);
         }
 
@@ -829,7 +840,7 @@ where
         &mut self,
         seed: Option<[u8; 32]>,
     ) -> Result<(), AccountError> {
-        if self.tunnel_state != TunnelState::Disconnected {
+        if *self.tunnel_state.borrow() != TunnelState::Disconnected {
             return Err(AccountError::IsConnected);
         }
 

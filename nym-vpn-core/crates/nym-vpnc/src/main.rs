@@ -207,20 +207,7 @@ fn handle_connect_failure(error: nym_vpn_proto::ConnectRequestError) -> Result<(
 async fn listen_until_connected_or_failed(opts: CliOptions) -> Result<()> {
     let mut client = vpnd_client::get_client(&opts.client_type).await?;
 
-    let request = tonic::Request::new(());
-    let tunnel_state = TunnelState::try_from(client.vpn_status(request).await?.into_inner())?;
-
-    println!("{}", tunnel_state);
-    if matches!(tunnel_state, TunnelState::Connected { .. }) {
-        return Ok(());
-    }
-
-    let request = tonic::Request::new(());
-    let mut stream = client
-        .listen_to_tunnel_state_changes(request)
-        .await?
-        .into_inner();
-
+    let mut stream = client.listen_to_tunnel_state(()).await?.into_inner();
     while let Some(new_state) = stream.message().await? {
         let new_state = TunnelState::try_from(new_state)?;
         println!("{}", new_state);
@@ -254,29 +241,13 @@ async fn disconnect(opts: CliOptions) -> Result<()> {
 async fn listen_until_disconnected(opts: CliOptions) -> Result<()> {
     let mut client = vpnd_client::get_client(&opts.client_type).await?;
 
-    let request = tonic::Request::new(());
-    let tunnel_state = TunnelState::try_from(client.vpn_status(request).await?.into_inner())?;
-
-    if matches!(tunnel_state, TunnelState::Disconnected) {
-        println!("Disconnected!");
-        return Ok(());
-    } else if matches!(tunnel_state, TunnelState::Error(_)) {
-        println!("Connection failed!");
-        return Ok(());
-    }
-
-    let request = tonic::Request::new(());
-    let mut stream = client
-        .listen_to_tunnel_state_changes(request)
-        .await?
-        .into_inner();
+    let mut stream = client.listen_to_tunnel_state(()).await?.into_inner();
 
     while let Some(new_state) = stream.message().await? {
         let new_state = TunnelState::try_from(new_state)?;
         println!("{}", new_state);
 
-        if matches!(new_state, TunnelState::Disconnected) {
-            println!("Disconnected!");
+        if matches!(new_state, TunnelState::Disconnected | TunnelState::Error(_)) {
             break;
         }
     }
