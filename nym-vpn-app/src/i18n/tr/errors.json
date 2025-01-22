@@ -82,14 +82,17 @@
   },
   "entry-node-routing": "Giriş nodeu trafiği iletmiyor (internet bağlantısı mı kesik?)",
   "account": {
-    "invalid-recovery-phrase": "Geçersiz kurtarma ifadesi",
+    "invalid-recovery-phrase": "Geçersiz erişim kodu",
     "storage": "Depolama arka ucu hatası",
     "maximum-registered-devices": "Cihaz kaydı başarısız oldu: Kayıtlı cihaz sayısı maksimum sınırına ulaştı",
     "is-connected": "Bağlantı varken işlem yapılamıyor",
     "update-device": "Cihaz güncellemesi başarısız oldu",
     "register-device": "Cihaz kaydı başarısız oldu",
-    "not-stored": "Hesap kurtarma ifadesi saklanmamış",
+    "not-stored": "Hesap erişim kodu kaydedilmedi",
     "no-device-stored": "Cihaz anahtarları saklanmamış",
     "update": "Hesap güncellemesi başarısız oldu"
+  },
+  "zknym": {
+    "request-failed": "zk-nym talebi başarısız oldu"
   }
 }
