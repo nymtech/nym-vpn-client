@@ -32,6 +32,20 @@ function handleError(dispatch: StateDispatch, error?: BackendError | null) {
     return;
   }
   console.log('received backend error:', error);
+  // TODO remove this dirty hack once switched to the new tunnel API
+  if (
+    error.key === 'CSDaemonInternal' &&
+    error.data?.reason.includes('SameEntryAndExitGateway')
+  ) {
+    dispatch({
+      type: 'set-error',
+      error: {
+        key: 'CStateGwDirSameEntryAndExitGw',
+        message: 'Cannot connect to the same entry and exit gateway',
+      },
+    });
+    return;
+  }
   dispatch({ type: 'set-error', error });
 }
 
