@@ -51,7 +51,7 @@ async fn main() -> Result<()> {
     match args.command {
         Command::Connect(ref connect_args) => connect(opts, connect_args).await?,
         Command::Disconnect => disconnect(opts).await?,
-        Command::Status => status(opts).await?,
+        Command::Status { listen } => status(listen, opts).await?,
         Command::Info => info(opts.client_type).await?,
         Command::SetNetwork(ref args) => set_network(opts.client_type, args).await?,
         Command::StoreAccount(ref store_args) => store_account(opts, store_args).await?,
@@ -254,12 +254,19 @@ async fn listen_until_disconnected(opts: CliOptions) -> Result<()> {
     Ok(())
 }
 
-async fn status(opts: CliOptions) -> Result<()> {
+async fn status(listen: bool, opts: CliOptions) -> Result<()> {
     let mut client = vpnd_client::get_client(&opts.client_type).await?;
-    let request = tonic::Request::new(());
-    let tunnel_state = TunnelState::try_from(client.vpn_status(request).await?.into_inner())?;
 
-    println!("{}", tunnel_state);
+    if listen {
+        let mut stream = client.listen_to_tunnel_state(()).await?.into_inner();
+        while let Some(new_state) = stream.message().await? {
+            let tunnel_state = TunnelState::try_from(new_state)?;
+            println!("{}", tunnel_state);
+        }
+    } else {
+        let tunnel_state = TunnelState::try_from(client.vpn_status(()).await?.into_inner())?;
+        println!("{}", tunnel_state);
+    }
 
     Ok(())
 }
