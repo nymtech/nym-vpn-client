@@ -211,13 +211,13 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 							textColor = MaterialTheme.colorScheme.onSurfaceVariant,
 						)
 
-					is StateMessage.Error ->
+					is Error ->
 						StatusInfoLabel(
 							message = it.reason.toUserMessage(context),
 							textColor = CustomColors.error,
 						)
 
-					is StateMessage.StartError -> {
+					is StartError -> {
 						StatusInfoLabel(
 							message = it.exception.toUserMessage(context),
 							textColor = CustomColors.error,
@@ -267,19 +267,6 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 				}
 				Column(verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Bottom)) {
 					IconSurfaceButton(
-						leadingIcon = Icons.Outlined.VisibilityOff,
-						title = stringResource(R.string.five_hop_mixnet),
-						description = stringResource(R.string.five_hop_description),
-						onClick = {
-							if (uiState.connectionState == ConnectionState.Disconnected) {
-								viewModel.onFiveHopSelected()
-							} else {
-								snackbar.showMessage(context.getString(R.string.disabled_while_connected))
-							}
-						},
-						selected = appUiState.settings.vpnMode == Tunnel.Mode.FIVE_HOP_MIXNET,
-					)
-					IconSurfaceButton(
 						leadingIcon = Icons.Outlined.Speed,
 						title = stringResource(R.string.two_hop_mixnet),
 						description = stringResource(R.string.two_hop_description),
@@ -291,6 +278,19 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 							}
 						},
 						selected = appUiState.settings.vpnMode == Tunnel.Mode.TWO_HOP_MIXNET,
+					)
+					IconSurfaceButton(
+						leadingIcon = Icons.Outlined.VisibilityOff,
+						title = stringResource(R.string.five_hop_mixnet),
+						description = stringResource(R.string.five_hop_description),
+						onClick = {
+							if (uiState.connectionState == ConnectionState.Disconnected) {
+								viewModel.onFiveHopSelected()
+							} else {
+								snackbar.showMessage(context.getString(R.string.disabled_while_connected))
+							}
+						},
+						selected = appUiState.settings.vpnMode == Tunnel.Mode.FIVE_HOP_MIXNET,
 					)
 				}
 			}
