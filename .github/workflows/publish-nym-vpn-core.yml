@@ -74,6 +74,15 @@ jobs:
           components: rustfmt, clippy
 
       - name: Get nym-vpn-core workspace version
+        id: workspace-version-pre
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: workspace.package.version --entry nym-vpn-core
+
+      - name: Append timestamp if it's a dev version
+        run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version.outputs.output }}
+
+      - name: Get nym-vpn-core workspace version (post-append)
         id: workspace-version
         uses: nicolaiunrein/cargo-get@master
         with:
