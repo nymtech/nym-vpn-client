@@ -1,6 +1,9 @@
 name: build-nym-vpn-core-ios
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/build-nym-vpn-core-ios.yml"
   workflow_call:
     outputs:
       RUST_VERSION:

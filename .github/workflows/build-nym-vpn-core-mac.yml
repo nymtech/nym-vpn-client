@@ -1,5 +1,10 @@
 name: build-nym-vpn-core-mac
-on: [workflow_dispatch, workflow_call]
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/build-nym-vpn-core-mac.yml"
+  workflow_call:
 
 env:
   CARGO_TERM_COLOR: always

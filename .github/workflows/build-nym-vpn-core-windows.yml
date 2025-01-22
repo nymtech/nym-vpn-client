@@ -1,6 +1,9 @@
 name: build-nym-vpn-core-windows
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/build-nym-vpn-core-windows.yml"
   workflow_call:
     outputs:
       RUST_VERSION:
