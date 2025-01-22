@@ -1,6 +1,5 @@
 pub mod account;
 pub mod cli;
-pub mod tunnel;
 pub mod country;
 pub mod daemon;
 pub mod db;
@@ -9,4 +8,5 @@ pub mod env;
 pub mod fs;
 pub mod log;
 pub mod startup;
+pub mod tunnel;
 pub mod window;
