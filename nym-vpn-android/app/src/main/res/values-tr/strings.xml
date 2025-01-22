@@ -195,4 +195,8 @@
     <string name="state_error">"Hatalı bir durum meydana geldi, ancak bu durum olmamalıydı. Lütfen uygulamayı yeniden başlatın ve tekrar deneyin. "</string>
     <string name="connection_failed">Bağlantı başarısız oldu</string>
     <string name="share">Paylaş</string>
+    <string name="offline">İnternet yok</string>
+    <string name="no_internet">Cihazınızın internet bağlantısı yok</string>
+    <string name="waiting_for_connection">Cihaz çevrimiçi olduğunda bağlanacaktır</string>
+    <string name="loading">Yükleniyor</string>
 </resources>
