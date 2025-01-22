@@ -8,6 +8,10 @@ on:
         description: "Tag name for release"
         required: false
         default: nym-vpn-core-nightly
+      publish:
+        type: boolean
+        default: true
+        required: true
   push:
     tags:
       - nym-vpn-core-v[0-9]+.[0-9]+.[0-9]+*
@@ -175,6 +179,7 @@ jobs:
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Publish release
+        if: ${{ inputs.publish == 'true' }}
         run: |
           envsubst < "$GITHUB_WORKSPACE/.github/workflows/$NOTES_FILE" > "$RUNNER_TEMP/release-notes.md"
           gh release create $TAG_NAME ${{ env.PRERELEASE }} \
