@@ -79,6 +79,13 @@ function NetworkModeSelect() {
 
     return [
       {
+        key: 'TwoHop',
+        label: t('fast-mode.title'),
+        desc: t('fast-mode.desc'),
+        disabled: state.state !== 'Disconnected' || loading,
+        icon: (checked) => <span className={iconStyle(checked)}>speed</span>,
+      },
+      {
         key: 'Mixnet',
         label: t('privacy-mode.title'),
         desc: t('privacy-mode.desc'),
@@ -86,13 +93,6 @@ function NetworkModeSelect() {
         icon: (checked) => (
           <span className={iconStyle(checked)}>visibility_off</span>
         ),
-      },
-      {
-        key: 'TwoHop',
-        label: t('fast-mode.title'),
-        desc: t('fast-mode.desc'),
-        disabled: state.state !== 'Disconnected' || loading,
-        icon: (checked) => <span className={iconStyle(checked)}>speed</span>,
       },
     ];
   }, [loading, state.state, t]);

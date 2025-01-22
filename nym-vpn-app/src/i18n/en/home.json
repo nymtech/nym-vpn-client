@@ -19,7 +19,7 @@
     "desc": "Best for payments, emails, messages"
   },
   "fast-mode": {
-    "title": "Fast (WireGuard)",
+    "title": "Fast (WireGuard*)",
     "desc": "Best for browsing, streaming, sharing"
   },
   "last-node-select": {
@@ -36,7 +36,7 @@
   "modes-dialog": {
     "title": "Mode selection",
     "privacy-description": "Enjoy maximum-level privacy by routing your connection through 5 servers via mixnet. Perfect for securely handling payments, emails, and messages.",
-    "fast-description": "Experience maximum speed with 2-server. Perfect for fast browsing, streaming, and file sharing.",
+    "fast-description": "Experience maximum speed with 2-server connectivity. This mode leverages AmneziaWG, a censorship-resistant version of WireGuard, ideal for fast browsing, streaming, and file sharing.",
     "link": "Continue reading"
   }
 }

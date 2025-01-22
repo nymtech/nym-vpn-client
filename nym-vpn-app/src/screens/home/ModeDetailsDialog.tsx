@@ -28,6 +28,15 @@ function ModeDetailsDialog({ isOpen, onClose }: Props) {
       </div>
       <div className="flex flex-col gap-2">
         <div className="flex flex-row items-center text-baltic-sea dark:text-white gap-2">
+          <MsIcon icon="speed" />
+          <h4 className="font-bold">{t('vpn-modes.fast', { ns: 'common' })}</h4>
+        </div>
+        <p className="text-cement-feet dark:text-laughing-jack md:text-nowrap">
+          {t('modes-dialog.fast-description')}
+        </p>
+      </div>
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-row items-center text-baltic-sea dark:text-white gap-2">
           <MsIcon icon="visibility_off" />
           <h4 className="font-bold">
             {t('vpn-modes.privacy', { ns: 'common' })}
@@ -35,15 +44,6 @@ function ModeDetailsDialog({ isOpen, onClose }: Props) {
         </div>
         <p className="text-cement-feet dark:text-laughing-jack md:text-nowrap">
           {t('modes-dialog.privacy-description')}
-        </p>
-      </div>
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-row items-center text-baltic-sea dark:text-white gap-2">
-          <MsIcon icon="speed" />
-          <h4 className="font-bold">{t('vpn-modes.fast', { ns: 'common' })}</h4>
-        </div>
-        <p className="text-cement-feet dark:text-laughing-jack md:text-nowrap">
-          {t('modes-dialog.fast-description')}
         </p>
       </div>
       <Link

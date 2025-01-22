@@ -28,7 +28,7 @@
     "desc": "Pour les paiements, emails et messages"
   },
   "fast-mode": {
-    "title": "Rapide",
+    "title": "Rapide (WireGuard*)",
     "desc": "Pour la navigation, le streaming et les téléchargements"
   },
   "select-mode-label": "Sélectionner le mode",
@@ -36,7 +36,7 @@
     "title": "Sélection de mode",
     "link": "Poursuivre la lecture",
     "privacy-description": "Bénéficiez d'une confidentialité maximale en acheminant votre connexion vers 5 serveurs via le mixnet. Parfait pour traiter en toute sécurité les paiements, les courriels et les messages.",
-    "fast-description": "Profitez d'une vitesse maximale avec 2 serveurs. Parfait pour la navigation rapide, la diffusion en continu et le partage de fichiers."
+    "fast-description": "Profitez d'une vitesse maximale avec 2 serveurs. Ce mode est basé sur AmneziaWG, une version dérivée de WireGuard incluant une protection renforcée contre la censure. Parfait pour la navigation rapide, la diffusion en continu et le partage de fichiers."
   },
   "windows-no-fast-mode": "En raison de la transition du mode rapide vers WireGuard, cette option est temporairement indisponible."
 }
