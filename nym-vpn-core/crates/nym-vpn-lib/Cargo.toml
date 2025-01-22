@@ -85,7 +85,7 @@ nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
 nix = { workspace = true, features = ["socket", "net", "fs"] }
 
 [target.'cfg(windows)'.dependencies]
-windows-sys = { workspace = true, features = ["Win32_NetworkManagement_Ndis"] }
+windows = { workspace = true, features = ["Win32_NetworkManagement_Ndis"] }
 nym-windows.workspace = true
 nym-routing.workspace = true
 nym-dns.workspace = true

@@ -8,14 +8,13 @@ version.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 thiserror.workspace = true
-socket2.workspace = true
 futures.workspace = true
 tokio = { workspace = true, features = ["sync"] }
 tracing.workspace = true
 
 nym-common.workspace = true
 
-[target.'cfg(windows)'.dependencies.windows-sys]
+[target.'cfg(windows)'.dependencies.windows]
 workspace = true
 features = [
     "Win32_Foundation",

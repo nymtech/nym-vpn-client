@@ -40,7 +40,7 @@ winreg = { workspace = true, features = ["transactions"] }
 nym-windows = { workspace = true }
 nym-common = { workspace = true }
 
-[target.'cfg(windows)'.dependencies.windows-sys]
+[target.'cfg(windows)'.dependencies.windows]
 workspace = true
 features = [
     "Win32_Foundation",

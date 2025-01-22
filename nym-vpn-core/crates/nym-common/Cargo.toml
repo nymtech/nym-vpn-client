@@ -13,6 +13,6 @@ tracing.workspace = true
 libc.workspace = true
 thiserror.workspace = true
 
-[target.'cfg(windows)'.dependencies.windows-sys]
+[target.'cfg(windows)'.dependencies.windows]
 workspace = true
 features = ["Win32_Foundation"]

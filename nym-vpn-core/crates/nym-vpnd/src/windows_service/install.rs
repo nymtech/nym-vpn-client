@@ -6,11 +6,11 @@ use std::{
     time::{Duration, Instant},
 };
 
+use windows::Win32::Foundation::ERROR_SERVICE_DOES_NOT_EXIST;
 use windows_service::{
     service::{ServiceAccess, ServiceState},
     service_manager::{ServiceManager, ServiceManagerAccess},
 };
-use windows_sys::Win32::Foundation::ERROR_SERVICE_DOES_NOT_EXIST;
 
 use super::{service::get_service_info, SERVICE_DESCRIPTION, SERVICE_DISPLAY_NAME, SERVICE_NAME};
 
@@ -65,7 +65,7 @@ pub(super) fn uninstall_service() -> windows_service::Result<()> {
         if let Err(windows_service::Error::Winapi(e)) =
             service_manager.open_service(SERVICE_NAME, ServiceAccess::QUERY_STATUS)
         {
-            if e.raw_os_error() == Some(ERROR_SERVICE_DOES_NOT_EXIST as i32) {
+            if e.raw_os_error() == Some(ERROR_SERVICE_DOES_NOT_EXIST.0 as i32) {
                 println!("{} is deleted.", SERVICE_NAME);
                 return Ok(());
             }

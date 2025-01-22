@@ -8,10 +8,7 @@ use super::{
 };
 use crate::NetNode;
 use ipnetwork::IpNetwork;
-use nym_common::win32_err;
-use nym_windows::net::{
-    inet_sockaddr_from_socketaddr, try_socketaddr_from_inet_sockaddr, AddressFamily,
-};
+use nym_windows::net::{try_socketaddr_from_inet_sockaddr, AddressFamily};
 use std::{
     collections::HashMap,
     io,
@@ -19,25 +16,28 @@ use std::{
     sync::{Arc, Mutex},
 };
 use widestring::{WideCStr, WideCString};
-use windows_sys::Win32::{
-    Foundation::{
-        ERROR_BUFFER_OVERFLOW, ERROR_NOT_FOUND, ERROR_NO_DATA, ERROR_OBJECT_ALREADY_EXISTS,
-        ERROR_SUCCESS,
-    },
-    NetworkManagement::{
-        IpHelper::{
-            ConvertInterfaceAliasToLuid, CreateIpForwardEntry2, DeleteIpForwardEntry2,
-            GetAdaptersAddresses, InitializeIpForwardEntry, SetIpForwardEntry2,
-            GAA_FLAG_INCLUDE_GATEWAYS, GAA_FLAG_SKIP_ANYCAST, GAA_FLAG_SKIP_DNS_SERVER,
-            GAA_FLAG_SKIP_FRIENDLY_NAME, GAA_FLAG_SKIP_MULTICAST, GET_ADAPTERS_ADDRESSES_FLAGS,
-            IP_ADAPTER_ADDRESSES_LH, IP_ADAPTER_GATEWAY_ADDRESS_LH, IP_ADAPTER_IPV4_ENABLED,
-            IP_ADAPTER_IPV6_ENABLED, IP_ADDRESS_PREFIX, MIB_IPFORWARD_ROW2,
+use windows::{
+    core::HSTRING,
+    Win32::{
+        Foundation::{
+            ERROR_BUFFER_OVERFLOW, ERROR_NOT_FOUND, ERROR_NO_DATA, ERROR_OBJECT_ALREADY_EXISTS,
+            ERROR_SUCCESS,
         },
-        Ndis::NET_LUID_LH,
-    },
-    Networking::WinSock::{
-        NlroManual, ADDRESS_FAMILY, AF_INET, AF_INET6, MIB_IPPROTO_NETMGMT, SOCKADDR_IN,
-        SOCKADDR_IN6, SOCKADDR_INET, SOCKET_ADDRESS,
+        NetworkManagement::{
+            IpHelper::{
+                ConvertInterfaceAliasToLuid, CreateIpForwardEntry2, DeleteIpForwardEntry2,
+                GetAdaptersAddresses, InitializeIpForwardEntry, SetIpForwardEntry2,
+                GAA_FLAG_INCLUDE_GATEWAYS, GAA_FLAG_SKIP_ANYCAST, GAA_FLAG_SKIP_DNS_SERVER,
+                GAA_FLAG_SKIP_FRIENDLY_NAME, GAA_FLAG_SKIP_MULTICAST, GET_ADAPTERS_ADDRESSES_FLAGS,
+                IP_ADAPTER_ADDRESSES_LH, IP_ADAPTER_GATEWAY_ADDRESS_LH, IP_ADAPTER_IPV4_ENABLED,
+                IP_ADAPTER_IPV6_ENABLED, IP_ADDRESS_PREFIX, MIB_IPFORWARD_ROW2,
+            },
+            Ndis::NET_LUID_LH,
+        },
+        Networking::WinSock::{
+            NlroManual, ADDRESS_FAMILY, AF_INET, AF_INET6, MIB_IPPROTO_NETMGMT, SOCKADDR_IN,
+            SOCKADDR_IN6, SOCKADDR_INET, SOCKET_ADDRESS,
+        },
     },
 };
 
@@ -195,7 +195,7 @@ impl RouteManagerInternal {
 
         spec.InterfaceLuid = node.iface;
         spec.DestinationPrefix = win_ip_address_prefix_from_ipnetwork_port_zero(route.network);
-        spec.NextHop = inet_sockaddr_from_socketaddr(node.gateway);
+        spec.NextHop = SOCKADDR_INET::from(node.gateway);
         spec.Metric = 0;
         spec.Protocol = MIB_IPPROTO_NETMGMT;
         spec.Origin = NlroManual;
@@ -221,7 +221,7 @@ impl RouteManagerInternal {
             status = unsafe { SetIpForwardEntry2(&spec) };
         }
 
-        win32_err!(status).map_err(|e| {
+        status.ok().map_err(|e| {
             tracing::error!("Could not register route in routing table");
             Error::AddToRouteTable(e)
         })?;
@@ -255,15 +255,18 @@ impl RouteManagerInternal {
             }
             NetNode::RealNode(node) => {
                 if let Some(device_name) = &node.get_device() {
-                    let device_name = WideCString::from_str(device_name)
+                    let device_name_ucstr = WideCString::from_str(device_name)
                         .expect("Failed to convert UTF-8 string to null terminated UCS string");
-                    let luid = match Self::parse_string_encoded_luid(device_name.as_ucstr())? {
+                    let luid = match Self::parse_string_encoded_luid(device_name_ucstr.as_ucstr())?
+                    {
                         None => {
                             let mut luid = NET_LUID_LH { Value: 0 };
                             // SAFETY: No specific safety requirement
-                            if let Err(e) = win32_err!(unsafe {
-                                ConvertInterfaceAliasToLuid(device_name.as_ptr(), &mut luid)
-                            }) {
+                            if let Err(e) = unsafe {
+                                ConvertInterfaceAliasToLuid(&HSTRING::from(*device_name), &mut luid)
+                            }
+                            .ok()
+                            {
                                 tracing::error!("Unable to get interface LUID for interface \"{device_name:?}\": {e}");
                                 return Err(Error::DeviceNameNotFound);
                             } else {
@@ -294,7 +297,13 @@ impl RouteManagerInternal {
 
                 // Unwrapping is fine because the node must have an address since no device name was
                 // found.
-                let gateway = node.get_address().map(inet_sockaddr_from_ipaddr).unwrap();
+                let gateway = node
+                    .get_address()
+                    .map(|addr| {
+                        // Port should not matter so we set it to 0
+                        SOCKADDR_INET::from(SocketAddr::new(addr, 0))
+                    })
+                    .unwrap();
                 Ok(InterfaceAndGateway {
                     iface: interface_luid_from_gateway(&gateway)?,
                     gateway: try_socketaddr_from_inet_sockaddr(gateway)
@@ -343,14 +352,14 @@ impl RouteManagerInternal {
 
         r.InterfaceLuid = route.luid;
         r.DestinationPrefix = win_ip_address_prefix_from_ipnetwork_port_zero(route.network);
-        r.NextHop = inet_sockaddr_from_socketaddr(route.next_hop);
+        r.NextHop = SOCKADDR_INET::from(route.next_hop);
 
         // SAFETY: DestinationPrefix must be initialized to a valid prefix. NextHop must have
         // a valid IP address and family. At least one of InterfaceLuid and InterfaceIndex must be
         // set to the interface.
-        match win32_err!(unsafe { DeleteIpForwardEntry2(&r) }) {
+        match unsafe { DeleteIpForwardEntry2(&r) }.ok() {
             Ok(()) => Ok(()),
-            Err(e) if e.raw_os_error() == Some(ERROR_NOT_FOUND as i32) => {
+            Err(e) if e.code() == ERROR_NOT_FOUND.to_hresult() => {
                 tracing::warn!("Attempting to delete route which was not present in routing table, ignoring and proceeding. Route: {route}");
                 Ok(())
             }
@@ -374,7 +383,7 @@ impl RouteManagerInternal {
 
         spec.InterfaceLuid = route.luid;
         spec.DestinationPrefix = win_ip_address_prefix_from_ipnetwork_port_zero(route.network);
-        spec.NextHop = inet_sockaddr_from_socketaddr(route.next_hop);
+        spec.NextHop = SOCKADDR_INET::from(route.next_hop);
         spec.Metric = 0;
         spec.Protocol = MIB_IPPROTO_NETMGMT;
         spec.Origin = NlroManual;
@@ -382,7 +391,7 @@ impl RouteManagerInternal {
         // SAFETY: DestinationPrefix must be initialized to a valid prefix. NextHop must have a
         // valid IP address and family. At least one of InterfaceLuid and InterfaceIndex must be set
         // to the interface.
-        win32_err!(unsafe { CreateIpForwardEntry2(&spec) }).map_err(|e| {
+        unsafe { CreateIpForwardEntry2(&spec) }.ok().map_err(|e| {
             tracing::error!("Could not register route in routing table. Route: {route}");
             Error::AddToRouteTable(e)
         })?;
@@ -461,7 +470,7 @@ impl RouteManagerInternal {
         {
             let (_, callbacks) = &mut *callbacks.lock().unwrap();
             for callback in callbacks.values() {
-                let family = AddressFamily::try_from_af_family(family).unwrap();
+                let family = AddressFamily::try_from_af_family(family.0).unwrap();
                 callback(event_type, family);
             }
         }
@@ -483,7 +492,10 @@ impl RouteManagerInternal {
 
         for record in (*records).iter_mut() {
             if matches!(record.route.node, NetNode::DefaultNode)
-                && family == ipnetwork_to_address_family(record.route.network).to_af_family()
+                && family
+                    == ADDRESS_FAMILY(
+                        ipnetwork_to_address_family(record.route.network).to_af_family(),
+                    )
             {
                 affected_routes.push(record);
             }
@@ -540,7 +552,7 @@ impl Drop for RouteManagerInternal {
 }
 
 fn interface_luid_from_gateway(gateway: &SOCKADDR_INET) -> Result<NET_LUID_LH> {
-    const ADAPTER_FLAGS: GET_ADAPTERS_ADDRESSES_FLAGS = GAA_FLAG_SKIP_ANYCAST
+    let adapter_flags: GET_ADAPTERS_ADDRESSES_FLAGS = GAA_FLAG_SKIP_ANYCAST
         | GAA_FLAG_SKIP_MULTICAST
         | GAA_FLAG_SKIP_DNS_SERVER
         | GAA_FLAG_SKIP_FRIENDLY_NAME
@@ -548,7 +560,7 @@ fn interface_luid_from_gateway(gateway: &SOCKADDR_INET) -> Result<NET_LUID_LH> {
 
     // SAFETY: The si_family field is always valid to access.
     let family = unsafe { gateway.si_family };
-    let adapters = Adapters::new(family, ADAPTER_FLAGS)?;
+    let adapters = Adapters::new(family, adapter_flags)?;
 
     // Process adapters to find matching ones.
     //
@@ -712,15 +724,15 @@ impl Adapters {
             // called again.
             let status = unsafe {
                 GetAdaptersAddresses(
-                    u32::from(family),
+                    u32::from(family.0),
                     flags,
-                    std::ptr::null_mut(),
-                    buffer_pointer as *mut IP_ADAPTER_ADDRESSES_LH,
+                    None,
+                    Some(buffer_pointer as *mut IP_ADAPTER_ADDRESSES_LH),
                     &mut buffer_size,
                 )
             };
 
-            if ERROR_SUCCESS == status {
+            if ERROR_SUCCESS.0 == status {
                 // SAFETY: We truncate the buffer to avoid having a bunch of zero:ed objects at the
                 // end of it truncate will not change capacity and will therefore
                 // never reallocate the vector which means it can not cause the
@@ -729,11 +741,11 @@ impl Adapters {
                 break;
             }
 
-            if ERROR_NO_DATA == status {
+            if ERROR_NO_DATA.0 == status {
                 return Ok(Self { buffer: Vec::new() });
             }
 
-            if ERROR_BUFFER_OVERFLOW != status {
+            if ERROR_BUFFER_OVERFLOW.0 != status {
                 tracing::error!("Probe required buffer size for GetAdaptersAddresses");
                 return Err(Error::Adapter(io::Error::from_raw_os_error(
                     i32::try_from(status).unwrap(),
@@ -825,18 +837,11 @@ impl<'a> Iterator for AdaptersIterator<'a> {
 /// to 0
 pub fn win_ip_address_prefix_from_ipnetwork_port_zero(from: IpNetwork) -> IP_ADDRESS_PREFIX {
     // Port should not matter so we set it to 0
-    let prefix =
-        nym_windows::net::inet_sockaddr_from_socketaddr(std::net::SocketAddr::new(from.ip(), 0));
+    let prefix = SOCKADDR_INET::from(std::net::SocketAddr::new(from.ip(), 0));
     IP_ADDRESS_PREFIX {
         Prefix: prefix,
         PrefixLength: from.prefix(),
     }
-}
-
-/// Convert to a windows defined `SOCKADDR_INET` from a `IpAddr` but set the port to 0
-pub fn inet_sockaddr_from_ipaddr(from: IpAddr) -> SOCKADDR_INET {
-    // Port should not matter so we set it to 0
-    nym_windows::net::inet_sockaddr_from_socketaddr(std::net::SocketAddr::new(from, 0))
 }
 
 /// Convert to a `AddressFamily` from a `ipnetwork::IpNetwork`

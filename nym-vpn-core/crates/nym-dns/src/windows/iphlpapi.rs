@@ -8,7 +8,6 @@
 //! back on other methods if it is not available.
 
 use crate::{DnsMonitorT, ResolvedDnsConfig};
-use nym_common::win32_err;
 use nym_windows::net::{guid_from_luid, luid_from_alias};
 use once_cell::sync::OnceCell;
 use std::{
@@ -16,11 +15,9 @@ use std::{
     io,
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     os::windows::ffi::OsStrExt,
-    ptr,
 };
-use windows_sys::{
-    core::GUID,
-    s, w,
+use windows::{
+    core::{s, w, GUID, PWSTR},
     Win32::{
         Foundation::{FreeLibrary, ERROR_PROC_NOT_FOUND, WIN32_ERROR},
         NetworkManagement::IpHelper::{
@@ -44,7 +41,7 @@ pub enum Error {
 
     /// Failed to set DNS settings on interface.
     #[error("Failed to set DNS settings on interface")]
-    SetInterfaceDnsSettings(#[source] io::Error),
+    SetInterfaceDnsSettings(#[source] windows::core::Error),
 
     /// Failure to flush DNS cache.
     #[error("Failed to flush DNS resolver cache")]
@@ -52,11 +49,11 @@ pub enum Error {
 
     /// Failed to load iphlpapi.dll.
     #[error("Failed to load iphlpapi.dll")]
-    LoadDll(#[source] io::Error),
+    LoadDll(#[source] windows::core::Error),
 
     /// Failed to obtain exported function.
     #[error("Failed to obtain DNS function")]
-    GetFunction(#[source] io::Error),
+    GetFunction(#[source] windows::core::Error),
 }
 
 type SetInterfaceDnsSettingsFn = unsafe extern "stdcall" fn(
@@ -75,11 +72,12 @@ static IPHLPAPI_HANDLE: OnceCell<IphlpApi> = OnceCell::new();
 
 impl IphlpApi {
     fn new() -> Result<Self, Error> {
-        let module = unsafe { LoadLibraryExW(w!("iphlpapi.dll"), 0, LOAD_LIBRARY_SEARCH_SYSTEM32) };
-        if module == 0 {
-            tracing::error!("Failed to load iphlpapi.dll");
-            return Err(Error::LoadDll(io::Error::last_os_error()));
-        }
+        let module =
+            unsafe { LoadLibraryExW(w!("iphlpapi.dll"), None, LOAD_LIBRARY_SEARCH_SYSTEM32) }
+                .map_err(|e| {
+                    tracing::error!("Failed to load iphlpapi.dll: {}", e);
+                    Error::LoadDll(e)
+                })?;
 
         // This function is loaded at runtime since it may be unavailable. See the module-level
         // docs. TODO: `windows_sys` can be used directly when support for versions older
@@ -87,15 +85,17 @@ impl IphlpApi {
         let set_interface_dns_settings =
             unsafe { GetProcAddress(module, s!("SetInterfaceDnsSettings")) };
         let set_interface_dns_settings = set_interface_dns_settings.ok_or_else(|| {
-            let error = io::Error::last_os_error();
+            let error = windows::core::Error::from_win32();
 
-            if error.raw_os_error() != Some(ERROR_PROC_NOT_FOUND as i32) {
+            if error.code() != ERROR_PROC_NOT_FOUND.to_hresult() {
                 tracing::error!(
                     "Could not find SetInterfaceDnsSettings due to an unexpected error: {error}"
                 );
             }
 
-            unsafe { FreeLibrary(module) };
+            if let Err(e) = unsafe { FreeLibrary(module) } {
+                tracing::error!("Failed to free library iphlpapi.dll: {}", e);
+            }
             Error::GetFunction(error)
         })?;
 
@@ -200,20 +200,19 @@ fn set_interface_dns_servers<T: ToString>(
     let dns_interface_settings = DNS_INTERFACE_SETTINGS {
         Version: DNS_INTERFACE_SETTINGS_VERSION1,
         Flags: u64::from(flags),
-        Domain: ptr::null_mut(),
-        NameServer: nameservers.as_mut_ptr(),
-        SearchList: ptr::null_mut(),
+        Domain: PWSTR::null(),
+        NameServer: PWSTR::from_raw(nameservers.as_mut_ptr()),
+        SearchList: PWSTR::null(),
         RegistrationEnabled: 0,
         RegisterAdapterName: 0,
         EnableLLMNR: 0,
         QueryAdapterName: 0,
-        ProfileNameServer: ptr::null_mut(),
+        ProfileNameServer: PWSTR::null(),
     };
 
-    win32_err!(unsafe {
-        (iphlpapi.set_interface_dns_settings)(guid.to_owned(), &dns_interface_settings)
-    })
-    .map_err(Error::SetInterfaceDnsSettings)
+    unsafe { (iphlpapi.set_interface_dns_settings)(guid.to_owned(), &dns_interface_settings) }
+        .ok()
+        .map_err(Error::SetInterfaceDnsSettings)
 }
 
 fn flush_dns_cache() -> Result<(), Error> {

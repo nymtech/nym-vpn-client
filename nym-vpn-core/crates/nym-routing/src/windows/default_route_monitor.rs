@@ -8,14 +8,13 @@ use super::{
 };
 use crate::debounce::BurstGuard;
 
-use nym_common::win32_err;
 use std::{
     ffi::c_void,
     sync::{Arc, Mutex},
     time::Duration,
 };
-use windows_sys::Win32::{
-    Foundation::{BOOLEAN, HANDLE},
+use windows::Win32::{
+    Foundation::HANDLE,
     NetworkManagement::{
         IpHelper::{
             CancelMibChangeNotify2, ConvertInterfaceLuidToIndex, NotifyIpInterfaceChange,
@@ -24,11 +23,10 @@ use windows_sys::Win32::{
         },
         Ndis::NET_LUID_LH,
     },
+    Networking::WinSock::ADDRESS_FAMILY,
 };
 
 use nym_windows::net::AddressFamily;
-
-const WIN_FALSE: BOOLEAN = 0;
 
 struct DefaultRouteMonitorContext {
     callback: Box<dyn for<'a> Fn(EventType<'a>) + Send + 'static>,
@@ -67,9 +65,9 @@ impl DefaultRouteMonitorContext {
             let mut default_interface_index = 0;
             let route_luid = best_route.iface;
             // SAFETY: No clear safety specifications
-            match win32_err!(unsafe {
-                ConvertInterfaceLuidToIndex(&route_luid, &mut default_interface_index)
-            }) {
+            match unsafe { ConvertInterfaceLuidToIndex(&route_luid, &mut default_interface_index) }
+                .ok()
+            {
                 Ok(()) => self.refresh_current_route = index == default_interface_index,
                 Err(_) => self.refresh_current_route = true,
             }
@@ -142,7 +140,7 @@ impl Drop for NotifyChangeHandle {
         // SAFETY: There is no clear safety specification on this function. However self.0 should
         // point to a handle that has been allocated by windows and should be non-null. Even
         // if it would be null that would cause a panic rather than UB.
-        if let Err(e) = win32_err!(unsafe { CancelMibChangeNotify2(self.0) }) {
+        if let Err(e) = unsafe { CancelMibChangeNotify2(self.0) }.ok() {
             // If this callback is called after we free the context that could result in UB, in
             // order to avoid that we panic.
             panic!("Could not cancel change notification callback: {}", e)
@@ -244,48 +242,51 @@ impl DefaultRouteMonitor {
         // we cancel the callbacks. This will leak the weak pointer but the context state itself
         // will be correctly dropped when DefaultRouteManager is dropped.
         let context_ptr = context_and_burst;
-        let mut handle_ptr = 0;
+        let mut handle_ptr = HANDLE::default();
         // SAFETY: No clear safety specifications, context_ptr must be valid for as long as handle
         // has not been dropped.
-        win32_err!(unsafe {
+        unsafe {
             NotifyRouteChange2(
-                family,
+                ADDRESS_FAMILY(family),
                 Some(route_change_callback),
                 context_ptr as *const _,
-                WIN_FALSE,
+                false,
                 &mut handle_ptr,
             )
-        })
+        }
+        .ok()
         .map_err(Error::RegisterNotifyRouteCallback)?;
         let notify_route_change_handle = NotifyChangeHandle(handle_ptr);
 
-        let mut handle_ptr = 0;
+        let mut handle_ptr = HANDLE::default();
         // SAFETY: No clear safety specifications, context_ptr must be valid for as long as handle
         // has not been dropped.
-        win32_err!(unsafe {
+        unsafe {
             NotifyIpInterfaceChange(
-                family,
+                ADDRESS_FAMILY(family),
                 Some(interface_change_callback),
-                context_ptr as *const _,
-                WIN_FALSE,
+                Some(context_ptr as *const _),
+                false,
                 &mut handle_ptr,
             )
-        })
+        }
+        .ok()
         .map_err(Error::RegisterNotifyIpInterfaceCallback)?;
         let notify_interface_change_handle = NotifyChangeHandle(handle_ptr);
 
-        let mut handle_ptr = 0;
+        let mut handle_ptr = HANDLE::default();
         // SAFETY: No clear safety specifications, context_ptr must be valid for as long as handle
         // has not been dropped.
-        win32_err!(unsafe {
+        unsafe {
             NotifyUnicastIpAddressChange(
-                family,
+                ADDRESS_FAMILY(family),
                 Some(ip_address_change_callback),
-                context_ptr as *const _,
-                WIN_FALSE,
+                Some(context_ptr as *const _),
+                false,
                 &mut handle_ptr,
             )
-        })
+        }
+        .ok()
         .map_err(Error::RegisterNotifyUnicastIpAddressCallback)?;
         let notify_address_change_handle = NotifyChangeHandle(handle_ptr);
 

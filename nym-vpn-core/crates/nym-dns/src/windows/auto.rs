@@ -4,7 +4,7 @@
 
 use super::{iphlpapi, netsh, tcpip};
 use crate::{DnsMonitorT, ResolvedDnsConfig};
-use windows_sys::Win32::System::Rpc::RPC_S_SERVER_UNAVAILABLE;
+use windows::Win32::System::Rpc::RPC_S_SERVER_UNAVAILABLE;
 
 pub struct DnsMonitor {
     current_monitor: InnerMonitor,
@@ -86,7 +86,7 @@ impl DnsMonitor {
     fn fallback_due_to_dnscache(&mut self, result: &Result<(), super::Error>) -> bool {
         let is_dnscache_error = match result {
             Err(super::Error::Iphlpapi(iphlpapi::Error::SetInterfaceDnsSettings(error))) => {
-                error.raw_os_error() == Some(RPC_S_SERVER_UNAVAILABLE)
+                error.code() == RPC_S_SERVER_UNAVAILABLE.to_hresult()
             }
             Err(super::Error::Netsh(netsh::Error::Netsh(Some(1)))) => true,
             _ => false,

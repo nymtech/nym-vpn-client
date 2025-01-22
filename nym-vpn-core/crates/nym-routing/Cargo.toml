@@ -39,7 +39,7 @@ system-configuration.workspace = true
 nym-windows.workspace = true
 widestring.workspace = true
 
-[target.'cfg(windows)'.dependencies.windows-sys]
+[target.'cfg(windows)'.dependencies.windows]
 workspace = true
 features = ["Win32_NetworkManagement_Ndis", "Win32_Globalization"]
 

@@ -1,7 +1,7 @@
 use nym_windows::net as wnet;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
-use windows_sys::Win32::NetworkManagement::Ndis::NET_LUID_LH;
+use windows::Win32::NetworkManagement::Ndis::NET_LUID_LH;
 
 /// Wintun adapter configuration error.
 #[derive(Debug, thiserror::Error)]

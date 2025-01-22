@@ -14,8 +14,8 @@ use std::{
     process::{Child, Command, ExitStatus, Stdio},
     time::Duration,
 };
-use windows_sys::Win32::{
-    Foundation::{MAX_PATH, WAIT_OBJECT_0, WAIT_TIMEOUT},
+use windows::Win32::{
+    Foundation::{HANDLE, MAX_PATH, WAIT_OBJECT_0, WAIT_TIMEOUT},
     System::{
         SystemInformation::GetSystemDirectoryW,
         Threading::{WaitForSingleObject, INFINITE},
@@ -41,7 +41,7 @@ pub enum Error {
 
     /// Failure to spawn netsh subprocess.
     #[error("Failed to obtain system directory")]
-    GetSystemDir(#[source] io::Error),
+    GetSystemDir(#[source] windows::core::Error),
 
     /// Failure to write to stdin.
     #[error("Failed to write to stdin for 'netsh'")]
@@ -173,8 +173,8 @@ fn run_netsh_with_timeout(netsh_input: String, timeout: Duration) -> Result<(), 
 fn wait_for_child(subproc: &mut Child, timeout: Duration) -> io::Result<Option<ExitStatus>> {
     let dur_millis = u32::try_from(timeout.as_millis()).unwrap_or(INFINITE);
 
-    let subproc_handle = subproc.as_raw_handle();
-    match unsafe { WaitForSingleObject(subproc_handle as isize, dur_millis) } {
+    let subproc_handle = HANDLE(subproc.as_raw_handle());
+    match unsafe { WaitForSingleObject(subproc_handle, dur_millis) } {
         WAIT_OBJECT_0 => subproc.try_wait(),
         WAIT_TIMEOUT => Ok(None),
         _error => Err(io::Error::last_os_error()),
@@ -210,15 +210,16 @@ fn create_netsh_flush_command(interface_index: u32, ip_version: IpVersion) -> St
     format!("interface {interface_type} set dnsservers name={interface_index} source=static address=none validate=no\r\n")
 }
 
-fn get_system_dir() -> io::Result<PathBuf> {
-    let mut sysdir = [0u16; MAX_PATH as usize + 1];
-    let len = unsafe { GetSystemDirectoryW(sysdir.as_mut_ptr(), (sysdir.len() - 1) as u32) };
+fn get_system_dir() -> windows::core::Result<PathBuf> {
+    let mut sysdir = [0u16; MAX_PATH as usize];
+    let len = unsafe { GetSystemDirectoryW(Some(&mut sysdir)) };
     if len == 0 {
-        return Err(io::Error::last_os_error());
+        Err(windows::core::Error::from_win32())
+    } else {
+        Ok(PathBuf::from(OsString::from_wide(
+            &sysdir[0..(len as usize)],
+        )))
     }
-    Ok(PathBuf::from(OsString::from_wide(
-        &sysdir[0..(len as usize)],
-    )))
 }
 
 /// IP protocol version.

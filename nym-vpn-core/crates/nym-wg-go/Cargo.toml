@@ -23,5 +23,5 @@ zeroize.workspace = true
 rand.workspace = true
 
 [target.'cfg(windows)'.dependencies]
-windows-sys = { workspace = true, features = ["Win32_NetworkManagement_Ndis"] }
+windows = { workspace = true, features = ["Win32_NetworkManagement_Ndis"] }
 nym-windows.workspace = true
