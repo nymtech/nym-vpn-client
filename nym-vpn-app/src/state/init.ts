@@ -38,11 +38,6 @@ const getDaemonStatus = async () => {
   return await invoke<VpndStatus>('daemon_status');
 };
 
-// initialize session start time
-const getSessionStartTime = async () => {
-  return await invoke<number | undefined>('get_connection_start_time');
-};
-
 // init country list
 const getEntryCountries = async () => {
   const mode = (await kvGet<VpnMode>('VpnMode')) || DefaultVpnMode;
@@ -85,14 +80,6 @@ export async function initFirstBatch(
     request: () => getDaemonStatus(),
     onFulfilled: (status) => {
       daemonStatusUpdate(status, dispatch, push);
-    },
-  };
-
-  const syncConTimeRq: TauriReq<typeof getSessionStartTime> = {
-    name: 'get_connection_start_time',
-    request: () => getSessionStartTime(),
-    onFulfilled: (startTime) => {
-      dispatch({ type: 'set-connection-start-time', startTime });
     },
   };
 
@@ -240,7 +227,6 @@ export async function initFirstBatch(
     initStateRq,
     initDaemonStatusRq,
     getVpnModeRq,
-    syncConTimeRq,
     getEntryLocationRq,
     getExitLocationRq,
     getVersionRq,

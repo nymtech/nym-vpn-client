@@ -219,7 +219,6 @@ async fn main() -> Result<()> {
             tunnel::get_tunnel_state,
             tunnel::connect,
             tunnel::disconnect,
-            tunnel::get_connection_start_time,
             cmd_dev::get_credentials_mode,
             cmd_dev::set_credentials_mode,
             cmd_db::db_set,

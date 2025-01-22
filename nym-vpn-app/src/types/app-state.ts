@@ -38,7 +38,7 @@ export type AppState = {
   version: string | null;
   error?: AppError | null;
   progressMessages: ConnectProgressMsg[];
-  sessionStartDate?: Dayjs | null;
+  tunnelConnectedAt?: Dayjs | null;
   vpnMode: VpnMode;
   // `UiTheme` is the current applied theme to the UI, that is either `Dark` or `Light`
   uiTheme: UiTheme;
