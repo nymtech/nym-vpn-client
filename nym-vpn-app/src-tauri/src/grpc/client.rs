@@ -208,16 +208,17 @@ impl GrpcClient {
     pub async fn tunnel_state(
         &self,
         _app: &AppHandle,
-        _emit_update: bool,
+        _emit_event: bool,
     ) -> Result<TunnelState, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(());
         let _res = vpnd.vpn_status(request).await?;
+        let fake_res: TunnelState = TunnelState::Disconnected;
         // TODO update the tunnel state
-        // based on `emit_update` call `update_tunnel` or just update the app state
+        // based on `emit_event` call `update_tunnel` or just update the app state
         // return the tunnel state
-        Ok(TunnelState::default())
+        Ok(fake_res)
     }
 
     /// Watch tunnel state updates

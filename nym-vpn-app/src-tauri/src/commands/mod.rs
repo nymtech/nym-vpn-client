@@ -1,6 +1,6 @@
 pub mod account;
 pub mod cli;
-pub mod connection;
+pub mod tunnel;
 pub mod country;
 pub mod daemon;
 pub mod db;
