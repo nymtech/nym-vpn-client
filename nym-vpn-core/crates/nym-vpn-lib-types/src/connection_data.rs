@@ -81,7 +81,7 @@ impl fmt::Display for NymAddress {
 #[cfg(feature = "nym-type-conversions")]
 impl From<nym_gateway_directory::Recipient> for NymAddress {
     fn from(value: nym_gateway_directory::Recipient) -> Self {
-        Self::new(value.gateway().to_base58_string())
+        Self::new(value.to_string())
     }
 }
 
