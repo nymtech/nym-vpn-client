@@ -40,16 +40,14 @@ export default function EventNotification({
         return;
       }
       if (isTunnelOffline(event.payload.state)) {
-        // TODO add localization
-        await notify('Device is offline', {
+        await notify(t('vpn-tunnel-state.offline'), {
           locationPath: routes.root,
           noSpamCheck: true,
         });
         return;
       }
       if (isTunnelError(event.payload.state)) {
-        // TODO add localization
-        await notify('VPN tunnel error', {
+        await notify(t('vpn-tunnel-state.error'), {
           locationPath: routes.root,
           noSpamCheck: true,
         });
