@@ -44,6 +44,15 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Get workspace version
+        id: workspace-version
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: workspace.package.version --entry nym-vpn-core
+
+      - name: Append timestamp if it's a dev version
+        run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.package-version.outputs.output }}
+
       - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v4
         with:
