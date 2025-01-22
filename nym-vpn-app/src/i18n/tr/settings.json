@@ -1,6 +1,6 @@
 {
   "display-theme": "Ekran modu",
-  "login-button": "Giriş yapın",
+  "login-button": "Cihazı bağla",
   "auto-connect": {
     "title": "Otomatik bağlan",
     "desc": "Uygulama başlangıcında otomatik bağlan"
@@ -38,11 +38,13 @@
   },
   "info": {
     "daemon-version": "Daemon sürümü",
-    "client-version": "İstemci sürümü",
-    "network-name": "Ağ"
+    "client-version": "Uygulama sürümü",
+    "network-name": "Ağ",
+    "device-id": "Cihaz Kimliği",
+    "account-id": "Hesap Kimliği"
   },
   "logout-confirmation": {
     "title": "Emin misiniz?",
-    "description": "Tekrar giriş yapmak için kurtarma ifadenize ihtiyacınız olacak."
+    "description": "Cihazınızı yeniden bağlamak için erişim koduna ihtiyacınız olacak."
   }
 }
