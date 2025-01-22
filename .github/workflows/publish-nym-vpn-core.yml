@@ -84,7 +84,7 @@ jobs:
           subcommand: workspace.package.version --entry nym-vpn-core
 
       - name: Append timestamp if it's a dev version
-        run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version.outputs.output }}
+        run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version-pre.outputs.output }}
 
       - name: Get nym-vpn-core workspace version (post-append)
         id: workspace-version
