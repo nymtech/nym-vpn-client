@@ -10,11 +10,6 @@ import {
   StatusUpdatePayload,
   TunnelStateIpc,
   VpndStatus,
-  isTunnelConnected,
-  isTunnelConnecting,
-  isTunnelDisconnecting,
-  isTunnelError,
-  isTunnelOffline,
   isVpndNonCompat,
   isVpndOk,
 } from '../types';
@@ -27,6 +22,7 @@ import {
 import { Notification } from '../contexts';
 import { daemonStatusUpdate } from './helper';
 import { MCache } from '../cache';
+import { tunnelUpdate } from './tunnelUpdate';
 
 export function useTauriEvents(
   dispatch: StateDispatch,
@@ -68,55 +64,7 @@ export function useTauriEvents(
 
   const registerStateListener = useCallback(() => {
     return listen<TunnelStateIpc>(TunnelStateEvent, (event) => {
-      if (event.payload === 'disconnected') {
-        console.log('tunnel event [disconnected]');
-        dispatch({ type: 'set-tunnel-disconnected' });
-        return;
-      }
-      if (isTunnelConnected(event.payload)) {
-        console.log('tunnel event [connected]');
-        dispatch({
-          type: 'set-tunnel-connected',
-          tunnel: event.payload.connected,
-        });
-        return;
-      }
-      if (isTunnelConnecting(event.payload)) {
-        console.log('tunnel event [connecting]');
-        dispatch({
-          type: 'set-tunnel-connecting',
-          tunnel: event.payload.connecting,
-        });
-        return;
-      }
-      if (isTunnelDisconnecting(event.payload)) {
-        console.log(
-          `tunnel event [disconnecting], action ${event.payload.disconnecting}`,
-        );
-        dispatch({
-          type: 'set-tunnel-disconnecting',
-          action: event.payload.disconnecting,
-        });
-        return;
-      }
-      if (isTunnelOffline(event.payload)) {
-        console.log(
-          `tunnel event [offline], reconnect: ${event.payload.offline.reconnect}`,
-        );
-        dispatch({
-          type: 'set-tunnel-offline',
-          reconnect: event.payload.offline.reconnect,
-        });
-        return;
-      }
-      if (isTunnelError(event.payload)) {
-        console.log(`tunnel event [error] - ${event.payload.error}`);
-        dispatch({
-          type: 'set-tunnel-inerror',
-          error: event.payload.error,
-        });
-        return;
-      }
+      tunnelUpdate(event.payload, dispatch);
     });
   }, [dispatch]);
 

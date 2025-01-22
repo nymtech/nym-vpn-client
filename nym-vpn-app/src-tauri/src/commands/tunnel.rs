@@ -17,7 +17,7 @@ use tracing::{debug, error, info, instrument, warn};
 
 #[instrument(skip_all)]
 #[tauri::command]
-pub async fn get_connection_state(
+pub async fn get_tunnel_state(
     app: tauri::AppHandle,
     grpc: State<'_, GrpcClient>,
 ) -> Result<TunnelState, BackendError> {

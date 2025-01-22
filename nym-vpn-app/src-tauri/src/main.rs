@@ -216,11 +216,11 @@ async fn main() -> Result<()> {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            connection::set_vpn_mode,
-            connection::get_connection_state,
-            connection::connect,
-            connection::disconnect,
-            connection::get_connection_start_time,
+            tunnel::set_vpn_mode,
+            tunnel::get_tunnel_state,
+            tunnel::connect,
+            tunnel::disconnect,
+            tunnel::get_connection_start_time,
             cmd_dev::get_credentials_mode,
             cmd_dev::set_credentials_mode,
             cmd_db::db_set,
