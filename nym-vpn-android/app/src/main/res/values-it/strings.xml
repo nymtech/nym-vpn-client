@@ -8,8 +8,7 @@
     <string name="disconnected">Disconnesso</string>
     <string name="connecting">Connessione</string>
     <string name="five_hop_mixnet">Anonimo</string>
-    <string name="two_hop_mixnet">Veloce</string>
-    <string name="first_hop">Posizione d\'entrata</string>
+	<string name="first_hop">Posizione d\'entrata</string>
     <string name="last_hop">Località d\'uscita</string>
     <string name="connect">Connetti</string>
     <string name="disconnect">Disconnetti</string>

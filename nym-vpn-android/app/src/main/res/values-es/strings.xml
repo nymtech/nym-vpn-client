@@ -8,8 +8,7 @@
     <string name="connecting">Conectando</string>
     <string name="five_hop_mixnet">Anónimo (mixnet)</string>
     <string name="five_hop_description">Para pagos, correos electrónicos, mensajes</string>
-    <string name="two_hop_mixnet">Rápido (WireGuard)</string>
-    <string name="two_hop_description">Mejor para navegar, streaming, compartir</string>
+	<string name="two_hop_description">Mejor para navegar, streaming, compartir</string>
     <string name="first_hop">Ubicación de entrada</string>
     <string name="last_hop">Ubicación de salida</string>
     <string name="connect">Conectar</string>

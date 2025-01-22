@@ -4,8 +4,7 @@
     <string name="connected">Подключено</string>
     <string name="connecting">Подключение</string>
     <string name="five_hop_mixnet">Анонимный (микснет)</string>
-    <string name="two_hop_mixnet">Быстрый (WireGuard)</string>
-    <string name="first_hop">Локация входа</string>
+	<string name="first_hop">Локация входа</string>
     <string name="last_hop">Локация выхода</string>
     <string name="connect">Подключиться</string>
     <string name="disconnect">Отключиться</string>

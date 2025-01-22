@@ -6,8 +6,7 @@
     <string name="disconnecting">Trennen</string>
     <string name="connecting">Verbinden</string>
     <string name="five_hop_mixnet">Anonym (Mixnet)</string>
-    <string name="two_hop_mixnet">Schnell (Wireguard)</string>
-    <string name="two_hop_description">Ideal zum browsen, streamen, file-sharing</string>
+	<string name="two_hop_description">Ideal zum browsen, streamen, file-sharing</string>
     <string name="app_name">NymVPN</string>
     <string name="five_hop_description">Für Zahlungen, E-Mails, Nachrichten</string>
     <string name="first_hop">Eintrittsregion</string>

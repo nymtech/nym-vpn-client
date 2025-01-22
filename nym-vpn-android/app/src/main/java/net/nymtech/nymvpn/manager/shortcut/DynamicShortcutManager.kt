@@ -36,9 +36,9 @@ class DynamicShortcutManager(val context: Context) : ShortcutManager {
 				shortcutIcon = R.drawable.visibility_off,
 			),
 			buildShortcut(
-				context.getString(R.string.two_hop_mixnet),
-				context.getString(R.string.two_hop_mixnet),
-				context.getString(R.string.two_hop_mixnet),
+				context.getString(R.string.two_hop_title),
+				context.getString(R.string.two_hop_title),
+				context.getString(R.string.two_hop_title),
 				intent = Intent(context, ShortcutActivity::class.java).apply {
 					action = ShortcutAction.START_WG.name
 				},

@@ -51,7 +51,7 @@ fun ModeModalBody(onClick: () -> Unit) {
 			val icon = Icons.Outlined.Speed
 			Icon(icon, icon.name, tint = MaterialTheme.colorScheme.onSurface)
 			Text(
-				text = stringResource(id = R.string.two_hop_mixnet),
+				text = stringResource(id = R.string.two_hop_title),
 				style = MaterialTheme.typography.labelLarge,
 				color = MaterialTheme.colorScheme.onSurface,
 			)

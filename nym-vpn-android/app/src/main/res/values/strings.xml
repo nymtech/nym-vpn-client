@@ -9,8 +9,7 @@
     <string name="connecting">Connecting</string>
     <string name="five_hop_mixnet">Anonymous (mixnet)</string>
     <string name="five_hop_description">For payments, emails, messages</string>
-    <string name="two_hop_mixnet">Fast (WireGuard)</string>
-    <string name="two_hop_description">Best for browsing, streaming, sharing</string>
+	<string name="two_hop_description">Best for browsing, streaming, sharing</string>
     <string name="first_hop">Entry location</string>
     <string name="last_hop">Exit location</string>
     <string name="connect">Connect</string>
@@ -213,4 +212,5 @@
 	<string name="no_internet">Your device has no internet connection</string>
 	<string name="waiting_for_connection">Will connect once the device goes online</string>
 	<string name="two_hop_explanation">Experience maximum speed with 2-server connectivity. This mode leverages AmneziaWG, a censorship-resistant version of WireGuard, ideal for fast browsing, streaming, and file sharing.</string>
+	<string name="two_hop_title">Fast (WireGuard<small>*</small>)</string>
 </resources>

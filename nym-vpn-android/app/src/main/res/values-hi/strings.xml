@@ -9,8 +9,7 @@
     <string name="disconnecting">डिसकनेक्ट हो रहा है</string>
     <string name="five_hop_mixnet">"अनाम  (mixnet)"</string>
     <string name="five_hop_description">भुगतान, ईमेल और मेसेज के लिए</string>
-    <string name="two_hop_mixnet">तेज़ (WireGuard)</string>
-    <string name="first_hop">उद्भव स्थान</string>
+	<string name="first_hop">उद्भव स्थान</string>
     <string name="last_hop">VPN आखरी स्थान</string>
     <string name="connect">कनेक्ट</string>
     <string name="last_hop_selection">VPN आखरी स्थान</string>

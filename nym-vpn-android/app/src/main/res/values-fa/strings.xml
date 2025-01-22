@@ -45,8 +45,7 @@
     <string name="feature_in_progress">این قابلیت هنوز در حال تکمیل است.</string>
     <string name="sentry_url">https://sentry.io</string>
     <string name="anonymous_analytics">تحلیل‌های ناشناس</string>
-    <string name="two_hop_mixnet">سریع (WireGuard)</string>
-    <string name="device_theme">استفاده از طرح دستگاه</string>
+	<string name="device_theme">استفاده از طرح دستگاه</string>
     <string name="two_hop_description">ایده‌آل برای وب‌گردی، پخش زنده و اشتراک‌گذاری</string>
     <string name="disconnect">قطع</string>
     <string name="last_hop_selection">موقعیت خروجی</string>

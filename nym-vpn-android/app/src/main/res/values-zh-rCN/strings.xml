@@ -18,8 +18,7 @@
     <string name="enable_shortcuts">启用app快捷方式</string>
     <string name="alpha_help_message">在 alpha 阶段帮助我们完善应用程序！您的反馈对于发现和解决问题至关重要。</string>
     <string name="notification_permission_message">需要在应用程序关闭时保持 VPN 服务运行。</string>
-    <string name="two_hop_mixnet">快速</string>
-    <string name="disconnected">未连接</string>
+	<string name="disconnected">未连接</string>
     <string name="disconnecting">断开连接</string>
     <string name="connecting">正在连接</string>
     <string name="five_hop_mixnet">匿名</string>

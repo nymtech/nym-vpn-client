@@ -6,8 +6,7 @@
     <string name="disconnected">Від\'єднано</string>
     <string name="connecting">Підключення</string>
     <string name="five_hop_mixnet">Анонімний (мікснет)</string>
-    <string name="two_hop_mixnet">Швидкий (WireGuard)</string>
-    <string name="first_hop">Перша ланка</string>
+	<string name="first_hop">Перша ланка</string>
     <string name="last_hop">Остання ланка</string>
     <string name="connect">Підключитись</string>
     <string name="disconnect">Від\'єднати</string>

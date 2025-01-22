@@ -47,7 +47,6 @@
     <string name="exit_location">موقع الخروج</string>
     <string name="language">اللغة</string>
     <string name="gateway_modal_description">نستنتج مواقع الخوادم بناءً على عناوين IP الخاصة بها، ولكن المواقع الفعلية قد تختلف قليلاً.</string>
-    <string name="two_hop_mixnet">سريع(wireGuard)</string>
     <string name="first_hop">موقع الدخول</string>
     <string name="fastest">الأسرع</string>
     <string name="connection_time">وقت الاتصال</string>

@@ -268,7 +268,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 				Column(verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Bottom)) {
 					IconSurfaceButton(
 						leadingIcon = Icons.Outlined.Speed,
-						title = stringResource(R.string.two_hop_mixnet),
+						title = stringResource(R.string.two_hop_title),
 						description = stringResource(R.string.two_hop_description),
 						onClick = {
 							if (uiState.connectionState == ConnectionState.Disconnected) {

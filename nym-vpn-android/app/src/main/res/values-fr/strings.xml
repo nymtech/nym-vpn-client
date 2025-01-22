@@ -8,8 +8,7 @@
     <string name="connecting">Connexion</string>
     <string name="five_hop_mixnet">Anonyme</string>
     <string name="five_hop_description">Pour les paiements, emails et messages</string>
-    <string name="two_hop_mixnet">Rapide</string>
-    <string name="two_hop_description">Pour la navigation, le streaming et les téléchargements</string>
+	<string name="two_hop_description">Pour la navigation, le streaming et les téléchargements</string>
     <string name="first_hop">Nœud d\'entrée</string>
     <string name="last_hop">Nœud de sortie</string>
     <string name="connect">Connecter</string>

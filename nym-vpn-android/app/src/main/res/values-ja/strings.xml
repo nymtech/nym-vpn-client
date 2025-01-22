@@ -12,8 +12,7 @@
     <string name="disconnecting">接続解除中</string>
     <string name="connecting">接続中</string>
     <string name="five_hop_description">支払い、Eメール、メッセージに最適</string>
-    <string name="two_hop_mixnet">高速(WireGuard)</string>
-    <string name="first_hop">エントリーロケーション</string>
+	<string name="first_hop">エントリーロケーション</string>
     <string name="last_hop">出口ロケーション</string>
     <string name="connect">接続</string>
     <string name="disconnect">接続解除</string>

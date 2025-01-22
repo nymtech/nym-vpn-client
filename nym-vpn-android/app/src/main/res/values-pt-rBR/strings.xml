@@ -93,8 +93,7 @@
     <string name="app_shortcuts">Atalhos do aplicativo</string>
     <string name="enable_shortcuts">Ativar atalhos do aplicativo</string>
     <string name="five_hop_mixnet">Anônimo (mixnet)</string>
-    <string name="two_hop_mixnet">Rápido (WireGuard)</string>
-    <string name="last_hop_selection">Local de saída</string>
+	<string name="last_hop_selection">Local de saída</string>
     <string name="privacy_policy">Declaração de privacidade</string>
     <string name="licenses">Licenças</string>
     <string name="open_github">Abrir um problema no GitHub</string>
