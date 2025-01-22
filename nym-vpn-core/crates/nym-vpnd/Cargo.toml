@@ -99,6 +99,7 @@ This package contains the nym-vpnd daemon binary, which runs as a background ser
 End-users should use either the CLI client, nym-vpnc, or the GUI client, nym-vpn-app.'''
 maintainer-scripts = "debian"
 recommends = "nym-vpnc"
+revision = ""
 
 [package.metadata.deb.systemd-units]
 unit-name = "nym-vpnd"

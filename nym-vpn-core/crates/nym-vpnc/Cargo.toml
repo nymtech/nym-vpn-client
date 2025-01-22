@@ -49,5 +49,6 @@ extended-description = '''NymVPN is a vpn service that uses the Nym mixnet.
 
 This package contains the nym-vpnc binary, which is a CLI application used to interact with the nym-vpnd daemon.'''
 recommends = "nym-vpnd"
+revision = ""
 maintainer-scripts = "debian"
 systemd-units = { enable = false }
