@@ -2,7 +2,8 @@
   "vpn-tunnel-state": {
     "connected": "VPN tunnel connected",
     "disconnected": "NymVPN has disconnected. To safeguard your privacy, please reconnect.",
-    "failed": "VPN tunnel connection failed!"
+    "error": "VPN tunnel failed: an error occurred",
+    "offline": "PC is offline. Please check your internet connection."
   },
   "logout": {
     "success": "Logout successfull",
