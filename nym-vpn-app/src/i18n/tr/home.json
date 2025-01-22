@@ -28,7 +28,7 @@
     "desc": "Ödemeler, e-postalar, mesajlar için en iyisi"
   },
   "fast-mode": {
-    "title": "Hızlı (WireGuard)",
+    "title": "Hızlı (WireGuard*)",
     "desc": "İnternet tarama, yayın, paylaşım için en iyisi"
   },
   "select-mode-label": "Mod seçin",
