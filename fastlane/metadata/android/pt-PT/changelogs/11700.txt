@@ -1,0 +1,2 @@
+O que há de novidade:
+- Construções reproduzíveis

@@ -1,0 +1,3 @@
+O que há de novidade:
+- Correcções de erros
+- Melhorias na estabilidade
