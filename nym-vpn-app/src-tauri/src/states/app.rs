@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 use std::fmt;
-use time::OffsetDateTime;
 use tracing::{error, instrument};
 use ts_rs::TS;
 
@@ -30,7 +29,6 @@ pub struct AppState {
     pub vpnd_info: Option<VpndInfo>,
     pub tunnel: TunnelState,
     pub vpn_mode: VpnMode,
-    pub connection_start_time: Option<OffsetDateTime>,
     pub dns_server: Option<String>,
     pub credentials_mode: bool,
 }

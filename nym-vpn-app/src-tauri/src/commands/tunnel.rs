@@ -190,15 +190,6 @@ pub async fn disconnect(
     Ok(TunnelState::Disconnecting(None))
 }
 
-#[instrument(skip_all)]
-#[tauri::command]
-pub async fn get_connection_start_time(
-    state: State<'_, SharedAppState>,
-) -> Result<Option<i64>, BackendError> {
-    let app_state = state.lock().await;
-    Ok(app_state.connection_start_time.map(|t| t.unix_timestamp()))
-}
-
 #[instrument(skip(app_state, db))]
 #[tauri::command]
 pub async fn set_vpn_mode(

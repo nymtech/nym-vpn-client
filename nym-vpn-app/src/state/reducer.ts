@@ -43,7 +43,6 @@ export type StateAction =
   | { type: 'set-tunnel-disconnecting'; action: TunnelAction | null }
   | { type: 'set-tunnel-offline'; reconnect: boolean | null }
   | { type: 'set-tunnel-inerror'; error: TunnelError }
-  | { type: 'set-connection-start-time'; startTime?: number | null }
   | { type: 'set-auto-connect'; autoConnect: boolean }
   | { type: 'set-monitoring'; monitoring: boolean }
   | { type: 'set-desktop-notifications'; enabled: boolean }
@@ -213,7 +212,7 @@ export function reducer(state: AppState, action: StateAction): AppState {
         state: 'Connected',
         tunnel: action.tunnel,
         progressMessages: [],
-        sessionStartDate: action.tunnel.connectedAt
+        tunnelConnectedAt: action.tunnel.connectedAt
           ? dayjs.unix(action.tunnel.connectedAt)
           : dayjs(),
         tunnelError: null,
@@ -224,7 +223,7 @@ export function reducer(state: AppState, action: StateAction): AppState {
         state: 'Disconnected',
         tunnel: null,
         progressMessages: [],
-        sessionStartDate: null,
+        tunnelConnectedAt: null,
         tunnelError: null,
       };
     case 'set-tunnel-connecting':
@@ -257,12 +256,6 @@ export function reducer(state: AppState, action: StateAction): AppState {
       };
     case 'set-account':
       return { ...state, account: action.stored };
-    case 'set-connection-start-time':
-      return {
-        ...state,
-        sessionStartDate:
-          (action.startTime && dayjs.unix(action.startTime)) || null,
-      };
     case 'set-error':
       return { ...state, error: action.error };
     case 'reset-error':

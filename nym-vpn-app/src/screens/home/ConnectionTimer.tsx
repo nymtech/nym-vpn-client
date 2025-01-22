@@ -5,27 +5,27 @@ import dayjs from 'dayjs';
 import { useMainState } from '../../contexts';
 
 function ConnectionTimer() {
-  const { sessionStartDate } = useMainState();
+  const { tunnelConnectedAt } = useMainState();
   const [connectionTime, setConnectionTime] = useState('00:00:00');
   const { t } = useTranslation('home');
 
   useEffect(() => {
-    if (!sessionStartDate) {
+    if (!tunnelConnectedAt) {
       return;
     }
 
-    const elapsed = dayjs.duration(dayjs().diff(sessionStartDate));
+    const elapsed = dayjs.duration(dayjs().diff(tunnelConnectedAt));
     setConnectionTime(elapsed.format('HH:mm:ss'));
 
     const interval = setInterval(() => {
-      const elapsed = dayjs.duration(dayjs().diff(sessionStartDate));
+      const elapsed = dayjs.duration(dayjs().diff(tunnelConnectedAt));
       setConnectionTime(elapsed.format('HH:mm:ss'));
     }, 500);
 
     return () => {
       clearInterval(interval);
     };
-  }, [sessionStartDate]);
+  }, [tunnelConnectedAt]);
 
   return (
     <motion.div
