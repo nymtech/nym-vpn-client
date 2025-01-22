@@ -6,7 +6,8 @@
     "disconnected": "Disconnected",
     "connecting": "Connecting",
     "disconnecting": "Disconnecting",
-    "unknown": "Unknown"
+    "error": "Error",
+    "offline": "Offline"
   },
   "last-hop": "Exit location",
   "first-hop": "Entry location",

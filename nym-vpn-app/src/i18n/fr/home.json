@@ -6,7 +6,8 @@
     "disconnected": "Déconnecté",
     "connecting": "Connexion",
     "disconnecting": "Déconnexion",
-    "unknown": "Inconnu"
+    "error": "Error",
+    "offline": "Hors ligne"
   },
   "last-hop": "Nœud de sortie",
   "first-hop": "Nœud d'entrée",

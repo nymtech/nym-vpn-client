@@ -1,9 +1,9 @@
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
-import { ConnectionState } from '../../types';
+import { TunnelState } from '../../types';
 
-function ConnectionBadge({ state }: { state: ConnectionState }) {
+function ConnectionBadge({ state }: { state: TunnelState }) {
   const { t } = useTranslation('home');
 
   const statusBadgeDynStyles = {
@@ -29,15 +29,19 @@ function ConnectionBadge({ state }: { state: ConnectionState }) {
       'dark:bg-oil dark:bg-opacity-15',
       'dark:text-white',
     ],
-    Unknown: [
+    Error: [
       'bg-cement-feet bg-opacity-10',
-      'text-coal-mine-light',
+      'text-teaberry',
       'dark:bg-oil dark:bg-opacity-15',
-      'dark:text-coal-mine-dark',
+    ],
+    Offline: [
+      'bg-cement-feet bg-opacity-10',
+      'text-liquid-lava',
+      'dark:bg-oil dark:bg-opacity-15',
     ],
   };
 
-  const getStatusText = (state: ConnectionState) => {
+  const getStatusText = (state: TunnelState) => {
     switch (state) {
       case 'Connected':
         return t('status.connected');
@@ -47,8 +51,10 @@ function ConnectionBadge({ state }: { state: ConnectionState }) {
         return t('status.connecting');
       case 'Disconnecting':
         return t('status.disconnecting');
-      case 'Unknown':
-        return t('status.unknown');
+      case 'Error':
+        return t('status.error');
+      case 'Offline':
+        return t('status.offline');
     }
   };
 

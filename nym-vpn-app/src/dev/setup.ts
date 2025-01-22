@@ -4,11 +4,12 @@ import { emit } from '@tauri-apps/api/event';
 import {
   AccountLinks,
   Cli,
-  ConnectionState,
   DbKey,
+  Tunnel,
+  TunnelData,
   VpndStatus,
 } from '../types';
-import { ConnectionEvent } from '../constants';
+import { TunnelStateEvent } from '../constants';
 import { Country } from '../types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -43,25 +44,31 @@ export function mockTauriIPC() {
     }
 
     if (cmd === 'connect') {
-      await emit(ConnectionEvent, { state: 'Connecting' });
-      return new Promise<ConnectionState>((resolve) =>
+      await emit(TunnelStateEvent, { state: { connecting: null } });
+      return new Promise<null>((resolve) =>
         setTimeout(async () => {
-          await emit(ConnectionEvent, { state: 'Connected' });
-          resolve('Connected');
+          const tunnel: Tunnel = {
+            entryGwId: '1234',
+            exitGwId: '5678',
+            connectedAt: Date.now(),
+            data: {} as unknown as TunnelData,
+          };
+          await emit(TunnelStateEvent, { state: { connected: tunnel } });
+          resolve(null);
         }, 1),
       );
     }
     if (cmd === 'disconnect') {
-      await emit(ConnectionEvent, { state: 'Disconnecting' });
-      return new Promise<ConnectionState>((resolve) =>
+      await emit(TunnelStateEvent, { state: { disconnecting: null } });
+      return new Promise<null>((resolve) =>
         setTimeout(async () => {
-          await emit(ConnectionEvent, { state: 'Disconnected' });
-          resolve('Disconnected');
+          await emit(TunnelStateEvent, { state: 'disconnected' });
+          resolve(null);
         }, 1),
       );
     }
-    if (cmd === 'get_connection_state') {
-      return { state: 'Disconnected' };
+    if (cmd === 'get_tunnel_state') {
+      return { state: 'disconnected' };
     }
 
     if (cmd === 'get_countries') {
