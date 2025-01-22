@@ -121,8 +121,7 @@
     <string name="error_gateway_lookup">Не вдалося знайти шлюзи Nym. Будь ласка, перевірте підключення до мережі та спробуйте ще раз.</string>
     <string name="select_mode">Вибір режиму</string>
     <string name="mode_selection">Режим вибрано</string>
-    <string name="two_hop_explanation">Відчуйте максимальну швидкість завдяки підключенню до 2-hop. Ідеально підходить для швидкого перегляду веб-сторінок, відео та обміну файлами.</string>
-    <string name="five_hop_explanation">Насолоджуйтесь максимальним рівнем конфіденційності, маршрутизуючи свій трафік через 5-hop mixnet. Ідеально підходить для безпечної обробки платежів, електронних листів та повідомлень.</string>
+	<string name="five_hop_explanation">Насолоджуйтесь максимальним рівнем конфіденційності, маршрутизуючи свій трафік через 5-hop mixnet. Ідеально підходить для безпечної обробки платежів, електронних листів та повідомлень.</string>
     <string name="continue_reading">Продовжити читання</string>
     <string name="first_hop_selection">Вибір першого підключення</string>
     <string name="entry_location">Вибір першого підключення</string>

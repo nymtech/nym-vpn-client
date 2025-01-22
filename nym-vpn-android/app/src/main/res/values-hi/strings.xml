@@ -23,7 +23,6 @@
     <string name="opt_in_message_first">अनाम त्रुटि निगरानी के लिए ऑप्ट-इन करें</string>
     <string name="enable_shortcuts">ऐप शॉर्टकट्स सक्षम करें</string>
     <string name="permission_message">यह सुनिश्चित करने के लिए कि ऐप आपके डिवाइस पर सही तरीके से काम करे, कृपया निम्नलिखित अनुमतियाँ अनुमति दें। ये अनुमतियाँ ऐप के काम करने के लिए आवश्यक हैं।</string>
-    <string name="two_hop_explanation">2-सर्वर कनेक्टिविटी के साथ अधिकतम गति का अनुभव करें। तेज़ ब्राउज़िंग, स्ट्रीमिंग, और फ़ाइल साझा करने के लिए यह आदर्श है।</string>
     <string name="sentry">सेंट्री</string>
     <string name="required_app_restart">रीस्टार्ट पर लागू होता है</string>
     <string name="add_credential">क्रेडेंशियल जोड़ें</string>

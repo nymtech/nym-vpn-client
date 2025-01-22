@@ -123,7 +123,6 @@
     <string name="error_no_hostname_address">O gateway está sem o endereço do hostname. Por favor, tente novamente conectando-se a um gateway diferente.</string>
     <string name="top_up">Recarregar</string>
     <string name="notification_permission_message">Necessário para manter os serviços de VPN em funcionamento enquanto o aplicativo está fechado.</string>
-    <string name="two_hop_explanation">Experimente a velocidade máxima com a conectividade de dois servidores. Perfeito para navegação rápida, streaming e compartilhamento de arquivos.</string>
     <string name="error_gateway_lookup">Falha ao buscar os gateways da Nym. Por favor, verifique sua conexão de rede e tente novamente.</string>
     <string name="entry_location">Local de entrada</string>
     <string name="exit_location">Local de saída</string>

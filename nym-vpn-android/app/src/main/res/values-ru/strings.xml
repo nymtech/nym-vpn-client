@@ -124,8 +124,7 @@
     <string name="mode_selection">Выбор режима</string>
     <string name="continue_reading">Продолжить чтение</string>
     <string name="five_hop_explanation">Наивысший уровень конфиденциальности с маршрутизацией соединения сквозь 5 серверов через микснет. Идеально подходит для безопасной обработки платежей, электронных писем и сообщений.</string>
-    <string name="two_hop_explanation">Получите максимальную скорость благодаря подключению к 2 серверам. Прекрасно подходит для быстрого просмотра сайтов, стриминга и обмена файлами.</string>
-    <string name="entry_location">Локация входа</string>
+	<string name="entry_location">Локация входа</string>
     <string name="exit_location">Локация выхода</string>
     <string name="language">Язык</string>
     <string name="gateway_modal_description">Мы определяем местоположение серверов на основе их IP-адресов, но фактические местоположения могут незначительно отличаться.</string>

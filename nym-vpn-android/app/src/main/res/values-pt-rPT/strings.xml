@@ -122,7 +122,6 @@
     <string name="mode_selection">Seleção de modo</string>
     <string name="five_hop_explanation">Desfrute de um nível máximo de privacidade, encaminhando a sua ligação através de 5 servidores via mixnet. Perfeito para tratar pagamentos, e-mails e mensagens de forma segura.</string>
     <string name="continue_reading">Continuar a ler</string>
-    <string name="two_hop_explanation">Experimente a velocidade máxima com a conetividade de 2 servidores. Perfeito para navegação rápida, streaming e partilha de ficheiros.</string>
     <string name="try_again">e tentar restabelecer a ligação</string>
     <string name="entry_location">Local de entrada</string>
     <string name="exit_location">Local de saída</string>

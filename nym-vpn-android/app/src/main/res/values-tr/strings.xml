@@ -124,8 +124,7 @@
     <string name="mode_selection">Mod seçimi</string>
     <string name="five_hop_explanation">Bağlantınızı mixnet üzerinden 5 sunucuya yönlendirerek maksimum düzeyde gizliliğin tadını çıkarın. Ödemeleri, e-postaları ve mesajları güvenli bir şekilde yönetmek için mükemmeldir.</string>
     <string name="continue_reading">Okumaya devam edin</string>
-    <string name="two_hop_explanation">Maksimum hızı 2-sunucu bağlantısıyla deneyimleyin. Hızlı tarama, yayın akışı ve dosya paylaşımı için mükemmeldir.</string>
-    <string name="entry_location">Giriş konumu</string>
+	<string name="entry_location">Giriş konumu</string>
     <string name="exit_location">Çıkış konumu</string>
     <string name="language">Dil</string>
     <string name="entry_location_selector">Entry konumu seçici</string>

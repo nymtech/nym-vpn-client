@@ -101,7 +101,6 @@
     <string name="scan_nym_vpn_credential">Scansiona il QR delle credenziali di NymVPN</string>
     <string name="error_logs_not_saved">Impossibile salvare i logs</string>
     <string name="mode_selection">Selezione modalità</string>
-    <string name="two_hop_explanation">Massima velocità grazie alla connettività a due server. Perfetto per la navigazione veloce, lo streaming e la condivisione di file.</string>
     <string name="continue_reading">Continua a leggere</string>
     <string name="entry_location">Località d\'entrata</string>
     <string name="exit_location">Località d\'uscita</string>

@@ -124,8 +124,7 @@
     <string name="mode_selection">模式选择</string>
     <string name="five_hop_explanation">通过 mixnet 通过 5 个服务器路由连接，享受最高级别的隐私保护。是安全处理付款、电子邮件和信息的完美选择。</string>
     <string name="continue_reading">继续阅读</string>
-    <string name="two_hop_explanation">通过双服务器连接，体验最快速度。 是快速浏览、流媒体和文件共享的完美选择。</string>
-    <string name="entry_location_selector">输入位置选择器</string>
+	<string name="entry_location_selector">输入位置选择器</string>
     <string name="entry_location">第一跳选择</string>
     <string name="exit_location">最后一跳选择</string>
     <string name="language">语言</string>

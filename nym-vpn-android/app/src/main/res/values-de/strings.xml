@@ -111,7 +111,6 @@
     <string name="day">Tag</string>
     <string name="error_logs_not_saved">Fehler beim Speichern der Logfiles</string>
     <string name="mode_selection">Modus auswählen</string>
-    <string name="two_hop_explanation">Geniesse die maximale Geschwindigkeit indem du deine Verbindung durch 2 Server leitest. Ideal für Surfen, Streamen oder File-Sharing.</string>
     <string name="continue_reading">Weiter lesen</string>
     <string name="entry_location">Eintrittsregion</string>
     <string name="exit_location">Austrittsregion</string>

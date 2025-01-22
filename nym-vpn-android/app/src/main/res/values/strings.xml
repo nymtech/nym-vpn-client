@@ -134,8 +134,7 @@
     <string name="error_logs_not_saved">Failed to save logs</string>
     <string name="mode_selection">Mode selection</string>
     <string name="five_hop_explanation">Enjoy maximum-level privacy by routing your connection through 5 servers via mixnet. Perfect for securely handling payments, emails, and messages.</string>
-    <string name="two_hop_explanation">Experience maximum speed with 2-server connectivity. Perfect for fast browsing, streaming, and file sharing.</string>
-    <string name="continue_reading">Continue reading</string>
+	<string name="continue_reading">Continue reading</string>
     <string name="entry_location">Entry location</string>
     <string name="exit_location">Exit location</string>
     <string name="appearance">Appearance</string>
@@ -213,4 +212,5 @@
     <string name="offline">No internet</string>
 	<string name="no_internet">Your device has no internet connection</string>
 	<string name="waiting_for_connection">Will connect once the device goes online</string>
+	<string name="two_hop_explanation">Experience maximum speed with 2-server connectivity. This mode leverages AmneziaWG, a censorship-resistant version of WireGuard, ideal for fast browsing, streaming, and file sharing.</string>
 </resources>

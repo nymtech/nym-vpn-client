@@ -130,7 +130,6 @@
     <string name="exception_cred_invalid">اعتبارنامه غلط یا تاریخ مصرف آن گذشته است</string>
     <string name="notifications">اعلان‌ها</string>
     <string name="error_gateway_lookup">جستجوی گیت‌وی‌های Nym ناموفق بود. لطفا اتصال شبکه خود را بررسی کرده و دوباره تلاش کنید.</string>
-    <string name="two_hop_explanation">با اتصال ۲ سرور، حداکثر سرعت را تجربه کنید. ایده‌آل برای مرور سریع، پخش آنلاین و اشتراک‌گذاری فایل.</string>
     <string name="vpn_connection">ارتباط VPN</string>
     <string name="vpn_permission_message">درخواست ارتباط VPN را با تلاش مجدد برای اتصال تایید کنید.</string>
     <string name="view_system_settings">دیدن تنظیمات سیستم</string>

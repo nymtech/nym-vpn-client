@@ -124,7 +124,6 @@
     <string name="mode_selection">Sélection de mode</string>
     <string name="continue_reading">Continuer la lecture</string>
     <string name="five_hop_explanation">Bénéficiez du plus haut niveau de confidentialité, grâce à une connexion via le mixnet (5 sauts). Idéal pour les paiements, emails et messages.</string>
-    <string name="two_hop_explanation">Bénéficiez d\'une vitesse maximale via une connexion VPN (2 sauts). Idéal pour la navigation, les vidéos ou le partage de fichiers.</string>
     <string name="entry_location">Nœud d\'entrée</string>
     <string name="exit_location">Nœud de sortie</string>
     <string name="language">Langue</string>

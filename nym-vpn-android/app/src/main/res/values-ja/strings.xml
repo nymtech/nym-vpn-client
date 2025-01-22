@@ -103,7 +103,6 @@
     <string name="error_logs_not_saved">ログの保存に失敗しました</string>
     <string name="mode_selection">モード選択</string>
     <string name="five_hop_explanation">5つのサーバーを通じてmixnet経由で接続をルーティングすることで、最高レベルのプライバシーをお楽しみいただけます。安全に支払い、メール、メッセージ処理を行うのに最適です。</string>
-    <string name="two_hop_explanation">2つのサーバーを使った接続で、高速モードを体験できます。高速なブラウジング、ストリーミング、ファイル共有に最適です。</string>
     <string name="continue_reading">続きを読み込む</string>
     <string name="entry_location">エントリーロケーション</string>
     <string name="exit_location">出口ロケーション</string>
