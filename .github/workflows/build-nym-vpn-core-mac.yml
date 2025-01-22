@@ -58,7 +58,7 @@ jobs:
 
       - name: Install cargo-get
         run: |
-          cargo install --locked cargo-get
+          cargo install --locked cargo-get || true
 
       - name: Update nym-vpn-apple to use latest core
         run: |
