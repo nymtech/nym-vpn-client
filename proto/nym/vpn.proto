@@ -1162,8 +1162,8 @@ service NymVpnd {
   // from Connecting -> Connected
   rpc ListenToConnectionStateChanges (google.protobuf.Empty) returns (stream ConnectionStateChange) {}
 
-  // Listen for tunnel state changes
-  rpc ListenToTunnelStateChanges (google.protobuf.Empty) returns (stream TunnelState) {}
+  // Listen for current tunnel state and subsequent changes to it. Emits current state as the first value.
+  rpc ListenToTunnelState (google.protobuf.Empty) returns (stream TunnelState) {}
 
   // Listen for general status evens emitted by nym-vpnd, which in turn might
   // originate from elsewhere such as remote gateways.

@@ -303,31 +303,20 @@ impl NymVpnd for CommandInterface {
         ))
     }
 
-    type ListenToTunnelStateChangesStream = BoxStream<'static, Result<TunnelState, tonic::Status>>;
-    async fn listen_to_tunnel_state_changes(
+    type ListenToTunnelStateStream = BoxStream<'static, Result<TunnelState, tonic::Status>>;
+    async fn listen_to_tunnel_state(
         &self,
         request: tonic::Request<()>,
-    ) -> Result<tonic::Response<Self::ListenToTunnelStateChangesStream>, tonic::Status> {
+    ) -> Result<tonic::Response<Self::ListenToTunnelStateStream>, tonic::Status> {
         tracing::debug!("Got connection status stream request: {request:?}");
-        let rx = self.tunnel_event_rx.resubscribe();
-        let stream =
-            tokio_stream::wrappers::BroadcastStream::new(rx).filter_map(|event| async move {
-                event
-                    .map(|event| {
-                        if let TunnelEvent::NewState(tunnel_state) = event {
-                            Some(TunnelState::from(tunnel_state))
-                        } else {
-                            None
-                        }
-                    })
-                    .map_err(|err| {
-                        tracing::error!("Failed to receive tunnel state update: {:?}", err);
-                        tonic::Status::internal("Failed to receive tunnel state update")
-                    })
-                    .transpose()
-            });
+
+        let rx = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_subscribe_to_tunnel_state()
+            .await?;
+        let stream = tokio_stream::wrappers::WatchStream::new(rx)
+            .map(|new_state| Ok(TunnelState::from(new_state)));
         Ok(tonic::Response::new(
-            Box::pin(stream) as Self::ListenToTunnelStateChangesStream
+            Box::pin(stream) as Self::ListenToTunnelStateStream
         ))
     }
 
