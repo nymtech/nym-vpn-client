@@ -113,20 +113,20 @@ private extension HomeView {
             .frame(height: viewModel.appSettings.isSmallScreen ? 12 : 24)
 
         NetworkButton(
-            viewModel: viewModel.anonymousButtonViewModel
+            viewModel: viewModel.fastButtonViewModel
         )
         .padding(EdgeInsets(top: 0, leading: 16, bottom: 12, trailing: 16))
         .onTapGesture {
-            viewModel.connectionManager.connectionType = .mixnet5hop
+            viewModel.connectionManager.connectionType = .wireguard
         }
 
         NetworkButton(
-            viewModel: viewModel.fastButtonViewModel
+            viewModel: viewModel.anonymousButtonViewModel
         )
         .opacity(1.0)
         .padding(.horizontal, 16)
         .onTapGesture {
-            viewModel.connectionManager.connectionType = .wireguard
+            viewModel.connectionManager.connectionType = .mixnet5hop
         }
         Spacer()
             .frame(height: viewModel.appSettings.isSmallScreen ? 20 : 32)

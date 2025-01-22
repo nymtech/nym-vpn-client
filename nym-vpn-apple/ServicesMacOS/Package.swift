@@ -17,6 +17,7 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../ServicesMutual"),
+        .package(name: "Theme", path: "../Theme"),
         .package(url: "https://github.com/grpc/grpc-swift.git", from: "1.21.0"),
         .package(url: "https://github.com/keefertaylor/Base58Swift", from: "2.1.7"),
         .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.4")
@@ -51,7 +52,8 @@ let package = Package(
         .target(
             name: "HelperManager",
             dependencies: [
-                "Shell"
+                "Shell",
+                "Theme"
             ],
             path: "Sources/HelperManager"
         ),

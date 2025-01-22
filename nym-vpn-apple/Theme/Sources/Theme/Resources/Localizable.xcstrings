@@ -1173,7 +1173,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Experience maximum speed with  2-server connectivity. Perfect for fast browsing, streaming, and file sharing."
+            "value" : "Experience maximum speed with 2-server connectivity. This mode leverages AmneziaWG, a censorship-resistant version of WireGuard, ideal for fast browsing, streaming, and file sharing."
           }
         }
       }
