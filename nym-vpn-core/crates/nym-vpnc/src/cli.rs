@@ -4,7 +4,7 @@
 use std::net::IpAddr;
 
 use anyhow::{anyhow, Result};
-use clap::{Args, Parser, Subcommand};
+use clap::{ArgAction, Args, Parser, Subcommand};
 use nym_gateway_directory::{EntryPoint, ExitPoint, NodeIdentity, Recipient};
 
 #[derive(Parser)]
@@ -50,7 +50,11 @@ pub(crate) enum Command {
     Disconnect,
 
     /// Get the current status of the connection.
-    Status,
+    Status {
+        /// Monitor tunnel state continuously until ctrl+c.
+        #[arg(long, default_value = "false", action = ArgAction::SetTrue)]
+        listen: bool,
+    },
 
     /// Get info about the current client. Things like version and network details.
     Info,
