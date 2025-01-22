@@ -139,8 +139,7 @@ async fn connect(opts: CliOptions, connect_args: &cli::ConnectArgs) -> Result<()
     let exit = cli::parse_exit_point(connect_args)?;
 
     let mut client = vpnd_client::get_client(&opts.client_type).await?;
-    let info_request = tonic::Request::new(());
-    let info = client.info(info_request).await?.into_inner();
+    let info = client.info(()).await?.into_inner();
     let user_agent = setup_user_agent(&opts, info);
 
     let request = tonic::Request::new(ConnectRequest {
@@ -237,8 +236,7 @@ async fn listen_until_connected_or_failed(opts: CliOptions) -> Result<()> {
 
 async fn disconnect(opts: CliOptions) -> Result<()> {
     let mut client = vpnd_client::get_client(&opts.client_type.clone()).await?;
-    let request = tonic::Request::new(());
-    let response = client.vpn_disconnect(request).await?.into_inner();
+    let response = client.vpn_disconnect(()).await?.into_inner();
 
     if opts.verbose {
         println!("{:#?}", response);
@@ -297,8 +295,7 @@ async fn status(opts: CliOptions) -> Result<()> {
 
 async fn info(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(());
-    let response = client.info(request).await?.into_inner();
+    let response = client.info(()).await?.into_inner();
     let info = nym_vpn_proto::conversions::InfoResponse::try_from(response)
         .context("failed to parse info response")?;
     println!("{info}");
@@ -317,16 +314,14 @@ async fn set_network(client_type: ClientType, args: &cli::SetNetworkArgs) -> Res
 
 async fn get_system_messages(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(());
-    let response = client.get_system_messages(request).await?.into_inner();
+    let response = client.get_system_messages(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
 async fn get_feature_flags(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(());
-    let response = client.get_feature_flags(request).await?.into_inner();
+    let response = client.get_feature_flags(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
@@ -358,40 +353,35 @@ async fn store_account(opts: CliOptions, store_args: &cli::StoreAccountArgs) -> 
 
 async fn refresh_account_state(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(());
-    let response = client.refresh_account_state(request).await?.into_inner();
+    let response = client.refresh_account_state(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
 async fn is_account_stored(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(());
-    let response = client.is_account_stored(request).await?.into_inner();
+    let response = client.is_account_stored(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
 async fn get_account_usage(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(());
-    let response = client.get_account_usage(request).await?.into_inner();
+    let response = client.get_account_usage(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
 async fn forget_account(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(());
-    let response = client.forget_account(request).await?.into_inner();
+    let response = client.forget_account(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
 async fn get_account_id(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(());
-    let response = client.get_account_identity(request).await?.into_inner();
+    let response = client.get_account_identity(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
@@ -424,16 +414,14 @@ async fn get_account_links(opts: CliOptions, args: &cli::GetAccountLinksArgs) ->
 
 async fn get_account_state(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(());
-    let response = client.get_account_state(request).await?.into_inner();
+    let response = client.get_account_state(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
 async fn is_ready_to_connect(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(());
-    let response = client.is_ready_to_connect(request).await?.into_inner();
+    let response = client.is_ready_to_connect(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
@@ -453,57 +441,50 @@ async fn reset_device_identity(
 
 async fn get_device_id(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(());
-    let response = client.get_device_identity(request).await?.into_inner();
+    let response = client.get_device_identity(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
 async fn register_device(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(());
-    let response = client.register_device(request).await?.into_inner();
+    let response = client.register_device(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
 async fn get_devices(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(());
-    let response = client.get_devices(request).await?.into_inner();
+    let response = client.get_devices(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
 async fn get_active_devices(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(());
-    let response = client.get_active_devices(request).await?.into_inner();
+    let response = client.get_active_devices(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
 async fn request_zk_nym(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(());
-    let response = client.request_zk_nym(request).await?.into_inner();
+    let response = client.request_zk_nym(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
 async fn get_device_zk_nym(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(());
-    let response = client.get_device_zk_nyms(request).await?.into_inner();
+    let response = client.get_device_zk_nyms(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
 async fn get_zk_nyms_available_for_download(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(());
     let response = client
-        .get_zk_nyms_available_for_download(request)
+        .get_zk_nyms_available_for_download(())
         .await?
         .into_inner();
     println!("{:#?}", response);
@@ -538,19 +519,14 @@ async fn confirm_zk_nym_downloaded(
 
 async fn get_available_tickets(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(());
-    let response = client.get_available_tickets(request).await?.into_inner();
+    let response = client.get_available_tickets(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
 async fn listen_to_status(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(());
-    let mut stream = client
-        .listen_to_connection_status(request)
-        .await?
-        .into_inner();
+    let mut stream = client.listen_to_connection_status(()).await?.into_inner();
     while let Some(response) = stream.message().await? {
         println!("{:#?}", response);
     }
@@ -559,9 +535,8 @@ async fn listen_to_status(client_type: ClientType) -> Result<()> {
 
 async fn listen_to_state_changes(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
-    let request = tonic::Request::new(());
     let mut stream = client
-        .listen_to_connection_state_changes(request)
+        .listen_to_connection_state_changes(())
         .await?
         .into_inner();
     while let Some(response) = stream.message().await? {
@@ -577,8 +552,7 @@ async fn list_gateways(
 ) -> Result<()> {
     let mut client = vpnd_client::get_client(&opts.client_type).await?;
 
-    let info_request = tonic::Request::new(());
-    let info = client.info(info_request).await?.into_inner();
+    let info = client.info(()).await?.into_inner();
     let user_agent = setup_user_agent(&opts, info);
 
     let request = tonic::Request::new(ListGatewaysRequest {
@@ -614,8 +588,7 @@ async fn list_countries(
 ) -> Result<()> {
     let mut client = vpnd_client::get_client(&opts.client_type).await?;
 
-    let info_request = tonic::Request::new(());
-    let info = client.info(info_request).await?.into_inner();
+    let info = client.info(()).await?.into_inner();
     let user_agent = setup_user_agent(&opts, info);
 
     let request = tonic::Request::new(ListCountriesRequest {
