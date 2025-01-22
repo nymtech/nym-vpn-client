@@ -142,7 +142,7 @@
     <string name="two_hop">2-saltos</string>
     <string name="device_added_success">Dispositivo adicionado com sucesso à sua conta</string>
     <string name="new_to_nym">Novo no NymVPN?</string>
-    <string name="network_error">Ocorreu um problema de conexão de rede. Verifique sua conexão de rede e tente novamente</string>
+    <string name="network_error">Ocorreu um problema de conexão de rede. Verifique sua conexão de rede e tente novamente.</string>
     <string name="max_devices_reached_title">Você atingiu o número máximo de dispositivos para sua conta</string>
     <string name="delete">Deletar</string>
     <string name="delete_logs_description">Uma vez excluídos, os registros não poderão ser recuperados.</string>
