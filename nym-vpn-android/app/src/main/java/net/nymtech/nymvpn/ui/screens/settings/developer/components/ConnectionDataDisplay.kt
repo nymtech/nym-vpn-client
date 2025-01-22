@@ -20,14 +20,14 @@ fun ConnectionDataDisplay(connectionData: ConnectionData) {
 	connectionData.let {
 		Column(modifier = Modifier.padding(end = 10.dp.scaledWidth())) {
 			Text(
-				"Entry gatewayId: ${it.entryGateway}",
+				"Entry gatewayId: ${it.entryGateway.id}",
 				style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-				modifier = Modifier.clickable { clipboard.setText(AnnotatedString(it.entryGateway)) },
+				modifier = Modifier.clickable { clipboard.setText(AnnotatedString(it.entryGateway.id)) },
 			)
 			Text(
-				"Exit gatewayId: ${it.exitGateway}",
+				"Exit gatewayId: ${it.exitGateway.id}",
 				style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-				modifier = Modifier.clickable { clipboard.setText(AnnotatedString(it.exitGateway)) },
+				modifier = Modifier.clickable { clipboard.setText(AnnotatedString(it.exitGateway.id)) },
 			)
 			it.connectedAt?.let { connectedAt ->
 				Text(
@@ -51,12 +51,12 @@ fun ConnectionDataDisplay(connectionData: ConnectionData) {
 					Text(
 						"Exit IPR: ${details.v1.exitIpr}",
 						style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-						modifier = Modifier.clickable { clipboard.setText(AnnotatedString(details.v1.exitIpr)) },
+						modifier = Modifier.clickable { clipboard.setText(AnnotatedString(details.v1.exitIpr.nymAddress)) },
 					)
 					Text(
 						"Nym address: ${details.v1.nymAddress}",
 						style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-						modifier = Modifier.clickable { clipboard.setText(AnnotatedString(details.v1.nymAddress)) },
+						modifier = Modifier.clickable { clipboard.setText(AnnotatedString(details.v1.nymAddress.nymAddress)) },
 					)
 				}
 				is TunnelConnectionData.Wireguard -> {
