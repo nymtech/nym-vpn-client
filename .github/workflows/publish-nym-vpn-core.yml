@@ -188,11 +188,18 @@ jobs:
       - name: Publish release
         if: ${{ inputs.publish == 'true' || inputs.publish == true }}
         run: |
+          echo "Setting up the release notes"
           envsubst < "$GITHUB_WORKSPACE/.github/workflows/$NOTES_FILE" > "$RUNNER_TEMP/release-notes.md"
+          echo "Creating the release"
+          echo gh release create $TAG_NAME ${{ env.PRERELEASE }} \
+            --notes-file "$RUNNER_TEMP/release-notes.md" \
+            --title "$SUBJECT" \
+            --target $GITHUB_SHA
           gh release create $TAG_NAME ${{ env.PRERELEASE }} \
             --notes-file "$RUNNER_TEMP/release-notes.md" \
             --title "$SUBJECT" \
             --target $GITHUB_SHA
+          echo "Uploading artifacts"
           test -f ${{ env.ARCHIVE_LINUX}}.tar.gz &&     gh release upload $TAG_NAME ${{ env.ARCHIVE_LINUX }}.tar.gz ${{ env.ARCHIVE_LINUX }}.tar.gz.sha256sum
           test -f ${{ env.ARCHIVE_MAC }}.tar.gz &&      gh release upload $TAG_NAME ${{ env.ARCHIVE_MAC }}.tar.gz ${{ env.ARCHIVE_MAC }}.tar.gz.sha256sum
           test -f ${{ env.ARCHIVE_IOS }}.zip &&         gh release upload $TAG_NAME ${{ env.ARCHIVE_IOS }}.zip ${{ env.ARCHIVE_IOS }}.zip.sha256sum
