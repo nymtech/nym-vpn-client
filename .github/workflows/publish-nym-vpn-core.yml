@@ -191,10 +191,6 @@ jobs:
           echo "Setting up the release notes"
           envsubst < "$GITHUB_WORKSPACE/.github/workflows/$NOTES_FILE" > "$RUNNER_TEMP/release-notes.md"
           echo "Creating the release"
-          echo gh release create $TAG_NAME ${{ env.PRERELEASE }} \
-            --notes-file "$RUNNER_TEMP/release-notes.md" \
-            --title "$SUBJECT" \
-            --target $GITHUB_SHA
           gh release create $TAG_NAME ${{ env.PRERELEASE }} \
             --notes-file "$RUNNER_TEMP/release-notes.md" \
             --title "$SUBJECT" \
@@ -205,7 +201,7 @@ jobs:
           test -f ${{ env.ARCHIVE_IOS }}.zip &&         gh release upload $TAG_NAME ${{ env.ARCHIVE_IOS }}.zip ${{ env.ARCHIVE_IOS }}.zip.sha256sum
           test -f ${{ env.ARCHIVE_ANDROID }}.tar.gz &&  gh release upload $TAG_NAME ${{ env.ARCHIVE_ANDROID }}.tar.gz ${{ env.ARCHIVE_ANDROID }}.tar.gz.sha256sum
           test -f ${{ env.ARCHIVE_WINDOWS }}.zip &&     gh release upload $TAG_NAME ${{ env.ARCHIVE_WINDOWS }}.zip ${{ env.ARCHIVE_WINDOWS }}.zip.sha256sum
-          test -d ${{ env.UPLOAD_DIR_DEB }}.tar.gz &&   gh release upload $TAG_NAME ${{ env.UPLOAD_DIR_DEB}}/nym-vpn*_amd64.deb ${{ env.UPLOAD_DIR_DEB }}/nym-vpn*_amd64.deb.sha256sum
+          test -d ${{ env.UPLOAD_DIR_DEB }} &&   gh release upload $TAG_NAME ${{ env.UPLOAD_DIR_DEB}}/nym-vpn*_amd64.deb ${{ env.UPLOAD_DIR_DEB }}/nym-vpn*_amd64.deb.sha256sum
 
       # Upload to CI server
 
