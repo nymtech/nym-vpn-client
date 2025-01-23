@@ -29,16 +29,16 @@ env:
 jobs:
   build-nym-vpn-core-linux:
     uses: ./.github/workflows/build-nym-vpn-core-linux.yml
-  build-nym-vpn-core-deb:
-    uses: ./.github/workflows/build-nym-vpn-core-deb.yml
-  build-nym-vpn-core-mac:
-    uses: ./.github/workflows/build-nym-vpn-core-mac.yml
-  build-nym-vpn-core-android:
-    uses: ./.github/workflows/build-nym-vpn-core-android.yml
-  build-nym-vpn-core-ios:
-    uses: ./.github/workflows/build-nym-vpn-core-ios.yml
-  build-nym-vpn-core-windows:
-    uses: ./.github/workflows/build-nym-vpn-core-windows.yml
+  # build-nym-vpn-core-deb:
+  #   uses: ./.github/workflows/build-nym-vpn-core-deb.yml
+  # build-nym-vpn-core-mac:
+  #   uses: ./.github/workflows/build-nym-vpn-core-mac.yml
+  # build-nym-vpn-core-android:
+  #   uses: ./.github/workflows/build-nym-vpn-core-android.yml
+  # build-nym-vpn-core-ios:
+  #   uses: ./.github/workflows/build-nym-vpn-core-ios.yml
+  # build-nym-vpn-core-windows:
+  #   uses: ./.github/workflows/build-nym-vpn-core-windows.yml
 
   generate-build-info-core:
     uses: ./.github/workflows/generate-build-info-core.yml
@@ -50,11 +50,11 @@ jobs:
   publish:
     needs:
       - build-nym-vpn-core-linux
-      - build-nym-vpn-core-mac
-      - build-nym-vpn-core-deb
-      - build-nym-vpn-core-android
-      - build-nym-vpn-core-ios
-      - build-nym-vpn-core-windows
+      # - build-nym-vpn-core-mac
+      # - build-nym-vpn-core-deb
+      # - build-nym-vpn-core-android
+      # - build-nym-vpn-core-ios
+      # - build-nym-vpn-core-windows
       - generate-build-info-core
     runs-on: ubuntu-22.04
     permissions:
