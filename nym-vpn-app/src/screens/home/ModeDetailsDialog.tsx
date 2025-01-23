@@ -50,6 +50,7 @@ function ModeDetailsDialog({ isOpen, onClose }: Props) {
         text={t('modes-dialog.link')}
         url={ModesDetailsArticle}
         className="mb-1"
+        icon
       />
       <Button onClick={onClose} className="mt-2">
         <span className="text-base text-black dark:text-baltic-sea">
