@@ -135,17 +135,19 @@ jobs:
           zip -r ${ARCHIVE_IOS}.zip ${ARCHIVE_IOS} || true
           zip -r ${ARCHIVE_WINDOWS}.zip ${ARCHIVE_WINDOWS} || true
 
-          sha256sum -v ${ARCHIVE_LINUX}.tar.gz > "${ARCHIVE_LINUX}.tar.gz.sha256sum" || true
-          sha256sum -v ${ARCHIVE_MAC}.tar.gz > "${ARCHIVE_MAC}.tar.gz.sha256sum" || true
-          sha256sum -v ${ARCHIVE_ANDROID}.tar.gz > "${ARCHIVE_ANDROID}.tar.gz.sha256sum" || true
-          sha256sum -v ${ARCHIVE_IOS}.zip > "${ARCHIVE_IOS}.zip.sha256sum" || true
-          sha256sum -v ${ARCHIVE_WINDOWS}.zip > "${ARCHIVE_WINDOWS}.zip.sha256sum" || true
+          sha256sum ${ARCHIVE_LINUX}.tar.gz > "${ARCHIVE_LINUX}.tar.gz.sha256sum" || true
+          sha256sum ${ARCHIVE_MAC}.tar.gz > "${ARCHIVE_MAC}.tar.gz.sha256sum" || true
+          sha256sum ${ARCHIVE_ANDROID}.tar.gz > "${ARCHIVE_ANDROID}.tar.gz.sha256sum" || true
+          sha256sum ${ARCHIVE_IOS}.zip > "${ARCHIVE_IOS}.zip.sha256sum" || true
+          sha256sum ${ARCHIVE_WINDOWS}.zip > "${ARCHIVE_WINDOWS}.zip.sha256sum" || true
 
-          pushd ${{ env.UPLOAD_DIR_DEB }}
-          for deb in nym-vpn*_amd64.deb; do
-            sha256sum -v ${deb} > ${deb}.sha256sum || true
-          done
-          popd
+          if [[ -d ${{ env.UPLOAD_DIR_DEB }} ]]; then
+            pushd ${{ env.UPLOAD_DIR_DEB }}
+            for deb in nym-vpn*_amd64.deb; do
+              sha256sum ${deb} > ${deb}.sha256sum || true
+            done
+            popd
+          fi
 
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat ${ARCHIVE_LINUX}.tar.gz.sha256sum >> $GITHUB_ENV || true
