@@ -155,10 +155,12 @@ jobs:
           cat ${ARCHIVE_ANDROID}.tar.gz.sha256sum >> $GITHUB_ENV || true
           cat ${ARCHIVE_IOS}.zip.sha256sum >> $GITHUB_ENV || true
           cat ${ARCHIVE_WINDOWS}.zip.sha256sum >> $GITHUB_ENV || true
-          pushd ${{ env.UPLOAD_DIR_DEB }}
-          for deb_sha256 in nym-vpn*_amd64.deb.sha256sum; do
-            cat ${deb_sha256} >> $GITHUB_ENV || true
-          done
+          if [[ -d ${{ env.UPLOAD_DIR_DEB }} ]]; then
+            pushd ${{ env.UPLOAD_DIR_DEB }}
+            for deb_sha256 in nym-vpn*_amd64.deb.sha256sum; do
+              cat ${deb_sha256} >> $GITHUB_ENV || true
+            done
+          fi
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Setting subject, prerelease and notes files
