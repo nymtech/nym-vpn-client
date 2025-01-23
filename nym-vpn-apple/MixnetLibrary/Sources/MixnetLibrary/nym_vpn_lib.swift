@@ -4376,9 +4376,9 @@ extension RegisterDeviceResult: Equatable, Hashable {}
 public enum RequestZkNymResult {
     
     case inProgress
-    case success(successes: [RequestZkNymSuccess]
+    case done(successes: [RequestZkNymSuccess], failures: [RequestZkNymError]
     )
-    case failed(successes: [RequestZkNymSuccess], failures: [RequestZkNymError]
+    case error(RequestZkNymError
     )
 }
 
@@ -4392,10 +4392,10 @@ public struct FfiConverterTypeRequestZkNymResult: FfiConverterRustBuffer {
         
         case 1: return .inProgress
         
-        case 2: return .success(successes: try FfiConverterSequenceTypeRequestZkNymSuccess.read(from: &buf)
+        case 2: return .done(successes: try FfiConverterSequenceTypeRequestZkNymSuccess.read(from: &buf), failures: try FfiConverterSequenceTypeRequestZkNymError.read(from: &buf)
         )
         
-        case 3: return .failed(successes: try FfiConverterSequenceTypeRequestZkNymSuccess.read(from: &buf), failures: try FfiConverterSequenceTypeRequestZkNymError.read(from: &buf)
+        case 3: return .error(try FfiConverterTypeRequestZkNymError.read(from: &buf)
         )
         
         default: throw UniffiInternalError.unexpectedEnumCase
@@ -4410,15 +4410,15 @@ public struct FfiConverterTypeRequestZkNymResult: FfiConverterRustBuffer {
             writeInt(&buf, Int32(1))
         
         
-        case let .success(successes):
+        case let .done(successes,failures):
             writeInt(&buf, Int32(2))
             FfiConverterSequenceTypeRequestZkNymSuccess.write(successes, into: &buf)
+            FfiConverterSequenceTypeRequestZkNymError.write(failures, into: &buf)
             
         
-        case let .failed(successes,failures):
+        case let .error(v1):
             writeInt(&buf, Int32(3))
-            FfiConverterSequenceTypeRequestZkNymSuccess.write(successes, into: &buf)
-            FfiConverterSequenceTypeRequestZkNymError.write(failures, into: &buf)
+            FfiConverterTypeRequestZkNymError.write(v1, into: &buf)
             
         }
     }
@@ -4765,6 +4765,8 @@ public enum VpnError {
     case InvalidAccountStoragePath(details: String
     )
     case StatisticsRecipient
+    case UnregisterDeviceApiClientFailure(details: String
+    )
 }
 
 
@@ -4827,6 +4829,9 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
             details: try FfiConverterString.read(from: &buf)
             )
         case 22: return .StatisticsRecipient
+        case 23: return .UnregisterDeviceApiClientFailure(
+            details: try FfiConverterString.read(from: &buf)
+            )
 
          default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -4943,6 +4948,11 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
         case .StatisticsRecipient:
             writeInt(&buf, Int32(22))
         
+        
+        case let .UnregisterDeviceApiClientFailure(details):
+            writeInt(&buf, Int32(23))
+            FfiConverterString.write(details, into: &buf)
+            
         }
     }
 }
