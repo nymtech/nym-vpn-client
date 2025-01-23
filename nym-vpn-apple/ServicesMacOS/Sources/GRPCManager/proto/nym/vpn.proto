@@ -702,8 +702,8 @@ message RequestZkNymResult {
   enum RequestZkNymResultType {
     REQUEST_ZK_NYM_RESULT_UNSPECIFIED = 0;
     IN_PROGRESS = 1;
-    SUCCESS = 2;
-    FAILED = 3;
+    DONE = 4;
+    ERROR = 5;
   }
 
   RequestZkNymResultType kind = 1;
@@ -725,8 +725,25 @@ message RequestZkNymError {
     // General error
     GENERAL = 2;
 
+    // Error returned from the nym-vpn-api endpoint for get the zk-nyms that
+    // are available for download or resume.
+    GET_ZK_NYMS_AVAILABLE_FOR_DOWNLOAD_ENDPOINT_FAILURE = 9;
+
+    // Failed to create the ecash key pair
+    CREATE_ECASH_KEY_PAIR = 10;
+
+    // Failed to construct the withdrawal request
+    CONSTRUCT_WITHDRAWAL_REQUEST = 11;
+
     // Error returned from the nym-vpn-api endpoint
     REQUEST_ZK_NYM_ENDPOINT_FAILURE = 3;
+
+    // The vpn-api response contained an invalid ticket type
+    INVALID_TICKET_TYPE_IN_RESPONSE = 12;
+
+    // The vpn-api response contained a ticket type that didn't match the one
+    // we requested
+    TICKET_TYPE_MISMATCH = 13;
 
     // Error returned from the nym-vpn-api polling endpoint
     POLL_ZK_NYM_ENDPOINT_FAILURE = 4;
@@ -741,8 +758,61 @@ message RequestZkNymError {
     // with the result.
     FINISHED_WITH_ERROR = 7;
 
+    // The vpn-api response is missing the blinded shares
+    MISSING_BLINDED_SHARES = 14;
+
+    // The vpn-api response is missing the master verification key
+    RESPONSE_HAS_INVALID_MASTER_VERIFICATION_KEY = 15;
+
+    // The vpn-api response has an inconsistent epoch id
+    EPOCH_ID_MISMATCH = 16;
+
+    // The vpn-api response has an inconsistent expiration date
+    EXPIRATION_DATE_MISMATCH = 17;
+
+    // Error returned from the nym-vpn-api endpoint for getting the partial
+    // verification keys
+    GET_PARTIAL_VERIFICATION_KEYS_ENDPOINT_FAILURE = 18;
+
+    // Missing the master verification key in storage
+    NO_MASTER_VERIFICATION_KEY_IN_STORAGE = 19;
+
+    // Missing coin index signatures in storage
+    NO_COIN_INDEX_SIGNATURES_IN_STORAGE = 20;
+
+    // Missing expiration date signatures in storage
+    NO_EXPIRATION_DATE_SIGNATURES_IN_STORAGE = 21;
+
+    // The verification key is invalid
+    INVALID_VERIFICATION_KEY = 22;
+
+    // Failed to deserialize the blinded signature
+    DESERIALIZE_BLINDED_SIGNATURE = 23;
+
+    // Missing index when decoding keys
+    DECODED_KEYS_MISSING_INDEX = 24;
+
     // Failed to import the ticketbook into local storage
     IMPORT = 8;
+
+    // Failed to aggregate the wallets
+    AGGREGATE_WALLETS = 25;
+
+    // The error returned from the vpn-api endpoint when confirming the zk-nym
+    // download
+    CONFIRM_ZK_NYM_DOWNLOAD_ENDPOINT_FAILURE = 26;
+
+    // Error importing the zknym due to the storage missing the pending request data
+    MISSING_PENDING_REQUEST = 27;
+
+    // Error removing the pending request from storage
+    REMOVE_PENDING_REQUEST = 28;
+
+    // General credential storage error
+    CREDENTIAL_STORAGE = 29;
+
+    // The vpn-api response contained an unexpected error
+    UNEXPECTED_ERROR_RESPONSE = 30;
   }
 
   RequestZkNymErrorType kind = 1;

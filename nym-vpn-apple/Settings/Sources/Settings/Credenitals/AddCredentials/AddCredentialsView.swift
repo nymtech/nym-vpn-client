@@ -120,8 +120,6 @@ private extension AddCredentialsView {
 
     @ViewBuilder
     func getStartedSection() -> some View {
-        GenericImage(imageName: viewModel.logoImageName)
-            .frame(width: 80, height: 80)
         Spacer()
             .frame(height: 40)
 

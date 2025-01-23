@@ -2801,8 +2801,8 @@ struct Nym_Vpn_RequestZkNymResult {
     typealias RawValue = Int
     case requestZkNymResultUnspecified // = 0
     case inProgress // = 1
-    case success // = 2
-    case failed // = 3
+    case done // = 4
+    case error // = 5
     case UNRECOGNIZED(Int)
 
     init() {
@@ -2813,8 +2813,8 @@ struct Nym_Vpn_RequestZkNymResult {
       switch rawValue {
       case 0: self = .requestZkNymResultUnspecified
       case 1: self = .inProgress
-      case 2: self = .success
-      case 3: self = .failed
+      case 4: self = .done
+      case 5: self = .error
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -2823,8 +2823,8 @@ struct Nym_Vpn_RequestZkNymResult {
       switch self {
       case .requestZkNymResultUnspecified: return 0
       case .inProgress: return 1
-      case .success: return 2
-      case .failed: return 3
+      case .done: return 4
+      case .error: return 5
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -2841,8 +2841,8 @@ extension Nym_Vpn_RequestZkNymResult.RequestZkNymResultType: CaseIterable {
   static let allCases: [Nym_Vpn_RequestZkNymResult.RequestZkNymResultType] = [
     .requestZkNymResultUnspecified,
     .inProgress,
-    .success,
-    .failed,
+    .done,
+    .error,
   ]
 }
 
@@ -2915,8 +2915,25 @@ struct Nym_Vpn_RequestZkNymError {
     /// General error
     case general // = 2
 
+    /// Error returned from the nym-vpn-api endpoint for get the zk-nyms that
+    /// are available for download or resume.
+    case getZkNymsAvailableForDownloadEndpointFailure // = 9
+
+    /// Failed to create the ecash key pair
+    case createEcashKeyPair // = 10
+
+    /// Failed to construct the withdrawal request
+    case constructWithdrawalRequest // = 11
+
     /// Error returned from the nym-vpn-api endpoint
     case requestZkNymEndpointFailure // = 3
+
+    /// The vpn-api response contained an invalid ticket type
+    case invalidTicketTypeInResponse // = 12
+
+    /// The vpn-api response contained a ticket type that didn't match the one
+    /// we requested
+    case ticketTypeMismatch // = 13
 
     /// Error returned from the nym-vpn-api polling endpoint
     case pollZkNymEndpointFailure // = 4
@@ -2931,8 +2948,61 @@ struct Nym_Vpn_RequestZkNymError {
     /// with the result.
     case finishedWithError // = 7
 
+    /// The vpn-api response is missing the blinded shares
+    case missingBlindedShares // = 14
+
+    /// The vpn-api response is missing the master verification key
+    case responseHasInvalidMasterVerificationKey // = 15
+
+    /// The vpn-api response has an inconsistent epoch id
+    case epochIDMismatch // = 16
+
+    /// The vpn-api response has an inconsistent expiration date
+    case expirationDateMismatch // = 17
+
+    /// Error returned from the nym-vpn-api endpoint for getting the partial
+    /// verification keys
+    case getPartialVerificationKeysEndpointFailure // = 18
+
+    /// Missing the master verification key in storage
+    case noMasterVerificationKeyInStorage // = 19
+
+    /// Missing coin index signatures in storage
+    case noCoinIndexSignaturesInStorage // = 20
+
+    /// Missing expiration date signatures in storage
+    case noExpirationDateSignaturesInStorage // = 21
+
+    /// The verification key is invalid
+    case invalidVerificationKey // = 22
+
+    /// Failed to deserialize the blinded signature
+    case deserializeBlindedSignature // = 23
+
+    /// Missing index when decoding keys
+    case decodedKeysMissingIndex // = 24
+
     /// Failed to import the ticketbook into local storage
     case `import` // = 8
+
+    /// Failed to aggregate the wallets
+    case aggregateWallets // = 25
+
+    /// The error returned from the vpn-api endpoint when confirming the zk-nym
+    /// download
+    case confirmZkNymDownloadEndpointFailure // = 26
+
+    /// Error importing the zknym due to the storage missing the pending request data
+    case missingPendingRequest // = 27
+
+    /// Error removing the pending request from storage
+    case removePendingRequest // = 28
+
+    /// General credential storage error
+    case credentialStorage // = 29
+
+    /// The vpn-api response contained an unexpected error
+    case unexpectedErrorResponse // = 30
     case UNRECOGNIZED(Int)
 
     init() {
@@ -2950,6 +3020,28 @@ struct Nym_Vpn_RequestZkNymError {
       case 6: self = .pollingTimeout
       case 7: self = .finishedWithError
       case 8: self = .import
+      case 9: self = .getZkNymsAvailableForDownloadEndpointFailure
+      case 10: self = .createEcashKeyPair
+      case 11: self = .constructWithdrawalRequest
+      case 12: self = .invalidTicketTypeInResponse
+      case 13: self = .ticketTypeMismatch
+      case 14: self = .missingBlindedShares
+      case 15: self = .responseHasInvalidMasterVerificationKey
+      case 16: self = .epochIDMismatch
+      case 17: self = .expirationDateMismatch
+      case 18: self = .getPartialVerificationKeysEndpointFailure
+      case 19: self = .noMasterVerificationKeyInStorage
+      case 20: self = .noCoinIndexSignaturesInStorage
+      case 21: self = .noExpirationDateSignaturesInStorage
+      case 22: self = .invalidVerificationKey
+      case 23: self = .deserializeBlindedSignature
+      case 24: self = .decodedKeysMissingIndex
+      case 25: self = .aggregateWallets
+      case 26: self = .confirmZkNymDownloadEndpointFailure
+      case 27: self = .missingPendingRequest
+      case 28: self = .removePendingRequest
+      case 29: self = .credentialStorage
+      case 30: self = .unexpectedErrorResponse
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -2965,6 +3057,28 @@ struct Nym_Vpn_RequestZkNymError {
       case .pollingTimeout: return 6
       case .finishedWithError: return 7
       case .import: return 8
+      case .getZkNymsAvailableForDownloadEndpointFailure: return 9
+      case .createEcashKeyPair: return 10
+      case .constructWithdrawalRequest: return 11
+      case .invalidTicketTypeInResponse: return 12
+      case .ticketTypeMismatch: return 13
+      case .missingBlindedShares: return 14
+      case .responseHasInvalidMasterVerificationKey: return 15
+      case .epochIDMismatch: return 16
+      case .expirationDateMismatch: return 17
+      case .getPartialVerificationKeysEndpointFailure: return 18
+      case .noMasterVerificationKeyInStorage: return 19
+      case .noCoinIndexSignaturesInStorage: return 20
+      case .noExpirationDateSignaturesInStorage: return 21
+      case .invalidVerificationKey: return 22
+      case .deserializeBlindedSignature: return 23
+      case .decodedKeysMissingIndex: return 24
+      case .aggregateWallets: return 25
+      case .confirmZkNymDownloadEndpointFailure: return 26
+      case .missingPendingRequest: return 27
+      case .removePendingRequest: return 28
+      case .credentialStorage: return 29
+      case .unexpectedErrorResponse: return 30
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -2987,12 +3101,34 @@ extension Nym_Vpn_RequestZkNymError.RequestZkNymErrorType: CaseIterable {
     .unspecified,
     .internal,
     .general,
+    .getZkNymsAvailableForDownloadEndpointFailure,
+    .createEcashKeyPair,
+    .constructWithdrawalRequest,
     .requestZkNymEndpointFailure,
+    .invalidTicketTypeInResponse,
+    .ticketTypeMismatch,
     .pollZkNymEndpointFailure,
     .pollingTaskError,
     .pollingTimeout,
     .finishedWithError,
+    .missingBlindedShares,
+    .responseHasInvalidMasterVerificationKey,
+    .epochIDMismatch,
+    .expirationDateMismatch,
+    .getPartialVerificationKeysEndpointFailure,
+    .noMasterVerificationKeyInStorage,
+    .noCoinIndexSignaturesInStorage,
+    .noExpirationDateSignaturesInStorage,
+    .invalidVerificationKey,
+    .deserializeBlindedSignature,
+    .decodedKeysMissingIndex,
     .import,
+    .aggregateWallets,
+    .confirmZkNymDownloadEndpointFailure,
+    .missingPendingRequest,
+    .removePendingRequest,
+    .credentialStorage,
+    .unexpectedErrorResponse,
   ]
 }
 
@@ -7719,8 +7855,8 @@ extension Nym_Vpn_RequestZkNymResult.RequestZkNymResultType: SwiftProtobuf._Prot
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "REQUEST_ZK_NYM_RESULT_UNSPECIFIED"),
     1: .same(proto: "IN_PROGRESS"),
-    2: .same(proto: "SUCCESS"),
-    3: .same(proto: "FAILED"),
+    4: .same(proto: "DONE"),
+    5: .same(proto: "ERROR"),
   ]
 }
 
@@ -7827,6 +7963,28 @@ extension Nym_Vpn_RequestZkNymError.RequestZkNymErrorType: SwiftProtobuf._ProtoN
     6: .same(proto: "POLLING_TIMEOUT"),
     7: .same(proto: "FINISHED_WITH_ERROR"),
     8: .same(proto: "IMPORT"),
+    9: .same(proto: "GET_ZK_NYMS_AVAILABLE_FOR_DOWNLOAD_ENDPOINT_FAILURE"),
+    10: .same(proto: "CREATE_ECASH_KEY_PAIR"),
+    11: .same(proto: "CONSTRUCT_WITHDRAWAL_REQUEST"),
+    12: .same(proto: "INVALID_TICKET_TYPE_IN_RESPONSE"),
+    13: .same(proto: "TICKET_TYPE_MISMATCH"),
+    14: .same(proto: "MISSING_BLINDED_SHARES"),
+    15: .same(proto: "RESPONSE_HAS_INVALID_MASTER_VERIFICATION_KEY"),
+    16: .same(proto: "EPOCH_ID_MISMATCH"),
+    17: .same(proto: "EXPIRATION_DATE_MISMATCH"),
+    18: .same(proto: "GET_PARTIAL_VERIFICATION_KEYS_ENDPOINT_FAILURE"),
+    19: .same(proto: "NO_MASTER_VERIFICATION_KEY_IN_STORAGE"),
+    20: .same(proto: "NO_COIN_INDEX_SIGNATURES_IN_STORAGE"),
+    21: .same(proto: "NO_EXPIRATION_DATE_SIGNATURES_IN_STORAGE"),
+    22: .same(proto: "INVALID_VERIFICATION_KEY"),
+    23: .same(proto: "DESERIALIZE_BLINDED_SIGNATURE"),
+    24: .same(proto: "DECODED_KEYS_MISSING_INDEX"),
+    25: .same(proto: "AGGREGATE_WALLETS"),
+    26: .same(proto: "CONFIRM_ZK_NYM_DOWNLOAD_ENDPOINT_FAILURE"),
+    27: .same(proto: "MISSING_PENDING_REQUEST"),
+    28: .same(proto: "REMOVE_PENDING_REQUEST"),
+    29: .same(proto: "CREDENTIAL_STORAGE"),
+    30: .same(proto: "UNEXPECTED_ERROR_RESPONSE"),
   ]
 }
 

@@ -24,8 +24,9 @@ public enum VPNErrorReason: LocalizedError {
     case deviceRegistrationFailed(details: String, messageId: String?, codeReferenceId: String?)
     case invalidAccountStoragePath(details: String)
     case requestZkNym(successes: [String], failed: [RequestZkNymFailure])
-    case unkownTunnelState
     case statisticsRecipient
+    case unregisterDeviceApiClientFailure(details: String)
+    case unkownTunnelState
 
     public static let domain = "ErrorHandler.VPNErrorReason"
 
@@ -97,6 +98,8 @@ public enum VPNErrorReason: LocalizedError {
             self = .requestZkNym(successes: newSuccesses, failed: newFailed)
         case .StatisticsRecipient:
             self = .statisticsRecipient
+        case let .UnregisterDeviceApiClientFailure(details: details):
+            self = .unregisterDeviceApiClientFailure(details: details)
         }
     }
 
@@ -258,8 +261,10 @@ private extension VPNErrorReason {
             return 20
         case .statisticsRecipient:
             return 21
-        case .unkownTunnelState:
+        case .unregisterDeviceApiClientFailure:
             return 22
+        case .unkownTunnelState:
+            return 23
         }
     }
 
@@ -306,6 +311,8 @@ private extension VPNErrorReason {
             return "\(successText) \(failuresText)"
         case .statisticsRecipient:
             return "The VPN statistics recipient is not available."
+        case let .unregisterDeviceApiClientFailure(details: details):
+            return details
         case .unkownTunnelState:
             return "Unknown tunnel error reason."
         }

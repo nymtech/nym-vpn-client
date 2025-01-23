@@ -33,7 +33,6 @@ final class AddCredentialsViewModel: ObservableObject {
     let getStartedTitle = "addCredentials.getStarted.Title".localizedString
     let mnemonicSubtitle = "addCredtenials.mnemonic".localizedString
     let credentialsPlaceholderTitle = "addCredentials.placeholder".localizedString
-    let logoImageName = "addCredentialsLogo"
     let scannerIconName = "qrcode.viewfinder"
 
     @Binding private var path: NavigationPath
