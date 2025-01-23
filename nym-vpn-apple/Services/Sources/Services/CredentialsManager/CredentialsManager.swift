@@ -45,7 +45,7 @@ public final class CredentialsManager {
 
                 try storeAccountMnemonicRaw(mnemonic: credential, path: dataFolderURL.path())
 #elseif os(macOS)
-                try? await helperInstallManager.installIfNeeded()
+                try await helperInstallManager.installIfNeeded()
                 try await grpcManager.storeAccount(with: credential)
 #endif
                 checkCredentialImport()
@@ -115,7 +115,8 @@ private extension CredentialsManager {
         .store(in: &cancellables)
 
         helperInstallManager.$daemonState.sink { [weak self] state in
-            guard state == .running else { return }
+            print("🚜 cred man: \(state)")
+            guard state == .running || state == .installed else { return }
             self?.checkCredentialImport()
         }
         .store(in: &cancellables)
@@ -126,6 +127,7 @@ private extension CredentialsManager {
 private extension CredentialsManager {
     func checkCredentialImport() {
         Task(priority: .background) {
+            print("🚜 check cred import")
             do {
                 let isImported: Bool
 #if os(iOS)

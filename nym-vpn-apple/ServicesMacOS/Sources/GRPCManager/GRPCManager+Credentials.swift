@@ -28,21 +28,23 @@ extension GRPCManager {
         logger.log(level: .info, "Forgetting credentials")
 
         return try await withCheckedThrowingContinuation { continuation in
-            let call = client.forgetAccount(Google_Protobuf_Empty())
+            Task {
+                let call = client.forgetAccount(Google_Protobuf_Empty())
 
-            call.response.whenComplete { result in
-                switch result {
-                case .success(let response):
-                    if response.hasError {
-                        continuation.resume(throwing: GeneralNymError.library(message: response.error.message))
-                    } else {
-                        continuation.resume()
+                call.response.whenComplete { result in
+                    switch result {
+                    case .success(let response):
+                        if response.hasError {
+                            continuation.resume(throwing: GeneralNymError.library(message: response.error.message))
+                        } else {
+                            continuation.resume()
+                        }
+                    case .failure(let error):
+                        continuation.resume(
+                            throwing:
+                                GeneralNymError.library(message: error.localizedDescription)
+                        )
                     }
-                case .failure(let error):
-                    continuation.resume(
-                        throwing:
-                            GeneralNymError.library(message: error.localizedDescription)
-                    )
                 }
             }
         }
