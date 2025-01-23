@@ -123,23 +123,23 @@ jobs:
           echo "ARCHIVE_IOS=${ARCHIVE_IOS}" >> $GITHUB_ENV
           echo "ARCHIVE_WINDOWS=${ARCHIVE_WINDOWS}" >> $GITHUB_ENV
 
-          mv -v ${{ env.UPLOAD_DIR_LINUX }} ${ARCHIVE_LINUX} || true
-          mv -v ${{ env.UPLOAD_DIR_MAC }} ${ARCHIVE_MAC} || true
+          mv -v ${{ env.UPLOAD_DIR_LINUX }}   ${ARCHIVE_LINUX} || true
+          mv -v ${{ env.UPLOAD_DIR_MAC }}     ${ARCHIVE_MAC} || true
           mv -v ${{ env.UPLOAD_DIR_ANDROID }} ${ARCHIVE_ANDROID} || true
-          mv -v ${{ env.UPLOAD_DIR_IOS }} ${ARCHIVE_IOS} || true
+          mv -v ${{ env.UPLOAD_DIR_IOS }}     ${ARCHIVE_IOS} || true
           mv -v ${{ env.UPLOAD_DIR_WINDOWS }} ${ARCHIVE_WINDOWS} || true
 
-          tar cvzf ${ARCHIVE_LINUX}.tar.gz ${ARCHIVE_LINUX} || true
-          tar cvzf ${ARCHIVE_MAC}.tar.gz ${ARCHIVE_MAC} || true
-          tar cvzf ${ARCHIVE_ANDROID}.tar.gz ${ARCHIVE_ANDROID} || true
-          zip -r ${ARCHIVE_IOS}.zip ${ARCHIVE_IOS} || true
-          zip -r ${ARCHIVE_WINDOWS}.zip ${ARCHIVE_WINDOWS} || true
+          test -d ${ARCHIVE_LINUX} &&   tar cvzf ${ARCHIVE_LINUX}.tar.gz ${ARCHIVE_LINUX}
+          test -d ${ARCHIVE_MAC} &&     tar cvzf ${ARCHIVE_MAC}.tar.gz ${ARCHIVE_MAC}
+          test -d ${ARCHIVE_ANDROID} && tar cvzf ${ARCHIVE_ANDROID}.tar.gz ${ARCHIVE_ANDROID}
+          test -d ${ARCHIVE_IOS} &&     zip -r ${ARCHIVE_IOS}.zip ${ARCHIVE_IOS}
+          test -d ${ARCHIVE_WINDOWS} && zip -r ${ARCHIVE_WINDOWS}.zip ${ARCHIVE_WINDOWS}
 
-          sha256sum ${ARCHIVE_LINUX}.tar.gz > "${ARCHIVE_LINUX}.tar.gz.sha256sum" || true
-          sha256sum ${ARCHIVE_MAC}.tar.gz > "${ARCHIVE_MAC}.tar.gz.sha256sum" || true
-          sha256sum ${ARCHIVE_ANDROID}.tar.gz > "${ARCHIVE_ANDROID}.tar.gz.sha256sum" || true
-          sha256sum ${ARCHIVE_IOS}.zip > "${ARCHIVE_IOS}.zip.sha256sum" || true
-          sha256sum ${ARCHIVE_WINDOWS}.zip > "${ARCHIVE_WINDOWS}.zip.sha256sum" || true
+          test -f ${ARCHIVE_LINUX}.tar.gz &&    sha256sum ${ARCHIVE_LINUX}.tar.gz > "${ARCHIVE_LINUX}.tar.gz.sha256sum"
+          test -f ${ARCHIVE_MAC}.tar.gz &&      sha256sum ${ARCHIVE_MAC}.tar.gz > "${ARCHIVE_MAC}.tar.gz.sha256sum"
+          test -f ${ARCHIVE_ANDROID}.tar.gz &&  sha256sum ${ARCHIVE_ANDROID}.tar.gz > "${ARCHIVE_ANDROID}.tar.gz.sha256sum"
+          test -f ${ARCHIVE_IOS}.zip &&         sha256sum ${ARCHIVE_IOS}.zip > "${ARCHIVE_IOS}.zip.sha256sum"
+          test -f ${ARCHIVE_WINDOWS}.zip &&     sha256sum ${ARCHIVE_WINDOWS}.zip > "${ARCHIVE_WINDOWS}.zip.sha256sum"
 
           if [[ -d ${{ env.UPLOAD_DIR_DEB }} ]]; then
             pushd ${{ env.UPLOAD_DIR_DEB }}
@@ -193,12 +193,12 @@ jobs:
             --notes-file "$RUNNER_TEMP/release-notes.md" \
             --title "$SUBJECT" \
             --target $GITHUB_SHA
-          gh release upload $TAG_NAME ${{ env.ARCHIVE_LINUX }}.tar.gz ${{ env.ARCHIVE_LINUX }}.tar.gz.sha256sum || true
-          gh release upload $TAG_NAME ${{ env.ARCHIVE_MAC }}.tar.gz ${{ env.ARCHIVE_MAC }}.tar.gz.sha256sum || true
-          gh release upload $TAG_NAME ${{ env.ARCHIVE_IOS }}.zip ${{ env.ARCHIVE_IOS }}.zip.sha256sum || true
-          gh release upload $TAG_NAME ${{ env.ARCHIVE_ANDROID }}.tar.gz ${{ env.ARCHIVE_ANDROID }}.tar.gz.sha256sum || true
-          gh release upload $TAG_NAME ${{ env.ARCHIVE_WINDOWS }}.zip ${{ env.ARCHIVE_WINDOWS }}.zip.sha256sum || true
-          gh release upload $TAG_NAME ${{ env.UPLOAD_DIR_DEB}}/nym-vpn*_amd64.deb ${{ env.UPLOAD_DIR_DEB }}/nym-vpn*_amd64.deb.sha256sum || true
+          test -f ${{ env.ARCHIVE_LINUX}}.tar.gz &&     gh release upload $TAG_NAME ${{ env.ARCHIVE_LINUX }}.tar.gz ${{ env.ARCHIVE_LINUX }}.tar.gz.sha256sum
+          test -f ${{ env.ARCHIVE_MAC }}.tar.gz &&      gh release upload $TAG_NAME ${{ env.ARCHIVE_MAC }}.tar.gz ${{ env.ARCHIVE_MAC }}.tar.gz.sha256sum
+          test -f ${{ env.ARCHIVE_IOS }}.zip &&         gh release upload $TAG_NAME ${{ env.ARCHIVE_IOS }}.zip ${{ env.ARCHIVE_IOS }}.zip.sha256sum
+          test -f ${{ env.ARCHIVE_ANDROID }}.tar.gz &&  gh release upload $TAG_NAME ${{ env.ARCHIVE_ANDROID }}.tar.gz ${{ env.ARCHIVE_ANDROID }}.tar.gz.sha256sum
+          test -f ${{ env.ARCHIVE_WINDOWS }}.zip &&     gh release upload $TAG_NAME ${{ env.ARCHIVE_WINDOWS }}.zip ${{ env.ARCHIVE_WINDOWS }}.zip.sha256sum
+          test -d ${{ env.UPLOAD_DIR_DEB }}.tar.gz &&   gh release upload $TAG_NAME ${{ env.UPLOAD_DIR_DEB}}/nym-vpn*_amd64.deb ${{ env.UPLOAD_DIR_DEB }}/nym-vpn*_amd64.deb.sha256sum
 
       # Upload to CI server
 
@@ -208,7 +208,7 @@ jobs:
           OUTPUT_DIR_BASE: ci-builds/${{ github.ref_name }}
         run: |
           TIMESTAMP=$(date +%Y%m%d%H%M) # Short and suitable for paths
-          OUTPUT_DIR="$OUTPUT_DIR_BASE/${{ github.ref_name }}/$TIMESTAMP"
+          OUTPUT_DIR="$OUTPUT_DIR_BASE/$TIMESTAMP"
           echo "OUTPUT_DIR=$OUTPUT_DIR" >> $GITHUB_ENV
           rm -rf ci-builds || true
           mkdir -p $OUTPUT_DIR
