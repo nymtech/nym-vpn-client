@@ -35,15 +35,15 @@ BI="$ITL$BLD"
 ####
 
 # AppImage
-app_tag=nym-vpn-app-v1.2.0-mirabelle.0
-app_version=1.2.0-mirabelle.0
+app_tag=nym-vpn-app-v1.2.0-mirabelle.1
+app_version=1.2.0-mirabelle.1
 appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/NymVPN_${app_version}_x64.AppImage"
 desktop_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/fb526935/nym-vpn-app/.pkg/app.desktop"
 icon_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/fb526935/nym-vpn-app/.pkg/icon.svg"
 
 # nym-vpnd
-vpnd_tag=nym-vpn-core-v1.2.0-beta.0
-vpnd_version=1.2.0-beta.0
+vpnd_tag=nym-vpn-core-v1.2.0-beta.2
+vpnd_version=1.2.0-beta.2
 vpnd_url="https://github.com/nymtech/nym-vpn-client/releases/download/$vpnd_tag/nym-vpn-core-v${vpnd_version}_linux_x86_64.tar.gz"
 unit_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/fb526935/nym-vpn-core/crates/nym-vpnd/.pkg/aur/nym-vpnd.service"
 
