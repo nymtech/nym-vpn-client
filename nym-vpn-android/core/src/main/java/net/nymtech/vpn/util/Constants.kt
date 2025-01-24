@@ -4,7 +4,7 @@ object Constants {
 	const val NYM_VPN_LIB = "nym_vpn_lib"
 
 	// Add Rust environment vars for lib
-	const val DEFAULT_COUNTRY_ISO = "CH"
+	const val DEFAULT_COUNTRY_ISO = "FR"
 
 	const val LOG_LEVEL = "info"
 
