@@ -8,11 +8,12 @@
     "desc": "aplica-se ao reiniciar o aplicativo"
   },
   "support": {
-    "title": "Suporte",
+    "title": "Suporte e feedback",
     "faq": "Verifique as perguntas frequentes",
     "github": "Abrir um problema no GitHub",
     "matrix": "Junte-se a nós no Matrix",
-    "discord": "Junte-se a nós no Discord"
+    "discord": "Junte-se a nós no Discord",
+    "get-in-touch": "Entre em contato"
   },
   "legal": {
     "policy": "Declaração de privacidade",
@@ -24,7 +25,7 @@
     "emptyData": "Não há dados de licença disponíveis"
   },
   "display-theme": "Modo de visualização",
-  "login-button": "Entrar",
+  "login-button": "Conectar dispositivo",
   "monitoring-alert": "Você deve reiniciar o aplicativo para que a alteração tenha efeito.",
   "faq": "Perguntas frequentes",
   "quit": "Sair da NymVPN",
@@ -38,12 +39,12 @@
   "info": {
     "daemon-version": "Versão do Daemon",
     "network-name": "Rede",
-    "client-version": "Versão do cliente",
+    "client-version": "Versão do app",
     "device-id": "ID do dispositivo",
     "account-id": "ID da conta"
   },
   "logout-confirmation": {
-    "description": "Você precisará da frase de recuperação para fazer login novamente.",
+    "description": "Você precisará do seu código de acesso para reconectar o dispositivo.",
     "title": "Você tem certeza?"
   }
 }
