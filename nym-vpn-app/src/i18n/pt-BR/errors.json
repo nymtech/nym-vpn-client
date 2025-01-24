@@ -82,7 +82,7 @@
   "out-of-bandwidth": "Fora da largura de banda alocada",
   "entry-node-routing": "O nó de entrada não está roteando o tráfego (a conexão com a Internet caiu?)",
   "account": {
-    "invalid-recovery-phrase": "Frase de recuperação inválida",
+    "invalid-recovery-phrase": "Código de acesso inválido",
     "storage": "Erro no backend de armazenamento",
     "is-connected": "Não é possível continuar enquanto estiver conectado",
     "maximum-registered-devices": "Falha no registro do dispositivo: o número máximo de dispositivos registrados foi atingido",
