@@ -7,6 +7,19 @@
     "invalid-network": "Réseau invalide"
   },
   "grpc": "Erreur interne gRPC",
+  "tunnel": {
+    "internal": "Erreur interne",
+    "firewall": "Erreur de pare-feu",
+    "routing": "Erreur de routage",
+    "dns": "Erreur de DNS",
+    "tun-device": "Erreur \"tun-device\"",
+    "provider": "Erreur \"tunnel provider\"",
+    "same-entry-exit-gw": "Cannot connect with the same entry and exit node. Please change either the entry or exit node location.",
+    "invalid-entry-gw-country": "Invalid entry node country, please change the entry node location",
+    "invalid-exit-gw-country": "Invalid exit node country, please change the exit node location",
+    "bad-bandwidth-increase": "Bandwidth increase error",
+    "duplicate-tun-fd": "Duplicate tunnel fd"
+  },
   "connection": {
     "timeout": "Connexion expirée",
     "no-valid-credential": "Pas d'identifiant valide, ajoutez un identifiant et réessayez",

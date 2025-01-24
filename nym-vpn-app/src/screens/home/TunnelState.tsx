@@ -6,12 +6,14 @@ import { setToString } from '../../util';
 import { useI18nError } from '../../hooks';
 import ConnectionBadge from './ConnectionBadge';
 import ConnectionTimer from './ConnectionTimer';
+import { AppError } from '../../types';
 
-function ConnectionStatus() {
+function TunnelState() {
   const state = useMainState();
   const [showBadge, setShowBadge] = useState(true);
   const loading =
     state.state === 'Connecting' || state.state === 'Disconnecting';
+  const isError = state.tunnelError || state.error;
 
   const { t } = useTranslation('home');
   const { tE } = useI18nError();
@@ -26,6 +28,19 @@ function ConnectionStatus() {
 
     return () => clearTimeout(timer);
   }, [state.state]);
+
+  const GeneralError = (error: AppError) => (
+    <>
+      <p className="text-sm text-teaberry font-bold">
+        {error.key ? tE(error.key) : error.message}
+      </p>
+      {error.data && (
+        <p className="text-sm text-teaberry font-bold text-left">
+          {setToString(error.data)}
+        </p>
+      )}
+    </>
+  );
 
   return (
     <div className="h-full min-h-52 flex flex-col justify-center items-center gap-y-2">
@@ -53,20 +68,19 @@ function ConnectionStatus() {
           </motion.div>
         )}
         {state.state === 'Connected' && <ConnectionTimer />}
-        {state.error && (
+        {isError && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9, translateX: -8 }}
             animate={{ opacity: 1, scale: 1, translateX: 0 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
             className="w-4/5 h-2/3 overflow-auto break-words text-center cursor-default"
           >
-            <p className="text-sm text-teaberry font-bold">
-              {state.error.key ? tE(state.error.key) : state.error.message}
-            </p>
-            {state.error.data && (
-              <p className="text-sm text-teaberry font-bold text-left">
-                {setToString(state.error.data)}
+            {state.tunnelError ? (
+              <p className="text-sm text-teaberry font-bold">
+                {tE(state.tunnelError)}
               </p>
+            ) : (
+              state.error && GeneralError(state.error)
             )}
           </motion.div>
         )}
@@ -75,4 +89,4 @@ function ConnectionStatus() {
   );
 }
 
-export default ConnectionStatus;
+export default TunnelState;
