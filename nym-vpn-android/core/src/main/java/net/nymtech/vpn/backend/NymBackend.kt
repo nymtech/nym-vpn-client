@@ -191,6 +191,8 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			} catch (e: VpnException) {
 				runCatching {
 					forgetAccount()
+				}.onFailure {
+					Timber.e(e)
 				}
 				throw e
 			}
@@ -297,6 +299,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			}.onFailure {
 				Timber.e(it)
 			}
+			onStateChange(Tunnel.State.Down)
 		}
 	}
 
@@ -353,7 +356,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		private fun startNetworkStatusMonitor() = lifecycleScope.launch {
 			NetworkConnectivityService(this@StateMachineService).networkStatus.collect {
 				Timber.d("New network event: $it")
-				owner?.onNetworkStatusChange(it) ?: Timber.w("OWNER IS NULL!!")
+				owner?.onNetworkStatusChange(it)
 			}
 		}
 
