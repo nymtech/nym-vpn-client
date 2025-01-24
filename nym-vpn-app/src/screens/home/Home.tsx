@@ -11,7 +11,7 @@ import { kvGet } from '../../kvStore';
 import { Button } from '../../ui';
 import { capFirst } from '../../util';
 import NetworkModeSelect from './NetworkModeSelect';
-import ConnectionStatus from './ConnectionStatus';
+import TunnelState from './TunnelState';
 import HopSelect from './HopSelect';
 
 function Home() {
@@ -102,7 +102,7 @@ function Home() {
       className="h-full flex flex-col"
     >
       <div className="grow">
-        <ConnectionStatus />
+        <TunnelState />
       </div>
       <div className="flex flex-col justify-between gap-y-8 select-none">
         <div className="flex flex-col justify-between gap-y-4">
