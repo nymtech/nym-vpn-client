@@ -7,7 +7,7 @@
   },
   "logout": {
     "success": "Déconnexion réussie",
-    "error": "Une erreur est survenue lors de la déconnexion. Veuillez réessayer."
+    "error": "Une erreur est survenue lors de la déconnexion."
   },
   "copied-to-clipboard": "Copié dans le presse-papiers",
   "daemon-not-compat": "La version du daemon n'est pas compatible avec l'application ! Version du daemon : {{version}}, version compatible : {{required}}. Veuillez mettre à jour le daemon ou l'application."
