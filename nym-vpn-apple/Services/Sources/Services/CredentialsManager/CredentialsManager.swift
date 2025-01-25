@@ -115,7 +115,6 @@ private extension CredentialsManager {
         .store(in: &cancellables)
 
         helperInstallManager.$daemonState.sink { [weak self] state in
-            print("🚜 cred man: \(state)")
             guard state == .running || state == .installed else { return }
             self?.checkCredentialImport()
         }
@@ -127,7 +126,6 @@ private extension CredentialsManager {
 private extension CredentialsManager {
     func checkCredentialImport() {
         Task(priority: .background) {
-            print("🚜 check cred import")
             do {
                 let isImported: Bool
 #if os(iOS)
