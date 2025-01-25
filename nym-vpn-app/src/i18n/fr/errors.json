@@ -80,7 +80,8 @@
     "tun-device": "Échec du périphérique Tun",
     "routing": "Échec du routage",
     "unhandled-exit": "Le VPN a échoué à la sortie avec une erreur, probablement à cause d'un bug.",
-    "ready-to-connect": "Il n'a pas encore été possible de déterminer si nous sommes prêts à nous connecter lors de la vérification"
+    "ready-to-connect": "Il n'a pas encore été possible de déterminer si nous sommes prêts à nous connecter lors de la vérification",
+    "general": "Erreur générale, consultez les logs pour obtenir plus de détails"
   },
   "countries-request": {
     "entry": "Échec de la recherche des pays de nœuds d'entrée disponibles",
@@ -103,5 +104,8 @@
     "update-device": "La mise à jour de l'appareil a échouée",
     "register-device": "L'enregistrement de l'appareil a échoué",
     "maximum-registered-devices": "L'enregistrement de l'appareil a échoué : le nombre maximum d'appareils enregistrés a été atteint"
+  },
+  "zknym": {
+    "request-failed": "La requête de zk-nym a échoué"
   }
 }
