@@ -169,9 +169,6 @@ public extension HomeViewModel {
                 updateConnectButtonState(with: .connect)
                 return
             }
-
-            updateStatusInfoState(with: .unknown)
-            updateConnectButtonState(with: .connect)
 #endif
             guard credentialsManager.isValidCredentialImported
             else {
@@ -368,6 +365,9 @@ private extension HomeViewModel {
             case .installing:
                 self?.updateStatusInfoState(with: .installingDaemon)
                 self?.updateConnectButtonState(with: .installingDaemon)
+            case .installed:
+                self?.updateStatusInfoState(with: .unknown)
+                self?.updateConnectButtonState(with: .connect)
             case .unknown, .running:
                 break
             }
