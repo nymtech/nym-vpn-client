@@ -42,10 +42,12 @@ impl PendingCredentialRequestsStorage {
             .create_if_missing(true)
             .log_statements(LevelFilter::Trace);
 
+        tracing::debug!("Connecting to the database");
         let connection_pool = sqlx::sqlite::SqlitePoolOptions::new()
             .connect_with(opts)
             .await?;
 
+        tracing::debug!("Setting file permissions on the database file");
         set_file_permission_owner_rw(&database_path)
             .map_err(
                 |source| PendingCredentialRequestsStorageError::FilePermissions {
@@ -58,6 +60,7 @@ impl PendingCredentialRequestsStorage {
             })
             .ok();
 
+        tracing::debug!("Running migrations");
         sqlx::migrate!("./migrations").run(&connection_pool).await?;
 
         Ok(Self {
@@ -68,6 +71,7 @@ impl PendingCredentialRequestsStorage {
 
     pub(crate) async fn reset(&mut self) -> Result<(), PendingCredentialRequestsStorageError> {
         // First we close the storage to ensure that all files are closed
+        tracing::debug!("Closing pending credential requests storage");
         self.storage_manager.close().await;
 
         // Calling close on the storage should be enough to ensure that all files
@@ -75,11 +79,15 @@ impl PendingCredentialRequestsStorage {
         tokio::time::sleep(Duration::from_secs(1)).await;
 
         // Then we remove the database file
+        tracing::debug!("Removing pending credential requests storage file");
         std::fs::remove_file(&self.database_path)
             .map_err(PendingCredentialRequestsStorageError::RemoveStorage)?;
 
         // Finally we recreate the storage
+        tracing::debug!("Recreating pending credential requests storage");
         let new_storage_manager = Self::init(&self.database_path).await?;
+
+        tracing::debug!("Pending credential requests storage reset completed");
         *self = new_storage_manager;
 
         Ok(())

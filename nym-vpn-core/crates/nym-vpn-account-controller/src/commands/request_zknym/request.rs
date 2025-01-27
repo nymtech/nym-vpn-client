@@ -3,6 +3,7 @@
 
 use std::{
     collections::HashMap,
+    sync::Arc,
     time::{Duration, Instant},
 };
 
@@ -47,7 +48,7 @@ pub(super) struct RequestZkNymTask {
     account: VpnApiAccount,
     device: Device,
     vpn_api_client: VpnApiClient,
-    credential_storage: VpnCredentialStorage,
+    credential_storage: Arc<tokio::sync::Mutex<VpnCredentialStorage>>,
     cached_data: CachedData,
 }
 
@@ -56,7 +57,7 @@ impl RequestZkNymTask {
         account: VpnApiAccount,
         device: Device,
         vpn_api_client: VpnApiClient,
-        credential_storage: VpnCredentialStorage,
+        credential_storage: Arc<tokio::sync::Mutex<VpnCredentialStorage>>,
         cached_data: CachedData,
     ) -> Self {
         RequestZkNymTask {
@@ -194,6 +195,8 @@ impl RequestZkNymTask {
             request_info,
         };
         self.credential_storage
+            .lock()
+            .await
             .insert_pending_request(pending_request)
             .await
             .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))
@@ -204,6 +207,8 @@ impl RequestZkNymTask {
         id: &str,
     ) -> Result<PendingCredentialRequest, RequestZkNymError> {
         self.credential_storage
+            .lock()
+            .await
             .get_pending_request_by_id(id)
             .await
             .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
@@ -215,8 +220,6 @@ impl RequestZkNymTask {
 
         let start_time = Instant::now();
         loop {
-            tokio::time::sleep(ZK_NYM_POLLING_INTERVAL).await;
-
             tracing::debug!("Polling zk-nym status");
             match self
                 .vpn_api_client
@@ -242,6 +245,9 @@ impl RequestZkNymTask {
                         .unwrap_or_else(RequestZkNymError::unexpected_response));
                 }
             }
+
+            tracing::trace!("Sleeping for {ZK_NYM_POLLING_INTERVAL:?}");
+            tokio::time::sleep(ZK_NYM_POLLING_INTERVAL).await;
         }
     }
 
@@ -266,6 +272,8 @@ impl RequestZkNymTask {
 
         let stored_master_vk = self
             .credential_storage
+            .lock()
+            .await
             .get_master_verification_key(epoch_id)
             .await
             .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
@@ -273,6 +281,8 @@ impl RequestZkNymTask {
         if stored_master_vk.is_none() {
             tracing::info!("Inserting master verification key for epoch: {epoch_id}",);
             self.credential_storage
+                .lock()
+                .await
                 .insert_master_verification_key(&attached_epoch_vk)
                 .await
                 .inspect_err(|err| {
@@ -294,6 +304,8 @@ impl RequestZkNymTask {
 
         let stored_coin_index_signatures = self
             .credential_storage
+            .lock()
+            .await
             .get_coin_index_signatures(epoch_id)
             .await
             .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
@@ -301,6 +313,8 @@ impl RequestZkNymTask {
         if stored_coin_index_signatures.is_none() {
             tracing::info!("Inserting coin index signatures for epoch: {epoch_id}",);
             self.credential_storage
+                .lock()
+                .await
                 .insert_coin_index_signatures(&aggregated_coin_index_signatures.signatures)
                 .await
                 .inspect_err(|err| {
@@ -331,6 +345,8 @@ impl RequestZkNymTask {
 
         let stored_expiration_date_signatures = self
             .credential_storage
+            .lock()
+            .await
             .get_expiration_date_signatures(expiration_date)
             .await
             .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
@@ -340,6 +356,8 @@ impl RequestZkNymTask {
             "Inserting expiration date signatures for epoch {epoch_id} and date: {expiration_date}"
         );
             self.credential_storage
+                .lock()
+                .await
                 .insert_expiration_date_signatures(
                     &aggregated_expiration_date_signatures.signatures,
                 )
@@ -410,6 +428,8 @@ impl RequestZkNymTask {
 
         let master_vk = if let Some(stored_master_vk) = self
             .credential_storage
+            .lock()
+            .await
             .get_master_verification_key(shares.epoch_id)
             .await
             .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
@@ -441,6 +461,8 @@ impl RequestZkNymTask {
         // Check that we have the signatures we need to import
         if self
             .credential_storage
+            .lock()
+            .await
             .get_coin_index_signatures(shares.epoch_id)
             .await
             .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
@@ -454,6 +476,8 @@ impl RequestZkNymTask {
 
         if self
             .credential_storage
+            .lock()
+            .await
             .get_expiration_date_signatures(pending_request.expiration_date)
             .await
             .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
@@ -467,6 +491,8 @@ impl RequestZkNymTask {
 
         tracing::info!("Inserting issued zk-nym ticketbook");
         self.credential_storage
+            .lock()
+            .await
             .insert_issued_ticketbook(&issued_ticketbook)
             .await
             .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
@@ -579,6 +605,8 @@ impl RequestZkNymTask {
     async fn remove_pending_request(&self, id: &str) -> Result<(), RequestZkNymError> {
         tracing::info!("Removing pending zk-nym request");
         self.credential_storage
+            .lock()
+            .await
             .remove_pending_request(id)
             .await
             .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))

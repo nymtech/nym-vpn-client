@@ -63,6 +63,7 @@ impl VpnCredentialStorage {
         tracing::info!("Resetting credential storage");
 
         // First we close the storage to ensure that all files are closed
+        tracing::debug!("Closing credential storage");
         self.credential_storage.close().await;
 
         // Calling close on the storage should be enough to ensure that all files are closed
@@ -73,14 +74,18 @@ impl VpnCredentialStorage {
         let storage_paths =
             StoragePaths::new_from_dir(&self.data_dir).map_err(Error::StoragePaths)?;
 
+        tracing::debug!("Removing credential storage file");
         std::fs::remove_file(&storage_paths.credential_database_path)
             .map_err(Error::RemoveCredentialStorage)?;
 
         // Finally we recreate the storage
+        tracing::debug!("Recreating credential storage");
         self.credential_storage = storage_paths
             .persistent_credential_storage()
             .await
             .map_err(Error::SetupCredentialStorage)?;
+
+        tracing::info!("Credential storage reset completed");
 
         Ok(())
     }
@@ -88,6 +93,7 @@ impl VpnCredentialStorage {
     async fn reset_pending_request_storage(&mut self) -> Result<(), Error> {
         tracing::info!("Resetting pending request storage");
         self.pending_requests_storage.reset().await?;
+        tracing::info!("Pending request storage reset completed");
         Ok(())
     }
 

@@ -36,7 +36,7 @@ pub(crate) type ZkNymId = String;
 pub type RequestZkNymSummary = Vec<Result<RequestZkNymSuccess, RequestZkNymError>>;
 
 pub(crate) struct WaitingRequestZkNymCommandHandler {
-    credential_storage: VpnCredentialStorage,
+    credential_storage: Arc<tokio::sync::Mutex<VpnCredentialStorage>>,
     account_state: SharedAccountState,
     vpn_api_client: VpnApiClient,
     zk_nym_fails_in_a_row: Arc<AtomicU32>,
@@ -48,7 +48,7 @@ pub(crate) struct WaitingRequestZkNymCommandHandler {
 
 impl WaitingRequestZkNymCommandHandler {
     pub(crate) fn new(
-        credential_storage: VpnCredentialStorage,
+        credential_storage: Arc<tokio::sync::Mutex<VpnCredentialStorage>>,
         account_state: SharedAccountState,
         vpn_api_client: nym_vpn_api_client::VpnApiClient,
     ) -> Self {
@@ -94,7 +94,7 @@ pub(crate) struct RequestZkNymCommandHandler {
     id: uuid::Uuid,
     account: VpnApiAccount,
     device: Device,
-    credential_storage: VpnCredentialStorage,
+    credential_storage: Arc<tokio::sync::Mutex<VpnCredentialStorage>>,
     account_state: SharedAccountState,
     vpn_api_client: VpnApiClient,
 
@@ -174,6 +174,8 @@ impl RequestZkNymCommandHandler {
 
     async fn check_ticket_types_running_low(&self) -> Result<Vec<TicketType>, RequestZkNymError> {
         self.credential_storage
+            .lock()
+            .await
             .check_ticket_types_running_low()
             .await
             .map_err(RequestZkNymError::internal)
@@ -214,6 +216,8 @@ impl RequestZkNymCommandHandler {
         let zk_nyms_available_for_download = self.get_zk_nyms_available_for_download().await?;
 
         self.credential_storage
+            .lock()
+            .await
             .clean_up_stale_requests()
             .await
             .inspect_err(|err| {
@@ -223,6 +227,8 @@ impl RequestZkNymCommandHandler {
 
         let pending_requests_data = self
             .credential_storage
+            .lock()
+            .await
             .get_pending_request_ids()
             .await
             .map_err(RequestZkNymError::internal)?;

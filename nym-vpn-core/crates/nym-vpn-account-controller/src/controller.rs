@@ -45,7 +45,7 @@ where
 
     // Storage used for credentials.
     // It is an Option because we want to be able to close it when we reset the account.
-    credential_storage: VpnCredentialStorage,
+    credential_storage: Arc<tokio::sync::Mutex<VpnCredentialStorage>>,
 
     // The data directory where we store the account and device keys.
     data_dir: PathBuf,
@@ -120,7 +120,9 @@ where
             .map(|id| MnemonicState::Stored { id })
             .unwrap_or(MnemonicState::NotStored);
 
-        let credential_storage = VpnCredentialStorage::setup_from_path(data_dir.clone()).await?;
+        let credential_storage = Arc::new(tokio::sync::Mutex::new(
+            VpnCredentialStorage::setup_from_path(data_dir.clone()).await?,
+        ));
 
         // Client to query the VPN API
         let vpn_api_client =
@@ -304,10 +306,15 @@ where
                 AccountCommandError::RemoveAccount(source.to_string())
             })?;
 
-        self.credential_storage.reset().await.map_err(|source| {
-            tracing::error!("Failed to reset credential storage: {source:?}");
-            AccountCommandError::ResetCredentialStorage(source.to_string())
-        })?;
+        self.credential_storage
+            .lock()
+            .await
+            .reset()
+            .await
+            .map_err(|source| {
+                tracing::error!("Failed to reset credential storage: {source:?}");
+                AccountCommandError::ResetCredentialStorage(source.to_string())
+            })?;
 
         // Purge all files in the data directory that we are not explicitly deleting through it's
         // owner. Ideally we should strive for this to be removed.
@@ -627,10 +634,14 @@ where
     ) -> Result<AvailableTicketbooks, AccountCommandError> {
         tracing::debug!("Getting available tickets from local credential storage");
         self.credential_storage
+            .lock()
+            .await
             .print_info()
             .await
             .map_err(AccountCommandError::general)?;
         self.credential_storage
+            .lock()
+            .await
             .get_available_ticketbooks()
             .await
             .map_err(AccountCommandError::general)
@@ -825,7 +836,7 @@ where
         tracing::info!("Account id: {}", account_id);
         tracing::info!("Device id: {}", device_id);
 
-        if let Err(err) = self.credential_storage.print_info().await {
+        if let Err(err) = self.credential_storage.lock().await.print_info().await {
             tracing::error!("Failed to print credential storage info: {:#?}", err);
         }
     }
