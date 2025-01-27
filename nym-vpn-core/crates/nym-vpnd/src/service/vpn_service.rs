@@ -930,7 +930,7 @@ where
     }
 
     async fn handle_forget_account(&mut self) -> Result<(), AccountError> {
-        if self.tunnel_state != TunnelState::Disconnected {
+        if !matches!(self.tunnel_state, TunnelState::Disconnected) && !matches!(self.tunnel_state, TunnelState::Error(_)) {
             return Err(AccountError::IsConnected);
         }
 
