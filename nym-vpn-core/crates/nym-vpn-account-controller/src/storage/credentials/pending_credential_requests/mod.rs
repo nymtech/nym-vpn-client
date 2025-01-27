@@ -90,16 +90,6 @@ impl PendingCredentialRequestsStorage {
         tracing::debug!("Pending credential requests storage reset completed");
         *self = new_storage_manager;
 
-        self.clean_up_stale_requests()
-            .await
-            .inspect_err(|err| {
-                tracing::error!("Failed to clean up stale requests: {err:?}");
-            })
-            .inspect(|_| {
-                tracing::info!("Successfully cleaned up stale requests");
-            })
-            .ok();
-
         Ok(())
     }
 
