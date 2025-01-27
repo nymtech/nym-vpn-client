@@ -125,6 +125,15 @@ impl From<RequestZkNymError> for AccountCommandError {
     }
 }
 
+impl From<RequestZkNymSummary> for AccountCommandError {
+    fn from(summary: RequestZkNymSummary) -> Self {
+        let (successes, failed): (Vec<_>, Vec<_>) = summary.into_iter().partition(Result::is_ok);
+        let successes = successes.into_iter().map(Result::unwrap).collect();
+        let failed = failed.into_iter().map(Result::unwrap_err).collect();
+        Self::RequestZkNym { successes, failed }
+    }
+}
+
 impl AccountCommandError {
     pub fn internal(message: impl ToString) -> Self {
         AccountCommandError::Internal(message.to_string())
