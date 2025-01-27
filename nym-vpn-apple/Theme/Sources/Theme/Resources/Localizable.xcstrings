@@ -28,16 +28,10 @@
             "value" : "fast"
           }
         },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "fast"
-          }
-        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "fast"
+            "value" : "Rapide (WireGuard*)"
           }
         },
         "hi" : {
@@ -110,6 +104,12 @@
             "state" : "translated",
             "value" : "Best for browsing, streaming, sharing"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pour la navigation ou le streaming"
+          }
         }
       }
     },
@@ -120,6 +120,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Best for payments, emails, messages"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pour les paiements, emails et messages"
           }
         }
       }
@@ -132,16 +138,28 @@
             "state" : "translated",
             "value" : "Anonymous (mixnet)"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anonyme (mixnet)"
+          }
         }
       }
     },
-    "addCredentials.createAccount" : {
+    "NymVPN" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Get Access Code"
+            "value" : "NymVPN"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NymVPN"
           }
         }
       }
@@ -154,6 +172,12 @@
             "state" : "translated",
             "value" : "Credential"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Identifiant"
+          }
         }
       }
     },
@@ -164,6 +188,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Add new credential"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter un identifiant"
+          }
+        }
+      }
+    },
+    "addCredentials.Credential.soonToExpire" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soon to expire?"
+          }
+        }
+      }
+    },
+    "addCredentials.Login.Title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suivant"
+          }
+        }
+      }
+    },
+    "addCredentials.createAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get Access Code"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Générer un code d'accès"
           }
         }
       }
@@ -176,6 +251,12 @@
             "state" : "translated",
             "value" : "days left"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "jours restants"
+          }
         }
       }
     },
@@ -186,17 +267,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "out of"
-          }
-        }
-      }
-    },
-    "addCredentials.Credential.soonToExpire" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Soon to expire?"
           }
         }
       }
@@ -231,16 +301,11 @@
             "state" : "translated",
             "value" : "Please enter your anonymous Access Code."
           }
-        }
-      }
-    },
-    "addCredentials.Login.Title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
+        },
+        "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Next"
+            "value" : "Saisissez votre code d'accès anonyme"
           }
         }
       }
@@ -253,6 +318,12 @@
             "state" : "translated",
             "value" : "New to NymVPN?"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pas encore utilisateur ?"
+          }
         }
       }
     },
@@ -263,6 +334,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "24-word-access-code\n\ne.g. smoke artefact velvet skull pop palace tortoise damage rough..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Code d'accès de 24 mots, par ex. smoke artefact velvet skull pop palace tortoise damage rough..."
           }
         }
       }
@@ -275,6 +352,12 @@
             "state" : "translated",
             "value" : "QR code scanner"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scanneur de code QR"
+          }
         }
       }
     },
@@ -285,6 +368,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Camera not available. Check permissions."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La caméra n'est pas disponible. Vérifiez les permissions."
           }
         }
       }
@@ -297,6 +386,12 @@
             "state" : "translated",
             "value" : "Open Settings"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir les Réglages"
+          }
         }
       }
     },
@@ -307,6 +402,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Scan NymVPN credential QR code"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scanner le code d'accès QR"
           }
         }
       }
@@ -319,6 +420,12 @@
             "state" : "translated",
             "value" : "Welcome to NymVPN"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bienvenue !"
+          }
         }
       }
     },
@@ -329,6 +436,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Access Code"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Code d'accès"
           }
         }
       }
@@ -341,6 +454,12 @@
             "state" : "translated",
             "value" : "App"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "app"
+          }
         }
       }
     },
@@ -351,6 +470,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Auto connect at app startup"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connection automatique au démarrage"
           }
         }
       }
@@ -363,6 +488,12 @@
             "state" : "translated",
             "value" : "Auto-connect"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connection automatique"
+          }
         }
       }
     },
@@ -373,6 +504,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Use device theme"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utiliser l'apparence de l'appareil"
           }
         }
       }
@@ -385,6 +522,12 @@
             "state" : "translated",
             "value" : "Automatic"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatique"
+          }
         }
       }
     },
@@ -395,6 +538,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cancel"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annuler"
           }
         }
       }
@@ -407,6 +556,12 @@
             "state" : "translated",
             "value" : "Check the FAQ"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consulter la FAQ"
+          }
         }
       }
     },
@@ -417,6 +572,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Connect"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecter"
+          }
+        }
+      }
+    },
+    "connectTo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect to"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se connecter à"
           }
         }
       }
@@ -429,6 +607,12 @@
             "state" : "translated",
             "value" : "Connected"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecté"
+          }
         }
       }
     },
@@ -439,6 +623,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Connecting..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connexion..."
           }
         }
       }
@@ -451,16 +641,11 @@
             "state" : "translated",
             "value" : "Connection time"
           }
-        }
-      }
-    },
-    "connectTo" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
+        },
+        "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connect to"
+            "value" : "Temps de connexion"
           }
         }
       }
@@ -484,6 +669,12 @@
             "state" : "translated",
             "value" : "Dark theme"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apparence sombre"
+          }
         }
       }
     },
@@ -494,6 +685,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Disconnect"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déconnecter"
           }
         }
       }
@@ -506,6 +703,12 @@
             "state" : "translated",
             "value" : "Disconnected"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déconnecté"
+          }
         }
       }
     },
@@ -516,6 +719,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Disconnecting..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déconnexion..."
           }
         }
       }
@@ -528,6 +737,12 @@
             "state" : "translated",
             "value" : "Entry location selector"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choix de passerelle d'entrée"
+          }
         }
       }
     },
@@ -538,6 +753,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Error:"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erreur :"
           }
         }
       }
@@ -572,6 +793,12 @@
             "state" : "translated",
             "value" : "No mnemonic stored"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pas de code d'accès enregistré"
+          }
         }
       }
     },
@@ -582,6 +809,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Timeout"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Délai d'attente dépassé"
           }
         }
       }
@@ -594,6 +827,12 @@
             "state" : "translated",
             "value" : "Something went wrong"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un problème est survenu "
+          }
         }
       }
     },
@@ -604,6 +843,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Something went wrong. Unrecognized error"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un problème est survenu. Erreur inconnue."
           }
         }
       }
@@ -704,6 +949,12 @@
             "state" : "translated",
             "value" : "Offline"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hors ligne"
+          }
         }
       }
     },
@@ -770,6 +1021,12 @@
             "state" : "translated",
             "value" : "Establishing connection"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connexion en cours"
+          }
         }
       }
     },
@@ -780,6 +1037,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lowest ping"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Latence la plus faible"
           }
         }
       }
@@ -792,6 +1055,12 @@
             "state" : "translated",
             "value" : "Help us improve NymVPN"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aidez-nous à améliorer NymVPN"
+          }
         }
       }
     },
@@ -802,6 +1071,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Turn on error reporting"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activer les rapports d'erreurs"
           }
         }
       }
@@ -814,6 +1089,12 @@
             "state" : "translated",
             "value" : "Open a GitHub issue"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créer un ticket GitHub"
+          }
         }
       }
     },
@@ -824,6 +1105,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Send us feedback"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoyer un commentaire"
           }
         }
       }
@@ -836,6 +1123,12 @@
             "state" : "translated",
             "value" : "First hop selection"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passerelle d'entrée"
+          }
         }
       }
     },
@@ -846,6 +1139,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Random"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aléatoire"
           }
         }
       }
@@ -858,6 +1157,12 @@
             "state" : "translated",
             "value" : "Random low latency"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Faible latence (aléatoire)"
+          }
         }
       }
     },
@@ -868,6 +1173,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Something went wrong: Cannot fetch countries"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un problème est survenu. Impossible de récupérer la liste des lieux."
           }
         }
       }
@@ -890,6 +1201,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Something went wrong: Invalid url"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un problème est survenu : adresse invalide"
           }
         }
       }
@@ -946,6 +1263,12 @@
             "state" : "translated",
             "value" : "Uninstall NymVPN helper"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Désinstaller le helper"
+          }
         }
       }
     },
@@ -956,6 +1279,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "First hop"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrée"
           }
         }
       }
@@ -968,6 +1297,12 @@
             "state" : "translated",
             "value" : "Last hop"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sortie"
+          }
         }
       }
     },
@@ -979,6 +1314,12 @@
             "state" : "translated",
             "value" : "Installing and authorizing daemon..."
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installation du daemon en cours..."
+          }
         }
       }
     },
@@ -989,6 +1330,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Preparing…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Préparation..."
           }
         }
       }
@@ -1012,6 +1359,12 @@
             "state" : "translated",
             "value" : "Initializing client..."
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Démarrage du client"
+          }
         }
       }
     },
@@ -1022,6 +1375,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Join us on Discord"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nous joindre sur Discord"
           }
         }
       }
@@ -1034,6 +1393,12 @@
             "state" : "translated",
             "value" : "Join us on Matrix"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nous joindre sur Matrix"
+          }
         }
       }
     },
@@ -1044,6 +1409,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Last hop selection"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passerelle de sortie"
           }
         }
       }
@@ -1056,6 +1427,12 @@
             "state" : "translated",
             "value" : "Legal"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Juridique"
+          }
         }
       }
     },
@@ -1066,6 +1443,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Licence"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "License"
           }
         }
       }
@@ -1078,6 +1461,12 @@
             "state" : "translated",
             "value" : "Licences"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Licenses"
+          }
         }
       }
     },
@@ -1088,6 +1477,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Privacy statement"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Politique de confidentialité"
           }
         }
       }
@@ -1100,6 +1495,12 @@
             "state" : "translated",
             "value" : "Terms of use"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conditions générales"
+          }
         }
       }
     },
@@ -1110,6 +1511,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Light theme"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apparence claire"
           }
         }
       }
@@ -1122,6 +1529,12 @@
             "state" : "translated",
             "value" : "We infer server locations based on their IP addresses, but the actual locations may vary slightly."
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'emplacement des passerelles est déterminé à partir de leur adresse IP. L'emplacement réel peut être différent."
+          }
         }
       }
     },
@@ -1132,6 +1545,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Read more"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En savoir plus"
           }
         }
       }
@@ -1144,6 +1563,12 @@
             "state" : "translated",
             "value" : "Details on server locations"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Détails sur l'emplacement des passerelles"
+          }
         }
       }
     },
@@ -1154,6 +1579,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Logs"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Journaux"
           }
         }
       }
@@ -1166,6 +1597,12 @@
             "state" : "translated",
             "value" : "Delete"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Effacer"
+          }
         }
       }
     },
@@ -1176,6 +1613,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Are you sure you want to delete all logs?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Êtes-vous sûr de vouloir effacer les journaux ?"
           }
         }
       }
@@ -1188,6 +1631,12 @@
             "state" : "translated",
             "value" : "Export"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exporter"
+          }
         }
       }
     },
@@ -1198,6 +1647,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non"
           }
         }
       }
@@ -1210,6 +1665,12 @@
             "state" : "translated",
             "value" : "No logs available"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun journal disponible"
+          }
         }
       }
     },
@@ -1220,6 +1681,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "You will not be able to retrieve them"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous ne pourrez pas les récupérer"
           }
         }
       }
@@ -1232,6 +1699,12 @@
             "state" : "translated",
             "value" : "Yes"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oui"
+          }
         }
       }
     },
@@ -1242,6 +1715,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Enjoy maximum-level privacy by routing your connection through 5 servers via mixnet. Perfect for securely handling payments, emails, and messages."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bénéficiez d'une confidentialité maximale via les 5 passerelles du mixnet. Parfait transmettre vos instructions de paiement, vos emails et vos messages."
           }
         }
       }
@@ -1254,6 +1733,12 @@
             "state" : "translated",
             "value" : "Continue reading"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En savoir plus"
+          }
         }
       }
     },
@@ -1264,6 +1749,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Experience maximum speed with 2-server connectivity. This mode leverages AmneziaWG, a censorship-resistant version of WireGuard, ideal for fast browsing, streaming, and file sharing."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bénéficiez d'une vitesse maximale avec le mode VPN (via 2 passerelles). Ce mode repose sur AmneziaWG, une version résistante à la censure du protocole WireGuard. Parfait pour la navigation, le streaming et les téléchargements."
           }
         }
       }
@@ -1276,6 +1767,12 @@
             "state" : "translated",
             "value" : "Mode selection"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choix du mode"
+          }
         }
       }
     },
@@ -1287,16 +1784,11 @@
             "state" : "translated",
             "value" : "No"
           }
-        }
-      }
-    },
-    "NymVPN" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
+        },
+        "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NymVPN"
+            "value" : "Non"
           }
         }
       }
@@ -1309,6 +1801,12 @@
             "state" : "translated",
             "value" : "Ok"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compris"
+          }
         }
       }
     },
@@ -1319,6 +1817,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Search"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recherche"
           }
         }
       }
@@ -1331,6 +1835,12 @@
             "state" : "translated",
             "value" : "No results found. Please try another search."
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun résultat trouvé. Veuillez essayer une autre recherche."
+          }
         }
       }
     },
@@ -1342,16 +1852,11 @@
             "state" : "translated",
             "value" : "Search country"
           }
-        }
-      }
-    },
-    "selected" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
+        },
+        "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Selected"
+            "value" : "Chercher un lieu ou une passerelle"
           }
         }
       }
@@ -1364,6 +1869,29 @@
             "state" : "translated",
             "value" : "Select mode"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choix du mode"
+          }
+        }
+      }
+    },
+    "selected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selected"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sélectionné"
+          }
         }
       }
     },
@@ -1374,6 +1902,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Settings"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réglages"
           }
         }
       }
@@ -1386,6 +1920,12 @@
             "state" : "translated",
             "value" : "Account"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compte"
+          }
         }
       }
     },
@@ -1393,6 +1933,12 @@
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(via Sentry)"
+          }
+        },
+        "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "(via Sentry)"
@@ -1408,6 +1954,12 @@
             "state" : "translated",
             "value" : "Anonymous error reports"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rapports d'erreurs anonymes"
+          }
         }
       }
     },
@@ -1418,6 +1970,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Appearance"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apparence"
           }
         }
       }
@@ -1430,6 +1988,12 @@
             "state" : "translated",
             "value" : "Device ID: "
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Identifiant de l'appareil"
+          }
         }
       }
     },
@@ -1440,6 +2004,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Get in touch"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nous contacter"
           }
         }
       }
@@ -1452,6 +2022,12 @@
             "state" : "translated",
             "value" : "Connect device"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecter l'appareil"
+          }
         }
       }
     },
@@ -1462,6 +2038,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Logout"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dissocier l'appareil"
           }
         }
       }
@@ -1474,6 +2056,12 @@
             "state" : "translated",
             "value" : "You will need your anonymous Access Code to log in again."
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous aurez besoin de votre code d'accès anonyme pour vous reconnecter."
+          }
         }
       }
     },
@@ -1484,6 +2072,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Are you sure you want to logout?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Êtes-vous sûr de vouloir dissocier l'appareil ?"
           }
         }
       }
@@ -1496,6 +2090,12 @@
             "state" : "translated",
             "value" : "NymVPN profile will be deleted from your device.\n\nIf connected: deleting VPN profile will disconnect you from VPN."
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le profil NymVPN sera supprimé de votre appareil. Vous serez déconnecté."
+          }
         }
       }
     },
@@ -1506,6 +2106,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reset VPN profile?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réinitialiser le profil VPN ?"
           }
         }
       }
@@ -1518,6 +2124,12 @@
             "state" : "translated",
             "value" : "Reset VPN profile"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réinitialiser le profil VPN"
+          }
         }
       }
     },
@@ -1529,6 +2141,12 @@
             "state" : "translated",
             "value" : "Support & feedback"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Support et retours"
+          }
         }
       }
     },
@@ -1536,6 +2154,12 @@
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop"
+          }
+        },
+        "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Stop"
@@ -1551,6 +2175,12 @@
             "state" : "translated",
             "value" : "tunnel"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tunnel"
+          }
         }
       }
     },
@@ -1558,6 +2188,12 @@
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version"
+          }
+        },
+        "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Version"
@@ -1573,6 +2209,12 @@
             "state" : "translated",
             "value" : "By continuing, you agree to NymVPN's [Terms of use](https://nymvpn.com/en/terms) and acknowledge NymVPN's [Privacy policy](https://nymvpn.com/en/privacy?type=apps)."
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En cliquant « Continuer », vous accepter les [Conditions générales](https://nym.com/vpn-terms) de NymVPN et avez pris connaissance de la [Politique de confidentialité](https://nym.com/vpn-privacy-statement)."
+          }
         }
       }
     },
@@ -1583,6 +2225,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Continue"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuer"
           }
         }
       }
@@ -1595,6 +2243,12 @@
             "state" : "translated",
             "value" : "This is experimental software. Do not rely on it for strong anonymity (yet)."
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NymVPN est un logiciel expérimental. Il ne garantit pas une anonymité forte."
+          }
         }
       }
     },
@@ -1602,6 +2256,12 @@
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sentry"
+          }
+        },
+        "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sentry"
@@ -1617,6 +2277,12 @@
             "state" : "translated",
             "value" : "Help us refine our app! Your feedback is crucial for identifying and resolving issues. Opt-in for anonymous error monitoring (via"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aidez-nous à améliorer NymVPN ! Vos retours sont très utiles. Vous pouvez activer les rapports d'erreurs anonymes (via"
+          }
         }
       }
     },
@@ -1627,6 +2293,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : ") and analytics at will—you can opt out anytime.\nThanks for your support!"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "). Merci de votre soutien !"
           }
         }
       }
@@ -1639,6 +2311,12 @@
             "state" : "translated",
             "value" : "Welcome\nto NymVPN"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bienvenue !"
+          }
         }
       }
     },
@@ -1649,6 +2327,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yes"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oui"
           }
         }
       }
