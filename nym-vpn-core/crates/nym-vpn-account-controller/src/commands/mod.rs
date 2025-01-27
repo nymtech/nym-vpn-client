@@ -199,7 +199,6 @@ pub enum AccountCommand {
     GetUsage(ReturnSender<Vec<NymVpnUsage>>),
     GetDeviceIdentity(ReturnSender<String>),
     RegisterDevice(Option<ReturnSender<NymVpnDevice>>),
-    RegisterDeviceMnemonic(ReturnSender<NymVpnDevice>, Mnemonic),
     GetDevices(ReturnSender<Vec<NymVpnDevice>>),
     GetActiveDevices(ReturnSender<Vec<NymVpnDevice>>),
     RequestZkNym(Option<ReturnSender<RequestZkNymSummary>>),

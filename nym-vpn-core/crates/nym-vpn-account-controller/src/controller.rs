@@ -3,19 +3,6 @@
 
 use std::{path::PathBuf, sync::Arc, time::Duration};
 
-use nym_http_api_client::UserAgent;
-use nym_vpn_api_client::{
-    response::{NymVpnDevice, NymVpnUsage},
-    types::{DeviceStatus, VpnApiAccount},
-};
-use nym_vpn_network_config::Network;
-use nym_vpn_store::{mnemonic::Mnemonic, VpnStorage};
-use tokio::{
-    sync::mpsc::{UnboundedReceiver, UnboundedSender},
-    task::{JoinError, JoinSet},
-};
-use tokio_util::sync::CancellationToken;
-
 use crate::{
     commands::{
         register_device::RegisterDeviceCommandHandler,
@@ -27,8 +14,21 @@ use crate::{
     error::Error,
     shared_state::{MnemonicState, ReadyToRegisterDevice, ReadyToRequestZkNym, SharedAccountState},
     storage::{AccountStorage, VpnCredentialStorage},
-    AccountControllerCommander, AvailableTicketbooks,
+    AccountControllerCommander, AvailableTicketbooks, VpnApiEndpointFailure,
 };
+use nym_http_api_client::UserAgent;
+use nym_vpn_api_client::response::NymVpnAccountResponse;
+use nym_vpn_api_client::{
+    response::{NymVpnDevice, NymVpnUsage},
+    types::{DeviceStatus, VpnApiAccount},
+};
+use nym_vpn_network_config::Network;
+use nym_vpn_store::{mnemonic::Mnemonic, VpnStorage};
+use tokio::{
+    sync::mpsc::{UnboundedReceiver, UnboundedSender},
+    task::{JoinError, JoinSet},
+};
+use tokio_util::sync::CancellationToken;
 
 // The interval at which we automatically request zk-nyms
 const ZK_NYM_AUTOMATIC_REQUEST_INTERVAL: Duration = Duration::from_secs(6 * 60);
@@ -262,7 +262,28 @@ where
         }
     }
 
+    async fn get_account_by_mnemonic(
+        &self,
+        mnemonic: Mnemonic,
+    ) -> Result<NymVpnAccountResponse, AccountCommandError> {
+        let account = VpnApiAccount::from(mnemonic);
+        self.vpn_api_client
+            .get_account(&account)
+            .await
+            .map_err(|e| {
+                AccountCommandError::SyncAccountEndpointFailure(
+                    VpnApiEndpointFailure::try_from(e).unwrap_or_else(|e| VpnApiEndpointFailure {
+                        message: e.to_string(),
+                        message_id: None,
+                        code_reference_id: None,
+                    }),
+                )
+            })
+    }
+
     async fn handle_store_account(&self, mnemonic: Mnemonic) -> Result<(), AccountCommandError> {
+        //get account to check that it is a valid account before storing
+        self.get_account_by_mnemonic(mnemonic.clone()).await?;
         self.account_storage
             .store_account(mnemonic)
             .await
@@ -450,29 +471,6 @@ where
             .map_err(|_err| AccountCommandError::NoDeviceStored)?;
 
         tracing::info!("Device identity: {device:?}");
-        Ok(device)
-    }
-
-    async fn handle_register_device_mnemonic(
-        &self,
-        mnemonic: Mnemonic,
-    ) -> Result<NymVpnDevice, AccountCommandError> {
-        let device = self
-            .account_storage
-            .load_device_keys()
-            .await
-            .map_err(|_err| AccountCommandError::NoDeviceStored)?;
-        let account = VpnApiAccount::from(mnemonic);
-
-        let device = self
-            .vpn_api_client
-            .register_device(&account, &device)
-            .await
-            .map_err(|err| AccountCommandError::Internal(err.to_string()))?;
-        tracing::debug!("Our account id: {}", account.id());
-        self.account_state
-            .set_mnemonic(MnemonicState::Stored { id: account.id() })
-            .await;
         Ok(device)
     }
 
@@ -684,10 +682,6 @@ where
             }
             AccountCommand::GetDeviceIdentity(result_tx) => {
                 let result = self.handle_get_device_identity().await;
-                result_tx.send(result);
-            }
-            AccountCommand::RegisterDeviceMnemonic(result_tx, mnemonic) => {
-                let result = self.handle_register_device_mnemonic(mnemonic).await;
                 result_tx.send(result);
             }
             AccountCommand::RegisterDevice(_) => {

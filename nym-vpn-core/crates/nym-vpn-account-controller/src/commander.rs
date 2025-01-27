@@ -38,6 +38,14 @@ impl AccountControllerCommander {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    pub async fn login(&self, mnemonic: Mnemonic) -> Result<(), AccountCommandError> {
+        self.store_account(mnemonic).await?;
+        self.ensure_update_account().await?;
+        self.ensure_update_device().await?;
+        self.ensure_register_device().await?;
+        Ok(())
+    }
+
     pub async fn forget_account(&self) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
@@ -76,17 +84,6 @@ impl AccountControllerCommander {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::GetDeviceIdentity(tx))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
-    }
-
-    pub async fn register_device_mnemonic(
-        &self,
-        mnemonic: Mnemonic,
-    ) -> Result<NymVpnDevice, AccountCommandError> {
-        let (tx, rx) = ReturnSender::new();
-        self.command_tx
-            .send(AccountCommand::RegisterDeviceMnemonic(tx, mnemonic))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }

@@ -200,40 +200,19 @@ pub(super) async fn update_account_state() -> Result<(), VpnError> {
         .map(|_| ())
 }
 
-pub(super) async fn store_account_mnemonic(mnemonic: Mnemonic) -> Result<(), VpnError> {
-    get_command_sender()
-        .await?
-        .store_account(mnemonic)
-        .await
-        .map_err(VpnError::from)
-}
-
 async fn parse_mnemonic(mnemonic: &str) -> Result<Mnemonic, VpnError> {
     Mnemonic::parse(mnemonic).map_err(|err| VpnError::InvalidMnemonic {
         details: err.to_string(),
     })
 }
 
-async fn register_device(mnemonic: Mnemonic) -> Result<(), VpnError> {
+pub(super) async fn login(mnemonic: &str) -> Result<(), VpnError> {
+    let mnemonic = parse_mnemonic(mnemonic).await?;
     get_command_sender()
         .await?
-        .register_device_mnemonic(mnemonic)
+        .login(mnemonic)
         .await
-        .map(|_| ())
-        .map_err(VpnError::from)
-}
-
-pub(super) async fn import_mnemonic(mnemonic: &str) -> Result<(), VpnError> {
-    let mnemonic = parse_mnemonic(mnemonic).await?;
-    register_device(mnemonic.clone()).await?;
-    store_account_mnemonic(mnemonic).await?;
-    wait_for_import_initialization().await?;
-    Ok(())
-}
-
-async fn wait_for_import_initialization() -> Result<(), VpnError> {
-    wait_for_update_account().await?;
-    wait_for_update_device().await?;
+        .map_err(VpnError::from)?;
     Ok(())
 }
 
@@ -280,9 +259,9 @@ pub(crate) mod raw {
         Ok(crate::storage::VpnClientOnDiskStorage::new(path))
     }
 
-    pub(crate) async fn import_mnemonic_raw(mnemonic: &str, path: &str) -> Result<(), VpnError> {
+    pub(crate) async fn login_raw(mnemonic: &str, path: &str) -> Result<(), VpnError> {
         let mnemonic = parse_mnemonic(mnemonic).await?;
-        register_device_raw(mnemonic.clone(), path).await?;
+        get_account_by_mnemonic_raw(mnemonic.clone()).await?;
         let storage = setup_account_storage(path).await?;
         storage
             .store_mnemonic(mnemonic)
@@ -383,14 +362,12 @@ pub(crate) mod raw {
         Ok(())
     }
 
-    pub(crate) async fn register_device_raw(
+    pub(crate) async fn get_account_by_mnemonic_raw(
         mnemonic: Mnemonic,
-        path: &str,
     ) -> Result<(), VpnError> {
         let vpn_api_client = create_vpn_api_client().await?;
-        let device = load_device(path).await?;
         let account = VpnApiAccount::from(mnemonic);
-        vpn_api_client.register_device(&account, &device).await?;
+        vpn_api_client.get_account(&account).await?;
         Ok(())
     }
 
