@@ -170,7 +170,16 @@ impl AccountControllerCommander {
             // be requested in the background, but we should have enough to connect.
             return Ok(());
         }
-        self.request_zk_nyms().await.map(|_res| ())
+
+        // Request new zk-nym ticketbooks
+        let results = self.request_zk_nyms().await?;
+
+        // If any of them failed, return an error
+        if results.iter().any(Result::is_err) {
+            Err(AccountCommandError::from(results))
+        } else {
+            Ok(())
+        }
     }
 
     pub async fn wait_for_account_ready_to_connect(
