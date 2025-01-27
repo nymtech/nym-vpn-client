@@ -27,7 +27,7 @@ use crate::{
     error::Error,
     shared_state::{MnemonicState, ReadyToRegisterDevice, ReadyToRequestZkNym, SharedAccountState},
     storage::{AccountStorage, VpnCredentialStorage},
-    AccountControllerCommander, AvailableTicketbooks, VpnApiEndpointFailure,
+    AccountControllerCommander, AvailableTicketbooks,
 };
 
 // The interval at which we automatically request zk-nyms
@@ -469,6 +469,10 @@ where
             .register_device(&account, &device)
             .await
             .map_err(|err| AccountCommandError::Internal(err.to_string()))?;
+        tracing::debug!("Our account id: {}", account.id());
+        self.account_state
+            .set_mnemonic(MnemonicState::Stored { id: account.id() })
+            .await;
         Ok(device)
     }
 
