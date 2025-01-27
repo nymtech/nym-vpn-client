@@ -362,9 +362,7 @@ pub(crate) mod raw {
         Ok(())
     }
 
-    pub(crate) async fn get_account_by_mnemonic_raw(
-        mnemonic: Mnemonic,
-    ) -> Result<(), VpnError> {
+    pub(crate) async fn get_account_by_mnemonic_raw(mnemonic: Mnemonic) -> Result<(), VpnError> {
         let vpn_api_client = create_vpn_api_client().await?;
         let account = VpnApiAccount::from(mnemonic);
         vpn_api_client.get_account(&account).await?;

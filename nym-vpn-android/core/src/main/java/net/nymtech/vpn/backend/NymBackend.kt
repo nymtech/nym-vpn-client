@@ -40,11 +40,11 @@ import nym_vpn_lib.UserAgent
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.VpnException
 import nym_vpn_lib.forgetAccount
-import nym_vpn_lib.importMnemonic
 import nym_vpn_lib.initEnvironment
 import nym_vpn_lib.initFallbackMainnetEnvironment
 import nym_vpn_lib.initLogger
 import nym_vpn_lib.isAccountMnemonicStored
+import nym_vpn_lib.login
 import nym_vpn_lib.startVpn
 import nym_vpn_lib.stopVpn
 import timber.log.Timber
@@ -180,7 +180,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	override suspend fun storeMnemonic(mnemonic: String) {
 		withContext(ioDispatcher) {
 			initialized.waitForTrue()
-			importMnemonic(mnemonic)
+			login(mnemonic)
 		}
 	}
 
