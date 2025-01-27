@@ -45,15 +45,14 @@ public final class ConfigurationManager {
         appSettings: AppSettings.shared,
         credentialsManager: CredentialsManager.shared
     )
-#endif
-
-#if os(macOS)
+#elseif os(macOS)
     public static let shared = ConfigurationManager(
         appSettings: AppSettings.shared,
         credentialsManager: CredentialsManager.shared,
         grpcManager: GRPCManager.shared
     )
 #endif
+
     public let isTestFlight = Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
     public let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0"
 
@@ -63,6 +62,10 @@ public final class ConfigurationManager {
     public var isSantaClaus: Bool {
         guard isTestFlight || isRunningOnCI else { return false }
         return true
+    }
+
+    public var debugLevel: String {
+        isTestFlight ? DebugLevel.debug.rawValue : DebugLevel.info.rawValue
     }
 
 #if os(iOS)
