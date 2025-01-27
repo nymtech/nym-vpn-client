@@ -69,13 +69,16 @@ impl RegisteredNetworks {
         tracing::debug!("Fetching registered networks");
         // Create the runtime
         let rt = tokio::runtime::Runtime::new()?;
+
+        // allow panic because a broken bootstrap url means everything will fail anyways.
+        #[allow(clippy::expect_used)]
         let default_url = Discovery::DEFAULT_VPN_API_URL
             .parse()
             .expect("Failed to parse NYM VPN API URL");
 
         // Spawn the root task
         let inner = rt
-            .block_on(BootstrapVpnApiClient::well_known(Some(default_url))?.get_network_envs())
+            .block_on(BootstrapVpnApiClient::new(Some(default_url))?.get_network_envs())
             .with_context(|| "Failed to fetch envs")?;
         tracing::debug!("Envs response: {:#?}", inner);
 
