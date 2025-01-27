@@ -170,19 +170,19 @@ pub fn getAccountLinksRaw(
     ))
 }
 
-/// Store the account mnemonic
+/// Import the account mnemonic
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn storeAccountMnemonic(mnemonic: String) -> Result<(), VpnError> {
-    RUNTIME.block_on(account::store_account_mnemonic(&mnemonic))
+pub fn login(mnemonic: String) -> Result<(), VpnError> {
+    RUNTIME.block_on(account::login(&mnemonic))
 }
 
 /// Store the account mnemonic
 /// This is a version that can be called when the account controller is not running.
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn storeAccountMnemonicRaw(mnemonic: String, path: String) -> Result<(), VpnError> {
-    RUNTIME.block_on(account::raw::store_account_mnemonic_raw(&mnemonic, &path))
+pub fn loginRaw(mnemonic: String, path: String) -> Result<(), VpnError> {
+    RUNTIME.block_on(account::raw::login_raw(&mnemonic, &path))
 }
 
 /// Check if the account mnemonic is stored

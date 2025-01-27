@@ -57,6 +57,9 @@ pub enum AccountCommandError {
     #[error("failed to sync account state: {0}")]
     SyncAccountEndpointFailure(VpnApiEndpointFailure),
 
+    #[error("failed to get account state: {0}")]
+    GetAccountEndpointFailure(VpnApiEndpointFailure),
+
     #[error("failed to sync device state: {0}")]
     SyncDeviceEndpointFailure(VpnApiEndpointFailure),
 
