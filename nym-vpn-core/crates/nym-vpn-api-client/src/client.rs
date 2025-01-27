@@ -11,8 +11,8 @@ use url::Url;
 
 use crate::request::{UpdateDeviceRequestBody, UpdateDeviceRequestStatus};
 use crate::response::{
-    DiscoveryResponse, NymNetworkDetailsResponse, NymVpnHealthResponse, NymVpnUsagesResponse,
-    NymWellknownDiscoveryItem, RegisteredNetworksResponse,
+    NymNetworkDetailsResponse, NymVpnHealthResponse, NymVpnUsagesResponse,
+    NymWellknownDiscoveryItem,
 };
 use crate::types::DeviceStatus;
 use crate::{
