@@ -13,6 +13,11 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     lazy var logger = Logger(label: "MixnetTunnel")
 
     override init() {
+        let logURL = LogFileManager.logFileURL(logFileType: .library)?.path()
+        initLogger(
+            path: logURL,
+            debugLevel: ConfigurationManager.shared.debugLevel
+        )
         LoggingSystem.bootstrap { label in
             let fileLogHandler = FileLogHandler(label: label, logFileManager: LogFileManager(logFileType: .tunnel))
 #if DEBUG

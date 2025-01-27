@@ -65,7 +65,7 @@ public final class LogsViewModel: ObservableObject {
     }
 
     func logFileURL() -> URL? {
-        logFileManager.logFileURL(logFileType: currentLogFileType)
+        LogFileManager.logFileURL(logFileType: currentLogFileType)
     }
 
     func copyToPasteboard(index: Int) {
@@ -81,7 +81,7 @@ public final class LogsViewModel: ObservableObject {
 private extension LogsViewModel {
     func readLogs() {
         Task {
-            guard let logFileURL = logFileManager.logFileURL(logFileType: currentLogFileType),
+            guard let logFileURL = LogFileManager.logFileURL(logFileType: currentLogFileType),
                   let logData = try? Data(contentsOf: logFileURL),
                   let appLogs = String(data: logData, encoding: .utf8)
             else {
