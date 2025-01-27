@@ -80,6 +80,17 @@ impl AccountControllerCommander {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    pub async fn register_device_mnemonic(
+        &self,
+        mnemonic: Mnemonic,
+    ) -> Result<NymVpnDevice, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::RegisterDeviceMnemonic(tx, mnemonic))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
     pub async fn register_device(&self) -> Result<NymVpnDevice, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx

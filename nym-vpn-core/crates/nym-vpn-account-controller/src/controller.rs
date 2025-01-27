@@ -27,7 +27,7 @@ use crate::{
     error::Error,
     shared_state::{MnemonicState, ReadyToRegisterDevice, ReadyToRequestZkNym, SharedAccountState},
     storage::{AccountStorage, VpnCredentialStorage},
-    AccountControllerCommander, AvailableTicketbooks,
+    AccountControllerCommander, AvailableTicketbooks, VpnApiEndpointFailure,
 };
 
 // The interval at which we automatically request zk-nyms
@@ -272,10 +272,6 @@ where
             .await
             .map_err(|_err| AccountCommandError::NoAccountStored)?;
 
-        // We don't need to wait for the sync to finish, so queue it up and return
-        self.queue_command(AccountCommand::SyncAccountState(None));
-        self.queue_command(AccountCommand::SyncDeviceState(None));
-
         Ok(())
     }
 
@@ -454,6 +450,25 @@ where
             .map_err(|_err| AccountCommandError::NoDeviceStored)?;
 
         tracing::info!("Device identity: {device:?}");
+        Ok(device)
+    }
+
+    async fn handle_register_device_mnemonic(
+        &self,
+        mnemonic: Mnemonic,
+    ) -> Result<NymVpnDevice, AccountCommandError> {
+        let device = self
+            .account_storage
+            .load_device_keys()
+            .await
+            .map_err(|_err| AccountCommandError::NoDeviceStored)?;
+        let account = VpnApiAccount::from(mnemonic);
+
+        let device = self
+            .vpn_api_client
+            .register_device(&account, &device)
+            .await
+            .map_err(|err| AccountCommandError::Internal(err.to_string()))?;
         Ok(device)
     }
 
@@ -665,6 +680,10 @@ where
             }
             AccountCommand::GetDeviceIdentity(result_tx) => {
                 let result = self.handle_get_device_identity().await;
+                result_tx.send(result);
+            }
+            AccountCommand::RegisterDeviceMnemonic(result_tx, mnemonic) => {
+                let result = self.handle_register_device_mnemonic(mnemonic).await;
                 result_tx.send(result);
             }
             AccountCommand::RegisterDevice(_) => {
