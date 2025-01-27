@@ -868,10 +868,37 @@ impl VpnApiClient {
         .await
         .map_err(VpnApiClientError::FailedToGetDirectoryZkNymsTicketbookPartialVerificationKeys)
     }
+
+    pub async fn get_nym_network_details(&self) -> Result<NymNetworkDetailsResponse> {
+        self.inner
+            .get_json(&[routes::V1, routes::NETWORK, routes::DETAILS], NO_PARAMS)
+            .await
+            .map_err(VpnApiClientError::FailedToGetNetworkDetails)
+    }
+
+    pub async fn get_nym_vpn_network_details(&self) -> Result<NymWellknownDiscoveryItem> {
+        tracing::debug!("Fetching nym vpn network details");
+        self.inner
+            .get_json(
+                &[
+                    routes::PUBLIC,
+                    routes::V1,
+                    routes::WELLKNOWN,
+                    routes::CURRENT_ENV,
+                ],
+                NO_PARAMS,
+            )
+            .await
+            .map_err(VpnApiClientError::FailedToGetVpnNetworkDetails)
+    }
 }
 
-// Bootstrapping Environments and Network Discovery
-impl VpnApiClient {
+/// Bootstrapping Environments and Network Discovery
+pub struct BootstrapVpnApiClient {
+    inner: nym_http_api_client::Client,
+}
+
+impl BootstrapVpnApiClient {
     /// Hard coded well known URL for bootstrapping environment and discovery config
     /// allowing more refined URL usage.
     // hard coded for now.
@@ -880,14 +907,14 @@ impl VpnApiClient {
     /// Returns a VpnApiClient Based on locally set well known url and empty user agent.
     ///
     /// THIS SHOULD ONLY BE USED FOR BOOTSTRAPPING.
-    pub fn well_known() -> Result<Self> {
-        let user_agent = UserAgent {
-            application: String::new(),
-            version: String::new(),
-            platform: String::new(),
-            git_commit: String::new(),
-        };
-        Self::new(Self::WELLKNOWN_URL.parse().unwrap(), user_agent)
+    pub fn well_known(base_url: Option<Url>) -> Result<Self> {
+        let url: Url = base_url.unwrap_or(Self::WELLKNOWN_URL.parse().unwrap());
+
+        nym_http_api_client::Client::builder(url)
+            .map(|builder| builder.with_timeout(NYM_VPN_API_TIMEOUT))
+            .and_then(|builder| builder.build())
+            .map(|c| Self { inner: c })
+            .map_err(VpnApiClientError::FailedToCreateVpnApiClient)
     }
 
     pub async fn get_network_envs(&self) -> Result<RegisteredNetworksResponse> {
@@ -919,29 +946,6 @@ impl VpnApiClient {
             )
             .await
             .map_err(VpnApiClientError::FailedToGetDiscoveryInfo)
-    }
-
-    pub async fn get_nym_network_details(&self) -> Result<NymNetworkDetailsResponse> {
-        self.inner
-            .get_json(&[routes::V1, routes::NETWORK, routes::DETAILS], NO_PARAMS)
-            .await
-            .map_err(VpnApiClientError::FailedToGetNetworkDetails)
-    }
-
-    pub async fn get_nym_vpn_network_details(&self) -> Result<NymWellknownDiscoveryItem> {
-        tracing::debug!("Fetching nym vpn network details");
-        self.inner
-            .get_json(
-                &[
-                    routes::PUBLIC,
-                    routes::V1,
-                    routes::WELLKNOWN,
-                    routes::CURRENT_ENV,
-                ],
-                NO_PARAMS,
-            )
-            .await
-            .map_err(VpnApiClientError::FailedToGetVPNNetworkDetails)
     }
 }
 

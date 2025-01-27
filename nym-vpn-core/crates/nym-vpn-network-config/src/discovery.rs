@@ -9,7 +9,7 @@ use url::Url;
 
 use nym_vpn_api_client::{
     response::{DiscoveryResponse, NymNetworkDetailsResponse, NymWellknownDiscoveryItem},
-    VpnApiClient,
+    BootstrapVpnApiClient, VpnApiClient,
 };
 
 use crate::{AccountManagement, FeatureFlags, SystemMessages};
@@ -52,7 +52,10 @@ impl Discovery {
     }
 
     pub fn fetch(network_name: &str) -> anyhow::Result<Self> {
-        let client = VpnApiClient::well_known()?;
+        let default_url = Self::DEFAULT_VPN_API_URL
+            .parse()
+            .expect("Failed to parse NYM VPN API URL");
+        let client = BootstrapVpnApiClient::well_known(Some(default_url))?;
 
         tracing::debug!("Fetching nym network discovery");
         let rt = tokio::runtime::Runtime::new()?;

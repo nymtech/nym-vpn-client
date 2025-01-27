@@ -9,7 +9,9 @@ use std::{
 
 use anyhow::Context;
 use itertools::Itertools;
-use nym_vpn_api_client::VpnApiClient;
+use nym_vpn_api_client::BootstrapVpnApiClient;
+
+use crate::discovery::Discovery;
 
 use super::{MAX_FILE_AGE, NETWORKS_SUBDIR};
 
@@ -67,10 +69,13 @@ impl RegisteredNetworks {
         tracing::debug!("Fetching registered networks");
         // Create the runtime
         let rt = tokio::runtime::Runtime::new()?;
+        let default_url = Discovery::DEFAULT_VPN_API_URL
+            .parse()
+            .expect("Failed to parse NYM VPN API URL");
 
         // Spawn the root task
         let inner = rt
-            .block_on(VpnApiClient::well_known()?.get_network_envs())
+            .block_on(BootstrapVpnApiClient::well_known(Some(default_url))?.get_network_envs())
             .with_context(|| "Failed to fetch envs")?;
         tracing::debug!("Envs response: {:#?}", inner);
 
