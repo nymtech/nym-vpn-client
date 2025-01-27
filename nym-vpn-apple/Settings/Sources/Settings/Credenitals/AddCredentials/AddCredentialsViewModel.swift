@@ -21,11 +21,11 @@ final class AddCredentialsViewModel: ObservableObject {
         if let link = configurationManager.accountLinks?.signUp, !link.isEmpty {
             return link
         } else {
-            return "https://nymvpn.com/en/account/create"
+            return "https://nym.com/account/create"
         }
     }
 
-    let signUpLinkFallback = "https://nymvpn.com/en/account/create"
+    let signUpLinkFallback = "https://nym.com/account/create"
 
     let appSettings: AppSettings
     let loginButtonTitle = "addCredentials.Login.Title".localizedString
