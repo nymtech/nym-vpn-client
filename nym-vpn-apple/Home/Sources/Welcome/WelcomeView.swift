@@ -72,7 +72,7 @@ private extension WelcomeView {
 
     @ViewBuilder
     func privacyPolicy() -> some View {
-        Text("By continuing, you agree to NymVPN's [Terms of use](https://nymvpn.com/en/terms) and acknowledge NymVPN's [Privacy policy](https://nymvpn.com/en/privacy?type=apps).")
+        Text("By continuing, you agree to NymVPN's [Terms of use](https://nym.com/vpn-terms) and acknowledge NymVPN's [Privacy policy](https://nym.com/vpn-privacy-statement).")
             .tint(NymColor.sysOnSurfaceWhite)
             .foregroundStyle(NymColor.sysOutline)
             .textStyle(.Label.Medium.primary)

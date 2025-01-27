@@ -2,7 +2,7 @@
 
 👋 Hello 👋
 
-Welcome to the home of [NymVPN](https://nymvpn.com/en) iOS + iPadOS + macOS. The Android client application for [NymVPN](https://nymvpn.com/en). For more information about NymVPN, its features, latest announcements, Help Center, or to download the latest stable release, visit [nymvpn.com](https://nymvpn.com/en).
+Welcome to the home of [NymVPN](https://nym.com) iOS + iPadOS + macOS. The Android client application for [NymVPN](https://nym.com). For more information about NymVPN, its features, latest announcements, Help Center, or to download the latest stable release, visit [nym.com](https://nym.com).
 
 
 ## Building instructions: 
