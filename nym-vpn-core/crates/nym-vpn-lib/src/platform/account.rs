@@ -4,7 +4,6 @@
 use std::{path::PathBuf, str::FromStr, sync::Arc, time::Duration};
 
 use super::uniffi_custom_impls::AccountStateSummary;
-use crate::platform::account::raw::{register_device_raw, remove_device_identity_raw};
 use nym_vpn_account_controller::{
     shared_state::DeviceState, AccountControllerCommander, SharedAccountState,
 };
@@ -17,7 +16,7 @@ use nym_vpn_store::{
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
-use super::{account, error::VpnError, ACCOUNT_CONTROLLER_HANDLE};
+use super::{error::VpnError, ACCOUNT_CONTROLLER_HANDLE};
 
 pub(super) async fn init_account_controller(
     data_dir: PathBuf,
@@ -266,11 +265,9 @@ pub(super) async fn get_device_id() -> Result<String, VpnError> {
 pub(crate) mod raw {
     use super::*;
     use crate::platform::environment;
-    use futures::TryFutureExt;
     use nym_sdk::mixnet::StoragePaths;
     use nym_vpn_api_client::types::{Device, DeviceStatus};
     use nym_vpn_api_client::VpnApiClient;
-    use std::future::Future;
     use std::path::Path;
 
     async fn setup_account_storage(
