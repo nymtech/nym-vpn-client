@@ -65,9 +65,9 @@ fn default_mainnet_discovery() {
             #[allow(clippy::expect_used)]
             fn default() -> Self {{
                 Self {{
-                    network_name: "{}".to_string(),
-                    nym_api_url: "{}".parse().expect("Failed to parse NYM API URL"),
-                    nym_vpn_api_url: "{}".parse().expect("Failed to parse NYM VPN API URL"),
+                    network_name: "{network_name}".to_string(),
+                    nym_api_url: "{nym_api_url}".parse().expect("Failed to parse NYM API URL"),
+                    nym_vpn_api_url: "{nym_vpn_api_url}".parse().expect("Failed to parse NYM VPN API URL"),
                     account_management: Default::default(),
                     feature_flags: Default::default(),
                     system_messages: Default::default(),
@@ -79,8 +79,7 @@ fn default_mainnet_discovery() {
         impl Discovery {{
             pub(crate) const DEFAULT_VPN_API_URL: &str =  "{nym_vpn_api_url}";
         }}
-        "#,
-        network_name, nym_api_url, nym_vpn_api_url
+        "#
     );
 
     let out_dir = std::env::var("OUT_DIR").unwrap();
