@@ -370,7 +370,14 @@ pub(crate) mod raw {
                 details: err.to_string(),
             })?;
 
-        unregister_device_from_api_raw(path).await?;
+        match unregister_device_from_api_raw(path).await {
+            Ok(_) => {
+                tracing::info!("Device has been unregistered");
+            }
+            Err(error) => {
+                tracing::error!("Failed to unregister device: {error:?}");
+            }
+        }
 
         // First remove the files we own directly
         remove_account_mnemonic_raw(path).await?;
