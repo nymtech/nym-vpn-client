@@ -288,7 +288,14 @@ where
         // currently running operations to finish before proceeding with the reset
 
         //delete device from nym vpn api
-        self.unregister_device_from_api().await?;
+        match self.unregister_device_from_api().await {
+            Ok(_) => {
+                tracing::info!("Device has been unregistered");
+            }
+            Err(error) => {
+                tracing::error!("Failed to unregister device: {error:?}");
+            }
+        }
 
         self.account_storage
             .remove_account()
