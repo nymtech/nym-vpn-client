@@ -52,10 +52,12 @@ impl Discovery {
     }
 
     pub fn fetch(network_name: &str) -> anyhow::Result<Self> {
+        // allow panic because a broken bootstrap url means everything will fail anyways.
+        #[allow(clippy::expect_used)]
         let default_url = Self::DEFAULT_VPN_API_URL
             .parse()
             .expect("Failed to parse NYM VPN API URL");
-        let client = BootstrapVpnApiClient::well_known(Some(default_url))?;
+        let client = BootstrapVpnApiClient::new(Some(default_url))?;
 
         tracing::debug!("Fetching nym network discovery");
         let rt = tokio::runtime::Runtime::new()?;
