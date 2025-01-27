@@ -86,6 +86,9 @@ pub enum VpnError {
 
     #[error("failed to remove device from nym vpn api: {details}")]
     UnregisterDeviceApiClientFailure { details: String },
+
+    #[error("failed to parse mnemonic with error: {details}")]
+    InvalidMnemonic { details: String },
 }
 
 #[derive(uniffi::Record, Clone, Debug, PartialEq, Eq)]
@@ -189,6 +192,13 @@ impl From<nym_vpn_account_controller::AccountCommandError> for VpnError {
             AccountCommandError::RegistrationInProgress => VpnError::InternalError {
                 details: value.to_string(),
             },
+            AccountCommandError::GetAccountEndpointFailure(e) => {
+                VpnError::UpdateAccountEndpointFailure {
+                    details: e.message,
+                    message_id: e.message_id,
+                    code_reference_id: e.code_reference_id,
+                }
+            }
         }
     }
 }

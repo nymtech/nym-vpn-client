@@ -201,16 +201,16 @@ pub(super) async fn update_account_state() -> Result<(), VpnError> {
         .map(|_| ())
 }
 
-pub(super) async fn store_account_mnemonic(mnemonic: &str) -> Result<(), VpnError> {
-    let mnemonic = Mnemonic::parse(mnemonic).map_err(|err| VpnError::InternalError {
+async fn parse_mnemonic(mnemonic: &str) -> Result<Mnemonic, VpnError> {
+    Mnemonic::parse(mnemonic).map_err(|err| VpnError::InvalidMnemonic {
         details: err.to_string(),
-    })?;
+    })
+}
 
-    get_command_sender()
-        .await?
-        .store_account(mnemonic)
-        .await
-        .map_err(VpnError::from)
+pub(super) async fn login(mnemonic: &str) -> Result<(), VpnError> {
+    let mnemonic = parse_mnemonic(mnemonic).await?;
+    get_command_sender().await?.login(mnemonic).await?;
+    Ok(())
 }
 
 pub(super) async fn forget_account() -> Result<(), VpnError> {
@@ -257,23 +257,16 @@ pub(crate) mod raw {
         Ok(crate::storage::VpnClientOnDiskStorage::new(path))
     }
 
-    pub(crate) async fn store_account_mnemonic_raw(
-        mnemonic: &str,
-        path: &str,
-    ) -> Result<(), VpnError> {
+    pub(crate) async fn login_raw(mnemonic: &str, path: &str) -> Result<(), VpnError> {
+        let mnemonic = parse_mnemonic(mnemonic).await?;
+        get_account_by_mnemonic_raw(mnemonic.clone()).await?;
         let storage = setup_account_storage(path).await?;
-
-        let mnemonic = Mnemonic::parse(mnemonic).map_err(|err| VpnError::InternalError {
-            details: err.to_string(),
-        })?;
-
         storage
             .store_mnemonic(mnemonic)
             .await
             .map_err(|err| VpnError::InternalError {
                 details: err.to_string(),
             })?;
-
         storage
             .init_keys(None)
             .await
@@ -338,13 +331,18 @@ pub(crate) mod raw {
         })
     }
 
-    async fn unregister_device_from_api_raw(path: &str) -> Result<(), VpnError> {
+    async fn load_device(path: &str) -> Result<Device, VpnError> {
         let account_storage = setup_account_storage(path).await?;
-        let device_keys = account_storage
+        account_storage
             .load_keys()
             .await
-            .map_err(|_| VpnError::NoDeviceIdentity)?;
-        let device = Device::from(device_keys.device_keypair().clone());
+            .map_err(|_| VpnError::NoDeviceIdentity)
+            .map(|d| Device::from(d.device_keypair().clone()))
+    }
+
+    async fn unregister_device_raw(path: &str) -> Result<(), VpnError> {
+        let account_storage = setup_account_storage(path).await?;
+        let device = load_device(path).await?;
         let mnemonic = account_storage
             .load_mnemonic()
             .await
@@ -362,6 +360,16 @@ pub(crate) mod raw {
         Ok(())
     }
 
+    async fn get_account_by_mnemonic_raw(mnemonic: Mnemonic) -> Result<(), VpnError> {
+        let vpn_api_client = create_vpn_api_client().await?;
+        let account = VpnApiAccount::from(mnemonic);
+        vpn_api_client
+            .get_account(&account)
+            .await
+            .map_err(|_err| VpnError::AccountNotRegistered)?;
+        Ok(())
+    }
+
     pub(crate) async fn forget_account_raw(path: &str) -> Result<(), VpnError> {
         tracing::info!("REMOVING ALL ACCOUNT AND DEVICE DATA IN: {path}");
 
@@ -370,7 +378,14 @@ pub(crate) mod raw {
                 details: err.to_string(),
             })?;
 
-        unregister_device_from_api_raw(path).await?;
+        match unregister_device_raw(path).await {
+            Ok(_) => {
+            tracing::info!("Device has been unregistered");
+            }
+            Err(error) => {
+            tracing::error!("Failed to unregister device: {error:?}");
+            }
+        }
 
         // First remove the files we own directly
         remove_account_mnemonic_raw(path).await?;

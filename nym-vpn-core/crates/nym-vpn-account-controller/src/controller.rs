@@ -5,7 +5,7 @@ use std::{path::PathBuf, sync::Arc, time::Duration};
 
 use nym_http_api_client::UserAgent;
 use nym_vpn_api_client::{
-    response::{NymVpnDevice, NymVpnUsage},
+    response::{NymVpnAccountResponse, NymVpnDevice, NymVpnUsage},
     types::{DeviceStatus, VpnApiAccount},
 };
 use nym_vpn_network_config::Network;
@@ -27,7 +27,7 @@ use crate::{
     error::Error,
     shared_state::{MnemonicState, ReadyToRegisterDevice, ReadyToRequestZkNym, SharedAccountState},
     storage::{AccountStorage, VpnCredentialStorage},
-    AccountControllerCommander, AvailableTicketbooks,
+    AccountControllerCommander, AvailableTicketbooks, VpnApiEndpointFailure,
 };
 
 // The interval at which we automatically request zk-nyms
@@ -262,7 +262,28 @@ where
         }
     }
 
+    async fn get_account_by_mnemonic(
+        &self,
+        mnemonic: Mnemonic,
+    ) -> Result<NymVpnAccountResponse, AccountCommandError> {
+        let account = VpnApiAccount::from(mnemonic);
+        self.vpn_api_client
+            .get_account(&account)
+            .await
+            .map_err(|e| {
+                AccountCommandError::GetAccountEndpointFailure(
+                    VpnApiEndpointFailure::try_from(e).unwrap_or_else(|e| VpnApiEndpointFailure {
+                        message: e.to_string(),
+                        message_id: None,
+                        code_reference_id: None,
+                    }),
+                )
+            })
+    }
+
     async fn handle_store_account(&self, mnemonic: Mnemonic) -> Result<(), AccountCommandError> {
+        //get account to check that it is a valid account before storing
+        self.get_account_by_mnemonic(mnemonic.clone()).await?;
         self.account_storage
             .store_account(mnemonic)
             .await
@@ -286,7 +307,14 @@ where
         // currently running operations to finish before proceeding with the reset
 
         //delete device from nym vpn api
-        self.unregister_device_from_api().await?;
+        match self.unregister_device_from_api().await {
+            Ok(_) => {
+                tracing::info!("Device has been unregistered");
+            }
+            Err(error) => {
+                tracing::error!("Failed to unregister device: {error:?}");
+            }
+        }
 
         self.account_storage
             .remove_account()
