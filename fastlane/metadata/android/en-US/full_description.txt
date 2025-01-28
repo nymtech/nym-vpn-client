@@ -1,12 +1,13 @@
-Download NymVPN and make your online activity safe.
-With our VPN app you can hide your IP address, encrypt your traffic, hide your identity online and much more.
+Download the most secure VPN from Nym and make your online activity safe.With our VPN app you can hide your IP address, encrypt your traffic, hide your identity online and much more.
 
 Many entities on the internet can spy on your activity and take your data.
 Governments, big tech, data brokers, internet service providers and advertisers can all try to monitor your online activity. Recent data leakage scandals made it clear that we can't even trust traditional VPN companies.
 
 Our VPN was born to make your internet activities private and a crucial part of this is not making activity logging and tracking possible.
+
 NymVPN is a new type of VPN designed in a way that makes it impossible for anyone to monitor or log your online activity, even for us. Our VPN operates on a decentralized network, with no trusted parties, centralized components, or single points of failure. All functionalities of NymVPN are performed in a decentralized and distributed way, and there is no possibility of enabling centralized logging.
-Our VPN encrypts data and shields metadata from traffic analysis through a decentralized Mixnet. Simply put: there is no way for us to log your activity, therefore no one can access it.
+
+Our VPN encrypts data and shields metadata from traffic analysis through a decentralized Mixnet. Simply put: there is no way for Nym to log your activity, therefore no one can access it.
 
 But what exactly is a Mixnet? A Mixnet is a network of nodes that:
 1. Receive encrypted traffic
