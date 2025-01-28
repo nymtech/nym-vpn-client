@@ -48,6 +48,7 @@ impl From<ErrorStateReason> for ProtoErrorStateReason {
             ErrorStateReason::BadBandwidthIncrease => Self::BadBandwidthIncrease,
             ErrorStateReason::DuplicateTunFd => Self::DuplicateTunFd,
             ErrorStateReason::Internal => Self::Internal,
+            ErrorStateReason::Account => Self::Account,
         }
     }
 }

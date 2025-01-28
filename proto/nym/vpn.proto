@@ -1100,6 +1100,7 @@ message TunnelState {
       BAD_BANDWIDTH_INCREASE = 8;
       DUPLICATE_TUN_FD = 9;
       INTERNAL = 10;
+      ACCOUNT = 11;
   }
 
   enum ActionAfterDisconnect {

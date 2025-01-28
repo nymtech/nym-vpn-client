@@ -56,6 +56,7 @@ impl ConnectingState {
             shared_state.tun_provider.clone(),
             shared_state.nym_config.clone(),
             shared_state.tunnel_settings.clone(),
+            shared_state.account_command_tx.clone(),
         );
 
         (

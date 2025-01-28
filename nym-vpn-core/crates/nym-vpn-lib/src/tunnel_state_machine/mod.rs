@@ -1,6 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+mod account;
 #[cfg(target_os = "linux")]
 mod default_interface;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -22,6 +23,7 @@ mod wintun;
 use std::sync::Arc;
 use std::{net::IpAddr, path::PathBuf};
 
+use nym_vpn_account_controller::{AccountCommandError, AccountControllerCommander};
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
@@ -286,6 +288,7 @@ pub struct SharedState {
     tun_provider: Arc<dyn OSTunProvider>,
     #[cfg(target_os = "android")]
     tun_provider: Arc<dyn AndroidTunProvider>,
+    account_command_tx: AccountControllerCommander,
 }
 
 #[derive(Debug, Clone)]
@@ -311,6 +314,7 @@ impl TunnelStateMachine {
         event_sender: mpsc::UnboundedSender<TunnelEvent>,
         nym_config: NymConfig,
         tunnel_settings: TunnelSettings,
+        account_command_tx: AccountControllerCommander,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
         shutdown_token: CancellationToken,
@@ -361,6 +365,7 @@ impl TunnelStateMachine {
             status_listener_handle: None,
             #[cfg(any(target_os = "ios", target_os = "android"))]
             tun_provider,
+            account_command_tx,
         };
 
         let tunnel_state_machine = Self {
@@ -478,6 +483,9 @@ pub enum Error {
 
     #[error("tunnel error: {}", _0)]
     Tunnel(#[from] tunnel::Error),
+
+    #[error("account error: {0}")]
+    Account(#[from] account::Error),
 }
 
 impl Error {
@@ -511,6 +519,11 @@ impl Error {
 
             #[cfg(target_os = "linux")]
             Self::GetDefaultInterface(_) => ErrorStateReason::Internal,
+
+            Self::Account(err) => {
+                tracing::error!("Account error: {err:?}");
+                ErrorStateReason::Account
+            }
         })
     }
 }

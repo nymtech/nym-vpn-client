@@ -13,6 +13,7 @@ use super::wintun::{self, WintunAdapterConfig};
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use nym_gateway_directory::GatewayMinPerformance;
+use nym_vpn_account_controller::AccountControllerCommander;
 use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
@@ -50,7 +51,7 @@ use crate::tunnel_provider;
 use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::ios::OSTunProvider;
-use crate::tunnel_state_machine::WireguardMultihopMode;
+use crate::tunnel_state_machine::{account, WireguardMultihopMode};
 
 /// Default MTU for mixnet tun device.
 const DEFAULT_TUN_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android")) {
@@ -99,6 +100,7 @@ const MAX_WAIT_DELAY: Duration = Duration::from_secs(15);
 
 #[derive(Debug, Clone)]
 pub enum TunnelMonitorEvent {
+    // SettingUpAccount,
     /// Initializing mixnet client
     InitializingClient,
 
@@ -148,6 +150,7 @@ pub struct TunnelMonitor {
     tun_provider: Arc<dyn AndroidTunProvider>,
     nym_config: NymConfig,
     tunnel_settings: TunnelSettings,
+    account_controller_tx: AccountControllerCommander,
     cancel_token: CancellationToken,
 }
 
@@ -167,6 +170,7 @@ impl TunnelMonitor {
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
         nym_config: NymConfig,
         tunnel_settings: TunnelSettings,
+        account_controller_tx: AccountControllerCommander,
     ) -> TunnelMonitorHandle {
         let cancel_token = CancellationToken::new();
         let tunnel_monitor = Self {
@@ -180,6 +184,7 @@ impl TunnelMonitor {
             tun_provider,
             nym_config,
             tunnel_settings,
+            account_controller_tx,
             cancel_token: cancel_token.clone(),
         };
         let join_handle = tokio::spawn(tunnel_monitor.run(retry_attempt, selected_gateways));
@@ -222,6 +227,22 @@ impl TunnelMonitor {
                 .await
                 .ok_or(Error::Tunnel(tunnel::Error::Cancelled))?;
         }
+
+        // WIP(JON)
+        //self.send_event(TunnelMonitorEvent::SettingUpAccount);
+
+        // WIP(JON) run_until_cancelled
+        // let credentials_mode = self.tunnel_settings.enable_credentials_mode;
+        //self.account_controller_tx
+        //    .wait_for_account_ready_to_connect(credentials_mode)
+        //    .await
+        //    .map_err(Error::Account)?;
+        account::wait_for_account_ready(
+            self.account_controller_tx.clone(),
+            self.tunnel_settings.enable_credentials_mode,
+            self.cancel_token.clone(),
+        )
+        .await?;
 
         self.send_event(TunnelMonitorEvent::InitializingClient);
 

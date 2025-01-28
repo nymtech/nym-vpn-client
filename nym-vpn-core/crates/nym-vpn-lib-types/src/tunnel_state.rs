@@ -154,4 +154,7 @@ pub enum ErrorStateReason {
 
     /// Program errors that must not happen.
     Internal,
+
+    /// Account error
+    Account,
 }

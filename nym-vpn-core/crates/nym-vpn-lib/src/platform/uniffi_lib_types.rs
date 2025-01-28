@@ -227,6 +227,7 @@ pub enum ErrorStateReason {
     BadBandwidthIncrease,
     DuplicateTunFd,
     Internal,
+    Account,
 }
 
 impl From<CoreErrorStateReason> for ErrorStateReason {
@@ -243,6 +244,7 @@ impl From<CoreErrorStateReason> for ErrorStateReason {
             CoreErrorStateReason::BadBandwidthIncrease => Self::BadBandwidthIncrease,
             CoreErrorStateReason::DuplicateTunFd => Self::DuplicateTunFd,
             CoreErrorStateReason::Internal => Self::Internal,
+            CoreErrorStateReason::Account => Self::Account,
         }
     }
 }
