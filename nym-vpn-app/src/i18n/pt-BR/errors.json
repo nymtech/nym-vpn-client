@@ -88,7 +88,7 @@
     "maximum-registered-devices": "Falha no registro do dispositivo: o número máximo de dispositivos registrados foi atingido",
     "update-device": "Falha na atualização do dispositivo",
     "register-device": "Falha no registro do dispositivo",
-    "not-stored": "Nenhuma frase de recuperação de conta armazenada",
+    "not-stored": "Nenhum código de acesso à conta armazenado",
     "no-device-stored": "Nenhuma chave de dispositivo armazenada",
     "update": "Falha na atualização da conta"
   },
