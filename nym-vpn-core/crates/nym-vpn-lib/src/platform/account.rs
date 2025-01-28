@@ -380,10 +380,10 @@ pub(crate) mod raw {
 
         match unregister_device_raw(path).await {
             Ok(_) => {
-            tracing::info!("Device has been unregistered");
+                tracing::info!("Device has been unregistered");
             }
             Err(error) => {
-            tracing::error!("Failed to unregister device: {error:?}");
+                tracing::error!("Failed to unregister device: {error:?}");
             }
         }
 
