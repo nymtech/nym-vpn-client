@@ -182,4 +182,21 @@
     <string name="version">Versão</string>
     <string name="max_devices_reached">O número máximo de dispositivos adicionados foi atingido.</string>
     <string name="app_restart_required">É necessário reiniciar o aplicativo</string>
+    <string name="offline">Sem internet</string>
+    <string name="waiting_for_connection">Será conectado quando o dispositivo ficar online</string>
+    <string name="unexpected_error">Ocorreu um erro inesperado:</string>
+    <string name="no_active_subscription">Nenhuma assinatura ativa foi detectada.</string>
+    <string name="no_internet">Seu dispositivo não tem conexão com a Internet</string>
+    <string name="credential_modal_description">Para adicionar esse dispositivo, acesse a página “Dispositivos” da sua conta, remova um dos dispositivos existentes e, em seguida, faça login nesse dispositivo com sua frase de recuperação.</string>
+    <string name="manage_devices">Gerencie seus dispositivos</string>
+    <string name="close">Fechar</string>
+    <string name="enter_access_code">Digite seu código de acesso anônimo.</string>
+    <string name="welcome_to_nym">Bem-vindo ao NymVPN</string>
+    <string name="get_access_code">Obter Código de Acesso</string>
+    <string name="access_code">Código de acesso de 24 palavras</string>
+    <string name="support_and_feedback"><![CDATA[Suporte e feedback]]></string>
+    <string name="get_in_touch">Entre em contato</string>
+    <string name="same_entry_exit_message">Para fins de privacidade, o NymVPN não usará o mesmo gateway para entrada e saída. Reconecte-se ou escolha locais diferentes.</string>
+    <string name="device_id">ID do dispositivo:</string>
+    <string name="loading">Carregando</string>
 </resources>
