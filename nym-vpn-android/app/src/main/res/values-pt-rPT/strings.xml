@@ -178,4 +178,25 @@
     <string name="invalid_recovery_phrase">Frase de recuperação inválida</string>
     <string name="log_out">Sair da sessão</string>
     <string name="system_wallpaper">Tema do papel de parede do sistema</string>
+    <string name="offline">Sem Internet</string>
+    <string name="no_internet">O seu dispositivo não tem ligação à Internet</string>
+    <string name="waiting_for_connection">Ligar-se-á quando o dispositivo ficar online</string>
+    <string name="app_restart_required">É necessário reiniciar a aplicação</string>
+    <string name="credential_modal_description">Para adicionar este dispositivo, aceda à página “Dispositivos” da sua conta, remova um dos dispositivos existentes e, em seguida, inicie sessão neste dispositivo com a sua frase de recuperação.</string>
+    <string name="same_entry_exit_message">Por motivos de privacidade, o NymVPN não utilizará o mesmo gateway para entrada e saída. Volte a ligar-se ou escolha localizações diferentes.</string>
+    <string name="stop">Parar</string>
+    <string name="max_devices_reached">O número máximo de dispositivos adicionados foi atingido.</string>
+    <string name="max_devices_reached_title">Atingiu o número máximo de dispositivos para a sua conta</string>
+    <string name="manage_devices">Gerir os seus dispositivos</string>
+    <string name="close">Fechar</string>
+    <string name="enter_access_code">Introduza o seu código de acesso anónimo.</string>
+    <string name="welcome_to_nym">Bem-vindo ao NymVPN</string>
+    <string name="get_access_code">Obter Código de Acesso</string>
+    <string name="access_code">Código de acesso de 24 palavras</string>
+    <string name="support_and_feedback"><![CDATA[Suporte e feedback]]></string>
+    <string name="get_in_touch">Entrar em contacto</string>
+    <string name="device_id">ID do dispositivo:</string>
+    <string name="unexpected_error">Ocorreu um erro inesperado:</string>
+    <string name="no_active_subscription">Não foi detectada nenhuma subscrição ativa.</string>
+    <string name="loading">Carregando</string>
 </resources>
