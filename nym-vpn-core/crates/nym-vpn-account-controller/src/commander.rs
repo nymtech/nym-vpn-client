@@ -2,13 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_api_client::response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnUsage};
+use nym_vpn_lib_types::AccountCommandError;
 use nym_vpn_store::mnemonic::Mnemonic;
 use tokio::sync::mpsc::UnboundedSender;
 
 use crate::{
-    commands::{
-        request_zknym::RequestZkNymSummary, AccountCommand, AccountCommandError, ReturnSender,
-    },
+    commands::{request_zknym::RequestZkNymSummary, AccountCommand, ReturnSender},
     error::Error,
     shared_state::{AccountRegistered, DeviceState, SharedAccountState},
     AvailableTicketbooks,
@@ -136,6 +135,7 @@ impl AccountControllerCommander {
     pub async fn ensure_update_account(
         &self,
     ) -> Result<Option<NymVpnAccountSummaryResponse>, AccountCommandError> {
+        tracing::debug!("Ensuring account is synced");
         let state = self.shared_state.lock().await.clone();
         match state.account_registered {
             Some(AccountRegistered::Registered) => return Ok(None),
@@ -145,6 +145,7 @@ impl AccountControllerCommander {
     }
 
     pub async fn ensure_update_device(&self) -> Result<DeviceState, AccountCommandError> {
+        tracing::debug!("Ensuring device is synced");
         let state = self.shared_state.lock().await.clone();
         match state.device {
             Some(DeviceState::Active) => return Ok(DeviceState::Active),
@@ -157,6 +158,7 @@ impl AccountControllerCommander {
     }
 
     pub async fn ensure_register_device(&self) -> Result<(), AccountCommandError> {
+        tracing::debug!("Ensuring device is registered");
         let state = self.shared_state.lock().await.clone();
         match state.device {
             Some(DeviceState::Active) => return Ok(()),
@@ -169,6 +171,7 @@ impl AccountControllerCommander {
     }
 
     pub async fn ensure_available_zk_nyms(&self) -> Result<(), AccountCommandError> {
+        tracing::debug!("Ensuring available zk-nyms in the local credential store");
         if self
             .get_available_tickets()
             .await?
@@ -194,6 +197,7 @@ impl AccountControllerCommander {
         &self,
         credential_mode: bool,
     ) -> Result<(), AccountCommandError> {
+        tracing::debug!("Waiting for account to be ready to connect");
         self.ensure_update_account().await?;
         self.ensure_update_device().await?;
         self.ensure_register_device().await?;

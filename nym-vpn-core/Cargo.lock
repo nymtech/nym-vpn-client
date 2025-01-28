@@ -4871,6 +4871,7 @@ dependencies = [
  "nym-sdk",
  "nym-validator-client",
  "nym-vpn-api-client",
+ "nym-vpn-lib-types",
  "nym-vpn-network-config",
  "nym-vpn-store",
  "nym-wg-gateway-client",
@@ -5008,8 +5009,10 @@ dependencies = [
  "nym-connection-monitor",
  "nym-gateway-directory",
  "nym-statistics-common",
+ "nym-vpn-api-client",
  "nym-wg-gateway-client",
  "si-scale",
+ "thiserror 2.0.11",
  "time",
 ]
 

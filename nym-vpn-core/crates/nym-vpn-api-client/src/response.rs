@@ -479,7 +479,7 @@ impl From<String> for NymDirectoryCountry {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct NymErrorResponse {
     pub message: String,

@@ -8,6 +8,7 @@ use nym_vpn_api_client::{
     response::{NymVpnAccountResponse, NymVpnDevice, NymVpnUsage},
     types::{DeviceStatus, VpnApiAccount},
 };
+use nym_vpn_lib_types::{AccountCommandError, ForgetAccountError, StoreAccountError};
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{mnemonic::Mnemonic, VpnStorage};
 use tokio::{
@@ -21,13 +22,13 @@ use crate::{
         register_device::RegisterDeviceCommandHandler,
         request_zknym::WaitingRequestZkNymCommandHandler,
         sync_account::WaitingSyncAccountCommandHandler,
-        sync_device::WaitingSyncDeviceCommandHandler, AccountCommand, AccountCommandError,
-        AccountCommandResult, Command, RunningCommands,
+        sync_device::WaitingSyncDeviceCommandHandler, AccountCommand, AccountCommandResult,
+        Command, RunningCommands,
     },
     error::Error,
     shared_state::{MnemonicState, ReadyToRegisterDevice, ReadyToRequestZkNym, SharedAccountState},
     storage::{AccountStorage, VpnCredentialStorage},
-    AccountControllerCommander, AvailableTicketbooks, VpnApiEndpointFailure,
+    AccountControllerCommander, AvailableTicketbooks,
 };
 
 // The interval at which we automatically request zk-nyms
@@ -272,13 +273,10 @@ where
             .get_account(&account)
             .await
             .map_err(|e| {
-                AccountCommandError::GetAccountEndpointFailure(
-                    VpnApiEndpointFailure::try_from(e).unwrap_or_else(|e| VpnApiEndpointFailure {
-                        message: e.to_string(),
-                        message_id: None,
-                        code_reference_id: None,
-                    }),
-                )
+                crate::util::into_endpoint_failure(e)
+                    .map(StoreAccountError::GetAccountEndpointFailure)
+                    .unwrap_or_else(|e| StoreAccountError::UnexpectedResponse(e.to_string()))
+                    .into()
             })
     }
 
@@ -288,11 +286,11 @@ where
         self.account_storage
             .store_account(mnemonic)
             .await
-            .map_err(AccountCommandError::general)?;
+            .map_err(|err| StoreAccountError::Storage(err.to_string()))?;
 
         self.update_mnemonic_state()
             .await
-            .map_err(|_err| AccountCommandError::NoAccountStored)?;
+            .map_err(AccountCommandError::internal)?;
 
         // We don't need to wait for the sync to finish, so queue it up and return
         self.queue_command(AccountCommand::SyncAccountState(None));
@@ -322,7 +320,7 @@ where
             .await
             .map_err(|source| {
                 tracing::error!("Failed to remove account: {source:?}");
-                AccountCommandError::RemoveAccount(source.to_string())
+                ForgetAccountError::RemoveAccount(source.to_string())
             })?;
 
         self.account_storage
@@ -330,7 +328,7 @@ where
             .await
             .map_err(|source| {
                 tracing::error!("Failed to remove device identity: {source:?}");
-                AccountCommandError::RemoveAccount(source.to_string())
+                ForgetAccountError::RemoveDeviceKeys(source.to_string())
             })?;
 
         self.credential_storage
@@ -340,7 +338,7 @@ where
             .await
             .map_err(|source| {
                 tracing::error!("Failed to reset credential storage: {source:?}");
-                AccountCommandError::ResetCredentialStorage(source.to_string())
+                ForgetAccountError::ResetCredentialStorage(source.to_string())
             })?;
 
         // Purge all files in the data directory that we are not explicitly deleting through it's
@@ -369,15 +367,17 @@ where
             .await;
 
         if let Err(err) = remove_files_result {
-            return Err(AccountCommandError::RemoveAccountFiles(format!(
+            return Err(ForgetAccountError::RemoveAccountFiles(format!(
                 "Failed to remove files for account: {err}"
-            )));
+            ))
+            .into());
         }
 
         if let Err(err) = reinit_keys_result {
-            return Err(AccountCommandError::InitDeviceKeys(format!(
+            return Err(ForgetAccountError::InitDeviceKeys(format!(
                 "Failed to reinitialize device keys: {err}"
-            )));
+            ))
+            .into());
         }
 
         Ok(())
@@ -387,7 +387,7 @@ where
         tracing::info!("Unregistering device from API");
         if self.shared_state().ready_to_register_device().await == ReadyToRegisterDevice::InProgress
         {
-            return Err(AccountCommandError::RegistrationInProgress);
+            return Err(ForgetAccountError::RegistrationInProgress.into());
         }
 
         let device = self
@@ -397,14 +397,20 @@ where
             .map_err(|_err| AccountCommandError::NoDeviceStored)?;
 
         let account = self
-            .update_mnemonic_state()
+            .account_storage
+            .load_account()
             .await
             .map_err(|_err| AccountCommandError::NoAccountStored)?;
 
         self.vpn_api_client
             .update_device(&account, &device, DeviceStatus::DeleteMe)
             .await
-            .map_err(|err| AccountCommandError::UnregisterDeviceApiClientFailure(err.to_string()))
+            .map_err(|err| {
+                crate::util::into_endpoint_failure(err)
+                    .map(ForgetAccountError::UpdateDeviceErrorResponse)
+                    .unwrap_or_else(|err| ForgetAccountError::UnexpectedResponse(err.to_string()))
+                    .into()
+            })
     }
 
     async fn handle_sync_account_state(&mut self, command: AccountCommand) {

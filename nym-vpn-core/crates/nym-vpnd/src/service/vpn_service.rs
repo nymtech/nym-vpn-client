@@ -4,7 +4,6 @@
 use std::{net::IpAddr, path::PathBuf, sync::Arc};
 
 use bip39::Mnemonic;
-use futures::FutureExt;
 use nym_vpn_network_config::{
     FeatureFlags, Network, NymNetwork, NymVpnNetwork, ParsedAccountLinks, SystemMessages,
 };
@@ -17,8 +16,8 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 
 use nym_vpn_account_controller::{
-    AccountCommand, AccountCommandError, AccountController, AccountControllerCommander,
-    AccountStateSummary, AvailableTicketbooks, ReadyToConnect, SharedAccountState,
+    AccountCommand, AccountController, AccountControllerCommander, AccountStateSummary,
+    AvailableTicketbooks, SharedAccountState,
 };
 use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
@@ -35,7 +34,7 @@ use nym_vpn_lib::{
 use nym_vpn_lib_types::{TunnelEvent, TunnelState, TunnelType};
 use zeroize::Zeroizing;
 
-use crate::{config::GlobalConfigFile, service::AccountNotReady};
+use crate::config::GlobalConfigFile;
 
 use super::{
     config::{ConfigSetupError, NetworkEnvironments, NymVpnServiceConfig, DEFAULT_CONFIG_FILE},
@@ -76,7 +75,6 @@ pub enum VpnServiceCommand {
     ),
     RefreshAccountState(oneshot::Sender<Result<(), AccountError>>, ()),
     GetAccountUsage(oneshot::Sender<Result<Vec<NymVpnUsage>, AccountError>>, ()),
-    IsReadyToConnect(oneshot::Sender<Result<ReadyToConnect, AccountError>>, ()),
     ResetDeviceIdentity(oneshot::Sender<Result<(), AccountError>>, Option<Seed>),
     GetDeviceIdentity(oneshot::Sender<Result<String, AccountError>>, ()),
     RegisterDevice(oneshot::Sender<Result<(), AccountError>>, ()),
@@ -280,6 +278,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             event_sender,
             nym_config,
             tunnel_settings,
+            account_command_tx.clone(),
             shutdown_token.child_token(),
         )
         .await
@@ -415,10 +414,6 @@ where
                 let result = self.handle_get_usage().await;
                 let _ = tx.send(result);
             }
-            VpnServiceCommand::IsReadyToConnect(tx, ()) => {
-                let result = Ok(self.handle_is_ready_to_connect().await);
-                let _ = tx.send(result);
-            }
             VpnServiceCommand::ResetDeviceIdentity(tx, seed) => {
                 let result = self.handle_reset_device_identity(seed).await;
                 let _ = tx.send(result);
@@ -498,38 +493,6 @@ where
         Ok(config)
     }
 
-    async fn wait_for_ready_to_connect(
-        &self,
-        credentials_mode: bool,
-    ) -> Result<(), AccountCommandError> {
-        self.account_command_tx.ensure_update_account().await?;
-        self.account_command_tx.ensure_update_device().await?;
-        self.account_command_tx.ensure_register_device().await?;
-        if credentials_mode {
-            self.account_command_tx.ensure_available_zk_nyms().await?;
-        }
-        Ok(())
-    }
-
-    async fn wait_for_ready_to_connect_until_cancelled(
-        &self,
-        enable_credentials_mode: bool,
-    ) -> Result<(), VpnServiceConnectError> {
-        let wait_for_ready_to_connect_fut = self
-            .wait_for_ready_to_connect(enable_credentials_mode)
-            .then(|n| async move {
-                n.inspect_err(|err| {
-                    tracing::error!("Failed to wait for ready to connect: {:?}", err);
-                })
-            });
-        self.shutdown_token
-            .run_until_cancelled(wait_for_ready_to_connect_fut)
-            .await
-            .ok_or(VpnServiceConnectError::Cancel)?
-            .map_err(AccountNotReady::from)?;
-        Ok(())
-    }
-
     async fn handle_connect(
         &mut self,
         connect_args: ConnectArgs,
@@ -549,12 +512,6 @@ where
 
         options.enable_credentials_mode =
             options.enable_credentials_mode || enable_credentials_mode;
-
-        // Before attempting to connect, ensure that the account is ready with the account synced,
-        // the device registered, and possibly zknym ticketbooks available in local credential
-        // storage.
-        self.wait_for_ready_to_connect_until_cancelled(options.enable_credentials_mode)
-            .await?;
 
         tracing::info!(
             "Using entry point: {}",
@@ -786,10 +743,6 @@ where
             .get_usage()
             .await
             .map_err(|source| AccountError::AccountCommandError { source })
-    }
-
-    async fn handle_is_ready_to_connect(&self) -> ReadyToConnect {
-        self.shared_account_state.is_ready_to_connect().await
     }
 
     async fn handle_reset_device_identity(

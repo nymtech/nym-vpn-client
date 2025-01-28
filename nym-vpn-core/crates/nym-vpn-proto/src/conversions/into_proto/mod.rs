@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 pub mod account;
+pub mod account_shared_state;
 pub mod network_config;
 pub mod tunnel_event;
 pub mod tunnel_state;
+pub mod vpn_api_client;
 pub mod vpnd;
 
 impl From<String> for crate::Url {

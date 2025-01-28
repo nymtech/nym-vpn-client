@@ -3,7 +3,16 @@
 
 use std::fmt;
 
-use super::connection_data::{ConnectionData, TunnelConnectionData};
+use crate::{account::AccountCommandError, RequestZkNymErrorReason};
+
+use super::{
+    account::{
+        forget_account::ForgetAccountError, register_device::RegisterDeviceError,
+        request_zknym::RequestZkNymSuccess, store_account::StoreAccountError,
+        sync_account::SyncAccountError, sync_device::SyncDeviceError,
+    },
+    connection_data::{ConnectionData, TunnelConnectionData},
+};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum TunnelType {
@@ -117,7 +126,7 @@ pub enum ActionAfterDisconnect {
     Error,
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum ErrorStateReason {
     /// Issues related to firewall configuration.
     Firewall,
@@ -150,6 +159,62 @@ pub enum ErrorStateReason {
     /// Failure to duplicate tunnel file descriptor.
     DuplicateTunFd,
 
+    /// Account related error not specifically handled.
+    Account(String),
+
+    /// Failure to perform the requested action due to no account stored.
+    NoAccountStored,
+
+    /// Failure to perform the requested action due to no device stored.
+    NoDeviceStored,
+
+    /// Failure to store account.
+    StoreAccount(StoreAccountError),
+
+    /// Failure to sync account with the VPN API.
+    SyncAccount(SyncAccountError),
+
+    /// Failure to sync device with the VPN API.
+    SyncDevice(SyncDeviceError),
+
+    /// Failure to register device with the VPN API.
+    RegisterDevice(RegisterDeviceError),
+
+    /// Failure to request a zknym from the VPN API.
+    RequestZkNym(RequestZkNymErrorReason),
+
+    /// Zknym ticketbooks were requested, some succeeded and some failed.
+    RequestZkNymBundle {
+        successes: Vec<RequestZkNymSuccess>,
+        failed: Vec<RequestZkNymErrorReason>,
+    },
+
+    /// Failure to forget account.
+    ForgetAccount(ForgetAccountError),
+
     /// Program errors that must not happen.
     Internal,
+}
+
+impl From<AccountCommandError> for ErrorStateReason {
+    fn from(value: AccountCommandError) -> Self {
+        match value {
+            AccountCommandError::General(err) => ErrorStateReason::Account(err),
+            AccountCommandError::Internal(err) => ErrorStateReason::Account(err),
+            AccountCommandError::NoAccountStored => ErrorStateReason::NoAccountStored,
+            AccountCommandError::NoDeviceStored => ErrorStateReason::NoDeviceStored,
+            AccountCommandError::StoreAccount(err) => ErrorStateReason::StoreAccount(err),
+            AccountCommandError::SyncAccount(err) => ErrorStateReason::SyncAccount(err),
+            AccountCommandError::SyncDevice(err) => ErrorStateReason::SyncDevice(err),
+            AccountCommandError::RegisterDevice(err) => ErrorStateReason::RegisterDevice(err),
+            AccountCommandError::RequestZkNym(err) => ErrorStateReason::RequestZkNym(err.into()),
+            AccountCommandError::RequestZkNymBundle { successes, failed } => {
+                ErrorStateReason::RequestZkNymBundle {
+                    successes,
+                    failed: failed.into_iter().map(Into::into).collect(),
+                }
+            }
+            AccountCommandError::ForgetAccount(err) => ErrorStateReason::ForgetAccount(err),
+        }
+    }
 }

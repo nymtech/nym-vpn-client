@@ -355,7 +355,7 @@ pub(crate) mod raw {
         vpn_api_client
             .update_device(&account, &device, DeviceStatus::DeleteMe)
             .await
-            .map_err(|err| VpnError::UnregisterDeviceApiClientFailure {
+            .map_err(|err| VpnError::UnregisterDevice {
                 details: err.to_string(),
             })?;
         Ok(())

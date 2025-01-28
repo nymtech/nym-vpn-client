@@ -14,18 +14,15 @@ use nym_vpn_api_client::{
     types::{Device, VpnApiAccount},
     VpnApiClient,
 };
+use nym_vpn_lib_types::{AccountCommandError, RequestZkNymError, RequestZkNymSuccess};
 use tokio::task::JoinSet;
 
 use crate::{
-    commands::{AccountCommandResult, VpnApiEndpointFailure},
-    shared_state::RequestZkNymResult,
-    storage::VpnCredentialStorage,
-    AccountCommandError, SharedAccountState,
+    commands::AccountCommandResult, shared_state::RequestZkNymResult,
+    storage::VpnCredentialStorage, SharedAccountState,
 };
 
-use super::{
-    cached_data::CachedData, request::RequestZkNymTask, RequestZkNymError, RequestZkNymSuccess,
-};
+use super::{cached_data::CachedData, request::RequestZkNymTask};
 
 // The maximum number of zk-nym requests that can fail in a row before we disable background
 // refresh
@@ -249,12 +246,10 @@ impl RequestZkNymCommandHandler {
             .await
             .map(|response| response.items.into_iter().map(|item| item.id).collect())
             .map_err(|err| {
-                VpnApiEndpointFailure::try_from(err)
-                    .map(
-                        |source| RequestZkNymError::GetZkNymsAvailableForDownloadEndpointFailure {
-                            source,
-                        },
-                    )
+                crate::util::into_endpoint_failure(err)
+                    .map(|response| {
+                        RequestZkNymError::GetZkNymsAvailableForDownloadEndpointFailure { response }
+                    })
                     .unwrap_or_else(RequestZkNymError::unexpected_response)
             })
     }

@@ -6,15 +6,13 @@ pub(crate) mod request_zknym;
 pub(crate) mod sync_account;
 pub(crate) mod sync_device;
 
+use nym_vpn_lib_types::AccountCommandError;
 use nym_vpn_store::mnemonic::Mnemonic;
-pub use register_device::RegisterDeviceError;
 use request_zknym::RequestZkNymSummary;
-pub use request_zknym::{RequestZkNymError, RequestZkNymSuccess};
 
 use std::{collections::HashMap, sync::Arc};
 
 use nym_vpn_api_client::response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnUsage};
-use serde::{Deserialize, Serialize};
 use tokio::sync::oneshot;
 
 use crate::{shared_state::DeviceState, AvailableTicketbooks};
@@ -49,129 +47,6 @@ impl RunningCommands {
         let mut running_commands = self.running_commands.lock().await;
         let removed_commands = running_commands.remove(&command.kind());
         removed_commands.unwrap_or_default()
-    }
-}
-
-#[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
-pub enum AccountCommandError {
-    #[error("failed to sync account state: {0}")]
-    SyncAccountEndpointFailure(VpnApiEndpointFailure),
-
-    #[error("failed to get account state: {0}")]
-    GetAccountEndpointFailure(VpnApiEndpointFailure),
-
-    #[error("failed to sync device state: {0}")]
-    SyncDeviceEndpointFailure(VpnApiEndpointFailure),
-
-    #[error("failed to register device: {0}")]
-    RegisterDeviceEndpointFailure(VpnApiEndpointFailure),
-
-    #[error("failed to request zk nym")]
-    RequestZkNym {
-        successes: Vec<RequestZkNymSuccess>,
-        failed: Vec<RequestZkNymError>,
-    },
-
-    #[error("failed to request zk nym")]
-    RequestZkNymGeneral(RequestZkNymError),
-
-    #[error("no account stored")]
-    NoAccountStored,
-
-    #[error("no device stored")]
-    NoDeviceStored,
-
-    #[error("device registration is in progress")]
-    RegistrationInProgress,
-
-    #[error("failed to remove account: {0}")]
-    RemoveAccount(String),
-
-    #[error("failed to remove device from nym vpn api: {0}")]
-    UnregisterDeviceApiClientFailure(String),
-
-    #[error("failed to remove device identity: {0}")]
-    RemoveDeviceIdentity(String),
-
-    #[error("failed to reset credential storage: {0}")]
-    ResetCredentialStorage(String),
-
-    #[error("failed to remove account files: {0}")]
-    RemoveAccountFiles(String),
-
-    #[error("failed to init device keys: {0}")]
-    InitDeviceKeys(String),
-
-    // Catch all for any other error
-    #[error("general error: {0}")]
-    General(String),
-
-    // Internal error that should not happen
-    #[error("internal error: {0}")]
-    Internal(String),
-}
-
-impl From<RegisterDeviceError> for AccountCommandError {
-    fn from(err: RegisterDeviceError) -> Self {
-        match err {
-            RegisterDeviceError::RegisterDeviceEndpointFailure(failure) => {
-                AccountCommandError::RegisterDeviceEndpointFailure(failure)
-            }
-            RegisterDeviceError::General(message) => AccountCommandError::General(message),
-        }
-    }
-}
-
-impl From<RequestZkNymError> for AccountCommandError {
-    fn from(err: RequestZkNymError) -> Self {
-        AccountCommandError::RequestZkNymGeneral(err)
-    }
-}
-
-impl From<RequestZkNymSummary> for AccountCommandError {
-    fn from(summary: RequestZkNymSummary) -> Self {
-        let (successes, failed): (Vec<_>, Vec<_>) = summary.into_iter().partition(Result::is_ok);
-        let successes = successes.into_iter().map(Result::unwrap).collect();
-        let failed = failed.into_iter().map(Result::unwrap_err).collect();
-        Self::RequestZkNym { successes, failed }
-    }
-}
-
-impl AccountCommandError {
-    pub fn internal(message: impl ToString) -> Self {
-        AccountCommandError::Internal(message.to_string())
-    }
-
-    pub fn general(message: impl ToString) -> Self {
-        AccountCommandError::General(message.to_string())
-    }
-}
-
-#[derive(thiserror::Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[error("nym-vpn-api error: message={message}, message_id={message_id:?}, code_reference_id={code_reference_id:?}")]
-pub struct VpnApiEndpointFailure {
-    pub message: String,
-    pub message_id: Option<String>,
-    pub code_reference_id: Option<String>,
-}
-
-impl From<nym_vpn_api_client::response::NymErrorResponse> for VpnApiEndpointFailure {
-    fn from(response: nym_vpn_api_client::response::NymErrorResponse) -> Self {
-        Self {
-            message: response.message,
-            message_id: response.message_id,
-            code_reference_id: response.code_reference_id,
-        }
-    }
-}
-
-impl TryFrom<nym_vpn_api_client::VpnApiClientError> for VpnApiEndpointFailure {
-    type Error = nym_vpn_api_client::VpnApiClientError;
-
-    fn try_from(response: nym_vpn_api_client::VpnApiClientError) -> Result<Self, Self::Error> {
-        nym_vpn_api_client::response::extract_error_response(&response)
-            .map(VpnApiEndpointFailure::from)
-            .ok_or(response)
     }
 }
 

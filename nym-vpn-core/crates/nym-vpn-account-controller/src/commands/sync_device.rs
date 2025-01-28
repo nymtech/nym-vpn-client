@@ -7,12 +7,10 @@ use nym_vpn_api_client::{
     response::NymVpnDevicesResponse,
     types::{Device, VpnApiAccount},
 };
+use nym_vpn_lib_types::SyncDeviceError;
 use tracing::Level;
 
-use crate::{
-    commands::VpnApiEndpointFailure,
-    shared_state::{DeviceState, SharedAccountState},
-};
+use crate::shared_state::{DeviceState, SharedAccountState};
 
 use super::{AccountCommandError, AccountCommandResult};
 
@@ -92,6 +90,7 @@ impl SyncDeviceStateCommandHandler {
             &self.previous_devices_response,
         )
         .await
+        .map_err(AccountCommandError::SyncDevice)
     }
 }
 
@@ -101,20 +100,13 @@ async fn update_state(
     account_state: &SharedAccountState,
     vpn_api_client: &nym_vpn_api_client::VpnApiClient,
     previous_devices_response: &PreviousDevicesResponse,
-) -> Result<DeviceState, AccountCommandError> {
+) -> Result<DeviceState, SyncDeviceError> {
     tracing::debug!("Updating device state");
 
     let devices = vpn_api_client.get_devices(account).await.map_err(|err| {
-        nym_vpn_api_client::response::extract_error_response(&err)
-            .map(|e| {
-                tracing::warn!(message = %e.message, message_id=?e.message_id, code_reference_id=?e.code_reference_id, "nym-vpn-api reports");
-                AccountCommandError::SyncDeviceEndpointFailure(VpnApiEndpointFailure {
-                    message: e.message.clone(),
-                    message_id: e.message_id.clone(),
-                    code_reference_id: e.code_reference_id.clone(),
-                })
-            })
-            .unwrap_or(AccountCommandError::General(err.to_string()))
+        crate::util::into_endpoint_failure(err)
+            .map(SyncDeviceError::SyncDeviceEndpointFailure)
+            .unwrap_or_else(SyncDeviceError::unexpected_response)
     })?;
 
     if previous_devices_response

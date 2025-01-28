@@ -5,16 +5,22 @@
 
 use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr};
 
+use nym_vpn_api_client::response::NymErrorResponse;
 use nym_vpn_lib_types::{
     ActionAfterDisconnect as CoreActionAfterDisconnect, BandwidthEvent as CoreBandwidthEvent,
     ConnectionData as CoreConnectionData, ConnectionEvent as CoreConnectionEvent,
     ConnectionStatisticsEvent as CoreConnectionStatisticsEvent,
-    ErrorStateReason as CoreErrorStateReason, Gateway as CoreGateway,
-    MixnetConnectionData as CoreMixnetConnectionData, MixnetEvent as CoreMixnetEvent,
-    NymAddress as CoreNymAddress, SphinxPacketRates as CoreSphinxPacketRates,
-    TunnelConnectionData as CoreTunnelConnectionData, TunnelEvent as CoreTunnelEvent,
-    TunnelState as CoreTunnelState, WireguardConnectionData as CoreWireguardConnectionData,
-    WireguardNode as CoreWireguardNode,
+    ErrorStateReason as CoreErrorStateReason, ForgetAccountError as CoreForgetAccountError,
+    Gateway as CoreGateway, MixnetConnectionData as CoreMixnetConnectionData,
+    MixnetEvent as CoreMixnetEvent, NymAddress as CoreNymAddress,
+    RegisterDeviceError as CoreRegisterDeviceError, RequestZkNymError as CoreRequestZkNymError,
+    RequestZkNymErrorReason as CoreRequestZkNymErrorReason,
+    RequestZkNymSuccess as CoreRequestZkNymSuccess, SphinxPacketRates as CoreSphinxPacketRates,
+    StoreAccountError as CoreStoreAccountError, SyncAccountError as CoreSyncAccountError,
+    SyncDeviceError as CoreSyncDeviceError, TunnelConnectionData as CoreTunnelConnectionData,
+    TunnelEvent as CoreTunnelEvent, TunnelState as CoreTunnelState,
+    VpnApiErrorResponse as CoreVpnApiErrorResponse,
+    WireguardConnectionData as CoreWireguardConnectionData, WireguardNode as CoreWireguardNode,
 };
 use time::OffsetDateTime;
 
@@ -226,6 +232,218 @@ pub enum ErrorStateReason {
     BadBandwidthIncrease,
     DuplicateTunFd,
     Internal,
+
+    Account(String),
+    NoAccountStored,
+    NoDeviceStored,
+    StoreAccountError(StoreAccountError),
+    SyncAccount(SyncAccountError),
+    SyncDevice(SyncDeviceError),
+    RegisterDevice(RegisterDeviceError),
+    RequestZkNym(RequestZkNymError),
+    RequestZkNymBundle {
+        successes: Vec<RequestZkNymSuccess>,
+        failed: Vec<RequestZkNymError>,
+    },
+    ForgetAccount(ForgetAccountError),
+}
+
+#[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq, Eq)]
+pub enum StoreAccountError {
+    #[error("storage: {0}")]
+    Storage(String),
+    #[error("vpn api endpoint failure: {0}")]
+    GetAccountEndpointFailure(VpnApiErrorResponse),
+    #[error("unexpected response: {0}")]
+    UnexpectedResponse(String),
+}
+
+impl From<CoreStoreAccountError> for StoreAccountError {
+    fn from(value: CoreStoreAccountError) -> Self {
+        match value {
+            CoreStoreAccountError::Storage(err) => Self::Storage(err),
+            CoreStoreAccountError::GetAccountEndpointFailure(failure) => {
+                Self::GetAccountEndpointFailure(failure.into())
+            }
+            CoreStoreAccountError::UnexpectedResponse(response) => {
+                Self::UnexpectedResponse(response)
+            }
+        }
+    }
+}
+
+#[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq)]
+pub enum SyncAccountError {
+    #[error("vpn api endpoint failure: {0}")]
+    ErrorResponse(VpnApiErrorResponse),
+    #[error("unexpected response: {0}")]
+    UnexpectedResponse(String),
+}
+
+impl From<CoreSyncAccountError> for SyncAccountError {
+    fn from(value: CoreSyncAccountError) -> Self {
+        match value {
+            CoreSyncAccountError::SyncAccountEndpointFailure(failure) => {
+                Self::ErrorResponse(failure.into())
+            }
+            CoreSyncAccountError::UnexpectedResponse(response) => {
+                Self::UnexpectedResponse(response)
+            }
+        }
+    }
+}
+
+#[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq)]
+pub enum SyncDeviceError {
+    #[error("vpn api endpoint failure: {0}")]
+    ErrorResponse(VpnApiErrorResponse),
+    #[error("unexpected response: {0}")]
+    UnexpectedResponse(String),
+}
+
+impl From<CoreSyncDeviceError> for SyncDeviceError {
+    fn from(value: CoreSyncDeviceError) -> Self {
+        match value {
+            CoreSyncDeviceError::SyncDeviceEndpointFailure(failure) => {
+                Self::ErrorResponse(failure.into())
+            }
+            CoreSyncDeviceError::UnexpectedResponse(response) => Self::UnexpectedResponse(response),
+        }
+    }
+}
+
+#[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq)]
+pub enum RegisterDeviceError {
+    #[error("vpn api endpoint failure: {0}")]
+    ErrorResponse(VpnApiErrorResponse),
+    #[error("unexpected response: {0}")]
+    UnexpectedResponse(String),
+}
+
+impl From<CoreRegisterDeviceError> for RegisterDeviceError {
+    fn from(value: CoreRegisterDeviceError) -> Self {
+        match value {
+            CoreRegisterDeviceError::RegisterDeviceEndpointFailure(failure) => {
+                Self::ErrorResponse(failure.into())
+            }
+            CoreRegisterDeviceError::UnexpectedResponse(response) => {
+                Self::UnexpectedResponse(response)
+            }
+        }
+    }
+}
+
+#[derive(uniffi::Record, Clone, Debug, PartialEq, Eq)]
+pub struct RequestZkNymSuccess {
+    pub id: String,
+}
+
+impl From<CoreRequestZkNymSuccess> for RequestZkNymSuccess {
+    fn from(success: CoreRequestZkNymSuccess) -> Self {
+        Self { id: success.id }
+    }
+}
+
+#[derive(uniffi::Error, thiserror::Error, Clone, Debug, PartialEq, Eq)]
+pub enum RequestZkNymError {
+    #[error(transparent)]
+    VpnApi(VpnApiErrorResponse),
+    #[error("nym-vpn-api: unexpected error response: {0}")]
+    UnexpectedVpnApiResponse(String),
+    #[error("storage error: {0}")]
+    Storage(String),
+    #[error("{0}")]
+    Internal(String),
+}
+
+impl From<CoreRequestZkNymErrorReason> for RequestZkNymError {
+    fn from(error: CoreRequestZkNymErrorReason) -> Self {
+        match error {
+            CoreRequestZkNymErrorReason::VpnApi(err) => Self::VpnApi(err.into()),
+            CoreRequestZkNymErrorReason::UnexpectedVpnApiResponse(response) => {
+                Self::UnexpectedVpnApiResponse(response)
+            }
+            CoreRequestZkNymErrorReason::Storage(err) => Self::Storage(err),
+            CoreRequestZkNymErrorReason::Internal(err) => Self::Internal(err),
+        }
+    }
+}
+
+impl From<CoreRequestZkNymError> for RequestZkNymError {
+    fn from(error: CoreRequestZkNymError) -> Self {
+        CoreRequestZkNymErrorReason::from(error).into()
+    }
+}
+
+#[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq, Eq)]
+pub enum ForgetAccountError {
+    #[error("registration is in progress")]
+    RegistrationInProgress,
+    #[error("failed to remove device from nym vpn api: {0}")]
+    UpdateDeviceErrorResponse(VpnApiErrorResponse),
+    #[error("unexpected response: {0}")]
+    UnexpectedResponse(String),
+    #[error("failed to remove account: {0}")]
+    RemoveAccount(String),
+    #[error("failed to remove device keys: {0}")]
+    RemoveDeviceKeys(String),
+    #[error("failed to reset credential storage: {0}")]
+    ResetCredentialStorage(String),
+    #[error("failed to remove account files: {0}")]
+    RemoveAccountFiles(String),
+    #[error("failed to init device keys: {0}")]
+    InitDeviceKeys(String),
+}
+
+impl From<CoreForgetAccountError> for ForgetAccountError {
+    fn from(value: CoreForgetAccountError) -> Self {
+        match value {
+            CoreForgetAccountError::RegistrationInProgress => Self::RegistrationInProgress,
+            CoreForgetAccountError::UpdateDeviceErrorResponse(failure) => {
+                Self::UpdateDeviceErrorResponse(failure.into())
+            }
+            CoreForgetAccountError::UnexpectedResponse(response) => {
+                Self::UnexpectedResponse(response)
+            }
+            CoreForgetAccountError::RemoveAccount(err) => Self::RemoveAccount(err),
+            CoreForgetAccountError::RemoveDeviceKeys(err) => Self::RemoveDeviceKeys(err),
+            CoreForgetAccountError::ResetCredentialStorage(err) => {
+                Self::ResetCredentialStorage(err)
+            }
+            CoreForgetAccountError::RemoveAccountFiles(err) => Self::RemoveAccountFiles(err),
+            CoreForgetAccountError::InitDeviceKeys(err) => Self::InitDeviceKeys(err),
+        }
+    }
+}
+
+#[derive(uniffi::Record, thiserror::Error, Debug, Clone, PartialEq, Eq)]
+#[error(
+    "nym-vpn-api: message: {message}, message_id: {message_id:?}, code_reference_id: {code_reference_id:?}"
+)]
+pub struct VpnApiErrorResponse {
+    pub message: String,
+    pub message_id: Option<String>,
+    pub code_reference_id: Option<String>,
+}
+
+impl From<CoreVpnApiErrorResponse> for VpnApiErrorResponse {
+    fn from(value: CoreVpnApiErrorResponse) -> Self {
+        Self {
+            message: value.message,
+            message_id: value.message_id,
+            code_reference_id: value.code_reference_id,
+        }
+    }
+}
+
+impl From<NymErrorResponse> for VpnApiErrorResponse {
+    fn from(value: NymErrorResponse) -> Self {
+        Self {
+            message: value.message,
+            message_id: value.message_id,
+            code_reference_id: value.code_reference_id,
+        }
+    }
 }
 
 impl From<CoreErrorStateReason> for ErrorStateReason {
@@ -242,6 +460,25 @@ impl From<CoreErrorStateReason> for ErrorStateReason {
             CoreErrorStateReason::BadBandwidthIncrease => Self::BadBandwidthIncrease,
             CoreErrorStateReason::DuplicateTunFd => Self::DuplicateTunFd,
             CoreErrorStateReason::Internal => Self::Internal,
+
+            CoreErrorStateReason::Account(err) => Self::Account(err),
+            CoreErrorStateReason::NoAccountStored => Self::NoAccountStored,
+            CoreErrorStateReason::NoDeviceStored => Self::NoDeviceStored,
+            CoreErrorStateReason::StoreAccount(err) => Self::StoreAccountError(err.into()),
+            CoreErrorStateReason::SyncAccount(err) => Self::SyncAccount(err.into()),
+            CoreErrorStateReason::SyncDevice(err) => Self::SyncDevice(err.into()),
+            CoreErrorStateReason::RegisterDevice(err) => Self::RegisterDevice(err.into()),
+            CoreErrorStateReason::RequestZkNym(err) => Self::RequestZkNym(err.into()),
+            CoreErrorStateReason::RequestZkNymBundle { successes, failed } => {
+                Self::RequestZkNymBundle {
+                    successes: successes
+                        .into_iter()
+                        .map(RequestZkNymSuccess::from)
+                        .collect(),
+                    failed: failed.into_iter().map(RequestZkNymError::from).collect(),
+                }
+            }
+            CoreErrorStateReason::ForgetAccount(err) => Self::ForgetAccount(err.into()),
         }
     }
 }

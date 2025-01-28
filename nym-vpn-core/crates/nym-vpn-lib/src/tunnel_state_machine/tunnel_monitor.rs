@@ -13,6 +13,7 @@ use super::wintun::{self, WintunAdapterConfig};
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use nym_gateway_directory::GatewayMinPerformance;
+use nym_vpn_account_controller::AccountControllerCommander;
 use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
@@ -50,7 +51,7 @@ use crate::tunnel_provider;
 use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::ios::OSTunProvider;
-use crate::tunnel_state_machine::WireguardMultihopMode;
+use crate::tunnel_state_machine::{account, WireguardMultihopMode};
 
 /// Default MTU for mixnet tun device.
 const DEFAULT_TUN_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android")) {
@@ -102,6 +103,18 @@ pub enum TunnelMonitorEvent {
     /// Initializing mixnet client
     InitializingClient,
 
+    /// Syncronizing account with vpn-api
+    SyncingAccount,
+
+    /// Registering device with vpn-api
+    RegisteringDevice,
+
+    /// Requesting and downloading zknym credentials from vpn-api
+    RequestingZkNyms,
+
+    /// Selecting gateways
+    SelectingGateways,
+
     /// Selected gateways
     SelectedGateways(Box<SelectedGateways>),
 
@@ -148,6 +161,7 @@ pub struct TunnelMonitor {
     tun_provider: Arc<dyn AndroidTunProvider>,
     nym_config: NymConfig,
     tunnel_settings: TunnelSettings,
+    account_controller_tx: AccountControllerCommander,
     cancel_token: CancellationToken,
 }
 
@@ -167,6 +181,7 @@ impl TunnelMonitor {
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
         nym_config: NymConfig,
         tunnel_settings: TunnelSettings,
+        account_controller_tx: AccountControllerCommander,
     ) -> TunnelMonitorHandle {
         let cancel_token = CancellationToken::new();
         let tunnel_monitor = Self {
@@ -180,6 +195,7 @@ impl TunnelMonitor {
             tun_provider,
             nym_config,
             tunnel_settings,
+            account_controller_tx,
             cancel_token: cancel_token.clone(),
         };
         let join_handle = tokio::spawn(tunnel_monitor.run(retry_attempt, selected_gateways));
@@ -224,6 +240,10 @@ impl TunnelMonitor {
         }
 
         self.send_event(TunnelMonitorEvent::InitializingClient);
+
+        self.setup_account().await?;
+
+        self.send_event(TunnelMonitorEvent::SelectingGateways);
 
         let gateway_performance_options = self.tunnel_settings.gateway_performance_options;
         let gateway_min_performance = GatewayMinPerformance::from_percentage_values(
@@ -383,6 +403,33 @@ impl TunnelMonitor {
         if let Err(e) = self.monitor_event_sender.send(event) {
             tracing::error!("Failed to send event: {}", e);
         }
+    }
+
+    async fn setup_account(&mut self) -> Result<()> {
+        self.send_event(TunnelMonitorEvent::SyncingAccount);
+        account::wait_for_sync(
+            self.account_controller_tx.clone(),
+            self.cancel_token.clone(),
+        )
+        .await?;
+
+        self.send_event(TunnelMonitorEvent::RegisteringDevice);
+        account::wait_for_device_register(
+            self.account_controller_tx.clone(),
+            self.cancel_token.clone(),
+        )
+        .await?;
+
+        if self.tunnel_settings.enable_credentials_mode {
+            self.send_event(TunnelMonitorEvent::RequestingZkNyms);
+            account::wait_for_credentials_ready(
+                self.account_controller_tx.clone(),
+                self.cancel_token.clone(),
+            )
+            .await?;
+        }
+
+        Ok(())
     }
 
     async fn start_mixnet_tunnel(

@@ -108,3 +108,11 @@ pub enum VpnApiClientError {
 }
 
 pub type Result<T> = std::result::Result<T, VpnApiClientError>;
+
+impl TryFrom<VpnApiClientError> for NymErrorResponse {
+    type Error = VpnApiClientError;
+
+    fn try_from(response: VpnApiClientError) -> std::result::Result<Self, Self::Error> {
+        crate::response::extract_error_response(&response).ok_or(response)
+    }
+}

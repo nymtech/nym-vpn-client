@@ -4,7 +4,7 @@
 use tokio::sync::{mpsc::UnboundedSender, oneshot, watch};
 use zeroize::Zeroizing;
 
-use nym_vpn_account_controller::{AccountStateSummary, AvailableTicketbooks, ReadyToConnect};
+use nym_vpn_account_controller::{AccountStateSummary, AvailableTicketbooks};
 use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
     types::GatewayMinPerformance,
@@ -194,13 +194,6 @@ impl CommandInterfaceConnectionHandler {
         &self,
     ) -> Result<Result<Vec<NymVpnUsage>, AccountError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::GetAccountUsage, ())
-            .await
-    }
-
-    pub(crate) async fn handle_is_ready_to_connect(
-        &self,
-    ) -> Result<Result<ReadyToConnect, AccountError>, VpnCommandSendError> {
-        self.send_and_wait(VpnServiceCommand::IsReadyToConnect, ())
             .await
     }
 
