@@ -23,7 +23,7 @@ mod wintun;
 use std::sync::Arc;
 use std::{net::IpAddr, path::PathBuf};
 
-use nym_vpn_account_controller::{AccountCommandError, AccountControllerCommander};
+use nym_vpn_account_controller::AccountControllerCommander;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 

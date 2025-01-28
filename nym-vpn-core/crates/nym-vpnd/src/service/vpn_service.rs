@@ -9,7 +9,6 @@ use std::{
 };
 
 use bip39::Mnemonic;
-use futures::FutureExt;
 use nym_vpn_network_config::{
     FeatureFlags, Network, NymNetwork, NymVpnNetwork, ParsedAccountLinks, SystemMessages,
 };
@@ -22,8 +21,8 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 
 use nym_vpn_account_controller::{
-    AccountCommand, AccountCommandError, AccountController, AccountControllerCommander,
-    AccountStateSummary, AvailableTicketbooks, ReadyToConnect, SharedAccountState,
+    AccountCommand, AccountController, AccountControllerCommander, AccountStateSummary,
+    AvailableTicketbooks, ReadyToConnect, SharedAccountState,
 };
 use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
@@ -42,7 +41,7 @@ use nym_vpn_lib_types::{
 };
 use zeroize::Zeroizing;
 
-use crate::{config::GlobalConfigFile, service::AccountNotReady};
+use crate::config::GlobalConfigFile;
 
 use super::{
     config::{ConfigSetupError, NetworkEnvironments, NymVpnServiceConfig, DEFAULT_CONFIG_FILE},
@@ -700,38 +699,6 @@ where
         Ok(config)
     }
 
-    //async fn wait_for_ready_to_connect(
-    //    &self,
-    //    credentials_mode: bool,
-    //) -> Result<(), AccountCommandError> {
-    //    self.account_command_tx.ensure_update_account().await?;
-    //    self.account_command_tx.ensure_update_device().await?;
-    //    self.account_command_tx.ensure_register_device().await?;
-    //    if credentials_mode {
-    //        self.account_command_tx.ensure_available_zk_nyms().await?;
-    //    }
-    //    Ok(())
-    //}
-    //
-    //async fn wait_for_ready_to_connect_until_cancelled(
-    //    &self,
-    //    enable_credentials_mode: bool,
-    //) -> Result<(), VpnServiceConnectError> {
-    //    let wait_for_ready_to_connect_fut = self
-    //        .wait_for_ready_to_connect(enable_credentials_mode)
-    //        .then(|n| async move {
-    //            n.inspect_err(|err| {
-    //                tracing::error!("Failed to wait for ready to connect: {:?}", err);
-    //            })
-    //        });
-    //    self.shutdown_token
-    //        .run_until_cancelled(wait_for_ready_to_connect_fut)
-    //        .await
-    //        .ok_or(VpnServiceConnectError::Cancel)?
-    //        .map_err(AccountNotReady::from)?;
-    //    Ok(())
-    //}
-
     async fn handle_connect(
         &mut self,
         connect_args: ConnectArgs,
@@ -751,12 +718,6 @@ where
 
         options.enable_credentials_mode =
             options.enable_credentials_mode || enable_credentials_mode;
-
-        // Before attempting to connect, ensure that the account is ready with the account synced,
-        // the device registered, and possibly zknym ticketbooks available in local credential
-        // storage.
-        // self.wait_for_ready_to_connect_until_cancelled(options.enable_credentials_mode)
-        // .await?;
 
         tracing::info!(
             "Using entry point: {}",

@@ -100,9 +100,20 @@ const MAX_WAIT_DELAY: Duration = Duration::from_secs(15);
 
 #[derive(Debug, Clone)]
 pub enum TunnelMonitorEvent {
-    // SettingUpAccount,
     /// Initializing mixnet client
     InitializingClient,
+
+    /// Syncronizing account with vpn-api
+    SyncingAccount,
+
+    /// Registering device with vpn-api
+    RegisteringDevice,
+
+    /// Requesting and downloading zknym credentials from vpn-api
+    RequestingZkNyms,
+
+    /// Selecting gateways
+    SelectingGateways,
 
     /// Selected gateways
     SelectedGateways(Box<SelectedGateways>),
@@ -228,23 +239,11 @@ impl TunnelMonitor {
                 .ok_or(Error::Tunnel(tunnel::Error::Cancelled))?;
         }
 
-        // WIP(JON)
-        //self.send_event(TunnelMonitorEvent::SettingUpAccount);
-
-        // WIP(JON) run_until_cancelled
-        // let credentials_mode = self.tunnel_settings.enable_credentials_mode;
-        //self.account_controller_tx
-        //    .wait_for_account_ready_to_connect(credentials_mode)
-        //    .await
-        //    .map_err(Error::Account)?;
-        account::wait_for_account_ready(
-            self.account_controller_tx.clone(),
-            self.tunnel_settings.enable_credentials_mode,
-            self.cancel_token.clone(),
-        )
-        .await?;
-
         self.send_event(TunnelMonitorEvent::InitializingClient);
+
+        self.setup_account().await?;
+
+        self.send_event(TunnelMonitorEvent::SelectingGateways);
 
         let gateway_performance_options = self.tunnel_settings.gateway_performance_options;
         let gateway_min_performance = GatewayMinPerformance::from_percentage_values(
@@ -401,6 +400,33 @@ impl TunnelMonitor {
         if let Err(e) = self.monitor_event_sender.send(event) {
             tracing::error!("Failed to send event: {}", e);
         }
+    }
+
+    async fn setup_account(&mut self) -> Result<()> {
+        self.send_event(TunnelMonitorEvent::SyncingAccount);
+        account::wait_for_sync(
+            self.account_controller_tx.clone(),
+            self.cancel_token.clone(),
+        )
+        .await?;
+
+        self.send_event(TunnelMonitorEvent::RegisteringDevice);
+        account::wait_for_device_register(
+            self.account_controller_tx.clone(),
+            self.cancel_token.clone(),
+        )
+        .await?;
+
+        if self.tunnel_settings.enable_credentials_mode {
+            self.send_event(TunnelMonitorEvent::RequestingZkNyms);
+            account::wait_for_credentials_ready(
+                self.account_controller_tx.clone(),
+                self.cancel_token.clone(),
+            )
+            .await?;
+        }
+
+        Ok(())
     }
 
     async fn start_mixnet_tunnel(

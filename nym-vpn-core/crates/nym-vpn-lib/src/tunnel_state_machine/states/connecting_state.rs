@@ -104,6 +104,18 @@ impl TunnelStateHandler for ConnectingState {
                 TunnelMonitorEvent::InitializingClient => {
                     NextTunnelState::SameState(self)
                 }
+                TunnelMonitorEvent::SyncingAccount => {
+                    NextTunnelState::SameState(self)
+                }
+                TunnelMonitorEvent::RegisteringDevice => {
+                    NextTunnelState::SameState(self)
+                }
+                TunnelMonitorEvent::RequestingZkNyms => {
+                    NextTunnelState::SameState(self)
+                }
+                TunnelMonitorEvent::SelectingGateways => {
+                    NextTunnelState::SameState(self)
+                }
                 TunnelMonitorEvent::EstablishingTunnel(conn_data) => {
                     NextTunnelState::NewState((self, PrivateTunnelState::Connecting { connection_data: Some(*conn_data) }))
                 }

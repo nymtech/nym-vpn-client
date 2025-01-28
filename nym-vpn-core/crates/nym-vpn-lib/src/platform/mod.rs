@@ -55,7 +55,7 @@ mod state_machine;
 mod uniffi_custom_impls;
 mod uniffi_lib_types;
 
-use std::{env, path::PathBuf, sync::Arc, time::Duration};
+use std::{env, path::PathBuf, sync::Arc};
 
 use account::AccountControllerHandle;
 use lazy_static::lazy_static;
