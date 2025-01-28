@@ -430,6 +430,55 @@ impl From<nym_vpn_network_config::feature_flags::FlagValue> for FlagValue {
 }
 
 #[derive(uniffi::Record)]
+pub struct UxScore {
+    pub max_score: u8,
+    pub current_score: u8,
+    pub color_hex: u16,
+}
+
+impl From<nym_gateway_directory::UxScore> for UxScore {
+    fn from(value: nym_gateway_directory::UxScore) -> Self {
+        UxScore {
+            max_score: value.max_score,
+            current_score: value.current_score,
+            color_hex: value.color_hex,
+        }
+    }
+}
+
+#[derive(uniffi::Record)]
+pub struct UxScores {
+    pub mix_score: UxScore,
+    pub wg_score: UxScore,
+}
+
+impl From<nym_gateway_directory::UxScores> for UxScores {
+    fn from(value: nym_gateway_directory::UxScores) -> Self {
+        UxScores {
+            mix_score: value.mix_score.into(),
+            wg_score: value.wg_score.into(),
+        }
+    }
+}
+
+#[derive(uniffi::Record)]
+pub struct Gateway {
+    pub id: NodeIdentity,
+    pub location: Option<Location>,
+    pub scores: Option<UxScores>,
+}
+
+impl From<nym_gateway_directory::Gateway> for Gateway {
+    fn from(value: nym_gateway_directory::Gateway) -> Self {
+        Gateway {
+            location: value.location.map(Location::from),
+            id: value.identity,
+            scores: value.ux_scores.map(UxScores::from),
+        }
+    }
+}
+
+#[derive(uniffi::Record)]
 pub struct Location {
     pub two_letter_iso_country_code: String,
 }

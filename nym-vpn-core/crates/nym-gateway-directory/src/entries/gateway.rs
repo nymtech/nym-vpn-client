@@ -11,6 +11,8 @@ use tracing::error;
 
 use crate::{error::Result, AuthAddress, Country, Error, IpPacketRouterAddress};
 
+use super::ux_scores::UxScores;
+
 pub type NymNode = Gateway;
 
 #[derive(Clone)]
@@ -25,6 +27,7 @@ pub struct Gateway {
     pub clients_ws_port: Option<u16>,
     pub clients_wss_port: Option<u16>,
     pub mixnet_performance: Option<Percent>,
+    pub ux_scores: Option<UxScores>,
     pub version: Option<String>,
 }
 
@@ -235,6 +238,7 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             clients_ws_port: Some(gateway.entry.ws_port),
             clients_wss_port: gateway.entry.wss_port,
             mixnet_performance: Some(gateway.performance),
+            ux_scores: None,
             version: gateway.build_information.map(|info| info.build_version),
         })
     }
@@ -304,6 +308,7 @@ impl TryFrom<nym_validator_client::models::NymNodeDescription> for Gateway {
             clients_ws_port,
             clients_wss_port,
             mixnet_performance: None,
+            ux_scores: None,
             version,
         })
     }

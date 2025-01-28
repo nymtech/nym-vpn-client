@@ -554,10 +554,22 @@ message Probe {
   ProbeOutcome outcome = 2;
 }
 
+message UxScore {
+  uint32 max_score = 1;
+  uint32 current_score = 2;
+  uint32 color_hex = 3;
+}
+
+message UxScores {
+  UxScore mix_score = 1;
+  UxScore wg_score = 2;
+}
+
 message GatewayResponse {
   Gateway id = 1;
   Location location = 2;
   Probe last_probe = 3;
+  UxScores scores = 4;
 }
 
 enum GatewayType {

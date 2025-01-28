@@ -13,6 +13,25 @@ impl From<nym_vpnd_types::gateway::Location> for crate::Location {
     }
 }
 
+impl From<nym_vpnd_types::gateway::UxScore> for crate::UxScore {
+    fn from(score: nym_vpnd_types::gateway::UxScore) -> Self {
+        crate::UxScore {
+            max_score: score.max_score as u32,
+            current_score: score.current_score as u32,
+            color_hex: score.color_hex as u32,
+        }
+    }
+}
+
+impl From<nym_vpnd_types::gateway::UxScores> for crate::UxScores {
+    fn from(scores: nym_vpnd_types::gateway::UxScores) -> Self {
+        crate::UxScores {
+            mix_score: Some(scores.mix_score.into()),
+            wg_score: Some(scores.wg_score.into()),
+        }
+    }
+}
+
 impl From<nym_vpnd_types::gateway::Entry> for crate::AsEntry {
     fn from(entry: nym_vpnd_types::gateway::Entry) -> Self {
         crate::AsEntry {
@@ -69,10 +88,12 @@ impl From<nym_vpnd_types::gateway::Gateway> for crate::GatewayResponse {
         });
         let location = gateway.location.map(crate::Location::from);
         let last_probe = gateway.last_probe.map(crate::Probe::from);
+        let scores = gateway.scores.map(crate::UxScores::from);
         crate::GatewayResponse {
             id,
             location,
             last_probe,
+            scores,
         }
     }
 }

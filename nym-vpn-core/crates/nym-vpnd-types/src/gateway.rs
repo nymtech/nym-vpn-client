@@ -10,6 +10,7 @@ pub struct Gateway {
     pub identity_key: String,
     pub location: Option<Location>,
     pub last_probe: Option<Probe>,
+    pub scores: Option<UxScores>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -35,6 +36,33 @@ pub struct Probe {
 impl fmt::Display for Probe {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "last_updated_utc: {}", self.last_updated_utc)
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct UxScore {
+    pub max_score: u8,
+    pub current_score: u8,
+    pub color_hex: u16,
+}
+
+impl fmt::Display for UxScore {
+    #[rustfmt::skip]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}/{}", self.current_score, self.max_score)
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct UxScores {
+    pub mix_score: UxScore,
+    pub wg_score: UxScore,
+}
+
+impl fmt::Display for UxScores {
+    #[rustfmt::skip]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "mixnet score: {}\nwireguard score: {}", self.mix_score, self.wg_score)
     }
 }
 
@@ -113,6 +141,7 @@ impl From<nym_validator_client::models::NymNodeDescription> for Gateway {
                 .to_string(),
             location: None,
             last_probe: None,
+            scores: None,
         }
     }
 }
@@ -123,6 +152,25 @@ impl From<nym_vpn_lib::gateway_directory::Location> for Location {
             two_letter_iso_country_code: location.two_letter_iso_country_code,
             latitude: Some(location.latitude),
             longitude: Some(location.longitude),
+        }
+    }
+}
+
+impl From<nym_vpn_lib::gateway_directory::UxScore> for UxScore {
+    fn from(score: nym_vpn_lib::gateway_directory::UxScore) -> Self {
+        Self {
+            max_score: score.max_score,
+            current_score: score.current_score,
+            color_hex: score.color_hex,
+        }
+    }
+}
+
+impl From<nym_vpn_lib::gateway_directory::UxScores> for UxScores {
+    fn from(scores: nym_vpn_lib::gateway_directory::UxScores) -> Self {
+        Self {
+            mix_score: scores.mix_score.into(),
+            wg_score: scores.wg_score.into(),
         }
     }
 }
@@ -172,6 +220,7 @@ impl From<nym_vpn_lib::gateway_directory::Gateway> for Gateway {
             identity_key: gateway.identity.to_string(),
             location: gateway.location.map(Location::from),
             last_probe: gateway.last_probe.map(Probe::from),
+            scores: gateway.ux_scores.map(UxScores::from),
         }
     }
 }

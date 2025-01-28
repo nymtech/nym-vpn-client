@@ -13,6 +13,16 @@ impl From<crate::Location> for nym_vpnd_types::gateway::Location {
     }
 }
 
+impl From<crate::UxScore> for nym_vpnd_types::gateway::UxScore {
+    fn from(score: crate::UxScore) -> Self {
+        Self {
+            max_score: score.max_score as u8,
+            current_score: score.current_score as u8,
+            color_hex: score.color_hex as u16,
+        }
+    }
+}
+
 impl From<crate::AsEntry> for nym_vpnd_types::gateway::Entry {
     fn from(entry: crate::AsEntry) -> Self {
         Self {
@@ -66,6 +76,25 @@ impl TryFrom<crate::Probe> for nym_vpnd_types::gateway::Probe {
     }
 }
 
+impl TryFrom<crate::UxScores> for nym_vpnd_types::gateway::UxScores {
+    type Error = ConversionError;
+
+    fn try_from(scores: crate::UxScores) -> Result<Self, Self::Error> {
+        let mix_score = scores
+            .mix_score
+            .ok_or(ConversionError::generic("missing mixnet score"))
+            .map(nym_vpnd_types::gateway::UxScore::from)?;
+        let wg_score = scores
+            .wg_score
+            .ok_or(ConversionError::generic("missing wireguard score"))
+            .map(nym_vpnd_types::gateway::UxScore::from)?;
+        Ok(Self {
+            mix_score,
+            wg_score,
+        })
+    }
+}
+
 impl TryFrom<crate::GatewayResponse> for nym_vpnd_types::gateway::Gateway {
     type Error = ConversionError;
     fn try_from(gateway: crate::GatewayResponse) -> Result<Self, Self::Error> {
@@ -80,10 +109,15 @@ impl TryFrom<crate::GatewayResponse> for nym_vpnd_types::gateway::Gateway {
             .last_probe
             .map(nym_vpnd_types::gateway::Probe::try_from)
             .transpose()?;
+        let scores = gateway
+            .scores
+            .map(nym_vpnd_types::gateway::UxScores::try_from)
+            .transpose()?;
         Ok(Self {
             identity_key,
             location,
             last_probe,
+            scores,
         })
     }
 }
