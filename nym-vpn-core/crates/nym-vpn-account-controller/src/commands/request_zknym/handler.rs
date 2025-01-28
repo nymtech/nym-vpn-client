@@ -215,6 +215,8 @@ impl RequestZkNymCommandHandler {
     async fn check_zk_nyms_possible_to_resume(&self) -> Result<Vec<ZkNymId>, RequestZkNymError> {
         let zk_nyms_available_for_download = self.get_zk_nyms_available_for_download().await?;
 
+        // Cleaning up stale requests as a tidy task. Calling this here out of convenience but it
+        // could just as well be a background task
         self.credential_storage
             .lock()
             .await

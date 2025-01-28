@@ -44,7 +44,6 @@ where
     account_storage: AccountStorage<S>,
 
     // Storage used for credentials.
-    // It is an Option because we want to be able to close it when we reset the account.
     credential_storage: Arc<tokio::sync::Mutex<VpnCredentialStorage>>,
 
     // The data directory where we store the account and device keys.
@@ -633,15 +632,12 @@ where
         &self,
     ) -> Result<AvailableTicketbooks, AccountCommandError> {
         tracing::debug!("Getting available tickets from local credential storage");
-        self.credential_storage
-            .lock()
-            .await
+        let guard = self.credential_storage.lock().await;
+        guard
             .print_info()
             .await
             .map_err(AccountCommandError::general)?;
-        self.credential_storage
-            .lock()
-            .await
+        guard
             .get_available_ticketbooks()
             .await
             .map_err(AccountCommandError::general)

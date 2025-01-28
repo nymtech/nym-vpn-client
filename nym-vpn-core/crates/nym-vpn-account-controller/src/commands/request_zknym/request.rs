@@ -270,26 +270,22 @@ impl RequestZkNymTask {
             key: attached_master_vk.clone(),
         };
 
-        let stored_master_vk = self
-            .credential_storage
-            .lock()
-            .await
+        let guard = self.credential_storage.lock().await;
+        if guard
             .get_master_verification_key(epoch_id)
             .await
-            .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
-
-        if stored_master_vk.is_none() {
-            tracing::info!("Inserting master verification key for epoch: {epoch_id}",);
-            self.credential_storage
-                .lock()
-                .await
+            .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
+            .is_none()
+        {
+            guard
                 .insert_master_verification_key(&attached_epoch_vk)
                 .await
                 .inspect_err(|err| {
-                    tracing::error!("Failed to insert master verification key: {:?}", err);
+                    tracing::error!("Failed to insert master verification key: {err:?}");
                 })
                 .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
         }
+
         Ok(())
     }
 
@@ -302,23 +298,19 @@ impl RequestZkNymTask {
             return Err(RequestZkNymError::EpochIdMismatch);
         }
 
-        let stored_coin_index_signatures = self
-            .credential_storage
-            .lock()
-            .await
+        let guard = self.credential_storage.lock().await;
+        if guard
             .get_coin_index_signatures(epoch_id)
             .await
-            .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
-
-        if stored_coin_index_signatures.is_none() {
+            .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
+            .is_none()
+        {
             tracing::info!("Inserting coin index signatures for epoch: {epoch_id}",);
-            self.credential_storage
-                .lock()
-                .await
+            guard
                 .insert_coin_index_signatures(&aggregated_coin_index_signatures.signatures)
                 .await
                 .inspect_err(|err| {
-                    tracing::error!("Failed to insert coin index signatures: {:#?}", err);
+                    tracing::error!("Failed to insert coin index signatures: {err:?}");
                 })
                 .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
         }
@@ -343,27 +335,23 @@ impl RequestZkNymTask {
             return Err(RequestZkNymError::ExpirationDateMismatch);
         }
 
-        let stored_expiration_date_signatures = self
-            .credential_storage
-            .lock()
-            .await
+        let guard = self.credential_storage.lock().await;
+        if guard
             .get_expiration_date_signatures(expiration_date)
             .await
-            .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
-
-        if stored_expiration_date_signatures.is_none() {
+            .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
+            .is_none()
+        {
             tracing::info!(
             "Inserting expiration date signatures for epoch {epoch_id} and date: {expiration_date}"
-        );
-            self.credential_storage
-                .lock()
-                .await
+            );
+            guard
                 .insert_expiration_date_signatures(
                     &aggregated_expiration_date_signatures.signatures,
                 )
                 .await
                 .inspect_err(|err| {
-                    tracing::error!("Failed to insert expiration date signatures: {:#?}", err);
+                    tracing::error!("Failed to insert expiration date signatures: {err:?}");
                 })
                 .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
         }
@@ -521,7 +509,7 @@ impl RequestZkNymTask {
         for key in issuers.keys {
             let vk = VerificationKeyAuth::try_from_bs58(&key.bs58_encoded_key)
                 .inspect_err(|err| {
-                    tracing::error!("Failed to create VerificationKeyAuth: {:#?}", err)
+                    tracing::error!("Failed to create VerificationKeyAuth: {err:#?}")
                 })
                 .map_err(|err| RequestZkNymError::InvalidVerificationKey(err.to_string()))?;
             decoded_keys.insert(key.node_index, vk);
@@ -533,7 +521,7 @@ impl RequestZkNymTask {
             tracing::debug!("Creating blinded signature");
             let blinded_sig =
                 BlindedSignature::try_from_bs58(&share.bs58_encoded_share).map_err(|err| {
-                    tracing::error!("Failed to create BlindedSignature: {:#?}", err);
+                    tracing::error!("Failed to create BlindedSignature: {err:#?}");
                     RequestZkNymError::DeserializeBlindedSignature(err.to_string())
                 })?;
 
@@ -554,7 +542,7 @@ impl RequestZkNymTask {
                     partial_wallets.push(partial_wallet)
                 }
                 Err(err) => {
-                    tracing::error!("Failed to issue verify: {:#?}", err);
+                    tracing::error!("Failed to issue verify: {err:#?}");
                     return Err(RequestZkNymError::ImportZkNym {
                         ticket_type: ticketbook_type.to_string(),
                         error: err.to_string(),
