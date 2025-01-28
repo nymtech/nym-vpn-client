@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 #[cfg(target_os = "macos")]
-use std::env;
+use std::{env, path::PathBuf};
 
 use tracing_appender::non_blocking::WorkerGuard;
 
@@ -11,7 +11,7 @@ pub fn setup_logging(_as_service: bool) {
     #[cfg(target_os = "macos")]
     if _as_service {
         let log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
-        let log_path = PathBuf::from("/var/log/nym-vpnd/daemon.log");
+        let log_path = service::log_dir().with_file_name(service::DEFAULT_LOG_FILE);
         nym_vpn_lib::swift::init_logs(log_level, Some(log_path));
         return;
     }
