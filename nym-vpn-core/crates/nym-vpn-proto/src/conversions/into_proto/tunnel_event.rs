@@ -3,11 +3,10 @@
 
 use nym_vpn_lib_types::{
     BandwidthEvent, ConnectionEvent, ConnectionStatisticsEvent, MixnetEvent, SphinxPacketRates,
-    TunnelEvent, TunnelState,
+    TunnelEvent,
 };
 
 use crate::{
-    conversions::ConversionError,
     mixnet_event::{
         bandwidth_event::{
             Event as ProtoBanwidthEventEnum, NoBandwidth as ProtoNoBandwidth,
@@ -19,99 +18,79 @@ use crate::{
     },
     tunnel_event::Event as ProtoTunnelEventEnum,
     MixnetEvent as ProtoMixnetEvent, TunnelEvent as ProtoTunnelEvent,
+    TunnelState as ProtoTunnelState,
 };
 
-impl TryFrom<ProtoTunnelEvent> for TunnelEvent {
-    type Error = ConversionError;
-
-    fn try_from(value: ProtoTunnelEvent) -> Result<Self, Self::Error> {
-        let event = value
-            .event
-            .ok_or(ConversionError::NoValueSet("TunnelEvent.event"))?;
-
-        Ok(match event {
-            ProtoTunnelEventEnum::TunnelState(tunnel_state) => {
-                TunnelEvent::NewState(TunnelState::try_from(tunnel_state)?)
+impl From<TunnelEvent> for ProtoTunnelEvent {
+    fn from(value: TunnelEvent) -> Self {
+        let event = match value {
+            TunnelEvent::NewState(tunnel_state) => {
+                ProtoTunnelEventEnum::TunnelState(ProtoTunnelState::from(tunnel_state))
             }
-            ProtoTunnelEventEnum::MixnetEvent(mixnet_event) => {
-                TunnelEvent::MixnetState(MixnetEvent::try_from(mixnet_event)?)
+            TunnelEvent::MixnetState(mixnet_event) => {
+                ProtoTunnelEventEnum::MixnetEvent(ProtoMixnetEvent::from(mixnet_event))
             }
-        })
+        };
+        Self { event: Some(event) }
     }
 }
 
-impl TryFrom<ProtoMixnetEvent> for MixnetEvent {
-    type Error = ConversionError;
+impl From<MixnetEvent> for ProtoMixnetEvent {
+    fn from(value: MixnetEvent) -> Self {
+        let event = match value {
+            MixnetEvent::Bandwidth(e) => {
+                ProtoMixnetEventEnum::BandwidthEvent(ProtoBandwidthEvent::from(e))
+            }
+            MixnetEvent::Connection(e) => {
+                ProtoMixnetEventEnum::ConnectionEvent(ProtoConnectionEvent::from(e) as i32)
+            }
+            MixnetEvent::ConnectionStatistics(e) => {
+                ProtoMixnetEventEnum::ConnectionStatisticsEvent(
+                    ProtoConnectionStatisticsEvent::from(e),
+                )
+            }
+        };
 
-    fn try_from(value: ProtoMixnetEvent) -> Result<Self, Self::Error> {
-        let event = value
-            .event
-            .ok_or(ConversionError::NoValueSet("MixnetEvent.event"))?;
-
-        Ok(match event {
-            ProtoMixnetEventEnum::BandwidthEvent(bandwidth_event) => {
-                Self::Bandwidth(BandwidthEvent::try_from(bandwidth_event)?)
-            }
-            ProtoMixnetEventEnum::ConnectionEvent(connection_event) => {
-                let proto_connection_event = ProtoConnectionEvent::try_from(connection_event)
-                    .map_err(|e| ConversionError::Decode("ConnectionEvent", e))?;
-                Self::Connection(ConnectionEvent::from(proto_connection_event))
-            }
-            ProtoMixnetEventEnum::ConnectionStatisticsEvent(connection_statistics_event) => {
-                Self::ConnectionStatistics(ConnectionStatisticsEvent::try_from(
-                    connection_statistics_event,
-                )?)
-            }
-        })
+        Self { event: Some(event) }
     }
 }
 
-impl From<ProtoConnectionEvent> for ConnectionEvent {
-    fn from(value: ProtoConnectionEvent) -> Self {
+impl From<BandwidthEvent> for ProtoBandwidthEvent {
+    fn from(value: BandwidthEvent) -> Self {
+        let event = match value {
+            BandwidthEvent::NoBandwidth => ProtoBanwidthEventEnum::NoBandwidth(ProtoNoBandwidth {}),
+            BandwidthEvent::RemainingBandwidth(value) => {
+                ProtoBanwidthEventEnum::RemainingBandwidth(ProtoRemainingBandwidth { value })
+            }
+        };
+        Self { event: Some(event) }
+    }
+}
+
+impl From<ConnectionEvent> for ProtoConnectionEvent {
+    fn from(value: ConnectionEvent) -> Self {
         match value {
-            ProtoConnectionEvent::EntryGatewayDown => Self::EntryGatewayDown,
-            ProtoConnectionEvent::ExitGatewayDownIpv4 => Self::ExitGatewayDownIpv4,
-            ProtoConnectionEvent::ExitGatewayDownIpv6 => Self::ExitGatewayDownIpv6,
-            ProtoConnectionEvent::ExitGatewayRoutingErrorIpv4 => Self::ExitGatewayRoutingErrorIpv4,
-            ProtoConnectionEvent::ExitGatewayRoutingErrorIpv6 => Self::ExitGatewayRoutingErrorIpv6,
-            ProtoConnectionEvent::ConnectedIpv4 => Self::ConnectedIpv4,
-            ProtoConnectionEvent::ConnectedIpv6 => Self::ConnectedIpv6,
+            ConnectionEvent::EntryGatewayDown => Self::EntryGatewayDown,
+            ConnectionEvent::ExitGatewayDownIpv4 => Self::ExitGatewayDownIpv4,
+            ConnectionEvent::ExitGatewayDownIpv6 => Self::ExitGatewayDownIpv6,
+            ConnectionEvent::ExitGatewayRoutingErrorIpv4 => Self::ExitGatewayRoutingErrorIpv4,
+            ConnectionEvent::ExitGatewayRoutingErrorIpv6 => Self::ExitGatewayRoutingErrorIpv6,
+            ConnectionEvent::ConnectedIpv4 => Self::ConnectedIpv4,
+            ConnectionEvent::ConnectedIpv6 => Self::ConnectedIpv6,
         }
     }
 }
 
-impl TryFrom<ProtoBandwidthEvent> for BandwidthEvent {
-    type Error = ConversionError;
-
-    fn try_from(value: ProtoBandwidthEvent) -> Result<Self, Self::Error> {
-        let event = value
-            .event
-            .ok_or(ConversionError::NoValueSet("BandwidthEvent.event"))?;
-
-        Ok(match event {
-            ProtoBanwidthEventEnum::NoBandwidth(ProtoNoBandwidth {}) => Self::NoBandwidth,
-            ProtoBanwidthEventEnum::RemainingBandwidth(ProtoRemainingBandwidth { value }) => {
-                Self::RemainingBandwidth(value)
-            }
-        })
+impl From<ConnectionStatisticsEvent> for ProtoConnectionStatisticsEvent {
+    fn from(value: ConnectionStatisticsEvent) -> Self {
+        Self {
+            rates: Some(ProtoSphinxPacketRates::from(value.rates)),
+        }
     }
 }
 
-impl TryFrom<ProtoConnectionStatisticsEvent> for ConnectionStatisticsEvent {
-    type Error = ConversionError;
-
-    fn try_from(value: ProtoConnectionStatisticsEvent) -> Result<Self, Self::Error> {
-        let rates = value.rates.ok_or(ConversionError::NoValueSet(
-            "ConnectionStatisticsEvent.rates",
-        ))?;
-        Ok(Self {
-            rates: SphinxPacketRates::from(rates),
-        })
-    }
-}
-
-impl From<ProtoSphinxPacketRates> for SphinxPacketRates {
-    fn from(value: ProtoSphinxPacketRates) -> Self {
+impl From<SphinxPacketRates> for ProtoSphinxPacketRates {
+    fn from(value: SphinxPacketRates) -> Self {
         Self {
             real_packets_sent: value.real_packets_sent,
             real_packets_sent_size: value.real_packets_sent_size,
