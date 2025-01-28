@@ -61,7 +61,7 @@ impl From<ProtoErrorStateReason> for ErrorStateReason {
 impl TryFrom<ProtoTunnelState> for TunnelState {
     type Error = ConversionError;
 
-    fn try_from(value: ProtoTunnelState) -> Result<TunnelState> {
+    fn try_from(value: ProtoTunnelState) -> Result<Self, ConversionError> {
         let state = value
             .state
             .ok_or(ConversionError::NoValueSet("TunnelState.state"))?;
@@ -102,7 +102,7 @@ impl TryFrom<ProtoTunnelState> for TunnelState {
 impl TryFrom<ProtoConnectionData> for ConnectionData {
     type Error = ConversionError;
 
-    fn try_from(value: ProtoConnectionData) -> Result<Self> {
+    fn try_from(value: ProtoConnectionData) -> Result<Self, Self::Error> {
         let connected_at = value
             .connected_at
             .map(|timestamp| {
@@ -133,7 +133,7 @@ impl TryFrom<ProtoConnectionData> for ConnectionData {
 impl TryFrom<ProtoTunnelConnectionData> for TunnelConnectionData {
     type Error = ConversionError;
 
-    fn try_from(value: ProtoTunnelConnectionData) -> Result<Self> {
+    fn try_from(value: ProtoTunnelConnectionData) -> Result<Self, Self::Error> {
         let state = value
             .state
             .ok_or(ConversionError::NoValueSet("TunnelConnectionData.state"))?;
@@ -156,7 +156,7 @@ impl TryFrom<ProtoTunnelConnectionData> for TunnelConnectionData {
 impl TryFrom<ProtoMixnetConnectionData> for MixnetConnectionData {
     type Error = ConversionError;
 
-    fn try_from(value: ProtoMixnetConnectionData) -> Result<Self> {
+    fn try_from(value: ProtoMixnetConnectionData) -> Result<Self, Self::Error> {
         Ok(Self {
             nym_address: value.nym_address.map(NymAddress::from).ok_or(
                 ConversionError::NoValueSet("MixnetConnectionData.nym_address"),
@@ -176,7 +176,7 @@ impl TryFrom<ProtoMixnetConnectionData> for MixnetConnectionData {
 impl TryFrom<ProtoWireguardConnectionData> for WireguardConnectionData {
     type Error = ConversionError;
 
-    fn try_from(value: ProtoWireguardConnectionData) -> Result<Self> {
+    fn try_from(value: ProtoWireguardConnectionData) -> Result<Self, Self::Error> {
         Ok(Self {
             entry: WireguardNode::try_from(
                 value
@@ -195,7 +195,7 @@ impl TryFrom<ProtoWireguardConnectionData> for WireguardConnectionData {
 impl TryFrom<ProtoWireguardNode> for WireguardNode {
     type Error = ConversionError;
 
-    fn try_from(value: ProtoWireguardNode) -> Result<Self> {
+    fn try_from(value: ProtoWireguardNode) -> Result<Self, Self::Error> {
         Ok(Self {
             endpoint: SocketAddr::from_str(&value.endpoint)
                 .map_err(|e| ConversionError::ParseAddr("WireguardNode.endpoint", e))?,
@@ -219,5 +219,3 @@ impl From<ProtoAddress> for NymAddress {
         Self::new(value.nym_address)
     }
 }
-
-pub type Result<T, E = ConversionError> = std::result::Result<T, E>;
