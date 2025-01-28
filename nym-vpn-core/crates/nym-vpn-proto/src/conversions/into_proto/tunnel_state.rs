@@ -49,6 +49,7 @@ impl From<ErrorStateReason> for ProtoErrorStateReason {
             ErrorStateReason::DuplicateTunFd => Self::DuplicateTunFd,
             ErrorStateReason::Internal => Self::Internal,
             ErrorStateReason::Account => Self::Account,
+            ErrorStateReason::RemoveAccount(_) => Self::RemoveAccount,
         }
     }
 }

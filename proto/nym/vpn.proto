@@ -1101,6 +1101,7 @@ message TunnelState {
       DUPLICATE_TUN_FD = 9;
       INTERNAL = 10;
       ACCOUNT = 11;
+      REMOVE_ACCOUNT = 12;
   }
 
   enum ActionAfterDisconnect {
