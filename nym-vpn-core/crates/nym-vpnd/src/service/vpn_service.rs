@@ -60,7 +60,7 @@ pub enum VpnServiceCommand {
         ConnectArgs,
     ),
     Disconnect(oneshot::Sender<Result<(), VpnServiceDisconnectError>>, ()),
-    Status(oneshot::Sender<TunnelState>, ()),
+    GetTunnelState(oneshot::Sender<TunnelState>, ()),
     SubscribeToTunnelState(oneshot::Sender<watch::Receiver<TunnelState>>, ()),
     StoreAccount(oneshot::Sender<Result<(), AccountError>>, Zeroizing<String>),
     IsAccountStored(oneshot::Sender<Result<bool, AccountError>>, ()),
@@ -375,8 +375,8 @@ where
                 let result = self.handle_disconnect().await;
                 let _ = tx.send(result);
             }
-            VpnServiceCommand::Status(tx, ()) => {
-                let result = self.handle_status();
+            VpnServiceCommand::GetTunnelState(tx, ()) => {
+                let result = self.handle_get_tunnel_state();
                 let _ = tx.send(result);
             }
             VpnServiceCommand::SubscribeToTunnelState(tx, ()) => {
@@ -661,7 +661,7 @@ where
             })
     }
 
-    fn handle_status(&self) -> TunnelState {
+    fn handle_get_tunnel_state(&self) -> TunnelState {
         self.tunnel_state.borrow().to_owned()
     }
 

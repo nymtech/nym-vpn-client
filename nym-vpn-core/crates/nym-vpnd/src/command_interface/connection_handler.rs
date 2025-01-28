@@ -100,7 +100,8 @@ impl CommandInterfaceConnectionHandler {
     }
 
     pub(crate) async fn handle_status(&self) -> Result<TunnelState, VpnCommandSendError> {
-        self.send_and_wait(VpnServiceCommand::Status, ()).await
+        self.send_and_wait(VpnServiceCommand::GetTunnelState, ())
+            .await
     }
 
     pub(crate) async fn handle_subscribe_to_tunnel_state(
