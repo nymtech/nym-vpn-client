@@ -23,7 +23,7 @@ mod wintun;
 use std::sync::Arc;
 use std::{net::IpAddr, path::PathBuf};
 
-use nym_vpn_account_controller::AccountControllerCommander;
+use nym_vpn_account_controller::{AccountCommandError, AccountControllerCommander};
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
@@ -489,7 +489,7 @@ pub enum Error {
 }
 
 impl Error {
-    fn error_state_reason(&self) -> Option<ErrorStateReason> {
+    fn error_state_reason(self) -> Option<ErrorStateReason> {
         Some(match self {
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::CreateRouteHandler(_) | Self::AddRoutes(_) => ErrorStateReason::Routing,
@@ -520,16 +520,13 @@ impl Error {
             #[cfg(target_os = "linux")]
             Self::GetDefaultInterface(_) => ErrorStateReason::Internal,
 
-            Self::Account(err) => {
-                tracing::error!("Account error: {err:?}");
-                ErrorStateReason::Account
-            }
+            Self::Account(err) => err.error_state_reason()?,
         })
     }
 }
 
 impl tunnel::Error {
-    fn error_state_reason(&self) -> Option<ErrorStateReason> {
+    fn error_state_reason(self) -> Option<ErrorStateReason> {
         match self {
             Self::SelectGateways(e) => match e {
                 GatewayDirectoryError::SameEntryAndExitGatewayFromCountry { .. } => {
@@ -556,6 +553,38 @@ impl tunnel::Error {
             }) => Some(ErrorStateReason::BadBandwidthIncrease),
             Self::DupFd(_) => Some(ErrorStateReason::DuplicateTunFd),
             _ => None,
+        }
+    }
+}
+
+impl account::Error {
+    fn error_state_reason(self) -> Option<ErrorStateReason> {
+        match self {
+            Self::Account(e) => match e {
+                AccountCommandError::SyncAccountEndpointFailure(vpn_api_endpoint_failure) => {
+                    todo!()
+                }
+                AccountCommandError::SyncDeviceEndpointFailure(vpn_api_endpoint_failure) => todo!(),
+                AccountCommandError::RegisterDeviceEndpointFailure(vpn_api_endpoint_failure) => {
+                    todo!()
+                }
+                AccountCommandError::RequestZkNym { successes, failed } => todo!(),
+                AccountCommandError::RequestZkNymGeneral(request_zk_nym_error) => todo!(),
+                AccountCommandError::NoAccountStored => todo!(),
+                AccountCommandError::NoDeviceStored => todo!(),
+                AccountCommandError::RegistrationInProgress => todo!(),
+                AccountCommandError::RemoveAccount(err) => {
+                    Some(ErrorStateReason::RemoveAccount(err))
+                }
+                AccountCommandError::UnregisterDeviceApiClientFailure(_) => todo!(),
+                AccountCommandError::RemoveDeviceIdentity(_) => todo!(),
+                AccountCommandError::ResetCredentialStorage(_) => todo!(),
+                AccountCommandError::RemoveAccountFiles(_) => todo!(),
+                AccountCommandError::InitDeviceKeys(_) => todo!(),
+                AccountCommandError::General(_) => todo!(),
+                AccountCommandError::Internal(_) => todo!(),
+            },
+            Self::Cancelled => None,
         }
     }
 }

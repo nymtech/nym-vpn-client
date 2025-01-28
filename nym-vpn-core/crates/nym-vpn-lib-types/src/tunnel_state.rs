@@ -119,7 +119,7 @@ pub enum ActionAfterDisconnect {
     Error,
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum ErrorStateReason {
     /// Issues related to firewall configuration.
     Firewall,
@@ -157,4 +157,7 @@ pub enum ErrorStateReason {
 
     /// Account error
     Account,
+
+    /// Failed to remove the account
+    RemoveAccount(String),
 }

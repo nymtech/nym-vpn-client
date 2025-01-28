@@ -228,6 +228,7 @@ pub enum ErrorStateReason {
     DuplicateTunFd,
     Internal,
     Account,
+    RemoveAccount(String),
 }
 
 impl From<CoreErrorStateReason> for ErrorStateReason {
@@ -245,6 +246,7 @@ impl From<CoreErrorStateReason> for ErrorStateReason {
             CoreErrorStateReason::DuplicateTunFd => Self::DuplicateTunFd,
             CoreErrorStateReason::Internal => Self::Internal,
             CoreErrorStateReason::Account => Self::Account,
+            CoreErrorStateReason::RemoveAccount(err) => Self::RemoveAccount(err),
         }
     }
 }
