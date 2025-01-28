@@ -39,7 +39,7 @@ use crate::{config::GlobalConfigFile, service::AccountNotReady};
 
 use super::{
     config::{ConfigSetupError, NetworkEnvironments, NymVpnServiceConfig, DEFAULT_CONFIG_FILE},
-    error::{AccountError, ConnectionFailedError, Error, Result, SetNetworkError},
+    error::{AccountError, Error, Result, SetNetworkError},
     VpnServiceConnectError, VpnServiceDisconnectError,
 };
 
@@ -126,38 +126,6 @@ pub struct VpnServiceInfo {
     pub nym_vpn_network: NymVpnNetwork,
 }
 
-#[derive(Clone, Debug)]
-pub enum VpnServiceStateChange {
-    NotConnected,
-    Connecting,
-    Connected,
-    Disconnecting,
-    ConnectionFailed(ConnectionFailedError),
-}
-
-impl From<TunnelState> for VpnServiceStateChange {
-    fn from(value: TunnelState) -> Self {
-        match value {
-            TunnelState::Connecting { .. } => Self::Connecting,
-            TunnelState::Connected { .. } => Self::Connected,
-            TunnelState::Disconnected | TunnelState::Offline { .. } => Self::NotConnected,
-            TunnelState::Disconnecting { .. } => Self::Disconnecting,
-            TunnelState::Error(reason) => Self::ConnectionFailed(
-                ConnectionFailedError::InternalError(format!("Error state: {:?}", reason)),
-            ),
-        }
-    }
-}
-
-impl VpnServiceStateChange {
-    pub fn error(&self) -> Option<ConnectionFailedError> {
-        match self {
-            VpnServiceStateChange::ConnectionFailed(reason) => Some(reason.clone()),
-            _ => None,
-        }
-    }
-}
-
 pub(crate) struct NymVpnService<S>
 where
     S: nym_vpn_store::VpnStorage,
@@ -174,9 +142,6 @@ where
     // Listen for commands from the command interface, like the grpc listener that listens user
     // commands.
     vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
-
-    // Broadcast channel for sending state changes to the outside world
-    vpn_state_changes_tx: broadcast::Sender<VpnServiceStateChange>,
 
     // Broadcast channel for sending tunnel events to the outside world
     tunnel_event_tx: broadcast::Sender<TunnelEvent>,
@@ -214,7 +179,6 @@ where
 
 impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
     pub(crate) fn spawn(
-        vpn_state_changes_tx: broadcast::Sender<VpnServiceStateChange>,
         vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
         tunnel_event_tx: broadcast::Sender<TunnelEvent>,
         shutdown_token: CancellationToken,
@@ -224,7 +188,6 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         tracing::info!("Starting VPN service");
         tokio::spawn(async {
             match NymVpnService::new(
-                vpn_state_changes_tx,
                 vpn_command_rx,
                 tunnel_event_tx,
                 shutdown_token,
@@ -253,7 +216,6 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
     }
 
     pub(crate) async fn new(
-        vpn_state_changes_tx: broadcast::Sender<VpnServiceStateChange>,
         vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
         tunnel_event_tx: broadcast::Sender<TunnelEvent>,
         shutdown_token: CancellationToken,
@@ -328,7 +290,6 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             user_agent,
             shared_account_state,
             vpn_command_rx,
-            vpn_state_changes_tx,
             tunnel_event_tx,
             account_command_tx,
             config_file,
@@ -364,11 +325,6 @@ where
                         TunnelEvent::NewState(new_state) => {
                             // Replace value even when there are no receivers.
                             let _ = self.tunnel_state.send_replace(new_state.clone());
-
-                            let vpn_state_change = VpnServiceStateChange::from(new_state);
-                            if let Err(e) = self.vpn_state_changes_tx.send(vpn_state_change) {
-                                tracing::error!("Failed to send vpn state change: {}", e);
-                            }
                         }
                         TunnelEvent::MixnetState(_) => {}
                     }

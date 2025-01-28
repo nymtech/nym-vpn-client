@@ -4,6 +4,7 @@
 use super::ConversionError;
 
 pub mod network_config;
+pub mod tunnel_event;
 pub mod tunnel_state;
 pub mod vpnd;
 

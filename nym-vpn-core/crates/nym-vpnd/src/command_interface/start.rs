@@ -23,7 +23,7 @@ use super::{
     listener::CommandInterface,
     socket_stream::setup_socket_stream,
 };
-use crate::service::{VpnServiceCommand, VpnServiceStateChange};
+use crate::service::VpnServiceCommand;
 
 // If the shutdown signal is received, we give the listeners a little extra time to finish
 const SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(2);
@@ -47,7 +47,6 @@ fn grpc_span(req: &http::Request<()>) -> tracing::Span {
 }
 
 async fn run_uri_listener<T>(
-    vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
     tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
     addr: SocketAddr,
@@ -62,8 +61,7 @@ where
         .register_encoded_file_descriptor_set(VPN_FD_SET)
         .build()
         .unwrap();
-    let command_interface =
-        CommandInterface::new_with_uri(vpn_state_changes_rx, vpn_command_tx, tunnel_event_rx, addr);
+    let command_interface = CommandInterface::new_with_uri(vpn_command_tx, tunnel_event_rx, addr);
 
     Server::builder()
         .trace_fn(grpc_span)
@@ -75,7 +73,6 @@ where
 }
 
 async fn run_socket_listener<T>(
-    vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
     tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
     socket_path: PathBuf,
@@ -90,12 +87,8 @@ where
         .register_encoded_file_descriptor_set(VPN_FD_SET)
         .build()
         .unwrap();
-    let command_interface = CommandInterface::new_with_path(
-        vpn_state_changes_rx,
-        vpn_command_tx,
-        tunnel_event_rx,
-        &socket_path,
-    );
+    let command_interface =
+        CommandInterface::new_with_path(vpn_command_tx, tunnel_event_rx, &socket_path);
     command_interface.remove_previous_socket_file();
 
     // Wrap the unix socket into a stream that can be used by tonic
@@ -136,7 +129,6 @@ async fn setup_health_service(
 }
 
 pub(crate) fn start_command_interface(
-    vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
     tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
     command_interface_options: Option<CommandInterfaceOptions>,
     shutdown_token: CancellationToken,
@@ -156,7 +148,6 @@ pub(crate) fn start_command_interface(
 
         if !command_interface_options.disable_socket_listener {
             join_set.spawn(run_socket_listener(
-                vpn_state_changes_rx.resubscribe(),
                 vpn_command_tx.clone(),
                 tunnel_event_rx.resubscribe(),
                 socket_path.to_path_buf(),
@@ -167,7 +158,6 @@ pub(crate) fn start_command_interface(
 
         if command_interface_options.enable_http_listener {
             join_set.spawn(run_uri_listener(
-                vpn_state_changes_rx,
                 vpn_command_tx.clone(),
                 tunnel_event_rx.resubscribe(),
                 uri_addr,

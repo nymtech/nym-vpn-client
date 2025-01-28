@@ -85,8 +85,6 @@ async fn main() -> Result<()> {
             Internal::SyncAccountState => refresh_account_state(opts.client_type).await?,
             Internal::GetAccountUsage => get_account_usage(opts.client_type).await?,
             Internal::IsReadyToConnect => is_ready_to_connect(opts.client_type).await?,
-            Internal::ListenToStatus => listen_to_status(opts.client_type).await?,
-            Internal::ListenToStateChanges => listen_to_state_changes(opts.client_type).await?,
             Internal::ResetDeviceIdentity(ref args) => {
                 reset_device_identity(opts.client_type, args).await?
             }
@@ -264,7 +262,7 @@ async fn status(listen: bool, opts: CliOptions) -> Result<()> {
             println!("{}", tunnel_state);
         }
     } else {
-        let tunnel_state = TunnelState::try_from(client.vpn_status(()).await?.into_inner())?;
+        let tunnel_state = TunnelState::try_from(client.get_tunnel_state(()).await?.into_inner())?;
         println!("{}", tunnel_state);
     }
 
@@ -499,27 +497,6 @@ async fn get_available_tickets(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
     let response = client.get_available_tickets(()).await?.into_inner();
     println!("{:#?}", response);
-    Ok(())
-}
-
-async fn listen_to_status(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
-    let mut stream = client.listen_to_connection_status(()).await?.into_inner();
-    while let Some(response) = stream.message().await? {
-        println!("{:#?}", response);
-    }
-    Ok(())
-}
-
-async fn listen_to_state_changes(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
-    let mut stream = client
-        .listen_to_connection_state_changes(())
-        .await?
-        .into_inner();
-    while let Some(response) = stream.message().await? {
-        println!("{:#?}", response);
-    }
     Ok(())
 }
 

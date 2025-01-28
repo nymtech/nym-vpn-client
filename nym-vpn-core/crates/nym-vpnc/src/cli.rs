@@ -155,12 +155,6 @@ pub(crate) enum Internal {
 
     /// List the available zknym ticketbooks in the local credential store.
     GetAvailableTickets,
-
-    /// Listen the the status event stream from nym-vpnd.
-    ListenToStatus,
-
-    /// Listen to the state change stream from nym-vpnd.
-    ListenToStateChanges,
 }
 
 #[derive(Args)]
