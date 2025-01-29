@@ -102,8 +102,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	override suspend fun init(environment: Tunnel.Environment, credentialMode: Boolean?) {
 		return withContext(ioDispatcher) {
 			runCatching {
-				Os.setenv("RUST_LOG", LOG_LEVEL, true)
-				initLogger(null)
+				initLogger(null, LOG_LEVEL)
 				initEnvironment(environment)
 				nym_vpn_lib.configureLib(storagePath, credentialMode)
 				initialized.set(true)
