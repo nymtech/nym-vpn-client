@@ -28,12 +28,12 @@
     "desc": "Mejor para pagos, correos electrónicos, mensajes"
   },
   "fast-mode": {
-    "title": "Rápido (WireGuard)",
+    "title": "Rápido (WireGuard*)",
     "desc": "Mejor para navegar, streaming, compartir"
   },
   "select-mode-label": "Selecciona el modo",
   "modes-dialog": {
-    "fast-description": "Disfruta de la máxima velocidad con 2 servidores. Perfecto para navegar, transmitir y compartir archivos a gran velocidad.",
+    "fast-description": "Experimenta la máxima velocidad con la conectividad de 2 servidores. Este modo aprovecha AmneziaWG, una versión de WireGuard resistente a la censura, ideal para navegar, transmitir y compartir archivos con rapidez.",
     "link": "Continúe leyendo",
     "privacy-description": "Disfrute de la máxima privacidad enrutando su conexión a través de 5 servidores mediante mixnet. Perfecto para gestionar pagos, correos electrónicos y mensajes de forma segura.",
     "title": "Seleccione el modo"
