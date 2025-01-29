@@ -203,7 +203,7 @@ impl GrpcClient {
         Ok(vpnd_info)
     }
 
-    /// Get the current tunnel state
+    /// Get the current tunnel state and update the app state
     #[instrument(skip_all)]
     pub async fn tunnel_state(&self, app: &AppHandle) -> Result<TunnelState, VpndError> {
         let mut vpnd = self.vpnd().await?;
