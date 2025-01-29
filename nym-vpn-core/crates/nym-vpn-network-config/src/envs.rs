@@ -78,7 +78,7 @@ impl RegisteredNetworks {
 
         // Spawn the root task
         let inner = rt
-            .block_on(BootstrapVpnApiClient::new(Some(default_url))?.get_network_envs())
+            .block_on(BootstrapVpnApiClient::new(default_url)?.get_wellknown_envs())
             .with_context(|| "Failed to fetch envs")?;
         tracing::debug!("Envs response: {:#?}", inner);
 

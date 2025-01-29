@@ -8,7 +8,7 @@ use url::Url;
 use crate::{
     client::NYM_VPN_API_TIMEOUT,
     error::{Result, VpnApiClientError},
-    response::{DiscoveryResponse, RegisteredNetworksResponse},
+    response::{NymWellknownDiscoveryItemResponse, RegisteredNetworksResponse},
     routes,
 };
 
@@ -18,25 +18,18 @@ pub struct BootstrapVpnApiClient {
 }
 
 impl BootstrapVpnApiClient {
-    /// Hard coded well known URL for bootstrapping environment and discovery config
-    /// allowing more refined URL usage.
-    // hard coded for now.
-    const WELLKNOWN_URL: &str = "https://nymvpn.com/api";
-
     /// Returns a VpnApiClient Based on locally set well known url and empty user agent.
     ///
     /// THIS SHOULD ONLY BE USED FOR BOOTSTRAPPING.
-    pub fn new(base_url: Option<Url>) -> Result<Self> {
-        let url: Url = base_url.unwrap_or(Self::WELLKNOWN_URL.parse().unwrap());
-
-        nym_http_api_client::Client::builder(url)
+    pub fn new(base_url: Url) -> Result<Self> {
+        nym_http_api_client::Client::builder(base_url)
             .map(|builder| builder.with_timeout(NYM_VPN_API_TIMEOUT))
             .and_then(|builder| builder.build())
             .map(|c| Self { inner: c })
             .map_err(VpnApiClientError::FailedToCreateVpnApiClient)
     }
 
-    pub async fn get_network_envs(&self) -> Result<RegisteredNetworksResponse> {
+    pub async fn get_wellknown_envs(&self) -> Result<RegisteredNetworksResponse> {
         self.inner
             .get_json(
                 &[
@@ -51,7 +44,7 @@ impl BootstrapVpnApiClient {
             .map_err(VpnApiClientError::FailedToGetNetworkEnvs)
     }
 
-    pub async fn get_discovery_init(&self, network_name: &str) -> Result<DiscoveryResponse> {
+    pub async fn get_wellknown_discovery(&self, network_name: &str) -> Result<NymWellknownDiscoveryItemResponse> {
         self.inner
             .get_json(
                 &[

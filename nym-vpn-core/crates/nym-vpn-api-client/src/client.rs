@@ -884,14 +884,7 @@ impl VpnApiClient {
         .map_err(VpnApiClientError::FailedToGetDirectoryZkNymsTicketbookPartialVerificationKeys)
     }
 
-    pub async fn get_nym_network_details(&self) -> Result<NymNetworkDetailsResponse> {
-        self.inner
-            .get_json(&[routes::V1, routes::NETWORK, routes::DETAILS], NO_PARAMS)
-            .await
-            .map_err(VpnApiClientError::FailedToGetNetworkDetails)
-    }
-
-    pub async fn get_nym_vpn_network_details(&self) -> Result<NymWellknownDiscoveryItem> {
+    pub async fn get_wellknown_current_env(&self) -> Result<NymWellknownDiscoveryItem> {
         tracing::debug!("Fetching nym vpn network details");
         self.inner
             .get_json(

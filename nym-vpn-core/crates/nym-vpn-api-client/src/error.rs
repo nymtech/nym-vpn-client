@@ -112,9 +112,6 @@ pub enum VpnApiClientError {
     #[error("failed to get discovery info")]
     FailedToGetDiscoveryInfo(#[source] HttpClientError<UnexpectedError>),
 
-    #[error("failed to get network Details")]
-    FailedToGetNetworkDetails(#[source] HttpClientError<UnexpectedError>),
-
     #[error("failed to get vpn network Details")]
     FailedToGetVpnNetworkDetails(#[source] HttpClientError<UnexpectedError>),
 }
