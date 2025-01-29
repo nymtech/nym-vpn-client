@@ -8,9 +8,11 @@ use nym_sdk::UserAgent;
 use url::Url;
 
 use nym_vpn_api_client::{
-    response::{DiscoveryResponse, NymNetworkDetailsResponse, NymWellknownDiscoveryItem},
+    response::{NymWellknownDiscoveryItemResponse, NymNetworkDetailsResponse, NymWellknownDiscoveryItem},
     BootstrapVpnApiClient, VpnApiClient,
 };
+
+use nym_validator_client::nym_api::{Client as NymApiClient, NymApiClientExt};
 
 use crate::{AccountManagement, FeatureFlags, SystemMessages};
 
@@ -57,14 +59,14 @@ impl Discovery {
         let default_url = Self::DEFAULT_VPN_API_URL
             .parse()
             .expect("Failed to parse NYM VPN API URL");
-        let client = BootstrapVpnApiClient::new(Some(default_url))?;
+        let client = BootstrapVpnApiClient::new(default_url)?;
 
         tracing::debug!("Fetching nym network discovery");
         let rt = tokio::runtime::Runtime::new()?;
 
         // Spawn the root task
-        let discovery: DiscoveryResponse = rt
-            .block_on(client.get_discovery_init(network_name))
+        let discovery: NymWellknownDiscoveryItemResponse = rt
+            .block_on(client.get_wellknown_discovery(network_name))
             .with_context(|| "Failed to read response text")?;
 
         tracing::debug!("Discovery response: {:#?}", discovery);
@@ -161,10 +163,10 @@ impl Discovery {
     }
 }
 
-impl TryFrom<DiscoveryResponse> for Discovery {
+impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
     type Error = anyhow::Error;
 
-    fn try_from(discovery: DiscoveryResponse) -> anyhow::Result<Self> {
+    fn try_from(discovery: NymWellknownDiscoveryItemResponse) -> anyhow::Result<Self> {
         let account_management = discovery.account_management.and_then(|am| {
             AccountManagement::try_from(am)
                 .inspect_err(|err| tracing::warn!("Failed to parse account management: {err}"))
@@ -206,7 +208,7 @@ pub(crate) async fn fetch_nym_network_details(
     nym_api_url: &Url,
 ) -> anyhow::Result<NymNetworkDetailsResponse> {
     tracing::debug!("Fetching nym network details");
-    VpnApiClient::new(nym_api_url.clone(), empty_user_agent())?
+    let client = NymApiClient::builder(nym_api_url.clone())?.build()?
         .get_nym_network_details()
         .await
         .with_context(|| "Discovery endpoint returned error response".to_owned())
@@ -217,7 +219,7 @@ pub(crate) async fn fetch_nym_vpn_network_details(
 ) -> anyhow::Result<NymWellknownDiscoveryItem> {
     tracing::debug!("Fetching nym vpn network details");
     VpnApiClient::new(nym_vpn_api_url.clone(), empty_user_agent())?
-        .get_nym_vpn_network_details()
+        .get_wellknown_current_env()
         .await
         .with_context(|| "Discovery endpoint returned error response".to_owned())
 }
@@ -287,7 +289,7 @@ mod tests {
                 }
             ]
         }"#;
-        let discovery: DiscoveryResponse = serde_json::from_str(json).unwrap();
+        let discovery: NymWellknownDiscoveryItemResponse = serde_json::from_str(json).unwrap();
         let network: Discovery = discovery.try_into().unwrap();
 
         let expected_network = Discovery {

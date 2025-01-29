@@ -570,7 +570,7 @@ fn extract_error_response_inner(
 
 // The response type we fetch from the discovery endpoint
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
-pub struct DiscoveryResponse {
+pub struct NymWellknownDiscoveryItemResponse {
     pub network_name: String,
     pub nym_api_url: String,
     pub nym_vpn_api_url: String,
@@ -600,13 +600,6 @@ pub struct SystemMessageResponse {
     pub display_until: String,
     pub message: String,
     pub properties: serde_json::Value,
-}
-
-// The response type we fetch from the network details endpoint. This will be added to and exported
-// from nym-api-requests.
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
-pub struct NymNetworkDetailsResponse {
-    pub network: nym_config::defaults::NymNetworkDetails,
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
