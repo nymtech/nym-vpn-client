@@ -3,6 +3,7 @@ use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
 use itertools::Itertools;
+use nym_vpn_proto::tunnel_event::Event;
 use nym_vpn_proto::{
     get_account_identity_response::Id as AccountIdRes,
     get_account_links_response::Res as AccountLinkRes,
@@ -32,7 +33,6 @@ use crate::country::Country;
 use crate::env::VPND_COMPAT_REQ;
 use crate::error::BackendError;
 use crate::fs::config::AppConfig;
-use crate::grpc::connection_update;
 use crate::{events::AppHandleEventEmitter, states::SharedAppState};
 
 const VPND_SERVICE: &str = "nym.vpn.NymVpnd";
@@ -202,33 +202,37 @@ impl GrpcClient {
         Ok(vpnd_info)
     }
 
-    // TODO update this once grpc `VpnStatus` returns a `TunnelState`
     /// Get the current tunnel state
     #[instrument(skip_all)]
-    pub async fn tunnel_state(
-        &self,
-        _app: &AppHandle,
-        _emit_event: bool,
-    ) -> Result<TunnelState, VpndError> {
+    pub async fn tunnel_state(&self, app: &AppHandle) -> Result<TunnelState, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(());
-        let _res = vpnd.vpn_status(request).await?;
-        let fake_res: TunnelState = TunnelState::Disconnected;
-        // TODO update the tunnel state
-        // based on `emit_event` call `update_tunnel` or just update the app state
-        // return the tunnel state
-        Ok(fake_res)
+        let res = vpnd.get_tunnel_state(request).await?;
+        let Some(tun_state) = res.into_inner().state else {
+            error!("no tunnel state data");
+            return Err(VpndError::internal("no tunnel state data"));
+        };
+        let tunnel = TunnelState::from_proto(tun_state).map_err(|e| {
+            error!("failed to parse tunnel state: {}", e);
+            VpndError::internal("failed to parse tunnel state")
+        })?;
+        info!("tunnel state {}", tunnel);
+        let s_state = app.state::<SharedAppState>();
+        let mut app_state = s_state.lock().await;
+        app_state.update_tunnel(app, tunnel.clone()).await?;
+
+        Ok(tunnel)
     }
 
-    /// Watch tunnel state updates
+    /// Watch tunnel state updates and mixnet events
     #[instrument(skip_all)]
-    pub async fn watch_tunnel_state(&self, app: &AppHandle) -> Result<()> {
+    pub async fn watch_tunnel_events(&self, app: &AppHandle) -> Result<()> {
         let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(());
         let mut stream = vpnd
-            .listen_to_tunnel_state_changes(request)
+            .listen_to_events(request)
             .await
             .inspect_err(|e| {
                 error!("listen_to_tunnel_state_changes failed: {}", e);
@@ -254,63 +258,81 @@ impl GrpcClient {
         });
 
         while let Some(state) = rx.recv().await {
-            debug!("tunnel state update (proto-raw) {:?}", state.state);
-            if let Some(s) = state.state {
-                let tunnel = TunnelState::from_proto(s).map_err(|e| {
-                    error!("failed to parse tunnel state: {}", e);
-                    VpndError::internal("failed to parse tunnel state")
-                })?;
-                info!("tunnel state {}", tunnel);
-                let s_state = app.state::<SharedAppState>();
-                let mut app_state = s_state.lock().await;
-                app_state.update_tunnel(app, tunnel).await?;
-            } else {
-                // this should never happen, right?
-                warn!("no tunnel state data, ignoring…");
+            debug!("tunnel event {:?}", state.event);
+            let Some(event) = state.event else {
+                warn!("no tunnel event data, ignoring…");
+                continue;
+            };
+            match event {
+                Event::TunnelState(state) => {
+                    GrpcClient::handle_tunnel_update(app, state).await.ok();
+                }
+                Event::MixnetEvent(_) => { /* TODO to implement */ }
             }
         }
 
+        Ok(())
+    }
+
+    #[instrument(skip_all)]
+    async fn handle_tunnel_update(
+        app: &AppHandle,
+        tun_state: nym_vpn_proto::TunnelState,
+    ) -> Result<()> {
+        if let Some(s) = tun_state.state {
+            let tunnel = TunnelState::from_proto(s).map_err(|e| {
+                error!("failed to parse tunnel state: {}", e);
+                VpndError::internal("failed to parse tunnel state")
+            })?;
+            info!("tunnel state {}", tunnel);
+            let s_state = app.state::<SharedAppState>();
+            let mut app_state = s_state.lock().await;
+            app_state.update_tunnel(app, tunnel).await?;
+        } else {
+            // this should never happen, right?
+            warn!("no tunnel state data, ignoring…");
+        }
         Ok(())
     }
 
     /// Watch VPN connection status updates
-    #[instrument(skip_all)]
-    pub async fn watch_vpn_connection_updates(&self, app: &AppHandle) -> Result<()> {
-        let mut vpnd = self.vpnd().await?;
-
-        let request = Request::new(());
-        let mut stream = vpnd
-            .listen_to_connection_status(request)
-            .await
-            .inspect_err(|e| {
-                error!("listen_to_connection_status failed: {}", e);
-            })?
-            .into_inner();
-
-        let (tx, mut rx) = mpsc::channel(32);
-        tokio::spawn(async move {
-            loop {
-                match stream.message().await {
-                    Ok(Some(update)) => {
-                        tx.send(update).await.unwrap();
-                    }
-                    Ok(None) => {
-                        warn!("watch vpn connection status stream closed by the server");
-                        return;
-                    }
-                    Err(e) => {
-                        warn!("watch vpn connection status stream get a grpc error: {}", e);
-                    }
-                }
-            }
-        });
-
-        while let Some(update) = rx.recv().await {
-            connection_update::update(app, update).await?;
-        }
-
-        Ok(())
-    }
+    // #[instrument(skip_all)]
+    // pub async fn watch_vpn_connection_updates(&self, app: &AppHandle) -> Result<()> {
+    //     let mut vpnd = self.vpnd().await?;
+    //
+    //     let request = Request::new(());
+    //     let mut stream = vpnd
+    //         .listen_to_connection_status(request)
+    //         .await
+    //         .inspect_err(|e| {
+    //             error!("listen_to_connection_status failed: {}", e);
+    //         })?
+    //         .into_inner();
+    //
+    //     let (tx, mut rx) = mpsc::channel(32);
+    //     tokio::spawn(async move {
+    //         loop {
+    //             match stream.message().await {
+    //                 Ok(Some(update)) => {
+    //                     tx.send(update).await.unwrap();
+    //                 }
+    //                 Ok(None) => {
+    //                     warn!("watch vpn connection status stream closed by the server");
+    //                     return;
+    //                 }
+    //                 Err(e) => {
+    //                     warn!("watch vpn connection status stream get a grpc error: {}", e);
+    //                 }
+    //             }
+    //         }
+    //     });
+    //
+    //     while let Some(update) = rx.recv().await {
+    //         connection_update::update(app, update).await?;
+    //     }
+    //
+    //     Ok(())
+    // }
 
     /// Connect to the VPN
     #[instrument(skip_all)]

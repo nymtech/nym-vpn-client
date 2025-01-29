@@ -1,5 +1,3 @@
-use nym_vpn_proto::connection_status_update::StatusType;
-use nym_vpn_proto::ConnectionStatusUpdate;
 use serde::Serialize;
 use std::collections::HashMap;
 use tauri::Emitter;
@@ -125,66 +123,4 @@ pub struct StatusUpdatePayload {
     message: String,
     data: Option<HashMap<String, String>>,
     error: Option<BackendError>,
-}
-
-fn status_update_to_error(update: ConnectionStatusUpdate) -> Option<BackendError> {
-    let status = update.kind();
-    let error = BackendError::with_optional_data(
-        &update.message,
-        ErrorKey::from(status),
-        Some(update.details),
-    );
-    match &status {
-        StatusType::EntryGatewayNotRoutingMixnetMessages => Some(error),
-        StatusType::ExitRouterNotRespondingToIpv4Ping => Some(error),
-        StatusType::ExitRouterNotRoutingIpv4Traffic => Some(error),
-        StatusType::ExitRouterNotRespondingToIpv6Ping => Some(error),
-        StatusType::ExitRouterNotRoutingIpv6Traffic => Some(error),
-        StatusType::NoBandwidth => Some(error),
-        StatusType::WgTunnelError => Some(error),
-        _ => None,
-    }
-}
-
-impl From<ConnectionStatusUpdate> for StatusUpdatePayload {
-    fn from(update: ConnectionStatusUpdate) -> Self {
-        Self {
-            status: match update.kind() {
-                StatusType::EntryGatewayConnectionEstablished => {
-                    StatusUpdate::EntryGatewayConnectionEstablished
-                }
-                StatusType::ExitRouterConnectionEstablished => {
-                    StatusUpdate::ExitRouterConnectionEstablished
-                }
-                StatusType::TunnelEndToEndConnectionEstablished => {
-                    StatusUpdate::TunnelEndToEndConnectionEstablished
-                }
-                StatusType::EntryGatewayNotRoutingMixnetMessages => {
-                    StatusUpdate::EntryGatewayNotRoutingMixnetMessages
-                }
-                StatusType::ExitRouterNotRespondingToIpv4Ping => {
-                    StatusUpdate::ExitRouterNotRespondingToIpv4Ping
-                }
-                StatusType::ExitRouterNotRespondingToIpv6Ping => {
-                    StatusUpdate::ExitRouterNotRespondingToIpv6Ping
-                }
-                StatusType::ExitRouterNotRoutingIpv4Traffic => {
-                    StatusUpdate::ExitRouterNotRoutingIpv4Traffic
-                }
-                StatusType::ExitRouterNotRoutingIpv6Traffic => {
-                    StatusUpdate::ExitRouterNotRoutingIpv6Traffic
-                }
-                StatusType::ConnectionOkIpv4 => StatusUpdate::ConnectionOkIpv4,
-                StatusType::ConnectionOkIpv6 => StatusUpdate::ConnectionOkIpv6,
-                StatusType::RemainingBandwidth => StatusUpdate::RemainingBandwidth,
-                StatusType::NoBandwidth => StatusUpdate::NoBandwidth,
-                StatusType::WgTunnelError => StatusUpdate::WgTunnelError,
-                StatusType::MixnetBandwidthRate => StatusUpdate::MixnetBandwidthRate,
-                _ => StatusUpdate::Unknown, // Unspecified & Unknown
-            },
-            message: update.message.clone(),
-            data: Some(update.details.clone()),
-            error: status_update_to_error(update),
-        }
-    }
 }

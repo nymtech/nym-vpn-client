@@ -5,12 +5,8 @@ use std::{
 
 use nym_vpn_proto::account_error::AccountErrorType;
 use nym_vpn_proto::connect_request_error::ConnectRequestErrorType;
-use nym_vpn_proto::connection_status_update::StatusType;
 use nym_vpn_proto::set_network_request_error::SetNetworkRequestErrorType;
-use nym_vpn_proto::{
-    error::ErrorType as DError, AccountError, ConnectRequestError, GatewayType,
-    SetNetworkRequestError,
-};
+use nym_vpn_proto::{AccountError, ConnectRequestError, GatewayType, SetNetworkRequestError};
 use serde::Serialize;
 use thiserror::Error;
 use tracing::warn;
@@ -104,16 +100,6 @@ impl From<VpndError> for BackendError {
                 )
             }
             VpndError::Response(e) => e,
-        }
-    }
-}
-
-impl From<nym_vpn_proto::Error> for BackendError {
-    fn from(error: nym_vpn_proto::Error) -> Self {
-        Self {
-            message: error.message.clone(),
-            key: error.kind().into(),
-            data: error.details.into(),
         }
     }
 }
@@ -212,67 +198,6 @@ pub enum ErrorKey {
     MaxRegisteredDevices,
 }
 
-impl From<DError> for ErrorKey {
-    fn from(value: DError) -> Self {
-        match value {
-            DError::NoValidCredentials => ErrorKey::CStateNoValidCredential,
-            DError::Timeout => ErrorKey::CStateTimeout,
-            DError::MixnetTimeout => ErrorKey::CStateMixnetTimeout,
-            DError::MixnetStoragePaths => ErrorKey::CStateMixnetStoragePaths,
-            DError::MixnetDefaultStorage => ErrorKey::CStateMixnetDefaultStorage,
-            DError::MixnetBuildClient => ErrorKey::CStateMixnetBuildClient,
-            DError::MixnetConnect => ErrorKey::CStateMixnetConnect,
-            DError::MixnetEntryGateway => ErrorKey::CStateMixnetEntryGateway,
-            DError::IprFailedToConnect => ErrorKey::CStateIprFailedToConnect,
-            DError::GatewayDirectory => ErrorKey::CStateGwDir,
-            DError::GatewayDirectoryLookupGateways => ErrorKey::CStateGwDirLookupGateways,
-            DError::GatewayDirectoryLookupGatewayIdentity => ErrorKey::CStateGwDirLookupGatewayId,
-            DError::GatewayDirectoryLookupRouterAddress => ErrorKey::CStateGwDirLookupRouterAddr,
-            DError::GatewayDirectoryLookupIp => ErrorKey::CStateGwDirLookupIp,
-            DError::GatewayDirectoryEntry => ErrorKey::CStateGwDirEntry,
-            DError::GatewayDirectoryEntryId => ErrorKey::CStateGwDirEntryId,
-            DError::GatewayDirectoryEntryLocation => ErrorKey::CStateGwDirEntryLocation,
-            DError::GatewayDirectoryExit => ErrorKey::CStateGwDirExit,
-            DError::GatewayDirectoryExitLocation => ErrorKey::CStateGwDirExitLocation,
-            DError::GatewayDirectorySameEntryAndExitGw => ErrorKey::CStateGwDirSameEntryAndExitGw,
-            DError::OutOfBandwidth => ErrorKey::CStateOutOfBandwidth,
-            DError::OutOfBandwidthWhenSettingUpTunnel => {
-                ErrorKey::CStateOutOfBandwidthSettingUpTunnel
-            }
-            DError::BringInterfaceUp => ErrorKey::CStateBringInterfaceUp,
-            DError::FirewallInit => ErrorKey::CStateFirewallInit,
-            DError::FirewallResetPolicy => ErrorKey::CStateFirewallResetPolicy,
-            DError::DnsInit => ErrorKey::CStateDnsInit,
-            DError::DnsSet => ErrorKey::CStateDnsSet,
-            DError::FindDefaultInterface => ErrorKey::CStateFindDefaultInterface,
-            DError::Internal => ErrorKey::CSDaemonInternal,
-            DError::AuthenticatorFailedToConnect => ErrorKey::CSAuthenticatorFailedToConnect,
-            DError::AuthenticatorConnectTimeout => ErrorKey::CSAuthenticatorConnectTimeout,
-            DError::AuthenticatorInvalidResponse => ErrorKey::CSAuthenticatorInvalidResponse,
-            DError::AuthenticatorRegistrationDataVerification => {
-                ErrorKey::CSAuthenticatorRegistrationDataVerification
-            }
-            DError::AuthenticatorEntryGatewaySocketAddr => {
-                ErrorKey::CSAuthenticatorEntryGatewaySocketAddr
-            }
-            DError::AuthenticatorEntryGatewayIpv4 => ErrorKey::CSAuthenticatorEntryGatewayIpv4,
-            DError::AuthenticatorWrongVersion => ErrorKey::CSAuthenticatorWrongVersion,
-            DError::AuthenticatorMalformedReply => ErrorKey::CSAuthenticatorMalformedReply,
-            DError::AuthenticatorAddressNotFound => ErrorKey::CSAuthenticatorAddressNotFound,
-            DError::AuthenticatorAuthenticationNotPossible => {
-                ErrorKey::CSAuthenticatorAuthenticationNotPossible
-            }
-            DError::AddIpv6Route => ErrorKey::CSAddIpv6Route,
-            DError::Tun => ErrorKey::CSTun,
-            DError::Routing => ErrorKey::CSRouting,
-            DError::WireguardConfig => ErrorKey::CSWireguardConfig,
-            DError::MixnetConnectionMonitor => ErrorKey::CSMixnetConnectionMonitor,
-            DError::UnhandledExit => ErrorKey::CSUnhandledExit,
-            _ => ErrorKey::UnknownError, // `Unspecified` & `Unhandled`
-        }
-    }
-}
-
 impl From<AccountError> for BackendError {
     fn from(error: AccountError) -> Self {
         let data = error.details.clone().into();
@@ -339,21 +264,6 @@ impl From<ConnectRequestError> for BackendError {
         }
 
         BackendError::new(&message, ErrorKey::from(error.kind()))
-    }
-}
-
-impl From<StatusType> for ErrorKey {
-    fn from(value: StatusType) -> Self {
-        match value {
-            StatusType::EntryGatewayNotRoutingMixnetMessages => ErrorKey::EntryGatewayNotRouting,
-            StatusType::ExitRouterNotRespondingToIpv4Ping => ErrorKey::ExitRouterPingIpv4,
-            StatusType::ExitRouterNotRespondingToIpv6Ping => ErrorKey::ExitRouterPingIpv6,
-            StatusType::ExitRouterNotRoutingIpv4Traffic => ErrorKey::ExitRouterNotRoutingIpv4,
-            StatusType::ExitRouterNotRoutingIpv6Traffic => ErrorKey::ExitRouterNotRoutingIpv6,
-            StatusType::NoBandwidth => ErrorKey::UserNoBandwidth,
-            StatusType::WgTunnelError => ErrorKey::WgTunnelError,
-            _ => ErrorKey::UnknownError, // & `Unspecified`
-        }
     }
 }
 

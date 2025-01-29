@@ -195,20 +195,9 @@ async fn main() -> Result<()> {
             tokio::spawn(async move {
                 info!("starting vpn tunnel spy");
                 loop {
-                    c_grpc.watch_tunnel_state(&handle).await.ok();
+                    c_grpc.watch_tunnel_events(&handle).await.ok();
                     sleep(VPND_RETRY_INTERVAL).await;
                     debug!("vpn tunnel spy retry");
-                }
-            });
-
-            let handle = app.handle().clone();
-            let c_grpc = grpc.clone();
-            tokio::spawn(async move {
-                info!("starting vpn connection updates spy");
-                loop {
-                    c_grpc.watch_vpn_connection_updates(&handle).await.ok();
-                    sleep(VPND_RETRY_INTERVAL).await;
-                    debug!("vpn connection updates spy retry");
                 }
             });
 

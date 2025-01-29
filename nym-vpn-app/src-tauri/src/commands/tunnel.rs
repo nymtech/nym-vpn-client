@@ -21,7 +21,7 @@ pub async fn get_tunnel_state(
     app: tauri::AppHandle,
     grpc: State<'_, GrpcClient>,
 ) -> Result<TunnelState, BackendError> {
-    let state = grpc.tunnel_state(&app, false).await?;
+    let state = grpc.tunnel_state(&app).await?;
     Ok(state)
 }
 
