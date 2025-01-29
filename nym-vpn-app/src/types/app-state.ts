@@ -2,7 +2,7 @@ import { Dispatch } from 'react';
 import { Dayjs } from 'dayjs';
 import { StateAction } from '../state';
 import { Country, NodeHop, NodeLocation, ThemeMode, UiTheme } from './common';
-import { AccountLinks, BackendError, ErrorKey, NetworkEnv } from './tauri-ipc';
+import { AccountLinks, ErrorKey, NetworkEnv } from './tauri-ipc';
 import { Tunnel, TunnelError } from './tunnel';
 
 export type TunnelState =
@@ -82,27 +82,4 @@ export type AppError = {
   message: string;
   key: ErrorKey;
   data?: Record<string, string> | null;
-};
-
-export type StatusUpdate =
-  | 'Unknown'
-  | 'EntryGatewayConnectionEstablished'
-  | 'ExitRouterConnectionEstablished'
-  | 'TunnelEndToEndConnectionEstablished'
-  | 'EntryGatewayNotRoutingMixnetMessages'
-  | 'ExitRouterNotRespondingToIpv4Ping'
-  | 'ExitRouterNotRespondingToIpv6Ping'
-  | 'ExitRouterNotRoutingIpv4Traffic'
-  | 'ExitRouterNotRoutingIpv6Traffic'
-  | 'ConnectionOkIpv4'
-  | 'ConnectionOkIpv6'
-  | 'RemainingBandwidth'
-  | 'MixnetBandwidthRate'
-  | 'NoBandwidth';
-
-export type StatusUpdatePayload = {
-  status: StatusUpdate;
-  message: string;
-  data?: Record<string, string> | null;
-  error?: BackendError | null;
 };

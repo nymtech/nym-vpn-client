@@ -2,8 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import { useTranslation } from 'react-i18next';
 import { TunnelStateEvent } from '../constants';
-import { useMainState } from '../contexts';
-import { useI18nError, useNotify } from '../hooks';
+import { useNotify } from '../hooks';
 import { routes } from '../router';
 import {
   TunnelStateEvent as TunnelStateEventPayload,
@@ -17,9 +16,7 @@ export default function EventNotification({
 }: {
   children: React.ReactNode;
 }) {
-  const { error } = useMainState();
   const { notify } = useNotify();
-  const { tE } = useI18nError();
 
   const { t } = useTranslation('notifications');
 
@@ -63,14 +60,6 @@ export default function EventNotification({
       unlistenState.then((f) => f());
     };
   }, [registerStateListener]);
-
-  useEffect(() => {
-    if (error && error.key === 'EntryGatewayNotRouting') {
-      notify(tE(error.key), {
-        locationPath: routes.root,
-      });
-    }
-  }, [tE, error, notify]);
 
   return <>{children}</>;
 }

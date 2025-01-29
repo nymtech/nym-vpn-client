@@ -33,6 +33,7 @@ use crate::country::Country;
 use crate::env::VPND_COMPAT_REQ;
 use crate::error::BackendError;
 use crate::fs::config::AppConfig;
+use crate::grpc::events::MixnetEvent;
 use crate::{events::AppHandleEventEmitter, states::SharedAppState};
 
 const VPND_SERVICE: &str = "nym.vpn.NymVpnd";
@@ -258,16 +259,22 @@ impl GrpcClient {
         });
 
         while let Some(state) = rx.recv().await {
-            debug!("tunnel event {:?}", state.event);
+            debug!("event {:?}", state.event);
             let Some(event) = state.event else {
-                warn!("no tunnel event data, ignoring…");
+                warn!("no event data, ignoring…");
                 continue;
             };
             match event {
                 Event::TunnelState(state) => {
                     GrpcClient::handle_tunnel_update(app, state).await.ok();
                 }
-                Event::MixnetEvent(_) => { /* TODO to implement */ }
+                Event::MixnetEvent(event) => {
+                    if let Some(e) = MixnetEvent::from_proto(event) {
+                        app.emit_mixnet_event(e);
+                    } else {
+                        warn!("failed to parse mixnet event");
+                    }
+                }
             }
         }
 
@@ -294,45 +301,6 @@ impl GrpcClient {
         }
         Ok(())
     }
-
-    /// Watch VPN connection status updates
-    // #[instrument(skip_all)]
-    // pub async fn watch_vpn_connection_updates(&self, app: &AppHandle) -> Result<()> {
-    //     let mut vpnd = self.vpnd().await?;
-    //
-    //     let request = Request::new(());
-    //     let mut stream = vpnd
-    //         .listen_to_connection_status(request)
-    //         .await
-    //         .inspect_err(|e| {
-    //             error!("listen_to_connection_status failed: {}", e);
-    //         })?
-    //         .into_inner();
-    //
-    //     let (tx, mut rx) = mpsc::channel(32);
-    //     tokio::spawn(async move {
-    //         loop {
-    //             match stream.message().await {
-    //                 Ok(Some(update)) => {
-    //                     tx.send(update).await.unwrap();
-    //                 }
-    //                 Ok(None) => {
-    //                     warn!("watch vpn connection status stream closed by the server");
-    //                     return;
-    //                 }
-    //                 Err(e) => {
-    //                     warn!("watch vpn connection status stream get a grpc error: {}", e);
-    //                 }
-    //             }
-    //         }
-    //     });
-    //
-    //     while let Some(update) = rx.recv().await {
-    //         connection_update::update(app, update).await?;
-    //     }
-    //
-    //     Ok(())
-    // }
 
     /// Connect to the VPN
     #[instrument(skip_all)]

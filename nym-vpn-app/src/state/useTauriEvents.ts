@@ -5,18 +5,19 @@ import i18n from 'i18next';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import {
   AccountLinks,
+  MixnetEventPayload,
   ProgressEventPayload,
   StateDispatch,
-  StatusUpdatePayload,
   TunnelStateIpc,
   VpndStatus,
+  isMixnetEventError,
   isVpndNonCompat,
   isVpndOk,
 } from '../types';
 import {
   DaemonEvent,
+  MixnetEvent,
   ProgressEvent,
-  StatusUpdateEvent,
   TunnelStateEvent,
 } from '../constants';
 import { Notification } from '../contexts';
@@ -68,14 +69,14 @@ export function useTauriEvents(
     });
   }, [dispatch]);
 
-  const registerStatusUpdateListener = useCallback(() => {
-    return listen<StatusUpdatePayload>(StatusUpdateEvent, (event) => {
+  const registerMixnetEventListener = useCallback(() => {
+    return listen<MixnetEventPayload>(MixnetEvent, (event) => {
       const { payload } = event;
-      console.log(`received event [${event.event}]`, payload);
-      if (payload.error) {
+      console.log(`received mixnet event [${event.event}]`, payload);
+      if (isMixnetEventError(payload)) {
         dispatch({
           type: 'set-error',
-          error: payload.error,
+          error: { key: payload.error, message: payload.error },
         });
       }
     });
@@ -108,21 +109,21 @@ export function useTauriEvents(
   useEffect(() => {
     const unlistenDaemon = registerDaemonListener();
     const unlistenState = registerStateListener();
-    const unlistenStatusUpdate = registerStatusUpdateListener();
+    const unlistenMixnetEvent = registerMixnetEventListener();
     const unlistenProgress = registerProgressListener();
     const unlistenThemeChanges = registerThemeChangedListener();
 
     return () => {
       unlistenDaemon.then((f) => f());
       unlistenState.then((f) => f());
-      unlistenStatusUpdate.then((f) => f());
+      unlistenMixnetEvent.then((f) => f());
       unlistenProgress.then((f) => f());
       unlistenThemeChanges.then((f) => f());
     };
   }, [
     registerDaemonListener,
     registerStateListener,
-    registerStatusUpdateListener,
+    registerMixnetEventListener,
     registerProgressListener,
     registerThemeChangedListener,
   ]);

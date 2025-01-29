@@ -20,69 +20,7 @@
     "bad-bandwidth-increase": "Bandwidth increase error",
     "duplicate-tun-fd": "Duplicate tunnel fd"
   },
-  "connection": {
-    "general": "General error, check the logs to get more details",
-    "no-valid-credential": "No valid credential, please add a credential first",
-    "timeout": "Connection timeout",
-    "unhandled-exit": "The vpn exiting with an error. It's likely a bug.",
-    "mixnet": {
-      "timeout": "Mixnet connection timeout",
-      "storage-path": "Failed to create the mixnet storage paths",
-      "default-storage": "Failed to create the mixnet with default storage",
-      "build-client": "Failed to build the mixnet client",
-      "connect": "Failed to connect to the mixnet",
-      "entry-gateway": "Failed to connect to the mixnet entry gateway",
-      "monitor": "Mixnet Connection monitor failed"
-    },
-    "wireguard": {
-      "config": "Fail to setup the WireGuard configuration",
-      "tunnel": "WireGuard tunnel error"
-    },
-    "ipr-connect": "Failed to connect to the IPR",
-    "gateway-lookup": {
-      "generic": "Failed to lookup the gateways",
-      "id": "Failed to lookup gateway identity",
-      "ipr": "Failed to lookup the IPR address",
-      "ip": "Failed to lookup the gateway IP address",
-      "entry": "Failed to lookup the entry gateway",
-      "entry-id": "Failed to lookup the entry gateway identity",
-      "entry-location": "Failed to lookup the entry gateway for a given location",
-      "exit": "Failed to lookup the exit gateway",
-      "exit-location": "Failed to lookup the exit gateway for a given location"
-    },
-    "bad-country-combination": "Unsupported country combination, please change the entry or exit country",
-    "bandwidth": {
-      "tunnel-up": "No available bandwidth to setup tunnel"
-    },
-    "interface": {
-      "find-default": "Failed to find the default network interface",
-      "wg-bring-up": "Failed to bring up the WireGuard interface"
-    },
-    "firewall": {
-      "init": "Failed to init firewall subsystem",
-      "reset-policy": "Failed to reset the firewall policy"
-    },
-    "dns": {
-      "init": "Failed to init DNS subsystem",
-      "set": "Failed to set DNS"
-    },
-    "authenticator": {
-      "connect": "Failed to connect to one of the authenticators",
-      "timeout": "Failed to connect to the authenticator, timeout waiting for the connect response",
-      "invalid-response": "Failed to connect to the authenticator, the response was invalid",
-      "registration-data": "Failed to verify the registration data provided by the authenticator",
-      "entry-gw-socket-addr": "Failed to parse the socket addr provided by the authenticator when setting up the WireGuard configuration",
-      "entry-gw-ipv4": "Failed to parse the IPv4 provided by the authenticator when setting up the WireGuard configuration",
-      "wrong-version": "The authenticator responded with a response tagged with a version we can't understand",
-      "malformed-reply": "The authenticator, or someone else, responded with a reply that we can't read",
-      "address-not-found": "Not authenticator address found for the gateway(s) we're trying to use",
-      "auth-not-possible": "Authentication with the authenticators was not possible, as we we don't have addresses for them. This is likely an internal programming error"
-    },
-    "add-ipv6-route": "Failed to add ipv6 default route to capture ipv6 traffic",
-    "tun-device": "Tun device failed",
-    "routing": "Routing failed",
-    "ready-to-connect": "It was not yet possible to determine if we are ready to connect during the check"
-  },
+  "connection-general": "General error, check the logs to get more details",
   "zknym": {
     "request-failed": "Requesting zk-nym failed"
   },
@@ -102,10 +40,14 @@
     "exit": "Failed to fetch the available exit node countries",
     "fast-mode": "Failed to fetch the available countries"
   },
-  "out-of-bandwidth": "Out of allocated bandwidth",
-  "entry-node-routing": "Entry node is not routing traffic (internet connection down?)",
-  "exit-node": {
-    "routing": "Exit node is not routing {{protocol}} traffic",
-    "ping": "Exit node ping failed for {{protocol}} traffic"
+  "no-bandwidth": "Out of bandwidth",
+  "entry-gateway-down": "Entry gateway is down",
+  "exit-gateway-down": {
+    "ipv4": "Exit gateway is down (IPv4)",
+    "ipv6": "Exit gateway is down (IPv6)"
+  },
+  "exit-gateway-routing": {
+    "ipv4": "Exit gateway routing error (IPv4)",
+    "ipv6": "Exit gateway routing error (IPv6)"
   }
 }

@@ -1,4 +1,4 @@
-import { BackendError } from './tauri-ipc';
+import { BackendError, ErrorKey } from './tauri-ipc';
 
 export type TunnelConnected = { connected: Tunnel };
 export type TunnelConnecting = {
@@ -99,3 +99,36 @@ export type WgNode = {
   privateIpv4: string;
   privateIpv6: string;
 };
+
+export type RemainingBandwidth = {
+  'remaining-bandwidth': bigint;
+};
+export type MixnetEvent =
+  | 'entry-gw-down'
+  | 'exit-gw-down-ipv4'
+  | 'exit-gw-down-ipv6'
+  | 'exit-gw-routing-error-ipv4'
+  | 'exit-gw-routing-error-ipv6'
+  | 'connected-ipv4'
+  | 'connected-ipv6'
+  | 'no-bandwidth'
+  | RemainingBandwidth
+  | 'sphinx-packet-metrics';
+
+export function isRemainingBandwidth(
+  event: MixnetEvent,
+): event is RemainingBandwidth {
+  return (event as RemainingBandwidth)['remaining-bandwidth'] !== undefined;
+}
+
+export type MixnetEventPayload =
+  | { event: MixnetEvent }
+  | {
+      error: ErrorKey;
+    };
+
+export function isMixnetEventError(
+  payload: MixnetEventPayload,
+): payload is { error: ErrorKey } {
+  return (payload as { error: ErrorKey }).error !== undefined;
+}
