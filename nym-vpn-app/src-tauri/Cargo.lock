@@ -3119,7 +3119,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "1.2.0-mirabelle.2"
+version = "1.2.0-mirabelle.3"
 dependencies = [
  "anyhow",
  "build-info",
@@ -3163,7 +3163,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-proto"
-version = "1.2.0-beta.4"
+version = "1.2.0-beta.5"
 dependencies = [
  "nym-http-api-client",
  "prost",
