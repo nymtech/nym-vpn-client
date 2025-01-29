@@ -90,8 +90,7 @@ async fn run_service_inner(
         process_id: None,
     })?;
 
-    let (state_changes_tx, state_changes_rx) = broadcast::channel(10);
-    let (status_tx, status_rx) = broadcast::channel(10);
+    let (tunnel_event_tx, tunnel_event_rx) = broadcast::channel(10);
 
     // The idea here for explicly starting two separate runtimes is to make sure they are properly
     // separated. Looking ahead a little ideally it would be nice to be able for the command
@@ -99,8 +98,7 @@ async fn run_service_inner(
 
     // Start the command interface that listens for commands from the outside
     let (command_handle, vpn_command_rx) = command_interface::start_command_interface(
-        state_changes_rx,
-        status_rx,
+        tunnel_event_rx,
         None,
         shutdown_token.child_token(),
     );
@@ -109,9 +107,8 @@ async fn run_service_inner(
 
     // Start the VPN service that wraps the actual VPN
     let vpn_handle = NymVpnService::spawn(
-        state_changes_tx,
         vpn_command_rx,
-        status_tx,
+        tunnel_event_tx,
         shutdown_token.child_token(),
         network_env,
         user_agent,
