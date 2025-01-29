@@ -125,8 +125,9 @@ async fn configure_lib(data_dir: String, credential_mode: Option<bool>) -> Resul
     account::init_account_controller(PathBuf::from(data_dir), credential_mode, network).await
 }
 
-fn init_logger(path: Option<PathBuf>) {
-    let log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
+fn init_logger(path: Option<PathBuf>, debug_level: Option<String>) {
+    let default_log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
+    let log_level = debug_level.unwrap_or(default_log_level);
     tracing::info!("Setting log level: {log_level}, path?: {path:?}");
     #[cfg(target_os = "ios")]
     swift::init_logs(log_level, path);
@@ -138,8 +139,8 @@ fn init_logger(path: Option<PathBuf>) {
 /// library. Thus it's only needed when `configureLib` is not used.
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn initLogger(path: Option<PathBuf>) {
-    init_logger(path);
+pub fn initLogger(path: Option<PathBuf>, debug_level: Option<String>) {
+    init_logger(path, debug_level);
 }
 
 /// Returns the system messages for the current network environment

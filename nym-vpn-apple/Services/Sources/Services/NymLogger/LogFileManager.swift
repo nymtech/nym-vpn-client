@@ -22,7 +22,7 @@ public final class LogFileManager: ObservableObject {
         fileHandle = nil
     }
 
-    public func logFileURL(logFileType: LogFileType) -> URL? {
+    public static func logFileURL(logFileType: LogFileType) -> URL? {
         let fileManager = FileManager.default
         var logsDirectory: URL?
         #if os(macOS)
@@ -56,7 +56,7 @@ public final class LogFileManager: ObservableObject {
     public func deleteLogs() {
         ioQueue.async {
             LogFileType.allCases.forEach { type in
-                guard let logFileURL = self.logFileURL(logFileType: type) else { return }
+                guard let logFileURL = LogFileManager.logFileURL(logFileType: type) else { return }
                 try? FileManager.default.removeItem(at: logFileURL)
             }
             try? self.fileHandle?.close()
@@ -88,7 +88,7 @@ private extension LogFileManager {
     func configureNoQueue() {
         dispatchPrecondition(condition: .onQueue(ioQueue))
 
-        guard let logFileURL = self.logFileURL(logFileType: self.logFileType) else { return }
+        guard let logFileURL = LogFileManager.logFileURL(logFileType: self.logFileType) else { return }
 
         if !FileManager.default.fileExists(atPath: logFileURL.path(percentEncoded: false)) {
             FileManager.default.createFile(
