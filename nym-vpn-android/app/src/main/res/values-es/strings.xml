@@ -196,4 +196,7 @@
     <string name="no_active_subscription">No se ha detectado ninguna suscripción activa.</string>
     <string name="recovery_phrase_message">Introduce a continuación tu frase secreta de recuperación de 24 palabras para acceder a tu cuenta</string>
     <string name="loading">Cargando</string>
+    <string name="offline">Sin internet</string>
+    <string name="waiting_for_connection">Se conectará cuando el dispositivo este online</string>
+    <string name="no_internet">Tu dispositivo no tiene conexión a Internet</string>
 </resources>
