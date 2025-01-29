@@ -6491,9 +6491,10 @@ public func initFallbackMainnetEnvironment()throws  {try rustCallWithError(FfiCo
  * Additional extra function for when only only want to set the logger without initializing the
  * library. Thus it's only needed when `configureLib` is not used.
  */
-public func initLogger(path: PathBuf?) {try! rustCall() {
+public func initLogger(path: PathBuf?, debugLevel: String?) {try! rustCall() {
     uniffi_nym_vpn_lib_fn_func_initlogger(
-        FfiConverterOptionTypePathBuf.lower(path),$0
+        FfiConverterOptionTypePathBuf.lower(path),
+        FfiConverterOptionString.lower(debugLevel),$0
     )
 }
 }
@@ -6812,7 +6813,7 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_func_initfallbackmainnetenvironment() != 43903) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_initlogger() != 36058) {
+    if (uniffi_nym_vpn_lib_checksum_func_initlogger() != 11993) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_isaccountmnemonicstored() != 43744) {
