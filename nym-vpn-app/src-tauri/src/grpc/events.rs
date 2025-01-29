@@ -2,7 +2,9 @@ use serde::Serialize;
 use ts_rs::TS;
 
 use nym_vpn_proto as p;
-use p::mixnet_event::{bandwidth_event::Event as BandwidthEventEvent, BandwidthEvent, Event};
+use p::mixnet_event::{
+    bandwidth_event::Event as BandwidthEventEvent, BandwidthEvent, ConnectionEvent, Event,
+};
 use tracing::{error, instrument};
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
@@ -49,19 +51,20 @@ impl MixnetEvent {
 
     #[instrument]
     pub fn from_connection_event(event: i32) -> Option<Self> {
-        if !(0..=6).contains(&event) {
-            error!("invalid connection event");
-            return None;
-        }
-        match event {
-            0 => Some(Self::EntryGwDown),
-            1 => Some(Self::ExitGwDownIpv4),
-            2 => Some(Self::ExitGwDownIpv6),
-            3 => Some(Self::ExitGwRoutingErrorIpv4),
-            4 => Some(Self::ExitGwRoutingErrorIpv6),
-            5 => Some(Self::ConnectedIpv4),
-            6 => Some(Self::ConnectedIpv6),
-            _ => unreachable!(),
+        if let Ok(e) = ConnectionEvent::try_from(event)
+            .inspect_err(|e| error!("invalid connection event [{}], {}", event, e))
+        {
+            match e {
+                ConnectionEvent::EntryGatewayDown => Some(Self::EntryGwDown),
+                ConnectionEvent::ExitGatewayDownIpv4 => Some(Self::ExitGwDownIpv4),
+                ConnectionEvent::ExitGatewayDownIpv6 => Some(Self::ExitGwDownIpv6),
+                ConnectionEvent::ExitGatewayRoutingErrorIpv4 => Some(Self::ExitGwRoutingErrorIpv4),
+                ConnectionEvent::ExitGatewayRoutingErrorIpv6 => Some(Self::ExitGwRoutingErrorIpv6),
+                ConnectionEvent::ConnectedIpv4 => Some(Self::ConnectedIpv4),
+                ConnectionEvent::ConnectedIpv6 => Some(Self::ConnectedIpv6),
+            }
+        } else {
+            None
         }
     }
 }
