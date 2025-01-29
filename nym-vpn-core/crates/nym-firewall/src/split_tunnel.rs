@@ -4,7 +4,10 @@
 
 /// Identifies packets coming from the cgroup.
 /// This should be an arbitrary but unique integer.
+#[cfg(target_os = "linux")]
 pub const NET_CLS_CLASSID: u32 = 0x4d9f42;
+
 /// Value used to mark packets and associated connections.
 /// This should be an arbitrary but unique integer.
+#[cfg(target_os = "linux")]
 pub const MARK: i32 = 0xf42;
