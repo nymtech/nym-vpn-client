@@ -1,5 +1,5 @@
 {
-  "disconnect": "Bağlantıyı kes",
+  "disconnect": "Bağlantı kesildi",
   "connect": "Bağlan",
   "status": {
     "connected": "Bağlantı sağlandı",
