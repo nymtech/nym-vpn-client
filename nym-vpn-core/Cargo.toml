@@ -8,15 +8,18 @@ members = [
     "crates/nym-connection-monitor",
     "crates/nym-dbus",
     "crates/nym-dns",
+    "crates/nym-firewall",
     "crates/nym-gateway-directory",
     "crates/nym-gateway-probe",
     "crates/nym-harbour-master-client",
     "crates/nym-ip-packet-client",
     "crates/nym-mixnet-client",
     "crates/nym-offline-monitor",
+    "crates/nym-platform-metadata",
     "crates/nym-routing",
     "crates/nym-vpn-account-controller",
     "crates/nym-vpn-api-client",
+    "crates/nym-vpn-lib-types",
     "crates/nym-vpn-lib",
     "crates/nym-vpn-network-config",
     "crates/nym-vpn-proto",
@@ -28,9 +31,6 @@ members = [
     "crates/nym-wg-go",
     "crates/nym-windows",
     "crates/uniffi-bindgen",
-    "crates/nym-vpn-lib-types",
-    "crates/nym-firewall",
-    "crates/nym-platform-metadata",
 ]
 
 default-members = [
