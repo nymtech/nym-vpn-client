@@ -18,6 +18,7 @@ cwd=$(pwd)
 RED="\e[38;5;1m" # red
 GRN="\e[38;5;2m" # green
 YLW="\e[38;5;3m" # yellow
+MGT="\e[38;5;5m" # magenta
 GRY="\e[38;5;8m" # gray
 BLD="\e[1m"      # bold
 ITL="\e[3m"      # italic
@@ -25,6 +26,7 @@ RS="\e[0m"       # style reset
 B_RED="$BLD$RED"
 B_GRN="$BLD$GRN"
 B_YLW="$BLD$YLW"
+B_MGT="$BLD$MGT"
 I_YLW="$ITL$YLW"
 B_GRY="$BLD$GRY"
 I_GRY="$ITL$GRY"
@@ -32,19 +34,25 @@ BI_GRN="$ITL$B_GRN"
 BI_YLW="$ITL$B_YLW"
 BI_GRY="$ITL$B_GRY"
 BI="$ITL$BLD"
+BI_MGT="$ITL$B_MGT"
 ####
 
 # AppImage
 app_tag=nym-vpn-app-v1.2.0-mirabelle.2
 app_version=1.2.0-mirabelle.2
 appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/NymVPN_${app_version}_x64.AppImage"
+app_deb_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/nym-vpn-app_${app_version}_amd64.deb"
 desktop_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/fb526935/nym-vpn-app/.pkg/app.desktop"
 icon_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/fb526935/nym-vpn-app/.pkg/icon.svg"
 
 # nym-vpnd
 vpnd_tag=nym-vpn-core-v1.2.0-beta.4
+# ⚠ there are inconsistencies in the package version naming…
 vpnd_version=1.2.0-beta.4
-vpnd_url="https://github.com/nymtech/nym-vpn-client/releases/download/$vpnd_tag/nym-vpn-core-v${vpnd_version}_linux_x86_64.tar.gz"
+vpnd_deb_ver=1.2.0~beta.4-1
+vpnd_deb_ver_url=1.2.0.beta.4-1
+vpnd_raw_url="https://github.com/nymtech/nym-vpn-client/releases/download/$vpnd_tag/nym-vpn-core-v${vpnd_version}_linux_x86_64.tar.gz"
+vpnd_deb_url="https://github.com/nymtech/nym-vpn-client/releases/download/$vpnd_tag/nym-vpnd_${vpnd_deb_ver_url}_amd64.deb"
 unit_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/fb526935/nym-vpn-core/crates/nym-vpnd/.pkg/aur/nym-vpnd.service"
 
 # function called when an error occurs, will print the exit
@@ -128,15 +136,22 @@ install_dir="/usr/bin"
 desktop_dir="/usr/share/applications"
 icons_dir="/usr/share/icons/hicolor/scalable/apps"
 appimage="NymVPN_${app_version}_x64.AppImage"
+app_deb="nym-vpn-app_${app_version}_amd64.deb"
 target_appimage="NymVPN.AppImage"
 core_archive="nym-vpn-core-v${vpnd_version}_linux_x86_64.tar.gz"
 vpnd_bin="nym-vpnd"
 vpnd_service="nym-vpnd.service"
+vpnd_deb="nym-vpnd_${vpnd_deb_ver}_amd64.deb"
 units_dir="/usr/lib/systemd/system"
 desktop_exec='env LOG_FILE=1 RUST_LOG=info,nym_vpn_app=debug NymVPN.AppImage %U'
 os=$(uname -a)
 # → to lowercase
 os="${os,,}"
+install_type="raw"
+
+# for deb based systems install from deb packages
+[[ "$os" == *debian* || "$os" == *ubuntu* || "$os" == *mint* ]] &&
+  install_type="deb"
 
 # components to install/uninstall
 # 0 = to be (un)installed
@@ -207,8 +222,8 @@ select_components() {
   esac
 }
 
-# Download `nym-vpn-app` appimage
-download_client() {
+# Download app AppImage and desktop assets
+download_app_appimage() {
   _pushd "$temp_dir"
   log "  ${B_GRN}Downloading$RS $appimage"
   curl -fL -# "$appimage_url" -o $appimage
@@ -216,7 +231,7 @@ download_client() {
   curl -fL -# "$appimage_url.sha256sum" -o "$appimage.sha256sum"
   log "  ${B_GRN}Checking$RS sha256sum"
   sha256sum --check --status "$appimage.sha256sum"
-  log "   ${BI_GRN}ok$RS"
+  log "   ${BI_MGT}ok$RS"
   log "  ${B_GRN}Downloading$RS app desktop entry"
   curl -fL -# "$desktop_url" -o app.desktop
   log "  ${B_GRN}Downloading$RS app icon"
@@ -224,21 +239,47 @@ download_client() {
   _popd
 }
 
+# Download `nym-vpn-app` deb package
+download_app_deb() {
+  _pushd "$temp_dir"
+  log "  ${B_GRN}Downloading$RS $app_deb"
+  curl -fL -# "$app_deb_url" -o $app_deb
+  log "  ${B_GRN}Downloading$RS $app_deb.sha256sum"
+  curl -fL -# "$app_deb_url.sha256sum" -o "$app_deb.sha256sum"
+  log "  ${B_GRN}Checking$RS sha256sum"
+  sha256sum --check --status "$app_deb.sha256sum"
+  log "   ${BI_MGT}ok$RS"
+  _popd
+}
+
 # Download `nym-vpnd` prebuilt binary
-download_daemon() {
+download_vpnd_raw() {
   _pushd "$temp_dir"
   log "  ${B_GRN}Downloading$RS nym-vpnd archive"
-  curl -fL -# "$vpnd_url" -o $core_archive
+  curl -fL -# "$vpnd_raw_url" -o $core_archive
   log "  ${B_GRN}Downloading$RS archive sha256sum"
-  curl -fL -# "$vpnd_url.sha256sum" -o "$core_archive.sha256sum"
+  curl -fL -# "$vpnd_raw_url.sha256sum" -o "$core_archive.sha256sum"
   log "  ${B_GRN}Checking$RS sha256sum"
   sha256sum --check --status "$core_archive.sha256sum"
-  log "   ${BI_GRN}ok$RS"
+  log "   ${BI_MGT}ok$RS"
   log "  ${B_GRN}Downloading$RS unit file"
   curl -fL -# "$unit_url" -o nym-vpnd.service
   log "  ${B_GRN}Unarchiving$RS nym-vpnd"
   tar -xzf "$core_archive"
   mv "${core_archive%.tar.gz}/$vpnd_bin" $vpnd_bin
+  _popd
+}
+
+# Download `nym-vpnd` deb package
+download_vpnd_deb() {
+  _pushd "$temp_dir"
+  log "  ${B_GRN}Downloading$RS $vpnd_deb"
+  curl -fL -# "$vpnd_deb_url" -o $vpnd_deb
+  log "  ${B_GRN}Downloading$RS $vpnd_deb.sha256sum"
+  curl -fL -# "$vpnd_deb_url.sha256sum" -o "$vpnd_deb.sha256sum"
+  log "  ${B_GRN}Checking$RS sha256sum"
+  sha256sum --check --status "$vpnd_deb.sha256sum"
+  log "   ${BI_MGT}ok$RS"
   _popd
 }
 
@@ -371,7 +412,7 @@ check_system_deps() {
   esac
 }
 
-install_client() {
+install_app_appimage() {
   log "  ${B_GRN}Installing$RS NymVPN.AppImage"
   sudo install -o "$(id -u)" -g "$(id -g)" -Dm755 "$temp_dir/$appimage" "$install_dir/$target_appimage"
 
@@ -389,7 +430,14 @@ install_client() {
   log "   ${I_YLW}$(tilded "$icons_dir/nym-vpn.svg")$RS"
 }
 
-install_daemon() {
+install_app_deb() {
+  log "  ${B_GRN}Installing$RS $app_deb"
+  _pushd "$temp_dir"
+  sudo apt install "./$app_deb"
+  _popd
+}
+
+install_vpnd_raw() {
   log "  ${B_GRN}Installing$RS nym-vpnd"
   sudo install -o "$(id -u)" -g "$(id -g)" -Dm755 "$temp_dir/$vpnd_bin" "$install_dir/$vpnd_bin"
 
@@ -399,6 +447,13 @@ install_daemon() {
   log "  ${B_GRN}Installed$RS files"
   log "   ${I_YLW}$(tilded "$install_dir/$vpnd_bin")$RS"
   log "   ${I_YLW}$(tilded "$units_dir/$vpnd_service")$RS"
+}
+
+install_vpnd_deb() {
+  log "  ${B_GRN}Installing$RS $vpnd_deb"
+  _pushd "$temp_dir"
+  sudo apt install "./$vpnd_deb"
+  _popd
 }
 
 # try to remove a bunch of files or directories
@@ -478,34 +533,38 @@ _install() {
   log "$ITL${B_GRN}nym$RS${BI_GRY}VPN$RS ${BI}installer$RS\n"
   log "  app ${BI_YLW}$app_version$RS ${I_GRY}client$RS"
   log "  nym-vpnd ${BI_YLW}$vpnd_version$RS ${I_GRY}daemon$RS\n"
-  # TODO remove this when we switch to stable
-  log "  ${BI_YLW}⚠ currently this script only installs 'dev' versions$RS\n"
 
   need_cmd mktemp
   temp_dir=$(mktemp -d)
 
   pre_check
   select_components
-  check_system_pkg
-  sanity_check
-  check_system_deps
-  [[ "$_app" == 0 ]] && download_client
-  [[ "$_vpnd" == 0 ]] && download_daemon
-  [[ "$_app" == 0 ]] && install_client
-  if [ "$_vpnd" == 0 ]; then
-    install_daemon
-    start_service
-  fi
-  post_install
-  cleanup
 
+  if [ "$install_type" = raw ]; then
+    check_system_pkg
+    sanity_check
+    check_system_deps
+    [[ "$_app" == 0 ]] && download_app_appimage
+    [[ "$_vpnd" == 0 ]] && download_vpnd_raw
+    [[ "$_app" == 0 ]] && install_app_appimage
+    if [ "$_vpnd" == 0 ]; then
+      install_vpnd_raw
+      start_service
+    fi
+    post_install
+  else
+    [[ "$_vpnd" == 0 ]] && download_vpnd_deb
+    [[ "$_app" == 0 ]] && download_app_deb
+    # as nym-vpnd is a dependency for the app, install it first
+    [[ "$_vpnd" == 0 ]] && install_vpnd_deb
+    [[ "$_app" == 0 ]] && install_app_deb
+  fi
+
+  cleanup
   log "\n${BI_GRN}done$RS"
 }
 
-_uninstall() {
-  log "$ITL${B_GRN}nym$RS${BI_GRY}VPN$RS ${BI}uninstaller$RS\n"
-
-  select_components uninstall
+_uninstall_raw() {
   check_system_pkg
 
   local files=()
@@ -547,8 +606,17 @@ _uninstall() {
   fi
 
   [[ "$_vpnd" == 0 ]] && stop_vpnd_service
+}
 
-  log "\n${BI_GRN}done$RS"
+_uninstall_deb() {
+  if [ "$_app" == 0 ]; then
+    log "  ${B_GRN}Removing$RS nymp-vpn-app"
+    sudo apt remove nym-vpn-app
+  fi
+  if [ "$_vpnd" == 0 ]; then
+    log "  ${B_GRN}Removing$RS nymp-vpnd"
+    sudo apt remove nym-vpnd
+  fi
 }
 
 need_cmd uname
@@ -562,7 +630,15 @@ need_cmd which
 need_cmd grep
 
 if [ "$1" == uninstall ]; then
-  _uninstall
+  log "$ITL${B_GRN}nym$RS${BI_GRY}VPN$RS ${BI}uninstaller$RS\n"
+  select_components uninstall
+  if [ "$install_type" = raw ]; then
+    _uninstall_raw
+  else
+    _uninstall_deb
+  fi
+  log "\n${BI_GRN}done$RS"
   exit 0
 fi
+
 _install
