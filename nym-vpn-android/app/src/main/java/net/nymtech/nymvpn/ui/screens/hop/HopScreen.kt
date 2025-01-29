@@ -1,10 +1,19 @@
 package net.nymtech.nymvpn.ui.screens.hop
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,10 +27,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -36,10 +49,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.os.ConfigurationCompat
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -47,10 +64,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
-import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.Modal
-import net.nymtech.nymvpn.ui.common.buttons.SelectionItemButton
-import net.nymtech.nymvpn.ui.common.labels.SelectedLabel
+import net.nymtech.nymvpn.ui.common.VerticalDivider
+import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
+import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.navigation.NavIcon
@@ -60,13 +77,13 @@ import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getFlagImageVectorByName
-import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib.GatewayType
 import java.text.Collator
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -118,27 +135,27 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 		Tunnel.Mode.TWO_HOP_MIXNET -> GatewayType.WG
 	}
 
-	val countries = when (gatewayType) {
+	val gateways = when (gatewayType) {
 		GatewayType.MIXNET_ENTRY -> appUiState.gateways.entryCountries
 		GatewayType.MIXNET_EXIT -> appUiState.gateways.exitCountries
 		GatewayType.WG -> appUiState.gateways.wgCountries
 	}
 
-	val selectedCountry = when (gatewayLocation) {
-		GatewayLocation.EXIT -> appUiState.exitCountry
-		GatewayLocation.ENTRY -> appUiState.entryCountry
-	}
+//	val selectedCountry = when (gatewayLocation) {
+//		GatewayLocation.EXIT -> appUiState.exitCountry
+//		GatewayLocation.ENTRY -> appUiState.entryCountry
+//	}
 
 	val queriedCountries =
 		remember(uiState.queriedCountries) {
-			uiState.queriedCountries.sortedWith(compareBy(collator) { it.name })
+			uiState.queriedCountries.sortedWith(compareBy(collator) { it.identity })
 		}
 
-	val allCountries = remember(countries) {
-		countries.sortedWith(compareBy(collator) { it.name })
+	val allCountries = remember(gateways) {
+		gateways.sortedWith(compareBy(collator) { it.identity })
 	}
 
-	val displayCountries = if (uiState.query.isBlank()) allCountries else queriedCountries
+	val displayGateways = if (uiState.query.isBlank()) allCountries else queriedCountries
 
 	LaunchedEffect(Unit) {
 		viewModel.updateCountryCache(gatewayType)
@@ -195,7 +212,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 						value = query,
 						onValueChange = {
 							query = it
-							viewModel.onQueryChange(it, countries)
+							viewModel.onQueryChange(it, gateways)
 						},
 						modifier = Modifier
 							.fillMaxWidth()
@@ -229,7 +246,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 					)
 				}
 			}
-			if (countries.isEmpty()) {
+			if (gateways.isEmpty()) {
 				item {
 					if (uiState.error) {
 						Text(
@@ -246,7 +263,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 					}
 				}
 			}
-			if (countries.isNotEmpty()) {
+			if (gateways.isNotEmpty()) {
 				item {
 // 				if (gatewayLocation == GatewayLocation.ENTRY) {
 // 					val icon = ImageVector.vectorResource(R.drawable.bolt)
@@ -281,38 +298,125 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 // 				}
 				}
 			}
-			items(displayCountries, key = { it.isoCode }) {
-				if (it.isLowLatency) return@items
-				val icon =
-					ImageVector.vectorResource(
-						context.getFlagImageVectorByName(
-							it.isoCode.lowercase(),
-						),
-					)
-				SelectionItemButton(
-					{
-						Image(
-							icon,
-							icon.name,
-							modifier =
-							Modifier
-								.padding(horizontal = 24.dp.scaledWidth(), 16.dp.scaledHeight())
-								.size(
-									iconSize,
-								),
+			items(gateways.distinctBy { it.twoLetterCountryISO }, key = { it.identity }) { country ->
+				val locale = country.twoLetterCountryISO?.let { Locale(it, it) }
+				Column(modifier = Modifier.padding(bottom = 8.dp)){
+					var expanded by remember { mutableStateOf(false) }
+					val rotationAngle by animateFloatAsState(targetValue = if (expanded) 180f else 0f)
+					SurfaceSelectionGroupButton(
+						listOf(
+							SelectionItem(
+								leading = {
+									val icon = country.twoLetterCountryISO?.let {
+										ImageVector.vectorResource(
+											context.getFlagImageVectorByName(
+												it.lowercase(),
+											),
+										)
+									} ?: ImageVector.vectorResource(context.getFlagImageVectorByName("unknown"))
+									Image(
+										icon,
+										icon.name,
+										modifier =
+										Modifier
+											.padding(horizontal = 24.dp.scaledWidth(), 16.dp.scaledHeight())
+											.size(
+												iconSize,
+											),
+									)
+								},
+								trailing = {
+									Row(horizontalArrangement = Arrangement.spacedBy(16.dp),
+										verticalAlignment = Alignment.CenterVertically,
+										modifier = Modifier.fillMaxSize().clickable{
+											expanded = !expanded
+										}){
+										VerticalDivider(modifier = Modifier.height(42.dp))
+										val icon = Icons.Filled.ArrowDropDown
+										Icon(
+											imageVector = icon,
+											contentDescription = if (expanded) "Collapse" else "Expand",
+											modifier = Modifier.graphicsLayer(rotationZ = rotationAngle)
+										)
+									}
+								},
+								title = { Text(locale?.displayCountry ?: "Unknown", style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+								description = {
+									Text(gateways.count { it.twoLetterCountryISO == country.twoLetterCountryISO }.toString() + " servers",
+										style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
+									)
+								},
+							)
 						)
-					},
-					buttonText = it.name,
-					onClick = {
-						viewModel.onSelected(it, gatewayLocation)
-						navController.navigateAndForget(Route.Main())
-					},
-					trailing = {
-						if (it.isoCode == selectedCountry.isoCode && !selectedCountry.isLowLatency) {
-							SelectedLabel()
-						}
-					},
-				)
+					)
+					AnimatedVisibility(
+						visible = expanded,
+						enter = expandVertically() + fadeIn(),
+						exit = shrinkVertically() + fadeOut()
+					) {
+						SurfaceSelectionGroupButton(gateways.filter { it.twoLetterCountryISO == country.twoLetterCountryISO }.map { gateway ->
+							SelectionItem(
+								leading = {
+									val icon = ImageVector.vectorResource(R.drawable.bars_3)
+									Image(
+										icon,
+										icon.name,
+										modifier =
+										Modifier
+											.padding(horizontal = 24.dp.scaledWidth(), 16.dp.scaledHeight())
+											.size(
+												iconSize,
+											),
+									)
+								},
+								trailing = {
+									val icon = Icons.Outlined.Info
+									Icon(icon, icon.name, Modifier.size(iconSize))
+								},
+								title = {
+									Text(
+										"Unknown name",
+										maxLines = 1,
+										overflow = TextOverflow.Ellipsis,
+										style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+									)
+								},
+								description = {
+									Text(
+										gateway.identity,
+										maxLines = 1,
+										overflow = TextOverflow.Ellipsis,
+										style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
+									)
+								},
+							)
+						})
+					}
+				}
+//				SelectionItemButton(
+//					{
+//						Image(
+//							icon,
+//							icon.name,
+//							modifier =
+//							Modifier
+//								.padding(horizontal = 24.dp.scaledWidth(), 16.dp.scaledHeight())
+//								.size(
+//									iconSize,
+//								),
+//						)
+//					},
+//					buttonText = locale?.displayName ?: "Unknown",
+//					onClick = {
+//						viewModel.onSelected(gateway, gatewayLocation)
+//						navController.navigateAndForget(Route.Main())
+//					},
+//					trailing = {
+////						if (it.isoCode == selectedCountry.isoCode && !selectedCountry.isLowLatency) {
+////							SelectedLabel()
+////						}
+//					},
+//				)
 			}
 		}
 	}

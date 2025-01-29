@@ -8,18 +8,20 @@ use std::{
     str::FromStr,
 };
 
+use crate::{
+    platform::error::{RequestZkNymError, RequestZkNymSuccess, VpnError},
+    NodeIdentity, Recipient, UniffiCustomTypeConverter,
+};
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
-use nym_gateway_directory::{EntryPoint as GwEntryPoint, ExitPoint as GwExitPoint};
+use nym_gateway_directory::{
+    Entry as GwEntry, EntryPoint as GwEntryPoint, Exit as GwExit, ExitPoint as GwExitPoint,
+    Percent, Probe as GwProbe, ProbeOutcome as GwProbeOutcome, WgProbeResults as GwWgProbeResults,
+};
 use nym_ip_packet_requests::IpPair;
 use nym_sdk::UserAgent as NymUserAgent;
 use nym_wg_go::PublicKey;
 use time::OffsetDateTime;
 use url::Url;
-
-use crate::{
-    platform::error::{RequestZkNymError, RequestZkNymSuccess, VpnError},
-    NodeIdentity, Recipient, UniffiCustomTypeConverter,
-};
 
 uniffi::custom_type!(Ipv4Addr, String);
 uniffi::custom_type!(Ipv6Addr, String);
@@ -34,6 +36,7 @@ uniffi::custom_type!(NodeIdentity, String);
 uniffi::custom_type!(Recipient, String);
 uniffi::custom_type!(PathBuf, String);
 uniffi::custom_type!(OffsetDateTime, i64);
+uniffi::custom_type!(Percent, u8);
 
 pub type BoxedRecepient = Box<Recipient>;
 pub type BoxedNodeIdentity = Box<NodeIdentity>;
@@ -172,6 +175,18 @@ impl UniffiCustomTypeConverter for Ipv4Addr {
 
     fn from_custom(obj: Self) -> Self::Builtin {
         obj.to_string()
+    }
+}
+
+impl UniffiCustomTypeConverter for Percent {
+    type Builtin = u8;
+
+    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
+        Ok(Percent::from_str(&*val.to_string())?)
+    }
+
+    fn from_custom(obj: Self) -> Self::Builtin {
+        obj.round_to_integer()
     }
 }
 
@@ -430,6 +445,25 @@ impl From<nym_vpn_network_config::feature_flags::FlagValue> for FlagValue {
 }
 
 #[derive(uniffi::Record)]
+pub struct Gateway {
+    pub identity: NodeIdentity,
+    pub location: Option<Location>,
+    pub mixnet_performance: Option<Percent>,
+    pub last_probe: Option<Probe>,
+}
+
+impl From<nym_gateway_directory::Gateway> for Gateway {
+    fn from(value: nym_gateway_directory::Gateway) -> Self {
+        Gateway {
+            identity: value.identity,
+            location: value.location.map(Into::into),
+            mixnet_performance: value.mixnet_performance,
+            last_probe: value.last_probe.map(Into::into),
+        }
+    }
+}
+
+#[derive(uniffi::Record)]
 pub struct Location {
     pub two_letter_iso_country_code: String,
 }
@@ -454,7 +488,6 @@ impl From<nym_gateway_directory::Country> for Location {
 pub enum GatewayType {
     MixnetEntry,
     MixnetExit,
-    Wg,
 }
 
 impl From<GatewayType> for nym_gateway_directory::GatewayType {
@@ -462,7 +495,6 @@ impl From<GatewayType> for nym_gateway_directory::GatewayType {
         match value {
             GatewayType::MixnetEntry => nym_gateway_directory::GatewayType::MixnetEntry,
             GatewayType::MixnetExit => nym_gateway_directory::GatewayType::MixnetExit,
-            GatewayType::Wg => nym_gateway_directory::GatewayType::Wg,
         }
     }
 }
@@ -528,6 +560,95 @@ impl From<UserAgent> for NymUserAgent {
             version: value.version,
             platform: value.platform,
             git_commit: value.git_commit,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, uniffi::Record, Clone)]
+pub struct Probe {
+    pub last_updated_utc: String,
+    pub outcome: ProbeOutcome,
+}
+
+impl From<GwProbe> for Probe {
+    fn from(value: GwProbe) -> Self {
+        Probe {
+            last_updated_utc: value.last_updated_utc,
+            outcome: value.outcome.into(),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, uniffi::Record, Clone)]
+pub struct ProbeOutcome {
+    pub as_entry: Entry,
+    pub as_exit: Option<Exit>,
+    pub wg: Option<WgProbeResults>,
+}
+
+impl From<GwProbeOutcome> for ProbeOutcome {
+    fn from(value: GwProbeOutcome) -> Self {
+        ProbeOutcome {
+            as_entry: value.as_entry.into(),
+            as_exit: value.as_exit.map(Into::into),
+            wg: value.wg.map(Into::into),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, uniffi::Record, Clone)]
+pub struct Entry {
+    pub can_connect: bool,
+    pub can_route: bool,
+}
+
+impl From<GwEntry> for Entry {
+    fn from(value: GwEntry) -> Self {
+        Self {
+            can_connect: value.can_connect,
+            can_route: value.can_route,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, uniffi::Record, Clone)]
+pub struct Exit {
+    pub can_connect: bool,
+    pub can_route_ip_v4: bool,
+    pub can_route_ip_external_v4: bool,
+    pub can_route_ip_v6: bool,
+    pub can_route_ip_external_v6: bool,
+}
+
+impl From<GwExit> for Exit {
+    fn from(value: GwExit) -> Self {
+        Exit {
+            can_connect: value.can_connect,
+            can_route_ip_v4: value.can_route_ip_v4,
+            can_route_ip_external_v4: value.can_route_ip_external_v4,
+            can_route_ip_external_v6: value.can_route_ip_external_v6,
+            can_route_ip_v6: value.can_route_ip_v6,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, uniffi::Record, Clone)]
+pub struct WgProbeResults {
+    pub can_register: bool,
+    pub can_handshake: bool,
+    pub can_resolve_dns: bool,
+    pub ping_hosts_performance: f32,
+    pub ping_ips_performance: f32,
+}
+
+impl From<GwWgProbeResults> for WgProbeResults {
+    fn from(value: GwWgProbeResults) -> Self {
+        WgProbeResults {
+            can_register: value.can_register,
+            can_handshake: value.can_handshake,
+            can_resolve_dns: value.can_resolve_dns,
+            ping_hosts_performance: value.ping_hosts_performance,
+            ping_ips_performance: value.ping_ips_performance,
         }
     }
 }

@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.service.country.CountryCacheService
 import net.nymtech.vpn.model.Country
+import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib.GatewayType
 import javax.inject.Inject
 
@@ -24,11 +25,11 @@ constructor(
 	private val _uiState = MutableStateFlow(HopUiState())
 	val uiState = _uiState.asStateFlow()
 
-	fun onQueryChange(query: String, countries: List<Country>) {
+	fun onQueryChange(query: String, gateways: List<NymGateway>) {
 		_uiState.update {
 			it.copy(
 				query = query.lowercase(),
-				queriedCountries = countries.filter { country -> country.name.lowercase().contains(query) },
+				queriedCountries = gateways.filter { country -> country.identity.lowercase().contains(query) },
 			)
 		}
 	}
@@ -37,17 +38,17 @@ constructor(
 		var error = false
 		_uiState.update { it.copy(error = false) }
 		when (type) {
-			GatewayType.MIXNET_ENTRY -> countryCacheService.updateEntryCountriesCache().onFailure { error = true }
-			GatewayType.MIXNET_EXIT -> countryCacheService.updateExitCountriesCache().onFailure { error = true }
-			GatewayType.WG -> countryCacheService.updateWgCountriesCache().onFailure { error = true }
+			GatewayType.MIXNET_ENTRY -> countryCacheService.updateEntryGatewayCache().onFailure { error = true }
+			GatewayType.MIXNET_EXIT -> countryCacheService.updateExitGatewayCache().onFailure { error = true }
+			GatewayType.WG -> countryCacheService.updateWgGatewayCache().onFailure { error = true }
 		}
 		_uiState.update { it.copy(error = error) }
 	}
 
-	fun onSelected(country: Country, gatewayLocation: GatewayLocation) = viewModelScope.launch {
-		when (gatewayLocation) {
-			GatewayLocation.ENTRY -> settingsRepository.setFirstHopCountry(country)
-			GatewayLocation.EXIT -> settingsRepository.setLastHopCountry(country)
-		}
+	fun onSelected(country: NymGateway, gatewayLocation: GatewayLocation) = viewModelScope.launch {
+//		when (gatewayLocation) {
+//			GatewayLocation.ENTRY -> settingsRepository.setFirstHopCountry(country)
+//			GatewayLocation.EXIT -> settingsRepository.setLastHopCountry(country)
+//		}
 	}
 }

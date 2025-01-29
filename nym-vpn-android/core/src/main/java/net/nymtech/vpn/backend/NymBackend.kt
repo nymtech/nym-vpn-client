@@ -19,6 +19,7 @@ import net.nymtech.connectivity.NetworkConnectivityService
 import net.nymtech.connectivity.NetworkStatus
 import net.nymtech.vpn.model.BackendEvent
 import net.nymtech.vpn.model.Country
+import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.util.Constants
 import net.nymtech.vpn.util.Constants.LOG_LEVEL
 import net.nymtech.vpn.util.LifecycleVpnService
@@ -31,6 +32,8 @@ import nym_vpn_lib.AccountLinks
 import nym_vpn_lib.AccountStateSummary
 import nym_vpn_lib.AndroidTunProvider
 import nym_vpn_lib.ConnectivityObserver
+import nym_vpn_lib.Gateway
+import nym_vpn_lib.GatewayMinPerformance
 import nym_vpn_lib.GatewayType
 import nym_vpn_lib.SystemMessage
 import nym_vpn_lib.TunnelEvent
@@ -116,7 +119,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		}
 	}
 
-	private fun onNetworkStatusChange(networkStatus: net.nymtech.connectivity.NetworkStatus) {
+	private fun onNetworkStatusChange(networkStatus: NetworkStatus) {
 		this.networkStatus = networkStatus
 		updateObservers()
 	}
@@ -128,9 +131,9 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	private fun updateObservers() {
 		val isConnected = when (networkStatus) {
-			net.nymtech.connectivity.NetworkStatus.Connected -> true
-			net.nymtech.connectivity.NetworkStatus.Disconnected -> false
-			net.nymtech.connectivity.NetworkStatus.Unknown -> return
+			NetworkStatus.Connected -> true
+			NetworkStatus.Disconnected -> false
+			NetworkStatus.Unknown -> return
 		}
 		Timber.d("Updating observers.. isConnected=$isConnected")
 		observers.forEach {
@@ -220,11 +223,10 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		}
 	}
 
-	override suspend fun getGatewayCountries(type: GatewayType, userAgent: UserAgent): List<Country> {
+	override suspend fun getGateways(type: GatewayType, userAgent: UserAgent): List<NymGateway> {
 		return withContext(ioDispatcher) {
-			nym_vpn_lib.getGatewayCountries(type, userAgent, null).map {
-				Country(isoCode = it.twoLetterIsoCountryCode)
-			}
+			val minPerformance = GatewayMinPerformance(0u, 0u)
+			nym_vpn_lib.getGateways(type, userAgent,minPerformance).map(NymGateway::from)
 		}
 	}
 
@@ -353,7 +355,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		private fun startNetworkStatusMonitor() = lifecycleScope.launch {
 			NetworkConnectivityService(this@StateMachineService).networkStatus.collect {
 				Timber.d("New network event: $it")
-				owner?.onNetworkStatusChange(it) ?: Timber.w("OWNER IS NULL!!")
+				owner?.onNetworkStatusChange(it)
 			}
 		}
 

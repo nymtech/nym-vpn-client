@@ -239,7 +239,14 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMode
 		SurfaceSelectionGroupButton(
 			listOf(
 				SelectionItem(
-					Icons.Outlined.Place,
+					{
+						val icon = Icons.Outlined.Place
+						Icon(
+							icon,
+							icon.name,
+							modifier = Modifier.size(iconSize.scaledWidth()),
+						)
+					},
 					title = {
 						ExposedDropdownMenuBox(
 							expanded = environmentExpanded,
@@ -280,7 +287,14 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMode
 					trailing = null,
 				),
 				SelectionItem(
-					Icons.Outlined.Key,
+					{
+						val icon = Icons.Outlined.Key
+						Icon(
+							icon,
+							icon.name,
+							modifier = Modifier.size(iconSize.scaledWidth()),
+						)
+					},
 					title = {
 						ExposedDropdownMenuBox(
 							expanded = credentialExpanded,
@@ -328,7 +342,14 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMode
 		SurfaceSelectionGroupButton(
 			listOf(
 				SelectionItem(
-					Icons.Outlined.AdminPanelSettings,
+					{
+						val icon = Icons.Outlined.AdminPanelSettings
+						Icon(
+							icon,
+							icon.name,
+							modifier = Modifier.size(iconSize.scaledWidth()),
+						)
+					},
 					{
 						ScaledSwitch(
 							appUiState.settings.isManualGatewayOverride,
@@ -344,7 +365,14 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMode
 					},
 				),
 				SelectionItem(
-					Icons.Outlined.AirlineStops,
+					{
+						val icon = Icons.Outlined.AirlineStops
+						Icon(
+							icon,
+							icon.name,
+							modifier = Modifier.size(iconSize.scaledWidth()),
+						)
+					},
 					{
 						val icon = Icons.Outlined.Edit
 						Icon(icon, icon.name)
@@ -365,7 +393,14 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMode
 					},
 				),
 				SelectionItem(
-					Icons.Outlined.AirlineStops,
+					{
+						val icon = Icons.Outlined.AirlineStops
+						Icon(
+							icon,
+							icon.name,
+							modifier = Modifier.size(iconSize.scaledWidth()),
+						)
+					},
 					{
 						val icon = Icons.Outlined.Edit
 						Icon(icon, icon.name)

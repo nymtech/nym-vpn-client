@@ -17,6 +17,7 @@ pub use crate::{
         exit_point::ExitPoint,
         gateway::{
             Entry, Exit, Gateway, GatewayList, GatewayType, Location, NymNode, Probe, ProbeOutcome,
+            WgProbeResults,
         },
         ipr_addresses::IpPacketRouterAddress,
     },

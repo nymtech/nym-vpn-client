@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material.icons.outlined.VpnLock
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,6 +45,7 @@ import net.nymtech.nymvpn.ui.common.navigation.NavIcon
 import net.nymtech.nymvpn.ui.common.navigation.NavTitle
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.theme.CustomTypography
+import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.launchVpnSettings
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.scaledHeight
@@ -94,7 +97,14 @@ fun PermissionScreen(appViewModel: AppViewModel, permission: Permission) {
 				Permission.VPN -> {
 					PermissionLabel(
 						SelectionItem(
-							leadingIcon = Icons.Outlined.VpnKey,
+							leading = {
+								val icon = Icons.Outlined.VpnKey
+								Icon(
+									icon,
+									icon.name,
+									modifier = Modifier.size(iconSize.scaledWidth()),
+								)
+							},
 							title = { Text(stringResource(id = R.string.vpn_connection), style = MaterialTheme.typography.bodyLarge) },
 							description = {
 								Text(
@@ -120,7 +130,14 @@ fun PermissionScreen(appViewModel: AppViewModel, permission: Permission) {
 					}
 					PermissionLabel(
 						SelectionItem(
-							leadingIcon = Icons.Outlined.VpnLock,
+							leading = {
+								val icon = Icons.Outlined.VpnLock
+								Icon(
+									icon,
+									icon.name,
+									modifier = Modifier.size(iconSize.scaledWidth()),
+								)
+							},
 							title = { Text(stringResource(id = R.string.always_on_disbled), style = MaterialTheme.typography.bodyLarge) },
 							description = {
 								ClickableText(

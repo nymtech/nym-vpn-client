@@ -57,17 +57,17 @@ mod uniffi_lib_types;
 
 use std::{env, path::PathBuf, sync::Arc, time::Duration};
 
-use account::AccountControllerHandle;
-use lazy_static::lazy_static;
-use tokio::{runtime::Runtime, sync::Mutex};
-
 use self::error::VpnError;
 use crate::gateway_directory::GatewayClient;
+use crate::platform::uniffi_custom_impls::Gateway;
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::ios::OSTunProvider;
+use account::AccountControllerHandle;
+use lazy_static::lazy_static;
 use state_machine::StateMachineHandle;
+use tokio::{runtime::Runtime, sync::Mutex};
 use uniffi_custom_impls::{
     AccountLinks, AccountStateSummary, EntryPoint, ExitPoint, GatewayMinPerformance, GatewayType,
     Location, NetworkEnvironment, SystemMessage, UserAgent,
@@ -248,6 +248,17 @@ pub fn getAccountState() -> Result<AccountStateSummary, VpnError> {
 /// Get the liset of countries that have gateways available of the given type.
 #[allow(non_snake_case)]
 #[uniffi::export]
+pub fn getGateways(
+    gw_type: GatewayType,
+    user_agent: UserAgent,
+    min_gateway_performance: Option<GatewayMinPerformance>,
+) -> Result<Vec<Gateway>, VpnError> {
+    RUNTIME.block_on(get_gateways(gw_type, user_agent, min_gateway_performance))
+}
+
+/// Get the liset of countries that have gateways available of the given type.
+#[allow(non_snake_case)]
+#[uniffi::export]
 pub fn getGatewayCountries(
     gw_type: GatewayType,
     user_agent: UserAgent,
@@ -260,11 +271,9 @@ pub fn getGatewayCountries(
     ))
 }
 
-async fn get_gateway_countries(
-    gw_type: GatewayType,
-    user_agent: UserAgent,
+async fn create_directory_config(
     min_gateway_performance: Option<GatewayMinPerformance>,
-) -> Result<Vec<Location>, VpnError> {
+) -> Result<nym_gateway_directory::Config, VpnError> {
     let network_env = environment::current_environment_details().await?;
     let nyxd_url = network_env.nyxd_url().ok_or(VpnError::InternalError {
         details: "Nyxd URL not found".to_string(),
@@ -274,16 +283,37 @@ async fn get_gateway_countries(
     })?;
     let nym_vpn_api_url = Some(network_env.vpn_api_url());
     let min_gateway_performance = min_gateway_performance.map(|p| p.try_into()).transpose()?;
-    let directory_config = nym_gateway_directory::Config {
+    Ok(nym_gateway_directory::Config {
         nyxd_url,
         api_url,
         nym_vpn_api_url,
         min_gateway_performance,
-    };
+    })
+}
+
+async fn get_gateway_countries(
+    gw_type: GatewayType,
+    user_agent: UserAgent,
+    min_gateway_performance: Option<GatewayMinPerformance>,
+) -> Result<Vec<Location>, VpnError> {
+    let directory_config = create_directory_config(min_gateway_performance).await?;
     GatewayClient::new(directory_config, user_agent.into())?
         .lookup_countries(gw_type.into())
         .await
         .map(|countries| countries.into_iter().map(Location::from).collect())
+        .map_err(VpnError::from)
+}
+
+async fn get_gateways(
+    gw_type: GatewayType,
+    user_agent: UserAgent,
+    min_gateway_performance: Option<GatewayMinPerformance>,
+) -> Result<Vec<Gateway>, VpnError> {
+    let directory_config = create_directory_config(min_gateway_performance).await?;
+    GatewayClient::new(directory_config, user_agent.into())?
+        .lookup_gateways(g)
+        .await
+        .map(|gateways| gateways.into_iter().map(Gateway::from).collect())
         .map_err(VpnError::from)
 }
 
