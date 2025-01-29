@@ -256,7 +256,7 @@ impl GrpcClient {
         while let Some(state) = rx.recv().await {
             debug!("tunnel state update (proto-raw) {:?}", state.state);
             if let Some(s) = state.state {
-                let tunnel = TunnelState::from_proto(&s).map_err(|e| {
+                let tunnel = TunnelState::from_proto(s).map_err(|e| {
                     error!("failed to parse tunnel state: {}", e);
                     VpndError::internal("failed to parse tunnel state")
                 })?;
