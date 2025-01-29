@@ -10,10 +10,7 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use url::Url;
 
 use crate::request::{UpdateDeviceRequestBody, UpdateDeviceRequestStatus};
-use crate::response::{
-    NymNetworkDetailsResponse, NymVpnHealthResponse, NymVpnUsagesResponse,
-    NymWellknownDiscoveryItem,
-};
+use crate::response::{NymVpnHealthResponse, NymVpnUsagesResponse, NymWellknownDiscoveryItem};
 use crate::types::DeviceStatus;
 use crate::{
     error::{Result, VpnApiClientError},
