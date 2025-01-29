@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.PowerManager
-import android.system.Os
 import androidx.core.app.ServiceCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
@@ -105,8 +104,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	override suspend fun init(environment: Tunnel.Environment, credentialMode: Boolean?) {
 		return withContext(ioDispatcher) {
 			runCatching {
-				Os.setenv("RUST_LOG", LOG_LEVEL, true)
-				initLogger(null)
+				initLogger(null, LOG_LEVEL)
 				initEnvironment(environment)
 				nym_vpn_lib.configureLib(storagePath, credentialMode)
 				initialized.set(true)
