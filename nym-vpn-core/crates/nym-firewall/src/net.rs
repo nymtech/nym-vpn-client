@@ -25,6 +25,7 @@ pub static ALLOWED_LAN_NETS: LazyLock<[IpNetwork; 6]> = LazyLock::new(|| {
     ]
 });
 /// When "allow local network" is enabled the app will allow traffic to these networks.
+#[cfg_attr(target_os = "windows", allow(unused))]
 pub static ALLOWED_LAN_MULTICAST_NETS: LazyLock<[IpNetwork; 8]> = LazyLock::new(|| {
     [
         // Local network broadcast. Not routable
