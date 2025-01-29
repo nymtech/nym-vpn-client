@@ -13,37 +13,39 @@ extension GRPCManager {
         logger.log(level: .info, "Connecting")
 
         return try await withCheckedThrowingContinuation { continuation in
-            var request = Nym_Vpn_ConnectRequest()
-            request.userAgent = userAgent
+            Task(priority: .background) {
+                var request = Nym_Vpn_ConnectRequest()
+                request.userAgent = userAgent
 
-            request.entry = entryNode(from: entryGateway)
-            request.exit = exitNode(from: exitRouter)
+                request.entry = entryNode(from: entryGateway)
+                request.exit = exitNode(from: exitRouter)
 
-            request.disableRouting = false
-            request.enableTwoHop = isTwoHopEnabled
-            request.disableBackgroundCoverTraffic = false
-            request.enableCredentialsMode = isZknymEnabled ?? false
+                request.disableRouting = false
+                request.enableTwoHop = isTwoHopEnabled
+                request.disableBackgroundCoverTraffic = false
+                request.enableCredentialsMode = isZknymEnabled ?? false
 
-            let call = client.vpnConnect(request, callOptions: nil)
+                let call = client.vpnConnect(request, callOptions: nil)
 
-            call.response.whenComplete { [weak self] result in
-                switch result {
-                case .success(let response):
-                    print(response)
-                    self?.logger.log(level: .info, "\(response)")
+                call.response.whenComplete { [weak self] result in
+                    switch result {
+                    case .success(let response):
+                        print(response)
+                        self?.logger.log(level: .info, "\(response)")
 
-                    if response.hasError {
-                        if response.error.kind == .noAccountStored {
-                            self?.lastError = GeneralNymError.noMnemonicStored
-                            continuation.resume(throwing: GeneralNymError.noMnemonicStored)
+                        if response.hasError {
+                            if response.error.kind == .noAccountStored {
+                                self?.lastError = GeneralNymError.noMnemonicStored
+                                continuation.resume(throwing: GeneralNymError.noMnemonicStored)
+                            } else {
+                                continuation.resume(throwing: GeneralNymError.library(message: response.error.message))
+                            }
                         } else {
-                            continuation.resume(throwing: GeneralNymError.library(message: response.error.message))
+                            continuation.resume()
                         }
-                    } else {
-                        continuation.resume()
+                    case .failure(let error):
+                        self?.logger.log(level: .info, "Failed to connect to VPN: \(error)")
                     }
-                case .failure(let error):
-                    self?.logger.log(level: .info, "Failed to connect to VPN: \(error)")
                 }
             }
         }

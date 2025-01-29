@@ -26,7 +26,9 @@ public final class HelperInstallManager: ObservableObject {
 
 extension HelperInstallManager {
     public func installIfNeeded() async throws {
-        guard !isInstalledAndUpToDate else { return }
+        // If tunnelStatus == .connected, do not perform install checks.
+        // No need to reinstall daemon before disconnect.
+        guard grpcManager.tunnelStatus != .connected, !isInstalledAndUpToDate else { return }
 
         daemonState = .installing
         do {

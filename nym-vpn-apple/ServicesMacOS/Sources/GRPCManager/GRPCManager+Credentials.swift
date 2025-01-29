@@ -26,10 +26,10 @@ extension GRPCManager {
 
     public func forgetAccount() async throws {
         logger.log(level: .info, "Forgetting credentials")
-        
+
         return try await withCheckedThrowingContinuation { continuation in
             let call = client.forgetAccount(Google_Protobuf_Empty())
-            
+
             call.response.whenComplete { result in
                 switch result {
                 case .success(let response):
@@ -52,17 +52,19 @@ extension GRPCManager {
         logger.log(level: .info, "Checking if stored account")
 
         return try await withCheckedThrowingContinuation { continuation in
-            let call = client.isAccountStored(
-                Google_Protobuf_Empty(),
-                callOptions: CallOptions(timeLimit: .timeout(.seconds(5)))
-            )
+            Task(priority: .background) {
+                let call = client.isAccountStored(
+                    Google_Protobuf_Empty(),
+                    callOptions: CallOptions(timeLimit: .timeout(.seconds(30)))
+                )
 
-            call.response.whenComplete { result in
-                switch result {
-                case .success(let response):
-                    continuation.resume(returning: response.isStored)
-                case .failure(let error):
-                    continuation.resume(throwing: error)
+                call.response.whenComplete { result in
+                    switch result {
+                    case .success(let response):
+                        continuation.resume(returning: response.isStored)
+                    case .failure(let error):
+                        continuation.resume(throwing: error)
+                    }
                 }
             }
         }

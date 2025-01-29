@@ -115,7 +115,7 @@ private extension CredentialsManager {
         .store(in: &cancellables)
 
         helperInstallManager.$daemonState.sink { [weak self] state in
-            guard state == .running || state == .installed else { return }
+            guard state == .installed else { return }
             self?.checkCredentialImport()
         }
         .store(in: &cancellables)
