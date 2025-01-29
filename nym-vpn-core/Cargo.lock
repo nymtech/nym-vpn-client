@@ -5038,6 +5038,8 @@ dependencies = [
  "anyhow",
  "futures-util",
  "itertools 0.13.0",
+ "nym-api-requests",
+ "nym-config",
  "nym-sdk",
  "nym-validator-client",
  "nym-vpn-api-client",

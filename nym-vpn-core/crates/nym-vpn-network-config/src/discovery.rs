@@ -8,11 +8,14 @@ use nym_sdk::UserAgent;
 use url::Url;
 
 use nym_vpn_api_client::{
-    response::{NymWellknownDiscoveryItemResponse, NymNetworkDetailsResponse, NymWellknownDiscoveryItem},
+    response::{
+        NymWellknownDiscoveryItem, NymWellknownDiscoveryItemResponse,
+    },
     BootstrapVpnApiClient, VpnApiClient,
 };
 
 use nym_validator_client::nym_api::{Client as NymApiClient, NymApiClientExt};
+use nym_api_requests::NymNetworkDetailsResponse;
 
 use crate::{AccountManagement, FeatureFlags, SystemMessages};
 
@@ -148,8 +151,9 @@ impl Discovery {
         // Spawn the root task
         let network_details = rt
             .block_on(
-                VpnApiClient::new(self.nym_api_url.clone(), empty_user_agent())?
-                    .get_nym_network_details(),
+                NymApiClient::builder(self.nym_api_url.clone())?
+                    .build()?
+                    .get_nym_network_details()
             )
             .with_context(|| "Discovery endpoint returned error response".to_owned())?;
 
@@ -208,7 +212,8 @@ pub(crate) async fn fetch_nym_network_details(
     nym_api_url: &Url,
 ) -> anyhow::Result<NymNetworkDetailsResponse> {
     tracing::debug!("Fetching nym network details");
-    let client = NymApiClient::builder(nym_api_url.clone())?.build()?
+    NymApiClient::builder(nym_api_url.clone())?
+        .build()?
         .get_nym_network_details()
         .await
         .with_context(|| "Discovery endpoint returned error response".to_owned())
