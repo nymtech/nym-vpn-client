@@ -244,6 +244,7 @@ pub(crate) mod raw {
     use super::*;
     use crate::platform::environment;
     use nym_sdk::mixnet::StoragePaths;
+    use nym_vpn_api_client::response::NymVpnAccountResponse;
     use nym_vpn_api_client::types::{Device, DeviceStatus};
     use nym_vpn_api_client::VpnApiClient;
 
@@ -360,14 +361,15 @@ pub(crate) mod raw {
         Ok(())
     }
 
-    async fn get_account_by_mnemonic_raw(mnemonic: Mnemonic) -> Result<(), VpnError> {
+    async fn get_account_by_mnemonic_raw(
+        mnemonic: Mnemonic,
+    ) -> Result<NymVpnAccountResponse, VpnError> {
         let vpn_api_client = create_vpn_api_client().await?;
         let account = VpnApiAccount::from(mnemonic);
         vpn_api_client
             .get_account(&account)
             .await
-            .map_err(|_err| VpnError::AccountNotRegistered)?;
-        Ok(())
+            .map_err(|_err| VpnError::AccountNotRegistered)
     }
 
     pub(crate) async fn forget_account_raw(path: &str) -> Result<(), VpnError> {
