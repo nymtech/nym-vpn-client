@@ -141,7 +141,7 @@ public final class ConnectionManager: ObservableObject {
             } else {
                 // User "Connect" button actions
                 guard !isAutoConnect else { return }
-                if activeTunnel?.status == .connected || activeTunnel?.status == .connecting {
+                if shouldDisconnectActiveTunnel() {
                     isDisconnecting = true
                     disconnectActiveTunnel()
                 } else {
@@ -287,11 +287,22 @@ private extension ConnectionManager {
 
     func disconnectActiveTunnel() {
         guard let activeTunnel,
-              activeTunnel.status == .connected || activeTunnel.status == .connecting
+              shouldDisconnectActiveTunnel()
         else {
             return
         }
         tunnelsManager.disconnect(tunnel: activeTunnel)
+    }
+
+    func shouldDisconnectActiveTunnel() -> Bool {
+        guard let activeTunnel else { return false }
+
+        switch activeTunnel.status {
+        case .connected, .connecting, .reasserting, .restarting:
+            return true
+        case .disconnecting, .disconnected:
+            return false
+        }
     }
 
     func generateConfig() throws -> MixnetConfig {
