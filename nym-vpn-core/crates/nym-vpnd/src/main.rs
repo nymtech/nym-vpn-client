@@ -35,7 +35,11 @@ fn run() -> anyhow::Result<()> {
         global_config_file.write_to_file()?;
     }
 
-    logging::setup_logging(args.command.run_as_service);
+    let options = logging::Options {
+        enable_file_log: args.command.run_as_service,
+        enable_stdout_log: true,
+    };
+    let _guard = logging::setup_logging(options);
 
     let network_env = environment::setup_environment(&global_config_file, &args)?;
 
@@ -57,7 +61,7 @@ fn run() -> anyhow::Result<()> {
     if args.command.is_any() {
         Ok(windows_service::start(args)?)
     } else {
-        logging::setup_logging(false);
+        let _guard = logging::setup_logging(logging::Options::default());
         run_inner(args, network_env)
     }
 }

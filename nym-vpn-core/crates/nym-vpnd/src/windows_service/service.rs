@@ -205,7 +205,10 @@ pub(crate) fn start(args: CliArgs) -> Result<(), windows_service::Error> {
         // eventlog::init(SERVICE_DISPLAY_NAME, log::Level::Info).unwrap();
 
         println!("Configuring logging to file...");
-        let _guard = logging::setup_logging_to_file();
+        let _guard = logging::setup_logging(logging::Options {
+            enable_file_log: true,
+            enable_stdout_log: false,
+        });
 
         // Register generated `ffi_service_main` with the system and start the service, blocking
         // this thread until the service is stopped.

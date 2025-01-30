@@ -16,6 +16,7 @@ clap.workspace = true
 dirs.workspace = true
 futures.workspace = true
 http.workspace = true
+log-panics.workspace = true
 maplit.workspace = true
 parity-tokio-ipc.workspace = true
 prost-types.workspace = true
@@ -24,10 +25,10 @@ reqwest = { workspace = true, default-features = false, features = [
     "blocking",
     "rustls-tls",
 ] }
-serde.workspace = true
 serde_json.workspace = true
-strum.workspace = true
+serde.workspace = true
 strum_macros.workspace = true
+strum.workspace = true
 sysinfo.workspace = true
 thiserror.workspace = true
 time.workspace = true
@@ -40,6 +41,7 @@ tonic-reflection.workspace = true
 tonic.workspace = true
 tower-http = { workspace = true, features = ["cors"] }
 tracing-appender.workspace = true
+tracing-oslog.workspace = true
 tracing-subscriber = { workspace = true, features = ["env-filter", "ansi"] }
 tracing.workspace = true
 url.workspace = true
