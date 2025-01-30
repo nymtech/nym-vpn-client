@@ -71,6 +71,7 @@ DESTINATION_PATH="nym-vpn-apple/Daemon/net.nymtech.vpn.helper"
 
 if [ -e "$SOURCE_PATH" ]; then
     cp "$SOURCE_PATH" "$DESTINATION_PATH"
+    chmod +x "$DESTINATION_PATH"
     echo "✅ nym-vpnd has been successfully copied to $DESTINATION_PATH"
 else
     echo "❌ Error: $SOURCE_PATH does not exist. Copy operation failed." >&2
