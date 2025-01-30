@@ -132,15 +132,15 @@ jobs:
           popd
 
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
-          cat ${ARCHIVE_LINUX}.tar.gz.sha256sum >> $GITHUB_ENV
+          #cat ${ARCHIVE_LINUX}.tar.gz.sha256sum >> $GITHUB_ENV
           cat ${ARCHIVE_MAC}.tar.gz.sha256sum >> $GITHUB_ENV
           cat ${ARCHIVE_ANDROID}.tar.gz.sha256sum >> $GITHUB_ENV
           cat ${ARCHIVE_IOS}.zip.sha256sum >> $GITHUB_ENV
           cat ${ARCHIVE_WINDOWS}.zip.sha256sum >> $GITHUB_ENV
-          pushd ${{ env.UPLOAD_DIR_DEB }}
-          for deb_sha256 in nym-vpn*_amd64.deb.sha256sum; do
-            cat ${deb_sha256} >> $GITHUB_ENV
-          done
+          #pushd ${{ env.UPLOAD_DIR_DEB }}
+          #for deb_sha256 in nym-vpn*_amd64.deb.sha256sum; do
+          #  cat ${deb_sha256} >> $GITHUB_ENV
+          #done
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Setting subject, prerelease and notes files
@@ -172,12 +172,14 @@ jobs:
             --notes-file "$RUNNER_TEMP/release-notes.md" \
             --title "$SUBJECT" \
             --target $GITHUB_SHA \
-            ${{ env.ARCHIVE_LINUX }}.tar.gz ${{ env.ARCHIVE_LINUX }}.tar.gz.sha256sum \
             ${{ env.ARCHIVE_MAC }}.tar.gz ${{ env.ARCHIVE_MAC }}.tar.gz.sha256sum \
             ${{ env.ARCHIVE_IOS }}.zip ${{ env.ARCHIVE_IOS }}.zip.sha256sum \
             ${{ env.ARCHIVE_ANDROID }}.tar.gz ${{ env.ARCHIVE_ANDROID }}.tar.gz.sha256sum \
-            ${{ env.ARCHIVE_WINDOWS }}.zip ${{ env.ARCHIVE_WINDOWS }}.zip.sha256sum \
-            ${{ env.UPLOAD_DIR_DEB}}/nym-vpn*_amd64.deb ${{ env.UPLOAD_DIR_DEB }}/nym-vpn*_amd64.deb.sha256sum
+            ${{ env.ARCHIVE_WINDOWS }}.zip ${{ env.ARCHIVE_WINDOWS }}.zip.sha256sum
+
+          # Linux disabled out
+          #${{ env.ARCHIVE_LINUX }}.tar.gz ${{ env.ARCHIVE_LINUX }}.tar.gz.sha256sum
+          #${{ env.UPLOAD_DIR_DEB}}/nym-vpn*_amd64.deb ${{ env.UPLOAD_DIR_DEB }}/nym-vpn*_amd64.deb.sha256sum
 
 
   gen-hashes:
