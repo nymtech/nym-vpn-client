@@ -2891,7 +2891,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc2f4eb4bc735547cfed7c0a4922cbd04a4655978c09b54f1f7b228750664c34"
 dependencies = [
  "cfg-if",
- "windows-targets 0.52.6",
+ "windows-targets 0.48.5",
 ]
 
 [[package]]
@@ -4730,7 +4730,7 @@ dependencies = [
  "serde_json",
  "sha2 0.10.8",
  "si-scale",
- "sysinfo 0.33.1",
+ "sysinfo",
  "thiserror 1.0.69",
  "time",
  "tokio",
@@ -4982,7 +4982,7 @@ dependencies = [
  "serde_json",
  "si-scale",
  "signature",
- "sysinfo 0.31.4",
+ "sysinfo",
  "tap",
  "thiserror 2.0.11",
  "time",
@@ -5093,7 +5093,7 @@ dependencies = [
  "parity-tokio-ipc",
  "prost 0.12.6",
  "prost-types",
- "sysinfo 0.31.4",
+ "sysinfo",
  "time",
  "tokio",
  "tonic",
@@ -5136,7 +5136,7 @@ dependencies = [
  "serde_json",
  "strum",
  "strum_macros",
- "sysinfo 0.31.4",
+ "sysinfo",
  "thiserror 2.0.11",
  "time",
  "tokio",
@@ -7112,20 +7112,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.95",
-]
-
-[[package]]
-name = "sysinfo"
-version = "0.31.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "355dbe4f8799b304b05e1b0f05fc59b2a18d36645cf169607da45bde2f69a1be"
-dependencies = [
- "core-foundation-sys",
- "libc",
- "memchr",
- "ntapi",
- "rayon",
- "windows 0.57.0",
 ]
 
 [[package]]
