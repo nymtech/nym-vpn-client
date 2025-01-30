@@ -1,8 +1,7 @@
 {
   "vpn-tunnel-state": {
     "connected": "VPNトンネルに接続済",
-    "disconnected": "NymVPNが切断されました。プライバシーを保護するために、再接続してください。",
-    "failed": "VPNトンネルの接続に失敗しました！"
+    "disconnected": "NymVPNが切断されました。プライバシーを保護するために、再接続してください。"
   },
   "logout": {
     "success": "正常にログアウトできました",

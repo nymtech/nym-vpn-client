@@ -1,8 +1,7 @@
 {
   "vpn-tunnel-state": {
     "connected": "تم الاتصال بنفق VPN",
-    "disconnected": "تم قطع الاتصال مع NymVPN. لحماية خصوصيتك، يرجى إعادة الاتصال.",
-    "failed": "فشل الاتصال بنفق VPN!"
+    "disconnected": "تم قطع الاتصال مع NymVPN. لحماية خصوصيتك، يرجى إعادة الاتصال."
   },
   "logout": {
     "success": "تم تسجيل الخروج بنجاح",

@@ -1,8 +1,7 @@
 {
   "vpn-tunnel-state": {
     "connected": "تونل VPN متصل شد",
-    "disconnected": "NymVPN قطع شده است. برای حفظ حریم شخصی دوباره وصل شوید.",
-    "failed": "اتصال تونل VPN ناموفق بود!"
+    "disconnected": "NymVPN قطع شده است. برای حفظ حریم شخصی دوباره وصل شوید."
   },
   "logout": {
     "success": "خروج با موفقیت انجام شد",

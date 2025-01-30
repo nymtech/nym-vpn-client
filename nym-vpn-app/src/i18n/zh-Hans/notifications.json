@@ -1,8 +1,7 @@
 {
   "vpn-tunnel-state": {
     "connected": "已连接 VPN 隧道",
-    "disconnected": "NymVPN 已断开连接。为了保护您的隐私，请重新连接。",
-    "failed": "VPN 隧道连接失败！"
+    "disconnected": "NymVPN 已断开连接。为了保护您的隐私，请重新连接。"
   },
   "logout": {
     "success": "注销成功",

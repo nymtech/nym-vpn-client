@@ -1,7 +1,6 @@
 {
   "vpn-tunnel-state": {
     "connected": "VPN टनल कनेक्टेड",
-    "failed": "VPN टनल कनेक्शन असफल!",
     "disconnected": "NymVPN डिस्कनेक्ट है। अपनी गोपनीयता की सुरक्षा के लिए, कृपया पुनः कनेक्ट करें।"
   },
   "logout": {

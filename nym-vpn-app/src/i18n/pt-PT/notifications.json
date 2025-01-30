@@ -1,8 +1,7 @@
 {
   "vpn-tunnel-state": {
     "connected": "Túnel VPN conectado",
-    "disconnected": "NymVPN foi desconectada. Para proteger a sua privacidade, por favor reconecte-se.",
-    "failed": "A ligação do túnel VPN falhou!"
+    "disconnected": "NymVPN foi desconectada. Para proteger a sua privacidade, por favor reconecte-se."
   },
   "logout": {
     "success": "Terminar sessão com sucesso",
