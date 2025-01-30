@@ -129,16 +129,24 @@ jobs:
 
       - name: Generate checksums
         run: |
-          pushd ${{ env.UPLOAD_DIR_UBUNTU_22 }} || exit 1
-          for f in *; do sha256sum "$f" > "$f.sha256sum"; done
-          popd
           pushd ${{ env.UPLOAD_DIR_WINDOWS }} || exit 1
           for f in *; do sha256sum "$f" > "$f.sha256sum"; done
           popd
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
-          cat ${{ env.UPLOAD_DIR_UBUNTU_22 }}/*.sha256sum >> $GITHUB_ENV
           cat ${{ env.UPLOAD_DIR_WINDOWS }}/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
+
+# TODO revert this once Linux is back
+#          pushd ${{ env.UPLOAD_DIR_UBUNTU_22 }} || exit 1
+#          for f in *; do sha256sum "$f" > "$f.sha256sum"; done
+#          popd
+#          pushd ${{ env.UPLOAD_DIR_WINDOWS }} || exit 1
+#          for f in *; do sha256sum "$f" > "$f.sha256sum"; done
+#          popd
+#          echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
+#          cat ${{ env.UPLOAD_DIR_UBUNTU_22 }}/*.sha256sum >> $GITHUB_ENV
+#          cat ${{ env.UPLOAD_DIR_WINDOWS }}/*.sha256sum >> $GITHUB_ENV
+#          echo 'EOF' >> $GITHUB_ENV
 
       - name: Build info
         run: |
@@ -161,8 +169,10 @@ jobs:
             --notes-file "$RUNNER_TEMP/release-notes.md" \
             --title "$SUBJECT" \
             --target $GITHUB_SHA \
-            ${{ env.UPLOAD_DIR_UBUNTU_22}}/* \
             ${{ env.UPLOAD_DIR_WINDOWS}}/*
+
+# TODO revert this once Linux is back
+#            ${{ env.UPLOAD_DIR_UBUNTU_22}}/* \
 
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml
