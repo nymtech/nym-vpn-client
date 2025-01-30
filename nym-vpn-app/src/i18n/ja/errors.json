@@ -2,85 +2,16 @@
   "unknown": "不明なエラー",
   "internal": "内部エラー",
   "grpc": "内部gRPCエラー",
-  "connection": {
-    "timeout": "接続タイムアウト",
-    "bad-country-combination": "サポートされていない国の組み合わせです。エントリーまたは出口の国を変更してください。",
-    "no-valid-credential": "有効な認証情報がありません。認証情報を追加してください",
-    "gateway-lookup": {
-      "exit": "出口 Gateway の検索に失敗しました",
-      "generic": "gatewayの検索に失敗しました",
-      "id": "Gateway ID の検索に失敗しました",
-      "ipr": "IPRアドレスの検索に失敗しました",
-      "entry-location": "指定場所のエントリーgatewayの検索に失敗しました",
-      "ip": "gateway IPアドレスの検索に失敗しました",
-      "entry": "エントリーGatewayの検索に失敗しました",
-      "entry-id": "エントリー gateway IDの検索に失敗しました",
-      "exit-location": "指定場所の出口gatewayの検索に失敗しました"
-    },
-    "mixnet": {
-      "storage-path": "mixnetのストレージパスの作成に失敗しました",
-      "timeout": "Mixnet接続タイムアウト",
-      "default-storage": "デフォルトストレージでmixnetの作成に失敗しました",
-      "build-client": "mixnet clientの構築に失敗しました",
-      "connect": "mixnetへの接続に失敗しました",
-      "entry-gateway": "mixnet エントリーGatewayへの接続に失敗しました",
-      "monitor": "Mixnet接続モニターが失敗しました"
-    },
-    "ipr-connect": "IPRへの接続に失敗しました",
-    "interface": {
-      "wg-bring-up": "WireGuardインターフェースの起動に失敗しました",
-      "find-default": "デフォルトのネットワークインターフェースが見つかりませんでした"
-    },
-    "firewall": {
-      "init": "ファイアウォールサブシステムの初期化に失敗しました",
-      "reset-policy": "ファイアウォールポリシーのリセットに失敗しました"
-    },
-    "dns": {
-      "init": "DNSサブシステムの初期化に失敗しました",
-      "set": "DNSの設定に失敗しました"
-    },
-    "bandwidth": {
-      "tunnel-up": "トンネルを設定するために利用可能な帯域幅がありません"
-    },
-    "wireguard": {
-      "config": "WireGuardの設定に失敗しました",
-      "tunnel": "WireGuardトンネルエラー"
-    },
-    "authenticator": {
-      "connect": "認証サーバーの一つに接続できませんでした",
-      "invalid-response": "認証サーバーへの接続に失敗しました。応答が無効でした。",
-      "entry-gw-socket-addr": "WireGuardの設定中に、認証サーバーから提供されたソケットアドレスの解析に失敗しました",
-      "entry-gw-ipv4": "WireGuardの設定中に、認証サーバーから提供されたIPv4の処理に失敗しました",
-      "wrong-version": "認証サーバーが、理解できないバージョンのタグが付いた応答を返しました",
-      "address-not-found": "使用しようとしているgatewayに対する認証サーバーのアドレスが見つかりません",
-      "registration-data": "認証サーバーが提供した登録データの検証に失敗しました",
-      "auth-not-possible": "認証サーバーとの認証ができませんでした。これは、アドレスがないためです。これはおそらく内部のプログラミングエラーです",
-      "timeout": "認証サーバーに接続できず、接続応答を待機中にタイムアウトしました",
-      "malformed-reply": "認証サーバー、または他の誰かが、読み取れない応答を返しました"
-    },
-    "add-ipv6-route": "IPv6トラフィックをキャプチャするためのIPv6デフォルトルートの追加に失敗しました",
-    "tun-device": "TUNデバイスに失敗しました",
-    "routing": "ルーティングに失敗しました",
-    "unhandled-exit": "VPNがエラーで終了しました。バグの可能性があります。",
-    "ready-to-connect": "チェック中に接続準備ができているかどうかはまだ分かりません",
-    "general": "一般的なエラー、詳細を確認するにはログを確認してください"
-  },
   "countries-request": {
     "entry": "利用可能なエントリーノードの国を取得できませんでした",
     "exit": "利用可能な出口ノードの国を取得できませんでした",
     "fast-mode": "利用可能な国を取得できませんでした"
-  },
-  "out-of-bandwidth": "帯域幅の割り当てを超えました",
-  "exit-node": {
-    "routing": "出口ノードが{{protocol}}トラフィックをルーティングしていません",
-    "ping": "出口ノードの{{protocol}}トラフィックのPingに失敗しました"
   },
   "daemon": {
     "not-connected": "デーモンに接続されていません",
     "internal": "デーモン内部エラー",
     "invalid-network": "無効なネットワーク"
   },
-  "entry-node-routing": "エントリーノードがトラフィックをルーティングしていません（インターネット接続がダウンしている可能性があります）",
   "account": {
     "invalid-recovery-phrase": "無効なアクセスコード",
     "storage": "ストレージバックエンドエラー",

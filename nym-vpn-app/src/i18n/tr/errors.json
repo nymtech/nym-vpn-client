@@ -4,69 +4,6 @@
     "internal": "Daemon dahili hata",
     "invalid-network": "Geçersiz ağ"
   },
-  "connection": {
-    "no-valid-credential": "Geçerli anahtar yok, lütfen önce bir anahtar ekleyin",
-    "timeout": "Bağlantı zaman aşımı",
-    "bad-country-combination": "Desteklenmeyen ülke kombinasyonu, lütfen giriş veya çıkış ülkesini değiştirin",
-    "gateway-lookup": {
-      "entry-id": "Entry gateway'i kimliği bulunamadı",
-      "exit-location": "Verilen konum için exit gateway bulunamadı",
-      "generic": "Gateway'ler bulunamadı",
-      "id": "Gateway kimliği bulunamadı",
-      "ipr": "IPR adresi bulunamadı",
-      "ip": "Gateway IP adresi bulunamadı",
-      "entry": "Entry gateway bulunamadı",
-      "entry-location": "Verilen konum için entry gateway bulunamadı",
-      "exit": "Exit gateway bulunamadı"
-    },
-    "mixnet": {
-      "timeout": "Mixnet bağlantı zaman aşımı",
-      "storage-path": "Mixnet için depolama yolları oluşturulamadı",
-      "default-storage": "Varsayılan depolama ile mixnet oluşturulamadı",
-      "build-client": "Mixnet istemcisi oluşturulamadı",
-      "connect": "Mixnet'e bağlanılamadı",
-      "entry-gateway": "Mixnet entry gateway'ine bağlanılamadı",
-      "monitor": "Mixnet bağlantı monitörü başarısız oldu"
-    },
-    "ipr-connect": "IPR'ye bağlanılamadı",
-    "interface": {
-      "wg-bring-up": "WireGuard arayüzünü başlatma başarısız oldu",
-      "find-default": "Varsayılan ağ arayüzü bulunamadı"
-    },
-    "dns": {
-      "set": "DNS ayarını yapma başarısız oldu",
-      "init": "DNS alt sistemini başlatma başarısız oldu"
-    },
-    "bandwidth": {
-      "tunnel-up": "Tünel kurmak için yeterli bant genişliği mevcut değil"
-    },
-    "firewall": {
-      "reset-policy": "Güvenlik duvarı politikasını sıfırlama başarısız oldu",
-      "init": "Güvenlik duvarı alt sistemini başlatma başarısız oldu"
-    },
-    "wireguard": {
-      "config": "WireGuard yapılandırması kurulamadı",
-      "tunnel": "WireGuard tünel hatası"
-    },
-    "authenticator": {
-      "connect": "Kimlik doğrulayıcılardan birine bağlanılamadı",
-      "invalid-response": "Kimlik doğrulayıcıya bağlanılamadı, yanıt geçersizdi",
-      "registration-data": "Kimlik doğrulayıcı tarafından sağlanan kayıt verilerini doğrulamakta başarısız olundu",
-      "entry-gw-ipv4": "WireGuard yapılandırması kurulurken kimlik doğrulayıcı tarafından sağlanan IPv4 ayrıştırılamadı",
-      "wrong-version": "Kimlik doğrulayıcı, anlayamadığımız bir sürümle etiketlenmiş bir yanıt verdi",
-      "malformed-reply": "Kimlik doğrulayıcı ya da başka biri, okuyamadığımız bir yanıtla geri döndü",
-      "auth-not-possible": "Kimlik doğrulayıcılarla kimlik doğrulama mümkün olmadı, çünkü onlara ait adreslerimiz yok. Bu muhtemelen bir iç program hatasıdır",
-      "entry-gw-socket-addr": "WireGuard yapılandırması kurulurken kimlik doğrulayıcı tarafından sağlanan soket adresi ayrıştırılamadı",
-      "timeout": "Kimlik doğrulayıcıya bağlanılamadı, bağlantı yanıtı zaman aşımına uğradı",
-      "address-not-found": "Kullanmaya çalıştığımız gateway(ler)i için kimlik doğrulayıcı adresi bulunamadı"
-    },
-    "tun-device": "Tun cihazı başarısız oldu",
-    "routing": "Yönlendirme başarısız oldu",
-    "add-ipv6-route": "IPv6 trafiğini yakalamak için IPv6 varsayılan yol eklenemedi",
-    "unhandled-exit": "VPN bir hata ile sonlandı. Muhtemelen bir yazılım hatası.",
-    "ready-to-connect": "Kontrol sırasında bağlanmaya hazır olup olmadığımız henüz belirlenemedi",
-    "general": "Genel bir hata oluştu, daha fazla detay için logları kontrol edin"
-  },
   "countries-request": {
     "entry": "Kullanılabilir entry node ülke bilgileri alınamadı",
     "exit": "Kullanılabilir exit node ülke bilgileri alınamadı",
@@ -75,12 +12,6 @@
   "unknown": "Tanımlanamayan hata",
   "internal": "Dahili hata",
   "grpc": "Dahili gRPC hatası",
-  "out-of-bandwidth": "Bant genişliği kotası doldu",
-  "exit-node": {
-    "routing": "Çıkış nodeu {{protocol}} trafiğini iletmiyor",
-    "ping": "Çıkış nodeu {{protocol}} trafiği için ping başarısız oldu"
-  },
-  "entry-node-routing": "Giriş nodeu trafiği iletmiyor (internet bağlantısı mı kesik?)",
   "account": {
     "invalid-recovery-phrase": "Geçersiz erişim kodu",
     "storage": "Depolama arka ucu hatası",

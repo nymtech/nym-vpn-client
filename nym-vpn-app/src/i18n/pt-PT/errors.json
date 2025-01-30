@@ -7,79 +7,10 @@
     "invalid-network": "Rede inválida"
   },
   "grpc": "Erro interno do gRPC",
-  "connection": {
-    "no-valid-credential": "Nenhuma credencial válida, por favor adicione uma credencial primeiro",
-    "timeout": "Tempo limite de ligação",
-    "mixnet": {
-      "timeout": "Tempo limite da ligação Mixnet",
-      "default-storage": "Falha ao criar a mixnet com o armazenamento predefinido",
-      "build-client": "Falha ao construir o cliente mixnet",
-      "connect": "Falha na ligação à mixnet",
-      "entry-gateway": "Falha na ligação ao gateway de entrada da mixnet",
-      "storage-path": "Falha ao criar os caminhos de armazenamento da mixnet",
-      "monitor": "Falha do monitor de ligação Mixnet"
-    },
-    "ipr-connect": "Falha na ligação ao IPR",
-    "gateway-lookup": {
-      "id": "Falha ao procurar a identidade do gateway",
-      "ipr": "Falha na pesquisa do endereço IPR",
-      "ip": "Falha ao procurar o endereço IP do gateway",
-      "entry-id": "Falha ao procurar a identidade do gateway de entrada",
-      "entry-location": "Falha ao procurar o gateway de entrada para um determinado local",
-      "exit": "Falha ao procurar o gateway de saída",
-      "generic": "Falha ao procurar os gateways",
-      "entry": "Falha ao procurar o gateway de entrada",
-      "exit-location": "Falha ao procurar o gateway de saída para um determinado local"
-    },
-    "bad-country-combination": "Combinação de países não suportada, por favor altere o país de entrada ou de saída",
-    "bandwidth": {
-      "tunnel-up": "Não há largura de banda disponível para configurar o túnel"
-    },
-    "interface": {
-      "wg-bring-up": "Falha ao abrir a interface do WireGuard",
-      "find-default": "Falha ao encontrar a interface de rede predefinida"
-    },
-    "firewall": {
-      "init": "Falha ao iniciar o subsistema de firewall",
-      "reset-policy": "Falha ao redefinir a política de firewall"
-    },
-    "dns": {
-      "init": "Falha ao iniciar o subsistema DNS",
-      "set": "Falha ao definir o DNS"
-    },
-    "wireguard": {
-      "tunnel": "Erro no túnel do WireGuard",
-      "config": "Falha ao definir a configuração do WireGuard"
-    },
-    "authenticator": {
-      "address-not-found": "Não foi encontrado o endereço do autenticador para a(s) gateway(s) que estamos a tentar utilizar",
-      "malformed-reply": "O autenticador, ou outra pessoa, respondeu com uma resposta que não conseguimos ler",
-      "wrong-version": "O autenticador respondeu com uma resposta marcada com uma versão que não conseguimos compreender",
-      "entry-gw-ipv4": "Falha ao analisar o IPv4 fornecido pelo autenticador ao definir a configuração do WireGuard",
-      "registration-data": "Falha na verificação dos dados de registo fornecidos pelo autenticador",
-      "invalid-response": "Falha na ligação ao autenticador, a resposta era inválida",
-      "timeout": "Falha na ligação ao autenticador, tempo limite de espera pela resposta de ligação",
-      "connect": "Falha na ligação a um dos autenticadores",
-      "auth-not-possible": "A autenticação com os autenticadores não foi possível, uma vez que não dispomos de endereços para os mesmos. Trata-se provavelmente de um erro de programação interno",
-      "entry-gw-socket-addr": "Falha ao analisar o endereço do soquete fornecido pelo autenticador ao definir a configuração do WireGuard"
-    },
-    "routing": "Falha no encaminhamento",
-    "tun-device": "Falha do dispositivo Tun",
-    "unhandled-exit": "A VPN está a sair com um erro. É provável que seja um bug.",
-    "add-ipv6-route": "Falha ao adicionar a rota predefinida ipv6 para capturar o tráfego ipv6",
-    "ready-to-connect": "Ainda não foi possível determinar se estamos prontos para nos ligarmos durante o controlo",
-    "general": "Erro geral, verifique os registos para obter mais detalhes"
-  },
   "countries-request": {
     "entry": "Falha ao procurar os países com nós de entrada disponíveis",
     "exit": "Falha ao procurar os países de nós de saída disponíveis",
     "fast-mode": "Falha ao procurar os países disponíveis"
-  },
-  "out-of-bandwidth": "Largura de banda não atribuída",
-  "entry-node-routing": "O nó de entrada não está a encaminhar o tráfego (a ligação à Internet caiu?)",
-  "exit-node": {
-    "routing": "O nó de saída não está a encaminhar {{protocol}}tráfego",
-    "ping": "O ping do nó de saída falhou para o {{protocol}}tráfego"
   },
   "account": {
     "invalid-recovery-phrase": "Código de acesso inválido",

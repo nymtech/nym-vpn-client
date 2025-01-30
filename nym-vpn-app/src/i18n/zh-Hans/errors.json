@@ -7,79 +7,10 @@
     "invalid-network": "无效网络"
   },
   "grpc": "gRPC内部错误",
-  "connection": {
-    "timeout": "连接超时",
-    "no-valid-credential": "无有效凭证，请先添加凭证",
-    "bad-country-combination": "不支持国家组合，请更改入境或出境国家",
-    "mixnet": {
-      "timeout": "Mixnet 连接超时",
-      "storage-path": "创建 mixnet 存储路径失败",
-      "default-storage": "使用默认存储空间创建 mixnet 失败",
-      "build-client": "构建 mixnet 客户端失败",
-      "connect": "连接 mixnet 失败",
-      "entry-gateway": "连接 mixnet 入口网关失败",
-      "monitor": "Mixnet 连接监控器失败"
-    },
-    "ipr-connect": "连接 IPR 失败",
-    "gateway-lookup": {
-      "generic": "查询网关失败",
-      "id": "查询网关身份失败",
-      "ipr": "查找 IPR 地址失败",
-      "ip": "查询网关 IP 地址失败",
-      "entry": "查询入口网关失败",
-      "entry-id": "查询入口网关身份失败",
-      "entry-location": "查找指定位置的入口网关失败",
-      "exit": "查询出口网关失败",
-      "exit-location": "查找指定地点的出口网关失败"
-    },
-    "bandwidth": {
-      "tunnel-up": "没有可用带宽来设置隧道"
-    },
-    "interface": {
-      "find-default": "查找默认网络接口失败",
-      "wg-bring-up": "调出 WireGuard 界面失败"
-    },
-    "firewall": {
-      "init": "启动防火墙子系统失败",
-      "reset-policy": "重置防火墙策略失败"
-    },
-    "dns": {
-      "init": "启动 DNS 子系统失败",
-      "set": "设置 DNS 失败"
-    },
-    "unhandled-exit": "vpn 退出时出错，这很可能是一个错误。",
-    "wireguard": {
-      "config": "未能设置 WireGuard 配置",
-      "tunnel": "WireGuard 隧道错误"
-    },
-    "authenticator": {
-      "connect": "连接其中一个验证器失败",
-      "timeout": "连接验证器失败，等待连接响应超时",
-      "invalid-response": "连接验证器失败，响应无效",
-      "entry-gw-socket-addr": "设置 WireGuard 配置时解析验证器提供的套接字地址失败",
-      "entry-gw-ipv4": "设置 WireGuard 配置时未能解析验证器提供的 IPv4",
-      "wrong-version": "身份验证器的回复标记为我们无法理解的版本",
-      "address-not-found": "未找到我们要使用的网关的验证器地址",
-      "auth-not-possible": "无法使用验证器进行验证，因为我们没有它们的地址。 这可能是内部编程错误",
-      "registration-data": "验证器提供的注册数据验证失败",
-      "malformed-reply": "认证者或其他人的回复我们无法读取"
-    },
-    "add-ipv6-route": "添加 ipv6 默认路由捕获 ipv6 流量失败",
-    "tun-device": "Tun 设备故障",
-    "routing": "路由选择失败",
-    "ready-to-connect": "在检查过程中还无法确定我们是否已准备好连接",
-    "general": "一般错误，请查看日志了解更多详情"
-  },
   "countries-request": {
     "entry": "获取可用条目节点国家失败",
     "exit": "获取可用出口节点国家失败",
     "fast-mode": "获取可用国家失败"
-  },
-  "out-of-bandwidth": "超出分配的带宽",
-  "entry-node-routing": "入口节点未路由流量（互联网连接中断？）",
-  "exit-node": {
-    "routing": "出口节点未路由{{protocol}} 流量",
-    "ping": "{{protocol}} 流量的出口节点 ping 失败"
   },
   "account": {
     "invalid-recovery-phrase": "助记词无效",
