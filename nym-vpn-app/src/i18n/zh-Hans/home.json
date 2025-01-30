@@ -5,7 +5,8 @@
     "connected": "已连接",
     "disconnected": "未连接",
     "connecting": "正在连接",
-    "disconnecting": "断开连接"
+    "disconnecting": "断开连接",
+    "error": "错误"
   },
   "last-hop": "出口位置",
   "first-hop": "入口位置",
