@@ -5,6 +5,7 @@ import android.net.VpnService
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -61,7 +62,6 @@ import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.buttons.IconSurfaceButton
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
-import net.nymtech.nymvpn.ui.common.functions.countryIcon
 import net.nymtech.nymvpn.ui.common.labels.GroupLabel
 import net.nymtech.nymvpn.ui.common.labels.StatusInfoLabel
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
@@ -79,8 +79,8 @@ import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.Constants
-import net.nymtech.nymvpn.util.extensions.buildCountryNameString
 import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
+import net.nymtech.nymvpn.util.extensions.getFlagImageVectorByName
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
@@ -235,10 +235,6 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			}
 		}
 		Spacer(modifier = Modifier.weight(1f))
-		val firstHopName = context.buildCountryNameString(appUiState.entryCountry)
-		val lastHopName = context.buildCountryNameString(appUiState.exitCountry)
-		val firstHopIcon = countryIcon(appUiState.entryCountry)
-		val lastHopIcon = countryIcon(appUiState.exitCountry)
 		Column(
 			verticalArrangement = Arrangement.spacedBy(36.dp.scaledHeight(), Alignment.Bottom),
 			horizontalAlignment = Alignment.CenterHorizontally,
@@ -302,7 +298,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 				val trailingIcon = ImageVector.vectorResource(R.drawable.link_arrow_right)
 				val selectionEnabled = uiState.connectionState is ConnectionState.Disconnected
 				CustomTextField(
-					value = firstHopName,
+					value = appUiState.entryPointName,
 					readOnly = true,
 					enabled = false,
 					label = {
@@ -311,7 +307,19 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 							style = MaterialTheme.typography.bodySmall,
 						)
 					},
-					leading = firstHopIcon,
+					leading = {
+						val image = ImageVector.vectorResource(context.getFlagImageVectorByName(appUiState.entryPointCountry))
+						Image(
+							image,
+							image.name,
+							modifier =
+							Modifier
+								.padding(horizontal = 16.dp.scaledWidth(), vertical = 16.dp.scaledHeight())
+								.size(
+									iconSize,
+								))
+					},
+
 					trailing = {
 						Icon(trailingIcon, trailingIcon.name, tint = MaterialTheme.colorScheme.onSurface)
 					},
@@ -334,7 +342,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 						},
 				)
 				CustomTextField(
-					value = lastHopName,
+					value = appUiState.exitPointName,
 					readOnly = true,
 					enabled = false,
 					label = {
@@ -343,7 +351,18 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 							style = MaterialTheme.typography.bodySmall,
 						)
 					},
-					leading = lastHopIcon,
+					leading = {
+						val image = ImageVector.vectorResource(context.getFlagImageVectorByName(appUiState.exitPointCountry))
+						Image(
+							image,
+							image.name,
+							modifier =
+							Modifier
+								.padding(horizontal = 16.dp.scaledWidth(), vertical = 16.dp.scaledHeight())
+								.size(
+									iconSize,
+								))
+					},
 					trailing = {
 						Icon(trailingIcon, trailingIcon.name, tint = MaterialTheme.colorScheme.onSurface)
 					},

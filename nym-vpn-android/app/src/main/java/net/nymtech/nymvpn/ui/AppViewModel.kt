@@ -75,8 +75,6 @@ constructor(
 				settings,
 				gateways,
 				manager,
-				entryCountry = settings.firstHopCountry ?: Country(isLowLatency = true),
-				exitCountry = settings.lastHopCountry ?: Country(isDefault = true),
 				networkStatus = networkStatus,
 			)
 		}.stateIn(

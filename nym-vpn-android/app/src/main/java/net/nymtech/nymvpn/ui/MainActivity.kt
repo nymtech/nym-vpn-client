@@ -140,7 +140,7 @@ class MainActivity : AppCompatActivity() {
 			}
 
 			with(appState.settings) {
-				LaunchedEffect(vpnMode, lastHopCountry, firstHopCountry) {
+				LaunchedEffect(vpnMode, entryPoint, exitPoint) {
 					this@MainActivity.requestTileServiceStateUpdate()
 				}
 				LaunchedEffect(isShortcutsEnabled) {

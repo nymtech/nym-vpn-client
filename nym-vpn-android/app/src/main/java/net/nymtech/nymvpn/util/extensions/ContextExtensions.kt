@@ -33,16 +33,6 @@ val Context.actionBarSize
 	get() = theme.obtainStyledAttributes(intArrayOf(android.R.attr.actionBarSize))
 		.let { attrs -> attrs.getDimension(0, 0F).toInt().also { attrs.recycle() } }
 
-fun Context.buildCountryNameString(country: Country): String {
-	return buildAnnotatedString {
-		if (country.isLowLatency) {
-			append(getString(R.string.automatic))
-		} else {
-			append(country.name)
-		}
-	}.text
-}
-
 fun Context.setAppLocale(locale: Locale): Context {
 	Locale.setDefault(locale)
 	val config = resources.configuration

@@ -33,9 +33,9 @@ class DataStoreGatewayRepository(private val dataStoreManager: DataStoreManager)
 			prefs?.let { pref ->
 				try {
 					Gateways(
-						exitCountries = NymGateway.fromCollectionString(pref[EXIT_COUNTRIES]),
-						entryCountries = NymGateway.fromCollectionString(pref[ENTRY_COUNTRIES]),
-						wgCountries = NymGateway.fromCollectionString(pref[WG_COUNTRIES]),
+						exitGateways = NymGateway.fromCollectionString(pref[EXIT_COUNTRIES]),
+						entryGateways = NymGateway.fromCollectionString(pref[ENTRY_COUNTRIES]),
+						wgGateways = NymGateway.fromCollectionString(pref[WG_COUNTRIES]),
 					)
 				} catch (e: IllegalArgumentException) {
 					Timber.e(e)

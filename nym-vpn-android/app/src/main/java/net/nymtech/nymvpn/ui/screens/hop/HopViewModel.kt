@@ -10,7 +10,10 @@ import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.service.country.CountryCacheService
 import net.nymtech.vpn.model.NymGateway
+import net.nymtech.vpn.util.extensions.asEntryPoint
+import net.nymtech.vpn.util.extensions.asExitPoint
 import nym_vpn_lib.GatewayType
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -44,10 +47,14 @@ constructor(
 		_uiState.update { it.copy(error = error) }
 	}
 
-	fun onSelected(country: NymGateway, gatewayLocation: GatewayLocation) = viewModelScope.launch {
-// 		when (gatewayLocation) {
-// 			GatewayLocation.ENTRY -> settingsRepository.setFirstHopCountry(country)
-// 			GatewayLocation.EXIT -> settingsRepository.setLastHopCountry(country)
-// 		}
+	fun onSelected(id: String, gatewayLocation: GatewayLocation) = viewModelScope.launch {
+		runCatching {
+			when (gatewayLocation) {
+				GatewayLocation.ENTRY -> settingsRepository.setEntryPoint(id.asEntryPoint())
+				GatewayLocation.EXIT -> settingsRepository.setExitPoint(id.asExitPoint())
+			}
+		}.onFailure {
+			Timber.e(it)
+		}
 	}
 }

@@ -132,9 +132,9 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 	}
 
 	val gateways = when (gatewayType) {
-		GatewayType.MIXNET_ENTRY -> appUiState.gateways.entryCountries
-		GatewayType.MIXNET_EXIT -> appUiState.gateways.exitCountries
-		GatewayType.WG -> appUiState.gateways.wgCountries
+		GatewayType.MIXNET_ENTRY -> appUiState.gateways.entryGateways
+		GatewayType.MIXNET_EXIT -> appUiState.gateways.exitGateways
+		GatewayType.WG -> appUiState.gateways.wgGateways
 	}
 
 // 	val selectedCountry = when (gatewayLocation) {
@@ -302,6 +302,11 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 					SurfaceSelectionGroupButton(
 						listOf(
 							SelectionItem(
+								onClick = {
+									country.twoLetterCountryISO?.let {
+										viewModel.onSelected(it, gatewayLocation)
+									}
+								},
 								leading = {
 									val icon = country.twoLetterCountryISO?.let {
 										ImageVector.vectorResource(
@@ -356,8 +361,19 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 						SurfaceSelectionGroupButton(
 							gateways.filter { it.twoLetterCountryISO == country.twoLetterCountryISO }.map { gateway ->
 								SelectionItem(
+									onClick = {
+										viewModel.onSelected(gateway.identity , gatewayLocation)
+									},
 									leading = {
-										val icon = ImageVector.vectorResource(R.drawable.bars_3)
+										//TODO this will change, just random threshold for now
+										val icon = gateway.mixnetPerformance?.let {
+											when(it) {
+												in 0u..45u -> ImageVector.vectorResource(R.drawable.bars_1)
+												in 46u..75u -> ImageVector.vectorResource(R.drawable.bars_2)
+												in 76u..100u -> ImageVector.vectorResource(R.drawable.bars_3)
+												else -> ImageVector.vectorResource(R.drawable.bars_2)
+											}
+										} ?: ImageVector.vectorResource(R.drawable.bars_2)
 										Image(
 											icon,
 											icon.name,
