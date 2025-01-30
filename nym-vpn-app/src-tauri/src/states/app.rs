@@ -62,7 +62,7 @@ impl AppState {
         AppState {
             vpn_mode,
             dns_server,
-            credentials_mode: cli.dev_mode,
+            credentials_mode: false, // TODO explicitly set this to false for the release
             ..Default::default()
         }
     }
