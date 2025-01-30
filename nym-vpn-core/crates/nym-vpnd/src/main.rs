@@ -61,7 +61,11 @@ fn run() -> anyhow::Result<()> {
     if args.command.is_any() {
         Ok(windows_service::start(args)?)
     } else {
-        let _guard = logging::setup_logging(logging::Options::default());
+        let options = logging::Options {
+            enable_file_log: false,
+            enable_stdout_log: true,
+        };
+        let _guard = logging::setup_logging(options);
         run_inner(args, network_env)
     }
 }

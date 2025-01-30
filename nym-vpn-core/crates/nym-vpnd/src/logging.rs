@@ -2,27 +2,17 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use tracing_appender::non_blocking::WorkerGuard;
-use tracing_subscriber::{
-    filter::LevelFilter, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter,
-};
-
 #[cfg(target_os = "macos")]
 use tracing_oslog::OsLogger;
+use tracing_subscriber::{
+    filter::LevelFilter, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Layer,
+};
 
 use crate::service;
 
 pub struct Options {
     pub enable_file_log: bool,
     pub enable_stdout_log: bool,
-}
-
-impl Default for Options {
-    fn default() -> Self {
-        Self {
-            enable_file_log: false,
-            enable_stdout_log: true,
-        }
-    }
 }
 
 pub fn setup_logging(options: Options) -> Option<WorkerGuard> {
@@ -32,8 +22,14 @@ pub fn setup_logging(options: Options) -> Option<WorkerGuard> {
         .add_directive("hyper::proto=info".parse().unwrap())
         .add_directive("netlink_proto=info".parse().unwrap());
 
+    let mut layers = Vec::new();
+
+    // Create oslog output on macOS for debugging purposes
+    #[cfg(target_os = "macos")]
+    layers.push(OsLogger::new("net.nymtech.vpn.agent", "default").boxed());
+
     // Create file logger but only when running as a service on windows or macos
-    let file_layer = if options.enable_file_log {
+    let worker_guard = if options.enable_file_log {
         let log_dir = service::log_dir();
         let file_appender = tracing_appender::rolling::never(log_dir, service::DEFAULT_LOG_FILE);
         let (file_writer, worker_guard) = tracing_appender::non_blocking(file_appender);
@@ -41,41 +37,21 @@ pub fn setup_logging(options: Options) -> Option<WorkerGuard> {
             .compact()
             .with_writer(file_writer)
             .with_ansi(false);
-        Some((file_layer, worker_guard))
-    } else {
-        None
-    };
-
-    // Create oslog output on macOS for debugging purposes
-    #[cfg(target_os = "macos")]
-    let oslog_layer = OsLogger::new("net.nymtech.vpn.agent", "default");
-
-    #[cfg(target_os = "macos")]
-    let layers = tracing_subscriber::registry().with(oslog_layer);
-    #[cfg(not(target_os = "macos"))]
-    let layers = tracing_subscriber::registry();
-
-    // Finish configuration by adding optional file log, console log and then env filter.
-    let worker_guard = if let Some((file_layer, worker_guard)) = file_layer {
-        let layers = layers.with(file_layer);
-
-        if options.enable_stdout_log {
-            let console_layer = tracing_subscriber::fmt::layer().compact().with_ansi(true);
-            layers.with(console_layer).with(env_filter).init();
-        } else {
-            layers.with(env_filter).init();
-        }
-
+        layers.push(file_layer.boxed());
         Some(worker_guard)
     } else {
-        if options.enable_stdout_log {
-            let console_layer = tracing_subscriber::fmt::layer().compact().with_ansi(true);
-            layers.with(console_layer).with(env_filter).init();
-        } else {
-            layers.with(env_filter).init();
-        }
         None
     };
+
+    if options.enable_stdout_log {
+        let console_layer = tracing_subscriber::fmt::layer().compact().with_ansi(true);
+        layers.push(console_layer.boxed());
+    }
+
+    tracing_subscriber::registry()
+        .with(layers)
+        .with(env_filter)
+        .init();
 
     log_panics::init();
 
