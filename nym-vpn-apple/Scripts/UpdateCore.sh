@@ -101,6 +101,7 @@ fi
 # Copy nym-vpnd to ../Daemon folder and rename it to net.nymtech.vpn.helper
 if [[ -f "${extracted_folder_name}/nym-vpnd" ]]; then
     cp "${extracted_folder_name}/nym-vpnd" "../Daemon/net.nymtech.vpn.helper"
+    chmod +x "../Daemon/net.nymtech.vpn.helper"
     echo "nym-vpnd copied and renamed to net.nymtech.vpn.helper successfully."
 else
     echo "❌ Error: ${extracted_folder_name}/nym-vpnd not found."
