@@ -310,7 +310,10 @@ impl TunnelMonitor {
         }
 
         let status_listener_handle = connected_mixnet
-            .start_event_listener(self.mixnet_event_sender.clone())
+            .start_event_listener(
+                self.mixnet_event_sender.clone(),
+                self.cancel_token.child_token(),
+            )
             .await;
 
         let selected_gateways = connected_mixnet.selected_gateways().clone();

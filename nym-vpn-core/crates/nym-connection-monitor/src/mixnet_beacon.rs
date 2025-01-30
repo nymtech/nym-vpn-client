@@ -45,14 +45,22 @@ impl MixnetConnectionBeacon {
                     break;
                 }
                 _ = ping_interval.tick() => {
-                    let _ping_id = match self.send_mixnet_self_ping().await {
-                        Ok(id) => id,
-                        Err(err) => {
-                            error!("Failed to send mixnet self ping: {err}");
-                            continue;
+                    tokio::select! {
+                        _ = shutdown.recv() => {
+                            trace!("MixnetConnectionBeacon: Received shutdown");
+                            break;
+                        },
+                        ping_result = self.send_mixnet_self_ping() => {
+                            let _ping_id = match ping_result {
+                                Ok(id) => id,
+                                Err(err) => {
+                                    error!("Failed to send mixnet self ping: {err}");
+                                    continue;
+                                }
+                            };
+                            // TODO: store ping_id to be able to monitor or ping timeouts
                         }
                     };
-                    // TODO: store ping_id to be able to monitor or ping timeouts
                 }
             }
         }

@@ -58,6 +58,7 @@ impl ConnectedMixnet {
     pub async fn start_event_listener(
         &mut self,
         event_sender: mpsc::UnboundedSender<MixnetEvent>,
+        cancel_token: CancellationToken,
     ) -> JoinHandle<()> {
         let (status_tx, status_rx) = futures::channel::mpsc::channel(10);
 
@@ -65,7 +66,7 @@ impl ConnectedMixnet {
             .start_status_listener(status_tx, TaskStatus::Ready)
             .await;
 
-        StatusListener::spawn(status_rx, event_sender)
+        StatusListener::spawn(status_rx, event_sender, cancel_token)
     }
 
     /// Creates a tunnel over Mixnet.

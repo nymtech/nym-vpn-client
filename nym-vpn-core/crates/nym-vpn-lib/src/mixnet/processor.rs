@@ -127,9 +127,16 @@ impl MixnetProcessor {
 
                     match message_creator.create_input_message(bundled_packets) {
                         Ok(input_message) => {
-                            let ret = sender.send(input_message).await;
-                            if ret.is_err() && !task_client_mix_processor.is_shutdown_poll() {
-                                error!("Could not forward IP packet to the mixnet. The packet will be dropped.");
+                            tokio::select! {
+                                ret = sender.send(input_message) => {
+                                    if ret.is_err() && !task_client_mix_processor.is_shutdown_poll() {
+                                        error!("Could not forward IP packet to the mixnet. The packet will be dropped.");
+                                    }
+                                }
+                                _ = task_client_mix_processor.recv_with_delay() => {
+                                    trace!("MixnetProcessor: Received shutdown while sending.");
+                                    break;
+                                }
                             }
                         }
                         Err(err) => {
@@ -144,9 +151,16 @@ impl MixnetProcessor {
                     {
                         match message_creator.create_input_message(input_message) {
                             Ok(input_message) => {
-                                let ret = sender.send(input_message).await;
-                                if ret.is_err() && !task_client_mix_processor.is_shutdown_poll() {
-                                    error!("Could not forward IP packet to the mixnet. The packet(s) will be dropped.");
+                                tokio::select! {
+                                    ret = sender.send(input_message) => {
+                                        if ret.is_err() && !task_client_mix_processor.is_shutdown_poll() {
+                                            error!("Could not forward IP packet to the mixnet. The packet(s) will be dropped.");
+                                        }
+                                    }
+                                    _ = task_client_mix_processor.recv_with_delay() => {
+                                        trace!("MixnetProcessor: Received shutdown while sending.");
+                                        break;
+                                    }
                                 }
                             }
                             Err(err) => {
