@@ -4,8 +4,7 @@
     "connected": "接続済",
     "disconnected": "接続解除",
     "connecting": "接続中",
-    "disconnecting": "接続解除中",
-    "unknown": "不明"
+    "disconnecting": "接続解除中"
   },
   "last-hop": "出口ロケーション",
   "first-hop": "エントリーロケーション",

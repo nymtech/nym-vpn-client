@@ -3,8 +3,7 @@
     "connected": "متصل",
     "disconnected": "انقطاع",
     "connecting": "يتصل الآن",
-    "disconnecting": "ينفصل الآن",
-    "unknown": "غير معروف"
+    "disconnecting": "ينفصل الآن"
   },
   "privacy-mode": {
     "title": "مجهول (mixnet)",

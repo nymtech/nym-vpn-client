@@ -1,6 +1,5 @@
 {
   "status": {
-    "unknown": "Desconhecido",
     "connected": "Conectado",
     "disconnected": "Desconectado",
     "connecting": "Conectando",

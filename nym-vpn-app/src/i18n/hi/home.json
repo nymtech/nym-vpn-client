@@ -4,8 +4,7 @@
     "connected": "कनेक्शन सफल हुआ",
     "disconnected": "डिस्कनेक्टेड",
     "connecting": "कनेक्ट हो रहा है",
-    "disconnecting": "डिसकनेक्ट हो रहा है",
-    "unknown": "अज्ञात"
+    "disconnecting": "डिसकनेक्ट हो रहा है"
   },
   "privacy-mode": {
     "title": "अनाम (मिक्सनेट)",

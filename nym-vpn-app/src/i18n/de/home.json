@@ -5,8 +5,7 @@
     "connected": "Verbunden",
     "disconnected": "Getrennt",
     "connecting": "Verbinden",
-    "disconnecting": "Trennen",
-    "unknown": "Unbekannt"
+    "disconnecting": "Trennen"
   },
   "last-hop": "Austrittsregion",
   "first-hop": "Eintrittsregion",

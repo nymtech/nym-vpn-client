@@ -24,8 +24,7 @@
     "connected": "Подключено",
     "disconnected": "Отключено",
     "connecting": "Подключение",
-    "disconnecting": "Отключение",
-    "unknown": "Неизвестно"
+    "disconnecting": "Отключение"
   },
   "last-hop": "Локация выхода",
   "first-hop": "Локация входа",

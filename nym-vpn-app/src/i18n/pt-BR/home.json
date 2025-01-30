@@ -5,8 +5,7 @@
     "connected": "Conectado",
     "disconnected": "Desconectado",
     "connecting": "Conectando",
-    "disconnecting": "Desconectando",
-    "unknown": "Desconhecido"
+    "disconnecting": "Desconectando"
   },
   "last-hop": "Local de saída",
   "first-hop": "Local de entrada",
