@@ -1,11 +1,8 @@
 package net.nymtech.vpn.backend
 
-import net.nymtech.vpn.model.Country
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib.AccountLinks
 import nym_vpn_lib.AccountStateSummary
-import nym_vpn_lib.EntryPoint
-import nym_vpn_lib.Gateway
 import nym_vpn_lib.GatewayType
 import nym_vpn_lib.SystemMessage
 import nym_vpn_lib.UserAgent

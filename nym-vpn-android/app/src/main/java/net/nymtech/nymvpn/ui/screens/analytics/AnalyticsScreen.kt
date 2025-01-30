@@ -200,6 +200,7 @@ fun AnalyticsScreen(appViewModel: AppViewModel, navController: NavController, ap
 // 						height = 80,
 // 					),
 				),
+				background = MaterialTheme.colorScheme.surface,
 			)
 			MainStyledButton(onClick = {
 				appViewModel.setAnalyticsShown()

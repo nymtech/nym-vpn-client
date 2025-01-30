@@ -311,7 +311,7 @@ async fn get_gateways(
 ) -> Result<Vec<Gateway>, VpnError> {
     let directory_config = create_directory_config(min_gateway_performance).await?;
     GatewayClient::new(directory_config, user_agent.into())?
-        .lookup_gateways(g)
+        .lookup_gateways(gw_type.into())
         .await
         .map(|gateways| gateways.into_iter().map(Gateway::from).collect())
         .map_err(VpnError::from)

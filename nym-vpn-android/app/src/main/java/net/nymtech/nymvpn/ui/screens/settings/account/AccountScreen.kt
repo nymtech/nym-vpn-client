@@ -199,6 +199,7 @@ fun AccountScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 							},
 						)
 					},
+					background = MaterialTheme.colorScheme.surface,
 				)
 			}
 		}

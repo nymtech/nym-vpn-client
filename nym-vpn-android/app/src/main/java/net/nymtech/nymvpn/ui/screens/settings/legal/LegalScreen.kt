@@ -97,6 +97,7 @@ fun LegalScreen(appViewModel: AppViewModel) {
 					},
 				),
 			),
+			background = MaterialTheme.colorScheme.surface,
 		)
 	}
 }

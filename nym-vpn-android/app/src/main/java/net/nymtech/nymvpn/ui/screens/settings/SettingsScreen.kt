@@ -143,6 +143,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 						},
 					),
 				),
+				background = MaterialTheme.colorScheme.surface,
 			)
 		}
 		SurfaceSelectionGroupButton(
@@ -189,6 +190,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 					},
 				),
 			),
+			background = MaterialTheme.colorScheme.surface,
 		)
 		SurfaceSelectionGroupButton(
 			mutableListOf(
@@ -255,6 +257,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 					)
 				}
 			},
+			background = MaterialTheme.colorScheme.surface,
 		)
 		SurfaceSelectionGroupButton(
 			listOf(
@@ -322,6 +325,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 // 					},
 // 				),
 			),
+			background = MaterialTheme.colorScheme.surface,
 		)
 		SurfaceSelectionGroupButton(
 			listOf(
@@ -334,6 +338,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 					onClick = { navController.navigate(Route.Legal) },
 				),
 			),
+			background = MaterialTheme.colorScheme.surface,
 		)
 		if (appUiState.managerState.isMnemonicStored) {
 			SurfaceSelectionGroupButton(
@@ -350,6 +355,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 						trailing = {},
 					),
 				),
+				background = MaterialTheme.colorScheme.surface,
 			)
 		}
 		Column(

@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.service.country.CountryCacheService
-import net.nymtech.vpn.model.Country
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib.GatewayType
 import javax.inject.Inject
@@ -46,9 +45,9 @@ constructor(
 	}
 
 	fun onSelected(country: NymGateway, gatewayLocation: GatewayLocation) = viewModelScope.launch {
-//		when (gatewayLocation) {
-//			GatewayLocation.ENTRY -> settingsRepository.setFirstHopCountry(country)
-//			GatewayLocation.EXIT -> settingsRepository.setLastHopCountry(country)
-//		}
+// 		when (gatewayLocation) {
+// 			GatewayLocation.ENTRY -> settingsRepository.setFirstHopCountry(country)
+// 			GatewayLocation.EXIT -> settingsRepository.setLastHopCountry(country)
+// 		}
 	}
 }

@@ -18,7 +18,6 @@ import kotlinx.coroutines.withContext
 import net.nymtech.connectivity.NetworkConnectivityService
 import net.nymtech.connectivity.NetworkStatus
 import net.nymtech.vpn.model.BackendEvent
-import net.nymtech.vpn.model.Country
 import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.util.Constants
 import net.nymtech.vpn.util.Constants.LOG_LEVEL
@@ -32,7 +31,6 @@ import nym_vpn_lib.AccountLinks
 import nym_vpn_lib.AccountStateSummary
 import nym_vpn_lib.AndroidTunProvider
 import nym_vpn_lib.ConnectivityObserver
-import nym_vpn_lib.Gateway
 import nym_vpn_lib.GatewayMinPerformance
 import nym_vpn_lib.GatewayType
 import nym_vpn_lib.SystemMessage
@@ -226,7 +224,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	override suspend fun getGateways(type: GatewayType, userAgent: UserAgent): List<NymGateway> {
 		return withContext(ioDispatcher) {
 			val minPerformance = GatewayMinPerformance(0u, 0u)
-			nym_vpn_lib.getGateways(type, userAgent,minPerformance).map(NymGateway::from)
+			nym_vpn_lib.getGateways(type, userAgent, minPerformance).map(NymGateway::from)
 		}
 	}
 

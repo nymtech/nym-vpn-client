@@ -5,7 +5,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.domain.Gateways
-import net.nymtech.vpn.model.Country
 import net.nymtech.vpn.model.NymGateway
 import timber.log.Timber
 
@@ -20,7 +19,6 @@ class DataStoreGatewayRepository(private val dataStoreManager: DataStoreManager)
 	override suspend fun setEntryCountries(countries: List<NymGateway>) {
 		dataStoreManager.saveToDataStore(ENTRY_COUNTRIES, countries.toString())
 	}
-
 
 	override suspend fun setExitCountries(countries: List<NymGateway>) {
 		dataStoreManager.saveToDataStore(EXIT_COUNTRIES, countries.toString())

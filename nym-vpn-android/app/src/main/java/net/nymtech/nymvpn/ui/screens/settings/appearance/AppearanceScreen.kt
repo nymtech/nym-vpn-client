@@ -76,6 +76,7 @@ fun AppearanceScreen(appViewModel: AppViewModel) {
 					onClick = { navController.navigate(Route.Language) },
 				),
 			),
+			background = MaterialTheme.colorScheme.surface,
 		)
 		SurfaceSelectionGroupButton(
 			listOf(
@@ -96,6 +97,7 @@ fun AppearanceScreen(appViewModel: AppViewModel) {
 					onClick = { navController.navigate(Route.Display) },
 				),
 			),
+			background = MaterialTheme.colorScheme.surface,
 		)
 	}
 }

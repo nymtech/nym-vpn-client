@@ -12,15 +12,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun VerticalDivider(
-	modifier: Modifier = Modifier,
-	color: Color = MaterialTheme.colorScheme.outline,
-	thickness: Dp = 1.dp
-) {
+fun VerticalDivider(modifier: Modifier = Modifier, color: Color = MaterialTheme.colorScheme.outline, thickness: Dp = 1.dp) {
 	Box(
 		modifier = modifier
 			.fillMaxHeight()
 			.width(thickness)
-			.background(color = color)
+			.background(color = color),
 	)
 }

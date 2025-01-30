@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.HorizontalDivider
@@ -31,26 +30,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
 fun ExpandableListButton(leadingIcon: ImageVector, title: @Composable () -> Unit, description: @Composable () -> Unit) {
-
 	val interactionSource = remember { MutableInteractionSource() }
 	var expanded by remember { mutableStateOf(false) }
 
 	val rotationAngle by animateFloatAsState(targetValue = if (expanded) 180f else 0f)
 
-
 	Column {
-		SurfaceSelectionGroupButton(
-			listOf(
-
-			)
-		)
 		Box(
 			contentAlignment = Alignment.Center,
 			modifier =
@@ -59,7 +50,7 @@ fun ExpandableListButton(leadingIcon: ImageVector, title: @Composable () -> Unit
 					interactionSource = interactionSource,
 					indication = null,
 				) {
-					//TODO
+					// TODO
 				}
 				.fillMaxWidth(),
 		) {
@@ -105,12 +96,12 @@ fun ExpandableListButton(leadingIcon: ImageVector, title: @Composable () -> Unit
 						IconButton(
 							onClick = {
 								expanded = !expanded
-							}
+							},
 						) {
 							Icon(
 								imageVector = icon,
 								contentDescription = if (expanded) "Collapse" else "Expand",
-								modifier = Modifier.graphicsLayer(rotationZ = rotationAngle)
+								modifier = Modifier.graphicsLayer(rotationZ = rotationAngle),
 							)
 						}
 					}
@@ -120,9 +111,8 @@ fun ExpandableListButton(leadingIcon: ImageVector, title: @Composable () -> Unit
 		AnimatedVisibility(
 			visible = expanded,
 			enter = expandVertically() + fadeIn(),
-			exit = shrinkVertically() + fadeOut()
+			exit = shrinkVertically() + fadeOut(),
 		) {
-
 		}
 	}
 }

@@ -182,6 +182,7 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMode
 						trailing = null,
 					),
 				),
+				background = MaterialTheme.colorScheme.surface,
 			)
 		}
 		appUiState.managerState.mixnetConnectionState?.let {
@@ -234,6 +235,7 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMode
 						trailing = null,
 					),
 				),
+				background = MaterialTheme.colorScheme.surface,
 			)
 		}
 		SurfaceSelectionGroupButton(
@@ -338,6 +340,7 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMode
 					trailing = null,
 				),
 			),
+			background = MaterialTheme.colorScheme.surface,
 		)
 		SurfaceSelectionGroupButton(
 			listOf(
@@ -421,6 +424,7 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMode
 					},
 				),
 			),
+			background = MaterialTheme.colorScheme.surface,
 		)
 	}
 }

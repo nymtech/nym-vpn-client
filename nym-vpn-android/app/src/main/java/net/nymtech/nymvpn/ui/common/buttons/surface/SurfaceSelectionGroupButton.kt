@@ -17,17 +17,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun SurfaceSelectionGroupButton(items: List<SelectionItem>) {
+fun SurfaceSelectionGroupButton(items: List<SelectionItem>, shape: Shape = RoundedCornerShape(8.dp), background: Color) {
 	val interactionSource = remember { MutableInteractionSource() }
 	Card(
 		modifier = Modifier.fillMaxWidth(),
-		shape = RoundedCornerShape(8.dp),
-		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+		shape = shape,
+		colors = CardDefaults.cardColors(containerColor = background),
 	) {
 		items.mapIndexed { index, it ->
 			Box(
@@ -74,7 +76,7 @@ fun SurfaceSelectionGroupButton(items: List<SelectionItem>) {
 						Box(
 							contentAlignment = Alignment.CenterEnd,
 							modifier = Modifier
-								.padding(end = 24.dp.scaledWidth(), start = 16.dp.scaledWidth())
+								.padding(horizontal = 16.dp.scaledWidth())
 								.weight(1f),
 						) {
 							trailing()

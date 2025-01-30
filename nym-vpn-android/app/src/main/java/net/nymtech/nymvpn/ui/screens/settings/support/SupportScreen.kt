@@ -82,6 +82,7 @@ fun SupportScreen(appViewModel: AppViewModel) {
 					onClick = { context.openWebUrl(context.getString(R.string.faq_url)) },
 				),
 			),
+			background = MaterialTheme.colorScheme.surface,
 		)
 		SurfaceSelectionGroupButton(
 			listOf(
@@ -104,6 +105,7 @@ fun SupportScreen(appViewModel: AppViewModel) {
 					},
 				),
 			),
+			background = MaterialTheme.colorScheme.surface,
 		)
 		SurfaceSelectionGroupButton(
 			listOf(
@@ -128,6 +130,7 @@ fun SupportScreen(appViewModel: AppViewModel) {
 					},
 				),
 			),
+			background = MaterialTheme.colorScheme.surface,
 		)
 		SurfaceSelectionGroupButton(
 			listOf(
@@ -150,6 +153,7 @@ fun SupportScreen(appViewModel: AppViewModel) {
 					},
 				),
 			),
+			background = MaterialTheme.colorScheme.surface,
 		)
 		SurfaceSelectionGroupButton(
 			listOf(
@@ -172,6 +176,7 @@ fun SupportScreen(appViewModel: AppViewModel) {
 					},
 				),
 			),
+			background = MaterialTheme.colorScheme.surface,
 		)
 	}
 }

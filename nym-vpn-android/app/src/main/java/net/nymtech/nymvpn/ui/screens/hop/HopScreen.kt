@@ -8,7 +8,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -30,11 +30,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -55,7 +52,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.os.ConfigurationCompat
@@ -141,10 +137,10 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 		GatewayType.WG -> appUiState.gateways.wgCountries
 	}
 
-//	val selectedCountry = when (gatewayLocation) {
-//		GatewayLocation.EXIT -> appUiState.exitCountry
-//		GatewayLocation.ENTRY -> appUiState.entryCountry
-//	}
+// 	val selectedCountry = when (gatewayLocation) {
+// 		GatewayLocation.EXIT -> appUiState.exitCountry
+// 		GatewayLocation.ENTRY -> appUiState.entryCountry
+// 	}
 
 	val queriedCountries =
 		remember(uiState.queriedCountries) {
@@ -300,7 +296,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 			}
 			items(gateways.distinctBy { it.twoLetterCountryISO }, key = { it.identity }) { country ->
 				val locale = country.twoLetterCountryISO?.let { Locale(it, it) }
-				Column(modifier = Modifier.padding(bottom = 8.dp)){
+				Column(modifier = Modifier.padding(bottom = 8.dp)) {
 					var expanded by remember { mutableStateOf(false) }
 					val rotationAngle by animateFloatAsState(targetValue = if (expanded) 180f else 0f)
 					SurfaceSelectionGroupButton(
@@ -319,104 +315,113 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 										icon.name,
 										modifier =
 										Modifier
-											.padding(horizontal = 24.dp.scaledWidth(), 16.dp.scaledHeight())
 											.size(
 												iconSize,
 											),
 									)
 								},
 								trailing = {
-									Row(horizontalArrangement = Arrangement.spacedBy(16.dp),
+									Row(
+										horizontalArrangement = Arrangement.spacedBy(16.dp),
 										verticalAlignment = Alignment.CenterVertically,
-										modifier = Modifier.fillMaxSize().clickable{
-											expanded = !expanded
-										}){
+									) {
 										VerticalDivider(modifier = Modifier.height(42.dp))
 										val icon = Icons.Filled.ArrowDropDown
 										Icon(
 											imageVector = icon,
 											contentDescription = if (expanded) "Collapse" else "Expand",
-											modifier = Modifier.graphicsLayer(rotationZ = rotationAngle)
+											modifier = Modifier.graphicsLayer(rotationZ = rotationAngle).clickable {
+												expanded = !expanded
+											},
 										)
 									}
 								},
 								title = { Text(locale?.displayCountry ?: "Unknown", style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 								description = {
-									Text(gateways.count { it.twoLetterCountryISO == country.twoLetterCountryISO }.toString() + " servers",
-										style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
+									Text(
+										gateways.count { it.twoLetterCountryISO == country.twoLetterCountryISO }.toString() + " servers",
+										style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
 									)
 								},
-							)
-						)
+							),
+						),
+						shape = RectangleShape,
+						background = MaterialTheme.colorScheme.surface,
 					)
 					AnimatedVisibility(
 						visible = expanded,
 						enter = expandVertically() + fadeIn(),
-						exit = shrinkVertically() + fadeOut()
+						exit = shrinkVertically() + fadeOut(),
 					) {
-						SurfaceSelectionGroupButton(gateways.filter { it.twoLetterCountryISO == country.twoLetterCountryISO }.map { gateway ->
-							SelectionItem(
-								leading = {
-									val icon = ImageVector.vectorResource(R.drawable.bars_3)
-									Image(
-										icon,
-										icon.name,
-										modifier =
-										Modifier
-											.padding(horizontal = 24.dp.scaledWidth(), 16.dp.scaledHeight())
-											.size(
-												iconSize,
-											),
-									)
-								},
-								trailing = {
-									val icon = Icons.Outlined.Info
-									Icon(icon, icon.name, Modifier.size(iconSize))
-								},
-								title = {
-									Text(
-										"Unknown name",
-										maxLines = 1,
-										overflow = TextOverflow.Ellipsis,
-										style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-									)
-								},
-								description = {
-									Text(
-										gateway.identity,
-										maxLines = 1,
-										overflow = TextOverflow.Ellipsis,
-										style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-									)
-								},
-							)
-						})
+						SurfaceSelectionGroupButton(
+							gateways.filter { it.twoLetterCountryISO == country.twoLetterCountryISO }.map { gateway ->
+								SelectionItem(
+									leading = {
+										val icon = ImageVector.vectorResource(R.drawable.bars_3)
+										Image(
+											icon,
+											icon.name,
+											modifier =
+											Modifier.height(16.dp).width(15.dp),
+										)
+									},
+									trailing = {
+										Row(
+											horizontalArrangement = Arrangement.spacedBy(16.dp),
+											verticalAlignment = Alignment.CenterVertically,
+										) {
+											val icon = Icons.Outlined.Info
+											VerticalDivider(modifier = Modifier.height(42.dp))
+											Icon(icon, icon.name, Modifier.size(iconSize))
+										}
+									},
+									title = {
+										Text(
+											"Unknown name",
+											maxLines = 1,
+											overflow = TextOverflow.Ellipsis,
+											style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+										)
+									},
+									description = {
+										Text(
+											gateway.identity,
+											maxLines = 1,
+											overflow = TextOverflow.Ellipsis,
+											style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
+										)
+									},
+								)
+							},
+							shape = RectangleShape,
+							background = MaterialTheme.colorScheme.background,
+						)
 					}
 				}
-//				SelectionItemButton(
-//					{
-//						Image(
-//							icon,
-//							icon.name,
-//							modifier =
-//							Modifier
-//								.padding(horizontal = 24.dp.scaledWidth(), 16.dp.scaledHeight())
-//								.size(
-//									iconSize,
-//								),
-//						)
-//					},
-//					buttonText = locale?.displayName ?: "Unknown",
-//					onClick = {
-//						viewModel.onSelected(gateway, gatewayLocation)
-//						navController.navigateAndForget(Route.Main())
-//					},
-//					trailing = {
-////						if (it.isoCode == selectedCountry.isoCode && !selectedCountry.isLowLatency) {
-////							SelectedLabel()
-////						}
-//					},
-//				)
+// 				SelectionItemButton(
+// 					{
+// 						Image(
+// 							icon,
+// 							icon.name,
+// 							modifier =
+// 							Modifier
+// 								.padding(horizontal = 24.dp.scaledWidth(), 16.dp.scaledHeight())
+// 								.size(
+// 									iconSize,
+// 								),
+// 						)
+// 					},
+// 					buttonText = locale?.displayName ?: "Unknown",
+// 					onClick = {
+// 						viewModel.onSelected(gateway, gatewayLocation)
+// 						navController.navigateAndForget(Route.Main())
+// 					},
+// 					trailing = {
+// //						if (it.isoCode == selectedCountry.isoCode && !selectedCountry.isLowLatency) {
+// //							SelectedLabel()
+// //						}
+// 					},
+// 				)
 			}
 		}
 	}

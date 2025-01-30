@@ -8,16 +8,15 @@ import nym_vpn_lib.Gateway
 import nym_vpn_lib.NodeIdentity
 import nym_vpn_lib.Percent
 
-
 @Serializable
 data class NymGateway(
 	val identity: NodeIdentity,
 	val twoLetterCountryISO: String?,
 	val mixnetPerformance: Percent?,
-	val probeResult: ProbeResult?
+	val probeResult: ProbeResult?,
 ) {
 	companion object {
-		fun from(gateway: Gateway) : NymGateway {
+		fun from(gateway: Gateway): NymGateway {
 			return NymGateway(
 				identity = gateway.identity,
 				twoLetterCountryISO = gateway.location?.twoLetterIsoCountryCode?.lowercase(),
@@ -38,11 +37,11 @@ data class NymGateway(
 								canHandshake = it.canHandshake,
 								canResolveDns = it.canResolveDns,
 								pingHostsPerformance = it.pingHostsPerformance,
-								pingIpsPerformance = it.pingHostsPerformance
+								pingIpsPerformance = it.pingHostsPerformance,
 							)
-						}
+						},
 					)
-				}
+				},
 			)
 		}
 
@@ -55,7 +54,6 @@ data class NymGateway(
 				Json.decodeFromString<List<NymGateway>>(it)
 			} ?: emptyList()
 		}
-
 	}
 	override fun toString(): String {
 		return Json.encodeToString(serializer(), this)
@@ -83,7 +81,7 @@ data class NymGateway(
 }
 
 @Serializable
-data class ProbeResult (
+data class ProbeResult(
 	val lastUpdatedUtc: String?,
 	val entryCanConnect: Boolean?,
 	val entryCanRoute: Boolean,
@@ -92,14 +90,14 @@ data class ProbeResult (
 	val exitCanRouteIpExternalV4: Boolean?,
 	var exitCanRouteIpV6: Boolean?,
 	var exitCanRouteIpExternalV6: Boolean?,
-	var wgProbeResult: WgProbeResult?
+	var wgProbeResult: WgProbeResult?,
 )
 
 @Serializable
-data class WgProbeResult (
+data class WgProbeResult(
 	val canRegister: Boolean,
 	var canHandshake: Boolean,
 	var canResolveDns: Boolean,
 	var pingHostsPerformance: Float,
-	var pingIpsPerformance: Float
+	var pingIpsPerformance: Float,
 )

@@ -163,12 +163,15 @@ constructor(
 			countryCacheService.updateEntryGatewayCache()
 		}
 		launch {
-			backend.getGateways(GatewayType.WG, UserAgent(
-				Constants.APP_PROJECT_NAME,
-				BuildConfig.VERSION_NAME,
-				"${Build.VERSION.SDK_INT}; ${NymVpn.getCPUArchitecture()}; ${BuildConfig.FLAVOR}",
-				BuildConfig.COMMIT_HASH,
-			))
+			backend.getGateways(
+				GatewayType.WG,
+				UserAgent(
+					Constants.APP_PROJECT_NAME,
+					BuildConfig.VERSION_NAME,
+					"${Build.VERSION.SDK_INT}; ${NymVpn.getCPUArchitecture()}; ${BuildConfig.FLAVOR}",
+					BuildConfig.COMMIT_HASH,
+				),
+			)
 		}
 		launch {
 			Timber.d("Checking for system messages")
