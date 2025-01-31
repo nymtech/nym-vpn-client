@@ -25,5 +25,17 @@
   },
   "zknym": {
     "request-failed": "zk-nym talebi başarısız oldu"
+  },
+  "tunnel": {
+    "internal": "Dahili hata",
+    "firewall": "Güvenlik duvarı hatası",
+    "routing": "Yönlendirme hatası",
+    "dns": "DNS hatası",
+    "tun-device": "Cihaz hatası",
+    "provider": "Sağlayıcı hatası",
+    "invalid-entry-gw-country": "Geçersiz giriş node'u ülkesi, lütfen giriş node'u konumunu değiştirin",
+    "invalid-exit-gw-country": "Geçersiz çıkış node'u ülkesi, lütfen çıkış node'u konumunu değiştirin",
+    "bad-bandwidth-increase": "Bant genişliği artışı hatası",
+    "same-entry-exit-gw": "Aynı giriş ve çıkış node'u ile bağlanılamaz. Lütfen giriş veya çıkış node'unun konumunu değiştirin."
   }
 }
