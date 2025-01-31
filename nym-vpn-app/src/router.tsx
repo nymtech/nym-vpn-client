@@ -45,7 +45,7 @@ export const routes = {
 } as const;
 
 // Even if Sentry is not instantiated, wrapping the router seems OK
-const createRouterFn = Sentry.wrapCreateBrowserRouter(createBrowserRouter);
+const createRouterFn = Sentry.wrapCreateBrowserRouterV7(createBrowserRouter);
 
 // ⚠ router instance creation must remain outside of React
 // tree with routes statically defined

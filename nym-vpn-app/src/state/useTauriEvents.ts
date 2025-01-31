@@ -21,8 +21,8 @@ import {
   TunnelStateEvent,
 } from '../constants';
 import { Notification } from '../contexts';
-import { daemonStatusUpdate } from './helper';
 import { MCache } from '../cache';
+import { daemonStatusUpdate } from './helper';
 import { tunnelUpdate } from './tunnelUpdate';
 
 export function useTauriEvents(

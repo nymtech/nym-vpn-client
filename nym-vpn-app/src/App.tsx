@@ -1,15 +1,18 @@
 import { invoke } from '@tauri-apps/api/core';
 import { Suspense, useEffect } from 'react';
-import { RouterProvider } from 'react-router/dom';
+import { RouterProvider } from 'react-router';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { useTranslation } from 'react-i18next';
-import { DialogProvider, InAppNotificationProvider } from './contexts';
+import {
+  DialogProvider,
+  InAppNotificationProvider,
+  MainStateProvider,
+} from './contexts';
 import { useLang } from './hooks';
 import { LngTag } from './i18n';
 import { kvGet } from './kvStore';
 import router from './router';
-import { MainStateProvider } from './contexts';
 import './i18n/config';
 import { Cli } from './types';
 import { RouteLoading, ThemeSetter } from './ui';

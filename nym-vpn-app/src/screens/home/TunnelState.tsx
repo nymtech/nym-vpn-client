@@ -4,9 +4,9 @@ import { motion } from 'motion/react';
 import { useMainState } from '../../contexts';
 import { setToString } from '../../util';
 import { useI18nError } from '../../hooks';
+import { AppError } from '../../types';
 import ConnectionBadge from './ConnectionBadge';
 import ConnectionTimer from './ConnectionTimer';
-import { AppError } from '../../types';
 
 function TunnelState() {
   const state = useMainState();

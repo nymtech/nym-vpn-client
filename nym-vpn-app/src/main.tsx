@@ -22,7 +22,7 @@ import 'dayjs/locale/es';
 import 'dayjs/locale/fr';
 import 'dayjs/locale/hi';
 import 'dayjs/locale/it';
-import 'dayjs/locale/pt-br.js';
+import 'dayjs/locale/pt-br';
 import 'dayjs/locale/ru';
 import 'dayjs/locale/tr';
 import 'dayjs/locale/uk';

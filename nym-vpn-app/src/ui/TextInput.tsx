@@ -4,7 +4,7 @@ import { Field, Input, Label } from '@headlessui/react';
 import { inputStates } from './common-styles';
 import MsIcon from './MsIcon';
 
-type TextInputProps = {
+export type TextInputProps = {
   value: string;
   onChange: (value: string) => void;
   label?: string;

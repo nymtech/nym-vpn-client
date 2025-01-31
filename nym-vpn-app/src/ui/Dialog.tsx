@@ -7,7 +7,7 @@ import {
 } from '@headlessui/react';
 import { useMainState } from '../contexts';
 
-type DialogProps = {
+export type DialogProps = {
   open: boolean;
   onClose: () => void;
   children?: ReactNode;

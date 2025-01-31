@@ -4,13 +4,13 @@ import { emit } from '@tauri-apps/api/event';
 import {
   AccountLinks,
   Cli,
+  Country,
   DbKey,
   Tunnel,
   TunnelData,
   VpndStatus,
 } from '../types';
 import { TunnelStateEvent } from '../constants';
-import { Country } from '../types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MockIpcFn = (cmd: string, payload?: InvokeArgs) => Promise<any>;

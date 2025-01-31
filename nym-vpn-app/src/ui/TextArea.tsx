@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import { Field, Label, Textarea } from '@headlessui/react';
 import { inputStates } from './common-styles';
 
-type TextAreaProps = {
+export type TextAreaProps = {
   value: string;
   onChange: (value: string) => void;
   label?: string;

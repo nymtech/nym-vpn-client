@@ -4,10 +4,7 @@ import tseslint from 'typescript-eslint';
 import reactPlugin from 'eslint-plugin-react';
 import hooksPlugin from 'eslint-plugin-react-hooks';
 import prettierConfig from 'eslint-config-prettier';
-
-// TODO add these plugins once support for ESLint 9 is added
-// - react-plugin-import https://github.com/import-js/eslint-plugin-import/pull/3018
-// - eslint-plugin-deprecation https://github.com/gund/eslint-plugin-deprecation/pull/79
+import importPlugin from 'eslint-plugin-import';
 
 export default [
   {
@@ -17,6 +14,8 @@ export default [
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
+  importPlugin.flatConfigs.recommended,
+  importPlugin.flatConfigs.typescript,
   {
     languageOptions: {
       parserOptions: {
@@ -60,6 +59,7 @@ export default [
       'react/react-in-jsx-scope': 0,
       '@typescript-eslint/no-floating-promises': 0,
       '@typescript-eslint/prefer-nullish-coalescing': 0,
+      '@typescript-eslint/no-deprecated': 'warn',
       // disable this rule as it produces false positives with i18next `t` function
       '@typescript-eslint/restrict-template-expressions': 0,
       '@typescript-eslint/use-unknown-in-catch-callback-variable': 'error',
@@ -70,20 +70,19 @@ export default [
           checksVoidReturn: false,
         },
       ],
-      // TODO enable these rules once ESLint 9 ready
-      // 'import/first': 'error',
-      // 'import/order': [
-      //   'error',
-      //   {
-      //     groups: ['builtin', 'external', 'parent', 'sibling', 'index'],
-      //   },
-      // ],
-      // 'import/extensions': [
-      //   'error',
-      //   'never',
-      //   { json: 'always', svg: 'always' },
-      // ],
-      // 'deprecation/deprecation': 'warn',
+      'import/first': 'error',
+      'import/order': [
+        'error',
+        {
+          groups: ['builtin', 'external', 'parent', 'sibling', 'index'],
+        },
+      ],
+      'import/extensions': [
+        'error',
+        'never',
+        { json: 'always', svg: 'always' },
+      ],
+      'import/no-named-as-default-member': 0,
     },
   },
   prettierConfig,

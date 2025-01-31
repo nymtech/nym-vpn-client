@@ -10,10 +10,10 @@ import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
 import { useExit } from '../../state';
 import { StateDispatch } from '../../types';
 import { Button, MsIcon, PageAnim, SettingsMenuCard, Switch } from '../../ui';
+import { capFirst } from '../../util';
 import { InfoData } from './info-data';
 import SettingsGroup from './SettingsGroup';
 import Logout from './Logout';
-import { capFirst } from '../../util';
 
 const ThrottleDelay = 10000; // ms
 

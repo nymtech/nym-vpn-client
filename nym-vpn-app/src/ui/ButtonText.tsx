@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import clsx from 'clsx';
 import { Button as HuButton } from '@headlessui/react';
 
-type ButtonTextProps = {
+export type ButtonTextProps = {
   children: ReactNode;
   onClick?: () => void;
   onDoubleClick?: () => void;

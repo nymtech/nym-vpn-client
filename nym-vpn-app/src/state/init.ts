@@ -23,11 +23,11 @@ import {
   VpnMode,
   VpndStatus,
 } from '../types';
-import { TauriReq, daemonStatusUpdate, fireRequests } from './helper';
 import { S_STATE } from '../static';
 import { MCache } from '../cache';
 import { Notification } from '../contexts';
 import { tunnelUpdate } from './tunnelUpdate';
+import { TauriReq, daemonStatusUpdate, fireRequests } from './helper';
 
 // initialize connection state
 const getInitialTunnelState = async () => {

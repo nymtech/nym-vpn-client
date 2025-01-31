@@ -4,7 +4,7 @@ import clsx from 'clsx';
 import { Button as HuButton } from '@headlessui/react';
 import { MsIcon } from './index';
 
-type ButtonIconProps = {
+export type ButtonIconProps = {
   icon: string;
   onClick: () => void;
   disabled?: boolean;

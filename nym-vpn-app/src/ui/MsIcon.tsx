@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 
-type MsIconProps = {
+export type MsIconProps = {
   // icon name
   icon: string;
   className?: string;

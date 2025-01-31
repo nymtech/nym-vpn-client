@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import { Button as HuButton } from '@headlessui/react';
 import { type } from '@tauri-apps/plugin-os';
 
-type ButtonProps = {
+export type ButtonProps = {
   children: ReactNode;
   onClick: () => void;
   disabled?: boolean;

@@ -9,8 +9,8 @@ import { RadioGroup, RadioGroupOption } from '../../ui';
 import { useThrottle } from '../../hooks';
 import { HomeThrottleDelay } from '../../constants';
 import MsIcon from '../../ui/MsIcon';
-import ModeDetailsDialog from './ModeDetailsDialog';
 import { S_STATE } from '../../static';
+import ModeDetailsDialog from './ModeDetailsDialog';
 
 function NetworkModeSelect() {
   const state = useMainState();
