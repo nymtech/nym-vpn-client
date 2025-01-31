@@ -67,6 +67,7 @@ export function useTauriEvents(
     return listen<TunnelStatePayload>(TunnelStateEvent, (event) => {
       tunnelUpdate(event.payload.state, dispatch);
       if (event.payload.error) {
+        console.log('tunnel error', event.payload.error);
         dispatch({
           type: 'set-error',
           error: event.payload.error,
