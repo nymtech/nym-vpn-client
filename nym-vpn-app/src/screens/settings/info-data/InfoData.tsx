@@ -51,7 +51,7 @@ function InfoData() {
         <div className={clsx('flex flex-row flex-nowrap gap-1')}>
           <p className="text-nowrap">{t('info.client-version')}</p>
           <ButtonText
-            onClick={() => copy(version || '', S_STATE.devMode && false)}
+            onClick={() => copy(version || '', !S_STATE.devMode)}
             onDoubleClick={() => S_STATE.devMode && navigate(routes.dev)}
             truncate
           >
