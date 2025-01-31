@@ -1,7 +1,9 @@
 {
   "vpn-tunnel-state": {
     "connected": "VPN tüneli bağlandı",
-    "disconnected": "NymVPN bağlantısı kesildi. Gizliliğinizi korumak için lütfen yeniden bağlanın."
+    "disconnected": "NymVPN bağlantısı kesildi. Gizliliğinizi korumak için lütfen yeniden bağlanın.",
+    "error": "VPN tüneli başarısız oldu: bir hata oluştu",
+    "offline": "PC çevrimdışı. Lütfen internet bağlantınızı kontrol edin."
   },
   "logout": {
     "success": "Oturum kapatma başarılı",
