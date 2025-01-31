@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@headlessui/react": "^2.1.2",
-    "@mui/base": "^5.0.0-beta.69",
+    "@mui/base": "5.0.0-beta.69",
     "@radix-ui/react-slider": "^1.2.2",
     "@sentry/react": "^8.22.0",
     "@tauri-apps/api": "^2.2.0",

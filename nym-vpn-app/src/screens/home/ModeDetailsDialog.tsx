@@ -53,7 +53,7 @@ function ModeDetailsDialog({ isOpen, onClose }: Props) {
         icon
       />
       <Button onClick={onClose} className="mt-2">
-        <span className="text-base text-black dark:text-baltic-sea">
+        <span className="text-lg text-black dark:text-baltic-sea">
           {capFirst(t('ok', { ns: 'glossary' }))}
         </span>
       </Button>
